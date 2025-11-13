@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WAG Multi-Channel Viewer</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --bg: #0e0e0e;
+      --panel: #151515;
+      --panel-dark: #0a0a0a;
+      --border: #2b2b2b;
+      --text: #e8e8e8;
+      --text-muted: #888;
+      --accent: #2cc2ff;
+      --accent-glow: rgba(44, 194, 255, 0.3);
+      --transition: cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow: hidden;
+      height: 100vh;
+    }
+    
+    #app { display: grid; grid-template-columns: 320px 1fr; height: 100vh; }
+    
+    #sidebar {
+      background: var(--panel);
+      border-right: 1px solid var(--border);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      overflow-y: auto;
+    }
+    
+    #sidebar h1 { font-size: 20px; color: var(--accent); }
+    #tagline { font-size: 13px; color: var(--text-muted); line-height: 1.4; }
+    #search { padding: 10px; border-radius: 4px; border: 1px solid var(--border); background: var(--bg); color: var(--text); }
+    #stats { font-size: 12px; color: var(--text-muted); }
+    
+    #model-list { display: flex; flex-direction: column; gap: 8px; }
+    .model-item {
+      padding: 10px;
+      border-radius: 6px;
+      background: var(--panel-dark);
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: border 0.2s;
+    }
+    .model-item:hover { border-color: var(--accent); }
+    .model-item.active { border-color: var(--accent); background: #11202a; }
+    .model-title { font-weight: 600; font-size: 14px; }
+    .model-meta { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+    
+    .scroll-container {
+      display: flex;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scroll-behavior: smooth;
+    }
+    
+    .channel-column {
+      flex: 0 0 min(100vw, 480px);
+      height: 100vh;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      scroll-snap-align: start;
+    }
+    
+    .channel-head {
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+      background: var(--panel);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .channel-title { font-weight: 700; color: var(--accent); }
+    
+    .channel-actions { display: flex; gap: 8px; }
+    .channel-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--panel-dark);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s var(--transition);
+    }
+    .channel-btn:hover { background: var(--accent); color: var(--bg); }
+    
+    .lego-viewport { flex: 1; position: relative; background: #050505; }
+    .lego-viewport canvas { width: 100%; height: 100%; display: block; }
+    
+    .controls {
+      position: absolute;
+      left: 20px;
+      bottom: 20px;
+      background: rgba(0, 0, 0, 0.75);
+      border: 1px solid var(--accent);
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .control-row { display: flex; gap: 6px; flex-wrap: wrap; }
+    .controls button {
+      background: var(--accent);
+      color: var(--bg);
+      border: none;
+      padding: 8px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+    .controls button:hover { background: #28b3f5; }
+    .toggle-button.active { background: #2cc2ff; }
+    
+    .info-panel {
+      position: absolute;
+      right: 20px;
+      top: 20px;
+      width: 260px;
+      padding: 15px;
+      border-radius: 10px;
+      background: rgba(0, 0, 0, 0.8);
+      border: 1px solid var(--accent);
+      backdrop-filter: blur(8px);
+      display: none;
+    }
+    .info-panel.visible { display: block; }
+    .info-panel h2 { font-size: 16px; margin-bottom: 10px; color: var(--accent); }
+    .info-row { font-size: 12px; margin-bottom: 6px; }
+    .label { color: var(--text-muted); display: inline-block; width: 70px; }
+    
+    .corner-btn {
+      position: fixed;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      cursor: pointer;
+      transition: all 0.2s var(--transition);
+    }
+    .corner-btn:hover { background: var(--accent); color: var(--bg); transform: scale(1.05); }
+    .corner-btn.top-right { top: 16px; right: 16px; }
+    .corner-btn.bottom-right { bottom: 16px; right: 16px; }
+    
+    .empty-state { font-size: 13px; color: var(--text-muted); margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <aside id="sidebar">
+      <div>
+        <h1>🧱 WAG Multi-Channel</h1>
+        <div id="tagline">Load different LEGO models in each viewport channel.</div>
+      </div>
+      <input type="text" id="search" placeholder="Search models...">
+      <div id="stats">Loading...</div>
+      <div id="model-list"></div>
+    </aside>
+    
+    <section>
+      <button class="corner-btn top-right" id="cornerAdd" title="Add Channel">＋</button>
+      <button class="corner-btn bottom-right" id="cornerHelp" title="Help">?</button>
+      
+      <div class="scroll-container" id="channelScroller"></div>
+    </section>
+  </div>
+  
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script>
+    const APP = {
+      channels: new Map(),
+      models: [],
+      filtered: [],
+      nextId: 1
+    };
+    
+    async function init() {
+      console.log('🚀 WAG Multi-Channel Viewer');
+      await loadManifest();
+      setupUI();
+      createChannel();
+    }
+    
+    async function loadManifest() {
+      try {
+        const res = await fetch('./root-models-manifest.json');
+        if (!res.ok) throw new Error('No manifest');
+        const data = await res.json();
+        APP.models = (data.files || []).filter(f => 
+          (f.filename || '').toLowerCase().includes('ai') || 
+          (f.filename || '').endsWith('.mpd')
+        ).sort((a, b) => (a.filename || '').localeCompare(b.filename || ''));
+        APP.filtered = [...APP.models];
+        renderModelList();
+        updateStats();
+        console.log(`📦 ${APP.models.length} models`);
+      } catch (err) {
+        console.warn('No manifest:', err);
+        document.getElementById('stats').textContent = 'No catalog';
+      }
+    }
+    
+    function setupUI() {
+      document.getElementById('search').oninput = e => filterModels(e.target.value);
+      document.getElementById('cornerAdd').onclick = () => createChannel();
+      document.getElementById('cornerHelp').onclick = showHelp;
+    }
+    
+    function filterModels(q) {
+      q = q.trim().toLowerCase();
+      APP.filtered = q ? APP.models.filter(m => 
+        `${m.filename} ${m.name || ''}`.toLowerCase().includes(q)
+      ) : [...APP.models];
+      renderModelList();
+      updateStats(q);
+    }
+    
+    function renderModelList() {
+      const list = document.getElementById('model-list');
+      list.innerHTML = '';
+      if (!APP.filtered.length) {
+        list.innerHTML = '<div class="empty-state">No matches</div>';
+        return;
+      }
+      APP.filtered.forEach(m => {
+        const div = document.createElement('div');
+        div.className = 'model-item';
+        div.innerHTML = `<div class="model-title">${m.name || m.filename}</div>
+          <div class="model-meta">${m.filename}</div>`;
+        div.onclick = () => {
+          document.querySelectorAll('.model-item').forEach(el => el.classList.remove('active'));
+          div.classList.add('active');
+          loadInCurrentChannel(m);
+        };
+        list.appendChild(div);
+      });
+    }
+    
+    function updateStats(q = '') {
+      const el = document.getElementById('stats');
+      if (!APP.models.length) el.textContent = 'No models';
+      else if (q) el.textContent = `${APP.filtered.length}/${APP.models.length} match`;
+      else el.textContent = `${APP.models.length} models`;
+    }
+    
+    function createChannel() {
+      const id = `ch${APP.nextId++}`;
+      const ch = {
+        id,
+        scene: new THREE.Scene(),
+        camera: new THREE.PerspectiveCamera(45, 1, 0.1, 1000),
+        renderer: null,
+        controls: null,
+        group: null
+      };
+      
+      ch.camera.position.set(10, 10, 10);
+      ch.scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+      const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+      dirLight.position.set(5, 10, 5);
+      ch.scene.add(dirLight);
+      
+      const grid = new THREE.GridHelper(20, 20, 0x444444, 0x222222);
+      ch.scene.add(grid);
+      
+      APP.channels.set(id, ch);
+      renderChannel(ch);
+      console.log(`📺 Channel ${id}`);
+    }
+    
+    function renderChannel(ch) {
+      const scroller = document.getElementById('channelScroller');
+      const col = document.createElement('div');
+      col.className = 'channel-column';
+      col.innerHTML = `
+        <div class="channel-head">
+          <div class="channel-title">${ch.id.toUpperCase()}</div>
+          <div class="channel-actions">
+            <button class="channel-btn" onclick="deleteChannel('${ch.id}')">×</button>
+          </div>
+        </div>
+        <div class="lego-viewport">
+          <canvas id="canvas-${ch.id}"></canvas>
+          <div class="info-panel" id="info-${ch.id}">
+            <h2>Ready</h2>
+            <div class="info-row"><span class="label">Status</span>Awaiting model</div>
+          </div>
+          <div class="controls">
+            <div class="control-row">
+              <button onclick="resetCamera('${ch.id}')">Reset View</button>
+              <button onclick="toggleWireframe('${ch.id}')" class="toggle-button">Wireframe</button>
+            </div>
+          </div>
+        </div>
+      `;
+      scroller.appendChild(col);
+      
+      const canvas = document.getElementById(`canvas-${ch.id}`);
+      ch.renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+      ch.renderer.setPixelRatio(window.devicePixelRatio);
+      ch.renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+      
+      ch.controls = new THREE.OrbitControls(ch.camera, canvas);
+      ch.controls.enableDamping = true;
+      
+      function animate() {
+        requestAnimationFrame(animate);
+        ch.controls.update();
+        ch.renderer.render(ch.scene, ch.camera);
+      }
+      animate();
+      
+      new ResizeObserver(() => {
+        const w = canvas.clientWidth;
+        const h = canvas.clientHeight;
+        ch.camera.aspect = w / h;
+        ch.camera.updateProjectionMatrix();
+        ch.renderer.setSize(w, h);
+      }).observe(canvas);
+    }
+    
+    function loadInCurrentChannel(model) {
+      const ch = Array.from(APP.channels.values())[0];
+      if (!ch) return;
+      console.log(`📥 Loading ${model.filename} in ${ch.id}`);
+      const info = document.getElementById(`info-${ch.id}`);
+      info.classList.add('visible');
+      info.querySelector('h2').textContent = model.name || model.filename;
+      info.querySelector('.info-row').innerHTML = `<span class="label">File</span>${model.filename}`;
+      
+      if (ch.group) ch.scene.remove(ch.group);
+      ch.group = new THREE.Group();
+      const geo = new THREE.BoxGeometry(2, 2, 2);
+      const mat = new THREE.MeshStandardMaterial({ color: 0x2cc2ff });
+      const mesh = new THREE.Mesh(geo, mat);
+      ch.group.add(mesh);
+      ch.scene.add(ch.group);
+    }
+    
+    function deleteChannel(id) {
+      const ch = APP.channels.get(id);
+      if (!ch) return;
+      ch.renderer.dispose();
+      APP.channels.delete(id);
+      document.querySelector(`[class*="${id}"]`)?.remove();
+      console.log(`🗑️ Deleted ${id}`);
+    }
+    
+    function resetCamera(id) {
+      const ch = APP.channels.get(id);
+      if (!ch) return;
+      ch.camera.position.set(10, 10, 10);
+      ch.controls.target.set(0, 0, 0);
+      ch.controls.update();
+    }
+    
+    function toggleWireframe(id) {
+      const ch = APP.channels.get(id);
+      if (!ch || !ch.group) return;
+      ch.group.traverse(obj => {
+        if (obj.material) obj.material.wireframe = !obj.material.wireframe;
+      });
+    }
+    
+    function showHelp() {
+      alert('WAG Multi-Channel Viewer\n\n• Click models in sidebar to load\n• Add channels with + button\n• Each channel is independent\n• Drag to rotate, scroll to zoom');
+    }
+    
+    init();
+  </script>
+</body>
+</html>

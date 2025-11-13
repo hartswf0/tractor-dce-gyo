@@ -1,0 +1,3889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GARDEN UPRISING - Engineer's Square</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  :root {
+    --bg-main: #000;
+    --bg-secondary: #111;
+    --bg-tertiary: #1a1a1a;
+    --text-primary: #d0d0d0;
+    --text-secondary: #888;
+    --text-tertiary: #444;
+    --border-primary: #333;
+    --border-secondary: #222;
+    --accent: #6af;
+  }
+  :root[data-theme="light"] {
+    --bg-main: #f5f5f5;
+    --bg-secondary: #e5e5e5;
+    --bg-tertiary: #d5d5d5;
+    --text-primary: #222;
+    --text-secondary: #666;
+    --text-tertiary: #999;
+    --border-primary: #ccc;
+    --border-secondary: #ddd;
+    --accent: #0066cc;
+    --btn-bg: #c8c0b8;
+    --btn-hover: #b8b0a8;
+  }
+  :root[data-theme="dark"] {
+    --btn-bg: #2a2a2a;
+    --btn-hover: #333;
+  }
+  :root[data-theme="terminal"] {
+    --btn-bg: #002200;
+    --btn-hover: #003300;
+  }
+  :root[data-theme="terminal"] {
+    --bg-main: #000;
+    --bg-secondary: #001100;
+    --bg-tertiary: #002200;
+    --text-primary: #0f0;
+    --text-secondary: #0a0;
+    --text-tertiary: #050;
+    --border-primary: #0a0;
+    --border-secondary: #050;
+    --accent: #0f0;
+  }
+  body {
+    margin: 0;
+    background: var(--bg-main);
+    color: var(--text-primary);
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: background 300ms, color 300ms;
+  }
+
+  /* ===== 3D LEGO VIEWER (Three.js) ===== */
+  #viewer-3d {
+    width: 100%;
+    height: 100%;
+    display: block;
+    background: var(--bg-main);
+    transition: background 300ms;
+  }
+
+  /* ===== HEADER: OS Controls ===== */
+  #header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 44px;
+    background: linear-gradient(180deg, var(--bg-tertiary) 0%, var(--bg-secondary) 100%);
+    border-bottom: 1px solid var(--border-primary);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.05), inset 0 1px 0 rgba(255,255,255,0.03);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 12px;
+    z-index: 1000;
+    transition: background 300ms, border-color 300ms;
+  }
+  .corner-btn {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--btn-bg);
+    border: 1px solid var(--border-primary);
+    color: var(--text-secondary);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 700;
+    cursor: pointer;
+    transition: all 200ms;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.1);
+  }
+  .corner-btn:hover {
+    background: var(--btn-hover);
+    color: var(--text-primary);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.15);
+  }
+  .corner-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2), inset 0 1px 2px rgba(0,0,0,0.2);
+  }
+  #header-center {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex: 1;
+    justify-content: center;
+    max-width: 600px;
+  }
+  #viewer-btn {
+    margin-left: 12px;
+    padding-left: 12px;
+    border-left: 1px solid var(--border-primary);
+  }
+  .undo-redo-group {
+    display: flex;
+    gap: 4px;
+    margin-right: 8px;
+    padding-right: 8px;
+    border-right: 1px solid #333;
+  }
+  .mode-btn {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--btn-bg);
+    border: 1px solid var(--border-primary);
+    color: var(--text-secondary);
+    font-size: 16px; font-weight: 400;
+    cursor: pointer;
+    transition: all 200ms;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.1);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .mode-btn:hover {
+    background: var(--btn-hover);
+    color: var(--text-primary);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.15);
+  }
+  .mode-btn.active {
+    background: var(--accent);
+    color: var(--bg-main);
+    border-color: var(--accent);
+    box-shadow: 0 0 12px rgba(102,170,255,0.4);
+  }
+  .mode-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2), inset 0 1px 2px rgba(0,0,0,0.2);
+  }
+  /* Tooltips */
+  [title] { position: relative; }
+  [title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-bottom: 8px;
+    padding: 4px 8px;
+    background: #1a1a1a;
+    border: 1px solid #444;
+    border-radius: 3px;
+    font-size: 10px;
+    color: #aaa;
+    white-space: nowrap;
+    z-index: 10000;
+    pointer-events: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  }
+  
+  /* ===== GROUP & LOCK INDICATORS ===== */
+  .group-indicator {
+    position: absolute; left: 56px; top: 50%; transform: translateY(-50%);
+    width: 10px; height: 10px; border-radius: 2px;
+    border: 1px solid #666; opacity: 0;
+    transition: opacity 150ms;
+  }
+  .line-container.grouped .group-indicator { opacity: 0.6; }
+  .line-container.grouped:hover .group-indicator { opacity: 1; }
+  .lock-indicator {
+    position: absolute; left: 69px; top: 50%; transform: translateY(-50%);
+    font-size: 10px; color: #f80; opacity: 0;
+    text-shadow: 0 0 3px rgba(255,136,0,0.6);
+    transition: opacity 150ms; pointer-events: none;
+  }
+  .line-container.locked .lock-indicator { opacity: 0.7; }
+  .line-container.locked:hover .lock-indicator { opacity: 1; }
+  .line-container.locked { background: rgba(255,136,0,0.03); }
+  
+  /* ===== COLOR DOT - REMOVED FROM CONTENT, NOW IN MINIMAP ===== */
+
+  /* ===== CONTENT: Scrollable Editor ===== */
+  #content {
+    flex: 1;
+    margin-top: 44px;
+    margin-bottom: 40px;
+    overflow: auto;
+    padding-left: 20px; /* Minimap space */
+    transition: margin-top 300ms ease-out;
+  }
+  /* Hide scrollbar - minimap is the scroll control */
+  #content::-webkit-scrollbar { display: none; }
+  #content { -ms-overflow-style: none; scrollbar-width: none; }
+
+  /* ===== NANO MINIMAP (Engineer's Square) ===== */
+  #minimap {
+    position: fixed;
+    left: 0; top: 44px; bottom: 40px;
+    width: 20px;
+    background: #000;
+    border-right: 1px solid var(--border-primary);
+    z-index: 999;
+    cursor: pointer;
+    overflow: hidden;
+    transition: top 300ms ease-out;
+  }
+  #minimap-content {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: grid;
+    grid-template-rows: repeat(81, 1fr); /* 81 blocks */
+    gap: 0;
+  }
+  /* Overlays to show viewer/chat footprints */
+  #minimap-overlays {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    z-index: 10;
+  }
+  .minimap-overlay {
+    position: absolute;
+    left: 0; right: 0;
+    display: flex;
+    align-items: center; justify-content: center;
+    font-size: 10px;
+    color: var(--text-tertiary);
+    background: rgba(102,170,255,0.12);
+    border: 1px solid rgba(102,170,255,0.35);
+    box-shadow: inset 0 0 0 1px rgba(102,170,255,0.25);
+  }
+  #minimap-viewer-ov { top: 0; height: 0; }
+  #minimap-chat-ov { bottom: 0; height: 0; }
+  .minimap-block {
+    position: relative;
+    cursor: pointer;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    background: var(--brick-color, rgba(20,20,20,0.5));
+    transition: all 150ms;
+    min-height: 2px;
+    overflow: visible;
+  }
+  .minimap-block.search-hit {
+    box-shadow: inset 0 0 0 2px rgba(255,255,102,0.7);
+  }
+  .minimap-block[data-has-annotation="true"]::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--accent-color, transparent);
+    opacity: 0.8;
+  }
+  .minimap-block:hover {
+    background: rgba(255,255,255,0.2) !important;
+    transform: scaleX(1.8);
+    transform-origin: left;
+    z-index: 5;
+    box-shadow: 2px 0 8px rgba(102,170,255,0.4);
+  }
+  .minimap-block.has-marks {
+    box-shadow: inset 2px 0 0 rgba(102,170,255,0.4);
+  }
+  .minimap-block.active {
+    box-shadow: inset 4px 0 0 var(--accent), 0 0 8px rgba(102,170,255,0.4);
+    transform: scaleX(1.3);
+  }
+  .minimap-block.has-selection {
+    box-shadow: inset 0 0 0 2px rgba(102,170,255,0.6);
+    background: rgba(102,170,255,0.2) !important;
+  }
+  /* Transclusion line */
+  #transclusion-line {
+    position: fixed;
+    left: 20px;
+    height: 1px;
+    background: linear-gradient(90deg, var(--accent) 0%, transparent 100%);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 300ms, top 300ms ease-out;
+    z-index: 998;
+  }
+  #transclusion-line.active {
+    opacity: 0.6;
+    width: 200px;
+  }
+  /* Usage marks/imprints layer */
+  #minimap-marks {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    z-index: 5;
+  }
+  .usage-mark {
+    position: absolute;
+    left: 0; right: 0;
+    height: 2px;
+    background: rgba(102,170,255,0.3);
+    box-shadow: 0 0 4px rgba(102,170,255,0.4);
+    pointer-events: none;
+    transition: opacity 300ms;
+  }
+  .usage-mark.fresh { background: rgba(102,255,170,0.5); box-shadow: 0 0 6px rgba(102,255,170,0.6); }
+  .usage-mark.aged { opacity: 0.3; }
+  /* Measurement ruler */
+  #minimap-ruler {
+    position: absolute;
+    left: 0; width: 100%;
+    height: 1px;
+    background: rgba(255,255,102,0.6);
+    box-shadow: 0 0 4px rgba(255,255,102,0.8);
+    pointer-events: none;
+    display: none;
+    z-index: 10;
+  }
+  #minimap-ruler::before {
+    content: attr(data-line);
+    position: absolute;
+    right: 22px; top: -8px;
+    font-size: 9px; font-weight: 800;
+    color: #ff6;
+    text-shadow: 0 0 4px #000;
+  }
+  .minimap-strip {
+    width: 100%; 
+    height: 100%; /* Fill line height */
+    min-height: 1.5em; /* Match line container */
+    position: relative;
+    margin: 0;
+    border-bottom: 1px solid rgba(0,0,0,0.2);
+  }
+  .minimap-strip:hover { background: rgba(255,255,255,0.4) !important; }
+  /* LEGOS annotations - brighter for visibility */
+  .minimap-strip.L { background: #cc0; min-height: 2em; } /* Location - bright yellow */
+  .minimap-strip.E { background: #f06; min-height: 2em; } /* Entities - bright pink */
+  .minimap-strip.G { background: #0fc; min-height: 2em; } /* Goal - bright cyan */
+  .minimap-strip.O { background: #f90; min-height: 2em; } /* Obstacle - bright orange */
+  .minimap-strip.S { background: #ff0; min-height: 2em; } /* Shift - yellow */
+  .minimap-strip.U { background: #0af; min-height: 2em; } /* Solution - bright blue */
+  .minimap-strip.part { background: #a0f; } /* Part lines - purple */
+  .minimap-strip.meta { background: #444; } /* Comments */
+  .minimap-strip.empty { background: #1a1a1a; } /* Empty - darker */
+  .minimap-strip.major::after { /* Tick mark every 10 lines */
+    content: ''; position: absolute; right: 0; width: 8px; height: 100%;
+    background: rgba(255,255,255,0.3);
+  }
+  /* Color dot IN minimap */
+  .minimap-color-dot {
+    position: absolute; right: 2px; top: 50%; transform: translateY(-50%);
+    width: 10px; height: 10px; border-radius: 50%;
+    border: 1px solid rgba(0,0,0,0.6);
+    box-shadow: 0 0 4px rgba(255,255,255,0.5), inset 0 1px 1px rgba(255,255,255,0.3);
+    z-index: 10;
+  }
+  .minimap-number {
+    position: absolute; right: 10px; top: -4px;
+    font-size: 8px; font-weight: 800; color: #fff;
+    text-shadow: 0 0 3px #000, 0 0 5px #000;
+    opacity: 0; pointer-events: none;
+    transition: opacity 150ms;
+  }
+  .minimap-strip:hover .minimap-number { opacity: 1; }
+  #minimap-viewport {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    border-top: 2px solid var(--accent);
+    border-bottom: 2px solid var(--accent);
+    background: rgba(102,170,255,0.15);
+    pointer-events: none;
+    z-index: 15;
+    box-shadow: 0 0 8px rgba(102,170,255,0.3);
+  }
+
+  /* ===== LINE CONTAINER ===== */
+  .line-container {
+    position: relative;
+    display: flex;
+    min-height: 1.5em;
+    padding-left: 16px; /* Space after minimap */
+    border-left: 3px solid transparent;
+    transition: all 150ms;
+  }
+  .line-container:hover { background: rgba(100,150,255,0.05); }
+  .line-container.selected { border-left-color: #6af; }
+  .line-container.selected.has-color { /* Use color background + bright accent when selected */
+    border-left-width: 4px;
+    box-shadow: inset 4px 0 0 0 rgba(255,255,255,0.15); /* Bright left accent */
+  }
+  .line-container.multi-selected { /* Multiple selection */
+    background: rgba(100,150,255,0.15) !important;
+    border-left-color: var(--accent) !important;
+    border-left-width: 4px !important;
+    box-shadow: inset 0 0 0 1px rgba(102,170,255,0.2);
+  }
+  .line-container.multi-selected.has-color {
+    border-left-width: 5px !important;
+    background: rgba(100,150,255,0.18) !important;
+  }
+  .line-container.search-hit { 
+    background: rgba(255,255,102,0.10) !important;
+    box-shadow: inset 0 0 0 1px rgba(255,255,102,0.35);
+  }
+  /* Send to Builder - Inline Button (appears on selected lines) */
+  .send-to-builder {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: none;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: var(--accent);
+    opacity: 0.6;
+    cursor: pointer;
+    transition: all 150ms;
+    user-select: none;
+  }
+  .line-container.multi-selected .send-to-builder {
+    display: flex;
+  }
+  .send-to-builder:hover {
+    opacity: 1;
+    transform: translateY(-50%) scale(1.1);
+  }
+  /* Hide per-line builder when multiple selection is active */
+  body.multiple-selection-active .send-to-builder { display: none !important; }
+
+  /* Group Builder button for multi-select (one big button) */
+  #group-send-btn {
+    position: fixed;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent) 0%, #9966ff 100%);
+    border: 2px solid rgba(255,255,255,0.3);
+    color: #fff;
+    font-size: 20px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 1100;
+    box-shadow: 0 6px 16px rgba(102,170,255,0.55);
+    transition: transform 150ms, box-shadow 150ms, opacity 150ms;
+    opacity: 0.95;
+  }
+  #group-send-btn.visible { display: flex; }
+  #group-send-btn:hover { transform: translateY(-50%) scale(1.08); box-shadow: 0 8px 22px rgba(102,170,255,0.7); }
+  .line-container.section-hover { border-left-color: #448; }
+
+  /* ===== LINE NUMBER (Main) ===== */
+  .line-number {
+    width: 36px;
+    text-align: right;
+    padding-right: 8px;
+    color: #444;
+    font-size: 11px;
+    user-select: none;
+    cursor: pointer;
+    transition: all 150ms;
+  }
+  .line-container:hover .line-number,
+  .line-container.selected .line-number {
+    color: #6af; font-weight: 800;
+    text-shadow: 0 0 4px rgba(100,150,255,0.5);
+  }
+
+  /* ===== LINE TEXT ===== */
+  .line-text {
+    flex: 1;
+    padding-left: 8px;
+    white-space: pre;
+    font-family: 'Courier New', monospace; /* Ensure monospaced alignment */
+    overflow-x: auto; /* Allow horizontal scroll for long numbers */
+    scrollbar-width: none; /* Hide scrollbar */
+  }
+  .line-text::-webkit-scrollbar { display: none; } /* Hide scrollbar WebKit */
+  .line-text .num { display: inline-block; min-width: 8ch; text-align: right; } /* Prevent overflow */
+  .line-text .coord { display: inline-block; min-width: 10ch; text-align: right; }
+
+  /* ===== SECTION HIGHLIGHT ===== */
+  .section-highlight {
+    position: absolute; left: 0; right: 0;
+    background: rgba(100,150,255,0.06);
+    pointer-events: none; z-index: 5;
+    transition: opacity 200ms;
+  }
+
+  /* ===== FOOTER: OS Controls ===== */
+  #footer {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    height: 40px;
+    background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-main) 100%);
+    border-top: 1px solid var(--border-primary);
+    box-shadow: 0 -1px 0 rgba(255,255,255,0.05), inset 0 -1px 0 rgba(255,255,255,0.03);
+    display: flex; align-items: center;
+    justify-content: space-between;
+    padding: 0 12px;
+    z-index: 1000;
+    transition: background 300ms, border-color 300ms;
+  }
+  .footer-corner-btn {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--btn-bg);
+    border: 1px solid var(--border-primary);
+    color: var(--text-secondary);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 300;
+    cursor: pointer;
+    transition: all 200ms;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.1);
+  }
+  .footer-corner-btn:hover {
+    background: var(--btn-hover);
+    color: var(--text-primary);
+    transform: translateY(-1px);
+  }
+  #scene-selector {
+    flex: 1;
+    max-width: 300px;
+    height: 28px;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 3px;
+    color: #aaa;
+    font-size: 11px;
+    padding: 0 10px;
+    cursor: pointer;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  #scene-selector:hover {
+    background: #222;
+    border-color: #444;
+  }
+  #ai-chat-btn {
+    margin-left: 8px;
+    width: 20px; height: 20px;
+    background: transparent;
+    border: none;
+    color: #aa6;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 200ms;
+  }
+  #ai-chat-btn:hover {
+    color: #ff6;
+    transform: scale(1.2) rotate(20deg);
+    text-shadow: 0 0 8px rgba(255,255,102,0.6);
+  }
+  /* Document dock (footer squares) */
+  #doc-dock { display: flex; gap: 6px; margin-left: 8px; }
+  .doc-square { width: 12px; height: 12px; border: 1px solid var(--border-primary); background: var(--btn-bg); opacity: 0.85; cursor: pointer; border-radius: 2px; }
+  .doc-square.active { background: var(--accent); border-color: var(--accent); opacity: 1; box-shadow: 0 0 6px rgba(102,170,255,0.5); }
+  /* Document dock (footer squares) */
+  #doc-dock { display: flex; gap: 6px; margin-left: 8px; }
+  .doc-square { width: 12px; height: 12px; border: 1px solid var(--border-primary); background: var(--btn-bg); opacity: 0.85; cursor: pointer; border-radius: 2px; }
+  .doc-square.active { background: var(--accent); border-color: var(--accent); opacity: 1; box-shadow: 0 0 6px rgba(102,170,255,0.5); }
+  /* AI Chat Interface - Transparent Command Bar */
+  #ai-chat {
+    position: fixed;
+    bottom: 40px;
+    left: 20px; /* Respect minimap */
+    right: 0;
+    height: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-top: 1px solid var(--border-primary);
+    box-shadow: 0 -1px 0 var(--border-secondary);
+    transition: height 300ms ease-out, background 300ms, border-color 300ms;
+    overflow: hidden;
+    z-index: 1001;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    display: flex;
+    flex-direction: column;
+  }
+  #ai-chat.open { height: 250px; }
+  :root[data-theme="light"] #ai-chat {
+    background: rgba(245, 245, 245, 0.9);
+  }
+  :root[data-theme="terminal"] #ai-chat {
+    background: rgba(0, 17, 0, 0.9);
+  }
+  
+  /* ===== VIEWER PANEL - Slides from Top ===== */
+  #viewer-panel {
+    position: fixed;
+    top: 44px;
+    left: 20px;
+    right: 0;
+    height: 0;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border-primary);
+    overflow: hidden;
+    z-index: 1000;
+    transition: height 300ms ease-out;
+    display: flex;
+    flex-direction: column;
+  }
+  :root[data-theme="light"] #viewer-panel { background: rgba(245,245,245,0.9); }
+  :root[data-theme="terminal"] #viewer-panel { background: rgba(0,17,0,0.9); }
+  #viewer-panel.open {
+    height: 40vh;
+  }
+  #viewer-panel.collapsed { height: 28px; }
+  #viewer-panel.collapsed #viewer-content { display: none; }
+  #viewer-controls {
+    display: flex;
+    gap: 6px;
+    padding: 8px 12px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-secondary);
+    align-items: center;
+  }
+  /* Chat strip inside viewer controls (vertical channel dots like thousand-tetrad) */
+  #chat-strip {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: center;
+    padding: 4px;
+    position: relative;
+    z-index: 1005;
+  }
+  .chat-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid var(--border-primary);
+    background: var(--btn-bg);
+    opacity: 0.7;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+  .chat-dot:hover {
+    opacity: 0.9;
+    transform: scale(1.2);
+    border-color: var(--accent);
+  }
+  .chat-dot.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    opacity: 1;
+    box-shadow: 0 0 8px rgba(102,170,255,0.6), 0 2px 4px rgba(0,0,0,0.3);
+    transform: scale(1.1);
+  }
+  #chat-strip .add-chat {
+    width: 20px;
+    height: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-primary);
+    background: var(--btn-bg);
+    color: var(--text-secondary);
+    border-radius: 50%;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 4px;
+  }
+  #chat-strip .add-chat:hover {
+    background: var(--accent);
+    color: var(--bg-main);
+    transform: scale(1.1);
+  }
+  /* Chat strip inside viewer controls (vertical channel dots like thousand-tetrad) */
+  #chat-strip {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: center;
+    padding: 4px;
+    position: relative;
+    z-index: 1005;
+  }
+  .chat-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid var(--border-primary);
+    background: var(--btn-bg);
+    opacity: 0.7;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+  .chat-dot:hover {
+    opacity: 0.9;
+    transform: scale(1.2);
+    border-color: var(--accent);
+  }
+  .chat-dot.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    opacity: 1;
+    box-shadow: 0 0 8px rgba(102,170,255,0.6), 0 2px 4px rgba(0,0,0,0.3);
+    transform: scale(1.1);
+  }
+  #chat-strip .add-chat {
+    width: 20px;
+    height: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-primary);
+    background: var(--btn-bg);
+    color: var(--text-secondary);
+    border-radius: 50%;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 4px;
+  }
+  #chat-strip .add-chat:hover {
+    background: var(--accent);
+    color: var(--bg-main);
+    transform: scale(1.1);
+  }
+  /* Viewer sidebar on minimap area (brick buttons) */
+  #viewer-sidebar {
+    position: fixed;
+    top: 44px; left: 20px;
+    width: 20px;
+    height: 0;
+    display: none;
+    flex-direction: column;
+    gap: 4px;
+    align-items: center;
+    justify-content: flex-start;
+    padding-top: 6px;
+    background: transparent;
+    z-index: 1001;
+    pointer-events: none; /* container passes through */
+  }
+  #viewer-sidebar.open { display: flex; pointer-events: none; }
+  .viewer-brick {
+    width: 26px; height: 26px;
+    background: var(--btn-bg);
+    border: 1px solid var(--border-primary);
+    border-radius: 2px;
+    color: var(--text-secondary);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; line-height: 1;
+    pointer-events: auto; cursor: pointer;
+  }
+  .viewer-brick:hover { background: var(--btn-hover); color: var(--text-primary); }
+  .viewer-line-num {
+    position: relative;
+    left: 0;
+    width: 36px;
+    text-align: right;
+    padding-right: 8px;
+    color: var(--text-tertiary);
+    font-size: 11px;
+  }
+  #viewer-content {
+    flex: 1;
+    background: var(--bg-main);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-tertiary);
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    transition: background 300ms;
+  }
+  .viewer-mode-btn {
+    padding: 4px 12px;
+    background: var(--btn-bg);
+    border: 1px solid var(--border-primary);
+    border-radius: 3px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 12px;
+    font-family: 'Courier New', monospace;
+    transition: all 150ms;
+  }
+  .viewer-mode-btn:hover {
+    background: var(--btn-hover);
+    color: var(--text-primary);
+  }
+  .viewer-mode-btn.active {
+    background: var(--accent);
+    color: var(--bg-main);
+  }
+  #viewer-collapse {
+    margin-left: 8px;
+  }
+  /* Quick viewer controls in chat input */
+  #viewer-quick-controls {
+    display: flex;
+    gap: 6px;
+    margin-right: 8px;
+  }
+  .viewer-quick {
+    width: 28px; height: 28px;
+    display: inline-flex;
+    align-items: center; justify-content: center;
+    background: var(--btn-bg);
+    border: 1px solid var(--border-primary);
+    border-radius: 3px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 14px;
+  }
+  .viewer-quick:hover { background: var(--btn-hover); color: var(--text-primary); }
+  /* ===== 2D GRID VIEWER (Thousand-Tetrad Quality) ===== */
+  #grid-view {
+    display: grid;
+    grid-template-columns: repeat(9, 1fr);
+    grid-template-rows: repeat(9, 1fr);
+    gap: 2px;
+    aspect-ratio: 1;
+    width: 100%;
+    height: 100%;
+    max-width: min(100%, calc(50vh - 80px));
+    max-height: min(100%, calc(50vh - 80px));
+    margin: 0 auto;
+    background: transparent;
+  }
+  .grid-cell {
+    position: relative;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: clamp(12px, 2.5vw, 18px);
+    font-weight: 700;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .grid-cell:hover {
+    border-color: var(--accent);
+    transform: scale(1.05);
+    z-index: 10;
+    box-shadow: 0 0 12px rgba(102,170,255,0.3);
+  }
+  .grid-cell.selected {
+    box-shadow: inset 0 0 0 2px var(--accent);
+    background: rgba(102,170,255,0.12);
+  }
+  .grid-cell.line-hit {
+    box-shadow: inset 0 0 0 2px rgba(170,255,0,0.7);
+    background: rgba(170,255,0,0.12);
+  }
+  .grid-cell.drag-over {
+    outline: 2px dashed var(--accent);
+    outline-offset: -2px;
+  }
+  .grid-cell.occupied {
+    color: var(--text-primary);
+    border-color: var(--accent);
+    background: linear-gradient(135deg, rgba(102,170,255,0.08) 0%, var(--bg-secondary) 100%);
+    box-shadow: 0 0 0 1px rgba(102,170,255,0.12) inset, 0 2px 4px rgba(0,0,0,0.2);
+    font-weight: 900;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  }
+  .grid-cell .label {
+    position: absolute;
+    bottom: 2px;
+    right: 4px;
+    font-size: 10px;
+    color: var(--text-tertiary);
+  }
+
+  /* Viewer resize handle (head player affordance) */
+  #viewer-resize-handle {
+    height: 18px;
+    cursor: ns-resize;
+    border-top: 1px solid var(--border-secondary);
+    background: repeating-linear-gradient(90deg, rgba(255,255,255,0.08), rgba(255,255,255,0.08) 6px, transparent 6px, transparent 12px);
+    pointer-events: auto;
+    z-index: 1002;
+  }
+
+  /* Lines highlighted by grid selection */
+  .line-container.grid-hit {
+    background: rgba(170,255,0,0.08);
+    box-shadow: inset 0 0 0 1px rgba(170,255,0,0.3);
+  }
+  /* Lines highlighted by 3D selection */
+  .line-container.viewer-hit {
+    background: rgba(255,170,0,0.08);
+    box-shadow: inset 0 0 0 1px rgba(255,170,0,0.3);
+  }
+
+  /* ===== SCENES DOCK (phone-size windows) ===== */
+  #scene-dock {
+    position: fixed;
+    top: 44px; right: 8px; bottom: 48px;
+    pointer-events: none; /* windows handle their own */
+    z-index: 1500;
+  }
+
+  /* ===== CHAT DOCK (minimap bottom chips) ===== */
+  #chat-dock-toggle {
+    position: fixed;
+    left: 8px; bottom: 8px;
+    width: 28px; height: 28px;
+    border: 1px solid var(--border-primary);
+    background: var(--btn-bg);
+    color: var(--text-secondary);
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1100; cursor: pointer;
+  }
+  #chat-dock {
+    position: fixed;
+    left: 44px; bottom: 8px;
+    display: flex; gap: 6px; align-items: center;
+    z-index: 1100; pointer-events: auto;
+  }
+  .chat-chip { padding: 4px 8px; border: 1px solid var(--border-primary); background: var(--btn-bg); color: var(--text-secondary); border-radius: 4px; cursor: pointer; font-size: 12px; }
+  .chat-chip.active { background: var(--accent); color: var(--bg-main); }
+  #new-chat-chip { width: 28px; height: 28px; border: 1px solid var(--border-primary); background: var(--btn-bg); color: var(--text-secondary); border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  /* Hide old floating chat dock UI (replaced by viewer chat strip) */
+  #chat-dock-toggle, #chat-dock { display: none !important; }
+  .scene-window {
+    position: absolute;
+    width: 360px; height: 640px; /* phone size */
+    background: rgba(0,0,0,0.9);
+    border: 1px solid var(--border-primary);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    border-radius: 8px;
+    overflow: hidden;
+    pointer-events: auto;
+  }
+  :root[data-theme="light"] .scene-window { background: rgba(245,245,245,0.95); }
+  :root[data-theme="terminal"] .scene-window { background: rgba(0,17,0,0.95); }
+  .scene-header {
+    height: 36px;
+    display: flex; align-items: center; gap: 8px;
+    padding: 0 8px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-secondary);
+    cursor: move;
+  }
+  .scene-title { flex: 1; font-size: 12px; color: var(--text-secondary); }
+  .scene-btn { width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--border-primary); background: var(--btn-bg); color: var(--text-secondary); border-radius: 3px; cursor: pointer; }
+  .scene-btn:hover { background: var(--btn-hover); color: var(--text-primary); }
+  .scene-body { position: absolute; top: 36px; left: 0; right: 0; bottom: 0; padding: 8px; overflow: auto; color: var(--text-primary); font-size: 12px; }
+  .scene-resizer { position: absolute; right: 0; bottom: 0; width: 16px; height: 16px; cursor: nwse-resize; background: linear-gradient(135deg, transparent 50%, var(--border-secondary) 50%); }
+  #ai-chat.has-messages { border-top-color: rgba(170,102,255,0.4); }
+  #ai-chat-resize-handle {
+    flex-shrink: 0;
+    width: 100%;
+    height: 36px; /* big enough to host buttons */
+    cursor: ns-resize;
+    background: transparent;
+    border-bottom: 1px solid var(--border-secondary);
+    position: relative;
+    pointer-events: auto;
+  }
+  #ai-chat-resize-handle:hover {
+    background: rgba(102,170,255,0.1);
+  }
+  #ai-chat-close-btn {
+    position: absolute;
+    top: 0; right: 8px;
+    width: 32px; height: 32px;
+    background: transparent;
+    border: none;
+    color: var(--text-tertiary);
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    z-index: 10;
+  }
+  #ai-chat-close-btn:hover {
+    color: var(--text-secondary);
+    background: rgba(255,0,0,0.1);
+  }
+  /* Chat collapse toggle */
+  #ai-chat-collapse {
+    position: absolute;
+    top: 0; left: 8px;
+    width: 32px; height: 32px;
+    background: transparent;
+    border: none;
+    color: var(--text-tertiary);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    z-index: 10;
+  }
+  #ai-chat.collapsed { height: 28px; }
+  #ai-chat.collapsed #ai-chat-messages,
+  #ai-chat.collapsed #ai-chat-input-container { display: none; }
+  #ai-chat-header {
+    display: none; /* Minimal - no header */
+  }
+  #ai-chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0;
+    margin: 0;
+    min-height: 0;
+  }
+  #ai-chat-messages::-webkit-scrollbar { width: 4px; }
+  #ai-chat-messages::-webkit-scrollbar-track { background: transparent; }
+  #ai-chat-messages::-webkit-scrollbar-thumb { background: var(--border-primary); }
+  .ai-message {
+    min-height: 1.5em;
+    line-height: 1.5;
+    display: flex;
+    position: relative;
+    padding-left: 56px; /* Same as .mpd */
+    margin: 0;
+    font-size: 14px;
+    font-family: 'Courier New', monospace;
+  }
+  .ai-message::before {
+    content: attr(data-line);
+    position: absolute;
+    left: 20px;
+    width: 36px;
+    text-align: right;
+    padding-right: 8px;
+    color: var(--text-tertiary);
+    font-size: 11px;
+  }
+  .ai-message.user { color: var(--accent); }
+  .ai-message.user::after { content: ' >'; color: var(--text-tertiary); }
+  .ai-message.assistant { color: var(--text-primary); }
+  .ai-message.assistant::after { content: ' <'; color: var(--text-tertiary); }
+  #ai-chat-input-container {
+    flex-shrink: 0;
+    display: flex;
+    padding: 0;
+    border-top: 1px solid var(--border-secondary);
+    align-items: center;
+    min-height: calc(1.5em + 8px);
+    position: relative;
+  }
+  #ai-chat-input-line-num {
+    position: absolute;
+    left: 20px;
+    width: 36px;
+    text-align: right;
+    padding-right: 8px;
+    color: var(--text-tertiary);
+    font-size: 11px;
+  }
+  #ai-chat-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    padding-left: 56px;
+    padding-right: 16px;
+    color: var(--text-primary);
+    font-size: 14px;
+    font-family: 'Courier New', monospace;
+    outline: none;
+    line-height: 1.5;
+    height: calc(1.5em + 4px);
+  }
+  #ai-chat-input::placeholder { color: var(--text-tertiary); }
+  #ai-chat-send {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    background: var(--btn-bg);
+    border: 1px solid var(--border-primary);
+    border-radius: 3px; /* Square button */
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    margin-right: 8px;
+    transition: all 200ms;
+  }
+  #ai-chat-send:hover {
+    background: var(--accent);
+    color: var(--bg-main);
+  }
+  
+  /* Modals - Slide from Bottom like Chat */
+  .modal {
+    position: fixed;
+    bottom: 40px;
+    left: 20px;
+    right: 0;
+    height: 0;
+    background: var(--bg-main);
+    border-top: 1px solid var(--border-primary);
+    overflow: hidden;
+    z-index: 2000;
+    transition: height 300ms ease-out;
+  }
+  .modal.open { height: auto; }
+  .modal-content {
+    max-height: none;
+  }
+  .modal-backdrop {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: none;
+    z-index: 1999;
+  }
+  .modal-backdrop.open { display: block; }
+  .modal-content {
+    padding: 0;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    position: relative;
+  }
+  .modal-content > * {
+    padding-left: 56px; /* All content matches .mpd */
+    padding-right: 16px;
+  }
+  .modal-close-btn {
+    position: absolute;
+    top: 8px; right: 8px;
+    width: 32px; height: 32px;
+    background: transparent;
+    border: none;
+    color: var(--text-tertiary);
+    font-size: 20px;
+    cursor: pointer;
+  }
+  .modal-close-btn:hover {
+    color: var(--text-secondary);
+    background: rgba(255,0,0,0.1);
+  }
+  .modal-header {
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--text-primary);
+    margin: 0;
+    padding-top: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-secondary);
+    position: relative;
+  }
+  .modal-header::before {
+    content: '0';
+    position: absolute;
+    left: 20px;
+    width: 36px;
+    text-align: right;
+    padding-right: 8px;
+    color: var(--text-tertiary);
+    font-size: 11px;
+  }
+  .modal-body {
+    color: var(--text-primary);
+    font-size: 12px;
+    line-height: 1.4;
+    margin: 0;
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+  .modal-body p {
+    margin: 0.3em 0;
+  }
+  .modal-body strong {
+    color: var(--accent);
+  }
+  .modal-input {
+    width: calc(100% - 56px);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: 0;
+    padding: 6px;
+    margin-left: 56px;
+    margin-right: 16px;
+    margin-bottom: 6px;
+    color: var(--text-primary);
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    line-height: 1.3;
+  }
+  .modal-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    padding-top: 8px;
+    padding-bottom: 12px;
+    border-top: 1px solid var(--border-secondary);
+  }
+  .modal-btn {
+    padding: 6px 16px;
+    background: var(--btn-bg);
+    border: 1px solid var(--border-primary);
+    border-radius: 3px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 14px;
+    font-family: 'Courier New', monospace;
+    transition: all 200ms;
+  }
+  .modal-btn:hover { 
+    background: var(--btn-hover);
+    color: var(--text-primary);
+  }
+  .modal-btn.primary {
+    background: var(--accent);
+    color: var(--bg-main);
+    border-color: var(--accent);
+  }
+  .modal-btn.primary:hover {
+    opacity: 0.9;
+  }
+  @media (max-width: 640px) {
+    #header { height: 40px; padding: 0 8px; }
+    .corner-btn, .footer-corner-btn, .mode-btn { width: 28px; height: 28px; font-size: 14px; }
+    #scene-selector { max-width: 180px; font-size: 10px; }
+    #header-center { gap: 4px; }
+    #ai-chat { width: 100%; max-width: 100%; }
+  }
+
+  /* ===== CONTEXT MENU ===== */
+  #context-menu {
+    position: fixed; background: #111;
+    border: 1px solid #333; border-radius: 4px;
+    padding: 4px 0; z-index: 2000; display: none;
+    min-width: 140px; box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  }
+  .context-item {
+    padding: 6px 12px; cursor: pointer;
+    font-size: 12px; transition: background 150ms;
+  }
+  .context-item:hover { background: #1a1a1a; }
+  .context-item:active { background: #224; }
+
+  /* ===== MOBILE ===== */
+  @media (max-width: 600px) {
+    #header { font-size: 12px; }
+    .symbol-btn { width: 28px; height: 22px; font-size: 12px; }
+    .line-number { width: 28px; font-size: 10px; }
+  }
+</style>
+<base target="_blank">
+</head>
+<body>
+
+<div id="header">
+  <button class="corner-btn" id="api-btn" title="API Config">⊚</button>
+  
+  <div id="header-center">
+    <button class="corner-btn" id="viewer-btn" title="Toggle Viewer">▦</button>
+    <div class="undo-redo-group">
+      <button class="mode-btn" id="undo-btn" title="Undo">↶</button>
+      <button class="mode-btn" id="redo-btn" title="Redo">↷</button>
+    </div>
+
+<!-- Viewer Sidebar on Minimap (brick buttons) -->
+<div id="viewer-sidebar">
+  <button class="viewer-brick" id="vs-collapse" title="Collapse">▾</button>
+  <button class="viewer-brick" id="vs-fit" title="Fit to selection">F</button>
+  <button class="viewer-brick" data-vmode="3d" title="3D">▣</button>
+  <button class="viewer-brick" data-vmode="2d" title="2D">▦</button>
+  <button class="viewer-brick" data-vmode="video" title="Video">▶</button>
+  <button class="viewer-brick" id="vs-send" title="Send selection">✦</button>
+  <button class="viewer-brick" id="vs-add-scene" title="Add Scene">＋</button>
+  
+</div>
+    <button class="mode-btn active" id="select-mode" title="Select">⌖</button>
+    <button class="mode-btn" id="copy-mode" title="Copy">⎘</button>
+    <button class="mode-btn" id="group-mode" title="Group">⬚</button>
+    <button class="mode-btn" id="lock-mode" title="Lock">⊗</button>
+  </div>
+  
+  <button class="corner-btn" id="help-btn" title="Help">?</button>
+</div>
+
+<div id="minimap">
+  <div id="minimap-content"></div>
+  <div id="minimap-overlays">
+    <div id="minimap-viewer-ov" class="minimap-overlay" title="Viewer"></div>
+    <div id="minimap-chat-ov" class="minimap-overlay" title="Chat"></div>
+  </div>
+  <div id="minimap-marks"></div>
+  <div id="minimap-ruler" data-line=""></div>
+  <div id="minimap-viewport"></div>
+</div>
+
+<div id="content"></div>
+
+<div id="footer">
+  <button class="footer-corner-btn" id="import-btn" title="Import/Export">⇄</button>
+  
+  <div id="scene-selector" title="Load Scene">
+    SCENE 02 - THE MUPPETS ARRIVE
+  </div>
+  <div id="doc-dock" title="Documents"></div>
+  <button id="ai-chat-btn" title="AI Assistant">✦</button>
+  
+  <button class="footer-corner-btn" id="add-doc-btn" title="Add Document">+</button>
+</div>
+
+<div id="context-menu">
+  <div class="context-item" data-action="send-to-chat">Send to Chat</div>
+  <div class="context-item" data-action="copy-selection">Copy Selection</div>
+  <div class="context-item" data-action="copy-section">Copy Section</div>
+  <div class="context-item" data-action="duplicate-section">Duplicate</div>
+  <div class="context-item" data-action="delete-section">Delete</div>
+</div>
+
+<!-- Transclusion Line -->
+<div id="transclusion-line"></div>
+
+<!-- Group Builder button (visible when multiple selected) -->
+<button id="group-send-btn" title="Send selection to Builder">✦ →</button>
+
+<!-- Send to Chat Button -->
+<!-- Viewer Panel - Slides from Top -->
+  <div id="viewer-panel">
+    <div id="viewer-controls">
+      <span class="viewer-line-num">0</span>
+      <button class="viewer-quick" id="viewer-collapse" title="Collapse">▾</button>
+      <button class="viewer-mode-btn" data-mode="3d" title="3D">▣</button>
+      <button class="viewer-mode-btn active" data-mode="2d" title="2D">▦</button>
+      <button class="viewer-mode-btn" data-mode="video" title="Video">▶</button>
+      <button class="viewer-mode-btn" id="reset-3d-camera" title="Reset View" style="display:none;">↻</button>
+      <button class="viewer-mode-btn toggle-button active" id="toggle-3d-grid" title="Grid" style="display:none;">⊞</button>
+      <button class="viewer-mode-btn toggle-button active" id="toggle-3d-axes" title="Axes" style="display:none;">⊕</button>
+      <div id="chat-strip" title="Chats"></div>
+      <span style="flex: 1;"></span>
+      <button class="corner-btn" id="viewer-close-btn" title="Close">×</button>
+    </div>
+    <div id="viewer-resize-handle"></div>
+    <div id="viewer-content">
+      <div>Viewer ready. Select mode above to render scene.</div>
+    </div>
+  </div>
+
+<!-- AI Chat Interface - .mpd Extension -->
+<div id="ai-chat">
+  <div id="ai-chat-resize-handle">
+    <button id="ai-chat-collapse" title="Collapse">▾</button>
+    <button id="ai-chat-close-btn" title="Close">×</button>
+  </div>
+  <div id="ai-chat-messages"></div>
+  <div id="ai-chat-input-container">
+    <span id="ai-chat-input-line-num">></span>
+    <input type="text" id="ai-chat-input" placeholder="search, command, or ask..." />
+    <button id="ai-chat-send" title="Send">→</button>
+  </div>
+</div>
+
+<!-- Chat Dock (bottom-left) -->
+<div id="chat-dock-toggle" title="Chats">✦</div>
+<div id="chat-dock"></div>
+
+<!-- Modal Backdrops -->
+<div class="modal-backdrop" id="api-modal-backdrop"></div>
+<div class="modal-backdrop" id="help-modal-backdrop"></div>
+<div class="modal-backdrop" id="import-modal-backdrop"></div>
+<div class="modal-backdrop" id="add-doc-modal-backdrop"></div>
+
+<!-- Modals - Slide from Bottom -->
+<div class="modal" id="api-modal">
+  <div class="modal-content">
+    <button class="modal-close-btn" onclick="closeModal('api-modal')">×</button>
+    <div class="modal-header">⊙ API Configuration</div>
+    <div class="modal-body">
+      <p>Enter your OpenAI API key to enable AI features.</p>
+      <input type="password" class="modal-input" id="api-key-input" placeholder="sk-..." />
+    </div>
+    <div class="modal-buttons">
+      <button class="modal-btn" onclick="closeModal('api-modal')">Cancel</button>
+      <button class="modal-btn primary" onclick="saveApiKey()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="help-modal">
+  <div class="modal-content">
+    <button class="modal-close-btn" onclick="closeModal('help-modal')">×</button>
+    <div class="modal-header">? Help</div>
+    <div class="modal-body">
+      <p><strong>Select:</strong> Click | Cmd+Click multi | Esc clear</p>
+      <p><strong>Keys:</strong> G group | L lock | Cmd+C copy | Cmd+Z undo</p>
+      <p><strong>Minimap:</strong> 81 blocks, click to jump</p>
+      <p><strong>Chat:</strong> /theme /api /export /help | list pieces | count</p>
+      <p><strong>Send:</strong> Right-click → Send to Chat | Blue dot on right edge</p>
+    </div>
+    <div class="modal-buttons">
+      <button class="modal-btn" onclick="switchTheme('dark'); closeModal('help-modal')">Dark</button>
+      <button class="modal-btn" onclick="switchTheme('light'); closeModal('help-modal')">Light</button>
+      <button class="modal-btn" onclick="switchTheme('terminal'); closeModal('help-modal')">Terminal</button>
+      <button class="modal-btn primary" onclick="closeModal('help-modal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="import-modal">
+  <div class="modal-content">
+    <button class="modal-close-btn" onclick="closeModal('import-modal')">×</button>
+    <div class="modal-header">⇄ Import/Export</div>
+    <div class="modal-body">
+      <p><strong>Export Selection:</strong></p>
+      <textarea class="modal-input" id="export-text" rows="8" readonly></textarea>
+    </div>
+    <div class="modal-buttons">
+      <button class="modal-btn" onclick="closeModal('import-modal')">Close</button>
+      <button class="modal-btn primary" onclick="copyExport()">Copy to Clipboard</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="add-doc-modal">
+  <div class="modal-content">
+    <button class="modal-close-btn" onclick="closeModal('add-doc-modal')">×</button>
+    <div class="modal-header">+ Add Document</div>
+    <div class="modal-body">
+      <p>Paste LDraw data to add a new document:</p>
+      <textarea class="modal-input" id="add-doc-text" rows="8" placeholder="0 FILE scene.ldr\n..."></textarea>
+    </div>
+    <div class="modal-buttons">
+      <button class="modal-btn" onclick="closeModal('add-doc-modal')">Cancel</button>
+      <button class="modal-btn primary" onclick="addDocument()">Add</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== LDRAW DATA =====
+const ldrawData = `0 FILE garden_uprising_scene_02_arrival.mpd
+0 Name: SCENE 02 - THE MUPPETS ARRIVE
+0 Author: Garden-Uprising-Full-Build
+0 !LDRAW_ORG Model
+0 !LICENCE Redistributable under CCAL version 2.0
+0 BFC CERTIFY CCW
+0 //
+0 // LEGOS ANALYSIS - SCENE 02: THE MUPPETS ARRIVE
+0 // =================================================================
+0 // L (LOCATION): Corporate plaza entrance
+0 //   - Grey concrete plaza (continuing from Scene 01)
+0 //   - Building entrance with steps
+0 //   - Revolving door apparatus
+0 //   - Benches and barriers (sterile public space)
+0 // E (ENTITIES): The Uprising Coalition (8+ characters introduced)
+0 //   - Kermit the Frog (green, leader, nervous)
+0 //   - Miss Piggy (pink/white, confident, powerful)
+0 //   - Fozzie Bear (brown, comic, hopeful)
+0 //   - Gonzo (blue, daredevil, excited)
+0 //   - SpongeBob SquarePants (yellow, optimistic, energetic)
+0 //   - Animal (red, wild, unpredictable)
+0 //   - Swedish Chef (human-toned, chaotic good)
+0 //   - Duplo Figure (oversized child, witness)
+0 // G (GOAL): Enter building to plant seeds of transformation
+0 //   - Kermit's goal: Find courage to lead
+0 //   - Miss Piggy's goal: Break down barriers
+0 //   - SpongeBob's goal: Spread joy
+0 //   - Collective goal: Access interior to begin change
+0 // O (OBSTACLE): Building entrance (threshold, barrier)
+0 //   - Represents: Point of no return, commitment required
+0 //   - Security systems (implied)
+0 //   - Grey oppressive architecture intimidating
+0 // S (SHIFT): N/A (approaching shift, not yet triggered)
+0 // U (SOLUTION): N/A (problem not yet resolved)
+0 //
+0 // PURPOSE: Introduce ensemble cast with distinct personalities.
+0 // Show coalition forming, diversity of approaches. Contrast
+0 // colorful characters against grey environment.
+0 // =================================================================
+0 STEP
+0 // ===== PLAZA FOUNDATION =====
+0 // Grey plaza tiles (larger area showing approach)
+1 7 -360 0 240 1 0 0 0 1 0 0 0 1 parts/3024.dat
+1 7 -300 0 240 1 0 0 0 1 0 0 0 1 parts/3024.dat
+1 7 -240 0 240 1 0 0 0 1 0 0 0 1 parts/3024.dat
+1 7 -180 0 240 1 0 0 0 1 0 0 0 1 parts/3024.dat
+1 7 -120 0 240 1 0 0 0 1 0 0 0 1 parts/3024.dat
+1 7 -60 0 240 1 0 0 0 1 0 0 0 1 parts/3024.dat
+1 7 0 0 240 1 0 0 0 1 0 0 0 1 parts/3024.dat
+1 7 60 0 240 1 0 0 0 1 0 0 0 1 parts/3024.dat
+1 7 120 0 240 1 0 0 0 1 0 0 0 1 parts/3024.dat
+1 7 180 0 240 1 0 0 0 1 0 0 0 1 parts/3024.dat
+1 7 240 0 240 1 0 0 0 1 0 0 0 1 parts/3024.dat
+1 7 300 0 240 1 0 0 0 1 0 0 0 1 parts/3024.dat
+1 7 360 0 240 1 0 0 0 1 0 0 0 1 parts/3024.dat
+1 7 -360 0 180 1 0 0 0 1 0 0 0 1 parts/3024.dat
+1 7 -300 0 180 1 0 0 0 1 0 0 0 1 parts/3024.dat
+1 7 -240 0 180 1 0 0 0 1 0 0 0 1 parts/3024.dat
+1 7 -180 0 180 1 0 0 0 1 0 0 0 1 parts/3024.dat
+1 7 -120 0 180 1 0 0 0 1 0 0 0 1 parts/3024.dat
+1 7 -60 0 180 1 0 0 0 1 0 0 0 1 parts/3024.dat
+1 7 0 0 180 1 0 0 0 1 0 0 0 1 parts/3024.dat
+1 7 60 0 180 1 0 0 0 1 0 0 0 1 parts/3024.dat
+1 7 120 0 180 1 0 0 0 1 0 0 0 1 parts/3024.dat
+1 7 180 0 180 1 0 0 0 1 0 0 0 1 parts/3024.dat
+1 7 240 0 180 1 0 0 0 1 0 0 0 1 parts/3024.dat
+1 7 300 0 180 1 0 0 0 1 0 0 0 1 parts/3024.dat
+1 7 360 0 180 1 0 0 0 1 0 0 0 1 parts/3024.dat
+0 // ===== BUILDING ENTRANCE =====
+0 // Entrance steps (3 levels leading up)
+1 72 -120 -8 0 1 0 0 0 1 0 0 0 1 parts/3005.dat
+1 72 -60 -8 0 1 0 0 0 1 0 0 0 1 parts/3005.dat
+1 72 0 -8 0 1 0 0 0 1 0 0 0 1 parts/3005.dat
+1 72 60 -8 0 1 0 0 0 1 0 0 0 1 parts/3005.dat
+1 72 120 -8 0 1 0 0 0 1 0 0 0 1 parts/3005.dat
+1 72 -100 -32 -20 1 0 0 0 1 0 0 0 1 parts/3005.dat
+1 72 -50 -32 -20 1 0 0 0 1 0 0 0 1 parts/3005.dat
+1 72 0 -32 -20 1 0 0 0 1 0 0 0 1 parts/3005.dat
+1 72 50 -32 -20 1 0 0 0 1 0 0 0 1 parts/3005.dat
+1 72 100 -32 -20 1 0 0 0 1 0 0 0 1 parts/3005.dat
+1 72 -80 -56 -40 1 0 0 0 1 0 0 0 1 parts/3005.dat
+1 72 -40 -56 -40 1 0 0 0 1 0 0 0 1 parts/3005.dat
+1 72 0 -56 -40 1 0 0 0 1 0 0 0 1 parts/3005.dat
+1 72 40 -56 -40 1 0 0 0 1 0 0 0 1 parts/3005.dat
+1 72 80 -56 -40 1 0 0 0 1 0 0 0 1 parts/3005.dat
+0 // Entrance door frame
+1 0 -60 -56 -60 1 0 0 0 1 0 0 0 1 parts/3001.dat
+1 0 -60 -80 -60 1 0 0 0 1 0 0 0 1 parts/3001.dat
+1 0 60 -56 -60 1 0 0 0 1 0 0 0 1 parts/3001.dat
+1 0 60 -80 -60 1 0 0 0 1 0 0 0 1 parts/3001.dat
+1 8 0 -104 -60 1 0 0 0 0 -1 0 1 0 3068bp7d.dat
+0 // Plaza bench R8C8 (empty, waiting)
+1 71 180 -8 120 1 0 0 0 1 0 0 0 1 parts/3005.dat
+1 71 180 -20 120 1 0 0 0 1 0 0 0 1 parts/3005.dat
+1 71 200 -8 120 1 0 0 0 1 0 0 0 1 parts/3005.dat
+1 71 200 -20 120 1 0 0 0 1 0 0 0 1 parts/3005.dat
+0 // ===== KERMIT THE FROG (Leader) =====
+0 // Position R7C7 - Leading group, slight hesitation in posture
+0 // Legs
+1 2 120 -16 60 1 0 0 0 1 0 0 0 1 parts/3816.dat
+1 2 120 -16 60 1 0 0 0 1 0 0 0 1 parts/3817.dat
+0 // Hips
+1 2 120 -28 60 1 0 0 0 1 0 0 0 1 parts/3815.dat
+0 // Torso (green)
+1 2 120 -60 60 1 0 0 0 1 0 0 0 1 parts/973ps1.dat
+0 // Arms
+1 2 104.448 -51 60 1 0 0 0 1 0 0 0 1 parts/3818.dat
+1 2 135.552 -51 60 1 0 0 0 1 0 0 0 1 parts/3819.dat
+0 // Kermit HEAD (special part)
+1 2 120 -84 60 1 0 0 0 1 0 0 0 1 89515p01.dat
+0 // ===== MISS PIGGY (Enforcer) =====
+0 // Position R7C6 - Confident stance, ready for action
+0 // Legs
+1 13 60 -16 60 1 0 0 0 1 0 0 0 1 parts/3816.dat
+1 13 60 -16 60 1 0 0 0 1 0 0 0 1 parts/3817.dat
+0 // Hips
+1 13 60 -28 60 1 0 0 0 1 0 0 0 1 parts/3815.dat
+0 // Torso (pink/white)
+1 13 60 -60 60 1 0 0 0 1 0 0 0 1 parts/973ps1.dat`;
+
+// ===== LDRAW COLOR PALETTE (Mobile-Optimized) =====
+const ldrawColors = {
+  0: '#05131D',  // Black
+  2: '#00852B',  // Green (Kermit)
+  7: '#8E9CA5',  // Light Gray
+  8: '#6C6E68',  // Dark Gray
+  10: '#3CB371', // Lime
+  13: '#FC97AC', // Pink (Miss Piggy)
+  14: '#F2CD37', // Yellow
+  71: '#A0A5A9', // Light Bluish Gray
+  72: '#6C6E68', // Dark Bluish Gray
+  1: '#0055BF',  // Blue
+  4: '#C91A09',  // Red
+  5: '#C870A0',  // Pink
+  6: '#583927',  // Brown
+  15: '#FFFFFF', // White
+  16: '#000000'  // Main Colour (inherit)
+};
+
+// Documents model
+let documents = [];
+let activeDocIndex = 0;
+function getActiveDocument() { return documents[activeDocIndex] || null; }
+function extractTitleFromLdraw(text) {
+  const linesTmp = text.split('\n');
+  const byName = linesTmp.find(l => /^0\s+Name:/i.test(l));
+  const byFile = linesTmp.find(l => /^0\s+FILE/i.test(l));
+  if (byName) return byName.replace(/^0\s+Name:\s*/i,'').trim();
+  if (byFile) return byFile.replace(/^0\s+FILE\s*/i,'').trim();
+  return `Document ${documents.length+1}`;
+}
+function renderDocDock() {
+  const dock = document.getElementById('doc-dock');
+  if (!dock) return;
+  dock.innerHTML = '';
+  documents.forEach((d, i) => {
+    const el = document.createElement('div');
+    el.className = 'doc-square' + (i===activeDocIndex ? ' active' : '');
+    el.title = d.title;
+    el.addEventListener('click', () => switchDocument(i));
+    dock.appendChild(el);
+  });
+}
+
+function renderContentFromLines() {
+  content.innerHTML = '';
+  lines.forEach((line, idx) => {
+    const div = document.createElement('div');
+    div.className = 'line-container';
+    div.dataset.line = idx;
+    div.dataset.originalLine = line;
+    const colorCode = getColorCode(line);
+    div.innerHTML = `
+      <span class="line-number">${idx + 1}</span>
+      <span class="color-dot" data-color="${colorCode || ''}" style="background: ${colorCode !== null ? ldrawColors[colorCode] : 'transparent'};"></span>
+      <span class="group-indicator">□</span>
+      <span class="lock-indicator">⊙</span>
+      <code class="line-text">${formatLDrawLine(line)}</code>
+      <span class="send-to-builder" title="Send to Builder">✦ →</span>
+    `;
+    div.setAttribute('draggable', 'true');
+    div.addEventListener('dragstart', (e) => {
+      const linesToSend = (selectedLines.size > 0) ? Array.from(selectedLines) : [idx];
+      e.dataTransfer.setData('application/ldraw-lines', JSON.stringify(linesToSend));
+      e.dataTransfer.effectAllowed = 'copyMove';
+    });
+    if (colorCode !== null && ldrawColors[colorCode]) {
+      div.dataset.colorCode = colorCode;
+      div.dataset.colorHex = ldrawColors[colorCode];
+      div.classList.add('has-color');
+    }
+    div.addEventListener('mouseenter', () => showSectionBounds(idx));
+    div.addEventListener('mouseleave', hideSectionBounds);
+    div.addEventListener('click', (e) => {
+      if (lockedLines.has(idx) && currentMode !== 'select' && currentMode !== 'lock') {
+        showStatus(`⚠ Line ${idx+1} is locked`);
+        return;
+      }
+      const now = Date.now();
+      const isDoubleTap = (idx === lastClickedLine && now - lastClickTime < DOUBLE_TAP_THRESHOLD);
+      recordUsage(idx);
+      if (currentMode === 'select') {
+        if (e.metaKey || e.ctrlKey) {
+          if (selectedLines.has(idx)) {
+            selectedLines.delete(idx);
+            div.classList.remove('multi-selected');
+            div.style.background = '';
+            div.style.borderLeftColor = '';
+          } else {
+            selectedLines.add(idx);
+            selectLine(idx, true);
+          }
+        } else if (isDoubleTap) {
+          const {start, end} = getSectionBounds(idx);
+          selectedLines.clear();
+          document.querySelectorAll('.line-container.multi-selected').forEach(el => {
+            el.classList.remove('multi-selected');
+            el.style.background = '';
+            el.style.borderLeftColor = '';
+          });
+          for (let i = start; i <= end; i++) {
+            selectedLines.add(i);
+            selectLine(i, true);
+          }
+          showStatus(`Selected section: ${end - start + 1} lines`);
+        } else {
+          selectedLines.clear();
+          document.querySelectorAll('.line-container.multi-selected').forEach(el => {
+            el.classList.remove('multi-selected');
+            el.style.background = '';
+            el.style.borderLeftColor = '';
+          });
+          selectedLines.add(idx);
+          selectLine(idx, false);
+        }
+        updateSelectionStatus();
+        lastClickedLine = idx;
+        lastClickTime = now;
+      } else {
+        selectedLines.clear();
+        selectedLines.add(idx);
+        selectLine(idx, false);
+        const action = {
+          copy: () => { const text = Array.from(selectedLines).map(i => lines[i]).join('\n'); navigator.clipboard.writeText(text); showStatus(`Copied ${selectedLines.size} line(s)`); },
+          group: () => { selectedLines.forEach(i => toggleGroup(i)); },
+          lock: () => { selectedLines.forEach(i => toggleLock(i)); }
+        };
+        if (action[currentMode]) action[currentMode]();
+      }
+    });
+    div.addEventListener('dblclick', () => {
+      const {start, end} = getSectionBounds(idx);
+      selectSection(start, end);
+      const section = lines.slice(start, end + 1).join('\n');
+      navigator.clipboard.writeText(section);
+      showStatus(`Copied section ${start+1}-${end+1}`);
+    });
+    div.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      const {start, end} = getSectionBounds(idx);
+      contextMenu.dataset.start = start;
+      contextMenu.dataset.end = end;
+      contextMenu.dataset.line = idx;
+      contextMenu.style.display = 'block';
+      contextMenu.style.left = `${e.clientX}px`;
+      contextMenu.style.top = `${e.clientY}px`;
+      setTimeout(() => document.addEventListener('click', hideContextMenu, {once: true}), 10);
+    });
+    content.appendChild(div);
+  });
+}
+
+function renderMinimapFromLines() {
+  minimapContent.innerHTML = '';
+  const BLOCKS = 81;
+  const linesPerBlock = Math.ceil((lines.length||1) / BLOCKS);
+  for (let b = 0; b < BLOCKS; b++) {
+    const startLine = b * linesPerBlock;
+    const endLine = Math.min((b + 1) * linesPerBlock - 1, Math.max(0, lines.length - 1));
+    const block = document.createElement('div');
+    block.className = 'minimap-block';
+    block.dataset.blockIndex = b;
+    block.dataset.startLine = startLine;
+    block.dataset.endLine = endLine;
+    let hasLocation = false, hasEntities = false, hasGoal = false;
+    let hasObstacle = false, hasShift = false, hasSolution = false;
+    let colorCounts = {};
+    for (let i = startLine; i <= endLine; i++) {
+      const line = lines[i] || '';
+      const trimmed = line.trim();
+      if (trimmed.startsWith('0 // Location:')) hasLocation = true;
+      if (trimmed.startsWith('0 // Entities:')) hasEntities = true;
+      if (trimmed.startsWith('0 // Goal:')) hasGoal = true;
+      if (trimmed.startsWith('0 // Obstacle:')) hasObstacle = true;
+      if (trimmed.startsWith('0 // Shift:')) hasShift = true;
+      if (trimmed.startsWith('0 // Solution:')) hasSolution = true;
+      const colorCode = getColorCode(line);
+      if (colorCode !== null) colorCounts[colorCode] = (colorCounts[colorCode] || 0) + 1;
+    }
+    const dominantColor = Object.keys(colorCounts).sort((a,b) => colorCounts[b] - colorCounts[a])[0];
+    if (dominantColor && ldrawColors[dominantColor]) {
+      block.style.background = ldrawColors[dominantColor];
+      block.style.opacity = '0.7';
+    } else {
+      block.style.background = 'rgba(20,20,20,0.5)';
+      block.style.opacity = '0.5';
+    }
+    let accentColor = 'transparent';
+    if (hasLocation) accentColor = '#cc0'; else if (hasEntities) accentColor = '#f06'; else if (hasGoal) accentColor = '#0fc'; else if (hasObstacle) accentColor = '#f90'; else if (hasShift) accentColor = '#ff0'; else if (hasSolution) accentColor = '#0af';
+    if (accentColor !== 'transparent') {
+      block.style.setProperty('--accent-color', accentColor);
+      block.dataset.hasAnnotation = 'true';
+    }
+    block.dataset.dominantColor = dominantColor || 'none';
+    block.dataset.brickCount = Object.keys(colorCounts).length;
+    block.addEventListener('click', () => {
+      const targetLine = startLine;
+      const el = document.querySelector(`.line-container[data-line="${targetLine}"]`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        document.querySelectorAll('.minimap-block').forEach(bk => bk.classList.remove('active'));
+        block.classList.add('active');
+        showTransclusionLine(block, el);
+        for (let i = startLine; i <= endLine; i++) {
+          const lineEl = document.querySelector(`.line-container[data-line="${i}"]`);
+          if (lineEl) {
+            lineEl.style.background = 'rgba(255,255,102,0.2)';
+            setTimeout(() => { lineEl.style.background = ''; }, 800);
+          }
+        }
+        recordUsage(targetLine);
+      }
+    });
+    minimapContent.appendChild(block);
+  }
+}
+
+function rebuildAllFromActiveDoc() {
+  const doc = getActiveDocument();
+  if (!doc) return;
+  lines = doc.text.split('\n');
+  selectedLines.clear();
+  gridAssignments.clear();
+  sceneBoundsOverride = null;
+  rebuildGridMaps();
+  renderContentFromLines();
+  renderMinimapFromLines();
+  updateSelectionStatus();
+  updateMinimapSelection();
+  if (viewerPanel.classList.contains('open')) {
+    const active = document.querySelector('.viewer-mode-btn.active');
+    if (active && active.dataset.mode === '2d') {
+      const vc = document.getElementById('viewer-content');
+      vc.innerHTML = '<div id="grid-view"></div>';
+      renderGridViewer();
+    } else if (active && active.dataset.mode === '3d') {
+      const vc = document.getElementById('viewer-content');
+      vc.innerHTML = '<canvas id="viewer-3d"></canvas>';
+      render3DViewer();
+    }
+  }
+  renderDocDock();
+  updateMinimapOverlays();
+}
+
+function switchDocument(i) {
+  if (i < 0 || i >= documents.length) return;
+  activeDocIndex = i;
+  rebuildAllFromActiveDoc();
+}
+
+function initDocuments() {
+  if (documents.length === 0) {
+    documents.push({ title: extractTitleFromLdraw(ldrawData), text: ldrawData });
+    activeDocIndex = 0;
+  }
+  renderDocDock();
+  rebuildAllFromActiveDoc();
+}
+
+function renderChatStrip() {
+  const strip = document.getElementById('chat-strip');
+  if (!strip) return;
+  strip.innerHTML = '';
+  chatSessions.forEach(s => {
+    const dot = document.createElement('div');
+    dot.className = 'chat-dot' + (s.id === activeChatId ? ' active' : '');
+    dot.title = s.title;
+    dot.addEventListener('click', () => { switchChat(s.id); aiChat.classList.add('open'); });
+    strip.appendChild(dot);
+  });
+  const add = document.createElement('div');
+  add.className = 'add-chat';
+  add.textContent = '+';
+  add.title = 'New chat';
+  add.addEventListener('click', () => createChat());
+  strip.appendChild(add);
+}
+
+// ===== MAIN CONTENT RENDERING =====
+const content = document.getElementById('content');
+const contextMenu = document.getElementById('context-menu');
+const minimapContent = document.getElementById('minimap-content');
+const minimapViewport = document.getElementById('minimap-viewport');
+let currentMode = 'select';
+let lines = [];
+const selectedLines = new Set(); // Global state
+const groupedLines = new Set();
+const lockedLines = new Set();
+const lineGroups = new Map(); // groupId -> Set of line indices
+
+// ===== GRID MAPPING (lines <-> 9x9 cells) =====
+const lineGridMap = new Map(); // lineIdx -> 'r,c'
+const gridLineMap = new Map(); // 'r,c' -> Set(lineIdx)
+const gridAssignments = new Map(); // overrides by drag-to-grid
+let sceneBounds = null;
+let sceneBoundsOverride = null; // optional override (e.g., fit to selection)
+let last3DPoints = new Map(); // idx -> {x,y}
+let viewerVizMode = 'colors'; // 'colors' | 'boxes' | 'cubes'
+
+function parsePartXYZ(line) {
+  const parts = line.trim().split(/\s+/);
+  if (parts[0] !== '1' || parts.length < 15) return null;
+  const x = parseFloat(parts[2]);
+  const y = parseFloat(parts[3]);
+  const z = parseFloat(parts[4]);
+  if (Number.isNaN(x) || Number.isNaN(z)) return null;
+  return { x, y, z };
+}
+
+function computeSceneBounds() {
+  let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
+  lines.forEach(ln => { const p = parsePartXYZ(ln); if (p) { minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x); minZ = Math.min(minZ, p.z); maxZ = Math.max(maxZ, p.z);} });
+  if (!isFinite(minX) || !isFinite(maxX) || !isFinite(minZ) || !isFinite(maxZ)) { minX = -400; maxX = 400; minZ = -400; maxZ = 400; }
+  if (minX === maxX) { minX -= 1; maxX += 1; }
+  if (minZ === maxZ) { minZ -= 1; maxZ += 1; }
+  return { minX, maxX, minZ, maxZ };
+}
+
+function computeBoundsForIndices(indices) {
+  let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
+  indices.forEach(idx => { const p = parsePartXYZ(lines[idx]); if (p) { minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x); minZ = Math.min(minZ, p.z); maxZ = Math.max(maxZ, p.z);} });
+  if (!isFinite(minX)) return null;
+  if (minX === maxX) { minX -= 1; maxX += 1; }
+  if (minZ === maxZ) { minZ -= 1; maxZ += 1; }
+  return { minX, maxX, minZ, maxZ };
+}
+
+function posToCell(x, z, b) {
+  const nx = (x - b.minX) / (b.maxX - b.minX);
+  const nz = (z - b.minZ) / (b.maxZ - b.minZ);
+  let c = Math.max(0, Math.min(8, Math.floor(nx * 9)));
+  let r = Math.max(0, Math.min(8, 8 - Math.floor(nz * 9))); // invert Z so top = far
+  return { r, c };
+}
+
+function keyRC(r, c) { return `${r},${c}`; }
+
+function rebuildGridMaps() {
+  sceneBounds = sceneBoundsOverride || computeSceneBounds();
+  lineGridMap.clear();
+  gridLineMap.clear();
+  lines.forEach((ln, idx) => {
+    const p = parsePartXYZ(ln); if (!p) return;
+    const rc = posToCell(p.x, p.z, sceneBounds);
+    const assigned = gridAssignments.get(idx);
+    const key = assigned || keyRC(rc.r, rc.c);
+    lineGridMap.set(idx, key);
+    if (!gridLineMap.has(key)) gridLineMap.set(key, new Set());
+    gridLineMap.get(key).add(idx);
+  });
+}
+
+function getLineCellKey(idx) {
+  if (gridAssignments.has(idx)) return gridAssignments.get(idx);
+  return lineGridMap.get(idx);
+}
+
+// Tap-to-select-section
+let lastClickedLine = -1;
+let lastClickTime = 0;
+const DOUBLE_TAP_THRESHOLD = 500; // ms
+
+// Usage tracking for minimap
+const usageMarks = new Map(); // lineIdx -> {count, timestamp, element}
+const interactionHistory = [];
+let measurementStart = null;
+
+// Undo/Redo stacks
+const undoStack = [];
+const redoStack = [];
+const MAX_UNDO = 50;
+
+// Extract color code from LDraw line
+function getColorCode(line) {
+  const parts = line.trim().split(/\s+/);
+  if (parts[0] === '1' && parts.length >= 2) {
+    return parseInt(parts[1]) || 0;
+  }
+  return null;
+}
+
+// Format LDraw part lines for alignment (FIX OVERFLOW)
+function formatLDrawLine(line) {
+  const parts = line.split(' ');
+  if (parts[0] !== '1') return line;
+  if (parts.length < 15) return line;
+  
+  // Use fixed-width spans to prevent overflow
+  const color = parts[1].padStart(3);
+  const x = parseFloat(parts[2]).toFixed(2).padStart(9);
+  const y = parseFloat(parts[3]).toFixed(2).padStart(9);
+  const z = parseFloat(parts[4]).toFixed(2).padStart(9);
+  const matrix = parts.slice(5, 14).map(v => parseFloat(v).toFixed(0).padStart(2));
+  const file = parts.slice(14).join(' ');
+  
+  return `1 ${color} ${x} ${y} ${z} ${matrix.join(' ')} ${file}`;
+}
+
+// Build initial grid mapping
+rebuildGridMaps();
+
+// Render main content
+lines.forEach((line, idx) => {
+  const div = document.createElement('div');
+  div.className = 'line-container';
+  div.dataset.line = idx;
+  div.dataset.originalLine = line; // Store original for copying
+  
+  const colorCode = getColorCode(line);
+  div.innerHTML = `
+    <span class="line-number">${idx + 1}</span>
+    <span class="color-dot" data-color="${colorCode || ''}" style="background: ${colorCode !== null ? ldrawColors[colorCode] : 'transparent'};"></span>
+    <span class="group-indicator">□</span>
+    <span class="lock-indicator">⊙</span>
+    <code class="line-text">${formatLDrawLine(line)}</code>
+    <span class="send-to-builder" title="Send to Builder">✦ →</span>
+  `;
+  // Drag support: dragging lines to grid to assign cells
+  div.setAttribute('draggable', 'true');
+  div.addEventListener('dragstart', (e) => {
+    const linesToSend = (selectedLines.size > 0) ? Array.from(selectedLines) : [idx];
+    e.dataTransfer.setData('application/ldraw-lines', JSON.stringify(linesToSend));
+    e.dataTransfer.effectAllowed = 'copyMove';
+  });
+  
+  if (colorCode !== null && ldrawColors[colorCode]) {
+    div.dataset.colorCode = colorCode;
+    div.dataset.colorHex = ldrawColors[colorCode];
+    div.classList.add('has-color');
+  }
+  
+  // Hover: show section bounds
+  div.addEventListener('mouseenter', () => showSectionBounds(idx));
+  div.addEventListener('mouseleave', hideSectionBounds);
+  
+  // Click: Standard multi-select behavior (Cmd/Ctrl + click)
+  div.addEventListener('click', (e) => {
+    // Prevent action on locked lines
+    if (lockedLines.has(idx) && currentMode !== 'select' && currentMode !== 'lock') {
+      showStatus(`⚠ Line ${idx+1} is locked`);
+      return;
+    }
+    
+    // Double-tap detection
+    const now = Date.now();
+    const isDoubleTap = (idx === lastClickedLine && now - lastClickTime < DOUBLE_TAP_THRESHOLD);
+    
+    // Record interaction for usage tracking
+    recordUsage(idx);
+    
+    if (currentMode === 'select') {
+      // Standard behavior: Cmd/Ctrl for multi-select
+      if (e.metaKey || e.ctrlKey) {
+        // Add/remove from selection
+        if (selectedLines.has(idx)) {
+          selectedLines.delete(idx);
+          div.classList.remove('multi-selected');
+          div.style.background = '';
+          div.style.borderLeftColor = '';
+        } else {
+          selectedLines.add(idx);
+          selectLine(idx, true);
+        }
+      } else if (isDoubleTap) {
+        // Second tap on same line: select entire section
+        const {start, end} = getSectionBounds(idx);
+        selectedLines.clear();
+        document.querySelectorAll('.line-container.multi-selected').forEach(el => {
+          el.classList.remove('multi-selected');
+          el.style.background = '';
+          el.style.borderLeftColor = '';
+        });
+        for (let i = start; i <= end; i++) {
+          selectedLines.add(i);
+          selectLine(i, true);
+        }
+        showStatus(`Selected section: ${end - start + 1} lines`);
+      } else {
+        // Single select (clear others)
+        selectedLines.clear();
+        document.querySelectorAll('.line-container.multi-selected').forEach(el => {
+          el.classList.remove('multi-selected');
+          el.style.background = '';
+          el.style.borderLeftColor = '';
+        });
+        selectedLines.add(idx);
+        selectLine(idx, false);
+      }
+      updateSelectionStatus();
+      lastClickedLine = idx;
+      lastClickTime = now;
+    } else {
+      // Other modes: single select + action
+      selectedLines.clear();
+      selectedLines.add(idx);
+      selectLine(idx, false);
+      
+      const action = {
+        copy: () => { 
+          const text = Array.from(selectedLines).map(i => lines[i]).join('\n');
+          navigator.clipboard.writeText(text);
+          showStatus(`Copied ${selectedLines.size} line(s)`);
+        },
+        group: () => {
+          selectedLines.forEach(i => toggleGroup(i));
+        },
+        lock: () => {
+          selectedLines.forEach(i => toggleLock(i));
+        }
+      };
+      if (action[currentMode]) action[currentMode]();
+    }
+  });
+  
+  // Double-click: select + copy section
+  div.addEventListener('dblclick', () => {
+    const {start, end} = getSectionBounds(idx);
+    selectSection(start, end);
+    const section = lines.slice(start, end + 1).join('\n');
+    navigator.clipboard.writeText(section);
+    showStatus(`Copied section ${start+1}-${end+1}`);
+  });
+  
+  // Right-click: context menu
+  div.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+    const {start, end} = getSectionBounds(idx);
+    contextMenu.dataset.start = start;
+    contextMenu.dataset.end = end;
+    contextMenu.dataset.line = idx;
+    contextMenu.style.display = 'block';
+    contextMenu.style.left = `${e.clientX}px`;
+    contextMenu.style.top = `${e.clientY}px`;
+    setTimeout(() => document.addEventListener('click', hideContextMenu, {once: true}), 10);
+  });
+  
+  content.appendChild(div);
+});
+
+// Render minimap with 81 blocks
+const BLOCKS = 81;
+const linesPerBlock = Math.ceil(lines.length / BLOCKS);
+
+for (let b = 0; b < BLOCKS; b++) {
+  const startLine = b * linesPerBlock;
+  const endLine = Math.min((b + 1) * linesPerBlock - 1, lines.length - 1);
+  
+  const block = document.createElement('div');
+  block.className = 'minimap-block';
+  block.dataset.blockIndex = b;
+  block.dataset.startLine = startLine;
+  block.dataset.endLine = endLine;
+  
+  // Analyze dominant line type in this block
+  let hasLocation = false, hasEntities = false, hasGoal = false;
+  let hasObstacle = false, hasShift = false, hasSolution = false;
+  let colorCounts = {};
+  
+  for (let i = startLine; i <= endLine; i++) {
+    const line = lines[i];
+    const trimmed = line.trim();
+    if (trimmed.startsWith('0 // Location:')) hasLocation = true;
+    if (trimmed.startsWith('0 // Entities:')) hasEntities = true;
+    if (trimmed.startsWith('0 // Goal:')) hasGoal = true;
+    if (trimmed.startsWith('0 // Obstacle:')) hasObstacle = true;
+    if (trimmed.startsWith('0 // Shift:')) hasShift = true;
+    if (trimmed.startsWith('0 // Solution:')) hasSolution = true;
+    
+    const colorCode = getColorCode(line);
+    if (colorCode !== null) {
+      colorCounts[colorCode] = (colorCounts[colorCode] || 0) + 1;
+    }
+  }
+  
+  // Primary fill: Dominant brick color (what people care about!)
+  const dominantColor = Object.keys(colorCounts).sort((a,b) => colorCounts[b] - colorCounts[a])[0];
+  if (dominantColor && ldrawColors[dominantColor]) {
+    block.style.background = ldrawColors[dominantColor];
+    block.style.opacity = '0.7'; // Visible brick color
+  } else {
+    block.style.background = 'rgba(20,20,20,0.5)';
+    block.style.opacity = '0.5';
+  }
+  
+  // LEGOS annotation as left accent stripe (::after pseudo-element)
+  let accentColor = 'transparent';
+  if (hasLocation) accentColor = '#cc0';
+  else if (hasEntities) accentColor = '#f06';
+  else if (hasGoal) accentColor = '#0fc';
+  else if (hasObstacle) accentColor = '#f90';
+  else if (hasShift) accentColor = '#ff0';
+  else if (hasSolution) accentColor = '#0af';
+  
+  if (accentColor !== 'transparent') {
+    block.style.setProperty('--accent-color', accentColor);
+    block.dataset.hasAnnotation = 'true';
+  }
+  
+  // Store color info for debugging
+  block.dataset.dominantColor = dominantColor || 'none';
+  block.dataset.brickCount = Object.keys(colorCounts).length;
+  
+  // Click to jump to block
+  block.addEventListener('click', () => {
+    const targetLine = startLine;
+    const el = document.querySelector(`.line-container[data-line="${targetLine}"]`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      
+      // Activate this block
+      document.querySelectorAll('.minimap-block').forEach(b => b.classList.remove('active'));
+      block.classList.add('active');
+      
+      // Show transclusion line
+      showTransclusionLine(block, el);
+      
+      // Flash all lines in block
+      for (let i = startLine; i <= endLine; i++) {
+        const lineEl = document.querySelector(`.line-container[data-line="${i}"]`);
+        if (lineEl) {
+          lineEl.style.background = 'rgba(255,255,102,0.2)';
+          setTimeout(() => { lineEl.style.background = ''; }, 800);
+        }
+      }
+      recordUsage(targetLine);
+    }
+  });
+  
+  minimapContent.appendChild(block);
+}
+
+function getSectionBounds(lineIdx) {
+  let start = lineIdx, end = lineIdx;
+  for (let i = lineIdx; i >= 0; i--) {
+    if (lines[i].trim().startsWith('0 //')) { start = i; break; }
+  }
+  for (let i = lineIdx + 1; i < lines.length; i++) {
+    if (lines[i].trim().startsWith('0 //')) { end = i - 1; break; }
+    end = i;
+  }
+  return {start, end};
+}
+
+function showSectionBounds(lineIdx) {
+  hideSectionBounds();
+  const {start, end} = getSectionBounds(lineIdx);
+  for (let i = start; i <= end; i++) {
+    const el = document.querySelector(`[data-line="${i}"]`);
+    if (el) el.classList.add('section-hover');
+  }
+}
+
+function hideSectionBounds() {
+  document.querySelectorAll('.section-hover').forEach(el => el.classList.remove('section-hover'));
+}
+
+function selectLine(idx, keepOthers = false) {
+  if (!keepOthers) {
+    // Clear previous selection
+    document.querySelectorAll('.line-container.multi-selected').forEach(el => {
+      el.classList.remove('multi-selected');
+      el.style.background = '';
+      el.style.borderLeftColor = '';
+    });
+    document.querySelectorAll('.minimap-strip.selected').forEach(el => {
+      el.classList.remove('selected');
+    });
+  }
+  
+  // Add new selection
+  const el = document.querySelector(`.line-container[data-line="${idx}"]`);
+  const strip = document.querySelector(`.minimap-strip[data-line="${idx}"]`);
+  
+  if (el) {
+    el.classList.add('multi-selected');
+    // Use color as background if available
+    if (el.dataset.colorHex) {
+      const color = el.dataset.colorHex;
+      const bgRgba = hexToRgba(color, 0.12);
+      const borderRgba = hexToRgba(color, 0.6); // Bright true color on left
+      el.style.background = bgRgba;
+      el.style.borderLeftColor = borderRgba;
+    } else {
+      el.style.background = 'rgba(100,150,255,0.1)';
+    }
+  }
+  
+  if (strip) {
+    strip.classList.add('selected');
+    strip.style.opacity = '1';
+  }
+  
+  // Update minimap to show selection
+  updateMinimapSelection();
+  // Update affordances (inline vs group button)
+  if (typeof updateSelectionAffordances === 'function') updateSelectionAffordances();
+  // Sync grid cells from current line selection
+  if (typeof syncGridFromLineSelection === 'function') syncGridFromLineSelection();
+  if (typeof rerender3DIfActive === 'function') rerender3DIfActive();
+}
+
+function updateSelectionStatus() {
+  const selector = document.getElementById('scene-selector');
+  const vNum = document.querySelector('.viewer-line-num');
+  if (selectedLines.size === 0) {
+    const doc = getActiveDocument();
+    selector.textContent = doc ? doc.title : 'Document';
+    if (vNum) vNum.textContent = '0';
+  } else if (selectedLines.size === 1) {
+    selector.textContent = `Line ${Array.from(selectedLines)[0] + 1} selected`;
+    if (vNum) vNum.textContent = `${Array.from(selectedLines)[0] + 1}`;
+  } else {
+    selector.textContent = `${selectedLines.size} lines selected`;
+    if (vNum) vNum.textContent = `${selectedLines.size}`;
+  }
+}
+
+// Convert hex to rgba
+function hexToRgba(hex, alpha) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function selectSection(start, end) {
+  selectedLines.clear();
+  for (let i = start; i <= end; i++) {
+    selectedLines.add(i);
+    selectLine(i, true);
+  }
+  updateSelectionStatus();
+  updateMinimapSelection();
+  if (typeof updateSelectionAffordances === 'function') updateSelectionAffordances();
+  if (typeof syncGridFromLineSelection === 'function') syncGridFromLineSelection();
+  if (typeof rerender3DIfActive === 'function') rerender3DIfActive();
+}
+
+function showStatus(msg) {
+  const selector = document.getElementById('scene-selector');
+  const original = selector.textContent;
+  selector.textContent = msg;
+  setTimeout(() => {
+    if (selectedLines.size === 0) {
+      const doc = getActiveDocument();
+      selector.textContent = doc ? doc.title : 'Document';
+    } else {
+      updateSelectionStatus();
+    }
+  }, 2000);
+}
+
+// ===== GROUP & LOCK FUNCTIONS =====
+function toggleGroup(idx) {
+  const el = document.querySelector(`[data-line="${idx}"]`);
+  if (!el) return;
+  
+  if (lineGroups.has(idx)) {
+    // Remove from group
+    const groupId = lineGroups.get(idx);
+    lineGroups.delete(idx);
+    el.classList.remove('grouped');
+    const groupColor = getGroupColor(groupId);
+    el.querySelector('.group-indicator').style.backgroundColor = '';
+    showStatus(`⬚ Ungrouped line ${idx+1}`);
+  } else {
+    // Add to current group
+    lineGroups.set(idx, currentGroupId);
+    el.classList.add('grouped');
+    const groupColor = getGroupColor(currentGroupId);
+    el.querySelector('.group-indicator').style.backgroundColor = groupColor;
+    showStatus(`⬚ Grouped line ${idx+1} (Group ${currentGroupId})`);
+  }
+}
+
+function toggleLock(idx) {
+  const el = document.querySelector(`[data-line="${idx}"]`);
+  if (!el) return;
+  
+  if (lockedLines.has(idx)) {
+    lockedLines.delete(idx);
+    el.classList.remove('locked');
+    showStatus(`🔓 Unlocked line ${idx+1}`);
+  } else {
+    lockedLines.add(idx);
+    el.classList.add('locked');
+    showStatus(`🔒 Locked line ${idx+1}`);
+  }
+}
+
+function getGroupColor(groupId) {
+  const colors = ['#f08', '#0f8', '#08f', '#f80', '#f0f', '#0ff', '#ff0'];
+  return colors[(groupId - 1) % colors.length];
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+  // Ignore hotkeys whenever chat is open
+  if (aiChat && aiChat.classList.contains('open')) {
+    return;
+  }
+  if (selectedLines.size === 0) return;
+  
+  if (e.key === 'g' && !e.ctrlKey && !e.metaKey) {
+    e.preventDefault();
+    selectedLines.forEach(idx => toggleGroup(idx));
+  } else if (e.key === 'l' && !e.ctrlKey && !e.metaKey) {
+    e.preventDefault();
+    selectedLines.forEach(idx => toggleLock(idx));
+  } else if (e.key === 'c' && (e.ctrlKey || e.metaKey)) {
+    e.preventDefault();
+    const text = Array.from(selectedLines).map(i => lines[i]).join('\n');
+    navigator.clipboard.writeText(text);
+    showStatus(`Copied ${selectedLines.size} line(s)`);
+  } else if (e.key === 'Escape') {
+    selectedLines.clear();
+    document.querySelectorAll('.multi-selected').forEach(el => {
+      el.classList.remove('multi-selected');
+      el.style.background = '';
+      el.style.borderLeftColor = '';
+    });
+    updateSelectionStatus();
+    updateMinimapSelection();
+    if (typeof updateSelectionAffordances === 'function') updateSelectionAffordances();
+  }
+});
+
+function hideContextMenu() {
+  contextMenu.style.display = 'none';
+}
+
+// ===== USAGE TRACKING & MEASUREMENT =====
+function recordUsage(lineIdx) {
+  const now = Date.now();
+  
+  // Update usage map
+  if (!usageMarks.has(lineIdx)) {
+    usageMarks.set(lineIdx, {count: 1, timestamp: now, lastAccess: now});
+  } else {
+    const mark = usageMarks.get(lineIdx);
+    mark.count++;
+    mark.lastAccess = now;
+  }
+  
+  // Add to history
+  interactionHistory.push({lineIdx, timestamp: now});
+  if (interactionHistory.length > 100) interactionHistory.shift(); // Keep last 100
+  
+  // Update visual marks
+  updateUsageMarks();
+}
+
+function updateUsageMarks() {
+  const container = document.getElementById('minimap-marks');
+  const now = Date.now();
+  
+  // Clear old marks
+  container.innerHTML = '';
+  
+  // Render usage marks
+  usageMarks.forEach((data, lineIdx) => {
+    const strip = document.querySelector(`.minimap-strip[data-line="${lineIdx}"]`);
+    if (!strip) return;
+    
+    const mark = document.createElement('div');
+    mark.className = 'usage-mark';
+    
+    // Age-based styling
+    const age = now - data.lastAccess;
+    if (age < 2000) mark.classList.add('fresh'); // Recent
+    else if (age > 10000) mark.classList.add('aged'); // Old
+    
+    // Position based on line
+    const rect = strip.getBoundingClientRect();
+    const parentRect = container.parentElement.getBoundingClientRect();
+    mark.style.top = `${rect.top - parentRect.top}px`;
+    
+    // Opacity based on usage count
+    mark.style.opacity = Math.min(0.8, 0.2 + (data.count * 0.1));
+    
+    container.appendChild(mark);
+  });
+}
+
+// ===== Minimap overlays for viewer/chat footprints =====
+function updateMinimapOverlays() {
+  const mm = document.getElementById('minimap');
+  const ovV = document.getElementById('minimap-viewer-ov');
+  const ovC = document.getElementById('minimap-chat-ov');
+  if (!mm || !ovV || !ovC) return;
+  const viewerH = (viewerPanel && viewerPanel.classList.contains('open')) ? viewerPanel.clientHeight : 0;
+  const chatH = (aiChat && aiChat.classList.contains('open')) ? aiChat.clientHeight : 0;
+  ovV.style.height = Math.max(0, viewerH) + 'px';
+  ovV.style.display = viewerH > 0 ? 'flex' : 'none';
+  ovV.textContent = viewerH > 0 ? 'VIEWER' : '';
+  ovC.style.height = Math.max(0, chatH) + 'px';
+  ovC.style.display = chatH > 0 ? 'flex' : 'none';
+  ovC.textContent = chatH > 0 ? 'CHAT' : '';
+}
+
+// ===== Viewer sidebar on minimap =====
+function updateViewerSidebar() {
+  const sidebar = document.getElementById('viewer-sidebar');
+  if (!sidebar) return;
+  if (viewerPanel && viewerPanel.classList.contains('open')) {
+    sidebar.classList.add('open');
+    sidebar.style.height = viewerPanel.clientHeight + 'px';
+  } else {
+    sidebar.classList.remove('open');
+    sidebar.style.height = '0px';
+  }
+}
+
+// Sidebar events
+const vsCollapse = document.getElementById('vs-collapse');
+if (vsCollapse) vsCollapse.addEventListener('click', () => viewerCollapseBtn.click());
+
+const vsFit = document.getElementById('vs-fit');
+if (vsFit) vsFit.addEventListener('click', () => {
+  if (selectedLines.size > 0) {
+    const b = computeBoundsForIndices(Array.from(selectedLines));
+    if (b) {
+      sceneBoundsOverride = b;
+      rebuildGridMaps();
+      syncGridFromLineSelection();
+      syncLinesFromGridSelection();
+      updateGridOccupancyCounts();
+      showStatus('Grid fit to selection');
+    }
+  } else {
+    sceneBoundsOverride = null;
+    rebuildGridMaps();
+    syncGridFromLineSelection();
+    syncLinesFromGridSelection();
+    updateGridOccupancyCounts();
+    showStatus('Grid reset to scene');
+  }
+});
+
+document.querySelectorAll('#viewer-sidebar .viewer-brick[data-vmode]').forEach(b => {
+  b.addEventListener('click', () => {
+    const mode = b.dataset.vmode;
+    if (!viewerPanel.classList.contains('open')) toggleViewer();
+    const targetBtn = document.querySelector(`.viewer-mode-btn[data-mode="${mode}"]`);
+    if (targetBtn) targetBtn.click();
+  });
+});
+
+// ===== 2D GRID VIEWER =====
+let gridSelection = new Set();
+function renderGridViewer() {
+  const grid = document.getElementById('grid-view');
+  if (!grid) return;
+  gridSelection.clear();
+  grid.innerHTML = '';
+  for (let r = 0; r < 9; r++) {
+    for (let c = 0; c < 9; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'grid-cell';
+      cell.dataset.r = r;
+      cell.dataset.c = c;
+      const label = document.createElement('div');
+      label.className = 'label';
+      label.textContent = `${r+1},${c+1}`;
+      cell.appendChild(label);
+      // Click to toggle selection (visual highlight only)
+      cell.addEventListener('click', () => {
+        const key = `${r},${c}`;
+        if (gridSelection.has(key)) {
+          gridSelection.delete(key);
+          cell.classList.remove('selected');
+        } else {
+          gridSelection.add(key);
+          cell.classList.add('selected');
+        }
+        syncLinesFromGridSelection();
+      });
+      // Drag-and-drop from .mpd lines into a grid cell to assign mapping
+      cell.addEventListener('dragover', (e) => { e.preventDefault(); cell.classList.add('drag-over'); });
+      cell.addEventListener('dragleave', () => { cell.classList.remove('drag-over'); });
+      cell.addEventListener('drop', (e) => {
+        e.preventDefault();
+        cell.classList.remove('drag-over');
+        try {
+          const payload = e.dataTransfer.getData('application/ldraw-lines');
+          if (payload) {
+            const lineIdxs = JSON.parse(payload);
+            const key = `${r},${c}`;
+            lineIdxs.forEach(i => gridAssignments.set(i, key));
+            rebuildGridMaps();
+            syncGridFromLineSelection();
+            syncLinesFromGridSelection();
+            updateGridOccupancyCounts();
+            showStatus(`Assigned ${lineIdxs.length} line(s) to cell (${r+1},${c+1})`);
+          }
+        } catch {}
+      });
+      grid.appendChild(cell);
+    }
+  }
+  // Prepopulate occupancy shading and counts
+  updateGridOccupancyCounts();
+  // After building, reflect current line selection and grid selection
+  syncGridFromLineSelection();
+  syncLinesFromGridSelection();
+}
+
+// Highlight grid cells corresponding to current line selection (without changing gridSelection)
+function syncGridFromLineSelection() {
+  const grid = document.getElementById('grid-view');
+  if (!grid) return;
+  grid.querySelectorAll('.grid-cell.line-hit').forEach(el => el.classList.remove('line-hit'));
+  const keys = new Set();
+  selectedLines.forEach(idx => { const key = getLineCellKey(idx); if (key) keys.add(key); });
+  keys.forEach(key => {
+    const [r,c] = key.split(',');
+    const el = grid.querySelector(`.grid-cell[data-r="${r}"][data-c="${c}"]`);
+    if (el) el.classList.add('line-hit');
+  });
+}
+
+// Highlight .mpd lines corresponding to currently selected grid cells
+function syncLinesFromGridSelection() {
+  document.querySelectorAll('.line-container.grid-hit').forEach(el => el.classList.remove('grid-hit'));
+  const keys = Array.from(gridSelection);
+  keys.forEach(key => {
+    const set = gridLineMap.get(key);
+    if (set) set.forEach(idx => {
+      const el = document.querySelector(`.line-container[data-line="${idx}"]`);
+      if (el) el.classList.add('grid-hit');
+    });
+  });
+}
+
+// Update grid cell occupancy shading and counts based on current mapping
+function updateGridOccupancyCounts() {
+  const grid = document.getElementById('grid-view');
+  if (!grid) return;
+  grid.querySelectorAll('.grid-cell').forEach(el => {
+    el.classList.remove('occupied');
+    const r = el.dataset.r, c = el.dataset.c;
+    const lab = el.querySelector('.label');
+    const set = gridLineMap.get(`${r},${c}`);
+    if (set && set.size > 0) {
+      el.classList.add('occupied');
+      if (lab) lab.textContent = `${parseInt(r,10)+1},${parseInt(c,10)+1} (${set.size})`;
+    } else {
+      if (lab) lab.textContent = `${parseInt(r,10)+1},${parseInt(c,10)+1}`;
+    }
+  });
+}
+
+function rerender3DIfActive() {
+  const active = document.querySelector('.viewer-mode-btn.active');
+  if (!active) return;
+  if (active.dataset.mode !== '3d') return;
+  if (!document.getElementById('viewer-panel').classList.contains('open')) return;
+  render3DViewer();
+}
+
+function toggleLineSelectionFrom3D(idx) {
+  if (selectedLines.has(idx)) {
+    selectedLines.delete(idx);
+    const el = document.querySelector(`.line-container[data-line="${idx}"]`);
+    if (el) {
+      el.classList.remove('multi-selected');
+      el.classList.remove('selected');
+      el.style.background = '';
+      el.style.borderLeftColor = '';
+    }
+  } else {
+    selectLine(idx, true);
+  }
+  updateSelectionStatus();
+  updateMinimapSelection();
+  if (typeof updateSelectionAffordances === 'function') updateSelectionAffordances();
+  if (typeof syncGridFromLineSelection === 'function') syncGridFromLineSelection();
+  rerender3DIfActive();
+}
+
+// ===== THREE.JS LEGO VIEWER =====
+let scene3D = null;
+let camera3D = null;
+let renderer3D = null;
+let controls3D = null;
+let legoGroup = null;
+
+function init3DViewer() {
+  const canvas = document.getElementById('viewer-3d');
+  if (!canvas) return;
+  const container = document.getElementById('viewer-content');
+  
+  // Scene setup
+  scene3D = new THREE.Scene();
+  scene3D.background = new THREE.Color(0x050505);
+  
+  // Camera
+  const aspect = container.clientWidth / container.clientHeight;
+  camera3D = new THREE.PerspectiveCamera(45, aspect, 0.1, 1000);
+  camera3D.position.set(200, 200, 200);
+  
+  // Renderer
+  renderer3D = new THREE.WebGLRenderer({ canvas, antialias: true });
+  renderer3D.setSize(container.clientWidth, container.clientHeight);
+  renderer3D.setPixelRatio(window.devicePixelRatio);
+  
+  // Controls
+  controls3D = new THREE.OrbitControls(camera3D, canvas);
+  controls3D.enableDamping = true;
+  controls3D.dampingFactor = 0.05;
+  
+  // Lighting
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+  scene3D.add(ambientLight);
+  
+  const dirLight1 = new THREE.DirectionalLight(0xffffff, 0.8);
+  dirLight1.position.set(50, 50, 50);
+  scene3D.add(dirLight1);
+  
+  const dirLight2 = new THREE.DirectionalLight(0xffffff, 0.4);
+  dirLight2.position.set(-50, -50, -50);
+  scene3D.add(dirLight2);
+  
+  // Grid
+  const gridHelper = new THREE.GridHelper(400, 40, 0x444444, 0x222222);
+  scene3D.add(gridHelper);
+  
+  // Axes
+  const axesHelper = new THREE.AxesHelper(100);
+  scene3D.add(axesHelper);
+  
+  // Animation loop
+  function animate() {
+    requestAnimationFrame(animate);
+    controls3D.update();
+    renderer3D.render(scene3D, camera3D);
+  }
+  animate();
+  
+  // Handle resize
+  window.addEventListener('resize', () => {
+    if (!renderer3D || !camera3D) return;
+    const w = container.clientWidth;
+    const h = container.clientHeight;
+    camera3D.aspect = w / h;
+    camera3D.updateProjectionMatrix();
+    renderer3D.setSize(w, h);
+  });
+}
+
+// Load and render LEGO parts from selected lines
+function render3DViewer() {
+  const canvas = document.getElementById('viewer-3d');
+  if (!canvas) return;
+  
+  // Initialize Three.js if not already done
+  if (!scene3D) {
+    init3DViewer();
+  }
+  
+  // Clear previous LEGO group
+  if (legoGroup) {
+    scene3D.remove(legoGroup);
+  }
+  legoGroup = new THREE.Group();
+  
+  // LDraw color mapping (subset)
+  const ldrawColors = {
+    0: 0x05131D, 1: 0x0055BF, 2: 0x237841, 4: 0xC91A09,
+    5: 0xC870A0, 6: 0x583927, 7: 0x9BA19D, 8: 0x6C6E68,
+    9: 0xB4D2E3, 10: 0x4B9F4A, 14: 0xF2CD37, 15: 0xFFFFFF,
+    71: 0xA0A5A9, 72: 0x6C6E68, 73: 0x5A93DB, 74: 0x73DCA1,
+    77: 0xFEBABD, 78: 0xFFF67B, 79: 0xFFFFFF, 80: 0x484A48
+  };
+  
+  // Parse and render selected lines as simple boxes
+  const selectedIndices = Array.from(selectedLines);
+  selectedIndices.forEach(idx => {
+    const line = lines[idx];
+    const p = parsePartXYZ(line);
+    if (!p) return;
+    
+    const colCode = getColorCode(line);
+    const color = (colCode !== null && ldrawColors[colCode]) ? ldrawColors[colCode] : 0x6aaff;
+    
+    // Create a simple box to represent the part
+    const geometry = new THREE.BoxGeometry(20, 8, 20);
+    const material = new THREE.MeshStandardMaterial({ 
+      color: color,
+      metalness: 0.1,
+      roughness: 0.8
+    });
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.position.set(p.x / 10, p.y / 10, p.z / 10); // Scale down
+    
+    // Add edges for LEGO aesthetic
+    const edges = new THREE.EdgesGeometry(geometry);
+    const lineMat = new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 2 });
+    const lineSegments = new THREE.LineSegments(edges, lineMat);
+    mesh.add(lineSegments);
+    
+    legoGroup.add(mesh);
+    
+    // Click handler
+    mesh.userData = { lineIndex: idx };
+  });
+  
+  scene3D.add(legoGroup);
+  
+  // Fit camera to selection
+  if (legoGroup.children.length > 0) {
+    const box = new THREE.Box3().setFromObject(legoGroup);
+    const center = box.getCenter(new THREE.Vector3());
+    const size = box.getSize(new THREE.Vector3());
+    const maxDim = Math.max(size.x, size.y, size.z);
+    const fov = camera3D.fov * (Math.PI / 180);
+    let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
+    cameraZ *= 1.5; // Zoom out a bit
+    camera3D.position.set(center.x + cameraZ, center.y + cameraZ, center.z + cameraZ);
+    controls3D.target.copy(center);
+    controls3D.update();
+  }
+  
+  showStatus(`Rendered ${legoGroup.children.length} LEGO parts in 3D`);
+}
+
+// Sidebar send button (send grid selection to chat)
+const vsSend = document.getElementById('vs-send');
+if (vsSend) vsSend.addEventListener('click', () => {
+  // Aggregate indices from gridSelection; fallback to selectedLines
+  const indices = new Set();
+  if (gridSelection.size > 0) {
+    Array.from(gridSelection).forEach(key => {
+      const set = gridLineMap.get(key);
+      if (set) set.forEach(i => indices.add(i));
+    });
+    sendLinesToChat(Array.from(indices), 'Grid selection');
+  } else if (selectedLines.size > 0) {
+    sendLinesToChat(Array.from(selectedLines), 'Selection');
+  } else {
+    showStatus('Nothing selected in grid or lines');
+  }
+});
+
+// ===== Scenes Dock =====
+let sceneCounter = 1;
+function addSceneWindow() {
+  const dock = document.getElementById('scene-dock');
+  if (!dock) return;
+  const win = document.createElement('div');
+  win.className = 'scene-window';
+  const offset = (sceneCounter - 1) * 24;
+  win.style.top = (60 + offset) + 'px';
+  win.style.left = (window.innerWidth - 380 - offset) + 'px';
+  const id = sceneCounter++;
+  win.innerHTML = `
+    <div class="scene-header">
+      <div class="scene-title">Scene ${id}</div>
+      <button class="scene-btn" data-action="min">▾</button>
+      <button class="scene-btn" data-action="close">×</button>
+    </div>
+    <div class="scene-body">
+      <p><strong>Mobile Scene Window</strong></p>
+      <p>Use this as a second view. Drag the title bar to move; drag the corner to resize.</p>
+      <p>Default content mirrors the .mpd aesthetic. We can render 3D/2D/video here next.</p>
+    </div>
+    <div class="scene-resizer"></div>
+  `;
+  dock.appendChild(win);
+  // Dragging
+  const header = win.querySelector('.scene-header');
+  let dragging = false, sx=0, sy=0, sl=0, st=0;
+  header.addEventListener('mousedown', (e) => {
+    dragging = true; sx = e.clientX; sy = e.clientY; sl = win.offsetLeft; st = win.offsetTop; e.preventDefault();
+  });
+  document.addEventListener('mousemove', (e) => {
+    if (!dragging) return;
+    const dx = e.clientX - sx; const dy = e.clientY - sy;
+    win.style.left = (sl + dx) + 'px';
+    win.style.top = (st + dy) + 'px';
+  });
+  document.addEventListener('mouseup', () => dragging = false);
+  // Resize
+  const resizer = win.querySelector('.scene-resizer');
+  let resizing = false, rw=0, rh=0, rx=0, ry=0;
+  resizer.addEventListener('mousedown', (e) => {
+    resizing = true; rw = win.offsetWidth; rh = win.offsetHeight; rx = e.clientX; ry = e.clientY; e.preventDefault();
+  });
+  document.addEventListener('mousemove', (e) => {
+    if (!resizing) return;
+    const dx = e.clientX - rx; const dy = e.clientY - ry;
+    win.style.width = Math.max(240, rw + dx) + 'px';
+    win.style.height = Math.max(360, rh + dy) + 'px';
+  });
+  document.addEventListener('mouseup', () => resizing = false);
+  // Buttons
+  win.addEventListener('click', (e) => {
+    const btn = e.target.closest('.scene-btn');
+    if (!btn) return;
+    const act = btn.dataset.action;
+    if (act === 'close') win.remove();
+    if (act === 'min') {
+      const body = win.querySelector('.scene-body');
+      body.style.display = (body.style.display === 'none') ? 'block' : 'none';
+    }
+  });
+}
+
+const vsAddScene = document.getElementById('vs-add-scene');
+if (vsAddScene) vsAddScene.addEventListener('click', addSceneWindow);
+
+// Initial overlays/sidebar state
+setTimeout(() => { updateMinimapOverlays(); updateViewerSidebar(); }, 0);
+
+// ===== Viewer resize by handle (head player affordance) =====
+const viewerResizeHandle = document.getElementById('viewer-resize-handle');
+let isViewerResizing = false, vStartY = 0, vStartH = 0;
+if (viewerResizeHandle) {
+  viewerResizeHandle.addEventListener('mousedown', (e) => {
+    isViewerResizing = true; vStartY = e.clientY; vStartH = viewerPanel.clientHeight; e.preventDefault();
+  });
+  document.addEventListener('mousemove', (e) => {
+    if (!isViewerResizing) return;
+    let newH = Math.max(28, Math.min(Math.round(window.innerHeight * 0.7), vStartH + (e.clientY - vStartY)));
+    viewerPanel.style.height = newH + 'px';
+    viewerPanel.classList.add('open');
+    viewerPanel.classList.remove('collapsed');
+    adjustLayoutForViewer();
+    updateViewerSidebar();
+    updateMinimapOverlays();
+  });
+  document.addEventListener('mouseup', () => { isViewerResizing = false; });
+}
+
+// Mode switching
+document.querySelectorAll('.mode-btn').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+    e.target.classList.add('active');
+    currentMode = e.target.id.replace('-mode', '');
+    
+    const instructions = {
+      select: 'Cmd+Click for multi-select',
+      copy: `Copy ${selectedLines.size || 'selected'} line(s)`,
+      group: 'Click to group/ungroup',
+      lock: 'Click to lock/unlock'
+    };
+    showStatus(instructions[currentMode] || 'Ready');
+  });
+});
+
+// ===== MODALS =====
+function openModal(id) {
+  // Close chat if open
+  aiChat.classList.remove('open');
+  
+  const modal = document.getElementById(id);
+  if (modal) modal.classList.add('open');
+  
+  const backdrop = document.getElementById(id + '-backdrop');
+  if (backdrop) backdrop.classList.add('open');
+}
+
+function closeModal(id) {
+  const modal = document.getElementById(id);
+  if (modal) modal.classList.remove('open');
+  
+  const backdrop = document.getElementById(id + '-backdrop');
+  if (backdrop) backdrop.classList.remove('open');
+}
+
+// Close modals on Escape
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal.open').forEach(modal => {
+      closeModal(modal.id);
+    });
+  }
+});
+
+function saveApiKey() {
+  const key = document.getElementById('api-key-input').value;
+  if (key) {
+    localStorage.setItem('openai_api_key', key);
+    showStatus('API Key saved');
+    closeModal('api-modal');
+  }
+}
+
+function copyExport() {
+  const text = document.getElementById('export-text').value;
+  navigator.clipboard.writeText(text);
+  showStatus('Copied to clipboard');
+}
+
+function addDocument() {
+  const text = document.getElementById('add-doc-text').value;
+  if (text) {
+    const doc = { title: extractTitleFromLdraw(text), text };
+    documents.push(doc);
+    activeDocIndex = documents.length - 1;
+    closeModal('add-doc-modal');
+    renderDocDock();
+    rebuildAllFromActiveDoc();
+    showStatus('Document added');
+  }
+}
+
+// Corner buttons
+document.getElementById('api-btn').addEventListener('click', () => {
+  openModal('api-modal');
+});
+
+document.getElementById('help-btn').addEventListener('click', () => {
+  openModal('help-modal');
+});
+
+document.getElementById('import-btn').addEventListener('click', () => {
+  const data = Array.from(selectedLines).map(i => lines[i]).join('\n');
+  document.getElementById('export-text').value = data || 'No lines selected';
+  openModal('import-modal');
+});
+
+document.getElementById('add-doc-btn').addEventListener('click', () => {
+  openModal('add-doc-modal');
+});
+
+document.getElementById('scene-selector').addEventListener('click', () => {
+  showStatus('Scene loader coming soon');
+});
+
+// ===== AI CHAT =====
+const aiChat = document.getElementById('ai-chat');
+const aiChatInput = document.getElementById('ai-chat-input');
+const aiChatMessages = document.getElementById('ai-chat-messages');
+
+// Search highlighting
+let currentSearchHits = [];
+
+// ===== Multi-chat manager =====
+let chatSessions = [];
+let activeChatId = null;
+let chatCounter = 1;
+
+function ensureChatSession() {
+  if (!activeChatId || chatSessions.length === 0) {
+    createChat('Main');
+  }
+}
+
+function createChat(title = `Chat ${chatCounter++}`) {
+  const id = 'chat-' + Date.now() + '-' + Math.random().toString(36).slice(2,7);
+  chatSessions.push({ id, title, messages: [] });
+  activeChatId = id;
+  renderChatDock();
+  renderChatMessages();
+  aiChat.classList.add('open');
+  renderChatStrip();
+}
+
+function switchChat(id) {
+  const exists = chatSessions.find(s => s.id === id);
+  if (!exists) return;
+  activeChatId = id;
+  renderChatDock();
+  renderChatMessages();
+  renderChatStrip();
+}
+
+function renderChatDock() {
+  const dock = document.getElementById('chat-dock');
+  if (!dock) return;
+  dock.innerHTML = '';
+  chatSessions.forEach(s => {
+    const chip = document.createElement('div');
+    chip.className = 'chat-chip' + (s.id === activeChatId ? ' active' : '');
+    chip.textContent = s.title;
+    chip.dataset.id = s.id;
+    chip.addEventListener('click', () => { switchChat(s.id); aiChat.classList.add('open'); });
+    dock.appendChild(chip);
+  });
+  const add = document.createElement('div');
+  add.id = 'new-chat-chip';
+  add.title = 'New chat';
+  add.textContent = '+';
+  add.addEventListener('click', () => createChat());
+  dock.appendChild(add);
+  renderChatStrip();
+}
+
+function renderChatMessages() {
+  const s = chatSessions.find(x => x.id === activeChatId);
+  if (!s) return;
+  aiChatMessages.innerHTML = '';
+  s.messages.forEach(m => {
+    const div = document.createElement('div');
+    div.className = 'ai-message ' + (m.role === 'assistant' ? 'assistant' : 'user');
+    div.textContent = m.text;
+    aiChatMessages.appendChild(div);
+  });
+  aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
+}
+
+function pushUserMessage(text) {
+  ensureChatSession();
+  const s = chatSessions.find(x => x.id === activeChatId);
+  s.messages.push({ role: 'user', text });
+  const userMsg = document.createElement('div');
+  userMsg.className = 'ai-message user';
+  userMsg.dataset.line = chatLineNumber++;
+  userMsg.textContent = text;
+  aiChatMessages.appendChild(userMsg);
+  aiChat.classList.add('has-messages');
+}
+
+function pushAssistantMessage(text) {
+  ensureChatSession();
+  const s = chatSessions.find(x => x.id === activeChatId);
+  s.messages.push({ role: 'assistant', text });
+  const aiMsg = document.createElement('div');
+  aiMsg.className = 'ai-message assistant';
+  aiMsg.dataset.line = chatLineNumber++;
+  aiMsg.textContent = text;
+  aiChatMessages.appendChild(aiMsg);
+}
+
+const chatDockToggle = document.getElementById('chat-dock-toggle');
+if (chatDockToggle) chatDockToggle.addEventListener('click', () => {
+  aiChat.classList.toggle('open');
+  updateMinimapOverlays();
+});
+function clearSearchHighlights() {
+  // Lines
+  document.querySelectorAll('.line-container.search-hit').forEach(el => el.classList.remove('search-hit'));
+  // Minimap blocks
+  document.querySelectorAll('.minimap-block.search-hit').forEach(el => el.classList.remove('search-hit'));
+  currentSearchHits = [];
+}
+
+function highlightSearchResults(indices) {
+  clearSearchHighlights();
+  if (!indices || indices.length === 0) return;
+  currentSearchHits = indices;
+  // Mark lines
+  indices.forEach(i => {
+    const el = document.querySelector(`.line-container[data-line="${i}"]`);
+    if (el) el.classList.add('search-hit');
+  });
+  // Mark minimap blocks
+  const BLOCKS = 81;
+  const linesPerBlock = Math.ceil(lines.length / BLOCKS);
+  const blocks = new Set(indices.map(i => Math.floor(i / linesPerBlock)));
+  blocks.forEach(bi => {
+    const b = document.querySelector(`.minimap-block[data-block-index="${bi}"]`);
+    if (b) b.classList.add('search-hit');
+  });
+}
+
+document.getElementById('ai-chat-btn').addEventListener('click', () => {
+  aiChat.classList.toggle('open');
+  if (aiChat.classList.contains('open')) {
+    aiChatInput.focus();
+  }
+  updateMinimapOverlays();
+});
+
+document.getElementById('ai-chat-close-btn').addEventListener('click', () => {
+  aiChat.classList.remove('open');
+  aiChat.classList.remove('collapsed');
+  aiChat.classList.remove('has-messages');
+  updateMinimapOverlays();
+});
+
+// Send to Builder - inline button handler
+document.addEventListener('click', (e) => {
+  if (e.target.classList.contains('send-to-builder') || e.target.closest('.send-to-builder')) {
+    sendSelectionToBuilder();
+  }
+});
+
+function sendSelectionToBuilder() {
+  if (selectedLines.size === 0) return;
+  
+  // Open chat if closed
+  if (!aiChat.classList.contains('open')) {
+    aiChat.classList.add('open');
+  }
+  
+  // Send FULL selection to chat
+  const sortedLines = Array.from(selectedLines).sort((a,b) => a-b);
+  sendLinesToChat(sortedLines, 'Selection');
+  aiChatInput.focus();
+}
+
+function sendLinesToChat(indices, label = '') {
+  if (!indices || indices.length === 0) { showStatus('Nothing selected to send'); return; }
+  if (!aiChat.classList.contains('open')) aiChat.classList.add('open');
+  const sorted = Array.from(new Set(indices)).sort((a,b)=>a-b);
+  sorted.forEach(idx => pushUserMessage(lines[idx]));
+  const colorCounts = {};
+  sorted.forEach(idx => { const code = getColorCode(lines[idx]); if (code !== null) colorCounts[code] = (colorCounts[code]||0)+1; });
+  if (Object.keys(colorCounts).length > 0) {
+    const colorList = Object.entries(colorCounts).map(([c,n]) => `${n}×#${c}`).join(' ');
+    pushAssistantMessage(`${label ? label+': ' : ''}Analysis: ${colorList} | ${sorted.length} lines`);
+  } else {
+    pushAssistantMessage(`${label ? label+': ' : ''}${sorted.length} metadata/comment lines`);
+  }
+  aiChat.classList.add('has-messages');
+  aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
+}
+
+// Group Builder big button
+const groupSendBtn = document.getElementById('group-send-btn');
+groupSendBtn.addEventListener('click', sendSelectionToBuilder);
+
+function updateSelectionAffordances() {
+  if (selectedLines.size > 1) {
+    document.body.classList.add('multiple-selection-active');
+    groupSendBtn.classList.add('visible');
+  } else {
+    document.body.classList.remove('multiple-selection-active');
+    groupSendBtn.classList.remove('visible');
+  }
+}
+
+// Chat collapse toggle
+const chatCollapseBtn = document.getElementById('ai-chat-collapse');
+if (chatCollapseBtn) {
+  chatCollapseBtn.addEventListener('click', () => {
+    aiChat.classList.toggle('collapsed');
+  });
+}
+
+// Viewer toggle and layout adjust
+const viewerPanel = document.getElementById('viewer-panel');
+const viewerBtn = document.getElementById('viewer-btn');
+const viewerCollapseBtn = document.getElementById('viewer-collapse');
+const viewerCloseBtn = document.getElementById('viewer-close-btn');
+
+function adjustLayoutForViewer() {
+  const minimap = document.getElementById('minimap');
+  const content = document.getElementById('content');
+  let topPx = 44; // header
+  if (viewerPanel.classList.contains('open')) {
+    if (viewerPanel.classList.contains('collapsed')) {
+      topPx += 28;
+    } else {
+      topPx += Math.round(viewerPanel.getBoundingClientRect().height);
+    }
+  }
+  content.style.marginTop = topPx + 'px';
+  // Keep minimap anchored to header; overlays will represent viewer/chat footprints
+  minimap.style.top = '44px';
+  updateMinimapOverlays();
+}
+
+function toggleViewer() {
+  viewerPanel.classList.toggle('open');
+  if (!viewerPanel.classList.contains('open')) {
+    viewerPanel.classList.remove('collapsed');
+  }
+  adjustLayoutForViewer();
+  // Ensure grid renders when opening in 2D mode
+  if (viewerPanel.classList.contains('open')) {
+    const active = document.querySelector('.viewer-mode-btn.active');
+    if (active && active.dataset.mode === '2d') {
+      const vc = document.getElementById('viewer-content');
+      vc.innerHTML = '<div id="grid-view"></div>';
+      renderGridViewer();
+    }
+  }
+}
+
+viewerBtn.addEventListener('click', toggleViewer);
+viewerCollapseBtn.addEventListener('click', () => {
+  if (!viewerPanel.classList.contains('open')) return;
+  viewerPanel.classList.toggle('collapsed');
+  adjustLayoutForViewer();
+  updateViewerSidebar();
+  updateMinimapOverlays();
+});
+viewerCloseBtn.addEventListener('click', () => {
+  viewerPanel.classList.remove('open');
+  viewerPanel.classList.remove('collapsed');
+  adjustLayoutForViewer();
+  updateViewerSidebar();
+  updateMinimapOverlays();
+});
+window.addEventListener('resize', adjustLayoutForViewer);
+window.addEventListener('resize', () => { updateMinimapOverlays(); updateViewerSidebar(); });
+
+// Viewer mode switching
+document.querySelectorAll('.viewer-mode-btn[data-mode]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.viewer-mode-btn[data-mode]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const mode = btn.dataset.mode;
+    const viewerContent = document.getElementById('viewer-content');
+    
+    // Show/hide 3D-specific controls
+    const reset3D = document.getElementById('reset-3d-camera');
+    const grid3D = document.getElementById('toggle-3d-grid');
+    const axes3D = document.getElementById('toggle-3d-axes');
+    const show3DControls = mode === '3d';
+    if (reset3D) reset3D.style.display = show3DControls ? 'inline-flex' : 'none';
+    if (grid3D) grid3D.style.display = show3DControls ? 'inline-flex' : 'none';
+    if (axes3D) axes3D.style.display = show3DControls ? 'inline-flex' : 'none';
+    
+    if (mode === '3d') {
+      viewerContent.innerHTML = '<canvas id="viewer-3d"></canvas>';
+      render3DViewer();
+    } else if (mode === '2d') {
+      viewerContent.innerHTML = '<div id="grid-view"></div>';
+      renderGridViewer();
+    } else if (mode === 'video') {
+      viewerContent.innerHTML = '<div>Video Player (Video element here)</div>';
+    }
+  });
+});
+
+// 3D Viewer controls
+document.getElementById('reset-3d-camera')?.addEventListener('click', () => {
+  if (!camera3D || !controls3D) return;
+  camera3D.position.set(200, 200, 200);
+  controls3D.target.set(0, 0, 0);
+  controls3D.update();
+  showStatus('Camera reset');
+});
+
+document.getElementById('toggle-3d-grid')?.addEventListener('click', (e) => {
+  const btn = e.target;
+  btn.classList.toggle('active');
+  if (!scene3D) return;
+  scene3D.children.forEach(child => {
+    if (child instanceof THREE.GridHelper) {
+      child.visible = btn.classList.contains('active');
+    }
+  });
+});
+
+document.getElementById('toggle-3d-axes')?.addEventListener('click', (e) => {
+  const btn = e.target;
+  btn.classList.toggle('active');
+  if (!scene3D) return;
+  scene3D.children.forEach(child => {
+    if (child instanceof THREE.AxesHelper) {
+      child.visible = btn.classList.contains('active');
+    }
+  });
+});
+
+// Quick viewer controls from chat
+const viewerQuick = document.getElementById('viewer-quick-controls');
+if (viewerQuick) {
+  viewerQuick.addEventListener('click', (e) => {
+    const btn = e.target.closest('.viewer-quick');
+    if (!btn) return;
+    if (!viewerPanel.classList.contains('open')) toggleViewer();
+    const mode = btn.dataset.vmode;
+    const targetBtn = document.querySelector(`.viewer-mode-btn[data-mode="${mode}"]`);
+    if (targetBtn) targetBtn.click();
+  });
+}
+
+aiChatInput.addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') sendAiMessage();
+});
+
+document.getElementById('ai-chat-send').addEventListener('click', sendAiMessage);
+
+// Chat resize
+const resizeHandle = document.getElementById('ai-chat-resize-handle');
+let isResizing = false;
+let startY = 0;
+let startHeight = 200;
+
+resizeHandle.addEventListener('mousedown', (e) => {
+  isResizing = true;
+  startY = e.clientY;
+  startHeight = parseInt(getComputedStyle(aiChat).height);
+  e.preventDefault();
+});
+
+document.addEventListener('mousemove', (e) => {
+  if (isResizing) {
+    const delta = startY - e.clientY;
+    const newHeight = Math.max(100, Math.min(600, startHeight + delta));
+    aiChat.style.height = newHeight + 'px';
+    updateMinimapOverlays();
+  }
+});
+
+document.addEventListener('mouseup', () => {
+  isResizing = false;
+});
+
+let chatLineNumber = 1;
+
+function sendAiMessage() {
+  const message = aiChatInput.value.trim();
+  if (!message) return;
+  
+  // Add user message
+  pushUserMessage(message);
+  
+  aiChatInput.value = '';
+  
+  // Add glow when chat has messages
+  aiChat.classList.add('has-messages');
+  
+  // Handle local commands first
+  if (message.startsWith('/')) {
+    handleCommand(message);
+    return;
+  }
+  
+  // .mpd operations
+  if (message.match(/list\s+pieces?|show\s+parts?|count|inventory/i)) {
+    handleMpdOperation(message);
+    return;
+  }
+  
+  // Search in file
+  if (message.length > 2) {
+    const results = lines.map((l,i) => ({line: l, index: i})).filter(x => 
+      x.line.toLowerCase().includes(message.toLowerCase())
+    ).slice(0, 5);
+    
+    if (results.length > 0) {
+      pushAssistantMessage(`Found ${results.length} matches: ${results.map(r => `line ${r.index+1}`).join(', ')}`);
+
+      // Highlight lines and minimap blocks
+      highlightSearchResults(results.map(r => r.index));
+
+      // Scroll to first match and show transclusion
+      const firstIdx = results[0].index;
+      const el = document.querySelector(`.line-container[data-line="${firstIdx}"]`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const BLOCKS = 81;
+        const linesPerBlock = Math.ceil(lines.length / BLOCKS);
+        const bi = Math.floor(firstIdx / linesPerBlock);
+        const block = document.querySelector(`.minimap-block[data-block-index="${bi}"]`);
+        if (block) showTransclusionLine(block, el);
+      }
+    } else {
+      pushAssistantMessage(`No matches for "${message}"`);
+      clearSearchHighlights();
+    }
+  }
+  
+  aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
+}
+
+function handleCommand(cmd) {
+  const parts = cmd.slice(1).split(' ');
+  const action = parts[0];
+  
+  ensureChatSession();
+  let response = '';
+  
+  if (action === 'theme') {
+    const theme = parts[1] || 'dark';
+    switchTheme(theme);
+    response = `Switched to ${theme} theme`;
+  } else if (action === 'clear') {
+    selectedLines.clear();
+    updateSelectionStatus();
+    updateMinimapSelection();
+    if (typeof updateSelectionAffordances === 'function') updateSelectionAffordances();
+    response = 'Selection cleared';
+  } else if (action === 'exit' || action === 'close') {
+    aiChat.classList.remove('open');
+    aiChat.classList.remove('collapsed');
+    aiChat.classList.remove('has-messages');
+    response = 'Chat closed';
+  } else if (action === 'groups') {
+    const count = groupedLines.size;
+    response = `${count} line(s) in groups`;
+  } else if (action === 'locks') {
+    const count = lockedLines.size;
+    response = `${count} line(s) locked`;
+  } else if (action === 'api') {
+    openModal('api-modal');
+    response = 'Opening API configuration...';
+  } else if (action === 'help') {
+    openModal('help-modal');
+    response = 'Opening help...';
+  } else if (action === 'export' || action === 'import') {
+    openModal('import-modal');
+    const exportText = document.getElementById('export-text');
+    if (selectedLines.size > 0) {
+      exportText.value = Array.from(selectedLines).map(i => lines[i]).join('\n');
+    } else {
+      exportText.value = 'Select lines first';
+    }
+    response = 'Opening import/export...';
+  } else if (action === 'add') {
+    openModal('add-doc-modal');
+    response = 'Opening add document...';
+  } else if (action === 'commands') {
+    response = '/theme /clear /groups /locks /api /help /export /import /add | or: list pieces | show parts | count | inventory | /newchat | /switch <n> | /grid | /fit | /gridreset | /viz colors|boxes|cubes';
+  } else if (action === 'grid') {
+    if (!viewerPanel.classList.contains('open')) toggleViewer();
+    document.querySelector('.viewer-mode-btn[data-mode="2d"]').click();
+    response = 'Opened 2D grid viewer';
+  } else if (action === 'fit') {
+    if (selectedLines.size > 0) {
+      const b = computeBoundsForIndices(Array.from(selectedLines));
+      if (b) { sceneBoundsOverride = b; rebuildGridMaps(); syncGridFromLineSelection(); syncLinesFromGridSelection(); updateGridOccupancyCounts(); }
+      response = 'Grid fit to selection';
+    } else {
+      response = 'Select lines first to fit grid';
+    }
+  } else if (action === 'gridreset') {
+    sceneBoundsOverride = null; rebuildGridMaps(); syncGridFromLineSelection(); syncLinesFromGridSelection(); updateGridOccupancyCounts(); response = 'Grid reset to scene';
+  } else if (action === 'eixt') {
+    aiChat.classList.remove('open');
+    aiChat.classList.remove('collapsed');
+    aiChat.classList.remove('has-messages');
+    response = 'Chat closed';
+  } else if (action === 'newchat') {
+    createChat();
+    response = 'New chat created';
+  } else if (action === 'switch') {
+    const n = parseInt(parts[1], 10);
+    if (!isNaN(n) && n >= 1 && n <= chatSessions.length) {
+      switchChat(chatSessions[n-1].id);
+      aiChat.classList.add('open');
+      response = `Switched to chat ${n}`;
+    } else {
+      response = 'Usage: /switch <n>'; 
+    }
+  } else if (action === 'viz') {
+    const mode = (parts[1] || 'colors').toLowerCase();
+    viewerVizMode = ['colors','boxes','cubes'].includes(mode) ? mode : 'colors';
+    if (!viewerPanel.classList.contains('open')) toggleViewer();
+    const targetBtn = document.querySelector('.viewer-mode-btn[data-mode="3d"]');
+    if (targetBtn) targetBtn.click(); else render3DViewer();
+    response = `Visualization: ${viewerVizMode}`;
+  } else {
+    response = `Unknown command: ${action}`;
+  }
+  if (response) pushAssistantMessage(response);
+  aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
+}
+
+// .mpd Operations
+function handleMpdOperation(query) {
+  const aiMsg = document.createElement('div');
+  aiMsg.className = 'ai-message assistant';
+  aiMsg.dataset.line = chatLineNumber++;
+  
+  if (query.match(/list\s+pieces?/i)) {
+    // Count parts by type
+    const partCounts = {};
+    lines.forEach(line => {
+      if (line.trim().startsWith('1 ')) {
+        const parts = line.trim().split(/\s+/);
+        if (parts.length >= 15) {
+          const partFile = parts.slice(14).join(' ');
+          partCounts[partFile] = (partCounts[partFile] || 0) + 1;
+        }
+      }
+    });
+    const total = Object.values(partCounts).reduce((a,b) => a+b, 0);
+    aiMsg.textContent = `${total} total pieces | ${Object.keys(partCounts).length} unique types`;
+  } else if (query.match(/show\s+parts?|count/i)) {
+    // Count by color
+    const colorCounts = {};
+    lines.forEach(line => {
+      const code = getColorCode(line);
+      if (code !== null) {
+        colorCounts[code] = (colorCounts[code] || 0) + 1;
+      }
+    });
+    const topColors = Object.entries(colorCounts).sort((a,b) => b[1]-a[1]).slice(0,5);
+    aiMsg.textContent = `Colors: ${topColors.map(([c,n]) => `#${c}(${n})`).join(' | ')}`;
+  } else if (query.match(/inventory/i)) {
+    aiMsg.textContent = `${lines.length} lines | ${selectedLines.size} selected | ${groupedLines.size} grouped | ${lockedLines.size} locked`;
+  } else {
+    aiMsg.textContent = 'Try: list pieces | show parts | count | inventory';
+  }
+  
+  aiChatMessages.appendChild(aiMsg);
+  aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
+}
+
+// ===== UNDO/REDO =====
+function saveState(action) {
+  undoStack.push({
+    action,
+    selectedLines: new Set(selectedLines),
+    groupedLines: new Set(groupedLines),
+    lockedLines: new Set(lockedLines),
+    lineGroups: new Map(lineGroups)
+  });
+  if (undoStack.length > MAX_UNDO) undoStack.shift();
+  redoStack.length = 0; // Clear redo on new action
+}
+
+function undo() {
+  if (undoStack.length === 0) return;
+  const current = {
+    selectedLines: new Set(selectedLines),
+    groupedLines: new Set(groupedLines),
+    lockedLines: new Set(lockedLines),
+    lineGroups: new Map(lineGroups)
+  };
+  redoStack.push(current);
+  
+  const state = undoStack.pop();
+  // Restore state (simplified for now)
+  showStatus('Undo: ' + (state.action || 'Last action'));
+}
+
+function redo() {
+  if (redoStack.length === 0) return;
+  const state = redoStack.pop();
+  undoStack.push(state);
+  showStatus('Redo');
+}
+
+document.getElementById('undo-btn').addEventListener('click', undo);
+document.getElementById('redo-btn').addEventListener('click', redo);
+
+// Keyboard shortcuts for undo/redo
+document.addEventListener('keydown', (e) => {
+  // Ignore undo/redo whenever chat is open
+  if (aiChat && aiChat.classList.contains('open')) return;
+  if ((e.metaKey || e.ctrlKey) && e.key === 'z' && !e.shiftKey) {
+    e.preventDefault();
+    undo();
+  } else if ((e.metaKey || e.ctrlKey) && (e.key === 'Z' || (e.key === 'z' && e.shiftKey))) {
+    e.preventDefault();
+    redo();
+  }
+});
+
+// Minimap drag + measurement + CLICK TO JUMP
+const minimap = document.getElementById('minimap');
+const ruler = document.getElementById('minimap-ruler');
+let isDragging = false;
+let isMeasuring = false;
+
+minimapViewport.addEventListener('mousedown', (e) => {
+  isDragging = true;
+  e.preventDefault();
+});
+
+minimap.addEventListener('mousedown', (e) => {
+  if (e.target === minimapViewport) {
+    isDragging = true;
+    return;
+  }
+  
+  if (e.altKey) {
+    // Alt+Click starts measurement
+    isMeasuring = true;
+    const rect = minimap.getBoundingClientRect();
+    const y = e.clientY - rect.top;
+    const lineIdx = Math.floor((y / rect.height) * lines.length);
+    measurementStart = lineIdx;
+    ruler.style.display = 'block';
+    ruler.style.top = `${y}px`;
+    ruler.dataset.line = lineIdx + 1;
+  } else {
+    // Click minimap to jump to line
+    const rect = minimap.getBoundingClientRect();
+    const y = e.clientY - rect.top;
+    const percent = y / rect.height;
+    const targetLine = Math.floor(percent * lines.length);
+    
+    // Jump to line
+    const lineEl = document.querySelector(`.line-container[data-line="${targetLine}"]`);
+    if (lineEl) {
+      lineEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // Flash the line
+      lineEl.style.background = 'rgba(255,255,102,0.2)';
+      setTimeout(() => { lineEl.style.background = ''; }, 500);
+      
+      recordUsage(targetLine);
+    }
+  }
+});
+
+document.addEventListener('mousemove', (e) => {
+  if (isDragging) {
+    const rect = minimap.getBoundingClientRect();
+    const y = e.clientY - rect.top;
+    const percent = Math.max(0, Math.min(1, y / rect.height));
+    window.scrollTo({ top: percent * document.body.scrollHeight });
+  }
+  
+  // Show ruler on hover
+  if (!isMeasuring && e.target.closest('#minimap')) {
+    const rect = minimap.getBoundingClientRect();
+    const y = e.clientY - rect.top;
+    const lineIdx = Math.floor((y / rect.height) * lines.length);
+    ruler.style.display = 'block';
+    ruler.style.top = `${y}px`;
+    ruler.dataset.line = lineIdx + 1;
+  } else if (!e.target.closest('#minimap') && !isMeasuring) {
+    ruler.style.display = 'none';
+  }
+});
+
+document.addEventListener('mouseup', () => {
+  isDragging = false;
+  if (isMeasuring && measurementStart !== null) {
+    const rect = minimap.getBoundingClientRect();
+    // Measurement complete - could show distance
+    isMeasuring = false;
+    measurementStart = null;
+  }
+});
+
+// Age usage marks over time
+setInterval(() => {
+  updateUsageMarks();
+}, 3000);
+
+// Context menu actions
+document.querySelectorAll('.context-item').forEach(item => {
+  item.addEventListener('click', () => {
+    const action = item.dataset.action;
+    const start = parseInt(contextMenu.dataset.start);
+    const end = parseInt(contextMenu.dataset.end);
+    const line = parseInt(contextMenu.dataset.line);
+    const section = lines.slice(start, end + 1).join('\n');
+    
+    if (action === 'send-to-chat') {
+      // Send section to chat
+      if (!aiChat.classList.contains('open')) {
+        aiChat.classList.toggle('open');
+      }
+      
+      // Send all lines in section
+      for (let i = start; i <= end; i++) {
+        const userMsg = document.createElement('div');
+        userMsg.className = 'ai-message user';
+        userMsg.dataset.line = chatLineNumber++;
+        userMsg.textContent = lines[i];
+        aiChatMessages.appendChild(userMsg);
+      }
+      
+      // Add analysis
+      setTimeout(() => {
+        const aiMsg = document.createElement('div');
+        aiMsg.className = 'ai-message assistant';
+        aiMsg.dataset.line = chatLineNumber++;
+        aiMsg.textContent = `Section sent: ${end - start + 1} lines (${start+1}-${end+1})`;
+        aiChatMessages.appendChild(aiMsg);
+        aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
+      }, 200);
+      
+      aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
+      aiChatInput.focus();
+      showStatus(`Sent section to chat (${end - start + 1} lines)`);
+    } else if (action === 'copy-selection') {
+      // Copy selected lines
+      if (selectedLines.size > 0) {
+        const text = Array.from(selectedLines).map(i => lines[i]).join('\n');
+        navigator.clipboard.writeText(text);
+        showStatus(`Copied ${selectedLines.size} line(s)`);
+      } else {
+        navigator.clipboard.writeText(lines[line]);
+        showStatus('Line copied');
+      }
+    } else if (action === 'copy-section') {
+      navigator.clipboard.writeText(section);
+      showStatus(`Section copied (${end - start + 1} lines)`);
+    } else if (action === 'duplicate-section') {
+      showStatus('Duplicate not implemented');
+    } else if (action === 'delete-section') {
+      showStatus('Delete not implemented');
+    }
+    hideContextMenu();
+  });
+});
+
+// Scroll update - minimap viewport tracks position
+function updateMinimap() {
+  const contentEl = document.getElementById('content');
+  const totalHeight = contentEl.scrollHeight;
+  const viewportHeight = contentEl.clientHeight;
+  const scrollTop = contentEl.scrollTop;
+  const minimapHeight = minimap.clientHeight;
+  
+  const scrollPercent = totalHeight > viewportHeight ? scrollTop / (totalHeight - viewportHeight) : 0;
+  const viewportPercent = viewportHeight / totalHeight;
+  
+  const minimapTop = scrollPercent * minimapHeight;
+  const minimapSize = viewportPercent * minimapHeight;
+  
+  minimapViewport.style.top = `${minimapTop}px`;
+  minimapViewport.style.height = `${Math.max(minimapSize, 20)}px`;
+  
+  // Update active block based on scroll position
+  const currentBlock = Math.floor(scrollPercent * 81);
+  document.querySelectorAll('.minimap-block').forEach((block, idx) => {
+    if (idx === currentBlock) {
+      block.classList.add('active');
+    } else {
+      block.classList.remove('active');
+    }
+  });
+}
+
+const contentEl = document.getElementById('content');
+contentEl.addEventListener('scroll', updateMinimap);
+window.addEventListener('resize', updateMinimap);
+updateMinimap();
+
+// Initialize usage tracking
+setInterval(updateUsageMarks, 3000);
+
+// Close modals on backdrop click
+document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+  backdrop.addEventListener('click', () => {
+    const modalId = backdrop.id.replace('-backdrop', '');
+    closeModal(modalId);
+  });
+});
+
+// Transclusion line between minimap and document
+function showTransclusionLine(block, lineEl) {
+  const transclusionLine = document.getElementById('transclusion-line');
+  const blockRect = block.getBoundingClientRect();
+  const lineRect = lineEl.getBoundingClientRect();
+  
+  const y = (blockRect.top + blockRect.bottom) / 2;
+  
+  transclusionLine.style.top = `${y}px`;
+  transclusionLine.classList.add('active');
+  
+  // Fade out after 2s
+  setTimeout(() => {
+    transclusionLine.classList.remove('active');
+  }, 2000);
+}
+
+// Update minimap to show selected sections
+function updateMinimapSelection() {
+  const BLOCKS = 81;
+  const linesPerBlock = Math.ceil(lines.length / BLOCKS);
+  
+  document.querySelectorAll('.minimap-block').forEach((block, idx) => {
+    const startLine = idx * linesPerBlock;
+    const endLine = Math.min((idx + 1) * linesPerBlock - 1, lines.length - 1);
+    
+    // Check if any selected lines are in this block
+    let hasSelection = false;
+    for (let i = startLine; i <= endLine; i++) {
+      if (selectedLines.has(i)) {
+        hasSelection = true;
+        break;
+      }
+    }
+    
+    if (hasSelection) {
+      block.classList.add('has-selection');
+    } else {
+      block.classList.remove('has-selection');
+    }
+  });
+}
+
+// Theme switcher
+function switchTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('theme', theme);
+}
+
+// Load saved theme
+const savedTheme = localStorage.getItem('theme');
+if (savedTheme) {
+  switchTheme(savedTheme);
+}
+
+// Initialize documents and chats
+ensureChatSession();
+initDocuments();
+renderChatStrip();
+if (aiChat) { aiChat.classList.remove('open'); }
+updateMinimapOverlays();
+
+// Make modals accessible globally
+window.closeModal = closeModal;
+window.saveApiKey = saveApiKey;
+window.copyExport = copyExport;
+window.addDocument = addDocument;
+window.switchTheme = switchTheme;
+</script>
+</body>
+</html>

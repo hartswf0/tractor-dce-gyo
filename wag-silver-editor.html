@@ -1,0 +1,3187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WAG Silver Editor (Prime Viewer Integration)</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --bg-main: #0a0a0a;
+      --bg-secondary: #151515;
+      --bg-tertiary: #1f1f1f;
+      --text-primary: #e8e8e8;
+      --text-secondary: #b8b8b8;
+      --text-tertiary: #888888;
+      --border-primary: #2a2a2a;
+      --border-secondary: #3a3a3a;
+      --accent: #2cc2ff;
+      --bg-main-rgb: 10, 10, 10;
+      --error: #f33;
+      --success: #0f0;
+    }
+    
+    body.theme-light {
+      --bg-main: #f5f5f5;
+      --bg-secondary: #e8e8e8;
+      --bg-tertiary: #d0d0d0;
+      --text-primary: #1a1a1a;
+      --text-secondary: #4a4a4a;
+      --text-tertiary: #6a6a6a;
+      --border-primary: #c0c0c0;
+      --border-secondary: #b0b0b0;
+      --accent: #0080ff;
+      --bg-main-rgb: 245, 245, 245;
+    }
+    
+    body.theme-terminal {
+      --bg-main: #001100;
+      --bg-secondary: #002200;
+      --bg-tertiary: #003300;
+      --text-primary: #00ff00;
+      --text-secondary: #00cc00;
+      --text-tertiary: #009900;
+      --border-primary: #004400;
+      --border-secondary: #005500;
+      --accent: #00ff00;
+      --bg-main-rgb: 0, 17, 0;
+    }
+    
+    body {
+      background: var(--bg-main);
+      color: var(--text-primary);
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: background 300ms, color 300ms;
+    }
+    
+    /* Header - mac-01 style: minimal + four corners */
+    #header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 44px;
+      background: linear-gradient(180deg, var(--bg-tertiary) 0%, var(--bg-secondary) 100%);
+      border-bottom: 1px solid var(--border-primary);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      z-index: 1000;
+      box-shadow: 0 1px 0 rgba(255,255,255,0.05);
+    }
+    
+    /* Header center - mac-01 forehead controls */
+    #header-center {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex: 1;
+      justify-content: center;
+      max-width: 600px;
+    }
+    
+    .mode-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-primary);
+      color: var(--text-secondary);
+      font-size: 16px;
+      font-weight: 400;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    .mode-btn:hover {
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      transform: translateY(-1px);
+      box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+    }
+    .mode-btn.active {
+      background: var(--accent);
+      color: var(--bg-main);
+      border-color: var(--accent);
+    }
+    
+    .undo-redo-group {
+      display: flex;
+      gap: 4px;
+      margin-right: 8px;
+      padding-right: 8px;
+      border-right: 1px solid var(--border-primary);
+    }
+    
+    /* Corner buttons - mac-01 style */
+    .corner-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-primary);
+      color: var(--text-secondary);
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    .corner-btn:hover { 
+      background: var(--bg-secondary);
+      color: var(--text-primary); 
+      transform: translateY(-1px);
+      box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+    }
+    .corner-btn:active {
+      transform: translateY(0);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    }
+    
+    /* Footer - mac-01 style */
+    #footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 40px;
+      background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-main) 100%);
+      border-top: 1px solid var(--border-primary);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      gap: 12px;
+      z-index: 1000;
+      box-shadow: 0 -1px 0 rgba(255,255,255,0.05);
+    }
+    
+    .footer-corner-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-primary);
+      color: var(--text-secondary);
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      flex-shrink: 0;
+    }
+    .footer-corner-btn:hover {
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      transform: translateY(-1px);
+      box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+    }
+    
+    #scene-selector {
+      flex: 1;
+      max-width: 400px;
+      padding: 6px 12px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-primary);
+      border-radius: 4px;
+      color: var(--text-primary);
+      font-size: 11px;
+      font-family: inherit;
+      cursor: pointer;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: all 0.2s;
+      position: relative;
+    }
+    #scene-selector:hover {
+      background: var(--bg-tertiary);
+      border-color: var(--accent);
+    }
+    
+    
+    /* Context menu - compact */
+    #context-menu {
+      position: fixed;
+      background: var(--bg-secondary);
+      border: 1px solid var(--accent);
+      border-radius: 4px;
+      padding: 2px 0;
+      z-index: 10000;
+      display: none;
+      min-width: 140px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+    }
+    
+    #context-menu.active {
+      display: block;
+    }
+    
+    .context-item {
+      padding: 6px 12px;
+      cursor: pointer;
+      font-size: 10px;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .context-item:hover {
+      background: var(--bg-tertiary);
+      color: var(--accent);
+    }
+    
+    .context-item.separator {
+      height: 1px;
+      background: var(--border-primary);
+      padding: 0;
+      margin: 4px 0;
+      cursor: default;
+    }
+    
+    .context-item .shortcut {
+      margin-left: auto;
+      color: var(--text-tertiary);
+      font-size: 9px;
+    }
+    
+    #status-text {
+      font-size: 10px;
+      color: var(--text-tertiary);
+      flex-shrink: 0;
+    }
+    
+    /* Paste zone */
+    #paste-zone {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 80%;
+      max-width: 600px;
+      height: 60%;
+      background: var(--bg-secondary);
+      border: 2px dashed var(--accent);
+      border-radius: 8px;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 5000;
+      padding: 24px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+    }
+    
+    #paste-zone.active {
+      display: flex;
+    }
+    
+    #paste-zone textarea {
+      width: 100%;
+      height: 100%;
+      background: var(--bg-main);
+      border: 1px solid var(--border-primary);
+      color: var(--text-primary);
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      padding: 12px;
+      resize: none;
+      margin-bottom: 16px;
+    }
+    
+    .paste-buttons {
+      display: flex;
+      gap: 12px;
+    }
+    
+    /* Main layout - account for fixed header/footer */
+    #main {
+      margin-top: 44px;
+      margin-bottom: 40px;
+      height: calc(100vh - 84px);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      background: var(--border-primary);
+      overflow: hidden;
+    }
+    
+    /* Viewer panel container */
+    #viewer-container {
+      height: 100%;
+      overflow: hidden;
+      position: relative;
+    }
+    
+    #viewer-panel {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      background: var(--bg-main);
+    }
+    
+    @media (max-width: 900px) {
+      #main { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
+    }
+    
+    /* Editor panel */
+    #editor-panel {
+      background: var(--bg-secondary);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    
+    /* Editor panel header */
+    .panel-header {
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-primary);
+      padding: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 36px;
+    }
+    
+    .panel-header-left {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+    
+    .panel-header-right {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+    
+    #editor-scroll-container {
+      display: flex;
+      width: 100%;
+      height: calc(100% - 36px);
+      overflow: hidden;
+      position: relative;
+    }
+    
+    #mpd-editor {
+      flex: 1;
+      height: 100%;
+      overflow-y: auto;
+      background: var(--bg-main);
+      padding: 12px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+    
+    /* MPD Minimap (mac-01 style) */
+    #mpd-minimap {
+      width: 20px;
+      height: 100%;
+      background: var(--bg-tertiary);
+      border-left: 1px solid var(--border-primary);
+      overflow: hidden;
+      position: relative;
+      flex-shrink: 0;
+    }
+    
+    .mpd-minimap-strip {
+      width: 100%;
+      cursor: pointer;
+      border-bottom: 1px solid rgba(0,0,0,0.2);
+      transition: background 0.2s;
+    }
+    
+    .mpd-minimap-strip:hover {
+      background: rgba(255,255,255,0.2) !important;
+    }
+    
+    .mpd-minimap-strip.part { background: #4a9eff; }
+    .mpd-minimap-strip.comment { background: #555; }
+    .mpd-minimap-strip.empty { background: #1a1a1a; }
+    .mpd-minimap-strip.locked { background: #fa0; }
+    
+    #mpd-viewport-indicator {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      border-top: 2px solid var(--accent);
+      border-bottom: 2px solid var(--accent);
+      background: rgba(44, 194, 255, 0.2);
+      pointer-events: none;
+      z-index: 10;
+      box-shadow: 0 0 8px rgba(44, 194, 255, 0.4);
+    }
+    
+    /* Scene overlay on viewer (dots along right edge) */
+    #scene-overlay {
+      position: absolute;
+      top: 50px;
+      right: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 100;
+      pointer-events: none;
+    }
+    
+    #scene-dots {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      pointer-events: all;
+    }
+    
+    .scene-dot {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--bg-tertiary);
+      border: 2px solid var(--border-primary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      transition: all 0.2s;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+      position: relative;
+    }
+    
+    .scene-dot:hover {
+      background: var(--bg-secondary);
+      border-color: var(--accent);
+      transform: scale(1.2);
+      z-index: 1000;
+    }
+    
+    .scene-dot.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--bg-main);
+      box-shadow: 0 0 16px var(--accent), 0 2px 8px rgba(0,0,0,0.6);
+      transform: scale(1.1);
+    }
+    
+    .scene-dot-label {
+      position: absolute;
+      right: 40px;
+      background: var(--bg-secondary);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+      border: 1px solid var(--border-primary);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    }
+    
+    .scene-dot:hover .scene-dot-label {
+      opacity: 1;
+    }
+    
+    .scene-dot-close {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--error);
+      color: white;
+      font-size: 10px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border: 1px solid var(--bg-main);
+    }
+    
+    .scene-dot:hover .scene-dot-close {
+      display: flex;
+    }
+    
+    .scene-overlay-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--bg-tertiary);
+      border: 2px solid var(--border-primary);
+      color: var(--text-secondary);
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+      pointer-events: all;
+    }
+    
+    .scene-overlay-btn:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--bg-main);
+      transform: scale(1.2);
+    }
+    
+    #scene-selector {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+      justify-content: center;
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+    
+    #current-scene-name {
+      color: var(--accent);
+      font-weight: 600;
+    }
+    
+    /* Line-based editor with checkboxes */
+    .editor-line {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 12px;
+      border-left: 3px solid transparent;
+      transition: all 0.3s;
+      min-height: 28px;
+    }
+    
+    .editor-line.compiling {
+      background: rgba(102, 170, 255, 0.15);
+      border-left-color: var(--accent);
+      animation: compileWave 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    @keyframes compileWave {
+      0% { background: rgba(102, 170, 255, 0.3); transform: translateX(-4px); }
+      50% { background: rgba(102, 170, 255, 0.2); }
+      100% { background: rgba(102, 170, 255, 0); transform: translateX(0); }
+    }
+    
+    .editor-line.highlighted {
+      background: rgba(255, 215, 0, 0.2);
+      border-left-color: #ffd700;
+      animation: pulse 1s ease-in-out 2;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { background: rgba(255, 215, 0, 0.2); }
+      50% { background: rgba(255, 215, 0, 0.35); }
+    }
+    
+    .editor-line:hover {
+      background: rgba(102, 170, 255, 0.05);
+    }
+    
+    .line-checkbox {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+      accent-color: var(--accent);
+      flex-shrink: 0;
+    }
+    
+    .line-checkbox:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+    
+    .line-num {
+      color: var(--text-tertiary);
+      font-size: 10px;
+      width: 32px;
+      text-align: right;
+      flex-shrink: 0;
+      user-select: none;
+    }
+    
+    .line-content {
+      flex: 1;
+      color: var(--text-primary);
+      font-family: 'SF Mono', 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.4;
+      white-space: pre;
+      cursor: text;
+      font-weight: 500;
+    }
+    
+    .line-content.comment {
+      color: var(--text-tertiary);
+      font-style: italic;
+      font-weight: 400;
+    }
+    
+    .line-content.part {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+    
+    .line-content.disabled {
+      color: var(--text-tertiary);
+      text-decoration: line-through;
+      opacity: 0.4;
+    }
+    
+    .editor-line.locked {
+      background: rgba(255, 170, 0, 0.08);
+      border-left-color: #fa0;
+    }
+    
+    .editor-line.locked .line-content {
+      color: #fa0;
+      font-weight: 600;
+    }
+    
+    .editor-line.locked .line-checkbox {
+      accent-color: #fa0;
+    }
+    
+    /* Viewer panel */
+    #viewer-panel {
+      background: var(--bg-main);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+    
+    #viewer-mode-tabs {
+      display: flex;
+      gap: 0;
+      background: var(--bg-tertiary);
+      border-bottom: 1px solid var(--border-primary);
+      justify-content: space-between;
+      align-items: center;
+      padding-right: 8px;
+    }
+    
+    .viewer-tab-group {
+      display: flex;
+      gap: 0;
+    }
+    
+    .viewer-control-btn {
+      width: 28px;
+      height: 28px;
+      background: transparent;
+      border: 1px solid var(--border-primary);
+      border-radius: 4px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .viewer-control-btn:hover {
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+    }
+    .viewer-control-btn.active {
+      background: var(--accent);
+      color: var(--bg-main);
+      border-color: var(--accent);
+    }
+    
+    .viewer-controls {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+    
+    .mode-tab {
+      padding: 8px 16px;
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--text-tertiary);
+      cursor: pointer;
+      font-size: 11px;
+      font-family: inherit;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .mode-tab:hover { color: var(--text-secondary); }
+    .mode-tab.active { 
+      color: var(--accent); 
+      border-bottom-color: var(--accent);
+    }
+    
+    #viewer-content {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    #viewer-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    
+    /* 2D Grid (thousand-tetrad style) */
+    #grid-2d {
+      display: none;
+      width: 100%;
+      height: 100%;
+      grid-template-columns: repeat(9, 1fr);
+      grid-template-rows: repeat(9, 1fr);
+      gap: 3px;
+      padding: 12px;
+      box-sizing: border-box;
+    }
+    
+    #grid-2d.active { display: grid; }
+    
+    .grid-cell {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-primary);
+      border-radius: 4px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: var(--text-tertiary);
+      transition: all 0.2s;
+      position: relative;
+      aspect-ratio: 1;
+      overflow: hidden;
+    }
+    .grid-cell.occupied {
+      background: var(--accent);
+      color: var(--bg-main);
+      font-weight: 700;
+      box-shadow: 0 0 12px var(--accent), inset 0 0 20px rgba(255,255,255,0.1);
+      border-color: var(--accent);
+    }
+    .grid-cell .cell-coord {
+      position: absolute;
+      top: 1px;
+      left: 2px;
+      font-size: 7px;
+      opacity: 0.4;
+    }
+    .grid-cell .cell-count {
+      font-size: 16px;
+      font-weight: bold;
+      line-height: 1;
+    }
+    .grid-cell .cell-color {
+      font-size: 8px;
+      margin-top: 2px;
+      opacity: 0.8;
+    }
+    
+    /* Error console */
+    #error-console {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      max-height: 30%;
+      background: rgba(0, 0, 0, 0.95);
+      border-top: 2px solid var(--error);
+      color: var(--error);
+      font-size: 11px;
+      padding: 8px 12px;
+      overflow-y: auto;
+      display: none;
+      z-index: 100;
+    }
+    
+    #error-console.active { display: block; }
+    
+    .error-line {
+      padding: 4px 0;
+      border-bottom: 1px solid rgba(255, 51, 51, 0.2);
+    }
+    
+    /* Footer (from mac-01) */
+    #footer {
+      height: 32px;
+      background: var(--bg-tertiary);
+      border-top: 1px solid var(--border-primary);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      font-size: 11px;
+      color: var(--text-tertiary);
+    }
+    
+    #status { display: flex; gap: 12px; }
+    .status-item { display: flex; align-items: center; gap: 6px; }
+    /* Remove old footer styles */
+    #old-footer { display: none; }
+    
+    /* Minimap - Enhanced visibility with collapse */
+    #minimap {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 200px;
+      background: rgba(0, 0, 0, 0.8);
+      border: 2px solid var(--accent);
+      border-radius: 4px;
+      padding: 8px;
+      pointer-events: none;
+      transition: opacity 0.3s;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+    }
+    
+    #minimap.collapsed {
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      overflow: hidden;
+    }
+    
+    #minimap.collapsed #minimap-title,
+    #minimap.collapsed .minimap-grid {
+      display: none;
+    }
+    
+    #minimap-title {
+      position: absolute;
+      top: -20px;
+      left: 0;
+      font-size: 9px;
+      color: var(--accent);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .minimap-grid {
+      display: grid;
+      grid-template-columns: repeat(9, 1fr);
+      gap: 2px;
+      margin-top: 4px;
+      aspect-ratio: 1;
+    }
+    
+    .minimap-cell {
+      aspect-ratio: 1;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 2px;
+      border: 1px solid rgba(255,255,255,0.1);
+      position: relative;
+      transition: all 0.2s;
+    }
+    .minimap-cell.occupied {
+      background: var(--accent);
+      box-shadow: 0 0 6px var(--accent);
+      border-color: var(--accent);
+      animation: cellPulse 2s infinite;
+    }
+    .minimap-cell.occupied::after {
+      content: attr(data-count);
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 8px;
+      font-weight: bold;
+      color: var(--bg-main);
+    }
+    @keyframes cellPulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+    
+    @keyframes pulse {
+      0%, 100% { 
+        transform: scale(1); 
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      }
+      50% { 
+        transform: scale(1.1); 
+        box-shadow: 0 4px 12px rgba(255,51,51,0.6);
+      }
+    }
+    
+    /* File input hidden */
+    #file-input { display: none; }
+    
+    /* Modal for help */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 5000;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal.active { display: flex; }
+    .modal-content {
+      background: var(--bg-secondary);
+      border: 2px solid var(--accent);
+      border-radius: 8px;
+      padding: 24px;
+      max-width: 600px;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    }
+    .modal-header {
+      font-size: 18px;
+      color: var(--accent);
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+    .modal-close {
+      float: right;
+      cursor: pointer;
+      font-size: 24px;
+      color: var(--text-secondary);
+      line-height: 1;
+    }
+    .modal-close:hover { color: var(--accent); }
+    .help-section {
+      margin-bottom: 16px;
+    }
+    .help-section h3 {
+      color: var(--accent);
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+    .help-section ul {
+      list-style: none;
+      padding-left: 0;
+    }
+    .help-section li {
+      padding: 4px 0;
+      color: var(--text-primary);
+      font-size: 12px;
+    }
+    .help-section li::before {
+      content: '▸';
+      color: var(--accent);
+      margin-right: 8px;
+    }
+    
+    .help-section {
+      margin-bottom: 16px;
+    }
+    .help-section h3 {
+      color: var(--accent);
+      margin-bottom: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      border-bottom: 2px solid var(--accent);
+      padding-bottom: 6px;
+    }
+    .help-section ul {
+      list-style: none;
+      padding-left: 0;
+    }
+    .help-section li {
+      padding: 6px 0;
+      color: var(--text-primary);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+    .help-section li::before {
+      content: '▸';
+      color: var(--accent);
+      margin-right: 8px;
+      font-weight: bold;
+    }
+    
+    .help-section strong {
+      color: var(--accent);
+      font-weight: 700;
+    }
+    
+    .help-section .help-subsection {
+      margin-left: 20px;
+      margin-top: 8px;
+      padding: 8px;
+      background: var(--bg-tertiary);
+      border-left: 3px solid var(--accent);
+      border-radius: 4px;
+    }
+    
+    @media (max-width: 768px) {
+      .modal-content {
+        width: 95%;
+        max-height: 85vh;
+        padding: 16px;
+      }
+      .help-section {
+        margin-bottom: 16px;
+      }
+      .help-section h3 {
+        font-size: 13px;
+      }
+      .help-section li {
+        font-size: 11px;
+      }
+    }
+    
+    /* API Key input */
+    .api-input {
+      width: 100%;
+      padding: 8px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-primary);
+      border-radius: 4px;
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 11px;
+      margin-top: 8px;
+    }
+    
+    .api-input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    
+    .save-api-btn {
+      margin-top: 8px;
+      padding: 6px 12px;
+      background: var(--accent);
+      color: var(--bg-main);
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    
+    .save-api-btn:hover {
+      opacity: 0.9;
+    }
+  </style>
+</head>
+<body>
+  <!-- Hidden file input -->
+  <input type="file" id="file-input" accept=".mpd,.ldr,.dat">
+  
+  <!-- Header: mac-01 four-corner + forehead controls -->
+  <header id="header">
+    <button class="corner-btn" id="help-btn" title="Help">?</button>
+    
+    <div id="header-center">
+      <div class="undo-redo-group">
+        <button class="mode-btn" id="undo-btn" title="Undo">↶</button>
+        <button class="mode-btn" id="redo-btn" title="Redo">↷</button>
+      </div>
+      <button class="mode-btn" id="clear-btn" title="Clear">∅</button>
+      <button class="mode-btn" id="select-mode" title="Select">⌖</button>
+      <button class="mode-btn" id="copy-mode" title="Copy">⎘</button>
+      <button class="mode-btn" id="group-mode" title="Group">⬚</button>
+      <button class="mode-btn" id="lock-mode" title="Lock">⊗</button>
+    </div>
+    
+    <button class="corner-btn" id="theme-btn" title="Cycle Theme">☼</button>
+  </header>
+  
+  <!-- Main content -->
+  <main id="main">
+    <!-- MPD Editor -->
+    <section id="editor-panel">
+      <div class="panel-header">
+        <div class="panel-header-left">
+          <button class="viewer-control-btn" id="mpd-undo-btn" title="Undo">↶</button>
+          <button class="viewer-control-btn" id="mpd-redo-btn" title="Redo">↷</button>
+          <button class="viewer-control-btn" id="new-mpd-btn" title="New MPD" style="width:auto;padding:0 10px;">New</button>
+          <button class="viewer-control-btn" id="clear-mpd-btn" title="Discard" style="width:auto;padding:0 10px;">Discard</button>
+        </div>
+        <div class="panel-header-right">
+          <button class="viewer-control-btn" id="copy-all-btn" title="Copy All MPD">⎘</button>
+          <button class="viewer-control-btn" id="export-mpd-btn" title="Export MPD">↓</button>
+          <button class="viewer-control-btn" id="rerender-btn" title="Force Rerender">⟳</button>
+        </div>
+      </div>
+      <div id="editor-scroll-container">
+        <div id="mpd-editor"></div>
+        <div id="mpd-minimap">
+          <div id="mpd-viewport-indicator"></div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Viewer & Scene Manager -->
+    <section id="viewer-container">
+      <div id="viewer-panel">
+        <div id="viewer-mode-tabs">
+          <div class="viewer-tab-group">
+            <button class="mode-tab active" data-mode="3d">3D</button>
+            <button class="mode-tab" data-mode="2d">2D Grid</button>
+          </div>
+          <div class="viewer-controls">
+            <button class="viewer-control-btn" id="wireframe-toggle" title="Wireframe Mode">W</button>
+            <button class="viewer-control-btn" id="axes-toggle" title="Toggle Axes">A</button>
+            <button class="viewer-control-btn" id="grid-toggle" title="Toggle Grid" class="active">G</button>
+            <button class="viewer-control-btn" id="minimap-toggle" title="Toggle Minimap" class="active">▣</button>
+            <button class="viewer-control-btn" id="screenshot-btn" title="Screenshot">IMG</button>
+          </div>
+        </div>
+        
+        <div id="viewer-content">
+          <canvas id="viewer-canvas"></canvas>
+          <div id="grid-2d"></div>
+          
+          <!-- Minimap -->
+          <div id="minimap">
+            <div id="minimap-title">Map</div>
+            <div class="minimap-grid" id="minimap-grid"></div>
+          </div>
+          
+          <!-- Error console -->
+          <div id="error-console"></div>
+        </div>
+      </div>
+      
+      <!-- Scene overlay dots on viewer -->
+      <div id="scene-overlay">
+        <div id="scene-dots"></div>
+        <button class="scene-overlay-btn" id="new-scene-overlay-btn" title="New Scene">+</button>
+      </div>
+    </section>
+  </main>
+  
+  <!-- Footer: mac-01 four-corner style with scene selector + dropdown -->
+  <footer id="footer">
+    <button class="footer-corner-btn" id="import-export-btn" title="Import/Export">⇄</button>
+    
+    <div id="scene-selector">
+      <span>Scene:</span>
+      <span id="current-scene-name">example</span>
+    </div>
+    
+    <span id="status-text">Ready</span>
+    
+    <button class="footer-corner-btn" id="copy-errors-btn" title="Copy Error Log" style="display:none;">⚠</button>
+    <button class="footer-corner-btn" id="check-all-btn" title="Enable All Parts">✓</button>
+  </footer>
+  
+  <!-- Export modal -->
+  <div class="modal" id="export-modal">
+    <div class="modal-content">
+      <span class="modal-close" id="export-close">×</span>
+      <div class="modal-header">Import / Export</div>
+      <div class="help-section">
+        <h3>Import</h3>
+        <button class="footer-corner-btn" id="load-file-btn" style="width:auto;padding:8px 16px;border-radius:4px;">📁 Load MPD File</button>
+      </div>
+      <div class="help-section">
+        <h3>Export</h3>
+        <button class="footer-corner-btn" id="save-file-btn" style="width:auto;padding:8px 16px;border-radius:4px;">💾 Save MPD File</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Help Modal -->
+  <div class="modal" id="help-modal">
+    <div class="modal-content">
+      <span class="modal-close" id="help-close">×</span>
+      <div class="modal-header">WAG Bronze Editor - Help</div>
+      <div class="help-section">
+        <h3>Getting Started</h3>
+        <ul>
+          <li>Press <strong>Ctrl+V</strong> anywhere to paste entire MPD</li>
+          <li>Click <strong>⇄</strong> (bottom left) for Import/Export</li>
+          <li>Edit lines by clicking them</li>
+          <li>Scene updates when you click away</li>
+        </ul>
+      </div>
+      <div class="help-section">
+        <h3>🎯 Quick Start</h3>
+        <ul>
+          <li><strong>Undo/Redo (↶/↷)</strong> - 50-step history</li>
+          <li><strong>New</strong> - Create blank MPD (discards unlocked)</li>
+          <li><strong>Discard</strong> - Remove all unlocked lines</li>
+          <li><strong>Scene Boxes</strong> - Click to teleport between scenes</li>
+          <li><strong>+ Scene</strong> - Create new scene (right panel)</li>
+          <li><strong>Copy All (⎘)</strong> - Copy entire MPD</li>
+          <li><strong>Export (↓)</strong> - Download file</li>
+          <li><strong>Rerender (⟳)</strong> - Force update</li>
+        </ul>
+      </div>
+      <div class="help-section">
+        <h3>✏️ Editing Lines</h3>
+        <ul>
+          <li>Click line to edit text</li>
+          <li>Click away to auto-compile</li>
+          <li><strong>Enter</strong> - Insert new line below</li>
+          <li><strong>Delete</strong> on empty line - Remove line</li>
+          <li>Check/uncheck to toggle parts</li>
+          <li>Right-click for compact menu</li>
+        </ul>
+        <div class="help-subsection">
+          <strong>Lock Lines:</strong> Click ⊗ then click lines to lock them orange. Locked lines cannot be edited, deleted, or cleared. Use this to protect parts of your model while editing others.
+        </div>
+      </div>
+      <div class="help-section">
+        <h3>Click to Highlight</h3>
+        <ul>
+          <li>Click 3D piece → highlights its line</li>
+          <li>Gold flash shows which part</li>
+          <li>Auto-scrolls to line</li>
+        </ul>
+      </div>
+      <div class="help-section">
+        <h3>Layout</h3>
+        <ul>
+          <li><strong>?</strong> Help + API key</li>
+          <li><strong>☼</strong> Theme (Dark/Light/Terminal)</li>
+          <li><strong>⇄</strong> Import/Export files</li>
+          <li><strong>✓</strong> Enable all parts</li>
+        </ul>
+      </div>
+      <div class="help-section">
+        <h3>Scene Manager</h3>
+        <ul>
+          <li>Right panel shows all scenes as boxes</li>
+          <li><strong>Click box</strong> to teleport to scene</li>
+          <li>Active scene = highlighted blue</li>
+          <li>Line count shown (e.g. "25L")</li>
+          <li>Click × to close scene</li>
+        </ul>
+      </div>
+      <div class="help-section">
+        <h3>Viewer Controls (WAG)</h3>
+        <ul>
+          <li><strong>3D/2D</strong> Toggle view modes</li>
+          <li><strong>W</strong> Wireframe mode</li>
+          <li><strong>A</strong> Axes helper (XYZ)</li>
+          <li><strong>G</strong> Grid floor</li>
+          <li><strong>▣</strong> Minimap collapse</li>
+          <li><strong>IMG</strong> Screenshot scene only</li>
+        </ul>
+      </div>
+      <div class="help-section">
+        <h3>MPD Editor Actions</h3>
+        <ul>
+          <li><strong>New</strong> Create blank MPD</li>
+          <li><strong>Clear</strong> Remove unlocked lines</li>
+          <li><strong>Export</strong> Download MPD file</li>
+          <li><strong>Rerender</strong> Force scene update</li>
+        </ul>
+        <div class="help-subsection">
+          <strong>Resilient Rendering:</strong> If a part can't be loaded or rendered, the viewer shows a magenta wireframe placeholder box instead of crashing. Missing parts are logged in the error console at the bottom.
+        </div>
+      </div>
+      <div class="help-section">
+        <h3>Minimap</h3>
+        <ul>
+          <li>Top-right shows occupied grid cells</li>
+          <li>Blue dots = parts present</li>
+          <li>Updates live</li>
+        </ul>
+      </div>
+      <div class="help-section">
+        <h3>Context Menu</h3>
+        <ul>
+          <li>Right-click line for MPD controls</li>
+          <li>Double-tap line to duplicate</li>
+          <li>Copy, paste, delete, move</li>
+        </ul>
+      </div>
+      <div class="help-section">
+        <h3>Quick Actions</h3>
+        <ul>
+          <li>Ctrl+V anywhere → Paste entire MPD</li>
+          <li>Click out of line → Auto-compile</li>
+          <li>Ctrl+Shift+S → Screenshot + JSON</li>
+          <li><strong>Ctrl+Shift+E</strong> → Export JSON with locks</li>
+          <li><strong>Filename format:</strong> wag_name_date_time.png</li>
+        </ul>
+      </div>
+      <div class="help-section">
+        <h3>API Configuration</h3>
+        <input type="password" class="api-input" id="api-key-input" placeholder="Enter API key (optional)">
+        <button class="save-api-btn" id="save-api-btn">Save API Key</button>
+        <p style="font-size:10px;color:var(--text-tertiary);margin-top:8px;">Stored locally for AI features</p>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Context Menu - Compact -->
+  <div id="context-menu">
+    <div class="context-item" data-action="duplicate">Duplicate</div>
+    <div class="context-item" data-action="copy">Copy</div>
+    <div class="context-item" data-action="delete">Delete <span class="shortcut">Del</span></div>
+    <div class="context-item separator"></div>
+    <div class="context-item" data-action="move-up">Move Up <span class="shortcut">Alt+↑</span></div>
+    <div class="context-item" data-action="move-down">Move Down <span class="shortcut">Alt+↓</span></div>
+    <div class="context-item separator"></div>
+    <div class="context-item" data-action="lock">Lock/Unlock</div>
+  </div>
+  
+  <!-- Paste zone modal -->
+  <div id="paste-zone">
+    <h3 style="color:var(--accent);margin-bottom:12px;">Paste MPD Content</h3>
+    <textarea id="paste-textarea" placeholder="Paste entire MPD file here..."></textarea>
+    <div class="paste-buttons">
+      <button class="footer-corner-btn" id="paste-replace" style="width:auto;padding:8px 16px;border-radius:4px;">Replace All</button>
+      <button class="footer-corner-btn" id="paste-append" style="width:auto;padding:8px 16px;border-radius:4px;">Append</button>
+      <button class="footer-corner-btn" id="paste-cancel" style="width:auto;padding:8px 16px;border-radius:4px;">Cancel</button>
+    </div>
+  </div>
+  
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <!-- Prime Viewer Engine Integration -->
+  <script src="./examples/js/loaders/LDrawLoader.js"></script>
+  <script src="./beta-prime-engine.js"></script>
+  <script>
+    // ===== STATE =====
+    const STATE = {
+      autoCompile: true,
+      viewMode: '3d',
+      parts: [],
+      errors: [],
+      primeViewer: null,  // BetaPrimeEngine instance
+      scene: null,
+      camera: null,
+      renderer: null,
+      controls: null,
+      modelGroup: null,
+      gridHelper: null,
+      axesHelper: null,
+      wireframeMode: false,
+      renderMode: 'prime', // 'prime' uses BetaPrimeEngine
+      mode: 'select', // select, copy, group, lock
+      lockedLines: new Set(),
+      groupedLines: new Map(),
+      history: [],
+      historyIndex: -1,
+      minimapVisible: true,
+      scenes: [], // Multi-scene support
+      activeSceneIdx: 0
+    };
+    
+    // LDraw colors (primitive subset)
+    const COLORS = {
+      0: 0x05131D, 1: 0x0055BF, 2: 0x237841, 4: 0xC91A09,
+      5: 0xC870A0, 6: 0x583927, 7: 0x9BA19D, 14: 0xF2CD37,
+      15: 0xFFFFFF, 10: 0x4B9F4A
+    };
+    
+    // ===== STATE =====
+    let editorLines = [];
+    let contextMenuTarget = null;
+    let lastTapTime = 0;
+    let lastTapLine = null;
+    const TAP_DELAY = 300; // ms for double-tap
+    
+    // API Key storage
+    function saveAPIKey(key) {
+      localStorage.setItem('wag-api-key', key);
+      statusText.textContent = 'API key saved';
+      setTimeout(() => statusText.textContent = 'Ready', 2000);
+    }
+    
+    function loadAPIKey() {
+      return localStorage.getItem('wag-api-key') || '';
+    }
+    
+    // History management
+    function saveHistory() {
+      // Trim future history if we're not at the end
+      if (STATE.historyIndex < STATE.history.length - 1) {
+        STATE.history = STATE.history.slice(0, STATE.historyIndex + 1);
+      }
+      // Save current state
+      STATE.history.push({
+        lines: [...editorLines],
+        locked: new Set(STATE.lockedLines),
+        grouped: new Map(STATE.groupedLines)
+      });
+      STATE.historyIndex++;
+      // Limit history to 50 steps
+      if (STATE.history.length > 50) {
+        STATE.history.shift();
+        STATE.historyIndex--;
+      }
+    }
+    
+    function undo() {
+      if (STATE.historyIndex > 0) {
+        STATE.historyIndex--;
+        const state = STATE.history[STATE.historyIndex];
+        editorLines = [...state.lines];
+        STATE.lockedLines = new Set(state.locked);
+        STATE.groupedLines = new Map(state.grouped);
+        renderEditor(editorLines);
+        compile();
+      }
+    }
+    
+    function redo() {
+      if (STATE.historyIndex < STATE.history.length - 1) {
+        STATE.historyIndex++;
+        const state = STATE.history[STATE.historyIndex];
+        editorLines = [...state.lines];
+        STATE.lockedLines = new Set(state.locked);
+        STATE.groupedLines = new Map(state.grouped);
+        renderEditor(editorLines);
+        compile();
+      }
+    }
+    
+    // ===== ELEMENTS =====
+    const editorContainer = document.getElementById('mpd-editor');
+    const canvas = document.getElementById('viewer-canvas');
+    const grid2d = document.getElementById('grid-2d');
+    const errorConsole = document.getElementById('error-console');
+    const statusText = document.getElementById('status-text');
+    
+    // Error logger for debugging
+    const ERROR_LOG = [];
+    function logError(error, context) {
+      const entry = {
+        time: new Date().toISOString(),
+        context: context || 'unknown',
+        message: error.message || String(error),
+        stack: error.stack || 'no stack'
+      };
+      ERROR_LOG.push(entry);
+      console.error(`[${context}]`, error);
+      
+      // Show error copy button
+      const copyBtn = document.getElementById('copy-errors-btn');
+      if (copyBtn) {
+        copyBtn.style.display = 'flex';
+        copyBtn.style.animation = 'pulse 2s infinite';
+      }
+      
+      // Show in status
+      if (statusText) {
+        statusText.textContent = `Error: ${error.message || error}`;
+        statusText.style.color = 'var(--error)';
+        setTimeout(() => {
+          statusText.style.color = '';
+          statusText.textContent = 'Ready';
+        }, 5000);
+      }
+    }
+    
+    // ===== PRIME VIEWER SETUP =====
+    function initViewer() {
+      const canvas = document.getElementById('viewer-canvas');
+      
+      console.log('🎨 Initializing Prime Viewer Engine...');
+      
+      // Create Prime Viewer Engine (like viewer-prime!)
+      STATE.primeViewer = BetaPrimeEngine.create({
+        canvas: canvas,
+        loaderPath: './ldraw/',
+        background: 0x0a0a0a,
+        grid: { size: 800, divisions: 40, color1: 0x444444, color2: 0x222222 },
+        axesSize: 200
+      });
+      
+      // Store references for compatibility
+      STATE.scene = STATE.primeViewer.scene;
+      STATE.camera = STATE.primeViewer.camera;
+      STATE.renderer = STATE.primeViewer.renderer;
+      STATE.controls = STATE.primeViewer.controls;
+      STATE.gridHelper = STATE.primeViewer.gridHelper;
+      STATE.axesHelper = STATE.primeViewer.axesHelper;
+      
+      // Set initial grid/axes visibility
+      STATE.gridHelper.visible = true;
+      STATE.axesHelper.visible = false;
+      
+      // Listen for model loaded events
+      STATE.primeViewer.on('model:loaded', (data) => {
+        console.log('✓ Model loaded:', data);
+        if (statusText) {
+          statusText.textContent = `Loaded! ${data.stats.meshes} meshes, ${data.stats.triangles} triangles`;
+          setTimeout(() => statusText.textContent = 'Ready', 3000);
+        }
+      });
+      
+      STATE.primeViewer.on('model:cleared', () => {
+        console.log('Model cleared');
+      });
+      
+      console.log('✓ Prime Viewer Engine ready!');
+    }
+    
+    // ===== MPD PARSING =====
+    function parseMPD(text) {
+      const lines = text.split('\n');
+      const parts = [];
+      const errors = [];
+      
+      lines.forEach((line, idx) => {
+        line = line.trim();
+        if (!line || line.startsWith('0 ')) return;
+        
+        const tokens = line.split(/\s+/);
+        if (tokens[0] !== '1') return;
+        
+        try {
+          const part = {
+            lineNum: idx + 1,
+            color: parseInt(tokens[1]),
+            x: parseFloat(tokens[2]),
+            y: parseFloat(tokens[3]),
+            z: parseFloat(tokens[4]),
+            part: tokens.slice(14).join(' ')
+          };
+          
+          if (isNaN(part.x) || isNaN(part.y) || isNaN(part.z)) {
+            throw new Error('Invalid coordinates');
+          }
+          
+          parts.push(part);
+        } catch (e) {
+          errors.push({ line: idx + 1, msg: e.message });
+        }
+      });
+      
+      return { parts, errors };
+    }
+    
+    // ===== 3D RENDERING WITH PRIME VIEWER =====
+    async function render3D(parts) {
+      if (!STATE.primeViewer) {
+        console.error('Prime Viewer not initialized');
+        return;
+      }
+      
+      // Get full MPD text from editor
+      const mpdText = editorLines.join('\n');
+      
+      // Check if this is a pure geometry file (no type 1 part references)
+      const hasPartReferences = mpdText.split('\n').some(line => {
+        const trimmed = line.trim();
+        return trimmed.startsWith('1 ') && !trimmed.startsWith('0 ');
+      });
+      
+      if (!hasPartReferences) {
+        console.warn('⚠️ Pure geometry file detected (no part references)');
+        console.info('This file uses type 3/4 primitives, not standard LDraw parts');
+        console.info('Silver Editor (Prime Viewer) requires standard part references');
+        console.info('Try: wag-primitive-editor.html or wag-bronze-editor.html instead');
+        
+        if (statusText) {
+          statusText.textContent = 'Pure geometry file - use Primitive/Bronze editor';
+          statusText.style.color = 'var(--error)';
+        }
+        
+        // Show helpful error in console
+        if (errorConsole) {
+          errorConsole.innerHTML = `
+            <div class="error-line">⚠️ Pure Geometry File Detected</div>
+            <div class="error-line">This MPD uses type 3/4 primitives (triangles/quads)</div>
+            <div class="error-line">Silver Editor requires standard LDraw part references (type 1 lines)</div>
+            <div class="error-line"></div>
+            <div class="error-line">✓ Try: wag-primitive-editor.html</div>
+            <div class="error-line">✓ Try: wag-bronze-editor.html</div>
+            <div class="error-line"></div>
+            <div class="error-line">Or add standard parts to your MPD file</div>
+          `;
+          errorConsole.classList.add('active');
+        }
+        return;
+      }
+      
+      console.log('🎨 Rendering with Prime Viewer Engine...');
+      
+      // Extract filename from MPD's FILE declaration if present
+      const firstLine = mpdText.split('\n')[0] || '';
+      let virtualPath = 'editor-model.mpd';
+      
+      // Check if first line is "0 FILE filename.mpd"
+      const fileMatch = firstLine.match(/^0\s+FILE\s+(\S+)/i);
+      if (fileMatch) {
+        virtualPath = fileMatch[1];
+        console.log(`Using MPD-declared filename: ${virtualPath}`);
+      }
+      
+      try {
+        // Debug logging
+        console.log('MPD Text length:', mpdText.length);
+        console.log('First 200 chars:', mpdText.substring(0, 200));
+        console.log('Using virtualPath:', virtualPath);
+        console.log('Loader path:', STATE.primeViewer.loader.path);
+        
+        // Use Prime Viewer's loadText method (same as viewer-prime!)
+        // Pass virtualPath as 3rd parameter!
+        await STATE.primeViewer.loadText(
+          mpdText,
+          {
+            filename: virtualPath,
+            source: 'Silver Editor'
+          },
+          virtualPath  // ← This is the key! Must match FILE declaration
+        );
+        
+        console.log('✓ Prime Viewer rendered successfully');
+        console.log('Model wrapper:', STATE.primeViewer.modelWrapper);
+        console.log('Model children:', STATE.primeViewer.modelWrapper?.children?.length);
+        
+        // Store reference to model for compatibility
+        STATE.modelGroup = STATE.primeViewer.modelWrapper;
+        
+      } catch (error) {
+        console.error('Prime Viewer loading failed:', error);
+        logError(error);
+        
+        // Check if it's the "empty model" error
+        if (error.message === 'Loaded model is empty.') {
+          if (statusText) {
+            statusText.textContent = 'Model empty - try Primitive/Bronze editor';
+            statusText.style.color = 'var(--error)';
+          }
+          if (errorConsole) {
+            errorConsole.innerHTML = `
+              <div class="error-line">❌ Model loaded but appears empty</div>
+              <div class="error-line">Possible causes:</div>
+              <div class="error-line">• Pure geometry file (type 3/4 primitives)</div>
+              <div class="error-line">• Missing part files in ldraw/parts/</div>
+              <div class="error-line">• Invalid MPD structure</div>
+              <div class="error-line"></div>
+              <div class="error-line">✓ Try: wag-primitive-editor.html</div>
+              <div class="error-line">✓ Try: wag-bronze-editor.html</div>
+            `;
+            errorConsole.classList.add('active');
+          }
+        } else {
+          if (statusText) {
+            statusText.textContent = `Error: ${error.message}`;
+            statusText.style.color = 'var(--error)';
+          }
+        }
+      }
+    }
+    
+    // Primitive box rendering (fallback)
+    function renderWithPrimitives(parts) {
+      console.log('📦 Rendering with primitive boxes...');
+      
+      // Clear previous
+      if (STATE.modelGroup) {
+        STATE.scene.remove(STATE.modelGroup);
+      }
+      STATE.modelGroup = new THREE.Group();
+      
+      const renderErrors = [];
+      const missingParts = new Set();
+      
+      parts.forEach(part => {
+        try {
+          const color = COLORS[part.color] || 0x6aaff;
+          // Smaller boxes: 5×5×5 LDU (was 20×8×20)
+          const geometry = new THREE.BoxGeometry(5, 5, 5);
+          const material = new THREE.MeshStandardMaterial({
+            color: color,
+            metalness: 0.1,
+            roughness: 0.8
+          });
+          
+          const mesh = new THREE.Mesh(geometry, material);
+          mesh.position.set(part.x / 10, -part.y / 10, part.z / 10);
+          
+          // Store line reference for click-to-highlight
+          mesh.userData.lineNum = part.lineNum;
+          mesh.userData.originalColor = color;
+          mesh.cursor = 'pointer';
+          
+          // Edges
+          const edges = new THREE.EdgesGeometry(geometry);
+          const lineMat = new THREE.LineBasicMaterial({ color: 0x000000 });
+          const lineSegments = new THREE.LineSegments(edges, lineMat);
+          mesh.add(lineSegments);
+          
+          STATE.modelGroup.add(mesh);
+          
+        } catch (error) {
+          // Resilient fallback: create wireframe placeholder
+          console.error(`Failed to render part at line ${part.lineNum}:`, error);
+          renderErrors.push({ line: part.lineNum, part: part.part, error: error.message });
+          missingParts.add(part.part);
+          
+          try {
+            // Create fallback wireframe box (smaller)
+            const fallbackGeometry = new THREE.BoxGeometry(5, 5, 5);
+            const fallbackMaterial = new THREE.MeshBasicMaterial({
+              color: 0xff00ff,
+              wireframe: true,
+              transparent: true,
+              opacity: 0.5
+            });
+            
+            const fallbackMesh = new THREE.Mesh(fallbackGeometry, fallbackMaterial);
+            fallbackMesh.position.set(part.x / 10, -part.y / 10, part.z / 10);
+            fallbackMesh.userData.lineNum = part.lineNum;
+            fallbackMesh.userData.isFallback = true;
+            
+            STATE.modelGroup.add(fallbackMesh);
+          } catch (fallbackError) {
+            console.error(`Even fallback failed for line ${part.lineNum}:`, fallbackError);
+          }
+        }
+      });
+      
+      // Show render errors in console
+      if (renderErrors.length > 0) {
+        const errorMsg = renderErrors.map(e => 
+          `<div class="error-line">Line ${e.line}: Missing part "${e.part}" (${e.error}) - showing placeholder</div>`
+        ).join('');
+        
+        if (errorConsole.innerHTML) {
+          errorConsole.innerHTML += errorMsg;
+        } else {
+          errorConsole.innerHTML = errorMsg;
+        }
+        errorConsole.classList.add('active');
+        
+        const uniqueParts = Array.from(missingParts).join(', ');
+        statusText.textContent = `${renderErrors.length} part(s) missing: ${uniqueParts}`;
+      }
+      
+      STATE.scene.add(STATE.modelGroup);
+      
+      // Fit camera
+      if (STATE.modelGroup && STATE.modelGroup.children.length > 0) {
+        const box = new THREE.Box3().setFromObject(STATE.modelGroup);
+        const center = box.getCenter(new THREE.Vector3());
+        const size = box.getSize(new THREE.Vector3());
+        const maxDim = Math.max(size.x, size.y, size.z);
+        const fov = STATE.camera.fov * (Math.PI / 180);
+        let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
+        cameraZ *= 1.8;
+        STATE.camera.position.set(center.x + cameraZ, center.y + cameraZ, center.z + cameraZ);
+        STATE.controls.target.copy(center);
+        STATE.controls.update();
+      }
+    }
+    
+    // ===== 2D GRID RENDERING =====
+    function render2D(parts) {
+      if (!grid2d) return;
+      
+      grid2d.innerHTML = '';
+      
+      // Track parts per cell
+      const cellData = {};
+      
+      // Create 9x9 grid
+      const cells = [];
+      for (let r = 0; r < 9; r++) {
+        for (let c = 0; c < 9; c++) {
+          const cell = document.createElement('div');
+          cell.className = 'grid-cell';
+          
+          const coord = document.createElement('div');
+          coord.className = 'cell-coord';
+          coord.textContent = `${c},${r}`;
+          cell.appendChild(coord);
+          
+          grid2d.appendChild(cell);
+          cells.push({ cell, r, c });
+          cellData[`${c},${r}`] = { count: 0, colors: new Set() };
+        }
+      }
+      
+      if (parts.length === 0) return;
+      
+      // Calculate bounds of all parts
+      let minX = Infinity, maxX = -Infinity;
+      let minZ = Infinity, maxZ = -Infinity;
+      
+      parts.forEach(part => {
+        minX = Math.min(minX, part.x);
+        maxX = Math.max(maxX, part.x);
+        minZ = Math.min(minZ, part.z);
+        maxZ = Math.max(maxZ, part.z);
+      });
+      
+      const rangeX = maxX - minX || 1;
+      const rangeZ = maxZ - minZ || 1;
+      
+      // Map parts to grid with proper scaling
+      parts.forEach(part => {
+        // Normalize to 0-1, then scale to 0-8
+        const normX = (part.x - minX) / rangeX;
+        const normZ = (part.z - minZ) / rangeZ;
+        const gridX = Math.floor(normX * 8.99); // 8.99 to avoid hitting 9
+        const gridZ = Math.floor(normZ * 8.99);
+        const key = `${gridX},${gridZ}`;
+        
+        if (cellData[key]) {
+          cellData[key].count++;
+          cellData[key].colors.add(part.color);
+        }
+      });
+      
+      // Update cells with data
+      cells.forEach(({ cell, r, c }) => {
+        const data = cellData[`${c},${r}`];
+        if (data.count > 0) {
+          cell.classList.add('occupied');
+          
+          const count = document.createElement('div');
+          count.className = 'cell-count';
+          count.textContent = data.count;
+          cell.appendChild(count);
+          
+          const colorInfo = document.createElement('div');
+          colorInfo.className = 'cell-color';
+          colorInfo.textContent = `Color ${Array.from(data.colors).join(',')}`;
+          cell.appendChild(colorInfo);
+          
+          // Use first color for background
+          const firstColor = Array.from(data.colors)[0];
+          const colorHex = COLORS[firstColor]?.toString(16).padStart(6, '0') || '6aaff';
+          cell.style.backgroundColor = `#${colorHex}33`;
+          cell.style.borderColor = `#${colorHex}`;
+        }
+      });
+    }
+    
+    // ===== MINIMAP =====
+    function renderMinimap(parts) {
+      const minimapGrid = document.getElementById('minimap-grid');
+      if (!minimapGrid) return;
+      
+      minimapGrid.innerHTML = '';
+      
+      // Track part count per cell
+      const cellCounts = new Array(81).fill(0);
+      
+      const cells = [];
+      for (let i = 0; i < 81; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'minimap-cell';
+        minimapGrid.appendChild(cell);
+        cells.push(cell);
+      }
+      
+      parts.forEach(part => {
+        const gridX = Math.floor(part.x / 10);
+        const gridZ = Math.floor(part.z / 10);
+        const idx = gridZ * 9 + gridX;
+        if (idx >= 0 && idx < 81) {
+          cellCounts[idx]++;
+        }
+      });
+      
+      cells.forEach((cell, idx) => {
+        const count = cellCounts[idx];
+        if (count > 0) {
+          cell.classList.add('occupied');
+          cell.setAttribute('data-count', count);
+          cell.title = `${count} part${count > 1 ? 's' : ''}`;
+        }
+      });
+    }
+    
+    // ===== LINE-BASED EDITOR =====
+    function renderEditor(lines) {
+      editorContainer.innerHTML = '';
+      renderMPDMinimap();
+      lines.forEach((line, idx) => {
+        const lineDiv = document.createElement('div');
+        lineDiv.className = 'editor-line';
+        lineDiv.dataset.lineNum = idx + 1;
+        
+        // Add locked class if line is locked
+        if (STATE.lockedLines.has(idx)) {
+          lineDiv.classList.add('locked');
+        }
+        
+        // Checkbox (only for part lines)
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.className = 'line-checkbox';
+        const isPart = line.trim().startsWith('1 ');
+        const isComment = line.trim().startsWith('0 ');
+        
+        // Auto-check all part lines (this fixes the single box issue!)
+        checkbox.checked = isPart;
+        checkbox.disabled = !isPart || STATE.lockedLines.has(idx);
+        
+        checkbox.addEventListener('change', () => {
+          if (!STATE.lockedLines.has(idx)) {
+            saveHistory();
+            toggleLine(idx);
+          }
+        });
+        
+        // Line number
+        const lineNum = document.createElement('span');
+        lineNum.className = 'line-num';
+        lineNum.textContent = idx + 1;
+        
+        // Line content
+        const content = document.createElement('span');
+        content.className = `line-content ${isPart ? 'part' : isComment ? 'comment' : ''} ${!checkbox.checked && isPart ? 'disabled' : ''}`;
+        content.textContent = line || ' ';
+        content.contentEditable = true;
+        content.spellcheck = false;
+        
+        content.addEventListener('blur', () => {
+          const newContent = content.textContent;
+          if (editorLines[idx] !== newContent) {
+            editorLines[idx] = newContent;
+            saveHistory();
+            renderEditor(editorLines);
+            // Auto-compile on blur (mac-01 style)
+            compile();
+          }
+        });
+        
+        // Handle paste into individual lines - split by newlines
+        content.addEventListener('paste', (e) => {
+          e.preventDefault();
+          const text = e.clipboardData.getData('text/plain');
+          
+          // If pasting single line, just insert it
+          if (!text.includes('\n') && !text.includes('\r')) {
+            document.execCommand('insertText', false, text);
+            return;
+          }
+          
+          // Multi-line paste: split and insert
+          saveHistory();
+          const lines = text.split(/\r?\n/);
+          
+          // Replace current line with first pasted line
+          editorLines[idx] = lines[0];
+          
+          // Insert remaining lines after current
+          for (let i = 1; i < lines.length; i++) {
+            editorLines.splice(idx + i, 0, lines[i]);
+          }
+          
+          renderEditor(editorLines);
+          compile();
+          statusText.textContent = `Pasted ${lines.length} lines`;
+        });
+        
+        content.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            saveHistory();
+            const newLine = '';
+            editorLines.splice(idx + 1, 0, newLine);
+            renderEditor(editorLines);
+            // Focus next line
+            setTimeout(() => {
+              const nextLine = editorContainer.children[idx + 1];
+              if (nextLine) nextLine.querySelector('.line-content').focus();
+            }, 0);
+          } else if (e.key === 'Delete' || e.key === 'Backspace') {
+            // If line is empty and user hits delete, remove the line
+            if (content.textContent.trim() === '') {
+              e.preventDefault();
+              
+              // Don't delete if locked
+              if (STATE.lockedLines.has(idx)) {
+                statusText.textContent = 'Line is locked';
+                return;
+              }
+              
+              // Don't delete last line
+              if (editorLines.length === 1) {
+                return;
+              }
+              
+              saveHistory();
+              deleteLine(idx);
+              
+              // Focus previous line
+              setTimeout(() => {
+                const prevIdx = Math.max(0, idx - 1);
+                const prevLine = editorContainer.children[prevIdx];
+                if (prevLine) prevLine.querySelector('.line-content').focus();
+              }, 0);
+            }
+          }
+        });
+        
+        // Double-tap detection
+        lineDiv.addEventListener('click', (e) => {
+          const now = Date.now();
+          if (now - lastTapTime < TAP_DELAY && lastTapLine === idx) {
+            // Double-tap detected - duplicate line
+            e.preventDefault();
+            duplicateLine(idx);
+            lastTapTime = 0;
+            lastTapLine = null;
+          } else {
+            lastTapTime = now;
+            lastTapLine = idx;
+          }
+        });
+        
+        // Right-click context menu
+        lineDiv.addEventListener('contextmenu', (e) => {
+          e.preventDefault();
+          contextMenuTarget = idx;
+          showContextMenu(e.clientX, e.clientY);
+        });
+        
+        lineDiv.appendChild(checkbox);
+        lineDiv.appendChild(lineNum);
+        lineDiv.appendChild(content);
+        editorContainer.appendChild(lineDiv);
+      });
+    }
+    
+    function toggleLine(idx) {
+      let line = editorLines[idx].trim();
+      
+      if (line.startsWith('1 ')) {
+        // Part line → comment it (disable)
+        editorLines[idx] = '0 ' + line.substring(2);
+      } else if (line.startsWith('0 ') && line.substring(2).trim().match(/^\d+\s+[\d\-\.]+/)) {
+        // Commented part → uncomment it (re-enable)
+        editorLines[idx] = '1 ' + line.substring(2);
+      }
+      
+      renderEditor(editorLines);
+      compileWithAnimation();
+    }
+    
+    function compileWithAnimation() {
+      // Animate lines
+      const lines = editorContainer.querySelectorAll('.editor-line');
+      lines.forEach((line, idx) => {
+        setTimeout(() => {
+          line.classList.add('compiling');
+          setTimeout(() => line.classList.remove('compiling'), 600);
+        }, idx * 30);
+      });
+      
+      setTimeout(compile, 100);
+    }
+    
+    function highlightLine(lineNum) {
+      const lineDiv = editorContainer.querySelector(`[data-line-num="${lineNum}"]`);
+      if (lineDiv) {
+        // Remove previous highlights
+        editorContainer.querySelectorAll('.highlighted').forEach(l => l.classList.remove('highlighted'));
+        
+        lineDiv.classList.add('highlighted');
+        lineDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        
+        setTimeout(() => lineDiv.classList.remove('highlighted'), 2000);
+      }
+    }
+    
+    // ===== COMPILE =====
+    function compile() {
+      try {
+        const text = editorLines.join('\n');
+        const { parts, errors } = parseMPD(text);
+      
+      STATE.parts = parts;
+      STATE.errors = errors;
+      
+      // Update UI - safe null check
+      // partCount removed (not in HTML)
+      
+      // Clear previous errors
+      errorConsole.innerHTML = '';
+      
+      // Show parsing errors
+      if (errors.length > 0) {
+        errorConsole.innerHTML = errors.map(e => 
+          `<div class="error-line">Line ${e.line}: ${e.msg}</div>`
+        ).join('');
+        errorConsole.classList.add('active');
+        statusText.textContent = `${errors.length} parse error(s)`;
+      } else {
+        errorConsole.classList.remove('active');
+        statusText.textContent = 'Ready';
+      }
+      
+      // Render (wrapped in try-catch for resilience)
+      try {
+        if (STATE.viewMode === '3d') {
+          render3D(parts);
+        } else {
+          render2D(parts);
+        }
+        renderMinimap(parts);
+      } catch (renderError) {
+        console.error('Critical render error:', renderError);
+        errorConsole.innerHTML += `<div class="error-line">Critical: Render failed - ${renderError.message}</div>`;
+        errorConsole.classList.add('active');
+        statusText.textContent = 'Render failed - check console';
+      }
+      } catch (compileError) {
+        logError(compileError, 'compile');
+        if (errorConsole) {
+          errorConsole.innerHTML += `<div class="error-line">Compile error: ${compileError.message}</div>`;
+          errorConsole.classList.add('active');
+        }
+      }
+    }
+    
+    // ===== 3D CLICK HANDLER =====
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+    
+    canvas.addEventListener('click', (event) => {
+      if (STATE.viewMode !== '3d') return;
+      
+      const rect = canvas.getBoundingClientRect();
+      mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      
+      raycaster.setFromCamera(mouse, STATE.camera);
+      
+      // Safe null check
+      if (!STATE.modelGroup || !STATE.modelGroup.children) {
+        return;
+      }
+      
+      const intersects = raycaster.intersectObjects(STATE.modelGroup.children, false);
+      
+      if (intersects.length > 0) {
+        const mesh = intersects[0].object;
+        if (mesh.userData.lineNum) {
+          highlightLine(mesh.userData.lineNum);
+          
+          // Flash the piece
+          mesh.material.emissive.setHex(0xffd700);
+          setTimeout(() => mesh.material.emissive.setHex(0x000000), 300);
+        }
+      }
+    });
+    
+    // ===== EVENTS =====
+    
+    document.querySelectorAll('.mode-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        STATE.viewMode = tab.dataset.mode;
+        
+        if (STATE.viewMode === '3d') {
+          canvas.style.display = 'block';
+          grid2d.classList.remove('active');
+        } else {
+          canvas.style.display = 'none';
+          grid2d.classList.add('active');
+        }
+        
+        compile();
+      });
+    });
+    
+    // Forehead controls
+    document.getElementById('clear-btn').addEventListener('click', () => {
+      if (confirm('Clear all unlocked lines?')) {
+        saveHistory();
+        editorLines = editorLines.map((line, idx) => {
+          if (STATE.lockedLines.has(idx)) return line;
+          return '';
+        });
+        renderEditor(editorLines);
+        compile();
+      }
+    });
+    
+    document.getElementById('undo-btn').addEventListener('click', undo);
+    document.getElementById('redo-btn').addEventListener('click', redo);
+    
+    // Mode buttons
+    document.querySelectorAll('#select-mode, #copy-mode, #group-mode, #lock-mode').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        STATE.mode = btn.id.replace('-mode', '');
+        statusText.textContent = `Mode: ${STATE.mode}`;
+      });
+    });
+    
+    // Lock mode: click lines to lock/unlock
+    editorContainer.addEventListener('click', (e) => {
+      if (STATE.mode !== 'lock') return;
+      const lineDiv = e.target.closest('.editor-line');
+      if (!lineDiv) return;
+      
+      const lineNum = parseInt(lineDiv.dataset.lineNum) - 1;
+      saveHistory();
+      
+      if (STATE.lockedLines.has(lineNum)) {
+        STATE.lockedLines.delete(lineNum);
+      } else {
+        STATE.lockedLines.add(lineNum);
+      }
+      
+      renderEditor(editorLines);
+    });
+    
+    // Check all button (footer)
+    document.getElementById('check-all-btn').addEventListener('click', () => {
+      saveHistory();
+      editorLines = editorLines.map((line, idx) => {
+        if (STATE.lockedLines.has(idx)) return line;
+        const trimmed = line.trim();
+        if (trimmed.startsWith('0 ') && trimmed.substring(2).trim().match(/^\d+\s+[\d\-\.]+/)) {
+          return '1 ' + trimmed.substring(2);
+        }
+        return line;
+      });
+      renderEditor(editorLines);
+      compileWithAnimation();
+    });
+    
+    // Import/Export modal
+    document.getElementById('import-export-btn').addEventListener('click', () => {
+      document.getElementById('export-modal').classList.add('active');
+    });
+    
+    document.getElementById('export-close').addEventListener('click', () => {
+      document.getElementById('export-modal').classList.remove('active');
+    });
+    
+    document.getElementById('export-modal').addEventListener('click', (e) => {
+      if (e.target.id === 'export-modal') {
+        document.getElementById('export-modal').classList.remove('active');
+      }
+    });
+    
+    // File loader
+    document.getElementById('load-file-btn').addEventListener('click', () => {
+      document.getElementById('file-input').click();
+      document.getElementById('export-modal').classList.remove('active');
+    });
+    
+    // File saver
+    document.getElementById('save-file-btn').addEventListener('click', () => {
+      const text = editorLines.join('\n');
+      const blob = new Blob([text], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const fileNameEl = document.getElementById('file-name');
+      a.download = fileNameEl ? fileNameEl.textContent : 'model.mpd';
+      a.click();
+      URL.revokeObjectURL(url);
+      statusText.textContent = 'Saved!';
+      document.getElementById('export-modal').classList.remove('active');
+    });
+    
+    document.getElementById('file-input').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const text = event.target.result;
+        // Properly split by newlines
+        editorLines = text.split(/\r?\n/);
+        saveHistory();
+        renderEditor(editorLines);
+        compileWithAnimation();
+        const fileNameEl = document.getElementById('file-name');
+        if (fileNameEl) fileNameEl.textContent = file.name;
+        statusText.textContent = `Loaded ${editorLines.length} lines`;
+      };
+      reader.readAsText(file);
+    });
+    
+    // Theme cycler
+    let currentTheme = 0;
+    const themes = ['', 'theme-light', 'theme-terminal'];
+    document.getElementById('theme-btn').addEventListener('click', () => {
+      currentTheme = (currentTheme + 1) % themes.length;
+      document.body.className = themes[currentTheme];
+      updateRendererBackground();
+    });
+    
+    // Update Three.js background to match theme
+    function updateRendererBackground() {
+      if (!STATE.renderer || !STATE.scene) return;
+      
+      // Get CSS variable directly for accurate color
+      const style = getComputedStyle(document.body);
+      const rgbString = style.getPropertyValue('--bg-main-rgb').trim();
+      
+      if (rgbString) {
+        const rgb = rgbString.split(',').map(v => parseInt(v.trim()) / 255);
+        if (rgb.length === 3) {
+          const color = new THREE.Color(rgb[0], rgb[1], rgb[2]);
+          STATE.renderer.setClearColor(color);
+          STATE.scene.background = color;
+          console.log('Theme updated:', rgbString, '→', color);
+        }
+      }
+    }
+    
+    // Viewer controls - Grid starts active
+    const gridToggle = document.getElementById('grid-toggle');
+    gridToggle.addEventListener('click', () => {
+      if (STATE.gridHelper) {
+        STATE.gridHelper.visible = !STATE.gridHelper.visible;
+        gridToggle.classList.toggle('active', STATE.gridHelper.visible);
+      }
+    });
+    
+    document.getElementById('axes-toggle').addEventListener('click', () => {
+      if (STATE.axesHelper) {
+        STATE.axesHelper.visible = !STATE.axesHelper.visible;
+        document.getElementById('axes-toggle').classList.toggle('active', STATE.axesHelper.visible);
+      }
+    });
+    
+    document.getElementById('wireframe-toggle').addEventListener('click', () => {
+      STATE.wireframeMode = !STATE.wireframeMode;
+      document.getElementById('wireframe-toggle').classList.toggle('active', STATE.wireframeMode);
+      
+      // Use Prime Viewer's diagnostics
+      if (STATE.primeViewer) {
+        STATE.primeViewer.setDiagnostics({ wireframe: STATE.wireframeMode });
+      }
+    });
+    
+    document.getElementById('minimap-toggle').addEventListener('click', () => {
+      STATE.minimapVisible = !STATE.minimapVisible;
+      const minimap = document.getElementById('minimap');
+      const toggle = document.getElementById('minimap-toggle');
+      
+      if (STATE.minimapVisible) {
+        minimap.classList.remove('collapsed');
+        toggle.classList.add('active');
+      } else {
+        minimap.classList.add('collapsed');
+        toggle.classList.remove('active');
+      }
+    });
+    
+    document.getElementById('screenshot-btn').addEventListener('click', () => {
+      captureScreenshot();
+    });
+    
+    // MPD Editor header controls
+    document.getElementById('new-mpd-btn').addEventListener('click', () => {
+      if (confirm('Create new MPD? Current work will be lost unless saved.')) {
+        saveHistory();
+        editorLines = [
+          '0 FILE untitled.mpd',
+          '0 New MPD',
+          ''
+        ];
+        STATE.lockedLines.clear();
+        renderEditor(editorLines);
+        compile();
+        const fileNameEl = document.getElementById('file-name');
+        if (fileNameEl) fileNameEl.textContent = 'untitled.mpd';
+        statusText.textContent = 'New MPD created';
+      }
+    });
+    
+    document.getElementById('clear-mpd-btn').addEventListener('click', () => {
+      if (confirm('Clear all lines? This cannot be undone.')) {
+        saveHistory();
+        // Clear only unlocked lines
+        editorLines = editorLines.filter((_, idx) => STATE.lockedLines.has(idx));
+        // Update locked line indices
+        const newLocked = new Set();
+        let newIdx = 0;
+        STATE.lockedLines.forEach(oldIdx => {
+          if (oldIdx < editorLines.length) {
+            newLocked.add(newIdx++);
+          }
+        });
+        STATE.lockedLines = newLocked;
+        renderEditor(editorLines);
+        compile();
+        statusText.textContent = 'Cleared (kept locked lines)';
+      }
+    });
+    
+    document.getElementById('export-mpd-btn').addEventListener('click', () => {
+      const text = editorLines.join('\n');
+      const blob = new Blob([text], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const fileNameEl = document.getElementById('file-name');
+      const filename = fileNameEl ? fileNameEl.textContent : 'untitled.mpd';
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+      statusText.textContent = `Exported ${filename}`;
+    });
+    
+    document.getElementById('rerender-btn').addEventListener('click', () => {
+      // First, update editorLines from current DOM state
+      const lineElements = document.querySelectorAll('.line-content');
+      lineElements.forEach((el, idx) => {
+        if (idx < editorLines.length) {
+          editorLines[idx] = el.textContent;
+        }
+      });
+      
+      // Then rerender everything
+      saveHistory();
+      renderEditor(editorLines);
+      compileWithAnimation();
+      statusText.textContent = 'Rerendered';
+    });
+    
+    // Copy all button
+    document.getElementById('copy-all-btn').addEventListener('click', () => {
+      copyAllMPD();
+    });
+    
+    // MPD editor undo/redo
+    document.getElementById('mpd-undo-btn').addEventListener('click', () => {
+      undo();
+    });
+    
+    document.getElementById('mpd-redo-btn').addEventListener('click', () => {
+      redo();
+    });
+    
+    // MPD editor scroll updates viewport
+    document.getElementById('mpd-editor').addEventListener('scroll', updateMPDViewport);
+    
+    // Multi-scene management
+    function createScene(name, lines) {
+      return {
+        name: name || 'untitled',
+        lines: lines || ['0 FILE ' + (name || 'untitled') + '.mpd', '0 New Scene', ''],
+        lockedLines: new Set(),
+        history: [],
+        historyIndex: -1
+      };
+    }
+    
+    function renderSceneDots() {
+      const container = document.getElementById('scene-dots');
+      if (!container) return;
+      
+      container.innerHTML = '';
+      
+      STATE.scenes.forEach((scene, idx) => {
+        const dot = document.createElement('div');
+        dot.className = 'scene-dot' + (idx === STATE.activeSceneIdx ? ' active' : '');
+        dot.dataset.idx = idx;
+        dot.textContent = (idx + 1).toString();
+        
+        // Tooltip label
+        const label = document.createElement('div');
+        label.className = 'scene-dot-label';
+        label.textContent = `${scene.name} (${scene.lines.length}L)`;
+        dot.appendChild(label);
+        
+        // Close button
+        if (STATE.scenes.length > 1) {
+          const close = document.createElement('div');
+          close.className = 'scene-dot-close';
+          close.textContent = '×';
+          close.addEventListener('click', (e) => {
+            e.stopPropagation();
+            closeScene(idx);
+          });
+          dot.appendChild(close);
+        }
+        
+        // Click to teleport
+        dot.addEventListener('click', () => {
+          switchScene(idx);
+        });
+        
+        container.appendChild(dot);
+      });
+      
+      // Update footer display - safe null check
+      const sceneNameEl = document.getElementById('current-scene-name');
+      if (sceneNameEl && STATE.scenes[STATE.activeSceneIdx]) {
+        sceneNameEl.textContent = STATE.scenes[STATE.activeSceneIdx].name;
+      }
+    }
+    
+    function switchScene(idx) {
+      if (idx === STATE.activeSceneIdx) return;
+      
+      // Save current scene state
+      STATE.scenes[STATE.activeSceneIdx].lines = [...editorLines];
+      STATE.scenes[STATE.activeSceneIdx].lockedLines = new Set(STATE.lockedLines);
+      STATE.scenes[STATE.activeSceneIdx].history = [...STATE.history];
+      STATE.scenes[STATE.activeSceneIdx].historyIndex = STATE.historyIndex;
+      
+      // Load new scene
+      STATE.activeSceneIdx = idx;
+      const scene = STATE.scenes[idx];
+      editorLines = [...scene.lines];
+      STATE.lockedLines = new Set(scene.lockedLines);
+      STATE.history = [...scene.history];
+      STATE.historyIndex = scene.historyIndex;
+      
+      renderEditor(editorLines);
+      compileWithAnimation();
+      renderSceneDots();
+      if (statusText) statusText.textContent = '→ ' + scene.name;
+    }
+    
+    function closeScene(idx) {
+      if (STATE.scenes.length === 1) {
+        statusText.textContent = 'Cannot close last scene';
+        return;
+      }
+      
+      STATE.scenes.splice(idx, 1);
+      
+      if (STATE.activeSceneIdx >= STATE.scenes.length) {
+        STATE.activeSceneIdx = STATE.scenes.length - 1;
+      }
+      
+      if (idx <= STATE.activeSceneIdx && STATE.activeSceneIdx > 0) {
+        STATE.activeSceneIdx--;
+      }
+      
+      switchScene(STATE.activeSceneIdx);
+    }
+    
+    function newScene() {
+      const sceneName = 'scene' + (STATE.scenes.length + 1);
+      const scene = createScene(sceneName);
+      STATE.scenes.push(scene);
+      switchScene(STATE.scenes.length - 1);
+    }
+    
+    // Initialize with one scene
+    STATE.scenes.push(createScene('example', [
+      '0 FILE example.mpd',
+      '0 Click 3D pieces to highlight lines',
+      '0 Use Lock mode to protect lines',
+      '1 4 0 0 0 1 0 0 0 1 0 0 0 1 3001.dat',
+      '1 1 20 -8 0 1 0 0 0 1 0 0 0 1 3001.dat',
+      '1 2 40 -8 0 1 0 0 0 1 0 0 0 1 3001.dat'
+    ]));
+    
+    const newSceneBtn = document.getElementById('new-scene-overlay-btn');
+    if (newSceneBtn) {
+      newSceneBtn.addEventListener('click', newScene);
+    }
+    
+    // Copy error log button
+    const copyErrorsBtn = document.getElementById('copy-errors-btn');
+    if (copyErrorsBtn) {
+      copyErrorsBtn.addEventListener('click', () => {
+        if (ERROR_LOG.length === 0) {
+          if (statusText) statusText.textContent = 'No errors to copy';
+          return;
+        }
+        
+        const logText = ERROR_LOG.map(e => 
+          `[${e.time}] ${e.context}: ${e.message}\n${e.stack}`
+        ).join('\n\n');
+        
+        navigator.clipboard.writeText(logText).then(() => {
+          if (statusText) {
+            statusText.textContent = `Copied ${ERROR_LOG.length} errors`;
+            setTimeout(() => statusText.textContent = 'Ready', 2000);
+          }
+        }).catch(err => {
+          console.error('Failed to copy:', err);
+          // Fallback: create textarea
+          const textarea = document.createElement('textarea');
+          textarea.value = logText;
+          textarea.style.position = 'fixed';
+          textarea.style.opacity = '0';
+          document.body.appendChild(textarea);
+          textarea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textarea);
+          if (statusText) statusText.textContent = 'Errors copied (fallback)';
+        });
+      });
+    }
+    
+    // Sample truck loader
+    function loadSampleTruck() {
+      editorLines = [
+        '0 FILE sample_truck.mpd',
+        '0 Simple Truck',
+        '1 4 0 0 0 1 0 0 0 1 0 0 0 1 3001.dat',
+        '1 1 20 -8 0 1 0 0 0 1 0 0 0 1 3001.dat',
+        '1 2 40 -8 0 1 0 0 0 1 0 0 0 1 3001.dat',
+        '1 14 0 -8 20 1 0 0 0 1 0 0 0 1 3001.dat',
+        '1 10 20 -8 20 1 0 0 0 1 0 0 0 1 3001.dat',
+        '0 STEP'
+      ];
+      renderEditor(editorLines);
+      compileWithAnimation();
+      const fileNameEl = document.getElementById('file-name');
+      if (fileNameEl) fileNameEl.textContent = 'sample_truck.mpd';
+    }
+    
+    // ===== CONTEXT MENU =====
+    const contextMenu = document.getElementById('context-menu');
+    
+    function showContextMenu(x, y) {
+      contextMenu.style.left = x + 'px';
+      contextMenu.style.top = y + 'px';
+      contextMenu.classList.add('active');
+    }
+    
+    function hideContextMenu() {
+      contextMenu.classList.remove('active');
+    }
+    
+    // Hide context menu on click outside
+    document.addEventListener('click', (e) => {
+      if (!contextMenu.contains(e.target)) {
+        hideContextMenu();
+      }
+    });
+    
+    // Context menu actions
+    document.querySelectorAll('.context-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const action = item.dataset.action;
+        if (!action) return;
+        
+        executeContextAction(action, contextMenuTarget);
+        hideContextMenu();
+      });
+    });
+    
+    function executeContextAction(action, lineIdx) {
+      if (lineIdx === null || lineIdx === undefined) return;
+      
+      saveHistory();
+      
+      switch(action) {
+        case 'duplicate':
+          saveHistory();
+          duplicateLine(lineIdx);
+          break;
+        case 'copy':
+          copyLine(lineIdx);
+          break;
+        case 'copy-all':
+          copyAllMPD();
+          break;
+        case 'paste-mpd':
+          showPasteZone();
+          break;
+        case 'export-json':
+          exportJSON();
+          break;
+        case 'screenshot':
+          captureScreenshot();
+          break;
+        case 'insert-above':
+          insertLine(lineIdx, 'above');
+          break;
+        case 'insert-below':
+          insertLine(lineIdx, 'below');
+          break;
+        case 'delete':
+          deleteLine(lineIdx);
+          break;
+        case 'move-up':
+          moveLine(lineIdx, -1);
+          break;
+        case 'move-down':
+          moveLine(lineIdx, 1);
+          break;
+        case 'format':
+          formatLine(lineIdx);
+          break;
+        case 'validate':
+          validateLine(lineIdx);
+          break;
+        case 'lock':
+          toggleLock(lineIdx);
+          break;
+      }
+    }
+    
+    // ===== MPD OPERATIONS =====
+    function duplicateLine(idx) {
+      if (STATE.lockedLines.has(idx)) {
+        statusText.textContent = 'Line is locked';
+        return;
+      }
+      editorLines.splice(idx + 1, 0, editorLines[idx]);
+      renderEditor(editorLines);
+      compileWithAnimation();
+      statusText.textContent = 'Line duplicated';
+    }
+    
+    // Render MPD minimap
+    function renderMPDMinimap() {
+      const minimap = document.getElementById('mpd-minimap');
+      if (!minimap) return;
+      
+      minimap.innerHTML = '<div id="mpd-viewport-indicator"></div>';
+      
+      editorLines.forEach((line, idx) => {
+        const strip = document.createElement('div');
+        strip.className = 'mpd-minimap-strip';
+        strip.dataset.line = idx;
+        
+        const trimmed = line.trim();
+        if (!trimmed) {
+          strip.classList.add('empty');
+        } else if (trimmed.startsWith('0 ')) {
+          strip.classList.add('comment');
+        } else if (trimmed.startsWith('1 ')) {
+          strip.classList.add('part');
+        }
+        
+        if (STATE.lockedLines.has(idx)) {
+          strip.classList.add('locked');
+        }
+        
+        // Click to jump to line
+        strip.addEventListener('click', () => {
+          const editorContainer = document.getElementById('mpd-editor');
+          const lineElement = editorContainer.children[idx];
+          if (lineElement) {
+            lineElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            lineElement.style.background = 'rgba(44, 194, 255, 0.3)';
+            setTimeout(() => lineElement.style.background = '', 500);
+          }
+        });
+        
+        minimap.appendChild(strip);
+      });
+      
+      updateMPDViewport();
+    }
+    
+    // Update MPD viewport indicator
+    function updateMPDViewport() {
+      const editor = document.getElementById('mpd-editor');
+      const indicator = document.getElementById('mpd-viewport-indicator');
+      if (!editor || !indicator) return;
+      
+      const scrollTop = editor.scrollTop;
+      const scrollHeight = editor.scrollHeight;
+      const clientHeight = editor.clientHeight;
+      
+      if (scrollHeight <= clientHeight) {
+        indicator.style.display = 'none';
+        return;
+      }
+      
+      indicator.style.display = 'block';
+      const topPercent = (scrollTop / scrollHeight) * 100;
+      const heightPercent = (clientHeight / scrollHeight) * 100;
+      
+      indicator.style.top = topPercent + '%';
+      indicator.style.height = heightPercent + '%';
+    }
+    
+    function copyLine(idx) {
+      navigator.clipboard.writeText(editorLines[idx]);
+      statusText.textContent = 'Line copied';
+    }
+    
+    function copyAllMPD() {
+      const text = editorLines.join('\n');
+      navigator.clipboard.writeText(text);
+      statusText.textContent = 'All MPD copied to clipboard';
+    }
+    
+    // ===== PASTE ZONE =====
+    const pasteZone = document.getElementById('paste-zone');
+    const pasteTextarea = document.getElementById('paste-textarea');
+    
+    function showPasteZone() {
+      pasteZone.classList.add('active');
+      pasteTextarea.value = '';
+      pasteTextarea.focus();
+    }
+    
+    function hidePasteZone() {
+      pasteZone.classList.remove('active');
+    }
+    
+    document.getElementById('paste-replace').addEventListener('click', () => {
+      const text = pasteTextarea.value;
+      if (!text.trim()) return;
+      
+      saveHistory();
+      // Properly split by newlines and preserve empty lines
+      editorLines = text.split(/\r?\n/);
+      STATE.lockedLines.clear();
+      renderEditor(editorLines);
+      compileWithAnimation();
+      hidePasteZone();
+      const fileNameEl = document.getElementById('file-name');
+      if (fileNameEl) fileNameEl.textContent = 'pasted.mpd';
+      statusText.textContent = `Pasted ${editorLines.length} lines`;
+    });
+    
+    document.getElementById('paste-append').addEventListener('click', () => {
+      const text = pasteTextarea.value;
+      if (!text.trim()) return;
+      
+      saveHistory();
+      // Properly split by newlines and preserve empty lines
+      const newLines = text.split(/\r?\n/);
+      editorLines = editorLines.concat(newLines);
+      renderEditor(editorLines);
+      compileWithAnimation();
+      hidePasteZone();
+      statusText.textContent = `Appended ${newLines.length} lines`;
+    });
+    
+    document.getElementById('paste-cancel').addEventListener('click', hidePasteZone);
+    
+    // ===== JSON EXPORT =====
+    function exportJSON() {
+      const fileNameEl = document.getElementById('file-name');
+      const data = {
+        filename: fileNameEl ? fileNameEl.textContent : 'untitled.mpd',
+        timestamp: new Date().toISOString(),
+        lines: editorLines,
+        lockedLines: Array.from(STATE.lockedLines),
+        partCount: STATE.parts.length,
+        errors: STATE.errors,
+        metadata: {
+          theme: document.body.className || 'dark',
+          viewMode: STATE.viewMode
+        }
+      };
+      
+      const json = JSON.stringify(data, null, 2);
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${data.filename.replace('.mpd', '')}_export.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      
+      statusText.textContent = 'JSON exported';
+    }
+    
+    // ===== SCREENSHOT CAPTURE =====
+    function captureScreenshot() {
+      statusText.textContent = 'Capturing scene...';
+      
+      // Render one more frame to ensure canvas is current
+      STATE.renderer.render(STATE.scene, STATE.camera);
+      
+      // Get canvas data directly (only the 3D scene)
+      const canvas = STATE.renderer.domElement;
+      const dataURL = canvas.toDataURL('image/png');
+      
+      // Get filename and create proper name
+      const fileNameEl = document.getElementById('file-name');
+      const filenameText = fileNameEl ? fileNameEl.textContent : 'untitled.mpd';
+      const filename = filenameText.replace('.mpd', '');
+      const date = new Date();
+      const dateStr = date.toISOString().split('T')[0]; // YYYY-MM-DD
+      const timeStr = date.toTimeString().split(' ')[0].replace(/:/g, '-'); // HH-MM-SS
+      
+      // Create report data
+      const reportData = {
+        filename: filenameText,
+        screenshot_filename: `wag_${filename}_${dateStr}_${timeStr}.png`,
+        timestamp: date.toISOString(),
+        date: dateStr,
+        time: timeStr,
+        partCount: STATE.parts.length,
+        lineCount: editorLines.length,
+        lockedCount: STATE.lockedLines.size,
+        lockedLines: Array.from(STATE.lockedLines),
+        errors: STATE.errors,
+        theme: document.body.className || 'dark',
+        viewMode: STATE.viewMode,
+        camera: {
+          position: STATE.camera.position.toArray(),
+          rotation: STATE.camera.rotation.toArray()
+        },
+        controls: {
+          grid: STATE.gridHelper?.visible || false,
+          axes: STATE.axesHelper?.visible || false,
+          wireframe: STATE.wireframeMode || false
+        }
+      };
+      
+      // Download screenshot with proper name
+      const link = document.createElement('a');
+      link.download = `wag_${filename}_${dateStr}_${timeStr}.png`;
+      link.href = dataURL;
+      link.click();
+      
+      // Download JSON report
+      const json = JSON.stringify(reportData, null, 2);
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `wag_${filename}_${dateStr}_${timeStr}_report.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      
+      statusText.textContent = `Saved: wag_${filename}_${dateStr}_${timeStr}`;
+    }
+    
+    function insertLine(idx, position) {
+      const insertIdx = position === 'above' ? idx : idx + 1;
+      editorLines.splice(insertIdx, 0, '');
+      renderEditor(editorLines);
+      statusText.textContent = 'Line inserted';
+    }
+    
+    function deleteLine(idx) {
+      if (STATE.lockedLines.has(idx)) {
+        statusText.textContent = 'Line is locked';
+        return;
+      }
+      editorLines.splice(idx, 1);
+      // Update locked lines indices
+      const newLocked = new Set();
+      STATE.lockedLines.forEach(i => {
+        if (i < idx) newLocked.add(i);
+        else if (i > idx) newLocked.add(i - 1);
+      });
+      STATE.lockedLines = newLocked;
+      renderEditor(editorLines);
+      compile();
+      statusText.textContent = 'Line deleted';
+    }
+    
+    function moveLine(idx, direction) {
+      if (STATE.lockedLines.has(idx)) {
+        statusText.textContent = 'Line is locked';
+        return;
+      }
+      const newIdx = idx + direction;
+      if (newIdx < 0 || newIdx >= editorLines.length) return;
+      
+      // Swap lines
+      [editorLines[idx], editorLines[newIdx]] = [editorLines[newIdx], editorLines[idx]];
+      
+      // Update locked lines
+      const wasLocked = STATE.lockedLines.has(idx);
+      const targetWasLocked = STATE.lockedLines.has(newIdx);
+      if (wasLocked) {
+        STATE.lockedLines.delete(idx);
+        STATE.lockedLines.add(newIdx);
+      }
+      if (targetWasLocked) {
+        STATE.lockedLines.delete(newIdx);
+        STATE.lockedLines.add(idx);
+      }
+      
+      renderEditor(editorLines);
+      compile();
+      
+      // Scroll to moved line smoothly
+      setTimeout(() => {
+        const editorContainer = document.getElementById('mpd-editor');
+        const movedLine = editorContainer.children[newIdx];
+        if (movedLine) {
+          movedLine.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          movedLine.style.background = 'rgba(44, 194, 255, 0.3)';
+          setTimeout(() => movedLine.style.background = '', 400);
+        }
+      }, 50);
+      
+      statusText.textContent = direction > 0 ? 'Moved down' : 'Moved up';
+    }
+    
+    function formatLine(idx) {
+      const line = editorLines[idx].trim();
+      if (!line.startsWith('1 ')) return;
+      
+      // Format: clean up spacing
+      const tokens = line.split(/\s+/);
+      editorLines[idx] = tokens.join(' ');
+      renderEditor(editorLines);
+      statusText.textContent = 'Line formatted';
+    }
+    
+    function validateLine(idx) {
+      const line = editorLines[idx].trim();
+      if (!line || line.startsWith('0 ')) {
+        statusText.textContent = 'Comment line - OK';
+        return;
+      }
+      
+      if (!line.startsWith('1 ')) {
+        statusText.textContent = 'Invalid: must start with 1';
+        return;
+      }
+      
+      const tokens = line.split(/\s+/);
+      if (tokens.length < 15) {
+        statusText.textContent = `Invalid: ${tokens.length} tokens, need 15+`;
+        return;
+      }
+      
+      // Check numeric values
+      for (let i = 1; i <= 13; i++) {
+        if (isNaN(parseFloat(tokens[i]))) {
+          statusText.textContent = `Invalid: token ${i} not numeric`;
+          return;
+        }
+      }
+      
+      statusText.textContent = '✓ Valid MPD line';
+    }
+    
+    function toggleLock(idx) {
+      if (STATE.lockedLines.has(idx)) {
+        STATE.lockedLines.delete(idx);
+        statusText.textContent = 'Unlocked';
+      } else {
+        STATE.lockedLines.add(idx);
+        statusText.textContent = 'Locked';
+      }
+      renderEditor(editorLines);
+    }
+    
+    // Help modal + API key
+    document.getElementById('help-btn').addEventListener('click', () => {
+      document.getElementById('help-modal').classList.add('active');
+      document.getElementById('api-key-input').value = loadAPIKey();
+    });
+    
+    document.getElementById('save-api-btn').addEventListener('click', () => {
+      const key = document.getElementById('api-key-input').value;
+      saveAPIKey(key);
+    });
+    
+    document.getElementById('help-close').addEventListener('click', () => {
+      document.getElementById('help-modal').classList.remove('active');
+    });
+    
+    document.getElementById('help-modal').addEventListener('click', (e) => {
+      if (e.target.id === 'help-modal') {
+        document.getElementById('help-modal').classList.remove('active');
+      }
+    });
+    
+    // ===== INIT =====
+    editorLines = STATE.scenes[0].lines;
+    
+    initViewer();
+    renderEditor(editorLines);
+    renderSceneDots();
+    compile();
+    saveHistory(); // Save initial state
+    
+    // Log successful init
+    console.log('✓ WAG Bronze Editor ready');
+    console.log('  Render mode: ' + (STATE.useLDrawLoader ? 'Real geometry available!' : 'Primitive boxes only'));
+    console.log('  Error logging enabled - Copy with ⚠ button in footer');
+    
+    // Global paste handler (Ctrl+V anywhere)
+    document.addEventListener('paste', (e) => {
+      // If pasting in line content, let it happen naturally
+      if (e.target.classList.contains('line-content')) return;
+      
+      // If pasting in paste zone, let it happen
+      if (e.target.id === 'paste-textarea') return;
+      
+      // Otherwise, show paste zone
+      e.preventDefault();
+      const text = e.clipboardData.getData('text');
+      if (text.trim()) {
+        // Auto-populate paste zone with clipboard
+        pasteTextarea.value = text;
+        showPasteZone();
+      }
+    });
+    
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      // Global shortcuts
+      if (e.ctrlKey && e.shiftKey && e.key === 'S') {
+        e.preventDefault();
+        captureScreenshot();
+        return;
+      }
+      
+      if (e.ctrlKey && e.shiftKey && e.key === 'E') {
+        e.preventDefault();
+        exportJSON();
+        return;
+      }
+      
+      if (e.ctrlKey && e.key === 'v' && !e.target.classList.contains('line-content')) {
+        // Will be handled by paste event
+        return;
+      }
+      
+      // Get currently focused line
+      const focusedLine = document.activeElement.closest('.editor-line');
+      if (!focusedLine) return;
+      
+      const lineIdx = parseInt(focusedLine.dataset.lineNum) - 1;
+      
+      // Alt + Arrow keys = move line
+      if (e.altKey && e.key === 'ArrowUp') {
+        e.preventDefault();
+        saveHistory();
+        moveLine(lineIdx, -1);
+      } else if (e.altKey && e.key === 'ArrowDown') {
+        e.preventDefault();
+        saveHistory();
+        moveLine(lineIdx, 1);
+      }
+      // Delete key = delete line (only if not editing)
+      else if (e.key === 'Delete' && e.target.tagName !== 'INPUT' && !e.target.classList.contains('line-content')) {
+        e.preventDefault();
+        saveHistory();
+        deleteLine(lineIdx);
+      }
+      // Ctrl+C = copy line
+      else if (e.ctrlKey && e.key === 'c' && e.target.classList.contains('line-content')) {
+        copyLine(lineIdx);
+      }
+      // Ctrl+D = duplicate line
+      else if (e.ctrlKey && e.key === 'd') {
+        e.preventDefault();
+        saveHistory();
+        duplicateLine(lineIdx);
+      }
+    });
+    
+    console.log('✓ WAG Primitive Editor ready');
+  </script>
+</body>
+</html>

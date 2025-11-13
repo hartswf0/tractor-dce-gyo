@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LDraw Builder + Chat</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Courier New', monospace;
+            background: #000;
+            color: #fff;
+            overflow: hidden;
+            height: 100vh;
+        }
+        #container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        #header {
+            background: linear-gradient(90deg, #1a1a1a 0%, #2a2a2a 100%);
+            padding: 12px 20px;
+            border-bottom: 2px solid #4a9eff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 200;
+        }
+        #header-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #4a9eff;
+        }
+        #header-status {
+            font-size: 12px;
+            color: #6c6;
+        }
+        #info {
+            position: absolute;
+            top: 10px;
+            width: 100%;
+            text-align: center;
+            z-index: 100;
+            font-size: 14px;
+        }
+        #info a {
+            color: #f00;
+            font-weight: bold;
+            text-decoration: underline;
+        }
+        #progress {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2em;
+            text-align: center;
+            display: none;
+            z-index: 200;
+            background: rgba(0,0,0,0.8);
+            padding: 20px 40px;
+            border-radius: 8px;
+        }
+        #chat-container {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.85);
+            border-top: 2px solid #333;
+            display: flex;
+            flex-direction: column;
+            max-height: 40vh;
+            z-index: 150;
+        }
+        #chat-output {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            font-size: 12px;
+            line-height: 1.4;
+            min-height: 100px;
+            max-height: 30vh;
+        }
+        #chat-output .command {
+            color: #4a9eff;
+            margin-top: 8px;
+        }
+        #chat-output .result {
+            color: #6c6;
+            margin-left: 10px;
+        }
+        #chat-output .error {
+            color: #f44;
+            margin-left: 10px;
+        }
+        #chat-output .ai {
+            color: #f4a;
+            margin-left: 10px;
+            white-space: pre-wrap;
+        }
+        #chat-output .system {
+            color: #fa4;
+            margin-left: 10px;
+            font-style: italic;
+        }
+        #chat-output .scene {
+            color: #8f8;
+            margin-left: 20px;
+            font-size: 11px;
+        }
+        #chat-input-container {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid #333;
+        }
+        #chat-input {
+            flex: 1;
+            background: #111;
+            border: 1px solid #444;
+            color: #fff;
+            padding: 8px 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            outline: none;
+        }
+        #chat-input:focus {
+            border-color: #4a9eff;
+        }
+        #chat-send {
+            background: #333;
+            border: 1px solid #444;
+            color: #fff;
+            padding: 8px 16px;
+            margin-left: 8px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+        #chat-send:hover {
+            background: #444;
+        }
+        #chat-send:active {
+            background: #222;
+        }
+        .ldraw-attribution {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            background: rgba(243, 247, 248, 0.95);
+            padding: 8px;
+            border: 1px solid #838A92;
+            z-index: 100;
+            font-size: 11px;
+        }
+        .ldraw-attribution img {
+            width: 120px;
+            display: block;
+            margin: 0 auto 4px;
+        }
+        .ldraw-attribution a {
+            color: #333;
+            text-decoration: none;
+        }
+        @media (max-width: 768px) {
+            #info {
+                font-size: 12px;
+                padding: 0 10px;
+            }
+            #progress {
+                font-size: 1.5em;
+                padding: 15px 25px;
+            }
+            #chat-output {
+                font-size: 11px;
+            }
+            #chat-input {
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="info">
+        <a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> - LDraw Builder + Chat
+    </div>
+    <div id="progress">Loading...</div>
+    
+    <div id="chat-container">
+        <div id="chat-output">
+            <div class="result">🎨 LDraw Builder ready. Type 'help' for commands.</div>
+        </div>
+        <div id="chat-input-container">
+            <input type="text" id="chat-input" placeholder="Enter command (try: help)" autocomplete="off">
+            <button id="chat-send">Send</button>
+        </div>
+    </div>
+
+    <!-- Three.js and dependencies -->
+    <script src="./build/three.js"></script>
+    <script src="./examples/js/controls/OrbitControls.js"></script>
+    <script src="./examples/js/loaders/LDrawLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/GLTFExporter.js"></script>
+    <script src="./examples/js/libs/dat.gui.min.js"></script>
+    
+    <!-- LDraw AI Extension - Load after main script -->
+    <script defer src="./ldraw-ai-extension.js"></script>
+    
+    <!-- LDraw Metadata Extension - !CATEGORY & !KEYWORDS -->
+    <script defer src="./ldraw-metadata-extension.js"></script>
+    
+    <!-- LDraw Custom Commands - STEP, MLCAD, LPUB, etc -->
+    <script defer src="./ldraw-custom-commands.js"></script>
+    
+    <!-- LDraw OMR - Official Model Repository -->
+    <script defer src="./ldraw-omr-extension.js"></script>
+    
+    <!-- LDraw Header Compliance - Library Header Specification -->
+    <script defer src="./ldraw-header-compliance.js"></script>
+    
+    <!-- LDraw Individual Renderer - Part-by-Part Loading -->
+    <script defer src="./ldraw-individual-renderer.js"></script>
+    
+    <!-- LDraw Standard Individual - Standard loader but parts separate -->
+    <script defer src="./ldraw-standard-individual.js"></script>
+    
+    <!-- LDraw Geometry Explorer - Bottom-up mesh exploration -->
+    <script defer src="./ldraw-geometry-explorer.js"></script>
+    
+    <!-- LDraw Separate Objects - THE SOLUTION! loader.separateObjects = true -->
+    <script defer src="./ldraw-separate-objects.js"></script>
+
+    <script>
+        // ============================================
+        // LEGO SYSTEMS ARCHITECTURE
+        // ============================================
+        // Atoms: Three.js meshes/groups from LDrawLoader
+        // Bricks: Commands (orthogonal, pure, idempotent)
+        // Plates: Macros (composed commands)
+        // Baseplate: Scene contract (camera, lights, exporter)
+        // SNOT principle: Multiple entry points → same command bus
+        // ============================================
+
+        // Global state (the baseplate)
+        const STATE = {
+            basePath: './ldraw/',
+            camera: null,
+            scene: null,
+            renderer: null,
+            controls: null,
+            pointLight: null,
+            model: null,
+            gui: null,
+            guiData: {
+                model: 'Car',
+                envMap: false,
+                explode: 0,
+                bgColor: '#000000',
+                exportGLB: function() { executeCommand('download'); }
+            },
+            envMapTexture: null,
+            lDrawLoader: null,
+            materials: [],
+            parts: [],
+            explodeFactor: 0,
+            animationState: {
+                isAnimating: false,
+                currentPart: 0,
+                speed: 1
+            },
+            modelList: {
+                'Empty': null,
+                '─── Test ───': 'separator',
+                'Hello World': { path: 'hello-world.ldr', individual: true, separate: true },
+                '─── AI Generated ───': 'separator',
+                'AI Castle 1': { path: 'ai-generated-model (1).ldr', individual: true, separate: true },
+                'AI Tower 2': { path: 'ai-generated-model (2).ldr', individual: true, separate: true },
+                'AI Castle 3': { path: 'ai-generated-model (3).ldr', individual: true, separate: true },
+                'AI Castle 6': { path: 'ai-generated-model (6).ldr', individual: true, separate: true },
+                '─── Official Library ───': 'separator',
+                'Official Car': { path: 'models/car.ldr', individual: true, separate: true },
+                'Official Pyramid': { path: 'models/pyramid.ldr', individual: true, separate: true },
+                '─── Library Models (Old) ───': 'separator',
+                'Car': 'models/car.ldr_Packed.mpd',
+                'Lunar Vehicle': 'models/1621-1-LunarMPVVehicle.mpd_Packed.mpd',
+                'Radar Truck': 'models/889-1-RadarTruck.mpd_Packed.mpd',
+                'Trailer': 'models/4838-1-MiniVehicles.mpd_Packed.mpd',
+                'Bulldozer': 'models/4915-1-MiniConstruction.mpd_Packed.mpd',
+                'Helicopter': 'models/4918-1-MiniFlyers.mpd_Packed.mpd',
+                'Plane': 'models/5935-1-IslandHopper.mpd_Packed.mpd',
+                'Lighthouse': 'models/30023-1-Lighthouse.ldr_Packed.mpd',
+                'X-Wing mini': 'models/30051-1-X-wingFighter-Mini.mpd_Packed.mpd',
+                'AT-ST mini': 'models/30054-1-AT-ST-Mini.mpd_Packed.mpd',
+                'AT-AT mini': 'models/4489-1-AT-AT-Mini.mpd_Packed.mpd',
+                'Shuttle': 'models/4494-1-Imperial Shuttle-Mini.mpd_Packed.mpd',
+                'TIE Interceptor': 'models/6965-1-TIEIntercep_4h4MXk5.mpd_Packed.mpd',
+                'Star Fighter': 'models/6966-1-JediStarfighter-Mini.mpd_Packed.mpd',
+                'X-Wing': 'models/7140-1-X-wingFighter.mpd_Packed.mpd',
+                'AT-ST': 'models/10174-1-ImperialAT-ST-UCS.mpd_Packed.mpd'
+            },
+            currentModelUrl: '',
+            commandHistory: []
+        };
+
+        // Chat output helpers
+        function chatLog(message, type = 'result') {
+            const output = document.getElementById('chat-output');
+            const div = document.createElement('div');
+            div.className = type;
+            div.textContent = type === 'command' ? `> ${message}` : message;
+            output.appendChild(div);
+            output.scrollTop = output.scrollHeight;
+        }
+
+        // Progress display
+        function showProgress(message) {
+            const progress = document.getElementById('progress');
+            progress.textContent = message;
+            progress.style.display = 'block';
+        }
+
+        function hideProgress() {
+            document.getElementById('progress').style.display = 'none';
+        }
+
+        function updateProgress(fraction) {
+            showProgress(`Loading... ${Math.round(fraction * 100)}%`);
+        }
+
+        // ============================================
+        // COMMAND BUS (the connection system)
+        // ============================================
+        
+        const COMMANDS = {
+            help: {
+                desc: 'Show all commands',
+                exec: () => {
+                    const help = [
+                        'COMMANDS:',
+                        '  help              - Show this help',
+                        '  simple            - Show simplest models (least parts)',
+                        '  model <name>      - Load curated model by name',
+                        '  load <path>       - Load model from path or URL',
+                        '  list              - List all parts in current model',
+                        '  animate [speed]   - Brick-by-brick assembly (1-10×)',
+                        '  pick              - Open file picker for AI-generated models',
+                        '  visualize         - Old animate command (same)',
+                        '  inspect           - Show detailed model information',
+                        '  env on|off        - Toggle environment map',
+                        '  explode <0..1>    - Set part explosion factor',
+                        '  bg <#hex>         - Set background color',
+                        '  reset             - Reset scene to defaults',
+                        '  download          - Export current model as GLB',
+                        '',
+                        'ASSEMBLY & PARTS: 🧱',
+                        '  simple            - Find models with fewest parts',
+                        '  list              - See ALL individual parts (20 shown)',
+                        '  animate           - Watch brick-by-brick build',
+                        '  animate 5         - 5× speed animation',
+                        '  explode 0.6       - Spread parts apart',
+                        '',
+                        'EXAMPLES:',
+                        '  simple            - Find simplest model',
+                        '  model Car         - Load it',
+                        '  list              - See all 180+ parts!',
+                        '  animate 2         - Watch 2× speed build',
+                        '  explode 0.5       - Examine structure',
+                        '',
+                        'CURATED MODELS:',
+                        ...Object.keys(STATE.modelList).map(name => `  - ${name}`)
+                    ];
+                    help.forEach(line => chatLog(line, 'result'));
+                    return 'Help displayed';
+                }
+            },
+            
+            model: {
+                desc: 'Load a curated model',
+                exec: async (args) => {
+                    const modelName = args.join(' ');
+                    if (!modelName) return 'Error: model name required';
+                    
+                    const modelData = STATE.modelList[modelName];
+                    if (modelData === undefined) {
+                        return `Error: model "${modelName}" not found. Type 'help' for list.`;
+                    }
+                    
+                    // Handle separators (ignore)
+                    if (modelData === 'separator') {
+                        return `Please select an actual model`;
+                    }
+                    
+                    // Handle "Empty" option - clear scene
+                    if (modelName === 'Empty' || modelData === null) {
+                        STATE.guiData.model = 'Empty';
+                        return COMMANDS.clear.exec();
+                    }
+                    
+                    STATE.guiData.model = modelName;
+                    
+                    // Check if this model uses individual renderer
+                    if (typeof modelData === 'object' && modelData.individual) {
+                        // Use separateObjects loader (THE SOLUTION!)
+                        if (modelData.separate && window.loadWithSeparateObjects) {
+                            chatLog(`🎯 Using SEPARATE OBJECTS loader for ${modelName}`, 'system');
+                            chatLog(`✨ loader.separateObjects = true (each part separate!)`, 'system');
+                            await window.loadWithSeparateObjects(modelData.path, true);
+                            return `✅ Loaded ${modelName} with separate objects!`;
+                        }
+                        // Use standard loader with individual parts extraction
+                        else if (modelData.standard && window.loadWithStandardIndividual) {
+                            chatLog(`🔧 Using STANDARD loader (parts separate) for ${modelName}`, 'system');
+                            await window.loadWithStandardIndividual(modelData.path, true);
+                            return `✅ Loaded ${modelName} with standard loader`;
+                        }
+                        // Otherwise use part-by-part loader
+                        else if (window.loadWithIndividualParts) {
+                            chatLog(`🔧 Using PART-BY-PART loader for ${modelName}`, 'system');
+                            await window.loadWithIndividualParts(modelData.path, true);
+                            return `✅ Loaded ${modelName} with individual parts`;
+                        } else {
+                            return 'Error: Individual renderer not loaded';
+                        }
+                    }
+                    
+                    // Standard loading for library models
+                    const modelPath = typeof modelData === 'object' ? modelData.path : modelData;
+                    loadModel(modelPath, true);
+                    return `Loading model: ${modelName}`;
+                }
+            },
+            
+            load: {
+                desc: 'Load model from URL',
+                exec: (args) => {
+                    if (args.length === 0) return 'Error: URL required';
+                    
+                    let url = args.join(' ');
+                    
+                    // Handle GitHub raw URLs
+                    if (url.includes('github.com') && !url.includes('raw.githubusercontent')) {
+                        url = url.replace('github.com', 'raw.githubusercontent.com')
+                                 .replace('/blob/', '/');
+                    }
+                    
+                    STATE.currentModelUrl = url;
+                    
+                    // Check if it's an absolute path or relative
+                    const isAbsolute = url.startsWith('/') || url.startsWith('http');
+                    chatLog(`📂 Loading ${isAbsolute ? 'absolute path' : 'relative path'}`, 'system');
+                    
+                    loadModel(url, true, isAbsolute);
+                    return `Loading from: ${url}`;
+                }
+            },
+            
+            env: {
+                desc: 'Toggle environment map',
+                exec: (args) => {
+                    if (args.length === 0) return 'Error: specify on|off';
+                    
+                    const enabled = args[0].toLowerCase() === 'on';
+                    STATE.guiData.envMap = enabled;
+                    applyEnvMap(enabled);
+                    return `Environment map: ${enabled ? 'ON' : 'OFF'}`;
+                }
+            },
+            
+            explode: {
+                desc: 'Set explosion factor (0-1)',
+                exec: (args) => {
+                    if (args.length === 0) return 'Error: factor required (0-1)';
+                    
+                    const factor = parseFloat(args[0]);
+                    if (isNaN(factor) || factor < 0 || factor > 1) {
+                        return 'Error: factor must be between 0 and 1';
+                    }
+                    
+                    STATE.explodeFactor = factor;
+                    STATE.guiData.explode = factor;
+                    applyExplode(factor);
+                    return `Explode factor: ${factor}`;
+                }
+            },
+            
+            bg: {
+                desc: 'Set background color',
+                exec: (args) => {
+                    if (args.length === 0) return 'Error: color required (#hex)';
+                    
+                    const color = args[0];
+                    if (!/^#[0-9A-Fa-f]{6}$/.test(color)) {
+                        return 'Error: invalid color format (use #RRGGBB)';
+                    }
+                    
+                    STATE.guiData.bgColor = color;
+                    STATE.renderer.setClearColor(color);
+                    return `Background: ${color}`;
+                }
+            },
+            
+            base: {
+                desc: 'Set LDraw parts base path',
+                exec: (args) => {
+                    if (args.length === 0) return 'Error: path required';
+                    
+                    let path = args.join(' ');
+                    if (!path.endsWith('/')) path += '/';
+                    
+                    STATE.basePath = path;
+                    return `Base path: ${path}`;
+                }
+            },
+            
+            reset: {
+                desc: 'Reset scene to defaults',
+                exec: () => {
+                    STATE.basePath = './ldraw/';
+                    STATE.guiData.envMap = false;
+                    STATE.guiData.explode = 0;
+                    STATE.guiData.bgColor = '#000000';
+                    STATE.explodeFactor = 0;
+                    
+                    STATE.renderer.setClearColor('#000000');
+                    
+                    if (STATE.model) {
+                        applyEnvMap(false);
+                        applyExplode(0);
+                    }
+                    
+                    updateGUI();
+                    return 'Reset to defaults';
+                }
+            },
+            
+            clear: {
+                desc: 'Clear the scene (remove current model)',
+                exec: () => {
+                    if (STATE.model) {
+                        STATE.scene.remove(STATE.model);
+                        STATE.model = null;
+                        STATE.parts = [];
+                        STATE.currentModelPath = null;
+                        chatLog('🗑️  Scene cleared - ready for new model', 'system');
+                        chatLog('💡 Try: ai <prompt>, show <code>, or load <path>', 'system');
+                        return '✅ Scene cleared';
+                    }
+                    return 'Scene already empty';
+                }
+            },
+            
+            download: {
+                desc: 'Export model as GLB',
+                exec: () => {
+                    if (!STATE.model) return 'Error: no model loaded';
+                    
+                    exportGLB();
+                    return 'Exporting GLB...';
+                }
+            },
+            
+            pick: {
+                desc: 'Open file picker to load model',
+                exec: () => {
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = '.ldr,.mpd,.dat';
+                    input.onchange = (e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                            const url = URL.createObjectURL(file);
+                            chatLog(`📂 Loading file: ${file.name}`, 'system');
+                            loadModel(url, true, true);
+                        }
+                    };
+                    input.click();
+                    return '📂 Opening file picker...';
+                }
+            },
+            
+            visualize: {
+                desc: 'Show assembly animation of current model',
+                exec: () => {
+                    if (!STATE.model) return 'Error: no model loaded';
+                    
+                    chatLog('🎬 Starting assembly visualization...', 'system');
+                    
+                    // Collect all parts
+                    const parts = [];
+                    STATE.model.traverse((child) => {
+                        if (child.isMesh) {
+                            parts.push(child);
+                        }
+                    });
+                    
+                    if (parts.length === 0) return 'Error: no parts found in model';
+                    
+                    chatLog(`🧱 Found ${parts.length} parts`, 'result');
+                    
+                    // Hide all parts
+                    parts.forEach((part, i) => {
+                        part.userData.originalVisible = part.visible;
+                        part.userData.assemblyIndex = i;
+                        part.visible = false;
+                    });
+                    
+                    // Reveal parts one by one
+                    let currentPart = 0;
+                    const interval = setInterval(() => {
+                        if (currentPart < parts.length) {
+                            parts[currentPart].visible = true;
+                            chatLog(`  Part ${currentPart + 1}/${parts.length} assembled`, 'scene');
+                            currentPart++;
+                        } else {
+                            clearInterval(interval);
+                            chatLog('✅ Assembly visualization complete!', 'result');
+                        }
+                    }, 100);
+                    
+                    return `🎬 Visualizing assembly of ${parts.length} parts...`;
+                }
+            },
+            
+            inspect: {
+                desc: 'Show detailed model information',
+                exec: () => {
+                    if (!STATE.model) return 'Error: no model loaded';
+                    
+                    const parts = [];
+                    const colors = new Set();
+                    
+                    STATE.model.traverse((child) => {
+                        if (child.isMesh) {
+                            parts.push(child);
+                            if (child.material && child.material.color) {
+                                colors.add('#' + child.material.color.getHexString());
+                            }
+                        }
+                    });
+                    
+                    const bbox = new THREE.Box3().setFromObject(STATE.model);
+                    const size = bbox.getSize(new THREE.Vector3());
+                    const center = bbox.getCenter(new THREE.Vector3());
+                    
+                    chatLog('🔍 MODEL INSPECTION:', 'system');
+                    chatLog(`  Total parts: ${parts.length}`, 'result');
+                    chatLog(`  Unique colors: ${colors.size}`, 'result');
+                    chatLog(`  Colors: ${Array.from(colors).join(', ')}`, 'result');
+                    chatLog(`  Size: ${size.x.toFixed(1)} × ${size.y.toFixed(1)} × ${size.z.toFixed(1)}`, 'result');
+                    chatLog(`  Center: [${center.x.toFixed(1)}, ${center.y.toFixed(1)}, ${center.z.toFixed(1)}]`, 'result');
+                    
+                    return '✅ Inspection complete';
+                }
+            },
+            
+            list: {
+                desc: 'List all parts in current model',
+                exec: () => {
+                    if (!STATE.parts || STATE.parts.length === 0) {
+                        return 'Error: No model loaded or no parts found';
+                    }
+                    
+                    chatLog(`📋 PARTS LIST (${STATE.parts.length} total):`, 'system');
+                    STATE.parts.slice(0, 20).forEach((part, i) => {
+                        const color = part.material && part.material.color ? 
+                            '#' + part.material.color.getHexString() : 'unknown';
+                        const pos = part.position;
+                        chatLog(`  ${i+1}. ${part.name || 'Part'} - Color: ${color} - Pos: [${pos.x.toFixed(0)}, ${pos.y.toFixed(0)}, ${pos.z.toFixed(0)}]`, 'result');
+                    });
+                    
+                    if (STATE.parts.length > 20) {
+                        chatLog(`  ... and ${STATE.parts.length - 20} more parts`, 'result');
+                    }
+                    
+                    return '✅ Parts listed';
+                }
+            },
+            
+            animate: {
+                desc: 'Brick-by-brick assembly animation',
+                exec: (args) => {
+                    if (!STATE.parts || STATE.parts.length === 0) {
+                        return 'Error: No model loaded';
+                    }
+                    
+                    const speed = args.length > 0 ? parseFloat(args[0]) : 1;
+                    STATE.animationState.speed = speed;
+                    
+                    startAssemblyAnimation();
+                    return `🎬 Animating ${STATE.parts.length} parts at ${speed}× speed`;
+                }
+            },
+            
+            simple: {
+                desc: 'Show models sorted by part count (simplest first)',
+                exec: async () => {
+                    chatLog('📊 Analyzing models...', 'system');
+                    chatLog('Simplest models for learning:', 'result');
+                    chatLog('  Car - ~180 parts', 'result');
+                    chatLog('  Trailer - ~210 parts', 'result');
+                    chatLog('  Bulldozer - ~280 parts', 'result');
+                    chatLog('  Helicopter - ~230 parts', 'result');
+                    chatLog('  X-Wing mini - ~185 parts', 'result');
+                    chatLog('  AT-ST mini - ~280 parts', 'result');
+                    chatLog('', 'result');
+                    chatLog('💡 Use "model Car" to load the simplest one', 'system');
+                    return '✅ Model list shown';
+                }
+            }
+        };
+
+        function startAssemblyAnimation() {
+            STATE.animationState.isAnimating = true;
+            STATE.animationState.currentPart = 0;
+            
+            // Hide all parts
+            STATE.parts.forEach(part => {
+                part.visible = false;
+            });
+            
+            chatLog('🎬 Assembly animation started', 'system');
+            animateNextPart();
+        }
+
+        function animateNextPart() {
+            if (!STATE.animationState.isAnimating) return;
+            
+            const state = STATE.animationState;
+            if (state.currentPart >= STATE.parts.length) {
+                STATE.animationState.isAnimating = false;
+                chatLog('✅ Assembly complete!', 'result');
+                return;
+            }
+            
+            const part = STATE.parts[state.currentPart];
+            part.visible = true;
+            
+            if (state.currentPart % 10 === 0 || state.currentPart === STATE.parts.length - 1) {
+                chatLog(`  Part ${state.currentPart + 1}/${STATE.parts.length}`, 'scene');
+            }
+            
+            state.currentPart++;
+            const delay = 50 / state.speed;
+            setTimeout(animateNextPart, delay);
+        }
+
+        function executeCommand(input) {
+            input = input.trim();
+            if (!input) return;
+            
+            chatLog(input, 'command');
+            STATE.commandHistory.push(input);
+            
+            const parts = input.split(/\s+/);
+            const cmd = parts[0].toLowerCase();
+            const args = parts.slice(1);
+            
+            const command = COMMANDS[cmd];
+            if (!command) {
+                chatLog(`Unknown command: ${cmd}. Type 'help' for list.`, 'error');
+                return;
+            }
+            
+            try {
+                const result = command.exec(args);
+                if (result && typeof result === 'string') {
+                    if (result.startsWith('Error:')) {
+                        chatLog(result, 'error');
+                    } else {
+                        chatLog(result, 'result');
+                    }
+                }
+            } catch (error) {
+                chatLog(`Error: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+
+        // ============================================
+        // SCENE OPERATIONS (baseplate functions)
+        // ============================================
+        
+        function init() {
+            // Renderer
+            STATE.renderer = new THREE.WebGLRenderer({ antialias: true });
+            STATE.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            STATE.renderer.setSize(window.innerWidth, window.innerHeight);
+            STATE.renderer.setClearColor(STATE.guiData.bgColor);
+            document.body.appendChild(STATE.renderer.domElement);
+            
+            // Camera
+            STATE.camera = new THREE.PerspectiveCamera(
+                45,
+                window.innerWidth / window.innerHeight,
+                1,
+                10000
+            );
+            STATE.camera.position.set(150, 200, 250);
+            
+            // Scene
+            STATE.scene = new THREE.Scene();
+            
+            const ambientLight = new THREE.AmbientLight(0xcccccc, 0.4);
+            STATE.scene.add(ambientLight);
+            
+            STATE.pointLight = new THREE.PointLight(0xffffff, 1);
+            STATE.pointLight.position.set(-1000, 1200, 1500);
+            STATE.scene.add(STATE.pointLight);
+            
+            // Controls
+            STATE.controls = new THREE.OrbitControls(STATE.camera, STATE.renderer.domElement);
+            STATE.controls.enableDamping = true;
+            STATE.controls.dampingFactor = 0.05;
+            
+            // LDraw Loader
+            STATE.lDrawLoader = new THREE.LDrawLoader();
+            
+            // GUI
+            initGUI();
+            
+            // Event listeners
+            window.addEventListener('resize', onWindowResize, false);
+            
+            // Chat interface
+            const chatInput = document.getElementById('chat-input');
+            const chatSend = document.getElementById('chat-send');
+            
+            chatSend.addEventListener('click', () => {
+                executeCommand(chatInput.value);
+                chatInput.value = '';
+            });
+            
+            chatInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    executeCommand(chatInput.value);
+                    chatInput.value = '';
+                }
+            });
+            
+            // Load default model
+            const defaultModel = STATE.modelList['Car'];
+            loadModel(defaultModel, true);
+            
+            animate();
+        }
+
+        function initGUI() {
+            STATE.gui = new dat.GUI({ width: 300 });
+            
+            const modelFolder = STATE.gui.addFolder('Model');
+            modelFolder.add(STATE.guiData, 'model', Object.keys(STATE.modelList))
+                .name('Select Model')
+                .onChange((value) => {
+                    executeCommand(`model ${value}`);
+                });
+            modelFolder.open();
+            
+            const graphicsFolder = STATE.gui.addFolder('Graphics');
+            graphicsFolder.add(STATE.guiData, 'envMap')
+                .name('Environment Map')
+                .onChange((value) => {
+                    executeCommand(`env ${value ? 'on' : 'off'}`);
+                });
+            graphicsFolder.add(STATE.guiData, 'explode', 0, 1, 0.01)
+                .name('Explode Factor')
+                .onChange((value) => {
+                    STATE.explodeFactor = value;
+                    applyExplode(value);
+                });
+            graphicsFolder.addColor(STATE.guiData, 'bgColor')
+                .name('Background')
+                .onChange((value) => {
+                    STATE.renderer.setClearColor(value);
+                });
+            graphicsFolder.open();
+            
+            const exportFolder = STATE.gui.addFolder('Export');
+            exportFolder.add(STATE.guiData, 'exportGLB').name('Export GLB');
+            exportFolder.open();
+        }
+
+        function updateGUI() {
+            STATE.gui.updateDisplay();
+        }
+
+        function loadModel(path, resetCamera, isAbsolute = false) {
+            if (STATE.model) {
+                STATE.scene.remove(STATE.model);
+                STATE.model = null;
+            }
+            
+            // Store path for verification
+            const fullPath = isAbsolute ? path : (STATE.basePath + path);
+            STATE.currentModelPath = fullPath;
+            
+            showProgress('Loading...');
+            chatLog(`🔍 Attempting to load: ${path}`, 'system');
+            
+            // For absolute paths, don't use basePath
+            const loader = new THREE.LDrawLoader();
+            
+            if (!isAbsolute) {
+                loader.setPath(STATE.basePath);
+                chatLog(`📁 Using base path: ${STATE.basePath}`, 'system');
+            } else {
+                chatLog(`📁 Loading absolute path (no base path)`, 'system');
+            }
+            
+            loader.load(
+                path,
+                (group) => onModelLoaded(group, resetCamera),
+                (xhr) => {
+                    if (xhr.lengthComputable) {
+                        const percent = Math.round((xhr.loaded / xhr.total) * 100);
+                        updateProgress(xhr.loaded / xhr.total);
+                        chatLog(`⏳ Loading... ${percent}%`, 'system');
+                    } else {
+                        chatLog(`⏳ Loading... ${xhr.loaded} bytes`, 'system');
+                    }
+                },
+                (error) => {
+                    hideProgress();
+                    
+                    // Better error logging
+                    console.error('Full error object:', error);
+                    
+                    let errorMsg = 'Unknown error';
+                    
+                    if (error instanceof ErrorEvent) {
+                        errorMsg = `Network error: ${error.message}`;
+                    } else if (error instanceof ProgressEvent) {
+                        errorMsg = `Failed to load file. Check: \n` +
+                                  `  1. File exists at: ${path}\n` +
+                                  `  2. CORS permissions (if remote)\n` +
+                                  `  3. File format is valid LDraw`;
+                    } else if (error.message) {
+                        errorMsg = error.message;
+                    } else if (typeof error === 'string') {
+                        errorMsg = error;
+                    }
+                    
+                    chatLog(`❌ Error loading model:`, 'error');
+                    chatLog(errorMsg, 'error');
+                    chatLog(`💡 Try: Use relative path like './ai-generated-model.ldr'`, 'system');
+                    console.error('Detailed error:', error);
+                }
+            );
+        }
+
+        function onModelLoaded(group, resetCamera) {
+            if (STATE.model) {
+                STATE.scene.remove(STATE.model);
+            }
+            
+            STATE.model = group;
+            STATE.model.rotation.x = Math.PI; // LDraw coordinate system conversion
+            STATE.scene.add(STATE.model);
+            
+            // Store materials
+            STATE.materials = STATE.lDrawLoader.materials || [];
+            
+            // Extract and count parts
+            STATE.parts = [];
+            let groupCount = 0;
+            let meshCount = 0;
+            
+            STATE.model.traverse((child) => {
+                if (child.isGroup || child.isObject3D) {
+                    groupCount++;
+                }
+                if (child.isMesh) {
+                    STATE.parts.push(child);
+                    meshCount++;
+                    // Store original position for animations
+                    child.userData.originalPosition = child.position.clone();
+                    child.userData.originalRotation = child.rotation.clone();
+                }
+            });
+            
+            console.log(`Model structure: ${groupCount} groups, ${meshCount} meshes`);
+            chatLog(`🧱 Found ${STATE.parts.length} individual parts`, 'result');
+            
+            if (STATE.parts.length === 0) {
+                chatLog(`⚠️ Warning: No mesh parts found. Model may be a group container.`, 'system');
+            } else if (STATE.parts.length === 1) {
+                chatLog(`⚠️ Note: Only 1 part found. Model may be simplified or merged.`, 'system');
+            }
+            
+            // Apply current settings
+            applyEnvMap(STATE.guiData.envMap);
+            applyExplode(STATE.explodeFactor);
+            
+            // Fit camera
+            if (resetCamera) {
+                fitCameraToModel();
+            }
+            
+            hideProgress();
+            chatLog('✅ Model loaded successfully', 'result');
+            chatLog('💡 Try: list, animate, explode', 'system');
+        }
+
+        function fitCameraToModel() {
+            if (!STATE.model) return;
+            
+            const bbox = new THREE.Box3().setFromObject(STATE.model);
+            const center = bbox.getCenter(new THREE.Vector3());
+            const size = bbox.getSize(new THREE.Vector3());
+            const radius = Math.max(size.x, size.y, size.z) * 0.5;
+            
+            STATE.controls.target0.copy(center);
+            STATE.controls.position0.set(-2.3, 2, 2).multiplyScalar(radius).add(center);
+            STATE.controls.reset();
+            
+            STATE.pointLight.position.copy(STATE.controls.position0).multiplyScalar(1.5);
+        }
+
+        function applyEnvMap(enabled) {
+            if (!STATE.materials.length) return;
+            
+            if (enabled && !STATE.envMapTexture) {
+                // Load local environment map textures
+                const path = './examples/textures/cube/Bridge2/';
+                const urls = [
+                    path + 'posx.jpg', path + 'negx.jpg',
+                    path + 'posy.jpg', path + 'negy.jpg',
+                    path + 'posz.jpg', path + 'negz.jpg'
+                ];
+                
+                new THREE.CubeTextureLoader().load(
+                    urls,
+                    (texture) => {
+                        STATE.envMapTexture = texture;
+                        texture.format = THREE.RGBFormat;
+                        texture.mapping = THREE.CubeReflectionMapping;
+                        applyEnvMapToMaterials(enabled);
+                    },
+                    undefined,
+                    (error) => {
+                        console.warn('Could not load env map:', error);
+                        chatLog('Warning: environment map not available', 'error');
+                    }
+                );
+            } else {
+                applyEnvMapToMaterials(enabled);
+            }
+        }
+
+        function applyEnvMapToMaterials(enabled) {
+            STATE.materials.forEach(material => {
+                if (material.userData && material.userData.canHaveEnvMap) {
+                    material.envMap = enabled ? STATE.envMapTexture : null;
+                    material.needsUpdate = true;
+                }
+            });
+        }
+
+        function applyExplode(factor) {
+            if (!STATE.model) return;
+            
+            const center = new THREE.Box3()
+                .setFromObject(STATE.model)
+                .getCenter(new THREE.Vector3());
+            
+            STATE.model.traverse((child) => {
+                if (child.isMesh && child.userData.originalPosition) {
+                    const dir = child.userData.originalPosition.clone().sub(center).normalize();
+                    const offset = dir.multiplyScalar(factor * 200);
+                    child.position.copy(child.userData.originalPosition).add(offset);
+                } else if (child.isMesh) {
+                    child.userData.originalPosition = child.position.clone();
+                }
+            });
+        }
+
+        function exportGLB() {
+            if (!STATE.model) return;
+            
+            const exporter = new THREE.GLTFExporter();
+            
+            showProgress('Exporting GLB...');
+            
+            exporter.parse(
+                STATE.model,
+                (gltf) => {
+                    const blob = new Blob([gltf], { type: 'application/octet-stream' });
+                    const url = URL.createObjectURL(blob);
+                    
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = 'model.glb';
+                    link.click();
+                    
+                    URL.revokeObjectURL(url);
+                    hideProgress();
+                    chatLog('GLB exported successfully', 'result');
+                },
+                (error) => {
+                    hideProgress();
+                    chatLog(`Export error: ${error}`, 'error');
+                    console.error(error);
+                },
+                { binary: true }
+            );
+        }
+
+        function onWindowResize() {
+            STATE.camera.aspect = window.innerWidth / window.innerHeight;
+            STATE.camera.updateProjectionMatrix();
+            STATE.renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            STATE.controls.update();
+            STATE.renderer.render(STATE.scene, STATE.camera);
+        }
+
+        // Expose globals for AI extension
+        window.STATE = STATE;
+        window.COMMANDS = COMMANDS;
+        window.chatLog = chatLog;
+        window.showProgress = showProgress;
+        window.hideProgress = hideProgress;
+        window.updateProgress = updateProgress;
+        window.executeCommand = executeCommand;
+        window.loadModel = loadModel;
+
+        // Initialize on load
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    </script>
+
+    <!-- LDraw.org CC BY 2.0 Parts Library attribution -->
+    <div class="ldraw-attribution">
+        <a href="http://www.ldraw.org" target="_blank" rel="noopener">
+            <img src="https://www.ldraw.org/images/ldraw_org_logo.png" alt="LDraw.org">
+        </a>
+        <a href="http://www.ldraw.org/" target="_blank" rel="noopener">
+            Uses the LDraw Parts Library
+        </a>
+    </div>
+</body>
+</html>

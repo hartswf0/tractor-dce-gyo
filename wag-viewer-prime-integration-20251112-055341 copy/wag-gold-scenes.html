@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WAG AI Model Viewer (Prime)</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: #0e0e0e;
+            color: #e8e8e8;
+            height: 100vh;
+            overflow: hidden;
+        }
+        #app {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            height: 100vh;
+        }
+        #sidebar {
+            background: #151515;
+            border-right: 1px solid #2b2b2b;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            overflow-y: auto;
+        }
+        #sidebar h1 { font-size: 20px; color: #8ae4ff; }
+        #tagline { font-size: 13px; color: #a0a0a0; line-height: 1.4; }
+        #search {
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #333;
+            background: #0e0e0e;
+            color: #fefefe;
+        }
+        #stats { font-size: 12px; color: #888; }
+        #model-list { display: flex; flex-direction: column; gap: 8px; }
+        .model-item {
+            padding: 10px;
+            border-radius: 6px;
+            background: #1f1f1f;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: border 0.2s, background 0.2s;
+        }
+        .model-item:hover { border-color: #2cc2ff; }
+        .model-item.active { border-color: #2cc2ff; background: #11202a; }
+        .model-title { font-weight: 600; font-size: 14px; }
+        .model-meta { font-size: 12px; color: #aaa; margin-top: 4px; }
+        #viewer-container { position: relative; background: #050505; }
+        #viewer { width: 100%; height: 100%; }
+        #loading {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            background: rgba(42, 193, 255, 0.9);
+            color: #04121b;
+            border-radius: 20px;
+            font-weight: bold;
+            display: none;
+        }
+        #loading.show { display: inline-block; }
+        #info-panel {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            width: 280px;
+            padding: 15px;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid #1e90c2;
+            backdrop-filter: blur(8px);
+        }
+        #info-panel h2 { font-size: 16px; margin-bottom: 10px; color: #8ae4ff; }
+        .info-row { font-size: 12px; margin-bottom: 6px; }
+        .label { color: #999; display: inline-block; width: 70px; }
+        #controls {
+            position: absolute;
+            left: 20px;
+            bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background: rgba(0, 0, 0, 0.75);
+            border: 1px solid #1e90c2;
+            border-radius: 8px;
+            padding: 12px;
+        }
+        .control-row { display: flex; gap: 6px; flex-wrap: wrap; }
+        #controls button {
+            background: #1e90c2;
+            color: #03131b;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.2s;
+        }
+        #controls button:hover { background: #28b3f5; }
+        .toggle-button.active { background: #2cc2ff; color: #03131b; }
+        .empty-state { font-size: 13px; color: #777; margin-top: 10px; }
+        #manual-loader {
+            background: #101010;
+            border: 1px solid #2b2b2b;
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        #manual-loader h2 { font-size: 14px; color: #8ae4ff; }
+        #manual-text {
+            width: 100%;
+            min-height: 80px;
+            background: #050505;
+            border: 1px solid #333;
+            border-radius: 4px;
+            color: #e8e8e8;
+            padding: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            resize: vertical;
+        }
+        .manual-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        #manual-loader button,
+        #manual-loader label.file-label {
+            background: #1e90c2;
+            color: #03131b;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            text-align: center;
+        }
+        #manual-loader button:hover,
+        #manual-loader label.file-label:hover { background: #28b3f5; }
+        #manual-file { display: none; }
+        #manual-path {
+            width: 100%;
+            padding: 6px 8px;
+            border-radius: 4px;
+            border: 1px solid #333;
+            background: #0e0e0e;
+            color: #fefefe;
+            font-size: 12px;
+        }
+        #info-panel .value { color: #e8e8e8; }
+        #info-panel .info-highlight { color: #8ae4ff; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <aside id="sidebar">
+            <div>
+                <h1>WAG AI Model Viewer</h1>
+                <div id="tagline">Curated AI-generated LEGO studies. Quick filtering, instant color-safe loads.</div>
+            </div>
+            <input type="text" id="search" placeholder="Search AI models...">
+            <div id="stats">Loading catalog...</div>
+            <div id="manual-loader">
+                <h2>Manual Scene Loader</h2>
+                <textarea id="manual-text" placeholder="Paste MPD/LDR data here..." spellcheck="false"></textarea>
+                <div class="manual-actions">
+                    <button id="load-pasted">Load Pasted Scene</button>
+                    <label for="manual-file" class="file-label">Load Local File</label>
+                    <input type="file" id="manual-file" accept=".mpd,.ldr,.dat,.txt">
+                </div>
+                <input type="text" id="manual-path" placeholder="Load by relative path (e.g. scene-the-grinning-default.mpd)">
+                <button id="load-path">Load Path</button>
+            </div>
+            <div id="model-list"></div>
+        </aside>
+        <section id="viewer-container">
+            <div id="viewer"></div>
+            <div id="loading">Loading model...</div>
+            <div id="info-panel" style="display:none;">
+                <h2 id="info-title">Select a model</h2>
+                <div class="info-row"><span class="label">Source</span><span class="value info-highlight" id="info-source">-</span></div>
+                <div class="info-row"><span class="label">File</span><span class="value" id="info-file">-</span></div>
+                <div class="info-row"><span class="label">Author</span><span class="value" id="info-author">-</span></div>
+                <div class="info-row"><span class="label">Size</span><span class="value" id="info-size">-</span></div>
+                <div class="info-row"><span class="label">Path</span><span class="value" id="info-path">-</span></div>
+                <div class="info-row"><span class="label">Stats</span><span class="value" id="info-stats">-</span></div>
+                <div class="info-row"><span class="label">Notes</span><span class="value" id="info-notes">-</span></div>
+            </div>
+            <div id="controls">
+                <div class="control-row">
+                    <button id="reset-camera">Reset View</button>
+                    <button id="toggle-grid" class="toggle-button active">Grid</button>
+                    <button id="toggle-axes" class="toggle-button active">Axes</button>
+                    <button id="flip-y" class="toggle-button">Flip Y</button>
+                </div>
+                <div class="control-row">
+                    <button id="toggle-wireframe" class="toggle-button">Wireframe</button>
+                    <button id="toggle-edges" class="toggle-button active">Edges</button>
+                    <button id="toggle-backface" class="toggle-button">Backface Cull</button>
+                    <button id="toggle-spin" class="toggle-button">Auto Spin</button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="./examples/js/loaders/LDrawLoader.js?v=11"></script>
+    <script src="./beta-prime-engine.js"></script>
+    <script>
+    const AI_FILE_PATTERN = /^ai[\s_\-\(\.]?/i;
+    const LIBRARY_BASE = './ldraw/';
+    const ROOT_PREFIX_FROM_LIBRARY = '../';
+
+    const WAG = {
+        manifest: null,
+        libraryManifest: null,
+        models: [],
+        filtered: [],
+        libraryFileMap: null,
+        quarantineSet: new Set(),
+        quarantinedFiles: [],
+        viewer: null,
+        autoSpin: false,
+        lastSelectedIdx: -1,
+        diagnostics: {
+            grid: true,
+            axes: true,
+            flipY: false,
+            wireframe: false,
+            showEdges: true,
+            backfaceCull: false
+        }
+    };
+
+    async function init() {
+        WAG.viewer = BetaPrimeEngine.create({
+            canvas: document.getElementById('viewer'),
+            loaderPath: LIBRARY_BASE
+        });
+        attachViewerEvents();
+        await loadQuarantineList();
+        await Promise.all([loadManifest(), loadLibraryCatalog()]);
+        setupUI();
+        renderModelList();
+    }
+
+    async function loadManifest() {
+        try {
+            const response = await fetch('./root-models-manifest.json');
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const manifest = await response.json();
+            WAG.manifest = manifest;
+            const files = manifest.files || [];
+            const included = [];
+            const quarantined = [];
+            files.forEach(file => {
+                if (!shouldIncludeModel(file)) return;
+                if (isQuarantined(file)) {
+                    quarantined.push(file);
+                } else {
+                    included.push(file);
+                }
+            });
+            WAG.models = included.sort((a, b) => (a.filename || '').localeCompare(b.filename || '', undefined, { sensitivity: 'base' }));
+            WAG.quarantinedFiles = quarantined;
+            WAG.filtered = [...WAG.models];
+            updateStats();
+            if (!WAG.models.length) {
+                document.getElementById('model-list').innerHTML = '<div class="empty-state">No models found. Run <code>node generate-root-models-manifest.js</code>.</div>';
+            }
+        } catch (err) {
+            console.error('Failed to load manifest', err);
+            document.getElementById('stats').textContent = 'Manifest missing - run generator script';
+            document.getElementById('model-list').innerHTML = '<div class="empty-state">Cannot fetch root-models-manifest.json</div>';
+        }
+    }
+
+    async function loadLibraryCatalog() {
+        try {
+            const response = await fetch('./ldraw-parts-manifest.json');
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const manifest = await response.json();
+            WAG.libraryManifest = manifest;
+            WAG.libraryFileMap = buildLibraryFileMap(manifest);
+            if (WAG.viewer && WAG.libraryFileMap) {
+                WAG.viewer.setFileMap(WAG.libraryFileMap);
+            }
+        } catch (err) {
+            console.warn('AI viewer: unable to preload library manifest', err);
+        }
+    }
+
+    async function loadQuarantineList() {
+        try {
+            const response = await fetch('./quarantine-section.json');
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const data = await response.json();
+            const set = new Set();
+            (data.files || []).forEach(entry => {
+                if (!entry || !entry.filename) return;
+                set.add(entry.filename.trim().toLowerCase());
+            });
+            WAG.quarantineSet = set;
+        } catch (err) {
+            console.warn('[WAG] Quarantine list missing or invalid; proceeding without exclusions.', err);
+            WAG.quarantineSet = new Set();
+        }
+    }
+
+    function buildLibraryFileMap(manifest) {
+        const map = {};
+        if (!manifest || !manifest.categories) return map;
+        manifest.categories.forEach(category => {
+            const basePath = category.path || '';
+            (category.files || []).forEach(file => {
+                const filename = file.filename || '';
+                if (!filename) return;
+                const relPathRaw = file.relativePath || file.path || `${basePath}/${filename}`;
+                const relPath = normalizeRelativePath(relPathRaw);
+                const normalized = normalizeLibraryTarget(relPath);
+                registerPathVariants(map, relPath, normalized);
+            });
+        });
+        return map;
+    }
+
+    function normalizeRelativePath(path) {
+        if (!path) return '';
+        return path.replace(/\\/g, '/').replace(/^(\.\/|\.\\)/, '').replace(/^\/+/, '');
+    }
+
+    function normalizeLibraryTarget(path) {
+        if (!path) return '';
+        return path
+            .replace(/\\/g, '/')
+            .replace(/^(\.\/)+/, '')
+            .replace(/^ldraw\//, '')
+            .replace(/\/{2,}/g, '/');
+    }
+
+    function registerPathVariants(map, relPath, normalizedPath) {
+        if (!normalizedPath) return;
+        const keys = new Set();
+        const clean = relPath;
+        const lower = clean.toLowerCase();
+        const normalizedLower = normalizedPath.toLowerCase();
+        keys.add(clean);
+        keys.add(lower);
+        keys.add(normalizedPath);
+        keys.add(normalizedLower);
+        if (clean.startsWith('ldraw/')) {
+            const withoutPrefix = clean.replace(/^ldraw\//, '');
+            keys.add(withoutPrefix);
+            keys.add(withoutPrefix.toLowerCase());
+        } else {
+            keys.add(`ldraw/${clean}`);
+            keys.add(`ldraw/${clean}`.toLowerCase());
+        }
+        keys.add(`./${clean}`);
+        keys.add(`./${clean}`.toLowerCase());
+        keys.add(`../${clean}`);
+        keys.add(`../${clean}`.toLowerCase());
+        if (clean.startsWith('parts/')) {
+            const withoutParts = clean.substring(6);
+            keys.add(withoutParts);
+            keys.add(withoutParts.toLowerCase());
+            keys.add(`./${withoutParts}`);
+            keys.add(`./${withoutParts}`.toLowerCase());
+            keys.add(`../${withoutParts}`);
+            keys.add(`../${withoutParts}`.toLowerCase());
+            keys.add(`ldraw/${withoutParts}`);
+            keys.add(`ldraw/${withoutParts}`.toLowerCase());
+        }
+        if (clean.startsWith('p/')) {
+            const withoutPrimitive = clean.substring(2);
+            keys.add(withoutPrimitive);
+            keys.add(withoutPrimitive.toLowerCase());
+            keys.add(`./${withoutPrimitive}`);
+            keys.add(`./${withoutPrimitive}`.toLowerCase());
+            keys.add(`../${withoutPrimitive}`);
+            keys.add(`../${withoutPrimitive}`.toLowerCase());
+            keys.add(`ldraw/${withoutPrimitive}`);
+            keys.add(`ldraw/${withoutPrimitive}`.toLowerCase());
+        }
+        const basename = clean.substring(clean.lastIndexOf('/') + 1);
+        keys.add(basename);
+        keys.add(basename.toLowerCase());
+        keys.forEach(key => {
+            if (!key) return;
+            const normalizedKey = key.replace(/\\/g, '/').replace(/\/{2,}/g, '/');
+            if (normalizedKey && !map[normalizedKey]) {
+                map[normalizedKey] = normalizedPath;
+            }
+        });
+    }
+
+    function lookupLibraryPath(rawPath, filename) {
+        if (!WAG.libraryFileMap) return null;
+        const attempts = [rawPath, rawPath?.toLowerCase(), filename, filename?.toLowerCase()];
+        for (const key of attempts) {
+            if (key && WAG.libraryFileMap[key]) {
+                return WAG.libraryFileMap[key];
+            }
+        }
+        return null;
+    }
+
+    function buildCandidatePaths(model) {
+        const set = new Set();
+        const raw = normalizeRelativePath(model.path || model.filename || '');
+        const libraryMatch = lookupLibraryPath(raw, model.filename);
+        const add = path => {
+            if (!path) return;
+            const normalized = normalizeRelativePath(path);
+            if (normalized) set.add(normalized);
+        };
+        const addRoot = path => {
+            if (!path) return;
+            add(`${ROOT_PREFIX_FROM_LIBRARY}${normalizeRelativePath(path)}`);
+        };
+        if (libraryMatch) add(libraryMatch);
+        add(model.path);
+        add(raw);
+        if (model.filename) add(model.filename);
+        addRoot(model.path);
+        addRoot(raw);
+        if (model.filename) addRoot(model.filename);
+        return Array.from(set).filter(Boolean);
+    }
+
+    function shouldIncludeModel(file) {
+        const filename = (file.filename || '').trim().toLowerCase();
+        const extension = filename.includes('.') ? filename.substring(filename.lastIndexOf('.')) : '';
+        if (AI_FILE_PATTERN.test(filename)) return true;
+        if (extension === '.mpd') return true;
+        const name = (file.name || '').toLowerCase();
+        if (name.startsWith('ai ') || name.includes('generated')) return true;
+        const description = (file.description || '').toLowerCase();
+        return description.includes('ai ') || description.includes('generated');
+    }
+
+    function isQuarantined(file) {
+        if (!file || !file.filename || !WAG.quarantineSet) return false;
+        return WAG.quarantineSet.has(file.filename.trim().toLowerCase());
+    }
+
+    function setupUI() {
+        window.addEventListener('resize', () => {
+            if (WAG.viewer) WAG.viewer.updateRendererSize();
+        });
+        document.getElementById('search').addEventListener('input', (e) => filterModels(e.target.value));
+        document.getElementById('reset-camera').addEventListener('click', () => {
+            if (WAG.viewer) WAG.viewer.fitToCurrent();
+        });
+
+        const diagButtons = {
+            grid: document.getElementById('toggle-grid'),
+            axes: document.getElementById('toggle-axes'),
+            flipY: document.getElementById('flip-y'),
+            wireframe: document.getElementById('toggle-wireframe'),
+            showEdges: document.getElementById('toggle-edges'),
+            backfaceCull: document.getElementById('toggle-backface')
+        };
+
+        Object.entries(diagButtons).forEach(([key, button]) => {
+            setToggleButtonState(button, !!WAG.diagnostics[key]);
+            button.addEventListener('click', () => {
+                WAG.diagnostics[key] = !WAG.diagnostics[key];
+                setToggleButtonState(button, WAG.diagnostics[key]);
+                if (WAG.viewer) WAG.viewer.setDiagnostics(WAG.diagnostics);
+            });
+        });
+
+        const spinButton = document.getElementById('toggle-spin');
+        setToggleButtonState(spinButton, WAG.autoSpin);
+        spinButton.addEventListener('click', () => {
+            WAG.autoSpin = !WAG.autoSpin;
+            setToggleButtonState(spinButton, WAG.autoSpin);
+            if (WAG.viewer) WAG.viewer.setAutoSpin(WAG.autoSpin);
+        });
+
+        if (WAG.viewer) {
+            WAG.viewer.setDiagnostics(WAG.diagnostics);
+            WAG.viewer.setAutoSpin(WAG.autoSpin);
+        }
+
+        setupManualLoaders();
+    }
+
+    function setupManualLoaders() {
+        document.getElementById('load-pasted').addEventListener('click', () => {
+            loadManualText(document.getElementById('manual-text').value, {
+                filename: 'manual-input.ldr',
+                name: 'Manual Scene',
+                description: 'Loaded from pasted text',
+                origin: 'Manual Paste'
+            });
+        });
+
+        document.getElementById('manual-file').addEventListener('change', async (event) => {
+            const file = event.target.files?.[0];
+            if (!file) return;
+            const text = await file.text();
+            await loadManualText(text, {
+                filename: file.name,
+                name: file.name,
+                size: file.size,
+                description: 'Manual file upload',
+                origin: 'Local File'
+            });
+            event.target.value = '';
+        });
+
+        document.getElementById('load-path').addEventListener('click', () => {
+            loadManualPath(document.getElementById('manual-path').value);
+        });
+    }
+
+    function attachViewerEvents() {
+        if (!WAG.viewer) return;
+        const loading = document.getElementById('loading');
+        WAG.viewer.on('model:loaded', ({ meta, stats }) => {
+            loading.classList.remove('show');
+            const sourceLabel = meta?.origin || 'Catalog';
+            const resolvedPath = meta?.source || meta?.resolvedPath || meta?.path || meta?.filename;
+            updateInfo(meta, resolvedPath, stats, sourceLabel);
+        });
+        WAG.viewer.on('model:cleared', () => loading.classList.remove('show'));
+    }
+
+    function filterModels(query) {
+        const q = query.trim().toLowerCase();
+        if (!q) {
+            WAG.filtered = [...WAG.models];
+        } else {
+            WAG.filtered = WAG.models.filter(model => {
+                const hay = `${model.filename} ${model.name || ''} ${model.description || ''}`.toLowerCase();
+                return hay.includes(q);
+            });
+        }
+        renderModelList();
+        updateStats(q);
+    }
+
+    function renderModelList() {
+        const list = document.getElementById('model-list');
+        list.innerHTML = '';
+        if (!WAG.filtered.length) {
+            list.innerHTML = '<div class="empty-state">No models match.</div>';
+            return;
+        }
+        WAG.filtered.forEach((model, idx) => {
+            const item = document.createElement('div');
+            item.className = 'model-item';
+            if (idx === WAG.lastSelectedIdx) item.classList.add('active');
+            item.innerHTML = `<div class="model-title">${model.name || model.filename}</div>
+                              <div class="model-meta">${model.filename} • ${formatBytes(model.size)}</div>`;
+            item.addEventListener('click', () => {
+                document.querySelectorAll('.model-item').forEach(el => el.classList.remove('active'));
+                item.classList.add('active');
+                WAG.lastSelectedIdx = idx;
+                loadModel(model);
+            });
+            list.appendChild(item);
+        });
+    }
+
+    async function loadModel(model) {
+        if (!WAG.viewer) return;
+        const loading = document.getElementById('loading');
+        loading.classList.add('show');
+        const logLabel = `[WAG] ${model.filename}`;
+        console.groupCollapsed(`${logLabel} – load start`);
+        try {
+            const candidatePaths = buildCandidatePaths(model);
+            console.log('Candidate paths:', candidatePaths);
+            const resolvedPath = await loadWithFallbacks(candidatePaths, {
+                filename: model.filename,
+                name: model.name,
+                author: model.author,
+                size: model.size,
+                description: model.description,
+                origin: 'Catalog'
+            });
+            console.log('Loaded via:', resolvedPath);
+        } catch (err) {
+            console.error(`${logLabel} – failed after fallback attempts`, err);
+            alert(`Failed to load ${model.filename}: ${err.message}`);
+            loading.classList.remove('show');
+        } finally {
+            console.groupEnd();
+        }
+    }
+
+    async function loadWithFallbacks(paths, meta) {
+        if (!WAG.viewer) throw new Error('Viewer not initialized');
+        let lastError = null;
+        for (const candidate of paths) {
+            const encoded = encodeURI(candidate);
+            try {
+                await WAG.viewer.loadPath(encoded, { ...meta, resolvedPath: candidate });
+                return candidate;
+            } catch (err) {
+                console.warn('[WAG] Path failed', candidate, err);
+                lastError = err;
+            }
+        }
+        throw lastError || new Error('All path fallbacks failed');
+    }
+
+    async function loadManualText(rawText, meta = {}) {
+        if (!WAG.viewer) return;
+        const text = (rawText || '').trim();
+        if (!text) {
+            alert('Paste MPD/LDR contents first.');
+            return;
+        }
+        const loading = document.getElementById('loading');
+        loading.classList.add('show');
+        try {
+            await WAG.viewer.loadText(text, { ...meta });
+            clearModelSelection();
+        } catch (err) {
+            console.error('[WAG] Manual text load failed', err);
+            alert(`Manual scene load failed: ${err.message}`);
+            loading.classList.remove('show');
+        }
+    }
+
+    async function loadManualPath(rawPath) {
+        if (!WAG.viewer) return;
+        const path = (rawPath || '').trim();
+        if (!path) {
+            alert('Provide a relative path (e.g. scene-the-grinning-default.mpd).');
+            return;
+        }
+        const loading = document.getElementById('loading');
+        loading.classList.add('show');
+        try {
+            await WAG.viewer.loadPath(path, {
+                filename: path,
+                name: path,
+                description: 'Loaded via manual path',
+                origin: 'Manual Path'
+            });
+            clearModelSelection();
+        } catch (err) {
+            console.error('[WAG] Manual path load failed', err);
+            alert(`Failed to load "${path}": ${err.message}`);
+            loading.classList.remove('show');
+        }
+    }
+
+    function clearModelSelection() {
+        document.querySelectorAll('.model-item').forEach(el => el.classList.remove('active'));
+        WAG.lastSelectedIdx = -1;
+    }
+
+    function updateInfo(meta, resolvedPath, stats, sourceLabel = 'Catalog') {
+        document.getElementById('info-panel').style.display = 'block';
+        document.getElementById('info-title').textContent = meta?.name || meta?.filename || 'Manual Scene';
+        document.getElementById('info-source').textContent = sourceLabel;
+        document.getElementById('info-file').textContent = meta?.filename || '—';
+        document.getElementById('info-author').textContent = meta?.author || 'unknown';
+        document.getElementById('info-size').textContent = meta?.size ? formatBytes(meta.size) : '—';
+        document.getElementById('info-path').textContent = resolvedPath || meta?.path || meta?.filename || '—';
+        document.getElementById('info-stats').textContent = formatStats(stats || WAG.viewer?.getStats());
+        document.getElementById('info-notes').textContent = (meta?.description && meta.description !== meta.filename)
+            ? meta.description
+            : '—';
+    }
+
+    function updateStats(query = '') {
+        const stats = document.getElementById('stats');
+        const total = WAG.models.length;
+        if (!total) {
+            stats.textContent = '0 models indexed';
+            return;
+        }
+        const quarantinedCount = WAG.quarantinedFiles?.length || 0;
+        if (query) {
+            stats.textContent = `${WAG.filtered.length}/${total} match "${query}"`;
+        } else {
+            const suffix = quarantinedCount ? ` | ${quarantinedCount} quarantined` : '';
+            stats.textContent = `${total} models ready${suffix}`;
+        }
+    }
+
+    function formatStats(stats) {
+        if (!stats) return '—';
+        return `Meshes: ${stats.meshes} • Lines: ${stats.lines} • Tris: ${stats.triangles}`;
+    }
+
+    function formatBytes(bytes = 0) {
+        if (!bytes) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return `${(bytes / Math.pow(k, i)).toFixed(1)} ${sizes[i]}`;
+    }
+
+    function setToggleButtonState(button, active) {
+        if (!button) return;
+        button.classList.toggle('active', !!active);
+        if (button.id === 'toggle-spin') {
+            button.textContent = active ? 'Stop Spin' : 'Auto Spin';
+        }
+    }
+
+    init().then(() => {
+        try {
+            const params = new URLSearchParams(window.location.search);
+            const mpd = params.get('mpd');
+            if (mpd) {
+                const decoded = decodeURIComponent(mpd);
+                loadManualPath(decoded);
+            }
+        } catch (err) {
+            console.warn('[WAG] mpd autoload failed', err);
+        }
+    });
+    </script>
+</body>
+</html>

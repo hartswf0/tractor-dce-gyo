@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DCE-GYO Project Manifest</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #6b7c8c;
+            overflow-x: hidden;
+        }
+
+        .board {
+            position: relative;
+            background: 
+                repeating-linear-gradient(0deg, transparent, transparent 8px, rgba(0,0,0,0.03) 8px, rgba(0,0,0,0.03) 9px),
+                repeating-linear-gradient(90deg, transparent, transparent 8px, rgba(0,0,0,0.03) 8px, rgba(0,0,0,0.03) 9px),
+                #7a8a9a;
+            min-height: 100vh;
+            padding: 20px;
+            box-shadow: inset 0 0 50px rgba(0,0,0,0.2);
+        }
+
+        .header-strip {
+            display: flex;
+            gap: 2px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .label-brick {
+            background: linear-gradient(135deg, #2b5a7f 0%, #1e4a68 100%);
+            color: white;
+            padding: 8px 16px;
+            font-weight: 900;
+            font-size: 11px;
+            letter-spacing: 1px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3), inset 0 -2px 4px rgba(0,0,0,0.2);
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .label-brick:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+        }
+
+        .label-brick::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70%;
+            height: 3px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 1px;
+        }
+
+        .planning-grid {
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .row-label {
+            background: rgba(255,255,255,0.9);
+            padding: 10px;
+            font-size: 10px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            border-left: 3px solid #2b5a7f;
+        }
+
+        .brick-row {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .brick {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            font-weight: 900;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            text-decoration: none;
+            overflow: hidden;
+        }
+        
+        a.brick {
+            text-decoration: none;
+        }
+        
+        .brick[title]:hover::after {
+            content: attr(title);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.9);
+            color: white;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 10px;
+            white-space: nowrap;
+            z-index: 100;
+            margin-bottom: 5px;
+            font-weight: 400;
+            text-shadow: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
+        
+        .brick-3x4 { width: 205px; height: 65px; font-size: 11px; }
+        .brick-doc { font-size: 7px; }
+        
+        .mpd-brick {
+            position: relative;
+        }
+        
+        .mpd-brick::after {
+            content: 'COPY';
+            position: absolute;
+            top: 4px;
+            right: 6px;
+            font-size: 7px;
+            font-weight: 900;
+            letter-spacing: 0.5px;
+            opacity: 0;
+            transition: opacity 0.2s;
+            background: rgba(0,0,0,0.3);
+            padding: 2px 4px;
+            border-radius: 2px;
+        }
+        
+        .mpd-brick:hover::after {
+            opacity: 1;
+        }
+        
+        .instruction-label {
+            background: rgba(255,255,255,0.05);
+            padding: 6px 10px;
+            margin: 10px 0;
+            font-size: 9px;
+            color: rgba(255, 255, 255, 0.6);
+            letter-spacing: 0.5px;
+            display: inline-block;
+        }
+        
+        .editor-link {
+            width: 65px;
+            height: 30px;
+            font-size: 7px;
+            margin-left: 4px;
+        }
+        
+        .copy-success {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(42, 193, 255, 0.95);
+            color: #000;
+            padding: 10px 16px;
+            font-size: 10px;
+            font-weight: 900;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            z-index: 10000;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+        
+        .copy-success.show {
+            opacity: 1;
+        }
+        
+
+        .brick:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.4);
+            z-index: 10;
+        }
+
+        .brick::before {
+            content: '';
+            position: absolute;
+            top: 1px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            height: 2px;
+            background: rgba(255,255,255,0.4);
+        }
+
+        .brick-1x1 { width: 30px; height: 30px; }
+        .brick-1x2 { width: 65px; height: 30px; }
+        .brick-1x3 { width: 100px; height: 30px; }
+        .brick-1x4 { width: 135px; height: 30px; }
+        .brick-2x2 { width: 65px; height: 65px; }
+        .brick-2x4 { width: 135px; height: 65px; }
+
+        .color-palette {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            gap: 8px;
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(0,0,0,0.1);
+        }
+
+        .swatch {
+            aspect-ratio: 1;
+            cursor: grab;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.4);
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .swatch:hover {
+            transform: translateY(-5px) scale(1.1);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+        }
+
+        .swatch::before {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70%;
+            height: 4px;
+            background: rgba(255,255,255,0.4);
+        }
+
+        .color-red { background: linear-gradient(135deg, #d64550 0%, #b83642 100%); }
+        .color-blue { background: linear-gradient(135deg, #5ba8cc 0%, #4a90b0 100%); }
+        .color-yellow { background: linear-gradient(135deg, #f4d03f 0%, #d4b530 100%); }
+        .color-green { background: linear-gradient(135deg, #a3c95a 0%, #8ab04a 100%); }
+        .color-orange { background: linear-gradient(135deg, #e67e22 0%, #c96a1a 100%); }
+        .color-pink { background: linear-gradient(135deg, #f5b7c8 0%, #e09db0 100%); }
+        .color-tan { background: linear-gradient(135deg, #c9b8a0 0%, #b5a68f 100%); }
+        .color-gray { background: linear-gradient(135deg, #8a8a8a 0%, #707070 100%); }
+        .color-brown { background: linear-gradient(135deg, #6a5a4d 0%, #554940 100%); }
+        .color-white { background: linear-gradient(135deg, #f8f8f8 0%, #e0e0e0 100%); }
+        .color-black { background: linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 100%); }
+        .color-teal { background: linear-gradient(135deg, #4a9d9c 0%, #3a8584 100%); }
+        .color-purple { background: linear-gradient(135deg, #9b6b9e 0%, #825687 100%); }
+        .color-lime { background: linear-gradient(135deg, #c8e66d 0%, #b0cc5a 100%); }
+
+        .section-title {
+            background: rgba(0,0,0,0.6);
+            color: white;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            margin: 30px 0 15px 0;
+            display: inline-block;
+        }
+
+        @media (max-width: 768px) {
+            .planning-grid {
+                grid-template-columns: 80px 1fr;
+                gap: 10px;
+            }
+            .brick-row { gap: 3px; }
+            .color-palette { grid-template-columns: repeat(auto-fill, minmax(45px, 1fr)); }
+        }
+    </style>
+</head>
+<body>
+    <div class="board">
+        <div class="header-strip">
+            <div class="label-brick">DCE-GYO</div>
+            <div class="label-brick">LEGOS</div>
+            <div class="label-brick">MANIFEST</div>
+            <div class="label-brick">2025</div>
+        </div>
+
+        <div class="section-title">WAG GOLD EDITOR</div>
+
+        <div class="planning-grid">
+            <div class="row-label">FLAGSHIP</div>
+            <div class="brick-row">
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/wag-gold-editor.html" class="brick brick-3x4 color-yellow" title="Multi-scene MPD editor">GOLD EDITOR</a>
+            </div>
+
+            <div class="row-label">VARIANTS</div>
+            <div class="brick-row">
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/wag-gold-scenes.html" class="brick brick-1x3 color-yellow">SCENES</a>
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/wag-gold-editor copy.html" class="brick brick-1x3 color-yellow">BACKUP</a>
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/wag-viewer-prime.html" class="brick brick-1x3 color-blue">PRIME</a>
+            </div>
+            
+            <div class="row-label">VIDEOS</div>
+            <div class="brick-row">
+                <a href="https://youtu.be/MIUq-qRLg5c" target="_blank" class="brick brick-1x2 color-teal">VIDEO 1</a>
+                <a href="https://youtu.be/hdTEJSyZahs" target="_blank" class="brick brick-1x2 color-teal">VIDEO 2</a>
+                <a href="https://youtu.be/X5xCx2oa2Xw" target="_blank" class="brick brick-1x2 color-teal">VIDEO 3</a>
+                <a href="https://youtu.be/Pvx9OBBRNn0" target="_blank" class="brick brick-1x2 color-teal">VIDEO 4</a>
+            </div>
+        </div>
+        
+        <div class="instruction-label">
+            COPY MPD FILE CONTENTS. PASTE INTO GOLD EDITOR. HIT RESET BUTTON.
+        </div>
+        
+        <div class="section-title">FEATURED MODELS</div>
+        
+        <div class="planning-grid">
+            <div class="row-label">HELLO WORLD</div>
+            <div class="brick-row">
+                <a href="hello-world.mpd" class="brick brick-2x2 color-yellow mpd-brick" data-mpd-path="hello-world.mpd" title="Start here">HELLO WORLD</a>
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/wag-gold-editor.html" class="brick brick-1x2 editor-link color-gray" title="Open in Gold Editor">GOLD</a>
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/hello_world_complete.mpd" class="brick brick-2x2 color-yellow mpd-brick" data-mpd-path="wag-viewer-prime-integration-20251112-055341 copy/hello_world_complete.mpd" title="Extended">COMPLETE</a>
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/wag-gold-editor.html" class="brick brick-1x2 editor-link color-gray" title="Open in Gold Editor">GOLD</a>
+            </div>
+            
+            <div class="row-label">VEHICLES</div>
+            <div class="brick-row">
+                <a href="barbie-jeep.mpd" class="brick brick-2x2 color-purple mpd-brick" data-mpd-path="barbie-jeep.mpd" title="Tested working">BARBIE JEEP</a>
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/wag-gold-editor.html" class="brick brick-1x2 editor-link color-gray" title="Open in Gold Editor">GOLD</a>
+                <a href="mars-rover-FIXED.mpd" class="brick brick-2x2 color-orange mpd-brick" data-mpd-path="mars-rover-FIXED.mpd" title="Fixed version">MARS ROVER</a>
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/wag-gold-editor.html" class="brick brick-1x2 editor-link color-gray" title="Open in Gold Editor">GOLD</a>
+            </div>
+        </div>
+        
+        <div class="section-title">EXPERIMENTAL</div>
+        
+        <div class="planning-grid">
+            <div class="row-label">POETRY</div>
+            <div class="brick-row">
+                <a href="all_watched_over.mpd" class="brick brick-1x3 color-red mpd-brick" data-mpd-path="all_watched_over.mpd" title="May not load">ALL WATCHED OVER</a>
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/wag-gold-editor.html" class="brick brick-1x2 editor-link color-gray">GOLD</a>
+                <a href="all_watched_over_simple.ldr" class="brick brick-1x3 color-red mpd-brick" data-mpd-path="all_watched_over_simple.ldr" title="Experimental">SIMPLE LDR</a>
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/wag-gold-editor.html" class="brick brick-1x2 editor-link color-gray">GOLD</a>
+            </div>
+            
+            <div class="row-label">STANZAS</div>
+            <div class="brick-row">
+                <a href="stanza_1 (1).mpd" class="brick brick-1x2 color-pink mpd-brick" data-mpd-path="stanza_1 (1).mpd">STANZA 1</a>
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/wag-gold-editor.html" class="brick brick-1x1 editor-link color-gray">G</a>
+                <a href="stanza_2 (1).mpd" class="brick brick-1x2 color-pink mpd-brick" data-mpd-path="stanza_2 (1).mpd">STANZA 2</a>
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/wag-gold-editor.html" class="brick brick-1x1 editor-link color-gray">G</a>
+                <a href="stanza_3.mpd" class="brick brick-1x2 color-pink mpd-brick" data-mpd-path="stanza_3.mpd">STANZA 3</a>
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/wag-gold-editor.html" class="brick brick-1x1 editor-link color-gray">G</a>
+            </div>
+            
+            <div class="row-label">OTHER</div>
+            <div class="brick-row">
+                <a href="mars-rover.mpd" class="brick brick-1x3 color-orange mpd-brick" data-mpd-path="mars-rover.mpd" title="Use FIXED">ROVER OLD</a>
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/wag-gold-editor.html" class="brick brick-1x2 editor-link color-gray">GOLD</a>
+                <a href="truck_full_200pieces.mpd" class="brick brick-1x3 color-blue mpd-brick" data-mpd-path="truck_full_200pieces.mpd" title="Large file">TRUCK 200PC</a>
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/wag-gold-editor.html" class="brick brick-1x2 editor-link color-gray">GOLD</a>
+            </div>
+        </div>
+
+        <div class="section-title">CORE PROJECTS — Playable Theory</div>
+        
+        <div class="planning-grid">
+            <div class="row-label">TETRAD BASE</div>
+            <div class="brick-row">
+                <a href="thousand-tetrad.html" class="brick brick-3x4 color-purple" title="McLuhan tetrad engine + 57 scenarios. Collab: Soy Jang. Inspired by Ian Cheng's Thousand Lives.">THOUSAND TETRAD</a>
+            </div>
+
+            <div class="row-label">THE FORK</div>
+            <div class="brick-row">
+                <a href="fork.html" class="brick brick-3x4 color-teal" title="Trolley problem as navigable grid world. Perspective forking, 7-sec decisions. Instigator: Kayla Uleah Evans.">THE FORK</a>
+            </div>
+
+            <div class="row-label">HOLOGRAPHY</div>
+            <div class="brick-row">
+                <a href="holo-project.html" class="brick brick-3x4 color-pink" title="3D entity simulation with unique TTS voices per character. Living world with continuous transitions.">HOLO PROJECT</a>
+            </div>
+            
+            <div class="row-label">MAC 01</div>
+            <div class="brick-row">
+                <a href="mac-01.html" class="brick brick-3x4 color-lime" title="Generative interface experiments. Similar architecture to above projects but without 3D viewer.">MAC 01</a>
+            </div>
+        </div>
+        
+        <div class="section-title">WAG VARIANTS — Silver, Bronze, Primitive</div>
+
+        <div class="planning-grid">
+            <div class="row-label">TIERS</div>
+            <div class="brick-row">
+                <a href="wag-silver-editor.html" class="brick brick-1x4 color-gray">SILVER</a>
+                <a href="wag-bronze-editor.html" class="brick brick-1x4 color-brown">BRONZE</a>
+                <a href="wag-primitive-editor.html" class="brick brick-1x4 color-orange">PRIMITIVE</a>
+            </div>
+
+            <div class="row-label">COPIES</div>
+            <div class="brick-row">
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/wag-silver-editor copy.html" class="brick brick-1x3 color-gray">SILVER ↻</a>
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/wag-bronze-editor copy.html" class="brick brick-1x3 color-brown">BRONZE ↻</a>
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/wag-primitive-chrome-copy.html" class="brick brick-1x3 color-orange">PRIM ↻</a>
+            </div>
+
+            <div class="row-label">FORKS</div>
+            <div class="brick-row">
+                <a href="wag-fork-integrated.html" class="brick brick-1x3 color-teal">INTEGRATED</a>
+                <a href="wag-fork-mpd-editor.html" class="brick brick-1x3 color-teal">MPD FORK</a>
+            </div>
+        </div>
+
+        <div class="section-title">DOCUMENTATION — Theory & Fixes</div>
+
+        <div class="planning-grid">
+            <div class="row-label">PHILOSOPHY</div>
+            <div class="brick-row">
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/WAG-GOLD-PHILOSOPHY.md" class="brick brick-1x4 brick-doc color-purple">GOLD PHILOSOPHY</a>
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/GOLD-LINE-EDITOR-SPEC.md" class="brick brick-1x4 brick-doc color-purple">LINE EDITOR SPEC</a>
+            </div>
+
+            <div class="row-label">SUMMARIES</div>
+            <div class="brick-row">
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/ALL-FIXES-COMPLETE.md" class="brick brick-1x3 brick-doc color-green">ALL FIXES</a>
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/FINAL-FIXES-SUMMARY.md" class="brick brick-1x3 brick-doc color-green">FINAL SUMMARY</a>
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/FIXES-SUMMARY.md" class="brick brick-1x3 brick-doc color-green">FIXES</a>
+                <a href="FIXES-SUMMARY.md" class="brick brick-1x2 brick-doc color-green">ROOT FIXES</a>
+            </div>
+
+            <div class="row-label">FEATURES</div>
+            <div class="brick-row">
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/CLICK-TO-HIGHLIGHT-COMPLETE.md" class="brick brick-1x4 brick-doc color-blue">CLICK HIGHLIGHT</a>
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/SCREENSHOT-AND-2D-GRID-FIXES.md" class="brick brick-1x4 brick-doc color-blue">SCREENSHOT+2D</a>
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/2D-GRID-FIX-AND-PROGRESS.md" class="brick brick-1x3 brick-doc color-blue">2D GRID FIX</a>
+            </div>
+
+            <div class="row-label">UI/UX</div>
+            <div class="brick-row">
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/GOLD-FINAL-LAYOUT.md" class="brick brick-1x3 brick-doc color-yellow">FINAL LAYOUT</a>
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/GOLD-VISUAL-UPGRADES.md" class="brick brick-1x3 brick-doc color-yellow">VISUAL</a>
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/GOLD-QOL-FEATURES.md" class="brick brick-1x3 brick-doc color-yellow">QOL</a>
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/INSTANT-ALIVE-LOADER.md" class="brick brick-1x2 brick-doc color-yellow">LOADER</a>
+            </div>
+
+            <div class="row-label">BUGFIXES</div>
+            <div class="brick-row">
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/CRITICAL-BUG-FIX.md" class="brick brick-1x3 brick-doc color-red">CRITICAL</a>
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/WEBGL-CONTEXT-FIX.md" class="brick brick-1x2 brick-doc color-red">WEBGL</a>
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/MINIMAP-2D-FIX.md" class="brick brick-1x2 brick-doc color-red">MINIMAP</a>
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/HEADER-DISAPPEARING-FIX.md" class="brick brick-1x3 brick-doc color-red">HEADER</a>
+            </div>
+
+            <div class="row-label">LOADING</div>
+            <div class="brick-row">
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/LOADING-OVERLAY-FIX.md" class="brick brick-1x3 brick-doc color-orange">OVERLAY</a>
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/LOADING-ANIMATION-FIX.md" class="brick brick-1x3 brick-doc color-orange">ANIMATION</a>
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/MPD-NOT-APPEARING-SOLUTION.md" class="brick brick-1x3 brick-doc color-orange">MPD APPEAR</a>
+            </div>
+
+            <div class="row-label">PARITY</div>
+            <div class="brick-row">
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/GOLD-BRONZE-PARITY.md" class="brick brick-1x3 brick-doc color-brown">G-B PARITY</a>
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/GOLD-PRIMITIVE-CONVERGENCE.md" class="brick brick-1x3 brick-doc color-brown">G-P CONVERGE</a>
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/BRONZE-CLICK-METHOD.md" class="brick brick-1x3 brick-doc color-brown">BRZ CLICK</a>
+            </div>
+        </div>
+
+        <div class="section-title">TECHNICAL — Code & Data</div>
+
+        <div class="planning-grid">
+            <div class="row-label">ENGINES</div>
+            <div class="brick-row">
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/beta-prime-engine.js" class="brick brick-2x2 color-teal" title="Core Three.js rendering engine">β-PRIME JS</a>
+                <a href="beta-prime-engine.js" class="brick brick-1x2 color-teal">β-PRIME ROOT</a>
+            </div>
+
+            <div class="row-label">MANIFESTS</div>
+            <div class="brick-row">
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/ldraw-parts-manifest.json" class="brick brick-1x4 brick-doc color-lime">LDRAW PARTS</a>
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/root-models-manifest.json" class="brick brick-1x4 brick-doc color-lime">ROOT MODELS</a>
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/quarantine-section.json" class="brick brick-1x3 brick-doc color-lime">QUARANTINE</a>
+            </div>
+
+            <div class="row-label">SCRIPTS</div>
+            <div class="brick-row">
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/generate-root-models-manifest.js" class="brick brick-2x4 brick-doc color-gray">GEN MANIFEST</a>
+            </div>
+        </div>
+
+        <div class="section-title">OTHER TOOLS</div>
+
+        <div class="planning-grid">
+            <div class="row-label">EXPERIMENTS</div>
+            <div class="brick-row">
+                <a href="hello-world-reversed.html" class="brick brick-1x4 color-green" title="Text reversal experiments">HELLO REVERSED</a>
+            </div>
+        </div>
+
+
+        <div class="section-title">MORE DOCS — Status & Process</div>
+
+        <div class="planning-grid">
+            <div class="row-label">STATUS</div>
+            <div class="brick-row">
+                <a href="BRONZE-EDITOR-STATUS.md" class="brick brick-1x3 brick-doc color-brown">BRONZE STATUS</a>
+                <a href="BOTH-ISSUES-FIXED.md" class="brick brick-1x3 brick-doc color-green">BOTH FIXED</a>
+                <a href="GRID-FIX-SUMMARY.md" class="brick brick-1x3 brick-doc color-blue">GRID SUMMARY</a>
+            </div>
+
+            <div class="row-label">PROCESS</div>
+            <div class="brick-row">
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/FRUSTRATION-LOG.md" class="brick brick-1x4 brick-doc color-red" title="Developer frustration log">FRUSTRATION</a>
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/QUICK-TEST-GUIDE.md" class="brick brick-1x4 brick-doc color-lime">TEST GUIDE</a>
+                <a href="GRID-FIX-AND-LDRAW-PATH.md" class="brick brick-1x3 brick-doc color-blue">GRID+LDRAW</a>
+            </div>
+
+            <div class="row-label">CONVERGE</div>
+            <div class="brick-row">
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/GOLD-CONVERGED-SUMMARY.md" class="brick brick-1x4 brick-doc color-yellow">CONVERGED</a>
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/GOLD-TRANSFORMED.md" class="brick brick-1x4 brick-doc color-yellow">TRANSFORMED</a>
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/GOLD-GRID-COMPLETE.md" class="brick brick-1x3 brick-doc color-yellow">GRID COMPLETE</a>
+            </div>
+
+            <div class="row-label">ADVANCED</div>
+            <div class="brick-row">
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/BIDIRECTIONAL-HIGHLIGHTING.md" class="brick brick-1x4 brick-doc color-purple">BIDIRECTIONAL</a>
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/SECTION-SELECTION-AND-3D-BOXES.md" class="brick brick-1x4 brick-doc color-purple">SECTION SELECT</a>
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/MULTI-SELECT-AND-LOADING.md" class="brick brick-1x3 brick-doc color-purple">MULTI-SELECT</a>
+            </div>
+
+            <div class="row-label">INTERFACE</div>
+            <div class="brick-row">
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/GOLD-BRONZE-INTERFACE-MAP.md" class="brick brick-1x4 brick-doc color-brown">INTERFACE MAP</a>
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/GOLD-EQUAL-LAYOUT.md" class="brick brick-1x3 brick-doc color-yellow">EQUAL LAYOUT</a>
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/DECORATION-FILTER-FIX.md" class="brick brick-1x3 brick-doc color-orange">DECORATION</a>
+            </div>
+
+            <div class="row-label">LDRAW</div>
+            <div class="brick-row">
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/FIX-SILVER-LDRAW-LOADING.md" class="brick brick-1x4 brick-doc color-gray">SILVER LDRAW</a>
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/LOADING-AND-ERROR-IMPROVEMENTS.md" class="brick brick-1x4 brick-doc color-orange">LOAD IMPROVE</a>
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/ANIMATION-SPEED-FIX.md" class="brick brick-1x3 brick-doc color-lime">ANIM SPEED</a>
+            </div>
+
+            <div class="row-label">CRITICAL</div>
+            <div class="brick-row">
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/CRITICAL-FIXES-COMPLETE.md" class="brick brick-1x4 brick-doc color-red">CRIT FIXES</a>
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/CLICK-TO-HIGHLIGHT-FEATURE.md" class="brick brick-1x4 brick-doc color-blue">CLICK FEATURE</a>
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/LAYOUT-FIX-FINAL.md" class="brick brick-1x3 brick-doc color-yellow">LAYOUT FINAL</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="copy-success" id="copySuccess">COPIED</div>
+
+    <script>
+        // Count files by type
+        const htmlCount = document.querySelectorAll('a[href$=".html"]').length;
+        const mpdCount = document.querySelectorAll('a[href$=".mpd"]').length;
+        const ldrCount = document.querySelectorAll('a[href$=".ldr"]').length;
+        const mdCount = document.querySelectorAll('a[href$=".md"]').length;
+        const jsCount = document.querySelectorAll('a[href$=".js"]').length;
+        const jsonCount = document.querySelectorAll('a[href$=".json"]').length;
+        const totalBricks = document.querySelectorAll('.brick').length;
+        
+        console.log('LEGOS MANIFEST - DCE-GYO PROJECT');
+        console.log('================================');
+        console.log(`HTML Files:     ${htmlCount}`);
+        console.log(`MPD Models:     ${mpdCount}`);
+        console.log(`LDR Models:     ${ldrCount}`);
+        console.log(`Docs (MD):      ${mdCount}`);
+        console.log(`Scripts (JS):   ${jsCount}`);
+        console.log(`Data (JSON):    ${jsonCount}`);
+        console.log('================================');
+        console.log(`Total Bricks:   ${totalBricks}`);
+        console.log('');
+        console.log('Core architecture: LEGOS');
+        console.log('Location, Entity, Goal, Obstacle, Solution');
+        console.log('');
+        console.log('Theory as Infrastructure:');
+        console.log('• Thousand Tetrad — McLuhan\'s tetrad as executable constraint');
+        console.log('• The Fork — Trolley problem as grid world navigation');
+        console.log('• Holo Project — 3D entity simulation with TTS voices');
+        console.log('');
+        console.log('WAG Gold — LDraw MPD editor with:');
+        console.log('• Multi-scene management');
+        console.log('• Click-to-highlight bidirectional sync');
+        console.log('• 2D grid minimap');
+        console.log('• Screenshot capture (4:3 native)');
+        console.log('');
+        
+        // MPD/LDR copy-to-clipboard functionality
+        document.querySelectorAll('.mpd-brick').forEach(el => {
+            el.addEventListener('click', function(e) {
+                e.preventDefault();
+                const path = this.getAttribute('data-mpd-path');
+                
+                // Copy to clipboard
+                navigator.clipboard.writeText(path).then(() => {
+                    // Show success notification
+                    const notification = document.getElementById('copySuccess');
+                    notification.textContent = `COPIED: ${path}`;
+                    notification.classList.add('show');
+                    
+                    // Hide after 2 seconds
+                    setTimeout(() => {
+                        notification.classList.remove('show');
+                    }, 2000);
+                    
+                    console.log(`COPIED MPD PATH: ${path}`);
+                    console.log('PASTE INTO WAG GOLD EDITOR TO LOAD');
+                }).catch(err => {
+                    console.error('Failed to copy:', err);
+                });
+            });
+        });
+        
+        // Add click feedback for non-MPD bricks
+        document.querySelectorAll('.brick:not(.mpd-brick)').forEach(el => {
+            el.addEventListener('click', function(e) {
+                const ext = this.href.split('.').pop().split('?')[0];
+                const name = this.textContent.trim();
+                console.log(`[${ext.toUpperCase()}] ${name}`);
+            });
+        });
+        
+        // Add keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'h' && !e.metaKey && !e.ctrlKey) {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        });
+        
+        console.log('Press "h" to scroll to top');
+    </script>
+</body>
+</html>

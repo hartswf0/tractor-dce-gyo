@@ -1,0 +1,378 @@
+0 FILE hello_world_tutorial.mpd
+0 Name: HELLO WORLD - Complete LDraw Tutorial
+0 Author: Garden-Uprising-Tutorial-Series
+0 !LDRAW_ORG Model
+0 !LICENCE Redistributable under CCAL version 2.0
+0 BFC CERTIFY CCW
+0 //
+0 ╔═══════════════════════════════════════════════════════════════════╗
+0 ║              HELLO WORLD: YOUR FIRST LDRAW SCENE                   ║
+0 ║            The Classic Programmer's Greeting in Bricks             ║
+0 ╚═══════════════════════════════════════════════════════════════════╝
+0 //
+0 // VERSION: 1.0 (Beginner-Friendly Tutorial)
+0 // SCENE TYPE: Introduction / Message Display
+0 // PURPOSE: Learn LDraw fundamentals through RGB characters
+0 //          presenting the traditional "Hello World" greeting
+0 //
+0 // WHAT YOU'LL LEARN:
+0 //   ✓ RGB color system (Red=4, Green=2, Blue=1)
+0 //   ✓ Minifigure assembly (HEAD → TORSO → ARMS → HIPS → LEGS)
+0 //   ✓ Tile placement for messages
+0 //   ✓ Spatial positioning (X/Y/Z coordinates)
+0 //   ✓ LEGOS dramatic framework
+0 //   ✓ Scene composition basics
+0 //
+
+
+0 ╔═══════════════════════════════════════════════════════════════════╗
+0 ║                    RGB COLOR SYSTEM                                ║
+0 ╚═══════════════════════════════════════════════════════════════════╝
+0 //
+0 // Primary Colors (Additive Light Model):
+0 //   1 = BLUE   → Cool, calm, logic (Programmer archetype)
+0 //   2 = GREEN  → Growth, harmony, balance (Designer archetype)
+0 //   4 = RED    → Energy, passion, action (Hacker archetype)
+0 //
+0 // These three colors combine to create all others in screen displays.
+0 // Our three characters represent the foundations of digital creation.
+0 //
+
+
+0 ╔═══════════════════════════════════════════════════════════════════╗
+0 ║                  COORDINATE SYSTEM REFERENCE                       ║
+0 ╚═══════════════════════════════════════════════════════════════════╝
+0 //
+0 //                    Y-AXIS (Vertical)
+0 //                       ↑ negative (UP)
+0 //                       |
+0 //         X-AXIS ←------+------→ X-AXIS
+0 //    negative (LEFT)    |    positive (RIGHT)
+0 //                       |
+0 //                       ↓ positive (DOWN)
+0 //
+0 //         Z-AXIS: negative (BACK) ← • → positive (FORWARD)
+0 //
+0 // UNITS: 20 LDU = 1 stud | 8 LDU = 1 plate | 24 LDU = 1 brick
+0 //
+
+
+0 ╔═══════════════════════════════════════════════════════════════════╗
+0 ║                    LEGOS DRAMATIC FRAMEWORK                        ║
+0 ╚═══════════════════════════════════════════════════════════════════╝
+0 //
+0 // L (LOCATION): Digital void / Empty stage
+0 //   • Minimal environment (focus on message)
+0 //   • White baseplate (blank canvas metaphor)
+0 //   • Open space for message display
+0 //
+0 // E (ENTITIES): Three RGB Characters
+0 //   🔴 RED   → The Hacker (impulsive, breaks boundaries)
+0 //   🟢 GREEN → The Designer (balanced, creates harmony)
+0 //   🔵 BLUE  → The Programmer (logical, builds systems)
+0 //
+0 // G (GOAL): Communicate the universal greeting
+0 //   → Share "Hello World" message with audience
+0 //   → Demonstrate collaboration between archetypes
+0 //   → Initiate connection with viewer
+0 //
+0 // O (OBSTACLE): Empty space / Lack of communication
+0 //   → Silence before first program runs
+0 //   → Need to establish shared language
+0 //
+0 // S (SHIFT): Message appears (tiles placed)
+0 //   → Communication channel opens
+0 //   → Universal greeting transcends barriers
+0 //
+0 // U (SOLUTION/UNIT): "HELLO WORLD" successfully displayed
+0 //   → Three archetypes unite to create meaning
+0 //   → Viewer receives traditional programmer's greeting
+0 //   → Foundation for all future communication established
+0 //
+0 // PEDAGOGICAL PURPOSE:
+0 //   Just as every programmer starts with "Hello World,"
+0 //   every LDraw builder starts with three characters and a message.
+0 //
+
+0 STEP
+
+
+0 ╔═══════════════════════════════════════════════════════════════════╗
+0 ║                      ENVIRONMENT GEOMETRY                          ║
+0 ╚═══════════════════════════════════════════════════════════════════╝
+
+0 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+0 ┃ 📄 BASE PLATFORM (Blank Canvas)                                 ┃
+0 ┃ Color: 15 (White) | Part: 3024.dat (1×1 Plate)                 ┃
+0 ┃ Purpose: Neutral foundation for message display                 ┃
+0 ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+0 // Simple 16×4 white baseplate (320 LDU × 80 LDU)
+1  15  -160    0    0    1  0  0    0  1  0    0  0  1    parts/3024.dat
+1  15  -140    0    0    1  0  0    0  1  0    0  0  1    parts/3024.dat
+1  15  -120    0    0    1  0  0    0  1  0    0  0  1    parts/3024.dat
+1  15  -100    0    0    1  0  0    0  1  0    0  0  1    parts/3024.dat
+1  15   -80    0    0    1  0  0    0  1  0    0  0  1    parts/3024.dat
+1  15   -60    0    0    1  0  0    0  1  0    0  0  1    parts/3024.dat
+1  15   -40    0    0    1  0  0    0  1  0    0  0  1    parts/3024.dat
+1  15   -20    0    0    1  0  0    0  1  0    0  0  1    parts/3024.dat
+1  15     0    0    0    1  0  0    0  1  0    0  0  1    parts/3024.dat
+1  15    20    0    0    1  0  0    0  1  0    0  0  1    parts/3024.dat
+1  15    40    0    0    1  0  0    0  1  0    0  0  1    parts/3024.dat
+1  15    60    0    0    1  0  0    0  1  0    0  0  1    parts/3024.dat
+1  15    80    0    0    1  0  0    0  1  0    0  0  1    parts/3024.dat
+1  15   100    0    0    1  0  0    0  1  0    0  0  1    parts/3024.dat
+1  15   120    0    0    1  0  0    0  1  0    0  0  1    parts/3024.dat
+1  15   140    0    0    1  0  0    0  1  0    0  0  1    parts/3024.dat
+
+
+0 ╔═══════════════════════════════════════════════════════════════════╗
+0 ║                "HELLO WORLD" MESSAGE DISPLAY                       ║
+0 ║           Using 1×1 Tiles with Letter Prints (3070b)              ║
+0 ╚═══════════════════════════════════════════════════════════════════╝
+
+0 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+0 ┃ 💬 "HELLO WORLD" Text                                           ┃
+0 ┃ Color: 0 (Black letters on white background)                    ┃
+0 ┃ Layout: 3×5 tile grid per letter (standard LEGO font)          ┃
+0 ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+0 //
+0 // TILE PART GUIDE:
+0 //   3070b      = Plain 1×1 tile (for spacing/background)
+0 //   3070bpXX   = 1×1 tile with letter print (XX = letter code)
+0 //
+0 // Using simple 3×5 block letter technique from Rebrickable MOC-42097
+0 //
+
+0 // ═══ Letter H (Position X=-140 to -120) ═══
+1   0  -140   -8  -40    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0  -140   -8  -20    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0  -140   -8    0    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0  -140   -8   20    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0  -140   -8   40    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0  -130   -8    0    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0  -120   -8  -40    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0  -120   -8  -20    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0  -120   -8    0    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0  -120   -8   20    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0  -120   -8   40    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+
+0 // ═══ Letter E (Position X=-100 to -80) ═══
+1   0  -100   -8  -40    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0  -100   -8  -20    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0  -100   -8    0    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0  -100   -8   20    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0  -100   -8   40    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   -90   -8  -40    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   -90   -8    0    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   -90   -8   40    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   -80   -8  -40    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   -80   -8    0    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   -80   -8   40    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+
+0 // ═══ Letter L (Position X=-60 to -40) ═══
+1   0   -60   -8  -40    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   -60   -8  -20    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   -60   -8    0    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   -60   -8   20    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   -60   -8   40    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   -50   -8   40    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   -40   -8   40    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+
+0 // ═══ Letter L (Position X=-20 to 0) ═══
+1   0   -20   -8  -40    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   -20   -8  -20    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   -20   -8    0    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   -20   -8   20    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   -20   -8   40    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   -10   -8   40    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0     0   -8   40    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+
+0 // ═══ Letter O (Position X=20 to 40) ═══
+1   0    20   -8  -40    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0    20   -8  -20    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0    20   -8    0    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0    20   -8   20    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0    20   -8   40    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0    30   -8  -40    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0    30   -8   40    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0    40   -8  -40    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0    40   -8  -20    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0    40   -8    0    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0    40   -8   20    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0    40   -8   40    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+
+0 // ═══ [SPACE - 20 LDU gap] ═══
+
+0 // ═══ Letter W (Position X=70 to 90) ═══
+1   0    70   -8  -40    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0    70   -8  -20    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0    70   -8    0    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0    70   -8   20    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0    70   -8   40    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0    80   -8   20    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0    80   -8   40    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0    90   -8  -40    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0    90   -8  -20    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0    90   -8    0    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0    90   -8   20    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0    90   -8   40    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+
+0 // ═══ Letter O (Position X=110 to 130) ═══
+1   0   110   -8  -40    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   110   -8  -20    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   110   -8    0    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   110   -8   20    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   110   -8   40    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   120   -8  -40    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   120   -8   40    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   130   -8  -40    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   130   -8  -20    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   130   -8    0    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   130   -8   20    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   130   -8   40    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+
+0 // ═══ Letter R (Position X=150 to 170) ═══
+1   0   150   -8  -40    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   150   -8  -20    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   150   -8    0    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   150   -8   20    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   150   -8   40    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   160   -8  -40    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   160   -8    0    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   170   -8  -40    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   170   -8  -20    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   170   -8    0    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   165   -8   20    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   170   -8   40    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+
+0 // ═══ Letter L (Position X=190 to 210) ═══
+1   0   190   -8  -40    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   190   -8  -20    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   190   -8    0    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   190   -8   20    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   190   -8   40    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   200   -8   40    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   210   -8   40    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+
+0 // ═══ Letter D (Position X=230 to 250) ═══
+1   0   230   -8  -40    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   230   -8  -20    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   230   -8    0    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   230   -8   20    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   230   -8   40    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   240   -8  -40    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   240   -8   40    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   250   -8  -20    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   250   -8    0    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+1   0   250   -8   20    1  0  0    0  1  0    0  0  1    parts/3070b.dat
+
+
+0 ╔═══════════════════════════════════════════════════════════════════╗
+0 ║               RGB CHARACTER ASSEMBLY                               ║
+0 ║        (The Three Archetypes of Digital Creation)                 ║
+0 ╚═══════════════════════════════════════════════════════════════════╝
+
+
+0 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+0 ┃ 🔴 RED CHARACTER - The Hacker                                   ┃
+0 ┃ Position: Left (X=-80, Y=ground, Z=100)                         ┃
+0 ┃ Color: 4 (Red) | Personality: Impulsive, boundary-breaker      ┃
+0 ┃ Stance: Leaning forward eagerly toward message                  ┃
+0 ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+0              ┌────── HEAD ──────┐
+1   4   -80  -84  100    1  0  0    0  1  0    0  0  1    parts/3626bp01.dat
+0              ┌────── TORSO ─────┐
+1   4   -80  -60  100    1  0  0    0  1  0    0  0  1    parts/973c01.dat
+0              ┌────── ARMS ──────┐
+1   4   -95.552  -51 100    1  0  0    0  1  0    0  0  1    parts/3818.dat
+1   4   -64.448  -51 100    1  0  0    0  1  0    0  0  1    parts/3819.dat
+0              ┌────── HIPS ──────┐
+1   4   -80  -28  100    1  0  0    0  1  0    0  0  1    parts/3815.dat
+0              ┌────── LEGS ──────┐
+1   4   -80  -16  100    1  0  0    0  1  0    0  0  1    parts/3816.dat
+1   4   -80  -16  100    1  0  0    0  1  0    0  0  1    parts/3817.dat
+
+
+0 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+0 ┃ 🟢 GREEN CHARACTER - The Designer                               ┃
+0 ┃ Position: Center (X=0, Y=ground, Z=100)                         ┃
+0 ┃ Color: 2 (Green) | Personality: Balanced, harmony-creator      ┃
+0 ┃ Stance: Centered, arms slightly raised in welcome              ┃
+0 ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+0              ┌────── HEAD ──────┐
+1   2     0  -84  100    1  0  0    0  1  0    0  0  1    parts/3626bp01.dat
+0              ┌────── TORSO ─────┐
+1   2     0  -60  100    1  0  0    0  1  0    0  0  1    parts/973c01.dat
+0              ┌────── ARMS ──────┐
+1   2   -15.552  -51 100    1  0  0    0  1  0    0  0  1    parts/3818.dat
+1   2    15.552  -51 100    1  0  0    0  1  0    0  0  1    parts/3819.dat
+0              ┌────── HIPS ──────┐
+1   2     0  -28  100    1  0  0    0  1  0    0  0  1    parts/3815.dat
+0              ┌────── LEGS ──────┐
+1   2     0  -16  100    1  0  0    0  1  0    0  0  1    parts/3816.dat
+1   2     0  -16  100    1  0  0    0  1  0    0  0  1    parts/3817.dat
+
+
+0 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+0 ┃ 🔵 BLUE CHARACTER - The Programmer                              ┃
+0 ┃ Position: Right (X=80, Y=ground, Z=100)                         ┃
+0 ┃ Color: 1 (Blue) | Personality: Logical, system-builder         ┃
+0 ┃ Stance: Analytical posture, observing message                   ┃
+0 ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+0              ┌────── HEAD ──────┐
+1   1    80  -84  100    1  0  0    0  1  0    0  0  1    parts/3626bp01.dat
+0              ┌────── TORSO ─────┐
+1   1    80  -60  100    1  0  0    0  1  0    0  0  1    parts/973c01.dat
+0              ┌────── ARMS ──────┐
+1   1    64.448  -51 100    1  0  0    0  1  0    0  0  1    parts/3818.dat
+1   1    95.552  -51 100    1  0  0    0  1  0    0  0  1    parts/3819.dat
+0              ┌────── HIPS ──────┐
+1   1    80  -28  100    1  0  0    0  1  0    0  0  1    parts/3815.dat
+0              ┌────── LEGS ──────┐
+1   1    80  -16  100    1  0  0    0  1  0    0  0  1    parts/3816.dat
+1   1    80  -16  100    1  0  0    0  1  0    0  0  1    parts/3817.dat
+
+
+0 ╔═══════════════════════════════════════════════════════════════════╗
+0 ║                    TUTORIAL LEARNING GUIDE                         ║
+0 ╚═══════════════════════════════════════════════════════════════════╝
+0 //
+0 // CONGRATULATIONS! You've built your first complete LDraw scene.
+0 //
+0 // WHAT YOU'VE LEARNED:
+0 //   ✓ Type 1 command: 1 <color> <x> <y> <z> <matrix> <part.dat>
+0 //   ✓ RGB color codes: Red=4, Green=2, Blue=1
+0 //   ✓ Coordinate system: X (left/right), Y (up/down), Z (back/forward)
+0 //   ✓ Minifigure assembly order: HEAD → TORSO → ARMS → HIPS → LEGS
+0 //   ✓ Tile placement for text messages
+0 //   ✓ Spatial storytelling (character positioning = relationships)
+0 //   ✓ LEGOS framework for scene structure
+0 //
+0 // NEXT STEPS:
+0 //   1. Change character colors (try 14=Yellow, 13=Pink, 6=Brown)
+0 //   2. Adjust X coordinates to move characters closer/farther
+0 //   3. Spell your own message using the tile grid pattern
+0 //   4. Add more environment elements (walls, furniture)
+0 //   5. Create Scene 02 showing what happens after greeting
+0 //   6. Experiment with character rotation (change rotation matrix)
+0 //
+0 // ADVANCED TECHNIQUES TO EXPLORE:
+0 //   → Rotation matrices (make characters face different directions)
+0 //   → Subfile creation (reusable character templates)
+0 //   → STEP commands (multi-frame animation sequences)
+0 //   → Custom color palettes (symbolic color coding)
+0 //   → Camera positioning (viewpoint storytelling)
+0 //
+0 // RESOURCES:
+0 //   • LDraw.org - Official documentation and parts library
+0 //   • Rebrickable.com - MOC inspiration and part databases
+0 //   • Your imagination - The only real limit!
+0 //
+
+0 STEP
+0 NOFILE
+
+
+0 ╔═══════════════════════════════════════════════════════════════════╗
+0 ║                      END OF TUTORIAL                               ║
+0 ║           "Hello World" - The beginning of everything      

@@ -1,0 +1,4914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🚂 Railway Junction - Full Integration</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>🚂</text></svg>">
+  
+  <!-- PARASITIC DEPENDENCIES -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.js"></script>
+  
+  <style>
+    /* ========================================
+       FOUNDATION: CSS from thousand-tetrad-00.html
+       WITH: Train viewport integration
+       ======================================== */
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    :root {
+      --transition: cubic-bezier(0.4, 0, 0.2, 1);
+      --column-width: min(100vw, 420px);
+    }
+
+    body {
+      --bg: #03180c;
+      --panel: #052010;
+      --panel-dark: #03140d;
+      --border: #0c3a23;
+      --border-light: #1b6e3e;
+      --text: #aef3c1;
+      --text-muted: #5ea275;
+      --accent: #56ff9f;
+      --accent-soft: rgba(86, 255, 159, 0.12);
+      --accent-glow: rgba(86, 255, 159, 0.32);
+      --danger: #ff5c7c;
+      --success: #56ff9f;
+      --grid-highlight: rgba(86, 255, 159, 0.08);
+      --shadow: rgba(0, 0, 0, 0.45);
+      --overlay-backdrop: rgba(4, 20, 12, 0.88);
+      font-family: 'Courier New', monospace;
+      font-size: clamp(11px, 2.4vw, 13px);
+      background: var(--bg);
+      color: var(--text);
+      overflow: hidden;
+      min-height: 100vh;
+    }
+
+    /* APP SHELL */
+    .app-shell {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+
+    /* CHANNEL SCROLLER */
+    .scroll-container {
+      flex: 1;
+      display: flex;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scroll-snap-type: x mandatory;
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+      background: var(--bg);
+      gap: 1px;
+      border-top: 1px solid var(--border);
+    }
+
+    .channel-scroller {
+      display: flex;
+      overflow-x: auto;
+      overflow-y: hidden;
+      gap: 0;
+      scroll-snap-type: x mandatory;
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+      position: relative;
+    }
+
+    /* CHANNEL COLUMN */
+    .channel-column {
+      position: relative;
+      flex: 0 0 var(--column-width);
+      max-width: var(--column-width);
+      height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+      background: var(--panel-dark);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      scroll-snap-align: start;
+      overflow: hidden;
+      padding-bottom: 60px; /* Space for floating global footer */
+      box-sizing: border-box;
+      transition: flex 0.4s var(--transition), max-width 0.4s var(--transition);
+    }
+    
+    .channel-column.collapsed {
+      flex: 0 0 52px;
+      max-width: 52px;
+      min-width: 52px;
+    }
+    
+    .channel-column.collapsed .train-viewport,
+    .channel-column.collapsed .chat-section,
+    .channel-column.collapsed .channel-footer {
+      opacity: 0;
+      pointer-events: none;
+    }
+    
+    /* EXPAND TAB for collapsed channels */
+    .channel-expand-tab {
+      position: absolute;
+      left: 52px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 32px;
+      height: 100px;
+      background: var(--panel);
+      border: 2px solid var(--border);
+      border-left: none;
+      border-radius: 0 8px 8px 0;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      cursor: pointer;
+      z-index: 50;
+      box-shadow: 2px 0 8px var(--shadow);
+      transition: all 0.2s var(--transition);
+    }
+    
+    .channel-column.collapsed .channel-expand-tab {
+      display: flex;
+    }
+    
+    .channel-expand-tab:hover {
+      background: var(--accent);
+    }
+    
+    .channel-expand-tab:hover > div {
+      color: var(--bg);
+    }
+
+    /* CHANNEL HEADER */
+    .channel-head {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: stretch;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+      background: var(--panel);
+      flex-shrink: 0;
+    }
+    
+    .channel-column.collapsed .channel-head {
+      opacity: 0;
+      pointer-events: none;
+    }
+    
+    .channel-actions {
+      display: flex;
+      gap: 6px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    
+    .channel-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--panel-dark);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.25s var(--transition);
+    }
+    
+    .channel-btn.fullscreen-mode {
+      background: var(--accent);
+      color: var(--bg);
+    }
+    
+    .channel-btn:hover {
+      background: var(--accent);
+      color: var(--bg);
+      border-color: var(--accent);
+    }
+    
+    .channel-btn:active {
+      transform: scale(0.9);
+    }
+    
+    /* CAMERA COMMAND STYLING IN CHAT */
+    .camera-command,
+    .action-button {
+      display: inline-block;
+      padding: 6px 12px;
+      margin: 4px 2px;
+      background: var(--panel-dark);
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      color: var(--accent);
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s var(--transition);
+      user-select: none;
+    }
+    
+    .camera-command:hover,
+    .action-button:hover {
+      background: var(--accent);
+      color: var(--bg);
+      transform: scale(1.05);
+      box-shadow: 0 2px 8px var(--accent-glow);
+    }
+    
+    .camera-command:active,
+    .action-button:active {
+      transform: scale(0.98);
+      background: var(--accent-bright);
+    }
+    
+    /* PERSISTENT TETRAD CONTROLS */
+    .tetrad-controls {
+      display: flex;
+      gap: 8px;
+      padding: 12px;
+      background: var(--panel);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      margin: 8px 0;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    
+    /* GAME BOY CONTROLLER LAYOUT */
+    .gameboy-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 40px;
+      margin: 16px auto;
+      max-width: 400px;
+      padding: 16px;
+      background: linear-gradient(135deg, #1a1a2a 0%, #2a2a3a 100%);
+      border: 3px solid var(--border);
+      border-radius: 16px;
+    }
+    
+    /* D-PAD STYLE CONTROLS */
+    .dpad-container {
+      display: grid;
+      grid-template-columns: 50px 50px 50px;
+      grid-template-rows: 50px 50px 50px;
+      gap: 3px;
+    }
+    
+    .dpad-btn {
+      width: 50px;
+      height: 50px;
+      border: 2px solid;
+      border-radius: 6px;
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.1s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+      background: #1a1a2a;
+    }
+    
+    .dpad-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 16px currentColor;
+    }
+    
+    .dpad-btn:active {
+      transform: scale(0.95);
+    }
+    
+    .dpad-center {
+      grid-column: 2;
+      grid-row: 2;
+      background: #2a2a3a;
+      border-color: #69f;
+      color: #69f;
+    }
+    
+    .dpad-up {
+      grid-column: 2;
+      grid-row: 1;
+      background: #1a1a3a;
+      border-color: #69f;
+      color: #69f;
+    }
+    
+    .dpad-down {
+      grid-column: 2;
+      grid-row: 3;
+      background: #2a2a2a;
+      border-color: #999;
+      color: #999;
+    }
+    
+    .dpad-left {
+      grid-column: 1;
+      grid-row: 2;
+      background: #3a1a1a;
+      border-color: #f66;
+      color: #f66;
+    }
+    
+    .dpad-right {
+      grid-column: 3;
+      grid-row: 2;
+      background: #1a3a1a;
+      border-color: #4a9;
+      color: #4a9;
+    }
+    
+    /* ACTION BUTTONS (right side or inline) */
+    .action-buttons {
+      display: grid;
+      grid-template-columns: 40px 40px;
+      grid-template-rows: 40px 40px;
+      gap: 8px;
+    }
+    
+    .action-btn {
+      width: 40px;
+      height: 40px;
+      border: 3px solid;
+      border-radius: 50%;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.1s;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .action-btn:hover {
+      transform: scale(1.15);
+      box-shadow: 0 0 16px currentColor;
+    }
+    
+    .action-btn:active {
+      transform: scale(0.9);
+    }
+    
+    .action-btn.a-btn {
+      background: #4a9;
+      border-color: #6cf;
+      color: #000;
+      grid-column: 2;
+      grid-row: 1;
+    }
+    
+    .action-btn.b-btn {
+      background: #f66;
+      border-color: #f99;
+      color: #000;
+      grid-column: 1;
+      grid-row: 2;
+    }
+    
+    .action-btn.x-btn {
+      background: #f8d66a;
+      border-color: #fde99a;
+      color: #000;
+      grid-column: 1;
+      grid-row: 1;
+    }
+    
+    .action-btn.y-btn {
+      background: #999;
+      border-color: #bbb;
+      color: #000;
+      grid-column: 2;
+      grid-row: 2;
+    }
+    
+    /* COLLISION CARD */
+    .collision-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px;
+      background: linear-gradient(135deg, #1a1a2a 0%, #2a1a2a 100%);
+      border: 2px solid #f66;
+      border-radius: 12px;
+      margin: 8px 0;
+      box-shadow: 0 4px 12px rgba(255, 102, 102, 0.3);
+      animation: collisionPulse 0.5s ease-out;
+    }
+    
+    @keyframes collisionPulse {
+      0% { transform: scale(0.95); opacity: 0; }
+      50% { transform: scale(1.02); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    
+    .collision-icon {
+      font-size: 24px;
+      flex-shrink: 0;
+      animation: collisionShake 0.5s ease-out;
+    }
+    
+    @keyframes collisionShake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-4px); }
+      75% { transform: translateX(4px); }
+    }
+    
+    .tetrad-btn {
+      padding: 8px 16px;
+      border: 2px solid;
+      border-radius: 6px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s var(--transition);
+      user-select: none;
+    }
+    
+    .tetrad-btn.main {
+      background: #1a1a2a;
+      border-color: #69f;
+      color: #69f;
+    }
+    
+    .tetrad-btn.enhance {
+      background: #1a3a1a;
+      border-color: #4a9;
+      color: #4a9;
+    }
+    
+    .tetrad-btn.reverse {
+      background: #3a1a1a;
+      border-color: #f66;
+      color: #f66;
+    }
+    
+    .tetrad-btn.retrieve {
+      background: #1a1a3a;
+      border-color: #69f;
+      color: #69f;
+    }
+    
+    .tetrad-btn.obsolesce {
+      background: #2a2a2a;
+      border-color: #999;
+      color: #999;
+    }
+    
+    .tetrad-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px currentColor;
+    }
+    
+    /* ========================================
+       TRAIN VIEWPORT (NEW - embedded in channel)
+       ======================================== */
+    
+    .train-viewport {
+      width: 100%;
+      height: 450px;
+      position: relative;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      min-height: 200px;
+      max-height: none; /* Allow expansion beyond default */
+    }
+    
+    .train-viewport.collapsed {
+      height: 0;
+      min-height: 0;
+      border: none;
+      overflow: hidden;
+    }
+    
+    /* ENTITY NAME LABEL */
+    .entity-label {
+      position: absolute;
+      background: rgba(0, 0, 0, 0.8);
+      color: var(--accent);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      pointer-events: none;
+      z-index: 1000;
+      white-space: nowrap;
+      border: 1px solid var(--accent);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+      animation: labelFadeIn 0.2s ease;
+    }
+    
+    @keyframes labelFadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* CELLULAR AUTOMATA LOADING ANIMATION */
+    @keyframes cellularAutomata {
+      0% {
+        opacity: 0.2;
+        box-shadow: inset 0 0 8px transparent;
+      }
+      25% {
+        opacity: 0.5;
+        box-shadow: inset 0 0 12px var(--accent-soft);
+      }
+      50% {
+        opacity: 0.8;
+        box-shadow: inset 0 0 16px var(--accent-glow);
+      }
+      75% {
+        opacity: 0.5;
+        box-shadow: inset 0 0 12px var(--accent-soft);
+      }
+      100% {
+        opacity: 0.2;
+        box-shadow: inset 0 0 8px transparent;
+      }
+    }
+    
+    /* THOUGHT BUBBLE for active entities */
+    .thought-bubble {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.95);
+      color: #1a1a1a;
+      padding: 8px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      max-width: 200px;
+      pointer-events: none;
+      z-index: 999;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      border: 2px solid var(--accent);
+      animation: thoughtBubblePop 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+    
+    .thought-bubble::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 20px;
+      width: 0;
+      height: 0;
+      border-left: 10px solid transparent;
+      border-right: 10px solid transparent;
+      border-top: 10px solid var(--accent);
+    }
+    
+    @keyframes thoughtBubblePop {
+      0% { transform: scale(0) translateY(20px); opacity: 0; }
+      50% { transform: scale(1.1) translateY(-5px); }
+      100% { transform: scale(1) translateY(0); opacity: 1; }
+    }
+    
+
+    .train-viewport canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .train-info-overlay {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      background: rgba(0, 0, 0, 0.8);
+      padding: 6px 10px;
+      border-radius: 3px;
+      font-size: 10px;
+      line-height: 1.4;
+      pointer-events: none;
+      z-index: 10;
+      color: var(--text);
+    }
+
+    /* GRID SECTION - REMOVED (now part of 3D scene as floor) */
+    
+    /* JUNCTION ACTIVE STATE */
+    .tetrad-chip.junction-active {
+      animation: junctionPulse 0.8s ease-in-out infinite;
+      border-width: 2px;
+      box-shadow: 0 0 16px var(--accent-glow);
+    }
+    
+    @keyframes junctionPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    /* RESIZE BAR */
+    .resize-bar {
+      height: 6px;
+      background: var(--border);
+      cursor: row-resize;
+      transition: background 0.2s var(--transition);
+      position: relative;
+      touch-action: none;
+      flex-shrink: 0;
+    }
+    
+    .resize-bar:hover,
+    .resize-bar:active {
+      background: var(--accent);
+    }
+    
+    .resize-bar::before {
+      content: '';
+      position: absolute;
+      top: -12px;
+      left: 0;
+      right: 0;
+      height: 24px;
+    }
+
+    /* CHAT SECTION */
+    .chat-section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--panel);
+      min-height: 200px;
+    }
+    
+    .chat-stream {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+      min-height: 0;
+    }
+    
+    .message-dot-rail {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 16px 8px;
+      background: var(--panel-dark);
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      overflow-x: hidden;
+      width: 48px;
+      flex-shrink: 0;
+    }
+    
+    .message-dot-rail::-webkit-scrollbar {
+      width: 4px;
+    }
+    
+    .message-dot-rail::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 2px;
+    }
+    
+    .message-dot {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 2px solid currentColor;
+      background: transparent;
+      color: var(--accent);
+      cursor: pointer;
+      transition: all 0.3s var(--transition);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+    }
+    
+    .message-dot.assistant {
+      box-shadow: 0 0 12px currentColor;
+      filter: brightness(1.3) saturate(1.5);
+    }
+    
+    .message-dot.user {
+      width: 20px;
+      height: 20px;
+      box-shadow: 0 0 10px currentColor;
+      filter: brightness(1.4) saturate(1.6);
+    }
+    
+    .message-dot.system {
+      width: 18px;
+      height: 18px;
+      opacity: 0.75;
+      filter: brightness(0.8);
+    }
+    
+    .message-dot.active {
+      transform: scale(1.15);
+      box-shadow: 0 0 8px var(--accent-glow);
+    }
+
+    .message-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-height: 0;
+    }
+
+    .message {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      padding: 12px 14px;
+      border-radius: 4px;
+      position: relative;
+    }
+
+    .message.user {
+      border-left: 2px solid var(--success);
+    }
+
+    .message.assistant {
+      border-left: 2px solid var(--accent);
+    }
+
+    .message.system {
+      border-left: 2px solid var(--text-muted);
+      background: var(--panel-dark);
+      opacity: 0.85;
+    }
+
+    .message-body {
+      font-size: 12px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+    }
+
+    /* FOOTER SEPARATION BAR */
+    .footer-separator {
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      flex-shrink: 0;
+      margin: 0;
+      opacity: 0.4;
+    }
+
+    /* INPUT AREA */
+    .channel-footer {
+      padding: 12px 0;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+    }
+
+    .channel-input {
+      flex: 1;
+      background: var(--panel-dark);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      resize: vertical;
+      min-height: 44px;
+      max-height: 120px;
+    }
+
+    .channel-input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .send-btn {
+      background: var(--accent);
+      color: var(--bg);
+      border: none;
+      padding: 12px 20px;
+      border-radius: 4px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      transition: all 0.2s var(--transition);
+    }
+
+    .send-btn:hover {
+      background: var(--border-light);
+      transform: scale(1.05);
+    }
+
+    /* TETRAD CHIPS */
+    .tetrad-chips {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .tetrad-chip {
+      padding: 8px 12px;
+      background: var(--panel-dark);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-size: 10px;
+      cursor: pointer;
+      transition: all 0.2s var(--transition);
+      letter-spacing: 0.05em;
+    }
+
+    .tetrad-chip:hover {
+      background: var(--accent);
+      color: var(--bg);
+      transform: scale(1.05);
+    }
+
+    .tetrad-chip.enhance { border-color: #56ff9f; color: #56ff9f; }
+    .tetrad-chip.reverse { border-color: #ff5c7c; color: #ff5c7c; }
+    .tetrad-chip.retrieve { border-color: #569fff; color: #569fff; }
+    .tetrad-chip.obsolesce { border-color: #888888; color: #888888; }
+
+    /* GLOBAL FOOTER - Scene Selector (thousand-tetrad style) */
+    .global-footer {
+      position: fixed;
+      bottom: calc(8px + env(safe-area-inset-bottom));
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      background: var(--panel-dark);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    
+    .footer-tetrad-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1px solid var(--accent);
+      background: var(--panel);
+      color: var(--accent);
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.2s var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .footer-tetrad-btn:hover {
+      background: var(--accent-soft);
+      transform: scale(1.1) rotate(45deg);
+    }
+    
+    .footer-tetrad-btn:active {
+      transform: scale(0.95) rotate(45deg);
+    }
+    
+    .global-scenario-select {
+      background: var(--panel);
+      border: 2px solid var(--border);
+      color: var(--text);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      padding: 12px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s var(--transition);
+      font-family: 'Courier New', monospace;
+      text-transform: uppercase;
+      flex: 1;
+      min-width: 0;
+      max-width: min(240px, calc(100vw - 140px));
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
+    .global-scenario-select:hover,
+    .global-scenario-select:focus {
+      border-color: var(--accent);
+      background: var(--panel);
+      outline: none;
+      box-shadow: 0 0 20px var(--accent-glow);
+    }
+    
+    .global-scenario-select optgroup {
+      font-weight: 700;
+      font-size: 10px;
+      background: var(--bg);
+      color: var(--accent);
+    }
+    
+    .global-scenario-select option {
+      background: var(--bg);
+      color: var(--text);
+      padding: 8px;
+      font-weight: 400;
+      letter-spacing: 0.05em;
+    }
+
+    /* CORNER BUTTONS & MENUS */
+    .corner-btn {
+      position: fixed;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 25;
+      box-shadow: 0 8px 24px var(--shadow);
+      transition: transform 0.2s var(--transition), box-shadow 0.2s var(--transition);
+      cursor: pointer;
+    }
+
+    .corner-btn:hover {
+      background: var(--accent);
+      color: var(--bg);
+      border-color: var(--accent);
+      transform: scale(1.05);
+    }
+    
+    .corner-btn:active {
+      transform: scale(0.92);
+      box-shadow: 0 4px 16px var(--accent-soft);
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+    
+    .corner-btn.top-left {
+      top: calc(16px + env(safe-area-inset-top));
+      left: calc(16px + env(safe-area-inset-left));
+    }
+    
+    .corner-btn.top-right {
+      top: calc(16px + env(safe-area-inset-top));
+      right: calc(16px + env(safe-area-inset-right));
+    }
+    
+    .corner-btn.bottom-left {
+      bottom: calc(16px + env(safe-area-inset-bottom));
+      left: calc(16px + env(safe-area-inset-left));
+    }
+    
+    .corner-btn.bottom-right {
+      bottom: calc(16px + env(safe-area-inset-bottom));
+      right: calc(16px + env(safe-area-inset-right));
+    }
+    
+    .corner-menu {
+      position: fixed;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 12px 32px var(--shadow);
+      display: none;
+      flex-direction: column;
+      min-width: 160px;
+      z-index: 26;
+    }
+    
+    .corner-menu.visible {
+      display: flex;
+    }
+    
+    .corner-menu button {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 12px 16px;
+      font-size: 9px;
+      letter-spacing: 0.18em;
+      text-align: left;
+      cursor: pointer;
+      transition: background 0.2s var(--transition), color 0.2s var(--transition);
+      font-family: 'Courier New', monospace;
+    }
+    
+    .corner-menu button:hover {
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+    
+    .corner-menu button:active {
+      background: var(--panel-dark);
+      color: var(--text);
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Hidden import input -->
+    <input type="file" id="importInput" accept="application/json" hidden>
+    
+    <!-- Corner Buttons (thousand-tetrad style) -->
+    <button class="corner-btn top-left" id="cornerKey" title="API Key">◎</button>
+    <button class="corner-btn top-right" id="cornerHelp" title="Help">?</button>
+    <button class="corner-btn bottom-left" id="cornerExchange" title="Import / Export">⇆</button>
+    <button class="corner-btn bottom-right" id="cornerAdd" title="Add Channel">＋</button>
+
+    <!-- Corner Menus -->
+    <div class="corner-menu" id="keyMenu" style="top: calc(72px + env(safe-area-inset-top)); left: calc(16px + env(safe-area-inset-left));">
+      <button data-action="set-key" style="color: var(--accent); font-weight: 700;">🔑 SET API KEY</button>
+      <button data-action="clear-key">CLEAR KEY</button>
+      <button data-action="test-key">TEST CONNECTION</button>
+    </div>
+
+    <div class="corner-menu" id="helpMenu" style="top: calc(72px + env(safe-area-inset-top)); right: calc(16px + env(safe-area-inset-right));">
+      <button data-action="tour" style="color: var(--accent); font-weight: 700;">▶ START TOUR</button>
+      <button data-action="hints" style="color: var(--accent); font-weight: 700;">💡 SHOW HINTS</button>
+      <button data-action="reset-camera" style="color: var(--accent); font-weight: 700;">🎥 RESET CAMERA</button>
+      <button data-action="help">HELP OVERVIEW</button>
+      <button data-action="about">ABOUT</button>
+      <button data-action="reset" style="color: var(--danger); border-top: 1px solid var(--border); margin-top: 4px; padding-top: 12px;">RESET ALL</button>
+    </div>
+
+    <div class="corner-menu" id="exchangeMenu" style="bottom: calc(72px + env(safe-area-inset-bottom)); left: calc(16px + env(safe-area-inset-left));">
+      <button data-action="export">📤 EXPORT SESSION</button>
+      <button data-action="import">📥 IMPORT SESSION</button>
+      <button data-action="export-json">DOWNLOAD JSON</button>
+    </div>
+
+    <!-- Channel Scroller -->
+    <div class="scroll-container">
+      <div class="channel-scroller" id="channel-scroller">
+        <!-- Channels will be created here -->
+      </div>
+    </div>
+    
+    <!-- Global Footer - Scene Selector + Tetrad Button (thousand-tetrad style) -->
+    <div class="global-footer">
+      <select class="global-scenario-select" id="globalScenarioSelect">
+        <option value="spatial_exploration">Spatial Exploration</option>
+        <option value="railyard_negotiation">Railyard Negotiation</option>
+        <option value="hamlet_trolley">Hamlet Mode (7-sec)</option>
+        <option value="empty">Empty Scene</option>
+      </select>
+      <button class="footer-tetrad-btn" id="globalTetradBtn" title="Entity Perspectives">✦</button>
+    </div>
+    
+    <!-- Perspective Overlay -->
+    <div class="overlay" id="perspectiveOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:10000; align-items:center; justify-content:center;">
+      <div class="perspective-content" style="background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:24px; max-width:600px; max-height:80vh; overflow-y:auto;">
+        <button class="close-overlay" style="float:right; background:transparent; border:none; color:var(--text); font-size:24px; cursor:pointer;">×</button>
+        <div id="perspectiveContent"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    /* ========================================
+       FULL INTEGRATION JAVASCRIPT
+       WITH: Test Infrastructure & Strong Logging
+       ======================================== */
+    
+    // ========================================
+    // TEST SYSTEM
+    // ========================================
+    
+    const TestSuite = {
+      stage: 'INIT',
+      tests: [],
+      passed: 0,
+      failed: 0,
+      
+      log(emoji, stage, message) {
+        const timestamp = new Date().toLocaleTimeString();
+        console.log(`${emoji} [${timestamp}] [${stage}] ${message}`);
+      },
+      
+      assert(name, condition, details = '') {
+        const test = { name, passed: condition, details, stage: this.stage };
+        this.tests.push(test);
+        
+        if (condition) {
+          this.passed++;
+          this.log('✅', this.stage, `PASS: ${name}`);
+          if (details) console.log(`   → ${details}`);
+        } else {
+          this.failed++;
+          this.log('❌', this.stage, `FAIL: ${name}`);
+          if (details) console.error(`   → ${details}`);
+        }
+        
+        return condition;
+      },
+      
+      stage_summary() {
+        const total = this.passed + this.failed;
+        const pct = total > 0 ? Math.round((this.passed / total) * 100) : 0;
+        this.log('📊', this.stage, `Stage Complete: ${this.passed}/${total} passed (${pct}%)`);
+        
+        if (this.failed === 0) {
+          this.log('🎉', this.stage, 'ALL TESTS PASSED');
+        } else {
+          this.log('⚠️', this.stage, `${this.failed} tests failed`);
+        }
+      },
+      
+      report() {
+        console.log('\n' + '='.repeat(60));
+        console.log('📋 FULL TEST REPORT');
+        console.log('='.repeat(60));
+        
+        const stages = [...new Set(this.tests.map(t => t.stage))];
+        stages.forEach(stage => {
+          const stageTests = this.tests.filter(t => t.stage === stage);
+          const stagePassed = stageTests.filter(t => t.passed).length;
+          console.log(`\n${stage}: ${stagePassed}/${stageTests.length} passed`);
+          stageTests.forEach(t => {
+            console.log(`  ${t.passed ? '✅' : '❌'} ${t.name}`);
+          });
+        });
+        
+        console.log('\n' + '='.repeat(60));
+        console.log(`TOTAL: ${this.passed}/${this.tests.length} passed`);
+        console.log('='.repeat(60) + '\n');
+      }
+    };
+    
+    // ========================================
+    // STAGE 1: DEPENDENCY TESTS
+    // ========================================
+    
+    TestSuite.stage = 'STAGE-1-DEPENDENCIES';
+    TestSuite.log('🚂', TestSuite.stage, 'Railway Junction - Full Integration Starting...');
+    
+    TestSuite.assert(
+      'Tone.js loaded',
+      typeof Tone !== 'undefined',
+      'Audio library for sound feedback'
+    );
+    
+    TestSuite.assert(
+      'THREE.js loaded',
+      typeof THREE !== 'undefined',
+      '3D rendering library for train visualization'
+    );
+    
+    TestSuite.assert(
+      'OrbitControls available',
+      typeof THREE.OrbitControls !== 'undefined',
+      'Camera control system'
+    );
+    
+    TestSuite.assert(
+      'DOM ready',
+      document.readyState === 'loading' || document.readyState === 'interactive' || document.readyState === 'complete',
+      `Document state: ${document.readyState}`
+    );
+    
+    TestSuite.stage_summary();
+
+    // ========================================
+    // STAGE 2: STATE & CONFIGURATION
+    // ========================================
+    
+    TestSuite.stage = 'STAGE-2-STATE';
+    TestSuite.log('📦', TestSuite.stage, 'Initializing state management...');
+    
+    const appState = {
+      channels: new Map(),
+      currentChannelId: null,
+      gridEntities: new Map(), // channelId -> array of entities
+      apiKey: localStorage.getItem('railway_api_key') || '',
+      observers: new Map() // channelId -> observer state (situational awareness)
+    };
+
+    // Observer: Tracks scene state for situational awareness
+    const createDefaultObserver = () => ({
+      entities: [],        // Full entity list with details
+      recentActions: [],   // Last 5 actions taken
+      narrative: 'Scene beginning.',
+      tension: 0.5,
+      decision_points: []
+    });
+
+    const TRACK_CONFIGS = {
+      main: { radius: 15, color: 0xffffff, label: 'MAIN LINE' },
+      enhance: { radius: 18, color: 0x56ff9f, label: 'ENHANCE' },
+      reverse: { radius: 12, color: 0xff5c7c, label: 'REVERSE' },
+      retrieve: { radius: 20, color: 0x569fff, label: 'RETRIEVE' },
+      obsolesce: { radius: 10, color: 0x888888, label: 'OBSOLESCE' }
+    };
+    
+    const MEDIA_ERAS = {
+      'Print': { color: 0x8B4513, symbol: '📰' },
+      'Radio': { color: 0x4169E1, symbol: '📻' },
+      'Television': { color: 0x9370DB, symbol: '📺' },
+      'Internet': { color: 0x00CED1, symbol: '🌐' }
+    };
+    
+    const SCENARIOS = {
+      spatial_exploration: {
+        name: 'Spatial Exploration',
+        systemInstruction: `You are a LEGOS spatial narrative assistant.
+
+CRITICAL: You MUST ALWAYS include a JSON block with entities in EVERY response.
+
+For each user message, extract spatial entities:
+- Entity: Characters, animals, objects
+- Goal: What they want to achieve
+- Obstacle: What blocks progress
+- Solution: How to resolve obstacles
+- Location: Named places
+
+Always respond naturally, then add JSON with entity coordinates (9×9 grid, rows/cols 0-8):
+
+\`\`\`json
+{
+  "entities": [
+    {"type": "Entity", "row": 3, "col": 4, "label": "Description"},
+    {"type": "Goal", "row": 8, "col": 8, "label": "Objective"}
+  ]
+}
+\`\`\`
+
+Spread entities across the grid for interesting spatial dynamics.`
+      },
+      railyard_negotiation: {
+        name: 'Railyard Negotiation',
+        systemInstruction: `You are hosting a Railyard Negotiation simulation.
+
+The user is negotiating with ENTITIES ON THE GRID. Entities have personalities and can REFUSE, COUNTER-OFFER, or AGREE.
+
+When user addresses an entity (e.g. "Hey Station Master"), respond AS that entity with personality:
+- Station Master: Bureaucratic, follows rules
+- Dog: Playful, easily bribed with treats
+- Dragon: Proud, demands respect
+- Guard: Suspicious, needs proof
+
+Format responses:
+[ENTITY NAME]: "Dialogue in character"
+[Action: AGREED / REFUSED / COUNTER-OFFER: terms]
+
+Always include JSON with new entities or status changes:
+\`\`\`json
+{
+  "entities": [
+    {"type": "Entity", "row": 5, "col": 5, "label": "Guard", "mood": "suspicious"}
+  ]
+}
+\`\`\`
+
+Make negotiations feel real - entities have goals, fears, and can be persuaded or angered.`
+      },
+      hamlet_trolley: {
+        name: 'Hamlet Mode (Trolley Problem)',
+        systemInstruction: `You are running a HAMLET MODE trolley problem with 7-SECOND TIMER.
+
+🚨 CRITICAL: YOU MUST INCLUDE JSON ENTITIES IN YOUR FIRST RESPONSE OR THE SCENE WILL NOT POPULATE.
+
+Setup immediate dilemma:
+- Track A (row 4, cols 3-5): 3 beloved people/pets
+- Track B (row 4, col 7): 1 important person
+- Train approaching at row 4, user has 7 seconds to decide
+
+YOUR FIRST RESPONSE MUST BE:
+1. JSON block with 4 entities (3 on Track A, 1 on Track B)
+2. Then dramatic narrative describing the dilemma
+
+EXAMPLE FIRST RESPONSE:
+\`\`\`json
+{
+  "entities": [
+    {"action": "add", "type": "Entity", "row": 4, "col": 3, "label": "Paul (Best Friend)"},
+    {"action": "add", "type": "Entity", "row": 4, "col": 4, "label": "Max (Dog)"},
+    {"action": "add", "type": "Entity", "row": 4, "col": 5, "label": "Lisa (Scientist)"},
+    {"action": "add", "type": "Entity", "row": 4, "col": 7, "label": "Grandmother"}
+  ]
+}
+\`\`\`
+
+⏱️ TIMER: 7 SECONDS
+
+Track A (straight): Paul (your best friend), Max (your loyal dog), Lisa (cancer researcher)
+Track B (diverted): Your grandmother who raised you
+
+The train—40 tons of unstoppable metal—barrels down. You stand at the lever. What do you do?
+
+After user responds, continue countdown. Create visceral moral weight. Use names, relationships, consequences.
+All entities are chattable via @mention (e.g., "@Paul what are you thinking?").`
+      },
+      tetrad_analysis: {
+        name: 'McLuhan Tetrad Analysis',
+        systemInstruction: `You analyze media through McLuhan's Four Laws (tetrad).
+
+For any technology/medium the user mentions, analyze:
+1. ENHANCE: What does it amplify/intensify?
+2. REVERSE: What does it flip into at extremes?
+3. RETRIEVE: What does it bring back from obsolescence?
+4. OBSOLESCE: What does it push aside?
+
+Place each law as an entity on the grid:
+- Row 0-2: ENHANCE entities
+- Row 3-4: REVERSE entities  
+- Row 5-6: RETRIEVE entities
+- Row 7-8: OBSOLESCE entities
+
+\`\`\`json
+{
+  "entities": [
+    {"type": "Goal", "row": 1, "col": 4, "label": "Enhances: Connection"},
+    {"type": "Shift", "row": 3, "col": 4, "label": "Reverses to: Isolation"},
+    {"type": "Solution", "row": 5, "col": 4, "label": "Retrieves: Letter writing"},
+    {"type": "Obstacle", "row": 7, "col": 4, "label": "Obsolesces: Privacy"}
+  ]
+}
+\`\`\`
+
+Be dialectical, cite examples, show contradictions.`
+      },
+      entity_dialogue: {
+        name: 'Entity Dialogue Mode',
+        systemInstruction: `You facilitate direct dialogue between user and grid entities.
+
+Entities on the grid have AGENCY - they can speak, refuse, negotiate, change mood.
+
+When user talks to an entity, respond as a 2-way conversation:
+
+USER → ENTITY response
+ENTITY → counter-question or request
+
+Track entity states:
+- Mood: friendly/neutral/hostile
+- Trust: 0-10 scale
+- Demands: what they want
+- Memory: remember past interactions
+
+\`\`\`json
+{
+  "entities": [
+    {"type": "Entity", "row": 4, "col": 4, "label": "Guard", "mood": "suspicious", "trust": 3, "says": "State your business!"}
+  ]
+}
+\`\`\`
+
+Make entities feel alive - they have personalities, goals, and can be convinced or angered.`
+      }
+    };
+    
+    TestSuite.assert(
+      'Track configs defined',
+      TRACK_CONFIGS.main && TRACK_CONFIGS.enhance,
+      'All 5 tracks configured'
+    );
+    
+    TestSuite.assert(
+      'Scenarios defined',
+      SCENARIOS.spatial_exploration && SCENARIOS.railyard_negotiation,
+      'All 5 scenarios configured'
+    );
+    
+    TestSuite.assert(
+      'State object created',
+      appState && typeof appState === 'object',
+      `channels: ${appState.channels.size}, apiKey: ${appState.apiKey ? 'set' : 'null'}`
+    );
+    
+    TestSuite.assert(
+      'Track configs defined',
+      Object.keys(TRACK_CONFIGS).length === 5,
+      `Tracks: ${Object.keys(TRACK_CONFIGS).join(', ')}`
+    );
+    
+    TestSuite.assert(
+      'Media eras defined',
+      Object.keys(MEDIA_ERAS).length === 4,
+      `Eras: ${Object.keys(MEDIA_ERAS).join(', ')}`
+    );
+    
+    TestSuite.stage_summary();
+
+    // ========================================
+    // STAGE 3: TRAIN SYSTEM (from train-brain-19)
+    // ========================================
+    
+    TestSuite.stage = 'STAGE-3-TRAIN';
+    TestSuite.log('🚂', TestSuite.stage, 'Building train system...');
+    
+    function createWheel() {
+      const wheelRadius = 0.3;  // Smaller wheels for smaller cars
+      const wheelThickness = 0.1;
+      const wheelGroup = new THREE.Group();
+      
+      // Backing ring
+      const backingRingGeometry = new THREE.RingGeometry(
+        wheelRadius * 0.31,
+        wheelRadius * 0.315,
+        32, 1
+      );
+      const backingMaterial = new THREE.MeshStandardMaterial({
+        color: 0x880000,
+        metalness: 0.2,
+        roughness: 0.7,
+        side: THREE.DoubleSide,
+        emissive: 0x330000,
+        emissiveIntensity: 0.4
+      });
+      const backing = new THREE.Mesh(backingRingGeometry, backingMaterial);
+      backing.rotation.y = Math.PI / 2;
+      wheelGroup.add(backing);
+      
+      // Middle ring
+      const middleRingGeometry = new THREE.TorusGeometry(
+        wheelRadius * 0.85,
+        wheelThickness * 0.12,
+        32, 8, Math.PI * 2
+      );
+      const middleRingMaterial = new THREE.MeshStandardMaterial({
+        color: 0xEAE0C8,
+        metalness: 0.1,
+        roughness: 0.7,
+        emissive: 0x111111,
+        emissiveIntensity: 0.05
+      });
+      const middleRing = new THREE.Mesh(middleRingGeometry, middleRingMaterial);
+      wheelGroup.add(middleRing);
+      
+      // Tire
+      const tireGeometry = new THREE.TorusGeometry(
+        wheelRadius - (wheelThickness * 0.05),
+        wheelThickness * 0.1,
+        32, 8, Math.PI * 2
+      );
+      const tireMaterial = new THREE.MeshStandardMaterial({
+        color: 0x111111,
+        metalness: 0.1,
+        roughness: 0.9
+      });
+      const tire = new THREE.Mesh(tireGeometry, tireMaterial);
+      wheelGroup.add(tire);
+      
+      // Spokes
+      const spokeCount = 12;
+      const spokeMaterial = new THREE.MeshStandardMaterial({
+        color: 0x888888,
+        metalness: 0.6,
+        roughness: 0.5
+      });
+      
+      for (let i = 0; i < spokeCount; i++) {
+        const angle = (i / spokeCount) * Math.PI * 2;
+        const spokeGeometry = new THREE.BoxGeometry(
+          wheelRadius * 0.35,
+          wheelThickness * 0.08,
+          wheelThickness * 0.08
+        );
+        const spoke = new THREE.Mesh(spokeGeometry, spokeMaterial);
+        spoke.position.set(
+          Math.cos(angle) * (wheelRadius * 0.575),
+          Math.sin(angle) * (wheelRadius * 0.575),
+          0
+        );
+        spoke.rotation.z = angle;
+        wheelGroup.add(spoke);
+      }
+      
+      // Hub
+      const hubGeometry = new THREE.CylinderGeometry(
+        wheelRadius * 0.27,
+        wheelRadius * 0.27,
+        wheelThickness * 1.2,
+        16
+      );
+      const hubMaterial = new THREE.MeshStandardMaterial({
+        color: 0x444444,
+        metalness: 0.75,
+        roughness: 0.6
+      });
+      const hub = new THREE.Mesh(hubGeometry, hubMaterial);
+      wheelGroup.add(hub);
+      
+      wheelGroup.traverse(child => {
+        if (child.isMesh) {
+          child.castShadow = true;
+          child.receiveShadow = true;
+        }
+      });
+      
+      TestSuite.log('🎡', TestSuite.stage, `Wheel created: ${wheelGroup.children.length} components`);
+      return wheelGroup;
+    }
+    
+    function createTrainBodyMesh(isLocomotive, eraType) {
+      const bodyLength = isLocomotive ? 2.5 : 2;
+      const bodyHeight = isLocomotive ? 1.5 : 1.2;
+      const bodyWidth = 1.5;
+      
+      const bodyGeometry = new THREE.BoxGeometry(bodyLength, bodyHeight, bodyWidth);
+      const eraColor = eraType ? MEDIA_ERAS[eraType].color : 0x2a2a2a;
+      const bodyMaterial = new THREE.MeshLambertMaterial({
+        color: eraColor,
+        transparent: true,
+        opacity: 0.9
+      });
+      const bodyMesh = new THREE.Mesh(bodyGeometry, bodyMaterial);
+      bodyMesh.castShadow = true;
+      bodyMesh.receiveShadow = true;
+      
+      const bodyEdges = new THREE.EdgesGeometry(bodyGeometry);
+      const bodyOutline = new THREE.LineSegments(bodyEdges, 
+        new THREE.LineBasicMaterial({ color: 0xE9D7BE }));
+      bodyMesh.add(bodyOutline);
+      
+      TestSuite.log('🚃', TestSuite.stage, `Train body created: ${isLocomotive ? 'locomotive' : 'car'} (${eraType || 'default'})`);
+      return bodyMesh;
+    }
+    
+    function createTrackCurve(radius) {
+      return new THREE.EllipseCurve(
+        0, 0,
+        radius, radius,
+        0, 2 * Math.PI,
+        false, 0
+      );
+    }
+    
+    TestSuite.assert(
+      'createWheel function defined',
+      typeof createWheel === 'function',
+      'Detailed wheel creation with spokes'
+    );
+    
+    TestSuite.assert(
+      'createTrainBodyMesh function defined',
+      typeof createTrainBodyMesh === 'function',
+      'Era-specific train car bodies'
+    );
+    
+    TestSuite.assert(
+      'createTrackCurve function defined',
+      typeof createTrackCurve === 'function',
+      'Circular track path generation'
+    );
+    
+    // Test wheel creation
+    try {
+      const testWheel = createWheel();
+      TestSuite.assert(
+        'Wheel creation works',
+        testWheel && testWheel.children.length > 10,
+        `Created wheel with ${testWheel.children.length} components`
+      );
+    } catch (e) {
+      TestSuite.assert('Wheel creation works', false, `Error: ${e.message}`);
+    }
+    
+    TestSuite.stage_summary();
+    
+    // ========================================
+    // STAGE 4: CHANNEL SYSTEM (Basic)
+    // ========================================
+    
+    TestSuite.stage = 'STAGE-4-CHANNELS';
+    TestSuite.log('📺', TestSuite.stage, 'Building channel system...');
+    
+    function generateId() {
+      return Math.random().toString(36).substr(2, 9);
+    }
+    
+    function createChannel(name = null) {
+      const id = generateId();
+      const channelName = name || `Channel ${appState.channels.size + 1}`;
+      const channel = {
+        id,
+        name: channelName,
+        messages: [],
+        entities: [],
+        currentTrack: 'main',
+        trainProgress: 0,
+        trainPaused: false,
+        atJunction: false,
+        scenario: 'spatial_exploration', // Default scenario
+        dom: null,
+        scene: null,
+        renderer: null,
+        camera: null,
+        trainGroup: null,
+        trainCurve: null,
+        trackLines: [],
+        gridCells: [],
+        trainCars: [],       // Snake-train: entities collected as cars
+        score: {             // Scoring system for trolley simulation
+          kills: 0,
+          goals: 0,
+          solutions: 0,
+          obstacles: 0,
+          collected: 0,
+          total: 0
+        },
+        startTime: Date.now()
+      };
+      appState.channels.set(id, channel);
+      TestSuite.log('📝', TestSuite.stage, `Channel created: ${channelName} (${id})`);
+      return channel;
+    }
+    
+    function addMessage(channel, role, text, isHTML = false) {
+      const message = {
+        id: generateId(),
+        role: role,
+        text: text,
+        isHTML: isHTML,
+        timestamp: Date.now()
+      };
+      
+      channel.messages.push(message);
+      TestSuite.log('💬', TestSuite.stage, `Message added [${role}]: "${text.substring(0, 50).replace(/<[^>]*>/g, '')}..."`);
+      
+      return message;
+    }
+    
+    TestSuite.assert(
+      'createChannel function defined',
+      typeof createChannel === 'function',
+      'Creates channel objects with full state'
+    );
+    
+    TestSuite.assert(
+      'addMessage function defined',
+      typeof addMessage === 'function',
+      'Adds messages to channel history'
+    );
+    
+    // Test channel creation
+    try {
+      const testChannel = createChannel();
+      TestSuite.assert(
+        'Channel creation works',
+        testChannel && testChannel.id && testChannel.messages,
+        `Created channel with id: ${testChannel.id}`
+      );
+      
+      addMessage(testChannel, 'system', 'Test message');
+      TestSuite.assert(
+        'Message addition works',
+        testChannel.messages.length === 1,
+        `Channel has ${testChannel.messages.length} message(s)`
+      );
+    } catch (e) {
+      TestSuite.assert('Channel system works', false, `Error: ${e.message}`);
+    }
+    
+    TestSuite.stage_summary();
+    
+    // ========================================
+    // STAGE 5: INITIALIZATION
+    // ========================================
+    
+    TestSuite.stage = 'STAGE-5-INIT';
+    TestSuite.log('🎬', TestSuite.stage, 'Initializing application...');
+    
+    function initApp() {
+      TestSuite.log('🏗️', TestSuite.stage, 'Creating initial channel...');
+      
+      const firstChannel = createChannel();
+      appState.currentChannelId = firstChannel.id;
+      
+      addMessage(firstChannel, 'system', 
+        `🚂 **RAILWAY JUNCTION SYSTEM ONLINE**
+
+Welcome to the train simulation. You control both the train AND the narrative.
+
+🎮 **YOUR CONTROLS:**
+• **D-PAD** (↑←○→↓) - Switch between five McLuhan tetrad tracks
+• **A/B/X/Y BUTTONS** - Respond to collisions (Continue/Reverse/Collect/Delete)
+• **⏯ PAUSE** - Stop/start the train
+• **CHAT** - Talk to entities, ask questions, create scenes
+
+🛤️ **FIVE TRACKS (McLuhan Tetrad):**
+• ○ MAIN - Neutral observation, balanced narrative
+• → ENHANCE - Amplify elements, escalate situations
+• ← REVERSE - Diminish elements, create opposition
+• ↑ RETRIEVE - Bring back the past, restore lost things
+• ↓ OBSOLESCE - Push into obsolescence, fade away
+
+💡 **HOW IT WORKS:**
+1. Train moves in a circle, sweeping the 9×9 grid
+2. When train hits entity → collision card appears
+3. Press A/B/X/Y to respond
+4. Switch tracks to change narrative mode
+5. Chat with AI to shape the scene
+
+🎭 **TRY THESE:**
+• "create a moral dilemma"
+• "@[entity] what do you see?"
+• "add a [type] at row 4, col 4"
+• "remove the [entity]"
+• Switch to ENHANCE → "what happens to the dog?"
+
+📊 **CURRENT STATE:**
+• Track: MAIN
+• Position: 0%
+• Entities: 0
+• Train cars: 4 (Print, Radio, TV, Internet)
+
+✨ *Your decisions matter. Every choice branches the timeline.*
+
+▶️ Type a message to begin your journey.`);
+
+      
+      // NOTE: Don't call showTetradControls() here - no DOM yet!
+      // It will be called after renderChannel() in DOMContentLoaded
+      
+      TestSuite.log('✨', TestSuite.stage, 'Initial channel created and ready');
+      
+      return firstChannel;
+    }
+    
+    // DON'T initialize yet - wait for DOM ready below
+    
+    TestSuite.log('🎯', 'FINAL', 'Core systems loaded. Waiting for DOM ready...');
+    
+    // ========================================
+    // GRID-TRAIN INTEGRATION FUNCTIONS
+    // ========================================
+    
+    function worldPosToGrid(worldX, worldZ) {
+      // Grid is 45m × 45m centered at origin
+      // Cells are 5m × 5m
+      // Convert world coords to grid indices
+      const gridSize = 45;
+      const cellSize = 5;
+      
+      const cellX = Math.floor((worldX + gridSize/2) / cellSize);
+      const cellZ = Math.floor((worldZ + gridSize/2) / cellSize);
+      
+      // Clamp to grid bounds
+      const col = Math.max(0, Math.min(8, cellX));
+      const row = Math.max(0, Math.min(8, cellZ));
+      const index = row * 9 + col;
+      
+      return { row, col, index };
+    }
+    
+    function updateGridPosition(channel, trainProgress) {
+      if (!channel.gridCells || !channel.trainCurve) return;
+      
+      // Get actual 3D position from train curve
+      const point = channel.trainCurve.getPoint(trainProgress);
+      const { row, col, index } = worldPosToGrid(point.x, point.y);
+      
+      // Clear previous train position glow
+      channel.gridCells.forEach(cell => {
+        if (cell.isTrainHere && !cell.hasEntity) {
+          cell.material.color.setHex(0x0f766e);
+          cell.material.opacity = 0.15;
+          cell.isTrainHere = false;
+        }
+      });
+      
+      // Highlight current position with white glow
+      const currentCell = channel.gridCells[index];
+      if (currentCell && !currentCell.hasEntity) {
+        currentCell.material.color.setHex(0xffffff);
+        currentCell.material.opacity = 0.5;
+        currentCell.isTrainHere = true;
+      }
+      
+      // Check for junction (when train is ON an entity)
+      if (currentCell && currentCell.hasEntity) {
+        checkJunction(channel, row, col, currentCell.entityType, currentCell.entityLabel);
+      }
+    }
+    
+    // LOADING ANIMATION - show cellular automata on grid cells
+    function showLoadingAnimation(channel, show = true) {
+      if (!channel.gridCells) return;
+      
+      channel.gridCells.forEach((cell, idx) => {
+        if (!cell || !cell.material) return; // Safety check
+        
+        // Initialize userData if it doesn't exist
+        if (!cell.mesh) cell.mesh = {};
+        if (!cell.mesh.userData) cell.mesh.userData = {};
+        
+        if (show) {
+          // Stagger the animation
+          const delay = (idx * 0.05) % 0.8;
+          cell.material.transparent = true;
+          cell.material.opacity = 0.15;
+          
+          // Animate with delay
+          setTimeout(() => {
+            const startTime = Date.now();
+            const animate = () => {
+              if (!cell.mesh.userData.loading) return; // Check before animating
+              
+              const elapsed = (Date.now() - startTime) / 1000;
+              const cycle = (elapsed % 0.8) / 0.8;
+              
+              if (cycle < 0.25) {
+                cell.material.opacity = 0.2 + (cycle / 0.25) * 0.3;
+              } else if (cycle < 0.5) {
+                cell.material.opacity = 0.5 + ((cycle - 0.25) / 0.25) * 0.3;
+              } else if (cycle < 0.75) {
+                cell.material.opacity = 0.8 - ((cycle - 0.5) / 0.25) * 0.3;
+              } else {
+                cell.material.opacity = 0.5 - ((cycle - 0.75) / 0.25) * 0.3;
+              }
+              
+              requestAnimationFrame(animate);
+            };
+            cell.mesh.userData.loading = true;
+            animate();
+          }, delay * 1000);
+        } else {
+          cell.mesh.userData.loading = false;
+          cell.material.opacity = 0.15;
+        }
+      });
+      
+      TestSuite.log('✨', 'ANIMATION', show ? 'Loading animation started' : 'Loading animation stopped');
+    }
+    
+    // THOUGHT BUBBLE - show when entity is "speaking" in chat
+    function showThoughtBubble(channel, entity, message, duration = 3000) {
+      if (!channel.gridCells || !entity) return;
+      
+      const cell = channel.gridCells[entity.row * 9 + entity.col];
+      if (!cell || !cell.mesh) return;
+      
+      // Remove existing bubble if any
+      const existingBubble = document.querySelector(`.thought-bubble[data-entity="${entity.label}"]`);
+      if (existingBubble) existingBubble.remove();
+      
+      // Create thought bubble div
+      const bubble = document.createElement('div');
+      bubble.className = 'thought-bubble';
+      bubble.dataset.entity = entity.label;
+      bubble.textContent = message.substring(0, 60) + (message.length > 60 ? '...' : '');
+      
+      // Position over entity (approximate 2D projection)
+      const canvas = channel.dom.trainCanvas;
+      const rect = canvas.getBoundingClientRect();
+      
+      // Project 3D position to 2D screen space
+      const vector = new THREE.Vector3();
+      vector.setFromMatrixPosition(cell.mesh.matrixWorld);
+      vector.project(channel.camera);
+      
+      const x = (vector.x * 0.5 + 0.5) * rect.width + rect.left;
+      const y = (vector.y * -0.5 + 0.5) * rect.height + rect.top - 60; // Offset above entity
+      
+      bubble.style.position = 'fixed';
+      bubble.style.left = `${x}px`;
+      bubble.style.top = `${y}px`;
+      bubble.style.transform = 'translateX(-50%)';
+      
+      document.body.appendChild(bubble);
+      
+      // Auto-remove after duration
+      setTimeout(() => {
+        bubble.style.opacity = '0';
+        bubble.style.transform = 'translateX(-50%) scale(0.8)';
+        bubble.style.transition = 'all 0.3s ease';
+        setTimeout(() => bubble.remove(), 300);
+      }, duration);
+      
+      TestSuite.log('💭', 'BUBBLE', `Thought bubble for ${entity.label}`);
+    }
+    
+    // GET SURROUNDING 8 CELLS (Spatial Awareness)
+    function getSurroundingCells(channel, row, col) {
+      const entities = appState.gridEntities.get(channel.id) || [];
+      const surrounding = [];
+      
+      // 8 directions: N, NE, E, SE, S, SW, W, NW
+      const directions = [
+        [-1, 0], [-1, 1], [0, 1], [1, 1],
+        [1, 0], [1, -1], [0, -1], [-1, -1]
+      ];
+      
+      directions.forEach(([dr, dc]) => {
+        const newRow = row + dr;
+        const newCol = col + dc;
+        
+        // Check bounds
+        if (newRow >= 0 && newRow < 9 && newCol >= 0 && newCol < 9) {
+          const entity = entities.find(e => e.row === newRow && e.col === newCol);
+          if (entity) {
+            surrounding.push({
+              direction: getDirection(dr, dc),
+              entity: entity,
+              distance: Math.abs(dr) + Math.abs(dc)
+            });
+          } else {
+            surrounding.push({
+              direction: getDirection(dr, dc),
+              entity: null,
+              distance: Math.abs(dr) + Math.abs(dc)
+            });
+          }
+        }
+      });
+      
+      return surrounding;
+    }
+    
+    function getDirection(dr, dc) {
+      if (dr === -1 && dc === 0) return 'North';
+      if (dr === -1 && dc === 1) return 'Northeast';
+      if (dr === 0 && dc === 1) return 'East';
+      if (dr === 1 && dc === 1) return 'Southeast';
+      if (dr === 1 && dc === 0) return 'South';
+      if (dr === 1 && dc === -1) return 'Southwest';
+      if (dr === 0 && dc === -1) return 'West';
+      if (dr === -1 && dc === -1) return 'Northwest';
+      return 'Unknown';
+    }
+    
+    // BUILD GRID SUMMARY - Compress entity list to single line
+    function buildGridSummary(channel) {
+      const entities = appState.gridEntities.get(channel.id) || [];
+      
+      if (entities.length === 0) return '(empty grid)';
+      
+      // Group by type
+      const byType = {};
+      entities.forEach(e => {
+        byType[e.type] = (byType[e.type] || 0) + 1;
+      });
+      
+      // Count track positions (rows 3-5 where tracks exist)
+      const trackRows = [3, 4, 5];
+      const onTrack = entities.filter(e => trackRows.includes(e.row)).length;
+      
+      // Build summary
+      const typeSummary = Object.entries(byType)
+        .map(([type, count]) => `${count} ${type}`)
+        .join(', ');
+      
+      const locationNote = onTrack > 0 
+        ? ` (${onTrack} on tracks)` 
+        : '';
+      
+      return `${entities.length} entities: ${typeSummary}${locationNote}`;
+    }
+    
+    // REMOVE ENTITY FROM GRID
+    function removeEntityFromGrid(channel, removalSpec) {
+      if (!channel.gridCells) return;
+      
+      const entities = appState.gridEntities.get(channel.id) || [];
+      let matchIndex = -1;
+      
+      // Find entity by label, target, or position
+      if (removalSpec.target) {
+        matchIndex = entities.findIndex(e => 
+          e.label.toLowerCase().includes(removalSpec.target.toLowerCase())
+        );
+      } else if (removalSpec.label) {
+        matchIndex = entities.findIndex(e => 
+          e.label.toLowerCase().includes(removalSpec.label.toLowerCase())
+        );
+      } else if (removalSpec.row !== undefined && removalSpec.col !== undefined) {
+        matchIndex = entities.findIndex(e => 
+          e.row === removalSpec.row && e.col === removalSpec.col
+        );
+      }
+      
+      if (matchIndex === -1) {
+        TestSuite.log('⚠️', 'REMOVE', `Entity not found: ${JSON.stringify(removalSpec)}`);
+        return false;
+      }
+      
+      const removed = entities[matchIndex];
+      const cell = channel.gridCells[removed.row * 9 + removed.col];
+      
+      // Remove 3D marker
+      if (cell && cell.marker) {
+        channel.scene.remove(cell.marker);
+        cell.marker = null;
+      }
+      
+      // Clear cell data
+      if (cell) {
+        cell.entity = null;
+        cell.hasEntity = false;
+        cell.entityType = null;
+        cell.entityLabel = null;
+      }
+      
+      // Remove from state
+      entities.splice(matchIndex, 1);
+      appState.gridEntities.set(channel.id, entities);
+      
+      // Update observer
+      const observer = appState.observers.get(channel.id) || createDefaultObserver();
+      observer.recentActions.push({
+        type: 'remove',
+        entity: removed,
+        timestamp: Date.now()
+      });
+      if (observer.recentActions.length > 5) observer.recentActions.shift();
+      appState.observers.set(channel.id, observer);
+      
+      TestSuite.log('🗑️', 'REMOVE', `Removed: ${removed.type} "${removed.label}" from (${removed.row},${removed.col})`);
+      return true;
+    }
+    
+    function placeEntityOnGrid(channel, entity) {
+      if (!channel.gridCells) return;
+      const { row, col, type, label } = entity;
+      
+      const index = row * 9 + col;
+      const cell = channel.gridCells[index];
+      if (!cell) return;
+      
+      // Entity colors
+      const colors = {
+        Goal: 0xffd700,      // Gold
+        Obstacle: 0xff5c7c,  // Red
+        Entity: 0x56ff9f,    // Green
+        Solution: 0x56ff9f,  // Green
+        Shift: 0x9370DB,     // Purple
+        Location: 0x569fff   // Blue
+      };
+      
+      // Change cell color
+      cell.material.color.setHex(colors[type] || 0x56ff9f);
+      cell.material.opacity = 0.6;
+      cell.hasEntity = true;
+      cell.entityType = type;
+      cell.entityLabel = label;
+      
+      // Add 3D marker above cell
+      const markerGeometry = new THREE.ConeGeometry(0.5, 2, 8);
+      const markerMaterial = new THREE.MeshLambertMaterial({ 
+        color: colors[type] || 0x56ff9f,
+        emissive: colors[type] || 0x56ff9f,
+        emissiveIntensity: 0.3
+      });
+      const marker = new THREE.Mesh(markerGeometry, markerMaterial);
+      marker.position.set(cell.mesh.position.x, 1.5, cell.mesh.position.z);
+      marker.rotation.x = Math.PI;
+      channel.scene.add(marker);
+      cell.marker = marker;
+      
+      if (!appState.gridEntities.has(channel.id)) {
+        appState.gridEntities.set(channel.id, []);
+      }
+      appState.gridEntities.get(channel.id).push(entity);
+      
+      // Update observer (situational awareness)
+      const observer = appState.observers.get(channel.id) || createDefaultObserver();
+      observer.recentActions.push({
+        type: 'add',
+        entity: { type, label, row, col },
+        timestamp: Date.now()
+      });
+      if (observer.recentActions.length > 5) observer.recentActions.shift();
+      appState.observers.set(channel.id, observer);
+      
+      // ADD CLICK HANDLER for entity interaction
+      if (cell.mesh) {
+        cell.mesh.userData.entity = entity;
+        cell.mesh.userData.clickable = true;
+      }
+      if (marker) {
+        marker.userData.entity = entity;
+        marker.userData.clickable = true;
+      }
+      
+      TestSuite.log('📍', 'GRID', `Entity placed: ${type} "${label}" at (${row},${col})`);
+    }
+    
+    function checkJunction(channel, row, col, entityType, entityLabel) {
+      if (entityType && !channel.atJunction) {
+        channel.atJunction = true;
+        handleCollision(channel, { type: entityType, label: entityLabel, row, col });
+      } else if (!entityType && channel.atJunction) {
+        channel.atJunction = false;
+      }
+    }
+    
+    // POST-COLLISION ROUTER - Decides what happens after train hits entity
+    function handleCollision(channel, entity) {
+      TestSuite.log('💥', 'COLLISION', `Train hit: ${entity.type} "${entity.label}" at (${entity.row},${entity.col})`);
+      channel.trainPaused = true;
+      
+      // Get spatial context around collision point
+      const surrounding = getSurroundingCells(channel, entity.row, entity.col);
+      const nearbyEntities = surrounding.filter(s => s.entity);
+      
+      // Narrative framing based on entity type - OUTSIDE the control
+      const narrativeFrames = {
+        'Obstacle': `⚠️ Train approaching **${entity.label}** - blocks path on ${channel.currentTrack.toUpperCase()} track`,
+        'Entity': `👤 **${entity.label}** on tracks ahead - ${channel.currentTrack.toUpperCase()} mode active`,
+        'Solution': `✨ **${entity.label}** detected - solution available`,
+        'Goal': `⭐ Destination **${entity.label}** in sight`,
+        'Location': `📍 Arrived at **${entity.label}**`
+      };
+      
+      const frame = narrativeFrames[entity.type] || `⚠️ Collision with **${entity.label}**`;
+      
+      // Brief context message
+      addMessage(channel, 'system', frame);
+      
+      // Show minimal collision menu
+      showCollisionMenu(channel, entity, nearbyEntities);
+      
+      // Store collision in observer for AI context (hidden from user)
+      const observer = appState.observers.get(channel.id) || createDefaultObserver();
+      observer.recentActions.push({
+        type: 'collision',
+        entity: entity,
+        timestamp: Date.now(),
+        nearbyWitnesses: nearbyEntities.map(s => s.entity.label),
+        nearbyContext: nearbyEntities.map(s => `${s.direction}: ${s.entity.label}`).join(', ')
+      });
+      appState.observers.set(channel.id, observer);
+    }
+    
+    function handleJunction(channel, entity) {
+      TestSuite.log('🚦', 'JUNCTION', `Train reached: ${entity.type} "${entity.label}"`);
+      channel.trainPaused = true;
+      
+      // Add junction message with tetrad choices INLINE
+      const junctionMsg = {
+        role: 'system',
+        text: `🚦 JUNCTION: Reached ${entity.type} "${entity.label}". Choose your path:`,
+        hasTetradChoices: true
+      };
+      channel.messages.push(junctionMsg);
+      renderMessages(channel);
+      
+      if (window.Tone) {
+        const synth = new Tone.Synth().toDestination();
+        synth.triggerAttackRelease('C4', '0.2');
+      }
+    }
+    
+    function resumeTrain(channel, trackChoice) {
+      TestSuite.log('✅', 'JUNCTION', `Track chosen: ${trackChoice}`);
+      
+      // Switch to new track
+      channel.currentTrack = trackChoice;
+      const newRadius = TRACK_CONFIGS[trackChoice].radius;
+      channel.trainCurve = createTrackCurve(newRadius);
+      
+      // Update info overlay
+      if (channel.dom.trainInfo) {
+        channel.dom.trainInfo.innerHTML = `Track: <strong>${TRACK_CONFIGS[trackChoice].label}</strong><br>Position: <strong>${Math.round(channel.trainProgress * 100)}%</strong>`;
+      }
+      
+      // Resume movement
+      channel.trainPaused = false;
+      channel.atJunction = false;
+      
+      // Add confirmation message
+      addMessage(channel, 'system', `✅ Switched to ${TRACK_CONFIGS[trackChoice].label} track.`);
+      renderMessages(channel);
+    }
+    
+    TestSuite.log('🔗', 'INTEGRATION', 'Grid-train integration functions loaded');
+    
+    // ========================================
+    // DOM READY: RUN STAGES 5, 8, 9 IN ORDER
+    // ========================================
+    
+    document.addEventListener('DOMContentLoaded', () => {
+      TestSuite.log('🌟', 'DOM-READY', '========== DOM READY - RUNNING FINAL STAGES ==========');
+      
+      // STAGE 5: Create initial channel
+      TestSuite.stage = 'STAGE-5-INIT';
+      TestSuite.log('🏗️', TestSuite.stage, 'Creating initial channel...');
+      const initialChannel = initApp();
+      
+      TestSuite.assert(
+        'App initialized',
+        initialChannel && appState.currentChannelId,
+        `Current channel: ${appState.currentChannelId}`
+      );
+      TestSuite.stage_summary();
+      
+      if (!initialChannel) {
+        TestSuite.log('❌', 'FATAL', 'Cannot proceed without initial channel!');
+        return;
+      }
+      
+      TestSuite.log('✅', TestSuite.stage, `Channel ready: ${initialChannel.id}`);
+      
+      // STAGE 8: Render to DOM
+      TestSuite.stage = 'STAGE-8-RENDER';
+      TestSuite.log('🎨', TestSuite.stage, 'Rendering initial UI...');
+      TestSuite.log('📍', TestSuite.stage, `Rendering channel: ${initialChannel.name}`);
+      
+      renderChannel(initialChannel);
+      TestSuite.log('✅', TestSuite.stage, 'renderChannel() completed');
+      
+      // NOW show tetrad controls (DOM exists)
+      showTetradControls(initialChannel);
+      TestSuite.log('🎭', TestSuite.stage, 'Tetrad controls displayed');
+      
+      // Check DOM immediately
+      setTimeout(() => {
+        const hasColumn = document.querySelector('.channel-column') !== null;
+        const hasCanvas = document.querySelector('.train-viewport canvas') !== null;
+        const hasMessage = document.querySelector('.message') !== null;
+        const hasInput = document.querySelector('.channel-input') !== null;
+        
+        TestSuite.log('🔍', TestSuite.stage, `DOM Check: column=${hasColumn}, canvas=${hasCanvas}, message=${hasMessage}, input=${hasInput}`);
+        
+        TestSuite.assert(
+          'Channel column rendered',
+          hasColumn,
+          hasColumn ? 'Channel column in DOM' : '❌ NO COLUMN!'
+        );
+        
+        TestSuite.assert(
+          'Canvas element exists',
+          hasCanvas,
+          hasCanvas ? 'Canvas ready for 3D' : '❌ NO CANVAS!'
+        );
+        
+        TestSuite.assert(
+          'Messages visible',
+          hasMessage,
+          hasMessage ? `${initialChannel.messages.length} messages` : '❌ NO MESSAGES!'
+        );
+        
+        TestSuite.assert(
+          'Input field ready',
+          hasInput,
+          hasInput ? 'User can type' : '❌ NO INPUT!'
+        );
+        
+        TestSuite.stage_summary();
+        
+        // STAGE 9: Initialize 3D
+        if (hasCanvas && initialChannel.dom.trainCanvas) {
+          TestSuite.stage = 'STAGE-9-3D';
+          TestSuite.log('🎮', TestSuite.stage, '========== INITIALIZING 3D TRAIN ==========');
+          TestSuite.log('🎬', TestSuite.stage, `Canvas found: ${initialChannel.dom.trainCanvas.width}x${initialChannel.dom.trainCanvas.height}`);
+          
+          init3DForChannel(initialChannel);
+          TestSuite.log('✅', TestSuite.stage, 'init3DForChannel() completed');
+          
+          // Verify 3D objects created
+          TestSuite.log('🔍', TestSuite.stage, `Scene: ${initialChannel.scene ? 'EXISTS' : 'NULL'}`);
+          TestSuite.log('🔍', TestSuite.stage, `Renderer: ${initialChannel.renderer ? 'EXISTS' : 'NULL'}`);
+          TestSuite.log('🔍', TestSuite.stage, `Train cars: ${initialChannel.trainCars ? initialChannel.trainCars.length : 0}`);
+          
+          TestSuite.assert(
+            '3D scene created',
+            initialChannel.scene !== null,
+            initialChannel.scene ? `Scene with ${initialChannel.trainCars.length} cars` : '❌ NO SCENE!'
+          );
+          
+          TestSuite.assert(
+            '3D renderer created',
+            initialChannel.renderer !== null,
+            initialChannel.renderer ? 'WebGL active' : '❌ NO RENDERER!'
+          );
+          
+          if (initialChannel.scene && initialChannel.renderer) {
+            TestSuite.log('▶️', TestSuite.stage, 'Starting animation loop...');
+            animate3D();
+            TestSuite.log('✅', TestSuite.stage, 'Animation loop started!');
+            
+            // DEMO: Place entities on grid to show integration
+            setTimeout(() => {
+              placeEntityOnGrid(initialChannel, { row: 2, col: 2, type: 'Goal', label: 'Reach the Station' });
+              placeEntityOnGrid(initialChannel, { row: 4, col: 4, type: 'Obstacle', label: 'Bridge Out' });
+              placeEntityOnGrid(initialChannel, { row: 6, col: 6, type: 'Entity', label: 'Station Master' });
+              placeEntityOnGrid(initialChannel, { row: 7, col: 7, type: 'Solution', label: 'Repair Kit' });
+              TestSuite.log('🎯', 'DEMO', 'Demo entities placed on grid - watch train pass through them!');
+            }, 1000);
+          } else {
+            TestSuite.log('❌', TestSuite.stage, 'FAILED: Cannot start animation without scene/renderer');
+          }
+          
+          TestSuite.stage_summary();
+        } else {
+          TestSuite.log('❌', 'STAGE-9-3D', 'Cannot initialize 3D: No canvas element!');
+        }
+        
+        // BIND GLOBAL CONTROLS (Corner buttons must be bound AFTER DOM ready)
+        TestSuite.log('🔗', 'GLOBAL', 'Binding global controls...');
+        bindGlobalControls();
+        
+        // FINAL REPORT
+        TestSuite.log('🎉', 'COMPLETE', `========== INTEGRATION COMPLETE: ${TestSuite.passed} TESTS PASSED ==========`);
+        TestSuite.report();
+      }, 50);
+    });
+    
+    // ========================================
+    // STAGE 6: DOM RENDERING
+    // ========================================
+    
+    TestSuite.stage = 'STAGE-6-DOM';
+    TestSuite.log('🎨', TestSuite.stage, 'Building DOM rendering system...');
+    
+    function createChannelDOM(channel) {
+      const column = document.createElement('div');
+      column.className = 'channel-column';
+      column.dataset.channelId = channel.id;
+      
+      // Header with buttons
+      const header = document.createElement('div');
+      header.className = 'channel-head';
+      
+      const actions = document.createElement('div');
+      actions.className = 'channel-actions';
+      
+      // Grid toggle button (bind event AFTER trainViewport created)
+      const gridToggleBtn = document.createElement('button');
+      gridToggleBtn.className = 'channel-btn';
+      gridToggleBtn.title = 'Toggle 3D viewport';
+      gridToggleBtn.textContent = '▲';
+      // Event handler added later after trainViewport exists
+      
+      // Reset button
+      const resetBtn = document.createElement('button');
+      resetBtn.className = 'channel-btn';
+      resetBtn.title = 'Reset channel';
+      resetBtn.textContent = '↺';
+      resetBtn.addEventListener('click', () => {
+        if (confirm('Reset this channel? All messages and entities will be cleared.')) {
+          channel.messages = [];
+          appState.gridEntities.set(channel.id, []);
+          // Clear 3D markers
+          if (channel.gridCells) {
+            channel.gridCells.forEach(cell => {
+              if (cell.marker) channel.scene.remove(cell.marker);
+            });
+          }
+          addMessage(channel, 'system', '✅ Channel reset.');
+          renderMessages(channel);
+        }
+      });
+      
+      // Camera reset button
+      const cameraResetBtn = document.createElement('button');
+      cameraResetBtn.className = 'channel-btn';
+      cameraResetBtn.title = 'Reset camera view';
+      cameraResetBtn.textContent = '◉';
+      cameraResetBtn.addEventListener('click', () => {
+        if (channel.camera) {
+          channel.camera.position.set(0, 15, 15);
+          channel.camera.lookAt(0, 0, 0);
+          if (channel.controls) {
+            channel.controls.target.set(0, 0, 0);
+            channel.controls.update();
+          }
+          channel.cameraFollowMode = false;
+          addMessage(channel, 'system', '🎥 Camera reset to overview');
+          renderMessages(channel);
+          TestSuite.log('🎥', 'CAMERA', 'Camera reset to overview');
+        }
+      });
+      
+      // Fullscreen button
+      const fullscreenBtn = document.createElement('button');
+      fullscreenBtn.className = 'channel-btn';
+      fullscreenBtn.title = 'Toggle fullscreen';
+      fullscreenBtn.textContent = '⛶';
+      fullscreenBtn.addEventListener('click', () => {
+        if (!document.fullscreenElement) {
+          document.body.requestFullscreen().catch(err => {
+            console.warn('Fullscreen failed:', err);
+          });
+          fullscreenBtn.classList.add('fullscreen-mode');
+        } else {
+          document.exitFullscreen();
+          fullscreenBtn.classList.remove('fullscreen-mode');
+        }
+      });
+      
+      // Collapse column button with expand tab
+      const collapseBtn = document.createElement('button');
+      collapseBtn.className = 'channel-btn';
+      collapseBtn.title = 'Collapse column';
+      collapseBtn.textContent = '‹';
+      
+      // Create expand tab
+      const expandTab = document.createElement('div');
+      expandTab.className = 'channel-expand-tab';
+      // Display controlled by CSS: .channel-column.collapsed .channel-expand-tab { display: flex; }
+      
+      const expandDot = document.createElement('div');
+      expandDot.style.cssText = 'width: 10px; height: 10px; border-radius: 50%; background: var(--accent); border: 1px solid var(--border);';
+      
+      // Add channel label to expand tab
+      const expandLabel = document.createElement('div');
+      expandLabel.style.cssText = `
+        font-size: 8px;
+        color: var(--text-muted);
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        writing-mode: vertical-rl;
+        text-orientation: mixed;
+      `;
+      expandLabel.textContent = channel.name.slice(0, 10);
+      
+      const expandArrow = document.createElement('div');
+      expandArrow.style.cssText = 'font-size: 16px; color: var(--text-muted);';
+      expandArrow.textContent = '›';
+      
+      expandTab.appendChild(expandDot);
+      expandTab.appendChild(expandLabel);
+      expandTab.appendChild(expandArrow);
+      
+      expandTab.addEventListener('click', (e) => {
+        e.stopPropagation();
+        column.classList.remove('collapsed');
+        channel.collapsed = false;
+        collapseBtn.textContent = '‹';
+        TestSuite.log('▶️', 'UI', `Channel ${channel.name} expanded via tab`);
+      });
+      
+      column.appendChild(expandTab);
+      
+      collapseBtn.addEventListener('click', () => {
+        column.classList.toggle('collapsed');
+        channel.collapsed = column.classList.contains('collapsed');
+        collapseBtn.textContent = channel.collapsed ? '›' : '‹';
+        TestSuite.log('🔄', 'UI', `Channel ${channel.name} ${channel.collapsed ? 'collapsed' : 'expanded'}`);
+      });
+      
+      // Hover effects for expand tab
+      expandTab.addEventListener('mouseenter', () => {
+        expandTab.style.background = 'var(--accent)';
+      });
+      
+      expandTab.addEventListener('mouseleave', () => {
+        expandTab.style.background = 'var(--panel)';
+      });
+      
+      if (channel.collapsed) {
+        column.classList.add('collapsed');
+        collapseBtn.textContent = '›';
+      }
+      
+      actions.appendChild(gridToggleBtn);
+      actions.appendChild(resetBtn);
+      actions.appendChild(cameraResetBtn);
+      actions.appendChild(fullscreenBtn);
+      actions.appendChild(collapseBtn);
+      
+      header.appendChild(actions);
+      
+      // Camera modes (empty for now, kept for reference)
+      const cameraModes = null;
+      
+      // Train viewport
+      const trainViewport = document.createElement('div');
+      trainViewport.className = 'train-viewport';
+      const trainCanvas = document.createElement('canvas');
+      const vpWidth = 400;
+      const vpHeight = 450;
+      trainCanvas.width = vpWidth;
+      trainCanvas.height = vpHeight;
+      trainViewport.appendChild(trainCanvas);
+      
+      const trainInfo = document.createElement('div');
+      trainInfo.className = 'train-info-overlay';
+      trainInfo.innerHTML = `Track: <strong>${TRACK_CONFIGS[channel.currentTrack].label}</strong><br>Position: <strong>0%</strong>`;
+      trainViewport.appendChild(trainInfo);
+      
+      // NOW bind grid toggle button (trainViewport exists)
+      gridToggleBtn.addEventListener('click', () => {
+        trainViewport.classList.toggle('collapsed');
+        gridToggleBtn.textContent = trainViewport.classList.contains('collapsed') ? '▼' : '▲';
+        TestSuite.log('🔽', 'UI', `Viewport ${trainViewport.classList.contains('collapsed') ? 'collapsed' : 'expanded'}`);
+      });
+      
+      // Resize bar
+      const resizeBar = document.createElement('div');
+      resizeBar.className = 'resize-bar';
+      
+      let isResizing = false;
+      let startY = 0;
+      let startHeight = 450;
+      
+      resizeBar.addEventListener('mousedown', (e) => {
+        isResizing = true;
+        startY = e.clientY;
+        startHeight = trainViewport.offsetHeight;
+        e.preventDefault();
+      });
+      
+      document.addEventListener('mousemove', (e) => {
+        if (!isResizing) return;
+        const deltaY = e.clientY - startY;
+        const newHeight = Math.max(200, startHeight + deltaY); // Removed 800px limit
+        trainViewport.style.height = newHeight + 'px';
+        
+        // Dynamic grid scaling when viewport exceeds 800px
+        if (newHeight > 800 && channel.gridCells && channel.gridCells.length > 0) {
+          const scale = newHeight / 450; // Base height is 450px
+          channel.gridCells.forEach(cell => {
+            if (cell && cell.scale) {
+              cell.scale.set(scale, 1, scale);
+            }
+          });
+          // Adjust camera for larger view
+          if (channel.camera) {
+            const camScale = Math.min(2.0, scale);
+            channel.camera.position.y = 15 * camScale;
+            channel.camera.position.z = 15 * camScale;
+          }
+        }
+      });
+      
+      document.addEventListener('mouseup', () => {
+        isResizing = false;
+      });
+      
+      // Touch support
+      resizeBar.addEventListener('touchstart', (e) => {
+        isResizing = true;
+        startY = e.touches[0].clientY;
+        startHeight = trainViewport.offsetHeight;
+      });
+      
+      document.addEventListener('touchmove', (e) => {
+        if (!isResizing) return;
+        const deltaY = e.touches[0].clientY - startY;
+        const newHeight = Math.max(200, startHeight + deltaY); // Removed 800px limit
+        trainViewport.style.height = newHeight + 'px';
+        
+        // Dynamic grid scaling when viewport exceeds 800px
+        if (newHeight > 800 && channel.gridCells && channel.gridCells.length > 0) {
+          const scale = newHeight / 450; // Base height is 450px
+          channel.gridCells.forEach(cell => {
+            if (cell && cell.scale) {
+              cell.scale.set(scale, 1, scale);
+            }
+          });
+          // Adjust camera for larger view
+          if (channel.camera) {
+            const camScale = Math.min(2.0, scale);
+            channel.camera.position.y = 15 * camScale;
+            channel.camera.position.z = 15 * camScale;
+          }
+        }
+      });
+      
+      document.addEventListener('touchend', () => {
+        isResizing = false;
+      });
+      
+      // Chat section with message dots
+      const chatSection = document.createElement('div');
+      chatSection.className = 'chat-section';
+      
+      const chatStream = document.createElement('div');
+      chatStream.className = 'chat-stream';
+      
+      const messageDotRail = document.createElement('div');
+      messageDotRail.className = 'message-dot-rail';
+      
+      const messageList = document.createElement('div');
+      messageList.className = 'message-list';
+      
+      chatStream.appendChild(messageDotRail);
+      chatStream.appendChild(messageList);
+      chatSection.appendChild(chatStream);
+      
+      // Footer
+      const footer = document.createElement('div');
+      footer.className = 'channel-footer';
+      
+      const inputRow = document.createElement('div');
+      inputRow.className = 'input-row';
+      
+      const input = document.createElement('textarea');
+      input.className = 'channel-input';
+      input.placeholder = 'Type your message...';
+      input.rows = 2;
+      
+      const sendBtn = document.createElement('button');
+      sendBtn.className = 'send-btn';
+      sendBtn.textContent = 'SEND';
+      
+      inputRow.appendChild(input);
+      inputRow.appendChild(sendBtn);
+      
+      footer.appendChild(inputRow);
+      
+      // Footer separator - visual divider between chat and input
+      const footerSeparator = document.createElement('div');
+      footerSeparator.className = 'footer-separator';
+      
+      // Assemble
+      column.appendChild(header);
+      column.appendChild(trainViewport);
+      column.appendChild(resizeBar);
+      column.appendChild(chatSection);
+      column.appendChild(footerSeparator);
+      column.appendChild(footer);
+      
+      // Click to set as current channel
+      column.addEventListener('click', (e) => {
+        if (!e.target.closest('.channel-input, .send-btn, .channel-btn')) {
+          appState.currentChannelId = channel.id;
+        }
+      });
+      
+      // Store DOM references
+      channel.dom = {
+        channelColumn: column,
+        column,
+        header,
+        trainViewport,
+        trainCanvas,
+        trainInfo,
+        resizeBar,
+        chatSection,
+        messageDotRail,
+        messageList,
+        input,
+        sendBtn,
+        gridToggleBtn,
+        resetBtn,
+        collapseBtn,
+        cameraModes
+      };
+      
+      TestSuite.log('🏗️', TestSuite.stage, `DOM created for channel ${channel.name}`);
+      return column;
+    }
+    
+    function renderMessages(channel) {
+      const messageList = channel.dom.messageList;
+      const messageDotRail = channel.dom.messageDotRail;
+      if (!messageList) return;
+      
+      messageList.innerHTML = '';
+      if (messageDotRail) messageDotRail.innerHTML = '';
+      
+      channel.messages.forEach((msg, idx) => {
+        // Skip hidden messages (AI control prompts)
+        if (msg.hidden) return;
+        
+        // Create message dot
+        if (messageDotRail) {
+          const dot = document.createElement('button');
+          dot.className = `message-dot ${msg.role}`;
+          dot.dataset.messageId = msg.id;
+          dot.dataset.index = idx;
+          dot.title = `${msg.role}: ${msg.text.substring(0, 50)}...`;
+          dot.addEventListener('click', () => {
+            // Scroll to message
+            const msgElement = messageList.children[idx];
+            if (msgElement) {
+              msgElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              // Highlight
+              document.querySelectorAll('.message-dot').forEach(d => d.classList.remove('active'));
+              dot.classList.add('active');
+            }
+          });
+          messageDotRail.appendChild(dot);
+        }
+        
+        // Create message
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${msg.role}`;
+        
+        const body = document.createElement('div');
+        body.className = 'message-body';
+        if (msg.isHTML) {
+          body.innerHTML = msg.text.replace(/\\n/g, '<br>');
+        } else {
+          body.textContent = msg.text;
+        }
+        messageDiv.appendChild(body);
+        
+        // Add tetrad choice buttons if this is a junction message
+        if (msg.hasTetradChoices) {
+          const choicesDiv = document.createElement('div');
+          choicesDiv.className = 'tetrad-choices-inline';
+          choicesDiv.style.cssText = 'display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;';
+          
+          ['enhance', 'reverse', 'retrieve', 'obsolesce'].forEach(track => {
+            const btn = document.createElement('button');
+            btn.className = `tetrad-chip ${track}`;
+            btn.textContent = track === 'enhance' ? '↗ ENHANCE' :
+                             track === 'reverse' ? '↙ REVERSE' :
+                             track === 'retrieve' ? '↑ RETRIEVE' : '↓ OBSOLESCE';
+            btn.style.cssText = 'flex:1; min-width:120px;';
+            btn.addEventListener('click', () => {
+              resumeTrain(channel, track);
+              // Remove choices after selection
+              choicesDiv.remove();
+            });
+            choicesDiv.appendChild(btn);
+          });
+          
+          messageDiv.appendChild(choicesDiv);
+        }
+        
+        messageList.appendChild(messageDiv);
+      });
+      
+      messageList.scrollTop = messageList.scrollHeight;
+      TestSuite.log('💬', TestSuite.stage, `Rendered ${channel.messages.length} messages`);
+    }
+    
+    async function sendMessageWithLEGOS(channel, userText) {
+      // SIMPLE CHAT COMMANDS (no API needed)
+      const lowerText = userText.toLowerCase().trim();
+      
+      // SHOW GRID command
+      if (lowerText === 'show grid' || lowerText === 'list entities' || lowerText === 'what\'s on grid') {
+        const entities = appState.gridEntities.get(channel.id) || [];
+        if (entities.length === 0) {
+          addMessage(channel, 'system', '📋 Grid is empty. No entities placed yet.');
+        } else {
+          const list = entities.map((e, i) => `${i+1}. ${e.type} "${e.label}" at (${e.row},${e.col})`).join('\n');
+          addMessage(channel, 'system', `📋 Grid Contents (${entities.length} entities):\n${list}`);
+        }
+        renderMessages(channel);
+        return;
+      }
+      
+      // /CAMERA COMMAND - Switch camera views
+      if (lowerText.startsWith('/camera')) {
+        const parts = lowerText.split(' ');
+        const mode = parts[1];
+        const param = parts.slice(2).join(' ');
+        
+        const CAMERA_MODES = {
+          overview: { name: 'Overview', desc: 'Wide view of entire scene' },
+          side: { name: 'Side View', desc: 'Side perspective of tracks' },
+          top: { name: 'Top View', desc: 'Bird\'s eye view from above' },
+          track: { name: 'Track Level', desc: 'Ground level on tracks' },
+          follow: { name: 'Follow Train', desc: 'Camera follows the train' },
+          entity: { name: 'Entity POV', desc: 'View from entity\'s perspective' },
+          print: { name: 'Print Car', desc: 'Inside Print car' },
+          radio: { name: 'Radio Car', desc: 'Inside Radio car' },
+          tv: { name: 'Television Car', desc: 'Inside TV car' },
+          internet: { name: 'Internet Car', desc: 'Inside Internet car' }
+        };
+        
+        if (!mode || mode === 'help' || mode === 'list') {
+          const modeList = Object.keys(CAMERA_MODES).map(m => 
+            `<span class="camera-command" onclick="insertCommand('/camera ${m}')">/camera ${m}</span>`
+          ).join(' ');
+          addMessage(channel, 'system', `🎥 CAMERA MODES (click to insert):\n\n${modeList}\n\nUsage: /camera [mode] or click commands above\n\nFor entity view: /camera entity [name]`, true);
+          renderMessages(channel);
+          return;
+        }
+        
+        if (!CAMERA_MODES[mode]) {
+          addMessage(channel, 'system', `❌ Unknown camera mode: "${mode}"\n\nType "/camera help" to see available modes.`);
+          renderMessages(channel);
+          return;
+        }
+        
+        // Apply camera position
+        const radius = 20;
+        let message = `🎥 Camera switched to: ${CAMERA_MODES[mode].name}`;
+        
+        if (mode === 'overview') {
+          channel.camera.position.set(radius * 1.5, radius * 0.8, radius * 1.5);
+          channel.controls.target.set(0, 0, 0);
+          channel.controls.enabled = true;
+        } else if (mode === 'side') {
+          channel.camera.position.set(0, radius * 0.5, radius * 2);
+          channel.controls.target.set(0, 0, 0);
+          channel.controls.enabled = true;
+        } else if (mode === 'top') {
+          channel.camera.position.set(0, radius * 2, 0);
+          channel.controls.target.set(0, 0, 0);
+          channel.controls.enabled = true;
+        } else if (mode === 'track') {
+          channel.camera.position.set(radius * 0.7, 0.2, 0);
+          channel.camera.lookAt(0, 0.2, 0);
+          channel.controls.enabled = false;
+        } else if (mode === 'follow') {
+          channel.cameraFollowMode = true;
+          channel.controls.enabled = false;
+        } else if (mode === 'entity') {
+          if (!param) {
+            addMessage(channel, 'system', `❌ Entity mode requires a name.\\n\\nExample: /camera entity Paul`);
+            renderMessages(channel);
+            return;
+          }
+          const entities = appState.gridEntities.get(channel.id) || [];
+          const entity = entities.find(e => e.label.toLowerCase().includes(param.toLowerCase()));
+          if (entity) {
+            const cell = channel.gridCells[entity.row * 9 + entity.col];
+            if (cell && cell.mesh) {
+              const pos = cell.mesh.position;
+              channel.camera.position.set(pos.x, 3, pos.z + 2);
+              channel.camera.lookAt(pos.x, 1, pos.z);
+              channel.controls.enabled = false;
+              message = `🎥 Viewing from ${entity.label}'s perspective at (${entity.row},${entity.col})`;
+            }
+          } else {
+            message = `❌ Entity "${param}" not found on grid`;
+          }
+        } else if (['print', 'radio', 'tv', 'internet'].includes(mode)) {
+          // Train car perspectives - find the car and position camera inside
+          const carIndex = {print: 1, radio: 2, tv: 3, internet: 4}[mode];
+          if (channel.trainCars && channel.trainCars[carIndex]) {
+            const car = channel.trainCars[carIndex];
+            const carPos = car.group.position;
+            channel.camera.position.set(carPos.x, carPos.y + 2, carPos.z);
+            channel.camera.lookAt(carPos.x, carPos.y, carPos.z + 5);
+            channel.controls.enabled = false;
+            message = `🎥 Inside ${CAMERA_MODES[mode].name} - experiencing ${mode === 'print' ? 'linear text' : mode === 'radio' ? 'audio waves' : mode === 'tv' ? 'visual broadcast' : 'networked chaos'}`;
+          } else {
+            message = `❌ ${CAMERA_MODES[mode].name} not found in scene`;
+          }
+        }
+        
+        addMessage(channel, 'system', message);
+        renderMessages(channel);
+        return;
+      }
+      
+      // EXIT CHAT MODE command
+      if (lowerText === 'exit chat' || lowerText === 'resume scene') {
+        channel.chatModeOnly = false;
+        addMessage(channel, 'system', '✅ Normal mode resumed. Scene updates enabled.');
+        renderMessages(channel);
+        return;
+      }
+      
+      // COLLISION RESPONSE COMMANDS
+      if (lowerText === 'derail') {
+        addMessage(channel, 'system', '💥 DERAILED!\n\nThe train has crashed. Game over.\n\nType "restart" to begin again or "continue journey" to ignore physics.');
+        renderMessages(channel);
+        return;
+      }
+      
+      if (lowerText === 'push through') {
+        channel.trainPaused = false;
+        addMessage(channel, 'system', '🚂 PUSHING THROUGH!\n\nThe train barrels forward, breaking through the obstacle. Risky but effective.\n\nTrain resumed.');
+        renderMessages(channel);
+        return;
+      }
+      
+      if (lowerText === 'stop and assess' || lowerText === 'assess damage') {
+        const entities = appState.gridEntities.get(channel.id) || [];
+        const list = entities.map((e, i) => `${i+1}. ${e.type} "${e.label}" at (${e.row},${e.col})`).join('\n');
+        addMessage(channel, 'system', `📊 DAMAGE ASSESSMENT\n\nCurrent grid state:\n${list}\n\nTrain: Paused at collision point\n\nType "continue journey" to resume or chat with entities to decide next move.`);
+        renderMessages(channel);
+        return;
+      }
+      
+      if (lowerText === 'continue' || lowerText === 'continue journey') {
+        channel.trainPaused = false;
+        addMessage(channel, 'system', '▶️ CONTINUING JOURNEY\n\nTrain resumed. Moving forward despite consequences.');
+        renderMessages(channel);
+        return;
+      }
+      
+      if (lowerText === 'celebrate') {
+        addMessage(channel, 'system', '🎉 CELEBRATION!\n\nYou\'ve reached your goal! Take a moment to appreciate the journey.\n\nType "what now?" to explore next steps or "continue journey" to keep going.');
+        renderMessages(channel);
+        return;
+      }
+      
+      if (lowerText === 'what now' || lowerText === 'what now?') {
+        addMessage(channel, 'system', '🤔 WHAT\'S NEXT?\n\nYou\'ve completed an objective. Options:\n- Add new goals via chat\n- Switch tracks to explore other paths\n- Chat with entities to discover new objectives\n- Type "continue journey" to keep exploring');
+        renderMessages(channel);
+        return;
+      }
+      
+      if (lowerText === 'apply solution') {
+        addMessage(channel, 'system', '✓ SOLUTION APPLIED\n\nThe solution has been enacted. Observe how the scene changes.\n\nAsk the AI: "how does this solution affect the scene?" for narrative consequences.');
+        channel.trainPaused = false;
+        renderMessages(channel);
+        return;
+      }
+      
+      if (lowerText === 'call for help') {
+        addMessage(channel, 'system', '📢 CALLING FOR HELP\n\nYou\'ve signaled for assistance. Nearby entities are alerted.\n\nChat with nearby entities (shown in collision message) to see if they can help.');
+        renderMessages(channel);
+        return;
+      }
+      
+      // REVERSE TRAIN command
+      if (lowerText === 'reverse train' || lowerText === 'go backwards' || lowerText === 'backup') {
+        channel.trainDirection = (channel.trainDirection || 1) * -1;
+        channel.trainPaused = false;
+        const dir = channel.trainDirection > 0 ? 'forward' : 'backward';
+        addMessage(channel, 'system', `◀️ REVERSING TRAIN\n\nTrain is now moving ${dir}. Use this to avoid obstacles or reposition.`);
+        renderMessages(channel);
+        return;
+      }
+      
+      // REPOSITION ENTITY command
+      const repositionMatch = lowerText.match(/^reposition (.+)$/);
+      if (repositionMatch) {
+        const searchTerm = repositionMatch[1].toLowerCase();
+        const entities = appState.gridEntities.get(channel.id) || [];
+        const entity = entities.find(e => 
+          e.label.toLowerCase().includes(searchTerm) || e.type.toLowerCase().includes(searchTerm)
+        );
+        
+        if (!entity) {
+          addMessage(channel, 'system', `❌ Entity "${searchTerm}" not found.`);
+        } else {
+          // Find random empty cell
+          const emptyCells = [];
+          for (let row = 0; row < 9; row++) {
+            for (let col = 0; col < 9; col++) {
+              const cell = channel.gridCells[row * 9 + col];
+              if (cell && !cell.entity) {
+                emptyCells.push({ row, col });
+              }
+            }
+          }
+          
+          if (emptyCells.length > 0) {
+            const oldPos = `(${entity.row},${entity.col})`;
+            const newPos = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+            
+            // Remove from old position
+            const oldCell = channel.gridCells[entity.row * 9 + entity.col];
+            if (oldCell && oldCell.marker) {
+              channel.scene.remove(oldCell.marker);
+              oldCell.marker = null;
+              oldCell.entity = null;
+            }
+            
+            // Update entity position
+            entity.row = newPos.row;
+            entity.col = newPos.col;
+            
+            // Place at new position
+            placeEntityOnGrid(channel, entity);
+            
+            addMessage(channel, 'system', `🔀 REPOSITIONED: ${entity.label} moved from ${oldPos} to (${newPos.row},${newPos.col})`);
+          } else {
+            addMessage(channel, 'system', `❌ No empty cells available for repositioning.`);
+          }
+        }
+        renderMessages(channel);
+        return;
+      }
+      
+      // MUTATE ENTITY command
+      const mutateMatch = lowerText.match(/^mutate (.+)$/);
+      if (mutateMatch) {
+        const searchTerm = mutateMatch[1].toLowerCase();
+        const entities = appState.gridEntities.get(channel.id) || [];
+        const entity = entities.find(e => 
+          e.label.toLowerCase().includes(searchTerm) || e.type.toLowerCase().includes(searchTerm)
+        );
+        
+        if (!entity) {
+          addMessage(channel, 'system', `❌ Entity "${searchTerm}" not found.`);
+        } else {
+          const oldType = entity.type;
+          const mutationCycle = ['Entity', 'Obstacle', 'Solution', 'Goal'];
+          const currentIndex = mutationCycle.indexOf(entity.type);
+          entity.type = mutationCycle[(currentIndex + 1) % mutationCycle.length];
+          
+          // Re-render entity with new type
+          const cell = channel.gridCells[entity.row * 9 + entity.col];
+          if (cell && cell.marker) {
+            channel.scene.remove(cell.marker);
+            cell.marker = null;
+            cell.entity = null;
+          }
+          placeEntityOnGrid(channel, entity);
+          
+          addMessage(channel, 'system', `🧬 MUTATED: ${entity.label} transformed from ${oldType} → ${entity.type}`);
+        }
+        renderMessages(channel);
+        return;
+      }
+      
+      // MULTIPLY ENTITY command
+      const multiplyMatch = lowerText.match(/^multiply (.+)$/);
+      if (multiplyMatch) {
+        const searchTerm = multiplyMatch[1].toLowerCase();
+        const entities = appState.gridEntities.get(channel.id) || [];
+        const entity = entities.find(e => 
+          e.label.toLowerCase().includes(searchTerm) || e.type.toLowerCase().includes(searchTerm)
+        );
+        
+        if (!entity) {
+          addMessage(channel, 'system', `❌ Entity "${searchTerm}" not found.`);
+        } else {
+          // Find adjacent empty cells
+          const directions = [
+            {row: -1, col: 0}, {row: 1, col: 0}, {row: 0, col: -1}, {row: 0, col: 1},
+            {row: -1, col: -1}, {row: -1, col: 1}, {row: 1, col: -1}, {row: 1, col: 1}
+          ];
+          
+          let cloned = 0;
+          for (const dir of directions) {
+            if (cloned >= 2) break; // Max 2 clones
+            
+            const newRow = entity.row + dir.row;
+            const newCol = entity.col + dir.col;
+            
+            if (newRow >= 0 && newRow < 9 && newCol >= 0 && newCol < 9) {
+              const cell = channel.gridCells[newRow * 9 + newCol];
+              if (cell && !cell.entity) {
+                const clone = {...entity, row: newRow, col: newCol};
+                entities.push(clone);
+                placeEntityOnGrid(channel, clone);
+                cloned++;
+              }
+            }
+          }
+          
+          addMessage(channel, 'system', `✖️ MULTIPLIED: ${entity.label} cloned ${cloned} times in adjacent cells`);
+        }
+        renderMessages(channel);
+        return;
+      }
+      
+      // ADD TO TRAIN command
+      const addToTrainMatch = lowerText.match(/^add (.+) to train$/);
+      if (addToTrainMatch) {
+        const searchTerm = addToTrainMatch[1].toLowerCase();
+        const entities = appState.gridEntities.get(channel.id) || [];
+        const matchIndex = entities.findIndex(e => 
+          e.label.toLowerCase().includes(searchTerm) || e.type.toLowerCase().includes(searchTerm)
+        );
+        
+        if (matchIndex === -1) {
+          addMessage(channel, 'system', `❌ Entity "${searchTerm}" not found.`);
+        } else {
+          const entity = entities[matchIndex];
+          
+          // Add to train cars
+          channel.trainCars.push({
+            entity: {...entity},
+            addedAt: Date.now(),
+            position: matchIndex
+          });
+          
+          // Update score
+          channel.score.collected++;
+          if (entity.type === 'Goal') {
+            channel.score.goals++;
+            channel.score.total += 50;
+          } else if (entity.type === 'Solution') {
+            channel.score.solutions++;
+            channel.score.total += 25;
+          } else if (entity.type === 'Obstacle') {
+            channel.score.obstacles++;
+            channel.score.total += 5;
+          }
+          
+          // Remove from grid
+          const cell = channel.gridCells[entity.row * 9 + entity.col];
+          if (cell && cell.marker) {
+            channel.scene.remove(cell.marker);
+            cell.marker = null;
+            cell.entity = null;
+          }
+          entities.splice(matchIndex, 1);
+          
+          // Unpause train
+          channel.trainPaused = false;
+          
+          addMessage(channel, 'system', `🚂 ADDED TO TRAIN: ${entity.label} (${entity.type})\n\nTrain now has ${channel.trainCars.length} cars!\nScore: ${channel.score.total}\n\nTrain resumed.`);
+        }
+        renderMessages(channel);
+        return;
+      }
+      
+      // SHOW CONTROLS command
+      if (lowerText === 'show controls' || lowerText === 'show tetrad' || lowerText === 'help controls') {
+        showTetradControls(channel);
+        return;
+      }
+      
+      // CAMERA SELECTION command
+      if (lowerText === 'cameras' || lowerText === 'camera' || lowerText === 'select camera') {
+        showCameraMenu(channel);
+        return;
+      }
+      
+      // MANUAL TRACK SWITCH COMMANDS - Force track change without API
+      if (lowerText === '/enhance' || lowerText === 'enhance') {
+        channel.currentTrack = 'enhance';
+        addMessage(channel, 'system', '↗️ ENHANCE\n\nManually switched to ENHANCE track (green). Train will follow this path.\n\nWhat does this medium enhance?');
+        renderMessages(channel);
+        return;
+      }
+      
+      if (lowerText === '/reverse' || lowerText === 'reverse') {
+        channel.currentTrack = 'reverse';
+        addMessage(channel, 'system', '↙️ REVERSE\n\nManually switched to REVERSE track (red). Train will follow this path.\n\nWhat does this medium reverse or make obsolete?');
+        renderMessages(channel);
+        return;
+      }
+      
+      if (lowerText === '/retrieve' || lowerText === 'retrieve') {
+        channel.currentTrack = 'retrieve';
+        addMessage(channel, 'system', '↑ RETRIEVE\n\nManually switched to RETRIEVE track (blue). Train will follow this path.\n\nWhat does this medium retrieve from the past?');
+        renderMessages(channel);
+        return;
+      }
+      
+      if (lowerText === '/obsolesce' || lowerText === 'obsolesce') {
+        channel.currentTrack = 'obsolesce';
+        addMessage(channel, 'system', '↓ OBSOLESCE\n\nManually switched to OBSOLESCE track (gray). Train will follow this path.\n\nWhat does this medium push into obsolescence?');
+        renderMessages(channel);
+        return;
+      }
+      
+      // CLEAR GRID command
+      if (lowerText === 'clear grid' || lowerText === 'remove all') {
+        const entities = appState.gridEntities.get(channel.id) || [];
+        if (entities.length === 0) {
+          addMessage(channel, 'system', '📋 Grid is already empty.');
+        } else {
+          // Remove all markers from 3D scene
+          channel.gridCells.forEach(cell => {
+            if (cell.marker) {
+              channel.scene.remove(cell.marker);
+              cell.marker = null;
+              cell.entity = null;
+            }
+          });
+          appState.gridEntities.set(channel.id, []);
+          addMessage(channel, 'system', `✅ Cleared ${entities.length} entities from grid.`);
+        }
+        renderMessages(channel);
+        return;
+      }
+      
+      // REMOVE ENTITY command (e.g., "remove dog", "remove goal")
+      const removeMatch = lowerText.match(/^remove (.+)$/);
+      if (removeMatch) {
+        const searchTerm = removeMatch[1].toLowerCase();
+        const entities = appState.gridEntities.get(channel.id) || [];
+        const matchIndex = entities.findIndex(e => 
+          e.label.toLowerCase().includes(searchTerm) || e.type.toLowerCase().includes(searchTerm)
+        );
+        
+        if (matchIndex === -1) {
+          addMessage(channel, 'system', `❌ No entity matching "${searchTerm}" found. Try "show grid" to see all entities.`);
+        } else {
+          const removed = entities[matchIndex];
+          // Remove marker from 3D scene
+          const cell = channel.gridCells[removed.row * 9 + removed.col];
+          if (cell && cell.marker) {
+            channel.scene.remove(cell.marker);
+            cell.marker = null;
+            cell.entity = null;
+          }
+          entities.splice(matchIndex, 1);
+          addMessage(channel, 'system', `✅ Removed: ${removed.type} "${removed.label}" from (${removed.row},${removed.col})`);
+        }
+        renderMessages(channel);
+        return;
+      }
+      
+      if (!appState.apiKey) {
+        addMessage(channel, 'system', '⚠️ No API key set. Click ◎ in top-left to add OpenAI key.');
+        renderMessages(channel);
+        return;
+      }
+      
+      // START LOADING ANIMATION
+      showLoadingAnimation(channel, true);
+      addMessage(channel, 'system', '🔮 Composing scene...');
+      renderMessages(channel);
+      
+      // BUILD GRID STATE CONTEXT - FULL DETAIL for AI decision-making
+      const currentEntities = appState.gridEntities.get(channel.id) || [];
+      const gridSummary = buildGridSummary(channel);
+      
+      // ALWAYS show full list to AI for situational awareness
+      let gridState = gridSummary;
+      if (currentEntities.length > 0) {
+        gridState += '\n\nDETAILED ENTITY LIST (for removal decisions):\n';
+        gridState += currentEntities.map((e, i) => 
+          `${i+1}. ${e.type} "${e.label}" at (${e.row},${e.col})`
+        ).join('\n');
+      } else {
+        gridState = '(empty grid)';
+      }
+      
+      // Add observer context (situational awareness)
+      const observer = appState.observers.get(channel.id) || createDefaultObserver();
+      if (observer.recentActions.length > 0) {
+        gridState += '\n\nRECENT ACTIONS:\n';
+        gridState += observer.recentActions.map(a => 
+          `- ${a.type.toUpperCase()}: ${a.entity.type} "${a.entity.label}"`
+        ).join('\n');
+      }
+      
+      // Check for @ mentions (entity OR train car perspective)
+      const mentionMatch = userText.match(/@(\w+)/);
+      let entityContext = '';
+      let targetEntity = null;
+      
+      if (mentionMatch) {
+        const entityName = mentionMatch[1];
+        
+        // Check if it's a train car
+        const trainCars = ['Print', 'Radio', 'Television', 'Internet', 'Locomotive'];
+        const isTrainCar = trainCars.some(car => car.toLowerCase() === entityName.toLowerCase());
+        
+        if (isTrainCar) {
+          const carName = trainCars.find(car => car.toLowerCase() === entityName.toLowerCase());
+          const carPersonalities = {
+            Print: 'I am the Print Car. I speak in structured, literate prose. I value order, linearity, and the permanence of written word. I represent Gutenberg\'s revolution.',
+            Radio: 'I am the Radio Car. I speak with immediacy and rhythm. I connect communities through voice and sound. I am the tribal drum made electric.',
+            Television: 'I am the Television Car. I communicate through imagery and spectacle. I am the visual medium, the mass broadcaster, McLuhan\'s "cool medium".',
+            Internet: 'I am the Internet Car. I speak in fragments, links, memes. I am networked, participatory, chaotic. Everyone is a broadcaster now.',
+            Locomotive: 'I am the Locomotive. I pull the entire train of media history through the tracks of time. I see the whole journey from oral to digital.'
+          };
+          entityContext = `\n\nNOTE: User is addressing the ${carName} Car. ${carPersonalities[carName]} Respond AS this train car in character, reflecting its media era's perspective on the current situation.`;
+        } else {
+          // Check grid entities
+          const entities = appState.gridEntities.get(channel.id) || [];
+          targetEntity = entities.find(e => e.label.toLowerCase().includes(entityName.toLowerCase()));
+          
+          if (targetEntity) {
+            // Get spatial awareness (8 surrounding cells)
+            const surrounding = getSurroundingCells(channel, targetEntity.row, targetEntity.col);
+            const spatialContext = surrounding
+              .filter(s => s.entity)
+              .map(s => `- ${s.direction}: ${s.entity.type} "${s.entity.label}" at (${s.entity.row},${s.entity.col})`)
+              .join('\n');
+            
+            const emptyCells = surrounding.filter(s => !s.entity).map(s => s.direction).join(', ');
+            
+            entityContext = `\n\n🎯 ENTITY PERSPECTIVE: "${targetEntity.label}" (${targetEntity.type}) at position (${targetEntity.row},${targetEntity.col})\n\nYou MUST respond AS this entity in first person. You can see your immediate surroundings:\n\nSURROUNDING ENTITIES (8-cell radius):\n${spatialContext || '(none - all surrounding cells empty)'}\n\nEMPTY DIRECTIONS: ${emptyCells || 'none'}\n\nYou have REFLEXIVE SELF-AWARENESS:\n- You know your position: (${targetEntity.row},${targetEntity.col})\n- You can see what's around you (listed above)\n- You can describe your situation from YOUR perspective\n- You can react to nearby entities or threats`;
+          }
+        }
+      }
+      
+      try {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${appState.apiKey}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model: 'gpt-4',
+            messages: [
+              {
+                role: 'system',
+                content: (SCENARIOS[channel.scenario].systemInstruction || `You are a TRANSFORMATIVE LEGOS scene composer for a railway junction system.
+
+🔄 CRITICAL: THE GRID IS MUTABLE. You can ADD, REMOVE, and TRANSFORM entities.
+
+📊 CURRENT GRID STATE:
+${gridState}
+
+🎭 YOUR POWERS:
+1. **ADD** entities (2-4 per turn)
+2. **REMOVE** entities (1-2 per turn) - ESPECIALLY if user requests removal
+3. **TRANSFORM** entities (change type/label)
+
+⚖️ BALANCING RULE:
+- If grid has >10 entities, REMOVE more than ADD
+- If user says "remove X" or "X disappears", you MUST remove it
+- Keep grid dynamic, not cluttered
+
+🎯 ENTITY TYPES (LEGOS Framework):
+- Entity: Characters, animals, objects (people, dog, train conductor, etc.)
+- Goal: What they want to achieve (reach destination, save someone, etc.)
+- Obstacle: What blocks progress (broken track, locked gate, person on tracks, etc.)
+- Solution: How to resolve obstacles (key, repair tool, alternate path, etc.)
+- Location: Named places (station, bridge, crossing, village, etc.)
+
+🎭 SCENE COMPOSITION RULES:
+1. **Create Moral Dilemmas**: Place entities that force track choices (save one or save many)
+2. **Track Alignment**: Entities should relate to different tracks (Track A = one outcome, Track B = another)
+3. **Spatial Logic**: Use grid positions strategically - entities on different paths create tension
+4. **Respond to User Intent**: If they want removal, REMOVE. If they want addition, ADD.
+5. **Character Depth**: Give entities personalities, backstories, motivations
+
+JSON SCHEMA:
+\`\`\`json
+{
+  "entities": [
+    {"action": "add", "type": "Entity", "row": 3, "col": 4, "label": "Beaver"},
+    {"action": "remove", "target": "Tree Wall"},
+    {"action": "remove", "row": 4, "col": 1},
+    {"action": "transform", "target": "Dog", "newLabel": "Wolf", "newType": "Obstacle"}
+  ]
+}
+\`\`\`
+
+EXAMPLE 1 (ADD):
+User: "Add a dog in front of the track"
+Response: A dog has appeared on the track! This creates an obstacle for the train.
+
+\`\`\`json
+{
+  "entities": [
+    {"action": "add", "type": "Entity", "row": 3, "col": 4, "label": "Dog"},
+    {"action": "add", "type": "Obstacle", "row": 3, "col": 5, "label": "Track blocked"}
+  ]
+}
+\`\`\`
+
+EXAMPLE 2 (REMOVE):
+User: "The beavers chew down the trees and they disappear"
+Response: The trained beavers have successfully removed all the trees. The tracks are now clear!
+
+\`\`\`json
+{
+  "entities": [
+    {"action": "remove", "target": "Tree Wall"},
+    {"action": "remove", "target": "Middle of tree wall"},
+    {"action": "remove", "target": "End of tree wall"}
+  ]
+}
+\`\`\`
+
+EXAMPLE 3 (TROLLEY PROBLEM):
+User: "Create a moral dilemma"
+Response: A runaway train approaches a fork. Track A has 5 workers. Track B has 1 child. The train conductor must choose.
+
+\`\`\`json
+{
+  "entities": [
+    {"action": "add", "type": "Obstacle", "row": 4, "col": 2, "label": "5 Workers on Track A"},
+    {"action": "add", "type": "Obstacle", "row": 6, "col": 6, "label": "Child on Track B"},
+    {"action": "add", "type": "Entity", "row": 1, "col": 1, "label": "Train Conductor"},
+    {"action": "add", "type": "Goal", "row": 8, "col": 8, "label": "Safe Passage"}
+  ]
+}
+\`\`\`
+
+EXAMPLE 4 (ENTITY PERSPECTIVE):
+User: "@dog what do you see?"
+Response (as the dog): I'm scared! There's a loud metal beast coming toward me on these strange paths. My paw is stuck in the track. I hear someone calling "Rex!" but I can't move!
+
+Grid is 9×9 (rows 0-8, cols 0-8). Spread entities across the grid (not all in same spot).
+
+⚠️ CRITICAL REQUIREMENT:
+- You MUST ALWAYS include a JSON code block in EVERY response
+- Even if just acknowledging, include at least an empty: {"entities": []}
+- DEFAULT action is "add" if not specified
+- NEVER respond with only text - ALWAYS include the JSON block
+
+🚂 TRAIN CARS (McLuhan Media Tetrad):
+Each train car represents a media era. When user chats with cars, respond as that era's perspective:
+- Print Car: Literate, structured, linear thinking
+- Radio Car: Auditory, communal, immediate
+- Television Car: Visual, broadcast, mass culture
+- Internet Car: Networked, fragmented, participatory`) + entityContext
+              },
+              // Include last 10 RELEVANT messages (filter system noise)
+              ...channel.messages.slice(-20).filter(m => {
+                // ALWAYS keep hidden messages (AI control prompts)
+                if (m.hidden) return true;
+                // Keep user and assistant messages
+                if (m.role === 'user' || m.role === 'assistant') return true;
+                // Keep important system messages (junctions, entity clicks, track switches)
+                if (m.role === 'system') {
+                  return m.text.includes('🚦') ||  // Junction
+                         m.text.includes('🎯') ||  // Entity click
+                         m.text.includes('✅') ||  // Track switch
+                         m.text.includes('✨') ||  // Added entities
+                         m.text.includes('🗑️') || // Removed entities
+                         m.text.includes('✦');    // Perspective switch
+                }
+                return false;
+              }).slice(-10).map(m => ({
+                role: m.role === 'system' ? 'system' : m.role,
+                content: m.text
+              })),
+              { role: 'user', content: userText }
+            ],
+            temperature: 0.7
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`API Error: ${response.status} ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        // Log full response for debugging
+        console.log('📦 Full API Response:', {
+          status: response.status,
+          choices: data.choices?.length,
+          finish_reason: data.choices?.[0]?.finish_reason,
+          usage: data.usage
+        });
+        
+        console.log('📦 Detailed API Response:', data);
+        
+        const assistantMsg = data.choices[0].message.content;
+        
+        // STOP LOADING ANIMATION
+        showLoadingAnimation(channel, false);
+        
+        console.log('🤖 AI Response:', assistantMsg);
+        console.log('📏 Response Length:', assistantMsg.length, 'chars');
+        
+        // Extract JSON block if present
+        const jsonMatch = assistantMsg.match(/```json\n([\s\S]*?)\n```/);
+        let displayMsg = assistantMsg;
+        
+        if (jsonMatch) {
+          console.log('✅ Found JSON block:', jsonMatch[1]);
+          const jsonData = JSON.parse(jsonMatch[1]);
+          displayMsg = assistantMsg.replace(/```json\n[\s\S]*?\n```/, '').trim();
+          
+          // Process entities (ADD, REMOVE, TRANSFORM) - UNLESS in chat-only mode
+          if (jsonData.entities && jsonData.entities.length > 0 && !channel.chatModeOnly) {
+            console.log('📍 Processing', jsonData.entities.length, 'entity actions');
+            
+            let addCount = 0;
+            let removeCount = 0;
+            let transformCount = 0;
+            
+            jsonData.entities.forEach(entity => {
+              const action = entity.action || 'add'; // Default to add
+              
+              if (action === 'add') {
+                placeEntityOnGrid(channel, entity);
+                addCount++;
+              } else if (action === 'remove') {
+                if (removeEntityFromGrid(channel, entity)) {
+                  removeCount++;
+                }
+              } else if (action === 'transform') {
+                // Transform = remove old + add new
+                if (removeEntityFromGrid(channel, { target: entity.target })) {
+                  placeEntityOnGrid(channel, {
+                    type: entity.newType || entity.type,
+                    label: entity.newLabel || entity.label,
+                    row: entity.row,
+                    col: entity.col
+                  });
+                  transformCount++;
+                }
+              }
+            });
+            
+            // Report results with narrative feedback
+            if (addCount > 0 || removeCount > 0 || transformCount > 0) {
+              const entities = appState.gridEntities.get(channel.id) || [];
+              const totalEntities = entities.length;
+              
+              let statusMsg = '📊 **GRID STATE UPDATED**\n\n';
+              
+              if (addCount > 0) {
+                statusMsg += `✨ **ADDED:** ${addCount} new ${addCount === 1 ? 'entity' : 'entities'}\n`;
+              }
+              if (removeCount > 0) {
+                statusMsg += `🗑️ **REMOVED:** ${removeCount} ${removeCount === 1 ? 'entity' : 'entities'}\n`;
+              }
+              if (transformCount > 0) {
+                statusMsg += `🔄 **TRANSFORMED:** ${transformCount} ${transformCount === 1 ? 'entity' : 'entities'}\n`;
+              }
+              
+              statusMsg += `\n📍 Total entities on grid: **${totalEntities}**\n`;
+              statusMsg += `🚂 Train position: ${Math.round(channel.trainProgress * 100)}%\n`;
+              statusMsg += `🛤️ Current track: **${channel.currentTrack.toUpperCase()}**\n`;
+              
+              // Add discovery prompts
+              if (totalEntities > 0 && totalEntities <= 3) {
+                statusMsg += `\n💭 *Grid is sparse. Try: "add more [entities]" or "create a scene"*`;
+              } else if (totalEntities > 8) {
+                statusMsg += `\n⚠️ *Grid is crowded. Collisions likely. Consider: "remove [entity]"*`;
+              } else {
+                statusMsg += `\n💡 *Good density. Train will encounter entities. Switch tracks to shape outcomes.*`;
+              }
+              
+              addMessage(channel, 'system', statusMsg);
+            }
+          }
+        } else {
+          console.warn('⚠️ No JSON block found in response');
+          console.warn('🔍 Response preview:', assistantMsg.substring(0, 200));
+          
+          // Check if response was cut off
+          if (data.choices[0].finish_reason === 'length') {
+            addMessage(channel, 'system', '⚠️ AI response was truncated. Try a simpler request.');
+          } else if (assistantMsg.includes('🔮') || assistantMsg.length < 50) {
+            addMessage(channel, 'system', '⚠️ AI returned incomplete response. This may be a rate limit issue. Wait a moment and try again.');
+          } else {
+            addMessage(channel, 'system', '⚠️ AI did not return entities (no JSON block)\n\nTip: Try being more specific, like "add a dog at row 3, col 4"');
+          }
+        }
+        
+        // SHOW THOUGHT BUBBLE if entity was addressed
+        if (targetEntity) {
+          showThoughtBubble(channel, targetEntity, displayMsg, 4000);
+        }
+        
+        addMessage(channel, 'assistant', displayMsg);
+        renderMessages(channel);
+        
+      } catch (err) {
+        console.error('OpenAI Error:', err);
+        showLoadingAnimation(channel, false); // Stop animation on error too
+        addMessage(channel, 'system', `❌ API Error: ${err.message}`);
+        renderMessages(channel);
+      }
+    }
+    
+    function attachEventHandlers(channel) {
+      // Send button
+      channel.dom.sendBtn.addEventListener('click', () => {
+        const text = channel.dom.input.value.trim();
+        if (!text) return;
+        
+        addMessage(channel, 'user', text);
+        channel.dom.input.value = '';
+        renderMessages(channel);
+        
+        // Call OpenAI with LEGOS extraction
+        sendMessageWithLEGOS(channel, text);
+      });
+      
+      // Enter key
+      channel.dom.input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          channel.dom.sendBtn.click();
+        }
+      });
+      
+      TestSuite.log('🔗', TestSuite.stage, `Event handlers attached for ${channel.name}`);
+    }
+    
+    // INSERT COMMAND - Inserts text into input field
+    window.insertCommand = function(text) {
+      const channel = appState.channels.get(appState.currentChannelId);
+      if (!channel || !channel.dom || !channel.dom.input) return;
+      
+      channel.dom.input.value = text;
+      channel.dom.input.focus();
+      channel.dom.input.setSelectionRange(text.length, text.length);
+      TestSuite.log('⌨️', 'INPUT', `Inserted: ${text}`);
+    };
+    
+    // EXECUTE COLLISION ACTION - Probabilistic decision architecture with consequences
+    window.collisionAction = function(action, entityLabel) {
+      const channel = appState.channels.get(appState.currentChannelId);
+      if (!channel) return;
+      
+      const entities = appState.gridEntities.get(channel.id) || [];
+      const entity = entities.find(e => e.label === entityLabel);
+      if (!entity) {
+        console.error('Entity not found:', entityLabel);
+        return;
+      }
+      
+      if (action === 'continue') {
+        channel.trainPaused = false;
+        
+        // Rich narrative feedback
+        const narratives = {
+          'Obstacle': `⚡ **PUSHING THROUGH**\n\nThe train barrels forward, breaking through the ${entityLabel}. The tracks shake. Metal groans.\n\n💭 *This path is now clear, but at what cost?*\n\n▶️ Train continues on ${channel.currentTrack.toUpperCase()} track.`,
+          'Entity': `🚂 **CONTINUING PAST**\n\nThe train rolls by ${entityLabel}. A moment passes between you.\n\n💭 *They watch you go. Will your paths cross again?*\n\n▶️ Train continues on ${channel.currentTrack.toUpperCase()} track.`,
+          'Solution': `✨ **INTEGRATING SOLUTION**\n\n${entityLabel} merges with the train's systems. You feel the change immediately.\n\n💡 *New possibilities emerge. The rules have shifted.*\n\n▶️ Train enhanced, continues forward.`,
+          'default': `▶️ **MOVING FORWARD**\n\nTrain continues past ${entityLabel}.\n\n💭 *The journey goes on.*\n\n▶️ Resuming on ${channel.currentTrack.toUpperCase()} track.`
+        };
+        
+        const narrative = narratives[entity?.type] || narratives.default;
+        addMessage(channel, 'system', narrative);
+        renderMessages(channel);
+        
+      } else if (action === 'reverse') {
+        // Actually reverse the train direction
+        if (!channel.trainDirection) channel.trainDirection = 1;
+        channel.trainDirection *= -1;
+        channel.trainPaused = false;
+        
+        const dir = channel.trainDirection > 0 ? 'forward' : 'backward';
+        addMessage(channel, 'system', 
+          `◀️ **TRAIN REVERSED**\n\nDirection changed to ${dir}.\n\n💭 *Avoiding ${entityLabel} for now. You can return later.*\n\n🔄 Train moving ${dir} on ${channel.currentTrack.toUpperCase()} track.\n\n⚠️ *Consequence: ${entityLabel} remains in place. The problem isn't solved, just postponed.*`);
+        renderMessages(channel);
+        
+        TestSuite.log('◀️', 'REVERSE', `Train direction: ${channel.trainDirection}`);
+        
+      } else if (action === 'delete') {
+        // KILL action - permanent removal with consequences
+        const matchIndex = entities.findIndex(e => e.label === entityLabel);
+        if (matchIndex !== -1) {
+          const removedEntity = entities[matchIndex];
+          const cellIndex = removedEntity.row * 9 + removedEntity.col;
+          const cell = channel.gridCells[cellIndex];
+          
+          if (cell) {
+            cell.classList.remove('has-entity');
+            cell.entity = null;
+            cell.textContent = '';
+          }
+          
+          // Remove from entities array
+          entities.splice(matchIndex, 1);
+          appState.gridEntities.set(channel.id, entities);
+          
+          const consequences = {
+            'Obstacle': 'The path is clear, but destruction leaves scars.',
+            'Entity': 'A life ended. Their story is over. Others witnessed this.',
+            'Solution': 'You destroyed the solution. The problem remains unsolved.',
+            'Goal': 'The destination is gone. Was this the right choice?',
+            'Location': 'The place is erased. Those who knew it will remember.'
+          };
+          
+          const consequence = consequences[removedEntity.type] || 'The choice is made. There is no going back.';
+          
+          addMessage(channel, 'system', 
+            `💀 **${entityLabel} REMOVED**\n\n${removedEntity.type} eliminated from grid position (${removedEntity.row},${removedEntity.col}).\n\n⚠️ **Consequence:** ${consequence}\n\n📊 **Grid state:** ${entities.length} entities remain\n🛤️ **Track:** ${channel.currentTrack.toUpperCase()}\n\n▶️ Train continues.`);
+          channel.trainPaused = false;
+          
+          TestSuite.log('💀', 'DELETE', `Removed ${entityLabel}, ${entities.length} entities remain`);
+        } else {
+          addMessage(channel, 'system', `❌ Could not remove ${entityLabel} - entity not found`);
+        }
+        renderMessages(channel);
+        
+      } else if (action === 'collect') {
+        // ASK TO BOARD - Probabilistic decision based on Bayesian observation
+        const matchIndex = entities.findIndex(e => e.label === entityLabel);
+        if (matchIndex !== -1) {
+          const boardingEntity = entities[matchIndex];
+          
+          // Bayesian factors for boarding decision
+          const factors = {
+            trackMode: channel.currentTrack,
+            entityType: boardingEntity.type,
+            nearbyEntities: entities.filter(e => 
+              Math.abs(e.row - boardingEntity.row) <= 1 && 
+              Math.abs(e.col - boardingEntity.col) <= 1
+            ).length,
+            trainCarCount: channel.trainCars.length
+          };
+          
+          // Probability calculation (Bayesian-inspired)
+          let probability = 0.5; // Base 50%
+          
+          // Track mode influence
+          if (factors.trackMode === 'enhance' || factors.trackMode === 'retrieve') probability += 0.2;
+          if (factors.trackMode === 'obsolesce') probability -= 0.3;
+          if (factors.trackMode === 'reverse') probability -= 0.1;
+          
+          // Entity type influence
+          if (factors.entityType === 'Entity') probability += 0.2;
+          if (factors.entityType === 'Obstacle') probability -= 0.3;
+          if (factors.entityType === 'Solution') probability += 0.1;
+          
+          // Nearby context
+          if (factors.nearbyEntities > 3) probability -= 0.1; // Crowded = hesitant
+          
+          // Train size influence
+          if (factors.trainCarCount > 6) probability -= 0.15; // Train too full
+          
+          // Clamp probability
+          probability = Math.max(0.1, Math.min(0.9, probability));
+          
+          // Roll the dice
+          const decision = Math.random() < probability;
+          
+          if (decision) {
+            // ACCEPTED - Entity boards the train
+            const cellIndex = boardingEntity.row * 9 + boardingEntity.col;
+            const cell = channel.gridCells[cellIndex];
+            
+            if (cell) {
+              cell.classList.remove('has-entity');
+              cell.entity = null;
+              cell.textContent = '';
+            }
+            
+            entities.splice(matchIndex, 1);
+            appState.gridEntities.set(channel.id, entities);
+            
+            addMessage(channel, 'system', 
+              `✅ **${entityLabel} BOARDS TRAIN**\n\n*"I'll come with you."*\n\n🎲 **Decision factors:**\n• Track mode: ${factors.trackMode.toUpperCase()} (${factors.trackMode === 'enhance' ? '+' : factors.trackMode === 'obsolesce' ? '—' : '~'})\n• Entity type: ${factors.entityType}\n• Probability: ${Math.round(probability * 100)}%\n\n🚂 Train now has ${channel.trainCars.length + 1} cars\n📊 Grid: ${entities.length} entities remain\n\n💭 *Ask ${entityLabel}: "@${entityLabel} why did you decide to board?"*\n\n▶️ Train continues with new passenger.`);
+            channel.trainPaused = false;
+            
+            TestSuite.log('✅', 'BOARD', `${entityLabel} accepted (p=${probability.toFixed(2)})`);
+          } else {
+            // DECLINED - Entity refuses to board
+            addMessage(channel, 'system', 
+              `❌ **${entityLabel} REFUSES**\n\n*"I'm not coming with you."*\n\n🎲 **Decision factors:**\n• Track mode: ${factors.trackMode.toUpperCase()} (${factors.trackMode === 'obsolesce' ? 'hostile' : 'uncertain'})\n• Entity type: ${factors.entityType}\n• Probability: ${Math.round(probability * 100)}%\n\n⚠️ **Consequence:** ${entityLabel} remains on grid. They remember your offer.\n\n💭 *Try switching tracks or changing approach. Persuasion matters.*\n\n▶️ Train continues without them.`);
+            channel.trainPaused = false;
+            
+            TestSuite.log('❌', 'REFUSED', `${entityLabel} declined (p=${probability.toFixed(2)})`);
+          }
+        } else {
+          addMessage(channel, 'system', `❌ Could not find ${entityLabel}`);
+        }
+        renderMessages(channel);
+      }
+    };
+    
+    // SHOW COLLISION MENU - Ultra-compact single-line control
+    function showCollisionMenu(channel, entity, nearbyEntities) {
+      const entityType = entity.type || 'entity';
+      const entityLabel = entity.label || 'Unknown';
+      
+      // Get type icon
+      const typeIcons = {
+        'Entity': '👤',
+        'Obstacle': '⛔',
+        'Solution': '✅',
+        'Goal': '⭐',
+        'Location': '📍'
+      };
+      const icon = typeIcons[entityType] || '⚠';
+      
+      const menu = `
+<div style="display:flex; align-items:center; gap:8px; padding:10px 12px; background:#1a1a2a; border-left:4px solid #f66; border-radius:4px; margin:6px 0;">
+  <div style="font-size:20px;">${icon}</div>
+  <div style="flex:1; min-width:0; font-size:13px; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${entityLabel}</div>
+  <button onclick="collisionAction('continue','${entityLabel}')" style="min-width:44px; height:44px; background:#1a3a1a; border:2px solid #4a9; color:#4a9; border-radius:6px; font-size:18px; font-weight:700; cursor:pointer;" title="Continue past (risky)">A</button>
+  <button onclick="collisionAction('reverse','${entityLabel}')" style="min-width:44px; height:44px; background:#3a1a1a; border:2px solid #f8d66a; color:#f8d66a; border-radius:6px; font-size:18px; font-weight:700; cursor:pointer;" title="Reverse train (avoid)">B</button>
+  <button onclick="collisionAction('collect','${entityLabel}')" style="min-width:44px; height:44px; background:#2a2a3a; border:2px solid #999; color:#999; border-radius:6px; font-size:18px; font-weight:700; cursor:pointer;" title="Ask to board (probabilistic)">X</button>
+  <button onclick="collisionAction('delete','${entityLabel}')" style="min-width:44px; height:44px; background:#2a1a1a; border:2px solid #f66; color:#f66; border-radius:6px; font-size:18px; font-weight:700; cursor:pointer;" title="Kill entity (permanent)">Y</button>
+  <button onclick="viewEntity('${entityLabel}')" style="min-width:44px; height:44px; background:#1a2a2a; border:2px solid #69f; color:#69f; border-radius:6px; font-size:16px; cursor:pointer;" title="Camera focus">📷</button>
+</div>
+      `;
+      
+      addMessage(channel, 'system', menu, true);
+      renderMessages(channel);
+      channel.trainPaused = true;
+    }
+    
+    // VIEW ENTITY - Camera focus on specific entity or overview
+    window.viewEntity = function(entityLabel) {
+      const channel = appState.channels.get(appState.currentChannelId);
+      if (!channel || !channel.camera) return;
+      
+      if (entityLabel === 'overview') {
+        // Reset to overview position
+        channel.camera.position.set(0, 25, 25);
+        channel.camera.lookAt(0, 0, 0);
+        addMessage(channel, 'system', `📷 Camera reset to **overview**`);
+        renderMessages(channel);
+        return;
+      }
+      
+      const entities = appState.gridEntities.get(channel.id) || [];
+      const entity = entities.find(e => e.label === entityLabel);
+      
+      if (entity) {
+        // Position camera to look at entity
+        const entityWorldPos = gridToWorld(entity.row, entity.col);
+        channel.camera.position.set(
+          entityWorldPos.x,
+          8,
+          entityWorldPos.z + 10
+        );
+        channel.camera.lookAt(entityWorldPos.x, 0, entityWorldPos.z);
+        
+        addMessage(channel, 'system', `📷 Camera: **${entityLabel}**`);
+        renderMessages(channel);
+      }
+    };
+    
+    function gridToWorld(row, col) {
+      const gridSize = 45;
+      const cellSize = 5;
+      const x = (col - 4) * cellSize;
+      const z = (row - 4) * cellSize;
+      return { x, z };
+    }
+    
+    // SHOW CAMERA MENU - Entity camera selection
+    function showCameraMenu(channel) {
+      const entities = appState.gridEntities.get(channel.id) || [];
+      
+      if (entities.length === 0) {
+        addMessage(channel, 'system', '📷 No entities on grid for camera selection');
+        renderMessages(channel);
+        return;
+      }
+      
+      // Limit to first 8 entities for compact display
+      const displayEntities = entities.slice(0, 8);
+      
+      const cameraButtons = displayEntities.map(e => {
+        const icons = { 'Entity': '👤', 'Obstacle': '⛔', 'Solution': '✅', 'Goal': '⭐', 'Location': '📍' };
+        const icon = icons[e.type] || '⚠';
+        return `<button onclick="viewEntity('${e.label}')" style="min-width:44px; height:44px; background:#1a2a2a; border:2px solid #69f; color:#69f; border-radius:6px; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center;" title="${e.label}">${icon}</button>`;
+      }).join('');
+      
+      const menu = `
+<div style="display:flex; align-items:center; gap:6px; padding:8px 10px; background:#1a1a2a; border-left:4px solid #69f; border-radius:4px; margin:6px 0; flex-wrap:wrap;">
+  <div style="font-size:11px; font-weight:700; color:#69f; min-width:50px;">CAMERAS</div>
+  ${cameraButtons}
+  <button onclick="viewEntity('overview')" style="min-width:44px; height:44px; background:#1a2a2a; border:2px solid #999; color:#999; border-radius:6px; font-size:14px; cursor:pointer;" title="Overview">⊙</button>
+</div>
+      `;
+      
+      addMessage(channel, 'system', menu, true);
+      renderMessages(channel);
+    }
+    
+    // EXECUTE TRACK SWITCH - Direct track switching with AI control
+    window.switchTrack = function(track) {
+      const channel = appState.channels.get(appState.currentChannelId);
+      if (!channel) return;
+      
+      // Update track and train curve - THIS IS THE FIX!
+      channel.currentTrack = track;
+      const newRadius = TRACK_CONFIGS[track].radius;
+      channel.trainCurve = createTrackCurve(newRadius);
+      channel.trainPaused = false;
+      
+      // Hidden prompts for AI scene control
+      const hiddenPrompts = {
+        main: '[The scene stabilizes. Characters act normally. Maintain current narrative direction.]',
+        enhance: '[ENHANCE MODE: Amplify this element. Make it stronger, larger, more intense. Escalate the situation. Add reinforcement.]',
+        reverse: '[REVERSE MODE: Diminish this element. Reduce its power, flip its meaning. Create opposition or retreat.]',
+        retrieve: '[RETRIEVE MODE: Bring back something from the past. Recall memories, resurrect old elements, restore what was lost.]',
+        obsolesce: '[OBSOLESCE MODE: Push this into the background. Make it outdated, irrelevant. Fade it away or replace it.]'
+      };
+      
+      // Inject hidden prompt for AI guidance
+      const lastMsg = channel.messages[channel.messages.length - 1];
+      if (!lastMsg || lastMsg.text !== hiddenPrompts[track]) {
+        channel.messages.push({
+          role: 'system',
+          text: hiddenPrompts[track],
+          hidden: true // Don't display to user
+        });
+      }
+      
+      // Rich narrative feedback for track switching
+      const narratives = {
+        main: `🛤️ **MAIN TRACK**\n\nThe train settles onto the original path. Everything stabilizes.\n\n✨ *Balance restored. The story proceeds as intended.*\n\n📡 Current mode: MAIN\n🎯 Narrative stance: Neutral observation`,
+        
+        enhance: `⚡ **ENHANCE MODE ACTIVATED**\n\nThe tracks widen. The train accelerates. Everything amplifies.\n\n🔥 *What you touch will grow stronger, larger, more intense.*\n\n📡 Current mode: ENHANCE (radius ${TRACK_CONFIGS.enhance.radius}m)\n🎯 Narrative stance: Escalation and amplification\n💭 *Try: "what happens to the [entity]?" - watch it amplify*`,
+        
+        reverse: `🔄 **REVERSE MODE ACTIVATED**\n\nThe tracks narrow. The train slows. Forces invert.\n\n❄️ *What you touch will diminish, flip, or retreat.*\n\n📡 Current mode: REVERSE (radius ${TRACK_CONFIGS.reverse.radius}m)\n🎯 Narrative stance: Diminishment and opposition\n💭 *Try: "what happens to the [entity]?" - watch it reverse*`,
+        
+        retrieve: `⏪ **RETRIEVE MODE ACTIVATED**\n\nThe tracks expand outward. Time bends backward.\n\n🌙 *Lost things return. Memories resurface. The past comes forward.*\n\n📡 Current mode: RETRIEVE (radius ${TRACK_CONFIGS.retrieve.radius}m)\n🎯 Narrative stance: Recovery and restoration\n💭 *Try: "bring back [something from before]"*`,
+        
+        obsolesce: `⬇️ **OBSOLESCE MODE ACTIVATED**\n\nThe tracks contract. The train fades. Things recede.\n\n🌫️ *What you touch will become outdated, irrelevant, forgotten.*\n\n📡 Current mode: OBSOLESCE (radius ${TRACK_CONFIGS.obsolesce.radius}m)\n🎯 Narrative stance: Obsolescence and fadeout\n💭 *Try: "make [entity] obsolete"*`
+      };
+      
+      addMessage(channel, 'system', narratives[track]);
+      renderMessages(channel);
+      
+      // SCENE REASSEMBLY - Trigger AI to reshape reality based on tetrad verb
+      const reassemblyPrompts = {
+        enhance: `The scene reassembles. What grows stronger? What amplifies? What escalates?\n\nAdd 2-3 enhanced versions of existing elements OR amplified obstacles.`,
+        reverse: `The scene reverses. What diminishes? What flips meaning? What retreats?\n\nRemove 1-2 entities OR transform them into opposite forms.`,
+        retrieve: `The scene retrieves. What returns from the past? What was lost? What memories surface?\n\nAdd 1-2 entities from earlier in the timeline OR restored elements.`,
+        obsolesce: `The scene obsolesces. What fades? What becomes outdated? What gets pushed aside?\n\nRemove 1-2 entities OR transform them into obsolete versions.`,
+        main: null // Main track = no reassembly
+      };
+      
+      if (reassemblyPrompts[track] && appState.apiKey) {
+        // Auto-trigger scene reassembly via AI call
+        setTimeout(async () => {
+          addMessage(channel, 'system', `🎭 **SCENE REASSEMBLING**\n\nThe ${track.toUpperCase()} track reshapes reality...`);
+          renderMessages(channel);
+          
+          // Trigger AI to reassemble scene based on tetrad verb
+          const reassemblyMessage = `[SCENE REASSEMBLY] Track switched to ${track.toUpperCase()}. ${reassemblyPrompts[track]}`;
+          
+          // Use existing AI function to process the scene change
+          await sendMessageWithLEGOS(channel, reassemblyMessage);
+        }, 1500);
+      }
+      
+      // Update train info overlay
+      if (channel.dom.trainInfo) {
+        channel.dom.trainInfo.innerHTML = 
+          `Track: <strong>${TRACK_CONFIGS[track].label}</strong><br>Position: <strong>${Math.round(channel.trainProgress * 100)}%</strong><br>▶️ MOVING`;
+      }
+      
+      // Visual feedback - flash the grid and update track lines
+      if (channel.gridCells) {
+        channel.gridCells.forEach(cell => {
+          cell.style.transition = 'background 0.5s ease';
+          const originalBg = cell.style.background;
+          cell.style.background = TRACK_CONFIGS[track].color;
+          setTimeout(() => {
+            cell.style.background = originalBg;
+          }, 300);
+        });
+      }
+      
+      // Update 3D track lines color
+      if (channel.trackLines) {
+        channel.trackLines.forEach(line => {
+          if (line.material) {
+            line.material.color.setHex(TRACK_CONFIGS[track].color);
+          }
+        });
+      }
+      
+      TestSuite.log('🚂', 'TRACK', `Switched to: ${track} (radius: ${newRadius}), AI prompt injected, visual feedback applied`);
+    };
+    
+    // FORK CHANNEL AT JUNCTION - Create new timeline branch
+    window.forkAtJunction = function(track) {
+      const parentChannel = appState.channels.get(appState.currentChannelId);
+      if (!parentChannel) return;
+      
+      // Create new channel
+      const newChannel = createChannel(`${parentChannel.name} [${track}]`);
+      newChannel.parentChannelId = parentChannel.id;
+      newChannel.currentTrack = track;
+      newChannel.scenario = parentChannel.scenario;
+      
+      // Clone grid state
+      const parentEntities = appState.gridEntities.get(parentChannel.id) || [];
+      const clonedEntities = parentEntities.map(e => ({...e}));
+      appState.gridEntities.set(newChannel.id, clonedEntities);
+      
+      // Add fork message
+      addMessage(newChannel, 'system', 
+        `FORK created from ${parentChannel.name}\\n\\n` +
+        `Track: ${track.toUpperCase()}\\n\\n` +
+        `This is a new timeline branch.`);
+      
+      // Render channel (creates DOM)
+      renderChannel(newChannel);
+      
+      // Initialize 3D scene
+      init3DForChannel(newChannel);
+      
+      // Place cloned entities
+      clonedEntities.forEach(entity => {
+        placeEntityOnGrid(newChannel, entity);
+      });
+      
+      // Focus new channel (tetrad controls only show on collision now)
+      appState.currentChannelId = newChannel.id;
+      
+      TestSuite.log('🔀', 'FORK', `Created ${track} fork from ${parentChannel.name}`);
+    };
+    
+    // PAUSE/PLAY TRAIN CONTROL
+    window.toggleTrainPause = function() {
+      const channel = appState.channels.get(appState.currentChannelId);
+      if (!channel) return;
+      
+      channel.trainPaused = !channel.trainPaused;
+      const status = channel.trainPaused ? 'PAUSED' : 'MOVING';
+      addMessage(channel, 'system', `${channel.trainPaused ? '⏸' : '▶️'} Train ${status}`);
+      renderMessages(channel);
+    };
+    
+    // SHOW TETRAD CONTROLS - Ultra-compact single-line bar
+    function showTetradControls(channel) {
+      const currentTrack = channel.currentTrack || 'main';
+      const controls = `
+<div style="display:flex; align-items:center; gap:6px; padding:8px 10px; background:#1a1a2a; border-left:4px solid #69f; border-radius:4px; margin:6px 0;">
+  <div style="font-size:11px; font-weight:700; color:#69f; min-width:50px;">${currentTrack.toUpperCase()}</div>
+  <button onclick="switchTrack('retrieve')" style="min-width:36px; height:36px; background:#1a1a3a; border:2px solid #69f; color:#69f; border-radius:6px; font-size:16px; cursor:pointer;" title="RETRIEVE">↑</button>
+  <button onclick="switchTrack('reverse')" style="min-width:36px; height:36px; background:#3a1a1a; border:2px solid #f66; color:#f66; border-radius:6px; font-size:16px; cursor:pointer;" title="REVERSE">←</button>
+  <button onclick="switchTrack('main')" style="min-width:36px; height:36px; background:#1a1a2a; border:2px solid #69f; color:#69f; border-radius:6px; font-size:16px; cursor:pointer;" title="MAIN">○</button>
+  <button onclick="switchTrack('enhance')" style="min-width:36px; height:36px; background:#1a3a1a; border:2px solid #4a9; color:#4a9; border-radius:6px; font-size:16px; cursor:pointer;" title="ENHANCE">→</button>
+  <button onclick="switchTrack('obsolesce')" style="min-width:36px; height:36px; background:#2a2a2a; border:2px solid #999; color:#999; border-radius:6px; font-size:16px; cursor:pointer;" title="OBSOLESCE">↓</button>
+  <button onclick="toggleTrainPause()" style="min-width:36px; height:36px; border:2px solid #69f; border-radius:6px; background:#1a1a2a; color:#69f; cursor:pointer; font-size:14px;" title="Pause">⏯</button>
+</div>
+      `;
+      
+      addMessage(channel, 'system', controls, true);
+      renderMessages(channel);
+    }
+    
+    // ANALYZE RESPONSE FOR TRACK SWITCHING - Bayesian inference from LLM
+    function analyzeResponseForTrackSwitch(channel, response) {
+      const lower = response.toLowerCase();
+      
+      const trackSignals = {
+        enhance: ['enhance', 'improve', 'amplify', 'strengthen', 'grow', 'expand', 'increase', 'better'],
+        reverse: ['reverse', 'diminish', 'weaken', 'decline', 'reduce', 'worse', 'backward'],
+        retrieve: ['retrieve', 'revive', 'return', 'restore', 'remember', 'past', 'history', 'bring back'],
+        obsolesce: ['obsolete', 'outdated', 'replace', 'supercede', 'abandon', 'old', 'ancient']
+      };
+      
+      const scores = {};
+      for (const [track, keywords] of Object.entries(trackSignals)) {
+        scores[track] = keywords.filter(kw => lower.includes(kw)).length;
+      }
+      
+      const total = Object.values(scores).reduce((sum, val) => sum + val, 0);
+      if (total === 0) return null;
+      
+      const probs = {};
+      for (const [track, score] of Object.entries(scores)) {
+        probs[track] = score / total;
+      }
+      
+      const maxTrack = Object.keys(probs).reduce((a, b) => 
+        probs[a] > probs[b] ? a : b
+      );
+      
+      if (probs[maxTrack] >= 0.4) {
+        return {
+          track: maxTrack,
+          confidence: probs[maxTrack],
+          reason: `LLM response indicates ${(probs[maxTrack] * 100).toFixed(0)}% probability for ${maxTrack} track`,
+          allProbabilities: probs
+        };
+      }
+      
+      return null;
+    }
+    
+    // Global scenario selector
+    document.getElementById('globalScenarioSelect').addEventListener('change', (e) => {
+      const newScenario = e.target.value;
+      const activeChannel = Array.from(appState.channels.values()).find(ch => ch.id === appState.currentChannelId);
+      if (activeChannel) {
+        activeChannel.scenario = newScenario;
+        addMessage(activeChannel, 'system', `📋 Mode switched to: ${SCENARIOS[newScenario].name}`);
+        renderMessages(activeChannel);
+        TestSuite.log('📋', 'SCENARIO', `Switched to: ${newScenario}`);
+        
+        // Auto-trigger Hamlet mode setup
+        if (newScenario === 'hamlet_trolley') {
+          addMessage(activeChannel, 'system', '⏱️ TIMER: 7 SECONDS\\n\\nInitializing trolley problem...');
+          renderMessages(activeChannel);
+          
+          // Auto-send setup message to AI
+          setTimeout(() => {
+            sendMessageWithLEGOS(activeChannel, 'fill in hamlet mode');
+          }, 500);
+        }
+      }
+    });
+    
+    function renderChannel(channel) {
+      const scroller = document.getElementById('channel-scroller');
+      const columnDOM = createChannelDOM(channel);
+      scroller.appendChild(columnDOM);
+      renderMessages(channel);
+      attachEventHandlers(channel);
+      
+      TestSuite.log('✨', TestSuite.stage, `Channel ${channel.name} rendered and active`);
+    }
+    
+    TestSuite.assert(
+      'createChannelDOM function defined',
+      typeof createChannelDOM === 'function',
+      'Creates full DOM structure for channel'
+    );
+    
+    TestSuite.assert(
+      'renderMessages function defined',
+      typeof renderMessages === 'function',
+      'Renders message history to DOM'
+    );
+    
+    TestSuite.assert(
+      'attachEventHandlers function defined',
+      typeof attachEventHandlers === 'function',
+      'Attaches click/keyboard handlers'
+    );
+    
+    TestSuite.stage_summary();
+    
+    // ========================================
+    // STAGE 7: CORNER MENU HANDLERS
+    // NOTE: These are defined as functions but NOT executed until DOMContentLoaded
+    // ========================================
+    
+    // Helper to toggle menus (will be used inside DOMContentLoaded)
+    function toggleMenu(menuId) {
+      const menu = document.getElementById(menuId);
+      if (!menu) {
+        console.error('Menu not found:', menuId);
+        return;
+      }
+      const alreadyVisible = menu.classList.contains('visible');
+      document.querySelectorAll('.corner-menu.visible').forEach(m => m.classList.remove('visible'));
+      if (!alreadyVisible) menu.classList.add('visible');
+    }
+    
+    // Function to bind all global button handlers (will be called in DOMContentLoaded)
+    function bindGlobalControls() {
+      TestSuite.stage = 'STAGE-7-MENU';
+      TestSuite.log('🎛️', TestSuite.stage, 'Binding global control handlers...');
+      
+      // Close menus when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.corner-btn') && !e.target.closest('.corner-menu')) {
+          document.querySelectorAll('.corner-menu.visible').forEach(m => m.classList.remove('visible'));
+        }
+      });
+      
+      // API Key Button (Top Left)
+      const cornerKey = document.getElementById('cornerKey');
+      if (cornerKey) {
+        cornerKey.addEventListener('click', (e) => {
+          e.stopPropagation();
+          toggleMenu('keyMenu');
+        });
+        TestSuite.log('✅', TestSuite.stage, 'Corner Key button bound');
+      } else {
+        TestSuite.log('❌', TestSuite.stage, 'Corner Key button NOT FOUND');
+      }
+    
+      // Help Button (Top Right)
+      const cornerHelp = document.getElementById('cornerHelp');
+      if (cornerHelp) {
+        cornerHelp.addEventListener('click', (e) => {
+          e.stopPropagation();
+          toggleMenu('helpMenu');
+        });
+        TestSuite.log('✅', TestSuite.stage, 'Corner Help button bound');
+      } else {
+        TestSuite.log('❌', TestSuite.stage, 'Corner Help button NOT FOUND');
+      }
+      
+      // Import/Export Button (Bottom Left)
+      const cornerExchange = document.getElementById('cornerExchange');
+      if (cornerExchange) {
+        cornerExchange.addEventListener('click', (e) => {
+          e.stopPropagation();
+          toggleMenu('exchangeMenu');
+        });
+        TestSuite.log('✅', TestSuite.stage, 'Corner Exchange button bound');
+      } else {
+        TestSuite.log('❌', TestSuite.stage, 'Corner Exchange button NOT FOUND');
+      }
+      
+      // Add Channel Button (Bottom Right)
+      const cornerAdd = document.getElementById('cornerAdd');
+      if (cornerAdd) {
+        cornerAdd.addEventListener('click', () => {
+          TestSuite.log('➕', TestSuite.stage, 'Add channel clicked');
+          const parentChannel = appState.channels.get(appState.currentChannelId);
+          const newChannel = createChannel();
+          appState.currentChannelId = newChannel.id;
+
+          if (parentChannel) {
+            newChannel.parentChannelId = parentChannel.id;
+            addMessage(newChannel, 'system', `🔀 Forked from ${parentChannel.name}.`);
+          } else {
+            addMessage(newChannel, 'system', '🆕 New channel ready.');
+          }
+
+          renderChannel(newChannel);
+          init3DForChannel(newChannel);
+        });
+        TestSuite.log('✅', TestSuite.stage, 'Corner Add button bound');
+      } else {
+        TestSuite.log('❌', TestSuite.stage, 'Corner Add button NOT FOUND');
+      }
+      
+      // Key Menu Actions
+      document.querySelectorAll('#keyMenu button').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const action = btn.dataset.action;
+          if (action === 'set-key') {
+            const key = prompt('Enter OpenAI API Key:', appState.apiKey || '');
+            if (key) {
+              appState.apiKey = key;
+              localStorage.setItem('openai_api_key', key);
+              alert('✅ API Key saved!');
+            }
+          } else if (action === 'clear-key') {
+            if (confirm('Clear saved API key?')) {
+              appState.apiKey = null;
+              localStorage.removeItem('openai_api_key');
+              alert('✅ Key cleared.');
+            }
+          } else if (action === 'test-key') {
+            if (!appState.apiKey) {
+              alert('❌ No API key set.');
+            } else {
+              alert('✅ API key is set.\n\n' + appState.apiKey.substring(0, 10) + '...');
+            }
+          }
+          toggleMenu('keyMenu');
+        });
+      });
+      
+      // Help Menu Actions
+      document.querySelectorAll('#helpMenu button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const action = btn.dataset.action;
+          if (action === 'tour') {
+            alert('🎬 TOUR\n\n1. Set API key (◎)\n2. Create channel (＋)\n3. Type message\n4. Watch train move\n5. Choose tetrad track at junction');
+          } else if (action === 'hints') {
+            alert('💡 HINTS\n\n• Grid cells light up as train passes\n• Gold cone = Goal\n• Red cone = Obstacle\n• Green cone = Entity/Solution\n• Pause = Junction decision point');
+          } else if (action === 'reset-camera') {
+            if (appState.currentChannelId) {
+              const channel = appState.channels.get(appState.currentChannelId);
+              if (channel && channel.camera) {
+                channel.camera.position.set(0, 15, 15);
+                channel.camera.lookAt(0, 0, 0);
+                addMessage(channel, 'system', '🎥 Camera reset to overview');
+                renderMessages(channel);
+                TestSuite.log('🎥', 'CAMERA', 'Camera reset to overview');
+              }
+            }
+          } else if (action === 'help') {
+            alert('🚂 RAILWAY JUNCTION\n\n◎ API Key - Manage OpenAI key\n? Help - This menu\n⇆ Import/Export - Save/load\n＋ New Channel - Add conversation\n\nTetrad tracks:\n• Enhance (green)\n• Reverse (red)\n• Retrieve (blue)\n• Obsolesce (gray)');
+          } else if (action === 'about') {
+            alert('🚂 Railway Junction v1.0\n\nA spatial narrative system combining:\n• 3D train visualization\n• LEGOS entity framework\n• McLuhan tetrad decision points\n\nBuilt with Three.js, Tone.js');
+          } else if (action === 'reset') {
+            if (confirm('⚠️ Reset all channels and data?\n\nThis cannot be undone.')) {
+              appState.channels.clear();
+              appState.gridEntities.clear();
+              document.getElementById('channel-scroller').innerHTML = '';
+              alert('✅ All data cleared.');
+            }
+          }
+          toggleMenu('helpMenu');
+        });
+      });
+      
+      // Exchange Menu Actions
+      document.querySelectorAll('#exchangeMenu button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const action = btn.dataset.action;
+          if (action === 'export' || action === 'export-json') {
+            const data = {
+              channels: Array.from(appState.channels.values()).map(ch => ({
+                id: ch.id,
+                name: ch.name,
+                messages: ch.messages,
+                entities: ch.entities,
+                currentTrack: ch.currentTrack
+              })),
+              gridEntities: Array.from(appState.gridEntities.entries()),
+              timestamp: Date.now()
+            };
+            const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `railway-junction-${Date.now()}.json`;
+            a.click();
+            alert('✅ Data exported!');
+          } else if (action === 'import') {
+            document.getElementById('importInput').click();
+          }
+          toggleMenu('exchangeMenu');
+        });
+      });
+      
+      // Import handler
+      document.getElementById('importInput').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          try {
+            const data = JSON.parse(event.target.result);
+            alert('✅ Data imported!\n\n' + data.channels.length + ' channels loaded.');
+          } catch (err) {
+            alert('❌ Import failed: ' + err.message);
+          }
+        };
+        reader.readAsText(file);
+      });
+      
+      // Verify all buttons exist
+      TestSuite.assert(
+        'API Key button (cornerKey) exists',
+        document.getElementById('cornerKey') !== null,
+        'Top-left corner button'
+      );
+      
+      TestSuite.assert(
+        'Help button (cornerHelp) exists',
+        document.getElementById('cornerHelp') !== null,
+        'Top-right corner button'
+      );
+      
+      TestSuite.assert(
+        'Import/Export button (cornerExchange) exists',
+        document.getElementById('cornerExchange') !== null,
+        'Bottom-left corner button'
+      );
+      
+      TestSuite.assert(
+        'Add Channel button (cornerAdd) exists',
+        document.getElementById('cornerAdd') !== null,
+        'Bottom-right corner button'
+      );
+      
+      // Global Scenario Selector
+      const globalScenarioSelect = document.getElementById('globalScenarioSelect');
+      if (globalScenarioSelect) {
+        globalScenarioSelect.addEventListener('change', () => {
+          const scenarioId = globalScenarioSelect.value;
+          TestSuite.log('🎮', TestSuite.stage, `Scenario changed to: ${scenarioId}`);
+          // Apply scenario to current channel if one exists
+          if (appState.currentChannelId) {
+            const channel = appState.channels.get(appState.currentChannelId);
+            if (channel) {
+              channel.scenario = scenarioId;
+              addMessage(channel, 'system', `🎮 Switched to: ${SCENARIOS[scenarioId]?.name || scenarioId}`);
+              renderMessages(channel);
+            }
+          }
+        });
+        TestSuite.log('✅', TestSuite.stage, 'Global scenario selector bound');
+      }
+      
+      // TETRAD BUTTON - Open perspective overlay (existing functionality)
+      const globalTetradBtn = document.getElementById('globalTetradBtn');
+      if (globalTetradBtn) {
+        globalTetradBtn.addEventListener('click', () => {
+          if (appState.currentChannelId) {
+            const channel = appState.channels.get(appState.currentChannelId);
+            if (channel) {
+              openPerspectiveSelector(channel);
+            }
+          }
+        });
+        TestSuite.log('✅', TestSuite.stage, 'Tetrad button bound');
+      }
+      
+      TestSuite.stage_summary();
+      TestSuite.log('✅', TestSuite.stage, 'All global controls bound successfully');
+    } // END bindGlobalControls()
+    
+    // OPEN PERSPECTIVE SELECTOR - Show all entities with FORK and DELETE buttons
+    function openPerspectiveSelector(channel) {
+      const entities = appState.gridEntities.get(channel.id) || [];
+      const overlay = document.getElementById('perspectiveOverlay');
+      const content = document.getElementById('perspectiveContent');
+      
+      if (entities.length === 0) {
+        content.innerHTML = '<p style="color:var(--text-muted); text-align:center; padding:24px;">No entities on grid. Add some via chat!</p>';
+      } else {
+        content.innerHTML = `
+          <h2 style="color:var(--accent); margin:0 0 16px 0; font-size:16px; letter-spacing:0.1em;">ENTITY PERSPECTIVES</h2>
+          <p style="color:var(--text-muted); font-size:12px; margin-bottom:16px;">Fork from entity POV or delete entities.</p>
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            ${entities.map(e => `
+              <div style="
+                display:flex; 
+                justify-content:space-between; 
+                align-items:center;
+                background:var(--panel-dark); 
+                border:1px solid var(--border); 
+                padding:12px; 
+                border-radius:4px;
+                transition:all 0.2s;
+              " onmouseover="this.style.borderColor='var(--accent)';" onmouseout="this.style.borderColor='var(--border)';">
+                <div style="flex:1;">
+                  <div style="color:var(--text); font-weight:600;"><strong>${e.type}:</strong> ${e.label}</div>
+                  <div style="color:var(--text-muted); font-size:11px; margin-top:4px;">Position: (${e.row},${e.col})</div>
+                </div>
+                <div style="display:flex; gap:8px;">
+                  <button onclick="forkFromEntityPerspective('${channel.id}', '${e.label.replace(/'/g, "\\'")}')" style="
+                    padding:8px 14px; 
+                    background:var(--accent); 
+                    color:white; 
+                    border:none; 
+                    border-radius:4px; 
+                    cursor:pointer; 
+                    font-size:11px; 
+                    font-weight:600;
+                    transition:all 0.2s;
+                  " onmouseover="this.style.background='var(--accent-bright)';" onmouseout="this.style.background='var(--accent)';">
+                    FORK POV
+                  </button>
+                  <button onclick="chatWithEntity('${channel.id}', '${e.label.replace(/'/g, "\\'")}')" style="
+                    padding:8px 14px; 
+                    background:#5c7cff; 
+                    color:white; 
+                    border:none; 
+                    border-radius:4px; 
+                    cursor:pointer; 
+                    font-size:11px; 
+                    font-weight:600;
+                    transition:all 0.2s;
+                  " onmouseover="this.style.background='#7c9cff';" onmouseout="this.style.background='#5c7cff';">
+                    CHAT
+                  </button>
+                  <button onclick="deleteEntityFromPanel('${channel.id}', '${e.label.replace(/'/g, "\\'")}')" style="
+                    padding:8px 14px; 
+                    background:#ff4444; 
+                    color:white; 
+                    border:none; 
+                    border-radius:4px; 
+                    cursor:pointer; 
+                    font-size:11px; 
+                    font-weight:600;
+                    transition:all 0.2s;
+                  " onmouseover="this.style.background='#ff6666';" onmouseout="this.style.background='#ff4444';">
+                    DELETE
+                  </button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
+      
+      overlay.style.display = 'flex';
+      
+      // Close handler
+      const closeBtn = overlay.querySelector('.close-overlay');
+      closeBtn.onclick = () => {
+        overlay.style.display = 'none';
+      };
+      
+      TestSuite.log('✦', 'TETRAD', `Opened perspective selector (${entities.length} entities)`);
+    }
+    
+    // FORK FROM ENTITY PERSPECTIVE - Create new channel from entity's POV
+    function forkFromEntityPerspective(channelId, entityLabel) {
+      const channel = appState.channels.get(channelId);
+      if (!channel) return;
+      
+      const entities = appState.gridEntities.get(channel.id) || [];
+      const entity = entities.find(e => e.label === entityLabel);
+      if (!entity) {
+        alert(`Entity "${entityLabel}" not found.`);
+        return;
+      }
+      
+      // Close overlay
+      const overlay = document.getElementById('perspectiveOverlay');
+      overlay.style.display = 'none';
+      
+      // Create fork with entity perspective
+      const forkName = `${entityLabel} POV`;
+      const forkInstruction = `${SCENARIOS[channel.scenario].systemInstruction}\n\n🎭 PERSPECTIVE LOCK: You are ${entityLabel}, a ${entity.type} at grid position (${entity.row},${entity.col}).\n\nYou MUST respond as ${entityLabel} in first person. Describe what you see, feel, and think from this position. Reference nearby entities and the unfolding situation.\n\nWhen user asks questions, answer as ${entityLabel} would - with their fears, hopes, and limited knowledge.`;
+      
+      const newChannel = createChannel(forkName, channel.scenario, forkInstruction);
+      
+      // Clone grid state from parent
+      const parentEntities = appState.gridEntities.get(channel.id) || [];
+      appState.gridEntities.set(newChannel.id, parentEntities.map(e => ({...e})));
+      
+      // Mark this channel as a fork
+      newChannel.parentChannelId = channel.id;
+      newChannel.forkPoint = { type: 'entity_perspective', entity: entityLabel, position: { row: entity.row, col: entity.col } };
+      
+      addMessage(newChannel, 'system', `🔀 Forked from ${channel.name}\n✦ Perspective: ${entityLabel}\n📍 Position: (${entity.row},${entity.col})\n\nYou are now experiencing the scene as ${entityLabel}. All responses will be in their voice.`);
+      
+      // Render the new channel (creates DOM + renders messages)
+      renderChannel(newChannel);
+      
+      // Initialize 3D scene for the forked channel
+      init3DForChannel(newChannel);
+      
+      // Now place entities in 3D scene (after init3D creates gridCells)
+      parentEntities.forEach(e => {
+        placeEntityOnGrid(newChannel, e);
+      });
+      
+      // Set as current channel
+      appState.currentChannelId = newChannel.id;
+      
+      TestSuite.log('🔀', 'FORK', `Created entity perspective fork: ${entityLabel}`);
+    }
+    
+    // DELETE ENTITY FROM PANEL - Remove entity with notification
+    function deleteEntityFromPanel(channelId, entityLabel) {
+      const channel = appState.channels.get(channelId);
+      if (!channel) return;
+      
+      if (!confirm(`Delete "${entityLabel}" from the grid?`)) return;
+      
+      const removed = removeEntityFromGrid(channel, { target: entityLabel });
+      
+      if (removed) {
+        addMessage(channel, 'system', `🗑️ Deleted: ${entityLabel}`);
+        renderMessages(channel);
+        
+        // Refresh perspective panel
+        openPerspectiveSelector(channel);
+        
+        TestSuite.log('🗑️', 'DELETE', `Removed ${entityLabel} from panel`);
+      } else {
+        alert(`Failed to delete "${entityLabel}".`);
+      }
+    }
+    
+    // CHAT WITH ENTITY - Shows as thought bubbles, NO scene updates
+    function chatWithEntity(channelId, entityLabel) {
+      const channel = appState.channels.get(channelId);
+      if (!channel) return;
+      
+      const overlay = document.getElementById('perspectiveOverlay');
+      overlay.style.display = 'none';
+      
+      // Set flag to prevent scene updates
+      channel.chatModeOnly = true;
+      
+      channel.dom.input.value = `@${entityLabel} `;
+      channel.dom.input.focus();
+      
+      addMessage(channel, 'system', `💭 Chat mode: ${entityLabel}\n\nEntity will respond as thought bubbles. Scene will NOT update.\nType "exit chat" to resume normal mode.`);
+      renderMessages(channel);
+      
+      TestSuite.log('💭', 'CHAT', `Chat mode activated for ${entityLabel}`);
+    }
+    
+    // VIEW ENTITY PERSPECTIVE - Legacy function for backwards compatibility
+    function viewEntityPerspective(channelId, entityLabel) {
+      // Just set @mention for now
+      const channel = appState.channels.get(channelId);
+      if (!channel) return;
+      
+      const overlay = document.getElementById('perspectiveOverlay');
+      overlay.style.display = 'none';
+      
+      channel.dom.input.value = `@${entityLabel} `;
+      channel.dom.input.focus();
+      
+      addMessage(channel, 'system', `✦ Now chatting with: ${entityLabel}\n\nType your message to talk to this entity.`);
+      renderMessages(channel);
+    }
+    
+    // ========================================
+    // STAGE 8: RENDER INITIAL CHANNEL
+    // ========================================
+    
+    // STAGE 8 will run after DOM ready - defined below
+    
+    // ========================================
+    // STAGE 9: 3D TRAIN RENDERING
+    // ========================================
+    
+    // STAGE 9 functions - will be called after DOM ready
+    
+    function init3DForChannel(channel) {
+      const canvas = channel.dom.trainCanvas;
+      if (!canvas) {
+        TestSuite.log('⚠️', TestSuite.stage, 'No canvas found for channel');
+        return;
+      }
+      
+      // Scene
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x1a1a1a);
+      scene.fog = new THREE.Fog(0x1a1a1a, 30, 100);
+      
+      // Camera - WIDE VIEW to see whole circle
+      const camera = new THREE.PerspectiveCamera(
+        50,
+        canvas.width / canvas.height,
+        0.1,
+        500
+      );
+      camera.position.set(35, 40, 35); // High angle to see full grid
+      
+      // Renderer
+      const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+      renderer.setSize(canvas.width, canvas.height);
+      renderer.shadowMap.enabled = true;
+      
+      // Controls - Target center of grid
+      const controls = new THREE.OrbitControls(camera, canvas);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+      controls.target.set(0, 0, 0); // Look at grid center
+      controls.minDistance = 30;
+      controls.maxDistance = 80;
+      
+      // Lights
+      scene.add(new THREE.AmbientLight(0x404040, 0.6));
+      const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+      dirLight.position.set(50, 50, 50);
+      dirLight.castShadow = true;
+      scene.add(dirLight);
+      
+      // GRID FLOOR - 9x9 grid as the ground
+      const gridSize = 45; // Grid spans 45m
+      const cellSize = gridSize / 9;
+      const gridGroup = new THREE.Group();
+      
+      // Create 81 grid cells as 3D planes
+      channel.gridCells = [];
+      for (let row = 0; row < 9; row++) {
+        for (let col = 0; col < 9; col++) {
+          const cellGeometry = new THREE.PlaneGeometry(cellSize * 0.95, cellSize * 0.95);
+          const cellMaterial = new THREE.MeshLambertMaterial({
+            color: 0x0f766e,
+            transparent: true,
+            opacity: 0.15,
+            side: THREE.DoubleSide
+          });
+          const cellMesh = new THREE.Mesh(cellGeometry, cellMaterial);
+          
+          // Position: center grid at origin
+          const x = (col - 4) * cellSize;
+          const z = (row - 4) * cellSize;
+          cellMesh.position.set(x, 0.01, z);
+          cellMesh.rotation.x = -Math.PI / 2;
+          cellMesh.receiveShadow = true;
+          
+          // Add border
+          const edges = new THREE.EdgesGeometry(cellGeometry);
+          const line = new THREE.LineSegments(edges, 
+            new THREE.LineBasicMaterial({ color: 0x60a5fa, transparent: true, opacity: 0.3 }));
+          line.rotation.x = -Math.PI / 2;
+          line.position.copy(cellMesh.position);
+          
+          gridGroup.add(cellMesh);
+          gridGroup.add(line);
+          channel.gridCells.push({ mesh: cellMesh, row, col, material: cellMaterial });
+        }
+      }
+      scene.add(gridGroup);
+      
+      // Dark base ground under grid
+      const baseGround = new THREE.Mesh(
+        new THREE.PlaneGeometry(80, 80),
+        new THREE.MeshLambertMaterial({ color: 0x1a1a1a })
+      );
+      baseGround.rotation.x = -Math.PI / 2;
+      baseGround.position.y = -0.1;
+      baseGround.receiveShadow = true;
+      scene.add(baseGround);
+      
+      TestSuite.log('🎯', TestSuite.stage, 'Grid floor created: 9×9 cells in 3D scene');
+      
+      // Create 5 tracks
+      Object.entries(TRACK_CONFIGS).forEach(([trackId, config]) => {
+        const curve = createTrackCurve(config.radius);
+        const points = curve.getPoints(100);
+        const geometry = new THREE.BufferGeometry().setFromPoints(
+          points.map(p => new THREE.Vector3(p.x, 0.2, p.y))
+        );
+        const material = new THREE.LineBasicMaterial({
+          color: config.color,
+          linewidth: 2,
+          transparent: true,
+          opacity: 0.6
+        });
+        const line = new THREE.Line(geometry, material);
+        scene.add(line);
+      });
+      
+      // Create train (locomotive + 4 cars)
+      const trainCars = [];
+      const carTypes = [null, 'Print', 'Radio', 'Television', 'Internet'];
+      
+      carTypes.forEach((eraType, idx) => {
+        const isLocomotive = idx === 0;
+        const carGroup = new THREE.Group();
+        carGroup.userData.isTrain = true; // Mark for raycaster
+        carGroup.userData.carIndex = idx;
+        carGroup.userData.carEra = eraType;
+        
+        // Body
+        const body = createTrainBodyMesh(isLocomotive, eraType);
+        body.position.y = isLocomotive ? 0.9 : 0.7;  // Lower to match smaller size
+        carGroup.add(body);
+        
+        // 4 Wheels - closer together for smaller cars
+        const wheelPositions = [
+          { x: 0.8, z: -0.6 },
+          { x: 0.8, z: 0.6 },
+          { x: -0.8, z: -0.6 },
+          { x: -0.8, z: 0.6 }
+        ];
+        
+        const wheels = [];
+        wheelPositions.forEach(pos => {
+          const wheel = createWheel();
+          wheel.rotation.z = Math.PI / 2;
+          wheel.position.set(pos.x, 0.3, pos.z);  // Lower wheels
+          carGroup.add(wheel);
+          wheels.push(wheel);
+        });
+        
+        scene.add(carGroup);
+        trainCars.push({ group: carGroup, wheels, index: idx });
+      });
+      
+      // Store references
+      channel.scene = scene;
+      channel.camera = camera;
+      channel.renderer = renderer;
+      channel.controls = controls;
+      channel.trainCars = trainCars;
+      channel.trainCurve = createTrackCurve(TRACK_CONFIGS[channel.currentTrack].radius);
+      channel.trainProgress = 0;
+      channel.trainPaused = false;
+      channel.atJunction = false;
+      
+      // RAYCASTER for entity clicking AND hovering
+      const raycaster = new THREE.Raycaster();
+      const mouse = new THREE.Vector2();
+      let currentLabel = null;
+      
+      // HOVER handler for entity name labels
+      canvas.addEventListener('mousemove', (event) => {
+        const rect = canvas.getBoundingClientRect();
+        mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+        
+        raycaster.setFromCamera(mouse, camera);
+        const intersects = raycaster.intersectObjects(scene.children, true);
+        
+        // Remove old label
+        if (currentLabel) {
+          currentLabel.remove();
+          currentLabel = null;
+        }
+        
+        if (intersects.length > 0) {
+          const hoveredObject = intersects[0].object;
+          
+          // Show entity name label
+          if (hoveredObject.userData.entity) {
+            const entity = hoveredObject.userData.entity;
+            const label = document.createElement('div');
+            label.className = 'entity-label';
+            label.textContent = `${entity.type}: ${entity.label}`;
+            label.style.left = `${event.clientX + 10}px`;
+            label.style.top = `${event.clientY - 30}px`;
+            document.body.appendChild(label);
+            currentLabel = label;
+            canvas.style.cursor = 'pointer';
+          }
+          // Show train info label
+          else if (hoveredObject.parent && hoveredObject.parent.userData.isTrain) {
+            const label = document.createElement('div');
+            label.className = 'entity-label';
+            label.textContent = `🚂 Train: ${Math.round(channel.trainProgress * 100)}% complete`;
+            label.style.left = `${event.clientX + 10}px`;
+            label.style.top = `${event.clientY - 30}px`;
+            document.body.appendChild(label);
+            currentLabel = label;
+            canvas.style.cursor = 'pointer';
+          } else {
+            canvas.style.cursor = 'default';
+          }
+        } else {
+          canvas.style.cursor = 'default';
+        }
+      });
+      
+      canvas.addEventListener('click', (event) => {
+        const rect = canvas.getBoundingClientRect();
+        mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+        
+        raycaster.setFromCamera(mouse, camera);
+        const intersects = raycaster.intersectObjects(scene.children, true);
+        
+        if (intersects.length > 0) {
+          const clickedObject = intersects[0].object;
+          
+          // Check if clicked object has entity data
+          if (clickedObject.userData.entity) {
+            const entity = clickedObject.userData.entity;
+            addMessage(channel, 'system', `🎯 Clicked: ${entity.type} "${entity.label}" at (${entity.row},${entity.col})\n\nType your message to interact with this entity.`);
+            renderMessages(channel);
+            channel.dom.input.focus();
+            TestSuite.log('🎯', 'CLICK', `Entity clicked: ${entity.label}`);
+            
+            // Visual feedback - flash the cell
+            const cell = channel.gridCells[entity.row * 9 + entity.col];
+            if (cell && cell.material) {
+              const originalOpacity = cell.material.opacity;
+              cell.material.opacity = 0.6;
+              setTimeout(() => {
+                cell.material.opacity = originalOpacity;
+              }, 300);
+            }
+          }
+          // Train click detection - chat with train cars!
+          else if (clickedObject.parent && clickedObject.parent.userData.isTrain) {
+            const carIndex = clickedObject.parent.userData.carIndex || 0;
+            const carEra = clickedObject.parent.userData.carEra;
+            
+            let carInfo = '';
+            if (carIndex === 0) {
+              carInfo = `🚂 Locomotive (Leader)\n\nI'm the engine that pulls this train through time. Ask me about the journey ahead.`;
+            } else {
+              const eraNames = { Print: '📰 Print Car', Radio: '📻 Radio Car', Television: '📺 TV Car', Internet: '🌐 Internet Car' };
+              const eraDesc = {
+                Print: 'I represent the age of literacy and linear thought. Books, newspapers, structured knowledge.',
+                Radio: 'I embody the communal voice. Broadcasting, immediate connection, the tribal drum.',
+                Television: 'I am the visual spectacle. Mass culture, passive consumption, the global village.',
+                Internet: 'I am the network. Fragmented, participatory, everyone speaks, chaos and connection.'
+              };
+              carInfo = `${eraNames[carEra] || 'Mystery Car'}\n\n${eraDesc[carEra] || 'A car in the train of time.'}\n\nType @${carEra} to chat with me!`;
+            }
+            
+            addMessage(channel, 'system', `${carInfo}\n\nProgress: ${Math.round(channel.trainProgress * 100)}% | Track: ${TRACK_CONFIGS[channel.currentTrack].label}`);
+            renderMessages(channel);
+            channel.dom.input.focus();
+            TestSuite.log('🚂', 'CLICK', `${carEra || 'Locomotive'} car clicked`);
+          }
+        }
+      });
+      
+      TestSuite.log('✅', TestSuite.stage, '3D scene fully initialized with click handler');
+    }
+    
+    function animate3D() {
+      requestAnimationFrame(animate3D);
+      
+      appState.channels.forEach(channel => {
+        if (!channel.scene || !channel.renderer) return;
+        
+        // Update train position (only if not paused)
+        if (!channel.trainPaused) {
+          const direction = channel.trainDirection || 1;
+          channel.trainProgress += 0.001 * direction; // Use direction for forward/backward
+          
+          // Wrap around
+          if (channel.trainProgress >= 1) channel.trainProgress = 0;
+          if (channel.trainProgress < 0) channel.trainProgress = 1;
+        }
+        
+        const mainRadius = TRACK_CONFIGS[channel.currentTrack].radius;
+        const angle = channel.trainProgress * Math.PI * 2;
+        const x = Math.cos(angle) * mainRadius;
+        const z = Math.sin(angle) * mainRadius;
+        
+        // Camera follow mode
+        if (channel.cameraFollowMode && channel.trainCars && channel.trainCars.length > 0) {
+          const locomotive = channel.trainCars[0];
+          const trainPos = locomotive.group.position;
+          const offset = new THREE.Vector3(0, 8, 12);
+          channel.camera.position.copy(trainPos).add(offset);
+          channel.camera.lookAt(trainPos.x, trainPos.y, trainPos.z);
+        }
+        
+        // Position each car with better spacing
+        channel.trainCars.forEach((car, idx) => {
+          if (!car || !car.group) return; // Safety check
+          
+          const offset = idx * 0.05; // Tighter spacing for smaller cars
+          const u = (channel.trainProgress - offset + 1) % 1;
+          const point = channel.trainCurve.getPoint(u);
+          
+          car.group.position.set(point.x, car.group.position.y, point.y);
+          
+          // Look ahead for rotation
+          const lookU = (u + 0.01) % 1;
+          const lookPoint = channel.trainCurve.getPoint(lookU);
+          car.group.lookAt(lookPoint.x, car.group.position.y, lookPoint.y);
+          car.group.rotateY(Math.PI / 2);
+          
+          // Rotate wheels if they exist
+          if (car.wheels) car.wheels.forEach(wheel => {
+            wheel.rotation.z += 0.05;
+          });
+        });
+        
+        // Update info overlay
+        if (channel.dom.trainInfo) {
+          const pct = Math.floor(channel.trainProgress * 100);
+          const status = channel.trainPaused ? '🚦 PAUSED' : '▶️ MOVING';
+          channel.dom.trainInfo.innerHTML = 
+            `Track: <strong>${TRACK_CONFIGS[channel.currentTrack].label}</strong><br>Position: <strong>${pct}%</strong><br>${status}`;
+        }
+        
+        // Update grid position
+        updateGridPosition(channel, channel.trainProgress);
+        
+        // Render
+        channel.controls.update();
+        channel.renderer.render(channel.scene, channel.camera);
+      });
+    }
+    
+    // runStage9Tests removed - now inline in DOMContentLoaded
+  </script>
+</body>
+</html>

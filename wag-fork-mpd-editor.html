@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>WAG MPD Editor & Viewer</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    
+    :root {
+      --bg: #0e0e0e;
+      --panel: #151515;
+      --panel-dark: #0a0a0a;
+      --border: #2b2b2b;
+      --text: #e8e8e8;
+      --text-muted: #888;
+      --accent: #2cc2ff;
+      --accent-glow: rgba(44, 194, 255, 0.3);
+      --transition: cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow: hidden;
+      height: 100vh;
+      touch-action: pan-x pan-y;
+    }
+    
+    #app {
+      display: grid;
+      grid-template-rows: 48px 1fr 48px;
+      height: 100vh;
+    }
+    
+    /* Header */
+    #header {
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      z-index: 100;
+    }
+    
+    #header h1 { font-size: 16px; color: var(--accent); }
+    
+    .header-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--panel-dark);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      font-size: 16px;
+    }
+    .header-btn:hover { background: var(--accent); color: var(--bg); }
+    
+    .header-group { display: flex; gap: 8px; align-items: center; }
+    
+    /* Main content area */
+    #main {
+      display: grid;
+      grid-template-columns: 1fr 280px 1fr;
+      grid-template-rows: 1fr 180px;
+      gap: 1px;
+      background: var(--border);
+      overflow: hidden;
+    }
+    
+    @media (max-width: 1024px) {
+      #main { 
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr 200px;
+      }
+      #param-panel { display: none; }
+    }
+    
+    @media (max-width: 768px) {
+      #main { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr 200px; }
+    }
+    
+    /* Editor panel */
+    #editor-panel {
+      background: var(--panel-dark);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      grid-row: 1 / 2;
+    }
+    
+    /* Parameter panel (sliders) */
+    #param-panel {
+      background: var(--panel-dark);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      grid-row: 1 / 3;
+    }
+    
+    #param-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px;
+    }
+    
+    .param-group {
+      margin-bottom: 12px;
+      padding: 8px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+    }
+    
+    .param-group-title {
+      font-size: 9px;
+      color: var(--accent);
+      margin-bottom: 6px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    
+    .param-row {
+      display: grid;
+      grid-template-columns: 15px 1fr 45px;
+      gap: 6px;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    
+    .param-label {
+      font-size: 10px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    
+    .param-slider {
+      width: 100%;
+      height: 3px;
+      appearance: none;
+      -webkit-appearance: none;
+      background: var(--border);
+      outline: none;
+      border-radius: 2px;
+    }
+    
+    .param-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 12px;
+      height: 12px;
+      background: var(--accent);
+      border-radius: 50%;
+      cursor: pointer;
+    }
+    
+    .param-value {
+      font-size: 10px;
+      color: var(--text);
+      text-align: right;
+      font-family: monospace;
+      background: var(--panel-dark);
+      padding: 2px 4px;
+      border-radius: 2px;
+    }
+    
+    .no-selection {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 11px;
+      padding: 20px 10px;
+      line-height: 1.5;
+    }
+    
+    .panel-header {
+      padding: 8px 12px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    
+    .panel-title { font-weight: 700; color: var(--accent); }
+    
+    .panel-actions { display: flex; gap: 4px; }
+    
+    .panel-btn {
+      padding: 4px 8px;
+      background: var(--panel-dark);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 11px;
+      transition: all 0.2s;
+    }
+    .panel-btn:hover { background: var(--accent); color: var(--bg); }
+    .panel-btn.active { background: var(--accent); color: var(--bg); }
+    
+    #mpd-editor {
+      flex: 1;
+      width: 100%;
+      background: var(--bg);
+      border: none;
+      color: var(--text);
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      padding: 12px;
+      resize: none;
+      outline: none;
+    }
+    
+    #mpd-editor::-webkit-scrollbar { width: 8px; }
+    #mpd-editor::-webkit-scrollbar-track { background: var(--panel-dark); }
+    #mpd-editor::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    
+    /* Viewer panel */
+    #viewer-panel {
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      grid-row: 1 / 2;
+    }
+    
+    /* Chat panel */
+    #chat-panel {
+      background: var(--panel-dark);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      grid-column: 1 / 4;
+    }
+    
+    #chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    
+    #chat-messages::-webkit-scrollbar { width: 6px; }
+    #chat-messages::-webkit-scrollbar-track { background: var(--panel-dark); }
+    #chat-messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    
+    .chat-msg {
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      line-height: 1.4;
+      background: var(--panel);
+      border: 1px solid var(--border);
+    }
+    
+    #chat-input-row {
+      display: flex;
+      gap: 4px;
+      padding: 6px;
+      background: var(--panel);
+      border-top: 1px solid var(--border);
+    }
+    
+    #chat-input {
+      flex: 1;
+      padding: 6px 10px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      color: var(--text);
+      font-size: 11px;
+      outline: none;
+    }
+    
+    #chat-send {
+      padding: 6px 12px;
+      background: var(--accent);
+      border: none;
+      border-radius: 3px;
+      color: #000;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    
+    #viewer-content {
+      flex: 1;
+      position: relative;
+      background: var(--bg);
+    }
+    
+    #viewer-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    
+    .viewer-overlay {
+      position: absolute;
+      left: 12px;
+      bottom: 12px;
+      background: rgba(0, 0, 0, 0.75);
+      border: 1px solid var(--accent);
+      border-radius: 8px;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      z-index: 10;
+    }
+    
+    .control-row { display: flex; gap: 4px; flex-wrap: wrap; }
+    
+    .viewer-btn {
+      padding: 6px 12px;
+      background: var(--accent);
+      border: none;
+      border-radius: 4px;
+      color: var(--bg);
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .viewer-btn:hover { opacity: 0.9; }
+    .viewer-btn.toggle.active { background: #28b3f5; }
+    
+    #viewer-info {
+      position: absolute;
+      right: 12px;
+      top: 12px;
+      padding: 8px 12px;
+      background: rgba(0, 0, 0, 0.8);
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      font-size: 11px;
+      color: var(--text-muted);
+      backdrop-filter: blur(8px);
+      display: none;
+    }
+    #viewer-info.visible { display: block; }
+    
+    /* Footer */
+    #footer {
+      background: var(--panel);
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    
+    #status { display: flex; align-items: center; gap: 8px; }
+    #line-count::before { content: '⌯ '; color: var(--accent); }
+    #part-count::before { content: '▣ '; color: var(--accent); }
+    
+    /* Loading indicator */
+    .loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 14px;
+      color: var(--accent);
+      z-index: 20;
+    }
+    
+    /* Empty state */
+    .empty-state {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 13px;
+      max-width: 300px;
+    }
+    .empty-state h3 { color: var(--accent); margin-bottom: 8px; font-size: 16px; }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <header id="header">
+      <h1 id="app-title">🧱 WAG Reactive Editor</h1>
+      <div class="header-group">
+        <button class="header-btn" id="emoji-toggle" title="Toggle Emoji">😊</button>
+        <button class="header-btn active" id="reactive-toggle" title="Reactive Mode">⚡</button>
+        <button class="header-btn" id="sample-btn" title="Load Sample">📄</button>
+        <button class="header-btn" id="clear-btn" title="Clear">⌫</button>
+        <button class="header-btn" id="help-btn" title="Help">?</button>
+      </div>
+    </header>
+    
+    <main id="main">
+      <section id="editor-panel">
+        <div class="panel-header">
+          <div class="panel-title">MPD Editor</div>
+          <div class="panel-actions">
+            <button class="panel-btn" id="render-btn">Render</button>
+            <button class="panel-btn" id="format-btn">Format</button>
+          </div>
+        </div>
+        <textarea id="mpd-editor" placeholder="Paste or type LDraw MPD/LDR data here...
+Example:
+0 FILE example.mpd
+0 Example LEGO Model
+0 Author: You
+1 4 0 0 0 1 0 0 0 1 0 0 0 1 3001.dat
+1 1 20 -8 0 1 0 0 0 1 0 0 0 1 3001.dat
+1 2 40 -8 0 1 0 0 0 1 0 0 0 1 3001.dat
+0 STEP" spellcheck="false"></textarea>
+      </section>
+      
+      <section id="param-panel">
+        <div class="panel-header">
+          <div class="panel-title">Direct Manipulation</div>
+          <div class="panel-actions">
+            <button class="panel-btn active" id="slider-mode">Sliders</button>
+          </div>
+        </div>
+        <div id="param-content">
+          <div class="no-selection">
+            <p><strong>Select a part</strong></p>
+            <p>Click a part in 3D view to manipulate with sliders</p>
+            <p style="margin-top:10px; font-size:9px; color: var(--accent);">
+              ⚡ Reactive: Slider↔Text↔3D
+            </p>
+          </div>
+        </div>
+      </section>
+      
+      <section id="viewer-panel">
+        <div class="panel-header">
+          <div class="panel-title">3D Viewer</div>
+          <div class="panel-actions">
+            <button class="panel-btn toggle active" id="grid-toggle">Grid</button>
+            <button class="panel-btn toggle active" id="axes-toggle">Axes</button>
+            <button class="panel-btn toggle" id="wireframe-toggle">Wire</button>
+          </div>
+        </div>
+        <div id="viewer-content">
+          <canvas id="viewer-canvas"></canvas>
+          <div class="empty-state" id="empty-state">
+            <h3>Ready to Render</h3>
+            <p>Enter MPD data in the editor and click <strong>Render</strong> to see your LEGO model in 3D.</p>
+          </div>
+          <div id="viewer-info">
+            <div id="part-info">Parts: 0</div>
+            <div id="color-info">Colors: 0</div>
+          </div>
+          <div class="viewer-overlay" style="display:none;">
+            <div class="control-row">
+              <button class="viewer-btn" id="reset-camera">Reset View</button>
+              <button class="viewer-btn" id="fit-camera">Fit All</button>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      <section id="chat-panel">
+        <div class="panel-header">
+          <div class="panel-title">AI Assistant</div>
+          <div class="panel-actions">
+            <button class="panel-btn" id="clear-chat">Clear</button>
+          </div>
+        </div>
+        <div id="chat-messages">
+          <div class="chat-msg">
+            💬 Try: "Move selected part up 10 units" or "Add red brick at 40,0,0"
+          </div>
+        </div>
+        <div id="chat-input-row">
+          <input type="text" id="chat-input" placeholder="Ask AI to edit..." />
+          <button id="chat-send">Send</button>
+        </div>
+      </section>
+    </main>
+    
+    <footer id="footer">
+      <div id="status">
+        <span id="line-count">0 lines</span>
+        <span id="part-count">0 parts</span>
+      </div>
+      <div id="render-status">Ready</div>
+    </footer>
+  </div>
+  
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script>
+    // App state
+    const APP = {
+      scene: null,
+      camera: null,
+      renderer: null,
+      controls: null,
+      modelGroup: null,
+      gridHelper: null,
+      axesHelper: null
+    };
+    
+    // LDraw color palette (subset)
+    const LDRAW_COLORS = {
+      0: 0x05131D, 1: 0x0055BF, 2: 0x237841, 4: 0xC91A09,
+      5: 0xC870A0, 6: 0x583927, 7: 0x9BA19D, 8: 0x6C6E68,
+      9: 0xB4D2E3, 10: 0x4B9F4A, 14: 0xF2CD37, 15: 0xFFFFFF,
+      71: 0xA0A5A9, 72: 0x6C6E68, 73: 0x5A93DB, 74: 0x73DCA1,
+      77: 0xFEBABD, 78: 0xFFF67B, 79: 0xFFFFFF, 80: 0x484A48
+    };
+    
+    // Initialize Three.js viewer
+    function initViewer() {
+      const canvas = document.getElementById('viewer-canvas');
+      const container = document.getElementById('viewer-content');
+      
+      // Scene
+      APP.scene = new THREE.Scene();
+      APP.scene.background = new THREE.Color(0x0e0e0e);
+      
+      // Camera
+      const aspect = container.clientWidth / container.clientHeight;
+      APP.camera = new THREE.PerspectiveCamera(45, aspect, 0.1, 1000);
+      APP.camera.position.set(50, 50, 50);
+      
+      // Renderer
+      APP.renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+      APP.renderer.setSize(container.clientWidth, container.clientHeight);
+      APP.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      
+      // Controls
+      APP.controls = new THREE.OrbitControls(APP.camera, canvas);
+      APP.controls.enableDamping = true;
+      APP.controls.dampingFactor = 0.05;
+      
+      // Lighting
+      APP.scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+      const dirLight1 = new THREE.DirectionalLight(0xffffff, 0.8);
+      dirLight1.position.set(50, 50, 50);
+      APP.scene.add(dirLight1);
+      const dirLight2 = new THREE.DirectionalLight(0xffffff, 0.4);
+      dirLight2.position.set(-50, -50, -50);
+      APP.scene.add(dirLight2);
+      
+      // Grid
+      APP.gridHelper = new THREE.GridHelper(100, 20, 0x444444, 0x222222);
+      APP.scene.add(APP.gridHelper);
+      
+      // Axes
+      APP.axesHelper = new THREE.AxesHelper(50);
+      APP.scene.add(APP.axesHelper);
+      
+      // Animation loop
+      function animate() {
+        requestAnimationFrame(animate);
+        APP.controls.update();
+        APP.renderer.render(APP.scene, APP.camera);
+      }
+      animate();
+      
+      // Resize handler
+      window.addEventListener('resize', () => {
+        const w = container.clientWidth;
+        const h = container.clientHeight;
+        APP.camera.aspect = w / h;
+        APP.camera.updateProjectionMatrix();
+        APP.renderer.setSize(w, h);
+      });
+      
+      console.log('✓ Viewer initialized');
+    }
+    
+    // Parse MPD line (type 1 = part)
+    function parseMPDLine(line) {
+      const parts = line.trim().split(/\s+/);
+      if (parts[0] !== '1') return null;
+      
+      return {
+        color: parseInt(parts[1], 10),
+        x: parseFloat(parts[2]),
+        y: parseFloat(parts[3]),
+        z: parseFloat(parts[4]),
+        part: parts.slice(14).join(' ')
+      };
+    }
+    
+    // Render MPD data as 3D model
+    function renderMPD(mpdText) {
+      document.getElementById('empty-state').style.display = 'none';
+      document.querySelector('.viewer-overlay').style.display = 'flex';
+      document.getElementById('viewer-info').classList.add('visible');
+      document.getElementById('render-status').textContent = 'Rendering...';
+      
+      // Clear previous model
+      if (APP.modelGroup) {
+        APP.scene.remove(APP.modelGroup);
+      }
+      APP.modelGroup = new THREE.Group();
+      
+      const lines = mpdText.split('\n').filter(l => l.trim());
+      const parts = [];
+      const colors = new Set();
+      
+      lines.forEach(line => {
+        const part = parseMPDLine(line);
+        if (part) {
+          parts.push(part);
+          colors.add(part.color);
+          
+          const color = LDRAW_COLORS[part.color] || 0x6aaff;
+          const geometry = new THREE.BoxGeometry(20, 8, 20);
+          const material = new THREE.MeshStandardMaterial({
+            color: color,
+            metalness: 0.1,
+            roughness: 0.8
+          });
+          const mesh = new THREE.Mesh(geometry, material);
+          mesh.position.set(part.x / 10, -part.y / 10, part.z / 10);
+          
+          // Add edges
+          const edges = new THREE.EdgesGeometry(geometry);
+          const lineMat = new THREE.LineBasicMaterial({ color: 0x000000 });
+          const lineSegments = new THREE.LineSegments(edges, lineMat);
+          mesh.add(lineSegments);
+          
+          APP.modelGroup.add(mesh);
+        }
+      });
+      
+      APP.scene.add(APP.modelGroup);
+      
+      // Fit camera to model
+      if (APP.modelGroup.children.length > 0) {
+        const box = new THREE.Box3().setFromObject(APP.modelGroup);
+        const center = box.getCenter(new THREE.Vector3());
+        const size = box.getSize(new THREE.Vector3());
+        const maxDim = Math.max(size.x, size.y, size.z);
+        const fov = APP.camera.fov * (Math.PI / 180);
+        let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
+        cameraZ *= 1.8;
+        APP.camera.position.set(center.x + cameraZ, center.y + cameraZ, center.z + cameraZ);
+        APP.controls.target.copy(center);
+        APP.controls.update();
+      }
+      
+      // Update info
+      document.getElementById('part-info').textContent = `Parts: ${parts.length}`;
+      document.getElementById('color-info').textContent = `Colors: ${colors.size}`;
+      document.getElementById('part-count').textContent = `${parts.length} parts`;
+      document.getElementById('render-status').textContent = `✓ Rendered ${parts.length} parts`;
+      
+      console.log(`✓ Rendered ${parts.length} parts, ${colors.size} colors`);
+    }
+    
+    // Update stats
+    function updateStats() {
+      const text = document.getElementById('mpd-editor').value;
+      const lines = text.split('\n').filter(l => l.trim());
+      const parts = lines.filter(l => l.trim().startsWith('1 ')).length;
+      
+      document.getElementById('line-count').textContent = `${lines.length} lines`;
+      document.getElementById('part-count').textContent = `${parts} parts`;
+    }
+    
+    // Load sample MPD
+    function loadSample() {
+      const sample = `0 FILE sample.mpd
+0 Simple LEGO Structure
+0 Author: WAG Editor
+1 4 0 0 0 1 0 0 0 1 0 0 0 1 3001.dat
+1 1 20 -8 0 1 0 0 0 1 0 0 0 1 3001.dat
+1 2 40 -8 0 1 0 0 0 1 0 0 0 1 3001.dat
+1 14 0 -8 20 1 0 0 0 1 0 0 0 1 3001.dat
+1 10 20 -8 20 1 0 0 0 1 0 0 0 1 3001.dat
+1 5 40 -8 20 1 0 0 0 1 0 0 0 1 3001.dat
+1 4 10 -16 10 1 0 0 0 1 0 0 0 1 3001.dat
+1 1 30 -16 10 1 0 0 0 1 0 0 0 1 3001.dat
+0 STEP`;
+      
+      document.getElementById('mpd-editor').value = sample;
+      updateStats();
+      renderMPD(sample);
+    }
+    
+    // Event listeners
+    document.getElementById('mpd-editor').addEventListener('input', updateStats);
+    
+    document.getElementById('render-btn').addEventListener('click', () => {
+      const text = document.getElementById('mpd-editor').value.trim();
+      if (!text) {
+        document.getElementById('render-status').textContent = '⚠ Editor is empty';
+        return;
+      }
+      renderMPD(text);
+    });
+    
+    document.getElementById('clear-btn').addEventListener('click', () => {
+      if (confirm('Clear all content?')) {
+        document.getElementById('mpd-editor').value = '';
+        if (APP.modelGroup) APP.scene.remove(APP.modelGroup);
+        updateStats();
+        document.getElementById('empty-state').style.display = 'block';
+        document.querySelector('.viewer-overlay').style.display = 'none';
+        document.getElementById('viewer-info').classList.remove('visible');
+        document.getElementById('render-status').textContent = 'Cleared';
+      }
+    });
+    
+    document.getElementById('sample-btn').addEventListener('click', loadSample);
+    
+    document.getElementById('reset-camera').addEventListener('click', () => {
+      APP.camera.position.set(50, 50, 50);
+      APP.controls.target.set(0, 0, 0);
+      APP.controls.update();
+    });
+    
+    document.getElementById('fit-camera').addEventListener('click', () => {
+      if (APP.modelGroup && APP.modelGroup.children.length > 0) {
+        const box = new THREE.Box3().setFromObject(APP.modelGroup);
+        const center = box.getCenter(new THREE.Vector3());
+        const size = box.getSize(new THREE.Vector3());
+        const maxDim = Math.max(size.x, size.y, size.z);
+        const fov = APP.camera.fov * (Math.PI / 180);
+        let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
+        cameraZ *= 1.8;
+        APP.camera.position.set(center.x + cameraZ, center.y + cameraZ, center.z + cameraZ);
+        APP.controls.target.copy(center);
+        APP.controls.update();
+      }
+    });
+    
+    document.getElementById('grid-toggle').addEventListener('click', (e) => {
+      e.target.classList.toggle('active');
+      if (APP.gridHelper) APP.gridHelper.visible = e.target.classList.contains('active');
+    });
+    
+    document.getElementById('axes-toggle').addEventListener('click', (e) => {
+      e.target.classList.toggle('active');
+      if (APP.axesHelper) APP.axesHelper.visible = e.target.classList.contains('active');
+    });
+    
+    document.getElementById('wireframe-toggle').addEventListener('click', (e) => {
+      e.target.classList.toggle('active');
+      if (APP.modelGroup) {
+        APP.modelGroup.traverse(obj => {
+          if (obj.material) obj.material.wireframe = e.target.classList.contains('active');
+        });
+      }
+    });
+    
+    document.getElementById('format-btn').addEventListener('click', () => {
+      const text = document.getElementById('mpd-editor').value;
+      const lines = text.split('\n');
+      const formatted = lines.map(line => {
+        line = line.trim();
+        if (!line || line.startsWith('0 ')) return line;
+        return line.replace(/\s+/g, ' ');
+      }).join('\n');
+      document.getElementById('mpd-editor').value = formatted;
+      document.getElementById('render-status').textContent = 'Formatted';
+    });
+    
+    document.getElementById('help-btn').addEventListener('click', () => {
+      alert(`WAG MPD Editor & Viewer
+
+• Paste LDraw MPD/LDR data in the editor
+• Click "Render" to visualize in 3D
+• Click "Sample" to load example
+• Mobile-friendly interface
+
+MPD Format:
+Line type 1 = Part placement
+1 [color] [x] [y] [z] [rotations...] [part.dat]
+
+Controls:
+• Drag to rotate
+• Scroll/pinch to zoom
+• Grid/Axes/Wire toggles`);
+    });
+    
+    // Initialize
+    initViewer();
+    updateStats();
+    console.log('✓ WAG MPD Editor ready');
+  </script>
+</body>
+</html>
