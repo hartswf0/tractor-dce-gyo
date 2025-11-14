@@ -1494,25 +1494,41 @@
                 editorLines[idx] = content.textContent;
             });
             
-            // Paste handler - split multiline paste into multiple lines
+            // Paste handler - SIMPLE & ELEGANT!
             content.addEventListener('paste', (e) => {
                 e.preventDefault();
                 const text = e.clipboardData.getData('text/plain');
-                
-                // If pasting multiple lines, split them
                 const lines = text.split('\n');
-                if (lines.length > 1) {
-                    // Replace current line with first pasted line
+                
+                // If pasting many lines (10+), start fresh with new file
+                if (lines.length >= 10) {
+                    console.log(`💚 Grace: Pasting ${lines.length} lines - creating new file from scratch`);
+                    
+                    // Replace entire editor with pasted content
+                    editorLines.length = 0;
+                    editorLines.push(...lines);
+                    
+                    renderEditor(editorLines);
+                    
+                    document.getElementById('status-text').textContent = `💚 Pasted ${lines.length} lines - new file created`;
+                    
+                    // Auto-compile if it looks like MPD
+                    if (text.includes('0 FILE') || text.includes('parts/')) {
+                        setTimeout(() => compile(), 500);
+                    }
+                }
+                // Few lines (1-9) - insert at current position
+                else if (lines.length > 1) {
                     editorLines[idx] = lines[0];
-                    // Insert remaining lines below
                     editorLines.splice(idx + 1, 0, ...lines.slice(1));
                     renderEditor(editorLines);
                     setTimeout(() => {
                         const newLine = editorContainer.children[idx + lines.length - 1];
                         if (newLine) newLine.querySelector('.line-content').focus();
                     }, 0);
-                } else {
-                    // Single line paste - just insert at cursor
+                }
+                // Single line - insert at cursor
+                else {
                     document.execCommand('insertText', false, text);
                 }
             });
@@ -2524,34 +2540,27 @@
             if (statusText) statusText.textContent = `Theme: ${labels[nextTheme]}`;
         });
         
-        // Background color picker
+        // Background color picker - FIXED!
         const bgColorPicker = document.getElementById('bg-color-picker');
         if (bgColorPicker) {
             bgColorPicker.addEventListener('input', (e) => {
                 const color = e.target.value;
-                STATE.backgroundColor = color;
                 
-                // Update Three.js scene background
-                if (STATE.viewer && STATE.viewer.engine) {
-                    const scene = STATE.viewer.engine.scene;
-                    const renderer = STATE.viewer.engine.renderer;
+                // Access WAG.viewer directly (not STATE.viewer)
+                if (WAG && WAG.viewer) {
+                    const scene = WAG.viewer.scene;
+                    const renderer = WAG.viewer.renderer;
                     
                     if (scene && renderer) {
                         const threeColor = new THREE.Color(color);
                         scene.background = threeColor;
                         renderer.setClearColor(threeColor);
+                        renderer.render(scene, WAG.viewer.camera);
                         
-                        console.log('[BG] Updated scene background to', color);
+                        console.log('💚 Grace: Background changed to', color);
+                        document.getElementById('status-text').textContent = `Background: ${color}`;
                     }
                 }
-                
-                // Force render using the correct method
-                if (STATE.viewer && STATE.viewer.render) {
-                    STATE.viewer.render();
-                    console.log('[BG] Render triggered');
-                }
-                
-                document.getElementById('status-text').textContent = `Background: ${color}`;
             });
         }
         
@@ -2680,19 +2689,28 @@
             pasteZone.classList.remove('active');
         }
         
-        // Load button - ensure line parsing
+        // Load button - ELEGANT! Just create new file from scratch
         pasteLoadBtn.addEventListener('click', () => {
-            const text = pasteTextarea.value;
-            if (text) {
-                // Split by various line endings (Windows/Unix/Mac)
-                const lines = text.split(/\r?\n|\r/);
-                editorLines = lines;
-                STATE.scenes[STATE.activeSceneIdx].lines = [...editorLines];
-                renderEditor(editorLines);
-                hidePasteZone();
-                const lineCount = lines.length;
-                document.getElementById('status-text').textContent = `Loaded ${lineCount} line${lineCount !== 1 ? 's' : ''} from paste`;
-                console.log(`[PASTE] Parsed ${lineCount} lines`);
+            const text = pasteTextarea.value.trim();
+            if (!text) return;
+            
+            // Parse to lines
+            const lines = text.split(/\r?\n|\r/);
+            
+            // Replace entire editor with pasted content
+            editorLines.length = 0;
+            editorLines.push(...lines);
+            
+            STATE.scenes[STATE.activeSceneIdx].lines = [...editorLines];
+            renderEditor(editorLines);
+            hidePasteZone();
+            
+            console.log(`💚 Grace: Created new file with ${lines.length} lines from paste`);
+            document.getElementById('status-text').textContent = `💚 New file: ${lines.length} lines loaded`;
+            
+            // Auto-compile if it looks like MPD
+            if (text.includes('0 FILE') || text.includes('parts/')) {
+                setTimeout(() => compile(), 500);
             }
         });
         
