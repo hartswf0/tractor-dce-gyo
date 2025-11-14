@@ -1,0 +1,192 @@
+0 FILE component-library.mpd
+0 Name: Component Library - Reusable Assemblies
+0 Author: Garden-Uprising
+0 !LDRAW_ORG Model
+0 !LICENCE Redistributable under CCAL version 2.0
+
+0 ╔═══════════════════════════════════════════════════════════════════╗
+0 ║           COMPONENT LIBRARY - Pre-Assembled Modules                ║
+0 ║     Use these subfiles in your scenes (verified parts only)        ║
+0 ╚═══════════════════════════════════════════════════════════════════╝
+
+0 AVAILABLE COMPONENTS:
+0   - wall-panel-north.ldr    (Portal monitoring wall)
+0   - wall-panel-server.ldr   (Server rack with doors)
+0   - console-station.ldr     (Central workstation)
+0   - monkey-minifig.ldr      (Complete black monkey, feet on floor)
+0   - shelf-unit.ldr          (Storage shelf assembly)
+
+0 STEP
+0 NOFILE
+
+
+0 FILE wall-panel-north.ldr
+0 Name: North Wall Panel - Portal Monitoring
+0 Description: Blue/white control panel assembly (5 studs wide, 5 plates tall)
+
+0 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+0 ┃ WALL PANEL: Portal Monitoring (5×5 assembly)                   ┃
+0 ┃ Parts: 15561.dat (base), 14718px1.dat (display), 5306.dat     ┃
+0 ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+0 // Base row (Y=0 in component space)
+1  72  -40    0    0    1  0  0    0  1  0    0  0  1    15561.dat
+1  72  -20    0    0    1  0  0    0  1  0    0  0  1    15561.dat
+1  72    0    0    0    1  0  0    0  1  0    0  0  1    15561.dat
+1  72   20    0    0    1  0  0    0  1  0    0  0  1    15561.dat
+1  72   40    0    0    1  0  0    0  1  0    0  0  1    15561.dat
+0 // 2nd row (Y=-8)
+1  72  -40   -8    0    1  0  0    0  1  0    0  0  1    15561.dat
+1   1  -20   -8    0    1  0  0    0  1  0    0  0  1    14718px1.dat
+1   1    0   -8    0    1  0  0    0  1  0    0  0  1    14718px1.dat
+1   1   20   -8    0    1  0  0    0  1  0    0  0  1    14718px1.dat
+1  72   40   -8    0    1  0  0    0  1  0    0  0  1    15561.dat
+0 // 3rd row (Y=-16) - Control panels
+1  15  -40  -16    0    1  0  0    0  1  0    0  0  1    5306.dat
+1   1  -20  -16    0    1  0  0    0  1  0    0  0  1    14718px1.dat
+1   1    0  -16    0    1  0  0    0  1  0    0  0  1    3069bpc0.dat
+1   1   20  -16    0    1  0  0    0  1  0    0  0  1    14718px1.dat
+1  15   40  -16    0    1  0  0    0  1  0    0  0  1    5306.dat
+0 // 4th row (Y=-24)
+1  72  -40  -24    0    1  0  0    0  1  0    0  0  1    15561.dat
+1  15  -20  -24    0    1  0  0    0  1  0    0  0  1    5306.dat
+1   1    0  -24    0    1  0  0    0  1  0    0  0  1    2431px0.dat
+1  15   20  -24    0    1  0  0    0  1  0    0  0  1    5306.dat
+1  72   40  -24    0    1  0  0    0  1  0    0  0  1    15561.dat
+0 // 5th row (Y=-32)
+1  72  -40  -32    0    1  0  0    0  1  0    0  0  1    15561.dat
+1  72  -20  -32    0    1  0  0    0  1  0    0  0  1    15561.dat
+1  15    0  -32    0    1  0  0    0  1  0    0  0  1    5306.dat
+1  72   20  -32    0    1  0  0    0  1  0    0  0  1    15561.dat
+1  72   40  -32    0    1  0  0    0  1  0    0  0  1    15561.dat
+
+0 STEP
+0 NOFILE
+
+
+0 FILE wall-panel-server.ldr
+0 Name: Server Wall Panel - Rack with Doors
+0 Description: Black server rack with hinged access doors (5×5 assembly)
+
+0 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+0 ┃ WALL PANEL: Server Rack (5×5 assembly)                         ┃
+0 ┃ Parts: 15561.dat (base), 2550c01/02.dat (doors), 5306.dat     ┃
+0 ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+0 // Base row
+1  72  -40    0    0    1  0  0    0  1  0    0  0  1    15561.dat
+1  72  -20    0    0    1  0  0    0  1  0    0  0  1    15561.dat
+1  72    0    0    0    1  0  0    0  1  0    0  0  1    15561.dat
+1  72   20    0    0    1  0  0    0  1  0    0  0  1    15561.dat
+1  72   40    0    0    1  0  0    0  1  0    0  0  1    15561.dat
+0 // 2nd row - Server doors
+1   0  -40   -8    0    1  0  0    0  1  0    0  0  1    2550c01.dat
+1   0  -20   -8    0    1  0  0    0  1  0    0  0  1    2550c01.dat
+1   0    0   -8    0    1  0  0    0  1  0    0  0  1    2550c02.dat
+1   0   20   -8    0    1  0  0    0  1  0    0  0  1    2550c02.dat
+1   0   40   -8    0    1  0  0    0  1  0    0  0  1    2550c01.dat
+0 // 3rd row - Diagnostic panels
+1   8  -40  -16    0    1  0  0    0  1  0    0  0  1    5306.dat
+1   8  -20  -16    0    1  0  0    0  1  0    0  0  1    5306.dat
+1   8    0  -16    0    1  0  0    0  1  0    0  0  1    5306.dat
+1   8   20  -16    0    1  0  0    0  1  0    0  0  1    5306.dat
+1   8   40  -16    0    1  0  0    0  1  0    0  0  1    5306.dat
+0 // 4th row - LED status
+1  72  -40  -24    0    1  0  0    0  1  0    0  0  1    15561.dat
+1   0  -20  -24    0    1  0  0    0  1  0    0  0  1    3069bp0d.dat
+1   0    0  -24    0    1  0  0    0  1  0    0  0  1    3069bp0d.dat
+1   0   20  -24    0    1  0  0    0  1  0    0  0  1    3069bp0d.dat
+1  72   40  -24    0    1  0  0    0  1  0    0  0  1    15561.dat
+0 // 5th row
+1  72  -40  -32    0    1  0  0    0  1  0    0  0  1    15561.dat
+1  72  -20  -32    0    1  0  0    0  1  0    0  0  1    15561.dat
+1   0    0  -32    0    1  0  0    0  1  0    0  0  1    3069bp0d.dat
+1  72   20  -32    0    1  0  0    0  1  0    0  0  1    15561.dat
+1  72   40  -32    0    1  0  0    0  1  0    0  0  1    15561.dat
+
+0 STEP
+0 NOFILE
+
+
+0 FILE console-station.ldr
+0 Name: Console Workstation
+0 Description: Central control console with displays and controls
+
+0 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+0 ┃ CONSOLE: Workstation with angled displays                      ┃
+0 ┃ Parts: 3069bpc0, 2431pw1, 3039pco, 3040p06                     ┃
+0 ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+0 // Base tiles (Y=-8, 1 plate up)
+1  72  -20   -8    0    1  0  0    0  1  0    0  0  1    3024.dat
+1  72    0   -8    0    1  0  0    0  1  0    0  0  1    3024.dat
+1  72   20   -8    0    1  0  0    0  1  0    0  0  1    3024.dat
+0 // Control panels (Y=-16)
+1   1  -20  -16    0    1  0  0    0  1  0    0  0  1    3069bpc0.dat
+1   4    0  -16    0    1  0  0    0  1  0    0  0  1    2431pw1.dat
+1  15   20  -16    0    1  0  0    0  1  0    0  0  1    3068bp0n.dat
+0 // Angled displays (Y=-24, tilted forward Z=10)
+1   1  -20  -24   10    1  0  0    0  1  0    0  0  1    3039pco.dat
+1  15    0  -24   10    1  0  0    0  1  0    0  0  1    3040p06.dat
+1   4   20  -24   10    1  0  0    0  1  0    0  0  1    3039pco.dat
+
+0 STEP
+0 NOFILE
+
+
+0 FILE monkey-minifig.ldr
+0 Name: Black Monkey Minifigure
+0 Description: Complete minifig assembly, feet at Y=0 (floor level)
+
+0 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+0 ┃ MINIFIG: Black monkey (complete assembly, 7 parts)             ┃
+0 ┃ Height: 68 LDU total | Feet: Y=0 (standing on floor)           ┃
+0 ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+0 // Head (top at Y=-68)
+1   0    0  -68    0    1  0  0    0  1  0    0  0  1    3626bph4.dat
+0 // Torso (Y=-44)
+1   0    0  -44    0    1  0  0    0  1  0    0  0  1    2866.dat
+0 // Hips (Y=-12)
+1   0    0  -12    0    1  0  0    0  1  0    0  0  1    3024.dat
+0 // Left leg (feet at Y=0, offset X=-6)
+1   0   -6    0    0    1  0  0    0  1  0    0  0  1    3024.dat
+0 // Right leg (feet at Y=0, offset X=+6)
+1   0    6    0    0    1  0  0    0  1  0    0  0  1    3024.dat
+
+0 STEP
+0 NOFILE
+
+
+0 FILE shelf-unit.ldr
+0 Name: Storage Shelf Unit
+0 Description: Two-tier shelf with storage boxes (forage/server aesthetic)
+
+0 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+0 ┃ SHELF: Two-tier storage unit (4 boxes per shelf)               ┃
+0 ┃ Parts: 15561.dat (shelves), 2550c01.dat (boxes)               ┃
+0 ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+0 // Lower shelf frame (Y=0)
+1  72  -60    0    0    1  0  0    0  1  0    0  0  1    15561.dat
+1  72  -20    0    0    1  0  0    0  1  0    0  0  1    15561.dat
+1  72   20    0    0    1  0  0    0  1  0    0  0  1    15561.dat
+1  72   60    0    0    1  0  0    0  1  0    0  0  1    15561.dat
+0 // Lower boxes (Y=-8)
+1   0  -60   -8    0    1  0  0    0  1  0    0  0  1    2550c01.dat
+1   0  -20   -8    0    1  0  0    0  1  0    0  0  1    2550c01.dat
+1   0   20   -8    0    1  0  0    0  1  0    0  0  1    2550c02.dat
+1   0   60   -8    0    1  0  0    0  1  0    0  0  1    2550c02.dat
+0 // Upper shelf frame (Y=-24)
+1  72  -60  -24    0    1  0  0    0  1  0    0  0  1    15561.dat
+1  72  -20  -24    0    1  0  0    0  1  0    0  0  1    15561.dat
+1  72   20  -24    0    1  0  0    0  1  0    0  0  1    15561.dat
+1  72   60  -24    0    1  0  0    0  1  0    0  0  1    15561.dat
+0 // Upper boxes (Y=-32)
+1   8  -60  -32    0    1  0  0    0  1  0    0  0  1    2550c01.dat
+1   8  -20  -32    0    1  0  0    0  1  0    0  0  1    2550c01.dat
+1   8   20  -32    0    1  0  0    0  1  0    0  0  1    2550c02.dat
+1   8   60  -32    0    1  0  0    0  1  0    0  0  1    2550c02.dat
+
+0 STEP
+0 NOFILE

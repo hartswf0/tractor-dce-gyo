@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WAG Gold Editor</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='80' font-size='80'>🟨</text></svg>">
+    <title>WAG Grace Editor - Machine of Loving Grace</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='80' font-size='80'>💚</text></svg>">
     <style>
         :root {
             --bg-main: #0a0a0a;
@@ -351,22 +351,27 @@
             font-weight: 600;
         }
         .editor-line.missing-part {
-            background: rgba(255, 0, 0, 0.1) !important;
-            border-left: 3px solid #ff4444 !important;
+            background: rgba(255, 105, 180, 0.15) !important;
+            border-left: 3px solid #ff69b4 !important;
             position: relative;
+            animation: errorPulse 2s ease-in-out infinite;
         }
         .editor-line.missing-part::after {
-            content: '⚠ 404';
+            content: '💔 MISSING';
             position: absolute;
             right: 8px;
             top: 50%;
             transform: translateY(-50%);
-            color: #ff4444;
+            color: #ff69b4;
             font-size: 11px;
             font-weight: 700;
-            background: rgba(0,0,0,0.5);
-            padding: 2px 6px;
-            border-radius: 3px;
+            background: rgba(0,0,0,0.7);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+        @keyframes errorPulse {
+            0%, 100% { background: rgba(255, 105, 180, 0.15); }
+            50% { background: rgba(255, 105, 180, 0.25); }
         }
         
         .line-checkbox {
@@ -430,6 +435,68 @@
         .editor-line.step-line .line-content {
             color: #0ff;
             font-weight: 600;
+        }
+        
+        /* Grace Error Panel */
+        #grace-error-panel {
+            position: fixed;
+            bottom: 44px;
+            left: 0;
+            right: 50%;
+            max-height: 200px;
+            background: linear-gradient(180deg, rgba(255, 105, 180, 0.95) 0%, rgba(220, 20, 60, 0.95) 100%);
+            border-top: 2px solid #ff1493;
+            overflow-y: auto;
+            z-index: 900;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+            display: none;
+        }
+        #grace-error-panel.visible {
+            display: block;
+            transform: translateY(0);
+        }
+        .grace-error-header {
+            padding: 8px 12px;
+            background: rgba(0,0,0,0.3);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 700;
+            color: #fff;
+        }
+        .grace-error-item {
+            padding: 8px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            color: #fff;
+            transition: background 0.2s;
+        }
+        .grace-error-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+        .grace-error-line {
+            font-weight: 700;
+            color: #ffff00;
+        }
+        .grace-error-copy {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #fff;
+            padding: 4px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .grace-error-copy:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        @media (max-width: 900px) {
+            #grace-error-panel {
+                right: 0;
+                bottom: 0;
+            }
         }
         
         /* Minimap */
@@ -916,6 +983,7 @@
     <header id="header">
         <div id="header-left">
             <button class="corner-btn" id="help-btn" title="Help">?</button>
+            <button class="corner-btn" id="mobile-paste-btn" title="📋 Paste MPD from Phone" style="background: var(--accent); color: var(--bg-main); font-weight: 700; margin-left: 8px;">📋 PASTE</button>
             <span id="file-name" style="font-size: 14px; font-weight: 600; margin-left: 12px;">Scene 1</span>
         </div>
         <div id="header-center">
@@ -1019,7 +1087,19 @@
         <button class="footer-corner-btn" id="new-scene-btn" title="New Scene">+</button>
     </footer>
     
-    <!-- Paste Zone Modal -->
+    <!-- Grace Error Panel (slides up from bottom) -->
+    <div id="grace-error-panel">
+        <div class="grace-error-header">
+            <span>💚 Grace Report - Missing Parts</span>
+            <div style="display: flex; gap: 8px;">
+                <button class="grace-error-copy" onclick="copyGraceErrors()">📋 COPY</button>
+                <button class="grace-error-copy" onclick="closeGracePanel()">✕ CLOSE</button>
+            </div>
+        </div>
+        <div id="grace-error-list"></div>
+    </div>
+    
+    <!-- Paste Zone (overlay) -->
     <div id="paste-zone">
         <h3 style="color:var(--accent);margin-bottom:12px;">Paste MPD Content</h3>
         <textarea id="paste-textarea" placeholder="Paste entire MPD file here..."></textarea>
@@ -1040,6 +1120,11 @@
 
     // Global error log (Bronze-style)
     const ERROR_LOG = [];
+    
+    // Grace Editor: Track missing parts for graceful rendering
+    const MISSING_PARTS = new Map(); // partName -> { lineNumbers: [], count: number }
+    const PLACEHOLDER_CACHE = new Map(); // Store created placeholder geometries
+    let graceSystemReady = false;
     
     function logError(context, error) {
         const entry = {
@@ -1114,6 +1199,195 @@
     
     let editorContainer = null;  // Will be set on init
     let editorLines = [];  // Current lines array
+    
+    // ═══════════════════════════════════════════════════════════════
+    // GRACE EDITOR: Graceful Error Handling System
+    // ═══════════════════════════════════════════════════════════════
+    
+    function createPlaceholder(partName, position = {x: 0, y: 0, z: 0}) {
+        // Safety check: THREE must be loaded
+        if (typeof THREE === 'undefined') {
+            console.warn('💚 THREE.js not loaded yet, deferring placeholder creation');
+            return null;
+        }
+        
+        // Check cache first
+        if (PLACEHOLDER_CACHE.has(partName)) {
+            return PLACEHOLDER_CACHE.get(partName).clone();
+        }
+        
+        // Create a loving pink cube with label
+        const geometry = new THREE.BoxGeometry(20, 20, 20);
+        const material = new THREE.MeshBasicMaterial({
+            color: 0xff69b4,  // Hot pink
+            transparent: true,
+            opacity: 0.6,
+            wireframe: false
+        });
+        const cube = new THREE.Mesh(geometry, material);
+        
+        // Add wireframe edges
+        const edges = new THREE.EdgesGeometry(geometry);
+        const line = new THREE.LineSegments(edges, 
+            new THREE.LineBasicMaterial({ color: 0xff1493, linewidth: 2 })
+        );
+        cube.add(line);
+        
+        // Store in cache
+        PLACEHOLDER_CACHE.set(partName, cube);
+        
+        console.log(`💚 Created placeholder for missing part: ${partName}`);
+        return cube.clone();
+    }
+    
+    function trackMissingPart(partName, lineNumber) {
+        if (!MISSING_PARTS.has(partName)) {
+            MISSING_PARTS.set(partName, {
+                lineNumbers: [],
+                count: 0
+            });
+        }
+        
+        const entry = MISSING_PARTS.get(partName);
+        if (!entry.lineNumbers.includes(lineNumber)) {
+            entry.lineNumbers.push(lineNumber);
+        }
+        entry.count++;
+        
+        console.warn(`⚠️ Line ${lineNumber}: Missing part "${partName}" (${entry.count} total occurrences)`);
+    }
+    
+    function showGraceReport() {
+        if (MISSING_PARTS.size === 0) {
+            console.log('💚 Perfect! No missing parts.');
+            closeGracePanel();
+            return;
+        }
+        
+        console.log('\n═══════════════════════════════════════════════════');
+        console.log('💚 MACHINE OF LOVING GRACE - Missing Parts Report');
+        console.log('═══════════════════════════════════════════════════');
+        console.log(`Scene rendered with ${MISSING_PARTS.size} missing components:\n`);
+        
+        MISSING_PARTS.forEach((data, partName) => {
+            console.log(`  📦 ${partName}`);
+            console.log(`     Occurrences: ${data.count}`);
+            console.log(`     Lines: ${data.lineNumbers.join(', ')}`);
+            console.log(`     💡 Tip: Check if this should be "parts/${partName}"\n`);
+        });
+        
+        console.log('═══════════════════════════════════════════════════');
+        console.log(`✅ Scene loaded successfully with ${MISSING_PARTS.size} placeholders`);
+        console.log('═══════════════════════════════════════════════════\n');
+        
+        // Show visual error panel with clickable lines
+        const panel = document.getElementById('grace-error-panel');
+        const list = document.getElementById('grace-error-list');
+        
+        list.innerHTML = '';
+        
+        MISSING_PARTS.forEach((data, partName) => {
+            data.lineNumbers.forEach(lineNum => {
+                const item = document.createElement('div');
+                item.className = 'grace-error-item';
+                item.innerHTML = `<span class="grace-error-line">Line ${lineNum}:</span> Missing "${partName}" <span style="opacity:0.7">(${data.count}x total)</span>`;
+                
+                // Click to highlight line in editor
+                item.addEventListener('click', () => {
+                    highlightErrorLine(lineNum);
+                    scrollToLine(lineNum);
+                });
+                
+                list.appendChild(item);
+            });
+        });
+        
+        panel.classList.add('visible');
+        
+        // Highlight all error lines in editor
+        highlightAllErrorLines();
+    }
+    
+    function highlightAllErrorLines() {
+        // Clear previous error highlights
+        document.querySelectorAll('.editor-line.missing-part').forEach(el => {
+            el.classList.remove('missing-part');
+        });
+        
+        // Highlight all lines with missing parts
+        MISSING_PARTS.forEach((data, partName) => {
+            data.lineNumbers.forEach(lineNum => {
+                const lineIndex = lineNum - 1; // Convert to 0-based index
+                const lineEl = editorContainer.children[lineIndex];
+                if (lineEl) {
+                    lineEl.classList.add('missing-part');
+                }
+            });
+        });
+    }
+    
+    function highlightErrorLine(lineNum) {
+        // Clear previous highlights
+        document.querySelectorAll('.editor-line.highlighted').forEach(el => {
+            el.classList.remove('highlighted');
+        });
+        
+        const lineIndex = lineNum - 1;
+        const lineEl = editorContainer.children[lineIndex];
+        if (lineEl) {
+            lineEl.classList.add('highlighted');
+            lineEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+    
+    function scrollToLine(lineNum) {
+        const lineIndex = lineNum - 1;
+        const lineEl = editorContainer.children[lineIndex];
+        if (lineEl) {
+            lineEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+    
+    function copyGraceErrors() {
+        let text = '💚 GRACE REPORT - Missing Parts\n';
+        text += '═══════════════════════════════════════\n\n';
+        
+        MISSING_PARTS.forEach((data, partName) => {
+            text += `📦 ${partName}\n`;
+            text += `   Occurrences: ${data.count}\n`;
+            text += `   Lines: ${data.lineNumbers.join(', ')}\n`;
+            text += `   💡 Tip: Check if this should be "parts/${partName}"\n\n`;
+        });
+        
+        text += `\n✅ Scene loaded with ${MISSING_PARTS.size} placeholders\n`;
+        
+        navigator.clipboard.writeText(text).then(() => {
+            const btn = event.target;
+            const orig = btn.textContent;
+            btn.textContent = '✓ COPIED!';
+            setTimeout(() => btn.textContent = orig, 2000);
+        });
+    }
+    
+    function closeGracePanel() {
+        const panel = document.getElementById('grace-error-panel');
+        panel.classList.remove('visible');
+    }
+    
+    // Intercept fetch to catch 404s gracefully
+    const originalFetch = window.fetch;
+    window.fetch = function(...args) {
+        return originalFetch.apply(this, args).then(response => {
+            if (!response.ok && response.status === 404) {
+                const url = args[0];
+                const partName = url.split('/').pop();
+                console.warn(`💚 Grace: 404 for ${partName}, will use placeholder`);
+            }
+            return response;
+        });
+    };
+    
+    // ═══════════════════════════════════════════════════════════════
     
     function createScene(name, initialLines = []) {
         return {
@@ -1710,10 +1984,18 @@
         const text = enabledLines.join('\n');
         if (text.trim()) {
             console.log('📝 Compiling', enabledLines.length, 'enabled lines...');
+            
+            // Clear previous missing parts tracking
+            MISSING_PARTS.clear();
+            
             await loadManualText(text, {
                 filename: STATE.scenes[STATE.activeSceneIdx].name + '.mpd',
-                origin: 'Gold Editor'
+                origin: 'Grace Editor'
             });
+            
+            // Show grace report after load
+            setTimeout(() => showGraceReport(), 500);
+            
             hideLoadingOverlay();
         } else {
             console.warn('⚠️ No enabled lines to compile');
@@ -1752,7 +2034,10 @@
         renderSceneDots();
         
         // Log ready state
-        console.log('✅ Gold Editor fully initialized!');
+        graceSystemReady = true;
+        console.log('💚 Grace Editor fully initialized!');
+        console.log('  - Machine of Loving Grace: Active');
+        console.log('  - Graceful Error Handling: Enabled');
         console.log('  - Prime Engine: Ready');
         console.log('  - Library Catalog:', Object.keys(STATE.libraryFileMap || {}).length, 'variants');
         console.log('  - Line Editor: Ready');
@@ -2210,6 +2495,11 @@
                 };
                 document.addEventListener('click', closeOnOutside);
             }, 100);
+        });
+        
+        // Mobile paste button - shows paste zone
+        document.getElementById('mobile-paste-btn').addEventListener('click', () => {
+            showPasteZone();
         });
         
         // Theme toggle button
@@ -3232,6 +3522,43 @@
         
         // Global keyboard shortcuts
         document.addEventListener('keydown', (e) => {
+            // Delete key = Delete selected lines (GRACE FEATURE!)
+            if (e.key === 'Delete' || e.key === 'Backspace') {
+                // Only if not focused in editable content
+                if (e.target.classList.contains('line-content')) return;
+                
+                if (selectedLines.size > 0) {
+                    e.preventDefault();
+                    
+                    // Sort in reverse order so deletion doesn't shift indices
+                    const sortedIndices = Array.from(selectedLines).sort((a, b) => b - a);
+                    
+                    // Delete lines from bottom up
+                    sortedIndices.forEach(idx => {
+                        editorLines.splice(idx, 1);
+                    });
+                    
+                    // Clear selection
+                    selectedLines.clear();
+                    
+                    // Re-render editor
+                    renderEditor(editorLines);
+                    
+                    const statusText = document.getElementById('status-text');
+                    if (statusText) {
+                        statusText.textContent = `💚 Deleted ${sortedIndices.length} line(s)`;
+                        statusText.style.color = 'var(--success)';
+                        setTimeout(() => {
+                            statusText.textContent = 'Ready';
+                            statusText.style.color = '';
+                        }, 2000);
+                    }
+                    
+                    console.log(`💚 Grace: Deleted ${sortedIndices.length} selected lines`);
+                    return;
+                }
+            }
+            
             // Ctrl+Shift+S = Screenshot
             if (e.ctrlKey && e.shiftKey && e.key === 'S') {
                 e.preventDefault();

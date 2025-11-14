@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MPD Validator - Line-by-Line Problem Finder</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Monaco', 'Courier New', monospace;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #4ec9b0;
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+
+        .subtitle {
+            color: #858585;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .drop-zone {
+            border: 3px dashed #569cd6;
+            border-radius: 8px;
+            padding: 60px;
+            text-align: center;
+            margin-bottom: 30px;
+            background: #252526;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .drop-zone:hover, .drop-zone.drag-over {
+            border-color: #4ec9b0;
+            background: #2d2d30;
+        }
+
+        .drop-zone.drag-over {
+            transform: scale(1.02);
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .results {
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+        }
+
+        .summary {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            flex: 1;
+            background: #252526;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid;
+        }
+
+        .stat-card.error {
+            border-color: #f48771;
+        }
+
+        .stat-card.warning {
+            border-color: #dcdcaa;
+        }
+
+        .stat-card.success {
+            border-color: #4ec9b0;
+        }
+
+        .stat-number {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #858585;
+            font-size: 14px;
+        }
+
+        .problem-section {
+            margin-bottom: 40px;
+        }
+
+        .section-header {
+            background: #2d2d30;
+            padding: 15px 20px;
+            border-radius: 8px 8px 0 0;
+            border-left: 4px solid;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-header.error {
+            border-color: #f48771;
+            color: #f48771;
+        }
+
+        .section-header.warning {
+            border-color: #dcdcaa;
+            color: #dcdcaa;
+        }
+
+        .badge {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+
+        .line-item {
+            background: #1e1e1e;
+            border: 1px solid #3e3e42;
+            border-top: none;
+            padding: 15px 20px;
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        .line-item:last-child {
+            border-radius: 0 0 8px 8px;
+        }
+
+        .line-number {
+            color: #858585;
+            font-weight: bold;
+            min-width: 60px;
+            text-align: right;
+            user-select: none;
+        }
+
+        .line-content {
+            flex: 1;
+            font-family: 'Monaco', monospace;
+            color: #d4d4d4;
+            white-space: pre;
+            overflow-x: auto;
+        }
+
+        .line-content .highlight {
+            background: rgba(255, 0, 0, 0.3);
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        .line-message {
+            color: #858585;
+            font-size: 12px;
+            margin-top: 5px;
+            font-style: italic;
+        }
+
+        .fix-button {
+            background: #0e639c;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 12px;
+            transition: background 0.2s;
+        }
+
+        .fix-button:hover {
+            background: #1177bb;
+        }
+
+        .no-problems {
+            background: #252526;
+            padding: 60px;
+            text-align: center;
+            border-radius: 8px;
+            border: 2px solid #4ec9b0;
+        }
+
+        .no-problems-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .no-problems-text {
+            font-size: 18px;
+            color: #4ec9b0;
+            font-weight: bold;
+        }
+
+        .pattern-legend {
+            background: #252526;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            font-size: 13px;
+        }
+
+        .pattern-legend h3 {
+            color: #4ec9b0;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .pattern-item {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        .pattern-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 11px;
+            min-width: 70px;
+            text-align: center;
+        }
+
+        .pattern-badge.error {
+            background: rgba(244, 135, 113, 0.2);
+            color: #f48771;
+        }
+
+        .pattern-badge.warning {
+            background: rgba(220, 220, 170, 0.2);
+            color: #dcdcaa;
+        }
+
+        .pattern-desc {
+            color: #858585;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 MPD Validator</h1>
+        <div class="subtitle">Drop your .mpd file to find problematic lines instantly</div>
+
+        <div class="drop-zone" id="dropZone">
+            <div style="font-size: 48px; margin-bottom: 20px;">📄</div>
+            <div style="font-size: 18px; margin-bottom: 10px; color: #569cd6;">Drop MPD file here or click to browse</div>
+            <div style="color: #858585; font-size: 14px;">Checks for missing parts, invalid references, and common errors</div>
+            <input type="file" id="fileInput" class="file-input" accept=".mpd">
+        </div>
+
+        <div class="pattern-legend">
+            <h3>🎯 What We Check For:</h3>
+            <div class="pattern-item">
+                <span class="pattern-badge error">ERROR</span>
+                <span class="pattern-desc">References to non-existent .ldr subfiles (should use inline parts/)</span>
+            </div>
+            <div class="pattern-item">
+                <span class="pattern-badge error">ERROR</span>
+                <span class="pattern-desc">Part references without "parts/" prefix (won't load)</span>
+            </div>
+            <div class="pattern-item">
+                <span class="pattern-badge warning">WARNING</span>
+                <span class="pattern-desc">Suspicious patterns that might cause issues</span>
+            </div>
+        </div>
+
+        <div class="results" id="results"></div>
+    </div>
+
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const results = document.getElementById('results');
+
+        // Drag and drop handlers
+        dropZone.addEventListener('click', () => fileInput.click());
+        
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('drag-over');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            const file = e.dataTransfer.files[0];
+            if (file) processFile(file);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) processFile(file);
+        });
+
+        function processFile(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const content = e.target.result;
+                validateMPD(content, file.name);
+            };
+            reader.readAsText(file);
+        }
+
+        function validateMPD(content, filename) {
+            const lines = content.split('\n');
+            const problems = {
+                errors: [],
+                warnings: []
+            };
+
+            lines.forEach((line, index) => {
+                const lineNumber = index + 1;
+                const trimmed = line.trim();
+
+                // Check for .ldr references (likely non-existent subfiles)
+                if (trimmed.match(/^1\s+\d+\s+[\d\-\.]+\s+[\d\-\.]+\s+[\d\-\.]+.*\.ldr$/i)) {
+                    const match = trimmed.match(/(\S+\.ldr)$/i);
+                    problems.errors.push({
+                        line: lineNumber,
+                        content: line,
+                        issue: `References non-existent subfile: ${match[1]}`,
+                        highlight: match[1],
+                        fix: 'Use inline parts/ references or define this subfile'
+                    });
+                }
+
+                // Check for part references without "parts/" prefix
+                if (trimmed.match(/^1\s+\d+\s+[\d\-\.]+\s+[\d\-\.]+\s+[\d\-\.]+.*\.dat$/i)) {
+                    if (!trimmed.includes('parts/') && !trimmed.includes('p/') && !trimmed.startsWith('0')) {
+                        const match = trimmed.match(/(\S+\.dat)$/i);
+                        problems.errors.push({
+                            line: lineNumber,
+                            content: line,
+                            issue: `Missing "parts/" prefix: ${match[1]}`,
+                            highlight: match[1],
+                            fix: `Change to: parts/${match[1]}`
+                        });
+                    }
+                }
+
+                // Check for suspicious patterns
+                if (trimmed.match(/^1.*minifig.*\.ldr$/i)) {
+                    problems.warnings.push({
+                        line: lineNumber,
+                        content: line,
+                        issue: 'Minifig subfile reference - prefer inline assembly',
+                        highlight: 'minifig',
+                        fix: 'Build minifig inline with parts/ references'
+                    });
+                }
+
+                if (trimmed.match(/^1.*wall.*\.ldr$/i)) {
+                    problems.warnings.push({
+                        line: lineNumber,
+                        content: line,
+                        issue: 'Wall subfile reference - check if it exists',
+                        highlight: 'wall',
+                        fix: 'Define subfile or use inline parts/'
+                    });
+                }
+            });
+
+            displayResults(problems, filename, lines.length);
+        }
+
+        function displayResults(problems, filename, totalLines) {
+            const errorCount = problems.errors.length;
+            const warningCount = problems.warnings.length;
+            const totalProblems = errorCount + warningCount;
+
+            let html = `
+                <div class="summary">
+                    <div class="stat-card ${errorCount > 0 ? 'error' : 'success'}">
+                        <div class="stat-number">${errorCount}</div>
+                        <div class="stat-label">Errors</div>
+                    </div>
+                    <div class="stat-card ${warningCount > 0 ? 'warning' : 'success'}">
+                        <div class="stat-number">${warningCount}</div>
+                        <div class="stat-label">Warnings</div>
+                    </div>
+                    <div class="stat-card success">
+                        <div class="stat-number">${totalLines}</div>
+                        <div class="stat-label">Total Lines</div>
+                    </div>
+                </div>
+            `;
+
+            if (totalProblems === 0) {
+                html += `
+                    <div class="no-problems">
+                        <div class="no-problems-icon">✅</div>
+                        <div class="no-problems-text">No problems found!</div>
+                        <div style="color: #858585; margin-top: 10px;">${filename} looks good</div>
+                    </div>
+                `;
+            } else {
+                // Show errors
+                if (errorCount > 0) {
+                    html += `
+                        <div class="problem-section">
+                            <div class="section-header error">
+                                <span>🔴 ERRORS (${errorCount})</span>
+                                <span class="badge">Must Fix</span>
+                            </div>
+                    `;
+                    problems.errors.forEach(problem => {
+                        const highlighted = problem.content.replace(
+                            problem.highlight,
+                            `<span class="highlight">${problem.highlight}</span>`
+                        );
+                        html += `
+                            <div class="line-item">
+                                <div class="line-number">Line ${problem.line}</div>
+                                <div style="flex: 1;">
+                                    <div class="line-content">${highlighted}</div>
+                                    <div class="line-message">❌ ${problem.issue}</div>
+                                    <div class="line-message">💡 ${problem.fix}</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    html += `</div>`;
+                }
+
+                // Show warnings
+                if (warningCount > 0) {
+                    html += `
+                        <div class="problem-section">
+                            <div class="section-header warning">
+                                <span>⚠️ WARNINGS (${warningCount})</span>
+                                <span class="badge">Review</span>
+                            </div>
+                    `;
+                    problems.warnings.forEach(problem => {
+                        const highlighted = problem.content.replace(
+                            problem.highlight,
+                            `<span class="highlight">${problem.highlight}</span>`
+                        );
+                        html += `
+                            <div class="line-item">
+                                <div class="line-number">Line ${problem.line}</div>
+                                <div style="flex: 1;">
+                                    <div class="line-content">${highlighted}</div>
+                                    <div class="line-message">⚠️ ${problem.issue}</div>
+                                    <div class="line-message">💡 ${problem.fix}</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    html += `</div>`;
+                }
+            }
+
+            results.innerHTML = html;
+            results.classList.add('show');
+        }
+    </script>
+</body>
+</html>
