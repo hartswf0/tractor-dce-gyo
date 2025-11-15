@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💚 Grace Parts Browser</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+            background: #0a0a0a;
+            color: #e8e8e8;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        header {
+            background: #1a1a1a;
+            padding: 12px 20px;
+            border-bottom: 2px solid #00d9ff;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        h1 {
+            color: #00d9ff;
+            font-size: 18px;
+            font-weight: 700;
+        }
+        
+        #search {
+            flex: 1;
+            max-width: 500px;
+            padding: 8px 12px;
+            background: #0e0e0e;
+            border: 1px solid #333;
+            border-radius: 4px;
+            color: #e8e8e8;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        
+        #search:focus {
+            outline: none;
+            border-color: #00d9ff;
+        }
+        
+        #stats {
+            color: #888;
+            font-size: 12px;
+        }
+        
+        main {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        #parts-list {
+            width: 400px;
+            background: #0e0e0e;
+            border-right: 1px solid #333;
+            overflow-y: auto;
+        }
+        
+        .part-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid #1a1a1a;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .part-item:hover {
+            background: #1a1a1a;
+        }
+        
+        .part-item.selected {
+            background: #00d9ff22;
+            border-left: 3px solid #00d9ff;
+        }
+        
+        .part-name {
+            color: #00d9ff;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .part-desc {
+            color: #aaa;
+            font-size: 11px;
+            line-height: 1.4;
+        }
+        
+        #viewer-panel {
+            flex: 1;
+            background: #0a0a0a;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        
+        #viewer-container {
+            flex: 1;
+            position: relative;
+        }
+        
+        #viewer {
+            width: 100%;
+            height: 100%;
+        }
+        
+        #part-info {
+            background: #1a1a1a;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 600px;
+            text-align: center;
+        }
+        
+        #part-info h2 {
+            color: #00d9ff;
+            font-size: 16px;
+            margin-bottom: 12px;
+        }
+        
+        #part-info .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #333;
+            font-size: 13px;
+        }
+        
+        #part-info .label {
+            color: #888;
+        }
+        
+        #part-info .value {
+            color: #e8e8e8;
+            font-weight: 600;
+        }
+        
+        #copy-btn {
+            margin-top: 16px;
+            padding: 10px 20px;
+            background: #00d9ff;
+            color: #0a0a0a;
+            border: none;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        #copy-btn:hover {
+            background: #00b8dd;
+        }
+        
+        .empty-state {
+            color: #666;
+            font-size: 14px;
+            text-align: center;
+            padding: 40px;
+        }
+        
+        #loading {
+            text-align: center;
+            padding: 40px;
+            color: #00d9ff;
+            font-size: 16px;
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #333;
+            border-top: 4px solid #00d9ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 12px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        #category-filter {
+            padding: 8px 12px;
+            background: #0e0e0e;
+            border: 1px solid #333;
+            border-radius: 4px;
+            color: #e8e8e8;
+            font-size: 13px;
+            font-family: inherit;
+        }
+        
+        #scene-builder {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 300px;
+            background: #1a1a1a;
+            border: 2px solid #00d9ff;
+            border-radius: 8px;
+            padding: 16px;
+            max-height: calc(100% - 40px);
+            overflow-y: auto;
+            z-index: 100;
+        }
+        
+        #scene-builder h3 {
+            color: #00d9ff;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+        
+        #scene-list {
+            margin-bottom: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .scene-item {
+            padding: 8px;
+            background: #0e0e0e;
+            border: 1px solid #333;
+            border-radius: 4px;
+            margin-bottom: 6px;
+            font-size: 11px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .scene-item-name {
+            color: #e8e8e8;
+            flex: 1;
+        }
+        
+        .scene-item-remove {
+            color: #ff4444;
+            cursor: pointer;
+            padding: 2px 6px;
+            margin-left: 8px;
+        }
+        
+        .scene-item-remove:hover {
+            background: #ff444422;
+            border-radius: 2px;
+        }
+        
+        .action-btn {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 8px;
+            background: #00d9ff;
+            color: #0a0a0a;
+            border: none;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .action-btn:hover {
+            background: #00b8dd;
+        }
+        
+        .action-btn.secondary {
+            background: #333;
+            color: #e8e8e8;
+        }
+        
+        .action-btn.secondary:hover {
+            background: #444;
+        }
+        
+        #add-to-scene-btn {
+            margin-top: 12px;
+            background: #4CAF50;
+        }
+        
+        #add-to-scene-btn:hover {
+            background: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>💚 Grace Parts Browser</h1>
+        <input type="text" id="search" placeholder="Search parts (name or description)..." />
+        <select id="category-filter">
+            <option value="">All Categories</option>
+            <option value="parts">Parts</option>
+            <option value="p">Primitives</option>
+        </select>
+        <div id="stats">Loading...</div>
+    </header>
+    
+    <main>
+        <div id="parts-list">
+            <div id="loading">
+                <div class="spinner"></div>
+                <div>Loading 23,511 parts...</div>
+            </div>
+        </div>
+        
+        <div id="viewer-panel">
+            <!-- Info Box -->
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #1a1a1a; padding: 32px; border-radius: 8px; border: 2px solid #00d9ff; max-width: 400px; text-align: center; z-index: 1;">
+                <h2 style="color: #00d9ff; font-size: 20px; margin-bottom: 16px;">💚 Parts Browser</h2>
+                <p style="color: #e8e8e8; font-size: 14px; margin-bottom: 12px;">Search, select, and build!</p>
+                <p style="color: #aaa; font-size: 12px; line-height: 1.6;">
+                    1. Search for parts<br>
+                    2. Click to see details<br>
+                    3. Add to scene<br>
+                    4. Open in Grace for 3D viewing
+                </p>
+            </div>
+            
+            <!-- Scene Builder Panel -->
+            <div id="scene-builder">
+                <h3>🧱 Scene Builder</h3>
+                <div id="scene-list">
+                    <div class="empty-state" style="padding: 20px; font-size: 11px;">
+                        Add parts to build a scene
+                    </div>
+                </div>
+                <button class="action-btn" id="open-in-grace-btn" style="display: none;">
+                    💚 OPEN IN GRACE EDITOR
+                </button>
+                <button class="action-btn secondary" id="download-mpd-btn" style="display: none;">
+                    📥 DOWNLOAD MPD
+                </button>
+                <button class="action-btn secondary" id="clear-scene-btn" style="display: none;">
+                    🗑️ CLEAR ALL
+                </button>
+                
+                <hr style="border: none; border-top: 1px solid #333; margin: 16px 0;">
+                
+                <div style="background: #1a3a1a; border: 1px solid #2a6a2a; border-radius: 4px; padding: 12px; margin-top: 8px;">
+                    <div style="color: #4ade80; font-weight: 700; font-size: 11px; margin-bottom: 6px;">
+                        💚 Want Part Catalogs?
+                    </div>
+                    <div style="font-size: 10px; color: #aaa; line-height: 1.4; margin-bottom: 8px;">
+                        Run the Node.js generator to create organized MPD catalogs:
+                    </div>
+                    <code style="display: block; background: #0a0a0a; padding: 8px; border-radius: 4px; font-size: 10px; color: #00d9ff;">
+                        node generate-part-catalogs.js
+                    </code>
+                    <div style="font-size: 9px; color: #666; margin-top: 6px;">
+                        Creates properly spaced 3D catalogs by part type!
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Initial Help Message -->
+            <div id="initial-help" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #1a1a1a; padding: 24px; border-radius: 8px; border: 2px solid #00d9ff; max-width: 500px; text-align: center;">
+                <h2 style="color: #00d9ff; font-size: 18px; margin-bottom: 16px;">💚 Grace Parts Browser</h2>
+                <p style="color: #aaa; font-size: 13px; margin-bottom: 16px;">
+                    Browse 23,511+ LDraw parts from the manifest
+                </p>
+                <div style="background: #0a0a0a; padding: 16px; border-radius: 4px; text-align: left; margin-bottom: 16px;">
+                    <div style="color: #00d9ff; font-weight: 700; margin-bottom: 8px;">🎯 How to use:</div>
+                    <div style="font-size: 12px; color: #e8e8e8; line-height: 1.8;">
+                        1. <strong>Search</strong> for parts (e.g. "3001", "wheel", "brick")<br>
+                        2. <strong>Click</strong> a part to see details<br>
+                        3. <strong>Add to Scene</strong> to build your model<br>
+                        4. <strong>Open in Grace</strong> to edit & view in 3D
+                    </div>
+                </div>
+                <div style="font-size: 11px; color: #666;">
+                    💡 Grace Editor has full 3D viewing with the complete library!
+                </div>
+            </div>
+            
+            <!-- Part Info Overlay (appears when part selected) -->
+            <div id="part-info-overlay" style="display: none; position: absolute; bottom: 20px; left: 20px; background: #1a1a1aee; padding: 16px; border-radius: 8px; border: 2px solid #00d9ff; max-width: 400px;">
+                <div id="part-info-content"></div>
+                <button class="action-btn" id="add-to-scene-btn">
+                    ➕ ADD TO SCENE
+                </button>
+            </div>
+        </div>
+    </main>
+    
+    <script>
+        let allParts = [];
+        let filteredParts = [];
+        let selectedPart = null;
+        let sceneBuilderParts = [];  // Parts added to scene
+        
+        async function init() {
+            console.log('💚 Loading parts manifest...');
+            
+            try {
+                const response = await fetch('./ldraw-parts-manifest.json');
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                
+                const manifest = await response.json();
+                console.log('✅ Manifest loaded:', manifest);
+                
+                // Extract all parts from all categories
+                if (manifest.categories) {
+                    manifest.categories.forEach(category => {
+                        if (category.files) {
+                            category.files.forEach(file => {
+                                allParts.push({
+                                    ...file,
+                                    category: category.label
+                                });
+                            });
+                        }
+                    });
+                }
+                
+                console.log('✅ Total parts:', allParts.length);
+                
+                filteredParts = [...allParts];
+                renderPartsList();
+                updateStats();
+                
+            } catch (err) {
+                console.error('❌ Failed to load manifest:', err);
+                document.getElementById('parts-list').innerHTML = `
+                    <div class="empty-state">
+                        ❌ Failed to load parts manifest:<br>
+                        ${err.message}
+                    </div>
+                `;
+            }
+        }
+        
+        function renderPartsList() {
+            const listEl = document.getElementById('parts-list');
+            
+            if (filteredParts.length === 0) {
+                listEl.innerHTML = '<div class="empty-state">No parts found matching your search</div>';
+                return;
+            }
+            
+            listEl.innerHTML = '';
+            
+            // Limit to first 500 for performance
+            const displayParts = filteredParts.slice(0, 500);
+            
+            displayParts.forEach(part => {
+                const item = document.createElement('div');
+                item.className = 'part-item';
+                item.innerHTML = `
+                    <div class="part-name">${part.filename || part.name}</div>
+                    <div class="part-desc">${part.description || 'No description'}</div>
+                `;
+                item.addEventListener('click', () => selectPart(part, item));
+                listEl.appendChild(item);
+            });
+            
+            if (filteredParts.length > 500) {
+                const moreEl = document.createElement('div');
+                moreEl.className = 'empty-state';
+                moreEl.textContent = `+ ${filteredParts.length - 500} more parts (refine search to see all)`;
+                listEl.appendChild(moreEl);
+            }
+        }
+        
+        function selectPart(part, itemEl) {
+            selectedPart = part;
+            
+            // Update selected item
+            document.querySelectorAll('.part-item').forEach(el => el.classList.remove('selected'));
+            itemEl.classList.add('selected');
+            
+            // Hide initial help, show part overlay
+            const help = document.getElementById('initial-help');
+            if (help) help.style.display = 'none';
+            
+            const overlay = document.getElementById('part-info-overlay');
+            const content = document.getElementById('part-info-content');
+            
+            // Show part details (NO 3D - library incomplete)
+            content.innerHTML = `
+                <div style="font-size: 14px; color: #00d9ff; font-weight: 700; margin-bottom: 8px;">${part.filename || part.name}</div>
+                <div style="font-size: 11px; color: #aaa; margin-bottom: 12px;">${part.description || 'No description'}</div>
+                <div style="font-size: 10px; color: #666; margin-bottom: 8px;">Path: ${part.relativePath || part.path}</div>
+                <div style="font-size: 10px; color: #666; margin-bottom: 8px;">Category: ${part.category || 'Unknown'}</div>
+                <div style="font-size: 10px; color: #666;">Size: ${part.size} bytes</div>
+            `;
+            
+            overlay.style.display = 'block';
+        }
+        
+        function updateStats() {
+            const statsEl = document.getElementById('stats');
+            statsEl.textContent = `${filteredParts.length.toLocaleString()} / ${allParts.length.toLocaleString()} parts`;
+        }
+        
+        function filterParts() {
+            const searchTerm = document.getElementById('search').value.toLowerCase();
+            const category = document.getElementById('category-filter').value;
+            
+            filteredParts = allParts.filter(part => {
+                const matchesSearch = !searchTerm || 
+                    (part.filename && part.filename.toLowerCase().includes(searchTerm)) ||
+                    (part.description && part.description.toLowerCase().includes(searchTerm)) ||
+                    (part.name && part.name.toLowerCase().includes(searchTerm));
+                
+                const matchesCategory = !category || 
+                    (part.path && part.path.startsWith(category + '/'));
+                
+                return matchesSearch && matchesCategory;
+            });
+            
+            renderPartsList();
+            updateStats();
+        }
+        
+        // Scene building functions
+        function addToScene() {
+            if (!selectedPart) return;
+            
+            const partEntry = {
+                part: selectedPart,
+                position: { x: sceneBuilderParts.length * 40, y: 0, z: 0 },  // Spread parts out
+                color: 16  // Default color
+            };
+            
+            sceneBuilderParts.push(partEntry);
+            renderSceneList();
+            updateSceneButtons();
+            
+            console.log('Added to scene:', selectedPart.filename);
+        }
+        
+        function renderSceneList() {
+            const listEl = document.getElementById('scene-list');
+            
+            if (sceneBuilderParts.length === 0) {
+                listEl.innerHTML = '<div class="empty-state" style="padding: 20px; font-size: 11px;">Add parts to build a scene</div>';
+                return;
+            }
+            
+            listEl.innerHTML = '';
+            sceneBuilderParts.forEach((entry, idx) => {
+                const item = document.createElement('div');
+                item.className = 'scene-item';
+                item.innerHTML = `
+                    <span class="scene-item-name">${entry.part.filename}</span>
+                    <span class="scene-item-remove" data-idx="${idx}">✕</span>
+                `;
+                listEl.appendChild(item);
+            });
+            
+            // Remove button handlers
+            document.querySelectorAll('.scene-item-remove').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const idx = parseInt(e.target.dataset.idx);
+                    sceneBuilderParts.splice(idx, 1);
+                    renderSceneList();
+                    updateSceneButtons();
+                });
+            });
+        }
+        
+        function updateSceneButtons() {
+            const hasparts = sceneBuilderParts.length > 0;
+            document.getElementById('open-in-grace-btn').style.display = hasparts ? 'block' : 'none';
+            document.getElementById('download-mpd-btn').style.display = hasparts ? 'block' : 'none';
+            document.getElementById('clear-scene-btn').style.display = hasparts ? 'block' : 'none';
+        }
+        
+        function generateMPD() {
+            let mpd = '0 FILE scene.mpd\n';
+            mpd += '0 Name: Grace Parts Browser Scene\n';
+            mpd += '0 Author: Grace\n';
+            mpd += '0\n';
+            mpd += '0 BFC CERTIFY CCW\n';
+            mpd += '0\n';
+            mpd += '0 STEP\n';
+            mpd += '0\n';
+            
+            sceneBuilderParts.forEach(entry => {
+                const { part, position, color } = entry;
+                const path = part.relativePath || part.filename;
+                mpd += `1 ${color} ${position.x} ${position.y} ${position.z} 1 0 0 0 1 0 0 0 1 ${path}\n`;
+            });
+            
+            mpd += '0\n';
+            mpd += '0 STEP\n';
+            
+            return mpd;
+        }
+        
+        function openInGrace() {
+            const mpd = generateMPD();
+            // Save to localStorage so Grace can load it
+            localStorage.setItem('grace-parts-browser-scene', mpd);
+            // Open Grace Editor
+            window.open('./wag-grace-editor.html?loadFromBrowser=true', '_blank');
+        }
+        
+        function downloadMPD() {
+            const mpd = generateMPD();
+            const blob = new Blob([mpd], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'parts-browser-scene.mpd';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        function clearScene() {
+            if (confirm('Clear all parts from scene?')) {
+                sceneBuilderParts = [];
+                renderSceneList();
+                updateSceneButtons();
+            }
+        }
+        
+        // Event listeners
+        document.getElementById('search').addEventListener('input', filterParts);
+        document.getElementById('category-filter').addEventListener('change', filterParts);
+        document.getElementById('add-to-scene-btn').addEventListener('click', addToScene);
+        document.getElementById('open-in-grace-btn').addEventListener('click', openInGrace);
+        document.getElementById('download-mpd-btn').addEventListener('click', downloadMPD);
+        document.getElementById('clear-scene-btn').addEventListener('click', clearScene);
+        
+        // Initialize
+        init();
+    </script>
+</body>
+</html>

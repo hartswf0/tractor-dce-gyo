@@ -1306,7 +1306,7 @@
 
 								fileName = 'parts/' + fileName;
 
-							} else if ( fileName.startsWith( '48/' ) ) {
+							} else if ( fileName.startsWith( '48/' ) || fileName.startsWith( '8/' ) ) {
 
 								fileName = 'p/' + fileName;
 

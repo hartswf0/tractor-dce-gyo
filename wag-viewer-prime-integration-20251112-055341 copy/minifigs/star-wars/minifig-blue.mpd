@@ -1,0 +1,61 @@
+0 FILE minifig-blue.mpd
+0 Name: Blue Minifig
+0 Author: Variant
+
+0 // Colour Definitions
+0 !COLOUR Black                  CODE     0   VALUE #1B2A34   EDGE #808080
+0 !COLOUR Blue                   CODE     1   VALUE #1E5AA8   EDGE #333333
+0 !COLOUR Yellow                 CODE    14   VALUE #FAC80A   EDGE #333333
+0 !COLOUR White                  CODE    15   VALUE #F4F4F4   EDGE #333333
+
+0 // ============================================
+0 // MINIFIG ASSEMBLY - BLUE/YELLOW
+0 // ============================================
+0 // Color Codes: 14=Yellow, 1=Blue, 0=Black
+0 // Coordinate System: Y-axis points DOWN
+0 //
+0 // Part Spacing (from torso at Y=0):
+0 //   Head: -27 units (UP from torso)
+0 //   Arms: +9 units (DOWN from torso)
+0 //   Hands: +20 units (DOWN from torso)
+0 //   Hips: +32 units (DOWN from torso)
+0 //   Legs: +44 units (DOWN from torso)
+0 // ============================================
+
+0 // [PART 1] HEAD - Yellow with grin pattern
+0 // Position: Center, above torso
+1 14 0 -27 0 1 0 0 0 1 0 0 0 1 parts/3626bp01.dat
+
+0 // [PART 2] TORSO - Blue plain torso
+0 // Position: Origin/reference point
+1 1 0 0 0 1 0 0 0 1 0 0 0 1 parts/973.dat
+
+0 // [PART 3] LEFT ARM - Blue
+0 // Position: Left side, slight angle down
+1 1 -15.552 9 0 0.985 -0.174 0 0.174 0.985 0 0 0 1 parts/3818.dat
+
+0 // [PART 4] RIGHT ARM - Blue
+0 // Position: Right side, slight angle down
+1 1 15.552 9 0 0.985 0.174 0 -0.174 0.985 0 0 0 1 parts/3819.dat
+
+0 // [PART 5] LEFT HAND - Yellow gripper
+0 // Position: At LEFT ARM END (calculate: arm + rotation offset)
+1 14 -17.464 18.913 0 0.985 -0.174 0 0.174 0.985 0 0 0 1 parts/3820.dat
+
+0 // [PART 6] RIGHT HAND - Yellow gripper
+0 // Position: At RIGHT ARM END (calculate: arm + rotation offset)
+1 14 17.464 18.913 0 0.985 0.174 0 -0.174 0.985 0 0 0 1 parts/3820.dat
+
+0 // [PART 7] HIPS/WAIST - Blue (matches torso)
+0 // Position: Below torso, center
+1 1 0 32 0 1 0 0 0 1 0 0 0 1 parts/3815.dat
+
+0 // [PART 8] LEFT LEG - Black
+0 // Position: Below hips, center (both legs at same position)
+1 0 0 44 0 1 0 0 0 1 0 0 0 1 parts/3816.dat
+
+0 // [PART 9] RIGHT LEG - Black
+0 // Position: Below hips, center (both legs at same position)
+1 0 0 44 0 1 0 0 0 1 0 0 0 1 parts/3817.dat
+
+0 NOFILE
