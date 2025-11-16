@@ -1,0 +1,47 @@
+# LEGOS-GPT YAML template for scenes
+# Use as a reference for expected structure; actual outputs should not include comments.
+
+title: "{{scene_title}}"
+description: "{{one_sentence_summary}}"
+location: "{{primary_location}}"
+
+entities:
+  - id: "e_{{slug}}"
+    type: "character"        # or object/system/idea/location/creature
+    name: "{{name}}"
+    traits:
+      - "{{trait_1}}"
+      - "{{trait_2}}"
+    location: "{{location_or_entity_id}}"
+
+  # add more entities as needed...
+
+goals:
+  - id: "g_{{slug}}"
+    name: "{{goal_name}}"
+    owner: "e_{{owner_id}}"
+
+obstacles:
+  - id: "o_{{slug}}"
+    name: "{{obstacle_name}}"
+    affects: "g_{{goal_id}}"
+
+shifts:
+  - id: "s_{{slug}}"
+    name: "{{shift_name}}"
+    causes:
+      - "o_{{obstacle_id}}"
+    results_in: "{{goal_or_state_id}}"
+
+relations:
+  - "[{{morphism}}] {{entity_id_1}} -> {{entity_id_2}}"
+
+timeline:
+  - id: "t_{{slug}}"
+    description: "{{phase_description}}"
+    scenes:
+      - id: "sc_{{slug}}"
+        description: "{{mini_event}}"
+        entities:
+          - "e_{{entity_id_1}}"
+          - "e_{{entity_id_2}}"

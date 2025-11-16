@@ -141,6 +141,11 @@
         engine.getMeta = function () {
             return engine.currentMeta ? { ...engine.currentMeta } : null;
         };
+
+        // Convenience accessor for the underlying model (falls back to wrapper)
+        engine.getModel = function () {
+            return engine.modelRoot || engine.modelWrapper || null;
+        };
         engine.displayGroup = function (group, meta = {}, sourceLabel = 'Direct') {
             finalizeGroup(engine, group, meta, sourceLabel);
             return group;
@@ -212,12 +217,15 @@
         if (!group) throw new Error('Loaded model is empty.');
         engine.clear();
 
+        // LDraw -> Three.js coordinate system conversion
         group.rotation.x = Math.PI;
         const wrapper = new THREE.Group();
         wrapper.add(group);
         engine.scene.add(wrapper);
 
+        // Expose both the wrapper (for transforms/diagnostics) and the raw model root
         engine.modelWrapper = wrapper;
+        engine.modelRoot = group;
         engine.currentMeta = { ...meta, source: sourceLabel };
 
         applyDiagnostics(engine);

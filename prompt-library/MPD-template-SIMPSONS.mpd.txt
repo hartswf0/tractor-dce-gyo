@@ -1,0 +1,41 @@
+0 FILE {{FILENAME}}.mpd
+0 Name: {{SCENE_NAME}}
+0 Author: {{AUTHOR}}
+0 !LDRAW_ORG Model
+0 !LICENCE Redistributable under CCAL version 2.0
+0 BFC CERTIFY CCW
+0 //
+0 ╔═══════════════════════════════════════════════════════════════════╗
+0 ║  {{SCENE_TITLE}}                                                  ║
+0 ║  Duration: {{ISO8601_RANGE}}                                      ║
+0 ║  Volume: {{LDU_VOLUME}}                                           ║
+0 ╚═══════════════════════════════════════════════════════════════════╝
+0 //
+0 LOCATION: {{LOCATION_DESC}}
+0 CHARACTERS: {{CHAR_SUMMARY}}
+0 KEY EVENT: {{KEY_EVENT}}
+0 //
+0 STEP 01: FLOOR
+0 // Floor tiles grid
+1   7   -80    0   -20   1 0 0   0 1 0   0 0 1  parts/3024.dat
+0 STEP
+0 //
+0 STEP 02: COUNTER / ENVIRONMENT
+1   8   -20  -24   -10   1 0 0   0 1 0   0 0 1  parts/3024.dat
+0 STEP
+0 //
+0 STEP 08: {{CHAR_NAME}} MINIFIGURE (Role)
+0 // Position: X={{X}}, Y=-80 (standing), Z={{Z}}
+1  {{HEAD_COLOR}} {{X}}   -84  {{Z}}   1 0 0   0 1 0   0 0 1  parts/3626bp01.dat
+1  {{TORSO_COLOR}} {{X}}  -60  {{Z}}   1 0 0   0 1 0   0 0 1  parts/973c01.dat
+1  {{ARM_COLOR}}  {{X_L}} -51  {{Z}}   1 0 0   0 1 0   0 0 1  parts/3818.dat
+1  {{ARM_COLOR}}  {{X_R}} -51  {{Z}}   1 0 0   0 1 0   0 0 1  parts/3819.dat
+1  {{HIP_COLOR}}  {{X}}   -28  {{Z}}   1 0 0   0 1 0   0 0 1  parts/3815.dat
+1  {{LEG_COLOR}}  {{X}}   -16  {{Z}}   1 0 0   0 1 0   0 0 1  parts/3816.dat
+1  {{LEG_COLOR}}  {{X}}   -16  {{Z}}   1 0 0   0 1 0   0 0 1  parts/3817.dat
+0 STEP
+0 //
+0 NOTE: CRITICAL EVENT ({{TIMECODE}})
+0       {{EVENT_TEXT}}
+0
+0 NOFILE

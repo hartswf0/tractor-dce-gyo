@@ -1040,6 +1040,7 @@
                 <div style="width: 1px; height: 16px; background: var(--border-primary); margin: 0 4px;"></div>
                 <button class="panel-btn active" id="minimap-toggle" title="Toggle Minimap">▣</button>
                 <button class="panel-btn" id="screenshot-btn" title="Screenshot (4:3 + JSON)">IMG</button>
+                <button class="panel-btn" id="glb-export-btn" title="Export current scene as GLB">GLB</button>
             </div>
         </div>
         
@@ -2259,6 +2260,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/GLTFExporter.js"></script>
     <script src="./examples/js/loaders/LDrawLoader.js?v=11"></script>
     <script src="./beta-prime-engine.js"></script>
     <script>
@@ -4035,52 +4037,64 @@
                 border-bottom: 2px solid var(--accent);
             `;
             header.innerHTML = `
-                <div>
-                    <h2 style="color: var(--accent); margin: 0; font-size: 20px;">⭐ Parts Catalog Browser</h2>
-                    <div style="font-size: 11px; color: #aaa; margin-top: 4px;">
-                        ${taxonomy.totalParts.toLocaleString()} parts organized by taxonomy
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <div>
+                        <div style="font-weight: 700; color: var(--accent); font-size: 16px;">★ Parts Catalog Browser</div>
+                        <div style="font-size: 11px; color: #aaa; margin-top: 4px;">
+                            ${taxonomy.totalParts.toLocaleString()} parts organized by taxonomy
+                        </div>
                     </div>
-                </div>
-                <div style="display: flex; gap: 8px;">
-                    <button id="mode-taxonomy-btn" style="
-                        background: var(--accent);
-                        border: none;
-                        color: var(--bg-main);
-                        padding: 8px 16px;
-                        border-radius: 4px;
-                        cursor: pointer;
-                        font-weight: 700;
-                        font-size: 11px;
-                    ">🔬 TAXONOMY</button>
-                    <button id="mode-folk-btn" style="
-                        background: var(--bg-secondary);
-                        border: 1px solid var(--border-primary);
-                        color: var(--text-primary);
-                        padding: 8px 16px;
-                        border-radius: 4px;
-                        cursor: pointer;
-                        font-weight: 700;
-                        font-size: 11px;
-                    ">🌾 FOLK</button>
-                    <button id="mode-minifig-btn" style="
-                        background: var(--bg-secondary);
-                        border: 1px solid var(--border-primary);
-                        color: var(--text-primary);
-                        padding: 8px 16px;
-                        border-radius: 4px;
-                        cursor: pointer;
-                        font-weight: 700;
-                        font-size: 11px;
-                    ">👤 MINIFIG</button>
-                    <button id="close-catalog" style="
-                        background: none;
-                        border: 2px solid var(--accent);
-                        color: var(--accent);
-                        padding: 8px 16px;
-                        border-radius: 4px;
-                        cursor: pointer;
-                        font-weight: 700;
-                    ">✕ CLOSE</button>
+                    <div style="display: flex; gap: 8px;">
+                        <button id="mode-taxonomy-btn" style="
+                            background: var(--accent);
+                            border: none;
+                            color: var(--bg-main);
+                            padding: 8px 16px;
+                            border-radius: 4px;
+                            cursor: pointer;
+                            font-weight: 700;
+                            font-size: 11px;
+                        ">🔬 TAXONOMY</button>
+                        <button id="mode-folk-btn" style="
+                            background: var(--bg-secondary);
+                            border: 1px solid var(--border-primary);
+                            color: var(--text-primary);
+                            padding: 8px 16px;
+                            border-radius: 4px;
+                            cursor: pointer;
+                            font-weight: 700;
+                            font-size: 11px;
+                        ">🌾 FOLK</button>
+                        <button id="mode-minifig-btn" style="
+                            background: var(--bg-secondary);
+                            border: 1px solid var(--border-primary);
+                            color: var(--text-primary);
+                            padding: 8px 16px;
+                            border-radius: 4px;
+                            cursor: pointer;
+                            font-weight: 700;
+                            font-size: 11px;
+                        ">👤 MINIFIG</button>
+                        <button id="mode-location-btn" style="
+                            background: var(--bg-secondary);
+                            border: 1px solid var(--border-primary);
+                            color: var(--text-primary);
+                            padding: 8px 16px;
+                            border-radius: 4px;
+                            cursor: pointer;
+                            font-weight: 700;
+                            font-size: 11px;
+                        ">🎬 LOCATION</button>
+                        <button id="close-catalog" style="
+                            background: none;
+                            border: 2px solid var(--accent);
+                            color: var(--accent);
+                            padding: 8px 16px;
+                            border-radius: 4px;
+                            cursor: pointer;
+                            font-weight: 700;
+                        ">✕ CLOSE</button>
+                    </div>
                 </div>
             `;
             content.appendChild(header);
@@ -4171,6 +4185,222 @@
             content.appendChild(mainArea);
             modal.appendChild(content);
             document.body.appendChild(modal);
+
+            // LOCATION helpers
+            const LOCATION_SLOTS = ['floor', 'wall', 'door', 'window', 'roof', 'tree', 'prop'];
+            let currentLocationSelection = {};
+
+            function buildLocationLines(location) {
+                const lines = [];
+                lines.push(`0 FILE ${location.id || location.title}.mpd`);
+                lines.push(`0 Name: ${location.title}`);
+                lines.push('0 Author: Grace Catalog Browser');
+                lines.push('0 !LDRAW_ORG Model');
+                lines.push('0 BFC CERTIFY CCW');
+                lines.push('');
+                lines.push('0 STEP');
+                lines.push('');
+
+                const parts = location.parts || [];
+                parts.forEach((part, idx) => {
+                    const label = part.label || 'PART';
+                    let x = 0, y = 0, z = 0;
+                    if (label === 'FLOOR') {
+                        x = 0; y = 0; z = 0;
+                    } else if (label === 'WALL') {
+                        x = 0; y = 80; z = -120;
+                    } else if (label === 'DOOR') {
+                        x = 0; y = 40; z = -119;
+                    } else if (label === 'WINDOW') {
+                        x = 60; y = 60; z = -119;
+                    } else if (label === 'ROOF') {
+                        x = 0; y = 160; z = 0;
+                    } else if (label === 'TREE') {
+                        x = -160 + idx * 40; y = 0; z = 120;
+                    } else if (label === 'PROP') {
+                        x = -80 + idx * 40; y = 0; z = 40;
+                    }
+                    const color = part.colorCode ?? part.color ?? 16;
+                    let filename = part.filename || part.path || '';
+                    if (filename && !filename.startsWith('parts/')) {
+                        filename = `parts/${filename}`;
+                    }
+                    lines.push(`0 // ${label} - ${part.description || filename}`);
+                    lines.push(`1 ${color} ${x} ${y} ${z} 1 0 0 0 1 0 0 0 1 ${filename}`);
+                    lines.push('');
+                });
+
+                lines.push('0 STEP');
+                return lines;
+            }
+
+            function loadLocation(lines, name, replace = true) {
+                if (replace) {
+                    editorLines = [...lines];
+                } else {
+                    const insertIdx = editorLines.lastIndexOf('0 STEP');
+                    const offsetZ = (() => {
+                        const matches = editorLines.filter((line) => line.startsWith('1 '));
+                        let maxZ = 0;
+                        matches.forEach((line) => {
+                            const parts = line.trim().split(/\s+/);
+                            const z = parseFloat(parts[5]);
+                            if (!Number.isNaN(z)) {
+                                maxZ = Math.max(maxZ, z);
+                            }
+                        });
+                        return maxZ + 320;
+                    })();
+                    const shifted = lines.map((line) => {
+                        if (!line.startsWith('1 ')) return line;
+                        const segments = line.trim().split(/\s+/);
+                        const z = parseFloat(segments[5]);
+                        if (!Number.isNaN(z)) {
+                            segments[5] = (z + offsetZ).toString();
+                            return segments.join(' ');
+                        }
+                        return line;
+                    });
+                    if (insertIdx >= 0) {
+                        editorLines.splice(insertIdx, 0, `0 // Added Location ${name}`, ...shifted, '');
+                    } else {
+                        editorLines.push(`0 // Added Location ${name}`, ...shifted, '');
+                    }
+                }
+
+                STATE.scenes[STATE.activeSceneIdx].lines = [...editorLines];
+                STATE.scenes[STATE.activeSceneIdx].name = name;
+                renderEditor(editorLines);
+                updateSceneSelector();
+                document.getElementById('status-text').textContent = `${replace ? 'Loaded' : '➕ Added'} ${name}`;
+
+                if (replace) {
+                    document.body.removeChild(modal);
+                }
+
+                setTimeout(() => compileCurrentMPD(), 500);
+            }
+
+            function showLocationMode() {
+                leftPanel.innerHTML = `
+                    <div style="color: var(--accent); font-weight: 700; margin-bottom: 12px; font-size: 13px; border-bottom: 2px solid var(--border-primary); padding-bottom: 8px;">
+                        🎬 LOCATION / PRODUCTION DESIGNER
+                    </div>
+                    <div style="font-size: 11px; color: #aaa; line-height: 1.6;">
+                        Use the search box to find environment parts (floors, walls, doors, windows, trees, props) and assign them to slots in the Location Builder.
+                    </div>
+                `;
+
+                rightPanel.innerHTML = '';
+
+                const builder = document.createElement('div');
+                builder.style.cssText = `
+                    border: 1px solid var(--border-primary);
+                    border-radius: 6px;
+                    padding: 12px;
+                    background: var(--bg-secondary);
+                `;
+                builder.innerHTML = `
+                    <div style="font-weight: 700; color: var(--accent); font-size: 13px; margin-bottom: 8px;">Location Builder</div>
+                    <div style="font-size: 10px; color: #aaa; margin-bottom: 12px;">Assign environment parts to slots below, then LOAD or ADD the assembled location.</div>
+                    <div id="location-slots"></div>
+                    <div style="margin-top: 8px; margin-bottom: 8px; padding: 8px; border-radius: 4px; background: rgba(0,0,0,0.25); font-size: 10px; color: #ccc;">
+                        <div style="font-weight: 700; color: var(--accent); margin-bottom: 4px;">Current Location (preview only)</div>
+                        <div id="location-summary">No parts selected.</div>
+                    </div>
+                    <div style="display: flex; gap: 8px; margin-top: 8px;">
+                        <button id="location-load" style="flex: 1; padding: 8px; border-radius: 4px; border: 1px solid var(--accent); background: var(--bg-main); color: var(--accent); font-size: 11px; cursor: pointer;">💚 LOAD LOCATION</button>
+                        <button id="location-add" style="flex: 1; padding: 8px; border-radius: 4px; border: 1px solid var(--accent); background: var(--accent); color: var(--bg-main); font-size: 11px; cursor: pointer;">➕ ADD LOCATION</button>
+                    </div>
+                `;
+
+                rightPanel.appendChild(builder);
+
+                // Dedicated area for LOCATION search results so the builder
+                // stays visible while you browse parts.
+                const locationResults = document.createElement('div');
+                locationResults.id = 'location-search-results';
+                locationResults.style.cssText = 'margin-top: 16px;';
+                rightPanel.appendChild(locationResults);
+
+                const slotsContainer = builder.querySelector('#location-slots');
+                slotsContainer.innerHTML = '';
+                LOCATION_SLOTS.forEach((slotKey) => {
+                    const row = document.createElement('div');
+                    row.style.cssText = 'display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; font-size: 11px;';
+                    const label = slotKey.toUpperCase();
+                    row.innerHTML = `
+                        <div style="font-weight: 700; color: var(--accent); width: 80px;">${label}</div>
+                        <div id="location-slot-label-${slotKey}" style="flex: 1; color: #ccc; font-size: 10px;">(empty)</div>
+                        <button data-slot="${slotKey}" class="location-clear" style="margin-left: 8px; padding: 4px 6px; border-radius: 4px; border: 1px solid var(--border-primary); background: var(--bg-main); color: #aaa; font-size: 9px; cursor: pointer;">Clear</button>
+                    `;
+                    slotsContainer.appendChild(row);
+                });
+
+                function renderLocationSummary() {
+                    const summaryEl = builder.querySelector('#location-summary');
+                    if (!summaryEl) return;
+                    const rows = [];
+                    LOCATION_SLOTS.forEach((slotKey) => {
+                        const part = currentLocationSelection[slotKey];
+                        if (!part) return;
+                        rows.push(`<tr><td style="padding:2px 4px;">${slotKey.toUpperCase()}</td><td style="padding:2px 4px;">${part.filename}</td><td style="padding:2px 4px;">${part.description || ''}</td></tr>`);
+                    });
+                    if (!rows.length) {
+                        summaryEl.textContent = 'No parts selected.';
+                    } else {
+                        summaryEl.innerHTML = `<table style="width:100%; border-collapse:collapse;"><tbody>${rows.join('')}</tbody></table>`;
+                    }
+                }
+
+                function updateSlotLabels() {
+                    LOCATION_SLOTS.forEach((slotKey) => {
+                        const labelEl = builder.querySelector(`#location-slot-label-${slotKey}`);
+                        if (!labelEl) return;
+                        const part = currentLocationSelection[slotKey];
+                        if (!part) {
+                            labelEl.textContent = '(empty)';
+                        } else {
+                            labelEl.textContent = `${part.filename} – ${part.description || ''}`;
+                        }
+                    });
+                    renderLocationSummary();
+                }
+
+                builder.querySelectorAll('.location-clear').forEach((btn) => {
+                    btn.addEventListener('click', () => {
+                        const slotKey = btn.dataset.slot;
+                        delete currentLocationSelection[slotKey];
+                        updateSlotLabels();
+                    });
+                });
+
+                const handleLocation = (replace) => {
+                    const parts = [];
+                    LOCATION_SLOTS.forEach((slotKey) => {
+                        const part = currentLocationSelection[slotKey];
+                        if (!part) return;
+                        const label = slotKey.toUpperCase();
+                        parts.push({ label, filename: part.filename, description: part.description });
+                    });
+                    if (!parts.length) {
+                        alert('Select at least one environment part to build a location.');
+                        return;
+                    }
+                    const location = {
+                        id: `location-${Date.now()}`,
+                        title: 'Custom Location',
+                        parts
+                    };
+                    const lines = buildLocationLines(location);
+                    loadLocation(lines, location.title, replace);
+                };
+
+                builder.querySelector('#location-load').addEventListener('click', () => handleLocation(true));
+                builder.querySelector('#location-add').addEventListener('click', () => handleLocation(false));
+
+                updateSlotLabels();
+            }
             
             // Show paginated parts with load options
             function showPaginatedParts(parts, name, parentElement) {
@@ -4685,18 +4915,78 @@
                 });
             }
             
+            // Track which mode is currently active for search behavior
+            let currentCatalogMode = 'taxonomy'; // 'taxonomy' | 'folk' | 'minifig' | 'location'
+
             // Search functionality
             searchBox.addEventListener('input', (e) => {
                 const query = e.target.value.toLowerCase();
                 if (query.length < 2) return;
-                
-                // Search across all parts
-                rightPanel.innerHTML = `
+
+                if (currentCatalogMode !== 'location') {
+                    // Default: search across all parts and show copyable paths
+                    rightPanel.innerHTML = `
+                        <div style="color: var(--accent); font-weight: 700; font-size: 16px; margin-bottom: 16px; border-bottom: 2px solid var(--border-primary); padding-bottom: 8px;">
+                            🔍 Search Results for "${query}"
+                        </div>
+                    `;
+
+                    let count = 0;
+                    Object.values(taxonomy.kingdoms).forEach(kingdomData => {
+                        Object.values(kingdomData.phyla).forEach(phylumData => {
+                            Object.values(phylumData.classes).forEach(classData => {
+                                Object.values(classData.orders).forEach(orderData => {
+                                    Object.values(orderData.families).forEach(familyData => {
+                                        familyData.parts.forEach(part => {
+                                            const text = `${part.filename} ${part.name} ${part.description}`.toLowerCase();
+                                            if (text.includes(query) && count < 100) {
+                                                const partDiv = document.createElement('div');
+                                                partDiv.style.cssText = `
+                                                    padding: 8px;
+                                                    margin-bottom: 4px;
+                                                    background: var(--bg-secondary);
+                                                    border-radius: 4px;
+                                                    font-size: 11px;
+                                                    cursor: pointer;
+                                                    transition: all 0.2s;
+                                                `;
+                                                partDiv.innerHTML = `
+                                                    <div style="font-weight: 700; color: var(--accent);">${part.filename}</div>
+                                                    <div style="color: #aaa;">${part.description || part.name}</div>
+                                                `;
+                                                partDiv.addEventListener('mouseenter', () => partDiv.style.background = 'var(--accent)');
+                                                partDiv.addEventListener('mouseleave', () => partDiv.style.background = 'var(--bg-secondary)');
+                                                partDiv.addEventListener('click', () => {
+                                                    navigator.clipboard.writeText(part.path);
+                                                    document.getElementById('status-text').textContent = `📋 Copied: ${part.path}`;
+                                                });
+                                                resultsHost.appendChild(partDiv);
+                                                count++;
+                                            }
+                                        });
+                                    });
+                                });
+                            });
+                        });
+                    });
+
+                    if (count === 0) {
+                        rightPanel.innerHTML += `<div style="color: #888; text-align: center; padding: 20px;">No parts found</div>`;
+                    } else if (count === 100) {
+                        rightPanel.innerHTML += `<div style="color: var(--accent); text-align: center; padding: 12px; background: var(--bg-secondary); border-radius: 4px; margin-top: 12px;">Showing first 100 results. Refine search for more.</div>`;
+                    }
+                    return;
+                }
+
+                // LOCATION mode search: present environment parts and allow assigning to slots
+                const resultsHost = document.getElementById('location-search-results') || rightPanel;
+                resultsHost.innerHTML = `
                     <div style="color: var(--accent); font-weight: 700; font-size: 16px; margin-bottom: 16px; border-bottom: 2px solid var(--border-primary); padding-bottom: 8px;">
-                        🔍 Search Results for "${query}"
+                        🎬 Location Search for "${query}"
                     </div>
                 `;
-                
+
+                const slotKeys = ['floor', 'wall', 'door', 'window', 'roof', 'tree', 'prop'];
                 let count = 0;
                 Object.values(taxonomy.kingdoms).forEach(kingdomData => {
                     Object.values(kingdomData.phyla).forEach(phylumData => {
@@ -4705,41 +4995,73 @@
                                 Object.values(orderData.families).forEach(familyData => {
                                     familyData.parts.forEach(part => {
                                         const text = `${part.filename} ${part.name} ${part.description}`.toLowerCase();
-                                        if (text.includes(query) && count < 100) {
-                                            const partDiv = document.createElement('div');
-                                            partDiv.style.cssText = `
-                                                padding: 8px;
-                                                margin-bottom: 4px;
-                                                background: var(--bg-secondary);
-                                                border-radius: 4px;
-                                                font-size: 11px;
-                                                cursor: pointer;
-                                                transition: all 0.2s;
-                                            `;
-                                            partDiv.innerHTML = `
-                                                <div style="font-weight: 700; color: var(--accent);">${part.filename}</div>
-                                                <div style="color: #aaa;">${part.description || part.name}</div>
-                                            `;
-                                            partDiv.addEventListener('mouseenter', () => partDiv.style.background = 'var(--accent)');
-                                            partDiv.addEventListener('mouseleave', () => partDiv.style.background = 'var(--bg-secondary)');
-                                            partDiv.addEventListener('click', () => {
-                                                navigator.clipboard.writeText(part.path);
-                                                document.getElementById('status-text').textContent = `📋 Copied: ${part.path}`;
+                                        if (!text.includes(query) || count >= 100) return;
+
+                                        const partDiv = document.createElement('div');
+                                        partDiv.style.cssText = `
+                                            padding: 8px;
+                                            margin-bottom: 6px;
+                                            background: var(--bg-secondary);
+                                            border-radius: 4px;
+                                            font-size: 11px;
+                                            display: flex;
+                                            flex-direction: column;
+                                            gap: 4px;
+                                        `;
+                                        const titleHtml = `
+                                            <div style="font-weight: 700; color: var(--accent);">${part.filename}</div>
+                                            <div style="color: #aaa;">${part.description || part.name}</div>
+                                        `;
+                                        const buttonsHtml = slotKeys.map((slotKey) => `<button data-slot="${slotKey}" class="location-assign" style="padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border-primary); background: var(--bg-main); color: var(--text-primary); font-size: 9px; cursor: pointer; margin-right: 4px;">${slotKey.toUpperCase()}</button>`).join('');
+                                        partDiv.innerHTML = `
+                                            ${titleHtml}
+                                            <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px;">${buttonsHtml}</div>
+                                        `;
+
+                                        partDiv.querySelectorAll('.location-assign').forEach((btn) => {
+                                            btn.addEventListener('click', () => {
+                                                const slotKey = btn.dataset.slot;
+                                                currentLocationSelection[slotKey] = {
+                                                    filename: part.filename,
+                                                    description: part.description || part.name
+                                                };
+                                                // Update labels/summary inside the Location Builder if present
+                                                const slotLabel = document.querySelector(`#location-slot-label-${slotKey}`);
+                                                if (slotLabel) {
+                                                    slotLabel.textContent = `${part.filename} – ${part.description || part.name}`;
+                                                }
+                                                const summaryEl = document.querySelector('#location-summary');
+                                                if (summaryEl) {
+                                                    // Trigger a synthetic update by calling showLocationMode's helpers indirectly is complex;
+                                                    // instead, rebuild summary here.
+                                                    const rows = [];
+                                                    slotKeys.forEach((key) => {
+                                                        const p = currentLocationSelection[key];
+                                                        if (!p) return;
+                                                        rows.push(`<tr><td style="padding:2px 4px;">${key.toUpperCase()}</td><td style="padding:2px 4px;">${p.filename}</td><td style="padding:2px 4px;">${p.description || ''}</td></tr>`);
+                                                    });
+                                                    if (!rows.length) {
+                                                        summaryEl.textContent = 'No parts selected.';
+                                                    } else {
+                                                        summaryEl.innerHTML = `<table style="width:100%; border-collapse:collapse;"><tbody>${rows.join('')}</tbody></table>`;
+                                                    }
+                                                }
                                             });
-                                            rightPanel.appendChild(partDiv);
-                                            count++;
-                                        }
+                                        });
+
+                                        rightPanel.appendChild(partDiv);
+                                        count++;
                                     });
                                 });
                             });
                         });
                     });
                 });
-                
+
                 if (count === 0) {
-                    rightPanel.innerHTML += `<div style="color: #888; text-align: center; padding: 20px;">No parts found</div>`;
+                    resultsHost.innerHTML += `<div style="color: #888; text-align: center; padding: 20px;">No environment parts found</div>`;
                 } else if (count === 100) {
-                    rightPanel.innerHTML += `<div style="color: var(--accent); text-align: center; padding: 12px; background: var(--bg-secondary); border-radius: 4px; margin-top: 12px;">Showing first 100 results. Refine search for more.</div>`;
+                    resultsHost.innerHTML += `<div style="color: var(--accent); text-align: center; padding: 12px; background: var(--bg-secondary); border-radius: 4px; margin-top: 12px;">Showing first 100 results. Refine search for more.</div>`;
                 }
             });
             
@@ -4995,7 +5317,14 @@
                     selects.push(select);
                 };
 
-                if (buckets.heads?.length) createSelect('Head', 'head', buckets.heads);
+                if (buckets.heads?.length) {
+                    const allHeads = buckets.heads;
+                    const headOptions = allHeads.filter((h) => h.headRole !== 'artifact' && h.headRole !== 'headdress');
+                    const hatOptions = allHeads.filter((h) => h.headRole === 'headdress');
+                    // Hat/Headgear sits visually above the head in the builder.
+                    if (hatOptions.length) createSelect('Hat / Headgear', 'hat', hatOptions);
+                    if (headOptions.length) createSelect('Head', 'head', headOptions);
+                }
                 if (buckets.torsos?.length) createSelect('Torso', 'torso', buckets.torsos);
                 if (buckets.arms?.length) createSelect('Arms (pair)', 'arms', buckets.arms);
                 if (buckets.hips?.length) createSelect('Hips', 'hips', buckets.hips);
@@ -5093,8 +5422,31 @@
                 const constructCustomCharacter = () => {
                     const selection = getSelection();
                     const parts = [];
+
+                    // Head + Hat/Headgear layer
                     if (selection.head) {
-                        parts.push({ label: 'HEAD', filename: selection.head.filename, description: selection.head.description });
+                        const role = selection.head.headRole || 'standard';
+                        const needsOffset = role === 'character' || role === 'animal';
+                        const dy = needsOffset ? 20 : 0;
+                        parts.push({ label: 'HEAD', filename: selection.head.filename, description: selection.head.description, dy });
+                        if (selection.hat) {
+                            parts.push({ label: 'HEADGEAR', filename: selection.hat.filename, description: selection.hat.description, dy });
+                        }
+                    } else if (selection.hat) {
+                        // Some headdress parts are composite "Minifig Head ..." pieces
+                        // that already include the underlying head. Detect those by
+                        // description and treat them as full HEADs instead of pure
+                        // HEADGEAR so composition stays smart.
+                        const desc = (selection.hat.description || selection.hat.name || '').toLowerCase();
+                        const compositeHead = /^minifig (baby )?head\b/.test(desc);
+                        if (compositeHead) {
+                            const role = selection.hat.headRole || 'standard';
+                            const needsOffset = role === 'character' || role === 'animal';
+                            const dy = needsOffset ? 20 : 0;
+                            parts.push({ label: 'HEAD', filename: selection.hat.filename, description: selection.hat.description, dy });
+                        } else {
+                            parts.push({ label: 'HEADGEAR', filename: selection.hat.filename, description: selection.hat.description });
+                        }
                     }
 
                     const torsoHasUpper = selection.torso && (selection.torso.upperComplete || selection.torso.includesArms || selection.torso.includesHands);
@@ -5129,6 +5481,7 @@
                     if (!summaryEl) return;
 
                     const rows = [];
+                    if (selection.hat) rows.push(`<tr><td style="padding:2px 4px;">HAT / HEADGEAR</td><td style="padding:2px 4px;">${selection.hat.filename}</td><td style="padding:2px 4px;">${selection.hat.description || ''}</td></tr>`);
                     if (selection.head) rows.push(`<tr><td style="padding:2px 4px;">HEAD</td><td style="padding:2px 4px;">${selection.head.filename}</td><td style="padding:2px 4px;">${selection.head.description || ''}</td></tr>`);
                     if (selection.torso) rows.push(`<tr><td style="padding:2px 4px;">TORSO</td><td style="padding:2px 4px;">${selection.torso.filename}</td><td style="padding:2px 4px;">${selection.torso.description || ''}</td></tr>`);
                     if (selection.arms) rows.push(`<tr><td style="padding:2px 4px;">ARMS</td><td style="padding:2px 4px;">${selection.arms.filename}</td><td style="padding:2px 4px;">${selection.arms.description || ''}</td></tr>`);
@@ -5318,6 +5671,15 @@
                 }
 
                 renderHeadGallery();
+
+                // Attach the improved Custom Minifig Builder beneath the head gallery
+                const masterBuilder = renderMinifigBuilder();
+                if (masterBuilder) {
+                    const wrapper = document.createElement('div');
+                    wrapper.style.cssText = 'margin-top: 24px;';
+                    wrapper.appendChild(masterBuilder);
+                    rightPanel.appendChild(wrapper);
+                }
             }
 
             // FOLK mode - TRACTOR FOLKOLOGICUS + Themes + Minifig Library
@@ -5685,6 +6047,7 @@
             
             // Mode switching
             content.querySelector('#mode-taxonomy-btn').addEventListener('click', () => {
+                currentCatalogMode = 'taxonomy';
                 content.querySelector('#mode-taxonomy-btn').style.background = 'var(--accent)';
                 content.querySelector('#mode-taxonomy-btn').style.color = 'var(--bg-main)';
                 content.querySelector('#mode-folk-btn').style.background = 'var(--bg-secondary)';
@@ -5735,6 +6098,7 @@
             });
             
             content.querySelector('#mode-folk-btn').addEventListener('click', () => {
+                currentCatalogMode = 'folk';
                 content.querySelector('#mode-folk-btn').style.background = 'var(--accent)';
                 content.querySelector('#mode-folk-btn').style.color = 'var(--bg-main)';
                 content.querySelector('#mode-taxonomy-btn').style.background = 'var(--bg-secondary)';
@@ -5747,6 +6111,7 @@
             const minifigModeBtn = content.querySelector('#mode-minifig-btn');
             if (minifigModeBtn) {
                 minifigModeBtn.addEventListener('click', () => {
+                    currentCatalogMode = 'minifig';
                     minifigModeBtn.style.background = 'var(--accent)';
                     minifigModeBtn.style.color = 'var(--bg-main)';
                     content.querySelector('#mode-taxonomy-btn').style.background = 'var(--bg-secondary)';
@@ -5757,6 +6122,28 @@
                     content.querySelector('#mode-folk-btn').style.color = 'var(--text-primary)';
 
                     showMinifigMode();
+                });
+            }
+
+            const locationModeBtn = content.querySelector('#mode-location-btn');
+            if (locationModeBtn) {
+                locationModeBtn.addEventListener('click', () => {
+                    currentCatalogMode = 'location';
+                    locationModeBtn.style.background = 'var(--accent)';
+                    locationModeBtn.style.color = 'var(--bg-main)';
+                    content.querySelector('#mode-taxonomy-btn').style.background = 'var(--bg-secondary)';
+                    content.querySelector('#mode-taxonomy-btn').style.border = '1px solid var(--border-primary)';
+                    content.querySelector('#mode-taxonomy-btn').style.color = 'var(--text-primary)';
+                    content.querySelector('#mode-folk-btn').style.background = 'var(--bg-secondary)';
+                    content.querySelector('#mode-folk-btn').style.border = '1px solid var(--border-primary)';
+                    content.querySelector('#mode-folk-btn').style.color = 'var(--text-primary)';
+                    if (minifigModeBtn) {
+                        minifigModeBtn.style.background = 'var(--bg-secondary)';
+                        minifigModeBtn.style.border = '1px solid var(--border-primary)';
+                        minifigModeBtn.style.color = 'var(--text-primary)';
+                    }
+
+                    showLocationMode();
                 });
             }
             
@@ -6810,6 +7197,14 @@
         document.getElementById('screenshot-btn').addEventListener('click', () => {
             captureScreenshot();
         });
+
+        // GLB export button
+        const glbBtn = document.getElementById('glb-export-btn');
+        if (glbBtn) {
+            glbBtn.addEventListener('click', () => {
+                exportSceneAsGLB();
+            });
+        }
         
         // Global keyboard shortcuts
         document.addEventListener('keydown', (e) => {
@@ -7098,6 +7493,175 @@
         });
     }
     
+    function exportSceneAsGLB() {
+        const statusText = document.getElementById('status-text');
+        const glbBtn = document.getElementById('glb-export-btn');
+        try {
+            if (typeof THREE === 'undefined' || !THREE.GLTFExporter) {
+                console.warn('[GLB] THREE.GLTFExporter not available');
+                if (statusText) statusText.textContent = 'GLB export not available';
+                return;
+            }
+            if (!STATE.viewer) {
+                console.warn('[GLB] Viewer not ready');
+                if (statusText) statusText.textContent = 'GLB export failed';
+                return;
+            }
+
+            // Prefer the underlying LDraw model root to avoid exporting helpers/grid
+            const root = (STATE.viewer.getModel && STATE.viewer.getModel()) ||
+                         STATE.viewer.modelRoot ||
+                         STATE.viewer.modelWrapper ||
+                         STATE.viewer.scene;
+            if (!root) {
+                console.warn('[GLB] No model to export');
+                if (statusText) statusText.textContent = 'No model to export';
+                return;
+            }
+
+            const exporter = new THREE.GLTFExporter();
+            const sceneMeta = STATE.scenes[STATE.activeSceneIdx];
+            const sceneName = sceneMeta ? sceneMeta.name : 'Scene';
+            const safeName = sceneName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+            const date = new Date();
+            const dateStr = date.toISOString().split('T')[0];
+            const timeStr = date.toTimeString().split(' ')[0].replace(/:/g, '-');
+            const baseFilename = `grace_scene_${safeName}_${dateStr}_${timeStr}`;
+
+            if (statusText) {
+                statusText.textContent = 'Exporting GLB...';
+                statusText.style.color = 'var(--accent)';
+            }
+            if (glbBtn) {
+                glbBtn.disabled = true;
+                glbBtn.textContent = '…';
+            }
+
+            exporter.parse(
+                root,
+                (gltf) => {
+                    try {
+                        let blob;
+                        let filename;
+
+                        // three@0.128: when { binary: true } is honored, gltf is an ArrayBuffer.
+                        if (gltf instanceof ArrayBuffer) {
+                            blob = new Blob([gltf], { type: 'model/gltf-binary' });
+                            filename = `${baseFilename}.glb`;
+                        } else {
+                            // Fallback: JSON glTF object
+                            const json = typeof gltf === 'string' ? gltf : JSON.stringify(gltf, null, 2);
+                            blob = new Blob([json], { type: 'model/gltf+json' });
+                            filename = `${baseFilename}.gltf`;
+                        }
+
+                        const url = URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = filename;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        URL.revokeObjectURL(url);
+
+                        // Build a manifest of LDraw part placements (like screenshot JSON)
+                        try {
+                            const partEntries = [];
+                            if (Array.isArray(editorLines)) {
+                                editorLines.forEach((line, idx) => {
+                                    if (!line || typeof line !== 'string') return;
+                                    const trimmed = line.trim();
+                                    if (!trimmed.startsWith('1 ')) return; // Only part placement lines
+
+                                    const pieces = trimmed.split(/\s+/);
+                                    if (pieces.length < 15) return; // color + x y z + 3x3 matrix + filename
+
+                                    const colorCode = parseInt(pieces[1], 10);
+                                    const x = parseFloat(pieces[2]);
+                                    const y = parseFloat(pieces[3]);
+                                    const z = parseFloat(pieces[4]);
+                                    const m = pieces.slice(5, 14).map((v) => parseFloat(v));
+                                    const file = pieces[14];
+
+                                    partEntries.push({
+                                        lineIndex: idx,
+                                        lineNumber: idx + 1,
+                                        raw: line,
+                                        colorCode: Number.isNaN(colorCode) ? null : colorCode,
+                                        position: {
+                                            x: Number.isNaN(x) ? null : x,
+                                            y: Number.isNaN(y) ? null : y,
+                                            z: Number.isNaN(z) ? null : z
+                                        },
+                                        matrix: m,
+                                        filename: file
+                                    });
+                                });
+                            }
+
+                            const manifest = {
+                                filename,
+                                scene: sceneName,
+                                date: dateStr,
+                                time: timeStr,
+                                timestamp: date.toISOString(),
+                                line_count: Array.isArray(editorLines) ? editorLines.length : null,
+                                part_count: partEntries.length,
+                                camera: STATE.viewer && STATE.viewer.getCamera ? STATE.viewer.getCamera() : null,
+                                stats: STATE.viewer && STATE.viewer.getStats ? STATE.viewer.getStats() : null,
+                                parts: partEntries
+                            };
+
+                            const manifestBlob = new Blob([JSON.stringify(manifest, null, 2)], { type: 'application/json' });
+                            const manifestURL = URL.createObjectURL(manifestBlob);
+                            const manifestLink = document.createElement('a');
+                            manifestLink.href = manifestURL;
+                            manifestLink.download = `${baseFilename}_manifest.json`;
+                            document.body.appendChild(manifestLink);
+                            manifestLink.click();
+                            document.body.removeChild(manifestLink);
+                            URL.revokeObjectURL(manifestURL);
+                        } catch (manifestErr) {
+                            console.error('[GLB] Manifest generation failed', manifestErr);
+                        }
+
+                        console.log('[GLB] Exported', filename);
+                        if (statusText) {
+                            statusText.textContent = 'GLB exported';
+                            statusText.style.color = 'var(--accent)';
+                            setTimeout(() => {
+                                statusText.textContent = 'Ready';
+                                statusText.style.color = '';
+                            }, 2000);
+                        }
+                    } catch (e) {
+                        console.error('[GLB] Download failed', e);
+                        if (statusText) {
+                            statusText.textContent = 'GLB download failed';
+                            statusText.style.color = '';
+                        }
+                    } finally {
+                        if (glbBtn) {
+                            glbBtn.disabled = false;
+                            glbBtn.textContent = 'GLB';
+                        }
+                    }
+                },
+                { binary: true }
+            );
+        } catch (err) {
+            console.error('[GLB] Export exception', err);
+            if (statusText) {
+                statusText.textContent = 'GLB export failed';
+                statusText.style.color = '';
+            }
+            if (glbBtn) {
+                glbBtn.disabled = false;
+                glbBtn.textContent = 'GLB';
+            }
+        }
+    }
+
     function captureScreenshot() {
         const statusText = document.getElementById('status-text');
         if (statusText) statusText.textContent = 'Capturing 4:3 shot...';

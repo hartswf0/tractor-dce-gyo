@@ -1,0 +1,64 @@
+# First block: LEGOS YAML
+# Second block: MPD file
+# Separator: a single line containing ---
+
+title: "{{scene_title}}"
+description: "{{summary}}"
+location: "{{location_name}}"
+entities:
+  - id: "e_marge"
+    type: "character"
+    name: "Marge Simpson"
+    traits: ["protective", "anxious"]
+    location: "grocery_checkout"
+  - id: "e_maggie"
+    type: "character"
+    name: "Maggie Simpson"
+    traits: ["baby", "curious"]
+    location: "grocery_cart"
+goals:
+  - id: "g_protect_maggie"
+    name: "Keep Maggie safe during checkout"
+    owner: "e_marge"
+obstacles:
+  - id: "o_mispriced_baby"
+    name: "Maggie scanned as grocery item"
+    affects: "g_protect_maggie"
+shifts:
+  - id: "s_maggie_scanned"
+    name: "Maggie scanned and bagged"
+    causes: ["o_mispriced_baby"]
+    results_in: "g_protect_maggie"
+relations:
+  - "[scans] e_cashier -> e_maggie"
+timeline:
+  - id: "t_scene5"
+    description: "Grocery checkout"
+    scenes:
+      - id: "sc_scan_event"
+        description: "Maggie is scanned at register"
+        entities: ["e_marge", "e_maggie", "e_cashier"]
+
+---
+0 FILE {{FILENAME}}.mpd
+0 Name: {{SCENE_NAME}}
+0 Author: {{AUTHOR}}
+0 !LDRAW_ORG Model
+0 !LICENCE Redistributable under CCAL version 2.0
+0 BFC CERTIFY CCW
+0 //
+0 LEGOS FRAMEWORK:
+0 Location: Grocery store checkout aisle
+0 Entity: Marge, Maggie, Cashier, groceries
+0 Goal: Keep Maggie safe during checkout
+0 Obstacle: Maggie scanned as product
+0 Shift: Maggie is scanned and bagged, then rescued
+0 Solution: Marge intervenes and resolves the mistake
+0 //
+0 STEP 01: FLOOR
+1  7   -80    0   -20   1 0 0   0 1 0   0 0 1  parts/3024.dat
+0 STEP
+0 STEP 08: MARGE MINIFIGURE (Customer, at checkout)
+0 // (fill in minifig parts here following Simpsons pattern)
+0 STEP
+0 NOFILE

@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>LDRAW → THREE → GLB Color & Geometry Guide</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg-main: #050607;
+      --bg-secondary: #101216;
+      --bg-tertiary: #171a20;
+      --panel-bg: #12151b;
+      --panel-border: #262b33;
+      --accent: #ffd700;
+      --accent-soft: #ffdd55;
+      --accent-blue: #5fb4ff;
+      --accent-green: #5cd68d;
+      --accent-red: #ff6b6b;
+      --text-primary: #f3f4f6;
+      --text-muted: #9ca3af;
+      --chip-bg: #1f2933;
+      --chip-border: #374151;
+      --code-bg: #050608;
+      --lego-red: #c91a09;
+      --lego-blue: #0055bf;
+      --lego-green: #237841;
+      --lego-yellow: #f2cd37;
+      --lego-white: #f5f5f5;
+      --lego-edge: #333333;
+      --shadow-soft: 0 18px 45px rgba(0,0,0,0.6);
+      --radius-lg: 10px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Mono", "Menlo", "Consolas", monospace;
+      background: radial-gradient(circle at top, #1b2838 0, var(--bg-main) 45%, #020308 100%);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .page {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 24px 16px 40px;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(15,23,42,0.96), rgba(8,11,20,0.96));
+      border: 1px solid rgba(148,163,184,0.35);
+      box-shadow: 0 18px 40px rgba(0,0,0,0.65);
+      margin-bottom: 24px;
+      position: sticky;
+      top: 10px;
+      backdrop-filter: blur(16px);
+      z-index: 20;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-dot {
+      width: 22px;
+      height: 22px;
+      border-radius: 7px;
+      background: radial-gradient(circle at 30% 20%, #fff7cc 0, #facc15 22%, #eab308 55%, #92400e 100%);
+      box-shadow: 0 0 0 2px rgba(148,163,184,0.6), 0 10px 24px rgba(0,0,0,0.85);
+    }
+
+    .title-block {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .title-block h1 {
+      font-size: 13px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent-soft);
+    }
+
+    .title-block span {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--text-muted);
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+    }
+
+    .badge {
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.5);
+      background: radial-gradient(circle at top, #111827, #020617);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: var(--accent-green);
+      box-shadow: 0 0 12px rgba(34,197,94,0.85);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.9fr);
+      gap: 18px;
+      align-items: flex-start;
+    }
+
+    @media (max-width: 900px) {
+      .layout {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      header {
+        border-radius: 14px;
+      }
+    }
+
+    .section {
+      background: radial-gradient(circle at top left, #1f2933 0, var(--panel-bg) 40%, #050609 100%);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--panel-border);
+      padding: 14px 16px 16px;
+      box-shadow: var(--shadow-soft);
+      margin-bottom: 16px;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .section-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--text-muted);
+    }
+
+    .section-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent-soft);
+    }
+
+    .section-body {
+      font-size: 12px;
+      color: var(--text-primary);
+      line-height: 1.6;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .pill {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--chip-border);
+      background: var(--chip-bg);
+      color: var(--text-muted);
+    }
+
+    .pill-accent {
+      border-color: rgba(250, 204, 21, 0.7);
+      color: var(--accent-soft);
+      background: radial-gradient(circle at top, rgba(250, 204, 21, 0.09), rgba(15,23,42,0.9));
+    }
+
+    pre {
+      background: var(--code-bg);
+      border-radius: 8px;
+      border: 1px solid rgba(31,41,55,0.9);
+      padding: 10px 12px;
+      overflow-x: auto;
+      font-size: 11px;
+      line-height: 1.5;
+      margin-top: 8px;
+      color: #e5e7eb;
+    }
+
+    code {
+      font-family: "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    .mpd-highlight {
+      color: var(--accent-soft);
+    }
+
+    .ldraw-comment {
+      color: var(--text-muted);
+    }
+
+    .color-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .color-chip {
+      flex: 1 1 120px;
+      min-width: 130px;
+      border-radius: 9px;
+      border: 1px solid rgba(55,65,81,0.9);
+      background: linear-gradient(135deg, #020617, #0b1120);
+      padding: 8px 9px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .color-swatch {
+      width: 36px;
+      height: 24px;
+      border-radius: 7px;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.6), 0 10px 20px rgba(0,0,0,0.8);
+      position: relative;
+    }
+
+    .color-swatch::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: linear-gradient(to bottom, rgba(255,255,255,0.2), transparent 45%);
+      mix-blend-mode: screen;
+      pointer-events: none;
+    }
+
+    .lego-red { background: var(--lego-red); }
+    .lego-blue { background: var(--lego-blue); }
+    .lego-green { background: var(--lego-green); }
+    .lego-yellow { background: var(--lego-yellow); }
+    .lego-white { background: var(--lego-white); }
+
+    .color-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      font-size: 10px;
+    }
+
+    .color-name {
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: #e5e7eb;
+    }
+
+    .color-code {
+      color: var(--text-muted);
+    }
+
+    .lego-grid {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 4px;
+      margin-top: 10px;
+    }
+
+    .lego-brick {
+      height: 26px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.8), rgba(229,231,235,0.9));
+      position: relative;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.7);
+    }
+
+    .lego-brick::before {
+      content: '';
+      position: absolute;
+      left: 4px;
+      right: 4px;
+      top: 3px;
+      height: 8px;
+      border-radius: 9px;
+      background: radial-gradient(circle at top, #f9fafb 0, #e5e7eb 50%, #9ca3af 100%);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
+
+    .lego-brick-label {
+      position: absolute;
+      left: 6px;
+      bottom: 3px;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: #111827;
+      opacity: 0.8;
+    }
+
+    .step-list {
+      margin-top: 8px;
+      padding-left: 16px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .step-list li + li { margin-top: 4px; }
+
+    .flow-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+      align-items: center;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .flow-node {
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(75,85,99,0.9);
+      background: linear-gradient(135deg, #020617, #0f172a);
+      color: #e5e7eb;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      font-size: 10px;
+    }
+
+    .flow-arrow {
+      font-size: 14px;
+      opacity: 0.7;
+    }
+
+    .note {
+      margin-top: 6px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .legend-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    .legend-tag {
+      padding: 3px 7px;
+      border-radius: 999px;
+      border: 1px dashed rgba(75,85,99,0.8);
+      background: rgba(15,23,42,0.9);
+    }
+
+    .example-section {
+      margin-top: 16px;
+      background: radial-gradient(circle at top left, #111827 0, #020617 55%);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--panel-border);
+      padding: 14px 16px 16px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .example-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 8px;
+    }
+
+    .example-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent-soft);
+    }
+
+    .example-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .example-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    @media (max-width: 960px) {
+      .example-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .example-col-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .example-note {
+      margin-top: 6px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    footer {
+      margin-top: 18px;
+      font-size: 10px;
+      text-align: center;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div class="header-left">
+        <div class="logo-dot"></div>
+        <div class="title-block">
+          <h1>LDRAW → THREE → GLB</h1>
+          <span>Full-Color Geometry Audit Map</span>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="badge">
+          <span class="badge-dot"></span>
+          <span>Grace Audit Guide</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="layout">
+      <!-- Left: narrative + MPD/LDConfig semantics -->
+      <div>
+        <section class="section">
+          <div class="section-header">
+            <div>
+              <div class="section-label">Stage 1</div>
+              <div class="section-title">LDraw Source: Color & Geometry</div>
+            </div>
+            <span class="pill pill-accent">MPD / LDR</span>
+          </div>
+          <div class="section-body">
+            <p>
+              In LDraw, every brick placement is a single <code>Type&nbsp;1</code> line. It
+              encodes <strong>color</strong>, <strong>position</strong>, <strong>orientation</strong>, and the
+              <strong>part file</strong> to load.
+            </p>
+
+            <pre><code class="language-ldraw"><span class="ldraw-comment">0 // HELLO WORLD base tile (White)</span>
+<span class="mpd-highlight">1 15  -160   0    0    1  0  0    0  1  0    0  0  1    parts/3024.dat</span>
+
+<span class="ldraw-comment">0 // HELLO WORLD letter H tile (Black print on White)</span>
+<span class="mpd-highlight">1  0  -140  -8  -40    1  0  0    0  1  0    0  0  1    parts/3070b.dat</span></code></pre>
+
+            <ul class="step-list">
+              <li><code>1</code> → Type 1: “place a part”.</li>
+              <li><code>15</code> / <code>0</code> → LDraw color codes (White / Black).</li>
+              <li><code>-160 0 0</code> → position in LDU (x, y, z).</li>
+              <li><code>1 0 0  0 1 0  0 0 1</code> → 3×3 rotation/scale matrix.</li>
+              <li><code>parts/3024.dat</code> → geometry file to load.</li>
+            </ul>
+
+            <p class="note">
+              At this stage everything is still pure <strong>LDraw vocabulary</strong>. Color is not
+              RGB yet – it’s a <em>code</em> that will be resolved by the palette.
+            </p>
+
+            <div class="flow-row">
+              <div class="flow-node">MPD / LDR lines</div>
+              <div class="flow-arrow">⟶</div>
+              <div class="flow-node">LDraw Color Codes</div>
+              <div class="flow-arrow">⟶</div>
+              <div class="flow-node">Part Filenames</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-header">
+            <div>
+              <div class="section-label">Stage 2</div>
+              <div class="section-title">Palette: LDConfig Color Semantics</div>
+            </div>
+            <span class="pill">LDConfig.ldr</span>
+          </div>
+          <div class="section-body">
+            <p>
+              The LDraw color codes are defined once in <code>LDConfig.ldr</code>. Each
+              <code>!COLOUR</code> line maps a code to an RGB value, edge color, and optional
+              material finish.
+            </p>
+
+            <pre><code class="language-ldraw">0 // LDraw Internal Common Material Colours
+0 !COLOUR Main_Colour   CODE  16   VALUE #FFFF80   EDGE #333333
+0 !COLOUR Edge_Colour   CODE  24   VALUE #7F7F7F   EDGE #333333
+0 !COLOUR White         CODE  15   VALUE #FFFFFF   EDGE #333333
+0 !COLOUR Black         CODE   0   VALUE #05131D   EDGE #1B2A34
+0 !COLOUR Red           CODE   4   VALUE #C91A09   EDGE #333333
+0 !COLOUR Blue          CODE   1   VALUE #0055BF   EDGE #333333</code></pre>
+
+            <div class="color-row">
+              <div class="color-chip">
+                <div class="color-swatch lego-white"></div>
+                <div class="color-meta">
+                  <div class="color-name">White</div>
+                  <div class="color-code">CODE 15 • VALUE #FFFFFF • EDGE #333333</div>
+                </div>
+              </div>
+              <div class="color-chip">
+                <div class="color-swatch lego-red"></div>
+                <div class="color-meta">
+                  <div class="color-name">Red</div>
+                  <div class="color-code">CODE 4 • VALUE #C91A09 • EDGE #333333</div>
+                </div>
+              </div>
+              <div class="color-chip">
+                <div class="color-swatch lego-blue"></div>
+                <div class="color-meta">
+                  <div class="color-name">Blue</div>
+                  <div class="color-code">CODE 1 • VALUE #0055BF • EDGE #333333</div>
+                </div>
+              </div>
+            </div>
+
+            <p class="note">
+              A viewer like Grace first loads <code>LDConfig.ldr</code>, then uses these
+              definitions to build real materials when it parses the MPD.
+            </p>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-header">
+            <div>
+              <div class="section-label">Stage 3</div>
+              <div class="section-title">THREE.js Scene: LEGO Bricks in 3D</div>
+            </div>
+            <span class="pill">LDrawLoader → THREE</span>
+          </div>
+          <div class="section-body">
+            <p>
+              <code>THREE.LDrawLoader</code> takes the MPD + palette and constructs a live
+              Three.js scene:
+            </p>
+
+            <ul class="step-list">
+              <li>Reads each <code>Type&nbsp;1</code> line and resolves the color code via <code>LDConfig.ldr</code>.</li>
+              <li>Loads the referenced part geometry (e.g. <code>parts/3024.dat</code>).</li>
+              <li>Applies the 3×3 transform and position.</li>
+              <li>Creates <code>MeshStandardMaterial</code> with the resolved color and edge settings.</li>
+            </ul>
+
+            <div class="lego-grid" aria-label="LEGO baseplate visualization">
+              <div class="lego-brick"><div class="lego-brick-label">15 • base</div></div>
+              <div class="lego-brick"></div>
+              <div class="lego-brick"></div>
+              <div class="lego-brick"></div>
+              <div class="lego-brick"></div>
+              <div class="lego-brick"></div>
+              <div class="lego-brick"></div>
+              <div class="lego-brick"></div>
+
+              <div class="lego-brick"></div>
+              <div class="lego-brick"></div>
+              <div class="lego-brick"></div>
+              <div class="lego-brick"></div>
+              <div class="lego-brick"></div>
+              <div class="lego-brick"></div>
+              <div class="lego-brick"></div>
+              <div class="lego-brick"><div class="lego-brick-label">0 • H</div></div>
+            </div>
+
+            <p class="note">
+              At this point, the scene in Grace already has full-color LEGO materials. The
+              screenshot tool simply captures the pixels from this stage.
+            </p>
+          </div>
+        </section>
+      </div>
+
+      <!-- Right: export + manifest + GLB semantics -->
+      <div>
+        <section class="section">
+          <div class="section-header">
+            <div>
+              <div class="section-label">Stage 4</div>
+              <div class="section-title">GLB Export: Geometry Carrier</div>
+            </div>
+            <span class="pill">GLTFExporter</span>
+          </div>
+          <div class="section-body">
+            <p>
+              When Grace exports to GLB, it passes the <strong>model root</strong> from the
+              viewer into <code>THREE.GLTFExporter</code>:
+            </p>
+
+            <pre><code class="language-js">const root = STATE.viewer.getModel(); // LDraw model root
+const exporter = new THREE.GLTFExporter();
+
+exporter.parse(root, (gltf) =&gt; {
+  // gltf is ArrayBuffer (GLB) or JSON (gltf)
+  saveAsFile(gltf, 'grace_scene_hello_world.glb');
+}, { binary: true });</code></pre>
+
+            <p>
+              The GLB contains:</p>
+            <ul class="step-list">
+              <li>All brick geometries as glTF meshes.</li>
+              <li>Materials derived from the Three.js materials (colors where possible).</li>
+              <li>Hierarchy and transforms.</li>
+            </ul>
+
+            <p class="note">
+              Generic GLB viewers see only generic materials + their own lighting, so the
+              result may look flatter or more white than Grace’s LEGO-optimized renderer.
+            </p>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-header">
+            <div>
+              <div class="section-label">Stage 5</div>
+              <div class="section-title">Audit Manifest: Back to LDraw</div>
+            </div>
+            <span class="pill pill-accent">_manifest.json</span>
+          </div>
+          <div class="section-body">
+            <p>
+              To keep LDraw semantics alongside the GLB, Grace also exports a
+              <code>_manifest.json</code> that mirrors every <code>Type&nbsp;1</code> line as structured data.
+            </p>
+
+            <pre><code class="language-json">{
+  "filename": "grace_scene_hello_world.glb",
+  "scene": "HELLO WORLD",
+  "part_count": 2,
+  "parts": [
+    {
+      "lineNumber": 110,
+      "colorCode": 15,
+      "position": { "x": -160, "y": 0, "z": 0 },
+      "matrix": [1,0,0, 0,1,0, 0,0,1],
+      "filename": "parts/3024.dat"
+    },
+    {
+      "lineNumber": 147,
+      "colorCode": 0,
+      "position": { "x": -140, "y": -8, "z": -40 },
+      "matrix": [1,0,0, 0,1,0, 0,0,1],
+      "filename": "parts/3070b.dat"
+    }
+  ]
+}</code></pre>
+
+            <p class="note">
+              This file is the <strong>audit map</strong>: it tells you exactly which LDraw part
+              and color code produced which mesh in the GLB. Any downstream tool can join
+              this with <code>LDConfig.ldr</code> to reconstruct LEGO-accurate materials.
+            </p>
+
+            <div class="legend-row">
+              <div class="legend-tag">MPD → manifest: preserves colorCode & filename</div>
+              <div class="legend-tag">GLB → manifest: preserves geometry & indices</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-header">
+            <div>
+              <div class="section-label">Stage 6</div>
+              <div class="section-title">Putting It Together</div>
+            </div>
+            <span class="pill">Audit Recipe</span>
+          </div>
+          <div class="section-body">
+            <p>
+              A "full color geometry audit" of any Grace scene is just these files viewed
+              together:
+            </p>
+
+            <ul class="step-list">
+              <li><strong>MPD / LDR</strong> – original LDraw source.</li>
+              <li><strong>LDConfig.ldr</strong> – official LEGO color palette.</li>
+              <li><strong>GLB</strong> – portable geometry snapshot.</li>
+              <li><strong>_manifest.json</strong> – precise map from GLB meshes back to
+                  <code>Type&nbsp;1</code> lines (filename + colorCode + transform).</li>
+            </ul>
+
+            <p class="note">
+              The screenshot PNG + JSON in Grace are simply a "photograph" of Stage&nbsp;3 – they
+              confirm what the viewer actually drew, using the same semantics mapped here.
+            </p>
+
+            <div class="flow-row" style="margin-top: 10px;">
+              <div class="flow-node">MPD / LDR</div>
+              <div class="flow-arrow">⟶</div>
+              <div class="flow-node">LDConfig.ldr</div>
+              <div class="flow-arrow">⟶</div>
+              <div class="flow-node">THREE Scene</div>
+              <div class="flow-arrow">⟶</div>
+              <div class="flow-node">GLB</div>
+              <div class="flow-arrow">⟶</div>
+              <div class="flow-node">Audit Manifest</div>
+            </div>
+
+            <p class="note" style="margin-top: 10px;">
+              In other words: we never lose LDraw semantics – we <em>duplicate</em> them in a
+              manifest that travels with the GLB, so any future tool can "re-dress" the
+              geometry in true LEGO colors.
+            </p>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <section class="example-section">
+      <div class="example-header">
+        <div class="example-title">Worked Example · HELLO WORLD tile</div>
+        <div class="example-sub">One brick traced through MPD → palette → manifest</div>
+      </div>
+
+      <div class="example-grid">
+        <div>
+          <div class="example-col-label">MPD / hello-world.mpd</div>
+          <pre><code class="language-ldraw"><span class="ldraw-comment">0 // Simple 16×4 white baseplate (320 LDU × 80 LDU)</span>
+<span class="mpd-highlight">1  15  -160    0    0    1  0  0    0  1  0    0  0  1    parts/3024.dat</span></code></pre>
+          <p class="example-note">
+            One <code>Type&nbsp;1</code> line says: "place part <code>3024.dat</code> at
+            <code>(-160, 0, 0)</code> using color code <code>15</code> (White). This is exactly what
+            Grace edits in the MPD panel.
+          </p>
+        </div>
+
+        <div>
+          <div class="example-col-label">Palette / LDConfig.ldr</div>
+          <pre><code class="language-ldraw">0 !COLOUR White  CODE 15  VALUE #FFFFFF  EDGE #333333</code></pre>
+          <p class="example-note">
+            The palette resolves <code>CODE 15</code> into a concrete LEGO material: RGB
+            <code>#FFFFFF</code> with dark grey edges. The viewer converts this into a
+            <code>MeshStandardMaterial</code>.
+          </p>
+        </div>
+
+        <div>
+          <div class="example-col-label">Export / _manifest.json entry</div>
+          <pre><code class="language-json">{
+  "lineNumber": 110,
+  "colorCode": 15,
+  "position": { "x": -160, "y": 0, "z": 0 },
+  "matrix": [1,0,0, 0,1,0, 0,0,1],
+  "filename": "parts/3024.dat"
+}</code></pre>
+          <p class="example-note">
+            The manifest keeps the same <code>colorCode</code>, transform, and filename, so
+            any GLB consumer can join this back to <code>LDConfig.ldr</code> and rebuild
+            LEGO-accurate visuals, even if the raw GLB viewer flattens colors.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div>LDRAW → THREE → GLB guide • Built in the spirit of Grace / Minifigurator UI.</div>
+    </footer>
+  </div>
+</body>
+</html>

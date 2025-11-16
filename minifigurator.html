@@ -1,0 +1,1693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Minifig Builder</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #000;
+            color: #FFD700;
+            overflow: hidden;
+        }
+
+        .container {
+            max-width: 430px;
+            margin: 0 auto;
+            height: 100vh;
+            background: #000;
+            border: 3px solid #FFD700;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            padding: 12px 15px;
+            background: #000;
+            border-bottom: 2px solid #FFD700;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .title-block {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .title {
+            font-size: 18px;
+            font-weight: bold;
+            letter-spacing: 3px;
+        }
+
+        .stats {
+            font-size: 9px;
+            color: #666;
+            margin-top: 3px;
+            letter-spacing: 2px;
+        }
+
+        .family-btn {
+            padding: 8px 10px;
+            font-size: 9px;
+            font-weight: bold;
+            background: #FFD700;
+            color: #000;
+            border: 2px solid #FFD700;
+            cursor: pointer;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .main-layout {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .left-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border-right: 2px solid #FFD700;
+        }
+
+        .search-row {
+            padding: 10px;
+            background: #000;
+            border-bottom: 2px solid #FFD700;
+        }
+
+        .search-wrapper {
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px 35px 10px 12px;
+            background: #000;
+            border: 2px solid #FFD700;
+            color: #FFD700;
+            font-family: inherit;
+            font-size: 10px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .search-input::placeholder {
+            color: #666;
+        }
+
+        .search-input:focus {
+            outline: none;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #FFD700;
+            font-size: 14px;
+        }
+
+        .view-controls {
+            display: flex;
+            gap: 0;
+            background: #000;
+            border-bottom: 2px solid #FFD700;
+        }
+
+        .view-btn {
+            flex: 1;
+            padding: 10px;
+            background: #000;
+            border: none;
+            border-right: 2px solid #FFD700;
+            color: #666;
+            font-family: inherit;
+            font-size: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            letter-spacing: 2px;
+        }
+
+        .view-btn:last-child {
+            border-right: none;
+        }
+
+        .view-btn.active {
+            background: #FFD700;
+            color: #000;
+        }
+
+        .content-panel {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .dial-view,
+        .list-view {
+            height: 100%;
+            display: none;
+            flex-direction: column;
+        }
+
+        .dial-view.active,
+        .list-view.active {
+            display: flex;
+        }
+
+        .dial-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+        }
+
+        .dial-section {
+            margin-bottom: 10px;
+        }
+
+        .section-header {
+            font-size: 10px;
+            font-weight: bold;
+            letter-spacing: 3px;
+            color: #FFD700;
+            margin-bottom: 8px;
+            padding: 5px 0;
+            border-bottom: 2px solid #FFD700;
+        }
+
+        .dial-wrapper {
+            position: relative;
+            height: 40px;
+            background: #000;
+            border: 2px solid #FFD700;
+            overflow: hidden;
+        }
+
+        .dial-track {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            padding: 0 50%;
+        }
+
+        .dial-item {
+            min-width: 160px;
+            padding: 12px;
+            text-align: center;
+            font-size: 11px;
+            font-weight: 600;
+            color: #444;
+            transition: all 0.3s;
+            cursor: grab;
+            user-select: none;
+            letter-spacing: 1px;
+        }
+
+        .dial-item.active {
+            color: #FFD700;
+            font-size: 13px;
+            text-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+        }
+
+        .dial-marker {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 3px;
+            height: 100%;
+            background: #FFD700;
+            transform: translateX(-50%);
+            pointer-events: none;
+            z-index: 10;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+        }
+
+        .list-scroll {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .list-section {
+            border-bottom: 2px solid #FFD700;
+        }
+
+        .list-section.expanded {
+            background: #0a0a0a;
+        }
+
+        .list-section-header {
+            padding: 12px 15px;
+            font-size: 11px;
+            font-weight: bold;
+            letter-spacing: 3px;
+            color: #FFD700;
+            background: #000;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #333;
+            transition: all 0.2s;
+        }
+
+        .list-section-header:hover {
+            background: #0a0a0a;
+        }
+
+        .list-section-header.active {
+            background: #FFD700;
+            color: #000;
+        }
+
+        .expand-icon {
+            font-size: 12px;
+            transition: transform 0.3s;
+        }
+
+        .list-section.expanded .expand-icon {
+            transform: rotate(180deg);
+        }
+
+        .list-items {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .list-section.expanded .list-items {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .list-item {
+            padding: 10px 15px;
+            background: #000;
+            border-bottom: 1px solid #222;
+            color: #ddd;
+            font-size: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 2px;
+            letter-spacing: 1px;
+        }
+
+        .list-item:hover {
+            background: #1a1a1a;
+            color: #FFD700;
+            padding-left: 20px;
+        }
+
+        .list-item.selected {
+            background: #FFD700;
+            color: #000;
+            font-weight: bold;
+            border-left: 4px solid #FFD700;
+        }
+
+        .item-id {
+            font-size: 9px;
+            color: #FFD700;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .item-name {
+            font-size: 10px;
+            color: #ddd;
+            line-height: 1.4;
+        }
+
+        .list-item.selected .item-id {
+            color: #000;
+        }
+
+        .list-item.selected .item-name {
+            color: #000;
+        }
+
+        .meta-tags {
+            margin-top: 2px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 3px;
+        }
+
+        .meta-tag {
+            font-size: 8px;
+            padding: 1px 4px;
+            border-radius: 3px;
+            border: 1px solid #444;
+            color: #aaa;
+            text-transform: uppercase;
+        }
+
+        .meta-tag.strong {
+            border-color: #FFD700;
+            color: #FFD700;
+        }
+
+        .right-section {
+            width: 200px;
+            display: flex;
+            flex-direction: column;
+            background: #000;
+        }
+
+        .minifig-preview {
+            flex: 1;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 2px solid #FFD700;
+        }
+
+        .preview-title {
+            font-size: 10px;
+            font-weight: bold;
+            letter-spacing: 3px;
+            color: #FFD700;
+            margin-bottom: 20px;
+        }
+
+        .minifig-display {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0;
+            position: relative;
+            transform: scale(0.9);
+        }
+
+        .minifig-part {
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .part-hat {
+            width: 60px;
+            height: 14px;
+            background: #111;
+            border: 3px solid #FFD700;
+            border-radius: 4px 4px 2px 2px;
+            margin-bottom: 4px;
+        }
+
+        .part-hat.filled {
+            box-shadow: 0 0 12px rgba(255, 215, 0, 0.6);
+        }
+
+        .part-head {
+            width: 50px;
+            height: 50px;
+            background: #222;
+            border: 3px solid #FFD700;
+            border-radius: 50% 50% 45% 45%;
+            position: relative;
+            margin-bottom: 2px;
+        }
+
+        .part-head.filled {
+            background: radial-gradient(circle at 30% 30%, #FFD700, #B8860B);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+        }
+
+        .part-head::before {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #000;
+            border-radius: 50%;
+            top: 18px;
+            left: 13px;
+        }
+
+        .part-head::after {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #000;
+            border-radius: 50%;
+            top: 18px;
+            right: 13px;
+        }
+
+        .smile {
+            position: absolute;
+            width: 20px;
+            height: 10px;
+            border: 2px solid #000;
+            border-top: none;
+            border-radius: 0 0 20px 20px;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .part-torso {
+            width: 55px;
+            height: 50px;
+            background: #222;
+            border: 3px solid #FFD700;
+            border-radius: 3px 3px 0 0;
+            position: relative;
+            z-index: 2;
+        }
+
+        .part-torso.filled {
+            background: linear-gradient(180deg, #DC143C 0%, #B22222 100%);
+            box-shadow: 0 0 15px rgba(220, 20, 60, 0.5);
+        }
+
+        .part-arms {
+            width: 70px;
+            height: 8px;
+            background: #222;
+            border: 3px solid #FFD700;
+            border-radius: 4px;
+            position: absolute;
+            top: 65px;
+            z-index: 1;
+        }
+
+        .part-arms.filled {
+            background: #FFD700;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+        }
+
+        .part-hips {
+            width: 55px;
+            height: 20px;
+            background: #222;
+            border: 3px solid #FFD700;
+            border-radius: 0 0 3px 3px;
+        }
+
+        .part-hips.filled {
+            background: linear-gradient(180deg, #1E90FF 0%, #1873CC 100%);
+            box-shadow: 0 0 15px rgba(30, 144, 255, 0.5);
+        }
+
+        .part-legs {
+            width: 55px;
+            height: 55px;
+            background: #222;
+            border: 3px solid #FFD700;
+            position: relative;
+            display: flex;
+        }
+
+        .part-legs.filled {
+            background: #1E90FF;
+            box-shadow: 0 0 15px rgba(30, 144, 255, 0.5);
+        }
+
+        .part-legs::before {
+            content: '';
+            position: absolute;
+            width: 2px;
+            height: 100%;
+            background: #FFD700;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .current-build {
+            padding: 12px 15px;
+            background: #000;
+            border-bottom: 2px solid #FFD700;
+        }
+
+        .build-title {
+            font-size: 10px;
+            font-weight: bold;
+            letter-spacing: 3px;
+            color: #FFD700;
+            margin-bottom: 10px;
+        }
+
+        .build-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid #333;
+            font-size: 9px;
+        }
+
+        .build-item:last-child {
+            border-bottom: none;
+        }
+
+        .build-label {
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .build-value {
+            color: #FFD700;
+            font-weight: 600;
+            text-align: right;
+            max-width: 100px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .action-bar {
+            display: flex;
+            gap: 0;
+            background: #000;
+            border-top: 2px solid #FFD700;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 14px;
+            font-family: inherit;
+            font-size: 10px;
+            font-weight: bold;
+            border: none;
+            border-right: 2px solid #FFD700;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .action-btn:last-child {
+            border-right: none;
+        }
+
+        .action-btn.load {
+            background: #000;
+            color: #FFD700;
+        }
+
+        .action-btn.add {
+            background: #FFD700;
+            color: #000;
+        }
+
+        .action-btn:active {
+            transform: scale(0.95);
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #000;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #FFD700;
+            border-radius: 0;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #FFA500;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="title-block">
+                <div class="title">PARTS CATALOG</div>
+                <div class="stats">33,820 PARTS / CUSTOM MINIFIG BUILDER</div>
+            </div>
+            <button class="family-btn" id="makeFamilyBtn">MAKE FAMILY</button>
+        </div>
+
+        <div class="main-layout">
+            <div class="left-section">
+                <div class="search-row">
+                    <div class="search-wrapper">
+                        <input type="text" class="search-input" placeholder="SEARCH PARTS..." id="searchInput">
+                        <span class="search-icon">🔍</span>
+                    </div>
+                </div>
+
+                <div class="view-controls">
+                    <button class="view-btn active" data-view="dial">DIAL</button>
+                    <button class="view-btn" data-view="list">LIST</button>
+                </div>
+
+                <div class="content-panel">
+                    <div class="dial-view active" id="dialView">
+                        <div class="dial-scroll">
+                            <div class="dial-section">
+                                <div class="section-header">HAT / HEADGEAR</div>
+                                <div class="dial-wrapper" data-dial="hat">
+                                    <div class="dial-marker"></div>
+                                    <div class="dial-track"></div>
+                                </div>
+                            </div>
+
+                            <div class="dial-section">
+                                <div class="section-header">HEAD</div>
+                                <div class="dial-wrapper" data-dial="head">
+                                    <div class="dial-marker"></div>
+                                    <div class="dial-track"></div>
+                                </div>
+                            </div>
+
+                            <div class="dial-section">
+                                <div class="section-header">TORSO</div>
+                                <div class="dial-wrapper" data-dial="torso">
+                                    <div class="dial-marker"></div>
+                                    <div class="dial-track"></div>
+                                </div>
+                            </div>
+
+                            <div class="dial-section">
+                                <div class="section-header">ARMS</div>
+                                <div class="dial-wrapper" data-dial="arms">
+                                    <div class="dial-marker"></div>
+                                    <div class="dial-track"></div>
+                                </div>
+                            </div>
+
+                            <div class="dial-section">
+                                <div class="section-header">HIPS</div>
+                                <div class="dial-wrapper" data-dial="hips">
+                                    <div class="dial-marker"></div>
+                                    <div class="dial-track"></div>
+                                </div>
+                            </div>
+
+                            <div class="dial-section">
+                                <div class="section-header">LEGS</div>
+                                <div class="dial-wrapper" data-dial="legs">
+                                    <div class="dial-marker"></div>
+                                    <div class="dial-track"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="list-view" id="listView">
+                        <div class="list-scroll">
+                            <div class="list-section" data-category="hat">
+                                <div class="list-section-header">
+                                    <span>HAT / HEADGEAR</span>
+                                    <span class="expand-icon">▼</span>
+                                </div>
+                                <div class="list-items"></div>
+                            </div>
+
+                            <div class="list-section" data-category="head">
+                                <div class="list-section-header">
+                                    <span>HEAD</span>
+                                    <span class="expand-icon">▼</span>
+                                </div>
+                                <div class="list-items"></div>
+                            </div>
+
+                            <div class="list-section" data-category="torso">
+                                <div class="list-section-header">
+                                    <span>TORSO</span>
+                                    <span class="expand-icon">▼</span>
+                                </div>
+                                <div class="list-items"></div>
+                            </div>
+
+                            <div class="list-section" data-category="arms">
+                                <div class="list-section-header">
+                                    <span>ARMS</span>
+                                    <span class="expand-icon">▼</span>
+                                </div>
+                                <div class="list-items"></div>
+                            </div>
+
+                            <div class="list-section" data-category="hips">
+                                <div class="list-section-header">
+                                    <span>HIPS</span>
+                                    <span class="expand-icon">▼</span>
+                                </div>
+                                <div class="list-items"></div>
+                            </div>
+
+                            <div class="list-section" data-category="legs">
+                                <div class="list-section-header">
+                                    <span>LEGS</span>
+                                    <span class="expand-icon">▼</span>
+                                </div>
+                                <div class="list-items"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="right-section">
+                <div class="minifig-preview">
+                    <div class="preview-title">MINIFIG</div>
+                    <div class="minifig-display">
+                        <div class="minifig-part part-hat" data-part="hat"></div>
+                        <div class="minifig-part part-head" data-part="head">
+                            <div class="smile"></div>
+                        </div>
+                        <div class="minifig-part part-arms" data-part="arms"></div>
+                        <div class="minifig-part part-torso" data-part="torso"></div>
+                        <div class="minifig-part part-hips" data-part="hips"></div>
+                        <div class="minifig-part part-legs" data-part="legs"></div>
+                    </div>
+                </div>
+
+                <div class="current-build">
+                    <div class="build-title">CURRENT</div>
+                    <div class="build-item">
+                        <span class="build-label">Name</span>
+                        <span class="build-value" style="flex:1; text-align:right;"><input id="minifig-name" type="text" placeholder="Custom Minifig" style="width:100%; background:#000; color:#FFD700; border:1px solid #333; padding:2px 4px; font-size:9px; text-align:right;"></span>
+                    </div>
+                    <div class="build-item">
+                        <span class="build-label">Author</span>
+                        <span class="build-value" style="flex:1; text-align:right;"><input id="minifig-author" type="text" placeholder="Minifigurator" style="width:100%; background:#000; color:#FFD700; border:1px solid #333; padding:2px 4px; font-size:9px; text-align:right;"></span>
+                    </div>
+                    <div class="build-item">
+                        <span class="build-label">Hat</span>
+                        <span class="build-value" id="preview-hat">—</span>
+                    </div>
+                    <div class="build-item">
+                        <span class="build-label">Head</span>
+                        <span class="build-value" id="preview-head">—</span>
+                    </div>
+                    <div class="build-item">
+                        <span class="build-label">Torso</span>
+                        <span class="build-value" id="preview-torso">—</span>
+                    </div>
+                    <div class="build-item">
+                        <span class="build-label">Arms</span>
+                        <span class="build-value" id="preview-arms">—</span>
+                    </div>
+                    <div class="build-item">
+                        <span class="build-label">Hips</span>
+                        <span class="build-value" id="preview-hips">—</span>
+                    </div>
+                    <div class="build-item">
+                        <span class="build-label">Legs</span>
+                        <span class="build-value" id="preview-legs">—</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="action-bar">
+            <button class="action-btn load">LOAD</button>
+            <button class="action-btn add">ADD CUSTOM</button>
+        </div>
+    </div>
+
+    <script>
+        // dialData holds the visible items for each dial/list. It is initially
+        // seeded with demo data, but we will attempt to overwrite it using the
+        // real minifig-library.json if it can be fetched.
+        const dialData = {
+            hat: [
+                { name: 'Wizard Hat', id: '10164p01' },
+                { name: 'Space Helmet', id: '100662p01' }
+            ],
+            head: [
+                { name: 'Classic Smile', id: '3626bp01' },
+                { name: 'Angry Face', id: '3626bp02' },
+                { name: 'Cool Shades', id: '3626bp03' },
+                { name: 'Beard Guy', id: '3626bp04' },
+                { name: 'Pilot Helmet', id: '3626bp05' },
+                { name: 'Wizard Hat', id: '3626bp06' },
+                { name: 'Ninja Mask', id: '3626bp07' },
+                { name: 'Space Helmet', id: '3626bp08' }
+            ],
+            torso: [
+                { name: 'Plain Red', id: '973c00' },
+                { name: 'Striped Shirt', id: '973px01' },
+                { name: 'Police Uniform', id: '973px02' },
+                { name: 'Suit & Tie', id: '973px03' },
+                { name: 'Space Suit', id: '973px04' },
+                { name: 'Pirate Vest', id: '973px05' },
+                { name: 'Chef Apron', id: '973px06' },
+                { name: 'Knight Armor', id: '973px07' }
+            ],
+            arms: [
+                { name: 'Yellow Arms', id: '983c00' },
+                { name: 'White Arms', id: '983c01' },
+                { name: 'Black Arms', id: '983c02' },
+                { name: 'Blue Arms', id: '983c03' },
+                { name: 'Red Arms', id: '983c04' },
+                { name: 'Tan Arms', id: '983c05' },
+                { name: 'Brown Arms', id: '983c06' },
+                { name: 'Green Arms', id: '983c07' }
+            ],
+            hips: [
+                { name: 'Black Hips', id: '970c00' },
+                { name: 'Blue Hips', id: '970c01' },
+                { name: 'Red Hips', id: '970c02' },
+                { name: 'White Hips', id: '970c03' },
+                { name: 'Gray Hips', id: '970c04' },
+                { name: 'Green Hips', id: '970c05' },
+                { name: 'Brown Hips', id: '970c06' },
+                { name: 'Tan Hips', id: '970c07' }
+            ],
+            legs: [
+                { name: 'Blue Jeans', id: '971c00' },
+                { name: 'Black Pants', id: '971c01' },
+                { name: 'White Pants', id: '971c02' },
+                { name: 'Red Pants', id: '971c03' },
+                { name: 'Shorts', id: '971c04' },
+                { name: 'Skirt', id: '971c05' },
+                { name: 'Space Pants', id: '971c06' },
+                { name: 'Armor Legs', id: '971c07' }
+            ]
+        };
+
+        const state = {
+            view: 'dial',
+            selections: {
+                hat: null,
+                head: null,
+                torso: null,
+                arms: null,
+                hips: null,
+                legs: null
+            },
+            searchTerm: '',
+            expandedSection: null
+        };
+
+        // Attempt to load the real minifig-library.json produced by
+        // build-minifig-library.js and map its buckets into dialData so the
+        // builder reflects the actual catalog.
+        async function loadMinifigLibrary() {
+            try {
+                const response = await fetch('wag-viewer-prime-integration-20251112-055341%20copy/minifig-library.json');
+                if (!response.ok) {
+                    console.warn('[MINIFIGURATOR] Failed to load minifig-library.json, using demo data instead');
+                    return;
+                }
+                const lib = await response.json();
+                const parts = lib.parts || {};
+
+                const makeItems = (arr) => (arr || [])
+                    .filter((p) => !isStickerPart(p))
+                    .map((p) => ({
+                        name: p.description || p.name || p.filename,
+                        id: p.filename,
+                        part: p
+                    }));
+
+                const headsAll = (parts.heads || []).filter((h) => !isStickerPart(h));
+                const headParts = headsAll.filter((h) => !h.isHalf && h.headRole !== 'artifact' && h.headRole !== 'headdress');
+                const hatParts = headsAll.filter((h) => h.headRole === 'headdress');
+                dialData.head = makeItems(headParts);
+                dialData.hat = makeItems(hatParts);
+                dialData.torso = makeItems(parts.torsos || []);
+                dialData.arms = makeItems(parts.arms || []);
+                dialData.hips = makeItems(parts.hips || []);
+                dialData.legs = makeItems(parts.legs || []);
+
+                console.log('[MINIFIGURATOR] Loaded minifig-library.json', {
+                    heads: dialData.head.length,
+                    torsos: dialData.torso.length,
+                    arms: dialData.arms.length,
+                    hips: dialData.hips.length,
+                    legs: dialData.legs.length
+                });
+            } catch (err) {
+                console.warn('[MINIFIGURATOR] Error loading minifig-library.json, using demo data instead', err);
+            }
+        }
+
+        const COLOR_SWATCH = {
+            yellow: '#FFD700',
+            tan: '#D2B48C',
+            red: '#DC143C',
+            blue: '#1E90FF',
+            black: '#000000',
+            white: '#FFFFFF',
+            gray: '#808080',
+            'dark bluish gray': '#555555',
+            green: '#228B22',
+            brown: '#8B4513',
+            orange: '#FF8C00',
+            pink: '#FF69B4',
+            purple: '#800080'
+        };
+
+        const resolveColorForPart = (part) => {
+            const name = (part && part.colorName) ? part.colorName.toLowerCase() : '';
+            if (COLOR_SWATCH[name]) return COLOR_SWATCH[name];
+            return '#FFD700';
+        };
+
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        const playSound = (freq, duration = 0.05) => {
+            const osc = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            osc.connect(gain);
+            gain.connect(audioContext.destination);
+            osc.frequency.value = freq;
+            osc.type = 'sine';
+            gain.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+            osc.start(audioContext.currentTime);
+            osc.stop(audioContext.currentTime + duration);
+        };
+
+        const haptic = () => {
+            if (!('vibrate' in navigator)) return;
+            try { navigator.vibrate(10); } catch (e) { /* ignore */ }
+        };
+
+        const updateMinifig = (part) => {
+            const el = document.querySelector(`.minifig-part[data-part="${part}"]`);
+            if (!el) return;
+            const sel = state.selections[part];
+            
+            if (sel) {
+                el.classList.add('filled');
+                const base = resolveColorForPart(sel);
+                el.style.background = base;
+                el.style.boxShadow = `0 0 12px ${base}`;
+            } else {
+                el.classList.remove('filled');
+                el.style.background = '';
+                el.style.boxShadow = '';
+            }
+        };
+
+        const updatePreview = (cat, val) => {
+            const el = document.getElementById(`preview-${cat}`);
+            if (el) el.textContent = val || '—';
+        };
+
+        const updateSectionHeaderLabel = (cat, part) => {
+            const section = document.querySelector(`.list-section[data-category="${cat}"]`);
+            if (!section) return;
+            const labelSpan = section.querySelector('.list-section-header span');
+            if (!labelSpan) return;
+            if (!labelSpan.dataset.baseLabel) {
+                labelSpan.dataset.baseLabel = labelSpan.textContent.trim();
+            }
+            const base = labelSpan.dataset.baseLabel;
+            if (part) {
+                const id = part.filename || part.id || '';
+                const short = id || part.name || part.description || '';
+                labelSpan.textContent = short ? `${base} · ${short}` : base;
+            } else {
+                labelSpan.textContent = base;
+            }
+        };
+
+        document.querySelectorAll('.view-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const view = btn.dataset.view;
+                state.view = view;
+                
+                document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                document.getElementById('dialView').classList.toggle('active', view === 'dial');
+                document.getElementById('listView').classList.toggle('active', view === 'list');
+                
+                playSound(1200, 0.1);
+                haptic();
+            });
+        });
+
+        document.querySelectorAll('.list-section-header').forEach(header => {
+            header.addEventListener('click', () => {
+                const section = header.parentElement;
+                const category = section.dataset.category;
+                const wasExpanded = section.classList.contains('expanded');
+                
+                document.querySelectorAll('.list-section').forEach(s => {
+                    s.classList.remove('expanded');
+                    s.querySelector('.list-section-header').classList.remove('active');
+                });
+                
+                if (!wasExpanded) {
+                    section.classList.add('expanded');
+                    header.classList.add('active');
+                    state.expandedSection = category;
+                } else {
+                    state.expandedSection = null;
+                }
+                
+                playSound(1000, 0.08);
+                haptic();
+            });
+        });
+
+        const searchInput = document.getElementById('searchInput');
+        searchInput.addEventListener('input', (e) => {
+            state.searchTerm = e.target.value.toLowerCase();
+            filterList();
+        });
+
+        const filterList = () => {
+            document.querySelectorAll('.list-item').forEach(item => {
+                const text = item.textContent.toLowerCase();
+                item.style.display = text.includes(state.searchTerm) ? 'flex' : 'none';
+            });
+
+            // Also nudge dials toward the first matching item in each bucket.
+            const term = state.searchTerm;
+            if (term && Object.keys(dials).length) {
+                Object.values(dials).forEach((dial) => dial.applyFilter(term));
+            }
+        };
+
+        const initList = () => {
+            Object.keys(dialData).forEach(cat => {
+                const container = document.querySelector(`.list-section[data-category="${cat}"] .list-items`);
+                if (!container) return;
+                container.innerHTML = '';
+                (dialData[cat] || []).forEach((item, idx) => {
+                    const el = document.createElement('div');
+                    el.className = 'list-item';
+                    const part = item.part || item;
+                    const id = part.filename || part.id || '';
+                    const tags = [];
+                    if (cat === 'torso') {
+                        if (part.upperComplete) tags.push({ label: 'upperComplete', strong: true });
+                        if (part.includesArms || part.includesHands) tags.push({ label: 'arms attached', strong: !part.upperComplete });
+                    }
+                    if (cat === 'hips' || cat === 'legs') {
+                        if (part.lowerComplete) tags.push({ label: 'lowerComplete', strong: true });
+                        if (part.includesHips) tags.push({ label: '+hips', strong: false });
+                        if (part.includesLegs) tags.push({ label: '+legs', strong: false });
+                    }
+
+                    const tagsHtml = tags.length
+                        ? `<div class="meta-tags">${tags
+                              .map(t => `<span class="meta-tag${t.strong ? ' strong' : ''}">${t.label}</span>`)
+                              .join('')}</div>`
+                        : '';
+
+                    el.innerHTML = `
+                        <div class="item-id">${id}</div>
+                        <div class="item-name">${item.name}</div>
+                        ${tagsHtml}
+                    `;
+                    el.addEventListener('click', () => {
+                        container.querySelectorAll('.list-item').forEach(i => i.classList.remove('selected'));
+                        el.classList.add('selected');
+                        
+                        state.selections[cat] = part;
+                        const path = id ? `parts/${id}` : item.name;
+                        updatePreview(cat, path);
+                        updateSectionHeaderLabel(cat, part);
+                        updateMinifig(cat);
+                        
+                        if (dials[cat]) {
+                            dials[cat].setIndex(idx);
+                        }
+                        
+                        playSound(1200, 0.1);
+                        haptic();
+                    });
+                    container.appendChild(el);
+                });
+            });
+        };
+
+        const describePart = (p) => (p && (p.description || p.name || p.filename || p.id || '')) || '';
+
+        function isStickerPart(p) {
+            if (!p) return false;
+            const desc = (p.description || p.name || '').toLowerCase();
+            // Classic body stickers and stickered sub-assemblies.
+            return desc.startsWith('=sticker') || desc.includes(' sticker') || desc.includes(' stickers');
+        }
+
+        const isCompositeHead = (part) => {
+            const desc = (part && (part.description || part.name || '')).toLowerCase();
+            return /^minifig (baby )?head\b/.test(desc);
+        };
+
+        const buildPartsFromSelection = (s) => {
+            const parts = [];
+
+            // Never assemble with sticker-only parts; treat them as "no selection".
+            if (isStickerPart(s.hat)) s.hat = null;
+            if (isStickerPart(s.head)) s.head = null;
+            if (isStickerPart(s.torso)) s.torso = null;
+            if (isStickerPart(s.arms)) s.arms = null;
+            if (isStickerPart(s.hips)) s.hips = null;
+            if (isStickerPart(s.legs)) s.legs = null;
+
+            // Head + Hat/Headgear layer
+            if (s.head) {
+                const role = s.head.headRole || 'standard';
+                const needsOffset = role === 'character' || role === 'animal';
+                const dy = needsOffset ? 20 : 0;
+                parts.push({ label: 'HEAD', filename: s.head.filename || s.head.id, description: describePart(s.head), dy });
+
+                // Sculpted / TV / animal heads are standalone and do not accept
+                // an extra hat or helmet stacked on top.
+                const allowHat = role !== 'character' && role !== 'animal';
+                if (s.hat && allowHat) {
+                    parts.push({ label: 'HEADGEAR', filename: s.hat.filename || s.hat.id, description: describePart(s.hat), dy });
+                }
+            } else if (s.hat) {
+                if (isCompositeHead(s.hat)) {
+                    const role = s.hat.headRole || 'standard';
+                    const needsOffset = role === 'character' || role === 'animal';
+                    const dy = needsOffset ? 20 : 0;
+                    parts.push({ label: 'HEAD', filename: s.hat.filename || s.hat.id, description: describePart(s.hat), dy });
+                } else {
+                    parts.push({ label: 'HEADGEAR', filename: s.hat.filename || s.hat.id, description: describePart(s.hat) });
+                }
+            }
+
+            const torsoHasUpper = s.torso && (s.torso.upperComplete || s.torso.includesArms || s.torso.includesHands);
+            if (s.torso) {
+                parts.push({ label: 'TORSO', filename: s.torso.filename || s.torso.id, description: describePart(s.torso) });
+            }
+            if (s.arms && !torsoHasUpper) {
+                parts.push({ label: 'LEFT ARM', filename: s.arms.filename || s.arms.id, description: describePart(s.arms) });
+                parts.push({ label: 'RIGHT ARM', filename: s.arms.filename || s.arms.id, description: describePart(s.arms) });
+            }
+
+            const hipsHasLegs = s.hips && (s.hips.lowerComplete || s.hips.includesLegs);
+            const legsHasHips = s.legs && (s.legs.lowerComplete || s.legs.includesHips);
+
+            if (s.hips && !legsHasHips) {
+                parts.push({ label: 'HIPS', filename: s.hips.filename || s.hips.id, description: describePart(s.hips) });
+            }
+            if (s.legs && !hipsHasLegs) {
+                parts.push({ label: 'LEFT LEG', filename: s.legs.filename || s.legs.id, description: describePart(s.legs) });
+                parts.push({ label: 'RIGHT LEG', filename: s.legs.filename || s.legs.id, description: describePart(s.legs) });
+            }
+
+            return parts;
+        };
+
+        const buildCharacterFromState = () => {
+            const s = state.selections;
+            const parts = buildPartsFromSelection(s);
+
+            const nameInput = document.getElementById('minifig-name');
+            const authorInput = document.getElementById('minifig-author');
+            const rawTitle = (nameInput && nameInput.value.trim()) || 'Custom Minifig';
+            const author = (authorInput && authorInput.value.trim()) || 'Minifigurator';
+            const baseId = rawTitle.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+            const id = baseId || `custom_minifig_${Date.now()}`;
+
+            return {
+                id,
+                title: rawTitle,
+                author,
+                parts
+            };
+        };
+
+        const MINIFIG_HEIGHTS = {
+            HEAD: { x: 0, y: -84, z: 0 },
+            HEADGEAR: { x: 0, y: -84, z: 0 },
+            TORSO: { x: 0, y: -60, z: 0 },
+            'LEFT ARM': { x: -15.552, y: -51, z: 0 },
+            'RIGHT ARM': { x: 15.552, y: -51, z: 0 },
+            HIPS: { x: 0, y: -28, z: 0 },
+            'LEFT LEG': { x: -6, y: -16, z: 0 },
+            'RIGHT LEG': { x: 6, y: -16, z: 0 }
+        };
+
+        const COLOR_CODE_NAMES = {
+            1: 'Blue',
+            2: 'Green',
+            3: 'Dark Green',
+            4: 'Red',
+            5: 'Dark Red',
+            6: 'Brown',
+            7: 'Light Green',
+            9: 'Dark Gray',
+            10: 'Bright Green',
+            11: 'Bright Blue',
+            12: 'Bright Red',
+            13: 'Pink',
+            14: 'Yellow',
+            15: 'White',
+            16: 'Default'
+        };
+
+        const COLOR_CODE_EMOJI = {
+            1: '🔵',
+            2: '🟢',
+            4: '🔴',
+            6: '🟤',
+            14: '🟡',
+            15: '⚪',
+            16: '⚙️'
+        };
+
+        const CHARACTER_ROLES = [
+            { role: 'The Designer', personality: 'Balanced, harmony-creator', stance: 'Arms slightly raised in welcome' },
+            { role: 'The Programmer', personality: 'Logical, system-builder', stance: 'Analytical posture, observing scene' },
+            { role: 'The Explorer', personality: 'Curious, boundary-pusher', stance: 'Leaning forward, ready to move' },
+            { role: 'The Dreamer', personality: 'Imaginative, pattern-spinner', stance: 'Relaxed stance, looking upward' }
+        ];
+
+        const inferPrimaryColorCode = (parts) => {
+            for (const p of parts || []) {
+                if (typeof p.colorCode === 'number') return p.colorCode;
+                if (typeof p.color === 'number' && p.color !== 16) return p.color;
+            }
+            return 16;
+        };
+
+        const sectionLabelForPart = (label) => {
+            if (label === 'LEFT ARM' || label === 'RIGHT ARM') return 'ARMS';
+            if (label === 'LEFT LEG' || label === 'RIGHT LEG') return 'LEGS';
+            return label;
+        };
+
+        const emitPartsWithSections = (targetLines, parts, baseX, baseZ, defaultColorCode) => {
+            let lastSection = null;
+            (parts || []).forEach((part) => {
+                const section = sectionLabelForPart(part.label);
+                if (section && section !== lastSection) {
+                    targetLines.push(`0              ┌────── ${section} ──────┐`);
+                    lastSection = section;
+                }
+
+                const position = MINIFIG_HEIGHTS[part.label] || { x: 0, y: -50, z: 0 };
+                const dy = part.dy || 0;
+                const color = part.colorCode ?? defaultColorCode ?? part.color ?? 16;
+                let filename = part.filename || part.path || '';
+                if (filename && !filename.startsWith('parts/')) {
+                    filename = `parts/${filename}`;
+                }
+                targetLines.push(`0 // ${part.label} - ${part.description || filename}`);
+                targetLines.push(`1 ${color} ${position.x + baseX} ${position.y + dy} ${position.z + baseZ} 1 0 0 0 1 0 0 0 1 ${filename}`);
+                targetLines.push('');
+            });
+        };
+
+        const buildAsciiCharacterCardLines = (index, colorCode, baseX, baseZ, positionLabelOverride) => {
+            const colorName = COLOR_CODE_NAMES[colorCode] || `Color ${colorCode}`;
+            const emoji = COLOR_CODE_EMOJI[colorCode] || '⭐';
+            const meta = CHARACTER_ROLES[index % CHARACTER_ROLES.length];
+            const width = 63;
+
+            const positionLabel = positionLabelOverride || `Center (X=${baseX}, Y=ground, Z=${baseZ})`;
+
+            const pad = (inner) => {
+                const text = inner.length > width ? inner.slice(0, width) : inner;
+                const padLen = width - text.length;
+                return `0 ┃${text}${' '.repeat(padLen)}┃`;
+            };
+
+            const lines = [];
+            lines.push(`0 ┏${'━'.repeat(width)}┓`);
+            lines.push(pad(` ${emoji} ${colorName.toUpperCase()} CHARACTER - ${meta.role}`));
+            lines.push(pad(` Position: ${positionLabel}`));
+            lines.push(pad(` Color: ${colorCode} (${colorName}) | Personality: ${meta.personality}`));
+            lines.push(pad(` Stance: ${meta.stance}`));
+            lines.push(`0 ┗${'━'.repeat(width)}┛`);
+            return lines;
+        };
+
+        const buildMinifigLinesLocal = (character) => {
+            const lines = [];
+            const fileId = (character.id || 'custom_minifig').replace(/\s+/g, '_');
+            const title = character.title || 'Custom Minifig';
+            const author = character.author || 'Minifigurator';
+            const parts = character.parts || [];
+            const primaryColor = inferPrimaryColorCode(parts);
+            const now = new Date();
+            const timestamp = now.toISOString();
+
+            lines.push(`0 FILE ${fileId}.mpd`);
+            lines.push(`0 Name: ${title}`);
+            lines.push(`0 Author: ${author}`);
+            lines.push('0 !LDRAW_ORG Model');
+            lines.push('0 !LICENCE Redistributable under CCAL version 2.0');
+            lines.push('0 BFC CERTIFY CCW');
+            lines.push('0 // Generated by Minifigurator (single)');
+            lines.push(`0 // Generated at: ${timestamp}`);
+            lines.push('0 // HEAD → TORSO → ARMS → HIPS → LEGS');
+            lines.push('');
+
+            const cardLines = buildAsciiCharacterCardLines(0, primaryColor, 0, 0, 'Center (X=0, Y=ground, Z=0)');
+            cardLines.forEach((l) => lines.push(l));
+            lines.push('');
+
+            lines.push('0 STEP');
+            lines.push('');
+
+            emitPartsWithSections(lines, parts, 0, 0, primaryColor);
+
+            lines.push('0 STEP');
+            return lines;
+        };
+
+        class Dial {
+            constructor(wrapper, data, type) {
+                this.wrapper = wrapper;
+                this.track = wrapper.querySelector('.dial-track');
+                this.data = data;
+                this.type = type;
+                this.currentIndex = 0;
+                this.itemWidth = 160;
+                this.lastIndex = -1;
+                
+                this.init();
+            }
+
+            init() {
+                this.render();
+                this.attachEvents();
+                this.updatePosition();
+            }
+
+            render() {
+                this.track.innerHTML = this.data.map((item, idx) => 
+                    `<div class="dial-item" data-index="${idx}">${item.name}</div>`
+                ).join('');
+            }
+
+            setIndex(idx) {
+                this.currentIndex = idx;
+                this.updatePosition();
+            }
+
+            attachEvents() {
+                let startPos = 0;
+                let translate = 0;
+                let prevTranslate = 0;
+                let animId = 0;
+                let dragging = false;
+
+                const start = (e) => {
+                    dragging = true;
+                    startPos = e.type.includes('mouse') ? e.pageX : e.touches[0].clientX;
+                    animId = requestAnimationFrame(() => this.animate());
+                    this.track.style.cursor = 'grabbing';
+                };
+
+                const move = (e) => {
+                    if (!dragging) return;
+                    
+                    const pos = e.type.includes('mouse') ? e.pageX : e.touches[0].clientX;
+                    translate = prevTranslate + pos - startPos;
+                    
+                    const idx = Math.round(-translate / this.itemWidth);
+                    const clamp = Math.max(0, Math.min(this.data.length - 1, idx));
+                    
+                    if (clamp !== this.lastIndex) {
+                        playSound(800, 0.05);
+                        haptic();
+                        this.lastIndex = clamp;
+                    }
+                };
+
+                const end = () => {
+                    dragging = false;
+                    cancelAnimationFrame(animId);
+                    
+                    const moved = translate - prevTranslate;
+                    
+                    if (moved < -50 && this.currentIndex < this.data.length - 1) {
+                        this.currentIndex += 1;
+                    }
+                    
+                    if (moved > 50 && this.currentIndex > 0) {
+                        this.currentIndex -= 1;
+                    }
+                    
+                    this.updatePosition();
+                    prevTranslate = -this.currentIndex * this.itemWidth;
+                    translate = prevTranslate;
+                    this.track.style.cursor = 'grab';
+                    
+                    playSound(1200, 0.1);
+                    haptic();
+                    
+                    this.syncList();
+                };
+
+                this.wrapper.addEventListener('mousedown', start);
+                this.wrapper.addEventListener('mousemove', move);
+                this.wrapper.addEventListener('mouseup', end);
+                this.wrapper.addEventListener('mouseleave', end);
+
+                this.wrapper.addEventListener('touchstart', start, { passive: true });
+                this.wrapper.addEventListener('touchmove', move, { passive: true });
+                this.wrapper.addEventListener('touchend', end);
+
+                this.animate = () => {
+                    if (dragging) {
+                        this.track.style.transform = `translateX(${translate}px)`;
+                        requestAnimationFrame(() => this.animate());
+                    }
+                };
+            }
+
+            updatePosition() {
+                const offset = -this.currentIndex * this.itemWidth;
+                this.track.style.transform = `translateX(${offset}px)`;
+                
+                const items = this.track.querySelectorAll('.dial-item');
+                items.forEach((item, idx) => {
+                    item.classList.toggle('active', idx === this.currentIndex);
+                });
+                
+                const current = this.data[this.currentIndex];
+                const part = current.part || current;
+                state.selections[this.type] = part;
+                const id = part.filename || part.id || '';
+                const label = id ? `parts/${id}` : current.name;
+                updatePreview(this.type, label);
+                updateMinifig(this.type);
+            }
+
+            syncList() {
+                const section = document.querySelector(`.list-section[data-category="${this.type}"]`);
+                if (section) {
+                    const items = section.querySelectorAll('.list-item');
+                    items.forEach((item, idx) => {
+                        item.classList.toggle('selected', idx === this.currentIndex);
+                    });
+                }
+            }
+
+            applyFilter(term) {
+                if (!term) return;
+                const lc = term.toLowerCase();
+                const idx = this.data.findIndex((item) => {
+                    const label = `${item.name || ''} ${item.id || ''}`.toLowerCase();
+                    return label.includes(lc);
+                });
+                if (idx >= 0 && idx !== this.currentIndex) {
+                    this.setIndex(idx);
+                }
+            }
+        }
+
+        const dials = {};
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            // Try to hydrate dialData from the real library; fall back to the
+            // static demo data if that fails.
+            await loadMinifigLibrary();
+
+            document.querySelectorAll('.dial-wrapper').forEach(wrapper => {
+                const type = wrapper.dataset.dial;
+                const data = dialData[type] || [];
+                dials[type] = new Dial(wrapper, data, type);
+            });
+
+            initList();
+
+            const loadBtn = document.querySelector('.action-btn.load');
+            const addBtn = document.querySelector('.action-btn.add');
+            const familyBtn = document.getElementById('makeFamilyBtn');
+
+            const downloadMpd = (character, label) => {
+                const lines = buildMinifigLinesLocal(character);
+                const mpdText = lines.join('\n');
+                console.log(`Minifig MPD (${label}):\n` + mpdText);
+
+                try {
+                    const blob = new Blob([mpdText], { type: 'text/plain' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${character.id || 'custom-minifig'}.mpd`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                } catch (e) {
+                    alert('Could not trigger download automatically. MPD has been printed to the console for manual copy.');
+                }
+            };
+
+            if (loadBtn) {
+                loadBtn.addEventListener('click', () => {
+                    playSound(1200, 0.1);
+                    haptic();
+                    const character = buildCharacterFromState();
+                    if (!character.parts.length) {
+                        alert('Select at least one minifig part to build.');
+                        return;
+                    }
+                    downloadMpd(character, 'LOAD');
+                });
+            }
+
+            if (addBtn) {
+                addBtn.addEventListener('click', () => {
+                    playSound(1400, 0.15);
+                    haptic();
+                    const character = buildCharacterFromState();
+                    if (!character.parts.length) {
+                        alert('Select at least one minifig part to build.');
+                        return;
+                    }
+                    downloadMpd(character, 'ADD');
+                });
+            }
+
+            if (familyBtn) {
+                familyBtn.addEventListener('click', () => {
+                    playSound(1600, 0.15);
+                    haptic();
+                    const heads = (dialData.head || []).map(i => i.part || i);
+                    const hats = (dialData.hat || []).map(i => i.part || i);
+                    const torsos = (dialData.torso || []).map(i => i.part || i);
+                    const arms = (dialData.arms || []).map(i => i.part || i);
+                    const hips = (dialData.hips || []).map(i => i.part || i);
+                    const legs = (dialData.legs || []).map(i => i.part || i);
+
+                    if (!heads.length || !torsos.length) {
+                        alert('Need at least some heads and torsos to build a family.');
+                        return;
+                    }
+
+                    const pickRandom = (arr) => (arr.length ? arr[Math.floor(Math.random() * arr.length)] : null);
+
+                    const familyLines = [];
+                    const baseTitle = 'Minifig Family';
+                    const authorInput = document.getElementById('minifig-author');
+                    const author = (authorInput && authorInput.value.trim()) || 'Minifigurator';
+                    const now = new Date();
+                    const timestamp = now.toISOString();
+                    const dateTag = timestamp.split('T')[0].replace(/-/g, '');
+                    const timeTag = timestamp.split('T')[1].replace(/[:.Z]/g, '').slice(0, 6);
+                    const fileIdBase = baseTitle.toLowerCase().replace(/[^a-z0-9]+/g, '_') || 'minifig_family';
+                    const fileId = `${fileIdBase}_${dateTag}_${timeTag}`;
+
+                    let requested = parseInt(prompt('How many family members? (1-25)', '5') || '5', 10);
+                    if (Number.isNaN(requested)) requested = 5;
+                    const count = Math.min(25, Math.max(1, requested));
+
+                    familyLines.push(`0 FILE ${fileId}.mpd`);
+                    familyLines.push(`0 Name: ${baseTitle}`);
+                    familyLines.push(`0 Author: ${author}`);
+                    familyLines.push('0 !LDRAW_ORG Model');
+                    familyLines.push('0 !LICENCE Redistributable under CCAL version 2.0');
+                    familyLines.push('0 BFC CERTIFY CCW');
+                    familyLines.push('0 // Generated by Minifigurator (family mode, randomized)');
+                    familyLines.push(`0 // Generated at: ${timestamp}`);
+                    familyLines.push('0 // HEAD → TORSO → ARMS → HIPS → LEGS');
+                    familyLines.push('');
+
+                    const palette = [4, 2, 1, 14, 6, 3, 5, 7, 9, 10, 11, 12, 13, 15];
+                    const paletteRun = Array.from({ length: count }, (_, idx) => palette[idx % palette.length]);
+                    // Simple shuffle for color variety
+                    for (let i = paletteRun.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        const tmp = paletteRun[i];
+                        paletteRun[i] = paletteRun[j];
+                        paletteRun[j] = tmp;
+                    }
+                    const cols = Math.ceil(Math.sqrt(count));
+                    const dx = 120;  // horizontal spacing
+                    const dz = 160;  // depth spacing
+                    const xCenterOffset = (cols - 1) / 2;
+
+                    for (let i = 0; i < count; i++) {
+                        const s = {
+                            hat: pickRandom(hats),
+                            head: pickRandom(heads),
+                            torso: pickRandom(torsos),
+                            arms: pickRandom(arms),
+                            hips: pickRandom(hips),
+                            legs: pickRandom(legs)
+                        };
+                        const parts = buildPartsFromSelection(s);
+                        const colorCode = paletteRun[i] || 16;
+                        const col = i % cols;
+                        const row = Math.floor(i / cols);
+                        const offsetX = (col - xCenterOffset) * dx;
+                        const offsetZ = row * dz;
+
+                        const posLabelSide = offsetX === 0 ? 'Center' : (offsetX < 0 ? 'Left' : 'Right');
+                        const positionLabel = `${posLabelSide} (X=${offsetX}, Y=ground, Z=${offsetZ})`;
+
+                        const cardLines = buildAsciiCharacterCardLines(i, colorCode, offsetX, offsetZ, positionLabel);
+                        cardLines.forEach((l) => familyLines.push(l));
+                        familyLines.push('');
+
+                        familyLines.push('0 STEP');
+                        familyLines.push('');
+
+                        emitPartsWithSections(familyLines, parts, offsetX, offsetZ, colorCode);
+                    }
+
+                    familyLines.push('0 STEP');
+
+                    const mpdText = familyLines.join('\n');
+                    console.log('Minifig Family MPD:\n' + mpdText);
+                    try {
+                        const blob = new Blob([mpdText], { type: 'text/plain' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `${fileId}.mpd`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                    } catch (e) {
+                        alert('Could not trigger download automatically. Family MPD has been printed to the console for manual copy.');
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
