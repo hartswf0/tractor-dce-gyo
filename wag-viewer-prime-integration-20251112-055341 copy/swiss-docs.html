@@ -99,6 +99,8 @@
     .lego-vehicle { border-color: #FF4500; box-shadow: 0 0 8px rgba(255,69,0,0.2); }
     .lego-scene { border-color: #4ECDC4; box-shadow: 0 0 8px rgba(78,205,196,0.2); }
     .lego-grace { border-color: #9D4EDD; box-shadow: 0 0 8px rgba(157,78,221,0.2); }
+    .lego-swiss { border-color: #AAAAAA; box-shadow: 0 0 8px rgba(170,170,170,0.3); }
+    .lego-frank { border-color: #4ECDC4; box-shadow: 0 0 8px rgba(78,205,196,0.35); }
 
     .flow-row {
       display: flex;
@@ -168,6 +170,38 @@
   </div>
 
   <div class="content">
+    <div>
+      <div class="section-title">Top stack – Swiss / Frank / Grace</div>
+      <div class="lego-row" style="margin-bottom:8px;">
+        <div class="lego-block lego-swiss">
+          <div class="lego-top"><div class="lego-stud"></div><div class="lego-stud"></div></div>
+          <div class="lego-name">SWISS DESIGNATOR</div>
+          <div class="lego-note">Top-level hub. Lets you pick builders (-ators), open docs, and jump into worlds. Shows status (FRANK online/offline) and acts as a launcher for all flows.</div>
+        </div>
+        <div class="lego-block lego-frank">
+          <div class="lego-top"><div class="lego-stud"></div><div class="lego-stud"></div></div>
+          <div class="lego-name">WAG FRANK</div>
+          <div class="lego-note">Integrator + composer on the wag-frank bus. Collects MPDs from all -ators (and future builders like Thousand Tetrad), sketches a grid layout, and exports wag-frank-scene.mpd with FRANK_CELL metadata.</div>
+        </div>
+        <div class="lego-block lego-grace">
+          <div class="lego-top"><div class="lego-stud"></div><div class="lego-stud"></div></div>
+          <div class="lego-name">GRACE EDITOR / VIEWER</div>
+          <div class="lego-note">Stage + MPD text editor. Listens on wag-frank for scene-mpd, renders the 3D world, and lets you edit the MPD directly. Can host Swiss / Frank panels side-by-side.</div>
+        </div>
+      </div>
+      <div class="callout">
+        <span class="callout-emoji">🎛️</span>
+        Think of SWISS + FRANK + GRACE as the top strip: SWISS picks and explains flows, FRANK composes and annotates MPD scenes on the bus, and GRACE is where those scenes become playable, editable reality.
+      </div>
+      <div class="callout" style="margin-top:6px;">
+        <span class="callout-emoji">📺</span>
+        swiss-frank-grace-studio.html is the shared studio surface:
+        <br>- TABS: one full-width tool at a time (Swiss, Frank, or Grace).
+        <br>- 3-UP (desktop): Swiss + Frank + Grace side by side with horizontal scroll and a healthy min-width per panel.
+        <br>- Mobile: behaves as a launcher – the tabs jump out to the full pages so each tool keeps its own layout.
+      </div>
+    </div>
+
     <div>
       <div class="section-title">Builders as Lego blocks</div>
       <div class="lego-row">
