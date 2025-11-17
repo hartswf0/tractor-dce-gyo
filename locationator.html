@@ -1,0 +1,2165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Location Designer</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%2300FF88'/%3E%3C/svg%3E">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #000;
+            color: #ddd;
+            overflow: hidden;
+            touch-action: pan-y;
+        }
+
+        .container {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: #000;
+        }
+
+        .header {
+            padding: 10px 15px;
+            background: #0a0a0a;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .title-block {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .title {
+            font-size: 13px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            color: #00FF88;
+        }
+
+        .stats {
+            font-size: 8px;
+            color: #666;
+            letter-spacing: 0.5px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .icon-btn {
+            padding: 6px 10px;
+            font-size: 14px;
+            background: transparent;
+            color: #00FF88;
+            border: 1px solid #333;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .icon-btn:active {
+            transform: scale(0.95);
+            background: #1a1a1a;
+        }
+
+        .scene-btn {
+            padding: 8px 12px;
+            font-size: 9px;
+            font-weight: bold;
+            background: #00FF88;
+            color: #000;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: all 0.2s;
+        }
+
+        .scene-btn:active {
+            transform: scale(0.95);
+            background: #00CC70;
+        }
+
+        .preview-section {
+            display: flex;
+            background: #0a0a0a;
+            border-bottom: 1px solid #333;
+            min-height: 280px;
+            position: relative;
+        }
+
+        .location-display-area {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            background: linear-gradient(180deg, #0a0a0a 0%, #050505 100%);
+        }
+
+        .rotate-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 32px;
+            height: 32px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 50%;
+            color: #00FF88;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .rotate-btn:active {
+            background: #222;
+            transform: scale(0.95);
+        }
+
+        .location-scene {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0;
+            transform: scale(1);
+            transition: transform 0.3s ease;
+            position: relative;
+        }
+
+        .location-scene.rotating {
+            animation: rotate360 0.8s ease-in-out;
+        }
+
+        @keyframes rotate360 {
+            from { transform: scale(1) rotateY(0deg); }
+            to { transform: scale(1) rotateY(360deg); }
+        }
+
+        @keyframes partPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .part-roof {
+            width: 180px;
+            height: 40px;
+            background: #111;
+            border: 2px solid #333;
+            border-radius: 3px 3px 0 0;
+            clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+            margin-bottom: 0;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .part-roof.filled {
+            border-color: #00FF88;
+            box-shadow: 0 0 12px rgba(0, 255, 136, 0.4);
+            animation: partPulse 0.5s ease;
+        }
+
+        .part-wall {
+            width: 180px;
+            height: 120px;
+            background: #222;
+            border: 2px solid #333;
+            border-radius: 3px;
+            position: relative;
+            margin-bottom: 0;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 10px;
+        }
+
+        .part-wall.filled {
+            background: linear-gradient(180deg, #8B4513 0%, #654321 100%);
+            border-color: #00FF88;
+            box-shadow: 0 0 12px rgba(139, 69, 19, 0.4);
+            animation: partPulse 0.5s ease;
+        }
+
+        .part-window, .part-door {
+            width: 35px;
+            height: 50px;
+            background: #111;
+            border: 2px solid #333;
+            border-radius: 2px;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .part-window.filled {
+            background: radial-gradient(circle at 30% 30%, #87CEEB, #4682B4);
+            border-color: #00FF88;
+            box-shadow: 0 0 12px rgba(135, 206, 235, 0.4);
+            animation: partPulse 0.5s ease;
+        }
+
+        .part-door.filled {
+            background: linear-gradient(180deg, #654321 0%, #4A2511 100%);
+            border-color: #00FF88;
+            box-shadow: 0 0 12px rgba(101, 67, 33, 0.4);
+            animation: partPulse 0.5s ease;
+        }
+
+        .part-floor {
+            width: 200px;
+            height: 30px;
+            background: #222;
+            border: 2px solid #333;
+            border-radius: 3px;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            margin-top: 0;
+        }
+
+        .part-floor.filled {
+            background: linear-gradient(90deg, #228B22 0%, #006400 50%, #228B22 100%);
+            border-color: #00FF88;
+            box-shadow: 0 0 12px rgba(34, 139, 34, 0.4);
+            animation: partPulse 0.5s ease;
+        }
+
+        .part-tree {
+            position: absolute;
+            left: -50px;
+            bottom: 30px;
+            width: 40px;
+            height: 80px;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .tree-crown {
+            width: 40px;
+            height: 50px;
+            background: #111;
+            border: 2px solid #333;
+            border-radius: 50% 50% 50% 50%;
+            margin-bottom: 0;
+        }
+
+        .tree-trunk {
+            width: 12px;
+            height: 30px;
+            background: #111;
+            border: 2px solid #333;
+            margin: 0 auto;
+        }
+
+        .part-tree.filled .tree-crown {
+            background: radial-gradient(circle at 40% 40%, #228B22, #006400);
+            border-color: #00FF88;
+            box-shadow: 0 0 12px rgba(34, 139, 34, 0.4);
+            animation: partPulse 0.5s ease;
+        }
+
+        .part-tree.filled .tree-trunk {
+            background: #8B4513;
+            border-color: #00FF88;
+        }
+
+        .part-prop {
+            position: absolute;
+            right: -50px;
+            bottom: 30px;
+            width: 30px;
+            height: 30px;
+            background: #111;
+            border: 2px solid #333;
+            border-radius: 3px;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .part-prop.filled {
+            background: radial-gradient(circle at 30% 30%, #FFD700, #FFA500);
+            border-color: #00FF88;
+            box-shadow: 0 0 12px rgba(255, 215, 0, 0.4);
+            animation: partPulse 0.5s ease;
+        }
+
+        .build-info {
+            width: 170px;
+            padding: 15px 12px;
+            background: #000;
+            border-left: 1px solid #333;
+            overflow-y: auto;
+        }
+
+        .build-title {
+            font-size: 9px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            color: #00FF88;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .clear-btn {
+            font-size: 8px;
+            padding: 3px 6px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 2px;
+            color: #999;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .clear-btn:active {
+            background: #222;
+            color: #00FF88;
+        }
+
+        .build-row {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 8px 0;
+            border-bottom: 1px solid #222;
+            font-size: 8px;
+        }
+
+        .build-row:last-child {
+            border-bottom: none;
+        }
+
+        .build-label {
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .build-value {
+            color: #00FF88;
+            font-weight: 600;
+            word-break: break-all;
+            line-height: 1.3;
+        }
+
+        .build-input {
+            width: 100%;
+            background: #0a0a0a;
+            color: #00FF88;
+            border: 1px solid #333;
+            border-radius: 2px;
+            padding: 4px 6px;
+            font-size: 8px;
+            font-family: inherit;
+            transition: border-color 0.2s;
+        }
+
+        .build-input:focus {
+            outline: none;
+            border-color: #00FF88;
+        }
+
+        .controls-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .search-bar {
+            padding: 10px 15px;
+            background: #0a0a0a;
+            border-bottom: 1px solid #333;
+            display: flex;
+            gap: 8px;
+        }
+
+        .search-wrapper {
+            position: relative;
+            flex: 1;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px 35px 10px 12px;
+            background: #000;
+            border: 1px solid #333;
+            border-radius: 4px;
+            color: #ddd;
+            font-family: inherit;
+            font-size: 10px;
+            transition: border-color 0.2s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #00FF88;
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 14px;
+            color: #666;
+        }
+
+        .view-tabs {
+            display: flex;
+            background: #0a0a0a;
+            border-bottom: 1px solid #333;
+            position: relative;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: #666;
+            font-family: inherit;
+            font-size: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            color: #00FF88;
+            border-bottom-color: #00FF88;
+        }
+
+        .tab-extras {
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            gap: 8px;
+        }
+
+        .random-btn {
+            padding: 6px 10px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 3px;
+            color: #00FF88;
+            font-size: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: all 0.2s;
+        }
+
+        .random-btn:active {
+            transform: scale(0.95);
+            background: #222;
+        }
+
+        .content-area {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .view-panel {
+            height: 100%;
+            display: none;
+            flex-direction: column;
+        }
+
+        .view-panel.active {
+            display: flex;
+        }
+
+        .dial-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 15px;
+        }
+
+        .dial-group {
+            margin-bottom: 15px;
+        }
+
+        .dial-label {
+            font-size: 9px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            color: #00FF88;
+            margin-bottom: 8px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .dial-counter {
+            font-size: 8px;
+            color: #666;
+            font-weight: normal;
+        }
+
+        .dial-box {
+            position: relative;
+            height: 45px;
+            background: #0a0a0a;
+            border: 1px solid #333;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .dial-track {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            transition: transform 0.3s ease-out;
+            padding: 0 50%;
+        }
+
+        .dial-item {
+            min-width: 150px;
+            padding: 12px;
+            text-align: center;
+            font-size: 10px;
+            color: #444;
+            cursor: grab;
+            user-select: none;
+            transition: all 0.2s;
+        }
+
+        .dial-item.active {
+            color: #00FF88;
+            font-weight: bold;
+            text-shadow: 0 0 6px rgba(0, 255, 136, 0.5);
+        }
+
+        .dial-marker {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 2px;
+            height: 100%;
+            background: #00FF88;
+            transform: translateX(-50%);
+            pointer-events: none;
+            z-index: 10;
+            box-shadow: 0 0 6px rgba(0, 255, 136, 0.6);
+        }
+
+        .list-container {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .list-section {
+            border-bottom: 1px solid #222;
+        }
+
+        .list-header {
+            padding: 12px 15px;
+            background: #0a0a0a;
+            font-size: 10px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            color: #00FF88;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+        }
+
+        .list-header:hover {
+            background: #111;
+        }
+
+        .expand-icon {
+            font-size: 10px;
+            transition: transform 0.3s;
+        }
+
+        .list-section.expanded .expand-icon {
+            transform: rotate(180deg);
+        }
+
+        .list-items {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .list-section.expanded .list-items {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .list-item {
+            padding: 10px 15px;
+            background: #000;
+            border-bottom: 1px solid #111;
+            color: #999;
+            font-size: 9px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .list-item:hover {
+            background: #0a0a0a;
+            color: #ddd;
+            padding-left: 20px;
+        }
+
+        .list-item.selected {
+            background: #1a1a1a;
+            color: #00FF88;
+            border-left: 3px solid #00FF88;
+        }
+
+        .item-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .item-details {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .item-id {
+            font-size: 8px;
+            color: #00FF88;
+            font-family: 'Courier New', monospace;
+        }
+
+        .item-name {
+            font-size: 9px;
+            line-height: 1.3;
+        }
+
+        .meta-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 2px;
+        }
+
+        .meta-tag {
+            font-size: 7px;
+            padding: 2px 5px;
+            border-radius: 2px;
+            border: 1px solid #333;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        .meta-tag.highlight {
+            border-color: #00FF88;
+            color: #00FF88;
+        }
+
+        .action-bar {
+            display: flex;
+            background: #0a0a0a;
+            border-top: 1px solid #333;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 15px;
+            font-family: inherit;
+            font-size: 10px;
+            font-weight: bold;
+            border: none;
+            border-right: 1px solid #333;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .action-btn:last-child {
+            border-right: none;
+        }
+
+        .btn-load {
+            background: #000;
+            color: #00FF88;
+        }
+
+        .btn-add {
+            background: #00FF88;
+            color: #000;
+        }
+
+        .action-btn:active {
+            transform: scale(0.97);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #1a1a1a;
+            color: #00FF88;
+            padding: 12px 20px;
+            border-radius: 6px;
+            border: 1px solid #333;
+            font-size: 10px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            z-index: 1000;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #000;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00FF88;
+        }
+
+        @media (max-width: 480px) {
+            .build-info {
+                width: 150px;
+            }
+
+            .location-scene {
+                transform: scale(0.8);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="title-block">
+                <div class="title">🎬 LOCATION DESIGNER</div>
+                <div class="stats">PRODUCTION ENVIRONMENT BUILDER</div>
+            </div>
+            <div class="header-actions">
+                <button class="icon-btn" id="undoBtn" title="Undo">↶</button>
+                <button class="icon-btn" id="redoBtn" title="Redo">↷</button>
+                <button class="scene-btn" id="makeSceneBtn">SCENE</button>
+            </div>
+        </div>
+
+        <div class="preview-section">
+            <div class="location-display-area">
+                <button class="rotate-btn" id="rotateBtn">⟳</button>
+                <div class="location-scene" id="locationScene">
+                    <div class="part-roof" data-part="roof"></div>
+                    <div class="part-wall" data-part="wall">
+                        <div class="part-window" data-part="window"></div>
+                        <div class="part-door" data-part="door"></div>
+                    </div>
+                    <div class="part-floor" data-part="floor"></div>
+                    <div class="part-tree" data-part="tree">
+                        <div class="tree-crown"></div>
+                        <div class="tree-trunk"></div>
+                    </div>
+                    <div class="part-prop" data-part="prop"></div>
+                </div>
+            </div>
+
+            <div class="build-info">
+                <div class="build-title">
+                    CURRENT
+                    <button class="clear-btn" id="clearBtn">CLEAR</button>
+                </div>
+                <div class="build-row">
+                    <span class="build-label">Location Name</span>
+                    <input class="build-input" id="locationName" placeholder="Studio Set 1">
+                </div>
+                <div class="build-row">
+                    <span class="build-label">Designer</span>
+                    <input class="build-input" id="locationDesigner" placeholder="Art Department">
+                </div>
+                <div class="build-row">
+                    <span class="build-label">Floor</span>
+                    <span class="build-value" id="previewFloor">—</span>
+                </div>
+                <div class="build-row">
+                    <span class="build-label">Wall</span>
+                    <span class="build-value" id="previewWall">—</span>
+                </div>
+                <div class="build-row">
+                    <span class="build-label">Door</span>
+                    <span class="build-value" id="previewDoor">—</span>
+                </div>
+                <div class="build-row">
+                    <span class="build-label">Window</span>
+                    <span class="build-value" id="previewWindow">—</span>
+                </div>
+                <div class="build-row">
+                    <span class="build-label">Roof</span>
+                    <span class="build-value" id="previewRoof">—</span>
+                </div>
+                <div class="build-row">
+                    <span class="build-label">Tree</span>
+                    <span class="build-value" id="previewTree">—</span>
+                </div>
+                <div class="build-row">
+                    <span class="build-label">Prop</span>
+                    <span class="build-value" id="previewProp">—</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls-section">
+            <div class="search-bar">
+                <div class="search-wrapper">
+                    <input type="text" class="search-input" placeholder="Search environment parts..." id="searchInput">
+                    <span class="search-icon">🔍</span>
+                </div>
+            </div>
+
+            <div class="view-tabs">
+                <button class="tab-btn active" data-view="dial">DIAL</button>
+                <button class="tab-btn" data-view="list">LIST</button>
+                <div class="tab-extras">
+                    <button class="random-btn" id="randomBtn">🎲 RANDOM</button>
+                </div>
+            </div>
+
+            <div class="content-area">
+                <div class="view-panel active" id="dialView">
+                    <div class="dial-container">
+                        <div class="dial-group">
+                            <div class="dial-label">
+                                FLOOR
+                                <span class="dial-counter" data-counter="floor">0 items</span>
+                            </div>
+                            <div class="dial-box" data-dial="floor">
+                                <div class="dial-marker"></div>
+                                <div class="dial-track"></div>
+                            </div>
+                        </div>
+
+                        <div class="dial-group">
+                            <div class="dial-label">
+                                WALL
+                                <span class="dial-counter" data-counter="wall">0 items</span>
+                            </div>
+                            <div class="dial-box" data-dial="wall">
+                                <div class="dial-marker"></div>
+                                <div class="dial-track"></div>
+                            </div>
+                        </div>
+
+                        <div class="dial-group">
+                            <div class="dial-label">
+                                DOOR
+                                <span class="dial-counter" data-counter="door">0 items</span>
+                            </div>
+                            <div class="dial-box" data-dial="door">
+                                <div class="dial-marker"></div>
+                                <div class="dial-track"></div>
+                            </div>
+                        </div>
+
+                        <div class="dial-group">
+                            <div class="dial-label">
+                                WINDOW
+                                <span class="dial-counter" data-counter="window">0 items</span>
+                            </div>
+                            <div class="dial-box" data-dial="window">
+                                <div class="dial-marker"></div>
+                                <div class="dial-track"></div>
+                            </div>
+                        </div>
+
+                        <div class="dial-group">
+                            <div class="dial-label">
+                                ROOF
+                                <span class="dial-counter" data-counter="roof">0 items</span>
+                            </div>
+                            <div class="dial-box" data-dial="roof">
+                                <div class="dial-marker"></div>
+                                <div class="dial-track"></div>
+                            </div>
+                        </div>
+
+                        <div class="dial-group">
+                            <div class="dial-label">
+                                TREE
+                                <span class="dial-counter" data-counter="tree">0 items</span>
+                            </div>
+                            <div class="dial-box" data-dial="tree">
+                                <div class="dial-marker"></div>
+                                <div class="dial-track"></div>
+                            </div>
+                        </div>
+
+                        <div class="dial-group">
+                            <div class="dial-label">
+                                PROP
+                                <span class="dial-counter" data-counter="prop">0 items</span>
+                            </div>
+                            <div class="dial-box" data-dial="prop">
+                                <div class="dial-marker"></div>
+                                <div class="dial-track"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="view-panel" id="listView">
+                    <div class="list-container">
+                        <div class="list-section" data-category="floor">
+                            <div class="list-header">
+                                <span>FLOOR</span>
+                                <span class="expand-icon">▼</span>
+                            </div>
+                            <div class="list-items"></div>
+                        </div>
+
+                        <div class="list-section" data-category="wall">
+                            <div class="list-header">
+                                <span>WALL</span>
+                                <span class="expand-icon">▼</span>
+                            </div>
+                            <div class="list-items"></div>
+                        </div>
+
+                        <div class="list-section" data-category="door">
+                            <div class="list-header">
+                                <span>DOOR</span>
+                                <span class="expand-icon">▼</span>
+                            </div>
+                            <div class="list-items"></div>
+                        </div>
+
+                        <div class="list-section" data-category="window">
+                            <div class="list-header">
+                                <span>WINDOW</span>
+                                <span class="expand-icon">▼</span>
+                            </div>
+                            <div class="list-items"></div>
+                        </div>
+
+                        <div class="list-section" data-category="roof">
+                            <div class="list-header">
+                                <span>ROOF</span>
+                                <span class="expand-icon">▼</span>
+                            </div>
+                            <div class="list-items"></div>
+                        </div>
+
+                        <div class="list-section" data-category="tree">
+                            <div class="list-header">
+                                <span>TREE</span>
+                                <span class="expand-icon">▼</span>
+                            </div>
+                            <div class="list-items"></div>
+                        </div>
+
+                        <div class="list-section" data-category="prop">
+                            <div class="list-header">
+                                <span>PROP</span>
+                                <span class="expand-icon">▼</span>
+                            </div>
+                            <div class="list-items"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="action-bar">
+            <button class="action-btn btn-load">💾 SAVE LOCATION</button>
+            <button class="action-btn btn-add">📸 SCREENSHOT</button>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const wagFrankBus = (typeof BroadcastChannel !== 'undefined') ? new BroadcastChannel('wag-frank') : null;
+        const wagFrankPost = (message) => {
+            if (!wagFrankBus) return;
+            wagFrankBus.postMessage(message);
+        };
+
+        let locationLibrary = null;
+        let partsTaxonomy = null;
+        let locationSlotBuckets = null;
+        let sceneShellLibrary = null;
+        // Fallback defaults so we can still build an MPD even if the
+        // shared location library fails to load. These mirror the
+        // archetypes in location-library.json and get overridden once
+        // the library is available.
+        let locationSlotDefaults = {
+            FLOOR: {
+                filename: '3811.dat',
+                description: 'Baseplate 32 x 32'
+            },
+            WALL: {
+                filename: '3001.dat',
+                description: 'Brick  2 x  4 (wall module)'
+            },
+            DOOR: {
+                filename: '6003.dat',
+                description: 'Plate  6 x  6 with  4 x  4 Round Corner (door frame placeholder)'
+            },
+            WINDOW: {
+                filename: '6003.dat',
+                description: 'Plate  6 x  6 with  4 x  4 Round Corner (window frame placeholder)'
+            },
+            ROOF: {
+                filename: '3001.dat',
+                description: 'Brick  2 x  4 (roof placeholder)'
+            },
+            TREE: {
+                filename: '3001.dat',
+                description: 'Brick  2 x  4 (tree trunk placeholder)'
+            },
+            PROP: {
+                filename: '3001.dat',
+                description: 'Brick  2 x  4 (prop placeholder)'
+            }
+        };
+
+        const buildLocationSlotDefaults = (lib) => {
+            const defaults = {};
+            if (!lib || !Array.isArray(lib.locations)) return defaults;
+            lib.locations.forEach((loc) => {
+                (loc.parts || []).forEach((part) => {
+                    const label = part.label || '';
+                    if (!label || defaults[label]) return;
+                    defaults[label] = {
+                        filename: part.filename,
+                        description: part.description || ''
+                    };
+                });
+            });
+            return defaults;
+        };
+
+        const buildDialDataFromTaxonomy = (taxonomy, slotBuckets) => {
+            if (!taxonomy || !taxonomy.kingdoms || !slotBuckets) return null;
+            const result = {};
+            const MAX_PER_SLOT = 80;
+            const slotKeys = ['floor', 'wall', 'door', 'window', 'roof', 'tree', 'prop'];
+
+            slotKeys.forEach((slotKey) => {
+                const slotLabel = slotKey.toUpperCase();
+                const bucket = slotBuckets[slotLabel];
+                const items = [];
+                if (!bucket || !Array.isArray(bucket.kingdoms)) {
+                    result[slotKey] = items;
+                    return;
+                }
+
+                const kingdoms = taxonomy.kingdoms || {};
+                const hints = (bucket.keywordHints || []).map((h) => h.toLowerCase());
+
+                bucket.kingdoms.forEach((kingName) => {
+                    if (items.length >= MAX_PER_SLOT) return;
+                    const kingdom = kingdoms[kingName];
+                    if (!kingdom || !kingdom.phyla) return;
+                    const phyla = Object.values(kingdom.phyla);
+                    for (const phylum of phyla) {
+                        if (items.length >= MAX_PER_SLOT) break;
+                        const classes = Object.values(phylum.classes || {});
+                        for (const cls of classes) {
+                            if (items.length >= MAX_PER_SLOT) break;
+                            const orders = Object.values(cls.orders || {});
+                            for (const order of orders) {
+                                if (items.length >= MAX_PER_SLOT) break;
+                                const families = Object.values(order.families || {});
+                                for (const family of families) {
+                                    if (items.length >= MAX_PER_SLOT) break;
+                                    const parts = family.parts || [];
+                                    for (const part of parts) {
+                                        if (items.length >= MAX_PER_SLOT) break;
+                                        const rawDesc = part.description || part.name || part.filename || '';
+                                        const descLower = rawDesc.toLowerCase();
+                                        if (hints.length && !hints.some((h) => descLower.includes(h))) {
+                                            continue;
+                                        }
+                                        items.push({
+                                            id: part.filename,
+                                            name: rawDesc,
+                                            icon: '📦',
+                                            type: kingName,
+                                            filename: part.filename,
+                                            description: rawDesc,
+                                            kingdom: kingName,
+                                            path: part.path
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+
+                result[slotKey] = items;
+            });
+
+            console.log('Locationator: built dialData from taxonomy', {
+                floor: result.floor ? result.floor.length : 0,
+                wall: result.wall ? result.wall.length : 0,
+                door: result.door ? result.door.length : 0,
+                window: result.window ? result.window.length : 0,
+                roof: result.roof ? result.roof.length : 0,
+                tree: result.tree ? result.tree.length : 0,
+                prop: result.prop ? result.prop.length : 0
+            });
+
+            return result;
+        };
+
+        const loadSceneShells = async () => {
+            try {
+                const res = await fetch('wag-viewer-prime-integration-20251112-055341%20copy/scene-shells.json');
+                if (res && res.ok) {
+                    sceneShellLibrary = await res.json();
+                    console.log('Locationator: loaded scene-shells.json with shells:', sceneShellLibrary.totalShells);
+                }
+            } catch (err) {
+                console.warn('Locationator: scene-shells.json failed to load', err);
+            }
+        };
+
+        const sceneShellIconForType = (sceneType) => {
+            if (!sceneType) return '🌍';
+            if (sceneType === 'space_crater') return '🌑';
+            if (sceneType === 'road_network') return '🛣️';
+            if (sceneType === 'water_terrain') return '🌊';
+            if (sceneType === 'canyon_terrain') return '🏜️';
+            if (sceneType === 'raised_terrain') return '⛰️';
+            if (sceneType === 'island_terrain') return '🏝️';
+            if (sceneType.startsWith('ship_hull')) return '🚢';
+            if (sceneType === 'rail_network') return '🚆';
+            if (sceneType === 'freight_unit') return '📦';
+            return '🌍';
+        };
+
+        const injectSceneShellsIntoDialData = () => {
+            if (!sceneShellLibrary || !Array.isArray(sceneShellLibrary.shells)) return;
+            if (!dialData.floor) dialData.floor = [];
+
+            const shells = sceneShellLibrary.shells.filter(s => s.primary);
+            shells.forEach(shell => {
+                const icon = sceneShellIconForType(shell.sceneType);
+                const name = shell.description || shell.filename;
+                dialData.floor.push({
+                    id: shell.filename,
+                    name,
+                    icon,
+                    type: shell.sceneType || 'scene-shell',
+                    filename: shell.filename,
+                    path: shell.path,
+                    description: shell.description
+                });
+            });
+        };
+
+        const loadLocationLibrary = async () => {
+            try {
+                const res = await fetch('wag-viewer-prime-integration-20251112-055341%20copy/location-library.json');
+                if (res && res.ok) {
+                    const lib = await res.json();
+                    locationLibrary = lib;
+                    locationSlotDefaults = buildLocationSlotDefaults(lib);
+                    locationSlotBuckets = lib.slotBuckets || null;
+                    console.log('Locationator: loaded location-library.json with slots:', Object.keys(locationSlotDefaults));
+                }
+            } catch (err) {
+                console.warn('Locationator: location-library.json failed to load', err);
+            }
+
+            try {
+                const resTax = await fetch('wag-viewer-prime-integration-20251112-055341%20copy/parts-taxonomy.json');
+                if (resTax && resTax.ok) {
+                    partsTaxonomy = await resTax.json();
+                    console.log('Locationator: loaded parts-taxonomy.json');
+                }
+            } catch (err) {
+                console.warn('Locationator: parts-taxonomy.json failed to load', err);
+            }
+        };
+
+        const LOCATION_LAYOUT = {
+            FLOOR: { x: 0, y: 0, z: 0 },
+            WALL: { x: 0, y: 80, z: -120 },
+            DOOR: { x: 0, y: 40, z: -119 },
+            WINDOW: { x: 60, y: 60, z: -119 },
+            ROOF: { x: 0, y: 160, z: 0 },
+            TREE: {
+                x: (idx) => -160 + idx * 40,
+                y: 0,
+                z: 120
+            },
+            PROP: {
+                x: (idx) => -80 + idx * 40,
+                y: 0,
+                z: 40
+            }
+        };
+
+        const resolveLocationForMPD = (location) => {
+            const resolved = {
+                id: location.id,
+                title: location.title,
+                designer: location.designer,
+                parts: []
+            };
+
+            (location.parts || []).forEach((p) => {
+                const label = (p.category || p.label || '').toUpperCase();
+                if (!label) return;
+
+                let filename = p.filename;
+                let path = p.path;
+                let description = p.description || p.name;
+
+                if (!filename && path) {
+                    const idx = path.lastIndexOf('/');
+                    filename = idx >= 0 ? path.slice(idx + 1) : path;
+                }
+
+                if (!filename) {
+                    const defaults = locationSlotDefaults[label];
+                    if (!defaults || !defaults.filename) return;
+                    filename = defaults.filename;
+                    if (!description) description = defaults.description || defaults.filename;
+                }
+
+                if (!description) description = filename;
+
+                resolved.parts.push({
+                    label,
+                    filename,
+                    path,
+                    description
+                });
+            });
+
+            // If nothing was resolved but we have defaults, fall back to one of each slot
+            if (!resolved.parts.length && locationSlotDefaults && Object.keys(locationSlotDefaults).length) {
+                Object.entries(locationSlotDefaults).forEach(([label, defaults]) => {
+                    resolved.parts.push({
+                        label,
+                        filename: defaults.filename,
+                        description: defaults.description || defaults.filename
+                    });
+                });
+            }
+
+            return resolved;
+        };
+
+        const buildLocationMPD = (location) => {
+            const resolved = resolveLocationForMPD(location);
+            if (!resolved.parts || !resolved.parts.length) return '';
+
+            const lines = [];
+            const idSafe = (resolved.id || resolved.title || 'location').replace(/\s+/g, '_');
+            const title = resolved.title || 'Custom Location';
+            const author = resolved.designer || 'Art Department';
+
+            lines.push(`0 FILE ${idSafe}.mpd`);
+            lines.push(`0 Name: ${title}`);
+            lines.push(`0 Author: ${author} via Locationator`);
+            lines.push('0 !LDRAW_ORG Model');
+            lines.push('0 BFC CERTIFY CCW');
+            lines.push('');
+            lines.push('0 STEP');
+            lines.push('');
+
+            resolved.parts.forEach((part, idx) => {
+                const label = part.label || 'PART';
+                const layout = LOCATION_LAYOUT[label] || { x: 0, y: 0, z: 0 };
+                const lx = typeof layout.x === 'function' ? layout.x(idx) : layout.x;
+                const ly = typeof layout.y === 'function' ? layout.y(idx) : layout.y;
+                const lz = typeof layout.z === 'function' ? layout.z(idx) : layout.z;
+                const color = 16;
+
+                // Prefer the taxonomy-provided path (e.g. 'p/clh6c.dat' or
+                // 'parts/3811.dat') when available. Only prefix with
+                // 'parts/' when we have a bare filename with no
+                // directory component.
+                let filename = part.path || part.filename || '';
+                if (!filename) return;
+                filename = filename.replace(/\\/g, '/');
+                if (filename && !filename.includes('/')) {
+                    filename = `parts/${filename}`;
+                }
+
+                lines.push(`0 // ${label} - ${part.description || filename}`);
+                lines.push(`1 ${color} ${lx} ${ly} ${lz} 1 0 0 0 1 0 0 0 1 ${filename}`);
+                lines.push('');
+            });
+
+            lines.push('0 STEP');
+            return lines.join('\n');
+        };
+
+        const buildLocationSceneMPD = (locations, designer) => {
+            if (!locations || !locations.length) return '';
+
+            const lines = [];
+            const author = designer || 'Art Department';
+
+            lines.push('0 FILE production_scene.mpd');
+            lines.push('0 Name: Production Set');
+            lines.push(`0 Author: ${author} via Locationator`);
+            lines.push('0 !LDRAW_ORG Model');
+            lines.push('0 BFC CERTIFY CCW');
+            lines.push('');
+
+            const count = locations.length;
+            const cols = Math.ceil(Math.sqrt(count));
+            const dx = 400;
+            const dz = 400;
+            const xOffsetBase = (cols - 1) / 2;
+
+            locations.forEach((loc, locIdx) => {
+                const resolved = resolveLocationForMPD(loc);
+                if (!resolved.parts || !resolved.parts.length) return;
+
+                const col = locIdx % cols;
+                const row = Math.floor(locIdx / cols);
+                const offsetX = (col - xOffsetBase) * dx;
+                const offsetZ = row * dz;
+
+                lines.push('0 STEP');
+                lines.push(`0 // Location ${locIdx + 1} - ${loc.title || loc.id || ''}`);
+                lines.push('');
+
+                resolved.parts.forEach((part, idx) => {
+                    const label = part.label || 'PART';
+                    const layout = LOCATION_LAYOUT[label] || { x: 0, y: 0, z: 0 };
+                    const lxLocal = typeof layout.x === 'function' ? layout.x(idx) : layout.x;
+                    const ly = typeof layout.y === 'function' ? layout.y(idx) : layout.y;
+                    const lzLocal = typeof layout.z === 'function' ? layout.z(idx) : layout.z;
+                    const color = 16;
+
+                    let filename = part.path || part.filename || '';
+                    if (!filename) return;
+                    filename = filename.replace(/\\/g, '/');
+                    const slashIdx = filename.lastIndexOf('/');
+                    if (slashIdx >= 0) filename = filename.slice(slashIdx + 1);
+
+                    const lx = lxLocal + offsetX;
+                    const lz = lzLocal + offsetZ;
+
+                    lines.push(`0 // ${label} - ${part.description || filename}`);
+                    lines.push(`1 ${color} ${lx} ${ly} ${lz} 1 0 0 0 1 0 0 0 1 ${filename}`);
+                    lines.push('');
+                });
+            });
+
+            lines.push('0 STEP');
+            return lines.join('\n');
+        };
+
+        let dialData = {
+            floor: [
+                { name: 'Grass Field', id: 'floor_grass_01', icon: '🌿', type: 'outdoor' },
+                { name: 'Concrete Floor', id: 'floor_concrete_01', icon: '⬜', type: 'indoor' },
+                { name: 'Wood Planks', id: 'floor_wood_01', icon: '🪵', type: 'indoor' },
+                { name: 'Tile Floor', id: 'floor_tile_01', icon: '◻️', type: 'indoor' },
+                { name: 'Dirt Path', id: 'floor_dirt_01', icon: '🟤', type: 'outdoor' },
+                { name: 'Stone Pavers', id: 'floor_stone_01', icon: '🪨', type: 'outdoor' },
+                { name: 'Marble Floor', id: 'floor_marble_01', icon: '✨', type: 'indoor' },
+                { name: 'Sand Beach', id: 'floor_sand_01', icon: '🏖️', type: 'outdoor' }
+            ],
+            wall: [
+                { name: 'Brick Wall', id: 'wall_brick_01', icon: '🧱', type: 'exterior' },
+                { name: 'White Drywall', id: 'wall_drywall_01', icon: '⬜', type: 'interior' },
+                { name: 'Wood Paneling', id: 'wall_wood_01', icon: '🪵', type: 'interior' },
+                { name: 'Stone Wall', id: 'wall_stone_01', icon: '🪨', type: 'exterior' },
+                { name: 'Glass Wall', id: 'wall_glass_01', icon: '🔲', type: 'modern' },
+                { name: 'Metal Siding', id: 'wall_metal_01', icon: '🔩', type: 'industrial' },
+                { name: 'Concrete Block', id: 'wall_concrete_01', icon: '⬛', type: 'industrial' },
+                { name: 'Stucco Wall', id: 'wall_stucco_01', icon: '⬜', type: 'exterior' }
+            ],
+            door: [
+                { name: 'Wood Door', id: 'door_wood_01', icon: '🚪', type: 'residential' },
+                { name: 'Metal Door', id: 'door_metal_01', icon: '🔲', type: 'industrial' },
+                { name: 'Glass Door', id: 'door_glass_01', icon: '🪟', type: 'commercial' },
+                { name: 'Barn Door', id: 'door_barn_01', icon: '🚪', type: 'rustic' },
+                { name: 'Sliding Door', id: 'door_sliding_01', icon: '↔️', type: 'modern' },
+                { name: 'Double Door', id: 'door_double_01', icon: '🚪🚪', type: 'grand' },
+                { name: 'Vault Door', id: 'door_vault_01', icon: '🔐', type: 'secure' },
+                { name: 'Garage Door', id: 'door_garage_01', icon: '🏠', type: 'residential' }
+            ],
+            window: [
+                { name: 'Single Pane', id: 'window_single_01', icon: '🪟', type: 'basic' },
+                { name: 'Double Hung', id: 'window_double_01', icon: '🪟', type: 'residential' },
+                { name: 'Bay Window', id: 'window_bay_01', icon: '🏠', type: 'decorative' },
+                { name: 'Skylight', id: 'window_skylight_01', icon: '☀️', type: 'ceiling' },
+                { name: 'Stained Glass', id: 'window_stained_01', icon: '🎨', type: 'decorative' },
+                { name: 'Picture Window', id: 'window_picture_01', icon: '🖼️', type: 'large' },
+                { name: 'Casement', id: 'window_casement_01', icon: '🪟', type: 'modern' },
+                { name: 'Awning Window', id: 'window_awning_01', icon: '⛱️', type: 'ventilation' }
+            ],
+            roof: [
+                { name: 'Shingle Roof', id: 'roof_shingle_01', icon: '🏠', type: 'residential' },
+                { name: 'Tile Roof', id: 'roof_tile_01', icon: '🔶', type: 'mediterranean' },
+                { name: 'Metal Roof', id: 'roof_metal_01', icon: '⚙️', type: 'industrial' },
+                { name: 'Flat Roof', id: 'roof_flat_01', icon: '⬛', type: 'modern' },
+                { name: 'Thatched Roof', id: 'roof_thatch_01', icon: '🌾', type: 'rustic' },
+                { name: 'Glass Roof', id: 'roof_glass_01', icon: '💎', type: 'greenhouse' },
+                { name: 'Green Roof', id: 'roof_green_01', icon: '🌱', type: 'eco' },
+                { name: 'Dome Roof', id: 'roof_dome_01', icon: '⚪', type: 'architectural' }
+            ],
+            tree: [
+                { name: 'Oak Tree', id: 'tree_oak_01', icon: '🌳', type: 'deciduous' },
+                { name: 'Pine Tree', id: 'tree_pine_01', icon: '🌲', type: 'evergreen' },
+                { name: 'Palm Tree', id: 'tree_palm_01', icon: '🌴', type: 'tropical' },
+                { name: 'Willow Tree', id: 'tree_willow_01', icon: '🌳', type: 'decorative' },
+                { name: 'Cherry Blossom', id: 'tree_cherry_01', icon: '🌸', type: 'ornamental' },
+                { name: 'Cactus', id: 'tree_cactus_01', icon: '🌵', type: 'desert' },
+                { name: 'Bamboo', id: 'tree_bamboo_01', icon: '🎋', type: 'asian' },
+                { name: 'Dead Tree', id: 'tree_dead_01', icon: '🪵', type: 'spooky' }
+            ],
+            prop: [
+                { name: 'Bench', id: 'prop_bench_01', icon: '🪑', type: 'furniture' },
+                { name: 'Lamppost', id: 'prop_lamp_01', icon: '💡', type: 'lighting' },
+                { name: 'Mailbox', id: 'prop_mailbox_01', icon: '📬', type: 'residential' },
+                { name: 'Fire Hydrant', id: 'prop_hydrant_01', icon: '🚰', type: 'urban' },
+                { name: 'Trash Can', id: 'prop_trash_01', icon: '🗑️', type: 'utility' },
+                { name: 'Fountain', id: 'prop_fountain_01', icon: '⛲', type: 'decorative' },
+                { name: 'Statue', id: 'prop_statue_01', icon: '🗿', type: 'art' },
+                { name: 'Fence', id: 'prop_fence_01', icon: '🪜', type: 'boundary' }
+            ]
+        };
+
+        const state = {
+            view: 'dial',
+            selections: {
+                floor: null,
+                wall: null,
+                door: null,
+                window: null,
+                roof: null,
+                tree: null,
+                prop: null
+            },
+            searchTerm: '',
+            expandedSection: null,
+            history: [],
+            historyIndex: -1
+        };
+
+        const showToast = (message) => {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        };
+
+        const haptic = () => {
+            if ('vibrate' in navigator) {
+                try { navigator.vibrate(10); } catch (e) {}
+            }
+        };
+
+        const saveToHistory = () => {
+            const snapshot = JSON.parse(JSON.stringify(state.selections));
+            if (state.historyIndex < state.history.length - 1) {
+                state.history = state.history.slice(0, state.historyIndex + 1);
+            }
+            state.history.push(snapshot);
+            state.historyIndex++;
+            if (state.history.length > 50) {
+                state.history.shift();
+                state.historyIndex--;
+            }
+            updateUndoRedoButtons();
+        };
+
+        const updateUndoRedoButtons = () => {
+            document.getElementById('undoBtn').style.opacity = state.historyIndex > 0 ? '1' : '0.3';
+            document.getElementById('redoBtn').style.opacity = state.historyIndex < state.history.length - 1 ? '1' : '0.3';
+        };
+
+        const undo = () => {
+            if (state.historyIndex > 0) {
+                state.historyIndex--;
+                state.selections = JSON.parse(JSON.stringify(state.history[state.historyIndex]));
+                refreshAllPreviews();
+                haptic();
+                showToast('Undo');
+            }
+        };
+
+        const redo = () => {
+            if (state.historyIndex < state.history.length - 1) {
+                state.historyIndex++;
+                state.selections = JSON.parse(JSON.stringify(state.history[state.historyIndex]));
+                refreshAllPreviews();
+                haptic();
+                showToast('Redo');
+            }
+        };
+
+        const refreshAllPreviews = () => {
+            Object.keys(state.selections).forEach(part => {
+                updateLocation(part);
+                const sel = state.selections[part];
+                if (sel) {
+                    updatePreview(part, sel.name);
+                } else {
+                    updatePreview(part, '—');
+                }
+            });
+        };
+
+        const updateLocation = (part) => {
+            const el = document.querySelector(`.part-${part}`);
+            if (!el) return;
+            const sel = state.selections[part];
+            
+            el.classList.remove('filled');
+            void el.offsetWidth;
+            
+            if (sel) {
+                el.classList.add('filled');
+            }
+        };
+
+        const updatePreview = (cat, val) => {
+            const el = document.getElementById(`preview${cat.charAt(0).toUpperCase() + cat.slice(1)}`);
+            if (el) el.textContent = val || '—';
+        };
+
+        const clearAll = () => {
+            if (!confirm('Clear all selections?')) return;
+            saveToHistory();
+            Object.keys(state.selections).forEach(key => {
+                state.selections[key] = null;
+                updateLocation(key);
+                updatePreview(key, '—');
+            });
+            document.querySelectorAll('.list-item.selected').forEach(el => el.classList.remove('selected'));
+            Object.values(dials).forEach(dial => dial.clearSelection());
+            showToast('Cleared all');
+            haptic();
+        };
+
+        const randomize = () => {
+            saveToHistory();
+            Object.keys(dialData).forEach(cat => {
+                const items = dialData[cat];
+                if (items.length) {
+                    const randomIdx = Math.floor(Math.random() * items.length);
+                    const item = items[randomIdx];
+                    state.selections[cat] = item;
+                    updatePreview(cat, item.name);
+                    updateLocation(cat);
+                    if (dials[cat]) dials[cat].setIndex(randomIdx);
+                }
+            });
+            showToast('Randomized!');
+            haptic();
+        };
+
+        const rotateLocation = () => {
+            const scene = document.getElementById('locationScene');
+            scene.classList.add('rotating');
+            setTimeout(() => scene.classList.remove('rotating'), 800);
+            haptic();
+        };
+
+        const updateCounters = () => {
+            Object.keys(dialData).forEach(cat => {
+                const counter = document.querySelector(`[data-counter="${cat}"]`);
+                if (counter) {
+                    counter.textContent = `${dialData[cat].length} items`;
+                }
+            });
+        };
+
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const view = btn.dataset.view;
+                state.view = view;
+                
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                document.getElementById('dialView').classList.toggle('active', view === 'dial');
+                document.getElementById('listView').classList.toggle('active', view === 'list');
+                haptic();
+            });
+        });
+
+        document.querySelectorAll('.list-header').forEach(header => {
+            header.addEventListener('click', () => {
+                const section = header.parentElement;
+                const wasExpanded = section.classList.contains('expanded');
+                
+                document.querySelectorAll('.list-section').forEach(s => s.classList.remove('expanded'));
+                
+                if (!wasExpanded) {
+                    section.classList.add('expanded');
+                }
+                haptic();
+            });
+        });
+
+        const searchInput = document.getElementById('searchInput');
+        searchInput.addEventListener('input', (e) => {
+            state.searchTerm = e.target.value.toLowerCase();
+            filterList();
+        });
+
+        const filterList = () => {
+            document.querySelectorAll('.list-item').forEach(item => {
+                const text = item.textContent.toLowerCase();
+                item.style.display = text.includes(state.searchTerm) ? 'flex' : 'none';
+            });
+
+            const term = state.searchTerm;
+            if (term && Object.keys(dials).length) {
+                Object.values(dials).forEach((dial) => dial.applyFilter(term));
+            }
+        };
+
+        const initList = () => {
+            Object.keys(dialData).forEach(cat => {
+                const container = document.querySelector(`.list-section[data-category="${cat}"] .list-items`);
+                if (!container) return;
+                container.innerHTML = '';
+                (dialData[cat] || []).forEach((item, idx) => {
+                    const el = document.createElement('div');
+                    el.className = 'list-item';
+                    
+                    const tags = item.type ? [{ label: item.type, highlight: false }] : [];
+
+                    const tagsHtml = tags.length
+                        ? `<div class="meta-tags">${tags.map(t => 
+                            `<span class="meta-tag${t.highlight ? ' highlight' : ''}">${t.label}</span>`
+                          ).join('')}</div>`
+                        : '';
+
+                    el.innerHTML = `
+                        <div class="item-icon">${item.icon || '📦'}</div>
+                        <div class="item-details">
+                            <div class="item-id">${item.id}</div>
+                            <div class="item-name">${item.name}</div>
+                            ${tagsHtml}
+                        </div>
+                    `;
+                    
+                    el.addEventListener('click', () => {
+                        container.querySelectorAll('.list-item').forEach(i => i.classList.remove('selected'));
+                        el.classList.add('selected');
+                        
+                        saveToHistory();
+                        state.selections[cat] = item;
+                        updatePreview(cat, item.name);
+                        updateLocation(cat);
+                        
+                        if (dials[cat]) {
+                            dials[cat].setIndex(idx);
+                        }
+                        haptic();
+                    });
+                    container.appendChild(el);
+                });
+            });
+        };
+
+        const buildLocation = () => {
+            const s = state.selections;
+            const parts = [];
+
+            Object.keys(s).forEach(key => {
+                const sel = s[key];
+                if (sel) {
+                    parts.push({
+                        category: key.toUpperCase(),
+                        id: sel.id,
+                        name: sel.name,
+                        type: sel.type,
+                        filename: sel.filename,
+                        path: sel.path,
+                        description: sel.description
+                    });
+                }
+            });
+
+            const nameInput = document.getElementById('locationName');
+            const designerInput = document.getElementById('locationDesigner');
+            const title = (nameInput && nameInput.value.trim()) || 'Custom Location';
+            const designer = (designerInput && designerInput.value.trim()) || 'Art Department';
+            const id = title.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || `location_${Date.now()}`;
+
+            return { id, title, designer, parts };
+        };
+
+        const downloadLocation = (location) => {
+            // Human-readable spec (for console / debugging)
+            const lines = [];
+            lines.push(`# LOCATION: ${location.title}`);
+            lines.push(`# DESIGNER: ${location.designer}`);
+            lines.push(`# GENERATED: ${new Date().toISOString()}`);
+            lines.push('');
+            lines.push('## PARTS');
+            lines.push('');
+
+            location.parts.forEach(part => {
+                lines.push(`[${part.category}]`);
+                lines.push(`  ID: ${part.id}`);
+                lines.push(`  Name: ${part.name}`);
+                lines.push(`  Type: ${part.type || 'generic'}`);
+                lines.push('');
+            });
+
+            const text = lines.join('\n');
+            console.log('Location Data:\n' + text);
+
+            // Try to build a real MPD from the shared location library
+            let mpdText = '';
+            try {
+                mpdText = buildLocationMPD(location);
+                if (mpdText) {
+                    console.log('Location MPD:\n' + mpdText);
+                }
+            } catch (err) {
+                console.warn('Locationator: failed to build MPD for location', err);
+            }
+
+            // Broadcast over wag-frank channel
+            if (wagFrankBus) {
+                if (mpdText) {
+                    const mpdLines = mpdText.split(/\r?\n/);
+                    wagFrankPost({
+                        kind: 'location-mpd',
+                        source: 'locationator',
+                        ts: Date.now(),
+                        payload: {
+                            name: location.title,
+                            designer: location.designer,
+                            mpdLines,
+                            mode: 'replace'
+                        }
+                    });
+                }
+
+                wagFrankPost({
+                    kind: 'location-spec',
+                    source: 'locationator',
+                    ts: Date.now(),
+                    payload: {
+                        name: location.title,
+                        designer: location.designer,
+                        location,
+                        textLines: lines
+                    }
+                });
+            }
+
+            // Prefer downloading a real MPD file (like minifigurator). If
+            // MPD generation failed, fall back to the text spec.
+            try {
+                if (mpdText) {
+                    const blobMpd = new Blob([mpdText], { type: 'text/plain' });
+                    const urlMpd = URL.createObjectURL(blobMpd);
+                    const aMpd = document.createElement('a');
+                    aMpd.href = urlMpd;
+                    aMpd.download = `${location.id}.mpd`;
+                    document.body.appendChild(aMpd);
+                    aMpd.click();
+                    document.body.removeChild(aMpd);
+                    URL.revokeObjectURL(urlMpd);
+                    showToast(wagFrankBus ? 'LOCATION -> wag-frank (location-mpd); open wag-grace-editor.html to view' : 'Location MPD saved');
+                } else {
+                    const blobTxt = new Blob([text], { type: 'text/plain' });
+                    const urlTxt = URL.createObjectURL(blobTxt);
+                    const aTxt = document.createElement('a');
+                    aTxt.href = urlTxt;
+                    aTxt.download = `${location.id}.txt`;
+                    document.body.appendChild(aTxt);
+                    aTxt.click();
+                    document.body.removeChild(aTxt);
+                    URL.revokeObjectURL(urlTxt);
+                    showToast('Location saved as text spec (no MPD)');
+                }
+            } catch (e) {
+                showToast('Check console for data');
+            }
+        };
+
+        const captureScreenshot = () => {
+            showToast('Screenshot feature coming soon!');
+        };
+
+        class Dial {
+            constructor(wrapper, data, type) {
+                this.wrapper = wrapper;
+                this.track = wrapper.querySelector('.dial-track');
+                this.data = data;
+                this.type = type;
+                this.currentIndex = 0;
+                this.itemWidth = 150;
+                
+                this.init();
+            }
+
+            init() {
+                this.render();
+                this.attachEvents();
+                this.updatePosition();
+            }
+
+            render() {
+                this.track.innerHTML = this.data.map((item, idx) => 
+                    `<div class="dial-item" data-index="${idx}">${item.icon || ''} ${item.name}</div>`
+                ).join('');
+            }
+
+            setIndex(idx) {
+                this.currentIndex = idx;
+                this.updatePosition();
+            }
+
+            clearSelection() {
+                this.currentIndex = 0;
+                this.updatePosition();
+            }
+
+            attachEvents() {
+                let startPos = 0;
+                let translate = 0;
+                let prevTranslate = 0;
+                let dragging = false;
+
+                const start = (e) => {
+                    dragging = true;
+                    startPos = e.type.includes('mouse') ? e.pageX : e.touches[0].clientX;
+                    this.track.style.cursor = 'grabbing';
+                };
+
+                const move = (e) => {
+                    if (!dragging) return;
+                    const pos = e.type.includes('mouse') ? e.pageX : e.touches[0].clientX;
+                    translate = prevTranslate + pos - startPos;
+                    this.track.style.transform = `translateX(${translate}px)`;
+                };
+
+                const end = () => {
+                    if (!dragging) return;
+                    dragging = false;
+                    
+                    const moved = translate - prevTranslate;
+                    
+                    if (moved < -50 && this.currentIndex < this.data.length - 1) {
+                        this.currentIndex += 1;
+                    }
+                    if (moved > 50 && this.currentIndex > 0) {
+                        this.currentIndex -= 1;
+                    }
+                    
+                    saveToHistory();
+                    this.updatePosition();
+                    prevTranslate = -this.currentIndex * this.itemWidth;
+                    translate = prevTranslate;
+                    this.track.style.cursor = 'grab';
+                    this.syncList();
+                    haptic();
+                };
+
+                this.wrapper.addEventListener('mousedown', start);
+                this.wrapper.addEventListener('mousemove', move);
+                this.wrapper.addEventListener('mouseup', end);
+                this.wrapper.addEventListener('mouseleave', end);
+
+                this.wrapper.addEventListener('touchstart', start, { passive: true });
+                this.wrapper.addEventListener('touchmove', move, { passive: true });
+                this.wrapper.addEventListener('touchend', end);
+            }
+
+            updatePosition() {
+                const offset = -this.currentIndex * this.itemWidth;
+                this.track.style.transform = `translateX(${offset}px)`;
+                
+                const items = this.track.querySelectorAll('.dial-item');
+                items.forEach((item, idx) => {
+                    item.classList.toggle('active', idx === this.currentIndex);
+                });
+                
+                const current = this.data[this.currentIndex];
+                state.selections[this.type] = current;
+                updatePreview(this.type, current.name);
+                updateLocation(this.type);
+            }
+
+            syncList() {
+                const section = document.querySelector(`.list-section[data-category="${this.type}"]`);
+                if (section) {
+                    const items = section.querySelectorAll('.list-item');
+                    items.forEach((item, idx) => {
+                        item.classList.toggle('selected', idx === this.currentIndex);
+                    });
+                }
+            }
+
+            applyFilter(term) {
+                if (!term) return;
+                const idx = this.data.findIndex((item) => {
+                    const label = `${item.name || ''} ${item.id || ''} ${item.type || ''}`.toLowerCase();
+                    return label.includes(term);
+                });
+                if (idx >= 0 && idx !== this.currentIndex) {
+                    this.setIndex(idx);
+                }
+            }
+        }
+
+        const dials = {};
+
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                if (e.key === 'z') {
+                    e.preventDefault();
+                    undo();
+                } else if (e.key === 'y' || (e.shiftKey && e.key === 'z')) {
+                    e.preventDefault();
+                    redo();
+                }
+            } else if (e.key === 'r' && !e.ctrlKey && !e.metaKey) {
+                e.preventDefault();
+                randomize();
+            }
+        });
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            await loadLocationLibrary();
+            await loadSceneShells();
+
+            // Once both the slotBuckets and taxonomy are loaded, try to
+            // build a real-part dialData from them. If that fails, we
+            // fall back to the conceptual dialData defined above.
+            if (partsTaxonomy && locationSlotBuckets) {
+                const built = buildDialDataFromTaxonomy(partsTaxonomy, locationSlotBuckets);
+                if (built) {
+                    dialData = built;
+                }
+            }
+
+            injectSceneShellsIntoDialData();
+
+            document.querySelectorAll('.dial-box').forEach(wrapper => {
+                const type = wrapper.dataset.dial;
+                const data = dialData[type] || [];
+                dials[type] = new Dial(wrapper, data, type);
+            });
+
+            initList();
+            updateCounters();
+            saveToHistory();
+
+            document.getElementById('undoBtn').addEventListener('click', undo);
+            document.getElementById('redoBtn').addEventListener('click', redo);
+            document.getElementById('clearBtn').addEventListener('click', clearAll);
+            document.getElementById('randomBtn').addEventListener('click', randomize);
+            document.getElementById('rotateBtn').addEventListener('click', rotateLocation);
+
+            document.querySelector('.btn-load').addEventListener('click', () => {
+                const location = buildLocation();
+                if (!location.parts.length) {
+                    showToast('Select at least one part');
+                    return;
+                }
+                downloadLocation(location);
+            });
+
+            document.querySelector('.btn-add').addEventListener('click', captureScreenshot);
+
+            document.getElementById('makeSceneBtn').addEventListener('click', () => {
+                let count = parseInt(prompt('How many locations in scene? (1-10)', '3') || '3', 10);
+                if (isNaN(count)) count = 3;
+                count = Math.min(10, Math.max(1, count));
+
+                const designerInput = document.getElementById('locationDesigner');
+                const designer = (designerInput && designerInput.value.trim()) || 'Art Department';
+
+                const lines = [];
+                const locations = [];
+                lines.push(`# SCENE: Production Set`);
+                lines.push(`# DESIGNER: ${designer}`);
+                lines.push(`# LOCATIONS: ${count}`);
+                lines.push(`# GENERATED: ${new Date().toISOString()}`);
+                lines.push('');
+
+                for (let i = 0; i < count; i++) {
+                    lines.push(`## LOCATION ${i + 1}`);
+                    lines.push('');
+
+                    const parts = [];
+
+                    Object.keys(dialData).forEach(cat => {
+                        const items = dialData[cat];
+                        if (items.length) {
+                            const randomIdx = Math.floor(Math.random() * items.length);
+                            const item = items[randomIdx];
+                            lines.push(`[${cat.toUpperCase()}]`);
+                            lines.push(`  ID: ${item.id}`);
+                            lines.push(`  Name: ${item.name}`);
+                            lines.push(`  Type: ${item.type || 'generic'}`);
+                            lines.push('');
+
+                            parts.push({
+                                category: cat.toUpperCase(),
+                                id: item.id,
+                                name: item.name,
+                                type: item.type,
+                                filename: item.filename,
+                                path: item.path,
+                                description: item.description
+                            });
+                        }
+                    });
+
+                    locations.push({
+                        id: `location_${i + 1}`,
+                        title: `Location ${i + 1}`,
+                        designer,
+                        parts
+                    });
+
+                    lines.push('---');
+                    lines.push('');
+                }
+
+                const text = lines.join('\n');
+                console.log('Scene Data:\n' + text);
+
+                // Build an MPD scene composed of the generated locations
+                let sceneMpdText = '';
+                try {
+                    sceneMpdText = buildLocationSceneMPD(locations, designer);
+                    if (sceneMpdText) {
+                        console.log('Scene MPD:\n' + sceneMpdText);
+                    }
+                } catch (err) {
+                    console.warn('Locationator: failed to build scene MPD', err);
+                }
+
+                if (wagFrankBus) {
+                    if (sceneMpdText) {
+                        const mpdLines = sceneMpdText.split(/\r?\n/);
+                        wagFrankPost({
+                            kind: 'scene-mpd',
+                            source: 'locationator',
+                            ts: Date.now(),
+                            payload: {
+                                name: 'Production Set',
+                                designer,
+                                mpdLines,
+                                mode: 'replace'
+                            }
+                        });
+                    }
+
+                    wagFrankPost({
+                        kind: 'location-scene-spec',
+                        source: 'locationator',
+                        ts: Date.now(),
+                        payload: {
+                            name: 'Production Set',
+                            designer,
+                            count,
+                            textLines: lines
+                        }
+                    });
+                }
+
+                try {
+                    // Prefer the full MPD export, but still save the text
+                    // spec when MPD generation fails.
+                    if (sceneMpdText) {
+                        const blobMpd = new Blob([sceneMpdText], { type: 'text/plain' });
+                        const urlMpd = URL.createObjectURL(blobMpd);
+                        const aMpd = document.createElement('a');
+                        aMpd.href = urlMpd;
+                        aMpd.download = 'production_scene.mpd';
+                        document.body.appendChild(aMpd);
+                        aMpd.click();
+                        document.body.removeChild(aMpd);
+                        URL.revokeObjectURL(urlMpd);
+                        showToast(wagFrankBus ? 'SCENE -> wag-frank (scene-mpd from locationator); open wag-grace-editor.html to view' : 'Scene MPD saved');
+                    } else {
+                        const blobTxt = new Blob([text], { type: 'text/plain' });
+                        const urlTxt = URL.createObjectURL(blobTxt);
+                        const aTxt = document.createElement('a');
+                        aTxt.href = urlTxt;
+                        aTxt.download = 'production_scene.txt';
+                        document.body.appendChild(aTxt);
+                        aTxt.click();
+                        document.body.removeChild(aTxt);
+                        URL.revokeObjectURL(urlTxt);
+                        showToast(wagFrankBus ? 'Scene spec saved & sent' : 'Scene spec saved!');
+                    }
+                } catch (e) {
+                    showToast('Check console for data');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

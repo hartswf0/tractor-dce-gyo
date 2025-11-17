@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Movieator – Simpsons Scenes</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23FFCC00'/%3E%3C/svg%3E">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body { font-family: 'Courier New', monospace; background: #000; color: #ddd; overflow: hidden; }
+    .container { width: 100%; height: 100vh; display: flex; flex-direction: column; background: #000; }
+    .header { padding: 10px 16px; background: #0a0a0a; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; }
+    .title-block { display: flex; flex-direction: column; gap: 2px; }
+    .title { font-size: 13px; font-weight: bold; letter-spacing: 1px; color: #FFCC00; text-transform: uppercase; }
+    .subtitle { font-size: 9px; color: #777; letter-spacing: 1px; text-transform: uppercase; }
+    .badge { font-size: 8px; padding: 4px 8px; border-radius: 3px; border: 1px solid #333; text-transform: uppercase; letter-spacing: 1px; }
+
+    .main { flex: 1; display: flex; min-height: 0; }
+
+    .left-panel { width: 220px; border-right: 1px solid #222; display: flex; flex-direction: column; }
+    .filter-bar { padding: 8px 12px; background: #050505; border-bottom: 1px solid #222; display: flex; flex-direction: column; gap: 6px; }
+    .filter-label { font-size: 9px; color: #666; text-transform: uppercase; letter-spacing: 1px; }
+    .filter-input { background: #000; color: #ddd; border: 1px solid #333; border-radius: 3px; font-size: 9px; padding: 4px 6px; font-family: inherit; }
+
+    .show-list { flex: 1; overflow-y: auto; }
+    .show-item { padding: 8px 12px; border-bottom: 1px solid #111; cursor: pointer; font-size: 10px; display: flex; flex-direction: column; gap: 2px; }
+    .show-item:hover { background: #050505; }
+    .show-item.selected { background: #111; border-left: 3px solid #FFCC00; }
+    .show-title { color: #ddd; }
+    .show-meta { font-size: 8px; color: #666; }
+
+    .center-panel { flex: 1; border-right: 1px solid #222; display: flex; flex-direction: column; }
+    .scene-list { flex: 1; overflow-y: auto; }
+    .scene-item { padding: 8px 12px; border-bottom: 1px solid #111; cursor: pointer; font-size: 9px; display: flex; flex-direction: column; gap: 2px; }
+    .scene-item:hover { background: #050505; }
+    .scene-item.selected { background: #111; border-left: 3px solid #FFCC00; }
+    .scene-main-line { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .scene-label { color: #ddd; }
+    .scene-code { font-size: 8px; color: #999; text-transform: uppercase; letter-spacing: 1px; }
+    .scene-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+    .tag { font-size: 7px; padding: 2px 4px; border-radius: 3px; border: 1px solid #333; text-transform: uppercase; letter-spacing: 0.5px; color: #888; }
+
+    .right-panel { width: 320px; display: flex; flex-direction: column; }
+    .detail-header { padding: 10px 14px; border-bottom: 1px solid #222; background: #050505; }
+    .detail-title { font-size: 11px; font-weight: bold; letter-spacing: 1px; color: #FFCC00; }
+    .detail-subtitle { font-size: 9px; color: #777; margin-top: 2px; }
+    .detail-body { flex: 1; padding: 10px 14px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; font-size: 9px; }
+    .detail-row { display: flex; justify-content: space-between; gap: 8px; }
+    .detail-label { color: #666; text-transform: uppercase; letter-spacing: 1px; }
+    .detail-value { color: #ddd; text-align: right; }
+    .detail-description { font-size: 9px; color: #ccc; line-height: 1.4; }
+
+    .detail-actions { padding: 10px 14px; border-top: 1px solid #222; background: #050505; display: flex; gap: 8px; }
+    .btn { flex: 1; padding: 8px 10px; border-radius: 3px; border: 1px solid #333; background: #000; color: #ddd; font-size: 9px; font-family: inherit; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
+    .btn-primary { background: #FFCC00; border-color: #FFCC00; color: #000; }
+    .btn:active { transform: scale(0.97); }
+
+    .status-bar { padding: 6px 14px; background: #000; border-top: 1px solid #333; font-size: 8px; display: flex; justify-content: space-between; color: #666; }
+
+    .storyboard-block { margin-top: 6px; padding-top: 6px; border-top: 1px dashed #333; }
+    .storyboard-title { font-size: 8px; color: #777; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+    .storyboard-text { font-size: 8px; color: #aaa; line-height: 1.4; max-height: 140px; overflow-y: auto; white-space: pre-wrap; }
+
+    .toast { position: fixed; bottom: 60px; left: 50%; transform: translateX(-50%) translateY(100px); background: #1a1a1a; color: #FFCC00; padding: 10px 16px; border-radius: 6px; border: 1px solid #333; font-size: 9px; font-weight: bold; letter-spacing: 1px; z-index: 1000; opacity: 0; transition: all 0.3s ease; }
+    .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #000; }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #FFCC00; }
+
+    @media (max-width: 900px) {
+      .right-panel { display: none; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="title-block">
+      <div class="title">MOVIEATOR – SIMPSONS</div>
+      <div class="subtitle">SCENE PICKER FOR LEGO MPDS · OPENING SEQUENCE</div>
+    </div>
+    <div class="badge">SHOW · DON'T TELL · TV OPENING</div>
+  </div>
+
+  <div class="main">
+    <div class="left-panel">
+      <div class="filter-bar">
+        <div class="filter-label">Show</div>
+        <div style="font-size:10px;color:#ddd;">THE SIMPSONS – OPENING</div>
+        <div class="filter-label" style="margin-top:6px;">Search Scenes</div>
+        <input id="searchInput" class="filter-input" placeholder="grocery, band, driveway…" />
+      </div>
+      <div class="show-list" id="showList"></div>
+    </div>
+
+    <div class="center-panel">
+      <div class="scene-list" id="sceneList"></div>
+    </div>
+
+    <div class="right-panel">
+      <div class="detail-header">
+        <div class="detail-title" id="detailTitle">No Scene Selected</div>
+        <div class="detail-subtitle" id="detailSubtitle">Pick a Simpsons opening scene on the left</div>
+      </div>
+      <div class="detail-body">
+        <div class="detail-row">
+          <span class="detail-label">Show</span>
+          <span class="detail-value" id="detailShow">—</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Scene</span>
+          <span class="detail-value" id="detailScene">—</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Time</span>
+          <span class="detail-value" id="detailTime">—</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">MPD File</span>
+          <span class="detail-value" id="detailMpd">—</span>
+        </div>
+        <div class="detail-description" id="detailDescription"></div>
+        <div class="scene-tags" id="detailTags"></div>
+        <div class="storyboard-block">
+          <div class="storyboard-title">Inverse Storyboard</div>
+          <div class="storyboard-text" id="detailStoryboard">Loading Simpsons inverse storyboard…</div>
+        </div>
+      </div>
+      <div class="detail-actions">
+        <button class="btn" id="loadAddBtn">➕ Add to Scene</button>
+        <button class="btn btn-primary" id="loadReplaceBtn">🚀 Load Scene</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="status-bar">
+    <span id="statusLeft">READY</span>
+    <span id="statusRight">NO SCENE LOADED</span>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const wagFrankBus = (typeof BroadcastChannel !== 'undefined') ? new BroadcastChannel('wag-frank') : null;
+  const wagFrankPost = (message) => { if (!wagFrankBus) return; wagFrankBus.postMessage(message); };
+
+  const state = {
+    shows: [],
+    scenes: [],
+    filteredScenes: [],
+    selectedShowId: null,
+    selectedSceneIndex: -1,
+    search: '',
+    storyboardText: ''
+  };
+
+  const showToast = (msg) => {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 2000);
+  };
+
+  const setStatus = (left, right) => {
+    if (left != null) document.getElementById('statusLeft').textContent = left;
+    if (right != null) document.getElementById('statusRight').textContent = right;
+  };
+
+  const loadLibrary = async () => {
+    try {
+      const res = await fetch('simpsons-movie-scenes.json');
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      state.shows = data.shows || [];
+      state.scenes = (data.scenes || []).filter(s => s.showId === 'simpsons_opening');
+      state.selectedShowId = 'simpsons_opening';
+      applyFilter();
+      renderShows();
+      if (state.filteredScenes.length) {
+        state.selectedSceneIndex = 0;
+        renderScenes();
+        updateDetail();
+        const first = document.querySelector('.scene-item');
+        if (first) first.classList.add('selected');
+      }
+      setStatus('READY', 'Simpsons opening scenes indexed');
+    } catch (err) {
+      console.warn('Movieator: failed to load simpsons-movie-scenes.json', err);
+      showToast('Failed to load Simpsons scenes');
+      setStatus('ERROR', 'Could not load simpsons-movie-scenes.json');
+    }
+  };
+
+  const loadStoryboard = async () => {
+    try {
+      const res = await fetch('wag-viewer-prime-integration-20251112-055341%20copy/simpsons_inverse_storyboard.md');
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const text = await res.text();
+      state.storyboardText = text;
+      const el = document.getElementById('detailStoryboard');
+      if (el) {
+        el.textContent = text;
+      }
+    } catch (err) {
+      console.warn('Movieator: failed to load simpsons_inverse_storyboard.md', err);
+      const el = document.getElementById('detailStoryboard');
+      if (el) {
+        el.textContent = 'Failed to load Simpsons inverse storyboard.';
+      }
+    }
+  };
+
+  const applyFilter = () => {
+    const term = state.search.trim().toLowerCase();
+    state.filteredScenes = state.scenes.filter(scene => {
+      if (!term) return true;
+      const text = [
+        scene.label || '',
+        scene.locationSummary || '',
+        (scene.tags || []).join(' ')
+      ].join(' ').toLowerCase();
+      return text.includes(term);
+    });
+  };
+
+  const renderShows = () => {
+    const list = document.getElementById('showList');
+    list.innerHTML = '';
+    state.shows.forEach(show => {
+      const div = document.createElement('div');
+      div.className = 'show-item' + (show.id === state.selectedShowId ? ' selected' : '');
+      const meta = `${show.kind || 'tv'} · S${show.defaultSeason || 1}E${show.defaultEpisode || 1}`;
+      div.innerHTML = `<div class="show-title">${show.title}</div><div class="show-meta">${meta}</div>`;
+      div.addEventListener('click', () => {
+        state.selectedShowId = show.id;
+        document.querySelectorAll('.show-item').forEach(el => el.classList.remove('selected'));
+        div.classList.add('selected');
+        applyFilter();
+        renderScenes();
+        state.selectedSceneIndex = -1;
+        updateDetail();
+      });
+      list.appendChild(div);
+    });
+  };
+
+  const renderScenes = () => {
+    const list = document.getElementById('sceneList');
+    list.innerHTML = '';
+    state.filteredScenes.forEach((scene, idx) => {
+      const div = document.createElement('div');
+      div.className = 'scene-item' + (state.selectedSceneIndex === idx ? ' selected' : '');
+      const code = scene.shortCode || `SCENE ${scene.sceneNumber || ''}`;
+      const tags = scene.tags || [];
+      const tagsHtml = tags.map(t => `<span class="tag">${t}</span>`).join('');
+      div.innerHTML = `
+        <div class="scene-main-line">
+          <span class="scene-label">${scene.label}</span>
+          <span class="scene-code">${code}</span>
+        </div>
+        <div class="scene-tags">${tagsHtml}</div>
+      `;
+      div.addEventListener('click', () => {
+        state.selectedSceneIndex = idx;
+        document.querySelectorAll('.scene-item').forEach(el => el.classList.remove('selected'));
+        div.classList.add('selected');
+        updateDetail();
+      });
+      list.appendChild(div);
+    });
+  };
+
+  const updateDetail = () => {
+    const scene = state.filteredScenes[state.selectedSceneIndex];
+    const show = state.shows.find(s => s.id === state.selectedShowId);
+    if (!scene) {
+      document.getElementById('detailTitle').textContent = 'No Scene Selected';
+      document.getElementById('detailSubtitle').textContent = 'Pick a Simpsons opening scene on the left';
+      document.getElementById('detailShow').textContent = '—';
+      document.getElementById('detailScene').textContent = '—';
+      document.getElementById('detailTime').textContent = '—';
+      document.getElementById('detailMpd').textContent = '—';
+      document.getElementById('detailDescription').textContent = '';
+      document.getElementById('detailTags').innerHTML = '';
+      const sbEl = document.getElementById('detailStoryboard');
+      if (sbEl) sbEl.textContent = state.storyboardText || 'Simpsons inverse storyboard not loaded.';
+      return;
+    }
+    document.getElementById('detailTitle').textContent = scene.label || 'Scene';
+    document.getElementById('detailSubtitle').textContent = scene.locationSummary || '';
+    document.getElementById('detailShow').textContent = show ? show.title : 'The Simpsons';
+    document.getElementById('detailScene').textContent = scene.shortCode || `Scene ${scene.sceneNumber || ''}`;
+    document.getElementById('detailTime').textContent = scene.timeRange || '—';
+    document.getElementById('detailMpd').textContent = scene.mpdPath || '—';
+    document.getElementById('detailDescription').textContent = scene.locationSummary || '';
+    const tagsEl = document.getElementById('detailTags');
+    tagsEl.innerHTML = '';
+    (scene.tags || []).forEach(tag => {
+      const t = document.createElement('span');
+      t.className = 'tag';
+      t.textContent = tag;
+      tagsEl.appendChild(t);
+    });
+
+    const sbEl = document.getElementById('detailStoryboard');
+    if (sbEl) sbEl.textContent = state.storyboardText || 'Simpsons inverse storyboard not loaded.';
+  };
+
+  const loadScene = async (mode) => {
+    const scene = state.filteredScenes[state.selectedSceneIndex];
+    if (!scene) {
+      showToast('Pick a scene first');
+      return;
+    }
+    const mpdPath = scene.mpdPath;
+    if (!mpdPath) {
+      showToast('No MPD path for scene');
+      return;
+    }
+    setStatus('LOADING MPD…', scene.shortCode || '');
+    try {
+      const res = await fetch(mpdPath);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const mpdText = await res.text();
+      const lines = mpdText.split(/\r?\n/);
+      if (wagFrankBus) {
+        wagFrankPost({
+          kind: 'scene-mpd',
+          source: 'movieator-simpsons',
+          ts: Date.now(),
+          payload: {
+            name: scene.label || scene.id,
+            designer: 'Movieator · Simpsons',
+            mpdLines: lines,
+            mode: mode || 'replace'
+          }
+        });
+        showToast(mode === 'add'
+          ? 'SCENE -> wag-frank (scene-mpd, mode=add); open wag-grace-editor.html to view'
+          : 'SCENE -> wag-frank (scene-mpd, mode=replace); open wag-grace-editor.html to view');
+        setStatus('SCENE SENT', `${scene.shortCode || ''} · mode=${mode || 'replace'}`);
+      } else {
+        showToast('MPD loaded (no wag-frank channel)');
+        setStatus('MPD LOADED', 'BroadcastChannel unavailable');
+      }
+    } catch (err) {
+      console.warn('Movieator: failed to load MPD for scene', scene, err);
+      showToast('Failed to load scene MPD');
+      setStatus('ERROR', 'Could not load MPD');
+    }
+  };
+
+  window.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('searchInput');
+    searchInput.addEventListener('input', (e) => {
+      state.search = e.target.value;
+      applyFilter();
+      renderScenes();
+      state.selectedSceneIndex = -1;
+      updateDetail();
+    });
+
+    document.getElementById('loadReplaceBtn').addEventListener('click', () => loadScene('replace'));
+    document.getElementById('loadAddBtn').addEventListener('click', () => loadScene('add'));
+
+    loadLibrary();
+    loadStoryboard();
+  });
+</script>
+</body>
+</html>

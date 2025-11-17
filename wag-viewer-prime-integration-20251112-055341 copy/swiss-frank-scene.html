@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WAG FRANK – Lego Scene Builder Flow</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%2366AAFF'/%3E%3C/svg%3E">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: 'Courier New', monospace;
+      background: #000;
+      color: #ddd;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .page { flex: 1; display: flex; flex-direction: column; }
+    .header {
+      padding: 10px 16px;
+      border-bottom: 1px solid #333;
+      background: #050505;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .title-block { display: flex; flex-direction: column; gap: 2px; }
+    .title { font-size: 13px; font-weight: bold; letter-spacing: 1px; color: #FFD700; }
+    .subtitle { font-size: 9px; color: #777; letter-spacing: 1px; text-transform: uppercase; }
+    .badge { font-size: 8px; padding: 4px 8px; border-radius: 3px; border: 1px solid #333; text-transform: uppercase; letter-spacing: 1px; }
+
+    .content {
+      flex: 1;
+      padding: 12px 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      overflow-y: auto;
+    }
+
+    .section-title {
+      font-size: 10px;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+
+    .lego-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .lego-block {
+      min-width: 160px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid #333;
+      background: #050505;
+      position: relative;
+    }
+
+    .lego-top {
+      position: absolute;
+      top: -6px;
+      left: 8px;
+      display: flex;
+      gap: 4px;
+    }
+
+    .lego-stud {
+      width: 10px;
+      height: 6px;
+      border-radius: 4px 4px 0 0;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.05);
+    }
+
+    .lego-name {
+      font-size: 11px;
+      font-weight: bold;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+
+    .lego-note {
+      font-size: 8px;
+      color: #888;
+      line-height: 1.4;
+    }
+
+    .lego-minifig { border-color: #FFD700; box-shadow: 0 0 8px rgba(255,215,0,0.2); }
+    .lego-frank { border-color: #66AAFF; box-shadow: 0 0 8px rgba(102,170,255,0.2); }
+    .lego-grace { border-color: #9D4EDD; box-shadow: 0 0 8px rgba(157,78,221,0.2); }
+
+    .grid-visual {
+      margin-top: 8px;
+      display: grid;
+      grid-template-columns: repeat(9, 1fr);
+      gap: 2px;
+    }
+
+    .grid-cell {
+      width: 14px;
+      height: 14px;
+      border-radius: 2px;
+      border: 1px solid #222;
+      background: radial-gradient(circle at top, #151515, #050505);
+    }
+
+    .grid-cell.occupied {
+      border-color: #FFD700;
+      background: radial-gradient(circle at top, rgba(255,215,0,0.3), #050505);
+    }
+
+    .flow-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      font-size: 9px;
+    }
+
+    .arrow { padding: 2px 6px; border-radius: 10px; border: 1px solid #444; color: #666; }
+    .arrow-bus { border-color: #66AAFF; color: #66AAFF; }
+    .arrow-mpd { border-color: #00FF88; color: #00FF88; }
+
+    .pill {
+      font-size: 8px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid #333;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #888;
+    }
+
+    .pill-kind { border-color: #FFD700; color: #FFD700; }
+    .pill-mode { border-color: #4ECDC4; color: #4ECDC4; }
+
+    .callout {
+      border-left: 2px solid #333;
+      padding-left: 8px;
+      font-size: 9px;
+      color: #aaa;
+      line-height: 1.4;
+    }
+
+    .callout-emoji { margin-right: 4px; }
+
+    .status-bar {
+      padding: 6px 16px;
+      border-top: 1px solid #333;
+      font-size: 8px;
+      color: #666;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    @media (max-width: 768px) {
+      .lego-row { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div class="title-block">
+      <div class="title">WAG FRANK – LEGO SCENE BUILDER FLOW</div>
+      <div class="subtitle">SHOWING HOW MINIFIGS SNAP INTO A 9×9 GRID SCENE</div>
+    </div>
+    <div class="badge">SHOW · DON'T TELL · GRID COMPOSITOR</div>
+  </div>
+
+  <div class="content">
+    <div>
+      <div class="section-title">Actors on the bus</div>
+      <div class="lego-row">
+        <div class="lego-block lego-minifig">
+          <div class="lego-top"><div class="lego-stud"></div><div class="lego-stud"></div></div>
+          <div class="lego-name">MINIFIGURATOR</div>
+          <div class="lego-note">
+            Builds individual minifigs and families.
+            When you click "SAVE MPD", it sends
+            <span class="pill pill-kind">minifig-mpd</span> or
+            <span class="pill pill-kind">minifig-family-mpd</span>
+            to the <strong>wag-frank</strong> channel.
+          </div>
+        </div>
+        <div class="lego-block lego-frank">
+          <div class="lego-top"><div class="lego-stud"></div><div class="lego-stud"></div></div>
+          <div class="lego-name">WAG FRANK</div>
+          <div class="lego-note">
+            Listens on the wag-frank bus, collects minifigs into an inbox,
+            and lets you place them onto a <strong>9×9 Lego grid</strong>.
+            Each occupied cell becomes a cluster of MPD lines.
+          </div>
+          <div class="grid-visual">
+            <!-- simple visual: some occupied cells -->
+            <div class="grid-cell occupied"></div>
+            <div class="grid-cell"></div>
+            <div class="grid-cell"></div>
+            <div class="grid-cell"></div>
+            <div class="grid-cell occupied"></div>
+            <div class="grid-cell"></div>
+            <div class="grid-cell"></div>
+            <div class="grid-cell"></div>
+            <div class="grid-cell"></div>
+
+            <div class="grid-cell"></div>
+            <div class="grid-cell"></div>
+            <div class="grid-cell occupied"></div>
+            <div class="grid-cell"></div>
+            <div class="grid-cell"></div>
+            <div class="grid-cell"></div>
+            <div class="grid-cell"></div>
+            <div class="grid-cell occupied"></div>
+            <div class="grid-cell"></div>
+
+            <div class="grid-cell"></div>
+            <div class="grid-cell"></div>
+            <div class="grid-cell"></div>
+            <div class="grid-cell"></div>
+            <div class="grid-cell occupied"></div>
+            <div class="grid-cell"></div>
+            <div class="grid-cell"></div>
+            <div class="grid-cell"></div>
+            <div class="grid-cell"></div>
+          </div>
+        </div>
+        <div class="lego-block lego-grace">
+          <div class="lego-top"><div class="lego-stud"></div><div class="lego-stud"></div></div>
+          <div class="lego-name">GRACE / WAG VIEWER</div>
+          <div class="lego-note">
+            Receives the final <span class="pill pill-kind">scene-mpd</span>
+            from WAG FRANK. Renders the assembled grid of minifigs in 3D.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-title">Flow – from single minifigs to a composed scene</div>
+      <div class="flow-row" style="margin-bottom:6px;">
+        <span class="pill">Channel: wag-frank</span>
+        <span class="pill pill-mode">mode: replace / add</span>
+      </div>
+      <div class="flow-row" style="margin-bottom:6px;">
+        <span class="lego-block lego-minifig" style="min-width:140px; text-align:center;">MINIFIGURATOR<br><span style="font-size:8px; color:#888;">save MPD</span></span>
+        <span class="arrow arrow-bus">minifig-mpd / minifig-family-mpd</span>
+        <span class="lego-block lego-frank" style="min-width:140px; text-align:center;">WAG FRANK<br><span style="font-size:8px; color:#888;">inbox list</span></span>
+        <span class="arrow">assign to grid cell</span>
+        <span class="lego-block lego-frank" style="min-width:140px; text-align:center;">9×9 GRID<br><span style="font-size:8px; color:#888;">layout</span></span>
+      </div>
+      <div class="flow-row">
+        <span class="lego-block lego-frank" style="min-width:140px; text-align:center;">WAG FRANK<br><span style="font-size:8px; color:#888;">"Build Scene in Grace"</span></span>
+        <span class="arrow arrow-mpd">scene-mpd (mode: replace)</span>
+        <span class="lego-block lego-grace" style="min-width:140px; text-align:center;">GRACE<br><span style="font-size:8px; color:#888;">grid scene rendered</span></span>
+      </div>
+      <div class="callout" style="margin-top:8px;">
+        <span class="callout-emoji">🧱</span>
+        WAG FRANK takes multiple bricks (minifig MPDs), snaps them into a 9×9 Lego plate,
+        and exports a single combined <code>scene.mpd</code> for Grace to load.
+      </div>
+    </div>
+
+    <div>
+      <div class="section-title">Where this fits with the other builders</div>
+      <div class="lego-row">
+        <div class="lego-block lego-scene">
+          <div class="lego-top"><div class="lego-stud"></div><div class="lego-stud"></div></div>
+          <div class="lego-name">SCENEERATOR → GRACE</div>
+          <div class="lego-note">
+            Big scene shells (crater baseplates, hulls) go straight into Grace
+            as <span class="pill pill-kind">scene-mpd</span>.
+          </div>
+        </div>
+        <div class="lego-block lego-location">
+          <div class="lego-top"><div class="lego-stud"></div><div class="lego-stud"></div></div>
+          <div class="lego-name">LOCATIONATOR → GRACE</div>
+          <div class="lego-note">
+            Locations on top of shells go straight into Grace as
+            <span class="pill pill-kind">location-mpd</span>.
+          </div>
+        </div>
+        <div class="lego-block lego-minifig">
+          <div class="lego-top"><div class="lego-stud"></div><div class="lego-stud"></div></div>
+          <div class="lego-name">MINIFIGURATOR → WAG FRANK</div>
+          <div class="lego-note">
+            Characters can either go directly to Grace, or through WAG FRANK
+            to be positioned on the grid, then forwarded as part of a bigger
+            <span class="pill pill-kind">scene-mpd</span>.
+          </div>
+        </div>
+      </div>
+      <div class="callout" style="margin-top:8px;">
+        <span class="callout-emoji">🎬</span>
+        You can think of WAG FRANK as a <strong>layout stage</strong>:
+        Grace is the renderer, Sceneerator/Locationator define the world,
+        Vehiculator builds vehicles, and Minifigurator feeds characters
+        through this 9×9 storyboard plate.
+      </div>
+    </div>
+  </div>
+
+  <div class="status-bar">
+    <span>Swiss Docs · WAG FRANK Scene Builder Flow</span>
+    <span>Open via SWISS · DOCS / FRANK FLOW</span>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,1883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minifig Builder</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23FFD700'/%3E%3C/svg%3E">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #000;
+            color: #ddd;
+            overflow: hidden;
+            touch-action: pan-y;
+        }
+
+        .container {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: #000;
+        }
+
+        .header {
+            padding: 10px 15px;
+            background: #0a0a0a;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .title-block {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .title {
+            font-size: 13px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            color: #FFD700;
+        }
+
+        .stats {
+            font-size: 8px;
+            color: #666;
+            letter-spacing: 0.5px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .icon-btn {
+            padding: 6px 10px;
+            font-size: 14px;
+            background: transparent;
+            color: #FFD700;
+            border: 1px solid #333;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .icon-btn:active {
+            transform: scale(0.95);
+            background: #1a1a1a;
+        }
+
+        .family-btn {
+            padding: 8px 12px;
+            font-size: 9px;
+            font-weight: bold;
+            background: #FFD700;
+            color: #000;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: all 0.2s;
+        }
+
+        .family-btn:active {
+            transform: scale(0.95);
+            background: #FFA500;
+        }
+
+        .preview-section {
+            display: flex;
+            background: #0a0a0a;
+            border-bottom: 1px solid #333;
+            min-height: 280px;
+            position: relative;
+        }
+
+        .minifig-display-area {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        .rotate-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 32px;
+            height: 32px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 50%;
+            color: #FFD700;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .rotate-btn:active {
+            background: #222;
+            transform: scale(0.95);
+        }
+
+        .minifig-figure {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0;
+            transform: scale(1.2);
+            transition: transform 0.3s ease;
+        }
+
+        .minifig-figure.rotating {
+            animation: rotate360 0.8s ease-in-out;
+        }
+
+        @keyframes rotate360 {
+            from { transform: scale(1.2) rotateY(0deg); }
+            to { transform: scale(1.2) rotateY(360deg); }
+        }
+
+        @keyframes partPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes partGlow {
+            0%, 100% { filter: brightness(1); }
+            50% { filter: brightness(1.3); }
+        }
+
+        .part-hat {
+            width: 50px;
+            height: 12px;
+            background: #111;
+            border: 2px solid #333;
+            border-radius: 3px 3px 2px 2px;
+            margin-bottom: 3px;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .part-hat.filled {
+            border-color: #FFD700;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+            animation: partPulse 0.5s ease;
+        }
+
+        .part-head {
+            width: 45px;
+            height: 45px;
+            background: #222;
+            border: 2px solid #333;
+            border-radius: 50% 50% 45% 45%;
+            position: relative;
+            margin-bottom: 2px;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .part-head.filled {
+            background: radial-gradient(circle at 30% 30%, #FFD700, #B8860B);
+            border-color: #FFD700;
+            box-shadow: 0 0 12px rgba(255, 215, 0, 0.4);
+            animation: partPulse 0.5s ease;
+        }
+
+        .part-head::before,
+        .part-head::after {
+            content: '';
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: #000;
+            border-radius: 50%;
+            top: 16px;
+        }
+
+        .part-head::before { left: 11px; }
+        .part-head::after { right: 11px; }
+
+        .smile {
+            position: absolute;
+            width: 18px;
+            height: 8px;
+            border: 2px solid #000;
+            border-top: none;
+            border-radius: 0 0 18px 18px;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .part-torso {
+            width: 48px;
+            height: 45px;
+            background: #222;
+            border: 2px solid #333;
+            border-radius: 3px 3px 0 0;
+            position: relative;
+            z-index: 2;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .part-torso.filled {
+            background: linear-gradient(180deg, #DC143C 0%, #B22222 100%);
+            border-color: #FFD700;
+            box-shadow: 0 0 12px rgba(220, 20, 60, 0.4);
+            animation: partPulse 0.5s ease;
+        }
+
+        .part-arms {
+            width: 65px;
+            height: 8px;
+            background: #222;
+            border: 2px solid #333;
+            border-radius: 4px;
+            position: absolute;
+            top: 58px;
+            z-index: 1;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .part-arms.filled {
+            background: #FFD700;
+            border-color: #FFD700;
+            box-shadow: 0 0 12px rgba(255, 215, 0, 0.4);
+            animation: partPulse 0.5s ease;
+        }
+
+        .part-hips {
+            width: 48px;
+            height: 18px;
+            background: #222;
+            border: 2px solid #333;
+            border-radius: 0 0 3px 3px;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .part-hips.filled {
+            background: linear-gradient(180deg, #1E90FF 0%, #1873CC 100%);
+            border-color: #FFD700;
+            box-shadow: 0 0 12px rgba(30, 144, 255, 0.4);
+            animation: partPulse 0.5s ease;
+        }
+
+        .part-legs {
+            width: 48px;
+            height: 50px;
+            background: #222;
+            border: 2px solid #333;
+            position: relative;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .part-legs.filled {
+            background: #1E90FF;
+            border-color: #FFD700;
+            box-shadow: 0 0 12px rgba(30, 144, 255, 0.4);
+            animation: partPulse 0.5s ease;
+        }
+
+        .part-legs::before {
+            content: '';
+            position: absolute;
+            width: 1px;
+            height: 100%;
+            background: #333;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .part-legs.filled::before {
+            background: #FFD700;
+        }
+
+        .build-info {
+            width: 170px;
+            padding: 15px 12px;
+            background: #000;
+            border-left: 1px solid #333;
+            overflow-y: auto;
+        }
+
+        .build-title {
+            font-size: 9px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            color: #FFD700;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .clear-btn {
+            font-size: 8px;
+            padding: 3px 6px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 2px;
+            color: #999;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .clear-btn:active {
+            background: #222;
+            color: #FFD700;
+        }
+
+        .build-row {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 8px 0;
+            border-bottom: 1px solid #222;
+            font-size: 8px;
+        }
+
+        .build-row:last-child {
+            border-bottom: none;
+        }
+
+        .build-label {
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .build-value {
+            color: #FFD700;
+            font-weight: 600;
+            word-break: break-all;
+            line-height: 1.3;
+        }
+
+        .build-input {
+            width: 100%;
+            background: #0a0a0a;
+            color: #FFD700;
+            border: 1px solid #333;
+            border-radius: 2px;
+            padding: 4px 6px;
+            font-size: 8px;
+            font-family: inherit;
+            transition: border-color 0.2s;
+        }
+
+        .build-input:focus {
+            outline: none;
+            border-color: #FFD700;
+        }
+
+        .controls-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .search-bar {
+            padding: 10px 15px;
+            background: #0a0a0a;
+            border-bottom: 1px solid #333;
+            display: flex;
+            gap: 8px;
+        }
+
+        .search-wrapper {
+            position: relative;
+            flex: 1;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px 35px 10px 12px;
+            background: #000;
+            border: 1px solid #333;
+            border-radius: 4px;
+            color: #ddd;
+            font-family: inherit;
+            font-size: 10px;
+            transition: border-color 0.2s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #FFD700;
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 14px;
+            color: #666;
+        }
+
+        .filter-btn {
+            padding: 10px 12px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 4px;
+            color: #666;
+            font-size: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-btn.active {
+            background: #FFD700;
+            color: #000;
+            border-color: #FFD700;
+        }
+
+        .view-tabs {
+            display: flex;
+            background: #0a0a0a;
+            border-bottom: 1px solid #333;
+            position: relative;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: #666;
+            font-family: inherit;
+            font-size: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            color: #FFD700;
+            border-bottom-color: #FFD700;
+        }
+
+        .tab-extras {
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            gap: 8px;
+        }
+
+        .random-btn {
+            padding: 6px 10px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 3px;
+            color: #FFD700;
+            font-size: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: all 0.2s;
+        }
+
+        .random-btn:active {
+            transform: scale(0.95);
+            background: #222;
+        }
+
+        .content-area {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .view-panel {
+            height: 100%;
+            display: none;
+            flex-direction: column;
+        }
+
+        .view-panel.active {
+            display: flex;
+        }
+
+        .dial-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 15px;
+        }
+
+        .dial-group {
+            margin-bottom: 15px;
+        }
+
+        .dial-label {
+            font-size: 9px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            color: #FFD700;
+            margin-bottom: 8px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .dial-counter {
+            font-size: 8px;
+            color: #666;
+            font-weight: normal;
+        }
+
+        .dial-box {
+            position: relative;
+            height: 45px;
+            background: #0a0a0a;
+            border: 1px solid #333;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .dial-track {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            transition: transform 0.3s ease-out;
+            padding: 0 50%;
+        }
+
+        .dial-item {
+            min-width: 150px;
+            padding: 12px;
+            text-align: center;
+            font-size: 10px;
+            color: #444;
+            cursor: grab;
+            user-select: none;
+            transition: all 0.2s;
+        }
+
+        .dial-item.active {
+            color: #FFD700;
+            font-weight: bold;
+            text-shadow: 0 0 6px rgba(255, 215, 0, 0.5);
+        }
+
+        .dial-marker {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 2px;
+            height: 100%;
+            background: #FFD700;
+            transform: translateX(-50%);
+            pointer-events: none;
+            z-index: 10;
+            box-shadow: 0 0 6px rgba(255, 215, 0, 0.6);
+        }
+
+        .list-container {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .list-section {
+            border-bottom: 1px solid #222;
+        }
+
+        .list-header {
+            padding: 12px 15px;
+            background: #0a0a0a;
+            font-size: 10px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            color: #FFD700;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+        }
+
+        .list-header:hover {
+            background: #111;
+        }
+
+        .expand-icon {
+            font-size: 10px;
+            transition: transform 0.3s;
+        }
+
+        .list-section.expanded .expand-icon {
+            transform: rotate(180deg);
+        }
+
+        .list-items {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .list-section.expanded .list-items {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .list-item {
+            padding: 10px 15px;
+            background: #000;
+            border-bottom: 1px solid #111;
+            color: #999;
+            font-size: 9px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .list-item:hover {
+            background: #0a0a0a;
+            color: #ddd;
+            padding-left: 20px;
+        }
+
+        .list-item.selected {
+            background: #1a1a1a;
+            color: #FFD700;
+            border-left: 3px solid #FFD700;
+        }
+
+        .color-swatch {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+            border: 1px solid #333;
+            flex-shrink: 0;
+        }
+
+        .item-details {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .item-id {
+            font-size: 8px;
+            color: #FFD700;
+            font-family: 'Courier New', monospace;
+        }
+
+        .item-name {
+            font-size: 9px;
+            line-height: 1.3;
+        }
+
+        .meta-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 2px;
+        }
+
+        .meta-tag {
+            font-size: 7px;
+            padding: 2px 5px;
+            border-radius: 2px;
+            border: 1px solid #333;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        .meta-tag.highlight {
+            border-color: #FFD700;
+            color: #FFD700;
+        }
+
+        .action-bar {
+            display: flex;
+            background: #0a0a0a;
+            border-top: 1px solid #333;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 15px;
+            font-family: inherit;
+            font-size: 10px;
+            font-weight: bold;
+            border: none;
+            border-right: 1px solid #333;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .action-btn:last-child {
+            border-right: none;
+        }
+
+        .btn-load {
+            background: #000;
+            color: #FFD700;
+        }
+
+        .btn-add {
+            background: #FFD700;
+            color: #000;
+        }
+
+        .action-btn:active {
+            transform: scale(0.97);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #1a1a1a;
+            color: #FFD700;
+            padding: 12px 20px;
+            border-radius: 6px;
+            border: 1px solid #333;
+            font-size: 10px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            z-index: 1000;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #000;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #FFD700;
+        }
+
+        @media (max-width: 480px) {
+            .build-info {
+                width: 150px;
+            }
+
+            .minifig-figure {
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="title-block">
+                <div class="title">MINIFIG BUILDER</div>
+                <div class="stats">33,820 PARTS CATALOG</div>
+                <div class="stats" id="frankStatus">FRANK: UNKNOWN</div>
+            </div>
+            <div class="header-actions">
+                <button class="icon-btn" id="undoBtn" title="Undo">↶</button>
+                <button class="icon-btn" id="redoBtn" title="Redo">↷</button>
+                <button class="family-btn" id="makeFamilyBtn">FAMILY</button>
+            </div>
+        </div>
+
+        <div class="preview-section">
+            <div class="minifig-display-area">
+                <button class="rotate-btn" id="rotateBtn">⟳</button>
+                <div class="minifig-figure" id="minifigFigure">
+                    <div class="part-hat" data-part="hat"></div>
+                    <div class="part-head" data-part="head">
+                        <div class="smile"></div>
+                    </div>
+                    <div class="part-arms" data-part="arms"></div>
+                    <div class="part-torso" data-part="torso"></div>
+                    <div class="part-hips" data-part="hips"></div>
+                    <div class="part-legs" data-part="legs"></div>
+                </div>
+            </div>
+
+            <div class="build-info">
+                <div class="build-title">
+                    CURRENT
+                    <button class="clear-btn" id="clearBtn">CLEAR</button>
+                </div>
+                <div class="build-row">
+                    <span class="build-label">Name</span>
+                    <input class="build-input" id="minifigName" placeholder="Custom Minifig">
+                </div>
+                <div class="build-row">
+                    <span class="build-label">Author</span>
+                    <input class="build-input" id="minifigAuthor" placeholder="Builder">
+                </div>
+                <div class="build-row">
+                    <span class="build-label">Hat</span>
+                    <span class="build-value" id="previewHat">—</span>
+                </div>
+                <div class="build-row">
+                    <span class="build-label">Head</span>
+                    <span class="build-value" id="previewHead">—</span>
+                </div>
+                <div class="build-row">
+                    <span class="build-label">Torso</span>
+                    <span class="build-value" id="previewTorso">—</span>
+                </div>
+                <div class="build-row">
+                    <span class="build-label">Arms</span>
+                    <span class="build-value" id="previewArms">—</span>
+                </div>
+                <div class="build-row">
+                    <span class="build-label">Hips</span>
+                    <span class="build-value" id="previewHips">—</span>
+                </div>
+                <div class="build-row">
+                    <span class="build-label">Legs</span>
+                    <span class="build-value" id="previewLegs">—</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls-section">
+            <div class="search-bar">
+                <div class="search-wrapper">
+                    <input type="text" class="search-input" placeholder="Search parts..." id="searchInput">
+                    <span class="search-icon">🔍</span>
+                </div>
+            </div>
+
+            <div class="view-tabs">
+                <button class="tab-btn active" data-view="dial">DIAL</button>
+                <button class="tab-btn" data-view="list">LIST</button>
+                <div class="tab-extras">
+                    <button class="random-btn" id="randomBtn">🎲 RANDOM</button>
+                </div>
+            </div>
+
+            <div class="content-area">
+                <div class="view-panel active" id="dialView">
+                    <div class="dial-container">
+                        <div class="dial-group">
+                            <div class="dial-label">
+                                HAT / HEADGEAR
+                                <span class="dial-counter" data-counter="hat">0 items</span>
+                            </div>
+                            <div class="dial-box" data-dial="hat">
+                                <div class="dial-marker"></div>
+                                <div class="dial-track"></div>
+                            </div>
+                        </div>
+
+                        <div class="dial-group">
+                            <div class="dial-label">
+                                HEAD
+                                <span class="dial-counter" data-counter="head">0 items</span>
+                            </div>
+                            <div class="dial-box" data-dial="head">
+                                <div class="dial-marker"></div>
+                                <div class="dial-track"></div>
+                            </div>
+                        </div>
+
+                        <div class="dial-group">
+                            <div class="dial-label">
+                                TORSO
+                                <span class="dial-counter" data-counter="torso">0 items</span>
+                            </div>
+                            <div class="dial-box" data-dial="torso">
+                                <div class="dial-marker"></div>
+                                <div class="dial-track"></div>
+                            </div>
+                        </div>
+
+                        <div class="dial-group">
+                            <div class="dial-label">
+                                ARMS
+                                <span class="dial-counter" data-counter="arms">0 items</span>
+                            </div>
+                            <div class="dial-box" data-dial="arms">
+                                <div class="dial-marker"></div>
+                                <div class="dial-track"></div>
+                            </div>
+                        </div>
+
+                        <div class="dial-group">
+                            <div class="dial-label">
+                                HIPS
+                                <span class="dial-counter" data-counter="hips">0 items</span>
+                            </div>
+                            <div class="dial-box" data-dial="hips">
+                                <div class="dial-marker"></div>
+                                <div class="dial-track"></div>
+                            </div>
+                        </div>
+
+                        <div class="dial-group">
+                            <div class="dial-label">
+                                LEGS
+                                <span class="dial-counter" data-counter="legs">0 items</span>
+                            </div>
+                            <div class="dial-box" data-dial="legs">
+                                <div class="dial-marker"></div>
+                                <div class="dial-track"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="view-panel" id="listView">
+                    <div class="list-container">
+                        <div class="list-section" data-category="hat">
+                            <div class="list-header">
+                                <span>HAT / HEADGEAR</span>
+                                <span class="expand-icon">▼</span>
+                            </div>
+                            <div class="list-items"></div>
+                        </div>
+
+                        <div class="list-section" data-category="head">
+                            <div class="list-header">
+                                <span>HEAD</span>
+                                <span class="expand-icon">▼</span>
+                            </div>
+                            <div class="list-items"></div>
+                        </div>
+
+                        <div class="list-section" data-category="torso">
+                            <div class="list-header">
+                                <span>TORSO</span>
+                                <span class="expand-icon">▼</span>
+                            </div>
+                            <div class="list-items"></div>
+                        </div>
+
+                        <div class="list-section" data-category="arms">
+                            <div class="list-header">
+                                <span>ARMS</span>
+                                <span class="expand-icon">▼</span>
+                            </div>
+                            <div class="list-items"></div>
+                        </div>
+
+                        <div class="list-section" data-category="hips">
+                            <div class="list-header">
+                                <span>HIPS</span>
+                                <span class="expand-icon">▼</span>
+                            </div>
+                            <div class="list-items"></div>
+                        </div>
+
+                        <div class="list-section" data-category="legs">
+                            <div class="list-header">
+                                <span>LEGS</span>
+                                <span class="expand-icon">▼</span>
+                            </div>
+                            <div class="list-items"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="action-bar">
+            <button class="action-btn btn-load">💾 SAVE MPD</button>
+            <button class="action-btn btn-add">📸 SCREENSHOT</button>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const wagFrankBus = (typeof BroadcastChannel !== 'undefined') ? new BroadcastChannel('wag-frank') : null;
+        const wagFrankPost = (message) => {
+            if (!wagFrankBus) return;
+            wagFrankBus.postMessage(message);
+        };
+
+        let frankLastSeen = null;
+
+        const updateFrankStatus = (state) => {
+            const el = document.getElementById('frankStatus');
+            if (!el) return;
+            if (state === 'online') {
+                el.textContent = 'FRANK: ONLINE';
+                el.style.color = '#00FF88';
+            } else if (state === 'offline') {
+                el.textContent = 'FRANK: OFFLINE';
+                el.style.color = '#666666';
+            } else {
+                el.textContent = 'FRANK: UNKNOWN';
+                el.style.color = '#666666';
+            }
+        };
+
+        if (wagFrankBus) {
+            wagFrankBus.addEventListener('message', (event) => {
+                const msg = event.data;
+                if (!msg || typeof msg !== 'object') return;
+                if (msg.kind === 'frank-heartbeat') {
+                    frankLastSeen = msg.ts || Date.now();
+                    updateFrankStatus('online');
+                }
+            });
+
+            setInterval(() => {
+                const now = Date.now();
+                const online = frankLastSeen != null && (now - frankLastSeen) < 5000;
+                updateFrankStatus(online ? 'online' : 'offline');
+            }, 5000);
+        } else {
+            setTimeout(() => updateFrankStatus('offline'), 0);
+        }
+
+        const dialData = {
+            hat: [
+                { name: 'Wizard Hat', id: '10164p01', colorName: 'Blue' },
+                { name: 'Space Helmet', id: '100662p01', colorName: 'White' }
+            ],
+            head: [
+                { name: 'Classic Smile', id: '3626bp01', colorName: 'Yellow' },
+                { name: 'Angry Face', id: '3626bp02', colorName: 'Yellow' },
+                { name: 'Cool Shades', id: '3626bp03', colorName: 'Yellow' },
+                { name: 'Beard Guy', id: '3626bp04', colorName: 'Yellow' },
+                { name: 'Pilot Helmet', id: '3626bp05', colorName: 'White' },
+                { name: 'Wizard Hat', id: '3626bp06', colorName: 'Brown' },
+                { name: 'Ninja Mask', id: '3626bp07', colorName: 'Black' },
+                { name: 'Space Helmet', id: '3626bp08', colorName: 'White' }
+            ],
+            torso: [
+                { name: 'Plain Red', id: '973c00', colorName: 'Red' },
+                { name: 'Striped Shirt', id: '973px01', colorName: 'Blue' },
+                { name: 'Police Uniform', id: '973px02', colorName: 'Blue' },
+                { name: 'Suit & Tie', id: '973px03', colorName: 'Black' },
+                { name: 'Space Suit', id: '973px04', colorName: 'White' },
+                { name: 'Pirate Vest', id: '973px05', colorName: 'Brown' },
+                { name: 'Chef Apron', id: '973px06', colorName: 'White' },
+                { name: 'Knight Armor', id: '973px07', colorName: 'Gray' }
+            ],
+            arms: [
+                { name: 'Yellow Arms', id: '983c00', colorName: 'Yellow' },
+                { name: 'White Arms', id: '983c01', colorName: 'White' },
+                { name: 'Black Arms', id: '983c02', colorName: 'Black' },
+                { name: 'Blue Arms', id: '983c03', colorName: 'Blue' },
+                { name: 'Red Arms', id: '983c04', colorName: 'Red' },
+                { name: 'Tan Arms', id: '983c05', colorName: 'Tan' },
+                { name: 'Brown Arms', id: '983c06', colorName: 'Brown' },
+                { name: 'Green Arms', id: '983c07', colorName: 'Green' }
+            ],
+            hips: [
+                { name: 'Black Hips', id: '970c00', colorName: 'Black' },
+                { name: 'Blue Hips', id: '970c01', colorName: 'Blue' },
+                { name: 'Red Hips', id: '970c02', colorName: 'Red' },
+                { name: 'White Hips', id: '970c03', colorName: 'White' },
+                { name: 'Gray Hips', id: '970c04', colorName: 'Gray' },
+                { name: 'Green Hips', id: '970c05', colorName: 'Green' },
+                { name: 'Brown Hips', id: '970c06', colorName: 'Brown' },
+                { name: 'Tan Hips', id: '970c07', colorName: 'Tan' }
+            ],
+            legs: [
+                { name: 'Blue Jeans', id: '971c00', colorName: 'Blue' },
+                { name: 'Black Pants', id: '971c01', colorName: 'Black' },
+                { name: 'White Pants', id: '971c02', colorName: 'White' },
+                { name: 'Red Pants', id: '971c03', colorName: 'Red' },
+                { name: 'Shorts', id: '971c04', colorName: 'Tan' },
+                { name: 'Skirt', id: '971c05', colorName: 'Pink' },
+                { name: 'Space Pants', id: '971c06', colorName: 'White' },
+                { name: 'Armor Legs', id: '971c07', colorName: 'Gray' }
+            ]
+        };
+
+        const state = {
+            view: 'dial',
+            selections: {
+                hat: null,
+                head: null,
+                torso: null,
+                arms: null,
+                hips: null,
+                legs: null
+            },
+            searchTerm: '',
+            expandedSection: null,
+            history: [],
+            historyIndex: -1
+        };
+
+        const COLOR_MAP = {
+            yellow: '#FFD700',
+            tan: '#D2B48C',
+            red: '#DC143C',
+            blue: '#1E90FF',
+            black: '#1a1a1a',
+            white: '#F0F0F0',
+            gray: '#808080',
+            'dark bluish gray': '#555555',
+            green: '#228B22',
+            brown: '#8B4513',
+            orange: '#FF8C00',
+            pink: '#FF69B4',
+            purple: '#800080'
+        };
+
+        const getPartColor = (part) => {
+            const name = (part && part.colorName) ? part.colorName.toLowerCase() : '';
+            return COLOR_MAP[name] || '#FFD700';
+        };
+
+        const showToast = (message) => {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        };
+
+        const haptic = () => {
+            if ('vibrate' in navigator) {
+                try { navigator.vibrate(10); } catch (e) {}
+            }
+        };
+
+        const saveToHistory = () => {
+            const snapshot = JSON.parse(JSON.stringify(state.selections));
+            if (state.historyIndex < state.history.length - 1) {
+                state.history = state.history.slice(0, state.historyIndex + 1);
+            }
+            state.history.push(snapshot);
+            state.historyIndex++;
+            if (state.history.length > 50) {
+                state.history.shift();
+                state.historyIndex--;
+            }
+            updateUndoRedoButtons();
+        };
+
+        const updateUndoRedoButtons = () => {
+            document.getElementById('undoBtn').style.opacity = state.historyIndex > 0 ? '1' : '0.3';
+            document.getElementById('redoBtn').style.opacity = state.historyIndex < state.history.length - 1 ? '1' : '0.3';
+        };
+
+        const undo = () => {
+            if (state.historyIndex > 0) {
+                state.historyIndex--;
+                state.selections = JSON.parse(JSON.stringify(state.history[state.historyIndex]));
+                refreshAllPreviews();
+                haptic();
+                showToast('Undo');
+            }
+        };
+
+        const redo = () => {
+            if (state.historyIndex < state.history.length - 1) {
+                state.historyIndex++;
+                state.selections = JSON.parse(JSON.stringify(state.history[state.historyIndex]));
+                refreshAllPreviews();
+                haptic();
+                showToast('Redo');
+            }
+        };
+
+        const refreshAllPreviews = () => {
+            Object.keys(state.selections).forEach(part => {
+                updateMinifig(part);
+                const sel = state.selections[part];
+                if (sel) {
+                    const id = sel.filename || sel.id || '';
+                    updatePreview(part, id ? `parts/${id}` : sel.name);
+                } else {
+                    updatePreview(part, '—');
+                }
+            });
+        };
+
+        const updateMinifig = (part) => {
+            const el = document.querySelector(`.part-${part}`);
+            if (!el) return;
+            const sel = state.selections[part];
+            
+            el.classList.remove('filled');
+            void el.offsetWidth;
+            
+            if (sel) {
+                el.classList.add('filled');
+                const color = getPartColor(sel);
+                el.style.background = color;
+                el.style.boxShadow = `0 0 12px ${color}66`;
+            } else {
+                el.style.background = '';
+                el.style.boxShadow = '';
+            }
+        };
+
+        const updatePreview = (cat, val) => {
+            const el = document.getElementById(`preview${cat.charAt(0).toUpperCase() + cat.slice(1)}`);
+            if (el) el.textContent = val || '—';
+        };
+
+        const clearAll = () => {
+            if (!confirm('Clear all selections?')) return;
+            saveToHistory();
+            Object.keys(state.selections).forEach(key => {
+                state.selections[key] = null;
+                updateMinifig(key);
+                updatePreview(key, '—');
+            });
+            document.querySelectorAll('.list-item.selected').forEach(el => el.classList.remove('selected'));
+            Object.values(dials).forEach(dial => dial.clearSelection());
+            showToast('Cleared all');
+            haptic();
+        };
+
+        const randomize = () => {
+            saveToHistory();
+            Object.keys(dialData).forEach(cat => {
+                const items = dialData[cat];
+                if (items.length) {
+                    const randomIdx = Math.floor(Math.random() * items.length);
+                    const item = items[randomIdx];
+                    const part = item.part || item;
+                    state.selections[cat] = part;
+                    const id = part.filename || part.id || '';
+                    updatePreview(cat, id ? `parts/${id}` : item.name);
+                    updateMinifig(cat);
+                    if (dials[cat]) dials[cat].setIndex(randomIdx);
+                }
+            });
+            showToast('Randomized!');
+            haptic();
+        };
+
+        const rotateMinifig = () => {
+            const figure = document.getElementById('minifigFigure');
+            figure.classList.add('rotating');
+            setTimeout(() => figure.classList.remove('rotating'), 800);
+            haptic();
+        };
+
+        async function loadMinifigLibrary() {
+            try {
+                const response = await fetch('wag-viewer-prime-integration-20251112-055341%20copy/minifig-library.json');
+                if (!response.ok) return;
+                const lib = await response.json();
+                const parts = lib.parts || {};
+
+                const makeItems = (arr) => (arr || [])
+                    .filter((p) => !isStickerPart(p))
+                    .map((p) => ({
+                        name: p.description || p.name || p.filename,
+                        id: p.filename,
+                        part: p
+                    }));
+
+                const headsAll = (parts.heads || []).filter((h) => !isStickerPart(h));
+                const headParts = headsAll.filter((h) => !h.isHalf && h.headRole !== 'artifact' && h.headRole !== 'headdress');
+                const hatParts = headsAll.filter((h) => h.headRole === 'headdress');
+                dialData.head = makeItems(headParts);
+                dialData.hat = makeItems(hatParts);
+                dialData.torso = makeItems(parts.torsos || []);
+                dialData.arms = makeItems(parts.arms || []);
+                dialData.hips = makeItems(parts.hips || []);
+                dialData.legs = makeItems(parts.legs || []);
+
+                updateCounters();
+            } catch (err) {
+                console.warn('Using demo data');
+            }
+        }
+
+        const updateCounters = () => {
+            Object.keys(dialData).forEach(cat => {
+                const counter = document.querySelector(`[data-counter="${cat}"]`);
+                if (counter) {
+                    counter.textContent = `${dialData[cat].length} items`;
+                }
+            });
+        };
+
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const view = btn.dataset.view;
+                state.view = view;
+                
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                document.getElementById('dialView').classList.toggle('active', view === 'dial');
+                document.getElementById('listView').classList.toggle('active', view === 'list');
+                haptic();
+            });
+        });
+
+        document.querySelectorAll('.list-header').forEach(header => {
+            header.addEventListener('click', () => {
+                const section = header.parentElement;
+                const wasExpanded = section.classList.contains('expanded');
+                
+                document.querySelectorAll('.list-section').forEach(s => s.classList.remove('expanded'));
+                
+                if (!wasExpanded) {
+                    section.classList.add('expanded');
+                }
+                haptic();
+            });
+        });
+
+        const searchInput = document.getElementById('searchInput');
+        searchInput.addEventListener('input', (e) => {
+            state.searchTerm = e.target.value.toLowerCase();
+            filterList();
+        });
+
+        const filterList = () => {
+            document.querySelectorAll('.list-item').forEach(item => {
+                const text = item.textContent.toLowerCase();
+                item.style.display = text.includes(state.searchTerm) ? 'flex' : 'none';
+            });
+
+            const term = state.searchTerm;
+            if (term && Object.keys(dials).length) {
+                Object.values(dials).forEach((dial) => dial.applyFilter(term));
+            }
+        };
+
+        const initList = () => {
+            Object.keys(dialData).forEach(cat => {
+                const container = document.querySelector(`.list-section[data-category="${cat}"] .list-items`);
+                if (!container) return;
+                container.innerHTML = '';
+                (dialData[cat] || []).forEach((item, idx) => {
+                    const el = document.createElement('div');
+                    el.className = 'list-item';
+                    const part = item.part || item;
+                    const id = part.filename || part.id || '';
+                    const color = getPartColor(part);
+                    
+                    const tags = [];
+                    if (cat === 'torso') {
+                        if (part.upperComplete) tags.push({ label: 'upper complete', highlight: true });
+                        if (part.includesArms) tags.push({ label: 'arms attached', highlight: false });
+                    }
+                    if (cat === 'hips' || cat === 'legs') {
+                        if (part.lowerComplete) tags.push({ label: 'lower complete', highlight: true });
+                    }
+
+                    const tagsHtml = tags.length
+                        ? `<div class="meta-tags">${tags.map(t => 
+                            `<span class="meta-tag${t.highlight ? ' highlight' : ''}">${t.label}</span>`
+                          ).join('')}</div>`
+                        : '';
+
+                    el.innerHTML = `
+                        <div class="color-swatch" style="background: ${color}"></div>
+                        <div class="item-details">
+                            <div class="item-id">${id}</div>
+                            <div class="item-name">${item.name}</div>
+                            ${tagsHtml}
+                        </div>
+                    `;
+                    
+                    el.addEventListener('click', () => {
+                        container.querySelectorAll('.list-item').forEach(i => i.classList.remove('selected'));
+                        el.classList.add('selected');
+                        
+                        saveToHistory();
+                        state.selections[cat] = part;
+                        const path = id ? `parts/${id}` : item.name;
+                        updatePreview(cat, path);
+                        updateMinifig(cat);
+                        
+                        if (dials[cat]) {
+                            dials[cat].setIndex(idx);
+                        }
+                        haptic();
+                    });
+                    container.appendChild(el);
+                });
+            });
+        };
+
+        const describePart = (p) => (p && (p.description || p.name || p.filename || p.id || '')) || '';
+
+        function isStickerPart(p) {
+            if (!p) return false;
+            const desc = (p.description || p.name || '').toLowerCase();
+            return desc.startsWith('=sticker') || desc.includes(' sticker') || desc.includes(' stickers');
+        }
+
+        const isCompositeHead = (part) => {
+            const desc = (part && (part.description || part.name || '')).toLowerCase();
+            return /^minifig (baby )?head\b/.test(desc);
+        };
+
+        const buildPartsFromSelection = (s) => {
+            const parts = [];
+
+            if (isStickerPart(s.hat)) s.hat = null;
+            if (isStickerPart(s.head)) s.head = null;
+            if (isStickerPart(s.torso)) s.torso = null;
+            if (isStickerPart(s.arms)) s.arms = null;
+            if (isStickerPart(s.hips)) s.hips = null;
+            if (isStickerPart(s.legs)) s.legs = null;
+
+            if (s.head) {
+                const role = s.head.headRole || 'standard';
+                const needsOffset = role === 'character' || role === 'animal';
+                const dy = needsOffset ? 20 : 0;
+                parts.push({ label: 'HEAD', filename: s.head.filename || s.head.id, description: describePart(s.head), dy });
+
+                const allowHat = role !== 'character' && role !== 'animal';
+                if (s.hat && allowHat) {
+                    parts.push({ label: 'HEADGEAR', filename: s.hat.filename || s.hat.id, description: describePart(s.hat), dy });
+                }
+            } else if (s.hat) {
+                if (isCompositeHead(s.hat)) {
+                    const role = s.hat.headRole || 'standard';
+                    const needsOffset = role === 'character' || role === 'animal';
+                    const dy = needsOffset ? 20 : 0;
+                    parts.push({ label: 'HEAD', filename: s.hat.filename || s.hat.id, description: describePart(s.hat), dy });
+                } else {
+                    parts.push({ label: 'HEADGEAR', filename: s.hat.filename || s.hat.id, description: describePart(s.hat) });
+                }
+            }
+
+            const torsoHasUpper = s.torso && (s.torso.upperComplete || s.torso.includesArms || s.torso.includesHands);
+            if (s.torso) {
+                parts.push({ label: 'TORSO', filename: s.torso.filename || s.torso.id, description: describePart(s.torso) });
+            }
+            if (s.arms && !torsoHasUpper) {
+                parts.push({ label: 'LEFT ARM', filename: s.arms.filename || s.arms.id, description: describePart(s.arms) });
+                parts.push({ label: 'RIGHT ARM', filename: s.arms.filename || s.arms.id, description: describePart(s.arms) });
+            }
+
+            const hipsHasLegs = s.hips && (s.hips.lowerComplete || s.hips.includesLegs);
+            const legsHasHips = s.legs && (s.legs.lowerComplete || s.legs.includesHips);
+
+            if (s.hips && !legsHasHips) {
+                parts.push({ label: 'HIPS', filename: s.hips.filename || s.hips.id, description: describePart(s.hips) });
+            }
+            if (s.legs && !hipsHasLegs) {
+                parts.push({ label: 'LEFT LEG', filename: s.legs.filename || s.legs.id, description: describePart(s.legs) });
+                parts.push({ label: 'RIGHT LEG', filename: s.legs.filename || s.legs.id, description: describePart(s.legs) });
+            }
+
+            return parts;
+        };
+
+        const buildCharacter = () => {
+            const s = state.selections;
+            const parts = buildPartsFromSelection(s);
+
+            const nameInput = document.getElementById('minifigName');
+            const authorInput = document.getElementById('minifigAuthor');
+            const rawTitle = (nameInput && nameInput.value.trim()) || 'Custom Minifig';
+            const author = (authorInput && authorInput.value.trim()) || 'Builder';
+            const baseId = rawTitle.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+            const id = baseId || `custom_minifig_${Date.now()}`;
+
+            return { id, title: rawTitle, author, parts };
+        };
+
+        const MINIFIG_HEIGHTS = {
+            HEAD: { x: 0, y: -84, z: 0 },
+            HEADGEAR: { x: 0, y: -84, z: 0 },
+            TORSO: { x: 0, y: -60, z: 0 },
+            'LEFT ARM': { x: -15.552, y: -51, z: 0 },
+            'RIGHT ARM': { x: 15.552, y: -51, z: 0 },
+            HIPS: { x: 0, y: -28, z: 0 },
+            'LEFT LEG': { x: -6, y: -16, z: 0 },
+            'RIGHT LEG': { x: 6, y: -16, z: 0 }
+        };
+
+        const buildMPD = (character) => {
+            const lines = [];
+            const fileId = (character.id || 'custom_minifig').replace(/\s+/g, '_');
+            lines.push(`0 FILE ${fileId}.mpd`);
+            lines.push(`0 Name: ${character.title || 'Custom Minifig'}`);
+            lines.push(`0 Author: ${character.author || 'Builder'}`);
+            lines.push('0 !LDRAW_ORG Model');
+            lines.push('0 !LICENCE Redistributable under CCAL version 2.0');
+            lines.push('0 BFC CERTIFY CCW');
+            lines.push('0 // Generated by Minifig Builder');
+            lines.push('');
+            lines.push('0 STEP');
+            lines.push('');
+
+            (character.parts || []).forEach((part) => {
+                const position = MINIFIG_HEIGHTS[part.label] || { x: 0, y: -50, z: 0 };
+                const dy = part.dy || 0;
+                const color = part.colorCode ?? 16;
+                let filename = part.filename || '';
+                if (filename && !filename.startsWith('parts/')) {
+                    filename = `parts/${filename}`;
+                }
+                lines.push(`0 // ${part.label} - ${part.description || filename}`);
+                lines.push(`1 ${color} ${position.x} ${position.y + dy} ${position.z} 1 0 0 0 1 0 0 0 1 ${filename}`);
+                lines.push('');
+            });
+
+            lines.push('0 STEP');
+            return lines.join('\n');
+        };
+
+        const downloadMPD = (character) => {
+            const mpdText = buildMPD(character);
+            console.log('Minifig MPD:\n' + mpdText);
+
+            if (wagFrankBus) {
+                const lines = mpdText.split(/\r?\n/);
+                wagFrankPost({
+                    kind: 'minifig-mpd',
+                    source: 'minifigurator-02',
+                    ts: Date.now(),
+                    payload: {
+                        name: character.title || 'Custom Minifig',
+                        author: character.author || 'Builder',
+                        mpdLines: lines,
+                        mode: 'replace'
+                    }
+                });
+            }
+
+            try {
+                const blob = new Blob([mpdText], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${character.id || 'custom-minifig'}.mpd`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showToast(wagFrankBus ? 'MINIFIG -> wag-frank (minifig-mpd); open wag-grace-editor.html to view' : 'MPD saved');
+            } catch (e) {
+                showToast('Check console for MPD');
+            }
+        };
+
+        const captureScreenshot = () => {
+            showToast('Screenshot feature coming soon!');
+        };
+
+        class Dial {
+            constructor(wrapper, data, type) {
+                this.wrapper = wrapper;
+                this.track = wrapper.querySelector('.dial-track');
+                this.data = data;
+                this.type = type;
+                this.currentIndex = 0;
+                this.itemWidth = 150;
+                
+                this.init();
+            }
+
+            init() {
+                this.render();
+                this.attachEvents();
+                this.updatePosition();
+            }
+
+            render() {
+                this.track.innerHTML = this.data.map((item, idx) => 
+                    `<div class="dial-item" data-index="${idx}">${item.name}</div>`
+                ).join('');
+            }
+
+            setIndex(idx) {
+                this.currentIndex = idx;
+                this.updatePosition();
+            }
+
+            clearSelection() {
+                this.currentIndex = 0;
+                this.updatePosition();
+            }
+
+            attachEvents() {
+                let startPos = 0;
+                let translate = 0;
+                let prevTranslate = 0;
+                let dragging = false;
+
+                const start = (e) => {
+                    dragging = true;
+                    startPos = e.type.includes('mouse') ? e.pageX : e.touches[0].clientX;
+                    this.track.style.cursor = 'grabbing';
+                };
+
+                const move = (e) => {
+                    if (!dragging) return;
+                    const pos = e.type.includes('mouse') ? e.pageX : e.touches[0].clientX;
+                    translate = prevTranslate + pos - startPos;
+                    this.track.style.transform = `translateX(${translate}px)`;
+                };
+
+                const end = () => {
+                    if (!dragging) return;
+                    dragging = false;
+                    
+                    const moved = translate - prevTranslate;
+                    
+                    if (moved < -50 && this.currentIndex < this.data.length - 1) {
+                        this.currentIndex += 1;
+                    }
+                    if (moved > 50 && this.currentIndex > 0) {
+                        this.currentIndex -= 1;
+                    }
+                    
+                    saveToHistory();
+                    this.updatePosition();
+                    prevTranslate = -this.currentIndex * this.itemWidth;
+                    translate = prevTranslate;
+                    this.track.style.cursor = 'grab';
+                    this.syncList();
+                    haptic();
+                };
+
+                this.wrapper.addEventListener('mousedown', start);
+                this.wrapper.addEventListener('mousemove', move);
+                this.wrapper.addEventListener('mouseup', end);
+                this.wrapper.addEventListener('mouseleave', end);
+
+                this.wrapper.addEventListener('touchstart', start, { passive: true });
+                this.wrapper.addEventListener('touchmove', move, { passive: true });
+                this.wrapper.addEventListener('touchend', end);
+            }
+
+            updatePosition() {
+                const offset = -this.currentIndex * this.itemWidth;
+                this.track.style.transform = `translateX(${offset}px)`;
+                
+                const items = this.track.querySelectorAll('.dial-item');
+                items.forEach((item, idx) => {
+                    item.classList.toggle('active', idx === this.currentIndex);
+                });
+                
+                const current = this.data[this.currentIndex];
+                const part = current.part || current;
+                state.selections[this.type] = part;
+                const id = part.filename || part.id || '';
+                const label = id ? `parts/${id}` : current.name;
+                updatePreview(this.type, label);
+                updateMinifig(this.type);
+            }
+
+            syncList() {
+                const section = document.querySelector(`.list-section[data-category="${this.type}"]`);
+                if (section) {
+                    const items = section.querySelectorAll('.list-item');
+                    items.forEach((item, idx) => {
+                        item.classList.toggle('selected', idx === this.currentIndex);
+                    });
+                }
+            }
+
+            applyFilter(term) {
+                if (!term) return;
+                const idx = this.data.findIndex((item) => {
+                    const label = `${item.name || ''} ${item.id || ''}`.toLowerCase();
+                    return label.includes(term);
+                });
+                if (idx >= 0 && idx !== this.currentIndex) {
+                    this.setIndex(idx);
+                }
+            }
+        }
+
+        const dials = {};
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                if (e.key === 'z') {
+                    e.preventDefault();
+                    undo();
+                } else if (e.key === 'y' || (e.shiftKey && e.key === 'z')) {
+                    e.preventDefault();
+                    redo();
+                }
+            } else if (e.key === 'r' && !e.ctrlKey && !e.metaKey) {
+                e.preventDefault();
+                randomize();
+            }
+        });
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            updateFrankStatus('unknown');
+            await loadMinifigLibrary();
+
+            document.querySelectorAll('.dial-box').forEach(wrapper => {
+                const type = wrapper.dataset.dial;
+                const data = dialData[type] || [];
+                dials[type] = new Dial(wrapper, data, type);
+            });
+
+            initList();
+            updateCounters();
+            saveToHistory();
+
+            document.getElementById('undoBtn').addEventListener('click', undo);
+            document.getElementById('redoBtn').addEventListener('click', redo);
+            document.getElementById('clearBtn').addEventListener('click', clearAll);
+            document.getElementById('randomBtn').addEventListener('click', randomize);
+            document.getElementById('rotateBtn').addEventListener('click', rotateMinifig);
+
+            document.querySelector('.btn-load').addEventListener('click', () => {
+                const character = buildCharacter();
+                if (!character.parts.length) {
+                    showToast('Select at least one part');
+                    return;
+                }
+                downloadMPD(character);
+            });
+
+            document.querySelector('.btn-add').addEventListener('click', captureScreenshot);
+
+            document.getElementById('makeFamilyBtn').addEventListener('click', () => {
+                const heads = (dialData.head || []).map(i => i.part || i);
+                const hats = (dialData.hat || []).map(i => i.part || i);
+                const torsos = (dialData.torso || []).map(i => i.part || i);
+                const arms = (dialData.arms || []).map(i => i.part || i);
+                const hips = (dialData.hips || []).map(i => i.part || i);
+                const legs = (dialData.legs || []).map(i => i.part || i);
+
+                if (!heads.length || !torsos.length) {
+                    showToast('Need heads and torsos');
+                    return;
+                }
+
+                const pick = (arr, idx) => (arr.length ? arr[idx % arr.length] : null);
+                const lines = [];
+                const authorInput = document.getElementById('minifigAuthor');
+                const author = (authorInput && authorInput.value.trim()) || 'Builder';
+
+                let count = parseInt(prompt('How many family members? (1-25)', '5') || '5', 10);
+                if (isNaN(count)) count = 5;
+                count = Math.min(25, Math.max(1, count));
+
+                lines.push('0 FILE minifig_family.mpd');
+                lines.push('0 Name: Minifig Family');
+                lines.push(`0 Author: ${author}`);
+                lines.push('0 !LDRAW_ORG Model');
+                lines.push('0 !LICENCE Redistributable under CCAL version 2.0');
+                lines.push('0 BFC CERTIFY CCW');
+                lines.push('');
+
+                const palette = [4, 2, 1, 14, 6, 3, 5, 7, 9, 10];
+                const cols = Math.ceil(Math.sqrt(count));
+                const dx = 120;
+                const dz = 160;
+                const xOffset = (cols - 1) / 2;
+
+                for (let i = 0; i < count; i++) {
+                    const s = {
+                        hat: pick(hats, i),
+                        head: pick(heads, i),
+                        torso: pick(torsos, i),
+                        arms: pick(arms, i),
+                        hips: pick(hips, i),
+                        legs: pick(legs, i)
+                    };
+                    const parts = buildPartsFromSelection(s);
+                    const color = palette[i % palette.length] || 16;
+                    const col = i % cols;
+                    const row = Math.floor(i / cols);
+                    const offsetX = (col - xOffset) * dx;
+                    const offsetZ = row * dz;
+
+                    lines.push('0 STEP');
+                    lines.push(`0 // Family Member ${i + 1}`);
+                    lines.push('');
+
+                    (parts || []).forEach((part) => {
+                        const position = MINIFIG_HEIGHTS[part.label] || { x: 0, y: -50, z: 0 };
+                        const dy = part.dy || 0;
+                        let filename = part.filename || '';
+                        if (filename && !filename.startsWith('parts/')) {
+                            filename = `parts/${filename}`;
+                        }
+                        lines.push(`0 // ${part.label}`);
+                        lines.push(`1 ${color} ${position.x + offsetX} ${position.y + dy} ${position.z + offsetZ} 1 0 0 0 1 0 0 0 1 ${filename}`);
+                        lines.push('');
+                    });
+                }
+
+                lines.push('0 STEP');
+                const mpdText = lines.join('\n');
+                console.log('Family MPD:\n' + mpdText);
+
+                if (wagFrankBus) {
+                    const familyLines = mpdText.split(/\r?\n/);
+                    wagFrankPost({
+                        kind: 'minifig-family-mpd',
+                        source: 'minifigurator-02',
+                        ts: Date.now(),
+                        payload: {
+                            name: 'Minifig Family',
+                            author,
+                            mpdLines: familyLines,
+                            mode: 'replace'
+                        }
+                    });
+                }
+
+                try {
+                    const blob = new Blob([mpdText], { type: 'text/plain' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'minifig_family.mpd';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    showToast(wagFrankBus ? 'FAMILY -> wag-frank (minifig-family-mpd); open wag-frank.html or wag-grace-editor.html' : 'Family MPD saved');
+                } catch (e) {
+                    showToast('Check console for MPD');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

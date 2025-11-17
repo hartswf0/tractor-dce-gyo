@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Designer Hub</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23AAAAAA'/%3E%3C/svg%3E">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #000;
+            color: #ddd;
+            overflow: hidden;
+            touch-action: pan-y;
+        }
+
+        .container {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: #000;
+        }
+
+        .header {
+            padding: 8px 15px;
+            background: #0a0a0a;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .nav-dots {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .nav-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #333;
+            border: 1px solid #444;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .nav-dot:hover {
+            background: #555;
+            transform: scale(1.2);
+        }
+
+        .nav-dot.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            box-shadow: 0 0 10px var(--accent-glow);
+            width: 24px;
+            border-radius: 4px;
+        }
+
+        .nav-dot::after {
+            content: attr(data-name);
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 7px;
+            color: #666;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+
+        .nav-dot:hover::after,
+        .nav-dot.active::after {
+            opacity: 1;
+        }
+
+        .nav-dot.active::after {
+            color: var(--accent);
+        }
+
+        .header-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .current-designer {
+            font-size: 10px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            color: var(--accent, #FFD700);
+            text-transform: uppercase;
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .action-icon {
+            width: 28px;
+            height: 28px;
+            background: transparent;
+            border: 1px solid #333;
+            border-radius: 4px;
+            color: #666;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .action-icon:hover {
+            background: #1a1a1a;
+            color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .action-icon:active {
+            transform: scale(0.9);
+        }
+
+        .viewport-container {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .designers-track {
+            display: flex;
+            height: 100%;
+            transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            will-change: transform;
+        }
+
+        .designer-viewport {
+            min-width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .designer-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #000;
+        }
+
+        .designer-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #0a0a0a;
+            color: #666;
+            gap: 15px;
+        }
+
+        .placeholder-icon {
+            font-size: 64px;
+            opacity: 0.5;
+        }
+
+        .placeholder-text {
+            font-size: 12px;
+            letter-spacing: 1px;
+            text-align: center;
+            padding: 0 20px;
+        }
+
+        .placeholder-badge {
+            padding: 6px 12px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 4px;
+            font-size: 9px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .swipe-hint {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid #333;
+            border-radius: 20px;
+            font-size: 9px;
+            color: #666;
+            letter-spacing: 1px;
+            animation: fadeInOut 3s ease-in-out;
+            pointer-events: none;
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0; }
+            10%, 90% { opacity: 1; }
+        }
+
+        .status-bar {
+            padding: 6px 15px;
+            background: #000;
+            border-top: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 8px;
+            color: #555;
+            letter-spacing: 1px;
+        }
+
+        .status-left {
+            display: flex;
+            gap: 15px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status-indicator {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #1a1a1a;
+            color: #FFD700;
+            padding: 10px 18px;
+            border-radius: 6px;
+            border: 1px solid #333;
+            font-size: 9px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            z-index: 1000;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        /* Desktop: Side-by-side view */
+        @media (min-width: 1200px) {
+            .viewport-container.split-view .designers-track {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+                transform: none !important;
+            }
+
+            .viewport-container.split-view .designer-viewport {
+                min-width: auto;
+                border-right: 1px solid #333;
+            }
+
+            .viewport-container.split-view .designer-viewport:last-child {
+                border-right: none;
+            }
+        }
+
+        /* Theme colors for each designer */
+        .theme-minifig { --accent: #FFD700; --accent-glow: rgba(255, 215, 0, 0.4); }
+        .theme-location { --accent: #00FF88; --accent-glow: rgba(0, 255, 136, 0.4); }
+        .theme-vehicle { --accent: #FF4500; --accent-glow: rgba(255, 69, 0, 0.4); }
+        .theme-scene { --accent: #4ECDC4; --accent-glow: rgba(78, 205, 196, 0.4); }
+        .theme-character { --accent: #9D4EDD; --accent-glow: rgba(157, 78, 221, 0.4); }
+        .theme-weapon { --accent: #EF476F; --accent-glow: rgba(239, 71, 111, 0.4); }
+        .theme-outfit { --accent: #06FFA5; --accent-glow: rgba(6, 255, 165, 0.4); }
+        .theme-creature { --accent: #FF6B35; --accent-glow: rgba(255, 107, 53, 0.4); }
+        .theme-spaceship { --accent: #4ECDC4; --accent-glow: rgba(78, 205, 196, 0.4); }
+        .theme-docs { --accent: #AAAAAA; --accent-glow: rgba(170, 170, 170, 0.4); }
+
+        .keyboard-shortcuts {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #0a0a0a;
+            border: 2px solid #333;
+            border-radius: 8px;
+            padding: 20px;
+            max-width: 400px;
+            display: none;
+            z-index: 200;
+        }
+
+        .keyboard-shortcuts.show {
+            display: block;
+        }
+
+        .shortcuts-title {
+            font-size: 12px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            color: #FFD700;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .shortcut-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #222;
+            font-size: 9px;
+        }
+
+        .shortcut-key {
+            background: #1a1a1a;
+            padding: 4px 8px;
+            border-radius: 3px;
+            border: 1px solid #333;
+            color: #FFD700;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            z-index: 150;
+        }
+
+        .overlay.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="container">
+        <div class="header">
+            <div class="nav-dots" id="navDots"></div>
+            <div class="header-info">
+                <div class="current-designer" id="currentDesigner">MINIFIG BUILDER</div>
+                <div class="quick-actions">
+                    <button class="action-icon" id="splitViewBtn" title="Toggle Split View">⊞</button>
+                    <button class="action-icon" id="helpBtn" title="Keyboard Shortcuts">?</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="viewport-container" id="viewportContainer">
+            <div class="designers-track" id="designersTrack">
+                <!-- Designers will be injected here -->
+            </div>
+            <div class="swipe-hint">
+                ← SWIPE → or use arrow keys to navigate
+            </div>
+        </div>
+
+        <div class="status-bar">
+            <div class="status-left">
+                <div class="status-item">
+                    <div class="status-indicator"></div>
+                    <span>DESIGNER HUB v1.0</span>
+                </div>
+                <div class="status-item">
+                    <span id="designerCount">3/8 ACTIVE</span>
+                </div>
+            </div>
+            <div class="status-right">
+                <span id="statusText">READY</span>
+                <span id="frankStatus" style="margin-left:10px;">FRANK: UNKNOWN</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+    <div class="keyboard-shortcuts" id="keyboardShortcuts">
+        <div class="shortcuts-title">KEYBOARD SHORTCUTS</div>
+        <div class="shortcut-item">
+            <span>Navigate Left</span>
+            <span class="shortcut-key">←</span>
+        </div>
+        <div class="shortcut-item">
+            <span>Navigate Right</span>
+            <span class="shortcut-key">→</span>
+        </div>
+        <div class="shortcut-item">
+            <span>Go to Designer 1-8</span>
+            <span class="shortcut-key">1-8</span>
+        </div>
+        <div class="shortcut-item">
+            <span>Toggle Split View</span>
+            <span class="shortcut-key">S</span>
+        </div>
+        <div class="shortcut-item">
+            <span>Show Shortcuts</span>
+            <span class="shortcut-key">?</span>
+        </div>
+        <div class="shortcut-item">
+            <span>Close Dialog</span>
+            <span class="shortcut-key">ESC</span>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const designers = [
+            {
+                id: 'minifig',
+                name: 'MINIFIG',
+                theme: 'theme-minifig',
+                icon: '🧱',
+                status: 'active',
+                url: '../minifigurator-02.html'
+            },
+            {
+                id: 'location',
+                name: 'LOCATION',
+                theme: 'theme-location',
+                icon: '🎬',
+                status: 'active',
+                url: '../locationator.html'
+            },
+            {
+                id: 'vehicle',
+                name: 'VEHICLE',
+                theme: 'theme-vehicle',
+                icon: '🚗',
+                status: 'active',
+                url: '../vehiculator.html'
+            },
+            {
+                id: 'scene',
+                name: 'SCENE',
+                theme: 'theme-scene',
+                icon: '🌍',
+                status: 'active',
+                url: '../sceneerator.html'
+            },
+            {
+                id: 'movie',
+                name: 'MOVIE',
+                theme: 'theme-docs',
+                icon: '🎞️',
+                status: 'active',
+                url: '../movieator.html'
+            },
+            {
+                id: 'world',
+                name: 'WORLD',
+                theme: 'theme-docs',
+                icon: '🌐',
+                status: 'active',
+                url: '../worldinator.html'
+            },
+            {
+                id: 'docs',
+                name: 'DOCS',
+                theme: 'theme-docs',
+                icon: '📖',
+                status: 'active',
+                url: 'swiss-docs.html'
+            },
+            {
+                id: 'frank-docs',
+                name: 'FRANK',
+                theme: 'theme-docs',
+                icon: '🎯',
+                status: 'active',
+                url: 'swiss-frank-scene.html'
+            },
+            {
+                id: 'character',
+                name: 'CHARACTER',
+                theme: 'theme-character',
+                icon: '👤',
+                status: 'soon',
+                url: null
+            },
+            {
+                id: 'weapon',
+                name: 'WEAPON',
+                theme: 'theme-weapon',
+                icon: '⚔️',
+                status: 'soon',
+                url: null
+            },
+            {
+                id: 'outfit',
+                name: 'OUTFIT',
+                theme: 'theme-outfit',
+                icon: '👔',
+                status: 'soon',
+                url: null
+            },
+            {
+                id: 'creature',
+                name: 'CREATURE',
+                theme: 'theme-creature',
+                icon: '🐉',
+                status: 'soon',
+                url: null
+            },
+            {
+                id: 'spaceship',
+                name: 'SPACESHIP',
+                theme: 'theme-spaceship',
+                icon: '🚀',
+                status: 'soon',
+                url: null
+            }
+        ];
+
+        const wagFrankBus = (typeof BroadcastChannel !== 'undefined') ? new BroadcastChannel('wag-frank') : null;
+        let frankLastSeen = null;
+
+        const updateFrankStatus = (state) => {
+            const el = document.getElementById('frankStatus');
+            if (!el) return;
+            if (state === 'online') {
+                el.textContent = 'FRANK: ONLINE';
+                el.style.color = '#00FF88';
+            } else if (state === 'offline') {
+                el.textContent = 'FRANK: OFFLINE';
+                el.style.color = '#666666';
+            } else {
+                el.textContent = 'FRANK: UNKNOWN';
+                el.style.color = '#666666';
+            }
+        };
+
+        if (wagFrankBus) {
+            wagFrankBus.addEventListener('message', (event) => {
+                const msg = event.data;
+                if (!msg || typeof msg !== 'object') return;
+                if (msg.kind === 'frank-heartbeat') {
+                    frankLastSeen = msg.ts || Date.now();
+                    updateFrankStatus('online');
+                }
+            });
+
+            setInterval(() => {
+                const now = Date.now();
+                const online = frankLastSeen != null && (now - frankLastSeen) < 5000;
+                updateFrankStatus(online ? 'online' : 'offline');
+            }, 5000);
+        } else {
+            setTimeout(() => updateFrankStatus('offline'), 0);
+        }
+
+        let currentIndex = 0;
+        let isSplitView = false;
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        const container = document.getElementById('container');
+        const navDotsContainer = document.getElementById('navDots');
+        const designersTrack = document.getElementById('designersTrack');
+        const currentDesignerEl = document.getElementById('currentDesigner');
+        const viewportContainer = document.getElementById('viewportContainer');
+        const toast = document.getElementById('toast');
+
+        const showToast = (message, color = '#FFD700') => {
+            toast.textContent = message;
+            toast.style.color = color;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        };
+
+        const haptic = () => {
+            if ('vibrate' in navigator) {
+                try { navigator.vibrate(10); } catch (e) {}
+            }
+        };
+
+        const updateTheme = (index) => {
+            const designer = designers[index];
+            container.className = `container ${designer.theme}`;
+            currentDesignerEl.textContent = designer.name + ' BUILDER';
+            document.getElementById('statusText').textContent = designer.status === 'active' ? 'READY' : 'COMING SOON';
+        };
+
+        const navigateTo = (index) => {
+            if (index < 0 || index >= designers.length) return;
+            if (isSplitView) return; // Don't navigate in split view
+
+            currentIndex = index;
+            const offset = -index * 100;
+            designersTrack.style.transform = `translateX(${offset}%)`;
+
+            // Update nav dots
+            document.querySelectorAll('.nav-dot').forEach((dot, i) => {
+                dot.classList.toggle('active', i === index);
+            });
+
+            updateTheme(index);
+            haptic();
+        };
+
+        const toggleSplitView = () => {
+            isSplitView = !isSplitView;
+            viewportContainer.classList.toggle('split-view', isSplitView);
+            
+            const btn = document.getElementById('splitViewBtn');
+            btn.style.color = isSplitView ? 'var(--accent)' : '#666';
+            
+            showToast(isSplitView ? 'Split View Enabled' : 'Split View Disabled');
+            haptic();
+
+            // Reset transform when entering split view
+            if (isSplitView) {
+                designersTrack.style.transform = 'none';
+            } else {
+                navigateTo(currentIndex);
+            }
+        };
+
+        const initDesigners = () => {
+            // Create nav dots
+            designers.forEach((designer, index) => {
+                const dot = document.createElement('div');
+                dot.className = `nav-dot ${index === 0 ? 'active' : ''}`;
+                dot.dataset.name = designer.name;
+                dot.addEventListener('click', () => navigateTo(index));
+                navDotsContainer.appendChild(dot);
+            });
+
+            // Create designer viewports
+            designers.forEach((designer, index) => {
+                const viewport = document.createElement('div');
+                viewport.className = 'designer-viewport';
+                
+                if (designer.url) {
+                    const iframe = document.createElement('iframe');
+                    iframe.className = 'designer-iframe';
+                    iframe.src = designer.url;
+                    viewport.appendChild(iframe);
+                } else {
+                    const placeholder = document.createElement('div');
+                    placeholder.className = 'designer-placeholder';
+                    placeholder.innerHTML = `
+                        <div class="placeholder-icon">${designer.icon}</div>
+                        <div class="placeholder-text">${designer.name} BUILDER</div>
+                        <div class="placeholder-badge">${designer.status === 'active' ? 'ACTIVE' : 'COMING SOON'}</div>
+                    `;
+                    viewport.appendChild(placeholder);
+                }
+                
+                designersTrack.appendChild(viewport);
+            });
+
+            // Update status bar with real active count
+            const activeCount = designers.filter(d => d.status === 'active').length;
+            const designerCountEl = document.getElementById('designerCount');
+            if (designerCountEl) {
+                designerCountEl.textContent = `${activeCount}/${designers.length} ACTIVE`;
+            }
+
+            updateTheme(0);
+        };
+
+        // Touch/swipe handling
+        const handleTouchStart = (e) => {
+            touchStartX = e.touches[0].clientX;
+        };
+
+        const handleTouchMove = (e) => {
+            if (isSplitView) return;
+            touchEndX = e.touches[0].clientX;
+        };
+
+        const handleTouchEnd = () => {
+            if (isSplitView) return;
+            const swipeDistance = touchStartX - touchEndX;
+            const threshold = 50;
+
+            if (Math.abs(swipeDistance) > threshold) {
+                if (swipeDistance > 0 && currentIndex < designers.length - 1) {
+                    navigateTo(currentIndex + 1);
+                } else if (swipeDistance < 0 && currentIndex > 0) {
+                    navigateTo(currentIndex - 1);
+                }
+            }
+        };
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (document.getElementById('keyboardShortcuts').classList.contains('show')) {
+                if (e.key === 'Escape') {
+                    document.getElementById('keyboardShortcuts').classList.remove('show');
+                    document.getElementById('overlay').classList.remove('show');
+                }
+                return;
+            }
+
+            switch(e.key) {
+                case 'ArrowLeft':
+                    if (currentIndex > 0) navigateTo(currentIndex - 1);
+                    break;
+                case 'ArrowRight':
+                    if (currentIndex < designers.length - 1) navigateTo(currentIndex + 1);
+                    break;
+                case 's':
+                case 'S':
+                    toggleSplitView();
+                    break;
+                case '?':
+                    document.getElementById('keyboardShortcuts').classList.add('show');
+                    document.getElementById('overlay').classList.add('show');
+                    break;
+                case '1':
+                case '2':
+                case '3':
+                case '4':
+                case '5':
+                case '6':
+                case '7':
+                case '8':
+                    const index = parseInt(e.key) - 1;
+                    if (index < designers.length) navigateTo(index);
+                    break;
+            }
+        });
+
+        // Event listeners
+        viewportContainer.addEventListener('touchstart', handleTouchStart, { passive: true });
+        viewportContainer.addEventListener('touchmove', handleTouchMove, { passive: true });
+        viewportContainer.addEventListener('touchend', handleTouchEnd);
+
+        document.getElementById('splitViewBtn').addEventListener('click', toggleSplitView);
+
+        document.getElementById('helpBtn').addEventListener('click', () => {
+            document.getElementById('keyboardShortcuts').classList.add('show');
+            document.getElementById('overlay').classList.add('show');
+            haptic();
+        });
+
+        document.getElementById('overlay').addEventListener('click', () => {
+            document.getElementById('keyboardShortcuts').classList.remove('show');
+            document.getElementById('overlay').classList.remove('show');
+        });
+
+        // Initialize
+        window.addEventListener('DOMContentLoaded', () => {
+            initDesigners();
+            setTimeout(() => {
+                showToast('Use arrow keys or swipe to navigate');
+            }, 500);
+        });
+
+        // Mouse wheel navigation
+        let wheelTimeout;
+        viewportContainer.addEventListener('wheel', (e) => {
+            if (isSplitView) return;
+            
+            clearTimeout(wheelTimeout);
+            wheelTimeout = setTimeout(() => {
+                if (e.deltaY > 0 && currentIndex < designers.length - 1) {
+                    navigateTo(currentIndex + 1);
+                } else if (e.deltaY < 0 && currentIndex > 0) {
+                    navigateTo(currentIndex - 1);
+                }
+            }, 50);
+        }, { passive: true });
+    </script>
+</body>
+</html>

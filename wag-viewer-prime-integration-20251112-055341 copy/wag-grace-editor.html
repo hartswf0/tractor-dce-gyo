@@ -2264,6 +2264,12 @@
     <script src="./examples/js/loaders/LDrawLoader.js?v=11"></script>
     <script src="./beta-prime-engine.js"></script>
     <script>
+    const wagFrankBus = (typeof BroadcastChannel !== 'undefined') ? new BroadcastChannel('wag-frank') : null;
+    const wagFrankPost = (message) => {
+        if (!wagFrankBus) return;
+        wagFrankBus.postMessage(message);
+    };
+
     const AI_FILE_PATTERN = /^ai[\s_\-\(\.]?/i;
     const LIBRARY_BASE = './ldraw/';
     const ROOT_PREFIX_FROM_LIBRARY = '../';
@@ -3972,23 +3978,121 @@
         
         // Catalog Browser button (⭐)
         document.getElementById('catalog-browser-btn').addEventListener('click', openCatalogBrowser);
-        
+
+        const TAXO_PRIMITIVE_THRESHOLD = 30;
+
+        const forEachTaxonomyPart = (node, cb) => {
+            if (!node) return;
+            if (Array.isArray(node)) {
+                for (let i = 0; i < node.length; i++) {
+                    const item = node[i];
+                    if (item && typeof item === 'object') {
+                        if (item.filename && item.description) cb(item);
+                        forEachTaxonomyPart(item, cb);
+                    }
+                }
+            } else if (typeof node === 'object') {
+                const values = Object.values(node);
+                for (let i = 0; i < values.length; i++) {
+                    forEachTaxonomyPart(values[i], cb);
+                }
+            }
+        };
+
+        const extractTaxonomyHeadPhrase = (description) => {
+            if (!description) return null;
+            let desc = description.trim();
+            if (!desc) return null;
+            const firstChar = desc.charAt(0);
+            if (firstChar === '~' || firstChar === '=') return null;
+            desc = desc.toLowerCase();
+            const m = desc.match(/^[^0-9,.;()]+/);
+            if (!m) return null;
+            let head = m[0].trim().replace(/\s+/g, ' ');
+            if (!head) return null;
+            return head;
+        };
+
+        const tagTaxonomyPrimitiveDomain = (head) => {
+            if (!head) return 'misc';
+            if (/wheel|tyre/.test(head)) return 'vehicle';
+            if (/windscreen|windshield/.test(head)) return 'vehicle';
+            if (/boat hull/.test(head)) return 'vehicle-ship';
+            if (/train base|train /.test(head)) return 'vehicle-train';
+            if (/fuselage|wing |propeller|jet engine|cockpit/.test(head)) return 'vehicle-air';
+            if (/door |window |panel |wall |roof|arch /.test(head)) return 'architecture';
+            if (/tree |plant |leaf |bush|palm /.test(head)) return 'environment';
+            if (/technic|gear |axle |beam |liftarm|engine /.test(head)) return 'technic';
+            return 'misc';
+        };
+
+        const analyzeTaxonomyPrimitives = (taxonomy) => {
+            if (!taxonomy || !taxonomy.kingdoms) return;
+            const freq = {};
+            let total = 0;
+
+            forEachTaxonomyPart(taxonomy.kingdoms, (part) => {
+                const head = extractTaxonomyHeadPhrase(part.description);
+                if (!head) return;
+                freq[head] = (freq[head] || 0) + 1;
+                total++;
+            });
+
+            const entries = Object.entries(freq)
+                .map(([head, count]) => ({ head, count, domain: tagTaxonomyPrimitiveDomain(head) }))
+                .sort((a, b) => b.count - a.count);
+
+            const primitives = entries.filter(e => e.count >= TAXO_PRIMITIVE_THRESHOLD);
+
+            const bucketSuggestions = primitives.reduce((acc, p) => {
+                if (!acc[p.domain]) acc[p.domain] = [];
+                acc[p.domain].push(p);
+                return acc;
+            }, {});
+
+            Object.keys(bucketSuggestions).forEach(domain => {
+                bucketSuggestions[domain] = bucketSuggestions[domain].slice(0, 12);
+            });
+
+            console.log('Grace taxonomy primitive analysis:', {
+                totalPartsVisited: total,
+                primitiveThreshold: TAXO_PRIMITIVE_THRESHOLD,
+                topPrimitives: primitives.slice(0, 50)
+            });
+            console.log('Grace taxonomy suggested primitive buckets:', bucketSuggestions);
+        };
+
         async function openCatalogBrowser() {
-            // Load taxonomy and minifig library
+            // Load taxonomy, minifig library, and location library
             let taxonomy;
             let minifigLibrary = null;
+            let locationLibrary = null;
             try {
-                const [taxonomyResponse, minifigResponse] = await Promise.all([
+                const [taxonomyResponse, minifigResponse, locationResponse] = await Promise.all([
                     fetch('parts-taxonomy.json'),
-                    fetch('minifig-library.json').catch(() => null)
+                    fetch('minifig-library.json').catch(() => null),
+                    fetch('location-library.json').catch(() => null)
                 ]);
                 taxonomy = await taxonomyResponse.json();
+                try {
+                    analyzeTaxonomyPrimitives(taxonomy);
+                } catch (analysisError) {
+                    console.warn('Taxonomy primitive analysis failed', analysisError);
+                }
                 if (minifigResponse) {
                     try {
                         minifigLibrary = await minifigResponse.json();
                     } catch (minifigError) {
                         console.warn('Minifig library failed to load. Run: node build-minifig-library.js', minifigError);
                         minifigLibrary = null;
+                    }
+                }
+                if (locationResponse) {
+                    try {
+                        locationLibrary = await locationResponse.json();
+                    } catch (locationError) {
+                        console.warn('Location library failed to load.', locationError);
+                        locationLibrary = null;
                     }
                 }
             } catch (err) {
@@ -4011,20 +4115,38 @@
                 justify-content: center;
                 backdrop-filter: blur(4px);
             `;
+
+            const isMobileCatalog = window.innerWidth <= 720;
             
             const content = document.createElement('div');
-            content.style.cssText = `
-                background: var(--bg-secondary);
-                border: 3px solid var(--accent);
-                border-radius: 12px;
-                padding: 24px;
-                max-width: 90vw;
-                max-height: 90vh;
-                overflow: hidden;
-                display: flex;
-                flex-direction: column;
-                box-shadow: 0 8px 32px rgba(255,215,0,0.3);
-            `;
+            if (isMobileCatalog) {
+                content.style.cssText = `
+                    background: var(--bg-secondary);
+                    border: none;
+                    border-radius: 0;
+                    padding: 12px;
+                    width: 100vw;
+                    height: 100vh;
+                    max-width: 100vw;
+                    max-height: 100vh;
+                    overflow: hidden;
+                    display: flex;
+                    flex-direction: column;
+                `;
+            } else {
+                content.style.cssText = `
+                    background: var(--bg-secondary);
+                    border: 3px solid var(--accent);
+                    border-radius: 12px;
+                    padding: 24px;
+                    max-width: 90vw;
+                    max-height: 90vh;
+                    overflow: hidden;
+                    display: flex;
+                    flex-direction: column;
+                    box-shadow: 0 8px 32px rgba(255,215,0,0.3);
+                `;
+            }
             
             // Header
             const header = document.createElement('div');
@@ -4105,13 +4227,13 @@
             searchBox.placeholder = '🔍 Search parts... (e.g., "3001", "brick 1x2", "minifig head")';
             searchBox.style.cssText = `
                 width: 100%;
-                padding: 12px;
-                font-size: 14px;
+                padding: ${isMobileCatalog ? '10px' : '12px'};
+                font-size: ${isMobileCatalog ? '12px' : '14px'};
                 border: 2px solid var(--border-primary);
                 border-radius: 6px;
                 background: var(--bg-main);
                 color: var(--text-primary);
-                margin-bottom: 16px;
+                margin-bottom: ${isMobileCatalog ? '12px' : '16px'};
             `;
             content.appendChild(searchBox);
             
@@ -4119,14 +4241,23 @@
             const mainArea = document.createElement('div');
             mainArea.style.cssText = `
                 display: flex;
-                gap: 16px;
+                gap: ${isMobileCatalog ? '12px' : '16px'};
                 flex: 1;
                 overflow: hidden;
+                flex-direction: ${isMobileCatalog ? 'column' : 'row'};
             `;
             
             // Left panel - Kingdom list
             const leftPanel = document.createElement('div');
-            leftPanel.style.cssText = `
+            leftPanel.style.cssText = isMobileCatalog ? `
+                width: 100%;
+                background: var(--bg-main);
+                border: 1px solid var(--border-primary);
+                border-radius: 6px;
+                padding: 8px;
+                max-height: 140px;
+                overflow-y: auto;
+            ` : `
                 width: 280px;
                 background: var(--bg-main);
                 border: 1px solid var(--border-primary);
@@ -4167,7 +4298,15 @@
             
             // Right panel - Details
             const rightPanel = document.createElement('div');
-            rightPanel.style.cssText = `
+            rightPanel.style.cssText = isMobileCatalog ? `
+                flex: 1;
+                background: var(--bg-main);
+                border: 1px solid var(--border-primary);
+                border-radius: 6px;
+                padding: 10px;
+                overflow-y: auto;
+                min-height: 0;
+            ` : `
                 flex: 1;
                 background: var(--bg-main);
                 border: 1px solid var(--border-primary);
@@ -4404,7 +4543,7 @@
             
             // Show paginated parts with load options
             function showPaginatedParts(parts, name, parentElement) {
-                const BATCH_SIZE = 50;
+                const BATCH_SIZE = isMobileCatalog ? 24 : 50;
                 let currentPage = 0;
                 
                 function renderPage() {
@@ -4484,7 +4623,7 @@
                     loadControls.style.cssText = `
                         display: flex;
                         gap: 8px;
-                        margin-bottom: 12px;
+                        margin-bottom: ${isMobileCatalog ? '8px' : '12px'};
                     `;
                     loadControls.innerHTML = `
                         <button id="load-batch-replace" style="
@@ -4516,22 +4655,22 @@
                     batch.forEach(part => {
                         const partDiv = document.createElement('div');
                         partDiv.style.cssText = `
-                            padding: 8px;
+                            padding: ${isMobileCatalog ? '6px' : '8px'};
                             margin-bottom: 4px;
                             background: var(--bg-secondary);
                             border-radius: 4px;
-                            font-size: 11px;
+                            font-size: ${isMobileCatalog ? '10px' : '11px'};
                             cursor: pointer;
                             transition: all 0.2s;
                             display: flex;
                             justify-content: space-between;
                             align-items: center;
-                            gap: 12px;
+                            gap: ${isMobileCatalog ? '8px' : '12px'};
                         `;
                         partDiv.innerHTML = `
                             <div class="part-preview" style="
-                                width: 60px;
-                                height: 60px;
+                                width: ${isMobileCatalog ? '48px' : '60px'};
+                                height: ${isMobileCatalog ? '48px' : '60px'};
                                 background: var(--bg-main);
                                 border: 1px solid var(--border-primary);
                                 border-radius: 4px;
@@ -4539,7 +4678,7 @@
                                 align-items: center;
                                 justify-content: center;
                                 color: var(--accent);
-                                font-size: 9px;
+                                font-size: ${isMobileCatalog ? '8px' : '9px'};
                                 text-align: center;
                                 flex-shrink: 0;
                             ">
@@ -4549,15 +4688,15 @@
                             </div>
                             <div style="flex: 1;">
                                 <div style="font-weight: 700; color: var(--accent);">${part.filename}</div>
-                                <div style="color: #aaa; font-size: 10px;">${part.description || part.name}</div>
+                                <div style="color: #aaa; font-size: ${isMobileCatalog ? '9px' : '10px'};">${part.description || part.name}</div>
                             </div>
                             <button class="add-single-part" style="
                                 background: var(--accent);
                                 border: none;
-                                padding: 4px 8px;
+                                padding: ${isMobileCatalog ? '3px 6px' : '4px 8px'};
                                 border-radius: 4px;
                                 cursor: pointer;
-                                font-size: 10px;
+                                font-size: ${isMobileCatalog ? '9px' : '10px'};
                                 color: var(--bg-main);
                                 flex-shrink: 0;
                             ">➕</button>
@@ -4987,15 +5126,29 @@
                 `;
 
                 const slotKeys = ['floor', 'wall', 'door', 'window', 'roof', 'tree', 'prop'];
+                const slotBuckets = (locationLibrary && locationLibrary.slotBuckets) || null;
+
+                const getAllowedSlotsForKingdom = (kingdomName) => {
+                    if (!slotBuckets) return slotKeys;
+                    const allowed = slotKeys.filter((slotKey) => {
+                        const cfg = slotBuckets[slotKey.toUpperCase()];
+                        return cfg && Array.isArray(cfg.kingdoms) && cfg.kingdoms.includes(kingdomName);
+                    });
+                    return allowed.length ? allowed : slotKeys;
+                };
+
                 let count = 0;
-                Object.values(taxonomy.kingdoms).forEach(kingdomData => {
-                    Object.values(kingdomData.phyla).forEach(phylumData => {
-                        Object.values(phylumData.classes).forEach(classData => {
-                            Object.values(classData.orders).forEach(orderData => {
-                                Object.values(orderData.families).forEach(familyData => {
-                                    familyData.parts.forEach(part => {
+                Object.entries(taxonomy.kingdoms).forEach(([kingdomName, kingdomData]) => {
+                    Object.values(kingdomData.phyla).forEach((phylumData) => {
+                        Object.values(phylumData.classes).forEach((classData) => {
+                            Object.values(classData.orders).forEach((orderData) => {
+                                Object.values(orderData.families).forEach((familyData) => {
+                                    familyData.parts.forEach((part) => {
                                         const text = `${part.filename} ${part.name} ${part.description}`.toLowerCase();
                                         if (!text.includes(query) || count >= 100) return;
+
+                                        const allowedSlots = getAllowedSlotsForKingdom(kingdomName);
+                                        if (!allowedSlots.length) return;
 
                                         const partDiv = document.createElement('div');
                                         partDiv.style.cssText = `
@@ -5011,8 +5164,9 @@
                                         const titleHtml = `
                                             <div style="font-weight: 700; color: var(--accent);">${part.filename}</div>
                                             <div style="color: #aaa;">${part.description || part.name}</div>
+                                            <div style="color: #666; font-size: 9px;">${kingdomName}</div>
                                         `;
-                                        const buttonsHtml = slotKeys.map((slotKey) => `<button data-slot="${slotKey}" class="location-assign" style="padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border-primary); background: var(--bg-main); color: var(--text-primary); font-size: 9px; cursor: pointer; margin-right: 4px;">${slotKey.toUpperCase()}</button>`).join('');
+                                        const buttonsHtml = allowedSlots.map((slotKey) => `<button data-slot="${slotKey}" class="location-assign" style="padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border-primary); background: var(--bg-main); color: var(--text-primary); font-size: 9px; cursor: pointer; margin-right: 4px;">${slotKey.toUpperCase()}</button>`).join('');
                                         partDiv.innerHTML = `
                                             ${titleHtml}
                                             <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px;">${buttonsHtml}</div>
@@ -8167,7 +8321,97 @@
         }
     }
 
+    function loadMinifigFromWagFrank(lines, name, replace = true) {
+        if (!Array.isArray(lines) || !lines.length) return;
+
+        if (replace) {
+            editorLines = [...lines];
+        } else {
+            const insertIdx = editorLines.lastIndexOf('0 STEP');
+            const offsetZ = (() => {
+                const matches = editorLines.filter((line) => line.startsWith('1 '));
+                let maxZ = 0;
+                matches.forEach((line) => {
+                    const parts = line.trim().split(/\s+/);
+                    const z = parseFloat(parts[5]);
+                    if (!Number.isNaN(z)) {
+                        maxZ = Math.max(maxZ, z);
+                    }
+                });
+                return maxZ + 220;
+            })();
+            const shifted = lines.map((line) => {
+                if (!line.startsWith('1 ')) return line;
+                const segments = line.trim().split(/\s+/);
+                const z = parseFloat(segments[5]);
+                if (!Number.isNaN(z)) {
+                    segments[5] = (z + offsetZ).toString();
+                    return segments.join(' ');
+                }
+                return line;
+            });
+            if (insertIdx >= 0) {
+                editorLines.splice(insertIdx, 0, `0 // Added Minifig ${name}`, ...shifted, '');
+            } else {
+                editorLines.push(`0 // Added Minifig ${name}`, ...shifted, '');
+            }
+        }
+
+        STATE.scenes[STATE.activeSceneIdx].lines = [...editorLines];
+        STATE.scenes[STATE.activeSceneIdx].name = name;
+        renderEditor(editorLines);
+        updateSceneSelector();
+        const statusEl = document.getElementById('status-text');
+        if (statusEl) {
+            statusEl.textContent = `${replace ? 'Loaded' : '➕ Added'} ${name} via wag-frank`;
+        }
+        setTimeout(() => compileCurrentMPD(), 500);
+    }
+
+    function setupWagFrankBridge() {
+        if (!wagFrankBus) return;
+        wagFrankBus.onmessage = (event) => {
+            const msg = event.data;
+            if (!msg || typeof msg !== 'object') return;
+            const kind = msg.kind;
+            if (
+                kind !== 'minifig-mpd' &&
+                kind !== 'minifig-family-mpd' &&
+                kind !== 'scene-mpd' &&
+                kind !== 'location-mpd'
+            ) {
+                return;
+            }
+            const payload = msg.payload || {};
+            let { mpdLines, name, mode } = payload;
+            if (!Array.isArray(mpdLines) || !mpdLines.length) return;
+            if (!name) {
+                if (kind === 'minifig-family-mpd') {
+                    name = 'Minifig Family';
+                } else if (kind === 'scene-mpd') {
+                    name = 'Scene from wag-frank';
+                } else if (kind === 'location-mpd') {
+                    name = 'Location from locationator';
+                } else {
+                    name = 'Minifig from wag-frank';
+                }
+            }
+            const replace = mode === 'replace';
+            try {
+                const lines = mpdLines.map((line) => String(line));
+                if (kind === 'scene-mpd' || kind === 'location-mpd') {
+                    loadMinifigFromWagFrank(lines, name, true);
+                } else {
+                    loadMinifigFromWagFrank(lines, name, replace);
+                }
+            } catch (err) {
+                console.error('[wag-frank] Failed to load minifig/location from message', err);
+            }
+        };
+    }
+
     init().then(() => {
+        setupWagFrankBridge();
         try {
             const params = new URLSearchParams(window.location.search);
             const mpd = params.get('mpd');

@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Worldinator – IP Worlds Hub</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%231E90FF'/%3E%3C/svg%3E">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body { font-family: 'Courier New', monospace; background: #000; color: #ddd; overflow: hidden; }
+    .container { width: 100%; height: 100vh; display: flex; flex-direction: column; background: #000; }
+
+    .header { padding: 10px 16px; background: #050505; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; }
+    .title-block { display: flex; flex-direction: column; gap: 2px; }
+    .title { font-size: 13px; font-weight: bold; letter-spacing: 1px; color: #4ECDC4; text-transform: uppercase; }
+    .subtitle { font-size: 9px; color: #777; letter-spacing: 1px; text-transform: uppercase; }
+    .badge { font-size: 8px; padding: 4px 8px; border-radius: 3px; border: 1px solid #333; text-transform: uppercase; letter-spacing: 1px; }
+
+    .main { flex: 1; display: flex; min-height: 0; }
+
+    .left-panel { width: 220px; border-right: 1px solid #222; display: flex; flex-direction: column; }
+    .filter-bar { padding: 8px 12px; background: #050505; border-bottom: 1px solid #222; display: flex; flex-direction: column; gap: 6px; }
+    .filter-label { font-size: 9px; color: #666; text-transform: uppercase; letter-spacing: 1px; }
+    .filter-input { background: #000; color: #ddd; border: 1px solid #333; border-radius: 3px; font-size: 9px; padding: 4px 6px; font-family: inherit; }
+
+    .ip-list { flex: 1; overflow-y: auto; }
+    .ip-item { padding: 8px 12px; border-bottom: 1px solid #111; cursor: pointer; font-size: 10px; display: flex; flex-direction: column; gap: 2px; }
+    .ip-item:hover { background: #050505; }
+    .ip-item.selected { background: #071717; border-left: 3px solid #4ECDC4; }
+    .ip-name { color: #ddd; }
+    .ip-meta { font-size: 8px; color: #666; }
+
+    .center-panel { flex: 1.2; border-right: 1px solid #222; display: flex; flex-direction: column; }
+    .hit-toolbar { padding: 6px 12px; background: #050505; border-bottom: 1px solid #222; display: flex; gap: 6px; align-items: center; font-size: 8px; text-transform: uppercase; letter-spacing: 1px; color: #777; }
+    .hit-filter-btn { padding: 4px 8px; border-radius: 3px; border: 1px solid #333; background: #000; color: #777; font-size: 8px; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; }
+    .hit-filter-btn.active { border-color: #4ECDC4; color: #4ECDC4; }
+
+    .hit-list { flex: 1; overflow-y: auto; }
+    .hit-item { padding: 8px 12px; border-bottom: 1px solid #111; cursor: pointer; font-size: 9px; display: flex; flex-direction: column; gap: 2px; }
+    .hit-item:hover { background: #050505; }
+    .hit-item.selected { background: #071717; border-left: 3px solid #4ECDC4; }
+    .hit-main-line { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .hit-file { color: #ddd; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .hit-kind { font-size: 8px; color: #999; text-transform: uppercase; letter-spacing: 1px; }
+    .hit-snippet { font-size: 8px; color: #777; }
+
+    .right-panel { width: 320px; display: flex; flex-direction: column; }
+    .detail-header { padding: 10px 14px; border-bottom: 1px solid #222; background: #050505; }
+    .detail-title { font-size: 11px; font-weight: bold; letter-spacing: 1px; color: #4ECDC4; }
+    .detail-subtitle { font-size: 9px; color: #777; margin-top: 2px; }
+    .detail-body { flex: 1; padding: 10px 14px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; font-size: 9px; }
+    .detail-row { display: flex; justify-content: space-between; gap: 8px; }
+    .detail-label { color: #666; text-transform: uppercase; letter-spacing: 1px; }
+    .detail-value { color: #ddd; text-align: right; }
+    .detail-snippet { font-size: 8px; color: #aaa; line-height: 1.4; white-space: pre-wrap; }
+
+    .detail-actions { padding: 10px 14px; border-top: 1px solid #222; background: #050505; display: flex; gap: 8px; }
+    .btn { flex: 1; padding: 8px 10px; border-radius: 3px; border: 1px solid #333; background: #000; color: #ddd; font-size: 9px; font-family: inherit; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
+    .btn-primary { background: #4ECDC4; border-color: #4ECDC4; color: #000; }
+    .btn:active { transform: scale(0.97); }
+
+    .status-bar { padding: 6px 14px; background: #000; border-top: 1px solid #333; font-size: 8px; display: flex; justify-content: space-between; color: #666; }
+
+    .toast { position: fixed; bottom: 60px; left: 50%; transform: translateX(-50%) translateY(100px); background: #1a1a1a; color: #4ECDC4; padding: 10px 16px; border-radius: 6px; border: 1px solid #333; font-size: 9px; font-weight: bold; letter-spacing: 1px; z-index: 1000; opacity: 0; transition: all 0.3s ease; }
+    .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #000; }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #4ECDC4; }
+
+    @media (max-width: 900px) {
+      .right-panel { display: none; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="title-block">
+      <div class="title">WORLDINATOR – IP WORLDS</div>
+      <div class="subtitle">SCAN ALL LEGO SCENES FOR MOVIE / TV WORLDS</div>
+    </div>
+    <div class="badge">FINAL HUB · IP INDEX</div>
+  </div>
+
+  <div class="main">
+    <div class="left-panel">
+      <div class="filter-bar">
+        <div class="filter-label">World Filter</div>
+        <input id="searchInput" class="filter-input" placeholder="simpsons, gremlins, star wars…" />
+      </div>
+      <div class="ip-list" id="ipList"></div>
+    </div>
+
+    <div class="center-panel">
+      <div class="hit-toolbar">
+        <span>Hits</span>
+        <button class="hit-filter-btn active" data-kind="all">ALL</button>
+        <button class="hit-filter-btn" data-kind="scene">MPD/Scene</button>
+        <button class="hit-filter-btn" data-kind="doc">Docs</button>
+        <button class="hit-filter-btn" data-kind="json">JSON</button>
+      </div>
+      <div class="hit-list" id="hitList"></div>
+    </div>
+
+    <div class="right-panel">
+      <div class="detail-header">
+        <div class="detail-title" id="detailTitle">No World Selected</div>
+        <div class="detail-subtitle" id="detailSubtitle">Pick an IP world and a file hit to inspect</div>
+      </div>
+      <div class="detail-body">
+        <div class="detail-row">
+          <span class="detail-label">World</span>
+          <span class="detail-value" id="detailIp">—</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">File</span>
+          <span class="detail-value" id="detailFile">—</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Match</span>
+          <span class="detail-value" id="detailMatch">—</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Kind</span>
+          <span class="detail-value" id="detailKind">—</span>
+        </div>
+        <div class="detail-snippet" id="detailSnippet"></div>
+      </div>
+      <div class="detail-actions">
+        <button class="btn" id="loadAddBtn">➕ Add as Scene</button>
+        <button class="btn btn-primary" id="loadReplaceBtn">🚀 Load as Scene</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="status-bar">
+    <span id="statusLeft">READY</span>
+    <span id="statusRight">Run build-ip-index.js to refresh worlds</span>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const wagFrankBus = (typeof BroadcastChannel !== 'undefined') ? new BroadcastChannel('wag-frank') : null;
+  const wagFrankPost = (message) => { if (!wagFrankBus) return; wagFrankBus.postMessage(message); };
+
+  const state = {
+    ips: [],
+    filteredIps: [],
+    selectedIpIndex: -1,
+    selectedHitIndex: -1,
+    search: '',
+    hitFilterKind: 'all'
+  };
+
+  const showToast = (msg) => {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 2000);
+  };
+
+  const setStatus = (left, right) => {
+    if (left != null) document.getElementById('statusLeft').textContent = left;
+    if (right != null) document.getElementById('statusRight').textContent = right;
+  };
+
+  const kindForFile = (file) => {
+    const lower = file.toLowerCase();
+    if (lower.endsWith('.mpd') || lower.endsWith('.ldr')) return 'scene';
+    if (lower.endsWith('.md') || lower.endsWith('.markdown') || lower.endsWith('.html') || lower.endsWith('.htm')) return 'doc';
+    if (lower.endsWith('.json')) return 'json';
+    return 'other';
+  };
+
+  const loadIpIndex = async () => {
+    try {
+      const res = await fetch('ip-index.json');
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      state.ips = (data.ips || []).map((ip) => {
+        const counts = { all: 0, scene: 0, doc: 0, json: 0, other: 0 };
+        (ip.hits || []).forEach((h) => {
+          const k = kindForFile(h.file);
+          counts.all++;
+          counts[k] = (counts[k] || 0) + 1;
+        });
+        return { ...ip, counts };
+      });
+      applyIpFilter();
+      renderIpList();
+      setStatus('READY', 'World index loaded from ip-index.json');
+    } catch (err) {
+      console.warn('Worldinator: failed to load ip-index.json', err);
+      showToast('Failed to load ip-index.json');
+      setStatus('ERROR', 'Run: node build-ip-index.js');
+    }
+  };
+
+  const applyIpFilter = () => {
+    const term = state.search.trim().toLowerCase();
+    state.filteredIps = state.ips.filter((ip) => {
+      if (!term) return true;
+      const text = [ip.id || '', ip.label || ''].join(' ').toLowerCase();
+      return text.includes(term);
+    });
+  };
+
+  const renderIpList = () => {
+    const list = document.getElementById('ipList');
+    list.innerHTML = '';
+    state.filteredIps.forEach((ip, idx) => {
+      const div = document.createElement('div');
+      div.className = 'ip-item' + (idx === state.selectedIpIndex ? ' selected' : '');
+      const counts = ip.counts || {};
+      const meta = `${counts.all || 0} hits · ${counts.scene || 0} scenes`;
+      div.innerHTML = `<div class="ip-name">${ip.label}</div><div class="ip-meta">${meta}</div>`;
+      div.addEventListener('click', () => {
+        state.selectedIpIndex = idx;
+        document.querySelectorAll('.ip-item').forEach(el => el.classList.remove('selected'));
+        div.classList.add('selected');
+        state.selectedHitIndex = -1;
+        renderHitList();
+        updateDetail();
+      });
+      list.appendChild(div);
+    });
+  };
+
+  const currentIp = () => {
+    if (state.selectedIpIndex < 0 || state.selectedIpIndex >= state.filteredIps.length) return null;
+    return state.filteredIps[state.selectedIpIndex];
+  };
+
+  const filteredHitsForIp = (ip) => {
+    if (!ip) return [];
+    const kind = state.hitFilterKind;
+    const hits = ip.hits || [];
+    if (kind === 'all') return hits;
+    return hits.filter((h) => kindForFile(h.file) === kind);
+  };
+
+  const renderHitList = () => {
+    const list = document.getElementById('hitList');
+    list.innerHTML = '';
+    const ip = currentIp();
+    const hits = filteredHitsForIp(ip);
+    hits.forEach((hit, idx) => {
+      const div = document.createElement('div');
+      div.className = 'hit-item' + (idx === state.selectedHitIndex ? ' selected' : '');
+      const kind = kindForFile(hit.file);
+      const kindLabel = kind === 'scene' ? 'scene' : (kind === 'doc' ? 'doc' : kind);
+      const snippet = hit.snippet || '';
+      div.innerHTML = `
+        <div class="hit-main-line">
+          <span class="hit-file">${hit.file}</span>
+          <span class="hit-kind">${hit.matchType} · ${kindLabel}</span>
+        </div>
+        <div class="hit-snippet">${snippet}</div>
+      `;
+      div.addEventListener('click', () => {
+        state.selectedHitIndex = idx;
+        document.querySelectorAll('.hit-item').forEach(el => el.classList.remove('selected'));
+        div.classList.add('selected');
+        updateDetail();
+      });
+      list.appendChild(div);
+    });
+  };
+
+  const currentHit = () => {
+    const ip = currentIp();
+    if (!ip) return null;
+    const hits = filteredHitsForIp(ip);
+    if (state.selectedHitIndex < 0 || state.selectedHitIndex >= hits.length) return null;
+    return hits[state.selectedHitIndex];
+  };
+
+  const updateDetail = () => {
+    const ip = currentIp();
+    const hit = currentHit();
+    if (!ip || !hit) {
+      document.getElementById('detailTitle').textContent = 'No World Selected';
+      document.getElementById('detailSubtitle').textContent = 'Pick an IP world and a file hit to inspect';
+      document.getElementById('detailIp').textContent = '—';
+      document.getElementById('detailFile').textContent = '—';
+      document.getElementById('detailMatch').textContent = '—';
+      document.getElementById('detailKind').textContent = '—';
+      document.getElementById('detailSnippet').textContent = '';
+      return;
+    }
+    const kind = kindForFile(hit.file);
+    document.getElementById('detailTitle').textContent = ip.label;
+    document.getElementById('detailSubtitle').textContent = hit.file;
+    document.getElementById('detailIp').textContent = ip.label;
+    document.getElementById('detailFile').textContent = hit.file;
+    document.getElementById('detailMatch').textContent = hit.matchType;
+    document.getElementById('detailKind').textContent = kind;
+    document.getElementById('detailSnippet').textContent = hit.snippet || '';
+  };
+
+  const loadSceneFromHit = async (mode) => {
+    const ip = currentIp();
+    const hit = currentHit();
+    if (!ip || !hit) {
+      showToast('Pick a world and a scene/file first');
+      return;
+    }
+    const kind = kindForFile(hit.file);
+    if (kind !== 'scene') {
+      showToast('Selected file is not an MPD/scene');
+      return;
+    }
+    const mpdPath = hit.file;
+    setStatus('LOADING MPD…', mpdPath);
+    try {
+      const res = await fetch(mpdPath);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const mpdText = await res.text();
+      const lines = mpdText.split(/\r?\n/);
+      if (wagFrankBus) {
+        wagFrankPost({
+          kind: 'scene-mpd',
+          source: 'worldinator',
+          ts: Date.now(),
+          payload: {
+            name: hit.file,
+            designer: `Worldinator · ${ip.label}`,
+            mpdLines: lines,
+            mode: mode || 'replace'
+          }
+        });
+        showToast(mode === 'add'
+          ? `WORLD SCENE -> wag-frank (scene-mpd, mode=add) from ${ip.label}; open wag-grace-editor.html`
+          : `WORLD SCENE -> wag-frank (scene-mpd, mode=replace) from ${ip.label}; open wag-grace-editor.html`);
+        setStatus('SCENE SENT', `${ip.label} · ${hit.file} · mode=${mode || 'replace'}`);
+      } else {
+        showToast('MPD loaded (no wag-frank channel)');
+        setStatus('MPD LOADED', 'BroadcastChannel unavailable');
+      }
+    } catch (err) {
+      console.warn('Worldinator: failed to load MPD for hit', hit, err);
+      showToast('Failed to load scene MPD');
+      setStatus('ERROR', 'Could not load MPD');
+    }
+  };
+
+  window.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('searchInput');
+    searchInput.addEventListener('input', (e) => {
+      state.search = e.target.value;
+      applyIpFilter();
+      state.selectedIpIndex = -1;
+      state.selectedHitIndex = -1;
+      renderIpList();
+      renderHitList();
+      updateDetail();
+    });
+
+    document.querySelectorAll('.hit-filter-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const kind = btn.dataset.kind;
+        state.hitFilterKind = kind;
+        document.querySelectorAll('.hit-filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        state.selectedHitIndex = -1;
+        renderHitList();
+        updateDetail();
+      });
+    });
+
+    document.getElementById('loadReplaceBtn').addEventListener('click', () => loadSceneFromHit('replace'));
+    document.getElementById('loadAddBtn').addEventListener('click', () => loadSceneFromHit('add'));
+
+    loadIpIndex();
+  });
+</script>
+</body>
+</html>

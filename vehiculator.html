@@ -1,0 +1,2189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vehicle Designer</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23FF4500'/%3E%3C/svg%3E">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #000;
+            color: #ddd;
+            overflow: hidden;
+            touch-action: pan-y;
+        }
+
+        .container {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: #000;
+        }
+
+        .header {
+            padding: 10px 15px;
+            background: #0a0a0a;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .title-block {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .title {
+            font-size: 13px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            color: #FF4500;
+        }
+
+        .stats {
+            font-size: 8px;
+            color: #666;
+            letter-spacing: 0.5px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .icon-btn {
+            padding: 6px 10px;
+            font-size: 14px;
+            background: transparent;
+            color: #FF4500;
+            border: 1px solid #333;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .icon-btn:active {
+            transform: scale(0.95);
+            background: #1a1a1a;
+        }
+
+        .fleet-btn {
+            padding: 8px 12px;
+            font-size: 9px;
+            font-weight: bold;
+            background: #FF4500;
+            color: #000;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: all 0.2s;
+        }
+
+        .fleet-btn:active {
+            transform: scale(0.95);
+            background: #FF6347;
+        }
+
+        .preview-section {
+            display: flex;
+            background: #0a0a0a;
+            border-bottom: 1px solid #333;
+            min-height: 280px;
+            position: relative;
+        }
+
+        .vehicle-display-area {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            background: linear-gradient(180deg, #1a1a2e 0%, #0a0a0a 100%);
+        }
+
+        .rotate-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 32px;
+            height: 32px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 50%;
+            color: #FF4500;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .rotate-btn:active {
+            background: #222;
+            transform: scale(0.95);
+        }
+
+        .vehicle-assembly {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            transform: scale(1);
+            transition: transform 0.3s ease;
+            position: relative;
+        }
+
+        .vehicle-assembly.rotating {
+            animation: rotate360 0.8s ease-in-out;
+        }
+
+        @keyframes rotate360 {
+            from { transform: scale(1) rotateY(0deg); }
+            to { transform: scale(1) rotateY(360deg); }
+        }
+
+        @keyframes partPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .part-windscreen {
+            width: 120px;
+            height: 50px;
+            background: #111;
+            border: 2px solid #333;
+            border-radius: 15px 15px 0 0;
+            clip-path: polygon(20% 100%, 10% 20%, 90% 20%, 80% 100%);
+            margin-bottom: -5px;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            z-index: 3;
+        }
+
+        .part-windscreen.filled {
+            background: radial-gradient(circle at 40% 30%, rgba(135, 206, 235, 0.8), rgba(70, 130, 180, 0.6));
+            border-color: #FF4500;
+            box-shadow: 0 0 15px rgba(255, 69, 0, 0.4);
+            animation: partPulse 0.5s ease;
+        }
+
+        .part-chassis {
+            width: 160px;
+            height: 60px;
+            background: #222;
+            border: 2px solid #333;
+            border-radius: 8px;
+            position: relative;
+            z-index: 2;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .part-chassis.filled {
+            background: linear-gradient(180deg, #DC143C 0%, #8B0000 100%);
+            border-color: #FF4500;
+            box-shadow: 0 0 15px rgba(220, 20, 60, 0.4);
+            animation: partPulse 0.5s ease;
+        }
+
+        .part-wheels {
+            width: 180px;
+            height: 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            position: relative;
+            z-index: 1;
+            margin-top: -10px;
+        }
+
+        .wheel {
+            width: 35px;
+            height: 35px;
+            background: #111;
+            border: 3px solid #333;
+            border-radius: 50%;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+        }
+
+        .wheel::after {
+            content: '';
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            background: #222;
+            border: 2px solid #333;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .part-wheels.filled .wheel {
+            background: radial-gradient(circle at 35% 35%, #333, #000);
+            border-color: #FF4500;
+            box-shadow: 0 0 12px rgba(255, 69, 0, 0.4);
+            animation: partPulse 0.5s ease;
+        }
+
+        .part-wheels.filled .wheel::after {
+            background: #444;
+            border-color: #666;
+        }
+
+        .part-engine {
+            position: absolute;
+            width: 50px;
+            height: 30px;
+            background: #111;
+            border: 2px solid #333;
+            border-radius: 5px;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .part-engine.filled {
+            background: linear-gradient(135deg, #4169E1 0%, #1E3A8A 100%);
+            border-color: #FF4500;
+            box-shadow: 0 0 15px rgba(65, 105, 225, 0.4);
+            animation: partPulse 0.5s ease;
+        }
+
+        .part-wings {
+            position: absolute;
+            width: 200px;
+            height: 20px;
+            background: #111;
+            border: 2px solid #333;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 0;
+        }
+
+        .part-wings.filled {
+            background: linear-gradient(90deg, #C0C0C0 0%, #808080 50%, #C0C0C0 100%);
+            border-color: #FF4500;
+            box-shadow: 0 0 15px rgba(192, 192, 192, 0.4);
+            animation: partPulse 0.5s ease;
+        }
+
+        .part-propeller {
+            position: absolute;
+            width: 80px;
+            height: 10px;
+            background: #111;
+            border: 2px solid #333;
+            border-radius: 50%;
+            top: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .part-propeller.filled {
+            background: linear-gradient(90deg, #FFD700 0%, #FFA500 50%, #FFD700 100%);
+            border-color: #FF4500;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+            animation: partPulse 0.5s ease;
+        }
+
+        .part-tail {
+            position: absolute;
+            width: 60px;
+            height: 40px;
+            background: #111;
+            border: 2px solid #333;
+            border-radius: 0 0 10px 10px;
+            bottom: 35px;
+            left: 50%;
+            transform: translateX(-50%);
+            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .part-tail.filled {
+            background: linear-gradient(180deg, #FF6347 0%, #DC143C 100%);
+            border-color: #FF4500;
+            box-shadow: 0 0 15px rgba(255, 99, 71, 0.4);
+            animation: partPulse 0.5s ease;
+        }
+
+        .build-info {
+            width: 170px;
+            padding: 15px 12px;
+            background: #000;
+            border-left: 1px solid #333;
+            overflow-y: auto;
+        }
+
+        .build-title {
+            font-size: 9px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            color: #FF4500;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .clear-btn {
+            font-size: 8px;
+            padding: 3px 6px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 2px;
+            color: #999;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .clear-btn:active {
+            background: #222;
+            color: #FF4500;
+        }
+
+        .build-row {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 8px 0;
+            border-bottom: 1px solid #222;
+            font-size: 8px;
+        }
+
+        .build-row:last-child {
+            border-bottom: none;
+        }
+
+        .build-label {
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .build-value {
+            color: #FF4500;
+            font-weight: 600;
+            word-break: break-all;
+            line-height: 1.3;
+        }
+
+        .build-input {
+            width: 100%;
+            background: #0a0a0a;
+            color: #FF4500;
+            border: 1px solid #333;
+            border-radius: 2px;
+            padding: 4px 6px;
+            font-size: 8px;
+            font-family: inherit;
+            transition: border-color 0.2s;
+        }
+
+        .build-input:focus {
+            outline: none;
+            border-color: #FF4500;
+        }
+
+        .vehicle-type-selector {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+
+        .type-btn {
+            flex: 1;
+            padding: 6px;
+            font-size: 7px;
+            font-weight: bold;
+            background: #1a1a1a;
+            color: #666;
+            border: 1px solid #333;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .type-btn.active {
+            background: #FF4500;
+            color: #000;
+            border-color: #FF4500;
+        }
+
+        .controls-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .search-bar {
+            padding: 10px 15px;
+            background: #0a0a0a;
+            border-bottom: 1px solid #333;
+            display: flex;
+            gap: 8px;
+        }
+
+        .search-wrapper {
+            position: relative;
+            flex: 1;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px 35px 10px 12px;
+            background: #000;
+            border: 1px solid #333;
+            border-radius: 4px;
+            color: #ddd;
+            font-family: inherit;
+            font-size: 10px;
+            transition: border-color 0.2s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #FF4500;
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 14px;
+            color: #666;
+        }
+
+        .view-tabs {
+            display: flex;
+            background: #0a0a0a;
+            border-bottom: 1px solid #333;
+            position: relative;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: #666;
+            font-family: inherit;
+            font-size: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            color: #FF4500;
+            border-bottom-color: #FF4500;
+        }
+
+        .tab-extras {
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            gap: 8px;
+        }
+
+        .random-btn {
+            padding: 6px 10px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 3px;
+            color: #FF4500;
+            font-size: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: all 0.2s;
+        }
+
+        .random-btn:active {
+            transform: scale(0.95);
+            background: #222;
+        }
+
+        .content-area {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .view-panel {
+            height: 100%;
+            display: none;
+            flex-direction: column;
+        }
+
+        .view-panel.active {
+            display: flex;
+        }
+
+        .dial-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 15px;
+        }
+
+        .dial-group {
+            margin-bottom: 15px;
+        }
+
+        .dial-label {
+            font-size: 9px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            color: #FF4500;
+            margin-bottom: 8px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .dial-counter {
+            font-size: 8px;
+            color: #666;
+            font-weight: normal;
+        }
+
+        .dial-box {
+            position: relative;
+            height: 45px;
+            background: #0a0a0a;
+            border: 1px solid #333;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .dial-track {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            transition: transform 0.3s ease-out;
+            padding: 0 50%;
+        }
+
+        .dial-item {
+            min-width: 150px;
+            padding: 12px;
+            text-align: center;
+            font-size: 10px;
+            color: #444;
+            cursor: grab;
+            user-select: none;
+            transition: all 0.2s;
+        }
+
+        .dial-item.active {
+            color: #FF4500;
+            font-weight: bold;
+            text-shadow: 0 0 6px rgba(255, 69, 0, 0.5);
+        }
+
+        .dial-marker {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 2px;
+            height: 100%;
+            background: #FF4500;
+            transform: translateX(-50%);
+            pointer-events: none;
+            z-index: 10;
+            box-shadow: 0 0 6px rgba(255, 69, 0, 0.6);
+        }
+
+        .list-container {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .list-section {
+            border-bottom: 1px solid #222;
+        }
+
+        .list-header {
+            padding: 12px 15px;
+            background: #0a0a0a;
+            font-size: 10px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            color: #FF4500;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+        }
+
+        .list-header:hover {
+            background: #111;
+        }
+
+        .expand-icon {
+            font-size: 10px;
+            transition: transform 0.3s;
+        }
+
+        .list-section.expanded .expand-icon {
+            transform: rotate(180deg);
+        }
+
+        .list-items {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .list-section.expanded .list-items {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .list-item {
+            padding: 10px 15px;
+            background: #000;
+            border-bottom: 1px solid #111;
+            color: #999;
+            font-size: 9px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .list-item:hover {
+            background: #0a0a0a;
+            color: #ddd;
+            padding-left: 20px;
+        }
+
+        .list-item.selected {
+            background: #1a1a1a;
+            color: #FF4500;
+            border-left: 3px solid #FF4500;
+        }
+
+        .item-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .item-details {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .item-id {
+            font-size: 8px;
+            color: #FF4500;
+            font-family: 'Courier New', monospace;
+        }
+
+        .item-name {
+            font-size: 9px;
+            line-height: 1.3;
+        }
+
+        .meta-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 2px;
+        }
+
+        .meta-tag {
+            font-size: 7px;
+            padding: 2px 5px;
+            border-radius: 2px;
+            border: 1px solid #333;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        .meta-tag.highlight {
+            border-color: #FF4500;
+            color: #FF4500;
+        }
+
+        .action-bar {
+            display: flex;
+            background: #0a0a0a;
+            border-top: 1px solid #333;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 15px;
+            font-family: inherit;
+            font-size: 10px;
+            font-weight: bold;
+            border: none;
+            border-right: 1px solid #333;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .action-btn:last-child {
+            border-right: none;
+        }
+
+        .btn-load {
+            background: #000;
+            color: #FF4500;
+        }
+
+        .btn-add {
+            background: #FF4500;
+            color: #000;
+        }
+
+        .action-btn:active {
+            transform: scale(0.97);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #1a1a1a;
+            color: #FF4500;
+            padding: 12px 20px;
+            border-radius: 6px;
+            border: 1px solid #333;
+            font-size: 10px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            z-index: 1000;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #000;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #FF4500;
+        }
+
+        @media (max-width: 480px) {
+            .build-info {
+                width: 150px;
+            }
+
+            .vehicle-assembly {
+                transform: scale(0.8);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="title-block">
+                <div class="title">🚗 VEHICLE DESIGNER</div>
+                <div class="stats">TRANSPORTATION ASSEMBLY SYSTEM</div>
+            </div>
+            <div class="header-actions">
+                <button class="icon-btn" id="undoBtn" title="Undo">↶</button>
+                <button class="icon-btn" id="redoBtn" title="Redo">↷</button>
+                <button class="fleet-btn" id="makeFleetBtn">FLEET</button>
+            </div>
+        </div>
+
+        <div class="preview-section">
+            <div class="vehicle-display-area">
+                <button class="rotate-btn" id="rotateBtn">⟳</button>
+                <div class="vehicle-assembly" id="vehicleAssembly">
+                    <div class="part-propeller" data-part="propeller" style="display:none;"></div>
+                    <div class="part-wings" data-part="wings" style="display:none;"></div>
+                    <div class="part-windscreen" data-part="windscreen"></div>
+                    <div class="part-chassis" data-part="chassis"></div>
+                    <div class="part-tail" data-part="tail" style="display:none;"></div>
+                    <div class="part-wheels" data-part="wheels">
+                        <div class="wheel"></div>
+                        <div class="wheel"></div>
+                    </div>
+                    <div class="part-engine" data-part="engine"></div>
+                </div>
+            </div>
+
+            <div class="build-info">
+                <div class="build-title">
+                    CURRENT
+                    <button class="clear-btn" id="clearBtn">CLEAR</button>
+                </div>
+                
+                <div class="vehicle-type-selector">
+                    <button class="type-btn active" data-type="car">🚗 Car</button>
+                    <button class="type-btn" data-type="plane">✈️ Plane</button>
+                    <button class="type-btn" data-type="boat">⛵ Boat</button>
+                    <button class="type-btn" data-type="train">🚂 Train</button>
+                </div>
+
+                <div class="build-row">
+                    <span class="build-label">Vehicle Name</span>
+                    <input class="build-input" id="vehicleName" placeholder="Custom Vehicle">
+                </div>
+                <div class="build-row">
+                    <span class="build-label">Designer</span>
+                    <input class="build-input" id="vehicleDesigner" placeholder="Engineer">
+                </div>
+                <div class="build-row" data-row="chassis">
+                    <span class="build-label">Chassis</span>
+                    <span class="build-value" id="previewChassis">—</span>
+                </div>
+                <div class="build-row" data-row="windscreen">
+                    <span class="build-label">Windscreen</span>
+                    <span class="build-value" id="previewWindscreen">—</span>
+                </div>
+                <div class="build-row" data-row="wheels">
+                    <span class="build-label">Wheels</span>
+                    <span class="build-value" id="previewWheels">—</span>
+                </div>
+                <div class="build-row" data-row="engine">
+                    <span class="build-label">Engine</span>
+                    <span class="build-value" id="previewEngine">—</span>
+                </div>
+                <div class="build-row" data-row="wings" style="display:none;">
+                    <span class="build-label">Wings</span>
+                    <span class="build-value" id="previewWings">—</span>
+                </div>
+                <div class="build-row" data-row="propeller" style="display:none;">
+                    <span class="build-label">Propeller</span>
+                    <span class="build-value" id="previewPropeller">—</span>
+                </div>
+                <div class="build-row" data-row="tail" style="display:none;">
+                    <span class="build-label">Tail</span>
+                    <span class="build-value" id="previewTail">—</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls-section">
+            <div class="search-bar">
+                <div class="search-wrapper">
+                    <input type="text" class="search-input" placeholder="Search parts..." id="searchInput">
+                    <span class="search-icon">🔍</span>
+                </div>
+            </div>
+
+            <div class="view-tabs">
+                <button class="tab-btn active" data-view="dial">DIAL</button>
+                <button class="tab-btn" data-view="list">LIST</button>
+                <div class="tab-extras">
+                    <button class="random-btn" id="randomBtn">🎲 RANDOM</button>
+                </div>
+            </div>
+
+            <div class="content-area">
+                <div class="view-panel active" id="dialView">
+                    <div class="dial-container" id="dialContainer"></div>
+                </div>
+
+                <div class="view-panel" id="listView">
+                    <div class="list-container" id="listContainer"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="action-bar">
+            <button class="action-btn btn-load">💾 SAVE BLUEPRINT</button>
+            <button class="action-btn btn-add">📸 SCREENSHOT</button>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const wagFrankBus = (typeof BroadcastChannel !== 'undefined') ? new BroadcastChannel('wag-frank') : null;
+        const wagFrankPost = (message) => {
+            if (!wagFrankBus) return;
+            wagFrankBus.postMessage(message);
+        };
+
+        // Simple vehicle layout used when building MPDs. This is
+        // intentionally coarse and acts as a placeholder until we have a
+        // more detailed layout model.
+        const VEHICLE_LAYOUT = {
+            CHASSIS: { x: 0, y: 0, z: 0 },
+            WINDSCREEN: { x: 0, y: 40, z: -40 },
+            WHEELS: { x: 0, y: -20, z: 0 },
+            ENGINE: { x: 0, y: 20, z: 60 },
+            WINGS: { x: 0, y: 20, z: 0 },
+            PROPELLER: { x: 0, y: 10, z: -80 },
+            TAIL: { x: 0, y: 50, z: 80 }
+        };
+
+        // Placeholder defaults so we can emit a valid MPD even though
+        // vehiculator currently uses conceptual parts instead of
+        // taxonomy-driven vehicle parts. These are intentionally generic
+        // bricks/baseplates that exist in the local LDraw library.
+        const vehicleSlotDefaults = {
+            CHASSIS: {
+                filename: '3811.dat',
+                description: 'Baseplate 32 x 32 (vehicle base placeholder)'
+            },
+            WINDSCREEN: {
+                filename: '3001.dat',
+                description: 'Brick  2 x  4 (windscreen placeholder)'
+            },
+            WHEELS: {
+                filename: '3001.dat',
+                description: 'Brick  2 x  4 (wheel assembly placeholder)'
+            },
+            ENGINE: {
+                filename: '3001.dat',
+                description: 'Brick  2 x  4 (engine placeholder)'
+            },
+            WINGS: {
+                filename: '3001.dat',
+                description: 'Brick  2 x  4 (wing placeholder)'
+            },
+            PROPELLER: {
+                filename: '3001.dat',
+                description: 'Brick  2 x  4 (propeller placeholder)'
+            },
+            TAIL: {
+                filename: '3001.dat',
+                description: 'Brick  2 x  4 (tail placeholder)'
+            }
+        };
+
+        let partsTaxonomy = null;
+
+        const vehicleSlotBuckets = {
+            car: {
+                wheels: { includes: ['wheel '], excludes: ['duplo', 'tyre minifig'], max: 160 },
+                windscreen: { includes: ['windscreen '], max: 80 },
+                chassis: { includes: ['car base', 'vehicle base'], max: 32 }
+            },
+            plane: {
+                chassis: { includes: ['fuselage', 'airplane'], max: 32 },
+                windscreen: { includes: ['windscreen '], max: 64 },
+                wings: { includes: ['wing '], max: 64 }
+            },
+            boat: {
+                chassis: { includes: ['boat hull'], max: 48 }
+            },
+            train: {
+                chassis: { includes: ['train base'], max: 48 },
+                wheels: { includes: ['train base'], max: 48 }
+            }
+        };
+
+        const collectPartsFromTaxonomy = (node, predicate, max, out) => {
+            if (!node || out.length >= max) return;
+            if (Array.isArray(node)) {
+                for (let i = 0; i < node.length && out.length < max; i++) {
+                    const item = node[i];
+                    if (item && typeof item === 'object') {
+                        if (item.filename && item.description && predicate(item)) {
+                            out.push(item);
+                            if (out.length >= max) break;
+                        }
+                        collectPartsFromTaxonomy(item, predicate, max, out);
+                    }
+                }
+            } else if (typeof node === 'object') {
+                const values = Object.values(node);
+                for (let i = 0; i < values.length && out.length < max; i++) {
+                    collectPartsFromTaxonomy(values[i], predicate, max, out);
+                }
+            }
+        };
+
+        const applyVehicleTaxonomyBuckets = () => {
+            if (!partsTaxonomy) return;
+            Object.keys(vehicleSlotBuckets).forEach(type => {
+                const slots = vehicleSlotBuckets[type];
+                Object.keys(slots).forEach(slot => {
+                    const bucket = slots[slot];
+                    const includes = (bucket.includes || []).map(s => s.toLowerCase());
+                    const excludes = (bucket.excludes || []).map(s => s.toLowerCase());
+                    const max = bucket.max || 64;
+                    const iconMap = {
+                        car: { chassis: '🚗', windscreen: '🪟', wheels: '⚙️', engine: '🔥' },
+                        plane: { chassis: '✈️', windscreen: '🪟', wings: '🪽', engine: '🔥', propeller: '🌀', tail: '🔼' },
+                        boat: { chassis: '⛵', windscreen: '🪟', engine: '💨', propeller: '🌀' },
+                        train: { chassis: '🚂', windscreen: '🪟', wheels: '⚙️', engine: '🔥' }
+                    };
+                    const iconForSlot = (iconMap[type] && iconMap[type][slot]) || '📦';
+
+                    const predicate = (part) => {
+                        const desc = (part.description || '').toLowerCase();
+                        if (!desc) return false;
+                        if (desc.startsWith('~') || desc.startsWith('=')) return false;
+                        if (part.path && part.path.toLowerCase().includes('/s/')) return false;
+                        if (includes.length && !includes.some(s => desc.includes(s))) return false;
+                        if (excludes.length && excludes.some(s => desc.includes(s))) return false;
+                        return true;
+                    };
+
+                    const found = [];
+                    collectPartsFromTaxonomy(partsTaxonomy.kingdoms, predicate, max, found);
+                    if (!found.length) return;
+
+                    if (!vehicleData[type]) vehicleData[type] = {};
+                    vehicleData[type][slot] = found.map((p, idx) => {
+                        const filename = p.filename || '';
+                        const name = p.description || filename || `${type} ${slot} ${idx + 1}`;
+                        return {
+                            id: filename || `${type}_${slot}_${idx}`,
+                            name,
+                            icon: iconForSlot,
+                            type: slot,
+                            filename: p.filename,
+                            path: p.path,
+                            description: p.description
+                        };
+                    });
+                });
+            });
+        };
+
+        const applyVehicleLibrary = (library) => {
+            if (!library || !library.vehicleTypes) return;
+            const iconMap = {
+                car: { chassis: '🚗', windscreen: '🪟', wheels: '⚙️', engine: '🔥' },
+                plane: { chassis: '✈️', windscreen: '🪟', wings: '🪽', engine: '🔥', propeller: '🌀', tail: '🔼' },
+                boat: { chassis: '⛵', windscreen: '🪟', engine: '💨', propeller: '🌀' },
+                train: { chassis: '🚂', windscreen: '🪟', wheels: '⚙️', engine: '🔥' }
+            };
+            Object.keys(library.vehicleTypes).forEach(type => {
+                const typeData = library.vehicleTypes[type];
+                if (!typeData) return;
+                if (!vehicleData[type]) vehicleData[type] = {};
+                Object.keys(typeData).forEach(slot => {
+                    const parts = typeData[slot];
+                    if (!Array.isArray(parts) || !parts.length) return;
+                    const iconForSlot = (iconMap[type] && iconMap[type][slot]) || '📦';
+                    vehicleData[type][slot] = parts.map((p, idx) => ({
+                        id: p.id || `${type}_${slot}_${idx}`,
+                        name: p.description || p.filename || p.id || `${type} ${slot} ${idx + 1}`,
+                        icon: iconForSlot,
+                        type: slot,
+                        filename: p.filename,
+                        path: p.path,
+                        description: p.description
+                    }));
+                });
+            });
+        };
+
+        const loadVehicleLibrary = () => {
+            return fetch('wag-viewer-prime-integration-20251112-055341%20copy/vehicle-library.json')
+                .then(res => {
+                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                    return res.json();
+                })
+                .then(json => {
+                    applyVehicleLibrary(json);
+                    console.log('Vehiculator: loaded vehicle-library.json for types:', Object.keys(json.vehicleTypes || {}));
+                    setVehicleType(state.vehicleType || 'car', false);
+                    refreshAllPreviews();
+                })
+                .catch(err => {
+                    console.warn('Vehiculator: failed to load vehicle-library.json', err);
+                });
+        };
+
+        const loadVehicleTaxonomy = () => {
+            return fetch('wag-viewer-prime-integration-20251112-055341%20copy/parts-taxonomy.json')
+                .then(res => {
+                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                    return res.json();
+                })
+                .then(json => {
+                    partsTaxonomy = json;
+                    applyVehicleTaxonomyBuckets();
+                    console.log('Vehiculator: applied taxonomy buckets for vehicles');
+                    setVehicleType(state.vehicleType || 'car', false);
+                    refreshAllPreviews();
+                })
+                .catch(err => {
+                    console.warn('Vehiculator: failed to load parts-taxonomy.json', err);
+                });
+        };
+
+        const resolveVehicleForMPD = (vehicle) => {
+            const resolved = {
+                id: vehicle.id,
+                title: vehicle.title,
+                designer: vehicle.designer,
+                parts: []
+            };
+
+            (vehicle.parts || []).forEach((p) => {
+                const label = (p.category || p.label || '').toUpperCase();
+                if (!label) return;
+
+                let filename = p.filename;
+                let description = p.description || p.name;
+
+                if (!filename) {
+                    const defaults = vehicleSlotDefaults[label];
+                    if (!defaults || !defaults.filename) return;
+                    filename = defaults.filename;
+                    if (!description) description = defaults.description || defaults.filename;
+                }
+
+                if (!description) description = filename;
+
+                resolved.parts.push({
+                    label,
+                    filename,
+                    description
+                });
+            });
+
+            // If nothing was resolved but we have defaults, fall back to
+            // one of each slot.
+            if (!resolved.parts.length && vehicleSlotDefaults && Object.keys(vehicleSlotDefaults).length) {
+                Object.entries(vehicleSlotDefaults).forEach(([label, defaults]) => {
+                    resolved.parts.push({
+                        label,
+                        filename: defaults.filename,
+                        description: defaults.description || defaults.filename
+                    });
+                });
+            }
+
+            return resolved;
+        };
+
+        const buildVehicleMPD = (vehicle) => {
+            const resolved = resolveVehicleForMPD(vehicle);
+            if (!resolved.parts || !resolved.parts.length) return '';
+
+            const lines = [];
+            const idSafe = (resolved.id || resolved.title || 'vehicle').replace(/\s+/g, '_');
+            const title = resolved.title || 'Custom Vehicle';
+            const author = resolved.designer || 'Engineer';
+
+            lines.push(`0 FILE ${idSafe}.mpd`);
+            lines.push(`0 Name: ${title}`);
+            lines.push(`0 Author: ${author} via Vehiculator`);
+            lines.push('0 !LDRAW_ORG Model');
+            lines.push('0 BFC CERTIFY CCW');
+            lines.push('');
+            lines.push('0 STEP');
+            lines.push('');
+
+            resolved.parts.forEach((part, idx) => {
+                const label = part.label || 'PART';
+                const layout = VEHICLE_LAYOUT[label] || { x: 0, y: 0, z: 0 };
+                const lx = typeof layout.x === 'function' ? layout.x(idx) : layout.x;
+                const ly = typeof layout.y === 'function' ? layout.y(idx) : layout.y;
+                const lz = typeof layout.z === 'function' ? layout.z(idx) : layout.z;
+                const color = 16;
+
+                let filename = part.filename || '';
+                if (!filename) return;
+                filename = filename.replace(/\\/g, '/');
+                const slashIdx = filename.lastIndexOf('/');
+                if (slashIdx >= 0) filename = filename.slice(slashIdx + 1);
+
+                lines.push(`0 // ${label} - ${part.description || filename}`);
+                lines.push(`1 ${color} ${lx} ${ly} ${lz} 1 0 0 0 1 0 0 0 1 ${filename}`);
+                lines.push('');
+            });
+
+            lines.push('0 STEP');
+            return lines.join('\n');
+        };
+
+        const buildVehicleFleetMPD = (vehicles, designer) => {
+            if (!vehicles || !vehicles.length) return '';
+
+            const lines = [];
+            const author = designer || 'Engineer';
+
+            lines.push('0 FILE vehicle_fleet.mpd');
+            lines.push('0 Name: Transportation Fleet');
+            lines.push(`0 Author: ${author} via Vehiculator`);
+            lines.push('0 !LDRAW_ORG Model');
+            lines.push('0 BFC CERTIFY CCW');
+            lines.push('');
+
+            const count = vehicles.length;
+            const cols = Math.ceil(Math.sqrt(count));
+            const dx = 400;
+            const dz = 400;
+            const xOffsetBase = (cols - 1) / 2;
+
+            vehicles.forEach((vehicle, idxVeh) => {
+                const resolved = resolveVehicleForMPD(vehicle);
+                if (!resolved.parts || !resolved.parts.length) return;
+
+                const col = idxVeh % cols;
+                const row = Math.floor(idxVeh / cols);
+                const offsetX = (col - xOffsetBase) * dx;
+                const offsetZ = row * dz;
+
+                lines.push('0 STEP');
+                lines.push(`0 // Vehicle ${idxVeh + 1} - ${vehicle.title || vehicle.id || ''}`);
+                lines.push('');
+
+                resolved.parts.forEach((part, idxPart) => {
+                    const label = part.label || 'PART';
+                    const layout = VEHICLE_LAYOUT[label] || { x: 0, y: 0, z: 0 };
+                    const lxLocal = typeof layout.x === 'function' ? layout.x(idxPart) : layout.x;
+                    const ly = typeof layout.y === 'function' ? layout.y(idxPart) : layout.y;
+                    const lzLocal = typeof layout.z === 'function' ? layout.z(idxPart) : layout.z;
+                    const color = 16;
+
+                    let filename = part.filename || '';
+                    if (!filename) return;
+                    filename = filename.replace(/\\/g, '/');
+                    const slashIdx = filename.lastIndexOf('/');
+                    if (slashIdx >= 0) filename = filename.slice(slashIdx + 1);
+
+                    const lx = lxLocal + offsetX;
+                    const lz = lzLocal + offsetZ;
+
+                    lines.push(`0 // ${label} - ${part.description || filename}`);
+                    lines.push(`1 ${color} ${lx} ${ly} ${lz} 1 0 0 0 1 0 0 0 1 ${filename}`);
+                    lines.push('');
+                });
+            });
+
+            lines.push('0 STEP');
+            return lines.join('\n');
+        };
+
+        const vehicleData = {
+            car: {
+                chassis: [
+                    { name: 'Sedan Body', id: 'chassis_sedan_01', icon: '🚗', type: 'passenger' },
+                    { name: 'SUV Frame', id: 'chassis_suv_01', icon: '🚙', type: 'utility' },
+                    { name: 'Sports Chassis', id: 'chassis_sport_01', icon: '🏎️', type: 'performance' },
+                    { name: 'Truck Frame', id: 'chassis_truck_01', icon: '🚚', type: 'heavy' },
+                    { name: 'Compact Body', id: 'chassis_compact_01', icon: '🚘', type: 'economy' },
+                    { name: 'Luxury Frame', id: 'chassis_luxury_01', icon: '🚗', type: 'premium' },
+                    { name: 'Off-Road Chassis', id: 'chassis_offroad_01', icon: '🚜', type: 'rugged' },
+                    { name: 'Electric Body', id: 'chassis_electric_01', icon: '⚡', type: 'eco' }
+                ],
+                windscreen: [
+                    { name: 'Standard Glass', id: 'wind_standard_01', icon: '🪟', type: 'basic' },
+                    { name: 'Curved Windshield', id: 'wind_curved_01', icon: '🔵', type: 'modern' },
+                    { name: 'Panoramic Roof', id: 'wind_panoramic_01', icon: '🌅', type: 'luxury' },
+                    { name: 'Tinted Glass', id: 'wind_tinted_01', icon: '🕶️', type: 'privacy' },
+                    { name: 'Racing Screen', id: 'wind_racing_01', icon: '🏁', type: 'sport' },
+                    { name: 'Reinforced Glass', id: 'wind_reinforced_01', icon: '🛡️', type: 'security' }
+                ],
+                wheels: [
+                    { name: 'Standard Tires', id: 'wheel_standard_01', icon: '⚫', type: 'basic', count: 4 },
+                    { name: 'Alloy Wheels', id: 'wheel_alloy_01', icon: '⭕', type: 'premium', count: 4 },
+                    { name: 'Off-Road Tires', id: 'wheel_offroad_01', icon: '🌑', type: 'rugged', count: 4 },
+                    { name: 'Racing Slicks', id: 'wheel_racing_01', icon: '🔴', type: 'performance', count: 4 },
+                    { name: 'Chrome Rims', id: 'wheel_chrome_01', icon: '✨', type: 'luxury', count: 4 },
+                    { name: 'Winter Tires', id: 'wheel_winter_01', icon: '❄️', type: 'seasonal', count: 4 }
+                ],
+                engine: [
+                    { name: 'V4 Engine', id: 'engine_v4_01', icon: '🔧', type: 'economy', power: '120hp' },
+                    { name: 'V6 Engine', id: 'engine_v6_01', icon: '⚙️', type: 'standard', power: '200hp' },
+                    { name: 'V8 Engine', id: 'engine_v8_01', icon: '💪', type: 'performance', power: '400hp' },
+                    { name: 'Electric Motor', id: 'engine_electric_01', icon: '⚡', type: 'eco', power: '300hp' },
+                    { name: 'Hybrid System', id: 'engine_hybrid_01', icon: '🔋', type: 'efficient', power: '250hp' },
+                    { name: 'Turbo Engine', id: 'engine_turbo_01', icon: '🌪️', type: 'boosted', power: '500hp' }
+                ]
+            },
+            plane: {
+                chassis: [
+                    { name: 'Cessna Fuselage', id: 'plane_cessna_01', icon: '✈️', type: 'light' },
+                    { name: 'Jet Body', id: 'plane_jet_01', icon: '🛩️', type: 'commercial' },
+                    { name: 'Fighter Frame', id: 'plane_fighter_01', icon: '🛫', type: 'military' },
+                    { name: 'Cargo Body', id: 'plane_cargo_01', icon: '📦', type: 'freight' },
+                    { name: 'Glider Frame', id: 'plane_glider_01', icon: '🪂', type: 'sport' },
+                    { name: 'Jumbo Fuselage', id: 'plane_jumbo_01', icon: '🛬', type: 'large' }
+                ],
+                windscreen: [
+                    { name: 'Cockpit Glass', id: 'plane_cockpit_01', icon: '🪟', type: 'standard' },
+                    { name: 'Bubble Canopy', id: 'plane_bubble_01', icon: '🔵', type: 'fighter' },
+                    { name: 'Split Windscreen', id: 'plane_split_01', icon: '⬜', type: 'vintage' },
+                    { name: 'HUD Windshield', id: 'plane_hud_01', icon: '📊', type: 'advanced' }
+                ],
+                wings: [
+                    { name: 'Straight Wings', id: 'wing_straight_01', icon: '➖', type: 'stable' },
+                    { name: 'Swept Wings', id: 'wing_swept_01', icon: '↗️', type: 'fast' },
+                    { name: 'Delta Wings', id: 'wing_delta_01', icon: '🔺', type: 'military' },
+                    { name: 'Biplane Wings', id: 'wing_biplane_01', icon: '=', type: 'vintage' },
+                    { name: 'Tapered Wings', id: 'wing_tapered_01', icon: '〉', type: 'efficient' }
+                ],
+                propeller: [
+                    { name: 'Two-Blade Prop', id: 'prop_two_01', icon: '⚛️', type: 'basic' },
+                    { name: 'Three-Blade Prop', id: 'prop_three_01', icon: '☢️', type: 'standard' },
+                    { name: 'Jet Engine', id: 'prop_jet_01', icon: '🔥', type: 'turbine' },
+                    { name: 'Turboprop', id: 'prop_turbo_01', icon: '🌀', type: 'hybrid' }
+                ],
+                tail: [
+                    { name: 'Standard Tail', id: 'tail_standard_01', icon: '🔼', type: 'basic' },
+                    { name: 'T-Tail', id: 'tail_t_01', icon: 'T', type: 'modern' },
+                    { name: 'V-Tail', id: 'tail_v_01', icon: 'V', type: 'sport' },
+                    { name: 'Twin Tail', id: 'tail_twin_01', icon: '||', type: 'military' }
+                ],
+                engine: [
+                    { name: 'Piston Engine', id: 'plane_piston_01', icon: '🔧', type: 'propeller' },
+                    { name: 'Turbofan', id: 'plane_turbofan_01', icon: '🌪️', type: 'jet' },
+                    { name: 'Turboprop', id: 'plane_turboprop_01', icon: '⚙️', type: 'efficient' },
+                    { name: 'Ramjet', id: 'plane_ramjet_01', icon: '🚀', type: 'supersonic' }
+                ]
+            },
+            boat: {
+                chassis: [
+                    { name: 'Sailboat Hull', id: 'boat_sail_01', icon: '⛵', type: 'leisure' },
+                    { name: 'Speedboat Hull', id: 'boat_speed_01', icon: '🚤', type: 'fast' },
+                    { name: 'Yacht Body', id: 'boat_yacht_01', icon: '🛥️', type: 'luxury' },
+                    { name: 'Fishing Hull', id: 'boat_fishing_01', icon: '🎣', type: 'utility' },
+                    { name: 'Cargo Ship', id: 'boat_cargo_01', icon: '🚢', type: 'freight' },
+                    { name: 'Catamaran', id: 'boat_catamaran_01', icon: '⛵', type: 'stable' }
+                ],
+                windscreen: [
+                    { name: 'Bridge Windows', id: 'boat_bridge_01', icon: '🪟', type: 'enclosed' },
+                    { name: 'Open Deck', id: 'boat_open_01', icon: '🌊', type: 'sport' },
+                    { name: 'Cabin Glass', id: 'boat_cabin_01', icon: '🏠', type: 'comfort' },
+                    { name: 'Hardtop', id: 'boat_hardtop_01', icon: '⬛', type: 'protected' }
+                ],
+                propeller: [
+                    { name: 'Outboard Motor', id: 'boat_outboard_01', icon: '🔧', type: 'external' },
+                    { name: 'Inboard Engine', id: 'boat_inboard_01', icon: '⚙️', type: 'internal' },
+                    { name: 'Jet Drive', id: 'boat_jet_01', icon: '💨', type: 'fast' },
+                    { name: 'Sail Rig', id: 'boat_sail_rig_01', icon: '🚩', type: 'wind' }
+                ],
+                engine: [
+                    { name: 'Diesel Engine', id: 'boat_diesel_01', icon: '⛽', type: 'standard' },
+                    { name: 'Gas Motor', id: 'boat_gas_01', icon: '⚡', type: 'fast' },
+                    { name: 'Electric Motor', id: 'boat_electric_01', icon: '🔋', type: 'eco' },
+                    { name: 'Hybrid System', id: 'boat_hybrid_01', icon: '🔄', type: 'efficient' }
+                ],
+                wheels: [] // boats don't have wheels
+            },
+            train: {
+                chassis: [
+                    { name: 'Steam Locomotive', id: 'train_steam_01', icon: '🚂', type: 'vintage' },
+                    { name: 'Diesel Engine', id: 'train_diesel_01', icon: '🚆', type: 'freight' },
+                    { name: 'Electric Train', id: 'train_electric_01', icon: '🚄', type: 'passenger' },
+                    { name: 'Bullet Train', id: 'train_bullet_01', icon: '🚅', type: 'high-speed' },
+                    { name: 'Metro Car', id: 'train_metro_01', icon: '🚇', type: 'urban' },
+                    { name: 'Tram Body', id: 'train_tram_01', icon: '🚊', type: 'light-rail' }
+                ],
+                windscreen: [
+                    { name: 'Cab Windows', id: 'train_cab_01', icon: '🪟', type: 'standard' },
+                    { name: 'Panoramic Glass', id: 'train_panoramic_01', icon: '🌄', type: 'scenic' },
+                    { name: 'Streamlined Nose', id: 'train_stream_01', icon: '▶️', type: 'aerodynamic' },
+                    { name: 'Classic Front', id: 'train_classic_01', icon: '⬛', type: 'vintage' }
+                ],
+                wheels: [
+                    { name: 'Steel Wheels', id: 'train_steel_01', icon: '⚫', type: 'standard', count: 8 },
+                    { name: 'Maglev System', id: 'train_maglev_01', icon: '🧲', type: 'magnetic', count: 0 },
+                    { name: 'Bogies', id: 'train_bogies_01', icon: '⚙️', type: 'articulated', count: 12 }
+                ],
+                engine: [
+                    { name: 'Steam Boiler', id: 'train_steam_eng_01', icon: '🔥', type: 'coal' },
+                    { name: 'Diesel Generator', id: 'train_diesel_eng_01', icon: '⛽', type: 'fuel' },
+                    { name: 'Electric Motor', id: 'train_electric_eng_01', icon: '⚡', type: 'overhead' },
+                    { name: 'Battery Pack', id: 'train_battery_01', icon: '🔋', type: 'eco' }
+                ]
+            }
+        };
+
+        const state = {
+            view: 'dial',
+            vehicleType: 'car',
+            selections: {
+                chassis: null,
+                windscreen: null,
+                wheels: null,
+                engine: null,
+                wings: null,
+                propeller: null,
+                tail: null
+            },
+            searchTerm: '',
+            expandedSection: null,
+            history: [],
+            historyIndex: -1
+        };
+
+        const showToast = (message) => {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        };
+
+        const haptic = () => {
+            if ('vibrate' in navigator) {
+                try { navigator.vibrate(10); } catch (e) {}
+            }
+        };
+
+        const saveToHistory = () => {
+            const snapshot = {
+                type: state.vehicleType,
+                selections: JSON.parse(JSON.stringify(state.selections))
+            };
+            if (state.historyIndex < state.history.length - 1) {
+                state.history = state.history.slice(0, state.historyIndex + 1);
+            }
+            state.history.push(snapshot);
+            state.historyIndex++;
+            if (state.history.length > 50) {
+                state.history.shift();
+                state.historyIndex--;
+            }
+            updateUndoRedoButtons();
+        };
+
+        const updateUndoRedoButtons = () => {
+            document.getElementById('undoBtn').style.opacity = state.historyIndex > 0 ? '1' : '0.3';
+            document.getElementById('redoBtn').style.opacity = state.historyIndex < state.history.length - 1 ? '1' : '0.3';
+        };
+
+        const undo = () => {
+            if (state.historyIndex > 0) {
+                state.historyIndex--;
+                const snapshot = state.history[state.historyIndex];
+                state.vehicleType = snapshot.type;
+                state.selections = JSON.parse(JSON.stringify(snapshot.selections));
+                setVehicleType(state.vehicleType, false);
+                refreshAllPreviews();
+                haptic();
+                showToast('Undo');
+            }
+        };
+
+        const redo = () => {
+            if (state.historyIndex < state.history.length - 1) {
+                state.historyIndex++;
+                const snapshot = state.history[state.historyIndex];
+                state.vehicleType = snapshot.type;
+                state.selections = JSON.parse(JSON.stringify(snapshot.selections));
+                setVehicleType(state.vehicleType, false);
+                refreshAllPreviews();
+                haptic();
+                showToast('Redo');
+            }
+        };
+
+        const refreshAllPreviews = () => {
+            Object.keys(state.selections).forEach(part => {
+                updateVehicle(part);
+                const sel = state.selections[part];
+                if (sel) {
+                    updatePreview(part, sel.name);
+                } else {
+                    updatePreview(part, '—');
+                }
+            });
+        };
+
+        const updateVehicle = (part) => {
+            const el = document.querySelector(`.part-${part}`);
+            if (!el) return;
+            const sel = state.selections[part];
+            
+            el.classList.remove('filled');
+            void el.offsetWidth;
+            
+            if (sel) {
+                el.classList.add('filled');
+            }
+        };
+
+        const updatePreview = (cat, val) => {
+            const el = document.getElementById(`preview${cat.charAt(0).toUpperCase() + cat.slice(1)}`);
+            if (el) el.textContent = val || '—';
+        };
+
+        const clearAll = () => {
+            if (!confirm('Clear all selections?')) return;
+            saveToHistory();
+            Object.keys(state.selections).forEach(key => {
+                state.selections[key] = null;
+                updateVehicle(key);
+                updatePreview(key, '—');
+            });
+            document.querySelectorAll('.list-item.selected').forEach(el => el.classList.remove('selected'));
+            Object.values(dials).forEach(dial => dial.clearSelection());
+            showToast('Cleared all');
+            haptic();
+        };
+
+        const randomize = () => {
+            saveToHistory();
+            const data = vehicleData[state.vehicleType];
+            Object.keys(data).forEach(cat => {
+                const items = data[cat];
+                if (items && items.length) {
+                    const randomIdx = Math.floor(Math.random() * items.length);
+                    const item = items[randomIdx];
+                    state.selections[cat] = item;
+                    updatePreview(cat, item.name);
+                    updateVehicle(cat);
+                    if (dials[cat]) dials[cat].setIndex(randomIdx);
+                }
+            });
+            showToast('Randomized!');
+            haptic();
+        };
+
+        const rotateVehicle = () => {
+            const assembly = document.getElementById('vehicleAssembly');
+            assembly.classList.add('rotating');
+            setTimeout(() => assembly.classList.remove('rotating'), 800);
+            haptic();
+        };
+
+        const setVehicleType = (type, saveHistory = true) => {
+            if (saveHistory) saveToHistory();
+            state.vehicleType = type;
+            
+            document.querySelectorAll('.type-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.type === type);
+            });
+
+            // Show/hide parts based on vehicle type
+            const partVisibility = {
+                car: { wheels: true, engine: true, wings: false, propeller: false, tail: false },
+                plane: { wheels: false, engine: true, wings: true, propeller: true, tail: true },
+                boat: { wheels: false, engine: true, wings: false, propeller: true, tail: false },
+                train: { wheels: true, engine: true, wings: false, propeller: false, tail: false }
+            };
+
+            const visibility = partVisibility[type];
+            Object.keys(visibility).forEach(part => {
+                const partEl = document.querySelector(`.part-${part}`);
+                const rowEl = document.querySelector(`[data-row="${part}"]`);
+                if (partEl) partEl.style.display = visibility[part] ? '' : 'none';
+                if (rowEl) rowEl.style.display = visibility[part] ? '' : 'none';
+            });
+
+            renderDials();
+            renderLists();
+            refreshAllPreviews();
+        };
+
+        const renderDials = () => {
+            const container = document.getElementById('dialContainer');
+            container.innerHTML = '';
+            dials = {};
+
+            const data = vehicleData[state.vehicleType];
+            Object.keys(data).forEach(cat => {
+                if (!data[cat] || data[cat].length === 0) return;
+
+                const group = document.createElement('div');
+                group.className = 'dial-group';
+                group.innerHTML = `
+                    <div class="dial-label">
+                        ${cat.toUpperCase()}
+                        <span class="dial-counter" data-counter="${cat}">${data[cat].length} items</span>
+                    </div>
+                    <div class="dial-box" data-dial="${cat}">
+                        <div class="dial-marker"></div>
+                        <div class="dial-track"></div>
+                    </div>
+                `;
+                container.appendChild(group);
+
+                const dialBox = group.querySelector('.dial-box');
+                dials[cat] = new Dial(dialBox, data[cat], cat);
+            });
+        };
+
+        const renderLists = () => {
+            const container = document.getElementById('listContainer');
+            container.innerHTML = '';
+
+            const data = vehicleData[state.vehicleType];
+            Object.keys(data).forEach(cat => {
+                if (!data[cat] || data[cat].length === 0) return;
+
+                const section = document.createElement('div');
+                section.className = 'list-section';
+                section.dataset.category = cat;
+                section.innerHTML = `
+                    <div class="list-header">
+                        <span>${cat.toUpperCase()}</span>
+                        <span class="expand-icon">▼</span>
+                    </div>
+                    <div class="list-items"></div>
+                `;
+                container.appendChild(section);
+
+                const header = section.querySelector('.list-header');
+                header.addEventListener('click', () => {
+                    const wasExpanded = section.classList.contains('expanded');
+                    document.querySelectorAll('.list-section').forEach(s => s.classList.remove('expanded'));
+                    if (!wasExpanded) section.classList.add('expanded');
+                    haptic();
+                });
+
+                initListItems(cat, section.querySelector('.list-items'));
+            });
+        };
+
+        const initListItems = (cat, container) => {
+            const items = vehicleData[state.vehicleType][cat];
+            container.innerHTML = '';
+            
+            items.forEach((item, idx) => {
+                const el = document.createElement('div');
+                el.className = 'list-item';
+                
+                const tags = [];
+                if (item.type) tags.push({ label: item.type, highlight: false });
+                if (item.power) tags.push({ label: item.power, highlight: true });
+                if (item.count !== undefined) tags.push({ label: `${item.count} wheels`, highlight: true });
+
+                const tagsHtml = tags.length
+                    ? `<div class="meta-tags">${tags.map(t => 
+                        `<span class="meta-tag${t.highlight ? ' highlight' : ''}">${t.label}</span>`
+                      ).join('')}</div>`
+                    : '';
+
+                el.innerHTML = `
+                    <div class="item-icon">${item.icon || '📦'}</div>
+                    <div class="item-details">
+                        <div class="item-id">${item.id}</div>
+                        <div class="item-name">${item.name}</div>
+                        ${tagsHtml}
+                    </div>
+                `;
+                
+                el.addEventListener('click', () => {
+                    container.querySelectorAll('.list-item').forEach(i => i.classList.remove('selected'));
+                    el.classList.add('selected');
+                    
+                    saveToHistory();
+                    state.selections[cat] = item;
+                    updatePreview(cat, item.name);
+                    updateVehicle(cat);
+                    
+                    if (dials[cat]) {
+                        dials[cat].setIndex(idx);
+                    }
+                    haptic();
+                });
+                container.appendChild(el);
+            });
+        };
+
+        const buildVehicle = () => {
+            const s = state.selections;
+            const parts = [];
+
+            Object.keys(s).forEach(key => {
+                if (s[key]) {
+                    parts.push({
+                        category: key.toUpperCase(),
+                        id: s[key].id,
+                        name: s[key].name,
+                        type: s[key].type,
+                        specs: s[key].power || s[key].count || null,
+                        filename: s[key].filename,
+                        path: s[key].path,
+                        description: s[key].description
+                    });
+                }
+            });
+
+            const nameInput = document.getElementById('vehicleName');
+            const designerInput = document.getElementById('vehicleDesigner');
+            const title = (nameInput && nameInput.value.trim()) || 'Custom Vehicle';
+            const designer = (designerInput && designerInput.value.trim()) || 'Engineer';
+            const id = title.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || `vehicle_${Date.now()}`;
+
+            return { id, title, designer, vehicleType: state.vehicleType, parts };
+        };
+
+        const downloadVehicle = (vehicle) => {
+            const lines = [];
+            lines.push(`# VEHICLE: ${vehicle.title}`);
+            lines.push(`# TYPE: ${vehicle.vehicleType.toUpperCase()}`);
+            lines.push(`# DESIGNER: ${vehicle.designer}`);
+            lines.push(`# GENERATED: ${new Date().toISOString()}`);
+            lines.push('');
+            lines.push('## COMPONENTS');
+            lines.push('');
+
+            vehicle.parts.forEach(part => {
+                lines.push(`[${part.category}]`);
+                lines.push(`  ID: ${part.id}`);
+                lines.push(`  Name: ${part.name}`);
+                lines.push(`  Type: ${part.type || 'standard'}`);
+                if (part.specs) lines.push(`  Specs: ${part.specs}`);
+                lines.push('');
+            });
+
+            const text = lines.join('\n');
+            console.log('Vehicle Blueprint:\n' + text);
+
+            // Try to build a simple MPD representation of the vehicle
+            let mpdText = '';
+            try {
+                mpdText = buildVehicleMPD(vehicle);
+                if (mpdText) {
+                    console.log('Vehicle MPD:\n' + mpdText);
+                }
+            } catch (err) {
+                console.warn('Vehiculator: failed to build MPD for vehicle', err);
+            }
+
+            if (wagFrankBus) {
+                if (mpdText) {
+                    const mpdLines = mpdText.split(/\r?\n/);
+                    wagFrankPost({
+                        kind: 'vehicle-mpd',
+                        source: 'vehiculator',
+                        ts: Date.now(),
+                        payload: {
+                            name: vehicle.title,
+                            designer: vehicle.designer,
+                            mpdLines,
+                            mode: 'replace'
+                        }
+                    });
+                }
+
+                wagFrankPost({
+                    kind: 'vehicle-spec',
+                    source: 'vehiculator',
+                    ts: Date.now(),
+                    payload: {
+                        name: vehicle.title,
+                        designer: vehicle.designer,
+                        vehicle,
+                        textLines: lines
+                    }
+                });
+            }
+
+            try {
+                if (mpdText) {
+                    const blobMpd = new Blob([mpdText], { type: 'text/plain' });
+                    const urlMpd = URL.createObjectURL(blobMpd);
+                    const aMpd = document.createElement('a');
+                    aMpd.href = urlMpd;
+                    aMpd.download = `${vehicle.id}.mpd`;
+                    document.body.appendChild(aMpd);
+                    aMpd.click();
+                    document.body.removeChild(aMpd);
+                    URL.revokeObjectURL(urlMpd);
+                    showToast(wagFrankBus ? 'VEHICLE -> wag-frank (vehicle-mpd); open wag-grace-editor.html to view' : 'Vehicle MPD saved');
+                } else {
+                    const blob = new Blob([text], { type: 'text/plain' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${vehicle.id}_blueprint.txt`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    showToast('Blueprint saved!');
+                }
+            } catch (e) {
+                showToast('Check console for data');
+            }
+        };
+
+        const captureScreenshot = () => {
+            showToast('Screenshot feature coming soon!');
+        };
+
+        class Dial {
+            constructor(wrapper, data, type) {
+                this.wrapper = wrapper;
+                this.track = wrapper.querySelector('.dial-track');
+                this.data = data;
+                this.type = type;
+                this.currentIndex = 0;
+                this.itemWidth = 150;
+                
+                this.init();
+            }
+
+            init() {
+                this.render();
+                this.attachEvents();
+                this.updatePosition();
+            }
+
+            render() {
+                this.track.innerHTML = this.data.map((item, idx) => 
+                    `<div class="dial-item" data-index="${idx}">${item.icon || ''} ${item.name}</div>`
+                ).join('');
+            }
+
+            setIndex(idx) {
+                this.currentIndex = idx;
+                this.updatePosition();
+            }
+
+            clearSelection() {
+                this.currentIndex = 0;
+                this.updatePosition();
+            }
+
+            attachEvents() {
+                let startPos = 0;
+                let translate = 0;
+                let prevTranslate = 0;
+                let dragging = false;
+
+                const start = (e) => {
+                    dragging = true;
+                    startPos = e.type.includes('mouse') ? e.pageX : e.touches[0].clientX;
+                    this.track.style.cursor = 'grabbing';
+                };
+
+                const move = (e) => {
+                    if (!dragging) return;
+                    const pos = e.type.includes('mouse') ? e.pageX : e.touches[0].clientX;
+                    translate = prevTranslate + pos - startPos;
+                    this.track.style.transform = `translateX(${translate}px)`;
+                };
+
+                const end = () => {
+                    if (!dragging) return;
+                    dragging = false;
+                    
+                    const moved = translate - prevTranslate;
+                    
+                    if (moved < -50 && this.currentIndex < this.data.length - 1) {
+                        this.currentIndex += 1;
+                    }
+                    if (moved > 50 && this.currentIndex > 0) {
+                        this.currentIndex -= 1;
+                    }
+                    
+                    saveToHistory();
+                    this.updatePosition();
+                    prevTranslate = -this.currentIndex * this.itemWidth;
+                    translate = prevTranslate;
+                    this.track.style.cursor = 'grab';
+                    this.syncList();
+                    haptic();
+                };
+
+                this.wrapper.addEventListener('mousedown', start);
+                this.wrapper.addEventListener('mousemove', move);
+                this.wrapper.addEventListener('mouseup', end);
+                this.wrapper.addEventListener('mouseleave', end);
+
+                this.wrapper.addEventListener('touchstart', start, { passive: true });
+                this.wrapper.addEventListener('touchmove', move, { passive: true });
+                this.wrapper.addEventListener('touchend', end);
+            }
+
+            updatePosition() {
+                const offset = -this.currentIndex * this.itemWidth;
+                this.track.style.transform = `translateX(${offset}px)`;
+                
+                const items = this.track.querySelectorAll('.dial-item');
+                items.forEach((item, idx) => {
+                    item.classList.toggle('active', idx === this.currentIndex);
+                });
+                
+                const current = this.data[this.currentIndex];
+                state.selections[this.type] = current;
+                updatePreview(this.type, current.name);
+                updateVehicle(this.type);
+            }
+
+            syncList() {
+                const section = document.querySelector(`.list-section[data-category="${this.type}"]`);
+                if (section) {
+                    const items = section.querySelectorAll('.list-item');
+                    items.forEach((item, idx) => {
+                        item.classList.toggle('selected', idx === this.currentIndex);
+                    });
+                }
+            }
+        }
+
+        let dials = {};
+
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                if (e.key === 'z') {
+                    e.preventDefault();
+                    undo();
+                } else if (e.key === 'y' || (e.shiftKey && e.key === 'z')) {
+                    e.preventDefault();
+                    redo();
+                }
+            } else if (e.key === 'r' && !e.ctrlKey && !e.metaKey) {
+                e.preventDefault();
+                randomize();
+            }
+        });
+
+        window.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const view = btn.dataset.view;
+                    state.view = view;
+                    
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    
+                    document.getElementById('dialView').classList.toggle('active', view === 'dial');
+                    document.getElementById('listView').classList.toggle('active', view === 'list');
+                    haptic();
+                });
+            });
+
+            document.querySelectorAll('.type-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    setVehicleType(btn.dataset.type);
+                    haptic();
+                });
+            });
+
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('input', (e) => {
+                state.searchTerm = e.target.value.toLowerCase();
+                filterContent();
+            });
+
+            const filterContent = () => {
+                document.querySelectorAll('.list-item').forEach(item => {
+                    const text = item.textContent.toLowerCase();
+                    item.style.display = text.includes(state.searchTerm) ? 'flex' : 'none';
+                });
+            };
+
+            setVehicleType('car', false);
+            saveToHistory();
+            loadVehicleLibrary();
+            loadVehicleTaxonomy();
+
+            document.getElementById('undoBtn').addEventListener('click', undo);
+            document.getElementById('redoBtn').addEventListener('click', redo);
+            document.getElementById('clearBtn').addEventListener('click', clearAll);
+            document.getElementById('randomBtn').addEventListener('click', randomize);
+            document.getElementById('rotateBtn').addEventListener('click', rotateVehicle);
+
+            document.querySelector('.btn-load').addEventListener('click', () => {
+                const vehicle = buildVehicle();
+                if (!vehicle.parts.length) {
+                    showToast('Select at least one part');
+                    return;
+                }
+                downloadVehicle(vehicle);
+            });
+
+            document.querySelector('.btn-add').addEventListener('click', captureScreenshot);
+
+            document.getElementById('makeFleetBtn').addEventListener('click', () => {
+                const types = ['car', 'plane', 'boat', 'train'];
+                let count = parseInt(prompt('How many vehicles in fleet? (1-20)', '5') || '5', 10);
+                if (isNaN(count)) count = 5;
+                count = Math.min(20, Math.max(1, count));
+
+                const designerInput = document.getElementById('vehicleDesigner');
+                const designer = (designerInput && designerInput.value.trim()) || 'Engineer';
+
+                const lines = [];
+                const vehicles = [];
+                lines.push(`# FLEET: Transportation Collection`);
+                lines.push(`# DESIGNER: ${designer}`);
+                lines.push(`# VEHICLES: ${count}`);
+                lines.push(`# GENERATED: ${new Date().toISOString()}`);
+                lines.push('');
+
+                for (let i = 0; i < count; i++) {
+                    const randomType = types[Math.floor(Math.random() * types.length)];
+                    const data = vehicleData[randomType];
+                    
+                    lines.push(`## VEHICLE ${i + 1} - ${randomType.toUpperCase()}`);
+                    lines.push('');
+
+                    const parts = [];
+                    
+                    Object.keys(data).forEach(cat => {
+                        const items = data[cat];
+                        if (items && items.length) {
+                            const randomIdx = Math.floor(Math.random() * items.length);
+                            const item = items[randomIdx];
+                            lines.push(`[${cat.toUpperCase()}]`);
+                            lines.push(`  ID: ${item.id}`);
+                            lines.push(`  Name: ${item.name}`);
+                            lines.push(`  Type: ${item.type || 'standard'}`);
+                            if (item.power) lines.push(`  Power: ${item.power}`);
+                            if (item.count !== undefined) lines.push(`  Count: ${item.count}`);
+                            lines.push('');
+
+                            parts.push({
+                                category: cat.toUpperCase(),
+                                id: item.id,
+                                name: item.name,
+                                type: item.type,
+                                specs: item.power || item.count || null,
+                                filename: item.filename,
+                                path: item.path,
+                                description: item.description
+                            });
+                        }
+                    });
+                    
+                    vehicles.push({
+                        id: `vehicle_${i + 1}`,
+                        title: `Vehicle ${i + 1} (${randomType})`,
+                        designer,
+                        vehicleType: randomType,
+                        parts
+                    });
+
+                    lines.push('---');
+                    lines.push('');
+                }
+
+                const text = lines.join('\n');
+                console.log('Fleet Data:\n' + text);
+
+                // Build an MPD scene composed of the generated vehicles
+                let fleetMpdText = '';
+                try {
+                    fleetMpdText = buildVehicleFleetMPD(vehicles, designer);
+                    if (fleetMpdText) {
+                        console.log('Fleet MPD:\n' + fleetMpdText);
+                    }
+                } catch (err) {
+                    console.warn('Vehiculator: failed to build fleet MPD', err);
+                }
+
+                if (wagFrankBus) {
+                    if (fleetMpdText) {
+                        const mpdLines = fleetMpdText.split(/\r?\n/);
+                        wagFrankPost({
+                            kind: 'scene-mpd',
+                            source: 'vehiculator',
+                            ts: Date.now(),
+                            payload: {
+                                name: 'Transportation Fleet',
+                                designer,
+                                mpdLines,
+                                mode: 'replace'
+                            }
+                        });
+                    }
+
+                    wagFrankPost({
+                        kind: 'vehicle-fleet-spec',
+                        source: 'vehiculator',
+                        ts: Date.now(),
+                        payload: {
+                            name: 'Transportation Fleet',
+                            designer,
+                            count,
+                            textLines: lines
+                        }
+                    });
+                }
+
+                try {
+                    if (fleetMpdText) {
+                        const blobMpd = new Blob([fleetMpdText], { type: 'text/plain' });
+                        const urlMpd = URL.createObjectURL(blobMpd);
+                        const aMpd = document.createElement('a');
+                        aMpd.href = urlMpd;
+                        aMpd.download = 'vehicle_fleet.mpd';
+                        document.body.appendChild(aMpd);
+                        aMpd.click();
+                        document.body.removeChild(aMpd);
+                        URL.revokeObjectURL(urlMpd);
+                        showToast(wagFrankBus ? 'FLEET SCENE -> wag-frank (scene-mpd from vehiculator); open wag-grace-editor.html to view' : 'Fleet MPD saved');
+                    } else {
+                        const blob = new Blob([text], { type: 'text/plain' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'vehicle_fleet.txt';
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                        showToast('Fleet saved!');
+                    }
+                } catch (e) {
+                    showToast('Check console for data');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

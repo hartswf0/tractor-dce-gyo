@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WAG FRANK – Grid & Minifigs</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg-main: #000;
+      --bg-secondary: #101010;
+      --bg-tertiary: #181818;
+      --text-primary: #e0e0e0;
+      --text-secondary: #999;
+      --accent: #ffd700;
+      --accent-soft: rgba(255,215,0,0.15);
+      --border-primary: #333;
+    }
+    body {
+      font-family: 'Courier New', monospace;
+      background: radial-gradient(circle at top, #151515 0, #000 55%);
+      color: var(--text-primary);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    #header {
+      height: 44px;
+      background: linear-gradient(180deg, var(--bg-tertiary) 0%, var(--bg-secondary) 100%);
+      border-bottom: 1px solid var(--border-primary);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+    }
+    #header-left { display: flex; align-items: center; gap: 8px; }
+    #header-title {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: var(--accent);
+      text-transform: uppercase;
+    }
+    #header-subtitle {
+      font-size: 10px;
+      color: var(--text-secondary);
+    }
+    .pill {
+      border-radius: 999px;
+      border: 1px solid var(--border-primary);
+      padding: 4px 10px;
+      font-size: 10px;
+      color: var(--text-secondary);
+      background: rgba(0,0,0,0.6);
+    }
+    #header-right { display: flex; align-items: center; gap: 6px; }
+    .corner-btn {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      border: 1px solid var(--border-primary);
+      background: var(--bg-tertiary);
+      color: var(--text-secondary);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .corner-btn:hover {
+      background: var(--accent);
+      color: #000;
+      border-color: var(--accent);
+    }
+
+    #main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+      gap: 1px;
+      background: #000;
+      border-top: 1px solid #111;
+      border-bottom: 1px solid #111;
+    }
+
+    #inbox-panel {
+      background: #050505;
+      border-right: 1px solid var(--border-primary);
+      display: flex;
+      flex-direction: column;
+    }
+    #inbox-header {
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border-primary);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+    }
+    #inbox-count { color: var(--accent); font-weight: 700; }
+    #inbox-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 6px 6px 8px 6px;
+    }
+    .inbox-item {
+      border-radius: 6px;
+      border: 1px solid var(--border-primary);
+      padding: 8px;
+      margin-bottom: 6px;
+      background: radial-gradient(circle at top left, rgba(255,215,0,0.06), rgba(0,0,0,0.9));
+      cursor: pointer;
+      transition: all 0.15s;
+      font-size: 11px;
+    }
+    .inbox-item:hover {
+      border-color: var(--accent);
+      box-shadow: 0 0 8px rgba(255,215,0,0.4);
+      transform: translateY(-1px);
+    }
+    .inbox-item.selected {
+      border-color: var(--accent);
+      background: radial-gradient(circle at top left, rgba(255,215,0,0.18), #000);
+    }
+    .inbox-title { color: var(--accent); font-weight: 700; }
+    .inbox-meta { color: var(--text-secondary); margin-top: 2px; }
+    .inbox-kind { font-size: 10px; opacity: 0.8; }
+
+    #inbox-footer {
+      border-top: 1px solid var(--border-primary);
+      padding: 6px 8px;
+      display: flex;
+      gap: 6px;
+    }
+    .small-btn {
+      flex: 1;
+      border-radius: 4px;
+      border: 1px solid var(--border-primary);
+      background: #111;
+      color: var(--text-secondary);
+      font-size: 10px;
+      padding: 6px 4px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: all 0.15s;
+    }
+    .small-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: #000;
+    }
+
+    #grid-panel {
+      background: #020202;
+      display: flex;
+      flex-direction: column;
+      padding: 10px;
+    }
+    #grid-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+    #grid-view {
+      flex: 1;
+      display: grid;
+      grid-template-columns: repeat(9, 1fr);
+      grid-template-rows: repeat(9, 1fr);
+      gap: 2px;
+      aspect-ratio: 1;
+      max-width: 540px;
+      max-height: 540px;
+      margin: 4px auto;
+    }
+    .grid-cell {
+      position: relative;
+      border-radius: 4px;
+      border: 1px solid #222;
+      background: radial-gradient(circle at top, #151515, #050505);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+    .grid-cell:hover {
+      border-color: var(--accent);
+      box-shadow: 0 0 8px rgba(255,215,0,0.25);
+      transform: translateZ(0) scale(1.02);
+      z-index: 2;
+    }
+    .grid-cell.occupied {
+      border-color: var(--accent);
+      background: radial-gradient(circle at top, rgba(255,215,0,0.2), #050505);
+      color: var(--text-primary);
+      font-weight: 700;
+    }
+    .grid-cell.selected {
+      box-shadow: 0 0 10px rgba(102,170,255,0.45);
+      outline: 1px solid rgba(102,170,255,0.7);
+    }
+    .cell-label {
+      position: absolute;
+      bottom: 2px;
+      right: 4px;
+      font-size: 9px;
+      color: var(--text-secondary);
+      opacity: 0.8;
+    }
+
+    #grid-footer {
+      margin-top: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 10px;
+      color: var(--text-secondary);
+    }
+    #grid-status { color: var(--accent); }
+
+    #footer {
+      height: 32px;
+      border-top: 1px solid var(--border-primary);
+      background: var(--bg-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 10px;
+      font-size: 10px;
+      color: var(--text-secondary);
+    }
+    #bus-status { color: var(--accent); }
+
+    #text-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.8);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+    }
+    #text-overlay.active {
+      display: flex;
+    }
+    #text-overlay-inner {
+      width: min(900px, 96vw);
+      height: min(500px, 80vh);
+      background: #050505;
+      border: 1px solid var(--border-primary);
+      box-shadow: 0 0 20px rgba(0,0,0,0.7);
+      display: flex;
+      flex-direction: column;
+      padding: 10px;
+    }
+    #text-overlay-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+    #text-overlay-title {
+      color: var(--accent);
+      font-weight: 700;
+    }
+    #text-overlay-area {
+      flex: 1;
+      width: 100%;
+      resize: none;
+      border: 1px solid var(--border-primary);
+      background: #000;
+      color: var(--text-primary);
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      padding: 8px;
+      line-height: 1.4;
+      outline: none;
+      white-space: pre;
+      overflow: auto;
+    }
+    #text-overlay-footer {
+      margin-top: 6px;
+      display: flex;
+      justify-content: flex-end;
+      font-size: 10px;
+      color: var(--text-secondary);
+    }
+  </style>
+</head>
+<body>
+  <div id="header">
+    <div id="header-left">
+      <div>
+        <div id="header-title">WAG FRANK</div>
+        <div id="header-subtitle">Grid + Minifig Bus Orchestrator</div>
+      </div>
+      <div class="pill">Channel: wag-frank</div>
+    </div>
+    <div id="header-right">
+      <button class="corner-btn" id="help-btn" title="Show quick help">?</button>
+    </div>
+  </div>
+
+  <div id="main">
+    <section id="inbox-panel">
+      <div id="inbox-header">
+        <span>INBOX · Minifigs & Families</span>
+        <span id="inbox-count">0 items</span>
+      </div>
+      <div id="inbox-list"></div>
+      <div id="inbox-footer">
+        <button class="small-btn" id="clear-inbox-btn">Clear</button>
+        <button class="small-btn" id="assign-to-grid-btn">Assign to Cell</button>
+      </div>
+    </section>
+
+    <section id="grid-panel">
+      <div id="grid-header">
+        <span>9×9 Grid · Scene Layout Sketch</span>
+        <span id="grid-meta">0 occupied</span>
+      </div>
+      <div id="grid-view"></div>
+      <div id="grid-footer">
+        <span id="grid-status">No cell selected</span>
+        <button class="small-btn" id="view-text-btn" style="flex:0 0 auto; margin-left:8px;">View MPD Text</button>
+        <button class="small-btn" id="build-scene-btn" style="flex:0 0 auto; margin-left:8px;">Build Scene in Grace</button>
+      </div>
+    </section>
+  </div>
+
+  <div id="footer">
+    <span id="bus-status">Bus: connecting…</span>
+    <span id="log-status">Waiting for messages from minifigurator-02…</span>
+  </div>
+
+  <div id="text-overlay">
+    <div id="text-overlay-inner">
+      <div id="text-overlay-header">
+        <span id="text-overlay-title">MPD TEXT</span>
+        <div>
+          <button class="small-btn" id="text-overlay-copy-btn">Copy</button>
+          <button class="small-btn" id="text-overlay-download-btn">Download</button>
+          <button class="small-btn" id="text-overlay-send-btn">Send to Grace</button>
+          <button class="small-btn" id="text-overlay-close-btn">Close</button>
+        </div>
+      </div>
+      <textarea id="text-overlay-area" spellcheck="false"></textarea>
+      <div id="text-overlay-footer">
+        <span>Showing MPD for the selected cell, or the composed grid scene if no cell is selected.</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const inbox = [];
+    const grid = [];
+    let selectedInboxId = null;
+    let selectedCellIndex = null;
+
+    const wagFrankBus = (typeof BroadcastChannel !== 'undefined') ? new BroadcastChannel('wag-frank') : null;
+
+    const openGraceEditor = () => {
+      try {
+        // Relative to wag-frank.html; browser will handle space encoding
+        window.open('wag-viewer-prime-integration-20251112-055341 copy/wag-grace-editor.html', '_blank');
+      } catch (e) {
+        console.warn('WAG FRANK: failed to open wag-grace-editor.html', e);
+      }
+    };
+
+    function $(id) { return document.getElementById(id); }
+
+    function updateBusStatus() {
+      const el = $('bus-status');
+      if (!el) return;
+      if (!wagFrankBus) {
+        el.textContent = 'Bus: unavailable (BroadcastChannel not supported)';
+        el.style.color = '#f55';
+      } else {
+        el.textContent = 'Bus: connected to wag-frank';
+        el.style.color = 'var(--accent)';
+      }
+    }
+
+    function initGrid() {
+      const gridView = $('grid-view');
+      if (!gridView) return;
+      gridView.innerHTML = '';
+      grid.length = 0;
+      for (let i = 0; i < 81; i++) {
+        const cell = {
+          id: i,
+          row: Math.floor(i / 9),
+          col: i % 9,
+          label: `${String.fromCharCode(65 + Math.floor(i / 9))}${(i % 9) + 1}`,
+          occupantId: null
+        };
+        grid.push(cell);
+        const div = document.createElement('div');
+        div.className = 'grid-cell';
+        div.dataset.index = i;
+        div.innerHTML = `<span class="cell-label">${cell.label}</span>`;
+        div.addEventListener('click', () => onCellClick(i));
+        gridView.appendChild(div);
+      }
+      updateGridMeta();
+    }
+
+    function updateGridMeta() {
+      const meta = $('grid-meta');
+      if (!meta) return;
+      const occupied = grid.filter(c => c.occupantId !== null).length;
+      meta.textContent = `${occupied} occupied`;
+    }
+
+    function renderGridSelection() {
+      const gridView = $('grid-view');
+      if (!gridView) return;
+      const cells = gridView.querySelectorAll('.grid-cell');
+      cells.forEach((div) => {
+        const idx = parseInt(div.dataset.index, 10);
+        const cell = grid[idx];
+        div.classList.toggle('occupied', !!cell.occupantId);
+        div.classList.toggle('selected', selectedCellIndex === idx);
+        const labelEl = div.querySelector('.cell-label');
+        if (cell.occupantId != null) {
+          const msg = inbox.find(m => m.id === cell.occupantId);
+          if (msg && labelEl) {
+            labelEl.textContent = `${cell.label}`;
+          }
+        } else if (labelEl) {
+          labelEl.textContent = cell.label;
+        }
+      });
+      updateGridMeta();
+    }
+
+    function onCellClick(idx) {
+      selectedCellIndex = idx;
+      renderGridSelection();
+      const cell = grid[idx];
+      const status = $('grid-status');
+      if (status) {
+        if (cell.occupantId != null) {
+          const msg = inbox.find(m => m.id === cell.occupantId);
+          const name = msg ? msg.name : 'Element';
+          status.textContent = `Cell ${cell.label} · ${name}`;
+        } else {
+          status.textContent = `Cell ${cell.label} selected`;
+        }
+      }
+      if (selectedInboxId != null) {
+        assignSelectedToCell();
+      }
+    }
+
+    function addInboxItem(message) {
+      const id = Date.now() + Math.random();
+      const item = {
+        id,
+        kind: message.kind,
+        source: message.source || 'unknown',
+        name: message.payload?.name || (message.kind === 'minifig-family-mpd' ? 'Minifig Family' : 'Minifig'),
+        ts: message.ts || Date.now(),
+        payload: message.payload || {}
+      };
+      inbox.unshift(item);
+      renderInbox();
+    }
+
+    function renderInbox() {
+      const list = $('inbox-list');
+      const countEl = $('inbox-count');
+      if (!list || !countEl) return;
+      list.innerHTML = '';
+      countEl.textContent = `${inbox.length} item${inbox.length === 1 ? '' : 's'}`;
+      inbox.forEach((item) => {
+        const div = document.createElement('div');
+        div.className = 'inbox-item' + (item.id === selectedInboxId ? ' selected' : '');
+        const time = new Date(item.ts).toLocaleTimeString();
+        let kindLabel = 'MINIFIG';
+        if (item.kind === 'minifig-family-mpd') {
+          kindLabel = 'FAMILY';
+        } else if (item.kind === 'location-spec') {
+          kindLabel = 'LOCATION';
+        } else if (item.kind === 'location-scene-spec') {
+          kindLabel = 'LOC-SCENE';
+        } else if (item.kind === 'scene-mpd') {
+          kindLabel = 'SCENE';
+        } else if (item.kind === 'location-mpd') {
+          kindLabel = 'LOC-MPD';
+        } else if (item.kind === 'vehicle-mpd') {
+          kindLabel = 'VEHICLE';
+        } else if (item.kind === 'vehicle-fleet-mpd') {
+          kindLabel = 'FLEET';
+        }
+        div.innerHTML = `
+          <div class="inbox-title">${item.name}</div>
+          <div class="inbox-meta">
+            <span class="inbox-kind">${kindLabel}</span>
+            · ${time}
+          </div>
+        `;
+        div.addEventListener('click', () => {
+          selectedInboxId = item.id === selectedInboxId ? null : item.id;
+          renderInbox();
+        });
+        list.appendChild(div);
+      });
+      const logStatus = $('log-status');
+      if (logStatus) {
+        if (inbox.length) {
+          logStatus.textContent = `Last message: ${inbox[0].name}`;
+        } else {
+          logStatus.textContent = 'Waiting for messages from minifigurator-02…';
+        }
+      }
+    }
+
+    function assignSelectedToCell() {
+      if (selectedInboxId == null || selectedCellIndex == null) return;
+      const msg = inbox.find(m => m.id === selectedInboxId);
+      const cell = grid[selectedCellIndex];
+      if (!msg || !cell) return;
+      cell.occupantId = msg.id;
+      renderGridSelection();
+    }
+
+    function clearInbox() {
+      inbox.length = 0;
+      selectedInboxId = null;
+      renderInbox();
+      grid.forEach(c => { c.occupantId = null; });
+      renderGridSelection();
+    }
+
+    function composeSceneFromGrid() {
+      const occupiedCells = grid.filter(c => c.occupantId !== null);
+      if (!occupiedCells.length) return null;
+
+      const CELL_SPACING_X = 160;
+      const CELL_SPACING_Z = 160;
+      const CENTER_COL = 4;
+      const CENTER_ROW = 4;
+
+      const lines = [];
+      const sceneName = 'WAG FRANK SCENE';
+      lines.push('0 FILE wag-frank-scene.mpd');
+      lines.push(`0 Name: ${sceneName}`);
+      lines.push('0 Author: WAG FRANK');
+      lines.push('0 !LDRAW_ORG Model');
+      lines.push('0 !LICENCE Redistributable under CCAL version 2.0');
+      lines.push('0 BFC CERTIFY CCW');
+      lines.push('0 // Auto-composed from -ator elements via wag-frank 9x9 grid');
+      lines.push('0 // WAG_FRANK_META {"version":"1.0","note":"Joined scene exported from wag-frank; elements are grouped by FRANK_CELL comments below. Each FRANK_CELL line contains JSON describing the logical element (cell, kind, source, name)."}');
+      lines.push('');
+
+      occupiedCells.forEach((cell) => {
+        const msg = inbox.find(m => m.id === cell.occupantId);
+        if (!msg || !Array.isArray(msg.payload?.mpdLines)) return;
+        const srcLines = msg.payload.mpdLines;
+
+        const offsetX = (cell.col - CENTER_COL) * CELL_SPACING_X;
+        const offsetZ = (cell.row - CENTER_ROW) * CELL_SPACING_Z;
+
+        const cellInfo = {
+          cell: cell.label,
+          kind: msg.kind,
+          source: msg.source || 'unknown',
+          name: msg.name
+        };
+        lines.push('0 STEP');
+        lines.push(`0 // FRANK_CELL ${JSON.stringify(cellInfo)}`);
+
+        srcLines.forEach((raw) => {
+          if (!raw || typeof raw !== 'string') return;
+          const trimmed = raw.trim();
+          if (!trimmed.startsWith('1 ')) return;
+          const parts = trimmed.split(/\s+/);
+          if (parts.length < 15) {
+            lines.push(trimmed);
+            return;
+          }
+          let x = parseFloat(parts[2]);
+          let y = parseFloat(parts[3]);
+          let z = parseFloat(parts[4]);
+          if (Number.isNaN(x)) x = 0;
+          if (Number.isNaN(y)) y = 0;
+          if (Number.isNaN(z)) z = 0;
+          x += offsetX;
+          z += offsetZ;
+          const fmt = (v) => {
+            const s = v.toFixed(3);
+            return s.replace(/\.000$/, '');
+          };
+          parts[2] = fmt(x);
+          parts[3] = fmt(y);
+          parts[4] = fmt(z);
+          lines.push(parts.join(' '));
+        });
+        lines.push('');
+      });
+
+      if (!lines.length) return null;
+
+      return {
+        lines,
+        sceneName,
+        occupiedCount: occupiedCells.length
+      };
+    }
+
+    function buildSceneFromGrid() {
+      if (!wagFrankBus) return;
+      const composed = composeSceneFromGrid();
+      if (!composed) return;
+
+      wagFrankBus.postMessage({
+        kind: 'scene-mpd',
+        source: 'wag-frank',
+        ts: Date.now(),
+        payload: {
+          name: composed.sceneName,
+          mpdLines: composed.lines,
+          mode: 'replace'
+        }
+      });
+
+      const logStatus = $('log-status');
+      if (logStatus) {
+        logStatus.textContent = `Sent scene with ${composed.occupiedCount} cell(s) to Grace`;
+      }
+
+      openGraceEditor();
+    }
+
+    function openTextOverlay(title, text) {
+      const overlay = $('text-overlay');
+      const titleEl = $('text-overlay-title');
+      const area = $('text-overlay-area');
+      if (!overlay || !titleEl || !area) return;
+      titleEl.textContent = title || 'MPD TEXT';
+      area.value = text || '';
+      overlay.classList.add('active');
+    }
+
+    function closeTextOverlay() {
+      const overlay = $('text-overlay');
+      if (!overlay) return;
+      overlay.classList.remove('active');
+    }
+
+    function viewTextForCurrent() {
+      const composed = composeSceneFromGrid();
+      if (composed) {
+        const label = `${composed.sceneName} (${composed.occupiedCount} cell${composed.occupiedCount === 1 ? '' : 's'})`;
+        openTextOverlay(label, composed.lines.join('\n'));
+      } else {
+        openTextOverlay('MPD TEXT', '// No grid scene to show yet. Place at least one element on the grid.');
+      }
+    }
+
+    function sendTextOverlayToGrace() {
+      if (!wagFrankBus) return;
+      const area = $('text-overlay-area');
+      if (!area) return;
+      const text = area.value || '';
+      if (!text.trim()) return;
+      const lines = text.split(/\r?\n/);
+
+      wagFrankBus.postMessage({
+        kind: 'scene-mpd',
+        source: 'wag-frank-text',
+        ts: Date.now(),
+        payload: {
+          name: 'WAG FRANK TEXT SCENE',
+          mpdLines: lines,
+          mode: 'replace'
+        }
+      });
+
+      const logStatus = $('log-status');
+      if (logStatus) {
+        logStatus.textContent = 'Sent edited text scene to Grace';
+      }
+
+      openGraceEditor();
+    }
+
+    function copyTextOverlay() {
+      const area = $('text-overlay-area');
+      if (!area) return;
+      const text = area.value || '';
+      if (!text) return;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).catch(() => {
+          try {
+            area.select();
+            document.execCommand('copy');
+          } catch (e) {}
+        });
+      } else {
+        try {
+          area.select();
+          document.execCommand('copy');
+        } catch (e) {}
+      }
+      const logStatus = $('log-status');
+      if (logStatus) logStatus.textContent = 'MPD text copied to clipboard';
+    }
+
+    function downloadTextOverlay() {
+      const area = $('text-overlay-area');
+      if (!area) return;
+      const text = area.value || '';
+      if (!text.trim()) return;
+      try {
+        const blob = new Blob([text], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'wag-frank-scene.mpd';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        const logStatus = $('log-status');
+        if (logStatus) logStatus.textContent = 'MPD downloaded from wag-frank';
+      } catch (e) {
+        console.warn('WAG FRANK: failed to download MPD from text overlay', e);
+      }
+    }
+
+    function setupBusListener() {
+      if (!wagFrankBus) return;
+      wagFrankBus.onmessage = (event) => {
+        const msg = event.data;
+        if (!msg || typeof msg !== 'object') return;
+        const kind = msg.kind;
+        if (kind !== 'minifig-mpd' &&
+            kind !== 'minifig-family-mpd' &&
+            kind !== 'location-spec' &&
+            kind !== 'location-scene-spec' &&
+            kind !== 'scene-mpd' &&
+            kind !== 'location-mpd' &&
+            kind !== 'vehicle-mpd' &&
+            kind !== 'vehicle-fleet-mpd') {
+          return;
+        }
+        addInboxItem(msg);
+      };
+    }
+
+    function startHeartbeat() {
+      if (!wagFrankBus) return;
+      setInterval(() => {
+        wagFrankBus.postMessage({
+          kind: 'frank-heartbeat',
+          source: 'wag-frank',
+          ts: Date.now()
+        });
+      }, 2000);
+    }
+
+    function setupUI() {
+      const clearBtn = $('clear-inbox-btn');
+      const assignBtn = $('assign-to-grid-btn');
+      if (clearBtn) clearBtn.addEventListener('click', clearInbox);
+      if (assignBtn) assignBtn.addEventListener('click', assignSelectedToCell);
+      const buildBtn = $('build-scene-btn');
+      if (buildBtn) buildBtn.addEventListener('click', buildSceneFromGrid);
+      const viewTextBtn = $('view-text-btn');
+      if (viewTextBtn) viewTextBtn.addEventListener('click', viewTextForCurrent);
+      const closeOverlayBtn = $('text-overlay-close-btn');
+      if (closeOverlayBtn) closeOverlayBtn.addEventListener('click', closeTextOverlay);
+      const sendOverlayBtn = $('text-overlay-send-btn');
+      if (sendOverlayBtn) sendOverlayBtn.addEventListener('click', sendTextOverlayToGrace);
+      const copyOverlayBtn = $('text-overlay-copy-btn');
+      if (copyOverlayBtn) copyOverlayBtn.addEventListener('click', copyTextOverlay);
+      const downloadOverlayBtn = $('text-overlay-download-btn');
+      if (downloadOverlayBtn) downloadOverlayBtn.addEventListener('click', downloadTextOverlay);
+      const overlay = $('text-overlay');
+      if (overlay) {
+        overlay.addEventListener('click', (e) => {
+          if (e.target === overlay) closeTextOverlay();
+        });
+      }
+      const helpBtn = $('help-btn');
+      if (helpBtn) {
+        helpBtn.addEventListener('click', () => {
+          alert([
+            'WAG FRANK – Quick Help',
+            '',
+            '1. Open minifigurator-02.html in another tab and build a minifig.',
+            '2. Click "SAVE MPD" – it will broadcast over the wag-frank channel.',
+            '3. The minifig or family will appear in this inbox.',
+            '4. Select an inbox item, select a grid cell, and click "Assign to Cell".',
+            '5. Click "Build Scene in Grace" to send a combined MPD to the Grace editor.',
+            '',
+            'Grace editor can independently listen on wag-frank and load these MPDs.',
+          ].join('\n'));
+        });
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      updateBusStatus();
+      initGrid();
+      setupBusListener();
+      setupUI();
+      startHeartbeat();
+    });
+  </script>
+</body>
+</html>

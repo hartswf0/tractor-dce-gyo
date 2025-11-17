@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Swiss Designator – System Map</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23777777'/%3E%3C/svg%3E">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: 'Courier New', monospace;
+      background: #000;
+      color: #ddd;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .page {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .header {
+      padding: 10px 16px;
+      border-bottom: 1px solid #333;
+      background: #050505;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .title-block { display: flex; flex-direction: column; gap: 2px; }
+    .title { font-size: 13px; font-weight: bold; letter-spacing: 1px; color: #FFD700; }
+    .subtitle { font-size: 9px; color: #777; letter-spacing: 1px; text-transform: uppercase; }
+    .badge { font-size: 8px; padding: 4px 8px; border-radius: 3px; border: 1px solid #333; text-transform: uppercase; letter-spacing: 1px; }
+
+    .content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 12px 16px 20px;
+      overflow-y: auto;
+    }
+
+    .section-title {
+      font-size: 10px;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+
+    .lego-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .lego-block {
+      min-width: 140px;
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: 1px solid #333;
+      background: #050505;
+      position: relative;
+    }
+
+    .lego-top {
+      position: absolute;
+      top: -6px;
+      left: 8px;
+      display: flex;
+      gap: 4px;
+    }
+
+    .lego-stud {
+      width: 10px;
+      height: 6px;
+      border-radius: 4px 4px 0 0;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.05);
+    }
+
+    .lego-name {
+      font-size: 10px;
+      font-weight: bold;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+
+    .lego-note {
+      font-size: 8px;
+      color: #888;
+      line-height: 1.4;
+    }
+
+    .lego-minifig { border-color: #FFD700; box-shadow: 0 0 8px rgba(255,215,0,0.2); }
+    .lego-location { border-color: #00FF88; box-shadow: 0 0 8px rgba(0,255,136,0.2); }
+    .lego-vehicle { border-color: #FF4500; box-shadow: 0 0 8px rgba(255,69,0,0.2); }
+    .lego-scene { border-color: #4ECDC4; box-shadow: 0 0 8px rgba(78,205,196,0.2); }
+    .lego-grace { border-color: #9D4EDD; box-shadow: 0 0 8px rgba(157,78,221,0.2); }
+
+    .flow-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      font-size: 9px;
+    }
+
+    .arrow {
+      padding: 2px 6px;
+      border-radius: 10px;
+      border: 1px solid #444;
+      color: #666;
+    }
+
+    .arrow-highlight {
+      border-color: #4ECDC4;
+      color: #4ECDC4;
+    }
+
+    .pill {
+      font-size: 8px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid #333;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #888;
+    }
+
+    .pill-bus { border-color: #4ECDC4; color: #4ECDC4; }
+    .pill-mpd { border-color: #00FF88; color: #00FF88; }
+
+    .callout {
+      border-left: 2px solid #333;
+      padding-left: 8px;
+      font-size: 9px;
+      color: #aaa;
+      line-height: 1.4;
+    }
+
+    .callout-emoji { margin-right: 4px; }
+
+    .status-bar {
+      padding: 6px 16px;
+      border-top: 1px solid #333;
+      font-size: 8px;
+      color: #666;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    @media (max-width: 768px) {
+      .lego-row { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div class="title-block">
+      <div class="title">SWISS DESIGNATOR – SYSTEM MAP</div>
+      <div class="subtitle">SHOWING HOW THE BUILDERS SNAP TOGETHER</div>
+    </div>
+    <div class="badge">SHOW, DON'T TELL • LEGO BLOCK DIAGRAMS</div>
+  </div>
+
+  <div class="content">
+    <div>
+      <div class="section-title">Builders as Lego blocks</div>
+      <div class="lego-row">
+        <div class="lego-block lego-scene">
+          <div class="lego-top"><div class="lego-stud"></div><div class="lego-stud"></div></div>
+          <div class="lego-name">SCENEERATOR</div>
+          <div class="lego-note">Picked first. Chooses a big SCENE SHELL (crater, road+river, raised island, ship hull). Broadcasts scene-shell-context + scene-mpd.</div>
+        </div>
+        <div class="lego-block lego-location">
+          <div class="lego-top"><div class="lego-stud"></div><div class="lego-stud"></div></div>
+          <div class="lego-name">LOCATIONATOR</div>
+          <div class="lego-note">Builds production sets on top of the shell. Uses taxonomy + location-library for FLOOR/WALL/DOOR/WINDOW/ROOF/TREE/PROP.</div>
+        </div>
+        <div class="lego-block lego-vehicle">
+          <div class="lego-top"><div class="lego-stud"></div><div class="lego-stud"></div></div>
+          <div class="lego-name">VEHICULATOR</div>
+          <div class="lego-note">Builds vehicles using taxonomy-driven slots (chassis, wheels, windscreens, hulls, engines) and exports vehicle_mpd + fleet scenes.</div>
+        </div>
+        <div class="lego-block lego-minifig">
+          <div class="lego-top"><div class="lego-stud"></div><div class="lego-stud"></div></div>
+          <div class="lego-name">MINIFIGURATOR</div>
+          <div class="lego-note">Builds characters (single + families). Outputs minifig-mpd + family MPDs to place into locations and scenes.</div>
+        </div>
+        <div class="lego-block lego-grace">
+          <div class="lego-top"><div class="lego-stud"></div><div class="lego-stud"></div></div>
+          <div class="lego-name">GRACE / WAG VIEWER</div>
+          <div class="lego-note">Receives MPDs + specs over wag-frank. Renders the world, loads parts from taxonomy, and acts as the stage.</div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-title">Flow 1 – Setting the world first</div>
+      <div class="flow-row" style="margin-bottom:6px;">
+        <span class="pill pill-bus">wag-frank bus</span>
+        <span class="pill pill-mpd">MPD exports</span>
+      </div>
+      <div class="flow-row">
+        <span class="lego-block lego-scene" style="min-width:130px; text-align:center;">SCENEERATOR<br><span style="font-size:8px; color:#888;">pick shell</span></span>
+        <span class="arrow arrow-highlight">scene-shell-context</span>
+        <span class="lego-block lego-location" style="min-width:130px; text-align:center;">LOCATIONATOR<br><span style="font-size:8px; color:#888;">floor uses shell</span></span>
+        <span class="arrow">location-mpd</span>
+        <span class="lego-block lego-grace" style="min-width:130px; text-align:center;">GRACE</span>
+      </div>
+      <div class="flow-row" style="margin-top:8px;">
+        <span class="lego-block lego-scene" style="min-width:130px; text-align:center;">SCENEERATOR</span>
+        <span class="arrow">scene-mpd</span>
+        <span class="lego-block lego-grace" style="min-width:130px; text-align:center;">GRACE</span>
+      </div>
+      <div class="callout" style="margin-top:8px;">
+        <span class="callout-emoji">🧱</span>
+        First choose a big shell (space crater, road grid, harbor hull). That decision becomes context for location + vehicle + minifig choices.
+      </div>
+    </div>
+
+    <div>
+      <div class="section-title">Flow 2 – Populating the scene</div>
+      <div class="flow-row" style="margin-bottom:6px;">
+        <span class="lego-block lego-location" style="min-width:130px; text-align:center;">LOCATIONATOR</span>
+        <span class="arrow">location-mpd</span>
+        <span class="lego-block lego-grace" style="min-width:130px; text-align:center;">GRACE</span>
+      </div>
+      <div class="flow-row" style="margin-bottom:6px;">
+        <span class="lego-block lego-vehicle" style="min-width:130px; text-align:center;">VEHICULATOR</span>
+        <span class="arrow">vehicle-mpd / vehicle-fleet-mpd</span>
+        <span class="lego-block lego-grace" style="min-width:130px; text-align:center;">GRACE</span>
+      </div>
+      <div class="flow-row" style="margin-bottom:6px;">
+        <span class="lego-block lego-minifig" style="min-width:130px; text-align:center;">MINIFIGURATOR</span>
+        <span class="arrow">minifig-mpd / minifig-family-mpd</span>
+        <span class="lego-block lego-grace" style="min-width:130px; text-align:center;">GRACE</span>
+      </div>
+      <div class="callout" style="margin-top:8px;">
+        <span class="callout-emoji">🎬</span>
+        Think of each -ator as a Lego sub-assembly: locations, vehicles, and minifig families all snap into the same scene shell in Grace.
+      </div>
+    </div>
+
+    <div>
+      <div class="section-title">Flow 3 – Taxonomy & primitives underneath</div>
+      <div class="lego-row">
+        <div class="lego-block" style="border-color:#555;">
+          <div class="lego-top"><div class="lego-stud"></div></div>
+          <div class="lego-name">parts-taxonomy.json</div>
+          <div class="lego-note">Hierarchical tree of kingdoms → families → parts. Used by Locationator + Vehiculator (and Grace catalog) to pull real parts.</div>
+        </div>
+        <div class="lego-block" style="border-color:#555;">
+          <div class="lego-top"><div class="lego-stud"></div></div>
+          <div class="lego-name">taxonomy-primitives.json</div>
+          <div class="lego-note">Bottom-up primitive heads (wheel, windscreen, door, panel, baseplate...). Drives slot buckets and new -ators.</div>
+        </div>
+        <div class="lego-block" style="border-color:#555;">
+          <div class="lego-top"><div class="lego-stud"></div></div>
+          <div class="lego-name">scene-shells.json</div>
+          <div class="lego-note">Filtered, high-geometry baseplates & hulls. Sceneerator uses this as the catalog of big ready-made worlds.</div>
+        </div>
+      </div>
+      <div class="callout" style="margin-top:8px;">
+        <span class="callout-emoji">🧬</span>
+        New -ators (interior/exterior, signage, flora, containers) can plug into the same taxonomy + primitives stack and snap into these flows.
+      </div>
+    </div>
+  </div>
+
+  <div class="status-bar">
+    <span>Swiss Docs • Visual map, not specs</span>
+    <span>Open from SWISS as DOCS • No code, just diagrams</span>
+  </div>
+</div>
+</body>
+</html>
