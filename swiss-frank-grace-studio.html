@@ -342,8 +342,8 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 4px;
-      padding: 2px 4px;
+      gap: 6px;
+      padding: 4px 6px;
       border-bottom: 1px solid #333;
       background-color: #000;
       white-space: nowrap;
@@ -359,9 +359,16 @@
 
     .studio-label {
       font-size: 8px;
-      letter-spacing: 0.16em;
+      letter-spacing: 0.14em;
       text-transform: uppercase;
       color: #aaa;
+    }
+
+    .studio-title {
+      font-size: 8px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #fff;
     }
 
     .studio-center {
@@ -377,6 +384,31 @@
       display: flex;
       align-items: center;
       gap: 4px;
+    }
+
+    .studio-btn {
+      border-radius: 999px;
+      border: 1px solid #333;
+      background: #050505;
+      color: #aaa;
+      font-size: 10px;
+      width: 20px;
+      height: 20px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .studio-btn:hover {
+      border-color: #fff;
+      color: #fff;
+    }
+
+    .studio-btn.active {
+      border-color: var(--accent);
+      color: var(--accent);
     }
 
     .layout-toggle {
@@ -398,15 +430,82 @@
       font-size: 10px;
     }
 
-    /* Mobile: maximize tool space, keep studio chrome minimal */
+    .help-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .help-overlay.active {
+      display: flex;
+    }
+
+    .help-modal {
+      width: min(420px, 92vw);
+      padding: 12px;
+      border-radius: 4px;
+      background: #020617;
+      border: 1px solid #333;
+      font-size: 10px;
+      line-height: 1.5;
+    }
+
+    .help-modal h1 {
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      color: var(--accent);
+    }
+
+    .help-modal p {
+      margin: 4px 0;
+      color: var(--text-muted);
+    }
+
+    .help-modal ul {
+      margin: 4px 0 8px 14px;
+      padding: 0;
+    }
+
+    .help-modal li {
+      margin: 2px 0;
+    }
+
+    .help-close {
+      margin-top: 8px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid #333;
+      background: #000;
+      color: #eee;
+      font-size: 9px;
+      cursor: pointer;
+    }
+
+    body.studio-fullscreen .main {
+      padding: 0;
+      border-top: none;
+    }
+
+    body.studio-fullscreen .panel {
+      border: none;
+      border-radius: 0;
+    }
+
+    /* Mobile: keep header visible, simplify padding */
     @media (max-width: 768px) {
       .header {
-        padding: 1px 3px;
+        padding: 4px 4px;
         font-size: 8px;
       }
 
-      .studio-right {
-        display: none; /* no layout toggle on phone, always single tab */
+      .studio-title {
+        display: none;
       }
 
       .main {
@@ -428,12 +527,18 @@
 <body>
   <div class="chrome">
     <header class="header">
+      <div class="studio-left">
+        <span class="studio-label">STUDIO</span>
+        <span class="studio-title">SWISS / FRANK / GRACE</span>
+      </div>
       <div class="studio-center" id="panelTabs">
         <button class="tab-btn tab-color-swiss active" data-panel="swiss">Swiss</button>
         <button class="tab-btn tab-color-frank" data-panel="frank">Frank</button>
         <button class="tab-btn tab-color-grace" data-panel="grace">Grace</button>
       </div>
       <div class="studio-right">
+        <button class="studio-btn" id="fullscreenBtn" title="Toggle fullscreen">⬜</button>
+        <button class="studio-btn" id="helpBtn" title="Studio help">?</button>
         <div class="layout-toggle" id="layoutToggle">
           <button class="layout-btn active" data-layout="single">
             <span class="icon">▣</span>
@@ -470,23 +575,35 @@
     </main>
   </div>
 
+  <div id="studioHelp" class="help-overlay">
+    <div class="help-modal">
+      <h1>STUDIO – SWISS / FRANK / GRACE</h1>
+      <p>Use the tabs to switch between Swiss (hub), Frank (bus/composer), and Grace (stage) without leaving this window.</p>
+      <ul>
+        <li><strong>Swiss</strong> – pick designers and flows.</li>
+        <li><strong>Frank</strong> – collect minifigs/locations/vehicles on a 9×9 grid.</li>
+        <li><strong>Grace</strong> – render and edit the combined MPD scene.</li>
+      </ul>
+      <p>TABS mode shows one tool at a time. 3-UP is for large screens – all three side by side with scroll.</p>
+      <button class="help-close" id="helpCloseBtn">CLOSE</button>
+    </div>
+  </div>
+
   <script>
     (function() {
       const grid = document.getElementById('panelGrid');
       const layoutButtons = Array.from(document.querySelectorAll('#layoutToggle .layout-btn'));
       const tabs = Array.from(document.querySelectorAll('#panelTabs .tab-btn'));
       const panels = Array.from(document.querySelectorAll('.panel-grid .panel'));
+      const fullscreenBtn = document.getElementById('fullscreenBtn');
+      const helpBtn = document.getElementById('helpBtn');
+      const helpOverlay = document.getElementById('studioHelp');
+      const helpCloseBtn = document.getElementById('helpCloseBtn');
 
       let layout = 'single';
       let activePanel = 'swiss';
 
       const isMobile = () => window.matchMedia('(max-width: 768px)').matches;
-
-      const toolUrls = {
-        swiss: 'wag-viewer-prime-integration-20251112-055341%20copy/swiss-designator.html',
-        frank: 'wag-frank.html',
-        grace: 'wag-viewer-prime-integration-20251112-055341%20copy/wag-grace-editor.html'
-      };
 
       function applyLayout(nextLayout) {
         if (isMobile()) {
@@ -528,7 +645,7 @@
 
       layoutButtons.forEach(btn => {
         btn.addEventListener('click', () => {
-          if (isMobile()) return; // no multi-layout toggle on mobile
+          if (isMobile()) return; // keep mobile in single layout
           const next = btn.dataset.layout;
           if (!next || next === layout) return;
           applyLayout(next);
@@ -538,20 +655,35 @@
       tabs.forEach(tab => {
         tab.addEventListener('click', () => {
           const panelId = tab.dataset.panel;
-          if (!panelId) return;
-
-          if (isMobile()) {
-            const url = toolUrls[panelId];
-            if (url) {
-              window.location.href = url;
-            }
-            return;
-          }
-
-          if (panelId === activePanel) return;
+          if (!panelId || panelId === activePanel) return;
           setActivePanel(panelId);
         });
       });
+
+      if (fullscreenBtn) {
+        fullscreenBtn.addEventListener('click', () => {
+          const active = document.body.classList.toggle('studio-fullscreen');
+          fullscreenBtn.classList.toggle('active', active);
+        });
+      }
+
+      const openHelp = () => {
+        if (!helpOverlay) return;
+        helpOverlay.classList.add('active');
+      };
+
+      const closeHelp = () => {
+        if (!helpOverlay) return;
+        helpOverlay.classList.remove('active');
+      };
+
+      if (helpBtn) helpBtn.addEventListener('click', openHelp);
+      if (helpCloseBtn) helpCloseBtn.addEventListener('click', closeHelp);
+      if (helpOverlay) {
+        helpOverlay.addEventListener('click', (e) => {
+          if (e.target === helpOverlay) closeHelp();
+        });
+      }
 
       // Initial state
       applyLayout(layout);

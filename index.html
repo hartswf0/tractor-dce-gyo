@@ -278,6 +278,66 @@
             display: inline-block;
         }
 
+        .search-strip {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 10px 0 12px;
+            padding: 6px 10px;
+            background: rgba(0,0,0,0.45);
+            color: #f9fafb;
+            font-size: 9px;
+        }
+
+        .search-label {
+            font-weight: 900;
+            letter-spacing: 2px;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 120px;
+            border-radius: 3px;
+            border: 1px solid rgba(0,0,0,0.5);
+            padding: 4px 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 9px;
+        }
+
+        .search-hint {
+            color: rgba(255,255,255,0.7);
+            font-size: 8px;
+            white-space: nowrap;
+        }
+
+        .search-results {
+            margin: 0 0 18px;
+            padding: 8px 10px;
+            background: rgba(0,0,0,0.35);
+            border: 1px dashed rgba(0,0,0,0.5);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .search-results[data-has-results="false"] {
+            display: none;
+        }
+
+        .search-result-brick {
+            transform: none !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+        }
+
+        .brick.search-hit {
+            box-shadow: 0 0 0 2px rgba(255,255,255,0.8), 0 6px 10px rgba(0,0,0,0.6);
+        }
+
+        .search-empty {
+            font-size: 9px;
+            color: rgba(255,255,255,0.75);
+        }
+
         @media (max-width: 768px) {
             .planning-grid {
                 grid-template-columns: 80px 1fr;
@@ -295,6 +355,16 @@
             <div class="label-brick">LEGOS</div>
             <div class="label-brick">MANIFEST</div>
             <div class="label-brick">2025</div>
+        </div>
+
+        <div class="search-strip">
+            <span class="search-label">SEARCH</span>
+            <input id="manifestSearch" class="search-input" type="text" placeholder="type to find tools, scenes, docs…" />
+            <span class="search-hint">results assemble below ↴</span>
+        </div>
+
+        <div id="searchResults" class="search-results" data-has-results="false">
+            <span class="search-empty">Start typing to gather matching bricks into this box.</span>
         </div>
 
         <div class="section-title">SWISS / FRANK / GRACE STUDIO</div>
@@ -663,6 +733,61 @@
     <div class="copy-success" id="copySuccess">COPIED</div>
 
     <script>
+        // Smart search over bricks
+        (function setupManifestSearch() {
+            const input = document.getElementById('manifestSearch');
+            const resultsBox = document.getElementById('searchResults');
+            if (!input || !resultsBox) return;
+
+            const allBricks = Array.from(document.querySelectorAll('.brick'));
+
+            function applySearch(term) {
+                const q = term.trim().toLowerCase();
+
+                // Clear previous state
+                resultsBox.innerHTML = '';
+                resultsBox.dataset.hasResults = 'false';
+                allBricks.forEach(b => b.classList.remove('search-hit'));
+
+                if (!q) {
+                    const span = document.createElement('span');
+                    span.className = 'search-empty';
+                    span.textContent = 'Start typing to gather matching bricks into this box.';
+                    resultsBox.appendChild(span);
+                    return;
+                }
+
+                const matches = allBricks.filter(b => {
+                    const text = b.textContent || '';
+                    const title = b.getAttribute('title') || '';
+                    const href = b.getAttribute('href') || '';
+                    return text.toLowerCase().includes(q) ||
+                           title.toLowerCase().includes(q) ||
+                           href.toLowerCase().includes(q);
+                });
+
+                if (!matches.length) {
+                    const span = document.createElement('span');
+                    span.className = 'search-empty';
+                    span.textContent = 'No bricks matched. Try a different word (e.g. "frank", "simpsons", "world").';
+                    resultsBox.appendChild(span);
+                    return;
+                }
+
+                resultsBox.dataset.hasResults = 'true';
+                matches.forEach(b => {
+                    b.classList.add('search-hit');
+                    const clone = b.cloneNode(true);
+                    clone.classList.add('search-result-brick');
+                    resultsBox.appendChild(clone);
+                });
+            }
+
+            input.addEventListener('input', (e) => {
+                applySearch(e.target.value || '');
+            });
+        })();
+
         // Count files by type
         const htmlCount = document.querySelectorAll('a[href$=".html"]').length;
         const mpdCount = document.querySelectorAll('a[href$=".mpd"]').length;
