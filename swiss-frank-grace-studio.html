@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Swiss / Frank / Grace Studio</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <style>
     :root {
       color-scheme: dark;
@@ -164,10 +165,9 @@
     }
 
     .tabs {
-      display: flex;
-      gap: 6px;
-      padding: 0 2px 0 4px;
-      margin-top: 4px;
+      display: inline-flex;
+      gap: 4px;
+      padding: 0 2px;
       overflow-x: auto;
       scrollbar-width: none;
     }
@@ -177,20 +177,23 @@
     }
 
     .tab-btn {
-      border-radius: var(--radius-pill);
-      border: 1px solid rgba(148, 163, 184, 0.5);
-      background: rgba(15, 23, 42, 0.9);
+      position: relative;
+      border-radius: 6px 6px 0 0;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      border-bottom: none;
+      background: radial-gradient(circle at top, #020617, #020617);
       color: var(--text-muted);
-      font-size: 10px;
-      padding: 4px 10px;
+      font-size: 9px;
+      padding: 4px 12px 5px;
       text-transform: uppercase;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.12em;
       display: inline-flex;
       align-items: center;
       gap: 6px;
       cursor: pointer;
       white-space: nowrap;
-      transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+      box-shadow: 0 1px 0 rgba(15, 23, 42, 0.8);
+      transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease, transform 0.12s ease;
     }
 
     .tab-color-swiss::before,
@@ -208,9 +211,10 @@
 
     .tab-btn.active {
       color: var(--text);
-      border-color: rgba(148, 163, 184, 0.9);
-      box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.5);
-      background: radial-gradient(circle at top left, rgba(15, 23, 42, 1), rgba(15, 23, 42, 0.85));
+      border-color: rgba(248, 250, 252, 0.9);
+      background: linear-gradient(to bottom, #020617 0%, #020617 65%, #000 100%);
+      box-shadow: 0 2px 0 #000, 0 0 0 1px rgba(248, 250, 252, 0.4);
+      transform: translateY(1px);
     }
 
     .main {
@@ -537,7 +541,7 @@
         <button class="tab-btn tab-color-grace" data-panel="grace">Grace</button>
       </div>
       <div class="studio-right">
-        <button class="studio-btn" id="fullscreenBtn" title="Toggle fullscreen">⬜</button>
+        <button class="studio-btn" id="fullscreenBtn" title="Toggle fullscreen">FS</button>
         <button class="studio-btn" id="helpBtn" title="Studio help">?</button>
         <div class="layout-toggle" id="layoutToggle">
           <button class="layout-btn active" data-layout="single">
@@ -661,10 +665,40 @@
       });
 
       if (fullscreenBtn) {
-        fullscreenBtn.addEventListener('click', () => {
-          const active = document.body.classList.toggle('studio-fullscreen');
+        const chromeEl = document.querySelector('.chrome') || document.documentElement;
+
+        const syncFullscreenState = () => {
+          const isNativeFs = !!document.fullscreenElement;
+          const active = isNativeFs || document.body.classList.contains('studio-fullscreen');
+          document.body.classList.toggle('studio-fullscreen', active);
           fullscreenBtn.classList.toggle('active', active);
+          fullscreenBtn.textContent = active ? '⧉' : 'FS';
+        };
+
+        fullscreenBtn.addEventListener('click', () => {
+          const canNativeFs = !!(chromeEl.requestFullscreen || chromeEl.webkitRequestFullscreen || chromeEl.mozRequestFullScreen || chromeEl.msRequestFullscreen);
+          const isNativeFs = !!document.fullscreenElement;
+
+          if (canNativeFs) {
+            try {
+              if (!isNativeFs) {
+                (chromeEl.requestFullscreen || chromeEl.webkitRequestFullscreen || chromeEl.mozRequestFullScreen || chromeEl.msRequestFullscreen).call(chromeEl);
+              } else if (document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen) {
+                (document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen).call(document);
+              }
+            } catch (_) {
+              const active = !document.body.classList.contains('studio-fullscreen');
+              document.body.classList.toggle('studio-fullscreen', active);
+            }
+          } else {
+            const active = !document.body.classList.contains('studio-fullscreen');
+            document.body.classList.toggle('studio-fullscreen', active);
+          }
+
+          syncFullscreenState();
         });
+
+        document.addEventListener('fullscreenchange', syncFullscreenState);
       }
 
       const openHelp = () => {
