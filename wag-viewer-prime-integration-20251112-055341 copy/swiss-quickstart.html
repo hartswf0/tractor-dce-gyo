@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Swiss / Frank / Grace – Quickstart</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23ffffff'/%3E%3C/svg%3E">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: 'Courier New', monospace;
+      background: #000;
+      color: #ddd;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .page {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .header {
+      padding: 10px 16px;
+      border-bottom: 1px solid #333;
+      background: #050505;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .title-block { display: flex; flex-direction: column; gap: 2px; }
+    .title { font-size: 13px; font-weight: bold; letter-spacing: 1px; color: #ffffff; }
+    .subtitle { font-size: 9px; color: #777; letter-spacing: 1px; text-transform: uppercase; }
+    .badge { font-size: 8px; padding: 4px 8px; border-radius: 3px; border: 1px solid #333; text-transform: uppercase; letter-spacing: 1px; }
+
+    .content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding: 12px 16px 20px;
+      overflow-y: auto;
+    }
+
+    .section-title {
+      font-size: 10px;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+
+    .block {
+      border-left: 2px solid #333;
+      padding-left: 10px;
+      font-size: 9px;
+      line-height: 1.5;
+      color: #ccc;
+    }
+
+    .step-list {
+      margin-top: 6px;
+      margin-bottom: 6px;
+      padding-left: 14px;
+    }
+
+    .step-list li {
+      margin-bottom: 4px;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 6px 0;
+    }
+
+    .pill {
+      font-size: 8px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid #333;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #aaa;
+    }
+
+    .pill-swiss { border-color: #aaaaaa; color: #dddddd; }
+    .pill-frank { border-color: #4ecdc4; color: #4ecdc4; }
+    .pill-grace { border-color: #a855f7; color: #a855f7; }
+
+    .callout {
+      border-left: 2px solid #444;
+      padding-left: 8px;
+      font-size: 9px;
+      color: #aaa;
+      line-height: 1.4;
+      margin-top: 6px;
+    }
+
+    .status-bar {
+      padding: 6px 16px;
+      border-top: 1px solid #333;
+      font-size: 8px;
+      color: #666;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    @media (max-width: 768px) {
+      .content { padding: 10px 12px 16px; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div class="title-block">
+      <div class="title">SWISS / FRANK / GRACE – QUICKSTART</div>
+      <div class="subtitle">HELLO WORLD: FROM BUILDER TO SCENE TO STAGE</div>
+    </div>
+    <div class="badge">START HERE · 5 MIN TOUR</div>
+  </div>
+
+  <div class="content">
+    <div>
+      <div class="section-title">What this environment is good for</div>
+      <div class="block">
+        <div class="pill-row">
+          <span class="pill pill-swiss">Swiss – choose builders</span>
+          <span class="pill pill-frank">Frank – assemble scenes</span>
+          <span class="pill pill-grace">Grace – view and edit</span>
+        </div>
+        <p>
+          The Swiss / Frank / Grace studio is a LEGO story factory:
+        </p>
+        <ul class="step-list">
+          <li>Pick shells, locations, vehicles and minifigs with the -ators.</li>
+          <li>Send MPD scenes over the <code>wag-frank</code> bus into Frank.</li>
+          <li>Open the same scenes in Grace to study, edit and iterate.</li>
+        </ul>
+        <p>
+          Every builder (-ator) produces real MPD text or parts that flow into a
+          single <code>wag-frank-scene.mpd</code> you can keep, share, or paste into a
+          language model for remixing.
+        </p>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-title">Hello world flow – place a minifig in a scene</div>
+      <div class="block">
+        <ol class="step-list">
+          <li>
+            In <strong>Swiss</strong>, go to <strong>SCENEERATOR</strong>.
+            Pick a shell you like (crater, road grid, harbor hull) and click
+            <strong>"Load Scene Shell"</strong>.
+            This sends a starter MPD to Frank and downloads a copy.
+          </li>
+          <li>
+            Still in Swiss, go to <strong>MINIFIGURATOR</strong>.
+            Build a simple figure (any hat / head / torso / legs).
+            Use <strong>"Save MPD"</strong> to export the minifig to Frank.
+          </li>
+          <li>
+            Open the <strong>Swiss / Frank / Grace studio</strong> tab.
+            Switch to <strong>FRANK</strong> and look for your scene shell with the
+            minifig cells listed in the grid.
+          </li>
+          <li>
+            Switch the studio to <strong>GRACE</strong>.
+            Load the current wag-frank scene and orbit the camera – you should
+            see your shell and minifig on the same stage.
+          </li>
+        </ol>
+        <p>
+          Once this loop works, you have the basic pipeline: builder → Frank → Grace.
+        </p>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-title">Next challenges</div>
+      <div class="block">
+        <ul class="step-list">
+          <li>
+            Use <strong>LOCATIONATOR</strong> to add walls, doors, windows and props to the
+            same shell. Send the updated location MPD to Frank, then refresh Grace.
+          </li>
+          <li>
+            In <strong>VEHICULATOR</strong>, design a small car or plane and export it as an MPD
+            so Frank can park it in the scene.
+          </li>
+          <li>
+            Open <strong>MOVIEATOR</strong> or <strong>WORLDINATOR</strong> to pull in reference scenes and
+            worlds – use their <strong>Load / Add Scene</strong> buttons to seed Frank with
+            example layouts.
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-title">Working with language models</div>
+      <div class="block">
+        <p>
+          Grace and Frank always keep the MPD text visible. To collaborate with a
+          language model on layout:
+        </p>
+        <ul class="step-list">
+          <li>Open the current <code>wag-frank-scene.mpd</code> in Frank or Grace.</li>
+          <li>Select the region you care about (for example a single cell or
+              a group of parts around a character).</li>
+          <li>Paste that MPD text into a model with a prompt like
+              "re-layout this street for a night chase, keep the minifigs and
+              overall scale".</li>
+          <li>Paste the rewritten MPD back into Grace and reload the scene.</li>
+        </ul>
+        <p>
+          The goal is to make MPD feel like editable source code for scenes, not
+          a locked binary file.
+        </p>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-title">Mental model – how to navigate</div>
+      <div class="block">
+        <ul class="step-list">
+          <li>Use the <strong>dots in Swiss</strong> to switch between designers (MINIFIG, LOCATION, VEHICLE, SCENE, MOVIE, WORLD, DOCS).</li>
+          <li>Use the <strong>studio tabs</strong> to switch between SWISS, FRANK and GRACE views of the same project.</li>
+          <li>When in doubt, start here, then jump to a builder from the dots.</li>
+        </ul>
+        <div class="callout">
+          Hello world checklist:
+          add a minifig → choose a shell → send both to Frank → inspect and tweak in Grace.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="status-bar">
+    <span>QUICKSTART · SWISS / FRANK / GRACE</span>
+    <span>BEST VIEWED INSIDE SWISS DESIGNATOR</span>
+  </div>
+</div>
+</body>
+</html>

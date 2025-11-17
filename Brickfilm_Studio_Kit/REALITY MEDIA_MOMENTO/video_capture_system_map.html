@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reality Media – Video Capture System Map</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23000000'/%3E%3C/svg%3E">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: 'Courier New', monospace;
+      background: #000;
+      color: #ddd;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .page {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .header {
+      padding: 10px 16px;
+      border-bottom: 1px solid #333;
+      background: #050505;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .title-block { display: flex; flex-direction: column; gap: 2px; }
+    .title { font-size: 13px; font-weight: bold; letter-spacing: 1px; color: #4ECDC4; }
+    .subtitle { font-size: 9px; color: #777; letter-spacing: 1px; text-transform: uppercase; }
+    .badge { font-size: 8px; padding: 4px 8px; border-radius: 3px; border: 1px solid #333; text-transform: uppercase; letter-spacing: 1px; }
+
+    .content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 12px 16px 20px;
+      overflow-y: auto;
+    }
+
+    .section-title {
+      font-size: 10px;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+
+    .lego-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .lego-block {
+      min-width: 150px;
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: 1px solid #333;
+      background: #050505;
+      position: relative;
+    }
+
+    .lego-top {
+      position: absolute;
+      top: -6px;
+      left: 8px;
+      display: flex;
+      gap: 4px;
+    }
+
+    .lego-stud {
+      width: 10px;
+      height: 6px;
+      border-radius: 4px 4px 0 0;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.05);
+    }
+
+    .lego-name {
+      font-size: 10px;
+      font-weight: bold;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+
+    .lego-note {
+      font-size: 8px;
+      color: #888;
+      line-height: 1.4;
+    }
+
+    .lego-surface { border-color: #4ECDC4; box-shadow: 0 0 8px rgba(78,205,196,0.2); }
+    .lego-engine  { border-color: #FFD700; box-shadow: 0 0 8px rgba(255,215,0,0.2); }
+    .lego-scene   { border-color: #FF4500; box-shadow: 0 0 8px rgba(255,69,0,0.2); }
+    .lego-interface { border-color: #9D4EDD; box-shadow: 0 0 8px rgba(157,78,221,0.25); }
+    .lego-status  { border-color: #00FF88; box-shadow: 0 0 8px rgba(0,255,136,0.25); }
+    .lego-validate { border-color: #AAAAAA; box-shadow: 0 0 8px rgba(170,170,170,0.3); }
+
+    .flow-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      font-size: 9px;
+    }
+
+    .arrow {
+      padding: 2px 6px;
+      border-radius: 10px;
+      border: 1px solid #444;
+      color: #666;
+      white-space: nowrap;
+    }
+
+    .arrow-highlight {
+      border-color: #4ECDC4;
+      color: #4ECDC4;
+    }
+
+    .pill {
+      font-size: 8px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid #333;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #888;
+    }
+
+    .pill-capture { border-color: #4ECDC4; color: #4ECDC4; }
+    .pill-scene   { border-color: #FF4500; color: #FF4500; }
+    .pill-status  { border-color: #00FF88; color: #00FF88; }
+
+    .callout {
+      border-left: 2px solid #333;
+      padding-left: 8px;
+      font-size: 9px;
+      color: #aaa;
+      line-height: 1.4;
+    }
+
+    .callout-emoji { margin-right: 4px; }
+
+    .status-bar {
+      padding: 6px 16px;
+      border-top: 1px solid #333;
+      font-size: 8px;
+      color: #666;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    @media (max-width: 768px) {
+      .lego-row { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div class="title-block">
+      <div class="title">REALITY MEDIA – VIDEO CAPTURE SYSTEM MAP</div>
+      <div class="subtitle">SHOWING HOW GEOMETRY BECOMES RECORDED PIXELS</div>
+    </div>
+    <div class="badge">SHOW, DON'T TELL • LEGO BLOCK DIAGRAMS</div>
+  </div>
+
+  <div class="content">
+    <div>
+      <div class="section-title">Top stack – Capture surface / engine / realms</div>
+      <div class="lego-row" style="margin-bottom:8px;">
+        <div class="lego-block lego-surface">
+          <div class="lego-top"><div class="lego-stud"></div><div class="lego-stud"></div></div>
+          <div class="lego-name">VIDEO CAPTURE SURFACE</div>
+          <div class="lego-note">HTML: <code>video_capture.html</code>. Side control panel + iframe. Hosts buttons, file selector, FPS/memory metrics, camera preview, and log. Think of it as the deck where you pilot captures.</div>
+        </div>
+        <div class="lego-block lego-engine">
+          <div class="lego-top"><div class="lego-stud"></div><div class="lego-stud"></div></div>
+          <div class="lego-name">CAPTURE ENGINE</div>
+          <div class="lego-note">JS: <code>video_capture_app.js</code>. Manages iframe, reads Three.js renderer/scene/camera, drives CCapture at 60 fps, updates progress + preview, and saves WebM files.</div>
+        </div>
+        <div class="lego-block lego-scene">
+          <div class="lego-top"><div class="lego-stud"></div><div class="lego-stud"></div></div>
+          <div class="lego-name">REALMS / SCENES</div>
+          <div class="lego-note">HTML scenes like <code>index_hub.html</code>, <code>mystical.html</code>, <code>dynamic-camera.html</code>. Each builds a Three.js world and exposes renderer / scene / camera to the capture engine.</div>
+        </div>
+      </div>
+      <div class="callout">
+        <span class="callout-emoji">🎥</span>
+        The capture surface does not render geometry itself. It peers through an iframe into any scene that obeys the capture contract and samples its WebGL canvas into a CCapture timeline.
+      </div>
+    </div>
+
+    <div>
+      <div class="section-title">Interfaces – how scenes plug into capture</div>
+      <div class="lego-row">
+        <div class="lego-block lego-interface">
+          <div class="lego-top"><div class="lego-stud"></div><div class="lego-stud"></div></div>
+          <div class="lego-name">VideoCaptureInterface</div>
+          <div class="lego-note">JS: <code>video_capture_interface.js</code>. Scenes call <code>VideoCaptureInterface.init(renderer, scene, camera)</code>. Sets <code>window.renderer</code>, <code>window.scene</code>, <code>window.camera</code>, and <code>_captureData</code>, then posts <code>SCENE_READY</code> to the parent.</div>
+        </div>
+        <div class="lego-block lego-interface">
+          <div class="lego-top"><div class="lego-stud"></div><div class="lego-stud"></div></div>
+          <div class="lego-name">UniversalSceneTemplate</div>
+          <div class="lego-note">JS: <code>universal_scene_template.js</code>. Drop-in pattern: <code>init({renderer, scene, camera, controls, animationCallback})</code> + <code>animate()</code>. Exposes same globals and a <code>captureCurrentView()</code> hook for deterministic frame capture.</div>
+        </div>
+        <div class="lego-block lego-interface">
+          <div class="lego-top"><div class="lego-stud"></div><div class="lego-stud"></div></div>
+          <div class="lego-name">DIRECT EXPOSURE</div>
+          <div class="lego-note">Some scenes (e.g. <code>index_hub.html</code>, <code>dynamic-camera.html</code>) manually set <code>window.renderer</code>, <code>window.scene</code>, <code>window.camera</code>, <code>_captureData</code>, and <code>captureCurrentView</code> and also send <code>SCENE_READY</code> / <code>FRAME_RENDERED</code> messages.</div>
+        </div>
+      </div>
+      <div class="callout" style="margin-top:8px;">
+        <span class="callout-emoji">🔌</span>
+        Any new realm can be captured as long as it exposes a renderer + scene + camera through one of these interfaces. The engine prioritizes <code>VideoCaptureInterface</code>, then direct globals, then legacy <code>_captureData</code>.
+      </div>
+    </div>
+
+    <div>
+      <div class="section-title">Flow 1 – Geometry → WebGL → captured pixels</div>
+      <div class="flow-row" style="margin-bottom:6px;">
+        <span class="pill pill-scene">three.js scene</span>
+        <span class="pill pill-capture">ccapture pipeline</span>
+      </div>
+      <div class="flow-row">
+        <span class="lego-block lego-scene" style="min-width:150px; text-align:center;">SCENE GEOMETRY<br><span style="font-size:8px; color:#888;">meshes / points / shaders</span></span>
+        <span class="arrow">camera transform</span>
+        <span class="lego-block lego-scene" style="min-width:150px; text-align:center;">THREE RENDERER<br><span style="font-size:8px; color:#888;">WebGL canvas</span></span>
+        <span class="arrow arrow-highlight">renderer.domElement</span>
+        <span class="lego-block lego-engine" style="min-width:150px; text-align:center;">CCAPTURE<br><span style="font-size:8px; color:#888;">capture(canvas)</span></span>
+        <span class="arrow">encode @ 60 fps</span>
+        <span class="lego-block lego-engine" style="min-width:150px; text-align:center;">WEBM OUTPUT<br><span style="font-size:8px; color:#888;">downloaded file</span></span>
+      </div>
+      <div class="callout" style="margin-top:8px;">
+        <span class="callout-emoji">📼</span>
+        The iframe keeps the scene's own animation loop running. The capture engine simply samples its WebGL canvas each frame, without owning the scene's timing.
+      </div>
+    </div>
+
+    <div>
+      <div class="section-title">Flow 2 – Control surface → engine → realms</div>
+      <div class="flow-row" style="margin-bottom:6px;">
+        <span class="pill pill-status">ui & status</span>
+      </div>
+      <div class="flow-row" style="margin-bottom:6px;">
+        <span class="lego-block lego-surface" style="min-width:150px; text-align:center;">CONTROL PANEL<br><span style="font-size:8px; color:#888;">start / pause / resume / restart</span></span>
+        <span class="arrow arrow-highlight">DOM events</span>
+        <span class="lego-block lego-engine" style="min-width:150px; text-align:center;">CAPTURE ENGINE<br><span style="font-size:8px; color:#888;">startCapturing / animate</span></span>
+        <span class="arrow">iframe access</span>
+        <span class="lego-block lego-scene" style="min-width:150px; text-align:center;">REALM WINDOW<br><span style="font-size:8px; color:#888;">renderer / scene / camera</span></span>
+      </div>
+      <div class="flow-row" style="margin-bottom:6px;">
+        <span class="lego-block lego-engine" style="min-width:150px; text-align:center;">FILE SELECTOR<br><span style="font-size:8px; color:#888;">html-file-selector</span></span>
+        <span class="arrow">loadSelectedFile()</span>
+        <span class="lego-block lego-engine" style="min-width:150px; text-align:center;">IFRAME SRC<br><span style="font-size:8px; color:#888;">mystical / natural / dynamic-camera…</span></span>
+        <span class="arrow">injected script</span>
+        <span class="lego-block lego-interface" style="min-width:150px; text-align:center;">"OBJECTS READY"<br><span style="font-size:8px; color:#888;">postMessage('threejs_objects_ready')</span></span>
+      </div>
+      <div class="callout" style="margin-top:8px;">
+        <span class="callout-emoji">🧭</span>
+        The right-hand timeline and selector are purely about orchestration: they never touch geometry, only which realm is in view and how long it is captured.
+      </div>
+    </div>
+
+    <div>
+      <div class="section-title">Flow 3 – Metrics, preview, and status</div>
+      <div class="lego-row">
+        <div class="lego-block lego-status">
+          <div class="lego-top"><div class="lego-stud"></div></div>
+          <div class="lego-name">METRICS LOOP</div>
+          <div class="lego-note">In <code>video_capture.html</code>, <code>updateMetrics()</code> uses <code>window.frameCount</code> (updated by the engine) and <code>performance.memory</code> to show FPS and heap usage every second.</div>
+        </div>
+        <div class="lego-block lego-status">
+          <div class="lego-top"><div class="lego-stud"></div></div>
+          <div class="lego-name">CAMERA PREVIEW</div>
+          <div class="lego-note"><code>updateCameraPreview()</code> draws <code>renderer.domElement</code> into <code>#preview-canvas</code> and overlays camera position, current frame, and file name.</div>
+        </div>
+        <div class="lego-block lego-status">
+          <div class="lego-top"><div class="lego-stud"></div></div>
+          <div class="lego-name">STATUS + LOG</div>
+          <div class="lego-note"><code>window.log()</code> appends timestamped entries into the log pane and the console. Capture progress is mirrored in the status text and progress bar.</div>
+        </div>
+      </div>
+      <div class="callout" style="margin-top:8px;">
+        <span class="callout-emoji">📊</span>
+        Status UI lives entirely on the capture surface. Scenes can optionally post <code>SCENE_READY</code> / <code>FRAME_RENDERED</code> messages, but the current engine primarily relies on shared globals and the <code>threejs_objects_ready</code> handshake.
+      </div>
+    </div>
+
+    <div>
+      <div class="section-title">Validation & advanced manager (prototype layer)</div>
+      <div class="lego-row">
+        <div class="lego-block lego-validate">
+          <div class="lego-top"><div class="lego-stud"></div></div>
+          <div class="lego-name">VideoCaptureValidator</div>
+          <div class="lego-note">JS: <code>video_capture_validator.js</code>. Validates renderer, camera, scene contents, preview canvas, and CCapture instance. Produces a diagnostics list of readiness checks.</div>
+        </div>
+        <div class="lego-block lego-validate">
+          <div class="lego-top"><div class="lego-stud"></div></div>
+          <div class="lego-name">VideoCaptureManager</div>
+          <div class="lego-note">JS: <code>video_capture_manager.js</code>. Higher-level controller that can step RL scenes, orbit dynamic cameras, and call <code>validateAll()</code> before capturing. Currently a prototype, not wired into <code>video_capture_app.js</code>.</div>
+        </div>
+      </div>
+      <div class="callout" style="margin-top:8px;">
+        <span class="callout-emoji">🧪</span>
+        This layer is ready for future flows where captures must be deterministic (frame-stepped RL episodes, scripted camera orbits) rather than simply sampling whatever the scene is doing in real time.
+      </div>
+    </div>
+
+    <div>
+      <div class="section-title">Dependencies – what must be present</div>
+      <div class="lego-row">
+        <div class="lego-block" style="border-color:#555;">
+          <div class="lego-top"><div class="lego-stud"></div></div>
+          <div class="lego-name">Three.js + Controls</div>
+          <div class="lego-note">Scenes load <code>three.js</code> from CDNs (Skypack / CDNJS) and optional <code>OrbitControls</code>. All geometry / camera / fog / material logic lives there.</div>
+        </div>
+        <div class="lego-block" style="border-color:#555;">
+          <div class="lego-top"><div class="lego-stud"></div></div>
+          <div class="lego-name">CCapture</div>
+          <div class="lego-note">Loaded via <code>js/lib/CCapture.all.min.js</code>. Provides <code>new CCapture()</code>, <code>start()</code>, <code>capture(canvas)</code>, <code>stop()</code>, <code>save()</code> for WebM export.</div>
+        </div>
+        <div class="lego-block" style="border-color:#555;">
+          <div class="lego-top"><div class="lego-stud"></div></div>
+          <div class="lego-name">Browser APIs</div>
+          <div class="lego-note">WebGL context, <code>requestAnimationFrame</code>, <code>performance</code> (for FPS + memory), and (for <code>dynamic-camera.html</code>) <code>navigator.mediaDevices.getUserMedia</code> for audio-reactive visuals.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="status-bar">
+    <span>Reality Media – Video Capture • Visual map, not implementation spec</span>
+    <span>Open from the capture hub as DOCS • No code, just diagrams</span>
+  </div>
+</div>
+</body>
+</html>

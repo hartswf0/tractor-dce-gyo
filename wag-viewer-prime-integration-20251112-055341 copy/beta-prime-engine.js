@@ -1,9 +1,17 @@
 (function (global) {
+    const FRANK_GRID = {
+        cellSize: 160,
+        halfCells: 4
+    };
+
     const DEFAULTS = {
         loaderPath: './ldraw/',
         ldConfigFiles: ['LDConfig.ldr'],
         background: 0x050505,
-        grid: { size: 800, divisions: 40, color1: 0x1f7cbf, color2: 0x0d2740 },
+        // Grid aligned with Frank’s 9×9 layout, plus overspill: 160 LDU per Frank cell
+        // size = 1920 → ±960 LDU from center (enough for a 32×32 plate on an outer cell)
+        // divisions = 12 → 160 LDU per coarse square (Frank cell spacing)
+        grid: { size: 1920, divisions: 12, color1: 0x1f7cbf, color2: 0x0d2740 },
         axesSize: 200
     };
 
@@ -26,6 +34,9 @@
             renderer: null,
             controls: null,
             gridHelper: null,
+            subGridHelper: null,
+            cornerMarker: null,
+            coreFrame: null,
             axesHelper: null,
             loader: null,
             modelWrapper: null,
@@ -77,8 +88,12 @@
         engine.setDiagnostics = function (patch) {
             engine.diagnostics = { ...engine.diagnostics, ...patch };
             applyDiagnostics(engine);
-            if (patch.grid !== undefined && engine.gridHelper) {
-                engine.gridHelper.visible = !!engine.diagnostics.grid;
+            if (patch.grid !== undefined) {
+                const visible = !!engine.diagnostics.grid;
+                if (engine.gridHelper) engine.gridHelper.visible = visible;
+                if (engine.subGridHelper) engine.subGridHelper.visible = visible;
+                if (engine.cornerMarker) engine.cornerMarker.visible = visible;
+                if (engine.coreFrame) engine.coreFrame.visible = visible;
             }
             if (patch.axes !== undefined && engine.axesHelper) {
                 engine.axesHelper.visible = !!engine.diagnostics.axes;
@@ -139,6 +154,12 @@
         engine.fitToCurrent = function () {
             if (!engine.modelWrapper) return;
             fitCamera(engine, engine.modelWrapper);
+        };
+
+        // Snap to a Frank-aligned top-down view for easier 2D/3D grid comparison
+        engine.snapFrankTopView = function () {
+            if (!engine.modelWrapper) return;
+            fitCameraTopDown(engine, engine.modelWrapper);
         };
 
         engine.getStats = function () {
@@ -204,11 +225,75 @@
         );
         engine.scene.add(engine.gridHelper);
 
+        // Fine subgrid (stud-level): 20 LDU per square when cfg.grid is Frank-aligned
+        const subDivisions = cfg.grid.divisions * 8;
+        engine.subGridHelper = new THREE.GridHelper(
+            cfg.grid.size,
+            subDivisions,
+            cfg.grid.color2,
+            cfg.grid.color2
+        );
+        setGridOpacity(engine.subGridHelper, 0.25);
+        engine.subGridHelper.position.y = -0.01;
+        engine.scene.add(engine.subGridHelper);
+
+        // Core 9×9 Frank frame so bleed area is visually distinct
+        const coreSize = FRANK_GRID.cellSize * (FRANK_GRID.halfCells * 2 + 1); // 9 cells × 160
+        const corePlane = new THREE.PlaneGeometry(coreSize, coreSize);
+        const coreEdges = new THREE.EdgesGeometry(corePlane);
+        const coreMat = new THREE.LineBasicMaterial({
+            color: cfg.grid.color1,
+            linewidth: 1,
+            transparent: true,
+            opacity: 0.9
+        });
+        engine.coreFrame = new THREE.LineSegments(coreEdges, coreMat);
+        engine.coreFrame.rotation.x = -Math.PI / 2;
+        engine.coreFrame.position.y = 0.02;
+        engine.scene.add(engine.coreFrame);
+
+        // Corner marker for top-left Frank cell (Δx=-4, Δz=-4)
+        const cornerSize = FRANK_GRID.cellSize * 0.4;
+        const cornerGeom = new THREE.PlaneGeometry(cornerSize, cornerSize);
+        const cornerMat = new THREE.MeshBasicMaterial({
+            color: cfg.grid.color1,
+            transparent: true,
+            opacity: 0.85,
+            side: THREE.DoubleSide
+        });
+        const cornerMesh = new THREE.Mesh(cornerGeom, cornerMat);
+        cornerMesh.rotation.x = -Math.PI / 2;
+        const cornerX = -FRANK_GRID.halfCells * FRANK_GRID.cellSize;
+        const cornerZ = -FRANK_GRID.halfCells * FRANK_GRID.cellSize;
+        cornerMesh.position.set(cornerX, 0.03, cornerZ);
+        engine.cornerMarker = cornerMesh;
+        engine.scene.add(engine.cornerMarker);
+
         engine.axesHelper = new THREE.AxesHelper(cfg.axesSize);
         engine.scene.add(engine.axesHelper);
 
-        engine.gridHelper.visible = !!engine.diagnostics.grid;
+        const gridVisible = !!engine.diagnostics.grid;
+        engine.gridHelper.visible = gridVisible;
+        if (engine.subGridHelper) {
+            engine.subGridHelper.visible = gridVisible;
+        }
+        if (engine.cornerMarker) {
+            engine.cornerMarker.visible = gridVisible;
+        }
+        if (engine.coreFrame) {
+            engine.coreFrame.visible = gridVisible;
+        }
         engine.axesHelper.visible = !!engine.diagnostics.axes;
+    }
+
+    function setGridOpacity(grid, opacity) {
+        if (!grid || !grid.material) return;
+        const materials = Array.isArray(grid.material) ? grid.material : [grid.material];
+        materials.forEach(mat => {
+            if (!mat) return;
+            mat.transparent = opacity < 1;
+            mat.opacity = opacity;
+        });
     }
 
     function preloadLDConfig(loader, files = []) {
@@ -306,6 +391,27 @@
         engine.controls.update();
         
         console.log('[FIT] Camera positioned:', {
+            center: center.toArray(),
+            maxDim,
+            distance: cameraOffset
+        });
+    }
+
+    // Top-down camera fit aligned with the Frank grid footprint
+    function fitCameraTopDown(engine, group) {
+        const box = new THREE.Box3().setFromObject(group);
+        const size = box.getSize(new THREE.Vector3());
+        const center = box.getCenter(new THREE.Vector3());
+        const maxDim = Math.max(size.x, size.z);
+        const distance = maxDim / (2 * Math.tan((engine.camera.fov * Math.PI) / 360));
+        const cameraOffset = distance * 1.2;
+
+        engine.camera.position.set(center.x, center.y + cameraOffset, center.z);
+        engine.camera.lookAt(center);
+        engine.controls.target.copy(center);
+        engine.controls.update();
+
+        console.log('[FIT TOP] Camera positioned:', {
             center: center.toArray(),
             maxDim,
             distance: cameraOffset

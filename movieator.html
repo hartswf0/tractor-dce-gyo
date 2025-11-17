@@ -50,7 +50,7 @@
     .detail-value { color: #ddd; text-align: right; }
     .detail-description { font-size: 9px; color: #ccc; line-height: 1.4; }
 
-    .detail-actions { padding: 10px 14px; border-top: 1px solid #222; background: #050505; display: flex; gap: 8px; }
+    .detail-actions { padding: 10px 14px; border-top: 1px solid #222; background: #050505; display: flex; gap: 8px; position: sticky; bottom: 0; z-index: 5; }
     .btn { flex: 1; padding: 8px 10px; border-radius: 3px; border: 1px solid #333; background: #000; color: #ddd; font-size: 9px; font-family: inherit; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
     .btn-primary { background: #FFCC00; border-color: #FFCC00; color: #000; }
     .btn:active { transform: scale(0.97); }
@@ -69,10 +69,50 @@
     ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
     ::-webkit-scrollbar-thumb:hover { background: #FFCC00; }
 
-    @media (max-width: 900px) {
-      .right-panel { display: none; }
+    /* Compact height: allow scrolling when embedded or on small displays */
+    @media (max-height: 800px) {
+      body {
+        overflow-y: auto;
+      }
+
+      .container {
+        height: auto;
+        min-height: 100vh;
+      }
+
+      .header {
+        padding: 8px 12px;
+      }
     }
-  </style>
+
+    /* Mobile: stack panels vertically and allow scrolling */
+    @media (max-width: 900px) {
+      body {
+        overflow-y: auto;
+      }
+
+      .container {
+        height: auto;
+        min-height: 100vh;
+      }
+
+      .main {
+        flex-direction: column;
+      }
+
+      .left-panel,
+      .center-panel,
+      .right-panel {
+        width: 100%;
+        border-right: none;
+        min-height: 180px;
+      }
+
+      .right-panel {
+        display: flex;
+      }
+    }
+</style>
 </head>
 <body>
 <div class="container">

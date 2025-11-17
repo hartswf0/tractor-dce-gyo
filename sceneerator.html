@@ -258,6 +258,9 @@
             background: #050505;
             display: flex;
             gap: 8px;
+            position: sticky;
+            bottom: 0;
+            z-index: 5;
         }
 
         .btn {
@@ -340,7 +343,32 @@
             background: #4ECDC4;
         }
 
+        /* Compact height: allow scrolling when embedded or on small displays */
+        @media (max-height: 800px) {
+            body {
+                overflow-y: auto;
+            }
+
+            .container {
+                height: auto;
+                min-height: 100vh;
+            }
+
+            .header {
+                padding: 8px 12px;
+            }
+        }
+
         @media (max-width: 768px) {
+            body {
+                overflow-y: auto;
+            }
+
+            .container {
+                height: auto;
+                min-height: 100vh;
+            }
+
             .main {
                 flex-direction: column;
             }
@@ -415,6 +443,7 @@
             </div>
             <div class="detail-actions">
                 <button class="btn" id="contextBtn">📡 Broadcast Context</button>
+                <button class="btn" id="addBtn">➕ Add Shell</button>
                 <button class="btn btn-primary" id="loadBtn">🚀 Load Scene Shell</button>
             </div>
         </div>
@@ -649,7 +678,7 @@
         setStatus('CONTEXT SENT', 'scene-shell-context via wag-frank');
     };
 
-    const loadSceneShell = () => {
+    const sendSceneShell = (mode) => {
         const shell = state.filteredShells[state.selectedIndex];
         if (!shell) {
             showToast('Pick a scene shell first');
@@ -663,6 +692,7 @@
         }
 
         const mpdLines = mpd.split(/\r?\n/);
+        const resolvedMode = mode || 'replace';
         wagFrankPost({
             kind: 'scene-mpd',
             source: 'sceneerator',
@@ -671,7 +701,7 @@
                 name: shell.description || shell.filename || 'Scene Shell',
                 designer: 'Sceneerator',
                 mpdLines,
-                mode: 'replace'
+                mode: resolvedMode
             }
         });
 
@@ -686,13 +716,21 @@
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-            showToast(wagFrankBus ? 'SCENE SHELL -> wag-frank (scene-mpd); open wag-grace-editor.html to view' : 'Scene shell MPD saved');
-            setStatus('SCENE SHELL SENT', 'scene-mpd via wag-frank');
+            const toastMsg = wagFrankBus
+                ? (resolvedMode === 'add'
+                    ? 'SCENE SHELL -> wag-frank (scene-mpd, mode=add); open wag-grace-editor.html to view'
+                    : 'SCENE SHELL -> wag-frank (scene-mpd, mode=replace); open wag-grace-editor.html to view')
+                : 'Scene shell MPD saved';
+            showToast(toastMsg);
+            setStatus('SCENE SHELL SENT', `scene-mpd via wag-frank · mode=${resolvedMode}`);
         } catch (e) {
             console.warn('Sceneerator: failed to download MPD', e);
             showToast('Scene MPD sent (download failed)');
         }
     };
+
+    const loadSceneShell = () => sendSceneShell('replace');
+    const addSceneShell = () => sendSceneShell('add');
 
     const initFilters = () => {
         const select = document.getElementById('sceneTypeFilter');
@@ -744,6 +782,8 @@
         }
 
         document.getElementById('contextBtn').addEventListener('click', broadcastContext);
+        const addBtn = document.getElementById('addBtn');
+        if (addBtn) addBtn.addEventListener('click', addSceneShell);
         document.getElementById('loadBtn').addEventListener('click', loadSceneShell);
     };
 

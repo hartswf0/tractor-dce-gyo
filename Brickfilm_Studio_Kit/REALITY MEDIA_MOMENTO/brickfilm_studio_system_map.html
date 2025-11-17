@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Brickfilm Studio – System Map</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23000000'/%3E%3C/svg%3E">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: 'Courier New', monospace;
+      background: #000;
+      color: #ddd;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .page {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .header {
+      padding: 10px 16px;
+      border-bottom: 1px solid #333;
+      background: #050505;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .title-block { display: flex; flex-direction: column; gap: 2px; }
+    .title { font-size: 13px; font-weight: bold; letter-spacing: 1px; color: #FFCC00; }
+    .subtitle { font-size: 9px; color: #777; letter-spacing: 1px; text-transform: uppercase; }
+    .badge { font-size: 8px; padding: 4px 8px; border-radius: 3px; border: 1px solid #333; text-transform: uppercase; letter-spacing: 1px; }
+
+    .content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 12px 16px 20px;
+      overflow-y: auto;
+    }
+
+    .section-title {
+      font-size: 10px;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+
+    .lego-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .lego-block {
+      min-width: 150px;
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: 1px solid #333;
+      background: #050505;
+      position: relative;
+    }
+
+    .lego-top {
+      position: absolute;
+      top: -6px;
+      left: 8px;
+      display: flex;
+      gap: 4px;
+    }
+
+    .lego-stud {
+      width: 10px;
+      height: 6px;
+      border-radius: 4px 4px 0 0;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.05);
+    }
+
+    .lego-name {
+      font-size: 10px;
+      font-weight: bold;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+
+    .lego-note {
+      font-size: 8px;
+      color: #888;
+      line-height: 1.4;
+    }
+
+    .lego-surface   { border-color: #4ECDC4; box-shadow: 0 0 8px rgba(78,205,196,0.25); }
+    .lego-runtime   { border-color: #FFCC00; box-shadow: 0 0 8px rgba(255,204,0,0.25); }
+    .lego-assets    { border-color: #FF4500; box-shadow: 0 0 8px rgba(255,69,0,0.25); }
+    .lego-capture   { border-color: #9D4EDD; box-shadow: 0 0 8px rgba(157,78,221,0.3); }
+    .lego-config    { border-color: #00FF88; box-shadow: 0 0 8px rgba(0,255,136,0.3); }
+    .lego-legacy    { border-color: #666666; box-shadow: 0 0 8px rgba(102,102,102,0.3); }
+
+    .flow-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      font-size: 9px;
+    }
+
+    .arrow {
+      padding: 2px 6px;
+      border-radius: 10px;
+      border: 1px solid #444;
+      color: #666;
+      white-space: nowrap;
+    }
+
+    .arrow-highlight {
+      border-color: #4ECDC4;
+      color: #4ECDC4;
+    }
+
+    .pill {
+      font-size: 8px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid #333;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #888;
+    }
+
+    .pill-ldraw   { border-color: #FF4500; color: #FF4500; }
+    .pill-runtime { border-color: #FFCC00; color: #FFCC00; }
+    .pill-capture { border-color: #9D4EDD; color: #9D4EDD; }
+
+    .callout {
+      border-left: 2px solid #333;
+      padding-left: 8px;
+      font-size: 9px;
+      color: #aaa;
+      line-height: 1.4;
+    }
+
+    .callout-emoji { margin-right: 4px; }
+
+    .status-bar {
+      padding: 6px 16px;
+      border-top: 1px solid #333;
+      font-size: 8px;
+      color: #666;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    @media (max-width: 768px) {
+      .lego-row { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div class="title-block">
+      <div class="title">BRICKFILM STUDIO – SYSTEM MAP</div>
+      <div class="subtitle">LDRAW SCENES → THREE.JS RUNTIME → CAPTURE BACKENDS</div>
+    </div>
+    <div class="badge">SHOW, DON'T TELL • LEGO BLOCK DIAGRAMS</div>
+  </div>
+
+  <div class="content">
+    <div>
+      <div class="section-title">Top stack – Studio surface / runtime core / capture backends</div>
+      <div class="lego-row" style="margin-bottom:8px;">
+        <div class="lego-block lego-surface">
+          <div class="lego-top"><div class="lego-stud"></div><div class="lego-stud"></div></div>
+          <div class="lego-name">BRICKFILM STUDIO SURFACE</div>
+          <div class="lego-note">HTML: <code>brickfilm_studio.html</code>. Single-page studio: viewport canvas + shot list, parameter controls (fps, duration, resolution), and capture controls. No iframes; talks to the runtime through a small API.</div>
+        </div>
+        <div class="lego-block lego-runtime">
+          <div class="lego-top"><div class="lego-stud"></div><div class="lego-stud"></div></div>
+          <div class="lego-name">RUNTIME CORE</div>
+          <div class="lego-note">JS: <code>brickfilm_runtime.js</code>. Owns one Three.js renderer, scene, camera. Exposes <code>loadShot(shotConfig)</code>, <code>updateAtTime(t)</code>, <code>renderFrame()</code>, and <code>getCanvas()</code>. Single, authoritative timeline.</div>
+        </div>
+        <div class="lego-block lego-capture">
+          <div class="lego-top"><div class="lego-stud"></div><div class="lego-stud"></div></div>
+          <div class="lego-name">CAPTURE BACKENDS</div>
+          <div class="lego-note">JS: <code>capture_backend_ccapture.js</code>, <code>capture_backend_mediarecorder.js</code>, <code>capture_backend_noop.js</code>. Each implements <code>start()</code>, <code>captureFrame(canvas)</code>, <code>finish()</code>. Swappable without touching runtime.</div>
+        </div>
+      </div>
+      <div class="callout">
+        <span class="callout-emoji">🎬</span>
+        Think of the Brickfilm Studio surface as the director's desk, the runtime core as the stage, and the capture backends as the cameras and recorders. Their interfaces stay small so the system can live a long time.
+      </div>
+    </div>
+
+    <div>
+      <div class="section-title">Assets layer – LDraw library and brick scenes</div>
+      <div class="lego-row">
+        <div class="lego-block lego-assets">
+          <div class="lego-top"><div class="lego-stud"></div><div class="lego-stud"></div></div>
+          <div class="lego-name">LDRAW LIBRARY</div>
+          <div class="lego-note">Folder: <code>ldraw/</code> (parts, primitives). Loaded via Three.js <code>LDrawLoader</code> or equivalent. Normalized scale + orientation so studs line up with a world grid.</div>
+        </div>
+        <div class="lego-block lego-assets">
+          <div class="lego-top"><div class="lego-stud"></div><div class="lego-stud"></div></div>
+          <div class="lego-name">LDRAW ASSET MANAGER</div>
+          <div class="lego-note">JS: <code>ldraw_asset_manager.js</code>. Initializes the LDraw loader, caches parsed models, exposes <code>loadModel(id)</code> → returns a <code>THREE.Group</code> with materials ready for the runtime.</div>
+        </div>
+        <div class="lego-block lego-assets">
+          <div class="lego-top"><div class="lego-stud"></div><div class="lego-stud"></div></div>
+          <div class="lego-name">BRICK SCENES</div>
+          <div class="lego-note">Assets: <code>scenes/*.mpd</code>, <code>scenes/*.ldr</code>. Each is a base LEGO set / layout that the runtime can place into the stage, combine, and light.</div>
+        </div>
+      </div>
+      <div class="callout" style="margin-top:8px;">
+        <span class="callout-emoji">🧱</span>
+        LDraw files are treated as source-of-truth geometry. Nothing in the runtime hardcodes bricks – it only asks the asset manager for assembled Groups.
+      </div>
+    </div>
+
+    <div>
+      <div class="section-title">Shot configs – data that describes a brickfilm shot</div>
+      <div class="lego-row">
+        <div class="lego-block lego-config">
+          <div class="lego-top"><div class="lego-stud"></div><div class="lego-stud"></div></div>
+          <div class="lego-name">SHOT CONFIGS</div>
+          <div class="lego-note">JSON: <code>shots/*.json</code>. Each shot declares: which LDraw scene(s) to load, camera rig parameters, lights, animation curves, fps, duration, and resolution. The studio UI edits these.</div>
+        </div>
+        <div class="lego-block lego-config">
+          <div class="lego-top"><div class="lego-stud"></div><div class="lego-stud"></div></div>
+          <div class="lego-name">SHOT PLAYER</div>
+          <div class="lego-note">JS: <code>shot_player.js</code>. Given a <code>shotConfig</code>, calls <code>runtime.loadShot()</code>, then either drives a preview loop (RAF) or an offline capture loop that steps frames deterministically.</div>
+        </div>
+        <div class="lego-block lego-config">
+          <div class="lego-top"><div class="lego-stud"></div><div class="lego-stud"></div></div>
+          <div class="lego-name">TIMELINE / SEQUENCER</div>
+          <div class="lego-note">Optional JS: <code>timeline_sequencer.js</code>. Allows chaining multiple shot configs into a sequence, e.g. <code>sequence.json</code> → renders a whole scene list as a single video.</div>
+        </div>
+      </div>
+      <div class="callout" style="margin-top:8px;">
+        <span class="callout-emoji">📑</span>
+        Brickfilms become data. Changing a shot is editing JSON, not rewriting code: swap an MPD, tweak a curve, change fps, re-render.
+      </div>
+    </div>
+
+    <div>
+      <div class="section-title">Flow 1 – LDRAW → runtime → captured frames</div>
+      <div class="flow-row" style="margin-bottom:6px;">
+        <span class="pill pill-ldraw">ldraw assets</span>
+        <span class="pill pill-runtime">runtime core</span>
+        <span class="pill pill-capture">capture backend</span>
+      </div>
+      <div class="flow-row">
+        <span class="lego-block lego-assets" style="min-width:150px; text-align:center;">LDRAW FILES<br><span style="font-size:8px; color:#888;">.mpd / .ldr</span></span>
+        <span class="arrow">load & cache</span>
+        <span class="lego-block lego-assets" style="min-width:150px; text-align:center;">ASSET MANAGER<br><span style="font-size:8px; color:#888;">loadModel(id)</span></span>
+        <span class="arrow">build scene</span>
+        <span class="lego-block lego-runtime" style="min-width:150px; text-align:center;">RUNTIME CORE<br><span style="font-size:8px; color:#888;">updateAtTime(t) + renderFrame()</span></span>
+        <span class="arrow arrow-highlight">canvas</span>
+        <span class="lego-block lego-capture" style="min-width:150px; text-align:center;">CAPTURE BACKEND<br><span style="font-size:8px; color:#888;">captureFrame(canvas)</span></span>
+        <span class="arrow">encode</span>
+        <span class="lego-block lego-capture" style="min-width:150px; text-align:center;">VIDEO FILE<br><span style="font-size:8px; color:#888;">webm / mp4</span></span>
+      </div>
+      <div class="callout" style="margin-top:8px;">
+        <span class="callout-emoji">📼</span>
+        For offline capture, the runtime advances time in fixed steps (1/fps). Each step: build state → render → capture → repeat, giving deterministic brickfilm playback.
+      </div>
+    </div>
+
+    <div>
+      <div class="section-title">Flow 2 – Studio UI → shots → runtime</div>
+      <div class="flow-row" style="margin-bottom:6px;">
+        <span class="lego-block lego-surface" style="min-width:150px; text-align:center;">STUDIO UI<br><span style="font-size:8px; color:#888;">brickfilm_studio.html</span></span>
+        <span class="arrow">edit / select</span>
+        <span class="lego-block lego-config" style="min-width:150px; text-align:center;">SHOT CONFIGS<br><span style="font-size:8px; color:#888;">shots/*.json</span></span>
+        <span class="arrow">loadShot()</span>
+        <span class="lego-block lego-runtime" style="min-width:150px; text-align:center;">RUNTIME CORE</span>
+        <span class="arrow">preview / captureShot()</span>
+        <span class="lego-block lego-capture" style="min-width:150px; text-align:center;">CAPTURE BACKEND</span>
+      </div>
+      <div class="callout" style="margin-top:8px;">
+        <span class="callout-emoji">🎛️</span>
+        The UI never reaches into Three.js internals. It only manipulates shot data and tells the runtime which shot to play and which backend to capture with.
+      </div>
+    </div>
+
+    <div>
+      <div class="section-title">Validation & diagnostics – adapted from MOMENTO capture</div>
+      <div class="lego-row">
+        <div class="lego-block lego-runtime">
+          <div class="lego-top"><div class="lego-stud"></div></div>
+          <div class="lego-name">RENDERER / CAMERA VALIDATION</div>
+          <div class="lego-note">JS: <code>runtime_validator.js</code>. Refactors logic from <code>video_capture_validator.js</code> to check renderer dimensions, camera matrix, scene visibility, and canvas readiness before capture.</div>
+        </div>
+        <div class="lego-block lego-runtime">
+          <div class="lego-top"><div class="lego-stud"></div></div>
+          <div class="lego-name">METRICS & LOGGING</div>
+          <div class="lego-note">JS: <code>studio_metrics.js</code>. Reuses ideas from <code>video_capture_app.js</code>: FPS counter, memory display, capture progress, and structured logs per shot.</div>
+        </div>
+      </div>
+      <div class="callout" style="margin-top:8px;">
+        <span class="callout-emoji">🧪</span>
+        MOMENTO's validation and metrics utilities are preserved but wrapped around the new runtime, not around iframes.
+      </div>
+    </div>
+
+    <div>
+      <div class="section-title">Legacy capture components – repurpose vs retire</div>
+      <div class="lego-row">
+        <div class="lego-block lego-legacy">
+          <div class="lego-top"><div class="lego-stud"></div></div>
+          <div class="lego-name">MOMENTO VIDEO CAPTURE</div>
+          <div class="lego-note">Files: <code>video_capture.html</code>, <code>video_capture_app.js</code>, <code>video_capture_interface.js</code>, <code>universal_scene_template.js</code>, <code>video_capture_manager.js</code>, <code>video_capture_validator.js</code>. Kept as experimental lab + reference, but the Brickfilm Studio relies on the new runtime and backends instead of iframes and globals.</div>
+        </div>
+        <div class="lego-block lego-legacy">
+          <div class="lego-top"><div class="lego-stud"></div></div>
+          <div class="lego-name">EXPERIMENTAL SCENES</div>
+          <div class="lego-note">Files: <code>dynamic-camera.html</code>, <code>index_hub.html</code>, RL visualizations, etc. Not part of the brickfilm pipeline, but their camera and animation patterns can inspire shot configs and camera rigs.</div>
+        </div>
+      </div>
+      <div class="callout" style="margin-top:8px;">
+        <span class="callout-emoji">🧬</span>
+        The Brickfilm Studio does not delete MOMENTO. It forks the good ideas (metrics, validation, scene templates) into a cleaner, single-runtime architecture dedicated to LDraw brickfilms.
+      </div>
+    </div>
+  </div>
+
+  <div class="status-bar">
+    <span>Brickfilm Studio • Visual system map for the proposed LDraw capture architecture</span>
+    <span>Docs only • Implementation lives in dedicated runtime and studio modules</span>
+  </div>
+</div>
+</body>
+</html>

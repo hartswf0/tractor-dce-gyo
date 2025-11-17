@@ -800,6 +800,51 @@
             background: #FFD700;
         }
 
+        /* Compact height: allow scrolling and shrink header/avatar footprint */
+        @media (max-height: 800px) {
+            body {
+                overflow-y: auto;
+            }
+
+            .container {
+                height: auto;
+                min-height: 100vh;
+            }
+
+            .header {
+                padding: 6px 10px;
+            }
+
+            .title-block .stats:first-of-type {
+                display: none;
+            }
+
+            .preview-section {
+                min-height: 220px;
+            }
+
+            .minifig-display-area {
+                padding: 12px;
+            }
+
+            .minifig-figure {
+                transform: scale(0.9);
+            }
+        }
+
+        /* Wide desktop: lay out dial groups in two columns to reduce scrolling */
+        @media (min-width: 1200px) {
+            .dial-container {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 16px;
+            }
+
+            .dial-group {
+                margin-bottom: 0;
+            }
+        }
+
         @media (max-width: 480px) {
             .build-info {
                 width: 150px;
@@ -1727,8 +1772,17 @@
 
         const dials = {};
 
-        // Keyboard shortcuts
+        // Keyboard shortcuts (disabled while typing in fields)
         document.addEventListener('keydown', (e) => {
+            const target = e.target;
+            if (target) {
+                const tag = target.tagName ? target.tagName.toLowerCase() : '';
+                const editable = target.isContentEditable || (target.getAttribute && target.getAttribute('contenteditable') === 'true');
+                if (tag === 'input' || tag === 'textarea' || editable) {
+                    return;
+                }
+            }
+
             if (e.ctrlKey || e.metaKey) {
                 if (e.key === 'z') {
                     e.preventDefault();

@@ -775,13 +775,81 @@
             background: #00FF88;
         }
 
-        @media (max-width: 480px) {
-            .build-info {
-                width: 150px;
+        /* Compact height: allow scrolling and shrink header/avatar footprint */
+        @media (max-height: 800px) {
+            body {
+                overflow-y: auto;
+            }
+
+            .container {
+                height: auto;
+                min-height: 100vh;
+            }
+
+            .header {
+                padding: 6px 10px;
+            }
+
+            .preview-section {
+                min-height: 220px;
+            }
+
+            .location-display-area {
+                padding: 12px;
             }
 
             .location-scene {
-                transform: scale(0.8);
+                transform: scale(0.9);
+            }
+        }
+
+        /* Mobile layout: allow vertical scroll and keep bottom controls reachable */
+        @media (max-width: 900px) {
+            body {
+                overflow-y: auto;
+            }
+
+            .container {
+                height: auto;
+                min-height: 100vh;
+            }
+
+            .preview-section {
+                flex-direction: column;
+                min-height: auto;
+            }
+
+            .location-display-area {
+                padding: 16px 10px;
+            }
+
+            .build-info {
+                width: 100%;
+                border-left: none;
+                border-top: 1px solid #333;
+            }
+        }
+
+        /* Wide desktop: lay out dial groups in two columns to reduce scrolling */
+        @media (min-width: 1200px) {
+            .dial-container {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 16px;
+            }
+
+            .dial-group {
+                margin-bottom: 0;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .build-info {
+                width: 100%;
+            }
+
+            .location-scene {
+                transform: scale(0.85);
             }
         }
     </style>
@@ -1973,6 +2041,15 @@
         const dials = {};
 
         document.addEventListener('keydown', (e) => {
+            const target = e.target;
+            if (target) {
+                const tag = target.tagName ? target.tagName.toLowerCase() : '';
+                const editable = target.isContentEditable || (target.getAttribute && target.getAttribute('contenteditable') === 'true');
+                if (tag === 'input' || tag === 'textarea' || editable) {
+                    return;
+                }
+            }
+
             if (e.ctrlKey || e.metaKey) {
                 if (e.key === 'z') {
                     e.preventDefault();

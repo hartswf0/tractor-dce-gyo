@@ -538,6 +538,27 @@
             background: var(--bg-main);
             border: 1px solid var(--border-primary);
             transition: all 0.2s;
+            position: relative;
+        }
+        .grid-cell::after {
+            content: attr(data-label);
+            position: absolute;
+            bottom: 3px;
+            right: 4px;
+            font-size: 9px;
+            color: rgba(255,255,255,0.65);
+            pointer-events: none;
+        }
+        .grid-cell.corner-marker::before {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 8px;
+            height: 8px;
+            border-top: 2px solid var(--accent);
+            border-left: 2px solid var(--accent);
+            opacity: 0.9;
         }
         .grid-cell.occupied {
             background: var(--accent);
@@ -560,6 +581,18 @@
         .minimap-cell {
             background: rgba(255,255,255,0.05);
             border: 1px solid rgba(255,255,255,0.1);
+            position: relative;
+        }
+        .minimap-cell.corner-marker::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 5px;
+            height: 5px;
+            border-top: 2px solid var(--accent);
+            border-left: 2px solid var(--accent);
+            opacity: 0.9;
         }
         .minimap-cell.occupied {
             background: var(--accent);
@@ -3951,7 +3984,13 @@
         const resetBtn = document.getElementById('reset-quick');
         if (resetBtn) {
             resetBtn.addEventListener('click', () => {
-                if (STATE.viewer) STATE.viewer.fitToCurrent();
+                if (STATE.viewer) {
+                    if (STATE.viewer.snapFrankTopView) {
+                        STATE.viewer.snapFrankTopView();
+                    } else {
+                        STATE.viewer.fitToCurrent();
+                    }
+                }
             });
         }
         
@@ -6457,406 +6496,298 @@
             }
         });
     }
+
+document.getElementById('mode-2d-tab').addEventListener('click', () => {
+    const viewer = document.getElementById('viewer');
+    const grid2d = document.getElementById('grid-2d');
+    const mode3d = document.getElementById('mode-3d-tab');
+    const mode2d = document.getElementById('mode-2d-tab');
     
-    function initializeGrids() {
-        // Initialize 2D grid (20x20 with axis labels)
-        const grid2d = document.getElementById('grid-2d');
-        if (grid2d) {
-            grid2d.innerHTML = '';
-            grid2d.style.cssText = `
-                display: grid;
-                grid-template-columns: 40px repeat(20, 1fr);
-                grid-template-rows: 40px repeat(20, 1fr);
-                gap: 1px;
-                background: var(--bg-main);
-                width: 100%;
-                height: 100%;
-            `;
-            
-            // Top-left corner (empty)
-            const corner = document.createElement('div');
-            corner.style.cssText = 'background: var(--bg-secondary); border: 1px solid var(--border-primary);';
-            grid2d.appendChild(corner);
-            
-            // Top row X labels (-10 to +9)
-            for (let x = -10; x < 10; x++) {
-                const label = document.createElement('div');
-                label.textContent = x;
-                label.style.cssText = `
-                    background: var(--bg-secondary);
+    if (viewer) viewer.style.display = 'none';
+    if (grid2d) grid2d.style.display = 'grid';
+    if (mode3d) mode3d.classList.remove('active');
+    if (mode2d) mode2d.classList.add('active');
+    render2DGrid();
+});
+
+if (STATE.viewer) {
+    STATE.viewer.setDiagnostics(STATE.diagnostics);
+    STATE.viewer.setAutoSpin(STATE.autoSpin);
+}
+
+setupPanelButtons();
+// Scene management moved to scene dots - dropdown is for loading MPD files
+setupPasteZone();
+
+const FRANK_GRID_CONFIG = {
+    lduPerStud: 20,
+    cellSizeLDU: 160,   // 8 studs per Frank cell
+    halfCells: 4        // 9×9 grid → offsets -4..4 around center
+};
+
+function initializeGrids() {
+    // Initialize 2D grid as a 9×9 FRANK-aligned grid (one cell per Frank cell)
+    const grid2d = document.getElementById('grid-2d');
+    if (grid2d) {
+        grid2d.innerHTML = '';
+        grid2d.style.cssText = `
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            grid-template-rows: repeat(9, 1fr);
+            gap: 3px;
+            background: var(--bg-main);
+            width: 100%;
+            height: 100%;
+            padding: 12px;
+            box-sizing: border-box;
+        `;
+
+        // Frank cell offsets from center: -4..4 (matching wag-frank 9×9 layout)
+        for (let rowOffset = -FRANK_GRID_CONFIG.halfCells; rowOffset <= FRANK_GRID_CONFIG.halfCells; rowOffset++) {
+            for (let colOffset = -FRANK_GRID_CONFIG.halfCells; colOffset <= FRANK_GRID_CONFIG.halfCells; colOffset++) {
+                const cell = document.createElement('div');
+                cell.className = 'grid-cell';
+                cell.dataset.gridX = String(colOffset);   // Frank col offset
+                cell.dataset.gridY = String(rowOffset);   // Frank row offset
+
+                // Map offsets to Frank-style labels (A1–I9)
+                const rowIndex = rowOffset + FRANK_GRID_CONFIG.halfCells; // -4..4 → 0..8
+                const colIndex = colOffset + FRANK_GRID_CONFIG.halfCells; // -4..4 → 0..8
+                const rowLetter = String.fromCharCode(65 + rowIndex);     // 65 = 'A'
+                const colNumber = colIndex + 1;
+                const label = `${rowLetter}${colNumber}`;
+                cell.dataset.label = label;
+                cell.title = `FRANK cell ${label} (Δx=${colOffset}, Δz=${rowOffset})`;
+                cell.style.cssText = `
+                    background: var(--bg-main);
                     border: 1px solid var(--border-primary);
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 10px;
-                    color: var(--accent);
-                    font-weight: bold;
+                    cursor: pointer;
                 `;
-                grid2d.appendChild(label);
-            }
-            
-            // Grid rows with Y labels
-            for (let y = -10; y < 10; y++) {
-                // Y label (left column)
-                const label = document.createElement('div');
-                label.textContent = -y; // Flip Y for display
-                label.style.cssText = `
-                    background: var(--bg-secondary);
-                    border: 1px solid var(--border-primary);
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 10px;
-                    color: var(--accent);
-                    font-weight: bold;
-                `;
-                grid2d.appendChild(label);
-                
-                // Grid cells
-                for (let x = -10; x < 10; x++) {
-                    const cell = document.createElement('div');
-                    cell.className = 'grid-cell';
-                    cell.dataset.gridX = x;
-                    cell.dataset.gridY = -y;
-                    cell.title = `(${x}, ${-y})`;
-                    cell.style.cssText = `
-                        background: var(--bg-main);
-                        border: 1px solid var(--border-primary);
-                        cursor: pointer;
-                    `;
-                    cell.addEventListener('click', () => highlightLinesAtGridPosition(x, -y));
-                    grid2d.appendChild(cell);
+
+                // Mark top-left Frank cell with a corner indicator for orientation
+                if (rowOffset === -FRANK_GRID_CONFIG.halfCells && colOffset === -FRANK_GRID_CONFIG.halfCells) {
+                    cell.classList.add('corner-marker');
                 }
+                cell.addEventListener('click', () => highlightLinesAtGridPosition(colOffset, rowOffset));
+                grid2d.appendChild(cell);
             }
         }
-        
-        // Initialize minimap
-        const minimapGrid = document.getElementById('minimap-grid');
-        if (minimapGrid) {
-            minimapGrid.innerHTML = '';
-            for (let i = 0; i < 81; i++) {
+    }
+
+    // Initialize 9×9 minimap cells (one per Frank cell)
+    const minimapGrid = document.getElementById('minimap-grid');
+    if (minimapGrid) {
+        minimapGrid.innerHTML = '';
+        for (let rowIndex = 0; rowIndex < 9; rowIndex++) {
+            for (let colIndex = 0; colIndex < 9; colIndex++) {
                 const cell = document.createElement('div');
                 cell.className = 'minimap-cell';
+
+                const rowOffset = rowIndex - FRANK_GRID_CONFIG.halfCells; // -4..4
+                const colOffset = colIndex - FRANK_GRID_CONFIG.halfCells; // -4..4
+                cell.dataset.gridX = String(colOffset);
+                cell.dataset.gridY = String(rowOffset);
+
+                // Mark top-left Frank cell on minimap for orientation
+                if (rowOffset === -FRANK_GRID_CONFIG.halfCells && colOffset === -FRANK_GRID_CONFIG.halfCells) {
+                    cell.classList.add('corner-marker');
+                }
+
                 minimapGrid.appendChild(cell);
             }
         }
     }
-    
-    // LDraw color code to CSS color mapping
-    function getLDrawColor(colorCode) {
-        const colors = {
-            '0': '#05131D',      // Black
-            '1': '#0055BF',      // Blue
-            '2': '#237841',      // Green
-            '3': '#008F9B',      // Dark Cyan
-            '4': '#C91A09',      // Red
-            '5': '#C870A0',      // Pink
-            '6': '#583927',      // Brown
-            '7': '#9BA19D',      // Light Gray
-            '8': '#6D6E5C',      // Dark Gray
-            '9': '#B4D2E3',      // Light Blue
-            '10': '#4B9F4A',     // Bright Green
-            '11': '#55A5AF',     // Cyan
-            '12': '#D67240',     // Light Orange
-            '13': '#F58624',     // Bright Orange
-            '14': '#F3CF50',     // Yellow
-            '15': '#FFFFFF',     // White
-            '16': '#7BB3D9',     // Default (Main Color)
-            '17': '#C2DAB8',     // Trans Green
-            '18': '#FCE639',     // Trans Yellow
-            '19': '#E4ADC8',     // Trans Pink
-            '20': '#C9CAE2',     // Trans Clear
-            '21': '#E0C0A0',     // Chrome Gold
-            '22': '#81007B',     // Purple
-            '23': '#2032B0',     // Dark Blue
-            '24': '#FE8E01',     // Trans Orange
-            '25': '#D05098',     // Trans Magenta
-            '71': '#A0A5A9',     // Light Stone Gray
-            '72': '#6C6E68',     // Dark Stone Gray
-        };
-        
-        // Return color or default cyan if not found
-        return colors[colorCode] || '#2AC1FF';
-    }
-    
-    function render2DGrid() {
-        // Parse ALL editor lines and map to grid with colors
-        const occupiedCells = new Map(); // gridX,gridY -> color
-        
-        console.log('[2D GRID] Rendering from', editorLines.length, 'lines');
-        
-        editorLines.forEach((line, idx) => {
-            const trimmed = line.trim();
-            if (!trimmed.startsWith('1 ')) return;
-            
-            const tokens = trimmed.split(/\s+/);
-            if (tokens.length < 15) return;
-            
-            try {
-                const colorCode = tokens[1];
-                const x = Math.round(parseFloat(tokens[2]) / 20);
-                const z = Math.round(parseFloat(tokens[4]) / 20);
-                
-                const key = `${x},${z}`;
-                if (!occupiedCells.has(key)) {
-                    occupiedCells.set(key, { color: colorCode, count: 1 });
-                } else {
-                    occupiedCells.get(key).count++;
-                }
-            } catch (e) {
-                console.warn('[2D GRID] Parse error on line', idx, e);
+}
+
+// LDraw color code to CSS color mapping
+function getLDrawColor(colorCode) {
+    const colors = {
+        '0': '#05131D',      // Black
+        '1': '#0055BF',      // Blue
+        '2': '#237841',      // Green
+        '3': '#008F9B',      // Dark Cyan
+        '4': '#C91A09',      // Red
+        '5': '#C870A0',      // Pink
+        '6': '#583927',      // Brown
+        '7': '#9BA19D',      // Light Gray
+        '8': '#6D6E5C',      // Dark Gray
+        '9': '#B4D2E3',      // Light Blue
+        '10': '#4B9F4A',     // Bright Green
+        '11': '#55A5AF',     // Cyan
+        '12': '#D67240',     // Light Orange
+        '13': '#F58624',     // Bright Orange
+        '14': '#F3CF50',     // Yellow
+        '15': '#FFFFFF',     // White
+        '16': '#7BB3D9',     // Default (Main Color)
+        '17': '#C2DAB8',     // Trans Green
+        '18': '#FCE639',     // Trans Yellow
+        '19': '#E4ADC8',     // Trans Pink
+        '20': '#C9CAE2',     // Trans Clear
+        '21': '#E0C0A0',     // Chrome Gold
+        '22': '#81007B',     // Purple
+        '23': '#2032B0',     // Dark Blue
+        '24': '#FE8E01',     // Trans Orange
+        '25': '#D05098',     // Trans Magenta
+        '71': '#A0A5A9',     // Light Stone Gray
+        '72': '#6C6E68'      // Dark Stone Gray
+    };
+
+    // Return color or default cyan if not found
+    return colors[colorCode] || '#2AC1FF';
+}
+
+function render2DGrid() {
+    // Parse ALL editor lines and map them into Frank 9×9 cells (one bucket per Frank cell)
+    const occupiedCells = new Map(); // key: "colOffset,rowOffset" -> { color, count }
+
+    console.log('[2D GRID] Rendering from', editorLines.length, 'lines');
+
+    editorLines.forEach((line, idx) => {
+        const trimmed = line.trim();
+        if (!trimmed.startsWith('1 ')) return;
+
+        const tokens = trimmed.split(/\s+/);
+        if (tokens.length < 15) return;
+
+        try {
+            const colorCode = tokens[1];
+            const xLdu = parseFloat(tokens[2]);
+            const zLdu = parseFloat(tokens[4]);
+            if (Number.isNaN(xLdu) || Number.isNaN(zLdu)) return;
+
+            // Map LDraw coordinates into Frank cell offsets (Δx, Δz) using 160 LDU spacing
+            const colOffset = Math.round(xLdu / FRANK_GRID_CONFIG.cellSizeLDU);
+            const rowOffset = Math.round(zLdu / FRANK_GRID_CONFIG.cellSizeLDU);
+
+            // Clamp to visible 9×9 Frank grid (-4..4) so far-away parts don't break the view
+            if (Math.abs(colOffset) > FRANK_GRID_CONFIG.halfCells || Math.abs(rowOffset) > FRANK_GRID_CONFIG.halfCells) {
+                return;
             }
-        });
-        
-        console.log('[2D GRID] Occupied cells:', occupiedCells.size);
-        
-        // Update grid cells
-        const cells = document.querySelectorAll('.grid-cell');
-        cells.forEach(cell => {
-            const x = parseInt(cell.dataset.gridX);
-            const y = parseInt(cell.dataset.gridY);
-            const key = `${x},${y}`;
-            
-            if (occupiedCells.has(key)) {
-                const data = occupiedCells.get(key);
-                const color = getLDrawColor(data.color);
-                cell.style.background = color;
-                cell.style.border = `1px solid ${color}`;
-                cell.classList.add('occupied');
-                cell.textContent = data.count > 1 ? data.count : '';
+
+            const key = `${colOffset},${rowOffset}`;
+            if (!occupiedCells.has(key)) {
+                occupiedCells.set(key, { color: colorCode, count: 1 });
             } else {
-                cell.style.background = '';
-                cell.style.border = '1px solid var(--border-primary)';
-                cell.classList.remove('occupied');
-                cell.textContent = '';
+                occupiedCells.get(key).count++;
             }
-        });
-        
-        // Update minimap with 2D grid data
-        render2DMinimap(occupiedCells);
-    }
-    
-    function render2DMinimap(occupiedCells) {
-        const minimap = document.getElementById('minimap');
-        if (!minimap) return;
-        
-        // Clear and setup minimap for 2D grid
-        minimap.innerHTML = '';
-        minimap.style.cssText = `
-            position: absolute;
-            top: 140px;
-            right: 10px;
-            width: 120px;
-            height: 120px;
-            background: rgba(0,0,0,0.9);
-            border: 2px solid var(--accent);
-            border-radius: 4px;
-            display: grid;
-            grid-template-columns: repeat(20, 1fr);
-            grid-template-rows: repeat(20, 1fr);
-            gap: 0;
-            padding: 2px;
-            z-index: 100;
-        `;
-        
-        // Create 20x20 minimap cells
-        for (let y = 10; y >= -9; y--) {
-            for (let x = -10; x <= 9; x++) {
-                const cell = document.createElement('div');
-                const key = `${x},${y}`;
-                
-                if (occupiedCells.has(key)) {
-                    const data = occupiedCells.get(key);
-                    const color = getLDrawColor(data.color);
-                    cell.style.background = color;
-                } else {
-                    cell.style.background = 'rgba(42, 193, 255, 0.03)';
-                }
-                
-                cell.style.cssText += `
-                    width: 100%;
-                    height: 100%;
-                `;
-                
-                minimap.appendChild(cell);
-            }
+        } catch (e) {
+            console.warn('[2D GRID] Parse error on line', idx, e);
         }
-        
-        console.log('[2D MINIMAP] Rendered', occupiedCells.size, 'occupied cells');
-    }
-    
-    function highlightLinesAtGridPosition(gridX, gridY) {
-        // Find all lines at this grid position
-        const matchingIndices = [];
-        
-        editorLines.forEach((line, idx) => {
-            const trimmed = line.trim();
-            if (!trimmed.startsWith('1 ')) return;
-            
-            const tokens = trimmed.split(/\s+/);
-            if (tokens.length < 15) return;
-            
-            try {
-                const x = Math.round(parseFloat(tokens[2]) / 20);
-                const z = Math.round(parseFloat(tokens[4]) / 20);
-                
-                if (x === gridX && z === gridY) {
-                    matchingIndices.push(idx);
-                }
-            } catch (e) {
-                // Skip invalid lines
-            }
-        });
-        
-        if (matchingIndices.length === 0) {
-            document.getElementById('status-text').textContent = `No parts at grid (${gridX}, ${gridY})`;
-            return;
-        }
-        
-        // Highlight all matching lines in editor
-        const editorLines2 = editorContainer.querySelectorAll('.editor-line');
-        editorLines2.forEach((lineEl, idx) => {
-            if (matchingIndices.includes(idx)) {
-                lineEl.classList.add('highlighted');
-                setTimeout(() => lineEl.classList.remove('highlighted'), 2000);
-            }
-        });
-        
-        // Scroll to first matching line
-        const firstLine = editorContainer.children[matchingIndices[0]];
-        if (firstLine) {
-            firstLine.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-        
-        document.getElementById('status-text').textContent = `${matchingIndices.length} part(s) at grid (${gridX}, ${gridY})`;
-    }
-    
-    // Global selection state
-    let selectedLines = new Set(); // Multi-selection with Cmd+click
-    let selectedSection = { start: -1, end: -1, lines: [] };
-    let selectionBoundingBox = null;
-    
-    // 💚 SELECT ALL LINES
-    function selectAllLines() {
-        selectedLines.clear();
-        editorLines.forEach((line, idx) => {
-            selectedLines.add(idx);
-            const lineEl = editorContainer.children[idx];
-            if (lineEl) lineEl.classList.add('selected');
-        });
-        updateSelectionButtons();
-        document.getElementById('status-text').textContent = `💚 Selected all ${editorLines.length} lines`;
-        console.log(`[SELECT ALL] ${editorLines.length} lines`);
-    }
-    
-    // 💚 DESELECT ALL LINES
-    function deselectAllLines() {
-        const count = selectedLines.size;
-        selectedLines.forEach(idx => {
-            const lineEl = editorContainer.children[idx];
-            if (lineEl) lineEl.classList.remove('selected');
-        });
-        selectedLines.clear();
-        updateSelectionButtons();
-        document.getElementById('status-text').textContent = `💚 Cleared ${count} selections`;
-        console.log(`[DESELECT ALL] ${count} lines`);
-    }
-    
-    // 💚 INVERT SELECTION
-    function invertSelection() {
-        const newSelection = new Set();
-        editorLines.forEach((line, idx) => {
-            const lineEl = editorContainer.children[idx];
-            if (selectedLines.has(idx)) {
-                // Was selected → deselect
-                if (lineEl) lineEl.classList.remove('selected');
-            } else {
-                // Was not selected → select
-                newSelection.add(idx);
-                if (lineEl) lineEl.classList.add('selected');
-            }
-        });
-        selectedLines = newSelection;
-        updateSelectionButtons();
-        document.getElementById('status-text').textContent = `💚 Inverted selection (${selectedLines.size} selected)`;
-        console.log(`[INVERT] Now ${selectedLines.size} lines selected`);
-    }
-    
-    // 💚 UPDATE BUTTON VISIBILITY based on selection state
-    function updateSelectionButtons() {
-        const deselectBtn = document.getElementById('deselect-all-btn');
-        const invertBtn = document.getElementById('invert-selection-btn');
-        
-        if (selectedLines.size > 0) {
-            deselectBtn.style.display = 'block';
-            invertBtn.style.display = 'block';
+    });
+
+    console.log('[2D GRID] Occupied Frank cells:', occupiedCells.size);
+
+    // Update 9×9 grid cells
+    const cells = document.querySelectorAll('.grid-cell');
+    cells.forEach(cell => {
+        const x = parseInt(cell.dataset.gridX, 10); // Frank col offset
+        const y = parseInt(cell.dataset.gridY, 10); // Frank row offset
+        const key = `${x},${y}`;
+
+        if (occupiedCells.has(key)) {
+            const data = occupiedCells.get(key);
+            const color = getLDrawColor(data.color);
+            cell.style.background = color;
+            cell.style.border = `1px solid ${color}`;
+            cell.classList.add('occupied');
+            cell.textContent = data.count > 1 ? String(data.count) : '';
         } else {
-            deselectBtn.style.display = 'none';
-            invertBtn.style.display = 'none';
+            cell.style.background = '';
+            cell.style.border = '1px solid var(--border-primary)';
+            cell.classList.remove('occupied');
+            cell.textContent = '';
         }
-    }
-    
-    function toggleLineSelection(idx) {
-        const lineEl = editorContainer.children[idx];
-        if (!lineEl) return;
-        
-        // 💚 GRACE: If clicking selected line when multiple selected → DESELECT ALL
-        if (selectedLines.has(idx) && selectedLines.size > 1) {
-            console.log(`[DESELECT ALL] Clearing ${selectedLines.size} selections`);
-            selectedLines.forEach(i => {
-                const el = editorContainer.children[i];
-                if (el) el.classList.remove('selected');
-            });
-            selectedLines.clear();
-            updateSelectionButtons();
-            document.getElementById('status-text').textContent = '💚 Deselected all';
-        }
-        // Toggle single selection
-        else if (selectedLines.has(idx)) {
-            selectedLines.delete(idx);
-            lineEl.classList.remove('selected');
-            updateSelectionButtons();
-            console.log(`[DESELECT] Line ${idx + 1}`);
+    });
+
+    // Update minimap with Frank-aligned 2D grid data
+    render2DMinimap(occupiedCells);
+}
+
+function render2DMinimap(occupiedCells) {
+    const minimapGrid = document.getElementById('minimap-grid');
+    if (!minimapGrid) return;
+
+    const cells = minimapGrid.querySelectorAll('.minimap-cell');
+    if (!cells.length) return;
+
+    // 9×9 minimap, same Frank cell offsets (-4..4) as the main 2D grid
+    cells.forEach((cell, idx) => {
+        const rowIndex = Math.floor(idx / 9); // 0..8
+        const colIndex = idx % 9;            // 0..8
+        const rowOffset = rowIndex - FRANK_GRID_CONFIG.halfCells; // -4..4
+        const colOffset = colIndex - FRANK_GRID_CONFIG.halfCells; // -4..4
+        const key = `${colOffset},${rowOffset}`;
+
+        if (occupiedCells.has(key)) {
+            const data = occupiedCells.get(key);
+            const color = getLDrawColor(data.color);
+            cell.style.background = color;
+            cell.classList.add('occupied');
         } else {
-            selectedLines.add(idx);
-            lineEl.classList.add('selected');
-            updateSelectionButtons();
-            console.log(`[SELECT] Line ${idx + 1}`);
+            cell.style.background = 'rgba(42, 193, 255, 0.03)';
+            cell.classList.remove('occupied');
         }
-        
-        // Update 2D grid and 3D boxes
-        const partIndices = Array.from(selectedLines).filter(i => 
-            editorLines[i] && editorLines[i].trim().startsWith('1 ')
-        );
-        
-        // Clear grid selections
-        document.querySelectorAll('.grid-cell.selected').forEach(el => el.classList.remove('selected'));
-        
-        // Highlight on 2D grid
-        partIndices.forEach(idx => {
-            const trimmed = editorLines[idx].trim();
-            const tokens = trimmed.split(/\s+/);
-            if (tokens.length >= 15) {
-                try {
-                    const x = Math.round(parseFloat(tokens[2]) / 20);
-                    const z = Math.round(parseFloat(tokens[4]) / 20);
-                    
-                    const cells = document.querySelectorAll('.grid-cell');
-                    cells.forEach(cell => {
-                        if (parseInt(cell.dataset.gridX) === x && parseInt(cell.dataset.gridY) === z) {
-                            cell.classList.add('selected');
-                        }
-                    });
-                } catch (e) {}
+    });
+
+    console.log('[2D MINIMAP] Rendered', occupiedCells.size, 'occupied Frank cells');
+}
+
+function highlightLinesAtGridPosition(gridX, gridY) {
+    // gridX/gridY are Frank cell offsets (Δx, Δz) in cell units
+    const matchingIndices = [];
+
+    editorLines.forEach((line, idx) => {
+        const trimmed = line.trim();
+        if (!trimmed.startsWith('1 ')) return;
+
+        const tokens = trimmed.split(/\s+/);
+        if (tokens.length < 15) return;
+
+        try {
+            const xLdu = parseFloat(tokens[2]);
+            const zLdu = parseFloat(tokens[4]);
+            if (Number.isNaN(xLdu) || Number.isNaN(zLdu)) return;
+
+            const colOffset = Math.round(xLdu / FRANK_GRID_CONFIG.cellSizeLDU);
+            const rowOffset = Math.round(zLdu / FRANK_GRID_CONFIG.cellSizeLDU);
+
+            if (colOffset === gridX && rowOffset === gridY) {
+                matchingIndices.push(idx);
             }
-        });
-        
-        // Draw 3D bounding boxes
-        draw3DBoundingBoxes(partIndices);
-        
-        document.getElementById('status-text').textContent = `Selected: ${selectedLines.size} line(s), ${partIndices.length} part(s)`;
+        } catch (e) {
+            // Skip invalid lines
+        }
+    });
+
+    if (matchingIndices.length === 0) {
+        const statusEl = document.getElementById('status-text');
+        if (statusEl) {
+            statusEl.textContent = 'No parts at Frank cell (Δx=' + gridX + ', Δz=' + gridY + ')';
+        }
+        return;
     }
-    
+
+    // Highlight all matching lines in editor
+    const editorLines2 = editorContainer.querySelectorAll('.editor-line');
+    editorLines2.forEach((lineEl, idx) => {
+        if (matchingIndices.includes(idx)) {
+            lineEl.classList.add('highlighted');
+            setTimeout(() => lineEl.classList.remove('highlighted'), 2000);
+        }
+    });
+
+    // Scroll to first matching line
+    const firstLine = editorContainer.children[matchingIndices[0]];
+    if (firstLine) {
+        firstLine.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    const statusEl = document.getElementById('status-text');
+    if (statusEl) {
+        statusEl.textContent = matchingIndices.length + ' part(s) at Frank cell (Δx=' + gridX + ', Δz=' + gridY + ')';
+    }
+}
+
     function copySelection() {
         if (selectedLines.size === 0) {
             document.getElementById('status-text').textContent = 'No selection to copy';

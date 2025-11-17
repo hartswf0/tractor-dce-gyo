@@ -39,59 +39,85 @@
             z-index: 100;
         }
 
-        .nav-dots {
+        /* Redesigned Navigation Buttons (formerly nav-dots) */
+        .nav-buttons { /* Changed from nav-dots */
             display: flex;
-            gap: 8px;
+            gap: 12px; /* Increased gap */
             align-items: center;
         }
 
-        .nav-dot {
-            width: 12px;
-            height: 12px;
+        .nav-button { /* Changed from nav-dot */
+            width: 48px; /* Increased width */
+            height: 28px; /* Increased height */
             border-radius: 6px;
-            background: #111;
-            border: 1px solid #444;
+            background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+            border: 2px solid #444; /* Thicker border */
             cursor: pointer;
             transition: all 0.2s;
             position: relative;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.6);
+            display: flex; /* For centering text */
+            align-items: center;
+            justify-content: center;
+            font-size: 10px; /* Text size */
+            font-weight: bold;
+            color: #666; /* Text color */
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        .nav-dot:hover {
-            background: #222;
+        .nav-button:hover {
+            background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 100%);
+            transform: translateY(-2px); /* Tactile lift */
+            border-color: #777;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.6);
+            color: #ccc;
+        }
+
+        .nav-button.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            box-shadow: 0 0 15px var(--accent-glow), 0 0 5px var(--accent);
+            width: 60px; /* Wider when active */
+            color: #000; /* Darker text for contrast */
             transform: translateY(-1px);
         }
 
-        .nav-dot.active {
-            background: var(--accent);
-            border-color: var(--accent);
-            box-shadow: 0 0 10px var(--accent-glow);
-            width: 30px;
-            border-radius: 6px;
-        }
-
-        .nav-dot::after {
-            content: attr(data-name);
+        /* Stud-like detail for the active button */
+        .nav-button.active::before {
+            content: '';
             position: absolute;
-            bottom: -18px;
+            top: -6px; /* Position above button */
+            width: 16px;
+            height: 4px;
+            border-radius: 4px 4px 0 0;
+            background: var(--accent);
+            border: 1px solid var(--accent);
+            border-bottom: none;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 8px;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.3);
+        }
+
+        .nav-button::after {
+            content: attr(data-name);
+            position: relative; /* Make it relative to the button for proper positioning */
+            font-size: 8px; /* Small text for label, now inside */
             color: #666;
             white-space: nowrap;
             letter-spacing: 1px;
-            opacity: 0;
             pointer-events: none;
-            transition: opacity 0.2s;
+            transition: color 0.2s;
+            opacity: 1; /* Always visible */
         }
 
-        .nav-dot:hover::after,
-        .nav-dot.active::after {
+        .nav-button:hover::after {
+            color: #ccc;
+        }
+        
+        .nav-button.active::after {
+            color: #000; /* Text color when active */
             opacity: 1;
-        }
-
-        .nav-dot.active::after {
-            color: var(--accent);
         }
 
         .header-info {
@@ -373,7 +399,7 @@
 <body>
     <div class="container" id="container">
         <div class="header">
-            <div class="nav-dots" id="navDots"></div>
+            <div class="nav-buttons" id="navDots"></div> <!-- Changed class from nav-dots -->
             <div class="header-info">
                 <div class="current-designer" id="currentDesigner">MINIFIG BUILDER</div>
                 <div class="quick-actions">
@@ -448,7 +474,7 @@
                 theme: 'theme-docs',
                 icon: '⭐️',
                 status: 'active',
-                url: 'swiss-quickstart.html'
+                url: 'swiss-quickstart.html' /* Points to the new quickstart file */
             },
             {
                 id: 'minifig',
@@ -508,11 +534,11 @@
             },
             {
                 id: 'frank-docs',
-                name: 'FRANK',
+                name: 'FRANK', /* Renamed to distinguish Frank's UI from Grace's */
                 theme: 'theme-docs',
                 icon: '🎯',
                 status: 'active',
-                url: 'swiss-frank-scene.html'
+                url: 'wag-frank.html' /* Points to the wag-frank.html file */
             },
             {
                 id: 'character',
@@ -582,6 +608,16 @@
                     frankLastSeen = msg.ts || Date.now();
                     updateFrankStatus('online');
                 }
+                // Handle messages from Frank to switch to Grace Editor
+                if (msg.type === 'wag-frank-open-grace') {
+                    const graceIndex = designers.findIndex(d => d.id === 'grace-editor');
+                    if (graceIndex !== -1) {
+                        navigateTo(graceIndex);
+                        showToast('Opened Grace Editor from Frank', '#00FF88');
+                    } else {
+                        console.warn('Grace Editor not found in designers list');
+                    }
+                }
             });
 
             setInterval(() => {
@@ -599,7 +635,7 @@
         let touchEndX = 0;
 
         const container = document.getElementById('container');
-        const navDotsContainer = document.getElementById('navDots');
+        const navButtonsContainer = document.getElementById('navDots'); /* Changed ID */
         const designersTrack = document.getElementById('designersTrack');
         const currentDesignerEl = document.getElementById('currentDesigner');
         const viewportContainer = document.getElementById('viewportContainer');
@@ -622,7 +658,7 @@
         const updateTheme = (index) => {
             const designer = designers[index];
             container.className = `container ${designer.theme}`;
-            currentDesignerEl.textContent = designer.name + ' BUILDER';
+            currentDesignerEl.textContent = designer.name + (designer.id !== 'frank-docs' && designer.id !== 'quickstart' && designer.id !== 'docs' ? ' BUILDER' : ''); /* Adjusted title */
             document.getElementById('statusText').textContent = designer.status === 'active' ? 'READY' : 'COMING SOON';
         };
 
@@ -634,9 +670,9 @@
             const offset = -index * 100;
             designersTrack.style.transform = `translateX(${offset}%)`;
 
-            // Update nav dots
-            document.querySelectorAll('.nav-dot').forEach((dot, i) => {
-                dot.classList.toggle('active', i === index);
+            // Update nav buttons
+            document.querySelectorAll('.nav-button').forEach((button, i) => { /* Changed selector */
+                button.classList.toggle('active', i === index);
             });
 
             updateTheme(index);
@@ -662,13 +698,13 @@
         };
 
         const initDesigners = () => {
-            // Create nav dots
+            // Create nav buttons
             designers.forEach((designer, index) => {
-                const dot = document.createElement('div');
-                dot.className = `nav-dot ${index === 0 ? 'active' : ''}`;
-                dot.dataset.name = designer.name;
-                dot.addEventListener('click', () => navigateTo(index));
-                navDotsContainer.appendChild(dot);
+                const button = document.createElement('div'); /* Changed to div for styling */
+                button.className = `nav-button ${index === 0 ? 'active' : ''}`; /* Changed class */
+                button.dataset.name = designer.name;
+                button.addEventListener('click', () => navigateTo(index));
+                navButtonsContainer.appendChild(button); /* Changed ID */
             });
 
             // Create designer viewports
@@ -762,6 +798,7 @@
                 case '6':
                 case '7':
                 case '8':
+                case '9': /* Added for more designers */
                     const index = parseInt(e.key) - 1;
                     if (index < designers.length) navigateTo(index);
                     break;
