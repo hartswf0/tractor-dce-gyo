@@ -562,7 +562,7 @@
 
         <section class="panel" data-panel="frank">
           <div class="panel-body">
-            <iframe src="wag-frank.html" title="Wag Frank"></iframe>
+            <iframe src="wag-frank.html" title="Wag Frank" data-studio-host="swiss-frank-grace"></iframe>
           </div>
         </section>
 
@@ -684,6 +684,17 @@
           if (e.target === helpOverlay) closeHelp();
         });
       }
+
+      // Allow embedded FRANK to request that we focus Grace instead of opening a new tab.
+      window.addEventListener('message', (event) => {
+        const data = event.data;
+        if (!data || typeof data !== 'object') return;
+        if (data.type === 'wag-frank-open-grace') {
+          setActivePanel('grace');
+          // In case we were in 3-UP, return to TABS so Grace gets full studio space.
+          applyLayout('single');
+        }
+      });
 
       // Initial state
       applyLayout(layout);

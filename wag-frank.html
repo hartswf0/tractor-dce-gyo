@@ -410,10 +410,21 @@
 
     const openGraceEditor = () => {
       try {
-        // Relative to wag-frank.html; browser will handle space encoding
+        const frameEl = window.frameElement;
+
+        // If FRANK is running inside the Swiss/Frank/Grace studio, ask the parent
+        // to focus the existing Grace panel instead of opening a new window.
+        if (frameEl && frameEl.getAttribute && frameEl.getAttribute('data-studio-host') === 'swiss-frank-grace') {
+          if (window.parent && window.parent !== window) {
+            window.parent.postMessage({ type: 'wag-frank-open-grace' }, '*');
+            return;
+          }
+        }
+
+        // Standalone or non-studio embed: open Grace editor in a new tab/window.
         window.open('wag-viewer-prime-integration-20251112-055341 copy/wag-grace-editor.html', '_blank');
       } catch (e) {
-        console.warn('WAG FRANK: failed to open wag-grace-editor.html', e);
+        console.warn('WAG FRANK: failed to open or signal wag-grace-editor.html', e);
       }
     };
 
