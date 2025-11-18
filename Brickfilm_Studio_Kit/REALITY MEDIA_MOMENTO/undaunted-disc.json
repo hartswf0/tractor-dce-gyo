@@ -1,0 +1,624 @@
+{
+  "book_title": "Undaunted Courage: Meriwether Lewis, Thomas Jefferson, and the Opening of the American West",
+  "author": "Stephen E. Ambrose",
+  "disc_data": [
+    {
+      "scene_number": 0,
+      "title": "Title Card: Undaunted Courage",
+      "time_period": "N/A (Introduction)",
+      "key_figures": [],
+      "core_plot_points": [
+        "Presentation of the book title and author.",
+        "Introduction to the central themes: Meriwether Lewis, Thomas Jefferson, and the opening of the American West.",
+        "Sets the stage for the narrative of discovery, leadership, and personal struggle."
+      ],
+      "themes_narrative_focus": [
+        "Epic scope of the Lewis and Clark Expedition.",
+        "Interconnectedness of personal stories with national ambition.",
+        "The enduring legacy of the American West's exploration."
+      ],
+      "emotional_arc_lewis": "N/A (Introductory scene, focuses on the subject of the book)",
+      "key_elements": [
+        "Book Title Text",
+        "Author Name Text",
+        "Subtitle Text"
+      ],
+      "initial_grid_layout": [
+        ["", "", "", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", "", "", ""],
+        ["", "", "", "", "TITLE_CARD", "", "", "", ""],
+        ["", "", "", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", "", "", ""]
+      ],
+      "elements_in_scene": [
+        {
+          "id": "book_title_display",
+          "type": "TEXT_BLOCK",
+          "grid_symbol": "TITLE_CARD",
+          "initial_grid_position": { "row": 3, "col": 5 },
+          "text_content": "Undaunted Courage",
+          "font_size": "large",
+          "color": "gold"
+        },
+        {
+          "id": "author_display",
+          "type": "TEXT_BLOCK",
+          "grid_symbol": "TEXT_BLOCK",
+          "initial_grid_position": { "row": 4, "col": 5 },
+          "text_content": "by Stephen E. Ambrose",
+          "font_size": "medium",
+          "color": "white"
+        },
+        {
+          "id": "subtitle_display",
+          "type": "TEXT_BLOCK",
+          "grid_symbol": "TEXT_BLOCK",
+          "initial_grid_position": { "row": 5, "col": 5 },
+          "text_content": "Meriwether Lewis, Thomas Jefferson, and the Epic Opening of the American West",
+          "font_size": "small",
+          "color": "lightgray"
+        }
+      ],
+      "power_distribution": {
+        "narrative_introduction": { "score": 1.0, "description": "Primary focus on presenting the story." }
+      },
+      "metadata": {
+        "scene_duration_seconds": 10,
+        "visual_style": "Book Cover Aesthetic",
+        "coloration": { "type": "Thematic", "main_colors": ["gold", "white", "lightgray"] }
+      },
+      "animation_timeline": [
+        { "event_id": "s0_e1_fade_in_title", "type": "fade_in_element", "target_element_id": "book_title_display", "duration_seconds": 2.0, "delay_seconds": 1.0 },
+        { "event_id": "s0_e2_fade_in_author", "type": "fade_in_element", "target_element_id": "author_display", "duration_seconds": 2.0, "delay_seconds": 2.5 },
+        { "event_id": "s0_e3_fade_in_subtitle", "type": "fade_in_element", "target_element_id": "subtitle_display", "duration_seconds": 2.0, "delay_seconds": 4.0 }
+      ],
+      "scene_audio": {
+        "background_music": {
+          "id": "undaunted_courage_theme_intro",
+          "volume": 0.8,
+          "loop": false,
+          "fade_in_duration_seconds": 1.0,
+          "notes": "Majestic, introductory orchestral piece"
+        }
+      }
+    },
+    {
+      "scene_number": 1,
+      "title": "Jefferson's Vision & Lewis's Crucible",
+      "time_period": "1801 – June 1803",
+      "key_figures": [
+        "Thomas Jefferson",
+        "Meriwether Lewis",
+        "Dr. Benjamin Rush",
+        "Dr. Benjamin Smith Barton",
+        "Andrew Ellicott",
+        "Albert Gallatin"
+      ],
+      "core_plot_points": [
+        "Lewis appointed President's secretary, then expedition leader.",
+        "Undergoes intensive scientific (botany, zoology, navigation) and medical training.",
+        "Procures specialized instruments, arms, medicines ('Thunderclappers'), and trade goods.",
+        "Oversees design and construction of the experimental iron-frame boat.",
+        "Jefferson secures confidential congressional funding for the expedition."
+      ],
+      "themes_narrative_focus": [
+        "Jefferson's Enlightenment ideals and pursuit of 'useful knowledge.'",
+        "Lewis's rapid transformation into a scientific explorer.",
+        "The meticulous planning and preparation for the monumental journey."
+      ],
+      "emotional_arc_lewis": "Begins with euphoria and strong purpose; transitions to diligent focus; experiences mounting anxiety over logistical delays.",
+      "key_elements": [
+        "Scientific instruments (sextant, chronometer)",
+        "Jefferson's library",
+        "Dr. Rush's 'Thunderclappers'",
+        "Iron-frame boat plans"
+      ],
+      "initial_grid_layout": [
+        ["LAB", "LIB", "SCI", "", "", "", "", "GOV", "FUND"],
+        ["INSTR", "TRAIN", "BOT", "", "", "", "", "LEGIS", "APPROVE"],
+        ["MED", "SUPPLY", "BOAT", "", "", "", "", "SEC", "ORDERS"],
+        ["", "", "", "TJ", "ML", "PHILA", "", "", ""],
+        ["", "", "", "", "", "HARPERS", "", "", ""],
+        ["", "", "", "", "", "FERRY", "", "", ""],
+        ["", "", "", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", "", "", ""]
+      ],
+      "elements_in_scene": [
+        { "id": "tj_figure", "type": "Historical Figure", "grid_symbol": "TJ", "initial_grid_position": { "row": 4, "col": 4 }, "name": "Thomas Jefferson" },
+        { "id": "ml_figure", "type": "Historical Figure", "grid_symbol": "ML", "initial_grid_position": { "row": 4, "col": 5 }, "name": "Meriwether Lewis" },
+        { "id": "lib_zone", "type": "Concept Zone", "grid_symbol": "LIB", "initial_grid_position": { "row": 1, "col": 2 }, "concept": "Jefferson's Library" },
+        { "id": "sci_zone", "type": "Concept Zone", "grid_symbol": "SCI", "initial_grid_position": { "row": 1, "col": 3 }, "concept": "Scientific Studies" },
+        { "id": "lab_zone", "type": "Concept Zone", "grid_symbol": "LAB", "initial_grid_position": { "row": 1, "col": 1 }, "concept": "Philadelphia Scientists" },
+        { "id": "instr_zone", "type": "Object Zone", "grid_symbol": "INSTR", "initial_grid_position": { "row": 2, "col": 1 }, "object": "Scientific Instruments" },
+        { "id": "train_zone", "type": "Action Zone", "grid_symbol": "TRAIN", "initial_grid_position": { "row": 2, "col": 2 }, "action": "Training" },
+        { "id": "bot_zone", "type": "Subject Zone", "grid_symbol": "BOT", "initial_grid_position": { "row": 2, "col": 3 }, "subject": "Botany" },
+        { "id": "med_zone", "type": "Object Zone", "grid_symbol": "MED", "initial_grid_position": { "row": 3, "col": 1 }, "object": "Medicines" },
+        { "id": "supply_zone", "type": "Object Zone", "grid_symbol": "SUPPLY", "initial_grid_position": { "row": 3, "col": 2 }, "object": "Supplies" },
+        { "id": "boat_zone", "type": "Object Zone", "grid_symbol": "BOAT", "initial_grid_position": { "row": 3, "col": 3 }, "object": "Iron-frame Boat" },
+        { "id": "phila_city", "type": "Location", "grid_symbol": "PHILA", "initial_grid_position": { "row": 4, "col": 6 }, "name": "Philadelphia" },
+        { "id": "harpers_ferry", "type": "Location", "grid_symbol": "HARPERS", "initial_grid_position": { "row": 5, "col": 6 }, "name": "Harpers Ferry" },
+        { "id": "gov_zone", "type": "Concept Zone", "grid_symbol": "GOV", "initial_grid_position": { "row": 1, "col": 8 }, "concept": "Government Oversight" },
+        { "id": "fund_zone", "type": "Concept Zone", "grid_symbol": "FUND", "initial_grid_position": { "row": 1, "col": 9 }, "concept": "Funding" },
+        { "id": "legis_zone", "type": "Concept Zone", "grid_symbol": "LEGIS", "initial_grid_position": { "row": 2, "col": 8 }, "concept": "Congressional Approval" },
+        { "id": "approve_zone", "type": "Concept Zone", "grid_symbol": "APPROVE", "initial_grid_position": { "row": 2, "col": 9 }, "concept": "Appropriation" },
+        { "id": "sec_zone", "type": "Concept Zone", "grid_symbol": "SEC", "initial_grid_position": { "row": 3, "col": 8 }, "concept": "President's Secretary" },
+        { "id": "orders_zone", "type": "Concept Zone", "grid_symbol": "ORDERS", "initial_grid_position": { "row": 3, "col": 9 }, "concept": "Instructions" }
+      ],
+      "power_distribution": {
+        "jefferson_vision": { "score": 0.9, "description": "Guiding Lewis, shaping objectives" },
+        "lewis_preparation": { "score": 0.8, "description": "Absorbing knowledge, hands-on work" },
+        "congressional_support": { "score": 0.7, "description": "Financial backing, political maneuvering" }
+      },
+      "metadata": {
+        "scene_duration_seconds": 120,
+        "apparatus_operation_level": 0.0,
+        "procession_formation": "N/A",
+        "margin_visibility": 0.0,
+        "coloration": { "type": "Monochrome", "temperature": "5500K cool white" }
+      },
+      "animation_timeline": [
+        { "event_id": "s1_e1_jefferson_speech_vision", "type": "speech_bubble", "target_element_id": "tj_figure", "text": "Lewis, you are the chosen instrument of this nation's grand design.", "delay_seconds": 2.0, "duration_seconds": 5.0 },
+        { "event_id": "s1_e2_lewis_thoughts_resolve", "type": "thinking_bubble", "target_element_id": "ml_figure", "text": "My life's purpose unfolds. I must be worthy.", "delay_seconds": 6.0, "duration_seconds": 4.0 },
+        { "event_id": "s1_e3_scientific_training_highlight", "type": "visual_effect", "target_element_id": "sci_zone", "effect_type": "pulse", "color": "#00FF00", "duration_seconds": 3.0, "delay_seconds": 10.0 },
+        { "event_id": "s1_e4_boat_construction_delay_thought", "type": "thinking_bubble", "target_element_id": "ml_figure", "text": "The boat... the delays... time is slipping away.", "delay_seconds": 15.0, "duration_seconds": 4.0 }
+      ],
+      "scene_audio": {
+        "background_music": { "id": "preparatory_ambiance", "volume": 0.6, "loop": true },
+        "sound_effects": [{ "id": "pen_scratching", "delay_seconds": 8.0, "volume": 0.4, "loop": true, "duration_seconds": 30.0 }]
+      }
+    },
+    {
+      "scene_number": 2,
+      "title": "Ohio River Challenges & Fort Mandan Winter",
+      "time_period": "July 1803 – May 1804",
+      "key_figures": [
+        "Meriwether Lewis",
+        "William Clark",
+        "George Drouillard",
+        "Sergeant John Ordway",
+        "Private John Collins",
+        "Sacagawea",
+        "Toussaint Charbonneau",
+        "Mandan Chiefs",
+        "Oto Chiefs"
+      ],
+      "core_plot_points": [
+        "Lewis departs Pittsburgh, struggles with low Ohio River levels.",
+        "William Clark accepts co-command; Corps of Discovery formed and trained.",
+        "Strict military discipline enforced, including punishments for infractions.",
+        "Ascends Mississippi and Missouri Rivers to establish Fort Mandan.",
+        "Initiates diplomacy with Oto and Yankton Sioux tribes, with mixed success.",
+        "Hires Toussaint Charbonneau and Sacagawea as interpreters for winter camp."
+      ],
+      "themes_narrative_focus": [
+        "The harsh realities of early American river travel and frontier life.",
+        "Establishment of military hierarchy and the challenges of command.",
+        "Early attempts at American Indian diplomacy and cultural misunderstandings.",
+        "Sacagawea's crucial emergence as an interpreter and guide."
+      ],
+      "emotional_arc_lewis": "Initial enthusiasm, followed by frustration with logistical and disciplinary issues; shifts to intellectual engagement during winter, with growing anticipation for uncharted territories.",
+      "key_elements": [
+        "Keelboat and pirogues",
+        "Air gun demonstration",
+        "Daily journal entries",
+        "Indian gifts",
+        "Fort Mandan structures"
+      ],
+      "initial_grid_layout": [
+        ["RIVER", "BOAT", "RIVER", "", "", "", "", "FORT", "CHIEFS"],
+        ["ML", "WC", "CREW", "", "", "", "", "MANDAN", "SAC"],
+        ["DISEASE", "DISCIPLINE", "PUNISH", "", "", "", "", "INTERPRET", "CHAR"],
+        ["", "", "", "OHIO", "MISS", "MISSOURI", "", "", ""],
+        ["", "", "", "RIVER", "RIVER", "RIVER", "", "", ""],
+        ["", "", "", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", "", "", ""]
+      ],
+      "elements_in_scene": [
+        { "id": "ml_figure_s2", "type": "Historical Figure", "grid_symbol": "ML", "initial_grid_position": { "row": 2, "col": 1 }, "name": "Meriwether Lewis" },
+        { "id": "wc_figure_s2", "type": "Historical Figure", "grid_symbol": "WC", "initial_grid_position": { "row": 2, "col": 2 }, "name": "William Clark" },
+        { "id": "river_ohio", "type": "Environment", "grid_symbol": "OHIO", "initial_grid_position": { "row": 4, "col": 4 }, "name": "Ohio River" },
+        { "id": "river_miss", "type": "Environment", "grid_symbol": "MISS", "initial_grid_position": { "row": 4, "col": 5 }, "name": "Mississippi River" },
+        { "id": "river_missouri", "type": "Environment", "grid_symbol": "MISSOURI", "initial_grid_position": { "row": 4, "col": 6 }, "name": "Missouri River" },
+        { "id": "keelboat_s2", "type": "Vehicle", "grid_symbol": "BOAT", "initial_grid_position": { "row": 1, "col": 2 }, "name": "Keelboat" },
+        { "id": "crew_s2", "type": "Group", "grid_symbol": "CREW", "initial_grid_position": { "row": 2, "col": 3 }, "name": "Expedition Crew" },
+        { "id": "discipline_s2", "type": "Concept Zone", "grid_symbol": "DISCIPLINE", "initial_grid_position": { "row": 3, "col": 2 }, "concept": "Discipline" },
+        { "id": "fort_mandan_s2", "type": "Location", "grid_symbol": "FORT", "initial_grid_position": { "row": 1, "col": 8 }, "name": "Fort Mandan" },
+        { "id": "mandan_chiefs_s2", "type": "Group", "grid_symbol": "CHIEFS", "initial_grid_position": { "row": 1, "col": 9 }, "name": "Mandan Chiefs" },
+        { "id": "sacagawea_s2", "type": "Historical Figure", "grid_symbol": "SAC", "initial_grid_position": { "row": 2, "col": 9 }, "name": "Sacagawea" },
+        { "id": "charbonneau_s2", "type": "Historical Figure", "grid_symbol": "CHAR", "initial_grid_position": { "row": 3, "col": 9 }, "name": "Charbonneau" },
+        { "id": "interpret_s2", "type": "Action Zone", "grid_symbol": "INTERPRET", "initial_grid_position": { "row": 3, "col": 8 }, "action": "Interpretation" }
+      ],
+      "power_distribution": {
+        "command_authority": { "score": 0.85, "description": "Lewis & Clark establish control over men." },
+        "natural_obstacles": { "score": 0.7, "description": "Rivers and terrain present significant challenges." },
+        "native_diplomacy": { "score": 0.5, "description": "Early attempts with mixed results, gaining knowledge." }
+      },
+      "metadata": {
+        "scene_duration_seconds": 150,
+        "apparatus_operation_level": 0.3,
+        "procession_formation": "Cohesive but struggling",
+        "margin_visibility": 0.1,
+        "coloration": { "type": "Monochrome", "temperature": "5500K, with hints of natural colors on the riverbanks." }
+      },
+      "animation_timeline": [
+        { "event_id": "s2_e1_keelboat_struggles", "type": "move_element", "target_element_id": "keelboat_s2", "start_position": { "row": 1, "col": 2 }, "end_position": { "row": 1, "col": 4 }, "duration_seconds": 5.0, "delay_seconds": 2.0, "notes": "Slow, difficult movement" },
+        { "event_id": "s2_e2_flogging_sound", "type": "play_sound_effect", "id": "whip_crack", "delay_seconds": 10.0, "volume": 0.7, "notes": "Highlights disciplinary action" },
+        { "event_id": "s2_e3_sacagawea_appears", "type": "fade_in_element", "target_element_id": "sacagawea_s2", "duration_seconds": 2.0, "delay_seconds": 30.0 },
+        { "event_id": "s2_e4_fort_mandan_construction", "type": "visual_effect", "target_element_id": "fort_mandan_s2", "effect_type": "build_up", "duration_seconds": 15.0, "delay_seconds": 40.0 }
+      ],
+      "scene_audio": {
+        "background_music": { "id": "river_journey_soundscape", "volume": 0.7, "loop": true },
+        "sound_effects": [{ "id": "rowing_paddling_sfx", "delay_seconds": 5.0, "volume": 0.5, "loop": true }]
+      }
+    },
+    {
+      "scene_number": 3,
+      "title": "Great Falls Ordeal & Marias River Decision",
+      "time_period": "June – July 1805",
+      "key_figures": [
+        "Meriwether Lewis",
+        "William Clark",
+        "Sacagawea",
+        "George Drouillard",
+        "Private Joseph Field",
+        "Private George Shannon"
+      ],
+      "core_plot_points": [
+        "Expedition enters uncharted Great Plains, makes extensive wildlife observations.",
+        "Lewis makes critical, disputed decision at Marias-Missouri confluence.",
+        "Discovers the Great Falls of the Missouri; undertakes arduous portage.",
+        "Sacagawea suffers critical illness; Lewis administers rattlesnake rattle remedy.",
+        "Lewis has dangerous encounters with grizzly bears, including a narrow escape."
+      ],
+      "themes_narrative_focus": [
+        "Scientific discovery and detailed documentation of new species and landscapes.",
+        "The extreme physical and mental endurance required for deep exploration.",
+        "Lewis's decisive leadership, often relying on intuition over consensus.",
+        "The 'geography of reality' challenging Jefferson's 'geography of hope' regarding the Rockies."
+      ],
+      "emotional_arc_lewis": "Scientific wonder and elation at discoveries; intense anxiety over Sacagawea's health; profound physical and mental exhaustion; 'cockiness' tempered by dangerous wildlife encounters.",
+      "key_elements": [
+        "Prairie dogs",
+        "Grizzly bears",
+        "Great Falls of the Missouri",
+        "Abandoned iron-frame boat",
+        "Choke-cherry decoction"
+      ],
+      "initial_grid_layout": [
+        ["PLAINS", "WILDLIFE", "MARIAS", "FORK", "DECISION", "GFALLS", "PORTAGE", "SAC_ILL", ""],
+        ["OBSERVE", "DESCRIBE", "ML_INTUIT", "MEN_DOUBT", "LEWIS_RISK", "GFALLS_IMPACT", "HAUL", "MED_CARE", "GRZL"],
+        ["", "", "", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", "", "", ""]
+      ],
+      "elements_in_scene": [
+        { "id": "plains_zone", "type": "Environment", "grid_symbol": "PLAINS", "initial_grid_position": { "row": 1, "col": 1 } },
+        { "id": "wildlife_zone", "type": "Concept Zone", "grid_symbol": "WILDLIFE", "initial_grid_position": { "row": 1, "col": 2 }, "concept": "Abundant Wildlife" },
+        { "id": "marias_river_s3", "type": "Environment", "grid_symbol": "MARIAS", "initial_grid_position": { "row": 1, "col": 3 }, "name": "Marias River" },
+        { "id": "fork_s3", "type": "Landmark", "grid_symbol": "FORK", "initial_grid_position": { "row": 1, "col": 4 }, "name": "River Fork" },
+        { "id": "decision_s3", "type": "Concept Zone", "grid_symbol": "DECISION", "initial_grid_position": { "row": 1, "col": 5 }, "concept": "Lewis's Decision" },
+        { "id": "gfalls_s3", "type": "Landmark", "grid_symbol": "GFALLS", "initial_grid_position": { "row": 1, "col": 6 }, "name": "Great Falls" },
+        { "id": "portage_s3", "type": "Action Zone", "grid_symbol": "PORTAGE", "initial_grid_position": { "row": 1, "col": 7 }, "action": "Portage" },
+        { "id": "sacagawea_ill_s3", "type": "Historical Figure", "grid_symbol": "SAC_ILL", "initial_grid_position": { "row": 1, "col": 8 }, "name": "Sacagawea (ill)" },
+        { "id": "grizzly_s3", "type": "Animal", "grid_symbol": "GRZL", "initial_grid_position": { "row": 2, "col": 9 }, "name": "Grizzly Bear" },
+        { "id": "ml_intuition_s3", "type": "Concept Zone", "grid_symbol": "ML_INTUIT", "initial_grid_position": { "row": 2, "col": 3 }, "concept": "Lewis's Intuition" }
+      ],
+      "power_distribution": {
+        "natural_forces": { "score": 0.9, "description": "Dominant challenges of terrain and wildlife." },
+        "lewis_agency": { "score": 0.8, "description": "Exercising decisive, even risky, leadership." },
+        "expedition_vulnerability": { "score": 0.7, "description": "Facing significant physical dangers and illness." }
+      },
+      "metadata": {
+        "scene_duration_seconds": 180,
+        "apparatus_operation_level": 0.6,
+        "procession_formation": "Arduous, fragmented due to portage",
+        "margin_visibility": 0.4,
+        "coloration": { "type": "Vibrant", "notes": "Rich greens and browns of plains, white of snow, blues of sky." }
+      },
+      "animation_timeline": [
+        { "event_id": "s3_e1_marias_fork_decision", "type": "visual_effect", "target_element_id": "fork_s3", "effect_type": "highlight", "color": "yellow", "duration_seconds": 3.0, "delay_seconds": 5.0 },
+        { "event_id": "s3_e2_lewis_thoughts_decision", "type": "thinking_bubble", "target_element_id": "ml_figure_s3", "text": "This southern fork... it must be the Missouri. My intuition insists.", "delay_seconds": 7.0, "duration_seconds": 6.0 },
+        { "event_id": "s3_e3_discovery_great_falls", "type": "visual_effect", "target_element_id": "gfalls_s3", "effect_type": "zoom_in", "duration_seconds": 5.0, "delay_seconds": 15.0 },
+        { "event_id": "s3_e4_sacagawea_illness", "type": "visual_effect", "target_element_id": "sacagawea_ill_s3", "effect_type": "flicker_opacity", "strength": 0.8, "duration_seconds": 5.0, "delay_seconds": 25.0 }
+      ],
+      "scene_audio": {
+        "background_music": { "id": "mountain_majesty_score", "volume": 0.7, "loop": true },
+        "sound_effects": [{ "id": "waterfall_roar_sfx", "delay_seconds": 15.0, "volume": 0.9, "duration_seconds": 10.0 }]
+      }
+    },
+    {
+      "scene_number": 4,
+      "title": "Shoshone Lifeline & Bitterroot Passage",
+      "time_period": "July – October 1805",
+      "key_figures": [
+        "Meriwether Lewis",
+        "William Clark",
+        "Sacagawea",
+        "Cameahwait (Shoshone Chief)",
+        "Old Toby (Shoshone guide)",
+        "Twisted Hair (Nez Percé chief)",
+        "Watkuweis (Nez Percé woman)"
+      ],
+      "core_plot_points": [
+        "Lewis's desperate search for Shoshones to acquire horses for mountain crossing.",
+        "Sacagawea's dramatic reunion with her brother, Chief Cameahwait, securing alliance.",
+        "Corps crosses the Continental Divide at Lemhi Pass.",
+        "Endures brutal, near-starvation crossing of the Bitterroot Mountains with Old Toby.",
+        "Encounters Nez Percé; Watkuweis's intervention prevents attack.",
+        "Lewis reflects on his life's purpose in a journal entry on his 31st birthday."
+      ],
+      "themes_narrative_focus": [
+        "The indispensable role of Native American knowledge and diplomacy for survival.",
+        "The limits of human endurance and the psychological toll of extreme hardship.",
+        "Lewis's internal struggles and self-assessment amidst overwhelming challenges.",
+        "The final shattering of illusions about an easy, all-water route to the Pacific."
+      ],
+      "emotional_arc_lewis": "Initial joy and relief at Shoshone contact; mortification over diplomatic errors; deep physical suffering and philosophical self-assessment; determination despite overwhelming odds.",
+      "key_elements": [
+        "Shoshone horses",
+        "Lemhi Pass",
+        "Lolo Trail",
+        "Camas roots",
+        "Nez Percé generosity",
+        "Clark's medical 'medicine'"
+      ],
+      "initial_grid_layout": [
+        ["SHOSHONE", "HORSES", "CAM_REUNION", "", "", "", "", "BITTERROOTS", "SNOW"],
+        ["SEARCH", "CONTACT", "SAC_VITAL", "", "", "", "", "ORDEAL", "STARVE"],
+        ["DIPLOMACY", "GIFTS", "OLD_TOBY", "", "", "", "", "NEZ_PERCE", "WATK_HELP"],
+        ["ML", "WC", "", "DIVIDE", "LEMHI_PASS", "ROCKIES", "", "", ""],
+        ["", "", "", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", "", "", ""]
+      ],
+      "elements_in_scene": [
+        { "id": "ml_figure_s4", "type": "Historical Figure", "grid_symbol": "ML", "initial_grid_position": { "row": 4, "col": 1 }, "name": "Meriwether Lewis" },
+        { "id": "wc_figure_s4", "type": "Historical Figure", "grid_symbol": "WC", "initial_grid_position": { "row": 4, "col": 2 }, "name": "William Clark" },
+        { "id": "shoshone_zone", "type": "Group", "grid_symbol": "SHOSHONE", "initial_grid_position": { "row": 1, "col": 1 }, "name": "Shoshone Tribe" },
+        { "id": "horses_zone", "type": "Object Zone", "grid_symbol": "HORSES", "initial_grid_position": { "row": 1, "col": 2 }, "object": "Horses" },
+        { "id": "cam_reunion_zone", "type": "Event Zone", "grid_symbol": "CAM_REUNION", "initial_grid_position": { "row": 1, "col": 3 }, "event": "Sacagawea's Reunion" },
+        { "id": "bitterroots_zone", "type": "Environment", "grid_symbol": "BITTERROOTS", "initial_grid_position": { "row": 1, "col": 8 }, "name": "Bitterroot Mountains" },
+        { "id": "snow_zone", "type": "Concept Zone", "grid_symbol": "SNOW", "initial_grid_position": { "row": 1, "col": 9 }, "concept": "Deep Snow" },
+        { "id": "old_toby_s4", "type": "Historical Figure", "grid_symbol": "OLD_TOBY", "initial_grid_position": { "row": 3, "col": 3 }, "name": "Old Toby (guide)" },
+        { "id": "nez_perce_s4", "type": "Group", "grid_symbol": "NEZ_PERCE", "initial_grid_position": { "row": 3, "col": 8 }, "name": "Nez Percé Tribe" },
+        { "id": "lemhi_pass_s4", "type": "Landmark", "grid_symbol": "LEMHI_PASS", "initial_grid_position": { "row": 4, "col": 5 }, "name": "Lemhi Pass" }
+      ],
+      "power_distribution": {
+        "native_cooperation": { "score": 0.9, "description": "Essential for expedition's progress and survival." },
+        "mountain_severity": { "score": 0.8, "description": "Overwhelming natural obstacle." },
+        "lewis_inner_turmoil": { "score": 0.6, "description": "Personal reflections amidst external challenges." }
+      },
+      "metadata": {
+        "scene_duration_seconds": 210,
+        "apparatus_operation_level": 0.0,
+        "procession_formation": "Horseback journey, fragmented groups",
+        "margin_visibility": 0.5,
+        "coloration": { "type": "Natural", "notes": "Greens of valleys, white of snow, browns of mountains." }
+      },
+      "animation_timeline": [
+        { "event_id": "s4_e1_sacagawea_reunion", "type": "visual_effect", "target_element_id": "cam_reunion_zone", "effect_type": "pulse", "color": "#FFD700", "duration_seconds": 3.0, "delay_seconds": 5.0 },
+        { "event_id": "s4_e2_bitterroots_reveal", "type": "visual_effect", "target_element_id": "bitterroots_zone", "effect_type": "zoom_in", "duration_seconds": 5.0, "delay_seconds": 15.0 },
+        { "event_id": "s4_e3_lewis_birthday_thought", "type": "thinking_bubble", "target_element_id": "ml_figure_s4", "text": "My 31st year. So much done, yet so much to do. Hope and fear.", "delay_seconds": 25.0, "duration_seconds": 8.0 }
+      ],
+      "scene_audio": {
+        "background_music": { "id": "epic_mountain_score", "volume": 0.8, "loop": true },
+        "sound_effects": [{ "id": "horse_hooves_sfx", "delay_seconds": 10.0, "volume": 0.6, "loop": true }]
+      }
+    },
+    {
+      "scene_number": 5,
+      "title": "Pacific Coast Winter & Lewis's Decline",
+      "time_period": "October 1805 – October 1809",
+      "key_figures": [
+        "Meriwether Lewis",
+        "William Clark",
+        "Sacagawea",
+        "Chinookan/Clatsop Indians",
+        "John Colter",
+        "Frederick Bates",
+        "James Neelly",
+        "Mrs. Grinder",
+        "Thomas Jefferson (retrospective)"
+      ],
+      "core_plot_points": [
+        "Expedition descends Columbia River and reaches the Pacific Ocean (Clark's 'Ocian in view!').",
+        "Winters at Fort Clatsop, facing constant rain, food scarcity, and 'troublesome' coastal tribes.",
+        "Lewis undertakes extensive ethnographic and natural history writing, but experiences a journal hiatus.",
+        "Lewis makes the controversial decision to 'steal' a canoe.",
+        "Return journey includes Lewis's Marias River solo exploration and a deadly Blackfoot skirmish.",
+        "Triumphant return to St. Louis, Lewis appointed Governor of Louisiana Territory.",
+        "Lewis struggles with administration, finances, delayed journal publication, and escalating depression/alcoholism.",
+        "Lewis dies by suicide at Grinder's Inn on the Natchez Trace."
+      ],
+      "themes_narrative_focus": [
+        "The culmination of the expedition's physical journey and scientific achievements.",
+        "The stark contrast between public triumph and Lewis's personal tragedy.",
+        "The challenges of transitioning from explorer to administrator and public figure.",
+        "The messy realities of frontier governance and Indian policy.",
+        "The enduring mystery and complex legacy of Meriwether Lewis's life and death."
+      ],
+      "emotional_arc_lewis": "Joy and relief at reaching the Pacific; profound melancholia and creative block during winter; renewed vigor on the return; rapid descent into despair, paranoia, and ultimately, suicide.",
+      "key_elements": [
+        "Fort Clatsop",
+        "Sea-otter skins",
+        "Stolen canoe",
+        "Marias River skirmish",
+        "Lewis's wound",
+        "Grinder's Inn",
+        "Final letters",
+        "Jefferson's eulogy"
+      ],
+      "initial_grid_layout": [
+        ["COLUMBIA", "PACIFIC", "OCEAN_VIEW", "", "", "", "", "FORT_CLATSOP", "WINTER_HARD"],
+        ["RAPIDS", "NATIVE_TRADE", "ETHNOGRAPHY", "", "", "", "", "ML_DEPRESS", "ALCOHOL"],
+        ["CANOE_THEFT", "BLACKFOOT_FIGHT", "ML_SHOT", "", "", "", "", "ST_LOUIS_GOV", "FINANCIAL_RUIN"],
+        ["ML", "WC", "SAC", "COLTER_EXIT", "BATES_CONFLICT", "GRINDER_INN", "SUICIDE", "TJ_EULOGY", ""],
+        ["", "", "", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", "", "", ""]
+      ],
+      "elements_in_scene": [
+        { "id": "columbia_river_s5", "type": "Environment", "grid_symbol": "COLUMBIA", "initial_grid_position": { "row": 1, "col": 1 }, "name": "Columbia River" },
+        { "id": "pacific_ocean_s5", "type": "Landmark", "grid_symbol": "PACIFIC", "initial_grid_position": { "row": 1, "col": 2 }, "name": "Pacific Ocean" },
+        { "id": "ocean_view_s5", "type": "Event Zone", "grid_symbol": "OCEAN_VIEW", "initial_grid_position": { "row": 1, "col": 3 }, "event": "Clark's Ocean View" },
+        { "id": "fort_clatsop_s5", "type": "Location", "grid_symbol": "FORT_CLATSOP", "initial_grid_position": { "row": 1, "col": 8 }, "name": "Fort Clatsop" },
+        { "id": "winter_hardship_s5", "type": "Concept Zone", "grid_symbol": "WINTER_HARD", "initial_grid_position": { "row": 1, "col": 9 }, "concept": "Winter Hardship" },
+        { "id": "ml_figure_s5", "type": "Historical Figure", "grid_symbol": "ML", "initial_grid_position": { "row": 4, "col": 1 }, "name": "Meriwether Lewis" },
+        { "id": "wc_figure_s5", "type": "Historical Figure", "grid_symbol": "WC", "initial_grid_position": { "row": 4, "col": 2 }, "name": "William Clark" },
+        { "id": "sacagawea_s5", "type": "Historical Figure", "grid_symbol": "SAC", "initial_grid_position": { "row": 4, "col": 3 }, "name": "Sacagawea" },
+        { "id": "colter_exit_s5", "type": "Event Zone", "grid_symbol": "COLTER_EXIT", "initial_grid_position": { "row": 4, "col": 4 }, "event": "John Colter leaves" },
+        { "id": "st_louis_gov_s5", "type": "Role", "grid_symbol": "ST_LOUIS_GOV", "initial_grid_position": { "row": 3, "col": 8 }, "role": "Governor of Louisiana" },
+        { "id": "grinder_inn_s5", "type": "Location", "grid_symbol": "GRINDER_INN", "initial_grid_position": { "row": 4, "col": 6 }, "name": "Grinder's Inn" },
+        { "id": "suicide_s5", "type": "Event Zone", "grid_symbol": "SUICIDE", "initial_grid_position": { "row": 4, "col": 7 }, "event": "Lewis's Death" },
+        { "id": "tj_eulogy_s5", "type": "Concept Zone", "grid_symbol": "TJ_EULOGY", "initial_grid_position": { "row": 4, "col": 8 }, "concept": "Jefferson's Eulogy" }
+      ],
+      "power_distribution": {
+        "expedition_triumph": { "score": 0.9, "description": "Reaching the Pacific, scientific output." },
+        "lewis_personal_decline": { "score": 0.8, "description": "Mental and physical health deterioration." },
+        "administrative_challenges": { "score": 0.7, "description": "Struggles with governance and finances." }
+      },
+      "metadata": {
+        "scene_duration_seconds": 240,
+        "apparatus_operation_level": 0.0,
+        "procession_formation": "N/A",
+        "margin_visibility": 0.6,
+        "coloration": { "type": "Varied", "notes": "From Pacific blues/greens to somber tones of personal struggle." }
+      },
+      "animation_timeline": [
+        { "event_id": "s5_e1_pacific_sight", "type": "visual_effect", "target_element_id": "ocean_view_s5", "effect_type": "flash", "color": "#ADD8E6", "duration_seconds": 2.0, "delay_seconds": 5.0 },
+        { "event_id": "s5_e2_winter_tedium_thought", "type": "thinking_bubble", "target_element_id": "ml_figure_s5", "text": "Another day, nothing worthy of note. The tedium is oppressive.", "delay_seconds": 20.0, "duration_seconds": 5.0 },
+        { "event_id": "s5_e3_canoe_theft_action", "type": "move_element", "target_element_id": "canoe_theft_s5", "start_position": { "row": 3, "col": 1 }, "end_position": { "row": 3, "col": 3 }, "duration_seconds": 2.0, "delay_seconds": 40.0 },
+        { "event_id": "s5_e4_lewis_shot_pain", "type": "visual_effect", "target_element_id": "ml_shot_s5", "effect_type": "pulse_red", "duration_seconds": 3.0, "delay_seconds": 80.0 },
+        { "event_id": "s5_e5_final_despair_thought", "type": "thinking_bubble", "target_element_id": "ml_figure_s5", "text": "The pain... the failures... the only escape.", "delay_seconds": 180.0, "duration_seconds": 7.0 }
+      ],
+      "scene_audio": {
+        "background_music": { "id": "somber_farewell_music", "volume": 0.8, "loop": false, "fade_out_duration_seconds": 5.0 },
+        "sound_effects": [
+          { "id": "ocean_waves_sfx", "delay_seconds": 7.0, "volume": 0.7, "loop": true, "duration_seconds": 15.0 },
+          { "id": "rain_sfx", "delay_seconds": 10.0, "volume": 0.6, "loop": true, "duration_seconds": 30.0 }
+        ]
+      }
+    },
+    {
+      "scene_number": 6,
+      "title": "Credits Roll: Undaunted Courage",
+      "time_period": "N/A (Conclusion)",
+      "key_figures": [],
+      "core_plot_points": [
+        "Acknowledges the source material and its author.",
+        "Summarizes the overarching narrative elements and themes.",
+        "Highlights the key individuals and their contributions to the expedition's story.",
+        "Emphasizes the historical significance and enduring legacy."
+      ],
+      "themes_narrative_focus": [
+        "Appreciation for historical scholarship.",
+        "Reflection on leadership, partnership, and individual sacrifice.",
+        "The lasting impact of the Lewis and Clark Expedition on American identity."
+      ],
+      "emotional_arc_lewis": "N/A (Concluding scene, reflects on the entire journey)",
+      "key_elements": [
+        "Credits Text Block 1",
+        "Credits Text Block 2",
+        "Credits Text Block 3",
+        "Credits Text Block 4"
+      ],
+      "initial_grid_layout": [
+        ["", "", "", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", "", "", ""],
+        ["", "", "", "", "CREDITS_DISPLAY", "", "", "", ""],
+        ["", "", "", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", "", "", ""]
+      ],
+      "elements_in_scene": [
+        {
+          "id": "credit_main_title",
+          "type": "TEXT_BLOCK",
+          "grid_symbol": "CREDITS_DISPLAY",
+          "initial_grid_position": { "row": 3, "col": 5 },
+          "text_content": "CREDITS",
+          "font_size": "large",
+          "color": "white"
+        },
+        {
+          "id": "credit_based_on",
+          "type": "TEXT_BLOCK",
+          "grid_symbol": "TEXT_BLOCK",
+          "initial_grid_position": { "row": 4, "col": 5 },
+          "text_content": "Based on Stephen E. Ambrose's 'Undaunted Courage'",
+          "font_size": "medium",
+          "color": "lightgray"
+        },
+        {
+          "id": "credit_narrative_journey",
+          "type": "TEXT_BLOCK",
+          "grid_symbol": "TEXT_BLOCK",
+          "initial_grid_position": { "row": 5, "col": 5 },
+          "text_content": "This narrative journey through the Lewis and Clark Expedition\nilluminates the vision of Thomas Jefferson,\nthe complex leadership of Meriwether Lewis,\nthe steadfast partnership with William Clark,\nand the invaluable contributions of figures like Sacagawea.",
+          "font_size": "small",
+          "color": "white",
+          "alignment": "center"
+        },
+        {
+          "id": "credit_exploration_themes",
+          "type": "TEXT_BLOCK",
+          "grid_symbol": "TEXT_BLOCK",
+          "initial_grid_position": { "row": 6, "col": 5 },
+          "text_content": "It explores the meticulous preparations,\nthe scientific discoveries,\nthe challenging encounters with Native American tribes,\nthe triumph over the formidable American West,\nand the profound human experiences that shaped a nation.",
+          "font_size": "small",
+          "color": "lightgray",
+          "alignment": "center"
+        },
+        {
+          "id": "credit_special_thanks",
+          "type": "TEXT_BLOCK",
+          "grid_symbol": "TEXT_BLOCK",
+          "initial_grid_position": { "row": 7, "col": 5 },
+          "text_content": "(Special thanks to the historical journals, letters, and scholarly works\nthat preserve this enduring tale of exploration and courage.)",
+          "font_size": "x-small",
+          "color": "gray",
+          "alignment": "center"
+        }
+      ],
+      "power_distribution": {
+        "narrative_closure": { "score": 1.0, "description": "Provides a reflective summary and tribute." }
+      },
+      "metadata": {
+        "scene_duration_seconds": 30,
+        "visual_style": "Scrolling Text",
+        "coloration": { "type": "Monochrome", "main_colors": ["white", "lightgray", "gray"] }
+      },
+      "animation_timeline": [
+        { "event_id": "s6_e1_credits_fade_in_title", "type": "fade_in_element", "target_element_id": "credit_main_title", "duration_seconds": 2.0, "delay_seconds": 1.0 },
+        { "event_id": "s6_e2_credits_scroll", "type": "scroll_text", "target_elements": ["credit_based_on", "credit_narrative_journey", "credit_exploration_themes", "credit_special_thanks"], "scroll_speed_units_per_second": 0.5, "delay_seconds": 3.0, "duration_seconds": 25.0 }
+      ],
+      "scene_audio": {
+        "background_music": {
+          "id": "undaunted_courage_theme_outro",
+          "volume": 0.8,
+          "loop": false,
+          "fade_in_duration_seconds": 1.0,
+          "notes": "Reflective, stately orchestral piece"
+        }
+      }
+    }
+  ]
+}

@@ -19,6 +19,7 @@
       --accent-frank: #4ecdc4;
       --accent-swiss: #f97316;
       --accent-grace: #a855f7;
+      --accent-momento: #9d4edd;
       --text: #e5e7eb;
       --text-muted: #9ca3af;
       --radius-lg: 16px;
@@ -198,7 +199,8 @@
 
     .tab-color-swiss::before,
     .tab-color-frank::before,
-    .tab-color-grace::before {
+    .tab-color-grace::before,
+    .tab-color-momento::before {
       content: "";
       width: 8px;
       height: 8px;
@@ -208,6 +210,7 @@
     .tab-color-swiss::before { background: var(--accent-swiss); }
     .tab-color-frank::before { background: var(--accent-frank); }
     .tab-color-grace::before { background: var(--accent-grace); }
+    .tab-color-momento::before { background: var(--accent-momento); }
 
     .tab-btn.active {
       color: var(--text);
@@ -533,12 +536,13 @@
     <header class="header">
       <div class="studio-left">
         <span class="studio-label">STUDIO</span>
-        <span class="studio-title">SWISS / FRANK / GRACE</span>
+        <span class="studio-title">SWISS / FRANK / GRACE / MENTO</span>
       </div>
       <div class="studio-center" id="panelTabs">
         <button class="tab-btn tab-color-swiss active" data-panel="swiss">Swiss</button>
         <button class="tab-btn tab-color-frank" data-panel="frank">Frank</button>
         <button class="tab-btn tab-color-grace" data-panel="grace">Grace</button>
+        <button class="tab-btn tab-color-momento" data-panel="momento">MENTO</button>
       </div>
       <div class="studio-right">
         <button class="studio-btn" id="fullscreenBtn" title="Toggle fullscreen">FS</button>
@@ -575,18 +579,25 @@
             <iframe src="wag-viewer-prime-integration-20251112-055341%20copy/wag-grace-editor.html" title="Wag Grace Editor"></iframe>
           </div>
         </section>
+
+        <section class="panel" data-panel="momento">
+          <div class="panel-body">
+            <iframe src="Brickfilm_Studio_Kit/REALITY%20MEDIA_MOMENTO/momento.html" title="MENTO Brickfilm Capture"></iframe>
+          </div>
+        </section>
       </div>
     </main>
   </div>
 
   <div id="studioHelp" class="help-overlay">
     <div class="help-modal">
-      <h1>STUDIO – SWISS / FRANK / GRACE</h1>
-      <p>Use the tabs to switch between Swiss (hub), Frank (bus/composer), and Grace (stage) without leaving this window.</p>
+      <h1>STUDIO – SWISS / FRANK / GRACE / MENTO</h1>
+      <p>Use the tabs to switch between Swiss (hub), Frank (bus/composer), Grace (stage), and MENTO (capture) without leaving this window.</p>
       <ul>
         <li><strong>Swiss</strong> – pick designers and flows.</li>
         <li><strong>Frank</strong> – collect minifigs/locations/vehicles on a 9×9 grid.</li>
         <li><strong>Grace</strong> – render and edit the combined MPD scene.</li>
+        <li><strong>MENTO</strong> – capture brickfilm shots from the Grace stage.</li>
       </ul>
       <p>TABS mode shows one tool at a time. 3-UP is for large screens – all three side by side with scroll.</p>
       <button class="help-close" id="helpCloseBtn">CLOSE</button>
@@ -625,13 +636,18 @@
           btn.classList.toggle('active', btn.dataset.layout === layout);
         });
 
-        // In triple layout we show all panels; in single layout, we show only the active one.
+        // In single layout we show only the active panel.
+        // In 3-UP layout we show Swiss, Frank, and Grace side by side (MENTO stays tab-only).
         if (layout === 'single') {
           panels.forEach(panel => {
             panel.classList.toggle('active', panel.dataset.panel === activePanel);
           });
         } else {
-          panels.forEach(panel => panel.classList.add('active'));
+          panels.forEach(panel => {
+            const id = panel.dataset.panel;
+            const shouldShow = id === 'swiss' || id === 'frank' || id === 'grace';
+            panel.classList.toggle('active', shouldShow);
+          });
         }
       }
 
@@ -660,6 +676,9 @@
         tab.addEventListener('click', () => {
           const panelId = tab.dataset.panel;
           if (!panelId || panelId === activePanel) return;
+          if (panelId === 'momento' && layout !== 'single') {
+            applyLayout('single');
+          }
           setActivePanel(panelId);
         });
       });

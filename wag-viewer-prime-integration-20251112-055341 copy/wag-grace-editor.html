@@ -1101,6 +1101,10 @@
                 <div style="font-size: 9px; color: var(--accent); text-align: center; margin-bottom: 2px; font-weight: 700;">MAP</div>
                 <div id="minimap-grid" style="display: grid; grid-template-columns: repeat(9, 1fr); gap: 1px; height: calc(100% - 14px);"></div>
             </div>
+            <!-- Frank corner tab (orientation helper matching 2D/minimap corner marker) -->
+            <div id="frank-corner-tab" style="position: absolute; bottom: 10px; left: 10px; padding: 4px 6px; font-size: 9px; background: rgba(0,0,0,0.8); border: 1px solid var(--accent); border-radius: 3px; color: var(--accent); z-index: 100;">
+                ↖ A1
+            </div>
         </div>
     </section>
     
@@ -2388,6 +2392,7 @@
     
     let editorContainer = null;  // Will be set on init
     let editorLines = [];  // Current lines array
+    let selectedLines = new Set();  // Multi-selection set for editor line indices
     
     // ═══════════════════════════════════════════════════════════════
     // GRACE EDITOR: Graceful Error Handling System
@@ -3360,10 +3365,28 @@
         const statusText = document.getElementById('status-text');
         if (statusText) statusText.textContent = 'Ready';
         
-        // Force initial render to show grid/axes
         if (STATE.viewer && STATE.viewer.render) {
             STATE.viewer.render();
             console.log('[INIT] Initial render complete');
+        }
+        
+        if (window.parent && window.parent !== window && STATE.viewer) {
+            window.MomentoInterface = {
+                get renderer() { return STATE.viewer.renderer; },
+                get scene() { return STATE.viewer.scene; },
+                get camera() { return STATE.viewer.camera; },
+                renderCurrentView() {
+                    if (STATE.viewer && STATE.viewer.renderer && STATE.viewer.scene && STATE.viewer.camera) {
+                        STATE.viewer.renderer.render(STATE.viewer.scene, STATE.viewer.camera);
+                    }
+                }
+            };
+            window._captureData = {
+                renderer: window.MomentoInterface.renderer,
+                scene: window.MomentoInterface.scene,
+                camera: window.MomentoInterface.camera
+            };
+            window.parent.postMessage({ type: 'GRACE_SCENE_READY' }, '*');
         }
         
         // Setup click-to-highlight (Bronze feature!)
