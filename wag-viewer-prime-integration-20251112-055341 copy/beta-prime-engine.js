@@ -340,6 +340,7 @@
 
         if (!engine.modelWrapper) return;
         const frontSide = diag.backfaceCull ? THREE.FrontSide : THREE.DoubleSide;
+        const hideGeometry = !!diag.skeletonOnly;
 
         engine.modelWrapper.traverse(child => {
             if (child.isMesh) {
@@ -350,8 +351,9 @@
                     mat.side = frontSide;
                     mat.needsUpdate = true;
                 });
+                child.visible = !hideGeometry;
             } else if (child.isLine || child.isLineSegments) {
-                child.visible = diag.showEdges;
+                child.visible = !hideGeometry && diag.showEdges;
             }
         });
     }

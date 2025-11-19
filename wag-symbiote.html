@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WAG Symbiote Editor</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <style>
+        :root {
+            --bg: #050505;
+            --panel: #111;
+            --text: #eee;
+            --accent: #ffd700;
+            --highlight: #444;
+            --border: #222;
+            --val-pos: #4f4;
+            --val-neg: #f44;
+            --val-zero: #888;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Courier New', monospace;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* --- 3D VIEWPORT (45%) --- */
+        #viewport {
+            height: 45vh;
+            width: 100%;
+            background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* --- EDITOR (55%) --- */
+        #editor-container {
+            height: 55vh;
+            background: var(--panel);
+            border-top: 1px solid var(--accent);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* --- HEADER / MENU --- */
+        .app-header {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 20;
+            pointer-events: none; /* Let clicks pass to 3D */
+        }
+        
+        .brand { 
+            font-weight: bold; color: var(--accent); text-shadow: 0 0 5px #000; 
+            pointer-events: auto;
+            background: rgba(0,0,0,0.5); padding: 2px 6px; border-radius: 4px;
+        }
+
+        .menu-btn {
+            pointer-events: auto;
+            background: rgba(0,0,0,0.8);
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            width: 32px; height: 32px;
+            border-radius: 4px;
+            font-size: 20px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+        }
+
+        /* --- MODAL MENU --- */
+        #menu-modal {
+            display: none;
+            position: absolute;
+            top: 45px; right: 10px;
+            width: 200px;
+            background: #1a1a1a;
+            border: 1px solid #444;
+            border-radius: 4px;
+            box-shadow: 0 4px 20px #000;
+            flex-direction: column;
+            z-index: 30;
+        }
+        
+        #menu-modal.active { display: flex; }
+
+        .menu-item {
+            padding: 12px;
+            border-bottom: 1px solid #333;
+            cursor: pointer;
+            color: #ccc;
+            font-size: 13px;
+        }
+        .menu-item:active { background: var(--accent); color: #000; }
+        .menu-item:last-child { border-bottom: none; }
+
+        /* --- CODE LIST --- */
+        #code-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding-bottom: 40px;
+        }
+
+        .line-row {
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            font-size: 12px;
+            height: 40px;
+            background: var(--panel);
+        }
+        
+        .line-row.selected {
+            background: rgba(255, 215, 0, 0.05);
+            border-left: 3px solid var(--accent);
+        }
+
+        .checkbox {
+            width: 30px;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-right: 1px solid var(--border);
+            cursor: pointer;
+            font-weight: bold;
+            color: #555;
+        }
+        .line-row.selected .checkbox { color: var(--accent); }
+
+        .gutter {
+            width: 24px;
+            text-align: center;
+            color: #444;
+            font-size: 10px;
+        }
+
+        /* Horizontal Scroll Container for Tokens */
+        .tokens {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            overflow-x: auto;
+            gap: 8px;
+            padding: 0 10px;
+            height: 100%;
+            scrollbar-width: none; /* Hide scrollbar FF */
+        }
+        .tokens::-webkit-scrollbar { display: none; }
+
+        /* --- DIALS --- */
+        .dial {
+            padding: 2px 4px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 3px;
+            min-width: 24px;
+            text-align: center;
+            cursor: ns-resize;
+            flex-shrink: 0; /* Prevent squishing */
+            user-select: none;
+        }
+        
+        .dial.dragging { 
+            background: var(--accent); 
+            color: #000 !important; 
+            transform: scale(1.1);
+            z-index: 50;
+        }
+
+        .dial.pos { color: var(--val-pos); }
+        .dial.neg { color: var(--val-neg); }
+        .dial.zero { color: var(--val-zero); }
+
+        .matrix-group {
+            display: flex;
+            gap: 2px;
+            border: 1px solid #333;
+            padding: 2px;
+            border-radius: 3px;
+        }
+
+        .part-file {
+            color: var(--accent);
+            font-style: italic;
+            white-space: nowrap;
+            padding-left: 8px;
+        }
+
+        /* --- TEXT AREA OVERLAY --- */
+        #raw-overlay {
+            position: fixed; top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+            padding: 20px;
+        }
+        textarea { flex: 1; background:#111; color:#0f0; font-family:monospace; border:1px solid #333; padding:10px;}
+        
+        /* --- MIST & EFFECTS --- */
+        .mist-particle { opacity: 0.5; }
+    </style>
+</head>
+<body>
+
+    <!-- 3D VIEW -->
+    <div id="viewport">
+        <div class="app-header">
+            <div class="brand">WAG SYMBIOTE</div>
+            <div class="menu-btn" onclick="toggleMenu()">☰</div>
+        </div>
+        <div id="menu-modal">
+            <div class="menu-item" onclick="resetCamera()">🎥 Reset Camera</div>
+            <div class="menu-item" onclick="toggleRaw()">📄 Paste / Edit MPD</div>
+            <div class="menu-item" onclick="toggleFullscreen()">⛶ Toggle Fullscreen</div>
+            <div class="menu-item" onclick="exportCode()">📋 Copy to Clipboard</div>
+        </div>
+    </div>
+
+    <!-- EDITOR -->
+    <div id="editor-container">
+        <div id="code-scroll">
+            <!-- Lines injected here -->
+        </div>
+    </div>
+
+    <!-- RAW INPUT -->
+    <div id="raw-overlay">
+        <h3 style="color:var(--accent); margin:0 0 10px 0">Raw MPD</h3>
+        <textarea id="raw-text" spellcheck="false"></textarea>
+        <div style="margin-top:10px; display:flex; gap:10px">
+            <button class="menu-item" style="flex:1; background:var(--accent); color:#000" onclick="loadRaw()">LOAD</button>
+            <button class="menu-item" style="flex:1" onclick="toggleRaw()">CANCEL</button>
+        </div>
+    </div>
+
+    <script>
+        // --- DEFAULT MPD (Calibration Scene) ---
+        const DEFAULT_MPD = `0 FILE wag_scene.mpd
+1 1 0 0 0 1 0 0 0 1 0 0 0 1 3811.dat
+0 // SYMBIOTE STACK TEST
+1 4 -40 -24 0 1 0 0 0 1 0 0 0 1 3001.dat
+1 2 -40 -48 0 1 0 0 0 1 0 0 0 1 3001.dat
+1 1 -40 -72 0 1 0 0 0 1 0 0 0 1 3001.dat
+0 // ROTATION TEST
+1 14 40 -24 0 0.707 0 -0.707 0 1 0 0.707 0 0.707 3001.dat
+1 14 40 -48 0 0.707 0 -0.707 0 1 0 0.707 0 0.707 3001.dat`;
+
+        // --- STATE ---
+        let state = {
+            lines: [], // {id, isPart, type, color, x, y, z, matrix:[9], file, raw, selected: bool}
+            audioReady: false
+        };
+
+        // --- AUDIO ENGINE (TONE.JS) ---
+        let synth;
+        async function initAudio() {
+            if(state.audioReady) return;
+            await Tone.start();
+            
+            // Lucid Thud Synth
+            synth = new Tone.MembraneSynth({
+                pitchDecay: 0.02,
+                octaves: 1.5,
+                oscillator: { type: "sine" },
+                envelope: { attack: 0.005, decay: 0.08, sustain: 0, release: 0.1 }
+            }).toDestination();
+            synth.volume.value = -12;
+            state.audioReady = true;
+        }
+
+        function playClick() { if(state.audioReady) synth.triggerAttackRelease("C1", "32n"); }
+        function playSnap() { if(state.audioReady) synth.triggerAttackRelease("E2", "32n"); }
+
+        // --- PARSER ---
+        function parseLines(text) {
+            state.lines = text.split('\n').map((raw, idx) => {
+                const parts = raw.trim().split(/\s+/);
+                if(parts[0] === '1' && parts.length >= 14) {
+                    return {
+                        id: idx,
+                        isPart: true,
+                        type: 1,
+                        color: parseInt(parts[1]),
+                        x: parseFloat(parts[2]),
+                        y: parseFloat(parts[3]),
+                        z: parseFloat(parts[4]),
+                        matrix: parts.slice(5, 14).map(parseFloat),
+                        file: parts.slice(14).join(' '),
+                        raw: raw,
+                        selected: false // Default not selected
+                    };
+                }
+                return { id: idx, isPart: false, raw: raw, selected: false };
+            });
+        }
+
+        function rebuildRaw(line) {
+            if(line.isPart) {
+                const m = line.matrix.map(v => Math.round(v*1000)/1000); // Clean decimals
+                line.raw = `1 ${line.color} ${line.x} ${line.y} ${line.z} ${m.join(' ')} ${line.file}`;
+            }
+        }
+
+        // --- THREE.JS SCENE ---
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(50, window.innerWidth / (window.innerHeight * 0.45), 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        
+        // "UPSIDE DOWN" FIX: Root Group
+        const rootGroup = new THREE.Group();
+        rootGroup.scale.set(1, -1, 1); // Flip Y so -Y is Up (LDraw standard)
+        scene.add(rootGroup);
+
+        // Init
+        renderer.setSize(window.innerWidth, window.innerHeight * 0.45);
+        document.getElementById('viewport').appendChild(renderer.domElement);
+        
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        camera.position.set(100, 150, 100);
+        camera.lookAt(0, 0, 0);
+
+        // Environment
+        scene.background = new THREE.Color(0x050505);
+        const grid = new THREE.GridHelper(400, 20, 0x222222, 0x111111);
+        scene.add(grid); // Grid stays on "ground"
+        
+        const light = new THREE.DirectionalLight(0xffffff, 1);
+        light.position.set(50, 100, 50);
+        scene.add(light);
+        scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+
+        // Proxy Geometries
+        const geoBox = new THREE.BoxGeometry(1, 1, 1);
+        const colors = {
+            0: 0x111111, 1: 0x0055BF, 2: 0x257A24, 4: 0xC91A09, 14: 0xFFD700, 15: 0xFFFFFF, 71: 0xAAAAAA
+        };
+
+        function update3D() {
+            // Clear Old
+            while(rootGroup.children.length > 0) rootGroup.remove(rootGroup.children[0]);
+
+            // Mist / Rails (Visual Flair)
+            // ... (Simplified for code brevity, assume standard render logic)
+
+            state.lines.forEach(line => {
+                if(line.isPart) {
+                    // Mesh
+                    const mesh = new THREE.Mesh(geoBox, new THREE.MeshStandardMaterial({
+                        color: colors[line.color] || 0x888888,
+                        metalness: 0.1,
+                        roughness: 0.6
+                    }));
+                    
+                    // Selection Highlight
+                    if(line.selected) {
+                        mesh.material.emissive = new THREE.Color(0x443300);
+                        mesh.material.color.setHex(0xffd700);
+                    }
+
+                    // Scale Logic (Proxy)
+                    let s = [20, 24, 20];
+                    if(line.file.includes('3001')) s = [40, 24, 20];
+                    if(line.file.includes('3811')) s = [320, 4, 320];
+                    mesh.scale.set(s[0], s[1], s[2]);
+
+                    // Matrix Transform
+                    const m = new THREE.Matrix4();
+                    m.set(
+                        line.matrix[0], line.matrix[1], line.matrix[2], line.x,
+                        line.matrix[3], line.matrix[4], line.matrix[5], line.y,
+                        line.matrix[6], line.matrix[7], line.matrix[8], line.z,
+                        0, 0, 0, 1
+                    );
+                    
+                    // Apply Position manually, Rotation via matrix (due to scale proxy issues)
+                    mesh.position.set(line.x, line.y, line.z);
+                    
+                    const rotMat = new THREE.Matrix4();
+                    rotMat.set(
+                        line.matrix[0], line.matrix[1], line.matrix[2], 0,
+                        line.matrix[3], line.matrix[4], line.matrix[5], 0,
+                        line.matrix[6], line.matrix[7], line.matrix[8], 0,
+                        0, 0, 0, 1
+                    );
+                    mesh.rotation.setFromRotationMatrix(rotMat);
+
+                    // Wireframe
+                    const edges = new THREE.EdgesGeometry(geoBox);
+                    const lineSeg = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x000000 }));
+                    mesh.add(lineSeg);
+
+                    rootGroup.add(mesh);
+                }
+            });
+        }
+
+        // --- EDITOR UI ---
+        function renderEditor() {
+            const container = document.getElementById('code-scroll');
+            container.innerHTML = '';
+
+            state.lines.forEach(line => {
+                const row = document.createElement('div');
+                row.className = `line-row ${line.selected ? 'selected' : ''}`;
+                
+                // 1. Checkbox (Symbiote Selection)
+                const check = document.createElement('div');
+                check.className = 'checkbox';
+                check.innerText = line.selected ? '[x]' : '[ ]';
+                check.onclick = () => toggleSelection(line);
+                row.appendChild(check);
+
+                // 2. Gutter
+                const gut = document.createElement('div');
+                gut.className = 'gutter';
+                gut.innerText = line.id + 1;
+                row.appendChild(gut);
+
+                // 3. Content
+                const content = document.createElement('div');
+                content.className = 'tokens';
+
+                if(line.isPart) {
+                    // Type & Color
+                    content.appendChild(makeDial(line, 'color', 1, 0, 100, 'C'));
+                    
+                    // Position Group
+                    content.appendChild(makeDial(line, 'x', 10, -500, 500, 'X'));
+                    content.appendChild(makeDial(line, 'y', 8, -500, 500, 'Y'));
+                    content.appendChild(makeDial(line, 'z', 10, -500, 500, 'Z'));
+
+                    // Rotation Matrix (The 9 Numbers)
+                    const mGroup = document.createElement('div');
+                    mGroup.className = 'matrix-group';
+                    for(let i=0; i<9; i++) {
+                        mGroup.appendChild(makeMatrixDial(line, i));
+                    }
+                    content.appendChild(mGroup);
+
+                    // File
+                    const f = document.createElement('span');
+                    f.className = 'part-file';
+                    f.innerText = line.file;
+                    content.appendChild(f);
+
+                } else {
+                    // Comment / Meta
+                    const span = document.createElement('span');
+                    span.style.color = '#555';
+                    span.style.fontStyle = 'italic';
+                    span.innerText = line.raw;
+                    content.appendChild(span);
+                }
+
+                row.appendChild(content);
+                container.appendChild(row);
+            });
+        }
+
+        function toggleSelection(line) {
+            initAudio();
+            line.selected = !line.selected;
+            playClick();
+            renderEditor(); // Re-render to show highlight
+            update3D();     // Update 3D highlight
+        }
+
+        // --- DIAL LOGIC WITH SYMBIOSIS ---
+        function makeDial(lineObj, key, step, min, max, label) {
+            const el = document.createElement('div');
+            el.className = 'dial';
+            const val = lineObj[key];
+            updateDialStyle(el, val);
+            el.innerText = val; // Just number to save space
+
+            let startY, startVal;
+            
+            const start = (y) => {
+                initAudio();
+                startY = y;
+                startVal = val;
+                el.classList.add('dragging');
+                // If this line isn't selected, select it temporarily? No, explicit only.
+            };
+
+            const move = (y) => {
+                const deltaPixels = startY - y;
+                const deltaSteps = Math.round(deltaPixels / 15);
+                const rawDelta = deltaSteps * step;
+                
+                // Calculate new value
+                let newVal = startVal + rawDelta;
+                
+                // Apply Change
+                if(newVal !== lineObj[key]) {
+                    // Calculate actual delta applied (to sync others)
+                    const appliedDelta = newVal - lineObj[key];
+                    lineObj[key] = newVal;
+                    
+                    // SYMBIOSIS: Apply to other selected lines
+                    if(lineObj.selected) {
+                        state.lines.forEach(other => {
+                            if(other.isPart && other.selected && other !== lineObj) {
+                                other[key] += appliedDelta;
+                            }
+                        });
+                    }
+
+                    updateDialStyle(el, newVal);
+                    el.innerText = newVal;
+                    rebuildRaw(lineObj);
+                    update3D();
+                    
+                    // Ratchet Sound (Throttle?)
+                    if(Math.abs(appliedDelta) >= step) playClick();
+                }
+            };
+
+            const end = () => {
+                el.classList.remove('dragging');
+                renderEditor(); // Refresh all dials (sync others)
+            };
+
+            // Touch
+            el.addEventListener('touchstart', e => { e.stopPropagation(); start(e.touches[0].clientY); }, {passive:false});
+            el.addEventListener('touchmove', e => { e.preventDefault(); e.stopPropagation(); move(e.touches[0].clientY); }, {passive:false});
+            el.addEventListener('touchend', end);
+
+            // Mouse
+            el.addEventListener('mousedown', e => { start(e.clientY); window.addEventListener('mousemove', onMM); window.addEventListener('mouseup', onMU); });
+            const onMM = e => move(e.clientY);
+            const onMU = () => { end(); window.removeEventListener('mousemove', onMM); window.removeEventListener('mouseup', onMU); };
+
+            return el;
+        }
+
+        function makeMatrixDial(lineObj, index) {
+            // Simplified dial for matrix elements (0.1 steps)
+            const el = document.createElement('div');
+            el.className = 'dial';
+            const val = lineObj.matrix[index];
+            el.innerText = Math.round(val*10)/10;
+            updateDialStyle(el, val);
+
+            let startY, startVal;
+            
+            const start = (y) => {
+                initAudio();
+                startY = y;
+                startVal = val;
+                el.classList.add('dragging');
+            };
+
+            const move = (y) => {
+                const delta = (startY - y) / 50; // Slower
+                let newVal = Math.round((startVal + delta) * 10) / 10; // Snap 0.1
+                if(newVal > 1) newVal = 1; if(newVal < -1) newVal = -1;
+                
+                if(newVal !== lineObj.matrix[index]) {
+                    lineObj.matrix[index] = newVal;
+                    // Note: Matrix symbiosis is complex mathematically, 
+                    // skipping group-matrix-update for this version.
+                    el.innerText = newVal;
+                    updateDialStyle(el, newVal);
+                    rebuildRaw(lineObj);
+                    update3D();
+                }
+            };
+
+            const end = () => { el.classList.remove('dragging'); };
+
+            el.addEventListener('touchstart', e => { e.stopPropagation(); start(e.touches[0].clientY); }, {passive:false});
+            el.addEventListener('touchmove', e => { e.preventDefault(); e.stopPropagation(); move(e.touches[0].clientY); }, {passive:false});
+            el.addEventListener('touchend', end);
+            el.addEventListener('mousedown', e => { start(e.clientY); window.addEventListener('mousemove', onMM); window.addEventListener('mouseup', onMU); });
+            const onMM = e => move(e.clientY);
+            const onMU = () => { end(); window.removeEventListener('mousemove', onMM); window.removeEventListener('mouseup', onMU); };
+
+            return el;
+        }
+
+        function updateDialStyle(el, val) {
+            el.classList.remove('pos', 'neg', 'zero');
+            if(val > 0) el.classList.add('pos');
+            else if(val < 0) el.classList.add('neg');
+            else el.classList.add('zero');
+        }
+
+        // --- UI UTILITIES ---
+        function toggleMenu() {
+            const m = document.getElementById('menu-modal');
+            m.classList.toggle('active');
+        }
+
+        function toggleRaw() {
+            const ov = document.getElementById('raw-overlay');
+            const tx = document.getElementById('raw-text');
+            if(ov.style.display === 'flex') {
+                ov.style.display = 'none';
+            } else {
+                tx.value = state.lines.map(l => l.raw).join('\n');
+                ov.style.display = 'flex';
+            }
+            document.getElementById('menu-modal').classList.remove('active');
+        }
+
+        function loadRaw() {
+            const tx = document.getElementById('raw-text').value;
+            parseLines(tx);
+            renderEditor();
+            update3D();
+            document.getElementById('raw-overlay').style.display = 'none';
+        }
+
+        function resetCamera() {
+            camera.position.set(100, 150, 100);
+            camera.lookAt(0,0,0);
+            controls.reset();
+            document.getElementById('menu-modal').classList.remove('active');
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+            else if (document.exitFullscreen) document.exitFullscreen();
+            document.getElementById('menu-modal').classList.remove('active');
+        }
+
+        function exportCode() {
+            const code = state.lines.map(l => l.raw).join('\n');
+            navigator.clipboard.writeText(code).then(() => alert("Copied to Clipboard!"));
+            document.getElementById('menu-modal').classList.remove('active');
+        }
+
+        // --- INIT ---
+        window.addEventListener('resize', () => {
+            const h = window.innerHeight * 0.45;
+            camera.aspect = window.innerWidth / h;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, h);
+        });
+
+        // Start
+        parseLines(DEFAULT_MPD);
+        renderEditor();
+        update3D();
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+
+    </script>
+</body>
+</html>
