@@ -2196,6 +2196,18 @@
             canvas.innerHTML = '<div style="display:flex; justify-content:center; align-items:center; height:100%; color:#555; font-family:Courier New;">Timeline Visualizer</div>';
         }
 
+        // Wolf bus: listen for skeleton payloads from Courage via studio
+        window.addEventListener('message', (event) => {
+            const msg = event.data;
+            if (!msg || typeof msg !== 'object' || !msg.type) return;
+            if (msg.type === 'studio-load-skeleton-from-courage') {
+                const studs = Array.isArray(msg.studs) ? msg.studs : (msg.payload && msg.payload.stud_skeleton);
+                if (Array.isArray(studs) && studs.length) {
+                    loadSkeletonFromStuds(studs);
+                }
+            }
+        });
+
         // Initialize Start Tab by default
         setTimeout(initSeed, 100);
 

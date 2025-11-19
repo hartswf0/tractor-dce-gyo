@@ -406,15 +406,20 @@
             </div>
         </div>
 
-        <div class="section-title">WAG GOLD EDITOR</div>
+        <div class="section-title">FLAGSHIP EDITORS — GOLD / COURAGE</div>
 
         <div class="planning-grid">
-            <div class="row-label">FLAGSHIP</div>
+            <div class="row-label">GOLD</div>
             <div class="brick-row">
-                <a href="wag-viewer-prime-integration-20251112-055341 copy/wag-gold-editor.html" class="brick brick-3x4 color-yellow" title="Multi-scene MPD editor">GOLD EDITOR</a>
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/wag-gold-editor.html" class="brick brick-3x4 color-yellow" title="WAG GOLD: multi-scene MPD editor and canonical line editor. Strict but friendly; powers most production flows.">GOLD EDITOR</a>
             </div>
 
-            <div class="row-label">VARIANTS</div>
+            <div class="row-label">COURAGE</div>
+            <div class="brick-row">
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/wag-courage.html" class="brick brick-3x4 color-red" title="WAG COURAGE: experimental flagship MPD viewer/editor that generates GOLD snapshots (mpd_content + stud_skeleton) and diagnostics. Equal-tier to GOLD/GRACE but actively evolving.">COURAGE EDITOR</a>
+            </div>
+
+            <div class="row-label">GOLD VARIANTS</div>
             <div class="brick-row">
                 <a href="wag-viewer-prime-integration-20251112-055341 copy/wag-gold-scenes.html" class="brick brick-1x3 color-yellow">SCENES</a>
                 <a href="wag-viewer-prime-integration-20251112-055341 copy/wag-gold-editor copy.html" class="brick brick-1x3 color-yellow">BACKUP</a>
@@ -441,6 +446,13 @@
             <div class="brick-row">
                 <a href="wag-were.html" class="brick brick-3x4 color-blue" title="WAG WERE: adaptor between Courage GOLD JSON and MPD. Loads GOLD stud_skeleton or bare skeleton JSON, builds a proxy MPD using colored 3003.dat bricks keyed by original lineNum, renders bones (wire boxes) and orbs (stud points), supports group selection by part and MPD export via clipboard.">WAG WERE</a>
                 <a href="wag-symbiogene.html" class="brick brick-3x4 color-purple" title="WAG SYMBIOGENE: experimental skeleton visualizer for Courage stud_skeleton JSON. Renders stud spheres and bounding-box bones for inspection and calibration.">SYMBIOGENE</a>
+                <a href="wag-symbiote.html" class="brick brick-3x4 color-gray" title="WAG SYMBIOTE: Three.js LDraw/MPD viewer for direct geometry experiments; sibling to WERE/SYMBIOGENE for alternative skeleton/part visualizations.">SYMBIOTE</a>
+                <a href="wag-master.html" class="brick brick-3x4 color-green" title="WAG MASTER v9: containment-field lab that overlays Courage GOLD stud_skeleton (colored studs + per-line bones) on top of MPD bricks. Click bricks, studs, or bones to toggle MPD lines; use dials to move/rotate selected parts and export a valid MPD.">WAG MASTER LAB</a>
+            </div>
+
+            <div class="row-label">STUDIO</div>
+            <div class="brick-row">
+                <a href="courage-were-studio.html" class="brick brick-3x4 color-red" title="Studio surface that docks Courage, WAG WERE, and WAG SYMBIOGENE in one window with TABS/3-UP modes.">COURAGE / WERE STUDIO</a>
             </div>
 
             <div class="row-label">PIPELINE</div>
@@ -448,6 +460,30 @@
                 <div class="brick brick-3x4 color-teal" title="Current round-trip: (1) Capture GOLD from Courage (mpd_content + stud_skeleton). (2) Load GOLD or skeleton JSON in WAG WERE via the JSON panel or drag-and-drop. (3) Inspect and edit skeleton using orbs, bones, and click-to-select groups by original lineNum/part. (4) Export revised MPD to clipboard and paste back into Courage or other tools. Planned: WAG VAMP, a Y-up, volume-only skeleton/point-cloud editor that builds on these primitives.">
                     COURAGE → GOLD → WERE → MPD
                 </div>
+            </div>
+
+            <div class="row-label">COURAGE</div>
+            <div class="brick-row">
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/wag-courage.html" class="brick brick-2x4 color-red" title="Courage viewer: authoritative MPD viewer/editor that generates GOLD snapshots with mpd_content + stud_skeleton and diagnostics.">COURAGE VIEWER</a>
+                <a href="Brickfilm_Studio_Kit/wag_courage_tests/wag_courage_calibration_compass.mpd" class="brick brick-2x2 color-yellow mpd-brick" data-mpd-path="Brickfilm_Studio_Kit/wag_courage_tests/wag_courage_calibration_compass.mpd" title="Calibration compass MPD used for Courage + skeleton experiments.">CALIBRATION</a>
+                <a href="Brickfilm_Studio_Kit/wag_courage_tests/wag_courage_test_vehicle.mpd" class="brick brick-2x2 color-orange mpd-brick" data-mpd-path="Brickfilm_Studio_Kit/wag_courage_tests/wag_courage_test_vehicle.mpd" title="Vehicle test MPD for Courage ground and skeleton workflows.">VEHICLE TEST</a>
+            </div>
+            
+            <div class="row-label">CALIBRATION DATA</div>
+            <div class="brick-row">
+                <a href="Brickfilm_Studio_Kit/wag_courage_tests/wag-gold-scene-calibration-compass.json" class="brick brick-2x2 color-lime" title="Primary Courage GOLD snapshot for the calibration compass. Contains mpd_content + stud_skeleton with lineNum wiring suitable for WERE / MASTER labs.">GOLD CAL SNAPSHOT</a>
+                <a href="Brickfilm_Studio_Kit/wag_courage_tests/wag_gold_scene_1_2025-11-19_03-25-45 (1).json" class="brick brick-2x2 color-red" title="Alternative GOLD snapshot where many stud_skeleton entries have lineNum:null. Used in WAG MASTER LAB to study orphan studs and the GOLD STUD LINE ATTRIBUTION open problem.">GOLD ORPHAN SNAPSHOT</a>
+                <a href="Brickfilm_Studio_Kit/wag_courage_tests/wag_courage_calibration_compass_skeletons.json" class="brick brick-2x2 color-cyan" title="Standalone skeleton JSON for the Courage calibration compass, without mpd_content. Useful for loading directly into SYMBIOGENE or skeleton labs.">SKELETON JSON</a>
+            </div>
+
+            <div class="row-label">PLANNED</div>
+            <div class="brick-row">
+                <div class="brick brick-3x4 color-black" title="WAG VAMP (planned): Y-up, volume-only skeleton / point-cloud editor that builds on Courage GOLD stud_skeleton and WAG WERE bones/orbs. Design target only; implementation not yet present in this repo.">WAG VAMP — COMING SOON</div>
+            </div>
+
+            <div class="row-label">OPEN PROBLEMS</div>
+            <div class="brick-row">
+                <div class="brick brick-3x4 color-orange" title="Open calibration problem: some Courage GOLD stud_skeleton snapshots emit studs without a lineNum, so labs like WAG MASTER/WERE cannot yet bind those points back to specific MPD lines. Use WAG MASTER LAB + calibration compass scenes to study orphan studs and design a robust line attribution scheme.">GOLD STUD LINE ATTRIBUTION — OPEN</div>
             </div>
         </div>
         
@@ -477,6 +513,7 @@
             <div class="brick-row">
                 <a href="wag-viewer-prime-integration-20251112-055341 copy/wag-gold-editor.html" class="brick brick-2x4 color-yellow" title="Line editor - strict mode">🟨 GOLD</a>
                 <a href="wag-viewer-prime-integration-20251112-055341 copy/wag-grace-editor.html" class="brick brick-2x4 color-green" title="Machine of Loving Grace - Cmd+E batch edit, Cmd+/ toggle sections">💚 GRACE</a>
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/wag-courage.html" class="brick brick-2x4 color-red" title="Experimental flagship viewer/editor that sits beside GOLD/GRACE and emits GOLD + stud_skeleton snapshots for skeleton tools.">🟥 COURAGE</a>
             </div>
             
             <div class="row-label">GRACE DOCS</div>
@@ -536,6 +573,11 @@
                 <a href="wag-viewer-prime-integration-20251112-055341 copy/wag-gold-editor.html" class="brick brick-1x2 editor-link color-gray">GOLD</a>
                 <a href="truck_full_200pieces.mpd" class="brick brick-1x3 color-blue mpd-brick" data-mpd-path="truck_full_200pieces.mpd" title="Large file">TRUCK 200PC</a>
                 <a href="wag-viewer-prime-integration-20251112-055341 copy/wag-gold-editor.html" class="brick brick-1x2 editor-link color-gray">GOLD</a>
+            </div>
+
+            <div class="row-label">LABS</div>
+            <div class="brick-row">
+                <a href="wag-infinity.html" class="brick brick-3x4 color-cyan" title="WAG INFINITY: experimental GOLD-aware MPD lab that can load Courage GOLD snapshots, overlay per-line proxy bones from stud_skeleton, and show aggregate HUD ranges for multiple selected blocks.">WAG INFINITY LAB</a>
             </div>
         </div>
 

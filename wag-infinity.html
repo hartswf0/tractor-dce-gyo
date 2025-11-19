@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WAG Master Builder v8</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <style>
+        :root {
+            /* THEME - Deep Space Architect */
+            --bg: #050508;
+            --panel: #0e0e12;
+            --border: #25252b;
+            --text: #8a9ba8;
+            
+            /* Semantic Data Colors */
+            --c-x: #ff4466; 
+            --c-y: #44ffaa;
+            --c-z: #4488ff;
+            --accent: #ffd700;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            margin: 0; background: var(--bg); color: var(--text);
+            font-family: 'Roboto Mono', monospace;
+            height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+        }
+
+        /* --- 3D VIEWPORT --- */
+        #viewport { 
+            height: 55vh; width: 100%; 
+            background: radial-gradient(circle at center, #1a1a24 0%, #000 100%); 
+            position: relative; z-index: 1; 
+        }
+
+        /* HUD Layer */
+        #hud-layer { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+        .hud-tag {
+            position: absolute; font-size: 10px; font-weight: 900; letter-spacing: 1px;
+            padding: 4px 8px; border-radius: 2px;
+            background: rgba(0,0,0,0.85); border-left: 3px solid;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            display: none;
+        }
+        .tag-x { color: var(--c-x); border-color: var(--c-x); }
+        .tag-y { color: var(--c-y); border-color: var(--c-y); }
+        .tag-z { color: var(--c-z); border-color: var(--c-z); }
+
+        /* --- EDITOR --- */
+        #editor-container { 
+            height: 45vh; background: var(--panel); 
+            border-top: 2px solid var(--accent); 
+            display: flex; flex-direction: column; z-index: 10; 
+        }
+
+        .toolbar {
+            height: 38px; background: #000; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; padding: 0 12px; justify-content: space-between;
+        }
+        .brand { color: var(--accent); font-weight: 900; letter-spacing: 2px; font-size: 12px; }
+        .btn-group { display: flex; gap: 8px; }
+        .btn {
+            background: #181818; border: 1px solid #333; color: #aaa;
+            padding: 4px 8px; font-size: 10px; cursor: pointer; border-radius: 2px; 
+            font-weight: bold; transition: 0.2s;
+        }
+        .btn:hover { color: #fff; border-color: #666; }
+        .btn.active { color: var(--accent); border-color: var(--accent); }
+
+        /* List */
+        #code-scroll { flex: 1; overflow-y: auto; padding-bottom: 40px; }
+        
+        .line-row {
+            display: flex; align-items: center;
+            border-bottom: 1px solid var(--border);
+            height: 46px; background: var(--panel);
+            transition: background 0.1s;
+        }
+        .line-row:hover { background: #181820; }
+        .line-row.selected { background: rgba(212, 175, 55, 0.08); border-left: 3px solid var(--accent); }
+        .line-row.header { background: #000; color: #666; font-size: 10px; font-style: italic; cursor: pointer; }
+        .line-row.header:hover { color: var(--accent); }
+
+        .checkbox { width: 32px; display: flex; justify-content: center; cursor: pointer; font-size: 14px; opacity: 0.5; }
+        .line-row.selected .checkbox { opacity: 1; color: var(--accent); text-shadow: 0 0 8px var(--accent); }
+        .gutter { width: 24px; text-align: center; font-size: 9px; opacity: 0.3; user-select: none; }
+
+        .tokens {
+            flex: 1; display: flex; align-items: center;
+            overflow-x: auto; gap: 6px; padding: 0 10px;
+            height: 100%; scrollbar-width: none;
+        }
+        .tokens::-webkit-scrollbar { display: none; }
+
+        /* Dials with Context Coloring Borders */
+        .dial {
+            padding: 4px 6px; background: rgba(255,255,255,0.03);
+            border-radius: 2px; min-width: 32px; text-align: center; cursor: ns-resize;
+            flex-shrink: 0; user-select: none; font-size: 11px; font-weight: bold;
+            border-bottom: 2px solid transparent; /* Context Line */
+            touch-action: none;
+        }
+        .dial:hover { background: rgba(255,255,255,0.08); }
+        .dial.dragging { background: var(--accent); color: #000 !important; transform: scale(1.1); z-index: 100; border-color: transparent; }
+
+        /* Axis Specific Dial Borders */
+        .d-x { border-color: var(--c-x); color: #ddd; }
+        .d-y { border-color: var(--c-y); color: #ddd; }
+        .d-z { border-color: var(--c-z); color: #ddd; }
+        .d-c { border-color: #fff; color: #fff; font-weight: 900; }
+        .d-m { border-color: #444; color: #666; font-size: 10px; min-width: 28px; font-weight: normal; }
+
+        .part-file { color: var(--accent); font-style: italic; font-size: 10px; opacity: 0.5; white-space: nowrap; }
+
+        /* Raw Overlay */
+        #raw-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.98); z-index: 200; display: none; flex-direction: column; padding: 20px; }
+        textarea { flex: 1; background: #111; color: #0f0; border: 1px solid #333; padding: 15px; font-family: monospace; margin-bottom: 10px; resize: none; }
+
+    </style>
+</head>
+<body>
+
+    <div id="viewport">
+        <div id="hud-layer">
+            <!-- Dynamic Labels -->
+            <div id="lbl-x" class="hud-tag tag-x">X: 0</div>
+            <div id="lbl-y" class="hud-tag tag-y">Y: 0</div>
+            <div id="lbl-z" class="hud-tag tag-z">Z: 0</div>
+        </div>
+    </div>
+
+    <div id="editor-container">
+        <div class="toolbar">
+            <div class="brand">WAG INFINITY</div>
+            <div class="btn-group">
+                <button class="btn" onclick="toggleGridVis()">GRID</button>
+                <button class="btn" id="style-btn" onclick="cycleStyle()">STYLE</button>
+                <button class="btn" onclick="openGoldFileInfinity()">LOAD</button>
+                <button class="btn" onclick="toggleRaw()">RAW</button>
+                <button class="btn active" onclick="exportCode()">COPY</button>
+            </div>
+        </div>
+        <input type="file" id="gold-file-infinity" style="display:none" accept=".json,application/json">
+        <div id="code-scroll"></div>
+    </div>
+
+    <div id="raw-overlay">
+        <h3 style="color:var(--accent); margin:0 0 10px 0">MPD SOURCE</h3>
+        <textarea id="raw-text" spellcheck="false"></textarea>
+        <div style="display:flex; gap:10px">
+            <button class="btn active" style="flex:1; padding:10px" onclick="loadRaw()">LOAD</button>
+            <button class="btn" style="flex:1; padding:10px" onclick="toggleRaw()">CANCEL</button>
+        </div>
+    </div>
+
+    <script>
+        /* --- 1. DATA --- */
+        const DEFAULT_MPD = `0 FILE wag_infinity.mpd
+0 // BASEPLATE
+1 15 0 0 0 1 0 0 0 1 0 0 0 1 3811.dat
+0 // CORE STACK
+1 4 -40 -24 0 1 0 0 0 1 0 0 0 1 3001.dat
+1 4 -40 -48 0 1 0 0 0 1 0 0 0 1 3001.dat
+0 // SATELLITE
+1 1 40 -48 40 0.707 0 -0.707 0 1 0 0.707 0 0.707 3001.dat`;
+
+        let state = { lines: [], audioReady: false, gridVisible: true, studs: [], lineColors: {}, styleMode: 'bricks' };
+        
+        // --- 2. AUDIO ---
+        let click, thud;
+        async function initAudio() {
+            if(state.audioReady) return;
+            await Tone.start();
+            click = new Tone.MembraneSynth({ pitchDecay: 0.01, octaves: 0.5, envelope: { attack: 0.001, decay: 0.05 } }).toDestination();
+            click.volume.value = -18;
+            thud = new Tone.MembraneSynth().toDestination();
+            thud.volume.value = -10;
+            state.audioReady = true;
+        }
+        function sfxTick() { if(state.audioReady && click) click.triggerAttackRelease("C1", "32n"); }
+        function sfxSnap() { if(state.audioReady && click) click.triggerAttackRelease("E2", "32n"); }
+        function sfxThud() { if(state.audioReady && thud) thud.triggerAttackRelease("G0", "16n"); }
+
+        // --- 3. PARSER ---
+        function parse(text) {
+            state.lineColors = {};
+            state.studs = [];
+            state.lines = text.split('\n').map((raw, i) => {
+                raw = raw.trim();
+                if(!raw) return { id:i, type:-1, raw:"" };
+                const p = raw.split(/\s+/);
+                const type = parseInt(p[0]);
+                if(type === 1 && p.length >= 14) {
+                    const color = parseInt(p[1]);
+                    if (!Number.isNaN(color)) {
+                        state.lineColors[i + 1] = color; // Courage lineNum is 1-based
+                    }
+                    return {
+                        id: i, type: 1, isPart: true,
+                        color: color,
+                        x: parseFloat(p[2]), y: parseFloat(p[3]), z: parseFloat(p[4]),
+                        matrix: p.slice(5,14).map(parseFloat),
+                        file: p.slice(14).join(' '),
+                        raw: raw, selected: false
+                    };
+                } else if (type === 0) {
+                    return { id:i, type:0, isHeader:true, raw:raw, selected:false };
+                }
+                return { id:i, type:type, isPart:false, raw:raw };
+            });
+            if(state.lines.find(l=>l.isPart)) state.lines.find(l=>l.isPart).selected = true;
+        }
+
+        function compile(line) {
+            if(line.isPart) {
+                const m = line.matrix.map(n => Math.round(n*1000)/1000);
+                line.raw = `1 ${line.color} ${Math.round(line.x)} ${Math.round(line.y)} ${Math.round(line.z)} ${m.join(' ')} ${line.file}`;
+            }
+        }
+
+        function duplicateLine(index) {
+            const source = state.lines[index];
+            if(!source || !source.isPart) return;
+            
+            // Deep copy
+            const clone = JSON.parse(JSON.stringify(source));
+            clone.selected = true;
+            source.selected = false; // switch focus
+            
+            // Add offset so we see it
+            clone.y -= 24; 
+            compile(clone);
+
+            // Insert into array
+            state.lines.splice(index + 1, 0, clone);
+            
+            // Re-index IDs
+            state.lines.forEach((l, i) => l.id = i);
+            
+            sfxSnap();
+            renderEditor();
+            update3D();
+        }
+
+        // --- 4. THREE.JS ---
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x050508);
+        scene.fog = new THREE.FogExp2(0x050508, 0.0015); // Infinite fade
+        
+        const camera = new THREE.PerspectiveCamera(50, window.innerWidth/(window.innerHeight*0.55), 0.1, 3000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight * 0.55);
+        document.getElementById('viewport').appendChild(renderer.domElement);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        camera.position.set(150, 180, 150);
+        camera.lookAt(0,0,0);
+
+        // GROUPS
+        const worldRoot = new THREE.Group();
+        worldRoot.scale.set(1, -1, 1); // Flip Y
+        scene.add(worldRoot);
+        const bonesRoot = new THREE.Group();
+        worldRoot.add(bonesRoot);
+        const teleRoot = new THREE.Group();
+        scene.add(teleRoot);
+        const gridGroup = new THREE.Group();
+        scene.add(gridGroup);
+
+        // ENVIRONMENT
+        // 1. Infinite Grid (Fades out)
+        const gridInfinite = new THREE.GridHelper(2000, 100, 0x222222, 0x111111);
+        gridGroup.add(gridInfinite);
+
+        // 2. Workspace Grid (Bright, Focused)
+        const gridWork = new THREE.GridHelper(400, 20, 0x00ffff, 0x003344);
+        gridGroup.add(gridWork);
+
+        // 3. Mist
+        const mistMat = new THREE.SpriteMaterial({ color: 0x00ffff, opacity: 0.1, transparent: true });
+        const mist = new THREE.Group();
+        for(let i=0; i<150; i++) {
+            const s = new THREE.Sprite(mistMat);
+            s.position.set((Math.random()-0.5)*600, 0, (Math.random()-0.5)*600);
+            s.scale.set(4,4,1);
+            mist.add(s);
+        }
+        gridGroup.add(mist);
+
+        // TELEMETRY
+        const helpers = {
+            // Projectors (Shadows on walls)
+            projFloor: new THREE.Mesh(new THREE.PlaneGeometry(1,1), new THREE.MeshBasicMaterial({ transparent:true, opacity:0.4, side:THREE.DoubleSide })),
+            projX: new THREE.Mesh(new THREE.PlaneGeometry(1,1), new THREE.MeshBasicMaterial({ transparent:true, opacity:0.4, side:THREE.DoubleSide })),
+            projZ: new THREE.Mesh(new THREE.PlaneGeometry(1,1), new THREE.MeshBasicMaterial({ transparent:true, opacity:0.4, side:THREE.DoubleSide })),
+            
+            // Floor Collision Warning
+            floorGlow: new THREE.Mesh(new THREE.PlaneGeometry(400,400), new THREE.MeshBasicMaterial({ color:0xff0000, transparent:true, opacity:0, side:THREE.DoubleSide })),
+            
+            // Laser Lines
+            lasers: new THREE.LineSegments(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({ color: 0xffffff, transparent:true, opacity:0.3 }))
+        };
+
+        // Setup Projections
+        helpers.projFloor.rotation.x = -Math.PI/2; // Flat
+        helpers.projX.rotation.y = Math.PI/2;      // Side wall
+        // projZ default rotation is fine for Back wall
+        
+        helpers.floorGlow.rotation.x = -Math.PI/2; 
+        helpers.floorGlow.position.y = -0.5;
+
+        teleRoot.add(helpers.projFloor, helpers.projX, helpers.projZ, helpers.lasers);
+        scene.add(helpers.floorGlow);
+
+        // --- RENDER LOGIC ---
+        const boxGeo = new THREE.BoxGeometry(1,1,1);
+        const lColors = { 0:0x111, 1:0x0055BF, 2:0x257A24, 4:0xC91A09, 14:0xFFD700, 15:0xEEEEEE, 25:0xffaa00, 71:0x999 };
+
+        function update3D() {
+            // Update Bricks
+            const kill = [];
+            worldRoot.traverse(c => { if(c.userData.isBrick) kill.push(c); });
+            kill.forEach(c => worldRoot.remove(c));
+            bonesRoot.clear();
+
+            if (state.styleMode === 'bricks' || state.styleMode === 'mixed') {
+                state.lines.forEach(line => {
+                    if(line.isPart) {
+                        const m = new THREE.Mesh(boxGeo, new THREE.MeshStandardMaterial({
+                            color: lColors[line.color]||0x888, roughness:0.5, metalness:0.2
+                        }));
+                        m.userData.isBrick = true;
+                        
+                        let s = [20, 24, 20];
+                        if(line.file.includes('3811')) s = [320, 4, 320];
+                        m.scale.set(s[0], s[1], s[2]);
+                        m.position.set(line.x, line.y, line.z);
+                        
+                        const mat = new THREE.Matrix4();
+                        mat.set(line.matrix[0], line.matrix[1], line.matrix[2], 0, line.matrix[3], line.matrix[4], line.matrix[5], 0, line.matrix[6], line.matrix[7], line.matrix[8], 0, 0, 0, 0, 1);
+                        m.rotation.setFromRotationMatrix(mat);
+
+                        if(line.selected) {
+                            m.material.emissive.setHex(0x443300);
+                            m.add(new THREE.LineSegments(new THREE.EdgesGeometry(boxGeo), new THREE.LineBasicMaterial({color:0xffd700})));
+                        }
+                        worldRoot.add(m);
+                    }
+                });
+            }
+
+            // Bones from stud_skeleton (proxy parts per line)
+            const selectedParts = state.lines.filter(l => l.selected && l.isPart);
+            const selectedLineNums = new Set(selectedParts.map(l => l.id + 1)); // GOLD lineNum is 1-based
+
+            if (state.studs && state.studs.length && (state.styleMode === 'bones' || state.styleMode === 'mixed')) {
+                const boxesByLine = {};
+                state.studs.forEach(node => {
+                    if (!node || typeof node.x !== 'number' || typeof node.y !== 'number' || typeof node.z !== 'number') return;
+                    const key = (typeof node.lineNum === 'number') ? node.lineNum : null;
+                    if (key === null) return;
+                    if (!boxesByLine[key]) {
+                        boxesByLine[key] = new THREE.Box3();
+                    }
+                    boxesByLine[key].expandByPoint(new THREE.Vector3(node.x, node.y, node.z));
+                });
+
+                Object.keys(boxesByLine).forEach(k => {
+                    const lineNum = parseInt(k, 10);
+                    if (selectedLineNums.size && !selectedLineNums.has(lineNum)) return; // when something is selected, only show bones for those lines
+                    const box = boxesByLine[k];
+                    const size = new THREE.Vector3();
+                    const center = new THREE.Vector3();
+                    box.getSize(size);
+                    box.getCenter(center);
+                    if (!isFinite(size.x) || !isFinite(size.y) || !isFinite(size.z)) return;
+                    const sx = size.x || 2;
+                    const sy = size.y || 2;
+                    const sz = size.z || 2;
+                    const geom = new THREE.BoxGeometry(sx, sy, sz);
+                    let colorHex = 0x00ffff;
+                    const colorCode = state.lineColors && state.lineColors[lineNum];
+                    if (typeof colorCode === 'number' && lColors[colorCode]) {
+                        colorHex = lColors[colorCode];
+                    }
+                    const mat = new THREE.MeshBasicMaterial({
+                        color: colorHex,
+                        wireframe: true,
+                        transparent: true,
+                        opacity: 0.6
+                    });
+                    const bone = new THREE.Mesh(geom, mat);
+                    bone.position.copy(center);
+                    bonesRoot.add(bone);
+                });
+            }
+
+            // Update Telemetry
+            // (selectedParts already computed above)
+            const els = { x:document.getElementById('lbl-x'), y:document.getElementById('lbl-y'), z:document.getElementById('lbl-z') };
+            
+            // Reset
+            helpers.projFloor.visible = false; helpers.projX.visible = false; helpers.projZ.visible = false;
+            els.x.style.display='none'; els.y.style.display='none'; els.z.style.display='none';
+
+            if(selectedParts.length) {
+                const xs = selectedParts.map(p => p.x);
+                const ys = selectedParts.map(p => p.y);
+                const zs = selectedParts.map(p => p.z);
+                const minX = Math.min(...xs), maxX = Math.max(...xs);
+                const minY = Math.min(...ys), maxY = Math.max(...ys);
+                const minZ = Math.min(...zs), maxZ = Math.max(...zs);
+                const centerX = (minX + maxX) / 2;
+                const centerY = (minY + maxY) / 2;
+                const centerZ = (minZ + maxZ) / 2;
+                const primary = selectedParts[0];
+                teleRoot.visible = true;
+                const vx = primary.x; const vy = -primary.y; const vz = primary.z;
+                const colHex = lColors[primary.color] || 0xffffff;
+
+                // Dimensions
+                let w=20, h=24, d=20;
+                if(primary.file.includes('3811')) { w=320; h=4; d=320; }
+
+                // 1. Broadcast Color to Projections
+                // Floor
+                helpers.projFloor.visible = true;
+                helpers.projFloor.material.color.setHex(colHex);
+                helpers.projFloor.position.set(vx, 0, vz);
+                helpers.projFloor.scale.set(w, d, 1);
+                const yLabel = selectedParts.length > 1
+                    ? `Y:${Math.round(minY)}..${Math.round(maxY)}`
+                    : `Y:${Math.round(centerY)}`;
+                updateLabel(els.y, centerX, 0, centerZ, yLabel, 'tag-y');
+
+                // Left Wall (-100)
+                helpers.projX.visible = true;
+                helpers.projX.material.color.setHex(colHex);
+                helpers.projX.position.set(-100, vy, vz);
+                helpers.projX.scale.set(d, h, 1);
+                const xLabel = selectedParts.length > 1
+                    ? `X:${Math.round(minX)}..${Math.round(maxX)}`
+                    : `X:${Math.round(centerX)}`;
+                updateLabel(els.x, -100, -centerY, centerZ, xLabel, 'tag-x');
+
+                // Back Wall (-100)
+                helpers.projZ.visible = true;
+                helpers.projZ.material.color.setHex(colHex);
+                helpers.projZ.position.set(vx, vy, -100);
+                helpers.projZ.scale.set(w, h, 1);
+                const zLabel = selectedParts.length > 1
+                    ? `Z:${Math.round(minZ)}..${Math.round(maxZ)}`
+                    : `Z:${Math.round(centerZ)}`;
+                updateLabel(els.z, centerX, -centerY, -100, zLabel, 'tag-z');
+
+                // 2. Lasers
+                const pts = [
+                    vx, vy, vz, vx, 0, vz,     // Floor
+                    vx, vy, vz, -100, vy, vz,  // Left
+                    vx, vy, vz, vx, vy, -100   // Back
+                ];
+                helpers.lasers.geometry.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
+
+                // 3. Floor Hit – if any selected part crosses below floor
+                const minVy = Math.min(...selectedParts.map(p => -p.y));
+                helpers.floorGlow.material.opacity = (minVy < 0) ? 0.5 : 0;
+                if(minVy < 0) sfxThud();
+
+            } else {
+                teleRoot.visible = false;
+                helpers.floorGlow.material.opacity = 0;
+            }
+        }
+
+        function updateLabel(el, x, y, z, txt, cls) {
+            const v = new THREE.Vector3(x, y, z);
+            v.project(camera);
+            if(v.z > 1) { el.style.display='none'; return; }
+            const cx = (v.x*.5+.5)*renderer.domElement.clientWidth;
+            const cy = (-(v.y*.5)+.5)*renderer.domElement.clientHeight;
+            el.className = `hud-tag ${cls}`;
+            el.style.display = 'block';
+            el.style.left = cx+'px'; el.style.top = cy+'px';
+            el.innerText = txt;
+        }
+
+        /* --- 5. EDITOR UI --- */
+        function renderEditor() {
+            const c = document.getElementById('code-scroll');
+            c.innerHTML = '';
+
+            state.lines.forEach(line => {
+                const row = document.createElement('div');
+                
+                if(line.isHeader) {
+                    row.className = 'line-row header';
+                    row.innerText = line.raw.replace('0 // ', '');
+                    row.onclick = () => selectSection(line.id);
+                    c.appendChild(row); return;
+                }
+
+                row.className = `line-row ${line.selected ? 'selected' : ''}`;
+                
+                // Right Click to Duplicate
+                row.oncontextmenu = (e) => {
+                    e.preventDefault();
+                    duplicateLine(line.id);
+                };
+
+                const chk = document.createElement('div');
+                chk.className = 'checkbox'; chk.innerText = line.selected ? '☑' : '☐';
+                chk.onclick = () => toggleSelect(line);
+                row.appendChild(chk);
+
+                const gut = document.createElement('div');
+                gut.className = 'gutter'; gut.innerText = line.id;
+                row.appendChild(gut);
+
+                const tok = document.createElement('div');
+                tok.className = 'tokens';
+
+                if(line.isPart) {
+                    const cDial = makeDial(line, 'color', 1, 'C', 'd-c');
+                    if (typeof line.color === 'number' && typeof lColors[line.color] === 'number') {
+                        const hex = lColors[line.color].toString(16).padStart(6, '0');
+                        cDial.style.background = `#${hex}`;
+                        cDial.style.color = '#000';
+                    }
+                    cDial.title = `COLOR ${line.color}`;
+                    tok.appendChild(cDial);
+                    tok.appendChild(makeDial(line, 'x', 20, 'X', 'd-x'));
+                    tok.appendChild(makeDial(line, 'y', 8, 'Y', 'd-y'));
+                    tok.appendChild(makeDial(line, 'z', 20, 'Z', 'd-z'));
+                    for(let i=0; i<9; i++) tok.appendChild(makeMatrixDial(line, i));
+                    const f = document.createElement('span'); f.className='part-file'; f.innerText=line.file;
+                    tok.appendChild(f);
+                } else {
+                    const s = document.createElement('span'); s.style.color='#555'; s.innerText=line.raw; tok.appendChild(s);
+                }
+
+                row.appendChild(tok);
+                c.appendChild(row);
+            });
+        }
+
+        function toggleSelect(line) { initAudio(); line.selected=!line.selected; sfxTick(); renderEditor(); update3D(); }
+        function selectSection(id) { initAudio(); let i=id+1; while(i<state.lines.length && state.lines[i].type!==0) { if(state.lines[i].isPart) state.lines[i].selected=true; i++; } sfxSnap(); renderEditor(); update3D(); }
+
+        function makeDial(obj, key, step, lbl, cls) {
+            const el = document.createElement('div');
+            el.className = `dial ${cls}`;
+            el.innerText = Math.round(obj[key]);
+            let startY=0, startVal=0;
+            
+            const start = (y) => { initAudio(); startY=y; startVal=obj[key]; el.classList.add('dragging'); }
+            const move = (y) => {
+                const d = Math.round((startY-y)/10)*step;
+                const nv = startVal+d;
+                if(nv!==obj[key]) {
+                    const diff = nv-obj[key]; obj[key]=nv;
+                    if(obj.selected) state.lines.forEach(l=>{if(l.selected && l.isPart && l!==obj) { l[key]+=diff; compile(l);} });
+                    el.innerText = nv; compile(obj); update3D(); sfxTick();
+                }
+            }
+            const end = () => { el.classList.remove('dragging'); sfxSnap(); renderEditor(); window.removeEventListener('mousemove', mm); window.removeEventListener('mouseup', mu); }
+            
+            let mm, mu; // scope
+            el.addEventListener('touchstart', e=>{e.stopPropagation(); start(e.touches[0].clientY)}, {passive:false});
+            el.addEventListener('touchmove', e=>{e.preventDefault(); e.stopPropagation(); move(e.touches[0].clientY)}, {passive:false});
+            el.addEventListener('touchend', end);
+            el.addEventListener('mousedown', e=>{ start(e.clientY); mm=ev=>move(ev.clientY); mu=()=>end(); window.addEventListener('mousemove',mm); window.addEventListener('mouseup',mu); });
+            return el;
+        }
+
+        function makeMatrixDial(obj, i) {
+            const el = document.createElement('div');
+            el.className = 'dial d-m'; el.innerText = Math.round(obj.matrix[i]*10)/10;
+            let startY=0;
+            const h = (y) => {
+                const d = (startY-y)/50; const v = Math.round((obj.matrix[i]+d)*10)/10;
+                if(v!==obj.matrix[i]) {
+                    const diff = v - obj.matrix[i];
+                    obj.matrix[i]=v;
+                    if (obj.selected) {
+                        state.lines.forEach(l => {
+                            if (l.isPart && l.selected && l!==obj) {
+                                l.matrix[i] += diff;
+                                compile(l);
+                            }
+                        });
+                    }
+                    el.innerText=v; compile(obj); update3D();
+                }
+            }
+            el.addEventListener('touchstart', e=>{startY=e.touches[0].clientY}, {passive:false});
+            el.addEventListener('touchmove', e=>{e.preventDefault(); h(e.touches[0].clientY)}, {passive:false});
+            return el;
+        }
+
+        /* --- 6. UTILS --- */
+        function toggleGridVis() { state.gridVisible = !state.gridVisible; gridGroup.visible = state.gridVisible; }
+        function toggleRaw() { const e=document.getElementById('raw-overlay'); if(e.style.display==='flex') e.style.display='none'; else { document.getElementById('raw-text').value=state.lines.map(l=>l.raw).join('\n'); e.style.display='flex'; } }
+
+        function applyGoldPayloadFromObject(obj) {
+            if (obj && typeof obj.mpd_content === 'string') {
+                parse(obj.mpd_content);
+                if (Array.isArray(obj.stud_skeleton)) {
+                    state.studs = obj.stud_skeleton.slice();
+                } else {
+                    state.studs = [];
+                }
+                return true;
+            } else if (obj && Array.isArray(obj.stud_skeleton)) {
+                state.studs = obj.stud_skeleton.slice();
+                return true;
+            } else if (Array.isArray(obj)) {
+                state.studs = obj.slice();
+                return true;
+            }
+            return false;
+        }
+
+        function loadGoldText(txt) {
+            let handled = false;
+            let jsonText = txt.trim();
+            try {
+                const parsed = JSON.parse(jsonText);
+                handled = applyGoldPayloadFromObject(parsed);
+            } catch (_) {
+                const fixed = jsonText.replace(/}\.\s*$/, '}');
+                if (fixed !== jsonText) {
+                    try {
+                        const parsed2 = JSON.parse(fixed);
+                        handled = applyGoldPayloadFromObject(parsed2);
+                    } catch (_) {}
+                }
+            }
+            if (!handled) {
+                parse(txt);
+            }
+        }
+
+        function loadRaw() {
+            const txt = document.getElementById('raw-text').value;
+            if (!txt.trim()) { toggleRaw(); return; }
+            loadGoldText(txt);
+            renderEditor();
+            update3D();
+            toggleRaw();
+        }
+
+        function exportCode() { navigator.clipboard.writeText(state.lines.map(l=>l.raw).join('\n')).then(()=>alert('Copied!')); }
+
+        function openGoldFileInfinity() {
+            const inp = document.getElementById('gold-file-infinity');
+            if (inp) inp.click();
+        }
+
+        (function attachGoldFileInfinity() {
+            const inp = document.getElementById('gold-file-infinity');
+            if (!inp) return;
+            inp.addEventListener('change', (e) => {
+                const file = e.target.files && e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    const txt = String(ev.target && ev.target.result || '');
+                    loadGoldText(txt);
+                    renderEditor();
+                    update3D();
+                };
+                reader.readAsText(file);
+                e.target.value = '';
+            });
+        })();
+
+        function refreshStyleButton() {
+            const btn = document.getElementById('style-btn');
+            if (!btn) return;
+            if (state.styleMode === 'bricks') btn.textContent = 'STYLE:BRK';
+            else if (state.styleMode === 'bones') btn.textContent = 'STYLE:BONES';
+            else btn.textContent = 'STYLE:MIX';
+        }
+
+        function cycleStyle() {
+            const modes = ['bricks', 'bones', 'mixed'];
+            const idx = modes.indexOf(state.styleMode);
+            state.styleMode = modes[(idx + 1) % modes.length];
+            refreshStyleButton();
+            update3D();
+        }
+
+        /* --- INIT --- */
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth/(window.innerHeight*0.55);
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight*0.55);
+        });
+
+        const light = new THREE.DirectionalLight(0xffffff, 1.2);
+        light.position.set(50, 200, 100);
+        scene.add(light);
+        scene.add(new THREE.AmbientLight(0xffffff, 0.3));
+
+        parse(DEFAULT_MPD); renderEditor(); update3D(); refreshStyleButton();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            // HUD Updates (aggregate over all selected parts)
+            const parts = state.lines.filter(l => l.selected && l.isPart);
+            const lblX = document.getElementById('lbl-x');
+            const lblY = document.getElementById('lbl-y');
+            const lblZ = document.getElementById('lbl-z');
+            if (parts.length) {
+                const xs = parts.map(p => p.x);
+                const ys = parts.map(p => p.y);
+                const zs = parts.map(p => p.z);
+                const minX = Math.min(...xs), maxX = Math.max(...xs);
+                const minY = Math.min(...ys), maxY = Math.max(...ys);
+                const minZ = Math.min(...zs), maxZ = Math.max(...zs);
+                const centerX = (minX + maxX) / 2;
+                const centerY = (minY + maxY) / 2;
+                const centerZ = (minZ + maxZ) / 2;
+
+                const xLabel = parts.length > 1 ? `X:${Math.round(minX)}..${Math.round(maxX)}` : `X:${Math.round(centerX)}`;
+                const yLabel = parts.length > 1 ? `Y:${Math.round(minY)}..${Math.round(maxY)}` : `Y:${Math.round(centerY)}`;
+                const zLabel = parts.length > 1 ? `Z:${Math.round(minZ)}..${Math.round(maxZ)}` : `Z:${Math.round(centerZ)}`;
+
+                updateLabel(lblX, -100, -centerY, centerZ, xLabel, 'tag-x');
+                updateLabel(lblY, centerX, 0, centerZ, yLabel, 'tag-y');
+                updateLabel(lblZ, centerX, -centerY, -100, zLabel, 'tag-z');
+            } else {
+                lblX.style.display = 'none';
+                lblY.style.display = 'none';
+                lblZ.style.display = 'none';
+            }
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        function updateLabel(el, x, y, z, txt, cls) {
+            const v = new THREE.Vector3(x, y, z); v.project(camera);
+            if(v.z > 1) { el.style.display='none'; return; }
+            el.className = `hud-tag ${cls}`; el.style.display='block';
+            el.style.left = `${(v.x*.5+.5)*renderer.domElement.clientWidth}px`;
+            el.style.top = `${(-(v.y*.5)+.5)*renderer.domElement.clientHeight}px`;
+            el.innerText = txt;
+        }
+
+    </script>
+</body>
+</html>

@@ -774,9 +774,23 @@
         function exportLDraw() {
             const txt = state.lines.map(l => l.raw).join('\n');
             navigator.clipboard.writeText(txt).then(() => {
-                document.getElementById('status-msg').innerText = "COPIED TO CLIPBOARD";
-                setTimeout(() => document.getElementById('status-msg').innerText = "READY", 2000);
+                const statusEl = document.getElementById('status-msg');
+                if (statusEl) {
+                    statusEl.innerText = "COPIED TO CLIPBOARD";
+                    setTimeout(() => statusEl.innerText = "READY", 2000);
+                }
             });
+            // Wolf bus: if hosted inside a studio, send MPD to parent
+            try {
+                if (window.parent && window.parent !== window) {
+                    window.parent.postMessage({
+                        type: 'were-export-mpd',
+                        mpd: txt
+                    }, '*');
+                }
+            } catch (err) {
+                console.warn('[WERE] failed to post were-export-mpd', err);
+            }
         }
 
         function loadFromGoldJson(source) {
@@ -957,6 +971,20 @@
             camera.aspect = window.innerWidth / (window.innerHeight * 0.5);
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight * 0.5);
+        });
+
+        // Wolf bus: listen for GOLD snapshots from Courage via studio
+        window.addEventListener('message', (event) => {
+            const msg = event.data;
+            if (!msg || typeof msg !== 'object' || !msg.type) return;
+            if (msg.type === 'studio-load-gold-from-courage') {
+                const payload = msg.payload;
+                if (!payload || typeof payload.mpd_content !== 'string') return;
+                loadFromGoldJson(payload);
+                if (Array.isArray(payload.stud_skeleton) && payload.stud_skeleton.length) {
+                    loadSkeletonFromStuds(payload.stud_skeleton);
+                }
+            }
         });
 
         // Click-to-select: pick studs or bones and select all lines for that piece

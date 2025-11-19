@@ -9011,6 +9011,18 @@ function highlightLinesAtGridPosition(gridX, gridY) {
                 ground_violations: groundViolationsSnapshot,
                 part_skeletons: partSkeletonSnapshot
             };
+
+            // Wolf bus: if hosted in a studio, broadcast GOLD snapshot to parent
+            try {
+                if (window.parent && window.parent !== window) {
+                    window.parent.postMessage({
+                        type: 'courage-gold-snapshot',
+                        payload: metadata
+                    }, '*');
+                }
+            } catch (err) {
+                console.warn('[COURAGE] failed to post courage-gold-snapshot', err);
+            }
             
             // Download PNG
             const imgLink = document.createElement('a');
@@ -9516,8 +9528,36 @@ function highlightLinesAtGridPosition(gridX, gridY) {
         };
     }
 
+    function setupCourageWolfBusBridge() {
+        window.addEventListener('message', (event) => {
+            const msg = event.data;
+            if (!msg || typeof msg !== 'object' || !msg.type) return;
+            if (msg.type === 'studio-load-mpd-from-were') {
+                const mpdText = typeof msg.mpd === 'string' ? msg.mpd : '';
+                if (!mpdText.trim()) return;
+                try {
+                    const normalized = mpdText.replace(/\r\n/g, '\n');
+                    editorLines = normalized.split('\n');
+                    const scene = STATE.scenes[STATE.activeSceneIdx];
+                    if (scene) {
+                        scene.lines = [...editorLines];
+                    }
+                    renderEditor(editorLines);
+                    const statusText = document.getElementById('status-text');
+                    if (statusText) {
+                        statusText.textContent = '💚 MPD loaded from WERE (wolf bus)';
+                    }
+                    setTimeout(() => compileCurrentMPD(), 200);
+                } catch (err) {
+                    console.warn('[COURAGE] Failed to apply MPD from WERE wolf bus', err);
+                }
+            }
+        });
+    }
+
     init().then(() => {
         setupWagFrankBridge();
+        setupCourageWolfBusBridge();
         try {
             const params = new URLSearchParams(window.location.search);
             const mpd = params.get('mpd');
