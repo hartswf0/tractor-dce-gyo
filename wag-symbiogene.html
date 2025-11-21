@@ -1241,9 +1241,9 @@
             const bonesGroup = new THREE.Group();
 
             // Stud markers
-            const normalMat = new THREE.MeshBasicMaterial({ color: 0x00ffff });
-            const problemMat = new THREE.MeshBasicMaterial({ color: 0xff4444 });
             const ghostGeo = new THREE.SphereGeometry(2, 12, 12);
+            const NORMAL_COLOR = 0x00ffff;
+            const PROBLEM_COLOR = 0xff4444;
 
             const byLine = new Map();
 
@@ -1254,12 +1254,20 @@
                 const isBelow = typeof node.layer === 'number' && typeof STATE !== 'undefined'
                     ? (typeof STATE.baseGridLayer === 'number' && node.layer < STATE.baseGridLayer)
                     : false;
-                const marker = new THREE.Mesh(ghostGeo, isBelow ? problemMat : normalMat);
+                const baseColor = isBelow ? PROBLEM_COLOR : NORMAL_COLOR;
+                const mat = new THREE.MeshBasicMaterial({
+                    color: baseColor,
+                    transparent: true,
+                    opacity: 1
+                });
+                mat.userData = { baseColor, baseOpacity: 1 };
+                const marker = new THREE.Mesh(ghostGeo, mat);
                 marker.position.set(node.x, node.y, node.z);
-                group.add(marker);
 
                 const key = typeof node.lineNum === 'number' ? node.lineNum : null;
                 if (key !== null) {
+                    marker.userData = marker.userData || {};
+                    marker.userData.lineNum = key;
                     let arr = byLine.get(key);
                     if (!arr) {
                         arr = [];
@@ -1267,6 +1275,8 @@
                     }
                     arr.push(node);
                 }
+
+                group.add(marker);
             });
 
             // Bones per MPD line
@@ -1285,12 +1295,14 @@
                 const sz = size.z || 2;
 
                 const geom = new THREE.BoxGeometry(sx, sy, sz);
+                const baseColor = 0x00ffff;
                 const mat = new THREE.MeshBasicMaterial({
-                    color: 0x00ffff,
+                    color: baseColor,
                     wireframe: true,
                     transparent: true,
                     opacity: 0.5
                 });
+                mat.userData = { baseColor, baseOpacity: 0.5 };
                 const bone = new THREE.Mesh(geom, mat);
                 bone.position.copy(center);
                 bone.userData.lineNum = lineNum;
@@ -1302,6 +1314,73 @@
             seedHelpers.skeletonGroup = group;
             seedHelpers.skeletonBonesGroup = bonesGroup;
             console.log('[SYMBIOGENE] Skeleton loaded with', studs.length, 'studs and', byLine.size, 'bones');
+
+            // Apply any existing TIMBER selection to the freshly loaded skeleton
+            applySelectionToSkeleton();
+        }
+
+        // Selection state for TIMBER bus (line-based)
+        const symbioSelection = {
+            lineNums: new Set(),
+            groupKeys: new Set()
+        };
+
+        function applySelectionToSkeleton() {
+            const group = seedHelpers.skeletonGroup;
+            const bonesGroup = seedHelpers.skeletonBonesGroup;
+            const hasSelection = symbioSelection.lineNums && symbioSelection.lineNums.size > 0;
+
+            if (group) {
+                group.traverse(obj => {
+                    if (!obj.isMesh || !obj.material) return;
+                    const ln = obj.userData && typeof obj.userData.lineNum === 'number' ? obj.userData.lineNum : null;
+                    const mat = obj.material;
+                    const baseColor = mat.userData && typeof mat.userData.baseColor === 'number' ? mat.userData.baseColor : 0x00ffff;
+                    const baseOpacity = mat.userData && typeof mat.userData.baseOpacity === 'number' ? mat.userData.baseOpacity : 1;
+
+                    if (!hasSelection || ln === null) {
+                        mat.color.setHex(baseColor);
+                        mat.opacity = baseOpacity;
+                        return;
+                    }
+
+                    if (symbioSelection.lineNums.has(ln)) {
+                        // Emphasize selected studs
+                        mat.color.setHex(baseColor);
+                        mat.opacity = 1.0;
+                    } else {
+                        // Dim non-selected studs
+                        mat.color.setHex(0x334155);
+                        mat.opacity = 0.25;
+                    }
+                });
+            }
+
+            if (bonesGroup) {
+                bonesGroup.traverse(obj => {
+                    if (!obj.isMesh || !obj.material) return;
+                    const ln = obj.userData && typeof obj.userData.lineNum === 'number' ? obj.userData.lineNum : null;
+                    const mat = obj.material;
+                    const baseColor = mat.userData && typeof mat.userData.baseColor === 'number' ? mat.userData.baseColor : 0x00ffff;
+                    const baseOpacity = mat.userData && typeof mat.userData.baseOpacity === 'number' ? mat.userData.baseOpacity : 0.5;
+
+                    if (!hasSelection || ln === null) {
+                        mat.color.setHex(baseColor);
+                        mat.opacity = baseOpacity;
+                        return;
+                    }
+
+                    if (symbioSelection.lineNums.has(ln)) {
+                        // Brighten selected bones
+                        mat.color.setHex(0xffffff);
+                        mat.opacity = 0.9;
+                    } else {
+                        // Fade non-selected bones into the background
+                        mat.color.setHex(0x1f2933);
+                        mat.opacity = 0.15;
+                    }
+                });
+            }
         }
 
         function getIntersects(event, container) {
@@ -2187,7 +2266,49 @@
         // --- MODES (RESTORED) ---
         function initModes() {
             const canvas = document.getElementById('modes-canvas');
-            canvas.innerHTML = '<div style="display:flex; justify-content:center; align-items:center; height:100%; color:#555; font-family:Courier New;">Interactive Modes Visualizer</div>';
+            if (!canvas) return;
+
+            canvas.innerHTML = `
+                <div style="display:flex; flex-direction:column; height:100%; font-family:'Courier New', monospace; font-size:11px; color:#cbd5f5; padding:8px; box-sizing:border-box;">
+                    <div style="text-align:center; margin-bottom:6px; text-transform:uppercase; letter-spacing:2px; color:#94a3b8; font-size:10px;">
+                        Spatial Grammars – Unit Cells & Axes
+                    </div>
+                    <div style="display:flex; flex:1; gap:8px; overflow:auto;">
+                        <div style="flex:1; min-width:0; border:1px solid #1f2933; border-radius:4px; padding:6px; background:#020617;">
+                            <div style="font-weight:700; color:#facc15; margin-bottom:4px; text-transform:uppercase; letter-spacing:1px;">Courage / GOLD world</div>
+                            <div style="color:#9ca3af; margin-bottom:4px;">Canonical viewer space used to author scenes and emit <code>stud_skeleton</code>.</div>
+                            <ul style="margin:0 0 4px 14px; padding:0;">
+                                <li>Unit cell ≈ <strong>20 × 24 × 20</strong> (stud × brick height × stud).</li>
+                                <li>Axes: <span style="color:#f87171;">+X</span> right, <span style="color:#4ade80;">+Y</span> up, <span style="color:#60a5fa;">+Z</span> forward.</li>
+                                <li><code>stud_skeleton</code> is sampled in this world and shipped to TIMBER.</li>
+                            </ul>
+                        </div>
+                        <div style="flex:1; min-width:0; border:1px solid #1f2933; border-radius:4px; padding:6px; background:#020617;">
+                            <div style="font-weight:700; color:#38bdf8; margin-bottom:4px; text-transform:uppercase; letter-spacing:1px;">WERE skeleton space</div>
+                            <div style="color:#9ca3af; margin-bottom:4px;">LDraw-style brick editor overlaid with Courage studs.</div>
+                            <ul style="margin:0 0 4px 14px; padding:0;">
+                                <li>World root has a global <code>Y</code>-flip so classic MPD lines behave like LDraw.</li>
+                                <li>Incoming GOLD <code>stud_skeleton</code> Y is inverted <em>before</em> that flip so studs land where Courage puts them.</li>
+                                <li>Grid at <strong>Y = 0</strong> is the shared base-plate plane.</li>
+                            </ul>
+                        </div>
+                        <div style="flex:1; min-width:0; border:1px solid #1f2933; border-radius:4px; padding:6px; background:#020617;">
+                            <div style="font-weight:700; color:#f97316; margin-bottom:4px; text-transform:uppercase; letter-spacing:1px;">Master room space</div>
+                            <div style="color:#9ca3af; margin-bottom:4px;">Bounded "room" that should remain the authoritative collision frame.</div>
+                            <ul style="margin:0 0 4px 14px; padding:0;">
+                                <li>Same unit cell (20×24×20) as Courage/WERE for bricks and studs.</li>
+                                <li>Applies the same Y-flip trick as WERE for legacy MPD lines.</li>
+                                <li>Recenters the entire world so the dominant GOLD stud layer sits on the room floor <strong>(Y = 0)</strong>.</li>
+                                <li>Grid walls and telemetry shadows then measure distances in the same units as Courage.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div style="margin-top:4px; font-size:10px; color:#64748b;">
+                        Tip: load a GOLD snapshot into TIMBER, then flip to Symbiogene → START to see the same <code>stud_skeleton</code>
+                        overlaid on the holodeck grid (20&nbsp;LDU per stud, 24&nbsp;LDU per brick height).
+                    </div>
+                </div>
+            `;
         }
 
         // --- COMMANDS (RESTORED) ---
@@ -2196,15 +2317,22 @@
             canvas.innerHTML = '<div style="display:flex; justify-content:center; align-items:center; height:100%; color:#555; font-family:Courier New;">Timeline Visualizer</div>';
         }
 
-        // Wolf bus: listen for skeleton payloads from Courage via studio
+        // Wolf bus: listen for skeleton payloads and selection updates from TIMBER studio
         window.addEventListener('message', (event) => {
             const msg = event.data;
             if (!msg || typeof msg !== 'object' || !msg.type) return;
+
             if (msg.type === 'studio-load-skeleton-from-courage') {
                 const studs = Array.isArray(msg.studs) ? msg.studs : (msg.payload && msg.payload.stud_skeleton);
                 if (Array.isArray(studs) && studs.length) {
                     loadSkeletonFromStuds(studs);
                 }
+            } else if (msg.type === 'timber-selection-update') {
+                const lineNums = Array.isArray(msg.lineNums) ? msg.lineNums.filter(n => typeof n === 'number') : [];
+                const groupKeys = Array.isArray(msg.groupKeys) ? msg.groupKeys.filter(k => typeof k === 'string') : [];
+                symbioSelection.lineNums = new Set(lineNums);
+                symbioSelection.groupKeys = new Set(groupKeys);
+                applySelectionToSkeleton();
             }
         });
 

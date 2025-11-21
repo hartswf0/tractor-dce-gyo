@@ -4123,6 +4123,80 @@
         console.log('[PART] Part control overlay drawn:', nodes.length);
     }
 
+    function runPartControlSkeletonSelfTest() {
+        const result = {
+            expectedNodes: 0,
+            builtNodes: 0,
+            overlayDots: 0,
+            errors: []
+        };
+
+        if (!Array.isArray(editorLines) || !editorLines.length) {
+            result.errors.push('No editorLines loaded');
+            console.warn('[PART-TEST] No MPD lines; load a model first.', result);
+            return result;
+        }
+
+        // Rebuild part-control skeleton using current editorLines + filter
+        buildPartControlSkeleton();
+        const nodes = Array.isArray(STATE.partControlSkeleton) ? STATE.partControlSkeleton : [];
+        result.builtNodes = nodes.length;
+
+        // Count how many type-1 lines would be tracked by buildPartControlSkeleton
+        const filterId = (STATE && STATE.partControlFilterPartId)
+            ? String(STATE.partControlFilterPartId).trim().toLowerCase()
+            : '';
+        let expected = 0;
+        for (let idx = 0; idx < editorLines.length; idx++) {
+            const raw = editorLines[idx];
+            const trimmed = raw && raw.trim();
+            if (!trimmed || !trimmed.startsWith('1 ')) continue;
+            const parsed = parseType1Line(raw);
+            if (!parsed) continue;
+            if (filterId && parsed.partId && parsed.partId.toLowerCase() !== filterId) continue;
+            expected++;
+        }
+        result.expectedNodes = expected;
+        if (expected !== nodes.length) {
+            result.errors.push(`Expected ${expected} part-control nodes, but built ${nodes.length}`);
+        }
+
+        // Basic per-node checks: lineNum range + worldPos vs parsed x/y/z
+        nodes.forEach(node => {
+            if (typeof node.lineNum !== 'number' || node.lineNum < 0 || node.lineNum >= editorLines.length) {
+                result.errors.push(`Node with invalid lineNum: ${node.lineNum}`);
+                return;
+            }
+            const raw = editorLines[node.lineNum];
+            const parsed = parseType1Line(raw);
+            if (!parsed) {
+                result.errors.push(`Node at line ${node.lineNum} does not map to a valid type-1 line`);
+                return;
+            }
+            if (Math.round(parsed.x) !== Math.round(node.worldPos.x) ||
+                Math.round(parsed.y) !== Math.round(node.worldPos.y) ||
+                Math.round(parsed.z) !== Math.round(node.worldPos.z)) {
+                result.errors.push(`WorldPos mismatch at line ${node.lineNum}: parsed=(${parsed.x},${parsed.y},${parsed.z}), node=(${node.worldPos.x},${node.worldPos.y},${node.worldPos.z})`);
+            }
+        });
+
+        // Draw overlay and compare mesh count to nodes length
+        drawPartControlOverlay();
+        const group = STATE.partControlGroup;
+        const overlayCount = group && Array.isArray(group.children) ? group.children.length : 0;
+        result.overlayDots = overlayCount;
+        if (overlayCount !== nodes.length) {
+            result.errors.push(`Overlay has ${overlayCount} meshes but skeleton has ${nodes.length} nodes`);
+        }
+
+        if (!result.errors.length) {
+            console.log('[PART-TEST] PASS — part control skeleton is 1:1 with tracked type-1 lines.', result);
+        } else {
+            console.warn('[PART-TEST] FAIL — see errors for details.', result);
+        }
+        return result;
+    }
+
     function highlightMPDLine(lineIdx) {
         // Clear previous highlights
         document.querySelectorAll('.line-wrapper').forEach(el => {
@@ -9550,6 +9624,45 @@ function highlightLinesAtGridPosition(gridX, gridY) {
                     setTimeout(() => compileCurrentMPD(), 200);
                 } catch (err) {
                     console.warn('[COURAGE] Failed to apply MPD from WERE wolf bus', err);
+                }
+            } else if (msg.type === 'timber-selection-update') {
+                const nums = Array.isArray(msg.lineNums) ? msg.lineNums : [];
+                const indices = [];
+                nums.forEach(n => {
+                    const v = parseInt(n, 10);
+                    if (!isNaN(v)) {
+                        const idx = v - 1;
+                        if (idx >= 0 && idx < editorLines.length) indices.push(idx);
+                    }
+                });
+
+                // Clear previous selections
+                selectedLines.clear();
+                document.querySelectorAll('.editor-line.selected').forEach(el => el.classList.remove('selected'));
+                document.querySelectorAll('.grid-cell.selected').forEach(el => el.classList.remove('selected'));
+                if (selectionBoundingBox && STATE.viewer && STATE.viewer.scene) {
+                    STATE.viewer.scene.remove(selectionBoundingBox);
+                    selectionBoundingBox = null;
+                }
+
+                const statusText = document.getElementById('status-text');
+                if (!indices.length) {
+                    if (statusText) statusText.textContent = 'Selection cleared (TIMBER)';
+                    return;
+                }
+
+                indices.forEach(idx => {
+                    selectedLines.add(idx);
+                    const lineEl = editorContainer.children[idx];
+                    if (lineEl) lineEl.classList.add('selected');
+                });
+
+                if (typeof draw3DBoundingBoxes === 'function') {
+                    draw3DBoundingBoxes(indices);
+                }
+
+                if (statusText) {
+                    statusText.textContent = `Selection from TIMBER: ${indices.length} line(s)`;
                 }
             }
         });

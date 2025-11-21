@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Courage / WERE / Symbiogene Studio</title>
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23020617'/%3E%3Ccircle cx='25' cy='50' r='18' fill='%23ef4444'/%3E%3Ccircle cx='50' cy='50' r='18' fill='%233b82f6'/%3E%3Ccircle cx='75' cy='50' r='18' fill='%23a855f7'/%3E%3C/svg%3E" />
+  <title>TIMBER Studio – Courage / WERE / Master</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23020617'/%3E%3Ccircle cx='25' cy='50' r='18' fill='%23ef4444'/%3E%3Ccircle cx='50' cy='50' r='18' fill='%233b82f6'/%3E%3Ccircle cx='75' cy='50' r='18' fill='%23facc15'/%3E%3C/svg%3E" />
   <style>
     :root {
       color-scheme: dark;
@@ -18,6 +18,7 @@
       --accent-strong: #0ea5e9;
       --accent-courage: #ef4444;
       --accent-were: #3b82f6;
+      --accent-master: #facc15;
       --accent-symbio: #a855f7;
       --text: #e5e7eb;
       --text-muted: #9ca3af;
@@ -157,6 +158,7 @@
 
     .tab-color-courage::before,
     .tab-color-were::before,
+    .tab-color-master::before,
     .tab-color-symbio::before {
       content: "";
       width: 8px;
@@ -166,6 +168,7 @@
 
     .tab-color-courage::before { background: var(--accent-courage); }
     .tab-color-were::before { background: var(--accent-were); }
+    .tab-color-master::before { background: var(--accent-master); }
     .tab-color-symbio::before { background: var(--accent-symbio); }
 
     .tab-btn.active {
@@ -268,6 +271,10 @@
     }
 
     .panel-grid[data-layout="triple"] .panel {
+      display: none;
+    }
+
+    .panel-grid[data-layout="triple"] .panel.triple-visible {
       display: flex;
     }
 
@@ -286,7 +293,7 @@
     }
 
     .help-modal {
-      width: min(420px, 92vw);
+      width: min(460px, 92vw);
       padding: 12px;
       border-radius: 4px;
       background: #020617;
@@ -369,16 +376,17 @@
     <header class="header">
       <div class="studio-left">
         <span class="studio-label">STUDIO</span>
-        <span class="studio-title">COURAGE / WERE / SYMBIOGENE</span>
+        <span class="studio-title">TIMBER – COURAGE / WERE / MASTER</span>
       </div>
       <div class="studio-center" id="panelTabs">
         <button class="tab-btn tab-color-courage active" data-panel="courage">Courage</button>
         <button class="tab-btn tab-color-were" data-panel="were">WERE</button>
+        <button class="tab-btn tab-color-master" data-panel="master">Master</button>
         <button class="tab-btn tab-color-symbio" data-panel="symbio">Symbiogene</button>
       </div>
       <div class="studio-right">
         <button class="studio-btn" id="fullscreenBtn" title="Toggle fullscreen">FS</button>
-        <button class="studio-btn" id="helpBtn" title="Studio help">?</button>
+        <button class="studio-btn" id="helpBtn" title="TIMBER help">?</button>
         <div class="layout-toggle" id="layoutToggle">
           <button class="layout-btn active" data-layout="single">
             <span class="icon">▣</span>
@@ -402,7 +410,13 @@
 
         <section class="panel" data-panel="were">
           <div class="panel-body">
-            <iframe src="wag-were.html" title="WAG WERE" data-studio-host="courage-were"></iframe>
+            <iframe src="wag-were.html" title="WAG WERE" data-studio-host="timber"></iframe>
+          </div>
+        </section>
+
+        <section class="panel" data-panel="master">
+          <div class="panel-body">
+            <iframe src="wag-master.html" title="WAG Master" data-studio-host="timber"></iframe>
           </div>
         </section>
 
@@ -417,14 +431,29 @@
 
   <div id="studioHelp" class="help-overlay">
     <div class="help-modal">
-      <h1>STUDIO – COURAGE / WERE / SYMBIOGENE</h1>
-      <p>Use the tabs to move between Courage (authoritative viewer), WERE (skeleton adaptor), and Symbiogene (experimental skeleton visualizer) without leaving this window.</p>
+      <h1>TIMBER – Integrated Studio</h1>
+      <p>
+        TIMBER hosts Courage (authoring), WERE (skeleton inspector), Master (room-scale composer), and Symbiogene (skeleton lab)
+        in a single shared studio, all wired together over the same GOLD + selection bus.
+      </p>
       <ul>
-        <li><strong>Courage</strong> – load MPD scenes and emit GOLD snapshots with <code>mpd_content</code> + <code>stud_skeleton</code>.</li>
-        <li><strong>WERE</strong> – paste or drop GOLD JSON / skeleton JSON and inspect bones, orbs, and proxy bricks, then export an edited MPD.</li>
-        <li><strong>Symbiogene</strong> – experiment with raw skeleton JSON views and calibration.</li>
+        <li><strong>Courage</strong> – load and edit MPD scenes, then emit GOLD snapshots with <code>mpd_content</code>, <code>stud_skeleton</code>, <code>part_skeletons</code>, and <code>ground_violations</code>.</li>
+        <li><strong>WERE</strong> – inspect GOLD skeletons as per-part/per-layer bones and ORBS, and export edited MPD back to Courage.</li>
+        <li><strong>Master</strong> – explore the same GOLD in a bounded "room", visualize collisions, envelopes, and control dots.</li>
+        <li><strong>Symbiogene</strong> – experiment with raw GOLD structures (stud clouds, violations) for calibration and debugging.</li>
       </ul>
-      <p><strong>TABS</strong> shows one tool at a time. <strong>3-UP</strong> is for large screens – Courage, WERE, and Symbiogene side by side with horizontal scroll.</p>
+      <p><strong>TABS</strong> shows one instrument at a time. <strong>3-UP</strong> is for large screens – Courage, WERE, and Master side by side with horizontal scroll when needed.</p>
+      <p><strong>Core workflows (actually wired today):</strong></p>
+      <ul>
+        <li><strong>GOLD loop</strong> – in Courage, load/paste an MPD and emit a GOLD snapshot. TIMBER forwards that GOLD to WERE and Master, and forwards just the <code>stud_skeleton</code> to Symbiogene.</li>
+        <li><strong>Selection loop</strong> – in WERE, click a bone or ORB cluster. WERE sends a selection event up to TIMBER, which highlights the same parts in Courage (by line number) and in Master (by bones/cubes).</li>
+        <li><strong>Skeleton debug loop</strong> – after emitting GOLD, switch to Symbiogene to inspect the raw stud cloud and violations coming from the same snapshot before or after using WERE/Master.</li>
+      </ul>
+      <p style="margin-top: 6px; font-size: 9px; color: var(--text-muted);">
+        For a step-by-step LEGO-style walkthrough of these flows, open
+        <a href="TIMBER-tutorial-prime.html" target="_blank" style="color: var(--accent); text-decoration: underline;">TIMBER-tutorial-prime.html</a>
+        in a new tab.
+      </p>
       <button class="help-close" id="helpCloseBtn">CLOSE</button>
     </div>
   </div>
@@ -450,6 +479,7 @@
           layout = 'single';
           grid.setAttribute('data-layout', layout);
           panels.forEach(panel => {
+            panel.classList.remove('triple-visible');
             panel.classList.toggle('active', panel.dataset.panel === activePanel);
           });
           return;
@@ -462,13 +492,15 @@
 
         if (layout === 'single') {
           panels.forEach(panel => {
+            panel.classList.remove('triple-visible');
             panel.classList.toggle('active', panel.dataset.panel === activePanel);
           });
-        } else {
+        } else if (layout === 'triple') {
           panels.forEach(panel => {
             const id = panel.dataset.panel;
-            const shouldShow = id === 'courage' || id === 'were' || id === 'symbio';
-            panel.classList.toggle('active', shouldShow);
+            const showTriple = id === 'courage' || id === 'were' || id === 'master';
+            panel.classList.toggle('active', false);
+            panel.classList.toggle('triple-visible', showTriple);
           });
         }
       }
@@ -557,9 +589,10 @@
         });
       }
 
-      // --- Wolf Bus: relay between Courage, WERE, and Symbiogene ---
+      // --- TIMBER Wolf Bus: shared relay between Courage, WERE, Master, and Symbiogene ---
       const courageFrame = document.querySelector('iframe[title="WAG Courage"]');
       const wereFrame = document.querySelector('iframe[title="WAG WERE"]');
+      const masterFrame = document.querySelector('iframe[title="WAG Master"]');
       const symbioFrame = document.querySelector('iframe[title="WAG Symbiogene"]');
 
       function relayTo(frame, message) {
@@ -567,7 +600,7 @@
         try {
           frame.contentWindow.postMessage(message, '*');
         } catch (err) {
-          console.warn('[STUDIO] relay failed', err);
+          console.warn('[TIMBER] relay failed', err);
         }
       }
 
@@ -578,11 +611,17 @@
         if (data.type === 'courage-gold-snapshot') {
           const payload = data.payload;
           if (!payload) return;
-          // Forward full GOLD snapshot to WERE
+
+          // Forward full GOLD snapshot to WERE and Master
           relayTo(wereFrame, {
             type: 'studio-load-gold-from-courage',
             payload
           });
+          relayTo(masterFrame, {
+            type: 'studio-load-gold-from-courage',
+            payload
+          });
+
           // Also forward bare skeleton to Symbiogene for visualization
           if (Array.isArray(payload.stud_skeleton) && payload.stud_skeleton.length) {
             relayTo(symbioFrame, {
@@ -597,6 +636,17 @@
             type: 'studio-load-mpd-from-were',
             mpd
           });
+        } else if (data.type === 'timber-selection-from-were') {
+          const groupKeys = Array.isArray(data.groupKeys) ? data.groupKeys : [];
+          const lineNums = Array.isArray(data.lineNums) ? data.lineNums : [];
+          const selectionMsg = {
+            type: 'timber-selection-update',
+            groupKeys,
+            lineNums
+          };
+          relayTo(courageFrame, selectionMsg);
+          relayTo(masterFrame, selectionMsg);
+          relayTo(symbioFrame, selectionMsg);
         }
       });
 

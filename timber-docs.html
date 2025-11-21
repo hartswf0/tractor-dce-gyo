@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TIMBER Studio – System Map</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%2300bcd4'/%3E%3C/svg%3E">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: 'Courier New', monospace;
+      background: #000;
+      color: #ddd;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .page {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .header {
+      padding: 10px 16px;
+      border-bottom: 1px solid #333;
+      background: #050505;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .title-block { display: flex; flex-direction: column; gap: 2px; }
+    .title { font-size: 13px; font-weight: bold; letter-spacing: 1px; color: #38bdf8; }
+    .subtitle { font-size: 9px; color: #777; letter-spacing: 1px; text-transform: uppercase; }
+    .badge { font-size: 8px; padding: 4px 8px; border-radius: 3px; border: 1px solid #333; text-transform: uppercase; letter-spacing: 1px; }
+
+    .content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 12px 16px 20px;
+      overflow-y: auto;
+    }
+
+    .section-title {
+      font-size: 10px;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+
+    .lego-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .lego-block {
+      min-width: 140px;
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: 1px solid #333;
+      background: #050505;
+      position: relative;
+    }
+
+    .lego-top {
+      position: absolute;
+      top: -6px;
+      left: 8px;
+      display: flex;
+      gap: 4px;
+    }
+
+    .lego-stud {
+      width: 10px;
+      height: 6px;
+      border-radius: 4px 4px 0 0;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.05);
+    }
+
+    .lego-name {
+      font-size: 10px;
+      font-weight: bold;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+
+    .lego-note {
+      font-size: 8px;
+      color: #888;
+      line-height: 1.4;
+    }
+
+    .lego-timber { border-color: #38bdf8; box-shadow: 0 0 8px rgba(56,189,248,0.35); }
+    .lego-courage { border-color: #ef4444; box-shadow: 0 0 8px rgba(239,68,68,0.3); }
+    .lego-were { border-color: #3b82f6; box-shadow: 0 0 8px rgba(59,130,246,0.3); }
+    .lego-master { border-color: #facc15; box-shadow: 0 0 8px rgba(250,204,21,0.3); }
+    .lego-symbio { border-color: #a855f7; box-shadow: 0 0 8px rgba(168,85,247,0.3); }
+    .lego-gold { border-color: #FFD700; box-shadow: 0 0 8px rgba(255,215,0,0.25); }
+
+    .flow-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      font-size: 9px;
+    }
+
+    .arrow {
+      padding: 2px 6px;
+      border-radius: 10px;
+      border: 1px solid #444;
+      color: #666;
+    }
+
+    .arrow-highlight {
+      border-color: #38bdf8;
+      color: #38bdf8;
+    }
+
+    .pill {
+      font-size: 8px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid #333;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #888;
+    }
+
+    .pill-bus { border-color: #38bdf8; color: #38bdf8; }
+    .pill-gold { border-color: #FFD700; color: #FFD700; }
+    .pill-mpd { border-color: #00FF88; color: #00FF88; }
+    .pill-sel { border-color: #f97316; color: #f97316; }
+
+    .callout {
+      border-left: 2px solid #333;
+      padding-left: 8px;
+      font-size: 9px;
+      color: #aaa;
+      line-height: 1.4;
+    }
+
+    .callout-emoji { margin-right: 4px; }
+
+    .status-bar {
+      padding: 6px 16px;
+      border-top: 1px solid #333;
+      font-size: 8px;
+      color: #666;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    @media (max-width: 768px) {
+      .lego-row { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div class="title-block">
+      <div class="title">TIMBER STUDIO – SYSTEM MAP</div>
+      <div class="subtitle">COURAGE / WERE / MASTER / SYMBIOGENE ON ONE BUS</div>
+    </div>
+    <div class="badge">SHOW, DON'T TELL • LEGO BLOCK DIAGRAMS</div>
+  </div>
+
+  <div class="content">
+    <div>
+      <div class="section-title">Top strip – TIMBER as host, tools as instruments</div>
+      <div class="lego-row" style="margin-bottom:8px;">
+        <div class="lego-block lego-timber">
+          <div class="lego-top"><div class="lego-stud"></div><div class="lego-stud"></div></div>
+          <div class="lego-name">TIMBER STUDIO</div>
+          <div class="lego-note">Meta-studio shell. Hosts Courage, WERE, Master, and Symbiogene in one chrome. Owns the shared bus for GOLD snapshots and selection, and decides which instruments are visible (TABS vs 3-UP).</div>
+        </div>
+        <div class="lego-block lego-courage">
+          <div class="lego-top"><div class="lego-stud"></div><div class="lego-stud"></div></div>
+          <div class="lego-name">WAG COURAGE</div>
+          <div class="lego-note">Authoring + GOLD source. Edits MPD text, compiles scenes, and emits GOLD snapshots (<code>mpd_content</code>, <code>stud_skeleton</code>, <code>part_skeletons</code>, <code>ground_violations</code>).</div>
+        </div>
+        <div class="lego-block lego-were">
+          <div class="lego-top"><div class="lego-stud"></div><div class="lego-stud"></div></div>
+          <div class="lego-name">WAG WERE</div>
+          <div class="lego-note">Skeleton inspector. Turns GOLD studs into per-part/per-layer bones and ORBS, keyed by <code>groupKey = lineNum[:layer]</code>. Can export edited MPD back to Courage.</div>
+        </div>
+        <div class="lego-block lego-master">
+          <div class="lego-top"><div class="lego-stud"></div><div class="lego-stud"></div></div>
+          <div class="lego-name">WAG MASTER</div>
+          <div class="lego-note">Constraint &amp; room viewer. Places the same GOLD scene into a "containment room" with walls/floor, bones, part dots, and collision overlays driven by GOLD.</div>
+        </div>
+        <div class="lego-block lego-symbio">
+          <div class="lego-top"><div class="lego-stud"></div><div class="lego-stud"></div></div>
+          <div class="lego-name">SYMBIOGENE</div>
+          <div class="lego-note">Skeleton lab. Shows raw GOLD structures (studs, part dots, violations) in a neutral grid. Acts as the ontology probe and transform debugger for the other views.</div>
+        </div>
+      </div>
+      <div class="callout">
+        <span class="callout-emoji">🎼</span>
+        TIMBER is the conductor: it does not render bricks itself. Instead it routes MPD + GOLD + selection so each instrument can play its part over the same digital twin.
+      </div>
+    </div>
+
+    <div>
+      <div class="section-title">GOLD &amp; MPD on the TIMBER bus</div>
+      <div class="flow-row" style="margin-bottom:6px;">
+        <span class="pill pill-bus">TIMBER bus</span>
+        <span class="pill pill-gold">GOLD snapshots</span>
+        <span class="pill pill-mpd">MPD text</span>
+      </div>
+      <div class="flow-row" style="margin-bottom:6px;">
+        <span class="lego-block lego-courage" style="min-width:130px; text-align:center;">COURAGE<br><span style="font-size:8px; color:#888;">emit GOLD</span></span>
+        <span class="arrow arrow-highlight">courage-gold-snapshot</span>
+        <span class="lego-block lego-timber" style="min-width:130px; text-align:center;">TIMBER</span>
+        <span class="arrow">studio-load-gold-from-courage</span>
+        <span class="lego-block lego-were" style="min-width:130px; text-align:center;">WERE</span>
+        <span class="arrow">studio-load-gold-from-courage</span>
+        <span class="lego-block lego-master" style="min-width:130px; text-align:center;">MASTER</span>
+      </div>
+      <div class="flow-row" style="margin-bottom:6px;">
+        <span class="lego-block lego-were" style="min-width:130px; text-align:center;">WERE</span>
+        <span class="arrow">were-export-mpd</span>
+        <span class="lego-block lego-timber" style="min-width:130px; text-align:center;">TIMBER</span>
+        <span class="arrow">studio-load-mpd-from-were</span>
+        <span class="lego-block lego-courage" style="min-width:130px; text-align:center;">COURAGE</span>
+      </div>
+      <div class="flow-row" style="margin-top:6px;">
+        <span class="lego-block lego-gold" style="min-width:150px;">
+          <div class="lego-top"><div class="lego-stud"></div></div>
+          <div class="lego-name">GOLD payload</div>
+          <div class="lego-note"><code>mpd_content</code> (raw MPD)<br><code>stud_skeleton</code> (per-stud world points)<br><code>part_skeletons</code> (per-part anchors)<br><code>ground_violations</code> (problem lines)</div>
+        </span>
+      </div>
+      <div class="callout" style="margin-top:8px;">
+        <span class="callout-emoji">💾</span>
+        TIMBER never edits GOLD itself. Courage is the authoritative GOLD producer; TIMBER fans it out so WERE, Master, and Symbiogene can all see the same twin.
+      </div>
+    </div>
+
+    <div>
+      <div class="section-title">Selection as a shared language</div>
+      <div class="flow-row" style="margin-bottom:6px;">
+        <span class="pill pill-sel">selection sets</span>
+      </div>
+      <div class="flow-row" style="margin-bottom:4px;">
+        <span class="lego-block lego-were" style="min-width:140px; text-align:center;">WERE<br><span style="font-size:8px; color:#888;">click bone / ORB</span></span>
+        <span class="arrow arrow-highlight">timber-selection-from-were<br><span style="font-size:8px;">{ groupKeys, lineNums }</span></span>
+        <span class="lego-block lego-timber" style="min-width:140px; text-align:center;">TIMBER</span>
+        <span class="arrow">timber-selection-update</span>
+        <span class="lego-block lego-courage" style="min-width:140px; text-align:center;">COURAGE<br><span style="font-size:8px; color:#888;">highlight lines + boxes</span></span>
+        <span class="arrow">timber-selection-update</span>
+        <span class="lego-block lego-master" style="min-width:140px; text-align:center;">MASTER<br><span style="font-size:8px; color:#888;">update bones / labels</span></span>
+      </div>
+      <div class="callout" style="margin-top:6px;">
+        <span class="callout-emoji">🔗</span>
+        Selection travels as line numbers and group keys, not pixels. WERE owns the <code>groupKey = lineNum[:layer]</code> mapping; TIMBER turns that into <code>lineNums</code> that Courage and Master understand.
+      </div>
+      <div class="callout" style="margin-top:4px;">
+        <span class="callout-emoji">🧭</span>
+        Future directions: Courage or Master can also emit selection events back into TIMBER, and Symbiogene can join as a selection peer for ontology-level audits.
+      </div>
+    </div>
+
+    <div>
+      <div class="section-title">Ontology underneath – what all tools agree on</div>
+      <div class="lego-row">
+        <div class="lego-block" style="border-color:#555;">
+          <div class="lego-top"><div class="lego-stud"></div></div>
+          <div class="lego-name">MPD lines</div>
+          <div class="lego-note">Type-1 part lines with <code>lineNum</code>, color, position, rotation, and subfile. Courage edits these; WERE + Master map GOLD studs back to them via 1-based <code>lineNum</code>.</div>
+        </div>
+        <div class="lego-block" style="border-color:#555;">
+          <div class="lego-top"><div class="lego-stud"></div></div>
+          <div class="lego-name">groupKey</div>
+          <div class="lego-note">String key for a part + layer (<code>"12"</code> or <code>"12:0"</code>). WERE uses this to group studs and bones; TIMBER passes it through in selection messages.</div>
+        </div>
+        <div class="lego-block" style="border-color:#555;">
+          <div class="lego-top"><div class="lego-stud"></div></div>
+          <div class="lego-name">stud_skeleton</div>
+          <div class="lego-note">Per-stud sample points in world space, often annotated with <code>lineNum</code>, <code>layer</code>, <code>color</code>, and problem/ghost flags. Drives bones, ORBS, and cluster analysis.</div>
+        </div>
+        <div class="lego-block" style="border-color:#555;">
+          <div class="lego-top"><div class="lego-stud"></div></div>
+          <div class="lego-name">part_skeletons</div>
+          <div class="lego-note">Per-part anchors (one per MPD line). Master uses these as control dots; Symbiogene can use them to show handles and anchors across tools.</div>
+        </div>
+        <div class="lego-block" style="border-color:#555;">
+          <div class="lego-top"><div class="lego-stud"></div></div>
+          <div class="lego-name">ground_violations</div>
+          <div class="lego-note">Per-line violation records. Master tints bones and walls from this; WERE and Symbiogene can surface the same lines as red/orange overlays.</div>
+        </div>
+      </div>
+      <div class="callout" style="margin-top:8px;">
+        <span class="callout-emoji">🧬</span>
+        TIMBER does not define new data structures; it insists that all tools speak the same dialect (MPD lines, groupKeys, GOLD skeleton arrays) and wires them together without translation drift.
+      </div>
+    </div>
+
+    <div>
+      <div class="section-title">Studios vs tools – where TIMBER fits with other shells</div>
+      <div class="lego-row">
+        <div class="lego-block lego-timber">
+          <div class="lego-top"><div class="lego-stud"></div></div>
+          <div class="lego-name">TIMBER</div>
+          <div class="lego-note">Integrated studio (Courage + WERE + Master + Symbiogene). Replaces ad-hoc pair studios like Courage/WERE and Courage/Master by unifying their bus and chrome.</div>
+        </div>
+        <div class="lego-block" style="border-color:#444;">
+          <div class="lego-top"><div class="lego-stud"></div></div>
+          <div class="lego-name">courage-were-studio.html</div>
+          <div class="lego-note">Older 2-app shell. Courage + WERE only, with a simpler relay (GOLD → WERE, MPD → Courage). TIMBER generalizes this pattern.</div>
+        </div>
+        <div class="lego-block" style="border-color:#444;">
+          <div class="lego-top"><div class="lego-stud"></div></div>
+          <div class="lego-name">courage-master-studio.html</div>
+          <div class="lego-note">Older 2-app shell for Courage + Master. Shares the same GOLD-relay idea that TIMBER now centralizes.</div>
+        </div>
+        <div class="lego-block" style="border-color:#444;">
+          <div class="lego-top"><div class="lego-stud"></div></div>
+          <div class="lego-name">swiss-frank-grace-studio.html</div>
+          <div class="lego-note">Swiss-era studio: SWISS + FRANK + GRACE. TIMBER borrows its Lego-block documentation style while applying it to skeleton-aware flows.</div>
+        </div>
+      </div>
+      <div class="callout" style="margin-top:8px;">
+        <span class="callout-emoji">📦</span>
+        In packaging terms, TIMBER is its own kit: <code>timber-studio.html</code> + Courage/WERE/Master/Symbiogene entrypoints + the GOLD bus contract described above. This page is the visual map that travels with that kit.
+      </div>
+    </div>
+  </div>
+
+  <div class="status-bar">
+    <span>TIMBER Docs • Visual map, not specs</span>
+    <span>Open <code>timber-docs.html</code> from the repo or via Swiss-style docs launcher</span>
+  </div>
+</div>
+</body>
+</html>

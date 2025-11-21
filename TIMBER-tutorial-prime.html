@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TIMBER Studio – LEGO Quickstart</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%2338bdf8'/%3E%3C/svg%3E">
+  <style>
+    /* LEGO Instruction Manual Design System (reused for TIMBER) */
+    :root {
+      --lego-yellow: #FFD700;
+      --lego-yellow-glow: rgba(255, 215, 0, 0.4);
+      --lego-red: #FF4444;
+      --lego-blue: #4444FF;
+      --lego-green: #00FF88;
+      --lego-purple: #9D4EDD;
+      --lego-cyan: #4ECDC4;
+      --lego-timber: #38bdf8;
+      --border: 3px solid #333;
+      --shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: 'Courier New', monospace;
+      background: #000;
+      color: #ddd;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* LEGO brick header */
+    .header-brick {
+      background: linear-gradient(180deg, #020617 0%, #000 100%);
+      border-bottom: var(--border);
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: var(--shadow);
+    }
+
+    .header-title {
+      font-size: 22px;
+      font-weight: bold;
+      color: var(--lego-timber);
+      text-shadow: 0 0 10px rgba(56, 189, 248, 0.6);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .step-counter {
+      width: 60px;
+      height: 60px;
+      border-radius: 12px;
+      background: var(--lego-yellow);
+      color: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      font-weight: bold;
+      box-shadow: 0 0 20px var(--lego-yellow-glow);
+      position: relative;
+    }
+
+    .step-counter::before {
+      content: '';
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 30px;
+      height: 14px;
+      border-radius: 8px 8px 0 0;
+      background: #FFA500;
+      border: 3px solid #CC8400;
+      border-bottom: none;
+    }
+
+    /* Main instruction area */
+    .instruction-page {
+      flex: 1;
+      padding: 40px 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
+      display: none;
+    }
+
+    .instruction-page.active {
+      display: block;
+      animation: fadeIn 0.4s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* LEGO instruction step box */
+    .step-brick {
+      background: linear-gradient(135deg, #020617 0%, #000 100%);
+      border: 4px solid #333;
+      border-radius: 16px;
+      padding: 40px;
+      margin-bottom: 40px;
+      position: relative;
+      box-shadow: var(--shadow);
+    }
+
+    .step-number-brick {
+      position: absolute;
+      top: -20px;
+      left: 40px;
+      width: 60px;
+      height: 60px;
+      border-radius: 12px;
+      background: var(--lego-yellow);
+      color: #000;
+      font-size: 32px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px var(--lego-yellow-glow);
+      border: 4px solid #000;
+    }
+
+    .step-number-brick::before {
+      content: '';
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 32px;
+      height: 16px;
+      border-radius: 8px 8px 0 0;
+      background: #FFA500;
+      border: 3px solid #000;
+      border-bottom: none;
+    }
+
+    .step-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      align-items: center;
+    }
+
+    @media (max-width: 900px) {
+      .step-content {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .visual-panel {
+      background: #000;
+      border: 3px solid #333;
+      border-radius: 12px;
+      padding: 24px;
+      min-height: 360px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .text-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .step-title {
+      font-size: 22px;
+      font-weight: bold;
+      color: var(--lego-yellow);
+      letter-spacing: 1px;
+    }
+
+    .step-desc {
+      font-size: 15px;
+      line-height: 1.6;
+      color: #ccc;
+    }
+
+    /* UI Mockups */
+    .ui-mockup {
+      width: 100%;
+      background: #020617;
+      border: 3px solid var(--lego-timber);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .ui-header {
+      background: #020617;
+      padding: 10px 12px;
+      border-bottom: 2px solid #1f2933;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+    }
+
+    .ui-tabs {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .ui-tab {
+      padding: 4px 8px;
+      border-radius: 6px 6px 0 0;
+      border: 1px solid #1f2933;
+      border-bottom: none;
+      background: #020617;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 9px;
+    }
+
+    .ui-tab.active {
+      color: #e5e7eb;
+      border-color: #e5e7eb;
+      background: radial-gradient(circle at top, #020617, #000);
+      box-shadow: 0 2px 0 #000, 0 0 0 1px rgba(248, 250, 252, 0.4);
+    }
+
+    .ui-layout-toggle {
+      display: inline-flex;
+      gap: 4px;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #64748b;
+    }
+
+    .ui-pill {
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid #334155;
+    }
+
+    .ui-pill.active {
+      border-color: var(--lego-timber);
+      color: var(--lego-timber);
+      box-shadow: 0 0 8px rgba(56, 189, 248, 0.5);
+    }
+
+    .ui-body {
+      padding: 20px;
+      min-height: 200px;
+      font-size: 12px;
+      color: #94a3b8;
+    }
+
+    /* Code display blocks */
+    .code-brick {
+      background: #000;
+      border: 3px solid var(--lego-yellow);
+      border-radius: 8px;
+      padding: 14px;
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      color: #0f0;
+      margin: 12px 0;
+      position: relative;
+      overflow-x: auto;
+    }
+
+    .code-label {
+      position: absolute;
+      top: -10px;
+      left: 12px;
+      background: #000;
+      padding: 0 8px;
+      color: var(--lego-yellow);
+      font-size: 9px;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+
+    .code-highlight {
+      color: var(--lego-yellow);
+      font-weight: bold;
+    }
+
+    /* Progress indicator */
+    .progress-bar {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 12px;
+      background: rgba(0, 0, 0, 0.9);
+      padding: 12px;
+      border-radius: 8px;
+      border: 2px solid #333;
+      z-index: 50;
+    }
+
+    .progress-stud {
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+      background: #333;
+      border: 2px solid #555;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .progress-stud.active {
+      background: var(--lego-yellow);
+      border-color: var(--lego-yellow);
+      box-shadow: 0 0 8px var(--lego-yellow-glow);
+    }
+
+    /* Navigation buttons */
+    .nav-buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 40px;
+      gap: 20px;
+    }
+
+    .nav-brick {
+      padding: 14px 28px;
+      background: linear-gradient(135deg, #1e293b 0%, #020617 100%);
+      border: 3px solid var(--lego-yellow);
+      border-radius: 8px;
+      color: var(--lego-yellow);
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: var(--shadow);
+    }
+
+    .nav-brick:hover {
+      background: var(--lego-yellow);
+      color: #000;
+      transform: translateY(-4px);
+      box-shadow: 0 6px 16px var(--lego-yellow-glow);
+    }
+
+    .nav-brick:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    /* Context arrows and callouts */
+    .context-arrow {
+      position: absolute;
+      font-size: 22px;
+      color: var(--lego-yellow);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .callout-box {
+      position: absolute;
+      background: #000;
+      border: 2px solid var(--lego-yellow);
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 10px;
+      color: var(--lego-yellow);
+      font-weight: bold;
+      box-shadow: 0 0 10px var(--lego-yellow-glow);
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+      font-size: 10px;
+    }
+
+    .pill-tag {
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid #334155;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .pill-tag.bus { border-color: var(--lego-timber); color: var(--lego-timber); }
+    .pill-tag.gold { border-color: var(--lego-yellow); color: var(--lego-yellow); }
+    .pill-tag.sel { border-color: var(--lego-purple); color: var(--lego-purple); }
+
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+      width: 100%;
+    }
+
+    .mini-card {
+      background: rgba(15, 23, 42, 0.9);
+      border-radius: 6px;
+      border: 1px solid #1f2937;
+      padding: 10px;
+      font-size: 10px;
+      text-align: center;
+    }
+
+    .mini-card span {
+      display: block;
+    }
+
+    .mini-title {
+      font-weight: bold;
+      margin-bottom: 4px;
+      color: var(--lego-yellow);
+    }
+
+    .mini-note {
+      color: #64748b;
+    }
+  </style>
+  <base target="_blank">
+</head>
+<body>
+  <!-- STEP 1: Meet TIMBER -->
+  <div class="instruction-page active" data-step="1">
+    <div class="header-brick">
+      <div class="header-title">TIMBER STUDIO – WOLF BUS</div>
+      <div class="step-counter">1</div>
+    </div>
+
+    <div class="content">
+      <div class="step-brick">
+        <div class="step-number-brick"></div>
+        <div class="step-content">
+          <div class="visual-panel">
+            <div class="context-arrow" style="top: 16px; left: 50%; transform: translateX(-50%);">⬇️ TABS &amp; 3‑UP</div>
+            <div class="ui-mockup" style="max-width: 420px;">
+              <div class="ui-header">
+                <div class="ui-tabs">
+                  <div class="ui-tab active">Courage</div>
+                  <div class="ui-tab">WERE</div>
+                  <div class="ui-tab">Master</div>
+                  <div class="ui-tab">Symbiogene</div>
+                </div>
+                <div class="ui-layout-toggle">
+                  <div class="ui-pill active">▣ TABS</div>
+                  <div class="ui-pill">☷ 3‑UP</div>
+                </div>
+              </div>
+              <div class="ui-body">
+                <div style="text-align:center; margin-bottom: 10px; font-size: 13px; color: #e5e7eb;">
+                  TIMBER hosts all four instruments on one shared bus.
+                </div>
+                <div class="mini-grid">
+                  <div class="mini-card">
+                    <span class="mini-title" style="color:#f97316;">COURAGE</span>
+                    <span class="mini-note">MPD editor<br>emits GOLD snapshot</span>
+                  </div>
+                  <div class="mini-card">
+                    <span class="mini-title" style="color:#3b82f6;">WERE</span>
+                    <span class="mini-note">Skeleton inspector<br>bones + ORBS</span>
+                  </div>
+                  <div class="mini-card">
+                    <span class="mini-title" style="color:#facc15;">MASTER</span>
+                    <span class="mini-note">Room viewer<br>walls + collisions</span>
+                  </div>
+                  <div class="mini-card" style="grid-column: span 3;">
+                    <span class="mini-title" style="color:#a855f7;">SYMBIOGENE</span>
+                    <span class="mini-note">Raw GOLD skeleton lab</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="callout-box" style="bottom: 18px; right: 18px;">
+              🎼 TIMBER = studio shell + bus
+            </div>
+          </div>
+          <div class="text-panel">
+            <div class="step-title">TIMBER Conducts the Tools</div>
+            <div class="step-desc">
+              <strong style="color:var(--lego-timber);">TIMBER STUDIO</strong> is the host.
+              It owns the shared <strong>Wolf Bus</strong> and chrome, and embeds:
+              <br><br>
+              <strong style="color:#f97316;">Courage</strong> – edits MPD, emits GOLD snapshots<br>
+              <strong style="color:#3b82f6;">WERE</strong> – turns GOLD into bones + ORBS<br>
+              <strong style="color:#facc15;">Master</strong> – drops the same GOLD into a room with walls<br>
+              <strong style="color:#a855f7;">Symbiogene</strong> – raw skeleton visualization
+              <br><br>
+              You never open files separately in WERE/Master/Symbiogene – TIMBER fans out whatever Courage publishes.
+            </div>
+            <div class="pill-row">
+              <div class="pill-tag bus">TIMBER bus</div>
+              <div class="pill-tag gold">GOLD snapshot</div>
+              <div class="pill-tag sel">selection sets</div>
+            </div>
+            <div class="code-brick">
+              <div class="code-label">🐺 Wolf Bus Inside TIMBER</div>
+              const courageFrame = document.querySelector('iframe[title="WAG Courage"]');<br>
+              const wereFrame&nbsp;&nbsp;&nbsp;&nbsp;= document.querySelector('iframe[title="WAG WERE"]');<br>
+              const masterFrame&nbsp;= document.querySelector('iframe[title="WAG Master"]');<br>
+              const symbioFrame&nbsp;= document.querySelector('iframe[title="WAG Symbiogene"]');<br><br>
+              window.addEventListener('message', (event) =&gt; {<br>
+              &nbsp;&nbsp;const data = event.data;<br>
+              &nbsp;&nbsp;if (!data || typeof data !== 'object') return;<br>
+              &nbsp;&nbsp;if (data.type === <span class="code-highlight">'courage-gold-snapshot'</span>) {<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;relayTo(wereFrame,&nbsp;&nbsp;{ type: <span class="code-highlight">'studio-load-gold-from-courage'</span>, payload: data.payload });<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;relayTo(masterFrame, { type: <span class="code-highlight">'studio-load-gold-from-courage'</span>, payload: data.payload });<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;if (Array.isArray(data.payload.stud_skeleton)) {<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;relayTo(symbioFrame, { type: <span class="code-highlight">'studio-load-skeleton-from-courage'</span>, studs: data.payload.stud_skeleton });<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+              &nbsp;&nbsp;}<br>
+              });
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-buttons">
+        <div></div>
+        <button class="nav-brick" onclick="nextStep(2)">NEXT →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2: Emit GOLD from Courage -->
+  <div class="instruction-page" data-step="2">
+    <div class="header-brick">
+      <div class="header-title">🎯 EMIT GOLD FROM COURAGE</div>
+      <div class="step-counter">2</div>
+    </div>
+
+    <div class="content">
+      <div class="step-brick">
+        <div class="step-number-brick"></div>
+        <div class="step-content">
+          <div class="visual-panel">
+            <div class="context-arrow" style="top: 14px; left: 50%; transform: translateX(-50%);">⬇️ COURAGE PANEL</div>
+            <div class="ui-mockup">
+              <div class="ui-header">
+                <div style="font-size:11px; color:#f97316; font-weight:bold;">COURAGE – MPD EDITOR</div>
+                <div style="display:flex; gap:6px; align-items:center;">
+                  <div style="font-size:9px; color:#64748b;">IMG</div>
+                  <div style="width:1px; height:14px; background:#1f2937;"></div>
+                  <div style="font-size:9px; color:#e5e7eb; font-weight:bold;">GOLD</div>
+                  <div style="font-size:9px; color:#64748b;">GLB</div>
+                </div>
+              </div>
+              <div class="ui-body">
+                <div style="font-size:12px; margin-bottom:8px; color:#e5e7eb;">
+                  1. Load or paste an MPD scene<br>
+                  2. Click <strong style="color:var(--lego-yellow);">IMG</strong> or <strong style="color:var(--lego-yellow);">GOLD</strong>
+                </div>
+                <div style="margin-top:12px; font-size:11px; color:#22c55e;">
+                  ✅ Courage saves PNG / JSON &amp; posts <span style="color:var(--lego-yellow);">courage-gold-snapshot</span> to TIMBER.
+                </div>
+              </div>
+            </div>
+            <div class="callout-box" style="bottom: 20px; right: 18px;">
+              💾 GOLD = mpd_content + stud_skeleton + part_skeletons + ground_violations
+            </div>
+          </div>
+          <div class="text-panel">
+            <div class="step-title">Publish a GOLD Snapshot</div>
+            <div class="step-desc">
+              <strong>WHERE:</strong> TIMBER → Courage tab<br>
+              <strong>WHAT TO DO:</strong><br>
+              1. Load or paste an MPD into Courage<br>
+              2. Click <strong style="color:var(--lego-yellow);">IMG</strong> (screenshot) or use the export control that emits GOLD<br><br>
+              <strong>WHAT HAPPENS:</strong><br>
+              Courage builds a <strong>GOLD snapshot</strong> with:
+              <br>
+              • <code>mpd_content</code> – the exact MPD text you see<br>
+              • <code>stud_skeleton</code> – per-stud world coordinates<br>
+              • <code>part_skeletons</code> – one anchor per MPD line<br>
+              • <code>ground_violations</code> – per-line problems
+              <br><br>
+              Then it calls <code>window.parent.postMessage(...)</code> with
+              <span class="code-highlight">type: 'courage-gold-snapshot'</span>.
+              TIMBER catches that and wakes up WERE, Master, and Symbiogene.
+            </div>
+            <div class="code-brick">
+              <div class="code-label">📤 Inside COURAGE – GOLD Snapshot</div>
+              const metadata = {<br>
+              &nbsp;&nbsp;mpd_content,&nbsp;// raw MPD text<br>
+              &nbsp;&nbsp;stud_skeleton,&nbsp;// per-stud world points<br>
+              &nbsp;&nbsp;part_skeletons,&nbsp;// per-part anchors<br>
+              &nbsp;&nbsp;ground_violations // per-line flags<br>
+              };<br><br>
+              try {<br>
+              &nbsp;&nbsp;if (window.parent &amp;&amp; window.parent !== window) {<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;window.parent.postMessage({<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;type: <span class="code-highlight">'courage-gold-snapshot'</span>,<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;payload: metadata<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;}, '*');<br>
+              &nbsp;&nbsp;}<br>
+              } catch (err) { /* … */ }
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-buttons">
+        <button class="nav-brick" onclick="prevStep(1)">← BACK</button>
+        <button class="nav-brick" onclick="nextStep(3)">NEXT →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3: Inspect in WERE -->
+  <div class="instruction-page" data-step="3">
+    <div class="header-brick">
+      <div class="header-title">🦴 INSPECT BONES IN WERE</div>
+      <div class="step-counter">3</div>
+    </div>
+
+    <div class="content">
+      <div class="step-brick">
+        <div class="step-number-brick"></div>
+        <div class="step-content">
+          <div class="visual-panel">
+            <div class="context-arrow" style="top: 14px; left: 50%; transform: translateX(-50%);">⬇️ CLICK BONES / ORBS</div>
+            <div class="ui-mockup">
+              <div class="ui-header">
+                <div style="font-size:11px; color:#3b82f6; font-weight:bold;">WERE – SKELETON INSPECTOR</div>
+                <div style="font-size:9px; color:#64748b;">🦴 BONES · ⚪ ORBS · 📄 RAW</div>
+              </div>
+              <div class="ui-body" style="position:relative;">
+                <div style="height:160px; position:relative;">
+                  <div style="position:absolute; left:18%; top:35%; width:52px; height:52px; border-radius:6px; border:2px solid #3b82f6; box-shadow:0 0 12px rgba(59,130,246,0.8);"></div>
+                  <div style="position:absolute; left:26%; top:43%; width:8px; height:8px; border-radius:999px; background:#22c55e; box-shadow:0 0 10px rgba(34,197,94,0.9);"></div>
+                  <div style="position:absolute; right:20%; top:30%; width:8px; height:8px; border-radius:999px; background:#38bdf8; opacity:0.7;"></div>
+                  <div style="position:absolute; right:26%; top:60%; width:8px; height:8px; border-radius:999px; background:#ef4444; opacity:0.9;"></div>
+                </div>
+                <div style="margin-top:10px; font-size:11px; color:#e5e7eb;">
+                  Click a bone or ORB → WERE computes <code>groupKey</code> and sends a selection set to TIMBER.
+                </div>
+              </div>
+            </div>
+            <div class="callout-box" style="bottom: 18px; right: 18px; max-width: 220px;">
+              🎯 Selection travels as <code>groupKeys</code> + <code>lineNums</code>, not pixels.
+            </div>
+          </div>
+          <div class="text-panel">
+            <div class="step-title">Use Skeletons as a Selection Engine</div>
+            <div class="step-desc">
+              <strong>WHERE:</strong> TIMBER → WERE tab<br>
+              <strong>WHAT TO DO:</strong><br>
+              1. After emitting GOLD, switch to <strong style="color:#3b82f6;">WERE</strong><br>
+              2. Click a bone box or ORB cluster<br><br>
+              <strong>WHAT HAPPENS:</strong><br>
+              • WERE computes <code>groupKey = lineNum[:layer]</code> for the clicked cluster<br>
+              • It sends a <span class="code-highlight">timber-selection-from-were</span> message up to TIMBER<br>
+              • TIMBER fans that out as <span class="code-highlight">timber-selection-update</span> to Courage + Master
+              <br><br>
+              Result: MPD lines highlight in Courage, the same parts are lit in Master, and Symbiogene can also join as a selection peer.
+            </div>
+            <div class="code-brick">
+              <div class="code-label">🔗 Selection on the TIMBER Bus</div>
+              // From WERE → TIMBER<br>
+              window.parent.postMessage({<br>
+              &nbsp;&nbsp;type: <span class="code-highlight">'timber-selection-from-were'</span>,<br>
+              &nbsp;&nbsp;groupKeys,&nbsp;// ['12:0','13:0']<br>
+              &nbsp;&nbsp;lineNums&nbsp;&nbsp;// [12,13]<br>
+              }, '*');<br><br>
+              // Inside TIMBER<br>
+              else if (data.type === <span class="code-highlight">'timber-selection-from-were'</span>) {<br>
+              &nbsp;&nbsp;const selectionMsg = {<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;type: <span class="code-highlight">'timber-selection-update'</span>,<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;groupKeys: data.groupKeys || [],<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;lineNums: data.lineNums || []<br>
+              &nbsp;&nbsp;};<br>
+              &nbsp;&nbsp;relayTo(courageFrame, selectionMsg);<br>
+              &nbsp;&nbsp;relayTo(masterFrame,&nbsp;selectionMsg);<br>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-buttons">
+        <button class="nav-brick" onclick="prevStep(2)">← BACK</button>
+        <button class="nav-brick" onclick="nextStep(4)">NEXT →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 4: Explore room & constraints in Master -->
+  <div class="instruction-page" data-step="4">
+    <div class="header-brick">
+      <div class="header-title">🏛 MASTER – ROOM &amp; COLLISIONS</div>
+      <div class="step-counter">4</div>
+    </div>
+
+    <div class="content">
+      <div class="step-brick">
+        <div class="step-number-brick"></div>
+        <div class="step-content">
+          <div class="visual-panel">
+            <div class="context-arrow" style="top: 16px; left: 50%; transform: translateX(-50%);">⬇️ WALLS + FLOOR</div>
+            <div class="ui-mockup">
+              <div class="ui-header">
+                <div style="font-size:11px; color:#facc15; font-weight:bold;">MASTER – CONTAINMENT ROOM</div>
+                <div style="font-size:9px; color:#64748b;">RAW · LOAD · COPY · SAVE · SKELETON</div>
+              </div>
+              <div class="ui-body" style="position:relative;">
+                <div style="height:150px; position:relative;">
+                  <div style="position:absolute; left:10%; right:10%; bottom:12%; height:3px; background:rgba(34,197,94,0.6);"></div>
+                  <div style="position:absolute; left:12%; top:16%; bottom:25%; width:2px; background:rgba(248,113,113,0.5);"></div>
+                  <div style="position:absolute; right:12%; top:16%; bottom:25%; width:2px; background:rgba(59,130,246,0.5);"></div>
+                  <div style="position:absolute; left:40%; top:34%; width:34px; height:34px; border-radius:6px; border:2px solid #facc15; box-shadow:0 0 10px rgba(250,204,21,0.8);"></div>
+                </div>
+                <div style="margin-top:10px; font-size:11px; color:#e5e7eb;">
+                  Selected parts from Courage/WERE appear as cubes in a bounded room. Walls glow when bricks collide or go out of bounds.
+                </div>
+              </div>
+            </div>
+            <div class="callout-box" style="bottom: 20px; right: 18px; max-width:230px;">
+              🚨 <strong>Collision overlays</strong> tint walls using <code>ground_violations</code> from GOLD.
+            </div>
+          </div>
+          <div class="text-panel">
+            <div class="step-title">Read Constraints in the Room</div>
+            <div class="step-desc">
+              <strong>WHERE:</strong> TIMBER → Master tab<br>
+              <strong>WHAT TO DO:</strong><br>
+              1. Emit GOLD from Courage (Step 2)<br>
+              2. Toggle <strong style="color:#facc15;">SKELETON</strong> in Master to layer bones / studs on top of cubes<br>
+              3. Orbit, zoom, and watch which bricks hit floor / walls<br><br>
+              <strong>WHAT HAPPENS:</strong><br>
+              • Master uses the same <code>stud_skeleton</code> and <code>part_skeletons</code> you saw in WERE<br>
+              • It recenters the world so the dominant stud layer sits at Y=0<br>
+              • If a brick breaks the room, its wall plane glows and you hear a collision cue
+            </div>
+            <div class="code-brick">
+              <div class="code-label">📦 GOLD Driving the Room</div>
+              window.addEventListener('message', (event) =&gt; {<br>
+              &nbsp;&nbsp;const data = event.data;<br>
+              &nbsp;&nbsp;if (data.type === <span class="code-highlight">'studio-load-gold-from-courage'</span>) {<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;state.mpd&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= data.payload.mpd_content;<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;state.studs&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= data.payload.stud_skeleton || [];<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;state.partSkeleton = data.payload.part_skeletons || [];<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;state.groundViolations = data.payload.ground_violations || [];<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;rebuildRoom();<br>
+              &nbsp;&nbsp;}<br>
+              });
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-buttons">
+        <button class="nav-brick" onclick="prevStep(3)">← BACK</button>
+        <button class="nav-brick" onclick="nextStep(5)">NEXT →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 5: Raw skeleton lab in Symbiogene -->
+  <div class="instruction-page" data-step="5">
+    <div class="header-brick">
+      <div class="header-title">🧬 SYMBIOGENE – RAW SKELETON</div>
+      <div class="step-counter">5</div>
+    </div>
+
+    <div class="content">
+      <div class="step-brick">
+        <div class="step-number-brick"></div>
+        <div class="step-content">
+          <div class="visual-panel">
+            <div class="context-arrow" style="top: 16px; left: 50%; transform: translateX(-50%);">⬇️ STUD CLOUD</div>
+            <div class="ui-mockup">
+              <div class="ui-header">
+                <div style="font-size:11px; color:#a855f7; font-weight:bold;">SYMBIOGENE – GOLD PROBE</div>
+                <div style="font-size:9px; color:#64748b;">stud_skeleton only</div>
+              </div>
+              <div class="ui-body" style="position:relative;">
+                <div style="height:150px; position:relative; background:radial-gradient(circle at center,#020617,#000); border-radius:6px;">
+                  <div style="position:absolute; left:22%; top:28%; width:5px; height:5px; border-radius:999px; background:#38bdf8;"></div>
+                  <div style="position:absolute; left:30%; top:46%; width:4px; height:4px; border-radius:999px; background:#22c55e;"></div>
+                  <div style="position:absolute; left:48%; top:34%; width:4px; height:4px; border-radius:999px; background:#22c55e;"></div>
+                  <div style="position:absolute; right:28%; top:40%; width:4px; height:4px; border-radius:999px; background:#ef4444;"></div>
+                  <div style="position:absolute; right:32%; top:56%; width:4px; height:4px; border-radius:999px; background:#64748b;"></div>
+                </div>
+                <div style="margin-top:10px; font-size:11px; color:#e5e7eb;">
+                  Symbiogene receives only the stud cloud and uses it as an ontology probe: no cubes, just skeleton.
+                </div>
+              </div>
+            </div>
+            <div class="callout-box" style="bottom: 20px; right: 18px; max-width:230px;">
+              🧪 Perfect for debugging GOLD itself (layers, colors, ghost studs) without chrome noise.
+            </div>
+          </div>
+          <div class="text-panel">
+            <div class="step-title">Audit GOLD Without the Studio Chrome</div>
+            <div class="step-desc">
+              <strong>WHERE:</strong> TIMBER → Symbiogene tab<br>
+              <strong>WHAT TO DO:</strong><br>
+              1. Emit GOLD from Courage (Step 2)<br>
+              2. Switch to <strong style="color:#a855f7;">Symbiogene</strong><br>
+              3. Inspect layers, ghost studs, and problem clusters<br><br>
+              <strong>WHAT HAPPENS:</strong><br>
+              • TIMBER forwards only <code>stud_skeleton</code> as<br>
+              &nbsp;&nbsp;<span class="code-highlight">'studio-load-skeleton-from-courage'</span><br>
+              • Symbiogene shows a neutral grid + stud orbs<br>
+              • You can visually check if Courage's GOLD export is coherent before involving WERE/Master
+            </div>
+            <div class="code-brick" style="border-color:var(--lego-purple);">
+              <div class="code-label">🧬 GOLD → Symbiogene</div>
+              if (data.type === <span class="code-highlight">'courage-gold-snapshot'</span>) {<br>
+              &nbsp;&nbsp;const payload = data.payload;<br>
+              &nbsp;&nbsp;if (Array.isArray(payload.stud_skeleton) &amp;&amp; payload.stud_skeleton.length) {<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;relayTo(symbioFrame, {<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;type: <span class="code-highlight">'studio-load-skeleton-from-courage'</span>,<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;studs: payload.stud_skeleton<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;});<br>
+              &nbsp;&nbsp;}<br>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-buttons">
+        <button class="nav-brick" onclick="prevStep(4)">← BACK</button>
+        <button class="nav-brick" onclick="nextStep(6)">NEXT →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 6: Layouts & next challenges -->
+  <div class="instruction-page" data-step="6">
+    <div class="header-brick">
+      <div class="header-title">🎉 YOU'RE IN THE STUDIO LOOP</div>
+      <div class="step-counter">✓</div>
+    </div>
+
+    <div class="content">
+      <div class="step-brick">
+        <div class="step-content">
+          <div class="visual-panel">
+            <div class="ui-mockup" style="margin-bottom:16px;">
+              <div class="ui-header">
+                <div style="font-size:11px; color:var(--lego-timber); font-weight:bold;">LAYOUT MODES</div>
+                <div class="ui-layout-toggle">
+                  <div class="ui-pill active">▣ TABS</div>
+                  <div class="ui-pill">☷ 3‑UP</div>
+                </div>
+              </div>
+              <div class="ui-body" style="font-size:11px; color:#e5e7eb;">
+                <strong>TABS</strong> – one instrument at a time, best for laptops and tablets.<br>
+                <strong>3‑UP</strong> – Courage + WERE + Master side‑by‑side on wide screens; Symbiogene stays available as a 4th tab.
+              </div>
+            </div>
+
+            <div class="mini-grid">
+              <div class="mini-card" style="border-color:#f97316;">
+                <span class="mini-title" style="color:#f97316;">CHALLENGE 1</span>
+                <span class="mini-note">Use COURAGE only: build a small MPD scene and emit GOLD.</span>
+              </div>
+              <div class="mini-card" style="border-color:#3b82f6;">
+                <span class="mini-title" style="color:#3b82f6;">CHALLENGE 2</span>
+                <span class="mini-note">Trace one part across GOLD → WERE bones → MASTER room.</span>
+              </div>
+              <div class="mini-card" style="border-color:#a855f7;">
+                <span class="mini-title" style="color:#a855f7;">CHALLENGE 3</span>
+                <span class="mini-note">Use Symbiogene to debug a bad GOLD export (ghost studs, wrong layer).</span>
+              </div>
+            </div>
+          </div>
+          <div class="text-panel">
+            <div class="step-title">TIMBER Loop: Courage → GOLD → WERE / Master / Symbiogene</div>
+            <div class="step-desc">
+              You now know how TIMBER actually works:
+              <br><br>
+              1. <strong style="color:#f97316;">Courage</strong> authors MPD &amp; emits GOLD (<code>courage-gold-snapshot</code>)<br>
+              2. <strong style="color:var(--lego-timber);">TIMBER</strong> routes GOLD + selections on the Wolf Bus<br>
+              3. <strong style="color:#3b82f6;">WERE</strong> turns studs into bones &amp; ORBS and speaks selection<br>
+              4. <strong style="color:#facc15;">Master</strong> shows the same scene inside a bounded room<br>
+              5. <strong style="color:#a855f7;">Symbiogene</strong> lets you inspect the raw skeleton
+              <br><br>
+              Use <strong>Tabs</strong> when you want focus; switch to <strong>3‑UP</strong> when you want to see GOLD, skeleton, and room react at once.
+            </div>
+            <div style="background: rgba(56,189,248,0.08); border: 2px dashed var(--lego-timber); padding: 16px; border-radius: 8px; margin-top: 16px; font-size: 11px; color:#e5e7eb;">
+              <strong style="color:var(--lego-timber);">Next:</strong>
+              open <code>timber-studio.html</code>, switch layout modes, and repeat this loop with one of your real MPD scenes.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-buttons">
+        <button class="nav-brick" onclick="prevStep(5)">← BACK</button>
+        <button class="nav-brick" onclick="closeQuickstart()">OPEN TIMBER STUDIO →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Progress indicator -->
+  <div class="progress-bar">
+    <div class="progress-stud active" onclick="showStep(1)"></div>
+    <div class="progress-stud" onclick="showStep(2)"></div>
+    <div class="progress-stud" onclick="showStep(3)"></div>
+    <div class="progress-stud" onclick="showStep(4)"></div>
+    <div class="progress-stud" onclick="showStep(5)"></div>
+    <div class="progress-stud" onclick="showStep(6)"></div>
+  </div>
+
+  <script>
+    let currentStep = 1;
+
+    function showStep(step) {
+      document.querySelectorAll('.instruction-page').forEach(page => {
+        page.classList.remove('active');
+      });
+      const page = document.querySelector('[data-step="' + step + '"]');
+      if (page) page.classList.add('active');
+
+      const studs = document.querySelectorAll('.progress-stud');
+      studs.forEach((stud, i) => {
+        stud.classList.toggle('active', i + 1 === step);
+      });
+
+      currentStep = step;
+    }
+
+    function nextStep(step) {
+      showStep(step);
+    }
+
+    function prevStep(step) {
+      showStep(step);
+    }
+
+    function closeQuickstart() {
+      // Return to TIMBER Studio shell
+      window.location.href = 'timber-studio.html';
+    }
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' && currentStep < 6) {
+        nextStep(currentStep + 1);
+      } else if (e.key === 'ArrowLeft' && currentStep > 1) {
+        prevStep(currentStep - 1);
+      } else if (e.key === 'Escape') {
+        closeQuickstart();
+      }
+    });
+  </script>
+</body>
+</html>

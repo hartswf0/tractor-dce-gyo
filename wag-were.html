@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>WAG Master Builder</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%230a0b10'/%3E%3Ccircle cx='32' cy='50' r='18' fill='%233b82f6'/%3E%3Ccircle cx='68' cy='50' r='18' fill='%2300ffff'/%3E%3C/svg%3E" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
@@ -192,6 +193,8 @@
                 <span onclick="toggleStudsNormal()" style="cursor:pointer">🔵</span>
                 <span onclick="toggleStudsProblem()" style="cursor:pointer">🔴</span>
                 <span onclick="toggleStudsGhost()" style="cursor:pointer">🟢</span>
+                <span onclick="toggleGroupMode()" id="group-mode-pill" style="cursor:pointer; font-size:10px; padding:0 4px; border-radius:4px; border:1px solid #333;">GROUP: LINE:LAYER</span>
+                <span onclick="clearSelection()" style="cursor:pointer; font-size:10px; padding:0 4px; border-radius:4px; border:1px solid #333;">✖ DESELECT</span>
                 <span onclick="exportLDraw()" style="cursor:pointer; color:var(--accent)">📋 EXPORT</span>
             </div>
         </div>
@@ -241,7 +244,8 @@
             showStudsProblem: true,
             showStudsGhost: true,
             studs: [],
-            lineColors: {}
+            lineColors: {},
+            isSkeletonScene: false
         };
 
         // --- 2. AUDIO ENGINE (Precision Feedback) ---
@@ -391,6 +395,14 @@
             return labelPool[idx];
         }
 
+        // Track a single "focus" groupKey for coordinate HUD tags
+        // (all selected lines still highlight, but only the focused group gets XYZ labels)
+        let focusGroupKey = null;
+
+        // GROUP mode: when true, bones/selection keys collapse layers so all studs for
+        // line N across layers share the same groupKey ("N"). When false, use line:layer.
+        let collapseLayers = false;
+
         // Picking for bones / studs (group select by original lineNum)
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
@@ -399,6 +411,7 @@
         const boxGeo = new THREE.BoxGeometry(1, 1, 1);
         const lColors = { 0:0x222222, 1:0x0055BF, 2:0x257A24, 4:0xC91A09, 14:0xFFD700, 15:0xDDDDDD, 71:0xAAAAAA };
         const boneMat = new THREE.LineBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0.6 });
+        const sharedBoneEdges = new THREE.EdgesGeometry(boxGeo);
         // Stud orbs: small points so we can see density and draw sticks between them
         const studGeo = new THREE.SphereGeometry(3, 12, 12);
         const studMatNormal = new THREE.MeshBasicMaterial({ color: 0x00ffff });
@@ -410,7 +423,6 @@
             bonesRoot.clear();
             studsRoot.clear();
 
-            // Hide Labels
             labelPool.forEach(l => l.style.display = 'none');
             
             const rayPoints = [];
@@ -420,6 +432,79 @@
             const bonesBySource = {};
             const groupLinesBySource = {};
             let pendingMeta = null;
+
+            const selectedGroupKeys = new Set();
+            state.lines.forEach(l => {
+                if (!l || !l.isPart || !l.selected) return;
+                if (typeof l.groupKey === 'string') selectedGroupKeys.add(l.groupKey);
+            });
+            const hasSelection = selectedGroupKeys.size > 0;
+
+            worldRoot.position.set(0, 0, 0);
+            if (Array.isArray(state.studs) && state.studs.length) {
+                const layerStats = {};
+                state.studs.forEach(s => {
+                    if (!s || typeof s.layer !== 'number') return;
+                    const ySrc = typeof s.y === 'number' ? s.y : (s.worldPos && s.worldPos.y);
+                    if (typeof ySrc !== 'number') return;
+                    const key = s.layer | 0;
+                    let stat = layerStats[key];
+                    if (!stat) {
+                        stat = { count: 0, sumY: 0 };
+                        layerStats[key] = stat;
+                    }
+                    stat.count++;
+                    stat.sumY += ySrc;
+                });
+                let bestLayer = null;
+                let bestCount = 0;
+                Object.keys(layerStats).forEach(k => {
+                    const stat = layerStats[k];
+                    if (stat.count > bestCount) {
+                        bestCount = stat.count;
+                        bestLayer = parseInt(k, 10);
+                    }
+                });
+                if (bestLayer !== null && bestCount > 0) {
+                    const stat = layerStats[bestLayer];
+                    const baseGridY = stat.sumY / stat.count;
+                    if (isFinite(baseGridY)) {
+                        worldRoot.position.y = -baseGridY;
+                    }
+                }
+            }
+
+            const hasStuds = Array.isArray(state.studs) && state.studs.length > 0;
+            let studStride = 1;
+            if (hasStuds) {
+                state.studs.forEach(s => {
+                    const x = typeof s.x === 'number' ? s.x : (s.worldPos && s.worldPos.x) || 0;
+                    const ySrc = typeof s.y === 'number' ? s.y : (s.worldPos && s.worldPos.y) || 0;
+                    const y = typeof ySrc === 'number' ? -ySrc : ySrc;
+                    const z = typeof s.z === 'number' ? s.z : (s.worldPos && s.worldPos.z) || 0;
+                    if (typeof s.lineNum !== 'number') return;
+                    let key;
+                    if (typeof s.layer === 'number') key = s.lineNum + ':' + s.layer;
+                    else key = String(s.lineNum);
+                    if (hasSelection && !selectedGroupKeys.has(key)) return;
+                    let b = bonesBySource[key];
+                    if (!b) {
+                        b = {
+                            minX: x, maxX: x,
+                            minY: y, maxY: y,
+                            minZ: z, maxZ: z
+                        };
+                        bonesBySource[key] = b;
+                    } else {
+                        b.minX = Math.min(b.minX, x);
+                        b.maxX = Math.max(b.maxX, x);
+                        b.minY = Math.min(b.minY, y);
+                        b.maxY = Math.max(b.maxY, y);
+                        b.minZ = Math.min(b.minZ, z);
+                        b.maxZ = Math.max(b.maxZ, z);
+                    }
+                });
+            }
 
             state.lines.forEach(line => {
                 // Detect skeleton metadata comments of the form:
@@ -474,16 +559,25 @@
 
                     // Attach group key for this proxy, based on preceding skeleton metadata
                     let groupKey = null;
-                    if(pendingMeta && typeof pendingMeta.srcLineNum === 'number') {
-                        groupKey = String(pendingMeta.srcLineNum);
+                    if (pendingMeta && typeof pendingMeta.srcLineNum === 'number') {
+                        if (typeof pendingMeta.layer === 'number') {
+                            groupKey = pendingMeta.srcLineNum + ':' + pendingMeta.layer;
+                        } else {
+                            groupKey = String(pendingMeta.srcLineNum);
+                        }
                         line.groupKey = groupKey;
-                        if(!groupLinesBySource[groupKey]) groupLinesBySource[groupKey] = [];
+                        if (!groupLinesBySource[groupKey]) groupLinesBySource[groupKey] = [];
                         groupLinesBySource[groupKey].push(line.id);
                     }
 
-                    if(line.selected) {
+                    const isFocused = line.selected &&
+                        focusGroupKey &&
+                        typeof line.groupKey === 'string' &&
+                        line.groupKey === focusGroupKey &&
+                        (!groupLinesBySource[line.groupKey] || groupLinesBySource[line.groupKey][0] === line.id);
+                    if (isFocused) {
                         mesh.material.emissive.setHex(0x332200);
-                        const edges = new THREE.EdgesGeometry(boxGeo);
+                        const edges = sharedBoneEdges;
                         const wire = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0xffcc00 }));
                         mesh.add(wire);
 
@@ -509,25 +603,28 @@
                         // If Y > 0 (Visual Y < 0), we are underground.
                     }
 
-                    if(groupKey !== null) {
+                    if (groupKey !== null) {
                         const key = groupKey;
                         mesh.userData.groupKey = key;
-                        let bone = bonesBySource[key];
-                        if(!bone) {
-                            bone = {
-                                minX: line.x, maxX: line.x,
-                                minY: line.y, maxY: line.y,
-                                minZ: line.z, maxZ: line.z,
-                                color: lColors[line.color] || 0x00ffff
-                            };
-                            bonesBySource[key] = bone;
-                        } else {
-                            bone.minX = Math.min(bone.minX, line.x);
-                            bone.maxX = Math.max(bone.maxX, line.x);
-                            bone.minY = Math.min(bone.minY, line.y);
-                            bone.maxY = Math.max(bone.maxY, line.y);
-                            bone.minZ = Math.min(bone.minZ, line.z);
-                            bone.maxZ = Math.max(bone.maxZ, line.z);
+                        // If we did not have stud data, fall back to coarse brick-based bones
+                        if (!hasStuds && (!hasSelection || selectedGroupKeys.has(key))) {
+                            let bone = bonesBySource[key];
+                            if (!bone) {
+                                bone = {
+                                    minX: line.x, maxX: line.x,
+                                    minY: line.y, maxY: line.y,
+                                    minZ: line.z, maxZ: line.z,
+                                    color: lColors[line.color] || 0x00ffff
+                                };
+                                bonesBySource[key] = bone;
+                            } else {
+                                bone.minX = Math.min(bone.minX, line.x);
+                                bone.maxX = Math.max(bone.maxX, line.x);
+                                bone.minY = Math.min(bone.minY, line.y);
+                                bone.maxY = Math.max(bone.maxY, line.y);
+                                bone.minZ = Math.min(bone.minZ, line.z);
+                                bone.maxZ = Math.max(bone.maxZ, line.z);
+                            }
                         }
                     }
                     pendingMeta = null;
@@ -539,14 +636,14 @@
             if(state.showBones) {
                 Object.keys(bonesBySource).forEach(key => {
                     const b = bonesBySource[key];
+                    if (!b) return;
                     const cx = (b.minX + b.maxX) / 2;
                     const cy = (b.minY + b.maxY) / 2;
                     const cz = (b.minZ + b.maxZ) / 2;
                     const sx = Math.max(4, (b.maxX - b.minX) || 20) * 1.05;
                     const sy = Math.max(4, (b.maxY - b.minY) || 24) * 1.05;
                     const sz = Math.max(4, (b.maxZ - b.minZ) || 20) * 1.05;
-
-                    const edges = new THREE.EdgesGeometry(boxGeo);
+                    const edges = sharedBoneEdges;
                     const wire = new THREE.LineSegments(edges, boneMat);
                     wire.position.set(cx, cy, cz);
                     wire.scale.set(sx, sy, sz);
@@ -561,10 +658,16 @@
             floorPlane.material.opacity = floorHit ? 0.5 : 0;
             if(floorHit) sfxThud();
 
-            if (state.showStuds && Array.isArray(state.studs) && state.studs.length) {
-                state.studs.forEach(s => {
+            if (state.showStuds && hasStuds) {
+                const maxStudsForDraw = 4000;
+                const totalStuds = state.studs.length;
+                studStride = totalStuds > maxStudsForDraw ? Math.ceil(totalStuds / maxStudsForDraw) : 1;
+
+                state.studs.forEach((s, idx) => {
+                    if (studStride > 1 && (idx % studStride) !== 0) return;
                     const x = typeof s.x === 'number' ? s.x : (s.worldPos && s.worldPos.x) || 0;
-                    const y = typeof s.y === 'number' ? s.y : (s.worldPos && s.worldPos.y) || 0;
+                    const ySrc = typeof s.y === 'number' ? s.y : (s.worldPos && s.worldPos.y) || 0;
+                    const y = typeof ySrc === 'number' ? -ySrc : ySrc;
                     const z = typeof s.z === 'number' ? s.z : (s.worldPos && s.worldPos.z) || 0;
                     let type = 'normal';
                     let mat = studMatNormal;
@@ -576,10 +679,17 @@
                         return;
                     }
                     const m = new THREE.Mesh(studGeo, mat);
-                    // Place orbs exactly at stud centers in LDraw space
+                    // Place orbs so that after worldRoot Y-flip they match Courage world positions
                     m.position.set(x, y, z);
                     if (typeof s.lineNum === 'number') {
-                        m.userData.groupKey = String(s.lineNum);
+                        let key;
+                        if (typeof s.layer === 'number') key = s.lineNum + ':' + s.layer;
+                        else key = String(s.lineNum);
+                        if (!hasSelection || selectedGroupKeys.has(key)) {
+                            m.userData.groupKey = key;
+                        } else {
+                            return; // Skip drawing orbs for non-selected groups when something is focused
+                        }
                     }
                     studsRoot.add(m);
                 });
@@ -658,10 +768,53 @@
 
         function toggleSelect(line) {
             initAudio();
-            line.selected = !line.selected;
+
+            let targetGroupKey = null;
+            if (line && typeof line.groupKey === 'string') {
+                targetGroupKey = line.groupKey;
+            } else if (line && !line.isPart && typeof line.raw === 'string') {
+                const raw = line.raw.trim();
+                if (raw.startsWith('0 line ')) {
+                    const tokens = raw.split(/\s+/);
+                    for (let i = 0; i < tokens.length; i++) {
+                        if (tokens[i] === 'line' && i + 1 < tokens.length) {
+                            const v = parseInt(tokens[i + 1], 10);
+                            if (!isNaN(v)) {
+                                targetGroupKey = String(v);
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (targetGroupKey) {
+                const anySelected = state.lines.some(l => l && l.groupKey === targetGroupKey && l.selected);
+                const newSelected = !anySelected;
+                state.lines.forEach(l => {
+                    if (l && l.groupKey === targetGroupKey) {
+                        l.selected = newSelected;
+                    }
+                });
+                focusGroupKey = newSelected ? targetGroupKey : null;
+            } else if (line) {
+                line.selected = !line.selected;
+                focusGroupKey = line.selected && typeof line.groupKey === 'string' ? line.groupKey : null;
+            }
+
             sfxTick();
             renderEditor();
             update3D();
+            broadcastSelectionToParent();
+        }
+
+        function clearSelection() {
+            focusGroupKey = null;
+            state.lines.forEach(l => {
+                if (l && l.isPart && l.selected) l.selected = false;
+            });
+            renderEditor();
+            update3D();
+            broadcastSelectionToParent();
         }
 
         // --- 6. INTERACTION LOGIC (Anti-Surf) ---
@@ -848,10 +1001,13 @@
             lines.push('0 BFC CERTIFY CCW');
             lines.push('0');
 
+            const layerPalette = [1, 4, 14, 2, 15, 25, 0]; // blue, red, yellow, green, white, orange, dark
+
             studs.forEach((s, idx) => {
                 if (!s) return;
                 const px = (typeof s.x === 'number') ? s.x : (s.worldPos && s.worldPos.x);
-                const py = (typeof s.y === 'number') ? s.y : (s.worldPos && s.worldPos.y);
+                const pySrc = (typeof s.y === 'number') ? s.y : (s.worldPos && s.worldPos.y);
+                const py = (typeof pySrc === 'number') ? -pySrc : pySrc;
                 const pz = (typeof s.z === 'number') ? s.z : (s.worldPos && s.worldPos.z);
                 if (typeof px !== 'number' || typeof py !== 'number' || typeof pz !== 'number') return;
                 let color = 4;
@@ -859,6 +1015,10 @@
                     color = s.color;
                 } else if (typeof s.lineNum === 'number' && state.lineColors && typeof state.lineColors[s.lineNum] === 'number') {
                     color = state.lineColors[s.lineNum];
+                } else if (typeof s.layer === 'number' && layerPalette.length) {
+                    const rawLayer = s.layer | 0;
+                    const idxLayer = ((rawLayer % layerPalette.length) + layerPalette.length) % layerPalette.length;
+                    color = layerPalette[idxLayer];
                 }
                 const metaParts = [];
                 if (typeof s.lineNum === 'number') metaParts.push('line ' + s.lineNum);
@@ -901,6 +1061,16 @@
 
         function toggleStudsGhost() {
             state.showStudsGhost = !state.showStudsGhost;
+            update3D();
+        }
+
+        function toggleGroupMode() {
+            collapseLayers = !collapseLayers;
+            const pill = document.getElementById('group-mode-pill');
+            if (pill) {
+                pill.textContent = collapseLayers ? 'GROUP: LINE' : 'GROUP: LINE:LAYER';
+            }
+            // Changing grouping affects bones + selection grouping; redraw scene.
             update3D();
         }
 
@@ -984,6 +1154,47 @@
                 if (Array.isArray(payload.stud_skeleton) && payload.stud_skeleton.length) {
                     loadSkeletonFromStuds(payload.stud_skeleton);
                 }
+            } else if (msg.type === 'timber-selection-update') {
+                const groupKeys = Array.isArray(msg.groupKeys)
+                    ? new Set(msg.groupKeys.map(String))
+                    : null;
+                const lineNums = Array.isArray(msg.lineNums)
+                    ? new Set(msg.lineNums.map(n => parseInt(n, 10)).filter(n => !isNaN(n)))
+                    : null;
+
+                if (!groupKeys && !lineNums) return;
+
+                state.lines.forEach(line => {
+                    if (!line || !line.isPart) return;
+                    let match = false;
+
+                    if (groupKeys && typeof line.groupKey === 'string' && groupKeys.has(line.groupKey)) {
+                        match = true;
+                    } else if (lineNums) {
+                        let base = NaN;
+                        if (typeof line.groupKey === 'string') {
+                            const baseStr = line.groupKey.split(':')[0];
+                            base = parseInt(baseStr, 10);
+                        } else if (typeof line.id === 'number') {
+                            base = line.id + 1;
+                        }
+                        if (!isNaN(base) && lineNums.has(base)) {
+                            match = true;
+                        }
+                    }
+
+                    line.selected = match;
+                });
+
+                // If a single groupKey is present, treat it as focus for XYZ HUD tags
+                if (groupKeys && groupKeys.size === 1) {
+                    focusGroupKey = Array.from(groupKeys)[0];
+                } else {
+                    focusGroupKey = null;
+                }
+
+                renderEditor();
+                update3D();
             }
         });
 
@@ -1001,7 +1212,6 @@
             const intersects = raycaster.intersectObjects(candidates, true);
             if (!intersects.length) return;
 
-            // Find first object that carries a groupKey
             let hit = intersects[0].object;
             while (hit && hit !== bonesRoot && hit !== studsRoot && !hit.userData.groupKey) {
                 hit = hit.parent;
@@ -1009,15 +1219,60 @@
             const groupKey = hit && hit.userData.groupKey;
             if (!groupKey) return;
 
-            // Select all matching lines in the editor
+            const anySelected = state.lines.some(line => line && line.groupKey === groupKey && line.selected);
+            const newSelected = !anySelected;
             state.lines.forEach(line => {
                 if (line && line.groupKey === groupKey) {
-                    line.selected = true;
+                    line.selected = newSelected;
                 }
             });
+            focusGroupKey = newSelected ? groupKey : null;
             renderEditor();
             update3D();
+            broadcastSelectionToParent();
         });
+
+        function broadcastSelectionToParent() {
+            try {
+                if (!window.parent || window.parent === window) return;
+
+                const groupKeys = [];
+                const lineNums = [];
+                const seenGK = new Set();
+                const seenLN = new Set();
+
+                state.lines.forEach(line => {
+                    if (!line || !line.isPart || !line.selected) return;
+
+                    if (typeof line.groupKey === 'string') {
+                        if (!seenGK.has(line.groupKey)) {
+                            seenGK.add(line.groupKey);
+                            groupKeys.push(line.groupKey);
+                        }
+                        const baseStr = line.groupKey.split(':')[0];
+                        const n = parseInt(baseStr, 10);
+                        if (!isNaN(n) && !seenLN.has(n)) {
+                            seenLN.add(n);
+                            lineNums.push(n);
+                        }
+                    } else if (typeof line.id === 'number') {
+                        const n = line.id + 1;
+                        if (!seenLN.has(n)) {
+                            seenLN.add(n);
+                            lineNums.push(n);
+                        }
+                    }
+                });
+
+                window.parent.postMessage({
+                    type: 'timber-selection-from-were',
+                    groupKeys,
+                    lineNums
+                }, '*');
+            } catch (err) {
+                console.warn('[WERE] failed to post timber-selection-from-were', err);
+            }
+        }
 
         // Drag-and-drop upload (MPD or JSON)
         document.body.addEventListener('dragover', e => {
@@ -1100,42 +1355,36 @@
         function animate() {
             requestAnimationFrame(animate);
             controls.update();
-            
-            // Update HUD positions every frame
-            const hudDivs = document.getElementsByClassName('hud-tag');
-            // Triggering a redraw of labels happens inside update3D, 
-            // but we call update3D only on change usually. 
-            // For smooth camera orbit label tracking, we need to update label positions constantly.
-            // We'll just re-run the label pos logic here efficiently? 
-            // Actually, update3D recalculates everything. Let's optimize:
-            // Only recalculate positions in animate loop if camera moved?
-            // For simplicity in this demo, we re-run the label projection logic.
-            
-            // (Re-running visual update for labels)
-            const rayPoints = [];
-            let labelIdx = 0;
-            state.lines.forEach(line => {
-                if(line.isPart && line.selected) {
-                    const vx = line.x; const vy = -line.y; const vz = line.z;
-                    const lblY = document.getElementsByClassName('hud-tag')[labelIdx++] || createLabel();
-                    updateLabel(lblY, vx, vy/2, vz, `Y: ${Math.round(line.y)}`);
-                    const lblX = document.getElementsByClassName('hud-tag')[labelIdx++] || createLabel();
-                    updateLabel(lblX, vx/2, 0, vz, `X: ${Math.round(vx)}`);
-                    const lblZ = document.getElementsByClassName('hud-tag')[labelIdx++] || createLabel();
-                    updateLabel(lblZ, vx, 0, vz/2, `Z: ${Math.round(vz)}`);
+
+            // Re-project HUD labels every frame, but only for the focused groupKey.
+            labelPool.forEach(l => l.style.display = 'none');
+
+            if (focusGroupKey) {
+                const line = state.lines.find(l =>
+                    l && l.isPart && l.selected &&
+                    typeof l.groupKey === 'string' && l.groupKey === focusGroupKey
+                );
+
+                if (line) {
+                    let labelIdx = 0;
+                    const vx = line.x;
+                    const vy = -line.y;
+                    const vz = line.z;
+
+                    const lblY = getLabel(labelIdx++);
+                    updateLabel(lblY, vx, vy / 2, vz, `Y: ${Math.round(line.y)}`);
+
+                    const lblX = getLabel(labelIdx++);
+                    updateLabel(lblX, vx / 2, 0, vz, `X: ${Math.round(vx)}`);
+
+                    const lblZ = getLabel(labelIdx++);
+                    updateLabel(lblZ, vx, 0, vz / 2, `Z: ${Math.round(vz)}`);
                 }
-            });
+            }
 
             renderer.render(scene, camera);
         }
-        
-        function createLabel() {
-            const d = document.createElement('div');
-            d.className = 'hud-tag';
-            document.getElementById('hud-layer').appendChild(d);
-            return d;
-        }
-        
+
         animate();
 
     </script>

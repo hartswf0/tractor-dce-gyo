@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>WAG Master Builder v9</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23020203'/%3E%3Ccircle cx='30' cy='50' r='18' fill='%23ffcc00'/%3E%3Ccircle cx='70' cy='50' r='18' fill='%233b82f6'/%3E%3C/svg%3E" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
@@ -118,11 +119,12 @@
     <div id="editor-container">
         <div class="toolbar">
             <div class="brand">WAG MASTER v9</div>
-            <div style="display:flex; gap:10px">
+            <div style="display:flex; gap:10px; align-items:center">
                 <button class="btn" onclick="toggleRaw()">RAW</button>
                 <button class="btn" onclick="openGoldFileMaster()">LOAD</button>
                 <button class="btn" onclick="exportCode()">COPY</button>
                 <button class="btn" onclick="downloadMPD()">SAVE</button>
+                <button class="btn" id="skeletonToggleBtn" onclick="toggleSkeleton()" title="Toggle skeleton overlays (studs, bones, part dots) on top of cubes">SKELETON</button>
             </div>
         </div>
         <input type="file" id="gold-file-master" style="display:none" accept=".json,application/json">
@@ -151,8 +153,38 @@
 1 1 60 -24 60 1 0 0 0 1 0 0 0 1 3001.dat
 1 1 60 -48 60 1 0 0 0 1 0 0 0 1 3001.dat`;
 
-        let state = { lines: [], audioReady: false, studs: [] };
+        let state = { lines: [], audioReady: false, studs: [], partSkeleton: [], groundViolations: [], skeletonEnabled: true };
         
+        // Baseline snapshot for GOLD skeleton + MPD transforms (for future per-line delta logic)
+        const skeletonBaseline = {
+            hasBaseline: false,
+            // One entry per state.lines[index] at GOLD load time (null for non-part lines)
+            baseLines: [],
+            // Map GOLD lineNum (1-based) -> array of stud indices in state.studs
+            studsByLine: {},
+            studCentersByLine: {}
+        };
+
+        const skeletonDebugFlags = {
+            warnedNoBaseline: false,
+            warnedNoAnchor: false,
+            warnedMissingAnchorLine: false,
+            fatalBaselineError: false
+        };
+
+        const eventHandlers = {};
+        function subscribeEvent(type, handler) {
+            if (!eventHandlers[type]) eventHandlers[type] = [];
+            eventHandlers[type].push(handler);
+        }
+        function publishEvent(type, payload) {
+            const list = eventHandlers[type];
+            if (!list) return;
+            list.forEach(fn => { try { fn(payload); } catch (e) {} });
+        }
+
+        let skeletonAnchorLineNum = null;
+
         // --- 2. AUDIO ---
         let click, alarm;
         async function initAudio() {
@@ -170,28 +202,38 @@
 
         // --- 3. PARSER ---
         function parse(text) {
-            state.lines = text.split('\n').map((raw, i) => {
-                raw = raw.trim();
-                if(!raw) return { id:i, type:-1, raw:"" };
-                const p = raw.split(/\s+/);
-                const type = parseInt(p[0]);
-                if(type === 1 && p.length >= 14) {
-                    return {
-                        id: i, type: 1, isPart: true,
-                        color: parseInt(p[1]),
-                        x: parseFloat(p[2]), y: parseFloat(p[3]), z: parseFloat(p[4]),
-                        matrix: p.slice(5,14).map(parseFloat),
-                        file: p.slice(14).join(' '),
-                        raw: raw, selected: false
-                    };
-                } else if (type === 0) {
-                    return { id:i, type:0, isHeader:true, raw:raw, selected:false };
+            const lines = [];
+            text.split('\n').forEach((raw, i) => {
+                let lineObj;
+                const trimmed = raw.trim();
+                if (!trimmed) {
+                    lineObj = { id:i, type:-1, raw:"" };
+                } else {
+                    const p = trimmed.split(/\s+/);
+                    const type = parseInt(p[0]);
+                    if (type === 1 && p.length >= 14) {
+                        lineObj = {
+                            id: i, type: 1, isPart: true,
+                            color: parseInt(p[1]),
+                            x: parseFloat(p[2]), y: parseFloat(p[3]), z: parseFloat(p[4]),
+                            matrix: p.slice(5,14).map(parseFloat),
+                            file: p.slice(14).join(' '),
+                            raw: trimmed, selected: false
+                        };
+                    } else if (type === 0) {
+                        lineObj = { id:i, type:0, isHeader:true, raw:trimmed, selected:false };
+                    } else {
+                        lineObj = { id:i, type:type, isPart:false, raw:trimmed };
+                    }
                 }
-                return { id:i, type:type, isPart:false, raw:raw };
+                lines.push(lineObj);
             });
+
+            state.lines = lines;
+
             // Auto-select first group
             const first = state.lines.find(l => l.isPart);
-            if(first) first.selected = true;
+            if (first) first.selected = true;
         }
 
         function compile(line) {
@@ -212,10 +254,94 @@
             renderEditor(); update3D();
         }
 
+        // Capture baseline MPD line transforms and stud-to-line mappings at GOLD load time.
+        // This is read-only scaffolding for future per-line delta ('leash') logic.
+        function captureSkeletonBaseline() {
+            // Reset debug flags for a fresh GOLD payload
+            skeletonDebugFlags.warnedNoBaseline = false;
+            skeletonDebugFlags.warnedNoAnchor = false;
+            skeletonDebugFlags.warnedMissingAnchorLine = false;
+            skeletonDebugFlags.fatalBaselineError = false;
+            skeletonBaseline.baseLines = state.lines.map(line => {
+                if (!line || !line.isPart) return null;
+                return {
+                    id: line.id,
+                    color: line.color,
+                    x: line.x,
+                    y: line.y,
+                    z: line.z,
+                    matrix: Array.isArray(line.matrix) ? line.matrix.slice() : null,
+                    file: line.file
+                };
+            });
+
+            skeletonBaseline.studsByLine = {};
+            skeletonBaseline.studCentersByLine = {};
+            const accum = {};
+            if (Array.isArray(state.studs)) {
+                state.studs.forEach((node, idx) => {
+                    if (!node || typeof node.lineNum !== 'number') return;
+                    const ln = node.lineNum | 0;
+                    if (!Number.isFinite(ln) || ln < 0) return;
+                    let bucket = skeletonBaseline.studsByLine[ln];
+                    if (!bucket) bucket = skeletonBaseline.studsByLine[ln] = [];
+                    bucket.push(idx);
+
+                    let a = accum[ln];
+                    if (!a) a = accum[ln] = { sumX: 0, sumY: 0, sumZ: 0, count: 0 };
+                    const y = -node.y;
+                    a.sumX += node.x;
+                    a.sumY += y;
+                    a.sumZ += node.z;
+                    a.count++;
+                });
+            }
+
+            Object.keys(accum).forEach(k => {
+                const a = accum[k];
+                if (!a || !a.count) return;
+                skeletonBaseline.studCentersByLine[k] = {
+                    x: a.sumX / a.count,
+                    y: a.sumY / a.count,
+                    z: a.sumZ / a.count
+                };
+            });
+
+            skeletonBaseline.hasBaseline = !!state.lines.length && Object.keys(skeletonBaseline.studsByLine).length > 0;
+
+            if (skeletonBaseline.hasBaseline) {
+                const linesWithStuds = Object.keys(skeletonBaseline.studsByLine).length;
+                console.log('[MASTER] Skeleton baseline captured', {
+                    totalLines: state.lines.length,
+                    studCount: Array.isArray(state.studs) ? state.studs.length : 0,
+                    linesWithStuds
+                });
+                const mismatches = [];
+                Object.keys(skeletonBaseline.studsByLine).forEach(k => {
+                    const ln = parseInt(k, 10);
+                    if (!Number.isFinite(ln)) return;
+                    const base = skeletonBaseline.baseLines[ln] || null;
+                    const line = state.lines[ln] || null;
+                    if (!line || !line.isPart || !base) {
+                        mismatches.push(ln);
+                    }
+                });
+                if (mismatches.length) {
+                    console.error('[MASTER] FATAL skeleton baseline mismatch for lines (studs mapped but missing baseLines or MPD parts)', mismatches);
+                    skeletonDebugFlags.fatalBaselineError = true;
+                    skeletonBaseline.hasBaseline = false;
+                }
+            } else {
+                console.error('[MASTER] FATAL skeleton baseline missing or empty after GOLD load');
+                skeletonDebugFlags.fatalBaselineError = true;
+            }
+        }
+
         // --- 4. THREE.JS ---
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x020203);
-        scene.fog = new THREE.Fog(0x020203, 300, 800);
+        // Match WERE/Courage: technical blue-black background, light fog far away
+        scene.background = new THREE.Color(0x0a0b10);
+        scene.fog = new THREE.Fog(0x0a0b10, 800, 2400);
         
         const camera = new THREE.PerspectiveCamera(50, window.innerWidth/(window.innerHeight*0.6), 0.1, 2000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -237,15 +363,17 @@
         worldRoot.add(skeletonRoot);
         const bonesGroup = new THREE.Group();
         const studsGroup = new THREE.Group();
+        const partDotsGroup = new THREE.Group();
         skeletonRoot.add(bonesGroup);
         skeletonRoot.add(studsGroup);
+        skeletonRoot.add(partDotsGroup);
         skeletonRoot.visible = false;
         
         const teleRoot = new THREE.Group();
         scene.add(teleRoot); // No flip for telemetry
 
         // --- THE CONTAINMENT FIELD (Walls) ---
-        const BOUNDS = 160; // Size of the box
+        const BOUNDS = 400; // Expanded room: ±400 in X/Z with ~20-unit grid cells
         const walls = {
             floor: createWallPlane(BOUNDS, 0x00ffaa),
             ceil:  createWallPlane(BOUNDS, 0x00ffaa),
@@ -276,8 +404,10 @@
             // Grid Helper + Transparent Plane for Collision Glow
             const group = new THREE.Group();
             
-            // Grid
-            const g = new THREE.GridHelper(size*2, 20, color, 0x112233);
+            // Grid — keep cell size ~20 units regardless of room size
+            const worldSize = size * 2; // Extent from -size to +size
+            const divisions = Math.max(20, Math.round(worldSize / 20));
+            const g = new THREE.GridHelper(worldSize, divisions, color, 0x112233);
             g.rotation.x = Math.PI/2; // Rotate grid to be a plane facing Z
             group.add(g);
 
@@ -321,10 +451,109 @@
         const boxGeo = new THREE.BoxGeometry(1,1,1);
         const lColors = { 0:0x222, 1:0x0055BF, 2:0x257A24, 4:0xC91A09, 14:0xFFD700, 15:0xEEE, 25:0xffaa00 };
         const studGeo = new THREE.SphereGeometry(2, 10, 10);
-        const studMat = new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent:true, opacity:0.9 });
-        const studMatsByColor = {};
+        const studMat = new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent:true, opacity:0.9, vertexColors: true });
+        const studMatsByColor = {}; // legacy map preserved for compatibility (bones reuse lDraw colours)
+        const studColorTmp = new THREE.Color(0x00ffff);
+        const studMatrixTmp = new THREE.Matrix4();
+        const partDotGeo = new THREE.SphereGeometry(4, 12, 12);
+
+        function recomputeSkeletonCalibration() {
+            if (!skeletonBaseline.hasBaseline) {
+                if (!skeletonDebugFlags.warnedNoBaseline) {
+                    console.warn('[MASTER] recomputeSkeletonCalibration called without baseline');
+                    skeletonDebugFlags.warnedNoBaseline = true;
+                }
+                skeletonRoot.position.set(0, 0, 800);
+                return;
+            }
+            if (skeletonAnchorLineNum === null) {
+                if (!skeletonDebugFlags.warnedNoAnchor) {
+                    console.warn('[MASTER] recomputeSkeletonCalibration has no anchor line');
+                    skeletonDebugFlags.warnedNoAnchor = true;
+                }
+                skeletonRoot.position.set(0, 0, 800);
+                return;
+            }
+            const centers = skeletonBaseline.studCentersByLine;
+            const center = centers && centers[skeletonAnchorLineNum];
+            const line = (typeof skeletonAnchorLineNum === 'number' && skeletonAnchorLineNum >= 0 && skeletonAnchorLineNum < state.lines.length)
+                ? state.lines[skeletonAnchorLineNum]
+                : null;
+            if (!center || !line || !line.isPart) {
+                if (!skeletonDebugFlags.warnedMissingAnchorLine) {
+                    console.warn('[MASTER] Missing stud center or MPD line for anchor', { anchor: skeletonAnchorLineNum, center, line });
+                    skeletonDebugFlags.warnedMissingAnchorLine = true;
+                }
+                skeletonRoot.position.set(0, 0, 800);
+                return;
+            }
+            skeletonRoot.position.set(
+                line.x - center.x,
+                line.y - center.y,
+                line.z + 800 - center.z
+            );
+        }
+
+        function recomputeSkeletonAnchor() {
+            if (!skeletonBaseline.hasBaseline) {
+                skeletonAnchorLineNum = null;
+                skeletonRoot.position.set(0, 0, 800);
+                return;
+            }
+            let bestSelected = null;
+            let bestAny = null;
+            state.lines.forEach(line => {
+                if (!line || !line.isPart) return;
+                const ln = line.id; // GOLD stud_skeleton.lineNum is 0-based raw MPD index
+                if (!skeletonBaseline.studCentersByLine[ln]) return;
+                if (line.selected) {
+                    if (bestSelected === null || ln < bestSelected) bestSelected = ln;
+                }
+                if (bestAny === null || ln < bestAny) bestAny = ln;
+            });
+            const chosen = bestSelected !== null ? bestSelected : bestAny;
+            skeletonAnchorLineNum = chosen;
+            if (skeletonAnchorLineNum === null) {
+                skeletonRoot.position.set(0, 0, 800);
+                return;
+            }
+            recomputeSkeletonCalibration();
+        }
 
         function update3D() {
+            // Recenter worldRoot so Courage's base grid layer sits at Y=0 in the room
+            worldRoot.position.set(0, 0, 0);
+            if (Array.isArray(state.studs) && state.studs.length) {
+                const layerStats = {};
+                state.studs.forEach(node => {
+                    if (!node || typeof node.layer !== 'number' || typeof node.y !== 'number') return;
+                    const key = node.layer | 0;
+                    let stat = layerStats[key];
+                    if (!stat) {
+                        stat = { count: 0, sumY: 0 };
+                        layerStats[key] = stat;
+                    }
+                    stat.count++;
+                    stat.sumY += node.y;
+                });
+                let bestLayer = null;
+                let bestCount = 0;
+                Object.keys(layerStats).forEach(k => {
+                    const stat = layerStats[k];
+                    if (stat.count > bestCount) {
+                        bestCount = stat.count;
+                        bestLayer = parseInt(k, 10);
+                    }
+                });
+                if (bestLayer !== null && bestCount > 0) {
+                    const stat = layerStats[bestLayer];
+                    const baseGridY = stat.sumY / stat.count;
+                    if (isFinite(baseGridY)) {
+                        worldRoot.position.y = -baseGridY;
+                    }
+                }
+            }
+
             // 1. Rebuild Bricks
             const kill = [];
             worldRoot.traverse(c => { if(c.userData && c.userData.isBrick) kill.push(c); });
@@ -333,7 +562,9 @@
             // Reset skeleton overlays
             bonesGroup.clear();
             studsGroup.clear();
-            skeletonRoot.visible = !!(state.studs && state.studs.length);
+            if (typeof partDotsGroup.clear === 'function') partDotsGroup.clear();
+            const hasAnySkeleton = (state.studs && state.studs.length) || (state.partSkeleton && state.partSkeleton.length);
+            skeletonRoot.visible = !!(hasAnySkeleton && state.skeletonEnabled && !skeletonDebugFlags.fatalBaselineError);
 
             // Reset Telemetry
             shadowPool.forEach(s => s.visible = false);
@@ -419,46 +650,87 @@
 
             // 2. Skeleton overlays from GOLD stud_skeleton (if present)
             const selectedLineNums = new Set();
-            state.lines.forEach(l => { if (l.isPart && l.selected) selectedLineNums.add(l.id + 1); }); // GOLD lineNum is 1-based
+            state.lines.forEach(l => {
+                if (l.isPart && l.selected) {
+                    selectedLineNums.add(l.id); // use raw 0-based MPD line indices
+                }
+            });
 
-            if (state.studs && state.studs.length) {
+            const violationLines = new Set();
+            if (Array.isArray(state.groundViolations)) {
+                state.groundViolations.forEach(entry => {
+                    if (entry && typeof entry.lineNum === 'number') {
+                        // GOLD ground_violations.lineNum is 0-based MPD index from Courage
+                        violationLines.add(entry.lineNum);
+                    }
+                });
+            }
+
+            if (state.skeletonEnabled && !skeletonDebugFlags.fatalBaselineError && state.studs && state.studs.length) {
                 const boxesByLine = {};
+                const filteredStuds = [];
 
                 state.studs.forEach(node => {
                     if (!node || typeof node.x !== 'number' || typeof node.y !== 'number' || typeof node.z !== 'number') return;
-                    const lineNum = (typeof node.lineNum === 'number') ? node.lineNum : null;
-                    if (lineNum === null) return;
+                    const lineNum = (typeof node.lineNum === 'number') ? node.lineNum : -1;
+                    const y = -node.y;
 
-                    // Accumulate bounds per line
                     if (!boxesByLine[lineNum]) {
                         boxesByLine[lineNum] = new THREE.Box3();
                     }
-                    boxesByLine[lineNum].expandByPoint(new THREE.Vector3(node.x, node.y, node.z));
-
-                    // Render studs only for focused lines (or when nothing is selected, for a quick global view)
-                    if (!selectedLineNums.size || selectedLineNums.has(lineNum)) {
-                        // Tint stud by its MPD part color when possible so dots are grouped by part
-                        let mat = studMat;
-                        const srcLine = state.lines[lineNum - 1];
-                        if (srcLine && typeof srcLine.color === 'number' && lColors[srcLine.color]) {
-                            const key = srcLine.color;
-                            if (!studMatsByColor[key]) {
-                                const m = studMat.clone();
-                                m.color.setHex(lColors[key]);
-                                studMatsByColor[key] = m;
-                            }
-                            mat = studMatsByColor[key];
-                        }
-                        const stud = new THREE.Mesh(studGeo, mat);
-                        stud.position.set(node.x, node.y, node.z);
-                        stud.userData.isStud = true;
-                        stud.userData.lineNum = lineNum;
-                        studsGroup.add(stud);
-                    }
+                    boxesByLine[lineNum].expandByPoint(new THREE.Vector3(node.x, y, node.z));
+                    filteredStuds.push({ node, lineNum, y });
                 });
 
+                studsGroup.clear();
+
+                if (filteredStuds.length) {
+                    const instanced = new THREE.InstancedMesh(studGeo, studMat.clone(), filteredStuds.length);
+                    instanced.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+                    instanced.userData.isStud = true;
+                    instanced.userData.lineNums = new Int32Array(filteredStuds.length);
+
+                    const colors = new Float32Array(filteredStuds.length * 3);
+
+                    filteredStuds.forEach((entry, idx) => {
+                        const { node, lineNum, y } = entry;
+
+                        let dx = 0, dy = 0, dz = 0;
+                        let srcLine = null;
+                        if (typeof lineNum === 'number' && lineNum >= 0 && skeletonBaseline.hasBaseline) {
+                            const baseLine = skeletonBaseline.baseLines[lineNum];
+                            const curLine = state.lines[lineNum];
+                            if (baseLine && curLine && curLine.isPart &&
+                                typeof baseLine.x === 'number' && typeof baseLine.y === 'number' && typeof baseLine.z === 'number') {
+                                dx = curLine.x - baseLine.x;
+                                dy = curLine.y - baseLine.y;
+                                dz = curLine.z - baseLine.z;
+                            }
+                            srcLine = curLine;
+                        }
+
+                        studMatrixTmp.makeTranslation(node.x + dx, y - dy, node.z + dz);
+                        instanced.setMatrixAt(idx, studMatrixTmp);
+
+                        studColorTmp.setHex(0x00ffff);
+                        if (!srcLine && state.lines.length) srcLine = state.lines[0];
+                        if (srcLine && typeof srcLine.color === 'number' && lColors[srcLine.color]) {
+                            studColorTmp.setHex(lColors[srcLine.color]);
+                        }
+                        colors[idx * 3 + 0] = studColorTmp.r;
+                        colors[idx * 3 + 1] = studColorTmp.g;
+                        colors[idx * 3 + 2] = studColorTmp.b;
+                        instanced.userData.lineNums[idx] = lineNum;
+                    });
+
+                    instanced.instanceColor = new THREE.InstancedBufferAttribute(colors, 3);
+                    instanced.instanceMatrix.needsUpdate = true;
+                    instanced.instanceColor.needsUpdate = true;
+                    studsGroup.add(instanced);
+                }
+
                 Object.keys(boxesByLine).forEach(k => {
-                    const lineNum = parseInt(k, 10);
+                    const lineNum = parseInt(k, 10); // 0-based MPD index from Courage
                     // When something is selected, only show bones for those lines
                     if (selectedLineNums.size && !selectedLineNums.has(lineNum)) return;
 
@@ -476,9 +748,16 @@
 
                     // Try to tint bone using the MPD line color, if we can map back
                     let colorHex = 0x00ffff;
-                    const srcLine = state.lines[lineNum - 1];
+                    let srcLine = null;
+                    if (typeof lineNum === 'number' && lineNum >= 0 && lineNum < state.lines.length) {
+                        srcLine = state.lines[lineNum];
+                    }
                     if (srcLine && typeof srcLine.color === 'number' && lColors[srcLine.color]) {
                         colorHex = lColors[srcLine.color];
+                    }
+                    // If this line is flagged in GOLD.ground_violations, make the bone glow red
+                    if (violationLines.has(lineNum)) {
+                        colorHex = 0xff3366;
                     }
 
                     const mat = new THREE.MeshBasicMaterial({
@@ -492,6 +771,52 @@
                     bone.userData.isBone = true;
                     bone.userData.lineNum = lineNum;
                     bonesGroup.add(bone);
+                });
+            }
+
+            // 3. Part control dots from GOLD.part_skeletons (one dot per MPD line)
+            if (state.skeletonEnabled && !skeletonDebugFlags.fatalBaselineError && state.partSkeleton && state.partSkeleton.length) {
+                state.partSkeleton.forEach(node => {
+                    if (!node) return;
+                    const idx0 = (typeof node.lineNum === 'number') ? node.lineNum : null;
+                    const wp = node.worldPos || node;
+                    if (idx0 === null || !wp || typeof wp.x !== 'number' || typeof wp.y !== 'number' || typeof wp.z !== 'number') return;
+                    const lineNum = idx0; // already a 0-based MPD index from Courage
+
+                    // When something is selected, only show dots for those lines
+                    if (selectedLineNums.size && !selectedLineNums.has(lineNum)) return;
+
+                    let mat = studMat;
+                    const srcLine = state.lines[idx0];
+                    if (srcLine && typeof srcLine.color === 'number' && lColors[srcLine.color]) {
+                        const key = srcLine.color;
+                        if (!studMatsByColor[key]) {
+                            const m = studMat.clone();
+                            m.color.setHex(lColors[key]);
+                            studMatsByColor[key] = m;
+                        }
+                        mat = studMatsByColor[key];
+                    }
+
+                    let dx = 0, dy = 0, dz = 0;
+                    if (skeletonBaseline.hasBaseline) {
+                        const baseLine = skeletonBaseline.baseLines[idx0];
+                        const curLine = state.lines[idx0];
+                        if (baseLine && curLine && curLine.isPart &&
+                            typeof baseLine.x === 'number' && typeof baseLine.y === 'number' && typeof baseLine.z === 'number') {
+                            dx = curLine.x - baseLine.x;
+                            dy = curLine.y - baseLine.y;
+                            dz = curLine.z - baseLine.z;
+                        }
+                    }
+
+                    const y = -wp.y - dy;
+                    const dot = new THREE.Mesh(partDotGeo, mat);
+                    dot.position.set(wp.x + dx, y, wp.z + dz);
+                    dot.userData.isStud = true; // allow picking via stud path
+                    dot.userData.isPartDot = true;
+                    dot.userData.lineNum = lineNum;
+                    partDotsGroup.add(dot);
                 });
             }
 
@@ -526,6 +851,7 @@
 
             state.lines.forEach(line => {
                 const row = document.createElement('div');
+                row.dataset.lineId = line.id;
                 
                 if(line.isHeader) {
                     row.className = 'line-row header';
@@ -559,7 +885,25 @@
             });
         }
 
-        function toggleSelect(line) { initAudio(); line.selected = !line.selected; sfxTick(); renderEditor(); update3D(); }
+        function scrollLineIntoView(lineId) {
+            const c = document.getElementById('code-scroll');
+            if (!c || lineId == null) return;
+            const rows = c.getElementsByClassName('line-row');
+            for (let i = 0; i < rows.length; i++) {
+                const r = rows[i];
+                const idAttr = r.getAttribute('data-line-id');
+                if (idAttr == null) continue;
+                const id = parseInt(idAttr, 10);
+                if (id === lineId) {
+                    if (typeof r.scrollIntoView === 'function') {
+                        r.scrollIntoView({ block: 'center', behavior: 'smooth' });
+                    }
+                    break;
+                }
+            }
+        }
+
+        function toggleSelect(line) { initAudio(); line.selected = !line.selected; sfxTick(); renderEditor(); update3D(); publishEvent('selection-changed'); }
         
         function selectSection(id) {
             initAudio(); let i = id + 1;
@@ -567,7 +911,7 @@
                 if(state.lines[i].isPart) state.lines[i].selected = true;
                 i++;
             }
-            sfxSnap(); renderEditor(); update3D();
+            sfxSnap(); renderEditor(); update3D(); publishEvent('selection-changed');
         }
 
         function makeDial(obj, key, step, lbl, cls) {
@@ -592,7 +936,7 @@
                         });
                     }
                     el.querySelector(`.${cls}`).innerText = nv;
-                    compile(obj); update3D(); sfxTick();
+                    compile(obj); update3D(); publishEvent('line-transform-changed'); sfxTick();
                 }
             }
             const end = () => { el.classList.remove('dragging'); renderEditor(); sfxSnap(); }
@@ -613,7 +957,7 @@
                 const d = (startY-y)/50;
                 const v = Math.round((obj.matrix[idx] + d)*10)/10;
                 if(v !== obj.matrix[idx]) {
-                    obj.matrix[idx] = v; el.innerText = v; compile(obj); update3D();
+                    obj.matrix[idx] = v; el.innerText = v; compile(obj); update3D(); publishEvent('line-transform-changed');
                 }
             }
             el.addEventListener('touchstart', e=>{startY=e.touches[0].clientY}, {passive:false});
@@ -629,12 +973,30 @@
                 } else {
                     state.studs = [];
                 }
+                if (Array.isArray(obj.part_skeletons)) {
+                    state.partSkeleton = obj.part_skeletons.slice();
+                } else {
+                    state.partSkeleton = [];
+                }
+                if (Array.isArray(obj.ground_violations)) {
+                    state.groundViolations = obj.ground_violations.slice();
+                } else {
+                    state.groundViolations = [];
+                }
+
+                // Record a baseline snapshot for this GOLD payload (MPD + skeleton)
+                captureSkeletonBaseline();
+                publishEvent('scene-loaded');
                 return true;
             } else if (obj && Array.isArray(obj.stud_skeleton)) {
                 state.studs = obj.stud_skeleton.slice();
+                state.partSkeleton = Array.isArray(obj.part_skeletons) ? obj.part_skeletons.slice() : [];
+                state.groundViolations = Array.isArray(obj.ground_violations) ? obj.ground_violations.slice() : [];
                 return true;
             } else if (Array.isArray(obj)) {
                 state.studs = obj.slice();
+                state.partSkeleton = [];
+                state.groundViolations = [];
                 return true;
             }
             return false;
@@ -657,10 +1019,27 @@
             }
             if (!handled) {
                 parse(txt);
+                state.studs = [];
+                state.partSkeleton = [];
+                state.groundViolations = [];
             }
+            return handled;
         }
 
         /* --- INIT --- */
+        function syncSkeletonToggleUI() {
+            const btn = document.getElementById('skeletonToggleBtn');
+            if (!btn) return;
+            btn.style.opacity = state.skeletonEnabled ? '1' : '0.4';
+        }
+
+        function toggleSkeleton() {
+            state.skeletonEnabled = !state.skeletonEnabled;
+            syncSkeletonToggleUI();
+            update3D();
+            publishEvent('selection-changed');
+        }
+
         function toggleRaw() {
             const e = document.getElementById('raw-overlay');
             if(e.style.display==='flex') e.style.display='none';
@@ -710,6 +1089,58 @@
             });
         })();
 
+        // Allow a studio shell to push Courage GOLD payloads directly into WAG Master, and sync selection from TIMBER
+        window.addEventListener('message', (event) => {
+            const data = event.data;
+            if (!data || typeof data !== 'object' || !data.type) return;
+            if (data.type === 'studio-load-gold-from-courage') {
+                const payload = data.payload;
+                if (!payload) return;
+                const ok = applyGoldPayloadFromObject(payload);
+                if (ok) {
+                    renderEditor();
+                    update3D();
+                }
+            } else if (data.type === 'timber-selection-update') {
+                const nums = Array.isArray(data.lineNums) ? data.lineNums : [];
+                const targets = new Set();
+                nums.forEach(n => {
+                    const v = parseInt(n, 10);
+                    if (!isNaN(v)) {
+                        const idx = v - 1; // incoming lineNums are 1-based; convert to 0-based indices
+                        if (idx >= 0) targets.add(idx);
+                    }
+                });
+
+                let changed = false;
+                state.lines.forEach(line => {
+                    if (!line || !line.isPart) return;
+                    const ln = line.id; // 0-based raw MPD index
+                    const want = targets.size ? targets.has(ln) : false;
+                    if (line.selected !== want) {
+                        line.selected = want;
+                        changed = true;
+                    }
+                });
+
+                if (changed) {
+                    renderEditor();
+                    update3D();
+                    publishEvent('selection-changed');
+                }
+            }
+        });
+
+        subscribeEvent('scene-loaded', function() {
+            recomputeSkeletonAnchor();
+        });
+        subscribeEvent('selection-changed', function() {
+            recomputeSkeletonAnchor();
+        });
+        subscribeEvent('line-transform-changed', function() {
+            recomputeSkeletonCalibration();
+        });
+
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / (window.innerHeight*0.6);
             camera.updateProjectionMatrix();
@@ -722,24 +1153,37 @@
         scene.add(new THREE.AmbientLight(0xffffff, 0.4));
 
         parse(DEFAULT_MPD);
+
+        // If hosted inside a studio iframe, we can adjust defaults (e.g., start with cubes-only in Courage/Master studio)
+        try {
+            if (window.frameElement && window.frameElement.getAttribute && window.frameElement.getAttribute('data-studio-host') === 'courage-master') {
+                state.skeletonEnabled = false;
+            }
+        } catch (_) {}
+
         renderEditor();
         update3D();
+        syncSkeletonToggleUI();
 
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
 
-        function toggleByLineNum(lineNum) {
-            if (typeof lineNum !== 'number') return false;
+        function toggleByLineNum(lineIndex) {
+            if (typeof lineIndex !== 'number') return false;
             let changed = false;
+            let targetLineId = null;
             state.lines.forEach(l => {
-                if (l.isPart && (l.id + 1) === lineNum) {
+                if (l.isPart && l.id === lineIndex) {
                     l.selected = !l.selected;
                     changed = true;
+                    targetLineId = l.id;
                 }
             });
             if (changed) {
                 renderEditor();
                 update3D();
+                publishEvent('selection-changed');
+                scrollLineIntoView(targetLineId);
             }
             return changed;
         }
@@ -794,11 +1238,7 @@
             }
             if (!obj || !obj.userData || typeof obj.userData.lineId !== 'number') return;
             const idx = obj.userData.lineId;
-            const line = state.lines[idx];
-            if (!line || !line.isPart) return;
-            line.selected = !line.selected;
-            renderEditor();
-            update3D();
+            toggleByLineNum(idx);
         });
 
         function animate() {
