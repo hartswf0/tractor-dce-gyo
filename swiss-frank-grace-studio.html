@@ -335,7 +335,13 @@
       grid-template-columns: repeat(3, minmax(480px, 1fr));
     }
 
+    /* In 3-UP, only panels marked .active are shown (Swiss, Frank, Grace).
+       Momento stays tab-only and will not create a collapsed row underneath. */
     .panel-grid[data-layout="triple"] .panel {
+      display: none;
+    }
+
+    .panel-grid[data-layout="triple"] .panel.active {
       display: flex;
     }
 
