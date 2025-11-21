@@ -3593,6 +3593,55 @@
         console.log('[ANNOTATE] ✅ Annotated', annotated, 'meshes with line numbers');
     }
     
+    function buildTemplateStudSkeletonFromLibrary() {
+        if (!Array.isArray(editorLines) || !editorLines.length) {
+            return null;
+        }
+        if (!STATE || !STATE.partSkeletonLibrary || typeof STATE.partSkeletonLibrary !== 'object') {
+            return null;
+        }
+        const lib = STATE.partSkeletonLibrary;
+        const studs = [];
+        const plateHeight = 8;
+        for (let idx = 0; idx < editorLines.length; idx++) {
+            const line = editorLines[idx];
+            const trimmed = line && line.trim();
+            if (!trimmed || !trimmed.startsWith('1 ')) continue;
+            const parsed = parseType1Line(line);
+            if (!parsed || !parsed.partId) continue;
+            const key = parsed.partId.toLowerCase();
+            const entry = lib[key];
+            if (!entry || !Array.isArray(entry.studs) || !entry.studs.length) continue;
+            const a = parsed.a, b = parsed.b, c = parsed.c;
+            const d = parsed.d, e = parsed.e, f = parsed.f;
+            const g = parsed.g, h = parsed.h, i = parsed.i;
+            const tx = parsed.x, ty = parsed.y, tz = parsed.z;
+            entry.studs.forEach((s, studIndex) => {
+                const lx = typeof s.x === 'number' ? s.x : 0;
+                const ly = typeof s.y === 'number' ? s.y : 0;
+                const lz = typeof s.z === 'number' ? s.z : 0;
+                const wx = a * lx + b * ly + c * lz + tx;
+                const wy = d * lx + e * ly + f * lz + ty;
+                const wz = g * lx + h * ly + i * lz + tz;
+                const gridX = Math.round(wx / 20);
+                const gridZ = Math.round(wz / 20);
+                const layer = Math.round(wy / plateHeight);
+                studs.push({
+                    kind: 'stud',
+                    gridX,
+                    gridZ,
+                    layer,
+                    worldPos: { x: wx, y: wy, z: wz },
+                    lineNum: idx,
+                    partId: parsed.partId,
+                    studIndex,
+                    local: { x: lx, y: ly, z: lz }
+                });
+            });
+        }
+        return studs.length ? studs : null;
+    }
+    
     function computeStudSkeletonAndPlanes() {
         if (!STATE || !STATE.viewer || !window.THREE) {
             console.warn('[STUD] Viewer or THREE missing; cannot compute stud skeleton');
@@ -3682,7 +3731,7 @@
             console.log('[STUD] Base grid layer estimated as', baseGridLayer, 'with', baseGridLayerCount, 'samples');
         }
 
-        const studs = [];
+        let studs = [];
         const minVotes = 6;
         let baseGridYSum = 0;
         let baseGridYCount = 0;
@@ -3702,13 +3751,42 @@
                     baseGridYSum += cy;
                     baseGridYCount++;
                 }
+
+                // Derive partId and local (part-space) coordinates from the
+                // associated MPD type-1 line, when available. This lets
+                // downstream tools reconstruct rigged studs even when we are
+                // using sampled skeletons instead of per-part templates.
+                let partId = null;
+                let local = null;
+                if (typeof partLine === 'number' && Array.isArray(editorLines) && editorLines[partLine]) {
+                    const lineText = editorLines[partLine];
+                    const parsedLine = parseType1Line(lineText);
+                    if (parsedLine && parsedLine.partId) {
+                        partId = parsedLine.partId;
+                        const a = parsedLine.a, b = parsedLine.b, c = parsedLine.c;
+                        const d = parsedLine.d, e = parsedLine.e, f = parsedLine.f;
+                        const g = parsedLine.g, h = parsedLine.h, i = parsedLine.i;
+                        const tx = parsedLine.x, ty = parsedLine.y, tz = parsedLine.z;
+                        const dx = cx - tx;
+                        const dy = cy - ty;
+                        const dz = cz - tz;
+                        // Invert the LDraw transform: local = R^T * (world - t)
+                        local = {
+                            x: a * dx + d * dy + g * dz,
+                            y: b * dx + e * dy + h * dz,
+                            z: c * dx + f * dy + i * dz
+                        };
+                    }
+                }
                 studs.push({
                     kind: 'stud',
                     gridX: col.gx,
                     gridZ: col.gz,
                     layer: layerIndex,
                     worldPos: { x: cx, y: cy, z: cz },
-                    lineNum: partLine
+                    lineNum: partLine,
+                    partId,
+                    local
                 });
             });
         });
@@ -3716,6 +3794,20 @@
         if (baseGridYCount > 0) {
             STATE.baseGridY = baseGridYSum / baseGridYCount;
             console.log('[STUD] Base grid Y estimated as', STATE.baseGridY);
+        }
+
+        // Prefer template-driven studs derived from per-part skeletons when available,
+        // falling back to sampled studs from the assembled model.
+        if (typeof buildTemplateStudSkeletonFromLibrary === 'function') {
+            try {
+                const templateStuds = buildTemplateStudSkeletonFromLibrary();
+                if (Array.isArray(templateStuds) && templateStuds.length) {
+                    console.log('[STUD] Using template-based stud skeleton from partSkeletonLibrary:', templateStuds.length);
+                    studs = templateStuds;
+                }
+            } catch (e) {
+                console.warn('[STUD] Template-based stud skeleton build failed, falling back to sampled studs:', e);
+            }
         }
 
         STATE.studSkeleton = studs;
@@ -9027,7 +9119,7 @@ function highlightLinesAtGridPosition(gridX, gridY) {
             const studSkeletonSnapshot = Array.isArray(STATE.studSkeleton)
                 ? STATE.studSkeleton.map(node => {
                       if (!node || !node.worldPos) return null;
-                      return {
+                      const snapshot = {
                           x: node.worldPos.x,
                           y: node.worldPos.y,
                           z: node.worldPos.z,
@@ -9035,6 +9127,12 @@ function highlightLinesAtGridPosition(gridX, gridY) {
                           kind: node.kind,
                           lineNum: node.lineNum
                       };
+                      if (node.partId) snapshot.partId = node.partId;
+                      if (typeof node.studIndex === 'number') snapshot.studIndex = node.studIndex;
+                      if (node.local && typeof node.local.x === 'number' && typeof node.local.y === 'number' && typeof node.local.z === 'number') {
+                          snapshot.local = { x: node.local.x, y: node.local.y, z: node.local.z };
+                      }
+                      return snapshot;
                   }).filter(Boolean)
                 : null;
 

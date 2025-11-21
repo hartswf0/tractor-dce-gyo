@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stud Skeleton & GOLD – Visual Guide</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23facc15'/%3E%3C/svg%3E">
+  <style>
+    :root {
+      --lego-yellow: #FFD700;
+      --lego-yellow-glow: rgba(255, 215, 0, 0.4);
+      --lego-red: #FF4444;
+      --lego-blue: #4444FF;
+      --lego-green: #22c55e;
+      --lego-purple: #a855f7;
+      --lego-cyan: #4ECDC4;
+      --lego-timber: #38bdf8;
+      --border: 3px solid #333;
+      --shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: 'Courier New', monospace;
+      background: #000;
+      color: #ddd;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header-brick {
+      background: linear-gradient(180deg, #020617 0%, #000 100%);
+      border-bottom: var(--border);
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: var(--shadow);
+    }
+
+    .header-title {
+      font-size: 22px;
+      font-weight: bold;
+      color: var(--lego-yellow);
+      text-shadow: 0 0 10px var(--lego-yellow-glow);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .header-subtitle {
+      margin-top: 6px;
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #9ca3af;
+    }
+
+    .step-counter {
+      width: 60px;
+      height: 60px;
+      border-radius: 12px;
+      background: var(--lego-yellow);
+      color: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      font-weight: bold;
+      box-shadow: 0 0 20px var(--lego-yellow-glow);
+      position: relative;
+    }
+
+    .step-counter::before {
+      content: '';
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 30px;
+      height: 14px;
+      border-radius: 8px 8px 0 0;
+      background: #FFA500;
+      border: 3px solid #CC8400;
+      border-bottom: none;
+    }
+
+    .instruction-page {
+      flex: 1;
+      padding: 40px 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
+      display: none;
+    }
+
+    .instruction-page.active {
+      display: block;
+      animation: fadeIn 0.4s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .step-brick {
+      background: linear-gradient(135deg, #020617 0%, #000 100%);
+      border: 4px solid #333;
+      border-radius: 16px;
+      padding: 40px;
+      margin-bottom: 40px;
+      position: relative;
+      box-shadow: var(--shadow);
+    }
+
+    .step-number-brick {
+      position: absolute;
+      top: -20px;
+      left: 40px;
+      width: 60px;
+      height: 60px;
+      border-radius: 12px;
+      background: var(--lego-yellow);
+      color: #000;
+      font-size: 32px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px var(--lego-yellow-glow);
+      border: 4px solid #000;
+    }
+
+    .step-number-brick::before {
+      content: '';
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 32px;
+      height: 16px;
+      border-radius: 8px 8px 0 0;
+      background: #FFA500;
+      border: 3px solid #000;
+      border-bottom: none;
+    }
+
+    .step-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      align-items: center;
+    }
+
+    @media (max-width: 900px) {
+      .step-content {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .visual-panel {
+      background: #000;
+      border: 3px solid #333;
+      border-radius: 12px;
+      padding: 24px;
+      min-height: 360px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .text-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .step-title {
+      font-size: 22px;
+      font-weight: bold;
+      color: var(--lego-yellow);
+      letter-spacing: 1px;
+    }
+
+    .step-desc {
+      font-size: 15px;
+      line-height: 1.6;
+      color: #ccc;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+      font-size: 10px;
+    }
+
+    .pill-tag {
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid #334155;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .pill-tag.bus { border-color: var(--lego-timber); color: var(--lego-timber); }
+    .pill-tag.gold { border-color: var(--lego-yellow); color: var(--lego-yellow); }
+    .pill-tag.sampler { border-color: var(--lego-purple); color: var(--lego-purple); }
+
+    .ui-mockup {
+      width: 100%;
+      background: #020617;
+      border: 3px solid var(--lego-timber);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .ui-header {
+      background: #020617;
+      padding: 10px 12px;
+      border-bottom: 2px solid #1f2933;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+    }
+
+    .ui-tabs {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .ui-tab {
+      padding: 4px 8px;
+      border-radius: 6px 6px 0 0;
+      border: 1px solid #1f2933;
+      border-bottom: none;
+      background: #020617;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 9px;
+    }
+
+    .ui-tab.active {
+      color: #e5e7eb;
+      border-color: #e5e7eb;
+      background: radial-gradient(circle at top, #020617, #000);
+      box-shadow: 0 2px 0 #000, 0 0 0 1px rgba(248, 250, 252, 0.4);
+    }
+
+    .ui-body {
+      padding: 20px;
+      min-height: 200px;
+      font-size: 12px;
+      color: #94a3b8;
+    }
+
+    .code-brick {
+      background: #000;
+      border: 3px solid var(--lego-yellow);
+      border-radius: 8px;
+      padding: 14px;
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      color: #0f0;
+      margin: 12px 0;
+      position: relative;
+      overflow-x: auto;
+    }
+
+    .code-label {
+      position: absolute;
+      top: -10px;
+      left: 12px;
+      background: #000;
+      padding: 0 8px;
+      color: var(--lego-yellow);
+      font-size: 9px;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+
+    .code-highlight { color: var(--lego-yellow); font-weight: bold; }
+
+    .context-arrow {
+      position: absolute;
+      font-size: 22px;
+      color: var(--lego-yellow);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .callout-box {
+      position: absolute;
+      background: #000;
+      border: 2px solid var(--lego-yellow);
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 10px;
+      color: var(--lego-yellow);
+      font-weight: bold;
+      box-shadow: 0 0 10px var(--lego-yellow-glow);
+    }
+
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+      width: 100%;
+    }
+
+    .mini-card {
+      background: rgba(15, 23, 42, 0.9);
+      border-radius: 6px;
+      border: 1px solid #1f2937;
+      padding: 10px;
+      font-size: 10px;
+      text-align: center;
+    }
+
+    .mini-title { font-weight: bold; margin-bottom: 4px; }
+    .mini-note { color: #64748b; }
+
+    .nav-buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 40px;
+      gap: 20px;
+    }
+
+    .nav-brick {
+      padding: 14px 28px;
+      background: linear-gradient(135deg, #1e293b 0%, #020617 100%);
+      border: 3px solid var(--lego-yellow);
+      border-radius: 8px;
+      color: var(--lego-yellow);
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: var(--shadow);
+    }
+
+    .nav-brick:hover {
+      background: var(--lego-yellow);
+      color: #000;
+      transform: translateY(-4px);
+      box-shadow: 0 6px 16px var(--lego-yellow-glow);
+    }
+
+    .nav-brick:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    .progress-bar {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 12px;
+      background: rgba(0, 0, 0, 0.9);
+      padding: 12px;
+      border-radius: 8px;
+      border: 2px solid #333;
+      z-index: 50;
+    }
+
+    .progress-stud {
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+      background: #333;
+      border: 2px solid #555;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .progress-stud.active {
+      background: var(--lego-yellow);
+      border-color: var(--lego-yellow);
+      box-shadow: 0 0 8px var(--lego-yellow-glow);
+    }
+  </style>
+  <base target="_blank">
+</head>
+<body>
+  <!-- STEP 1: MPD lines → world geometry -->
+  <div class="instruction-page active" data-step="1">
+    <div class="header-brick">
+      <div>
+        <div class="header-title">STUD SKELETON – COURAGE</div>
+        <div class="header-subtitle">STEP 1 – MPD LINES → WORLD GEOMETRY</div>
+      </div>
+      <div class="step-counter">1</div>
+    </div>
+
+    <div class="step-brick">
+      <div class="step-number-brick">1</div>
+      <div class="step-content">
+        <div class="visual-panel">
+          <div class="context-arrow" style="top: 16px; left: 50%; transform: translateX(-50%);">⬇️ MPD → COURAGE</div>
+          <div class="ui-mockup" style="max-width: 440px;">
+            <div class="ui-header">
+              <div class="ui-tabs">
+                <div class="ui-tab active">Courage</div>
+                <div class="ui-tab">WERE</div>
+                <div class="ui-tab">Master</div>
+              </div>
+              <div style="font-size:9px; color:#64748b; text-transform:uppercase; letter-spacing:0.08em;">
+                MPD → MODEL → STUDS
+              </div>
+            </div>
+            <div class="ui-body" style="display:grid; grid-template-columns:1.3fr 1.2fr; gap:10px;">
+              <div style="border-right:1px solid #1f2937; padding-right:10px;">
+                <div style="font-size:10px; color:#e5e7eb; margin-bottom:4px;">MPD text</div>
+                <div class="code-brick" style="border-color:#4ade80; font-size:10px; margin:0;">
+                  <div class="code-label">MPD LINE</div>
+                  1 4  40 -64  20  1 0 0  0 1 0  0 0 1  3001.dat
+                </div>
+                <div style="font-size:10px; color:#9ca3af; margin-top:6px;">
+                  ➜ One part instance<br>
+                  ➜ XYZ + 3×3 rotation + partId
+                </div>
+              </div>
+              <div style="position:relative;">
+                <div style="font-size:10px; color:#e5e7eb; margin-bottom:4px;">World space</div>
+                <div style="position:relative; height:120px; background:radial-gradient(circle at center,#020617,#000); border-radius:6px;">
+                  <div style="position:absolute; left:50%; bottom:14%; width:60px; height:6px; background:rgba(56,189,248,0.5);"></div>
+                  <div style="position:absolute; left:50%; top:16%; bottom:30%; width:2px; background:rgba(248,113,113,0.6);"></div>
+                  <div style="position:absolute; left:50%; bottom:26%; width:34px; height:34px; border-radius:6px; border:2px solid #38bdf8; box-shadow:0 0 10px rgba(56,189,248,0.9);"></div>
+                  <div style="position:absolute; left:54%; bottom:34%; width:6px; height:6px; border-radius:999px; background:#22c55e; box-shadow:0 0 8px rgba(34,197,94,0.8);"></div>
+                </div>
+                <div style="font-size:10px; color:#9ca3af; margin-top:6px;">
+                  Courage multiplies each part’s local vertices by the MPD
+                  transform <code>R * local + t</code> to place geometry in world space.
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="callout-box" style="bottom: 18px; right: 18px; max-width:240px;">
+            🧱 <strong>MPD is the source of truth.</strong><br>
+            Studs are <emnot> stored</em> in MPD; Courage reconstructs them from geometry.
+          </div>
+        </div>
+        <div class="text-panel">
+          <div class="step-title">Start from MPD Lines</div>
+          <div class="step-desc">
+            <strong>Where:</strong> Courage loaded inside TIMBER or the Courage/Master studio.<br><br>
+            <strong>What you see:</strong>
+            <ul>
+              <li>Type‑1 MPD lines: one per part instance.</li>
+              <li>Each line: a color, XYZ translation, 3×3 rotation matrix, and <code>partId.dat</code>.</li>
+              <li>Courage compiles these into a 3D model (cubes, meshes).</li>
+            </ul>
+            <strong>Why it matters:</strong><br>
+            Every stud coordinate the skeleton produces traces back to some MPD
+            line and partId. The whole stud pipeline only makes sense if you
+            keep that mapping in mind.
+          </div>
+          <div class="pill-row">
+            <div class="pill-tag">MPD Lines</div>
+            <div class="pill-tag">XYZ + 3×3</div>
+            <div class="pill-tag">PartId</div>
+            <div class="pill-tag bus">TIMBER Bus</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-buttons">
+        <button class="nav-brick" disabled>← BACK</button>
+        <button class="nav-brick" onclick="nextStep(3)">NEXT →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2: Geometry → stud_skeleton -->
+  <div class="instruction-page" data-step="2">
+    <div class="header-brick">
+      <div>
+        <div class="header-title">STUD SKELETON – SAMPLER</div>
+        <div class="header-subtitle">STEP 2 – GEOMETRY → STUD_CLOUD</div>
+      </div>
+      <div class="step-counter">2</div>
+    </div>
+
+    <div class="step-brick">
+      <div class="step-number-brick">2</div>
+      <div class="step-content">
+        <div class="visual-panel">
+          <div class="context-arrow" style="top: 16px; left: 50%; transform: translateX(-50%);">⬇️ SAMPLE MESH INTO GRID</div>
+          <div class="ui-mockup" style="max-width: 440px; border-color: var(--lego-purple);">
+            <div class="ui-header">
+              <div style="font-size:11px; color:var(--lego-purple); font-weight:bold;">computeStudSkeletonAndPlanes()</div>
+              <div style="font-size:9px; color:#64748b;">voxels · layers · lineNum</div>
+            </div>
+            <div class="ui-body" style="position:relative;">
+              <div style="height:150px; position:relative;">
+                <!-- stud grid columns -->
+                <div style="position:absolute; left:8%; right:8%; top:18%; bottom:18%; border-radius:6px; border:1px dashed rgba(148,163,184,0.4);"></div>
+                <!-- grid lines -->
+                <div style="position:absolute; left:18%; top:20%; bottom:20%; width:1px; background:rgba(148,163,184,0.4);"></div>
+                <div style="position:absolute; left:32%; top:20%; bottom:20%; width:1px; background:rgba(148,163,184,0.4);"></div>
+                <div style="position:absolute; left:46%; top:20%; bottom:20%; width:1px; background:rgba(148,163,184,0.4);"></div>
+                <div style="position:absolute; left:60%; top:20%; bottom:20%; width:1px; background:rgba(148,163,184,0.4);"></div>
+
+                <!-- sampled stud centers -->
+                <div style="position:absolute; left:20%; top:52%; width:6px; height:6px; border-radius:999px; background:#38bdf8; box-shadow:0 0 8px rgba(56,189,248,0.9);"></div>
+                <div style="position:absolute; left:34%; top:44%; width:6px; height:6px; border-radius:999px; background:#22c55e; box-shadow:0 0 8px rgba(34,197,94,0.9);"></div>
+                <div style="position:absolute; left:48%; top:36%; width:6px; height:6px; border-radius:999px; background:#e11d48; box-shadow:0 0 8px rgba(248,113,113,0.9);"></div>
+                <div style="position:absolute; left:48%; top:60%; width:5px; height:5px; border-radius:999px; background:#a855f7; box-shadow:0 0 8px rgba(168,85,247,0.9);"></div>
+
+                <!-- layer labels -->
+                <div style="position:absolute; right:10%; top:30%; font-size:9px; color:#9ca3af;">layer 8</div>
+                <div style="position:absolute; right:10%; top:48%; font-size:9px; color:#9ca3af;">layer 6</div>
+                <div style="position:absolute; right:10%; top:66%; font-size:9px; color:#9ca3af;">layer 4</div>
+              </div>
+              <div style="margin-top:10px; font-size:11px; color:#e5e7eb;">
+                Courage walks every mesh vertex, snaps it into a
+                <strong>stud grid</strong> and <strong>plate layers</strong>, then
+                averages samples to get stud centers.
+              </div>
+            </div>
+          </div>
+          <div class="code-brick" style="font-size:10px; margin-top:12px;">
+            <div class="code-label">SAMPLING PSEUDOCODE</div>
+            const plateHeight = 8; // LDU
+            for (each mesh vertex worldPos) {
+            &nbsp;gridX = Math.round(worldPos.x / 20);
+            &nbsp;gridZ = Math.round(worldPos.z / 20);
+            &nbsp;layer = Math.round(worldPos.y / plateHeight);
+            &nbsp;// bucket by (gridX, gridZ, layer)
+            }
+          </div>
+          <div class="callout-box" style="bottom: 18px; right: 18px; max-width:260px;">
+            🎯 <strong>Remember:</strong> these studs are <em>reconstructed</em> from
+            vertices, not read directly from part files.
+          </div>
+        </div>
+        <div class="text-panel">
+          <div class="step-title">Sample the Model into a Stud Cloud</div>
+          <div class="step-desc">
+            <strong>Where:</strong> Inside Courage, after the model is loaded.<br><br>
+            <strong>What the algorithm does:</strong>
+            <ul>
+              <li>Traverse every mesh in the scene.</li>
+              <li>Convert each vertex to world coordinates.</li>
+              <li>Snap world coordinates into a coarse stud grid (X/Z) and layers (Y).</li>
+              <li>Average vertices in each bucket to find a stud center.</li>
+            </ul>
+            <strong>Line ownership today:</strong>
+            <ul>
+              <li>Each bucket records which MPD lines contributed samples.</li>
+              <li><code>lineNum</code> for that stud = <code>min(contributing lineNums)</code>.</li>
+            </ul>
+          </div>
+          <div class="pill-row">
+            <div class="pill-tag sampler">GridX / GridZ</div>
+            <div class="pill-tag sampler">Layer = round(Y/8)</div>
+            <div class="pill-tag">Mesh.userData.lineNum</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-buttons">
+        <button class="nav-brick" onclick="prevStep(1)">← BACK</button>
+        <button class="nav-brick" onclick="nextStep(3)">NEXT →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3: GOLD + WAG tools -->
+  <div class="instruction-page" data-step="3">
+    <div class="header-brick">
+      <div>
+        <div class="header-title">STUD SKELETON – GOLD & WAG</div>
+        <div class="header-subtitle">STEP 3 – GOLD JSON → WERE / MASTER</div>
+      </div>
+      <div class="step-counter">3</div>
+    </div>
+
+    <div class="step-brick">
+      <div class="step-number-brick">3</div>
+      <div class="step-content">
+        <div class="visual-panel">
+          <div class="context-arrow" style="top: 16px; left: 50%; transform: translateX(-50%);">⬇️ GOLD SNAPSHOT</div>
+          <div class="ui-mockup" style="max-width: 460px; border-color: var(--lego-yellow);">
+            <div class="ui-header">
+              <div style="font-size:11px; color:#facc15; font-weight:bold;">Courage → GOLD</div>
+              <div style="font-size:9px; color:#64748b;">mpd_content · stud_skeleton</div>
+            </div>
+            <div class="ui-body" style="font-size:11px;">
+              <div class="code-brick" style="border-color:#22c55e; font-size:10px; margin-bottom:8px;">
+                <div class="code-label">GOLD STUD NODE</div>
+                {
+                &nbsp;&nbsp;"x": 39.97,
+                &nbsp;&nbsp;"y": 80.16,
+                &nbsp;&nbsp;"z": -7.66,
+                &nbsp;&nbsp;"layer": 10,
+                &nbsp;&nbsp;"kind": "stud",
+                &nbsp;&nbsp;"lineNum": 8
+                }
+              </div>
+              <div style="font-size:10px; color:#e5e7eb; margin-bottom:6px;">
+                Together with <code>mpd_content</code>, this is enough to
+                reconstruct a stud’s local position for line 8.
+              </div>
+              <div class="code-brick" style="border-color:#f97316; font-size:10px;">
+                <div class="code-label">WERE SKELETON MPD</div>
+                0 FILE wag_skeleton_from_studs.mpd<br>
+                0 Name: WAG Skeleton From Courage<br>
+                0 BFC CERTIFY CCW<br>
+                0<br>
+                0 line 22 layer 7 stud 0<br>
+                1 1 434.88 -56.896 55.04 1 0 0 0 1 0 0 0 1 3003.dat
+              </div>
+              <div style="font-size:10px; color:#e5e7eb;">
+                In WERE, each stud becomes a proxy brick. The <code>line 22</code>
+                comment comes directly from <code>s.lineNum</code> in GOLD.
+              </div>
+            </div>
+          </div>
+          <div class="callout-box" style="bottom: 18px; right: 18px; max-width:260px;">
+            ⚠️ If many studs share the same <code>lineNum</code>, the skeleton MPD
+            will be dominated by that line. This reveals a binding pathology
+            in the sampler, not in WERE.
+          </div>
+        </div>
+        <div class="text-panel">
+          <div class="step-title">See How GOLD Drives WERE & MASTER</div>
+          <div class="step-desc">
+            <strong>Where:</strong> TIMBER studios (Courage/WERE, Courage/Master).<br><br>
+            <strong>What gets stored in GOLD:</strong>
+            <ul>
+              <li><code>mpd_content</code> – the exact MPD text after Courage edits.</li>
+              <li><code>stud_skeleton</code> – sampled stud nodes with
+                  <code>x,y,z,layer,kind,lineNum</code> (and, in newer snapshots,
+                  <code>partId</code> + <code>local</code>).</li>
+            </ul>
+            <strong>How WAG tools use it:</strong>
+            <ul>
+              <li>WERE groups studs by <code>lineNum</code> (or <code>lineNum:layer</code>) for
+                  selection and bone boxes.</li>
+              <li>Skeleton MPD export writes <code>0 line N layer L stud K</code> comments
+                  directly from GOLD fields.</li>
+              <li>MASTER overlays the same studs and bones inside a room.</li>
+            </ul>
+            <strong>Why the binding matters:</strong><br>
+            If the sampler collapses many buckets to a single <code>lineNum</code>,
+            then <em>all</em> downstream tools will tell the same (wrong) story
+            about which MPD line “owns” that stud cloud. The GOLD file is the
+            honest record of that decision.
+          </div>
+          <div class="pill-row">
+            <div class="pill-tag gold">GOLD: mpd_content</div>
+            <div class="pill-tag gold">GOLD: stud_skeleton</div>
+            <div class="pill-tag">WERE Skeleton MPD</div>
+            <div class="pill-tag">MASTER Room</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-buttons">
+        <button class="nav-brick" onclick="prevStep(2)">← BACK</button>
+        <button class="nav-brick" disabled>DONE</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Progress studs -->
+  <div class="progress-bar">
+    <div class="progress-stud active" data-step="1" onclick="showStep(1)"></div>
+    <div class="progress-stud" data-step="2" onclick="showStep(2)"></div>
+    <div class="progress-stud" data-step="3" onclick="showStep(3)"></div>
+  </div>
+
+  <script>
+    let currentStep = 1;
+    function showStep(step) {
+      const pages = document.querySelectorAll('.instruction-page');
+      pages.forEach(p => {
+        const s = parseInt(p.getAttribute('data-step'), 10);
+        p.classList.toggle('active', s === step);
+      });
+      const studs = document.querySelectorAll('.progress-stud');
+      studs.forEach(st => {
+        const s = parseInt(st.getAttribute('data-step'), 10);
+        st.classList.toggle('active', s === step);
+      });
+      currentStep = step;
+    }
+    function nextStep(max) {
+      if (currentStep >= max) return;
+      showStep(currentStep + 1);
+    }
+    function prevStep(min) {
+      if (currentStep <= min) return;
+      showStep(currentStep - 1);
+    }
+    window.addEventListener('DOMContentLoaded', () => {
+      showStep(1);
+    });
+  </script>
+</body>
+</html>
