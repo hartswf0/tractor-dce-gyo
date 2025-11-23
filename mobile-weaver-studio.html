@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mobile Weaver Test Studio – Courage · KINETIC BELT · BLUE-LOOM</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Courier New", monospace;
+      background: #000;
+      color: #ddd;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .header {
+      padding: 8px 16px;
+      border-bottom: 1px solid #1f2933;
+      background: #020617;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+    }
+    .title-block { display: flex; flex-direction: column; gap: 2px; }
+    .title {
+      font-size: 13px;
+      font-weight: bold;
+      letter-spacing: 1px;
+      color: #38bdf8;
+      text-transform: uppercase;
+    }
+    .subtitle {
+      font-size: 9px;
+      color: #9ca3af;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .badge {
+      font-size: 8px;
+      padding: 4px 8px;
+      border-radius: 3px;
+      border: 1px solid #1f2933;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #e5e7eb;
+    }
+    .badge span { color: #38bdf8; }
+
+    .tabs {
+      display: flex;
+      gap: 2px;
+      padding: 4px 8px;
+      background: #020617;
+      border-bottom: 1px solid #111827;
+    }
+    .tab {
+      border: none;
+      background: transparent;
+      color: #6b7280;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 4px 10px;
+      cursor: pointer;
+      border-radius: 3px 3px 0 0;
+    }
+    .tab.active {
+      color: #e5e7eb;
+      border-bottom: 2px solid #38bdf8;
+      background: #020617;
+    }
+    .tab:hover { color: #f9fafb; }
+
+    .main {
+      flex: 1;
+      display: flex;
+      min-height: 0;
+    }
+    .pane {
+      flex: 1;
+      border-right: 1px solid #111827;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+    .pane:last-child { border-right: none; }
+    .pane-header {
+      padding: 6px 10px;
+      background: #020617;
+      border-bottom: 1px solid #111827;
+      font-size: 9px;
+      text-transform: uppercase;
+      color: #9ca3af;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    .pane-header span.label { color: #e5e7eb; }
+    .pane-header span.role { font-size: 8px; letter-spacing: 1px; }
+    .pane-header .role.courage { color: #f97316; }
+    .pane-header .role.belt { color: #60a5fa; }
+    .pane-header .role.loom { color: #66fcf1; }
+
+    .pane iframe {
+      flex: 1;
+      border: none;
+      width: 100%;
+      background: #000;
+    }
+
+    .status {
+      padding: 6px 16px;
+      border-top: 1px solid #111827;
+      font-size: 9px;
+      color: #6b7280;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .status strong { color: #e5e7eb; }
+
+    .mini-btn {
+      border: 1px solid #1f2933;
+      background: #020617;
+      color: #9ca3af;
+      font-size: 9px;
+      padding: 2px 6px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      cursor: pointer;
+      border-radius: 3px;
+    }
+    .mini-btn:hover {
+      border-color: #38bdf8;
+      color: #e5e7eb;
+    }
+
+    @media (max-width: 960px) {
+      .main { flex-direction: column; }
+      .pane { border-right: none; border-bottom: 1px solid #111827; }
+      .pane:last-child { border-bottom: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="title-block">
+      <div class="title">MOBILE WEAVER TEST STUDIO</div>
+      <div class="subtitle">Courage Red Bull → GOLD → KINETIC BELT · BLUE-LOOM (GOLD / StudMap)</div>
+    </div>
+    <div class="badge">Bridge · <span>wag_redbull_gold</span> · Same Origin</div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-mode="triple">Triple</button>
+    <button class="tab" data-mode="courage">Courage</button>
+    <button class="tab" data-mode="belt">Belt</button>
+    <button class="tab" data-mode="loom">Loom</button>
+    <button class="tab" data-mode="mobile">Mobile Duo</button>
+  </div>
+
+  <div class="main">
+    <div class="pane" data-pane="courage">
+      <div class="pane-header">
+        <span class="label">WAG COURAGE</span>
+        <span class="role courage">Red Bull · GOLD Source</span>
+      </div>
+      <iframe id="courageFrame" src="wag-viewer-prime-integration-20251112-055341 copy/wag-courage.html"></iframe>
+    </div>
+    <div class="pane" data-pane="belt">
+      <div class="pane-header">
+        <span class="label">KINETIC BELT</span>
+        <span class="role belt">Mobile Stud Belt</span>
+      </div>
+      <iframe id="beltFrame" src="mobile-assembler.html"></iframe>
+    </div>
+    <div class="pane" data-pane="loom">
+      <div class="pane-header">
+        <span class="label">BLUE-LOOM</span>
+        <span class="role loom">Matrix Loom</span>
+      </div>
+      <iframe id="loomFrame" src="mobile-blue-loom.html"></iframe>
+    </div>
+  </div>
+
+  <div class="status">
+    <span>
+      <strong>Flow:</strong> Run <strong>Red Bull</strong> in Courage → GOLD saved to <code>wag_redbull_gold</code> →
+      click <strong>Reload Mobile</strong> or use DATA_IO in each tool to re‑ingest GOLD.
+    </span>
+    <span>
+      <button class="mini-btn" id="reloadMobileBtn">Reload Mobile</button>
+    </span>
+  </div>
+
+  <script>
+    (function() {
+      const tabs = document.querySelectorAll('.tab');
+      const panes = {
+        courage: document.querySelector('.pane[data-pane="courage"]'),
+        belt: document.querySelector('.pane[data-pane="belt"]'),
+        loom: document.querySelector('.pane[data-pane="loom"]')
+      };
+
+      function setMode(mode) {
+        tabs.forEach(tab => {
+          tab.classList.toggle('active', tab.dataset.mode === mode);
+        });
+
+        if (!panes.courage || !panes.belt || !panes.loom) return;
+
+        if (mode === 'courage') {
+          panes.courage.style.display = 'flex';
+          panes.belt.style.display = 'none';
+          panes.loom.style.display = 'none';
+        } else if (mode === 'belt') {
+          panes.courage.style.display = 'none';
+          panes.belt.style.display = 'flex';
+          panes.loom.style.display = 'none';
+        } else if (mode === 'loom') {
+          panes.courage.style.display = 'none';
+          panes.belt.style.display = 'none';
+          panes.loom.style.display = 'flex';
+        } else if (mode === 'mobile') {
+          panes.courage.style.display = 'none';
+          panes.belt.style.display = 'flex';
+          panes.loom.style.display = 'flex';
+        } else {
+          // triple
+          panes.courage.style.display = 'flex';
+          panes.belt.style.display = 'flex';
+          panes.loom.style.display = 'flex';
+        }
+      }
+
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => setMode(tab.dataset.mode));
+      });
+
+      setMode('triple');
+
+      const reloadBtn = document.getElementById('reloadMobileBtn');
+      reloadBtn.addEventListener('click', () => {
+        const beltFrame = document.getElementById('beltFrame');
+        const loomFrame = document.getElementById('loomFrame');
+        try {
+          if (beltFrame && beltFrame.contentWindow) {
+            beltFrame.contentWindow.location.reload();
+          }
+          if (loomFrame && loomFrame.contentWindow) {
+            loomFrame.contentWindow.location.reload();
+          }
+        } catch (e) {
+          console.warn('Failed to reload mobile frames', e);
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

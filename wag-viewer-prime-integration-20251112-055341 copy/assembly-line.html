@@ -271,11 +271,11 @@
             position: absolute;
             bottom: 0;
             left: 0;
-            height: 3px;
+            height: 5px;
             background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
             width: 0%;
-            transition: width 0.8s ease-in-out;
-            box-shadow: 0 0 10px currentColor;
+            transition: width 0.6s ease-in-out;
+            box-shadow: 0 0 12px rgba(34,211,238,0.8);
         }
 
         .assembly-status {
@@ -444,11 +444,11 @@
 
         /* --- Header --- */
         header {
-            height: 70px;
+            min-height: 40px;
             border-bottom: 1px solid var(--border-color);
             display: flex;
             align-items: center;
-            padding: 0 24px;
+            padding: 4px 16px;
             background: var(--bg-panel);
             justify-content: space-between;
             z-index: 10;
@@ -461,7 +461,7 @@
         }
 
         h1 {
-            font-size: 16px;
+            font-size: 14px;
             letter-spacing: 1px;
             text-transform: uppercase;
             background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
@@ -478,6 +478,59 @@
             display: flex;
             gap: 8px;
             align-items: center;
+        }
+
+        .primary-modes {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .view-modes {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .advanced-modes-toggle {
+            position: relative;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .advanced-modes {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 4px;
+            padding: 6px;
+            border-radius: 6px;
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 8px 18px rgba(0,0,0,0.7);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .col-summary {
+            font-size: 9px;
+            color: #666;
+            margin-right: 8px;
+            white-space: nowrap;
+        }
+
+        .search-input {
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            background: rgba(15, 23, 42, 0.8);
+            color: var(--text-primary);
+            font-size: 10px;
+            min-width: 120px;
+            max-width: 200px;
         }
 
         .control-group {
@@ -547,7 +600,32 @@
             flex: 1;
             display: flex;
             position: relative;
+            overflow-x: auto;
+            overflow-y: hidden;
+        }
+
+        .weaver-footer {
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-panel);
+            padding: 4px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 10px;
+            gap: 8px;
+        }
+
+        .footer-left {
+            color: var(--text-dim);
+            white-space: nowrap;
             overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .footer-right {
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         /* SVG Overlay for "The Weave" */
@@ -998,6 +1076,56 @@
             .column { min-width: 220px; }
             .header-controls { flex-wrap: wrap; }
         }
+
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+                height: auto;
+                padding: 8px 12px;
+                gap: 6px;
+            }
+            h1 {
+                font-size: 14px;
+            }
+            .subtitle {
+                font-size: 10px;
+            }
+            .header-controls {
+                width: 100%;
+                flex-wrap: wrap;
+                justify-content: flex-start;
+                row-gap: 6px;
+            }
+            .control-group {
+                padding: 4px 8px;
+            }
+            .control-group input[type="range"] {
+                width: 80px;
+            }
+            .assembly-status {
+                top: auto;
+                right: 8px;
+                left: 8px;
+                bottom: 8px;
+                width: auto;
+                max-width: none;
+                border-radius: 12px 12px 8px 8px;
+            }
+            #redBullStatus {
+                top: auto !important;
+            }
+            main {
+                overflow-x: auto;
+            }
+            .column {
+                min-width: 260px;
+            }
+            .col-content {
+                max-height: calc(100vh - 180px);
+                overflow-y: auto;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1005,26 +1133,28 @@
 <header>
     <div class="header-left">
         <h1>Unified L-System Ontology Weaver</h1>
-        <div class="subtitle">Media for Thinking: MPD → Entity → Transform → Artifact Pipeline</div>
+        <div class="subtitle"></div>
     </div>
     <div class="header-controls">
-        <div class="control-group">
-            <label>Rotation:</label>
-            <input type="range" id="rotationSlider" min="0" max="360" value="45" step="1">
-            <span class="value" id="rotationValue">45°</span>
+        <div class="primary-modes">
+            <button class="btn" id="assemblyBtn">🏭 Assembly Line</button>
+            <button class="btn" id="timelineBtn">Timeline</button>
+            <button class="btn" id="redBullBtn" style="background: linear-gradient(135deg, #ef4444, #dc2626);" title="XRAY — Red Bull line sampler (RB)">XRAY (RB)</button>
         </div>
-        <div class="control-group">
-            <label>Zoom:</label>
-            <input type="range" id="zoomSlider" min="50" max="200" value="100" step="5">
-            <span class="value" id="zoomValue">100%</span>
+
+        <div class="advanced-modes-toggle">
+            <button class="btn" id="modesToggleBtn">Modes ⇓</button>
+            <div class="advanced-modes hidden" id="advancedModes">
+                <button class="btn" id="flowBtn">Data Flow</button>
+                <button class="btn" id="compareBtn">Compare</button>
+                <button class="btn" id="transformBtn">Transforms</button>
+                <button class="btn" id="neuralFlowBtn">Neural Flow</button>
+            </div>
         </div>
-        <button class="btn" id="flowBtn">Data Flow</button>
-        <button class="btn" id="compareBtn">Compare</button>
-        <button class="btn" id="transformBtn">Transforms</button>
-        <button class="btn" id="neuralFlowBtn">Neural Flow</button>
-        <button class="btn" id="timelineBtn">Timeline</button>
-        <button class="btn" id="assemblyBtn">🏭 Assembly Line</button>
-        <button class="btn" id="redBullBtn" style="background: linear-gradient(135deg, #ef4444, #dc2626);">🐂 Red Bull</button>
+
+        <input type="search" id="weaverSearch" class="search-input" placeholder="Search lines / parts…">
+        <button class="btn" id="partsOnlyBtn" title="Show only geometry lines (type 1)">PARTS ONLY</button>
+        <button class="btn" id="mediaBarToggleBtn" title="Toggle footer media bar">MEDIA BAR</button>
     </div>
 </header>
 
@@ -1054,10 +1184,10 @@
     </div>
 </div>
 
-<!-- Red Bull Simulation Panel -->
+<!-- XRAY (RB) / Red Bull Simulation Panel -->
 <div class="assembly-status" id="redBullStatus" style="top: 300px; border-color: var(--accent-red);">
     <div style="text-align: center; margin-bottom: 8px; color: var(--accent-red); font-weight: bold; text-transform: uppercase; font-size: 12px;">
-        🐂 Red Bull Sampler
+        XRAY (RB) · Red Bull Sampler
     </div>
     <div class="status-row">
         <span class="status-label">Sampling Line:</span>
@@ -1109,62 +1239,85 @@
     <canvas id="neural-flow-canvas" class="neural-flow-overlay"></canvas>
     <div id="galaxy-tooltip" class="galaxy-tooltip"></div>
 
-    <!-- Column 1: The Void (Raw Source) -->
+    <!-- Column 1: Source (Void) -->
     <div class="column col-void">
         <div class="col-header">
             <div class="col-title">
                 <span class="col-icon">⚡</span>
-                Source Layer (The Void)
+                SOURCE (VOID)
             </div>
+            <span id="sourceSummary" class="col-summary"></span>
             <button class="expand-col-btn" onclick="toggleColumn(0)">⇔</button>
         </div>
         <div class="col-content" id="list-void"></div>
     </div>
 
-    <!-- Column 2: Template (Entity/Weathering) -->
+    <!-- Column 2: Template (Entity) -->
     <div class="column col-template">
         <div class="col-header">
             <div class="col-title">
                 <span class="col-icon">🧩</span>
-                Template Layer (Entity)
+                TEMPLATE (ENTITY)
             </div>
+            <span id="templateSummary" class="col-summary"></span>
             <button class="expand-col-btn" onclick="toggleColumn(1)">⇔</button>
         </div>
         <div class="col-content" id="list-template"></div>
     </div>
 
-    <!-- Column 3: Morphism (Transformation) -->
+    <!-- Column 3: Transform (Stud) -->
     <div class="column col-morphism">
         <div class="col-header">
             <div class="col-title">
                 <span class="col-icon">📐</span>
-                Transformation Layer (Stud Galaxy)
+                TRANSFORM (STUD)
             </div>
-            <span id="studMapSummary" style="font-size: 9px; color: #666; margin-right: 8px;"></span>
+            <span id="studMapSummary" class="col-summary"></span>
             <button class="expand-col-btn" onclick="toggleColumn(2)">⇔</button>
         </div>
         <div class="col-content" id="list-morphism"></div>
     </div>
 
-    <!-- Column 4: Action (Artifact/Visual) -->
+    <!-- Column 4: Execute (Artifact) -->
     <div class="column col-action">
         <div class="col-header">
             <div class="col-title">
                 <span class="col-icon">👁️</span>
-                Execution Layer (Artifact)
+                EXECUTE (ARTIFACT)
             </div>
+            <span id="actionSummary" class="col-summary"></span>
             <button class="expand-col-btn" onclick="toggleColumn(3)">⇔</button>
         </div>
         <div class="col-content" id="list-action"></div>
     </div>
 </main>
 
+<footer id="weaver-footer" class="weaver-footer">
+    <div class="footer-left">Media for Thinking: MPD → Entity → Transform → Artifact Pipeline</div>
+    <div class="footer-right">
+        <div class="control-group">
+            <label>Rotation:</label>
+            <input type="range" id="rotationSlider" min="0" max="360" value="45" step="1">
+            <span class="value" id="rotationValue">45°</span>
+            <div class="view-modes">
+                <button class="btn" id="viewTopBtn" title="Top view (X/Y)">XY</button>
+                <button class="btn" id="viewIsoBtn" title="Isometric spin">ISO</button>
+            </div>
+        </div>
+        <div class="control-group">
+            <label>Zoom:</label>
+            <input type="range" id="zoomSlider" min="50" max="200" value="100" step="5">
+            <span class="value" id="zoomValue">100%</span>
+        </div>
+    </div>
+</footer>
+
 <!-- Timeline Panel -->
 <div class="timeline-panel" id="timelinePanel">
     <div class="timeline-header">
         <div class="timeline-title">🕐 Temporal Event Stream (Line × Time × Source)</div>
         <div class="timeline-controls">
-            <button class="btn" onclick="simulateRedBullStream()">▶️ Simulate Red Bull</button>
+            <button class="btn" onclick="simulateRedBullStream()">▶️ Simulate XRAY (RB)</button>
             <button class="btn" onclick="simulateTemplateStream()">▶️ Simulate Template</button>
             <button class="btn" onclick="showDiffMatrix()">🔍 Show Diff</button>
             <button class="btn" onclick="closeTimeline()">✕</button>
@@ -1218,8 +1371,53 @@
         dimOthers: false,
         selectedId: null,
         neuralFlow: false,
-        showTimeline: false
+        showTimeline: false,
+        linkScroll: false,
+        partsOnly: false,
+        searchQuery: ''
     };
+
+    // Prevent recursive scroll events when scroll is linked via selection
+    let isSyncingScroll = false;
+
+    // --- HAPTIC / AUDIO FEEDBACK (optional, mobile-friendly) ---
+    let weaverAudioCtx = null;
+    function playWeaverHaptics(kind) {
+        try {
+            if (typeof navigator !== 'undefined' && navigator.vibrate) {
+                if (kind === 'assembly') {
+                    navigator.vibrate([5, 20]);
+                } else if (kind === 'dial') {
+                    navigator.vibrate(10);
+                } else {
+                    navigator.vibrate(8);
+                }
+            }
+        } catch (e) {}
+    }
+
+    function playWeaverThump() {
+        try {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (!AudioCtx) return;
+            if (!weaverAudioCtx) {
+                weaverAudioCtx = new AudioCtx();
+            }
+            const ctx = weaverAudioCtx;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'square';
+            osc.frequency.value = 140;
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            const now = ctx.currentTime;
+            gain.gain.setValueAtTime(0.0, now);
+            gain.gain.linearRampToValueAtTime(0.07, now + 0.01);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+            osc.start(now);
+            osc.stop(now + 0.1);
+        } catch (e) {}
+    }
 
     // === MPD DATA ===
     let mpdText = `0 FILE monkey-data-center.mpd
@@ -1354,6 +1552,27 @@
         mpdText = mpdContent;
         rawData = mpdText.split('\n');
         processedData = rawData.map((line, idx) => parseLine(line, idx));
+        annotateDescriptionsFromRaw();
+    }
+
+    function annotateDescriptionsFromRaw() {
+        if (!Array.isArray(rawData) || !Array.isArray(processedData)) return;
+        let pendingDesc = null;
+        for (let i = 0; i < rawData.length; i++) {
+            const line = rawData[i] || '';
+            const trimmed = line.trim();
+            if (trimmed.startsWith('0 // Desc:')) {
+                const idx = line.indexOf('Desc:');
+                pendingDesc = idx >= 0 ? line.slice(idx + 5).trim() : trimmed.slice('0 // Desc:'.length).trim();
+                continue;
+            }
+            const data = processedData[i];
+            if (!data || !data.entity) continue;
+            if (data.entity.type === '1' && pendingDesc) {
+                data.entity.desc = pendingDesc;
+                pendingDesc = null;
+            }
+        }
     }
 
     function initFromMpdAndSkeleton(mpdContent, skeletonNodes, redBullEvents) {
@@ -1474,7 +1693,23 @@
 
     // === DOM GENERATION ===
     function createDOM() {
+        const filterParts = !!state.partsOnly;
+        const q = state.searchQuery ? String(state.searchQuery).toLowerCase() : '';
         processedData.forEach((data, i) => {
+            if (!data || !data.entity) return;
+            const isPart = data.entity.type === '1';
+            if (filterParts && !isPart) return;
+
+            if (q) {
+                const haystack = [
+                    data.entity.raw || '',
+                    data.entity.name || '',
+                    data.entity.desc || '',
+                    String(i)
+                ].join(' ').toLowerCase();
+                if (!haystack.includes(q)) return;
+            }
+
             createVoidItem(data, i);
             createTemplateItem(data, i);
             createMorphismItem(data, i);
@@ -1502,6 +1737,7 @@
             el.style.opacity = "0.7";
             el.style.borderStyle = "dashed";
         } else {
+            const desc = data.entity && data.entity.desc ? data.entity.desc : '';
             el.innerHTML = `
                 <span class="line-index">#${i}</span>
                 <div class="template-header">
@@ -1512,6 +1748,7 @@
                     <span class="color-dot" style="background:${data.entity.colorHex}"></span>
                     <span style="font-size:10px; color:#999">ID: ${data.entity.color}</span>
                 </div>
+                ${desc ? `<div style="font-size:10px; color:#9ca3af; margin-top:2px;">DESC: ${desc}</div>` : ''}
             `;
             
             if (state.showFlow) {
@@ -1653,8 +1890,12 @@
         
         if(data.morphism.isGeometry) {
             const canvasId = `canvas-${i}`;
+            const partName = data.entity && data.entity.name ? data.entity.name : 'No Part';
             el.innerHTML = `
                 <div class="artifact-container">
+                    <div style="font-size:10px; color:#e5e7eb; margin-bottom:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                        #${i} · ${partName}
+                    </div>
                     <canvas id="${canvasId}" class="preview-canvas"></canvas>
                     <div class="action-controls">
                         <button class="action-btn" onclick="exportJSON(${i})">
@@ -1954,13 +2195,23 @@
         const items = document.querySelectorAll('.item');
         
         items.forEach(item => {
+            // Hover: soft preview only (no selection / scroll link)
             item.addEventListener('mouseenter', () => {
                 const id = parseInt(item.dataset.id);
+                if (isNaN(id)) return;
+                drawWeave(id);
+                const canvas = document.getElementById(`canvas-${id}`);
+                if(canvas) drawPreview(`canvas-${id}`, processedData[id], id);
+            });
+
+            // Click: hard select, snap all columns, enable linked scroll
+            item.addEventListener('click', () => {
+                const id = parseInt(item.dataset.id);
+                if (isNaN(id)) return;
                 highlightRow(id);
+                snapToLine(id);
                 drawWeave(id);
                 state.selectedId = id;
-                
-                // Redraw preview with selection
                 const canvas = document.getElementById(`canvas-${id}`);
                 if(canvas) drawPreview(`canvas-${id}`, processedData[id], id);
             });
@@ -1980,11 +2231,30 @@
         });
         
         document.querySelectorAll('.col-content').forEach(col => {
-            col.addEventListener('scroll', () => {
+            col.addEventListener('scroll', (e) => {
+                const source = e.target;
+
+                // When a line is actively selected, keep columns in sync
+                if (state.selectedId != null && !isSyncingScroll) {
+                    const max = source.scrollHeight - source.clientHeight;
+                    const ratio = max > 0 ? (source.scrollTop / max) : 0;
+                    isSyncingScroll = true;
+                    document.querySelectorAll('.col-content').forEach(other => {
+                        if (other === source) return;
+                        const oMax = other.scrollHeight - other.clientHeight;
+                        if (oMax > 0) {
+                            other.scrollTop = ratio * oMax;
+                        }
+                    });
+                    isSyncingScroll = false;
+                }
+
                 const hoverItem = document.querySelector('.item:hover');
                 if(hoverItem) {
                     const id = parseInt(hoverItem.dataset.id);
-                    drawWeave(id);
+                    if (!isNaN(id)) {
+                        drawWeave(id);
+                    }
                 }
             });
         });
@@ -2004,6 +2274,15 @@
         });
     }
 
+    function snapToLine(id) {
+        ['void', 'template', 'morphism', 'action'].forEach(col => {
+            const row = document.querySelector(`#list-${col} .item[data-id="${id}"]`);
+            if (row && typeof row.scrollIntoView === 'function') {
+                row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        });
+    }
+
     function clearHighlights() {
         document.querySelectorAll('.item').forEach(el => {
             el.classList.remove('active', 'dim');
@@ -2012,9 +2291,16 @@
 
     // === CONTROLS ===
     document.getElementById('rotationSlider').addEventListener('input', (e) => {
+        const prev = state.rotation;
         state.rotation = Number(e.target.value);
         document.getElementById('rotationValue').textContent = `${state.rotation}°`;
         redrawAll();
+        const prevStep = Math.round(prev / 45);
+        const currStep = Math.round(state.rotation / 45);
+        if (prevStep !== currStep) {
+            playWeaverHaptics('dial');
+            playWeaverThump();
+        }
     });
 
     document.getElementById('zoomSlider').addEventListener('input', (e) => {
@@ -2022,6 +2308,25 @@
         document.getElementById('zoomValue').textContent = `${state.zoom}%`;
         redrawAll();
     });
+
+    const viewTopBtn = document.getElementById('viewTopBtn');
+    const viewIsoBtn = document.getElementById('viewIsoBtn');
+    if (viewTopBtn) {
+        viewTopBtn.addEventListener('click', () => {
+            state.rotation = 0;
+            document.getElementById('rotationSlider').value = '0';
+            document.getElementById('rotationValue').textContent = '0°';
+            redrawAll();
+        });
+    }
+    if (viewIsoBtn) {
+        viewIsoBtn.addEventListener('click', () => {
+            state.rotation = 45;
+            document.getElementById('rotationSlider').value = '45';
+            document.getElementById('rotationValue').textContent = '45°';
+            redrawAll();
+        });
+    }
 
     document.getElementById('flowBtn').addEventListener('click', () => {
         state.showFlow = !state.showFlow;
@@ -2041,6 +2346,46 @@
         document.getElementById('transformBtn').classList.toggle('active', state.showTransforms);
         rebuildDOM();
     });
+
+    const modesToggleBtn = document.getElementById('modesToggleBtn');
+    const advancedModes = document.getElementById('advancedModes');
+    if (modesToggleBtn && advancedModes) {
+        modesToggleBtn.addEventListener('click', () => {
+            const isHidden = advancedModes.classList.contains('hidden');
+            if (isHidden) {
+                advancedModes.classList.remove('hidden');
+            } else {
+                advancedModes.classList.add('hidden');
+            }
+            modesToggleBtn.classList.toggle('active', isHidden);
+        });
+    }
+
+    const mediaBarToggleBtn = document.getElementById('mediaBarToggleBtn');
+    const weaverFooter = document.getElementById('weaver-footer');
+    if (mediaBarToggleBtn && weaverFooter) {
+        mediaBarToggleBtn.addEventListener('click', () => {
+            weaverFooter.classList.toggle('hidden');
+            mediaBarToggleBtn.classList.toggle('active', !weaverFooter.classList.contains('hidden'));
+        });
+    }
+
+    const partsOnlyBtn = document.getElementById('partsOnlyBtn');
+    if (partsOnlyBtn) {
+        partsOnlyBtn.addEventListener('click', () => {
+            state.partsOnly = !state.partsOnly;
+            partsOnlyBtn.classList.toggle('active', state.partsOnly);
+            rebuildDOM();
+        });
+    }
+
+    const weaverSearch = document.getElementById('weaverSearch');
+    if (weaverSearch) {
+        weaverSearch.addEventListener('input', (e) => {
+            state.searchQuery = e.target.value || '';
+            rebuildDOM();
+        });
+    }
 
     window.toggleColumn = function(idx) {
         const columns = document.querySelectorAll('.column');
@@ -2295,20 +2640,56 @@
 
     function updateStudMapSummary() {
         const el = document.getElementById('studMapSummary');
-        if (!el) return;
+        const srcEl = document.getElementById('sourceSummary');
+        const tmplEl = document.getElementById('templateSummary');
+        const actEl = document.getElementById('actionSummary');
+
         if (!processedData || !processedData.length) {
-            el.textContent = '';
-            el.style.color = '#666';
+            if (el) { el.textContent = ''; el.style.color = '#666'; }
+            if (srcEl) { srcEl.textContent = ''; srcEl.style.color = '#666'; }
+            if (tmplEl) { tmplEl.textContent = ''; tmplEl.style.color = '#666'; }
+            if (actEl) { actEl.textContent = ''; actEl.style.color = '#666'; }
             return;
         }
 
+        const totalLines = processedData.length;
         const map = buildStudMap();
-        if (!map.meta.lineCount) {
-            el.textContent = 'No stud map';
-            el.style.color = '#666';
-        } else {
-            el.textContent = `${map.meta.lineCount} lines · ${map.meta.studCount} studs`;
-            el.style.color = 'var(--accent-green)';
+        const geomLines = map.meta.lineCount || 0;
+        const studs = map.meta.studCount || 0;
+
+        if (el) {
+            if (!geomLines) {
+                el.textContent = 'No stud map';
+                el.style.color = '#666';
+            } else {
+                el.textContent = `${geomLines} lines · ${studs} studs`;
+                el.style.color = 'var(--accent-green)';
+            }
+        }
+
+        if (srcEl) {
+            srcEl.textContent = `${totalLines} MPD lines`;
+            srcEl.style.color = 'var(--text-dim)';
+        }
+
+        if (tmplEl) {
+            if (geomLines) {
+                tmplEl.textContent = `${geomLines} parts`;
+                tmplEl.style.color = 'var(--accent-purple)';
+            } else {
+                tmplEl.textContent = 'No parts';
+                tmplEl.style.color = '#666';
+            }
+        }
+
+        if (actEl) {
+            if (geomLines) {
+                actEl.textContent = `${geomLines} artifacts`;
+                actEl.style.color = 'var(--accent-cyan)';
+            } else {
+                actEl.textContent = 'No artifacts';
+                actEl.style.color = '#666';
+            }
         }
     }
 
@@ -2651,6 +3032,10 @@ ${matching === redbull.nodes.length && matching === template.nodes.length ? '✅
             `${Math.round((lineId / processedData.length) * 100)}%`;
         assemblyState.totalStuds += studCount;
         document.getElementById('studsBui lt').textContent = assemblyState.totalStuds;
+        
+        // Subtle haptic/audio feedback per built line (mobile-friendly)
+        playWeaverHaptics('assembly');
+        playWeaverThump();
         
         // Animate each column with delays
         const columns = ['void', 'template', 'morphism', 'action'];
@@ -3077,7 +3462,7 @@ ${matching === redbull.nodes.length && matching === template.nodes.length ? '✅
                 return;
             }
 
-            // GOLD fragment with full skeleton + events
+            // GOLD fragment with full skeleton + events (XRAY / Red Bull line sampler)
             if (msg.kind === 'redbull-gold') {
                 const gold = msg.gold || msg.payload || msg;
                 const mpdContent = gold.mpd_content || '';
@@ -3100,8 +3485,41 @@ ${matching === redbull.nodes.length && matching === template.nodes.length ? '✅
                     console.warn('[ASSEMBLY] Failed to persist GOLD from bus', e);
                 }
 
+                // Rebuild from XRAY (RB) GOLD
                 initFromMpdAndSkeleton(mpdContent, skeletonNodes, redBullEvents);
                 rebuildDOM();
+
+                // Auto-focus on a representative line so XRAY results are visible immediately.
+                // Prefer a line that appears in redBullEvents; fall back to first geometry line.
+                let targetLine = null;
+                const eventLines = Array.isArray(redBullEvents)
+                    ? redBullEvents
+                        .map(ev => (typeof ev.lineIndex === 'number' ? ev.lineIndex : ev.lineNum))
+                        .filter(n => typeof n === 'number' && n >= 0)
+                    : [];
+
+                if (eventLines.length) {
+                    targetLine = Math.min(...eventLines);
+                } else if (Array.isArray(processedData) && processedData.length) {
+                    for (let i = 0; i < processedData.length; i++) {
+                        const d = processedData[i];
+                        if (d && d.morphism && d.morphism.isGeometry) {
+                            targetLine = i;
+                            break;
+                        }
+                    }
+                }
+
+                if (targetLine != null) {
+                    try {
+                        highlightRow(targetLine);
+                        snapToLine(targetLine);
+                        drawWeave(targetLine);
+                        state.selectedId = targetLine;
+                    } catch (e) {
+                        console.warn('[ASSEMBLY] Failed to auto-focus XRAY line', e);
+                    }
+                }
             }
         });
     }

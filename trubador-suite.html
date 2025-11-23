@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TRUBADOR Suite – WAG Storytelling Labs</title>
+  <style>
+    :root {
+      --bg-main: #020617;
+      --bg-panel: #020617;
+      --bg-panel-alt: #020815;
+      --border-strong: #111827;
+      --border-soft: #1e293b;
+      --accent-swiss: #38bdf8;
+      --accent-frank: #a855f7;
+      --accent-courage: #ef4444;
+      --accent-ontology: #22c55e;
+      --accent-were: #f97316;
+      --accent-master: #eab308;
+      --accent-mento: #f472b6;
+      --accent-cool: #4ade80;
+      --text-main: #e5e7eb;
+      --text-muted: #9ca3af;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      font-family: "Courier New", monospace;
+      background: radial-gradient(circle at top, #020617 0%, #020617 40%, #000 100%);
+      color: var(--text-main);
+      min-height: 100vh;
+      padding: 24px 16px 40px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .page {
+      width: 100%;
+      max-width: 1320px;
+      border-radius: 18px;
+      border: 1px solid var(--border-strong);
+      background: radial-gradient(circle at top left, rgba(56,189,248,0.08), transparent 55%),
+                  radial-gradient(circle at top right, rgba(168,85,247,0.08), transparent 55%),
+                  linear-gradient(180deg, rgba(15,23,42,0.98), rgba(3,7,18,0.98));
+      box-shadow: 0 24px 80px rgba(0,0,0,0.9);
+      padding: 24px 24px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .page {
+        padding: 16px 12px 24px;
+      }
+    }
+
+    .header {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-soft);
+      padding-bottom: 16px;
+    }
+
+    .title-block {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .title {
+      font-size: 24px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text-main);
+    }
+
+    .subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+      max-width: 520px;
+    }
+
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .badge {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border-soft);
+      background: rgba(15,23,42,0.9);
+      color: var(--text-muted);
+    }
+
+    .badge.accent {
+      border-color: var(--accent-swiss);
+      color: var(--accent-swiss);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 2.1fr 1.4fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 1024px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      border-radius: 14px;
+      border: 1px solid var(--border-soft);
+      background: radial-gradient(circle at top, rgba(15,23,42,0.9), rgba(3,7,18,0.98));
+      padding: 16px 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .panel-title {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--text-muted);
+    }
+
+    .panel-tag {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border-soft);
+      color: var(--text-muted);
+    }
+
+    .panel-body {
+      font-size: 12px;
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .pill {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border-soft);
+      background: rgba(15,23,42,0.9);
+      color: var(--text-muted);
+    }
+
+    .pill span {
+      opacity: 0.8;
+    }
+
+    .pill.swiss { border-color: var(--accent-swiss); color: var(--accent-swiss); }
+    .pill.frank { border-color: var(--accent-frank); color: var(--accent-frank); }
+    .pill.courage { border-color: var(--accent-courage); color: var(--accent-courage); }
+    .pill.ontology { border-color: var(--accent-ontology); color: var(--accent-ontology); }
+    .pill.were { border-color: var(--accent-were); color: var(--accent-were); }
+    .pill.master { border-color: var(--accent-master); color: var(--accent-master); }
+    .pill.mento { border-color: var(--accent-mento); color: var(--accent-mento); }
+    .pill.cool { border-color: var(--accent-cool); color: var(--accent-cool); }
+
+    .section-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--text-muted);
+    }
+
+    .section {
+      border-radius: 14px;
+      border: 1px solid var(--border-soft);
+      padding: 14px 16px 16px;
+      background: radial-gradient(circle at top, rgba(15,23,42,0.9), rgba(3,7,18,0.98));
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .section p {
+      font-size: 12px;
+      color: var(--text-main);
+      line-height: 1.5;
+    }
+
+    .section ul {
+      list-style: none;
+      padding-left: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .section li {
+      font-size: 12px;
+      color: var(--text-main);
+    }
+
+    .label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+    }
+
+    .diagram-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    @media (max-width: 1024px) {
+      .diagram-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 640px) {
+      .diagram-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .node {
+      border-radius: 10px;
+      border: 1px solid var(--border-soft);
+      padding: 8px 10px;
+      font-size: 11px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      background: rgba(15,23,42,0.95);
+    }
+
+    .node-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+    }
+
+    .node-desc {
+      font-size: 11px;
+      color: var(--text-main);
+      opacity: 0.85;
+    }
+
+    .node-swiss { border-color: rgba(56,189,248,0.5); }
+    .node-frank { border-color: rgba(168,85,247,0.5); }
+    .node-courage { border-color: rgba(239,68,68,0.6); }
+    .node-ontology { border-color: rgba(34,197,94,0.6); }
+    .node-were { border-color: rgba(249,115,22,0.6); }
+    .node-master { border-color: rgba(234,179,8,0.7); }
+    .node-mento { border-color: rgba(244,114,182,0.7); }
+    .node-cool { border-color: rgba(74,222,128,0.7); }
+
+    .node-meta {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    .flow-diagram {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    @media (max-width: 1024px) {
+      .flow-diagram {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 640px) {
+      .flow-diagram {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    .flow-step {
+      border-radius: 10px;
+      border: 1px dashed var(--border-soft);
+      padding: 8px 10px;
+      font-size: 11px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .flow-step strong {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+    }
+
+    .mono {
+      font-family: "Courier New", monospace;
+      font-size: 11px;
+    }
+
+    .stack {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .code-brick {
+      font-size: 11px;
+      border-radius: 8px;
+      border: 1px solid var(--border-soft);
+      background: #020617;
+      padding: 8px 10px;
+      color: var(--text-muted);
+      overflow-x: auto;
+      white-space: pre;
+    }
+
+    .ref-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    @media (max-width: 900px) {
+      .ref-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 640px) {
+      .ref-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .ref-card {
+      border-radius: 10px;
+      border: 1px solid var(--border-soft);
+      background: rgba(15,23,42,0.95);
+      padding: 8px 10px;
+      font-size: 11px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .ref-card-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--text-muted);
+    }
+
+    .ref-card-body {
+      font-size: 11px;
+      color: var(--text-main);
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="header">
+      <div class="title-block">
+        <div class="title">TRUBADOR SUITE</div>
+        <div class="subtitle">
+          A coherent WAG product surface that walks a story from MPD manifest (SWISS) through
+          FRANK, Courage, Ontology Weaver, WERE, MASTER, and MENTO – using GOLD + skeleton-v2
+          as the shared language between tools.
+        </div>
+      </div>
+      <div class="badge-row">
+        <div class="badge accent">End-to-end Storytelling Stack</div>
+        <div class="badge">MPD · GOLD · skeleton-v2 · StudMap</div>
+      </div>
+    </header>
+
+    <div class="grid">
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">1 · Modules in the Suite</div>
+          <div class="panel-tag">Designator → Editors → Ontology → Labs → Capture</div>
+        </div>
+        <div class="panel-body">
+          <div class="diagram-grid">
+            <div class="node node-swiss">
+              <div class="node-title">SWISS DESIGNATOR</div>
+              <div class="node-desc">Entry manifest for scenes, tools, docs, and prompts. Names the world.</div>
+              <div class="node-meta mono">index.html · swiss-frank-grace-studio.html</div>
+            </div>
+            <div class="node node-frank">
+              <div class="node-title">FRANK</div>
+              <div class="node-desc">Scene router and message bus. Knows which editor / studio owns which MPD.</div>
+              <div class="node-meta mono">wag-frank.html · wag-frank bus</div>
+            </div>
+            <div class="node node-courage">
+              <div class="node-title">COURAGE EDITOR</div>
+              <div class="node-desc">MPD text editor + viewer. Red Bull sampler emits GOLD + skeleton-v2.</div>
+              <div class="node-meta mono">wag-courage.html · wag_redbull_gold</div>
+            </div>
+            <div class="node node-ontology">
+              <div class="node-title">ONTOLOGY WEAVER</div>
+              <div class="node-desc">Assembly Line + Line Grid + COOL. Turns studs into per-line, per-part maps.</div>
+              <div class="node-meta mono">assembly-line.html · line-grid-viewer.html · wag-cool-skeleton-loader.html</div>
+            </div>
+            <div class="node node-were">
+              <div class="node-title">WERE</div>
+              <div class="node-desc">Skeleton MPD lab. Walks between GOLD and MPD form by line ownership.</div>
+              <div class="node-meta mono">wag-were.html</div>
+            </div>
+            <div class="node node-master">
+              <div class="node-title">MASTER</div>
+              <div class="node-desc">Overlay editor. Lets you see GOLD skeleton on top of compact MPD lines.</div>
+              <div class="node-meta mono">wag-master.html</div>
+            </div>
+            <div class="node node-mento">
+              <div class="node-title">MENTO</div>
+              <div class="node-desc">Moment / capture layer. Binds scenes to time, text, camera, and media.</div>
+              <div class="node-meta mono">momento.html · momento_system_map.html</div>
+            </div>
+            <div class="node node-cool">
+              <div class="node-title">COOL</div>
+              <div class="node-desc">Canonical grid + skeleton-v2 consumers. Normalize studs for any viewer.</div>
+              <div class="node-meta mono">cool-timber-studio.html · wag-cool-skeleton-loader.html</div>
+            </div>
+          </div>
+
+          <div class="stack">
+            <div class="label">Trubador Promise</div>
+            <p>
+              TRUBADOR is the top-level name for "all of the above as one thing" – a suite where
+              SWISS names the story, FRANK routes it, Courage edits it, the Ontology Weaver
+              canonicalizes it, WERE/MASTER probe it, COOL normalizes it, and MENTO narrates it.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">2 · Data Contract (GOLD + skeleton-v2)</div>
+          <div class="panel-tag">The shared language between studios</div>
+        </div>
+        <div class="panel-body">
+          <div class="stack">
+            <p>
+              Courage is the source of truth. Everything downstream in TRUBADOR speaks a
+              small, explicit contract:
+            </p>
+            <ul>
+              <li><strong>MPD text</strong> – original scene source (mpd_content).</li>
+              <li><strong>GOLD scene</strong> – snapshot with studs, parts, violations, metadata.</li>
+              <li><strong>skeleton-v2</strong> – per-stud, per-line, per-layer record on a grid.</li>
+              <li><strong>StudMap MPD</strong> – 0 !STUDMAP annotations grouped by line/part.</li>
+            </ul>
+            <div class="code-brick mono">
+{ "mpd_content": "0 FILE ...", 
+  "stud_skeleton_v2": {
+    "nodes": [
+      { "lineNum": 12, "gridX": 0, "gridZ": 3, "layer": 1, "x": 40, "y": 24, "z": 0 },
+      { "lineNum": 12, "gridX": 1, "gridZ": 3, "layer": 1, "x": 50, "y": 24, "z": 0 },
+      ...
+    ]
+  },
+  "part_skeletons": [ ... ],
+  "ground_violations": [ ... ]
+}
+            </div>
+            <p>
+              TRUBADOR as a product is simply: "everything that can speak this contract and
+              move stories safely between tools, on or off the grid".
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <section class="section">
+      <div class="section-title">3 · Flow: From Designation to Story</div>
+      <p>
+        This is the core TRUBADOR path, walking a scene from an idea in the manifest to a
+        performed moment with skeleton-aware tooling.
+      </p>
+      <div class="flow-diagram">
+        <div class="flow-step">
+          <strong>SWISS</strong>
+          <span class="mono">index.html · swiss-frank-grace-studio.html</span>
+          <span>Designate a scene and choose the studio surface (TIMBER, Bull, COOL, etc.).</span>
+        </div>
+        <div class="flow-step">
+          <strong>FRANK</strong>
+          <span class="mono">wag-frank.html · BroadcastChannel('wag-frank')</span>
+          <span>Route MPD + GOLD between editors and studios. One bus, many listeners.</span>
+        </div>
+        <div class="flow-step">
+          <strong>COURAGE</strong>
+          <span class="mono">wag-courage.html · Red Bull → GOLD</span>
+          <span>Edit MPD, run Red Bull, emit GOLD + skeleton-v2 into localStorage + wag-frank.</span>
+        </div>
+        <div class="flow-step">
+          <strong>ONTOLOGY WEAVER</strong>
+          <span class="mono">assembly-line.html · line-grid-viewer.html</span>
+          <span>Ingest GOLD, group studs per-line and per-part, export StudMap MPD + GOLD scenes.</span>
+        </div>
+        <div class="flow-step">
+          <strong>COOL</strong>
+          <span class="mono">cool-timber-studio.html · wag-cool-skeleton-loader.html</span>
+          <span>Normalize studs into a canonical grid so any viewer can replay the scene.</span>
+        </div>
+        <div class="flow-step">
+          <strong>WERE</strong>
+          <span class="mono">wag-were.html</span>
+          <span>Round-trip between GOLD and a skeleton MPD. Check line ownership + coverage.</span>
+        </div>
+        <div class="flow-step">
+          <strong>MASTER</strong>
+          <span class="mono">wag-master.html</span>
+          <span>Overlay GOLD on a compact MPD editor. Lock-in edits or fix skeleton breakages.</span>
+        </div>
+        <div class="flow-step">
+          <strong>MENTO</strong>
+          <span class="mono">momento.html</span>
+          <span>Capture camera, time, text, and performance as narrative moments bound to GOLD.</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-title">4 · Buses, Studios, and Architectures</div>
+      <div class="stack">
+        <p>
+          TRUBADOR is not one monolith – it is a set of small studios that share a few clear
+          integration patterns.
+        </p>
+        <div class="ref-grid">
+          <div class="ref-card">
+            <div class="ref-card-title">Broadcast Bus · wag-frank</div>
+            <div class="ref-card-body">
+              <ul>
+                <li><span class="mono">new BroadcastChannel('wag-frank')</span> in Courage, Assembly Line, Line Grid.</li>
+                <li><strong>Messages</strong>: <span class="mono">redbull-line</span>, <span class="mono">redbull-gold</span>, others.</li>
+                <li>Lets one editor stream line events; others visualize or log them.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="ref-card">
+            <div class="ref-card-title">Studio Shell Bus · postMessage</div>
+            <div class="ref-card-body">
+              <ul>
+                <li>TIMBER, COOL TIMBER, Bull Assembly use a parent window as a relay.</li>
+                <li><span class="mono">type: 'studio-load-gold-from-courage'</span> into child iframes.</li>
+                <li>TRUBADOR shells can unify these into a single top-level studio.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="ref-card">
+            <div class="ref-card-title">Persistence · localStorage & Files</div>
+            <div class="ref-card-body">
+              <ul>
+                <li><span class="mono">localStorage.wag_redbull_gold</span> – latest Courage GOLD snapshot.</li>
+                <li>Downloadable GOLD JSON / StudMap MPD from multiple tools.</li>
+                <li>StudMap MPD is the bridge to any external LDraw-compatible pipeline.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="ref-card">
+            <div class="ref-card-title">Existing Studios</div>
+            <div class="ref-card-body">
+              <ul>
+                <li><span class="mono">timber-studio.html</span> – Courage + WERE + MASTER + Symbiogene.</li>
+                <li><span class="mono">cool-timber-studio.html</span> – adds COOL loader panel.</li>
+                <li><span class="mono">bull-assembly-studio.html</span> – Courage ⇄ Ontology Weaver.</li>
+                <li><span class="mono">swiss-frank-grace-studio.html</span> – manifest / designator layer.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="ref-card">
+            <div class="ref-card-title">TRUBADOR Studio (Future)</div>
+            <div class="ref-card-body">
+              <ul>
+                <li>One shell that can dock SWISS, Courage, Ontology Weaver, WERE, MASTER, COOL, MENTO.</li>
+                <li>Same chrome as TIMBER, but with a higher-level <span class="mono">TRUBADOR</span> identity.</li>
+                <li>This page is the spec surface for that studio.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-title">5 · Dependencies & Instances</div>
+      <p>
+        The suite is intentionally dependency-light: pure HTML/JS, no backend. The real
+        dependencies are shared contracts and file names.
+      </p>
+      <ul>
+        <li><strong>Contracts</strong>: MPD, GOLD scene JSON, skeleton-v2, StudMap MPD.</li>
+        <li><strong>Buses</strong>: BroadcastChannel('wag-frank'), studio postMessage conventions.</li>
+        <li><strong>Viewers</strong>: existing LDraw / three.js viewers embedded inside wag-* files.</li>
+      </ul>
+      <div class="pill-row">
+        <div class="pill swiss"><span>SWISS · index.html</span></div>
+        <div class="pill frank"><span>FRANK · wag-frank.html</span></div>
+        <div class="pill courage"><span>COURAGE · wag-courage.html</span></div>
+        <div class="pill ontology"><span>ASSEMBLY LINE · assembly-line.html</span></div>
+        <div class="pill ontology"><span>LINE GRID · line-grid-viewer.html</span></div>
+        <div class="pill cool"><span>COOL LOADER · wag-cool-skeleton-loader.html</span></div>
+        <div class="pill were"><span>WERE · wag-were.html</span></div>
+        <div class="pill master"><span>MASTER · wag-master.html</span></div>
+        <div class="pill mento"><span>MENTO · momento.html</span></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-title">6 · SWISS–FRANK–GRACE Studio Architecture</div>
+      <p>
+        The SWISS–FRANK–GRACE cluster is the "front-of-house" for TRUBADOR: the place where
+        scenes are designated, tools are discovered, and messages start flowing on the bus.
+      </p>
+      <div class="diagram-grid" style="margin-top: 6px;">
+        <div class="node node-swiss">
+          <div class="node-title">SWISS · MANIFEST</div>
+          <div class="node-desc">index.html lists scenes, tools, and studios as bricks in a planning grid.</div>
+          <div class="node-meta mono">User clicks a brick → opens a studio or tool.</div>
+        </div>
+        <div class="node node-swiss">
+          <div class="node-title">SWISS–FRANK–GRACE STUDIO</div>
+          <div class="node-desc">A studio shell focusing on manifest navigation, FRANK routing, and GRACE docs.</div>
+          <div class="node-meta mono">swiss-frank-grace-studio.html · iframe host</div>
+        </div>
+        <div class="node node-frank">
+          <div class="node-title">FRANK · ROUTER/BUS</div>
+          <div class="node-desc">Tracks which MPD belongs to which editor/studio and exposes wag-frank bus.</div>
+          <div class="node-meta mono">wag-frank.html · BroadcastChannel('wag-frank')</div>
+        </div>
+        <div class="node">
+          <div class="node-title">GRACE · DOCS / PROMPTS</div>
+          <div class="node-desc">Documentation, prompts, and teaching surfaces wired off the manifest.</div>
+          <div class="node-meta mono">GRACE docs bricks in index.html</div>
+        </div>
+      </div>
+      <div class="stack" style="margin-top: 8px;">
+        <div class="label">Click Path</div>
+        <ul>
+          <li>1. <strong>SWISS</strong>: user chooses a scene / tool brick in <span class="mono">index.html</span>.</li>
+          <li>2. <strong>Studio</strong>: browser navigates to a studio (e.g., TIMBER, Bull Assembly, COOL TIMBER).</li>
+          <li>3. <strong>FRANK</strong>: the studio shell embeds <span class="mono">wag-frank.html</span> or listens on its bus.</li>
+          <li>4. <strong>Editors</strong>: Courage, Ontology Weaver, WERE, MASTER, etc. receive MPD/GOLD via FRANK or direct file load.</li>
+        </ul>
+        <div class="label" style="margin-top: 6px;">Bus Path</div>
+        <ul>
+          <li><span class="mono">wag-frank</span> channel: editors broadcast <span class="mono">redbull-line</span> and <span class="mono">redbull-gold</span> messages.</li>
+          <li>Studios may also relay GOLD via <span class="mono">postMessage</span> (e.g. <span class="mono">type: 'studio-load-gold-from-courage'</span>).</li>
+          <li>GRACE docs can reference these buses conceptually but do not need to subscribe to them.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-title">7 · Pipelines & Subpipelines</div>
+      <p>
+        TRUBADOR is a bundle of named pipelines. Each one is a thin, explicit sequence of
+        stages that share GOLD + skeleton-v2.
+      </p>
+
+      <div class="stack" style="margin-top: 6px;">
+        <div class="label">Pipeline · TRUBADOR End-to-End</div>
+        <div class="flow-diagram">
+          <div class="flow-step">
+            <strong>Stage 1 · Designate</strong>
+            <span class="mono">SWISS</span>
+            <span>index.html and swiss-frank-grace-studio choose a scene and target studio.</span>
+          </div>
+          <div class="flow-step">
+            <strong>Stage 2 · Edit & Sample</strong>
+            <span class="mono">COURAGE</span>
+            <span>Edit MPD, run Red Bull, emit GOLD + skeleton-v2 and wag-frank events.</span>
+          </div>
+          <div class="flow-step">
+            <strong>Stage 3 · Weave Ontology</strong>
+            <span class="mono">ASSEMBLY LINE · LINE GRID</span>
+            <span>Ingest GOLD, build per-line/per-part stud maps, export GOLD scene + StudMap MPD.</span>
+          </div>
+          <div class="flow-step">
+            <strong>Stage 4 · Normalize</strong>
+            <span class="mono">COOL</span>
+            <span>Transform studs into a canonical grid and expose normalized skeletons to viewers.</span>
+          </div>
+          <div class="flow-step">
+            <strong>Stage 5 · Probe & Edit</strong>
+            <span class="mono">WERE · MASTER</span>
+            <span>Inspect coverage, line ownership, overlay GOLD on MPD and make structural edits.</span>
+          </div>
+          <div class="flow-step">
+            <strong>Stage 6 · Capture</strong>
+            <span class="mono">MENTO</span>
+            <span>Bind the resulting scene to time, camera, and narrative moments.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="stack" style="margin-top: 10px;">
+        <div class="label">Subpipeline · TIMBER / COOL TIMBER Studio</div>
+        <div class="flow-diagram">
+          <div class="flow-step">
+            <strong>Stage A · Courage</strong>
+            <span class="mono">wag-courage.html</span>
+            <span>Primary MPD editor inside TIMBER / COOL TIMBER shell.</span>
+          </div>
+          <div class="flow-step">
+            <strong>Stage B · WERE</strong>
+            <span class="mono">wag-were.html</span>
+            <span>Build and inspect skeleton MPD from GOLD or MPD.</span>
+          </div>
+          <div class="flow-step">
+            <strong>Stage C · MASTER</strong>
+            <span class="mono">wag-master.html</span>
+            <span>Overlay GOLD on compact MPD; fix misalignments.</span>
+          </div>
+          <div class="flow-step">
+            <strong>Stage D · COOL Loader</strong>
+            <span class="mono">wag-cool-skeleton-loader.html</span>
+            <span>In COOL TIMBER, load skeleton-v2 / grid_spec for viewer-agnostic playback.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="stack" style="margin-top: 10px;">
+        <div class="label">Subpipeline · Bull Assembly / Ontology</div>
+        <div class="flow-diagram">
+          <div class="flow-step">
+            <strong>Stage α · Red Bull</strong>
+            <span class="mono">wag-courage.html</span>
+            <span>Run line-by-line sampling; broadcast <span class="mono">redbull-gold</span> + store wag_redbull_gold.</span>
+          </div>
+          <div class="flow-step">
+            <strong>Stage β · Assembly Line</strong>
+            <span class="mono">assembly-line.html</span>
+            <span>Consume GOLD via wag-frank or studio shell; build stud map + diagnostics.</span>
+          </div>
+          <div class="flow-step">
+            <strong>Stage γ · Line Grid Viewer</strong>
+            <span class="mono">line-grid-viewer.html</span>
+            <span>Visualize MPD lines vs. studs; export GOLD and StudMap MPD.</span>
+          </div>
+          <div class="flow-step">
+            <strong>Stage δ · Labs</strong>
+            <span class="mono">wag-were.html · wag-master.html</span>
+            <span>Use the stud map and GOLD to experiment with line/group ownership and overlays.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="stack" style="margin-top: 10px;">
+        <div class="label">Subpipeline · Line Grid / GOLD-Only</div>
+        <div class="flow-diagram">
+          <div class="flow-step">
+            <strong>Stage i · GOLD Ingest</strong>
+            <span class="mono">line-grid-viewer.html</span>
+            <span>Load GOLD from Courage (localStorage / wag-frank) or file/paste.</span>
+          </div>
+          <div class="flow-step">
+            <strong>Stage ii · Filter & Sample</strong>
+            <span class="mono">Line ribbons</span>
+            <span>Toggle parts-only view; animate a line-by-line sampling walk.</span>
+          </div>
+          <div class="flow-step">
+            <strong>Stage iii · Export</strong>
+            <span class="mono">GOLD · StudMap MPD</span>
+            <span>Download a refined GOLD scene or a StudMap MPD for downstream labs.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-title">8 · TRUBADOR as Operating System</div>
+      <p>
+        Underneath the individual tools, TRUBADOR behaves like a small operating system: a
+        language for <strong>words assembling grids</strong>, <strong>words assembling geometries</strong>, and
+        <strong>words assembling generations</strong>.
+      </p>
+
+      <div class="diagram-grid" style="margin-top: 6px;">
+        <div class="node node-swiss">
+          <div class="node-title">Words → Grids</div>
+          <div class="node-desc">SWISS + FRANK + GOLD + skeleton-v2 describe which words own which cells.</div>
+          <div class="node-meta mono">index.html · FRANK_CELL · lineNum · gridX/gridZ · layer</div>
+        </div>
+        <div class="node node-courage">
+          <div class="node-title">Words → Geometries</div>
+          <div class="node-desc">Courage, Ontology Weaver, COOL turn MPD lines into studs and rendered bricks.</div>
+          <div class="node-meta mono">MPD → GOLD → StudMap MPD → viewer geometry</div>
+        </div>
+        <div class="node node-mento">
+          <div class="node-title">Words → Generations</div>
+          <div class="node-desc">GRACE, prompts, and MENTO assemble sequences of edits, shots, and scenes over time.</div>
+          <div class="node-meta mono">docs/prompts · momento timelines · narrative metadata</div>
+        </div>
+      </div>
+
+      <div class="stack" style="margin-top: 8px;">
+        <div class="label">Kernel & Processes</div>
+        <ul>
+          <li><strong>Kernel</strong>: GOLD + skeleton-v2 + StudMap MPD are the core data structures, and <span class="mono">wag-frank</span> + studio <span class="mono">postMessage</span> are the system buses.</li>
+          <li><strong>Processes</strong>: Courage, Ontology Weaver, WERE, MASTER, COOL, and MENTO are "processes" scheduled by studios like TIMBER, Bull Assembly, and SWISS–FRANK–GRACE.</li>
+          <li><strong>Shell</strong>: SWISS (index.html) is the user-facing shell where scenes, tools, and docs live as commands/bricks.</li>
+        </ul>
+        <div class="label" style="margin-top: 6px;">How words assemble</div>
+        <ul>
+          <li><strong>Assembling grids</strong>: textual MPD + FRANK_CELL + GRACE docs define discrete cells, lines, and grids that GOLD and skeleton-v2 inhabit.</li>
+          <li><strong>Assembling geometries</strong>: those grids feed viewers (Courage, COOL, labs) that realize geometry, collisions, and overlays.</li>
+          <li><strong>Assembling generations</strong>: prompts, sessions, and MENTO capture how scenes change across time – which GOLDs follow which edits, which shots follow which grids.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-title">9 · Module Affordances (What You See / What It Does)</div>
+      <p>
+        Each TRUBADOR module has a specific shape in time: what you see on screen, what it
+        accepts, and what it gives back. SWISS is the designator, but the same lens applies
+        to FRANK, Courage, the Ontology Weaver, labs, and capture.
+      </p>
+
+      <div class="ref-grid" style="margin-top: 6px;">
+        <div class="ref-card">
+          <div class="ref-card-title">SWISS DESIGNATOR</div>
+          <div class="ref-card-body">
+            <ul>
+              <li><strong>What you see</strong>: a manifest grid of bricks (scenes, tools, docs, prompts).</li>
+              <li><strong>Accepts</strong>: your click / navigation choice; optionally MPD paths baked into brick hrefs.</li>
+              <li><strong>Gives</strong>: a studio URL (TIMBER, Bull Assembly, COOL, SWISS–FRANK–GRACE) plus context about "what this brick means".</li>
+              <li><strong>Time</strong>: very early; you are still naming and choosing the world, before editing.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="ref-card">
+          <div class="ref-card-title">FRANK · Router / Bus</div>
+          <div class="ref-card-body">
+            <ul>
+              <li><strong>What you see</strong>: usually invisible; a small status/debug panel when opened directly.</li>
+              <li><strong>Accepts</strong>: MPD text, GOLD scenes, and events from Courage / labs on <span class="mono">wag-frank</span>.</li>
+              <li><strong>Gives</strong>: routing decisions and rebroadcasted messages so other tools can subscribe.</li>
+              <li><strong>Time</strong>: always-on background; lives across edits and replays.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="ref-card">
+          <div class="ref-card-title">COURAGE · Editor</div>
+          <div class="ref-card-body">
+            <ul>
+              <li><strong>What you see</strong>: MPD text editor, 3D viewer, Red Bull button, quick toggles.</li>
+              <li><strong>Accepts</strong>: MPD text (manual or file), GOLD imports, selection events, bus messages.</li>
+              <li><strong>Gives</strong>: edited MPD, GOLD scenes with <span class="mono">stud_skeleton_v2</span>, Red Bull events.</li>
+              <li><strong>Time</strong>: mid-early; where the scene is authored and re-authored.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="ref-card">
+          <div class="ref-card-title">Ontology Weaver · Assembly / Grid</div>
+          <div class="ref-card-body">
+            <ul>
+              <li><strong>What you see</strong>: per-line studs, per-part maps, line ribbons, diff views.</li>
+              <li><strong>Accepts</strong>: GOLD scenes (from Courage / files), Red Bull events, MPD structure.</li>
+              <li><strong>Gives</strong>: stud maps, StudMap MPD, diagnostics, refined GOLD for labs.</li>
+              <li><strong>Time</strong>: mid; after MPD is stable enough to study, before heavy editing in labs.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="ref-card">
+          <div class="ref-card-title">WERE · Skeleton Lab</div>
+          <div class="ref-card-body">
+            <ul>
+              <li><strong>What you see</strong>: skeleton MPD view, line-group selectors, coverage indicators.</li>
+              <li><strong>Accepts</strong>: GOLD scenes, MPD text, StudMap-derived skeletons.</li>
+              <li><strong>Gives</strong>: synthesized skeleton MPDs, insight into ownership and missing lines.</li>
+              <li><strong>Time</strong>: mid-late; when you are interrogating structure, not just layout.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="ref-card">
+          <div class="ref-card-title">MASTER · Overlay Editor</div>
+          <div class="ref-card-body">
+            <ul>
+              <li><strong>What you see</strong>: compact MPD editor with GOLD overlays and toggles.</li>
+              <li><strong>Accepts</strong>: MPD + GOLD pairs, line selections, overlay controls.</li>
+              <li><strong>Gives</strong>: corrected MPD, updated GOLD exports, decisions about what is canonical.</li>
+              <li><strong>Time</strong>: late; where you lock in edits or resolve skeleton issues.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="ref-card">
+          <div class="ref-card-title">COOL · Canonical Grid</div>
+          <div class="ref-card-body">
+            <ul>
+              <li><strong>What you see</strong>: grid-aware loaders and views that feel independent of a single viewer.</li>
+              <li><strong>Accepts</strong>: GOLD with <span class="mono">stud_skeleton_v2</span> and grid_spec.</li>
+              <li><strong>Gives</strong>: normalized skeletons + grids that any compatible viewer can replay.</li>
+              <li><strong>Time</strong>: can appear mid or late; useful both in labs and in final playback stacks.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="ref-card">
+          <div class="ref-card-title">XRAY (RB) · Line Sampler</div>
+          <div class="ref-card-body">
+            <ul>
+              <li><strong>What you see</strong>: a per-line "X-ray" of the scene: one stud skeleton per MPD line, plus a temporal trace of sampling events.</li>
+              <li><strong>Accepts</strong>: an MPD scene in Courage or compatible GOLD snapshot; optionally a running Red Bull stream on the <span class="mono">wag-frank</span> bus.</li>
+              <li><strong>Gives</strong>: focused GOLD fragments (<span class="mono">mpd_content + stud_skeleton_v2 + redbull_events</span>) that feed Assembly Line, Line Grid Viewer, KINETIC BELT, BLUE-LOOM, WERE, and MASTER.</li>
+              <li><strong>Time</strong>: mid; when you want to interrogate studs and ownership line-by-line before committing to heavier COOL/WERE/MASTER analysis.</li>
+              <li><strong>Docs</strong>: see <span class="mono">WAG-UNIFIED-WEAVER-OLOG.md</span> for Unified Weaver column behavior, XRAY ingest, and shuttle animation.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="ref-card">
+          <div class="ref-card-title">MENTO · Capture</div>
+          <div class="ref-card-body">
+            <ul>
+              <li><strong>What you see</strong>: timelines, shot lists, camera controls, annotation fields.</li>
+              <li><strong>Accepts</strong>: references to GOLD scenes, camera paths, text annotations, timestamps.</li>
+              <li><strong>Gives</strong>: a graph of moments (who did what, when, on which grid/scene).</li>
+              <li><strong>Time</strong>: very late; after a scene is solid enough to perform and record.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</body>
+</html>

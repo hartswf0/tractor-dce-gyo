@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WAG – BLUE-LOOM</title>
+    <style>
+        :root {
+            --bg-floor: #050608;
+            --bg-panel: #0b0c10;
+            --border-dim: #1f2833;
+            --border-lit: #45a29e;
+            --cyan: #66fcf1;
+            --text-main: #c5c6c7;
+            --text-dim: #4b5d67;
+            --alert: #ff3838;
+            --font: 'JetBrains Mono', 'Consolas', monospace;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
+
+        body {
+            background: var(--bg-floor);
+            color: var(--text-main);
+            font-family: var(--font);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            /* Technical Grid Background */
+            background-image: 
+                linear-gradient(rgba(31, 40, 51, 0.2) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(31, 40, 51, 0.2) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        /* --- SYSTEM HEADER --- */
+        header {
+            height: 50px;
+            background: var(--bg-panel);
+            border-bottom: 1px solid var(--border-dim);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+
+        .sys-id {
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--cyan);
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(102, 252, 241, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sys-id::before {
+            content: ''; display: block; width: 10px; height: 10px;
+            background: var(--cyan); box-shadow: 0 0 10px var(--cyan);
+        }
+
+        .controls { display: flex; gap: 2px; }
+
+        /* Industrial Buttons */
+        .btn {
+            background: #111;
+            border: 1px solid var(--border-dim);
+            color: var(--text-dim);
+            padding: 8px 16px;
+            font-family: var(--font);
+            font-size: 11px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.1s;
+            min-width: 100px;
+            text-align: center;
+        }
+
+        .btn:hover { background: #1a1a1a; color: var(--text-main); border-color: var(--text-dim); }
+        .btn:active { transform: translateY(1px); }
+        
+        .btn.active { 
+            background: rgba(69, 162, 158, 0.1); 
+            color: var(--cyan); 
+            border-color: var(--cyan); 
+            box-shadow: inset 0 0 10px rgba(102, 252, 241, 0.1);
+        }
+
+        /* --- PRODUCTION FLOOR (Main Area) --- */
+        .floor {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            position: relative;
+        }
+
+        /* --- PRODUCTION UNIT (The Row) --- */
+        .unit {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-dim);
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            position: relative;
+            opacity: 0.6;
+        }
+
+        .unit:hover { opacity: 1; border-color: var(--text-dim); }
+        
+        /* Active State */
+        .unit.active {
+            opacity: 1;
+            border-color: var(--cyan);
+            box-shadow: 0 0 20px rgba(69, 162, 158, 0.1);
+            z-index: 10;
+        }
+
+        /* Top Bar: ID and Metadata */
+        .unit-header {
+            height: 24px;
+            background: #0f1014;
+            border-bottom: 1px solid var(--border-dim);
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            font-size: 10px;
+            color: var(--text-dim);
+            gap: 15px;
+        }
+        
+        .unit.active .unit-header { background: rgba(102, 252, 241, 0.05); color: var(--cyan); }
+
+        .uid { font-weight: bold; color: var(--text-main); width: 40px; }
+        .meta-tag { text-transform: uppercase; }
+
+        /* Body: The Data Core */
+        .unit-body {
+            display: flex;
+            height: 100px; /* Fixed height for crisp layout */
+        }
+
+        /* Sector 1: SOURCE (Editable Code) */
+        .sector-source {
+            flex: 2;
+            border-right: 1px solid var(--border-dim);
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .label { font-size: 9px; color: var(--text-dim); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px; }
+        
+        .code-input {
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            font-family: var(--font);
+            font-size: 12px;
+            width: 100%;
+            background: rgba(0,0,0,0.3);
+            padding: 4px;
+        }
+
+        .code-input:focus { background: #000; color: var(--cyan); }
+
+        /* Sector 2: PROCESS (Matrix/Telemetry) */
+        .sector-process {
+            flex: 1;
+            border-right: 1px solid var(--border-dim);
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            font-size: 10px;
+            color: var(--text-dim);
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .matrix-row { display: flex; justify-content: space-between; margin-bottom: 2px; }
+        .matrix-val { width: 30%; text-align: right; }
+
+        /* Scanning overlay for process */
+        .sector-process::after {
+            content: ''; position: absolute; top:0; left:0; width:100%; height:100%;
+            background: linear-gradient(180deg, transparent 0%, rgba(102, 252, 241, 0.1) 50%, transparent 100%);
+            transform: translateY(-100%);
+            pointer-events: none;
+        }
+        .unit.active .sector-process::after { animation: scanVertical 2s infinite linear; }
+
+        /* Sector 3: ARTIFACT (Canvas) */
+        .sector-artifact {
+            width: 140px;
+            background: #000;
+            position: relative;
+            overflow: hidden;
+        }
+
+        canvas { width: 100%; height: 100%; display: block; }
+
+        /* The "Build" Overlay */
+        .build-overlay {
+            position: absolute;
+            top: 0; left: 0; bottom: 0; width: 100%;
+            background: #000;
+            border-left: 1px solid var(--cyan);
+            transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+            transform: translateX(0); /* Start covering */
+            pointer-events: none;
+        }
+        
+        .unit.built .build-overlay { transform: translateX(100%); }
+
+        /* --- FOOTER --- */
+        footer {
+            height: 30px;
+            border-top: 1px solid var(--border-dim);
+            background: var(--bg-panel);
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            font-size: 10px;
+            color: var(--text-dim);
+            justify-content: space-between;
+        }
+        
+        .sys-log { color: var(--cyan); font-family: var(--font); }
+        .blink { animation: blink 1s infinite; }
+
+        @keyframes scanVertical { 0% { transform: translateY(-100%); } 100% { transform: translateY(100%); } }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        /* --- DRAWER --- */
+        .drawer {
+            position: fixed; top: 50px; left: 0; right: 0; bottom: 30px;
+            background: rgba(5, 6, 8, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 90;
+            display: none;
+            padding: 40px;
+            flex-direction: column;
+        }
+        .drawer.open { display: flex; }
+        .drawer textarea { flex: 1; background: #111; border: 1px solid var(--border-lit); color: var(--cyan); padding: 20px; font-family: var(--font); font-size: 12px; resize: none; }
+        .drawer-header { display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 14px; color: var(--text-main); text-transform: uppercase; }
+
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="sys-id">BLUE-LOOM <span>v4.0</span></div>
+    <div class="controls">
+        <button class="btn" onclick="toggleDrawer()">// DATA_IO</button>
+        <button class="btn" onclick="exportGold()">// GOLD_OUT</button>
+        <button class="btn" onclick="exportStudMapMpd()">// STUDMAP</button>
+        <button class="btn" onclick="coldBoot()">// REBOOT</button>
+        <button class="btn active" id="seqBtn" onclick="toggleSequence()">// SEQ_RUN</button>
+    </div>
+</header>
+
+<div class="floor" id="floor">
+    <!-- Production Units Generated Here -->
+</div>
+
+<div class="drawer" id="drawer">
+    <div class="drawer-header">
+        <span>Raw Data Ingest</span>
+        <button class="btn" onclick="ingest()">EXECUTE</button>
+        <button class="btn" onclick="toggleDrawer()">CANCEL</button>
+    </div>
+    <textarea id="importArea"></textarea>
+</div>
+
+<footer>
+    <span class="sys-log">> WAITING FOR INPUT<span class="blink">_</span></span>
+    <span>MEM: 24% | CPU: 12%</span>
+</footer>
+
+<script>
+    // --- CONFIG ---
+    const CONFIG = {
+        seqSpeed: 180, // ms per unit
+        colors: {
+            '1': '#3b82f6', '2': '#10b981', '4': '#ef4444', 
+            '14': '#64748b', '72': '#94a3b8'
+        }
+    };
+
+    const state = {
+        lines: [],
+        activeIdx: -1,
+        running: false,
+        timer: null,
+        frame: null,
+        lastGold: null,
+        redBullEvents: []
+    };
+
+    // --- LOGIC: STUD GENERATOR (Mock) ---
+    function getStuds(part) {
+        let w=2, h=4; // Default 2x4
+        if (part.includes('3005')) { w=1; h=1; } // 1x1
+        else if (part.includes('3003')) { w=2; h=2; } // 2x2
+        else if (part.includes('3001')) { w=2; h=4; } // 2x4
+        else if (part.includes('3020')) { w=2; h=4; } // Plate
+        else if (part.includes('3009')) { w=1; h=6; } // 1x6
+
+        const s = 20; // LDU
+        const studs = [];
+        const ox = ((w-1)*s)/2;
+        const oz = ((h-1)*s)/2;
+
+        for(let x=0; x<w; x++) {
+            for(let z=0; z<h; z++) {
+                studs.push({ x: (x*s)-ox, y: 0, z: (z*s)-oz });
+            }
+        }
+        return studs;
+    }
+
+    // --- PARSER ---
+    function parse(text) {
+        const lines = text.split(/\r?\n/);
+        const parsed = [];
+        lines.forEach((l, i) => {
+            const t = l.trim();
+            const p = t.split(/\s+/);
+            if (p[0] !== '1') return;
+            
+            parsed.push({
+                id: parsed.length, // Sequential ID
+                lineIndex: i,
+                raw: t,
+                color: p[1],
+                x: p[2], y: p[3], z: p[4],
+                matrix: [p[5], p[6], p[7], p[8], p[9], p[10], p[11], p[12], p[13]],
+                name: p[14] || 'UNK',
+                studs: getStuds(p[14] || '')
+            });
+        });
+        return parsed;
+    }
+
+    function parseFromGold(lines, studsByLine) {
+        const parsed = [];
+        lines.forEach((l, i) => {
+            const t = l.trim();
+            const p = t.split(/\s+/);
+            if (p[0] !== '1') return;
+
+            const partId = p[14] || 'UNK';
+            const studsNodes = studsByLine && studsByLine.get(i);
+            let studs;
+            if (Array.isArray(studsNodes) && studsNodes.length) {
+                studs = studsNodes.map(n => ({
+                    x: typeof n.x === 'number' ? n.x : 0,
+                    y: typeof n.y === 'number' ? n.y : 0,
+                    z: typeof n.z === 'number' ? n.z : 0
+                }));
+            } else {
+                studs = getStuds(partId);
+            }
+
+            parsed.push({
+                id: parsed.length,
+                lineIndex: i,
+                raw: t,
+                color: p[1],
+                x: p[2], y: p[3], z: p[4],
+                matrix: [p[5], p[6], p[7], p[8], p[9], p[10], p[11], p[12], p[13]],
+                name: partId,
+                studs
+            });
+        });
+        return parsed;
+    }
+
+    // --- DOM GENERATOR ---
+    function buildFloor(data) {
+        const floor = document.getElementById('floor');
+        floor.innerHTML = '';
+        state.lines = data;
+
+        data.forEach(d => {
+            const unit = document.createElement('div');
+            unit.className = 'unit';
+            unit.id = `u-${d.id}`;
+            
+            // Formatting Matrix for Display
+            const m = d.matrix.map(n => parseFloat(n).toFixed(1));
+            
+            unit.innerHTML = `
+                <div class="unit-header">
+                    <span class="uid">${d.id.toString().padStart(3,'0')}</span>
+                    <span class="meta-tag" style="color:${CONFIG.colors[d.color]||'#888'}">PART: ${d.name}</span>
+                    <span class="meta-tag">POS: [${d.x}, ${d.y}, ${d.z}]</span>
+                </div>
+                <div class="unit-body">
+                    <div class="sector-source">
+                        <div class="label">Source Instruction</div>
+                        <input class="code-input" value="${d.raw}" readonly>
+                    </div>
+                    <div class="sector-process">
+                        <div class="label">Transform Matrix</div>
+                        <div class="matrix-row"><div class="matrix-val">${m[0]}</div><div class="matrix-val">${m[1]}</div><div class="matrix-val">${m[2]}</div></div>
+                        <div class="matrix-row"><div class="matrix-val">${m[3]}</div><div class="matrix-val">${m[4]}</div><div class="matrix-val">${m[5]}</div></div>
+                        <div class="matrix-row"><div class="matrix-val">${m[6]}</div><div class="matrix-val">${m[7]}</div><div class="matrix-val">${m[8]}</div></div>
+                    </div>
+                    <div class="sector-artifact">
+                        <div class="build-overlay"></div>
+                        <canvas id="c-${d.id}"></canvas>
+                    </div>
+                </div>
+            `;
+            floor.appendChild(unit);
+        });
+        
+        log('FLOOR INITIALIZED. ' + data.length + ' UNITS READY.');
+    }
+
+    // --- RENDER ENGINE ---
+    function renderUnit(id, rotOffset = 0) {
+        const d = state.lines[id];
+        if(!d) return;
+        const cvs = document.getElementById(`c-${id}`);
+        const ctx = cvs.getContext('2d');
+        
+        // Resize check
+        if(cvs.width !== cvs.clientWidth) {
+            cvs.width = cvs.clientWidth;
+            cvs.height = cvs.clientHeight;
+        }
+
+        const w = cvs.width, h = cvs.height;
+        const cx = w/2, cy = h/2;
+        const ang = 0.7 + rotOffset;
+
+        ctx.clearRect(0,0,w,h);
+        
+        // Project
+        const pts = d.studs.map(s => {
+            const ca = Math.cos(ang), sa = Math.sin(ang);
+            const rx = s.x * ca - s.z * sa;
+            const rz = s.x * sa + s.z * ca;
+            return {
+                x: (rx - rz) * 0.866,
+                y: s.y + (rx + rz) * 0.5
+            };
+        });
+
+        const color = CONFIG.colors[d.color] || '#666';
+
+        // Wireframe
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        for(let i=0; i<pts.length; i++) {
+            for(let j=i+1; j<pts.length; j++) {
+                const dist = Math.hypot(d.studs[i].x - d.studs[j].x, d.studs[i].z - d.studs[j].z);
+                if(dist <= 21) {
+                    ctx.moveTo(cx + pts[i].x, cy + pts[i].y);
+                    ctx.lineTo(cx + pts[j].x, cy + pts[j].y);
+                }
+            }
+        }
+        ctx.stroke();
+
+        // Nodes
+        ctx.fillStyle = '#fff';
+        pts.forEach(p => {
+            ctx.beginPath();
+            ctx.arc(cx + p.x, cy + p.y, 1.5, 0, Math.PI*2);
+            ctx.fill();
+        });
+    }
+
+    // --- ANIMATION SYSTEM ---
+    
+    function coldBoot() {
+        // Reset UI
+        if(state.running) toggleSequence();
+        document.querySelectorAll('.unit').forEach(u => {
+            u.classList.remove('active', 'built');
+            const cvs = u.querySelector('canvas');
+            if(cvs) {
+                const ctx = cvs.getContext('2d');
+                ctx.clearRect(0,0,cvs.width,cvs.height);
+            }
+        });
+
+        log('INITIATING COLD BOOT SEQUENCE...');
+        
+        // "Decode" Effect Sequence
+        state.lines.forEach((l, i) => {
+            setTimeout(() => {
+                const u = document.getElementById(`u-${l.id}`);
+                u.classList.add('built'); // Slides the overlay
+                renderUnit(l.id); // Draw static frame
+                
+                // Quick flash
+                u.style.borderColor = '#fff';
+                setTimeout(() => u.style.borderColor = '', 100);
+
+                // Decode Text Effect (Simulated by changing value momentarily)
+                const input = u.querySelector('.code-input');
+                const original = input.value;
+                input.value = '/// DECRYPTING SIGNAL ///';
+                setTimeout(() => input.value = original, 200);
+
+            }, i * 100); // Cascade speed
+        });
+    }
+
+    function toggleSequence() {
+        state.running = !state.running;
+        const btn = document.getElementById('seqBtn');
+        
+        if(state.running) {
+            btn.classList.add('active');
+            log('SEQUENCE RUNNING...');
+            runLoop();
+            runVizLoop();
+        } else {
+            btn.classList.remove('active');
+            log('SEQUENCE PAUSED.');
+            clearTimeout(state.timer);
+            cancelAnimationFrame(state.frame);
+            // Reset active
+            if(state.activeIdx >= 0) {
+                const u = document.getElementById(`u-${state.activeIdx}`);
+                if(u) u.classList.remove('active');
+                renderUnit(state.activeIdx, 0);
+            }
+        }
+    }
+
+    function runLoop() {
+        if(!state.running) return;
+
+        // Deactivate old
+        if(state.activeIdx >= 0) {
+            const old = document.getElementById(`u-${state.activeIdx}`);
+            if(old) {
+                old.classList.remove('active');
+                renderUnit(state.activeIdx, 0); // Reset rotation
+            }
+        }
+
+        state.activeIdx = (state.activeIdx + 1) % state.lines.length;
+        const cur = document.getElementById(`u-${state.activeIdx}`);
+        
+        if(cur) {
+            cur.classList.add('active');
+            
+            // Technical Scroll
+            const floor = document.getElementById('floor');
+            const bUnit = cur.getBoundingClientRect();
+            const bFloor = floor.getBoundingClientRect();
+            
+            if(bUnit.top < bFloor.top + 50 || bUnit.bottom > bFloor.bottom - 50) {
+                cur.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        state.timer = setTimeout(runLoop, CONFIG.seqSpeed);
+    }
+
+    function runVizLoop() {
+        if(!state.running) return;
+        if(state.activeIdx >= 0) {
+            const rot = Date.now() / 400;
+            renderUnit(state.activeIdx, rot);
+        }
+        state.frame = requestAnimationFrame(runVizLoop);
+    }
+
+    // --- UTILS ---
+    function log(msg) {
+        document.querySelector('.sys-log').innerHTML = `> ${msg}<span class="blink">_</span>`;
+    }
+
+    function toggleDrawer() {
+        document.getElementById('drawer').classList.toggle('open');
+    }
+
+    function ingest() {
+        const val = document.getElementById('importArea').value;
+        if (!val.trim()) return;
+
+        try {
+            const json = JSON.parse(val);
+            loadFromGoldJson(json);
+        } catch (e) {
+            buildFloor(parse(val));
+            log('MPD INGESTED. FLOOR REBUILT.');
+            coldBoot();
+        }
+        toggleDrawer();
+    }
+
+    function loadFromGoldJson(json) {
+        if (!json || typeof json !== 'object') return;
+
+        const mpdContent = json.mpd_content || json.mpd || '';
+        const lines = mpdContent.split(/\r?\n/);
+
+        let studsNodes = [];
+        if (json.stud_skeleton_v2 && Array.isArray(json.stud_skeleton_v2.nodes)) {
+            studsNodes = json.stud_skeleton_v2.nodes;
+        } else if (Array.isArray(json.stud_skeleton)) {
+            studsNodes = json.stud_skeleton;
+        }
+
+        const studsByLine = new Map();
+        if (Array.isArray(studsNodes)) {
+            studsNodes.forEach(n => {
+                const line = (n.lineNum != null ? n.lineNum : n.lineIndex);
+                if (line == null) return;
+                if (!studsByLine.has(line)) studsByLine.set(line, []);
+                studsByLine.get(line).push(n);
+            });
+        }
+
+        const redBullEvents = Array.isArray(json.redbull_events) ? json.redbull_events : [];
+        state.lastGold = json;
+        state.redBullEvents = redBullEvents;
+
+        const parsed = parseFromGold(lines, studsByLine);
+        buildFloor(parsed);
+        coldBoot();
+        log(`GOLD INGESTED. ${parsed.length} UNITS, ${studsNodes.length} STUDS.`);
+    }
+
+    function exportGold() {
+        if (!state.lines.length && !state.lastGold) {
+            log('NO DATA TO EXPORT AS GOLD.');
+            return;
+        }
+
+        const mpdText = state.lines.map(l => l.raw).join('\n');
+        const nodes = [];
+        state.lines.forEach(l => {
+            const studs = Array.isArray(l.studs) ? l.studs : [];
+            studs.forEach(s => {
+                nodes.push({
+                    lineNum: (typeof l.lineIndex === 'number' ? l.lineIndex : l.id),
+                    x: typeof s.x === 'number' ? s.x : 0,
+                    y: typeof s.y === 'number' ? s.y : 0,
+                    z: typeof s.z === 'number' ? s.z : 0
+                });
+            });
+        });
+
+        const base = state.lastGold && typeof state.lastGold === 'object' ? state.lastGold : {};
+        const gold = Object.assign({}, base, {
+            mpd_content: mpdText,
+            stud_skeleton_v2: { nodes }
+        });
+
+        const blob = new Blob([JSON.stringify(gold, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'blue-loom-gold.json';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        log(`GOLD EXPORTED. ${nodes.length} STUDS.`);
+    }
+
+    function exportStudMapMpd() {
+        if (!state.lines.length) {
+            log('NO LINES TO EXPORT AS STUDMAP.');
+            return;
+        }
+
+        const outLines = [];
+        let totalStuds = 0;
+        const lineIndices = [];
+
+        state.lines.forEach((l, idx) => {
+            const studs = Array.isArray(l.studs) ? l.studs : [];
+            if (!studs.length) return;
+            lineIndices.push(idx);
+            totalStuds += studs.length;
+        });
+
+        outLines.push('0 FILE studmap_from_blue_loom.mpd');
+        outLines.push('0 Name: Stud Map (BLUE-LOOM)');
+        outLines.push('0 !LDRAW_ORG Unofficial_Model');
+        outLines.push('0 BFC CERTIFY CCW');
+        outLines.push(`0 !STUDMAP META version=1 generator="BLUE-LOOM" lineCount=${lineIndices.length} studCount=${totalStuds}`);
+
+        lineIndices.forEach(idx => {
+            const l = state.lines[idx];
+            const studs = Array.isArray(l.studs) ? l.studs : [];
+            const partId = l && l.name ? l.name : 'UNKNOWN';
+            const safePart = String(partId).replace(/"/g, '');
+
+            outLines.push(`0 !STUDMAP LINE ${typeof l.lineIndex === 'number' ? l.lineIndex : idx} PART "${safePart}" STUDS ${studs.length}`);
+            studs.forEach((s, studIdx) => {
+                const x = typeof s.x === 'number' ? s.x.toFixed(3) : '0.000';
+                const y = typeof s.y === 'number' ? s.y.toFixed(3) : '0.000';
+                const z = typeof s.z === 'number' ? s.z.toFixed(3) : '0.000';
+                outLines.push(`0 !STUDMAP STUD ${studIdx} GRID 0 0 LAYER 0 WORLD ${x} ${y} ${z} LOCAL 0 0 0`);
+            });
+        });
+
+        const mpdText = outLines.join('\n');
+        const blob = new Blob([mpdText], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'blue-loom-studmap.mpd';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        log(`STUDMAP EXPORTED FOR ${lineIndices.length} UNITS.`);
+    }
+
+    // --- INIT ---
+    (function bootstrap() {
+        // Try Courage GOLD snapshot first
+        try {
+            if (typeof localStorage !== 'undefined') {
+                const raw = localStorage.getItem('wag_redbull_gold');
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    const gold = parsed && parsed.gold ? parsed.gold : parsed;
+                    if (gold && typeof gold === 'object') {
+                        loadFromGoldJson(gold);
+                        document.getElementById('importArea').value = JSON.stringify(gold, null, 2);
+                        return;
+                    }
+                }
+            }
+        } catch (e) {
+            // fall through to demo
+        }
+
+        const demo = `
+1 4 0 0 0 1 0 0 0 1 0 0 0 1 3001.dat
+1 1 20 0 0 1 0 0 0 1 0 0 0 1 3001.dat
+1 2 40 0 0 1 0 0 0 1 0 0 0 1 3003.dat
+1 4 60 0 0 1 0 0 0 1 0 0 0 1 3003.dat
+1 14 0 -24 0 1 0 0 0 1 0 0 0 1 3009.dat
+1 72 0 -48 0 1 0 0 0 1 0 0 0 1 3020.dat
+1 4 0 -72 0 1 0 0 0 1 0 0 0 1 3001.dat
+1 1 20 -72 0 1 0 0 0 1 0 0 0 1 3001.dat
+1 2 40 -72 0 1 0 0 0 1 0 0 0 1 3003.dat
+1 4 60 -72 0 1 0 0 0 1 0 0 0 1 3003.dat
+`;
+
+        document.getElementById('importArea').value = demo.trim();
+        buildFloor(parse(demo.trim()));
+        setTimeout(coldBoot, 500);
+    })();
+
+    // Listen on wag-frank for live Red Bull GOLD snapshots
+    (function setupFrankListener() {
+        try {
+            if (typeof BroadcastChannel === 'undefined') return;
+            const bus = new BroadcastChannel('wag-frank');
+            bus.addEventListener('message', (event) => {
+                const msg = event.data;
+                if (!msg || typeof msg !== 'object') return;
+                if (msg.kind === 'redbull-gold' && msg.gold) {
+                    loadFromGoldJson(msg.gold);
+                    try {
+                        document.getElementById('importArea').value = JSON.stringify(msg.gold, null, 2);
+                    } catch (e) {}
+                }
+            });
+        } catch (e) {
+            // ignore BroadcastChannel issues
+        }
+    })();
+
+</script>
+</body>
+</html>

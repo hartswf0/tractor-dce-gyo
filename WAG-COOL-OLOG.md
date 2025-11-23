@@ -182,6 +182,22 @@ with `stud_skeleton_v2` and `grid_spec` added.
 
 ## Research Notes / Open Questions
 
+### XRAY (RB)  Red Bull Line Sampler
+
+- **Name.** In studio-facing UI and docs, the Red Bull per-line stud sampler is referred to as **XRAY (RB)**. XRAY emphasizes that we are looking "through" the MPD into its stud skeleton; **RB** keeps the historical Red Bull identity.
+- **Role in the pipeline.** XRAY is the front-door into the COOL stud pipeline for many flows:
+  - In **Courage**, XRAY (RB) is the action that emits a focused GOLD fragment: `mpd_content + stud_skeleton_v2 + redbull_events`.
+  - In **Unified L-System Ontology Weaver / Assembly Line**, XRAY payloads (GOLD + `redbull_events`) are used to build per-line stud maps and temporal views.
+  - In **mobile tools** (KINETIC BELT, BLUE-LOOM, Line Grid Viewer variants), XRAY GOLD fragments are the main way to drive lightweight stud visualizations on smaller devices.
+- **Data contract.** An XRAY run is defined by:
+  - a source MPD scene (often a Courage working file),
+  - a per-line stud skeleton emitted into `stud_skeleton_v2.nodes` (plus legacy `stud_skeleton`),
+  - an accompanying `redbull_events` array capturing temporal sampling steps per line.
+- **Naming guidance.**
+  - UI labels can use **XRAY** or **LINE SAMPLER** as the primary text, with "RB" or "Red Bull" in tooltips or subtitles.
+  - Docs and ologs should prefer the form **XRAY (RB)** on first mention, then XRAY thereafter.
+  - When describing flows, refer to stages like: `COURAGE → XRAY (RB) → COOL / WERE / MASTER`.
+
 - **Part skeleton coverage.**
   - Today, only parts that have entries in `STATE.partSkeletonLibrary`
     get `source: 'template'` studs. Others rely on `source: 'sampled'`.
