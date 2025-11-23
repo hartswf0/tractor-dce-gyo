@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>WAG Master Builder</title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%230a0b10'/%3E%3Ccircle cx='32' cy='50' r='18' fill='%233b82f6'/%3E%3Ccircle cx='68' cy='50' r='18' fill='%2300ffff'/%3E%3C/svg%3E" />
+    <link rel="icon" type="image/svg+xml" href="were-favicon.svg" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
@@ -247,7 +247,9 @@
             showStudsGhost: true,
             studs: [],
             lineColors: {},
-            isSkeletonScene: false
+            isSkeletonScene: false,
+            sourceMpd: null,
+            sourceLines: null
         };
 
         // --- 2. AUDIO ENGINE (Precision Feedback) ---
@@ -918,6 +920,104 @@
         }
 
         // --- 7. EXPORT / IMPORT ---
+        function buildExportMpdText() {
+            if (!state.isSkeletonScene || !Array.isArray(state.sourceLines) || !state.sourceLines.length) {
+                return state.lines.map(l => l.raw).join('\n');
+            }
+
+            const fmt = n => Math.round(n * 1000) / 1000;
+            const sourceLines = state.sourceLines.slice();
+
+            const transformByLineNum = {};
+            let pendingMeta = null;
+
+            state.lines.forEach(line => {
+                if (!line) return;
+
+                if (!line.isPart && typeof line.raw === 'string') {
+                    const raw = line.raw.trim();
+                    if (raw.startsWith('0 line ')) {
+                        const tokens = raw.split(/\s+/);
+                        let srcLineNum = null;
+                        for (let i = 0; i < tokens.length; i++) {
+                            if (tokens[i] === 'line' && i + 1 < tokens.length) {
+                                const v = parseInt(tokens[i + 1], 10);
+                                if (!isNaN(v)) srcLineNum = v;
+                            }
+                        }
+                        if (srcLineNum !== null) {
+                            pendingMeta = { srcLineNum };
+                        } else {
+                            pendingMeta = null;
+                        }
+                    } else {
+                        pendingMeta = null;
+                    }
+                    return;
+                }
+
+                if (line.isPart && pendingMeta && typeof pendingMeta.srcLineNum === 'number') {
+                    const ln = pendingMeta.srcLineNum;
+                    if (!transformByLineNum[ln]) {
+                        transformByLineNum[ln] = {
+                            color: line.color,
+                            x: line.x,
+                            y: line.y,
+                            z: line.z,
+                            matrix: Array.isArray(line.matrix) ? line.matrix.slice() : null
+                        };
+                    }
+                    pendingMeta = null;
+                } else {
+                    pendingMeta = null;
+                }
+            });
+
+            Object.keys(transformByLineNum).forEach(key => {
+                const ln = parseInt(key, 10);
+                if (isNaN(ln)) return;
+                const idx = ln - 1; // lineNum is 1-based
+                if (idx < 0 || idx >= sourceLines.length) return;
+
+                const raw = sourceLines[idx];
+                if (typeof raw !== 'string') return;
+                const trimmed = raw.trim();
+                if (!trimmed || trimmed[0] !== '1') return;
+
+                const parts = trimmed.split(/\s+/);
+                if (parts.length < 15) return;
+
+                const t = transformByLineNum[key];
+                const colOrig = parseInt(parts[1], 10);
+                const col = (typeof t.color === 'number' && !isNaN(t.color)) ? t.color : (isNaN(colOrig) ? parts[1] : colOrig);
+
+                const out = [];
+                out.push('1');
+                out.push(String(col));
+                out.push(String(fmt(t.x)));
+                out.push(String(fmt(t.y)));
+                out.push(String(fmt(t.z)));
+
+                for (let i = 0; i < 9; i++) {
+                    const existing = parts[5 + i];
+                    let mVal = existing ? parseFloat(existing) : 0;
+                    if (t.matrix && typeof t.matrix[i] === 'number') {
+                        mVal = t.matrix[i];
+                    }
+                    out.push(String(fmt(mVal)));
+                }
+
+                const fileToken = parts.slice(14).join(' ');
+                if (fileToken) {
+                    out.push(fileToken);
+                }
+
+                sourceLines[idx] = out.join(' ');
+            });
+
+            return sourceLines.join('\n');
+        }
+
         function toggleRaw() {
             const el = document.getElementById('raw-overlay');
             const tx = document.getElementById('raw-text');
@@ -936,7 +1036,7 @@
         }
 
         function exportLDraw() {
-            const txt = state.lines.map(l => l.raw).join('\n');
+            const txt = buildExportMpdText();
             navigator.clipboard.writeText(txt).then(() => {
                 const statusEl = document.getElementById('status-msg');
                 if (statusEl) {
@@ -958,7 +1058,7 @@
         }
 
         function buildGoldSceneFromWere() {
-            const mpd = state.lines.map(l => l.raw).join('\n');
+            const mpd = buildExportMpdText();
             const now = new Date();
             const dateStr = now.toISOString().split('T')[0];
             const timeStr = now.toTimeString().split(' ')[0].replace(/:/g, '-');
@@ -1049,7 +1149,7 @@
         }
 
         function downloadMpdFile() {
-            const txt = state.lines.map(l => l.raw).join('\n');
+            const txt = buildExportMpdText();
             const blob = new Blob([txt], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -1088,6 +1188,9 @@
                 console.warn('[WERE] loadFromGoldJson: no mpd_content field present');
                 return;
             }
+            state.sourceMpd = data.mpd_content;
+            state.sourceLines = data.mpd_content.split('\n');
+            state.isSkeletonScene = false;
             state.lineColors = buildLineColorsFromMpd(data.mpd_content);
             parseMPD(data.mpd_content);
             renderEditor();
@@ -1161,6 +1264,7 @@
             });
 
             parseMPD(lines.join('\n'));
+            state.isSkeletonScene = true;
             renderEditor();
             update3D();
             const status = document.getElementById('status-msg');

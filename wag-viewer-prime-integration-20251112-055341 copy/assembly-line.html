@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Unified L-System Ontology Weaver</title>
+    <link rel="icon" type="image/svg+xml" href="weaver-favicon.svg">
     <style>
         :root {
             /* Align with Courage core palette */
@@ -288,16 +289,13 @@
         }
 
         .assembly-status {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: linear-gradient(180deg, var(--bg-tertiary) 0%, var(--bg-secondary) 100%);
-            border-bottom: 1px solid var(--border-color);
+            position: relative;
+            background: transparent;
+            border: none;
             border-radius: 0;
-            padding: 4px 16px 6px;
-            z-index: 30;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.7);
+            padding: 0;
+            margin: 0;
+            box-shadow: none;
             display: none;
         }
 
@@ -461,15 +459,20 @@
 
         /* --- Header --- */
         header {
-            min-height: 40px;
             border-bottom: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            padding: 4px 16px;
             background: linear-gradient(180deg, var(--bg-tertiary) 0%, var(--bg-secondary) 100%);
-            justify-content: space-between;
             z-index: 10;
             box-shadow: 0 1px 0 rgba(255,255,255,0.05);
+            padding: 4px 16px 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .header-main {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
 
         .header-left {
@@ -495,6 +498,15 @@
             display: flex;
             gap: 8px;
             align-items: center;
+        }
+
+        .header-console {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 2px;
+            min-height: 0;
         }
 
         .primary-modes {
@@ -1152,108 +1164,105 @@
 <body>
 
 <header>
-    <div class="header-left">
-        <h1>Unified L-System Ontology Weaver</h1>
-        <div class="subtitle"></div>
-    </div>
-    <div class="header-controls">
-        <div class="primary-modes">
-            <button class="btn" id="assemblyBtn">🏭 Assembly Line</button>
-            <button class="btn" id="timelineBtn">Timeline</button>
-            <button class="btn" id="redBullBtn" style="background: linear-gradient(135deg, #ef4444, #dc2626);" title="XRAY — Red Bull line sampler (RB)">XRAY (RB)</button>
-        </div>
 
-        <div class="advanced-modes-toggle">
-            <button class="btn" id="modesToggleBtn">Modes ⇓</button>
-            <div class="advanced-modes hidden" id="advancedModes">
-                <button class="btn" id="flowBtn">Data Flow</button>
-                <button class="btn" id="compareBtn">Compare</button>
-                <button class="btn" id="transformBtn">Transforms</button>
-                <button class="btn" id="neuralFlowBtn">Neural Flow</button>
+    <div class="header-main">
+        <div class="header-left">
+            <h1>Unified L-System Ontology Weaver</h1>
+            <div class="subtitle"></div>
+        </div>
+        <div class="header-controls">
+            <div class="primary-modes">
+                <button class="btn" id="assemblyBtn">🏭 Assembly Line</button>
+                <button class="btn" id="timelineBtn">Timeline</button>
+                <button class="btn" id="redBullBtn" style="background: linear-gradient(135deg, #ef4444, #dc2626);" title="XRAY — Red Bull line sampler (RB)">XRAY (RB)</button>
+            </div>
+
+            <div class="advanced-modes-toggle">
+                <button class="btn" id="modesToggleBtn">Modes ⇓</button>
+                <div class="advanced-modes hidden" id="advancedModes">
+                    <button class="btn" id="flowBtn">Data Flow</button>
+                    <button class="btn" id="compareBtn">Compare</button>
+                    <button class="btn" id="transformBtn">Transforms</button>
+                    <button class="btn" id="neuralFlowBtn">Neural Flow</button>
+                </div>
+            </div>
+
+            <input type="search" id="weaverSearch" class="search-input" placeholder="Search lines / parts…">
+            <button class="btn" id="partsOnlyBtn" title="Show only geometry lines (type 1)">PARTS ONLY</button>
+            <button class="btn" id="mediaBarToggleBtn" title="Toggle footer media bar">MEDIA BAR</button>
+        </div>
+    </div>
+
+    <div class="header-console">
+        <!-- Assembly Status Panel -->
+        <div class="assembly-status" id="assemblyStatus">
+            <div class="status-row">
+                <span class="status-label">Current Line:</span>
+                <span class="status-value" id="currentLine">—</span>
+            </div>
+            <div class="status-row">
+                <span class="status-label">Progress:</span>
+                <span class="status-value" id="assemblyProgress">0%</span>
+            </div>
+            <div class="status-row">
+                <span class="status-label">Studs Built:</span>
+                <span class="status-value" id="studsBui lt">0</span>
+            </div>
+            <div class="status-row">
+                <span class="status-label">Status:</span>
+                <span class="status-value" id="assemblyState">Idle</span>
+            </div>
+            <div class="assembly-controls">
+                <button class="assembly-btn" onclick="assemblyPlay()">▶️ Play</button>
+                <button class="assembly-btn pause" onclick="assemblyPause()">⏸️ Pause</button>
+                <button class="assembly-btn" onclick="assemblyStep()">⏭️ Step</button>
+                <button class="assembly-btn" onclick="assemblyReset()">🔄 Reset</button>
             </div>
         </div>
 
-        <input type="search" id="weaverSearch" class="search-input" placeholder="Search lines / parts…">
-        <button class="btn" id="partsOnlyBtn" title="Show only geometry lines (type 1)">PARTS ONLY</button>
-        <button class="btn" id="mediaBarToggleBtn" title="Toggle footer media bar">MEDIA BAR</button>
+        <!-- XRAY (RB) / Red Bull Simulation Panel -->
+        <div class="assembly-status" id="redBullStatus" style="border-color: var(--accent-red);">
+            <div style="text-align: center; margin-bottom: 4px; color: var(--accent-red); font-weight: bold; text-transform: uppercase; font-size: 11px;">
+                XRAY (RB) · Red Bull Sampler
+            </div>
+            <div class="status-row">
+                <span class="status-label">Sampling Line:</span>
+                <span class="status-value" id="rbCurrentLine">—</span>
+            </div>
+            <div class="status-row">
+                <span class="status-label">Sample Rate:</span>
+                <span class="status-value" id="rbSampleRate">50ms</span>
+            </div>
+            <div class="status-row">
+                <span class="status-label">Emit Rate:</span>
+                <span class="status-value" id="rbEmitRate">150ms</span>
+            </div>
+            <div class="status-row">
+                <span class="status-label">Bus Messages:</span>
+                <span class="status-value" id="rbBusCount">0</span>
+            </div>
+            <div class="status-row">
+                <span class="status-label">Buffer Size:</span>
+                <span class="status-value" id="rbBufferSize">0</span>
+            </div>
+            <div class="status-row">
+                <span class="status-label">Status:</span>
+                <span class="status-value" id="rbState">Idle</span>
+            </div>
+            <div class="assembly-controls">
+                <button class="assembly-btn" onclick="redBullStart()" style="border-color: var(--accent-red); color: var(--accent-red);">▶️ Start</button>
+                <button class="assembly-btn pause" onclick="redBullStop()">⏹️ Stop</button>
+                <button class="assembly-btn" onclick="redBullClearLog()" style="font-size: 9px;">🗑️ Clear Log</button>
+            </div>
+            <div class="assembly-controls">
+                <button class="assembly-btn" onclick="exportStudMapMpd()" style="font-size: 9px;">⭳ MPD</button>
+                <button class="assembly-btn" onclick="exportGoldSceneJson()" style="font-size: 9px;">⭳ GOLD</button>
+                <button class="assembly-btn" onclick="sendGoldToBus()" style="font-size: 9px;">↗ GOLD → BUS</button>
+            </div>
+        </div>
     </div>
+
 </header>
-
-<!-- Assembly Status Panel -->
-<div class="assembly-status" id="assemblyStatus">
-    <div class="status-row">
-        <span class="status-label">Current Line:</span>
-        <span class="status-value" id="currentLine">—</span>
-    </div>
-    <div class="status-row">
-        <span class="status-label">Progress:</span>
-        <span class="status-value" id="assemblyProgress">0%</span>
-    </div>
-    <div class="status-row">
-        <span class="status-label">Studs Built:</span>
-        <span class="status-value" id="studsBui lt">0</span>
-    </div>
-    <div class="status-row">
-        <span class="status-label">Status:</span>
-        <span class="status-value" id="assemblyState">Idle</span>
-    </div>
-    <div class="assembly-controls">
-        <button class="assembly-btn" onclick="assemblyPlay()">▶️ Play</button>
-        <button class="assembly-btn pause" onclick="assemblyPause()">⏸️ Pause</button>
-        <button class="assembly-btn" onclick="assemblyStep()">⏭️ Step</button>
-        <button class="assembly-btn" onclick="assemblyReset()">🔄 Reset</button>
-    </div>
-</div>
-
-<!-- XRAY (RB) / Red Bull Simulation Panel -->
-<div class="assembly-status" id="redBullStatus" style="border-color: var(--accent-red);">
-    <div style="text-align: center; margin-bottom: 8px; color: var(--accent-red); font-weight: bold; text-transform: uppercase; font-size: 12px;">
-        XRAY (RB) · Red Bull Sampler
-    </div>
-    <div class="status-row">
-        <span class="status-label">Sampling Line:</span>
-        <span class="status-value" id="rbCurrentLine">—</span>
-    </div>
-    <div class="status-row">
-        <span class="status-label">Sample Rate:</span>
-        <span class="status-value" id="rbSampleRate">50ms</span>
-    </div>
-    <div class="status-row">
-        <span class="status-label">Emit Rate:</span>
-        <span class="status-value" id="rbEmitRate">150ms</span>
-    </div>
-    <div class="status-row">
-        <span class="status-label">Bus Messages:</span>
-        <span class="status-value" id="rbBusCount">0</span>
-    </div>
-    <div class="status-row">
-        <span class="status-label">Buffer Size:</span>
-        <span class="status-value" id="rbBufferSize">0</span>
-    </div>
-    <div class="status-row">
-        <span class="status-label">Status:</span>
-        <span class="status-value" id="rbState">Idle</span>
-    </div>
-    <div class="assembly-controls">
-        <button class="assembly-btn" onclick="redBullStart()" style="border-color: var(--accent-red); color: var(--accent-red);">▶️ Start</button>
-        <button class="assembly-btn pause" onclick="redBullStop()">⏹️ Stop</button>
-        <button class="assembly-btn" onclick="redBullClearLog()" style="font-size: 9px;">🗑️ Clear Log</button>
-    </div>
-    <div style="margin-top: 4px; font-size: 9px; display:flex; gap:4px; flex-wrap:wrap;">
-        <button class="assembly-btn" onclick="exportStudMapMpd()" style="font-size:9px; border-color: var(--accent-cyan); color: var(--accent-cyan);">
-            ⭳ Stud Map .MPD
-        </button>
-        <button class="assembly-btn" onclick="exportGoldSceneJson()" style="font-size:9px; border-color: var(--accent-orange); color: var(--accent-orange);">
-            ⭳ GOLD Scene JSON
-        </button>
-        <button class="assembly-btn" onclick="sendStudMapToCourage()" style="font-size:9px; border-color: var(--accent-green); color: var(--accent-green);">
-            ↔ Push Stud Map → Courage
-        </button>
-    </div>
-    <div style="margin-top: 8px; padding: 8px; background: rgba(0,0,0,0.3); border-radius: 4px; max-height: 100px; overflow-y: auto; font-size: 9px; font-family: monospace;">
-        <div id="rbBusLog" style="color: #666;">Bus log appears here...</div>
-    </div>
-</div>
 
 <main id="app">
     <svg id="weave-canvas"></svg>
@@ -2713,6 +2722,25 @@
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
+    };
+
+    window.sendGoldToBus = function() {
+        const gold = buildWeaverGoldScene();
+        if (!gold || !gold.mpd_content) {
+            console.warn('[ASSEMBLY] sendGoldToBus: no MPD content or stud map available');
+            return;
+        }
+        if (!wagFrankBus) {
+            console.warn('[ASSEMBLY] wagFrankBus unavailable; cannot send GOLD to bus');
+            return;
+        }
+        wagFrankBus.postMessage({
+            kind: 'weaver-gold',
+            source: 'assembly-line',
+            targets: ['were', 'master'],
+            payload: gold
+        });
+        console.log('[ASSEMBLY] Sent weaver-gold to wag-frank', gold);
     };
 
     function updateStudMapSummary() {

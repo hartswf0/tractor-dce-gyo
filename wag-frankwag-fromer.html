@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WAG FRANK · Homer Bus Orchestrator</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      background: #000;
+      font-family: "Courier New", monospace;
+    }
+    body {
+      display: flex;
+      flex-direction: column;
+    }
+    iframe {
+      border: none;
+      flex: 1;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <iframe id="frankFrame" src="wag-frank.html" title="WAG Frank · Homer"></iframe>
+
+  <script>
+    (function() {
+      const frame = document.getElementById('frankFrame');
+      if (!frame) return;
+
+      function rethemeFrank() {
+        try {
+          const doc = frame.contentDocument || frame.contentWindow.document;
+          if (!doc) return;
+
+          // Update header title / subtitle to reference Homer instead of Grace.
+          const titleEl = doc.getElementById('header-title');
+          if (titleEl) titleEl.textContent = 'WAG FRANK · HOMER';
+          const subtitleEl = doc.getElementById('header-subtitle');
+          if (subtitleEl) subtitleEl.textContent = 'Grid & Minifig Bus for Swiss → Homer chain';
+
+          // Update button labels away from Grace-specific wording.
+          const buildBtn = doc.getElementById('build-scene-btn');
+          if (buildBtn) buildBtn.textContent = 'Emit Scene to Homer';
+
+          const sendTextBtn = doc.getElementById('text-overlay-send-btn');
+          if (sendTextBtn) sendTextBtn.textContent = 'Emit Text to Homer';
+
+          // Update footer log copy if present.
+          const logStatus = doc.getElementById('log-status');
+          if (logStatus && /Grace/i.test(logStatus.textContent)) {
+            logStatus.textContent = 'Ready to emit scenes over wag-frank for Homer.';
+          }
+
+          // Override openGraceEditor so Homer variant never tries to open Grace.
+          const win = frame.contentWindow;
+          if (win && typeof win.openGraceEditor === 'function') {
+            win.openGraceEditor = function() {
+              console.log('[FRANK-HOMER] openGraceEditor was called; Homer variant ignores window open and relies on wag-frank bus only.');
+            };
+          }
+
+          // Also intercept window.open calls that target the Grace editor URL.
+          if (win && win.open) {
+            const originalOpen = win.open;
+            win.open = function() {
+              const url = arguments[0];
+              if (typeof url === 'string' && url.indexOf('wag-grace-editor') !== -1) {
+                console.log('[FRANK-HOMER] Suppressed window.open to', url);
+                return null;
+              }
+              return originalOpen.apply(win, arguments);
+            };
+          }
+        } catch (e) {
+          console.warn('[FRANK-HOMER] Failed to retheme embedded wag-frank:', e);
+        }
+      }
+
+      frame.addEventListener('load', () => {
+        rethemeFrank();
+      });
+    })();
+  </script>
+</body>
+</html>
