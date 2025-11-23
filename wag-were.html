@@ -195,7 +195,9 @@
                 <span onclick="toggleStudsGhost()" style="cursor:pointer">🟢</span>
                 <span onclick="toggleGroupMode()" id="group-mode-pill" style="cursor:pointer; font-size:10px; padding:0 4px; border-radius:4px; border:1px solid #333;">GROUP: LINE:LAYER</span>
                 <span onclick="clearSelection()" style="cursor:pointer; font-size:10px; padding:0 4px; border-radius:4px; border:1px solid #333;">✖ DESELECT</span>
-                <span onclick="exportLDraw()" style="cursor:pointer; color:var(--accent)">📋 EXPORT</span>
+                <span onclick="exportLDraw()" style="cursor:pointer; color:var(--accent)">📋 COPY</span>
+                <span onclick="downloadMpdFile()" style="cursor:pointer; color:var(--accent)">💾 MPD</span>
+                <span onclick="downloadGoldScene()" style="cursor:pointer; color:var(--accent)">📦 GOLD</span>
             </div>
         </div>
         <div id="code-scroll"></div>
@@ -483,9 +485,13 @@
                     const y = typeof ySrc === 'number' ? -ySrc : ySrc;
                     const z = typeof s.z === 'number' ? s.z : (s.worldPos && s.worldPos.z) || 0;
                     if (typeof s.lineNum !== 'number') return;
+                    const baseKey = String(s.lineNum);
                     let key;
-                    if (typeof s.layer === 'number') key = s.lineNum + ':' + s.layer;
-                    else key = String(s.lineNum);
+                    if (collapseLayers || typeof s.layer !== 'number') {
+                        key = baseKey;
+                    } else {
+                        key = baseKey + ':' + s.layer;
+                    }
                     if (hasSelection && !selectedGroupKeys.has(key)) return;
                     let b = bonesBySource[key];
                     if (!b) {
@@ -560,10 +566,11 @@
                     // Attach group key for this proxy, based on preceding skeleton metadata
                     let groupKey = null;
                     if (pendingMeta && typeof pendingMeta.srcLineNum === 'number') {
-                        if (typeof pendingMeta.layer === 'number') {
-                            groupKey = pendingMeta.srcLineNum + ':' + pendingMeta.layer;
+                        const baseKey = String(pendingMeta.srcLineNum);
+                        if (collapseLayers || typeof pendingMeta.layer !== 'number') {
+                            groupKey = baseKey;
                         } else {
-                            groupKey = String(pendingMeta.srcLineNum);
+                            groupKey = baseKey + ':' + pendingMeta.layer;
                         }
                         line.groupKey = groupKey;
                         if (!groupLinesBySource[groupKey]) groupLinesBySource[groupKey] = [];
@@ -682,9 +689,13 @@
                     // Place orbs so that after worldRoot Y-flip they match Courage world positions
                     m.position.set(x, y, z);
                     if (typeof s.lineNum === 'number') {
+                        const baseKey = String(s.lineNum);
                         let key;
-                        if (typeof s.layer === 'number') key = s.lineNum + ':' + s.layer;
-                        else key = String(s.lineNum);
+                        if (collapseLayers || typeof s.layer !== 'number') {
+                            key = baseKey;
+                        } else {
+                            key = baseKey + ':' + s.layer;
+                        }
                         if (!hasSelection || selectedGroupKeys.has(key)) {
                             m.userData.groupKey = key;
                         } else {
@@ -944,6 +955,123 @@
             } catch (err) {
                 console.warn('[WERE] failed to post were-export-mpd', err);
             }
+        }
+
+        function buildGoldSceneFromWere() {
+            const mpd = state.lines.map(l => l.raw).join('\n');
+            const now = new Date();
+            const dateStr = now.toISOString().split('T')[0];
+            const timeStr = now.toTimeString().split(' ')[0].replace(/:/g, '-');
+
+            // Flatten studs from state.studs if present
+            const studs = Array.isArray(state.studs) ? state.studs.slice() : [];
+
+            const studSkeletonV2 = studs.length ? {
+                version: 1,
+                source: 'were',
+                nodes: studs
+            } : null;
+
+            // Per-line stud map compatible with WERE/Master expectations
+            const linesMap = new Map();
+            if (studs.length) {
+                studs.forEach(node => {
+                    if (!node || typeof node.lineNum !== 'number') return;
+                    const ln = node.lineNum;
+                    let entry = linesMap.get(ln);
+                    if (!entry) {
+                        const raw = mpd.split('\n')[ln] || '';
+                        let partId = null;
+                        let color = null;
+                        const trimmed = raw.trim();
+                        if (trimmed.startsWith('1 ')) {
+                            const tokens = trimmed.split(/\s+/);
+                            if (tokens.length > 1) {
+                                const colCode = parseInt(tokens[1], 10);
+                                if (!Number.isNaN(colCode)) color = colCode;
+                            }
+                            if (tokens.length > 14) {
+                                partId = tokens[tokens.length - 1];
+                            }
+                        }
+                        entry = {
+                            lineNum: ln,
+                            raw,
+                            partId,
+                            color,
+                            studs: []
+                        };
+                        linesMap.set(ln, entry);
+                    }
+                    entry.studs.push({
+                        x: node.x,
+                        y: node.y,
+                        z: node.z,
+                        layer: node.layer,
+                        gridX: node.gridX,
+                        gridZ: node.gridZ
+                    });
+                });
+            }
+
+            const payload = {
+                filename: `wag_were_gold_${dateStr}_${timeStr}.png`,
+                scene: 'WAG WERE',
+                date: dateStr,
+                time: timeStr,
+                timestamp: now.toISOString(),
+                aspect_ratio: '4:3',
+                resolution: '1600x1200',
+                line_count: state.lines.length,
+                locked_lines: [],
+                theme: 'dark',
+                diagnostics: {},
+                camera: null,
+                errors: 0,
+                mpd_content: mpd,
+                stud_skeleton: studs,
+                stud_skeleton_v2: studSkeletonV2,
+                grid_spec: {
+                    cellLDU: 20,
+                    layerHeightLDU: 8,
+                    origin: { x: 0, y: 0, z: 0 },
+                    axis: { right: 'x', up: 'y', forward: '-z' }
+                },
+                ground_violations: null,
+                part_skeletons: null
+            };
+
+            if (linesMap.size) {
+                payload.lines = Array.from(linesMap.values());
+            }
+
+            return payload;
+        }
+
+        function downloadMpdFile() {
+            const txt = state.lines.map(l => l.raw).join('\n');
+            const blob = new Blob([txt], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'wag_were_export.mpd';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function downloadGoldScene() {
+            const gold = buildGoldSceneFromWere();
+            const blob = new Blob([JSON.stringify(gold, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'wag_were_gold_scene.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         }
 
         function loadFromGoldJson(source) {

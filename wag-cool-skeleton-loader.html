@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>COOL Skeleton v2 Loader</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23020617'/%3E%3Crect x='18' y='26' width='64' height='48' rx='10' fill='%2338bdf8'/%3E%3Crect x='24' y='32' width='52' height='36' rx='8' fill='%23e0f2ff'/%3E%3C/svg%3E" />
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #020617;
+      --bg-elevated: #020617;
+      --bg-surface: #020617;
+      --border-subtle: rgba(148, 163, 184, 0.35);
+      --border-strong: rgba(148, 163, 184, 0.65);
+      --accent: #38bdf8;
+      --accent-soft: rgba(56, 189, 248, 0.15);
+      --accent-strong: #0ea5e9;
+      --accent-template: #22c55e;
+      --accent-sampled: #f97316;
+      --text: #e5e7eb;
+      --text-muted: #9ca3af;
+      --radius-lg: 16px;
+      --radius-md: 10px;
+      --radius-pill: 999px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      font-family: "Courier New", monospace;
+      background: #000;
+      color: var(--text);
+      overflow: hidden;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chrome {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      background: #000;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 8px;
+      border-bottom: 1px solid #111827;
+      background: #020617;
+      font-size: 10px;
+      white-space: nowrap;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .badge {
+      font-size: 8px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #9ca3af;
+    }
+
+    .title {
+      font-size: 9px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #e5e7eb;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 9px;
+    }
+
+    .pill {
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--border-subtle);
+      padding: 2px 8px;
+      font-size: 9px;
+      color: var(--text-muted);
+    }
+
+    .pill strong {
+      color: var(--accent);
+    }
+
+    .btn-sm {
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--border-subtle);
+      background: #020617;
+      color: var(--text-muted);
+      font-size: 9px;
+      padding: 2px 8px;
+      cursor: pointer;
+    }
+
+    .btn-sm:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .status-text {
+      font-size: 9px;
+      color: var(--text-muted);
+    }
+
+    .main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: minmax(200px, 320px) minmax(0, 1fr);
+      grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 6px;
+      padding: 6px 8px 8px;
+      background: #000;
+    }
+
+    .panel {
+      border-radius: 4px;
+      border: 1px solid #111827;
+      background: #020617;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .panel-header {
+      padding: 4px 6px;
+      border-bottom: 1px solid #111827;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 4px;
+    }
+
+    .panel-body {
+      flex: 1;
+      min-height: 0;
+      padding: 4px;
+      font-size: 10px;
+      overflow: hidden;
+    }
+
+    .scroll {
+      height: 100%;
+      overflow: auto;
+    }
+
+    .lines-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 9px;
+    }
+
+    .lines-table th,
+    .lines-table td {
+      padding: 2px 4px;
+      border-bottom: 1px solid rgba(15, 23, 42, 0.8);
+      white-space: nowrap;
+    }
+
+    .lines-table th {
+      position: sticky;
+      top: 0;
+      background: #020617;
+      z-index: 1;
+      font-weight: normal;
+      color: var(--text-muted);
+    }
+
+    .lines-table tr:hover td {
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    .lines-table tr.selected td {
+      background: rgba(56, 189, 248, 0.18);
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      padding: 0 6px;
+      font-size: 9px;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      color: var(--text-muted);
+    }
+
+    .chip-template {
+      border-color: var(--accent-template);
+      color: var(--accent-template);
+    }
+
+    .chip-sampled {
+      border-color: var(--accent-sampled);
+      color: var(--accent-sampled);
+    }
+
+    .controls-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 9px;
+    }
+
+    .controls-row label {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      color: var(--text-muted);
+    }
+
+    .controls-row input[type="checkbox"] {
+      margin: 0;
+    }
+
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 4px;
+      font-size: 9px;
+      color: var(--text-muted);
+    }
+
+    .slider-row input[type="range"] {
+      flex: 1;
+    }
+
+    #gridCanvas {
+      width: 100%;
+      height: 100%;
+      border-radius: 3px;
+      background: radial-gradient(circle at top, #020617, #000);
+      display: block;
+    }
+
+    .stud-list {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 9px;
+    }
+
+    .stud-list th,
+    .stud-list td {
+      padding: 2px 4px;
+      border-bottom: 1px solid rgba(15, 23, 42, 0.8);
+      white-space: nowrap;
+    }
+
+    .stud-list th {
+      position: sticky;
+      top: 0;
+      background: #020617;
+      z-index: 1;
+      font-weight: normal;
+      color: var(--text-muted);
+    }
+
+    .stud-source-template {
+      color: var(--accent-template);
+    }
+
+    .stud-source-sampled {
+      color: var(--accent-sampled);
+    }
+
+    .log {
+      font-size: 9px;
+      color: var(--text-muted);
+      line-height: 1.4;
+      white-space: pre-wrap;
+    }
+
+    .panel-lines {
+      grid-column: 1 / 2;
+      grid-row: 1 / 3;
+      resize: horizontal;
+      overflow: auto;
+      min-width: 180px;
+      max-width: 420px;
+    }
+
+    .panel-grid {
+      grid-column: 2 / 3;
+      grid-row: 1 / 2;
+    }
+
+    .panel-details {
+      grid-column: 2 / 3;
+      grid-row: 2 / 3;
+    }
+
+    #jsonOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.9);
+      display: none;
+      flex-direction: column;
+      padding: 12px;
+      z-index: 1000;
+    }
+
+    #jsonOverlay h3 {
+      margin: 0 0 6px 0;
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    #jsonText {
+      flex: 1;
+      width: 100%;
+      resize: none;
+      background: #020617;
+      border: 1px solid #111827;
+      color: var(--text);
+      font-family: "Courier New", monospace;
+      font-size: 10px;
+      padding: 6px;
+    }
+
+    .overlay-buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .btn-primary {
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--accent);
+      background: var(--accent-soft);
+      color: var(--accent-strong);
+      font-size: 9px;
+      padding: 3px 10px;
+      cursor: pointer;
+    }
+
+    .btn-secondary {
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--border-subtle);
+      background: #020617;
+      color: var(--text-muted);
+      font-size: 9px;
+      padding: 3px 10px;
+      cursor: pointer;
+    }
+
+    @media (max-width: 960px) {
+      .main {
+        grid-template-columns: 1fr;
+        grid-template-rows: minmax(0, 1.1fr) minmax(0, 0.9fr) minmax(0, 0.9fr);
+      }
+
+      .panel-lines {
+        grid-column: 1 / 2;
+        grid-row: 1 / 2;
+        resize: none;
+      }
+
+      .panel-grid {
+        grid-column: 1 / 2;
+        grid-row: 2 / 3;
+      }
+
+      .panel-details {
+        grid-column: 1 / 2;
+        grid-row: 3 / 4;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="chrome">
+    <header class="header">
+      <div class="header-left">
+        <span class="badge">COOL</span>
+        <span class="title">Skeleton v2 Loader</span>
+      </div>
+      <div class="header-right">
+        <span class="pill"><strong>Input</strong>&nbsp; GOLD or MPD</span>
+        <span class="pill"><strong>Focus</strong>&nbsp; MPD line → stud_skeleton_v2</span>
+        <button class="btn-sm" id="openJsonBtn" title="Paste GOLD / skeleton JSON">LOAD JSON</button>
+        <span class="status-text" id="statusText">IDLE</span>
+      </div>
+    </header>
+
+    <main class="main">
+      <section class="panel panel-lines">
+        <div class="panel-header">
+          <span>Lines / Parts</span>
+          <span id="lineSummary" style="font-size:9px; color:var(--text-muted);">0 lines</span>
+        </div>
+        <div class="panel-body">
+          <div class="scroll">
+            <table class="lines-table" id="linesTable">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Part</th>
+                  <th>Studs</th>
+                  <th>T/S</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel panel-grid">
+        <div class="panel-header">
+          <span>Grid / Layers</span>
+          <div class="controls-row">
+            <label><input type="checkbox" id="showTemplate" checked /> template</label>
+            <label><input type="checkbox" id="showSampled" checked /> sampled</label>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="slider-row">
+            <span>Layer</span>
+            <input type="range" id="layerSlider" min="0" max="0" value="0" />
+            <span id="layerLabel">0</span>
+          </div>
+          <canvas id="gridCanvas"></canvas>
+        </div>
+      </section>
+
+      <section class="panel panel-details">
+        <div class="panel-header">
+          <span>Lines × Skeleton</span>
+        </div>
+        <div class="panel-body">
+          <div class="scroll" style="height:55%; margin-bottom:4px;">
+            <table class="stud-list" id="studTable">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Part</th>
+                  <th>Studs</th>
+                  <th>T/S</th>
+                  <th>Layers</th>
+                  <th>Span</th>
+                  <th>Skeleton sample</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div class="scroll" style="height:45%; border-top:1px solid #111827; padding-top:4px;">
+            <div class="log" id="log"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="jsonOverlay">
+    <h3>LOAD GOLD / SKELETON JSON</h3>
+    <textarea id="jsonText" spellcheck="false" placeholder="Paste GOLD snapshot or object with stud_skeleton_v2 here..."></textarea>
+    <div class="overlay-buttons">
+      <button class="btn-secondary" id="cancelJsonBtn">CANCEL</button>
+      <button class="btn-primary" id="applyJsonBtn">APPLY</button>
+    </div>
+  </div>
+
+  <script>
+    const state = {
+      mpdLines: [],
+      studs: [],
+      gridSpec: null,
+      selectedLineNum: null,
+      minLayer: 0,
+      maxLayer: 0,
+      showTemplate: true,
+      showSampled: true,
+      lastLog: [],
+    };
+
+    const linesTableBody = document.querySelector('#linesTable tbody');
+    const lineSummaryEl = document.getElementById('lineSummary');
+    const gridCanvas = document.getElementById('gridCanvas');
+    const studTableBody = document.querySelector('#studTable tbody');
+    const statusText = document.getElementById('statusText');
+    const layerSlider = document.getElementById('layerSlider');
+    const layerLabel = document.getElementById('layerLabel');
+    const logEl = document.getElementById('log');
+
+    function log(msg) {
+      const ts = new Date().toISOString().split('T')[1].replace('Z', '');
+      const line = `[${ts}] ${msg}`;
+      state.lastLog.push(line);
+      if (state.lastLog.length > 100) state.lastLog.shift();
+      logEl.textContent = state.lastLog.join('\n');
+    }
+
+    function setStatus(text) {
+      statusText.textContent = text;
+    }
+
+    function parseMpdLines(mpdText) {
+      if (!mpdText || typeof mpdText !== 'string') return [];
+      const lines = mpdText.split(/\r?\n/);
+      const result = [];
+      lines.forEach((raw, idx) => {
+        const trimmed = raw.trim();
+        if (!trimmed || trimmed[0] !== '1') return;
+        const parts = trimmed.split(/\s+/);
+        if (parts.length < 15) return;
+        const partId = parts[14];
+        result.push({
+          id: idx,
+          lineNum: idx + 1,
+          partId,
+          raw,
+        });
+      });
+      return result;
+    }
+
+    function normalizeStudNodes(data) {
+      if (!data || typeof data !== 'object') return [];
+      let v2 = data.stud_skeleton_v2 || (data.metadata && data.metadata.stud_skeleton_v2);
+      let nodes = v2 && Array.isArray(v2.nodes) ? v2.nodes : null;
+      if (nodes && nodes.length) {
+        log(`Loaded stud_skeleton_v2 with ${nodes.length} nodes (source=${v2.source || 'unknown'})`);
+        return nodes.map((n, idx) => ({
+          index: idx,
+          lineNum: typeof n.lineNum === 'number' ? n.lineNum : null,
+          layer: typeof n.layer === 'number' ? n.layer : 0,
+          gridX: typeof n.gridX === 'number' ? n.gridX : null,
+          gridZ: typeof n.gridZ === 'number' ? n.gridZ : null,
+          source: n.source || (v2.source || 'unknown'),
+          worldPos: n.worldPos || { x: n.x, y: n.y, z: n.z },
+        }));
+      }
+
+      let studs = Array.isArray(data.stud_skeleton)
+        ? data.stud_skeleton
+        : (data.metadata && Array.isArray(data.metadata.stud_skeleton) ? data.metadata.stud_skeleton : null);
+      if (studs && studs.length) {
+        log(`No stud_skeleton_v2 found; falling back to legacy stud_skeleton (${studs.length} nodes)`);
+        return studs.map((s, idx) => ({
+          index: idx,
+          lineNum: typeof s.lineNum === 'number' ? s.lineNum : null,
+          layer: typeof s.layer === 'number' ? s.layer : 0,
+          gridX: typeof s.gridX === 'number' ? s.gridX : null,
+          gridZ: typeof s.gridZ === 'number' ? s.gridZ : null,
+          source: s.source || 'unknown',
+          worldPos: { x: s.x, y: s.y, z: s.z },
+        }));
+      }
+
+      log('No stud skeleton data found in payload');
+      return [];
+    }
+
+    function extractGridSpec(data) {
+      const gs = data.grid_spec || (data.metadata && data.metadata.grid_spec) || null;
+      if (!gs) return null;
+      return {
+        cellLDU: typeof gs.cellLDU === 'number' ? gs.cellLDU : 20,
+        layerHeightLDU: typeof gs.layerHeightLDU === 'number' ? gs.layerHeightLDU : 8,
+        origin: gs.origin || { x: 0, y: 0, z: 0 },
+        axis: gs.axis || { right: 'x', up: 'y', forward: '-z' },
+      };
+    }
+
+    function rebuildLineSummary() {
+      linesTableBody.innerHTML = '';
+      if (!state.mpdLines.length) {
+        lineSummaryEl.textContent = '0 lines';
+        return;
+      }
+
+      const showT = state.showTemplate;
+      const showS = state.showSampled;
+
+      const byLine = new Map();
+      state.studs.forEach((s) => {
+        const ln = typeof s.lineNum === 'number' ? s.lineNum : null;
+        if (!ln) return;
+        if (s.source === 'template' && !showT) return;
+        if (s.source === 'sampled' && !showS) return;
+        let row = byLine.get(ln);
+        if (!row) {
+          row = { total: 0, template: 0, sampled: 0 };
+          byLine.set(ln, row);
+        }
+        row.total++;
+        if (s.source === 'template') row.template++;
+        else if (s.source === 'sampled') row.sampled++;
+      });
+
+      state.mpdLines.forEach((line) => {
+        const stats = byLine.get(line.lineNum) || { total: 0, template: 0, sampled: 0 };
+        const tr = document.createElement('tr');
+        if (state.selectedLineNum === line.lineNum) tr.classList.add('selected');
+        tr.dataset.lineNum = String(line.lineNum);
+        tr.innerHTML = `
+          <td>${line.lineNum}</td>
+          <td>${line.partId || ''}</td>
+          <td>${stats.total}</td>
+          <td>
+            <span class="chip chip-template" title="template">T:${stats.template}</span>
+            <span class="chip chip-sampled" style="margin-left:2px;" title="sampled">S:${stats.sampled}</span>
+          </td>
+        `;
+        tr.addEventListener('click', () => {
+          state.selectedLineNum = line.lineNum;
+          rebuildLineSummary();
+          rebuildStudTable();
+          drawGrid();
+        });
+        linesTableBody.appendChild(tr);
+      });
+
+      lineSummaryEl.textContent = `${state.mpdLines.length} lines`;
+    }
+
+    function rebuildStudTable() {
+      studTableBody.innerHTML = '';
+      if (!state.mpdLines.length) return;
+
+      const showT = state.showTemplate;
+      const showS = state.showSampled;
+
+      // Aggregate skeleton data per line so this table mirrors the MPD lines list
+      const byLine = new Map();
+      state.studs.forEach((s) => {
+        const ln = typeof s.lineNum === 'number' ? s.lineNum : null;
+        if (!ln) return;
+        if (s.source === 'template' && !showT) return;
+        if (s.source === 'sampled' && !showS) return;
+        let row = byLine.get(ln);
+        if (!row) {
+          row = {
+            total: 0,
+            template: 0,
+            sampled: 0,
+            samples: [],
+            minLayer: Infinity,
+            maxLayer: -Infinity,
+            minGX: Infinity,
+            maxGX: -Infinity,
+            minGZ: Infinity,
+            maxGZ: -Infinity,
+          };
+          byLine.set(ln, row);
+        }
+        row.total++;
+        if (s.source === 'template') row.template++;
+        else if (s.source === 'sampled') row.sampled++;
+        if (row.samples.length < 5) {
+          row.samples.push(s);
+        }
+
+        if (typeof s.layer === 'number') {
+          if (s.layer < row.minLayer) row.minLayer = s.layer;
+          if (s.layer > row.maxLayer) row.maxLayer = s.layer;
+        }
+        if (typeof s.gridX === 'number') {
+          if (s.gridX < row.minGX) row.minGX = s.gridX;
+          if (s.gridX > row.maxGX) row.maxGX = s.gridX;
+        }
+        if (typeof s.gridZ === 'number') {
+          if (s.gridZ < row.minGZ) row.minGZ = s.gridZ;
+          if (s.gridZ > row.maxGZ) row.maxGZ = s.gridZ;
+        }
+      });
+
+      state.mpdLines.forEach((line) => {
+        const emptyStats = {
+          total: 0,
+          template: 0,
+          sampled: 0,
+          samples: [],
+          minLayer: Infinity,
+          maxLayer: -Infinity,
+          minGX: Infinity,
+          maxGX: -Infinity,
+          minGZ: Infinity,
+          maxGZ: -Infinity,
+        };
+        const stats = byLine.get(line.lineNum) || emptyStats;
+        const tr = document.createElement('tr');
+        if (state.selectedLineNum === line.lineNum) tr.classList.add('selected');
+
+        const hasLayer = Number.isFinite(stats.minLayer) && Number.isFinite(stats.maxLayer);
+        const layersLabel = !hasLayer
+          ? ''
+          : (stats.minLayer === stats.maxLayer
+              ? `L${stats.minLayer}`
+              : `L${stats.minLayer}…${stats.maxLayer}`);
+
+        const hasGX = Number.isFinite(stats.minGX) && Number.isFinite(stats.maxGX);
+        const hasGZ = Number.isFinite(stats.minGZ) && Number.isFinite(stats.maxGZ);
+        let spanLabel = '';
+        if (hasGX || hasGZ) {
+          const xPart = hasGX
+            ? (stats.minGX === stats.maxGX ? `X${stats.minGX}` : `X${stats.minGX}…${stats.maxGX}`)
+            : '';
+          const zPart = hasGZ
+            ? (stats.minGZ === stats.maxGZ ? `Z${stats.minGZ}` : `Z${stats.minGZ}…${stats.maxGZ}`)
+            : '';
+          spanLabel = [xPart, zPart].filter(Boolean).join('  ');
+        }
+
+        const sampleText = stats.samples.map((s) => {
+          const layer = typeof s.layer === 'number' ? s.layer : 0;
+          const gx = s.gridX != null ? s.gridX : '?';
+          const gz = s.gridZ != null ? s.gridZ : '?';
+          const src = s.source === 'template' ? 'T' : (s.source === 'sampled' ? 'S' : '?');
+          return `L${layer}:${gx},${gz}${src}`;
+        }).join('  ');
+
+        tr.innerHTML = `
+          <td>${line.lineNum}</td>
+          <td>${line.partId || ''}</td>
+          <td>${stats.total}</td>
+          <td>
+            <span class="chip chip-template" title="template">T:${stats.template}</span>
+            <span class="chip chip-sampled" style="margin-left:2px;" title="sampled">S:${stats.sampled}</span>
+          </td>
+          <td>${layersLabel}</td>
+          <td>${spanLabel}</td>
+          <td style="max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${sampleText}</td>
+        `;
+
+        tr.addEventListener('click', () => {
+          state.selectedLineNum = line.lineNum;
+          rebuildLineSummary();
+          rebuildStudTable();
+          drawGrid();
+        });
+
+        studTableBody.appendChild(tr);
+      });
+    }
+
+    function computeLayerRange() {
+      if (!state.studs.length) {
+        state.minLayer = 0;
+        state.maxLayer = 0;
+        return;
+      }
+      let minL = Infinity;
+      let maxL = -Infinity;
+      state.studs.forEach((s) => {
+        if (typeof s.layer === 'number') {
+          if (s.layer < minL) minL = s.layer;
+          if (s.layer > maxL) maxL = s.layer;
+        }
+      });
+      if (!isFinite(minL) || !isFinite(maxL)) {
+        minL = 0;
+        maxL = 0;
+      }
+      state.minLayer = minL;
+      state.maxLayer = maxL;
+      layerSlider.min = String(minL);
+      layerSlider.max = String(maxL);
+      if (state.selectedLineNum == null) {
+        layerSlider.value = String(minL);
+      } else if (parseInt(layerSlider.value, 10) < minL || parseInt(layerSlider.value, 10) > maxL) {
+        layerSlider.value = String(minL);
+      }
+      layerLabel.textContent = String(layerSlider.value);
+    }
+
+    function drawGrid() {
+      const ctx = gridCanvas.getContext('2d');
+      const w = gridCanvas.clientWidth || 400;
+      const h = gridCanvas.clientHeight || 260;
+      gridCanvas.width = w * window.devicePixelRatio;
+      gridCanvas.height = h * window.devicePixelRatio;
+      ctx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = '#020617';
+      ctx.fillRect(0, 0, w, h);
+
+      if (!state.studs.length) {
+        ctx.fillStyle = '#4b5563';
+        ctx.font = '10px "Courier New", monospace';
+        ctx.fillText('No stud skeleton loaded', 10, 18);
+        return;
+      }
+
+      const selLine = state.selectedLineNum;
+      const showT = state.showTemplate;
+      const showS = state.showSampled;
+      const layer = parseInt(layerSlider.value || '0', 10);
+
+      let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
+      state.studs.forEach((s) => {
+        if (s.gridX == null || s.gridZ == null) return;
+        if (selLine && s.lineNum !== selLine) return;
+        if (s.source === 'template' && !showT) return;
+        if (s.source === 'sampled' && !showS) return;
+        if (s.layer !== layer) return;
+        if (s.gridX < minX) minX = s.gridX;
+        if (s.gridX > maxX) maxX = s.gridX;
+        if (s.gridZ < minZ) minZ = s.gridZ;
+        if (s.gridZ > maxZ) maxZ = s.gridZ;
+      });
+
+      if (!isFinite(minX)) {
+        ctx.fillStyle = '#4b5563';
+        ctx.font = '10px "Courier New", monospace';
+        ctx.fillText('No studs on this layer / filter', 10, 18);
+        return;
+      }
+
+      const pad = 20;
+      const spanX = maxX - minX || 1;
+      const spanZ = maxZ - minZ || 1;
+      const scale = Math.min((w - pad * 2) / spanX, (h - pad * 2) / spanZ);
+
+      ctx.strokeStyle = '#1f2937';
+      ctx.lineWidth = 1;
+      const stepsX = spanX + 1;
+      const stepsZ = spanZ + 1;
+      for (let i = 0; i <= stepsX; i++) {
+        const x = pad + (i * spanX / stepsX) * scale;
+        ctx.beginPath();
+        ctx.moveTo(x, pad);
+        ctx.lineTo(x, h - pad);
+        ctx.stroke();
+      }
+      for (let j = 0; j <= stepsZ; j++) {
+        const z = pad + (j * spanZ / stepsZ) * scale;
+        ctx.beginPath();
+        ctx.moveTo(pad, z);
+        ctx.lineTo(w - pad, z);
+        ctx.stroke();
+      }
+
+      state.studs.forEach((s) => {
+        if (s.gridX == null || s.gridZ == null) return;
+        if (selLine && s.lineNum !== selLine) return;
+        if (s.source === 'template' && !showT) return;
+        if (s.source === 'sampled' && !showS) return;
+        if (s.layer !== layer) return;
+        const x = pad + (s.gridX - minX) * scale;
+        const z = pad + (s.gridZ - minZ) * scale;
+        const r = 4;
+        if (s.source === 'template') ctx.fillStyle = '#22c55e';
+        else if (s.source === 'sampled') ctx.fillStyle = '#f97316';
+        else ctx.fillStyle = '#e5e7eb';
+        ctx.beginPath();
+        ctx.arc(x, z, r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      ctx.fillStyle = '#6b7280';
+      ctx.font = '9px "Courier New", monospace';
+      ctx.fillText(`Layer ${layer}${selLine ? `  ·  line ${selLine}` : ''}`, pad, h - 6);
+    }
+
+    function applyGoldPayload(data) {
+      try {
+        const mpd = data.mpd_content || (data.metadata && data.metadata.mpd_content) || '';
+        state.mpdLines = parseMpdLines(mpd);
+        state.studs = normalizeStudNodes(data);
+        state.gridSpec = extractGridSpec(data);
+        const anyLine = state.mpdLines.find(l => true);
+        state.selectedLineNum = anyLine ? anyLine.lineNum : null;
+        computeLayerRange();
+        rebuildLineSummary();
+        rebuildStudTable();
+        drawGrid();
+        setStatus('GOLD LOADED');
+        log('Applied GOLD payload from studio bus / JSON');
+      } catch (err) {
+        console.warn('[COOL LOADER] failed to apply GOLD payload', err);
+        log('ERROR: failed to apply GOLD payload – see console');
+        setStatus('ERROR');
+      }
+    }
+
+    document.getElementById('showTemplate').addEventListener('change', (e) => {
+      state.showTemplate = !!e.target.checked;
+      rebuildStudTable();
+      drawGrid();
+    });
+
+    document.getElementById('showSampled').addEventListener('change', (e) => {
+      state.showSampled = !!e.target.checked;
+      rebuildStudTable();
+      drawGrid();
+    });
+
+    layerSlider.addEventListener('input', () => {
+      layerLabel.textContent = String(layerSlider.value);
+      rebuildStudTable();
+      drawGrid();
+    });
+
+    const jsonOverlay = document.getElementById('jsonOverlay');
+    const jsonText = document.getElementById('jsonText');
+    document.getElementById('openJsonBtn').addEventListener('click', () => {
+      jsonOverlay.style.display = 'flex';
+      jsonText.value = '';
+      jsonText.focus();
+    });
+    document.getElementById('cancelJsonBtn').addEventListener('click', () => {
+      jsonOverlay.style.display = 'none';
+    });
+    document.getElementById('applyJsonBtn').addEventListener('click', () => {
+      const txt = jsonText.value.trim();
+      if (!txt) { jsonOverlay.style.display = 'none'; return; }
+      try {
+        const parsed = JSON.parse(txt);
+        applyGoldPayload(parsed);
+        jsonOverlay.style.display = 'none';
+      } catch (err) {
+        console.warn('[COOL LOADER] invalid JSON', err);
+        log('ERROR: invalid JSON in loader overlay');
+      }
+    });
+
+    window.addEventListener('resize', () => {
+      drawGrid();
+    });
+
+    window.addEventListener('message', (event) => {
+      const msg = event.data;
+      if (!msg || typeof msg !== 'object' || !msg.type) return;
+      if (msg.type === 'studio-load-gold-from-courage') {
+        const payload = msg.payload;
+        if (!payload) return;
+        applyGoldPayload(payload);
+      } else if (msg.type === 'timber-selection-update') {
+        const lineNums = Array.isArray(msg.lineNums) ? msg.lineNums : [];
+        if (lineNums.length) {
+          const first = parseInt(String(lineNums[0]), 10);
+          if (!isNaN(first)) {
+            state.selectedLineNum = first;
+            rebuildLineSummary();
+            rebuildStudTable();
+            drawGrid();
+            log(`Selection from TIMBER: focused line ${first}`);
+          }
+        }
+      }
+    });
+
+    log('COOL Skeleton v2 Loader ready – waiting for GOLD payload or JSON paste');
+    drawGrid();
+  </script>
+</body>
+</html>

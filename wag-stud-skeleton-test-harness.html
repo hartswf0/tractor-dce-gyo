@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>STUD SKELETON · Test Harness</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #020617;
+      --bg-elevated: #020617;
+      --border-subtle: rgba(148, 163, 184, 0.35);
+      --border-strong: rgba(148, 163, 184, 0.65);
+      --accent: #38bdf8;
+      --accent-warn: #f97316;
+      --accent-bad: #ef4444;
+      --text: #e5e7eb;
+      --text-muted: #9ca3af;
+      --radius-lg: 16px;
+      --radius-md: 10px;
+      --radius-pill: 999px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      font-family: "Courier New", monospace;
+      background: #000;
+      color: var(--text);
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chrome {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      background: #000;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 10px;
+      border-bottom: 1px solid #111827;
+      background: #020617;
+      font-size: 11px;
+    }
+
+    .header-left { display: flex; align-items: center; gap: 8px; }
+
+    .badge {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--text-muted);
+    }
+
+    .title {
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--text);
+    }
+
+    .header-right { display: flex; align-items: center; gap: 8px; font-size: 10px; }
+
+    .btn-sm {
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--border-subtle);
+      background: #020617;
+      color: var(--text-muted);
+      font-size: 10px;
+      padding: 2px 8px;
+      cursor: pointer;
+    }
+
+    .btn-sm:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .status-text { font-size: 10px; color: var(--text-muted); }
+
+    .main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: minmax(240px, 0.8fr) minmax(260px, 1.2fr);
+      gap: 8px;
+      padding: 8px 10px 10px;
+      background: #000;
+      min-height: 0;
+    }
+
+    .panel {
+      border-radius: 6px;
+      border: 1px solid #111827;
+      background: #020617;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .panel-header {
+      padding: 4px 8px;
+      border-bottom: 1px solid #111827;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .panel-body {
+      flex: 1;
+      padding: 6px;
+      font-size: 10px;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .scroll { height: 100%; overflow: auto; }
+
+    textarea {
+      width: 100%;
+      height: 100%;
+      resize: none;
+      background: #020617;
+      border-radius: 4px;
+      border: 1px solid #111827;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 10px;
+      padding: 6px;
+    }
+
+    .pill-row { display: flex; flex-wrap: wrap; gap: 4px; font-size: 9px; margin-top: 4px; }
+
+    .pill {
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--border-subtle);
+      padding: 1px 6px;
+      color: var(--text-muted);
+    }
+
+    .pill-bad { border-color: var(--accent-bad); color: var(--accent-bad); }
+    .pill-warn { border-color: var(--accent-warn); color: var(--accent-warn); }
+    .pill-good { border-color: #22c55e; color: #22c55e; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 9px; }
+
+    th, td {
+      padding: 2px 4px;
+      border-bottom: 1px solid rgba(15, 23, 42, 0.9);
+      white-space: nowrap;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      background: #020617;
+      z-index: 1;
+      font-weight: normal;
+      color: var(--text-muted);
+    }
+
+    tr.highlight td { background: rgba(239, 68, 68, 0.15); }
+
+    .metric-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
+    .metric {
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid #1f2937;
+      background: #020617;
+      font-size: 9px;
+      color: var(--text-muted);
+    }
+
+    .metric strong { color: var(--text); }
+
+    .line-list { display: flex; flex-direction: column; gap: 4px; }
+
+    .line-card {
+      border-radius: 4px;
+      border: 1px solid #111827;
+      background: #020617;
+      padding: 4px 6px;
+      font-size: 9px;
+    }
+
+    .line-card.dominant {
+      border-color: var(--accent-bad);
+      box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.4);
+    }
+
+    .line-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .line-card-line {
+      min-width: 28px;
+      font-weight: bold;
+      color: var(--text-muted);
+    }
+
+    .line-card-part {
+      flex: 1;
+      color: var(--text);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .line-card-metrics {
+      display: flex;
+      gap: 6px;
+      font-size: 9px;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .line-card-samples {
+      margin-top: 2px;
+      font-size: 9px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    @media (max-width: 900px) {
+      .main { grid-template-columns: 1fr; grid-template-rows: minmax(0, 0.9fr) minmax(0, 1.1fr); }
+    }
+  </style>
+</head>
+<body>
+  <div class="chrome">
+    <header class="header">
+      <div class="header-left">
+        <span class="badge">WAG</span>
+        <span class="title">Stud Skeleton · Test Harness</span>
+      </div>
+      <div class="header-right">
+        <button class="btn-sm" id="loadFileBtn">LOAD FILE</button>
+        <button class="btn-sm" id="analyzeBtn">ANALYZE JSON</button>
+        <span class="status-text" id="statusText">Paste GOLD or skeleton JSON → ANALYZE</span>
+      </div>
+    </header>
+
+    <main class="main">
+      <section class="panel">
+        <div class="panel-header">
+          <span>Input JSON</span>
+          <span style="font-size:9px; color:var(--text-muted);">GOLD with mpd_content + stud_skeleton(_v2)</span>
+        </div>
+        <div class="panel-body">
+          <div class="scroll">
+            <textarea id="jsonInput" spellcheck="false" placeholder="Paste GOLD snapshot or any object with mpd_content + stud_skeleton / stud_skeleton_v2 here..."></textarea>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <span>Line Ownership / Pathology</span>
+          <div class="pill-row" id="summaryPills"></div>
+        </div>
+        <div class="panel-body">
+          <div class="metric-row" id="metricRow"></div>
+          <div class="scroll">
+            <div class="line-list" id="lineContainer"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <input type="file" id="fileInput" style="display:none" accept="application/json,.json" />
+
+  <script>
+    const state = {
+      mpdLines: [],
+      studs: [],
+      totals: null,
+      byLine: null,
+      diagnostic: null,
+      pathologyReport: null,
+    };
+
+    const jsonInput = document.getElementById('jsonInput');
+    const statusText = document.getElementById('statusText');
+    const summaryPills = document.getElementById('summaryPills');
+    const metricRow = document.getElementById('metricRow');
+    const lineContainer = document.getElementById('lineContainer');
+
+    function setStatus(msg) {
+      statusText.textContent = msg;
+    }
+
+    function parseMpdLines(mpdText) {
+      if (!mpdText || typeof mpdText !== 'string') return [];
+      const lines = mpdText.split(/\r?\n/);
+      const result = [];
+      lines.forEach((raw, idx) => {
+        const trimmed = raw.trim();
+        if (!trimmed || !trimmed.startsWith('1 ')) return;
+        const parts = trimmed.split(/\s+/);
+        if (parts.length < 15) return;
+        const partId = parts[14];
+        const x = Number(parts[2]);
+        const y = Number(parts[3]);
+        const z = Number(parts[4]);
+        result.push({
+          id: idx,
+          lineNum: idx + 1,
+          partId,
+          x: Number.isFinite(x) ? x : 0,
+          y: Number.isFinite(y) ? y : 0,
+          z: Number.isFinite(z) ? z : 0,
+          raw,
+        });
+      });
+      return result;
+    }
+
+    function normalizeStudNodes(data) {
+      if (!data || typeof data !== 'object') return [];
+      let v2 = data.stud_skeleton_v2 || (data.metadata && data.metadata.stud_skeleton_v2);
+      let nodes = v2 && Array.isArray(v2.nodes) ? v2.nodes : null;
+      if (nodes && nodes.length) {
+        return nodes.map((n, idx) => ({
+          index: idx,
+          lineNum: typeof n.lineNum === 'number' ? n.lineNum : null,
+          layer: typeof n.layer === 'number' ? n.layer : 0,
+          gridX: typeof n.gridX === 'number' ? n.gridX : null,
+          gridZ: typeof n.gridZ === 'number' ? n.gridZ : null,
+          source: n.source || (v2.source || 'unknown'),
+          worldPos: n.worldPos || { x: n.x, y: n.y, z: n.z },
+        }));
+      }
+
+      let studs = Array.isArray(data.stud_skeleton)
+        ? data.stud_skeleton
+        : (data.metadata && Array.isArray(data.metadata.stud_skeleton) ? data.metadata.stud_skeleton : null);
+      if (studs && studs.length) {
+        return studs.map((s, idx) => ({
+          index: idx,
+          lineNum: typeof s.lineNum === 'number' ? s.lineNum : null,
+          layer: typeof s.layer === 'number' ? s.layer : 0,
+          gridX: typeof s.gridX === 'number' ? s.gridX : null,
+          gridZ: typeof s.gridZ === 'number' ? s.gridZ : null,
+          source: s.source || 'unknown',
+          worldPos: { x: s.x, y: s.y, z: s.z },
+        }));
+      }
+      return [];
+    }
+
+    function analyzePayload(data) {
+      const mpd = data.mpd_content || (data.metadata && data.metadata.mpd_content) || '';
+      state.mpdLines = parseMpdLines(mpd);
+      state.studs = normalizeStudNodes(data);
+
+      const totalStuds = state.studs.length;
+      const byLine = new Map();
+      state.studs.forEach(s => {
+        const ln = typeof s.lineNum === 'number' ? s.lineNum : null;
+        if (ln === null) return;
+        let row = byLine.get(ln);
+        if (!row) {
+          row = {
+            total: 0,
+            minLayer: Infinity,
+            maxLayer: -Infinity,
+            minGX: Infinity,
+            maxGX: -Infinity,
+            minGZ: Infinity,
+            maxGZ: -Infinity,
+            samples: [],
+          };
+          byLine.set(ln, row);
+        }
+        row.total++;
+        if (typeof s.layer === 'number') {
+          if (s.layer < row.minLayer) row.minLayer = s.layer;
+          if (s.layer > row.maxLayer) row.maxLayer = s.layer;
+        }
+        if (typeof s.gridX === 'number') {
+          if (s.gridX < row.minGX) row.minGX = s.gridX;
+          if (s.gridX > row.maxGX) row.maxGX = s.gridX;
+        }
+        if (typeof s.gridZ === 'number') {
+          if (s.gridZ < row.minGZ) row.minGZ = s.gridZ;
+          if (s.gridZ > row.maxGZ) row.maxGZ = s.gridZ;
+        }
+        if (row.samples.length < 4) row.samples.push(s);
+      });
+
+      const entries = [];
+      byLine.forEach((v, ln) => {
+        entries.push({ lineNum: ln, ...v });
+      });
+      entries.sort((a, b) => b.total - a.total);
+
+      const distinctLines = entries.length;
+      const top = entries[0] || null;
+      const topRatio = totalStuds > 0 && top ? top.total / totalStuds : 0;
+
+      state.totals = { totalStuds, distinctLines, top, topRatio };
+      state.byLine = byLine;
+      state.diagnostic = computeNearestLineDiagnostic();
+      if (state.diagnostic) {
+        console.log('[WAG_STUD_HARNESS_DIAGNOSTIC]', state.diagnostic);
+        state.pathologyReport = buildPathologyReport();
+        if (state.pathologyReport) {
+          console.log('[WAG_STUD_HARNESS_PATHOLOGY_REPORT]', { _skeleton_pathology_report: state.pathologyReport });
+        }
+      }
+      renderSummary(data);
+      renderLines();
+    }
+
+    function computeNearestLineDiagnostic() {
+      const studs = state.studs || [];
+      const mpdLines = state.mpdLines || [];
+      if (!studs.length || !mpdLines.length) return null;
+
+      const perLine = new Map();
+      mpdLines.forEach(line => {
+        perLine.set(line.lineNum, {
+          lineNum: line.lineNum,
+          partId: line.partId,
+          claimed: 0,
+          nearest: 0,
+        });
+      });
+
+      let total = 0;
+      let withLineNum = 0;
+      let withoutLineNum = 0;
+      let withNearest = 0;
+      let mismatches = 0;
+
+      studs.forEach(s => {
+        const wp = s.worldPos;
+        if (!wp || typeof wp.x !== 'number' || typeof wp.y !== 'number' || typeof wp.z !== 'number') return;
+
+        total++;
+        const assigned = typeof s.lineNum === 'number' ? s.lineNum : null;
+        if (assigned !== null) withLineNum++; else withoutLineNum++;
+
+        let bestLineNum = null;
+        let bestDist2 = Infinity;
+        for (let i = 0; i < mpdLines.length; i++) {
+          const line = mpdLines[i];
+          if (typeof line.x !== 'number' || typeof line.y !== 'number' || typeof line.z !== 'number') continue;
+          const dx = wp.x - line.x;
+          const dy = wp.y - line.y;
+          const dz = wp.z - line.z;
+          const d2 = dx * dx + dy * dy + dz * dz;
+          if (d2 < bestDist2) {
+            bestDist2 = d2;
+            bestLineNum = line.lineNum;
+          }
+        }
+
+        if (bestLineNum !== null) {
+          withNearest++;
+          const nearestRow = perLine.get(bestLineNum);
+          if (nearestRow) nearestRow.nearest++;
+        }
+
+        if (assigned !== null) {
+          const claimRow = perLine.get(assigned);
+          if (claimRow) claimRow.claimed++;
+        }
+
+        if (assigned !== null && bestLineNum !== null && assigned !== bestLineNum) {
+          mismatches++;
+        }
+      });
+
+      const lines = Array.from(perLine.values());
+      lines.sort((a, b) => (b.claimed - a.claimed) || (b.nearest - a.nearest));
+
+      const claimedHistogram = {};
+      const nearestHistogram = {};
+      lines.forEach(line => {
+        if (line.claimed) claimedHistogram[line.lineNum] = line.claimed;
+        if (line.nearest) nearestHistogram[line.lineNum] = line.nearest;
+      });
+
+      const claimedDistinctLines = Object.keys(claimedHistogram).length;
+      const nearestDistinctLines = Object.keys(nearestHistogram).length;
+
+      return {
+        mpdLinesCount: mpdLines.length,
+        claimedDistinctLines,
+        nearestDistinctLines,
+        totalStudsConsidered: total,
+        studsWithLineNum: withLineNum,
+        studsWithoutLineNum: withoutLineNum,
+        studsWithNearestPart: withNearest,
+        lineBindingMismatchCount: mismatches,
+        lineBindingMatchRatio: total > 0 ? (total - mismatches) / total : null,
+        claimedHistogram,
+        nearestHistogram,
+        perLine: lines,
+      };
+    }
+
+    function buildPathologyReport() {
+      const totals = state.totals;
+      const diag = state.diagnostic;
+      if (!totals || !diag || !diag.claimedHistogram || !diag.nearestHistogram) return null;
+
+      function topFromHistogram(hist) {
+        let bestLine = null;
+        let bestCount = 0;
+        Object.keys(hist).forEach(k => {
+          const ln = Number(k);
+          const c = hist[k];
+          if (c > bestCount) {
+            bestCount = c;
+            bestLine = ln;
+          }
+        });
+        return { line: bestLine, count: bestCount };
+      }
+
+      const total = diag.totalStudsConsidered || totals.totalStuds || 0;
+      if (!total) return null;
+
+      const origTop = topFromHistogram(diag.claimedHistogram);
+      const corrTop = topFromHistogram(diag.nearestHistogram);
+
+      const origPct = origTop.count > 0 ? (origTop.count / total) * 100 : 0;
+      const corrPct = corrTop.count > 0 ? (corrTop.count / total) * 100 : 0;
+
+      let severity = 'HEALTHY';
+      if (origPct >= 90) {
+        severity = 'CRITICAL';
+      } else if (origPct >= 70 || diag.claimedDistinctLines <= 2) {
+        severity = 'WARNING';
+      }
+
+      return {
+        detected_at: new Date().toISOString(),
+        corrected_by: 'WAG Stud Skeleton Test Harness v1.0',
+        severity,
+        original_distribution: {
+          distinct_lines: diag.claimedDistinctLines,
+          top_line: origTop.line,
+          top_count: origTop.count,
+          top_percentage: Number(origPct.toFixed(1)),
+          histogram: diag.claimedHistogram,
+        },
+        corrected_distribution: {
+          distinct_lines: diag.nearestDistinctLines,
+          top_line: corrTop.line,
+          top_count: corrTop.count,
+          top_percentage: Number(corrPct.toFixed(1)),
+          histogram: diag.nearestHistogram,
+        },
+        correction_method: 'spatial_proximity_3d_euclidean',
+        correction_parameters: {
+          algorithm: 'nearest_neighbor_by_world_position',
+          distance_metric: 'euclidean_3d',
+        },
+        mpd_lines_count: diag.mpdLinesCount,
+        part_lines_count: diag.mpdLinesCount,
+        recommendation: 'Regenerate from source using per-line stud sampler (Courage v9+) for canonical skeleton',
+      };
+    }
+
+    function renderSummary(data) {
+      summaryPills.innerHTML = '';
+      metricRow.innerHTML = '';
+
+      const mpdLinesCount = state.mpdLines.length;
+      const parts = new Set(state.mpdLines.map(l => l.partId)).size;
+      const { totalStuds, distinctLines, top, topRatio } = state.totals || {};
+
+      function pill(text, kind) {
+        const span = document.createElement('span');
+        span.className = 'pill' + (kind ? ' ' + kind : '');
+        span.textContent = text;
+        summaryPills.appendChild(span);
+      }
+
+      pill(`MPD lines: ${mpdLinesCount || 0}`);
+      pill(`Parts: ${parts || 0}`);
+      pill(`Studs: ${totalStuds || 0}`);
+      pill(`Distinct lineNum in studs: ${distinctLines || 0}`);
+
+      if (!totalStuds) {
+        pill('NO STUDS FOUND', 'pill-warn');
+        setStatus('No stud_skeleton data found in JSON');
+        return;
+      }
+
+      if (!distinctLines) {
+        pill('NO LINE NUMS IN STUDS', 'pill-bad');
+      }
+
+      if (top) {
+        const pct = (topRatio * 100).toFixed(1);
+        const txt = `Top line ${top.lineNum} owns ${top.total} studs (${pct}%)`;
+        let cls = '';
+        if (topRatio >= 0.9) cls = 'pill-bad';
+        else if (topRatio >= 0.7) cls = 'pill-warn';
+        else cls = 'pill-good';
+        pill(txt, cls);
+      }
+
+      const m1 = document.createElement('div');
+      m1.className = 'metric';
+      m1.innerHTML = `<strong>Source:</strong> ${data.stud_skeleton_v2 ? 'stud_skeleton_v2' : (Array.isArray(data.stud_skeleton) ? 'stud_skeleton' : 'none')}`;
+      metricRow.appendChild(m1);
+
+      const m2 = document.createElement('div');
+      m2.className = 'metric';
+      m2.innerHTML = `<strong>Heuristic:</strong> if one line owns most studs, suspect global sampler / v4`;
+      metricRow.appendChild(m2);
+
+      const diag = state.diagnostic;
+      if (diag && typeof diag.lineBindingMatchRatio === 'number') {
+        const m3 = document.createElement('div');
+        m3.className = 'metric';
+        const pct = (diag.lineBindingMatchRatio * 100).toFixed(1);
+        const matched = diag.totalStudsConsidered - diag.lineBindingMismatchCount;
+        m3.innerHTML = `<strong>Nearest-part binding:</strong> ${pct}% (${matched}/${diag.totalStudsConsidered})`;
+        metricRow.appendChild(m3);
+      }
+
+      if (top && (topRatio >= 0.7 || distinctLines <= 2)) {
+        const m = document.createElement('div');
+        m.className = 'metric';
+        m.innerHTML = `<strong>PATHOLOGY:</strong> line ${top.lineNum} dominates stud ownership`;
+        metricRow.appendChild(m);
+      }
+
+      setStatus('Analysis complete');
+    }
+
+    function renderLines() {
+      lineContainer.innerHTML = '';
+
+      const byLine = state.byLine;
+      if (!byLine) return;
+
+      const totals = state.totals || {};
+      const totalStuds = totals.totalStuds || 0;
+      const topLineNum = totals.top ? totals.top.lineNum : null;
+
+      const mpdLines = state.mpdLines || [];
+      const seen = new Set();
+
+      function makeLayersLabel(stats) {
+        const hasLayer = Number.isFinite(stats.minLayer) && Number.isFinite(stats.maxLayer);
+        if (!hasLayer) return '';
+        return stats.minLayer === stats.maxLayer
+          ? `L${stats.minLayer}`
+          : `L${stats.minLayer}…${stats.maxLayer}`;
+      }
+
+      function makeSpanLabel(stats) {
+        const hasGX = Number.isFinite(stats.minGX) && Number.isFinite(stats.maxGX);
+        const hasGZ = Number.isFinite(stats.minGZ) && Number.isFinite(stats.maxGZ);
+        if (!hasGX && !hasGZ) return '';
+        const xPart = hasGX ? (stats.minGX === stats.maxGX ? `X${stats.minGX}` : `X${stats.minGX}…${stats.maxGX}`) : '';
+        const zPart = hasGZ ? (stats.minGZ === stats.maxGZ ? `Z${stats.minGZ}` : `Z${stats.minGZ}…${stats.maxGZ}`) : '';
+        return [xPart, zPart].filter(Boolean).join('  ');
+      }
+
+      function makeSampleText(samples) {
+        if (!samples || !samples.length) return '';
+        return samples.map(s => {
+          const layer = typeof s.layer === 'number' ? s.layer : 0;
+          const gx = s.gridX != null ? s.gridX : '?';
+          const gz = s.gridZ != null ? s.gridZ : '?';
+          return `L${layer}:${gx},${gz}`;
+        }).join('  ');
+      }
+
+      mpdLines.forEach(line => {
+        const lineNum = line.lineNum;
+        const stats = byLine.get(lineNum) || null;
+        if (stats) seen.add(lineNum);
+
+        const card = document.createElement('div');
+        card.className = 'line-card';
+        if (stats && lineNum === topLineNum) card.classList.add('dominant');
+
+        const header = document.createElement('div');
+        header.className = 'line-card-header';
+
+        const lineLabel = document.createElement('div');
+        lineLabel.className = 'line-card-line';
+        lineLabel.textContent = String(lineNum).padStart(2, '0');
+
+        const partLabel = document.createElement('div');
+        partLabel.className = 'line-card-part';
+        partLabel.textContent = line.partId || '(no part)';
+
+        const metrics = document.createElement('div');
+        metrics.className = 'line-card-metrics';
+
+        if (stats && totalStuds) {
+          const pct = ((stats.total / totalStuds) * 100).toFixed(1);
+          const countSpan = document.createElement('span');
+          countSpan.textContent = `${stats.total} · ${pct}%`;
+          metrics.appendChild(countSpan);
+
+          const layersLabel = makeLayersLabel(stats);
+          if (layersLabel) {
+            const lSpan = document.createElement('span');
+            lSpan.textContent = layersLabel;
+            metrics.appendChild(lSpan);
+          }
+
+          const spanLabel = makeSpanLabel(stats);
+          if (spanLabel) {
+            const sSpan = document.createElement('span');
+            sSpan.textContent = spanLabel;
+            metrics.appendChild(sSpan);
+          }
+        } else {
+          const countSpan = document.createElement('span');
+          countSpan.textContent = '0 studs';
+          metrics.appendChild(countSpan);
+        }
+
+        header.appendChild(lineLabel);
+        header.appendChild(partLabel);
+        header.appendChild(metrics);
+        card.appendChild(header);
+
+        const samplesDiv = document.createElement('div');
+        samplesDiv.className = 'line-card-samples';
+        samplesDiv.textContent = stats ? makeSampleText(stats.samples) || ' ' : ' ';
+        card.appendChild(samplesDiv);
+
+        lineContainer.appendChild(card);
+      });
+
+      // Any studs that reference a lineNum not present in parsed MPD lines
+      byLine.forEach((stats, ln) => {
+        if (seen.has(ln)) return;
+        const card = document.createElement('div');
+        card.className = 'line-card';
+        if (ln === topLineNum) card.classList.add('dominant');
+
+        const header = document.createElement('div');
+        header.className = 'line-card-header';
+
+        const lineLabel = document.createElement('div');
+        lineLabel.className = 'line-card-line';
+        lineLabel.textContent = String(ln).padStart(2, '0');
+
+        const partLabel = document.createElement('div');
+        partLabel.className = 'line-card-part';
+        partLabel.textContent = '(no MPD line)';
+
+        const metrics = document.createElement('div');
+        metrics.className = 'line-card-metrics';
+
+        if (totalStuds) {
+          const pct = ((stats.total / totalStuds) * 100).toFixed(1);
+          const countSpan = document.createElement('span');
+          countSpan.textContent = `${stats.total} · ${pct}%`;
+          metrics.appendChild(countSpan);
+        }
+
+        header.appendChild(lineLabel);
+        header.appendChild(partLabel);
+        header.appendChild(metrics);
+        card.appendChild(header);
+
+        const samplesDiv = document.createElement('div');
+        samplesDiv.className = 'line-card-samples';
+        samplesDiv.textContent = makeSampleText(stats.samples) || ' ';
+        card.appendChild(samplesDiv);
+
+        lineContainer.appendChild(card);
+      });
+    }
+
+    document.getElementById('analyzeBtn').addEventListener('click', () => {
+      const txt = jsonInput.value.trim();
+      if (!txt) { setStatus('No JSON to analyze'); return; }
+      try {
+        const data = JSON.parse(txt);
+        analyzePayload(data);
+      } catch (e) {
+        console.warn('[HARNESS] invalid JSON', e);
+        setStatus('ERROR: invalid JSON');
+      }
+    });
+
+    document.getElementById('loadFileBtn').addEventListener('click', () => {
+      document.getElementById('fileInput').click();
+    });
+
+    document.getElementById('fileInput').addEventListener('change', (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        jsonInput.value = ev.target.result || '';
+        setStatus(`Loaded ${file.name} – click ANALYZE JSON`);
+      };
+      reader.readAsText(file);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bull Assembly Studio – MPD · GOLD · Stud Skeleton</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23ff4444'/%3E%3C/svg%3E">
+  <style>
+    :root {
+      --lego-yellow: #FFD700;
+      --lego-yellow-glow: rgba(255, 215, 0, 0.4);
+      --lego-red: #FF4444;
+      --lego-blue: #4444FF;
+      --lego-green: #00FF88;
+      --lego-purple: #9D4EDD;
+      --lego-cyan: #4ECDC4;
+      --lego-bull: #ff4444;
+      --border: 3px solid #333;
+      --shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: 'Courier New', monospace;
+      background: #000;
+      color: #ddd;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header-brick {
+      background: linear-gradient(180deg, #020617 0%, #000 100%);
+      border-bottom: var(--border);
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: var(--shadow);
+    }
+
+    .header-title {
+      font-size: 22px;
+      font-weight: bold;
+      color: var(--lego-bull);
+      text-shadow: 0 0 10px rgba(255, 68, 68, 0.6);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .step-counter {
+      width: 60px;
+      height: 60px;
+      border-radius: 12px;
+      background: var(--lego-yellow);
+      color: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      font-weight: bold;
+      box-shadow: 0 0 20px var(--lego-yellow-glow);
+      position: relative;
+    }
+
+    .step-counter::before {
+      content: '';
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 30px;
+      height: 14px;
+      border-radius: 8px 8px 0 0;
+      background: #FFA500;
+      border: 3px solid #CC8400;
+      border-bottom: none;
+    }
+
+    .instruction-page {
+      flex: 1;
+      padding: 40px 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
+      display: none;
+    }
+
+    .instruction-page.active {
+      display: block;
+      animation: fadeIn 0.4s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .step-brick {
+      background: linear-gradient(135deg, #020617 0%, #000 100%);
+      border: 4px solid #333;
+      border-radius: 16px;
+      padding: 40px;
+      margin-bottom: 40px;
+      position: relative;
+      box-shadow: var(--shadow);
+    }
+
+    .step-number-brick {
+      position: absolute;
+      top: -20px;
+      left: 40px;
+      width: 60px;
+      height: 60px;
+      border-radius: 12px;
+      background: var(--lego-yellow);
+      color: #000;
+      font-size: 32px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px var(--lego-yellow-glow);
+      border: 4px solid #000;
+    }
+
+    .step-number-brick::before {
+      content: '';
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 32px;
+      height: 16px;
+      border-radius: 8px 8px 0 0;
+      background: #FFA500;
+      border: 3px solid #000;
+      border-bottom: none;
+    }
+
+    .step-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      align-items: center;
+    }
+
+    @media (max-width: 900px) {
+      .step-content { grid-template-columns: 1fr; }
+    }
+
+    .visual-panel {
+      background: #000;
+      border: 3px solid #333;
+      border-radius: 12px;
+      padding: 20px;
+      min-height: 220px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .text-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      max-width: 520px;
+    }
+
+    .step-title {
+      font-size: 20px;
+      font-weight: bold;
+      color: var(--lego-yellow);
+      letter-spacing: 1px;
+    }
+
+    .step-desc {
+      font-size: 14px;
+      line-height: 1.6;
+      color: #ccc;
+    }
+
+    .step-desc ul {
+      margin-top: 4px;
+      margin-left: 18px;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+      font-size: 10px;
+    }
+
+    .pill-tag {
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid #334155;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .pill-tag.bus   { border-color: var(--lego-cyan); color: var(--lego-cyan); }
+    .pill-tag.gold  { border-color: var(--lego-yellow); color: var(--lego-yellow); }
+    .pill-tag.mpd   { border-color: var(--lego-green); color: var(--lego-green); }
+    .pill-tag.stud  { border-color: var(--lego-purple); color: var(--lego-purple); }
+
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+      width: 100%;
+    }
+
+    .mini-card {
+      background: rgba(15, 23, 42, 0.9);
+      border-radius: 6px;
+      border: 1px solid #1f2937;
+      padding: 10px;
+      font-size: 10px;
+      text-align: center;
+    }
+
+    .code-brick {
+      background: #000;
+      border: 3px solid var(--lego-yellow);
+      border-radius: 8px;
+      padding: 12px;
+      font-family: 'Courier New', monospace;
+      font-size: 10px;
+      color: #0f0;
+      margin-top: 10px;
+      overflow-x: auto;
+      position: relative;
+    }
+
+    .code-label {
+      position: absolute;
+      top: -10px;
+      left: 10px;
+      background: #000;
+      padding: 0 6px;
+      color: var(--lego-yellow);
+      font-size: 9px;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+
+    .progress-bar {
+      position: relative;
+      margin: 24px auto 8px auto;
+      display: flex;
+      gap: 12px;
+      background: rgba(0, 0, 0, 0.9);
+      padding: 12px;
+      border-radius: 8px;
+      border: 2px solid #333;
+      z-index: 1;
+    }
+
+    .progress-stud {
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+      background: #333;
+      border: 2px solid #555;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .progress-stud.active {
+      background: var(--lego-bull);
+      border-color: var(--lego-bull);
+      box-shadow: 0 0 8px rgba(255, 68, 68, 0.6);
+    }
+
+    .nav-buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 16px;
+      gap: 16px;
+    }
+
+    .nav-brick {
+      padding: 10px 22px;
+      background: linearGradient(135deg, #1e293b 0%, #020617 100%);
+      background: linear-gradient(135deg, #1e293b 0%, #020617 100%);
+      border: 3px solid var(--lego-bull);
+      border-radius: 8px;
+      color: var(--lego-bull);
+      font-size: 13px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: var(--shadow);
+    }
+
+    .nav-brick:hover {
+      background: var(--lego-bull);
+      color: #000;
+      transform: translateY(-3px);
+      box-shadow: 0 6px 16px rgba(255, 68, 68, 0.6);
+    }
+
+    .nav-brick:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    /* Simple diagram blocks for pipeline visuals */
+    .diagram-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      align-items: stretch;
+      width: 100%;
+      margin-bottom: 12px;
+    }
+
+    .diagram-box {
+      flex: 1 1 140px;
+      min-width: 140px;
+      background: rgba(15, 23, 42, 0.9);
+      border-radius: 8px;
+      border: 1px solid #1f2937;
+      padding: 10px;
+      font-size: 10px;
+      text-align: left;
+    }
+
+    .diagram-box strong {
+      color: var(--lego-yellow);
+      display: block;
+      margin-bottom: 4px;
+      font-size: 11px;
+    }
+
+    .diagram-arrow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      color: var(--lego-bull);
+      padding: 0 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header-brick">
+    <div class="header-title">BULL ASSEMBLY STUDIO · MPD · GOLD · STUDS</div>
+    <div class="step-counter" id="step-counter">1</div>
+  </div>
+
+  <!-- PAGE 1: Actors on the Bus -->
+  <div class="instruction-page active" data-step="1">
+    <div class="step-brick">
+      <div class="step-number-brick">1</div>
+      <div class="step-content">
+        <div class="visual-panel">
+          <div class="mini-grid">
+            <div class="mini-card">
+              <strong>Courage</strong><br>
+              MPD + GOLD capture<br>
+              <span style="color:var(--lego-yellow)">stud_skeleton</span>
+            </div>
+            <div class="mini-card">
+              <strong>Ontology Weaver</strong><br>
+              Assembly Line<br>
+              <span style="color:var(--lego-purple)">per-line stud map</span>
+            </div>
+            <div class="mini-card">
+              <strong>WERE</strong><br>
+              Skeleton Explorer
+            </div>
+            <div class="mini-card">
+              <strong>Master</strong><br>
+              Room-scale MPD<br>
+              with skeleton overlays
+            </div>
+            <div class="mini-card">
+              <strong>Bull Studio</strong><br>
+              Split shell binding<br>
+              Courage ↔ Weaver
+            </div>
+          </div>
+          <div class="pill-row">
+            <span class="pill-tag bus">wag-frank bus</span>
+            <span class="pill-tag gold">GOLD scene</span>
+            <span class="pill-tag mpd">scene-mpd</span>
+            <span class="pill-tag stud">stud_skeleton</span>
+          </div>
+        </div>
+        <div class="text-panel">
+          <div class="step-title">Step 1 · Meet the Bull Assembly Cast</div>
+          <div class="step-desc">
+            Bull Assembly Studio is a split-screen shell that hosts
+            <strong>Courage</strong> on the left and the <strong>Unified L-System
+            Ontology Weaver</strong> on the right. Both tools look at the same
+            LEGO scene, but from different angles:
+            Courage is the <em>MPD+GOLD recorder</em>, and the Weaver is the
+            <em>per-line stud cartographer</em>.
+          </div>
+          <div class="step-desc">
+            Everything flows through three main data lanes:
+            <ul>
+              <li><strong>MPD</strong> — the authoritative LDraw text for parts and transforms.</li>
+              <li><strong>GOLD scene JSON</strong> — MPD + stud skeleton + diagnostics.</li>
+              <li><strong>Per-line stud map</strong> — all studs grouped by MPD line.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 6: Deep Dive – Per-line Sampling & Templates -->
+  <div class="instruction-page" data-step="6">
+    <div class="step-brick">
+      <div class="step-number-brick">6</div>
+      <div class="step-content">
+        <div class="visual-panel">
+          <div class="diagram-row" style="font-size:10px;">
+            <div class="diagram-box">
+              <strong>A · MPD Line → Mesh</strong>
+              <ul style="margin-left:14px; margin-top:4px; line-height:1.4;">
+                <li>Parse type‑1 line<br><code>1 col x y z a..i partId</code>.</li>
+                <li>Build Three.js mesh with<br><code>userData.lineNum = i</code>,<br><code>userData.partId = partId</code>.</li>
+                <li>Collect into<br><code>meshesByLine[i]</code>.</li>
+              </ul>
+            </div>
+            <div class="diagram-arrow">⟶</div>
+            <div class="diagram-box">
+              <strong>B · Part Template to World</strong>
+              <ul style="margin-left:14px; margin-top:4px; line-height:1.4;">
+                <li>Look up<br><code>partSkeletonLibrary[partId]</code>.</li>
+                <li>For each local stud <code>s</code><br>apply matrix + translation:</li>
+                <li style="margin-left:10px;"><code>world = M * local + T</code>.</li>
+              </ul>
+            </div>
+            <div class="diagram-arrow">⟶</div>
+            <div class="diagram-box">
+              <strong>C · Merge into v2 Nodes</strong>
+              <ul style="margin-left:14px; margin-top:4px; line-height:1.4;">
+                <li>Mesh sampler proposes studs<br><code>source: 'sampled'</code>.</li>
+                <li>Template transform proposes studs<br><code>source: 'template'</code>.</li>
+                <li>Merged into<br><code>stud_skeleton_v2.nodes[]</code><br>with <code>lineNum</code>, <code>gridX/Z</code>, <code>layer</code>, <code>local</code>.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="code-brick">
+            <div class="code-label">COOL · Per-line Sampling & Templates</div>
+            // Pseudocode sketch of the COOL stud pipeline
+            <br>for each mpdLine i in type1Lines:
+            <br>&nbsp;&nbsp;const info = parseType1Line(i)
+            <br>&nbsp;&nbsp;attachMesh(info, { lineNum: i, partId: info.partId })
+            <br>
+            <br>for each lineNum i in meshesByLine:
+            <br>&nbsp;&nbsp;const meshes = meshesByLine[i]
+            <br>&nbsp;&nbsp;// 1) Mesh-driven sampler ("sampled")
+            <br>&nbsp;&nbsp;for each cell (gx,gz,layer) in localGridAround(meshes):
+            <br>&nbsp;&nbsp;&nbsp;&nbsp;if looksLikeStudCap(meshes, gx,gz,layer):
+            <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;emitNode({
+            <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lineNum: i,
+            <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;gridX: gx, gridZ: gz, layer,
+            <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;source: 'sampled'
+            <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})
+            <br>
+            <br>&nbsp;&nbsp;// 2) Part template ("template")
+            <br>&nbsp;&nbsp;const tmpl = partSkeletonLibrary[info.partId]
+            <br>&nbsp;&nbsp;if (tmpl):
+            <br>&nbsp;&nbsp;&nbsp;&nbsp;for each localStud s in tmpl.studs:
+            <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const world = M * s.local + T
+            <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;emitNode({
+            <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lineNum: i,
+            <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;gridX: snapX(world.x),
+            <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;gridZ: snapZ(world.z),
+            <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;layer: snapLayer(world.y),
+            <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;local: s.local,
+            <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;source: 'template'
+            <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;})
+          </div>
+        </div>
+        <div class="text-panel">
+          <div class="step-title">Step 6 · Deep Dive – How studs are born per line</div>
+          <div class="step-desc">
+            The COOL pipeline inside Courage is doing a surprising amount of
+            work before Bull Assembly ever sees <code>stud_skeleton_v2</code>.
+            This step makes that work explicit.
+          </div>
+          <div class="step-desc">
+            <ul>
+              <li><strong>MPD → meshesByLine</strong>. Each type‑1 MPD line becomes a
+                  mesh (or set of meshes) tagged with <code>userData.lineNum</code> and
+                  <code>partId</code>, so we never again lose track of which studs
+                  came from which MPD line.</li>
+              <li><strong>Mesh sampling (sampled)</strong>. For each line’s meshes we
+                  define a local grid, probe for stud caps, and emit nodes with
+                  <code>source: 'sampled'</code>. This recovers studs directly from
+                  geometry, even when no part template exists yet.</li>
+              <li><strong>Part templates (template)</strong>. For parts that have an
+                  entry in <code>partSkeletonLibrary</code>, we transform canonical
+                  local studs into world space using that line’s matrix. These
+                  nodes carry <code>source: 'template'</code> and a precise
+                  <code>local</code> pose.</li>
+              <li><strong>Merge into v2</strong>. The two sources are merged into a
+                  single <code>stud_skeleton_v2.nodes[]</code> array keyed by
+                  <code>lineNum</code>. The top‑level <code>source</code> field is set to
+                  <code>'template'</code>, <code>'sampled'</code>, or <code>'mixed'</code> depending on
+                  what contributed.</li>
+            </ul>
+          </div>
+          <div class="step-desc">
+            By the time the Weaver sees <code>stud_skeleton_v2</code>, each stud is
+            already line‑faithful, part‑aware, and snapped (in concept) to a
+            canonical grid frame.</n>          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 7: Deep Dive – Grid, Layers & Ground -->
+  <div class="instruction-page" data-step="7">
+    <div class="step-brick">
+      <div class="step-number-brick">7</div>
+      <div class="step-content">
+        <div class="visual-panel">
+          <div class="diagram-row" style="font-size:10px;">
+            <div class="diagram-box">
+              <strong>Grid quantization</strong>
+              <ul style="margin-left:14px; margin-top:4px; line-height:1.4;">
+                <li>Given world <code>(x,y,z)</code> and
+                    <code>grid_spec</code>:</li>
+                <li style="margin-left:10px;"><code>gridX = round((x - origin.x) / cellLDU)</code></li>
+                <li style="margin-left:10px;"><code>gridZ = round((z - origin.z) / cellLDU)</code></li>
+                <li style="margin-left:10px;"><code>layer = round((y - origin.y) / layerHeight)</code></li>
+              </ul>
+            </div>
+            <div class="diagram-arrow">⟶</div>
+            <div class="diagram-box">
+              <strong>Vertical diagnostics</strong>
+              <ul style="margin-left:14px; margin-top:4px; line-height:1.4;">
+                <li><code>targetY = origin.y + layer * layerHeight</code></li>
+                <li><code>deltaY = targetY - y</code></li>
+                <li><code>deltaY &gt; 0</code> → stud is underground<br>→ problem + optional ghost.</li>
+              </ul>
+            </div>
+            <div class="diagram-arrow">⟶</div>
+            <div class="diagram-box">
+              <strong>Per-line ground_violations</strong>
+              <ul style="margin-left:14px; margin-top:4px; line-height:1.4;">
+                <li>Aggregate by <code>lineNum</code>:</li>
+                <li style="margin-left:10px;">count of problem studs</li>
+                <li style="margin-left:10px;">representative <code>y</code> / <code>deltaY</code></li>
+                <li>Expose as <code>ground_violations[]</code><br>in GOLD snapshots.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="code-brick">
+            <div class="code-label">GROUND · deltaY & Correction</div>
+            const { cellLDU, layerHeightLDU, origin } = grid_spec
+            <br>
+            <br>for each stud node n in stud_skeleton_v2.nodes:
+            <br>&nbsp;&nbsp;n.gridX = Math.round((n.x - origin.x) / cellLDU)
+            <br>&nbsp;&nbsp;n.gridZ = Math.round((n.z - origin.z) / cellLDU)
+            <br>&nbsp;&nbsp;n.layer = Math.round((n.y - origin.y) / layerHeightLDU)
+            <br>
+            <br>&nbsp;&nbsp;const targetY = origin.y + n.layer * layerHeightLDU
+            <br>&nbsp;&nbsp;const deltaY  = targetY - n.y
+            <br>&nbsp;&nbsp;if (deltaY &gt; 0) {
+            <br>&nbsp;&nbsp;&nbsp;&nbsp;// Problem stud: below base grid
+            <br>&nbsp;&nbsp;&nbsp;&nbsp;markProblem(n, deltaY)
+            <br>&nbsp;&nbsp;&nbsp;&nbsp;// Optional ghost target at corrected height
+            <br>&nbsp;&nbsp;&nbsp;&nbsp;emitGhost({ x: n.x, y: targetY, z: n.z, lineNum: n.lineNum })
+            <br>&nbsp;&nbsp;}
+          </div>
+        </div>
+        <div class="text-panel">
+          <div class="step-title">Step 7 · Deep Dive – Grid, Layers & Ground</div>
+          <div class="step-desc">
+            The canonical grid is what lets every tool in the Bull pipeline
+            talk about studs as if they were discrete LEGO cells and plates,
+            not arbitrary floating points.
+          </div>
+          <div class="step-desc">
+            <ul>
+              <li><strong>Snap once, use everywhere.</strong> Courage snaps
+                  <code>stud_skeleton_v2</code> into <code>(gridX, gridZ, layer)</code> using
+                  <code>grid_spec</code>. Weaver, WERE, and Master read those same
+                  integers instead of recomputing their own lattices.</li>
+              <li><strong>DeltaY is your ground truth.</strong> The difference
+                  between a stud’s actual <code>y</code> and its quantized
+                  <code>targetY</code> yields grounded vs underground studs. That shows
+                  up visually (red/green overlays) and numerically in
+                  <code>ground_violations</code>.</li>
+              <li><strong>Safe correction path.</strong> When you choose to fix
+                  ground in Courage, only the Y token on type‑1 MPD lines is
+                  adjusted by <code>deltaY</code>. Line numbers, part IDs and
+                  matrices stay intact, so the per‑line stud ownership remains
+                  valid through the entire Bull Assembly and WAG toolchain.</li>
+            </ul>
+          </div>
+          <div class="step-desc">
+            Together with the per-line sampling and template logic, this
+            grid+ground layer is what turned a fragile global sampler into a
+            stable, line-faithful stud skeleton suitable for MPD-centric
+            editing in WERE and Master.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 2: From Courage MPD to Red Bull GOLD -->
+  <div class="instruction-page" data-step="2">
+    <div class="step-brick">
+      <div class="step-number-brick">2</div>
+      <div class="step-content">
+        <div class="visual-panel">
+          <div style="font-size:11px; text-align:left; width:100%;">
+            <strong>Courage builds a GOLD fragment when you hit the Red Bull button:</strong>
+            <div class="code-brick">
+              <div class="code-label">COURAGE · RED BULL GOLD</div>
+              const gold = {
+              <br>  mpd_content: <span style="color:#0ff">mpdText</span>,
+              <br>  stud_skeleton_v2: <span style="color:#0ff">studSkeletonV2</span>,
+              <br>  redbull_events: window.redBullEvents || []
+              <br>};
+              <br>
+              <br>// persist + broadcast
+              <br>localStorage.setItem('wag_redbull_gold', JSON.stringify(gold));
+              <br>wagFrankPost({ kind: 'redbull-gold', source: 'wag-courage', gold });
+            </div>
+          </div>
+        </div>
+        <div class="text-panel">
+          <div class="step-title">Step 2 · Courage samples a GOLD fragment</div>
+          <div class="step-desc">
+            In Courage you edit or load a scene MPD. The Red Bull
+            sampler runs the stud skeleton pipeline and captures:
+          </div>
+          <div class="step-desc">
+            <ul>
+              <li><code>mpd_content</code> — the full scene MPD string.</li>
+              <li><code>stud_skeleton_v2.nodes[]</code> — studs with <code>lineNum</code>,
+                  <code>layer</code>, <code>gridX</code>, <code>gridZ</code>, and world coordinates.</li>
+              <li><code>redbull_events[]</code> — timeline of the capture.</li>
+            </ul>
+            This bundle is the <strong>Red Bull GOLD fragment</strong>. It is stored
+            in <code>localStorage</code>, attached to <code>window.wagRedBullGold</code>, and
+            broadcast on the <code>wag-frank</code> channel as
+            <code>{ kind: 'redbull-gold', gold }</code>.
+          </div>
+          <div class="step-desc">
+            Bull Assembly Studio’s job is to catch this fragment on the
+            Weaver side and turn it into a per-line stud map that can be
+            exported back out to WERE, Master, or Timber.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 3: Ontology Weaver builds the per-line stud map -->
+  <div class="instruction-page" data-step="3">
+    <div class="step-brick">
+      <div class="step-number-brick">3</div>
+      <div class="step-content">
+        <div class="visual-panel">
+          <div class="diagram-row" style="font-size:10px;">
+            <div class="diagram-box">
+              <strong>1 · Courage COOL Skeleton</strong>
+              <ul style="margin-left:14px; margin-top:4px; line-height:1.4;">
+                <li>Per-line mesh sampling<br><span style="color:var(--lego-cyan)">meshesByLine[lineNum]</span>.</li>
+                <li>Per-part templates from<br><span style="color:var(--lego-purple)">partSkeletonLibrary[partId]</span>.</li>
+                <li>Merged into <code>stud_skeleton_v2.nodes[]</code><br>with <code>lineNum</code>, <code>gridX/Z</code>, <code>layer</code>, <code>local</code>.</li>
+              </ul>
+            </div>
+            <div class="diagram-arrow">⟶</div>
+            <div class="diagram-box">
+              <strong>2 · Canonical Grid & Diagnostics</strong>
+              <ul style="margin-left:14px; margin-top:4px; line-height:1.4;">
+                <li>Snap world <code>(x,y,z)</code> to lattice<br><span style="color:var(--lego-green)">grid_spec: cellLDU=20, layer=8</span>.</li>
+                <li>Compute <code>deltaY</code> to base grid<br>→ normal / problem / ghost studs.</li>
+                <li>Summarize <code>ground_violations</code><br>per <code>lineNum</code>.</li>
+              </ul>
+            </div>
+            <div class="diagram-arrow">⟶</div>
+            <div class="diagram-box">
+              <strong>3 · Weaver processedData[]</strong>
+              <ul style="margin-left:14px; margin-top:4px; line-height:1.4;">
+                <li>One entry per MPD line:<br><code>entity.raw / entity.name</code>.</li>
+                <li><code>morphism.studs[]</code> carries<br>grid, layer, world, local.</li>
+                <li><code>buildStudMap()</code> groups by<br><code>lineIndex</code> → per-line stud map.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div style="font-size:11px; text-align:left; width:100%; margin-top:4px;">
+            <strong>Assembly Line’s per-line stud map (author-time view):</strong>
+            <div class="code-brick">
+              <div class="code-label">ASSEMBLY LINE · STUD MAP</div>
+              function buildStudMap() {
+              <br>  const lines = [];
+              <br>  let totalStuds = 0;
+              <br>
+              <br>  processedData.forEach((data, idx) =&gt; {
+              <br>    if (!data.morphism || !data.morphism.isGeometry) return;
+              <br>    const studs = data.morphism.studs || [];
+              <br>    if (!studs.length) return;
+              <br>
+              <br>    const lineEntry = {
+              <br>      lineIndex: idx,
+              <br>      raw: data.entity.raw,
+              <br>      partName: data.entity.name,
+              <br>      studs: studs.map(s =&gt; ({
+              <br>        gridX: s.gridX,
+              <br>        gridZ: s.gridZ,
+              <br>        layer: s.layer,
+              <br>        world: { x: s.x, y: s.y, z: s.z },
+              <br>        local: { x: s.localX, y: s.localY, z: s.localZ }
+              <br>      }))
+              <br>    };
+              <br>    totalStuds += lineEntry.studs.length;
+              <br>    lines.push(lineEntry);
+              <br>  });
+              <br>
+              <br>  return { meta: { lineCount: lines.length, studCount: totalStuds }, lines };
+              <br>}
+            </div>
+          </div>
+        </div>
+        <div class="text-panel">
+          <div class="step-title">Step 3 · The Unified L-System Ontology Weaver</div>
+          <div class="step-desc">
+            On the right side of Bull Assembly Studio, Assembly Line ingests
+            <code>mpd_content</code> and <code>stud_skeleton_v2</code>. It runs the Unified
+            L-System pipeline and produces <code>processedData[]</code> — one entry per
+            MPD line with structured studs.
+          </div>
+          <div class="step-desc">
+            <strong>buildStudMap()</strong> walks this data and groups every stud by
+            its owning MPD line index (<code>lineIndex</code>). The result is a map
+            where you can say: “show me all studs for line N on layer L, in
+            both grid and world space.”
+          </div>
+          <div class="step-desc">
+            The Assembly Line UI shows a live summary like
+            <code>23 lines · 420 studs</code> and gives you three export buttons:
+            Stud Map MPD, GOLD Scene JSON, and Push Stud Map → Courage.
+          </div>
+          <div class="step-desc">
+            Under the hood, that per-line map stands on top of the full COOL
+            skeleton pipeline you built:
+            <ul>
+              <li><strong>Per-line sampling</strong> — Courage builds
+                  <code>meshesByLine[lineNum]</code> and samples only the geometry
+                  for that MPD line to propose studs (<code>source: 'sampled'</code>).</li>
+              <li><strong>Per-part templates</strong> — a
+                  <code>partSkeletonLibrary[partId]</code> stores local stud layouts
+                  that are transformed by the MPD matrix into world studs
+                  (<code>source: 'template'</code>).</li>
+              <li><strong>Merge & canonicalize</strong> — sampled + template
+                  studs are merged into <code>stud_skeleton_v2.nodes[]</code> with
+                  <code>lineNum</code>, <code>gridX</code>/<code>gridZ</code>, <code>layer</code>, and
+                  <code>local</code>, tagged by a summary
+                  <code>source: 'template' | 'sampled' | 'mixed'</code>.</li>
+              <li><strong>Grid & diagnostics</strong> — every stud is snapped to the
+                  canonical lattice in <code>grid_spec</code>, and
+                  <code>deltaY</code> to the base grid yields normal vs problem vs
+                  ghost studs and per-line <code>ground_violations</code>.</li>
+              <li><strong>Weaver author-time view</strong> — Assembly Line simply
+                  reads that canonical skeleton, refines it into
+                  <code>processedData[]</code>, and exposes
+                  <code>buildStudMap()</code> as a clean, MPD-aligned per-line view
+                  for Bull Assembly.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 4: Hybrid Stud Map MPD + GOLD Scene -->
+  <div class="instruction-page" data-step="4">
+    <div class="step-brick">
+      <div class="step-number-brick">4</div>
+      <div class="step-content">
+        <div class="visual-panel">
+          <div class="mini-grid">
+            <div class="mini-card">
+              <strong>Stud Map MPD</strong><br>
+              <span style="color:var(--lego-green)">0 !STUDMAP ...</span>
+            </div>
+            <div class="mini-card">
+              <strong>Weaver GOLD</strong><br>
+              MPD + studs +<br> lines[].studs
+            </div>
+            <div class="mini-card">
+              <strong>Courage GOLD</strong><br>
+              Screenshot + JSON
+            </div>
+          </div>
+          <div class="code-brick">
+            <div class="code-label">WEAVER · GOLD SCENE</div>
+            {
+            <br>  mpd_content: mpdText,
+            <br>  stud_skeleton: [...],
+            <br>  stud_skeleton_v2: { version: 1, source: 'weaver', nodes: [...] },
+            <br>  lines: [
+            <br>    {
+            <br>      lineNum: 22,
+            <br>      raw: '1 2 -300 -50 0 ...',
+            <br>      partId: '3001.dat',
+            <br>      color: 2,
+            <br>      studs: [ { x, y, z, layer, gridX, gridZ }, ... ]
+            <br>    }
+            <br>  ]
+            <br>}
+          </div>
+        </div>
+        <div class="text-panel">
+          <div class="step-title">Step 4 · Export Stud Map as MPD or GOLD</div>
+          <div class="step-desc">
+            The Weaver turns the per-line stud map into two complementary
+            export formats:
+          </div>
+          <div class="step-desc">
+            <ul>
+              <li><strong>Stud Map MPD</strong> — a hybrid MPD with <code>0 !STUDMAP</code>
+                  meta lines describing each line’s studs in grid + world
+                  coordinates.</li>
+              <li><strong>Weaver GOLD Scene JSON</strong> — a Courage-style GOLD payload
+                  with <code>mpd_content</code>, <code>stud_skeleton</code>,
+                  <code>stud_skeleton_v2</code>, and a per-line
+                  <code>lines[].studs</code> section that WERE and Master can
+                  flatten or inspect.</li>
+            </ul>
+          </div>
+          <div class="step-desc">
+            This is the canonical place where Bull Assembly converts between
+            “author-time” MPD and “analysis-time” stud topology.</n>        </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 5: WERE & Master – line-centric editing with stud overlays -->
+  <div class="instruction-page" data-step="5">
+    <div class="step-brick">
+      <div class="step-number-brick">5</div>
+      <div class="step-content">
+        <div class="visual-panel">
+          <div class="mini-grid">
+            <div class="mini-card">
+              <strong>WERE</strong><br>
+              GROUP: LINE / LINE:LAYER
+            </div>
+            <div class="mini-card">
+              <strong>Master</strong><br>
+              MPD dials + room walls
+            </div>
+            <div class="mini-card">
+              <strong>Export</strong><br>
+              MPD or GOLD from both
+            </div>
+          </div>
+          <div class="code-brick">
+            <div class="code-label">MASTER · GOLD EXPORT</div>
+            const gold = {
+            <br>  mpd_content: state.lines.map(l =&gt; l.raw).join('\n'),
+            <br>  stud_skeleton: state.studs,
+            <br>  stud_skeleton_v2: { version: 1, source: 'master', nodes: state.studs },
+            <br>  part_skeletons: state.partSkeleton,
+            <br>  ground_violations: state.groundViolations,
+            <br>  lines: [ ... grouped by node.lineNum ... ]
+            <br>};
+          </div>
+        </div>
+        <div class="text-panel">
+          <div class="step-title">Step 5 · Edit by MPD line, keep studs as overlays</div>
+          <div class="step-desc">
+            Once Bull Assembly has created a GOLD scene with per-line studs,
+            WERE and Master become <em>line-centric editors</em>:
+          </div>
+          <div class="step-desc">
+            <ul>
+              <li><strong>WERE</strong> lets you select groups by
+                  <code>lineNum</code> and optional <code>layer</code> using the
+                  GROUP: LINE / GROUP: LINE:LAYER toggle. It can export MPD
+                  or a new GOLD scene with updated per-line studs.</li>
+              <li><strong>Master</strong> focuses on MPD transforms. You move and
+                  rotate bricks with dials; the skeleton overlays follow via a
+                  baseline delta so the <code>lineNum → studs[]</code> mapping stays
+                  valid.</li>
+            </ul>
+          </div>
+          <div class="step-desc">
+            Both tools can now export either a pure MPD or a GOLD scene
+            snapshot back into your studios or Timber, preserving per-line
+            stud geometry for analysis while keeping the MPD as the
+            canonical “real” version.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="progress-bar">
+    <div class="progress-stud active" data-target="1"></div>
+    <div class="progress-stud" data-target="2"></div>
+    <div class="progress-stud" data-target="3"></div>
+    <div class="progress-stud" data-target="4"></div>
+    <div class="progress-stud" data-target="5"></div>
+    <div class="progress-stud" data-target="6"></div>
+    <div class="progress-stud" data-target="7"></div>
+  </div>
+
+  <div class="nav-buttons" style="max-width:1400px; margin:0 auto 40px auto; padding:0 20px;">
+    <button class="nav-brick" id="prev-btn">Prev</button>
+    <button class="nav-brick" id="next-btn">Next</button>
+  </div>
+
+  <script>
+    const pages = Array.from(document.querySelectorAll('.instruction-page'));
+    const studs = Array.from(document.querySelectorAll('.progress-stud'));
+    const stepCounter = document.getElementById('step-counter');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+
+    let currentStep = 1;
+
+    function updateUI() {
+      pages.forEach(p => {
+        const step = parseInt(p.getAttribute('data-step'), 10);
+        p.classList.toggle('active', step === currentStep);
+      });
+      studs.forEach(s => {
+        const target = parseInt(s.getAttribute('data-target'), 10);
+        s.classList.toggle('active', target === currentStep);
+      });
+      stepCounter.textContent = currentStep;
+      prevBtn.disabled = currentStep === 1;
+      nextBtn.disabled = currentStep === pages.length;
+    }
+
+    prevBtn.addEventListener('click', () => {
+      if (currentStep > 1) {
+        currentStep--;
+        updateUI();
+      }
+    });
+
+    nextBtn.addEventListener('click', () => {
+      if (currentStep < pages.length) {
+        currentStep++;
+        updateUI();
+      }
+    });
+
+    studs.forEach(s => {
+      s.addEventListener('click', () => {
+        const target = parseInt(s.getAttribute('data-target'), 10);
+        if (!isNaN(target)) {
+          currentStep = target;
+          updateUI();
+        }
+      });
+    });
+
+    updateUI();
+  </script>
+</body>
+</html>

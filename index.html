@@ -85,6 +85,22 @@
             border-left: 3px solid #2b5a7f;
         }
 
+        /* For standalone rows outside grid (TOOLS / VEHICLES) */
+        .row-strip {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .row-strip .row-label {
+            width: 120px;
+            flex: 0 0 120px;
+        }
+
+        .row-strip .brick-row {
+            flex: 1;
+        }
+
         .brick-row {
             display: flex;
             gap: 4px;
@@ -417,6 +433,7 @@
                 <a href="LEGOS-tutorial-prime.html" class="brick brick-3x4 color-red" title="LEGOS tutorial: LEGO-first walkthrough that ties HELLO WORLD, GOLD, and Grace editors into a concrete build.">LEGOS TUTORIAL</a>
                 <a href="TIMBER-tutorial-prime.html" class="brick brick-3x4 color-teal" title="TIMBER Studio tutorial: Courage / WERE / Master / Symbiogene GOLD + selection loops in the TIMBER shell.">TIMBER STUDIO TUTORIAL</a>
                 <a href="STUD-SKELETON-tutorial-visual.html" class="brick brick-3x4 color-purple" title="Visual guide to how Courage generates stud_skeleton from MPD, how GOLD stores it, and how WAG WERE / MASTER use it for bones and ORBS.">STUD SKELETON GUIDE</a>
+                <a href="bull-assembly-tutorial.html" class="brick brick-3x4 color-red" title="Bull Assembly Studio tutorial: MPD → GOLD → per-line stud map and line-centric editing in WERE / MASTER.">BULL ASSEMBLY TUTORIAL</a>
             </div>
         </div>
 
@@ -529,6 +546,41 @@
             </div>
         </div>
         
+        <div class="section-title">BULL ASSEMBLY STUDIO — MPD · GOLD · STUDS</div>
+
+        <div class="planning-grid">
+            <div class="row-label">STUDIO</div>
+            <div class="brick-row">
+                <a href="bull-assembly-studio.html" class="brick brick-3x4 color-red" title="Bull Assembly Studio: docks Courage and Ontology Weaver (Assembly Line) to turn Red Bull GOLD fragments into per-line stud maps and hybrid MPD/GOLD exports.">BULL ASSEMBLY STUDIO</a>
+            </div>
+
+            <div class="row-label">COMPONENTS</div>
+            <div class="brick-row">
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/wag-courage.html" class="brick brick-1x3 color-red" title="Courage inside Bull Assembly: emits Red Bull GOLD snapshots (mpd_content + stud_skeleton_v2) onto the wag-frank bus.">COURAGE / RED BULL</a>
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/assembly-line.html" class="brick brick-1x3 color-blue" title="Ontology Weaver / Assembly Line: ingests GOLD and builds a per-line stud map and hybrid MPD+GOLD exports.">ONTOLOGY WEAVER</a>
+            </div>
+
+            <div class="row-label">DOCS</div>
+            <div class="brick-row">
+                <a href="bull-assembly-tutorial.html" class="brick brick-3x4 color-yellow" title="LEGO-style Bull Assembly walkthrough: per-line stud skeleton pipeline and MPD/GOLD round-trips.">BULL ASSEMBLY TUTORIAL</a>
+                <a href="COURAGE-SKELETON-PIPELINE.md" class="brick brick-1x3 color-purple" title="COOL skeleton pipeline: how Courage computes stud_skeleton_v2, grid_spec, and ground_violations.">COOL PIPELINE</a>
+                <a href="WAG-COOL-OLOG.md" class="brick brick-1x3 color-gray" title="WAG-COOL-OLOG: design notes for per-line stud ownership, canonical grid, and GOLD v2 format.">WAG-COOL-OLOG</a>
+            </div>
+
+            <div class="row-label">LABS</div>
+            <div class="brick-row">
+                <a href="wag-were.html" class="brick brick-1x3 color-blue" title="WAG WERE as a Bull Assembly lab: consumes Weaver GOLD scenes with per-line studs, lets you select by line / layer, and export MPD or GOLD back out.">WERE · LINE LAB</a>
+                <a href="wag-master.html" class="brick brick-1x3 color-green" title="WAG MASTER as a Bull Assembly lab: overlays Courage GOLD studs and bones on MPD dials so you can adjust lines while keeping per-line stud overlays in sync.">MASTER · ROOM LAB</a>
+            </div>
+
+            <div class="row-label">PIPELINE</div>
+            <div class="brick-row">
+                <div class="brick brick-3x4 color-teal" title="Bull Assembly flow: (1) Courage emits a Red Bull GOLD fragment (mpd_content + stud_skeleton_v2) on wag-frank. (2) Ontology Weaver / Assembly Line ingests GOLD and builds a per-line stud map + hybrid MPD/GOLD exports. (3) WERE and MASTER load those scenes for line-centric editing and MPD/GOLD round-trips.">
+                    COURAGE → GOLD → WEAVER → WERE / MASTER
+                </div>
+            </div>
+        </div>
+
         <div class="section-title">FEATURED MODELS</div>
         
         <div class="planning-grid">
@@ -559,26 +611,32 @@
             </div>
             
             <div class="row-label">GRACE DOCS</div>
-            <div class="brick-row">
-                <a href="GRACE-EDITOR-PHILOSOPHY.md" class="brick brick-2x2 color-lime" title="Why Grace exists">PHILOSOPHY</a>
-                <a href="GRACE-FEATURES.md" class="brick brick-2x2 color-green" title="Complete feature list">FEATURES</a>
-                <a href="GRACE-UPDATES.md" class="brick brick-2x2 color-purple" title="Latest updates & fixes">UPDATES</a>
+            <div>
+                <div class="brick-row">
+                    <a href="GRACE-EDITOR-PHILOSOPHY.md" class="brick brick-2x2 color-lime" title="Why Grace exists">PHILOSOPHY</a>
+                    <a href="GRACE-FEATURES.md" class="brick brick-2x2 color-green" title="Complete feature list">FEATURES</a>
+                    <a href="GRACE-UPDATES.md" class="brick brick-2x2 color-purple" title="Latest updates & fixes">UPDATES</a>
+                </div>
+                <div class="brick-row">
+                    <a href="GRACE-FINAL-IMPROVEMENTS.md" class="brick brick-2x2 color-blue" title="Batch edit, toggle sections">IMPROVEMENTS</a>
+                    <a href="GRACE-TIMEOUT-FIX.md" class="brick brick-2x2 color-red" title="Never hangs on loading">TIMEOUT FIX</a>
+                    <a href="GRACE-PLACEHOLDER-FIX.md" class="brick brick-2x2 color-orange" title="Pink cubes for missing parts 💔">PLACEHOLDERS</a>
+                    <a href="GRACE-SELECTION-IMPROVEMENTS.md" class="brick brick-2x2 color-yellow" title="Smart selection: Cmd+A, Esc, Cmd+I">SELECTION</a>
+                    <a href="GRACE-SCENE-SELECTOR-FIX.md" class="brick brick-2x2 color-cyan" title="Load any MPD from dropdown">SCENE LOADER</a>
+                </div>
             </div>
-            <div class="brick-row">
-                <a href="GRACE-FINAL-IMPROVEMENTS.md" class="brick brick-2x2 color-blue" title="Batch edit, toggle sections">IMPROVEMENTS</a>
-                <a href="GRACE-TIMEOUT-FIX.md" class="brick brick-2x2 color-red" title="Never hangs on loading">TIMEOUT FIX</a>
-                <a href="GRACE-PLACEHOLDER-FIX.md" class="brick brick-2x2 color-orange" title="Pink cubes for missing parts 💔">PLACEHOLDERS</a>
-                <a href="GRACE-SELECTION-IMPROVEMENTS.md" class="brick brick-2x2 color-yellow" title="Smart selection: Cmd+A, Esc, Cmd+I">SELECTION</a>
-                <a href="GRACE-SCENE-SELECTOR-FIX.md" class="brick brick-2x2 color-cyan" title="Load any MPD from dropdown">SCENE LOADER</a>
-            </div>
-            
+        </div>
+        
+        <div class="row-strip">
             <div class="row-label">TOOLS</div>
             <div class="brick-row">
                 <a href="wag-viewer-prime-integration-20251112-055341 copy/parts-browser.html" class="brick brick-2x4 color-cyan" title="Browse 23,511+ LDraw parts - see what exists!">💚 PARTS BROWSER</a>
                 <a href="mpd-validator.html" class="brick brick-2x4 color-red" title="Find problematic lines instantly">MPD VALIDATOR</a>
                 <a href="MPD-STRUCTURE-GUIDE.md" class="brick brick-2x4 color-yellow" title="How to make files that work!">MPD STRUCTURE</a>
             </div>
-            
+        </div>
+
+        <div class="row-strip">
             <div class="row-label">VEHICLES</div>
             <div class="brick-row">
                 <a href="barbie-jeep.mpd" class="brick brick-2x2 color-purple mpd-brick" data-mpd-path="barbie-jeep.mpd" title="Tested working">BARBIE JEEP</a>
@@ -728,8 +786,7 @@
             </div>
         </div>
 
-            </div>
-
+        <div class="planning-grid">
             <div class="row-label">MANIFESTS</div>
             <div class="brick-row">
                 <a href="wag-viewer-prime-integration-20251112-055341 copy/ldraw-parts-manifest.json" class="brick brick-1x4 brick-doc color-lime">LDRAW PARTS</a>

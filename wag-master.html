@@ -124,6 +124,7 @@
                 <button class="btn" onclick="openGoldFileMaster()">LOAD</button>
                 <button class="btn" onclick="exportCode()">COPY</button>
                 <button class="btn" onclick="downloadMPD()">SAVE</button>
+                <button class="btn" onclick="downloadGoldSceneMaster()">GOLD</button>
                 <button class="btn" id="skeletonToggleBtn" onclick="toggleSkeleton()" title="Toggle skeleton overlays (studs, bones, part dots) on top of cubes">SKELETON</button>
             </div>
         </div>
@@ -1064,6 +1065,133 @@
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
+            // Wolf bus: if hosted in a studio shell, send MPD upstream as well
+            try {
+                if (window.parent && window.parent !== window) {
+                    window.parent.postMessage({
+                        type: 'master-export-mpd',
+                        mpd: txt
+                    }, '*');
+                }
+            } catch (err) {
+                console.warn('[MASTER] failed to post master-export-mpd', err);
+            }
+        }
+
+        function buildGoldSceneFromMaster() {
+            const mpd = state.lines.map(l => l.raw).join('\n');
+            const now = new Date();
+            const dateStr = now.toISOString().split('T')[0];
+            const timeStr = now.toTimeString().split(' ')[0].replace(/:/g, '-');
+
+            const studs = Array.isArray(state.studs) ? state.studs.slice() : [];
+            const partSkeletons = Array.isArray(state.partSkeleton) ? state.partSkeleton.slice() : [];
+            const groundViolations = Array.isArray(state.groundViolations) ? state.groundViolations.slice() : [];
+
+            const studSkeletonV2 = studs.length ? {
+                version: 1,
+                source: 'master',
+                nodes: studs
+            } : null;
+
+            const linesMap = new Map();
+            if (studs.length) {
+                const mpdLines = mpd.split('\n');
+                studs.forEach(node => {
+                    if (!node || typeof node.lineNum !== 'number') return;
+                    const ln = node.lineNum;
+                    let entry = linesMap.get(ln);
+                    if (!entry) {
+                        const raw = mpdLines[ln] || '';
+                        let partId = null;
+                        let color = null;
+                        const trimmed = raw.trim();
+                        if (trimmed.startsWith('1 ')) {
+                            const tokens = trimmed.split(/\s+/);
+                            if (tokens.length > 1) {
+                                const colCode = parseInt(tokens[1], 10);
+                                if (!Number.isNaN(colCode)) color = colCode;
+                            }
+                            if (tokens.length > 14) {
+                                partId = tokens[tokens.length - 1];
+                            }
+                        }
+                        entry = {
+                            lineNum: ln,
+                            raw,
+                            partId,
+                            color,
+                            studs: []
+                        };
+                        linesMap.set(ln, entry);
+                    }
+                    entry.studs.push({
+                        x: node.x,
+                        y: node.y,
+                        z: node.z,
+                        layer: node.layer,
+                        gridX: node.gridX,
+                        gridZ: node.gridZ
+                    });
+                });
+            }
+
+            const payload = {
+                filename: `wag_master_gold_${dateStr}_${timeStr}.png`,
+                scene: 'WAG MASTER',
+                date: dateStr,
+                time: timeStr,
+                timestamp: now.toISOString(),
+                aspect_ratio: '4:3',
+                resolution: '1600x1200',
+                line_count: state.lines.length,
+                locked_lines: [],
+                theme: 'dark',
+                diagnostics: {},
+                camera: null,
+                errors: 0,
+                mpd_content: mpd,
+                stud_skeleton: studs,
+                stud_skeleton_v2: studSkeletonV2,
+                grid_spec: {
+                    cellLDU: 20,
+                    layerHeightLDU: 8,
+                    origin: { x: 0, y: 0, z: 0 },
+                    axis: { right: 'x', up: 'y', forward: '-z' }
+                },
+                ground_violations: groundViolations,
+                part_skeletons: partSkeletons
+            };
+
+            if (linesMap.size) {
+                payload.lines = Array.from(linesMap.values());
+            }
+
+            return payload;
+        }
+
+        function downloadGoldSceneMaster() {
+            const gold = buildGoldSceneFromMaster();
+            const blob = new Blob([JSON.stringify(gold, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'wag_master_gold_scene.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            // Wolf bus: if hosted in a studio shell, send GOLD payload upstream
+            try {
+                if (window.parent && window.parent !== window) {
+                    window.parent.postMessage({
+                        type: 'master-export-gold',
+                        gold
+                    }, '*');
+                }
+            } catch (err) {
+                console.warn('[MASTER] failed to post master-export-gold', err);
+            }
         }
 
         function openGoldFileMaster() {

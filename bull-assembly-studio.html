@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bull Assembly Studio – Courage ↔ Assembly Line</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Courier New', monospace;
+      background: #000;
+      color: #ddd;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .header {
+      padding: 8px 16px;
+      border-bottom: 1px solid #333;
+      background: #050505;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+    }
+    .title-block { display: flex; flex-direction: column; gap: 2px; }
+    .title { font-size: 13px; font-weight: bold; letter-spacing: 1px; color: #f97316; text-transform: uppercase; }
+    .subtitle { font-size: 9px; color: #888; letter-spacing: 1px; text-transform: uppercase; }
+    .badge { font-size: 8px; padding: 4px 8px; border-radius: 3px; border: 1px solid #333; text-transform: uppercase; letter-spacing: 1px; }
+
+    .tabs {
+      display: flex;
+      gap: 2px;
+      padding: 4px 8px;
+      background: #050505;
+      border-bottom: 1px solid #222;
+    }
+    .tab {
+      border: none;
+      background: transparent;
+      color: #666;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 4px 10px;
+      cursor: pointer;
+      border-radius: 3px 3px 0 0;
+    }
+    .tab.active {
+      color: #f97316;
+      border-bottom: 2px solid #f97316;
+      background: #0b0b0b;
+    }
+    .tab:hover {
+      color: #ddd;
+    }
+
+    .main {
+      flex: 1;
+      display: flex;
+      min-height: 0;
+    }
+    .pane {
+      flex: 1;
+      border-right: 1px solid #222;
+      display: flex;
+      flex-direction: column;
+    }
+    .pane:last-child { border-right: none; }
+    .pane-header {
+      padding: 6px 10px;
+      background: #050505;
+      border-bottom: 1px solid #222;
+      font-size: 9px;
+      text-transform: uppercase;
+      color: #aaa;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .pane iframe {
+      flex: 1;
+      border: none;
+      width: 100%;
+      background: #000;
+    }
+    .status {
+      padding: 6px 16px;
+      border-top: 1px solid #333;
+      font-size: 9px;
+      color: #666;
+      display: flex;
+      justify-content: space-between;
+    }
+    @media (max-width: 900px) {
+      .main { flex-direction: column; }
+      .pane { border-right: none; border-bottom: 1px solid #222; }
+      .pane:last-child { border-bottom: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="title-block">
+      <div class="title">BULL ASSEMBLY STUDIO</div>
+      <div class="subtitle">Bind WAG COURAGE (Red Bull) → Assembly Line via GOLD fragment</div>
+    </div>
+    <div class="badge">Bridge · wag_redbull_gold · Same Origin</div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-mode="split">Split</button>
+    <button class="tab" data-mode="courage">Courage</button>
+    <button class="tab" data-mode="assembly">Assembly</button>
+  </div>
+
+  <div class="main">
+    <div class="pane">
+      <div class="pane-header">
+        <span>WAG COURAGE · Red Bull Sampler</span>
+        <span style="color:#f97316;">Source</span>
+      </div>
+      <iframe src="wag-viewer-prime-integration-20251112-055341 copy/wag-courage.html"></iframe>
+    </div>
+    <div class="pane">
+      <div class="pane-header">
+        <span>Assembly Line · MPD → Stud Galaxy</span>
+        <span style="color:#22c55e;">Viewer</span>
+      </div>
+      <iframe src="wag-viewer-prime-integration-20251112-055341 copy/assembly-line.html"></iframe>
+    </div>
+  </div>
+
+  <div class="status">
+    <span>Workflow: Run Red Bull in Courage → GOLD saved to localStorage.wag_redbull_gold → Reload Assembly Line pane.</span>
+    <span>Studio: Bull · Same tab · Shared storage</span>
+  </div>
+  <script>
+    (function() {
+      const tabs = document.querySelectorAll('.tab');
+      const panes = document.querySelectorAll('.pane');
+
+      function setMode(mode) {
+        tabs.forEach(tab => {
+          tab.classList.toggle('active', tab.dataset.mode === mode);
+        });
+
+        if (!panes[0] || !panes[1]) return;
+
+        if (mode === 'courage') {
+          panes[0].style.display = 'flex';
+          panes[1].style.display = 'none';
+        } else if (mode === 'assembly') {
+          panes[0].style.display = 'none';
+          panes[1].style.display = 'flex';
+        } else {
+          // split
+          panes[0].style.display = 'flex';
+          panes[1].style.display = 'flex';
+        }
+      }
+
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => setMode(tab.dataset.mode));
+      });
+
+      // Default to split view
+      setMode('split');
+    })();
+  </script>
+</body>
+</html>

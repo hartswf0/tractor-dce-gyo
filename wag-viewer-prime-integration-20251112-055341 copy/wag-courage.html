@@ -1082,6 +1082,7 @@
                 <button class="panel-btn" id="screenshot-btn" title="Screenshot (4:3 + JSON)">IMG</button>
                 <button class="panel-btn" id="gold-import-btn" title="Load GOLD JSON & restore MPD">GOLD</button>
                 <button class="panel-btn" id="glb-export-btn" title="Export current scene as GLB">GLB</button>
+                <button class="panel-btn" id="redbull-btn" title="Run Red Bull line-by-line sampler and copy GOLD fragment">RED BULL</button>
             </div>
         </div>
         
@@ -3635,7 +3636,9 @@
                     lineNum: idx,
                     partId: parsed.partId,
                     studIndex,
-                    local: { x: lx, y: ly, z: lz }
+                    local: { x: lx, y: ly, z: lz },
+                    source: 'template',
+                    studVersion: 1
                 });
             });
         }
@@ -3677,47 +3680,127 @@
             console.warn('[STUD] Failed to compute model bounds:', e);
         }
 
-        const gridMap = new Map();
-        const layerTotals = new Map();
-        const pos = new THREE.Vector3();
+        // Build a map of meshes keyed by their originating MPD line number so we can
+        // sample studs one MPD line at a time. This avoids the global
+        // "min(contributing lineNum)" heuristic and gives each stud a single,
+        // unambiguous owner line.
         const plateHeight = 8;
+        const pos = new THREE.Vector3();
+        const meshesByLine = new Map();
         modelRoot.traverse(obj => {
             if (!obj.isMesh || !obj.geometry || !obj.geometry.attributes || !obj.geometry.attributes.position) {
                 return;
             }
-            obj.updateWorldMatrix(true, false);
-            const position = obj.geometry.attributes.position;
             const lineNum = obj.userData && typeof obj.userData.lineNum === 'number' ? obj.userData.lineNum : null;
-            for (let i = 0; i < position.count; i++) {
-                pos.fromBufferAttribute(position, i);
-                pos.applyMatrix4(obj.matrixWorld);
-                const gx = Math.round(pos.x / 20);
-                const gz = Math.round(pos.z / 20);
-                const gridKey = gx + ',' + gz;
-                let col = gridMap.get(gridKey);
-                if (!col) {
-                    col = { gx, gz, layers: new Map() };
-                    gridMap.set(gridKey, col);
-                }
-                const layerIndex = Math.round(pos.y / plateHeight);
-                let layer = col.layers.get(layerIndex);
-                if (!layer) {
-                    layer = { sumX: 0, sumY: 0, sumZ: 0, count: 0, lineNums: new Set() };
-                    col.layers.set(layerIndex, layer);
-                }
-                layer.sumX += pos.x;
-                layer.sumY += pos.y;
-                layer.sumZ += pos.z;
-                layer.count++;
-                if (lineNum !== null) {
-                    layer.lineNums.add(lineNum);
-                }
-
-                const prevTotal = layerTotals.get(layerIndex) || 0;
-                layerTotals.set(layerIndex, prevTotal + 1);
+            if (lineNum === null) return;
+            let list = meshesByLine.get(lineNum);
+            if (!list) {
+                list = [];
+                meshesByLine.set(lineNum, list);
             }
+            list.push(obj);
         });
 
+        let studs = [];
+        const minVotes = 6;
+        const layerTotals = new Map();
+        let baseGridYSum = 0;
+        let baseGridYCount = 0;
+
+        // For each MPD type-1 line, sample only the meshes that belong to that line
+        // into a local grid, then convert occupied cells into stud nodes tagged
+        // with that line index.
+        if (Array.isArray(editorLines)) {
+            for (let lineIndex = 0; lineIndex < editorLines.length; lineIndex++) {
+                const lineText = editorLines[lineIndex];
+                if (!lineText || !lineText.trim().startsWith('1 ')) continue;
+                const meshList = meshesByLine.get(lineIndex);
+                if (!meshList || !meshList.length) continue;
+
+                const parsedLine = parseType1Line(lineText);
+                const gridMap = new Map(); // key "gx,gz" -> { gx, gz, layers: Map(layerIndex -> accum) }
+
+                meshList.forEach(obj => {
+                    if (!obj.isMesh || !obj.geometry || !obj.geometry.attributes || !obj.geometry.attributes.position) {
+                        return;
+                    }
+                    obj.updateWorldMatrix(true, false);
+                    const position = obj.geometry.attributes.position;
+                    for (let i = 0; i < position.count; i++) {
+                        pos.fromBufferAttribute(position, i);
+                        pos.applyMatrix4(obj.matrixWorld);
+                        const gx = Math.round(pos.x / 20);
+                        const gz = Math.round(pos.z / 20);
+                        const gridKey = gx + ',' + gz;
+                        let col = gridMap.get(gridKey);
+                        if (!col) {
+                            col = { gx, gz, layers: new Map() };
+                            gridMap.set(gridKey, col);
+                        }
+                        const layerIndex = Math.round(pos.y / plateHeight);
+                        let layer = col.layers.get(layerIndex);
+                        if (!layer) {
+                            layer = { sumX: 0, sumY: 0, sumZ: 0, count: 0 };
+                            col.layers.set(layerIndex, layer);
+                        }
+                        layer.sumX += pos.x;
+                        layer.sumY += pos.y;
+                        layer.sumZ += pos.z;
+                        layer.count++;
+
+                        const prevTotal = layerTotals.get(layerIndex) || 0;
+                        layerTotals.set(layerIndex, prevTotal + 1);
+                    }
+                });
+
+                gridMap.forEach(col => {
+                    col.layers.forEach((layer, layerIndex) => {
+                        if (layer.count < minVotes) return;
+                        const cx = layer.sumX / layer.count;
+                        const cy = layer.sumY / layer.count;
+                        const cz = layer.sumZ / layer.count;
+
+                        // Derive partId and local (part-space) coordinates from the
+                        // associated MPD type-1 line. Because we are sampling per-line,
+                        // the owning lineNum is always lineIndex.
+                        let partId = null;
+                        let local = null;
+                        if (parsedLine && parsedLine.partId) {
+                            partId = parsedLine.partId;
+                            const a = parsedLine.a, b = parsedLine.b, c = parsedLine.c;
+                            const d = parsedLine.d, e = parsedLine.e, f = parsedLine.f;
+                            const g = parsedLine.g, h = parsedLine.h, i = parsedLine.i;
+                            const tx = parsedLine.x, ty = parsedLine.y, tz = parsedLine.z;
+                            const dx = cx - tx;
+                            const dy = cy - ty;
+                            const dz = cz - tz;
+                            // Invert the LDraw transform: local = R^T * (world - t)
+                            local = {
+                                x: a * dx + d * dy + g * dz,
+                                y: b * dx + e * dy + h * dz,
+                                z: c * dx + f * dy + i * dz
+                            };
+                        }
+
+                        studs.push({
+                            kind: 'stud',
+                            gridX: col.gx,
+                            gridZ: col.gz,
+                            layer: layerIndex,
+                            worldPos: { x: cx, y: cy, z: cz },
+                            lineNum: lineIndex,
+                            partId,
+                            local,
+                            source: 'sampled',
+                            studVersion: 1
+                        });
+                    });
+                });
+            }
+        }
+
+        // Estimate the dominant grid layer and base Y using aggregate layerTotals
+        // across all per-line sampling passes.
         let baseGridLayer = null;
         let baseGridLayerCount = 0;
         layerTotals.forEach((count, layerIndex) => {
@@ -3731,65 +3814,14 @@
             console.log('[STUD] Base grid layer estimated as', baseGridLayer, 'with', baseGridLayerCount, 'samples');
         }
 
-        let studs = [];
-        const minVotes = 6;
-        let baseGridYSum = 0;
-        let baseGridYCount = 0;
-        gridMap.forEach(col => {
-            col.layers.forEach((layer, layerIndex) => {
-                if (layer.count < minVotes) return;
-                const cx = layer.sumX / layer.count;
-                const cy = layer.sumY / layer.count;
-                const cz = layer.sumZ / layer.count;
-                let partLine = null;
-                if (layer.lineNums && layer.lineNums.size > 0) {
-                    layer.lineNums.forEach(v => {
-                        if (partLine === null || v < partLine) partLine = v;
-                    });
-                }
-                if (baseGridLayer !== null && layerIndex === baseGridLayer) {
-                    baseGridYSum += cy;
-                    baseGridYCount++;
-                }
-
-                // Derive partId and local (part-space) coordinates from the
-                // associated MPD type-1 line, when available. This lets
-                // downstream tools reconstruct rigged studs even when we are
-                // using sampled skeletons instead of per-part templates.
-                let partId = null;
-                let local = null;
-                if (typeof partLine === 'number' && Array.isArray(editorLines) && editorLines[partLine]) {
-                    const lineText = editorLines[partLine];
-                    const parsedLine = parseType1Line(lineText);
-                    if (parsedLine && parsedLine.partId) {
-                        partId = parsedLine.partId;
-                        const a = parsedLine.a, b = parsedLine.b, c = parsedLine.c;
-                        const d = parsedLine.d, e = parsedLine.e, f = parsedLine.f;
-                        const g = parsedLine.g, h = parsedLine.h, i = parsedLine.i;
-                        const tx = parsedLine.x, ty = parsedLine.y, tz = parsedLine.z;
-                        const dx = cx - tx;
-                        const dy = cy - ty;
-                        const dz = cz - tz;
-                        // Invert the LDraw transform: local = R^T * (world - t)
-                        local = {
-                            x: a * dx + d * dy + g * dz,
-                            y: b * dx + e * dy + h * dz,
-                            z: c * dx + f * dy + i * dz
-                        };
-                    }
-                }
-                studs.push({
-                    kind: 'stud',
-                    gridX: col.gx,
-                    gridZ: col.gz,
-                    layer: layerIndex,
-                    worldPos: { x: cx, y: cy, z: cz },
-                    lineNum: partLine,
-                    partId,
-                    local
-                });
+        if (baseGridLayer !== null && studs.length) {
+            studs.forEach(node => {
+                if (!node || typeof node.layer !== 'number' || !node.worldPos) return;
+                if (node.layer !== baseGridLayer) return;
+                baseGridYSum += node.worldPos.y;
+                baseGridYCount++;
             });
-        });
+        }
 
         if (baseGridYCount > 0) {
             STATE.baseGridY = baseGridYSum / baseGridYCount;
@@ -3996,7 +4028,428 @@
             STATE.partControlFilterPartId = prevFilter;
         }
     }
-    
+
+    async function debugRedBullLineSampler(options) {
+        if (!STATE || !STATE.viewer || !Array.isArray(editorLines) || !editorLines.length || !window.THREE) {
+            console.warn('[RED-BULL] Missing STATE, viewer, or editorLines; cannot run line-by-line sampler');
+            return null;
+        }
+
+        const plateHeight = 8;
+        const maxLines = options && typeof options.maxLines === 'number' ? options.maxLines : null;
+        const header = [
+            '0 FILE redbull_line_sampler.mpd',
+            '0 Name: Red Bull single-line skeleton',
+            '0 !LDRAW_ORG Model',
+            '0 BFC CERTIFY CCW'
+        ].join('\n');
+
+        console.log('[RED-BULL] Starting line-by-line sampler. Total editorLines:', editorLines.length, 'Options:', options || null);
+
+        const runStart = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+        let logicalTick = 0;
+
+        const allNodes = [];
+        let processedLines = 0;
+        let linesWithStuds = 0;
+        let totalStuds = 0;
+
+        for (let idx = 0; idx < editorLines.length; idx++) {
+            const line = editorLines[idx];
+            const trimmed = line && line.trim();
+            if (!trimmed || !trimmed.startsWith('1 ')) continue;
+            if (maxLines != null && idx >= maxLines) break;
+
+            const hasParser = (typeof parseType1Line === 'function');
+            let parsed = hasParser ? parseType1Line(trimmed) : null;
+            let partId = parsed && parsed.partId;
+
+            if (!partId) {
+                const tokens = trimmed.split(/\s+/);
+                const candidate = tokens.length ? tokens[tokens.length - 1] : null;
+                if (candidate) {
+                    partId = candidate;
+                    if (parsed) {
+                        parsed.partId = partId;
+                    } else {
+                        parsed = { partId };
+                    }
+                    console.log('[RED-BULL] Derived partId from tokens for line', idx, '→', partId);
+                }
+            }
+
+            if (!parsed || !partId) {
+                console.warn('[RED-BULL] Unable to parse type-1 line for sampling', {
+                    idx,
+                    trimmed,
+                    hasParser,
+                    parsed
+                });
+                continue;
+            }
+
+            processedLines++;
+
+            const body = trimmed;
+            const text = header + '\n' + body + '\n';
+
+            try {
+                if (typeof STATE.viewer.loadText === 'function') {
+                    console.log('[RED-BULL] Sampling line', idx, 'part', parsed.partId);
+                    const loadStart = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+                    console.log('[RED-BULL] [line', idx, '] Loading micro-MPD. Text length:', text.length);
+                    await STATE.viewer.loadText(text, {
+                        filename: 'redbull_line_' + idx + '.mpd',
+                        name: 'redbull-line-' + idx,
+                        origin: 'RedBull(line ' + idx + ')'
+                    });
+                    const loadEnd = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+                    console.log('[RED-BULL] [line', idx, '] micro-MPD loaded in', (loadEnd - loadStart).toFixed(1), 'ms');
+                } else {
+                    console.warn('[RED-BULL] viewer.loadText missing; cannot load micro-MPD for line', idx);
+                    continue;
+                }
+
+                if (typeof computeStudSkeletonAndPlanes !== 'function') {
+                    console.warn('[RED-BULL] computeStudSkeletonAndPlanes missing; cannot sample line', idx);
+                    continue;
+                }
+
+                computeStudSkeletonAndPlanes();
+                let studs = Array.isArray(STATE.studSkeleton) ? STATE.studSkeleton : [];
+                console.log('[RED-BULL] After primary sampler for line', idx, 'STATE.studSkeleton length:', Array.isArray(STATE.studSkeleton) ? STATE.studSkeleton.length : 'none', 'local studs length:', studs.length);
+
+                // Fallback: if no studs were generated (e.g., meshes have no
+                // userData.lineNum in this micro-MPD), run a local global
+                // sampler over the current modelRoot to approximate the
+                // original global stud grid behavior for this single line.
+                if (!studs.length) {
+                    const modelRoot = (STATE.viewer?.getModel && STATE.viewer.getModel()) ||
+                                      STATE.viewer?.modelRoot ||
+                                      STATE.viewer?.modelWrapper ||
+                                      (STATE.viewer?.engine && (STATE.viewer.engine.modelWrapper || STATE.viewer.engine.model)) ||
+                                      STATE.viewer?.scene;
+                    if (modelRoot && window.THREE) {
+                        console.warn('[RED-BULL] No studs from primary sampler for line', idx, '- entering fallback sampler');
+                        const tmpPos = new THREE.Vector3();
+                        const gridMap = new Map();
+                        const minVotes = 6;
+
+                        modelRoot.traverse(obj => {
+                            if (!obj.isMesh || !obj.geometry || !obj.geometry.attributes || !obj.geometry.attributes.position) return;
+                            obj.updateWorldMatrix(true, false);
+                            const position = obj.geometry.attributes.position;
+                            for (let i = 0; i < position.count; i++) {
+                                tmpPos.fromBufferAttribute(position, i);
+                                tmpPos.applyMatrix4(obj.matrixWorld);
+                                const gx = Math.round(tmpPos.x / 20);
+                                const gz = Math.round(tmpPos.z / 20);
+                                const gridKey = gx + ',' + gz;
+                                let col = gridMap.get(gridKey);
+                                if (!col) {
+                                    col = { gx, gz, layers: new Map() };
+                                    gridMap.set(gridKey, col);
+                                }
+                                const layerIndex = Math.round(tmpPos.y / plateHeight);
+                                let layer = col.layers.get(layerIndex);
+                                if (!layer) {
+                                    layer = { sumX: 0, sumY: 0, sumZ: 0, count: 0 };
+                                    col.layers.set(layerIndex, layer);
+                                }
+                                layer.sumX += tmpPos.x;
+                                layer.sumY += tmpPos.y;
+                                layer.sumZ += tmpPos.z;
+                                layer.count++;
+                            }
+                        });
+
+                        const fallbackStuds = [];
+                        gridMap.forEach(col => {
+                            col.layers.forEach((layer, layerIndex) => {
+                                if (layer.count < minVotes) return;
+                                const cx = layer.sumX / layer.count;
+                                const cy = layer.sumY / layer.count;
+                                const cz = layer.sumZ / layer.count;
+                                fallbackStuds.push({
+                                    worldPos: { x: cx, y: cy, z: cz },
+                                    gridX: col.gx,
+                                    gridZ: col.gz,
+                                    layer: layerIndex,
+                                    kind: 'stud'
+                                });
+                            });
+                        });
+
+                        studs = fallbackStuds;
+                        console.log('[RED-BULL] Fallback studs for line', idx, ':', studs.length, 'grid columns:', gridMap.size);
+                    }
+                }
+
+                if (!studs.length) {
+                    console.warn('[RED-BULL] No studs after fallback for line', idx, '- skipping');
+                    continue;
+                }
+
+                linesWithStuds++;
+                totalStuds += studs.length;
+                console.log('[RED-BULL] Line', idx, 'final stud count before local transform:', studs.length);
+
+                const a = parsed.a, b = parsed.b, c = parsed.c;
+                const d = parsed.d, e = parsed.e, f = parsed.f;
+                const g = parsed.g, h = parsed.h, i = parsed.i;
+                const tx = parsed.x, ty = parsed.y, tz = parsed.z;
+
+                const nodesForThisLine = [];
+                studs.forEach((node, studIndex) => {
+                    if (!node || !node.worldPos) return;
+                    const wx = node.worldPos.x;
+                    const wy = node.worldPos.y;
+                    const wz = node.worldPos.z;
+
+                    const dx = wx - tx;
+                    const dy = wy - ty;
+                    const dz = wz - tz;
+                    const lx = a * dx + d * dy + g * dz;
+                    const ly = b * dx + e * dy + h * dz;
+                    const lz = c * dx + f * dy + i * dz;
+
+                    const gridX = typeof node.gridX === 'number' ? node.gridX : Math.round(wx / 20);
+                    const gridZ = typeof node.gridZ === 'number' ? node.gridZ : Math.round(wz / 20);
+                    const layer = typeof node.layer === 'number' ? node.layer : Math.round(wy / plateHeight);
+
+                    const studNode = {
+                        x: wx,
+                        y: wy,
+                        z: wz,
+                        layer: layer,
+                        kind: node.kind || 'stud',
+                        lineNum: idx,
+                        gridX: gridX,
+                        gridZ: gridZ,
+                        partId: parsed.partId,
+                        studIndex: studIndex,
+                        local: { x: lx, y: ly, z: lz },
+                        source: 'sampled-red-bull',
+                        studVersion: 1
+                    };
+                    allNodes.push(studNode);
+                    nodesForThisLine.push(studNode);
+                });
+
+                console.log('[RED-BULL] Line', idx, 'emitted nodesForThisLine:', nodesForThisLine.length);
+
+                // Wolf bus + local event log for temporal inspection
+                const tAbs = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+                const tRel = tAbs - runStart;
+                logicalTick++;
+                if (typeof window !== 'undefined') {
+                    if (!window.redBullEvents || !Array.isArray(window.redBullEvents)) {
+                        window.redBullEvents = [];
+                    }
+                    window.redBullEvents.push({
+                        tAbs,
+                        tRel,
+                        tick: logicalTick,
+                        lineIndex: idx,
+                        partId: parsed.partId,
+                        studCount: nodesForThisLine.length
+                    });
+                }
+                if (typeof wagFrankPost === 'function') {
+                    wagFrankPost({
+                        type: 'redbull-line',
+                        tAbs,
+                        tRel,
+                        tick: logicalTick,
+                        lineIndex: idx,
+                        partId: parsed.partId,
+                        source: 'sampled-red-bull',
+                        nodes: nodesForThisLine
+                    });
+                }
+            } catch (err) {
+                console.error('[RED-BULL] Failed to sample line', idx, err);
+            }
+        }
+
+        const result = allNodes.length ? {
+            version: 1,
+            source: 'sampled-red-bull',
+            nodes: allNodes
+        } : null;
+
+        if (result) {
+            STATE.redBullSkeleton = result;
+            if (typeof window !== 'undefined') {
+                window.redBullSkeleton = result;
+            }
+            console.log('[RED-BULL] Completed line-by-line sampling.', {
+                studs: allNodes.length,
+                editorLines: Array.isArray(editorLines) ? editorLines.length : null,
+                processedLines: processedLines,
+                linesWithStuds: linesWithStuds,
+                totalStuds: totalStuds
+            });
+        } else {
+            console.warn('[RED-BULL] No studs generated from Red Bull sampler', {
+                editorLines: Array.isArray(editorLines) ? editorLines.length : null,
+                processedLines: processedLines,
+                options: options || null
+            });
+        }
+
+        // Option A: restore the original full scene in the main viewer after
+        // Red Bull finishes, so we do not leave the last micro-MPD visible.
+        try {
+            if (Array.isArray(editorLines) && editorLines.length && typeof loadManualText === 'function') {
+                const fullText = editorLines.join('\n');
+                const activeScene = STATE.scenes && STATE.scenes[STATE.activeSceneIdx];
+                const filename = activeScene && activeScene.name ? (activeScene.name + '.mpd') : 'redbull-restore.mpd';
+                console.log('[RED-BULL] Restoring original scene after sampling...');
+                await loadManualText(fullText, {
+                    filename,
+                    origin: 'RedBull Restore'
+                });
+            }
+        } catch (err) {
+            console.warn('[RED-BULL] Failed to restore original scene after sampling:', err);
+        }
+
+        return result;
+    }
+
+    async function loadPartGeometryForLineCompiler(partId) {
+        if (!STATE || !STATE.viewer || !STATE.viewer.loader || !window.THREE) {
+            console.warn('[LINE-COMPILE] Viewer/loader missing; cannot load part geometry for', partId);
+            return null;
+        }
+        if (!STATE._partGeometryCache || typeof STATE._partGeometryCache !== 'object') {
+            STATE._partGeometryCache = {};
+        }
+        const key = String(partId || '').trim().toLowerCase();
+        if (!key) return null;
+        if (STATE._partGeometryCache[key]) {
+            return STATE._partGeometryCache[key];
+        }
+
+        const loader = STATE.viewer.loader;
+        const fileMap = STATE.libraryFileMap || {};
+        let rel = partId;
+        const mapped = fileMap[rel] || fileMap[rel && rel.toLowerCase()];
+        if (mapped) {
+            rel = mapped;
+        }
+
+        STATE._partGeometryCache[key] = new Promise((resolve) => {
+            loader.load(rel, group => {
+                if (!group) {
+                    console.warn('[LINE-COMPILE] Empty part group for', partId, 'path:', rel);
+                    resolve(null);
+                    return;
+                }
+                resolve(group);
+            }, undefined, err => {
+                console.warn('[LINE-COMPILE] Failed to load part geometry for', partId, 'path:', rel, err);
+                resolve(null);
+            });
+        });
+
+        return STATE._partGeometryCache[key];
+    }
+
+    async function buildMeshPerLineRoot() {
+        if (!STATE || !STATE.viewer || !window.THREE) {
+            console.warn('[LINE-COMPILE] STATE/viewer missing; cannot build mesh-per-line root');
+            return null;
+        }
+        if (!Array.isArray(editorLines) || !editorLines.length) {
+            console.warn('[LINE-COMPILE] No editorLines to compile');
+            return null;
+        }
+        if (typeof parseType1Line !== 'function') {
+            console.warn('[LINE-COMPILE] parseType1Line missing; cannot build mesh-per-line root');
+            return null;
+        }
+
+        const root = new THREE.Group();
+        root.name = 'MeshPerLineRoot';
+
+        for (let idx = 0; idx < editorLines.length; idx++) {
+            const line = editorLines[idx];
+            const trimmed = line && line.trim();
+            if (!trimmed || !trimmed.startsWith('1 ')) continue;
+
+            const parsed = parseType1Line(trimmed);
+            if (!parsed || !parsed.partId) continue;
+
+            const partGroup = await loadPartGeometryForLineCompiler(parsed.partId);
+            if (!partGroup) continue;
+
+            const instance = partGroup.clone(true);
+            const lineGroup = new THREE.Group();
+            lineGroup.name = 'Line_' + idx + '_' + parsed.partId;
+            lineGroup.userData.lineNum = idx;
+            lineGroup.userData.partId = parsed.partId;
+            lineGroup.userData.lineText = line;
+            lineGroup.userData.colorCode = parsed.color;
+
+            const a = parsed.a, b = parsed.b, c = parsed.c;
+            const d = parsed.d, e = parsed.e, f = parsed.f;
+            const g = parsed.g, h = parsed.h, i = parsed.i;
+            const tx = parsed.x, ty = parsed.y, tz = parsed.z;
+
+            const m = new THREE.Matrix4().set(
+                a, b, c, tx,
+                d, e, f, ty,
+                g, h, i, tz,
+                0, 0, 0, 1
+            );
+            lineGroup.applyMatrix4(m);
+
+            lineGroup.add(instance);
+            root.add(lineGroup);
+        }
+
+        console.log('[LINE-COMPILE] Built mesh-per-line root with', root.children.length, 'line groups');
+        return root;
+    }
+
+    async function debugCompileMeshPerLineAndDisplay() {
+        if (!STATE || !STATE.viewer || !window.THREE) {
+            console.warn('[LINE-COMPILE] STATE/viewer missing; cannot display mesh-per-line root');
+            return;
+        }
+
+        const root = await buildMeshPerLineRoot();
+        if (!root) {
+            console.warn('[LINE-COMPILE] mesh-per-line root is empty');
+            return;
+        }
+
+        const activeScene = STATE.scenes && STATE.scenes[STATE.activeSceneIdx];
+        const name = activeScene && activeScene.name ? activeScene.name : 'MeshPerLineScene';
+        const meta = {
+            filename: name + '.mpd',
+            name: name,
+            origin: 'MeshPerLineCompiler'
+        };
+
+        if (typeof STATE.viewer.displayGroup === 'function') {
+            STATE.viewer.displayGroup(root, meta, 'MeshPerLine');
+        } else {
+            console.warn('[LINE-COMPILE] viewer.displayGroup missing; adding root directly to scene');
+            if (STATE.viewer.scene) {
+                if (typeof STATE.viewer.clear === 'function') {
+                    STATE.viewer.clear();
+                }
+                STATE.viewer.scene.add(root);
+                STATE.viewer.modelRoot = root;
+            }
+        }
+
+        console.log('[LINE-COMPILE] Mesh-per-line scene displayed');
+    }
+
     function debugDrawSceneFromPartSkeletons() {
         if (!STATE || !STATE.viewer || !STATE.viewer.scene || !window.THREE) {
             console.warn('[STUD-DEBUG] Viewer/scene missing; cannot draw scene from part skeletons');
@@ -4144,6 +4597,177 @@
         scene.add(group);
         STATE.studSkeletonGroup = group;
         console.log('[STUD] Stud skeleton overlay drawn:', studs.length, '(normal:', normalCount + ',', 'below base grid:', belowCount + ',', 'ghost targets:', ghostCount + ')');
+    }
+
+    function drawRedBullPatchOverlay() {
+        if (!STATE || !STATE.viewer || !STATE.viewer.scene || !window.THREE) {
+            console.warn('[RED-BULL] Viewer/scene missing; cannot draw patch overlay');
+            return;
+        }
+
+        const scene = STATE.viewer.scene;
+        if (STATE.redBullPatchGroup && STATE.redBullPatchGroup.parent) {
+            STATE.redBullPatchGroup.parent.remove(STATE.redBullPatchGroup);
+        }
+
+        const skeleton = STATE.redBullSkeleton;
+        if (!skeleton || !Array.isArray(skeleton.nodes) || !skeleton.nodes.length) {
+            console.warn('[RED-BULL] No redBullSkeleton nodes available for patch overlay');
+            STATE.redBullPatchGroup = null;
+            return;
+        }
+
+        const timeByLine = new Map();
+        if (typeof window !== 'undefined' && Array.isArray(window.redBullEvents)) {
+            window.redBullEvents.forEach(ev => {
+                if (!ev || typeof ev.lineIndex !== 'number') return;
+                const lineIndex = ev.lineIndex;
+                const t = typeof ev.tRel === 'number' ? ev.tRel : (typeof ev.tAbs === 'number' ? ev.tAbs : null);
+                if (t == null) return;
+                const prev = timeByLine.get(lineIndex);
+                if (prev == null || t < prev) {
+                    timeByLine.set(lineIndex, t);
+                }
+            });
+        }
+
+        const nodes = skeleton.nodes;
+        let minX = Infinity, maxX = -Infinity;
+        let minY = Infinity, maxY = -Infinity;
+        let minZ = Infinity, maxZ = -Infinity;
+
+        nodes.forEach(node => {
+            if (!node) return;
+            const x = typeof node.x === 'number' ? node.x : (node.worldPos && typeof node.worldPos.x === 'number' ? node.worldPos.x : null);
+            const y = typeof node.y === 'number' ? node.y : (node.worldPos && typeof node.worldPos.y === 'number' ? node.worldPos.y : null);
+            const z = typeof node.z === 'number' ? node.z : (node.worldPos && typeof node.worldPos.z === 'number' ? node.worldPos.z : null);
+            if (x == null || y == null || z == null) return;
+            if (x < minX) minX = x;
+            if (x > maxX) maxX = x;
+            if (y < minY) minY = y;
+            if (y > maxY) maxY = y;
+            if (z < minZ) minZ = z;
+            if (z > maxZ) maxZ = z;
+        });
+
+        if (!isFinite(minX) || !isFinite(maxX) || !isFinite(minZ) || !isFinite(maxZ)) {
+            console.warn('[RED-BULL] Invalid bounds for patch overlay');
+            STATE.redBullPatchGroup = null;
+            return;
+        }
+
+        const cellsX = 12;
+        const cellsZ = 12;
+        const rangeX = maxX - minX || 1;
+        const rangeZ = maxZ - minZ || 1;
+        const cellSizeX = rangeX / cellsX;
+        const cellSizeZ = rangeZ / cellsZ;
+
+        const patchMap = new Map();
+
+        nodes.forEach(node => {
+            if (!node) return;
+            const x = typeof node.x === 'number' ? node.x : (node.worldPos && typeof node.worldPos.x === 'number' ? node.worldPos.x : null);
+            const y = typeof node.y === 'number' ? node.y : (node.worldPos && typeof node.worldPos.y === 'number' ? node.worldPos.y : null);
+            const z = typeof node.z === 'number' ? node.z : (node.worldPos && typeof node.worldPos.z === 'number' ? node.worldPos.z : null);
+            if (x == null || y == null || z == null) return;
+            const ln = typeof node.lineNum === 'number' ? node.lineNum : null;
+            const t = ln != null ? (timeByLine.get(ln) || null) : null;
+            const ux = (x - minX) / rangeX;
+            const uz = (z - minZ) / rangeZ;
+            let ix = Math.floor(ux * cellsX);
+            let iz = Math.floor(uz * cellsZ);
+            if (ix < 0) ix = 0;
+            if (ix >= cellsX) ix = cellsX - 1;
+            if (iz < 0) iz = 0;
+            if (iz >= cellsZ) iz = cellsZ - 1;
+            const key = ix + ',' + iz;
+            let patch = patchMap.get(key);
+            if (!patch) {
+                patch = {
+                    ix,
+                    iz,
+                    minX: x,
+                    maxX: x,
+                    minY: y,
+                    maxY: y,
+                    minZ: z,
+                    maxZ: z,
+                    tMin: t,
+                    tMax: t,
+                    count: 0
+                };
+                patchMap.set(key, patch);
+            } else {
+                if (x < patch.minX) patch.minX = x;
+                if (x > patch.maxX) patch.maxX = x;
+                if (y < patch.minY) patch.minY = y;
+                if (y > patch.maxY) patch.maxY = y;
+                if (z < patch.minZ) patch.minZ = z;
+                if (z > patch.maxZ) patch.maxZ = z;
+                if (t != null) {
+                    if (patch.tMin == null || t < patch.tMin) patch.tMin = t;
+                    if (patch.tMax == null || t > patch.tMax) patch.tMax = t;
+                }
+            }
+            patch.count++;
+        });
+
+        if (!patchMap.size) {
+            console.warn('[RED-BULL] No patches populated for patch overlay');
+            STATE.redBullPatchGroup = null;
+            return;
+        }
+
+        let globalTMin = Infinity;
+        let globalTMax = -Infinity;
+        patchMap.forEach(p => {
+            if (p.tMin == null || p.tMax == null) return;
+            if (p.tMin < globalTMin) globalTMin = p.tMin;
+            if (p.tMax > globalTMax) globalTMax = p.tMax;
+        });
+
+        if (!isFinite(globalTMin) || !isFinite(globalTMax) || globalTMax === globalTMin) {
+            globalTMin = 0;
+            globalTMax = 1;
+        }
+
+        const group = new THREE.Group();
+        group.name = 'RedBullPatchOverlay';
+
+        patchMap.forEach(p => {
+            if (!p.count) return;
+            const tMid = p.tMin != null && p.tMax != null ? (p.tMin + p.tMax) / 2 : globalTMin;
+            const norm = (tMid - globalTMin) / (globalTMax - globalTMin);
+            const color = new THREE.Color();
+            color.setHSL(0.6 * (1 - norm), 1.0, 0.5);
+
+            const width = Math.max(p.maxX - p.minX, cellSizeX * 0.5);
+            const depth = Math.max(p.maxZ - p.minZ, cellSizeZ * 0.5);
+            const height = Math.max(p.maxY - p.minY, 16);
+            const geom = new THREE.BoxGeometry(width, height, depth);
+            const mat = new THREE.MeshBasicMaterial({
+                color: color,
+                transparent: true,
+                opacity: 0.25,
+                depthTest: true,
+                depthWrite: false
+            });
+            const mesh = new THREE.Mesh(geom, mat);
+            const cx = (p.minX + p.maxX) / 2;
+            const cy = p.minY + height / 2;
+            const cz = (p.minZ + p.maxZ) / 2;
+            mesh.position.set(cx, cy, cz);
+            mesh.userData = mesh.userData || {};
+            mesh.userData.count = p.count;
+            mesh.userData.tMin = p.tMin;
+            mesh.userData.tMax = p.tMax;
+            group.add(mesh);
+        });
+
+        scene.add(group);
+        STATE.redBullPatchGroup = group;
+        console.log('[RED-BULL] Patch overlay drawn. Patches:', patchMap.size);
     }
 
     function buildPartControlSkeleton() {
@@ -4793,6 +5417,61 @@
             });
         }
         
+        // RED BULL — line-by-line sampler → GOLD fragment
+        const redBullBtn = document.getElementById('redbull-btn');
+        if (redBullBtn && typeof debugRedBullLineSampler === 'function') {
+            redBullBtn.addEventListener('click', async () => {
+                const statusText = document.getElementById('status-text');
+                if (statusText) statusText.textContent = '🟥 Red Bull: sampling lines...';
+                try {
+                    const skeleton = await debugRedBullLineSampler();
+                    if (!skeleton || !skeleton.nodes || !skeleton.nodes.length) {
+                        if (statusText) statusText.textContent = '🟥 Red Bull: no studs generated';
+                        return;
+                    }
+                    const mpdText = (STATE && STATE.mpdText) || (Array.isArray(editorLines) ? editorLines.join('\n') : '');
+                    const gold = {
+                        mpd_content: mpdText,
+                        stud_skeleton_v2: skeleton,
+                        redbull_events: (typeof window !== 'undefined' && Array.isArray(window.redBullEvents)) ? window.redBullEvents : []
+                    };
+                    const json = JSON.stringify(gold, null, 2);
+                    try {
+                        if (typeof localStorage !== 'undefined') {
+                            localStorage.setItem('wag_redbull_gold', json);
+                        }
+                    } catch (storageError) {
+                        console.warn('[RED-BULL] Failed to persist GOLD to localStorage', storageError);
+                    }
+                    if (typeof window !== 'undefined') {
+                        window.wagRedBullGold = gold;
+                    }
+                    if (typeof wagFrankPost === 'function') {
+                        try {
+                            wagFrankPost({
+                                kind: 'redbull-gold',
+                                source: 'wag-courage',
+                                gold
+                            });
+                        } catch (busError) {
+                            console.warn('[RED-BULL] Failed to broadcast GOLD on wag-frank', busError);
+                        }
+                    }
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        await navigator.clipboard.writeText(json);
+                        if (statusText) statusText.textContent = `🟥 Red Bull: copied GOLD fragment with ${skeleton.nodes.length} studs`;
+                    } else {
+                        console.log('[RED-BULL] GOLD fragment', gold);
+                        if (statusText) statusText.textContent = '🟥 Red Bull: GOLD fragment logged (clipboard unavailable)';
+                    }
+                } catch (err) {
+                    console.error('[RED-BULL] Failed to run Red Bull sampler', err);
+                    const statusText = document.getElementById('status-text');
+                    if (statusText) statusText.textContent = '🟥 Red Bull: error (see console)';
+                }
+            });
+        }
+
         // Import/Export button (footer corner)
         document.getElementById('import-export-btn').addEventListener('click', () => {
             const fileInput = document.createElement('input');
@@ -9025,6 +9704,172 @@ function highlightLinesAtGridPosition(gridX, gridY) {
         }
     }
 
+    function computeStudSkeletonDiagnostic(nodes, lines) {
+        if (!Array.isArray(nodes) || !Array.isArray(lines) || !nodes.length) {
+            return null;
+        }
+
+        const parts = [];
+        for (let idx = 0; idx < lines.length; idx++) {
+            const raw = lines[idx];
+            if (!raw || typeof raw !== 'string') continue;
+            const trimmed = raw.trim();
+            if (!trimmed || !trimmed.startsWith('1 ')) continue;
+            const parsed = parseType1Line(raw);
+            if (!parsed) continue;
+            const px = typeof parsed.x === 'number' ? parsed.x : 0;
+            const py = typeof parsed.y === 'number' ? parsed.y : 0;
+            const pz = typeof parsed.z === 'number' ? parsed.z : 0;
+            parts.push({ lineNum: idx, x: px, y: py, z: pz });
+        }
+
+        if (!parts.length) {
+            return null;
+        }
+
+        const perLine = new Map();
+        parts.forEach(p => {
+            perLine.set(p.lineNum, { lineNum: p.lineNum, claimed: 0, nearest: 0 });
+        });
+
+        let total = 0;
+        let withLineNum = 0;
+        let withoutLineNum = 0;
+        let withNearest = 0;
+        let mismatches = 0;
+
+        nodes.forEach(n => {
+            const wx = typeof n.x === 'number' ? n.x : null;
+            const wy = typeof n.y === 'number' ? n.y : null;
+            const wz = typeof n.z === 'number' ? n.z : null;
+            if (wx === null || wy === null || wz === null) return;
+
+            total++;
+            const assigned = typeof n.lineNum === 'number' ? n.lineNum : null;
+            if (assigned !== null) withLineNum++; else withoutLineNum++;
+
+            let bestLineNum = null;
+            let bestDist2 = Infinity;
+            for (let i = 0; i < parts.length; i++) {
+                const p = parts[i];
+                const dx = wx - p.x;
+                const dy = wy - p.y;
+                const dz = wz - p.z;
+                const d2 = dx * dx + dy * dy + dz * dz;
+                if (d2 < bestDist2) {
+                    bestDist2 = d2;
+                    bestLineNum = p.lineNum;
+                }
+            }
+
+            if (bestLineNum !== null) {
+                withNearest++;
+                const nearestRow = perLine.get(bestLineNum) || { lineNum: bestLineNum, claimed: 0, nearest: 0 };
+                nearestRow.nearest++;
+                perLine.set(bestLineNum, nearestRow);
+            }
+
+            if (assigned !== null) {
+                const claimRow = perLine.get(assigned) || { lineNum: assigned, claimed: 0, nearest: 0 };
+                claimRow.claimed++;
+                perLine.set(assigned, claimRow);
+            }
+
+            if (assigned !== null && bestLineNum !== null && assigned !== bestLineNum) {
+                mismatches++;
+            }
+        });
+
+        const linesSummary = Array.from(perLine.values());
+        linesSummary.sort((a, b) => (b.claimed - a.claimed) || (b.nearest - a.nearest));
+
+        const claimedHistogram = {};
+        const nearestHistogram = {};
+        linesSummary.forEach(entry => {
+            if (entry.claimed) claimedHistogram[entry.lineNum] = entry.claimed;
+            if (entry.nearest) nearestHistogram[entry.lineNum] = entry.nearest;
+        });
+
+        const claimedDistinctLines = Object.keys(claimedHistogram).length;
+        const nearestDistinctLines = Object.keys(nearestHistogram).length;
+
+        return {
+            mpdLinesCount: parts.length,
+            claimedDistinctLines,
+            nearestDistinctLines,
+            totalStudsConsidered: total,
+            studsWithLineNum: withLineNum,
+            studsWithoutLineNum: withoutLineNum,
+            studsWithNearestPart: withNearest,
+            lineBindingMismatchCount: mismatches,
+            lineBindingMatchRatio: total > 0 ? (total - mismatches) / total : null,
+            claimedHistogram,
+            nearestHistogram,
+            perLine: linesSummary
+        };
+    }
+
+    function buildSkeletonPathologyReport(diag, totalStuds) {
+        if (!diag || !diag.claimedHistogram || !diag.nearestHistogram || !totalStuds) {
+            return null;
+        }
+
+        function topFromHistogram(hist) {
+            let bestLine = null;
+            let bestCount = 0;
+            Object.keys(hist).forEach(k => {
+                const ln = Number(k);
+                const c = hist[k];
+                if (c > bestCount) {
+                    bestCount = c;
+                    bestLine = ln;
+                }
+            });
+            return { line: bestLine, count: bestCount };
+        }
+
+        const origTop = topFromHistogram(diag.claimedHistogram);
+        const corrTop = topFromHistogram(diag.nearestHistogram);
+
+        const origPct = origTop.count > 0 ? (origTop.count / totalStuds) * 100 : 0;
+        const corrPct = corrTop.count > 0 ? (corrTop.count / totalStuds) * 100 : 0;
+
+        let severity = 'HEALTHY';
+        if (origPct >= 90) {
+            severity = 'CRITICAL';
+        } else if (origPct >= 70 || diag.claimedDistinctLines <= 2) {
+            severity = 'WARNING';
+        }
+
+        return {
+            detected_at: new Date().toISOString(),
+            corrected_by: 'Courage Stud Skeleton Export v1.0',
+            severity,
+            original_distribution: {
+                distinct_lines: diag.claimedDistinctLines,
+                top_line: origTop.line,
+                top_count: origTop.count,
+                top_percentage: Number(origPct.toFixed(1)),
+                histogram: diag.claimedHistogram
+            },
+            corrected_distribution: {
+                distinct_lines: diag.nearestDistinctLines,
+                top_line: corrTop.line,
+                top_count: corrTop.count,
+                top_percentage: Number(corrPct.toFixed(1)),
+                histogram: diag.nearestHistogram
+            },
+            correction_method: 'spatial_proximity_3d_euclidean',
+            correction_parameters: {
+                algorithm: 'nearest_neighbor_by_world_position',
+                distance_metric: 'euclidean_3d'
+            },
+            mpd_lines_count: diag.mpdLinesCount,
+            part_lines_count: diag.mpdLinesCount,
+            recommendation: 'Regenerate from source using per-line stud sampler (Courage v9+) for canonical skeleton'
+        };
+    }
+
     function captureScreenshot() {
         const statusText = document.getElementById('status-text');
         if (statusText) statusText.textContent = 'Capturing 4:3 shot...';
@@ -9116,25 +9961,78 @@ function highlightLinesAtGridPosition(gridX, gridY) {
             
             const baseFilename = `wag_gold_${filename}_${dateStr}_${timeStr}`;
             
-            const studSkeletonSnapshot = Array.isArray(STATE.studSkeleton)
-                ? STATE.studSkeleton.map(node => {
-                      if (!node || !node.worldPos) return null;
-                      const snapshot = {
-                          x: node.worldPos.x,
-                          y: node.worldPos.y,
-                          z: node.worldPos.z,
-                          layer: node.layer,
-                          kind: node.kind,
-                          lineNum: node.lineNum
-                      };
-                      if (node.partId) snapshot.partId = node.partId;
-                      if (typeof node.studIndex === 'number') snapshot.studIndex = node.studIndex;
-                      if (node.local && typeof node.local.x === 'number' && typeof node.local.y === 'number' && typeof node.local.z === 'number') {
-                          snapshot.local = { x: node.local.x, y: node.local.y, z: node.local.z };
-                      }
-                      return snapshot;
-                  }).filter(Boolean)
-                : null;
+            let studSkeletonSnapshot = null;
+            let studSkeletonV2 = null;
+            let skeletonDiagnostic = null;
+            let skeletonPathology = null;
+            if (Array.isArray(STATE.studSkeleton)) {
+                const canonicalNodes = [];
+                let hasTemplate = false;
+                let hasSampled = false;
+                STATE.studSkeleton.forEach(node => {
+                    if (!node || !node.worldPos) return;
+                    const src = typeof node.source === 'string' ? node.source : null;
+                    if (src === 'template') hasTemplate = true;
+                    if (src === 'sampled') hasSampled = true;
+                    const base = {
+                        x: node.worldPos.x,
+                        y: node.worldPos.y,
+                        z: node.worldPos.z,
+                        layer: node.layer,
+                        kind: node.kind,
+                        lineNum: node.lineNum,
+                        gridX: typeof node.gridX === 'number' ? node.gridX : null,
+                        gridZ: typeof node.gridZ === 'number' ? node.gridZ : null,
+                        partId: node.partId || null,
+                        studIndex: typeof node.studIndex === 'number' ? node.studIndex : null,
+                        local: (node.local && typeof node.local.x === 'number' && typeof node.local.y === 'number' && typeof node.local.z === 'number')
+                            ? { x: node.local.x, y: node.local.y, z: node.local.z }
+                            : null,
+                        source: src || 'unknown',
+                        studVersion: typeof node.studVersion === 'number' ? node.studVersion : 1
+                    };
+                    canonicalNodes.push(base);
+                });
+                if (canonicalNodes.length) {
+                    skeletonDiagnostic = computeStudSkeletonDiagnostic(canonicalNodes, Array.isArray(editorLines) ? editorLines : []);
+                    if (skeletonDiagnostic && skeletonDiagnostic.totalStudsConsidered > 0) {
+                        skeletonPathology = buildSkeletonPathologyReport(skeletonDiagnostic, canonicalNodes.length);
+                    }
+                    if (skeletonPathology && skeletonPathology.severity === 'CRITICAL') {
+                        console.warn('[STUD] Skeleton pathology CRITICAL; clearing stud skeleton for export');
+                        studSkeletonV2 = null;
+                        studSkeletonSnapshot = null;
+                    } else {
+                        let summarySource = 'unknown';
+                        if (hasTemplate && hasSampled) summarySource = 'mixed';
+                        else if (hasTemplate) summarySource = 'template';
+                        else if (hasSampled) summarySource = 'sampled';
+                        studSkeletonV2 = {
+                            version: 1,
+                            source: summarySource,
+                            nodes: canonicalNodes
+                        };
+                        studSkeletonSnapshot = canonicalNodes.map(n => {
+                            const snap = {
+                                x: n.x,
+                                y: n.y,
+                                z: n.z,
+                                layer: n.layer,
+                                kind: n.kind,
+                                lineNum: n.lineNum
+                            };
+                            if (typeof n.gridX === 'number') snap.gridX = n.gridX;
+                            if (typeof n.gridZ === 'number') snap.gridZ = n.gridZ;
+                            if (n.partId) snap.partId = n.partId;
+                            if (typeof n.studIndex === 'number') snap.studIndex = n.studIndex;
+                            if (n.local && typeof n.local.x === 'number' && typeof n.local.y === 'number' && typeof n.local.z === 'number') {
+                                snap.local = { x: n.local.x, y: n.local.y, z: n.local.z };
+                            }
+                            return snap;
+                        });
+                    }
+                }
+            }
 
             let partSkeletonSnapshot = null;
             if (STATE.partSkeletonLibrary && typeof STATE.partSkeletonLibrary === 'object') {
@@ -9180,9 +10078,81 @@ function highlightLinesAtGridPosition(gridX, gridY) {
                 errors: ERROR_LOG.length,
                 mpd_content: editorLines.join('\n'),
                 stud_skeleton: studSkeletonSnapshot,
+                stud_skeleton_v2: studSkeletonV2,
+                grid_spec: {
+                    cellLDU: 20,
+                    layerHeightLDU: 8,
+                    origin: { x: 0, y: 0, z: 0 },
+                    axis: {
+                        right: 'x',
+                        up: 'y',
+                        forward: '-z'
+                    }
+                },
                 ground_violations: groundViolationsSnapshot,
                 part_skeletons: partSkeletonSnapshot
             };
+
+            // Optional per-line stud map, compatible with WERE/Master: metadata.lines[].studs
+            try {
+                if (studSkeletonV2 && Array.isArray(studSkeletonV2.nodes) && Array.isArray(editorLines)) {
+                    const byLine = new Map();
+
+                    studSkeletonV2.nodes.forEach(n => {
+                        if (!n) return;
+                        const ln = typeof n.lineNum === 'number' ? n.lineNum : null;
+                        if (ln == null || ln < 0 || ln >= editorLines.length) return;
+
+                        let entry = byLine.get(ln);
+                        if (!entry) {
+                            const raw = editorLines[ln] || '';
+                            let partId = n.partId || null;
+                            let color = null;
+                            const trimmed = raw.trim();
+                            if (trimmed.startsWith('1 ')) {
+                                const tokens = trimmed.split(/\s+/);
+                                if (tokens.length > 1) {
+                                    const colCode = parseInt(tokens[1], 10);
+                                    if (!Number.isNaN(colCode)) {
+                                        color = colCode;
+                                    }
+                                }
+                                if (!partId && tokens.length > 14) {
+                                    partId = tokens[tokens.length - 1];
+                                }
+                            }
+
+                            entry = {
+                                lineNum: ln,
+                                raw,
+                                partId,
+                                color,
+                                studs: []
+                            };
+                            byLine.set(ln, entry);
+                        }
+
+                        entry.studs.push({
+                            x: n.x,
+                            y: n.y,
+                            z: n.z,
+                            layer: n.layer,
+                            gridX: typeof n.gridX === 'number' ? n.gridX : undefined,
+                            gridZ: typeof n.gridZ === 'number' ? n.gridZ : undefined
+                        });
+                    });
+
+                    if (byLine.size) {
+                        metadata.lines = Array.from(byLine.values());
+                    }
+                }
+            } catch (e) {
+                console.warn('[COURAGE] Failed to build per-line stud map for GOLD metadata', e);
+            }
+
+            if (skeletonPathology) {
+                metadata._skeleton_pathology_report = skeletonPathology;
+            }
 
             // Wolf bus: if hosted in a studio, broadcast GOLD snapshot to parent
             try {
@@ -9664,6 +10634,23 @@ function highlightLinesAtGridPosition(gridX, gridY) {
             const msg = event.data;
             if (!msg || typeof msg !== 'object') return;
             const kind = msg.kind;
+
+            if (kind === 'stud-map') {
+                const map = msg.payload || msg.map || {};
+                if (typeof window !== 'undefined') {
+                    window.assemblyStudMap = map;
+                }
+                console.log('[wag-frank] Received stud-map from assembly-line', map);
+                const meta = map.meta || {};
+                const statusEl = document.getElementById('status-text');
+                if (statusEl) {
+                    const lines = meta.lineCount || 0;
+                    const studs = meta.studCount || 0;
+                    statusEl.textContent = `📊 Stud map from Assembly: ${lines} line(s), ${studs} stud(s)`;
+                }
+                return;
+            }
+
             if (
                 kind !== 'minifig-mpd' &&
                 kind !== 'minifig-family-mpd' &&

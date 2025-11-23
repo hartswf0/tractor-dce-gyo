@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>COOL TIMBER Studio – WAG-COOL Courage / WERE / Master</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23020617'/%3E%3Ccircle cx='25' cy='50' r='18' fill='%2338bdf8'/%3E%3Ccircle cx='50' cy='50' r='18' fill='%23e0f2ff'/%3E%3Ccircle cx='75' cy='50' r='18' fill='%23a5f3fc'/%3E%3C/svg%3E" />
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #020617;
+      --bg-elevated: #020617;
+      --bg-surface: #020617;
+      --border-subtle: rgba(148, 163, 184, 0.35);
+      --border-strong: rgba(148, 163, 184, 0.65);
+      --accent: #38bdf8;
+      --accent-soft: rgba(56, 189, 248, 0.15);
+      --accent-strong: #0ea5e9;
+      --accent-courage: #ef4444;
+      --accent-were: #3b82f6;
+      --accent-master: #facc15;
+      --accent-symbio: #a855f7;
+      --accent-loader: #22d3ee;
+      --text: #e5e7eb;
+      --text-muted: #9ca3af;
+      --radius-lg: 16px;
+      --radius-md: 10px;
+      --radius-pill: 999px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      font-family: "Courier New", monospace;
+      background: #000;
+      color: var(--text);
+      overflow: hidden;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chrome {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      padding: 0;
+      gap: 0;
+      background: #000;
+      font-family: monospace;
+      color: #fff;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      padding: 4px 6px;
+      border-bottom: 1px solid #333;
+      background-color: #000;
+      white-space: nowrap;
+      font-size: 9px;
+    }
+
+    .studio-left {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .studio-label {
+      font-size: 8px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #aaa;
+    }
+
+    .studio-title {
+      font-size: 8px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #fff;
+    }
+
+    .studio-center {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+    }
+
+    .studio-right {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .studio-btn {
+      border-radius: 999px;
+      border: 1px solid #333;
+      background: #050505;
+      color: #aaa;
+      font-size: 10px;
+      width: 20px;
+      height: 20px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .studio-btn:hover {
+      border-color: #fff;
+      color: #fff;
+    }
+
+    .studio-btn.active {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .layout-toggle {
+      display: inline-flex;
+      gap: 4px;
+    }
+
+    .tab-btn {
+      position: relative;
+      border-radius: 6px 6px 0 0;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      border-bottom: none;
+      background: radial-gradient(circle at top, #020617, #020617);
+      color: var(--text-muted);
+      font-size: 8px;
+      padding: 1px 6px 2px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      white-space: nowrap;
+      box-shadow: 0 1px 0 rgba(15, 23, 42, 0.8);
+      transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease, transform 0.12s ease;
+    }
+
+    .tab-color-courage::before,
+    .tab-color-were::before,
+    .tab-color-master::before,
+    .tab-color-symbio::before,
+    .tab-color-loader::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+    }
+
+    .tab-color-courage::before { background: var(--accent-courage); }
+    .tab-color-were::before { background: var(--accent-were); }
+    .tab-color-master::before { background: var(--accent-master); }
+    .tab-color-symbio::before { background: var(--accent-symbio); }
+    .tab-color-loader::before { background: var(--accent-loader); }
+
+    .tab-btn.active {
+      color: var(--text);
+      border-color: rgba(248, 250, 252, 0.9);
+      background: linear-gradient(to bottom, #020617 0%, #020617 65%, #000 100%);
+      box-shadow: 0 2px 0 #000, 0 0 0 1px rgba(248, 250, 252, 0.4);
+      transform: translateY(1px);
+    }
+
+    .layout-btn {
+      border: none;
+      margin: 0;
+      padding: 1px 4px;
+      border-radius: var(--radius-pill);
+      font-size: 8px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .layout-btn span.icon {
+      font-size: 10px;
+    }
+
+    .layout-btn.active {
+      background: radial-gradient(circle at top, var(--accent-soft), rgba(15, 23, 42, 0.9));
+      color: var(--accent-strong);
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.4);
+    }
+
+    .layout-btn:hover:not(.active) {
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--text);
+    }
+
+    .main {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      border-radius: 0;
+      background: #000;
+      border-top: 1px solid #333;
+      padding: 4px 8px 8px;
+      overflow-x: auto;
+    }
+
+    .panel-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      grid-auto-rows: minmax(0, 1fr);
+      gap: 6px;
+      width: 100%;
+      height: 100%;
+    }
+
+    .panel {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      min-height: 0;
+      border-radius: 4px;
+      border: 1px solid #333;
+      background: #000;
+      overflow: hidden;
+    }
+
+    .panel-body {
+      flex: 1;
+      min-height: 0;
+      position: relative;
+      background: #000;
+    }
+
+    .panel iframe {
+      border: none;
+      width: 100%;
+      height: 100%;
+      display: block;
+      background: #000;
+    }
+
+    /* Layout modes */
+    .panel-grid[data-layout="single"] .panel {
+      display: none;
+    }
+
+    .panel-grid[data-layout="single"] .panel.active {
+      display: flex;
+    }
+
+    .panel-grid[data-layout="triple"] {
+      grid-template-columns: repeat(3, minmax(480px, 1fr));
+    }
+
+    .panel-grid[data-layout="triple"] .panel {
+      display: none;
+    }
+
+    .panel-grid[data-layout="triple"] .panel.triple-visible {
+      display: flex;
+    }
+
+    .help-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .help-overlay.active {
+      display: flex;
+    }
+
+    .help-modal {
+      width: min(460px, 92vw);
+      padding: 12px;
+      border-radius: 4px;
+      background: #020617;
+      border: 1px solid #333;
+      font-size: 10px;
+      line-height: 1.5;
+    }
+
+    .help-modal h1 {
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      color: var(--accent);
+    }
+
+    .help-modal p {
+      margin: 4px 0;
+      color: var(--text-muted);
+    }
+
+    .help-modal ul {
+      margin: 4px 0 8px 14px;
+      padding: 0;
+    }
+
+    .help-modal li {
+      margin: 2px 0;
+    }
+
+    .help-close {
+      margin-top: 8px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid #333;
+      background: #000;
+      color: #eee;
+      font-size: 9px;
+      cursor: pointer;
+    }
+
+    body.studio-fullscreen .main {
+      padding: 0;
+      border-top: none;
+    }
+
+    body.studio-fullscreen .panel {
+      border: none;
+      border-radius: 0;
+    }
+
+    @media (max-width: 768px) {
+      .header {
+        padding: 4px 4px;
+        font-size: 8px;
+      }
+
+      .studio-title {
+        display: none;
+      }
+
+      .main {
+        padding: 0;
+        border-top: none;
+      }
+
+      .panel {
+        border: none;
+        border-radius: 0;
+      }
+
+      .panel-grid[data-layout="triple"] {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="chrome">
+    <header class="header">
+      <div class="studio-left">
+        <span class="studio-label">STUDIO</span>
+        <span class="studio-title">COOL TIMBER – COURAGE / WERE / MASTER</span>
+      </div>
+      <div class="studio-center" id="panelTabs">
+        <button class="tab-btn tab-color-courage active" data-panel="courage">Courage</button>
+        <button class="tab-btn tab-color-were" data-panel="were">WERE</button>
+        <button class="tab-btn tab-color-master" data-panel="master">Master</button>
+        <button class="tab-btn tab-color-symbio" data-panel="symbio">Symbiogene</button>
+        <button class="tab-btn tab-color-loader" data-panel="loader">Loader</button>
+      </div>
+      <div class="studio-right">
+        <button class="studio-btn" id="fullscreenBtn" title="Toggle fullscreen">FS</button>
+        <button class="studio-btn" id="helpBtn" title="TIMBER help">?</button>
+        <div class="layout-toggle" id="layoutToggle">
+          <button class="layout-btn active" data-layout="single">
+            <span class="icon">▣</span>
+            <span>TABS</span>
+          </button>
+          <button class="layout-btn" data-layout="triple">
+            <span class="icon">☷</span>
+            <span>3-UP</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="main">
+      <div class="panel-grid" id="panelGrid" data-layout="single">
+        <section class="panel active" data-panel="courage">
+          <div class="panel-body">
+            <iframe src="wag-cool-courage.html" title="WAG Courage"></iframe>
+          </div>
+        </section>
+
+        <section class="panel" data-panel="were">
+          <div class="panel-body">
+            <iframe src="wag-cool-were.html" title="WAG WERE" data-studio-host="timber"></iframe>
+          </div>
+        </section>
+
+        <section class="panel" data-panel="master">
+          <div class="panel-body">
+            <iframe src="wag-cool-master.html" title="WAG Master" data-studio-host="timber"></iframe>
+          </div>
+        </section>
+
+        <section class="panel" data-panel="symbio">
+          <div class="panel-body">
+            <iframe src="wag-symbiogene.html" title="WAG Symbiogene"></iframe>
+          </div>
+        </section>
+        <section class="panel" data-panel="loader">
+          <div class="panel-body">
+            <iframe src="wag-cool-skeleton-loader.html" title="WAG COOL Skeleton Loader"></iframe>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div id="studioHelp" class="help-overlay">
+    <div class="help-modal">
+      <h1>TIMBER – Integrated Studio</h1>
+      <p>
+        TIMBER hosts Courage (authoring), WERE (skeleton inspector), Master (room-scale composer), and Symbiogene (skeleton lab)
+        in a single shared studio, all wired together over the same GOLD + selection bus.
+      </p>
+      <ul>
+        <li><strong>Courage</strong> – load and edit MPD scenes, then emit GOLD snapshots with <code>mpd_content</code>, <code>stud_skeleton</code>, <code>part_skeletons</code>, and <code>ground_violations</code>.</li>
+        <li><strong>WERE</strong> – inspect GOLD skeletons as per-part/per-layer bones and ORBS, and export edited MPD back to Courage.</li>
+        <li><strong>Master</strong> – explore the same GOLD in a bounded "room", visualize collisions, envelopes, and control dots.</li>
+        <li><strong>Symbiogene</strong> – experiment with raw GOLD structures (stud clouds, violations) for calibration and debugging.</li>
+      </ul>
+      <p><strong>TABS</strong> shows one instrument at a time. <strong>3-UP</strong> is for large screens – Courage, WERE, and Master side by side with horizontal scroll when needed.</p>
+      <p style="margin-top: 6px; font-size: 9px; color: var(--text-muted);">
+        For a step-by-step LEGO-style walkthrough of these flows, open
+        <a href="TIMBER-tutorial-prime.html" target="_blank" style="color: var(--accent); text-decoration: underline;">TIMBER-tutorial-prime.html</a>
+        in a new tab.
+      </p>
+      <button class="help-close" id="helpCloseBtn">CLOSE</button>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      const grid = document.getElementById('panelGrid');
+      const layoutButtons = Array.from(document.querySelectorAll('#layoutToggle .layout-btn'));
+      const tabs = Array.from(document.querySelectorAll('#panelTabs .tab-btn'));
+      const panels = Array.from(document.querySelectorAll('.panel-grid .panel'));
+      const fullscreenBtn = document.getElementById('fullscreenBtn');
+      const helpBtn = document.getElementById('helpBtn');
+      const helpOverlay = document.getElementById('studioHelp');
+      const helpCloseBtn = document.getElementById('helpCloseBtn');
+
+      let layout = 'single';
+      let activePanel = 'courage';
+
+      const isMobile = () => window.matchMedia('(max-width: 768px)').matches;
+
+      function applyLayout(nextLayout) {
+        if (isMobile()) {
+          layout = 'single';
+          grid.setAttribute('data-layout', layout);
+          panels.forEach(panel => {
+            panel.classList.remove('triple-visible');
+            panel.classList.toggle('active', panel.dataset.panel === activePanel);
+          });
+          return;
+        }
+        layout = nextLayout;
+        grid.setAttribute('data-layout', layout);
+        layoutButtons.forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.layout === layout);
+        });
+
+        if (layout === 'single') {
+          panels.forEach(panel => {
+            panel.classList.remove('triple-visible');
+            panel.classList.toggle('active', panel.dataset.panel === activePanel);
+          });
+        } else if (layout === 'triple') {
+          panels.forEach(panel => {
+            const id = panel.dataset.panel;
+            const showTriple = id === 'courage' || id === 'were' || id === 'master';
+            panel.classList.toggle('active', false);
+            panel.classList.toggle('triple-visible', showTriple);
+          });
+        }
+      }
+
+      function setActivePanel(panelId) {
+        activePanel = panelId;
+        tabs.forEach(tab => {
+          tab.classList.toggle('active', tab.dataset.panel === activePanel);
+        });
+        if (layout === 'single') {
+          panels.forEach(panel => {
+            panel.classList.toggle('active', panel.dataset.panel === activePanel);
+          });
+        }
+      }
+
+      layoutButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (isMobile()) return;
+          const next = btn.dataset.layout;
+          if (!next || next === layout) return;
+          applyLayout(next);
+        });
+      });
+
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          const panelId = tab.dataset.panel;
+          if (!panelId || panelId === activePanel) return;
+          setActivePanel(panelId);
+        });
+      });
+
+      if (fullscreenBtn) {
+        const chromeEl = document.querySelector('.chrome') || document.documentElement;
+
+        const syncFullscreenState = () => {
+          const isNativeFs = !!document.fullscreenElement;
+          const active = isNativeFs || document.body.classList.contains('studio-fullscreen');
+          document.body.classList.toggle('studio-fullscreen', active);
+          fullscreenBtn.classList.toggle('active', active);
+          fullscreenBtn.textContent = active ? '⧉' : 'FS';
+        };
+
+        fullscreenBtn.addEventListener('click', () => {
+          const canNativeFs = !!(chromeEl.requestFullscreen || chromeEl.webkitRequestFullscreen || chromeEl.mozRequestFullScreen || chromeEl.msRequestFullscreen);
+          const isNativeFs = !!document.fullscreenElement;
+
+          if (canNativeFs) {
+            try {
+              if (!isNativeFs) {
+                (chromeEl.requestFullscreen || chromeEl.webkitRequestFullscreen || chromeEl.mozRequestFullScreen || chromeEl.msRequestFullscreen).call(chromeEl);
+              } else if (document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen) {
+                (document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen).call(document);
+              }
+            } catch (_) {
+              const active = !document.body.classList.contains('studio-fullscreen');
+              document.body.classList.toggle('studio-fullscreen', active);
+            }
+          } else {
+            const active = !document.body.classList.contains('studio-fullscreen');
+            document.body.classList.toggle('studio-fullscreen', active);
+          }
+
+          syncFullscreenState();
+        });
+
+        document.addEventListener('fullscreenchange', syncFullscreenState);
+      }
+
+      const openHelp = () => {
+        if (!helpOverlay) return;
+        helpOverlay.classList.add('active');
+      };
+
+      const closeHelp = () => {
+        if (!helpOverlay) return;
+        helpOverlay.classList.remove('active');
+      };
+
+      if (helpBtn) helpBtn.addEventListener('click', openHelp);
+      if (helpCloseBtn) helpCloseBtn.addEventListener('click', closeHelp);
+      if (helpOverlay) {
+        helpOverlay.addEventListener('click', (e) => {
+          if (e.target === helpOverlay) closeHelp();
+        });
+      }
+
+      // --- TIMBER Wolf Bus: shared relay between Courage, WERE, Master, and Symbiogene ---
+      const courageFrame = document.querySelector('iframe[title="WAG Courage"]');
+      const wereFrame = document.querySelector('iframe[title="WAG WERE"]');
+      const masterFrame = document.querySelector('iframe[title="WAG Master"]');
+      const symbioFrame = document.querySelector('iframe[title="WAG Symbiogene"]');
+      const loaderFrame = document.querySelector('iframe[title="WAG COOL Skeleton Loader"]');
+
+      function relayTo(frame, message) {
+        if (!frame || !frame.contentWindow || !message) return;
+        try {
+          frame.contentWindow.postMessage(message, '*');
+        } catch (err) {
+          console.warn('[TIMBER] relay failed', err);
+        }
+      }
+
+      window.addEventListener('message', (event) => {
+        const data = event.data;
+        if (!data || typeof data !== 'object' || !data.type) return;
+
+        if (data.type === 'courage-gold-snapshot') {
+          const payload = data.payload;
+          if (!payload) return;
+
+          // Forward full GOLD snapshot to WERE and Master
+          relayTo(wereFrame, {
+            type: 'studio-load-gold-from-courage',
+            payload
+          });
+          relayTo(masterFrame, {
+            type: 'studio-load-gold-from-courage',
+            payload
+          });
+
+          // Also forward bare skeleton to Symbiogene for visualization
+          if (Array.isArray(payload.stud_skeleton) && payload.stud_skeleton.length) {
+            relayTo(symbioFrame, {
+              type: 'studio-load-skeleton-from-courage',
+              studs: payload.stud_skeleton
+            });
+          }
+          // Forward full GOLD to the COOL Skeleton Loader so it can rebuild stud_skeleton_v2 views
+          relayTo(loaderFrame, {
+            type: 'studio-load-gold-from-courage',
+            payload
+          });
+        } else if (data.type === 'were-export-mpd') {
+          const mpd = typeof data.mpd === 'string' ? data.mpd : '';
+          if (!mpd.trim()) return;
+          relayTo(courageFrame, {
+            type: 'studio-load-mpd-from-were',
+            mpd
+          });
+        } else if (data.type === 'timber-selection-from-were') {
+          const groupKeys = Array.isArray(data.groupKeys) ? data.groupKeys : [];
+          const lineNums = Array.isArray(data.lineNums) ? data.lineNums : [];
+          const selectionMsg = {
+            type: 'timber-selection-update',
+            groupKeys,
+            lineNums
+          };
+          relayTo(courageFrame, selectionMsg);
+          relayTo(masterFrame, selectionMsg);
+          relayTo(symbioFrame, selectionMsg);
+          relayTo(loaderFrame, selectionMsg);
+        }
+      });
+
+      applyLayout(layout);
+      setActivePanel(activePanel);
+    })();
+  </script>
+</body>
+</html>

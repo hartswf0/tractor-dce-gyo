@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WAG – MPD → Stud Skeleton Generator (mpd-ves-gen)</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      color-scheme: dark;
+      --bg: #020617;
+      --panel: #020617;
+      --border: rgba(30, 64, 175, 0.7);
+      --border-subtle: rgba(30, 64, 175, 0.4);
+      --accent: #60a5fa;
+      --accent-soft: rgba(96, 165, 250, 0.15);
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+    }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: radial-gradient(circle at top left,#020617,#000);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .chrome {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 12px;
+      gap: 10px;
+    }
+    header {
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: linear-gradient(135deg, rgba(15,23,42,0.95), rgba(15,23,42,0.85));
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    .title-block { display: flex; flex-direction: column; gap: 2px; }
+    h1 {
+      font-size: 15px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+    .subtitle {
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .controls {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      font-size: 11px;
+    }
+    .btn {
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      background: rgba(15,23,42,0.9);
+      color: var(--muted);
+      padding: 4px 10px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+    .btn.primary {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .btn:hover {
+      background: rgba(30,64,175,0.25);
+      color: var(--accent);
+    }
+    .status { font-size: 11px; color: var(--muted); }
+
+    .main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: minmax(260px, 1.1fr) minmax(260px, 1.1fr) minmax(260px, 0.9fr);
+      gap: 8px;
+      min-height: 0;
+    }
+    .panel {
+      border-radius: 10px;
+      border: 1px solid rgba(15,23,42,0.9);
+      background: radial-gradient(circle at top,#020617,#020617 45%,#000 100%);
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+    .panel-header {
+      padding: 6px 9px;
+      border-bottom: 1px solid rgba(15,23,42,0.9);
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+    }
+    .panel-body {
+      padding: 6px;
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .scroll { flex: 1; min-height: 0; overflow: auto; }
+    textarea {
+      width: 100%;
+      height: 100%;
+      resize: none;
+      background: #020617;
+      border-radius: 6px;
+      border: 1px solid rgba(15,23,42,0.9);
+      color: var(--text);
+      font-family: "Fira Code", ui-monospace, monospace;
+      font-size: 11px;
+      padding: 6px;
+    }
+    .metrics {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+      font-size: 10px;
+    }
+    .chip {
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid rgba(31,41,55,0.9);
+      background: rgba(15,23,42,0.9);
+      color: var(--muted);
+    }
+    .chip.good { border-color: #22c55e; color: #22c55e; }
+    .chip.warn { border-color: #f97316; color: #f97316; }
+    .chip.bad  { border-color: #ef4444; color: #ef4444; }
+
+    .preview-list {
+      font-family: "Fira Code", ui-monospace, monospace;
+      font-size: 10px;
+      color: var(--muted);
+    }
+    .preview-item { padding: 2px 0; }
+    .preview-item span.key { color: var(--accent); }
+    .preview-item span.part { color: #a5b4fc; }
+
+    @media (max-width: 1100px) {
+      .main {
+        grid-template-columns: minmax(0,1fr);
+        grid-template-rows: minmax(0,0.9fr) minmax(0,0.9fr) minmax(0,0.7fr);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="chrome">
+    <header>
+      <div class="title-block">
+        <h1>MPD → STUD SKELETON V2</h1>
+        <div class="subtitle">mpd-ves-gen · per-line template-based generator</div>
+      </div>
+      <div class="controls">
+        <button class="btn primary" id="compileBtn">COMPILE SKELETON</button>
+        <button class="btn" id="copyOutputBtn">COPY OUTPUT JSON</button>
+        <span class="status" id="statusText">Paste MPD + part skeleton library → COMPILE</span>
+      </div>
+    </header>
+
+    <main class="main">
+      <section class="panel">
+        <div class="panel-header">
+          <span>MPD Input</span>
+          <span style="font-size:10px; color:var(--muted);">Type-1 lines → parts per line</span>
+        </div>
+        <div class="panel-body">
+          <div class="scroll">
+            <textarea id="mpdInput" spellcheck="false" placeholder="Paste MPD text here..."></textarea>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <span>Part Skeleton Library</span>
+          <span style="font-size:10px; color:var(--muted);">{ partId → { studs:[{x,y,z,role?},...] } }</span>
+        </div>
+        <div class="panel-body">
+          <div class="scroll">
+            <textarea id="libInput" spellcheck="false" placeholder="Paste part skeleton library JSON here (keys are partIds, values have a 'studs' array in part-local LDU)..."></textarea>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <span>Output · GOLD Fragment</span>
+          <span style="font-size:10px; color:var(--muted);">mpd_content + stud_skeleton_v2</span>
+        </div>
+        <div class="panel-body">
+          <div class="metrics" id="metricsRow"></div>
+          <div class="scroll">
+            <textarea id="outputJson" spellcheck="false" placeholder="Compiled GOLD fragment with mpd_content + stud_skeleton_v2 will appear here..."></textarea>
+            <div class="preview-list" id="previewList"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const mpdInput = document.getElementById('mpdInput');
+    const libInput = document.getElementById('libInput');
+    const outputJson = document.getElementById('outputJson');
+    const statusText = document.getElementById('statusText');
+    const metricsRow = document.getElementById('metricsRow');
+    const previewList = document.getElementById('previewList');
+
+    function setStatus(msg) {
+      statusText.textContent = msg;
+    }
+
+    function parseMpdLines(text) {
+      if (!text || typeof text !== 'string') return [];
+      const lines = text.split(/\r?\n/);
+      const result = [];
+      lines.forEach((raw, idx) => {
+        const trimmed = raw.trim();
+        if (!trimmed) return;
+        const isPart = trimmed.startsWith('1 ');
+        result.push({ index: idx, raw, trimmed, isPart });
+      });
+      return result;
+    }
+
+    function parseType1Line(trimmed, idx) {
+      const tokens = trimmed.split(/\s+/);
+      if (tokens.length < 15 || tokens[0] !== '1') return null;
+      const color = tokens[1];
+      const x = Number(tokens[2]);
+      const y = Number(tokens[3]);
+      const z = Number(tokens[4]);
+      const a = Number(tokens[5]),  b = Number(tokens[6]),  c = Number(tokens[7]);
+      const d = Number(tokens[8]),  e = Number(tokens[9]),  f = Number(tokens[10]);
+      const g = Number(tokens[11]), h = Number(tokens[12]), i = Number(tokens[13]);
+      const partId = tokens[14];
+      if (!partId) return null;
+      return { lineIndex: idx, color, x, y, z, a, b, c, d, e, f, g, h, i, partId };
+    }
+
+    function compileSkeleton(mpdText, libObj) {
+      const lines = parseMpdLines(mpdText);
+      if (!lines.length) return { nodes: [], parts: [], stats: { partLines: 0, nodes: 0, missingParts: [] } };
+
+      const plateHeight = 8; // LDU per plate
+      const nodes = [];
+      const parts = [];
+      const missingParts = new Set();
+
+      lines.forEach(line => {
+        if (!line.isPart) return;
+        const parsed = parseType1Line(line.trimmed, line.index);
+        if (!parsed) return;
+        parts.push(parsed);
+        const key = parsed.partId.toLowerCase();
+        const entry = libObj && typeof libObj === 'object' ? libObj[key] : null;
+        if (!entry || !Array.isArray(entry.studs) || !entry.studs.length) {
+          missingParts.add(parsed.partId);
+          return;
+        }
+
+        const a = parsed.a, b = parsed.b, c = parsed.c;
+        const d = parsed.d, e = parsed.e, f = parsed.f;
+        const g = parsed.g, h = parsed.h, i = parsed.i;
+        const tx = parsed.x, ty = parsed.y, tz = parsed.z;
+
+        entry.studs.forEach((s, studIndex) => {
+          const lx = typeof s.x === 'number' ? s.x : 0;
+          const ly = typeof s.y === 'number' ? s.y : 0;
+          const lz = typeof s.z === 'number' ? s.z : 0;
+          const wx = a * lx + b * ly + c * lz + tx;
+          const wy = d * lx + e * ly + f * lz + ty;
+          const wz = g * lx + h * ly + i * lz + tz;
+          const gridX = Math.round(wx / 20);
+          const gridZ = Math.round(wz / 20);
+          const layer = Math.round(wy / plateHeight);
+          nodes.push({
+            x: wx,
+            y: wy,
+            z: wz,
+            layer,
+            kind: 'stud',
+            lineNum: parsed.lineIndex,
+            gridX,
+            gridZ,
+            partId: parsed.partId,
+            studIndex,
+            local: { x: lx, y: ly, z: lz },
+            source: 'template',
+            studVersion: 1
+          });
+        });
+      });
+
+      return {
+        nodes,
+        parts,
+        stats: {
+          partLines: parts.length,
+          nodes: nodes.length,
+          missingParts: Array.from(missingParts)
+        }
+      };
+    }
+
+    function renderMetrics(stats) {
+      metricsRow.innerHTML = '';
+      const s = stats || {};
+      function chip(text, cls) {
+        const div = document.createElement('div');
+        div.className = 'chip' + (cls ? ' ' + cls : '');
+        div.textContent = text;
+        metricsRow.appendChild(div);
+      }
+      chip(`MPD part lines: ${s.partLines || 0}`);
+      chip(`Stud nodes: ${s.nodes || 0}`);
+      if (s.missingParts && s.missingParts.length) {
+        chip(`Missing templates: ${s.missingParts.length}`, 'warn');
+      } else {
+        chip('All parts have templates', 'good');
+      }
+    }
+
+    function renderPreview(nodes) {
+      previewList.innerHTML = '';
+      const list = nodes.slice(0, 12);
+      list.forEach(n => {
+        const div = document.createElement('div');
+        div.className = 'preview-item';
+        const part = document.createElement('span');
+        part.className = 'part';
+        part.textContent = n.partId || '??';
+        const key = document.createElement('span');
+        key.className = 'key';
+        key.textContent = `  L${n.layer}  ln ${n.lineNum}  `;
+        const coords = document.createElement('span');
+        coords.textContent = `(${n.gridX != null ? n.gridX : '?'} , ${n.gridZ != null ? n.gridZ : '?'})`;
+        div.appendChild(part);
+        div.appendChild(key);
+        div.appendChild(coords);
+        previewList.appendChild(div);
+      });
+      if (nodes.length > list.length) {
+        const more = document.createElement('div');
+        more.className = 'preview-item';
+        more.textContent = `… +${nodes.length - list.length} more studs`;
+        previewList.appendChild(more);
+      }
+    }
+
+    document.getElementById('compileBtn').addEventListener('click', () => {
+      const mpdText = mpdInput.value.trim();
+      if (!mpdText) {
+        setStatus('No MPD text provided');
+        return;
+      }
+      let libObj = null;
+      const libText = libInput.value.trim();
+      if (libText) {
+        try {
+          libObj = JSON.parse(libText);
+        } catch (e) {
+          console.warn('[mpd-ves-gen] invalid library JSON', e);
+          setStatus('ERROR: invalid library JSON');
+          return;
+        }
+      }
+      const { nodes, stats } = compileSkeleton(mpdText, libObj || {});
+      renderMetrics(stats);
+      renderPreview(nodes);
+      const out = {
+        mpd_content: mpdText,
+        stud_skeleton_v2: nodes.length ? {
+          version: 1,
+          source: 'template',
+          nodes
+        } : null
+      };
+      outputJson.value = JSON.stringify(out, null, 2);
+      setStatus(`Compiled ${stats.nodes} studs from ${stats.partLines} MPD part lines`);
+    });
+
+    document.getElementById('copyOutputBtn').addEventListener('click', async () => {
+      const txt = outputJson.value.trim();
+      if (!txt) { setStatus('Nothing to copy'); return; }
+      try {
+        await navigator.clipboard.writeText(txt);
+        setStatus('Output JSON copied to clipboard');
+      } catch (e) {
+        console.warn('[mpd-ves-gen] clipboard failed', e);
+        setStatus('Could not copy to clipboard');
+      }
+    });
+  </script>
+</body>
+</html>
