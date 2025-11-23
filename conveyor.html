@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WAG – CONVEYOR OPS v3</title>
+    <style>
+        :root {
+            --bg-void: #09090b;
+            --bg-belt: #0e0e11;
+            --card-bg: #18181b;
+            --accent: #facc15;      /* Safety Yellow */
+            --accent-glow: rgba(250, 204, 21, 0.15);
+            --cyan: #06b6d4;        /* Electric Cyan */
+            --text-hi: #f4f4f5;
+            --text-mid: #a1a1aa;
+            --text-lo: #52525b;
+            --border: #27272a;
+            
+            --card-height: 140px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; outline: none; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            background: var(--bg-void);
+            color: var(--text-hi);
+            font-family: 'Roboto Mono', 'Courier New', monospace;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- HEADER --- */
+        header {
+            flex: 0 0 50px;
+            background: #000;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.8);
+        }
+
+        .brand { font-size: 16px; font-weight: 900; color: var(--accent); letter-spacing: 1px; text-transform: uppercase; }
+        .stat-box { font-size: 11px; color: var(--text-lo); display: flex; gap: 15px; }
+        .stat-box span b { color: var(--cyan); margin-left: 4px; }
+
+        /* --- VIEWPORT --- */
+        .viewport {
+            flex: 1;
+            position: relative;
+            overflow-y: auto;
+            overflow-x: hidden;
+            background: var(--bg-belt);
+            scroll-behavior: smooth;
+            
+            /* Center Alignment Padding */
+            padding-top: calc(50vh - (var(--card-height) / 2)); 
+            padding-bottom: calc(50vh - (var(--card-height) / 2));
+        }
+
+        /* Background Grid Pattern */
+        .viewport::before {
+            content: ''; position: fixed; inset: 0;
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* --- SCANNER HEAD --- */
+        .scan-head {
+            position: absolute;
+            top: 50%; left: 0; right: 0;
+            height: var(--card-height);
+            transform: translateY(-50%);
+            pointer-events: none;
+            z-index: 50;
+            border-top: 1px solid var(--accent);
+            border-bottom: 1px solid var(--accent);
+            background: linear-gradient(90deg, rgba(250, 204, 21, 0.02), transparent 50%, rgba(250, 204, 21, 0.02));
+        }
+        .scan-head::after {
+            content: 'SCAN_LOCK';
+            position: absolute; top: -16px; right: 20px;
+            background: var(--accent); color: #000;
+            font-size: 9px; font-weight: bold; padding: 1px 6px;
+        }
+
+        /* --- PAYLOAD CARD --- */
+        .payload {
+            position: relative;
+            height: var(--card-height);
+            margin: 0 auto 16px auto;
+            width: 95%;
+            max-width: 1100px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            display: grid;
+            grid-template-columns: 60px 1fr 140px;
+            transition: all 0.3s ease-out;
+            opacity: 0.4; /* Visible but dim */
+            transform: scale(0.98);
+            z-index: 10;
+        }
+
+        .payload:hover { opacity: 0.7; border-color: #444; }
+
+        /* ACTIVE STATE */
+        .payload.active {
+            opacity: 1;
+            transform: scale(1);
+            background: #1c1c22;
+            border-color: var(--accent);
+            box-shadow: 0 0 40px rgba(0,0,0,0.6);
+            z-index: 20;
+        }
+
+        /* Sector 1: ID */
+        .p-id {
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px; font-weight: bold; color: var(--text-lo);
+            background: #111; border-right: 1px solid var(--border);
+        }
+        .payload.active .p-id { color: var(--accent); background: #262000; }
+
+        /* Sector 2: Data */
+        .p-data {
+            padding: 12px 20px;
+            display: flex; flex-direction: column; justify-content: space-between;
+        }
+
+        .d-header {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid #27272a; padding-bottom: 6px;
+        }
+        .part-name { font-weight: bold; font-size: 13px; color: #fff; }
+        .part-col { font-size: 10px; color: var(--cyan); text-transform: uppercase; }
+
+        .d-grid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px; margin-top: 8px; }
+        
+        .lbl { font-size: 9px; color: var(--text-lo); margin-bottom: 2px; text-transform: uppercase; }
+        
+        .xyz { font-size: 14px; color: var(--text-mid); font-weight: bold; display: flex; gap: 15px; }
+        .payload.active .xyz { color: #fff; }
+
+        .mtx { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; font-size: 10px; color: var(--text-lo); }
+        .mv { background: #000; text-align: center; padding: 2px; }
+        .payload.active .mv { color: var(--cyan); background: rgba(6, 182, 212, 0.1); }
+
+        .raw { margin-top: 6px; font-size: 10px; color: var(--text-lo); white-space: nowrap; overflow: hidden; opacity: 0.5; }
+
+        /* Sector 3: Viz */
+        .p-viz { background: #000; border-left: 1px solid var(--border); position: relative; }
+        canvas { width: 100%; height: 100%; display: block; }
+
+        /* --- FOOTER --- */
+        footer {
+            flex: 0 0 50px;
+            background: #050505;
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: stretch;
+        }
+        
+        .btn {
+            flex: 1;
+            background: transparent;
+            border: none;
+            border-right: 1px solid var(--border);
+            color: var(--text-mid);
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn:hover { background: #111; color: #fff; }
+        .btn.action { color: var(--accent); background: rgba(250, 204, 21, 0.05); }
+        .btn.action:hover { background: var(--accent); color: #000; }
+        .btn.active { background: var(--accent); color: #000; }
+
+        /* --- MODAL (Data Ingest) --- */
+        .modal {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.95);
+            z-index: 200;
+            display: none;
+            flex-direction: column;
+            padding: 20px;
+        }
+        .modal.open { display: flex; }
+        .modal-head { font-size: 14px; color: var(--accent); margin-bottom: 10px; font-weight: bold; }
+        .modal textarea {
+            flex: 1; background: #111; border: 1px solid var(--border);
+            color: var(--cyan); padding: 15px; font-family: inherit; font-size: 12px; resize: none;
+            margin-bottom: 10px;
+        }
+        .modal-actions { display: flex; gap: 10px; height: 50px; }
+
+        /* Mobile Tweak */
+        @media (max-width: 700px) {
+            .payload { grid-template-columns: 50px 1fr; grid-template-rows: 1fr 120px; height: 260px; --card-height: 260px; }
+            .p-viz { grid-column: 1 / -1; border-left: none; border-top: 1px solid var(--border); }
+            .p-id { grid-row: 1; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="brand">CONVEYOR-OPS v3</div>
+    <div class="stat-box">
+        <span>LINES: <b id="cntLines">0</b></span>
+        <span>STUDS: <b id="cntStuds">0</b></span>
+    </div>
+</header>
+
+<div class="viewport" id="viewport">
+    <div class="scan-head"></div>
+    <div id="listContainer"></div>
+</div>
+
+<footer>
+    <button class="btn" onclick="openModal()">Load Data</button>
+    <button class="btn" onclick="resetView()">Reset View</button>
+    <button class="btn action" id="runBtn" onclick="toggleRun()">Initiate Feed</button>
+</footer>
+
+<!-- Data Input Modal -->
+<div class="modal" id="ioModal">
+    <div class="modal-head">DATA INGEST TERMINAL</div>
+    <textarea id="ioText" placeholder="Paste MPD data here..."></textarea>
+    <div class="modal-actions">
+        <button class="btn action" onclick="ingestData()">CONFIRM UPLOAD</button>
+        <button class="btn" onclick="closeModal()">CANCEL</button>
+    </div>
+</div>
+
+<script>
+    // --- STATE ---
+    const state = {
+        lines: [],
+        activeId: null,
+        running: false,
+        observer: null,
+        scrollTimer: null,
+        audioCtx: null
+    };
+
+    // --- AUDIO ---
+    const SFX = {
+        init: () => { if (!state.audioCtx) state.audioCtx = new (window.AudioContext || window.webkitAudioContext)(); },
+        blip: () => {
+            if(!state.audioCtx) return;
+            const t = state.audioCtx.currentTime;
+            const o = state.audioCtx.createOscillator();
+            const g = state.audioCtx.createGain();
+            o.connect(g); g.connect(state.audioCtx.destination);
+            o.type = 'sine';
+            o.frequency.setValueAtTime(400, t);
+            o.frequency.exponentialRampToValueAtTime(50, t + 0.1);
+            g.gain.setValueAtTime(0.05, t);
+            g.gain.linearRampToValueAtTime(0, t + 0.1);
+            o.start(t); o.stop(t + 0.1);
+        }
+    };
+
+    // --- PARSER ---
+    function getStuds(part) {
+        let w=2, h=4;
+        if(part.includes('3005')) { w=1; h=1; }
+        else if(part.includes('3003')) { w=2; h=2; }
+        else if(part.includes('3009')) { w=1; h=6; }
+        
+        const studs = [];
+        for(let x=0; x<w; x++) for(let z=0; z<h; z++) studs.push({x:x*20, z:z*20});
+        return studs;
+    }
+
+    function parse(text) {
+        // Safely split and filter
+        if (!text) return [];
+        const lines = text.split(/\r?\n/).filter(l => l.trim().startsWith('1 '));
+        return lines.map((l, i) => {
+            const p = l.trim().split(/\s+/);
+            return {
+                id: i,
+                raw: l.trim(),
+                color: p[1],
+                pos: { x: p[2], y: p[3], z: p[4] },
+                mtx: p.slice(5, 14),
+                name: p[14] || 'UNK',
+                studs: getStuds(p[14] || '')
+            };
+        });
+    }
+
+    // --- BUILDER ---
+    function buildList(data) {
+        const container = document.getElementById('listContainer');
+        container.innerHTML = '';
+        state.lines = data;
+        
+        let totalStuds = 0;
+        
+        data.forEach(d => {
+            totalStuds += d.studs.length;
+            const el = document.createElement('div');
+            el.className = 'payload';
+            el.id = `item-${d.id}`;
+            el.dataset.id = d.id;
+
+            // Construct HTML
+            el.innerHTML = `
+                <div class="p-id">${String(d.id).padStart(3,'0')}</div>
+                <div class="p-data">
+                    <div class="d-header">
+                        <span class="part-name">${d.name}</span>
+                        <span class="part-col">COL_${d.color}</span>
+                    </div>
+                    <div class="d-grid">
+                        <div>
+                            <div class="lbl">XYZ VECTOR</div>
+                            <div class="xyz"><span>${d.pos.x}</span><span>${d.pos.y}</span><span>${d.pos.z}</span></div>
+                        </div>
+                        <div>
+                            <div class="lbl">ROTATION MATRIX</div>
+                            <div class="mtx">
+                                ${d.mtx.map(m => `<div class="mv">${parseFloat(m).toFixed(1)}</div>`).join('')}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="raw">${d.raw}</div>
+                </div>
+                <div class="p-viz">
+                    <canvas id="c-${d.id}"></canvas>
+                </div>
+            `;
+            container.appendChild(el);
+            // Async draw to prevent UI lockup
+            setTimeout(() => draw(d.id, d), 50);
+        });
+
+        document.getElementById('cntLines').textContent = data.length;
+        document.getElementById('cntStuds').textContent = totalStuds;
+        
+        setupObserver();
+    }
+
+    // --- VISUALIZATION ---
+    function draw(id, data, rotOffset = 0) {
+        const cvs = document.getElementById(`c-${id}`);
+        if(!cvs) return;
+        
+        // Resize logic
+        const rect = cvs.getBoundingClientRect();
+        if(cvs.width !== rect.width) { cvs.width = rect.width; cvs.height = rect.height; }
+
+        const ctx = cvs.getContext('2d');
+        const w = cvs.width, h = cvs.height;
+        const cx = w/2, cy = h/2;
+        const colMap = {'1':'#22d3ee', '4':'#facc15', '2':'#4ade80'};
+        const c = colMap[data.color] || '#fff';
+        const ang = 0.7 + rotOffset;
+
+        ctx.clearRect(0,0,w,h);
+        
+        // Project Points (Isometric)
+        const pts = data.studs.map(s => {
+            // Center relative to group
+            const mx = (data.studs[data.studs.length-1].x)/2;
+            const mz = (data.studs[data.studs.length-1].z)/2;
+            
+            const lx = s.x - mx;
+            const lz = s.z - mz;
+            
+            const rx = lx * Math.cos(ang) - lz * Math.sin(ang);
+            const rz = lx * Math.sin(ang) + lz * Math.cos(ang);
+            
+            return { x: (rx - rz)*0.8, y: (rx + rz)*0.5 };
+        });
+
+        // Draw Lines
+        ctx.strokeStyle = c;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        for(let i=0; i<pts.length-1; i++) {
+            if (i%2 === 0) { // Simple pairing
+                ctx.moveTo(cx+pts[i].x, cy+pts[i].y);
+                ctx.lineTo(cx+pts[i+1].x, cy+pts[i+1].y);
+            }
+        }
+        ctx.stroke();
+
+        // Draw Dots
+        ctx.fillStyle = '#fff';
+        pts.forEach(p => {
+            ctx.fillRect(cx+p.x-2, cy+p.y-2, 4, 4);
+        });
+    }
+
+    // --- SCANNER ENGINE (Observer) ---
+    function setupObserver() {
+        if(state.observer) state.observer.disconnect();
+
+        // The rootMargin shrinks the "active area" to a thin line in the center of the viewport
+        const opts = {
+            root: document.getElementById('viewport'),
+            rootMargin: "-50% 0px -50% 0px",
+            threshold: 0
+        };
+
+        state.observer = new IntersectionObserver((entries) => {
+            entries.forEach(e => {
+                if(e.isIntersecting) activate(e.target);
+                else e.target.classList.remove('active');
+            });
+        }, opts);
+
+        document.querySelectorAll('.payload').forEach(el => state.observer.observe(el));
+    }
+
+    function activate(el) {
+        document.querySelectorAll('.payload').forEach(p => p.classList.remove('active'));
+        el.classList.add('active');
+        
+        const id = parseInt(el.dataset.id);
+        state.activeId = id;
+        
+        // Effect
+        SFX.blip();
+        if(state.lines[id]) draw(id, state.lines[id], 0.5); // Twitch rotation
+    }
+
+    // --- AUTO RUNNER ---
+    function toggleRun() {
+        state.running = !state.running;
+        const btn = document.getElementById('runBtn');
+        if(state.running) {
+            SFX.init();
+            btn.classList.add('active');
+            btn.textContent = 'PAUSE FEED';
+            loop();
+        } else {
+            btn.classList.remove('active');
+            btn.textContent = 'INITIATE FEED';
+            clearTimeout(state.scrollTimer);
+        }
+    }
+
+    function loop() {
+        if(!state.running) return;
+        
+        // Calculate Next
+        const nextId = (state.activeId + 1) % state.lines.length;
+        const nextEl = document.getElementById(`item-${nextId}`);
+        
+        if(nextEl) {
+            nextEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        
+        state.scrollTimer = setTimeout(loop, 800);
+    }
+
+    function resetView() {
+        state.running = false;
+        toggleRun(); // Update UI
+        const first = document.getElementById('item-0');
+        if(first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    // --- MODAL IO ---
+    function openModal() { document.getElementById('ioModal').classList.add('open'); }
+    function closeModal() { document.getElementById('ioModal').classList.remove('open'); }
+    
+    function ingestData() {
+        const txt = document.getElementById('ioText').value;
+        if(txt) {
+            buildList(parse(txt));
+            closeModal();
+            // Scroll to top
+            setTimeout(() => resetView(), 100);
+        }
+    }
+
+    // --- BOOT SEQUENCE ---
+    function boot() {
+        const demo = `
+1 4 0 0 0 1 0 0 0 1 0 0 0 1 3001.dat
+1 1 20 0 0 1 0 0 0 1 0 0 0 1 3001.dat
+1 2 40 0 0 1 0 0 0 1 0 0 0 1 3003.dat
+1 14 60 0 0 1 0 0 0 1 0 0 0 1 3003.dat
+1 72 0 -24 0 1 0 0 0 1 0 0 0 1 3020.dat
+1 4 0 -48 0 1 0 0 0 1 0 0 0 1 3009.dat
+1 1 20 -48 0 1 0 0 0 1 0 0 0 1 3009.dat
+`;
+        // Pre-load textarea so user sees example
+        document.getElementById('ioText').value = demo.trim();
+        // Build immediately
+        buildList(parse(demo.trim()));
+        // Scroll to first item
+        setTimeout(() => {
+            const first = document.getElementById('item-0');
+            if(first) first.scrollIntoView({block: 'center'});
+        }, 100);
+    }
+
+    // Run boot on load
+    boot();
+
+</script>
+</body>
+</html>
