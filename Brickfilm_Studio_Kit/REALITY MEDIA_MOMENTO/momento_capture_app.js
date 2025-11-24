@@ -15,6 +15,9 @@
     pathInitialPos: null
   };
 
+  const params = new URLSearchParams(window.location.search || '');
+  const hostMode = params.get('host') || '';
+
   function log(message) {
     const logEl = document.getElementById('log');
     const timestamp = new Date().toISOString().split('T')[1].replace('Z', '');
@@ -30,6 +33,20 @@
   function setStatus(text) {
     const statusEl = document.getElementById('status-line');
     if (statusEl) statusEl.textContent = text;
+  }
+
+  function resolveSourceIframe() {
+    if (hostMode === 'homer') {
+      try {
+        if (window.parent && window.parent.document) {
+          const frame = window.parent.document.querySelector('section[data-panel="courage"] iframe');
+          if (frame) return frame;
+        }
+      } catch (err) {
+        log('Unable to locate Courage iframe in Homer: ' + err.message);
+      }
+    }
+    return document.getElementById('grace-iframe');
   }
 
   function tryAttachToGrace() {
@@ -54,7 +71,7 @@
     state.camera = camera;
 
     log('Attached to Grace renderer/scene/camera.');
-    setStatus('Grace scene ready for capture.');
+    setStatus('Scene ready for capture.');
     return true;
   }
 
@@ -62,8 +79,8 @@
     if (state.renderer && state.scene && state.camera) return true;
     const ok = tryAttachToGrace();
     if (!ok) {
-      setStatus('Waiting for Grace scene (MomentoInterface / _captureData)…');
-      log('Grace not ready yet; could not find renderer/scene/camera.');
+      setStatus('Waiting for scene (MomentoInterface / _captureData)…');
+      log('Capture scene not ready yet; could not find renderer/scene/camera.');
     }
     return ok;
   }
@@ -358,22 +375,29 @@
   }
 
   function init() {
-    state.iframe = document.getElementById('grace-iframe');
+    state.iframe = resolveSourceIframe();
     if (!state.iframe) {
-      setStatus('Grace iframe not found.');
-      log('No #grace-iframe element; Momento cannot attach.');
+      setStatus('Capture source iframe not found.');
+      log('No capture source iframe; Momento cannot attach.');
       return;
     }
 
-    setStatus('Loading Grace into iframe…');
-
-    state.iframe.addEventListener('load', () => {
-      log('Grace iframe loaded. Waiting for MomentoInterface…');
-      setStatus('Grace loaded. Waiting for scene ready…');
+    if (hostMode === 'homer') {
+      setStatus('Using Courage scene from Homer…');
       setTimeout(() => {
         ensureGraceAttached();
       }, 1000);
-    });
+    } else {
+      setStatus('Loading Grace into iframe…');
+
+      state.iframe.addEventListener('load', () => {
+        log('Grace iframe loaded. Waiting for MomentoInterface…');
+        setStatus('Grace loaded. Waiting for scene ready…');
+        setTimeout(() => {
+          ensureGraceAttached();
+        }, 1000);
+      });
+    }
 
     const startBtn = document.getElementById('start-capture');
     const stopBtn = document.getElementById('stop-capture');

@@ -1173,6 +1173,7 @@
         <div class="header-controls">
             <div class="primary-modes">
                 <button class="btn" id="assemblyBtn">🏭 Assembly Line</button>
+                <button class="btn" id="reassemblyBtn">↩ Reassembly Line</button>
                 <button class="btn" id="timelineBtn">Timeline</button>
                 <button class="btn" id="redBullBtn" style="background: linear-gradient(135deg, #ef4444, #dc2626);" title="XRAY — Red Bull line sampler (RB)">XRAY (RB)</button>
             </div>
@@ -1373,8 +1374,20 @@
         paused: false,
         speed: 1200, // ms per line
         totalStuds: 0,
-        timeoutId: null
+        timeoutId: null,
+        direction: 'forward' // 'forward' (SOURCE→…) or 'reverse' (TRANSFORM→SOURCE)
     };
+
+    function updateAssemblySubtitle(extra) {
+        const el = document.querySelector('.subtitle');
+        if (!el) return;
+        const base = assemblyState.active
+            ? (assemblyState.direction === 'reverse'
+                ? 'REASSEMBLY LINE (stud → line)'
+                : 'ASSEMBLY LINE (line → stud)')
+            : 'GOLD SOURCE';
+        el.textContent = extra ? `${base} · ${extra}` : base;
+    }
 
     // === RED BULL SIMULATION STATE ===
     const redBullState = {
@@ -1706,6 +1719,7 @@
                 nodeCount: skeletonNodes.length,
                 eventCount: redBullEvents.length
             });
+            updateAssemblySubtitle('GOLD: local wag_redbull_gold');
             return true;
         } catch (err) {
             console.warn('[ASSEMBLY] Failed to initialize from GOLD fragment; using default MPD', err);
@@ -2226,6 +2240,12 @@
     function animateShuttleForLine(id) {
         if (!shuttle) return;
         if (id === null || isNaN(id)) return;
+
+        if (assemblyState && assemblyState.direction === 'reverse') {
+            shuttle.style.transformOrigin = 'right center';
+        } else {
+            shuttle.style.transformOrigin = 'left center';
+        }
 
         const items = [
             document.querySelector(`#list-void .item[data-id="${id}"]`),
@@ -3092,15 +3112,17 @@ ${matching === redbull.nodes.length && matching === template.nodes.length ? '✅
     });
 
     // === ASSEMBLY LINE ANIMATION ===
-    function startAssemblyLine() {
+    function startAssemblyLine(direction) {
         assemblyState.active = true;
         assemblyState.currentLine = 0;
         assemblyState.paused = false;
         assemblyState.totalStuds = 0;
+        assemblyState.direction = (direction === 'reverse') ? 'reverse' : 'forward';
         
         document.getElementById('app').classList.add('assembly-mode');
         document.getElementById('assemblyStatus').classList.add('active');
         document.getElementById('assemblyState').textContent = 'Running';
+        updateAssemblySubtitle('ready');
         
         processNextLine();
     }
@@ -3143,7 +3165,9 @@ ${matching === redbull.nodes.length && matching === template.nodes.length ? '✅
         playWeaverThump();
         
         // Animate each column with delays
-        const columns = ['void', 'template', 'morphism', 'action'];
+        const columns = (assemblyState.direction === 'reverse')
+            ? ['action', 'morphism', 'template', 'void'] // EXECUTE → TRANSFORM → TEMPLATE → SOURCE
+            : ['void', 'template', 'morphism', 'action'];
         
         columns.forEach((col, colIdx) => {
             setTimeout(() => {
@@ -3268,6 +3292,7 @@ ${matching === redbull.nodes.length && matching === template.nodes.length ? '✅
     function finishAssembly() {
         assemblyState.active = false;
         document.getElementById('assemblyState').textContent = 'Complete ✓';
+        updateAssemblySubtitle('complete');
         
         setTimeout(() => {
             if (!assemblyState.active) {
@@ -3334,6 +3359,11 @@ ${matching === redbull.nodes.length && matching === template.nodes.length ? '✅
         
         document.getElementById('app').classList.remove('assembly-mode');
         document.getElementById('assemblyStatus').classList.remove('active');
+        const btn = document.getElementById('assemblyBtn');
+        if (btn) btn.classList.remove('active');
+        const reBtn = document.getElementById('reassemblyBtn');
+        if (reBtn) reBtn.classList.remove('active');
+        updateAssemblySubtitle('idle');
         
         // Clear all animations
         document.querySelectorAll('.item').forEach(item => {
@@ -3342,15 +3372,40 @@ ${matching === redbull.nodes.length && matching === template.nodes.length ? '✅
         });
     };
 
-    document.getElementById('assemblyBtn').addEventListener('click', () => {
-        const isActive = document.getElementById('assemblyBtn').classList.toggle('active');
-        
-        if (isActive) {
-            startAssemblyLine();
-        } else {
-            assemblyReset();
-        }
-    });
+    const assemblyBtnEl = document.getElementById('assemblyBtn');
+    if (assemblyBtnEl) {
+        assemblyBtnEl.addEventListener('click', () => {
+            const isActive = assemblyBtnEl.classList.toggle('active');
+            const reBtn = document.getElementById('reassemblyBtn');
+            if (reBtn && isActive) {
+                reBtn.classList.remove('active');
+            }
+            
+            if (isActive) {
+                assemblyReset();
+                startAssemblyLine();
+            } else {
+                assemblyReset();
+            }
+        });
+    }
+
+    const reassemblyBtn = document.getElementById('reassemblyBtn');
+    if (reassemblyBtn) {
+        reassemblyBtn.addEventListener('click', () => {
+            const isActive = reassemblyBtn.classList.toggle('active');
+            if (assemblyBtnEl && isActive) {
+                assemblyBtnEl.classList.remove('active');
+            }
+            
+            if (isActive) {
+                assemblyReset();
+                startAssemblyLine('reverse');
+            } else {
+                assemblyReset();
+            }
+        });
+    }
 
     // === RED BULL SIMULATION ===
     // Simulates Courage's internal Red Bull sampling loop
@@ -3599,6 +3654,8 @@ ${matching === redbull.nodes.length && matching === template.nodes.length ? '✅
                 initFromMpdAndSkeleton(mpdContent, skeletonNodes, redBullEvents);
                 rebuildDOM();
 
+                updateAssemblySubtitle(`GOLD: wag-frank · ${msg.source || 'XRAY (RB)'}`);
+
                 // Auto-focus on a representative line so XRAY results are visible immediately.
                 // Prefer a line that appears in redBullEvents; fall back to first geometry line.
                 let targetLine = null;
@@ -3634,6 +3691,23 @@ ${matching === redbull.nodes.length && matching === template.nodes.length ? '✅
             }
         });
     }
+
+    // Homer Studio bridge: allow the Homer shell to push an updated MPD back into Weaver
+    // without going through wag-frank. This is used when WERE/MASTER export MPD inside
+    // Homer and the shell wants to "reweave" the latest geometry into the SOURCE column.
+    window.addEventListener('message', (event) => {
+        const msg = event.data;
+        if (!msg || typeof msg !== 'object' || msg.type !== 'studio-load-mpd-from-homer') return;
+        const mpd = typeof msg.mpd === 'string' ? msg.mpd : '';
+        if (!mpd.trim()) return;
+        try {
+            initFromMpd(mpd);
+            rebuildDOM();
+            updateAssemblySubtitle('MPD: Homer/WERE (SOURCE/TEMPLATE)');
+        } catch (e) {
+            console.warn('[ASSEMBLY] Failed to load MPD from Homer studio', e);
+        }
+    });
 
     function redBullStop() {
         redBullState.active = false;
@@ -3672,6 +3746,7 @@ ${matching === redbull.nodes.length && matching === template.nodes.length ? '✅
         const initializedFromGold = tryInitFromLocalStorageGold();
         if (!initializedFromGold) {
             initFromMpd(mpdText);
+            updateAssemblySubtitle('Demo MPD (no GOLD yet)');
         }
         rebuildDOM();
     })();

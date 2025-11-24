@@ -5418,57 +5418,61 @@
         }
         
         // RED BULL — line-by-line sampler → GOLD fragment
+        async function runRedBullSamplerAndBroadcast() {
+            const statusText = document.getElementById('status-text');
+            if (statusText) statusText.textContent = '🟥 Red Bull: sampling lines...';
+            try {
+                const skeleton = await debugRedBullLineSampler();
+                if (!skeleton || !skeleton.nodes || !skeleton.nodes.length) {
+                    if (statusText) statusText.textContent = '🟥 Red Bull: no studs generated';
+                    return;
+                }
+                const mpdText = (STATE && STATE.mpdText) || (Array.isArray(editorLines) ? editorLines.join('\n') : '');
+                const gold = {
+                    mpd_content: mpdText,
+                    stud_skeleton_v2: skeleton,
+                    redbull_events: (typeof window !== 'undefined' && Array.isArray(window.redBullEvents)) ? window.redBullEvents : []
+                };
+                const json = JSON.stringify(gold, null, 2);
+                try {
+                    if (typeof localStorage !== 'undefined') {
+                        localStorage.setItem('wag_redbull_gold', json);
+                    }
+                } catch (storageError) {
+                    console.warn('[RED-BULL] Failed to persist GOLD to localStorage', storageError);
+                }
+                if (typeof window !== 'undefined') {
+                    window.wagRedBullGold = gold;
+                }
+                if (typeof wagFrankPost === 'function') {
+                    try {
+                        wagFrankPost({
+                            kind: 'redbull-gold',
+                            source: 'wag-courage',
+                            gold
+                        });
+                    } catch (busError) {
+                        console.warn('[RED-BULL] Failed to broadcast GOLD on wag-frank', busError);
+                    }
+                }
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    await navigator.clipboard.writeText(json);
+                    if (statusText) statusText.textContent = `🟥 Red Bull: copied GOLD fragment with ${skeleton.nodes.length} studs`;
+                } else {
+                    console.log('[RED-BULL] GOLD fragment', gold);
+                    if (statusText) statusText.textContent = '🟥 Red Bull: GOLD fragment logged (clipboard unavailable)';
+                }
+            } catch (err) {
+                console.error('[RED-BULL] Failed to run Red Bull sampler', err);
+                const statusText = document.getElementById('status-text');
+                if (statusText) statusText.textContent = '🟥 Red Bull: error (see console)';
+            }
+        }
+
         const redBullBtn = document.getElementById('redbull-btn');
         if (redBullBtn && typeof debugRedBullLineSampler === 'function') {
-            redBullBtn.addEventListener('click', async () => {
-                const statusText = document.getElementById('status-text');
-                if (statusText) statusText.textContent = '🟥 Red Bull: sampling lines...';
-                try {
-                    const skeleton = await debugRedBullLineSampler();
-                    if (!skeleton || !skeleton.nodes || !skeleton.nodes.length) {
-                        if (statusText) statusText.textContent = '🟥 Red Bull: no studs generated';
-                        return;
-                    }
-                    const mpdText = (STATE && STATE.mpdText) || (Array.isArray(editorLines) ? editorLines.join('\n') : '');
-                    const gold = {
-                        mpd_content: mpdText,
-                        stud_skeleton_v2: skeleton,
-                        redbull_events: (typeof window !== 'undefined' && Array.isArray(window.redBullEvents)) ? window.redBullEvents : []
-                    };
-                    const json = JSON.stringify(gold, null, 2);
-                    try {
-                        if (typeof localStorage !== 'undefined') {
-                            localStorage.setItem('wag_redbull_gold', json);
-                        }
-                    } catch (storageError) {
-                        console.warn('[RED-BULL] Failed to persist GOLD to localStorage', storageError);
-                    }
-                    if (typeof window !== 'undefined') {
-                        window.wagRedBullGold = gold;
-                    }
-                    if (typeof wagFrankPost === 'function') {
-                        try {
-                            wagFrankPost({
-                                kind: 'redbull-gold',
-                                source: 'wag-courage',
-                                gold
-                            });
-                        } catch (busError) {
-                            console.warn('[RED-BULL] Failed to broadcast GOLD on wag-frank', busError);
-                        }
-                    }
-                    if (navigator.clipboard && navigator.clipboard.writeText) {
-                        await navigator.clipboard.writeText(json);
-                        if (statusText) statusText.textContent = `🟥 Red Bull: copied GOLD fragment with ${skeleton.nodes.length} studs`;
-                    } else {
-                        console.log('[RED-BULL] GOLD fragment', gold);
-                        if (statusText) statusText.textContent = '🟥 Red Bull: GOLD fragment logged (clipboard unavailable)';
-                    }
-                } catch (err) {
-                    console.error('[RED-BULL] Failed to run Red Bull sampler', err);
-                    const statusText = document.getElementById('status-text');
-                    if (statusText) statusText.textContent = '🟥 Red Bull: error (see console)';
-                }
+            redBullBtn.addEventListener('click', () => {
+                runRedBullSamplerAndBroadcast();
             });
         }
 
@@ -10691,9 +10695,10 @@ function highlightLinesAtGridPosition(gridX, gridY) {
         window.addEventListener('message', (event) => {
             const msg = event.data;
             if (!msg || typeof msg !== 'object' || !msg.type) return;
-            if (msg.type === 'studio-load-mpd-from-were') {
+            if (msg.type === 'studio-load-mpd-from-were' || msg.type === 'studio-load-mpd-from-were-and-redbull') {
                 const mpdText = typeof msg.mpd === 'string' ? msg.mpd : '';
                 if (!mpdText.trim()) return;
+                const shouldRunRedBull = (msg.type === 'studio-load-mpd-from-were-and-redbull');
                 try {
                     const normalized = mpdText.replace(/\r\n/g, '\n');
                     editorLines = normalized.split('\n');
@@ -10706,7 +10711,16 @@ function highlightLinesAtGridPosition(gridX, gridY) {
                     if (statusText) {
                         statusText.textContent = '💚 MPD loaded from WERE (wolf bus)';
                     }
-                    setTimeout(() => compileCurrentMPD(), 200);
+                    setTimeout(() => {
+                        try {
+                            compileCurrentMPD();
+                        } catch (e) {
+                            console.warn('[COURAGE] compileCurrentMPD failed after WERE load', e);
+                        }
+                        if (shouldRunRedBull && typeof runRedBullSamplerAndBroadcast === 'function') {
+                            runRedBullSamplerAndBroadcast();
+                        }
+                    }, 200);
                 } catch (err) {
                     console.warn('[COURAGE] Failed to apply MPD from WERE wolf bus', err);
                 }

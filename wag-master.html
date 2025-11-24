@@ -114,6 +114,37 @@
 
     <div id="viewport">
         <div id="hud-layer"></div>
+        <div id="skeleton-debug-panel" style="position:absolute; top:8px; right:8px; background:rgba(0,0,0,0.85); border:1px solid #333; padding:6px 8px; font-size:9px; display:none; z-index:2;">
+            <div style="font-weight:bold; margin-bottom:4px;">SKELETON TUNE</div>
+            <div style="font-size:8px; color:#aaa; margin-bottom:2px;">Flip (ABS)</div>
+            <label style="display:block; cursor:pointer; margin-bottom:2px;">
+                <input type="checkbox" id="skeletonFlipY" onchange="onSkeletonFlipChanged()"> Y abs
+            </label>
+            <label style="display:block; cursor:pointer; margin-bottom:4px;">
+                <input type="checkbox" id="skeletonFlipZ" onchange="onSkeletonFlipChanged()"> Z abs
+            </label>
+            <div style="font-size:8px; color:#aaa; margin-bottom:2px;">Flip (ANIM)</div>
+            <label style="display:block; cursor:pointer; margin-bottom:2px;">
+                <input type="checkbox" id="skeletonAnimFlipX" onchange="onSkeletonFlipChanged()"> X anim
+            </label>
+            <label style="display:block; cursor:pointer; margin-bottom:2px;">
+                <input type="checkbox" id="skeletonAnimFlipY" onchange="onSkeletonFlipChanged()"> Y anim
+            </label>
+            <label style="display:block; cursor:pointer; margin-bottom:4px;">
+                <input type="checkbox" id="skeletonAnimFlipZ" onchange="onSkeletonFlipChanged()"> Z anim
+            </label>
+            <div style="margin-top:4px; font-size:8px; color:#aaa;">Offset (LDU)</div>
+            <div style="display:flex; gap:4px; margin-top:2px;">
+                <label style="display:flex; align-items:center; gap:2px;">
+                    <span>Y</span>
+                    <input id="skeletonOffsetY" type="number" step="1" style="width:46px; background:#000; border:1px solid #333; color:#eee; font-size:9px; padding:1px 2px;">
+                </label>
+                <label style="display:flex; align-items:center; gap:2px;">
+                    <span>Z</span>
+                    <input id="skeletonOffsetZ" type="number" step="1" style="width:46px; background:#000; border:1px solid #333; color:#eee; font-size:9px; padding:1px 2px;">
+                </label>
+            </div>
+        </div>
     </div>
 
     <div id="editor-container">
@@ -125,7 +156,9 @@
                 <button class="btn" onclick="exportCode()">COPY</button>
                 <button class="btn" onclick="downloadMPD()">SAVE</button>
                 <button class="btn" onclick="downloadGoldSceneMaster()">GOLD</button>
+                <button class="btn" onclick="deselectAllParts()" title="Deselect all part lines">CLEAR</button>
                 <button class="btn" id="skeletonToggleBtn" onclick="toggleSkeleton()" title="Toggle skeleton overlays (studs, bones, part dots) on top of cubes">SKELETON</button>
+                <button class="btn" id="skeletonDebugBtn" onclick="toggleSkeletonDebug()" title="Toggle skeleton tuning panel">DEBUG</button>
             </div>
         </div>
         <input type="file" id="gold-file-master" style="display:none" accept=".json,application/json">
@@ -154,7 +187,25 @@
 1 1 60 -24 60 1 0 0 0 1 0 0 0 1 3001.dat
 1 1 60 -48 60 1 0 0 0 1 0 0 0 1 3001.dat`;
 
-        let state = { lines: [], audioReady: false, studs: [], partSkeleton: [], groundViolations: [], skeletonEnabled: true };
+        let state = { lines: [], audioReady: false, studs: [], partSkeleton: [], groundViolations: [], skeletonEnabled: true, skeletonFlipY: false, skeletonFlipZ: false, skeletonAnimFlipX: false, skeletonAnimFlipY: false, skeletonAnimFlipZ: false, skeletonOffsetY: 0, skeletonOffsetZ: 0, showSkeletonDebug: false };
+
+        try {
+            if (typeof localStorage !== 'undefined') {
+                const rawCal = localStorage.getItem('wag_master_skeleton_calibration');
+                if (rawCal) {
+                    const cal = JSON.parse(rawCal);
+                    if (cal && typeof cal === 'object') {
+                        if (typeof cal.flipY === 'boolean') state.skeletonFlipY = cal.flipY;
+                        if (typeof cal.flipZ === 'boolean') state.skeletonFlipZ = cal.flipZ;
+                        if (typeof cal.animFlipX === 'boolean') state.skeletonAnimFlipX = cal.animFlipX;
+                        if (typeof cal.animFlipY === 'boolean') state.skeletonAnimFlipY = cal.animFlipY;
+                        if (typeof cal.animFlipZ === 'boolean') state.skeletonAnimFlipZ = cal.animFlipZ;
+                        if (typeof cal.offsetY === 'number') state.skeletonOffsetY = cal.offsetY;
+                        if (typeof cal.offsetZ === 'number') state.skeletonOffsetZ = cal.offsetZ;
+                    }
+                }
+            }
+        } catch (_) {}
         
         // Baseline snapshot for GOLD skeleton + MPD transforms (for future per-line delta logic)
         const skeletonBaseline = {
@@ -451,8 +502,8 @@
         // --- RENDERER ---
         const boxGeo = new THREE.BoxGeometry(1,1,1);
         const lColors = { 0:0x222, 1:0x0055BF, 2:0x257A24, 4:0xC91A09, 14:0xFFD700, 15:0xEEE, 25:0xffaa00 };
-        const studGeo = new THREE.SphereGeometry(2, 10, 10);
-        const studMat = new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent:true, opacity:0.9, vertexColors: true });
+        const studGeo = new THREE.SphereGeometry(3, 12, 12);
+        const studMat = new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent:true, opacity:0.95 });
         const studMatsByColor = {}; // legacy map preserved for compatibility (bones reuse lDraw colours)
         const studColorTmp = new THREE.Color(0x00ffff);
         const studMatrixTmp = new THREE.Matrix4();
@@ -464,7 +515,8 @@
                     console.warn('[MASTER] recomputeSkeletonCalibration called without baseline');
                     skeletonDebugFlags.warnedNoBaseline = true;
                 }
-                skeletonRoot.position.set(0, 0, 800);
+                // Keep skeletonRoot at origin so studs share Courage's world frame.
+                skeletonRoot.position.set(0, 0, 0);
                 return;
             }
             if (skeletonAnchorLineNum === null) {
@@ -472,7 +524,7 @@
                     console.warn('[MASTER] recomputeSkeletonCalibration has no anchor line');
                     skeletonDebugFlags.warnedNoAnchor = true;
                 }
-                skeletonRoot.position.set(0, 0, 800);
+                skeletonRoot.position.set(0, 0, 0);
                 return;
             }
             const centers = skeletonBaseline.studCentersByLine;
@@ -485,20 +537,19 @@
                     console.warn('[MASTER] Missing stud center or MPD line for anchor', { anchor: skeletonAnchorLineNum, center, line });
                     skeletonDebugFlags.warnedMissingAnchorLine = true;
                 }
-                skeletonRoot.position.set(0, 0, 800);
+                skeletonRoot.position.set(0, 0, 0);
                 return;
             }
-            skeletonRoot.position.set(
-                line.x - center.x,
-                line.y - center.y,
-                line.z + 800 - center.z
-            );
+            // Baseline/anchor are still computed for future leash logic, but we no longer
+            // offset the skeletonRoot away from the bricks. Keep it at origin so MASTER
+            // and Courage use the same coordinate frame for studs vs. bricks.
+            skeletonRoot.position.set(0, 0, 0);
         }
 
         function recomputeSkeletonAnchor() {
             if (!skeletonBaseline.hasBaseline) {
                 skeletonAnchorLineNum = null;
-                skeletonRoot.position.set(0, 0, 800);
+                skeletonRoot.position.set(0, 0, 0);
                 return;
             }
             let bestSelected = null;
@@ -515,7 +566,7 @@
             const chosen = bestSelected !== null ? bestSelected : bestAny;
             skeletonAnchorLineNum = chosen;
             if (skeletonAnchorLineNum === null) {
-                skeletonRoot.position.set(0, 0, 800);
+                skeletonRoot.position.set(0, 0, 0);
                 return;
             }
             recomputeSkeletonCalibration();
@@ -674,13 +725,45 @@
                 state.studs.forEach(node => {
                     if (!node || typeof node.x !== 'number' || typeof node.y !== 'number' || typeof node.z !== 'number') return;
                     const lineNum = (typeof node.lineNum === 'number') ? node.lineNum : -1;
-                    const y = -node.y;
+
+                    let dx = 0, dy = 0, dz = 0;
+                    if (skeletonBaseline.hasBaseline &&
+                        typeof lineNum === 'number' && lineNum >= 0 &&
+                        lineNum < skeletonBaseline.baseLines.length) {
+                        const baseLine = skeletonBaseline.baseLines[lineNum];
+                        const curLine = state.lines[lineNum];
+                        if (baseLine && curLine && curLine.isPart &&
+                            typeof baseLine.x === 'number' && typeof baseLine.y === 'number' && typeof baseLine.z === 'number') {
+                            dx = curLine.x - baseLine.x;
+                            dy = curLine.y - baseLine.y;
+                            dz = curLine.z - baseLine.z;
+                        }
+                    }
+
+                    let baseX = node.x;
+                    let baseY = node.y;
+                    let baseZ = node.z;
+                    if (state.skeletonFlipY) baseY = -baseY;
+                    if (state.skeletonFlipZ) baseZ = -baseZ;
+
+                    let x = baseX + dx;
+                    let y = baseY + dy;
+                    let z = baseZ + dz;
+                    if (typeof state.skeletonOffsetY === 'number') y += state.skeletonOffsetY;
+                    if (typeof state.skeletonOffsetZ === 'number') z += state.skeletonOffsetZ;
+
+                    // Keep the full stud cloud visible at all times so the GOLD skeleton
+                    // remains a stable backdrop. Selection is applied only to control
+                    // surfaces (bones, part dots) and brick motion, not to the studs
+                    // themselves.
 
                     if (!boxesByLine[lineNum]) {
                         boxesByLine[lineNum] = new THREE.Box3();
                     }
-                    boxesByLine[lineNum].expandByPoint(new THREE.Vector3(node.x, y, node.z));
-                    filteredStuds.push({ node, lineNum, y });
+                    // Use the baseline GOLD positions for both boxes and instance positions;
+                    // per-line MPD deltas are visualized only via the bricks themselves.
+                    boxesByLine[lineNum].expandByPoint(new THREE.Vector3(x, y, z));
+                    filteredStuds.push({ node, lineNum, x, y, z });
                 });
 
                 studsGroup.clear();
@@ -694,23 +777,17 @@
                     const colors = new Float32Array(filteredStuds.length * 3);
 
                     filteredStuds.forEach((entry, idx) => {
-                        const { node, lineNum, y } = entry;
+                        const { node, lineNum, x, y, z } = entry;
 
-                        let dx = 0, dy = 0, dz = 0;
+                        // Render studs at their GOLD-supplied positions; do not try to
+                        // predict new skeleton locations from MPD deltas. Courage will
+                        // recompute studs after export; MASTER just shows the last XRAY.
                         let srcLine = null;
-                        if (typeof lineNum === 'number' && lineNum >= 0 && skeletonBaseline.hasBaseline) {
-                            const baseLine = skeletonBaseline.baseLines[lineNum];
-                            const curLine = state.lines[lineNum];
-                            if (baseLine && curLine && curLine.isPart &&
-                                typeof baseLine.x === 'number' && typeof baseLine.y === 'number' && typeof baseLine.z === 'number') {
-                                dx = curLine.x - baseLine.x;
-                                dy = curLine.y - baseLine.y;
-                                dz = curLine.z - baseLine.z;
-                            }
-                            srcLine = curLine;
+                        if (typeof lineNum === 'number' && lineNum >= 0 && lineNum < state.lines.length) {
+                            srcLine = state.lines[lineNum];
                         }
 
-                        studMatrixTmp.makeTranslation(node.x + dx, y - dy, node.z + dz);
+                        studMatrixTmp.makeTranslation(x, y, z);
                         instanced.setMatrixAt(idx, studMatrixTmp);
 
                         studColorTmp.setHex(0x00ffff);
@@ -800,7 +877,9 @@
                     }
 
                     let dx = 0, dy = 0, dz = 0;
-                    if (skeletonBaseline.hasBaseline) {
+                    if (skeletonBaseline.hasBaseline &&
+                        typeof idx0 === 'number' && idx0 >= 0 &&
+                        idx0 < skeletonBaseline.baseLines.length) {
                         const baseLine = skeletonBaseline.baseLines[idx0];
                         const curLine = state.lines[idx0];
                         if (baseLine && curLine && curLine.isPart &&
@@ -811,9 +890,19 @@
                         }
                     }
 
-                    const y = -wp.y - dy;
+                    let baseX = wp.x;
+                    let baseY = wp.y;
+                    let baseZ = wp.z;
+                    if (state.skeletonFlipY) baseY = -baseY;
+                    if (state.skeletonFlipZ) baseZ = -baseZ;
+
+                    let x = baseX + dx;
+                    let y = baseY + dy;
+                    let z = baseZ + dz;
+                    if (typeof state.skeletonOffsetY === 'number') y += state.skeletonOffsetY;
+                    if (typeof state.skeletonOffsetZ === 'number') z += state.skeletonOffsetZ;
                     const dot = new THREE.Mesh(partDotGeo, mat);
-                    dot.position.set(wp.x + dx, y, wp.z + dz);
+                    dot.position.set(x, y, z);
                     dot.userData.isStud = true; // allow picking via stud path
                     dot.userData.isPartDot = true;
                     dot.userData.lineNum = lineNum;
@@ -915,6 +1004,23 @@
             sfxSnap(); renderEditor(); update3D(); publishEvent('selection-changed');
         }
 
+        function deselectAllParts() {
+            initAudio();
+            let changed = false;
+            state.lines.forEach(line => {
+                if (line && line.isPart && line.selected) {
+                    line.selected = false;
+                    changed = true;
+                }
+            });
+            if (changed) {
+                sfxSnap();
+                renderEditor();
+                update3D();
+                publishEvent('selection-changed');
+            }
+        }
+
         function makeDial(obj, key, step, lbl, cls) {
             const el = document.createElement('div');
             el.className = 'dial';
@@ -923,7 +1029,10 @@
             let startY=0, startVal=0;
             const start = (y) => { initAudio(); startY=y; startVal=obj[key]; el.classList.add('dragging'); }
             const move = (y) => {
-                const d = Math.round((startY-y)/10)*step;
+                let d = Math.round((startY-y)/10)*step;
+                if (key === 'x' && state.skeletonAnimFlipX) d = -d;
+                if (key === 'y' && state.skeletonAnimFlipY) d = -d;
+                if (key === 'z' && state.skeletonAnimFlipZ) d = -d;
                 const nv = startVal + d;
                 if(nv !== obj[key]) {
                     const diff = nv - obj[key];
@@ -964,6 +1073,86 @@
             el.addEventListener('touchstart', e=>{startY=e.touches[0].clientY}, {passive:false});
             el.addEventListener('touchmove', e=>{e.preventDefault(); h(e.touches[0].clientY)}, {passive:false});
             return el;
+        }
+
+        function makeSkeletonOffsetDial(axis) {
+            const el = document.createElement('div');
+            const cls = axis === 'y' ? 'y-val' : 'z-val';
+            const label = axis.toUpperCase();
+            const stateKey = axis === 'y' ? 'skeletonOffsetY' : 'skeletonOffsetZ';
+            const inputId = axis === 'y' ? 'skeletonOffsetY' : 'skeletonOffsetZ';
+            const step = 1;
+
+            el.className = 'dial';
+            el.innerHTML = `<span class="${cls}" style="font-size:8px; margin-right:2px">${label}</span><span class="${cls}">${Math.round(state[stateKey] || 0)}</span>`;
+
+            let startY = 0;
+            let startVal = 0;
+
+            const start = (y) => {
+                initAudio();
+                startY = y;
+                startVal = Number(state[stateKey]) || 0;
+                el.classList.add('dragging');
+            };
+
+            const move = (y) => {
+                let d = Math.round((startY - y) / 10) * step;
+                const nv = startVal + d;
+                if (nv === state[stateKey]) return;
+                state[stateKey] = nv;
+                const span = el.querySelector(`.${cls}`);
+                if (span) span.innerText = nv;
+                const input = document.getElementById(inputId);
+                if (input) input.value = String(nv);
+                try {
+                    onSkeletonFlipChanged();
+                } catch (_) {
+                    update3D();
+                }
+                sfxTick();
+            };
+
+            const end = () => {
+                el.classList.remove('dragging');
+                sfxSnap();
+            };
+
+            el.addEventListener('touchstart', e => { e.stopPropagation(); start(e.touches[0].clientY); }, { passive: false });
+            el.addEventListener('touchmove', e => { e.preventDefault(); e.stopPropagation(); move(e.touches[0].clientY); }, { passive: false });
+            el.addEventListener('touchend', end);
+            el.addEventListener('mousedown', e => {
+                start(e.clientY);
+                const mm = ev => move(ev.clientY);
+                const mu = () => {
+                    end();
+                    window.removeEventListener('mousemove', mm);
+                    window.removeEventListener('mouseup', mu);
+                };
+                window.addEventListener('mousemove', mm);
+                window.addEventListener('mouseup', mu);
+            });
+
+            return el;
+        }
+
+        function initSkeletonTuneDials() {
+            const offY = document.getElementById('skeletonOffsetY');
+            const offZ = document.getElementById('skeletonOffsetZ');
+
+            if (offY && !document.getElementById('skeletonOffsetYDial')) {
+                const dialY = makeSkeletonOffsetDial('y');
+                dialY.id = 'skeletonOffsetYDial';
+                offY.style.display = 'none';
+                if (offY.parentElement) offY.parentElement.appendChild(dialY);
+            }
+
+            if (offZ && !document.getElementById('skeletonOffsetZDial')) {
+                const dialZ = makeSkeletonOffsetDial('z');
+                dialZ.id = 'skeletonOffsetZDial';
+                offZ.style.display = 'none';
+                if (offZ.parentElement) offZ.parentElement.appendChild(dialZ);
+            }
         }
 
         function applyGoldPayloadFromObject(obj) {
@@ -1039,6 +1228,84 @@
             syncSkeletonToggleUI();
             update3D();
             publishEvent('selection-changed');
+        }
+
+        function syncSkeletonDebugUI() {
+            const panel = document.getElementById('skeleton-debug-panel');
+            if (panel) panel.style.display = state.showSkeletonDebug ? 'block' : 'none';
+            const flipY = document.getElementById('skeletonFlipY');
+            const flipZ = document.getElementById('skeletonFlipZ');
+            const animFlipX = document.getElementById('skeletonAnimFlipX');
+            const animFlipY = document.getElementById('skeletonAnimFlipY');
+            const animFlipZ = document.getElementById('skeletonAnimFlipZ');
+            if (flipY) flipY.checked = !!state.skeletonFlipY;
+            if (flipZ) flipZ.checked = !!state.skeletonFlipZ;
+            if (animFlipX) animFlipX.checked = !!state.skeletonAnimFlipX;
+            if (animFlipY) animFlipY.checked = !!state.skeletonAnimFlipY;
+            if (animFlipZ) animFlipZ.checked = !!state.skeletonAnimFlipZ;
+            const offY = document.getElementById('skeletonOffsetY');
+            const offZ = document.getElementById('skeletonOffsetZ');
+            if (offY && offY !== document.activeElement) offY.value = String(state.skeletonOffsetY | 0);
+            if (offZ && offZ !== document.activeElement) offZ.value = String(state.skeletonOffsetZ | 0);
+        }
+
+        function toggleSkeletonDebug() {
+            state.showSkeletonDebug = !state.showSkeletonDebug;
+            syncSkeletonDebugUI();
+        }
+
+        function onSkeletonFlipChanged() {
+            const flipY = document.getElementById('skeletonFlipY');
+            const flipZ = document.getElementById('skeletonFlipZ');
+            const animFlipX = document.getElementById('skeletonAnimFlipX');
+            const animFlipY = document.getElementById('skeletonAnimFlipY');
+            const animFlipZ = document.getElementById('skeletonAnimFlipZ');
+
+            let flipYVal = flipY ? !!flipY.checked : state.skeletonFlipY;
+            let flipZVal = flipZ ? !!flipZ.checked : state.skeletonFlipZ;
+            let animFlipXVal = animFlipX ? !!animFlipX.checked : state.skeletonAnimFlipX;
+            let animFlipYVal = animFlipY ? !!animFlipY.checked : state.skeletonAnimFlipY;
+            let animFlipZVal = animFlipZ ? !!animFlipZ.checked : state.skeletonAnimFlipZ;
+
+            if (flipYVal && animFlipYVal) {
+                flipYVal = false;
+                if (flipY) flipY.checked = false;
+            }
+            if (flipZVal && animFlipZVal) {
+                flipZVal = false;
+                if (flipZ) flipZ.checked = false;
+            }
+
+            state.skeletonFlipY = flipYVal;
+            state.skeletonFlipZ = flipZVal;
+            state.skeletonAnimFlipX = animFlipXVal;
+            state.skeletonAnimFlipY = animFlipYVal;
+            state.skeletonAnimFlipZ = animFlipZVal;
+            const offY = document.getElementById('skeletonOffsetY');
+            const offZ = document.getElementById('skeletonOffsetZ');
+            if (offY) {
+                const vy = parseFloat(offY.value);
+                if (!Number.isNaN(vy)) state.skeletonOffsetY = vy;
+            }
+            if (offZ) {
+                const vz = parseFloat(offZ.value);
+                if (!Number.isNaN(vz)) state.skeletonOffsetZ = vz;
+            }
+            try {
+                if (typeof localStorage !== 'undefined') {
+                    const cal = {
+                        flipY: !!state.skeletonFlipY,
+                        flipZ: !!state.skeletonFlipZ,
+                        animFlipX: !!state.skeletonAnimFlipX,
+                        animFlipY: !!state.skeletonAnimFlipY,
+                        animFlipZ: !!state.skeletonAnimFlipZ,
+                        offsetY: Number(state.skeletonOffsetY) || 0,
+                        offsetZ: Number(state.skeletonOffsetZ) || 0
+                    };
+                    localStorage.setItem('wag_master_skeleton_calibration', JSON.stringify(cal));
+                }
+            } catch (_) {}
+            update3D();
         }
 
         function toggleRaw() {
@@ -1292,6 +1559,8 @@
         renderEditor();
         update3D();
         syncSkeletonToggleUI();
+        syncSkeletonDebugUI();
+        initSkeletonTuneDials();
 
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();

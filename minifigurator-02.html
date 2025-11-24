@@ -1356,9 +1356,18 @@
                         part: p
                     }));
 
+                const isHeaddressLikeHead = (p) => {
+                    const desc = (p && (p.description || p.name || '')).toLowerCase();
+                    return /^minifig head\b/.test(desc);
+                };
+
                 const headsAll = (parts.heads || []).filter((h) => !isStickerPart(h));
-                const headParts = headsAll.filter((h) => !h.isHalf && h.headRole !== 'artifact' && h.headRole !== 'headdress');
-                const hatParts = headsAll.filter((h) => h.headRole === 'headdress');
+                const headParts = headsAll.filter((h) =>
+                    !h.isHalf &&
+                    h.headRole !== 'artifact' &&
+                    (h.headRole !== 'headdress' || isHeaddressLikeHead(h))
+                );
+                const hatParts = headsAll.filter((h) => h.headRole === 'headdress' && !isHeaddressLikeHead(h));
                 dialData.head = makeItems(headParts);
                 dialData.hat = makeItems(hatParts);
                 dialData.torso = makeItems(parts.torsos || []);
@@ -1506,24 +1515,34 @@
             if (isStickerPart(s.hips)) s.hips = null;
             if (isStickerPart(s.legs)) s.legs = null;
 
-            if (s.head) {
-                const role = s.head.headRole || 'standard';
+            let headPart = s.head;
+            let hatPart = s.hat;
+
+            if (!headPart && hatPart && isCompositeHead(hatPart)) {
+                headPart = hatPart;
+                hatPart = null;
+            } else if (headPart && hatPart && isCompositeHead(hatPart)) {
+                headPart = hatPart;
+                hatPart = null;
+            }
+
+            if (headPart) {
+                const role = headPart.headRole || 'standard';
                 const needsOffset = role === 'character' || role === 'animal';
                 const dy = needsOffset ? 20 : 0;
-                parts.push({ label: 'HEAD', filename: s.head.filename || s.head.id, description: describePart(s.head), dy });
+                parts.push({ label: 'HEAD', filename: headPart.filename || headPart.id, description: describePart(headPart), dy });
 
-                const allowHat = role !== 'character' && role !== 'animal';
-                if (s.hat && allowHat) {
-                    parts.push({ label: 'HEADGEAR', filename: s.hat.filename || s.hat.id, description: describePart(s.hat), dy });
+                if (hatPart) {
+                    parts.push({ label: 'HEADGEAR', filename: hatPart.filename || hatPart.id, description: describePart(hatPart) });
                 }
-            } else if (s.hat) {
-                if (isCompositeHead(s.hat)) {
-                    const role = s.hat.headRole || 'standard';
+            } else if (hatPart) {
+                if (isCompositeHead(hatPart)) {
+                    const role = hatPart.headRole || 'standard';
                     const needsOffset = role === 'character' || role === 'animal';
                     const dy = needsOffset ? 20 : 0;
-                    parts.push({ label: 'HEAD', filename: s.hat.filename || s.hat.id, description: describePart(s.hat), dy });
+                    parts.push({ label: 'HEAD', filename: hatPart.filename || hatPart.id, description: describePart(hatPart), dy });
                 } else {
-                    parts.push({ label: 'HEADGEAR', filename: s.hat.filename || s.hat.id, description: describePart(s.hat) });
+                    parts.push({ label: 'HEADGEAR', filename: hatPart.filename || hatPart.id, description: describePart(hatPart) });
                 }
             }
 
@@ -1543,8 +1562,53 @@
                 parts.push({ label: 'HIPS', filename: s.hips.filename || s.hips.id, description: describePart(s.hips) });
             }
             if (s.legs && !hipsHasLegs) {
-                parts.push({ label: 'LEFT LEG', filename: s.legs.filename || s.legs.id, description: describePart(s.legs) });
-                parts.push({ label: 'RIGHT LEG', filename: s.legs.filename || s.legs.id, description: describePart(s.legs) });
+                const primaryLeg = s.legs;
+                const getDesc = (p) => (p && (p.description || p.name || '')) || '';
+                const normalize = (text) => text.toLowerCase()
+                    .replace(/\bleg left\b/g, 'leg')
+                    .replace(/\bleg right\b/g, 'leg')
+                    .replace(/\bleft\b/g, '')
+                    .replace(/\bright\b/g, '')
+                    .replace(/\s+/g, ' ')
+                    .trim();
+
+                const baseDesc = normalize(getDesc(primaryLeg));
+                let leftPart = null;
+                let rightPart = null;
+
+                (dialData.legs || []).forEach((item) => {
+                    const part = item.part || item;
+                    const desc = getDesc(part);
+                    if (!desc) return;
+                    if (normalize(desc) !== baseDesc) return;
+                    const lower = desc.toLowerCase();
+                    if (lower.includes('leg left')) leftPart = part;
+                    if (lower.includes('leg right')) rightPart = part;
+                });
+
+                if (leftPart && rightPart) {
+                    // When we have a true left/right pair, place both at the hips origin (X=0)
+                    // and let the LDraw part geometry handle left vs right offset.
+                    const leftDx = 20;  // -20 (base) + 20 = 0
+                    const rightDx = 0;  //  0 (base)  + 0  = 0
+                    parts.push({ label: 'LEFT LEG', filename: leftPart.filename || leftPart.id, description: describePart(leftPart), dx: leftDx });
+                    parts.push({ label: 'RIGHT LEG', filename: rightPart.filename || rightPart.id, description: describePart(rightPart), dx: rightDx });
+                } else {
+                    let leftDx = 0;
+                    let rightDx = 0;
+                    const side = primaryLeg.side || null;
+
+                    if (side === 'right') {
+                        leftDx = 20;
+                        rightDx = 20;
+                    } else {
+                        leftDx = 0;
+                        rightDx = 0;
+                    }
+
+                    parts.push({ label: 'LEFT LEG', filename: primaryLeg.filename || primaryLeg.id, description: describePart(primaryLeg), dx: leftDx });
+                    parts.push({ label: 'RIGHT LEG', filename: primaryLeg.filename || primaryLeg.id, description: describePart(primaryLeg), dx: rightDx });
+                }
             }
 
             return parts;
@@ -1571,8 +1635,8 @@
             'LEFT ARM': { x: -15.552, y: -51, z: 0 },
             'RIGHT ARM': { x: 15.552, y: -51, z: 0 },
             HIPS: { x: 0, y: -28, z: 0 },
-            'LEFT LEG': { x: -6, y: -16, z: 0 },
-            'RIGHT LEG': { x: 6, y: -16, z: 0 }
+            'LEFT LEG': { x: -20, y: -16, z: 0 },
+            'RIGHT LEG': { x: 0, y: -16, z: 0 }
         };
 
         const buildMPD = (character) => {
@@ -1592,13 +1656,14 @@
             (character.parts || []).forEach((part) => {
                 const position = MINIFIG_HEIGHTS[part.label] || { x: 0, y: -50, z: 0 };
                 const dy = part.dy || 0;
+                const dx = part.dx || 0;
                 const color = part.colorCode ?? 16;
                 let filename = part.filename || '';
                 if (filename && !filename.startsWith('parts/')) {
                     filename = `parts/${filename}`;
                 }
                 lines.push(`0 // ${part.label} - ${part.description || filename}`);
-                lines.push(`1 ${color} ${position.x} ${position.y + dy} ${position.z} 1 0 0 0 1 0 0 0 1 ${filename}`);
+                lines.push(`1 ${color} ${position.x + dx} ${position.y + dy} ${position.z} 1 0 0 0 1 0 0 0 1 ${filename}`);
                 lines.push('');
             });
 

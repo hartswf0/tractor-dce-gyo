@@ -925,9 +925,18 @@
                         part: p
                     }));
 
+                const isHeaddressLikeHead = (p) => {
+                    const desc = (p && (p.description || p.name || '')).toLowerCase();
+                    return /^minifig head\b/.test(desc);
+                };
+
                 const headsAll = (parts.heads || []).filter((h) => !isStickerPart(h));
-                const headParts = headsAll.filter((h) => !h.isHalf && h.headRole !== 'artifact' && h.headRole !== 'headdress');
-                const hatParts = headsAll.filter((h) => h.headRole === 'headdress');
+                const headParts = headsAll.filter((h) =>
+                    !h.isHalf &&
+                    h.headRole !== 'artifact' &&
+                    (h.headRole !== 'headdress' || isHeaddressLikeHead(h))
+                );
+                const hatParts = headsAll.filter((h) => h.headRole === 'headdress' && !isHeaddressLikeHead(h));
                 dialData.head = makeItems(headParts);
                 dialData.hat = makeItems(hatParts);
                 dialData.torso = makeItems(parts.torsos || []);
@@ -1240,8 +1249,8 @@
             'LEFT ARM': { x: -15.552, y: -51, z: 0 },
             'RIGHT ARM': { x: 15.552, y: -51, z: 0 },
             HIPS: { x: 0, y: -28, z: 0 },
-            'LEFT LEG': { x: -6, y: -16, z: 0 },
-            'RIGHT LEG': { x: 6, y: -16, z: 0 }
+            'LEFT LEG': { x: -20, y: -16, z: 0 },
+            'RIGHT LEG': { x: 0, y: -16, z: 0 }
         };
 
         const COLOR_CODE_NAMES = {
@@ -1304,13 +1313,14 @@
 
                 const position = MINIFIG_HEIGHTS[part.label] || { x: 0, y: -50, z: 0 };
                 const dy = part.dy || 0;
+                const dx = part.dx || 0;
                 const color = part.colorCode ?? defaultColorCode ?? part.color ?? 16;
                 let filename = part.filename || part.path || '';
                 if (filename && !filename.startsWith('parts/')) {
                     filename = `parts/${filename}`;
                 }
                 targetLines.push(`0 // ${part.label} - ${part.description || filename}`);
-                targetLines.push(`1 ${color} ${position.x + baseX} ${position.y + dy} ${position.z + baseZ} 1 0 0 0 1 0 0 0 1 ${filename}`);
+                targetLines.push(`1 ${color} ${position.x + baseX + dx} ${position.y + dy} ${position.z + baseZ} 1 0 0 0 1 0 0 0 1 ${filename}`);
                 targetLines.push('');
             });
         };

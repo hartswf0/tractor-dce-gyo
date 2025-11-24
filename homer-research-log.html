@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HOMER Studio · Field Notes</title>
+  <style>
+    :root {
+      --bg-main: #020617;
+      --bg-panel: #020617;
+      --bg-panel-alt: #020815;
+      --border-strong: #111827;
+      --border-soft: #1e293b;
+      --accent-homer: #38bdf8;
+      --accent-mento: #f472b6;
+      --accent-master: #eab308;
+      --accent-courage: #ef4444;
+      --accent-weaver: #22c55e;
+      --accent-were: #f97316;
+      --accent-frank: #a855f7;
+      --text-main: #e5e7eb;
+      --text-muted: #9ca3af;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      font-family: "Courier New", monospace;
+      background: radial-gradient(circle at top, #020617 0%, #020617 40%, #000 100%);
+      color: var(--text-main);
+      min-height: 100vh;
+      padding: 24px 16px 40px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .page {
+      width: 100%;
+      max-width: 1200px;
+      border-radius: 18px;
+      border: 1px solid var(--border-strong);
+      background: radial-gradient(circle at top left, rgba(56,189,248,0.12), transparent 55%),
+                  radial-gradient(circle at top right, rgba(244,114,182,0.1), transparent 55%),
+                  linear-gradient(180deg, rgba(15,23,42,0.98), rgba(3,7,18,0.98));
+      box-shadow: 0 24px 80px rgba(0,0,0,0.9);
+      padding: 24px 24px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .page { padding: 16px 12px 24px; }
+    }
+
+    .header {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-soft);
+      padding-bottom: 14px;
+    }
+
+    .title-block {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .title {
+      font-size: 22px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    .subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+      max-width: 520px;
+    }
+
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .badge {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border-soft);
+      background: rgba(15,23,42,0.9);
+      color: var(--text-muted);
+    }
+
+    .badge.accent { border-color: var(--accent-homer); color: var(--accent-homer); }
+
+    .section {
+      border-radius: 14px;
+      border: 1px solid var(--border-soft);
+      padding: 14px 16px 16px;
+      background: radial-gradient(circle at top, rgba(15,23,42,0.9), rgba(3,7,18,0.98));
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .section-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--text-muted);
+    }
+
+    .section p {
+      font-size: 12px;
+      color: var(--text-main);
+      line-height: 1.5;
+    }
+
+    .section ul {
+      list-style: none;
+      padding-left: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 12px;
+      color: var(--text-main);
+    }
+
+    .mono { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 11px; }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .pill {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border-soft);
+      background: rgba(15,23,42,0.9);
+      color: var(--text-muted);
+    }
+
+    .pill span { opacity: 0.85; }
+
+    .pill.courage { border-color: var(--accent-courage); color: var(--accent-courage); }
+    .pill.master { border-color: var(--accent-master); color: var(--accent-master); }
+    .pill.weaver { border-color: var(--accent-weaver); color: var(--accent-weaver); }
+    .pill.were { border-color: var(--accent-were); color: var(--accent-were); }
+    .pill.mento { border-color: var(--accent-mento); color: var(--accent-mento); }
+    .pill.frank { border-color: var(--accent-frank); color: var(--accent-frank); }
+
+    .label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+    }
+
+    .code-brick {
+      border-radius: 8px;
+      border: 1px solid var(--border-soft);
+      background: #020617;
+      padding: 8px 10px;
+      white-space: pre-wrap;
+    }
+
+    .list-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    @media (max-width: 900px) {
+      .list-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="header">
+      <div class="title-block">
+        <div class="title">HOMER STUDIO</div>
+        <div class="subtitle">
+          Field notes on the HOMER shell: how it docks SWISS / FRANK / COURAGE / WEAVER / WERE /
+          MASTER / MENTO, how GOLD + MPD move through the bus, and how capture now attaches to
+          the existing Courage instance.
+        </div>
+      </div>
+      <div class="badge-row">
+        <div class="badge accent">Studio Shell</div>
+        <div class="badge">HOMER · Multi-window</div>
+        <div class="badge">GOLD / MPD Router</div>
+        <div class="badge">MENTO &amp; Courage Capture</div>
+      </div>
+    </header>
+
+    <section class="section">
+      <div class="section-title">1 · What HOMER Is For</div>
+      <p>
+        HOMER is a studio shell that keeps the "labs" side by side. Instead of opening Swiss,
+        Frank, Courage, Ontology Weaver, WERE, MASTER, and MENTO as separate windows, HOMER
+        embeds them as iframes and gives them a shared chrome, a shared bus, and a simple rule:
+        one MPD + GOLD story, many instruments.
+      </p>
+      <div class="pill-row">
+        <div class="pill"><span>SWISS · scene manifest</span></div>
+        <div class="pill frank"><span>FRANK · grid + families</span></div>
+        <div class="pill courage"><span>COURAGE · MPD + Red Bull</span></div>
+        <div class="pill weaver"><span>WEAVER · GOLD / skeleton-v2</span></div>
+        <div class="pill were"><span>WERE · skeleton MPD lab</span></div>
+        <div class="pill master"><span>MASTER · overlay editor</span></div>
+        <div class="pill mento"><span>MENTO · capture layer</span></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-title">2 · Layout · Accordion of Columns</div>
+      <p>
+        HOMER uses a single flex row for all tools. The tabs at the top are not just navigation;
+        they are an accordion for columns:
+      </p>
+      <ul>
+        <li>Each tab (Swiss, Frank, Courage, ...) controls a <span class="mono">&lt;section data-panel="..."&gt;</span>.</li>
+        <li>Click once → dock the panel as a column. Click again → undock (fold) it.</li>
+        <li><span class="mono">dockedPanels</span> tracks which tools are open side by side.</li>
+        <li>At least one panel is always docked so the stage never goes dark.</li>
+        <li>Columns are resizable using CSS <span class="mono">resize: horizontal</span>.</li>
+      </ul>
+      <div class="code-brick mono">// Homer layout sketch
+.activePanel = 'swiss';
+const dockedPanels = new Set(['swiss']);
+
+// Dock / undock on tab click
+if (dockedPanels.has(id)) {
+  if (dockedPanels.size &gt; 1) dockedPanels.delete(id);
+} else {
+  dockedPanels.add(id);
+}
+
+// Panels become columns
+panels.forEach(panel =&gt; {
+  const docked = dockedPanels.has(panel.dataset.panel);
+  panel.classList.toggle('docked', docked);
+});</div>
+      <p>
+        A small focus toggle (<span class="mono">☷</span>) adds a <span class="mono">focus</span> class to the grid. In focus mode the
+        active column expands, side panels collapse to a narrow 260&nbsp;px strip. This lets you
+        treat one lab as "front of house" without closing the others.
+      </p>
+    </section>
+
+    <section class="section">
+      <div class="section-title">3 · Buses · How GOLD and MPD Move</div>
+      <p>
+        HOMER does not parse MPD or GOLD itself. Instead it listens and forwards:
+      </p>
+      <div class="list-grid">
+        <div>
+          <div class="label">Broadcast Bus · wag-frank</div>
+          <ul>
+            <li><span class="mono">new BroadcastChannel('wag-frank')</span> in Courage and Weaver.</li>
+            <li>Courage emits <span class="mono">kind: 'redbull-gold'</span> with GOLD payloads.</li>
+            <li>Weaver can emit <span class="mono">kind: 'weaver-gold'</span> after ontology passes.</li>
+            <li>HOMER listens and relays GOLD into WERE and MASTER via <span class="mono">postMessage</span>.</li>
+          </ul>
+        </div>
+        <div>
+          <div class="label">Studio Shell Bus · postMessage</div>
+          <ul>
+            <li>WERE and MASTER export MPD with <span class="mono">type: 'were-export-mpd'</span> / <span class="mono">'master-export-mpd'</span>.</li>
+            <li>HOMER receives the MPD string and calls:
+              <span class="mono">relayMpdToCourage(mpd)</span> and <span class="mono">relayMpdToWeaver(mpd)</span>.</li>
+            <li>Courage reloads the MPD, Weaver can recompute GOLD / skeleton-v2.</li>
+          </ul>
+        </div>
+      </div>
+      <p>
+        In this model Courage stays the "source of truth" for the active MPD; HOMER simply
+        routes messages so each lab sees the same scene.
+      </p>
+    </section>
+
+    <section class="section">
+      <div class="section-title">4 · MASTER · Skeleton Tuning in HOMER</div>
+      <p>
+        MASTER runs inside HOMER as a skeleton-aware MPD editor. A few details matter for tools
+        that consume its output:
+      </p>
+      <ul>
+        <li><strong>ABS flips</strong> (<span class="mono">flipY / flipZ</span>) only touch the GOLD baseline positions for studs
+          and part dots. MPD deltas are added after the flip, so bricks and skeleton move in the
+          same visual direction when you drag dials.</li>
+        <li><strong>ANIM flips</strong> (<span class="mono">animFlipX / animFlipY / animFlipZ</span>) only change the sign of
+          dial movement. They never flip geometry directly.</li>
+        <li><strong>Offsets</strong> (<span class="mono">skeletonOffsetY / skeletonOffsetZ</span>) are exposed as dial-style
+          controls in the SKELETON TUNE panel and persisted in
+          <span class="mono">localStorage.wag_master_skeleton_calibration</span>.</li>
+        <li>The stud cloud and part dots now always track MPD deltas, even after deselection, so
+          the skeleton stays where you moved the bricks.</li>
+      </ul>
+    </section>
+
+    <section class="section">
+      <div class="section-title">5 · MENTO · Capturing from Homer&apos;s Courage</div>
+      <p>
+        MENTO (Momento) used to boot its own embedded viewer and attach to that. Inside HOMER we
+        want the opposite: capture from the Courage instance that is already running in the
+        Courage panel.
+      </p>
+      <ul>
+        <li>HOMER loads MENTO as:
+          <span class="mono">Brickfilm_Studio_Kit/REALITY MEDIA_MOMENTO/momento.html?host=homer</span>.</li>
+        <li>Inside <span class="mono">momento_capture_app.js</span> we read
+          <span class="mono">hostMode = new URLSearchParams(location.search).get('host')</span>.</li>
+        <li>In <span class="mono">host=homer</span> mode, Momento finds the Courage iframe in HOMER&apos;s DOM and uses that as its
+          capture source.</li>
+      </ul>
+      <div class="code-brick mono">function resolveSourceIframe() {
+  if (hostMode === 'homer') {
+    const frame = window.parent.document
+      .querySelector('section[data-panel="courage"] iframe');
+    if (frame) return frame;
+  }
+  return document.getElementById('grace-iframe');
+}</div>
+      <p>
+        The rest of Momento is unchanged: it still talks to <span class="mono">MomentoInterface</span>, listens for
+        <span class="mono">GRACE_SCENE_READY</span>, and records WebM via <span class="mono">MediaRecorder</span>. The only difference is
+        which renderer it binds to.
+      </p>
+    </section>
+
+    <section class="section">
+      <div class="section-title">6 · Frank · Keeping the Grid in the Loop</div>
+      <p>
+        Today Homer embeds FRANK but does not yet stream every GOLD / MPD change back into the
+        grid. A likely next step for this shell is to treat the wag-frank bus as a first-class
+        contract for Frank as well:
+      </p>
+      <ul>
+        <li>On every GOLD or MPD export, HOMER can emit a small scene descriptor on the
+          <span class="mono">wag-frank</span> channel (hash, variant, active family).</li>
+        <li>FRANK listens and updates its INBOX / layout cards so it always reflects whatever
+          Courage + Weaver + Master agree is the current scene.</li>
+        <li>FRANK can also offer a "Sync from Courage" action that explicitly requests the latest
+          MPD via <span class="mono">postMessage</span> through HOMER when in doubt.</li>
+      </ul>
+      <p>
+        These notes capture the current HOMER wiring so future Frank / MENTO / MASTER work has a
+        clear reference surface.
+      </p>
+    </section>
+  </div>
+</body>
+</html>
