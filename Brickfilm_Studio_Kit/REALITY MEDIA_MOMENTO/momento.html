@@ -8,9 +8,9 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family: "Courier New", monospace;
       background: #000;
-      color: #ddd;
+      color: #e5e7eb;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
@@ -21,21 +21,49 @@
       flex-direction: column;
     }
     .header {
-      padding: 10px 16px;
+      padding: 6px 12px;
       border-bottom: 1px solid #333;
       background: #050505;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 12px;
-      letter-spacing: 0.08em;
+      font-size: 11px;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
     }
     .badge {
       font-size: 10px;
-      padding: 4px 8px;
-      border-radius: 3px;
+      padding: 3px 8px;
+      border-radius: 999px;
       border: 1px solid #333;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+    }
+    .camera-mark {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .camera-name {
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+    .camera-state {
+      font-size: 9px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid #333;
+      letter-spacing: 0.16em;
+      color: #9ca3af;
+    }
+    .camera-state.recording {
+      border-color: #ef4444;
+      color: #ef4444;
+    }
+    .badge.camera-stock {
+      font-size: 9px;
+      padding: 2px 8px;
     }
     .content {
       flex: 1;
@@ -108,6 +136,8 @@
       align-items: center;
       justify-content: center;
       gap: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
     }
     button.primary {
       background: #0f7bff;
@@ -130,10 +160,47 @@
     }
     #preview-canvas {
       width: 100%;
-      max-width: 320px;
-      border: 1px solid #333;
+      max-width: 420px;
+      margin: 0 auto;
+      border: 2px solid #facc15;
       background: #000;
       image-rendering: pixelated;
+    }
+    .shot-meta {
+      font-size: 10px;
+      color: #9ca3af;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: space-between;
+    }
+    .shot-gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+      gap: 4px;
+    }
+    .shot-thumb {
+      position: relative;
+      height: 54px;
+      border: 1px solid #333;
+      background: #000 center/cover no-repeat;
+      cursor: pointer;
+      display: flex;
+      align-items: flex-end;
+      font-size: 8px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #e5e7eb;
+      padding: 2px 3px;
+    }
+    .shot-thumb-label {
+      background: rgba(0,0,0,0.7);
+      padding: 1px 3px;
+      border-radius: 2px;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     #log {
       flex: 1;
@@ -193,16 +260,78 @@
         width: 100%;
       }
     }
+
+    /* HOMER host mode: act as a compact control panel bound to an external Courage viewer */
+    body.host-homer .content {
+      flex-direction: column;
+      min-height: 0;
+    }
+    body.host-homer .left-pane {
+      display: none;
+    }
+    body.host-homer .right-pane {
+      flex: 1;
+      max-width: 100%;
+      max-height: none;
+      overflow-y: auto;
+    }
+    body.host-homer #preview-canvas {
+      max-width: 100%;
+    }
+    body.host-homer #log {
+      max-height: 160px;
+    }
+    body.host-homer .header {
+      padding: 6px 10px;
+      font-size: 10px;
+    }
+
+    /* Host Homer: order cards as CAMERA → SHOT SETUP → GALLERY → LOG */
+    body.host-homer .card-camera { order: 1; }
+    body.host-homer .card-shot-setup { order: 2; }
+    body.host-homer .card-gallery { order: 3; }
+    body.host-homer .card-log { order: 4; }
+
+    /* Host Homer on mobile: make camera card very compact */
+    @media (max-width: 900px) {
+      body.host-homer .right-pane {
+        padding: 6px;
+      }
+      body.host-homer .control-card {
+        padding: 6px;
+        gap: 4px;
+      }
+      body.host-homer #preview-canvas {
+        max-height: 180px;
+      }
+      body.host-homer .controls-row {
+        gap: 4px;
+      }
+      body.host-homer .card-shot-setup .controls-row {
+        flex-direction: row;
+        flex-wrap: wrap;
+      }
+      body.host-homer .card-shot-setup label {
+        flex: 1 1 120px;
+      }
+    }
+    body.host-homer .card-camera .control-card-title,
+    body.host-homer .card-shot-setup .control-card-title {
+      display: none;
+    }
+    body.host-homer #preview-wrapper {
+      gap: 2px;
+    }
   </style>
 </head>
 <body>
   <div class="page">
     <div class="header">
-      <div>
-        <div>MOMENTO · COURAGE BRICKFILM CAPTURE</div>
-        <div style="font-size:9px; color:#777; text-transform:none; letter-spacing:0;">Peering into Courage's Three.js stage and recording the canvas.</div>
+      <div class="camera-mark">
+        <span class="camera-name">MOMENTO</span>
+        <span class="camera-state" id="cameraState">STBY</span>
       </div>
-      <div class="badge">Experimental · Local Only</div>
+      <div class="badge camera-stock" id="cameraStock">4:3 · WEBM</div>
     </div>
     <div class="content">
       <div class="left-pane">
@@ -213,7 +342,30 @@
         ></iframe>
       </div>
       <div class="right-pane">
-        <div class="control-card">
+        <div class="control-card card-camera">
+          <div class="control-card-title">Camera & Preview</div>
+          <div id="preview-wrapper">
+            <canvas id="preview-canvas" width="320" height="240"></canvas>
+            <canvas id="capture-canvas" width="640" height="480" style="display:none;"></canvas>
+            <div class="shot-meta" id="shot-meta"></div>
+          </div>
+          <div class="controls-row">
+            <label>Path
+              <select id="momento-camera-path">
+                <option value="manual">Manual (use Grace)</option>
+                <option value="orbit">Orbit ring</option>
+                <option value="push">Push through center</option>
+              </select>
+            </label>
+          </div>
+          <div class="controls-row">
+            <button id="start-capture" class="primary" title="Start recording">REC</button>
+            <button id="stop-capture" disabled title="Stop recording">STOP</button>
+            <button id="download-last" disabled title="Download last shot">SAVE</button>
+          </div>
+        </div>
+
+        <div class="control-card card-shot-setup">
           <div class="control-card-title">Shot Setup</div>
           <div id="status-line">Booting Momento…</div>
           <div class="controls-row">
@@ -231,37 +383,22 @@
                 <option value="4_3" selected>4:3 Letterboxed</option>
               </select>
             </label>
-          </div>
-        </div>
-
-        <div class="control-card">
-          <div class="control-card-title">Capture</div>
-          <div class="controls-row">
-            <button id="start-capture" class="primary">Start Capture</button>
-            <button id="stop-capture" disabled>Stop</button>
-            <button id="download-last" disabled>Download Last</button>
-          </div>
-        </div>
-
-        <div class="control-card">
-          <div class="control-card-title">Camera & Preview</div>
-          <div class="controls-row">
-            <label>Path
-              <select id="momento-camera-path">
-                <option value="manual">Manual (use Grace)</option>
-                <option value="orbit">Orbit ring</option>
-                <option value="push">Push through center</option>
+            <label>Quality
+              <select id="momento-quality">
+                <option value="480p">480p (640×480)</option>
+                <option value="720p" selected>720p (960×720)</option>
+                <option value="960p">960p (1280×960)</option>
               </select>
             </label>
           </div>
-          <div id="preview-wrapper">
-            <canvas id="preview-canvas" width="320" height="240"></canvas>
-            <canvas id="capture-canvas" width="640" height="480" style="display:none;"></canvas>
-            <div style="font-size:10px; color:#777;">Preview reflects the captured 4:3 frame when 4:3 is selected.</div>
-          </div>
         </div>
 
-        <div class="control-card" style="flex:1; min-height:0;">
+        <div class="control-card card-gallery">
+          <div class="control-card-title">Shots</div>
+          <div id="shot-gallery" class="shot-gallery"></div>
+        </div>
+
+        <div class="control-card card-log" style="flex:1; min-height:0;">
           <div class="control-card-title">Log</div>
           <pre id="log"></pre>
         </div>
@@ -273,6 +410,18 @@
     </div>
   </div>
 
+  <script>
+    (function() {
+      try {
+        const params = new URLSearchParams(window.location.search || '');
+        if (params.get('host') === 'homer') {
+          document.body.classList.add('host-homer');
+        }
+      } catch (e) {
+        // Non-fatal; layout will fall back to default two-pane mode.
+      }
+    })();
+  </script>
   <script src="momento_capture_app.js"></script>
 </body>
 </html>

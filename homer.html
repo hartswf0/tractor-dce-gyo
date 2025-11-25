@@ -96,6 +96,14 @@
       gap: 4px;
     }
 
+    .studio-mode-hint {
+      font-size: 8px;
+      color: var(--text-muted);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      margin-right: 4px;
+    }
+
     .studio-btn {
       border-radius: 999px;
       border: 1px solid #333;
@@ -158,10 +166,25 @@
 
     .tab-btn.active {
       color: var(--text);
-      border-color: rgba(248, 250, 252, 0.9);
+      border-color: rgba(248, 250, 252, 0.95);
       background: linear-gradient(to bottom, #020617 0%, #020617 65%, #000 100%);
-      box-shadow: 0 2px 0 #000, 0 0 0 1px rgba(248, 250, 252, 0.4);
+      box-shadow:
+        0 2px 0 #000,
+        0 0 0 1px rgba(248, 250, 252, 0.7),
+        0 0 10px rgba(56, 189, 248, 0.8);
       transform: translateY(1px);
+      font-weight: 700;
+    }
+
+    .tab-btn.active::after {
+      content: "";
+      position: absolute;
+      left: 4px;
+      right: 4px;
+      bottom: -1px;
+      height: 2px;
+      border-radius: 999px;
+      background: var(--accent);
     }
 
     .tab-btn.docked:not(.active) {
@@ -250,6 +273,7 @@
         display: none;
       }
       .studio-center {
+        position: relative;
         justify-content: flex-start;
         overflow-x: auto;
         overflow-y: hidden;
@@ -257,6 +281,16 @@
       }
       .studio-center::-webkit-scrollbar {
         display: none;
+      }
+      .studio-center::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: 16px;
+        background: linear-gradient(to left, #000, transparent);
+        pointer-events: none;
       }
     }
   </style>
@@ -269,16 +303,17 @@
         <span class="studio-title">HOMER · SWISS / FRANK / COURAGE / WEAVER / WERE / MASTER / MENTO</span>
       </div>
       <div class="studio-center" id="panelTabs">
-        <button class="tab-btn tab-color-swiss active" data-panel="swiss">Swiss</button>
-        <button class="tab-btn tab-color-frank" data-panel="frank">Frank</button>
-        <button class="tab-btn tab-color-courage" data-panel="courage">Courage</button>
-        <button class="tab-btn tab-color-weaver" data-panel="weaver">Weaver</button>
-        <button class="tab-btn tab-color-were" data-panel="were">Were</button>
-        <button class="tab-btn tab-color-master" data-panel="master">Master</button>
-        <button class="tab-btn tab-color-mento" data-panel="mento">Mento</button>
+        <button class="tab-btn tab-color-swiss active" data-panel="swiss" title="Tap to show / hide the Swiss column">Swiss</button>
+        <button class="tab-btn tab-color-frank" data-panel="frank" title="Tap to show / hide the Frank column">Frank</button>
+        <button class="tab-btn tab-color-courage" data-panel="courage" title="Tap to show / hide the Courage column">Courage</button>
+        <button class="tab-btn tab-color-weaver" data-panel="weaver" title="Tap to show / hide the Weaver column">Weaver</button>
+        <button class="tab-btn tab-color-were" data-panel="were" title="Tap to show / hide the Were column">Were</button>
+        <button class="tab-btn tab-color-master" data-panel="master" title="Tap to show / hide the Master column">Master</button>
+        <button class="tab-btn tab-color-mento" data-panel="mento" title="Tap to show / hide the Mento column">Mento</button>
       </div>
       <div class="studio-right">
-        <button class="studio-btn" id="gridToggle" title="Toggle grid view">☷</button>
+        <span class="studio-mode-hint" id="modeLabel">SINGLE</span>
+        <button class="studio-btn" id="gridToggle" title="Toggle multi-column mode">☷</button>
       </div>
     </header>
 
@@ -335,9 +370,11 @@
       const tabs = Array.from(document.querySelectorAll('#panelTabs .tab-btn'));
       const panels = Array.from(document.querySelectorAll('.panel-grid .panel'));
       const gridToggle = document.getElementById('gridToggle');
+      const modeLabel = document.getElementById('modeLabel');
 
       let activePanel = 'swiss';
       const dockedPanels = new Set(['swiss']);
+      let multiMode = false;
 
       function syncTabs() {
         tabs.forEach(tab => {
@@ -345,6 +382,14 @@
           const isActive = id === activePanel;
           tab.classList.toggle('active', isActive);
           tab.classList.toggle('docked', dockedPanels.has(id));
+
+          if (isActive && window.innerWidth <= 900) {
+            try {
+              tab.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            } catch (e) {
+              // scrollIntoView not critical; ignore failures
+            }
+          }
         });
       }
 
@@ -368,25 +413,56 @@
           const id = tab.dataset.panel;
           if (!id) return;
 
-          if (dockedPanels.has(id)) {
-            // Undock, but always leave at least one docked panel
-            if (dockedPanels.size > 1) {
-              dockedPanels.delete(id);
+          activePanel = id;
+
+          if (multiMode) {
+            // MULTI mode: tabs toggle docked state as before
+            if (dockedPanels.has(id)) {
+              // Undock, but always leave at least one docked panel
+              if (dockedPanels.size > 1) {
+                dockedPanels.delete(id);
+              }
+            } else {
+              dockedPanels.add(id);
             }
           } else {
-            dockedPanels.add(id);
+            // SINGLE mode behavior
+            if (id === 'mento') {
+              // When opening Mento from SINGLE mode, automatically pair it
+              // with Courage in MULTI so user always sees viewer + capture.
+              multiMode = true;
+              if (gridToggle) gridToggle.classList.add('active');
+              if (modeLabel) modeLabel.textContent = 'MULTI';
+
+              dockedPanels.clear();
+              dockedPanels.add('courage');
+              dockedPanels.add('mento');
+            } else {
+              // Normal SINGLE mode: one full-width panel
+              dockedPanels.clear();
+              dockedPanels.add(id);
+            }
           }
 
-          activePanel = id;
           applyLayout();
         });
       });
 
       if (gridToggle) {
         gridToggle.addEventListener('click', () => {
-          const focus = !grid.classList.contains('focus');
-          grid.classList.toggle('focus', focus);
-          gridToggle.classList.toggle('active', focus);
+          multiMode = !multiMode;
+          gridToggle.classList.toggle('active', multiMode);
+          if (modeLabel) {
+            modeLabel.textContent = multiMode ? 'MULTI' : 'SINGLE';
+          }
+
+          if (!multiMode) {
+            // Collapse back to a single full-width panel
+            dockedPanels.clear();
+            dockedPanels.add(activePanel);
+          }
+
+          applyLayout();
         });
       }
 

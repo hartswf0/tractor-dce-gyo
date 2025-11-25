@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FRANK · Scene Bus and Sync Notes</title>
+  <style>
+    :root {
+      --bg-main: #020617;
+      --bg-panel: #020617;
+      --bg-panel-alt: #020815;
+      --border-strong: #111827;
+      --border-soft: #1e293b;
+      --accent-swiss: #38bdf8;
+      --accent-frank: #a855f7;
+      --accent-courage: #ef4444;
+      --accent-weaver: #22c55e;
+      --accent-were: #f97316;
+      --accent-master: #eab308;
+      --accent-mento: #f472b6;
+      --text-main: #e5e7eb;
+      --text-muted: #9ca3af;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      font-family: "Courier New", monospace;
+      background: radial-gradient(circle at top, #020617 0%, #020617 40%, #000 100%);
+      color: var(--text-main);
+      min-height: 100vh;
+      padding: 24px 16px 40px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .page {
+      width: 100%;
+      max-width: 1200px;
+      border-radius: 18px;
+      border: 1px solid var(--border-strong);
+      background: radial-gradient(circle at top left, rgba(168,85,247,0.16), transparent 55%),
+                  radial-gradient(circle at top right, rgba(56,189,248,0.08), transparent 55%),
+                  linear-gradient(180deg, rgba(15,23,42,0.98), rgba(3,7,18,0.98));
+      box-shadow: 0 24px 80px rgba(0,0,0,0.9);
+      padding: 24px 24px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .page { padding: 16px 12px 24px; }
+    }
+
+    .header {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-soft);
+      padding-bottom: 14px;
+    }
+
+    .title-block {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .title {
+      font-size: 22px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    .subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+      max-width: 520px;
+    }
+
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .badge {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border-soft);
+      background: rgba(15,23,42,0.9);
+      color: var(--text-muted);
+    }
+
+    .badge.accent { border-color: var(--accent-frank); color: var(--accent-frank); }
+
+    .section {
+      border-radius: 14px;
+      border: 1px solid var(--border-soft);
+      padding: 14px 16px 16px;
+      background: radial-gradient(circle at top, rgba(15,23,42,0.9), rgba(3,7,18,0.98));
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .section-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--text-muted);
+    }
+
+    .section p {
+      font-size: 12px;
+      color: var(--text-main);
+      line-height: 1.5;
+    }
+
+    .section ul {
+      list-style: none;
+      padding-left: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 12px;
+      color: var(--text-main);
+    }
+
+    .label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+    }
+
+    .mono { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 11px; }
+
+    .code-brick {
+      border-radius: 8px;
+      border: 1px solid var(--border-soft);
+      background: #020617;
+      padding: 8px 10px;
+      white-space: pre-wrap;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .pill {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border-soft);
+      background: rgba(15,23,42,0.9);
+      color: var(--text-muted);
+    }
+
+    .pill span { opacity: 0.85; }
+
+    .pill.frank { border-color: var(--accent-frank); color: var(--accent-frank); }
+    .pill.courage { border-color: var(--accent-courage); color: var(--accent-courage); }
+    .pill.weaver { border-color: var(--accent-weaver); color: var(--accent-weaver); }
+    .pill.were { border-color: var(--accent-were); color: var(--accent-were); }
+    .pill.master { border-color: var(--accent-master); color: var(--accent-master); }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    @media (max-width: 900px) {
+      .two-col { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="header">
+      <div class="title-block">
+        <div class="title">FRANK · SYNC NOTES</div>
+        <div class="subtitle">
+          How FRANK can stay live with HOMER: using the wag-frank bus and a small postMessage
+          contract so the grid, INBOX, and families always reflect the MPD + GOLD that Courage,
+          Weaver, WERE, and MASTER agree on.
+        </div>
+      </div>
+      <div class="badge-row">
+        <div class="badge accent">Scene Router</div>
+        <div class="badge">Broadcast Bus · wag-frank</div>
+        <div class="badge">MPD / GOLD Presence</div>
+      </div>
+    </header>
+
+    <section class="section">
+      <div class="section-title">1 · FRANK&apos;s Job in TRUBADOR</div>
+      <p>
+        FRANK is the grid and the switchboard. It shows INBOX bricks, 9×9 layouts, and family
+        views for scenes, then points those scenes at a studio (Courage, COOL, HOMER, etc.). To
+        feel alive it needs to know which MPD + GOLD is "current" and where that scene is being
+        edited right now.
+      </p>
+      <div class="pill-row">
+        <div class="pill frank"><span>FRANK · wag-frankwag-fromer.html</span></div>
+        <div class="pill courage"><span>COURAGE · wag-courage.html</span></div>
+        <div class="pill weaver"><span>WEAVER · assembly-line.html</span></div>
+        <div class="pill were"><span>WERE · wag-were.html</span></div>
+        <div class="pill master"><span>MASTER · wag-master.html</span></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-title">2 · Contracts FRANK Cares About</div>
+      <p>
+        FRANK does not need to render studs or parse every LDraw line; it only needs a few
+        stable signals:
+      </p>
+      <ul>
+        <li><strong>Scene identity</strong> – a scene key or path from SWISS (e.g. a story id).</li>
+        <li><strong>MPD presence</strong> – whether there is an MPD loaded for that scene.</li>
+        <li><strong>GOLD presence</strong> – whether Red Bull / Ontology Weaver have emitted GOLD.</li>
+        <li><strong>Where editing lives</strong> – which studio owns the live editor (Courage,
+          COOL, HOMER, etc.).</li>
+      </ul>
+      <p>
+        All of these can be sent over the <span class="mono">wag-frank</span> bus as small JSON messages, with FRANK
+        listening and patching its grid / cards when things change.
+      </p>
+    </section>
+
+    <section class="section">
+      <div class="section-title">3 · The wag-frank Bus</div>
+      <p>
+        The wag-frank bus is already used by Courage and the Ontology Weaver. FRANK can treat it
+        as a presence bus:
+      </p>
+      <div class="two-col">
+        <div>
+          <div class="label">Existing usage</div>
+          <ul>
+            <li><span class="mono">new BroadcastChannel('wag-frank')</span> in Courage / Weaver.</li>
+            <li>Courage emits <span class="mono">kind: 'redbull-gold'</span> with GOLD snapshots.</li>
+            <li>Weaver can emit <span class="mono">kind: 'weaver-gold'</span> after ontology passes.</li>
+          </ul>
+        </div>
+        <div>
+          <div class="label">FRANK&apos;s new view</div>
+          <ul>
+            <li>Treat each GOLD emission as a signal that a scene is "alive".</li>
+            <li>Add a small <span class="mono">'scene-updated'</span> contract that HOMER or other shells can emit.</li>
+            <li>Use it to bump INBOX tiles, badges, and family layouts without reloading the page.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-title">4 · Scene-Updated Contract</div>
+      <p>
+        A shell like HOMER can publish a tiny scene descriptor every time MPD or GOLD changes.
+        This does not replace GOLD; it just advertises that a new snapshot exists.
+      </p>
+      <div class="code-brick mono">// BroadcastChannel('wag-frank') message shape
+{
+  kind: 'scene-updated',
+  source: 'homer',           // who is emitting: 'homer', 'timber', 'cool-timber', ...
+  sceneId: 'story/001',      // swiss key or path
+  mpdHash: 'abc123...',      // optional hash / fingerprint of the MPD text
+  hasGold: true,             // whether GOLD exists for this scene
+  studio: 'COURAGE',         // primary editor surface
+  updatedAt: 1732400000000   // Date.now()
+}</div>
+      <p>
+        FRANK does not need to trust the hash implementation; it just uses <span class="mono">mpdHash</span> as a
+        change token. If it changes, FRANK knows the scene moved.
+      </p>
+      <div class="two-col">
+        <div>
+          <div class="label">Shell side (HOMER)</div>
+          <div class="code-brick mono">const frankBus = new BroadcastChannel('wag-frank');
+
+function publishSceneUpdate({ sceneId, mpd, hasGold, studio, source }) {
+  const mpdHash = simpleHash(mpd); // implementation is shell-specific
+  frankBus.postMessage({
+    kind: 'scene-updated',
+    source,
+    sceneId,
+    mpdHash,
+    hasGold,
+    studio,
+    updatedAt: Date.now(),
+  });
+}</div>
+        </div>
+        <div>
+          <div class="label">FRANK side</div>
+          <div class="code-brick mono">const bus = new BroadcastChannel('wag-frank');
+
+bus.onmessage = (event) =&gt; {
+  const msg = event.data;
+  if (!msg || msg.kind !== 'scene-updated') return;
+
+  // 1) Locate the scene tile / family card by msg.sceneId
+  // 2) Mark it as "live" (badge, highlight, timestamp)
+  // 3) Optionally re-compute derived layout state
+};</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-title">5 · Sync from Courage · Request / Response</div>
+      <p>
+        Sometimes FRANK should be able to pull the latest MPD / GOLD on demand (for example a
+        "Sync from Courage" button in the grid UI). That path runs through the studio shell
+        (HOMER, TIMBER, etc.) via <span class="mono">postMessage</span>.
+      </p>
+      <div class="two-col">
+        <div>
+          <div class="label">FRANK → Shell</div>
+          <div class="code-brick mono">// Running inside a shell iframe
+function requestCurrentScene(sceneId) {
+  window.parent.postMessage({
+    type: 'frank-request-current-mpd',
+    sceneId,
+  }, '*');
+}</div>
+          <p>
+            FRANK can call this when the user clicks a "Sync" action on a tile. The shell is
+            responsible for answering.
+          </p>
+        </div>
+        <div>
+          <div class="label">Shell → FRANK</div>
+          <div class="code-brick mono">// In HOMER or another studio shell
+window.addEventListener('message', (event) =&gt; {
+  const msg = event.data;
+  if (!msg || msg.type !== 'frank-request-current-mpd') return;
+
+  const { sceneId } = msg;
+  const mpd = getCurrentMpdForScene(sceneId); // e.g. from Courage iframe
+  const gold = getCurrentGoldForScene(sceneId) || null;
+
+  event.source.postMessage({
+    type: 'frank-current-mpd',
+    sceneId,
+    mpd,
+    gold,
+  }, event.origin || '*');
+});</div>
+          <p>
+            The implementation of <span class="mono">getCurrentMpdForScene</span> is up to the shell. In HOMER it would
+            typically ask the Courage iframe via its own <span class="mono">postMessage</span> API.
+          </p>
+        </div>
+      </div>
+      <p>
+        On the FRANK side, handling <span class="mono">'frank-current-mpd'</span> means updating any local cache and
+        bumping the scene&apos;s status to "synced".
+      </p>
+    </section>
+
+    <section class="section">
+      <div class="section-title">6 · Wiring Plan · FRANK + HOMER</div>
+      <p>
+        With these contracts in place, keeping FRANK live with HOMER becomes a matter of wiring:
+      </p>
+      <ul>
+        <li><strong>In HOMER</strong> – publish <span class="mono">scene-updated</span> after every MPD export from WERE /
+          MASTER and after GOLD emissions from Courage / Weaver.</li>
+        <li><strong>In FRANK</strong> – subscribe to <span class="mono">scene-updated</span> on the wag-frank bus and update
+          tiles / families in place.</li>
+        <li><strong>Optional pull</strong> – expose a "Sync from Courage" action in FRANK that uses the
+          <span class="mono">frank-request-current-mpd</span> / <span class="mono">frank-current-mpd</span> handshake through HOMER.</li>
+      </ul>
+      <p>
+        This page is a spec surface, not an implementation. HOMER&apos;s field notes describe how the
+        shell currently routes GOLD and MPD; these FRANK notes describe how the grid can listen in
+        without owning any heavy 3D code.
+      </p>
+    </section>
+  </div>
+</body>
+</html>

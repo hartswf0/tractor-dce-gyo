@@ -12,7 +12,8 @@
     previewRunning: false,
     captureCanvas: null,
     pathStartTime: null,
-    pathInitialPos: null
+    pathInitialPos: null,
+    shots: []
   };
 
   const params = new URLSearchParams(window.location.search || '');
@@ -33,6 +34,127 @@
   function setStatus(text) {
     const statusEl = document.getElementById('status-line');
     if (statusEl) statusEl.textContent = text;
+  }
+
+  function setCameraState(isRecording) {
+    const el = document.getElementById('cameraState');
+    if (!el) return;
+    if (isRecording) {
+      el.textContent = 'REC';
+      el.classList.add('recording');
+    } else {
+      el.textContent = 'STBY';
+      el.classList.remove('recording');
+    }
+  }
+
+  function getSceneName() {
+    let sceneName = 'scene';
+    try {
+      if (state.graceWindow && state.graceWindow.document) {
+        const el = state.graceWindow.document.getElementById('file-name');
+        const raw = el && el.textContent ? el.textContent.trim() : '';
+        if (raw) sceneName = raw;
+      }
+    } catch (e) {
+      // best-effort only
+    }
+    return sceneName;
+  }
+
+  function updateShotMeta() {
+    const metaEl = document.getElementById('shot-meta');
+    if (!metaEl) return;
+
+    const sceneName = getSceneName();
+    const fpsInput = document.getElementById('momento-fps');
+    const durInput = document.getElementById('momento-duration');
+    const aspectSelect = document.getElementById('momento-aspect');
+    const qualitySelect = document.getElementById('momento-quality');
+    const pathSelect = document.getElementById('momento-camera-path');
+
+    const fps = parseInt(fpsInput && fpsInput.value, 10) || 30;
+    const maxSeconds = parseInt(durInput && durInput.value, 10) || 10;
+    const aspectValue = aspectSelect ? aspectSelect.value : 'native';
+    const qualityValue = qualitySelect ? qualitySelect.value : '720p';
+    const pathValue = pathSelect ? pathSelect.value : 'manual';
+
+    const aspectLabel = aspectValue === '4_3' ? '4:3' : 'NATIVE';
+    const qualityLabel = (qualityValue || '').toUpperCase();
+    const pathLabel = (pathValue || 'manual').toUpperCase();
+
+    metaEl.textContent = `${sceneName} · ${fps}fps · ${maxSeconds}s · ${aspectLabel} · ${qualityLabel} · ${pathLabel}`;
+  }
+
+  function playCameraSound(kind) {
+    // Try explicit audio elements first (mento-sound-rec/save), then fall back to a tiny Web Audio beep.
+    const el = document.getElementById(kind === 'save' ? 'mento-sound-save' : 'mento-sound-rec');
+    if (el && typeof el.play === 'function') {
+      try { el.currentTime = 0; el.play(); return; } catch (e) {}
+    }
+    if (typeof AudioContext === 'undefined' && typeof webkitAudioContext === 'undefined') return;
+    try {
+      const Ctx = AudioContext || webkitAudioContext;
+      const ctx = new Ctx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'square';
+      osc.frequency.value = kind === 'save' ? 880 : 440;
+      gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.08, ctx.currentTime + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.12);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.15);
+    } catch (e) {
+      // Silent failure is fine; sound is purely cosmetic.
+    }
+  }
+
+  function addShotToGallery(filename, url) {
+    const gallery = document.getElementById('shot-gallery');
+    if (!gallery) return;
+
+    const srcUrl = url || state.lastBlobUrl;
+    if (!srcUrl) return;
+
+    // Avoid duplicating the top-most shot if filename matches.
+    if (state.shots && state.shots.length && state.shots[0].filename === filename) return;
+
+    let thumb = null;
+    try {
+      const preview = document.getElementById('preview-canvas');
+      if (preview && typeof preview.toDataURL === 'function') {
+        thumb = preview.toDataURL('image/jpeg', 0.8);
+      }
+    } catch (e) {
+      thumb = null;
+    }
+
+    state.shots = state.shots || [];
+    state.shots.unshift({ filename, url: srcUrl, thumb });
+    if (state.shots.length > 9) state.shots.length = 9;
+
+    const frag = document.createDocumentFragment();
+    gallery.innerHTML = '';
+    state.shots.forEach((shot) => {
+      const item = document.createElement('div');
+      item.className = 'shot-thumb';
+      if (shot.thumb) {
+        item.style.backgroundImage = `url(${shot.thumb})`;
+      }
+      const label = document.createElement('div');
+      label.className = 'shot-thumb-label';
+      label.textContent = shot.filename.replace(/\.webm$/i, '');
+      item.appendChild(label);
+      item.addEventListener('click', () => {
+        if (shot.url) {
+          window.open(shot.url, '_blank');
+        }
+      });
+      frag.appendChild(item);
+    });
+    gallery.appendChild(frag);
   }
 
   function resolveSourceIframe() {
@@ -72,6 +194,8 @@
 
     log('Attached to Grace renderer/scene/camera.');
     setStatus('Scene ready for capture.');
+    updateShotMeta();
+    setCameraState(false);
     return true;
   }
 
@@ -214,6 +338,7 @@
     const durInput = document.getElementById('momento-duration');
     const fps = parseInt(fpsInput && fpsInput.value, 10) || 30;
     const maxSeconds = parseInt(durInput && durInput.value, 10) || 10;
+    updateShotMeta();
 
     const baseCanvas = state.renderer.domElement;
     if (!baseCanvas || !baseCanvas.captureStream) {
@@ -225,6 +350,8 @@
     let stream;
     const aspectSelect = document.getElementById('momento-aspect');
     const aspect = aspectSelect ? aspectSelect.value : 'native';
+    const qualitySelect = document.getElementById('momento-quality');
+    const quality = qualitySelect ? qualitySelect.value : '720p';
 
     let captureSource = baseCanvas;
     state.captureCanvas = null;
@@ -232,11 +359,19 @@
     if (aspect === '4_3') {
       const cap = document.getElementById('capture-canvas');
       if (cap && cap.captureStream) {
-        cap.width = 640;
-        cap.height = 480;
+        if (quality === '960p') {
+          cap.width = 1280;
+          cap.height = 960;
+        } else if (quality === '720p') {
+          cap.width = 960;
+          cap.height = 720;
+        } else {
+          cap.width = 640;
+          cap.height = 480;
+        }
         state.captureCanvas = cap;
         captureSource = cap;
-        log('Using 4:3 capture canvas (640x480).');
+        log(`Using 4:3 capture canvas (${cap.width}x${cap.height}).`);
       } else {
         log('4:3 aspect requested but capture canvas unavailable; falling back to native.');
       }
@@ -294,6 +429,11 @@
         log('Recorder stopped but no data was captured.');
         setStatus('Capture stopped (no data).');
       }
+      setCameraState(false);
+      if (navigator.vibrate) {
+        try { navigator.vibrate([30, 40, 30]); } catch (e) {}
+      }
+      playCameraSound('save');
     };
 
     recorder.onerror = (e) => {
@@ -324,6 +464,11 @@
 
     setStatus(`Recording at ${fps} fps (up to ${maxSeconds}s)…`);
     log(`Recording started at ${fps} fps; max duration ${maxSeconds}s.`);
+    setCameraState(true);
+    if (navigator.vibrate) {
+      try { navigator.vibrate(40); } catch (e) {}
+    }
+    playCameraSound('rec');
 
     if (Number.isFinite(maxSeconds) && maxSeconds > 0) {
       setTimeout(() => {
@@ -347,12 +492,23 @@
       log('No capture available to download.');
       return;
     }
+    const sceneName = getSceneName();
+    const safeName = sceneName
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '') || 'scene';
+    const now = new Date();
+    const date = now.toISOString().slice(0, 10).replace(/-/g, '');
+    const time = now.toTimeString().split(' ')[0].replace(/:/g, '');
+    const filename = `mento_${safeName}_${date}_${time}.webm`;
+
     const a = document.createElement('a');
     a.href = state.lastBlobUrl;
-    a.download = 'momento_grace_capture.webm';
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+    addShotToGallery(filename, state.lastBlobUrl);
     log('Triggered download of last capture.');
   }
 
@@ -407,7 +563,17 @@
     if (stopBtn) stopBtn.addEventListener('click', stopCapture);
     if (dlBtn) dlBtn.addEventListener('click', downloadLast);
 
+    ['momento-fps', 'momento-duration', 'momento-aspect', 'momento-quality', 'momento-camera-path']
+      .forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.addEventListener('change', updateShotMeta);
+          el.addEventListener('input', updateShotMeta);
+        }
+      });
+
     setupMessageListener();
+    updateShotMeta();
   }
 
   window.addEventListener('DOMContentLoaded', init);

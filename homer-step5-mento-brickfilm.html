@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HOMER · Step 5 · Mento Brickfilm Capture</title>
+  <style>
+    :root {
+      --lego-yellow: #ffd700;
+      --lego-yellow-glow: rgba(255, 215, 0, 0.4);
+      --lego-pink: #f472b6;
+      --lego-purple: #9d4edd;
+      --shadow: 0 4px 16px rgba(0, 0, 0, 0.7);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: "Courier New", monospace;
+      background: #000;
+      color: #ddd;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .header-brick {
+      background: linear-gradient(180deg, #1b1020 0%, #020617 100%);
+      border-bottom: 3px solid #333;
+      padding: 18px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: var(--shadow);
+    }
+    .header-title {
+      font-size: 20px;
+      font-weight: bold;
+      color: var(--lego-pink);
+      text-shadow: 0 0 10px rgba(244, 114, 182, 0.6);
+      letter-spacing: 2px;
+    }
+    .step-counter {
+      width: 54px;
+      height: 54px;
+      border-radius: 12px;
+      background: var(--lego-yellow);
+      color: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      font-weight: bold;
+      box-shadow: 0 0 20px var(--lego-yellow-glow);
+      position: relative;
+    }
+    .step-counter::before {
+      content: "";
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 28px;
+      height: 14px;
+      border-radius: 8px 8px 0 0;
+      background: #ffa500;
+      border: 3px solid #cc8400;
+      border-bottom: none;
+    }
+    .page {
+      flex: 1;
+      padding: 28px 18px 32px;
+      max-width: 1300px;
+      width: 100%;
+      margin: 0 auto;
+    }
+    .step-brick {
+      background: linear-gradient(135deg, #0f172a 0%, #020617 100%);
+      border-radius: 16px;
+      border: 3px solid #333;
+      padding: 32px 26px 26px;
+      box-shadow: var(--shadow);
+      position: relative;
+    }
+    .step-number-brick {
+      position: absolute;
+      top: -22px;
+      left: 32px;
+      width: 54px;
+      height: 54px;
+      border-radius: 12px;
+      background: var(--lego-yellow);
+      color: #000;
+      font-size: 26px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 3px solid #000;
+      box-shadow: 0 4px 14px var(--lego-yellow-glow);
+    }
+    .step-number-brick::before {
+      content: "";
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 28px;
+      height: 14px;
+      border-radius: 8px 8px 0 0;
+      background: #ffa500;
+      border: 3px solid #000;
+      border-bottom: none;
+    }
+    .step-content {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+      gap: 32px;
+      align-items: stretch;
+    }
+    @media (max-width: 960px) {
+      .step-content { grid-template-columns: 1fr; }
+    }
+    .visual-panel {
+      background: #000;
+      border-radius: 12px;
+      border: 3px solid #333;
+      padding: 20px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      justify-content: center;
+    }
+
+    .ui-mockup {
+      width: 100%;
+      border-radius: 10px;
+      border: 2px solid #333;
+      background: #020617;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .ui-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      border-bottom: 1px solid #333;
+      background: #020617;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #e5e7eb;
+    }
+
+    .ui-title-sub {
+      font-size: 9px;
+      color: #9ca3af;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    .ui-body {
+      padding: 10px 12px 12px;
+      font-size: 10px;
+      color: #9ca3af;
+    }
+
+    .split-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+      gap: 10px;
+    }
+    @media (max-width: 900px) {
+      .split-layout { grid-template-columns: 1fr; }
+    }
+    .courage-preview, .mento-panel {
+      border-radius: 8px;
+      border: 2px solid #1f2937;
+      background: #020617;
+      padding: 10px;
+      font-size: 10px;
+      color: #9ca3af;
+    }
+    .pane-title {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+      color: #e5e7eb;
+    }
+    .stage-frame {
+      border-radius: 6px;
+      border: 1px solid #1f2937;
+      background: radial-gradient(circle at center, #0b1120, #000);
+      height: 140px;
+      position: relative;
+      overflow: hidden;
+    }
+    .camera-frame {
+      border-radius: 6px;
+      border: 1px solid #1f2937;
+      background: #000;
+      height: 140px;
+      position: relative;
+      overflow: hidden;
+    }
+    .frame-4x3 {
+      position: absolute;
+      top: 10%;
+      left: 15%;
+      width: 70%;
+      height: 80%;
+      border: 2px solid var(--lego-yellow);
+      box-shadow: 0 0 10px var(--lego-yellow-glow);
+    }
+    .shot-label {
+      position: absolute;
+      bottom: 6px;
+      right: 8px;
+      font-size: 9px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.8);
+      color: #e5e7eb;
+    }
+    .controls-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
+      font-size: 10px;
+    }
+    .chip {
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid #444;
+      background: #020617;
+      color: #e5e7eb;
+    }
+    .chip.rec { border-color: var(--lego-pink); color: var(--lego-pink); }
+    .chip.save { border-color: var(--lego-yellow); color: var(--lego-yellow); }
+    .chip.mode { border-color: #4b5563; color: #9ca3af; }
+    .shot-strip {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 5px;
+      margin-top: 10px;
+    }
+    .shot-thumb {
+      height: 42px;
+      border-radius: 4px;
+      border: 1px solid #333;
+      background: #000;
+      position: relative;
+      overflow: hidden;
+      font-size: 8px;
+      color: #e5e7eb;
+      display: flex;
+      align-items: flex-end;
+      padding: 2px 3px;
+    }
+    .text-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .step-title {
+      font-size: 20px;
+      font-weight: bold;
+      color: var(--lego-yellow);
+      letter-spacing: 1px;
+    }
+    .step-desc {
+      font-size: 13px;
+      line-height: 1.6;
+      color: #e5e7eb;
+    }
+    .code-brick {
+      background: #000;
+      border-radius: 8px;
+      border: 2px solid #333;
+      padding: 10px 12px;
+      font-size: 11px;
+      color: #0f0;
+      position: relative;
+      overflow-x: auto;
+    }
+    .code-label {
+      position: absolute;
+      top: -9px;
+      left: 10px;
+      padding: 0 6px;
+      background: #000;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--lego-pink);
+    }
+    .code-highlight { color: var(--lego-yellow); }
+    .nav-footer {
+      margin-top: 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 10px;
+      color: #9ca3af;
+    }
+    .nav-link {
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 2px solid var(--lego-yellow);
+      background: #000;
+      color: var(--lego-yellow);
+      font-size: 11px;
+      font-weight: bold;
+      text-decoration: none;
+      letter-spacing: 1px;
+    }
+    .nav-link:hover { background: var(--lego-yellow); color: #000; }
+  </style>
+</head>
+<body>
+  <div class="header-brick">
+    <div class="header-title">STUDIO · HOMER · STEP 5 · MENTO CAMERA</div>
+    <div class="step-counter">5</div>
+  </div>
+  <div class="page">
+    <div class="step-brick">
+      <div class="step-number-brick">5</div>
+      <div class="step-content">
+        <div class="visual-panel">
+          <div class="ui-mockup">
+            <div class="ui-header">
+              <div>HOMER · COURAGE + MENTO</div>
+              <div class="ui-title-sub">Single mode · Left: stage · Right: camera</div>
+            </div>
+            <div class="ui-body">
+              <div class="split-layout">
+                <div class="courage-preview">
+                  <div class="pane-title">COURAGE · STAGE</div>
+                  <div class="stage-frame">
+                    <div class="shot-label">MPD + GOLD</div>
+                    <div style="position:absolute; left:16%; top:30%; font-size:10px;">🧱 Hero</div>
+                    <div style="position:absolute; right:16%; top:58%; font-size:10px;">😈 Rival</div>
+                    <div style="position:absolute; left:8%; bottom:18%; font-size:10px;">🚗 Getaway</div>
+                  </div>
+                  <div class="controls-row">
+                    <span class="chip mode">IMG</span>
+                    <span class="chip mode">GLB</span>
+                    <span class="chip mode">RB</span>
+                  </div>
+                </div>
+                <div class="mento-panel">
+                  <div class="pane-title">MENTO · CAMERA PANEL</div>
+                  <div class="camera-frame">
+                    <div class="frame-4x3"></div>
+                    <div class="shot-label">Shot 03 · 4:3 · 960p · ORBIT</div>
+                  </div>
+                  <div class="controls-row">
+                    <span class="chip mode">Aspect 4:3</span>
+                    <span class="chip mode">960p</span>
+                    <span class="chip">Path: Orbit</span>
+                  </div>
+                  <div class="controls-row">
+                    <span class="chip rec">REC</span>
+                    <span class="chip">STOP</span>
+                    <span class="chip save">SAVE</span>
+                  </div>
+                  <div class="shot-strip">
+                    <div class="shot-thumb">mento_scene_001</div>
+                    <div class="shot-thumb">mento_scene_002</div>
+                    <div class="shot-thumb">mento_scene_003</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="text-panel">
+          <div class="step-title">Treat Mento as a Camera Pointed at Courage</div>
+          <div class="step-desc">
+            <strong>Goal of this step:</strong> record motion clips from the same
+            Courage stage you&apos;ve been editing and tuning.
+            <br /><br />
+            • In HOMER SINGLE mode, clicking <strong>MENTO</strong> docks
+            <strong>Courage + Mento</strong> together.<br />
+            • Courage stays the source of truth for MPD, GOLD, IMG and GLB.
+            Mento is just a camera panel attached to that canvas.
+          </div>
+          <div class="step-desc">
+            <strong>Typical shot flow:</strong><br />
+            1. Set <strong>Aspect = 4:3</strong> and <strong>Quality = 960p</strong> in Mento.<br />
+            2. Pick a path: manual orbit (you drive), orbit ring, or push-through-center.<br />
+            3. Hit <strong>REC</strong> – the header flips to <code>REC</code>, subtle
+               sound / vibrate confirms capture.<br />
+            4. Let the move play, then hit <strong>STOP</strong>.<br />
+            5. Hit <strong>SAVE</strong> – downloads
+               <code>mento_&lt;scene&gt;_&lt;timestamp&gt;.webm</code> and pins it to the
+               shot strip.
+          </div>
+          <div class="code-brick">
+            <div class="code-label">MENTO · FILENAME + GALLERY</div>
+            const scene = getSceneName();<br />
+            const now = new Date();<br />
+            const stamp = now.toISOString().replace(/[-:T]/g, '').slice(0, 15);<br />
+            const filename = `mento_${scene}_${stamp}.webm`;<br />
+            // After download:
+            gallery.unshift({ filename, url: blobUrl, thumb: previewCanvas.toDataURL() });
+          </div>
+          <div class="step-desc">
+            You can pair these WebM clips with:
+            <br />
+            • <strong>IMG</strong> stills from Courage for thumbnails / storyboards.<br />
+            • <strong>GLB</strong> exports for 3D interchange.<br />
+            • The tuned <code>scene.mpd</code> text from Courage / Master for
+              versioned scene source.
+          </div>
+        </div>
+      </div>
+      <div class="nav-footer">
+        <span>STUDIO · HOMER · MENTO · BRICKFILM CAPTURE</span>
+        <a class="nav-link" href="homer-quickstart.html">BACK TO HOMER MAP</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HOMER · Step 3 · Weaver Assembly Line / XRAY / GOLD bus</title>
+  <style>
+    :root {
+      --lego-yellow: #ffd700;
+      --lego-yellow-glow: rgba(255, 215, 0, 0.4);
+      --lego-green: #22c55e;
+      --lego-cyan: #4ecdc4;
+      --lego-blue: #2563eb;
+      --shadow: 0 4px 16px rgba(0, 0, 0, 0.7);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: "Courier New", monospace;
+      background: #000;
+      color: #ddd;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .header-brick {
+      background: linear-gradient(180deg, #021b25 0%, #020617 100%);
+      border-bottom: 3px solid #333;
+      padding: 18px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: var(--shadow);
+    }
+    .header-title {
+      font-size: 20px;
+      font-weight: bold;
+      color: var(--lego-green);
+      text-shadow: 0 0 10px rgba(34, 197, 94, 0.6);
+      letter-spacing: 2px;
+    }
+    .step-counter {
+      width: 54px;
+      height: 54px;
+      border-radius: 12px;
+      background: var(--lego-yellow);
+      color: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      font-weight: bold;
+      box-shadow: 0 0 20px var(--lego-yellow-glow);
+      position: relative;
+    }
+    .step-counter::before {
+      content: "";
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 28px;
+      height: 14px;
+      border-radius: 8px 8px 0 0;
+      background: #ffa500;
+      border: 3px solid #cc8400;
+      border-bottom: none;
+    }
+    .page {
+      flex: 1;
+      padding: 28px 18px 32px;
+      max-width: 1300px;
+      width: 100%;
+      margin: 0 auto;
+    }
+    .step-brick {
+      background: linear-gradient(135deg, #0f172a 0%, #020617 100%);
+      border-radius: 16px;
+      border: 3px solid #333;
+      padding: 32px 26px 26px;
+      box-shadow: var(--shadow);
+      position: relative;
+    }
+    .step-number-brick {
+      position: absolute;
+      top: -22px;
+      left: 32px;
+      width: 54px;
+      height: 54px;
+      border-radius: 12px;
+      background: var(--lego-yellow);
+      color: #000;
+      font-size: 26px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 3px solid #000;
+      box-shadow: 0 4px 14px var(--lego-yellow-glow);
+    }
+    .step-number-brick::before {
+      content: "";
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 28px;
+      height: 14px;
+      border-radius: 8px 8px 0 0;
+      background: #ffa500;
+      border: 3px solid #000;
+      border-bottom: none;
+    }
+    .step-content {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+      gap: 32px;
+      align-items: stretch;
+    }
+    @media (max-width: 960px) {
+      .step-content { grid-template-columns: 1fr; }
+    }
+    .visual-panel {
+      background: #000;
+      border-radius: 12px;
+      border: 3px solid #333;
+      padding: 20px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      justify-content: center;
+    }
+
+    .ui-mockup {
+      width: 100%;
+      border-radius: 10px;
+      border: 2px solid #333;
+      background: #020617;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .ui-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      border-bottom: 1px solid #333;
+      background: #020617;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #e5e7eb;
+    }
+
+    .ui-title-sub {
+      font-size: 9px;
+      color: #9ca3af;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    .ui-body {
+      padding: 10px 12px 12px;
+      font-size: 10px;
+      color: #9ca3af;
+    }
+
+    .weaver-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+    }
+    .weaver-btn {
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 2px solid #1f2937;
+      background: #020617;
+      font-size: 10px;
+      color: #e5e7eb;
+    }
+    .weaver-btn.primary { border-color: var(--lego-green); color: var(--lego-green); }
+    .weaver-btn.bus { border-color: var(--lego-cyan); color: var(--lego-cyan); }
+    .weaver-stage {
+      margin-top: 16px;
+      border-radius: 10px;
+      border: 2px solid #1f2937;
+      background: radial-gradient(circle at top, #0b1120, #000);
+      padding: 16px;
+      min-height: 210px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .panel {
+      border-radius: 8px;
+      border: 1px solid #1f2937;
+      background: #020617;
+      padding: 10px;
+      font-size: 10px;
+      color: #9ca3af;
+    }
+    .panel-title {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+      color: #e5e7eb;
+    }
+    .stud-map {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 3px;
+      margin-top: 4px;
+    }
+    .stud-cell {
+      aspect-ratio: 1;
+      border-radius: 3px;
+      border: 1px solid #1f2937;
+      background: #020617;
+    }
+    .stud-cell.on {
+      background: radial-gradient(circle at center, var(--lego-green), #020617);
+      border-color: var(--lego-green);
+      box-shadow: 0 0 6px rgba(34, 197, 94, 0.6);
+    }
+    .xray-lines {
+      font-family: "SF Mono", Menlo, Consolas, monospace;
+      font-size: 9px;
+      line-height: 1.4;
+      max-height: 120px;
+      overflow: auto;
+    }
+    .text-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .step-title {
+      font-size: 20px;
+      font-weight: bold;
+      color: var(--lego-yellow);
+      letter-spacing: 1px;
+    }
+    .step-desc {
+      font-size: 13px;
+      line-height: 1.6;
+      color: #e5e7eb;
+    }
+    .code-brick {
+      background: #000;
+      border-radius: 8px;
+      border: 2px solid #333;
+      padding: 10px 12px;
+      font-size: 11px;
+      color: #0f0;
+      position: relative;
+      overflow-x: auto;
+    }
+    .code-label {
+      position: absolute;
+      top: -9px;
+      left: 10px;
+      padding: 0 6px;
+      background: #000;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--lego-green);
+    }
+    .code-highlight { color: var(--lego-yellow); }
+    .nav-footer {
+      margin-top: 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 10px;
+      color: #9ca3af;
+    }
+    .nav-link {
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 2px solid var(--lego-yellow);
+      background: #000;
+      color: var(--lego-yellow);
+      font-size: 11px;
+      font-weight: bold;
+      text-decoration: none;
+      letter-spacing: 1px;
+    }
+    .nav-link:hover { background: var(--lego-yellow); color: #000; }
+  </style>
+</head>
+<body>
+  <div class="header-brick">
+    <div class="header-title">STUDIO · HOMER · STEP 3 · WEAVER GOLD BUS</div>
+    <div class="step-counter">3</div>
+  </div>
+  <div class="page">
+    <div class="step-brick">
+      <div class="step-number-brick">3</div>
+      <div class="step-content">
+        <div class="visual-panel">
+          <div class="ui-mockup">
+            <div class="ui-header">
+              <div>WEAVER · GOLD LAB</div>
+              <div class="ui-title-sub">Assembly Line · XRAY RB · GOLD bus</div>
+            </div>
+            <div class="ui-body">
+              <div class="weaver-buttons">
+                <button class="weaver-btn primary">ASSEMBLY LINE</button>
+                <button class="weaver-btn">XRAY RB</button>
+                <button class="weaver-btn bus">GOLD BUS</button>
+              </div>
+              <div class="weaver-stage">
+                <div class="panel">
+                  <div class="panel-title">INPUT · GOLD</div>
+                  <div>Loaded from <code>localStorage.wag_redbull_gold</code>.</div>
+                  <div style="margin-top:6px; font-size:9px;">
+                    • Scene-level <code>stud_skeleton_v2</code><br />
+                    • MPD content from Courage<br />
+                    • Per-stud telemetry
+                  </div>
+                </div>
+                <div class="panel">
+                  <div class="panel-title">ASSEMBLY LINE</div>
+                  <div>Groups studs per line / per part into a StudMap MPD.</div>
+                  <div class="stud-map">
+                    <div class="stud-cell on"></div>
+                    <div class="stud-cell"></div>
+                    <div class="stud-cell on"></div>
+                    <div class="stud-cell"></div>
+                    <div class="stud-cell"></div>
+                    <div class="stud-cell on"></div>
+                    <div class="stud-cell"></div>
+                    <div class="stud-cell"></div>
+                    <div class="stud-cell on"></div>
+                    <div class="stud-cell"></div>
+                    <div class="stud-cell"></div>
+                    <div class="stud-cell on"></div>
+                    <div class="stud-cell"></div>
+                    <div class="stud-cell"></div>
+                    <div class="stud-cell on"></div>
+                    <div class="stud-cell"></div>
+                  </div>
+                </div>
+                <div class="panel">
+                  <div class="panel-title">XRAY RB</div>
+                  <div class="xray-lines">
+                    L001 stud[0] OK<br />
+                    L002 stud[0] OK<br />
+                    L010 stud[3] MISSING<br />
+                    L014 stud[1] ambiguous<br />
+                    ...
+                  </div>
+                  <div style="margin-top:6px; font-size:9px;">
+                    After inspection, press <strong>GOLD BUS</strong> to publish.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="text-panel">
+          <div class="step-title">Weaver Turns GOLD into a StudMap</div>
+          <div class="step-desc">
+            <strong>Goal of this step:</strong> take the scene-level GOLD from
+            Courage and turn it into a per-line, per-part skeleton MPD that other
+            tools can consume.
+            <br /><br />
+            • <strong>Assembly Line</strong> ingests the GOLD payload, walks every
+            <code>stud_skeleton_v2</code>, and builds a compact StudMap MPD grouped
+            by MPD line / part id.<br />
+            • <strong>XRAY RB</strong> lets you inspect which studs were sampled,
+            which lines are empty, and any anomalies.<br />
+            • When satisfied, <strong>GOLD bus</strong> pushes a cleaned-up GOLD
+            scene onto the shared bus so Were / Master can open it.
+          </div>
+          <div class="code-brick">
+            <div class="code-label">GOLD BUS (SKETCH)</div>
+            const raw = localStorage.wag_redbull_gold;<br />
+            const gold = JSON.parse(raw);<br />
+            const studMapMpd = buildStudMap(gold.stud_skeleton_v2);<br />
+            const payload = {<br />
+            &nbsp;&nbsp;gold_scene: gold,<br />
+            &nbsp;&nbsp;studmap_mpd: studMapMpd<br />
+            };<br />
+            const bus = new BroadcastChannel('wag-frank');<br />
+            bus.postMessage({ kind: 'weaver-gold', payload });
+          </div>
+          <div class="step-desc">
+            After this step:
+            <br />
+            1. GOLD has been checked and repackaged as StudMap MPD.<br />
+            2. <strong>Were</strong> and <strong>Master</strong> can subscribe to the
+            <code>weaver-gold</code> / GOLD bus messages and draw skeleton overlays
+            aligned to the same MPD lines Courage is editing.
+          </div>
+        </div>
+      </div>
+      <div class="nav-footer">
+        <span>STUDIO · HOMER · WEAVER · ASSEMBLY LINE / XRAY / GOLD BUS</span>
+        <a class="nav-link" href="homer-quickstart.html">BACK TO HOMER MAP</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

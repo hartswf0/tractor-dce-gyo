@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HOMER · Step 4 · Master Tuning → Back to Courage</title>
+  <style>
+    :root {
+      --lego-yellow: #ffd700;
+      --lego-yellow-glow: rgba(255, 215, 0, 0.4);
+      --lego-orange: #f97316;
+      --lego-green: #22c55e;
+      --shadow: 0 4px 16px rgba(0, 0, 0, 0.7);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: "Courier New", monospace;
+      background: #000;
+      color: #ddd;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .header-brick {
+      background: linear-gradient(180deg, #1b1302 0%, #020617 100%);
+      border-bottom: 3px solid #333;
+      padding: 18px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: var(--shadow);
+    }
+    .header-title {
+      font-size: 20px;
+      font-weight: bold;
+      color: var(--lego-orange);
+      text-shadow: 0 0 10px rgba(249, 115, 22, 0.6);
+      letter-spacing: 2px;
+    }
+    .step-counter {
+      width: 54px;
+      height: 54px;
+      border-radius: 12px;
+      background: var(--lego-yellow);
+      color: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      font-weight: bold;
+      box-shadow: 0 0 20px var(--lego-yellow-glow);
+      position: relative;
+    }
+    .step-counter::before {
+      content: "";
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 28px;
+      height: 14px;
+      border-radius: 8px 8px 0 0;
+      background: #ffa500;
+      border: 3px solid #cc8400;
+      border-bottom: none;
+    }
+    .page {
+      flex: 1;
+      padding: 28px 18px 32px;
+      max-width: 1300px;
+      width: 100%;
+      margin: 0 auto;
+    }
+    .step-brick {
+      background: linear-gradient(135deg, #0f172a 0%, #020617 100%);
+      border-radius: 16px;
+      border: 3px solid #333;
+      padding: 32px 26px 26px;
+      box-shadow: var(--shadow);
+      position: relative;
+    }
+    .step-number-brick {
+      position: absolute;
+      top: -22px;
+      left: 32px;
+      width: 54px;
+      height: 54px;
+      border-radius: 12px;
+      background: var(--lego-yellow);
+      color: #000;
+      font-size: 26px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 3px solid #000;
+      box-shadow: 0 4px 14px var(--lego-yellow-glow);
+    }
+    .step-number-brick::before {
+      content: "";
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 28px;
+      height: 14px;
+      border-radius: 8px 8px 0 0;
+      background: #ffa500;
+      border: 3px solid #000;
+      border-bottom: none;
+    }
+    .step-content {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+      gap: 32px;
+      align-items: stretch;
+    }
+    @media (max-width: 960px) {
+      .step-content { grid-template-columns: 1fr; }
+    }
+    .visual-panel {
+      background: #000;
+      border-radius: 12px;
+      border: 3px solid #333;
+      padding: 20px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      justify-content: center;
+    }
+
+    .ui-mockup {
+      width: 100%;
+      border-radius: 10px;
+      border: 2px solid #333;
+      background: #020617;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .ui-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      border-bottom: 1px solid #333;
+      background: #020617;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #e5e7eb;
+    }
+
+    .ui-title-sub {
+      font-size: 9px;
+      color: #9ca3af;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    .ui-body {
+      padding: 10px 12px 12px;
+      font-size: 10px;
+      color: #9ca3af;
+    }
+
+    .master-layout {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 10px;
+      min-height: 220px;
+    }
+    @media (max-width: 900px) {
+      .master-layout { grid-template-columns: 1fr; }
+    }
+    .mpd-pane, .skeleton-pane {
+      border-radius: 8px;
+      border: 2px solid #1f2937;
+      background: #020617;
+      padding: 10px;
+      font-size: 10px;
+      color: #9ca3af;
+    }
+    .pane-title {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+      color: #e5e7eb;
+    }
+    .mpd-lines {
+      font-family: "SF Mono", Menlo, Consolas, monospace;
+      font-size: 9px;
+      line-height: 1.4;
+      max-height: 160px;
+      overflow: auto;
+    }
+    .mpd-lines span.sel { background: rgba(250, 204, 21, 0.25); }
+    .overlay-grid {
+      position: relative;
+      width: 100%;
+      height: 140px;
+      border-radius: 6px;
+      border: 1px solid #1f2937;
+      background: radial-gradient(circle at center, #020617, #000);
+      overflow: hidden;
+    }
+    .brick {
+      position: absolute;
+      width: 44px;
+      height: 22px;
+      border-radius: 4px;
+      background: #f97316;
+      border: 1px solid #ea580c;
+      box-shadow: 0 0 6px rgba(249, 115, 22, 0.7);
+    }
+    .stud-overlay {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      border: 1px solid rgba(148, 163, 184, 0.9);
+      background: rgba(15, 23, 42, 0.9);
+    }
+    .stud-overlay.good {
+      border-color: var(--lego-green);
+      box-shadow: 0 0 4px rgba(34,197,94,0.8);
+    }
+    .controls-row {
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 10px;
+    }
+    .dial {
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid #444;
+      background: #020617;
+      color: #e5e7eb;
+    }
+    .save-btn {
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 2px solid var(--lego-yellow);
+      background: #000;
+      color: var(--lego-yellow);
+      font-size: 11px;
+      font-weight: bold;
+    }
+    .save-btn:hover { background: var(--lego-yellow); color: #000; }
+    .text-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .step-title {
+      font-size: 20px;
+      font-weight: bold;
+      color: var(--lego-yellow);
+      letter-spacing: 1px;
+    }
+    .step-desc {
+      font-size: 13px;
+      line-height: 1.6;
+      color: #e5e7eb;
+    }
+    .code-brick {
+      background: #000;
+      border-radius: 8px;
+      border: 2px solid #333;
+      padding: 10px 12px;
+      font-size: 11px;
+      color: #0f0;
+      position: relative;
+      overflow-x: auto;
+    }
+    .code-label {
+      position: absolute;
+      top: -9px;
+      left: 10px;
+      padding: 0 6px;
+      background: #000;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--lego-orange);
+    }
+    .code-highlight { color: var(--lego-yellow); }
+    .nav-footer {
+      margin-top: 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 10px;
+      color: #9ca3af;
+    }
+    .nav-link {
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 2px solid var(--lego-yellow);
+      background: #000;
+      color: var(--lego-yellow);
+      font-size: 11px;
+      font-weight: bold;
+      text-decoration: none;
+      letter-spacing: 1px;
+    }
+    .nav-link:hover { background: var(--lego-yellow); color: #000; }
+  </style>
+</head>
+<body>
+  <div class="header-brick">
+    <div class="header-title">STUDIO · HOMER · STEP 4 · MASTER TUNING</div>
+    <div class="step-counter">4</div>
+  </div>
+  <div class="page">
+    <div class="step-brick">
+      <div class="step-number-brick">4</div>
+      <div class="step-content">
+        <div class="visual-panel">
+          <div class="ui-mockup">
+            <div class="ui-header">
+              <div>MASTER · SKELETON TUNER</div>
+              <div class="ui-title-sub">MPD lines + GOLD overlay · ΔX/ΔZ · ABS/ANIM</div>
+            </div>
+            <div class="ui-body">
+              <div class="master-layout">
+                <div class="mpd-pane">
+                  <div class="pane-title">MPD LINES (MASTER)</div>
+                  <div class="mpd-lines">
+                    0 FILE wag-frank-scene.mpd<br />
+                    0 Name: WAG FRANK SCENE<br />
+                    <span class="sel">1 16 0 -24 0 1 0 0 0 1 0 0 0 1 3001.dat</span><br />
+                    1 16 0 -24 20 1 0 0 0 1 0 0 0 1 3002.dat<br />
+                    1 16 0 -24 40 1 0 0 0 1 0 0 0 1 3001.dat<br />
+                    ...
+                  </div>
+                </div>
+                <div class="skeleton-pane">
+                  <div class="pane-title">OVERLAY · BRICK + STUDS</div>
+                  <div class="overlay-grid">
+                    <div class="brick" style="top:40%;left:30%;"></div>
+                    <div class="stud-overlay good" style="top:38%;left:34%;"></div>
+                    <div class="stud-overlay good" style="top:38%;left:44%;"></div>
+                    <div class="stud-overlay" style="top:38%;left:54%;"></div>
+                  </div>
+                  <div class="controls-row">
+                    <div class="dial">ΔX / ΔZ dials</div>
+                    <div class="dial">ABS / ANIM flips</div>
+                    <div class="dial">Skeleton offsets</div>
+                    <button class="save-btn">SAVE + COPY</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="text-panel">
+          <div class="step-title">Use Master to Correct Geometry + Skeleton</div>
+          <div class="step-desc">
+            <strong>Goal of this step:</strong> fine-tune the placement of bricks and
+            studs with GOLD overlaid, then send the corrected MPD back to Courage
+            (and Weaver) through HOMER.
+            <br /><br />
+            • <strong>Left:</strong> Master shows the same MPD lines Courage is
+            editing, but in a compact view with selection and dials.<br />
+            • <strong>Right:</strong> Master draws bricks and GOLD studs together so
+            you can see misalignments and flip / offset them into place.<br />
+            • When the overlay looks right, use <strong>SAVE + COPY</strong>.
+          </div>
+          <div class="code-brick">
+            <div class="code-label">MASTER → HOMER → COURAGE</div>
+            function onSaveAndCopy(newMpdText) {<br />
+            &nbsp;&nbsp;const bus = new BroadcastChannel('wag-frank');<br />
+            &nbsp;&nbsp;bus.postMessage({<br />
+            &nbsp;&nbsp;&nbsp;&nbsp;kind: 'master-export-mpd',<br />
+            &nbsp;&nbsp;&nbsp;&nbsp;payload: { mpd_text: newMpdText }<br />
+            &nbsp;&nbsp;});<br />
+            }<br />
+            <br />
+            <span class="code-highlight">// In HOMER shell</span><br />
+            bus.onmessage = (ev) => {<br />
+            &nbsp;&nbsp;if (ev.data.kind === 'master-export-mpd') {<br />
+            &nbsp;&nbsp;&nbsp;&nbsp;const mpd = ev.data.payload.mpd_text;<br />
+            &nbsp;&nbsp;&nbsp;&nbsp;updateCourageMpd(mpd);<br />
+            &nbsp;&nbsp;&nbsp;&nbsp;updateWeaverMpd(mpd);<br />
+            &nbsp;&nbsp;}<br />
+            };
+          </div>
+          <div class="step-desc">
+            After this step:
+            <br />
+            1. Courage&apos;s MPD text has Master&apos;s precise positions and flips baked
+            in.<br />
+            2. The GOLD overlays coming from Weaver now line up with that edited
+            geometry.<br />
+            3. You&apos;re ready to export stills / GLB from Courage or move on to
+            Mento to record motion.
+          </div>
+        </div>
+      </div>
+      <div class="nav-footer">
+        <span>STUDIO · HOMER · MASTER · TUNING & RETURN</span>
+        <a class="nav-link" href="homer-quickstart.html">BACK TO HOMER MAP</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

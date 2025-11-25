@@ -727,6 +727,12 @@
             overflow: hidden;
             min-width: 0;  /* Allow flex shrink */
         }
+
+        /* Viewer toolbar (first child div inside viewer panel) */
+        #viewer-panel > div:first-of-type {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
         
         /* On mobile, add top border instead of left border */
         @media (max-width: 900px) {
@@ -757,6 +763,11 @@
                 top: 0 !important;
                 z-index: 200 !important;
                 flex-wrap: wrap !important;
+                padding-right: 4px !important;
+            }
+            #viewer-panel > div:first-of-type > div:last-of-type {
+                flex-wrap: wrap !important;
+                row-gap: 2px;
             }
             
             #scene-dots-vertical {
