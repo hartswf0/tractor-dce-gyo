@@ -488,9 +488,9 @@
         import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
         
         // RESOLVED GLB PATHS
-        // Use GitHub RAW URLs so we fetch the real GLB bytes, not the Git LFS pointer
-        const GRACE_GLB_URL  = 'https://raw.githubusercontent.com/hartswf0/tractor-dce-gyo/main/GRACE-SCENE-SAMPLE.glb';
-        const DESERT_GLB_URL = 'https://raw.githubusercontent.com/hartswf0/tractor-dce-gyo/main/Desert%20Oasis%20Canyon%20Structures_texture_mesh.glb';
+        // GRACE uses a local .bin sibling (not LFS on Pages); DESERT still uses the .glb.
+        const GRACE_GLB_URL  = new URL('./GRACE-SCENE-SAMPLE.bin', import.meta.url).href;
+        const DESERT_GLB_URL = new URL('./Desert Oasis Canyon Structures_texture_mesh.glb', import.meta.url).href;
 
         // BUILT-IN SCENES & MENTO SAMPLE
         const BUILTIN_SCENES = {
