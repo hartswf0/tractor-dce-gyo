@@ -659,36 +659,71 @@
             if (!split || !main || !vp || !panel) return;
             if (window.innerWidth > 900) return; // desktop uses side-by-side layout
 
+            const hasTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
             let dragging = false;
             let mainRect = null;
             let totalH = 1;
             let didDrag = false;
             let snappedPanelLarge = false;
 
-            split.addEventListener('pointerdown', (e) => {
+            function beginDrag(clientY) {
                 dragging = true;
-                try { split.setPointerCapture(e.pointerId); } catch {}
                 mainRect = main.getBoundingClientRect();
                 totalH = mainRect.height || 1;
                 didDrag = false;
-            });
+            }
 
-            window.addEventListener('pointermove', (e) => {
+            function updateDrag(clientY) {
                 if (!dragging || !mainRect) return;
-                const y = e.clientY - mainRect.top;
+                const y = clientY - mainRect.top;
                 let ratio = y / totalH;
                 // Clamp so neither viewport nor panel shrinks too small
                 ratio = Math.max(0.3, Math.min(0.7, ratio));
                 vp.style.flex = `0 0 ${ (ratio * 100).toFixed(1) }%`;
                 panel.style.flex = `0 0 ${ ((1 - ratio) * 100).toFixed(1) }%`;
                 didDrag = true;
-            });
+            }
 
-            window.addEventListener('pointerup', (e) => {
+            function endDrag() {
                 if (!dragging) return;
                 dragging = false;
-                try { split.releasePointerCapture(e.pointerId); } catch {}
-            });
+            }
+
+            if (hasTouch) {
+                split.addEventListener('touchstart', (e) => {
+                    const t = e.touches[0];
+                    if (!t) return;
+                    beginDrag(t.clientY);
+                    e.preventDefault();
+                }, { passive: false });
+
+                window.addEventListener('touchmove', (e) => {
+                    if (!dragging) return;
+                    const t = e.touches[0];
+                    if (!t) return;
+                    updateDrag(t.clientY);
+                }, { passive: false });
+
+                window.addEventListener('touchend', () => {
+                    endDrag();
+                });
+            } else {
+                split.addEventListener('pointerdown', (e) => {
+                    beginDrag(e.clientY);
+                    try { split.setPointerCapture(e.pointerId); } catch {}
+                });
+
+                window.addEventListener('pointermove', (e) => {
+                    if (!dragging) return;
+                    updateDrag(e.clientY);
+                });
+
+                window.addEventListener('pointerup', (e) => {
+                    if (!dragging) return;
+                    endDrag();
+                    try { split.releasePointerCapture(e.pointerId); } catch {}
+                });
+            }
 
             // Tap-to-toggle: if the user taps the bar without dragging,
             // snap between "viewport big" and "panel big" presets.
