@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DCE-GYO Seed Manifest</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #4f5f6f;
+            overflow-x: hidden;
+        }
+
+        .board {
+            position: relative;
+            background:
+                repeating-linear-gradient(0deg, transparent, transparent 8px, rgba(0,0,0,0.03) 8px, rgba(0,0,0,0.03) 9px),
+                repeating-linear-gradient(90deg, transparent, transparent 8px, rgba(0,0,0,0.03) 8px, rgba(0,0,0,0.03) 9px),
+                #5f6f7f;
+            min-height: 100vh;
+            padding: 20px;
+            box-shadow: inset 0 0 50px rgba(0,0,0,0.3);
+        }
+
+        .header-strip {
+            display: flex;
+            gap: 2px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .label-brick {
+            background: linear-gradient(135deg, #2b5a7f 0%, #1e4a68 100%);
+            color: white;
+            padding: 8px 16px;
+            font-weight: 900;
+            font-size: 11px;
+            letter-spacing: 1px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3), inset 0 -2px 4px rgba(0,0,0,0.2);
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .label-brick:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+        }
+
+        .label-brick::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70%;
+            height: 3px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 1px;
+        }
+
+        .planning-grid {
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .row-label {
+            background: rgba(255,255,255,0.9);
+            padding: 10px;
+            font-size: 10px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            border-left: 3px solid #2b5a7f;
+        }
+
+        .row-strip {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .row-strip .row-label {
+            width: 120px;
+            flex: 0 0 120px;
+        }
+
+        .row-strip .brick-row {
+            flex: 1;
+        }
+
+        .brick-row {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .brick {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            font-weight: 900;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            text-decoration: none;
+            overflow: hidden;
+        }
+
+        a.brick {
+            text-decoration: none;
+        }
+
+        .brick[title]:hover::after {
+            content: attr(title);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.9);
+            color: white;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 10px;
+            white-space: nowrap;
+            z-index: 100;
+            margin-bottom: 5px;
+            font-weight: 400;
+            text-shadow: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
+
+        .brick-1x1 { width: 30px; height: 30px; }
+        .brick-1x2 { width: 65px; height: 30px; }
+        .brick-1x3 { width: 100px; height: 30px; }
+        .brick-1x4 { width: 135px; height: 30px; }
+        .brick-2x2 { width: 65px; height: 65px; }
+        .brick-2x4 { width: 135px; height: 65px; }
+        .brick-3x4 { width: 205px; height: 65px; font-size: 11px; }
+
+        .brick:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.4);
+            z-index: 10;
+        }
+
+        .brick::before {
+            content: '';
+            position: absolute;
+            top: 1px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            height: 2px;
+            background: rgba(255,255,255,0.4);
+        }
+
+        .color-red { background: linear-gradient(135deg, #d64550 0%, #b83642 100%); }
+        .color-blue { background: linear-gradient(135deg, #5ba8cc 0%, #4a90b0 100%); }
+        .color-yellow { background: linear-gradient(135deg, #f4d03f 0%, #d4b530 100%); }
+        .color-green { background: linear-gradient(135deg, #a3c95a 0%, #8ab04a 100%); }
+        .color-orange { background: linear-gradient(135deg, #e67e22 0%, #c96a1a 100%); }
+        .color-pink { background: linear-gradient(135deg, #f5b7c8 0%, #e09db0 100%); }
+        .color-tan { background: linear-gradient(135deg, #c9b8a0 0%, #b5a68f 100%); }
+        .color-gray { background: linear-gradient(135deg, #8a8a8a 0%, #707070 100%); }
+        .color-brown { background: linear-gradient(135deg, #6a5a4d 0%, #554940 100%); }
+        .color-white { background: linear-gradient(135deg, #f8f8f8 0%, #e0e0e0 100%); }
+        .color-black { background: linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 100%); }
+        .color-teal { background: linear-gradient(135deg, #4a9d9c 0%, #3a8584 100%); }
+        .color-purple { background: linear-gradient(135deg, #9b6b9e 0%, #825687 100%); }
+        .color-lime { background: linear-gradient(135deg, #c8e66d 0%, #b0cc5a 100%); }
+
+        .section-title {
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            margin: 30px 0 15px 0;
+            display: inline-block;
+        }
+
+        .search-strip {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 10px 0 12px;
+            padding: 6px 10px;
+            background: rgba(0,0,0,0.45);
+            color: #f9fafb;
+            font-size: 9px;
+        }
+
+        .search-label {
+            font-weight: 900;
+            letter-spacing: 2px;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 120px;
+            border-radius: 3px;
+            border: 1px solid rgba(0,0,0,0.5);
+            padding: 4px 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 9px;
+        }
+
+        .search-hint {
+            color: rgba(255,255,255,0.7);
+            font-size: 8px;
+            white-space: nowrap;
+        }
+
+        .search-results {
+            margin: 0 0 18px;
+            padding: 8px 10px;
+            background: rgba(0,0,0,0.35);
+            border: 1px dashed rgba(0,0,0,0.5);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .search-results[data-has-results="false"] {
+            display: none;
+        }
+
+        .search-result-brick {
+            transform: none !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+        }
+
+        .brick.search-hit {
+            box-shadow: 0 0 0 2px rgba(255,255,255,0.8), 0 6px 10px rgba(0,0,0,0.6);
+        }
+
+        .search-empty {
+            font-size: 9px;
+            color: rgba(255,255,255,0.75);
+        }
+
+        .seed-note {
+            font-size: 9px;
+            color: rgba(255,255,255,0.8);
+            margin-top: 6px;
+        }
+
+        @media (max-width: 768px) {
+            .planning-grid {
+                grid-template-columns: 80px 1fr;
+                gap: 10px;
+            }
+            .brick-row { gap: 3px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="board">
+        <div class="header-strip">
+            <div class="label-brick">DCE-GYO</div>
+            <div class="label-brick">LEGOS</div>
+            <div class="label-brick">SEED INDEX</div>
+            <div class="label-brick">FROM MANIFEST</div>
+        </div>
+
+        <div class="search-strip">
+            <span class="search-label">SEARCH</span>
+            <input id="manifestSearch" class="search-input" type="text" placeholder="type to find tools, scenes, docs…" />
+            <span class="search-hint">searches all visible bricks ↴</span>
+        </div>
+
+        <div id="searchResults" class="search-results" data-has-results="false">
+            <span class="search-empty">Start typing to gather matching bricks into this box.</span>
+        </div>
+
+        <div class="section-title">CENTER OF GRAVITY</div>
+        <div class="planning-grid">
+            <div class="row-label">CORE</div>
+            <div class="brick-row">
+                <a href="index.html" class="brick brick-3x4 color-yellow" title="Main hand-curated manifest for the project.">MAIN MANIFEST</a>
+                <a href="trubador-suite.html" class="brick brick-3x4 color-blue" title="TRUBADOR Suite: product-level map of SWISS, FRANK, COURAGE, WEAVER, WERE, MASTER, MENTO.">TRUBADOR SUITE</a>
+                <a href="swiss-frank-grace-studio.html" class="brick brick-3x4 color-teal" title="Swiss / Frank / Grace studio surface.">SWISS / FRANK / GRACE</a>
+            </div>
+        </div>
+
+        <div class="section-title">SEED SURFACES FROM MANIFEST</div>
+        <div class="planning-grid">
+            <div class="row-label">HTML</div>
+            <div id="seedHtmlRow" class="brick-row"></div>
+
+            <div class="row-label">DOCS (MD)</div>
+            <div id="seedMdRow" class="brick-row"></div>
+        </div>
+
+        <div class="section-title">SEED SUMMARY</div>
+        <div class="planning-grid">
+            <div class="row-label">COUNTS</div>
+            <div class="brick-row">
+                <div id="seedAllFiles" class="brick brick-2x4 color-gray" title="Total files discovered by manifest script.">FILES: …</div>
+                <div id="seedIndexLinks" class="brick brick-2x4 color-green" title="Total links in main index.html.">INDEX LINKS: …</div>
+                <div id="seedUnlinked" class="brick brick-2x4 color-orange" title="Surface-type files (html, md, mpd, ldr, json, js, sh) not yet linked from index.html.">UNLINKED SURFACES: …</div>
+            </div>
+        </div>
+
+        <div class="seed-note">
+            This page is a <strong>seed index</strong>: it pulls candidate surfaces up from the manifest
+            and lets you promote them into the main <code>index.html</code> once they feel stable.
+        </div>
+    </div>
+
+    <script>
+        (function setupSeedSearch() {
+            const input = document.getElementById('manifestSearch');
+            const resultsBox = document.getElementById('searchResults');
+            if (!input || !resultsBox) return;
+
+            function applySearch(term) {
+                const q = (term || '').trim().toLowerCase();
+                const bricks = Array.from(document.querySelectorAll('.brick'));
+
+                resultsBox.innerHTML = '';
+                resultsBox.dataset.hasResults = 'false';
+                bricks.forEach(b => b.classList.remove('search-hit'));
+
+                if (!q) {
+                    const span = document.createElement('span');
+                    span.className = 'search-empty';
+                    span.textContent = 'Start typing to gather matching bricks into this box.';
+                    resultsBox.appendChild(span);
+                    return;
+                }
+
+                const matches = bricks.filter(b => {
+                    const text = b.textContent || '';
+                    const title = b.getAttribute('title') || '';
+                    const href = b.getAttribute('href') || '';
+                    return text.toLowerCase().includes(q) ||
+                           title.toLowerCase().includes(q) ||
+                           href.toLowerCase().includes(q);
+                });
+
+                if (!matches.length) {
+                    const span = document.createElement('span');
+                    span.className = 'search-empty';
+                    span.textContent = 'No bricks matched. Try a different word (e.g. "homer", "lego", "weaver").';
+                    resultsBox.appendChild(span);
+                    return;
+                }
+
+                resultsBox.dataset.hasResults = 'true';
+                matches.forEach(b => {
+                    b.classList.add('search-hit');
+                    const clone = b.cloneNode(true);
+                    clone.classList.add('search-result-brick');
+                    resultsBox.appendChild(clone);
+                });
+            }
+
+            input.addEventListener('input', (e) => {
+                applySearch(e.target.value || '');
+            });
+        })();
+
+        function seedFileName(path) {
+            const parts = path.split('/');
+            return parts[parts.length - 1];
+        }
+
+        function seedLabel(path) {
+            const name = seedFileName(path);
+            if (name.length <= 18) return name;
+            return '…' + name.slice(-18);
+        }
+
+        function classForExt(path) {
+            const lower = path.toLowerCase();
+            if (lower.endsWith('.html')) return { color: 'color-blue', size: 'brick-1x3' };
+            if (lower.endsWith('.md')) return { color: 'color-gray', size: 'brick-1x3' };
+            if (lower.endsWith('.mpd') || lower.endsWith('.ldr')) return { color: 'color-orange', size: 'brick-1x3' };
+            if (lower.endsWith('.js')) return { color: 'color-teal', size: 'brick-1x3' };
+            if (lower.endsWith('.json')) return { color: 'color-lime', size: 'brick-1x3' };
+            if (lower.endsWith('.sh')) return { color: 'color-brown', size: 'brick-1x3' };
+            return { color: 'color-pink', size: 'brick-1x3' };
+        }
+
+        function classifyTheme(path) {
+            const p = path.toLowerCase();
+            if (p.includes('homer') || p.includes('mento')) return 'HOMER / MENTO / BRICKFILM';
+            if (p.includes('legos')) return 'LEGOS / NARRATIVE';
+            if (p.includes('skeleton') || p.includes('stud') || p.includes('cool-')) return 'SKELETON / COOL / STUD';
+            if (p.includes('timber')) return 'TIMBER / GOLD BUS';
+            if (p.includes('weaver') || p.includes('assembly-line') || p.includes('line-grid')) return 'WEAVER / LINE GRID';
+            if (p.includes('momento') || p.includes('brickfilm') || p.includes('video_capture')) return 'MENTO / BRICKFILM STUDIO';
+            if (p.includes('grace') || p.includes('wag-gold') || p.includes('wag-courage')) return 'GRACE / GOLD / EDITORS';
+            if (p.includes('swiss') || p.includes('frank') || p.includes('studio')) return 'SWISS / FRANK / STUDIO SHELLS';
+            if (p.includes('minifig') || p.includes('catalog') || p.includes('component-library') || p.includes('primitive') || p.includes('parts')) return 'PARTS / CATALOGS / PRIMITIVES';
+            if (p.includes('simpsons') || p.includes('monkey-data-center') || p.includes('undaunted')) return 'IP SCENES (SIMPSONS / MONKEY / UNDAUNTED)';
+            return 'OTHER SEEDS';
+        }
+
+        function classifyStatus(path, theme) {
+            const p = path.toLowerCase();
+
+            // Pollinating: prompts, templates, OLOGs, system maps
+            if (p.includes('prompt-library') || p.includes('template') || p.includes('olog') || p.includes('system-map') || p.includes('system_map') || p.includes('instructions')) {
+                return 'POLLINATE';
+            }
+
+            // Composting: logs, notes, experiments, copies, harnesses, old shells
+            if (p.includes('log') || p.includes('notes') || p.includes('harness') || p.includes('test') || p.includes('backup') || p.includes(' copy') || p.includes('(1).') || p.includes('old')) {
+                return 'COMPOST';
+            }
+
+            // Fruit: tutorials, guides, primes, studios, docs that feel like finished surfaces
+            if (p.includes('tutorial') || p.includes('guide') || p.includes('quickstart') || p.includes('prime') || p.includes('docs') || p.includes('studio') || p.includes('suite')) {
+                return 'FRUIT';
+            }
+
+            // Default: anything else is a raw SEED right now
+            return 'SEED';
+        }
+
+        function cityLabel(theme) {
+            return theme + ' CITY';
+        }
+
+        function buildSeedFamilies(unlinked) {
+            if (!Array.isArray(unlinked) || !unlinked.length) return;
+
+            const board = document.querySelector('.board');
+            if (!board) return;
+
+            const sectionTitle = document.createElement('div');
+            sectionTitle.className = 'section-title';
+            sectionTitle.textContent = 'SEED FAMILIES & TRIBES';
+
+            const grid = document.createElement('div');
+            grid.className = 'planning-grid';
+
+            const buckets = new Map();
+
+            unlinked.forEach(path => {
+                const theme = classifyTheme(path);
+                if (!buckets.has(theme)) buckets.set(theme, []);
+                buckets.get(theme).push(path);
+            });
+
+            const themeOrder = [
+                'HOMER / MENTO / BRICKFILM',
+                'LEGOS / NARRATIVE',
+                'SKELETON / COOL / STUD',
+                'TIMBER / GOLD BUS',
+                'WEAVER / LINE GRID',
+                'MENTO / BRICKFILM STUDIO',
+                'GRACE / GOLD / EDITORS',
+                'SWISS / FRANK / STUDIO SHELLS',
+                'PARTS / CATALOGS / PRIMITIVES',
+                'IP SCENES (SIMPSONS / MONKEY / UNDAUNTED)',
+                'OTHER SEEDS'
+            ];
+
+            themeOrder.forEach(theme => {
+                const paths = buckets.get(theme);
+                if (!paths || !paths.length) return;
+
+                const rowLabel = document.createElement('div');
+                rowLabel.className = 'row-label';
+                rowLabel.textContent = theme;
+
+                const row = document.createElement('div');
+                row.className = 'brick-row';
+
+                paths.slice(0, 40).forEach(path => {
+                    const info = classForExt(path);
+                    const status = classifyStatus(path, theme);
+                    const a = document.createElement('a');
+                    a.href = path;
+                    a.className = 'brick ' + info.size + ' ' + info.color;
+                    a.textContent = seedLabel(path);
+                    a.title = '[' + status + ' · ' + cityLabel(theme) + '] ' + path + ' (unlinked surface from manifest)';
+                    row.appendChild(a);
+                });
+
+                grid.appendChild(rowLabel);
+                grid.appendChild(row);
+            });
+
+            if (grid.children.length) {
+                board.appendChild(sectionTitle);
+                board.appendChild(grid);
+            }
+        }
+
+        (function hydrateFromManifest() {
+            const htmlRow = document.getElementById('seedHtmlRow');
+            const mdRow = document.getElementById('seedMdRow');
+            const allFilesBrick = document.getElementById('seedAllFiles');
+            const indexLinksBrick = document.getElementById('seedIndexLinks');
+            const unlinkedBrick = document.getElementById('seedUnlinked');
+
+            if (!htmlRow || !mdRow) return;
+
+            fetch('manifest-vs-index.json')
+                .then(r => r.json())
+                .then(data => {
+                    const unlinked = data.unlinked_surface_files || [];
+
+                    const htmlSeeds = unlinked.filter(p => p.toLowerCase().endsWith('.html'));
+                    const mdSeeds = unlinked.filter(p => p.toLowerCase().endsWith('.md'));
+
+                    htmlSeeds.slice(0, 96).forEach(path => {
+                        const theme = classifyTheme(path);
+                        const status = classifyStatus(path, theme);
+                        const a = document.createElement('a');
+                        a.href = path;
+                        a.className = 'brick brick-1x3 color-blue';
+                        a.textContent = seedLabel(path);
+                        a.title = '[' + status + ' · ' + cityLabel(theme) + '] ' + path + ' (unlinked HTML surface from manifest)';
+                        htmlRow.appendChild(a);
+                    });
+
+                    mdSeeds.slice(0, 96).forEach(path => {
+                        const theme = classifyTheme(path);
+                        const status = classifyStatus(path, theme);
+                        const a = document.createElement('a');
+                        a.href = path;
+                        a.className = 'brick brick-1x3 color-gray';
+                        a.textContent = seedLabel(path);
+                        a.title = '[' + status + ' · ' + cityLabel(theme) + '] ' + path + ' (unlinked Markdown doc from manifest)';
+                        mdRow.appendChild(a);
+                    });
+
+                    if (typeof data.all_files_count === 'number' && allFilesBrick) {
+                        allFilesBrick.textContent = 'FILES: ' + data.all_files_count;
+                    }
+
+                    if (data.index && data.index.all_links && indexLinksBrick) {
+                        indexLinksBrick.textContent = 'INDEX LINKS: ' + data.index.all_links.length;
+                    }
+
+                    if (Array.isArray(unlinked) && unlinkedBrick) {
+                        unlinkedBrick.textContent = 'UNLINKED SURFACES: ' + unlinked.length;
+                    }
+
+                    buildSeedFamilies(unlinked);
+                })
+                .catch(err => {
+                    console.error('Failed to load manifest-vs-index.json', err);
+                });
+        })();
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'h' && !e.metaKey && !e.ctrlKey) {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        });
+    </script>
+</body>
+</html>

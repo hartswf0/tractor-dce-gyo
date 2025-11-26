@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>MENTO Camera MPD Guide – Forest Skirmish Example</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #050505;
+      color: #e5e7eb;
+      margin: 0;
+      padding: 24px 16px 48px;
+    }
+    main {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    h1, h2, h3 {
+      font-family: "SF Mono", Menlo, Monaco, Consolas, monospace;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #fbbf24;
+      margin-top: 1.8em;
+      margin-bottom: 0.6em;
+    }
+    h1 {
+      font-size: 1.1rem;
+    }
+    h2 {
+      font-size: 0.95rem;
+    }
+    h3 {
+      font-size: 0.85rem;
+    }
+    p {
+      font-size: 0.9rem;
+      line-height: 1.6;
+      margin: 0.4em 0 0.8em;
+    }
+    ul {
+      margin: 0.4em 0 0.8em 1.4em;
+      padding: 0;
+      font-size: 0.9rem;
+    }
+    li { margin: 0.2em 0; }
+    code, pre {
+      font-family: "SF Mono", Menlo, Monaco, Consolas, monospace;
+      font-size: 0.8rem;
+    }
+    pre {
+      background: #020617;
+      border-radius: 4px;
+      border: 1px solid #1f2937;
+      padding: 8px 10px;
+      overflow-x: auto;
+      white-space: pre;
+    }
+    .note {
+      font-size: 0.8rem;
+      color: #9ca3af;
+    }
+    .pill {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid #4b5563;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 0.7rem;
+      color: #e5e7eb;
+    }
+    a {
+      color: #60a5fa;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>MENTO Camera MPD Guide</h1>
+    <p class="note">Example: <code>forest_skirmish.mpd</code> – Moonlit Forest Skirmish (Ewoks vs Robots)</p>
+
+    <h2>1. What this is</h2>
+    <p>
+      MENTO reads camera presets directly from <strong>MPD files</strong> using comment lines that start with
+      <code>0 !MENTO SHOT</code>. The geometry (minifigs, trees, vehicles) lives in the same file; the camera
+      lines behave like an invisible shot list attached to the set.
+    </p>
+
+    <h2>2. Basic <code>!MENTO SHOT</code> format</h2>
+    <p>Each shot is a single comment line:</p>
+    <pre>0 !MENTO SHOT "Label" POS &lt;px&gt; &lt;py&gt; &lt;pz&gt; TGT &lt;tx&gt; &lt;ty&gt; &lt;tz&gt; LENS &lt;fov&gt;</pre>
+    <ul>
+      <li><strong>Label</strong> – human‑readable name shown in Momento&rsquo;s shot dropdown.</li>
+      <li><strong>POS</strong> – camera position in the same LDraw coordinates you build the set in.</li>
+      <li><strong>TGT</strong> – the point the camera looks at (focus point / reticle anchor).</li>
+      <li><strong>LENS</strong> – vertical field of view in degrees (e.g. <code>35</code>, <code>50</code>, <code>85</code>).</li>
+    </ul>
+    <p>
+      In Momento, the MPD is loaded into Grace via the standard LDraw pipeline, which rotates the model
+      <code>180°</code> around X. Momento compensates for this when applying shots, so you can think purely
+      in <strong>MPD space</strong> when you author your camera lines.
+    </p>
+
+    <h2>3. Coordinate conventions</h2>
+    <p>The Ewok forest example uses this convention:</p>
+    <pre>0 // NOTE: In this scene's convention, MORE NEGATIVE Y = HIGHER.</pre>
+    <ul>
+      <li><strong>X</strong> – left/right across the battlefield (Ewoks at negative X, robots at positive X).</li>
+      <li><strong>Y</strong> – height. Ground is near <code>0</code>, heads are around <code>-60</code>,
+          the plane and sky pieces are much more negative.</li>
+      <li><strong>Z</strong> – depth (north/south forest depth in this layout).</li>
+    </ul>
+
+    <h2>4. Embedding shots into <code>forest_skirmish.mpd</code></h2>
+    <p>
+      Drop a <strong>MENTO CAMERA TRACK</strong> section near the top of your MPD, before the main geometry blocks:
+    </p>
+    <pre>0 // ============================================================
+0 // MENTO CAMERA TRACK (Shot List)
+0 // ============================================================
+
+0 !MENTO SHOT "Skirmish Wide" POS   0 -200 480  TGT   0 -40   0  LENS 35
+0 !MENTO SHOT "Ewok Line"     POS -260 -160 120  TGT -260 -64  10  LENS 50
+0 !MENTO SHOT "Robot Line"    POS  260 -160  40  TGT  220 -64   0  LENS 50
+0 !MENTO SHOT "No Man's Land" POS   0 -180 -80  TGT   0 -40   0  LENS 45
+0 !MENTO SHOT "Train Vector"  POS 520 -140  40  TGT 220  -40  40  LENS 55
+0 !MENTO SHOT "Aerial Map"    POS   0 -620   0  TGT   0   0   0  LENS 55</pre>
+
+    <p>
+      These six presets behave like <strong>reticles</strong> laid over the set:
+    </p>
+    <ul>
+      <li><strong>Skirmish Wide</strong> – centered wide master, both sides visible.</li>
+      <li><strong>Ewok Line</strong> – over the Ewok captain&rsquo;s side, looking across the divide.</li>
+      <li><strong>Robot Line</strong> – mirror of Ewok Line, from the robots&rsquo; formation.</li>
+      <li><strong>No Man&rsquo;s Land</strong> – pointed at the empty kill‑zone between the factions.</li>
+      <li><strong>Train Vector</strong> – aligned with the incoming train (intrusion vector).</li>
+      <li><strong>Aerial Map</strong> – straight‑down tactical map of the whole forest field.</li>
+    </ul>
+
+    <h2>5. Using these shots in Momento</h2>
+    <p>In <strong>Momento</strong> (the camera app):</p>
+    <ol>
+      <li>Open <span class="pill">Mento Shots (MPD)</span> panel.</li>
+      <li>Use the <strong>Source</strong> file input and select <code>forest_skirmish.mpd</code>
+          (or your Ewok MPD that includes the track above).</li>
+      <li>Momento parses all <code>0 !MENTO SHOT</code> lines and fills the <strong>Shot</strong> dropdown.</li>
+      <li>Select a shot label (e.g. <code>Skirmish Wide</code>) to snap the Grace camera to that preset.</li>
+      <li>Hit <strong>REC</strong> to capture; the preview and captured WebM share the same 4:3 frame.</li>
+    </ol>
+    <p>
+      You can also paste the MPD text into the MENTO textarea and press
+      <strong>Load From Text</strong> to work with in‑memory shot lists.
+    </p>
+
+    <h2>6. Reticle thinking: designing shots around the set</h2>
+    <p>For this forest layout, useful anchors are:</p>
+    <ul>
+      <li><strong>West Ewok cluster</strong> &ndash; positions near X ≈ −260, Z ≈ 0.</li>
+      <li><strong>East robot cluster</strong> &ndash; positions near X ≈ +220, Z ≈ 0–80.</li>
+      <li><strong>Stage crease</strong> &ndash; the fallen log at Z ≈ −10.</li>
+      <li><strong>Set rim / threshold</strong> &ndash; door and horizon pieces around Y ≈ −500.</li>
+      <li><strong>Intrusion props</strong> &ndash; train and overhead plane, far east / high Y.</li>
+    </ul>
+    <p>
+      Each <code>POS</code>/<code>TGT</code> pair is a reticle: pick an anchor on the set (a captain&rsquo;s head,
+      the center of the log, the track of the train) and place the camera back from it along a line of action.
+    </p>
+
+    <h2>7. Checklist for authoring your own MPD shot lists</h2>
+    <ul>
+      <li><strong>Keep all camera lines as comments</strong> starting with <code>0 !MENTO SHOT</code>.</li>
+      <li>
+        <strong>Use the same coordinate system</strong> you use for parts. If your convention says
+        &ldquo;more negative Y is higher,&rdquo; keep that consistent across both geometry and cameras.
+      </li>
+      <li>
+        <strong>Group the shots</strong> into a clearly labelled block (e.g. <code>// MENTO CAMERA TRACK</code>)
+        near the top of the file for easy copy/paste between scenes.
+      </li>
+      <li>
+        <strong>Use readable labels</strong> so the Momento dropdown reads like a shot list, not raw IDs.
+      </li>
+      <li>
+        <strong>Tune FOV</strong>: 35–50 for character shots, 60–85 for wide establishing frames.
+      </li>
+    </ul>
+
+    <h2>8. Where this is used</h2>
+    <p>
+      Momento lives in <code>Brickfilm_Studio_Kit/REALITY MEDIA_MOMENTO/momento.html</code> and talks
+      to Grace (the LDraw viewer) through an iframe. When you load a scene MPD there and then point Momento
+      at a <code>.mpd</code> that contains <code>!MENTO SHOT</code> lines, the two stay in sync: geometry,
+      lighting, and the camera track all travel together as one file.
+    </p>
+
+    <p class="note">This page is a local reference for authoring MENTO‑ready MPDs. You can open it directly in a browser next to Grace + Momento while you iterate on new scenes.</p>
+  </main>
+</body>
+</html>

@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LEGOS-GPT – Modular Narrative Architect & Grammar</title>
+    <link rel="icon"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg ' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23000000'/%3E%3C/svg%3E">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #000;
+            color: #ddd;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .page {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            padding: 12px 20px;
+            border-bottom: 1px solid #333;
+            background: #050505;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .title-block {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .title {
+            font-size: 14px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            color: #E31C23;
+        }
+
+        .subtitle {
+            font-size: 9px;
+            color: #777;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .badge {
+            font-size: 8px;
+            padding: 4px 8px;
+            border-radius: 3px;
+            border: 1px solid #333;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .nav-bar {
+            padding: 8px 20px;
+            border-bottom: 1px solid #222;
+            background: #0a0a0a;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            overflow-x: auto;
+        }
+
+        .nav-link {
+            font-size: 9px;
+            padding: 6px 12px;
+            border-radius: 4px;
+            border: 1px solid #333;
+            background: #050505;
+            color: #888;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.2s ease;
+        }
+
+        .nav-link:hover {
+            border-color: #E31C23;
+            color: #E31C23;
+            background: #0a0a0a;
+        }
+
+        .content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding: 20px 20px 30px;
+            overflow-y: auto;
+        }
+
+        .section-title {
+            font-size: 10px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .lego-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .lego-block {
+            min-width: 200px;
+            flex: 1;
+            padding: 12px 14px;
+            border-radius: 6px;
+            border: 1px solid #333;
+            background: #050505;
+            position: relative;
+        }
+
+        .lego-top {
+            position: absolute;
+            top: -6px;
+            left: 10px;
+            display: flex;
+            gap: 5px;
+        }
+
+        .lego-stud {
+            width: 10px;
+            height: 6px;
+            border-radius: 4px 4px 0 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .lego-name {
+            font-size: 11px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+
+        .lego-note {
+            font-size: 9px;
+            color: #aaa;
+            line-height: 1.5;
+        }
+
+        .lego-stat {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .lego-planning {
+            border-color: #FFCC00;
+            box-shadow: 0 0 10px rgba(255, 204, 0, 0.2);
+        }
+
+        .lego-spatial {
+            border-color: #4ECDC4;
+            box-shadow: 0 0 10px rgba(78, 205, 196, 0.2);
+        }
+
+        .lego-agent {
+            border-color: #00FF88;
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.2);
+        }
+
+        .lego-build {
+            border-color: #9D4EDD;
+            box-shadow: 0 0 10px rgba(157, 78, 221, 0.2);
+        }
+
+        .lego-legos {
+            border-color: #FF4500;
+            box-shadow: 0 0 10px rgba(255, 69, 0, 0.2);
+        }
+
+        .lego-tutorial {
+            border-color: #E31C23;
+            box-shadow: 0 0 10px rgba(227, 28, 35, 0.2);
+        }
+
+        .lego-planning .lego-name {
+            color: #FFCC00;
+        }
+
+        .lego-spatial .lego-name {
+            color: #4ECDC4;
+        }
+
+        .lego-agent .lego-name {
+            color: #00FF88;
+        }
+
+        .lego-build .lego-name {
+            color: #9D4EDD;
+        }
+
+        .lego-legos .lego-name {
+            color: #FF4500;
+        }
+
+        .lego-tutorial .lego-name {
+            color: #E31C23;
+        }
+
+        .lego-planning .lego-stat {
+            color: #FFCC00;
+        }
+
+        .lego-spatial .lego-stat {
+            color: #4ECDC4;
+        }
+
+        .lego-agent .lego-stat {
+            color: #00FF88;
+        }
+
+        .lego-build .lego-stat {
+            color: #9D4EDD;
+        }
+
+        .flow-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            font-size: 9px;
+            margin: 10px 0;
+        }
+
+        .arrow {
+            padding: 3px 8px;
+            border-radius: 12px;
+            border: 1px solid #444;
+            color: #666;
+            white-space: nowrap;
+            font-size: 8px;
+        }
+
+        .arrow-highlight {
+            border-color: #E31C23;
+            color: #E31C23;
+        }
+
+        .pill {
+            font-size: 8px;
+            padding: 3px 8px;
+            border-radius: 999px;
+            border: 1px solid #333;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #888;
+            display: inline-block;
+        }
+
+        .pill-planning {
+            border-color: #FFCC00;
+            color: #FFCC00;
+        }
+
+        .pill-spatial {
+            border-color: #4ECDC4;
+            color: #4ECDC4;
+        }
+
+        .pill-agent {
+            border-color: #00FF88;
+            color: #00FF88;
+        }
+
+        .pill-build {
+            border-color: #9D4EDD;
+            color: #9D4EDD;
+        }
+
+        .pill-legos {
+            border-color: #FF4500;
+            color: #FF4500;
+        }
+
+        .callout {
+            border-left: 2px solid #333;
+            padding-left: 10px;
+            font-size: 9px;
+            color: #bbb;
+            line-height: 1.5;
+            margin: 10px 0;
+        }
+
+        .callout-emoji {
+            margin-right: 6px;
+        }
+
+        .media-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .media-card {
+            border: 1px solid #333;
+            border-radius: 6px;
+            overflow: hidden;
+            background: #050505;
+        }
+
+        .media-body {
+            padding: 10px 12px;
+            font-size: 9px;
+            color: #aaa;
+            line-height: 1.5;
+        }
+
+        .media-title {
+            padding: 10px 12px;
+            font-size: 9px;
+            color: #888;
+            border-top: 1px solid #222;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .tutorial-step {
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 14px;
+            background: #050505;
+            margin: 10px 0;
+        }
+
+        .step-number {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #E31C23;
+            color: #000;
+            text-align: center;
+            line-height: 24px;
+            font-weight: bold;
+            font-size: 11px;
+            margin-right: 8px;
+        }
+
+        .step-title {
+            font-size: 11px;
+            font-weight: bold;
+            margin-bottom: 6px;
+            color: #ddd;
+        }
+
+        .step-content {
+            font-size: 9px;
+            color: #aaa;
+            line-height: 1.5;
+            padding-left: 32px;
+        }
+
+        .code-snippet {
+            background: #0a0a0a;
+            border: 1px solid #222;
+            border-radius: 4px;
+            padding: 10px 12px;
+            font-size: 9px;
+            color: #4ECDC4;
+            overflow-x: auto;
+            margin: 8px 0;
+            font-family: 'Courier New', monospace;
+            white-space: pre;
+        }
+
+        .status-bar {
+            padding: 8px 20px;
+            border-top: 1px solid #333;
+            font-size: 8px;
+            color: #666;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .lightbox {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .lightbox.active {
+            display: flex;
+        }
+
+        .lightbox img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+            border: 1px solid #333;
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: #E31C23;
+            font-size: 36px;
+            cursor: pointer;
+            z-index: 1001;
+        }
+
+        @media (max-width: 768px) {
+            .lego-row {
+                flex-direction: column;
+            }
+
+            .media-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .flow-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page">
+        <div class="header">
+            <div class="title-block">
+                <div class="title">LEGOS-GPT – MODULAR NARRATIVE ARCHITECT & SEMANTIC PARSER</div>
+                <div class="subtitle">ANY INPUT → LEGOS STORY GRAMMAR → YAML SCENE MODEL</div>
+            </div>
+            <div class="badge">6 GRAMMAR BLOCKS • YAML OUTPUT • HUMAN + MACHINE READABLE</div>
+        </div>
+
+        <div class="nav-bar">
+            <a href="#overview" class="nav-link">Overview</a>
+            <a href="#grammar" class="nav-link">LEGOS Grammar</a>
+            <a href="#templates" class="nav-link">YAML Templates</a>
+            <a href="#cheatsheet" class="nav-link">Cheat Sheet</a>
+            <a href="#examples" class="nav-link">Examples</a>
+            <a href="#usecases" class="nav-link">Use Cases</a>
+            <a href="#tutorials" class="nav-link">How to Use</a>
+            <a href="#gallery" class="nav-link">Concept Gallery</a>
+        </div>
+
+        <div class="content">
+
+            <!-- Overview Section -->
+            <div id="overview">
+                <div class="section-title">System Overview – LEGOS-GPT at a Glance</div>
+                <div class="lego-row">
+                    <div class="lego-block lego-planning">
+                        <div class="lego-top">
+                            <div class="lego-stud"></div>
+                            <div class="lego-stud"></div>
+                        </div>
+                        <div class="lego-stat">6</div>
+                        <div class="lego-name">CORE BLOCKS</div>
+                        <div class="lego-note">Entity, Morphism, Goal, Obstacle, Shift, Location/Timepoint – the
+                            minimal grammar needed to express any narrative system as LEGOS.</div>
+                    </div>
+                    <div class="lego-block lego-agent">
+                        <div class="lego-top">
+                            <div class="lego-stud"></div>
+                            <div class="lego-stud"></div>
+                        </div>
+                        <div class="lego-stat">∞</div>
+                        <div class="lego-name">INPUTS</div>
+                        <div class="lego-note">Stories, images, concepts, videos, events, worlds, systems – anything
+                            that can be described in language can be decomposed into LEGOS.</div>
+                    </div>
+                    <div class="lego-block lego-build">
+                        <div class="lego-top">
+                            <div class="lego-stud"></div>
+                            <div class="lego-stud"></div>
+                        </div>
+                        <div class="lego-stat">YAML</div>
+                        <div class="lego-name">OUTPUT FORM</div>
+                        <div class="lego-note">LEGOS-GPT always emits structured, human-readable and
+                            machine-parsable YAML describing entities, goals, obstacles, relations, and timelines.</div>
+                    </div>
+                    <div class="lego-block lego-legos">
+                        <div class="lego-top">
+                            <div class="lego-stud"></div>
+                        </div>
+                        <div class="lego-stat">REUSE</div>
+                        <div class="lego-name">MODULARITY</div>
+                        <div class="lego-note">Every element is a block. Blocks can be reused, recombined, and
+                            recursively nested to model worlds, episodes, or conceptual systems.</div>
+                    </div>
+                </div>
+                <div class="callout">
+                    <span class="callout-emoji">🧱</span>
+                    LEGOS-GPT treats narrative as architecture. Instead of loose prose, you get a clean grid of
+                    <strong>blocks</strong>, <strong>relations</strong>, and <strong>timeline scenes</strong> that can
+                    drive engines, dashboards, or other agents.
+                </div>
+                <div class="callout">
+                    <span class="callout-emoji">🔗</span>
+                    See also: <a href="LEGOS-to-Ldraw-bridge.html" style="color:#f59e0b; text-decoration: underline;">LEGOS ↔ LDraw Bridge Manual</a> for how these LEGOS models map onto LDraw/MPD brick scenes and how to recover narrative structure from physical layouts.
+                </div>
+            </div>
+
+            <!-- LEGOS Grammar -->
+            <div id="grammar">
+                <div class="section-title">LEGOS Grammar – Core Components</div>
+                <div class="lego-row">
+                    <div class="lego-block lego-legos">
+                        <div class="lego-top">
+                            <div class="lego-stud"></div>
+                        </div>
+                        <div class="lego-name">&lt;Entity&gt;</div>
+                        <div class="lego-note">Any discrete noun or concept that exists (character, object, place,
+                            faction, idea).
+                            <br>Examples: &lt;Agent-4&gt;, &lt;The Archive&gt;, &lt;Sticker Gallery&gt;.
+                        </div>
+                    </div>
+                    <div class="lego-block lego-legos">
+                        <div class="lego-top">
+                            <div class="lego-stud"></div>
+                        </div>
+                        <div class="lego-name">[Morphism]</div>
+                        <div class="lego-note">Any verb, relationship, or transformation connecting entities.
+                            <br>Format: <code>[verb] &lt;entity A&gt; → &lt;entity B&gt;</code>.
+                            <br>Examples: [guides], [betrays], [protects], [misaligns_with].
+                        </div>
+                    </div>
+                    <div class="lego-block lego-legos">
+                        <div class="lego-top">
+                            <div class="lego-stud"></div>
+                        </div>
+                        <div class="lego-name">&lt;Goal&gt;</div>
+                        <div class="lego-note">A desired state or outcome held by an entity.
+                            <br>Examples: &lt;Protect the Realm&gt;, &lt;Maintain AI Alignment&gt;.
+                        </div>
+                    </div>
+                    <div class="lego-block lego-legos">
+                        <div class="lego-top">
+                            <div class="lego-stud"></div>
+                        </div>
+                        <div class="lego-name">&lt;Obstacle&gt;</div>
+                        <div class="lego-note">A blocker that prevents a goal.
+                            <br>Examples: &lt;Spec Drift&gt;, &lt;Firewall&gt;, &lt;Public Distrust&gt;.
+                        </div>
+                    </div>
+                    <div class="lego-block lego-legos">
+                        <div class="lego-top">
+                            <div class="lego-stud"></div>
+                        </div>
+                        <div class="lego-name">[Shift]</div>
+                        <div class="lego-note">A significant transition between states.
+                            <br>Examples: &lt;AI Becomes Self-Aware&gt;, &lt;Oversight Committee Formed&gt;.
+                        </div>
+                    </div>
+                    <div class="lego-block lego-legos">
+                        <div class="lego-top">
+                            <div class="lego-stud"></div>
+                        </div>
+                        <div class="lego-name">&lt;Location&gt; / &lt;Timepoint&gt;</div>
+                        <div class="lego-note">Spatial/temporal containers for events and entities.
+                            <br>Examples: &lt;City of Bone&gt;, &lt;Digital Archive&gt;, &lt;Year 2027&gt;.
+                        </div>
+                    </div>
+                </div>
+                <div class="callout">
+                    <span class="callout-emoji">📐</span>
+                    Every LEGOS sentence can be read as:
+                    <strong>&lt;ENTITY&gt; [MORPHISM] &lt;ENTITY&gt;</strong> in a
+                    <strong>&lt;LOCATION&gt;</strong> while pursuing <strong>&lt;GOALS&gt;</strong>, encountering
+                    <strong>&lt;OBSTACLES&gt;</strong>, and undergoing <strong>[SHIFTS]</strong> over time.
+                </div>
+            </div>
+
+            <!-- YAML Templates -->
+            <div id="templates">
+                <div class="section-title">YAML Templates – Canonical LEGOS Output</div>
+                <div class="lego-row">
+                    <div class="lego-block lego-planning">
+                        <div class="lego-top">
+                            <div class="lego-stud"></div>
+                            <div class="lego-stud"></div>
+                        </div>
+                        <div class="lego-name">Scene Template</div>
+                        <div class="lego-note">LEGOS-GPT&apos;s primary output schema for any input turned into a scene
+                            or system.</div>
+                        <div class="code-snippet">scene: "&lt;name&gt;"
+description: "&lt;short summary&gt;"
+entities:
+  - id: ...
+    type: ...
+    name: ...
+    traits: [...]
+    location: &lt;location_id or label&gt;
+
+goals:
+  - id: ...
+    name: ...
+    owner: &lt;entity_id&gt;
+
+obstacles:
+  - id: ...
+    name: ...
+    affects: &lt;goal_id&gt;
+
+shifts:
+  - id: ...
+    name: ...
+    from: ...
+    to: ...
+    causes: ...
+
+relations:
+  - [morphism] &lt;entity_1_id&gt; -&gt; &lt;entity_2_id&gt;
+
+timeline:
+  - id: ...
+    description: ...
+    scenes: [...]</div>
+                    </div>
+                    <div class="lego-block lego-planning">
+                        <div class="lego-top">
+                            <div class="lego-stud"></div>
+                            <div class="lego-stud"></div>
+                        </div>
+                        <div class="lego-name">System Template</div>
+                        <div class="lego-note">A variant emphasizing title-level systems or worlds.</div>
+                        <div class="code-snippet">title: "&lt;Name of Story/Scene/System&gt;"
+description: "&lt;One-sentence summary&gt;"
+location: "&lt;Where does it happen?&gt;"
+
+entities:
+  - id: ...
+    type: ...
+    name: ...
+    traits: [...]
+    location: &lt;location_id&gt;
+
+goals:
+  - id: ...
+    name: ...
+    owner: &lt;entity_id&gt;
+
+obstacles:
+  - id: ...
+    name: ...
+    affects: &lt;goal_id&gt;
+
+shifts:
+  - id: ...
+    name: ...
+    causes: [&lt;obstacle_id&gt;]
+    results_in: &lt;goal_id or entity_state&gt;
+
+relations:
+  - [morphism] &lt;entity_1_id&gt; -&gt; &lt;entity_2_id&gt;
+
+timeline:
+  - id: ...
+    description: "&lt;Phase or year&gt;"
+    scenes:
+      - id: ...
+        description: "&lt;Mini-event&gt;"
+        entities: [&lt;entity_id&gt;, ...]</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cheat Sheet -->
+            <div id="cheatsheet">
+                <div class="section-title">LEGOS Grammar Cheat Sheet – Quick Reference</div>
+                <div class="media-grid">
+                    <div class="media-card">
+                        <div class="media-body">
+                            <strong>Core Components</strong><br><br>
+                            &lt;LOCATION&gt; – spatial/temporal containers.<br>
+                            &lt;ENTITY&gt; – characters, objects, systems, ideas.<br>
+                            &lt;GOAL&gt; – desired outcomes for entities.<br>
+                            &lt;OBSTACLE&gt; – anything blocking goals.<br>
+                            [MORPHISM] – verbs/relations between entities.<br>
+                            [SHIFT] – major transitions in state/structure.<br>
+                            &lt;TIMELINE&gt; / &lt;SCENE&gt; – time-indexed sequences.
+                        </div>
+                        <div class="media-title">LEGOS GRAMMAR — CORE COMPONENTS</div>
+                    </div>
+                    <div class="media-card">
+                        <div class="media-body">
+                            <strong>Example LEGOS Logic Chain</strong><br><br>
+                            <code>&lt;Agent-4&gt; [misaligns_with] &lt;Spec&gt; → blocks &lt;Goal: Align AI&gt;<br>
+→ [Gov Oversight] resolves &lt;Obstacle: Public Backlash&gt;</code>
+                            <br><br>
+                            Use this pattern to reason about how systems fail, who owns which goal, and which shifts
+                            repair or worsen alignment.
+                        </div>
+                        <div class="media-title">EXAMPLE LEGOS LOGIC CHAIN</div>
+                    </div>
+                    <div class="media-card">
+                        <div class="media-body">
+                            <strong>Behavior Contract</strong><br><br>
+                            - Be modular, reusable, and recursive.<br>
+                            - Every concept should be representable as a LEGOS block.<br>
+                            - Every relation is explicit and linkable.<br>
+                            - Output must be human-readable AND machine-parsable.<br>
+                            - Maintain clarity even for abstract topics (AI history, economics, romance, dreams).
+                        </div>
+                        <div class="media-title">LEGOS-GPT BEHAVIOR</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Examples -->
+            <div id="examples">
+                <div class="section-title">Examples – LEGOS Models in Practice</div>
+                <div class="lego-row">
+                    <div class="lego-block lego-build">
+                        <div class="lego-top">
+                            <div class="lego-stud"></div>
+                            <div class="lego-stud"></div>
+                        </div>
+                        <div class="lego-name">AI Alignment Lab (Sketch)</div>
+                        <div class="lego-note">A small example of an abstract system turned into LEGOS YAML.</div>
+                        <div class="code-snippet">scene: "AI Alignment Lab"
+description: "Research lab trying to keep a fast agent aligned with a shifting spec."
+entities:
+  - id: agent4
+    type: Character
+    name: "Agent-4"
+    traits: ["powerful", "opaque", "fast-optimizing"]
+  - id: spec
+    type: Object
+    name: "Alignment Spec v1.0"
+    traits: ["incomplete", "ambiguous"]
+  - id: lab
+    type: Location
+    name: "OpenBrain R&D Lab"
+    traits: ["high-pressure", "surveilled"]
+
+goals:
+  - id: g_align
+    name: "Maintain Alignment"
+    owner: agent4
+
+obstacles:
+  - id: o_drift
+    name: "Spec Drift"
+    affects: g_align
+
+shifts:
+  - id: s_oversight
+    name: "Oversight Committee Formed"
+    causes: [o_drift]
+
+relations:
+  - [misaligns_with] agent4 -> spec
+  - [monitors] lab -> agent4
+  - [tightens] s_oversight -> spec
+
+timeline:
+  - id: t0
+    description: "Pre-incident"
+    scenes: ["agent4 deployed", "spec accepted"]
+  - id: t1
+    description: "Drift detected"
+    scenes: ["metrics diverge", "public backlash"]
+  - id: t2
+    description: "Oversight forms"
+    scenes: ["committee created", "spec revised"]</div>
+                    </div>
+                    <div class="lego-block lego-build">
+                        <div class="lego-top">
+                            <div class="lego-stud"></div>
+                            <div class="lego-stud"></div>
+                        </div>
+                        <div class="lego-name">Sticker Gallery (Narrative)</div>
+                        <div class="lego-note">The LEGOS narrative framing for a scene like the Sticker Gallery.</div>
+                        <div class="code-snippet">title: "Sticker Gallery – Brand Graveyard"
+description: "An archivist assembles a forbidden Speed Idol from corporate sticker ruins."
+location: "Sticker Archive"
+
+entities:
+  - id: archivist
+    type: Character
+    name: "The Archivist"
+    traits: ["patient", "defiant"]
+    location: "Sticker Archive"
+  - id: idol
+    type: Object
+    name: "Speed Idol"
+    traits: ["incomplete", "powerful"]
+    location: "Sticker Archive"
+  - id: barrier
+    type: System
+    name: "Compliance Barrier"
+    traits: ["strict", "watchful"]
+    location: "Sticker Archive"
+
+goals:
+  - id: g_build_idol
+    name: "Construct Speed Idol"
+    owner: archivist
+
+obstacles:
+  - id: o_barrier
+    name: "Compliance Barrier"
+    affects: g_build_idol
+
+shifts:
+  - id: s_merger
+    name: "Great Merger"
+    causes: [o_barrier]
+    results_in: g_build_idol
+
+relations:
+  - [collects] archivist -> idol
+  - [blocks] barrier -> archivist
+  - [relabels] archivist -> barrier
+
+timeline:
+  - id: t_archive
+    description: "Quiet archive days"
+    scenes: ["sticker cataloging", "rumors of merger"]
+  - id: t_break
+    description: "Against the rules"
+    scenes: ["archivist assembles idol", "barrier looks away"]</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Use Cases -->
+            <div id="usecases">
+                <div class="section-title">Use Cases – Where LEGOS-GPT Fits</div>
+                <div class="lego-row">
+                    <div class="lego-block lego-planning">
+                        <div class="lego-top">
+                            <div class="lego-stud"></div>
+                        </div>
+                        <div class="lego-name">Worldbuilding</div>
+                        <div class="lego-note">Turn loose notes about a setting into reusable entities, locations,
+                            and timelines. Attach goals and obstacles per faction to drive campaigns or series bibles.</div>
+                    </div>
+                    <div class="lego-block lego-planning">
+                        <div class="lego-top">
+                            <div class="lego-stud"></div>
+                        </div>
+                        <div class="lego-name">Story Decomposition</div>
+                        <div class="lego-note">Take an existing story (novel, film, session log) and decompose it
+                            into LEGOS blocks to analyze pacing, structure, and character arcs.</div>
+                    </div>
+                    <div class="lego-block lego-agent">
+                        <div class="lego-top">
+                            <div class="lego-stud"></div>
+                        </div>
+                        <div class="lego-name">Multi-Agent Simulations</div>
+                        <div class="lego-note">Use goals, obstacles, and morphisms as state for agents in a
+                            simulation. Each tick, agents act to resolve obstacles and advance goals.</div>
+                    </div>
+                    <div class="lego-block lego-agent">
+                        <div class="lego-top">
+                            <div class="lego-stud"></div>
+                        </div>
+                        <div class="lego-name">Adaptive Narratives</div>
+                        <div class="lego-note">Drive branching stories or games from the LEGOS model: when a shift
+                            fires or a goal resolves, unlock new scenes or mechanics.</div>
+                    </div>
+                    <div class="lego-block lego-build">
+                        <div class="lego-top">
+                            <div class="lego-stud"></div>
+                        </div>
+                        <div class="lego-name">Concept Modeling</div>
+                        <div class="lego-note">Express abstract domains (AI history, economics, romance, dreams) as
+                            entities, relations, and shifts to make them explorable and editable.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tutorials / How to Use -->
+            <div id="tutorials">
+                <div class="section-title">Step-by-Step – How to Use LEGOS-GPT</div>
+
+                <div class="tutorial-step">
+                    <div class="step-title"><span class="step-number">1</span>CHOOSE AN INPUT</div>
+                    <div class="step-content">
+                        Decide what you want to model: a scene, a relationship, a whole world, or an abstract
+                        process. Feed LEGOS-GPT raw prose, bullet points, transcripts, or concept descriptions.
+                    </div>
+                </div>
+
+                <div class="tutorial-step">
+                    <div class="step-title"><span class="step-number">2</span>ASK FOR A LEGOS MODEL</div>
+                    <div class="step-content">
+                        Prompt LEGOS-GPT with instructions like:
+                        <div class="code-snippet">"You are LEGOS-GPT. Take the following input and emit a YAML LEGOS model
+using the scene template. Make entities, goals, obstacles, shifts,
+relations, and a small timeline."</div>
+                        The output will follow the YAML schemas shown above.
+                    </div>
+                </div>
+
+                <div class="tutorial-step">
+                    <div class="step-title"><span class="step-number">3</span>REFINE THE BLOCKS</div>
+                    <div class="step-content">
+                        Ask follow-ups: split or merge entities, add missing goals, clarify obstacles, or propose
+                        alternative shifts. LEGOS-GPT can update the YAML while preserving IDs and structure.
+                    </div>
+                </div>
+
+                <div class="tutorial-step">
+                    <div class="step-title"><span class="step-number">4</span>HOOK INTO ENGINES</div>
+                    <div class="step-content">
+                        Once stable, feed the YAML into your own tools: story engines, dashboards, agent simulators,
+                        or visualization layers. Because it is machine-parsable, the same model can drive many
+                        front-ends.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Concept Gallery -->
+            <div id="gallery">
+                <div class="section-title">Concept Gallery – Mental Models</div>
+                <div class="media-grid">
+                    <div class="media-card">
+                        <div class="media-body">
+                            <strong>Words → Blocks</strong><br><br>
+                            Any paragraph, transcript, or design doc can be snapped into blocks. Think of sentences as
+                            noisy input; LEGOS-GPT extracts the clean studs: entities, goals, obstacles, and shifts.
+                        </div>
+                        <div class="media-title">TEXT TO BLOCKS</div>
+                    </div>
+                    <div class="media-card">
+                        <div class="media-body">
+                            <strong>Blocks → Structures</strong><br><br>
+                            Once in LEGOS form, you can stack, mirror, and recombine scenes. Two stories sharing an
+                            entity become trivially linkable; shared goals reveal conflict or alliance.
+                        </div>
+                        <div class="media-title">BLOCKS TO STRUCTURES</div>
+                    </div>
+                    <div class="media-card">
+                        <div class="media-body">
+                            <strong>Structures → Engines</strong><br><br>
+                            Because the grammar is explicit, engines can operate over it: search for all obstacles that
+                            affect a goal, simulate shifts, or auto-generate prompts and UI from the model.
+                        </div>
+                        <div class="media-title">STRUCTURES TO ENGINES</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="status-bar">
+            <span>LEGOS-GPT • Modular Narrative Architecture & Story Grammar Documentation</span>
+            <span>6 grammar blocks • YAML-first • Built to be both readable and computable</span>
+        </div>
+    </div>
+
+    <!-- Lightbox -->
+    <div class="lightbox" id="lightbox" onclick="closeLightbox()">
+        <div class="lightbox-close">&times;</div>
+        <img id="lightbox-img" src="" alt="Full Screen Image">
+    </div>
+
+    <script>
+        // Smooth scroll navigation
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+
+        // Lightbox functions (kept for compatibility if you add images later)
+        function openLightbox(src) {
+            const lightbox = document.getElementById('lightbox');
+            const img = document.getElementById('lightbox-img');
+            img.src = src;
+            lightbox.classList.add('active');
+        }
+
+        function closeLightbox() {
+            const lightbox = document.getElementById('lightbox');
+            lightbox.classList.remove('active');
+        }
+
+        // ESC key to close lightbox
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                closeLightbox();
+            }
+        });
+    </script>
+
+</body>
+
+</html>

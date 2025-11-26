@@ -431,9 +431,27 @@
                 <a href="studio-tutorial.html" class="brick brick-3x4 color-yellow" title="Quickstart walkthrough for Swiss / Frank / Grace studio surfaces and flows.">QUICKSTART</a>
                 <a href="studio-tutorial-02.html" class="brick brick-3x4 color-gray" title="Designer Hub tutorial showing how to wire studio tools together.">DESIGNER HUB</a>
                 <a href="LEGOS-tutorial-prime.html" class="brick brick-3x4 color-red" title="LEGOS tutorial: LEGO-first walkthrough that ties HELLO WORLD, GOLD, and Grace editors into a concrete build.">LEGOS TUTORIAL</a>
+                <a href="LEGOS-GPT.html" class="brick brick-3x4 color-red" title="LEGOS-GPT: modular narrative architect and YAML story grammar for LEGOS scenes, systems, and agents.">LEGOS-GPT GRAMMAR</a>
+                <a href="LEGOS-to-Ldraw-bridge.html" class="brick brick-3x4 color-orange" title="LEGOS ↔ LDraw Bridge: manual for translating between LEGOS narrative models and LDraw/MPD brick scenes.">LEGOS↔LDRAW BRIDGE</a>
                 <a href="TIMBER-tutorial-prime.html" class="brick brick-3x4 color-teal" title="TIMBER Studio tutorial: Courage / WERE / Master / Symbiogene GOLD + selection loops in the TIMBER shell.">TIMBER STUDIO TUTORIAL</a>
                 <a href="STUD-SKELETON-tutorial-visual.html" class="brick brick-3x4 color-purple" title="Visual guide to how Courage generates stud_skeleton from MPD, how GOLD stores it, and how WAG WERE / MASTER use it for bones and ORBS.">STUD SKELETON GUIDE</a>
                 <a href="bull-assembly-tutorial.html" class="brick brick-3x4 color-red" title="Bull Assembly Studio tutorial: MPD → GOLD → per-line stud map and line-centric editing in WERE / MASTER.">BULL ASSEMBLY TUTORIAL</a>
+            </div>
+        </div>
+
+        <div class="section-title">HOMER STUDIO / HOMER ENGINE</div>
+
+        <div class="planning-grid">
+            <div class="row-label">DOCS</div>
+            <div class="brick-row">
+                <a href="homer-quickstart.html" class="brick brick-3x4 color-yellow" title="HOMER Studio quickstart: LEGO-style walkthrough of Swiss → Frank → Courage → Weaver → Were → Master → Mento with button choreography and troubleshooting.">HOMER QUICKSTART</a>
+                <a href="homer-step1-swiss-frank-courage.html" class="brick brick-3x4 color-blue" title="Deep-dive step docs for HOMER pipeline: Swiss/Frank → Courage stage, Courage RB → GOLD, Weaver Assembly Line / XRAY / GOLD bus, Master tuning round-trip, and Mento brickfilm capture, each with UI mockups, code, and example scenes.">HOMER STEP DOCS</a>
+                <a href="homer-engine-research.md" class="brick brick-3x4 color-gray" title="HOMER ENGINE research notebook: component inventory, interaction affordances, data flows, BroadcastChannel message catalog, state transitions, and error states, plus answer templates.">RESEARCH NOTES</a>
+            </div>
+
+            <div class="row-label">SCENE</div>
+            <div class="brick-row">
+                <div class="brick brick-3x4 color-pink" title="Example \"night rooftop chase\" scene threaded through HOMER docs: hero, rival, and getaway car built in Swiss, parked on Frank's 9×9 grid, rendered in Courage, sampled into GOLD/StudMap in Weaver/Master, and recorded as shots in Mento.">NIGHT ROOFTOP CHASE</div>
             </div>
         </div>
 
@@ -925,6 +943,98 @@
                 <a href="wag-viewer-prime-integration-20251112-055341 copy/CRITICAL-FIXES-COMPLETE.md" class="brick brick-1x4 brick-doc color-red">CRIT FIXES</a>
                 <a href="wag-viewer-prime-integration-20251112-055341 copy/CLICK-TO-HIGHLIGHT-FEATURE.md" class="brick brick-1x4 brick-doc color-blue">CLICK FEATURE</a>
                 <a href="wag-viewer-prime-integration-20251112-055341 copy/LAYOUT-FIX-FINAL.md" class="brick brick-1x3 brick-doc color-yellow">LAYOUT FINAL</a>
+            </div>
+        </div>
+
+        <div class="section-title">MENTO CAMERA OLOG — 702 / DESERT / 368</div>
+
+        <div class="planning-grid">
+            <div class="row-label">OVERVIEW</div>
+            <div class="brick-row">
+                <div class="brick brick-3x4 color-blue" title="Olog for the failed 702 ↔ DESERT camera integration and the pivot to MENTO-368" style="height:auto; min-height:90px; align-items:flex-start; padding:8px; text-align:left; white-space:normal;">
+                    <strong>Aim.</strong> Port the robust MENTO camera pipeline from <code>mento-glb-desert.html</code> into the sleeker <code>ai_studio_code-702</code> surface without losing 702&apos;s clarity.<br>
+                    <strong>Result.</strong> We reached feature parity on paper (MENTO shots, flips, bind-to-center, offsets, linear playback, capture), but the combined system became fragile and hard to reason about. This olog formally retires the 702 integration and designates <code>mento-368.html</code> as the new baseline.
+                </div>
+            </div>
+
+            <div class="row-label">DILEMMA</div>
+            <div class="brick-row">
+                <div class="brick brick-3x4 color-orange" style="height:auto; min-height:110px; align-items:flex-start; padding:8px; text-align:left; white-space:normal;">
+                    <strong>Too many coordinate authorities.</strong><br>
+                    • GLB transform (scale / flip / zero-to-origin).<br>
+                    • Path anchor gizmo baked into keyframes.<br>
+                    • Slot-1 binding (pathGroup parented under the model).<br>
+                    • MENTO mapping (Flip X/Y/Z, Bind Ctr, SCL, shotOffset, TARE).<br>
+                    • OrbitControls target drift.<br><br>
+                    Each layer is reasonable alone, but stacked inside 702 they produced feedback loops: the spline &ldquo;slipped&rdquo;, doubled, or walked away as we rebuilt paths or re-bound to Slot 1. Control authority over the camera path was never single-sourced.
+                </div>
+            </div>
+
+            <div class="row-label">RESEARCH NOTES</div>
+            <div class="brick-row">
+                <div class="brick brick-3x4 color-gray" style="height:auto; min-height:120px; align-items:flex-start; padding:8px; text-align:left; white-space:normal;">
+                    <strong>What we successfully ported into 702:</strong><br>
+                    • Structured <code>!MENTO SHOT</code> parsing → <code>mentoShots</code> model (label, POS, TGT, LENS).<br>
+                    • MENTO SHOTS list UI with click-to-jump POVs.<br>
+                    • Desert-style mapping: axis flips, <code>mento-scale</code>, bind-to-GLB-center, shotOffset, TARE-to-Slot-1.<br>
+                    • Keyframes built from transformed shots (pos/tgt/fov), not raw orbit snapshots.<br>
+                    • Linear keyframe playback (no Catmull for the actual camera), FOV + target interpolation, frustum helpers synced to the active segment.<br>
+                    • Recording pipeline using <code>MediaRecorder</code> with path-driven motion and separate REC length.
+                </div>
+                <div class="brick brick-3x4 color-brown" style="height:auto; min-height:120px; align-items:flex-start; padding:8px; text-align:left; white-space:normal;">
+                    <strong>Where it still failed as a tool:</strong><br>
+                    • Binding the path under Slot 1 while also re-centering to Slot-1 bounds caused subtle double transforms.<br>
+                    • Small UI changes (toggling Bind Ctr, rebinding path, TARE) could radically move the path in ways that were hard to predict from the surface.<br>
+                    • 702&apos;s compact chrome didn&apos;t have enough visual affordances (minimap, orbit HUD, preset snapshots) to make the composite state legible the way DESERT does.<br>
+                    • Fixes reduced specific bugs but increased conceptual load; the system felt like an experiment log, not a reliable instrument.
+                </div>
+            </div>
+
+            <div class="row-label">PIVOT TO 368</div>
+            <div class="brick-row">
+                <div class="brick brick-3x4 color-teal" style="height:auto; min-height:110px; align-items:flex-start; padding:8px; text-align:left; white-space:normal;">
+                    <strong>MENTO-368 as the new sensor surface.</strong><br>
+                    Instead of forcing DESERT&apos;s full calibration stack into 702, we treat <code>mento-368.html</code> as a fresh control surface:<br>
+                    • Keeps the STUDIO palette (MODEL / PATH / REC colors) and panel layout.<br>
+                    • Reuses the best ideas from DESERT (structured shots, linear keyframe playback, frustums, capture) but re-designed for this UI from the start.<br>
+                    • Gives camera and path a single clear owner at any time, avoiding hidden double parenting and &ldquo;slipping&rdquo;.<br>
+                    This olog marks 702-as-lab-not-tool and 368 as the place to build forward.
+                </div>
+            </div>
+
+            <div class="row-label">368 MOBILE / ROTATION UX</div>
+            <div class="brick-row">
+                <div class="brick brick-3x4 color-purple" style="height:auto; min-height:110px; align-items:flex-start; padding:8px; text-align:left; white-space:normal;">
+                    <strong>From fussy gizmos to sculptural control.</strong><br>
+                    • On mobile, <code>mento-368.html</code> now stacks viewport and panel with a draggable splitter; both halves stay usable instead of the panel collapsing to a sliver.<br>
+                    • PATH editing separates selection, rotation, and POV: spline nodes and storyboard rows select a key; a dedicated <em>POV</em> button is the only way to jump the live camera into a shot.<br>
+                    • The rotation gizmo no longer hijacks the view. It purely sculpts each key&apos;s POS→TGT direction in space, while the big 16:9 timeline preview renders the key&apos;s frustum as ground truth.<br>
+                    • KEY DATA adds yaw / pitch dials and sliders per key, so camera aims can be tuned numerically or by thumb without fighting the 3D widget.
+                    Together these moves push 368 toward a calm, WYSIWYG camera instrument instead of a noisy 3D CAD rig.
+                </div>
+            </div>
+
+            <div class="row-label">368 CAPTURE / TIMING</div>
+            <div class="brick-row">
+                <div class="brick brick-3x4 color-gray" style="height:auto; min-height:120px; align-items:flex-start; padding:8px; text-align:left; white-space:normal;">
+                    <strong>Timing as an explicit tradeoff.</strong><br>
+                    <em>MENTO-368</em> treats camera motion as a virtual path and capture as a separate, heavier process.<br><br>
+                    • Preview uses real elapsed time: <code>DURATION (S)</code> in the CAMERA tab controls how long the camera takes to run from first to last key, driven by the app clock so scrubbing feels live.<br>
+                    • Capture uses deterministic stepping: when <code>START CAPTURE</code> runs with 2+ keys, the path is advanced in fixed <code>1/FPS</code> steps for exactly <code>SEC</code> virtual seconds, so each key always lands at the same fraction of the move, even if the browser is slow.<br>
+                    • Real-world smoothness is bounded by device budget: each frame must render the GLB at the chosen resolution and be encoded at the selected Mbps; if that budget is exceeded, the browser may stutter even though the path math is clean.<br><br>
+                    <strong>Suggested presets.</strong><br>
+                    • Desktop: 1080p, 24–30 fps, 5–8 Mbps, helpers hidden during capture; use 4K only on strong GPUs.<br>
+                    • Mobile / low power: 720p, 24 fps, 3–4 Mbps, one GLB loaded, FRUSTUMS + debug helpers off while recording.<br>
+                    Future work bundles these into explicit <em>capture modes</em> (SMOOTH / BALANCED / SHARP) so the tradeoffs are one click instead of a mental model.
+                </div>
+            </div>
+
+            <div class="row-label">INDEX</div>
+            <div class="brick-row">
+                <a href="ai_studio_code - 2025-11-26T024246.702.html" class="brick brick-1x4 color-gray" title="Three.js studio app where the DESERT integration experiment lived.">MENTO 702 LAB (EXPERIMENT)</a>
+                <a href="mento-glb-desert.html" class="brick brick-1x4 color-orange" title="Original canyon GLB + MENTO path tool with full calibration and capture controls.">MENTO-GLB DESERT</a>
+                <a href="mento-368.html" class="brick brick-1x4 color-teal" title="MENTO MASTER v8.0 // SENSOR CONTROL — new base camera/path surface.">MENTO-368 SENSOR CONTROL</a>
+                <a href="wag-viewer-prime-integration-20251112-055341 copy/FRUSTRATION-LOG.md" class="brick brick-1x4 brick-doc color-red" title="Historical frustration log for adjacent systems; pairs with this olog.">FRUSTRATION LOG</a>
             </div>
         </div>
     </div>

@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>MENTO MASTER v7 // STABLE</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <style>
+        :root {
+            --bg-root: #020202;
+            --bg-panel: #080808;
+            --bg-input: #000000;
+            --border: #333333;
+            --text-main: #cccccc;
+            --text-dim: #555555;
+            
+            /* CYBERPUNK PALETTE */
+            --c-model: #00ffff;    /* Cyan */
+            --c-path: #ff00ff;     /* Magenta */
+            --c-warn: #ffcc00;     /* Gold */
+            --c-alert: #ff0055;    /* Red */
+            --c-good: #00ff66;     /* Green */
+            
+            --font-mono: "Consolas", "Monaco", "Courier New", monospace;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; outline: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            background-color: var(--bg-root);
+            color: var(--text-main);
+            font-family: var(--font-mono);
+            font-size: 11px;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* LOADING */
+        #loader {
+            position: fixed; inset: 0; background: #000; z-index: 9999;
+            display: flex; align-items: center; justify-content: center; flex-direction: column;
+            transition: opacity 0.5s;
+        }
+        .loader-brand { color: var(--c-warn); font-size: 14px; font-weight: bold; letter-spacing: 4px; margin-bottom: 10px; }
+        .load-bar-track { width: 300px; height: 2px; background: #222; position: relative; }
+        .load-bar-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0%; background: var(--c-model); transition: width 0.1s; }
+        .load-text { margin-top: 8px; font-size: 10px; color: var(--text-dim); }
+
+        /* UI */
+        .top-bar {
+            height: 32px; border-bottom: 1px solid var(--border); background: var(--bg-panel);
+            display: flex; align-items: center; padding: 0 8px; justify-content: space-between; flex-shrink: 0;
+        }
+        .brand { font-weight: bold; color: var(--c-warn); letter-spacing: 1px; }
+        .status-badge { background: var(--border); color: #fff; padding: 2px 6px; border-radius: 2px; font-size: 10px; }
+        .status-badge.rec { background: var(--c-alert); color: #000; font-weight: bold; animation: blink 1s infinite; }
+
+        .main-area { display: flex; flex: 1; overflow: hidden; }
+        .viewport-container { flex: 1; position: relative; background: radial-gradient(circle at center, #111 0%, #000 100%); border-right: 1px solid var(--border); }
+        #glb-canvas { width: 100%; height: 100%; display: block; }
+        
+        .panel { width: 340px; background: var(--bg-panel); display: flex; flex-direction: column; flex-shrink: 0; border-left: 1px solid var(--border); }
+        
+        /* TABS */
+        .tab-header { display: flex; border-bottom: 1px solid var(--border); }
+        .tab-btn {
+            flex: 1; padding: 10px 0; text-align: center; background: var(--bg-panel); color: var(--text-dim);
+            cursor: pointer; border-right: 1px solid var(--border); font-weight: bold; transition: 0.1s;
+        }
+        .tab-btn:hover { color: var(--text-main); background: #111; }
+        .tab-btn[data-tab="scene"].active { color: var(--c-model); border-bottom: 2px solid var(--c-model); }
+        .tab-btn[data-tab="cam"].active { color: var(--c-path); border-bottom: 2px solid var(--c-path); }
+        .tab-btn[data-tab="script"].active { color: var(--c-good); border-bottom: 2px solid var(--c-good); }
+        .tab-btn[data-tab="rec"].active { color: var(--c-alert); border-bottom: 2px solid var(--c-alert); }
+
+        .tab-content { flex: 1; overflow-y: auto; padding: 8px; display: none; }
+        .tab-content.active { display: block; }
+
+        /* CONTROLS */
+        .section { margin-bottom: 16px; border: 1px solid var(--border); padding: 8px; position: relative; margin-top: 8px; }
+        .section-title {
+            position: absolute; top: -8px; left: 6px; background: var(--bg-panel); padding: 0 4px;
+            font-size: 9px; font-weight: bold; letter-spacing: 0.5px;
+        }
+        #tab-scene .section-title { color: var(--c-model); }
+        #tab-cam .section-title { color: var(--c-path); }
+
+        .row { display: flex; gap: 4px; margin-bottom: 4px; align-items: center; }
+        .fill { flex: 1; }
+        
+        button {
+            background: #111; border: 1px solid var(--border); color: var(--text-main);
+            padding: 0 8px; font-family: var(--font-mono); font-size: 10px; cursor: pointer;
+            text-transform: uppercase; height: 26px; display: flex; align-items: center; justify-content: center;
+            transition: all 0.1s;
+        }
+        button:hover { background: #222; border-color: var(--text-dim); }
+        button:active { transform: translateY(1px); }
+        
+        button.active { background: var(--c-model); color: #000; border-color: var(--c-model); font-weight: bold; }
+        button.active-path { background: var(--c-path); color: #000; border-color: var(--c-path); font-weight: bold; }
+        
+        button.inverted { background: #000; color: var(--c-alert); border-color: var(--c-alert); box-shadow: inset 0 0 4px var(--c-alert); }
+
+        input[type="text"], input[type="number"], select {
+            background: var(--bg-input); border: 1px solid var(--border); color: #fff;
+            font-family: var(--font-mono); font-size: 11px; padding: 0 4px; height: 26px; min-width: 0;
+        }
+        input:focus { border-color: var(--c-warn); }
+        #tab-scene input { color: var(--c-model); }
+        #tab-cam input { color: var(--c-path); }
+
+        textarea {
+            background: var(--bg-input); border: 1px solid var(--border); color: var(--c-good);
+            font-family: var(--font-mono); font-size: 10px; padding: 4px; resize: none;
+        }
+
+        .btn-toggle.checked { background: #222; color: var(--c-good); border-color: var(--c-good); }
+        .btn-toggle.checked::before { content: "[x] "; }
+        .btn-toggle::before { content: "[ ] "; opacity: 0.5; }
+
+        /* HUD & TOAST */
+        .hud-overlay { position: absolute; top: 10px; left: 10px; pointer-events: none; display: flex; flex-direction: column; gap: 4px; }
+        .hud-tag { background: rgba(0,0,0,0.8); border: 1px solid var(--border); color: var(--c-model); padding: 2px 6px; font-size: 10px; }
+        
+        #toast {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            background: var(--c-warn); color: #000; padding: 4px 12px; font-weight: bold;
+            opacity: 0; transition: opacity 0.2s; pointer-events: none; z-index: 100;
+            box-shadow: 0 0 15px rgba(255, 204, 0, 0.4);
+            font-size: 12px; letter-spacing: 1px;
+        }
+
+        .kf-item { font-size:10px; border-bottom:1px solid #222; padding:4px; cursor:pointer; color:#666; display:flex; justify-content:space-between; }
+        .kf-item:hover { background: #111; color: #fff; }
+        .kf-item span { color: var(--c-path); }
+
+        input[type=range] { -webkit-appearance: none; background: transparent; height: 24px; width: 100%; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 14px; width: 8px; background: #444; margin-top: -6px; border: 1px solid #888; }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 2px; background: var(--border); }
+
+        @keyframes blink { 50% { opacity: 0.3; } }
+        @media (max-width: 768px) {
+            .main-area { flex-direction: column; }
+            .viewport-container { height: 50vh; flex: none; border-right: none; border-bottom: 1px solid var(--border); }
+            .panel { width: 100%; height: 50vh; border-left: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loader">
+        <div class="loader-content">
+            <div class="loader-brand">MENTO // OS</div>
+            <div class="load-bar-track"><div class="load-bar-fill" id="load-progress"></div></div>
+            <div class="load-text" id="load-text">INITIALIZING...</div>
+        </div>
+    </div>
+
+    <div class="top-bar">
+        <div class="brand">
+            <span>MENTO</span><span style="color:var(--text-dim)">//</span><span style="color:var(--c-model)">MASTER</span>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center;">
+            <div id="status-mode" style="color:var(--c-model); font-size:10px;">MODE: MODEL</div>
+            <div id="camera-state" class="status-badge">STBY</div>
+        </div>
+    </div>
+
+    <div class="main-area">
+        <div class="viewport-container">
+            <div id="viewport">
+                <canvas id="glb-canvas"></canvas>
+            </div>
+            <div class="hud-overlay">
+                <div class="hud-tag" id="hud-cam-pos">CAM: 0, 0, 0</div>
+                <div class="hud-tag" id="hud-info">NO_SELECTION</div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="tab-header">
+                <div class="tab-btn active" data-tab="scene" onclick="setTab('scene')">SCENE</div>
+                <div class="tab-btn" data-tab="cam" onclick="setTab('cam')">PATH</div>
+                <div class="tab-btn" data-tab="script" onclick="setTab('script')">CODE</div>
+                <div class="tab-btn" data-tab="rec" onclick="setTab('rec')">REC</div>
+            </div>
+
+            <!-- TAB: SCENE -->
+            <div id="tab-scene" class="tab-content active">
+                <div class="section">
+                    <span class="section-title">FILE SYSTEM</span>
+                    <div class="row">
+                        <label class="fill"><button onclick="triggerFile()">LOAD GLB</button></label>
+                        <select id="slot-select" style="width:50px"><option value="1">S1</option><option value="2">S2</option></select>
+                        <input type="file" id="file-input" style="display:none;" accept=".glb,.gltf">
+                    </div>
+                    <div id="model-list" style="margin-top:4px; min-height:30px; border:1px solid #222; padding:4px; color:#444; font-size:10px;">[EMPTY SLOT]</div>
+                </div>
+
+                <div class="section">
+                    <span class="section-title">MODEL TRANSFORM</span>
+                    <div class="row">
+                        <button id="m-tool-t" class="active fill" onclick="setTool('translate')">MOV</button>
+                        <button id="m-tool-r" class="fill" onclick="setTool('rotate')">ROT</button>
+                        <button id="m-tool-s" class="fill" onclick="setTool('scale')">SCL</button>
+                    </div>
+                    <!-- X/Y/Z Inputs -->
+                    <div class="row" style="margin-top:8px;">
+                        <span style="color:var(--c-model); width:10px">X</span>
+                        <input id="tx-x" type="number" class="fill" step="10">
+                        <button id="btn-inv-x" style="width:30px; font-size:9px" onclick="flipModel('x')">INV</button>
+                    </div>
+                    <div class="row">
+                        <span style="color:var(--c-model); width:10px">Y</span>
+                        <input id="tx-y" type="number" class="fill" step="10">
+                        <button id="btn-inv-y" style="width:30px; font-size:9px" onclick="flipModel('y')">INV</button>
+                    </div>
+                    <div class="row">
+                        <span style="color:var(--c-model); width:10px">Z</span>
+                        <input id="tx-z" type="number" class="fill" step="10">
+                        <button id="btn-inv-z" style="width:30px; font-size:9px" onclick="flipModel('z')">INV</button>
+                    </div>
+                    <div class="row">
+                        <span style="color:var(--c-model); width:10px">R</span>
+                        <input id="tx-rot" type="number" class="fill" step="15" placeholder="RY">
+                        <span style="color:var(--c-model); width:10px; margin-left:4px">S</span>
+                        <input id="tx-scl" type="number" class="fill" step="0.1" placeholder="SCL">
+                    </div>
+                    <div class="row">
+                        <button class="fill" onclick="resetTx()">RESET</button>
+                        <button class="fill" onclick="autoScale()">AUTO-SCL</button>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <span class="section-title">CALIBRATION</span>
+                    <div class="row">
+                        <button class="fill btn-toggle" id="btn-ruler" onclick="toggleRuler()">RULER</button>
+                        <button class="fill btn-toggle" id="btn-grid" onclick="toggleVis('grid')">GRID</button>
+                    </div>
+                    <div class="row">
+                        <span style="width:30px">SCL</span>
+                        <input type="range" min="0.5" max="3.0" step="0.1" value="1.0" oninput="updateRulerScale(this.value)">
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: PATH -->
+            <div id="tab-cam" class="tab-content">
+                <div class="section">
+                    <span class="section-title">PATH ANCHOR</span>
+                    <button id="btn-bind-path" class="fill btn-toggle checked" onclick="togglePathBind()">BIND PATH TO SLOT 1</button>
+                </div>
+
+                <div class="section">
+                    <span class="section-title">PATH TRANSFORM</span>
+                    <div class="row">
+                        <button id="p-tool-t" class="fill" onclick="setTool('translate')">MOV</button>
+                        <button id="p-tool-r" class="fill" onclick="setTool('rotate')">ROT</button>
+                        <button id="p-tool-s" class="fill" onclick="setTool('scale')">SCL</button>
+                    </div>
+                    <!-- Path Inputs -->
+                     <div class="row" style="margin-top:8px;">
+                        <span style="color:var(--c-path); width:10px">X</span>
+                        <input id="px-x" type="number" class="fill" step="10" oninput="applyPathTx('x', this.value)">
+                        <button id="pinv-x" style="width:30px; font-size:9px" onclick="invertPath('x')">INV</button>
+                    </div>
+                    <div class="row">
+                        <span style="color:var(--c-path); width:10px">Y</span>
+                        <input id="px-y" type="number" class="fill" step="10" oninput="applyPathTx('y', this.value)">
+                        <button id="pinv-y" style="width:30px; font-size:9px" onclick="invertPath('y')">INV</button>
+                    </div>
+                    <div class="row">
+                        <span style="color:var(--c-path); width:10px">Z</span>
+                        <input id="px-z" type="number" class="fill" step="10" oninput="applyPathTx('z', this.value)">
+                        <button id="pinv-z" style="width:30px; font-size:9px" onclick="invertPath('z')">INV</button>
+                    </div>
+                    <div class="row">
+                        <button class="fill" onclick="centerPath()">CENTER PATH</button>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <span class="section-title">KEYFRAMES</span>
+                    <div class="row">
+                        <button class="fill" style="border-color:var(--c-good); color:var(--c-good);" onclick="addKey()">+ ADD KEY</button>
+                        <button class="fill" style="border-color:var(--c-alert); color:var(--c-alert);" onclick="clearKeys()">CLEAR</button>
+                    </div>
+                    <div id="key-list" style="height:100px; overflow-y:auto; background:#000; border:1px solid #333; margin:4px 0;"></div>
+                    <div class="row" style="margin-top:8px;">
+                        <span style="color:var(--c-path); margin-right:4px;">DUR</span>
+                        <input id="path-dur" type="number" value="8" style="width:50px">
+                        <button class="fill" onclick="playPath()">PLAY PATH</button>
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <span class="section-title">VISUALS</span>
+                    <div class="row">
+                         <button class="fill btn-toggle checked" id="btn-spline" onclick="toggleVis('path')">SPLINE</button>
+                         <button class="fill btn-toggle" id="btn-frust" onclick="toggleVis('frust')">CAMS</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: SCRIPT -->
+            <div id="tab-script" class="tab-content">
+                <div class="section" style="height:100%; display:flex; flex-direction:column;">
+                    <span class="section-title">MENTO CODE</span>
+                    <textarea id="mento-code" style="flex:1; background:#000; border:1px solid #333; color:var(--c-good); font-family:var(--font-mono); font-size:10px; padding:4px; resize:none;" placeholder="PASTE !MENTO SHOT DATA..."></textarea>
+                    <div class="row" style="margin-top:4px;">
+                        <button class="fill" onclick="parseMento()">BUILD PATH</button>
+                        <button class="fill" onclick="copyShot()">COPY SHOT</button>
+                    </div>
+                    <div class="row" style="margin-top:6px;">
+                        <span class="section-title" style="font-size:10px; opacity:0.7;">MENTO SHOTS</span>
+                    </div>
+                    <div id="mento-shot-list" style="margin-top:2px; height:50px; overflow-y:auto; background:#000; border:1px solid #333;"></div>
+                    <div class="row" style="margin-top:4px; font-size:10px;">
+                        <span style="width:34px;">SCL</span>
+                        <input id="mento-scale" type="number" value="1" step="0.1" style="width:60px;">
+                        <span style="flex:1; opacity:0.6; text-align:right;">MENTO→GLB</span>
+                    </div>
+                    <div class="row" style="margin-top:4px; font-size:10px; align-items:center;">
+                        <label style="margin-right:4px;"><input type="checkbox" id="mento-flip-x" checked> Flip X</label>
+                        <label style="margin-right:4px;"><input type="checkbox" id="mento-flip-y"> Y</label>
+                        <label style="margin-right:4px;"><input type="checkbox" id="mento-flip-z"> Z</label>
+                        <label style="margin-left:auto;"><input type="checkbox" id="mento-bind-center" checked> Bind Ctr</label>
+                    </div>
+                    <div class="row" style="margin-top:2px; font-size:10px; align-items:center;">
+                        <span style="width:18px;">dX</span>
+                        <input id="shot-offset-x" type="number" value="0" step="10" style="width:50px;" onchange="applyShotOffsetFromInputs()">
+                        <span style="width:16px; margin-left:2px;">Y</span>
+                        <input id="shot-offset-y" type="number" value="0" step="10" style="width:50px;" onchange="applyShotOffsetFromInputs()">
+                        <span style="width:16px; margin-left:2px;">Z</span>
+                        <input id="shot-offset-z" type="number" value="0" step="10" style="width:50px;" onchange="applyShotOffsetFromInputs()">
+                        <button style="margin-left:4px; font-size:9px; padding:2px 4px;" onclick="tareShots()">TARE</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: REC -->
+            <div id="tab-rec" class="tab-content">
+                <div class="section">
+                    <span class="section-title">CAPTURE</span>
+                    <div class="row"><span class="fill">FPS</span><input id="rec-fps" type="number" value="30" style="width:50px"></div>
+                    <div class="row"><span class="fill">REC LENGTH (S)</span><input id="rec-sec" type="number" value="10" style="width:50px"></div>
+                    <div style="margin-top:8px;">
+                        <button id="btn-rec" style="width:100%; height:40px; border-color:var(--c-alert); color:var(--c-alert);" onclick="toggleRec()">START RECORDING</button>
+                    </div>
+                    <button id="btn-dl" style="width:100%; margin-top:4px;" disabled onclick="downloadRec()">DOWNLOAD</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast">SYSTEM READY</div>
+
+    <!-- THREE.JS -->
+    <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/examples/jsm/controls/OrbitControls": "https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js",
+        "three/examples/jsm/controls/TransformControls": "https://unpkg.com/three@0.160.0/examples/jsm/controls/TransformControls.js",
+        "three/examples/jsm/loaders/GLTFLoader": "https://unpkg.com/three@0.160.0/examples/jsm/loaders/GLTFLoader.js"
+      }
+    }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+        import { TransformControls } from 'three/examples/jsm/controls/TransformControls';
+        import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+
+        // --- GLOBAL STATE ---
+        const S = {
+            mode: 'MODEL', // MODEL or PATH
+            scene: null, cam: null, rend: null,
+            controls: null, tc: null,
+            models: [], activeIdx: -1,
+            pathGroup: null, pathAnchor: null, pathBound: true,
+            keyframes: [],
+            mentoShots: [],
+            shotOffset: new THREE.Vector3(0,0,0),
+            selectedKeyIdx: -1,
+            helpers: { grid: null, path: null, ruler: null, frust: [] },
+            rec: { active: false, media: null, chunks: [], url: null },
+            play: { active: false, start: 0, dur: 8, curve: null },
+            rulerScale: 1.0,
+            clock: null // Initialized in init()
+        };
+
+        const UI = (id) => document.getElementById(id);
+
+        // --- INIT ---
+        function init() {
+            // Initialize Clock immediately
+            S.clock = new THREE.Clock();
+
+            // Fake Loader
+            let p = 0; 
+            const int = setInterval(() => {
+                p += 5; UI('load-progress').style.width = p+'%';
+                if(p>=100) {
+                    clearInterval(int);
+                    setTimeout(() => { UI('loader').style.opacity=0; setTimeout(()=>UI('loader').style.display='none',500); }, 200);
+                }
+            }, 30);
+
+            // Three
+            const vp = UI('viewport');
+            S.scene = new THREE.Scene(); S.scene.background = new THREE.Color(0x050505);
+            S.cam = new THREE.PerspectiveCamera(50, vp.clientWidth/vp.clientHeight, 0.1, 5000);
+            S.cam.position.set(0,200,400);
+            
+            S.rend = new THREE.WebGLRenderer({canvas: UI('glb-canvas'), antialias:true, preserveDrawingBuffer:true});
+            S.rend.setSize(vp.clientWidth, vp.clientHeight);
+            S.rend.outputColorSpace = THREE.SRGBColorSpace;
+
+            S.scene.add(new THREE.HemisphereLight(0xffffff, 0x111111, 1));
+            const dl = new THREE.DirectionalLight(0xffffff, 1.5); dl.position.set(200,400,200); S.scene.add(dl);
+
+            S.controls = new OrbitControls(S.cam, S.rend.domElement); S.controls.enableDamping = true;
+            S.tc = new TransformControls(S.cam, S.rend.domElement);
+            S.tc.addEventListener('dragging-changed', e => S.controls.enabled = !e.value);
+            S.tc.addEventListener('change', onGizmoMove);
+            S.scene.add(S.tc);
+
+            // Path System
+            S.pathGroup = new THREE.Group(); S.scene.add(S.pathGroup); 
+            S.pathAnchor = new THREE.Group(); S.scene.add(S.pathAnchor);
+
+            // Grid
+            S.helpers.grid = new THREE.GridHelper(1000, 100, 0x333333, 0x111111);
+            S.helpers.grid.visible = false;
+            S.scene.add(S.helpers.grid);
+
+            window.addEventListener('resize', onResize);
+            animate();
+        }
+
+        function onResize() {
+            const vp = UI('viewport');
+            S.cam.aspect = vp.clientWidth/vp.clientHeight; S.cam.updateProjectionMatrix();
+            S.rend.setSize(vp.clientWidth, vp.clientHeight);
+        }
+
+        function onGizmoMove() {
+            if(S.mode === 'MODEL' && S.activeIdx > -1) updateModelInputs();
+            else if (S.mode === 'PATH') applyAnchorToKeys();
+        }
+
+        function applyAnchorToKeys() {
+            if(S.keyframes.length === 0) return;
+            S.pathAnchor.updateMatrixWorld();
+            const m = S.pathAnchor.matrix;
+            S.keyframes.forEach(k => { k.pos.applyMatrix4(m); k.tgt.applyMatrix4(m); });
+            S.pathAnchor.position.set(0,0,0); S.pathAnchor.rotation.set(0,0,0); S.pathAnchor.scale.set(1,1,1);
+            updatePathViz();
+        }
+
+        // --- MODEL HANDLING ---
+        window.triggerFile = () => UI('file-input').click();
+        UI('file-input').onchange = (e) => {
+            const f = e.target.files[0]; if(!f) return;
+            new GLTFLoader().load(URL.createObjectURL(f), gltf => {
+                const root = gltf.scene; S.scene.add(root);
+                const slot = parseInt(UI('slot-select').value);
+                const existing = S.models.find(m => m.slot === slot);
+                if(existing) { S.scene.remove(existing.root); S.models = S.models.filter(m => m !== existing); }
+                S.models.push({root, name:f.name, slot});
+                if (slot === 1) checkPathBinding();
+                selectModel(S.models.length-1);
+                autoScale();
+            });
+        };
+
+        function selectModel(idx) {
+            S.activeIdx = idx; S.mode = 'MODEL';
+            S.tc.attach(S.models[idx].root);
+            updateModelInputs();
+            UI('hud-info').innerText = "SEL: " + S.models[idx].name;
+            UI('status-mode').innerText = "MODE: MODEL"; UI('status-mode').style.color = "var(--c-model)";
+            updateModelList();
+        }
+
+        function updateModelInputs() {
+            if(S.activeIdx === -1) return;
+            const o = S.models[S.activeIdx].root;
+            UI('tx-x').value = o.position.x.toFixed(0);
+            UI('tx-y').value = o.position.y.toFixed(0);
+            UI('tx-z').value = o.position.z.toFixed(0);
+            UI('tx-rot').value = THREE.MathUtils.radToDeg(o.rotation.y).toFixed(0);
+            UI('tx-scl').value = o.scale.x.toFixed(2);
+        }
+
+        window.flipModel = (axis) => {
+            if(S.activeIdx === -1) return;
+            const o = S.models[S.activeIdx].root;
+            if(axis==='x') o.scale.x *= -1; if(axis==='y') o.scale.y *= -1; if(axis==='z') o.scale.z *= -1;
+            const btn = UI('btn-inv-'+axis);
+            if(o.scale[axis] < 0) btn.classList.add('inverted'); else btn.classList.remove('inverted');
+            updateModelInputs();
+        };
+        
+        // BIND INPUTS
+        ['tx-x','tx-y','tx-z'].forEach(id => UI(id).oninput = () => {
+             if(S.activeIdx === -1) return;
+             S.models[S.activeIdx].root.position.set(+UI('tx-x').value, +UI('tx-y').value, +UI('tx-z').value);
+        });
+        UI('tx-rot').oninput = (e) => S.models[S.activeIdx].root.rotation.y = THREE.MathUtils.degToRad(+e.target.value);
+        UI('tx-scl').oninput = (e) => S.models[S.activeIdx].root.scale.setScalar(+e.target.value);
+
+        // --- PATH VISUALS ---
+        window.togglePathBind = () => {
+            S.pathBound = !S.pathBound;
+            const btn = UI('btn-bind-path');
+            if(S.pathBound) btn.classList.add('checked'); else btn.classList.remove('checked');
+            checkPathBinding();
+        };
+
+        function checkPathBinding() {
+            const s1 = S.models.find(m => m.slot === 1);
+            if (S.pathBound && s1) { s1.root.add(S.pathGroup); showToast("PATH BOUND TO S1"); }
+            else { S.scene.add(S.pathGroup); showToast("PATH UNBOUND"); }
+            S.pathGroup.updateMatrixWorld(true);
+        }
+
+        function buildRuler() {
+            if(S.helpers.ruler) { S.scene.remove(S.helpers.ruler); S.helpers.ruler = null; }
+            const g = new THREE.Group();
+            const r = 200 * S.rulerScale;
+            const tick = 10 * S.rulerScale;
+            
+            const matX = new THREE.LineBasicMaterial({color:0x00ffff});
+            const matY = new THREE.LineBasicMaterial({color:0xff00ff});
+            const matZ = new THREE.LineBasicMaterial({color:0xffcc00});
+            
+            // Centered Axes
+            g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-r,0,0), new THREE.Vector3(r,0,0)]), matX));
+            g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,-r,0), new THREE.Vector3(0,r,0)]), matY));
+            g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,-r), new THREE.Vector3(0,0,r)]), matZ));
+            
+            S.helpers.ruler = g; S.scene.add(g);
+        }
+
+        window.toggleRuler = () => {
+            if(!S.helpers.ruler) buildRuler();
+            else S.helpers.ruler.visible = !S.helpers.ruler.visible;
+            UI('btn-ruler').classList.toggle('checked');
+        }
+        window.updateRulerScale = (v) => { S.rulerScale = parseFloat(v); buildRuler(); }
+
+        // --- PATH & KEYS ---
+        window.setTab = (t) => {
+            document.querySelectorAll('.tab-content').forEach(e=>e.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(e=>e.classList.remove('active'));
+            UI('tab-'+t).classList.add('active');
+            document.querySelector(`.tab-btn[data-tab="${t}"]`).classList.add('active');
+            if(t === 'cam') {
+                S.mode = 'PATH'; UI('status-mode').innerText="MODE: PATH"; UI('status-mode').style.color="var(--c-path)";
+                S.tc.attach(S.pathAnchor);
+            } else if (t === 'scene' && S.activeIdx > -1) {
+                S.mode = 'MODEL'; UI('status-mode').innerText="MODE: MODEL"; UI('status-mode').style.color="var(--c-model)";
+                S.tc.attach(S.models[S.activeIdx].root);
+            } else { S.tc.detach(); }
+        };
+
+        window.addKey = () => {
+            S.keyframes.push({ pos: S.cam.position.clone(), tgt: S.controls.target.clone(), fov: S.cam.fov });
+            updatePathViz(); renderKeyList(); updateFrustums();
+        };
+
+        window.clearKeys = () => { S.keyframes=[]; updatePathViz(); renderKeyList(); updateFrustums(); };
+
+        window.centerPath = () => {
+            if(S.keyframes.length===0) return;
+            const center = new THREE.Vector3();
+            S.keyframes.forEach(k => center.add(k.pos));
+            center.divideScalar(S.keyframes.length);
+            const sub = center.clone().negate();
+            S.keyframes.forEach(k => { k.pos.add(sub); k.tgt.add(sub); });
+            updatePathViz(); updateFrustums();
+        };
+
+        window.invertPath = (axis) => {
+             UI('pinv-'+axis).classList.toggle('inverted');
+             S.keyframes.forEach(k => { k.pos[axis] *= -1; k.tgt[axis] *= -1; });
+             updatePathViz(); updateFrustums();
+        };
+        
+        window.applyPathTx = (axis, val) => { /* Manual input hook */ };
+
+        function updatePathViz() {
+            while(S.pathGroup.children.length > 0) S.pathGroup.remove(S.pathGroup.children[0]); 
+            if(S.keyframes.length < 2) return;
+            
+            // Points
+            const sGeo = new THREE.SphereGeometry(3, 8, 8);
+            const sMat = new THREE.MeshBasicMaterial({ color: 0x00ff66 });
+            S.keyframes.forEach(k => {
+                const m = new THREE.Mesh(sGeo, sMat); m.position.copy(k.pos); S.pathGroup.add(m);
+            });
+
+            // Spline
+            const pts = S.keyframes.map(k => k.pos);
+            const curve = new THREE.CatmullRomCurve3(pts);
+            curve.curveType = 'centripetal'; 
+            const points = curve.getPoints(S.keyframes.length * 20); 
+            const geo = new THREE.BufferGeometry().setFromPoints(points);
+            const mat = new THREE.LineBasicMaterial({ color: 0xff00ff, linewidth: 2 });
+            S.pathGroup.add(new THREE.Line(geo, mat));
+        }
+
+        function updateFrustums() {
+            S.helpers.frust.forEach(f => S.scene.remove(f)); S.helpers.frust = [];
+            if(!UI('btn-frust').classList.contains('checked')) return;
+            S.keyframes.forEach((k, i) => {
+                const c = new THREE.PerspectiveCamera(k.fov, 16/9, 1, 100);
+                c.position.copy(k.pos); c.lookAt(k.tgt); c.updateMatrixWorld();
+                const h = new THREE.CameraHelper(c);
+                // Highlight the currently selected/active keyframe frustum
+                if (i === S.selectedKeyIdx && h.material && h.material.color) {
+                    h.material.color.set(0xff0055); // alert color
+                }
+                S.scene.add(h); S.helpers.frust.push(h);
+            });
+        }
+
+        function renderKeyList() {
+            const l = UI('key-list'); l.innerHTML='';
+            S.keyframes.forEach((k,i) => {
+                const d = document.createElement('div'); d.className='kf-item';
+                d.innerHTML = `<span>K${i+1}</span> ${k.pos.x.toFixed(0)}, ${k.pos.y.toFixed(0)}`;
+                d.onclick = () => {
+                    S.selectedKeyIdx = i;
+                    S.cam.position.copy(k.pos);
+                    S.controls.target.copy(k.tgt);
+                    S.cam.fov = k.fov;
+                    S.cam.updateProjectionMatrix();
+                    S.controls.update();
+                    updateFrustums();
+                };
+                l.appendChild(d);
+            });
+        }
+
+        function renderMentoShotList() {
+            const c = UI('mento-shot-list');
+            if (!c) return;
+            c.innerHTML = '';
+            S.mentoShots.forEach((s, i) => {
+                const row = document.createElement('div');
+                row.className = 'row';
+                row.style.cursor = 'pointer';
+                row.style.fontSize = '10px';
+                row.style.padding = '0 4px';
+                const idx = String(i + 1).padStart(2, '0');
+                const label = s.label || `SHOT ${idx}`;
+                const lensStr = Number.isFinite(s.lens) ? s.lens.toFixed(0) : '';
+                row.innerHTML = `<span style="width:28px; color:var(--c-path);">${idx}</span><span class="fill" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${label}</span><span style="width:30px; text-align:right; opacity:0.7;">${lensStr}</span>`;
+                row.onclick = () => {
+                    // Jump camera to this shot's pose (using current keyframes if present)
+                    const k = S.keyframes[i];
+                    if (k) {
+                        S.selectedKeyIdx = i;
+                        S.cam.position.copy(k.pos);
+                        S.controls.target.copy(k.tgt);
+                        if (typeof k.fov === 'number') S.cam.fov = k.fov;
+                        S.cam.updateProjectionMatrix();
+                        S.controls.update();
+                        updateFrustums();
+                    }
+                };
+                c.appendChild(row);
+            });
+        }
+
+        function parseMentoShotsFromText(text) {
+            const shots = [];
+            if (!text) return shots;
+            const lines = String(text).split(/\r?\n/);
+            const pattern = /^0\s+!MENTO\s+SHOT\s+"([^"]+)"\s+POS\s+([-\.\d]+)\s+([-\.\d]+)\s+([-\.\d]+)\s+TGT\s+([-\.\d]+)\s+([-\.\d]+)\s+([-\.\d]+)\s+LENS\s+([-\.\d]+)/;
+            lines.forEach((raw) => {
+                const line = raw.trim();
+                if (!line.startsWith('0 !MENTO SHOT')) return;
+                const m = line.match(pattern);
+                if (!m) return;
+                const label = m[1];
+                const px = parseFloat(m[2]);
+                const py = parseFloat(m[3]);
+                const pz = parseFloat(m[4]);
+                const tx = parseFloat(m[5]);
+                const ty = parseFloat(m[6]);
+                const tz = parseFloat(m[7]);
+                const lens = parseFloat(m[8]);
+                shots.push({
+                    label,
+                    pos: new THREE.Vector3(px, py, pz),
+                    tgt: new THREE.Vector3(tx, ty, tz),
+                    lens
+                });
+            });
+            return shots;
+        }
+
+        function buildPathFromMentoShots() {
+            const shots = S.mentoShots || [];
+            S.keyframes = [];
+            if (!shots.length) return;
+
+            // Flips and binding follow mento-glb-desert behavior
+            const flipXEl = UI('mento-flip-x');
+            const flipYEl = UI('mento-flip-y');
+            const flipZEl = UI('mento-flip-z');
+            const bindEl = UI('mento-bind-center');
+            const useFlipX = !flipXEl || flipXEl.checked;
+            const useFlipY = !!(flipYEl && flipYEl.checked);
+            const useFlipZ = !!(flipZEl && flipZEl.checked);
+            const bindToCenter = !bindEl || bindEl.checked;
+            let scale = 1;
+            const scaleInput = UI('mento-scale');
+            if (scaleInput) {
+                const v = parseFloat(scaleInput.value);
+                if (Number.isFinite(v) && v > 0) scale = v;
+            }
+
+            function applyShotFlips(vec) {
+                if (useFlipX) vec.applyAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI);
+                if (useFlipY) vec.applyAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+                if (useFlipZ) vec.applyAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI);
+                return vec;
+            }
+
+            // Bind MENTO path roughly to GLB center (slot 1) if available.
+            // To avoid feedback, temporarily ensure pathGroup is not parented under Slot 1
+            // while computing the GLB bounds (so we only measure the model, not the path).
+            let offset = new THREE.Vector3(0,0,0);
+            const s1 = S.models.find(m => m.slot === 1);
+            let reattachPathToS1 = false;
+            if (S.pathGroup && s1 && s1.root && S.pathGroup.parent === s1.root) {
+                S.scene.add(S.pathGroup);
+                S.pathGroup.updateMatrixWorld(true);
+                reattachPathToS1 = true;
+            }
+            if (bindToCenter && s1 && s1.root) {
+                const box = new THREE.Box3().setFromObject(s1.root);
+                const glbCenter = box.getCenter(new THREE.Vector3());
+                const avg = new THREE.Vector3();
+                shots.forEach((shot) => {
+                    const p = shot.pos.clone();
+                    applyShotFlips(p).multiplyScalar(scale);
+                    avg.add(p);
+                });
+                avg.multiplyScalar(1 / shots.length);
+                offset.subVectors(glbCenter, avg);
+            }
+
+            const globalOffset = offset.add(S.shotOffset.clone());
+
+            // Reattach path group to Slot 1 if it was previously bound
+            if (reattachPathToS1 && S.pathGroup && s1 && s1.root) {
+                s1.root.add(S.pathGroup);
+                S.pathGroup.updateMatrixWorld(true);
+            }
+
+            shots.forEach((shot, index) => {
+                const rawPos = shot.pos.clone();
+                const rawTgt = shot.tgt.clone();
+                const pos = applyShotFlips(rawPos).multiplyScalar(scale).add(globalOffset);
+                const tgt = applyShotFlips(rawTgt).multiplyScalar(scale).add(globalOffset);
+                const fov = Math.max(25, Math.min(80, Number.isFinite(shot.lens) ? shot.lens : 50));
+
+                S.keyframes.push({ pos, tgt, fov });
+            });
+        }
+
+        window.applyShotOffsetFromInputs = () => {
+            const xEl = UI('shot-offset-x');
+            const yEl = UI('shot-offset-y');
+            const zEl = UI('shot-offset-z');
+            if (!xEl || !yEl || !zEl) return;
+            let x = parseFloat(xEl.value);
+            let y = parseFloat(yEl.value);
+            let z = parseFloat(zEl.value);
+            if (!Number.isFinite(x)) x = 0;
+            if (!Number.isFinite(y)) y = 0;
+            if (!Number.isFinite(z)) z = 0;
+            S.shotOffset.set(x, y, z);
+        };
+
+        window.tareShots = () => {
+            // Simple TARE: lock shots to Slot 1 model position
+            const s1 = S.models.find(m => m.slot === 1);
+            if (!s1 || !s1.root) { showToast('NO SLOT 1 MODEL FOR TARE'); return; }
+            const pos = s1.root.position.clone();
+            S.shotOffset.copy(pos);
+            const xEl = UI('shot-offset-x');
+            const yEl = UI('shot-offset-y');
+            const zEl = UI('shot-offset-z');
+            if (xEl) xEl.value = pos.x.toFixed(1);
+            if (yEl) yEl.value = pos.y.toFixed(1);
+            if (zEl) zEl.value = pos.z.toFixed(1);
+            showToast(`TARE S1 → (${pos.x.toFixed(0)},${pos.y.toFixed(0)},${pos.z.toFixed(0)})`);
+        };
+
+        window.parseMento = () => {
+            const text = UI('mento-code').value;
+            S.mentoShots = parseMentoShotsFromText(text);
+            renderMentoShotList();
+            buildPathFromMentoShots();
+            renderKeyList();
+            updatePathViz();
+            updateFrustums();
+            showToast(`PARSED ${S.keyframes.length} KEYS`);
+        };
+
+        window.copyShot = () => {
+            const p = S.cam.position; const t = S.controls.target;
+            const str = `0 !MENTO SHOT "Shot" POS ${p.x.toFixed(0)} ${p.y.toFixed(0)} ${p.z.toFixed(0)} TGT ${t.x.toFixed(0)} ${t.y.toFixed(0)} ${t.z.toFixed(0)} LENS ${S.cam.fov}`;
+            navigator.clipboard.writeText(str); showToast("SHOT COPIED");
+        };
+
+        // --- PLAYBACK & REC ---
+        window.playPath = () => {
+            if (S.keyframes.length < 2) { showToast("NEED 2+ KEYS"); return; }
+            const dur = parseFloat(UI('path-dur').value) || 8;
+            S.play.active = true;
+            S.play.start = S.clock.getElapsedTime();
+            S.play.dur = dur;
+            S.play.curve = null; // use linear segment interpolation like desert
+        };
+
+        window.toggleRec = () => {
+            if (S.rec.active) {
+                if (S.rec.media) S.rec.media.stop();
+                S.rec.active = false;
+                UI('btn-rec').innerText = "START RECORDING";
+                UI('btn-rec').style.borderColor = "var(--c-alert)";
+                UI('camera-state').classList.remove('rec');
+            } else {
+                const fps = parseInt(UI('rec-fps').value) || 30;
+                const stream = UI('glb-canvas').captureStream(fps);
+                S.rec.media = new MediaRecorder(stream, { mimeType: 'video/webm' });
+                S.rec.chunks = [];
+                if (S.rec.url) {
+                    try { URL.revokeObjectURL(S.rec.url); } catch (e) {}
+                    S.rec.url = null;
+                }
+                S.rec.media.ondataavailable = e => { if (e.data && e.data.size > 0) S.rec.chunks.push(e.data); };
+                S.rec.media.onstop = () => {
+                    if (!S.rec.chunks.length) { showToast("NO DATA CAPTURED"); return; }
+                    const blob = new Blob(S.rec.chunks, { type: 'video/webm' });
+                    const url = URL.createObjectURL(blob);
+                    S.rec.url = url;
+                    UI('btn-dl').disabled = false;
+                    showToast("CAPTURE READY");
+                };
+                S.rec.media.start();
+                S.rec.active = true;
+                UI('btn-rec').innerText = "STOP RECORDING";
+                UI('btn-rec').style.borderColor = "#fff";
+                UI('camera-state').classList.add('rec');
+
+                // Start path playback using path duration, if keyframes exist
+                if (S.keyframes.length > 1) {
+                    window.playPath();
+                }
+
+                // Auto Stop after REC LENGTH (S)
+                const recSec = parseFloat(UI('rec-sec').value) || 10;
+                setTimeout(() => {
+                    if (S.rec.active) window.toggleRec();
+                }, recSec * 1000);
+            }
+        };
+
+        window.downloadRec = () => {
+            if (!S.rec.url) { showToast("NO CAPTURE"); return; }
+            const a = document.createElement('a');
+            a.href = S.rec.url;
+            a.download = 'MENTO.webm';
+            a.click();
+        };
+
+        // --- UTILS ---
+        window.setTool = (m) => {
+            S.tc.setMode(m);
+            const prefix = S.mode === 'MODEL' ? 'm' : 'p';
+            document.querySelectorAll('button').forEach(b => b.classList.remove('active', 'active-path'));
+            UI(`${prefix}-tool-${m.charAt(0)}`).classList.add(S.mode === 'MODEL' ? 'active' : 'active-path');
+        };
+        
+        window.autoScale = () => {
+            if(S.activeIdx===-1) return;
+            const r = S.models[S.activeIdx].root;
+            const b = new THREE.Box3().setFromObject(r);
+            const sz = b.getSize(new THREE.Vector3()).length();
+            const s = 100/sz;
+            r.scale.setScalar(s); updateModelInputs();
+        };
+
+        window.resetTx = () => {
+            if(S.activeIdx===-1) return;
+            const r = S.models[S.activeIdx].root;
+            r.position.set(0,0,0); r.rotation.set(0,0,0); r.scale.set(1,1,1);
+            updateModelInputs();
+        };
+
+        function updateModelList() {
+            const el = UI('model-list'); el.innerHTML='';
+            S.models.forEach((m,i) => {
+                const d = document.createElement('div'); d.style.cursor='pointer';
+                d.style.color = i===S.activeIdx ? 'var(--c-model)' : '#666';
+                d.innerText = `[${i}] ${m.name}`;
+                d.onclick = () => selectModel(i);
+                el.appendChild(d);
+            });
+        }
+
+        window.toggleVis = (type) => {
+            if(type==='grid') S.helpers.grid.visible = !S.helpers.grid.visible;
+            if(type==='path' && S.pathGroup) S.pathGroup.visible = !S.pathGroup.visible;
+            if(type==='frust') updateFrustums();
+            
+            const btn = type==='path' ? UI('btn-spline') : (type==='grid' ? UI('btn-grid') : UI('btn-frust'));
+            if(btn) btn.classList.toggle('checked');
+        };
+
+        function showToast(msg) {
+            const t = UI('toast'); t.innerText = msg; t.style.opacity = 1;
+            setTimeout(()=>t.style.opacity=0, 2000);
+        }
+
+        // --- LOOP ---
+        function animate() {
+            requestAnimationFrame(animate);
+            S.controls.update();
+            
+            if (S.play.active && S.keyframes.length >= 2) {
+                const elapsed = S.clock.getElapsedTime() - S.play.start;
+                const dur = S.play.dur > 0 ? S.play.dur : 1;
+                let t = elapsed / dur;
+                if (t >= 1) {
+                    t = 1;
+                    S.play.active = false;
+                }
+
+                const segments = S.keyframes.length - 1;
+                if (segments >= 1) {
+                    // Position from curve if available, else linear
+                    if (S.play.curve) {
+                        const pos = S.play.curve.getPoint(t);
+                        S.cam.position.copy(pos);
+                    } else {
+                        const segP = Math.min(Math.floor(t * segments), segments - 1);
+                        const alphaP = (t * segments) - segP;
+                        const k1p = S.keyframes[segP];
+                        const k2p = S.keyframes[segP + 1];
+                        S.cam.position.lerpVectors(k1p.pos, k2p.pos, alphaP);
+                    }
+
+                    // Target + FOV interpolated between discrete keyframes
+                    const scaled = t * segments;
+                    const segT = Math.min(Math.floor(scaled), segments - 1);
+                    const alphaT = scaled - segT;
+                    const k1 = S.keyframes[segT];
+                    const k2 = S.keyframes[segT + 1];
+                    S.controls.target.lerpVectors(k1.tgt, k2.tgt, alphaT);
+                    if (typeof k1.fov === 'number' && typeof k2.fov === 'number') {
+                        S.cam.fov = THREE.MathUtils.lerp(k1.fov, k2.fov, alphaT);
+                    }
+                    S.cam.updateProjectionMatrix();
+
+                    // Sync selected keyframe/frustum highlight with playback segment
+                    if (segT !== S.selectedKeyIdx) {
+                        S.selectedKeyIdx = segT;
+                        updateFrustums();
+                    }
+                }
+            }
+            S.rend.render(S.scene, S.cam);
+            UI('hud-cam-pos').innerText = `CAM: ${S.cam.position.x.toFixed(0)},${S.cam.position.y.toFixed(0)},${S.cam.position.z.toFixed(0)}`;
+        }
+
+        init();
+    </script>
+</body>
+</html>

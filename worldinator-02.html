@@ -7,7 +7,7 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%231E90FF'/%3E%3C/svg%3E">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    body { font-family: 'Courier New', monospace; background: #000; color: #ddd; overflow: hidden; touch-action: pan-y; }
+    body { font-family: 'Courier New', monospace; background: #000; color: #ddd; overflow: hidden; }
     .container { width: 100%; height: 100vh; display: flex; flex-direction: column; background: #000; }
 
     .header { padding: 10px 16px; background: #050505; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; }
@@ -15,10 +15,6 @@
     .title { font-size: 13px; font-weight: bold; letter-spacing: 1px; color: #4ECDC4; text-transform: uppercase; }
     .subtitle { font-size: 9px; color: #777; letter-spacing: 1px; text-transform: uppercase; }
     .badge { font-size: 8px; padding: 4px 8px; border-radius: 3px; border: 1px solid #333; text-transform: uppercase; letter-spacing: 1px; }
-
-    .bag-actions { display: flex; gap: 6px; align-items: center; }
-    .bag-btn { font-size: 8px; padding: 4px 6px; border-radius: 3px; border: 1px solid #333; background: #000; color: #4ECDC4; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; }
-    .bag-btn:active { transform: scale(0.97); background: #111; }
 
     .main { flex: 1; display: flex; min-height: 0; }
 
@@ -31,8 +27,6 @@
     .ip-item { padding: 8px 12px; border-bottom: 1px solid #111; cursor: pointer; font-size: 10px; display: flex; flex-direction: column; gap: 2px; }
     .ip-item:hover { background: #050505; }
     .ip-item.selected { background: #071717; border-left: 3px solid #4ECDC4; }
-    .ip-item.in-bag { border-right: 2px solid #4ECDC4; }
-    .ip-item.bag-flash { animation: worldinatorBagFlash 0.6s ease-out; }
     .ip-name { color: #ddd; }
     .ip-meta { font-size: 8px; color: #666; }
 
@@ -70,11 +64,6 @@
     .toast { position: fixed; bottom: 60px; left: 50%; transform: translateX(-50%) translateY(100px); background: #1a1a1a; color: #4ECDC4; padding: 10px 16px; border-radius: 6px; border: 1px solid #333; font-size: 9px; font-weight: bold; letter-spacing: 1px; z-index: 1000; opacity: 0; transition: all 0.3s ease; }
     .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 
-    @keyframes worldinatorBagFlash {
-      0% { background: #022222; }
-      100% { background: inherit; }
-    }
-
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: #000; }
     ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
@@ -96,7 +85,7 @@
       }
     }
 
-    /* Mobile: stack panels vertically and prefer single vertical scroll (no nested scrollbars) */
+    /* Mobile: stack panels vertically and allow scrolling */
     @media (max-width: 900px) {
       body {
         overflow-y: auto;
@@ -122,12 +111,6 @@
       .right-panel {
         display: flex;
       }
-
-      .ip-list,
-      .hit-list,
-      .detail-body {
-        overflow-y: visible;
-      }
     }
 </style>
 </head>
@@ -138,9 +121,7 @@
       <div class="title">WORLDINATOR – IP WORLDS</div>
       <div class="subtitle">SCAN ALL LEGO SCENES FOR MOVIE / TV WORLDS</div>
     </div>
-    <div class="bag-actions">
-      <button class="bag-btn" id="worldBagBtn">WORLD BAG</button>
-    </div>
+    <div class="badge">FINAL HUB · IP INDEX</div>
   </div>
 
   <div class="main">
@@ -190,7 +171,6 @@
       <div class="detail-actions">
         <button class="btn" id="loadAddBtn">➕ Add as Scene</button>
         <button class="btn btn-primary" id="loadReplaceBtn">🚀 Load as Scene</button>
-        <button class="btn" id="exportWorldBagBtn">EXPORT BAG</button>
       </div>
     </div>
   </div>
@@ -213,8 +193,7 @@
     selectedIpIndex: -1,
     selectedHitIndex: -1,
     search: '',
-    hitFilterKind: 'scene',
-    bagWorldIds: []
+    hitFilterKind: 'scene'
   };
 
   const showToast = (msg) => {
@@ -270,45 +249,14 @@
     });
   };
 
-  const buildWorldBag = () => {
-    if (!state.ips.length) {
-      showToast('No worlds loaded yet');
-      return;
-    }
-    const candidates = state.ips.filter((ip) => {
-      const counts = ip.counts || {};
-      return (counts.scene || 0) > 0;
-    });
-    if (!candidates.length) {
-      showToast('No worlds with scenes found');
-      return;
-    }
-    const pool = [...candidates];
-    const bag = [];
-    while (pool.length && bag.length < 3) {
-      const idx = Math.floor(Math.random() * pool.length);
-      bag.push(pool.splice(idx, 1)[0]);
-    }
-    state.bagWorldIds = bag.map(ip => ip.id);
-    applyIpFilter();
-    renderIpList();
-    renderHitList();
-    updateDetail();
-    flashWorldBag();
-    showToast(`WORLD BAG CAPTURED · ${bag.length} WORLDS`);
-    setStatus('BAG CAPTURED', 'Random world bag');
-  };
-
   const renderIpList = () => {
     const list = document.getElementById('ipList');
     list.innerHTML = '';
     state.filteredIps.forEach((ip, idx) => {
-      const inBag = state.bagWorldIds && state.bagWorldIds.includes(ip.id);
       const div = document.createElement('div');
-      div.className = 'ip-item' + (idx === state.selectedIpIndex ? ' selected' : '') + (inBag ? ' in-bag' : '');
+      div.className = 'ip-item' + (idx === state.selectedIpIndex ? ' selected' : '');
       const counts = ip.counts || {};
-      const bagLabel = inBag ? ' · BAG' : '';
-      const meta = `${counts.all || 0} hits · ${counts.scene || 0} scenes${bagLabel}`;
+      const meta = `${counts.all || 0} hits · ${counts.scene || 0} scenes`;
       div.innerHTML = `<div class="ip-name">${ip.label}</div><div class="ip-meta">${meta}</div>`;
       div.addEventListener('click', () => {
         state.selectedIpIndex = idx;
@@ -320,23 +268,6 @@
       });
       list.appendChild(div);
     });
-  };
-
-  const flashWorldBag = () => {
-    const list = document.getElementById('ipList');
-    if (!list) return;
-    const ids = new Set(state.bagWorldIds || []);
-    if (!ids.size) return;
-    const items = list.querySelectorAll('.ip-item');
-    items.forEach(item => item.classList.remove('bag-flash'));
-    state.filteredIps.forEach((ip, idx) => {
-      if (ids.has(ip.id) && items[idx]) {
-        items[idx].classList.add('bag-flash');
-      }
-    });
-    setTimeout(() => {
-      items.forEach(item => item.classList.remove('bag-flash'));
-    }, 700);
   };
 
   const currentIp = () => {
@@ -442,28 +373,9 @@
             mode: mode || 'replace'
           }
         });
-        let toastMsg = mode === 'add'
-          ? `WORLD SCENE -> wag-frank (scene-mpd, mode=add) from ${ip.label}; MPD downloading…`
-          : `WORLD SCENE -> wag-frank (scene-mpd, mode=replace) from ${ip.label}; MPD downloading…`;
-        try {
-          const blob = new Blob([mpdText], { type: 'text/plain' });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          const rawName = (hit.file || '').split('/').pop() || 'world_scene';
-          const safeName = rawName.replace(/\s+/g, '_');
-          a.download = safeName;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-        } catch (e) {
-          console.warn('Worldinator: failed to trigger MPD download', e);
-          toastMsg = mode === 'add'
-            ? `WORLD SCENE -> wag-frank (scene-mpd, mode=add) from ${ip.label}; download failed`
-            : `WORLD SCENE -> wag-frank (scene-mpd, mode=replace) from ${ip.label}; download failed`;
-        }
-        showToast(toastMsg);
+        showToast(mode === 'add'
+          ? `WORLD SCENE -> wag-frank (scene-mpd, mode=add) from ${ip.label}; open wag-grace-editor.html`
+          : `WORLD SCENE -> wag-frank (scene-mpd, mode=replace) from ${ip.label}; open wag-grace-editor.html`);
         setStatus('SCENE SENT', `${ip.label} · ${hit.file} · mode=${mode || 'replace'}`);
       } else {
         showToast('MPD loaded (no wag-frank channel)');
@@ -473,43 +385,6 @@
       console.warn('Worldinator: failed to load MPD for hit', hit, err);
       showToast('Failed to load scene MPD');
       setStatus('ERROR', 'Could not load MPD');
-    }
-  };
-
-  const exportWorldBag = () => {
-    const bagIds = state.bagWorldIds || [];
-    if (!bagIds.length) {
-      showToast('No world bag yet; build one first');
-      setStatus('BAG', 'No world bag defined');
-      return;
-    }
-    const worlds = state.ips.filter(ip => bagIds.includes(ip.id));
-    if (!worlds.length) {
-      showToast('World bag has no matching IPs');
-      setStatus('BAG', 'Empty world bag');
-      return;
-    }
-    const payload = {
-      worlds: worlds.map(ip => ({
-        id: ip.id,
-        label: ip.label,
-        keywords: ip.keywords || [],
-        counts: ip.counts || {},
-        hits: ip.hits || []
-      }))
-    };
-    if (wagFrankBus) {
-      wagFrankPost({
-        kind: 'world-bag',
-        source: 'worldinator',
-        ts: Date.now(),
-        payload
-      });
-      showToast(`WORLD BAG -> wag-frank (${worlds.length} worlds)`);
-      setStatus('BAG SENT', `world-bag · ${worlds.length} worlds`);
-    } else {
-      showToast('World bag ready (no wag-frank channel)');
-      setStatus('BAG READY', 'BroadcastChannel unavailable');
     }
   };
 
@@ -539,12 +414,6 @@
 
     document.getElementById('loadReplaceBtn').addEventListener('click', () => loadSceneFromHit('replace'));
     document.getElementById('loadAddBtn').addEventListener('click', () => loadSceneFromHit('add'));
-
-    const exportWorldBagBtn = document.getElementById('exportWorldBagBtn');
-    if (exportWorldBagBtn) exportWorldBagBtn.addEventListener('click', exportWorldBag);
-
-    const worldBagBtn = document.getElementById('worldBagBtn');
-    if (worldBagBtn) worldBagBtn.addEventListener('click', buildWorldBag);
 
     loadIpIndex();
   });

@@ -81,8 +81,8 @@
       flex: 2;
       display: flex;
       flex-direction: column;
-      padding: 10px;
-      gap: 8px;
+      padding: 8px 10px;
+      gap: 6px;
       background: #050505;
     }
     #grace-iframe {
@@ -100,9 +100,9 @@
     .controls-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
+      gap: 6px;
       align-items: center;
-      font-size: 11px;
+      font-size: 10px;
     }
     .controls-row label {
       display: flex;
@@ -125,19 +125,19 @@
       font-size: 11px;
     }
     button {
-      padding: 4px 10px;
+      padding: 3px 9px;
       border-radius: 3px;
       border: 1px solid #444;
-      background: #111;
-      color: #eee;
-      font-size: 11px;
+      background: #0b0b0b;
+      color: #e5e7eb;
+      font-size: 10px;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 4px;
       text-transform: uppercase;
-      letter-spacing: 0.12em;
+      letter-spacing: 0.08em;
     }
     button.primary {
       background: #0f7bff;
@@ -165,6 +165,9 @@
       border: 2px solid #facc15;
       background: #000;
       image-rendering: pixelated;
+      /* Lock visual aspect to 4:3 so the capture frame matches the encoded video */
+      aspect-ratio: 4 / 3;
+      height: auto;
     }
     .shot-meta {
       font-size: 10px;
@@ -202,6 +205,20 @@
       text-overflow: ellipsis;
       white-space: nowrap;
     }
+
+    .mento-shot-text {
+      width: 100%;
+      min-height: 96px;
+      padding: 6px 8px;
+      background: #000;
+      color: #ddd;
+      border: 1px solid #333;
+      font-family: "SF Mono", Menlo, Consolas, monospace;
+      font-size: 10px;
+      resize: vertical;
+      white-space: pre;
+      line-height: 1.4;
+    }
     #log {
       flex: 1;
       border: 1px solid #222;
@@ -222,32 +239,35 @@
     }
     .control-card {
       border: 1px solid #222;
-      border-radius: 6px;
-      padding: 8px;
-      background: #070707;
+      border-radius: 4px;
+      padding: 6px 8px;
+      background: #050505;
       display: flex;
       flex-direction: column;
       gap: 6px;
     }
     .control-card-title {
-      font-size: 10px;
+      font-size: 9px;
       text-transform: uppercase;
-      letter-spacing: 0.12em;
-      color: #aaa;
+      letter-spacing: 0.1em;
+      color: #9ca3af;
     }
     @media (max-width: 900px) {
       .content {
         flex-direction: column;
         min-height: 0;
       }
-      .left-pane {
-        flex: 0 0 auto;
-        height: 55%;
-      }
+      /* On small screens, show capture controls above the Grace viewport */
       .right-pane {
+        order: 1;
         flex: 0 0 auto;
         max-height: 45%;
         overflow-y: auto;
+      }
+      .left-pane {
+        order: 2;
+        flex: 0 0 auto;
+        height: 55%;
       }
       .controls-row {
         flex-direction: column;
@@ -390,6 +410,37 @@
                 <option value="960p">960p (1280×960)</option>
               </select>
             </label>
+          </div>
+        </div>
+
+        <div class="control-card card-mento-shots">
+          <div class="control-card-title">Mento Shots (MPD)</div>
+          <div class="controls-row">
+            <label>
+              Source
+              <input id="mento-shot-file" type="file" accept=".mpd,.ldr,.txt" />
+            </label>
+          </div>
+          <div class="controls-row">
+            <label>
+              Shot
+              <select id="mento-shot-select">
+                <option value="">-- none loaded --</option>
+              </select>
+            </label>
+            <button id="mento-apply-shot">Apply</button>
+          </div>
+          <div class="controls-row">
+            <textarea
+              id="mento-shot-text"
+              class="mento-shot-text"
+              spellcheck="false"
+              placeholder="MENTO shot MPD will appear here…"
+            ></textarea>
+          </div>
+          <div class="controls-row">
+            <button id="mento-parse-shot-text">Load From Text</button>
+            <button id="mento-copy-shot-text">Copy MPD</button>
           </div>
         </div>
 

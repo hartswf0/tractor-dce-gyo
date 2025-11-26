@@ -1,0 +1,2750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Mento GLB – Desert Oasis Capture</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Courier New", monospace;
+      background: #000;
+      color: #e5e7eb;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .page {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+    .header {
+      padding: 6px 12px;
+      border-bottom: 1px solid #333;
+      background: #050505;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .camera-mark {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .camera-name {
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+    .camera-state {
+      font-size: 9px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid #333;
+      letter-spacing: 0.16em;
+      color: #9ca3af;
+    }
+    .camera-state.recording {
+      border-color: #ef4444;
+      color: #ef4444;
+    }
+    .badge {
+      font-size: 9px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid #333;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+    }
+    .header-spacer {
+      flex: 1;
+    }
+    .header-status {
+      font-size: 10px;
+      color: #9ca3af;
+      letter-spacing: 0.08em;
+    }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 9px;
+      text-transform: none;
+      letter-spacing: 0.04em;
+    }
+    .header-right label {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .header-toggles {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .content {
+      flex: 1;
+      display: flex;
+      min-height: 0;
+    }
+    .viewport-pane {
+      flex: 3;
+      border-right: 1px solid #333;
+      background: #020617;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+    #viewport {
+      flex: 1;
+      position: relative;
+      min-height: 0;
+    }
+    #glb-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    #minimap-canvas {
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      width: 120px;
+      height: 120px;
+      pointer-events: auto;
+      cursor: crosshair;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid #27272a;
+      border-radius: 4px;
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.8);
+    }
+    .reticle {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .reticle::before,
+    .reticle::after {
+      content: "";
+      position: absolute;
+      background: rgba(248, 250, 252, 0.35);
+    }
+    .reticle::before {
+      width: 1px;
+      height: 36px;
+    }
+    .reticle::after {
+      height: 1px;
+      width: 36px;
+    }
+    .controls-pane {
+      flex: 2;
+      display: flex;
+      flex-direction: column;
+      padding: 8px 10px;
+      gap: 6px;
+      background: #050505;
+    }
+    .sidebar-tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 4px;
+    }
+    .sidebar-tab {
+      flex: 1;
+      border-radius: 3px;
+      border: 1px solid #27272a;
+      background: #020617;
+      color: #9ca3af;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      padding: 3px 6px;
+    }
+    .sidebar-tab.active {
+      background: #0f172a;
+      border-color: #4b5563;
+      color: #e5e7eb;
+    }
+    .sidebar-tab-panel {
+      display: none;
+      flex: 1;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .sidebar-tab-panel.active {
+      display: flex;
+    }
+    .control-card {
+      border: 1px solid #222;
+      border-radius: 4px;
+      padding: 6px 8px;
+      background: #050505;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .control-card-title {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #9ca3af;
+    }
+    .controls-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      font-size: 10px;
+    }
+    .controls-row label {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    input[type="number"], input[type="range"] {
+      padding: 2px 4px;
+      background: #000;
+      border: 1px solid #333;
+      color: #ddd;
+      font-size: 11px;
+    }
+    input[type="number"] {
+      width: 64px;
+    }
+    select {
+      padding: 2px 4px;
+      background: #000;
+      border: 1px solid #333;
+      color: #ddd;
+      font-size: 11px;
+    }
+    button {
+      padding: 3px 9px;
+      border-radius: 3px;
+      border: 1px solid #444;
+      background: #0b0b0b;
+      color: #e5e7eb;
+      font-size: 10px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    button.primary {
+      background: #0f7bff;
+      border-color: #0f7bff;
+      color: #fff;
+    }
+    button[disabled] {
+      opacity: 0.4;
+      cursor: default;
+    }
+    #status-line {
+      font-size: 11px;
+      color: #aaa;
+      min-height: 1.4em;
+    }
+    #log {
+      flex: 1;
+      border: 1px solid #222;
+      background: #020202;
+      font-family: "SF Mono", Menlo, Consolas, monospace;
+      font-size: 10px;
+      padding: 6px;
+      overflow: auto;
+      white-space: pre-wrap;
+    }
+    .path-thumbs {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 4px;
+      overflow-x: auto;
+      padding: 2px 0;
+    }
+    .path-thumbs img {
+      display: block;
+      width: 56px;
+      height: 42px;
+      object-fit: cover;
+      border-radius: 2px;
+      border: 1px solid #333;
+    }
+    .status-bar {
+      padding: 6px 10px;
+      border-top: 1px solid #333;
+      font-size: 10px;
+      color: #666;
+      display: flex;
+      justify-content: space-between;
+    }
+    .bottom-drawer {
+      border-top: 1px solid #111;
+      background: #020202;
+    }
+    .bottom-drawer-handle {
+      padding: 4px 10px;
+      font-size: 10px;
+      color: #9ca3af;
+      border-top: 1px solid #333;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+    .bottom-drawer-body {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.2s ease;
+    }
+    #log-drawer.open .bottom-drawer-body {
+      max-height: 160px;
+    }
+    @media (max-width: 900px) {
+      .content {
+        flex-direction: column;
+        min-height: 0;
+      }
+      .viewport-pane {
+        flex: 0 0 55vh;
+      }
+      .controls-pane {
+        flex: 0 0 auto;
+        max-height: 45vh;
+        overflow-y: auto;
+      }
+      .controls-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .controls-row.full-width-buttons button {
+        width: 100%;
+      }
+      #log {
+        max-height: 120px;
+      }
+      #mento-mpd-input {
+        min-height: 40px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="header">
+      <div class="camera-mark">
+        <span class="camera-name">MENTO GLB</span>
+        <span class="camera-state" id="cameraState">STBY</span>
+      </div>
+      <div class="header-spacer"></div>
+      <div class="header-status" id="status-line">Loading Desert Oasis GLB…</div>
+      <div class="header-right">
+        <label>
+          Scene GLB
+          <input id="glb-file-input" type="file" accept=".glb,.gltf,model/gltf-binary" />
+        </label>
+        <div class="header-toggles">
+          <label>
+            <input type="checkbox" id="grid-toggle" />
+            Grid
+          </label>
+          <label>
+            <input type="checkbox" id="axes-toggle" />
+            Axes
+          </label>
+        </div>
+        <div class="badge" id="cameraStock">GLB · WEBM</div>
+      </div>
+    </div>
+    <div class="content">
+      <div class="viewport-pane">
+        <div id="viewport">
+          <div class="reticle"></div>
+          <canvas id="minimap-canvas" width="128" height="128"></canvas>
+        </div>
+      </div>
+      <div class="controls-pane">
+        <div class="sidebar-tabs">
+          <button class="sidebar-tab active" data-tab="scene">SCENE</button>
+          <button class="sidebar-tab" data-tab="animation">ANIMATION</button>
+        </div>
+
+        <div class="sidebar-tab-panel active" id="tab-scene">
+          <div class="control-card">
+            <div class="control-card-title">Models</div>
+            <div class="controls-row">
+              <label>Slot
+                <select id="model-slot-select">
+                  <option value="1">Slot 1</option>
+                  <option value="2">Slot 2</option>
+                </select>
+              </label>
+            </div>
+            <div class="controls-row">
+              <div id="model-list" style="display:flex; flex-direction:column; gap:4px; font-size:9px;"></div>
+            </div>
+          </div>
+
+          <div class="control-card">
+            <div class="control-card-title">Camera</div>
+            <div class="controls-row">
+              <label>FOV
+                <input id="glb-fov" type="range" min="25" max="80" step="1" value="50" />
+              </label>
+            </div>
+            <div class="controls-row" style="gap:4px;">
+              <button id="camera-home" style="flex:1; font-size:9px; padding:2px 4px;">Home View</button>
+              <button id="camera-set-home" style="flex:1; font-size:9px; padding:2px 4px;">Set Home</button>
+            </div>
+            <div class="controls-row">
+              <span id="orientation-readout" style="font-family:'SF Mono', Menlo, Consolas, monospace; font-size:10px; color:#9ca3af;">
+                Dock HDG ---° (---) · Dist --- · ΔY ---
+              </span>
+            </div>
+          </div>
+
+          <div class="control-card">
+            <div class="control-card-title">Scene Transform</div>
+            <div class="controls-row">
+              <label>Gizmo
+                <select id="transform-mode">
+                  <option value="translate">Move</option>
+                  <option value="rotate">Rotate</option>
+                  <option value="scale">Scale</option>
+                </select>
+              </label>
+              <button id="transform-center">Center</button>
+              <button id="transform-flip-x">Flip X</button>
+              <button id="transform-flip-y">Flip Y</button>
+              <button id="transform-flip-z">Flip Z</button>
+            </div>
+            <div class="controls-row">
+              <label>GLB Scale
+                <input id="glb-scale" type="number" min="0.01" step="0.1" value="1" style="width:70px;" />
+              </label>
+              <label>GLB Rot Y°
+                <input id="glb-rot-y" type="number" step="5" value="0" style="width:70px;" />
+              </label>
+              <button id="glb-zero-origin">Zero to origin</button>
+            </div>
+            <div class="controls-row">
+              <label>Pos X
+                <input id="tx-pos-x" type="number" step="10" style="width:60px;" />
+              </label>
+              <label>Y
+                <input id="tx-pos-y" type="number" step="10" style="width:60px;" />
+              </label>
+              <label>Z
+                <input id="tx-pos-z" type="number" step="10" style="width:60px;" />
+              </label>
+            </div>
+            <div class="controls-row">
+              <button id="transform-reset">Reset</button>
+              <button id="transform-auto-scale">Auto-scale</button>
+            </div>
+            <div class="controls-row">
+              <label>Grid scale
+                <input id="grid-scale" type="number" min="0.1" step="0.1" value="1" style="width:60px;" />
+              </label>
+            </div>
+          </div>
+
+          <div class="control-card">
+            <div class="control-card-title">Helpers</div>
+            <div class="controls-row">
+              <label>
+                <input type="checkbox" id="helper-ruler" />
+                Ruler
+              </label>
+              <label>
+                <input type="checkbox" id="helper-path" checked />
+                Path markers
+              </label>
+              <label>
+                <input type="checkbox" id="helper-frustum" checked />
+                Frustum
+              </label>
+            </div>
+          </div>
+
+          <div class="control-card">
+            <div class="control-card-title">Scene Preset</div>
+            <div class="controls-row" style="gap:4px;">
+              <select id="preset-quick-select" style="flex:1; font-size:10px;">
+                <option value="">Presets (local)</option>
+              </select>
+              <button id="preset-save-local" style="font-size:9px;">Save</button>
+            </div>
+            <div class="controls-row" style="gap:4px;">
+              <button id="preset-export" style="flex:1; font-size:9px;">Export JSON</button>
+              <button id="preset-apply" style="flex:1; font-size:9px;">Apply JSON</button>
+            </div>
+            <div class="controls-row">
+              <textarea id="preset-json" style="width:100%; min-height:48px; font-size:10px; font-family:'SF Mono', Menlo, Consolas, monospace;" placeholder="Scene preset JSON (models transforms, shot offset, camera home)"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="sidebar-tab-panel" id="tab-animation">
+          <div class="control-card">
+            <div class="control-card-title">Camera Path (Keyframes)</div>
+            <div class="controls-row">
+              <label>Duration
+                <input id="path-duration" type="number" min="1" max="120" step="1" value="8" />
+              </label>
+              <button id="path-add-keyframe">Add Key</button>
+              <button id="path-play" disabled>Play</button>
+              <button id="path-clear">Clear</button>
+            </div>
+            <div class="controls-row">
+              <button id="path-prev" style="font-size:9px;">◀ Prev</button>
+              <span id="path-index-label" style="font-family:'SF Mono', Menlo, Consolas, monospace; font-size:10px; color:#9ca3af; flex:1; text-align:center;">– / –</span>
+              <button id="path-next" style="font-size:9px;">Next ▶</button>
+            </div>
+            <div class="controls-row">
+              <pre id="path-list" style="flex:1; min-height:2em; max-height:5em; overflow:auto; border:1px solid #222; padding:4px; font-size:10px;"></pre>
+            </div>
+            <div class="controls-row">
+              <div id="path-thumbs" class="path-thumbs"></div>
+            </div>
+          </div>
+
+          <div class="control-card">
+            <div class="control-card-title">MENTO MPD → Path</div>
+            <div class="controls-row">
+              <label style="width:100%; font-size:10px; color:#aaa; display:block;">
+                Paste !MENTO SHOT lines here (e.g. from searchers.mpd), then build a camera path.
+                <textarea id="mento-mpd-input" style="width:100%; min-height:60px; margin-top:4px; font-size:10px; font-family:'SF Mono', Menlo, Consolas, monospace;" placeholder="0 !MENTO SHOT &quot;The Rider&quot; POS 280 -80 180 TGT 0 -40 20 LENS 50"></textarea>
+              </label>
+            </div>
+            <div class="controls-row">
+              <button id="mento-mpd-build" disabled>Build Path from MPD</button>
+            </div>
+            <div class="controls-row">
+              <label>
+                <input type="checkbox" id="mento-flip-x" checked />
+                Flip X
+              </label>
+              <label>
+                <input type="checkbox" id="mento-flip-y" />
+                Flip Y
+              </label>
+              <label>
+                <input type="checkbox" id="mento-flip-z" />
+                Flip Z
+              </label>
+            </div>
+            <div class="controls-row">
+              <label>
+                <input type="checkbox" id="mento-bind-center" checked />
+                Bind to GLB center
+              </label>
+              <label>Scale
+                <input type="number" id="mento-scale" value="1" step="0.1" min="0.01" style="width:60px;" />
+              </label>
+            </div>
+            <div class="controls-row">
+              <label>Lock to Slot
+                <select id="shot-lock-slot" style="width:70px;">
+                  <option value="1">Slot 1</option>
+                  <option value="2">Slot 2</option>
+                </select>
+              </label>
+              <button id="tare-shots">TARE Shots</button>
+            </div>
+            <div class="controls-row">
+              <label>Offset X
+                <input id="shot-offset-x" type="number" step="10" value="0" style="width:60px;" />
+              </label>
+              <label>Y
+                <input id="shot-offset-y" type="number" step="10" value="0" style="width:60px;" />
+              </label>
+              <label>Z
+                <input id="shot-offset-z" type="number" step="10" value="0" style="width:60px;" />
+              </label>
+            </div>
+            <div class="controls-row">
+              <div id="mento-shot-list" style="flex:1; max-height:80px; overflow:auto; border:1px solid #222; padding:4px; font-size:10px;"></div>
+            </div>
+          </div>
+
+          <div class="control-card">
+            <div class="control-card-title">Capture</div>
+            <div class="controls-row">
+              <label>Path
+                <select id="path-mode">
+                  <option value="manual">Manual (Orbit)</option>
+                  <option value="orbit">Auto orbit</option>
+                  <option value="keyframes">Keyframed path</option>
+                </select>
+              </label>
+              <label>FPS
+                <input id="capture-fps" type="number" min="1" max="60" step="1" value="30" />
+              </label>
+              <label>Max seconds
+                <input id="capture-duration" type="number" min="1" max="120" step="1" value="10" />
+              </label>
+            </div>
+            <div class="controls-row full-width-buttons">
+              <button id="start-capture" class="primary">REC</button>
+              <button id="stop-capture" disabled>STOP</button>
+              <button id="download-last" disabled>SAVE</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="bottom-drawer" id="log-drawer">
+      <div class="bottom-drawer-handle" id="log-toggle">LOG / CONSOLE</div>
+      <div class="bottom-drawer-body">
+        <pre id="log"></pre>
+      </div>
+    </div>
+    <div class="status-bar">
+      <span>Desert Oasis Canyon Structures · GLB viewer</span>
+      <span>MediaRecorder-based capture · Three.js</span>
+    </div>
+  </div>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/examples/jsm/controls/OrbitControls": "https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js",
+        "three/examples/jsm/controls/TransformControls": "https://unpkg.com/three@0.160.0/examples/jsm/controls/TransformControls.js",
+        "three/examples/jsm/loaders/GLTFLoader": "https://unpkg.com/three@0.160.0/examples/jsm/loaders/GLTFLoader.js"
+      }
+    }
+  </script>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+    import { TransformControls } from 'three/examples/jsm/controls/TransformControls';
+    import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+
+    const state = {
+      scene: null,
+      camera: null,
+      renderer: null,
+      controls: null,
+      transformControls: null,
+      modelRoot: null,
+      models: [],
+      activeModelIndex: -1,
+      orbitCenter: null,
+      orbitRadius: 1,
+      orbitHeight: 0,
+      pathMode: 'manual',
+      keyframes: [],
+      pathPlayback: {
+        playing: false,
+        startTime: 0,
+        duration: 8
+      },
+      pathViz: {
+        line: null,
+        points: null,
+        keyframeMeshes: []
+      },
+      selectedKeyframeIndex: -1,
+      keyframeHandle: null,
+      cameraViz: {
+        frustum: null,
+        ray: null
+      },
+      gridHelper: null,
+      axesHelper: null,
+      rulerHelper: null,
+      captureOverlays: true,
+      showPathHelpers: true,
+      showFrustumHelper: true,
+      homeCamera: {
+        pos: new THREE.Vector3(),
+        target: new THREE.Vector3(),
+        fov: 50
+      },
+      clock: new THREE.Clock(),
+      glbLoaded: false,
+      mediaRecorder: null,
+      chunks: [],
+      recording: false,
+      lastBlobUrl: null,
+      minimap: {
+        canvas: null,
+        ctx: null
+      },
+      sceneBounds: {
+        box: new THREE.Box3(),
+        radius: 100
+      },
+      orientationEl: null,
+      shotOffset: new THREE.Vector3(0, 0, 0),
+      shotLockedSlot: 1,
+      mentoShots: []
+    };
+
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
+
+    function log(message) {
+      const logEl = document.getElementById('log');
+      if (!logEl) return;
+      const timestamp = new Date().toISOString().split('T')[1].replace('Z', '');
+      logEl.textContent += `[${timestamp}] ${message}\n`;
+      logEl.scrollTop = logEl.scrollHeight;
+      console.log('[MENTO-GLB]', message);
+    }
+
+    function setStatus(text) {
+      const statusEl = document.getElementById('status-line');
+      if (statusEl) statusEl.textContent = text;
+    }
+
+    function setCameraState(isRecording) {
+      const el = document.getElementById('cameraState');
+      if (!el) return;
+      if (isRecording) {
+        el.textContent = 'REC';
+        el.classList.add('recording');
+      } else {
+        el.textContent = 'STBY';
+        el.classList.remove('recording');
+      }
+    }
+
+    function saveHomeCameraFromCurrent() {
+      if (!state.camera || !state.controls) return;
+      state.homeCamera.pos.copy(state.camera.position);
+      state.homeCamera.target.copy(state.controls.target);
+      state.homeCamera.fov = state.camera.fov;
+      log('Saved home camera view from current framing.');
+    }
+
+    function resetCameraToHome() {
+      if (!state.camera || !state.controls) return;
+      if (!state.homeCamera || !state.homeCamera.pos) {
+        if (state.modelRoot) {
+          fitCameraToObject(state.modelRoot);
+          log('Home view not set; refit camera to GLB.');
+        }
+        return;
+      }
+      state.camera.position.copy(state.homeCamera.pos);
+      state.camera.fov = state.homeCamera.fov || state.camera.fov;
+      state.camera.updateProjectionMatrix();
+      state.camera.lookAt(state.controls.target);
+      state.controls.update();
+      updateOrbitFromCurrentCamera();
+      log('Reset camera to home view.');
+    }
+
+    function initThree() {
+      const viewport = document.getElementById('viewport');
+      const width = viewport.clientWidth || window.innerWidth * 0.6;
+      const height = viewport.clientHeight || window.innerHeight * 0.6;
+
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x050505);
+
+      const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 5000);
+      camera.position.set(0, 200, 600);
+
+      const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.setSize(width, height);
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.0;
+
+      const canvas = renderer.domElement;
+      canvas.id = 'glb-canvas';
+      viewport.appendChild(canvas);
+      canvas.addEventListener('pointerdown', onPointerDown);
+
+      const controls = new OrbitControls(camera, canvas);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.08;
+
+      const tControls = new TransformControls(camera, canvas);
+      tControls.addEventListener('dragging-changed', (event) => {
+        controls.enabled = !event.value;
+      });
+      scene.add(tControls);
+
+      const hemi = new THREE.HemisphereLight(0xffffff, 0x111111, 0.9);
+      scene.add(hemi);
+      const dir = new THREE.DirectionalLight(0xffffff, 0.9);
+      dir.position.set(300, 600, 400);
+      dir.castShadow = false;
+      scene.add(dir);
+
+      const grid = new THREE.GridHelper(1000, 40, 0x333333, 0x222222);
+      grid.position.y = 0;
+      grid.visible = false;
+      scene.add(grid);
+
+      const axes = new THREE.AxesHelper(80);
+      axes.visible = false;
+      scene.add(axes);
+
+      state.scene = scene;
+      state.camera = camera;
+      state.renderer = renderer;
+      state.controls = controls;
+      state.transformControls = tControls;
+      state.gridHelper = grid;
+      state.axesHelper = axes;
+
+      const mini = document.getElementById('minimap-canvas');
+      if (mini) {
+        state.minimap.canvas = mini;
+        state.minimap.ctx = mini.getContext('2d');
+        mini.addEventListener('click', onMinimapClick);
+      }
+
+      window.addEventListener('resize', onWindowResize);
+
+      loadDefaultGLB();
+      animate();
+    }
+
+    function onWindowResize() {
+      const viewport = document.getElementById('viewport');
+      if (!viewport || !state.renderer || !state.camera) return;
+      const width = viewport.clientWidth || window.innerWidth * 0.6;
+      const height = viewport.clientHeight || window.innerHeight * 0.6;
+      state.camera.aspect = width / height;
+      state.camera.updateProjectionMatrix();
+      state.renderer.setSize(width, height);
+    }
+
+    function setRulerEnabled(enabled) {
+      if (!state.scene) return;
+      if (enabled) {
+        if (!state.rulerHelper) {
+          ensureRulerHelper();
+        }
+        if (state.rulerHelper) state.rulerHelper.visible = true;
+      } else {
+        if (state.rulerHelper) state.rulerHelper.visible = false;
+      }
+    }
+
+    function ensureRulerHelper() {
+      if (!state.scene) return;
+      if (state.rulerHelper) return;
+
+      const group = new THREE.Group();
+      const length = 500;
+      const step = 50;
+      const tick = 10;
+
+      function makeAxis(axis, color) {
+        const vertices = [];
+        if (axis === 'x') {
+          vertices.push(-length, 0, 0, length, 0, 0);
+          for (let x = -length; x <= length; x += step) {
+            vertices.push(x, 0, -tick, x, 0, tick);
+          }
+        } else if (axis === 'z') {
+          vertices.push(0, 0, -length, 0, 0, length);
+          for (let z = -length; z <= length; z += step) {
+            vertices.push(-tick, 0, z, tick, 0, z);
+          }
+        } else {
+          vertices.push(0, 0, 0, 0, length, 0);
+          for (let y = 0; y <= length; y += step) {
+            vertices.push(-tick, y, 0, tick, y, 0);
+          }
+        }
+        const geom = new THREE.BufferGeometry();
+        geom.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+        const mat = new THREE.LineBasicMaterial({ color });
+        const lines = new THREE.LineSegments(geom, mat);
+        group.add(lines);
+      }
+
+      makeAxis('x', 0xef4444);
+      makeAxis('z', 0x22c55e);
+      makeAxis('y', 0x3b82f6);
+
+      state.rulerHelper = group;
+      state.scene.add(group);
+    }
+
+    function loadDefaultGLB() {
+      const loader = new GLTFLoader();
+      const path = 'Desert Oasis Canyon Structures_texture_mesh.glb';
+      loader.load(
+        path,
+        (gltf) => {
+          const root = gltf.scene || gltf.scenes[0];
+          if (!root) {
+            setStatus('GLB loaded but empty scene.');
+            log('GLB load returned no scene.');
+            return;
+          }
+          addModelFromRoot(root, 'Desert Oasis');
+          flipModelY(true);
+          fitCameraToObject(root);
+          saveHomeCameraFromCurrent();
+          state.glbLoaded = true;
+          setStatus('Desert Oasis GLB loaded. Ready for orbit and capture.');
+          log('Loaded GLB: ' + path);
+        },
+        (xhr) => {
+          if (xhr.total) {
+            const pct = (xhr.loaded / xhr.total) * 100;
+            setStatus(`Loading GLB… ${pct.toFixed(0)}%`);
+          }
+        },
+        (error) => {
+          setStatus('Failed to load GLB. See console.');
+          log('Error loading GLB: ' + (error && error.message ? error.message : error));
+        }
+      );
+    }
+
+    function loadCustomGLBFromFile(file) {
+      if (!file) return;
+      if (!state.scene) return;
+      setStatus('Loading custom GLB…');
+      log('Loading custom GLB from file: ' + (file.name || '')); 
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const arrayBuffer = e.target.result;
+        const loader = new GLTFLoader();
+        loader.parse(arrayBuffer, '', (gltf) => {
+          const root = gltf.scene || gltf.scenes[0];
+          if (!root) {
+            setStatus('Custom GLB loaded but empty scene.');
+            log('Custom GLB load returned no scene.');
+            return;
+          }
+          addModelFromRoot(root, file.name || 'Custom GLB');
+          flipModelY(true);
+          zeroGlbToOrigin();
+          saveHomeCameraFromCurrent();
+          clearKeyframes();
+          clearPathViz();
+          state.glbLoaded = true;
+          setStatus('Custom GLB loaded: ' + (file.name || '')); 
+          log('Loaded custom GLB from file: ' + (file.name || ''));
+        }, (error) => {
+          setStatus('Failed to parse custom GLB.');
+          log('Error parsing custom GLB: ' + (error && error.message ? error.message : error));
+        });
+      };
+      reader.onerror = () => {
+        setStatus('Failed to read GLB file.');
+        log('FileReader error while reading GLB file.');
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function addModelFromRoot(root, name) {
+      if (!state.scene) return;
+
+      // Determine target slot (1 or 2) from UI, default to 1
+      const slotSelect = document.getElementById('model-slot-select');
+      let slot = slotSelect ? parseInt(slotSelect.value, 10) : 1;
+      if (!Number.isFinite(slot) || slot < 1) slot = 1;
+
+      // Remove any existing model in this slot
+      let existingIndex = -1;
+      state.models.forEach((m, idx) => {
+        if (m.slot === slot) existingIndex = idx;
+      });
+      if (existingIndex !== -1) {
+        const m = state.models[existingIndex];
+        if (m.root && state.scene) {
+          state.scene.remove(m.root);
+        }
+        state.models.splice(existingIndex, 1);
+        if (state.activeModelIndex === existingIndex) {
+          state.activeModelIndex = -1;
+        }
+      }
+
+      state.scene.add(root);
+
+      const entry = {
+        slot,
+        name: name || `Slot ${slot}`,
+        root,
+        visible: true
+      };
+      state.models.push(entry);
+      const index = state.models.length - 1;
+      setActiveModel(index);
+      updateModelListUI();
+    }
+
+    function setActiveModel(index) {
+      if (!state.models || index < 0 || index >= state.models.length) return;
+      const model = state.models[index];
+      state.activeModelIndex = index;
+      state.modelRoot = model.root;
+
+      if (state.transformControls && state.modelRoot) {
+        state.transformControls.attach(state.modelRoot);
+        state.transformControls.visible = true;
+      }
+
+      fitCameraToObject(state.modelRoot);
+      log(`Active model: slot ${model.slot} · ${model.name}`);
+    }
+
+    function toggleModelVisibility(index) {
+      if (!state.models || index < 0 || index >= state.models.length) return;
+      const model = state.models[index];
+      model.visible = !model.visible;
+      if (model.root) {
+        model.root.visible = model.visible;
+      }
+      updateModelListUI();
+    }
+
+    function updateModelListUI() {
+      const listEl = document.getElementById('model-list');
+      if (!listEl) return;
+      if (!state.models.length) {
+        listEl.textContent = 'No models loaded.';
+        return;
+      }
+      listEl.innerHTML = '';
+      state.models.forEach((m, idx) => {
+        const row = document.createElement('div');
+        row.style.display = 'flex';
+        row.style.alignItems = 'center';
+        row.style.gap = '4px';
+
+        const radio = document.createElement('input');
+        radio.type = 'radio';
+        radio.name = 'model-active';
+        radio.checked = idx === state.activeModelIndex;
+        radio.addEventListener('change', () => {
+          setActiveModel(idx);
+        });
+
+        const visBtn = document.createElement('button');
+        visBtn.textContent = m.visible ? 'Hide' : 'Show';
+        visBtn.style.fontSize = '9px';
+        visBtn.addEventListener('click', () => {
+          toggleModelVisibility(idx);
+        });
+
+        const label = document.createElement('span');
+        label.textContent = `Slot ${m.slot}: ${m.name}`;
+        label.style.flex = '1';
+        label.style.fontSize = '9px';
+        label.style.color = idx === state.activeModelIndex ? '#e5e7eb' : '#9ca3af';
+
+        row.appendChild(radio);
+        row.appendChild(visBtn);
+        row.appendChild(label);
+        listEl.appendChild(row);
+      });
+    }
+
+    function fitCameraToObject(object) {
+      if (!state.camera || !state.controls) return;
+      const box = new THREE.Box3().setFromObject(object);
+      const size = box.getSize(new THREE.Vector3());
+      const center = box.getCenter(new THREE.Vector3());
+      const maxDim = Math.max(size.x, size.y, size.z);
+      const fov = state.camera.fov * (Math.PI / 180);
+      let distance = maxDim / (2 * Math.tan(fov / 2));
+      distance *= 1.4;
+
+      const dir = new THREE.Vector3(1.2, 0.8, 1.0).normalize();
+      const pos = center.clone().add(dir.multiplyScalar(distance));
+      state.camera.position.copy(pos);
+      state.camera.lookAt(center);
+      state.controls.target.copy(center);
+      state.controls.update();
+
+      state.orbitCenter = center.clone();
+      state.orbitRadius = Math.max(80, Math.sqrt((pos.x - center.x) ** 2 + (pos.z - center.z) ** 2));
+      state.orbitHeight = pos.y;
+
+      if (state.sceneBounds && state.sceneBounds.box) {
+        state.sceneBounds.box.copy(box);
+        const r = Math.max(size.x, size.y, size.z) * 0.6;
+        state.sceneBounds.radius = Math.max(r, 50);
+      }
+
+      log(`Camera fit to GLB bounds. size=(${size.x.toFixed(1)}, ${size.y.toFixed(1)}, ${size.z.toFixed(1)}) center=(${center.x.toFixed(1)}, ${center.y.toFixed(1)}, ${center.z.toFixed(1)}).`);
+    }
+
+    function flipModelY(silent = false) {
+      if (!state.modelRoot) return;
+      state.modelRoot.rotateX(Math.PI);
+      state.modelRoot.updateMatrixWorld(true);
+      if (!silent) log('Rotated model 180° around X (Y flipped).');
+    }
+
+    function flipSceneAxis(axis) {
+      if (!state.modelRoot || !state.scene) return;
+      const root = state.modelRoot;
+      let vec;
+      if (axis === 'x') vec = new THREE.Vector3(1, 0, 0);
+      else if (axis === 'y') vec = new THREE.Vector3(0, 1, 0);
+      else vec = new THREE.Vector3(0, 0, 1);
+      root.rotateOnWorldAxis(vec, Math.PI);
+      root.updateMatrixWorld(true);
+      fitCameraToObject(root);
+      log(`Flipped GLB 180° around ${axis.toUpperCase()} axis.`);
+    }
+
+    function applyGlbNumericTransform() {
+      if (!state.modelRoot) return;
+      const root = state.modelRoot;
+      const scaleInput = document.getElementById('glb-scale');
+      const rotInput = document.getElementById('glb-rot-y');
+      const pxInput = document.getElementById('tx-pos-x');
+      const pyInput = document.getElementById('tx-pos-y');
+      const pzInput = document.getElementById('tx-pos-z');
+      let scale = parseFloat(scaleInput && scaleInput.value);
+      if (!Number.isFinite(scale) || scale <= 0) scale = 1;
+      let rotDeg = parseFloat(rotInput && rotInput.value);
+      if (!Number.isFinite(rotDeg)) rotDeg = 0;
+      const rotRad = THREE.MathUtils.degToRad(rotDeg);
+      let px = parseFloat(pxInput && pxInput.value);
+      let py = parseFloat(pyInput && pyInput.value);
+      let pz = parseFloat(pzInput && pzInput.value);
+      if (!Number.isFinite(px)) px = root.position.x;
+      if (!Number.isFinite(py)) py = root.position.y;
+      if (!Number.isFinite(pz)) pz = root.position.z;
+
+      root.position.set(px, py, pz);
+      root.scale.set(scale, scale, scale);
+      root.rotation.y = rotRad;
+      root.updateMatrixWorld(true);
+      log(`Applied GLB transform: pos=(${px.toFixed(1)}, ${py.toFixed(1)}, ${pz.toFixed(1)}), scale=${scale.toFixed(2)}, rotY=${rotDeg.toFixed(1)}°.`);
+    }
+
+    function resetModelTransform() {
+      if (!state.modelRoot) return;
+      const root = state.modelRoot;
+      root.position.set(0, 0, 0);
+      root.rotation.set(0, 0, 0);
+      root.scale.set(1, 1, 1);
+      root.updateMatrixWorld(true);
+      updateTransformInputsFromModel();
+      fitCameraToObject(root);
+      log('Reset model transform to origin, no rotation, unit scale.');
+    }
+
+    function autoScaleActiveModel() {
+      if (!state.modelRoot) return;
+      const root = state.modelRoot;
+      const box = new THREE.Box3().setFromObject(root);
+      const size = box.getSize(new THREE.Vector3());
+      const maxDim = Math.max(size.x, size.y, size.z);
+      if (!Number.isFinite(maxDim) || maxDim <= 0) return;
+      const target = 200;
+      const factor = target / maxDim;
+      root.scale.multiplyScalar(factor);
+      root.updateMatrixWorld(true);
+      updateTransformInputsFromModel();
+      fitCameraToObject(root);
+      log(`Auto-scaled model to target size (factor=${factor.toFixed(3)}).`);
+    }
+
+    function zeroGlbToOrigin() {
+      if (!state.modelRoot) return;
+      const root = state.modelRoot;
+      const box = new THREE.Box3().setFromObject(root);
+      const center = box.getCenter(new THREE.Vector3());
+      root.position.sub(center);
+      root.updateMatrixWorld(true);
+
+      const rotInput = document.getElementById('glb-rot-y');
+      if (rotInput) {
+        const deg = THREE.MathUtils.radToDeg(root.rotation.y || 0);
+        rotInput.value = deg.toFixed(1);
+      }
+      const scaleInput = document.getElementById('glb-scale');
+      if (scaleInput) {
+        const sx = root.scale.x;
+        if (Number.isFinite(sx)) scaleInput.value = sx.toFixed(2);
+      }
+
+      fitCameraToObject(root);
+      log('Zeroed GLB to origin based on its current bounds.');
+      updateTransformInputsFromModel();
+    }
+
+    function updateOrbitFromCurrentCamera() {
+      if (!state.camera || !state.controls) return;
+      const target = state.controls.target.clone();
+      const pos = state.camera.position.clone();
+      const dx = pos.x - target.x;
+      const dz = pos.z - target.z;
+      state.orbitCenter = target;
+      state.orbitRadius = Math.max(10, Math.sqrt(dx * dx + dz * dz));
+      state.orbitHeight = pos.y;
+      state.clock.elapsedTime = 0;
+    }
+
+    function updateTransformInputsFromModel() {
+      if (!state.modelRoot) return;
+      const root = state.modelRoot;
+      const sx = root.scale.x;
+      const degY = THREE.MathUtils.radToDeg(root.rotation.y || 0);
+
+      const scaleInput = document.getElementById('glb-scale');
+      const rotInput = document.getElementById('glb-rot-y');
+      const pxInput = document.getElementById('tx-pos-x');
+      const pyInput = document.getElementById('tx-pos-y');
+      const pzInput = document.getElementById('tx-pos-z');
+
+      if (scaleInput && Number.isFinite(sx)) scaleInput.value = sx.toFixed(2);
+      if (rotInput && Number.isFinite(degY)) rotInput.value = degY.toFixed(1);
+      if (pxInput) pxInput.value = root.position.x.toFixed(1);
+      if (pyInput) pyInput.value = root.position.y.toFixed(1);
+      if (pzInput) pzInput.value = root.position.z.toFixed(1);
+    }
+
+    function buildScenePresetObject() {
+      const models = [];
+      if (state.models && state.models.length) {
+        state.models.forEach((m) => {
+          if (!m || !m.root) return;
+          const root = m.root;
+          const pos = root.position;
+          const scale = root.scale && Number.isFinite(root.scale.x) ? root.scale.x : 1;
+          const rotYDeg = THREE.MathUtils.radToDeg(root.rotation.y || 0);
+          models.push({
+            slot: m.slot,
+            name: m.name,
+            position: { x: pos.x, y: pos.y, z: pos.z },
+            rotationY: rotYDeg,
+            scale
+          });
+        });
+      }
+
+      const shotOffset = {
+        x: state.shotOffset.x,
+        y: state.shotOffset.y,
+        z: state.shotOffset.z
+      };
+
+      const preset = {
+        version: 1,
+        models,
+        shotOffset,
+        shotLockedSlot: state.shotLockedSlot
+      };
+
+      const gridScaleInput = document.getElementById('grid-scale');
+      let gridScale = NaN;
+      if (gridScaleInput) {
+        gridScale = parseFloat(gridScaleInput.value);
+      } else if (state.gridHelper) {
+        gridScale = state.gridHelper.scale.x;
+      }
+      if (Number.isFinite(gridScale) && gridScale > 0) {
+        preset.gridScale = gridScale;
+      }
+
+      if (state.homeCamera && state.homeCamera.pos && state.homeCamera.target) {
+        preset.cameraHome = {
+          pos: {
+            x: state.homeCamera.pos.x,
+            y: state.homeCamera.pos.y,
+            z: state.homeCamera.pos.z
+          },
+          target: {
+            x: state.homeCamera.target.x,
+            y: state.homeCamera.target.y,
+            z: state.homeCamera.target.z
+          },
+          fov: state.homeCamera.fov
+        };
+      }
+
+      return preset;
+    }
+
+    function exportScenePresetToTextarea() {
+      const textarea = document.getElementById('preset-json');
+      if (!textarea) return;
+      const preset = buildScenePresetObject();
+      const text = JSON.stringify(preset, null, 2);
+      textarea.value = text;
+
+      if (navigator && navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+          log('Copied scene preset JSON to clipboard.');
+        }).catch((err) => {
+          log('Exported scene preset JSON (clipboard failed): ' + err.message);
+        });
+      } else {
+        log('Exported scene preset JSON to textarea. Clipboard not available.');
+      }
+    }
+
+    function applyScenePresetFromTextarea() {
+      const textarea = document.getElementById('preset-json');
+      if (!textarea) return;
+      const text = textarea.value || '';
+      if (!text.trim()) {
+        log('No scene preset JSON to apply.');
+        return;
+      }
+      let preset;
+      try {
+        preset = JSON.parse(text);
+      } catch (err) {
+        log('Failed to parse scene preset JSON: ' + err.message);
+        return;
+      }
+      if (!preset || typeof preset !== 'object') {
+        log('Scene preset JSON is not an object.');
+        return;
+      }
+
+      if (Array.isArray(preset.models) && state.models && state.models.length) {
+        preset.models.forEach((entry) => {
+          if (!entry || typeof entry.slot !== 'number') return;
+          const model = state.models.find(m => m.slot === entry.slot);
+          if (!model || !model.root) return;
+          const root = model.root;
+          const pos = entry.position || entry.pos || {};
+          const px = Number.isFinite(pos.x) ? pos.x : root.position.x;
+          const py = Number.isFinite(pos.y) ? pos.y : root.position.y;
+          const pz = Number.isFinite(pos.z) ? pos.z : root.position.z;
+          const scale = Number.isFinite(entry.scale) && entry.scale > 0 ? entry.scale : (root.scale.x || 1);
+          const rotYDeg = Number.isFinite(entry.rotationY) ? entry.rotationY : 0;
+          const rotYRad = THREE.MathUtils.degToRad(rotYDeg);
+
+          root.position.set(px, py, pz);
+          root.scale.set(scale, scale, scale);
+          root.rotation.set(0, rotYRad, 0);
+          root.updateMatrixWorld(true);
+        });
+      }
+
+      if (preset.shotOffset) {
+        const so = preset.shotOffset;
+        const sx = Number.isFinite(so.x) ? so.x : 0;
+        const sy = Number.isFinite(so.y) ? so.y : 0;
+        const sz = Number.isFinite(so.z) ? so.z : 0;
+        state.shotOffset.set(sx, sy, sz);
+        const xEl = document.getElementById('shot-offset-x');
+        const yEl = document.getElementById('shot-offset-y');
+        const zEl = document.getElementById('shot-offset-z');
+        if (xEl) xEl.value = sx.toFixed(1);
+        if (yEl) yEl.value = sy.toFixed(1);
+        if (zEl) zEl.value = sz.toFixed(1);
+      }
+
+      if (typeof preset.shotLockedSlot === 'number') {
+        const slot = preset.shotLockedSlot;
+        state.shotLockedSlot = slot;
+        const slotSelect = document.getElementById('shot-lock-slot');
+        if (slotSelect) slotSelect.value = String(slot);
+      }
+
+      if (typeof preset.gridScale === 'number' && preset.gridScale > 0) {
+        const gridScaleInput = document.getElementById('grid-scale');
+        let s = preset.gridScale;
+        if (gridScaleInput) {
+          gridScaleInput.value = s.toFixed(2);
+        }
+        if (state.gridHelper) {
+          state.gridHelper.scale.set(s, 1, s);
+        }
+      }
+
+      if (preset.cameraHome && state.homeCamera) {
+        const ch = preset.cameraHome;
+        if (ch.pos) {
+          state.homeCamera.pos.set(
+            Number.isFinite(ch.pos.x) ? ch.pos.x : state.homeCamera.pos.x,
+            Number.isFinite(ch.pos.y) ? ch.pos.y : state.homeCamera.pos.y,
+            Number.isFinite(ch.pos.z) ? ch.pos.z : state.homeCamera.pos.z
+          );
+        }
+        if (ch.target) {
+          state.homeCamera.target.set(
+            Number.isFinite(ch.target.x) ? ch.target.x : state.homeCamera.target.x,
+            Number.isFinite(ch.target.y) ? ch.target.y : state.homeCamera.target.y,
+            Number.isFinite(ch.target.z) ? ch.target.z : state.homeCamera.target.z
+          );
+        }
+        if (Number.isFinite(ch.fov)) {
+          state.homeCamera.fov = ch.fov;
+        }
+      }
+
+      if (state.modelRoot) {
+        updateTransformInputsFromModel();
+        fitCameraToObject(state.modelRoot);
+      }
+
+      log('Applied scene preset JSON.');
+    }
+
+    const LOCAL_PRESET_STORAGE_KEY = 'mento.glb.scene-presets.v1';
+    const LOCAL_PRESET_MAX = 8;
+
+    function loadLocalScenePresets() {
+      if (typeof window === 'undefined' || !window.localStorage) return [];
+      try {
+        const raw = window.localStorage.getItem(LOCAL_PRESET_STORAGE_KEY);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) return [];
+        return parsed;
+      } catch (err) {
+        log('Failed to load local scene presets: ' + err.message);
+        return [];
+      }
+    }
+
+    function saveLocalScenePresets(list) {
+      if (typeof window === 'undefined' || !window.localStorage) return;
+      try {
+        window.localStorage.setItem(LOCAL_PRESET_STORAGE_KEY, JSON.stringify(list));
+      } catch (err) {
+        log('Failed to save local scene presets: ' + err.message);
+      }
+    }
+
+    function refreshPresetDropdownFromStorage(selectEl) {
+      if (!selectEl) return;
+      const presets = loadLocalScenePresets();
+      selectEl.innerHTML = '';
+      const placeholder = document.createElement('option');
+      placeholder.value = '';
+      placeholder.textContent = 'Presets (local)';
+      selectEl.appendChild(placeholder);
+      presets.forEach((p) => {
+        if (!p || !p.id) return;
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = p.name || ('Preset ' + p.id);
+        selectEl.appendChild(opt);
+      });
+    }
+
+    function saveCurrentPresetToLocal() {
+      const preset = buildScenePresetObject();
+      const now = new Date();
+      const defaultName = 'Preset ' + now.toISOString().slice(11, 19);
+      const name = (typeof window !== 'undefined' && window.prompt)
+        ? window.prompt('Name this preset', defaultName)
+        : defaultName;
+      if (!name) return;
+
+      const list = loadLocalScenePresets();
+      const id = String(Date.now());
+      list.unshift({ id, name, data: preset });
+      if (list.length > LOCAL_PRESET_MAX) list.length = LOCAL_PRESET_MAX;
+      saveLocalScenePresets(list);
+
+      const selectEl = document.getElementById('preset-quick-select');
+      if (selectEl) {
+        refreshPresetDropdownFromStorage(selectEl);
+        selectEl.value = id;
+      }
+
+      const textarea = document.getElementById('preset-json');
+      if (textarea) textarea.value = JSON.stringify(preset, null, 2);
+      log(`Saved local scene preset "${name}".`);
+    }
+
+    function applyLocalPresetById(id) {
+      if (!id) return;
+      const presets = loadLocalScenePresets();
+      const entry = presets.find(p => p && p.id === id);
+      if (!entry || !entry.data) {
+        log('Local preset not found for id=' + id);
+        return;
+      }
+      const textarea = document.getElementById('preset-json');
+      if (textarea) {
+        textarea.value = JSON.stringify(entry.data, null, 2);
+      }
+      applyScenePresetFromTextarea();
+      log(`Applied local scene preset "${entry.name || id}" from dropdown.`);
+    }
+
+    function renderMentoShotList(shots) {
+      const container = document.getElementById('mento-shot-list');
+      if (!container) return;
+      const list = Array.isArray(shots) ? shots : (state.mentoShots || []);
+      if (!list.length) {
+        container.textContent = 'No MENTO shots parsed yet.';
+        return;
+      }
+      container.innerHTML = '';
+      list.forEach((shot, index) => {
+        const row = document.createElement('div');
+        row.style.display = 'flex';
+        row.style.alignItems = 'center';
+        row.style.gap = '4px';
+        row.style.cursor = 'pointer';
+
+        const idxSpan = document.createElement('span');
+        idxSpan.textContent = String(index + 1).padStart(2, '0');
+        idxSpan.style.minWidth = '2ch';
+        idxSpan.style.fontFamily = 'SF Mono, Menlo, Consolas, monospace';
+
+        const labelSpan = document.createElement('span');
+        labelSpan.textContent = shot.label || '(unnamed)';
+        labelSpan.style.flex = '1';
+
+        const lensSpan = document.createElement('span');
+        if (shot.lens != null) lensSpan.textContent = `${shot.lens}`;
+        lensSpan.style.fontFamily = 'SF Mono, Menlo, Consolas, monospace';
+        lensSpan.style.fontSize = '9px';
+        lensSpan.style.color = '#9ca3af';
+
+        row.appendChild(idxSpan);
+        row.appendChild(labelSpan);
+        row.appendChild(lensSpan);
+
+        row.addEventListener('click', () => {
+          if (state.keyframes && state.keyframes.length > index) {
+            selectKeyframe(index);
+          } else {
+            log('No keyframes yet; build path from MPD to jump to shots.');
+          }
+        });
+
+        container.appendChild(row);
+      });
+    }
+
+    function getPathDurationSeconds() {
+      const input = document.getElementById('path-duration');
+      const v = parseFloat(input && input.value);
+      if (!Number.isFinite(v) || v <= 0) return 8;
+      return v;
+    }
+
+    function parseMentoShotsFromText(text) {
+      const shots = [];
+      if (!text) return shots;
+      const lines = String(text).split(/\r?\n/);
+      const pattern = /^0\s+!MENTO\s+SHOT\s+"([^"]+)"\s+POS\s+([-\.\d]+)\s+([-\.\d]+)\s+([-\.\d]+)\s+TGT\s+([-\.\d]+)\s+([-\.\d]+)\s+([-\.\d]+)\s+LENS\s+([-\.\d]+)/;
+      lines.forEach((raw) => {
+        const line = raw.trim();
+        if (!line.startsWith('0 !MENTO SHOT')) return;
+        const m = line.match(pattern);
+        if (!m) return;
+        const label = m[1];
+        const px = parseFloat(m[2]);
+        const py = parseFloat(m[3]);
+        const pz = parseFloat(m[4]);
+        const tx = parseFloat(m[5]);
+        const ty = parseFloat(m[6]);
+        const tz = parseFloat(m[7]);
+        const lens = parseFloat(m[8]);
+        shots.push({
+          id: `SHOT_${shots.length + 1}`,
+          label,
+          pos: { x: px, y: py, z: pz },
+          tgt: { x: tx, y: ty, z: tz },
+          lens
+        });
+      });
+      return shots;
+    }
+
+    function buildPathFromMento() {
+      const textarea = document.getElementById('mento-mpd-input');
+      if (!textarea) return;
+      const text = textarea.value;
+      const shots = parseMentoShotsFromText(text);
+      if (!shots.length) {
+        log('No !MENTO SHOT lines found in MPD input.');
+        return;
+      }
+      state.mentoShots = shots;
+      renderMentoShotList(shots);
+      clearKeyframes();
+      if (!state.camera || !state.controls) return;
+      const canRender = !!(state.renderer && state.scene && state.camera);
+      const flipXCheckbox = document.getElementById('mento-flip-x');
+      const flipYCheckbox = document.getElementById('mento-flip-y');
+      const flipZCheckbox = document.getElementById('mento-flip-z');
+      const bindCheckbox = document.getElementById('mento-bind-center');
+      const scaleInput = document.getElementById('mento-scale');
+      const useFlipX = !flipXCheckbox || flipXCheckbox.checked;
+      const useFlipY = !!(flipYCheckbox && flipYCheckbox.checked);
+      const useFlipZ = !!(flipZCheckbox && flipZCheckbox.checked);
+      const bindToCenter = !bindCheckbox || bindCheckbox.checked;
+      let scale = parseFloat(scaleInput && scaleInput.value);
+      if (!Number.isFinite(scale) || scale <= 0) scale = 1;
+
+      function applyShotFlips(vec) {
+        if (useFlipX) vec.applyAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI);
+        if (useFlipY) vec.applyAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+        if (useFlipZ) vec.applyAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI);
+        return vec;
+      }
+
+      let offset = new THREE.Vector3(0, 0, 0);
+      if (bindToCenter && state.modelRoot) {
+        const box = new THREE.Box3().setFromObject(state.modelRoot);
+        const glbCenter = box.getCenter(new THREE.Vector3());
+        const avg = new THREE.Vector3();
+        shots.forEach((shot) => {
+          const p = new THREE.Vector3(shot.pos.x, shot.pos.y, shot.pos.z);
+          applyShotFlips(p).multiplyScalar(scale);
+          avg.add(p);
+        });
+        avg.multiplyScalar(1 / shots.length);
+        offset.subVectors(glbCenter, avg);
+        log(`Calibrated MPD path to GLB center (${glbCenter.x.toFixed(1)}, ${glbCenter.y.toFixed(1)}, ${glbCenter.z.toFixed(1)}); offset=(${offset.x.toFixed(1)}, ${offset.y.toFixed(1)}, ${offset.z.toFixed(1)}), scale=${scale.toFixed(2)}, flips=(${useFlipX ? 'X' : '-'} ${useFlipY ? 'Y' : '-'} ${useFlipZ ? 'Z' : '-'}).`);
+      }
+
+      // Apply global shot offset (TARE / manual offsets)
+      const globalOffset = offset.add(state.shotOffset.clone());
+
+      const pathBox = new THREE.Box3();
+      shots.forEach((shot, index) => {
+        const fov = Math.max(25, Math.min(80, shot.lens || 50));
+        const pos = new THREE.Vector3(shot.pos.x, shot.pos.y, shot.pos.z);
+        const tgt = new THREE.Vector3(shot.tgt.x, shot.tgt.y, shot.tgt.z);
+        applyShotFlips(pos).multiplyScalar(scale).add(globalOffset);
+        applyShotFlips(tgt).multiplyScalar(scale).add(globalOffset);
+        pathBox.expandByPoint(pos);
+        state.camera.position.copy(pos);
+        state.camera.fov = fov;
+        state.camera.updateProjectionMatrix();
+        state.controls.target.copy(tgt);
+        state.camera.lookAt(state.controls.target);
+        state.controls.update();
+        if (canRender) {
+          state.renderer.render(state.scene, state.camera);
+        }
+        captureKeyframe();
+      });
+      if (!pathBox.isEmpty()) {
+        const size = pathBox.getSize(new THREE.Vector3());
+        const center = pathBox.getCenter(new THREE.Vector3());
+        log(`Path bounds size=(${size.x.toFixed(1)}, ${size.y.toFixed(1)}, ${size.z.toFixed(1)}) center=(${center.x.toFixed(1)}, ${center.y.toFixed(1)}, ${center.z.toFixed(1)}).`);
+      }
+      const pathSelect = document.getElementById('path-mode');
+      state.pathMode = 'keyframes';
+      if (pathSelect) pathSelect.value = 'keyframes';
+      log(`Built keyframe path from ${shots.length} MENTO shots.`);
+    }
+
+    function applyShotOffsetFromInputs() {
+      const xEl = document.getElementById('shot-offset-x');
+      const yEl = document.getElementById('shot-offset-y');
+      const zEl = document.getElementById('shot-offset-z');
+      if (!xEl || !yEl || !zEl) return;
+      let x = parseFloat(xEl.value);
+      let y = parseFloat(yEl.value);
+      let z = parseFloat(zEl.value);
+      if (!Number.isFinite(x)) x = 0;
+      if (!Number.isFinite(y)) y = 0;
+      if (!Number.isFinite(z)) z = 0;
+      state.shotOffset.set(x, y, z);
+      log(`Shot offset set to (${x.toFixed(1)}, ${y.toFixed(1)}, ${z.toFixed(1)}).`);
+    }
+
+    function tareShots() {
+      // Lock shots to the chosen model slot by setting shotOffset
+      const slotSelect = document.getElementById('shot-lock-slot');
+      let slot = slotSelect ? parseInt(slotSelect.value, 10) : 1;
+      if (!Number.isFinite(slot) || slot < 1) slot = 1;
+      state.shotLockedSlot = slot;
+
+      if (!state.models || !state.models.length) {
+        log('No models loaded to TARE shots to.');
+        return;
+      }
+      const model = state.models.find(m => m.slot === slot);
+      if (!model || !model.root) {
+        log(`No model found in Slot ${slot} for TARE.`);
+        return;
+      }
+
+      const pos = model.root.position.clone();
+      state.shotOffset.copy(pos);
+
+      const xEl = document.getElementById('shot-offset-x');
+      const yEl = document.getElementById('shot-offset-y');
+      const zEl = document.getElementById('shot-offset-z');
+      if (xEl) xEl.value = pos.x.toFixed(1);
+      if (yEl) yEl.value = pos.y.toFixed(1);
+      if (zEl) zEl.value = pos.z.toFixed(1);
+
+      log(`TARE shots to Slot ${slot} at (${pos.x.toFixed(1)}, ${pos.y.toFixed(1)}, ${pos.z.toFixed(1)}). Rebuild path from MPD to apply.`);
+    }
+
+    function updateMentoBuildButtonState() {
+      const textarea = document.getElementById('mento-mpd-input');
+      const btn = document.getElementById('mento-mpd-build');
+      if (!btn) return;
+      if (!textarea) {
+        btn.disabled = true;
+        btn.classList.remove('primary');
+        return;
+      }
+      const text = textarea.value || '';
+      const hasShot = text.includes('!MENTO SHOT');
+      const enabled = hasShot && text.trim().length > 0;
+      btn.disabled = !enabled;
+      btn.classList.toggle('primary', enabled);
+    }
+
+    function captureKeyframe() {
+      if (!state.camera || !state.controls) return;
+      const pos = state.camera.position.clone();
+      const tgt = state.controls.target.clone();
+      const fov = state.camera.fov;
+      const idx = state.keyframes.length;
+      let thumb = null;
+      if (state.renderer && state.renderer.domElement) {
+        try {
+          thumb = state.renderer.domElement.toDataURL('image/jpeg', 0.7);
+        } catch (err) {
+          log('Unable to capture keyframe thumbnail: ' + err.message);
+        }
+      }
+      state.keyframes.push({
+        id: 'KF_' + (idx + 1),
+        pos,
+        tgt,
+        fov,
+        thumb
+      });
+      renderPathList();
+      log(`Captured keyframe #${idx + 1} (fov=${fov.toFixed(1)})`);
+    }
+
+    function clearKeyframes() {
+      state.keyframes = [];
+      state.pathPlayback.playing = false;
+      renderPathList();
+      clearPathViz();
+      log('Cleared all keyframes.');
+    }
+
+    function renderPathList() {
+      const el = document.getElementById('path-list');
+      if (!el) return;
+      if (!state.keyframes.length) {
+        el.textContent = 'No keyframes yet.';
+        renderPathThumbs();
+
+        const idxLabel = document.getElementById('path-index-label');
+        if (idxLabel) idxLabel.textContent = '– / –';
+
+        const playBtn = document.getElementById('path-play');
+        if (playBtn) {
+          playBtn.disabled = true;
+          playBtn.classList.remove('primary');
+        }
+        return;
+      }
+      const lines = state.keyframes.map((kf, i) => {
+        const p = kf.pos;
+        return `${i + 1}. pos=(${p.x.toFixed(1)}, ${p.y.toFixed(1)}, ${p.z.toFixed(1)}) fov=${kf.fov.toFixed(1)}`;
+      });
+      el.textContent = lines.join('\n');
+      updatePathViz();
+      renderPathThumbs();
+
+      const idxLabel = document.getElementById('path-index-label');
+      if (idxLabel) {
+        const total = state.keyframes.length;
+        const idx = state.selectedKeyframeIndex >= 0 ? state.selectedKeyframeIndex + 1 : 1;
+        idxLabel.textContent = `${idx} / ${total}`;
+      }
+
+      const playBtn = document.getElementById('path-play');
+      if (playBtn) {
+        const canPlay = state.keyframes.length >= 2;
+        playBtn.disabled = !canPlay;
+        playBtn.classList.toggle('primary', canPlay);
+      }
+    }
+
+    function startKeyframePlayback() {
+      if (!state.camera || !state.controls) return;
+      if (!state.keyframes || state.keyframes.length < 2) {
+        log('Need at least 2 keyframes to play path.');
+        return;
+      }
+      const duration = getPathDurationSeconds();
+      state.pathPlayback.duration = duration;
+      state.pathPlayback.startTime = performance.now();
+      state.pathPlayback.playing = true;
+      state.pathMode = 'keyframes';
+      log(`Playing keyframe path over ${duration.toFixed(1)}s (${state.keyframes.length} keys).`);
+    }
+
+    function clearPathViz() {
+      if (!state.scene || !state.pathViz) return;
+      if (state.pathViz.line) {
+        state.scene.remove(state.pathViz.line);
+        if (state.pathViz.line.geometry) state.pathViz.line.geometry.dispose();
+        if (state.pathViz.line.material) state.pathViz.line.material.dispose();
+        state.pathViz.line = null;
+      }
+      if (state.pathViz.points) {
+        state.scene.remove(state.pathViz.points);
+        state.pathViz.points.traverse(obj => {
+          if (obj.isMesh) {
+            if (obj.geometry) obj.geometry.dispose();
+            if (obj.material) obj.material.dispose();
+          }
+        });
+        state.pathViz.points = null;
+      }
+    }
+
+    function updatePathViz() {
+      if (!state.scene) return;
+      clearPathViz();
+      if (!state.keyframes || state.keyframes.length < 2) return;
+      if (!state.showPathHelpers) return;
+
+      const positions = state.keyframes.map(kf => kf.pos.clone());
+      const curve = new THREE.CatmullRomCurve3(positions);
+      const samples = Math.max(positions.length * 16, 32);
+      const pts = curve.getPoints(samples);
+      const geom = new THREE.BufferGeometry().setFromPoints(pts);
+      const mat = new THREE.LineBasicMaterial({ color: 0x22c55e });
+      const line = new THREE.Line(geom, mat);
+      line.renderOrder = 10;
+      state.scene.add(line);
+      state.pathViz.line = line;
+
+      const group = new THREE.Group();
+      const sphereGeom = new THREE.SphereGeometry(3, 8, 8);
+      state.pathViz.keyframeMeshes = [];
+      state.keyframes.forEach((kf, index) => {
+        const color = (index === state.selectedKeyframeIndex) ? 0xf97316 : 0xfacc15;
+        const sphereMat = new THREE.MeshBasicMaterial({ color });
+        const m = new THREE.Mesh(sphereGeom, sphereMat);
+        m.position.copy(kf.pos);
+        m.userData.keyframeIndex = index;
+        group.add(m);
+        state.pathViz.keyframeMeshes.push(m);
+      });
+      state.scene.add(group);
+      state.pathViz.points = group;
+
+      updateSelectedKeyframeViz();
+    }
+
+    function renderPathThumbs() {
+      const container = document.getElementById('path-thumbs');
+      if (!container) return;
+      container.innerHTML = '';
+      if (!state.keyframes || !state.keyframes.length) return;
+      state.keyframes.forEach((kf, i) => {
+        if (!kf.thumb) return;
+        const img = document.createElement('img');
+        img.src = kf.thumb;
+        img.alt = `Keyframe ${i + 1}`;
+        img.addEventListener('click', () => {
+          jumpToKeyframe(i);
+        });
+        container.appendChild(img);
+      });
+    }
+
+    function updateSelectedKeyframeViz() {
+      if (!state.scene || !state.camera || !state.controls) return;
+
+      // Update keyframe marker colors
+      if (state.pathViz && state.pathViz.keyframeMeshes) {
+        state.pathViz.keyframeMeshes.forEach((mesh, idx) => {
+          if (!mesh.material || !mesh.material.color) return;
+          const isSelected = idx === state.selectedKeyframeIndex;
+          mesh.material.color.set(isSelected ? 0xf97316 : 0xfacc15);
+        });
+      }
+
+      // Remove old camera viz
+      if (state.cameraViz.frustum && state.scene) {
+        state.scene.remove(state.cameraViz.frustum);
+        state.cameraViz.frustum.geometry && state.cameraViz.frustum.geometry.dispose();
+        state.cameraViz.frustum.material && state.cameraViz.frustum.material.dispose();
+        state.cameraViz.frustum = null;
+      }
+      if (state.cameraViz.ray && state.scene) {
+        state.scene.remove(state.cameraViz.ray);
+        state.cameraViz.ray.geometry && state.cameraViz.ray.geometry.dispose();
+        state.cameraViz.ray.material && state.cameraViz.ray.material.dispose();
+        state.cameraViz.ray = null;
+      }
+
+      const idx = state.selectedKeyframeIndex;
+      if (!state.keyframes || idx < 0 || idx >= state.keyframes.length) return;
+      if (!state.showFrustumHelper) return;
+      const kf = state.keyframes[idx];
+
+      // Create a simple frustum wireframe for the keyframe camera
+      const aspect = state.camera.aspect || 1;
+      const near = 10;
+      const far = 80;
+      const fovRad = (kf.fov || state.camera.fov) * Math.PI / 180.0;
+      const nh = Math.tan(fovRad / 2) * near;
+      const nw = nh * aspect;
+      const fh = Math.tan(fovRad / 2) * far;
+      const fw = fh * aspect;
+
+      const origin = kf.pos.clone();
+      const dir = kf.tgt.clone().sub(kf.pos).normalize();
+      const up = new THREE.Vector3(0, 1, 0);
+      const right = new THREE.Vector3().crossVectors(dir, up).normalize();
+      const trueUp = new THREE.Vector3().crossVectors(right, dir).normalize();
+
+      function makeCorner(dist, w, h, sx, sy) {
+        return origin.clone()
+          .add(dir.clone().multiplyScalar(dist))
+          .add(right.clone().multiplyScalar(w * sx))
+          .add(trueUp.clone().multiplyScalar(h * sy));
+      }
+
+      const nc = origin.clone().add(dir.clone().multiplyScalar(near));
+      const fc = origin.clone().add(dir.clone().multiplyScalar(far));
+      const corners = {
+        ntl: makeCorner(near, nw, nh, -1, 1),
+        ntr: makeCorner(near, nw, nh, 1, 1),
+        nbl: makeCorner(near, nw, nh, -1, -1),
+        nbr: makeCorner(near, nw, nh, 1, -1),
+        ftl: makeCorner(far, fw, fh, -1, 1),
+        ftr: makeCorner(far, fw, fh, 1, 1),
+        fbl: makeCorner(far, fw, fh, -1, -1),
+        fbr: makeCorner(far, fw, fh, 1, -1)
+      };
+
+      const frustumGeom = new THREE.BufferGeometry();
+      const frustumVerts = [];
+      function pushEdge(a, b) {
+        frustumVerts.push(a.x, a.y, a.z, b.x, b.y, b.z);
+      }
+      // Near
+      pushEdge(corners.ntl, corners.ntr);
+      pushEdge(corners.ntr, corners.nbr);
+      pushEdge(corners.nbr, corners.nbl);
+      pushEdge(corners.nbl, corners.ntl);
+      // Far
+      pushEdge(corners.ftl, corners.ftr);
+      pushEdge(corners.ftr, corners.fbr);
+      pushEdge(corners.fbr, corners.fbl);
+      pushEdge(corners.fbl, corners.ftl);
+      // Sides
+      pushEdge(corners.ntl, corners.ftl);
+      pushEdge(corners.ntr, corners.ftr);
+      pushEdge(corners.nbl, corners.fbl);
+      pushEdge(corners.nbr, corners.fbr);
+
+      frustumGeom.setAttribute('position', new THREE.Float32BufferAttribute(frustumVerts, 3));
+      const frustumMat = new THREE.LineBasicMaterial({ color: 0x38bdf8 });
+      const frustumLines = new THREE.LineSegments(frustumGeom, frustumMat);
+      frustumLines.renderOrder = 11;
+      state.scene.add(frustumLines);
+      state.cameraViz.frustum = frustumLines;
+
+      // Camera-to-target ray
+      const rayGeom = new THREE.BufferGeometry().setFromPoints([origin, kf.tgt.clone()]);
+      const rayMat = new THREE.LineDashedMaterial({ color: 0x22c55e, dashSize: 10, gapSize: 5 });
+      const rayLine = new THREE.Line(rayGeom, rayMat);
+      rayLine.computeLineDistances();
+      rayLine.renderOrder = 12;
+      state.scene.add(rayLine);
+      state.cameraViz.ray = rayLine;
+
+      // Attach transform controls to a small, invisible handle at the camera position
+      if (state.transformControls) {
+        if (!state.keyframeHandle) {
+          const handleGeom = new THREE.SphereGeometry(1, 4, 4);
+          const handleMat = new THREE.MeshBasicMaterial({ visible: false });
+          state.keyframeHandle = new THREE.Mesh(handleGeom, handleMat);
+          state.scene.add(state.keyframeHandle);
+          state.transformControls.addEventListener('objectChange', onKeyframeHandleChanged);
+        }
+        state.keyframeHandle.position.copy(origin);
+        state.keyframeHandle.userData.keyframeIndex = idx;
+        state.transformControls.attach(state.keyframeHandle);
+      }
+
+      log(`Selected keyframe #${idx + 1}.`);
+    }
+
+    function onKeyframeHandleChanged() {
+      const handle = state.keyframeHandle;
+      if (!handle || !state.keyframes) return;
+      const idx = handle.userData.keyframeIndex;
+      if (idx == null || idx < 0 || idx >= state.keyframes.length) return;
+      const kf = state.keyframes[idx];
+      kf.pos.copy(handle.position);
+      // Keep current target & fov unchanged here; gizmo only affects position.
+      if (state.pathViz && state.pathViz.keyframeMeshes && state.pathViz.keyframeMeshes[idx]) {
+        state.pathViz.keyframeMeshes[idx].position.copy(kf.pos);
+      }
+      updatePathViz();
+    }
+
+    function selectKeyframe(index) {
+      if (!state.keyframes || index < 0 || index >= state.keyframes.length) {
+        state.selectedKeyframeIndex = -1;
+        updateSelectedKeyframeViz();
+        return;
+      }
+      state.selectedKeyframeIndex = index;
+      const kf = state.keyframes[index];
+      state.camera.position.copy(kf.pos);
+      state.camera.fov = kf.fov;
+      state.camera.updateProjectionMatrix();
+      state.controls.target.copy(kf.tgt);
+      state.camera.lookAt(kf.tgt);
+      updateSelectedKeyframeViz();
+    }
+
+    function onPointerDown(event) {
+      if (!state.scene || !state.camera || !state.renderer) return;
+      const rect = state.renderer.domElement.getBoundingClientRect();
+      pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(pointer, state.camera);
+
+      if (state.pathViz && state.pathViz.keyframeMeshes && state.pathViz.keyframeMeshes.length) {
+        const intersects = raycaster.intersectObjects(state.pathViz.keyframeMeshes, false);
+        if (intersects.length > 0) {
+          const mesh = intersects[0].object;
+          const index = mesh.userData.keyframeIndex;
+          if (typeof index === 'number') {
+            selectKeyframe(index);
+            return;
+          }
+        }
+      }
+    }
+
+    function jumpToKeyframe(index) {
+      if (!state.camera || !state.controls) return;
+      if (!state.keyframes || index < 0 || index >= state.keyframes.length) return;
+      const kf = state.keyframes[index];
+      if (!kf) return;
+      state.camera.position.copy(kf.pos);
+      state.camera.fov = kf.fov;
+      state.camera.updateProjectionMatrix();
+      state.controls.target.copy(kf.tgt);
+      state.camera.lookAt(kf.tgt);
+      log(`Jumped to keyframe #${index + 1}.`);
+    }
+
+    function snapCameraOrthographic(kind) {
+      if (!state.camera || !state.controls) return;
+      const tgt = state.controls.target.clone();
+      let radius = (state.sceneBounds && state.sceneBounds.radius) || 200;
+      if (!Number.isFinite(radius) || radius <= 0) radius = 200;
+      const cam = state.camera.position;
+      const height = cam.y - tgt.y;
+      let pos = cam.clone();
+
+      if (kind === 'top') {
+        pos.set(tgt.x, tgt.y + radius * 1.6, tgt.z + 0.001);
+      } else if (kind === 'north') {
+        pos.set(tgt.x, tgt.y + radius * 0.4, tgt.z + radius * 1.6);
+      } else if (kind === 'south') {
+        pos.set(tgt.x, tgt.y + radius * 0.4, tgt.z - radius * 1.6);
+      } else if (kind === 'east') {
+        pos.set(tgt.x + radius * 1.6, tgt.y + radius * 0.4, tgt.z);
+      } else if (kind === 'west') {
+        pos.set(tgt.x - radius * 1.6, tgt.y + radius * 0.4, tgt.z);
+      } else {
+        // Fallback: keep current distance and just re-aim at target
+        const dx = cam.x - tgt.x;
+        const dz = cam.z - tgt.z;
+        const r = Math.sqrt(dx * dx + dz * dz) || radius;
+        pos.set(tgt.x + dx / r * radius, tgt.y + height, tgt.z + dz / r * radius);
+      }
+
+      state.camera.position.copy(pos);
+      state.camera.lookAt(tgt);
+      state.controls.target.copy(tgt);
+      state.controls.update();
+      updateOrbitFromCurrentCamera();
+      log(`Snapped camera to ${kind} view around target.`);
+    }
+
+    function drawMinimap() {
+      if (!state.minimap || !state.minimap.canvas || !state.minimap.ctx) return;
+      if (!state.camera || !state.controls) return;
+
+      const canvas = state.minimap.canvas;
+      const ctx = state.minimap.ctx;
+      const w = canvas.width;
+      const h = canvas.height;
+
+      ctx.save();
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+      ctx.fillRect(0, 0, w, h);
+      ctx.strokeStyle = '#27272a';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(0.5, 0.5, w - 1, h - 1);
+
+      const cx = w / 2;
+      const cy = h / 2;
+      let radius = (state.sceneBounds && state.sceneBounds.radius) || 100;
+      if (!Number.isFinite(radius) || radius <= 0) radius = 100;
+      const margin = 10;
+      const scale = Math.min(w - margin * 2, h - margin * 2) / (radius * 2);
+
+      function worldToMini(x, z) {
+        return {
+          x: cx + x * scale,
+          y: cy - z * scale
+        };
+      }
+
+      // World axes cross (true north/east)
+      ctx.strokeStyle = '#1f2937';
+      ctx.beginPath();
+      ctx.moveTo(cx, margin * 0.5);
+      ctx.lineTo(cx, h - margin * 0.5);
+      ctx.moveTo(margin * 0.5, cy);
+      ctx.lineTo(w - margin * 0.5, cy);
+      ctx.stroke();
+
+      // North label (world +Z)
+      ctx.fillStyle = '#6b7280';
+      ctx.font = '8px "SF Mono", Menlo, Consolas, monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.fillText('N', cx, 2);
+
+      const cam = state.camera.position;
+      const tgt = state.controls.target;
+      const cam2d = worldToMini(cam.x, cam.z);
+      const tgt2d = worldToMini(tgt.x, tgt.z);
+
+      // Keyframes footprint
+      if (state.keyframes && state.keyframes.length) {
+        state.keyframes.forEach((kf, idx) => {
+          const p = worldToMini(kf.pos.x, kf.pos.z);
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+          ctx.fillStyle = '#facc15';
+          ctx.fill();
+          if (idx === state.selectedKeyframeIndex) {
+            ctx.strokeStyle = '#f97316';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 3.5, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+        });
+      }
+
+      // Docking target marker (current camera target)
+      ctx.fillStyle = '#f97316';
+      ctx.fillRect(tgt2d.x - 2, tgt2d.y - 2, 4, 4);
+
+      // Ray from camera to target
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(cam2d.x, cam2d.y);
+      ctx.lineTo(tgt2d.x, tgt2d.y);
+      ctx.stroke();
+
+      // Camera arrow pointing toward target
+      const dx = tgt2d.x - cam2d.x;
+      const dy = tgt2d.y - cam2d.y;
+      const len = Math.sqrt(dx * dx + dy * dy) || 1;
+      const ux = dx / len;
+      const uy = dy / len;
+      const size = 6;
+
+      ctx.fillStyle = '#38bdf8';
+      ctx.beginPath();
+      ctx.moveTo(cam2d.x + ux * size, cam2d.y + uy * size);
+      ctx.lineTo(cam2d.x - uy * size * 0.6, cam2d.y + ux * size * 0.6);
+      ctx.lineTo(cam2d.x + uy * size * 0.6, cam2d.y - ux * size * 0.6);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    function onMinimapClick(event) {
+      if (!state.minimap || !state.minimap.canvas || !state.camera || !state.controls) return;
+      const canvas = state.minimap.canvas;
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      const x = (event.clientX - rect.left) * scaleX;
+      const y = (event.clientY - rect.top) * scaleY;
+
+      const w = canvas.width;
+      const h = canvas.height;
+      const cx = w / 2;
+      const cy = h / 2;
+      const dxMini = x - cx;
+      const dyMini = y - cy;
+      const rMini = Math.sqrt(dxMini * dxMini + dyMini * dyMini);
+      const edgeMargin = 14;
+
+      // Reuse the same mapping as drawMinimap for keyframe picking
+      let radiusScene = (state.sceneBounds && state.sceneBounds.radius) || 100;
+      if (!Number.isFinite(radiusScene) || radiusScene <= 0) radiusScene = 100;
+      const margin = 10;
+      const scale = Math.min(w - margin * 2, h - margin * 2) / (radiusScene * 2);
+
+      if (state.keyframes && state.keyframes.length && scale > 0) {
+        const pickRadiusSq = 6 * 6;
+        for (let i = 0; i < state.keyframes.length; i++) {
+          const kf = state.keyframes[i];
+          const kx = cx + kf.pos.x * scale;
+          const ky = cy - kf.pos.z * scale;
+          const ddx = x - kx;
+          const ddy = y - ky;
+          if (ddx * ddx + ddy * ddy <= pickRadiusSq) {
+            if (typeof selectKeyframe === 'function') {
+              selectKeyframe(i);
+            }
+            return;
+          }
+        }
+      }
+
+      // Center click: top-down orthographic-style view
+      if (rMini < 8) {
+        snapCameraOrthographic('top');
+        return;
+      }
+
+      // Edge bands: cardinal views
+      if (y < edgeMargin) {
+        snapCameraOrthographic('north');
+        return;
+      }
+      if (y > h - edgeMargin) {
+        snapCameraOrthographic('south');
+        return;
+      }
+      if (x < edgeMargin) {
+        snapCameraOrthographic('west');
+        return;
+      }
+      if (x > w - edgeMargin) {
+        snapCameraOrthographic('east');
+        return;
+      }
+
+      // Otherwise: treat click as desired azimuth around current target
+      const tgt = state.controls.target.clone();
+      const cam = state.camera.position.clone();
+      let baseRadius = (state.sceneBounds && state.sceneBounds.radius) || 100;
+      if (!Number.isFinite(baseRadius) || baseRadius <= 0) baseRadius = 100;
+      const maxRMini = Math.max(1, Math.min(w, h) * 0.5 - edgeMargin);
+      let t = maxRMini > 0 ? Math.min(rMini / maxRMini, 1) : 1;
+      const minR = baseRadius * 0.4;
+      const maxR = baseRadius * 2.0;
+      const radius = minR + (maxR - minR) * t;
+      const height = cam.y - tgt.y;
+
+      // Map from minimap space back to world heading.
+      const angle = Math.atan2(dxMini, -dyMini); // 0 at +Z, clockwise toward +X
+      const xWorld = tgt.x + Math.sin(angle) * radius;
+      const zWorld = tgt.z + Math.cos(angle) * radius;
+
+      const pos = new THREE.Vector3(xWorld, tgt.y + height, zWorld);
+      state.camera.position.copy(pos);
+      state.camera.lookAt(tgt);
+      state.controls.target.copy(tgt);
+      state.controls.update();
+      updateOrbitFromCurrentCamera();
+      log('Repositioned camera azimuth from minimap click.');
+    }
+
+    function updateOrientationUI() {
+      if (!state.camera || !state.controls) return;
+      if (!state.orientationEl) {
+        state.orientationEl = document.getElementById('orientation-readout');
+      }
+      const el = state.orientationEl;
+      if (!el) return;
+
+      const cam = state.camera.position;
+      const tgt = state.controls.target;
+      const dx = tgt.x - cam.x;
+      const dy = tgt.y - cam.y;
+      const dz = tgt.z - cam.z;
+      const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+      const headingRad = Math.atan2(dx, dz); // 0° = +Z (true north)
+      let headingDeg = headingRad * 180 / Math.PI;
+      if (headingDeg < 0) headingDeg += 360;
+      const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+      const dirLabel = dirs[Math.round(headingDeg / 45) % 8];
+
+      const dyLabel = dy >= 0 ? '+' + dy.toFixed(1) : dy.toFixed(1);
+      el.textContent = `Dock HDG ${headingDeg.toFixed(0)}° (${dirLabel}) · Dist ${dist.toFixed(1)} · ΔY ${dyLabel}`;
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const dt = state.clock.getDelta();
+
+      if (state.pathMode === 'orbit' && state.orbitCenter && state.camera) {
+        const t = state.clock.elapsedTime * 0.25; // slow orbit
+        const angle = t;
+        const x = state.orbitCenter.x + Math.cos(angle) * state.orbitRadius;
+        const z = state.orbitCenter.z + Math.sin(angle) * state.orbitRadius;
+        const y = state.orbitHeight;
+        state.camera.position.set(x, y, z);
+        state.camera.lookAt(state.orbitCenter);
+        state.controls.target.copy(state.orbitCenter);
+      } else if (state.pathMode === 'keyframes' && state.pathPlayback.playing && state.keyframes.length >= 2) {
+        const now = performance.now();
+        const dtMs = now - state.pathPlayback.startTime;
+        const durationMs = state.pathPlayback.duration * 1000;
+        let tNorm = durationMs > 0 ? dtMs / durationMs : 1;
+        if (tNorm >= 1) {
+          tNorm = 1;
+          state.pathPlayback.playing = false;
+          state.pathMode = 'manual';
+          log('Keyframe path playback finished.');
+        }
+        const nSeg = state.keyframes.length - 1;
+        const segPos = tNorm * nSeg;
+        const i0 = Math.floor(segPos);
+        const u = segPos - i0;
+        const k0 = state.keyframes[i0];
+        const k1 = state.keyframes[Math.min(i0 + 1, nSeg)];
+        const pos = k0.pos.clone().lerp(k1.pos, u);
+        const tgt = k0.tgt.clone().lerp(k1.tgt, u);
+        const fov = k0.fov + (k1.fov - k0.fov) * u;
+        state.camera.position.copy(pos);
+        state.camera.fov = fov;
+        state.camera.updateProjectionMatrix();
+        state.camera.lookAt(tgt);
+        state.controls.target.copy(tgt);
+      } else if (state.controls) {
+        state.controls.update();
+      }
+
+      if (state.renderer && state.scene && state.camera) {
+        state.renderer.render(state.scene, state.camera);
+      }
+
+      drawMinimap();
+      updateOrientationUI();
+    }
+
+    function pickMimeType() {
+      const candidates = [
+        'video/webm;codecs=vp9',
+        'video/webm;codecs=vp8',
+        'video/webm'
+      ];
+      for (const type of candidates) {
+        if (window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(type)) {
+          return type;
+        }
+      }
+      return '';
+    }
+
+    function startCapture() {
+      if (state.recording) return;
+      if (!state.renderer) {
+        setStatus('Renderer not ready for capture.');
+        return;
+      }
+      const fpsInput = document.getElementById('capture-fps');
+      const durInput = document.getElementById('capture-duration');
+      const fps = parseInt(fpsInput && fpsInput.value, 10) || 30;
+      const maxSeconds = parseInt(durInput && durInput.value, 10) || 10;
+
+      const canvas = state.renderer.domElement;
+      if (!canvas || !canvas.captureStream) {
+        setStatus('captureStream() not available in this browser.');
+        log('captureStream() not available on renderer canvas.');
+        return;
+      }
+
+      let stream;
+      try {
+        stream = canvas.captureStream(fps);
+      } catch (err) {
+        setStatus('Failed to start capture stream.');
+        log('Error creating captureStream: ' + err.message);
+        return;
+      }
+
+      const mimeType = pickMimeType();
+      let recorder;
+      try {
+        recorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+      } catch (err) {
+        setStatus('MediaRecorder not available.');
+        log('MediaRecorder init failed: ' + err.message);
+        return;
+      }
+
+      state.chunks = [];
+      state.mediaRecorder = recorder;
+
+      recorder.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) state.chunks.push(e.data);
+      };
+
+      recorder.onstop = () => {
+        state.recording = false;
+        const startBtn = document.getElementById('start-capture');
+        const stopBtn = document.getElementById('stop-capture');
+        const dlBtn = document.getElementById('download-last');
+        if (startBtn) startBtn.disabled = false;
+        if (stopBtn) stopBtn.disabled = true;
+
+        if (state.chunks.length) {
+          const blob = new Blob(state.chunks, { type: 'video/webm' });
+          if (state.lastBlobUrl) URL.revokeObjectURL(state.lastBlobUrl);
+          state.lastBlobUrl = URL.createObjectURL(blob);
+          if (dlBtn) dlBtn.disabled = false;
+          setStatus('Capture finished. Ready to download.');
+          log('Capture finished. ' + blob.size + ' bytes ready for download.');
+        } else {
+          if (dlBtn) dlBtn.disabled = true;
+          setStatus('Capture stopped (no data).');
+          log('Recorder stopped but no data captured.');
+        }
+        setCameraState(false);
+        if (state.transformControls && state.modelRoot) {
+          state.transformControls.visible = true;
+        }
+      };
+
+      recorder.onerror = (e) => {
+        log('MediaRecorder error: ' + e.error);
+        setStatus('MediaRecorder error.');
+      };
+
+      try {
+        recorder.start();
+      } catch (err) {
+        setStatus('Failed to start recording.');
+        log('MediaRecorder.start() failed: ' + err.message);
+        return;
+      }
+
+      state.recording = true;
+      const startBtn = document.getElementById('start-capture');
+      const stopBtn = document.getElementById('stop-capture');
+      const dlBtn = document.getElementById('download-last');
+      if (startBtn) startBtn.disabled = true;
+      if (stopBtn) stopBtn.disabled = false;
+      if (dlBtn) dlBtn.disabled = true;
+
+      setCameraState(true);
+      setStatus(`Recording at ${fps} fps (up to ${maxSeconds}s)…`);
+      log(`Recording started at ${fps} fps; max duration ${maxSeconds}s.`);
+
+      if (state.pathMode === 'keyframes') {
+        if (state.keyframes && state.keyframes.length >= 2 && !state.pathPlayback.playing) {
+          startKeyframePlayback();
+        } else {
+          log('Keyframe mode active but no usable keyframes; capture will use current static camera.');
+        }
+      }
+
+      if (state.transformControls) {
+        state.transformControls.visible = false;
+      }
+
+      if (Number.isFinite(maxSeconds) && maxSeconds > 0) {
+        setTimeout(() => {
+          if (state.recording && state.mediaRecorder && state.mediaRecorder.state === 'recording') {
+            log('Auto-stopping capture after max duration.');
+            state.mediaRecorder.stop();
+          }
+        }, maxSeconds * 1000);
+      }
+    }
+
+    function stopCapture() {
+      if (!state.recording || !state.mediaRecorder) return;
+      if (state.mediaRecorder.state === 'inactive') return;
+      log('Stopping capture by user request.');
+      state.mediaRecorder.stop();
+    }
+
+    function downloadLast() {
+      if (!state.lastBlobUrl) {
+        log('No capture available to download.');
+        return;
+      }
+      const now = new Date();
+      const date = now.toISOString().slice(0, 10).replace(/-/g, '');
+      const time = now.toTimeString().split(' ')[0].replace(/:/g, '');
+      const filename = `mento_glb_desert_${date}_${time}.webm`;
+      const a = document.createElement('a');
+      a.href = state.lastBlobUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      log('Triggered download of last capture.');
+    }
+
+    function initUI() {
+      const pathSelect = document.getElementById('path-mode');
+      if (pathSelect) {
+        pathSelect.addEventListener('change', () => {
+          const mode = pathSelect.value || 'manual';
+          state.pathMode = mode;
+          if (mode === 'orbit') {
+            updateOrbitFromCurrentCamera();
+          } else if (mode !== 'keyframes') {
+            state.pathPlayback.playing = false;
+          }
+          log('Camera path mode: ' + state.pathMode);
+        });
+      }
+
+      const fovSlider = document.getElementById('glb-fov');
+      if (fovSlider) {
+        fovSlider.addEventListener('input', () => {
+          const fov = parseFloat(fovSlider.value) || 50;
+          if (state.camera) {
+            state.camera.fov = fov;
+            state.camera.updateProjectionMatrix();
+          }
+        });
+      }
+
+      const addKeyBtn = document.getElementById('path-add-keyframe');
+      const playPathBtn = document.getElementById('path-play');
+      const clearPathBtn = document.getElementById('path-clear');
+      if (addKeyBtn) addKeyBtn.addEventListener('click', captureKeyframe);
+      if (playPathBtn) playPathBtn.addEventListener('click', startKeyframePlayback);
+      if (clearPathBtn) clearPathBtn.addEventListener('click', clearKeyframes);
+
+      const prevKeyBtn = document.getElementById('path-prev');
+      const nextKeyBtn = document.getElementById('path-next');
+      if (prevKeyBtn) prevKeyBtn.addEventListener('click', gotoPrevKeyframe);
+      if (nextKeyBtn) nextKeyBtn.addEventListener('click', gotoNextKeyframe);
+
+      const mentoBuildBtn = document.getElementById('mento-mpd-build');
+      if (mentoBuildBtn) mentoBuildBtn.addEventListener('click', buildPathFromMento);
+
+      const shotLockSlot = document.getElementById('shot-lock-slot');
+      if (shotLockSlot) {
+        shotLockSlot.addEventListener('change', () => {
+          let slot = parseInt(shotLockSlot.value, 10);
+          if (!Number.isFinite(slot) || slot < 1) slot = 1;
+          state.shotLockedSlot = slot;
+          log(`Shot lock slot set to ${slot}.`);
+        });
+      }
+
+      const tareBtn = document.getElementById('tare-shots');
+      if (tareBtn) tareBtn.addEventListener('click', tareShots);
+
+      const shotOffsetX = document.getElementById('shot-offset-x');
+      const shotOffsetY = document.getElementById('shot-offset-y');
+      const shotOffsetZ = document.getElementById('shot-offset-z');
+      [shotOffsetX, shotOffsetY, shotOffsetZ].forEach(el => {
+        if (el) {
+          el.addEventListener('input', applyShotOffsetFromInputs);
+          el.addEventListener('change', applyShotOffsetFromInputs);
+        }
+      });
+      const mentoTextarea = document.getElementById('mento-mpd-input');
+      if (mentoTextarea) {
+        mentoTextarea.addEventListener('input', () => {
+          updateMentoBuildButtonState();
+        });
+        // Initialize state once
+        updateMentoBuildButtonState();
+      }
+
+      const glbScaleInput = document.getElementById('glb-scale');
+      const glbRotYInput = document.getElementById('glb-rot-y');
+      const glbZeroBtn = document.getElementById('glb-zero-origin');
+      if (glbScaleInput) glbScaleInput.addEventListener('input', applyGlbNumericTransform);
+      if (glbRotYInput) glbRotYInput.addEventListener('input', applyGlbNumericTransform);
+      if (glbZeroBtn) glbZeroBtn.addEventListener('click', zeroGlbToOrigin);
+
+      const presetExportBtn = document.getElementById('preset-export');
+      const presetApplyBtn = document.getElementById('preset-apply');
+      if (presetExportBtn) presetExportBtn.addEventListener('click', exportScenePresetToTextarea);
+      if (presetApplyBtn) presetApplyBtn.addEventListener('click', applyScenePresetFromTextarea);
+
+      const presetSaveLocalBtn = document.getElementById('preset-save-local');
+      const presetQuickSelect = document.getElementById('preset-quick-select');
+      if (presetSaveLocalBtn) presetSaveLocalBtn.addEventListener('click', saveCurrentPresetToLocal);
+      if (presetQuickSelect) {
+        refreshPresetDropdownFromStorage(presetQuickSelect);
+        presetQuickSelect.addEventListener('change', () => {
+          const id = presetQuickSelect.value || '';
+          if (id) applyLocalPresetById(id);
+        });
+      }
+
+      const flipXBtn = document.getElementById('transform-flip-x');
+      const flipYBtn = document.getElementById('transform-flip-y');
+      const flipZBtn = document.getElementById('transform-flip-z');
+      if (flipXBtn) flipXBtn.addEventListener('click', () => flipSceneAxis('x'));
+      if (flipYBtn) flipYBtn.addEventListener('click', () => flipSceneAxis('y'));
+      if (flipZBtn) flipZBtn.addEventListener('click', () => flipSceneAxis('z'));
+
+      const gridToggle = document.getElementById('grid-toggle');
+      const axesToggle = document.getElementById('axes-toggle');
+      const gridScaleInput = document.getElementById('grid-scale');
+      const helperRuler = document.getElementById('helper-ruler');
+      const helperPath = document.getElementById('helper-path');
+      const helperFrustum = document.getElementById('helper-frustum');
+      if (gridToggle) {
+        gridToggle.addEventListener('change', () => {
+          if (state.gridHelper) state.gridHelper.visible = gridToggle.checked;
+        });
+      }
+      if (axesToggle) {
+        axesToggle.addEventListener('change', () => {
+          if (state.axesHelper) state.axesHelper.visible = axesToggle.checked;
+        });
+      }
+      if (gridScaleInput) {
+        gridScaleInput.addEventListener('input', () => {
+          let s = parseFloat(gridScaleInput.value);
+          if (!Number.isFinite(s) || s <= 0) s = 1;
+          gridScaleInput.value = s.toFixed(2);
+          if (state.gridHelper) {
+            state.gridHelper.scale.set(s, 1, s);
+          }
+        });
+      }
+
+      if (helperRuler) {
+        helperRuler.addEventListener('change', () => {
+          setRulerEnabled(helperRuler.checked);
+        });
+      }
+      if (helperPath) {
+        helperPath.addEventListener('change', () => {
+          state.showPathHelpers = helperPath.checked;
+          updatePathViz();
+        });
+      }
+      if (helperFrustum) {
+        helperFrustum.addEventListener('change', () => {
+          state.showFrustumHelper = helperFrustum.checked;
+          updateSelectedKeyframeViz();
+        });
+      }
+
+      const modeSelect = document.getElementById('transform-mode');
+      if (modeSelect) {
+        modeSelect.addEventListener('change', () => {
+          if (!state.transformControls) return;
+          const mode = modeSelect.value || 'translate';
+          state.transformControls.setMode(mode);
+          log('Transform gizmo mode: ' + mode);
+        });
+      }
+
+      const centerBtn = document.getElementById('transform-center');
+      if (centerBtn) {
+        centerBtn.addEventListener('click', () => {
+          if (state.modelRoot) {
+            fitCameraToObject(state.modelRoot);
+          }
+        });
+      }
+
+      const flipBtn = document.getElementById('transform-flip-y');
+      if (flipBtn) {
+        flipBtn.addEventListener('click', () => {
+          flipModelY();
+          if (state.modelRoot) {
+            fitCameraToObject(state.modelRoot);
+          }
+        });
+      }
+
+      const resetBtn = document.getElementById('transform-reset');
+      if (resetBtn) {
+        resetBtn.addEventListener('click', resetModelTransform);
+      }
+
+      const autoScaleBtn = document.getElementById('transform-auto-scale');
+      if (autoScaleBtn) {
+        autoScaleBtn.addEventListener('click', autoScaleActiveModel);
+      }
+
+      const startBtn = document.getElementById('start-capture');
+      const stopBtn = document.getElementById('stop-capture');
+      const dlBtn = document.getElementById('download-last');
+      if (startBtn) startBtn.addEventListener('click', startCapture);
+      if (stopBtn) stopBtn.addEventListener('click', stopCapture);
+      if (dlBtn) dlBtn.addEventListener('click', downloadLast);
+
+      const glbInput = document.getElementById('glb-file-input');
+      if (glbInput) {
+        glbInput.addEventListener('change', (event) => {
+          const files = event.target.files;
+          if (files && files[0]) {
+            loadCustomGLBFromFile(files[0]);
+          }
+        });
+      }
+
+      // Sidebar tab switching
+      const tabButtons = Array.from(document.querySelectorAll('.sidebar-tab'));
+      const tabPanels = Array.from(document.querySelectorAll('.sidebar-tab-panel'));
+      if (tabButtons.length && tabPanels.length) {
+        tabButtons.forEach(btn => {
+          btn.addEventListener('click', () => {
+            const target = btn.getAttribute('data-tab');
+            tabButtons.forEach(b => b.classList.toggle('active', b === btn));
+            tabPanels.forEach(p => p.classList.toggle('active', p.id === 'tab-' + target));
+          });
+        });
+      }
+
+      // Bottom log drawer toggle
+      const logDrawer = document.getElementById('log-drawer');
+      const logToggle = document.getElementById('log-toggle');
+      if (logDrawer && logToggle) {
+        logToggle.addEventListener('click', () => {
+          logDrawer.classList.toggle('open');
+        });
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initThree();
+      initUI();
+      setStatus('Initializing Three.js GLB viewer…');
+      log('Mento GLB initialized.');
+    });
+  </script>
+</body>
+</html>

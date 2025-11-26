@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sceneerator – Big Scene Shells</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%234ECDC4'/%3E%3C/svg%3E">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #000;
+            color: #ddd;
+            overflow: hidden;
+            touch-action: pan-y;
+        }
+
+        .container {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: #000;
+        }
+
+        .header {
+            padding: 10px 16px;
+            background: #0a0a0a;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .title-block {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .title {
+            font-size: 13px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            color: #4ECDC4;
+        }
+
+        .subtitle {
+            font-size: 9px;
+            color: #777;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .stats {
+            font-size: 8px;
+            color: #666;
+            letter-spacing: 0.5px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .icon-btn {
+            padding: 6px 10px;
+            font-size: 14px;
+            background: transparent;
+            color: #4ECDC4;
+            border: 1px solid #333;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .icon-btn:active {
+            transform: scale(0.95);
+            background: #1a1a1a;
+        }
+
+        .scene-btn {
+            padding: 8px 12px;
+            font-size: 9px;
+            font-weight: bold;
+            background: #4ECDC4;
+            color: #000;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: all 0.2s;
+        }
+
+        .scene-btn:active {
+            transform: scale(0.95);
+            background: #3ab3ad;
+        }
+
+        .main {
+            flex: 1;
+            display: flex;
+            min-height: 0;
+        }
+
+        .left-panel {
+            flex: 1.2;
+            border-right: 1px solid #222;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .right-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-bar {
+            padding: 8px 12px;
+            background: #050505;
+            border-bottom: 1px solid #222;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .scene-type-dials {
+            padding: 6px 12px;
+            background: #050505;
+            border-bottom: 1px solid #111;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .scene-type-pill {
+            font-size: 8px;
+            padding: 4px 8px;
+            border-radius: 999px;
+            border: 1px solid #333;
+            color: #777;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            background: #000;
+            transition: all 0.15s;
+        }
+
+        .scene-type-pill.active {
+            border-color: #4ECDC4;
+            color: #4ECDC4;
+            background: #020909;
+        }
+
+        .filter-label {
+            font-size: 9px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .filter-select, .filter-input {
+            background: #000;
+            color: #ddd;
+            border: 1px solid #333;
+            border-radius: 3px;
+            font-size: 9px;
+            padding: 4px 6px;
+            font-family: inherit;
+        }
+
+        .shell-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .shell-item {
+            padding: 10px 12px;
+            border-bottom: 1px solid #111;
+            display: flex;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.15s;
+            background: #000;
+        }
+
+        .shell-item:hover {
+            background: #050505;
+        }
+
+        .shell-item.selected {
+            background: #071717;
+            border-left: 3px solid #4ECDC4;
+        }
+
+        .shell-icon {
+            width: 26px;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .shell-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .shell-name {
+            font-size: 10px;
+            color: #ddd;
+        }
+
+        .shell-meta {
+            font-size: 8px;
+            color: #666;
+        }
+
+        .tag-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 4px;
+        }
+
+        .tag {
+            font-size: 7px;
+            padding: 2px 4px;
+            border-radius: 3px;
+            border: 1px solid #333;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #888;
+        }
+
+        .tag.scene-type {
+            border-color: #4ECDC4;
+            color: #4ECDC4;
+        }
+
+        .detail-header {
+            padding: 10px 14px;
+            border-bottom: 1px solid #222;
+            background: #050505;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .scene-preview-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .scene-glyph {
+            width: 64px;
+            height: 64px;
+            border-radius: 6px;
+            border: 1px solid #333;
+            background: linear-gradient(180deg, #020202 0%, #050505 40%, #0a0a0a 100%);
+            position: relative;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .scene-baseplate {
+            position: absolute;
+            bottom: 6px;
+            left: 6px;
+            right: 6px;
+            height: 12px;
+            border-radius: 3px;
+            background: linear-gradient(90deg, #123 0%, #145 50%, #167 100%);
+        }
+
+        .scene-wall {
+            position: absolute;
+            bottom: 18px;
+            left: 12px;
+            right: 12px;
+            height: 18px;
+            border-radius: 3px 3px 0 0;
+            border: 1px solid #333;
+            background: linear-gradient(180deg, #111 0%, #050505 100%);
+        }
+
+        .scene-shell-icon {
+            position: relative;
+            z-index: 1;
+            font-size: 18px;
+        }
+
+        .scene-glyph.rotating {
+            animation: sceneSpin 0.6s ease-in-out;
+        }
+
+        .scene-rotate-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 1px solid #333;
+            background: #000;
+            color: #4ECDC4;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .scene-rotate-btn:active {
+            background: #111;
+            transform: scale(0.95);
+        }
+
+        @keyframes sceneSpin {
+            from { transform: rotateY(0deg); }
+            to { transform: rotateY(360deg); }
+        }
+
+        .detail-title {
+            font-size: 11px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            color: #4ECDC4;
+        }
+
+        .detail-subtitle {
+            font-size: 9px;
+            color: #777;
+        }
+
+        .detail-body {
+            flex: 1;
+            padding: 12px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow-y: auto;
+        }
+
+        .detail-row {
+            font-size: 9px;
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .detail-label {
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .detail-value {
+            color: #ddd;
+            text-align: right;
+        }
+
+        .detail-description {
+            font-size: 9px;
+            line-height: 1.4;
+            color: #ccc;
+        }
+
+        .detail-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .detail-actions {
+            padding: 10px 14px;
+            border-top: 1px solid #222;
+            background: #050505;
+            display: flex;
+            gap: 8px;
+            position: sticky;
+            bottom: 0;
+            z-index: 5;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 8px 10px;
+            border-radius: 3px;
+            border: 1px solid #333;
+            background: #000;
+            color: #ddd;
+            font-size: 9px;
+            font-family: inherit;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.15s;
+        }
+
+        .btn-primary {
+            background: #4ECDC4;
+            border-color: #4ECDC4;
+            color: #000;
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        .status-bar {
+            padding: 6px 14px;
+            background: #000;
+            border-top: 1px solid #333;
+            font-size: 8px;
+            display: flex;
+            justify-content: space-between;
+            color: #666;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #1a1a1a;
+            color: #4ECDC4;
+            padding: 10px 16px;
+            border-radius: 6px;
+            border: 1px solid #333;
+            font-size: 9px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            z-index: 1000;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #000;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4ECDC4;
+        }
+
+        /* Compact height: allow scrolling when embedded or on small displays */
+        @media (max-height: 800px) {
+            body {
+                overflow-y: auto;
+            }
+
+            .container {
+                height: auto;
+                min-height: 100vh;
+            }
+
+            .header {
+                padding: 8px 12px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                overflow-y: auto;
+            }
+
+            .container {
+                height: auto;
+                min-height: 100vh;
+            }
+
+            .main {
+                flex-direction: column;
+            }
+
+            .left-panel {
+                flex: 1.3;
+            }
+
+            .right-panel {
+                flex: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="title-block">
+            <div class="title">SCENEERATOR</div>
+            <div class="subtitle">CHOOSE A BIG SCENE SHELL – SET THE WORLD FIRST</div>
+            <div class="stats" id="shellCountBadge">LOADING…</div>
+        </div>
+        <div class="header-actions">
+            <button class="icon-btn" id="undoBtn" title="Undo" disabled>↶</button>
+            <button class="icon-btn" id="redoBtn" title="Redo" disabled>↷</button>
+            <button class="icon-btn" id="randomShellBtn" title="Random Scene Shell">🎲</button>
+            <button class="scene-btn" id="makeSceneBtn">SCENE</button>
+        </div>
+    </div>
+
+    <div class="main">
+        <div class="left-panel">
+            <div class="filter-bar">
+                <span class="filter-label">Scene Type</span>
+                <select class="filter-select" id="sceneTypeFilter"></select>
+                <span class="filter-label">Search</span>
+                <input class="filter-input" id="searchInput" placeholder="crater, road, lagoon, hull…" />
+            </div>
+            <div class="scene-type-dials" id="sceneTypeDialStrip"></div>
+            <div class="shell-list" id="shellList"></div>
+        </div>
+
+        <div class="right-panel">
+            <div class="detail-header">
+                <div class="scene-preview-wrapper">
+                    <div class="scene-glyph" id="sceneGlyph">
+                        <div class="scene-baseplate"></div>
+                        <div class="scene-wall"></div>
+                        <div class="scene-shell-icon" id="sceneGlyphIcon">
+                            🌍
+                        </div>
+                    </div>
+                    <button class="scene-rotate-btn" id="sceneRotateBtn" title="Spin Shell">⟳</button>
+                </div>
+                <div>
+                    <div class="detail-title" id="detailTitle">No Scene Selected</div>
+                    <div class="detail-subtitle" id="detailSubtitle">Pick a big baseplate or hull on the left</div>
+                </div>
+            </div>
+            <div class="detail-body">
+                <div class="detail-row">
+                    <span class="detail-label">Scene Type</span>
+                    <span class="detail-value" id="detailSceneType">—</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Head</span>
+                    <span class="detail-value" id="detailHead">—</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">File</span>
+                    <span class="detail-value" id="detailFile">—</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Faces</span>
+                    <span class="detail-value" id="detailFaces">—</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Bytes</span>
+                    <span class="detail-value" id="detailBytes">—</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Author</span>
+                    <span class="detail-value" id="detailAuthor">—</span>
+                </div>
+                <div class="detail-description" id="detailDescription"></div>
+                <div class="detail-tags" id="detailTags"></div>
+            </div>
+            <div class="detail-actions">
+                <button class="btn" id="contextBtn">📡 Broadcast Context</button>
+                <button class="btn" id="addBtn">➕ Add Shell</button>
+                <button class="btn" id="batchBtn">📦 Batch Export</button>
+                <button class="btn btn-primary" id="loadBtn">🚀 Load Scene Shell</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="status-bar">
+        <span id="statusLeft">READY</span>
+        <span id="statusRight">WAG FRANK SCENE CONTEXT</span>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+    const wagFrankBus = (typeof BroadcastChannel !== 'undefined') ? new BroadcastChannel('wag-frank') : null;
+    const wagFrankPost = (message) => {
+        if (!wagFrankBus) return;
+        wagFrankBus.postMessage(message);
+    };
+
+    const state = {
+        shells: [],
+        filteredShells: [],
+        selectedIndex: -1,
+        sceneType: 'all',
+        search: ''
+    };
+
+    const sceneShellIconForType = (sceneType) => {
+        if (!sceneType) return '🌍';
+        if (sceneType === 'space_crater') return '🌑';
+        if (sceneType === 'road_network') return '🛣️';
+        if (sceneType === 'water_terrain') return '🌊';
+        if (sceneType === 'canyon_terrain') return '🏜️';
+        if (sceneType === 'raised_terrain') return '⛰️';
+        if (sceneType === 'island_terrain') return '🏝️';
+        if (sceneType.startsWith('ship_hull')) return '🚢';
+        if (sceneType === 'rail_network') return '🚆';
+        if (sceneType === 'freight_unit') return '📦';
+        return '🌍';
+    };
+
+    const showToast = (msg) => {
+        const toast = document.getElementById('toast');
+        toast.textContent = msg;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2000);
+    };
+
+    const setStatus = (left, right) => {
+        if (left != null) document.getElementById('statusLeft').textContent = left;
+        if (right != null) document.getElementById('statusRight').textContent = right;
+    };
+
+    const formatBytes = (n) => {
+        if (!n) return '—';
+        if (n > 1_000_000) return (n / 1_000_000).toFixed(1) + ' MB';
+        if (n > 1_000) return (n / 1_000).toFixed(1) + ' kB';
+        return n + ' B';
+    };
+
+    const pickRandomShell = () => {
+        if (!state.filteredShells.length) {
+            showToast('No scene shells to randomize');
+            return;
+        }
+        const idx = Math.floor(Math.random() * state.filteredShells.length);
+        state.selectedIndex = idx;
+        renderShellList();
+        updateDetail();
+        const shell = state.filteredShells[idx];
+        const name = shell.description || shell.filename || 'Scene Shell';
+        showToast(`Random scene shell: ${name}`);
+        setStatus('RANDOM SCENE SHELL', name);
+    };
+
+    const exportBatchShells = () => {
+        const shells = state.filteredShells.length ? state.filteredShells : state.shells;
+        if (!shells.length) {
+            showToast('No scene shells to export');
+            return;
+        }
+
+        const parts = [];
+        shells.forEach(shell => {
+            const mpd = buildSceneShellMPD(shell);
+            if (mpd) parts.push(mpd);
+        });
+
+        if (!parts.length) {
+            showToast('No MPD content to export');
+            return;
+        }
+
+        const batchText = parts.join('\n\n');
+        try {
+            const blob = new Blob([batchText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'scene_shell_batch.mpd';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('Batch MPD exported');
+            setStatus('BATCH EXPORTED', `${shells.length} scene shells`);
+        } catch (e) {
+            console.warn('Sceneerator: failed to export batch MPD', e);
+            showToast('Batch export failed');
+        }
+    };
+
+    const applyFilter = () => {
+        const type = state.sceneType;
+        const search = state.search.trim().toLowerCase();
+        state.filteredShells = state.shells.filter(shell => {
+            if (type !== 'all' && shell.sceneType !== type) return false;
+            if (!search) return true;
+            const text = [
+                shell.description || '',
+                shell.head || '',
+                shell.filename || '',
+                (shell.tags || []).join(' ')
+            ].join(' ').toLowerCase();
+            return text.includes(search);
+        });
+        renderShellList();
+    };
+
+    const renderShellList = () => {
+        const list = document.getElementById('shellList');
+        list.innerHTML = '';
+
+        state.filteredShells.forEach((shell, idx) => {
+            const div = document.createElement('div');
+            div.className = 'shell-item' + (state.selectedIndex === idx ? ' selected' : '');
+
+            const iconDiv = document.createElement('div');
+            iconDiv.className = 'shell-icon';
+            iconDiv.textContent = sceneShellIconForType(shell.sceneType);
+
+            const mainDiv = document.createElement('div');
+            mainDiv.className = 'shell-main';
+
+            const nameDiv = document.createElement('div');
+            nameDiv.className = 'shell-name';
+            nameDiv.textContent = shell.description || shell.filename;
+
+            const metaDiv = document.createElement('div');
+            metaDiv.className = 'shell-meta';
+            const faceInfo = shell.faceCount ? `${shell.faceCount} faces` : 'faces —';
+            const byteInfo = shell.sizeBytes ? formatBytes(shell.sizeBytes) : 'size —';
+            metaDiv.textContent = `${shell.sceneType || 'scene'} · ${faceInfo} · ${byteInfo}`;
+
+            const tagRow = document.createElement('div');
+            tagRow.className = 'tag-row';
+
+            const sceneTag = document.createElement('span');
+            sceneTag.className = 'tag scene-type';
+            sceneTag.textContent = shell.sceneType || 'scene';
+            tagRow.appendChild(sceneTag);
+
+            (shell.tags || []).forEach(tag => {
+                const t = document.createElement('span');
+                t.className = 'tag';
+                t.textContent = tag;
+                tagRow.appendChild(t);
+            });
+
+            mainDiv.appendChild(nameDiv);
+            mainDiv.appendChild(metaDiv);
+            mainDiv.appendChild(tagRow);
+
+            div.appendChild(iconDiv);
+            div.appendChild(mainDiv);
+
+            div.addEventListener('click', () => {
+                state.selectedIndex = idx;
+                document.querySelectorAll('.shell-item').forEach(el => el.classList.remove('selected'));
+                div.classList.add('selected');
+                updateDetail();
+            });
+
+            list.appendChild(div);
+        });
+
+        const badge = document.getElementById('shellCountBadge');
+        badge.textContent = `${state.filteredShells.length}/${state.shells.length} SCENE SHELLS`;
+    };
+
+    const updateDetail = () => {
+        const shell = state.filteredShells[state.selectedIndex];
+        if (!shell) {
+            document.getElementById('detailTitle').textContent = 'No Scene Selected';
+            const subtitleEl = document.getElementById('detailSubtitle');
+            if (subtitleEl) subtitleEl.textContent = 'Pick a big baseplate or hull on the left';
+            document.getElementById('detailSceneType').textContent = '—';
+            document.getElementById('detailHead').textContent = '—';
+            document.getElementById('detailFile').textContent = '—';
+            document.getElementById('detailFaces').textContent = '—';
+            document.getElementById('detailBytes').textContent = '—';
+            document.getElementById('detailAuthor').textContent = '—';
+            document.getElementById('detailDescription').textContent = '';
+            document.getElementById('detailTags').innerHTML = '';
+            const glyph = document.getElementById('sceneGlyph');
+            const glyphIcon = document.getElementById('sceneGlyphIcon');
+            if (glyphIcon) glyphIcon.textContent = '🌍';
+            if (glyph) glyph.dataset.sceneType = '';
+            return;
+        }
+
+        document.getElementById('detailTitle').textContent = shell.description || shell.filename;
+        document.getElementById('detailSceneType').textContent = shell.sceneType || 'scene';
+        document.getElementById('detailHead').textContent = shell.head || shell.kind || '—';
+        document.getElementById('detailFile').textContent = shell.filename || '—';
+        document.getElementById('detailFaces').textContent = shell.faceCount != null ? `${shell.faceCount} faces` : '—';
+        document.getElementById('detailBytes').textContent = shell.sizeBytes != null ? formatBytes(shell.sizeBytes) : '—';
+        document.getElementById('detailAuthor').textContent = shell.author || '—';
+        document.getElementById('detailDescription').textContent = shell.description || '';
+
+        const subtitleEl = document.getElementById('detailSubtitle');
+        if (subtitleEl) {
+            subtitleEl.textContent = shell.head || shell.kind || shell.sceneType || 'Scene shell ready';
+        }
+
+        const glyph = document.getElementById('sceneGlyph');
+        const glyphIcon = document.getElementById('sceneGlyphIcon');
+        if (glyphIcon) glyphIcon.textContent = sceneShellIconForType(shell.sceneType);
+        if (glyph) glyph.dataset.sceneType = shell.sceneType || 'scene';
+
+        const tagsEl = document.getElementById('detailTags');
+        tagsEl.innerHTML = '';
+        const sceneTag = document.createElement('span');
+        sceneTag.className = 'tag scene-type';
+        sceneTag.textContent = shell.sceneType || 'scene';
+        tagsEl.appendChild(sceneTag);
+        (shell.tags || []).forEach(tag => {
+            const t = document.createElement('span');
+            t.className = 'tag';
+            t.textContent = tag;
+            tagsEl.appendChild(t);
+        });
+    };
+
+    const buildSceneShellMPD = (shell) => {
+        if (!shell) return '';
+        const lines = [];
+        const safeId = (shell.filename || shell.head || 'scene_shell').replace(/\s+/g, '_');
+        const title = shell.description || shell.filename || 'Scene Shell';
+
+        lines.push(`0 FILE ${safeId}.mpd`);
+        lines.push(`0 Name: ${title}`);
+        lines.push('0 Author: Sceneerator');
+        lines.push('0 !LDRAW_ORG Model');
+        lines.push('0 !LICENCE Redistributable under CCAL version 2.0');
+        lines.push('0 BFC CERTIFY CCW');
+        lines.push('');
+        lines.push('0 STEP');
+        lines.push('');
+
+        let filename = shell.path || shell.filename || '';
+        if (!filename) return '';
+        filename = filename.replace(/\\/g, '/');
+        if (!filename.includes('/')) {
+            filename = `parts/${filename}`;
+        }
+
+        lines.push(`0 // SCENE SHELL - ${title}`);
+        lines.push(`1 16 0 0 0 1 0 0 0 1 0 0 0 1 ${filename}`);
+        lines.push('');
+        lines.push('0 STEP');
+
+        return lines.join('\n');
+    };
+
+    const broadcastContext = () => {
+        const shell = state.filteredShells[state.selectedIndex];
+        if (!shell) {
+            showToast('Pick a scene shell first');
+            return;
+        }
+        const payload = {
+            kind: 'scene-shell-context',
+            source: 'sceneerator',
+            ts: Date.now(),
+            payload: {
+                filename: shell.filename,
+                path: shell.path,
+                description: shell.description,
+                sceneType: shell.sceneType,
+                tags: shell.tags || [],
+                head: shell.head,
+                kind: shell.kind,
+                faceCount: shell.faceCount,
+                sizeBytes: shell.sizeBytes
+            }
+        };
+        wagFrankPost(payload);
+        showToast('CONTEXT -> wag-frank (scene-shell-context)');
+        setStatus('CONTEXT SENT', 'scene-shell-context via wag-frank');
+    };
+
+    const sendSceneShell = (mode) => {
+        const shell = state.filteredShells[state.selectedIndex];
+        if (!shell) {
+            showToast('Pick a scene shell first');
+            return;
+        }
+
+        const mpd = buildSceneShellMPD(shell);
+        if (!mpd) {
+            showToast('Could not build MPD for shell');
+            return;
+        }
+
+        const mpdLines = mpd.split(/\r?\n/);
+        const resolvedMode = mode || 'replace';
+        wagFrankPost({
+            kind: 'scene-mpd',
+            source: 'sceneerator',
+            ts: Date.now(),
+            payload: {
+                name: shell.description || shell.filename || 'Scene Shell',
+                designer: 'Sceneerator',
+                mpdLines,
+                mode: resolvedMode
+            }
+        });
+
+        try {
+            const blob = new Blob([mpd], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const safeId = (shell.filename || shell.head || 'scene_shell').replace(/\s+/g, '_');
+            a.download = `${safeId}.mpd`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            const toastMsg = wagFrankBus
+                ? (resolvedMode === 'add'
+                    ? 'SCENE SHELL -> wag-frank (scene-mpd, mode=add); open wag-grace-editor.html to view'
+                    : 'SCENE SHELL -> wag-frank (scene-mpd, mode=replace); open wag-grace-editor.html to view')
+                : 'Scene shell MPD saved';
+            showToast(toastMsg);
+            setStatus('SCENE SHELL SENT', `scene-mpd via wag-frank · mode=${resolvedMode}`);
+        } catch (e) {
+            console.warn('Sceneerator: failed to download MPD', e);
+            showToast('Scene MPD sent (download failed)');
+        }
+    };
+
+    const loadSceneShell = () => sendSceneShell('replace');
+    const addSceneShell = () => sendSceneShell('add');
+
+    const initFilters = () => {
+        const select = document.getElementById('sceneTypeFilter');
+        select.innerHTML = '';
+        const types = Array.from(new Set(state.shells.map(s => s.sceneType || 'scene'))).sort();
+        const allOption = document.createElement('option');
+        allOption.value = 'all';
+        allOption.textContent = `ALL TYPES (${state.shells.length})`;
+        select.appendChild(allOption);
+        types.forEach(type => {
+            const opt = document.createElement('option');
+            opt.value = type;
+            opt.textContent = type;
+            select.appendChild(opt);
+        });
+
+        select.addEventListener('change', () => {
+            state.sceneType = select.value;
+            applyFilter();
+        });
+
+        const searchInput = document.getElementById('searchInput');
+        searchInput.addEventListener('input', (e) => {
+            state.search = e.target.value;
+            applyFilter();
+        });
+
+        const dialStrip = document.getElementById('sceneTypeDialStrip');
+        if (dialStrip) {
+            dialStrip.innerHTML = '';
+
+            const makePill = (label, value) => {
+                const pill = document.createElement('button');
+                pill.type = 'button';
+                pill.className = 'scene-type-pill' + (value === 'all' ? ' active' : '');
+                pill.textContent = label;
+                pill.dataset.value = value;
+                pill.addEventListener('click', () => {
+                    state.sceneType = value;
+                    select.value = value;
+                    Array.from(dialStrip.querySelectorAll('.scene-type-pill')).forEach(p => p.classList.remove('active'));
+                    pill.classList.add('active');
+                    applyFilter();
+                });
+                return pill;
+            };
+
+            dialStrip.appendChild(makePill('ALL', 'all'));
+            types.forEach(type => {
+                dialStrip.appendChild(makePill(type, type));
+            });
+        }
+    };
+
+    const init = async () => {
+        setStatus('LOADING SCENE SHELLS…', '');
+        try {
+            const res = await fetch('wag-viewer-prime-integration-20251112-055341%20copy/scene-shells.json');
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            const data = await res.json();
+            state.shells = Array.isArray(data.shells) ? data.shells : [];
+            initFilters();
+            applyFilter();
+            if (state.filteredShells.length) {
+                state.selectedIndex = 0;
+                updateDetail();
+                const first = document.querySelector('.shell-item');
+                if (first) first.classList.add('selected');
+            }
+            setStatus('READY', 'PICK A SCENE SHELL');
+        } catch (err) {
+            console.warn('Sceneerator: failed to load scene-shells.json', err);
+            showToast('Failed to load scene-shells.json');
+            setStatus('ERROR LOADING SCENE SHELLS', '');
+        }
+
+        document.getElementById('contextBtn').addEventListener('click', broadcastContext);
+        const addBtn = document.getElementById('addBtn');
+        if (addBtn) addBtn.addEventListener('click', addSceneShell);
+        document.getElementById('loadBtn').addEventListener('click', loadSceneShell);
+
+        const rotateBtn = document.getElementById('sceneRotateBtn');
+        if (rotateBtn) {
+            rotateBtn.addEventListener('click', () => {
+                const glyph = document.getElementById('sceneGlyph');
+                if (!glyph) return;
+                glyph.classList.remove('rotating');
+                void glyph.offsetWidth;
+                glyph.classList.add('rotating');
+            });
+        }
+
+        const randomBtn = document.getElementById('randomShellBtn');
+        if (randomBtn) randomBtn.addEventListener('click', pickRandomShell);
+
+        const batchBtn = document.getElementById('batchBtn');
+        if (batchBtn) batchBtn.addEventListener('click', exportBatchShells);
+    };
+
+    window.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

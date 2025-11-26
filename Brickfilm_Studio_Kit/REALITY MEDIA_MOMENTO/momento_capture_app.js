@@ -13,7 +13,8 @@
     captureCanvas: null,
     pathStartTime: null,
     pathInitialPos: null,
-    shots: []
+    shots: [],
+    mentoShots: []
   };
 
   const params = new URLSearchParams(window.location.search || '');
@@ -84,6 +85,112 @@
     const pathLabel = (pathValue || 'manual').toUpperCase();
 
     metaEl.textContent = `${sceneName} · ${fps}fps · ${maxSeconds}s · ${aspectLabel} · ${qualityLabel} · ${pathLabel}`;
+  }
+
+  function setMentoShotText(text) {
+    const area = document.getElementById('mento-shot-text');
+    if (!area) return;
+    area.value = text || '';
+  }
+
+  function parseMentoShotsFromText(text) {
+    const shots = [];
+    if (!text) return shots;
+    const lines = String(text).split(/\r?\n/);
+    const pattern = /^0\s+!MENTO\s+SHOT\s+"([^"]+)"\s+POS\s+([-\d.]+)\s+([-\d.]+)\s+([-\d.]+)\s+TGT\s+([-\d.]+)\s+([-\d.]+)\s+([-\d.]+)\s+LENS\s+([-\d.]+)/;
+    lines.forEach((raw) => {
+      const line = raw.trim();
+      if (!line.startsWith('0 !MENTO SHOT')) return;
+      const m = line.match(pattern);
+      if (!m) return;
+      const label = m[1];
+      const px = parseFloat(m[2]);
+      const py = parseFloat(m[3]);
+      const pz = parseFloat(m[4]);
+      const tx = parseFloat(m[5]);
+      const ty = parseFloat(m[6]);
+      const tz = parseFloat(m[7]);
+      const lens = parseFloat(m[8]);
+      shots.push({
+        id: `SHOT_${shots.length + 1}`,
+        label,
+        pos: { x: px, y: py, z: pz },
+        tgt: { x: tx, y: ty, z: tz },
+        lens
+      });
+    });
+    return shots;
+  }
+
+  function populateMentoShotSelect(shots) {
+    const select = document.getElementById('mento-shot-select');
+    if (!select) return;
+    select.innerHTML = '';
+    if (!shots || !shots.length) {
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = '-- none loaded --';
+      select.appendChild(opt);
+      return;
+    }
+    shots.forEach((shot, index) => {
+      const opt = document.createElement('option');
+      opt.value = String(index);
+      opt.textContent = `${index + 1}. ${shot.label}`;
+      select.appendChild(opt);
+    });
+  }
+
+  function applyMentoShot(shot) {
+    if (!shot) return;
+    if (!ensureGraceAttached()) {
+      log('Cannot apply MENTO shot: Grace not ready.');
+      return;
+    }
+    const cam = state.camera;
+    if (!cam) {
+      log('Cannot apply MENTO shot: camera not attached.');
+      return;
+    }
+    try {
+      // Grace / viewer-prime load LDraw MPDs with a 180° rotation around X (group.rotation.x = Math.PI).
+      // MENTO shots are authored in the original LDraw coordinate frame, so we need to apply the
+      // same transform to camera positions/targets: (x, y, z) → (x, -y, -z).
+      const pos = shot.pos || { x: 0, y: 0, z: 0 };
+      const tgt = shot.tgt || { x: 0, y: 0, z: 0 };
+      const worldPos = {
+        x: pos.x,
+        y: -pos.y,
+        z: -pos.z
+      };
+      const worldTgt = {
+        x: tgt.x,
+        y: -tgt.y,
+        z: -tgt.z
+      };
+
+      cam.position.set(worldPos.x, worldPos.y, worldPos.z);
+      if (state.graceWindow && state.graceWindow.THREE) {
+        const THREE = state.graceWindow.THREE;
+        const target = new THREE.Vector3(worldTgt.x, worldTgt.y, worldTgt.z);
+        cam.lookAt(target);
+      } else if (typeof cam.lookAt === 'function') {
+        cam.lookAt(worldTgt.x, worldTgt.y, worldTgt.z);
+      }
+      if (typeof shot.lens === 'number' && isFinite(shot.lens) && 'fov' in cam && typeof cam.updateProjectionMatrix === 'function') {
+        cam.fov = shot.lens;
+        cam.updateProjectionMatrix();
+      }
+      log(`Applied MENTO shot "${shot.label}"`);
+      setStatus(`Applied MENTO shot: ${shot.label}`);
+      try {
+        if (state.graceWindow && state.graceWindow.MomentoInterface && typeof state.graceWindow.MomentoInterface.renderCurrentView === 'function') {
+          state.graceWindow.MomentoInterface.renderCurrentView();
+        }
+      } catch (e) {}
+    } catch (err) {
+      log('Error applying MENTO shot: ' + err.message);
+    }
   }
 
   function playCameraSound(kind) {
@@ -530,6 +637,41 @@
     });
   }
 
+  function setupFrankBus() {
+    if (typeof BroadcastChannel === 'undefined') return;
+    try {
+      const bus = new BroadcastChannel('wag-frank');
+      bus.onmessage = (event) => {
+        const msg = event.data;
+        if (!msg || typeof msg !== 'object') return;
+        if (msg.kind === 'mento-shot-mpd') {
+          const payload = msg.payload || {};
+          let text = '';
+          if (Array.isArray(payload.mpdLines)) {
+            text = payload.mpdLines.join('\n');
+          } else if (typeof payload.mpdText === 'string') {
+            text = payload.mpdText;
+          } else if (typeof msg.mpdText === 'string') {
+            text = msg.mpdText;
+          }
+          if (!text) return;
+          const shots = parseMentoShotsFromText(text);
+          if (!shots.length) {
+            log('Received mento-shot-mpd over wag-frank but no !MENTO SHOT lines were found.');
+            return;
+          }
+          state.mentoShots = shots;
+          populateMentoShotSelect(shots);
+          setMentoShotText(text);
+          setStatus(`Loaded ${shots.length} MENTO shots from wag-frank.`);
+          log(`Loaded ${shots.length} MENTO shots from wag-frank.`);
+        }
+      };
+    } catch (err) {
+      log('Unable to attach wag-frank BroadcastChannel: ' + err.message);
+    }
+  }
+
   function init() {
     state.iframe = resolveSourceIframe();
     if (!state.iframe) {
@@ -559,9 +701,125 @@
     const stopBtn = document.getElementById('stop-capture');
     const dlBtn = document.getElementById('download-last');
 
+    const shotFileInput = document.getElementById('mento-shot-file');
+    const shotSelect = document.getElementById('mento-shot-select');
+    const applyShotBtn = document.getElementById('mento-apply-shot');
+    const shotTextArea = document.getElementById('mento-shot-text');
+    var copyShotBtn = document.getElementById('mento-copy-shot-text');
+    const parseShotBtn = document.getElementById('mento-parse-shot-text');
+
+    if (copyShotBtn && shotTextArea) {
+      copyShotBtn.addEventListener('click', () => {
+        const text = shotTextArea.value || '';
+        if (!text) {
+          setStatus('No MENTO MPD to copy yet.');
+          return;
+        }
+        if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+          navigator.clipboard.writeText(text)
+            .then(() => setStatus('Copied MENTO MPD to clipboard.'))
+            .catch(() => setStatus('Unable to copy MENTO MPD.'));
+        } else {
+          const temp = document.createElement('textarea');
+          temp.style.position = 'fixed';
+          temp.style.opacity = '0';
+          temp.value = text;
+          document.body.appendChild(temp);
+          temp.focus();
+          temp.select();
+          try {
+            document.execCommand('copy');
+            setStatus('Copied MENTO MPD to clipboard.');
+          } catch (e) {
+            setStatus('Unable to copy MENTO MPD.');
+          }
+          document.body.removeChild(temp);
+        }
+      });
+    }
+
     if (startBtn) startBtn.addEventListener('click', startCapture);
     if (stopBtn) stopBtn.addEventListener('click', stopCapture);
     if (dlBtn) dlBtn.addEventListener('click', downloadLast);
+
+    if (shotFileInput) {
+      shotFileInput.addEventListener('change', (event) => {
+        const input = event.target;
+        const file = input && input.files && input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          const text = String(reader.result || '');
+          setMentoShotText(text);
+          const shots = parseMentoShotsFromText(text);
+          if (!shots.length) {
+            setStatus('No MENTO shots found in file.');
+            log('No !MENTO SHOT lines found in selected file.');
+            state.mentoShots = [];
+            populateMentoShotSelect(state.mentoShots);
+            return;
+          }
+          state.mentoShots = shots;
+          populateMentoShotSelect(shots);
+          setStatus(`Loaded ${shots.length} MENTO shots from ${file.name}.`);
+          log(`Loaded ${shots.length} MENTO shots from ${file.name}.`);
+        };
+        reader.onerror = () => {
+          setStatus('Failed to read MENTO shot file.');
+          log('Error reading MENTO shot file.');
+        };
+        reader.readAsText(file);
+      });
+    }
+
+    if (shotSelect && applyShotBtn) {
+      applyShotBtn.addEventListener('click', () => {
+        if (!state.mentoShots || !state.mentoShots.length) {
+          if (shotTextArea && shotTextArea.value.trim()) {
+            const text = shotTextArea.value;
+            const shots = parseMentoShotsFromText(text);
+            state.mentoShots = shots;
+            populateMentoShotSelect(shots);
+            if (!shots.length) {
+              setStatus('No MENTO shots found in text.');
+              return;
+            }
+          } else {
+            setStatus('No MENTO shots loaded yet.');
+            return;
+          }
+        }
+        const idx = parseInt(shotSelect.value, 10);
+        if (!Number.isFinite(idx) || idx < 0 || idx >= state.mentoShots.length) {
+          setStatus('Select a MENTO shot first.');
+          return;
+        }
+        applyMentoShot(state.mentoShots[idx]);
+      });
+
+      shotSelect.addEventListener('change', () => {
+        if (!state.mentoShots || !state.mentoShots.length) return;
+        const idx = parseInt(shotSelect.value, 10);
+        if (!Number.isFinite(idx) || idx < 0 || idx >= state.mentoShots.length) return;
+        applyMentoShot(state.mentoShots[idx]);
+      });
+    }
+
+    if (parseShotBtn && shotTextArea) {
+      parseShotBtn.addEventListener('click', () => {
+        const text = shotTextArea.value || '';
+        const shots = parseMentoShotsFromText(text);
+        state.mentoShots = shots;
+        populateMentoShotSelect(shots);
+        if (!shots.length) {
+          setStatus('No MENTO shots found in text.');
+          log('MENTO text parse produced no shots.');
+        } else {
+          setStatus(`Loaded ${shots.length} MENTO shots from text.`);
+          log(`Loaded ${shots.length} MENTO shots from text.`);
+        }
+      });
+    }
 
     ['momento-fps', 'momento-duration', 'momento-aspect', 'momento-quality', 'momento-camera-path']
       .forEach(id => {
@@ -573,6 +831,7 @@
       });
 
     setupMessageListener();
+    setupFrankBus();
     updateShotMeta();
   }
 
