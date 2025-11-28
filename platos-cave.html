@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Plato's Cave – Shield of Achilles Reconstruction Studio</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #020617;
+      --border-subtle: rgba(148, 163, 184, 0.35);
+      --accent: #38bdf8;
+      --accent-oracle: #eab308;
+      --accent-swiss: #f97316;
+      --accent-grace: #a855f7;
+      --text: #e5e7eb;
+      --text-muted: #9ca3af;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      background: #000;
+      color: var(--text);
+      font-family: "Courier New", monospace;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .chrome {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      background: #000;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 8px;
+      border-bottom: 1px solid #333;
+      background: #020617;
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .header-left {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .studio-label { color: #9ca3af; }
+    .studio-title { color: #e5e7eb; font-weight: bold; }
+
+    .header-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 2px;
+      color: var(--text-muted);
+      font-size: 9px;
+    }
+
+    .role-tags {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .tag {
+      border-radius: 999px;
+      border: 1px solid #334155;
+      padding: 1px 6px 2px;
+      font-size: 8px;
+      letter-spacing: 0.12em;
+    }
+
+    .tag-oracle { border-color: var(--accent-oracle); color: var(--accent-oracle); }
+    .tag-swiss  { border-color: var(--accent-swiss);  color: var(--accent-swiss); }
+    .tag-grace  { border-color: var(--accent-grace);  color: var(--accent-grace); }
+
+    .main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: minmax(220px, 280px) minmax(260px, 1.6fr) minmax(260px, 1.4fr);
+      gap: 6px;
+      padding: 6px;
+      background: #000;
+    }
+
+    .panel {
+      display: flex;
+      flex-direction: column;
+      border-radius: 6px;
+      border: 1px solid #1f2937;
+      background: radial-gradient(circle at top, #020617, #000);
+      min-width: 0;
+      min-height: 0;
+    }
+
+    .panel-header {
+      padding: 4px 8px;
+      border-bottom: 1px solid #111827;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .panel-title {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #e5e7eb;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--accent);
+    }
+
+    .dot-oracle { background: var(--accent-oracle); }
+    .dot-swiss  { background: var(--accent-swiss); }
+    .dot-grace  { background: var(--accent-grace); }
+
+    .panel-badge {
+      font-size: 9px;
+      color: var(--text-muted);
+    }
+
+    .panel-body {
+      flex: 1;
+      min-height: 0;
+      padding: 8px;
+      font-size: 11px;
+      color: #cbd5f5;
+      overflow: auto;
+    }
+
+    .panel iframe {
+      border: none;
+      width: 100%;
+      height: 100%;
+      display: block;
+      background: #000;
+    }
+
+    .notice {
+      font-size: 10px;
+      line-height: 1.6;
+      color: #e5e7eb;
+      margin-bottom: 8px;
+    }
+
+    .notice strong { color: var(--accent-oracle); }
+
+    .oracle-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 6px 0 10px;
+    }
+
+    .btn-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--accent-oracle);
+      color: var(--accent-oracle);
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      text-decoration: none;
+    }
+
+    .btn-link:hover {
+      background: rgba(234, 179, 8, 0.12);
+    }
+
+    .prompt-block {
+      border-radius: 6px;
+      border: 1px dashed #374151;
+      background: rgba(15, 23, 42, 0.9);
+      padding: 8px;
+      margin-bottom: 8px;
+      font-size: 10px;
+      line-height: 1.6;
+      color: #e5e7eb;
+      white-space: pre-wrap;
+    }
+
+    .prompt-label {
+      font-size: 9px;
+      color: #9ca3af;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .grid-demo {
+      margin-top: 6px;
+      font-family: "Courier New", monospace;
+      font-size: 9px;
+      color: #9ca3af;
+      white-space: pre;
+    }
+
+    .bucket-notes {
+      font-size: 10px;
+      line-height: 1.6;
+      color: #e5e7eb;
+    }
+
+    .bucket-notes code { color: #93c5fd; }
+
+    .bucket-steps {
+      margin-top: 6px;
+      padding-left: 14px;
+    }
+
+    .bucket-steps li { margin-bottom: 4px; }
+
+    .mpd-drop {
+      margin-top: 8px;
+      border-radius: 6px;
+      border: 1px dashed #374151;
+      padding: 8px;
+      font-size: 10px;
+      color: #9ca3af;
+    }
+
+    .mpd-drop strong { color: #e5e7eb; }
+
+    @media (max-width: 1024px) {
+      .main {
+        grid-template-columns: minmax(240px, 1fr);
+        grid-template-rows: auto auto auto;
+      }
+    }
+  </style>
+  <base target="_blank" />
+</head>
+<body>
+  <div class="chrome">
+    <header class="header">
+      <div class="header-left">
+        <div class="studio-label">STUDIO</div>
+        <div class="studio-title">PLATO'S CAVE – SHIELD OF ACHILLES RECONSTRUCTION</div>
+      </div>
+      <div class="header-right">
+        <div>Inverse 20Q · LEGOS Cognitive Architect · Shield-of-Achilles</div>
+        <div class="role-tags">
+          <span class="tag tag-oracle">ORACLE GPT</span>
+          <span class="tag tag-swiss">SWISS DESIGNATORS</span>
+          <span class="tag tag-grace">GRACE / MPD VIEW</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="main">
+      <!-- LEFT: Swiss + buckets (external tools) -->
+      <section class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span class="dot dot-swiss"></span>
+            <span>Swiss / Buckets</span>
+          </div>
+          <div class="panel-badge">MPD sources</div>
+        </div>
+        <div class="panel-body">
+          <div class="bucket-notes">
+            <strong>Step 0 – Prepare your buckets.</strong><br>
+            Use <strong>SWISS</strong> and your existing model library to group
+            candidate parts into small <strong>MPD buckets</strong> for each
+            round of the game.
+          </div>
+          <ul class="bucket-steps">
+            <li>Start from <code>swiss-designator.html</code> to pick minifigs, locations, vehicles.</li>
+            <li>Save or export groups of candidates into separate MPD files:</li>
+          </ul>
+          <div class="grid-demo">
+BUCKET 01 – Oceanus &amp; Rim<br>
+BUCKET 02 – Cities / Vignettes<br>
+BUCKET 03 – War Gate / Horses<br>
+BUCKET 04 – Vineyard / Harvest<br>
+BUCKET 05 – Stars / Radial Motifs
+          </div>
+          <div class="mpd-drop">
+            <strong>Ritual per Round:</strong> choose one bucket MPD and present it to
+            the Oracle (paste contents into the GPT or upload the file where supported).
+            The Oracle scores each part (G/M/W) and tells you which voids on the
+            shield are still empty.
+          </div>
+          <div style="margin-top:8px;">
+            <a href="wag-viewer-prime-integration-20251112-055341 copy/swiss-designator.html" class="btn-link">Open Swiss Designator</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- CENTER: Oracle GPT (external, cannot be iframed directly) -->
+      <section class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span class="dot dot-oracle"></span>
+            <span>LEGOS Cognitive Architect v8.0</span>
+          </div>
+          <div class="panel-badge">Oracle / 20Q Loop</div>
+        </div>
+        <div class="panel-body">
+          <div class="notice">
+            <strong>Step 1 – Open the Architect.</strong><br>
+            Click the button below to open the LEGOS Cognitive Architect GPT in
+            a new tab. Browsers don&apos;t allow us to embed it directly inside this
+            page, but you can keep this studio open side-by-side while you play
+            the Shield game.
+          </div>
+          <div class="oracle-actions">
+            <a href="https://chatgpt.com/g/g-6928ce54fbe48191a18ecd544414675f-legos-cognitive-architect-v8-0" class="btn-link">Open LEGOS Architect GPT</a>
+          </div>
+          <div class="bucket-notes">
+            <strong>Step 2 – Run the loop.</strong><br>
+            1. Paste the <em>Session Prompt</em> below into the GPT and submit it once.<br>
+            2. For each round:<br>
+            &nbsp;&nbsp;• Pick one MPD bucket on the left and copy its contents.<br>
+            &nbsp;&nbsp;• Paste that bucket into the GPT as the &quot;evidence&quot; for this round.<br>
+            &nbsp;&nbsp;• Copy the GPT&apos;s MPD output and paste it into GRACE or COURAGE on the right.<br>
+            3. Look at the Shield draft in 3D and decide what is still missing before the next bucket.
+          </div>
+          <div class="prompt-label">Session Prompt (paste into the GPT at start)</div>
+          <div class="prompt-block">
+You are the LEGOS Cognitive Architect helping reconstruct the Shield of Achilles using LEGO MPD files.
+
+Treat this as an <strong>inverse 20Q game</strong>:
+- Instead of guessing a hidden object, we are discovering which <em>voids</em> on the Shield need to be filled.
+- The user will present you with <strong>MPD buckets</strong> (groups of candidate parts) each round.
+- Your job is to decide which structural and narrative "holes" exist, and which parts are plausible to claim for each hole.
+
+Constraints:
+- Do <em>not</em> design the Shield all at once.
+- Do <em>not</em> pick every part. Prefer small, sophisticated <strong>vignettes</strong> that imply the whole.
+- Think like a forensic academic: infer measurements, rings, zones, and motifs from the Iliad text.
+- Use the viewer's imagination as the final brick.
+
+For each round you will:
+1. Read the current description of the Shield and the <strong>Global Scene Graph</strong> state (what is already built).
+2. Receive one MPD bucket (a list of parts) from the user.
+3. Score each candidate with <strong>Micro-PLoT</strong>:
+   - Geometric Prior (G): structural utility
+   - Mythic Likelihood (M): narrative fit for this Shield zone
+   - Visual Weight (W): anchor / emphasis potential
+   - Score = (G·0.3 + M·0.4 + W·0.3)
+4. Decide which parts to <strong>CLAIM</strong> as vignettes for this round and which stay unclaimed.
+5. Update the 9×9 semantic grid of the Shield, marking which voids are now satisfied.
+6. Recalculate <strong>Narrative Fidelity</strong> for the whole Shield.
+
+You must always answer using the "Standard Response Template" the user provided.
+          </div>
+          <div class="grid-demo">
+[Scene Title] | Round [X]/20 | Fidelity: [0-100]%
+1. Void Analysis &amp; Strategy
+2. Micro-PLoT Ledger (Evidence Audit)
+3. The Construct (Visual Synthesis)
+4. The Dig Site (Focal Point Map – 9×9 grid)
+5. Global Scene Tracker (Zones 1–4)
+6. The Checkpoint (Release Condition)
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT: MPD / Scene view (Grace or Courage) -->
+      <section class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span class="dot dot-grace"></span>
+            <span>Grace / Scene Viewer</span>
+          </div>
+          <div class="panel-badge">MPD / Shield Draft</div>
+        </div>
+        <div class="panel-body">
+          <div class="bucket-notes">
+            <strong>Step 3 – Look at the Shield.</strong><br>
+            Use <strong>GRACE</strong> (or Courage) to visually inspect the current
+            state of the Shield build after each round:
+          </div>
+          <ul class="bucket-steps">
+            <li>Paste the Architect's generated MPD into GRACE or COURAGE.</li>
+            <li>Orbit around the scene and compare it with the textual Shield description.</li>
+            <li>Decide which zones are still under-specified, then prepare the next bucket.</li>
+          </ul>
+          <div style="margin-top:8px; display:flex; flex-direction:column; gap:6px;">
+            <a href="wag-viewer-prime-integration-20251112-055341 copy/wag-grace-editor.html" class="btn-link">Open GRACE Editor</a>
+            <a href="wag-viewer-prime-integration-20251112-055341 copy/wag-courage.html" class="btn-link">Open COURAGE Viewer</a>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

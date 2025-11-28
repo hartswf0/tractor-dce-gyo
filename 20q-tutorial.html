@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LEGOS 20Q – Moonlit Forest Walkthrough</title>
+  <link rel="icon" type="image/svg+xml" href="grecian-urn-favicon.svg" />
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #020617;
+      --bg-elevated: #020617;
+      --border-subtle: rgba(148, 163, 184, 0.35);
+      --accent-yellow: #eab308;
+      --accent-blue: #38bdf8;
+      --accent-green: #22c55e;
+      --accent-purple: #a855f7;
+      --text: #e5e7eb;
+      --text-muted: #9ca3af;
+      --shadow-soft: 0 8px 24px rgba(15, 23, 42, 0.7);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      font-family: "Courier New", monospace;
+      background: #000;
+      color: var(--text);
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      background: radial-gradient(circle at top, #020617, #000);
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      border-bottom: 1px solid #1f2937;
+      background: linear-gradient(90deg, #020617, #020617 40%, #0f172a 100%);
+      box-shadow: 0 2px 0 #000;
+    }
+
+    .header-left {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .title-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .app-tag {
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent-yellow);
+    }
+
+    .title {
+      font-size: 16px;
+      font-weight: bold;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #f9fafb;
+    }
+
+    .subtitle {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .meta-link {
+      font-size: 10px;
+      color: var(--accent-blue);
+      text-decoration: none;
+    }
+
+    .meta-link:hover { text-decoration: underline; }
+
+    .header-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    .badge-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .pill {
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid #334155;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #cbd5f5;
+    }
+
+    .pill-blue { border-color: var(--accent-blue); color: var(--accent-blue); }
+    .pill-green { border-color: var(--accent-green); color: var(--accent-green); }
+    .pill-yellow { border-color: var(--accent-yellow); color: var(--accent-yellow); }
+
+    .layout {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      gap: 16px;
+      padding: 20px;
+      max-width: 1400px;
+      margin: 0 auto 16px;
+    }
+
+    @media (max-width: 960px) {
+      .layout {
+        flex-direction: column;
+        padding: 12px;
+      }
+    }
+
+    .column {
+      background: var(--bg-elevated);
+      border-radius: 16px;
+      border: 1px solid #111827;
+      box-shadow: var(--shadow-soft);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .chat-column {
+      flex: 1.1;
+      min-width: 0;
+    }
+
+    .detail-column {
+      flex: 1.2;
+      min-width: 0;
+    }
+
+    .column-header {
+      padding: 10px 14px;
+      border-bottom: 1px solid #1f2937;
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .column-body {
+      flex: 1;
+      min-height: 0;
+      padding: 10px 10px 14px;
+      overflow: auto;
+    }
+
+    .round-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .round-card {
+      border-radius: 10px;
+      border: 1px solid #1f2937;
+      background: radial-gradient(circle at top left, #0b1120, #020617);
+      padding: 8px 10px;
+      font-size: 11px;
+      cursor: pointer;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, transform 0.12s ease;
+    }
+
+    .round-card:hover {
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.3);
+      transform: translateY(-1px);
+    }
+
+    .round-card.active {
+      border-color: var(--accent-yellow);
+      box-shadow: 0 0 0 1px rgba(234, 179, 8, 0.4), 0 0 12px rgba(234, 179, 8, 0.5);
+      background: radial-gradient(circle at top left, #111827, #020617);
+    }
+
+    .round-title {
+      font-weight: bold;
+      color: #e5e7eb;
+      margin-bottom: 2px;
+    }
+
+    .round-meta {
+      font-size: 10px;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .mini-label {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.13em;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-rows: auto auto minmax(220px, 2fr) auto;
+      gap: 10px;
+      height: auto;
+    }
+
+    .detail-row {
+      border-radius: 10px;
+      border: 1px solid #1f2937;
+      background: #020617;
+      padding: 8px 10px;
+      font-size: 11px;
+    }
+
+    .detail-row.thinking {
+      border-color: var(--accent-purple);
+    }
+
+    .detail-row.prompt {
+      border-color: var(--accent-blue);
+    }
+
+    .detail-row.response {
+      border-color: var(--accent-green);
+    }
+
+    pre.detail-text {
+      margin: 4px 0 0;
+      font-family: "Courier New", monospace;
+      font-size: 11px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      color: #e5e7eb;
+      max-height: 180px;
+      overflow: auto;
+    }
+
+    .detail-row.response pre.detail-text {
+      max-height: 260px;
+    }
+
+    .asset-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    @media (max-width: 960px) {
+      .asset-row {
+        grid-template-columns: 1fr;
+      }
+      .detail-grid {
+        grid-template-rows: auto auto auto auto;
+      }
+      .detail-row.response pre.detail-text {
+        max-height: 320px;
+      }
+    }
+
+    .asset-card {
+      border-radius: 10px;
+      border: 1px solid #1f2937;
+      background: #020617;
+      padding: 8px 10px;
+      font-size: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .viewer-card {
+      margin-top: 10px;
+      border-radius: 10px;
+      border: 1px solid #1f2937;
+      background: #020617;
+      padding: 8px 10px 10px;
+      font-size: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .viewer-shell {
+      max-width: 1400px;
+      margin: 0 auto 20px;
+      padding: 0 20px 20px;
+    }
+
+    @media (max-width: 960px) {
+      .viewer-shell {
+        padding: 0 12px 16px;
+      }
+    }
+
+    .viewer-frame {
+      border-radius: 8px;
+      border: 1px solid #111827;
+      background: #000;
+      height: 320px;
+      overflow: hidden;
+    }
+
+    .viewer-frame iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+      background: #000;
+    }
+
+    .viewer-controls {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 4px;
+    }
+
+    .asset-title {
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-size: 9px;
+      color: var(--text-muted);
+    }
+
+    .asset-note {
+      color: var(--text-muted);
+      font-size: 10px;
+    }
+
+    textarea.mpd-box {
+      width: 100%;
+      min-height: 80px;
+      max-height: 140px;
+      resize: vertical;
+      background: #000;
+      color: #e5e7eb;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      padding: 6px 8px;
+      font-family: "Courier New", monospace;
+      font-size: 10px;
+    }
+
+    .small-input {
+      width: 100%;
+      border-radius: 6px;
+      border: 1px solid #334155;
+      background: #000;
+      color: #e5e7eb;
+      padding: 4px 6px;
+      font-size: 10px;
+    }
+
+    .copy-btn {
+      margin-top: 4px;
+      align-self: flex-end;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--accent-yellow);
+      background: #000;
+      color: var(--accent-yellow);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      cursor: pointer;
+    }
+
+    .copy-btn:hover {
+      background: var(--accent-yellow);
+      color: #000;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: #111827;
+      border: 1px solid var(--accent-yellow);
+      color: var(--accent-yellow);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .toast.show { opacity: 1; }
+  </style>
+  <base target="_blank" />
+</head>
+<body>
+  <header class="header">
+    <div class="header-left">
+      <div class="title-row">
+        <span class="app-tag">LEGOS 20Q · EWOK FOREST</span>
+      </div>
+      <div class="title">Moonlit Forest Skirmish · Walkthrough</div>
+      <div class="subtitle" id="metaSubtitle">Loading conversation metadata…</div>
+      <a id="metaLink" class="meta-link" href="#">Open original chat export</a>
+    </div>
+    <div class="header-right">
+      <div class="badge-row">
+        <span class="pill pill-blue">PROMPT / RESPONSE</span>
+        <span class="pill pill-green">BUCKET → GRID → MPD</span>
+        <span class="pill pill-yellow">THINKING VISIBLE</span>
+      </div>
+      <div>Each round: voids → ledger → vignette → MPD snippet.</div>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="column chat-column">
+      <div class="column-header">
+        <span>ROUNDS · TIMELINE</span>
+        <span style="font-size:10px; color:var(--text-muted);">Click a round to inspect details →</span>
+      </div>
+      <div class="column-body">
+        <div id="roundList" class="round-list"></div>
+      </div>
+    </section>
+
+    <section class="column detail-column">
+      <div class="column-header">
+        <span id="roundHeader">Select a round to see the full 20Q loop.</span>
+        <span id="roundMiniMeta" style="font-size:10px; color:var(--text-muted);"></span>
+      </div>
+      <div class="column-body">
+        <div class="detail-grid">
+          <div class="detail-row thinking">
+            <div class="mini-label">Thinking</div>
+            <pre id="thinkingBox" class="detail-text">The "Thought for 22s" line and similar planning notes show up here.</pre>
+          </div>
+
+          <div class="detail-row prompt">
+            <div class="mini-label">Prompt · Bucket / Instruction</div>
+            <pre id="promptBox" class="detail-text">Paste: MPD buckets, rules, or "make the MPD" instructions. Selecting a round will show the exact prompt here.</pre>
+          </div>
+
+          <div class="detail-row response">
+            <div class="mini-label">Response · Grid / Ledger / MPD</div>
+            <pre id="responseBox" class="detail-text">The Architect's full answer for the selected round will appear in this panel.</pre>
+          </div>
+
+          <div>
+            <div class="asset-row">
+              <div class="asset-card">
+                <div class="asset-title">MPD / BUCKET FOR THIS ROUND</div>
+                <textarea id="mpdBox" class="mpd-box" spellcheck="false" placeholder="When a round includes a bucket or MPD, it will be extracted here for easy copy."></textarea>
+                <button id="copyMpd" class="copy-btn" type="button">COPY MPD</button>
+              </div>
+              <div class="asset-card">
+                <div class="asset-title">MODEL / GLB SLOT</div>
+                <input id="glbField" class="small-input" placeholder="Optional: paste GLB URL or filename for this round (for your notes)." />
+                <div class="asset-note">Use this as a scratchpad for which GLB or MPD you loaded into Courage while running this step.</div>
+              </div>
+              <div class="asset-card">
+                <div class="asset-title">SCREENSHOT / VIDEO NOTE</div>
+                <input id="mediaField" class="small-input" placeholder="Optional: ewok-round-3.png, forest-round-4.mp4, etc." />
+                <div class="asset-note">Name captures consistently so you can align them with rounds: <code>forest-round-1.png</code>, <code>forest-round-2.png</code>, etc.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="viewer-shell">
+    <div class="viewer-card">
+      <div class="mini-label">Courage viewer — live MPD</div>
+      <div class="viewer-frame">
+        <iframe id="courageFrame" src="wag-viewer-prime-integration-20251112-055341 copy/wag-courage.html" title="Courage viewer"></iframe>
+      </div>
+      <div class="viewer-controls">
+        <button id="sendToCourage" class="copy-btn" type="button">SEND MPD TO COURAGE</button>
+      </div>
+    </div>
+  </section>
+
+  <div id="toast" class="toast">COPIED</div>
+
+  <script>
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      if (!toast) return;
+      toast.textContent = msg || 'COPIED';
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 1500);
+    }
+
+    function extractThinkingAndBody(text) {
+      if (!text) return { thinking: '', body: '' };
+      const m = text.match(/^(Thought[^\n]*)\n+([\s\S]*)$/);
+      if (m) {
+        return { thinking: m[1], body: m[2] };
+      }
+      return { thinking: '', body: text };
+    }
+
+    function extractRoundMeta(body) {
+      const firstLine = (body || '').split('\n')[0] || '';
+      const mm = firstLine.match(/Round\s+(\d+)\/(\d+).*?Fidelity:\s*([0-9]+)%/i);
+      if (!mm) return { title: firstLine.trim(), round: null, total: null, fidelity: null };
+      return {
+        title: firstLine.trim(),
+        round: parseInt(mm[1], 10),
+        total: parseInt(mm[2], 10),
+        fidelity: parseInt(mm[3], 10)
+      };
+    }
+
+    function extractMpd(text) {
+      if (!text) return '';
+      const idx = text.indexOf('0 FILE');
+      if (idx === -1) return '';
+      return text.slice(idx).trim();
+    }
+
+    (function init20Q() {
+      const roundListEl = document.getElementById('roundList');
+      const thinkingBox = document.getElementById('thinkingBox');
+      const promptBox = document.getElementById('promptBox');
+      const responseBox = document.getElementById('responseBox');
+      const mpdBox = document.getElementById('mpdBox');
+      const copyBtn = document.getElementById('copyMpd');
+      const roundHeader = document.getElementById('roundHeader');
+      const roundMiniMeta = document.getElementById('roundMiniMeta');
+      const metaSubtitle = document.getElementById('metaSubtitle');
+      const metaLink = document.getElementById('metaLink');
+      const courageFrame = document.getElementById('courageFrame');
+      const sendToCourageBtn = document.getElementById('sendToCourage');
+
+      let segments = [];
+      let activeIndex = -1;
+
+      if (copyBtn) {
+        copyBtn.addEventListener('click', () => {
+          if (!mpdBox || !mpdBox.value.trim()) {
+            showToast('NO MPD FOUND IN THIS ROUND');
+            return;
+          }
+          navigator.clipboard.writeText(mpdBox.value).then(() => {
+            showToast('MPD COPIED');
+          }).catch(() => showToast('COPY FAILED'));
+        });
+      }
+
+      if (sendToCourageBtn) {
+        sendToCourageBtn.addEventListener('click', () => {
+          if (!mpdBox || !mpdBox.value.trim()) {
+            showToast('NO MPD FOUND IN THIS ROUND');
+            return;
+          }
+          if (!courageFrame || !courageFrame.contentWindow) {
+            showToast('COURAGE NOT READY');
+            return;
+          }
+          try {
+            courageFrame.contentWindow.postMessage({
+              type: 'studio-load-mpd-from-were',
+              mpd: mpdBox.value
+            }, '*');
+            showToast('SENT TO COURAGE');
+          } catch (e) {
+            console.error('Failed to send MPD to Courage', e);
+            showToast('SEND FAILED');
+          }
+        });
+      }
+
+      fetch('ewok-forest-example.json')
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.metadata) {
+            const m = data.metadata;
+            if (metaSubtitle) {
+              metaSubtitle.textContent = `${m.title || 'Chat Export'} · created ${m.dates?.created || ''}`;
+            }
+            if (metaLink && m.link) {
+              metaLink.href = m.link;
+            }
+          }
+
+          const msgs = Array.isArray(data.messages) ? data.messages : [];
+          let lastPrompt = null;
+          msgs.forEach(m => {
+            if (!m || !m.role) return;
+            if (m.role === 'Prompt') {
+              lastPrompt = m;
+            } else if (m.role === 'Response') {
+              segments.push({ prompt: lastPrompt, response: m });
+            }
+          });
+
+          if (!segments.length) {
+            if (roundListEl) {
+              roundListEl.textContent = 'No rounds found in ewok-forest-example.json.';
+            }
+            return;
+          }
+
+          segments.forEach((seg, i) => {
+            const { thinking, body } = extractThinkingAndBody(seg.response?.say || '');
+            const meta = extractRoundMeta(body);
+            seg.thinking = thinking;
+            seg.body = body;
+            seg.meta = meta;
+
+            const card = document.createElement('div');
+            card.className = 'round-card';
+            card.dataset.index = String(i);
+
+            const titleEl = document.createElement('div');
+            titleEl.className = 'round-title';
+            titleEl.textContent = meta.title || `Round ${i + 1}`;
+
+            const metaRow = document.createElement('div');
+            metaRow.className = 'round-meta';
+            const left = document.createElement('span');
+            const right = document.createElement('span');
+
+            if (meta.round != null) {
+              left.textContent = `Round ${meta.round}/${meta.total || '?'}`;
+            } else {
+              left.textContent = `Segment ${i + 1}`;
+            }
+            if (meta.fidelity != null) {
+              right.textContent = `Fidelity ${meta.fidelity}%`;
+            } else {
+              right.textContent = '';
+            }
+
+            metaRow.appendChild(left);
+            metaRow.appendChild(right);
+            card.appendChild(titleEl);
+            card.appendChild(metaRow);
+
+            card.addEventListener('click', () => {
+              setActiveRound(i);
+            });
+
+            roundListEl.appendChild(card);
+          });
+
+          setActiveRound(0);
+
+          function setActiveRound(idx) {
+            activeIndex = idx;
+            const seg = segments[idx];
+            const { thinking, body, meta } = seg;
+
+            document.querySelectorAll('.round-card').forEach(el => {
+              el.classList.toggle('active', el.dataset.index === String(idx));
+            });
+
+            if (thinkingBox) {
+              thinkingBox.textContent = thinking || '(No explicit thinking line recorded for this round.)';
+            }
+            if (promptBox) {
+              promptBox.textContent = seg.prompt?.say || '(No prompt captured before this response.)';
+            }
+            if (responseBox) {
+              responseBox.textContent = body || '(Empty response.)';
+            }
+
+            const mpdFromPrompt = extractMpd(seg.prompt?.say || '');
+            const mpdFromResp = extractMpd(body || '');
+            if (mpdBox) {
+              mpdBox.value = mpdFromPrompt || mpdFromResp || '';
+            }
+
+            if (roundHeader) {
+              if (meta.round != null) {
+                roundHeader.textContent = `Round ${meta.round}/${meta.total || '?' } · ${meta.title || 'Conversation segment'}`;
+              } else {
+                roundHeader.textContent = meta.title || 'Conversation segment';
+              }
+            }
+            if (roundMiniMeta) {
+              if (meta.fidelity != null) {
+                roundMiniMeta.textContent = `Narrative Fidelity: ${meta.fidelity}%`;
+              } else {
+                roundMiniMeta.textContent = '';
+              }
+            }
+          }
+        })
+        .catch(err => {
+          console.error('Failed to load ewok-forest-example.json', err);
+          if (roundListEl) {
+            roundListEl.textContent = 'Could not load ewok-forest-example.json';
+          }
+        });
+    })();
+  </script>
+</body>
+</html>
