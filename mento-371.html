@@ -274,12 +274,31 @@
                     <div class="row">
                         <button class="fill" onclick="triggerLoad()">LOAD GLB</button>
                         <select id="slot-sel" style="width:50px; height:24px; background:#000; color:#fff; border:1px solid #333">
-                            <option value="1">S1</option><option value="2">S2</option>
+                            <option value="1">S1</option>
+                            <option value="2">S2</option>
+                            <option value="3">S3</option>
+                            <option value="4">S4</option>
+                            <option value="5">S5</option>
+                            <option value="6">S6</option>
+                            <option value="7">S7</option>
+                            <option value="8">S8</option>
                         </select>
                         <input type="file" id="file-in" style="display:none" accept=".glb,.gltf">
                     </div>
                     <div class="row">
                         <button id="btn-toggle-model" class="fill" onclick="toggleActiveModelVisible()">HIDE MODEL</button>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <span class="section-title">SLOTS</span>
+                    <div class="row">
+                        <pre id="model-list" style="margin:0; width:100%; max-height:80px; overflow-y:auto; background:#000; border:1px solid #222; padding:4px; font-size:9px; color:#888;">No GLBs loaded.</pre>
+                    </div>
+                    <div class="row" style="margin-top:4px; gap:4px;">
+                        <button class="fill" onclick="cycleActiveModel(-1)">◀ PREV</button>
+                        <button class="fill" onclick="cycleActiveModel(1)">NEXT ▶</button>
+                        <button class="fill" onclick="removeActiveModel()">REMOVE ACTIVE</button>
                     </div>
                 </div>
 
@@ -699,6 +718,33 @@
             history: { past: [], future: [] }
         };
 
+        function refreshModelList() {
+            const list = UI('model-list');
+            if (!list) return;
+
+            if (!Array.isArray(S.models) || !S.models.length) {
+                list.textContent = 'No GLBs loaded.';
+                return;
+            }
+
+            const lines = [];
+            for (let i = 0; i < S.models.length; i++) {
+                const entry = S.models[i];
+                if (!entry || !entry.root) continue;
+                const slot = entry.slot || '1';
+                const label = entry.label || `GLB ${i + 1}`;
+                const vis = (entry.root.visible !== false) ? 'V' : '-';
+                const marker = (i === S.activeModel) ? '>' : ' ';
+                lines.push(`${marker} [S${slot}] ${vis} ${label}`);
+            }
+
+            if (!lines.length) {
+                list.textContent = 'No GLBs loaded.';
+            } else {
+                list.textContent = lines.join('\n');
+            }
+        }
+
         function clearSceneModels() {
             if (!S.scene || !S.models || !S.models.length) return;
             S.models.forEach(entry => {
@@ -711,6 +757,7 @@
             if (S.trans) S.trans.detach();
             const btn = UI('btn-toggle-model');
             if (btn) btn.textContent = 'HIDE MODEL';
+            refreshModelList();
         }
 
         function loadBuiltinGLB(glbPath, label) {
@@ -727,13 +774,14 @@
                     const root = gltf.scene;
                     S.scene.add(root);
                     const slotSel = UI('slot-sel');
-                    S.models.push({ root, slot: slotSel ? slotSel.value : '1' });
+                    S.models.push({ root, slot: slotSel ? slotSel.value : '1', label: label || 'SCENE' });
                     S.activeModel = S.models.length - 1;
                     window.autoScaleModel();
                     window.setMode('MODEL', 'translate');
                     const btn = UI('btn-toggle-model');
                     if (btn) btn.textContent = 'HIDE MODEL';
                     if (window.showToast) window.showToast(`${label || 'SCENE'} loaded`);
+                    refreshModelList();
                 },
                 undefined,
                 (err) => {
@@ -1180,18 +1228,24 @@
         window.triggerLoad = () => UI('file-in').click();
         
         UI('file-in').addEventListener('change', (e) => {
-            if (!e.target.files[0]) return;
-            const url = URL.createObjectURL(e.target.files[0]);
+            const file = e.target.files[0];
+            if (!file) return;
+            const url = URL.createObjectURL(file);
             new GLTFLoader().load(url, (gltf) => {
                 const root = gltf.scene;
                 S.scene.add(root);
-                S.models.push({ root, slot: UI('slot-sel').value });
+                S.models.push({
+                    root,
+                    slot: UI('slot-sel').value,
+                    label: file && file.name ? file.name : 'GLB'
+                });
                 S.activeModel = S.models.length - 1;
                 window.autoScaleModel();
                 window.setMode('MODEL', 'translate');
                 const btn = UI('btn-toggle-model');
                 if (btn) btn.textContent = 'HIDE MODEL';
                 window.showToast("GLB LOADED");
+                refreshModelList();
             });
         });
 
@@ -1205,6 +1259,49 @@
             entry.root.visible = !entry.root.visible;
             const btn = UI('btn-toggle-model');
             if (btn) btn.textContent = entry.root.visible ? 'HIDE MODEL' : 'SHOW MODEL';
+            refreshModelList();
+        };
+
+        window.cycleActiveModel = (dir) => {
+            if (!Array.isArray(S.models) || !S.models.length) {
+                window.showToast('NO GLBS LOADED');
+                return;
+            }
+            const n = S.models.length;
+            let idx = S.activeModel;
+            if (idx < 0) idx = 0;
+            idx = (idx + dir + n) % n;
+            S.activeModel = idx;
+            const entry = S.models[idx];
+            if (entry && entry.root && S.trans) {
+                S.trans.attach(entry.root);
+            }
+            updateModelUI();
+            refreshModelList();
+        };
+
+        window.removeActiveModel = () => {
+            if (!Array.isArray(S.models) || !S.models.length || S.activeModel === -1) {
+                window.showToast('NO ACTIVE MODEL');
+                return;
+            }
+            const entry = S.models[S.activeModel];
+            if (entry && entry.root && S.scene) {
+                S.scene.remove(entry.root);
+            }
+            S.models.splice(S.activeModel, 1);
+            if (!S.models.length) {
+                S.activeModel = -1;
+                if (S.trans) S.trans.detach();
+            } else {
+                S.activeModel = Math.min(S.activeModel, S.models.length - 1);
+                const next = S.models[S.activeModel];
+                if (next && next.root && S.trans) {
+                    S.trans.attach(next.root);
+                }
+            }
+            refreshModelList();
+            window.showToast('MODEL REMOVED');
         };
 
         window.setMode = (mode, tool) => {
@@ -1916,10 +2013,7 @@
              window.showToast("SHOT COPIED");
         };
 
-        window.pullCourageView = () => {
-            // Best-effort bridge: when embedded inside a Homer/Shield shell,
-            // read COURAGE's camera via MomentoInterface and add a keyframe
-            // at that view.
+        function resolveCourageCamera(silent) {
             let frame = null;
             try {
                 if (window.parent && window.parent !== window && window.parent.document) {
@@ -1929,8 +2023,8 @@
                 frame = null;
             }
             if (!frame || !frame.contentWindow) {
-                window.showToast('COURAGE VIEW NOT FOUND');
-                return;
+                if (!silent) window.showToast('COURAGE VIEW NOT FOUND');
+                return null;
             }
 
             let cam = null;
@@ -1944,9 +2038,19 @@
             }
 
             if (!cam || !cam.position) {
-                window.showToast('COURAGE VIEW NOT READY');
-                return;
+                if (!silent) window.showToast('COURAGE VIEW NOT READY');
+                return null;
             }
+            return { frame, cam };
+        }
+
+        window.pullCourageView = () => {
+            // Best-effort bridge: when embedded inside a Homer/Shield shell,
+            // read COURAGE's camera via MomentoInterface and add a keyframe
+            // at that view.
+            const res = resolveCourageCamera(false);
+            if (!res) return;
+            const cam = res.cam;
 
             // Copy camera position
             const pos = cam.position.clone
@@ -2155,27 +2259,33 @@
             setTimeout(() => t.style.opacity = 0, 2000);
         };
 
-        window.addEventListener('message', (event) => {
-            const msg = event.data;
-            if (!msg || typeof msg !== 'object') return;
-            if (msg.type !== 'studio-load-gold-into-mento') return;
-            const payload = msg.payload || {};
-            const mpd = payload.mpd_content || '';
-            const glbUrl = payload.glb_url || null;
+        // Shared GOLD ingest for both Shield relay and direct wag-frank bus.
+        function ingestGoldIntoMentoFromObject(gold) {
+            if (!gold || typeof gold !== 'object') return;
 
-            // 1) If we have MPD content, drop it into the MENTO editor.
+            const mpd = gold.mpd_content || '';
+            const glbUrl = gold.glb_url || null;
+
+            const hadKeysBefore = Array.isArray(S.keyframes) ? S.keyframes.length : 0;
+            const hadLightsBefore = Array.isArray(S.mentoLights) ? S.mentoLights.length : 0;
+
+            console.log('[MENTO-371] ingestGoldIntoMentoFromObject', {
+                hasMpd: !!mpd,
+                hasGlbUrl: !!glbUrl,
+                keys: Object.keys(gold || {})
+            });
+
+            // 1) MPD content → drop into MENTO editor and auto-import.
             const ta = UI('mento-txt');
             if (ta && typeof mpd === 'string' && mpd.trim()) {
                 ta.value = mpd;
-                // Auto-IMPORT so shots + lights become keyframes.
                 window.parseMento();
             }
 
-            // 2) If a GLB URL is ever provided in GOLD, treat it as a
-            //    remote scene candidate. Today we do not create a full
-            //    dynamic preset, but we can load it directly.
+            // 2) Optional GLB URL → treat as remote scene for animation.
+            // Do NOT clear existing models here so multiple GLBs can coexist
+            // in the same stage (e.g., foreground set + background plate).
             if (typeof glbUrl === 'string' && glbUrl.trim()) {
-                clearSceneModels();
                 const loader = new GLTFLoader();
                 loader.load(
                     glbUrl,
@@ -2183,13 +2293,14 @@
                         const root = gltf.scene;
                         S.scene.add(root);
                         const slotSel = UI('slot-sel');
-                        S.models.push({ root, slot: slotSel ? slotSel.value : '1' });
+                        S.models.push({ root, slot: slotSel ? slotSel.value : '1', label: 'GOLD SCENE' });
                         S.activeModel = S.models.length - 1;
                         window.autoScaleModel();
                         window.setMode('MODEL', 'translate');
                         const btn = UI('btn-toggle-model');
                         if (btn) btn.textContent = 'HIDE MODEL';
                         window.showToast('REMOTE SCENE LOADED INTO MENTO');
+                        refreshModelList();
                     },
                     undefined,
                     (err) => {
@@ -2198,14 +2309,106 @@
                     }
                 );
             } else if (ta && typeof mpd === 'string' && mpd.trim()) {
-                // If only MPD arrived, still acknowledge the bridge.
                 window.showToast('GOLD MPD LOADED INTO MENTO');
             }
+
+            // Fallback: if GOLD had MPD content but produced no MENTO shots or lights,
+            // auto-attach to Courage's current camera so the viewport visibly reacts.
+            const hasMpd = typeof mpd === 'string' && mpd.trim();
+            const hasKeysAfter = Array.isArray(S.keyframes) && S.keyframes.length > 0;
+            const hasLightsAfter = Array.isArray(S.mentoLights) && S.mentoLights.length > 0;
+            const hadMentoBefore = (hadKeysBefore > 0) || (hadLightsBefore > 0);
+            const hasMentoAfter = hasKeysAfter || hasLightsAfter;
+
+            if (hasMpd && !hasMentoAfter) {
+                console.log('[MENTO-371] GOLD MPD has no !MENTO SHOT / !MENTO LIGHT – auto-attaching Courage view');
+                autoAttachFirstCourageView();
+            }
+        }
+
+        // GOLD via Shield-of-Achilles / HOMER shell relay.
+        window.addEventListener('message', (event) => {
+            const msg = event.data;
+            if (!msg || typeof msg !== 'object') return;
+            if (msg.type !== 'studio-load-gold-into-mento') return;
+            const payload = msg.payload || {};
+            console.log('[MENTO-371] studio-load-gold-into-mento', {
+                keys: Object.keys(payload || {}),
+                hasMpd: !!payload.mpd_content,
+                hasGlbUrl: !!payload.glb_url
+            });
+            ingestGoldIntoMentoFromObject(payload);
         });
-        
+
+        // GOLD directly from wag-frank (Courage / Weaver) so 371 can react
+        // even if the Shield relay is not wired.
+        const wagFrankBus = (typeof BroadcastChannel !== 'undefined')
+            ? new BroadcastChannel('wag-frank')
+            : null;
+
+        if (wagFrankBus) {
+            wagFrankBus.addEventListener('message', (event) => {
+                const msg = event.data;
+                if (!msg || typeof msg !== 'object') return;
+
+                console.log('[MENTO-371] wag-frank message', msg);
+
+                if (msg.kind === 'weaver-gold') {
+                    const gold = msg.payload;
+                    if (gold) ingestGoldIntoMentoFromObject(gold);
+                } else if (msg.kind === 'redbull-gold') {
+                    const gold = msg.gold || msg.payload;
+                    if (gold) ingestGoldIntoMentoFromObject(gold);
+                } else if (msg.kind === 'courage-glb') {
+                    ingestGoldIntoMentoFromObject(msg);
+                }
+            });
+        }
+
+        function autoAttachFirstCourageView() {
+            // Only when embedded in a studio shell and we have no keys yet.
+            if (!S || (S.keyframes && S.keyframes.length)) return;
+            const res = resolveCourageCamera(true);
+            if (!res) return;
+            const cam = res.cam;
+
+            const pos = cam.position && cam.position.clone
+                ? cam.position.clone()
+                : new THREE.Vector3(cam.position.x, cam.position.y, cam.position.z);
+
+            const dir = new THREE.Vector3();
+            if (typeof cam.getWorldDirection === 'function') {
+                cam.getWorldDirection(dir);
+            } else {
+                dir.set(0, 0, -1);
+            }
+            if (dir.lengthSq() === 0) dir.set(0, 0, -1);
+            const dist = pos.length() || 200;
+            const tgt = pos.clone().add(dir.normalize().multiplyScalar(dist));
+
+            const fov = typeof cam.fov === 'number' ? cam.fov : S.cam.fov;
+
+            S.cam.position.copy(pos);
+            S.orbit.target.copy(tgt);
+            S.cam.fov = fov;
+            S.cam.updateProjectionMatrix();
+            S.orbit.update();
+
+            S.keyframes.push({
+                pos: pos.clone(),
+                tgt: tgt.clone(),
+                fov
+            });
+            S.selectedKey = S.keyframes.length - 1;
+            updatePathVisuals();
+            renderKeyList();
+            updateKeyPreview();
+        }
+
         init();
-        // Auto-load GRACE scene on startup for 369
-        loadScenePreset('grace');
+        // After Courage has had a moment to boot, try to pull one initial view
+        // so the CAMERA timeline "sees" a real Courage pose without clicks.
+        setTimeout(autoAttachFirstCourageView, 1200);
     </script>
 </body>
 </html>

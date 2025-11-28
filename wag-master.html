@@ -1158,11 +1158,27 @@
         function applyGoldPayloadFromObject(obj) {
             if (obj && typeof obj.mpd_content === 'string') {
                 parse(obj.mpd_content);
+
+                let studs = [];
                 if (Array.isArray(obj.stud_skeleton)) {
-                    state.studs = obj.stud_skeleton.slice();
+                    studs = obj.stud_skeleton.slice();
                 } else {
-                    state.studs = [];
+                    const v2 = obj.stud_skeleton_v2;
+                    const nodes = v2 && Array.isArray(v2.nodes) ? v2.nodes : null;
+                    if (nodes && nodes.length) {
+                        studs = nodes
+                            .filter(n => n && typeof n.x === 'number' && typeof n.y === 'number' && typeof n.z === 'number')
+                            .map((n, idx) => ({
+                                x: n.x,
+                                y: n.y,
+                                z: n.z,
+                                lineNum: (typeof n.lineNum === 'number') ? n.lineNum : null,
+                                layer: (typeof n.layer === 'number') ? n.layer : null,
+                                index: (typeof n.index === 'number') ? n.index : idx
+                            }));
+                    }
                 }
+                state.studs = studs;
                 if (Array.isArray(obj.part_skeletons)) {
                     state.partSkeleton = obj.part_skeletons.slice();
                 } else {

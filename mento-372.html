@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>MENTO-372 · Momento Hybrid</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 0;
+      background: #050505;
+      color: #e5e5e5;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+      display: flex;
+      min-height: 100vh;
+    }
+    .page {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+    .header {
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #0b0b0b;
+      border-bottom: 1px solid #222;
+    }
+    .camera-mark {
+      display: flex;
+      gap: 6px;
+      align-items: baseline;
+      font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+    }
+    .camera-name { font-weight: 600; letter-spacing: 0.08em; }
+    .camera-state {
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: #222;
+      color: #f97373;
+    }
+    .camera-stock {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid #444;
+      color: #aaa;
+    }
+    .content {
+      flex: 1;
+      display: flex;
+      min-height: 0;
+    }
+    .left-pane {
+      flex: 1.2;
+      min-width: 0;
+      border-right: 1px solid #222;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+    #grace-iframe {
+      flex: 1;
+      border: none;
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .right-pane {
+      flex: 1;
+      min-width: 260px;
+      max-width: 520px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 8px;
+    }
+    .control-card {
+      background: #0c0c0c;
+      border: 1px solid #222;
+      border-radius: 6px;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .control-card-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #888;
+    }
+    #preview-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    #preview-canvas {
+      width: 100%;
+      border-radius: 4px;
+      border: 1px solid #333;
+      background: #000;
+    }
+    #capture-canvas { display:none; }
+    .shot-meta {
+      font-size: 11px;
+      color: #999;
+    }
+    .status-line {
+      font-size: 10px;
+      color: #777;
+      min-height: 14px;
+    }
+    .controls-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+    label {
+      font-size: 11px;
+      color: #aaa;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    select, input[type="number"] {
+      background: #050505;
+      border: 1px solid #333;
+      color: #e5e5e5;
+      border-radius: 4px;
+      padding: 2px 4px;
+      font-size: 11px;
+    }
+    button.primary {
+      background: #dc2626;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+    }
+    button[disabled] { opacity: 0.4; pointer-events: none; }
+    .btn-row {
+      display:flex;
+      gap:4px;
+    }
+    textarea.mento-shot-text {
+      width:100%;
+      min-height:60px;
+      max-height:120px;
+      background:#050505;
+      color:#e5e5e5;
+      border:1px solid #333;
+      border-radius:4px;
+      font-size:11px;
+      padding:4px;
+      resize:vertical;
+    }
+    #shot-gallery {
+      display:flex;
+      flex-wrap:wrap;
+      gap:4px;
+      max-height:120px;
+      overflow-y:auto;
+    }
+    .cam-kf-list {
+      font-size: 10px;
+      max-height: 80px;
+      overflow-y: auto;
+      background:#050505;
+      border-radius:4px;
+      border:1px solid #222;
+      padding:4px;
+    }
+    .cam-kf-row {
+      padding:2px 0;
+      cursor:pointer;
+    }
+    .cam-kf-row:hover {
+      color:#e5e5e5;
+    }
+    .cam-kf-row.selected {
+      color:#f97316;
+    }
+    .shot-thumb {
+      width:70px;
+      height:50px;
+      border-radius:4px;
+      border:1px solid #333;
+      background:#000 center/cover no-repeat;
+      position:relative;
+      cursor:pointer;
+    }
+    .shot-thumb-label {
+      position:absolute;
+      left:2px;
+      bottom:2px;
+      right:2px;
+      font-size:9px;
+      background:rgba(0,0,0,0.7);
+      color:#eee;
+      padding:1px 2px;
+      border-radius:2px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    #log {
+      font-size:10px;
+      max-height:80px;
+      overflow-y:auto;
+      background:#050505;
+      border-radius:4px;
+      padding:4px;
+      border:1px solid #222;
+    }
+    .status-bar {
+      padding:4px 8px;
+      font-size:10px;
+      color:#777;
+      border-top:1px solid #222;
+      display:flex;
+      justify-content:space-between;
+      gap:8px;
+    }
+    @media (max-width: 900px) {
+      .content { flex-direction:column; }
+      .right-pane { max-width:none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="header">
+      <div class="camera-mark">
+        <span class="camera-name">MENTO-372</span>
+        <span class="camera-state" id="cameraState">STBY</span>
+      </div>
+      <div class="camera-stock" id="cameraStock">4:3 · WEBM (Courage)</div>
+    </div>
+    <div class="content">
+      <div class="left-pane">
+        <iframe
+          id="grace-iframe"
+          title="Courage Viewer"
+          src="wag-viewer-prime-integration-20251112-055341 copy/wag-courage.html?momento=372"
+        ></iframe>
+      </div>
+      <div class="right-pane">
+        <div class="control-card card-camera">
+          <div class="control-card-title">REC / SENSOR</div>
+          <div id="preview-wrapper">
+            <canvas id="preview-canvas" width="320" height="240"></canvas>
+            <canvas id="capture-canvas" width="640" height="480" style="display:none;"></canvas>
+            <div class="shot-meta" id="shot-meta"></div>
+          </div>
+          <div class="controls-row">
+            <label>Path
+              <select id="momento-camera-path">
+                <option value="manual">Manual (use Courage)</option>
+                <option value="orbit">Orbit ring</option>
+                <option value="push">Push through center</option>
+              </select>
+            </label>
+          </div>
+          <div class="controls-row">
+            <label>FPS
+              <input
+                id="momento-fps"
+                type="number"
+                min="1"
+                max="120"
+                step="1"
+                value="30"
+              />
+            </label>
+            <label>Seconds
+              <input
+                id="momento-duration"
+                type="number"
+                min="1"
+                max="60"
+                step="1"
+                value="10"
+              />
+            </label>
+          </div>
+          <div class="controls-row">
+            <label>Aspect
+              <select id="momento-aspect">
+                <option value="native">Native</option>
+                <option value="4_3" selected>4:3</option>
+              </select>
+            </label>
+            <label>Quality
+              <select id="momento-quality">
+                <option value="720p" selected>720p</option>
+                <option value="960p">960p</option>
+                <option value="480p">480p</option>
+              </select>
+            </label>
+          </div>
+          <div class="controls-row btn-row">
+            <button id="start-capture" class="primary" title="Start recording">REC</button>
+            <button id="stop-capture" disabled title="Stop recording">STOP</button>
+            <button id="download-last" disabled title="Download last shot">SAVE</button>
+          </div>
+          <div id="status-line" class="status-line"></div>
+        </div>
+
+        <div class="control-card card-path">
+          <div class="control-card-title">CAMERA / TIMELINE</div>
+          <div class="controls-row">
+            <label>Duration (s)
+              <input
+                id="cam-path-dur"
+                type="number"
+                min="1"
+                max="60"
+                step="0.5"
+                value="8"
+              />
+            </label>
+          </div>
+          <div class="controls-row btn-row">
+            <button id="cam-add-key">Add Key From View</button>
+            <button id="cam-clear-keys">Clear</button>
+            <button id="cam-play">Play</button>
+          </div>
+          <div id="cam-kf-list" class="cam-kf-list">No keys yet.</div>
+          <div class="controls-row">
+            <label>POS
+              <div style="display:flex; gap:4px;">
+                <input id="cam-key-pos-x" type="number" step="1" placeholder="X" />
+                <input id="cam-key-pos-y" type="number" step="1" placeholder="Y" />
+                <input id="cam-key-pos-z" type="number" step="1" placeholder="Z" />
+              </div>
+            </label>
+          </div>
+          <div class="controls-row">
+            <label>TGT
+              <div style="display:flex; gap:4px;">
+                <input id="cam-key-tgt-x" type="number" step="1" placeholder="X" />
+                <input id="cam-key-tgt-y" type="number" step="1" placeholder="Y" />
+                <input id="cam-key-tgt-z" type="number" step="1" placeholder="Z" />
+              </div>
+            </label>
+          </div>
+          <div class="controls-row">
+            <label>FOV
+              <input id="cam-key-fov" type="number" step="1" placeholder="LENS" />
+            </label>
+          </div>
+          <div class="controls-row btn-row">
+            <button id="cam-flip-x">Flip X</button>
+            <button id="cam-flip-y">Flip Y</button>
+            <button id="cam-flip-z">Flip Z</button>
+            <button id="cam-copy-shot">Copy Shot MPD</button>
+          </div>
+        </div>
+
+        <div class="control-card card-mento-shots">
+          <div class="control-card-title">DATA IMPORT (MENTO)</div>
+          <div class="controls-row">
+            <label>Source
+              <input id="mento-shot-file" type="file" accept=".mpd,.ldr,.txt" />
+            </label>
+          </div>
+          <div class="controls-row">
+            <label>Shot
+              <select id="mento-shot-select">
+                <option value="">-- none loaded --</option>
+              </select>
+            </label>
+            <button id="mento-apply-shot">Apply</button>
+          </div>
+          <div class="controls-row">
+            <textarea
+              id="mento-shot-text"
+              class="mento-shot-text"
+              spellcheck="false"
+              placeholder="MENTO shot MPD will appear here…"
+            ></textarea>
+          </div>
+          <div class="controls-row btn-row">
+            <button id="mento-parse-shot-text">Load From Text</button>
+            <button id="mento-copy-shot-text">Copy MPD</button>
+            <button id="mento-import-to-path" title="Send !MENTO SHOT entries into Camera Path keys">To Camera Path</button>
+          </div>
+        </div>
+
+        <div class="control-card card-gallery">
+          <div class="control-card-title">Shots</div>
+          <div id="shot-gallery" class="shot-gallery"></div>
+        </div>
+
+        <div class="control-card card-log" style="flex:1; min-height:0;">
+          <div class="control-card-title">Log</div>
+          <pre id="log"></pre>
+        </div>
+      </div>
+    </div>
+    <div class="status-bar">
+      <span>MENTO-372 · Hybrid Momento over Courage</span>
+      <span>Courage scene & colors → WebM</span>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      const P = {
+        keys: [],
+        selected: -1,
+        playing: false,
+        startTime: 0,
+        duration: 8
+      };
+      function el(id) { return document.getElementById(id); }
+      function setStatus(text) {
+        const s = el('status-line');
+        if (s) s.textContent = text || '';
+      }
+      function resolveCourage() {
+        const frame = document.getElementById('grace-iframe');
+        if (!frame || !frame.contentWindow) return null;
+        const win = frame.contentWindow;
+        const iface = win.MomentoInterface || win.VideoCaptureInterface || {};
+        const capture = win._captureData || {};
+        const cam = iface.camera || capture.camera;
+        const renderer = iface.renderer || capture.renderer;
+        const scene = iface.scene || capture.scene;
+        const THREE = win.THREE;
+        if (!cam || !scene || !renderer || !THREE) return null;
+        return { win, cam, scene, renderer, THREE };
+      }
+      function addKeyFromView() {
+        const res = resolveCourage();
+        if (!res) {
+          setStatus('Courage scene not ready.');
+          return;
+        }
+        const cam = res.cam;
+        const THREE = res.THREE;
+        const p = cam.position;
+        const pos = { x: p.x, y: p.y, z: p.z };
+        let dx = 0, dy = 0, dz = -1;
+        if (typeof cam.getWorldDirection === 'function') {
+          const v = new THREE.Vector3();
+          cam.getWorldDirection(v);
+          dx = v.x; dy = v.y; dz = v.z;
+        }
+        const lenSq = dx*dx + dy*dy + dz*dz;
+        if (!lenSq) { dx = 0; dy = 0; dz = -1; }
+        const len = Math.sqrt(dx*dx + dy*dy + dz*dz) || 1;
+        dx /= len; dy /= len; dz /= len;
+        const dist = Math.sqrt(pos.x*pos.x + pos.y*pos.y + pos.z*pos.z) || 200;
+        const tgt = {
+          x: pos.x + dx*dist,
+          y: pos.y + dy*dist,
+          z: pos.z + dz*dist
+        };
+        const fov = typeof cam.fov === 'number' ? cam.fov : 50;
+        P.keys.push({ pos, tgt, fov });
+        P.selected = P.keys.length - 1;
+        renderKeyList();
+        updateKeyInputs();
+        setStatus('Added key from Courage view.');
+      }
+      function clearKeys() {
+        P.keys = [];
+        P.selected = -1;
+        renderKeyList();
+        updateKeyInputs();
+        setStatus('Cleared keys.');
+      }
+      function updateKeyInputs() {
+        const k = (P.selected != null && P.selected >= 0 && P.selected < P.keys.length)
+          ? P.keys[P.selected]
+          : null;
+        const px = el('cam-key-pos-x');
+        const py = el('cam-key-pos-y');
+        const pz = el('cam-key-pos-z');
+        const tx = el('cam-key-tgt-x');
+        const ty = el('cam-key-tgt-y');
+        const tz = el('cam-key-tgt-z');
+        const fv = el('cam-key-fov');
+        if (!k) {
+          if (px) px.value = '';
+          if (py) py.value = '';
+          if (pz) pz.value = '';
+          if (tx) tx.value = '';
+          if (ty) ty.value = '';
+          if (tz) tz.value = '';
+          if (fv) fv.value = '';
+          return;
+        }
+        if (px) px.value = k.pos.x.toFixed(2);
+        if (py) py.value = k.pos.y.toFixed(2);
+        if (pz) pz.value = k.pos.z.toFixed(2);
+        if (tx) tx.value = k.tgt.x.toFixed(2);
+        if (ty) ty.value = k.tgt.y.toFixed(2);
+        if (tz) tz.value = k.tgt.z.toFixed(2);
+        if (fv) fv.value = (typeof k.fov === 'number' ? k.fov.toFixed(1) : '');
+      }
+      function renderKeyList() {
+        const list = el('cam-kf-list');
+        if (!list) return;
+        if (!P.keys.length) {
+          list.textContent = 'No keys yet.';
+          return;
+        }
+        list.innerHTML = '';
+        P.keys.forEach((k, idx) => {
+          const row = document.createElement('div');
+          row.className = 'cam-kf-row';
+          row.dataset.index = String(idx);
+          const name = k.label || ('KEY ' + (idx + 1));
+          row.textContent = name + '  [' +
+            k.pos.x.toFixed(0) + ', ' +
+            k.pos.y.toFixed(0) + ', ' +
+            k.pos.z.toFixed(0) + ']';
+          row.addEventListener('click', function() {
+            const i = parseInt(this.dataset.index, 10);
+            if (!Number.isFinite(i) || !P.keys[i]) return;
+            P.selected = i;
+            updateKeyInputs();
+            setCameraFromKey(P.keys[i]);
+            setStatus('Jumped to key ' + (i + 1) + '.');
+          });
+          if (idx === P.selected) {
+            row.classList.add('selected');
+          }
+          list.appendChild(row);
+        });
+      }
+      function applyInputsToKey() {
+        if (P.selected == null || P.selected < 0 || P.selected >= P.keys.length) return;
+        const k = P.keys[P.selected];
+        const px = el('cam-key-pos-x');
+        const py = el('cam-key-pos-y');
+        const pz = el('cam-key-pos-z');
+        const tx = el('cam-key-tgt-x');
+        const ty = el('cam-key-tgt-y');
+        const tz = el('cam-key-tgt-z');
+        const fv = el('cam-key-fov');
+        function num(val, fallback) {
+          const n = parseFloat(val);
+          return Number.isFinite(n) ? n : fallback;
+        }
+        k.pos.x = num(px && px.value, k.pos.x);
+        k.pos.y = num(py && py.value, k.pos.y);
+        k.pos.z = num(pz && pz.value, k.pos.z);
+        k.tgt.x = num(tx && tx.value, k.tgt.x);
+        k.tgt.y = num(ty && ty.value, k.tgt.y);
+        k.tgt.z = num(tz && tz.value, k.tgt.z);
+        if (fv && fv.value !== '') {
+          const f = parseFloat(fv.value);
+          if (Number.isFinite(f)) k.fov = f;
+        }
+        setCameraFromKey(k);
+        setStatus('Updated key ' + (P.selected + 1) + ' from fields.');
+      }
+      function importMentoShotsIntoPath() {
+        const ta = el('mento-shot-text');
+        if (!ta) {
+          setStatus('MENTO text area not found.');
+          return;
+        }
+        const text = ta.value || '';
+        if (!text.trim()) {
+          setStatus('No MENTO text to import.');
+          return;
+        }
+        const lines = String(text).split(/\r?\n/);
+        // Be forgiving about label quoting / spacing; focus on POS/TGT/LENS payload.
+        const pattern = /^0\s+!MENTO\s+SHOT\b.*?POS\s+([\-\d.]+)\s+([\-\d.]+)\s+([\-\d.]+)\s+TGT\s+([\-\d.]+)\s+([\-\d.]+)\s+([\-\d.]+)\s+LENS\s+([\-\d.]+)/;
+        const shots = [];
+        lines.forEach(function(raw) {
+          const line = raw.trim();
+          if (!line.toUpperCase().includes('!MENTO SHOT')) return;
+          const m = line.match(pattern);
+          if (!m) return;
+          const px = parseFloat(m[1]);
+          const py = parseFloat(m[2]);
+          const pz = parseFloat(m[3]);
+          const tx = parseFloat(m[4]);
+          const ty = parseFloat(m[5]);
+          const tz = parseFloat(m[6]);
+          const lens = parseFloat(m[7]);
+          shots.push({
+            pos: { x: px, y: py, z: pz },
+            tgt: { x: tx, y: ty, z: tz },
+            lens: lens
+          });
+        });
+        if (!shots.length) {
+          setStatus('No !MENTO SHOT lines found in MENTO text.');
+          return;
+        }
+
+        // Map MENTO (LDraw) camera into Courage world coordinates.
+        // Courage applies a 180° flip around X when loading bricks,
+        // so we mirror Y/Z to match that stage: (x, y, z) → (x, -y, -z).
+        P.keys = shots.map(function(s, idx) {
+          const wp = { x: s.pos.x, y: -s.pos.y, z: -s.pos.z };
+          const wt = { x: s.tgt.x, y: -s.tgt.y, z: -s.tgt.z };
+          return {
+            pos: wp,
+            tgt: wt,
+            fov: Number.isFinite(s.lens) ? s.lens : 50,
+            label: 'SHOT ' + (idx + 1)
+          };
+        });
+        P.selected = P.keys.length ? 0 : -1;
+        renderKeyList();
+        updateKeyInputs();
+        if (P.selected >= 0) {
+          setCameraFromKey(P.keys[P.selected]);
+        }
+        setStatus('Imported ' + shots.length + ' !MENTO SHOT entries into Camera Path.');
+      }
+      function flipPath(axis) {
+        if (!P.keys.length) {
+          setStatus('No keys to flip.');
+          return;
+        }
+        P.keys.forEach(function(k) {
+          if (!k || !k.pos || !k.tgt) return;
+          if (axis === 'x') {
+            k.pos.x *= -1; k.tgt.x *= -1;
+          } else if (axis === 'y') {
+            k.pos.y *= -1; k.tgt.y *= -1;
+          } else if (axis === 'z') {
+            k.pos.z *= -1; k.tgt.z *= -1;
+          }
+        });
+        renderKeyList();
+        updateKeyInputs();
+        if (P.selected >= 0 && P.selected < P.keys.length) {
+          setCameraFromKey(P.keys[P.selected]);
+        }
+        setStatus('Flipped path ' + String(axis).toUpperCase() + '.');
+      }
+      function copySelectedShotMpd() {
+        if (P.selected == null || P.selected < 0 || P.selected >= P.keys.length) {
+          setStatus('Select a key to copy as !MENTO SHOT.');
+          return;
+        }
+        const k = P.keys[P.selected];
+        const label = 'Key ' + (P.selected + 1);
+        const line = '0 !MENTO SHOT "' + label + '" ' +
+          'POS ' + k.pos.x.toFixed(2) + ' ' + k.pos.y.toFixed(2) + ' ' + k.pos.z.toFixed(2) + ' ' +
+          'TGT ' + k.tgt.x.toFixed(2) + ' ' + k.tgt.y.toFixed(2) + ' ' + k.tgt.z.toFixed(2) + ' ' +
+          'LENS ' + (typeof k.fov === 'number' ? k.fov.toFixed(1) : '50');
+
+        const ta = el('mento-shot-text');
+        if (ta) {
+          const existing = ta.value || '';
+          ta.value = existing ? (existing.replace(/\s+$/,'') + '\n' + line + '\n') : (line + '\n');
+        }
+
+        function doStatus(ok) {
+          setStatus(ok ? 'Copied !MENTO SHOT for ' + label + '.' : 'Generated !MENTO SHOT for ' + label + '.');
+        }
+
+        if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+          navigator.clipboard.writeText(line).then(function(){ doStatus(true); }).catch(function(){ doStatus(false); });
+        } else {
+          try {
+            const tmp = document.createElement('textarea');
+            tmp.style.position = 'fixed';
+            tmp.style.opacity = '0';
+            tmp.value = line;
+            document.body.appendChild(tmp);
+            tmp.focus();
+            tmp.select();
+            document.execCommand('copy');
+            document.body.removeChild(tmp);
+            doStatus(true);
+          } catch (e) {
+            doStatus(false);
+          }
+        }
+      }
+      function setCameraFromKey(k) {
+        const res = resolveCourage();
+        if (!res) return;
+        const cam = res.cam;
+        const THREE = res.THREE;
+        const win = res.win;
+        cam.position.set(k.pos.x, k.pos.y, k.pos.z);
+        if (typeof cam.lookAt === 'function') {
+          if (THREE) {
+            const target = new THREE.Vector3(k.tgt.x, k.tgt.y, k.tgt.z);
+            cam.lookAt(target);
+          } else {
+            cam.lookAt(k.tgt.x, k.tgt.y, k.tgt.z);
+          }
+        }
+        if (typeof k.fov === 'number' && 'fov' in cam && typeof cam.updateProjectionMatrix === 'function') {
+          cam.fov = k.fov;
+          cam.updateProjectionMatrix();
+        }
+        try {
+          const iface = win.MomentoInterface || win.VideoCaptureInterface;
+          if (iface && typeof iface.renderCurrentView === 'function') {
+            iface.renderCurrentView();
+          }
+        } catch (e) {}
+      }
+      function playPath() {
+        if (P.keys.length < 2) {
+          setStatus('Need at least 2 keys.');
+          return;
+        }
+        const durInput = el('cam-path-dur');
+        const v = durInput ? parseFloat(durInput.value) : NaN;
+        const d = Number.isFinite(v) && v > 0 ? v : 8;
+        P.duration = d;
+        P.playing = true;
+        P.startTime = performance.now();
+        setStatus('Playing path over ' + d.toFixed(1) + 's.');
+        requestAnimationFrame(stepPlay);
+      }
+      function stepPlay(now) {
+        if (!P.playing) return;
+        const t = (now - P.startTime) / 1000;
+        const d = P.duration || 1;
+        if (t >= d) {
+          P.playing = false;
+          if (P.keys.length) setCameraFromKey(P.keys[P.keys.length - 1]);
+          setStatus('Path playback finished.');
+          return;
+        }
+        const u = t / d;
+        const segCount = P.keys.length - 1;
+        const segPos = u * segCount;
+        let segIndex = Math.floor(segPos);
+        if (segIndex >= segCount) segIndex = segCount - 1;
+        const localT = segPos - segIndex;
+        const a = P.keys[segIndex];
+        const b = P.keys[segIndex + 1];
+        const pos = {
+          x: a.pos.x + (b.pos.x - a.pos.x) * localT,
+          y: a.pos.y + (b.pos.y - a.pos.y) * localT,
+          z: a.pos.z + (b.pos.z - a.pos.z) * localT
+        };
+        const tgt = {
+          x: a.tgt.x + (b.tgt.x - a.tgt.x) * localT,
+          y: a.tgt.y + (b.tgt.y - a.tgt.y) * localT,
+          z: a.tgt.z + (b.tgt.z - a.tgt.z) * localT
+        };
+        const fov = a.fov + (b.fov - a.fov) * localT;
+        setCameraFromKey({ pos, tgt, fov });
+        requestAnimationFrame(stepPlay);
+      }
+      window.addEventListener('DOMContentLoaded', function() {
+        const addBtn = el('cam-add-key');
+        const clearBtn = el('cam-clear-keys');
+        const playBtn = el('cam-play');
+        const flipX = el('cam-flip-x');
+        const flipY = el('cam-flip-y');
+        const flipZ = el('cam-flip-z');
+        const copyShot = el('cam-copy-shot');
+        const importToPath = el('mento-import-to-path');
+        const parseTextBtn = el('mento-parse-shot-text');
+        if (addBtn) addBtn.addEventListener('click', addKeyFromView);
+        if (clearBtn) clearBtn.addEventListener('click', clearKeys);
+        if (playBtn) playBtn.addEventListener('click', playPath);
+        if (flipX) flipX.addEventListener('click', function(){ flipPath('x'); });
+        if (flipY) flipY.addEventListener('click', function(){ flipPath('y'); });
+        if (flipZ) flipZ.addEventListener('click', function(){ flipPath('z'); });
+        if (copyShot) copyShot.addEventListener('click', copySelectedShotMpd);
+        if (importToPath) importToPath.addEventListener('click', importMentoShotsIntoPath);
+        if (parseTextBtn) parseTextBtn.addEventListener('click', function() {
+          // Let the Momento capture app update its own state first, then
+          // mirror the MPD shots into our Courage-bound camera path.
+          setTimeout(importMentoShotsIntoPath, 0);
+        });
+
+        ['cam-key-pos-x','cam-key-pos-y','cam-key-pos-z',
+         'cam-key-tgt-x','cam-key-tgt-y','cam-key-tgt-z',
+         'cam-key-fov'].forEach(function(id) {
+          const input = el(id);
+          if (!input) return;
+          input.addEventListener('change', applyInputsToKey);
+          input.addEventListener('blur', applyInputsToKey);
+        });
+
+        renderKeyList();
+        updateKeyInputs();
+      });
+    })();
+  </script>
+  <script>
+    (function() {
+      try {
+        // Mark as homer-hosted so momento_capture_app can prefer parent Courage
+        document.body.classList.add('host-homer');
+      } catch (e) {}
+    })();
+  </script>
+  <script src="Brickfilm_Studio_Kit/REALITY MEDIA_MOMENTO/momento_capture_app.js"></script>
+</body>
+</html>

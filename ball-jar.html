@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ball Jar – Courage · Mento 373</title>
+  <link rel="icon" type="image/svg+xml" href="ball-jar-favicon.svg" />
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #020617;
+      --border-subtle: rgba(148, 163, 184, 0.35);
+      --accent: #38bdf8;
+      --accent-courage: #ef4444;
+      --accent-mento: #eab308;
+      --text: #e5e7eb;
+      --text-muted: #9ca3af;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      font-family: "Courier New", monospace;
+      background: #000;
+      color: var(--text);
+      overflow: hidden;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chrome {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      background: #000;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      padding: 4px 6px;
+      border-bottom: 1px solid #333;
+      background-color: #000;
+      white-space: nowrap;
+      font-size: 9px;
+    }
+
+    .studio-left {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .studio-label {
+      font-size: 8px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #aaa;
+    }
+
+    .studio-title {
+      font-size: 8px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #fff;
+    }
+
+    .main {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      border-radius: 0;
+      background: #000;
+      border-top: 1px solid #333;
+      padding: 4px 8px 8px;
+      overflow-x: auto;
+    }
+
+    .panel-grid {
+      display: flex;
+      flex-direction: row;
+      align-items: stretch;
+      gap: 6px;
+      width: 100%;
+      height: 100%;
+    }
+
+    .panel {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      min-height: 0;
+      border-radius: 4px;
+      border: 1px solid #333;
+      background: #000;
+      overflow: hidden;
+    }
+
+    .panel-body {
+      flex: 1;
+      min-height: 0;
+      position: relative;
+      background: #000;
+    }
+
+    .panel iframe {
+      border: none;
+      width: 100%;
+      height: 100%;
+      display: block;
+      background: #000;
+    }
+
+    .panel-grid .panel {
+      flex: 1 1 0;
+      min-width: 260px;
+      resize: horizontal;
+      overflow: hidden;
+    }
+
+    @media (max-width: 900px) {
+      .main {
+        padding: 0;
+        border-top: none;
+      }
+      .panel-grid {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="chrome">
+    <header class="header">
+      <div class="studio-left">
+        <span class="studio-label">STUDIO</span>
+        <span class="studio-title">BALL JAR · COURAGE / MENTO-373</span>
+      </div>
+    </header>
+
+    <main class="main">
+      <div class="panel-grid" id="panelGrid">
+        <section class="panel" data-panel="courage">
+          <div class="panel-body">
+            <iframe src="wag-viewer-prime-integration-20251112-055341 copy/wag-courage.html" title="WAG Courage"></iframe>
+          </div>
+        </section>
+
+        <section class="panel" data-panel="mento">
+          <div class="panel-body">
+            <iframe src="mento-373.html" title="MENTO 373"></iframe>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    (function() {
+      const grid = document.getElementById('panelGrid');
+      const courageFrame = document.querySelector('section[data-panel="courage"] iframe');
+      const mentoFrame = document.querySelector('section[data-panel="mento"] iframe');
+
+      function relayGoldToMento(gold) {
+        if (!gold || !mentoFrame || !mentoFrame.contentWindow) return;
+        try {
+          const { mpd_content, scene, filename, glb_url } = gold;
+          mentoFrame.contentWindow.postMessage({
+            type: 'studio-load-gold-into-mento',
+            payload: {
+              mpd_content: mpd_content || null,
+              scene: scene || null,
+              filename: filename || null,
+              glb_url: glb_url || null
+            }
+          }, '*');
+        } catch (e) {
+          console.warn('[BALL-JAR] Failed to relay GOLD to MENTO', e);
+        }
+      }
+
+      const wagFrankBus = (typeof BroadcastChannel !== 'undefined')
+        ? new BroadcastChannel('wag-frank')
+        : null;
+
+      if (wagFrankBus) {
+        wagFrankBus.addEventListener('message', (event) => {
+          const msg = event.data;
+          if (!msg || typeof msg !== 'object') return;
+
+          if (msg.kind === 'weaver-gold') {
+            const gold = msg.payload;
+            if (gold) relayGoldToMento(gold);
+          } else if (msg.kind === 'redbull-gold') {
+            const gold = msg.gold || msg.payload;
+            if (gold) relayGoldToMento(gold);
+          }
+        });
+      }
+
+      window.addEventListener('message', (event) => {
+        const msg = event.data;
+        if (!msg || typeof msg !== 'object' || !msg.type) return;
+        // reserved for future ball-jar local wiring
+      });
+    })();
+  </script>
+</body>
+</html>

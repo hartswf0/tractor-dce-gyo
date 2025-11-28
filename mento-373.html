@@ -88,6 +88,20 @@
             max-height: 100%; 
             object-fit: contain;
             box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            /* Keep MENTO gizmos/helpers above the Courage preview image. */
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Courage preview canvas sits underneath the MENTO overlay so that
+           the fulcrum spline, grid, and transform gizmo remain visible. */
+        #courage-preview {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
         }
         
         .panel { width: 320px; background: var(--bg-panel); border-left: 1px solid var(--border); display: flex; flex-direction: column; }
@@ -221,6 +235,7 @@
         <div class="viewport-container">
             <!-- Canvas is now centered and can have aspect ratio different from window -->
             <canvas id="glb-canvas"></canvas>
+            <canvas id="courage-preview"></canvas>
             
             <div class="hud hud-tl">
                 <div id="hud-cam">CAM: 0, 0, 0</div>
@@ -274,12 +289,31 @@
                     <div class="row">
                         <button class="fill" onclick="triggerLoad()">LOAD GLB</button>
                         <select id="slot-sel" style="width:50px; height:24px; background:#000; color:#fff; border:1px solid #333">
-                            <option value="1">S1</option><option value="2">S2</option>
+                            <option value="1">S1</option>
+                            <option value="2">S2</option>
+                            <option value="3">S3</option>
+                            <option value="4">S4</option>
+                            <option value="5">S5</option>
+                            <option value="6">S6</option>
+                            <option value="7">S7</option>
+                            <option value="8">S8</option>
                         </select>
                         <input type="file" id="file-in" style="display:none" accept=".glb,.gltf">
                     </div>
                     <div class="row">
                         <button id="btn-toggle-model" class="fill" onclick="toggleActiveModelVisible()">HIDE MODEL</button>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <span class="section-title">SLOTS</span>
+                    <div class="row">
+                        <pre id="model-list" style="margin:0; width:100%; max-height:80px; overflow-y:auto; background:#000; border:1px solid #222; padding:4px; font-size:9px; color:#888;">No GLBs loaded.</pre>
+                    </div>
+                    <div class="row" style="margin-top:4px; gap:4px;">
+                        <button class="fill" onclick="cycleActiveModel(-1)">◀ PREV</button>
+                        <button class="fill" onclick="cycleActiveModel(1)">NEXT ▶</button>
+                        <button class="fill" onclick="removeActiveModel()">REMOVE ACTIVE</button>
                     </div>
                 </div>
 
@@ -686,6 +720,9 @@
             
             mentoLights: [],        // parsed MENTO light descriptors
             mentoLightObjs: [],     // actual Three.js light objects in scene
+            courageMentoLightObjs: [],
+            couragePathGroup: null,
+            courage: { renderer: null, scene: null, camera: null, win: null, THREE: null },
             
             // Visual Config
             vis: { grid: true, ruler: false, model: true, frust: false, burn: false, mento: true },
@@ -694,10 +731,37 @@
             mode: 'MODEL', 
             pathEditMode: 'PATH',
             playback: { active: false, start: 0, dur: 8, curve: null, useDeterministic: false, time: 0, fps: 30 },
-            recorder: { active: false, media: null, chunks: [], url: null, config: { w:0, h:0 } },
+            recorder: { active: false, media: null, chunks: [], url: null, config: { w:0, h:0 }, captureCanvas: null, captureSource: null, drawInterval: null },
             clock: new THREE.Clock(),
             history: { past: [], future: [] }
         };
+
+        function refreshModelList() {
+            const list = UI('model-list');
+            if (!list) return;
+
+            if (!Array.isArray(S.models) || !S.models.length) {
+                list.textContent = 'No GLBs loaded.';
+                return;
+            }
+
+            const lines = [];
+            for (let i = 0; i < S.models.length; i++) {
+                const entry = S.models[i];
+                if (!entry || !entry.root) continue;
+                const slot = entry.slot || '1';
+                const label = entry.label || `GLB ${i + 1}`;
+                const vis = (entry.root.visible !== false) ? 'V' : '-';
+                const marker = (i === S.activeModel) ? '>' : ' ';
+                lines.push(`${marker} [S${slot}] ${vis} ${label}`);
+            }
+
+            if (!lines.length) {
+                list.textContent = 'No GLBs loaded.';
+            } else {
+                list.textContent = lines.join('\n');
+            }
+        }
 
         function clearSceneModels() {
             if (!S.scene || !S.models || !S.models.length) return;
@@ -711,6 +775,7 @@
             if (S.trans) S.trans.detach();
             const btn = UI('btn-toggle-model');
             if (btn) btn.textContent = 'HIDE MODEL';
+            refreshModelList();
         }
 
         function loadBuiltinGLB(glbPath, label) {
@@ -727,13 +792,14 @@
                     const root = gltf.scene;
                     S.scene.add(root);
                     const slotSel = UI('slot-sel');
-                    S.models.push({ root, slot: slotSel ? slotSel.value : '1' });
+                    S.models.push({ root, slot: slotSel ? slotSel.value : '1', label: label || 'SCENE' });
                     S.activeModel = S.models.length - 1;
                     window.autoScaleModel();
                     window.setMode('MODEL', 'translate');
                     const btn = UI('btn-toggle-model');
                     if (btn) btn.textContent = 'HIDE MODEL';
                     if (window.showToast) window.showToast(`${label || 'SCENE'} loaded`);
+                    refreshModelList();
                 },
                 undefined,
                 (err) => {
@@ -761,13 +827,16 @@
         // --- CORE ---
         function init() {
             S.scene = new THREE.Scene();
-            S.scene.background = new THREE.Color(0x050505);
+            // Transparent background so 373 gizmos/helpers can float over the
+            // Courage preview image when running inside Ball Jar.
+            S.scene.background = null;
             
             // Initial sizing will happen via updateResolution()
             S.cam = new THREE.PerspectiveCamera(50, 1, 0.1, 5000);
             S.cam.position.set(0, 150, 300);
             
-            S.rend = new THREE.WebGLRenderer({ canvas: UI('glb-canvas'), antialias: true, preserveDrawingBuffer: true });
+            S.rend = new THREE.WebGLRenderer({ canvas: UI('glb-canvas'), antialias: true, alpha: true, preserveDrawingBuffer: true });
+            S.rend.setClearColor(0x000000, 0);
             S.rend.outputColorSpace = THREE.SRGBColorSpace;
             // setSize handled below
 
@@ -858,6 +927,12 @@
             
             canvas.style.width = `${cssW}px`;
             canvas.style.height = `${cssH}px`;
+
+            const overlay = UI('courage-preview');
+            if (overlay) {
+                overlay.style.width = `${contW}px`;
+                overlay.style.height = `${contH}px`;
+            }
             
             S.recorder.config = { w: renderW, h: renderH };
             // console.log(`SENSOR UPDATE: ${renderW}x${renderH} (Aspect ${targetAspect.toFixed(2)})`);
@@ -1180,18 +1255,24 @@
         window.triggerLoad = () => UI('file-in').click();
         
         UI('file-in').addEventListener('change', (e) => {
-            if (!e.target.files[0]) return;
-            const url = URL.createObjectURL(e.target.files[0]);
+            const file = e.target.files[0];
+            if (!file) return;
+            const url = URL.createObjectURL(file);
             new GLTFLoader().load(url, (gltf) => {
                 const root = gltf.scene;
                 S.scene.add(root);
-                S.models.push({ root, slot: UI('slot-sel').value });
+                S.models.push({
+                    root,
+                    slot: UI('slot-sel').value,
+                    label: file && file.name ? file.name : 'GLB'
+                });
                 S.activeModel = S.models.length - 1;
                 window.autoScaleModel();
                 window.setMode('MODEL', 'translate');
                 const btn = UI('btn-toggle-model');
                 if (btn) btn.textContent = 'HIDE MODEL';
                 window.showToast("GLB LOADED");
+                refreshModelList();
             });
         });
 
@@ -1205,6 +1286,49 @@
             entry.root.visible = !entry.root.visible;
             const btn = UI('btn-toggle-model');
             if (btn) btn.textContent = entry.root.visible ? 'HIDE MODEL' : 'SHOW MODEL';
+            refreshModelList();
+        };
+
+        window.cycleActiveModel = (dir) => {
+            if (!Array.isArray(S.models) || !S.models.length) {
+                window.showToast('NO GLBS LOADED');
+                return;
+            }
+            const n = S.models.length;
+            let idx = S.activeModel;
+            if (idx < 0) idx = 0;
+            idx = (idx + dir + n) % n;
+            S.activeModel = idx;
+            const entry = S.models[idx];
+            if (entry && entry.root && S.trans) {
+                S.trans.attach(entry.root);
+            }
+            updateModelUI();
+            refreshModelList();
+        };
+
+        window.removeActiveModel = () => {
+            if (!Array.isArray(S.models) || !S.models.length || S.activeModel === -1) {
+                window.showToast('NO ACTIVE MODEL');
+                return;
+            }
+            const entry = S.models[S.activeModel];
+            if (entry && entry.root && S.scene) {
+                S.scene.remove(entry.root);
+            }
+            S.models.splice(S.activeModel, 1);
+            if (!S.models.length) {
+                S.activeModel = -1;
+                if (S.trans) S.trans.detach();
+            } else {
+                S.activeModel = Math.min(S.activeModel, S.models.length - 1);
+                const next = S.models[S.activeModel];
+                if (next && next.root && S.trans) {
+                    S.trans.attach(next.root);
+                }
+            }
+            refreshModelList();
+            window.showToast('MODEL REMOVED');
         };
 
         window.setMode = (mode, tool) => {
@@ -1351,7 +1475,10 @@
 
         function updatePathVisuals() {
             while(S.pathVizGroup.children.length) S.pathVizGroup.remove(S.pathVizGroup.children[0]);
-            if (S.keyframes.length === 0) return;
+            if (S.keyframes.length === 0) {
+                try { applyPathToCourage(); } catch (e) {}
+                return;
+            }
 
             const sphGeo = new THREE.SphereGeometry(3, 12, 12);
             S.pathSpheres = [];
@@ -1396,6 +1523,54 @@
                 const pathGeo = new THREE.BufferGeometry().setFromPoints(points);
                 const pathMat = new THREE.LineBasicMaterial({ color: 0xd000ff });
                 S.pathVizGroup.add(new THREE.Line(pathGeo, pathMat));
+            }
+
+            // Also mirror the path into Courage's scene so the keyframe spline
+            // is visible directly in the main stage viewport.
+            try { applyPathToCourage(); } catch (e) {}
+        }
+
+        function applyPathToCourage() {
+            if (!S.keyframes || !S.keyframes.length) {
+                if (S.courage && S.courage.scene && S.couragePathGroup) {
+                    try { S.courage.scene.remove(S.couragePathGroup); } catch (e) {}
+                    S.couragePathGroup = null;
+                }
+                return;
+            }
+
+            if (!S.courage || !S.courage.scene || !S.courage.THREE) {
+                if (!attachCourageRenderer(true)) return;
+                if (!S.courage || !S.courage.scene || !S.courage.THREE) return;
+            }
+            const scene = S.courage.scene;
+            const THREE2 = S.courage.THREE;
+            if (!scene || !THREE2) return;
+
+            if (S.couragePathGroup) {
+                try { scene.remove(S.couragePathGroup); } catch (e) {}
+            }
+            const group = new THREE2.Group();
+            S.couragePathGroup = group;
+            scene.add(group);
+
+            const sphGeo = new THREE2.SphereGeometry(4, 10, 10);
+            S.keyframes.forEach((k, i) => {
+                const color = (i === S.selectedKey) ? 0xd000ff : 0x00ff88;
+                const mat = new THREE2.MeshBasicMaterial({ color });
+                const m = new THREE2.Mesh(sphGeo, mat);
+                m.position.set(k.pos.x, k.pos.y, k.pos.z);
+                group.add(m);
+            });
+
+            if (S.keyframes.length > 1) {
+                const pts = S.keyframes.map(k => new THREE2.Vector3(k.pos.x, k.pos.y, k.pos.z));
+                const curve = new THREE2.CatmullRomCurve3(pts, false, 'centripetal');
+                const points = curve.getPoints(S.keyframes.length * 10);
+                const pathGeo = new THREE2.BufferGeometry().setFromPoints(points);
+                const pathMat = new THREE2.LineBasicMaterial({ color: 0xd000ff });
+                const line = new THREE2.Line(pathGeo, pathMat);
+                group.add(line);
             }
         }
 
@@ -1784,6 +1959,27 @@
 
             UI('hud-cam').innerText = `POS: ${S.cam.position.x.toFixed(0)}, ${S.cam.position.y.toFixed(0)}, ${S.cam.position.z.toFixed(0)}`;
             S.rend.render(S.scene, S.cam);
+
+            // Mirror the current MENTO camera into COURAGE so that
+            // the 371-style controls also drive the live Courage stage.
+            pushMentoCameraToCourage(true);
+
+            // And mirror COURAGE's actual render back into our viewport, so we
+            // see the real stage instead of a separate GLB scene.
+            if (!S.courage || !S.courage.renderer) {
+                attachCourageRenderer(true);
+            }
+            renderCouragePreview();
+
+            // If recording with a capture canvas (for aspect control), keep it
+            // updated from Courage's renderer every frame.
+            if (S.recorder.active && S.recorder.captureCanvas && S.recorder.captureSource) {
+                const cap = S.recorder.captureCanvas;
+                const ctx = cap.getContext('2d');
+                if (ctx) {
+                    drawWithAspect(S.recorder.captureSource, ctx, cap.width, cap.height);
+                }
+            }
         }
 
         // --- UTILS ---
@@ -1849,8 +2045,44 @@
 
                 const fps = parseInt(UI('rec-fps').value) || 30;
                 const bps = (parseFloat(UI('rec-bit').value) || 8) * 1000000;
-                const stream = UI('glb-canvas').captureStream(fps);
-                
+
+                // Prefer capturing directly from Courage's renderer if available,
+                // so the recording always reflects the true stage render.
+                if (!S.courage || !S.courage.renderer) {
+                    attachCourageRenderer(true);
+                }
+
+                let sourceCanvas = UI('glb-canvas');
+                if (S.courage && S.courage.renderer && S.courage.renderer.domElement) {
+                    sourceCanvas = S.courage.renderer.domElement;
+                }
+
+                if (!sourceCanvas) {
+                    window.showToast('CAPTURE NOT SUPPORTED (NO SOURCE CANVAS)');
+                    return;
+                }
+
+                const cfg = S.recorder.config || { w: 0, h: 0 };
+                const targetW = cfg.w || sourceCanvas.width || 0;
+                const targetH = cfg.h || sourceCanvas.height || 0;
+                if (!targetW || !targetH) {
+                    window.showToast('CAPTURE NOT SUPPORTED (NO TARGET SIZE)');
+                    return;
+                }
+
+                const cap = document.createElement('canvas');
+                cap.width = targetW;
+                cap.height = targetH;
+                if (typeof cap.captureStream !== 'function') {
+                    window.showToast('CAPTURE NOT SUPPORTED (NO CAPTURESTREAM)');
+                    return;
+                }
+
+                S.recorder.captureCanvas = cap;
+                S.recorder.captureSource = sourceCanvas;
+
+                const stream = cap.captureStream(fps);
+
                 S.recorder.chunks = [];
                 // Prefer VP9 for quality, fallback to VP8
                 let mime = 'video/webm; codecs=vp9';
@@ -1916,10 +2148,7 @@
              window.showToast("SHOT COPIED");
         };
 
-        window.pullCourageView = () => {
-            // Best-effort bridge: when embedded inside a Homer/Shield shell,
-            // read COURAGE's camera via MomentoInterface and add a keyframe
-            // at that view.
+        function resolveCourageCamera(silent) {
             let frame = null;
             try {
                 if (window.parent && window.parent !== window && window.parent.document) {
@@ -1929,8 +2158,8 @@
                 frame = null;
             }
             if (!frame || !frame.contentWindow) {
-                window.showToast('COURAGE VIEW NOT FOUND');
-                return;
+                if (!silent) window.showToast('COURAGE VIEW NOT FOUND');
+                return null;
             }
 
             let cam = null;
@@ -1944,9 +2173,104 @@
             }
 
             if (!cam || !cam.position) {
-                window.showToast('COURAGE VIEW NOT READY');
-                return;
+                if (!silent) window.showToast('COURAGE VIEW NOT READY');
+                return null;
             }
+            return { frame, cam };
+        }
+
+        function attachCourageRenderer(silent) {
+            const res = resolveCourageCamera(!!silent);
+            if (!res) return false;
+            let win, iface, captureData, renderer, scene, camera, THREE2;
+            try {
+                win = res.frame.contentWindow;
+                if (!win) return false;
+                iface = win.MomentoInterface || win.VideoCaptureInterface || null;
+                captureData = win._captureData || {};
+                renderer = (iface && iface.renderer) || captureData.renderer || null;
+                scene = (iface && iface.scene) || captureData.scene || null;
+                camera = (iface && iface.camera) || captureData.camera || null;
+                THREE2 = win.THREE || null;
+            } catch (e) {
+                return false;
+            }
+            if (!renderer || !renderer.domElement) return false;
+            S.courage = { renderer, scene, camera, win, THREE: THREE2 };
+            return true;
+        }
+
+        function renderCouragePreview() {
+            if (!S.courage || !S.courage.renderer || !S.courage.renderer.domElement) return;
+            const src = S.courage.renderer.domElement;
+            const canvas = UI('courage-preview');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return;
+
+            const cont = document.querySelector('.viewport-container');
+            const w = (cont && cont.clientWidth) || src.width || 0;
+            const h = (cont && cont.clientHeight) || src.height || 0;
+            if (!w || !h) return;
+            if (canvas.width !== w || canvas.height !== h) {
+                canvas.width = w;
+                canvas.height = h;
+            }
+
+            try {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(src, 0, 0, canvas.width, canvas.height);
+            } catch (e) {
+                // drawImage can fail if origins ever diverge; treat as best-effort.
+            }
+        }
+
+        function pushMentoCameraToCourage(silent) {
+            const res = resolveCourageCamera(!!silent);
+            if (!res) return;
+            const frame = res.frame;
+            const cam = res.cam;
+            if (!cam || !cam.position) return;
+
+            // Position
+            if (cam.position.copy) {
+                cam.position.copy(S.cam.position);
+            } else {
+                cam.position.x = S.cam.position.x;
+                cam.position.y = S.cam.position.y;
+                cam.position.z = S.cam.position.z;
+            }
+
+            // Look at same target
+            if (typeof cam.lookAt === 'function' && S.orbit && S.orbit.target) {
+                cam.lookAt(S.orbit.target.x, S.orbit.target.y, S.orbit.target.z);
+            }
+
+            // FOV
+            if (typeof S.cam.fov === 'number' && 'fov' in cam && typeof cam.updateProjectionMatrix === 'function') {
+                cam.fov = S.cam.fov;
+                cam.updateProjectionMatrix();
+            }
+
+            // Ask Courage to render the new view if possible
+            try {
+                const win = frame && frame.contentWindow ? frame.contentWindow : null;
+                const iface = win && (win.MomentoInterface || win.VideoCaptureInterface);
+                if (iface && typeof iface.renderCurrentView === 'function') {
+                    iface.renderCurrentView();
+                }
+            } catch (e) {
+                // best-effort only
+            }
+        }
+
+        window.pullCourageView = () => {
+            // Best-effort bridge: when embedded inside a Homer/Shield shell,
+            // read COURAGE's camera via MomentoInterface and add a keyframe
+            // at that view.
+            const res = resolveCourageCamera(false);
+            if (!res) return;
+            const cam = res.cam;
 
             // Copy camera position
             const pos = cam.position.clone
@@ -2108,6 +2432,76 @@
             });
         }
 
+        function applyMentoLightsToCourage() {
+            // Mirror parsed MENTO lights into Courage's scene as well, so
+            // 373 can act as a lighting brain over the Courage stage.
+            const res = resolveCourageCamera(true);
+            if (!res || !res.frame) return;
+            let win, iface, captureData, scene, THREE2;
+            try {
+                win = res.frame.contentWindow;
+                if (!win) return;
+                iface = win.MomentoInterface || win.VideoCaptureInterface || null;
+                captureData = win._captureData || {};
+                scene = (iface && iface.scene) || captureData.scene || null;
+                THREE2 = win.THREE;
+            } catch (e) {
+                return;
+            }
+            if (!scene || !THREE2) return;
+
+            // Clear old Courage-side MENTO lights
+            if (Array.isArray(S.courageMentoLightObjs) && S.courageMentoLightObjs.length) {
+                S.courageMentoLightObjs.forEach(obj => {
+                    if (!obj) return;
+                    try { scene.remove(obj); } catch (e) {}
+                });
+            }
+            S.courageMentoLightObjs = [];
+
+            if (!Array.isArray(S.mentoLights) || !S.mentoLights.length) return;
+
+            S.mentoLights.forEach(L => {
+                const col = new THREE2.Color(L.color || '#ffffff');
+                const intensity = Number.isFinite(L.intensity) ? L.intensity : 1;
+                let light = null;
+
+                if (L.type === 'SUN') {
+                    const dirLight = new THREE2.DirectionalLight(col, intensity);
+                    dirLight.position.copy(L.pos);
+                    if (L.tgt) {
+                        dirLight.target.position.copy(L.tgt);
+                        scene.add(dirLight.target);
+                    }
+                    if (L.shadows) {
+                        dirLight.castShadow = true;
+                        dirLight.shadow.mapSize.set(1024, 1024);
+                    }
+                    light = dirLight;
+                } else if (L.type === 'POINT') {
+                    const dist = Number.isFinite(L.decay) && L.decay > 0 ? L.decay : 0;
+                    const pt = new THREE2.PointLight(col, intensity, dist);
+                    pt.position.copy(L.pos);
+                    light = pt;
+                } else {
+                    // AREA or other types → approximate with SpotLight aimed at TGT if present
+                    const spot = new THREE2.SpotLight(col, intensity);
+                    spot.position.copy(L.pos);
+                    if (L.tgt) {
+                        spot.target.position.copy(L.tgt);
+                        scene.add(spot.target);
+                    }
+                    light = spot;
+                }
+
+                if (light) {
+                    light.visible = !!S.vis.mento;
+                    scene.add(light);
+                    S.courageMentoLightObjs.push(light);
+                }
+            });
+        }
+
         window.parseMento = () => {
             const txt = UI('mento-txt').value;
             const lines = txt.split('\n');
@@ -2145,6 +2539,7 @@
             });
 
             applyMentoLights();
+            applyMentoLightsToCourage();
             updatePathVisuals();
             renderKeyList();
             window.showToast(`IMPORTED ${shotCount} SHOTS, ${lightCount} LIGHTS`);
@@ -2155,27 +2550,33 @@
             setTimeout(() => t.style.opacity = 0, 2000);
         };
 
-        window.addEventListener('message', (event) => {
-            const msg = event.data;
-            if (!msg || typeof msg !== 'object') return;
-            if (msg.type !== 'studio-load-gold-into-mento') return;
-            const payload = msg.payload || {};
-            const mpd = payload.mpd_content || '';
-            const glbUrl = payload.glb_url || null;
+        // Shared GOLD ingest for both Shield relay and direct wag-frank bus.
+        function ingestGoldIntoMentoFromObject(gold) {
+            if (!gold || typeof gold !== 'object') return;
 
-            // 1) If we have MPD content, drop it into the MENTO editor.
+            const mpd = gold.mpd_content || '';
+            const glbUrl = gold.glb_url || null;
+
+            const hadKeysBefore = Array.isArray(S.keyframes) ? S.keyframes.length : 0;
+            const hadLightsBefore = Array.isArray(S.mentoLights) ? S.mentoLights.length : 0;
+
+            console.log('[MENTO-371] ingestGoldIntoMentoFromObject', {
+                hasMpd: !!mpd,
+                hasGlbUrl: !!glbUrl,
+                keys: Object.keys(gold || {})
+            });
+
+            // 1) MPD content → drop into MENTO editor and auto-import.
             const ta = UI('mento-txt');
             if (ta && typeof mpd === 'string' && mpd.trim()) {
                 ta.value = mpd;
-                // Auto-IMPORT so shots + lights become keyframes.
                 window.parseMento();
             }
 
-            // 2) If a GLB URL is ever provided in GOLD, treat it as a
-            //    remote scene candidate. Today we do not create a full
-            //    dynamic preset, but we can load it directly.
+            // 2) Optional GLB URL → treat as remote scene for animation.
+            // Do NOT clear existing models here so multiple GLBs can coexist
+            // in the same stage (e.g., foreground set + background plate).
             if (typeof glbUrl === 'string' && glbUrl.trim()) {
-                clearSceneModels();
                 const loader = new GLTFLoader();
                 loader.load(
                     glbUrl,
@@ -2183,13 +2584,14 @@
                         const root = gltf.scene;
                         S.scene.add(root);
                         const slotSel = UI('slot-sel');
-                        S.models.push({ root, slot: slotSel ? slotSel.value : '1' });
+                        S.models.push({ root, slot: slotSel ? slotSel.value : '1', label: 'GOLD SCENE' });
                         S.activeModel = S.models.length - 1;
                         window.autoScaleModel();
                         window.setMode('MODEL', 'translate');
                         const btn = UI('btn-toggle-model');
                         if (btn) btn.textContent = 'HIDE MODEL';
                         window.showToast('REMOTE SCENE LOADED INTO MENTO');
+                        refreshModelList();
                     },
                     undefined,
                     (err) => {
@@ -2198,14 +2600,106 @@
                     }
                 );
             } else if (ta && typeof mpd === 'string' && mpd.trim()) {
-                // If only MPD arrived, still acknowledge the bridge.
                 window.showToast('GOLD MPD LOADED INTO MENTO');
             }
+
+            // Fallback: if GOLD had MPD content but produced no MENTO shots or lights,
+            // auto-attach to Courage's current camera so the viewport visibly reacts.
+            const hasMpd = typeof mpd === 'string' && mpd.trim();
+            const hasKeysAfter = Array.isArray(S.keyframes) && S.keyframes.length > 0;
+            const hasLightsAfter = Array.isArray(S.mentoLights) && S.mentoLights.length > 0;
+            const hadMentoBefore = (hadKeysBefore > 0) || (hadLightsBefore > 0);
+            const hasMentoAfter = hasKeysAfter || hasLightsAfter;
+
+            if (hasMpd && !hasMentoAfter) {
+                console.log('[MENTO-371] GOLD MPD has no !MENTO SHOT / !MENTO LIGHT – auto-attaching Courage view');
+                autoAttachFirstCourageView();
+            }
+        }
+
+        // GOLD via Shield-of-Achilles / HOMER shell relay.
+        window.addEventListener('message', (event) => {
+            const msg = event.data;
+            if (!msg || typeof msg !== 'object') return;
+            if (msg.type !== 'studio-load-gold-into-mento') return;
+            const payload = msg.payload || {};
+            console.log('[MENTO-371] studio-load-gold-into-mento', {
+                keys: Object.keys(payload || {}),
+                hasMpd: !!payload.mpd_content,
+                hasGlbUrl: !!payload.glb_url
+            });
+            ingestGoldIntoMentoFromObject(payload);
         });
-        
+
+        // GOLD directly from wag-frank (Courage / Weaver) so 371 can react
+        // even if the Shield relay is not wired.
+        const wagFrankBus = (typeof BroadcastChannel !== 'undefined')
+            ? new BroadcastChannel('wag-frank')
+            : null;
+
+        if (wagFrankBus) {
+            wagFrankBus.addEventListener('message', (event) => {
+                const msg = event.data;
+                if (!msg || typeof msg !== 'object') return;
+
+                console.log('[MENTO-371] wag-frank message', msg);
+
+                if (msg.kind === 'weaver-gold') {
+                    const gold = msg.payload;
+                    if (gold) ingestGoldIntoMentoFromObject(gold);
+                } else if (msg.kind === 'redbull-gold') {
+                    const gold = msg.gold || msg.payload;
+                    if (gold) ingestGoldIntoMentoFromObject(gold);
+                } else if (msg.kind === 'courage-glb') {
+                    ingestGoldIntoMentoFromObject(msg);
+                }
+            });
+        }
+
+        function autoAttachFirstCourageView() {
+            // Only when embedded in a studio shell and we have no keys yet.
+            if (!S || (S.keyframes && S.keyframes.length)) return;
+            const res = resolveCourageCamera(true);
+            if (!res) return;
+            const cam = res.cam;
+
+            const pos = cam.position && cam.position.clone
+                ? cam.position.clone()
+                : new THREE.Vector3(cam.position.x, cam.position.y, cam.position.z);
+
+            const dir = new THREE.Vector3();
+            if (typeof cam.getWorldDirection === 'function') {
+                cam.getWorldDirection(dir);
+            } else {
+                dir.set(0, 0, -1);
+            }
+            if (dir.lengthSq() === 0) dir.set(0, 0, -1);
+            const dist = pos.length() || 200;
+            const tgt = pos.clone().add(dir.normalize().multiplyScalar(dist));
+
+            const fov = typeof cam.fov === 'number' ? cam.fov : S.cam.fov;
+
+            S.cam.position.copy(pos);
+            S.orbit.target.copy(tgt);
+            S.cam.fov = fov;
+            S.cam.updateProjectionMatrix();
+            S.orbit.update();
+
+            S.keyframes.push({
+                pos: pos.clone(),
+                tgt: tgt.clone(),
+                fov
+            });
+            S.selectedKey = S.keyframes.length - 1;
+            updatePathVisuals();
+            renderKeyList();
+            updateKeyPreview();
+        }
+
         init();
-        // Auto-load GRACE scene on startup for 369
-        loadScenePreset('grace');
+        // After Courage has had a moment to boot, try to pull one initial view
+        // so the CAMERA timeline "sees" a real Courage pose without clicks.
+        setTimeout(autoAttachFirstCourageView, 1200);
     </script>
 </body>
 </html>

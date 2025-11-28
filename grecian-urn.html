@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Grecian Urn – Swiss · Frank · Courage · Weaver · Were · Master · Mento-373</title>
+  <link rel="icon" type="image/svg+xml" href="ball-jar-favicon.svg" />
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #020617;
+      --border-subtle: rgba(148, 163, 184, 0.35);
+      --accent: #38bdf8;
+      --accent-swiss: #f97316;
+      --accent-frank: #4ecdc4;
+      --accent-courage: #ef4444;
+      --accent-weaver: #22c55e;
+      --accent-were: #a855f7;
+      --accent-master: #facc15;
+      --accent-mento: #eab308;
+      --text: #e5e7eb;
+      --text-muted: #9ca3af;
+      --radius-pill: 999px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      font-family: "Courier New", monospace;
+      background: #000;
+      color: var(--text);
+      overflow: hidden;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chrome {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      background: #000;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      padding: 4px 6px;
+      border-bottom: 1px solid #333;
+      background-color: #000;
+      white-space: nowrap;
+      font-size: 9px;
+    }
+
+    .studio-left {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .studio-label {
+      font-size: 8px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #aaa;
+    }
+
+    .studio-title {
+      font-size: 8px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #fff;
+    }
+
+    .studio-center {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+    }
+
+    .studio-right {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .studio-mode-hint {
+      font-size: 8px;
+      color: var(--text-muted);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      margin-right: 4px;
+    }
+
+    .studio-btn {
+      border-radius: 999px;
+      border: 1px solid #333;
+      background: #050505;
+      color: #aaa;
+      font-size: 10px;
+      width: 20px;
+      height: 20px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .studio-btn:hover {
+      border-color: #fff;
+      color: #fff;
+    }
+
+    .studio-btn.active {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .tab-btn {
+      position: relative;
+      border-radius: 6px 6px 0 0;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      border-bottom: none;
+      background: radial-gradient(circle at top, #020617, #020617);
+      color: var(--text-muted);
+      font-size: 8px;
+      padding: 1px 6px 2px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      white-space: nowrap;
+      box-shadow: 0 1px 0 rgba(15, 23, 42, 0.8);
+      transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease, transform 0.12s ease;
+    }
+
+    .tab-btn::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+    }
+
+    .tab-color-swiss::before   { background: var(--accent-swiss); }
+    .tab-color-frank::before   { background: var(--accent-frank); }
+    .tab-color-courage::before { background: var(--accent-courage); }
+    .tab-color-weaver::before  { background: var(--accent-weaver); }
+    .tab-color-were::before    { background: var(--accent-were); }
+    .tab-color-master::before  { background: var(--accent-master); }
+    .tab-color-mento::before   { background: var(--accent-mento); }
+
+    .tab-btn.active {
+      color: var(--text);
+      border-color: rgba(248, 250, 252, 0.95);
+      background: linear-gradient(to bottom, #020617 0%, #020617 65%, #000 100%);
+      box-shadow:
+        0 2px 0 #000,
+        0 0 0 1px rgba(248, 250, 252, 0.7),
+        0 0 10px rgba(56, 189, 248, 0.8);
+      transform: translateY(1px);
+      font-weight: 700;
+    }
+
+    .tab-btn.active::after {
+      content: "";
+      position: absolute;
+      left: 4px;
+      right: 4px;
+      bottom: -1px;
+      height: 2px;
+      border-radius: 999px;
+      background: var(--accent);
+    }
+
+    .tab-btn.docked:not(.active) {
+      border-color: rgba(148, 163, 184, 0.9);
+      color: var(--accent);
+    }
+
+    .main {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      border-radius: 0;
+      background: #000;
+      border-top: 1px solid #333;
+      padding: 4px 8px 8px;
+      overflow-x: auto;
+    }
+
+    .panel-grid {
+      display: flex;
+      flex-direction: row;
+      align-items: stretch;
+      gap: 6px;
+      width: 100%;
+      height: 100%;
+    }
+
+    .panel {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      min-height: 0;
+      border-radius: 4px;
+      border: 1px solid #333;
+      background: #000;
+      overflow: hidden;
+    }
+
+    .panel-body {
+      flex: 1;
+      min-height: 0;
+      position: relative;
+      background: #000;
+    }
+
+    .panel iframe {
+      border: none;
+      width: 100%;
+      height: 100%;
+      display: block;
+      background: #000;
+    }
+
+    .panel-grid .panel {
+      display: none;
+    }
+
+    .panel-grid .panel.docked {
+      display: flex;
+      flex: 1 1 0;
+      min-width: 260px;
+      resize: horizontal;
+      overflow: hidden;
+    }
+
+    .panel-grid.focus .panel.docked {
+      flex: 0 0 260px;
+    }
+
+    .panel-grid.focus .panel.docked.active {
+      flex: 1 1 auto;
+    }
+
+    @media (max-width: 900px) {
+      .main {
+        padding: 0;
+        border-top: none;
+      }
+      .panel-grid {
+        flex-direction: column;
+      }
+      .header {
+        padding: 2px 4px;
+      }
+      .studio-left {
+        display: none;
+      }
+      .studio-center {
+        position: relative;
+        justify-content: flex-start;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+      }
+      .studio-center::-webkit-scrollbar { display: none; }
+      .studio-center::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: 16px;
+        background: linear-gradient(to left, #000, transparent);
+        pointer-events: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="chrome">
+    <header class="header">
+      <div class="studio-left">
+        <span class="studio-label">STUDIO</span>
+        <span class="studio-title">GRECIAN URN · SWISS / FRANK / COURAGE / WEAVER / WERE / MASTER / MENTO-373</span>
+      </div>
+      <div class="studio-center" id="panelTabs">
+        <button class="tab-btn tab-color-swiss" data-panel="swiss" title="Tap to show / hide the Swiss column">Swiss</button>
+        <button class="tab-btn tab-color-frank" data-panel="frank" title="Tap to show / hide the Frank column">Frank</button>
+        <button class="tab-btn tab-color-courage active" data-panel="courage" title="Tap to show / hide the Courage column">Courage</button>
+        <button class="tab-btn tab-color-weaver" data-panel="weaver" title="Tap to show / hide the Weaver column">Weaver</button>
+        <button class="tab-btn tab-color-were" data-panel="were" title="Tap to show / hide the Were column">Were</button>
+        <button class="tab-btn tab-color-master" data-panel="master" title="Tap to show / hide the Master column">Master</button>
+        <button class="tab-btn tab-color-mento" data-panel="mento" title="Tap to show / hide the Mento column">Mento 373</button>
+      </div>
+      <div class="studio-right">
+        <span class="studio-mode-hint" id="modeLabel">MULTI</span>
+        <button class="studio-btn active" id="gridToggle" title="Toggle multi-column mode">☷</button>
+      </div>
+    </header>
+
+    <main class="main">
+      <div class="panel-grid focus" id="panelGrid" data-layout="dock">
+        <section class="panel" data-panel="swiss">
+          <div class="panel-body">
+            <iframe src="wag-viewer-prime-integration-20251112-055341 copy/swiss-designator.html" title="Swiss Designator"></iframe>
+          </div>
+        </section>
+
+        <section class="panel" data-panel="frank">
+          <div class="panel-body">
+            <iframe src="wag-frankwag-fromer.html" title="WAG Frank · Homer"></iframe>
+          </div>
+        </section>
+
+        <section class="panel active docked" data-panel="courage">
+          <div class="panel-body">
+            <iframe src="wag-viewer-prime-integration-20251112-055341 copy/wag-courage.html" title="WAG Courage"></iframe>
+          </div>
+        </section>
+
+        <section class="panel" data-panel="weaver">
+          <div class="panel-body">
+            <iframe src="wag-viewer-prime-integration-20251112-055341 copy/assembly-line.html" title="Unified L-System Ontology Weaver"></iframe>
+          </div>
+        </section>
+
+        <section class="panel" data-panel="were">
+          <div class="panel-body">
+            <iframe src="wag-were.html" title="WAG Were"></iframe>
+          </div>
+        </section>
+
+        <section class="panel" data-panel="master">
+          <div class="panel-body">
+            <iframe src="wag-master.html" title="WAG Master"></iframe>
+          </div>
+        </section>
+
+        <section class="panel docked" data-panel="mento">
+          <div class="panel-body">
+            <iframe src="mento-373.html" title="MENTO 373"></iframe>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    (function() {
+      const grid = document.getElementById('panelGrid');
+      const tabs = Array.from(document.querySelectorAll('#panelTabs .tab-btn'));
+      const panels = Array.from(document.querySelectorAll('.panel-grid .panel'));
+      const gridToggle = document.getElementById('gridToggle');
+      const modeLabel = document.getElementById('modeLabel');
+
+      let activePanel = 'courage';
+      const dockedPanels = new Set(['courage', 'mento']);
+      let multiMode = true;
+
+      function syncTabs() {
+        tabs.forEach(tab => {
+          const id = tab.dataset.panel;
+          const isActive = id === activePanel;
+          tab.classList.toggle('active', isActive);
+          tab.classList.toggle('docked', dockedPanels.has(id));
+
+          if (isActive && window.innerWidth <= 900) {
+            try {
+              tab.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            } catch (e) {
+            }
+          }
+        });
+      }
+
+      function syncPanels() {
+        panels.forEach(panel => {
+          const id = panel.dataset.panel;
+          const docked = dockedPanels.has(id);
+          panel.classList.toggle('docked', docked);
+          panel.classList.toggle('active', id === activePanel);
+        });
+      }
+
+      function applyLayout() {
+        if (!dockedPanels.size) dockedPanels.add(activePanel);
+        syncPanels();
+        syncTabs();
+      }
+
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          const id = tab.dataset.panel;
+          if (!id) return;
+
+          activePanel = id;
+
+          if (multiMode) {
+            if (dockedPanels.has(id)) {
+              if (dockedPanels.size > 1) {
+                dockedPanels.delete(id);
+              }
+            } else {
+              dockedPanels.add(id);
+            }
+          } else {
+            if (id === 'mento') {
+              multiMode = true;
+              if (gridToggle) gridToggle.classList.add('active');
+              if (modeLabel) modeLabel.textContent = 'MULTI';
+
+              dockedPanels.clear();
+              dockedPanels.add('courage');
+              dockedPanels.add('mento');
+            } else {
+              dockedPanels.clear();
+              dockedPanels.add(id);
+            }
+          }
+
+          applyLayout();
+        });
+      });
+
+      if (gridToggle) {
+        gridToggle.addEventListener('click', () => {
+          multiMode = !multiMode;
+          gridToggle.classList.toggle('active', multiMode);
+          if (modeLabel) {
+            modeLabel.textContent = multiMode ? 'MULTI' : 'SINGLE';
+          }
+
+          if (!multiMode) {
+            dockedPanels.clear();
+            dockedPanels.add(activePanel);
+          }
+
+          applyLayout();
+        });
+      }
+
+      const wereFrame = document.querySelector('section[data-panel="were"] iframe');
+      const masterFrame = document.querySelector('section[data-panel="master"] iframe');
+      const courageFrame = document.querySelector('section[data-panel="courage"] iframe');
+      const weaverFrame = document.querySelector('section[data-panel="weaver"] iframe');
+      const mentoFrame = document.querySelector('section[data-panel="mento"] iframe');
+
+      function relayGoldToLabs(gold) {
+        if (!gold) return;
+        try {
+          if (wereFrame && wereFrame.contentWindow) {
+            wereFrame.contentWindow.postMessage({
+              type: 'studio-load-gold-from-courage',
+              payload: gold
+            }, '*');
+          }
+          if (masterFrame && masterFrame.contentWindow) {
+            masterFrame.contentWindow.postMessage({
+              type: 'studio-load-gold-from-courage',
+              payload: gold
+            }, '*');
+          }
+        } catch (e) {
+          console.warn('[URN] Failed to relay GOLD to WERE/MASTER', e);
+        }
+      }
+
+      function relayGoldToMento(gold) {
+        if (!gold || !mentoFrame || !mentoFrame.contentWindow) return;
+        try {
+          const { mpd_content, scene, filename, glb_url } = gold;
+          mentoFrame.contentWindow.postMessage({
+            type: 'studio-load-gold-into-mento',
+            payload: {
+              mpd_content: mpd_content || null,
+              scene: scene || null,
+              filename: filename || null,
+              glb_url: glb_url || null
+            }
+          }, '*');
+        } catch (e) {
+          console.warn('[URN] Failed to relay GOLD to MENTO', e);
+        }
+      }
+
+      const wagFrankBus = (typeof BroadcastChannel !== 'undefined')
+        ? new BroadcastChannel('wag-frank')
+        : null;
+
+      if (wagFrankBus) {
+        wagFrankBus.addEventListener('message', (event) => {
+          const msg = event.data;
+          if (!msg || typeof msg !== 'object') return;
+
+          if (msg.kind === 'weaver-gold') {
+            const gold = msg.payload;
+            if (gold) {
+              relayGoldToLabs(gold);
+              relayGoldToMento(gold);
+            }
+          } else if (msg.kind === 'redbull-gold') {
+            const gold = msg.gold || msg.payload;
+            if (gold) {
+              relayGoldToLabs(gold);
+              relayGoldToMento(gold);
+            }
+          }
+        });
+      }
+
+      function relayMpdToCourage(mpd) {
+        if (!mpd || !mpd.trim()) return;
+        try {
+          if (courageFrame && courageFrame.contentWindow) {
+            courageFrame.contentWindow.postMessage({
+              type: 'studio-load-mpd-from-were-and-redbull',
+              mpd
+            }, '*');
+          }
+        } catch (e) {
+          console.warn('[URN] Failed to relay MPD to Courage', e);
+        }
+      }
+
+      function relayMpdToWeaver(mpd) {
+        if (!mpd || !mpd.trim()) return;
+        try {
+          if (weaverFrame && weaverFrame.contentWindow) {
+            weaverFrame.contentWindow.postMessage({
+              type: 'studio-load-mpd-from-homer',
+              mpd
+            }, '*');
+          }
+        } catch (e) {
+          console.warn('[URN] Failed to relay MPD to Weaver', e);
+        }
+      }
+
+      window.addEventListener('message', (event) => {
+        const msg = event.data;
+        if (!msg || typeof msg !== 'object' || !msg.type) return;
+        if (msg.type === 'were-export-mpd' || msg.type === 'master-export-mpd') {
+          const mpd = typeof msg.mpd === 'string' ? msg.mpd : '';
+          relayMpdToCourage(mpd);
+          relayMpdToWeaver(mpd);
+        }
+      });
+
+      // Initial layout: Courage + MENTO-373 side-by-side, others hidden but
+      // available via tabs.
+      applyLayout();
+    })();
+  </script>
+</body>
+</html>

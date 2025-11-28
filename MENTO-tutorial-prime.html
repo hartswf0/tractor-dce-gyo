@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MENTO Camera Studio – Quickstart</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23eab308'/%3E%3C/svg%3E">
+  <style>
+    :root {
+      --mento-yellow: #eab308;
+      --mento-yellow-glow: rgba(234,179,8,0.4);
+      --mento-red: #ff0040;
+      --mento-model: #22d3ee;
+      --mento-path: #d946ef;
+      --mento-rec: #ef4444;
+      --mento-shell: #38bdf8;
+      --border: 3px solid #333;
+      --shadow: 0 4px 12px rgba(0,0,0,0.6);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: 'Courier New', monospace;
+      background: #000;
+      color: #ddd;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header-brick {
+      background: linear-gradient(180deg, #020617 0%, #000 100%);
+      border-bottom: var(--border);
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: var(--shadow);
+    }
+
+    .header-title {
+      font-size: 22px;
+      font-weight: bold;
+      color: var(--mento-yellow);
+      text-shadow: 0 0 10px var(--mento-yellow-glow);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .step-counter {
+      width: 60px;
+      height: 60px;
+      border-radius: 12px;
+      background: var(--mento-yellow);
+      color: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      font-weight: bold;
+      box-shadow: 0 0 20px var(--mento-yellow-glow);
+      position: relative;
+    }
+
+    .step-counter::before {
+      content: '';
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 30px;
+      height: 14px;
+      border-radius: 8px 8px 0 0;
+      background: #f97316;
+      border: 3px solid #c2410c;
+      border-bottom: none;
+    }
+
+    .instruction-page {
+      flex: 1;
+      padding: 40px 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
+      display: none;
+    }
+
+    .instruction-page.active {
+      display: block;
+      animation: fadeIn 0.4s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .step-brick {
+      background: linear-gradient(135deg, #020617 0%, #000 100%);
+      border: 4px solid #333;
+      border-radius: 16px;
+      padding: 40px;
+      margin-bottom: 40px;
+      position: relative;
+      box-shadow: var(--shadow);
+    }
+
+    .step-number-brick {
+      position: absolute;
+      top: -20px;
+      left: 40px;
+      width: 60px;
+      height: 60px;
+      border-radius: 12px;
+      background: var(--mento-yellow);
+      color: #000;
+      font-size: 32px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px var(--mento-yellow-glow);
+      border: 4px solid #000;
+    }
+
+    .step-number-brick::before {
+      content: '';
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 32px;
+      height: 16px;
+      border-radius: 8px 8px 0 0;
+      background: #f97316;
+      border: 3px solid #000;
+      border-bottom: none;
+    }
+
+    .step-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      align-items: center;
+    }
+
+    @media (max-width: 900px) {
+      .step-content { grid-template-columns: 1fr; }
+    }
+
+    .visual-panel {
+      background: #000;
+      border: 3px solid #333;
+      border-radius: 12px;
+      padding: 24px;
+      min-height: 360px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .text-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .step-title {
+      font-size: 22px;
+      font-weight: bold;
+      color: var(--mento-yellow);
+      letter-spacing: 1px;
+    }
+
+    .step-desc {
+      font-size: 15px;
+      line-height: 1.6;
+      color: #ccc;
+    }
+
+    .ui-mockup {
+      width: 100%;
+      background: #020617;
+      border: 3px solid var(--mento-shell);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .ui-header {
+      background: #020617;
+      padding: 10px 12px;
+      border-bottom: 2px solid #1f2933;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+    }
+
+    .ui-tabs { display: flex; gap: 6px; align-items: center; }
+    .ui-tab {
+      padding: 4px 8px;
+      border-radius: 6px 6px 0 0;
+      border: 1px solid #1f2933;
+      border-bottom: none;
+      background: #020617;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 9px;
+    }
+
+    .ui-tab.active {
+      color: #e5e7eb;
+      border-color: #e5e7eb;
+      background: radial-gradient(circle at top, #020617, #000);
+      box-shadow: 0 2px 0 #000, 0 0 0 1px rgba(248,250,252,0.4);
+    }
+
+    .ui-body {
+      padding: 20px;
+      min-height: 200px;
+      font-size: 12px;
+      color: #94a3b8;
+    }
+
+    .code-brick {
+      background: #000;
+      border: 3px solid var(--mento-yellow);
+      border-radius: 8px;
+      padding: 14px;
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      color: #0f0;
+      margin: 12px 0;
+      position: relative;
+      overflow-x: auto;
+    }
+
+    .code-label {
+      position: absolute;
+      top: -10px;
+      left: 12px;
+      background: #000;
+      padding: 0 8px;
+      color: var(--mento-yellow);
+      font-size: 9px;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+
+    .code-highlight { color: var(--mento-yellow); font-weight: bold; }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+      font-size: 10px;
+    }
+
+    .pill-tag {
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid #334155;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .pill-tag.model { border-color: var(--mento-model); color: var(--mento-model); }
+    .pill-tag.path  { border-color: var(--mento-path);  color: var(--mento-path); }
+    .pill-tag.rec   { border-color: var(--mento-rec);   color: var(--mento-rec); }
+    .pill-tag.shell { border-color: var(--mento-shell); color: var(--mento-shell); }
+
+    .nav-buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 40px;
+      gap: 20px;
+    }
+
+    .nav-brick {
+      padding: 14px 28px;
+      background: linear-gradient(135deg, #1e293b 0%, #020617 100%);
+      border: 3px solid var(--mento-yellow);
+      border-radius: 8px;
+      color: var(--mento-yellow);
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: var(--shadow);
+    }
+
+    .nav-brick:hover {
+      background: var(--mento-yellow);
+      color: #000;
+      transform: translateY(-4px);
+      box-shadow: 0 6px 16px var(--mento-yellow-glow);
+    }
+
+    .nav-brick:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    .progress-bar {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 12px;
+      background: rgba(0,0,0,0.9);
+      padding: 12px;
+      border-radius: 8px;
+      border: 2px solid #333;
+      z-index: 50;
+    }
+
+    .progress-stud {
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+      background: #333;
+      border: 2px solid #555;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .progress-stud.active {
+      background: var(--mento-yellow);
+      border-color: var(--mento-yellow);
+      box-shadow: 0 0 8px var(--mento-yellow-glow);
+    }
+
+    .context-arrow {
+      position: absolute;
+      font-size: 22px;
+      color: var(--mento-yellow);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+  </style>
+  <base target="_blank">
+</head>
+<body>
+  <!-- STEP 1: Meet the MENTO family -->
+  <div class="instruction-page active" data-step="1">
+    <div class="header-brick">
+      <div class="header-title">MENTO CAMERA STUDIO</div>
+      <div class="step-counter">1</div>
+    </div>
+
+    <div class="content">
+      <div class="step-brick">
+        <div class="step-number-brick"></div>
+        <div class="step-content">
+          <div class="visual-panel">
+            <div class="context-arrow" style="top: 16px; left: 50%; transform: translateX(-50%);">⬇️ MENTO SERIES</div>
+            <div class="ui-mockup" style="max-width: 420px;">
+              <div class="ui-header">
+                <div class="ui-tabs">
+                  <div class="ui-tab active">368</div>
+                  <div class="ui-tab">369</div>
+                  <div class="ui-tab">372</div>
+                  <div class="ui-tab">373</div>
+                </div>
+                <div style="font-size:10px; color:#64748b;">MODEL · PATH · REC</div>
+              </div>
+              <div class="ui-body">
+                <div style="font-size:12px; margin-bottom:10px; color:#e5e7eb;">
+                  One camera brain, many shells.
+                </div>
+                <ul style="font-size:11px; line-height:1.5; margin-left:16px;">
+                  <li><strong>MENTO-GLB DESERT</strong> – original canyon GLB + path lab.</li>
+                  <li><strong>MENTO-368</strong> – clean sensor control over local GLBs.</li>
+                  <li><strong>MENTO-369</strong> – scene presets + GRACE sample.</li>
+                  <li><strong>MENTO-372</strong> – Courage-embedded hybrid.</li>
+                  <li><strong>MENTO-373</strong> – 371 panel retargeted to Courage.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="text-panel">
+            <div class="step-title">From Desert Lab to Courage Studio</div>
+            <div class="step-desc">
+              The <strong>MENTO series</strong> is a chain of camera tools that all share the same core idea:
+              <br><br>
+              <em>Use a calm path editor (MENTO) to drive a rich 3D stage (GLB or Courage), then capture deterministic camera moves at film-friendly aspect ratios.</em>
+              <br><br>
+              This guide walks from the original <code>mento-glb-desert.html</code> through <code>mento-368/369</code> and into
+              the new <code>mento-372/373</code> surfaces that ride directly on <strong>Courage</strong> via Homer shells like
+              <strong>Shield of Achilles</strong> and the compact <strong>Ball Jar</strong>.
+            </div>
+            <div class="pill-row">
+              <div class="pill-tag model">MODEL / GLB</div>
+              <div class="pill-tag path">PATH / KEYS</div>
+              <div class="pill-tag rec">REC / CAPTURE</div>
+              <div class="pill-tag shell">HOMER SHELLS</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-buttons">
+        <div></div>
+        <button class="nav-brick" onclick="nextStep(2)">NEXT →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2: 368 – Sensor surface over GLB -->
+  <div class="instruction-page" data-step="2">
+    <div class="header-brick">
+      <div class="header-title">MENTO-368 – SENSOR CONTROL</div>
+      <div class="step-counter">2</div>
+    </div>
+
+    <div class="content">
+      <div class="step-brick">
+        <div class="step-number-brick"></div>
+        <div class="step-content">
+          <div class="visual-panel">
+            <div class="context-arrow" style="top: 14px; left: 50%; transform: translateX(-50%);">⬇️ MODEL / PATH / REC</div>
+            <div class="ui-mockup" style="max-width: 420px;">
+              <div class="ui-header">
+                <div style="font-size:11px; color:var(--mento-model); font-weight:bold;">MENTO-368</div>
+                <div style="font-size:9px; color:#64748b;">MODEL · PATH · REC</div>
+              </div>
+              <div class="ui-body">
+                <ul style="font-size:11px; line-height:1.5; margin-left:16px;">
+                  <li><strong>MODEL</strong> – load GLBs, flip, scale, center.</li>
+                  <li><strong>PATH</strong> – add keys, sculpt POS→TGT spline, frustums.</li>
+                  <li><strong>REC</strong> – FPS / SEC / Mbps, helpers on/off.</li>
+                </ul>
+                <div class="code-brick" style="margin-top:10px;">
+                  <div class="code-label">🎥 Deterministic capture</div>
+                  S.playback.useDeterministic = true;<br>
+                  S.playback.fps&nbsp;&nbsp;= fps;<br>
+                  S.playback.dur&nbsp;&nbsp;= sec;<br>
+                  // animate() advances t by 1/fps each frame
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="text-panel">
+            <div class="step-title">Use 368 as Your Baseline Instrument</div>
+            <div class="step-desc">
+              <strong>MENTO-368</strong> is the clean, GLB-first camera surface:
+              <br><br>
+              • Works entirely on its own canvas.<br>
+              • Owns the scene, camera, and path.<br>
+              • Decouples preview time (real-time) from capture time (virtual seconds).<br><br>
+              Use 368 when you just want to load a GLB, carve a path, and export WebM – no HOMER shell or Courage integration required.
+            </div>
+            <div class="pill-row">
+              <div class="pill-tag model">GLB SCENE</div>
+              <div class="pill-tag path">PATH EDITOR</div>
+              <div class="pill-tag rec">MEDIARECORDER</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-buttons">
+        <button class="nav-brick" onclick="prevStep(1)">← BACK</button>
+        <button class="nav-brick" onclick="nextStep(3)">NEXT →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3: 369 – Scene presets + Grace sample -->
+  <div class="instruction-page" data-step="3">
+    <div class="header-brick">
+      <div class="header-title">MENTO-369 – SCENE PRESETS</div>
+      <div class="step-counter">3</div>
+    </div>
+
+    <div class="content">
+      <div class="step-brick">
+        <div class="step-number-brick"></div>
+        <div class="step-content">
+          <div class="visual-panel">
+            <div class="context-arrow" style="top: 14px; left: 50%; transform: translateX(-50%);">⬇️ GRACE / DESERT / BLANK</div>
+            <div class="ui-mockup" style="max-width: 420px;">
+              <div class="ui-header">
+                <div style="font-size:11px; color:var(--mento-shell); font-weight:bold;">MENTO-369 PRESETS</div>
+                <div style="font-size:9px; color:#64748b;">SCENE PRESET · LOAD GRACE SAMPLE</div>
+              </div>
+              <div class="ui-body">
+                <ul style="font-size:11px; line-height:1.5; margin-left:16px;">
+                  <li>Boots straight into the GRACE sample GLB.</li>
+                  <li>Preset switcher: GRACE / DESERT / BLANK.</li>
+                  <li><em>LOAD GRACE SAMPLE</em> fills the editor with a ready-made
+                      <code>!MENTO SHOT</code> manifest.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="text-panel">
+            <div class="step-title">Use 369 as a Camera Lab Over Known Scenes</div>
+            <div class="step-desc">
+              <strong>MENTO-369</strong> is 368 with opinions:
+              <br><br>
+              • Same MODEL / PATH / REC layout and color language.<br>
+              • Pre-wired GLBs and a GRACE sample manifest so you can test
+                camera moves without hunting for assets.<br><br>
+              It&apos;s the best place to learn the MENTO controls before wiring them
+              into larger shells like HOMER or Shield of Achilles.
+            </div>
+            <div class="pill-row">
+              <div class="pill-tag model">SCENE PRESETS</div>
+              <div class="pill-tag path">GRACE SAMPLE</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-buttons">
+        <button class="nav-brick" onclick="prevStep(2)">← BACK</button>
+        <button class="nav-brick" onclick="nextStep(4)">NEXT →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 4: 372 – Hybrid inside Courage -->
+  <div class="instruction-page" data-step="4">
+    <div class="header-brick">
+      <div class="header-title">MENTO-372 – COURAGE HYBRID</div>
+      <div class="step-counter">4</div>
+    </div>
+
+    <div class="content">
+      <div class="step-brick">
+        <div class="step-number-brick"></div>
+        <div class="step-content">
+          <div class="visual-panel">
+            <div class="context-arrow" style="top: 16px; left: 50%; transform: translateX(-50%);">⬇️ MENTO PANEL INSIDE COURAGE</div>
+            <div class="ui-mockup" style="max-width: 420px;">
+              <div class="ui-header">
+                <div class="ui-tabs">
+                  <div class="ui-tab active">COURAGE</div>
+                  <div class="ui-tab">MENTO-372</div>
+                </div>
+                <div style="font-size:9px; color:#64748b;">iframe · MomentoInterface</div>
+              </div>
+              <div class="ui-body">
+                <p style="font-size:11px; line-height:1.5;">
+                  372 experiments with embedding a MENTO control panel as an
+                  <code>&lt;iframe&gt;</code> directly inside the Courage page, reusing
+                  371-style controls while Courage owns the stage.
+                </p>
+                <div class="code-brick">
+                  <div class="code-label">🔗 Attach to Courage</div>
+                  const win = frame.contentWindow;<br>
+                  const iface = win.MomentoInterface || win.VideoCaptureInterface;<br>
+                  const captureData = win._captureData || {};<br>
+                  const scene   = iface?.scene   || captureData.scene;<br>
+                  const camera  = iface?.camera  || captureData.camera;<br>
+                  const renderer= iface?.renderer|| captureData.renderer;
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="text-panel">
+            <div class="step-title">Prototype: Bring MENTO to the Stage</div>
+            <div class="step-desc">
+              <strong>MENTO-372</strong> is a lab surface, not the final instrument:
+              <br><br>
+              • Courage still renders its own scene and GOLD.
+              <br>
+              • MENTO mounts as a child iframe and pokes at Courage via
+                <code>MomentoInterface</code>.
+              <br>
+              • It proved that we can treat Courage as the &ldquo;camera body&rdquo; and
+                MENTO as the lens / path brain.
+              <br><br>
+              372 is documented so we remember the experiment, but 373 is the
+              surface you&apos;ll actually use for brickfilm work.
+            </div>
+            <div class="pill-row">
+              <div class="pill-tag shell">IFRAME HYBRID</div>
+              <div class="pill-tag model">COURAGE STAGE</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-buttons">
+        <button class="nav-brick" onclick="prevStep(3)">← BACK</button>
+        <button class="nav-brick" onclick="nextStep(5)">NEXT →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 5: 373 + Shield of Achilles -->
+  <div class="instruction-page" data-step="5">
+    <div class="header-brick">
+      <div class="header-title">MENTO-373 · SHIELD OF ACHILLES</div>
+      <div class="step-counter">5</div>
+    </div>
+
+    <div class="content">
+      <div class="step-brick">
+        <div class="step-number-brick"></div>
+        <div class="step-content">
+          <div class="visual-panel">
+            <div class="context-arrow" style="top: 14px; left: 50%; transform: translateX(-50%);">⬇️ HOMER-STYLE SHELL</div>
+            <div class="ui-mockup" style="max-width: 440px;">
+              <div class="ui-header">
+                <div class="ui-tabs">
+                  <div class="ui-tab active">Swiss</div>
+                  <div class="ui-tab">Frank</div>
+                  <div class="ui-tab">Courage</div>
+                  <div class="ui-tab">Weaver</div>
+                  <div class="ui-tab">Were</div>
+                  <div class="ui-tab">Master</div>
+                  <div class="ui-tab" style="color:var(--mento-yellow);">Mento 373</div>
+                </div>
+                <div style="font-size:9px; color:#64748b;">Shield of Achilles</div>
+              </div>
+              <div class="ui-body">
+                <p style="font-size:11px; line-height:1.5;">
+                  <code>shield-of-achilles.html</code> is a HOMER-derived shell that
+                  docks the full Swiss → Frank → Courage → Weaver → Were → Master
+                  chain and mounts <strong>MENTO-373</strong> as the capture head.
+                </p>
+                <div class="code-brick">
+                  <div class="code-label">🚌 GOLD → MENTO-373</div>
+                  const wagFrankBus = new BroadcastChannel('wag-frank');<br>
+                  wagFrankBus.addEventListener('message', (event) =&gt; {<br>
+                  &nbsp;&nbsp;const msg = event.data;<br>
+                  &nbsp;&nbsp;if (msg.kind === 'redbull-gold' || msg.kind === 'weaver-gold') {<br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;mentoFrame.contentWindow.postMessage({<br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;type: 'studio-load-gold-into-mento',<br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;payload: msg.gold || msg.payload<br>
+                  &nbsp;&nbsp;&nbsp;&nbsp;}, '*');<br>
+                  &nbsp;&nbsp;}<br>
+                  });
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="text-panel">
+            <div class="step-title">Use 373 as the Camera Head on the HOMER Chain</div>
+            <div class="step-desc">
+              In <strong>Shield of Achilles</strong>:
+              <br><br>
+              • The center panel is still <strong>Courage</strong> – the only place that
+                actually renders the stage and emits GOLD.
+              <br>
+              • The right panel is now <strong>MENTO-373</strong>, a nearly 1:1
+                clone of 371 re-targeted to Courage&apos;s <code>THREE.Scene</code> and
+                camera.
+              <br>
+              • GOLD snapshots from Courage and Weaver flow into MENTO-373,
+                which parses <code>!MENTO SHOT</code> / <code>!MENTO LIGHT</code>, builds
+                keyframes, mirrors lights + splines into Courage, and runs
+                deterministic capture over the Courage framebuffer.
+              <br><br>
+              This is the &ldquo;full studio&rdquo; surface when you want Swiss/Frank,
+              Weaver, WERE, Master, and MENTO all working on the same MPD.
+            </div>
+            <div class="pill-row">
+              <div class="pill-tag shell">HOMER SHELL</div>
+              <div class="pill-tag path">SPLINE → COURAGE</div>
+              <div class="pill-tag rec">CAPTURE FROM COURAGE</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-buttons">
+        <button class="nav-brick" onclick="prevStep(4)">← BACK</button>
+        <button class="nav-brick" onclick="nextStep(6)">NEXT →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 6: Ball Jar & Grecian Urn – focused Courage / 373 shells -->
+  <div class="instruction-page" data-step="6">
+    <div class="header-brick">
+      <div class="header-title">BALL JAR &amp; GRECIAN URN</div>
+      <div class="step-counter">6</div>
+    </div>
+
+    <div class="content">
+      <div class="step-brick">
+        <div class="step-number-brick"></div>
+        <div class="step-content">
+          <div class="visual-panel">
+            <div class="context-arrow" style="top: 16px; left: 50%; transform: translateX(-50%);">⬇️ TWO JARS</div>
+            <div class="ui-mockup" style="max-width: 420px; margin-bottom:16px;">
+              <div class="ui-header">
+                <div style="font-size:11px; color:var(--mento-shell); font-weight:bold;">BALL JAR</div>
+                <div style="font-size:9px; color:#64748b;">Courage · MENTO-373</div>
+              </div>
+              <div class="ui-body">
+                <p style="font-size:11px; line-height:1.5;">
+                  <code>ball-jar.html</code> is a tiny shell with only two panels:
+                  Courage on the left, MENTO-373 on the right. It still listens
+                  to the wag-frank bus for GOLD, but drops all the extra labs so
+                  you can focus on camera paths and capture tuning.
+                </p>
+              </div>
+            </div>
+            <div class="ui-mockup" style="max-width: 420px;">
+              <div class="ui-header">
+                <div style="font-size:11px; color:var(--mento-shell); font-weight:bold;">GRECIAN URN</div>
+                <div style="font-size:9px; color:#64748b;">Swiss · Frank · Courage · Weaver · Were · Master · Mento-373</div>
+              </div>
+              <div class="ui-body">
+                <p style="font-size:11px; line-height:1.5;">
+                  <code>grecian-urn.html</code> is a full HOMER-style shell with the
+                  whole Swiss → Frank → Courage → Weaver → Were → Master chain,
+                  but it <em>boots like Ball Jar</em>: Courage and MENTO-373 are
+                  paired and docked by default, with the other labs one tab away.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="text-panel">
+            <div class="step-title">Pick the Right Jar for the Job</div>
+            <div class="step-desc">
+              <strong>Ball Jar</strong> is the <strong>jar on the desk</strong> version of Shield:
+              <br><br>
+              • Courage renders the stage exactly as in HOMER.<br>
+              • 373 draws its spline, key markers, and frustum helpers over a
+                preview of Courage&apos;s framebuffer.<br>
+              • Capture records from a dedicated capture canvas sized by
+                <code>ASPECT</code> × <code>RES</code>, using Courage&apos;s WebGL canvas
+                as the source.
+              <br><br>
+              <strong>Grecian Urn</strong> keeps that Ball-Jar pairing but restores the
+              full chain around it:
+              <br><br>
+              • Same Courage+373 default layout as Ball Jar.<br>
+              • Swiss, Frank, Weaver, WERE, and Master are still present as
+                dockable panels.<br>
+              • GOLD and MPD loops mirror Shield of Achilles, but with a
+                Courage/MENTO-centric chrome.
+              <br><br>
+              Use Ball Jar when you only care about camera + capture. Use
+              Grecian Urn when you want that same view inside a complete HOMER
+              studio.
+            </div>
+            <div class="pill-row">
+              <div class="pill-tag shell">BALL JAR</div>
+              <div class="pill-tag shell">GRECIAN URN</div>
+              <div class="pill-tag path">FULCRUM SPLINE</div>
+              <div class="pill-tag rec">ASPECT / RES</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-buttons">
+        <button class="nav-brick" onclick="prevStep(5)">← BACK</button>
+        <div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Progress studs -->
+  <div class="progress-bar">
+    <div class="progress-stud active" data-step="1" onclick="jumpStep(1)"></div>
+    <div class="progress-stud" data-step="2" onclick="jumpStep(2)"></div>
+    <div class="progress-stud" data-step="3" onclick="jumpStep(3)"></div>
+    <div class="progress-stud" data-step="4" onclick="jumpStep(4)"></div>
+    <div class="progress-stud" data-step="5" onclick="jumpStep(5)"></div>
+    <div class="progress-stud" data-step="6" onclick="jumpStep(6)"></div>
+  </div>
+
+  <script>
+    function setStep(step) {
+      const pages = document.querySelectorAll('.instruction-page');
+      const studs = document.querySelectorAll('.progress-stud');
+      pages.forEach(p => {
+        p.classList.toggle('active', p.dataset.step === String(step));
+      });
+      studs.forEach(s => {
+        s.classList.toggle('active', s.dataset.step === String(step));
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function nextStep(step) { setStep(step); }
+    function prevStep(step) { setStep(step); }
+    function jumpStep(step) { setStep(step); }
+  </script>
+</body>
+</html>
