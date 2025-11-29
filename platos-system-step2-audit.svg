@@ -1,0 +1,63 @@
+<svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg" style="background:#333; font-family:Arial, sans-serif;">
+  <defs>
+    <!-- Minifig Icon -->
+    <g id="fig">
+      <circle cx="15" cy="10" r="8" />
+      <path d="M 5 20 L 25 20 L 28 40 L 2 40 Z" />
+      <rect x="5" y="41" width="20" height="15" />
+    </g>
+    <filter id="shadow"><feDropShadow dx="3" dy="3" stdDeviation="2" flood-opacity="0.5"/></filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="5" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#fff" />
+    </marker>
+  </defs>
+
+  <!-- Header -->
+  <g transform="translate(20, 20)">
+    <rect width="300" height="60" rx="4" fill="#F4F4F4" filter="url(#shadow)"/>
+    <text x="20" y="40" font-weight="bold" fill="#333" font-size="24">STEP 2: THE AUDIT</text>
+  </g>
+
+  <!-- Left Side: The "Reject" Bin -->
+  <g transform="translate(50, 150)">
+    <rect width="200" height="300" fill="#635F61" rx="10" filter="url(#shadow)"/>
+    <text x="100" y="40" text-anchor="middle" fill="#fff" font-weight="bold">STATIC (REJECT)</text>
+    <g fill="#A0A0A0" opacity="0.5">
+       <use href="#fig" x="20" y="60"/> <use href="#fig" x="60" y="60"/> <use href="#fig" x="100" y="60"/>
+       <use href="#fig" x="20" y="120"/> <use href="#fig" x="60" y="120"/> <use href="#fig" x="100" y="120"/>
+    </g>
+    <!-- Red X -->
+    <line x1="20" y1="60" x2="180" y2="280" stroke="#C91A09" stroke-width="8" opacity="0.8"/>
+    <line x1="180" y1="60" x2="20" y2="280" stroke="#C91A09" stroke-width="8" opacity="0.8"/>
+  </g>
+
+  <!-- Arrow Processor -->
+  <path d="M 280 300 L 350 300" stroke="#fff" stroke-width="4" marker-end="url(#arrow)"/>
+
+  <!-- Right Side: The "Active" Bins -->
+  <g transform="translate(400, 100)">
+    <!-- Ewok Bucket -->
+    <g transform="translate(0, 0)">
+      <rect width="300" height="180" fill="#A05F35" rx="10" filter="url(#shadow)"/>
+      <text x="150" y="30" text-anchor="middle" fill="#fff" font-weight="bold">TEAM EWOK</text>
+      <g fill="#5F3818">
+        <use href="#fig" x="30" y="50"/> <use href="#fig" x="80" y="50"/>
+        <use href="#fig" x="130" y="50"/> <use href="#fig" x="180" y="50"/>
+      </g>
+      <rect x="20" y="120" width="260" height="40" fill="#287F46" rx="4"/>
+      <text x="150" y="145" text-anchor="middle" fill="#fff" font-size="12">ROLE: AMBUSH</text>
+    </g>
+
+    <!-- Robot Bucket -->
+    <g transform="translate(0, 220)">
+      <rect width="300" height="180" fill="#9BA19D" rx="10" filter="url(#shadow)"/>
+      <text x="150" y="30" text-anchor="middle" fill="#000" font-weight="bold">TEAM ROBOT</text>
+      <g fill="#000">
+        <use href="#fig" x="30" y="50"/> <use href="#fig" x="80" y="50"/>
+        <use href="#fig" x="130" y="50"/> <use href="#fig" x="180" y="50"/>
+      </g>
+      <rect x="20" y="120" width="260" height="40" fill="#0055BF" rx="4"/>
+      <text x="150" y="145" text-anchor="middle" fill="#fff" font-size="12">ROLE: PHALANX</text>
+    </g>
+  </g>
+</svg>

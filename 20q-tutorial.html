@@ -118,6 +118,23 @@
     .pill-green { border-color: var(--accent-green); color: var(--accent-green); }
     .pill-yellow { border-color: var(--accent-yellow); color: var(--accent-yellow); }
 
+    .timeline-shell {
+      max-width: 1400px;
+      margin: 0 auto 8px;
+      padding: 8px 20px 0;
+    }
+
+    .timeline-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
     .layout {
       flex: 1;
       min-height: 0;
@@ -172,13 +189,15 @@
       flex: 1;
       min-height: 0;
       padding: 10px 10px 14px;
-      overflow: auto;
+      overflow: visible;
     }
 
     .round-list {
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
       gap: 8px;
+      overflow-x: auto;
+      padding: 6px 2px 4px;
     }
 
     .round-card {
@@ -310,8 +329,8 @@
     }
 
     .viewer-shell {
-      max-width: 1400px;
-      margin: 0 auto 20px;
+      width: 100%;
+      margin: 0 0 20px;
       padding: 0 20px 20px;
     }
 
@@ -325,8 +344,14 @@
       border-radius: 8px;
       border: 1px solid #111827;
       background: #000;
-      height: 320px;
+      height: 460px;
       overflow: hidden;
+    }
+
+    @media (max-width: 960px) {
+      .viewer-frame {
+        height: 320px;
+      }
     }
 
     .viewer-frame iframe {
@@ -440,14 +465,28 @@
     </div>
   </header>
 
+  <div class="timeline-shell">
+    <div class="timeline-header">
+      <span>ROUNDS · TIMELINE</span>
+      <span style="font-size:10px; color:var(--text-muted);">Click a round to load details and Courage.</span>
+    </div>
+    <div id="roundList" class="round-list"></div>
+  </div>
+
   <main class="layout">
     <section class="column chat-column">
       <div class="column-header">
-        <span>ROUNDS · TIMELINE</span>
-        <span style="font-size:10px; color:var(--text-muted);">Click a round to inspect details →</span>
+        <span>COURAGE VIEWER — LIVE MPD</span>
       </div>
       <div class="column-body">
-        <div id="roundList" class="round-list"></div>
+        <div class="viewer-card">
+          <div class="viewer-frame">
+            <iframe id="courageFrame" src="wag-viewer-prime-integration-20251112-055341 copy/wag-courage.html" title="Courage viewer"></iframe>
+          </div>
+          <div class="viewer-controls">
+            <button id="sendToCourage" class="copy-btn" type="button">SEND MPD TO COURAGE</button>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -496,18 +535,6 @@
       </div>
     </section>
   </main>
-
-  <section class="viewer-shell">
-    <div class="viewer-card">
-      <div class="mini-label">Courage viewer — live MPD</div>
-      <div class="viewer-frame">
-        <iframe id="courageFrame" src="wag-viewer-prime-integration-20251112-055341 copy/wag-courage.html" title="Courage viewer"></iframe>
-      </div>
-      <div class="viewer-controls">
-        <button id="sendToCourage" class="copy-btn" type="button">SEND MPD TO COURAGE</button>
-      </div>
-    </div>
-  </section>
 
   <div id="toast" class="toast">COPIED</div>
 
