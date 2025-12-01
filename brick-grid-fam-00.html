@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>BRICK // GRID_FAMILY</title>
+  <style>
+    :root {
+      --bg: #020617;
+      --surface: #0f172a;
+      --border: #1e293b;
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --accent: #38bdf8;
+      --font: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      padding: 16px;
+      min-height: 100vh;
+    }
+
+    header {
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand { font-weight: 900; letter-spacing: 0.1em; color: var(--muted); font-size: 12px; }
+    .brand span { color: var(--accent); }
+
+    /* The Grid Layout */
+    .gallery {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 12px;
+    }
+
+    /* The Card */
+    .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        transition: transform 0.1s, border-color 0.1s;
+        text-decoration: none;
+        color: inherit;
+        position: relative;
+    }
+
+    .card:active { transform: scale(0.98); }
+    .card:hover { border-color: var(--accent); z-index: 10; }
+
+    /* The Visual (Mini-Grid) */
+    .card-vis {
+        aspect-ratio: 1 / 1;
+        background: #000;
+        border-bottom: 1px solid var(--border);
+        padding: 8px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(3, 1fr);
+        gap: 2px;
+    }
+
+    .pixel {
+        background: #111;
+        border: 1px solid #222;
+        border-radius: 1px;
+    }
+
+    /* Unique Patterns per Card */
+    .card[data-id="bender"] .pixel:nth-child(5) { background: #22d3ee; box-shadow: 0 0 8px #22d3ee; }
+    .card[data-id="mapper"] .pixel:nth-child(even) { background: #38bdf8; opacity: 0.5; }
+    .card[data-id="branch"] .pixel:nth-child(3), .card[data-id="branch"] .pixel:nth-child(5), .card[data-id="branch"] .pixel:nth-child(7) { background: #a855f7; }
+    .card[data-id="arch"] .pixel:nth-child(1), .card[data-id="arch"] .pixel:nth-child(2), .card[data-id="arch"] .pixel:nth-child(3) { background: #facc15; height: 4px; align-self: start; }
+    .card[data-id="monitor"] .pixel { border-color: #f43f5e; opacity: 0.3; } .card[data-id="monitor"] .pixel:nth-child(5) { background: #f43f5e; opacity: 1; }
+    .card[data-id="builder"] .pixel:nth-child(1), .card[data-id="builder"] .pixel:nth-child(5), .card[data-id="builder"] .pixel:nth-child(9) { background: #fff; }
+    .card[data-id="hyper00"] .pixel { background: #1e293b; } .card[data-id="hyper00"] .pixel:nth-child(5) { background: var(--accent); }
+    .card[data-id="pro"] .pixel { border-radius: 50%; border-color: #22c55e; }
+    .card[data-id="inc"] .pixel:nth-child(odd) { background: #fb923c; }
+    .card[data-id="bus"] .pixel:nth-child(4), .card[data-id="bus"] .pixel:nth-child(5), .card[data-id="bus"] .pixel:nth-child(6) { background: #ec4899; }
+    .card[data-id="apex"] .pixel { border: 1px solid #6366f1; } .card[data-id="apex"] .pixel:nth-child(5) { background: #6366f1; }
+    .card[data-id="util"] .pixel:nth-child(1) { background: #94a3b8; }
+    .card[data-id="create"] .pixel:nth-child(2), .card[data-id="create"] .pixel:nth-child(4), .card[data-id="create"] .pixel:nth-child(6), .card[data-id="create"] .pixel:nth-child(8) { background: #e879f9; }
+    .card[data-id="olog"] .pixel { border: 1px dashed #555; }
+
+    .card-meta {
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .card-title { font-weight: bold; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .card-role { font-size: 9px; color: var(--muted); }
+
+    .tags { display: flex; gap: 4px; margin-top: 4px; }
+    .tag { font-size: 8px; padding: 2px 4px; border-radius: 2px; background: #1e293b; color: #94a3b8; text-transform: uppercase; }
+    
+    /* Specific Tag Colors */
+    .tag.g { color: #22d3ee; border: 1px solid rgba(34, 211, 238, 0.2); }
+    .tag.s { color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.2); }
+    .tag.sky { color: #a855f7; border: 1px solid rgba(168, 85, 247, 0.2); }
+    .tag.p { color: #facc15; border: 1px solid rgba(250, 204, 21, 0.2); }
+
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">BRICK <span>//</span> FAMILY</div>
+  </header>
+
+  <div class="gallery">
+
+    <!-- 1. Philosophy -->
+    <a href="brickbender-philosophy.html" class="card" data-id="bender">
+      <div class="card-vis">
+          <div class="pixel"></div><div class="pixel"></div><div class="pixel"></div>
+          <div class="pixel"></div><div class="pixel"></div><div class="pixel"></div>
+          <div class="pixel"></div><div class="pixel"></div><div class="pixel"></div>
+      </div>
+      <div class="card-meta">
+        <div class="card-title">Brickbender</div>
+        <div class="card-role">The Philosophy</div>
+        <div class="tags"><span class="tag g">G</span><span class="tag s">S</span><span class="tag sky">SKY</span></div>
+      </div>
+    </a>
+
+    <!-- 2. Mapper -->
+    <a href="lgi-brickbender.html" class="card" data-id="mapper">
+      <div class="card-vis">
+          <div class="pixel"></div><div class="pixel"></div><div class="pixel"></div>
+          <div class="pixel"></div><div class="pixel"></div><div class="pixel"></div>
+          <div class="pixel"></div><div class="pixel"></div><div class="pixel"></div>
+      </div>
+      <div class="card-meta">
+        <div class="card-title">LGI Mapper</div>
+        <div class="card-role">Code → Graph</div>
+        <div class="tags"><span class="tag s">SITE</span><span class="tag p">P</span></div>
+      </div>
+    </a>
+
+    <!-- 3. Branch -->
+    <a href="brick-branch.html" class="card" data-id="branch">
+      <div class="card-vis">
+          <div class="pixel"></div><div class="pixel"></div><div class="pixel"></div>
+          <div class="pixel"></div><div class="pixel"></div><div class="pixel"></div>
+          <div class="pixel"></div><div class="pixel"></div><div class="pixel"></div>
+      </div>
+      <div class="card-meta">
+        <div class="card-title">Brick Branch</div>
+        <div class="card-role">Sonic Explorer</div>
+        <div class="tags"><span class="tag sky">SKY</span><span class="tag p">P</span></div>
+      </div>
+    </a>
+
+    <!-- 4. Architect -->
+    <a href="brick-architect.html" class="card" data-id="arch">
+      <div class="card-vis">
+          <div class="pixel"></div><div class="pixel"></div><div class="pixel"></div>
+          <div class="pixel"></div><div class="pixel"></div><div class="pixel"></div>
+          <div class="pixel"></div><div class="pixel"></div><div class="pixel"></div>
+      </div>
+      <div class="card-meta">
+        <div class="card-title">Architect</div>
+        <div class="card-role">Structure HUD</div>
+        <div class="tags"><span class="tag s">SITE</span></div>
+      </div>
+    </a>
+
+    <!-- 5. Monitor -->
+    <a href="hyper-monitor.html" class="card" data-id="monitor">
+      <div class="card-vis">
+          <div class="pixel"></div><div class="pixel"></div><div class="pixel"></div>
+          <div class="pixel"></div><div class="pixel"></div><div class="pixel"></div>
+          <div class="pixel"></div><div class="pixel"></div><div class="pixel"></div>
+      </div>
+      <div class="card-meta">
+        <div class="card-title">Hyper Monitor</div>
+        <div class="card-role">Runtime Trace</div>
+        <div class="tags"><span class="tag g">G</span><span class="tag p">P</span></div>
+      </div>
+    </a>
+
+    <!-- 6. Builder -->
+    <a href="hyper-grid.html" class="card" data-id="builder">
+      <div class="card-vis">
+          <div class="pixel"></div><div class="pixel"></div><div class="pixel"></div>
+          <div class="pixel"></div><div class="pixel"></div><div class="pixel"></div>
+          <div class="pixel"></div><div class="pixel"></div><div class="pixel"></div>
+      </div>
+      <div class="card-meta">
+        <div class="card-title">Hyper Grid</div>
+        <div class="card-role">Visual Builder</div>
+        <div class="tags"><span class="tag s">SITE</span><span class="tag g">G</span></div>
+      </div>
+    </a>
+
+    <!-- 7. Hyper 00 -->
+    <a href="hyper-grid-00.html" class="card" data-id="hyper00">
+      <div class="card-vis">
+          <div class="pixel"></div><div class="pixel"></div><div class="pixel"></div>
+          <div class="pixel"></div><div class="pixel"></div><div class="pixel"></div>
+          <div class="pixel"></div><div class="pixel"></div><div class="pixel"></div>
+      </div>
+      <div class="card-meta">
+        <div class="card-title">Hyper 00</div>
+        <div class="card-role">Thinking Surface</div>
+        <div class="tags"><span class="tag sky">SKY</span></div>
+      </div>
+    </a>
+
+    <!-- 8. Apex -->
+    <a href="brick-apex.html" class="card" data-id="apex">
+      <div class="card-vis">
+          <div class="pixel"></div><div class="pixel"></div><div class="pixel"></div>
+          <div class="pixel"></div><div class="pixel"></div><div class="pixel"></div>
+          <div class="pixel"></div><div class="pixel"></div><div class="pixel"></div>
+      </div>
+      <div class="card-meta">
+        <div class="card-title">Brick Apex</div>
+        <div class="card-role">Integrated IDE</div>
+        <div class="tags"><span class="tag p">P</span><span class="tag g">G</span></div>
+      </div>
+    </a>
+
+    <!-- 9. Utility -->
+    <a href="brick-utility.html" class="card" data-id="util">
+      <div class="card-vis">
+          <div class="pixel"></div><div class="pixel"></div><div class="pixel"></div>
+          <div class="pixel"></div><div class="pixel"></div><div class="pixel"></div>
+          <div class="pixel"></div><div class="pixel"></div><div class="pixel"></div>
+      </div>
+      <div class="card-meta">
+        <div class="card-title">Brick Utility</div>
+        <div class="card-role">Aether Tool</div>
+        <div class="tags"><span class="tag s">S</span></div>
+      </div>
+    </a>
+
+    <!-- 10. Create -->
+    <a href="brick-create.html" class="card" data-id="create">
+      <div class="card-vis">
+          <div class="pixel"></div><div class="pixel"></div><div class="pixel"></div>
+          <div class="pixel"></div><div class="pixel"></div><div class="pixel"></div>
+          <div class="pixel"></div><div class="pixel"></div><div class="pixel"></div>
+      </div>
+      <div class="card-meta">
+        <div class="card-title">Brick Create</div>
+        <div class="card-role">Full Stack</div>
+        <div class="tags"><span class="tag sky">SKY</span></div>
+      </div>
+    </a>
+
+    <!-- 11. Bus -->
+    <a href="build-bus.html" class="card" data-id="bus">
+      <div class="card-vis">
+          <div class="pixel"></div><div class="pixel"></div><div class="pixel"></div>
+          <div class="pixel"></div><div class="pixel"></div><div class="pixel"></div>
+          <div class="pixel"></div><div class="pixel"></div><div class="pixel"></div>
+      </div>
+      <div class="card-meta">
+        <div class="card-title">Build Bus</div>
+        <div class="card-role">Signal Pipe</div>
+        <div class="tags"><span class="tag g">G</span></div>
+      </div>
+    </a>
+
+    <!-- 12. Olog -->
+    <a href="brick-grid-family.html" class="card" data-id="olog">
+      <div class="card-vis">
+          <div class="pixel"></div><div class="pixel"></div><div class="pixel"></div>
+          <div class="pixel"></div><div class="pixel"></div><div class="pixel"></div>
+          <div class="pixel"></div><div class="pixel"></div><div class="pixel"></div>
+      </div>
+      <div class="card-meta">
+        <div class="card-title">The Olog</div>
+        <div class="card-role">Research Map</div>
+        <div class="tags"><span class="tag p">P</span></div>
+      </div>
+    </a>
+
+  </div>
+
+</body>
+</html>
