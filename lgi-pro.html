@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LEGOS-GPT Architect Interface v1.0</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap');
+
+        :root {
+            --grid-color: #334155;
+            --bg-color: #0b1121;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background-color: var(--bg-color);
+            overscroll-behavior: none; /* Prevent pull-to-refresh on mobile */
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        /* Animations */
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .animate-slide-in-right { animation: slideInRight 0.3s ease-out forwards; }
+        
+        @keyframes fadeUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .animate-fade-up { animation: fadeUp 0.3s ease-out forwards; }
+
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+
+        /* Node Interaction Styles */
+        .node-hover-trigger:hover .node-halo { opacity: 0.5; }
+        .node-selected .node-halo { opacity: 1 !important; }
+        .node-selected .node-label { opacity: 1 !important; }
+        .node-dragging { cursor: grabbing !important; z-index: 100 !important; }
+        
+        /* Mobile Specifics */
+        @media (max-width: 768px) {
+            .sidebar-expanded { width: 100% !important; z-index: 50; }
+            .sidebar-collapsed { width: 0px !important; padding: 0 !important; overflow: hidden; }
+            .sidebar-collapsed * { opacity: 0; }
+            
+            #inspector { 
+                height: 50vh; 
+                top: auto; 
+                bottom: 0; 
+                border-top: 1px solid #334155;
+                border-left: none;
+                transform: translateY(100%);
+            }
+            #inspector.mobile-open { transform: translateY(0); }
+        }
+
+        /* Toast Notification */
+        #toast-container {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 90%;
+            max-width: 400px;
+        }
+        .toast {
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            color: #e2e8f0;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            pointer-events: auto;
+        }
+    </style>
+</head>
+<body class="bg-[#0b1121] text-slate-300 h-screen w-full flex overflow-hidden select-none relative">
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <!-- Background Effects -->
+    <div class="absolute inset-0 pointer-events-none opacity-10" 
+         style="background-image: linear-gradient(var(--grid-color) 1px, transparent 1px), linear-gradient(90deg, var(--grid-color) 1px, transparent 1px); background-size: 40px 40px;">
+    </div>
+    <div class="absolute inset-0 pointer-events-none bg-gradient-to-b from-[#0b1121] via-transparent to-[#0b1121]"></div>
+
+    <!-- Mobile Menu Toggle -->
+    <button id="mobile-menu-btn" class="absolute top-4 left-4 z-40 p-2 bg-slate-800 rounded-lg border border-slate-600 text-white md:hidden hidden shadow-lg active:scale-95 transition-transform">
+        <i data-lucide="menu"></i>
+    </button>
+
+    <!-- LEFT SIDEBAR -->
+    <aside id="sidebar" class="relative z-30 bg-[#0f172a]/95 border-r border-slate-700/50 backdrop-blur-sm flex flex-col transition-all duration-300 w-72 md:w-72 h-full absolute md:relative">
+        
+        <!-- Header -->
+        <div class="h-16 flex items-center px-4 border-b border-slate-700/50 justify-between shrink-0">
+            <div class="flex items-center overflow-hidden whitespace-nowrap">
+                <div class="w-8 h-8 mr-3 flex-shrink-0" id="header-icon"></div>
+                <div class="flex flex-col sidebar-text transition-opacity duration-300">
+                    <span class="text-lg font-bold text-slate-100 tracking-wider">LEGOS-GPT</span>
+                    <span class="text-[10px] text-cyan-500 tracking-[0.2em] uppercase">System Architect</span>
+                </div>
+            </div>
+            <button id="sidebar-toggle" class="p-1 hover:bg-slate-700 rounded-full text-slate-400 hover:text-white transition-colors">
+                <i data-lucide="minimize-2" id="toggle-icon"></i>
+            </button>
+        </div>
+
+        <!-- Tools List -->
+        <div class="flex-1 overflow-y-auto p-2 space-y-1" id="tools-list">
+            <!-- Injected by JS -->
+        </div>
+
+        <!-- Helper Text -->
+        <div class="px-4 py-2 text-[10px] text-slate-500 text-center sidebar-text transition-opacity duration-300">
+            Tap to add • Drag to move
+        </div>
+
+        <!-- System Status -->
+        <div class="p-4 border-t border-slate-700/50 text-xs sidebar-text transition-opacity duration-300 shrink-0">
+            <div class="flex justify-between mb-2 text-slate-400">
+                <span>Storage</span>
+                <span id="storage-status" class="text-emerald-500">Synced</span>
+            </div>
+            <div class="space-y-1 text-[10px] text-slate-500">
+                <div class="flex items-center gap-2">
+                    <div class="w-2 h-2 bg-[#0f172a] border border-slate-600"></div> Local Persistence
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="flex-1 flex flex-col relative z-0 h-full w-full">
+        
+        <!-- Top Navigation Bar -->
+        <div class="h-16 border-b border-slate-700/50 flex justify-between items-center px-4 md:px-6 bg-[#0f172a]/80 backdrop-blur shrink-0 z-20">
+            <div class="flex items-center gap-4 overflow-x-auto no-scrollbar w-full md:w-auto">
+                <div class="w-8 md:hidden shrink-0"></div> <!-- Spacer for menu button -->
+
+                <div class="flex gap-1 bg-slate-800/50 p-1 rounded-lg border border-slate-700/50 shrink-0">
+                    <button id="tab-system" class="nav-tab px-4 py-1.5 rounded-md text-sm transition-all bg-cyan-500/20 text-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.2)] whitespace-nowrap" onclick="switchView('system')">System</button>
+                    <button id="tab-story" class="nav-tab px-4 py-1.5 rounded-md text-sm transition-all hover:text-white text-slate-400 whitespace-nowrap" onclick="switchView('story')">Story Map</button>
+                </div>
+                
+                <div class="hidden md:flex items-center text-slate-500 text-sm gap-2 whitespace-nowrap">
+                    <div class="h-4 w-px bg-slate-700 mx-2"></div>
+                    <span id="mode-indicator" class="text-xs text-cyan-600 font-mono">[FREEFORM MODE]</span>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 md:gap-3 shrink-0 ml-2">
+                <button onclick="toggleGrid()" id="grid-btn" class="p-2 hover:bg-slate-800 rounded text-slate-400 hover:text-white active:bg-slate-700 relative" title="Toggle Grid Snap">
+                    <i data-lucide="grid" class="w-4 h-4"></i>
+                    <div id="grid-status" class="absolute top-1 right-1 w-1.5 h-1.5 bg-cyan-500 rounded-full hidden"></div>
+                </button>
+                <button onclick="clearCanvas()" class="p-2 hover:bg-red-900/30 rounded text-slate-400 hover:text-red-400 active:bg-slate-700" title="Clear Canvas">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                </button>
+                <button onclick="saveState(true)" class="p-2 hover:bg-slate-800 rounded text-slate-400 hover:text-white active:bg-slate-700" title="Force Save">
+                    <i data-lucide="save" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Workspace / Canvas -->
+        <div class="flex-1 relative overflow-hidden bg-[#0b1121] touch-none" id="canvas-container">
+            
+            <!-- HUD Elements -->
+            <div class="absolute top-4 left-4 w-32 h-32 border-l border-t border-cyan-500/20 pointer-events-none hidden md:block"></div>
+            <div class="absolute top-4 left-4 text-[10px] text-cyan-500/50 font-mono hidden md:block">XY-COORD: <span id="coords">000.000</span></div>
+            <div class="absolute bottom-4 right-4 w-32 h-32 border-r border-b border-cyan-500/20 pointer-events-none hidden md:block"></div>
+
+            <!-- Canvas Area -->
+            <div class="w-full h-full relative" id="canvas-area">
+                <!-- SVG Lines Layer -->
+                <svg id="connections-layer" class="absolute inset-0 w-full h-full pointer-events-none z-0"></svg>
+                
+                <!-- Core Pulse (Visual Anchor) -->
+                <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 border border-cyan-500/30 rounded-full animate-ping opacity-20 pointer-events-none z-0"></div>
+
+                <!-- Nodes Container -->
+                <div id="nodes-layer" class="absolute inset-0 w-full h-full z-10"></div>
+            </div>
+        </div>
+
+        <!-- Bottom Console Panel -->
+        <div id="console-panel" class="bg-[#0f172a] border-t border-slate-700/50 transition-all duration-300 h-8 md:h-48 flex flex-col z-20 absolute bottom-0 w-full md:relative">
+            <div id="console-header" class="h-8 bg-slate-800/50 flex items-center justify-between px-4 cursor-pointer hover:bg-slate-800 transition-colors shrink-0">
+                <div class="flex items-center gap-2 text-xs font-bold text-slate-400">
+                    <i data-lucide="terminal" class="w-3 h-3"></i>
+                    <span>SYSTEM CONSOLE</span>
+                </div>
+                <i id="console-toggle-icon" data-lucide="chevron-up" class="w-3.5 h-3.5 text-slate-400 md:rotate-180"></i>
+            </div>
+            
+            <div id="console-content" class="p-4 font-mono text-xs text-slate-400 space-y-1 overflow-y-auto flex-1 pb-safe hidden md:block">
+                <!-- Log injected by JS -->
+            </div>
+        </div>
+
+    </main>
+
+    <!-- RIGHT SIDEBAR: INSPECTOR -->
+    <aside id="inspector" class="fixed z-50 bg-[#0f172a]/95 w-full md:w-80 md:h-full md:static md:border-l md:border-t-0 border-t border-slate-700/50 backdrop-blur-sm flex-col shadow-2xl transition-transform duration-300 md:translate-x-full hidden md:flex">
+        
+        <!-- Inspector Header -->
+        <div class="h-12 md:h-16 border-b border-slate-700/50 flex items-center justify-between px-6 bg-slate-800/20 shrink-0">
+            <div class="flex items-center gap-2">
+                <div class="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div>
+                <span class="font-bold text-slate-200">Node Inspector</span>
+            </div>
+            <button id="close-inspector" class="text-slate-500 hover:text-white p-2">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+        </div>
+
+        <!-- Content -->
+        <div class="flex-1 overflow-y-auto p-6 space-y-6" id="inspector-content">
+            <!-- Dynamic Content -->
+        </div>
+        
+        <!-- Action Footer -->
+        <div class="p-4 border-t border-slate-700/50 bg-slate-800/30 shrink-0 pb-safe">
+            <button onclick="triggerAction('Delete Node')" class="w-full py-3 md:py-2 bg-red-900/50 hover:bg-red-900 text-red-200 border border-red-800 rounded text-xs font-bold tracking-wider transition-colors mb-2">
+                DELETE NODE
+            </button>
+        </div>
+    </aside>
+
+    <script>
+        // --- Isometric Icon Generators ---
+        const getIsoCubeSVG = (color = "blue", opacity = 1) => {
+            const colors = {
+                blue: { top: '#60a5fa', left: '#3b82f6', right: '#2563eb' },
+                yellow: { top: '#fcd34d', left: '#f59e0b', right: '#d97706' },
+                cyan: { top: '#22d3ee', left: '#06b6d4', right: '#0891b2' },
+                purple: { top: '#e879f9', left: '#c026d3', right: '#a21caf' },
+                green: { top: '#4ade80', left: '#16a34a', right: '#15803d' }
+            };
+            const c = colors[color] || colors.blue;
+            return `
+            <svg viewBox="0 0 40 40" class="w-full h-full drop-shadow-lg" style="opacity: ${opacity}">
+                <path d="M20 4 L36 12 L20 20 L4 12 Z" fill="${c.top}" stroke="#1e293b" stroke-width="1" />
+                <path d="M4 12 L20 20 L20 38 L4 30 Z" fill="${c.left}" stroke="#1e293b" stroke-width="1" />
+                <path d="M36 12 L20 20 L20 38 L36 30 Z" fill="${c.right}" stroke="#1e293b" stroke-width="1" />
+            </svg>`;
+        };
+
+        const Icons = {
+            Entity: () => getIsoCubeSVG('blue'),
+            Core: () => getIsoCubeSVG('yellow'),
+            Goal: () => `
+                <div class="relative w-full h-full">
+                    <div class="absolute -top-2 left-0 right-0 mx-auto w-4 h-4 flex justify-center items-center text-yellow-400 animate-pulse"><i data-lucide="target" class="w-4 h-4"></i></div>
+                    ${getIsoCubeSVG('blue')}
+                    <div class="absolute top-0 left-0 right-0 mx-auto w-0.5 h-4 bg-yellow-400/50 -z-10 transform -translate-y-2"></div>
+                </div>`,
+            Obstacle: () => `
+                <div class="relative w-full h-full flex items-center justify-center">
+                    <div class="w-3/4 h-3/4 relative">${getIsoCubeSVG('blue')}</div>
+                    <div class="absolute right-0 h-full w-1 bg-slate-400/80 shadow-[0_0_10px_rgba(148,163,184,0.5)]"></div>
+                    <div class="absolute right-1 top-1/2 w-3 h-0.5 bg-yellow-400"></div>
+                </div>`,
+            Morphism: () => `
+                <div class="relative w-full h-full flex items-center justify-between">
+                    <div class="w-5 h-5">${getIsoCubeSVG('blue')}</div>
+                    <div class="flex-1 h-0.5 bg-yellow-400 mx-1 relative">
+                        <div class="absolute right-0 -top-1 w-0 h-0 border-t-4 border-t-transparent border-b-4 border-b-transparent border-l-4 border-l-yellow-400"></div>
+                    </div>
+                    <div class="w-5 h-5">${getIsoCubeSVG('blue')}</div>
+                </div>`,
+            Shift: () => `
+                <div class="relative w-full h-full flex items-center justify-center">
+                    <div class="w-5 h-5 opacity-50">${getIsoCubeSVG('blue')}</div>
+                    <div class="absolute z-10 text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.8)]"><i data-lucide="zap" class="w-5 h-5 fill-current"></i></div>
+                    <div class="w-5 h-5 opacity-50">${getIsoCubeSVG('blue')}</div>
+                </div>`,
+            // New Isometric Icons replacing Lucide placeholders
+            Location: () => `
+                <div class="relative w-full h-full flex items-center justify-center">
+                   <div class="absolute top-0 right-0 w-4 h-4">${getIsoCubeSVG('cyan')}</div>
+                   <div class="absolute bottom-0 left-0 w-4 h-4">${getIsoCubeSVG('cyan')}</div>
+                   <svg class="absolute inset-0 w-full h-full pointer-events-none">
+                     <path d="M14 26 C 14 26, 20 20, 26 14" stroke="#22d3ee" stroke-width="2" fill="none" stroke-linecap="round" />
+                     <polygon points="26 14, 22 15, 25 18" fill="#22d3ee" />
+                   </svg>
+                </div>`,
+            Timepoint: () => `
+                <div class="relative w-full h-full flex items-center justify-center">
+                    <div class="w-3/4 h-3/4">${getIsoCubeSVG('cyan')}</div>
+                    <div class="absolute -right-1 -bottom-1 w-5 h-5 bg-[#0f172a] rounded-full border border-cyan-500 flex items-center justify-center">
+                       <i data-lucide="clock" class="w-3 h-3 text-cyan-400"></i>
+                    </div>
+                </div>`,
+            Scene: () => `
+                <div class="relative w-full h-full flex items-center justify-center p-1">
+                    <div class="absolute top-0 left-0 w-2 h-2 border-l-2 border-t-2 border-cyan-400"></div>
+                    <div class="absolute top-0 right-0 w-2 h-2 border-r-2 border-t-2 border-cyan-400"></div>
+                    <div class="absolute bottom-0 left-0 w-2 h-2 border-l-2 border-b-2 border-cyan-400"></div>
+                    <div class="absolute bottom-0 right-0 w-2 h-2 border-r-2 border-b-2 border-cyan-400"></div>
+                    <div class="flex gap-0.5">
+                       <div class="w-3 h-3">${getIsoCubeSVG('cyan')}</div>
+                       <div class="w-3 h-3">${getIsoCubeSVG('cyan')}</div>
+                    </div>
+                </div>`,
+            Story: () => `
+                <div class="relative w-full h-full flex flex-col items-center justify-start pt-1">
+                    <div class="w-4 h-4 z-10">${getIsoCubeSVG('cyan')}</div>
+                    <div class="w-0.5 h-2 bg-cyan-500/50"></div>
+                    <div class="w-full h-0.5 bg-cyan-500/50 relative">
+                        <div class="absolute left-0 bottom-0 w-0.5 h-2 bg-cyan-500/50 transform translate-y-full"></div>
+                        <div class="absolute right-0 bottom-0 w-0.5 h-2 bg-cyan-500/50 transform translate-y-full"></div>
+                        <div class="absolute left-1/2 bottom-0 w-0.5 h-2 bg-cyan-500/50 transform translate-y-full -translate-x-1/2"></div>
+                    </div>
+                    <div class="flex gap-1 mt-2">
+                        <div class="w-2.5 h-2.5">${getIsoCubeSVG('cyan')}</div>
+                        <div class="w-2.5 h-2.5">${getIsoCubeSVG('cyan')}</div>
+                        <div class="w-2.5 h-2.5">${getIsoCubeSVG('cyan')}</div>
+                    </div>
+                </div>`
+        };
+
+        // --- Data & State ---
+        const DEFAULT_NODES = [
+            { id: 1, type: 'core', x: 50, y: 50, label: 'System Core', icon: 'Core' },
+            { id: 2, type: 'entity', x: 20, y: 25, label: 'User Module', icon: 'Entity' },
+            { id: 3, type: 'entity', x: 80, y: 25, label: 'Data Store', icon: 'Entity' },
+            { id: 4, type: 'goal', x: 50, y: 15, label: 'Optimization', icon: 'Goal' },
+        ];
+
+        let systemNodes = [...DEFAULT_NODES];
+
+        let state = {
+            sidebarOpen: window.innerWidth > 768,
+            consoleOpen: false, 
+            selectedNodeId: null,
+            viewMode: 'system', // 'system' or 'story'
+            isDragging: false,
+            draggedNodeId: null,
+            lastX: 0,
+            lastY: 0,
+            snapToGrid: false
+        };
+
+        if(window.innerWidth > 768) state.consoleOpen = true;
+
+        // --- DOM Elements ---
+        const els = {
+            sidebar: document.getElementById('sidebar'),
+            inspector: document.getElementById('inspector'),
+            mobileMenuBtn: document.getElementById('mobile-menu-btn'),
+            nodesLayer: document.getElementById('nodes-layer'),
+            connectionsLayer: document.getElementById('connections-layer'),
+            consolePanel: document.getElementById('console-panel'),
+            consoleContent: document.getElementById('console-content'),
+            consoleToggleIcon: document.getElementById('console-toggle-icon'),
+            modeIndicator: document.getElementById('mode-indicator'),
+            canvasArea: document.getElementById('canvas-area'),
+            storageStatus: document.getElementById('storage-status'),
+            gridStatus: document.getElementById('grid-status')
+        };
+        
+        // --- Initialization ---
+        function init() {
+            loadState(); // Load from local storage
+            renderHeaderIcon();
+            renderTools();
+            renderNodes();
+            renderConnections();
+            updateSidebarState();
+            updateConsoleState();
+            logToConsole("SUCCESS", "System initialized.");
+            
+            // Global events
+            window.addEventListener('resize', handleResize);
+            document.addEventListener('mousemove', handleDragMove);
+            document.addEventListener('mouseup', handleDragEnd);
+            document.addEventListener('touchmove', handleDragMove, {passive: false});
+            document.addEventListener('touchend', handleDragEnd);
+        }
+
+        // --- Persistence ---
+        function saveState(manual = false) {
+            const data = {
+                nodes: systemNodes,
+                mode: state.viewMode,
+                grid: state.snapToGrid
+            };
+            localStorage.setItem('legos_gpt_state', JSON.stringify(data));
+            els.storageStatus.innerText = "Synced";
+            els.storageStatus.classList.add("text-emerald-500");
+            if (manual) showToast("System State Saved Locally");
+        }
+
+        function loadState() {
+            const data = localStorage.getItem('legos_gpt_state');
+            if (data) {
+                try {
+                    const parsed = JSON.parse(data);
+                    systemNodes = parsed.nodes || DEFAULT_NODES;
+                    state.snapToGrid = parsed.grid || false;
+                    if(state.snapToGrid) els.gridStatus.classList.remove('hidden');
+                    
+                    if(parsed.mode === 'story') {
+                        state.viewMode = 'story';
+                        document.getElementById('tab-story').click();
+                    }
+                    logToConsole("INFO", "Loaded state from local storage.");
+                } catch(e) {
+                    console.error("Save file corrupted", e);
+                    systemNodes = [...DEFAULT_NODES];
+                }
+            }
+        }
+
+        function clearCanvas() {
+            if(confirm("Are you sure you want to clear all nodes?")) {
+                // Keep Core only
+                systemNodes = systemNodes.filter(n => n.id === 1);
+                // Reset Core Position
+                const core = systemNodes[0];
+                if(core) { core.x = 50; core.y = 50; }
+                
+                renderNodes();
+                renderConnections();
+                saveState();
+                showToast("Canvas Cleared");
+            }
+        }
+
+        // --- Drag & Drop Logic ---
+        function handleResize() {
+            renderConnections();
+        }
+
+        function startDrag(e, id) {
+            state.isDragging = true;
+            state.draggedNodeId = id;
+            
+            const evt = e.touches ? e.touches[0] : e;
+            state.lastX = evt.clientX;
+            state.lastY = evt.clientY;
+
+            selectNode(id);
+        }
+
+        function handleDragMove(e) {
+            if (!state.isDragging || !state.draggedNodeId) return;
+            e.preventDefault(); 
+
+            const evt = e.touches ? e.touches[0] : e;
+            const deltaX = evt.clientX - state.lastX;
+            const deltaY = evt.clientY - state.lastY;
+
+            state.lastX = evt.clientX;
+            state.lastY = evt.clientY;
+
+            const containerRect = els.canvasArea.getBoundingClientRect();
+            const percentX = (deltaX / containerRect.width) * 100;
+            const percentY = (deltaY / containerRect.height) * 100;
+
+            const node = systemNodes.find(n => n.id === state.draggedNodeId);
+            if (node) {
+                let newX = Math.max(0, Math.min(100, node.x + percentX));
+                let newY = Math.max(0, Math.min(100, node.y + percentY));
+
+                // Snap to Grid Logic (5% increments)
+                if (state.snapToGrid) {
+                    newX = Math.round(newX / 5) * 5;
+                    newY = Math.round(newY / 5) * 5;
+                }
+
+                node.x = newX;
+                node.y = newY;
+                
+                updateNodePositionDOM(node);
+                renderConnections();
+                
+                const coordEl = document.getElementById('coords');
+                if(coordEl) coordEl.innerText = `${node.x.toFixed(1)}, ${node.y.toFixed(1)}`;
+            }
+        }
+
+        function handleDragEnd() {
+            if (state.isDragging) {
+                state.isDragging = false;
+                state.draggedNodeId = null;
+                document.body.style.cursor = 'default';
+                saveState(); // Auto save on drop
+            }
+        }
+
+        function updateNodePositionDOM(node) {
+            const el = document.getElementById(`node-${node.id}`);
+            if (el) {
+                el.style.left = `${node.x}%`;
+                el.style.top = `${node.y}%`;
+            }
+        }
+
+        function toggleGrid() {
+            state.snapToGrid = !state.snapToGrid;
+            if(state.snapToGrid) {
+                els.gridStatus.classList.remove('hidden');
+                showToast("Grid Snap: ON");
+            } else {
+                els.gridStatus.classList.add('hidden');
+                showToast("Grid Snap: OFF");
+            }
+            saveState();
+        }
+
+        // --- Logic: View Modes ---
+        function switchView(mode) {
+            state.viewMode = mode;
+            state.selectedNodeId = null;
+            closeInspector();
+
+            document.querySelectorAll('.nav-tab').forEach(t => {
+                t.className = 'nav-tab px-4 py-1.5 rounded-md text-sm transition-all hover:text-white text-slate-400 whitespace-nowrap';
+            });
+            document.getElementById(`tab-${mode}`).className = 'nav-tab px-4 py-1.5 rounded-md text-sm transition-all bg-cyan-500/20 text-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.2)] whitespace-nowrap';
+            
+            els.modeIndicator.innerText = mode === 'system' ? '[FREEFORM MODE]' : '[TREE/STORY MODE]';
+            
+            if (mode === 'story') {
+                logToConsole("INFO", "Re-organizing nodes into hierarchical story map...");
+                arrangeAsTree();
+            } else {
+                logToConsole("INFO", "Switched to freeform system view.");
+                renderNodes();
+                renderConnections();
+            }
+            saveState();
+            showToast(`Switched to ${mode === 'system' ? 'System' : 'Story'} View`);
+        }
+
+        function arrangeAsTree() {
+            const core = systemNodes.find(n => n.id === 1);
+            if(core) { core.x = 50; core.y = 15; }
+
+            const others = systemNodes.filter(n => n.id !== 1);
+            const row2 = others.slice(0, 3);
+            const row3 = others.slice(3);
+
+            row2.forEach((n, i) => {
+                n.y = 45;
+                n.x = 30 + (i * 20); // 30, 50, 70
+            });
+            
+            row3.forEach((n, i) => {
+                n.y = 75;
+                n.x = 20 + (i * 15); // Spread more if many
+            });
+
+            renderNodes();
+            renderConnections();
+        }
+
+        // --- Logic: Adding Nodes ---
+        function addNode(type, iconName) {
+            const id = Date.now();
+            const newNode = {
+                id: id,
+                type: type.toLowerCase(),
+                icon: iconName,
+                label: `New ${type}`,
+                x: 50 + (Math.random() * 10 - 5),
+                y: 50 + (Math.random() * 10 - 5)
+            };
+            
+            systemNodes.push(newNode);
+            
+            if (state.viewMode === 'story') {
+                arrangeAsTree();
+            } else {
+                renderNodes();
+                renderConnections();
+            }
+
+            logToConsole("INFO", `Created new node: ${type} (#${id})`);
+            showToast(`Added ${type}`);
+            selectNode(id);
+            saveState();
+            
+            // Mobile: Close sidebar after add
+            if(window.innerWidth <= 768 && state.sidebarOpen) {
+                toggleSidebar();
+            }
+        }
+
+        function deleteNode() {
+            if(!state.selectedNodeId) return;
+            if(state.selectedNodeId === 1) {
+                showToast("Cannot delete Core System!");
+                return;
+            }
+            systemNodes = systemNodes.filter(n => n.id !== state.selectedNodeId);
+            state.selectedNodeId = null;
+            renderNodes();
+            renderConnections();
+            closeInspector();
+            showToast("Node Deleted");
+            saveState();
+        }
+
+        // --- Renderers ---
+        function renderHeaderIcon() {
+            document.getElementById('header-icon').innerHTML = getIsoCubeSVG('blue');
+        }
+
+        function renderTools() {
+            // Updated tools list with icon keys pointing to new SVG definitions
+            const tools = [
+                { label: 'Entity', tag: '<Entity>', iconKey: 'Entity' },
+                { label: 'Morphism', tag: '[Morphism]', iconKey: 'Morphism' },
+                { label: 'Goal', tag: '<Goal>', iconKey: 'Goal' },
+                { label: 'Obstacle', tag: '<Obstacle>', iconKey: 'Obstacle' },
+                { label: 'Shift', tag: '[Shift]', iconKey: 'Shift' },
+                { separator: true },
+                { label: 'Location', tag: '<Location>', iconKey: 'Location' },
+                { label: 'Timepoint', tag: '<Timepoint>', iconKey: 'Timepoint' },
+                { label: 'Scene', tag: 'Scene', iconKey: 'Scene' },
+                { label: 'Story', tag: 'Decomp', iconKey: 'Story' }
+            ];
+
+            const container = document.getElementById('tools-list');
+            container.innerHTML = tools.map(tool => {
+                if (tool.separator) return `<div class="my-4 border-t border-slate-700/50 mx-2"></div>`;
+                
+                // Use the custom icon generator
+                let iconContent = Icons[tool.iconKey]();
+
+                return `
+                <button onclick="addNode('${tool.label}', '${tool.iconKey}')" class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-slate-800 group transition-colors text-left relative overflow-hidden tool-item active:scale-95 duration-75">
+                    <div class="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div class="w-8 h-8 flex items-center justify-center text-slate-300 relative z-10 flex-shrink-0 pointer-events-none">
+                        ${iconContent}
+                    </div>
+                    <div class="flex flex-col relative z-10 sidebar-text transition-opacity duration-300 pointer-events-none">
+                        <span class="text-sm text-slate-200 font-medium group-hover:text-cyan-400 transition-colors">${tool.label}</span>
+                        <span class="text-[10px] text-slate-500 font-mono">${tool.tag}</span>
+                    </div>
+                    <div class="ml-auto text-slate-600 group-hover:text-cyan-500 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0 sidebar-text pointer-events-none">
+                        <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                    </div>
+                </button>`;
+            }).join('');
+        }
+
+        function renderNodes() {
+            els.nodesLayer.innerHTML = systemNodes.map(node => {
+                const iconFn = Icons[node.icon] || Icons.Entity;
+                const isSelected = state.selectedNodeId === node.id;
+                
+                return `
+                <div id="node-${node.id}" 
+                     class="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-grab group transition-none node-hover-trigger ${isSelected ? 'z-50 node-selected' : 'z-10'}"
+                     style="left: ${node.x}%; top: ${node.y}%;"
+                     onmousedown="startDrag(event, ${node.id})"
+                     ontouchstart="startDrag(event, ${node.id})"
+                >
+                    <div class="w-16 h-16 relative pointer-events-none"> 
+                        <div class="node-halo absolute inset-0 rounded-full bg-cyan-500/20 blur-xl transition-opacity duration-300 opacity-0"></div>
+                        <div class="w-full h-full drop-shadow-2xl transition-transform duration-200 ${isSelected ? 'scale-110' : ''}">
+                            ${iconFn()}
+                        </div>
+                        <div class="node-label absolute -bottom-6 left-1/2 transform -translate-x-1/2 whitespace-nowrap px-2 py-0.5 bg-[#0f172a]/90 border border-cyan-500/30 rounded text-[10px] text-cyan-400 transition-opacity duration-300 opacity-0 group-hover:opacity-100">
+                            &lt;${node.label}&gt;
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+            lucide.createIcons();
+        }
+
+        function renderConnections() {
+            if(state.viewMode === 'story') {
+                renderTreeConnections();
+                return;
+            }
+
+            const core = systemNodes.find(n => n.id === 1);
+            if (!core) return;
+            
+            const lines = systemNodes.map(node => {
+                if (node.id === 1) return '';
+                return `<line x1="${core.x}%" y1="${core.y}%" x2="${node.x}%" y2="${node.y}%" stroke="#0ea5e9" stroke-width="1" stroke-opacity="0.3" marker-end="url(#arrowhead)"/>`;
+            }).join('');
+
+            els.connectionsLayer.innerHTML = `<defs><marker id="arrowhead" markerWidth="10" markerHeight="7" refX="28" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#0ea5e9" opacity="0.5" /></marker></defs>${lines}`;
+        }
+
+        function renderTreeConnections() {
+            const core = systemNodes.find(n => n.id === 1);
+            const others = systemNodes.filter(n => n.id !== 1);
+            
+            let lines = "";
+            others.forEach((n, i) => {
+                if(i < 3) {
+                     lines += `<line x1="${core.x}%" y1="${core.y}%" x2="${n.x}%" y2="${n.y}%" stroke="#0ea5e9" stroke-width="1" stroke-opacity="0.3" />`;
+                } else {
+                     const parent = others[i % 3];
+                     lines += `<line x1="${parent.x}%" y1="${parent.y}%" x2="${n.x}%" y2="${n.y}%" stroke="#0ea5e9" stroke-width="1" stroke-opacity="0.3" stroke-dasharray="4" />`;
+                }
+            });
+             els.connectionsLayer.innerHTML = `<defs><marker id="arrowhead" markerWidth="10" markerHeight="7" refX="28" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#0ea5e9" opacity="0.5" /></marker></defs>${lines}`;
+        }
+
+        function renderInspector(node) {
+            if (!node) return;
+            const content = document.getElementById('inspector-content');
+            content.innerHTML = `
+            <div class="space-y-4 animate-fade-up">
+              <div class="space-y-2">
+                <label class="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">Identity</label>
+                <div class="p-3 rounded bg-slate-800/50 border border-slate-700/50 space-y-2">
+                  <div class="flex justify-between items-center">
+                    <span class="text-sm text-slate-400">ID</span>
+                    <span class="text-xs font-mono text-cyan-500">#${node.id.toString().slice(-4)}</span>
+                  </div>
+                  <div class="flex justify-between items-center">
+                    <span class="text-sm text-slate-400">Type</span>
+                    <span class="text-xs font-mono text-yellow-500 uppercase">${node.type}</span>
+                  </div>
+                  <div class="flex justify-between items-center">
+                    <span class="text-sm text-slate-400">Label</span>
+                    <input type="text" value="${node.label}" onchange="updateLabel(${node.id}, this.value)" class="text-right text-sm bg-transparent border-b border-slate-600 focus:border-cyan-500 outline-none text-white w-32" />
+                  </div>
+                </div>
+              </div>
+
+              <div class="space-y-2">
+                 <div class="flex justify-between items-end">
+                  <label class="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">Data Structure</label>
+                  <span class="text-[9px] text-slate-600 font-mono">read-only</span>
+                 </div>
+                 <div class="bg-[#0b1121] p-4 rounded border border-slate-700/50 font-mono text-xs leading-relaxed overflow-x-auto">
+                   <div class="text-pink-400">node:</div>
+                   <div class="pl-4 text-slate-300"><span class="text-blue-400">id:</span> "${node.label}"</div>
+                   <div class="pl-4 text-slate-300"><span class="text-blue-400">class:</span> ${node.type}</div>
+                   <div class="pl-4 text-slate-300"><span class="text-blue-400">coordinates:</span> [${Math.round(node.x)}, ${Math.round(node.y)}]</div>
+                   <div class="pl-4 text-slate-300"><span class="text-blue-400">meta:</span></div>
+                   <div class="pl-8 text-slate-400">status: active</div>
+                   <div class="pl-8 text-slate-400">icon_key: "${node.icon}"</div>
+                 </div>
+              </div>
+            </div>`;
+        }
+
+        // --- Interaction Handlers ---
+
+        function toggleSidebar() {
+            state.sidebarOpen = !state.sidebarOpen;
+            updateSidebarState();
+        }
+
+        function updateSidebarState() {
+            const toggleIcon = document.getElementById('toggle-icon');
+            const sidebarTexts = document.querySelectorAll('.sidebar-text');
+            
+            if (state.sidebarOpen) {
+                els.sidebar.classList.remove('w-0', 'md:w-16', 'sidebar-collapsed');
+                els.sidebar.classList.add('w-full', 'md:w-72', 'sidebar-expanded');
+                toggleIcon.setAttribute('data-lucide', 'minimize-2');
+                els.mobileMenuBtn.classList.add('hidden');
+                sidebarTexts.forEach(el => el.style.opacity = '1');
+            } else {
+                els.sidebar.classList.remove('w-full', 'md:w-72', 'sidebar-expanded');
+                els.sidebar.classList.add('w-0', 'md:w-16', 'sidebar-collapsed');
+                toggleIcon.setAttribute('data-lucide', 'maximize-2');
+                els.mobileMenuBtn.classList.remove('hidden');
+                sidebarTexts.forEach(el => el.style.opacity = '0');
+            }
+            lucide.createIcons();
+        }
+
+        function selectNode(id) {
+            state.selectedNodeId = id;
+            renderNodes(); 
+            
+            const node = systemNodes.find(n => n.id === id);
+            if (node) {
+                renderInspector(node);
+                els.inspector.classList.remove('hidden', 'md:translate-x-full');
+                els.inspector.classList.add('flex', 'md:translate-x-0', 'animate-slide-in-right');
+                
+                if(window.innerWidth <= 768) {
+                    els.inspector.classList.remove('hidden');
+                    els.inspector.classList.add('flex', 'mobile-open');
+                }
+            }
+        }
+
+        function closeInspector() {
+            state.selectedNodeId = null;
+            renderNodes();
+            els.inspector.classList.add('md:translate-x-full');
+            els.inspector.classList.remove('mobile-open');
+            setTimeout(() => {
+                if(!state.selectedNodeId) els.inspector.classList.add('hidden');
+            }, 300);
+        }
+
+        function updateLabel(id, newLabel) {
+            const node = systemNodes.find(n => n.id === id);
+            if(node) {
+                node.label = newLabel;
+                renderNodes();
+                logToConsole("INFO", `Node #${id} renamed to "${newLabel}"`);
+                saveState();
+            }
+        }
+
+        function toggleConsole() {
+            state.consoleOpen = !state.consoleOpen;
+            updateConsoleState();
+        }
+
+        function updateConsoleState() {
+            if (state.consoleOpen) {
+                els.consolePanel.classList.replace('h-8', 'h-48');
+                els.consoleContent.classList.remove('hidden');
+                els.consoleToggleIcon.classList.add('rotate-180');
+            } else {
+                els.consolePanel.classList.replace('h-48', 'h-8');
+                els.consoleContent.classList.add('hidden');
+                els.consoleToggleIcon.classList.remove('rotate-180');
+            }
+        }
+
+        // --- Utils ---
+        function triggerAction(actionName) {
+            if(actionName === 'Delete Node') {
+                deleteNode();
+                return;
+            }
+            showToast(`${actionName} Successful`);
+            logToConsole("INFO", `Action triggered: ${actionName}`);
+        }
+
+        function showToast(msg) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast animate-fade-up';
+            toast.innerHTML = `<i data-lucide="check-circle" class="w-4 h-4 text-cyan-400"></i> ${msg}`;
+            container.appendChild(toast);
+            lucide.createIcons();
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function logToConsole(type, msg) {
+            const colors = { SUCCESS: 'text-emerald-500', INFO: 'text-blue-500', WARN: 'text-yellow-500', ERROR: 'text-red-500' };
+            const line = document.createElement('div');
+            line.className = 'flex gap-2';
+            line.innerHTML = `<span class="${colors[type] || 'text-slate-500'}">${type}</span><span>${msg}</span>`;
+            els.consoleContent.prepend(line);
+        }
+
+        // --- Global Listeners ---
+        document.getElementById('sidebar-toggle').addEventListener('click', toggleSidebar);
+        document.getElementById('mobile-menu-btn').addEventListener('click', toggleSidebar);
+        document.getElementById('close-inspector').addEventListener('click', closeInspector);
+        document.getElementById('console-header').addEventListener('click', toggleConsole);
+
+        // Start
+        init();
+
+    </script>
+</body>
+</html>

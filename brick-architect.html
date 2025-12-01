@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>INCEPTION // ARCHITECT</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <style>
+        :root {
+            /* FOUNDATION */
+            --bg: #000000;
+            --panel: #0a0a0a;
+            --surface: #111111;
+            --border: #222;
+            
+            /* SYNTAX */
+            --func: #f43f5e;   /* Rose: Logic */
+            --var: #2dd4bf;    /* Teal: State */
+            --tag: #8b5cf6;    /* Violet: DOM */
+            --ctrl: #fbbf24;   /* Amber: Flow */
+            
+            /* INTERACTION */
+            --focus: #ffffff;
+            --up: #3b82f6;     /* Blue: Upstream */
+            --down: #10b981;   /* Green: Downstream */
+            
+            --font: 'JetBrains Mono', 'Menlo', monospace;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            margin: 0;
+            height: 100vh;
+            height: 100dvh; /* Mobile viewport fix */
+            background: var(--bg);
+            color: #ccc;
+            font-family: var(--font);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* --- 1. COMMAND BRIDGE (HEADER) --- */
+        .bridge {
+            flex: 0 0 auto;
+            background: #050505;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            z-index: 200;
+        }
+
+        /* Top Bar: Brand & Controls */
+        .bridge-meta {
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12px;
+            border-bottom: 1px solid #1a1a1a;
+        }
+
+        .brand { font-size: 10px; font-weight: 900; letter-spacing: 0.1em; color: #555; }
+        .brand span { color: var(--func); }
+
+        .btn-txt {
+            background: none; border: 1px solid #222; color: #777;
+            font-family: inherit; font-size: 9px; padding: 3px 8px; border-radius: 3px;
+            cursor: pointer; text-transform: uppercase;
+        }
+        .btn-txt:hover { color: #fff; border-color: #555; }
+
+        /* Navigation Bar: The Flow State */
+        .bridge-nav {
+            height: 48px;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            gap: 12px;
+            padding: 0 12px;
+            background: #020202;
+        }
+
+        /* Focus Node (Center) */
+        .nav-focus {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-width: 100px;
+            border-left: 1px solid #1a1a1a;
+            border-right: 1px solid #1a1a1a;
+            height: 100%;
+        }
+        .focus-label { font-size: 8px; color: #444; letter-spacing: 0.1em; margin-bottom: 2px; }
+        .focus-val { font-size: 12px; font-weight: 800; color: var(--focus); white-space: nowrap; }
+
+        /* Streams (Left/Right) */
+        .nav-stream {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            overflow-x: auto;
+            height: 100%;
+            scrollbar-width: none;
+        }
+        .nav-stream::-webkit-scrollbar { display: none; }
+        .nav-stream.upstream { justify-content: flex-end; } /* Right align inputs */
+        
+        .empty-msg { font-size: 9px; color: #222; font-style: italic; }
+
+        /* Tags */
+        .chip {
+            display: inline-flex; height: 22px; align-items: center; padding: 0 8px;
+            border-radius: 4px; font-size: 10px; border: 1px solid var(--border);
+            background: var(--surface); color: #888; cursor: pointer; white-space: nowrap;
+            transition: all 0.1s;
+        }
+        .chip:hover { border-color: #fff; color: #fff; transform: translateY(-1px); }
+        
+        .chip.up { border-left: 2px solid var(--up); }
+        .chip.down { border-right: 2px solid var(--down); }
+
+        /* --- 2. GRID VISUALIZER --- */
+        .grid-viewport {
+            /* Mobile Logic: Give grid 45% of height, Code gets 55% */
+            flex: 0 0 45vh; 
+            background: #000;
+            border-bottom: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .grid-container {
+            /* Ensure square aspect ratio that fits ANY screen */
+            width: min(95vw, 40vh);
+            height: min(95vw, 40vh);
+            position: relative;
+            z-index: 10;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            grid-template-rows: repeat(9, 1fr);
+            gap: 3px; /* Clear gaps */
+            width: 100%;
+            height: 100%;
+        }
+
+        .block {
+            background: #1a1a1a; /* Visible resting state */
+            border: 1px solid #333;
+            border-radius: 2px;
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .block-icon { font-size: 10px; opacity: 0.5; margin-bottom: 1px; }
+        .block-label { font-size: 6px; opacity: 0.6; max-width: 100%; overflow: hidden; white-space: nowrap; font-weight: 500; }
+
+        /* Ports (Visual Anchors) */
+        .port {
+            position: absolute; width: 3px; height: 3px; background: #444; border-radius: 50%;
+            left: 50%; transform: translateX(-50%); transition: 0.2s; opacity: 0.5;
+        }
+        .port.in { top: -2px; }
+        .port.out { bottom: -2px; }
+
+        /* --- STATES --- */
+        /* 1. Muted (Background Context) */
+        .block.muted {
+            opacity: 0.15;
+            filter: grayscale(1);
+            transform: scale(0.95);
+            background: #080808;
+            border-color: #111;
+        }
+
+        /* 2. Focus (Active) */
+        .block.focus {
+            background: #fff !important;
+            color: #000 !important;
+            border-color: #fff !important;
+            z-index: 100;
+            transform: scale(1.15);
+            box-shadow: 0 0 30px rgba(255,255,255,0.3);
+        }
+        .block.focus .block-icon, .block.focus .block-label { opacity: 1; color: #000; font-weight: 900; }
+        .block.focus .port { background: #000; opacity: 1; }
+
+        /* 3. Upstream (Callers) */
+        .block.up {
+            border-color: var(--up); color: var(--up);
+            background: rgba(59, 130, 246, 0.15);
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.2);
+            z-index: 50; opacity: 1;
+        }
+        .block.up .port.out { background: var(--up); opacity: 1; }
+
+        /* 4. Downstream (Dependencies) */
+        .block.down {
+            border-color: var(--down); color: var(--down);
+            background: rgba(16, 185, 129, 0.15);
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+            z-index: 50; opacity: 1;
+        }
+        .block.down .port.in { background: var(--down); opacity: 1; }
+
+        /* Wires SVG */
+        .wire-layer {
+            position: absolute; inset: 0; pointer-events: none; z-index: 20; overflow: visible;
+        }
+        path.wire { fill: none; stroke: #222; stroke-width: 1; opacity: 0.3; transition: opacity 0.2s; }
+        path.wire.active { opacity: 1; stroke-width: 2; filter: drop-shadow(0 0 3px black); }
+        path.wire.up { stroke: var(--up); }
+        path.wire.down { stroke: var(--down); }
+
+        /* --- 3. EDITOR --- */
+        .editor-section {
+            flex: 1;
+            display: flex;
+            background: var(--bg);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .code-scroller {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 0 100px 0; /* Bottom pad for mobile */
+            scroll-behavior: smooth;
+        }
+
+        .line {
+            display: flex;
+            padding: 2px 10px;
+            font-size: 11px;
+            line-height: 18px;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+            white-space: pre;
+            color: #666;
+        }
+
+        .line:hover { color: #fff; background: #111; }
+        .line.active { background: #161616; border-left-color: #fff; color: #fff; }
+        .line.up { border-left-color: var(--up); background: rgba(59, 130, 246, 0.05); }
+        .line.down { border-left-color: var(--down); background: rgba(16, 185, 129, 0.05); }
+
+        .ln { width: 35px; text-align: right; margin-right: 15px; opacity: 0.3; user-select: none; }
+
+        /* Syntax */
+        .kwd { color: var(--func); }
+        .def { color: #fff; font-weight: bold; }
+        .var { color: var(--var); }
+        .tag { color: var(--tag); }
+
+        /* Minimap */
+        .minimap-rail {
+            width: 48px;
+            border-left: 1px solid var(--border);
+            background: #080808;
+            position: relative;
+            z-index: 20;
+            flex-shrink: 0;
+        }
+        canvas { width: 100%; height: 100%; cursor: crosshair; display: block; }
+        .minimap-view {
+            position: absolute; left: 0; right: 0; top: 0; height: 0;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            pointer-events: none;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.9);
+            backdrop-filter: blur(8px); display: none; z-index: 500;
+            align-items: center; justify-content: center;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal {
+            background: var(--panel); border: 1px solid var(--border);
+            width: 90%; max-width: 500px; padding: 20px; border-radius: 8px;
+            display: flex; flex-direction: column; gap: 15px;
+        }
+        textarea {
+            background: #000; border: 1px solid var(--border); color: #ccc;
+            height: 150px; padding: 10px; font-family: inherit; font-size: 10px; resize: none;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- 1. BRIDGE -->
+    <div class="bridge">
+        <div class="bridge-meta">
+            <div class="brand">INCEPTION <span>//</span> ARCHITECT</div>
+            <button class="btn-txt" onclick="toggleModal()">INGEST SOURCE</button>
+        </div>
+        
+        <div class="bridge-nav">
+            <!-- Used By (Left) -->
+            <div class="nav-stream upstream" id="nav-up">
+                <span class="empty-msg">ROOT NODE</span>
+            </div>
+
+            <!-- Focus (Center) -->
+            <div class="nav-focus">
+                <span class="focus-label">FOCUS</span>
+                <span class="focus-val" id="nav-label">--</span>
+            </div>
+
+            <!-- Uses (Right) -->
+            <div class="nav-stream downstream" id="nav-down">
+                <span class="empty-msg">LEAF NODE</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. GRID -->
+    <div class="grid-viewport">
+        <div class="grid-container" id="grid-cnt">
+            <div class="grid" id="grid"></div>
+            <svg class="wire-layer" id="wires"></svg>
+        </div>
+    </div>
+
+    <!-- 3. CODE -->
+    <div class="editor-section">
+        <div class="code-scroller" id="scroller">
+            <div id="code-content"></div>
+        </div>
+        <div class="minimap-rail">
+            <canvas id="minimap"></canvas>
+            <div class="minimap-view" id="mm-view"></div>
+        </div>
+    </div>
+
+    <!-- MODAL -->
+    <div class="modal-overlay" id="modal">
+        <div class="modal">
+            <div style="font-size:11px; font-weight:bold; color:var(--text)">PASTE SOURCE CODE</div>
+            <textarea id="paste-input" placeholder="// Paste JS, HTML, or CSS here..."></textarea>
+            <div style="display:flex; justify-content:flex-end; gap:10px;">
+                <button class="btn-txt" onclick="toggleModal()">CANCEL</button>
+                <button class="btn-txt" style="color:var(--func); font-weight:bold;" onclick="ingest()">LOAD</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+    // ----------------------------------------------------
+    // 1. DATA KERNEL
+    // ----------------------------------------------------
+    const DEFAULT = document.documentElement.outerHTML;
+    let lines = DEFAULT.split('\n');
+    
+    let blocks = [];
+    let edges = [];
+    let definitions = {};
+    let lineData = [];
+    let activeIdx = null;
+
+    const gridEl = document.getElementById('grid');
+    const wiresEl = document.getElementById('wires');
+    const codeEl = document.getElementById('code-content');
+    const gridContainer = document.getElementById('grid-cnt');
+    const scroller = document.getElementById('scroller');
+    const canvas = document.getElementById('minimap');
+    const viewportBox = document.getElementById('mm-view');
+
+    // ----------------------------------------------------
+    // 2. PARSER
+    // ----------------------------------------------------
+    function parse() {
+        blocks = new Array(81).fill(null);
+        edges = [];
+        definitions = {};
+        lineData = [];
+        const lpc = Math.ceil(lines.length / 81);
+
+        // Identify
+        lines.forEach((line, i) => {
+            const trim = line.trim();
+            const cellIdx = Math.floor(i / lpc);
+            let type = null, name = null;
+
+            const fn = trim.match(/(?:function|class)\s+(\w+)|(\w+)\s*\(/);
+            if(fn && !trim.includes('=')) { type = 'function'; name = fn[1]||fn[2]; }
+            
+            const vr = trim.match(/(?:const|let|var)\s+(\w+)/);
+            if(vr && !type) { type = 'variable'; name = vr[1]; }
+
+            const tag = trim.match(/^<(\w+)/);
+            if(tag && !type) { type = 'tag'; name = tag[1].toUpperCase(); }
+
+            if(type && name) {
+                const pri = type==='function'?3: type==='tag'?2:1;
+                if(!blocks[cellIdx] || blocks[cellIdx].pri < pri) {
+                    blocks[cellIdx] = { 
+                        idx: cellIdx, type, name, line: i, pri,
+                        deps: [], callers: []
+                    };
+                    definitions[name] = cellIdx;
+                }
+            }
+            lineData.push({ text: line, type, index: i });
+        });
+
+        // Wiring
+        lines.forEach((line, i) => {
+            const trim = line.trim();
+            const fromIdx = Math.floor(i / lpc);
+            const matches = trim.matchAll(/(\w+)/g);
+            for(const m of matches) {
+                const target = m[1];
+                const toIdx = definitions[target];
+                if(toIdx !== undefined && toIdx !== fromIdx) {
+                    edges.push({from: fromIdx, to: toIdx});
+                    if(blocks[fromIdx]) blocks[fromIdx].deps.push(toIdx);
+                    if(blocks[toIdx]) blocks[toIdx].callers.push(fromIdx);
+                }
+            }
+        });
+
+        // Dedup
+        blocks.forEach(b => {
+            if(b) {
+                b.deps = [...new Set(b.deps)];
+                b.callers = [...new Set(b.callers)];
+            }
+        });
+    }
+
+    // ----------------------------------------------------
+    // 3. RENDER
+    // ----------------------------------------------------
+    function render() {
+        gridEl.innerHTML = '';
+        codeEl.innerHTML = '';
+        wiresEl.innerHTML = '';
+
+        const lpc = Math.ceil(lines.length / 81);
+
+        // A. Grid
+        for(let i=0; i<81; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'block';
+            cell.dataset.index = i;
+            
+            const d = blocks[i];
+            if(d) {
+                const icon = d.type==='function'?'ƒ': d.type==='tag'?'<>':'=';
+                cell.innerHTML = `
+                    <div class="port in"></div>
+                    <div class="block-icon">${icon}</div>
+                    <div class="block-label">${d.name}</div>
+                    <div class="port out"></div>
+                `;
+                cell.setAttribute('data-type', d.type);
+            } else {
+                cell.style.opacity = '0.1';
+                cell.innerHTML = '·';
+            }
+
+            // Events
+            cell.onmouseenter = () => { if(activeIdx === null) xray(i); };
+            cell.onclick = (e) => {
+                e.stopPropagation();
+                if(activeIdx === i) { activeIdx = null; xray(null); } 
+                else { activeIdx = i; xray(i); scrollToLine(i*lpc); }
+            };
+
+            gridEl.appendChild(cell);
+        }
+
+        // B. Code
+        lineData.forEach(l => {
+            const div = document.createElement('div');
+            div.className = 'line';
+            div.id = `L${l.index}`;
+            
+            let html = l.text.replace(/</g,'&lt;')
+                .replace(/(function|class|const|let|var|if|return)/g, '<span class="kwd">$1</span>')
+                .replace(/([a-zA-Z0-9]+)\(/g, '<span class="var">$1</span>(');
+            
+            const mapItem = blocks[Math.floor(l.index/lpc)];
+            if(mapItem && mapItem.name && l.text.includes(mapItem.name)) {
+                html = html.replace(mapItem.name, `<span class="def">${mapItem.name}</span>`);
+            }
+
+            div.innerHTML = `<div class="ln">${l.index}</div>${html}`;
+            div.onclick = (e) => {
+                e.stopPropagation();
+                const bIdx = Math.floor(l.index/lpc);
+                activeIdx = bIdx;
+                xray(bIdx);
+            };
+            codeEl.appendChild(div);
+        });
+
+        // Wires
+        requestAnimationFrame(() => drawWires());
+        renderMinimap();
+    }
+
+    // ----------------------------------------------------
+    // 4. PHYSICS-BASED WIRE ENGINE
+    // ----------------------------------------------------
+    function drawWires() {
+        wiresEl.innerHTML = '';
+        const rect = gridEl.getBoundingClientRect();
+        if(rect.width === 0) return;
+
+        const containerRect = gridContainer.getBoundingClientRect();
+        const unique = [...new Set(edges.map(JSON.stringify))].map(JSON.parse);
+
+        unique.forEach(e => {
+            const fromEl = gridEl.children[e.from];
+            const toEl = gridEl.children[e.to];
+            if(!fromEl || !toEl) return;
+
+            const r1 = fromEl.getBoundingClientRect();
+            const r2 = toEl.getBoundingClientRect();
+
+            // Calculate precise port positions relative to container
+            const x1 = (r1.left - containerRect.left) + (r1.width / 2);
+            const y1 = (r1.bottom - containerRect.top) - 2; 
+            const x2 = (r2.left - containerRect.left) + (r2.width / 2);
+            const y2 = (r2.top - containerRect.top) + 2;
+
+            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            const cp1x = x1; const cp1y = y1 + 30; 
+            const cp2x = x2; const cp2y = y2 - 30; 
+
+            path.setAttribute("d", `M ${x1} ${y1} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${x2} ${y2}`);
+            path.setAttribute("class", "wire");
+            path.dataset.from = e.from;
+            path.dataset.to = e.to;
+            
+            wiresEl.appendChild(path);
+        });
+    }
+
+    // ----------------------------------------------------
+    // 5. X-RAY ENGINE
+    // ----------------------------------------------------
+    function xray(idx) {
+        // Reset
+        document.querySelectorAll('.block').forEach(b => b.className = 'block');
+        document.querySelectorAll('.wire').forEach(w => w.setAttribute('class', 'wire'));
+        document.querySelectorAll('.line').forEach(l => l.className = 'line');
+        
+        if(idx === null || !blocks[idx]) {
+            document.querySelectorAll('.block').forEach(b => b.classList.remove('muted'));
+            // Fade all wires back in dimly
+            document.querySelectorAll('.wire').forEach(w => w.style.opacity = '0.3');
+            updateNav(null);
+            return;
+        }
+
+        const root = blocks[idx];
+        const lpc = Math.ceil(lines.length/81);
+
+        // Mute Others
+        document.querySelectorAll('.block').forEach(b => b.classList.add('muted'));
+        document.querySelectorAll('.wire').forEach(w => w.style.opacity = '0.05');
+
+        // Focus Root
+        const el = gridEl.children[idx];
+        el.classList.remove('muted');
+        el.classList.add('focus');
+
+        for(let i=idx*lpc; i<(idx+1)*lpc; i++) document.getElementById(`L${i}`)?.classList.add('active');
+
+        // Upstream
+        root.callers.forEach(c => {
+            gridEl.children[c]?.classList.remove('muted');
+            gridEl.children[c]?.classList.add('up');
+            
+            const w = document.querySelector(`path[data-from="${c}"][data-to="${idx}"]`);
+            if(w) { w.setAttribute('class', 'wire active up'); w.style.opacity = '1'; }
+            
+            document.getElementById(`L${c*lpc}`)?.classList.add('up');
+        });
+
+        // Downstream
+        root.deps.forEach(d => {
+            gridEl.children[d]?.classList.remove('muted');
+            gridEl.children[d]?.classList.add('down');
+
+            const w = document.querySelector(`path[data-from="${idx}"][data-to="${d}"]`);
+            if(w) { w.setAttribute('class', 'wire active down'); w.style.opacity = '1'; }
+            
+            document.getElementById(`L${d*lpc}`)?.classList.add('down');
+        });
+
+        updateNav(root);
+    }
+
+    function updateNav(data) {
+        const lbl = document.getElementById('nav-label');
+        const up = document.getElementById('nav-up');
+        const down = document.getElementById('nav-down');
+
+        up.innerHTML = '';
+        down.innerHTML = '';
+
+        if(!data) {
+            lbl.innerText = "--";
+            lbl.style.color = "#555";
+            return;
+        }
+
+        lbl.innerText = data.name;
+        lbl.style.color = "#fff";
+
+        const mkChip = (idx, cls) => {
+            const b = blocks[idx]; if(!b) return;
+            const t = document.createElement('div');
+            t.className = `chip ${cls}`;
+            t.innerText = b.name;
+            t.onclick = (e) => { 
+                e.stopPropagation(); 
+                activeIdx=idx; 
+                xray(idx); 
+                scrollToLine(idx * Math.ceil(lines.length/81)); 
+            };
+            return t;
+        };
+
+        if(data.callers.length === 0) up.innerHTML = '<span class="empty-msg">ROOT</span>';
+        else data.callers.forEach(c => up.appendChild(mkChip(c, 'up')));
+
+        if(data.deps.length === 0) down.innerHTML = '<span class="empty-msg">LEAF</span>';
+        else data.deps.forEach(d => down.appendChild(mkChip(d, 'down')));
+    }
+
+    function scrollToLine(idx) {
+        const el = document.getElementById(`L${idx}`);
+        if(el) el.scrollIntoView({behavior:'smooth', block:'center'});
+    }
+
+    // ----------------------------------------------------
+    // 6. LIFECYCLE
+    // ----------------------------------------------------
+    function renderMinimap() {
+        const ctx = canvas.getContext('2d');
+        const rect = canvas.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+        ctx.scale(dpr, dpr);
+
+        const lh = rect.height / lines.length;
+
+        lines.forEach((line, i) => {
+            if(!line.trim()) return;
+            const indent = line.search(/\S|$/);
+            const len = Math.min(rect.width - (indent*2), line.trim().length * 3);
+            let color = '#333';
+            const meta = lineData[i];
+            if (meta.type === 'function') color = '#f43f5e';
+            else if (meta.type === 'variable') color = '#2dd4bf';
+            else if (meta.type === 'tag') color = '#8b5cf6';
+            ctx.fillStyle = color;
+            ctx.fillRect(indent * 4, i * lh, len, Math.max(1, lh));
+        });
+
+        canvas.onclick = (e) => {
+            const pct = e.offsetY / rect.height;
+            scrollToLine(Math.floor(pct * lines.length));
+        };
+    }
+
+    // Resize Observer for Wire Reliability
+    const ro = new ResizeObserver(() => {
+        drawWires();
+        if(activeIdx !== null) xray(activeIdx);
+    });
+    ro.observe(gridContainer);
+
+    scroller.addEventListener('scroll', () => {
+        const pct = scroller.scrollTop / (scroller.scrollHeight - scroller.clientHeight);
+        const mmHeight = canvas.getBoundingClientRect().height;
+        const viewHeight = (scroller.clientHeight / scroller.scrollHeight) * mmHeight;
+        viewportBox.style.height = `${viewHeight}px`;
+        viewportBox.style.top = `${pct * (mmHeight - viewHeight)}px`;
+    });
+
+    function toggleModal() { document.getElementById('modal').classList.toggle('open'); }
+    function ingest() {
+        const val = document.getElementById('paste-input').value;
+        if(val.trim()) {
+            lines = val.split('\n');
+            activeIdx = null;
+            parse();
+            render();
+            toggleModal();
+        }
+    }
+
+    document.body.addEventListener('click', () => {
+        // activeIdx = null; xray(null);
+    });
+
+    parse();
+    render();
+    renderMinimap();
+
+</script>
+</body>
+</html>

@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+	<title>HYPER_GRID // FULL_STACK</title>
+	<link rel="icon" type="image/svg+xml" href="favicon.svg">
+	<style>
+        :root {
+            /* CORE */
+            --bg: #050505;
+            --panel: #0a0a0a;
+            --border: #222;
+            --text-main: #e5e5e5;
+            --text-dim: #525252;
+            
+            /* SYNTAX SEMANTICS */
+            --func: #f43f5e;   /* Red: Logic */
+            --var: #2dd4bf;    /* Cyan: State */
+            --ctrl: #fbbf24;   /* Amber: Flow */
+            --tag: #8b5cf6;    /* Violet: DOM */
+            --style: #ec4899;  /* Pink: CSS/Style */
+            
+            /* FLOW LOGIC */
+            --up: #3b82f6;     /* Blue (Callers) */
+            --down: #10b981;   /* Green (Dependencies) */
+            
+            --font: 'JetBrains Mono', 'Menlo', monospace;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+
+        body {
+            margin: 0; padding: 0; width: 100vw; height: 100dvh;
+            background: var(--bg); color: var(--text-main); font-family: var(--font);
+            display: flex; flex-direction: column; overflow: hidden;
+        }
+
+        /* --- HEADER --- */
+        header {
+            flex: 0 0 48px; background: var(--bg); border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between; padding: 0 16px;
+            z-index: 100; font-size: 11px;
+        }
+
+        .brand { font-weight: 900; letter-spacing: 0.1em; color: var(--text-dim); }
+        .brand span { color: var(--func); }
+        .brand b { color: var(--text-main); margin-left: 8px; }
+
+        .controls { display: flex; gap: 8px; }
+        .btn {
+            background: #111; border: 1px solid var(--border); color: var(--text-dim);
+            padding: 4px 10px; border-radius: 4px; font-size: 10px; cursor: pointer;
+            display: flex; align-items: center; gap: 6px; transition: 0.2s;
+        }
+        .btn.active { border-color: var(--text-main); color: var(--text-main); background: #222; }
+        .btn:hover { border-color: #fff; color: #fff; }
+        .led { width: 4px; height: 4px; background: currentColor; border-radius: 50%; box-shadow: 0 0 4px currentColor; }
+
+        /* --- LAYOUT --- */
+        main { flex: 1; display: flex; overflow: hidden; position: relative; }
+        
+        @media (max-width: 768px) {
+            main { flex-direction: column; }
+            #grid-panel { flex: 0 0 55%; border-bottom: 1px solid var(--border); }
+            #editor-panel { flex: 1; }
+        }
+        @media (min-width: 769px) {
+            main { flex-direction: row; }
+            #grid-panel { flex: 1; border-right: 1px solid var(--border); }
+            #editor-panel { flex: 0 0 400px; max-width: 40%; }
+        }
+
+        /* --- LEFT PANEL: CONTROL SURFACE --- */
+        #grid-panel {
+            background: #020202; 
+            display: flex; 
+            flex-direction: column; /* Stack HUD above Grid */
+            position: relative; 
+            overflow: hidden;
+        }
+
+        /* 1. STRUCTURAL HUD (No longer absolute) */
+        .hud-zone {
+            flex: 0 0 auto;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            background: var(--panel);
+            display: flex; flex-direction: column; gap: 6px;
+            z-index: 20;
+        }
+
+        .hud-row { display: flex; gap: 12px; align-items: center; font-size: 9px; min-height: 20px; }
+        .hud-label { color: var(--text-dim); font-weight: bold; width: 60px; text-align: right; flex-shrink: 0; }
+        
+        .chip-container { display: flex; gap: 4px; flex-wrap: wrap; }
+        .chip {
+            background: #111; border: 1px solid var(--border); padding: 2px 6px;
+            color: var(--text-dim); border-radius: 3px; cursor: pointer; user-select: none;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .chip:hover { border-color: #fff; color: #fff; }
+        .chip.up { border-color: var(--up); color: var(--up); background: rgba(59, 130, 246, 0.1); }
+        .chip.down { border-color: var(--down); color: var(--down); background: rgba(16, 185, 129, 0.1); }
+
+        /* 2. THE GRID CONTAINER */
+        .grid-wrapper {
+            flex: 1; /* Takes remaining space */
+            display: flex; align-items: center; justify-content: center;
+            position: relative; overflow: hidden;
+            padding: 20px;
+        }
+
+        .grid-stage {
+            display: grid; grid-template-columns: repeat(9, 1fr); grid-template-rows: repeat(9, 1fr);
+            gap: 2px; width: 100%; height: 100%;
+            /* Scale logic: Fit within container, max width 600px, keep aspect ratio */
+            max-width: min(100%, 60vh); aspect-ratio: 1 / 1;
+            position: relative; z-index: 10;
+        }
+
+        /* BLOCKS */
+        .block {
+            background: var(--panel); border: 1px solid var(--border); border-radius: 2px;
+            cursor: pointer; position: relative; overflow: hidden;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: transform 0.15s, opacity 0.2s;
+        }
+
+        /* Types */
+        .block[data-type="function"] { border-top: 2px solid var(--func); }
+        .block[data-type="variable"] { border-top: 2px solid var(--var); }
+        .block[data-type="control"]  { border-top: 2px solid var(--ctrl); }
+        .block[data-type="tag"]      { border-top: 2px solid var(--tag); }
+        .block[data-type="style"]    { border-top: 2px solid var(--style); } /* NEW */
+
+        .block:hover { background: #1a1a1a; z-index: 50; transform: scale(1.1); border-color: #fff; }
+        .block.focus { 
+            background: #fff !important; border-color: #fff !important; z-index: 60; 
+            transform: scale(1.15); box-shadow: 0 0 20px rgba(255,255,255,0.4); color: #000;
+        }
+        .block.focus .icon, .block.focus .label { opacity: 1; font-weight: 900; }
+        .block.pulse { animation: flash 0.2s ease-out; }
+        
+        .grid-stage.has-focus .block:not(.focus):not(.up):not(.down) { opacity: 0.1; filter: grayscale(1); transform: scale(0.95); }
+        .block.up { border-color: var(--up); background: rgba(59, 130, 246, 0.15); opacity: 1; }
+        .block.down { border-color: var(--down); background: rgba(16, 185, 129, 0.15); opacity: 1; }
+
+        .icon { font-size: 10px; opacity: 0.5; margin-bottom: 2px; }
+        .label { font-size: 7px; font-weight: 600; opacity: 0.8; white-space: nowrap; overflow: hidden; max-width: 90%; }
+
+        @keyframes flash { 0% { background: #fff; transform: scale(1.2); } 100% { background: var(--panel); transform: scale(1); } }
+
+        /* Wires */
+        .wire-layer { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
+        path.wire { fill: none; stroke: var(--border); stroke-width: 1; opacity: 0.1; transition: opacity 0.3s; }
+        path.wire.up { stroke: var(--up); opacity: 1; stroke-width: 1.5; stroke-dasharray: 4; animation: flow-reverse 1s linear infinite; }
+        path.wire.down { stroke: var(--down); opacity: 1; stroke-width: 1.5; stroke-dasharray: 4; animation: flow 1s linear infinite; }
+        @keyframes flow { to { stroke-dashoffset: -8; } }
+        @keyframes flow-reverse { to { stroke-dashoffset: 8; } }
+
+        /* --- RIGHT PANEL: EDITOR --- */
+        #editor-panel { background: var(--bg); display: flex; flex-direction: column; position: relative; }
+        .scroller { flex: 1; overflow-y: auto; padding: 20px 0; scroll-behavior: smooth; }
+        
+        .line { display: flex; padding: 0 12px; font-size: 11px; line-height: 18px; cursor: pointer; color: var(--text-dim); border-left: 3px solid transparent; }
+        .line:hover { background: #111; color: var(--text-main); }
+        .line.highlight { background: #222; border-left-color: #fff; color: #fff; }
+        .line.up { border-left-color: var(--up); background: rgba(59, 130, 246, 0.05); }
+        .line.down { border-left-color: var(--down); background: rgba(16, 185, 129, 0.05); }
+
+        .ln { width: 30px; text-align: right; margin-right: 12px; opacity: 0.3; user-select: none; }
+        
+        .kwd { color: var(--func); } .def { color: var(--text-main); font-weight: bold; }
+        .str { color: var(--ctrl); } .tag { color: var(--tag); }
+        .css-sel { color: var(--style); font-weight: bold; }
+
+        /* Modal */
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 500; display: none; align-items: center; justify-content: center; }
+        .modal.open { display: flex; }
+        .modal-box { background: var(--panel); border: 1px solid var(--border); padding: 20px; width: 90%; max-width: 500px; display: flex; flex-direction: column; gap: 10px; }
+        textarea { background: #000; border: 1px solid var(--border); color: #ccc; height: 150px; padding: 10px; font-family: var(--font); font-size: 10px; resize: none; }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand">HYPER_GRID <span>//</span> <b id="filename">FULL_STACK</b></div>
+        <div class="controls">
+            <button class="btn active" id="btn-sound" onclick="toggleSound()"><div class="led"></div> SFX</button>
+            <button class="btn" id="btn-play" onclick="playFlow()" style="color:var(--func); border-color:var(--func)">▶ PLAY</button>
+            <button class="btn" onclick="toggleModal()">LOAD</button>
+        </div>
+    </header>
+
+    <main>
+        <!-- GRID & HUD -->
+        <div id="grid-panel">
+            <!-- 1. The HUD (Unstacked) -->
+            <div class="hud-zone">
+                <div class="hud-row">
+                    <div class="hud-label">FOCUS</div>
+                    <div class="chip" id="hud-focus" style="color:#fff; border-color:#fff">--</div>
+                </div>
+                <div class="hud-row">
+                    <div class="hud-label" style="color:var(--up)">CALLERS</div>
+                    <div class="chip-container" id="hud-up"></div>
+                </div>
+                <div class="hud-row">
+                    <div class="hud-label" style="color:var(--down)">DEPS</div>
+                    <div class="chip-container" id="hud-down"></div>
+                </div>
+            </div>
+
+            <!-- 2. The Grid -->
+            <div class="grid-wrapper">
+                <div class="grid-stage" id="grid-stage">
+                    <svg class="wire-layer" id="wires"></svg>
+                    <!-- Blocks injected here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- EDITOR -->
+        <div id="editor-panel">
+            <div class="scroller" id="scroller">
+                <div id="code-content"></div>
+            </div>
+        </div>
+    </main>
+
+    <div class="modal" id="modal">
+        <div class="modal-box">
+            <div style="font-size:10px; color:var(--text-dim)">PASTE SOURCE CODE (HTML/CSS/JS)</div>
+            <textarea id="src-input" placeholder="// Paste Code..."></textarea>
+            <div style="display:flex; justify-content:flex-end; gap:10px">
+                <button class="btn" onclick="toggleModal()">CANCEL</button>
+                <button class="btn active" onclick="ingest()">PROCESS</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+    // ----------------------------------------------------
+    // 1. ENGINE
+    // ----------------------------------------------------
+    const State = {
+        lines: [], blocks: [], conns: [],
+        audio: null, sound: true, playing: false
+    };
+
+    const elGrid = document.getElementById('grid-stage');
+    const elCode = document.getElementById('code-content');
+    const elWires = document.getElementById('wires');
+
+    const FREQ = { function: 150, variable: 350, control: 600, tag: 220, style: 450, click: 800, hover: 80 };
+
+    // ----------------------------------------------------
+    // 2. PARSER (Full Stack)
+    // ----------------------------------------------------
+    function parse(source) {
+        State.lines = source.split('\n');
+        State.blocks = Array(81).fill(null);
+        State.conns = [];
+        const defs = {};
+        const chunkSize = Math.ceil(State.lines.length / 81);
+
+        // Pass 1: Identification
+        State.lines.forEach((line, i) => {
+            const t = line.trim();
+            if(!t) return;
+            let type = null, name = null, rawName = null;
+
+            // JS / HTML
+            if (/(?:function|class)\s+(\w+)/.test(t)) { type = 'function'; name = RegExp.$1; }
+            else if (/(?:const|let|var)\s+(\w+)/.test(t)) { type = 'variable'; name = RegExp.$1; }
+            else if (/^(if|for|while|return)/.test(t)) { type = 'control'; name = RegExp.$1; }
+            else if (/^<(\w+)/.test(t)) { type = 'tag'; name = RegExp.$1.toUpperCase(); }
+            
+            // CSS Parsing: .classname { or #idname {
+            else if (/^([.#][\w-]+)\s*\{/.test(t)) {
+                type = 'style'; 
+                rawName = RegExp.$1; // Keep the dot/hash for display
+                name = rawName.substring(1); // Strip for matching against HTML classes/ids
+            }
+            // CSS Variables: --root:
+            else if (/^--[\w-]+:/.test(t)) { type = 'style'; name = t.split(':')[0]; }
+
+            if (type && name) {
+                const idx = Math.floor(i / chunkSize);
+                // Priority: Func > Tag > Style > Control > Var
+                const pri = type==='function'?5: type==='tag'?4: type==='style'?3: type==='control'?2:1;
+                
+                if(!State.blocks[idx] || State.blocks[idx].pri < pri) {
+                    State.blocks[idx] = { 
+                        idx, type, 
+                        name: rawName || name, // Display name
+                        matchKey: name,        // Linking key
+                        line: i, pri,
+                        callers: [], deps: [] 
+                    };
+                    defs[name] = idx;
+                }
+            }
+        });
+
+        // Pass 2: Wiring
+        State.lines.forEach((line, i) => {
+            const from = Math.floor(i / chunkSize);
+            Object.keys(defs).forEach(key => {
+                // Check if the line contains the key (simple string match)
+                // Exclude self-references to avoid loops within the same chunk
+                if(line.includes(key) && defs[key] !== from) {
+                    const to = defs[key];
+                    State.conns.push({ from, to });
+                    if(State.blocks[from]) State.blocks[from].deps.push(to);
+                    if(State.blocks[to]) State.blocks[to].callers.push(from);
+                }
+            });
+        });
+        
+        // Dedup
+        State.blocks.forEach(b => {
+            if(b) {
+                b.deps = [...new Set(b.deps)];
+                b.callers = [...new Set(b.callers)];
+            }
+        });
+    }
+
+    // ----------------------------------------------------
+    // 3. RENDER
+    // ----------------------------------------------------
+    function render() {
+        elGrid.innerHTML = '<svg class="wire-layer" id="wires"></svg>';
+        elCode.innerHTML = '';
+
+        // 1. Grid Blocks
+        for(let i=0; i<81; i++) {
+            const b = State.blocks[i];
+            const div = document.createElement('div');
+            div.className = 'block';
+            div.id = `blk-${i}`;
+            
+            if(b) {
+                div.dataset.type = b.type;
+                div.innerHTML = `<div class="icon">${getIcon(b.type)}</div><div class="label">${b.name}</div>`;
+                div.onmouseenter = () => { if(!State.playing) sfx('hover', 0.05); };
+                div.onclick = (e) => { e.stopPropagation(); activate(i); sfx('click', 0.1); };
+            } else {
+                div.style.opacity = '0.05'; div.innerHTML = '·';
+                div.onclick = (e) => { e.stopPropagation(); clearFocus(); };
+            }
+            elGrid.appendChild(div);
+        }
+
+        // 2. Code Lines
+        State.lines.forEach((line, i) => {
+            const div = document.createElement('div');
+            div.className = 'line'; div.id = `L${i}`;
+            
+            let html = line.replace(/</g,'&lt;')
+                .replace(/(function|var|const|let|if|return)/g, '<span class="kwd">$1</span>')
+                .replace(/([.#][\w-]+\s*\{)/g, '<span class="css-sel">$1</span>'); // Highlight CSS selectors
+            
+            const block = State.blocks.find(b => b && b.line === i);
+            if(block) html = html.replace(block.name, `<span class="def">${block.name}</span>`);
+            
+            div.innerHTML = `<div class="ln">${i}</div>${html}`;
+            div.onclick = (e) => {
+                 e.stopPropagation();
+                 const bIdx = Math.floor(i / Math.ceil(State.lines.length/81));
+                 if(State.blocks[bIdx]) activate(bIdx);
+            };
+            elCode.appendChild(div);
+        });
+
+        drawWires();
+    }
+
+    function drawWires() {
+        const svg = document.getElementById('wires');
+        svg.innerHTML = '';
+        const rect = elGrid.getBoundingClientRect();
+        const w = rect.width / 9; const h = rect.height / 9;
+        const unique = [...new Set(State.conns.map(JSON.stringify))].map(JSON.parse);
+
+        unique.forEach(c => {
+            const x1 = (c.from % 9) * w + (w/2); const y1 = Math.floor(c.from / 9) * h + (h/2);
+            const x2 = (c.to % 9) * w + (w/2); const y2 = Math.floor(c.to / 9) * h + (h/2);
+            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            path.setAttribute("d", `M ${x1} ${y1} Q ${(x1+x2)/2} ${Math.min(y1,y2)-30} ${x2} ${y2}`);
+            path.setAttribute("class", "wire");
+            path.dataset.from = c.from; path.dataset.to = c.to;
+            svg.appendChild(path);
+        });
+    }
+
+    function getIcon(t) { return t==='function'?'ƒ': t==='variable'?'=': t==='tag'?'<>': t==='style'?'#':'◇'; }
+
+    // ----------------------------------------------------
+    // 4. INTERACTION
+    // ----------------------------------------------------
+    function activate(idx) {
+        clearFocus();
+        const b = State.blocks[idx];
+        if(!b) return;
+
+        if(State.audio && State.audio.state === 'suspended') State.audio.resume();
+
+        // Focus
+        const el = document.getElementById(`blk-${idx}`);
+        el.classList.add('focus');
+        elGrid.classList.add('has-focus');
+        document.getElementById(`L${b.line}`).classList.add('highlight');
+        document.getElementById(`L${b.line}`).scrollIntoView({block:'center', behavior:'smooth'});
+
+        // HUD
+        document.getElementById('hud-focus').innerText = b.name;
+        document.getElementById('hud-focus').style.color = `var(--${b.type})`;
+        document.getElementById('hud-focus').style.borderColor = `var(--${b.type})`;
+
+        // Tracing
+        trace(b.callers, 'up', 'hud-up');
+        trace(b.deps, 'down', 'hud-down');
+    }
+
+    function trace(indices, cls, hudId) {
+        const hud = document.getElementById(hudId);
+        indices.forEach(idx => {
+            const el = document.getElementById(`blk-${idx}`);
+            if(el) el.classList.add(cls);
+            
+            // Wire flow direction
+            const sel = cls === 'up' 
+                ? `.wire[data-from="${idx}"][data-to="${document.querySelector('.block.focus').id.split('-')[1]}"]`
+                : `.wire[data-from="${document.querySelector('.block.focus').id.split('-')[1]}"][data-to="${idx}"]`;
+            document.querySelector(sel)?.classList.add(cls);
+            
+            document.getElementById(`L${State.blocks[idx].line}`)?.classList.add(cls);
+
+            const chip = document.createElement('div'); 
+            chip.className = `chip ${cls}`;
+            chip.innerHTML = `${getIcon(State.blocks[idx].type)} ${State.blocks[idx].name}`;
+            chip.onclick = (e) => { e.stopPropagation(); activate(idx); };
+            hud.appendChild(chip);
+        });
+    }
+
+    function clearFocus() {
+        elGrid.classList.remove('has-focus');
+        document.querySelectorAll('.block').forEach(el => el.classList.remove('focus', 'up', 'down'));
+        document.querySelectorAll('.wire').forEach(el => el.classList.remove('up', 'down'));
+        document.querySelectorAll('.line').forEach(el => el.classList.remove('highlight', 'up', 'down'));
+        document.getElementById('hud-focus').innerText = '--';
+        document.getElementById('hud-focus').style.color = '#fff';
+        document.getElementById('hud-focus').style.borderColor = '#fff';
+        document.getElementById('hud-up').innerHTML = '';
+        document.getElementById('hud-down').innerHTML = '';
+    }
+
+    function playFlow() {
+        if(State.playing) return;
+        if(!State.audio) State.audio = new (window.AudioContext||webkitAudioContext)();
+        if(State.audio.state === 'suspended') State.audio.resume();
+        
+        State.playing = true;
+        document.getElementById('btn-play').classList.add('active');
+        clearFocus();
+
+        const activeIndices = State.blocks.filter(b => b !== null).map(b => b.idx);
+        let step = 0;
+
+        const loop = setInterval(() => {
+            if(step >= activeIndices.length) {
+                clearInterval(loop); State.playing = false;
+                document.getElementById('btn-play').classList.remove('active');
+                return;
+            }
+            const idx = activeIndices[step];
+            const b = State.blocks[idx];
+            const el = document.getElementById(`blk-${idx}`);
+            el.classList.add('pulse');
+            setTimeout(() => el.classList.remove('pulse'), 200);
+            sfx(b.type, 0.1);
+            if(step % 3 === 0) document.getElementById(`L${b.line}`).scrollIntoView({block:'center', behavior:'auto'});
+            step++;
+        }, 120);
+    }
+
+    function sfx(type, dur) {
+        if(!State.sound) return;
+        if(!State.audio) State.audio = new (window.AudioContext||webkitAudioContext)();
+        const osc = State.audio.createOscillator();
+        const g = State.audio.createGain();
+        osc.connect(g); g.connect(State.audio.destination);
+        osc.frequency.value = FREQ[type] || 200;
+        g.gain.setValueAtTime(0.1, State.audio.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, State.audio.currentTime + dur);
+        osc.start(); osc.stop(State.audio.currentTime + dur);
+    }
+
+    function toggleSound() { State.sound = !State.sound; document.getElementById('btn-sound').classList.toggle('active'); }
+    function toggleModal() { document.getElementById('modal').classList.toggle('open'); }
+    function ingest() {
+        const val = document.getElementById('src-input').value;
+        if(val.trim()) {
+            document.getElementById('filename').innerText = "EXTERNAL_SOURCE";
+            parse(val); render(); toggleModal();
+        }
+    }
+
+    new ResizeObserver(() => drawWires()).observe(elGrid);
+    document.body.onclick = () => clearFocus();
+
+    parse(document.documentElement.outerHTML);
+    render();
+</script>
+</body>
+</html>

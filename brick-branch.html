@@ -1,0 +1,1569 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+	<meta name="theme-color" content="#000000">
+	<title>INCEPTION // MULTIMODAL_CORE</title>
+	<link rel="icon" type="image/svg+xml" href="favicon.svg">
+	<style>
+        /* =================================================
+           DESIGN SYSTEM - High Contrast & Accessible
+           ================================================= */
+        :root {
+            --bg: #000000;
+            --surface: #09090b;
+            --panel: #111111;
+            --border: #333333;
+            --text-main: #ffffff;
+            --text-dim: #888888;
+            --text-muted: #52525b;
+            
+            /* Semantic Frequencies */
+            --func: #ff3366;    /* 200Hz */
+            --var: #00e5ff;     /* 400Hz */
+            --ctrl: #ffcc00;    /* 600Hz */
+            --tag: #b388ff;     /* 800Hz */
+            --link: #3b82f6;    /* Navigation */
+            --hot: #ffffff;     /* Focus State */
+            --up: #00ffaa;      /* Upstream */
+            --down: #00aaff;    /* Downstream */
+            
+            --font: 'JetBrains Mono', 'Menlo', monospace;
+            --radius: 3px;
+            --shadow: 0 5px 20px rgba(0,0,0,0.5);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * { transition: none !important; animation: none !important; }
+        }
+        @media (prefers-contrast: more) {
+            :root { --border: #fff; --text-dim: #fff; --panel: #000; }
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            margin: 0; height: 100vh; height: 100dvh;
+            background: var(--bg); color: var(--text-main);
+            font-family: var(--font); display: flex; flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* =================================================
+           HEADER - Minimal & Professional
+           ================================================= */
+        header {
+            flex: 0 0 56px; background: #050505;
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 20px; gap: 15px; font-size: 11px; z-index: 200;
+        }
+
+        .brand { font-weight: 900; letter-spacing: 0.1em; color: var(--text-dim); }
+        .brand span { color: var(--func); }
+        #current-file { color: var(--link); }
+
+        .header-left { display: flex; align-items: center; gap: 15px; }
+        .header-right { display: flex; align-items: center; gap: 10px; }
+
+        /* Hamburger Menu */
+        .menu-btn {
+            background: none; border: none; color: var(--text-main);
+            font-size: 18px; cursor: pointer; padding: 8px;
+            transition: color 0.2s;
+        }
+        .menu-btn:hover { color: var(--link); }
+
+        /* Status Indicators */
+        .status-indicators {
+            display: flex; gap: 10px; font-size: 9px; color: var(--text-muted);
+        }
+        .status-indicators span {
+            padding: 2px 6px; border: 1px solid var(--border); border-radius: 2px;
+        }
+        .status-indicators .active { color: var(--link); border-color: var(--link); }
+
+        button.btn {
+            background: var(--panel); border: 1px solid var(--border);
+            color: var(--text-main); padding: 6px 12px; border-radius: var(--radius);
+            font-family: var(--font); font-size: 10px; cursor: pointer;
+            transition: all 0.2s; text-transform: uppercase; font-weight: 600;
+        }
+        button.btn:hover, button.btn:focus {
+            border-color: var(--hot); color: var(--hot); transform: scale(1.05);
+        }
+        button.btn:active { transform: scale(0.95); }
+        button.btn.primary { border-color: var(--link); color: var(--link); }
+
+        /* =================================================
+           HUD - Context Bar with Branch Button
+           ================================================= */
+        .hud {
+            flex: 0 0 54px; background: #080808;
+            border-bottom: 1px solid var(--border);
+            display: grid; grid-template-columns: 180px 1fr 1fr 120px;
+            gap: 20px; padding: 0 20px; align-items: center; z-index: 190;
+        }
+
+        .hud-group { display: flex; flex-direction: column; justify-content: center; }
+        .hud-label {
+            font-size: 9px; color: var(--text-muted); font-weight: bold;
+            letter-spacing: 0.05em; margin-bottom: 4px;
+        }
+        #hud-focus {
+            font-size: 12px; font-weight: bold; color: var(--hot);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+
+        .chip-rack {
+            display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none;
+            align-items: center; padding-bottom: 2px;
+        }
+        .chip-rack::-webkit-scrollbar { display: none; }
+
+        .chip {
+            font-size: 10px; padding: 3px 8px; border-radius: var(--radius);
+            background: var(--panel); border: 1px solid var(--border);
+            cursor: pointer; white-space: nowrap; transition: all 0.1s;
+        }
+        .chip:hover { border-color: var(--hot); transform: translateY(-1px); }
+        .chip.up { color: var(--up); border-color: var(--up); }
+        .chip.down { color: var(--down); border-color: var(--down); }
+
+        .branch-controls {
+            display: flex; gap: 6px; justify-content: flex-end;
+        }
+
+        /* =================================================
+           GRID - 9x9 Code Structure
+           ================================================= */
+        .grid-section {
+            flex: 0 0 45vh; background: #000;
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            position: relative; overflow: hidden;
+        }
+
+        .grid-container {
+            width: min(40vh, 90vw); height: min(40vh, 90vw);
+            position: relative; z-index: 10;
+            transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .grid {
+            display: grid; grid-template-columns: repeat(9, 1fr);
+            grid-template-rows: repeat(9, 1fr); gap: 4px;
+            width: 100%; height: 100%;
+        }
+
+        .block {
+            background: var(--panel); border: 1px solid var(--border);
+            border-radius: var(--radius); cursor: pointer;
+            position: relative; display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* Semantic Styling */
+        .block[data-type="function"] { border-top: 2px solid var(--func); background: rgba(255, 51, 102, 0.1); }
+        .block[data-type="variable"] { border-top: 2px solid var(--var); background: rgba(0, 229, 255, 0.1); }
+        .block[data-type="control"]  { border-top: 2px solid var(--ctrl); background: rgba(255, 204, 0, 0.1); }
+        .block[data-type="tag"]      { border-top: 2px solid var(--tag); background: rgba(179, 136, 255, 0.1); }
+
+        .block-icon { font-size: 10px; margin-bottom: 2px; opacity: 0.8; }
+        .block-label { font-size: 6px; opacity: 0.7; max-width: 95%; overflow: hidden; white-space: nowrap; }
+
+        /* Block States */
+        .block:hover, .block:focus-within {
+            z-index: 100; transform: scale(1.15) translateZ(10px);
+            border-color: var(--hot); box-shadow: var(--shadow);
+        }
+        .block.focus {
+            background: var(--hot); color: var(--bg); border-color: var(--hot);
+            transform: scale(1.15); box-shadow: 0 5px 20px rgba(255,255,255,0.3);
+        }
+        .block.focus .block-icon, .block.focus .block-label { opacity: 1; color: var(--bg); font-weight: 900; }
+        .block.muted { opacity: 0.2; filter: grayscale(1); transform: scale(0.98); }
+        .block.up { opacity: 1; border-color: var(--up); background: rgba(0, 255, 170, 0.15); color: var(--up); }
+        .block.down { opacity: 1; border-color: var(--down); background: rgba(0, 170, 255, 0.15); color: var(--down); }
+
+        /* Ports */
+        .port {
+            position: absolute; width: 4px; height: 4px;
+            background: var(--text-muted); border-radius: 50%;
+            left: 50%; transform: translateX(-50%);
+            transition: all 0.2s;
+        }
+        .port.in { top: -2px; }
+        .port.out { bottom: -2px; }
+        .block.focus .port { background: var(--bg); }
+
+        /* Pulse for Selection */
+        .block.pulse {
+            animation: pulse 0.5s ease-out;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+            100% { box-shadow: 0 0 0 20px rgba(59, 130, 246, 0); }
+        }
+
+        /* =================================================
+           WIRES - Dependency Graph
+           ================================================= */
+        .wire-layer {
+            position: absolute; inset: 0; pointer-events: none;
+            z-index: 50; overflow: visible;
+        }
+
+        path.cable {
+            fill: none; stroke: var(--text-muted); stroke-width: 1;
+            opacity: 0; transition: opacity 0.2s;
+        }
+
+        path.cable.active {
+            opacity: 1; stroke-width: 2;
+            filter: drop-shadow(0 0 3px currentColor);
+            animation: dash 1s linear infinite;
+            stroke-dasharray: 6 4;
+        }
+        @keyframes dash { to { stroke-dashoffset: -10; } }
+
+        path.cable.up { stroke: var(--up); color: var(--up); }
+        path.cable.down { stroke: var(--down); color: var(--down); }
+
+        /* =================================================
+           EDITOR - Code View
+           ================================================= */
+        .editor-wrapper {
+            flex: 1; display: flex; position: relative;
+            overflow: hidden; background: var(--surface);
+        }
+
+        .breadcrumbs {
+            position: absolute; left: 20px; top: 12px;
+            display: flex; gap: 8px; font-size: 9px; z-index: 5;
+        }
+
+        .crumb {
+            color: var(--text-dim); cursor: pointer;
+            padding: 2px 8px; border: 1px solid var(--border);
+            border-radius: 2px; transition: all 0.1s;
+        }
+        .crumb:hover { border-color: var(--link); }
+        .crumb.active { color: var(--link); border-color: var(--link); }
+
+        .code-scroller {
+            flex: 1; overflow-y: auto; padding: 20px 0;
+            scroll-behavior: smooth;
+        }
+
+        .line {
+            display: flex; font-size: 11px; line-height: 18px;
+            padding: 0 10px; cursor: pointer; border-left: 3px solid transparent;
+            white-space: pre; color: var(--text-dim); transition: all 0.1s;
+        }
+
+        .line:hover { background: #111; color: var(--text-main); }
+        .line.active {
+            background: rgba(255,255,255,0.05); border-left-color: var(--hot);
+            color: var(--text-main); animation: code-highlight 0.3s ease-out;
+        }
+        @keyframes code-highlight {
+            0% { background: rgba(59, 130, 246, 0.2); }
+            100% { background: rgba(255,255,255,0.05); }
+        }
+        .line.up { border-left-color: var(--up); background: rgba(0, 255, 170, 0.05); }
+        .line.down { border-left-color: var(--down); background: rgba(0, 170, 255, 0.05); }
+
+        .ln { width: 40px; text-align: right; margin-right: 15px; opacity: 0.3; user-select: none; }
+
+        /* Syntax */
+        .kwd { color: var(--func); }
+        .def { color: var(--text-main); font-weight: bold; }
+        .var { color: var(--var); }
+        .ctl { color: var(--ctrl); }
+        .tag { color: var(--tag); font-weight: bold; }
+        .str { color: #fcd34d; }
+        .com { color: #3f3f46; font-style: italic; }
+
+        /* =================================================
+           MINIMAP
+           ================================================= */
+        .minimap-rail {
+            width: 60px; border-left: 1px solid var(--border);
+            background: #0c0c0c; position: relative;
+        }
+
+        canvas { width: 100%; height: 100%; cursor: crosshair; display: block; }
+
+        .minimap-viewport {
+            position: absolute; left: 0; right: 0; top: 0; height: 0;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.2);
+            pointer-events: none;
+        }
+
+        /* =================================================
+           MODALS - Unified System
+           ================================================= */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.9);
+            backdrop-filter: blur(8px); z-index: 500;
+            display: none; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.2s;
+        }
+
+        .modal-overlay.open { display: flex; opacity: 1; pointer-events: all; }
+
+        .modal {
+            width: min(860px, 96vw); max-height: min(680px, 90vh);
+            border: 1px solid var(--border); background: #070707;
+            box-shadow: 0 20px 60px #000; border-radius: 8px;
+            overflow: hidden; display: flex; flex-direction: column;
+        }
+
+        .modal-head {
+            padding: 10px 12px; background: #0c0c0c;
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+
+        .modal-head b { color: var(--link); font-size: 10px; letter-spacing: 0.1em; }
+
+        .modal-body {
+            padding: 10px 12px; display: flex; flex-direction: column;
+            gap: 10px; min-height: 0; overflow-y: auto;
+        }
+
+        textarea {
+            width: 100%; min-height: 220px; resize: vertical;
+            border: 1px solid var(--border); background: #050505;
+            color: #cbd5e1; font-family: var(--font); font-size: 11px;
+            padding: 10px; border-radius: 4px; outline: none;
+        }
+
+        .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+        /* Help Modal Content */
+        .help-section { margin-bottom: 20px; }
+        .help-section h3 { color: var(--link); font-size: 11px; margin: 0 0 8px 0; }
+        .help-grid {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 8px; font-size: 10px;
+        }
+        .help-item {
+            padding: 6px; background: var(--panel);
+            border: 1px solid var(--border); border-radius: 2px;
+        }
+        .help-item kbd {
+            background: #000; padding: 2px 6px; border-radius: 2px;
+            border: 1px solid var(--border); color: var(--func);
+        }
+
+        /* Settings Controls */
+        .setting-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 8px 0; border-bottom: 1px solid var(--border);
+        }
+        .setting-row:last-child { border-bottom: none; }
+
+        /* Branch Instance Modal */
+        .branch-preview {
+            background: var(--panel); padding: 10px; border: 1px solid var(--border);
+            border-radius: 4px; font-size: 10px; max-height: 200px; overflow-y: auto;
+        }
+
+        /* Branch Manager UI */
+        .branch-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 8px;
+            font-size: 10px;
+        }
+        .branch-card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .branch-card.active {
+            border-color: var(--up);
+            box-shadow: 0 0 0 1px rgba(0,255,170,0.4);
+        }
+        .branch-title {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--hot);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .branch-meta {
+            font-size: 9px;
+            color: var(--text-muted);
+        }
+        .branch-mini {
+            margin-top: 2px;
+            width: 24px;
+            height: 24px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 1px;
+            background: #020617;
+            border: 1px solid #111827;
+        }
+        .branch-mini-cell {
+            background: #020617;
+        }
+        .branch-mini-cell.hot {
+            background: var(--up);
+        }
+        .branch-chip-deck {
+            display: flex;
+            gap: 4px;
+            max-width: 220px;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .branch-chip-deck::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* =================================================
+           ACCESSIBILITY
+           ================================================= */
+        .sr-only {
+            position: absolute; width: 1px; height: 1px;
+            padding: 0; margin: -1px; overflow: hidden;
+            clip: rect(0, 0, 0, 0); white-space: nowrap;
+        }
+
+        *:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+    </style>
+<base target="_blank">
+</head>
+<body>
+
+    <!-- Screen Reader Announcer -->
+    <div class="sr-only" id="announcer" aria-live="polite" aria-atomic="true"></div>
+
+    <header role="banner" aria-label="Application Controls">
+        <div class="header-left">
+            <button class="menu-btn" onclick="toggleMenuModal()" aria-label="Open menu">≡</button>
+            <div class="brand" id="app-title">INCEPTION <span>//</span> <span id="current-file">SELF</span></div>
+            <div class="status-indicators">
+                <span id="status-sonify" class="active">AUDIO</span>
+                <span id="status-haptic" class="active">HAPTIC</span>
+                <span id="status-branch">ROOT</span>
+            </div>
+        </div>
+        
+        <div class="header-right">
+            <button class="btn primary" onclick="playCodeFlow()" id="play-btn" aria-label="Play code flow">▶ PLAY</button>
+            <button class="btn" onclick="toggleIngestModal()" aria-label="Ingest code">INGEST</button>
+            <button class="btn" onclick="resetView()" aria-label="Reset view">RESET</button>
+        </div>
+    </header>
+
+    <!-- HUD with Branch Button -->
+    <div class="hud" role="region" aria-label="Context Information">
+        <div class="hud-group">
+            <span class="hud-label">FOCUS</span>
+            <span id="hud-focus">--</span>
+        </div>
+        <div class="hud-group">
+            <span class="hud-label">USED BY (UPSTREAM)</span>
+            <div class="chip-rack" id="hud-callers"></div>
+        </div>
+        <div class="hud-group">
+            <span class="hud-label">USES (DOWNSTREAM)</span>
+            <div class="chip-rack" id="hud-deps"></div>
+        </div>
+        <div class="branch-controls">
+            <button class="btn" id="branch-btn" onclick="branchFromSelected()" disabled>BRANCH</button>
+            <div class="branch-chip-deck" id="branch-chip-deck"></div>
+            <button class="btn" onclick="toggleBranchGridModal()" aria-label="Manage branches">VIEWS</button>
+        </div>
+    </div>
+
+    <!-- GRID -->
+    <div class="grid-section" role="region" aria-label="Code Structure Grid">
+        <div class="breadcrumbs" id="breadcrumbs"></div>
+        <div class="grid-container" id="grid-container">
+            <svg class="wire-layer" id="wires" aria-hidden="true"></svg>
+            <div class="grid" id="grid" role="grid"></div>
+        </div>
+    </div>
+
+    <!-- EDITOR -->
+    <div class="editor-wrapper" role="region" aria-label="Code Editor">
+        <div class="code-scroller" id="scroller" tabindex="0" aria-label="Code viewport">
+            <div id="code-content" role="document"></div>
+        </div>
+        <div class="minimap-rail">
+            <canvas id="minimap" aria-label="Code minimap"></canvas>
+            <div class="minimap-viewport" id="mm-view"></div>
+        </div>
+    </div>
+
+    <!-- MENU MODAL -->
+    <div class="modal-overlay" id="menuModal" role="dialog" aria-modal="true" aria-labelledby="menu-title">
+        <div class="modal">
+            <div class="modal-head">
+                <b id="menu-title">MENU & SETTINGS</b>
+                <button class="btn" onclick="toggleMenuModal()" aria-label="Close">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="setting-row">
+                    <label for="sonify-toggle">Sonification (Audio Feedback)</label>
+                    <input type="checkbox" id="sonify-toggle" checked>
+                </div>
+                <div class="setting-row">
+                    <label for="haptic-toggle">Haptic Feedback (Vibration)</label>
+                    <input type="checkbox" id="haptic-toggle" checked>
+                </div>
+                <div class="setting-row">
+                    <label for="volume-slider">Volume</label>
+                    <input type="range" id="volume-slider" min="0" max="100" value="30">
+                </div>
+                <div class="setting-row">
+                    <label for="tempo-slider">Playback Tempo (ms)</label>
+                    <input type="range" id="tempo-slider" min="100" max="500" value="200">
+                </div>
+                <hr style="border-color: var(--border); margin: 10px 0;">
+                <div class="help-section">
+                    <h3>Keyboard Shortcuts</h3>
+                    <div class="help-grid">
+                        <div class="help-item"><kbd>↑↓←→</kbd> Navigate Grid</div>
+                        <div class="help-item"><kbd>Enter/Space</kbd> Select Block</div>
+                        <div class="help-item"><kbd>Ctrl+D</kbd> Dive into Function</div>
+                        <div class="help-item"><kbd>Escape</kbd> Ascend to Parent</div>
+                        <div class="help-item"><kbd>B</kbd> Branch from Selected</div>
+                        <div class="help-item"><kbd>Tab</kbd> Cycle Focus</div>
+                        <div class="help-item"><kbd>▶</kbd> Play/Pause Flow</div>
+                        <div class="help-item"><kbd>?</kbd> Open Help</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BRANCH GRID MANAGER -->
+    <div class="modal-overlay" id="branchGridModal" role="dialog" aria-modal="true" aria-labelledby="branch-grid-title">
+        <div class="modal">
+            <div class="modal-head">
+                <b id="branch-grid-title">BRANCH VIEWS</b>
+                <button class="btn" onclick="toggleBranchGridModal()" aria-label="Close">×</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 10px; color: var(--text-muted); margin: 0 0 6px 0;">
+                    Swipe or click between branch views. Each card is a slice of the current code, with a mini 3×3 map showing
+                    which region of the 9×9 grid it came from.
+                </p>
+                <div class="branch-grid" id="branch-grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- INGEST MODAL -->
+    <div class="modal-overlay" id="ingestModal" role="dialog" aria-modal="true" aria-labelledby="ingest-title">
+        <div class="modal">
+            <div class="modal-head">
+                <b id="ingest-title">INGEST SOURCE CODE</b>
+                <button class="btn" onclick="toggleIngestModal()" aria-label="Close">×</button>
+            </div>
+            <div class="modal-body">
+                <textarea id="paste-area" aria-label="Code input" placeholder="// Paste JavaScript, HTML, CSS, or any code here..."></textarea>
+                <div class="modal-actions">
+                    <button class="btn" onclick="toggleIngestModal()">Cancel</button>
+                    <button class="btn" style="border-color:var(--link); color:var(--link)" onclick="ingest()">Load & Analyze</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BRANCH MODAL -->
+    <div class="modal-overlay" id="branchModal" role="dialog" aria-modal="true" aria-labelledby="branch-title">
+        <div class="modal">
+            <div class="modal-head">
+                <b id="branch-title">BRANCH INSTANCE</b>
+                <button class="btn" onclick="toggleBranchModal()" aria-label="Close">×</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 10px; color: var(--text-dim); margin: 0;">
+                    Create a new isolated view focused on <b id="branch-target"></b>
+                </p>
+                <div class="branch-preview" id="branch-preview"></div>
+                <div class="modal-actions">
+                    <button class="btn" onclick="toggleBranchModal()">Cancel</button>
+                    <button class="btn" style="border-color:var(--up); color:var(--up)" onclick="confirmBranch()">Create Branch</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+// =================================================
+// 1. STATE & MULTIMODAL CORE
+// =================================================
+const state = {
+    sonify: true, haptics: true, volume: 0.3, tempo: 200,
+    stack: [], blocks: Array(81).fill(null), connections: [],
+    selected: null, playing: false, currentFile: 'SELF',
+    branches: [], activeBranch: null,
+    rootLines: null
+};
+
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+const announcer = document.getElementById('announcer');
+
+const freqMap = {
+    function: 200, variable: 400, control: 600, tag: 800,
+    click: 1200, hover: 300, error: 80, success: 500,
+    navigate: 350, dive: 150, ascend: 180, pulse: 1000, branch: 900
+};
+
+function announce(text) {
+    announcer.textContent = text;
+    setTimeout(() => announcer.textContent = '', 1500);
+}
+
+function playSound(type, duration = 0.1) {
+    if (!state.sonify || !audioCtx) return;
+    try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.frequency.value = freqMap[type] || 440;
+        osc.type = type === 'error' ? 'square' : 'sine';
+        gain.gain.value = state.volume;
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+    } catch (e) {
+        console.warn('Audio failed:', e);
+    }
+}
+
+function vibrate(pattern, reason = '') {
+    if (!state.haptics || !navigator.vibrate) return;
+    navigator.vibrate(pattern);
+    announce(`Haptic: ${reason}`);
+}
+
+function updateStatusIndicators() {
+    document.getElementById('status-sonify').classList.toggle('active', state.sonify);
+    document.getElementById('status-haptic').classList.toggle('active', state.haptics);
+    document.getElementById('status-branch').textContent = state.activeBranch ? `BRANCH:${state.activeBranch}` : 'ROOT';
+}
+
+// =================================================
+// 2. PARSER - Polyglot Analysis
+// =================================================
+let currentLines = document.documentElement.outerHTML.split('\n');
+state.rootLines = currentLines.slice();
+
+function parseCode(sourceLines = null) {
+    const src = sourceLines || currentLines;
+    state.blocks = Array(81).fill(null);
+    state.connections = [];
+    const defs = {};
+    const linesPerCell = Math.ceil(src.length / 81);
+
+    src.forEach((line, i) => {
+        const trim = line.trim();
+        let type = null, name = null, priority = 0;
+
+        if (trim.match(/^(function|class|const|let|var|import|export)\s+(\w+)/) || 
+            trim.match(/(\w+)\s*\(.*\)\s*{|(\w+)\s*=>/)) {
+            type = 'function'; name = trim.match(/\b(\w+)\b/)?.[1]; priority = 4;
+        } else if (trim.match(/(const|let|var)\s+(\w+)/)) {
+            type = 'variable'; name = trim.match(/\b(\w+)\b/)?.[1]; priority = 2;
+        } else if (trim.match(/^<([a-zA-Z0-9-]+)/)) {
+            type = 'tag'; name = trim.match(/^<([a-zA-Z0-9-]+)/)?.[1]?.toUpperCase(); priority = 3;
+        } else if (trim.match(/^(if|else|for|while|return|switch|case|break)/)) {
+            type = 'control'; name = trim.split(/\s|\(/)[0]; priority = 1;
+        }
+
+        if (type && name && priority > 0) {
+            const cellIdx = Math.floor(i / linesPerCell);
+            const existing = state.blocks[cellIdx];
+            if (!existing || existing.priority < priority) {
+                state.blocks[cellIdx] = { 
+                    type, name, lineIndex: i, priority,
+                    icon: type === 'function' ? 'ƒ' : type === 'variable' ? '=' : type === 'control' ? '◇' : '<>',
+                    deps: [], callers: []
+                };
+                defs[name] = cellIdx;
+            }
+        }
+    });
+
+    src.forEach((line, i) => {
+        const trim = line.trim();
+        const fromCell = Math.floor(i / linesPerCell);
+        const matches = [...trim.matchAll(/(\w+)\s*\(/g)];
+        
+        for (const m of matches) {
+            const target = m[1];
+            const toCell = defs[target];
+            if (toCell !== undefined && toCell !== fromCell && state.blocks[fromCell]) {
+                state.connections.push({ from: fromCell, to: toCell, line: i });
+                state.blocks[fromCell].deps.push(toCell);
+                state.blocks[toCell].callers.push(fromCell);
+            }
+        }
+    });
+
+    state.blocks.forEach(b => {
+        if (b) {
+            b.deps = [...new Set(b.deps)];
+            b.callers = [...new Set(b.callers)];
+        }
+    });
+}
+
+// =================================================
+// 3. RENDER - Visual Synthesis
+// =================================================
+function render() {
+    renderGrid();
+    renderCode();
+    renderWires();
+    renderMinimap();
+    renderBreadcrumbs();
+    updateHUD(null);
+    updateStatusIndicators();
+    renderBranchDeck();
+}
+
+function renderGrid() {
+    const gridEl = document.getElementById('grid');
+    gridEl.innerHTML = '';
+    
+    for (let i = 0; i < 81; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'block';
+        cell.role = 'gridcell';
+        cell.tabIndex = 0;
+        cell.dataset.index = i;
+        
+        const block = state.blocks[i];
+        if (block) {
+            cell.setAttribute('data-type', block.type);
+            cell.innerHTML = `
+                <div class="port in"></div>
+                <div class="block-icon">${block.icon}</div>
+                <div class="block-label">${block.name}</div>
+                <div class="port out"></div>
+            `;
+            cell.ariaLabel = `${block.type}: ${block.name} at line ${block.lineIndex}`;
+        } else {
+            cell.innerHTML = '·';
+            cell.style.opacity = '0.1';
+            cell.ariaLabel = `Empty cell ${i}`;
+        }
+
+        cell.onmouseenter = () => { if (state.selected === null) highlightBlock(i); playSound(block ? block.type : 'hover', 0.05); };
+        cell.onclick = (e) => { e.stopPropagation(); selectBlock(i); playSound('click', 0.1); };
+        cell.ondblclick = (e) => { e.stopPropagation(); diveIntoBlock(i); };
+        cell.onkeydown = (e) => handleGridKey(e, i);
+        
+        gridEl.appendChild(cell);
+    }
+}
+
+function renderCode() {
+    const codeEl = document.getElementById('code-content');
+    codeEl.innerHTML = '';
+    const lpc = Math.ceil(currentLines.length / 81);
+    
+    currentLines.forEach((line, i) => {
+        const div = document.createElement('div');
+        div.className = 'line';
+        div.id = `L${i}`;
+        div.role = 'button';
+        div.tabIndex = 0;
+        
+        let html = line.replace(/</g,'&lt;').replace(/>/g,'&gt;')
+            .replace(/(function|class|const|let|var|import|export|return|if|else|for|while)/g, '<span class="kwd">$1</span>')
+            .replace(/(&lt;\/?[a-zA-Z0-9-]+)/g, '<span class="tag">$1</span>')
+            .replace(/(\/\/.*)/g, '<span class="com">$1</span>');
+        
+        const block = state.blocks.find(b => b && b.lineIndex === i);
+        if (block) {
+            html = html.replace(new RegExp(`\\b${block.name}\\b`), `<span class="def">${block.name}</span>`);
+        }
+
+        div.innerHTML = `<div class="ln">${i}</div>${html}`;
+        div.onclick = () => {
+            const bIdx = Math.floor(i / lpc);
+            selectBlock(bIdx);
+            scrollToLine(i);
+        };
+        codeEl.appendChild(div);
+    });
+}
+
+function renderWires() {
+    const wiresEl = document.getElementById('wires');
+    wiresEl.innerHTML = '';
+    
+    const containerRect = document.getElementById('grid-container').getBoundingClientRect();
+    const unique = [...new Set(state.connections.map(JSON.stringify))].map(JSON.parse);
+
+    unique.forEach(conn => {
+        const fromEl = document.getElementById('grid').children[conn.from];
+        const toEl = document.getElementById('grid').children[conn.to];
+        
+        if (!fromEl || !toEl) return;
+
+        const r1 = fromEl.getBoundingClientRect();
+        const r2 = toEl.getBoundingClientRect();
+
+        const x1 = r1.left - containerRect.left + (r1.width / 2);
+        const y1 = r1.bottom - containerRect.top - 2;
+        const x2 = r2.left - containerRect.left + (r2.width / 2);
+        const y2 = r2.top - containerRect.top + 2;
+
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", `M ${x1} ${y1} C ${x1} ${y1+30}, ${x2} ${y2-30}, ${x2} ${y2}`);
+        path.setAttribute("class", "cable");
+        path.dataset.from = conn.from;
+        path.dataset.to = conn.to;
+        
+        wiresEl.appendChild(path);
+    });
+}
+
+function renderMinimap() {
+    const canvas = document.getElementById('minimap');
+    if (!canvas || !currentLines || !currentLines.length) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.scale(dpr, dpr);
+
+    const lineHeight = rect.height / currentLines.length;
+
+    currentLines.forEach((line, i) => {
+        if (!line.trim()) return;
+        const indent = line.search(/\S|$/);
+        const len = Math.min(rect.width - (indent * 2), line.trim().length * 3);
+        
+        let color = '#52525b';
+        const block = state.blocks.find(b => b && b.lineIndex === i);
+        if (block) {
+            color = block.type === 'function' ? '#ff3366' :
+                    block.type === 'variable' ? '#00e5ff' :
+                    block.type === 'tag' ? '#b388ff' : '#ffcc00';
+        }
+
+        ctx.fillStyle = color;
+        ctx.fillRect(indent * 4, i * lineHeight, len, Math.max(1, lineHeight));
+    });
+
+    canvas.onclick = (e) => {
+        const pct = e.offsetY / rect.height;
+        scrollToLine(Math.floor(pct * currentLines.length));
+    };
+}
+
+function renderBreadcrumbs() {
+    const breadcrumbsEl = document.getElementById('breadcrumbs');
+    breadcrumbsEl.innerHTML = '';
+    
+    const root = document.createElement('div');
+    root.className = 'crumb' + (state.stack.length === 0 ? ' active' : '');
+    root.textContent = state.currentFile;
+    root.onclick = () => { if (state.stack.length > 0) ascend(); };
+    breadcrumbsEl.appendChild(root);
+
+    state.stack.forEach((frame, i) => {
+        const crumb = document.createElement('div');
+        crumb.className = 'crumb' + (i === state.stack.length - 1 ? ' active' : '');
+        crumb.textContent = frame.name;
+        crumb.onclick = () => navigateToLevel(i);
+        breadcrumbsEl.appendChild(crumb);
+    });
+}
+
+// =================================================
+// 4. INTERACTION - Multimodal
+// =================================================
+function selectBlock(index) {
+    if (index < 0 || !state.blocks[index]) return;
+    
+    state.selected = index;
+    xray(index);
+    
+    const block = state.blocks[index];
+    const el = document.getElementById('grid').children[index];
+    
+    // Visual pulse
+    el.classList.add('pulse');
+    setTimeout(() => el.classList.remove('pulse'), 500);
+    
+    // Enable branch button
+    document.getElementById('branch-btn').disabled = false;
+    
+    // Audio & Haptic
+    playSound('click', 0.2);
+    vibrate([30, 50], `Selected ${block.name}`);
+    
+    // Scroll to code
+    scrollToLine(block.lineIndex);
+}
+
+function highlightBlock(index) {
+    document.querySelectorAll('.block.active').forEach(b => b.classList.remove('active'));
+    if (document.getElementById('grid').children[index]) {
+        document.getElementById('grid').children[index].classList.add('active');
+    }
+}
+
+function scrollToLine(lineIdx) {
+    const el = document.getElementById(`L${lineIdx}`);
+    if (el) el.scrollIntoView({behavior: 'smooth', block: 'center'});
+}
+
+function xray(idx) {
+    document.querySelectorAll('.block').forEach(b => b.className = 'block');
+    document.querySelectorAll('.cable').forEach(w => w.className = 'cable');
+    document.querySelectorAll('.line').forEach(l => l.className = 'line');
+    
+    if (idx === null || !state.blocks[idx]) {
+        updateHUD(null);
+        document.getElementById('branch-btn').disabled = true;
+        return;
+    }
+
+    const root = state.blocks[idx];
+    const lpc = Math.ceil(currentLines.length / 81);
+    
+    document.querySelectorAll('.block').forEach(b => b.classList.add('muted'));
+    
+    const rootEl = document.getElementById('grid').children[idx];
+    rootEl.classList.remove('muted');
+    rootEl.classList.add('focus');
+    
+    for (let i = idx * lpc; i < (idx + 1) * lpc && i < currentLines.length; i++) {
+        document.getElementById(`L${i}`)?.classList.add('active');
+    }
+
+    root.callers.forEach(c => {
+        const el = document.getElementById('grid').children[c];
+        if (el) el.classList.add('up');
+        const wire = document.querySelector(`path[data-from="${c}"][data-to="${idx}"]`);
+        if (wire) wire.classList.add('active', 'up');
+        document.getElementById(`L${c * lpc}`)?.classList.add('up');
+    });
+
+    root.deps.forEach(d => {
+        const el = document.getElementById('grid').children[d];
+        if (el) el.classList.add('down');
+        const wire = document.querySelector(`path[data-from="${idx}"][data-to="${d}"]`);
+        if (wire) wire.classList.add('active', 'down');
+        document.getElementById(`L${d * lpc}`)?.classList.add('down');
+    });
+
+    updateHUD(root);
+}
+
+function updateHUD(data) {
+    const focus = document.getElementById('hud-focus');
+    const callers = document.getElementById('hud-callers');
+    const deps = document.getElementById('hud-deps');
+
+    callers.innerHTML = '';
+    deps.innerHTML = '';
+
+    if (!data) {
+        focus.textContent = '--';
+        return;
+    }
+
+    focus.textContent = data.name;
+
+    const mkChip = (idx, cls) => {
+        const b = state.blocks[idx];
+        if (!b) return;
+        const chip = document.createElement('div');
+        chip.className = `chip ${cls}`;
+        chip.textContent = b.name;
+        chip.onclick = (e) => {
+            e.stopPropagation();
+            selectBlock(idx);
+            scrollToLine(b.lineIndex);
+        };
+        return chip;
+    };
+
+    if (data.callers.length === 0) {
+        callers.innerHTML = '<span style="opacity:0.3; font-size:9px;">NONE</span>';
+    } else {
+        data.callers.forEach(c => callers.appendChild(mkChip(c, 'up')));
+    }
+
+    if (data.deps.length === 0) {
+        deps.innerHTML = '<span style="opacity:0.3; font-size:9px;">NONE</span>';
+    } else {
+        data.deps.forEach(d => deps.appendChild(mkChip(d, 'down')));
+    }
+}
+
+// =================================================
+// 5. BRANCH INSTANCE SYSTEM
+// =================================================
+function branchFromSelected() {
+    if (state.selected === null || !state.blocks[state.selected]) return;
+    
+    const block = state.blocks[state.selected];
+    toggleBranchModal();
+    
+    document.getElementById('branch-target').textContent = block.name;
+    
+    // Generate preview of branched code
+    const lpc = Math.ceil(currentLines.length / 81);
+    const startIdx = state.selected * lpc;
+    const endIdx = Math.min((state.selected + 1) * lpc, currentLines.length);
+    const previewLines = currentLines.slice(startIdx, endIdx);
+    
+    document.getElementById('branch-preview').innerHTML = 
+        `<div style="color: var(--text-muted); margin-bottom: 5px;">Lines ${startIdx}-${endIdx}:</div>` +
+        previewLines.map((line, i) => 
+            `<div style="font-size: 9px; opacity: ${line.trim() ? 1 : 0.3};">${startIdx + i}: ${line.substring(0, 60)}</div>`
+        ).join('');
+}
+
+function confirmBranch() {
+    if (state.selected === null) return;
+    
+    const block = state.blocks[state.selected];
+    const lpc = Math.ceil(currentLines.length / 81);
+    const startIdx = state.selected * lpc;
+    const endIdx = Math.min((state.selected + 1) * lpc, currentLines.length);
+    
+    // Create new branched state
+    const branchData = {
+        id: Date.now(),
+        name: `${block.name}_BRANCH`,
+        parent: state.currentFile,
+        rootBlock: block,
+        lines: currentLines.slice(startIdx, endIdx),
+        fullContext: currentLines.slice(),
+        startLine: startIdx,
+        endLine: endIdx,
+        rootIndex: state.selected,
+        timestamp: new Date().toISOString()
+    };
+    
+    state.branches.push(branchData);
+    switchToBranch(branchData.id);
+    toggleBranchModal();
+    
+    playSound('branch', 0.3);
+    vibrate([30, 30, 30, 30], `Branch created: ${branchData.name}`);
+    announce(`Branch created: ${branchData.name}`);
+    
+    // Update branch button to show active branch
+    document.getElementById('branch-btn').textContent = 'ACTIVE';
+    document.getElementById('branch-btn').style.borderColor = 'var(--up)';
+    document.getElementById('branch-btn').style.color = 'var(--up)';
+}
+
+function toggleBranchModal() {
+    document.getElementById('branchModal').classList.toggle('open');
+}
+
+// =================================================
+// 6. DEEP DIVE NAVIGATION
+// =================================================
+function diveIntoBlock(index) {
+    const block = state.blocks[index];
+    if (!block || (block.type !== 'function' && block.type !== 'class')) {
+        playSound('error', 0.3);
+        vibrate([100, 50, 100], 'Cannot dive into this block');
+        return;
+    }
+
+    const body = extractBody(currentLines, block.lineIndex, block.type);
+    if (!body) return;
+
+    state.stack.push({
+        name: block.name,
+        lines: currentLines,
+        blocks: state.blocks,
+        connections: state.connections
+    });
+
+    currentLines = body.split('\n');
+    state.currentFile = block.name;
+    parseCode();
+    render();
+    
+    playSound('dive', 0.3);
+    vibrate([50, 30, 50], `Dived into ${block.name}`);
+    announce(`Deep dive: ${block.name}`);
+}
+
+function ascend() {
+    if (state.stack.length === 0) return;
+    
+    const frame = state.stack.pop();
+    currentLines = frame.lines;
+    state.currentFile = state.stack.length === 0 ? (state.activeBranch ? state.branches.find(b => b.id === state.activeBranch)?.name || 'SELF' : 'SELF') : state.stack[state.stack.length - 1].name;
+    parseCode();
+    render();
+    
+    playSound('ascend', 0.2);
+    vibrate([40, 20, 40], 'Ascended');
+    announce('Returned to parent');
+}
+
+function navigateToLevel(level) {
+    if (level === -1) {
+        while (state.stack.length > 0) ascend();
+    } else if (level < state.stack.length - 1) {
+        state.stack = state.stack.slice(0, level + 1);
+        const frame = state.stack[level];
+        currentLines = frame.lines;
+        state.currentFile = frame.name;
+        parseCode();
+        render();
+    }
+}
+
+function extractBody(src, startLine, type) {
+    let body = [];
+    let depth = 0;
+    let started = false;
+    
+    for (let i = startLine; i < src.length; i++) {
+        const line = src[i];
+        if (line.includes('{')) { depth++; started = true; }
+        if (started) body.push(line);
+        if (line.includes('}')) { depth--; if (depth === 0 && started) break; }
+    }
+    
+    return body.length > 0 ? body.join('\n') : src[startLine];
+}
+
+// =================================================
+// 7. PLAYBACK SYSTEM
+// =================================================
+function playCodeFlow() {
+    if (state.playing) {
+        state.playing = false;
+        announce('Playback stopped');
+        document.getElementById('play-btn').textContent = '▶ PLAY';
+        // Clear any lingering selection/cables when stopping mid-playback
+        document.querySelectorAll('.block').forEach(b => b.classList.remove('pulse'));
+        state.selected = null;
+        xray(null);
+        return;
+    }
+    
+    state.playing = true;
+    document.getElementById('play-btn').textContent = '⏸ PAUSE';
+    announce('Playing code flow');
+    vibrate([100, 50, 100], 'Playback started');
+    
+    let index = 0;
+    const interval = setInterval(() => {
+        if (!state.playing || index >= state.blocks.length) {
+            clearInterval(interval);
+            state.playing = false;
+            document.getElementById('play-btn').textContent = '▶ PLAY';
+            document.querySelectorAll('.block').forEach(b => b.classList.remove('pulse'));
+            // Reset selection and animated cables/lines
+            state.selected = null;
+            xray(null);
+            announce('Playback complete');
+            vibrate(50, 'Done');
+            return;
+        }
+        
+        const block = state.blocks[index];
+        if (block) {
+            selectBlock(index);
+            playSound(block.type, 0.2);
+            vibrate(15, block.name.substring(0, 10));
+        }
+        index++;
+    }, state.tempo);
+}
+
+// =================================================
+// 8. KEYBOARD NAVIGATION
+// =================================================
+function handleGridKey(e, index) {
+    const row = Math.floor(index / 9), col = index % 9;
+    let newIndex = index;
+
+    switch(e.key) {
+        case 'ArrowUp': if (row > 0) newIndex = index - 9; break;
+        case 'ArrowDown': if (row < 8) newIndex = index + 9; break;
+        case 'ArrowLeft': if (col > 0) newIndex = index - 1; break;
+        case 'ArrowRight': if (col < 8) newIndex = index + 1; break;
+        case 'Enter': case ' ': selectBlock(index); playSound('click', 0.1); return;
+        case 'Escape': ascend(); return;
+        case 'b': case 'B': 
+            if (state.selected !== null) {
+                e.preventDefault(); 
+                branchFromSelected(); 
+            } 
+            return;
+        case 'd': case 'D': 
+            if (e.ctrlKey) { 
+                e.preventDefault(); 
+                diveIntoBlock(index); 
+            } 
+            return;
+        default: return;
+    }
+
+    e.preventDefault();
+    const targetCell = document.getElementById('grid').children[newIndex];
+    if (targetCell) {
+        targetCell.focus();
+        highlightBlock(newIndex);
+        playSound('navigate', 0.05);
+    }
+}
+
+document.addEventListener('keydown', e => {
+    if (e.key === '?' && (e.ctrlKey || e.altKey)) {
+        e.preventDefault();
+        toggleMenuModal();
+    }
+});
+
+// =================================================
+// 9. MODAL CONTROLS
+// =================================================
+function toggleMenuModal() {
+    document.getElementById('menuModal').classList.toggle('open');
+    updateStatusIndicators();
+}
+
+function toggleIngestModal() {
+    document.getElementById('ingestModal').classList.toggle('open');
+    if (document.getElementById('ingestModal').classList.contains('open')) {
+        document.getElementById('paste-area').focus();
+    }
+}
+
+function ingest() {
+    const code = document.getElementById('paste-area').value.trim();
+    if (!code) return;
+    
+    // Reset branches when loading new code
+    state.branches = [];
+    state.activeBranch = null;
+    
+    currentLines = code.split('\n');
+    state.currentFile = 'USER';
+    state.stack = [];
+    state.selected = null;
+    parseCode();
+    render();
+    toggleIngestModal();
+    
+    playSound('success', 0.3);
+    vibrate([50, 30, 50], 'Code ingested');
+    announce('New code loaded. Root view ready.');
+    
+    // Reset branch button
+    document.getElementById('branch-btn').textContent = 'BRANCH';
+    document.getElementById('branch-btn').style.borderColor = '';
+    document.getElementById('branch-btn').style.color = '';
+}
+
+// =================================================
+// 11. BRANCH NAVIGATION & MANAGER
+// =================================================
+function renderBranchDeck() {
+    const deck = document.getElementById('branch-chip-deck');
+    if (!deck) return;
+    deck.innerHTML = '';
+
+    // Root view chip
+    const rootChip = document.createElement('div');
+    rootChip.className = 'chip' + (state.activeBranch === null ? ' up' : '');
+    rootChip.textContent = 'ROOT';
+    rootChip.onclick = (e) => {
+        e.stopPropagation();
+        switchToRootBranch();
+    };
+    deck.appendChild(rootChip);
+
+    state.branches.forEach(b => {
+        const chip = document.createElement('div');
+        chip.className = 'chip' + (b.id === state.activeBranch ? ' down' : '');
+        chip.textContent = b.name;
+        chip.onclick = (e) => {
+            e.stopPropagation();
+            switchToBranch(b.id);
+        };
+        deck.appendChild(chip);
+    });
+}
+
+function renderBranchGrid() {
+    const grid = document.getElementById('branch-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+
+    // Virtual ROOT card
+    const rootCard = document.createElement('div');
+    rootCard.className = 'branch-card' + (state.activeBranch === null ? ' active' : '');
+    const rootLinesCount = state.rootLines ? state.rootLines.length : (currentLines ? currentLines.length : 0);
+    rootCard.innerHTML = `
+        <div class="branch-title">ROOT</div>
+        <div class="branch-meta">${rootLinesCount} lines</div>
+    `;
+    const rootMini = document.createElement('div');
+    rootMini.className = 'branch-mini';
+    for (let i = 0; i < 9; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'branch-mini-cell' + (i === 4 ? ' hot' : '');
+        rootMini.appendChild(cell);
+    }
+    rootCard.appendChild(rootMini);
+    const rootActions = document.createElement('div');
+    rootActions.style.display = 'flex';
+    rootActions.style.gap = '4px';
+    rootActions.style.marginTop = '4px';
+    const rootOpen = document.createElement('button');
+    rootOpen.className = 'btn';
+    rootOpen.textContent = 'Open';
+    rootOpen.onclick = (e) => {
+        e.stopPropagation();
+        switchToRootBranch();
+    };
+    rootActions.appendChild(rootOpen);
+    rootCard.appendChild(rootActions);
+    grid.appendChild(rootCard);
+
+    // Branch cards
+    state.branches.forEach(b => {
+        const card = document.createElement('div');
+        card.className = 'branch-card' + (b.id === state.activeBranch ? ' active' : '');
+        const linesCount = b.lines ? b.lines.length : 0;
+        card.innerHTML = `
+            <div class="branch-title">${b.name}</div>
+            <div class="branch-meta">${linesCount} lines</div>
+        `;
+
+        const mini = document.createElement('div');
+        mini.className = 'branch-mini';
+        let hotIndex = -1;
+        if (typeof b.rootIndex === 'number' && b.rootIndex >= 0) {
+            const row = Math.floor(b.rootIndex / 9);
+            const col = b.rootIndex % 9;
+            const superRow = Math.floor(row / 3);
+            const superCol = Math.floor(col / 3);
+            hotIndex = superRow * 3 + superCol;
+        }
+        for (let i = 0; i < 9; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'branch-mini-cell' + (i === hotIndex ? ' hot' : '');
+            mini.appendChild(cell);
+        }
+        card.appendChild(mini);
+
+        const actions = document.createElement('div');
+        actions.style.display = 'flex';
+        actions.style.gap = '4px';
+        actions.style.marginTop = '4px';
+
+        const openBtn = document.createElement('button');
+        openBtn.className = 'btn';
+        openBtn.textContent = 'Open';
+        openBtn.onclick = (e) => {
+            e.stopPropagation();
+            switchToBranch(b.id);
+        };
+
+        const delBtn = document.createElement('button');
+        delBtn.className = 'btn';
+        delBtn.textContent = 'Delete';
+        delBtn.onclick = (e) => {
+            e.stopPropagation();
+            state.branches = state.branches.filter(br => br.id !== b.id);
+            if (state.activeBranch === b.id) {
+                state.activeBranch = null;
+                if (state.rootLines && state.rootLines.length) {
+                    currentLines = state.rootLines.slice();
+                    parseCode();
+                    render();
+                }
+            }
+            renderBranchDeck();
+            renderBranchGrid();
+        };
+
+        actions.appendChild(openBtn);
+        actions.appendChild(delBtn);
+        card.appendChild(actions);
+        grid.appendChild(card);
+    });
+}
+
+function switchToRootBranch() {
+    state.activeBranch = null;
+    if (state.rootLines && state.rootLines.length) {
+        currentLines = state.rootLines.slice();
+    } else {
+        currentLines = document.documentElement.outerHTML.split('\n');
+        state.rootLines = currentLines.slice();
+    }
+    state.stack = [];
+    state.selected = null;
+    state.currentFile = 'SELF';
+    parseCode();
+    render();
+}
+
+function switchToBranch(id) {
+    const b = state.branches.find(br => br.id === id);
+    if (!b) return;
+    state.activeBranch = id;
+    currentLines = b.lines.slice();
+    state.stack = [];
+    state.selected = null;
+    state.currentFile = b.name;
+    parseCode();
+    render();
+}
+
+function branchOrder() {
+    return ['root', ...state.branches.map(b => b.id)];
+}
+
+function jumpBranch(offset) {
+    const order = branchOrder();
+    if (!order.length) return;
+    const currentId = state.activeBranch === null ? 'root' : state.activeBranch;
+    const idx = order.indexOf(currentId);
+    if (idx === -1) return;
+    const nextIdx = (idx + offset + order.length) % order.length;
+    const nextId = order[nextIdx];
+    if (nextId === 'root') switchToRootBranch();
+    else switchToBranch(nextId);
+}
+
+function toggleBranchGridModal() {
+    const el = document.getElementById('branchGridModal');
+    if (!el) return;
+    el.classList.toggle('open');
+    if (el.classList.contains('open')) {
+        renderBranchGrid();
+    }
+}
+
+function resetView() {
+    // Clear branches and return to root
+    state.branches = [];
+    state.activeBranch = null;
+    state.stack = [];
+    state.selected = null;
+    
+    currentLines = document.documentElement.outerHTML.split('\n');
+    state.rootLines = currentLines.slice();
+    state.currentFile = 'SELF';
+    parseCode();
+    render();
+    
+    playSound('success', 0.2);
+    vibrate(30, 'View reset');
+    announce('Returned to root. All branches cleared.');
+    
+    // Reset branch button
+    document.getElementById('branch-btn').textContent = 'BRANCH';
+    document.getElementById('branch-btn').style.borderColor = '';
+    document.getElementById('branch-btn').style.color = '';
+}
+
+// =================================================
+// 10. EVENT LISTENERS & INIT
+// =================================================
+document.getElementById('sonify-toggle').onchange = (e) => {
+    state.sonify = e.target.checked;
+    updateStatusIndicators();
+    announce(`Sonification ${state.sonify ? 'enabled' : 'disabled'}`);
+};
+
+document.getElementById('haptic-toggle').onchange = (e) => {
+    state.haptics = e.target.checked;
+    updateStatusIndicators();
+    announce(`Haptic feedback ${state.haptics ? 'enabled' : 'disabled'}`);
+};
+
+document.getElementById('volume-slider').oninput = (e) => {
+    state.volume = e.target.value / 100;
+    announce(`Volume: ${Math.round(state.volume * 100)}%`);
+};
+
+document.getElementById('tempo-slider').oninput = (e) => {
+    state.tempo = parseInt(e.target.value);
+    announce(`Tempo: ${state.tempo}ms`);
+};
+
+document.getElementById('scroller').addEventListener('scroll', () => {
+    const scrollerEl = document.getElementById('scroller');
+    const canvasEl = document.getElementById('minimap');
+    const viewportBoxEl = document.getElementById('mm-view');
+    if (!scrollerEl || !canvasEl || !viewportBoxEl) return;
+
+    const denom = (scrollerEl.scrollHeight - scrollerEl.clientHeight) || 1;
+    const pct = scrollerEl.scrollTop / denom;
+    const mmHeight = canvasEl.getBoundingClientRect().height || 1;
+    const viewHeight = (scrollerEl.clientHeight / scrollerEl.scrollHeight) * mmHeight;
+    viewportBoxEl.style.height = `${viewHeight}px`;
+    viewportBoxEl.style.top = `${pct * (mmHeight - viewHeight)}px`;
+});
+
+// Initialize
+window.addEventListener('load', () => {
+    parseCode();
+    render();
+    
+    // URL parameter support
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('code')) {
+        try {
+            currentLines = atob(params.get('code')).split('\n');
+            state.currentFile = 'URL';
+            parseCode();
+            render();
+        } catch (e) {
+            console.warn('Invalid base64 in URL');
+        }
+    }
+    
+    setTimeout(() => document.getElementById('grid').children[0]?.focus(), 100);
+});
+
+window.addEventListener('resize', () => {
+    renderWires();
+    renderMinimap();
+});
+</script>
+</body>
+</html>

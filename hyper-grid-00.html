@@ -1,0 +1,1535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#000000">
+    <title>HYPER_GRID // MEDIA_FOR_THINKING</title>
+    <style>
+        :root {
+            --bg: #080808;
+            --panel: #111;
+            --border: #333;
+            --border-active: #555;
+            --accent: #00ff9d; /* Sharp Cyber Green */
+            --secondary: #0088ff; /* Data Blue */
+            --text: #ccc;
+            --text-dim: #666;
+            --font: 'JetBrains Mono', 'Courier New', monospace;
+
+            --danger: #ff3355;
+            --ok: #7cfc00;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            height: 100vh;
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* --- HEADER: Z-AXIS + PALETTE + TOOLS --- */
+        header {
+            height: 56px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            background: #000;
+            gap: 12px;
+            flex-shrink: 0;
+            font-size: 11px;
+            letter-spacing: 0.05em;
+        }
+
+        .brand { color: var(--accent); font-weight: bold; }
+        .divider { width: 1px; height: 20px; background: var(--border); }
+
+        .breadcrumbs {
+            flex: 0 0 auto;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            max-width: 22vw;
+        }
+        .crumb {
+            color: var(--text-dim);
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .crumb:hover { color: var(--text); text-decoration: underline; }
+        .crumb.active { color: var(--accent); font-weight: bold; }
+
+        .depth-meter { color: var(--secondary); flex: 0 0 auto; white-space: nowrap; }
+
+        .tools {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex: 0 0 auto;
+        }
+
+        .toolbtn {
+            border-radius: 3px;
+            border: 1px solid var(--border);
+            background: #111;
+            color: var(--text-dim);
+            font-size: 9px;
+            padding: 3px 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            user-select: none;
+        }
+
+        .toolbtn:hover { border-color: var(--border-active); color: var(--text); }
+        .toolbtn:active { transform: translateY(1px); }
+        .toolbtn.primary { border-color: var(--accent); color: var(--accent); }
+        .toolbtn.danger { border-color: #552; color: #c98; }
+
+        .tog {
+            display: inline-flex;
+            gap: 6px;
+            align-items: center;
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            padding: 4px 8px;
+            background: #0d0d0d;
+        }
+        .tog label {
+            font-size: 9px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+        .tog input[type="range"] {
+            width: 90px;
+        }
+        .tog input[type="checkbox"] {
+            accent-color: var(--accent);
+        }
+
+        .palette {
+            flex: 1;
+            display: flex;
+            justify-content: flex-end;
+            gap: 6px;
+            min-width: 0;
+        }
+
+        .brick {
+            border-radius: 3px;
+            border: 1px solid var(--border);
+            background: #111;
+            color: var(--text-dim);
+            font-size: 9px;
+            padding: 3px 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .brick span.glyph {
+            font-size: 10px;
+            opacity: 0.8;
+        }
+
+        .brick:hover {
+            border-color: var(--border-active);
+            color: var(--text);
+        }
+
+        .brick.active {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* --- SPLIT VIEW --- */
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* --- TOP: THE SPATIAL GRID --- */
+        .grid-viewport {
+            flex: 1;
+            background: #0c0c0c;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .grid-shell {
+            position: relative;
+            width: min(60vh, 90vw);
+            height: min(60vh, 90vw);
+        }
+
+        .grid-layer {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            grid-template-rows: repeat(9, 1fr);
+            width: 100%;
+            height: 100%;
+            gap: 1px;
+            transition: transform 0.1s linear;
+            transform-origin: center;
+        }
+
+        .flow-layer {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 20;
+        }
+
+        .flow-path {
+            fill: none;
+            stroke: rgba(0, 255, 157, 0.35);
+            stroke-width: 2;
+            filter: drop-shadow(0 0 6px rgba(0, 255, 157, 0.35));
+        }
+
+        .flow-dot {
+            fill: rgba(0, 255, 157, 0.85);
+        }
+
+        .flow-label {
+            font-size: 10px;
+            fill: rgba(0, 255, 157, 0.85);
+        }
+
+        .cell {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            padding: 4px;
+            transition: all 0.1s;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .cell.empty {
+            background: repeating-linear-gradient(
+                45deg,
+                #0d0d0d,
+                #0d0d0d 2px,
+                #111 2px,
+                #111 4px
+            );
+            border-color: #1a1a1a;
+            cursor: default;
+        }
+
+        .cell.dimmed { opacity: 0.12; }
+
+        .cell:hover:not(.empty) {
+            border-color: var(--accent);
+            background: #1a1a1a;
+            z-index: 10;
+            box-shadow: 0 0 0 1px var(--accent);
+        }
+
+        .cell.selected:not(.empty) {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 1px var(--accent), 0 0 0 2px rgba(0,255,157,0.15);
+        }
+
+        .cell-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 9px;
+            font-weight: bold;
+            color: var(--text-dim);
+            margin-bottom: 2px;
+        }
+        .cell:hover .cell-header { color: var(--text); }
+
+        .cell-tag { color: var(--secondary); text-transform: uppercase; }
+        .cell-idx { opacity: 0.5; }
+
+        .cell-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            opacity: 0.85;
+        }
+
+        .code-line { height: 2px; background: #333; width: 100%; }
+        .code-line.short { width: 40%; }
+        .code-line.med { width: 70%; }
+        .code-line.attr { background: #444; }
+
+        .cell.layout .code-line.med { width: 90%; }
+        .cell.button .code-line.med { width: 60%; }
+        .cell.text .code-line.med { width: 80%; }
+
+        .cell:hover .code-line { background: #555; }
+        .cell:hover .code-line.attr { background: var(--accent); opacity: 0.6; }
+
+        .cell-footer {
+            margin-top: auto;
+            font-size: 8px;
+            color: var(--text-dim);
+            text-align: right;
+        }
+
+        /* Helper overlay for "Surfaces the Invisible" */
+        .hint-overlay {
+            position: absolute;
+            left: 14px;
+            top: 12px;
+            z-index: 40;
+            padding: 8px 10px;
+            border: 1px solid #1e1e1e;
+            background: rgba(0,0,0,0.65);
+            font-size: 10px;
+            color: #9aa;
+            max-width: 42ch;
+        }
+        .hint-overlay b { color: var(--accent); }
+        .hint-overlay .mini { color: #667; font-size: 9px; margin-top: 6px; }
+
+        /* --- BOTTOM: SOURCE + PREVIEW + STATE --- */
+        .source-panel {
+            height: 320px;
+            background: #050505;
+            font-size: 11px;
+            border-top: 1px solid var(--border);
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .source-header {
+            padding: 8px 16px;
+            background: #111;
+            border-bottom: 1px solid var(--border);
+            font-size: 10px;
+            color: var(--text-dim);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+
+        .header-left { display: flex; align-items: center; gap: 10px; }
+
+        .tabs {
+            display: inline-flex;
+            border: 1px solid #1e1e1e;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .tab {
+            border: 0;
+            background: #0d0d0d;
+            color: #778;
+            font-size: 9px;
+            padding: 4px 8px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+        .tab.active {
+            background: #131313;
+            color: var(--accent);
+        }
+
+        .source-line {
+            display: flex;
+            padding: 2px 16px;
+            cursor: pointer;
+            border-left: 2px solid transparent;
+            color: #777;
+        }
+
+        .source-line:hover, .source-line.active {
+            background: #111;
+            color: #eee;
+            border-left-color: var(--accent);
+        }
+
+        .ln {
+            min-width: 30px;
+            color: #444;
+            user-select: none;
+            text-align: right;
+            margin-right: 12px;
+        }
+
+        .code { white-space: pre; font-family: var(--font); }
+
+        .panes {
+            flex: 1;
+            display: flex;
+            min-height: 0;
+        }
+
+        .pane {
+            flex: 1;
+            min-width: 0;
+            overflow: auto;
+            display: none;
+        }
+
+        .pane.active { display: block; }
+
+        #source-stream { padding: 6px 0 10px; }
+
+        .preview-panel {
+            padding: 10px 16px 12px;
+            font-size: 10px;
+            color: var(--text-dim);
+        }
+
+        .preview-label-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .preview-surface {
+            border: 1px solid #222;
+            background: #070707;
+            padding: 8px;
+            min-height: 110px;
+        }
+
+        .preview-node {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            border: 1px solid #1e1e1e;
+            background: #0b0b0b;
+            padding: 6px 8px;
+            margin: 4px 0;
+            cursor: pointer;
+        }
+        .preview-node:hover { border-color: #2a2a2a; }
+        .preview-node.active {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 1px rgba(0,255,157,0.25);
+        }
+        .preview-node .type {
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--secondary);
+            opacity: 0.9;
+        }
+        .preview-node .txt {
+            flex: 1;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            color: #aab;
+        }
+        .preview-node .coord {
+            font-size: 9px;
+            color: #556;
+            white-space: nowrap;
+        }
+
+        .preview-meta {
+            font-size: 9px;
+            color: #555;
+            margin-top: 8px;
+        }
+
+        .state-panel {
+            padding: 10px 16px 12px;
+        }
+        .state-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .pill {
+            border: 1px solid #1e1e1e;
+            border-radius: 999px;
+            padding: 4px 8px;
+            font-size: 9px;
+            color: #889;
+            background: #0b0b0b;
+            display: inline-flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .pill b { color: var(--accent); font-weight: 700; }
+        .pill .k { color: #667; }
+
+        .jsonbox {
+            border: 1px solid #1e1e1e;
+            background: #070707;
+            padding: 10px;
+            font-size: 10px;
+            line-height: 1.35;
+            color: #9aa;
+            overflow: auto;
+            white-space: pre;
+            min-height: 140px;
+        }
+
+        .log {
+            margin-top: 10px;
+            border-top: 1px solid #141414;
+            padding-top: 10px;
+        }
+        .log .item {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 4px 0;
+            color: #778;
+            font-size: 10px;
+        }
+        .log .item .t { color: #556; font-size: 9px; }
+        .log .item .a b { color: var(--accent); }
+
+        /* --- Modal (Export / Import) --- */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.65);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+            padding: 16px;
+        }
+        .modal.open { display: flex; }
+        .modal-card {
+            width: min(860px, 96vw);
+            max-height: min(680px, 90vh);
+            border: 1px solid #1f1f1f;
+            background: #070707;
+            box-shadow: 0 20px 80px rgba(0,0,0,0.75);
+            border-radius: 10px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .modal-head {
+            padding: 10px 12px;
+            background: #0c0c0c;
+            border-bottom: 1px solid #141414;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .modal-head b { color: var(--accent); font-size: 10px; letter-spacing: 0.1em; }
+        .modal-head .x {
+            cursor: pointer;
+            border: 1px solid #1f1f1f;
+            background: #0d0d0d;
+            color: #889;
+            border-radius: 6px;
+            font-size: 12px;
+            line-height: 1;
+            padding: 6px 10px;
+        }
+        .modal-body {
+            padding: 10px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-height: 0;
+        }
+        .modal-body textarea {
+            width: 100%;
+            flex: 1;
+            min-height: 220px;
+            resize: vertical;
+            border: 1px solid #1f1f1f;
+            background: #050505;
+            color: #cbd5e1;
+            font-family: var(--font);
+            font-size: 11px;
+            padding: 10px;
+            border-radius: 8px;
+            outline: none;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+        .toast {
+            position: fixed;
+            right: 14px;
+            bottom: 14px;
+            border: 1px solid #1f1f1f;
+            background: rgba(0,0,0,0.7);
+            color: #cbd5e1;
+            padding: 8px 10px;
+            border-radius: 10px;
+            font-size: 10px;
+            display: none;
+            z-index: 100000;
+        }
+        .toast.show { display: block; }
+    </style>
+
+    <script>
+        // Global stub to avoid ReferenceError if legacy markup calls init_core()
+        function init_core() {
+            // No-op initializer; kept so older inline script calls won't break the page
+            console.log('init_core() stub called – no-op initializer for HYPER_GRID.');
+        }
+    </script>
+</head>
+<body>
+
+    <!-- UI LAYER -->
+    <header>
+        <div class="brand">HYPER_GRID_v2</div>
+        <div class="divider"></div>
+        <div class="breadcrumbs" id="breadcrumbs"><span class="crumb active">GRID_PAGE</span></div>
+        <div class="divider"></div>
+        <div class="depth-meter" id="depth-meter">BRICK: LAYOUT</div>
+
+        <div class="divider"></div>
+
+        <div class="tools">
+            <button class="toolbtn" id="undoBtn" title="Undo (Ctrl/⌘+Z)">↶ UNDO</button>
+            <button class="toolbtn" id="redoBtn" title="Redo (Ctrl/⌘+Shift+Z)">↷ REDO</button>
+            <button class="toolbtn" id="saveBtn" title="Save to localStorage">SAVE</button>
+            <button class="toolbtn" id="loadBtn" title="Load from localStorage">LOAD</button>
+            <button class="toolbtn primary" id="exportBtn" title="Export snapshot">EXPORT</button>
+            <button class="toolbtn" id="importBtn" title="Import snapshot">IMPORT</button>
+
+            <div class="tog" title="Zoom the grid (overcome cognitive limits)">
+                <label>ZOOM</label>
+                <input id="zoom" type="range" min="60" max="160" value="100">
+            </div>
+
+            <div class="tog" title="Show the action flow overlay (surface the invisible)">
+                <label>FLOW</label>
+                <input id="flowToggle" type="checkbox" checked>
+            </div>
+
+            <div class="tog" title="Dim empty cells (focus)">
+                <label>FOCUS</label>
+                <input id="focusToggle" type="checkbox">
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="palette" id="palette">
+            <button class="brick active" data-type="layout"><span class="glyph">▢</span><span>DIV</span></button>
+            <button class="brick" data-type="button"><span class="glyph">●</span><span>BTN</span></button>
+            <button class="brick" data-type="text"><span class="glyph">≡</span><span>TEXT</span></button>
+            <button class="brick" data-type="empty"><span class="glyph">×</span><span>ERASE</span></button>
+        </div>
+    </header>
+
+    <main>
+        <!-- THE MAP (Top) -->
+        <div class="grid-viewport">
+            <div class="hint-overlay" id="hint">
+                <b>MEDIA FOR THINKING:</b> paint bricks → watch source, preview, state, and flow update in lockstep.
+                <div class="mini">Tip: hold mouse/touch and drag to paint. Ctrl/⌘+Z undo. Export snapshots for remix.</div>
+            </div>
+
+            <div class="grid-shell" id="gridShell">
+                <svg class="flow-layer" id="flowLayer" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>
+                <div class="grid-layer" id="grid"></div>
+            </div>
+        </div>
+
+        <!-- THE TERRITORY (Bottom) -->
+        <div class="source-panel">
+            <div class="source-header">
+                <div class="header-left">
+                    <span>SOURCE ∥ PREVIEW ∥ STATE</span>
+                    <div class="tabs" role="tablist">
+                        <button class="tab active" id="tab-source" data-pane="pane-source">SOURCE</button>
+                        <button class="tab" id="tab-preview" data-pane="pane-preview">PREVIEW</button>
+                        <button class="tab" id="tab-state" data-pane="pane-state">STATE</button>
+                    </div>
+                </div>
+                <span id="node-count">0 BRICKS</span>
+            </div>
+
+            <div class="panes">
+                <div class="pane active" id="pane-source">
+                    <div id="source-stream"></div>
+                </div>
+
+                <div class="pane" id="pane-preview">
+                    <div class="preview-panel">
+                        <div class="preview-label-row">
+                            <span>LIVE PREVIEW</span>
+                            <span class="preview-hint">grid → bricks → HTML</span>
+                        </div>
+                        <div class="preview-surface" id="preview-surface"></div>
+                        <div class="preview-meta" id="preview-meta">No bricks yet. Click a brick in the palette, then paint cells on the grid.</div>
+                    </div>
+                </div>
+
+                <div class="pane" id="pane-state">
+                    <div class="state-panel">
+                        <div class="state-row" id="statePills"></div>
+                        <div class="jsonbox" id="stateJson">{
+  "status": "INIT"
+}</div>
+                        <div class="log" id="log"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Export/Import Modal -->
+    <div class="modal" id="modal" aria-hidden="true">
+        <div class="modal-card">
+            <div class="modal-head">
+                <b id="modalTitle">EXPORT</b>
+                <button class="x" id="modalClose" title="Close">×</button>
+            </div>
+            <div class="modal-body">
+                <textarea id="modalText" spellcheck="false"></textarea>
+                <div class="modal-actions" id="modalActions"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">OK</div>
+
+<script>
+// HYPER_GRID Media for Thinking the Unthinkable
+(function() {
+    const GRID_SIZE = 9;
+    const CELL_COUNT = GRID_SIZE * GRID_SIZE;
+    const STORAGE_KEY = 'HYPER_GRID_v2.snapshot';
+
+    const BRICK_TYPES = {
+        layout: { id: 'layout', label: 'DIV', tag: 'div', className: 'layout-block', glyph: '▢', defaultText: 'Layout block' },
+        button: { id: 'button', label: 'BTN', tag: 'button', className: 'btn-block', glyph: '●', defaultText: 'Click me' },
+        text:   { id: 'text',   label: 'TEXT', tag: 'p',   className: 'text-block',   glyph: '≡', defaultText: 'Sample text...' },
+        empty:  { id: 'empty',  label: 'EMPTY', tag: null, className: '', glyph: '×', defaultText: '' }
+    };
+
+    // --- State ---
+    let currentBrickType = 'layout';
+    const gridState = Array.from({ length: CELL_COUNT }, () => ({ type: 'empty', props: {} }));
+    const stamp = new Array(CELL_COUNT).fill(0); // last-changed timestamp for flow ordering
+    let clock = 1;
+
+    let selectedIdx = -1;
+
+    // Undo/redo
+    const undoStack = [];
+    const redoStack = [];
+
+    // Interaction batching
+    let painting = false;
+    let strokeCheckpointed = false;
+
+    // Visibility toggles
+    let flowEnabled = true;
+    let focusEnabled = false;
+
+    // Action log (Surfacing the invisible)
+    const actionLog = [];
+
+    // DOM
+    const gridEl = document.getElementById('grid');
+    const gridShell = document.getElementById('gridShell');
+    const flowLayer = document.getElementById('flowLayer');
+    const sourceEl = document.getElementById('source-stream');
+    const breadcrumbsEl = document.getElementById('breadcrumbs');
+    const depthMeter = document.getElementById('depth-meter');
+    const nodeCountEl = document.getElementById('node-count');
+    const paletteEl = document.getElementById('palette');
+    const previewSurface = document.getElementById('preview-surface');
+    const previewMeta = document.getElementById('preview-meta');
+
+    const zoomEl = document.getElementById('zoom');
+    const flowToggle = document.getElementById('flowToggle');
+    const focusToggle = document.getElementById('focusToggle');
+
+    const undoBtn = document.getElementById('undoBtn');
+    const redoBtn = document.getElementById('redoBtn');
+    const saveBtn = document.getElementById('saveBtn');
+    const loadBtn = document.getElementById('loadBtn');
+    const exportBtn = document.getElementById('exportBtn');
+    const importBtn = document.getElementById('importBtn');
+
+    const tabs = document.querySelectorAll('.tab');
+    const panes = document.querySelectorAll('.pane');
+
+    const statePills = document.getElementById('statePills');
+    const stateJson = document.getElementById('stateJson');
+    const logEl = document.getElementById('log');
+
+    const modal = document.getElementById('modal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalText = document.getElementById('modalText');
+    const modalActions = document.getElementById('modalActions');
+    const modalClose = document.getElementById('modalClose');
+
+    const toast = document.getElementById('toast');
+
+    // ---------- Utilities ----------
+    function nowStamp() { return clock++; }
+
+    function cloneGridState(src) {
+        // Avoid structuredClone for older envs; grid is tiny.
+        return src.map(c => ({ type: c.type, props: { ...c.props } }));
+    }
+
+    function toastMsg(msg) {
+        toast.textContent = msg;
+        toast.classList.add('show');
+        window.clearTimeout(toast._t);
+        toast._t = window.setTimeout(() => toast.classList.remove('show'), 900);
+    }
+
+    function logAction(kind, payload) {
+        const entry = {
+            t: new Date().toLocaleTimeString(),
+            kind,
+            ...payload
+        };
+        actionLog.unshift(entry);
+        if (actionLog.length > 12) actionLog.length = 12;
+    }
+
+    function setActivePane(id) {
+        panes.forEach(p => p.classList.toggle('active', p.id === id));
+        tabs.forEach(t => t.classList.toggle('active', t.dataset.pane === id));
+    }
+
+    // ---------- HUD / palette ----------
+    function updateHUD() {
+        depthMeter.textContent = 'BRICK: ' + currentBrickType.toUpperCase();
+        undoBtn.style.opacity = undoStack.length ? '1' : '0.55';
+        redoBtn.style.opacity = redoStack.length ? '1' : '0.55';
+    }
+
+    function setCurrentBrickType(type) {
+        if (!BRICK_TYPES[type]) return;
+        currentBrickType = type;
+        updateHUD();
+        if (!paletteEl) return;
+        const buttons = paletteEl.querySelectorAll('.brick');
+        buttons.forEach(btn => {
+            const t = btn.getAttribute('data-type');
+            btn.classList.toggle('active', t === type);
+        });
+    }
+
+    // ---------- Undo / redo ----------
+    function pushCheckpoint(reason) {
+        undoStack.push({ grid: cloneGridState(gridState), stamp: stamp.slice(), clock, selectedIdx });
+        if (undoStack.length > 80) undoStack.shift();
+        redoStack.length = 0;
+        logAction('checkpoint', { reason });
+        updateHUD();
+    }
+
+    function restoreSnapshot(snap) {
+        if (!snap) return;
+        const g = snap.grid;
+        for (let i = 0; i < CELL_COUNT; i++) {
+            gridState[i].type = g[i].type;
+            gridState[i].props = { ...g[i].props };
+            stamp[i] = snap.stamp[i];
+        }
+        clock = snap.clock || clock;
+        selectedIdx = typeof snap.selectedIdx === 'number' ? snap.selectedIdx : -1;
+    }
+
+    function undo() {
+        if (!undoStack.length) return;
+        const prev = undoStack.pop();
+        redoStack.push({ grid: cloneGridState(gridState), stamp: stamp.slice(), clock, selectedIdx });
+        restoreSnapshot(prev);
+        logAction('undo', { });
+        updateAll();
+        toastMsg('UNDO');
+    }
+
+    function redo() {
+        if (!redoStack.length) return;
+        const next = redoStack.pop();
+        undoStack.push({ grid: cloneGridState(gridState), stamp: stamp.slice(), clock, selectedIdx });
+        restoreSnapshot(next);
+        logAction('redo', { });
+        updateAll();
+        toastMsg('REDO');
+    }
+
+    // ---------- Painting ----------
+    function setCell(index, type, toggle) {
+        const prev = gridState[index].type;
+        let next = type;
+        if (toggle && prev === type) next = 'empty';
+
+        if (prev === next) return;
+
+        gridState[index].type = next;
+        gridState[index].props = gridState[index].props || {};
+        stamp[index] = next === 'empty' ? 0 : nowStamp();
+
+        logAction('paint', { idx: index, prev, next });
+    }
+
+    function selectCell(index) {
+        selectedIdx = index;
+        logAction('select', { idx: index });
+        renderSelectionSync();
+        renderState();
+    }
+
+    function cellCoord(index) {
+        return {
+            row: Math.floor(index / GRID_SIZE),
+            col: index % GRID_SIZE
+        };
+    }
+
+    // ---------- Rendering: grid ----------
+    function renderGrid() {
+        gridEl.innerHTML = '';
+        const anyFilled = gridState.some(c => c.type !== 'empty');
+
+        gridState.forEach((cellState, index) => {
+            const cell = document.createElement('div');
+            cell.className = 'cell';
+            cell.dataset.index = String(index);
+
+            const { row, col } = cellCoord(index);
+
+            if (!cellState || cellState.type === 'empty') {
+                cell.classList.add('empty');
+                if (focusEnabled && anyFilled) cell.classList.add('dimmed');
+                cell.innerHTML = '';
+            } else {
+                const def = BRICK_TYPES[cellState.type] || BRICK_TYPES.empty;
+                cell.classList.add(cellState.type);
+
+                const order = stamp[index] ? String(stamp[index]).padStart(2, '0') : '--';
+
+                cell.innerHTML = `
+                    <div class="cell-header">
+                        <span class="cell-tag">${def.label}</span>
+                        <span class="cell-idx">${row},${col}</span>
+                    </div>
+                    <div class="cell-body">
+                        <div class="code-line med"></div>
+                        <div class="code-line short attr"></div>
+                        <div class="code-line med"></div>
+                    </div>
+                    <div class="cell-footer">${def.glyph}·T${order}</div>
+                `;
+            }
+
+            if (index === selectedIdx && cellState.type !== 'empty') {
+                cell.classList.add('selected');
+            }
+
+            cell.addEventListener('pointerdown', (e) => {
+                e.preventDefault();
+                painting = true;
+                strokeCheckpointed = false;
+
+                if (!strokeCheckpointed) {
+                    pushCheckpoint('stroke');
+                    strokeCheckpointed = true;
+                }
+
+                setCell(index, currentBrickType, true);
+                selectCell(index);
+                updateAll();
+
+                // Capture pointer so pointerup happens reliably
+                try { cell.setPointerCapture(e.pointerId); } catch (_) {}
+            });
+
+            cell.addEventListener('pointerenter', (e) => {
+                if (!painting) return;
+                if (e.buttons === 0) return;
+                if (!strokeCheckpointed) {
+                    pushCheckpoint('stroke');
+                    strokeCheckpointed = true;
+                }
+                // Drag painting is SET, not TOGGLE
+                setCell(index, currentBrickType, false);
+                selectCell(index);
+                updateAll();
+            });
+
+            cell.addEventListener('pointerup', () => {
+                painting = false;
+                strokeCheckpointed = false;
+            });
+
+            cell.addEventListener('click', () => {
+                // click fallback for non-pointer browsers
+                selectCell(index);
+            });
+
+            gridEl.appendChild(cell);
+        });
+    }
+
+    // ---------- Rendering: source + preview ----------
+    function renderSourceAndPreview() {
+        sourceEl.innerHTML = '';
+        previewSurface.innerHTML = '';
+
+        const lines = [];
+        lines.push('<div class="hyper-grid-page">');
+
+        let brickCount = 0;
+
+        // We create an "ordered" list by stamp, not by index (so flow and code order coincide)
+        const filled = [];
+        for (let i = 0; i < CELL_COUNT; i++) {
+            if (gridState[i].type !== 'empty' && stamp[i] > 0) filled.push(i);
+        }
+        filled.sort((a, b) => stamp[a] - stamp[b]);
+
+        filled.forEach((index) => {
+            const cellState = gridState[index];
+            const def = BRICK_TYPES[cellState.type];
+            if (!def || !def.tag) return;
+            const { row, col } = cellCoord(index);
+            const text = cellState.props.text || def.defaultText;
+            const line = `  <${def.tag} class="${def.className}" data-cell="${row},${col}">${text}</${def.tag}>`;
+            lines.push(line);
+            brickCount++;
+        });
+
+        lines.push('</div>');
+
+        // Source lines
+        let lineNo = 1;
+        lines.forEach((text) => {
+            const lineDiv = document.createElement('div');
+            lineDiv.className = 'source-line';
+            lineDiv.dataset.ln = String(lineNo);
+
+            const ln = document.createElement('div');
+            ln.className = 'ln';
+            ln.textContent = String(lineNo++).padStart(2, '0');
+
+            const code = document.createElement('div');
+            code.className = 'code';
+            code.textContent = text;
+
+            lineDiv.appendChild(ln);
+            lineDiv.appendChild(code);
+            sourceEl.appendChild(lineDiv);
+        });
+
+        nodeCountEl.textContent = brickCount + ' BRICKS';
+
+        // Preview
+        if (brickCount === 0) {
+            previewMeta.textContent = 'No bricks yet. Click a brick in the palette, then paint cells on the grid.';
+            renderState();
+            renderFlow();
+            return;
+        }
+
+        filled.forEach((index) => {
+            const cellState = gridState[index];
+            const def = BRICK_TYPES[cellState.type];
+            if (!def || !def.tag) return;
+            const { row, col } = cellCoord(index);
+            const text = cellState.props.text || def.defaultText;
+
+            const node = document.createElement('div');
+            node.className = 'preview-node';
+            node.dataset.index = String(index);
+
+            node.innerHTML = `
+                <span class="type">${def.label}</span>
+                <span class="txt">${escapeHtml(text)}</span>
+                <span class="coord">${row},${col}</span>
+            `;
+
+            node.addEventListener('mouseenter', () => {
+                selectCell(index);
+                renderSelectionSync();
+            });
+            node.addEventListener('click', () => {
+                setActivePane('pane-preview');
+                selectCell(index);
+                renderSelectionSync();
+            });
+
+            previewSurface.appendChild(node);
+        });
+
+        previewMeta.textContent = 'Preview is a structural echo of your brush-strokes. Order is driven by the flow timestamps (Txx).';
+
+        renderState();
+        renderFlow();
+        renderSelectionSync();
+    }
+
+    function escapeHtml(s) {
+        return String(s)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    // ---------- Rendering: state (invisible surfaced) ----------
+    function renderState() {
+        const counts = { layout: 0, button: 0, text: 0 };
+        let filledCount = 0;
+        for (let i = 0; i < CELL_COUNT; i++) {
+            const t = gridState[i].type;
+            if (t !== 'empty') {
+                filledCount++;
+                if (counts[t] !== undefined) counts[t]++;
+            }
+        }
+
+        const sel = selectedIdx >= 0 ? gridState[selectedIdx] : null;
+        const selCoord = selectedIdx >= 0 ? cellCoord(selectedIdx) : null;
+
+        // pills
+        statePills.innerHTML = '';
+        const pills = [
+            { k: 'filled', v: filledCount },
+            { k: 'div', v: counts.layout },
+            { k: 'btn', v: counts.button },
+            { k: 'text', v: counts.text },
+            { k: 'undo', v: undoStack.length },
+            { k: 'redo', v: redoStack.length },
+            { k: 'selected', v: selectedIdx >= 0 ? (selCoord.row + ',' + selCoord.col) : '—' }
+        ];
+        pills.forEach(p => {
+            const el = document.createElement('div');
+            el.className = 'pill';
+            el.innerHTML = `<span class="k">${p.k}</span><b>${p.v}</b>`;
+            statePills.appendChild(el);
+        });
+
+        // symbol view
+        const snapshot = exportSnapshot(false);
+        const brief = {
+            version: snapshot.version,
+            meta: snapshot.meta,
+            selection: snapshot.selection,
+            bricks: snapshot.bricks,
+            order: snapshot.order
+        };
+        stateJson.textContent = JSON.stringify(brief, null, 2);
+
+        // log view
+        logEl.innerHTML = '<div class="item"><div class="a"><b>RECENT ACTIONS</b></div><div class="t">(surfacing the invisible)</div></div>';
+        actionLog.slice(0, 10).forEach((a) => {
+            const div = document.createElement('div');
+            div.className = 'item';
+            if (a.kind === 'paint') {
+                const c = cellCoord(a.idx);
+                div.innerHTML = `<div class="a">${a.kind} <b>${a.prev}</b>→<b>${a.next}</b> @ ${c.row},${c.col}</div><div class="t">${a.t}</div>`;
+            } else if (a.kind === 'select') {
+                const c = cellCoord(a.idx);
+                div.innerHTML = `<div class="a">select @ ${c.row},${c.col}</div><div class="t">${a.t}</div>`;
+            } else {
+                div.innerHTML = `<div class="a">${a.kind}${a.reason ? ' — ' + a.reason : ''}</div><div class="t">${a.t}</div>`;
+            }
+            logEl.appendChild(div);
+        });
+    }
+
+    // ---------- Rendering: flow overlay ----------
+    function renderFlow() {
+        flowLayer.innerHTML = '';
+        if (!flowEnabled) return;
+
+        const indices = [];
+        for (let i = 0; i < CELL_COUNT; i++) {
+            if (gridState[i].type !== 'empty' && stamp[i] > 0) indices.push(i);
+        }
+        indices.sort((a, b) => stamp[a] - stamp[b]);
+        if (indices.length < 2) return;
+
+        // Use viewBox 0..100 so drawing is easy.
+        const pts = indices.map((idx) => {
+            const { row, col } = cellCoord(idx);
+            const x = (col + 0.5) * (100 / GRID_SIZE);
+            const y = (row + 0.5) * (100 / GRID_SIZE);
+            return { idx, x, y };
+        });
+
+        // Path
+        const d = pts.map((p, i) => (i === 0 ? `M ${p.x} ${p.y}` : `L ${p.x} ${p.y}`)).join(' ');
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', d);
+        path.setAttribute('class', 'flow-path');
+        flowLayer.appendChild(path);
+
+        // Dots
+        pts.forEach((p, i) => {
+            const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            c.setAttribute('cx', String(p.x));
+            c.setAttribute('cy', String(p.y));
+            c.setAttribute('r', i === pts.length - 1 ? '1.8' : '1.4');
+            c.setAttribute('class', 'flow-dot');
+            c.style.opacity = i === pts.length - 1 ? '1' : '0.55';
+            flowLayer.appendChild(c);
+        });
+    }
+
+    // ---------- Selection sync (links perspectives) ----------
+    function renderSelectionSync() {
+        const cells = gridEl.querySelectorAll('.cell');
+        cells.forEach((c) => {
+            const idx = Number(c.dataset.index);
+            c.classList.toggle('selected', idx === selectedIdx && gridState[idx].type !== 'empty');
+        });
+
+        document.querySelectorAll('.source-line.active').forEach(l => l.classList.remove('active'));
+        document.querySelectorAll('.preview-node.active').forEach(n => n.classList.remove('active'));
+
+        if (selectedIdx < 0) return;
+
+        // In source, selection corresponds to its order line if the selected idx is present.
+        const filled = [];
+        for (let i = 0; i < CELL_COUNT; i++) {
+            if (gridState[i].type !== 'empty' && stamp[i] > 0) filled.push(i);
+        }
+        filled.sort((a, b) => stamp[a] - stamp[b]);
+        const orderPos = filled.indexOf(selectedIdx);
+        if (orderPos >= 0) {
+            // +2: first line is <div class=...>, then the brick lines start
+            const ln = orderPos + 2;
+            const linesEls = sourceEl.querySelectorAll('.source-line');
+            const target = linesEls[ln - 1];
+            if (target) {
+                target.classList.add('active');
+                target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+
+        const pn = previewSurface.querySelector(`.preview-node[data-index="${selectedIdx}"]`);
+        if (pn) {
+            pn.classList.add('active');
+            pn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    }
+
+    // ---------- Export / import (abstract & generalize) ----------
+    function exportSnapshot(includeRawGrid) {
+        const bricks = [];
+        const order = [];
+        const filled = [];
+        for (let i = 0; i < CELL_COUNT; i++) {
+            if (gridState[i].type !== 'empty' && stamp[i] > 0) filled.push(i);
+        }
+        filled.sort((a, b) => stamp[a] - stamp[b]);
+
+        filled.forEach((idx) => {
+            const { row, col } = cellCoord(idx);
+            bricks.push({ idx, row, col, type: gridState[idx].type, text: gridState[idx].props.text || '' });
+            order.push({ idx, t: stamp[idx] });
+        });
+
+        const snap = {
+            version: '2.1',
+            meta: {
+                grid: GRID_SIZE + 'x' + GRID_SIZE,
+                createdAt: new Date().toISOString()
+            },
+            selection: selectedIdx,
+            bricks,
+            order
+        };
+
+        if (includeRawGrid) {
+            snap.raw = {
+                grid: cloneGridState(gridState),
+                stamp: stamp.slice(),
+                clock
+            };
+        }
+
+        return snap;
+    }
+
+    function importSnapshot(jsonText) {
+        const obj = JSON.parse(jsonText);
+        const raw = obj && obj.raw;
+
+        // Prefer raw (lossless)
+        if (raw && Array.isArray(raw.grid) && Array.isArray(raw.stamp)) {
+            for (let i = 0; i < CELL_COUNT; i++) {
+                const c = raw.grid[i] || { type: 'empty', props: {} };
+                gridState[i].type = BRICK_TYPES[c.type] ? c.type : 'empty';
+                gridState[i].props = { ...(c.props || {}) };
+                stamp[i] = Number(raw.stamp[i] || 0);
+            }
+            clock = Number(raw.clock || clock);
+            selectedIdx = typeof obj.selection === 'number' ? obj.selection : -1;
+            return;
+        }
+
+        // Otherwise rebuild from bricks list
+        if (!obj || !Array.isArray(obj.bricks)) throw new Error('Invalid snapshot');
+
+        // Clear
+        for (let i = 0; i < CELL_COUNT; i++) {
+            gridState[i].type = 'empty';
+            gridState[i].props = {};
+            stamp[i] = 0;
+        }
+        clock = 1;
+
+        // Apply bricks in order list if provided
+        const bricks = obj.bricks.slice();
+        const ord = Array.isArray(obj.order) ? obj.order.slice() : [];
+        const idxToT = new Map(ord.map(o => [o.idx, o.t]));
+
+        bricks.forEach((b) => {
+            if (typeof b.idx !== 'number') return;
+            const t = BRICK_TYPES[b.type] ? b.type : 'layout';
+            gridState[b.idx].type = t;
+            gridState[b.idx].props = { text: b.text || '' };
+            stamp[b.idx] = Number(idxToT.get(b.idx) || nowStamp());
+        });
+
+        selectedIdx = typeof obj.selection === 'number' ? obj.selection : -1;
+    }
+
+    function saveToLocal() {
+        const snap = exportSnapshot(true);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(snap));
+        toastMsg('SAVED');
+        logAction('save', {});
+        renderState();
+    }
+
+    function loadFromLocal() {
+        const s = localStorage.getItem(STORAGE_KEY);
+        if (!s) {
+            toastMsg('NO SAVE');
+            return;
+        }
+        pushCheckpoint('load');
+        importSnapshot(s);
+        toastMsg('LOADED');
+        logAction('load', {});
+        updateAll();
+    }
+
+    // ---------- Modal ----------
+    function openModal(kind) {
+        modal.classList.add('open');
+        modal.setAttribute('aria-hidden', 'false');
+        modalActions.innerHTML = '';
+
+        if (kind === 'export') {
+            modalTitle.textContent = 'EXPORT SNAPSHOT';
+            modalText.value = JSON.stringify(exportSnapshot(true), null, 2);
+
+            const copy = document.createElement('button');
+            copy.className = 'toolbtn primary';
+            copy.textContent = 'COPY';
+            copy.addEventListener('click', async () => {
+                try {
+                    await navigator.clipboard.writeText(modalText.value);
+                    toastMsg('COPIED');
+                } catch (_) {
+                    toastMsg('COPY FAILED');
+                }
+            });
+
+            modalActions.appendChild(copy);
+        } else {
+            modalTitle.textContent = 'IMPORT SNAPSHOT';
+            modalText.value = '';
+
+            const apply = document.createElement('button');
+            apply.className = 'toolbtn primary';
+            apply.textContent = 'APPLY';
+            apply.addEventListener('click', () => {
+                try {
+                    pushCheckpoint('import');
+                    importSnapshot(modalText.value);
+                    toastMsg('IMPORTED');
+                    logAction('import', {});
+                    closeModal();
+                    updateAll();
+                } catch (e) {
+                    toastMsg('BAD JSON');
+                }
+            });
+
+            modalActions.appendChild(apply);
+        }
+    }
+
+    function closeModal() {
+        modal.classList.remove('open');
+        modal.setAttribute('aria-hidden', 'true');
+    }
+
+    // ---------- Update all ----------
+    function updateAll() {
+        renderGrid();
+        renderSourceAndPreview();
+        updateHUD();
+    }
+
+    // ---------- Init ----------
+    function initPalette() {
+        if (!paletteEl) return;
+        const buttons = paletteEl.querySelectorAll('.brick');
+        buttons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const type = btn.getAttribute('data-type');
+                setCurrentBrickType(type);
+            });
+        });
+    }
+
+    function initBreadcrumbs() {
+        if (!breadcrumbsEl) return;
+        breadcrumbsEl.innerHTML = '';
+        const span = document.createElement('span');
+        span.className = 'crumb active';
+        span.textContent = 'GRID_PAGE / LAYER_0';
+        breadcrumbsEl.appendChild(span);
+    }
+
+    function initTabs() {
+        tabs.forEach(t => {
+            t.addEventListener('click', () => {
+                setActivePane(t.dataset.pane);
+            });
+        });
+    }
+
+    function initControls() {
+        undoBtn.addEventListener('click', undo);
+        redoBtn.addEventListener('click', redo);
+        saveBtn.addEventListener('click', saveToLocal);
+        loadBtn.addEventListener('click', loadFromLocal);
+        exportBtn.addEventListener('click', () => openModal('export'));
+        importBtn.addEventListener('click', () => openModal('import'));
+
+        modalClose.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+
+        zoomEl.addEventListener('input', () => {
+            const z = Number(zoomEl.value) / 100;
+            document.getElementById('gridShell').querySelector('.grid-layer').style.transform = `scale(${z})`;
+            logAction('zoom', { value: z });
+        });
+
+        flowToggle.addEventListener('change', () => {
+            flowEnabled = !!flowToggle.checked;
+            logAction('flow', { enabled: flowEnabled });
+            renderFlow();
+        });
+
+        focusToggle.addEventListener('change', () => {
+            focusEnabled = !!focusToggle.checked;
+            logAction('focus', { enabled: focusEnabled });
+            renderGrid();
+            renderSelectionSync();
+        });
+
+        // global pointerup to end painting
+        document.addEventListener('pointerup', () => {
+            painting = false;
+            strokeCheckpointed = false;
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            const mod = e.ctrlKey || e.metaKey;
+            if (mod && (e.key === 'z' || e.key === 'Z')) {
+                e.preventDefault();
+                if (e.shiftKey) redo();
+                else undo();
+            }
+        });
+    }
+
+    // --- Smoke tests (expanded) ---
+    function runSmokeTests() {
+        try {
+            console.assert(typeof init_core === 'function', 'init_core should be defined');
+            console.assert(gridEl instanceof HTMLElement, 'grid element should exist');
+            console.assert(previewSurface instanceof HTMLElement, 'preview surface should exist');
+            console.assert(Array.isArray(gridState) && gridState.length === CELL_COUNT, 'gridState sized to GRID_SIZE^2');
+            console.assert(typeof exportSnapshot === 'function', 'exportSnapshot should exist');
+            const s = exportSnapshot(true);
+            console.assert(s && s.meta && Array.isArray(s.raw.grid), 'exportSnapshot(true) should include raw.grid');
+        } catch (err) {
+            console.warn('HYPER_GRID smoke tests encountered an error:', err);
+        }
+    }
+
+    function init() {
+        initPalette();
+        initBreadcrumbs();
+        initTabs();
+        initControls();
+
+        setCurrentBrickType('layout');
+        updateHUD();
+        logAction('boot', { version: '2.1' });
+        updateAll();
+        renderState();
+        renderFlow();
+        runSmokeTests();
+
+        // Apply initial zoom
+        zoomEl.dispatchEvent(new Event('input'));
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>HYPER_GRID // INCEPTION_BUILDER</title>
+    <style>
+        :root {
+            --bg: #080808;
+            --panel: #111;
+            --border: #333;
+            --border-active: #555;
+            --accent: #00ff9d; /* Sharp Cyber Green */
+            --secondary: #0088ff; /* Data Blue */
+            --text: #ccc;
+            --text-dim: #666;
+            --font: 'JetBrains Mono', 'Courier New', monospace;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            height: 100vh;
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* --- HEADER: Z-AXIS + PALETTE --- */
+        header {
+            height: 56px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            background: #000;
+            gap: 12px;
+            flex-shrink: 0;
+            font-size: 11px;
+            letter-spacing: 0.05em;
+        }
+
+        .brand { color: var(--accent); font-weight: bold; }
+        .divider { width: 1px; height: 20px; background: var(--border); }
+        
+        .breadcrumbs {
+            flex: 0 0 auto;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            max-width: 26vw;
+        }
+        .crumb {
+            color: var(--text-dim);
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .crumb:hover { color: var(--text); text-decoration: underline; }
+        .crumb.active { color: var(--accent); font-weight: bold; }
+
+        .depth-meter { color: var(--secondary); flex: 0 0 auto; }
+
+        .palette {
+            flex: 1;
+            display: flex;
+            justify-content: flex-end;
+            gap: 6px;
+        }
+
+        .brick {
+            border-radius: 3px;
+            border: 1px solid var(--border);
+            background: #111;
+            color: var(--text-dim);
+            font-size: 9px;
+            padding: 3px 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .brick span.glyph {
+            font-size: 10px;
+            opacity: 0.8;
+        }
+
+        .brick:hover {
+            border-color: var(--border-active);
+            color: var(--text);
+        }
+
+        .brick.active {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* --- SPLIT VIEW --- */
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* --- TOP: THE SPATIAL GRID --- */
+        .grid-viewport {
+            flex: 1; /* Takes available space */
+            background: #0c0c0c;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .grid-layer {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            grid-template-rows: repeat(9, 1fr);
+            width: min(60vh, 90vw); /* Keep it square and contained */
+            height: min(60vh, 90vw);
+            gap: 1px; /* Sharp grid lines */
+            transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.3s;
+        }
+
+        /* Animation States (still available for future use) */
+        .grid-layer.dive-in { transform: scale(2); opacity: 0; }
+        .grid-layer.dive-out { transform: scale(0.5); opacity: 0; }
+
+        .cell {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            padding: 4px;
+            transition: all 0.1s;
+            overflow: hidden;
+        }
+
+        /* Empty Cell Styling */
+        .cell.empty {
+            background: repeating-linear-gradient(
+                45deg,
+                #0d0d0d,
+                #0d0d0d 2px,
+                #111 2px,
+                #111 4px
+            );
+            border-color: #1a1a1a;
+            cursor: default;
+        }
+
+        .cell:hover:not(.empty) {
+            border-color: var(--accent);
+            background: #1a1a1a;
+            z-index: 10;
+            box-shadow: 0 0 0 1px var(--accent); /* Sharp outline */
+        }
+
+        /* Cell Content Typography */
+        .cell-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 9px;
+            font-weight: bold;
+            color: var(--text-dim);
+            margin-bottom: 2px;
+        }
+        .cell:hover .cell-header { color: var(--text); }
+        
+        .cell-tag { color: var(--secondary); text-transform: uppercase; }
+        .cell-idx { opacity: 0.5; }
+
+        .cell-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            opacity: 0.8;
+        }
+
+        /* "Code Shape" Visualization */
+        .code-line { height: 2px; background: #333; width: 100%; }
+        .code-line.short { width: 40%; }
+        .code-line.med { width: 70%; }
+        .code-line.attr { background: #444; }
+        
+        .cell.layout .code-line.med { width: 90%; }
+        .cell.button .code-line.med { width: 60%; }
+        .cell.text .code-line.med { width: 80%; }
+
+        .cell:hover .code-line { background: #555; }
+        .cell:hover .code-line.attr { background: var(--accent); opacity: 0.6; }
+
+        .cell-footer {
+            margin-top: auto;
+            font-size: 8px;
+            color: var(--text-dim);
+            text-align: right;
+        }
+
+        /* --- BOTTOM: SOURCE + PREVIEW --- */
+        .source-panel {
+            height: 300px; /* Fixed height for source + preview */
+            background: #050505;
+            font-size: 11px;
+            border-top: 1px solid var(--border);
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .source-header {
+            padding: 8px 16px;
+            background: #111;
+            border-bottom: 1px solid var(--border);
+            font-size: 10px;
+            color: var(--text-dim);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+
+        .source-line {
+            display: flex;
+            padding: 2px 16px;
+            cursor: pointer;
+            border-left: 2px solid transparent;
+            color: #777;
+        }
+
+        .source-line:hover, .source-line.active {
+            background: #111;
+            color: #eee;
+            border-left-color: var(--accent);
+        }
+
+        .ln { 
+            min-width: 30px; 
+            color: #444; 
+            user-select: none; 
+            text-align: right; 
+            margin-right: 12px; 
+        }
+        
+        .code { white-space: pre; font-family: var(--font); }
+
+        #source-stream {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .preview-panel {
+            flex: 1;
+            border-top: 1px solid #181818;
+            padding: 8px 16px 10px;
+            font-size: 10px;
+            color: var(--text-dim);
+            overflow-y: auto;
+        }
+
+        .preview-label-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .preview-surface {
+            border: 1px solid #222;
+            background: #070707;
+            padding: 8px;
+            min-height: 80px;
+        }
+
+        .preview-surface .layout-block {
+            background: #181818;
+            border: 1px solid #333;
+            margin: 4px 0;
+            padding: 4px 6px;
+            font-size: 10px;
+        }
+
+        .preview-surface .btn-block {
+            display: inline-block;
+            margin: 4px 4px 4px 0;
+            padding: 3px 8px;
+            border-radius: 4px;
+            background: var(--accent);
+            color: #000;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        .preview-surface .text-block {
+            font-size: 10px;
+            color: #aaa;
+            margin: 4px 0;
+        }
+
+        .preview-meta {
+            font-size: 9px;
+            color: #555;
+            margin-top: 6px;
+        }
+
+        /* --- REALITY HIGHLIGHTER (still available if we want to highlight preview nodes later) --- */
+        #highlighter {
+            position: fixed;
+            border: 1px solid var(--accent);
+            background: rgba(0, 255, 157, 0.1);
+            pointer-events: none;
+            z-index: 9999;
+            display: none;
+            top: 0; left: 0; width: 0; height: 0;
+        }
+        
+        #highlighter::before {
+            content: attr(data-tag);
+            position: absolute;
+            bottom: 100%;
+            left: -1px;
+            background: var(--accent);
+            color: #000;
+            font-size: 9px;
+            padding: 1px 4px;
+            font-weight: bold;
+        }
+
+        /* --- DUMMY SYSTEM ROOT (unused in builder mode but kept for future recursion) --- */
+        #system-root {
+            position: absolute;
+            width: 1px; height: 1px; opacity: 0; overflow: hidden;
+            pointer-events: none;
+        }
+
+    </style>
+
+    <script>
+        // Global stub to avoid ReferenceError if legacy markup calls init_core()
+        function init_core() {
+            // No-op initializer; kept so older inline script calls won't break the page
+            console.log('init_core() stub called – no-op initializer for HYPER_GRID.');
+        }
+    </script>
+</head>
+<body>
+
+    <!-- MOCK OS STRUCTURE (now just a sandbox placeholder) -->
+    <div id="system-root">
+        <div id="kernel" class="process">
+            <header class="boot-sequence">
+                <meta name="version" content="v9.0">
+            </header>
+            <main class="memory-heap">
+                <section class="stack-frame">
+                    <div class="var">int x = 0</div>
+                    <div class="var">string user = "admin"</div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <!-- UI LAYER -->
+    <header>
+        <div class="brand">HYPER_GRID_v2</div>
+        <div class="divider"></div>
+        <div class="breadcrumbs" id="breadcrumbs">
+            <span class="crumb active">GRID_PAGE</span>
+        </div>
+        <div class="divider"></div>
+        <div class="depth-meter" id="depth-meter">BRICK: LAYOUT</div>
+        <div class="divider"></div>
+        <div class="palette" id="palette">
+            <button class="brick active" data-type="layout"><span class="glyph">▢</span><span>DIV</span></button>
+            <button class="brick" data-type="button"><span class="glyph">●</span><span>BTN</span></button>
+            <button class="brick" data-type="text"><span class="glyph">≡</span><span>TEXT</span></button>
+            <button class="brick" data-type="empty"><span class="glyph">×</span><span>ERASE</span></button>
+        </div>
+    </header>
+
+    <main>
+        <!-- THE MAP (Top) -->
+        <div class="grid-viewport">
+            <div class="grid-layer" id="grid">
+                <!-- Cells Injected Here -->
+            </div>
+        </div>
+
+        <!-- THE TERRITORY (Bottom) -->
+        <div class="source-panel">
+            <div class="source-header">
+                <span>SOURCE STREAM &amp; PREVIEW</span>
+                <span id="node-count">0 BRICKS</span>
+            </div>
+            <div id="source-stream">
+                <!-- Lines Injected Here -->
+            </div>
+            <div class="preview-panel" id="preview-panel">
+                <div class="preview-label-row">
+                    <span>LIVE PREVIEW</span>
+                    <span class="preview-hint">grid → bricks → HTML</span>
+                </div>
+                <div class="preview-surface" id="preview-surface">
+                    <!-- Built layout appears here -->
+                </div>
+                <div class="preview-meta" id="preview-meta">No bricks yet. Click a brick in the palette, then paint cells on the grid.</div>
+            </div>
+        </div>
+    </main>
+
+    <div id="highlighter" data-tag="DIV"></div>
+
+<script>
+// HYPER_GRID Inception Builder
+// Turn the 9x9 grid into a LEGO-like code surface.
+(function() {
+    const GRID_SIZE = 9;
+    const CELL_COUNT = GRID_SIZE * GRID_SIZE;
+
+    const BRICK_TYPES = {
+        layout: {
+            id: 'layout',
+            label: 'DIV',
+            tag: 'div',
+            className: 'layout-block',
+            glyph: '▢',
+            defaultText: 'Layout block'
+        },
+        button: {
+            id: 'button',
+            label: 'BTN',
+            tag: 'button',
+            className: 'btn-block',
+            glyph: '●',
+            defaultText: 'Click me'
+        },
+        text: {
+            id: 'text',
+            label: 'TEXT',
+            tag: 'p',
+            className: 'text-block',
+            glyph: '≡',
+            defaultText: 'Sample text...'
+        },
+        empty: {
+            id: 'empty',
+            label: 'EMPTY',
+            tag: null,
+            className: '',
+            glyph: '×',
+            defaultText: ''
+        }
+    };
+
+    let currentBrickType = 'layout';
+    const gridState = Array.from({ length: CELL_COUNT }, () => ({ type: 'empty', props: {} }));
+
+    const gridEl = document.getElementById('grid');
+    const sourceEl = document.getElementById('source-stream');
+    const breadcrumbsEl = document.getElementById('breadcrumbs');
+    const depthMeter = document.getElementById('depth-meter');
+    const nodeCountEl = document.getElementById('node-count');
+    const paletteEl = document.getElementById('palette');
+    const previewSurface = document.getElementById('preview-surface');
+    const previewMeta = document.getElementById('preview-meta');
+
+    function updateHUD() {
+        depthMeter.textContent = 'BRICK: ' + currentBrickType.toUpperCase();
+    }
+
+    function setCurrentBrickType(type) {
+        if (!BRICK_TYPES[type]) return;
+        currentBrickType = type;
+        updateHUD();
+        if (!paletteEl) return;
+        const buttons = paletteEl.querySelectorAll('.brick');
+        buttons.forEach(btn => {
+            const t = btn.getAttribute('data-type');
+            btn.classList.toggle('active', t === type);
+        });
+    }
+
+    function paintCell(index) {
+        const prev = gridState[index];
+        // Toggle: clicking with same type switches to empty
+        let nextType = currentBrickType;
+        if (prev.type === currentBrickType) {
+            nextType = 'empty';
+        }
+        gridState[index] = { type: nextType, props: { ...prev.props } };
+        renderGrid();
+        renderSourceAndPreview();
+    }
+
+    function renderGrid() {
+        gridEl.innerHTML = '';
+        gridState.forEach((cellState, index) => {
+            const cell = document.createElement('div');
+            cell.className = 'cell';
+
+            const row = Math.floor(index / GRID_SIZE);
+            const col = index % GRID_SIZE;
+
+            if (!cellState || cellState.type === 'empty') {
+                cell.classList.add('empty');
+                cell.innerHTML = '';
+            } else {
+                const def = BRICK_TYPES[cellState.type] || BRICK_TYPES.empty;
+                cell.classList.add(cellState.type);
+
+                cell.innerHTML = `
+                    <div class="cell-header">
+                        <span class="cell-tag">${def.label}</span>
+                        <span class="cell-idx">${row},${col}</span>
+                    </div>
+                    <div class="cell-body">
+                        <div class="code-line med"></div>
+                        <div class="code-line short attr"></div>
+                        <div class="code-line med"></div>
+                    </div>
+                    <div class="cell-footer">${def.glyph}·CELL ${String(index).padStart(2, '0')}</div>
+                `;
+            }
+
+            cell.addEventListener('click', () => paintCell(index));
+            gridEl.appendChild(cell);
+        });
+    }
+
+    function renderSourceAndPreview() {
+        // SOURCE STREAM
+        sourceEl.innerHTML = '';
+        const lines = [];
+
+        lines.push('<div class="hyper-grid-page">');
+        let brickCount = 0;
+
+        gridState.forEach((cellState, index) => {
+            if (!cellState || cellState.type === 'empty') return;
+            const def = BRICK_TYPES[cellState.type];
+            if (!def || !def.tag) return;
+            const row = Math.floor(index / GRID_SIZE);
+            const col = index % GRID_SIZE;
+            const text = cellState.props.text || def.defaultText;
+            const line = `  <${def.tag} class="${def.className}" data-cell="${row},${col}">${text}</${def.tag}>`;
+            lines.push(line);
+            brickCount++;
+        });
+
+        lines.push('</div>');
+
+        let lineNo = 1;
+        lines.forEach(text => {
+            const lineDiv = document.createElement('div');
+            lineDiv.className = 'source-line';
+
+            const ln = document.createElement('div');
+            ln.className = 'ln';
+            ln.textContent = String(lineNo++).padStart(2, '0');
+
+            const code = document.createElement('div');
+            code.className = 'code';
+            code.textContent = text;
+
+            lineDiv.appendChild(ln);
+            lineDiv.appendChild(code);
+            sourceEl.appendChild(lineDiv);
+        });
+
+        nodeCountEl.textContent = brickCount + ' BRICKS';
+
+        // PREVIEW
+        previewSurface.innerHTML = '';
+        if (brickCount === 0) {
+            previewMeta.textContent = 'No bricks yet. Click a brick in the palette, then paint cells on the grid.';
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'hyper-grid-page-preview';
+
+        gridState.forEach((cellState, index) => {
+            if (!cellState || cellState.type === 'empty') return;
+            const def = BRICK_TYPES[cellState.type];
+            if (!def || !def.tag) return;
+            const row = Math.floor(index / GRID_SIZE);
+            const col = index % GRID_SIZE;
+            const text = cellState.props.text || def.defaultText;
+
+            const node = document.createElement('div');
+            node.className = def.className + ' preview-node';
+            node.textContent = `[${row},${col}] ${text}`;
+            container.appendChild(node);
+        });
+
+        previewSurface.appendChild(container);
+        previewMeta.textContent = 'Preview is a structural echo of the grid. Each line is a brick bound to a cell.';
+    }
+
+    function initPalette() {
+        if (!paletteEl) return;
+        const buttons = paletteEl.querySelectorAll('.brick');
+        buttons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const type = btn.getAttribute('data-type');
+                setCurrentBrickType(type);
+            });
+        });
+    }
+
+    function initBreadcrumbs() {
+        if (!breadcrumbsEl) return;
+        breadcrumbsEl.innerHTML = '';
+        const span = document.createElement('span');
+        span.className = 'crumb active';
+        span.textContent = 'GRID_PAGE / LAYER_0';
+        breadcrumbsEl.appendChild(span);
+    }
+
+    // --- Smoke tests to ensure the environment is wired correctly ---
+    function runSmokeTests() {
+        try {
+            console.assert(typeof init_core === 'function', 'init_core should be defined');
+            console.assert(gridEl instanceof HTMLElement, 'grid element should exist');
+            console.assert(previewSurface instanceof HTMLElement, 'preview surface should exist');
+            console.assert(Array.isArray(gridState) && gridState.length === CELL_COUNT, 'gridState sized to GRID_SIZE^2');
+        } catch (err) {
+            console.warn('HYPER_GRID smoke tests encountered an error:', err);
+        }
+    }
+
+    function init() {
+        initPalette();
+        initBreadcrumbs();
+        setCurrentBrickType('layout');
+        renderGrid();
+        renderSourceAndPreview();
+        // Run basic sanity checks so we know builder mode is healthy
+        runSmokeTests();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+</script>
+</body>
+</html>

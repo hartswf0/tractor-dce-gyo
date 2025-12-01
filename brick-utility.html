@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+	<title>INCEPTION // AETHER</title>
+	<link rel="icon" type="image/svg+xml" href="favicon.svg">
+	<style>
+        :root {
+            /* DARK THEME (Default) */
+            --bg: #050505;
+            --panel: #0a0a0a;
+            --surface: #111;
+            --border: #222;
+            --text-main: #e4e4e7;
+            --text-muted: #52525b;
+            
+            /* SEMANTICS */
+            --func: #f43f5e;
+            --var: #2dd4bf;
+            --tag: #8b5cf6;
+            --ctrl: #fbbf24;
+            
+            /* INTERACTION */
+            --focus: #ffffff;
+            --up: #3b82f6;
+            --down: #10b981;
+            --wire-base: #222;
+            
+            --font: 'JetBrains Mono', 'Menlo', monospace;
+            --ease: cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        /* LIGHT THEME OVERRIDES */
+        [data-theme="light"] {
+            --bg: #f4f4f5;
+            --panel: #ffffff;
+            --surface: #e4e4e7;
+            --border: #d4d4d8;
+            --text-main: #18181b;
+            --text-muted: #a1a1aa;
+            --wire-base: #e4e4e7;
+            --focus: #000000;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            margin: 0;
+            height: 100vh;
+            height: 100dvh;
+            background: var(--bg);
+            color: var(--text-main);
+            font-family: var(--font);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        /* --- 1. COMMAND STRIP (Header) --- */
+        header {
+            height: 48px;
+            flex: 0 0 auto;
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 16px;
+            z-index: 500;
+        }
+
+        .menu-trigger {
+            width: 32px; height: 32px;
+            display: flex; align-items: center; justify-content: center;
+            border: 1px solid var(--border);
+            background: var(--panel);
+            color: var(--func);
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: all 0.2s var(--ease);
+            flex-shrink: 0;
+        }
+        .menu-trigger:hover { transform: scale(1.1); border-color: var(--func); box-shadow: 0 0 10px var(--func); }
+
+        /* Nav Deck */
+        .nav-deck {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            height: 100%;
+            mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+        }
+
+        .nav-group { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 60px; }
+        .nav-label { font-size: 7px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 2px; }
+        .nav-val { font-size: 11px; font-weight: 700; color: var(--text-main); white-space: nowrap; }
+        #nav-focus { color: var(--focus); }
+
+        .chip {
+            padding: 2px 6px; border-radius: 3px; border: 1px solid var(--border);
+            background: var(--panel); font-size: 9px; cursor: pointer; margin: 0 2px;
+        }
+        .chip:hover { border-color: currentColor; }
+        .chip.up { color: var(--up); }
+        .chip.down { color: var(--down); }
+
+        /* --- 2. SYSTEM SIDEBLADE (Modal/Menu) --- */
+        .sideblade {
+            position: fixed; top: 0; left: 0; bottom: 0; width: 300px;
+            background: var(--bg); border-right: 1px solid var(--border);
+            transform: translateX(-100%); transition: transform 0.3s var(--ease);
+            z-index: 999; padding: 20px; display: flex; flex-direction: column; gap: 24px;
+            box-shadow: 10px 0 50px rgba(0,0,0,0.5);
+        }
+        .sideblade.open { transform: translateX(0); }
+
+        .blade-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+        .blade-title { font-weight: 900; letter-spacing: 0.2em; font-size: 12px; color: var(--text-main); }
+        .close-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 14px; }
+
+        .blade-section { display: flex; flex-direction: column; gap: 10px; }
+        .section-label { font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; }
+
+        .tool-row { display: flex; gap: 10px; }
+        .tool-btn {
+            flex: 1; padding: 10px; background: var(--panel); border: 1px solid var(--border);
+            color: var(--text-main); font-family: inherit; font-size: 10px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            border-radius: 4px; transition: 0.2s;
+        }
+        .tool-btn:hover { border-color: var(--func); color: var(--func); }
+        .tool-btn.active { background: var(--func); color: #000; border-color: var(--func); }
+
+        textarea.ingest-box {
+            background: var(--panel); border: 1px solid var(--border); color: var(--text-main);
+            width: 100%; height: 120px; padding: 10px; font-family: inherit; font-size: 10px; resize: none;
+        }
+
+        /* Overlay for clicking off */
+        .blade-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(2px);
+            z-index: 900; opacity: 0; pointer-events: none; transition: opacity 0.3s;
+        }
+        .blade-overlay.open { opacity: 1; pointer-events: all; }
+
+        /* --- 3. GRID VIEWPORT --- */
+        .viewport {
+            flex: 0 0 45vh;
+            background: var(--panel); /* Subtle contrast from bg */
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .grid-lock {
+            height: 90%; aspect-ratio: 1/1;
+            position: relative; max-width: 90vw;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            grid-template-rows: repeat(9, 1fr);
+            gap: 2px; width: 100%; height: 100%;
+            position: relative; z-index: 10;
+        }
+
+        .block {
+            background: var(--bg); border: 1px solid var(--border); border-radius: 2px;
+            cursor: pointer; position: relative;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: all 0.2s var(--ease);
+        }
+
+        .block-icon { font-size: 10px; opacity: 0.3; margin-bottom: 2px; }
+        .block-label { font-size: 6px; opacity: 0.5; max-width: 90%; overflow: hidden; white-space: nowrap; font-weight: 500; }
+        .port { position: absolute; width: 3px; height: 3px; background: var(--border); border-radius: 50%; left: 50%; transform: translateX(-50%); transition: 0.2s; }
+        .port.in { top: -2px; } .port.out { bottom: -2px; }
+
+        /* Interaction */
+        .block:hover { background: var(--panel); border-color: var(--text-main); z-index: 100; transform: scale(1.15); }
+        .block:active { transform: scale(0.95); }
+        
+        .block.focus {
+            background: var(--focus); border-color: var(--focus); color: var(--bg);
+            z-index: 200; transform: scale(1.2); box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+        .block.focus .block-icon, .block.focus .block-label { opacity: 1; color: var(--bg); font-weight: 800; }
+        .block.focus .port { background: var(--focus); }
+
+        .block.up { border-color: var(--up); background: rgba(59, 130, 246, 0.1); color: var(--up); z-index: 50; }
+        .block.down { border-color: var(--down); background: rgba(16, 185, 129, 0.1); color: var(--down); z-index: 50; }
+        .block.muted { opacity: 0.05; filter: grayscale(1); transform: scale(0.9); }
+
+        /* Wires */
+        .wire-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 20; overflow: visible; }
+        path.cable { fill: none; stroke: var(--wire-base); stroke-width: 1; opacity: 0.1; transition: opacity 0.3s; }
+        path.cable.active { opacity: 1; stroke-width: 1.5; filter: drop-shadow(0 0 2px currentColor); }
+        path.cable.up { stroke: var(--up); } path.cable.down { stroke: var(--down); }
+
+        /* --- 4. RESIZER --- */
+        .resizer {
+            height: 6px; background: var(--bg); cursor: row-resize; flex-shrink: 0; z-index: 300;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .grip { width: 40px; height: 2px; background: var(--border); border-radius: 2px; transition: 0.2s; }
+        .resizer:hover .grip { background: var(--func); width: 60px; }
+
+        /* --- 5. EDITOR --- */
+        .editor { flex: 1; background: var(--bg); display: flex; position: relative; overflow: hidden; }
+        .code-scroll { flex: 1; overflow-y: auto; padding: 20px 0 100px; scroll-behavior: smooth; }
+        
+        .line { display: flex; padding: 2px 12px; font-size: 11px; line-height: 18px; cursor: pointer; border-left: 3px solid transparent; white-space: pre; color: var(--text-muted); }
+        .line:hover { color: var(--text-main); background: var(--panel); }
+        .line.active { background: var(--panel); border-left-color: var(--focus); color: var(--text-main); }
+        .line.up { border-left-color: var(--up); background: rgba(59, 130, 246, 0.05); }
+        .line.down { border-left-color: var(--down); background: rgba(16, 185, 129, 0.05); }
+        .ln { width: 35px; text-align: right; margin-right: 15px; opacity: 0.3; user-select: none; }
+
+        /* Minimap */
+        .minimap-rail { width: 48px; border-left: 1px solid var(--border); background: var(--panel); position: relative; z-index: 20; flex-shrink: 0; }
+        canvas { width: 100%; height: 100%; cursor: crosshair; display: block; }
+        .mm-view { position: absolute; left: 0; right: 0; top: 0; height: 0; background: rgba(128,128,128,0.1); border: 1px solid rgba(128,128,128,0.3); pointer-events: none; }
+
+        /* Syntax */
+        .kwd { color: var(--func); } .def { color: var(--text-main); font-weight: bold; } 
+        .var { color: var(--var); } .tag { color: var(--tag); }
+
+    </style>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <header>
+        <button class="menu-trigger" onclick="toggleBlade()">✦</button>
+        
+        <div class="nav-deck" id="nav-deck">
+            <!-- Dynamic Content -->
+            <div class="nav-group">
+                <span class="nav-label">SYSTEM</span>
+                <span class="nav-val" style="color:var(--text-muted)">IDLE</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- VIEWPORT -->
+    <div class="viewport" id="viewport">
+        <div class="grid-lock" id="grid-lock">
+            <div class="grid" id="grid"></div>
+            <svg class="wire-canvas" id="wires"></svg>
+        </div>
+    </div>
+
+    <!-- RESIZER -->
+    <div class="resizer" id="resizer"><div class="grip"></div></div>
+
+    <!-- EDITOR -->
+    <div class="editor">
+        <div class="code-scroll" id="scroller">
+            <div id="code-content"></div>
+        </div>
+        <div class="minimap-rail">
+            <canvas id="minimap"></canvas>
+            <div class="mm-view" id="mm-view"></div>
+        </div>
+    </div>
+
+    <!-- SIDEBLADE (MENU) -->
+    <div class="blade-overlay" id="blade-overlay" onclick="toggleBlade()"></div>
+    <div class="sideblade" id="sideblade">
+        <div class="blade-header">
+            <span class="blade-title">INCEPTION // UTILITY</span>
+            <button class="close-btn" onclick="toggleBlade()">✕</button>
+        </div>
+
+        <div class="blade-section">
+            <span class="section-label">Environment</span>
+            <div class="tool-row">
+                <button class="tool-btn" onclick="toggleTheme()">◑ Theme</button>
+                <button class="tool-btn" id="audio-btn" onclick="toggleAudio()">🔊 Audio</button>
+            </div>
+            <button class="tool-btn" onclick="document.documentElement.requestFullscreen()">⛶ Fullscreen</button>
+        </div>
+
+        <div class="blade-section">
+            <span class="section-label">Data Ingestion</span>
+            <textarea class="ingest-box" id="paste-input" placeholder="// Paste Source Code..."></textarea>
+            <button class="tool-btn active" onclick="ingest()">LOAD DATA</button>
+        </div>
+        
+        <div class="blade-section" style="margin-top:auto">
+            <span class="section-label">System</span>
+            <div style="font-size:10px; color:var(--text-muted)">
+                v4.0.0 AETHER<br>
+                Nodes: <span id="stat-nodes">0</span><br>
+                Wires: <span id="stat-wires">0</span>
+            </div>
+        </div>
+    </div>
+
+<script>
+    // ----------------------------------------------------
+    // 1. AUDIO KERNEL
+    // ----------------------------------------------------
+    const Audio = {
+        ctx: null,
+        gain: null,
+        active: false,
+        
+        init() {
+            if(this.ctx) return;
+            const AC = window.AudioContext || window.webkitAudioContext;
+            this.ctx = new AC();
+            this.gain = this.ctx.createGain();
+            this.gain.gain.value = 0.05;
+            this.gain.connect(this.ctx.destination);
+        },
+
+        tick(freq = 600) {
+            if(!this.active) return;
+            if(this.ctx.state === 'suspended') this.ctx.resume();
+            
+            const osc = this.ctx.createOscillator();
+            const env = this.ctx.createGain();
+            
+            osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(freq/2, this.ctx.currentTime + 0.05);
+            
+            env.gain.setValueAtTime(0.5, this.ctx.currentTime);
+            env.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.05);
+            
+            osc.connect(env);
+            env.connect(this.gain);
+            osc.start();
+            osc.stop(this.ctx.currentTime + 0.05);
+        },
+
+        hum(type) {
+            if(!this.active) return;
+            const freq = type === 'up' ? 300 : 800;
+            const osc = this.ctx.createOscillator();
+            const env = this.ctx.createGain();
+            
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+            
+            env.gain.setValueAtTime(0, this.ctx.currentTime);
+            env.gain.linearRampToValueAtTime(0.1, this.ctx.currentTime + 0.1);
+            env.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.4);
+            
+            osc.connect(env);
+            env.connect(this.gain);
+            osc.start();
+            osc.stop(this.ctx.currentTime + 0.4);
+        }
+    };
+
+    // ----------------------------------------------------
+    // 2. APP STATE
+    // ----------------------------------------------------
+    const DEFAULT_CODE = document.documentElement.outerHTML;
+    let lines = DEFAULT_CODE.split('\n');
+    let blocks = new Array(81).fill(null);
+    let edges = [];
+    let definitions = {};
+    let lineData = [];
+    let activeIdx = null;
+
+    const els = {
+        grid: document.getElementById('grid'),
+        wires: document.getElementById('wires'),
+        code: document.getElementById('code-content'),
+        scroll: document.getElementById('scroller'),
+        deck: document.getElementById('nav-deck'),
+        lock: document.getElementById('grid-lock'),
+        mm: document.getElementById('minimap'),
+        mmv: document.getElementById('mm-view'),
+        vp: document.getElementById('viewport')
+    };
+
+    // ----------------------------------------------------
+    // 3. LOGIC
+    // ----------------------------------------------------
+
+    function parse() {
+        blocks = new Array(81).fill(null);
+        edges = [];
+        definitions = {};
+        lineData = [];
+        const lpc = Math.ceil(lines.length / 81);
+
+        lines.forEach((line, i) => {
+            const trim = line.trim();
+            const cellIdx = Math.floor(i / lpc);
+            let type = null, name = null;
+
+            const fn = trim.match(/(?:function|class)\s+(\w+)|(\w+)\s*\(/);
+            if(fn && !trim.includes('=')) { type = 'function'; name = fn[1]||fn[2]; }
+            const vr = trim.match(/(?:const|let|var)\s+(\w+)/);
+            if(vr && !type) { type = 'variable'; name = vr[1]; }
+            const tag = trim.match(/^<(\w+)/);
+            if(tag && !type) { type = 'tag'; name = tag[1].toUpperCase(); }
+
+            if(type && name) {
+                const pri = type==='function'?3: type==='tag'?2:1;
+                if(!blocks[cellIdx] || blocks[cellIdx].pri < pri) {
+                    blocks[cellIdx] = { idx: cellIdx, type, name, line: i, pri, deps: [], callers: [] };
+                    definitions[name] = cellIdx;
+                }
+            }
+            lineData.push({ text: line, type, index: i });
+        });
+
+        lines.forEach((line, i) => {
+            const trim = line.trim();
+            const fromIdx = Math.floor(i / lpc);
+            const matches = trim.matchAll(/(\w+)/g);
+            for(const m of matches) {
+                const target = m[1];
+                const toIdx = definitions[target];
+                if(toIdx !== undefined && toIdx !== fromIdx) {
+                    edges.push({from: fromIdx, to: toIdx});
+                    if(blocks[fromIdx]) blocks[fromIdx].deps.push(toIdx);
+                    if(blocks[toIdx]) blocks[toIdx].callers.push(fromIdx);
+                }
+            }
+        });
+
+        blocks.forEach(b => {
+            if(b) {
+                b.deps = [...new Set(b.deps)];
+                b.callers = [...new Set(b.callers)];
+            }
+        });
+
+        document.getElementById('stat-nodes').innerText = blocks.filter(b=>b).length;
+        document.getElementById('stat-wires').innerText = edges.length;
+    }
+
+    function render() {
+        els.grid.innerHTML = '';
+        els.code.innerHTML = '';
+        els.wires.innerHTML = '';
+
+        const lpc = Math.ceil(lines.length / 81);
+
+        // Grid
+        for(let i=0; i<81; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'block';
+            cell.dataset.index = i;
+            const d = blocks[i];
+            
+            if(d) {
+                const icon = d.type==='function'?'ƒ': d.type==='tag'?'<>':'=';
+                cell.innerHTML = `<div class="port in"></div><div class="block-icon">${icon}</div><div class="block-label">${d.name}</div><div class="port out"></div>`;
+                cell.setAttribute('data-type', d.type);
+            } else {
+                cell.style.opacity = '0.1';
+                cell.innerHTML = '·';
+            }
+
+            cell.onmouseenter = () => { if(activeIdx === null) { xray(i); Audio.tick(800 + (i*5)); } };
+            cell.onclick = (e) => {
+                e.stopPropagation();
+                haptic();
+                if(activeIdx === i) { activeIdx = null; xray(null); } 
+                else { activeIdx = i; xray(i); scrollToLine(i*lpc); }
+            };
+            els.grid.appendChild(cell);
+        }
+
+        // Code
+        lineData.forEach(l => {
+            const div = document.createElement('div');
+            div.className = 'line';
+            div.id = `L${l.index}`;
+            let html = l.text.replace(/</g,'&lt;')
+                .replace(/(function|class|const|let|var|if|return)/g, '<span class="kwd">$1</span>')
+                .replace(/([a-zA-Z0-9]+)\(/g, '<span class="var">$1</span>(');
+            const mapItem = blocks[Math.floor(l.index/lpc)];
+            if(mapItem && mapItem.name && l.text.includes(mapItem.name)) html = html.replace(mapItem.name, `<span class="def">${mapItem.name}</span>`);
+            div.innerHTML = `<div class="ln">${l.index}</div>${html}`;
+            div.onclick = (e) => {
+                e.stopPropagation();
+                const bIdx = Math.floor(l.index/lpc);
+                activeIdx = bIdx;
+                xray(bIdx);
+            };
+            els.code.appendChild(div);
+        });
+
+        updateNav(null);
+        drawWires();
+        renderMinimap();
+    }
+
+    function drawWires() {
+        els.wires.innerHTML = '';
+        const cr = els.lock.getBoundingClientRect();
+        if(cr.width === 0) return;
+
+        const unique = [...new Set(edges.map(JSON.stringify))].map(JSON.parse);
+
+        unique.forEach(e => {
+            const fromEl = els.grid.children[e.from];
+            const toEl = els.grid.children[e.to];
+            if(!fromEl || !toEl) return;
+
+            const r1 = fromEl.getBoundingClientRect();
+            const r2 = toEl.getBoundingClientRect();
+
+            const x1 = (r1.left - cr.left) + (r1.width/2);
+            const y1 = (r1.bottom - cr.top) - 2; 
+            const x2 = (r2.left - cr.left) + (r2.width/2);
+            const y2 = (r2.top - cr.top) + 2;
+
+            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            const cp1x = x1; const cp1y = y1 + 20; 
+            const cp2x = x2; const cp2y = y2 - 20; 
+
+            path.setAttribute("d", `M ${x1} ${y1} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${x2} ${y2}`);
+            path.setAttribute("class", "cable");
+            path.dataset.from = e.from;
+            path.dataset.to = e.to;
+            els.wires.appendChild(path);
+        });
+    }
+
+    function xray(idx) {
+        document.querySelectorAll('.block').forEach(b => b.className = 'block');
+        document.querySelectorAll('.cable').forEach(w => w.setAttribute('class', 'cable'));
+        document.querySelectorAll('.line').forEach(l => l.className = 'line');
+        
+        if(idx === null || !blocks[idx]) {
+            document.querySelectorAll('.block').forEach(b => b.classList.remove('muted'));
+            document.querySelectorAll('.cable').forEach(w => w.style.opacity = '0.1');
+            updateNav(null);
+            return;
+        }
+
+        const root = blocks[idx];
+        const lpc = Math.ceil(lines.length/81);
+
+        document.querySelectorAll('.block').forEach(b => b.classList.add('muted'));
+        document.querySelectorAll('.cable').forEach(w => w.style.opacity = '0.05');
+
+        const el = els.grid.children[idx];
+        el.classList.remove('muted');
+        el.classList.add('focus');
+        for(let i=idx*lpc; i<(idx+1)*lpc; i++) document.getElementById(`L${i}`)?.classList.add('active');
+
+        root.callers.forEach(c => {
+            els.grid.children[c]?.classList.remove('muted');
+            els.grid.children[c]?.classList.add('up');
+            const w = document.querySelector(`path[data-from="${c}"][data-to="${idx}"]`);
+            if(w) { w.setAttribute('class', 'cable active up'); w.style.opacity = '1'; }
+            document.getElementById(`L${c*lpc}`)?.classList.add('up');
+        });
+
+        root.deps.forEach(d => {
+            els.grid.children[d]?.classList.remove('muted');
+            els.grid.children[d]?.classList.add('down');
+            const w = document.querySelector(`path[data-from="${idx}"][data-to="${d}"]`);
+            if(w) { w.setAttribute('class', 'cable active down'); w.style.opacity = '1'; }
+            document.getElementById(`L${d*lpc}`)?.classList.add('down');
+        });
+
+        // Play sound if not dragging
+        if(!isResizing) Audio.hum('up');
+
+        updateNav(root);
+    }
+
+    function updateNav(data) {
+        els.deck.innerHTML = '';
+        
+        if(!data) {
+             els.deck.innerHTML = `
+                <div class="nav-group"><span class="nav-label">SYSTEM</span><span class="nav-val" style="color:var(--text-muted)">IDLE</span></div>
+             `;
+             return;
+        }
+
+        // Focus
+        const fGrp = document.createElement('div'); fGrp.className = "nav-group";
+        fGrp.innerHTML = `<span class="nav-label">FOCUS</span><span class="nav-val" id="nav-focus">${data.name}</span>`;
+        els.deck.appendChild(fGrp);
+
+        // Upstream
+        const uGrp = document.createElement('div'); uGrp.className = "nav-group";
+        uGrp.innerHTML = `<span class="nav-label">USED BY</span>`;
+        const uRow = document.createElement('div'); uRow.style.display="flex";
+        if(data.callers.length===0) uRow.innerHTML = `<span style="font-size:9px; opacity:0.5">ROOT</span>`;
+        else data.callers.forEach(c => uRow.appendChild(mkChip(c, 'up')));
+        uGrp.appendChild(uRow);
+        els.deck.appendChild(uGrp);
+
+        // Downstream
+        const dGrp = document.createElement('div'); dGrp.className = "nav-group";
+        dGrp.innerHTML = `<span class="nav-label">USES</span>`;
+        const dRow = document.createElement('div'); dRow.style.display="flex";
+        if(data.deps.length===0) dRow.innerHTML = `<span style="font-size:9px; opacity:0.5">LEAF</span>`;
+        else data.deps.forEach(d => dRow.appendChild(mkChip(d, 'down')));
+        dGrp.appendChild(dRow);
+        els.deck.appendChild(dGrp);
+    }
+
+    function mkChip(idx, cls) {
+        const b = blocks[idx];
+        const c = document.createElement('div');
+        c.className = `chip ${cls}`;
+        c.innerText = b.name;
+        c.onclick = (e) => { e.stopPropagation(); activeIdx=idx; xray(idx); scrollToLine(idx * Math.ceil(lines.length/81)); };
+        return c;
+    }
+
+    function scrollToLine(idx) {
+        const el = document.getElementById(`L${idx}`);
+        if(el) el.scrollIntoView({behavior:'smooth', block:'center'});
+    }
+
+    // ----------------------------------------------------
+    // 4. RESIZER & UTILS
+    // ----------------------------------------------------
+    const resizer = document.getElementById('resizer');
+    let isResizing = false, startY, startH;
+    resizer.addEventListener('mousedown', e => { isResizing=true; startY=e.clientY; startH=els.vp.getBoundingClientRect().height; });
+    window.addEventListener('mousemove', e => {
+        if(!isResizing) return;
+        const newH = startH + (e.clientY - startY);
+        if(newH > 100 && newH < window.innerHeight * 0.8) els.vp.style.flex = `0 0 ${newH}px`;
+        drawWires();
+    });
+    window.addEventListener('mouseup', () => isResizing=false);
+
+    const ro = new ResizeObserver(() => { drawWires(); if(activeIdx!==null) xray(activeIdx); });
+    ro.observe(els.lock);
+
+    function renderMinimap() {
+        const ctx = els.mm.getContext('2d');
+        const rect = els.mm.getBoundingClientRect();
+        els.mm.width = rect.width; els.mm.height = rect.height;
+        const lh = rect.height / lines.length;
+        lines.forEach((line, i) => {
+            if(!line.trim()) return;
+            ctx.fillStyle = lineData[i].type === 'function' ? '#f43f5e' : '#333';
+            ctx.fillRect(0, i*lh, rect.width, lh);
+        });
+    }
+
+    els.scroll.addEventListener('scroll', () => {
+        const pct = els.scroll.scrollTop / (els.scroll.scrollHeight - els.scroll.clientHeight);
+        const h = els.mm.getBoundingClientRect().height;
+        const vh = (els.scroll.clientHeight / els.scroll.scrollHeight) * h;
+        els.mmv.style.height = `${vh}px`;
+        els.mmv.style.top = `${pct * (h - vh)}px`;
+    });
+
+    function toggleBlade() { document.getElementById('sideblade').classList.toggle('open'); document.getElementById('blade-overlay').classList.toggle('open'); }
+    function toggleAudio() { Audio.init(); Audio.active = !Audio.active; document.getElementById('audio-btn').classList.toggle('active'); }
+    function toggleTheme() { 
+        const body = document.body;
+        body.dataset.theme = body.dataset.theme === 'dark' ? 'light' : 'dark';
+        // Trigger redraw for wire colors if needed
+        setTimeout(drawWires, 100);
+    }
+    function ingest() {
+        const val = document.getElementById('paste-input').value;
+        if(val.trim()) { lines = val.split('\n'); activeIdx=null; parse(); render(); toggleBlade(); }
+    }
+    function haptic() { if(navigator.vibrate) navigator.vibrate(10); }
+
+    document.body.addEventListener('click', () => { /* Global unlock logic if desired */ });
+
+    // BOOT
+    parse();
+    render();
+    renderMinimap();
+
+</script>
+</body>
+</html>
