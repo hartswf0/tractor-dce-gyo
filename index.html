@@ -875,6 +875,58 @@
             </div>
         </div>
 
+        <div class="section-title">TAXONOMY / MINIFIG OLOG</div>
+
+        <div class="planning-grid">
+            <div class="row-label">OBJECTS</div>
+            <div class="brick-row">
+                <div class="brick brick-3x4 brick-doc color-teal" style="height:auto; min-height:90px; align-items:flex-start; padding:8px; text-align:left; white-space:normal;" title="Taxonomizer: parts as a LEGO kingdom/phyla/classes/orders/families tree">
+                    <strong>Taxonomizer.</strong> An object is <em>a taxonomy node</em> (kingdom / phylum / class / order / family) with a name, depth, and an optional bag of <code>_parts[]</code>. Morphisms are parent→child arrows in the tree; the whole structure comes from <code>parts-taxonomy.json</code> compiled into <code>window.TAXONOMY_DATA</code>.
+                </div>
+                <div class="brick brick-3x4 brick-doc color-blue" style="height:auto; min-height:90px; align-items:flex-start; padding:8px; text-align:left; white-space:normal;" title="Selection playlist: chosen branches for export">
+                    <strong>Selection playlist.</strong> An object is <em>a finite set of taxonomy nodes</em> (a playlist of branches). A morphism is <em>include / remove</em> under branch selection: right-click, Selection Mode taps, or the <em>Select Entire Branch</em> / <em>Deselect Branch</em> buttons in the info panel, which operate on entire subtrees.
+                </div>
+                <div class="brick brick-3x4 brick-doc color-purple" style="height:auto; min-height:90px; align-items:flex-start; padding:8px; text-align:left; white-space:normal;" title="Exports: MPD catalog + JSON manifest">
+                    <strong>Exports.</strong> An object is either (a) a <em>catalog MPD</em> (header box + 6-column grid of parts, <code>taxonomy_catalog_*.mpd</code>), or (b) a <em>taxonomy-batch JSON</em> manifest (<code>nodes[]</code> with <code>parts[]</code> carrying <code>taxonomyPath</code>). Morphisms are the export functions from a playlist of branches into these serialised worlds.
+                </div>
+            </div>
+
+            <div class="row-label">FUNCTORS</div>
+            <div class="brick-row">
+                <div class="brick brick-3x4 brick-doc color-yellow" style="height:auto; min-height:110px; align-items:flex-start; padding:8px; text-align:left; white-space:normal;" title="F: Taxonomy → Playlist → MPD">
+                    <strong>F — Branch selection → MPD catalog.</strong><br>
+                    Domain: the Taxonomizer tree with user-marked selection on nodes.<br>
+                    Codomain: a single MPD file that lays out each unique part from the selected branches in a numbered catalog grid.<br>
+                    Action on objects: a set of branches ↦ an ordered list of distinct parts (deduped by <code>path|filename</code>).<br>
+                    Action on morphisms: adding/removing a branch in the playlist ↦ adding/removing the corresponding per-part blocks in the MPD. The COPY and DOWNLOAD buttons are two realizations of the same functor (clipboard vs. file).
+                </div>
+                <div class="brick brick-3x4 brick-doc color-orange" style="height:auto; min-height:110px; align-items:flex-start; padding:8px; text-align:left; white-space:normal;" title="G: Taxonomy → JSON manifest">
+                    <strong>G — Branch selection → JSON manifest.</strong><br>
+                    Domain: same Taxonomizer + selection playlist.<br>
+                    Codomain: <code>taxonomy-batch</code> JSON with <code>nodes[]</code>; each node carries its <code>path</code>, <code>depth</code>, and enriched <code>parts[]</code> with <code>taxonomyPath</code> and any original fields (e.g. <code>headRole</code>, <code>upperComplete</code>).<br>
+                    Use: this is the bridge to Minifigurator and other -ators. A downstream script can treat it as a typed slice of the LDraw ontology and re-bucket parts into <code>heads</code>, <code>torsos</code>, <code>hips</code>, etc., mirroring <code>minifig-library.json</code>.
+                </div>
+            </div>
+
+            <div class="row-label">MINIFIG CHANNEL</div>
+            <div class="brick-row">
+                <div class="brick brick-3x4 brick-doc color-purple" style="height:auto; min-height:110px; align-items:flex-start; padding:8px; text-align:left; white-space:normal;" title="Taxonomy slice → Minifigurator buckets">
+                    <strong>H — Taxonomy slice → Minifig buckets.</strong><br>
+                    H takes a <code>taxonomy-batch</code> JSON and constructs a local <em>minifig library</em>: a JSON with <code>parts.heads</code>, <code>parts.torsos</code>, <code>parts.hips</code>, <code>parts.legs</code>, and so on, using the same fields Minifigurator already understands (<code>headRole</code>, <code>upperComplete</code>, <code>lowerComplete</code>, <code>includesArms</code>, etc.).<br>
+                    Under H, a taxonomy branch that happens to be "MINIFIG HEADS" becomes a bucket of dial entries in Minifigurator, so the minifig family generator is grounded in the same ontology that Taxonomizer visualizes.
+                </div>
+                <div class="brick brick-3x4 brick-doc color-green" style="height:auto; min-height:110px; align-items:flex-start; padding:8px; text-align:left; white-space:normal;" title="Playlist semantics for parts and characters">
+                    <strong>Playlist semantics.</strong><br>
+                    Viewed together, Taxonomizer + exports + Minifigurator form a chain:<br>
+                    <code>(taxonomy branches, inclusion) → (selection playlist) → (MPD catalog / JSON slice) → (minifig buckets / scenes)</code>.<br>
+                    This olog pins the meanings:<br>
+                    • A selection is a <em>subfunctor</em> picking regions of the world graph.<br>
+                    • An MPD catalog is a <em>concrete slice</em> of that graph, ready for GOLD/GRACE/WERE.<br>
+                    • A minifig family MPD is a <em>higher-order scene</em> built from those slices.
+                </div>
+            </div>
+        </div>
+
         <div class="section-title">PROMPTS &amp; SYSTEMS</div>
 
         <div class="planning-grid">

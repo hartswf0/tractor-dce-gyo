@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎬 Kimi LEGO Film Factory - Official API</title>
+    <style>
+        :root {
+            --color-bg: #0a0a0a;
+            --color-surface: #141414;
+            --color-surface-light: #1e1e1e;
+            --color-text: #e0e0e0;
+            --color-text-secondary: #888;
+            --color-primary: #ff4444;
+            --color-accent: #4a9eff;
+            --color-success: #00cc66;
+            --color-warning: #ffaa00;
+            --color-error: #ff4444;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: "Courier New", monospace;
+            background: var(--color-bg);
+            color: var(--color-text);
+            overflow: hidden;
+            height: 100vh;
+            font-size: 13px;
+        }
+
+        #container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        #header {
+            background: linear-gradient(180deg, var(--color-surface), #121212);
+            border-bottom: 2px solid var(--color-primary);
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #header-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--color-primary);
+        }
+
+        #header-status {
+            font-size: 11px;
+            padding: 6px 12px;
+            background: rgba(0,204,102,0.1);
+            color: var(--color-success);
+            border-radius: 3px;
+            border: 1px solid rgba(0,204,102,0.3);
+        }
+
+        #header-status.error {
+            background: rgba(255,68,68,0.1);
+            color: var(--color-error);
+            border-color: rgba(255,68,68,0.3);
+        }
+
+        #header-status.testing {
+            background: rgba(255,170,0,0.1);
+            color: var(--color-warning);
+            border-color: rgba(255,170,0,0.3);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+        #main {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            gap: 1px;
+            background: #0a0a0a;
+        }
+
+        #left-panel, #right-panel {
+            flex: 1;
+            background: var(--color-surface);
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #divider {
+            width: 6px;
+            background: linear-gradient(90deg, #333, #444, #333);
+            cursor: col-resize;
+            transition: background 0.2s;
+        }
+
+        #divider:hover {
+            background: linear-gradient(90deg, #555, #666, #555);
+        }
+
+        .panel-section {
+            margin-bottom: 20px;
+            border: 1px solid #333;
+            border-radius: 4px;
+            padding: 12px;
+            background: var(--color-surface-light);
+        }
+
+        .panel-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--color-accent);
+            font-weight: bold;
+            margin-bottom: 12px;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-label {
+            font-size: 11px;
+            color: var(--color-text);
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            background: #0a0a0a;
+            border: 1px solid #333;
+            color: var(--color-text);
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 11px;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--color-accent);
+            box-shadow: 0 0 8px rgba(74,158,255,0.2);
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background: var(--color-primary);
+            color: #fff;
+            border: none;
+            border-radius: 3px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 12px;
+        }
+
+        button:hover { background: #ff6666; }
+        button:active { transform: scale(0.98); }
+        button:disabled {
+            background: #444;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        #chat-area {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 12px;
+            border: 1px solid #333;
+            border-radius: 3px;
+            padding: 12px;
+            background: #0a0a0a;
+        }
+
+        .message {
+            margin-bottom: 12px;
+            padding: 10px;
+            border-radius: 3px;
+            font-size: 11px;
+            line-height: 1.5;
+        }
+
+        .message.user {
+            background: rgba(74,158,255,0.2);
+            border-left: 2px solid var(--color-accent);
+            color: var(--color-accent);
+        }
+
+        .message.assistant {
+            background: rgba(0,204,102,0.1);
+            border-left: 2px solid var(--color-success);
+            color: var(--color-success);
+        }
+
+        .message.error {
+            background: rgba(255,68,68,0.1);
+            border-left: 2px solid var(--color-error);
+            color: var(--color-error);
+        }
+
+        .message.system {
+            background: rgba(255,170,0,0.1);
+            border-left: 2px solid var(--color-warning);
+            color: var(--color-warning);
+            font-size: 10px;
+        }
+
+        #input-bar {
+            display: flex;
+            gap: 8px;
+        }
+
+        #chat-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #333;
+            background: #0a0a0a;
+            color: var(--color-text);
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+
+        #send-btn {
+            width: 80px;
+            padding: 10px;
+            background: var(--color-accent);
+            color: #000;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        #send-btn:hover { background: #6ab0ff; }
+
+        .config-note {
+            font-size: 10px;
+            color: var(--color-text-secondary);
+            margin-top: 8px;
+            padding: 8px;
+            background: rgba(255,170,0,0.05);
+            border-left: 2px solid var(--color-warning);
+            border-radius: 2px;
+        }
+
+        @media (max-width: 768px) {
+            #main {
+                flex-direction: column;
+            }
+            #divider {
+                width: 100%;
+                height: 6px;
+                cursor: row-resize;
+            }
+            #left-panel, #right-panel {
+                flex: none;
+                height: 50%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="header">
+            <div id="header-title">🎬 Kimi LEGO Film Factory (Official API)</div>
+            <div id="header-status">READY</div>
+        </div>
+
+        <div id="main">
+            <!-- Left: Config -->
+            <div id="left-panel">
+                <div class="panel-section">
+                    <div class="panel-title">⚙️ API Configuration</div>
+
+                    <div class="form-group">
+                        <label class="form-label">API Key</label>
+                        <input type="password" id="apiKey" placeholder="sk-..." value="">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Endpoint</label>
+                        <input type="text" id="endpoint" value="https://api.moonshot.ai/v1" readonly>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Model</label>
+                        <select id="model">
+                            <option value="kimi-k2-turbo-preview" selected>kimi-k2-turbo-preview (Official)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Temperature</label>
+                        <input type="number" id="temperature" value="0.6" min="0" max="2" step="0.1">
+                    </div>
+
+                    <div class="config-note">
+                        ℹ️ Using official Moonshot API specification from platform.moonshot.ai/quickstart
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <div class="panel-title">🧪 Quick Test</div>
+                    <textarea id="testMessage" rows="4" placeholder="Test message...">Hello, my name is User. What is 1+1?</textarea>
+                    <button id="testBtn" style="margin-top: 12px;">Send Test</button>
+                </div>
+            </div>
+
+            <div id="divider"></div>
+
+            <!-- Right: Chat -->
+            <div id="right-panel">
+                <div class="panel-title">💬 Chat</div>
+                <div id="chat-area"></div>
+
+                <div id="input-bar">
+                    <textarea id="chat-input" placeholder="Message..." rows="2"></textarea>
+                    <button id="send-btn">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const el = {
+            apiKey: document.getElementById('apiKey'),
+            endpoint: document.getElementById('endpoint'),
+            model: document.getElementById('model'),
+            temperature: document.getElementById('temperature'),
+            testMessage: document.getElementById('testMessage'),
+            testBtn: document.getElementById('testBtn'),
+            chatArea: document.getElementById('chat-area'),
+            chatInput: document.getElementById('chat-input'),
+            sendBtn: document.getElementById('send-btn'),
+            headerStatus: document.getElementById('header-status'),
+            divider: document.getElementById('divider')
+        };
+
+        let resizing = false;
+
+        // Divider drag to resize
+        el.divider.addEventListener('mousedown', () => { resizing = true; });
+        document.addEventListener('mouseup', () => { resizing = false; });
+        document.addEventListener('mousemove', (e) => {
+            if (!resizing) return;
+            const main = document.getElementById('main');
+            if (main.style.flexDirection !== 'column') {
+                const rect = main.getBoundingClientRect();
+                const pct = (e.clientX - rect.left) / rect.width * 100;
+                document.getElementById('left-panel').style.flex = pct;
+                document.getElementById('right-panel').style.flex = 100 - pct;
+            }
+        });
+
+        // Send test
+        el.testBtn.addEventListener('click', () => sendMessage(el.testMessage.value, true));
+
+        // Send chat
+        el.sendBtn.addEventListener('click', () => sendMessage(el.chatInput.value, false));
+        el.chatInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage(el.chatInput.value, false);
+            }
+        });
+
+        async function sendMessage(text, isTest) {
+            if (!text.trim()) return;
+
+            const apiKey = el.apiKey.value.trim();
+            if (!apiKey) {
+                addMessage('❌ API key required', 'error');
+                return;
+            }
+
+            if (!isTest) {
+                addMessage(text, 'user');
+                el.chatInput.value = '';
+            }
+
+            el.headerStatus.className = 'testing';
+            el.headerStatus.textContent = 'SENDING...';
+            el.testBtn.disabled = el.sendBtn.disabled = true;
+
+            try {
+                const response = await fetch(el.endpoint.value + '/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: el.model.value,
+                        messages: [{ role: 'user', content: text }],
+                        temperature: parseFloat(el.temperature.value),
+                        max_tokens: 1000
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    const err = data.error?.message || JSON.stringify(data);
+                    addMessage(`❌ Error ${response.status}: ${err}`, 'error');
+                    el.headerStatus.className = 'error';
+                    el.headerStatus.textContent = 'ERROR';
+                } else {
+                    const reply = data.choices?.[0]?.message?.content || '(no response)';
+                    addMessage(reply, 'assistant');
+                    el.headerStatus.className = '';
+                    el.headerStatus.textContent = 'READY';
+                }
+            } catch (e) {
+                addMessage(`❌ Network error: ${e.message}`, 'error');
+                el.headerStatus.className = 'error';
+                el.headerStatus.textContent = 'ERROR';
+            } finally {
+                el.testBtn.disabled = el.sendBtn.disabled = false;
+            }
+        }
+
+        function addMessage(text, role) {
+            const msg = document.createElement('div');
+            msg.className = `message ${role}`;
+            msg.textContent = text;
+            el.chatArea.appendChild(msg);
+            el.chatArea.scrollTop = el.chatArea.scrollHeight;
+        }
+
+        // Load saved API key
+        const saved = localStorage.getItem('moonshot_api_key');
+        if (saved) el.apiKey.value = saved;
+
+        // Save API key on change
+        el.apiKey.addEventListener('change', () => {
+            localStorage.setItem('moonshot_api_key', el.apiKey.value);
+        });
+    </script>
+</body>
+</html>

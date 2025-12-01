@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WAG – MPD Bus Temporal Inspector</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Mono", "Fira Code", monospace;
+      background: #020308;
+      color: #f9fafb;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+    }
+
+    .app {
+      width: 100vw;
+      max-width: 1440px;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 10px 12px 12px;
+      gap: 8px;
+    }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 10px;
+      background: linear-gradient(90deg, #020617, #020617 50%, #111827 100%);
+      border: 1px solid #111827;
+      box-shadow: 0 0 0 1px rgba(15,23,42,0.7);
+    }
+
+    .title-block {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .title-block h1 {
+      font-size: 13px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #facc15;
+    }
+
+    .title-block p {
+      font-size: 11px;
+      color: #9ca3af;
+      max-width: 440px;
+    }
+
+    .header-right {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      align-items: flex-end;
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .pill {
+      font-size: 10px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.7);
+      color: #e5e7eb;
+      background: #020617;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .pill strong {
+      color: #facc15;
+      font-weight: 600;
+    }
+
+    .timeline-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+      color: #9ca3af;
+    }
+
+    .timeline-label {
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-weight: 600;
+    }
+
+    .timeline-track {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 4px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 0 0, #020617, #020617 65%, #0b1120);
+      border: 1px solid rgba(55,65,81,0.9);
+    }
+
+    .timeline-node {
+      min-width: 30px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      text-align: center;
+      cursor: pointer;
+      border: 1px solid transparent;
+      color: #9ca3af;
+    }
+
+    .timeline-node span {
+      display: block;
+    }
+
+    .timeline-node .t-label {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .timeline-node .t-count {
+      font-size: 9px;
+      opacity: 0.8;
+    }
+
+    .timeline-node.selected {
+      background: #facc15;
+      color: #111827;
+      border-color: #fef9c3;
+      box-shadow: 0 0 0 1px #facc15, 0 0 12px rgba(250,204,21,0.7);
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      gap: 8px;
+      min-height: 0;
+    }
+
+    .pane {
+      flex: 1;
+      min-width: 0;
+      border-radius: 10px;
+      border: 1px solid #111827;
+      background: radial-gradient(circle at 0 0, #020617, #020617 60%, #020617);
+      padding: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      box-shadow: 0 0 0 1px rgba(15,23,42,0.7);
+    }
+
+    .pane-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      font-size: 11px;
+      color: #9ca3af;
+    }
+
+    .pane-header span.label {
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #e5e7eb;
+    }
+
+    .pane-header span.sub {
+      font-size: 10px;
+      opacity: 0.7;
+    }
+
+    .pane-body {
+      flex: 1;
+      border-radius: 7px;
+      background: rgba(3,7,18,0.96);
+      border: 1px solid #020617;
+      padding: 6px;
+      overflow: auto;
+      font-size: 11px;
+    }
+
+    pre.mpd-view {
+      font-family: "SF Mono", "Fira Code", monospace;
+      font-size: 11px;
+      line-height: 1.35;
+      white-space: pre;
+    }
+
+    .mpd-line {
+      padding: 2px 4px;
+      border-radius: 4px;
+      display: flex;
+      gap: 6px;
+      align-items: baseline;
+      cursor: default;
+    }
+
+    .mpd-line-index {
+      width: 32px;
+      text-align: right;
+      color: #4b5563;
+      flex-shrink: 0;
+    }
+
+    .mpd-line-text {
+      flex: 1;
+    }
+
+    .mpd-line-studs {
+      font-size: 10px;
+      color: #facc15;
+      margin-left: 6px;
+      flex-shrink: 0;
+      opacity: 0.9;
+    }
+
+    .mpd-line-studs span {
+      font-family: "Fira Code", monospace;
+    }
+
+    .mpd-line.is-part {
+      cursor: pointer;
+      transition: background 120ms, color 120ms;
+    }
+
+    .mpd-line.is-part:hover {
+      background: rgba(31,41,55,0.75);
+    }
+
+    .mpd-line.is-selected {
+      background: linear-gradient(90deg, rgba(250,204,21,0.16), rgba(34,197,235,0.08));
+      color: #e5e7eb;
+      border-left: 2px solid #facc15;
+    }
+
+    .mpd-line.is-part .mpd-line-index::before {
+      content: "■";
+      font-size: 7px;
+      margin-right: 4px;
+      color: #22c55e;
+    }
+
+    table.parts-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+    }
+
+    table.parts-table thead tr {
+      background: rgba(15,23,42,0.98);
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    table.parts-table th,
+    table.parts-table td {
+      padding: 4px 5px;
+      border-bottom: 1px solid rgba(30,41,59,0.7);
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    table.parts-table th {
+      font-weight: 600;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-size: 10px;
+    }
+
+    table.parts-table tr {
+      cursor: default;
+    }
+
+    table.parts-table tr.part-row {
+      cursor: pointer;
+      transition: background 120ms;
+    }
+
+    table.parts-table tr.part-row:hover {
+      background: rgba(31,41,55,0.75);
+    }
+
+    table.parts-table tr.part-row.selected {
+      background: rgba(250,204,21,0.18);
+    }
+
+    table.parts-table td.key {
+      font-family: "Fira Code", monospace;
+      color: #e5e7eb;
+    }
+
+    .stud-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      font-size: 10px;
+      color: #9ca3af;
+      margin-bottom: 6px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: rgba(15,23,42,0.98);
+      border: 1px solid rgba(55,65,81,0.9);
+    }
+
+    .legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      flex-shrink: 0;
+    }
+
+    .canvas-wrap {
+      flex: 1;
+      border-radius: 8px;
+      border: 1px solid #020617;
+      background: radial-gradient(circle at top, #020617, #020617 40%, #020617);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+      min-height: 140px;
+    }
+
+    canvas#studCanvas {
+      width: 100%;
+      height: 100%;
+      border-radius: 6px;
+      background: radial-gradient(circle at center, #020617, #020617 60%, #020617);
+    }
+
+    .stud-meta {
+      margin-top: 4px;
+      font-size: 10px;
+      color: #9ca3af;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      opacity: 0.9;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .stud-meta code {
+      font-family: "Fira Code", monospace;
+      font-size: 10px;
+      background: rgba(15,23,42,0.98);
+      padding: 2px 4px;
+      border-radius: 4px;
+      border: 1px solid #020617;
+      color: #e5e7eb;
+    }
+
+    .bus-timeline {
+      margin-top: 4px;
+      padding-top: 4px;
+      border-top: 1px dashed rgba(55,65,81,0.9);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 10px;
+      color: #9ca3af;
+    }
+
+    .bus-timeline-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .bus-timeline-label {
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-size: 9px;
+      color: #e5e7eb;
+    }
+
+    .bus-timeline-track {
+      display: flex;
+      gap: 4px;
+      flex: 1;
+    }
+
+    .bus-timeline-cell {
+      flex: 1;
+      min-width: 0;
+      padding: 3px 4px;
+      border-radius: 4px;
+      background: rgba(15,23,42,0.98);
+      border: 1px solid rgba(31,41,55,0.9);
+      text-align: center;
+      font-family: "Fira Code", monospace;
+    }
+
+    .bus-timeline-cell.active {
+      border-color: #facc15;
+      box-shadow: 0 0 0 1px rgba(250,204,21,0.8);
+      background: rgba(250,204,21,0.12);
+      color: #e5e7eb;
+    }
+
+    @media (max-width: 900px) {
+      main {
+        flex-direction: column;
+      }
+      .app {
+        max-width: 640px;
+      }
+      .header-right {
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="title-block">
+        <h1>MPD BUS TEMPORAL INSPECTOR</h1>
+        <p>
+          MPD lines are immutable buses (vertical spine). Each stud skeleton entry is temporal data flowing through
+          those buses over time. Select a bus, scrub time, and watch its payload move.
+        </p>
+      </div>
+      <div class="header-right">
+        <div class="controls">
+          <div class="pill"><strong>Spine:</strong> MPD file (lineIndex)</div>
+          <div class="pill"><strong>Binding:</strong> stud.lineNum = lineIndex</div>
+          <div class="pill"><strong>Time:</strong> snapshots T0–T2</div>
+        </div>
+        <div class="timeline-bar">
+          <span class="timeline-label">Time</span>
+          <div class="timeline-track" id="timelineTrack"></div>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="pane mpd-pane">
+        <div class="pane-header">
+          <span class="label">MPD Spine</span>
+          <span class="sub">Vertical buses (type 1 lines). Each badge shows stud payload at current time.</span>
+        </div>
+        <div class="pane-body">
+          <pre class="mpd-view" id="mpdView"></pre>
+        </div>
+      </section>
+
+      <section class="pane parts-pane">
+        <div class="pane-header">
+          <span class="label">Bus Table</span>
+          <span class="sub">One row per bus. Stud count is temporal.</span>
+        </div>
+        <div class="pane-body">
+          <table class="parts-table" id="partsTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Bus (Line)</th>
+                <th>Color</th>
+                <th>Part</th>
+                <th>X</th>
+                <th>Y</th>
+                <th>Z</th>
+                <th>Studs @ t</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="pane studs-pane">
+        <div class="pane-header">
+          <span class="label">Stud Skeleton</span>
+          <span class="sub">Top-down X/Z projection. Selected bus glows at current time.</span>
+        </div>
+        <div class="pane-body">
+          <div class="stud-legend" id="studLegend"></div>
+          <div class="canvas-wrap">
+            <canvas id="studCanvas"></canvas>
+          </div>
+          <div class="stud-meta">
+            <span id="metaSelection">No bus selected.</span>
+            <span id="metaStudCount"></span>
+          </div>
+          <div class="bus-timeline" id="busTimeline"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    // --- Core data: MPD spine (immutable) ------------------------------------
+    const mpdSample = `0 FILE simple_scene.mpd
+0 Name: WAG – Temporal Binding Demo
+0 !LDRAW_ORG Model
+0 // Minimal scene to demo binding over time
+0 // Only type 1 lines are parsed as buses.
+1 1 -60 0 0 1 0 0 0 1 0 0 0 1 3811.dat
+1 4 60 0 0 1 0 0 0 1 0 0 0 1 3001.dat
+1 14 0 0 60 1 0 0 0 1 0 0 0 1 3001.dat
+`;
+
+    // Time snapshots: global shifts to show "same spine, moving payload"
+    const timeStops = [
+      { id: 't0', label: 'T0', shiftX: -20, shiftY: 0,  shiftZ: 0 },
+      { id: 't1', label: 'T1', shiftX: 0,   shiftY: 8,  shiftZ: 0 },
+      { id: 't2', label: 'T2', shiftX: 20,  shiftY: 16, shiftZ: 10 }
+    ];
+
+    // --- Parse MPD into buses (type 1 lines) ---------------------------------
+    function parseMpdParts(text) {
+      const lines = text.split(/\r?\n/);
+      const parts = [];
+      lines.forEach((raw, lineIndex) => {
+        const line = raw.trim();
+        if (!line || !line.startsWith('1 ')) return;
+        const tokens = line.split(/\s+/);
+        if (tokens.length < 15) return;
+        const [, color, X, Y, Z,
+          a, b, c, d, e, f, g, h, i,
+          partId] = tokens;
+        parts.push({
+          lineIndex,
+          partIndex: parts.length,
+          color: Number(color),
+          partId,
+          transform: {
+            X: Number(X),
+            Y: Number(Y),
+            Z: Number(Z),
+            m: [
+              Number(a), Number(b), Number(c),
+              Number(d), Number(e), Number(f),
+              Number(g), Number(h), Number(i)
+            ]
+          },
+          rawLine: raw
+        });
+      });
+      return { lines, parts };
+    }
+
+    // --- Local studs per part (payload template) -----------------------------
+    function generateLocalStudsForPart(partId) {
+      // For now: simple 2x2 stud square per part
+      return [
+        { x: -10, y: 0, z: -10 },
+        { x:  10, y: 0, z: -10 },
+        { x:  10, y: 0, z:  10 },
+        { x: -10, y: 0, z:  10 }
+      ];
+    }
+
+    // --- Transform helpers ---------------------------------------------------
+    function localToWorld(local, transform) {
+      const { x: u, y: v, z: w } = local;
+      const { X, Y, Z, m } = transform;
+      const [a, b, c, d, e, f, g, h, i] = m;
+      return {
+        x: a * u + b * v + c * w + X,
+        y: d * u + e * v + f * w + Y,
+        z: g * u + h * v + i * w + Z
+      };
+    }
+
+    function quantizeLayer(y) {
+      const plateHeight = 8;
+      const baseOffset = 0;
+      return Math.round((y - baseOffset) / plateHeight);
+    }
+
+    // --- Build stud skeleton snapshots over time -----------------------------
+    function buildStudSkeletonForTime(parts, timeMeta) {
+      const studs = [];
+      parts.forEach(part => {
+        const locals = generateLocalStudsForPart(part.partId);
+        // Apply time-based shift (temporal motion) but keep the MPD spine constant
+        const tTransform = {
+          X: part.transform.X + (timeMeta.shiftX || 0),
+          Y: part.transform.Y + (timeMeta.shiftY || 0),
+          Z: part.transform.Z + (timeMeta.shiftZ || 0),
+          m: part.transform.m.slice()
+        };
+        locals.forEach(local => {
+          const world = localToWorld(local, tTransform);
+          studs.push({
+            kind: 'stud',
+            lineNum: part.lineIndex,   // MPD spine reference
+            partIndex: part.partIndex,
+            partId: part.partId,
+            local,
+            world,
+            layer: quantizeLayer(world.y)
+          });
+        });
+      });
+      return studs;
+    }
+
+    function buildSnapshots(parts) {
+      return timeStops.map((t, idx) => ({
+        id: t.id,
+        label: t.label,
+        index: idx,
+        studs: buildStudSkeletonForTime(parts, t)
+      }));
+    }
+
+    // --- UI renderers --------------------------------------------------------
+    function renderTimeline(trackEl, snapshots, selectedIndex) {
+      trackEl.innerHTML = '';
+      snapshots.forEach((snap, idx) => {
+        const node = document.createElement('div');
+        node.className = 'timeline-node';
+        if (idx === selectedIndex) node.classList.add('selected');
+        const labelSpan = document.createElement('span');
+        labelSpan.className = 't-label';
+        labelSpan.textContent = snap.label;
+        const countSpan = document.createElement('span');
+        countSpan.className = 't-count';
+        countSpan.textContent = `${snap.studs.length} pts`;
+        node.appendChild(labelSpan);
+        node.appendChild(countSpan);
+        node.addEventListener('click', () => {
+          state.currentSnapshotIndex = idx;
+          syncAll();
+        });
+        trackEl.appendChild(node);
+      });
+    }
+
+    function renderMpdView(lines, parts, studs, selectedLineIndex) {
+      const container = document.getElementById('mpdView');
+      container.innerHTML = '';
+      const partLineSet = new Set(parts.map(p => p.lineIndex));
+      lines.forEach((text, idx) => {
+        const lineEl = document.createElement('div');
+        lineEl.className = 'mpd-line';
+        const isPart = partLineSet.has(idx);
+        if (isPart) lineEl.classList.add('is-part');
+        if (idx === selectedLineIndex) lineEl.classList.add('is-selected');
+        const idxSpan = document.createElement('span');
+        idxSpan.className = 'mpd-line-index';
+        idxSpan.textContent = idx.toString().padStart(2, ' ');
+        const textSpan = document.createElement('span');
+        textSpan.className = 'mpd-line-text';
+        textSpan.textContent = text || '\u00A0';
+        lineEl.appendChild(idxSpan);
+        lineEl.appendChild(textSpan);
+        if (isPart) {
+          const studCount = studs.filter(s => s.lineNum === idx).length;
+          const studSpan = document.createElement('span');
+          studSpan.className = 'mpd-line-studs';
+          studSpan.innerHTML = `<span>${studCount}</span> ST`;
+          lineEl.appendChild(studSpan);
+          lineEl.addEventListener('click', () => {
+            state.selectedLineIndex = idx;
+            syncAll();
+          });
+        }
+        container.appendChild(lineEl);
+      });
+    }
+
+    function renderPartsTable(parts, studs, selectedLineIndex) {
+      const tbody = document.querySelector('#partsTable tbody');
+      tbody.innerHTML = '';
+      parts.forEach(part => {
+        const tr = document.createElement('tr');
+        tr.className = 'part-row';
+        if (part.lineIndex === selectedLineIndex) tr.classList.add('selected');
+        const mk = v => {
+          const td = document.createElement('td');
+          td.textContent = v;
+          return td;
+        };
+        tr.appendChild(mk(part.partIndex));
+        tr.appendChild(mk(part.lineIndex));
+        tr.appendChild(mk(part.color));
+        const partTd = mk(part.partId);
+        partTd.classList.add('key');
+        tr.appendChild(partTd);
+        tr.appendChild(mk(part.transform.X));
+        tr.appendChild(mk(part.transform.Y));
+        tr.appendChild(mk(part.transform.Z));
+        const studCount = studs.filter(s => s.lineNum === part.lineIndex).length;
+        tr.appendChild(mk(studCount));
+        tr.addEventListener('click', () => {
+          state.selectedLineIndex = part.lineIndex;
+          syncAll();
+        });
+        tbody.appendChild(tr);
+      });
+    }
+
+    function buildColorForPart(partIndex) {
+      const palette = [
+        '#f97316', '#22c55e', '#38bdf8', '#eab308', '#a855f7', '#ec4899'
+      ];
+      return palette[partIndex % palette.length];
+    }
+
+    function renderStudLegend(parts, selectedLineIndex) {
+      const legend = document.getElementById('studLegend');
+      legend.innerHTML = '';
+      parts.forEach(part => {
+        const item = document.createElement('div');
+        item.className = 'legend-item';
+        const dot = document.createElement('div');
+        dot.className = 'legend-dot';
+        dot.style.background = buildColorForPart(part.partIndex);
+        if (part.lineIndex === selectedLineIndex) {
+          dot.style.boxShadow = '0 0 0 2px rgba(250,204,21,0.9)';
+        } else {
+          dot.style.opacity = '0.7';
+        }
+        const label = document.createElement('span');
+        label.textContent = `Bus #${part.partIndex} (L${part.lineIndex})`;
+        item.appendChild(dot);
+        item.appendChild(label);
+        legend.appendChild(item);
+      });
+    }
+
+    function renderStudCanvas(studs, parts, selectedLineIndex) {
+      const canvas = document.getElementById('studCanvas');
+      const ctx = canvas.getContext('2d');
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * window.devicePixelRatio;
+      canvas.height = rect.height * window.devicePixelRatio;
+      ctx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+      ctx.clearRect(0, 0, rect.width, rect.height);
+
+      if (!studs.length) return;
+
+      let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
+      studs.forEach(s => {
+        const { x, z } = s.world;
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (z < minZ) minZ = z;
+        if (z > maxZ) maxZ = z;
+      });
+      const padding = 18;
+      const spanX = maxX - minX || 1;
+      const spanZ = maxZ - minZ || 1;
+
+      function project(world) {
+        const xNorm = (world.x - minX) / spanX;
+        const zNorm = (world.z - minZ) / spanZ;
+        const x = padding + xNorm * (rect.width - padding * 2);
+        const y = rect.height - (padding + zNorm * (rect.height - padding * 2));
+        return { x, y };
+      }
+
+      ctx.save();
+      ctx.strokeStyle = 'rgba(55,65,81,0.7)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(padding + 0.5, padding + 0.5, rect.width - padding * 2 - 1, rect.height - padding * 2 - 1);
+      ctx.restore();
+
+      studs.forEach(stud => {
+        const { x, y } = project(stud.world);
+        const isSelected = stud.lineNum === selectedLineIndex;
+        const color = buildColorForPart(stud.partIndex);
+        ctx.beginPath();
+        ctx.arc(x, y, isSelected ? 5 : 3, 0, Math.PI * 2);
+        ctx.fillStyle = isSelected ? color : 'rgba(148,163,184,0.35)';
+        ctx.fill();
+        if (isSelected) {
+          ctx.lineWidth = 1;
+          ctx.strokeStyle = 'rgba(15,23,42,0.9)';
+          ctx.stroke();
+        }
+      });
+    }
+
+    function renderBusTimeline(parts, snapshots, selectedLineIndex, currentSnapshotIndex) {
+      const container = document.getElementById('busTimeline');
+      container.innerHTML = '';
+      if (selectedLineIndex == null) {
+        container.textContent = 'Select a bus (type 1 line) to see its payload across time.';
+        return;
+      }
+      const part = parts.find(p => p.lineIndex === selectedLineIndex);
+      if (!part) {
+        container.textContent = 'Selected line has no bus.';
+        return;
+      }
+      const row = document.createElement('div');
+      row.className = 'bus-timeline-row';
+      const label = document.createElement('span');
+      label.className = 'bus-timeline-label';
+      label.textContent = `Bus L${part.lineIndex} // ${part.partId}`;
+      const track = document.createElement('div');
+      track.className = 'bus-timeline-track';
+      snapshots.forEach((snap, idx) => {
+        const cell = document.createElement('div');
+        cell.className = 'bus-timeline-cell';
+        if (idx === currentSnapshotIndex) cell.classList.add('active');
+        const count = snap.studs.filter(s => s.lineNum === part.lineIndex).length;
+        cell.textContent = `${snap.label}: ${count} ST`;
+        track.appendChild(cell);
+      });
+      row.appendChild(label);
+      row.appendChild(track);
+      container.appendChild(row);
+    }
+
+    // --- State + sync --------------------------------------------------------
+    const state = {
+      lines: [],
+      parts: [],
+      snapshots: [],
+      currentSnapshotIndex: 0,
+      selectedLineIndex: null
+    };
+
+    function syncAll() {
+      const currentSnapshot = state.snapshots[state.currentSnapshotIndex] || { studs: [] };
+      const studs = currentSnapshot.studs;
+      const timelineTrack = document.getElementById('timelineTrack');
+
+      renderTimeline(timelineTrack, state.snapshots, state.currentSnapshotIndex);
+      renderMpdView(state.lines, state.parts, studs, state.selectedLineIndex);
+      renderPartsTable(state.parts, studs, state.selectedLineIndex);
+      renderStudLegend(state.parts, state.selectedLineIndex);
+      renderStudCanvas(studs, state.parts, state.selectedLineIndex);
+      renderBusTimeline(state.parts, state.snapshots, state.selectedLineIndex, state.currentSnapshotIndex);
+
+      const metaSel = document.getElementById('metaSelection');
+      const metaCount = document.getElementById('metaStudCount');
+      if (state.selectedLineIndex == null) {
+        metaSel.textContent = 'No bus selected.';
+      } else {
+        const part = state.parts.find(p => p.lineIndex === state.selectedLineIndex);
+        if (part) {
+          const count = studs.filter(s => s.lineNum === part.lineIndex).length;
+          metaSel.innerHTML =
+            `Bus <code>L${part.lineIndex}</code> / <code>#${part.partIndex}</code> / <code>${part.partId}</code> — ` +
+            `${count} studs at <code>${timeStops[state.currentSnapshotIndex].label}</code>.`;
+        } else {
+          metaSel.textContent = 'Selected line has no parsed bus.';
+        }
+      }
+      metaCount.textContent = `${studs.length} studs at ${timeStops[state.currentSnapshotIndex].label}.`;
+    }
+
+    function init() {
+      const { lines, parts } = parseMpdParts(mpdSample);
+      state.lines = mpdSample.split(/\r?\n/);
+      state.parts = parts;
+      state.snapshots = buildSnapshots(parts);
+      state.currentSnapshotIndex = 1; // start at middle snapshot
+      state.selectedLineIndex = parts.length ? parts[0].lineIndex : null;
+      syncAll();
+    }
+
+    window.addEventListener('resize', () => {
+      const currentSnapshot = state.snapshots[state.currentSnapshotIndex] || { studs: [] };
+      renderStudCanvas(currentSnapshot.studs, state.parts, state.selectedLineIndex);
+    });
+
+    init();
+  </script>
+</body>
+</html>

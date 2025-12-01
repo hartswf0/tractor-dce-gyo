@@ -1,0 +1,1760 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Taxonomy of the Brick</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="taxonomy_data.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f4f1ea;
+            --text-color: #1a1a1a;
+            --grid-color: rgba(0, 0, 0, 0.05);
+            --grid-size: 40px;
+            --accent-red: #d02c2f;
+            --accent-blue: #1e3888;
+            --accent-yellow: #f5a623;
+        }
+
+        body {
+            margin: 0;
+            background-color: var(--bg-color);
+            font-family: 'Inter', sans-serif;
+            color: var(--text-color);
+            overflow: hidden;
+            display: flex;
+            flex-direction: row;
+            height: 100vh;
+        }
+
+        body.layout-bottom {
+            flex-direction: column;
+        }
+
+        body.layout-bottom #sidebar {
+            width: 100%;
+            max-height: 32vh;
+            border-right: none;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        body.layout-bottom #viz-container {
+            flex-grow: 1;
+        }
+
+        body.panel-collapsed #sidebar {
+            transform: translateX(-100%);
+        }
+
+        body.layout-bottom.panel-collapsed #sidebar {
+            transform: translateY(100%);
+        }
+
+        body.layout-floating #sidebar {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 190px;
+            max-height: 40vh;
+            border-radius: 8px;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.25);
+            font-size: 0.8rem;
+        }
+
+        body.layout-floating #sidebar .sidebar-header {
+            padding: 10px 10px 8px 10px;
+        }
+
+        body.layout-floating #sidebar h1 {
+            display: none;
+        }
+
+        body.layout-floating #sidebar .sidebar-header > div:first-of-type {
+            display: none;
+        }
+
+        body.layout-floating #sidebar .controls {
+            display: none;
+        }
+
+        body.layout-floating #sidebar button {
+            padding: 4px 6px;
+            font-size: 0.7rem;
+        }
+
+        body.layout-floating #sidebar input[type="text"] {
+            padding: 6px;
+            font-size: 0.75rem;
+        }
+
+        body.layout-floating #info-panel {
+            padding: 10px;
+        }
+
+        body.layout-floating #viz-container {
+            flex-grow: 1;
+        }
+
+        body.layout-floating.panel-collapsed #sidebar {
+            transform: translateY(-200%);
+        }
+
+        /* Sidebar */
+        #sidebar {
+            width: 320px;
+            background: #fff;
+            border-right: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 5px 0 15px rgba(0, 0, 0, 0.02);
+            z-index: 20;
+            padding: 0;
+            transform: translateX(0);
+            transition: transform 0.25s ease;
+        }
+
+        .sidebar-header {
+            padding: 30px;
+            border-bottom: 1px solid #eee;
+            background: #fafafa;
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            margin: 0 0 10px 0;
+            letter-spacing: -0.5px;
+        }
+
+        h1 span {
+            color: var(--accent-red);
+            font-style: italic;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        button {
+            background: #fff;
+            border: 1px solid #ccc;
+            padding: 8px 12px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.8rem;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            background: var(--accent-blue);
+            color: white;
+            border-color: var(--accent-blue);
+        }
+
+        #info-panel {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 30px;
+        }
+
+        .node-stat {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: #888;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .node-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.6rem;
+            margin-bottom: 15px;
+            color: var(--accent-blue);
+            line-height: 1.2;
+        }
+
+        .part-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .part-item {
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+            font-size: 0.85rem;
+        }
+
+        .part-item--active {
+            background: rgba(245, 166, 35, 0.12);
+        }
+
+        .part-item--match .part-desc {
+            color: var(--accent-blue);
+        }
+
+        #part-hits {
+            margin-top: 4px;
+            font-size: 0.72rem;
+            color: #555;
+        }
+
+        #part-hits-header {
+            white-space: nowrap;
+        }
+
+        #part-hits-list {
+            list-style: none;
+            padding: 0;
+            margin: 2px 0 0 0;
+            max-height: 110px;
+            overflow-y: auto;
+        }
+
+        .part-hit-item {
+            padding: 2px 0;
+            cursor: pointer;
+        }
+
+        .part-hit-desc {
+            display: block;
+            font-weight: 600;
+        }
+
+        .part-hit-node {
+            display: block;
+            font-size: 0.7rem;
+            color: #888;
+        }
+
+        #part-hits-header button {
+            margin-left: 4px;
+            padding: 1px 5px;
+            font-size: 0.7rem;
+        }
+
+        body.layout-floating #part-hits-list {
+            max-height: 72px;
+        }
+
+        .part-id {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--accent-red);
+            font-size: 0.75rem;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .part-desc {
+            font-weight: 600;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .pulse-error {
+            animation: pulse-error 0.45s ease-out;
+        }
+
+        @keyframes pulse-error {
+            0% {
+                background-color: rgba(208, 44, 47, 0.18);
+            }
+            100% {
+                background-color: transparent;
+            }
+        }
+
+        /* Visualization Area */
+        #viz-container {
+            flex-grow: 1;
+            position: relative;
+            overflow: hidden;
+            background-image:
+                linear-gradient(var(--grid-color) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+            background-size: var(--grid-size) var(--grid-size);
+            background-position: -1px -1px;
+        }
+
+        #selection-summary {
+            display: none;
+        }
+
+        body.layout-floating #selection-block {
+            display: none;
+        }
+
+        body.layout-floating #selection-summary {
+            display: block;
+        }
+
+        body.layout-floating #layout-row {
+            display: none;
+        }
+
+        #sidebar-handle {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            padding: 6px 10px;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            background: rgba(255, 255, 255, 0.95);
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 40;
+        }
+
+        #search-status {
+            margin-top: 4px;
+            font-size: 0.72rem;
+            color: #999;
+        }
+
+        body.panel-collapsed #sidebar-handle {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Minimap */
+        #minimap {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 200px;
+            height: 150px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #ddd;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            z-index: 30;
+            overflow: hidden;
+        }
+
+        #tax-toast {
+            position: fixed;
+            left: 50%;
+            bottom: 22px;
+            transform: translateX(-50%) translateY(6px);
+            padding: 8px 14px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-family: 'Inter', sans-serif;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.86);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.18s ease, transform 0.18s ease;
+            z-index: 50;
+        }
+
+        #tax-toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        #tax-toast.error {
+            background: #b3261e;
+        }
+
+        #tax-toast.success {
+            background: #137333;
+        }
+
+        #tax-toast.info {
+            background: #1e3888;
+        }
+
+        /* D3 Styles */
+        .link {
+            fill: none;
+            stroke: #ccc;
+            stroke-width: 2px;
+            shape-rendering: crispEdges;
+        }
+
+        .node {
+            cursor: pointer;
+        }
+
+        /* LEGO-style dots with studs */
+        .node circle {
+            fill: #fff;
+            stroke: #333;
+            stroke-width: 2.5px;
+            transition: all 0.3s;
+        }
+
+        .node .stud {
+            fill: rgba(255, 255, 255, 0.3);
+            stroke: none;
+        }
+
+        .node text {
+            font-family: 'Inter', sans-serif;
+            font-size: 11px;
+            fill: #333;
+            paint-order: stroke;
+            stroke: var(--bg-color);
+            stroke-width: 3px;
+        }
+
+        .node:hover circle {
+            stroke: var(--accent-yellow);
+            stroke-width: 4px;
+            filter: brightness(1.1);
+        }
+
+        .node--internal circle {
+            fill: var(--accent-blue);
+        }
+
+        .node--leaf circle {
+            fill: #888;
+        }
+
+        .node--collapsed circle {
+            fill: var(--accent-red);
+        }
+
+        .node--highlighted circle {
+            stroke: var(--accent-yellow);
+            stroke-width: 5px;
+            filter: drop-shadow(0 0 8px var(--accent-yellow));
+        }
+
+        .node--dimmed {
+            opacity: 0.2;
+        }
+
+        .node--selected circle {
+            stroke: var(--accent-yellow);
+            stroke-width: 4px;
+            fill: var(--accent-yellow) !important;
+        }
+
+        /* Wizard Modal */
+        #wizard-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        #wizard-content {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .wizard-option {
+            padding: 15px;
+            margin: 10px 0;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .wizard-option:hover {
+            border-color: var(--accent-blue);
+            background: #f0f8ff;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="sidebar">
+            <div class="sidebar-header">
+                <h1>Parts <span>Taxonomy</span></h1>
+                <div style="font-size: 0.8rem; color: #666; text-transform: uppercase; letter-spacing: 1px;">System Map v1.0
+                </div>
+                <div class="controls">
+                    <button onclick="expandAll()">Expand All</button>
+                    <button onclick="collapseAll()">Collapse All</button>
+                    <button onclick="resetZoom()">Reset View</button>
+                </div>
+                <div id="layout-row" style="margin-top: 8px; display: flex; gap: 8px; font-size: 0.75rem;">
+                    <button id="layout-mode-button" onclick="toggleLayoutMode()" style="flex: 1;">Dock Bottom</button>
+                    <button id="panel-collapse-button" onclick="togglePanelCollapsed()" style="flex: 1;">Hide Panel</button>
+                </div>
+                <div style="margin-top: 15px;">
+                    <input type="text" id="branch-search" placeholder="Filter branches..."
+                        style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-family: 'Inter', sans-serif; font-size: 0.9rem;"
+                    oninput="filterBranches(this.value)">
+                    <div id="search-status"></div>
+                    <div id="selection-summary" style="margin-top: 8px; font-size: 0.75rem;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                            <span>Sel.</span>
+                            <span id="selection-count-mini">0</span>
+                        </div>
+                        <div style="display:flex; gap:6px;">
+                            <button onclick="exportMPD()" style="flex:1; padding:4px 0;">MPD</button>
+                            <button onclick="exportSelectionJSON()" style="flex:1; padding:4px 0;">JSON</button>
+                        </div>
+                    </div>
+            </div>
+            <div id="selection-block" style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px;">
+                <div
+                    style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: #888; margin-bottom: 10px;">
+                    Selection</div>
+                <button onclick="startWizard()" style="width: 100%; margin-bottom: 8px;">🧙 Find a Part Wizard</button>
+                <button onclick="toggleSelectionMode()" style="width: 100%; margin-bottom: 8px;">Toggle Selection Mode (Mobile)</button>
+                <button onclick="clearSelection()" style="width: 100%; margin-bottom: 8px;">Clear Selection</button>
+                <button onclick="exportMPD()" style="width: 100%; background: var(--accent-red); color: white;">Export
+                    Selected → MPD</button>
+                <button onclick="copyMPDToClipboard()" style="width: 100%; margin-bottom: 8px;">Copy Selected → MPD</button>
+                <button onclick="exportSelectionJSON()" style="width: 100%; margin-bottom: 8px;">Export Selected → JSON</button>
+                <div id="selection-count" style="margin-top: 10px; font-size: 0.85rem; color: #666;">0 parts selected
+                </div>
+                <div id="selection-mode-indicator" style="margin-top: 4px; font-size: 0.75rem; color: #888;">Selection mode: OFF</div>
+                <button onclick="showTaxonomyHelp()" style="width: 100%; margin-top: 8px; font-size: 0.75rem;">Help / Controls</button>
+            </div>
+        </div>
+
+        <div id="info-panel">
+            <div style="color: #888; font-style: italic; margin-top: 20px;">
+                Select a node to inspect the lineage and contents of the LEGO system.
+            </div>
+        </div>
+    </div>
+
+    <div id="viz-container">
+        <button id="sidebar-handle" onclick="togglePanelCollapsed()">☰ Panel</button>
+        <div id="minimap"></div>
+    </div>
+
+    <div id="wizard-modal">
+        <div id="wizard-content">
+            <h2 style="font-family: 'Playfair Display', serif; margin-top: 0;">Find a Part</h2>
+            <div id="wizard-question"></div>
+            <div id="wizard-options"></div>
+            <div style="margin-top: 20px;">
+                <button onclick="closeWizard()" style="padding: 10px 20px;">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="tax-toast"></div>
+
+    <script>
+        const data = window.TAXONOMY_DATA;
+        const container = document.getElementById('viz-container');
+        const width = container.clientWidth;
+        const height = container.clientHeight;
+
+        // Configuration
+        const GRID_SIZE = 40;
+        const NODE_RADIUS_BASE = 4;
+        const DURATION = 600;
+
+        const triggerHaptic = (pattern) => {
+            if (!('vibrate' in navigator)) return;
+            try {
+                if (pattern) {
+                    navigator.vibrate(pattern);
+                } else {
+                    navigator.vibrate(8);
+                }
+            } catch (e) { }
+        };
+
+        window.copyAllPartHits = function () {
+            if (!globalPartHits.length) return;
+            const lines = [];
+            globalPartHits.forEach(hit => {
+                const p = hit.part || {};
+                let path = p.path || p.filename || '';
+                if (path && !/^parts\//.test(path) && !/^models\//.test(path)) {
+                    path = `parts/${path}`;
+                }
+                lines.push(path);
+            });
+            const text = lines.join('\n');
+            if (!text) return;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showToast(`Copied ${globalPartHits.length} part path${globalPartHits.length === 1 ? '' : 's'} from search hits.`, 'success');
+                }).catch(() => {
+                    console.log('Part hits:', text);
+                    showToast('Could not access clipboard. Paths have been logged to console.', 'error');
+                });
+            } else {
+                console.log('Part hits:', text);
+                showToast('Clipboard API not available. Paths have been logged to console.', 'error');
+            }
+        };
+
+        function triggerHapticError() {
+            triggerHaptic([0, 45, 40, 45]);
+        }
+
+        function triggerHapticSuccess() {
+            triggerHaptic(14);
+        }
+
+        let audioCtx = null;
+        function playTone(kind) {
+            const Ctx = window.AudioContext || window.webkitAudioContext;
+            if (!Ctx) return;
+            if (!audioCtx) {
+                try {
+                    audioCtx = new Ctx();
+                } catch (e) {
+                    return;
+                }
+            }
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = kind === 'error' ? 260 : (kind === 'success' ? 520 : 400);
+            gain.gain.setValueAtTime(0.0001, now);
+            gain.gain.exponentialRampToValueAtTime(0.25, now + 0.01);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
+            osc.connect(gain).connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.24);
+        }
+
+        let toastTimer = null;
+        function showToast(message, type) {
+            const toast = document.getElementById('tax-toast');
+            if (!toast) {
+                if (type === 'error') {
+                    alert(message);
+                } else {
+                    console.log(message);
+                }
+                return;
+            }
+            toast.textContent = message;
+            toast.className = '';
+            if (type) toast.classList.add(type);
+            toast.classList.add('show');
+            if (toastTimer) clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2300);
+
+            if (type === 'error') {
+                triggerHapticError();
+                playTone('error');
+            } else if (type === 'success') {
+                triggerHapticSuccess();
+                playTone('success');
+            }
+        }
+
+        function pulseSelectionCount() {
+            const el = document.getElementById('selection-count');
+            if (!el) return;
+            el.classList.remove('pulse-error');
+            void el.offsetWidth;
+            el.classList.add('pulse-error');
+        }
+
+        function showSelectionError(msg) {
+            pulseSelectionCount();
+            showToast(msg, 'error');
+        }
+
+        const bodyEl = document.body;
+        let layoutMode = 'left';
+        let panelCollapsed = false;
+        const sidebarEl = document.getElementById('sidebar');
+        const sidebarHeaderEl = sidebarEl ? sidebarEl.querySelector('.sidebar-header') : null;
+        const sidebarDrag = { active: false, pointerId: null, offsetX: 0, offsetY: 0 };
+        let currentFilterQuery = '';
+        let globalPartHits = [];
+
+        function stopSidebarDrag(event) {
+            if (!sidebarDrag.active) return;
+            sidebarDrag.active = false;
+            if (sidebarHeaderEl && sidebarDrag.pointerId != null) {
+                try {
+                    sidebarHeaderEl.releasePointerCapture(sidebarDrag.pointerId);
+                } catch (e) { }
+            }
+            sidebarDrag.pointerId = null;
+        }
+
+        if (sidebarHeaderEl && sidebarEl && window.PointerEvent) {
+            sidebarHeaderEl.style.cursor = 'move';
+            sidebarHeaderEl.addEventListener('pointerdown', (event) => {
+                if (layoutMode !== 'floating') return;
+                const rect = sidebarEl.getBoundingClientRect();
+                sidebarDrag.active = true;
+                sidebarDrag.pointerId = event.pointerId;
+                sidebarDrag.offsetX = event.clientX - rect.left;
+                sidebarDrag.offsetY = event.clientY - rect.top;
+                try {
+                    sidebarHeaderEl.setPointerCapture(event.pointerId);
+                } catch (e) { }
+            });
+            sidebarHeaderEl.addEventListener('pointerup', stopSidebarDrag);
+            sidebarHeaderEl.addEventListener('pointercancel', stopSidebarDrag);
+
+            document.addEventListener('pointermove', (event) => {
+                if (!sidebarDrag.active || layoutMode !== 'floating' || !sidebarEl) return;
+                const x = event.clientX - sidebarDrag.offsetX;
+                const y = event.clientY - sidebarDrag.offsetY;
+                const minX = 8;
+                const minY = 8;
+                const maxX = window.innerWidth - 120; // keep some margin
+                const maxY = window.innerHeight - 120;
+                const clampedX = Math.max(minX, Math.min(maxX, x));
+                const clampedY = Math.max(minY, Math.min(maxY, y));
+                sidebarEl.style.left = `${clampedX}px`;
+                sidebarEl.style.top = `${clampedY}px`;
+            });
+        }
+
+        // Zoom setup
+        const zoom = d3.zoom()
+            .scaleExtent([0.1, 4])
+            .on("zoom", (event) => {
+                g.attr("transform", event.transform);
+                updateMinimapRect(event.transform);
+            });
+
+        const svg = d3.select("#viz-container").append("svg")
+            .attr("width", "100%")
+            .attr("height", "100%")
+            .call(zoom)
+            .on("dblclick.zoom", null);
+
+        const g = svg.append("g");
+
+        let minimapSvg = null;
+        let minimapG = null;
+        let minimapViewRect = null;
+        let minimapState = null;
+
+        // Tree Layout - using nodeSize instead of size allows scrolling/panning infinite canvas
+        const tree = d3.tree()
+            .nodeSize([GRID_SIZE, GRID_SIZE * 4]) // [height, width] for horizontal
+            .separation((a, b) => (a.parent == b.parent ? 1 : 1.2));
+
+        // Process Data
+        const root = d3.hierarchy(data);
+        root.x0 = height / 2;
+        root.y0 = 0;
+
+        // Calculate total counts for sizing
+        root.sum(d => d.value ? d.value : 0);
+
+        // Node ID counter
+        let i = 0;
+
+        // Selection tracking
+        const selectedNodes = new Set();
+        let selectionMode = false;
+
+        // Initial collapse
+        root.children.forEach(collapse);
+
+        // Expand first level by default
+        if (root._children) {
+            root.children = root._children;
+            root._children = null;
+        }
+
+        update(root);
+
+        // --- Core Update Function ---
+        function update(source) {
+            const treeData = tree(root);
+            const nodes = treeData.descendants();
+            const links = treeData.links();
+
+            // Align nodes to grid
+            nodes.forEach(d => {
+                // y is horizontal position, x is vertical in d3.tree horizontal layout
+                // We want to snap y to grid columns
+                d.y = Math.round(d.depth * (GRID_SIZE * 5));
+            });
+
+            // --- Nodes ---
+            const node = g.selectAll('g.node')
+                .data(nodes, d => d.id || (d.id = ++i));
+
+            const nodeEnter = node.enter().append('g')
+                .attr('class', 'node')
+                .attr("transform", d => `translate(${source.y0},${source.x0})`)
+                .on('click', nodeClickHandler)
+                .on('contextmenu', (event, d) => {
+                    event.preventDefault();
+                    toggleSelection(d);
+                });
+
+            // LEGO-style circle with stud detail
+            nodeEnter.append('circle')
+                .attr('class', 'node-circle')
+                .attr('r', 1e-6)
+                .style("fill", d => getColorByDepth(d.depth));
+
+            // Add stud on top for LEGO feel
+            nodeEnter.append('circle')
+                .attr('class', 'stud')
+                .attr('r', d => Math.max(2, Math.sqrt(d.value || 1) / 4));
+
+            nodeEnter.append('text')
+                .attr("dy", ".35em")
+                .attr("x", d => d.children || d._children ? -15 : 15)
+                .attr("text-anchor", d => d.children || d._children ? "end" : "start")
+                .text(d => d.data.name)
+                .style('fill-opacity', 1e-6);
+
+            const nodeUpdate = nodeEnter.merge(node);
+
+            nodeUpdate.transition().duration(DURATION)
+                .attr("transform", d => `translate(${d.y},${d.x})`);
+
+            // Update selection state
+            nodeUpdate.classed('node--selected', d => selectedNodes.has(d));
+
+            // Size by part count, color by lineage
+            nodeUpdate.select('.node-circle')
+                .attr('r', d => Math.max(6, Math.sqrt(d.value || 1) / 2))
+                .style("fill", d => {
+                    if (selectedNodes.has(d)) return "var(--accent-yellow)";
+                    if (d._children) return "#d02c2f";
+                    return getColorByDepth(d.depth);
+                })
+                .attr('class', d => d._children ? 'node--collapsed' : (d.children ? 'node--internal' : 'node--leaf'));
+
+            nodeUpdate.select('.stud')
+                .attr('r', d => Math.max(2, Math.sqrt(d.value || 1) / 4));
+
+            nodeUpdate.select('text')
+                .style('fill-opacity', 1);
+
+            const nodeExit = node.exit().transition().duration(DURATION)
+                .attr("transform", d => `translate(${source.y},${source.x})`)
+                .remove();
+
+            nodeExit.select('circle').attr('r', 1e-6);
+            nodeExit.select('text').style('fill-opacity', 1e-6);
+
+            // --- Links ---
+            const link = g.selectAll('path.link')
+                .data(links, d => d.target.id);
+
+            const linkEnter = link.enter().insert('path', "g")
+                .attr("class", "link")
+                .attr('d', d => {
+                    const o = { x: source.x0, y: source.y0 };
+                    return elbow(o, o);
+                });
+
+            const linkUpdate = linkEnter.merge(link);
+
+            linkUpdate.transition().duration(DURATION)
+                .attr('d', d => elbow(d.source, d.target));
+
+            link.exit().transition().duration(DURATION)
+                .attr('d', d => {
+                    const o = { x: source.x, y: source.y };
+                    return elbow(o, o);
+                })
+                .remove();
+
+            // Stash old positions
+            nodes.forEach(d => {
+                d.x0 = d.x;
+                d.y0 = d.y;
+            });
+
+            updateMinimap(nodes, links);
+        }
+
+        // Orthogonal Link (Elbow)
+        function elbow(s, d) {
+            return `M ${s.y} ${s.x}
+                    H ${(s.y + d.y) / 2}
+                    V ${d.x}
+                    H ${d.y}`;
+        }
+
+        // --- Interaction ---
+        function nodeClickHandler(event, d) {
+            if (selectionMode || event.shiftKey || event.metaKey || event.altKey) {
+                event.preventDefault();
+                toggleSelection(d);
+                // In selection mode, also show info so mobile users see the branch
+                // context for what they just selected or deselected.
+                showInfo(d);
+                return;
+            }
+            click(event, d);
+        }
+
+        function click(event, d) {
+            showInfo(d);
+            if (d.children) {
+                d._children = d.children;
+                d.children = null;
+            } else {
+                d.children = d._children;
+                d._children = null;
+            }
+            update(d);
+        }
+
+        function collapse(d) {
+            if (d.children) {
+                d._children = d.children;
+                d._children.forEach(collapse);
+                d.children = null;
+            }
+        }
+
+        function expand(d) {
+            if (d._children) {
+                d.children = d._children;
+                d._children = null;
+            }
+            if (d.children) d.children.forEach(expand);
+        }
+
+        // --- Controls ---
+
+        // Progressive expand to avoid crashes
+        function expandAll() {
+            const allNodes = [];
+            root.each(d => allNodes.push(d));
+
+            let index = 0;
+            const batchSize = 50;
+
+            function expandBatch() {
+                const end = Math.min(index + batchSize, allNodes.length);
+                for (let i = index; i < end; i++) {
+                    if (allNodes[i]._children) {
+                        allNodes[i].children = allNodes[i]._children;
+                        allNodes[i]._children = null;
+                    }
+                }
+                index = end;
+                update(root);
+
+                if (index < allNodes.length) {
+                    setTimeout(expandBatch, 300);
+                } else {
+                    setTimeout(resetZoom, DURATION + 100);
+                }
+            }
+
+            expandBatch();
+        }
+
+        function collapseAll() {
+            root.children.forEach(collapse);
+            update(root);
+            setTimeout(resetZoom, DURATION + 100);
+        }
+
+        function resetZoom() {
+            svg.transition().duration(750).call(
+                zoom.transform,
+                d3.zoomIdentity.translate(100, height / 2).scale(1)
+            );
+        }
+
+        // Expose controls to global scope for inline handlers
+        window.expandAll = expandAll;
+        window.collapseAll = collapseAll;
+        window.resetZoom = resetZoom;
+
+        function ensureFloatingPosition() {
+            if (!sidebarEl) return;
+            if (!sidebarEl.style.left) {
+                sidebarEl.style.left = '16px';
+                sidebarEl.style.top = '16px';
+            }
+        }
+
+        window.toggleLayoutMode = function () {
+            if (layoutMode === 'left') {
+                layoutMode = 'bottom';
+            } else if (layoutMode === 'bottom') {
+                layoutMode = 'floating';
+            } else {
+                layoutMode = 'left';
+            }
+            bodyEl.classList.toggle('layout-bottom', layoutMode === 'bottom');
+            bodyEl.classList.toggle('layout-floating', layoutMode === 'floating');
+            if (layoutMode === 'floating') {
+                ensureFloatingPosition();
+            }
+            updateLayoutControls();
+        };
+
+        window.togglePanelCollapsed = function () {
+            panelCollapsed = !panelCollapsed;
+            bodyEl.classList.toggle('panel-collapsed', panelCollapsed);
+            updateLayoutControls();
+        };
+
+        function updateLayoutControls() {
+            const layoutBtn = document.getElementById('layout-mode-button');
+            const collapseBtn = document.getElementById('panel-collapse-button');
+            if (layoutBtn) {
+                if (layoutMode === 'left') layoutBtn.textContent = 'Dock Bottom';
+                else if (layoutMode === 'bottom') layoutBtn.textContent = 'Float Panel';
+                else layoutBtn.textContent = 'Dock Left';
+            }
+            if (collapseBtn) collapseBtn.textContent = panelCollapsed ? 'Show Panel' : 'Hide Panel';
+        }
+
+        if (window.innerWidth < 800) {
+            layoutMode = 'bottom';
+            bodyEl.classList.add('layout-bottom');
+        } else {
+            layoutMode = 'left';
+        }
+        bodyEl.classList.toggle('layout-floating', layoutMode === 'floating');
+        updateLayoutControls();
+
+        window.showTaxonomyHelp = function () {
+            const msg = [
+                'TAXONOMY CONTROLS',
+                '',
+                '• Tap / click a node: expand or collapse, and show details.',
+                '• Toggle Node: select or deselect this node only.',
+                '• Select / Deselect Entire Branch: operate on the whole subtree.',
+                '• Selection Mode (Mobile): when ON, tapping nodes toggles selection instead of expanding.',
+                '• Export Selected → MPD / JSON: build a catalog MPD or taxonomy-batch JSON from the current playlist.',
+                '',
+                'LAYOUT',
+                '• Dock Bottom / Dock Left: move the control panel to bottom-half or left side.',
+                '• Hide Panel / Show Panel: collapse the panel; use the ☰ Panel button on the grid to reopen.'
+            ].join('\n');
+            alert(msg);
+        };
+
+        // --- Info Panel ---
+        function showInfo(d) {
+            const panel = document.getElementById('info-panel');
+            const count = d.value || 0;
+            const isSelected = selectedNodes.has(d);
+            const filterQ = (currentFilterQuery || '').toLowerCase();
+
+            let html = `
+                <span class="node-stat">DEPTH: ${d.depth} | CHILDREN: ${d.children ? d.children.length : (d._children ? d._children.length : 0)}</span>
+                <div class="node-title">${d.data.name}</div>
+                <div style="margin-bottom: 4px; font-weight: bold;">Total Parts: ${count}</div>
+                <div style="margin-bottom: 12px; font-size: 0.8rem; color: #666;">Selection: ${isSelected ? 'Node selected' : 'Node not selected'}</div>
+            `;
+
+            html += `<div style="margin-bottom: 16px; display:flex; flex-wrap:wrap; gap:6px;">
+                <button onclick="toggleNodeSelectionById(${d.id})" style="padding:6px 10px; font-size:0.75rem;">Toggle Node</button>
+                <button onclick="selectBranchById(${d.id})" style="padding:6px 10px; font-size:0.75rem;">Select Entire Branch</button>
+                <button onclick="deselectBranchById(${d.id})" style="padding:6px 10px; font-size:0.75rem;">Deselect Branch</button>
+            </div>`;
+
+            if (d.data._parts && d.data._parts.length > 0) {
+                html += `<h3>Parts (${d.data._parts.length})</h3><ul class="part-list">`;
+                d.data._parts.slice(0, 50).forEach(p => {
+                    const desc = (p && (p.description || p.name || p.filename || p.path || '')) || '';
+                    const id = (p && (p.filename || p.name || '')) || '';
+                    let path = (p && (p.path || p.filename || '')) || '';
+                    if (path && !/^parts\//.test(path) && !/^models\//.test(path)) {
+                        path = `parts/${path}`;
+                    }
+                    const safePath = path.replace(/'/g, "\\'");
+                    const isMatch = filterQ && (desc.toLowerCase().includes(filterQ) || id.toLowerCase().includes(filterQ));
+                    const matchClass = isMatch ? ' part-item--match' : '';
+                    html += `<li class="part-item${matchClass}" onclick="copyPartPath('${safePath}', this)">
+                        <span class="part-desc">${desc}</span>
+                        <span class="part-id">${id}</span>
+                    </li>`;
+                });
+                if (d.data._parts.length > 50) {
+                    html += `<li class="part-item" style="color:#888;">...and ${d.data._parts.length - 50} more</li>`;
+                }
+                html += `</ul>`;
+            } else {
+                html += `<p>Click node to toggle children.</p>`;
+            }
+            panel.innerHTML = html;
+        }
+
+        // --- Minimap (Basic Implementation) ---
+        function ensureMinimap() {
+            if (!minimapSvg) {
+                minimapSvg = d3.select("#minimap").append("svg")
+                    .attr("width", "100%")
+                    .attr("height", "100%");
+                minimapG = minimapSvg.append("g");
+            }
+            if (!minimapViewRect && minimapSvg) {
+                minimapViewRect = minimapSvg.append("rect")
+                    .attr("fill", "none")
+                    .attr("stroke", "#d02c2f")
+                    .attr("stroke-width", 1.5)
+                    .attr("pointer-events", "none");
+            }
+        }
+
+        function updateMinimap(nodes, links) {
+            // Simplified rendering for minimap
+            // We just render dots
+
+            ensureMinimap();
+
+            // Calculate bounds
+            const xExtent = d3.extent(nodes, d => d.y);
+            const yExtent = d3.extent(nodes, d => d.x);
+
+            const mmWidth = document.getElementById('minimap').clientWidth;
+            const mmHeight = document.getElementById('minimap').clientHeight;
+
+            const xRange = xExtent[1] - xExtent[0] || 1;
+            const yRange = yExtent[1] - yExtent[0] || 1;
+
+            const margin = 6;
+            const scale = Math.min((mmWidth - margin * 2) / xRange, (mmHeight - margin * 2) / yRange) || 1;
+            const x0 = xExtent[0];
+            const y0 = yExtent[0];
+
+            minimapState = {
+                scale,
+                x0,
+                y0,
+                margin,
+                mmWidth,
+                mmHeight
+            };
+
+            const mmNodes = minimapG.selectAll("circle").data(nodes, d => d.id);
+
+            mmNodes.enter().append("circle")
+                .attr("r", 1.5)
+                .attr("fill", "#666")
+                .merge(mmNodes)
+                .attr("cx", d => (d.y - x0) * scale + margin)
+                .attr("cy", d => (d.x - y0) * scale + margin);
+
+            mmNodes.exit().remove();
+        }
+
+        function updateMinimapRect(transform) {
+            if (!minimapSvg || !minimapViewRect || !minimapState) return;
+            const k = transform.k || 1;
+            const tx = transform.x || 0;
+            const ty = transform.y || 0;
+
+            const worldX0 = -tx / k;
+            const worldY0 = -ty / k;
+            const worldX1 = (width - tx) / k;
+            const worldY1 = (height - ty) / k;
+
+            const { scale, x0, y0, margin } = minimapState;
+
+            const vx0 = (worldY0 - x0) * scale + margin;
+            const vy0 = (worldX0 - y0) * scale + margin;
+            const vx1 = (worldY1 - x0) * scale + margin;
+            const vy1 = (worldX1 - y0) * scale + margin;
+
+            const rectX = Math.min(vx0, vx1);
+            const rectY = Math.min(vy0, vy1);
+            const rectW = Math.abs(vx1 - vx0);
+            const rectH = Math.abs(vy1 - vy0);
+
+            if (rectW <= 0 || rectH <= 0) {
+                minimapViewRect.attr("display", "none");
+                return;
+            }
+
+            minimapViewRect
+                .attr("display", null)
+                .attr("x", rectX)
+                .attr("y", rectY)
+                .attr("width", rectW)
+                .attr("height", rectH);
+        }
+
+        // Color nodes by depth for lineage visualization
+        function getColorByDepth(depth) {
+            const colors = [
+                '#1e3888', // Deep blue (Kingdom)
+                '#47a8bd', // Cyan (Phylum)
+                '#58b368', // Green (Class)
+                '#f5a623', // Yellow (Order)
+                '#e87722', // Orange (Family)
+                '#d02c2f', // Red (Species)
+                '#888888'  // Gray (Leaf)
+            ];
+            return colors[Math.min(depth, colors.length - 1)];
+        }
+
+        function centerOnNode(d) {
+            if (!d) return;
+            const k = 1;
+            const tx = 100 - d.y * k;
+            const ty = height / 2 - d.x * k;
+            svg.transition().duration(600).call(
+                zoom.transform,
+                d3.zoomIdentity.translate(tx, ty).scale(k)
+            );
+        }
+
+        // Branch filtering
+        window.filterBranches = function (query) {
+            currentFilterQuery = query || '';
+            globalPartHits = [];
+
+            if (!query || query.trim() === '') {
+                // Clear filter
+                d3.selectAll('.node')
+                    .classed('node--highlighted', false)
+                    .classed('node--dimmed', false);
+                const status = document.getElementById('search-status');
+                if (status) status.textContent = '';
+                return;
+            }
+
+            const lcQuery = query.toLowerCase();
+            const matches = [];
+            let partHitCount = 0;
+
+            const stack = [root];
+            while (stack.length) {
+                const d = stack.pop();
+
+                const name = (d.data && d.data.name ? d.data.name : '').toLowerCase();
+                let partMatch = false;
+                if (d.data && Array.isArray(d.data._parts) && d.data._parts.length) {
+                    for (let i = 0; i < d.data._parts.length; i++) {
+                        const p = d.data._parts[i] || {};
+                        const desc = (p.description || p.name || p.filename || p.path || '').toLowerCase();
+                        const id = (p.filename || p.name || '').toLowerCase();
+                        if ((desc && desc.includes(lcQuery)) || (id && id.includes(lcQuery))) {
+                            partMatch = true;
+                            partHitCount++;
+                            globalPartHits.push({
+                                node: d,
+                                part: p
+                            });
+                            break;
+                        }
+                    }
+                }
+
+                if (name.includes(lcQuery) || partMatch) {
+                    matches.push(d);
+                    // Expand path to this node so it becomes visible
+                    let ancestor = d.parent;
+                    while (ancestor) {
+                        if (ancestor._children) {
+                            ancestor.children = ancestor._children;
+                            ancestor._children = null;
+                        }
+                        ancestor = ancestor.parent;
+                    }
+                }
+
+                const kids = [];
+                if (d.children) kids.push.apply(kids, d.children);
+                if (d._children) kids.push.apply(kids, d._children);
+                if (kids.length) {
+                    for (let i = 0; i < kids.length; i++) stack.push(kids[i]);
+                }
+            }
+
+            update(root);
+
+            // Highlight matches and dim others
+            d3.selectAll('.node')
+                .classed('node--highlighted', d => matches.includes(d))
+                .classed('node--dimmed', d => !matches.includes(d));
+
+            const status = document.getElementById('search-status');
+            const hitsHeader = document.getElementById('part-hits-header');
+            const hitsList = document.getElementById('part-hits-list');
+
+            if (hitsList) hitsList.innerHTML = '';
+
+            if (status) {
+                if (!matches.length && !partHitCount) {
+                    status.textContent = 'No matches';
+                } else {
+                    const branchLabel = `${matches.length} branch${matches.length === 1 ? '' : 'es'}`;
+                    const partLabel = partHitCount ? `, ${partHitCount} part hit${partHitCount === 1 ? '' : 's'}` : '';
+                    status.textContent = `Matches: ${branchLabel}${partLabel}`;
+                }
+            }
+
+            if (hitsHeader) {
+                if (!partHitCount) {
+                    hitsHeader.textContent = '';
+                } else {
+                    const btnLabel = partHitCount > 0 ? 'Copy all' : '';
+                    hitsHeader.innerHTML = `Parts (${partHitCount})${btnLabel ? ' <button type="button" onclick="copyAllPartHits()">Copy all</button>' : ''}`;
+                }
+            }
+
+            if (hitsList && partHitCount) {
+                const maxHits = 12;
+                globalPartHits.slice(0, maxHits).forEach(hit => {
+                    const li = document.createElement('li');
+                    li.className = 'part-hit-item';
+                    const desc = hit.part.description || hit.part.name || hit.part.filename || hit.part.path || '';
+                    const nodeName = hit.node.data && hit.node.data.name ? hit.node.data.name : '';
+                    li.innerHTML = `<span class="part-hit-desc">${desc}</span><span class="part-hit-node">${nodeName}</span>`;
+                    li.onclick = function () {
+                        centerOnNode(hit.node);
+                        showInfo(hit.node);
+                    };
+                    hitsList.appendChild(li);
+                });
+                if (partHitCount > maxHits) {
+                    const more = document.createElement('li');
+                    more.className = 'part-hit-item';
+                    more.style.color = '#888';
+                    more.textContent = `...and ${partHitCount - maxHits} more`;
+                    hitsList.appendChild(more);
+                }
+            }
+
+            if (matches.length) {
+                centerOnNode(matches[0]);
+                showInfo(matches[0]);
+            }
+        };
+
+        // --- Selection System ---
+        function toggleSelection(d) {
+            if (selectedNodes.has(d)) {
+                selectedNodes.delete(d);
+            } else {
+                selectedNodes.add(d);
+            }
+            triggerHaptic();
+            update(root);
+            updateSelectionCount();
+        }
+
+        function updateSelectionCount() {
+            let partCount = 0;
+            selectedNodes.forEach(node => {
+                if (node.data._parts) {
+                    partCount += node.data._parts.length;
+                }
+            });
+            const main = document.getElementById('selection-count');
+            if (main) main.textContent = `${partCount} parts selected`;
+            const mini = document.getElementById('selection-count-mini');
+            if (mini) mini.textContent = `${partCount}`;
+        }
+
+        window.clearSelection = function () {
+            selectedNodes.clear();
+            update(root);
+            updateSelectionCount();
+        };
+
+        function applyToBranchById(nodeId, fn) {
+            let target = null;
+            root.each(d => {
+                if (d.id === nodeId) target = d;
+            });
+            if (!target) return;
+
+            function visit(n) {
+                fn(n);
+                if (n.children) n.children.forEach(visit);
+                if (n._children) n._children.forEach(visit);
+            }
+            visit(target);
+        }
+
+        window.selectBranchById = function (nodeId) {
+            applyToBranchById(nodeId, n => selectedNodes.add(n));
+            triggerHaptic();
+            update(root);
+            updateSelectionCount();
+        };
+
+        window.deselectBranchById = function (nodeId) {
+            applyToBranchById(nodeId, n => selectedNodes.delete(n));
+            triggerHaptic();
+            update(root);
+            updateSelectionCount();
+        };
+
+        window.toggleNodeSelectionById = function (nodeId) {
+            let target = null;
+            root.each(d => {
+                if (d.id === nodeId) target = d;
+            });
+            if (!target) return;
+            if (selectedNodes.has(target)) {
+                selectedNodes.delete(target);
+            } else {
+                selectedNodes.add(target);
+            }
+            triggerHaptic();
+            update(root);
+            updateSelectionCount();
+        };
+
+        window.toggleSelectionMode = function () {
+            selectionMode = !selectionMode;
+            const indicator = document.getElementById('selection-mode-indicator');
+            if (indicator) {
+                indicator.textContent = selectionMode ? 'Selection mode: ON' : 'Selection mode: OFF';
+            }
+        };
+
+        window.copyPartPath = function (path, liEl) {
+            if (!path) return;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(path).catch(() => {
+                    console.log('Part path:', path);
+                });
+            } else {
+                console.log('Part path:', path);
+            }
+            triggerHaptic();
+            if (liEl && liEl.parentElement) {
+                const list = liEl.parentElement;
+                list.querySelectorAll('.part-item--active').forEach(el => el.classList.remove('part-item--active'));
+                liEl.classList.add('part-item--active');
+                setTimeout(() => {
+                    liEl.classList.remove('part-item--active');
+                }, 180);
+            }
+        };
+
+        function collectSelectedPartsForMPD() {
+            const allParts = [];
+            const seen = new Set();
+
+            function collectBranchParts(node) {
+                if (node.data._parts && Array.isArray(node.data._parts)) {
+                    node.data._parts.forEach(part => {
+                        if (!part || (!part.path && !part.filename)) return;
+                        const key = `${part.path || ''}|${part.filename || ''}`;
+                        if (seen.has(key)) return;
+                        seen.add(key);
+                        allParts.push(part);
+                    });
+                }
+                if (node.children) {
+                    node.children.forEach(child => collectBranchParts(child));
+                }
+                if (node._children) {
+                    node._children.forEach(child => collectBranchParts(child));
+                }
+            }
+
+            selectedNodes.forEach(node => collectBranchParts(node));
+            return allParts;
+        }
+
+        function buildCatalogMPD(allParts) {
+            const total = allParts.length;
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '').slice(0, 15);
+            const fileId = `taxonomy_catalog_${timestamp}`;
+
+            const lines = [];
+            lines.push(`0 FILE ${fileId}.mpd`);
+            lines.push('0 Name: Taxonomy Selection Catalog');
+            lines.push('0 Author: Taxonomy Visualizer');
+            lines.push('0 !LDRAW_ORG Model');
+            lines.push('0 !LICENCE Redistributable under CCAL version 2.0');
+            lines.push('0 BFC CERTIFY CCW');
+            lines.push('0 //');
+            lines.push('0 // ╔════════════════════════════════════════════════════════════╗');
+            lines.push(`0 // ║  PARTS CATALOG: TAXONOMY SELECTION${' '.repeat(38)}║`);
+            lines.push(`0 // ║  Showing ${total} part${total === 1 ? '' : 's'} in 6-column grid${' '.repeat(29 - String(total).length)}║`);
+            lines.push('0 // ║  Spacing: 200 LDU | Above grid: 50 LDU                     ║');
+            lines.push('0 // ╚════════════════════════════════════════════════════════════╝');
+            lines.push('0 //');
+            lines.push('');
+            lines.push('0 STEP');
+            lines.push('');
+
+            const columns = 6;
+            const spacing = 200;
+            const y = -50;
+
+            const colorCycle = [1, 2, 3, 4, 5, 6, 14, 15, 16, 7, 9, 10, 11, 12, 13];
+
+            allParts.forEach((part, idx) => {
+                const n = idx + 1;
+                const col = idx % columns;
+                const row = Math.floor(idx / columns);
+                const x = (col - (columns - 1) / 2) * spacing;
+                const z = row * spacing;
+                const desc = part.description || part.name || part.filename || part.path || '';
+                let path = part.path || part.filename || '';
+                if (path && !/^parts\//.test(path) && !/^models\//.test(path)) {
+                    path = `parts/${path}`;
+                }
+                const filename = part.filename || part.name || path || '';
+                const labelNum = String(n).padStart(2, ' ');
+                const color = colorCycle[idx % colorCycle.length];
+
+                lines.push('0 // ═══════════════════════════════════════════════════════════');
+                lines.push(`0 // PART ${labelNum}: ${filename}`);
+                lines.push(`0 // File: ${path || '(unknown path)'}`);
+                lines.push(`0 // Position: (${x}, ${y}, ${z})`);
+                lines.push(`0 // Desc: ${desc}`);
+                lines.push('0 // ═══════════════════════════════════════════════════════════');
+                lines.push(`1 ${color} ${x} ${y} ${z} 1 0 0 0 1 0 0 0 1 ${path}`);
+                lines.push('');
+            });
+
+            lines.push('0 STEP');
+            lines.push('0 NOFILE');
+            lines.push('');
+
+            return { mpdText: lines.join('\n'), fileId };
+        }
+
+        // --- MPD Export ---
+        window.exportMPD = function () {
+            if (selectedNodes.size === 0) {
+                showSelectionError('No branches selected. Use Toggle Node or Selection Mode to build a playlist.');
+                return;
+            }
+
+            const allParts = collectSelectedPartsForMPD();
+            if (!allParts.length) {
+                showSelectionError('Selected branches contain no parts. Try expanding deeper into families.');
+                return;
+            }
+
+            const { mpdText, fileId } = buildCatalogMPD(allParts);
+
+            const blob = new Blob([mpdText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${fileId}.mpd`;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            showToast(`Downloaded catalog MPD with ${allParts.length} part${allParts.length === 1 ? '' : 's'}.`, 'success');
+        };
+
+        window.copyMPDToClipboard = function () {
+            if (selectedNodes.size === 0) {
+                showSelectionError('No branches selected. Use Toggle Node or Selection Mode to build a playlist.');
+                return;
+            }
+
+            const allParts = collectSelectedPartsForMPD();
+            if (!allParts.length) {
+                showSelectionError('Selected branches contain no parts. Try expanding deeper into families.');
+                return;
+            }
+
+            const { mpdText } = buildCatalogMPD(allParts);
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(mpdText).then(() => {
+                    showToast('MPD catalog copied to clipboard.', 'success');
+                }).catch(() => {
+                    console.log('MPD catalog:', mpdText);
+                    showSelectionError('Could not access clipboard. MPD has been logged to the console.');
+                });
+            } else {
+                console.log('MPD catalog:', mpdText);
+                showSelectionError('Clipboard API not available. MPD has been logged to the console.');
+            }
+        };
+
+        window.exportSelectionJSON = function () {
+            if (selectedNodes.size === 0) {
+                showSelectionError('No branches selected. Use Toggle Node or Selection Mode to build a playlist.');
+                return;
+            }
+
+            function getTaxonomyPath(node) {
+                const path = [];
+                let current = node;
+                while (current) {
+                    if (current.data && current.data.name) {
+                        path.unshift(current.data.name);
+                    }
+                    current = current.parent;
+                }
+                return path;
+            }
+
+            function collectBranchParts(node, pushPart) {
+                if (node.data && node.data._parts && Array.isArray(node.data._parts)) {
+                    node.data._parts.forEach(part => {
+                        if (!part) return;
+                        pushPart(part, node);
+                    });
+                }
+                if (node.children) {
+                    node.children.forEach(child => collectBranchParts(child, pushPart));
+                }
+                if (node._children) {
+                    node._children.forEach(child => collectBranchParts(child, pushPart));
+                }
+            }
+
+            const nodesPayload = [];
+
+            selectedNodes.forEach(node => {
+                const parts = [];
+                const seenLocal = new Set();
+
+                collectBranchParts(node, (part, ownerNode) => {
+                    const ownerName = ownerNode.data && ownerNode.data.name ? ownerNode.data.name : '';
+                    const key = `${part.path || ''}|${part.filename || ''}|${ownerName}`;
+                    if (seenLocal.has(key)) return;
+                    seenLocal.add(key);
+
+                    const partCopy = Object.assign({}, part);
+                    partCopy.taxonomyPath = getTaxonomyPath(ownerNode);
+                    partCopy.taxonomyDepth = ownerNode.depth;
+
+                    parts.push(partCopy);
+                });
+
+                nodesPayload.push({
+                    id: node.id,
+                    name: node.data && node.data.name ? node.data.name : '',
+                    depth: node.depth,
+                    path: getTaxonomyPath(node),
+                    totalParts: parts.length,
+                    parts: parts
+                });
+            });
+
+            if (!nodesPayload.length) {
+                showSelectionError('Selected branches contain no parts. Try expanding deeper into families.');
+                return;
+            }
+
+            const now = new Date();
+            const timestamp = now.toISOString().replace(/[:.]/g, '').slice(0, 15);
+            const payload = {
+                exportType: 'taxonomy-batch',
+                generatedAt: now.toISOString(),
+                rootName: root.data && root.data.name ? root.data.name : 'root',
+                selectionCount: selectedNodes.size,
+                nodes: nodesPayload
+            };
+
+            const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `taxonomy_export_${timestamp}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast(`Exported ${nodesPayload.length} node${nodesPayload.length === 1 ? '' : 's'} as taxonomy-batch JSON.`, 'success');
+        };
+
+        // --- Find a Part Wizard ---
+        let wizardPath = [];
+        let wizardNode = null;
+
+        window.startWizard = function () {
+            wizardPath = [];
+            wizardNode = root;
+            showWizardStep();
+            document.getElementById('wizard-modal').style.display = 'flex';
+        };
+
+        window.closeWizard = function () {
+            document.getElementById('wizard-modal').style.display = 'none';
+        };
+
+        function showWizardStep() {
+            const questionDiv = document.getElementById('wizard-question');
+            const optionsDiv = document.getElementById('wizard-options');
+
+            // Build breadcrumb
+            const breadcrumb = wizardPath.length > 0 ? wizardPath.map(n => n.data.name).join(' → ') : 'Start';
+            questionDiv.innerHTML = `<div style="color: #888; font-size: 0.9rem; margin-bottom: 10px;">${breadcrumb}</div><h3>Which category?</h3>`;
+
+            optionsDiv.innerHTML = '';
+
+            if (wizardNode.children || wizardNode._children) {
+                const children = wizardNode.children || wizardNode._children;
+                children.forEach(child => {
+                    const option = document.createElement('div');
+                    option.className = 'wizard-option';
+                    option.innerHTML = `<strong>${child.data.name}</strong><br><span style="color: #666; font-size: 0.85rem;">${child.value || 0} parts</span>`;
+                    option.onclick = () => selectWizardOption(child);
+                    optionsDiv.appendChild(option);
+                });
+            } else if (wizardNode.data._parts) {
+                // Reached leaf - show parts
+                questionDiv.innerHTML = `<h3>Found ${wizardNode.data._parts.length} parts!</h3>`;
+                wizardNode.data._parts.forEach(part => {
+                    const option = document.createElement('div');
+                    option.className = 'wizard-option';
+                    option.innerHTML = `<strong>${part.filename}</strong><br><span style="font-size: 0.85rem;">${part.description}</span>`;
+                    option.onclick = () => {
+                        navigator.clipboard.writeText(part.path);
+                        alert(`Copied: ${part.path}`);
+                    };
+                    optionsDiv.appendChild(option);
+                });
+            }
+
+            // Back button
+            if (wizardPath.length > 0) {
+                const back = document.createElement('button');
+                back.textContent = '← Back';
+                back.style.marginTop = '10px';
+                back.onclick = () => {
+                    wizardPath.pop();
+                    wizardNode = wizardPath.length > 0 ? wizardPath[wizardPath.length - 1] : root;
+                    showWizardStep();
+                };
+                optionsDiv.appendChild(back);
+            }
+        }
+
+        function selectWizardOption(child) {
+            wizardPath.push(wizardNode);
+            wizardNode = child;
+            // Expand in main tree
+            if (wizardNode._children) {
+                wizardNode.children = wizardNode._children;
+                wizardNode._children = null;
+            }
+            update(root);
+            showWizardStep();
+        }
+
+    </script>
+</body>
+
+</html>

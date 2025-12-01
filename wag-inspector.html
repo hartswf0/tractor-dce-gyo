@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>THE INSPECTOR</title>
+    <style>
+        :root {
+            /* PROFESSIONAL TERMINAL THEME */
+            --bg: #0a0a0a;
+            --panel: #111111;
+            --border: #333333;
+            --border-active: #555555;
+            --text: #e5e5e5;
+            --text-muted: #888888;
+            
+            /* SEMANTIC SYNTAX COLORS */
+            --func: #4ade80;  /* Green */
+            --var: #22d3ee;   /* Cyan */
+            --ctrl: #facc15;  /* Yellow */
+            --tag: #f472b6;   /* Pink */
+            --str: #a78bfa;   /* Purple */
+            --com: #52525b;   /* Gray */
+
+            --accent: #4ade80;
+            --font: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            margin: 0;
+            height: 100vh; /* Fallback */
+            height: 100dvh; /* Dynamic Viewport Height for Mobile */
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* --- HEADER --- */
+        header {
+            height: 50px;
+            flex: 0 0 auto;
+            background: var(--panel);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 15px;
+            font-size: 12px;
+            z-index: 100;
+        }
+
+        .brand {
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand .indicator {
+            width: 8px;
+            height: 8px;
+            background: var(--func);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--func);
+        }
+
+        .controls { display: flex; gap: 8px; }
+
+        button.btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 6px 10px;
+            font-family: var(--font);
+            font-size: 11px;
+            cursor: pointer;
+            border-radius: 3px;
+            transition: background 0.2s;
+            text-transform: uppercase;
+        }
+
+        button.btn:hover { background: #222; border-color: var(--text-muted); }
+        button.btn:active { background: #333; }
+        button.btn.primary { border-color: var(--func); color: var(--func); }
+        button.btn.primary:hover { background: rgba(74, 222, 128, 0.1); }
+
+        /* --- MAIN LAYOUT --- */
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: row; /* Default: Side-by-side on Desktop */
+            min-height: 0;
+            position: relative;
+        }
+
+        /* --- VISUALIZER (GRID) --- */
+        .viz-panel {
+            flex: 0 0 40%; /* Desktop: 40% width */
+            max-width: 600px;
+            background: #050505;
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .grid-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+            padding: 20px;
+        }
+
+        .grid-container {
+            width: 100%;
+            max-width: 400px;
+            aspect-ratio: 1/1;
+            position: relative;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            grid-template-rows: repeat(9, 1fr);
+            gap: 1px;
+            width: 100%;
+            height: 100%;
+        }
+
+        .block {
+            background: var(--panel);
+            border: 1px solid #222;
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.1s;
+        }
+
+        .block:hover {
+            border-color: var(--text);
+            z-index: 10;
+            background: #222;
+        }
+
+        .block.active {
+            background: #333;
+            border-color: #fff;
+            z-index: 20;
+        }
+
+        /* Technical Type Indicators */
+        .block[data-type="function"] { border-top: 2px solid var(--func); }
+        .block[data-type="variable"] { border-top: 2px solid var(--var); }
+        .block[data-type="control"] { border-top: 2px solid var(--ctrl); }
+        .block[data-type="tag"] { border-top: 2px solid var(--tag); }
+
+        .block-type {
+            font-size: 7px;
+            font-weight: bold;
+            margin-bottom: 2px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .block-label {
+            font-size: 8px;
+            color: #fff;
+            max-width: 95%;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        /* Wires */
+        .wire-layer {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        path.wire {
+            fill: none;
+            stroke: var(--text-muted);
+            stroke-width: 1;
+            opacity: 0.15;
+        }
+
+        path.wire.active {
+            stroke: var(--accent);
+            stroke-width: 1.5;
+            opacity: 0.8;
+        }
+
+        /* --- CODE EDITOR --- */
+        .editor-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg);
+            min-width: 0; /* Prevent flex blowout */
+        }
+
+        .panel-header {
+            padding: 5px 10px;
+            background: #000;
+            border-bottom: 1px solid var(--border);
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .code-scroller {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: auto;
+            padding: 10px 0;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .line {
+            display: flex;
+            font-size: 12px; /* More readable font size */
+            line-height: 1.5; /* Better line height */
+            padding: 0 5px;
+            cursor: pointer;
+            white-space: pre;
+            color: #bbb;
+        }
+
+        .line:hover { background: #1a1a1a; }
+        .line.active { background: #1f2937; color: #fff; }
+
+        .ln {
+            width: 35px;
+            text-align: right;
+            margin-right: 15px;
+            color: #444;
+            user-select: none;
+            flex-shrink: 0;
+        }
+
+        /* Syntax Highlighting */
+        .kwd { color: var(--func); }
+        .def { color: #fff; font-weight: bold; border-bottom: 1px dotted #555; }
+        .var { color: var(--var); }
+        .ctl { color: var(--ctrl); }
+        .tag { color: var(--tag); }
+        .str { color: var(--str); }
+        .com { color: var(--com); font-style: italic; }
+
+        /* --- RESPONSIVE / MOBILE --- */
+        @media (max-width: 768px) {
+            main {
+                flex-direction: column;
+            }
+
+            .viz-panel {
+                flex: 0 0 auto;
+                width: 100%;
+                height: 40vh; /* Fixed height on mobile top */
+                max-width: none;
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .grid-container {
+                height: 90%; /* Fit within the 40vh */
+                width: auto;
+                aspect-ratio: 1/1;
+            }
+
+            .editor-panel {
+                flex: 1; /* Takes remaining 60vh */
+            }
+            
+            header .brand span {
+                display: none; /* Hide text logo if too narrow, keep dot */
+            }
+            
+            .brand::after {
+                content: "INSPECTOR";
+            }
+        }
+
+        /* --- MODAL --- */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            padding: 20px;
+        }
+
+        .modal-overlay.open { opacity: 1; pointer-events: all; }
+
+        .modal {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            width: 100%;
+            max-width: 500px;
+            padding: 20px;
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .modal h2 {
+            margin: 0;
+            font-size: 14px;
+            color: var(--text);
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+        }
+
+        textarea.code-paste {
+            background: #000;
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-family: var(--font);
+            font-size: 12px; /* 16px prevents zoom on iOS, but 12px fits theme. Use media query */
+            height: 150px;
+            padding: 10px;
+            resize: none;
+        }
+
+        @media (max-width: 768px) {
+            textarea.code-paste { font-size: 16px; } /* Prevent iOS Zoom */
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        input[type="text"] {
+            background: #000; 
+            border: 1px solid var(--border); 
+            color: #fff; 
+            padding: 8px;
+            width: 100%;
+            font-family: var(--font);
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand">
+            <div class="indicator"></div>
+            <span>THE INSPECTOR</span>
+        </div>
+        <div class="controls">
+            <button class="btn" onclick="toggleModal()">Source</button>
+            <button class="btn primary" onclick="resetView()">Reset</button>
+        </div>
+    </header>
+
+    <main>
+        <!-- TOP/LEFT: VISUALIZER -->
+        <div class="viz-panel">
+            <div class="panel-header">Memory Grid (9x9)</div>
+            <div class="grid-wrapper">
+                <div class="grid-container">
+                    <div class="grid" id="grid"></div>
+                    <svg class="wire-layer" id="wires"></svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- BOTTOM/RIGHT: EDITOR -->
+        <div class="editor-panel">
+            <div class="panel-header">Source Code Explorer</div>
+            <div class="code-scroller" id="scroller">
+                <div id="code-content"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- INGEST MODAL -->
+    <div class="modal-overlay" id="modal">
+        <div class="modal">
+            <h2>Load Data</h2>
+
+            <div style="display:flex; flex-direction:column; gap:5px;">
+                <label style="font-size:10px; color:#888; font-weight:bold;">PASTE CODE</label>
+                <textarea class="code-paste" id="paste-area" placeholder="// Paste HTML/JS/CSS..."></textarea>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:5px;">
+                <label style="font-size:10px; color:#888; font-weight:bold;">REMOTE URL (CORS)</label>
+                <input type="text" id="url-input" placeholder="https://...">
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn" onclick="toggleModal()">Cancel</button>
+                <button class="btn primary" onclick="ingest()">Analyze</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* 
+           THE INSPECTOR ENGINE
+           No external dependencies.
+        */
+
+        const DEFAULT_CODE = document.documentElement.outerHTML;
+        let lines = DEFAULT_CODE.split('\n');
+
+        // State
+        let lineData = [];
+        let mapData = new Array(81).fill(null);
+        let definitions = {};
+        let connections = [];
+
+        // DOM Elements
+        const gridEl = document.getElementById('grid');
+        const wiresEl = document.getElementById('wires');
+        const codeEl = document.getElementById('code-content');
+        const scroller = document.getElementById('scroller');
+        const modal = document.getElementById('modal');
+
+        // --- CORE FUNCTIONS ---
+
+        function toggleModal() {
+            modal.classList.toggle('open');
+        }
+
+        function ingest() {
+            const paste = document.getElementById('paste-area').value;
+            const urlInput = document.getElementById('url-input').value;
+
+            if (paste.trim().length > 0) {
+                loadSource(paste);
+            } else if (urlInput.trim().length > 0) {
+                fetch(urlInput)
+                    .then(r => {
+                        if(!r.ok) throw new Error(r.statusText);
+                        return r.text();
+                    })
+                    .then(text => loadSource(text))
+                    .catch(e => alert("Error fetching URL: " + e));
+            }
+            toggleModal();
+        }
+
+        function loadSource(newCode) {
+            lines = newCode.split('\n');
+            parse();
+            render();
+            scroller.scrollTop = 0;
+        }
+
+        function resetView() {
+            lines = DEFAULT_CODE.split('\n');
+            parse();
+            render();
+        }
+
+        // --- PARSING LOGIC ---
+
+        function parse() {
+            lineData = [];
+            mapData = new Array(81).fill(null);
+            definitions = {};
+            connections = [];
+
+            // Divide code into 81 chunks for the grid
+            const linesPerCell = Math.max(1, Math.ceil(lines.length / 81));
+
+            lines.forEach((line, i) => {
+                const trim = line.trim();
+                let type = null;
+                let name = null;
+                let shortType = '';
+
+                // 1. Function/Class
+                const fnMatch = trim.match(/(?:function|class)\s+(\w+)|(\w+)\s*\(/);
+                if (fnMatch && !trim.includes('new ') && !trim.includes('=')) {
+                    type = 'function';
+                    name = fnMatch[1] || fnMatch[2];
+                    shortType = 'FN';
+                }
+
+                // 2. Variables
+                const varMatch = trim.match(/(?:const|let|var)\s+(\w+)/);
+                if (varMatch && !type) {
+                    type = 'variable';
+                    name = varMatch[1];
+                    shortType = 'VAR';
+                }
+
+                // 3. HTML Tags
+                const tagMatch = trim.match(/^<([a-zA-Z0-9-]+)(.*)>/);
+                if (tagMatch) {
+                    type = 'tag';
+                    name = tagMatch[1].toUpperCase();
+                    const idMatch = trim.match(/id=["']([^"']+)["']/);
+                    if (idMatch) name += `#${idMatch[1]}`;
+                    shortType = 'TAG';
+                }
+
+                // 4. Control Flow
+                if (!type && trim.match(/^(if|else|for|while|return|switch|catch)/)) {
+                    type = 'control';
+                    name = trim.split(/[ (]/)[0].toUpperCase();
+                    shortType = 'CTL';
+                }
+
+                // Map to Grid
+                if (type) {
+                    const cellIdx = Math.min(80, Math.floor(i / linesPerCell));
+                    
+                    // Priority system: FN > TAG > CTL > VAR
+                    let priority = 0;
+                    if (type === 'function') priority = 4;
+                    else if (type === 'tag') priority = 3;
+                    else if (type === 'control') priority = 2;
+                    else priority = 1;
+
+                    if (!mapData[cellIdx] || mapData[cellIdx].priority < priority) {
+                        mapData[cellIdx] = { type, name, lineIndex: i, shortType, priority };
+                    }
+
+                    if ((type === 'function' || type === 'tag') && name) {
+                        definitions[name] = cellIdx;
+                    }
+                }
+
+                lineData.push({ text: line, type, index: i });
+            });
+
+            // Wiring: Find calls to definitions
+            lines.forEach((line, i) => {
+                const trim = line.trim();
+                const fromCell = Math.min(80, Math.floor(i / linesPerCell));
+
+                // Regex to find words followed by (
+                const matches = trim.matchAll(/(\w+)\s*\(/g);
+                for (const m of matches) {
+                    const target = m[1];
+                    if (definitions[target] !== undefined && definitions[target] !== fromCell) {
+                        connections.push({ from: fromCell, to: definitions[target] });
+                    }
+                }
+            });
+        }
+
+        // --- RENDERING ---
+
+        function render() {
+            renderGrid();
+            renderCode();
+            renderWires();
+        }
+
+        function renderGrid() {
+            gridEl.innerHTML = '';
+            const linesPerCell = Math.max(1, Math.ceil(lines.length / 81));
+
+            for (let i = 0; i < 81; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'block';
+                cell.dataset.index = i;
+
+                const data = mapData[i];
+                if (data) {
+                    cell.setAttribute('data-type', data.type);
+                    // Professional technical labels, no emojis
+                    cell.innerHTML = `<div class="block-type">${data.shortType}</div><div class="block-label">${data.name}</div>`;
+                    cell.title = `${data.type.toUpperCase()}: ${data.name} (Line ${data.lineIndex})`;
+                } else {
+                    cell.style.opacity = '0.05';
+                    cell.innerHTML = '';
+                }
+
+                cell.onmouseenter = () => highlightBlock(i);
+                cell.onclick = () => {
+                    highlightBlock(i);
+                    scrollToLine(i * linesPerCell);
+                };
+                gridEl.appendChild(cell);
+            }
+        }
+
+        function renderCode() {
+            codeEl.innerHTML = '';
+            // Document Fragment for performance
+            const fragment = document.createDocumentFragment();
+
+            lineData.forEach(l => {
+                const div = document.createElement('div');
+                div.className = 'line';
+                div.id = `L${l.index}`;
+
+                let html = l.text
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;');
+
+                // Simple Syntax Highlight
+                html = html
+                    .replace(/(function|class|var|let|const|return|if|else|for|while)/g, '<span class="kwd">$1</span>')
+                    .replace(/(&lt;\/?[a-zA-Z0-9-]+)/g, '<span class="tag">$1</span>')
+                    .replace(/(\/\/.*)/g, '<span class="com">$1</span>')
+                    .replace(/('.*?')|(".*?")/g, '<span class="str">$1</span>');
+
+                // Highlight Defined Names
+                const mapItem = mapData.find(m => m && m.lineIndex === l.index);
+                if (mapItem) {
+                    // Basic string replace, cautious of overwriting HTML tags
+                    const regex = new RegExp(`\\b${mapItem.name}\\b`, ''); 
+                    html = html.replace(regex, `<span class="def">${mapItem.name}</span>`);
+                }
+
+                div.innerHTML = `<div class="ln">${l.index + 1}</div><div class="src">${html}</div>`;
+                
+                div.onclick = () => {
+                    const linesPerCell = Math.ceil(lines.length / 81);
+                    const cellIdx = Math.min(80, Math.floor(l.index / linesPerCell));
+                    highlightBlock(cellIdx);
+                };
+                
+                fragment.appendChild(div);
+            });
+            
+            codeEl.appendChild(fragment);
+        }
+
+        function renderWires() {
+            wiresEl.innerHTML = '';
+            // Wait for layout to stabilize
+            requestAnimationFrame(() => {
+                const rect = gridEl.getBoundingClientRect();
+                if (rect.width === 0) return; // Hidden
+
+                const cellW = rect.width / 9;
+                const cellH = rect.height / 9;
+                
+                // Deduplicate connections
+                const unique = [...new Set(connections.map(JSON.stringify))].map(JSON.parse);
+
+                // Create wires fragment
+                const fragment = document.createDocumentFragment();
+
+                unique.forEach(conn => {
+                    const x1 = (conn.from % 9) * cellW + (cellW / 2);
+                    const y1 = Math.floor(conn.from / 9) * cellH + (cellH / 2);
+                    const x2 = (conn.to % 9) * cellW + (cellW / 2);
+                    const y2 = Math.floor(conn.to / 9) * cellH + (cellH / 2);
+
+                    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                    
+                    // Quadratic Bezier Curve
+                    const cx = (x1 + x2) / 2;
+                    const cy = Math.min(y1, y2) - (cellH * 2); 
+                    
+                    const d = `M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`;
+
+                    path.setAttribute("d", d);
+                    path.setAttribute("class", "wire");
+                    path.dataset.from = conn.from;
+                    path.dataset.to = conn.to;
+                    fragment.appendChild(path);
+                });
+                wiresEl.appendChild(fragment);
+            });
+        }
+
+        // --- INTERACTION ---
+
+        function highlightBlock(cellIdx) {
+            const linesPerCell = Math.ceil(lines.length / 81);
+            const start = cellIdx * linesPerCell;
+            const end = start + linesPerCell;
+
+            // Clear active states
+            document.querySelectorAll('.active').forEach(el => el.classList.remove('active'));
+
+            // Activate Block
+            const block = gridEl.children[cellIdx];
+            if (block) block.classList.add('active');
+
+            // Activate Lines
+            for (let i = start; i < end && i < lines.length; i++) {
+                const el = document.getElementById(`L${i}`);
+                if (el) el.classList.add('active');
+            }
+
+            // Activate Wires
+            document.querySelectorAll('.wire').forEach(w => {
+                if (w.dataset.from == cellIdx || w.dataset.to == cellIdx) {
+                    w.classList.add('active');
+                    // Highlight connected block
+                    const target = w.dataset.from == cellIdx ? w.dataset.to : w.dataset.from;
+                    gridEl.children[target]?.classList.add('active');
+                }
+            });
+        }
+
+        function scrollToLine(lineIdx) {
+            const el = document.getElementById(`L${lineIdx}`);
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        // Handle window resize to redraw wires
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(renderWires, 100);
+        });
+
+        // Init
+        parse();
+        render();
+
+    </script>
+</body>
+</html>

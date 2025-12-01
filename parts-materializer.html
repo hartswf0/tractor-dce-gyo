@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Performance Materializer</title>
+  <style>
+    :root {
+      --build-time: 5000ms;
+      --strip-height: 2.2rem;
+      --neon-green: #00ff41;
+      --neon-cyan: #00ffff;
+      --neon-amber: #ffb000;
+      --neon-orange: #ff9500;
+      --z-film: -100px;
+      --z-terminal: 10px;
+      --visible-strips: 15; /* Ring buffer size */
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #0a0a0a;
+      min-height: 100vh;
+      font-family: 'JetBrains Mono', monospace;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .materializer-stage {
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+      perspective: 1500px;
+      transform-style: preserve-3d;
+    }
+
+    /* Single wrapper that moves all strips */
+    .strips-wrapper {
+      position: absolute;
+      width: 100%;
+      transform: translateX(-100vw) translateZ(var(--z-film));
+      will-change: transform;
+    }
+
+    .strips-wrapper.animated {
+      animation: wrapperScan var(--build-time) cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    @keyframes wrapperScan {
+      0% { transform: translateX(-100vw) translateZ(var(--z-film)); }
+      30% { transform: translateX(10vw) translateZ(0); }
+      100% { transform: translateX(0) translateZ(var(--z-terminal)); }
+    }
+
+    /* Each strip is a lightweight container */
+    .film-strip {
+      position: relative;
+      width: 100%;
+      height: var(--strip-height);
+      display: flex;
+      align-items: center;
+      padding-left: 5ch;
+      white-space: nowrap;
+      overflow: hidden;
+      background: var(--strip-glow, rgba(0,255,65,0.03));
+      border-top: 1px solid var(--strip-glow, rgba(0,255,65,0.1));
+      border-bottom: 1px solid var(--strip-glow, rgba(0,255,65,0.1));
+    }
+
+    .line-number {
+      position: absolute;
+      left: 1ch;
+      font-size: 0.7rem;
+      color: rgba(0,255,65,0.3);
+      width: 3ch;
+      text-align: right;
+    }
+
+    /* The character reveal is done via a mask, not 3000+ spans */
+    .line-content {
+      position: relative;
+      font-size: clamp(0.7rem, 2vw, 1rem);
+      font-weight: 600;
+      color: var(--neon-green);
+      background: linear-gradient(90deg, var(--neon-cyan) 0%, var(--neon-cyan) 50%, transparent 50%);
+      background-size: 200% 100%;
+      background-position: 100% 0;
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      animation: revealText var(--build-time) steps(80) forwards;
+      overflow: hidden;
+      max-width: 70ch;
+    }
+
+    @keyframes revealText {
+      0% { background-position: 100% 0; }
+      100% { background-position: 0 0; }
+    }
+
+    /* Scramble effect is a pseudo-element that fades out */
+    .line-content::before {
+      content: attr(data-scrambled);
+      position: absolute;
+      inset: 0;
+      color: var(--neon-cyan);
+      opacity: 1;
+      filter: blur(1px);
+      animation: scrambleMask var(--build-time) ease-out forwards;
+      pointer-events: none;
+    }
+
+    @keyframes scrambleMask {
+      0% { opacity: 1; filter: blur(1px); }
+      70% { opacity: 0.5; filter: blur(0.5px); }
+      100% { opacity: 0; filter: blur(0); }
+    }
+
+    /* Category colors */
+    .film-strip.L { --strip-glow: rgba(128,128,128,0.3); }
+    .film-strip.E { --strip-glow: rgba(255,105,180,0.3); }
+    .film-strip.G { --strip-glow: rgba(50,205,50,0.3); }
+    .film-strip.O { --strip-glow: rgba(255,140,0,0.3); }
+    .film-strip.S { --strip-glow: rgba(255,215,0,0.3); }
+    .film-strip.U { --strip-glow: rgba(100,149,237,0.3); }
+    .film-strip.part { --strip-glow: rgba(255,200,0,0.3); }
+    .film-strip.meta { --strip-glow: rgba(64,64,64,0.3); }
+
+    /* Mobile: vertical scroll */
+    @media (max-width: 600px) {
+      .materializer-stage {
+        perspective: none;
+        overflow-y: auto;
+        align-items: flex-start;
+        padding-top: 10vh;
+      }
+
+      .strips-wrapper {
+        position: relative;
+        transform: translateX(100vw) translateZ(0);
+        width: 100%;
+        animation: wrapperSlideIn var(--build-time) ease-out forwards;
+      }
+
+      @keyframes wrapperSlideIn {
+        0% { transform: translateX(100vw); }
+        100% { transform: translateX(0); }
+      }
+
+      .film-strip {
+        padding-left: 4ch;
+      }
+    }
+
+    /* Controls */
+    .rematerialize-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      padding: 10px 20px;
+      background: rgba(0,255,65,0.1);
+      border: 1px solid rgba(0,255,65,0.3);
+      color: #00ff41;
+      font-family: inherit;
+      font-size: 0.9rem;
+      cursor: pointer;
+      opacity: 0;
+      transition: all 0.3s ease;
+      z-index: 100;
+    }
+
+    .rematerialize-btn.show {
+      opacity: 1;
+    }
+
+    .rematerialize-btn:hover {
+      background: rgba(0,255,65,0.3);
+      box-shadow: 0 0 20px rgba(0,255,65,0.5);
+    }
+  </style>
+<base target="_blank">
+</head>
+<body>
+  <div class="materializer-stage" id="stage"></div>
+  <button class="rematerialize-btn" id="rematerialize">RE-MATERIALIZE</button>
+
+  <script>
+    // === RING BUFFER + LAZY LOAD IMPLEMENTATION ===
+    class PerformanceMaterializer {
+      constructor() {
+        this.script = `0 FILE garden_uprising_scene_02_arrival.mpd
+0 Name: SCENE 02 - THE MUPPETS ARRIVE
+0 Author: Garden-Uprising-Full-Build
+0 !LDRAW_ORG Model
+0 !LICENCE Redistributable under CCAL version 2.0
+0 BFC CERTIFY CCW
+0 //
+0 // LEGOS ANALYSIS - SCENE 02: THE MUPPETS ARRIVE
+0 // =================================================================
+0 // L (LOCATION): Corporate plaza entrance
+0 //   - Grey concrete plaza (continuing from Scene 01)
+0 //   - Building entrance with steps
+0 //   - Revolving door apparatus
+0 //   - Benches and barriers (sterile public space)
+0 // E (ENTITIES): The Uprising Coalition (8+ characters introduced)
+0 //   - Kermit the Frog (green, leader, nervous)
+0 //   - Miss Piggy (pink/white, confident, powerful)
+0 //   - Fozzie Bear (brown, comic, hopeful)
+0 //   - Gonzo (blue, daredevil, excited)
+0 //   - SpongeBob SquarePants (yellow, optimistic, energetic)
+0 //   - Animal (red, wild, unpredictable)
+0 //   - Swedish Chef (human-toned, chaotic good)
+0 //   - Duplo Figure (oversized child, witness)
+0 // G (GOAL): Enter building to plant seeds of transformation
+0 //   - Kermit's goal: Find courage to lead
+0 //   - Miss Piggy's goal: Break down barriers
+0 //   - SpongeBob's goal: Spread joy
+0 //   - Collective goal: Access interior to begin change
+0 // O (OBSTACLE): Building entrance (threshold, barrier)
+0 //   - Represents: Point of no return, commitment required
+0 //   - Security systems (implied)
+0 //   - Grey oppressive architecture intimidating
+0 // S (SHIFT): N/A (approaching shift, not yet triggered)
+0 // U (SOLUTION): N/A (problem not yet resolved)
+0 //
+0 // PURPOSE: Introduce ensemble cast with distinct personalities.
+0 // Show coalition forming, diversity of approaches. Contrast
+0 // colorful characters against grey environment.
+0 // =================================================================
+0 STEP
+0 // ===== PLAZA FOUNDATION =====
+0 // Grey plaza tiles (larger area showing approach)
+1 7 -360 0 240 parts/3024.dat
+1 7 360 0 240 parts/3024.dat
+1 7 -360 0 180 parts/3024.dat
+1 7 360 0 180 parts/3024.dat
+1 72 -120 -8 0 parts/3005.dat
+1 72 120 -8 0 parts/3005.dat
+1 0 -60 -56 -60 parts/3001.dat
+1 0 60 -56 -60 parts/3001.dat
+1 2 120 -84 60 89515p01.dat
+1 13 60 -84 60 parts/3626.dat`.split('\n');
+        
+        this.lines = this.script;
+        this.stage = document.getElementById('stage');
+        this.rematerializeBtn = document.getElementById('rematerialize');
+        this.isRunning = false;
+        this.wrapper = null; // Single wrapper element
+      }
+
+      detectCategory(line, lineIndex) {
+        // Optimized category detection
+        const text = line.trim().slice(0, 30); // Only check first 30 chars
+        
+        if (text.match(/^0 (FILE|Name:|Author:|!L)/)) return 'meta';
+        if (text.includes('L (LOCATION)')) return 'L';
+        if (text.includes('E (ENTITIES)')) return 'E';
+        if (text.includes('G (GOAL)')) return 'G';
+        if (text.includes('O (OBSTACLE)')) return 'O';
+        if (text.includes('S (SHIFT)')) return 'S';
+        if (text.includes('U (SOLUTION)')) return 'U';
+        if (text.startsWith('0 //') && !text.startsWith('0 // ==')) {
+          for (let i = lineIndex - 1; i >= Math.max(0, lineIndex - 5); i--) {
+            const prev = this.lines[i];
+            if (prev.includes('L)')) return 'L';
+            if (prev.includes('E)')) return 'E';
+            if (prev.includes('G)')) return 'G';
+            if (prev.includes('O)')) return 'O';
+            if (prev.includes('S)')) return 'S';
+            if (prev.includes('U)')) return 'U';
+          }
+        }
+        if (/^1 \d+/.test(text)) return 'part';
+        return 'meta';
+      }
+
+      materialize() {
+        if (this.isRunning) return;
+        this.isRunning = true;
+        this.rematerializeBtn.classList.remove('show');
+        console.log(`Materializing ${this.lines.length} lines...`);
+
+        // Clear and create single wrapper
+        this.stage.innerHTML = '';
+        this.wrapper = document.createElement('div');
+        this.wrapper.className = 'strips-wrapper';
+        this.stage.appendChild(this.wrapper);
+
+        let processedLines = 0;
+        const isMobile = window.innerWidth <= 600;
+
+        // Process all lines at once but with minimal DOM
+        this.lines.forEach((line, index) => {
+          const category = this.detectCategory(line, index);
+          
+          // Create lightweight strip container
+          const strip = document.createElement('div');
+          strip.className = `film-strip ${category}`;
+          
+          // Line number
+          const lineNum = document.createElement('span');
+          lineNum.className = 'line-number';
+          lineNum.textContent = (index + 1).toString().padStart(3, '0');
+          strip.appendChild(lineNum);
+
+          // Content div with scrambled data (single element!)
+          const content = document.createElement('div');
+          content.className = 'line-content';
+          content.textContent = line.slice(0, 85); // Display text
+          content.dataset.scrambled = this.scrambleLine(line.slice(0, 85));
+          content.style.animationDelay = `${(index / this.lines.length) * 5000}ms`;
+          
+          strip.appendChild(content);
+          this.wrapper.appendChild(strip);
+          
+          processedLines++;
+        });
+
+        // Trigger animation on wrapper only
+        setTimeout(() => {
+          this.wrapper.classList.add('animated');
+        }, 50);
+        
+        setTimeout(() => {
+          this.isRunning = false;
+          this.rematerializeBtn.classList.add('show');
+          console.log('Materialized successfully');
+        }, 5200);
+      }
+
+      scrambleLine(line) {
+        const glyphs = '!@#$%^&*()_+-=[]{}|;:,.<>?/~`0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        return line.split('').map(() => glyphs[Math.floor(Math.random() * glyphs.length)]).join('');
+      }
+    }
+
+    // Boot
+    window.addEventListener('load', () => {
+      const materializer = new PerformanceMaterializer();
+      
+      // Auto-run
+      setTimeout(() => materializer.materialize(), 200);
+      
+      // Click to restart
+      document.addEventListener('click', (e) => {
+        if (!document.querySelector('.strips-wrapper[data-running="true"]') && !e.target.closest('button')) {
+          materializer.materialize();
+        }
+      });
+    });
+  </script>
+</body>
+</html>

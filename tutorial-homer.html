@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HOMER Studio - Complete Reference</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: 'Courier New', monospace;
+      background: #000;
+      color: #e0e0e0;
+      padding: 0;
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    .page {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+      min-height: 100vh;
+    }
+
+    /* Header */
+    .header {
+      background: #000;
+      border-bottom: 4px solid #FFD700;
+      padding: 20px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .title {
+      font-size: 28px;
+      font-weight: bold;
+      color: #FFD700;
+      letter-spacing: 3px;
+      text-shadow: 0 0 10px rgba(255,215,0,0.5);
+    }
+
+    .badges {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      font-size: 9px;
+      padding: 4px 10px;
+      border-radius: 3px;
+      border: 1px solid #333;
+      background: #111;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .badge.highlight {
+      border-color: #FFD700;
+      color: #FFD700;
+    }
+
+    /* Content Grid */
+    .content {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 20px;
+      padding: 30px;
+    }
+
+    @media (max-width: 1024px) {
+      .content {
+        grid-template-columns: 1fr;
+        padding: 20px;
+      }
+      .span-4, .span-8, .span-12 {
+        grid-column: 1 / -1 !important;
+      }
+    }
+
+    .span-4 { grid-column: span 4; }
+    .span-8 { grid-column: span 8; }
+    .span-12 { grid-column: span 12; }
+
+    /* Section Block */
+    .section {
+      background: rgba(20,20,20,0.8);
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 18px;
+      backdrop-filter: blur(10px);
+    }
+
+    .section-title {
+      font-size: 11px;
+      color: #999;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #333;
+    }
+
+    /* Tool Pills */
+    .tool-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 8px;
+    }
+
+    .tool-pill {
+      padding: 10px 12px;
+      border-radius: 6px;
+      border: 2px solid;
+      font-size: 10px;
+      font-weight: bold;
+      text-align: center;
+      background: rgba(0,0,0,0.5);
+      transition: all 0.2s;
+    }
+
+    .tool-pill:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+
+    .tool-pill-name {
+      font-size: 12px;
+      margin-bottom: 4px;
+      letter-spacing: 1px;
+    }
+
+    .tool-pill-desc {
+      font-size: 9px;
+      opacity: 0.8;
+      font-weight: normal;
+    }
+
+    .swiss { border-color: #38bdf8; color: #38bdf8; }
+    .frank { border-color: #a855f7; color: #a855f7; }
+    .courage { border-color: #ef4444; color: #ef4444; }
+    .weaver { border-color: #22c55e; color: #22c55e; }
+    .were { border-color: #f97316; color: #f97316; }
+    .master { border-color: #eab308; color: #eab308; }
+    .mento { border-color: #f472b6; color: #f472b6; }
+
+    /* Pipeline Diagram */
+    .pipeline {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin: 12px 0;
+    }
+
+    .pipeline-step {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      background: rgba(0,0,0,0.4);
+      border-left: 3px solid;
+      border-radius: 4px;
+      font-size: 11px;
+    }
+
+    .pipeline-step .num {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #333;
+      color: #FFD700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+
+    .pipeline-step .label {
+      font-weight: bold;
+      margin-right: 8px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-size: 10px;
+    }
+
+    .pipeline-step .desc {
+      flex: 1;
+      opacity: 0.9;
+    }
+
+    /* Button Tour Table */
+    .tour-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+      margin: 10px 0;
+    }
+
+    .tour-table th {
+      background: #000;
+      color: #FFD700;
+      padding: 10px;
+      text-align: left;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-size: 10px;
+      border-bottom: 2px solid #FFD700;
+    }
+
+    .tour-table td {
+      padding: 10px;
+      border-bottom: 1px solid #333;
+      vertical-align: top;
+    }
+
+    .tour-table td:first-child {
+      font-weight: bold;
+      color: #999;
+      text-transform: uppercase;
+      white-space: nowrap;
+      font-size: 10px;
+    }
+
+    .tour-table td:nth-child(2) {
+      color: #FFD700;
+      font-weight: bold;
+    }
+
+    /* Code/Mono */
+    .mono {
+      font-family: 'Courier New', monospace;
+      background: rgba(255,215,0,0.1);
+      color: #FFD700;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 10px;
+      white-space: nowrap;
+    }
+
+    /* Flow Diagram */
+    .flow {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 10px 0;
+      font-size: 10px;
+    }
+
+    .flow-box {
+      padding: 8px 12px;
+      background: rgba(0,0,0,0.6);
+      border: 1px solid #333;
+      border-radius: 4px;
+      text-align: center;
+      min-width: 80px;
+    }
+
+    .flow-box-title {
+      font-weight: bold;
+      margin-bottom: 3px;
+      font-size: 11px;
+    }
+
+    .flow-box-sub {
+      font-size: 9px;
+      opacity: 0.7;
+    }
+
+    .flow-arrow {
+      color: #FFD700;
+      font-weight: bold;
+      padding: 4px 8px;
+      background: rgba(255,215,0,0.1);
+      border-radius: 3px;
+      font-size: 9px;
+      border: 1px solid rgba(255,215,0,0.3);
+    }
+
+    /* List */
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 10px 0;
+    }
+
+    li {
+      padding: 6px 0 6px 20px;
+      position: relative;
+      font-size: 11px;
+      line-height: 1.6;
+    }
+
+    li::before {
+      content: '▸';
+      position: absolute;
+      left: 0;
+      color: #FFD700;
+      font-weight: bold;
+    }
+
+    li strong {
+      color: #FFD700;
+    }
+
+    /* Callout Box */
+    .callout {
+      background: rgba(255,215,0,0.05);
+      border-left: 3px solid #FFD700;
+      padding: 12px;
+      margin: 10px 0;
+      font-size: 11px;
+      border-radius: 0 4px 4px 0;
+    }
+
+    .callout-title {
+      font-weight: bold;
+      color: #FFD700;
+      margin-bottom: 6px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* Deep Dive Links */
+    .deep-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 12px 0;
+    }
+
+    .deep-link {
+      padding: 8px 14px;
+      background: rgba(255,215,0,0.1);
+      border: 1px solid rgba(255,215,0,0.3);
+      border-radius: 4px;
+      color: #FFD700;
+      text-decoration: none;
+      font-size: 10px;
+      font-weight: bold;
+      letter-spacing: 0.5px;
+      transition: all 0.2s;
+    }
+
+    .deep-link:hover {
+      background: rgba(255,215,0,0.2);
+      border-color: #FFD700;
+      transform: translateY(-2px);
+    }
+
+    /* Compact List */
+    .compact-list {
+      font-size: 11px;
+      line-height: 1.7;
+    }
+
+    .compact-list li {
+      padding: 4px 0 4px 16px;
+    }
+
+    /* Two Column */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+
+    @media (max-width: 768px) {
+      .two-col {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Highlight Text */
+    .highlight {
+      color: #FFD700;
+      font-weight: bold;
+    }
+
+    .dim {
+      opacity: 0.6;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    
+    <!-- Header -->
+    <div class="header">
+      <div class="title">⬢ HOMER STUDIO</div>
+      <div class="badges">
+        <div class="badge highlight">Swiss · Frank · Courage · Weaver · Were · Master · Mento</div>
+        <div class="badge">Multi-Window</div>
+        <div class="badge">MPD → GOLD → Capture</div>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+      
+      <!-- Overview -->
+      <div class="section span-12">
+        <div class="section-title">1 · What HOMER is Good For</div>
+        <p style="margin-bottom: 12px;">HOMER is the place where the labs line up. Instead of opening separate tabs for Swiss, Frank, Courage, Weaver, Were, Master, and Mento, you dock them as columns and walk a single scene from MPD text, to GOLD skeletons, to capture.</p>
+        <div class="callout">
+          <div class="callout-title">Mental Model</div>
+          Think of HOMER as a story bench: Swiss names the scene, Frank tracks it, Courage holds the MPD, Weaver turns MPD + GOLD into a map of studs, Were/MASTER let you probe and correct, and Mento records the performance.
+        </div>
+      </div>
+
+      <!-- Tool Grid -->
+      <div class="section span-12">
+        <div class="section-title">Tools · One-Line Summaries</div>
+        <div class="tool-grid">
+          <div class="tool-pill swiss">
+            <div class="tool-pill-name">SWISS</div>
+            <div class="tool-pill-desc">choose a scene</div>
+          </div>
+          <div class="tool-pill frank">
+            <div class="tool-pill-name">FRANK</div>
+            <div class="tool-pill-desc">track scenes</div>
+          </div>
+          <div class="tool-pill courage">
+            <div class="tool-pill-name">COURAGE</div>
+            <div class="tool-pill-desc">edit & view MPD</div>
+          </div>
+          <div class="tool-pill weaver">
+            <div class="tool-pill-name">WEAVER</div>
+            <div class="tool-pill-desc">GOLD / skeleton</div>
+          </div>
+          <div class="tool-pill were">
+            <div class="tool-pill-name">WERE</div>
+            <div class="tool-pill-desc">skeleton MPD lab</div>
+          </div>
+          <div class="tool-pill master">
+            <div class="tool-pill-name">MASTER</div>
+            <div class="tool-pill-desc">overlay & tune</div>
+          </div>
+          <div class="tool-pill mento">
+            <div class="tool-pill-name">MENTO</div>
+            <div class="tool-pill-desc">record shots</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Swiss Builders -->
+      <div class="section span-6">
+        <div class="section-title">Swiss Builders · The -ators</div>
+        <ul class="compact-list">
+          <li><strong>SCENEERATOR</strong> – pick a shell, send <span class="mono">scene-mpd</span> to Frank / Courage</li>
+          <li><strong>LOCATIONATOR</strong> – dress the shell, send <span class="mono">location-mpd</span> on the bus</li>
+          <li><strong>VEHICULATOR</strong> – build vehicles, export vehicle MPDs for Frank's grid cells</li>
+          <li><strong>MINIFIGURATOR</strong> – build characters / families, send minifig MPDs into Frank</li>
+        </ul>
+        <div class="callout">
+          All -ators speak MPD and ship over <span class="mono">wag-frank</span>. Frank catches them, composes a plate, and HOMER emits that combined scene into Courage.
+        </div>
+      </div>
+
+      <!-- Navigation Modes -->
+      <div class="section span-6">
+        <div class="section-title">Navigation · Modes</div>
+        <ul class="compact-list">
+          <li><strong>SINGLE</strong> – one panel at a time, full width. Good for phones.</li>
+          <li><strong>MULTI</strong> – dock several panels as columns. Good for lab work.</li>
+          <li>Clicking <span class="mono">Mento</span> in SINGLE mode auto-opens Courage + Mento together.</li>
+        </ul>
+        <div class="section-title" style="margin-top: 20px;">Tabs · Quick Reference</div>
+        <ul class="compact-list">
+          <li><strong>Swiss</strong> – choose which scene / catalog you are working on</li>
+          <li><strong>Frank</strong> – see a grid of scenes and families over time</li>
+          <li><strong>Courage</strong> – treat MPD as source code for the scene</li>
+          <li><strong>Weaver</strong> – turn GOLD into per-line, per-part maps</li>
+          <li><strong>Were</strong> – experiment with a skeleton-only MPD form</li>
+          <li><strong>Master</strong> – overlay GOLD on a compact editor, then commit</li>
+          <li><strong>Mento</strong> – record the result as video clips</li>
+        </ul>
+      </div>
+
+      <!-- Pipeline Flow -->
+      <div class="section span-12">
+        <div class="section-title">2 · Pipeline · One Scene Across the Bench</div>
+        <div class="flow">
+          <div class="flow-box swiss">
+            <div class="flow-box-title">SWISS</div>
+            <div class="flow-box-sub">-ators export MPD</div>
+          </div>
+          <div class="flow-arrow">wag-frank</div>
+          <div class="flow-box frank">
+            <div class="flow-box-title">FRANK</div>
+            <div class="flow-box-sub">9×9 grid layout</div>
+          </div>
+          <div class="flow-arrow">emit scene.mpd</div>
+          <div class="flow-box courage">
+            <div class="flow-box-title">COURAGE</div>
+            <div class="flow-box-sub">MPD + scene skeleton</div>
+          </div>
+          <div class="flow-arrow">RB</div>
+          <div class="flow-box weaver">
+            <div class="flow-box-title">WEAVER</div>
+            <div class="flow-box-sub">GOLD + StudMap</div>
+          </div>
+          <div class="flow-arrow">GOLD bus</div>
+          <div class="flow-box master">
+            <div class="flow-box-title">MASTER</div>
+            <div class="flow-box-sub">tune + export</div>
+          </div>
+          <div class="flow-arrow">Save+Copy</div>
+          <div class="flow-box mento">
+            <div class="flow-box-title">MENTO</div>
+            <div class="flow-box-sub">REC → WebM</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Button Tour Table -->
+      <div class="section span-12">
+        <div class="section-title">3 · Button Tour · What You Actually Press</div>
+        <table class="tour-table">
+          <thead>
+            <tr>
+              <th>Panel</th>
+              <th>You Press</th>
+              <th>What Flows</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Swiss</td>
+              <td>Scene brick</td>
+              <td>Swiss sends starter MPD → Frank / Courage via <span class="mono">wag-frank</span></td>
+            </tr>
+            <tr>
+              <td>Swiss</td>
+              <td>SCENEERATOR / MINIFIGURATOR / LOCATIONATOR / VEHICULATOR buttons</td>
+              <td>Each -ator exports MPD over the bus. Frank places them on its grid; HOMER can emit the assembled <span class="mono">scene.mpd</span> into Courage.</td>
+            </tr>
+            <tr>
+              <td>Courage</td>
+              <td>RB (Red Bull)</td>
+              <td>MPD → GOLD + <span class="mono">stud_skeleton_v2</span> in <span class="mono">localStorage.wag_redbull_gold</span> and via <span class="mono">redbull-gold</span> on the bus</td>
+            </tr>
+            <tr>
+              <td>Weaver</td>
+              <td>Assembly Line / XRAY / GOLD bus</td>
+              <td>GOLD → StudMap MPD + ontology views; optional GOLD emit back on the bus</td>
+            </tr>
+            <tr>
+              <td>Master</td>
+              <td>Export / Copy MPD</td>
+              <td>Skeleton-tuned MPD → Courage + Weaver via HOMER's <span class="mono">master-export-mpd</span> handler</td>
+            </tr>
+            <tr>
+              <td>Mento</td>
+              <td>REC / SAVE</td>
+              <td>Courage viewer stream → WebM on disk; optional IMG / GLB from Courage for the same frame</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Detailed Steps -->
+      <div class="section span-6">
+        <div class="section-title">Step 1 · Courage RB → GOLD</div>
+        <p style="margin-bottom: 10px;">In Courage's viewer toolbar, on the far right beside <span class="mono">IMG</span>, <span class="mono">GOLD</span> and <span class="mono">GLB</span>, there is an <span class="mono">RB</span> button (Red Bull). Click it to:</p>
+        <ul class="compact-list">
+          <li>Walk the current MPD line by line</li>
+          <li>Generate a <span class="mono">stud_skeleton_v2</span> entry for every stud</li>
+          <li>Store the GOLD scene in <span class="mono">localStorage.wag_redbull_gold</span></li>
+          <li>Broadcast a <span class="mono">redbull-gold</span> message on the <span class="mono">wag-frank</span> bus</li>
+        </ul>
+      </div>
+
+      <div class="section span-6">
+        <div class="section-title">Step 2 · Weaver Assembly Line</div>
+        <p style="margin-bottom: 10px;">Switch to Weaver in HOMER. With GOLD now available:</p>
+        <ul class="compact-list">
+          <li>Hit <strong>Assembly Line</strong> to expand the GOLD scene into per-part stud skeletons and StudMap MPD</li>
+          <li>Hit <strong>XRAY RB</strong> to inspect the sampled studs and see coverage / gaps</li>
+          <li>When satisfied, hit <strong>GOLD bus</strong> to push this processed GOLD scene onto the shared bus</li>
+        </ul>
+        <div class="callout" style="margin-top: 10px;">
+          That GOLD payload is what Were and Master listen for.
+        </div>
+      </div>
+
+      <div class="section span-6">
+        <div class="section-title">Step 3 · Master Tuning</div>
+        <p style="margin-bottom: 10px;">In Master, open the same scene. Master overlays GOLD studs on a compact MPD editor so you can:</p>
+        <ul class="compact-list">
+          <li>Move bricks and cells more thoughtfully on the grid</li>
+          <li>Adjust skeleton flips and offsets per part / per line</li>
+        </ul>
+        <p style="margin-top: 10px;">Once the overlay looks correct, use <strong>Save + Copy</strong> (or the export / copy controls) in Master. HOMER intercepts this as a <span class="mono">master-export-mpd</span> event and routes the tuned MPD straight back into Courage (and Weaver), so the editor and skeleton stay in sync.</p>
+      </div>
+
+      <div class="section span-6">
+        <div class="section-title">Step 4 · Mento Brickfilm</div>
+        <p style="margin-bottom: 10px;">Open Mento in HOMER. When you click Mento in SINGLE mode, HOMER docks Courage + Mento together:</p>
+        <ul class="compact-list">
+          <li>Set aspect to <strong>4:3</strong> and choose a quality (480p / 720p / 960p)</li>
+          <li>Select a path (manual orbit, orbit ring, push-through-center)</li>
+          <li>Hit <strong>REC</strong> – the header flips to <span class="mono">REC</span>, a subtle sound / vibrate confirms capture started</li>
+          <li>Hit <strong>SAVE</strong> – downloads a WebM named <span class="mono">mento_&lt;scene&gt;_&lt;timestamp&gt;.webm</span> and adds it to the mini gallery</li>
+        </ul>
+        <div class="callout" style="margin-top: 10px;">
+          Courage remains the source of truth for MPD, screenshots (IMG) and GLB export; Mento is your camera instrument pointed at that stage.
+        </div>
+      </div>
+
+      <!-- Troubleshooting -->
+      <div class="section span-12">
+        <div class="section-title">Troubleshooting · When HOMER Misbehaves</div>
+        <ul>
+          <li>If the shell feels stuck (columns blank, panels not responding), refresh the browser tab. Treat this as a hard reset: layout and any unsaved text edits in Courage / Master may be lost, so export MPD or use <strong>Save + Copy</strong> first.</li>
+          <li>If Courage looks empty, re-emit the scene: click a Swiss scene brick or run a builder's <strong>Save MPD</strong> again, or use Frank's scene emit control so <span class="mono">wag-frank-scene.mpd</span> is sent back into HOMER.</li>
+          <li>You can keep adding material: build extra minifig families, vehicles, or location chunks in Swiss and send them again – Frank adds them to its grid, and the next emit updates Courage's stage.</li>
+        </ul>
+      </div>
+
+      <!-- Deep Dive Links -->
+      <div class="section span-12">
+        <div class="section-title">Deep Dives · Detailed Walkthroughs</div>
+        <div class="deep-links">
+          <a href="homer-step1-swiss-frank-courage.html" class="deep-link">Swiss → Frank → Courage</a>
+          <a href="homer-step2-courage-rb-gold.html" class="deep-link">Courage RB → GOLD</a>
+          <a href="homer-step3-weaver-assembly-gold-bus.html" class="deep-link">Weaver Assembly Line / XRAY / GOLD bus</a>
+          <a href="homer-step4-master-tune-return.html" class="deep-link">Master tuning → Courage</a>
+          <a href="homer-step5-mento-brickfilm.html" class="deep-link">Mento brickfilm capture</a>
+        </div>
+      </div>
+
+      <!-- Quick Start -->
+      <div class="section span-12">
+        <div class="section-title">Quick Start · Default Path</div>
+        <div class="pipeline">
+          <div class="pipeline-step swiss" style="border-color: #38bdf8;">
+            <div class="num">1</div>
+            <div class="label">Swiss</div>
+            <div class="desc">Pick a scene or use a builder (-ator) to create parts</div>
+          </div>
+          <div class="pipeline-step frank" style="border-color: #a855f7;">
+            <div class="num">2</div>
+            <div class="label">Frank</div>
+            <div class="desc">Arrange on 9×9 grid, emit combined scene to Courage</div>
+          </div>
+          <div class="pipeline-step courage" style="border-color: #ef4444;">
+            <div class="num">3</div>
+            <div class="label">Courage</div>
+            <div class="desc">Edit MPD text, view 3D, press <span class="mono">RB</span> to emit GOLD</div>
+          </div>
+          <div class="pipeline-step weaver" style="border-color: #22c55e;">
+            <div class="num">4</div>
+            <div class="label">Weaver</div>
+            <div class="desc">Assembly Line → XRAY → GOLD bus to process skeleton</div>
+          </div>
+          <div class="pipeline-step master" style="border-color: #eab308;">
+            <div class="num">5</div>
+            <div class="label">Master</div>
+            <div class="desc">Tune skeleton overlays, Save + Copy back to Courage</div>
+          </div>
+          <div class="pipeline-step mento" style="border-color: #f472b6;">
+            <div class="num">6</div>
+            <div class="label">Mento</div>
+            <div class="desc">Set 4:3 + quality, REC → SAVE WebM</div>
+          </div>
+        </div>
+        <div class="callout">
+          <strong>When in doubt:</strong> Start in Swiss to pick a scene, move to Courage to edit, use Red Bull to emit GOLD, weave and correct in Weaver / Master, then finish in Mento with a recorded shot.
+        </div>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>
