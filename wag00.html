@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>W.A.G. | MASTER INDEX</title>
+    <style>
+        :root {
+            --bg-body: #0a0a0a;
+            --bg-nav: #111111;
+            --border: #333;
+            --text-main: #eee;
+            --text-dim: #666;
+            
+            /* Dynamic Accent Colors */
+            --accent-def: #ffffff;
+            --accent-yellow: #FFD700;
+            --accent-red: #FF3333;
+            --accent-blue: #00ccff;
+            
+            --current-accent: var(--accent-def);
+            
+            --font-mono: 'Courier New', Courier, monospace;
+            --font-sans: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: var(--bg-body);
+            color: var(--text-main);
+            font-family: var(--font-sans);
+            height: 100vh;
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            overflow: hidden;
+        }
+
+        /* --- SIDEBAR --- */
+        nav {
+            background: var(--bg-nav);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding-top: 20px;
+        }
+
+        .header {
+            padding: 0 20px 20px 20px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 20px;
+        }
+
+        .brand {
+            font-family: var(--font-mono);
+            font-weight: bold;
+            letter-spacing: -1px;
+            font-size: 1.2rem;
+            color: var(--current-accent);
+            transition: color 0.3s ease;
+        }
+
+        .sub-brand {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: 5px;
+        }
+
+        /* --- NAV LINKS --- */
+        .nav-group {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        button.link-btn {
+            background: transparent;
+            border: none;
+            text-align: left;
+            padding: 12px 20px;
+            color: var(--text-dim);
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+        }
+
+        button.link-btn:hover {
+            background: rgba(255,255,255,0.05);
+            color: var(--text-main);
+        }
+
+        button.link-btn.active {
+            color: var(--text-main);
+            background: rgba(255,255,255,0.08);
+            border-left-color: var(--current-accent);
+        }
+
+        .status-block {
+            margin-top: auto;
+            padding: 20px;
+            border-top: 1px solid var(--border);
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--text-dim);
+        }
+
+        /* --- MAIN VIEWPORT --- */
+        main {
+            position: relative;
+            background: black;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header.top-bar {
+            height: 40px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            background: var(--bg-body);
+        }
+
+        .url-display {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--text-dim);
+        }
+
+        .ext-link {
+            text-decoration: none;
+            color: var(--current-accent);
+            font-size: 0.7rem;
+            border: 1px solid var(--border);
+            padding: 4px 8px;
+            transition: all 0.3s ease;
+        }
+        .ext-link:hover { border-color: var(--current-accent); }
+
+        iframe {
+            flex-grow: 1;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="header">
+            <div class="brand">W.A.G. INDEX</div>
+            <div class="sub-brand">Tractor-DCE-GYO</div>
+        </div>
+
+        <div class="nav-group">
+            <button class="link-btn" onclick="loadFrame(0)">
+                [00] Intro / Worlds
+            </button>
+            
+            <button class="link-btn" onclick="loadFrame(1)">
+                [01] Onyx Studio
+            </button>
+
+            <button class="link-btn" onclick="loadFrame(2)">
+                [02] Presentation (Yel)
+            </button>
+            
+            <button class="link-btn" onclick="loadFrame(3)">
+                [03] Protocol (Red)
+            </button>
+            
+            <button class="link-btn" onclick="loadFrame(4)">
+                [04] Workbook (Quick)
+            </button>
+            
+            <button class="link-btn" onclick="loadFrame(5)">
+                [05] Image Archive
+            </button>
+        </div>
+
+        <div class="status-block">
+            STATUS: ONLINE<br>
+            MODE: IFRAME_NAV
+        </div>
+    </nav>
+
+    <main>
+        <header class="top-bar">
+            <div class="url-display" id="url-display">WAITING...</div>
+            <a href="#" target="_blank" class="ext-link" id="ext-link">OPEN NEW TAB ↗</a>
+        </header>
+        <iframe id="viewport" src=""></iframe>
+    </main>
+
+    <script>
+        // Configuration
+        const links = [
+            {
+                name: "Words Become Worlds",
+                url: "https://hartswf0.github.io/tractor-dce-gyo/words-become-worlds.html",
+                color: "#ffffff" // Default White
+            },
+            {
+                name: "Onyx Studio",
+                url: "https://hartswf0.github.io/tractor-dce-gyo/onyx-studio.html",
+                color: "#00ff99" // Tech Green
+            },
+            {
+                name: "WAG Presentation",
+                url: "https://hartswf0.github.io/tractor-dce-gyo/wag-pres.html",
+                color: "#FFD700" // Yellow
+            },
+            {
+                name: "WAG Protocol",
+                url: "https://hartswf0.github.io/tractor-dce-gyo/wag-prot.html",
+                color: "#FF3333" // Red
+            },
+            {
+                name: "WAG Workbook",
+                url: "https://hartswf0.github.io/tractor-dce-gyo/wag-work.html",
+                color: "#00ccff" // Cyan/Quick
+            },
+            {
+                name: "Image Index",
+                url: "https://hartswf0.github.io/tractor-dce-gyo/Words%20Assemble%20Worlds%20(1)/index.html",
+                color: "#bd00ff" // Purple
+            }
+        ];
+
+        const viewport = document.getElementById('viewport');
+        const urlDisplay = document.getElementById('url-display');
+        const extLink = document.getElementById('ext-link');
+        const btns = document.querySelectorAll('.link-btn');
+        const root = document.documentElement;
+
+        function loadFrame(index) {
+            const item = links[index];
+            
+            // 1. Set URL
+            viewport.src = item.url;
+            
+            // 2. Update Top Bar info
+            urlDisplay.innerText = item.url;
+            extLink.href = item.url;
+            
+            // 3. Update CSS Variables for Theme
+            root.style.setProperty('--current-accent', item.color);
+            
+            // 4. Update Active Button State
+            btns.forEach((btn, i) => {
+                if(i === index) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+
+        // Initialize with the First Link
+        loadFrame(0);
+
+    </script>
+</body>
+</html>
