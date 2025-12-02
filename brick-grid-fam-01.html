@@ -197,5 +197,42 @@
     </a>
   </div>
 </main>
+<script>
+(function () {
+  let collection = null;
+  try {
+    const raw = localStorage.getItem('onyx_scene_collection');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && Array.isArray(parsed.scenes) && parsed.scenes.length) {
+        collection = parsed;
+      }
+    }
+  } catch (e) {
+    console.warn('[BRICK-GRID] Failed to read onyx_scene_collection', e);
+  }
+
+  if (!collection) return;
+
+  const header = document.querySelector('header');
+  if (!header) return;
+
+  const badge = document.createElement('div');
+  const count = collection.scenes.length;
+  badge.textContent = `ONYX · ${count} scene${count !== 1 ? 's' : ''}`;
+  badge.style.float = 'right';
+  badge.style.fontSize = '9px';
+  badge.style.textTransform = 'uppercase';
+  badge.style.letterSpacing = '0.12em';
+  badge.style.color = 'var(--muted)';
+  badge.style.border = '1px solid var(--border)';
+  badge.style.borderRadius = '999px';
+  badge.style.padding = '2px 8px';
+  badge.style.display = 'inline-block';
+  badge.style.marginTop = '2px';
+
+  header.appendChild(badge);
+})();
+</script>
 </body>
 </html>

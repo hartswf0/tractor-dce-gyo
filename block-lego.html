@@ -1,0 +1,2091 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Forensic Reconstruction: Ontological Ancestor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* =========================================
+           ◻ E1.11: Styling-System (THEME)
+           → Components: CSS_Variable_Registry, Style_Attachment_Points
+           → Features: Variable_Composition, Dynamic_Theming
+           → Morphisms: setTheme(), style-injection
+           ========================================= */
+        :root {
+            /* THEME variables from OLOG 2 */
+            --bg: #0b1121;
+            --panel: #0f172a;
+            --surface: #1e293b;
+            --border: #334155;
+            --text-main: #e2e8f0;
+            --text-muted: #64748b;
+            --font-ui: 'JetBrains Mono', monospace;
+            --font-code: 'JetBrains Mono', monospace;
+            --func: #fbbf24; /* yellow-300 */
+            --var: #60a5fa; /* blue-300 */
+            --tag: #c084fc; /* purple-300 */
+            --ctrl: #f87171; /* red-400 */
+            --focus: rgba(245, 158, 11, 0.2); /* amber-500/20 */
+            --up: rgba(34, 197, 94, 0.3); /* green-500/30 */
+            --down: rgba(239, 68, 68, 0.3); /* red-500/30 */
+            --wire-base: #475569; /* slate-600 */
+            --ease: cubic-bezier(0.4, 0, 0.2, 1);
+            
+            /* E1.2.1 Background-Grid-Effect variables from OLOG 1 */
+            --grid-color: #334155;
+            
+            /* Layout dimensions */
+            --header-height: 64px;
+            --console-height: 256px;
+            --sidebar-width: 288px;
+            --inspector-width: 320px;
+        }
+        
+        /* THEME modes from OLOG 2 */
+        [data-theme="parchment"] {
+            --bg: #fefce8; /* yellow-50 */
+            --panel: #fef9c3; /* yellow-100 */
+            --surface: #fde047; /* yellow-300 */
+            --border: #facc15; /* yellow-400 */
+            --text-muted: #eab308; /* yellow-500 */
+            --text-main: #713f12; /* yellow-900 */
+            --wire-base: #facc15;
+            --func: #dc2626; /* red-600 */
+            --var: #2563eb; /* blue-600 */
+            --tag: #7c3aed; /* purple-600 */
+            --ctrl: #16a34a; /* green-600 */
+            --focus: rgba(245, 158, 11, 0.4);
+        }
+        
+        [data-theme="terminal"] {
+            --bg: #171717; /* neutral-900 */
+            --panel: #262626; /* neutral-800 */
+            --surface: #404040; /* neutral-700 */
+            --border: #525252; /* neutral-600 */
+            --text-muted: #737373; /* neutral-500 */
+            --text-main: #86efac; /* green-200 */
+            --wire-base: #22c55e; /* green-500 */
+            --func: #fde047; /* yellow-300 */
+            --var: #93c5fd; /* blue-300 */
+            --tag: #d8b4fe; /* purple-300 */
+            --ctrl: #fca5a5; /* red-300 */
+            --focus: rgba(34, 197, 94, 0.3);
+        }
+        
+        @media (max-width: 768px) {
+            :root {
+                --sidebar-width: 0px;
+                --inspector-width: 100%;
+                --header-height: 56px;
+            }
+        }
+
+        /* =========================================
+           E1.11.2: Keyframe Animations
+           → Features: Visual_Feedback, Transition_Coordination
+           ========================================= */
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes fadeUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+        
+        @keyframes grid-fade {
+            0% { opacity: 0.05; }
+            100% { opacity: 0.15; }
+        }
+        
+        .animate-slide-in-right { animation: slideInRight 0.3s var(--ease) forwards; }
+        .animate-fade-up { animation: fadeUp 0.3s var(--ease) forwards; }
+        .animate-grid-fade { animation: grid-fade 2s ease-in-out infinite alternate; }
+
+        /* =========================================
+           Global Styles
+           ========================================= */
+        body {
+            font-family: var(--font-ui);
+            background-color: var(--bg);
+            color: var(--text-main);
+            overscroll-behavior: none;
+            -webkit-tap-highlight-color: transparent;
+            overflow: hidden;
+        }
+        
+        /* Custom Scrollbars */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--panel); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--surface); }
+        
+        /* =========================================
+           Layout Containers (E1: LAYOUT)
+           → Components: Header_Bar, Grid_Viewport, Sidebar, Inspector
+           → Features: Spatial_Composition, Z-Index_Layering
+           ========================================= */
+        .layout-root {
+            display: grid;
+            grid-template-areas: 
+                "sidebar header header"
+                "sidebar canvas inspector"
+                "console console console";
+            grid-template-columns: var(--sidebar-width) 1fr var(--inspector-width);
+            grid-template-rows: var(--header-height) 1fr var(--console-height);
+            width: 100vw;
+            height: 100dvh;
+        }
+        
+        @media (max-width: 768px) {
+            .layout-root {
+                grid-template-areas: 
+                    "header header header"
+                    "canvas canvas canvas"
+                    "console console console";
+                grid-template-columns: 0px 1fr 0px;
+            }
+            .sidebar-expanded { width: 100vw !important; z-index: 1000; }
+            .inspector-expanded { transform: translateY(0) !important; }
+        }
+        
+        #header-bar { grid-area: header; }
+        #canvas-area { grid-area: canvas; }
+        #sidebar { grid-area: sidebar; }
+        #inspector { grid-area: inspector; }
+        #console-panel { grid-area: console; }
+        
+        /* =========================================
+           Header Bar (LAYOUT.Header_Bar)
+           → Components: menu-trigger, nav-deck, play-btn, theme-switch
+           → Features: Interactive_Boundaries, Responsive_Adaptation
+           ========================================= */
+        .header-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1rem;
+            background: var(--panel);
+            border-bottom: 1px solid var(--border);
+            z-index: 900;
+        }
+        
+        .nav-deck {
+            display: flex;
+            gap: 0.5rem;
+            background: var(--surface);
+            padding: 0.25rem;
+            border-radius: 0.5rem;
+        }
+        
+        .nav-tab {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s var(--ease);
+        }
+        
+        .nav-tab.active {
+            background: var(--focus);
+            color: var(--func);
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.2);
+        }
+        
+        /* =========================================
+           Sidebar (E1.1: UI-Sidebar)
+           → Components: Tools-Repository, Ingest-Box
+           → Features: Collapsibility, Mobile_Priority
+           ========================================= */
+        .sidebar {
+            background: var(--panel);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            transition: width 0.3s var(--ease);
+            overflow: hidden;
+            z-index: 500;
+        }
+        
+        .sidebar-collapsed {
+            width: 0px !important;
+            padding: 0 !important;
+        }
+        
+        .tool-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            margin: 0.25rem;
+            border-radius: 0.5rem;
+            color: var(--text-main);
+            cursor: pointer;
+            transition: all 0.2s var(--ease);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .tool-item:hover {
+            background: var(--surface);
+            transform: translateX(4px);
+        }
+        
+        .tool-item .icon {
+            width: 2rem;
+            height: 2rem;
+            flex-shrink: 0;
+        }
+        
+        /* =========================================
+           Canvas Workspace (E1.2: Canvas-Workspace + LAYOUT.Grid_Viewport)
+           → Components: nodes-layer, connections-layer, grid-cells, preview-frame
+           → Features: Spatial_Addressing, Grid_Snapping, View_Mode_Transformation
+           ========================================= */
+        #canvas-area {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: var(--bg);
+        }
+        
+        #grid-shell {
+            position: absolute;
+            inset: 0;
+            margin: auto;
+            aspect-ratio: 1 / 1;
+            width: min(100%, calc(100dvh - var(--header-height) - var(--console-height)));
+            max-height: 100%;
+        }
+        
+        #grid-lock {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            grid-template-rows: repeat(9, 1fr);
+            gap: 1px;
+            padding: 0;
+            pointer-events: none;
+        }
+        
+        .grid-cell {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 0.375rem;
+            position: relative;
+            pointer-events: auto;
+            transition: all 0.2s var(--ease);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 0;
+            min-width: 0;
+        }
+        
+        .grid-cell:hover {
+            border-color: var(--func);
+            box-shadow: 0 0 10px rgba(251, 191, 36, 0.2);
+        }
+        
+        .grid-cell.focus {
+            background: var(--focus);
+            border-color: var(--func);
+        }
+        
+        /* Nodes Layer (E1.2.4: Node-Collection) */
+        #nodes-layer {
+            position: absolute;
+            inset: 0;
+            z-index: 10;
+            pointer-events: none;
+        }
+        
+        .node-instance {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            cursor: grab;
+            pointer-events: auto;
+            transition: transform 0.2s var(--ease);
+            z-index: 10;
+        }
+        
+        .node-instance:hover {
+            transform: translate(-50%, -50%) scale(1.1);
+            z-index: 50;
+        }
+        
+        .node-instance.selected {
+            transform: translate(-50%, -50%) scale(1.15);
+            z-index: 50;
+        }
+        
+        .node-halo {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--func) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s var(--ease);
+        }
+        
+        .node-instance:hover .node-halo {
+            opacity: 0.3;
+        }
+        
+        .node-instance.selected .node-halo {
+            opacity: 0.6;
+        }
+        
+        /* Connections Layer (E1.2.5 + RENDERER.Wire_Geometry) */
+        #connections-layer {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 5;
+        }
+        
+        /* Preview Frame (PREVIEW) */
+        #preview-frame {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: white;
+            display: none;
+        }
+        
+        .preview-active #preview-frame {
+            display: block;
+        }
+        
+        /* =========================================
+           Inspector (E1.3: Inspector-Panel)
+           → Components: Header-Identity, Property-Editor, Data-Structure-Viewer
+           → Features: Contextual_Editing, Mobile_Modal_Transformation
+           ========================================= */
+        #inspector {
+            background: var(--panel);
+            border-left: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s var(--ease);
+            z-index: 999;
+            overflow: hidden;
+        }
+        
+        .inspector-collapsed {
+            transform: translateX(100%);
+        }
+        
+        @media (max-width: 768px) {
+            #inspector {
+                position: fixed;
+                top: var(--header-height);
+                left: 0;
+                right: 0;
+                height: 50vh;
+                transform: translateY(100%);
+                border-left: none;
+                border-top: 1px solid var(--border);
+            }
+            .inspector-expanded {
+                transform: translateY(0) !important;
+            }
+        }
+        
+        /* =========================================
+           Console (E1.4: Console-System)
+           → Components: Header-Toggle-Bar, Log-Message-Stream
+           → Features: Temporal_History, Collapsibility
+           ========================================= */
+        #console-panel {
+            background: var(--panel);
+            border-top: 1px solid var(--border);
+            transition: height 0.3s var(--ease);
+            z-index: 200;
+        }
+        
+        .console-collapsed {
+            height: 2rem !important;
+        }
+        
+        .log-entry {
+            font-family: var(--font-code);
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .log-success { color: #22c55e; }
+        .log-info { color: #60a5fa; }
+        .log-warn { color: #fbbf24; }
+        .log-error { color: #f87171; }
+        
+        /* =========================================
+           Toast (E1.5: Toast-Notification-Layer)
+           → Components: Toast-Container, Toast-Messages
+           → Features: Temporal_Auto_Destruct, Centered_Positioning
+           ========================================= */
+        #toast-container {
+            position: fixed;
+            bottom: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            width: 90%;
+            max-width: 400px;
+            pointer-events: none;
+        }
+        
+        .toast {
+            background: var(--panel);
+            border: 1px solid var(--func);
+            color: var(--text-main);
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            pointer-events: auto;
+            animation: fadeUp 0.3s var(--ease);
+        }
+        
+        /* =========================================
+           Ingestion Box (INGEST.Ingest_Field)
+           → Components: Textarea, Load_Button
+           → Features: Code_Import, State_Reset
+           ========================================= */
+        .ingest-box {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            padding: 1rem;
+            border-top: 1px solid var(--border);
+        }
+        
+        #paste-input {
+            width: 100%;
+            min-height: 100px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 0.375rem;
+            padding: 0.5rem;
+            color: var(--text-main);
+            font-family: var(--font-code);
+            font-size: 0.75rem;
+            resize: vertical;
+        }
+        
+        /* =========================================
+           Code Editor (RENDERER.Code_Styler)
+           → Components: Code-Scroll, Line-Elements
+           → Features: Syntax_Highlighting, Active_Line_Marking
+           ========================================= */
+        #code-editor {
+            display: none;
+            position: absolute;
+            inset: 0;
+            background: var(--bg);
+            padding: 1rem;
+            overflow-y: auto;
+            font-family: var(--font-code);
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+        
+        .editor-active #code-editor {
+            display: block;
+        }
+        
+        .line {
+            padding: 0.125rem 0.5rem;
+            border-left: 2px solid transparent;
+            transition: all 0.2s var(--ease);
+            white-space: pre-wrap;
+        }
+        
+        .line:hover {
+            background: var(--surface);
+        }
+        
+        .line.active {
+            background: var(--focus);
+            border-left-color: var(--func);
+        }
+        
+        .token-func { color: var(--func); }
+        .token-var { color: var(--var); }
+        .token-tag { color: var(--tag); }
+        .token-ctrl { color: var(--ctrl); }
+        .token-comment { color: var(--text-muted); font-style: italic; }
+        
+        /* =========================================
+           Minimap (RENDERER.Minimap_Compressor)
+           → Components: Canvas_Element
+           → Features: Visual_Compression, Scroll_Correlation
+           ========================================= */
+        #minimap {
+            position: absolute;
+            right: 1rem;
+            top: 1rem;
+            width: 150px;
+            height: 100px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 0.375rem;
+            cursor: pointer;
+            z-index: 100;
+        }
+        
+        /* =========================================
+           Theme Switcher
+           → Features: Dynamic_Theming
+           ========================================= */
+        .theme-switcher {
+            display: flex;
+            gap: 0.25rem;
+            padding: 0.25rem;
+            background: var(--surface);
+            border-radius: 0.375rem;
+        }
+        
+        .theme-btn {
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: all 0.2s var(--ease);
+        }
+        
+        .theme-btn.active {
+            background: var(--focus);
+            color: var(--func);
+        }
+        
+        /* =========================================
+           Branch Bar (LAYOUT.Branch_Bar)
+           → Components: Breadcrumb container, crumbs
+           → Features: Hierarchical_Context
+           ========================================= */
+        #branch-bar {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--panel);
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .crumb {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.5rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s var(--ease);
+        }
+        
+        .crumb:hover {
+            background: var(--focus);
+            border-color: var(--func);
+        }
+        
+        /* =========================================
+           Mobile Toggle Button
+           ========================================= */
+        #mobile-menu-btn {
+            display: none;
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            z-index: 1000;
+            padding: 0.5rem;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 0.375rem;
+            cursor: pointer;
+        }
+        
+        @media (max-width: 768px) {
+            #mobile-menu-btn {
+                display: block;
+            }
+        }
+        
+        /* =========================================
+           Sideblade (INGEST.Modal_Configuration)
+           → Features: Code_Ingestion, Self-Reload
+           ========================================= */
+        #sideblade-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .sideblade-active #sideblade-overlay {
+            display: flex;
+        }
+        
+        #sideblade {
+            width: 90%;
+            max-width: 600px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+    </style>
+<base target="_blank">
+</head>
+<body class="layout-root" data-theme="dark">
+
+    <!-- =========================================
+         E1.5: Toast-Notification-Layer
+         → DOM: #toast-container
+         → Morphism: showToast()
+    ========================================= -->
+    <div id="toast-container"></div>
+
+    <!-- =========================================
+         INGEST.Sideblade_System
+         → DOM: #sideblade-overlay, #sideblade
+         → Morphism: toggleBlade(), ingest()
+    ========================================= -->
+    <div id="sideblade-overlay">
+        <div id="sideblade">
+            <h3 style="color: var(--func); font-weight: bold;">INGEST CODE</h3>
+            <textarea id="paste-input" placeholder="Paste code here..."></textarea>
+            <div style="display: flex; gap: 0.5rem;">
+                <button onclick="INGEST.load()" class="tool-item" style="flex: 1; justify-content: center;">
+                    <span>LOAD</span>
+                </button>
+                <button onclick="INGEST.ingestSelf()" class="tool-item" style="flex: 1; justify-content: center;">
+                    <span>INGEST SELF</span>
+                </button>
+                <button onclick="INGEST.toggleBlade()" class="tool-item" style="flex: 1; justify-content: center;">
+                    <span>CANCEL</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- =========================================
+         LAYOUT.Header_Bar
+         → DOM: #header-bar
+         → Components: menu-trigger, nav-deck, theme-switch, play-btn
+    ========================================= -->
+    <button id="mobile-menu-btn" onclick="SIDEBAR.toggle()">
+        <i data-lucide="menu" style="color: var(--text-main);"></i>
+    </button>
+    
+    <header id="header-bar">
+        <div class="nav-deck">
+            <button class="nav-tab active" data-view="system" onclick="VIEW_MODE.switch('system')">SYSTEM</button>
+            <button class="nav-tab" data-view="story" onclick="VIEW_MODE.switch('story')">STORY</button>
+            <button class="nav-tab" data-view="code" onclick="VIEW_MODE.switch('code')">CODE</button>
+            <button class="nav-tab" data-view="preview" onclick="VIEW_MODE.switch('preview')">PREVIEW</button>
+        </div>
+        
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <!-- PREVIEW.play_btn -->
+            <button id="btn-play" onclick="AUTOPLAY.toggle()" title="Toggle Autoplay" style="padding: 0.5rem; border: 1px solid var(--border); border-radius: 0.375rem; background: var(--panel);">
+                <i data-lucide="play" style="color: var(--text-muted);"></i>
+            </button>
+            
+            <!-- THEME.Theme_Switcher -->
+            <div class="theme-switcher">
+                <button class="theme-btn active" data-theme="dark" onclick="THEME.set('dark')">DARK</button>
+                <button class="theme-btn" data-theme="parchment" onclick="THEME.set('parchment')">PARCH</button>
+                <button class="theme-btn" data-theme="terminal" onclick="THEME.set('terminal')">TERM</button>
+            </div>
+            
+            <!-- INGEST.Trigger -->
+            <button onclick="INGEST.toggleBlade()" title="Ingest Code" style="padding: 0.5rem; border: 1px solid var(--border); border-radius: 0.375rem; background: var(--panel);">
+                <i data-lucide="upload" style="color: var(--text-muted);"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- =========================================
+         E1.1: UI-Sidebar
+         → DOM: #sidebar
+         → Components: Header-Identity, Tools-Repository, Helper-Text, System-Status
+    ========================================= -->
+    <aside id="sidebar" class="sidebar sidebar-expanded">
+        <div style="height: var(--header-height); display: flex; align-items: center; padding: 0 1rem; border-bottom: 1px solid var(--border);">
+            <div id="header-icon" style="width: 2rem; height: 2rem; margin-right: 0.75rem;"></div>
+            <div style="display: flex; flex-direction: column; transition: opacity 0.3s var(--ease);">
+                <span style="font-weight: bold; color: var(--text-main);">ONTO-ANCESTOR</span>
+                <span style="font-size: 0.625rem; color: var(--func); text-transform: uppercase; letter-spacing: 0.1em;">Unified Reality</span>
+            </div>
+        </div>
+        
+        <div id="tools-list" style="flex: 1; overflow-y: auto; padding: 0.5rem;"></div>
+        
+        <!-- INGEST.Ingest_Box -->
+        <div class="ingest-box">
+            <textarea id="paste-input" placeholder="Paste code or node definitions..."></textarea>
+            <button onclick="INGEST.load()" class="tool-item" style="justify-content: center;">
+                <i data-lucide="upload" class="w-4 h-4"></i>
+                <span>LOAD CODE</span>
+            </button>
+        </div>
+        
+        <div style="padding: 0.5rem; text-align: center; font-size: 0.625rem; color: var(--text-muted);">
+            Tap to add • Drag to move • Click to inspect
+        </div>
+        
+        <div style="padding: 1rem; border-top: 1px solid var(--border);">
+            <div style="display: flex; justify-between; margin-bottom: 0.5rem;">
+                <span style="font-size: 0.75rem; color: var(--text-muted);">Storage</span>
+                <span id="storage-status" style="font-size: 0.75rem; color: #22c55e;">Synced</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.625rem; color: var(--text-muted);">
+                <div style="width: 0.5rem; height: 0.5rem; background: var(--panel); border: 1px solid var(--border); border-radius: 0.125rem;"></div>
+                <span>Local Persistence</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- =========================================
+         LAYOUT.Grid_Viewport + E1.2: Canvas-Workspace
+         → DOM: #canvas-area
+         → Contains: grid-lock (9x9), nodes-layer, connections-layer, preview-frame, code-editor
+    ========================================= -->
+    <main id="canvas-area">
+        <!-- Background Grid Effect (E1.2.1) -->
+        <div class="absolute inset-0 pointer-events-none opacity-10 animate-grid-fade" 
+             style="background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px); background-size: 40px 40px;">
+        </div>
+        
+        <!-- Square grid shell: all overlays live inside this 1:1 arena -->
+        <div id="grid-shell">
+            <!-- 9x9 Grid (LAYOUT.Grid_Viewport) -->
+            <div id="grid-lock"></div>
+            
+            <!-- Nodes Layer (E1.2.3) -->
+            <div id="nodes-layer"></div>
+            
+            <!-- Connections Layer (E1.2.5) -->
+            <svg id="connections-layer"></svg>
+            
+            <!-- Preview Frame (PREVIEW) -->
+            <iframe id="preview-frame"></iframe>
+            
+            <!-- Code Editor (RENDERER.Code_Styler) -->
+            <div id="code-editor"></div>
+            
+            <!-- Minimap (RENDERER.Minimap_Compressor) -->
+            <canvas id="minimap"></canvas>
+            
+            <!-- HUD Coordinates -->
+            <div class="absolute bottom-2 left-2 text-[10px] text-cyan-500/60 font-mono hidden md:block">XY: <span id="coords">000.000</span></div>
+        </div>
+    </main>
+
+    <!-- =========================================
+         E1.3: Inspector-Panel
+         → DOM: #inspector
+         → Components: Header-Identity, Property-Editor, Data-Structure-Viewer, Action-Footer
+    ========================================= -->
+    <aside id="inspector" class="inspector-collapsed">
+        <div style="height: 3rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-between; padding: 0 1rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <div class="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div>
+                <span style="font-weight: bold; color: var(--text-main);">Inspector</span>
+            </div>
+            <button onclick="INSPECTOR.close()" style="color: var(--text-muted);">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+        </div>
+        
+        <div id="inspector-content" style="flex: 1; overflow-y: auto; padding: 1rem;"></div>
+        
+        <div style="padding: 1rem; border-top: 1px solid var(--border);">
+            <button onclick="INSPECTOR.delete()" style="width: 100%; padding: 0.75rem; background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid #f87171; border-radius: 0.375rem; font-size: 0.75rem; font-weight: bold; text-transform: uppercase;">
+                DELETE ENTITY
+            </button>
+        </div>
+    </aside>
+
+    <!-- =========================================
+         E1.4: Console-System
+         → DOM: #console-panel
+         → Components: Header-Toggle-Bar, Log-Message-Stream
+    ========================================= -->
+    <div id="console-panel" style="height: var(--console-height);">
+        <div id="console-header" style="height: 2rem; background: var(--surface); display: flex; align-items: center; justify-between; padding: 0 1rem; cursor: pointer; border-bottom: 1px solid var(--border);" onclick="CONSOLE.toggle()">
+            <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-muted); font-size: 0.75rem; font-weight: bold;">
+                <i data-lucide="terminal" class="w-3 h-3"></i>
+                <span>SYSTEM CONSOLE</span>
+            </div>
+            <i id="console-toggle-icon" data-lucide="chevron-down" class="w-3 h-3 text-slate-400"></i>
+        </div>
+        <div id="console-content" style="height: calc(100% - 2rem); overflow-y: auto; padding: 0.5rem;"></div>
+    </div>
+
+    <script>
+        // =========================================
+        // ONTOLOGICAL LOG TABLE (Olog)
+        // =========================================
+        // This table maps all entities, components, features, and morphisms
+        // from both OLOG 1 (LEGOS-GPT) and OLOG 2 (Inception)
+        // to their implementations in this code.
+        //
+        // Format: [Subject, Predicate, Object, Morphism, Olog_Source]
+        // =========================================
+        const OLOG_TABLE = [
+            // THEME_SYSTEM
+            ["THEME", "definesVariable", "--bg, --panel, --surface", "CSS :root", "OLOG 2"],
+            ["THEME", "definesVariable", "--func, --var, --tag, --ctrl", "CSS :root", "OLOG 2"],
+            ["THEME", "appliesMode", "dark|parchment|terminal", "THEME.set()", "OLOG 2"],
+            
+            // UI_LAYOUT
+            ["LAYOUT", "contains", "Header_Bar", "#header-bar", "OLOG 2"],
+            ["LAYOUT", "contains", "Grid_Viewport", "#canvas-area", "OLOG 2"],
+            ["LAYOUT", "contains", "Sidebar", "#sidebar", "OLOG 1"],
+            ["LAYOUT", "contains", "Inspector", "#inspector", "OLOG 1"],
+            ["LAYOUT", "contains", "Console", "#console-panel", "OLOG 1"],
+            ["LAYOUT", "layering", "z-index: 500, 900, 999, 200", "CSS z-index", "OLOG 1"],
+            
+            // STATE_MANAGEMENT
+            ["STATE", "stores", "systemNodes", "Array", "OLOG 1"],
+            ["STATE", "stores", "blocks", "Array(81)", "OLOG 2"],
+            ["STATE", "stores", "edges", "Edge[]", "OLOG 2"],
+            ["STATE", "stores", "definitions", "Map", "OLOG 2"],
+            ["STATE", "stores", "activeIdx", "Number|null", "OLOG 2"],
+            ["STATE", "stores", "previewMode", "Boolean", "OLOG 2"],
+            ["STATE", "stores", "viewMode", "'system'|'story'|'code'|'preview'", "OLOG 1+2"],
+            
+            // PARSER_ENGINE
+            ["PARSER", "pattern", "fnRegex, vrRegex, tagRegex", "RegExp literals", "OLOG 2"],
+            ["PARSER", "transforms", "lines → blocks", "parse()", "OLOG 2"],
+            ["PARSER", "transforms", "lines → nodes", "parseNodeDefs()", "OLOG 1"],
+            
+            // VISUAL_RENDERER
+            ["RENDERER", "renders", "nodes → DOM", "renderNodes()", "OLOG 1"],
+            ["RENDERER", "renders", "blocks → grid", "renderBlocks()", "OLOG 2"],
+            ["RENDERER", "renders", "edges → SVG", "drawWires()", "OLOG 2"],
+            ["RENDERER", "renders", "connections → SVG", "renderConnections()", "OLOG 1"],
+            ["RENDERER", "creates", "minimap", "xray()", "OLOG 2"],
+            
+            // NAVIGATION_CONTROLLER
+            ["NAV", "manages", "focus", "activeIdx", "OLOG 2"],
+            ["NAV", "controls", "xray state", "xray()", "OLOG 2"],
+            ["NAV", "controls", "breadcrumb", "updateBranch()", "OLOG 2"],
+            ["NAV", "controls", "node selection", "selectNode()", "OLOG 1"],
+            
+            // SIDEBAR
+            ["E1.1", "collapsibility", "width: 0 ↔ 288px", "toggleSidebar()", "OLOG 1"],
+            ["E1.1", "tools", "Tools-Repository", "renderTools()", "OLOG 1"],
+            
+            // INSPECTOR
+            ["E1.3", "edits", "node properties", "updateLabel()", "OLOG 1"],
+            ["E1.3", "deletes", "nodes", "deleteNode()", "OLOG 1"],
+            ["E1.3", "mobile", "modal transform", "CSS media query", "OLOG 1"],
+            
+            // CONSOLE
+            ["E1.4", "logs", "messages", "logToConsole()", "OLOG 1"],
+            ["E1.4", "collapsibility", "height: 32px ↔ 256px", "toggleConsole()", "OLOG 1"],
+            
+            // TOAST
+            ["E1.5", "notifies", "user", "showToast()", "OLOG 1"],
+            ["E1.5", "lifecycle", "3000ms auto-destruct", "setTimeout()", "OLOG 1"],
+            
+            // PERSISTENCE
+            ["E1.7", "stores", "state", "localStorage.setItem()", "OLOG 1+2"],
+            ["E1.7", "loads", "state", "localStorage.getItem()", "OLOG 1+2"],
+            
+            // EVENT_DISPATCHER
+            ["E1.8", "handles", "mouse/touch", "startDrag(), handleDragMove()", "OLOG 1"],
+            ["E1.8", "handles", "resize", "ResizeObserver", "OLOG 2"],
+            ["E1.8", "prevents", "default scroll", "e.preventDefault()", "OLOG 1"],
+            
+            // VIEW_MODE
+            ["E1.9", "switches", "view modes", "switchView()", "OLOG 1"],
+            ["E1.9", "arranges", "tree layout", "arrangeAsTree()", "OLOG 1"],
+            ["E1.9", "arranges", "grid layout", "renderBlocks()", "OLOG 2"],
+            
+            // ICONS
+            ["E1.10", "generates", "isometric icons", "Icons[iconKey]()", "OLOG 1"],
+            ["E1.10", "generates", "code symbols", "symbolFromBlock()", "OLOG 2"],
+            
+            // INGEST
+            ["INGEST", "loads", "external code", "ingestCode()", "OLOG 2"],
+            ["INGEST", "reloads", "self", "ingestSelf()", "OLOG 2"],
+            
+            // PREVIEW
+            ["PREVIEW", "renders", "iframe", "setMode('run')", "OLOG 2"],
+            ["PREVIEW", "highlights", "DOM elements", "highlightPreviewElement()", "OLOG 2"],
+            
+            // AUTOPLAY
+            ["AUTOPLAY", "sequences", "activeIdx", "setInterval()", "OLOG 2"],
+            ["AUTOPLAY", "toggles", "play state", "toggleAutoplay()", "OLOG 2"],
+            
+            // LIVE_RELOAD
+            ["LIVERELOAD", "listens", "WebSocket", "new WebSocket()", "OLOG 2"],
+            ["LIVERELOAD", "triggers", "reload", "window.location.reload()", "OLOG 2"],
+        ];
+
+        // =========================================
+        // STATE_MANAGEMENT (E1.6 + STATE)
+        // Unified state combining both ologs
+        // =========================================
+        const STATE_VERSION = 1;
+
+        const STATE = {
+            // OLOG 1: LEGOS-GPT state
+            systemNodes: [],
+            selectedNodeId: null,
+            viewMode: 'system',
+            snapToGrid: false,
+            sidebarOpen: window.innerWidth > 768,
+            consoleOpen: typeof window !== 'undefined' && window.innerWidth > 768,
+            
+            // OLOG 2: Inception state
+            lines: [],
+            blocks: Array(81).fill(null),
+            edges: [],
+            definitions: new Map(),
+            lineData: [],
+            scopes: [],
+            activeIdx: null,
+            autoplayInterval: null,
+            previewMode: false,
+            
+            // Combined theme state
+            theme: 'dark',
+            
+            // Derived state
+            get isDragging() { return !!this.draggedNodeId; },
+            draggedNodeId: null,
+            lastX: 0,
+            lastY: 0
+        };
+
+        // =========================================
+        // GRID HELPERS
+        // Map between 9×9 grid coordinates and percentage positions
+        // =========================================
+        const GRID = {
+            center(col, row) {
+                const step = 100 / 9;
+                const x = (col + 0.5) * step;
+                const y = (row + 0.5) * step;
+                return { x, y, row, col, cellIndex: row * 9 + col };
+            },
+            snap(x, y) {
+                const step = 100 / 9;
+                const col = Math.max(0, Math.min(8, Math.round(x / step - 0.5)));
+                const row = Math.max(0, Math.min(8, Math.round(y / step - 0.5)));
+                return this.center(col, row);
+            }
+        };
+
+        // =========================================
+        // THEME (THEME_SYSTEM)
+        // =========================================
+        const THEME = {
+            set(mode) {
+                document.body.setAttribute('data-theme', mode);
+                STATE.theme = mode;
+                document.querySelectorAll('.theme-btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.theme === mode);
+                });
+                LOG.toast(`Theme: ${mode}`);
+            }
+        };
+
+        // =========================================
+        // ICONS (E1.10: Icon-Rendering-Engine)
+        // =========================================
+        const ICONS = {
+            // Isometric icons from OLOG 1
+            getIsoCube(color = "blue", opacity = 1) {
+                const colors = {
+                    blue: { top: '#60a5fa', left: '#3b82f6', right: '#2563eb' },
+                    yellow: { top: '#fcd34d', left: '#f59e0b', right: '#d97706' },
+                    cyan: { top: '#22d3ee', left: '#06b6d4', right: '#0891b2' },
+                    purple: { top: '#e879f9', left: '#c026d3', right: '#a21caf' },
+                    green: { top: '#4ade80', left: '#16a34a', right: '#15803d' }
+                };
+                const c = colors[color] || colors.blue;
+                return `
+                <svg viewBox="0 0 40 40" class="w-full h-full drop-shadow-lg" style="opacity: ${opacity}">
+                    <path d="M20 4 L36 12 L20 20 L4 12 Z" fill="${c.top}" stroke="#1e293b" stroke-width="1" />
+                    <path d="M4 12 L20 20 L20 38 L4 30 Z" fill="${c.left}" stroke="#1e293b" stroke-width="1" />
+                    <path d="M36 12 L20 20 L20 38 L36 30 Z" fill="${c.right}" stroke="#1e293b" stroke-width="1" />
+                </svg>`;
+            },
+            
+            Entity: () => ICONS.getIsoCube('blue'),
+            Core: () => ICONS.getIsoCube('yellow'),
+            Goal: () => `<div class="relative w-full h-full"><div class="absolute -top-2 left-0 right-0 mx-auto w-4 h-4 flex justify-center items-center text-yellow-400 animate-pulse"><i data-lucide="target" class="w-4 h-4"></i></div>${ICONS.getIsoCube('blue')}<div class="absolute top-0 left-0 right-0 mx-auto w-0.5 h-4 bg-yellow-400/50 -z-10 transform -translate-y-2"></div></div>`,
+            Obstacle: () => `<div class="relative w-full h-full flex items-center justify-center"><div class="w-3/4 h-3/4 relative">${ICONS.getIsoCube('blue')}</div><div class="absolute right-0 h-full w-1 bg-slate-400/80 shadow-[0_0_10px_rgba(148,163,184,0.5)]"></div><div class="absolute right-1 top-1/2 w-3 h-0.5 bg-yellow-400"></div></div>`,
+            Morphism: () => `<div class="relative w-full h-full flex items-center justify-between"><div class="w-5 h-5">${ICONS.getIsoCube('blue')}</div><div class="flex-1 h-0.5 bg-yellow-400 mx-1 relative"><div class="absolute right-0 -top-1 w-0 h-0 border-t-4 border-t-transparent border-b-4 border-b-transparent border-l-4 border-l-yellow-400"></div></div><div class="w-5 h-5">${ICONS.getIsoCube('blue')}</div></div>`,
+            Shift: () => `<div class="relative w-full h-full flex items-center justify-center"><div class="w-5 h-5 opacity-50">${ICONS.getIsoCube('blue')}</div><div class="absolute z-10 text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.8)]"><i data-lucide="zap" class="w-5 h-5 fill-current"></i></div><div class="w-5 h-5 opacity-50">${ICONS.getIsoCube('blue')}</div></div>`,
+            Location: () => `<div class="relative w-full h-full flex items-center justify-center"><div class="absolute top-0 right-0 w-4 h-4">${ICONS.getIsoCube('cyan')}</div><div class="absolute bottom-0 left-0 w-4 h-4">${ICONS.getIsoCube('cyan')}</div><svg class="absolute inset-0 w-full h-full pointer-events-none"><path d="M14 26 C 14 26, 20 20, 26 14" stroke="#22d3ee" stroke-width="2" fill="none" stroke-linecap="round" /><polygon points="26 14, 22 15, 25 18" fill="#22d3ee" /></svg></div>`,
+            Timepoint: () => `<div class="relative w-full h-full flex items-center justify-center"><div class="w-3/4 h-3/4">${ICONS.getIsoCube('cyan')}</div><div class="absolute -right-1 -bottom-1 w-5 h-5 bg-[#0f172a] rounded-full border border-cyan-500 flex items-center justify-center"><i data-lucide="clock" class="w-3 h-3 text-cyan-400"></i></div></div>`,
+            Scene: () => `<div class="relative w-full h-full flex items-center justify-center p-1"><div class="absolute top-0 left-0 w-2 h-2 border-l-2 border-t-2 border-cyan-400"></div><div class="absolute top-0 right-0 w-2 h-2 border-r-2 border-t-2 border-cyan-400"></div><div class="absolute bottom-0 left-0 w-2 h-2 border-l-2 border-b-2 border-cyan-400"></div><div class="absolute bottom-0 right-0 w-2 h-2 border-r-2 border-b-2 border-cyan-400"></div><div class="flex gap-0.5"><div class="w-3 h-3">${ICONS.getIsoCube('cyan')}</div><div class="w-3 h-3">${ICONS.getIsoCube('cyan')}</div></div></div>`,
+            Story: () => `<div class="relative w-full h-full flex flex-col items-center justify-start pt-1"><div class="w-4 h-4 z-10">${ICONS.getIsoCube('cyan')}</div><div class="w-0.5 h-2 bg-cyan-500/50"></div><div class="w-full h-0.5 bg-cyan-500/50 relative"><div class="absolute left-0 bottom-0 w-0.5 h-2 bg-cyan-500/50 transform translate-y-full"></div><div class="absolute right-0 bottom-0 w-0.5 h-2 bg-cyan-500/50 transform translate-y-full"></div><div class="absolute left-1/2 bottom-0 w-0.5 h-2 bg-cyan-500/50 transform translate-y-full -translate-x-1/2"></div></div><div class="flex gap-1 mt-2"><div class="w-2.5 h-2.5">${ICONS.getIsoCube('cyan')}</div><div class="w-2.5 h-2.5">${ICONS.getIsoCube('cyan')}</div><div class="w-2.5 h-2.5">${ICONS.getIsoCube('cyan')}</div></div></div>`
+        };
+
+        // =========================================
+        // PARSER (PARSER_ENGINE + E1.1.2)
+        // =========================================
+        const PARSER = {
+            patterns: {
+                fn: /(?:function|class)\s+(\w+)|(\w+)\s*\(/,
+                vr: /(?:const|let|var)\s+(\w+)/,
+                tag: /^<(\w+)/,
+                comment: /\/\/(.*)$/,
+                scopeStart: /[{([]/,
+                scopeEnd: /[}\])]/
+            },
+            
+            parseCode(text) {
+                const lines = text.split('\n').filter(l => l.trim());
+                STATE.lines = lines;
+                STATE.lineData = [];
+                STATE.scopes = [];
+                STATE.definitions.clear();
+                STATE.blocks = Array(81).fill(null);
+                STATE.edges = [];
+                
+                const scopeStack = [];
+                let scopeId = 0;
+                const lpc = Math.ceil(lines.length / 81);
+                
+                lines.forEach((line, i) => {
+                    const cellIdx = Math.floor(i / lpc);
+                    const trimmed = line.trim();
+                    
+                    // Determine type
+                    let type = 'other';
+                    let name = null;
+                    let match;
+                    
+                    if ((match = trimmed.match(this.patterns.tag))) {
+                        type = 'tag';
+                        name = match[1];
+                    } else if ((match = trimmed.match(this.patterns.fn))) {
+                        type = 'func';
+                        name = match[1] || match[2];
+                    } else if ((match = trimmed.match(this.patterns.vr))) {
+                        type = 'var';
+                        name = match[1];
+                    } else if ((match = trimmed.match(this.patterns.comment))) {
+                        type = 'comment';
+                    }
+                    
+                    STATE.lineData.push({ type, index: i });
+                    
+                    // Create block if cell is empty
+                    if (!STATE.blocks[cellIdx]) {
+                        STATE.blocks[cellIdx] = {
+                            idx: cellIdx,
+                            data: { line: i, type, length: 1 },
+                            calls: [],
+                            deps: [],
+                            names: name ? [name] : []
+                        };
+                        if (name) STATE.definitions.set(name, cellIdx);
+                    }
+                    
+                    // Track scopes
+                    const chars = trimmed.split('');
+                    chars.forEach(ch => {
+                        if (this.patterns.scopeStart.test(ch)) {
+                            scopeStack.push({
+                                id: scopeId++,
+                                start: { line: i, ch: 0 },
+                                end: null,
+                                lines: []
+                            });
+                        } else if (this.patterns.scopeEnd.test(ch) && scopeStack.length) {
+                            const scope = scopeStack.pop();
+                            scope.end = { line: i, ch: 0 };
+                            scope.lines = lines.slice(scope.start.line, scope.end.line + 1);
+                            STATE.scopes.push(scope);
+                        }
+                    });
+                });
+                
+                // Scan for dependencies
+                STATE.blocks.forEach(block => {
+                    if (!block) return;
+                    const lineContent = lines[block.data.line] || '';
+                    const words = lineContent.match(/\w+/g) || [];
+                    words.forEach(word => {
+                        if (STATE.definitions.has(word) && !block.names.includes(word)) {
+                            const targetIdx = STATE.definitions.get(word);
+                            if (targetIdx !== block.idx) {
+                                block.deps.push(targetIdx);
+                                if (!STATE.blocks[targetIdx].callers) {
+                                    STATE.blocks[targetIdx].callers = [];
+                                }
+                                STATE.blocks[targetIdx].callers.push(block.idx);
+                            }
+                        }
+                    });
+                });
+                
+                LOG.info("Parsed code into blocks and scopes");
+            },
+            
+            parseNodeDefs(text) {
+                try {
+                    const defs = JSON.parse(text);
+                    if (Array.isArray(defs)) {
+                        STATE.systemNodes = defs.map(node => ({
+                            ...node,
+                            icon: node.icon || 'Entity'
+                        }));
+                        LOG.info("Loaded node definitions");
+                    }
+                } catch(e) {
+                    LOG.warn("Not valid node JSON, parsing as code");
+                    this.parseCode(text);
+                }
+            }
+        };
+
+        // =========================================
+        // RENDERER (VISUAL_RENDERER + E1.2 + E1.10)
+        // =========================================
+        const RENDERER = {
+            nodes() {
+                const container = document.getElementById('nodes-layer');
+                container.innerHTML = STATE.systemNodes.map(node => {
+                    const isSelected = STATE.selectedNodeId === node.id;
+                    const iconFn = ICONS[node.icon] || ICONS.Entity;
+                    return `
+                    <div class="node-instance ${isSelected ? 'selected' : ''}" 
+                         style="left: ${node.x}%; top: ${node.y}%;"
+                         data-node-id="${node.id}"
+                         onmousedown="EVENTS.startDrag(event, ${node.id})"
+                         ontouchstart="EVENTS.startDrag(event, ${node.id})"
+                         onclick="INSPECTOR.select(${node.id})">
+                        <div class="node-halo"></div>
+                        <div class="w-16 h-16 drop-shadow-2xl">
+                            ${iconFn()}
+                        </div>
+                        <div class="absolute -bottom-6 left-1/2 transform -translate-x-1/2 whitespace-nowrap px-2 py-0.5 bg-[var(--panel)]/90 border border-cyan-500/30 rounded text-[10px] text-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                            &lt;${node.label}&gt;
+                        </div>
+                    </div>`;
+                }).join('');
+                lucide.createIcons();
+            },
+            
+            blocks() {
+                const container = document.getElementById('grid-lock');
+                container.innerHTML = '';
+                
+                for (let i = 0; i < 81; i++) {
+                    const block = STATE.blocks[i];
+                    const cell = document.createElement('div');
+                    cell.className = 'grid-cell';
+                    cell.dataset.index = i;
+                    
+                    if (block) {
+                        cell.classList.add('focus');
+                        const symbol = this.symbolFromBlock(block);
+                        cell.innerHTML = `<div style="font-size: 1.5rem;">${symbol}</div>`;
+                        cell.onclick = () => {
+                            STATE.activeIdx = i;
+                            NAV.xray(i);
+                        };
+                        
+                        if (STATE.activeIdx === i) {
+                            cell.classList.add('ring-2', 'ring-cyan-400');
+                        }
+                    }
+                    
+                    container.appendChild(cell);
+                }
+            },
+            
+            symbolFromBlock(block) {
+                const type = block.data?.type || 'other';
+                const symbols = {
+                    func: '⚡',
+                    var: '◆',
+                    tag: '◻',
+                    comment: '//',
+                    other: '○'
+                };
+                return symbols[type] || '○';
+            },
+            
+            connections() {
+                const svg = document.getElementById('connections-layer');
+                if (!svg) return;
+                
+                svg.innerHTML = '';
+                
+                // Render node connections (OLOG 1)
+                if (STATE.viewMode === 'system' || STATE.viewMode === 'story') {
+                    this.renderNodeConnections(svg);
+                }
+                
+                // Render code edges (OLOG 2)
+                if (STATE.viewMode === 'code' && STATE.edges.length) {
+                    this.renderCodeEdges(svg);
+                }
+            },
+            
+            renderNodeConnections(svg) {
+                const core = STATE.systemNodes.find(n => n.id === 1);
+                if (!core) return;
+                
+                const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+                const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+                marker.setAttribute('id', 'arrowhead');
+                marker.setAttribute('markerWidth', '10');
+                marker.setAttribute('markerHeight', '7');
+                marker.setAttribute('refX', '28');
+                marker.setAttribute('refY', '3.5');
+                marker.setAttribute('orient', 'auto');
+                marker.innerHTML = '<polygon points="0 0, 10 3.5, 0 7" fill="#0ea5e9" opacity="0.5" />';
+                defs.appendChild(marker);
+                svg.appendChild(defs);
+                
+                STATE.systemNodes.forEach(node => {
+                    if (node.id === 1) return;
+                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    line.setAttribute('x1', `${core.x}%`);
+                    line.setAttribute('y1', `${core.y}%`);
+                    line.setAttribute('x2', `${node.x}%`);
+                    line.setAttribute('y2', `${node.y}%`);
+                    line.setAttribute('stroke', '#0ea5e9');
+                    line.setAttribute('stroke-width', '1');
+                    line.setAttribute('stroke-opacity', '0.3');
+                    line.setAttribute('marker-end', 'url(#arrowhead)');
+                    svg.appendChild(line);
+                });
+            },
+            
+            renderCodeEdges(svg) {
+                STATE.edges.forEach(edge => {
+                    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    const x1 = (edge.from % 9) * (100 / 9) + (100 / 18);
+                    const y1 = Math.floor(edge.from / 9) * (100 / 9) + (100 / 18);
+                    const x2 = (edge.to % 9) * (100 / 9) + (100 / 18);
+                    const y2 = Math.floor(edge.to / 9) * (100 / 9) + (100 / 18);
+                    
+                    const d = `M ${x1}% ${y1}% C ${x1 + 10}% ${y1}%, ${x2 - 10}% ${y2}%, ${x2}% ${y2}%`;
+                    path.setAttribute('d', d);
+                    path.setAttribute('stroke', 'var(--wire-base)');
+                    path.setAttribute('stroke-width', '2');
+                    path.setAttribute('fill', 'none');
+                    path.setAttribute('opacity', '0.6');
+                    svg.appendChild(path);
+                });
+            },
+            
+            code() {
+                const editor = document.getElementById('code-editor');
+                editor.innerHTML = STATE.lines.map((line, i) => {
+                    const isActive = STATE.activeIdx !== null && 
+                        Math.floor(i / Math.ceil(STATE.lines.length / 81)) === STATE.activeIdx;
+                    
+                    // Syntax highlighting
+                    let highlighted = line
+                        .replace(/(function|class|const|let|var)/g, '<span class="token-ctrl">$1</span>')
+                        .replace(/(\w+)\s*\(/g, '<span class="token-func">$1</span>(')
+                        .replace(/(\w+)\s*=/g, '<span class="token-var">$1</span> =')
+                        .replace(/<(\w+)/g, '&lt;<span class="token-tag">$1</span>')
+                        .replace(/(\/\/.*$)/gm, '<span class="token-comment">$1</span>');
+                    
+                    return `<div class="line ${isActive ? 'active' : ''}" data-line="${i}">${highlighted}</div>`;
+                }).join('');
+            },
+            
+            preview() {
+                const frame = document.getElementById('preview-frame');
+                if (!STATE.previewMode || !STATE.lines.length) return;
+                
+                const blob = new Blob([STATE.lines.join('\n')], { type: 'text/html' });
+                frame.src = URL.createObjectURL(blob);
+                LOG.info("Preview rendered");
+            }
+        };
+
+        // =========================================
+        // NAV (NAVIGATION_CONTROLLER + E1.3)
+        // =========================================
+        const NAV = {
+            xray(idx) {
+                STATE.activeIdx = idx;
+                
+                // Clear previous states
+                document.querySelectorAll('.grid-cell').forEach(cell => {
+                    cell.classList.remove('ring-2', 'ring-cyan-400');
+                });
+                document.querySelectorAll('.line').forEach(line => {
+                    line.classList.remove('active');
+                });
+                
+                // Apply new focus
+                const block = STATE.blocks[idx];
+                if (block) {
+                    const cell = document.querySelector(`[data-index="${idx}"]`);
+                    if (cell) cell.classList.add('ring-2', 'ring-cyan-400');
+                    
+                    const lineEl = document.querySelector(`[data-line="${block.data.line}"]`);
+                    if (lineEl) lineEl.classList.add('active');
+                    
+                    // Scroll to line
+                    lineEl?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                
+                RENDERER.connections();
+                RENDERER.blocks();
+            },
+            
+            scrollToLine(idx) {
+                if (idx === null || idx === undefined) return;
+                const lineEl = document.querySelector(`[data-line="${idx}"]`);
+                lineEl?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            },
+            
+            updateBranch() {
+                const branch = document.getElementById('branch-bar');
+                if (!branch || !STATE.scopes.length) return;
+                
+                const currentScope = STATE.scopes.find(s => 
+                    s.start.line <= (STATE.activeIdx !== null ? Math.floor(STATE.activeIdx * (STATE.lines.length / 81)) : 0) && 
+                    s.end.line >= (STATE.activeIdx !== null ? Math.floor(STATE.activeIdx * (STATE.lines.length / 81)) : 0)
+                );
+                
+                if (!currentScope) return;
+                
+                branch.innerHTML = currentScope.lines.map((line, i) => `
+                    <div class="crumb" onclick="NAV.scrollToLine(${currentScope.start.line + i})">
+                        <i data-lucide="code" class="w-3 h-3"></i>
+                        <span>${line.trim().substring(0, 20)}...</span>
+                    </div>
+                `).join('');
+                lucide.createIcons();
+            }
+        };
+
+        // =========================================
+        // SIDEBAR (E1.1)
+        // =========================================
+        const SIDEBAR = {
+            toggle() {
+                STATE.sidebarOpen = !STATE.sidebarOpen;
+                const sidebar = document.getElementById('sidebar');
+                sidebar.classList.toggle('sidebar-collapsed', !STATE.sidebarOpen);
+                sidebar.classList.toggle('sidebar-expanded', STATE.sidebarOpen);
+                
+                const btn = document.getElementById('mobile-menu-btn');
+                if (STATE.sidebarOpen) btn.classList.add('hidden');
+                else btn.classList.remove('hidden');
+                
+                LOG.toast(STATE.sidebarOpen ? 'Sidebar opened' : 'Sidebar collapsed');
+            },
+            
+            renderTools() {
+                const tools = [
+                    { label: 'Entity', icon: 'Entity' },
+                    { label: 'Core', icon: 'Core' },
+                    { label: 'Goal', icon: 'Goal' },
+                    { label: 'Obstacle', icon: 'Obstacle' },
+                    { label: 'Morphism', icon: 'Morphism' },
+                    { label: 'Shift', icon: 'Shift' },
+                    { label: 'Location', icon: 'Location' },
+                    { label: 'Timepoint', icon: 'Timepoint' },
+                    { label: 'Scene', icon: 'Scene' },
+                    { label: 'Story', icon: 'Story' }
+                ];
+                
+                const container = document.getElementById('tools-list');
+                container.innerHTML = tools.map(tool => `
+                    <div class="tool-item" onclick="SIDEBAR.addNode('${tool.label}', '${tool.icon}')">
+                        <div class="icon">${ICONS[tool.icon]()}</div>
+                        <div style="display: flex; flex-direction: column;">
+                            <span style="font-size: 0.875rem; color: var(--text-main);">${tool.label}</span>
+                            <span style="font-size: 0.625rem; color: var(--text-muted);">&lt;${tool.icon}&gt;</span>
+                        </div>
+                        <div style="margin-left: auto; color: var(--text-muted);">
+                            <i data-lucide="plus" class="w-3 h-3"></i>
+                        </div>
+                    </div>
+                `).join('');
+                lucide.createIcons();
+            },
+            
+            addNode(type, iconKey) {
+                const id = Date.now();
+                // Start near center, then snap to nearest grid cell
+                const jitterX = 50 + (Math.random() * 10 - 5);
+                const jitterY = 50 + (Math.random() * 10 - 5);
+                const snapped = GRID.snap(jitterX, jitterY);
+                const newNode = {
+                    id,
+                    type: type.toLowerCase(),
+                    icon: iconKey,
+                    label: `${type}<${type}>`,
+                    x: snapped.x,
+                    y: snapped.y
+                };
+                
+                STATE.systemNodes.push(newNode);
+                RENDERER.nodes();
+                RENDERER.connections();
+                PERSISTENCE.save();
+                
+                INSPECTOR.select(id);
+                LOG.toast(`Added ${type}`);
+                
+                if (window.innerWidth <= 768) this.toggle();
+            }
+        };
+
+        // =========================================
+        // INSPECTOR (E1.3)
+        // =========================================
+        const INSPECTOR = {
+            select(id) {
+                STATE.selectedNodeId = id;
+                RENDERER.nodes();
+                
+                const node = STATE.systemNodes.find(n => n.id === id);
+                if (!node) return;
+                
+                const content = document.getElementById('inspector-content');
+                content.innerHTML = `
+                    <div class="space-y-4 animate-fade-up">
+                        <div class="space-y-2">
+                            <label class="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">Identity</label>
+                            <div class="p-3 rounded bg-slate-800/50 border border-slate-700/50 space-y-2">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm text-slate-400">ID</span>
+                                    <span class="text-xs font-mono text-cyan-500">#${node.id.toString().slice(-4)}</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm text-slate-400">Type</span>
+                                    <span class="text-xs font-mono text-yellow-500 uppercase">${node.type}</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm text-slate-400">Label</span>
+                                    <input type="text" value="${node.label}" 
+                                           onchange="INSPECTOR.updateLabel(${node.id}, this.value)"
+                                           class="text-right text-sm bg-transparent border-b border-slate-600 focus:border-cyan-500 outline-none text-white w-32" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">Data Structure</label>
+                            <pre class="bg-[#0b1121] p-4 rounded border border-slate-700/50 font-mono text-xs text-slate-300 overflow-x-auto">
+node:
+  id: "${node.label}"
+  class: ${node.type}
+  coordinates: [${Math.round(node.x)}, ${Math.round(node.y)}]
+  meta:
+    status: active
+    icon_key: "${node.icon}"</pre>
+                        </div>
+                    </div>
+                `;
+                
+                const inspector = document.getElementById('inspector');
+                inspector.classList.remove('inspector-collapsed');
+                inspector.classList.add('inspector-expanded', 'animate-slide-in-right');
+            },
+            
+            updateLabel(id, value) {
+                const node = STATE.systemNodes.find(n => n.id === id);
+                if (node) {
+                    node.label = value;
+                    RENDERER.nodes();
+                    LOG.toast(`Label updated`);
+                    PERSISTENCE.save();
+                }
+            },
+            
+            delete() {
+                if (!STATE.selectedNodeId) return;
+                if (STATE.selectedNodeId === 1) {
+                    LOG.toast("Cannot delete core system");
+                    return;
+                }
+                
+                STATE.systemNodes = STATE.systemNodes.filter(n => n.id !== STATE.selectedNodeId);
+                STATE.selectedNodeId = null;
+                
+                RENDERER.nodes();
+                RENDERER.connections();
+                this.close();
+                LOG.toast("Entity deleted");
+                PERSISTENCE.save();
+            },
+            
+            close() {
+                STATE.selectedNodeId = null;
+                const inspector = document.getElementById('inspector');
+                inspector.classList.add('inspector-collapsed');
+                inspector.classList.remove('inspector-expanded');
+                RENDERER.nodes();
+            }
+        };
+
+        // =========================================
+        // CONSOLE (E1.4)
+        // =========================================
+        const CONSOLE = {
+            toggle() {
+                STATE.consoleOpen = !STATE.consoleOpen;
+                const panel = document.getElementById('console-panel');
+                panel.classList.toggle('console-collapsed', !STATE.consoleOpen);
+                
+                const icon = document.getElementById('console-toggle-icon');
+                icon.setAttribute('data-lucide', STATE.consoleOpen ? 'chevron-down' : 'chevron-up');
+                lucide.createIcons();
+            },
+            
+            log(type, msg) {
+                const container = document.getElementById('console-content');
+                const entry = document.createElement('div');
+                entry.className = `log-entry log-${type.toLowerCase()}`;
+                entry.innerHTML = `<span class="font-bold">${type}</span> <span>${msg}</span>`;
+                container.prepend(entry);
+            }
+        };
+
+        // =========================================
+        // EVENTS (EVENT_DISPATCHER + E1.8)
+        // =========================================
+        const EVENTS = {
+            startDrag(e, id) {
+                STATE.isDragging = true;
+                STATE.draggedNodeId = id;
+                
+                const evt = e.touches ? e.touches[0] : e;
+                STATE.lastX = evt.clientX;
+                STATE.lastY = evt.clientY;
+                
+                document.body.style.cursor = 'grabbing';
+                e.preventDefault();
+            },
+            
+            handleDragMove(e) {
+                if (!STATE.isDragging || !STATE.draggedNodeId) return;
+                e.preventDefault();
+                
+                const evt = e.touches ? e.touches[0] : e;
+                const deltaX = evt.clientX - STATE.lastX;
+                const deltaY = evt.clientY - STATE.lastY;
+                
+                STATE.lastX = evt.clientX;
+                STATE.lastY = evt.clientY;
+                
+                const canvasRect = document.getElementById('canvas-area').getBoundingClientRect();
+                const percentX = (deltaX / canvasRect.width) * 100;
+                const percentY = (deltaY / canvasRect.height) * 100;
+                
+                const node = STATE.systemNodes.find(n => n.id === STATE.draggedNodeId);
+                if (node) {
+                    let newX = Math.max(0, Math.min(100, node.x + percentX));
+                    let newY = Math.max(0, Math.min(100, node.y + percentY));
+                    
+                    if (STATE.snapToGrid) {
+                        newX = Math.round(newX / 5) * 5;
+                        newY = Math.round(newY / 5) * 5;
+                    }
+                    
+                    node.x = newX;
+                    node.y = newY;
+                    
+                    const el = document.querySelector(`[data-node-id="${node.id}"]`);
+                    if (el) {
+                        el.style.left = `${node.x}%`;
+                        el.style.top = `${node.y}%`;
+                    }
+                    
+                    document.getElementById('coords').innerText = `${node.x.toFixed(1)}, ${node.y.toFixed(1)}`;
+                    RENDERER.connections();
+                }
+            },
+            
+            handleDragEnd() {
+                if (!STATE.isDragging) return;
+                const node = STATE.systemNodes.find(n => n.id === STATE.draggedNodeId);
+                if (node) {
+                    // Hard snap to nearest 9×9 cell when drag finishes
+                    const snapped = GRID.snap(node.x, node.y);
+                    node.x = snapped.x;
+                    node.y = snapped.y;
+                    const el = document.querySelector(`[data-node-id="${node.id}"]`);
+                    if (el) {
+                        el.style.left = `${node.x}%`;
+                        el.style.top = `${node.y}%`;
+                    }
+                }
+                STATE.isDragging = false;
+                STATE.draggedNodeId = null;
+                document.body.style.cursor = 'default';
+                PERSISTENCE.save();
+            }
+        };
+
+        // =========================================
+        // VIEW_MODE (E1.9)
+        // =========================================
+        const VIEW_MODE = {
+            switch(mode) {
+                STATE.viewMode = mode;
+                
+                // Update tab states
+                document.querySelectorAll('.nav-tab').forEach(tab => {
+                    tab.classList.toggle('active', tab.dataset.view === mode);
+                });
+                
+                // Hide/show appropriate views
+                document.querySelectorAll('#nodes-layer, #grid-lock, #code-editor, #preview-frame').forEach(el => {
+                    el.style.display = 'none';
+                });
+                
+                switch(mode) {
+                    case 'system':
+                    case 'story':
+                        document.getElementById('nodes-layer').style.display = 'block';
+                        document.getElementById('grid-lock').style.display = 'grid';
+                        if (mode === 'story') this.arrangeAsTree();
+                        else RENDERER.nodes();
+                        break;
+                    case 'code':
+                        document.getElementById('code-editor').style.display = 'block';
+                        document.getElementById('grid-lock').style.display = 'grid';
+                        RENDERER.blocks();
+                        RENDERER.code();
+                        break;
+                    case 'preview':
+                        document.getElementById('preview-frame').style.display = 'block';
+                        RENDERER.preview();
+                        break;
+                }
+                
+                RENDERER.connections();
+                LOG.toast(`Switched to ${mode} view`);
+            },
+            
+            arrangeAsTree() {
+                // Place core + others onto specific 9×9 cells for a simple tree
+                const core = STATE.systemNodes.find(n => n.id === 1);
+                if (core) {
+                    const pos = GRID.center(4, 1); // near top center
+                    core.x = pos.x;
+                    core.y = pos.y;
+                }
+
+                const others = STATE.systemNodes.filter(n => n.id !== 1);
+                const row2 = others.slice(0, 3);
+                const row3 = others.slice(3);
+
+                const row2Cols = [2, 4, 6];
+                row2.forEach((n, i) => {
+                    const pos = GRID.center(row2Cols[i] ?? 4, 3);
+                    n.x = pos.x;
+                    n.y = pos.y;
+                });
+
+                const row3Cols = [1, 3, 5, 7];
+                row3.forEach((n, i) => {
+                    const pos = GRID.center(row3Cols[i] ?? 4, 5);
+                    n.x = pos.x;
+                    n.y = pos.y;
+                });
+
+                RENDERER.nodes();
+                RENDERER.connections();
+            }
+        };
+
+        // =========================================
+        // INGEST (INGESTION_SYSTEM)
+        // =========================================
+        const INGEST = {
+            toggleBlade() {
+                document.body.classList.toggle('sideblade-active');
+            },
+            
+            load() {
+                const text = document.getElementById('paste-input').value;
+                if (!text.trim()) {
+                    LOG.toast("No content to load");
+                    return;
+                }
+                
+                // Try parsing as code first
+                if (text.includes('function') || text.includes('const') || text.includes('<')) {
+                    PARSER.parseCode(text);
+                    VIEW_MODE.switch('code');
+                } else {
+                    PARSER.parseNodeDefs(text);
+                    VIEW_MODE.switch('system');
+                }
+                
+                this.toggleBlade();
+                RENDERER.nodes();
+                RENDERER.blocks();
+                RENDERER.connections();
+                PERSISTENCE.save();
+                LOG.toast("Content loaded successfully");
+            },
+            
+            ingestSelf() {
+                const self = document.documentElement.outerHTML;
+                document.getElementById('paste-input').value = self;
+                LOG.toast("Self ingested");
+            }
+        };
+
+        // =========================================
+        // AUTOPLAY (AUTOPLAY_SYSTEM)
+        // =========================================
+        const AUTOPLAY = {
+            toggle() {
+                if (STATE.autoplayInterval) {
+                    clearInterval(STATE.autoplayInterval);
+                    STATE.autoplayInterval = null;
+                    document.getElementById('btn-play').innerHTML = '<i data-lucide="play" style="color: var(--text-muted);"></i>';
+                } else {
+                    const blocks = STATE.blocks.filter(b => b !== null);
+                    if (!blocks.length) return;
+                    
+                    let i = 0;
+                    STATE.autoplayInterval = setInterval(() => {
+                        const idx = blocks[i % blocks.length].idx;
+                        STATE.activeIdx = idx;
+                        NAV.xray(idx);
+                        i++;
+                    }, 1000);
+                    
+                    document.getElementById('btn-play').innerHTML = '<i data-lucide="pause" style="color: var(--func);"></i>';
+                }
+                lucide.createIcons();
+            }
+        };
+
+        // =========================================
+        // PERSISTENCE (E1.7)
+        // =========================================
+        const PERSISTENCE = {
+            save() {
+                const data = {
+                    _version: STATE_VERSION,
+                    systemNodes: STATE.systemNodes,
+                    viewMode: STATE.viewMode,
+                    snapToGrid: STATE.snapToGrid,
+                    sidebarOpen: STATE.sidebarOpen,
+                    consoleOpen: STATE.consoleOpen,
+                    theme: STATE.theme,
+                    lines: STATE.lines,
+                    blocks: STATE.blocks,
+                    activeIdx: STATE.activeIdx
+                };
+                localStorage.setItem('ontological_ancestor_state', JSON.stringify(data));
+                
+                const status = document.getElementById('storage-status');
+                status.textContent = 'Synced';
+                status.style.color = '#22c55e';
+            },
+            
+            load() {
+                const raw = localStorage.getItem('ontological_ancestor_state');
+                if (!raw) {
+                    // Default ontology nodes snapped to specific 9×9 grid cells
+                    const defaults = [
+                        { id: 1,  type: 'core',     icon: 'Core',     label: 'Core<Core>',         grid: [4, 4] },
+                        { id: 2,  type: 'entity',   icon: 'Entity',   label: 'Entity<Entity>',     grid: [4, 6] },
+                        { id: 3,  type: 'goal',     icon: 'Goal',     label: 'Goal<Goal>',         grid: [4, 2] },
+                        { id: 4,  type: 'obstacle', icon: 'Obstacle', label: 'Obstacle<Obstacle>', grid: [2, 2] },
+                        { id: 5,  type: 'morphism', icon: 'Morphism', label: 'Morphism<Morphism>', grid: [6, 2] },
+                        { id: 6,  type: 'shift',    icon: 'Shift',    label: 'Shift<Shift>',       grid: [6, 4] },
+                        { id: 7,  type: 'location', icon: 'Location', label: 'Location<Location>', grid: [2, 4] },
+                        { id: 8,  type: 'timepoint',icon: 'Timepoint',label: 'Timepoint<Timepoint>',grid:[2, 6] },
+                        { id: 9,  type: 'scene',    icon: 'Scene',    label: 'Scene<Scene>',       grid: [6, 6] },
+                        { id: 10, type: 'story',    icon: 'Story',    label: 'Story<Story>',       grid: [4, 0] }
+                    ];
+
+                    STATE.systemNodes = defaults.map(def => {
+                        const pos = GRID.center(def.grid[0], def.grid[1]);
+                        return {
+                            id: def.id,
+                            type: def.type,
+                            icon: def.icon,
+                            label: def.label,
+                            x: pos.x,
+                            y: pos.y
+                        };
+                    });
+                    STATE.theme = 'dark';
+                    return;
+                }
+                
+                try {
+                    const data = JSON.parse(raw);
+                    if (!data._version || data._version !== STATE_VERSION) {
+                        // Incompatible / old layout: fall back to fresh defaults
+                        localStorage.removeItem('ontological_ancestor_state');
+                        this.load();
+                        return;
+                    }
+                    Object.assign(STATE, data);
+                    THEME.set(STATE.theme);
+                    SIDEBAR.renderTools();
+                    VIEW_MODE.switch(STATE.viewMode);
+                    RENDERER.nodes();
+                    RENDERER.blocks();
+                    RENDERER.connections();
+                    LOG.info("State loaded from storage");
+                } catch(e) {
+                    LOG.error("Failed to load state");
+                }
+            }
+        };
+
+        // =========================================
+        // LOG (Console and Toast wrapper)
+        // =========================================
+        const LOG = {
+            info(msg) { CONSOLE.log('INFO', msg); },
+            success(msg) { CONSOLE.log('SUCCESS', msg); },
+            warn(msg) { CONSOLE.log('WARN', msg); },
+            error(msg) { CONSOLE.log('ERROR', msg); },
+            toast(msg) {
+                const container = document.getElementById('toast-container');
+                const toast = document.createElement('div');
+                toast.className = 'toast';
+                toast.innerHTML = `<i data-lucide="check-circle" class="w-4 h-4 text-cyan-400"></i> ${msg}`;
+                container.appendChild(toast);
+                lucide.createIcons();
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
+            }
+        };
+
+        // =========================================
+        // LIVE_RELOAD (LIVERELOAD)
+        // =========================================
+        const LIVERELOAD = {
+            init() {
+                if (!('WebSocket' in window)) return;
+                
+                const protocol = window.location.protocol === 'http:' ? 'ws://' : 'wss://';
+                const address = protocol + window.location.host + window.location.pathname + '/ws';
+                const socket = new WebSocket(address);
+                
+                socket.onmessage = (msg) => {
+                    if (msg.data === 'reload') {
+                        window.location.reload();
+                    } else if (msg.data === 'refreshcss') {
+                        this.refreshCSS();
+                    }
+                };
+            },
+            
+            refreshCSS() {
+                const sheets = Array.from(document.getElementsByTagName("link"));
+                sheets.forEach(sheet => {
+                    const url = sheet.href.replace(/(&|\?)_cacheOverride=\d+/, '');
+                    sheet.href = url + (url.includes('?') ? '&' : '?') + '_cacheOverride=' + Date.now();
+                });
+            }
+        };
+
+        // =========================================
+        // INITIALIZATION
+        // =========================================
+        function init() {
+            // Initialize from persistence
+            PERSISTENCE.load();
+            
+            // Set initial theme
+            THEME.set(STATE.theme);
+            
+            // Render initial UI
+            SIDEBAR.renderTools();
+            RENDERER.nodes();
+            RENDERER.blocks();
+            RENDERER.connections();
+            
+            // Set up event listeners
+            document.addEventListener('mousemove', EVENTS.handleDragMove);
+            document.addEventListener('mouseup', EVENTS.handleDragEnd);
+            document.addEventListener('touchmove', EVENTS.handleDragMove, { passive: false });
+            document.addEventListener('touchend', EVENTS.handleDragEnd);
+            window.addEventListener('resize', () => RENDERER.connections());
+            
+            // Initialize live reload
+            LIVERELOAD.init();
+            
+            // Initial console log
+            LOG.success("Forensic reconstruction initialized");
+            LOG.info("OLOG entities: " + OLOG_TABLE.length);
+            
+            // Load default code example
+            if (!STATE.lines.length) {
+                const exampleCode = `// Example code structure
+function parseNode() {
+    const nodes = [];
+    return nodes;
+}
+class Entity {
+    constructor() {
+        this.id = Math.random();
+    }
+}`;
+                document.getElementById('paste-input').value = exampleCode;
+                INGEST.load();
+            }
+        }
+
+        // =========================================
+        // BRICK RECORD EXPORT / IMPORT
+        // Bridge between ontology grid and FORENSIC 9×9 brick grid
+        // =========================================
+        const ONTOLOGY_TO_BRICK = {
+            core: 'layout',
+            entity: 'layout',
+            goal: 'button',
+            obstacle: 'layout',
+            morphism: 'function',
+            shift: 'variable',
+            location: 'layout',
+            timepoint: 'text',
+            scene: 'layout',
+            story: 'layout'
+        };
+
+        function ontologyIconFor(type) {
+            switch (type) {
+                case 'core': return 'Core';
+                case 'goal': return 'Goal';
+                case 'obstacle': return 'Obstacle';
+                case 'morphism': return 'Morphism';
+                case 'shift': return 'Shift';
+                case 'location': return 'Location';
+                case 'timepoint': return 'Timepoint';
+                case 'scene': return 'Scene';
+                case 'story': return 'Story';
+                case 'entity':
+                default: return 'Entity';
+            }
+        }
+
+        function exportOntologyBricks() {
+            return STATE.systemNodes.map((node, idx) => {
+                const snapped = GRID.snap(node.x, node.y);
+                const brickType = ONTOLOGY_TO_BRICK[node.type] || 'layout';
+                return {
+                    id: String(node.id ?? idx),
+                    cellIndex: snapped.cellIndex,
+                    row: snapped.row,
+                    col: snapped.col,
+                    brickType,
+                    ontologyType: node.type,
+                    label: node.label,
+                    props: {}
+                };
+            });
+        }
+
+        function importBricksFromForensic(records) {
+            if (!Array.isArray(records)) return;
+            STATE.systemNodes = records.map((r, idx) => {
+                const col = typeof r.col === 'number' ? r.col : Math.floor((r.cellIndex ?? idx) % 9);
+                const row = typeof r.row === 'number' ? r.row : Math.floor((r.cellIndex ?? idx) / 9);
+                const pos = GRID.center(col, row);
+                const ontologyType = r.ontologyType || 'entity';
+                return {
+                    id: r.id || Date.now() + idx,
+                    type: ontologyType,
+                    icon: ontologyIconFor(ontologyType),
+                    label: r.label || `${ontologyType}<${r.brickType || 'layout'}>`,
+                    x: pos.x,
+                    y: pos.y
+                };
+            });
+            RENDERER.nodes();
+            RENDERER.connections();
+            PERSISTENCE.save();
+            LOG.toast(`Imported ${STATE.systemNodes.length} bricks from FORENSIC`);
+        }
+
+        // Expose API for parent/other tools
+        window.BLOCK_LEGO_EXPORT_BRICKS = exportOntologyBricks;
+        window.BLOCK_LEGO_IMPORT_BRICKS = importBricksFromForensic;
+
+        // Message bridge (optional): respond to FORENSIC messages
+        window.addEventListener('message', (event) => {
+            const msg = event.data;
+            if (!msg || typeof msg !== 'object') return;
+            switch (msg.kind) {
+                case 'FORENSIC_EXPORT_BRICKS':
+                    importBricksFromForensic(msg.bricks || []);
+                    break;
+                case 'REQUEST_ONTOLOGY_BRICKS':
+                    event.source?.postMessage({
+                        kind: 'ONTOLOGY_EXPORT_BRICKS',
+                        bricks: exportOntologyBricks()
+                    }, '*');
+                    break;
+            }
+        });
+
+        // =========================================
+        // GLOBAL MORPHISMS (for onclick handlers)
+        // =========================================
+        window.toggleSidebar = SIDEBAR.toggle;
+        window.toggleConsole = CONSOLE.toggle;
+        window.toggleGrid = () => { STATE.snapToGrid = !STATE.snapToGrid; LOG.toast(`Grid snap: ${STATE.snapToGrid}`); };
+        window.clearCanvas = () => {
+            if (confirm("Clear all nodes?")) {
+                STATE.systemNodes = STATE.systemNodes.filter(n => n.id === 1);
+                RENDERER.nodes();
+                RENDERER.connections();
+                PERSISTENCE.save();
+            }
+        };
+
+        // Start the system
+        init();
+    </script>
+</body>
+</html>

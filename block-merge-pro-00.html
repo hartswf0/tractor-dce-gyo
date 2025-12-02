@@ -1,0 +1,1414 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>BLOCK MERGE PRO 00 // LEGOS ↔ ONYX</title>
+  <link rel="icon" type="image/svg+xml" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect x="4" y="4" width="24" height="24" rx="6" fill="%230b1120"/><path d="M10 22L16 8l6 14" fill="none" stroke="%2338bdf8" stroke-width="2"/><circle cx="16" cy="14" r="2" fill="%23facc15"/></svg>'>
+  <style>
+    :root {
+      --bg: #050505;
+      --panel: #0a0a0a;
+      --border: #222;
+      --text: #e5e5e5;
+      --text-dim: #666;
+      --accent: #fafafa;
+      --core: #facc15;
+      --entity: #60a5fa;
+      --goal: #fde68a;
+      --obstacle: #f97373;
+      --morphism: #22d3ee;
+      --location: #a3e635;
+      --timepoint: #e879f9;
+      --scene: #38bdf8;
+      --story: #4ade80;
+      --font-mono: "JetBrains Mono", SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    html[data-theme='parch'] {
+      --bg: #fefce8;
+      --panel: #fef9c3;
+      --border: #eab308;
+      --text: #713f12;
+      --text-dim: #a16207;
+      --accent: #1f2937;
+    }
+
+    html[data-theme='terminal'] {
+      --bg: #050505;
+      --panel: #000000;
+      --border: #22c55e;
+      --text: #a7f3d0;
+      --text-dim: #4ade80;
+      --accent: #bbf7d0;
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #020617;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #1f2937;
+      border-radius: 999px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #4b5563;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: radial-gradient(circle at top, #111827 0, #020617 55%, #000 100%);
+      color: var(--text);
+      font-family: var(--font-mono);
+      height: 100vh;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .app-header {
+      flex: 0 0 auto;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 14px;
+      background: rgba(10, 10, 10, 0.96);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .app-header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .app-title {
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+
+    .app-title span {
+      color: var(--scene);
+    }
+
+    .app-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .app-btn {
+      padding: 3px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      cursor: pointer;
+    }
+
+    .app-btn:hover {
+      border-color: var(--scene);
+      color: var(--scene);
+    }
+
+    .icon-btn {
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-dim);
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .icon-btn:hover {
+      border-color: var(--scene);
+      color: var(--scene);
+    }
+
+    .app-main {
+      flex: 1 1 auto;
+      display: flex;
+      min-height: 0;
+    }
+
+    .sidebar {
+      width: 220px;
+      border-right: 1px solid var(--border);
+      background: rgba(5, 5, 5, 0.9);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar-header {
+      padding: 8px 10px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-dim);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .scene-list {
+      flex: 1 1 auto;
+      overflow-y: auto;
+      padding: 6px 4px 6px 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .scene-list-item {
+      width: 100%;
+      text-align: left;
+      padding: 4px 6px;
+      border-radius: 3px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .scene-list-item span:first-child {
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .scene-list-item span:last-child {
+      font-size: 9px;
+      opacity: 0.7;
+    }
+
+    .scene-list-item:hover {
+      border-color: var(--border);
+      background: #020617;
+      color: var(--text);
+    }
+
+    .scene-list-item.active {
+      border-color: var(--scene);
+      background: #020617;
+      color: var(--scene);
+    }
+
+    .main-panel {
+      flex: 1 1 auto;
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      padding: 0 16px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      gap: 12px;
+      padding: 8px 0;
+    }
+
+    .reactor-shell {
+      flex: 0 0 auto;
+      width: 100%;
+      max-width: 480px;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .reactor-shell.multi-mode {
+      max-width: none;
+      align-items: stretch;
+      justify-content: flex-start;
+      overflow-x: auto;
+      overflow-y: hidden;
+      gap: 12px;
+      padding: 8px 0;
+    }
+
+    .reactor {
+      width: 100%;
+      max-width: 460px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      border-left: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      background: rgba(5, 5, 5, 0.96);
+    }
+
+    .scene-header {
+      flex: 0 0 auto;
+      padding: 0.6rem 0.9rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      color: var(--text-dim);
+    }
+
+    .scene-header-left span:first-child { color: var(--scene); }
+
+    .scene-header-left span:last-child { margin-left: 0.5rem; }
+
+    .scene-header-right {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .scene-addr {
+      font-size: 9px;
+      color: #444;
+    }
+
+    .scene-meta-pill {
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      padding: 1px 6px;
+      font-size: 8px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+
+    .retina {
+      flex: 0 0 auto;
+      padding: 0.75rem 0.9rem 0.25rem;
+      border-bottom: 1px solid var(--border);
+      background: #020617;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(9, 1fr);
+      grid-template-rows: repeat(9, 1fr);
+      gap: 1px;
+      width: 100%;
+      aspect-ratio: 1;
+    }
+
+    .cell {
+      background: #050505;
+      border: 1px solid #111;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+      padding: 1px;
+      text-align: center;
+    }
+
+    .cell span {
+      display: block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
+
+    .cell-icon-svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .cell-kind-Core { color: var(--core); }
+    .cell-kind-Entity { color: var(--entity); }
+    .cell-kind-Goal { color: var(--goal); }
+    .cell-kind-Obstacle { color: var(--obstacle); }
+    .cell-kind-Morphism { color: var(--morphism); }
+    .cell-kind-Location { color: var(--location); }
+    .cell-kind-Timepoint { color: var(--timepoint); }
+    .cell-kind-Shift { color: var(--morphism); }
+
+    .cell.active {
+      background: #111827;
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .cell-core-ring {
+      box-shadow: 0 0 0 1px var(--core) inset;
+    }
+
+    .timeline {
+      flex: 1 1 auto;
+      overflow-y: auto;
+      padding: 0.6rem 0.9rem 0.8rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+      scroll-behavior: smooth;
+      background: rgba(5,5,5,0.96);
+    }
+
+    .beat {
+      font-size: 12px;
+      line-height: 1.5;
+      padding: 0.4rem 0.45rem;
+      border-left: 1px solid var(--border);
+      cursor: pointer;
+      color: var(--text-dim);
+      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+      max-width: 44rem;
+    }
+
+    .beat:hover {
+      background: rgba(255,255,255,0.02);
+      border-color: var(--accent);
+      color: var(--text);
+    }
+
+    .beat.active {
+      background: #020617;
+      border-color: var(--accent);
+      color: var(--text);
+    }
+
+    .beat-label {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      margin-bottom: 2px;
+      color: #444;
+    }
+
+    .beat-kind {
+      margin-right: 4px;
+    }
+
+    .beat-addr {
+      margin-left: 4px;
+      opacity: 0.6;
+    }
+
+    .beat-text {
+      color: var(--text);
+      margin-top: 2px;
+    }
+
+    .beat-symbol {
+      margin-left: 4px;
+      opacity: 0.8;
+    }
+
+    .cell-beat {
+      background: #020617;
+      border-left-color: var(--scene);
+    }
+
+    .beat-icon {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      margin-right: 4px;
+      vertical-align: middle;
+    }
+
+    .beat-icon svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .empty-state {
+      flex: 1 1 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-dim);
+      font-size: 12px;
+    }
+
+    .drop-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15,23,42,0.96);
+      border: 1px dashed var(--scene);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 40;
+      pointer-events: none;
+    }
+
+    .drop-overlay.visible {
+      display: flex;
+      pointer-events: auto;
+    }
+
+    .drop-overlay-inner {
+      padding: 16px 24px;
+      border-radius: 8px;
+      border: 1px solid var(--scene);
+      background: rgba(0,0,0,0.7);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--scene);
+    }
+
+    @media (max-width: 768px) {
+      .app-main {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        width: 100%;
+        height: 160px;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .main-panel {
+        padding: 8px;
+      }
+
+      .reactor-shell.multi-mode {
+        flex-direction: column;
+        overflow-x: hidden;
+        overflow-y: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <div class="app-header-left">
+      <button class="icon-btn" id="btnHelp" title="Help">?</button>
+      <button class="icon-btn" id="btnFullscreen" title="Fullscreen">⤢</button>
+      <div class="app-title"><span>BLOCK MERGE PRO 00</span> // LEGOS ↔ ONYX 9×9</div>
+    </div>
+    <div class="app-controls">
+      <button class="app-btn" id="btnLoadExample">example</button>
+      <button class="app-btn" id="btnImportJson">import json</button>
+      <button class="app-btn" id="btnToggleView">multi</button>
+      <button class="app-btn" id="btnTheme">theme</button>
+    </div>
+  </header>
+  <div class="app-main">
+    <aside class="sidebar">
+      <div class="sidebar-header">Scenes</div>
+      <div class="scene-list" id="sceneList"></div>
+    </aside>
+    <main class="main-panel">
+      <div class="reactor-shell" id="reactorShell">
+        <div class="empty-state" id="emptyState">Load a SceneCollection JSON to view scenes.</div>
+      </div>
+    </main>
+  </div>
+
+  <div class="drop-overlay" id="dropOverlay">
+    <div class="drop-overlay-inner">Drop SceneCollection or LEGOS multi-channel JSON</div>
+  </div>
+
+  <div class="drop-overlay" id="helpOverlay" style="border-color: var(--border);">
+    <div class="drop-overlay-inner">
+      MERGE STUDIO HELP<br/>
+      · Drop LEGOS multi-channel JSON anywhere<br/>
+      · Toggle SINGLE / MULTI view in header<br/>
+      · Click grid cells to focus inventory rows<br/>
+      · Click entity IDs to fork a focused ledger view
+    </div>
+  </div>
+
+  <script>
+    // Minimal ONYX icon set adapted from block-reactor-multiscene
+    const ICONS = {
+      getIsoCube(color = 'blue') {
+        const colors = {
+          blue:   { top: '#60a5fa', left: '#3b82f6', right: '#2563eb' },
+          yellow: { top: '#fcd34d', left: '#f59e0b', right: '#d97706' },
+          cyan:   { top: '#22d3ee', left: '#06b6d4', right: '#0891b2' },
+          purple: { top: '#e879f9', left: '#c026d3', right: '#a21caf' },
+          green:  { top: '#4ade80', left: '#16a34a', right: '#15803d' },
+          red:    { top: '#f97373', left: '#ef4444', right: '#dc2626' }
+        };
+        const c = colors[color] || colors.blue;
+        return `<svg viewBox="0 0 40 40" class="cell-icon-svg"><path d="M20 4 L36 12 L20 20 L4 12 Z" fill="${c.top}" stroke="#020617" stroke-width="1"/><path d="M4 12 L20 20 L20 38 L4 30 Z" fill="${c.left}" stroke="#020617" stroke-width="1"/><path d="M36 12 L20 20 L20 38 L36 30 Z" fill="${c.right}" stroke="#020617" stroke-width="1"/></svg>`;
+      },
+      Entity: () => ICONS.getIsoCube('blue'),
+      Core: () => ICONS.getIsoCube('yellow'),
+      Goal: () => `<div style="position:relative;width:100%;height:100%;"><div style="position:absolute;top:2px;left:50%;transform:translateX(-50%);width:12px;height:12px;color:#facc15;"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg></div>${ICONS.getIsoCube('blue')}</div>`,
+      Obstacle: () => `<div style="position:relative;width:100%;height:100%;"><div style="position:absolute;inset:4px;">${ICONS.getIsoCube('blue')}</div><div style="position:absolute;right:4px;top:4px;bottom:4px;width:3px;background:rgba(148,163,184,0.9);"></div><div style="position:absolute;right:4px;top:50%;width:10px;height:2px;background:#facc15;transform:translateY(-50%);"></div></div>`,
+      Morphism: () => `<div style="position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:space-between;padding:4px;"><div style="width:14px;height:14px;">${ICONS.getIsoCube('blue')}</div><div style="flex:1;height:2px;background:#facc15;margin:0 4px;"></div><div style="width:14px;height:14px;">${ICONS.getIsoCube('blue')}</div></div>`,
+      Shift: () => ICONS.Morphism(),
+      Location: () => `<div style="position:relative;width:100%;height:100%;"><div style="position:absolute;top:4px;right:4px;width:14px;height:14px;">${ICONS.getIsoCube('cyan')}</div><div style="position:absolute;bottom:4px;left:4px;width:14px;height:14px;">${ICONS.getIsoCube('cyan')}</div></div>`,
+      Timepoint: () => `<div style="position:relative;width:100%;height:100%;"><div style="position:absolute;inset:6px;">${ICONS.getIsoCube('cyan')}</div><div style="position:absolute;right:2px;bottom:2px;width:16px;height:16px;border-radius:999px;background:#050505;border:1px solid #22d3ee;display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" fill="none"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>`,
+      Scene: () => ICONS.getIsoCube('purple'),
+      Story: () => ICONS.getIsoCube('green'),
+      Perspective: () => ICONS.getIsoCube('green')
+    };
+
+    const SAMPLE_COLLECTION = {
+      version: "legos-onyx-9x9-v0",
+      ontology: "Chalice / 1000 Lives ONYX–LEGOS roles.",
+      scenes: [
+        {
+          id: "ch-1761054982994-wlfx5::R0001",
+          label: "CHALICE WO",
+          title: "Rebirth of 1000 Lives",
+          channelId: "ch-1761054982994-wlfx5",
+          storyId: "chalice_1000_lives",
+          index: 0,
+          parent: null,
+          forkOrigin: null,
+          grid: [
+            {
+              id: "wavyverse_prison",
+              kind: "Location",
+              label: "Wavyverse Prison Ruins",
+              symbol: "L",
+              row: 0,
+              col: 0,
+              entityId: "wavyverse_prison",
+              channelId: "ch-1761054982994-wlfx5",
+              ringEntryId: null,
+              meta: {
+                type: "Location",
+                name: "Wavyverse Prison Ruins",
+                location: "outside",
+                relations: []
+              }
+            },
+            {
+              id: "window_of_opportunity",
+              kind: "Shift",
+              label: "Window of Opportunity",
+              symbol: "S",
+              row: 2,
+              col: 4,
+              entityId: "window_of_opportunity",
+              channelId: "ch-1761054982994-wlfx5",
+              ringEntryId: "R0003",
+              meta: {
+                type: "Shift",
+                name: "Window of Opportunity",
+                location: "bedroom",
+                relations: []
+              }
+            },
+            {
+              id: "codebase",
+              kind: "Obstacle",
+              label: "1000 Lives Codebase",
+              symbol: "O",
+              row: 3,
+              col: 4,
+              entityId: "codebase",
+              channelId: "ch-1761054982994-wlfx5",
+              ringEntryId: null,
+              meta: {
+                type: "Obstacle",
+                name: "1000 Lives Codebase",
+                location: "bedroom",
+                relations: []
+              }
+            },
+            {
+              id: "chalice_wong",
+              kind: "Entity",
+              label: "Chalice Wong",
+              symbol: "E",
+              row: 4,
+              col: 4,
+              entityId: "chalice_wong",
+              channelId: "ch-1761054982994-wlfx5",
+              ringEntryId: "R0001",
+              meta: {
+                type: "Entity",
+                name: "Chalice Wong",
+                location: "bedroom",
+                relations: []
+              }
+            }
+          ],
+          beats: [
+            {
+              id: "R0001",
+              kind: "Scene",
+              label: "Rebirth of 1000 Lives",
+              text: "Chalice Wong emerges from the Wavyverse prison, ready to transform the 1000 Lives Demo into a beacon of ethical technology. The room is alive with changing dynamics as she confronts her past and the AI, BOB, that has shaped her adolescence.",
+              cellIndex: 40,
+              entityId: "chalice_wong",
+              channelId: "ch-1761054982994-wlfx5",
+              ringEntryId: "R0001",
+              messageId: null,
+              forkOfSceneId: null
+            },
+            {
+              id: "R0003",
+              kind: "Perspective",
+              label: "Perspective: Window of Opportunity",
+              text: "Window of Opportunity: Chalice Wong is determined to reclaim her agency and transform the 1000 Lives Demo into an ethical narrative.",
+              cellIndex: 28,
+              entityId: "window_of_opportunity",
+              channelId: "ch-1761054982994-wlfx5",
+              ringEntryId: "R0003",
+              messageId: null,
+              forkOfSceneId: null
+            }
+          ],
+          meta: {
+            source: {
+              multiChannelChannelId: "ch-1761054982994-wlfx5",
+              ringMemorySceneId: "R0001"
+            }
+          }
+        }
+      ]
+    };
+
+    function normalizeGrid(grid) {
+      if (!Array.isArray(grid)) return new Array(81).fill(null);
+      if (grid.length === 81) return grid;
+      // sparse list with row/col
+      const out = new Array(81).fill(null);
+      grid.forEach(cell => {
+        if (!cell || typeof cell.row !== 'number' || typeof cell.col !== 'number') return;
+        const r = Math.max(0, Math.min(8, cell.row));
+        const c = Math.max(0, Math.min(8, cell.col));
+        const idx = r * 9 + c;
+        out[idx] = cell;
+      });
+      return out;
+    }
+
+    function formatCellAddress(idx) {
+      if (idx == null || idx < 0 || idx > 80) return "-- · --";
+      const row = Math.floor(idx / 9);
+      const col = idx % 9;
+      return `R${row + 1} · C${col + 1}`;
+    }
+
+    function findCoreIndex(grid) {
+      if (!Array.isArray(grid)) return -1;
+      // 1) Prefer explicit Core kind
+      const explicit = grid.findIndex(cell => cell && cell.kind === 'Core');
+      if (explicit !== -1) return explicit;
+
+      // 2) Otherwise choose the semantic cell closest to center (R5,C5)
+      const preferred = new Set(['Entity', 'Goal', 'Location', 'Obstacle', 'Morphism', 'Shift', 'Timepoint']);
+      const centerR = 4;
+      const centerC = 4;
+      let bestIdx = -1;
+      let bestDist = Infinity;
+
+      grid.forEach((cell, idx) => {
+        if (!cell || !preferred.has(cell.kind)) return;
+        const r = typeof cell.row === 'number' ? cell.row : Math.floor(idx / 9);
+        const c = typeof cell.col === 'number' ? cell.col : (idx % 9);
+        const dr = r - centerR;
+        const dc = c - centerC;
+        const dist = dr * dr + dc * dc;
+        if (dist < bestDist) {
+          bestDist = dist;
+          bestIdx = idx;
+        }
+      });
+
+      return bestIdx;
+    }
+
+    function getKindColor(kind) {
+      switch (kind) {
+        case 'Core': return 'var(--core)';
+        case 'Entity': return 'var(--entity)';
+        case 'Goal': return 'var(--goal)';
+        case 'Obstacle': return 'var(--obstacle)';
+        case 'Morphism': return 'var(--morphism)';
+        case 'Shift': return 'var(--morphism)';
+        case 'Location': return 'var(--location)';
+        case 'Timepoint': return 'var(--timepoint)';
+        case 'Scene': return 'var(--scene)';
+        case 'Story': return 'var(--story)';
+        case 'Perspective': return 'var(--entity)';
+        default: return 'var(--text-dim)';
+      }
+    }
+
+    // Minimal deterministic converter from LEGOS multi-channel export
+    // into the common SceneCollection schema used by this block.
+    function multiChannelToSceneCollection(multi) {
+      if (!multi || !Array.isArray(multi.channels)) {
+        throw new Error('Expected a LEGOS multi-channel JSON with channels[].');
+      }
+
+      const ROLE_MAP = {
+        Location: 'Location',
+        Entity: 'Entity',
+        Goal: 'Goal',
+        Obstacle: 'Obstacle',
+        Morphism: 'Morphism',
+        Shift: 'Shift',
+        Timepoint: 'Timepoint',
+        Scene: 'Scene',
+        Story: 'Story'
+      };
+
+      function deriveTitle(channel) {
+        const msgs = channel.messages || [];
+        const sceneMsg = msgs.find(
+          m => m && m.role === 'assistant' && typeof m.text === 'string' && m.text.includes('\n')
+        );
+        if (!sceneMsg) return channel.name || channel.id;
+        return sceneMsg.text.split('\n')[0].trim() || channel.name || channel.id;
+      }
+
+      function deriveBeats(channel) {
+        const beats = [];
+        const msgs = channel.messages || [];
+        let firstSceneBeatId = null;
+
+        msgs.forEach((m, idx) => {
+          if (!m || typeof m.text !== 'string') return;
+          if (m.role === 'system' && m.text.startsWith('Composing scene')) return;
+
+          let kind;
+          if (m.role === 'assistant') kind = 'Scene';
+          else if (m.role === 'user') kind = 'Narration';
+          else if (m.role === 'system') kind = 'Instruction';
+          else kind = 'Beat';
+
+          const label = m.text.split('\n')[0].slice(0, 80);
+          const beat = {
+            id: m.id || `M${String(idx + 1).padStart(4, '0')}`,
+            kind,
+            label,
+            text: m.text,
+            cellIndex: -1,
+            entityId: null,
+            channelId: channel.id,
+            ringEntryId: null,
+            messageId: m.id || null,
+            forkOfSceneId: null
+          };
+
+          beats.push(beat);
+          if (kind === 'Scene' && firstSceneBeatId == null) firstSceneBeatId = beat.id;
+        });
+
+        if (firstSceneBeatId) {
+          const centerIdx = 4 * 9 + 4; // R5 C5
+          const b = beats.find(b => b.id === firstSceneBeatId);
+          if (b) b.cellIndex = centerIdx;
+        }
+
+        return beats;
+      }
+
+      function buildGrid(channel) {
+        const out = new Array(81).fill(null);
+        const g = channel.grid || [];
+
+        for (let r = 0; r < 9; r++) {
+          const row = g[r] || [];
+          for (let c = 0; c < 9; c++) {
+            const raw = row[c] || null;
+            if (!raw) continue;
+            const idx = r * 9 + c;
+            out[idx] = {
+              id: raw.id || `cell_${r}_${c}`,
+              kind: ROLE_MAP[raw.type] || raw.type || 'Entity',
+              label: raw.label || (raw.entity && raw.entity.name) || `Cell ${r + 1},${c + 1}`,
+              symbol: raw.symbol || null,
+              row: r,
+              col: c,
+              entityId: raw.entity && raw.entity.id ? raw.entity.id : null,
+              channelId: channel.id,
+              ringEntryId: null,
+              meta: raw.entity || null
+            };
+          }
+        }
+        return out;
+      }
+
+      const scenes = (multi.channels || []).map((ch, idx) => {
+        const title = deriveTitle(ch);
+        const beats = deriveBeats(ch);
+        const grid = buildGrid(ch);
+
+        return {
+          id: ch.id,
+          label: ch.name || ch.id,
+          title,
+          channelId: ch.id,
+          storyId: ch.scenario || null,
+          index: idx,
+          parent: null,
+          forkOrigin: null,
+          grid,
+          beats,
+          meta: {
+            channelColor: ch.channelColor || null,
+            ringBinding: ch.ringBinding || null,
+            symbolicId: ch.symbolicId || null
+          }
+        };
+      });
+
+      return {
+        version: 'legos-onyx-9x9-v0',
+        ontology: 'Auto-converted from LEGOS multi-channel export',
+        scenes
+      };
+    }
+
+    class SceneComponent {
+      constructor(scene, index) {
+        this.scene = Object.assign({}, scene, { grid: normalizeGrid(scene.grid) });
+        this.index = index;
+        this.activeCellIndex = null;
+        this.activeBeatId = null;
+        this.coreIndex = findCoreIndex(this.scene.grid);
+        this.entities = new Map();      // key -> { shortId, kind, label, cells: [] }
+        this.entityCounters = {};       // prefix -> count
+        this.buildEntityIndex();
+        this.entityFocusShortId = null;
+      }
+
+      buildEntityIndex() {
+        const prefixMap = {
+          Core: 'C',
+          Entity: 'E',
+          Goal: 'G',
+          Obstacle: 'O',
+          Morphism: 'M',
+          Shift: 'M',
+          Location: 'L',
+          Timepoint: 'T'
+        };
+
+        this.scene.grid.forEach((cell, idx) => {
+          if (!cell) return;
+          const kind = cell.kind || 'Entity';
+          const key = cell.entityId || cell.id || `cell_${idx}`;
+          if (!key) return;
+
+          if (this.entities.has(key)) {
+            this.entities.get(key).cells.push(idx);
+            return;
+          }
+
+          const prefix = prefixMap[kind] || 'E';
+          const n = (this.entityCounters[prefix] || 0) + 1;
+          this.entityCounters[prefix] = n;
+          const shortId = `${prefix}${String(n).padStart(2, '0')}`;
+
+          this.entities.set(key, {
+            shortId,
+            kind,
+            label: cell.label || cell.symbol || cell.id || shortId,
+            cells: [idx]
+          });
+        });
+      }
+
+      getEntityForCell(cell, idx) {
+        if (!cell) return null;
+        const key = cell.entityId || cell.id || (typeof idx === 'number' ? `cell_${idx}` : null);
+        if (!key) return null;
+        return this.entities.get(key) || null;
+      }
+
+      getEntityForBeat(beat, cell) {
+        const key = beat.entityId || (cell && (cell.entityId || cell.id));
+        if (!key) return null;
+        return this.entities.get(key) || null;
+      }
+
+      render() {
+        const div = document.createElement('div');
+        div.className = 'reactor';
+        const title = this.scene.title || this.scene.label || this.scene.id;
+        const storyId = this.scene.storyId || '';
+        div.innerHTML = `
+          <div class="scene-header">
+            <div class="scene-header-left">
+              <span>SCENE ${String(this.index + 1).padStart(2, '0')}</span>
+              <span>// ${title}</span>
+            </div>
+            <div class="scene-header-right">
+              <div class="scene-meta-pill">${storyId}</div>
+              <div class="scene-addr" id="addr-${this.index}">CELL -- · --</div>
+            </div>
+          </div>
+          <div class="retina">
+            <div class="grid" id="grid-${this.index}"></div>
+          </div>
+          <div class="timeline" id="timeline-${this.index}"></div>
+        `;
+        this.container = div;
+        this.gridEl = div.querySelector('.grid');
+        this.timelineEl = div.querySelector('.timeline');
+        this.addrEl = div.querySelector('.scene-addr');
+
+        this.renderGrid();
+        this.renderTimeline();
+        this.attachEvents();
+        return div;
+      }
+
+      attachEvents() {
+        this.gridEl.addEventListener('click', (e) => {
+          const cell = e.target.closest('.cell');
+          if (!cell) return;
+          const idx = parseInt(cell.dataset.idx, 10);
+          this.setActiveCell(idx);
+        });
+
+        this.timelineEl.addEventListener('click', (e) => {
+          const entSpan = e.target.closest('[data-entity-short-id]');
+          if (entSpan) {
+            const sid = entSpan.dataset.entityShortId;
+            this.setEntityFocus(sid || null);
+            return;
+          }
+          const cellRow = e.target.closest('.cell-beat');
+          if (cellRow && cellRow.dataset.idx != null) {
+            const idx = parseInt(cellRow.dataset.idx, 10);
+            this.setActiveCell(idx);
+            return;
+          }
+          const beatEl = e.target.closest('.beat');
+          if (!beatEl) return;
+          this.setActiveBeat(beatEl.dataset.id);
+        });
+      }
+
+      renderGrid() {
+        this.gridEl.innerHTML = '';
+        this.scene.grid.forEach((cell, idx) => {
+          const el = document.createElement('div');
+          el.className = 'cell';
+          el.dataset.idx = idx;
+
+          if (cell) {
+            const kind = cell.kind || '';
+            el.classList.add('cell-kind-' + kind);
+            // Normalize: always render an icon, no inline labels in the grid.
+            if (ICONS[kind]) {
+              el.innerHTML = ICONS[kind]();
+            } else {
+              el.innerHTML = ICONS.Entity();
+            }
+            const entity = this.getEntityForCell(cell, idx);
+            if (this.entityFocusShortId && (!entity || entity.shortId !== this.entityFocusShortId)) {
+              el.style.opacity = 0.25;
+            } else if (this.entityFocusShortId && entity && entity.shortId === this.entityFocusShortId) {
+              el.style.boxShadow = '0 0 0 2px var(--accent)';
+            }
+          }
+
+          if (idx === this.coreIndex) el.classList.add('cell-core-ring');
+          if (idx === this.activeCellIndex) el.classList.add('active');
+          this.gridEl.appendChild(el);
+        });
+      }
+
+      renderTimeline() {
+        this.timelineEl.innerHTML = '';
+
+        // 1) GRID INVENTORY: one row per populated cell
+        this.scene.grid.forEach((cell, idx) => {
+          if (!cell) return;
+          const row = document.createElement('div');
+          row.className = 'beat cell-beat';
+          row.dataset.idx = idx;
+          if (idx === this.activeCellIndex) row.classList.add('active');
+          if (idx === this.coreIndex) row.classList.add('core');
+
+          const kind = cell.kind || 'Cell';
+          const color = getKindColor(kind);
+          const entity = this.getEntityForCell(cell, idx);
+
+          const label = document.createElement('div');
+          label.className = 'beat-label';
+
+          if (ICONS[kind]) {
+            const iconSpan = document.createElement('span');
+            iconSpan.className = 'beat-icon';
+            iconSpan.innerHTML = ICONS[kind]();
+            label.appendChild(iconSpan);
+          }
+
+          if (idx === this.coreIndex) {
+            const coreSpan = document.createElement('span');
+            coreSpan.className = 'beat-kind';
+            coreSpan.textContent = 'CORE';
+            coreSpan.style.color = 'var(--core)';
+            label.appendChild(coreSpan);
+          }
+
+          const kindSpan = document.createElement('span');
+          kindSpan.className = 'beat-kind';
+          kindSpan.textContent = kind.toUpperCase();
+          kindSpan.style.color = color;
+          label.appendChild(kindSpan);
+
+          if (entity) {
+            const idSpan = document.createElement('span');
+            idSpan.className = 'beat-symbol';
+            idSpan.textContent = entity.shortId;
+            idSpan.dataset.entityShortId = entity.shortId;
+            label.appendChild(idSpan);
+          }
+
+          const titleSpan = document.createElement('span');
+          titleSpan.textContent = cell.label || cell.symbol || cell.id || '';
+          label.appendChild(titleSpan);
+
+          const addrSpan = document.createElement('span');
+          addrSpan.className = 'beat-addr';
+          addrSpan.textContent = formatCellAddress(idx);
+          label.appendChild(addrSpan);
+
+          const text = document.createElement('div');
+          text.className = 'beat-text';
+          text.textContent = (cell.meta && cell.meta.name) || cell.label || '';
+
+          row.style.borderLeftColor = color;
+          if (this.entityFocusShortId && (!entity || entity.shortId !== this.entityFocusShortId)) {
+            row.style.opacity = 0.35;
+          }
+          row.appendChild(label);
+          row.appendChild(text);
+          this.timelineEl.appendChild(row);
+        });
+
+        // 2) Narrative beats from messages / ring memory
+        (this.scene.beats || []).forEach(beat => {
+          const el = document.createElement('div');
+          el.className = 'beat';
+          el.dataset.id = beat.id;
+          if (beat.id === this.activeBeatId) el.classList.add('active');
+
+          const label = document.createElement('div');
+          label.className = 'beat-label';
+          const kind = beat.kind || 'Beat';
+          const color = getKindColor(kind);
+
+          const cell = (typeof beat.cellIndex === 'number' && beat.cellIndex >= 0 && beat.cellIndex < 81)
+            ? this.scene.grid[beat.cellIndex]
+            : null;
+          const entity = this.getEntityForBeat(beat, cell);
+
+          if (this.entityFocusShortId && (!entity || entity.shortId !== this.entityFocusShortId)) {
+            return; // skip beats not in focus when forked by entity
+          }
+
+          if (ICONS[kind]) {
+            const iconSpan = document.createElement('span');
+            iconSpan.className = 'beat-icon';
+            iconSpan.innerHTML = ICONS[kind]();
+            label.appendChild(iconSpan);
+          }
+
+          const kindSpan = document.createElement('span');
+          kindSpan.className = 'beat-kind';
+          kindSpan.textContent = kind.toUpperCase();
+          kindSpan.style.color = color;
+          label.appendChild(kindSpan);
+
+          const titleSpan = document.createElement('span');
+          titleSpan.textContent = beat.label || beat.id;
+          label.appendChild(titleSpan);
+
+          if (cell && (cell.label || cell.symbol || entity)) {
+            const symbolSpan = document.createElement('span');
+            symbolSpan.className = 'beat-symbol';
+            const base = cell.label || cell.symbol || '';
+            symbolSpan.textContent = entity ? `${entity.shortId} ${base}`.trim() : base;
+            if (entity) symbolSpan.dataset.entityShortId = entity.shortId;
+            label.appendChild(symbolSpan);
+          }
+
+          const addrSpan = document.createElement('span');
+          addrSpan.className = 'beat-addr';
+          addrSpan.textContent = formatCellAddress(beat.cellIndex);
+          label.appendChild(addrSpan);
+
+          const text = document.createElement('div');
+          text.className = 'beat-text';
+          text.textContent = beat.text || '';
+
+          el.style.borderLeftColor = color;
+
+          el.appendChild(label);
+          el.appendChild(text);
+          this.timelineEl.appendChild(el);
+        });
+      }
+
+      setActiveCell(idx) {
+        this.activeCellIndex = idx;
+        this.activeBeatId = null;
+        this.updateAddr();
+        this.renderGrid();
+        this.renderTimeline();
+        if (this.timelineEl) {
+          const row = this.timelineEl.querySelector(`.cell-beat[data-idx="${idx}"]`);
+          if (row && typeof row.scrollIntoView === 'function') {
+            row.scrollIntoView({ block: 'center' });
+          }
+        }
+      }
+
+      setActiveBeat(beatId) {
+        this.activeBeatId = beatId;
+        const beat = (this.scene.beats || []).find(b => b.id === beatId);
+        this.activeCellIndex = beat ? beat.cellIndex : null;
+        this.updateAddr();
+        this.renderGrid();
+        this.renderTimeline();
+        if (this.timelineEl) {
+          const row = this.timelineEl.querySelector(`.beat[data-id="${beatId}"]`);
+          if (row && typeof row.scrollIntoView === 'function') {
+            row.scrollIntoView({ block: 'center' });
+          }
+        }
+      }
+
+      setEntityFocus(shortId) {
+        if (this.entityFocusShortId === shortId) {
+          this.entityFocusShortId = null;
+        } else {
+          this.entityFocusShortId = shortId;
+        }
+        this.renderGrid();
+        this.renderTimeline();
+      }
+
+      updateAddr() {
+        if (!this.addrEl) return;
+        this.addrEl.textContent = 'CELL ' + formatCellAddress(this.activeCellIndex);
+      }
+    }
+
+    const MergeApp = {
+      collection: null,
+      scenes: [],
+      currentIndex: 0,
+      viewMode: 'single', // 'single' | 'multi'
+      themeIndex: 0,
+      themes: ['dark', 'parch', 'terminal'],
+
+      init() {
+        document.getElementById('btnLoadExample').addEventListener('click', () => {
+          this.loadCollection(SAMPLE_COLLECTION);
+        });
+
+        document.getElementById('btnImportJson').addEventListener('click', () => {
+          const raw = window.prompt('Paste SceneCollection JSON (legos-onyx-9x9-v0) or LEGOS multi-channel JSON:');
+          if (!raw) return;
+          try {
+            const obj = JSON.parse(raw);
+            if (Array.isArray(obj.scenes)) {
+              this.loadCollection(obj);
+            } else if (Array.isArray(obj.channels)) {
+              try { localStorage.setItem('legos_multi_channel_raw', raw); } catch (e) {}
+              const col = multiChannelToSceneCollection(obj);
+              this.loadCollection(col);
+            } else {
+              window.alert('JSON must contain either scenes[] or channels[].');
+            }
+          } catch (err) {
+            console.error('[MERGE] Invalid JSON', err);
+            window.alert('Invalid JSON. Check console for details.');
+          }
+        });
+
+        const viewBtn = document.getElementById('btnToggleView');
+        viewBtn.addEventListener('click', () => {
+          this.viewMode = this.viewMode === 'single' ? 'multi' : 'single';
+          viewBtn.textContent = this.viewMode === 'single' ? 'multi' : 'single';
+          this.renderScene(this.currentIndex);
+        });
+
+        const helpBtn = document.getElementById('btnHelp');
+        const helpOverlay = document.getElementById('helpOverlay');
+        if (helpBtn && helpOverlay) {
+          helpBtn.addEventListener('click', () => {
+            helpOverlay.classList.toggle('visible');
+          });
+          helpOverlay.addEventListener('click', (e) => {
+            if (e.target === helpOverlay) helpOverlay.classList.remove('visible');
+          });
+        }
+
+        const fsBtn = document.getElementById('btnFullscreen');
+        if (fsBtn) {
+          fsBtn.addEventListener('click', () => {
+            try {
+              if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(() => {});
+              } else {
+                document.exitFullscreen().catch(() => {});
+              }
+            } catch (e) {
+              console.warn('[MERGE] Fullscreen not available', e);
+            }
+          });
+        }
+
+        const themeBtn = document.getElementById('btnTheme');
+        if (themeBtn) {
+          themeBtn.addEventListener('click', () => {
+            this.themeIndex = (this.themeIndex + 1) % this.themes.length;
+            const theme = this.themes[this.themeIndex];
+            document.documentElement.setAttribute('data-theme', theme === 'dark' ? 'dark' : theme);
+          });
+        }
+
+        this.setupDragImport();
+      },
+
+      loadCollection(col) {
+        if (!col || !Array.isArray(col.scenes)) {
+          window.alert('Collection missing scenes[].');
+          return;
+        }
+        this.collection = col;
+        this.scenes = col.scenes;
+        this.currentIndex = 0;
+        this.renderSceneList();
+        this.renderScene(this.currentIndex);
+
+        try {
+          localStorage.setItem('onyx_scene_collection', JSON.stringify(col));
+        } catch (e) {}
+      },
+
+      renderSceneList() {
+        const list = document.getElementById('sceneList');
+        if (!list) return;
+        list.innerHTML = '';
+
+        this.scenes.forEach((scene, idx) => {
+          const btn = document.createElement('button');
+          btn.className = 'scene-list-item' + (idx === this.currentIndex ? ' active' : '');
+
+          const title = scene.title || scene.label || scene.id;
+          const top = document.createElement('span');
+          top.textContent = `${String(idx + 1).padStart(2, '0')} // ${title}`;
+
+          const bottom = document.createElement('span');
+          bottom.textContent = `${scene.channelId || ''} · ${scene.storyId || ''}`;
+
+          btn.appendChild(top);
+          btn.appendChild(bottom);
+          btn.addEventListener('click', () => {
+            this.currentIndex = idx;
+            this.renderScene(this.currentIndex);
+            const active = list.querySelector('.scene-list-item.active');
+            if (active && typeof active.scrollIntoView === 'function') {
+              active.scrollIntoView({ block: 'nearest' });
+            }
+          });
+
+          list.appendChild(btn);
+        });
+      },
+
+      renderScene(index) {
+        const scene = this.scenes[index];
+        const shell = document.getElementById('reactorShell');
+        const empty = document.getElementById('emptyState');
+        if (!scene) {
+          if (empty) empty.textContent = 'No scenes loaded.';
+          return;
+        }
+        if (empty) empty.remove();
+        shell.innerHTML = '';
+
+        if (this.viewMode === 'multi') {
+          shell.classList.add('multi-mode');
+          this.scenes.forEach((sc, idx) => {
+            const comp = new SceneComponent(sc, idx);
+            shell.appendChild(comp.render());
+          });
+        } else {
+          shell.classList.remove('multi-mode');
+          const comp = new SceneComponent(scene, index);
+          shell.appendChild(comp.render());
+        }
+      },
+
+      setupDragImport() {
+        const overlay = document.getElementById('dropOverlay');
+        const show = () => overlay && overlay.classList.add('visible');
+        const hide = () => overlay && overlay.classList.remove('visible');
+
+        window.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          show();
+        });
+
+        window.addEventListener('dragleave', (e) => {
+          if (e.target === document.documentElement || e.target === document.body) hide();
+        });
+
+        window.addEventListener('drop', (e) => {
+          e.preventDefault();
+          hide();
+          const dt = e.dataTransfer;
+          if (!dt || !dt.files || !dt.files.length) return;
+          const file = dt.files[0];
+          const reader = new FileReader();
+          reader.onload = () => {
+            const raw = reader.result;
+            try {
+              const obj = JSON.parse(raw);
+              if (Array.isArray(obj.scenes)) {
+                this.loadCollection(obj);
+              } else if (Array.isArray(obj.channels)) {
+                try { localStorage.setItem('legos_multi_channel_raw', raw); } catch (e) {}
+                const col = multiChannelToSceneCollection(obj);
+                this.loadCollection(col);
+              } else {
+                window.alert('Dropped JSON must contain either scenes[] or channels[].');
+              }
+            } catch (err) {
+              console.error('[MERGE] Invalid dropped JSON', err);
+              window.alert('Invalid JSON file dropped. Check console for details.');
+            }
+          };
+          reader.readAsText(file);
+        });
+      }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => MergeApp.init());
+  </script>
+</body>
+</html>

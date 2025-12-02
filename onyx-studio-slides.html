@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>ONYX Studio · Slides</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #020617;
+      --panel: #020617;
+      --border: #1e293b;
+      --accent: #22d3ee;
+      --accent-2: #fbbf24;
+      --text-main: #e5e7eb;
+      --text-muted: #64748b;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      height: 100vh;
+      height: 100dvh;
+      background: radial-gradient(circle at top, #111827 0, #020617 55%, #000 100%);
+      color: var(--text-main);
+      font-family: 'JetBrains Mono', monospace;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    header {
+      flex: 0 0 auto;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      background: rgba(15,23,42,0.96);
+      border-bottom: 1px solid var(--border);
+      font-size: 10px;
+    }
+
+    .brand {
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .brand span {
+      color: var(--accent-2);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-size: 9px;
+    }
+
+    .nav-links a.primary {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    main {
+      flex: 1 1 auto;
+      min-height: 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      padding: 32px 32px 40px 32px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 16px;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(40px);
+      transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+
+    .slide.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateX(0);
+    }
+
+    .slide-title {
+      font-size: clamp(18px, 3vw, 26px);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent-2);
+    }
+
+    .slide-subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      max-width: 640px;
+    }
+
+    .bullet {
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+
+    .bullet span.label {
+      color: var(--accent);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 10px 32px;
+      margin-top: 8px;
+      font-size: 12px;
+    }
+
+    @media (max-width: 800px) {
+      .slide {
+        padding: 20px 16px 32px 16px;
+      }
+      .grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .small-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .code-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      padding: 3px 9px;
+      font-size: 10px;
+      background: rgba(15,23,42,0.9);
+      color: var(--text-main);
+    }
+
+    code {
+      font-size: 10px;
+      padding: 1px 4px;
+      border-radius: 3px;
+      background: rgba(15,23,42,0.9);
+      border: 1px solid rgba(30, 64, 175, 0.7);
+      color: #93c5fd;
+    }
+
+    footer {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding: 4px 10px 8px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    .progress-dots {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(15,23,42,0.8);
+    }
+
+    .dot.active {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .hint {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .hint span.keys {
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      padding: 2px 6px;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <span>ONYX</span> STUDIO · SLIDES
+    </div>
+    <div class="nav-links">
+      <a href="onyx-studio.html" class="primary">Studio</a>
+      <a href="onyx-studio-tutorial.html">Tutorial</a>
+    </div>
+  </header>
+
+  <main id="deck">
+    <section class="slide active" data-index="0">
+      <div class="slide-title">ONYX Studio</div>
+      <div class="slide-subtitle">
+        One constellation: Head / Abs / Tail, Brick Branch, Brick Architect, and LGI Brickbender. A shared ONYX
+        SceneCollection on a 9×9 grid.
+      </div>
+      <div class="grid">
+        <div>
+          <div class="small-label">Studio shell</div>
+          <div class="bullet"><span class="label">onyx-studio.html</span> hosts all tools as tabs.</div>
+          <div class="bullet">Switch views without changing data.</div>
+          <div class="bullet">Optional split mode: Head + Tail side by side.</div>
+        </div>
+        <div>
+          <div class="small-label">Use cases</div>
+          <div class="bullet">Ingest scenes from LEGOS or JSON once.</div>
+          <div class="bullet">Read the story as narrative, as code, and as GS2P.</div>
+          <div class="bullet">Present the same system in multiple visual grammars.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-index="1">
+      <div class="slide-title">The Constellation</div>
+      <div class="slide-subtitle">Six tools orbiting a single ONYX SceneCollection.</div>
+      <div class="grid">
+        <div>
+          <div class="small-label">Narrative tools</div>
+          <div class="bullet"><span class="label">Head</span> – narrative entities, scenes, forks, timeline.</div>
+          <div class="bullet"><span class="label">Tail</span> – story system backplane: goals, obstacles, morphisms.</div>
+          <div class="bullet"><span class="label">Abs</span> – ingest + abstraction; owns the SceneCollection.</div>
+        </div>
+        <div>
+          <div class="small-label">Grid / GS2P tools</div>
+          <div class="bullet"><span class="label">Brick Branch</span> – 9×9 multimodal core, branches, sonified flow.</div>
+          <div class="bullet"><span class="label">Brick Architect</span> – 9×9 structure and dependencies, with minimap.</div>
+          <div class="bullet"><span class="label">LGI Brickbender</span> – GS2P mapper: ground / site / sky / perspective.</div>
+        </div>
+      </div>
+      <div style="margin-top:12px;font-size:11px;color:var(--text-muted);">
+        The studio shell is only a frame; ONYX Abs and <code>localStorage['onyx_scene_collection']</code> bind the constellation.
+      </div>
+    </section>
+
+    <section class="slide" data-index="2">
+      <div class="slide-title">Data Model · SceneCollection</div>
+      <div class="slide-subtitle">One canonical object feeding all ONYX views.</div>
+      <div class="grid">
+        <div>
+          <div class="small-label">Core objects</div>
+          <div class="bullet"><span class="label">SceneCollection</span> – <code>{ version, scenes[] }</code>.</div>
+          <div class="bullet"><span class="label">Scene</span> – grid of cells with <code>kind</code>, <code>label</code>, relations.</div>
+          <div class="bullet"><span class="label">Cell</span> – an entity or beat living at <code>[row, col]</code> on the 9×9.</div>
+        </div>
+        <div>
+          <div class="small-label">Persistence</div>
+          <div class="bullet">ONYX Abs converts LEGOS / JSON into a SceneCollection.</div>
+          <div class="bullet">Abs caches it to <code>localStorage['onyx_scene_collection']</code>.</div>
+          <div class="bullet">Head, Tail, Branch, Architect, and GS2P all read from that key.</div>
+        </div>
+      </div>
+      <div style="margin-top:10px;">
+        <span class="code-pill">
+          <span>Contract</span>
+          <code>localStorage['onyx_scene_collection'] = SceneCollection</code>
+        </span>
+      </div>
+    </section>
+
+    <section class="slide" data-index="3">
+      <div class="slide-title">Flow 1 · Ingest &amp; Narrative Views</div>
+      <div class="slide-subtitle">From LEGOS JSON to ONYX Head and Tail.</div>
+      <ol style="font-size:13px;margin-top:8px;padding-left:18px;">
+        <li>Open <code>onyx-studio.html</code> and choose the <strong>ABS</strong> tab.</li>
+        <li>Load a LEGOS multi-channel export or ONYX SceneCollection JSON.</li>
+        <li>Confirm scenes via the Abs scene picker and autoplay controls.</li>
+        <li>Switch to <strong>HEAD</strong> – walk scenes as narrative beats with entities and forks.</li>
+        <li>Switch to <strong>TAIL</strong> – inspect the story as a system of goals, obstacles, and morphisms.</li>
+      </ol>
+      <div style="margin-top:10px;font-size:11px;color:var(--text-muted);">
+        Abs knows about the file format. Head and Tail only know about scenes and entities.
+      </div>
+    </section>
+
+    <section class="slide" data-index="4">
+      <div class="slide-title">Flow 2 · ONYX to 9×9 Grids</div>
+      <div class="slide-subtitle">Project ONYX scenes into Brick Branch and Brick Architect.</div>
+      <div class="grid">
+        <div>
+          <div class="small-label">Brick Branch</div>
+          <div class="bullet">Reads <code>onyx_scene_collection</code> via <code>importOnyxSceneFromCollection()</code>.</div>
+          <div class="bullet">Renders an ONYX scene as a 9×9 grid with block types.</div>
+          <div class="bullet">Lets you branch, sonify, and navigate upstream/downstream calls.</div>
+        </div>
+        <div>
+          <div class="small-label">Brick Architect</div>
+          <div class="bullet">Uses a similar import path from the shared SceneCollection.</div>
+          <div class="bullet">Emphasizes structure: callers, deps, and wire diagrams.</div>
+          <div class="bullet">Minimap and x-ray navigation across the source.</div>
+        </div>
+      </div>
+      <div style="margin-top:10px;font-size:11px;color:var(--text-muted);">
+        Same scenes, new grammar: ONYX grid → code / dependency space.
+      </div>
+    </section>
+
+    <section class="slide" data-index="5">
+      <div class="slide-title">Flow 3 · ONYX to GS2P</div>
+      <div class="slide-subtitle">Mapping stories into ground / site / sky / perspective.</div>
+      <div class="grid">
+        <div>
+          <div class="small-label">Import</div>
+          <div class="bullet">LGI Brickbender reads <code>onyx_scene_collection</code> via <code>Import ONYX</code>.</div>
+          <div class="bullet">Flattens the 9×9 ONYX grid into a set of nodes.</div>
+          <div class="bullet">Auto-maps ONYX kinds to GS2P kinds, e.g.:</div>
+          <ul style="font-size:12px;margin-top:4px;">
+            <li><code>location / scene</code> → <code>site</code></li>
+            <li><code>goal / obstacle / shift / timepoint / morphism</code> → <code>sky</code></li>
+            <li><code>story</code> → <code>perspective</code></li>
+            <li>everything else → <code>ground</code></li>
+          </ul>
+        </div>
+        <div>
+          <div class="small-label">Edit</div>
+          <div class="bullet">Drag nodes to lay out flows, sites, and constraints.</div>
+          <div class="bullet">Retag nodes between GS2P layers as needed.</div>
+          <div class="bullet">Export JSON as a portable LGI map of the ONYX story/system.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-index="6">
+      <div class="slide-title">Relationship to Other Studios</div>
+      <div class="slide-subtitle">TRUBADOR patterns, different payloads.</div>
+      <div class="grid">
+        <div>
+          <div class="small-label">HOMER Studio</div>
+          <div class="bullet">Shell for Swiss / Frank / Courage / Weaver / WERE / MASTER / MENTO.</div>
+          <div class="bullet">Payload: MPD + GOLD, skeleton-aware editing, bus-based round trips.</div>
+          <div class="bullet">Documented in <code>HOMER-STUDIO-OLOG.md</code>.</div>
+        </div>
+        <div>
+          <div class="small-label">ONYX Studio</div>
+          <div class="bullet">Shell for Head / Abs / Tail / Brick / GS2P.</div>
+          <div class="bullet">Payload: ONYX SceneCollection + 9×9 narrative grids.</div>
+          <div class="bullet">Same studio idea; different ontology and visual grammars.</div>
+        </div>
+      </div>
+      <div style="margin-top:10px;font-size:11px;color:var(--text-muted);">
+        ONYX can be read as a narrative counterpart to MPD/GOLD studios: scenes instead of parts, grids instead of studs.
+      </div>
+    </section>
+
+    <section class="slide" data-index="7">
+      <div class="slide-title">Where to Go Next</div>
+      <div class="slide-subtitle">From slides back into the tools.</div>
+      <ul style="font-size:13px;margin-top:8px;padding-left:18px;">
+        <li>Use the <strong>Tutorial</strong> page for a detailed, step-by-step walkthrough.</li>
+        <li>Start new stories in <strong>Abs</strong>, then compare views in Head, Tail, Branch, Architect, and GS2P.</li>
+        <li>Draft a deeper ONYX olog mirroring the style of <code>HOMER-STUDIO-OLOG.md</code>.</li>
+      </ul>
+      <div style="margin-top:10px;">
+        <span class="code-pill">
+          <span>Links</span>
+          <code>onyx-studio.html</code>
+          <code>onyx-studio-tutorial.html</code>
+        </span>
+      </div>
+    </section>
+
+    <footer>
+      <div class="hint">
+        <span class="keys">Click · Space · →</span>
+        <span>Next slide &nbsp;|&nbsp; ← Back</span>
+      </div>
+      <div class="progress-dots" id="progress"></div>
+      <div id="counter"></div>
+    </footer>
+  </main>
+
+  <script>
+    (function() {
+      const slides = Array.from(document.querySelectorAll('.slide'));
+      const progressEl = document.getElementById('progress');
+      const counterEl = document.getElementById('counter');
+      let index = 0;
+
+      function renderDots() {
+        progressEl.innerHTML = '';
+        slides.forEach((_, i) => {
+          const d = document.createElement('div');
+          d.className = 'dot' + (i === index ? ' active' : '');
+          d.addEventListener('click', (ev) => {
+            ev.stopPropagation();
+            goTo(i);
+          });
+          progressEl.appendChild(d);
+        });
+      }
+
+      function updateCounter() {
+        if (!counterEl) return;
+        counterEl.textContent = (index + 1) + ' / ' + slides.length;
+      }
+
+      function goTo(i) {
+        const next = Math.max(0, Math.min(slides.length - 1, i));
+        slides.forEach((s, idx) => s.classList.toggle('active', idx === next));
+        index = next;
+        renderDots();
+        updateCounter();
+      }
+
+      function next() { goTo(index + 1); }
+      function prev() { goTo(index - 1); }
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+          e.preventDefault();
+          next();
+        } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+          e.preventDefault();
+          prev();
+        }
+      });
+
+      document.getElementById('deck').addEventListener('click', () => {
+        next();
+      });
+
+      renderDots();
+      updateCounter();
+    })();
+  </script>
+</body>
+</html>

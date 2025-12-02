@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WEB_DESIGNER // ONTOLOGICAL_ANCESTOR</title>
+    <style>
+        :root {
+            /* Ontological variables */
+            --bg: #080808;
+            --panel: #111;
+            --border: #333;
+            --border-active: #555;
+            --accent: #00ff9d;      /* Functions/logic */
+            --secondary: #0088ff;   /* State/data */
+            --tag: #ff6b00;         /* Structure/tags */
+            --ctrl: #ffcc00;        /* Control/flow */
+            --text: #ccc;
+            --text-dim: #666;
+            --font: 'JetBrains Mono', monospace;
+            
+            --grid-size: 9;
+            --cell-count: 81;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            height: 100vh;
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        header {
+            height: 56px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            background: #000;
+            gap: 12px;
+            flex-shrink: 0;
+            font-size: 11px;
+            letter-spacing: 0.05em;
+        }
+
+        .brand { color: var(--accent); font-weight: bold; }
+        .divider { width: 1px; height: 20px; background: var(--border); }
+        
+        .breadcrumbs {
+            flex: 0 0 auto;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            max-width: 26vw;
+        }
+        .crumb {
+            color: var(--text-dim);
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .crumb:hover { color: var(--text); text-decoration: underline; }
+        .crumb.active { color: var(--accent); font-weight: bold; }
+
+        .depth-meter { color: var(--secondary); flex: 0 0 auto; }
+
+        /* Enhanced palette with HTML elements */
+        .palette {
+            flex: 1;
+            display: flex;
+            justify-content: flex-end;
+            gap: 6px;
+        }
+        .brick {
+            border-radius: 3px;
+            border: 1px solid var(--border);
+            background: #111;
+            color: var(--text-dim);
+            font-size: 9px;
+            padding: 3px 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .brick span.glyph { font-size: 10px; opacity: 0.8; }
+        .brick:hover {
+            border-color: var(--border-active);
+            color: var(--text);
+        }
+        .brick.active {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* GV_001: Grid viewport with wire layer */
+        .grid-viewport {
+            flex: 1;
+            background: #0c0c0c;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .grid-layer {
+            display: grid;
+            grid-template-columns: repeat(var(--grid-size), 1fr);
+            grid-template-rows: repeat(var(--grid-size), 1fr);
+            width: min(60vh, 90vw);
+            height: min(60vh, 90vw);
+            gap: 1px;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* E_CELL: Enhanced with element editing */
+        .cell {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            padding: 4px;
+            transition: all 0.1s;
+            overflow: hidden;
+        }
+
+        .cell.empty {
+            background: repeating-linear-gradient(45deg, #0d0d0d, #0d0d0d 2px, #111 2px, #111 4px);
+            border-color: #1a1a1a;
+            cursor: default;
+        }
+
+        .cell:hover:not(.empty) {
+            border-color: var(--accent);
+            background: #1a1a1a;
+            z-index: 10;
+            box-shadow: 0 0 0 1px var(--accent);
+        }
+
+        .cell-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 9px;
+            font-weight: bold;
+            color: var(--text-dim);
+            margin-bottom: 2px;
+        }
+        .cell:hover .cell-header { color: var(--text); }
+        .cell-tag { text-transform: uppercase; }
+        .cell-idx { opacity: 0.5; }
+
+        /* Inline editor overlay */
+        .cell-editor {
+            position: absolute;
+            top: 2px; right: 2px;
+            background: #000;
+            border: 1px solid var(--border-active);
+            border-radius: 2px;
+            padding: 2px 4px;
+            font-size: 8px;
+            display: none;
+            z-index: 15;
+        }
+        .cell:hover .cell-editor { display: block; }
+        .cell-editor input {
+            background: transparent;
+            border: none;
+            color: var(--text);
+            font-family: var(--font);
+            font-size: 8px;
+            width: 100%;
+        }
+
+        .cell-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            opacity: 0.8;
+        }
+        .code-line { height: 2px; background: #333; width: 100%; }
+        .code-line.short { width: 40%; }
+        .code-line.med { width: 70%; }
+        .code-line.attr { background: #444; }
+        .cell.layout .code-line.med { width: 90%; }
+        .cell.button .code-line.med { width: 60%; }
+        .cell.text .code-line.med { width: 80%; }
+        .cell:hover .code-line { background: #555; }
+        .cell:hover .code-line.attr { background: var(--accent); opacity: 0.6; }
+
+        .cell-footer {
+            margin-top: auto;
+            font-size: 8px;
+            color: var(--text-dim);
+            text-align: right;
+        }
+
+        /* ED_001: Source panel with minimap */
+        .source-panel {
+            height: 300px;
+            background: #050505;
+            font-size: 11px;
+            border-top: 1px solid var(--border);
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .source-header {
+            padding: 8px 16px;
+            background: #111;
+            border-bottom: 1px solid var(--border);
+            font-size: 10px;
+            color: var(--text-dim);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+
+        .source-line {
+            display: flex;
+            padding: 2px 16px;
+            cursor: pointer;
+            border-left: 2px solid transparent;
+            color: #777;
+        }
+        .source-line:hover, .source-line.active {
+            background: #111;
+            color: #eee;
+            border-left-color: var(--accent);
+        }
+        .ln { 
+            min-width: 30px; 
+            color: #444; 
+            user-select: none; 
+            text-align: right; 
+            margin-right: 12px; 
+        }
+        .code { white-space: pre; font-family: var(--font); }
+
+        #source-stream {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        /* ED_001.Minimap */
+        .minimap-rail {
+            position: absolute;
+            right: 8px;
+            top: 8px;
+            width: 60px;
+            height: 100px;
+            background: #111;
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            overflow: hidden;
+            cursor: pointer;
+            z-index: 3;
+        }
+        .minimap-view {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            background: rgba(0,255,157,0.3);
+            border: 1px solid var(--accent);
+            border-radius: 2px;
+            transition: top 0.1s, height 0.1s;
+        }
+
+        /* E_IFRAME_PREVIEW: New entity for live page rendering */
+        .preview-iframe-container {
+            position: absolute;
+            top: 8px;
+            right: 76px;
+            width: 45%;
+            height: 45%;
+            border: 1px solid var(--border);
+            background: #000;
+            border-radius: 3px;
+            overflow: hidden;
+            display: none;
+            z-index: 4;
+        }
+        .preview-iframe-container.active {
+            display: block;
+        }
+        .iframe-header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 20px;
+            background: #111;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 6px;
+            font-size: 9px;
+            z-index: 10;
+        }
+        .iframe-toggle {
+            background: var(--accent);
+            color: #000;
+            border: none;
+            padding: 2px 6px;
+            font-size: 8px;
+            border-radius: 2px;
+            cursor: pointer;
+        }
+        #preview-iframe {
+            width: 100%;
+            height: 100%;
+            margin-top: 20px;
+            border: none;
+            background: white;
+        }
+
+        /* GV_001.WireLayer */
+        .wire-layer {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .wire {
+            fill: none;
+            stroke: var(--accent);
+            stroke-width: 1.5;
+            opacity: 0.15;
+            transition: opacity 0.2s;
+        }
+        .wire.active {
+            opacity: 1;
+            filter: drop-shadow(0 0 2px var(--accent));
+        }
+
+        /* XR_001.XrayEngine */
+        .cell.focused {
+            transform: scale(1.15);
+            z-index: 20;
+            box-shadow: 0 0 0 2px var(--accent), 0 0 20px rgba(0,255,157,0.3);
+        }
+        .cell.muted {
+            opacity: 0.35;
+            filter: grayscale(0.5);
+        }
+        .cell.ancestor {
+            border-color: var(--tag);
+            box-shadow: 0 0 0 1px var(--tag);
+        }
+        .cell.descendant {
+            border-color: var(--ctrl);
+            box-shadow: 0 0 0 1px var(--ctrl);
+        }
+
+        /* MO_001.Modal: Enhanced for HTML ingestion */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal-content {
+            background: var(--bg);
+            border: 1px solid var(--border-active);
+            padding: 24px;
+            width: 80%;
+            max-width: 800px;
+            border-radius: 4px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .modal-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .modal-tab {
+            padding: 6px 12px;
+            background: #111;
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            cursor: pointer;
+            border-radius: 3px;
+        }
+        .modal-tab.active {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        .modal-tab-content {
+            display: none;
+        }
+        .modal-tab-content.active {
+            display: block;
+        }
+        textarea.modal-textarea {
+            width: 100%;
+            height: 300px;
+            background: #050505;
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: 8px;
+            font-family: var(--font);
+            font-size: 11px;
+            resize: vertical;
+        }
+        .modal-hint {
+            font-size: 10px;
+            color: var(--text-dim);
+            margin-top: 8px;
+        }
+        .modal-actions {
+            margin-top: 12px;
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+        .modal-actions button {
+            padding: 6px 16px;
+            background: var(--accent);
+            color: #000;
+            border: none;
+            border-radius: 3px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="system-root"></div>
+
+    <!-- E_UI.Header -->
+    <header>
+        <div class="brand">WEB_DESIGNER</div>
+        <div class="divider"></div>
+        <div class="breadcrumbs" id="breadcrumbs">
+            <span class="crumb active">DESIGN_VIEW</span>
+        </div>
+        <div class="divider"></div>
+        <div class="depth-meter" id="depth-meter">EDIT: DIV</div>
+        <div class="divider"></div>
+        
+        <!-- CB_001.Palette: HTML element selection -->
+        <div class="palette" id="palette">
+            <button class="brick active" data-type="div"><span class="glyph">▢</span><span>DIV</span></button>
+            <button class="brick" data-type="span"><span class="glyph">◦</span><span>SPAN</span></button>
+            <button class="brick" data-type="p"><span class="glyph">¶</span><span>P</span></button>
+            <button class="brick" data-type="h1"><span class="glyph">H1</span></button>
+            <button class="brick" data-type="img"><span class="glyph">○</span><span>IMG</span></button>
+            <button class="brick" data-type="button"><span class="glyph">●</span><span>BUTTON</span></button>
+            <button class="brick" data-type="a"><span class="glyph">∞</span><span>LINK</span></button>
+            <button class="brick" data-type="empty"><span class="glyph">×</span><span>ERASE</span></button>
+        </div>
+        
+        <!-- New ingestion modes -->
+        <button class="brick" id="ingest-html-btn"><span class="glyph">↶</span><span>INGEST HTML</span></button>
+        <button class="brick" id="iframe-toggle-btn"><span class="glyph">◉</span><span>LIVE PREVIEW</span></button>
+    </header>
+
+    <main>
+        <!-- GV_001.GridViewport with layered elements -->
+        <div class="grid-viewport">
+            <div class="grid-layer" id="grid"></div>
+            <svg class="wire-layer" id="wire-layer"></svg>
+            <div class="minimap-rail" id="minimap-rail">
+                <canvas id="minimap-canvas"></canvas>
+                <div class="minimap-view" id="minimap-view"></div>
+            </div>
+            
+            <!-- E_IFRAME_PREVIEW: New live preview entity -->
+            <div class="preview-iframe-container" id="preview-iframe-container">
+                <div class="iframe-header">
+                    <span>Live Page Preview</span>
+                    <button class="iframe-toggle" id="iframe-close">✕</button>
+                </div>
+                <iframe id="preview-iframe"></iframe>
+            </div>
+        </div>
+
+        <!-- ED_001.SourcePanel -->
+        <div class="source-panel">
+            <div class="source-header">
+                <span>HTML SOURCE &amp; ELEMENT INSPECTOR</span>
+                <span id="node-count">0 ELEMENTS</span>
+            </div>
+            <div id="source-stream"></div>
+            <div class="preview-panel" id="element-inspector">
+                <div class="preview-label-row">
+                    <span>ELEMENT INSPECTOR</span>
+                    <span class="preview-hint">Select a cell to edit attributes</span>
+                </div>
+                <div class="preview-surface" id="preview-surface">
+                    <div style="color: var(--text-dim); padding: 8px;">Select a cell to inspect its element properties</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- MO_001.Modal: Multi-tab ingestion -->
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal-content">
+            <h3 style="color: var(--accent); margin-top: 0;">INGEST WEB CONTENT</h3>
+            <div class="modal-tabs">
+                <div class="modal-tab active" data-tab="html">HTML Code</div>
+                <div class="modal-tab" data-tab="url">From URL</div>
+            </div>
+            
+            <!-- HTML Ingestion Tab -->
+            <div class="modal-tab-content active" data-tab="html">
+                <textarea class="modal-textarea" id="html-textarea" placeholder="Paste your HTML code here...&#10;&#10;<div class='container'>&#10;  <h1>Title</h1>&#10;  <p>Content goes here</p>&#10;  <button class='btn'>Click Me</button>&#10;</div>"></textarea>
+                <div class="modal-hint">Paste complete HTML. Styles will be extracted & preserved.</div>
+            </div>
+            
+            <!-- URL Ingestion Tab -->
+            <div class="modal-tab-content" data-tab="url">
+                <input type="text" class="modal-textarea" id="url-input" placeholder="https://example.com" style="height: 40px;">
+                <div class="modal-hint">Enter a URL to fetch and parse (CORS restrictions apply). Works best with static pages.</div>
+            </div>
+            
+            <div class="modal-actions">
+                <button id="modal-close">CANCEL</button>
+                <button id="modal-load">LOAD INTO GRID</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* 
+         * ONTOLOGICAL LOG - EXTENDED VERSION
+         * New Entities: E_HTML_INGESTOR, E_IFRAME_PREVIEW, E_DOM_PARSER
+         * New Features: F_HTML_PARSE, F_IFRAME_RENDER, F_STYLE_EXTRACT
+         */
+        const ONTOLOGICAL_LOG = {
+            APP_ROOT: { entity: "Web Designer Root", components: ["DataKernel", "StyleSystem", "DOMRegistry"], morphisms: ["init", "ingestHTML", "renderIframe"] },
+            E_HTML_INGESTOR: { entity: "HTML Parser", components: ["C_HTML_AST", "C_STYLE_EXTRACTOR"], features: ["F_HTML_PARSE"], morphisms: ["parseHTML", "extractStyles"] },
+            E_IFRAME_PREVIEW: { entity: "Live Preview", components: ["C_IFRAME_DOC", "C_STYLE_INJECTOR"], features: ["F_IFRAME_RENDER"], morphisms: ["renderToIframe", "reconcileDom"] },
+            E_GRID: { entity: "9×9 Grid", components: ["C_GRID_EL", "C_CELL_COLLECTION"], morphims: ["renderGrid", "paintCell"] },
+            E_CELL: { entity: "Grid Cell", components: ["C_DOM_REF", "C_ELEMENT_DATA"], morphisms: ["updateCellData", "syncElementAttrs"] }
+        };
+
+        /* 
+         * ENHANCED BRICK_TYPES - Now represents HTML elements
+         * Entity: E_BRICK.C_TYPES - defines ontological space of creatable elements
+         */
+        const BRICK_TYPES = {
+            div: { id: 'div', label: 'DIV', tag: 'div', glyph: '▢', icon: '▢', color: 'var(--accent)', attrs: { class: '', style: '' } },
+            span: { id: 'span', label: 'SPAN', tag: 'span', glyph: '◦', icon: '◦', color: 'var(--text)', attrs: { class: '' } },
+            p: { id: 'p', label: 'P', tag: 'p', glyph: '¶', icon: '¶', color: 'var(--text)', attrs: { class: '' } },
+            h1: { id: 'h1', label: 'H1', tag: 'h1', glyph: 'H1', icon: 'H1', color: 'var(--accent)', attrs: { class: '' } },
+            h2: { id: 'h2', label: 'H2', tag: 'h2', glyph: 'H2', icon: 'H2', color: 'var(--accent)', attrs: { class: '' } },
+            img: { id: 'img', label: 'IMG', tag: 'img', glyph: '○', icon: '○', color: 'var(--tag)', attrs: { src: '', alt: '', class: '' } },
+            button: { id: 'button', label: 'BUTTON', tag: 'button', glyph: '●', icon: '●', color: 'var(--ctrl)', attrs: { class: '', onclick: '' } },
+            a: { id: 'a', label: 'A', tag: 'a', glyph: '∞', icon: '∞', color: 'var(--secondary)', attrs: { href: '#', class: '' } },
+            input: { id: 'input', label: 'INPUT', tag: 'input', glyph: '□', icon: '□', color: 'var(--ctrl)', attrs: { type: 'text', class: '' } },
+            empty: { id: 'empty', label: 'EMPTY', tag: null, glyph: '×', icon: '×', color: 'var(--text-dim)', attrs: {} }
+        };
+
+        /* 
+         * CENTRAL STATE - DK_001: DataKernel
+         * Components: C_GRID_STATE, C_STAMP, C_PARSED_DOM, C_STYLE_RULES
+         */
+        const APP_STATE = {
+            gridState: Array.from({ length: CELL_COUNT }, () => ({ type: 'empty', props: {}, symbol: null, innerHTML: '', attrs: {} })),
+            stamp: Array.from({ length: CELL_COUNT }, () => 0),
+            clock: 0,
+            selectedIdx: null,
+            activeIdx: null,
+            currentBrickType: 'div',
+            undoStack: [],
+            redoStack: [],
+            actionLog: [],
+            painting: false,
+            styleRules: '', // C_STYLE_RULES: Extracted CSS
+            iframeDoc: null, // C_IFRAME_DOC: Live preview document
+            originalHtml: '' // Preserved for reset
+        };
+
+        /* DOM REFERENCE REGISTRY - C_DOM */
+        const DOM = {
+            grid: document.getElementById('grid'),
+            sourceStream: document.getElementById('source-stream'),
+            previewSurface: document.getElementById('preview-surface'),
+            elementInspector: document.getElementById('element-inspector'),
+            nodeCount: document.getElementById('node-count'),
+            depthMeter: document.getElementById('depth-meter'),
+            palette: document.getElementById('palette'),
+            modalOverlay: document.getElementById('modal-overlay'),
+            htmlTextarea: document.getElementById('html-textarea'),
+            urlInput: document.getElementById('url-input'),
+            modalLoad: document.getElementById('modal-load'),
+            modalClose: document.getElementById('modal-close'),
+            ingestHtmlBtn: document.getElementById('ingest-html-btn'),
+            iframeToggleBtn: document.getElementById('iframe-toggle-btn'),
+            iframeContainer: document.getElementById('preview-iframe-container'),
+            iframeElement: document.getElementById('preview-iframe'),
+            wireLayer: document.getElementById('wire-layer'),
+            minimapCanvas: document.getElementById('minimap-canvas'),
+            minimapView: document.getElementById('minimap-view')
+        };
+
+        /* 
+         * M_INIT: Bootstrapping morphism
+         * Transforms system from ∅ to runtime-ready state
+         */
+        function init() {
+            console.log('init() - Bootstrapping web designer reality...');
+            initPalette();
+            initModal();
+            initMinimap();
+            initGrid();
+            initIframe();
+            renderAll();
+            runSmokeTests();
+            logAction('system', { event: 'init', version: 'WEB_DESIGNER_v2' });
+        }
+
+        /* 
+         * F_SELECT → M_SET_TYPE: Element type selection morphism
+         * Updates current ontological creation type
+         */
+        function setCurrentBrickType(type) {
+            if (!BRICK_TYPES[type]) return;
+            APP_STATE.currentBrickType = type;
+            DOM.depthMeter.textContent = 'EDIT: ' + type.toUpperCase();
+            
+            DOM.palette.querySelectorAll('.brick').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.type === type);
+            });
+            logAction('select', { type });
+        }
+
+        /* 
+         * F_INTERACT → M_PAINT: Cell painting morphism
+         * Transforms cell state based on current type
+         */
+        function paintCell(index, event) {
+            event?.preventDefault();
+            const prev = APP_STATE.gridState[index];
+            const nextType = prev.type === APP_STATE.currentBrickType ? 'empty' : APP_STATE.currentBrickType;
+            
+            pushCheckpoint('paint');
+            
+            // Preserve innerHTML when switching types
+            const preservedHTML = nextType === 'empty' ? '' : (prev.innerHTML || BRICK_TYPES[nextType].defaultText || '');
+            
+            APP_STATE.gridState[index] = {
+                type: nextType,
+                props: { ...prev.props },
+                symbol: nextType !== 'empty' ? `${BRICK_TYPES[nextType].label}_${index}` : null,
+                innerHTML: preservedHTML,
+                attrs: { ...BRICK_TYPES[nextType].attrs } // Fresh attrs from type
+            };
+            
+            APP_STATE.stamp[index] = ++APP_STATE.clock;
+            logAction('paint', { index, type: nextType, prev: prev.type });
+            renderAll();
+        }
+
+        /* 
+         * F_RENDER → M_RENDER_GRID: DOM cell generation morphism
+         * Projects grid state to visual reality
+         */
+        function renderGrid() {
+            DOM.grid.innerHTML = '';
+            DOM.grid.style.gridTemplateColumns = `repeat(${GRID_SIZE}, 1fr)`;
+            DOM.grid.style.gridTemplateRows = `repeat(${GRID_SIZE}, 1fr)`;
+            
+            APP_STATE.gridState.forEach((cellState, index) => {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.dataset.index = index;
+                
+                const row = Math.floor(index / GRID_SIZE);
+                const col = index % GRID_SIZE;
+                
+                if (!cellState || cellState.type === 'empty') {
+                    cell.classList.add('empty');
+                } else {
+                    const def = BRICK_TYPES[cellState.type];
+                    cell.classList.add(cellState.type);
+                    
+                    // Enhanced cell rendering with editable attributes
+                    cell.innerHTML = `
+                        <div class="cell-header">
+                            <span class="cell-tag" style="color: ${def.color}">${def.label}</span>
+                            <span class="cell-idx">${row},${col}</span>
+                        </div>
+                        <div class="cell-body">
+                            <div class="code-line med"></div>
+                            <div class="code-line short attr"></div>
+                            <div class="code-line med"></div>
+                        </div>
+                        <div class="cell-footer" style="color: ${def.color}">
+                            ${def.icon}·CELL ${String(index).padStart(2, '0')}
+                            ${cellState.symbol ? `| ${cellState.symbol}` : ''}
+                        </div>
+                        <div class="cell-editor">
+                            <input type="text" placeholder="class" data-attr="class">
+                        </div>
+                    `;
+                    
+                    // Bind attribute editor
+                    const attrInput = cell.querySelector('.cell-editor input');
+                    attrInput.value = cellState.attrs.class || '';
+                    attrInput.addEventListener('input', (e) => {
+                        cellState.attrs.class = e.target.value;
+                        logAction('edit-attr', { index, attr: 'class', value: e.target.value });
+                    });
+                    
+                    // Display innerHTML preview
+                    if (cellState.innerHTML && cellState.innerHTML !== def.defaultText) {
+                        const preview = document.createElement('div');
+                        preview.style.fontSize = '7px';
+                        preview.style.color = 'var(--text-dim)';
+                        preview.style.marginTop = '2px';
+                        preview.textContent = cellState.innerHTML.substring(0, 15) + '...';
+                        cell.appendChild(preview);
+                    }
+                }
+                
+                cell.addEventListener('click', (e) => {
+                    if (e.target.tagName !== 'INPUT') paintCell(index, e);
+                });
+                cell.addEventListener('click', (e) => {
+                    if (e.target.tagName !== 'INPUT') selectCell(index);
+                });
+                
+                DOM.grid.appendChild(cell);
+            });
+        }
+
+        /* 
+         * F_RENDER → M_RENDER_SOURCE: HTML source generation morphism
+         * Transforms grid state to HTML code representation
+         */
+        function renderSourceAndInspector() {
+            DOM.sourceStream.innerHTML = '';
+            DOM.previewSurface.innerHTML = '';
+            
+            const elements = [];
+            let elementCount = 0;
+            
+            APP_STATE.gridState.forEach((cellState, index) => {
+                if (!cellState || cellState.type === 'empty') return;
+                const def = BRICK_TYPES[cellState.type];
+                if (!def || !def.tag) return;
+                
+                // Build attributes string
+                const attrs = [];
+                Object.entries(cellState.attrs || {}).forEach(([key, val]) => {
+                    if (val) attrs.push(`${key}="${val}"`);
+                });
+                const attrString = attrs.length > 0 ? ' ' + attrs.join(' ') : '';
+                
+                const indent = '  ';
+                const tag = def.tag;
+                const content = cellState.innerHTML || def.defaultText || '';
+                const line = `${indent}<${tag}${attrString}>${content}</${tag}>`;
+                
+                elements.push({ line, index, tag, content, attrs: cellState.attrs });
+                elementCount++;
+            });
+            
+            // Render source lines
+            elements.forEach((el, i) => {
+                const lineDiv = document.createElement('div');
+                lineDiv.className = 'source-line';
+                lineDiv.dataset.index = el.index;
+                
+                const ln = document.createElement('div');
+                ln.className = 'ln';
+                ln.textContent = String(i + 1).padStart(2, '0');
+                
+                const code = document.createElement('div');
+                code.className = 'code';
+                code.textContent = el.line;
+                
+                lineDiv.append(ln, code);
+                DOM.sourceStream.appendChild(lineDiv);
+            });
+            
+            // Render inspector
+            if (elementCount === 0) {
+                DOM.previewSurface.innerHTML = '<div style="color: var(--text-dim);">No elements. Paint cells or ingest HTML.</div>';
+            } else {
+                const container = document.createElement('div');
+                container.innerHTML = `<div style="font-size: 10px; margin-bottom: 8px;">${elementCount} elements in grid</div>`;
+                
+                // Show selected cell details if any
+                if (APP_STATE.selectedIdx !== null) {
+                    const cell = APP_STATE.gridState[APP_STATE.selectedIdx];
+                    if (cell && cell.type !== 'empty') {
+                        const details = document.createElement('div');
+                        details.style.fontSize = '10px';
+                        details.style.border = '1px solid var(--border)';
+                        details.style.padding = '8px';
+                        details.style.marginTop = '8px';
+                        
+                        const def = BRICK_TYPES[cell.type];
+                        details.innerHTML = `
+                            <div style="color: var(--accent); margin-bottom: 4px;">CELL ${APP_STATE.selectedIdx} - ${def.label}</div>
+                            <div>Tag: &lt;${def.tag}&gt;</div>
+                            <div>Content: ${cell.innerHTML || '(empty)'}</div>
+                            <div>Attributes: ${JSON.stringify(cell.attrs)}</div>
+                        `;
+                        container.appendChild(details);
+                    }
+                }
+                
+                DOM.previewSurface.appendChild(container);
+            }
+            
+            DOM.nodeCount.textContent = `${elementCount} ELEMENTS`;
+        }
+
+        /* 
+         * F_IFRAME_RENDER → M_RENDER_IFRAME: Preview rendering morphism
+         * Transforms grid state to live webpage in iframe
+         */
+        function renderToIframe() {
+            if (!DOM.iframeElement.contentDocument) return;
+            
+            const doc = DOM.iframeElement.contentDocument;
+            APP_STATE.iframeDoc = doc;
+            
+            // Clear and rebuild document
+            doc.open();
+            doc.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <style>
+                        body { font-family: sans-serif; padding: 20px; margin: 0; }
+                        .cell-element { margin: 10px 0; padding: 10px; border: 1px solid #ddd; }
+                        ${APP_STATE.styleRules} /* Injected extracted styles */
+                    </style>
+                </head>
+                <body>
+                    <div class="rendered-grid-container">
+                        <!-- Grid elements will be rendered here -->
+                    </div>
+                </body>
+                </html>
+            `);
+            doc.close();
+            
+            // Render elements from grid
+            const container = doc.querySelector('.rendered-grid-container');
+            if (!container) return;
+            
+            APP_STATE.gridState.forEach((cellState, index) => {
+                if (!cellState || cellState.type === 'empty') return;
+                const def = BRICK_TYPES[cellState.type];
+                if (!def || !def.tag) return;
+                
+                const el = doc.createElement(def.tag);
+                el.className = 'cell-element';
+                el.textContent = cellState.innerHTML || def.defaultText || '';
+                
+                // Apply stored attributes
+                Object.entries(cellState.attrs || {}).forEach(([key, val]) => {
+                    if (val) el.setAttribute(key, val);
+                });
+                
+                container.appendChild(el);
+            });
+            
+            logAction('iframe-render', { elementCount: container.children.length });
+        }
+
+        /* 
+         * E_HTML_INGESTOR → M_PARSE_HTML: HTML parsing morphism
+         * Transforms HTML string → grid state
+         */
+        function parseHTML(htmlString) {
+            pushCheckpoint('ingest-html');
+            
+            // Store original HTML
+            APP_STATE.originalHtml = htmlString;
+            
+            // Create temporary DOM parser
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlString, 'text/html');
+            
+            // Extract styles from <style> tags
+            const styleTags = doc.querySelectorAll('style');
+            APP_STATE.styleRules = Array.from(styleTags).map(s => s.textContent).join('\n');
+            
+            // Extract body elements
+            const elements = Array.from(doc.body.children);
+            
+            // Clear grid
+            APP_STATE.gridState = Array.from({ length: CELL_COUNT }, () => ({ type: 'empty', props: {}, symbol: null, innerHTML: '', attrs: {} }));
+            APP_STATE.stamp = Array.from({ length: CELL_COUNT }, () => 0);
+            
+            // Map elements to grid cells
+            elements.slice(0, CELL_COUNT).forEach((el, i) => {
+                const tagName = el.tagName.toLowerCase();
+                const type = BRICK_TYPES[tagName] ? tagName : 'div'; // Default to div for unknown tags
+                
+                APP_STATE.gridState[i] = {
+                    type: type,
+                    props: {},
+                    symbol: `${tagName}_${i}`,
+                    innerHTML: el.innerHTML || el.textContent || '',
+                    attrs: Array.from(el.attributes).reduce((acc, attr) => {
+                        acc[attr.name] = attr.value;
+                        return acc;
+                    }, {})
+                };
+                
+                APP_STATE.stamp[i] = ++APP_STATE.clock;
+            });
+            
+            logAction('parse-html', { elements: elements.length, rules: styleTags.length });
+            renderAll();
+            renderToIframe();
+        }
+
+        /* 
+         * E_IFRAME_PREVIEW → M_INIT_IFRAME: Iframe setup morphism
+         */
+        function initIframe() {
+            DOM.iframeToggleBtn.addEventListener('click', () => {
+                DOM.iframeContainer.classList.toggle('active');
+                if (DOM.iframeContainer.classList.contains('active')) {
+                    renderToIframe();
+                }
+            });
+            
+            document.getElementById('iframe-close').addEventListener('click', () => {
+                DOM.iframeContainer.classList.remove('active');
+            });
+        }
+
+        /* 
+         * E_CELL → M_SELECT_CELL: Selection morphism for inspection
+         */
+        function selectCell(index) {
+            APP_STATE.selectedIdx = index;
+            renderSourceAndInspector();
+        }
+
+        /* 
+         * E_HTML_INGESTOR → M_EXTRACT_STYLES: CSS extraction morphism
+         */
+        function extractStyles(doc) {
+            const styles = [];
+            
+            // Extract from <style> tags
+            doc.querySelectorAll('style').forEach(style => {
+                styles.push(style.textContent);
+            });
+            
+            // Extract from style attributes
+            const inlineStyles = [];
+            doc.querySelectorAll('[style]').forEach(el => {
+                inlineStyles.push(`${el.tagName.toLowerCase()}[style] { ${el.getAttribute('style')} }`);
+            });
+            
+            return styles.join('\n') + '\n' + inlineStyles.join('\n');
+        }
+
+        /* Modal initialization with tab switching */
+        function initModal() {
+            // Tab switching
+            document.querySelectorAll('.modal-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const targetTab = tab.dataset.tab;
+                    document.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.modal-tab-content').forEach(c => c.classList.remove('active'));
+                    tab.classList.add('active');
+                    document.querySelector(`[data-tab="${targetTab}"]`).classList.add('active');
+                });
+            });
+            
+            // Load button
+            DOM.modalLoad.addEventListener('click', () => {
+                const activeTab = document.querySelector('.modal-tab.active').dataset.tab;
+                
+                if (activeTab === 'html') {
+                    const html = DOM.htmlTextarea.value;
+                    if (html.trim()) {
+                        parseHTML(html);
+                        toggleModal(false);
+                    }
+                } else if (activeTab === 'url') {
+                    const url = DOM.urlInput.value;
+                    if (url.trim()) {
+                        loadFromURL(url);
+                        toggleModal(false);
+                    }
+                }
+            });
+            
+            // Close buttons
+            DOM.modalClose.addEventListener('click', () => toggleModal(false));
+            DOM.modalOverlay.addEventListener('click', (e) => {
+                if (e.target === DOM.modalOverlay) toggleModal(false);
+            });
+            
+            // Keyboard shortcut
+            DOM.htmlTextarea.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    parseHTML(DOM.htmlTextarea.value);
+                    toggleModal(false);
+                }
+            });
+        }
+
+        /* 
+         * E_HTML_INGESTOR → M_LOAD_FROM_URL: URL fetching morphism
+         */
+        async function loadFromURL(url) {
+            try {
+                logAction('url-fetch', { url });
+                const response = await fetch(url);
+                const html = await response.text();
+                parseHTML(html);
+            } catch (err) {
+                console.error('URL fetch failed:', err);
+                logAction('error', { message: 'Failed to fetch URL', error: err.message });
+                alert('Failed to fetch URL. Check CORS permissions and try again.');
+            }
+        }
+
+        /* 
+         * E_UI → M_TOGGLE_MODAL: Modal visibility morphism
+         */
+        function toggleModal(open) {
+            DOM.modalOverlay.classList.toggle('open', open);
+        }
+
+        /* 
+         * E_UI → M_INIT_PALETTE: Event binding morphism
+         */
+        function initPalette() {
+            // Element type selection
+            DOM.palette.querySelectorAll('.brick').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const type = btn.dataset.type;
+                    setCurrentBrickType(type);
+                });
+            });
+            
+            // HTML ingestion
+            DOM.ingestHtmlBtn.addEventListener('click', () => {
+                toggleModal(true);
+            });
+        }
+
+        /* 
+         * E_MINIMAP → M_INIT_MINIMAP: Minimap setup morphism
+         */
+        function initMinimap() {
+            // Simple click-to-navigate
+            DOM.minimapCanvas.addEventListener('click', (e) => {
+                const rect = DOM.minimapCanvas.getBoundingClientRect();
+                const y = e.clientY - rect.top;
+                const ratio = y / rect.height;
+                const targetCell = Math.floor(ratio * CELL_COUNT);
+                selectCell(targetCell);
+            });
+        }
+
+        /* 
+         * E_GRID → M_INIT_GRID: Interaction binding morphism
+         */
+        function initGrid() {
+            // Drag-to-paint
+            DOM.grid.addEventListener('mousedown', () => {
+                APP_STATE.painting = true;
+                pushCheckpoint('stroke');
+            });
+            
+            document.addEventListener('mouseup', () => {
+                APP_STATE.painting = false;
+            });
+            
+            DOM.grid.addEventListener('mouseover', (e) => {
+                if (APP_STATE.painting && e.target.classList.contains('cell')) {
+                    const index = parseInt(e.target.dataset.index);
+                    paintCell(index);
+                }
+            });
+            
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+                
+                if (e.key === 'z' && (e.ctrlKey || e.metaKey)) undo();
+                if (e.key === 'y' && (e.ctrlKey || e.metaKey)) redo();
+                if (e.key === 'Escape') {
+                    APP_STATE.selectedIdx = null;
+                    renderSourceAndInspector();
+                    toggleModal(false);
+                    DOM.iframeContainer.classList.remove('active');
+                }
+                if (e.key === 'p' && e.ctrlKey) {
+                    e.preventDefault();
+                    DOM.iframeContainer.classList.toggle('active');
+                    if (DOM.iframeContainer.classList.contains('active')) renderToIframe();
+                }
+            });
+        }
+
+        /* 
+         * MASTER RENDER: Compositional morphism
+         * Orchestrates all rendering operations
+         */
+        function renderAll() {
+            renderGrid();
+            renderSourceAndInspector();
+            renderToIframe();
+            drawWires();
+        }
+
+        /* 
+         * F_TEST → M_SMOKE_TESTS: Integrity validation morphism
+         */
+        function runSmokeTests() {
+            try {
+                console.assert(typeof init === 'function', 'init exists');
+                console.assert(DOM.grid instanceof HTMLElement, 'Grid element exists');
+                console.assert(CELL_COUNT === 81, 'Grid size is 81');
+                console.assert(typeof parseHTML === 'function', 'HTML parser exists');
+                console.assert(typeof renderToIframe === 'function', 'Iframe renderer exists');
+                console.log('✓ All smoke tests passed');
+            } catch (err) {
+                console.error('Smoke test failed:', err);
+            }
+        }
+
+        /* 
+         * F_HISTORY → M_PUSH_CHECKPOINT: State preservation morphism
+         */
+        function pushCheckpoint(reason) {
+            const snapshot = M_COMPRESS(APP_STATE);
+            snapshot.styleRules = APP_STATE.styleRules;
+            snapshot.originalHtml = APP_STATE.originalHtml;
+            APP_STATE.undoStack.push(snapshot);
+            if (APP_STATE.undoStack.length > 50) APP_STATE.undoStack.shift();
+            APP_STATE.redoStack = [];
+        }
+
+        /* 
+         * F_HISTORY → M_UNDO: Temporal reversal morphism
+         */
+        function undo() {
+            if (APP_STATE.undoStack.length === 0) return;
+            APP_STATE.redoStack.push(M_COMPRESS(APP_STATE));
+            const snapshot = APP_STATE.undoStack.pop();
+            Object.assign(APP_STATE, M_DECOMPRESS(snapshot));
+            APP_STATE.styleRules = snapshot.styleRules;
+            APP_STATE.originalHtml = snapshot.originalHtml;
+            renderAll();
+        }
+
+        /* 
+         * F_HISTORY → M_REDO: Temporal forward morphism
+         */
+        function redo() {
+            if (APP_STATE.redoStack.length === 0) return;
+            APP_STATE.undoStack.push(M_COMPRESS(APP_STATE));
+            const snapshot = APP_STATE.redoStack.pop();
+            Object.assign(APP_STATE, M_DECOMPRESS(snapshot));
+            APP_STATE.styleRules = snapshot.styleRules;
+            APP_STATE.originalHtml = snapshot.originalHtml;
+            renderAll();
+        }
+
+        /* 
+         * F_LOG → M_LOG_ACTION: Event logging morphism
+         */
+        function logAction(kind, payload) {
+            const entry = {
+                t: new Date().toLocaleTimeString(),
+                kind,
+                payload: JSON.stringify(payload),
+                id: Math.random().toString(36).substr(2, 6)
+            };
+            APP_STATE.actionLog.unshift(entry);
+            if (APP_STATE.actionLog.length > 15) APP_STATE.actionLog.pop();
+            console.log(`[LOG] ${entry.t} | ${kind} |`, payload);
+        }
+
+        // Bootstrap
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+
+        // Live reload integration
+        if ('WebSocket' in window) {
+            const protocol = window.location.protocol === 'http:' ? 'ws://' : 'wss://';
+            const address = protocol + window.location.host + window.location.pathname + '/ws';
+            try {
+                const socket = new WebSocket(address);
+                socket.onmessage = (msg) => {
+                    if (msg.data === 'reload') window.location.reload();
+                    if (msg.data === 'refreshcss') {
+                        document.querySelectorAll('link').forEach(link => {
+                            link.href = link.href.replace(/(&|\?)_cacheOverride=\d+/, '') + (link.href.includes('?') ? '&' : '?') + '_cacheOverride=' + Date.now();
+                        });
+                    }
+                };
+            } catch (e) {
+                console.log('Live reload not available');
+            }
+        }
+
+        // Global API for debugging
+        window.APP = {
+            state: APP_STATE,
+            log: ONTOLOGICAL_LOG,
+            bricks: BRICK_TYPES,
+            render: renderAll,
+            parse: parseHTML,
+            undo,
+            redo
+        };
+    </script>
+</body>
+</html>

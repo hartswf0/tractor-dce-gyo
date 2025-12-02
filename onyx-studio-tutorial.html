@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>ONYX Studio · Tutorial & Research Olog</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #020617;
+      --panel: #020617;
+      --surface: #020617;
+      --border: #1e293b;
+      --accent: #22d3ee;
+      --accent-soft: rgba(34, 211, 238, 0.12);
+      --accent-strong: rgba(34, 211, 238, 0.2);
+      --text-main: #e5e7eb;
+      --text-muted: #64748b;
+      --heading: #fbbf24;
+      --chip-bg: #020617;
+      --chip-border: #334155;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(circle at top, #111827 0, #020617 55%, #000 100%);
+      color: var(--text-main);
+      font-family: 'JetBrains Mono', monospace;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      padding: 18px 20px 10px 20px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.96);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(10px);
+    }
+
+    .title-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 10px;
+      justify-content: space-between;
+    }
+
+    h1 {
+      font-size: 15px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--heading);
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    h1 span.tag {
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+
+    .subtitle {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      max-width: 640px;
+    }
+
+    .header-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-size: 10px;
+    }
+
+    .header-links a {
+      text-decoration: none;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.8);
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+    }
+
+    .header-links a.primary {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    main {
+      flex: 1 1 auto;
+      min-height: 0;
+      padding: 16px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .shell {
+      width: 100%;
+      max-width: 1080px;
+      display: grid;
+      grid-template-columns: minmax(0, 3fr) minmax(220px, 1.3fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 900px) {
+      .shell {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    section {
+      border-radius: 10px;
+      border: 1px solid rgba(30, 64, 175, 0.5);
+      background: radial-gradient(circle at top left, rgba(30, 64, 175, 0.6), rgba(15, 23, 42, 0.98));
+      padding: 14px 16px 16px 16px;
+      margin-bottom: 12px;
+    }
+
+    section.soft {
+      border-color: var(--border);
+      background: radial-gradient(circle at top left, rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.98));
+    }
+
+    h2 {
+      margin: 0 0 8px 0;
+      font-size: 13px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--heading);
+    }
+
+    h3 {
+      margin: 12px 0 4px 0;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    p {
+      margin: 4px 0 8px 0;
+      font-size: 11px;
+      line-height: 1.5;
+      color: var(--text-main);
+    }
+
+    p.muted {
+      color: var(--text-muted);
+    }
+
+    ul, ol {
+      margin: 4px 0 8px 16px;
+      padding-left: 12px;
+    }
+
+    li {
+      font-size: 11px;
+      line-height: 1.5;
+      color: var(--text-main);
+      margin-bottom: 2px;
+    }
+
+    code {
+      font-size: 10px;
+      padding: 1px 4px;
+      border-radius: 3px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(30, 64, 175, 0.6);
+      color: #93c5fd;
+    }
+
+    a {
+      color: #38bdf8;
+    }
+
+    .toc {
+      font-size: 10px;
+      display: grid;
+      gap: 4px;
+    }
+
+    .toc a {
+      color: var(--text-muted);
+      text-decoration: none;
+      padding: 4px 8px;
+      border-radius: 6px;
+      border: 1px solid rgba(15, 23, 42, 0.9);
+      background: rgba(15, 23, 42, 0.65);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .toc a span.label {
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+    }
+
+    .toc a span.code {
+      font-size: 9px;
+      color: var(--text-muted);
+    }
+
+    .callout {
+      border-radius: 8px;
+      border: 1px dashed rgba(148, 163, 184, 0.5);
+      padding: 8px 10px;
+      font-size: 10px;
+      color: var(--text-muted);
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 10px;
+    }
+
+    @media (max-width: 720px) {
+      .grid-2 {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .tool-card {
+      border-radius: 8px;
+      border: 1px solid rgba(30, 64, 175, 0.6);
+      background: radial-gradient(circle at top left, rgba(30, 64, 175, 0.5), rgba(15, 23, 42, 0.96));
+      padding: 8px 10px;
+      font-size: 11px;
+    }
+
+    .tool-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 6px;
+      margin-bottom: 2px;
+    }
+
+    .tool-name {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .tool-file {
+      font-size: 9px;
+      color: var(--text-muted);
+    }
+
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin: 4px 0;
+    }
+
+    .chip {
+      font-size: 9px;
+      border-radius: 999px;
+      border: 1px solid var(--chip-border);
+      padding: 2px 8px;
+      background: var(--chip-bg);
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .chip.accent {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .step-stack {
+      display: grid;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .step {
+      border-radius: 8px;
+      border: 1px solid rgba(30, 64, 175, 0.7);
+      background: rgba(15, 23, 42, 0.96);
+      padding: 8px 9px;
+      font-size: 11px;
+    }
+
+    .step-label {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+
+    .step-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--heading);
+      margin-bottom: 2px;
+    }
+
+    .inline-grid {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 4px 8px;
+      font-size: 10px;
+      margin-top: 4px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 9px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="title-row">
+      <div>
+        <h1>
+          ONYX STUDIO
+          <span class="tag">Tutorial · Research Olog</span>
+        </h1>
+        <div class="subtitle">
+          How the ONYX Studio constellation fits together: Head / Abs / Tail, Brick Branch, Brick Architect, and LGI Brickbender
+          as one narrative grid for scenes, code, and GS2P maps.
+        </div>
+      </div>
+      <div class="header-links">
+        <a href="onyx-studio.html" class="primary">Launch ONYX Studio</a>
+        <a href="onyx-head.html">Head</a>
+        <a href="onyx-abs.html">Abs</a>
+        <a href="onyx-tail.html">Tail</a>
+        <a href="brick-branch.html">Branch</a>
+        <a href="brick-architect.html">Architect</a>
+        <a href="lgi-brickbender.html">GS2P</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="shell">
+      <!-- LEFT: MAIN STORY / TUTORIAL -->
+      <div>
+        <section id="overview">
+          <h2>1 · Overview</h2>
+          <p>
+            ONYX Studio is a <strong>multi-tool shell</strong> for working with stories and systems on a 9×9 grid. It connects:
+          </p>
+          <ul>
+            <li><strong>ONYX Head / Abs / Tail</strong> – narrative entity + scene tools.</li>
+            <li><strong>Brick Branch / Brick Architect</strong> – 9×9 code / dependency explorers that can import ONYX scenes.</li>
+            <li><strong>LGI Brickbender</strong> – a GS2P mapper that turns ONYX grids into <code>ground / site / sky / perspective</code> maps.</li>
+          </ul>
+          <p>
+            This page is a <strong>tutorial + research olog</strong> that explains how the ONYX Studio pieces relate, the shared
+            data model, and concrete step-by-step flows you can follow.
+          </p>
+          <div class="callout">
+            <strong>Quick start:</strong>
+            open <code>onyx-studio.html</code>, use the <code>ABS</code> tab to load a LEGOS multi-channel or SceneCollection JSON,
+            then explore the same scenes through <code>HEAD</code>, <code>TAIL</code>, <code>BRANCH</code>, <code>ARCH</code>, and <code>GS2P</code>.
+          </div>
+        </section>
+
+        <section id="components" class="soft">
+          <h2>2 · Components (Docked Tools)</h2>
+          <p class="muted">
+            Each tool is a separate HTML surface but ONYX Studio docks them together and lets them share a SceneCollection.
+          </p>
+
+          <div class="grid-2">
+            <div class="tool-card">
+              <div class="tool-header">
+                <div class="tool-name">Studio Shell</div>
+                <div class="tool-file">onyx-studio.html</div>
+              </div>
+              <p>
+                The <strong>tab strip + frame shell</strong> that hosts all ONYX tools. Tabs:
+                <code>HEAD · ABS · TAIL · BRANCH · ARCH · GS2P</code>.
+              </p>
+              <div class="chip-row">
+                <span class="chip accent">Layout</span>
+                <span class="chip">Frame switcher</span>
+                <span class="chip">Split mode (Head + Tail)</span>
+              </div>
+              <p class="muted">
+                Use this page as your primary entry point. It never owns data; it just frames other tools.
+              </p>
+            </div>
+
+            <div class="tool-card">
+              <div class="tool-header">
+                <div class="tool-name">ONYX Head</div>
+                <div class="tool-file">onyx-head.html</div>
+              </div>
+              <p>
+                A <strong>narrative entity &amp; timeline view</strong> for ONYX scenes.
+                Sidebar shows story info, entity palette, registry, and help.
+              </p>
+              <div class="chip-row">
+                <span class="chip accent">Timeline</span>
+                <span class="chip">Entities</span>
+                <span class="chip">Forks</span>
+              </div>
+              <p class="muted">
+                Use Head when you want to <strong>think in scenes, entities, and beats</strong> rather than code.
+              </p>
+            </div>
+
+            <div class="tool-card">
+              <div class="tool-header">
+                <div class="tool-name">ONYX Abs</div>
+                <div class="tool-file">onyx-abs.html</div>
+              </div>
+              <p>
+                The <strong>ingest + abstraction tool</strong> for ONYX. It:
+              </p>
+              <ul>
+                <li>Reads <strong>LEGOS multi-channel</strong> or <strong>SceneCollection JSON</strong>.</li>
+                <li>Converts it into an internal <code>sceneCollection</code>.</li>
+                <li>Persists that into <code>localStorage['onyx_scene_collection']</code>.</li>
+              </ul>
+              <div class="chip-row">
+                <span class="chip accent">Ingest</span>
+                <span class="chip">Scene picker</span>
+                <span class="chip">Autoplay</span>
+              </div>
+              <p class="muted">
+                Abs is the <strong>source of truth</strong> for ONYX scenes. Other tools read from its SceneCollection.
+              </p>
+            </div>
+
+            <div class="tool-card">
+              <div class="tool-header">
+                <div class="tool-name">ONYX Tail</div>
+                <div class="tool-file">onyx-tail.html</div>
+              </div>
+              <p>
+                A <strong>storytelling backplane</strong> for ONYX with themable panels, console, and inspector. It
+                speaks the same entity/scene language as Head, but focuses on <strong>story system diagnostics</strong>.
+              </p>
+              <div class="chip-row">
+                <span class="chip accent">Story system</span>
+                <span class="chip">Inspector</span>
+                <span class="chip">Console</span>
+              </div>
+              <p class="muted">
+                Use Tail to debug and tune the <strong>machinery</strong> behind a story: goals, obstacles, morphisms.
+              </p>
+            </div>
+
+            <div class="tool-card">
+              <div class="tool-header">
+                <div class="tool-name">Brick Branch</div>
+                <div class="tool-file">brick-branch.html</div>
+              </div>
+              <p>
+                A <strong>9×9 multimodal core</strong> for exploring code / scenes as a grid. It can:</n              </p>
+              <ul>
+                <li>Parse code into 81 cells with <strong>functions / variables / tags / control</strong>.</li>
+                <li>Import an ONYX SceneCollection from <code>localStorage</code> via <code>importOnyxSceneFromCollection</code>.</li>
+                <li>Let you <strong>branch</strong> and compare different scene views.</li>
+              </ul>
+              <div class="chip-row">
+                <span class="chip accent">9×9 grid</span>
+                <span class="chip">Branching</span>
+                <span class="chip">Sonify / haptics</span>
+              </div>
+              <p class="muted">
+                Use Branch to feel the <strong>dependency graph</strong> of an ONYX scene as a playable grid.
+              </p>
+            </div>
+
+            <div class="tool-card">
+              <div class="tool-header">
+                <div class="tool-name">Brick Architect</div>
+                <div class="tool-file">brick-architect.html</div>
+              </div>
+              <p>
+                A 9×9 <strong>architecture visualizer</strong> that can also import ONYX scenes from
+                <code>onyx_scene_collection</code>. It renders scenes as blocks and wires, optimized for structure.
+              </p>
+              <div class="chip-row">
+                <span class="chip accent">Architecture</span>
+                <span class="chip">Upstream / downstream</span>
+                <span class="chip">Minimap</span>
+              </div>
+              <p class="muted">
+                Use Architect when you want to see <strong>who calls whom</strong> and how responsibilities are arranged.
+              </p>
+            </div>
+
+            <div class="tool-card">
+              <div class="tool-header">
+                <div class="tool-name">LGI Brickbender (GS2P)</div>
+                <div class="tool-file">lgi-brickbender.html</div>
+              </div>
+              <p>
+                A node editor that maps ONYX or arbitrary code into <strong>GS2P layers</strong>:
+                <code>ground / site / sky / perspective</code>.
+              </p>
+              <ul>
+                <li>Can ingest raw code and infer GS2P roles.</li>
+                <li>Can <strong>import ONYX</strong> scenes from <code>onyx_scene_collection</code>.</li>
+                <li>Lets you arrange nodes and export JSON specs.</li>
+              </ul>
+              <div class="chip-row">
+                <span class="chip accent">GS2P</span>
+                <span class="chip">Node editor</span>
+                <span class="chip">ONYX import</span>
+              </div>
+              <p class="muted">
+                Use Brickbender to re-express an ONYX story as an <strong>LGI map</strong> of flows, sites, risks, and views.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section id="flows">
+          <h2>3 · Core Workflows</h2>
+          <p class="muted">
+            The tools are loosely coupled. The main bridge is a shared <code>SceneCollection</code> in <code>localStorage</code>
+            under the key <code>onyx_scene_collection</code>.
+          </p>
+
+          <div class="step-stack">
+            <div class="step">
+              <div class="step-label">Flow 1</div>
+              <div class="step-title">From LEGOS JSON to ONYX Head / Tail</div>
+              <ol>
+                <li>Open <code>onyx-studio.html</code> and select the <code>ABS</code> tab.</li>
+                <li>In ONYX Abs, choose <strong>JSON ingest</strong> and load a LEGOS multi-channel or SceneCollection file.</li>
+                <li>Abs converts it into a <code>sceneCollection</code> and writes it to <code>localStorage['onyx_scene_collection']</code>.</li>
+                <li>Switch to <code>HEAD</code> and <code>TAIL</code> tabs to view and debug the same scenes.</li>
+              </ol>
+              <p class="muted">
+                Abs is the only place that needs to know about the raw JSON format; Head/Tail work on the normalized scenes.
+              </p>
+            </div>
+
+            <div class="step">
+              <div class="step-label">Flow 2</div>
+              <div class="step-title">From ONYX Scenes to Brick Branch / Architect</div>
+              <ol>
+                <li>After Flow 1, the browser already has <code>onyx_scene_collection</code> in <code>localStorage</code>.</li>
+                <li>Switch to the <code>BRANCH</code> tab in ONYX Studio (frame: <code>brick-branch.html</code>).</li>
+                <li>Use its ONYX import controls (backed by <code>importOnyxSceneFromCollection()</code>) to pull in a scene.</li>
+                <li>Explore the 9×9 grid: focus one cell, inspect upstream / downstream, and create branches.</li>
+                <li>Optionally, open <code>ARCH</code> and import the same collection to see a more structural view.</li>
+              </ol>
+              <p class="muted">
+                Branch and Architect read from the same SceneCollection but project it into different <strong>visual grammars</strong>.
+              </p>
+            </div>
+
+            <div class="step">
+              <div class="step-label">Flow 3</div>
+              <div class="step-title">From ONYX Scenes to GS2P (LGI Brickbender)</div>
+              <ol>
+                <li>Ensure ONYX Abs has written a SceneCollection for your current story.</li>
+                <li>Switch to the <code>GS2P</code> tab (frame: <code>lgi-brickbender.html</code>).</li>
+                <li>Click <strong>Import ONYX</strong> to read <code>onyx_scene_collection</code> from <code>localStorage</code>.</li>
+                <li>Brickbender maps ONYX kinds to GS2P kinds via <code>mapOnyxKindToGS2P</code> and lays out nodes.</li>
+                <li>Drag nodes, adjust kinds, and export JSON to capture the GS2P view of your story/system.</li>
+              </ol>
+              <p class="muted">
+                This flow turns the ONYX grid into an <strong>LGI architecture map</strong>—a different but related olog.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section id="tutorial" class="soft">
+          <h2>4 · Guided Session: First ONYX Studio Run</h2>
+          <p class="muted">
+            A concrete walkthrough using all six tools in one sitting.
+          </p>
+
+          <h3>Step 0 · Setup</h3>
+          <ul>
+            <li>Open <code>onyx-studio.html</code> in a modern desktop browser.</li>
+            <li>Confirm that the tab strip shows <code>HEAD · ABS · TAIL · BRANCH · ARCH · GS2P</code>.</li>
+          </ul>
+
+          <h3>Step 1 · Ingest a Scene Collection (ABS)</h3>
+          <ol>
+            <li>Click the <strong>ABS</strong> tab.</li>
+            <li>Paste or upload a LEGOS export (multi-channel JSON) or an existing ONYX <code>SceneCollection</code>.</li>
+            <li>Use the scene picker in Abs to confirm that scenes and beats loaded correctly.</li>
+          </ol>
+          <p class="muted">
+            Behind the scenes, Abs normalizes the input and writes a <code>sceneCollection</code> into
+            <code>localStorage['onyx_scene_collection']</code> so other tools can reuse it.
+          </p>
+
+          <h3>Step 2 · Read the Story Front (HEAD)</h3>
+          <ol>
+            <li>Switch to the <strong>HEAD</strong> tab.</li>
+            <li>Set a story title and description in the <strong>Story Info</strong> panel.</li>
+            <li>Click through the timeline and grid views to see entities moving across scenes.</li>
+            <li>Use the entity palette to highlight appearances across your story.</li>
+          </ol>
+
+          <h3>Step 3 · Inspect the System Backplane (TAIL)</h3>
+          <ol>
+            <li>Switch to the <strong>TAIL</strong> tab.</li>
+            <li>Use the Tail UI to surface goals, obstacles, morphisms, or other story mechanics.</li>
+            <li>Notice how Head and Tail are two <strong>projections</strong> of the same underlying scenes.</li>
+          </ol>
+
+          <h3>Step 4 · Enter the 9×9 Grid (BRANCH &amp; ARCH)</h3>
+          <ol>
+            <li>Switch to the <strong>BRANCH</strong> tab.</li>
+            <li>Import an ONYX scene (via its ONYX import controls).</li>
+            <li>Hover or click blocks to see upstream / downstream relationships and sonified flows.</li>
+            <li>Create a branch instance from a focused block and compare it with the root view.</li>
+            <li>Switch to <strong>ARCH</strong> and import the same SceneCollection to see a structural grid + wires view.</li>
+          </ol>
+
+          <h3>Step 5 · Map to GS2P (LGI Brickbender)</h3>
+          <ol>
+            <li>Switch to the <strong>GS2P</strong> tab.</li>
+            <li>Click <strong>Import ONYX</strong> to pull in the first ONYX scene as a grid of nodes.</li>
+            <li>Check how kinds were auto-mapped:
+              <ul>
+                <li><code>location / scene</code> → <code>site</code></li>
+                <li><code>goal / obstacle / shift / timepoint / morphism</code> → <code>sky</code></li>
+                <li><code>story</code> → <code>perspective</code></li>
+                <li>Everything else → <code>ground</code></li>
+              </ul>
+            </li>
+            <li>Drag nodes into a layout that makes sense for your system.</li>
+            <li>Export JSON to snapshot the GS2P map of this story.</li>
+          </ol>
+
+          <div class="callout">
+            <strong>End state:</strong>
+            you now have one story flowing through <strong>Head / Tail / Branch / Architect / GS2P</strong>, all fed by the
+            same ONYX SceneCollection created in Abs.
+          </div>
+        </section>
+      </div>
+
+      <!-- RIGHT: TOC / OLOG NOTES -->
+      <div>
+        <section class="soft">
+          <h2>Index</h2>
+          <div class="toc">
+            <a href="#overview"><span class="label">Overview</span><span class="code">1</span></a>
+            <a href="#components"><span class="label">Components</span><span class="code">2</span></a>
+            <a href="#flows"><span class="label">Core Flows</span><span class="code">3</span></a>
+            <a href="#tutorial"><span class="label">Guided Session</span><span class="code">4</span></a>
+            <a href="#research"><span class="label">Research Olog Notes</span><span class="code">5</span></a>
+          </div>
+        </section>
+
+        <section id="research">
+          <h2>5 · Research Olog Notes</h2>
+          <p>
+            Conceptually, ONYX Studio is a <strong>TRUBADOR-style studio</strong> that focuses on narrative grids rather than
+            MPD / GOLD. Its olog looks roughly like:
+          </p>
+
+          <div class="inline-grid">
+            <div>Objects</div>
+            <div>
+              <ul>
+                <li><strong>SceneCollection</strong> – a set of ONYX scenes with grids and entities.</li>
+                <li><strong>Scene</strong> – a 9×9 grid of cells with <code>kind</code>, <code>label</code>, and relations.</li>
+                <li><strong>View</strong> – any surface that renders a SceneCollection (Head, Tail, Branch, Architect, GS2P).</li>
+              </ul>
+            </div>
+            <div>Morphisms</div>
+            <div>
+              <ul>
+                <li><strong>Ingest</strong>: LEGOS / JSON → SceneCollection (Abs).</li>
+                <li><strong>Project</strong>: SceneCollection → narrative view (Head/Tail).</li>
+                <li><strong>Gridify</strong>: Scene → 9×9 grid with code / dependency semantics (Branch / Architect).</li>
+                <li><strong>MapGS2P</strong>: Scene → GS2P node map (Brickbender).</li>
+              </ul>
+            </div>
+          </div>
+
+          <p class="muted">
+            In category-language: ONYX Studio keeps <strong>one central object</strong> (SceneCollection) and explores many
+            functors out of it into different visual / analytical categories.
+          </p>
+
+          <h3>Relationship to Other Studios</h3>
+          <p>
+            Compared to <strong>HOMER Studio</strong> (documented in <code>HOMER-STUDIO-OLOG.md</code>):
+          </p>
+          <ul>
+            <li>HOMER wraps <strong>Swiss / Frank / Courage / Weaver / WERE / MASTER / MENTO</strong> around MPD + GOLD flows.</li>
+            <li>ONYX Studio wraps <strong>Head / Abs / Tail / Brick / GS2P</strong> around SceneCollection + ONYX grids.</li>
+            <li>
+              HOMER is geometry- and MPD-centric; ONYX is <strong>scene- and narrative-grid-centric</strong>, but they share the
+              idea of a studio shell + shared bus/state.
+            </li>
+          </ul>
+
+          <p>
+            Future work for ONYX Studio might include:
+          </p>
+          <ul>
+            <li>Adding a <strong>bus</strong> alongside <code>localStorage</code> so views can react live to each other.</li>
+            <li>Exporting ONYX scenes back into other studios (e.g., sending GS2P maps into a TIMBER or HOMER loop).</li>
+            <li>Documenting a more formal ONYX ontology (kinds, relations, and contracts) parallel to the MPD/GOLD olog.</li>
+          </ul>
+
+          <div class="pill">
+            <span>Reference</span>
+            <span>See also: <code>HOMER-STUDIO-OLOG.md</code> for a parallel studio olog.</span>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

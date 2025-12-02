@@ -133,6 +133,17 @@
 
         .branch-controls {
             display: flex; gap: 6px; justify-content: flex-end;
+            align-items: center;
+        }
+
+        .scene-select {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            font-family: var(--font);
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: var(--radius);
         }
 
         /* =================================================
@@ -487,6 +498,7 @@
         <div class="branch-controls">
             <button class="btn" id="branch-btn" onclick="branchFromSelected()" disabled>BRANCH</button>
             <div class="branch-chip-deck" id="branch-chip-deck"></div>
+            <select id="scene-select" class="scene-select" aria-label="Scene selector"></select>
             <button class="btn" onclick="toggleBranchGridModal()" aria-label="Manage branches">VIEWS</button>
         </div>
     </div>
@@ -616,7 +628,9 @@ const state = {
     stack: [], blocks: Array(81).fill(null), connections: [],
     selected: null, playing: false, currentFile: 'SELF',
     branches: [], activeBranch: null,
-    rootLines: null
+    rootLines: null,
+    onyxSceneIndex: 0,
+    onyxSceneCount: 0
 };
 
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -726,6 +740,213 @@ function parseCode(sourceLines = null) {
             b.callers = [...new Set(b.callers)];
         }
     });
+}
+
+function mapOnyxKindToBlockType(kind) {
+    const k = (kind || '').toLowerCase();
+    if (k === 'location' || k === 'scene') return 'tag';
+    if (k === 'goal' || k === 'obstacle' || k === 'morphism' || k === 'shift' || k === 'timepoint') return 'control';
+    if (k === 'story') return 'variable';
+    return 'function';
+}
+
+function normalizeOnyxGrid(grid) {
+    if (!Array.isArray(grid)) return new Array(81).fill(null);
+    if (grid.length === 81) return grid.slice();
+    if (grid.length === 9 && Array.isArray(grid[0])) {
+        const flat = new Array(81).fill(null);
+        for (let r = 0; r < 9; r++) {
+            const row = grid[r] || [];
+            for (let c = 0; c < 9; c++) {
+                flat[r * 9 + c] = row[c] || null;
+            }
+        }
+        return flat;
+    }
+    const out = new Array(81).fill(null);
+    grid.forEach(cell => {
+        if (!cell || typeof cell.row !== 'number' || typeof cell.col !== 'number') return;
+        const r = Math.max(0, Math.min(8, cell.row));
+        const c = Math.max(0, Math.min(8, cell.col));
+        out[r * 9 + c] = cell;
+    });
+    return out;
+}
+
+function importOnyxSceneFromCollection(sceneIndex = 0) {
+    let collection = null;
+    try {
+        const raw = localStorage.getItem('onyx_scene_collection');
+        if (raw) {
+            const parsed = JSON.parse(raw);
+            if (parsed && Array.isArray(parsed.scenes) && parsed.scenes.length) {
+                collection = parsed;
+            }
+        }
+    } catch (e) {
+        console.warn('[BRICK-BRANCH] Failed to read onyx_scene_collection', e);
+    }
+
+    if (!collection) return false;
+    const scenes = Array.isArray(collection.scenes) ? collection.scenes : [];
+    if (!scenes.length) return false;
+    const idxSafe = Math.max(0, Math.min(scenes.length - 1, Number(sceneIndex) || 0));
+    const scene = scenes[idxSafe];
+    if (!scene || !scene.grid) return false;
+
+    currentLines = [];
+
+    if (scenes.length) {
+        currentLines.push('// Scenes in collection:');
+        scenes.forEach((sc, idx) => {
+            const marker = idx === idxSafe ? '>' : ' ';
+            const stitle = sc.title || sc.label || sc.id || ('Scene ' + (idx + 1));
+            currentLines.push('// ' + marker + ' [' + String(idx + 1).padStart(2, '0') + '] ' + stitle);
+        });
+        currentLines.push('');
+    }
+
+    const title = scene.title || scene.label || scene.id || 'ONYX_SCENE';
+    currentLines.push('// Active scene: ' + title);
+    if (scene.channelId) currentLines.push('// Channel: ' + scene.channelId);
+    currentLines.push('');
+
+    const grid = normalizeOnyxGrid(scene.grid);
+    grid.forEach((cell, idx) => {
+        if (!cell) return;
+        const r0 = Math.floor(idx / 9);
+        const c0 = idx % 9;
+        const r = r0 + 1;
+        const c = c0 + 1;
+        const kind = cell.kind || cell.type || 'Entity';
+        const label = cell.label || cell.id || ('Cell ' + idx);
+        const entityMeta = cell.meta || cell;
+        const entityId = cell.entityId || entityMeta.id || cell.id || null;
+        const location = entityMeta.location || entityMeta.place || entityMeta.where || null;
+
+        currentLines.push('[cell ' + String(idx).padStart(2, '0') + '] ' + kind + ' :: ' + label);
+        currentLines.push('  id: ' + (entityId || '-')); 
+        currentLines.push('  cell: R' + r + ',C' + c);
+        if (location) {
+            currentLines.push('  where: ' + location);
+        }
+
+        const rels = (entityMeta && Array.isArray(entityMeta.relations)) ? entityMeta.relations : (Array.isArray(cell.relations) ? cell.relations : []);
+        rels.forEach((rel, ridx) => {
+            if (!rel) return;
+            const rtype = rel.type || rel.kind || 'rel';
+            const targetKey = rel.targetId || rel.entityId || rel.id || rel.label || rel.target || '?';
+            currentLines.push('  -> ' + rtype + ' -> ' + targetKey);
+        });
+
+        currentLines.push('');
+    });
+
+    parseCode();
+
+    state.blocks = new Array(81).fill(null);
+    grid.forEach((cell, idx) => {
+        if (!cell) return;
+        const kind = cell.kind || cell.type || 'Entity';
+        const type = mapOnyxKindToBlockType(kind);
+        const name = cell.label || cell.id || ('Cell_' + idx);
+        const icon = type === 'function' ? 'ƒ' : type === 'variable' ? '=' : type === 'control' ? '◇' : '<>';
+        state.blocks[idx] = {
+            type,
+            name,
+            lineIndex: idx,
+            priority: 3,
+            icon,
+            deps: [],
+            callers: []
+        };
+    });
+
+    const idToIndex = new Map();
+    grid.forEach((cell, idx) => {
+        if (!cell) return;
+        const keys = [];
+        if (cell.entityId) keys.push(cell.entityId);
+        if (cell.id) keys.push(cell.id);
+        if (cell.label) keys.push(cell.label);
+        keys.forEach(k => {
+            if (k && !idToIndex.has(k)) idToIndex.set(k, idx);
+        });
+    });
+
+    const rawEdges = [];
+    grid.forEach((cell, idx) => {
+        if (!cell) return;
+        const r = Math.floor(idx / 9);
+        const c = idx % 9;
+
+        const rels = (cell.meta && Array.isArray(cell.meta.relations)) ? cell.meta.relations : (Array.isArray(cell.relations) ? cell.relations : []);
+        rels.forEach(rel => {
+            if (!rel) return;
+            const key = rel.targetId || rel.entityId || rel.id || rel.label || rel.target;
+            if (!key) return;
+            const tIdx = idToIndex.get(key);
+            if (tIdx == null || tIdx === idx) return;
+            rawEdges.push({ from: idx, to: tIdx });
+        });
+
+        for (let dr = -1; dr <= 1; dr++) {
+            for (let dc = -1; dc <= 1; dc++) {
+                if (dr === 0 && dc === 0) continue;
+                const nr = r + dr;
+                const nc = c + dc;
+                if (nr < 0 || nr > 8 || nc < 0 || nc > 8) continue;
+                const nIdx = nr * 9 + nc;
+                if (!grid[nIdx]) continue;
+                rawEdges.push({ from: idx, to: nIdx });
+            }
+        }
+    });
+
+    const seen = new Set();
+    state.connections = [];
+    rawEdges.forEach(e => {
+        const key = e.from + '->' + e.to;
+        if (seen.has(key)) return;
+        seen.add(key);
+        state.connections.push({ from: e.from, to: e.to, line: 0 });
+        const fromBlock = state.blocks[e.from];
+        const toBlock = state.blocks[e.to];
+        if (fromBlock && toBlock) {
+            fromBlock.deps.push(e.to);
+            toBlock.callers.push(e.from);
+        }
+    });
+
+    state.blocks.forEach(b => {
+        if (b) {
+            b.deps = [...new Set(b.deps)];
+            b.callers = [...new Set(b.callers)];
+        }
+    });
+
+    state.currentFile = title;
+    state.rootLines = currentLines.slice();
+    state.stack = [];
+    state.selected = null;
+    state.activeBranch = null;
+    state.onyxSceneIndex = idxSafe;
+    state.onyxSceneCount = scenes.length;
+
+    const picker = document.getElementById('scene-select');
+    if (picker && scenes.length) {
+        picker.innerHTML = '';
+        scenes.forEach((sc, idx) => {
+            const opt = document.createElement('option');
+            const lbl = sc.title || sc.label || sc.id || ('Scene ' + (idx + 1));
+            opt.value = String(idx);
+            opt.textContent = String(idx + 1).padStart(2, '0') + ' · ' + lbl;
+            if (idx === idxSafe) opt.selected = true;
+            picker.appendChild(opt);
+        });
+    }
+
+    return true;
 }
 
 // =================================================
@@ -1541,8 +1762,22 @@ document.getElementById('scroller').addEventListener('scroll', () => {
 
 // Initialize
 window.addEventListener('load', () => {
-    parseCode();
+    const imported = importOnyxSceneFromCollection(0);
+    if (!imported) {
+        parseCode();
+    }
     render();
+    const picker = document.getElementById('scene-select');
+    if (picker) {
+        picker.addEventListener('change', () => {
+            const idx = parseInt(picker.value, 10);
+            const safe = Number.isNaN(idx) ? 0 : idx;
+            const ok = importOnyxSceneFromCollection(safe);
+            if (ok) {
+                render();
+            }
+        });
+    }
     
     // URL parameter support
     const params = new URLSearchParams(window.location.search);

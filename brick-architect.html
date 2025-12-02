@@ -64,6 +64,16 @@
         .brand { font-size: 10px; font-weight: 900; letter-spacing: 0.1em; color: #555; }
         .brand span { color: var(--func); }
 
+        .scene-select {
+            background: #000;
+            border: 1px solid var(--border);
+            color: #e5e7eb;
+            font-family: inherit;
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+
         .btn-txt {
             background: none; border: 1px solid #222; color: #777;
             font-family: inherit; font-size: 9px; padding: 3px 8px; border-radius: 3px;
@@ -307,7 +317,10 @@
     <div class="bridge">
         <div class="bridge-meta">
             <div class="brand">INCEPTION <span>//</span> ARCHITECT</div>
-            <button class="btn-txt" onclick="toggleModal()">INGEST SOURCE</button>
+            <div style="display:flex;align-items:center;gap:6px;">
+                <select id="scene-select" class="scene-select" aria-label="Scene selector"></select>
+                <button class="btn-txt" onclick="toggleModal()">INGEST SOURCE</button>
+            </div>
         </div>
         
         <div class="bridge-nav">
@@ -442,6 +455,186 @@
                 b.callers = [...new Set(b.callers)];
             }
         });
+    }
+
+    function mapOnyxKindToBlockType(kind) {
+        const k = (kind || '').toLowerCase();
+        if (k === 'location' || k === 'scene') return 'tag';
+        if (k === 'goal' || k === 'obstacle' || k === 'morphism' || k === 'shift' || k === 'timepoint') return 'variable';
+        if (k === 'story') return 'function';
+        return 'function';
+    }
+
+    function normalizeOnyxGrid(grid) {
+        if (!Array.isArray(grid)) return new Array(81).fill(null);
+        if (grid.length === 81) return grid.slice();
+        if (grid.length === 9 && Array.isArray(grid[0])) {
+            const flat = new Array(81).fill(null);
+            for (let r = 0; r < 9; r++) {
+                const row = grid[r] || [];
+                for (let c = 0; c < 9; c++) {
+                    flat[r * 9 + c] = row[c] || null;
+                }
+            }
+            return flat;
+        }
+        const out = new Array(81).fill(null);
+        grid.forEach(cell => {
+            if (!cell || typeof cell.row !== 'number' || typeof cell.col !== 'number') return;
+            const r = Math.max(0, Math.min(8, cell.row));
+            const c = Math.max(0, Math.min(8, cell.col));
+            out[r * 9 + c] = cell;
+        });
+        return out;
+    }
+
+    function importOnyxSceneFromCollection(sceneIndex = 0) {
+        let collection = null;
+        try {
+            const raw = localStorage.getItem('onyx_scene_collection');
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (parsed && Array.isArray(parsed.scenes) && parsed.scenes.length) {
+                    collection = parsed;
+                }
+            }
+        } catch (e) {
+            console.warn('[BRICK-ARCHITECT] Failed to read onyx_scene_collection', e);
+        }
+
+        if (!collection) return false;
+        const scenes = Array.isArray(collection.scenes) ? collection.scenes : [];
+        if (!scenes.length) return false;
+        const idxSafe = Math.max(0, Math.min(scenes.length - 1, Number(sceneIndex) || 0));
+        const scene = scenes[idxSafe];
+        if (!scene || !scene.grid) return false;
+
+        lines = [];
+
+        if (scenes.length) {
+            lines.push('// Scenes in collection:');
+            scenes.forEach((sc, idx) => {
+                const marker = idx === idxSafe ? '>' : ' ';
+                const stitle = sc.title || sc.label || sc.id || ('Scene ' + (idx + 1));
+                lines.push('// ' + marker + ' [' + String(idx + 1).padStart(2, '0') + '] ' + stitle);
+            });
+            lines.push('');
+        }
+
+        const title = scene.title || scene.label || scene.id || 'ONYX_SCENE';
+        lines.push('// Active scene: ' + title);
+        if (scene.channelId) lines.push('// Channel: ' + scene.channelId);
+        lines.push('');
+
+        const grid = normalizeOnyxGrid(scene.grid);
+        grid.forEach((cell, idx) => {
+            if (!cell) return;
+            const r = Math.floor(idx / 9) + 1;
+            const c = (idx % 9) + 1;
+            const kind = cell.kind || cell.type || 'Entity';
+            const label = cell.label || cell.id || ('Cell ' + idx);
+            lines.push('[R' + r + ',C' + c + '] ' + kind + ': ' + label);
+        });
+
+        parse();
+
+        blocks = new Array(81).fill(null);
+        grid.forEach((cell, idx) => {
+            if (!cell) return;
+            const kind = cell.kind || cell.type || 'Entity';
+            const type = mapOnyxKindToBlockType(kind);
+            const name = cell.label || cell.id || ('Cell_' + idx);
+            const pri = 3;
+            blocks[idx] = {
+                idx,
+                type,
+                name,
+                line: idx,
+                pri,
+                deps: [],
+                callers: []
+            };
+        });
+
+        const idToIndex = new Map();
+        grid.forEach((cell, idx) => {
+            if (!cell) return;
+            const keys = [];
+            if (cell.entityId) keys.push(cell.entityId);
+            if (cell.id) keys.push(cell.id);
+            if (cell.label) keys.push(cell.label);
+            keys.forEach(k => {
+                if (k && !idToIndex.has(k)) idToIndex.set(k, idx);
+            });
+        });
+
+        const rawEdges = [];
+        grid.forEach((cell, idx) => {
+            if (!cell) return;
+            const r = Math.floor(idx / 9);
+            const c = idx % 9;
+
+            const rels = (cell.meta && Array.isArray(cell.meta.relations)) ? cell.meta.relations : (Array.isArray(cell.relations) ? cell.relations : []);
+            rels.forEach(rel => {
+                if (!rel) return;
+                const key = rel.targetId || rel.entityId || rel.id || rel.label || rel.target;
+                if (!key) return;
+                const tIdx = idToIndex.get(key);
+                if (tIdx == null || tIdx === idx) return;
+                rawEdges.push({ from: idx, to: tIdx });
+            });
+
+            for (let dr = -1; dr <= 1; dr++) {
+                for (let dc = -1; dc <= 1; dc++) {
+                    if (dr === 0 && dc === 0) continue;
+                    const nr = r + dr;
+                    const nc = c + dc;
+                    if (nr < 0 || nr > 8 || nc < 0 || nc > 8) continue;
+                    const nIdx = nr * 9 + nc;
+                    if (!grid[nIdx]) continue;
+                    rawEdges.push({ from: idx, to: nIdx });
+                }
+            }
+        });
+
+        const seen = new Set();
+        edges = [];
+        rawEdges.forEach(e => {
+            const key = e.from + '->' + e.to;
+            if (seen.has(key)) return;
+            seen.add(key);
+            edges.push({ from: e.from, to: e.to });
+            const fromBlock = blocks[e.from];
+            const toBlock = blocks[e.to];
+            if (fromBlock && toBlock) {
+                fromBlock.deps.push(e.to);
+                toBlock.callers.push(e.from);
+            }
+        });
+
+        blocks.forEach(b => {
+            if (b) {
+                b.deps = [...new Set(b.deps)];
+                b.callers = [...new Set(b.callers)];
+            }
+        });
+
+        activeIdx = null;
+
+        const picker = document.getElementById('scene-select');
+        if (picker && scenes.length) {
+            picker.innerHTML = '';
+            scenes.forEach((sc, idx) => {
+                const opt = document.createElement('option');
+                const lbl = sc.title || sc.label || sc.id || ('Scene ' + (idx + 1));
+                opt.value = String(idx);
+                opt.textContent = String(idx + 1).padStart(2, '0') + ' · ' + lbl;
+                if (idx === idxSafe) opt.selected = true;
+                picker.appendChild(opt);
+            });
+        }
+
+        return true;
     }
 
     // ----------------------------------------------------
@@ -716,9 +909,25 @@
         // activeIdx = null; xray(null);
     });
 
-    parse();
+    const imported = importOnyxSceneFromCollection(0);
+    if (!imported) {
+        parse();
+    }
     render();
     renderMinimap();
+
+    const scenePicker = document.getElementById('scene-select');
+    if (scenePicker) {
+        scenePicker.addEventListener('change', () => {
+            const idx = parseInt(scenePicker.value, 10);
+            const safe = Number.isNaN(idx) ? 0 : idx;
+            const ok = importOnyxSceneFromCollection(safe);
+            if (ok) {
+                render();
+                renderMinimap();
+            }
+        });
+    }
 
 </script>
 </body>

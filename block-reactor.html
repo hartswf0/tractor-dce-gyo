@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ONYX // Reactor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        :root {
+            --bg: #0b1121; --panel: #0f172a; --surface: #1e293b; --border: #334155;
+            --text-main: #e2e8f0; --text-muted: #64748b;
+            
+            /* Ontology Colors */
+            --c-core: #fbbf24;
+            --c-entity: #3b82f6;
+            --c-morph: #22d3ee;
+            --c-goal: #fcd34d;
+            --c-story: #4ade80;
+            --c-meta: #a855f7;
+            
+            --focus: rgba(34, 211, 238, 0.1);
+            --ease: cubic-bezier(0.23, 1, 0.32, 1);
+            
+            --sidebar-width: 80px;
+            --timeline-width: 320px;
+            --header-h: 56px;
+            --footer-h: 120px;
+        }
+
+        body { margin: 0; font-family: 'JetBrains Mono', monospace; background: var(--bg); color: var(--text-main); overflow: hidden; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+
+        /* LAYOUT */
+        .layout-root {
+            display: grid;
+            grid-template-areas:
+                "header header header"
+                "sidebar canvas timeline"
+                "sidebar footer timeline";
+            grid-template-columns: var(--sidebar-width) 1fr var(--timeline-width);
+            grid-template-rows: var(--header-h) 1fr var(--footer-h);
+            width: 100vw; height: 100dvh;
+        }
+
+        @media (max-width: 768px) {
+            .layout-root {
+                grid-template-areas: "header header" "canvas canvas" "timeline timeline" "footer footer";
+                grid-template-columns: 0px 1fr;
+                grid-template-rows: 50px 1fr 150px 80px;
+            }
+            #sidebar { display: none; }
+        }
+
+        /* HEADER */
+        #header { grid-area: header; border-bottom: 1px solid var(--border); background: var(--panel); display: flex; align-items: center; justify-content: space-between; padding: 0 1rem; z-index: 50; }
+        
+        /* SIDEBAR (Palette) */
+        #sidebar { grid-area: sidebar; border-right: 1px solid var(--border); background: var(--panel); display: flex; flex-direction: column; align-items: center; padding-top: 1rem; gap: 0.5rem; z-index: 40; overflow-y: auto; }
+        
+        .tool {
+            width: 56px; height: 56px; flex-shrink: 0; border-radius: 6px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            border: 1px solid transparent; cursor: grab;
+            transition: all 0.2s var(--ease);
+            padding: 4px;
+        }
+        .tool:hover { background: var(--surface); border-color: var(--border); transform: scale(1.05); }
+        .tool-icon { width: 32px; height: 32px; position: relative; }
+        .tool-label { font-size: 8px; color: var(--text-muted); margin-top: 2px; text-transform: uppercase; }
+
+        /* CANVAS */
+        #canvas { grid-area: canvas; position: relative; background: var(--bg); overflow: hidden; display: flex; align-items: center; justify-content: center; }
+        
+        .grid-wrapper {
+            display: flex;
+            gap: 1.25rem;
+            width: 100%;
+            max-width: 900px;
+            justify-content: center;
+        }
+
+        .grid-frame {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            grid-template-rows: repeat(9, 1fr);
+            gap: 1px;
+            width: 100%; max-width: 600px; aspect-ratio: 1;
+            /* Technical Grid Background */
+            background-image: 
+                linear-gradient(var(--surface) 1px, transparent 1px),
+                linear-gradient(90deg, var(--surface) 1px, transparent 1px);
+            background-size: 11.11% 11.11%;
+            border: 1px solid var(--border);
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+        }
+
+        .cell {
+            position: relative;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 8px; color: var(--text-muted);
+            cursor: pointer; transition: background 0.1s;
+        }
+        .cell:hover { background: rgba(255,255,255,0.05); z-index: 10; }
+        .cell.active { background: var(--focus); box-shadow: inset 0 0 10px var(--focus); }
+        
+        /* TIMELINE (Chat) */
+        #timeline { grid-area: timeline; border-left: 1px solid var(--border); background: var(--panel); display: flex; flex-direction: column; overflow: hidden; }
+        .chat-scroll { flex: 1; overflow-y: auto; padding: 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
+        
+        .node {
+            background: var(--surface);
+            border-left: 3px solid var(--border);
+            padding: 0.5rem 0.75rem;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer; transition: transform 0.1s, background 0.1s;
+        }
+        .node:hover { transform: translateX(2px); background: #222; }
+        
+        .node-meta { font-size: 0.6rem; color: var(--text-muted); display: flex; justify-content: space-between; margin-bottom: 2px; }
+        .node-content { font-size: 0.75rem; line-height: 1.4; white-space: pre-wrap; }
+
+        /* FOOTER (Actuator) */
+        #footer { grid-area: footer; border-top: 1px solid var(--border); background: var(--surface); padding: 1rem; display: flex; flex-direction: column; gap: 0.5rem; z-index: 60; }
+        textarea {
+            flex: 1; background: var(--bg); border: 1px solid var(--border);
+            color: var(--text-main); padding: 0.5rem; font-family: var(--font-mono);
+            font-size: 0.8rem; resize: none; border-radius: 4px;
+        }
+        textarea:focus { border-color: var(--c-morph); }
+
+        /* Animation for entry */
+        @keyframes scaleIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .iso-entry { animation: scaleIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); width: 100%; height: 100%; }
+    </style>
+</head>
+<body class="layout-root" data-theme="dark">
+
+    <header id="header">
+        <div class="flex items-center gap-3">
+            <i data-lucide="cpu" class="text-[var(--c-morph)] w-5 h-5"></i>
+            <span class="text-xs font-bold tracking-widest text-[var(--text-muted)]">ONYX REACTOR</span>
+        </div>
+        <div class="flex gap-4 text-[0.65rem] text-[var(--text-muted)] font-bold">
+            <span class="text-[var(--c-core)]">CORE</span>
+            <span class="text-[var(--c-entity)]">ENT</span>
+            <span class="text-[var(--c-morph)]">MORPH</span>
+            <span class="text-[var(--c-goal)]">GOAL</span>
+        </div>
+        <div class="flex gap-2">
+            <button onclick="toggleCompareMode()" class="p-2 hover:text-[var(--c-morph)]" title="Toggle compare view">
+                <i data-lucide="columns-3" class="w-4 h-4"></i>
+            </button>
+            <button onclick="resetGrid()" class="p-2 hover:text-[var(--c-goal)]" title="Clear Grid">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+        </div>
+    </header>
+
+    <aside id="sidebar">
+        <!-- Palette Rendered via JS -->
+    </aside>
+
+    <main id="canvas">
+        <div id="grid-wrapper" class="grid-wrapper">
+            <div id="grid" class="grid-frame"></div>
+            <div id="grid-compare" class="grid-frame" style="display:none;"></div>
+        </div>
+        <div id="scene-hud" class="absolute top-2 left-4 text-[0.6rem] text-[var(--text-muted)] bg-[var(--panel)]/90 border border-[var(--border)] rounded px-2 py-1 shadow-lg max-w-xs pointer-events-none"></div>
+        <div class="absolute bottom-2 left-4 text-[0.65rem] text-[var(--text-muted)]">
+            CELL: <span id="hover-idx" class="text-white">--</span>
+        </div>
+    </main>
+
+    <aside id="timeline">
+        <div class="p-2 border-b border-[var(--border)] text-[10px] font-bold tracking-widest text-center text-[var(--text-muted)] bg-[var(--bg)]">
+            EVENT LOG
+        </div>
+        <div id="chat-stream" class="chat-scroll">
+            <div class="node">
+                <div class="node-meta"><span>SYSTEM</span><span>INIT</span></div>
+                <div class="node-content">Reactor Online. Grid locked.</div>
+            </div>
+        </div>
+    </aside>
+
+    <footer id="footer">
+        <div class="flex h-full gap-2 flex-col">
+            <div class="flex gap-2 flex-1">
+                <textarea id="input" placeholder="Paste code to decompose, or narrative commands..."></textarea>
+                <div class="flex flex-col gap-2">
+                    <button onclick="processInput()" class="w-12 h-full bg-[var(--panel)] border border-[var(--border)] rounded flex items-center justify-center hover:border-[var(--c-morph)] hover:text-[var(--c-morph)] transition-colors">
+                        <i data-lucide="arrow-right"></i>
+                    </button>
+                    <button onclick="toggleImportPanel()" class="w-12 h-8 bg-[var(--panel)] border border-[var(--border)] rounded flex items-center justify-center text-[0.55rem] hover:border-[var(--c-goal)] hover:text-[var(--c-goal)] transition-colors" title="Import Reactor scenario JSON">
+                        <i data-lucide="upload" class="w-3 h-3"></i>
+                    </button>
+                </div>
+            </div>
+            <div id="import-panel" class="flex gap-2" style="display:none;">
+                <textarea id="import-spec" placeholder="Paste ReactorImport JSON here (scenes + stories)..." class="flex-1"></textarea>
+                <button onclick="runImportFromTextarea()" class="w-20 h-full bg-[var(--panel)] border border-[var(--border)] rounded text-[0.7rem] flex items-center justify-center hover:border-[var(--c-goal)] hover:text-[var(--c-goal)] transition-colors">
+                    IMPORT
+                </button>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // =========================================
+        // 1. ISOMETRIC HELPERS
+        // =========================================
+        function getIsoCube(color = "blue") {
+            const colors = { 
+                blue: { top: '#60a5fa', left: '#3b82f6', right: '#2563eb' }, 
+                yellow: { top: '#fcd34d', left: '#f59e0b', right: '#d97706' }, 
+                cyan: { top: '#22d3ee', left: '#06b6d4', right: '#0891b2' }, 
+                purple: { top: '#e879f9', left: '#c026d3', right: '#a21caf' }, 
+                green: { top: '#4ade80', left: '#16a34a', right: '#15803d' },
+                red: { top: '#f87171', left: '#ef4444', right: '#dc2626' }
+            };
+            const c = colors[color] || colors.blue;
+            return `
+            <svg viewBox="0 0 40 40" class="w-full h-full iso-entry">
+                <path d="M20 4 L36 12 L20 20 L4 12 Z" fill="${c.top}" stroke="#1e293b" stroke-width="1"/>
+                <path d="M4 12 L20 20 L20 38 L4 30 Z" fill="${c.left}" stroke="#1e293b" stroke-width="1"/>
+                <path d="M36 12 L20 20 L20 38 L36 30 Z" fill="${c.right}" stroke="#1e293b" stroke-width="1"/>
+            </svg>`;
+        }
+
+        // =========================================
+        // 2. ICON DEFINITIONS (Imported List)
+        // =========================================
+        const ICONS = {
+            Entity: () => getIsoCube('blue'),
+            
+            Core: () => getIsoCube('yellow'),
+            
+            Goal: () => `
+                <div class="relative w-full h-full iso-entry">
+                    <div class="absolute -top-2 left-0 right-0 mx-auto w-4 h-4 flex justify-center items-center text-yellow-400 z-10">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                            <circle cx="12" cy="12" r="3" fill="currentColor"/>
+                        </svg>
+                    </div>
+                    ${getIsoCube('blue')}
+                </div>`,
+            
+            Obstacle: () => `
+                <div class="relative w-full h-full flex items-center justify-center iso-entry">
+                    <div class="w-3/4 h-3/4 relative">${getIsoCube('blue')}</div>
+                    <div class="absolute right-0 h-full w-1 bg-slate-400/80"></div>
+                    <div class="absolute right-1 top-1/2 w-3 h-0.5 bg-yellow-400"></div>
+                </div>`,
+            
+            Morphism: () => `
+                <div class="relative w-full h-full flex items-center justify-between iso-entry">
+                    <div class="w-5 h-5">${getIsoCube('blue')}</div>
+                    <div class="flex-1 h-0.5 bg-yellow-400 mx-1 relative"></div>
+                    <div class="w-5 h-5">${getIsoCube('blue')}</div>
+                </div>`,
+            
+            Shift: () => `
+                <div class="relative w-full h-full flex items-center justify-center iso-entry">
+                    <div class="w-5 h-5 opacity-50">${getIsoCube('blue')}</div>
+                    <div class="absolute z-10 text-yellow-400">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="currentColor"/>
+                        </svg>
+                    </div>
+                    <div class="w-5 h-5 opacity-50">${getIsoCube('blue')}</div>
+                </div>`,
+            
+            Location: () => `
+                <div class="relative w-full h-full flex items-center justify-center iso-entry">
+                    <div class="absolute top-0 right-0 w-4 h-4">${getIsoCube('cyan')}</div>
+                    <div class="absolute bottom-0 left-0 w-4 h-4">${getIsoCube('cyan')}</div>
+                </div>`,
+            
+            Timepoint: () => `
+                <div class="relative w-full h-full flex items-center justify-center iso-entry">
+                    <div class="w-3/4 h-3/4">${getIsoCube('cyan')}</div>
+                    <div class="absolute -right-1 -bottom-1 w-5 h-5 bg-[var(--bg)] rounded-full border border-cyan-500 flex items-center justify-center z-10">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                            <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" fill="none"/>
+                        </svg>
+                    </div>
+                </div>`,
+            
+            Scene: () => `
+                <div class="relative w-full h-full flex items-center justify-center p-1 iso-entry">
+                    <div class="absolute top-0 left-0 w-2 h-2 border-l-2 border-t-2 border-cyan-400"></div>
+                    <div class="absolute top-0 right-0 w-2 h-2 border-r-2 border-t-2 border-cyan-400"></div>
+                    <div class="absolute bottom-0 left-0 w-2 h-2 border-l-2 border-b-2 border-cyan-400"></div>
+                    <div class="absolute bottom-0 right-0 w-2 h-2 border-r-2 border-b-2 border-cyan-400"></div>
+                    <div class="flex gap-0.5">
+                        <div class="w-3 h-3">${getIsoCube('cyan')}</div>
+                        <div class="w-3 h-3">${getIsoCube('cyan')}</div>
+                    </div>
+                </div>`,
+            
+            Story: () => `
+                <div class="relative w-full h-full flex flex-col items-center justify-start pt-1 iso-entry">
+                    <div class="w-4 h-4 z-10">${getIsoCube('cyan')}</div>
+                    <div class="w-full h-0.5 bg-cyan-500/50"></div>
+                    <div class="flex gap-1 mt-2">
+                        <div class="w-2.5 h-2.5">${getIsoCube('cyan')}</div>
+                        <div class="w-2.5 h-2.5">${getIsoCube('cyan')}</div>
+                        <div class="w-2.5 h-2.5">${getIsoCube('cyan')}</div>
+                    </div>
+                </div>`
+        };
+
+        // =========================================
+        // 3. ONTOLOGY DEFINITIONS
+        // =========================================
+        const ONTOLOGY = {
+            Core:     { type: 'Core',     match: /class|interface|extends/ },
+            Entity:   { type: 'Entity',   match: /const|let|var|new/ },
+            Goal:     { type: 'Goal',     match: /return|throw/ },
+            Obstacle: { type: 'Obstacle', match: /catch|error|finally/ },
+            Morphism: { type: 'Morphism', match: /function|=>|\(\)/ },
+            Shift:    { type: 'Shift',    match: /await|async|promise/ },
+            Location: { type: 'Location', match: /import|export|from/ },
+            Timepoint:{ type: 'Timepoint',match: /Date|time|now/ },
+            Scene:    { type: 'Scene',    match: /module|package/ },
+            Story:    { type: 'Story',    match: /\/\// }
+        };
+
+        // =========================================
+        // 4. STATE & PERSISTENCE
+        // =========================================
+        const STATE = {
+            grid: Array(81).fill(null),
+            edges: [],
+            scenes: [],
+            stories: [],
+            currentStoryId: null,
+            currentSceneId: null,
+            compareMode: false,
+            dragType: null
+        };
+
+        const STORAGE_KEY = 'onyx_reactor_state_v1';
+
+        const PERSISTENCE = {
+            save() {
+                try {
+                    const data = {
+                        grid: STATE.grid
+                    };
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+                } catch (e) {
+                    /* ignore storage errors */
+                }
+            },
+            load() {
+                try {
+                    const raw = localStorage.getItem(STORAGE_KEY);
+                    if (!raw) return;
+                    const data = JSON.parse(raw);
+                    if (!data || !Array.isArray(data.grid) || data.grid.length !== 81) return;
+                    STATE.grid = data.grid.map(c => {
+                        if (!c) return null;
+                        return {
+                            type: c.type,
+                            id: c.id || null,
+                            content: c.content || '',
+                            deps: Array.isArray(c.deps) ? c.deps : [],
+                            callers: Array.isArray(c.callers) ? c.callers : []
+                        };
+                    });
+                } catch (e) {
+                    STATE.grid = Array(81).fill(null);
+                }
+            }
+        };
+
+        let SCENE_ID = 0;
+        let STORY_ID = 0;
+
+        function ensureDefaultStory() {
+            if (!STATE.stories.length) {
+                const id = STORY_ID++;
+                STATE.stories.push({ id, label: 'Mainline', scenes: [] });
+                STATE.currentStoryId = id;
+            }
+        }
+
+        function captureScene(label) {
+            ensureDefaultStory();
+            const storyId = STATE.currentStoryId;
+            const snapshot = {
+                id: SCENE_ID++,
+                storyId,
+                label,
+                timestamp: Date.now(),
+                timepoint: null,
+                grid: JSON.parse(JSON.stringify(STATE.grid)),
+                edges: STATE.edges.slice()
+            };
+            STATE.scenes.push(snapshot);
+            const story = STATE.stories.find(s => s.id === storyId);
+            if (story && !story.scenes.includes(snapshot.id)) {
+                story.scenes.push(snapshot.id);
+            }
+            STATE.currentSceneId = snapshot.id;
+            return snapshot.id;
+        }
+
+        function revertToScene(id) {
+            const scene = STATE.scenes.find(s => s.id === id);
+            if (!scene) return;
+            if (scene.storyId != null) {
+                STATE.currentStoryId = scene.storyId;
+            }
+            STATE.grid = JSON.parse(JSON.stringify(scene.grid));
+            STATE.edges = scene.edges ? scene.edges.slice() : [];
+            STATE.currentSceneId = id;
+            renderGrid();
+            PERSISTENCE.save();
+            logToTimeline('Core', `Reverted to scene #${id}`);
+        }
+
+        function forkScene(sourceSceneId) {
+            const source = STATE.scenes.find(s => s.id === sourceSceneId);
+            if (!source) return;
+            const newStoryId = STORY_ID++;
+            const label = `Story ${newStoryId}`;
+            STATE.stories.push({ id: newStoryId, label, scenes: [] });
+            STATE.currentStoryId = newStoryId;
+
+            STATE.grid = JSON.parse(JSON.stringify(source.grid));
+            STATE.edges = source.edges ? source.edges.slice() : [];
+            renderGrid();
+            PERSISTENCE.save();
+
+            const sceneId = captureScene(`Fork from scene #${sourceSceneId}`);
+            logToTimeline('Story', `Forked ${label} from scene #${sourceSceneId}.`, sceneId);
+        }
+
+        function importReactorState(spec) {
+            if (!spec || !Array.isArray(spec.scenes)) return;
+
+            STATE.grid = Array(81).fill(null);
+            STATE.edges = [];
+            STATE.scenes = [];
+            STATE.stories = [];
+            STATE.currentStoryId = null;
+            SCENE_ID = 0;
+            STORY_ID = 0;
+
+            const storyIdMap = new Map();
+            const sceneIdMap = new Map();
+
+            if (Array.isArray(spec.stories) && spec.stories.length) {
+                spec.stories.forEach(st => {
+                    const id = STORY_ID++;
+                    storyIdMap.set(st.id, id);
+                    STATE.stories.push({ id, label: st.label || st.id || `Story ${id}`, scenes: [] });
+                });
+                const first = spec.stories[0];
+                if (first && storyIdMap.has(first.id)) {
+                    STATE.currentStoryId = storyIdMap.get(first.id);
+                }
+            } else {
+                ensureDefaultStory();
+            }
+
+            spec.scenes.forEach(sc => {
+                const numericId = SCENE_ID++;
+                sceneIdMap.set(sc.id, numericId);
+
+                const gridSnapshot = Array(81).fill(null);
+                if (Array.isArray(sc.grid)) {
+                    sc.grid.forEach(cell => {
+                        if (!cell || typeof cell.index !== 'number') return;
+                        const idx = cell.index | 0;
+                        if (idx < 0 || idx >= 81) return;
+                        const role = cell.role && ICONS[cell.role] ? cell.role : 'Entity';
+                        gridSnapshot[idx] = {
+                            type: role,
+                            id: cell.entityId || null,
+                            content: cell.label || cell.entityId || '',
+                            deps: [],
+                            callers: []
+                        };
+                    });
+                }
+
+                const edgesSnapshot = [];
+                if (Array.isArray(sc.edges)) {
+                    sc.edges.forEach(edge => {
+                        if (!edge || typeof edge.fromIndex !== 'number' || typeof edge.toIndex !== 'number') return;
+                        const fromIndex = edge.fromIndex | 0;
+                        const toIndex = edge.toIndex | 0;
+                        if (fromIndex < 0 || fromIndex >= 81 || toIndex < 0 || toIndex >= 81) return;
+                        edgesSnapshot.push({ from: fromIndex, to: toIndex });
+                        const fromCell = gridSnapshot[fromIndex];
+                        const toCell = gridSnapshot[toIndex];
+                        if (fromCell && !fromCell.deps.includes(toIndex)) fromCell.deps.push(toIndex);
+                        if (toCell && !toCell.callers.includes(fromIndex)) toCell.callers.push(fromIndex);
+                    });
+                }
+
+                let storyNumericId = null;
+                if (sc.story && storyIdMap.has(sc.story)) {
+                    storyNumericId = storyIdMap.get(sc.story);
+                } else if (STATE.currentStoryId != null) {
+                    storyNumericId = STATE.currentStoryId;
+                } else if (STATE.stories.length) {
+                    storyNumericId = STATE.stories[0].id;
+                }
+
+                const snapshot = {
+                    id: numericId,
+                    storyId: storyNumericId,
+                    label: sc.description || sc.id || `Scene ${numericId}`,
+                    timestamp: Date.now(),
+                    timepoint: sc.timepoint || null,
+                    grid: gridSnapshot,
+                    edges: edgesSnapshot
+                };
+                STATE.scenes.push(snapshot);
+                if (storyNumericId != null) {
+                    const storyObj = STATE.stories.find(s => s.id === storyNumericId);
+                    if (storyObj && !storyObj.scenes.includes(numericId)) {
+                        storyObj.scenes.push(numericId);
+                    }
+                }
+            });
+
+            if (Array.isArray(spec.stories)) {
+                spec.stories.forEach(st => {
+                    const numericStoryId = storyIdMap.get(st.id);
+                    if (numericStoryId == null) return;
+                    const storyObj = STATE.stories.find(s => s.id === numericStoryId);
+                    if (!storyObj) return;
+                    if (Array.isArray(st.scenes) && st.scenes.length) {
+                        const ordered = [];
+                        st.scenes.forEach(scId => {
+                            const sid = sceneIdMap.get(scId);
+                            if (sid != null) ordered.push(sid);
+                        });
+                        if (ordered.length) storyObj.scenes = ordered;
+                    }
+                });
+            }
+
+            let activeSceneId = null;
+            if (STATE.currentStoryId != null) {
+                const currentStory = STATE.stories.find(s => s.id === STATE.currentStoryId) || STATE.stories[0];
+                if (currentStory && currentStory.scenes.length) {
+                    STATE.currentStoryId = currentStory.id;
+                    activeSceneId = currentStory.scenes[0];
+                }
+            }
+            if (activeSceneId == null && STATE.scenes.length) {
+                activeSceneId = STATE.scenes[0].id;
+            }
+
+            if (activeSceneId != null) {
+                const scene = STATE.scenes.find(s => s.id === activeSceneId);
+                if (scene) {
+                    STATE.grid = JSON.parse(JSON.stringify(scene.grid));
+                    STATE.edges = scene.edges ? scene.edges.slice() : [];
+                    STATE.currentSceneId = scene.id;
+                    renderGrid();
+                    PERSISTENCE.save();
+                    logToTimeline('Scene', `Imported scenario: ${scene.label}`, activeSceneId);
+                }
+            } else {
+                STATE.grid = Array(81).fill(null);
+                STATE.edges = [];
+                STATE.currentSceneId = null;
+                renderGrid();
+                PERSISTENCE.save();
+                logToTimeline('System', 'Imported scenario contained no scenes.');
+            }
+        }
+
+        // =========================================
+        // 5. CORE LOOP
+        // =========================================
+        function init() {
+            PERSISTENCE.load();
+            renderPalette();
+            renderGrid();
+            lucide.createIcons();
+            
+            document.getElementById('input').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    processInput();
+                }
+            });
+        }
+
+        // --- Render Sidebar Palette ---
+        function renderPalette() {
+            const sb = document.getElementById('sidebar');
+            Object.keys(ONTOLOGY).forEach(k => {
+                const el = document.createElement('div');
+                el.className = 'tool';
+                el.title = k;
+                el.draggable = true;
+                el.innerHTML = `
+                    <div class="tool-icon">${ICONS[k]()}</div>
+                    <span class="tool-label">${k}</span>
+                `;
+                
+                el.ondragstart = (e) => {
+                    STATE.dragType = k;
+                    e.dataTransfer.effectAllowed = 'copy';
+                    if (e.dataTransfer.setDragImage) {
+                        e.dataTransfer.setDragImage(el, 28, 28);
+                    }
+                };
+                sb.appendChild(el);
+            });
+        }
+
+        // --- Render Grid (Retina) ---
+        function renderGrid() {
+            const el = document.getElementById('grid');
+            el.innerHTML = '';
+            STATE.grid.forEach((data, i) => {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                
+                if (data) {
+                    cell.innerHTML = ICONS[data.type] ? ICONS[data.type]() : ICONS.Entity();
+                    cell.title = `${data.type}: ${data.content || ''}`;
+                } else {
+                    cell.innerHTML = `<span style="opacity:0.1">${i}</span>`;
+                }
+
+                // Events
+                cell.onmouseover = () => document.getElementById('hover-idx').innerText = i;
+                cell.ondragover = (e) => { e.preventDefault(); cell.classList.add('active'); };
+                cell.ondragleave = () => cell.classList.remove('active');
+                cell.ondrop = (e) => handleDrop(e, i);
+                cell.onclick = () => {
+                    if (data) {
+                        logToTimeline(data.type, `Inspect Cell ${i}: ${data.content || 'Unknown'}`);
+                    }
+                };
+
+                el.appendChild(cell);
+            });
+            renderSceneHud();
+            renderCompareGrid();
+        }
+
+        function renderSceneHud() {
+            const hud = document.getElementById('scene-hud');
+            if (!hud) return;
+            const scene = STATE.scenes.find(s => s.id === STATE.currentSceneId) || null;
+            if (!scene) {
+                hud.textContent = '';
+                return;
+            }
+
+            const story = scene.storyId != null ? STATE.stories.find(st => st.id === scene.storyId) : null;
+            const counts = {
+                Core: 0,
+                Entity: 0,
+                Goal: 0,
+                Obstacle: 0,
+                Morphism: 0,
+                Shift: 0,
+                Location: 0,
+                Timepoint: 0
+            };
+
+            STATE.grid.forEach(cell => {
+                if (!cell || !cell.type) return;
+                if (counts[cell.type] !== undefined) counts[cell.type]++;
+            });
+
+            const summary = [
+                story ? `Story: ${story.label}` : null,
+                `Scene: ${scene.label}`,
+                scene.timepoint ? `Timepoint: ${scene.timepoint}` : null
+            ].filter(Boolean).join(' · ');
+
+            const stats = [
+                counts.Core ? `Core ${counts.Core}` : null,
+                counts.Entity ? `Ent ${counts.Entity}` : null,
+                counts.Goal ? `Goal ${counts.Goal}` : null,
+                counts.Obstacle ? `Obs ${counts.Obstacle}` : null,
+                counts.Morphism ? `Morph ${counts.Morphism}` : null,
+                counts.Shift ? `Shift ${counts.Shift}` : null,
+                counts.Location ? `Loc ${counts.Location}` : null,
+                counts.Timepoint ? `Tpt ${counts.Timepoint}` : null
+            ].filter(Boolean).join(' • ');
+
+            hud.innerHTML = `${summary}${stats ? `<br><span>${stats}</span>` : ''}`;
+        }
+
+        function findCompareScene(baseScene) {
+            if (!baseScene) return null;
+            if (baseScene.timepoint) {
+                const candidates = STATE.scenes.filter(s => s.id !== baseScene.id && s.timepoint === baseScene.timepoint);
+                if (candidates.length) return candidates[0];
+            }
+            if (baseScene.storyId != null) {
+                const story = STATE.stories.find(st => st.id === baseScene.storyId);
+                if (story && Array.isArray(story.scenes)) {
+                    const idx = story.scenes.indexOf(baseScene.id);
+                    if (idx > 0) {
+                        const prevId = story.scenes[idx - 1];
+                        return STATE.scenes.find(s => s.id === prevId) || null;
+                    }
+                }
+            }
+            return null;
+        }
+
+        function renderCompareGrid() {
+            const el = document.getElementById('grid-compare');
+            if (!el) return;
+            if (!STATE.compareMode) {
+                el.style.display = 'none';
+                el.innerHTML = '';
+                return;
+            }
+            const baseScene = STATE.scenes.find(s => s.id === STATE.currentSceneId) || null;
+            const compareScene = findCompareScene(baseScene);
+            if (!compareScene || !Array.isArray(compareScene.grid)) {
+                el.style.display = 'none';
+                el.innerHTML = '';
+                return;
+            }
+            el.style.display = 'grid';
+            el.innerHTML = '';
+            compareScene.grid.forEach((data, i) => {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                if (data) {
+                    cell.innerHTML = ICONS[data.type] ? ICONS[data.type]() : ICONS.Entity();
+                    cell.title = `${data.type}: ${data.content || ''}`;
+                } else {
+                    cell.innerHTML = `<span style="opacity:0.1">${i}</span>`;
+                }
+                el.appendChild(cell);
+            });
+        }
+
+        // --- Timeline (Fork Surface) ---
+        function logToTimeline(type, text, sceneId) {
+            const stream = document.getElementById('chat-stream');
+            const node = document.createElement('div');
+            node.className = `node ${type}`;
+            // Simple color coding for the timeline border
+            let color = '#475569';
+            if (type === 'Core') color = '#fbbf24';
+            if (type === 'Entity') color = '#3b82f6';
+            if (type === 'Morphism') color = '#22d3ee';
+            if (type === 'Goal') color = '#fcd34d';
+            if (type === 'Story') color = '#4ade80';
+            if (type === 'Scene') color = '#a855f7';
+            if (type === 'System') color = '#a855f7';
+            
+            const isScene = typeof sceneId === 'number';
+            const timestamp = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+            const forkHTML = isScene
+                ? '<span class="fork-link" style="cursor:pointer; margin-left:4px; font-size:0.55rem; opacity:0.7;">FORK</span>'
+                : '';
+
+            node.style.borderLeftColor = color;
+            node.innerHTML = `
+                <div class="node-meta">
+                    <span style="color:${color}">${type.toUpperCase()}</span>
+                    <span>${timestamp}${forkHTML}</span>
+                </div>
+                <div class="node-content">${text.substring(0, 240)}</div>
+            `;
+            if (isScene) {
+                node.dataset.sceneId = String(sceneId);
+            }
+
+            if (isScene) {
+                const forkEl = node.querySelector('.fork-link');
+                if (forkEl) {
+                    forkEl.addEventListener('click', (ev) => {
+                        ev.stopPropagation();
+                        const id = Number(node.dataset.sceneId);
+                        if (!Number.isNaN(id)) {
+                            forkScene(id);
+                        }
+                    });
+                }
+            }
+
+            node.onclick = () => {
+                if (node.dataset.sceneId !== undefined) {
+                    const id = Number(node.dataset.sceneId);
+                    revertToScene(id);
+                } else {
+                    // Non-scene messages still act as soft fork touches.
+                    logToTimeline('Story', `Fork touch at: ${text.substring(0, 80)}`);
+                }
+            };
+
+            stream.appendChild(node);
+            stream.scrollTop = stream.scrollHeight;
+        }
+
+        // --- Logic ---
+        function handleDrop(e, idx) {
+            e.preventDefault();
+            const type = STATE.dragType;
+            if (!type) return;
+            
+            STATE.grid[idx] = { type, content: 'Manual Drop' };
+            renderGrid();
+            logToTimeline(type, `Placed ${type} at [${idx}]`);
+            STATE.dragType = null;
+            PERSISTENCE.save();
+        }
+
+        // --- Actuator (Prompt Aperture) ---
+        function processInput() {
+            const input = document.getElementById('input');
+            const text = input.value.trim();
+            if (!text) return;
+            
+            input.value = '';
+            
+            if (text.match(/function|const|var|class|\{|\}/)) {
+                decomposeCode(text);
+            } else {
+                logToTimeline('Entity', text);
+                proceduralGen(text);
+            }
+        }
+
+        // Code-to-Grid Decomposer
+        function decomposeCode(code) {
+            const lines = code.split('\n');
+            STATE.grid = Array(81).fill(null);
+            STATE.edges = [];
+            let placed = 0;
+
+            const defs = [];
+            const nameToCell = new Map();
+            let nextCell = 0;
+
+            function ensureCell(name, kind, content, lineIndex) {
+                if (!name) return null;
+                let idx = nameToCell.get(name);
+                if (idx === undefined) {
+                    if (nextCell >= 81) return null;
+                    idx = nextCell++;
+                    nameToCell.set(name, idx);
+                    STATE.grid[idx] = {
+                        type: kind,
+                        id: name,
+                        content,
+                        line: lineIndex,
+                        deps: [],
+                        callers: []
+                    };
+                    placed++;
+                } else {
+                    const existing = STATE.grid[idx];
+                    if (existing && !existing.content) {
+                        existing.content = content;
+                    }
+                    // Upgrade role if we later discover this entity is a goal/obstacle.
+                    if (existing && existing.type === 'Entity' && kind !== 'Entity') {
+                        existing.type = kind;
+                    }
+                }
+                return idx;
+            }
+
+            // First pass: find definitions and assign cells
+            lines.forEach((line, i) => {
+                const trim = line.trim();
+                if (!trim) return;
+
+                let baseKind = 'Entity';
+                for (const [key, def] of Object.entries(ONTOLOGY)) {
+                    if (def.match.test(trim)) {
+                        baseKind = key;
+                        break;
+                    }
+                }
+
+                // Detect explicit GOAL / OBSTACLE tags in comments
+                let taggedKind = baseKind;
+                if (/\/\/\s*GOAL\b/i.test(trim)) taggedKind = 'Goal';
+                if (/\/\/\s*OBSTACLE\b/i.test(trim)) taggedKind = 'Obstacle';
+
+                let name = null;
+                const fnMatch = trim.match(/(?:function|class)\s+(\w+)/);
+                const varMatch = trim.match(/(?:const|let|var)\s+(\w+)/);
+                if (fnMatch) name = fnMatch[1];
+                else if (varMatch) name = varMatch[1];
+
+                if (name) {
+                    const idx = ensureCell(name, taggedKind, trim, i);
+                    if (idx !== null) {
+                        defs.push({ name, line: i, cellIdx: idx });
+                    }
+                }
+            });
+
+            if (!defs.length) {
+                renderGrid();
+                PERSISTENCE.save();
+                const sceneIdEmpty = captureScene('Empty decomposition');
+                logToTimeline('Scene', 'No definable entities found.', sceneIdEmpty);
+                return;
+            }
+
+            // Second pass: build a simple call graph and infer roles
+            let currentDefIndex = 0;
+            lines.forEach((line, i) => {
+                const trim = line.trim();
+                if (!trim) return;
+
+                while (currentDefIndex + 1 < defs.length && defs[currentDefIndex + 1].line <= i) {
+                    currentDefIndex++;
+                }
+                const owner = defs[currentDefIndex];
+                if (!owner || owner.line > i) return;
+
+                const words = trim.match(/\b[A-Za-z_]\w*\b/g) || [];
+                words.forEach(word => {
+                    if (word === owner.name) return;
+                    const targetIdx = nameToCell.get(word);
+                    if (targetIdx === undefined) return;
+
+                    const fromIdx = owner.cellIdx;
+                    const toIdx = targetIdx;
+                    const fromCell = STATE.grid[fromIdx];
+                    const toCell = STATE.grid[toIdx];
+                    if (!fromCell || !toCell) return;
+
+                    if (!fromCell.deps.includes(toIdx)) {
+                        fromCell.deps.push(toIdx);
+                    }
+                    if (!toCell.callers.includes(fromIdx)) {
+                        toCell.callers.push(fromIdx);
+                    }
+                    STATE.edges.push({ from: fromIdx, to: toIdx });
+                });
+
+                // Upgrade goal/obstacle roles based on control keywords
+                if (/return|resolve\(|success/i.test(trim)) {
+                    const cell = STATE.grid[owner.cellIdx];
+                    if (cell && cell.type === 'Entity') {
+                        cell.type = 'Goal';
+                    }
+                }
+                if (/throw|reject\(|error|catch\s*\(/i.test(trim)) {
+                    const cell = STATE.grid[owner.cellIdx];
+                    if (cell && cell.type === 'Entity') {
+                        cell.type = 'Obstacle';
+                    }
+                }
+            });
+
+            // Capture a scene snapshot and render
+            renderGrid();
+            PERSISTENCE.save();
+            const sceneId = captureScene('Decomposed code');
+            logToTimeline('Scene', `Mapped ${placed} entities and relations to the grid.`, sceneId);
+        }
+
+        // Narrative-to-Grid Generator
+        function proceduralGen(text) {
+            let seed = 0;
+            for (let i = 0; i < text.length; i++) seed += text.charCodeAt(i);
+            const count = Math.max(1, seed % 5);
+            const types = Object.keys(ONTOLOGY);
+            
+            for (let i = 0; i < count; i++) {
+                const pos = (seed * (i + 2)) % 81;
+                const type = types[(seed + i) % types.length];
+                STATE.grid[pos] = {
+                    type,
+                    id: `${type}_${pos}`,
+                    content: 'Narrative Flux',
+                    deps: [],
+                    callers: []
+                };
+            }
+            renderGrid();
+            PERSISTENCE.save();
+            const sceneId = captureScene('Narrative materialization');
+            logToTimeline('Story', `Materialized ${count} nodes from narrative.`, sceneId);
+        }
+
+        function resetGrid() {
+            STATE.grid = Array(81).fill(null);
+            renderGrid();
+            PERSISTENCE.save();
+            const sceneId = captureScene('Reset grid');
+            logToTimeline('System', 'Grid cleared.', sceneId);
+        }
+
+        function toggleCompareMode() {
+            STATE.compareMode = !STATE.compareMode;
+            renderGrid();
+        }
+
+        function toggleImportPanel() {
+            const panel = document.getElementById('import-panel');
+            if (!panel) return;
+            panel.style.display = panel.style.display === 'none' || panel.style.display === '' ? 'flex' : 'none';
+        }
+
+        function runImportFromTextarea() {
+            const el = document.getElementById('import-spec');
+            if (!el) return;
+            const text = el.value.trim();
+            if (!text) {
+                logToTimeline('System', 'Import panel is empty. Paste a JSON spec first.');
+                return;
+            }
+            try {
+                const spec = JSON.parse(text);
+                importReactorState(spec);
+            } catch (err) {
+                logToTimeline('System', `Failed to parse import JSON: ${(err && err.message) || err}`);
+            }
+        }
+
+        init();
+        if (typeof window !== 'undefined') {
+            window.REACTOR = { importState: importReactorState, STATE };
+        }
+    </script>
+</body>
+</html>

@@ -565,6 +565,46 @@
     </footer>
 
     <script>
+        (function () {
+            var col = null;
+            try {
+                var raw = localStorage.getItem('onyx_scene_collection');
+                if (raw) {
+                    var parsed = JSON.parse(raw);
+                    if (parsed && Array.isArray(parsed.scenes) && parsed.scenes.length) {
+                        col = parsed;
+                    }
+                }
+            } catch (e) {
+                console.warn('[LEGOS-PHILOSOPHY] Failed to read onyx_scene_collection', e);
+            }
+
+            if (!col) return;
+
+            var header = document.querySelector('header');
+            if (!header) return;
+
+            var badge = document.createElement('div');
+            var count = col.scenes.length;
+            badge.textContent = 'ONYX · ' + count + ' scene' + (count !== 1 ? 's' : '');
+            badge.style.position = 'absolute';
+            badge.style.right = '20px';
+            badge.style.top = '20px';
+            badge.style.fontSize = '10px';
+            badge.style.letterSpacing = '2px';
+            badge.style.textTransform = 'uppercase';
+            badge.style.color = 'var(--dim)';
+            badge.style.border = '1px solid var(--border)';
+            badge.style.borderRadius = '999px';
+            badge.style.padding = '4px 10px';
+            badge.style.background = 'rgba(0,0,0,0.8)';
+
+            header.style.position = 'relative';
+            header.appendChild(badge);
+        })();
+    </script>
+
+    <script>
         let groundState = [];
         let siteState = [];
         let skyState = [];

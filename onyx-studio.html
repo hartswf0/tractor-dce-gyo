@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>ONYX Studio</title>
+  <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='8' y='8' width='84' height='84' rx='18' fill='%230b1121'/%3E%3Ctext x='50' y='62' font-size='60' text-anchor='middle' fill='%23a855f7'%3ES%3C/text%3E%3C/svg%3E" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #020617;
+      --panel: #020617;
+      --border: #1e293b;
+      --tab-active: #fbbf24;
+      --tab-muted: #64748b;
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      margin: 0;
+      height: 100vh;
+      height: 100dvh;
+      background: radial-gradient(circle at top, #111827 0, #020617 55%, #000 100%);
+      color: #e5e7eb;
+      font-family: 'JetBrains Mono', monospace;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      flex: 0 0 auto;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      background: rgba(15,23,42,0.98);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .studio-title {
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #9ca3af;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .studio-title span {
+      color: #fbbf24;
+    }
+
+    .tool-tabs {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(15,23,42,0.9);
+      padding: 3px;
+      border-radius: 999px;
+      border: 1px solid rgba(31,41,55,0.9);
+    }
+
+    .tool-tab {
+      border: none;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      cursor: pointer;
+      background: transparent;
+      color: var(--tab-muted);
+      transition: background 0.15s ease, color 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .tool-tab.active {
+      background: var(--tab-active);
+      color: #020617;
+    }
+
+    main {
+      flex: 1 1 auto;
+      min-height: 0;
+      display: flex;
+      background: #020617;
+    }
+
+    .frame-shell {
+      flex: 1 1 auto;
+      display: flex;
+      width: 100%;
+      height: 100%;
+      gap: 2px;
+    }
+
+    .studio-frame {
+      flex: 1 1 auto;
+      border: none;
+      display: none;
+      width: 100%;
+      height: 100%;
+      background: #020617;
+    }
+
+    .studio-frame.visible {
+      display: block;
+    }
+
+    @media (max-width: 768px) {
+      header {
+        flex-wrap: wrap;
+        height: auto;
+        padding-top: 6px;
+        padding-bottom: 6px;
+        gap: 6px;
+      }
+      .studio-title {
+        font-size: 10px;
+      }
+      main {
+        height: calc(100vh - 64px);
+        height: calc(100dvh - 64px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="studio-title">
+      <span>ONYX</span> STUDIO
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="tool-tabs" id="tool-tabs">
+        <button class="tool-tab active" data-tool="head">HEAD</button>
+        <button class="tool-tab" data-tool="abs">ABS</button>
+        <button class="tool-tab" data-tool="tail">TAIL</button>
+        <button class="tool-tab" data-tool="branch">BRANCH</button>
+        <button class="tool-tab" data-tool="arch">ARCH</button>
+        <button class="tool-tab" data-tool="gs2p">GS2P</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;font-size:10px;">
+        <a href="onyx-studio-tutorial.html" style="text-decoration:none;border:1px solid var(--border);border-radius:999px;padding:3px 8px;color:var(--tab-muted);letter-spacing:0.12em;text-transform:uppercase;">Tutorial</a>
+        <a href="onyx-studio-slides.html" style="text-decoration:none;border:1px solid var(--border);border-radius:999px;padding:3px 8px;color:var(--tab-muted);letter-spacing:0.12em;text-transform:uppercase;">Slides</a>
+      </div>
+      <button id="btnLayout" title="Toggle split view" style="border:1px solid var(--border);background:transparent;color:var(--tab-muted);border-radius:999px;padding:4px 8px;font-size:10px;cursor:pointer;">
+        ⧉
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <div class="frame-shell">
+      <iframe id="frame-head"   class="studio-frame visible" src="onyx-head.html"        title="ONYX Head"></iframe>
+      <iframe id="frame-abs"    class="studio-frame"         src="onyx-abs.html"         title="ONYX Abs"></iframe>
+      <iframe id="frame-tail"   class="studio-frame"         src="onyx-tail.html"        title="ONYX Tail"></iframe>
+      <iframe id="frame-branch" class="studio-frame"         src="brick-branch.html"     title="Brick Branch"></iframe>
+      <iframe id="frame-arch"   class="studio-frame"         src="brick-architect.html"  title="Brick Architect"></iframe>
+      <iframe id="frame-gs2p"   class="studio-frame"         src="lgi-brickbender.html"  title="LGI Brickbender"></iframe>
+    </div>
+  </main>
+
+  <script>
+    (function() {
+      const tabs = document.querySelectorAll('.tool-tab');
+      const frames = {
+        head:   document.getElementById('frame-head'),
+        abs:    document.getElementById('frame-abs'),
+        tail:   document.getElementById('frame-tail'),
+        branch: document.getElementById('frame-branch'),
+        arch:   document.getElementById('frame-arch'),
+        gs2p:   document.getElementById('frame-gs2p')
+      };
+
+      let currentTool = 'head';
+
+      function applyLayout() {
+        const split = document.body.classList.contains('split-mode');
+        if (split) {
+          // In split mode, show HEAD and TAIL side by side
+          Object.entries(frames).forEach(([key, frame]) => {
+            if (!frame) return;
+            const visible = (key === 'head' || key === 'tail');
+            frame.classList.toggle('visible', visible);
+          });
+        } else {
+          Object.entries(frames).forEach(([key, frame]) => {
+            if (!frame) return;
+            frame.classList.toggle('visible', key === currentTool);
+          });
+        }
+      }
+
+      function setTool(name) {
+        currentTool = name;
+        tabs.forEach(t => t.classList.toggle('active', t.dataset.tool === name));
+        applyLayout();
+      }
+
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => setTool(tab.dataset.tool));
+      });
+
+      // Optional: expose a simple API for toggling split mode from devtools later
+      window.ONYX_STUDIO = window.ONYX_STUDIO || {};
+      window.ONYX_STUDIO.toggleSplit = function() {
+        document.body.classList.toggle('split-mode');
+        applyLayout();
+      };
+
+      const btnLayout = document.getElementById('btnLayout');
+      if (btnLayout) {
+        btnLayout.addEventListener('click', () => window.ONYX_STUDIO.toggleSplit());
+      }
+    })();
+  </script>
+</body>
+</html>

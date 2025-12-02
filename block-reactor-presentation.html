@@ -1,0 +1,1692 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ONYX REACTOR // Ontological Grid Presentation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        :root {
+            --bg: #0b1121;
+            --panel: #0f172a;
+            --surface: #1e293b;
+            --border: #334155;
+            --text-main: #e2e8f0;
+            --text-muted: #64748b;
+            --c-core: #fbbf24;
+            --c-entity: #3b82f6;
+            --c-morph: #22d3ee;
+            --c-goal: #fcd34d;
+            --c-story: #4ade80;
+            --c-meta: #a855f7;
+            --ease: cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', sans-serif;
+            background: radial-gradient(circle at top, #1f2937 0, #020617 55%, #000 100%);
+            color: var(--text-main);
+        }
+
+        .shell {
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header aligned with Reactor style */
+        header {
+            flex-shrink: 0;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1rem;
+            background: rgba(15, 23, 42, 0.96);
+            border-bottom: 1px solid var(--border);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 20;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        .brand span {
+            color: var(--c-morph);
+        }
+
+        .header-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid var(--border);
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        /* Slide container */
+        main {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            padding: 0.75rem;
+        }
+
+        .deck {
+            width: 100%;
+            max-width: 960px;
+            background: rgba(15, 23, 42, 0.96);
+            border-radius: 0.75rem;
+            border: 1px solid rgba(51, 65, 85, 0.9);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .slides {
+            flex: 1;
+            position: relative;
+            padding: 1.5rem 1.25rem 1rem;
+            overflow-y: auto;
+        }
+
+        @media (min-width: 768px) {
+            .slides { padding: 2rem 2.25rem 1.5rem; }
+        }
+
+        .slide {
+            display: none;
+            animation: slideIn 0.4s var(--ease);
+        }
+
+        .slide.active { display: block; }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .slide-title {
+            font-size: clamp(1.6rem, 1.1rem + 1.6vw, 2.2rem);
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 0.35rem;
+            background: linear-gradient(120deg, var(--c-entity), var(--c-morph));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .slide-sub {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            max-width: 42rem;
+        }
+
+        .grid-shell {
+            margin: 1.75rem auto 1.25rem;
+            width: min(100%, 420px);
+            aspect-ratio: 1 / 1;
+            border-radius: 0.75rem;
+            border: 1px solid var(--border);
+            background: radial-gradient(circle at top, rgba(148, 163, 184, 0.18), transparent 55%),
+                        radial-gradient(circle at bottom, rgba(30, 64, 175, 0.2), transparent 55%),
+                        #020617;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .grid9x9 {
+            position: absolute;
+            inset: 0.6rem;
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            grid-template-rows: repeat(9, 1fr);
+            gap: 2px;
+        }
+
+        .pass-grid.hidden {
+            display: none;
+        }
+
+        .cell {
+            border-radius: 0.25rem;
+            border: 1px solid rgba(51, 65, 85, 0.7);
+            background: rgba(15, 23, 42, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.55rem;
+            color: rgba(148, 163, 184, 0.6);
+        }
+
+        .cell-core {
+            background: radial-gradient(circle, rgba(250, 204, 21, 0.22), transparent 70%);
+            border-color: rgba(250, 204, 21, 0.8);
+        }
+
+        .cell-goal { border-color: rgba(234, 179, 8, 0.9); }
+        .cell-obs  { border-color: rgba(248, 113, 113, 0.9); }
+
+        .legend {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 0.4rem 0.75rem;
+            margin-top: 0.75rem;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .legend span {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .dot {
+            width: 0.55rem;
+            height: 0.55rem;
+            border-radius: 999px;
+        }
+
+        .pill-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+            margin-top: 1.25rem;
+        }
+
+        .pill {
+            font-size: 0.65rem;
+            border-radius: 999px;
+            padding: 0.15rem 0.55rem;
+            border: 1px solid rgba(51, 65, 85, 0.9);
+            background: rgba(15, 23, 42, 0.9);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+        }
+
+        .pill-strong {
+            border-color: rgba(34, 211, 238, 0.9);
+            color: var(--c-morph);
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 0.85rem;
+            margin-top: 1.5rem;
+        }
+
+        .card {
+            background: rgba(15, 23, 42, 0.98);
+            border-radius: 0.6rem;
+            border: 1px solid rgba(51, 65, 85, 0.9);
+            padding: 0.75rem 0.8rem;
+            font-size: 0.78rem;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .iso-icon {
+            width: 1.75rem;
+            height: 1.75rem;
+            flex-shrink: 0;
+        }
+
+        .card small {
+            display: block;
+            margin-top: 0.2rem;
+            color: var(--text-muted);
+        }
+
+        .stack {
+            display: grid;
+            gap: 0.6rem;
+            margin-top: 1.5rem;
+        }
+
+        .stack-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.6rem 0.75rem;
+            border-radius: 0.6rem;
+            border: 1px solid rgba(51, 65, 85, 0.9);
+            background: rgba(15, 23, 42, 0.95);
+            font-size: 0.8rem;
+        }
+
+        .stack-label {
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+        }
+
+        .stack-desc { color: var(--text-muted); font-size: 0.75rem; }
+
+        .timeline-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            border-radius: 999px;
+            padding: 0.15rem 0.6rem;
+            border: 1px dashed rgba(148, 163, 184, 0.6);
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .code-block {
+            margin-top: 1.25rem;
+            border-radius: 0.6rem;
+            background: #020617;
+            border: 1px solid #1f2937;
+            padding: 0.75rem 0.9rem;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+            font-size: 0.75rem;
+            overflow-x: auto;
+        }
+
+        .code-kw { color: #f97316; }
+        .code-id { color: #60a5fa; }
+        .code-lit { color: #22c55e; }
+        .code-com { color: #6b7280; }
+
+        .pass-toggle {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+            margin-top: 0.75rem;
+        }
+
+        .pass-btn {
+            border-radius: 999px;
+            border: 1px solid rgba(51, 65, 85, 0.9);
+            background: rgba(15, 23, 42, 0.95);
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            padding: 0.25rem 0.7rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            cursor: pointer;
+            transition: all 0.15s var(--ease);
+        }
+
+        .pass-btn.active {
+            border-color: rgba(56, 189, 248, 0.9);
+            color: var(--c-morph);
+        }
+
+        .timepoint-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+            margin-top: 0.4rem;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .timepoint-chip {
+            border-radius: 999px;
+            border: 1px solid rgba(51, 65, 85, 0.9);
+            padding: 0.15rem 0.6rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .timepoint-chip span:first-child {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+            font-size: 0.7rem;
+            color: #e5e7eb;
+        }
+
+        .timepoint-chip.active {
+            border-color: rgba(56, 189, 248, 0.9);
+            color: var(--c-morph);
+        }
+
+        .story-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 1.1rem;
+        }
+
+        .story-cell {
+            flex: 1 1 140px;
+            max-width: 160px;
+        }
+
+        .grid-shell.mini {
+            width: 100%;
+            margin: 0;
+        }
+
+        .grid-shell.mini .grid9x9 {
+            inset: 0.4rem;
+        }
+
+        .story-caption {
+            margin-top: 0.25rem;
+            font-size: 0.65rem;
+            color: var(--text-muted);
+        }
+
+        .scene-graph {
+            margin-top: 0.25rem;
+            padding: 0.4rem 0.45rem 0.35rem;
+            border-radius: 0.45rem;
+            border: 1px solid rgba(51, 65, 85, 0.85);
+            background: rgba(15, 23, 42, 0.98);
+            font-size: 0.65rem;
+            color: var(--text-muted);
+        }
+
+        .scene-graph-line {
+            display: flex;
+            justify-content: space-between;
+            gap: 0.75rem;
+            line-height: 1.3;
+        }
+
+        .scene-graph-role {
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-size: 0.6rem;
+            color: rgba(148, 163, 184, 0.95);
+        }
+
+        .scene-graph-notes {
+            margin-top: 0.3rem;
+            font-size: 0.62rem;
+        }
+
+        .scene-graph-roles {
+            text-align: left;
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            white-space: normal;
+        }
+
+        .time-strip {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.4rem;
+            margin-top: 0.6rem;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .time-label {
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-size: 0.65rem;
+            color: rgba(148, 163, 184, 0.9);
+        }
+
+        .time-node {
+            width: 1.4rem;
+            height: 1.4rem;
+            border-radius: 999px;
+            border: 1px solid rgba(51, 65, 85, 0.9);
+            background: rgba(15, 23, 42, 0.95);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+            font-size: 0.7rem;
+            color: #e5e7eb;
+        }
+
+        .time-node.story1 {
+            border-color: rgba(96, 165, 250, 0.9);
+        }
+
+        .time-node.story2 {
+            border-color: rgba(250, 204, 21, 0.9);
+            color: rgba(250, 204, 21, 0.95);
+        }
+
+        .time-arrow {
+            width: 1.5rem;
+            height: 1px;
+            background: rgba(148, 163, 184, 0.7);
+            position: relative;
+        }
+
+        .time-arrow::after {
+            content: '';
+            position: absolute;
+            right: -0.15rem;
+            top: -0.15rem;
+            border-top: 4px solid transparent;
+            border-bottom: 4px solid transparent;
+            border-left: 4px solid rgba(148, 163, 184, 0.9);
+        }
+
+        /* Footer nav */
+        .nav-bar {
+            flex-shrink: 0;
+            height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.35rem 0.9rem;
+            border-top: 1px solid var(--border);
+            background: rgba(15, 23, 42, 0.97);
+        }
+
+        .nav-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.4rem 0.85rem;
+            border-radius: 999px;
+            border: 1px solid rgba(51, 65, 85, 0.9);
+            background: rgba(15, 23, 42, 0.95);
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.15s var(--ease);
+        }
+
+        .nav-btn span { text-transform: uppercase; letter-spacing: 0.08em; }
+
+        .nav-btn.primary {
+            border-color: rgba(56, 189, 248, 0.9);
+            color: var(--c-morph);
+        }
+
+        .nav-btn:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 25px rgba(15, 23, 42, 0.9);
+        }
+
+        .nav-btn:disabled { opacity: 0.35; cursor: default; transform: none; box-shadow: none; }
+
+        .slide-index {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        @media (max-width: 640px) {
+            .deck { border-radius: 0.5rem; }
+            .slides { padding: 1rem 0.9rem 0.8rem; }
+            header { padding-inline: 0.75rem; }
+
+            .grid-shell { width: 100%; }
+
+            .story-row {
+                flex-direction: column;
+                gap: 0.9rem;
+            }
+
+            .story-cell {
+                max-width: none;
+            }
+
+            .grid-shell.mini .grid9x9 {
+                inset: 0.3rem;
+            }
+
+            .scene-graph {
+                font-size: 0.6rem;
+                padding: 0.35rem 0.4rem 0.3rem;
+            }
+
+            .scene-graph-line {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.1rem;
+            }
+
+            .scene-graph-role {
+                font-size: 0.58rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="shell">
+    <header>
+        <div class="brand">
+            <i data-lucide="cpu" class="w-4 h-4 text-[var(--c-morph)]"></i>
+            <span>ONYX</span>&nbsp;REACTOR
+        </div>
+        <div class="header-pill">
+            <i data-lucide="grid-3x3" class="w-3 h-3"></i>
+            <span>9×9 ONTOLOGICAL GRID</span>
+        </div>
+    </header>
+
+    <main>
+        <section class="deck">
+            <div class="slides">
+                <!-- Slide 1: Container -->
+                <article class="slide active" data-slide="1">
+                    <h1 class="slide-title">Hyperclay Reactor</h1>
+                    <p class="slide-sub">
+                        A minimal container for thinking with code, stories, and ontological bricks on a single
+                        9×9 surface. Grid as retina, timeline as fork stream, prompt as actuator.
+                    </p>
+
+                    <div class="grid-shell">
+                        <div class="grid9x9" id="intro-grid"></div>
+                    </div>
+
+                    <div class="legend">
+                        <span><span class="dot" style="background: var(--c-core);"></span>Core / nucleus</span>
+                        <span><span class="dot" style="background: var(--c-entity);"></span>Entities on the field</span>
+                        <span><span class="dot" style="background: var(--c-goal);"></span>Goals (top gravity)</span>
+                        <span><span class="dot" style="background: #ef4444;"></span>Obstacles (bottom drag)</span>
+                    </div>
+
+                    <div class="pill-row">
+                        <div class="pill pill-strong">Single container</div>
+                        <div class="pill">9×9 grid as reality</div>
+                        <div class="pill">Timeline as branching history</div>
+                        <div class="pill">Actuator as text aperture</div>
+                    </div>
+
+                    <div class="scene-graph mt-3">
+                        <div class="scene-graph-line">
+                            <span class="scene-graph-role">CORE</span>
+                            <span>Center cell is the Core: the nucleus everything else orbits and pushes against.</span>
+                        </div>
+                        <div class="scene-graph-line scene-graph-notes">
+                            <span class="scene-graph-role">ENTITIES</span>
+                            <span>Blue cubes flanking the Core are Entities: actors or objects on the field, before they become goals or obstacles.</span>
+                        </div>
+                        <div class="scene-graph-line scene-graph-notes">
+                            <span class="scene-graph-role">GOALS</span>
+                            <span>The top band is where Goals sit: things being pulled toward, under "top gravity" of the grid.</span>
+                        </div>
+                        <div class="scene-graph-line scene-graph-notes">
+                            <span class="scene-graph-role">OBSTACLES</span>
+                            <span>The bottom band is where Obstacles live: forces that drag or block paths downwards.</span>
+                        </div>
+                        <div class="scene-graph-line scene-graph-notes">
+                            <span class="scene-graph-role">SURFACES</span>
+                            <span>Grid is the retina. The event log on the right is the forked history of scenes/stories. The single textarea is the actuator that materializes new bricks and captures new scenes.</span>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Slide 2: Ontology palette -->
+                <article class="slide" data-slide="2">
+                    <h1 class="slide-title">Ontology Palette</h1>
+                    <p class="slide-sub">
+                        Each brick on the grid is one of a small set of roles. Some are static (Entity), some
+                        are positional (Location/Timepoint), some are relational (Morphism/Shift), and some
+                        are narrative (Scene/Story/Core).
+                    </p>
+
+                    <div class="card-grid">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="iso-icon" data-kind="Entity"></div>
+                                <span>Entity</span>
+                            </div>
+                            <p>Any actor, object, or concept on the board.</p>
+                            <small>An entity can later become a Goal or an Obstacle.</small>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="iso-icon" data-kind="Goal"></div>
+                                <span>Goal</span>
+                            </div>
+                            <p>What some agent desires from an entity.</p>
+                            <small>Entity → Goal when someone wants it.</small>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="iso-icon" data-kind="Obstacle"></div>
+                                <span>Obstacle</span>
+                            </div>
+                            <p>What gets in the way of an entity reaching a goal.</p>
+                            <small>Entity → Obstacle when it blocks a goal path.</small>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="iso-icon" data-kind="Morphism"></div>
+                                <span>Morphism</span>
+                            </div>
+                            <p>The relation or flow between two entities.</p>
+                            <small>Every call, import, or influence is a morphism.</small>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="iso-icon" data-kind="Shift"></div>
+                                <span>Shift</span>
+                            </div>
+                            <p>A change in morphisms over time.</p>
+                            <small>Compare scenes to see which edges changed.</small>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="iso-icon" data-kind="Location"></div>
+                                <span>Location</span>
+                            </div>
+                            <p>A position defined by at least two entities over time.</p>
+                            <small>“Where” a relation keeps recurring.</small>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="iso-icon" data-kind="Timepoint"></div>
+                                <span>Timepoint</span>
+                            </div>
+                            <p>To time what a point is to space.</p>
+                            <small>Each decomposition or fork is a timepoint.</small>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="iso-icon" data-kind="Scene"></div>
+                                <span>Scene</span>
+                            </div>
+                            <p>A framed snapshot of grid + locations + timepoints.</p>
+                            <small>One capture of the Reactor state.</small>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="iso-icon" data-kind="Story"></div>
+                                <span>Story</span>
+                            </div>
+                            <p>A chain of scenes connected by forks and shifts.</p>
+                            <small>Each fork in Reactor starts a new story ID.</small>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="iso-icon" data-kind="Core"></div>
+                                <span>Core</span>
+                            </div>
+                            <p>A central entity tied directly to goals or shifts.</p>
+                            <small>High‑degree nodes at the center of the grid.</small>
+                        </div>
+                    </div>
+                    <div class="grid-shell mt-4">
+                        <div class="grid9x9" id="palette-grid"></div>
+                    </div>
+                    <div class="scene-graph mt-3" id="graph-palette-grid"></div>
+                    <p class="mt-2 text-[0.7rem] text-slate-400">
+                        Sample scene: a Core in the center, two Entities in orbit, a Goal pulling up, an
+                        Obstacle dragging down, and Morphisms wiring them together.
+                    </p>
+                </article>
+
+                <!-- Slide 3: Temporal Stack -->
+                <article class="slide" data-slide="3">
+                    <h1 class="slide-title">Temporal Stack</h1>
+                    <p class="slide-sub">
+                        The Reactor reduces the interface to three aligned surfaces: retina, fork stream, and
+                        actuator. Everything else is decoration.
+                    </p>
+
+                    <div class="stack">
+                        <div class="stack-item">
+                            <div>
+                                <div class="stack-label">Surface C · Fork Stream</div>
+                                <div class="stack-desc">Clickable message nodes that carry scene snapshots and spawn new stories.</div>
+                            </div>
+                            <span class="timeline-chip">
+                                <i data-lucide="git-branch" class="w-3 h-3"></i>
+                                STORY / SCENE / FORK
+                            </span>
+                        </div>
+
+                        <div class="stack-item">
+                            <div>
+                                <div class="stack-label">Surface B · Retina</div>
+                                <div class="stack-desc">The 9×9 grid where entities, goals, obstacles, and morphisms are spatialized.</div>
+                            </div>
+                            <span class="timeline-chip">
+                                <i data-lucide="grid-3x3" class="w-3 h-3"></i>
+                                STATE CANVAS
+                            </span>
+                        </div>
+
+                        <div class="stack-item">
+                            <div>
+                                <div class="stack-label">Surface A · Actuator</div>
+                                <div class="stack-desc">A single text aperture. Narrative in, code in, commands in. Everything else is a consequence.</div>
+                            </div>
+                            <span class="timeline-chip">
+                                <i data-lucide="terminal" class="w-3 h-3"></i>
+                                PROMPT HORIZON
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="grid-shell mt-4">
+                        <div id="fork-before-grid" class="grid9x9"></div>
+                    </div>
+                    <div class="grid-shell mt-2">
+                        <div id="fork-after-grid" class="grid9x9"></div>
+                    </div>
+                    <div class="mt-2 grid grid-cols-1 md:grid-cols-2 gap-2">
+                        <div class="scene-graph" id="graph-fork-before"></div>
+                        <div class="scene-graph" id="graph-fork-after"></div>
+                    </div>
+                    <p class="mt-2 text-[0.7rem] text-slate-400">
+                        Left: Scene 12 before a key decision. Right: forked Story 2 where the obstacle has
+                        shifted and a new goal appears. Forks are alternate grids you can inhabit and extend.
+                    </p>
+
+                    <div class="code-block">
+                        <span class="code-com">// Hyper‑minimal loop inside Reactor</span><br>
+                        <span class="code-kw">input</span>  ⟶ <span class="code-kw">decompose</span>(<span class="code-id">codeOrNarrative</span>)<br>
+                        <span class="code-kw">state</span>  ⟶ <span class="code-kw">map</span>(<span class="code-id">entities</span> ⇄ <span class="code-id">goals</span> ⇄ <span class="code-id">obstacles</span>) onto 9×9<br>
+                        <span class="code-kw">scene</span>  ⟶ <span class="code-id">captureScene</span>(<span class="code-lit">"Decomposed code"</span>)<br>
+                        <span class="code-kw">story</span>  ⟶ <span class="code-id">forkScene</span>(<span class="code-id">sceneId</span>) when user hits <span class="code-lit">FORK</span>
+                    </div>
+
+                    <div class="story-row">
+                        <div class="story-cell">
+                            <div class="grid-shell mini">
+                                <div id="story1-scene0" class="grid9x9"></div>
+                            </div>
+                            <div class="story-caption">Story 1 · Scene 0 (T1)</div>
+                            <div class="scene-graph" id="graph-story1-scene0"></div>
+                        </div>
+                        <div class="story-cell">
+                            <div class="grid-shell mini">
+                                <div id="story1-scene1" class="grid9x9"></div>
+                            </div>
+                            <div class="story-caption">Story 1 · Scene 1 (T2 · obstacle shifts)</div>
+                            <div class="scene-graph" id="graph-story1-scene1"></div>
+                        </div>
+                        <div class="story-cell">
+                            <div class="grid-shell mini">
+                                <div id="story1-scene2" class="grid9x9"></div>
+                            </div>
+                            <div class="story-caption">Story 1 · Scene 2 (T3 · new goal & morphism)</div>
+                            <div class="scene-graph" id="graph-story1-scene2"></div>
+                        </div>
+                        <div class="story-cell">
+                            <div class="grid-shell mini">
+                                <div id="story2-scene0" class="grid9x9"></div>
+                            </div>
+                            <div class="story-caption">Story 2 · Scene 0 (forked from Scene 1)</div>
+                            <div class="scene-graph" id="graph-story2-scene0"></div>
+                        </div>
+                    </div>
+                    <div class="time-strip">
+                        <span class="time-label">Storyboard</span>
+                        <div class="time-node story1">0</div>
+                        <div class="time-arrow"></div>
+                        <div class="time-node story1">1</div>
+                        <div class="time-arrow"></div>
+                        <div class="time-node story1">2</div>
+                        <span class="time-label">Story 1</span>
+                        <span class="time-label">·</span>
+                        <span class="time-label">fork</span>
+                        <div class="time-arrow"></div>
+                        <div class="time-node story2">0</div>
+                        <span class="time-label">Story 2</span>
+                    </div>
+                </article>
+
+                <!-- Slide 4: Code decomposition -->
+                <article class="slide" data-slide="4">
+                    <h1 class="slide-title">Code as Ontology</h1>
+                    <p class="slide-sub">
+                        Block Reactor ingests code, detects entities and flows, and paints them onto the grid
+                        with ONYX roles instead of raw syntax.
+                    </p>
+
+                    <div class="card-grid">
+                        <div class="card">
+                            <div class="card-header">
+                                <i data-lucide="scan-line" class="w-4 h-4 text-[var(--c-morph)]"></i>
+                                <span>Pass 1 · Entities</span>
+                            </div>
+                            <p>Find functions, classes, and named values. Each becomes an Entity cell with an id and source line.</p>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <i data-lucide="git-commit" class="w-4 h-4 text-[var(--c-core)]"></i>
+                                <span>Pass 2 · Goals & Obstacles</span>
+                            </div>
+                            <p>Mark definitions dominated by returns / resolve as Goals, and error / throw / catch contexts as Obstacles.</p>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <i data-lucide="git-branch" class="w-4 h-4 text-[var(--c-morph)]"></i>
+                                <span>Pass 3 · Morphisms</span>
+                            </div>
+                            <p>Build a call graph. Every usage of a known entity becomes a morphism edge (deps/callers) between cells.</p>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <i data-lucide="frame" class="w-4 h-4 text-[var(--c-meta)]"></i>
+                                <span>Pass 4 · Scene</span>
+                            </div>
+                            <p>Snapshot the 9×9 + edges as a Scene. The timeline logs it with a FORK affordance.</p>
+                        </div>
+                    </div>
+
+                    <div class="grid-shell mt-4">
+                        <div id="pass1-grid" class="grid9x9 pass-grid"></div>
+                        <div id="pass2-grid" class="grid9x9 pass-grid hidden"></div>
+                        <div id="pass3-grid" class="grid9x9 pass-grid hidden"></div>
+                    </div>
+                    <div class="scene-graph mt-3" id="graph-pass1-grid"></div>
+                    <div class="scene-graph mt-2" id="graph-pass2-grid"></div>
+                    <div class="scene-graph mt-2" id="graph-pass3-grid"></div>
+                    <div class="pass-toggle">
+                        <button type="button" class="pass-btn active" data-pass="1">Pass 1 · Entities</button>
+                        <button type="button" class="pass-btn" data-pass="2">Pass 2 · Goals & Obstacles</button>
+                        <button type="button" class="pass-btn" data-pass="3">Pass 3 · Morphisms</button>
+                    </div>
+                    <div class="timepoint-row">
+                        <div class="timepoint-chip" data-tp="0">
+                            <span>T0</span>
+                            <span>Raw text / code</span>
+                        </div>
+                        <div class="timepoint-chip active" data-tp="1">
+                            <span>T1</span>
+                            <span>Entities detected</span>
+                        </div>
+                        <div class="timepoint-chip" data-tp="2">
+                            <span>T2</span>
+                            <span>Goals & Obstacles tagged</span>
+                        </div>
+                        <div class="timepoint-chip" data-tp="3">
+                            <span>T3</span>
+                            <span>Morphisms wired</span>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Slide 5: Forking stories -->
+                <article class="slide" data-slide="5">
+                    <h1 class="slide-title">Forking Realities</h1>
+                    <p class="slide-sub">
+                        In Reactor, history is not a static log. Every message node can be a hinge that spawns
+                        a new story branch from any past scene.
+                    </p>
+
+                    <div class="stack">
+                        <div class="stack-item">
+                            <div>
+                                <div class="stack-label">Scene nodes</div>
+                                <div class="stack-desc">Each decomposition or narrative materialization captures a scene with a unique id.</div>
+                            </div>
+                            <span class="timeline-chip">
+                                <i data-lucide="dot" class="w-3 h-3"></i>
+                                SCENE #12
+                            </span>
+                        </div>
+                        <div class="stack-item">
+                            <div>
+                                <div class="stack-label">Revert</div>
+                                <div class="stack-desc">Click a scene node to jump the 9×9 back to that captured state inside its current story.</div>
+                            </div>
+                            <span class="timeline-chip">
+                                <i data-lucide="rotate-ccw" class="w-3 h-3"></i>
+                                REVERT
+                            </span>
+                        </div>
+                        <div class="stack-item">
+                            <div>
+                                <div class="stack-label">Fork</div>
+                                <div class="stack-desc">Hit FORK on a scene node to clone it into a new story id and continue from there.</div>
+                            </div>
+                            <span class="timeline-chip">
+                                <i data-lucide="git-branch-plus" class="w-3 h-3"></i>
+                                NEW STORY
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="code-block">
+                        <span class="code-com">// Conceptual data model inside Reactor</span><br>
+                        <span class="code-kw">type</span> <span class="code-id">Scene</span> = { <span class="code-id">id</span>, <span class="code-id">storyId</span>, <span class="code-id">grid</span>, <span class="code-id">edges</span>, <span class="code-id">timestamp</span> }<br>
+                        <span class="code-kw">type</span> <span class="code-id">Story</span> = { <span class="code-id">id</span>, <span class="code-id">label</span>, <span class="code-id">scenes</span>: <span class="code-id">Scene</span>[] }<br>
+                        <br>
+                        <span class="code-id">forkScene</span>(<span class="code-id">sceneId</span>) ⟶ <span class="code-id">Story</span>′ with cloned grid and edges
+                    </div>
+                </article>
+
+                <!-- Slide 6: Using it -->
+                <article class="slide" data-slide="6">
+                    <h1 class="slide-title">Using Reactor</h1>
+                    <p class="slide-sub">
+                        A minimal loop you can run today with <code>block-reactor.html</code> in this repo.
+                    </p>
+
+                    <ol class="list-decimal list-inside mt-4 space-y-2 text-sm text-slate-300">
+                        <li>Open <code>block-reactor.html</code> in a browser.</li>
+                        <li>Paste code or a vignette into the actuator textarea and press Enter.</li>
+                        <li>Watch the 9×9 fill with Entities, Goals, Obstacles, and Morphisms.</li>
+                        <li>Click scene entries in the timeline to revisit states, or tap FORK to branch.</li>
+                        <li>Iterate: rewrite the prompt, alter code, generate new scenes and stories.</li>
+                    </ol>
+
+                    <p class="mt-4 text-xs text-slate-400">
+                        Reactor is a baseline. The ONYX symbols and roles stay fixed, but the muscles behind
+                        them (parsers, cultural engines, tetrad analysis) can evolve without changing the
+                        three surfaces.
+                    </p>
+                </article>
+            </div>
+
+            <footer class="nav-bar">
+                <button id="prevBtn" class="nav-btn" type="button">
+                    <i data-lucide="arrow-left" class="w-3 h-3"></i>
+                    <span>Previous</span>
+                </button>
+                <div class="slide-index">
+                    <span id="slideIndexCurrent">1</span>
+                    /
+                    <span id="slideIndexTotal">6</span>
+                </div>
+                <button id="nextBtn" class="nav-btn primary" type="button">
+                    <span>Next</span>
+                    <i data-lucide="arrow-right" class="w-3 h-3"></i>
+                </button>
+            </footer>
+        </section>
+    </main>
+</div>
+
+<script>
+    // ONYX isometric icon helpers – mirrored from Reactor's visual language
+    function getIsoCube(color = 'blue') {
+        const colors = {
+            blue:   { top: '#60a5fa', left: '#3b82f6', right: '#2563eb' },
+            yellow: { top: '#fcd34d', left: '#f59e0b', right: '#d97706' },
+            cyan:   { top: '#22d3ee', left: '#06b6d4', right: '#0891b2' },
+            purple: { top: '#e879f9', left: '#c026d3', right: '#a21caf' },
+            green:  { top: '#4ade80', left: '#16a34a', right: '#15803d' }
+        };
+        const c = colors[color] || colors.blue;
+        return `
+            <svg viewBox="0 0 40 40" class="w-full h-full">
+                <path d="M20 4 L36 12 L20 20 L4 12 Z" fill="${c.top}" stroke="#020617" stroke-width="1"/>
+                <path d="M4 12 L20 20 L20 38 L4 30 Z" fill="${c.left}" stroke="#020617" stroke-width="1"/>
+                <path d="M36 12 L20 20 L20 38 L36 30 Z" fill="${c.right}" stroke="#020617" stroke-width="1"/>
+            </svg>
+        `;
+    }
+
+    const ICONS = {
+        Entity:   () => getIsoCube('blue'),
+        Core:     () => getIsoCube('yellow'),
+        Goal:     () => `
+            <div class="relative w-full h-full">
+                <div class="absolute -top-1 left-0 right-0 mx-auto w-3 h-3 flex items-center justify-center text-yellow-300 z-10">
+                    <svg viewBox="0 0 24 24" class="w-full h-full">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/>
+                        <circle cx="12" cy="12" r="3" fill="currentColor"/>
+                    </svg>
+                </div>
+                ${getIsoCube('blue')}
+            </div>
+        `,
+        Obstacle: () => `
+            <div class="relative w-full h-full flex items-center justify-center">
+                <div class="w-4/5 h-4/5 relative">${getIsoCube('blue')}</div>
+                <div class="absolute right-0 h-full w-1 bg-slate-400/80"></div>
+                <div class="absolute right-1 top-1/2 w-3 h-0.5 bg-yellow-300"></div>
+            </div>
+        `,
+        Morphism: () => `
+            <div class="relative w-full h-full flex items-center justify-between">
+                <div class="w-4 h-4">${getIsoCube('blue')}</div>
+                <div class="flex-1 h-0.5 bg-cyan-300 mx-1 relative"></div>
+                <div class="w-4 h-4">${getIsoCube('blue')}</div>
+            </div>
+        `,
+        Shift: () => `
+            <div class="relative w-full h-full flex items-center justify-center">
+                <div class="w-4 h-4 opacity-50">${getIsoCube('blue')}</div>
+                <div class="absolute z-10 text-amber-300">
+                    <svg viewBox="0 0 24 24" class="w-4 h-4">
+                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="currentColor"/>
+                    </svg>
+                </div>
+                <div class="w-4 h-4 opacity-50">${getIsoCube('blue')}</div>
+            </div>
+        `,
+        Location: () => `
+            <div class="relative w-full h-full flex items-center justify-center">
+                <div class="absolute top-0 right-0 w-3 h-3">${getIsoCube('cyan')}</div>
+                <div class="absolute bottom-0 left-0 w-3 h-3">${getIsoCube('cyan')}</div>
+            </div>
+        `,
+        Timepoint: () => `
+            <div class="relative w-full h-full flex items-center justify-center">
+                <div class="w-3/4 h-3/4">${getIsoCube('cyan')}</div>
+                <div class="absolute -right-1 -bottom-1 w-4 h-4 bg-[var(--bg)] rounded-full border border-cyan-400 flex items-center justify-center z-10">
+                    <svg viewBox="0 0 24 24" class="w-3 h-3">
+                        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" fill="none"/>
+                        <path d="M12 7v5l3 2" stroke="currentColor" stroke-width="2" fill="none"/>
+                    </svg>
+                </div>
+            </div>
+        `,
+        Scene: () => `
+            <div class="relative w-full h-full flex items-center justify-center p-0.5">
+                <div class="absolute top-0 left-0 w-2 h-2 border-l-2 border-t-2 border-cyan-400"></div>
+                <div class="absolute top-0 right-0 w-2 h-2 border-r-2 border-t-2 border-cyan-400"></div>
+                <div class="absolute bottom-0 left-0 w-2 h-2 border-l-2 border-b-2 border-cyan-400"></div>
+                <div class="absolute bottom-0 right-0 w-2 h-2 border-r-2 border-b-2 border-cyan-400"></div>
+                <div class="flex gap-0.5">
+                    <div class="w-3 h-3">${getIsoCube('cyan')}</div>
+                    <div class="w-3 h-3">${getIsoCube('cyan')}</div>
+                </div>
+            </div>
+        `,
+        Story: () => `
+            <div class="relative w-full h-full flex flex-col items-center justify-start pt-0.5">
+                <div class="w-3 h-3 z-10">${getIsoCube('cyan')}</div>
+                <div class="w-full h-0.5 bg-cyan-400/60 mt-0.5"></div>
+                <div class="flex gap-0.5 mt-1">
+                    <div class="w-2.5 h-2.5">${getIsoCube('cyan')}</div>
+                    <div class="w-2.5 h-2.5">${getIsoCube('cyan')}</div>
+                    <div class="w-2.5 h-2.5">${getIsoCube('cyan')}</div>
+                </div>
+            </div>
+        `
+    };
+
+    const REACTOR_DEMO_IMPORT = {
+        title: "ONYX Multiverse Interface",
+        description: "ONYX Multiverse console with PRIME channel, spawning, and temporal fork.",
+        location: "Browser window: ONYX // Multiverse dark UI",
+        scenes: [
+            {
+                id: "sc_boot_dom_ready",
+                story: "story_multiverse_main",
+                timepoint: "t_boot",
+                description: "DOM ready: ONYX app, STATE, LOGIC, and UI attached.",
+                grid: [
+                    { index: 40, role: "Core",   entityId: "e_onyx_app",    label: "ONYX App" },
+                    { index: 31, role: "Entity", entityId: "e_state_engine", label: "STATE" },
+                    { index: 49, role: "Entity", entityId: "e_logic_engine", label: "LOGIC" },
+                    { index: 58, role: "Entity", entityId: "e_ui_layer",     label: "UI Layer" },
+                    { index: 13, role: "Goal",   entityId: "g_visualize_realities", label: "Visualize realities" }
+                ],
+                edges: []
+            },
+            {
+                id: "sc_prime_seed",
+                story: "story_multiverse_main",
+                timepoint: "t_boot",
+                description: "PRIME channel seeded with Origin core and Observer.",
+                grid: [
+                    { index: 40, role: "Core",   entityId: "e_channel_prime",  label: "PRIME Channel" },
+                    { index: 31, role: "Entity", entityId: "e_state_engine",   label: "STATE" },
+                    { index: 49, role: "Entity", entityId: "e_grid_frame",     label: "Grid Frame" },
+                    { index: 58, role: "Entity", entityId: "e_cell_generic",   label: "Origin / Observer" },
+                    { index: 13, role: "Goal",   entityId: "g_visualize_realities", label: "Visualize realities" }
+                ],
+                edges: []
+            },
+            {
+                id: "sc_spawn_and_visualize",
+                story: "story_multiverse_main",
+                timepoint: "t_spawn_and_visualize",
+                description: "User spawns nodes via narrative/commands; grid fills.",
+                grid: [
+                    { index: 40, role: "Core",     entityId: "e_channel_prime",       label: "PRIME Channel" },
+                    { index: 31, role: "Entity",   entityId: "e_user",                label: "User" },
+                    { index: 49, role: "Entity",   entityId: "e_actuator_input",      label: "Actuator" },
+                    { index: 58, role: "Morphism", entityId: "s_cell_spawned",        label: "Cell spawned" },
+                    { index: 13, role: "Goal",     entityId: "g_interactive_spawning", label: "Interactive spawning" },
+                    { index: 76, role: "Obstacle", entityId: "o_random_placement_noise", label: "Placement noise" }
+                ],
+                edges: [
+                    { fromIndex: 31, toIndex: 49 },
+                    { fromIndex: 49, toIndex: 58 }
+                ]
+            },
+            {
+                id: "sc_temporal_branch",
+                story: "story_multiverse_branch",
+                timepoint: "t_temporal_branching",
+                description: "Temporal fork: new channel from history index.",
+                grid: [
+                    { index: 40, role: "Core",      entityId: "e_channel_prime",    label: "PRIME (origin)" },
+                    { index: 31, role: "Entity",    entityId: "e_channel_fork",     label: "Fork Channel" },
+                    { index: 49, role: "Shift",     entityId: "s_history_fork",     label: "History fork" },
+                    { index: 58, role: "Entity",    entityId: "e_history_stack",    label: "History Stack" },
+                    { index: 2,  role: "Location",  entityId: "loc_history_panel",  label: "History panel" },
+                    { index: 8,  role: "Timepoint", entityId: "t_temporal_branching", label: "T: branching" },
+                    { index: 13, role: "Goal",      entityId: "g_temporal_forking", label: "Temporal forking" },
+                    { index: 76, role: "Obstacle",  entityId: "o_state_complexity", label: "State complexity" }
+                ],
+                edges: [
+                    { fromIndex: 58, toIndex: 31 },
+                    { fromIndex: 31, toIndex: 40 }
+                ]
+            }
+        ],
+        stories: [
+            {
+                id: "story_multiverse_main",
+                label: "Multiverse Mainline",
+                scenes: ["sc_boot_dom_ready", "sc_prime_seed", "sc_spawn_and_visualize"]
+            },
+            {
+                id: "story_multiverse_branch",
+                label: "Temporal Branch",
+                scenes: ["sc_temporal_branch"]
+            }
+        ]
+    };
+
+    window.REACTOR_DEMO_IMPORT = REACTOR_DEMO_IMPORT;
+
+    function initOntologyIcons() {
+        document.querySelectorAll('.iso-icon').forEach(el => {
+            const kind = el.dataset.kind;
+            if (kind && ICONS[kind]) {
+                el.innerHTML = ICONS[kind]();
+            }
+        });
+    }
+
+    (function() {
+        const slides = Array.from(document.querySelectorAll('.slide'));
+        const total = slides.length;
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const idxCur = document.getElementById('slideIndexCurrent');
+        const idxTot = document.getElementById('slideIndexTotal');
+        let current = 0;
+
+        idxTot.textContent = String(total);
+
+        function renderSceneGraphPanel(id, counts, focus, label) {
+            const el = document.getElementById(id);
+            if (!el) return;
+
+            el.innerHTML = `
+                <div class="scene-graph-line">
+                    <span class="scene-graph-role">${label || ''}</span>
+                    <span class="scene-graph-roles"></span>
+                </div>
+                <div class="scene-graph-line scene-graph-notes">
+                    <span></span>
+                    <span>${focus}</span>
+                </div>
+            `;
+        }
+
+        function setSlide(index) {
+            if (index < 0) index = 0;
+            if (index >= total) index = total - 1;
+            slides.forEach((s, i) => {
+                s.classList.toggle('active', i === index);
+            });
+            current = index;
+            idxCur.textContent = String(index + 1);
+            prevBtn.disabled = index === 0;
+            nextBtn.disabled = index === total - 1;
+            lucide.createIcons();
+            initOntologyIcons();
+        }
+
+        prevBtn.addEventListener('click', () => setSlide(current - 1));
+        nextBtn.addEventListener('click', () => setSlide(current + 1));
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') setSlide(current + 1);
+            if (e.key === 'ArrowLeft') setSlide(current - 1);
+        });
+
+        // Populate intro 9x9 grid
+        const introGrid = document.getElementById('intro-grid');
+        if (introGrid) {
+            for (let i = 0; i < 81; i++) {
+                const div = document.createElement('div');
+                div.className = 'cell';
+                // center core
+                if (i === 40) {
+                    div.classList.add('cell-core');
+                    div.innerHTML = ICONS.Core();
+                } else if (i === 13) { // goal above
+                    div.classList.add('cell-goal');
+                    div.innerHTML = ICONS.Goal();
+                } else if (i === 76) { // obstacle below
+                    div.classList.add('cell-obs');
+                    div.innerHTML = ICONS.Obstacle();
+                } else if (i === 38 || i === 42) { // entities flanking core
+                    div.innerHTML = ICONS.Entity();
+                } else if (i < 9) {
+                    div.classList.add('cell-goal');
+                } else if (i >= 72) {
+                    div.classList.add('cell-obs');
+                }
+                introGrid.appendChild(div);
+            }
+        }
+
+        const paletteGrid = document.getElementById('palette-grid');
+        if (paletteGrid) {
+            const paletteCounts = { Core: 0, Entity: 0, Goal: 0, Obstacle: 0, Morphism: 0, Shift: 0, Location: 0, Timepoint: 0 };
+            for (let i = 0; i < 81; i++) {
+                const div = document.createElement('div');
+                div.className = 'cell';
+                // simple illustrative scene
+                if (i === 40) {
+                    div.classList.add('cell-core');
+                    div.innerHTML = ICONS.Core();
+                    paletteCounts.Core++;
+                } else if (i === 13) {
+                    div.classList.add('cell-goal');
+                    div.innerHTML = ICONS.Goal();
+                    paletteCounts.Goal++;
+                } else if (i === 76) {
+                    div.classList.add('cell-obs');
+                    div.innerHTML = ICONS.Obstacle();
+                    paletteCounts.Obstacle++;
+                } else if (i === 31 || i === 49) {
+                    div.innerHTML = ICONS.Entity();
+                    paletteCounts.Entity++;
+                }
+                paletteGrid.appendChild(div);
+            }
+
+            renderSceneGraphPanel(
+                'graph-palette-grid',
+                paletteCounts,
+                'Core centered with two orbiting Entities, one Goal above and one Obstacle below: a canonical ONYX tension diagram.',
+                'Palette · Sample'
+            );
+        }
+
+        const forkBefore = document.getElementById('fork-before-grid');
+        const forkAfter = document.getElementById('fork-after-grid');
+        if (forkBefore && forkAfter) {
+            const forkCounts = {
+                before: { Core: 0, Entity: 0, Goal: 0, Obstacle: 0, Morphism: 0, Shift: 0, Location: 0, Timepoint: 0 },
+                after:  { Core: 0, Entity: 0, Goal: 0, Obstacle: 0, Morphism: 0, Shift: 0, Location: 0, Timepoint: 0 }
+            };
+
+            function bumpFork(which, role) {
+                const g = forkCounts[which];
+                if (g && Object.prototype.hasOwnProperty.call(g, role)) {
+                    g[role]++;
+                }
+            }
+
+            for (let i = 0; i < 81; i++) {
+                const a = document.createElement('div');
+                const b = document.createElement('div');
+                a.className = 'cell';
+                b.className = 'cell';
+
+                // Before: core + goal + obstacle + one entity
+                if (i === 40) {
+                    a.classList.add('cell-core');
+                    a.innerHTML = ICONS.Core();
+                    bumpFork('before', 'Core');
+                } else if (i === 13) {
+                    a.classList.add('cell-goal');
+                    a.innerHTML = ICONS.Goal();
+                    bumpFork('before', 'Goal');
+                } else if (i === 76) {
+                    a.classList.add('cell-obs');
+                    a.innerHTML = ICONS.Obstacle();
+                    bumpFork('before', 'Obstacle');
+                } else if (i === 31) {
+                    a.innerHTML = ICONS.Entity();
+                    bumpFork('before', 'Entity');
+                }
+
+                // After: same core, goal moved, obstacle replaced by a Shift, extra entity
+                if (i === 40) {
+                    b.classList.add('cell-core');
+                    b.innerHTML = ICONS.Core();
+                    bumpFork('after', 'Core');
+                } else if (i === 11) { // goal nudged
+                    b.classList.add('cell-goal');
+                    b.innerHTML = ICONS.Goal();
+                    bumpFork('after', 'Goal');
+                } else if (i === 76) { // shift where obstacle was
+                    b.classList.add('cell-obs');
+                    b.innerHTML = ICONS.Shift();
+                    bumpFork('after', 'Shift');
+                } else if (i === 31 || i === 49) {
+                    b.innerHTML = ICONS.Entity();
+                    bumpFork('after', 'Entity');
+                }
+
+                forkBefore.appendChild(a);
+                forkAfter.appendChild(b);
+            }
+
+            renderSceneGraphPanel(
+                'graph-fork-before',
+                forkCounts.before,
+                'Baseline grid: one Goal pulled up, one Obstacle dragging down, and a single Entity orbiting the Core.',
+                'Fork · Before'
+            );
+            renderSceneGraphPanel(
+                'graph-fork-after',
+                forkCounts.after,
+                'Forked grid: Goal nudged, Obstacle reinterpreted as a Shift, and an extra Entity enters the field.',
+                'Fork · After'
+            );
+        }
+
+        // Storyboard: three scenes in Story 1 and a forked first scene in Story 2
+        const s1s0 = document.getElementById('story1-scene0');
+        const s1s1 = document.getElementById('story1-scene1');
+        const s1s2 = document.getElementById('story1-scene2');
+        const s2s0 = document.getElementById('story2-scene0');
+        if (s1s0 && s1s1 && s1s2 && s2s0) {
+            const graphCounts = {
+                s10: { Core: 0, Entity: 0, Goal: 0, Obstacle: 0, Morphism: 0, Shift: 0, Location: 0, Timepoint: 0 },
+                s11: { Core: 0, Entity: 0, Goal: 0, Obstacle: 0, Morphism: 0, Shift: 0, Location: 0, Timepoint: 0 },
+                s12: { Core: 0, Entity: 0, Goal: 0, Obstacle: 0, Morphism: 0, Shift: 0, Location: 0, Timepoint: 0 },
+                s20: { Core: 0, Entity: 0, Goal: 0, Obstacle: 0, Morphism: 0, Shift: 0, Location: 0, Timepoint: 0 }
+            };
+
+            function bump(key, role) {
+                const g = graphCounts[key];
+                if (g && Object.prototype.hasOwnProperty.call(g, role)) {
+                    g[role]++;
+                }
+            }
+
+            for (let i = 0; i < 81; i++) {
+                const d0 = document.createElement('div');
+                const d1 = document.createElement('div');
+                const d2 = document.createElement('div');
+                const d3 = document.createElement('div');
+                d0.className = 'cell';
+                d1.className = 'cell';
+                d2.className = 'cell';
+                d3.className = 'cell';
+
+                // Shared location across scenes
+                if (i === 2) {
+                    d0.innerHTML = ICONS.Location();
+                    d1.innerHTML = ICONS.Location();
+                    d2.innerHTML = ICONS.Location();
+                    d3.innerHTML = ICONS.Location();
+                    bump('s10', 'Location');
+                    bump('s11', 'Location');
+                    bump('s12', 'Location');
+                    bump('s20', 'Location');
+                }
+
+                // Story 1 · Scene 0 (baseline tension)
+                if (i === 40) {
+                    d0.classList.add('cell-core');
+                    d0.innerHTML = ICONS.Core();
+                    bump('s10', 'Core');
+                } else if (i === 13) {
+                    d0.classList.add('cell-goal');
+                    d0.innerHTML = ICONS.Goal();
+                    bump('s10', 'Goal');
+                } else if (i === 76) {
+                    d0.classList.add('cell-obs');
+                    d0.innerHTML = ICONS.Obstacle();
+                    bump('s10', 'Obstacle');
+                } else if (i === 31 || i === 49) {
+                    d0.innerHTML = ICONS.Entity();
+                    bump('s10', 'Entity');
+                }
+
+                // Story 1 · Scene 1 (obstacle turns into a shift)
+                if (i === 40) {
+                    d1.classList.add('cell-core');
+                    d1.innerHTML = ICONS.Core();
+                    bump('s11', 'Core');
+                } else if (i === 13) {
+                    d1.classList.add('cell-goal');
+                    d1.innerHTML = ICONS.Goal();
+                    bump('s11', 'Goal');
+                } else if (i === 76) {
+                    d1.classList.add('cell-obs');
+                    d1.innerHTML = ICONS.Shift();
+                    bump('s11', 'Shift');
+                } else if (i === 31 || i === 49) {
+                    d1.innerHTML = ICONS.Entity();
+                    bump('s11', 'Entity');
+                }
+
+                // Story 1 · Scene 2 (new goal and morphism)
+                if (i === 40) {
+                    d2.classList.add('cell-core');
+                    d2.innerHTML = ICONS.Core();
+                    bump('s12', 'Core');
+                } else if (i === 13 || i === 11) {
+                    d2.classList.add('cell-goal');
+                    d2.innerHTML = ICONS.Goal();
+                    bump('s12', 'Goal');
+                } else if (i === 22) {
+                    d2.innerHTML = ICONS.Morphism();
+                    bump('s12', 'Morphism');
+                } else if (i === 31 || i === 49) {
+                    d2.innerHTML = ICONS.Entity();
+                    bump('s12', 'Entity');
+                }
+
+                // Story 2 · Scene 0 (fork from Scene 1 with different goal/obstacle mix)
+                if (i === 40) {
+                    d3.classList.add('cell-core');
+                    d3.innerHTML = ICONS.Core();
+                    bump('s20', 'Core');
+                } else if (i === 17) {
+                    d3.classList.add('cell-goal');
+                    d3.innerHTML = ICONS.Goal();
+                    bump('s20', 'Goal');
+                } else if (i === 76) {
+                    d3.classList.add('cell-obs');
+                    d3.innerHTML = ICONS.Obstacle();
+                    bump('s20', 'Obstacle');
+                } else if (i === 31 || i === 49) {
+                    d3.innerHTML = ICONS.Entity();
+                    bump('s20', 'Entity');
+                }
+
+                s1s0.appendChild(d0);
+                s1s1.appendChild(d1);
+                s1s2.appendChild(d2);
+                s2s0.appendChild(d3);
+            }
+
+            renderSceneGraphPanel(
+                'graph-story1-scene0',
+                graphCounts.s10,
+                'Scene 0: Core under a single Goal and above one Obstacle, with two Entities flanking it in orbit.',
+                'S1 · 0'
+            );
+            renderSceneGraphPanel(
+                'graph-story1-scene1',
+                graphCounts.s11,
+                'Scene 1: the Obstacle becomes a Shift, turning hard resistance into a directional change.',
+                'S1 · 1'
+            );
+            renderSceneGraphPanel(
+                'graph-story1-scene2',
+                graphCounts.s12,
+                'Scene 2: a second Goal and a Morphism appear, making a new path between Entities and the Core explicit.',
+                'S1 · 2'
+            );
+            renderSceneGraphPanel(
+                'graph-story2-scene0',
+                graphCounts.s20,
+                'Forked Scene 0: Goal and Obstacle relocate, creating an alternate tension pattern from Story 1.',
+                'S2 · 0'
+            );
+        }
+
+        // Build example pass grids for the decomposition slide
+        const pass1 = document.getElementById('pass1-grid');
+        const pass2 = document.getElementById('pass2-grid');
+        const pass3 = document.getElementById('pass3-grid');
+        if (pass1 && pass2 && pass3) {
+            const passCounts = {
+                p1: { Core: 0, Entity: 0, Goal: 0, Obstacle: 0, Morphism: 0, Shift: 0, Location: 0, Timepoint: 0 },
+                p2: { Core: 0, Entity: 0, Goal: 0, Obstacle: 0, Morphism: 0, Shift: 0, Location: 0, Timepoint: 0 },
+                p3: { Core: 0, Entity: 0, Goal: 0, Obstacle: 0, Morphism: 0, Shift: 0, Location: 0, Timepoint: 0 }
+            };
+
+            for (let i = 0; i < 81; i++) {
+                const a = document.createElement('div');
+                const b = document.createElement('div');
+                const c = document.createElement('div');
+                a.className = 'cell';
+                b.className = 'cell';
+                c.className = 'cell';
+
+                // Simple toy example across passes:
+                // Pass 1: three entities (top/mid/bottom)
+                // Pass 2: middle -> Goal, bottom -> Obstacle
+                // Pass 3: explicit Morphism drawn between top and middle entities
+                if (i === 22 || i === 40 || i === 58) {
+                    a.innerHTML = ICONS.Entity();
+                    passCounts.p1.Entity++;
+                }
+
+                if (i === 22) {
+                    b.innerHTML = ICONS.Entity();
+                    c.innerHTML = ICONS.Morphism();
+                    passCounts.p2.Entity++;
+                    passCounts.p3.Morphism++;
+                } else if (i === 40) {
+                    b.innerHTML = ICONS.Goal();
+                    passCounts.p2.Goal++;
+                } else if (i === 58) {
+                    b.innerHTML = ICONS.Obstacle();
+                    passCounts.p2.Obstacle++;
+                }
+
+                pass1.appendChild(a);
+                pass2.appendChild(b);
+                pass3.appendChild(c);
+            }
+
+            renderSceneGraphPanel(
+                'graph-pass1-grid',
+                passCounts.p1,
+                'Pass 1: only Entities are visible; the system has detected structure but not yet tagged goals or risks.',
+                'Pass 1'
+            );
+            renderSceneGraphPanel(
+                'graph-pass2-grid',
+                passCounts.p2,
+                'Pass 2: the middle Entity upgrades to a Goal and the bottom Entity becomes an Obstacle.',
+                'Pass 2'
+            );
+            renderSceneGraphPanel(
+                'graph-pass3-grid',
+                passCounts.p3,
+                'Pass 3: a Morphism appears, making the relation between two Entities explicit on the grid.',
+                'Pass 3'
+            );
+
+            // Wire up pass toggle buttons
+            const tpChips = document.querySelectorAll('.timepoint-chip');
+            const graphPass1 = document.getElementById('graph-pass1-grid');
+            const graphPass2 = document.getElementById('graph-pass2-grid');
+            const graphPass3 = document.getElementById('graph-pass3-grid');
+
+            function activatePass(pass) {
+                document.querySelectorAll('.pass-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.pass-btn').forEach(b => {
+                    if (b.dataset.pass === pass) b.classList.add('active');
+                });
+                pass1.classList.add('hidden');
+                pass2.classList.add('hidden');
+                pass3.classList.add('hidden');
+                if (pass === '1') pass1.classList.remove('hidden');
+                if (pass === '2') pass2.classList.remove('hidden');
+                if (pass === '3') pass3.classList.remove('hidden');
+
+                if (graphPass1 && graphPass2 && graphPass3) {
+                    graphPass1.style.display = 'none';
+                    graphPass2.style.display = 'none';
+                    graphPass3.style.display = 'none';
+                    if (pass === '1') graphPass1.style.display = '';
+                    if (pass === '2') graphPass2.style.display = '';
+                    if (pass === '3') graphPass3.style.display = '';
+                }
+
+                tpChips.forEach(chip => chip.classList.remove('active'));
+                const tp = pass === '1' ? '1' : pass === '2' ? '2' : '3';
+                const activeChip = document.querySelector(`.timepoint-chip[data-tp="${tp}"]`);
+                if (activeChip) activeChip.classList.add('active');
+            }
+
+            document.querySelectorAll('.pass-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const pass = btn.dataset.pass;
+                    activatePass(pass);
+                });
+            });
+
+            tpChips.forEach(chip => {
+                chip.addEventListener('click', () => {
+                    const tp = chip.dataset.tp;
+                    if (tp === '1') activatePass('1');
+                    else if (tp === '2') activatePass('2');
+                    else if (tp === '3') activatePass('3');
+                });
+            });
+
+            // Initialize with Pass 1 HUD visible only
+            if (graphPass1 && graphPass2 && graphPass3) {
+                graphPass1.style.display = '';
+                graphPass2.style.display = 'none';
+                graphPass3.style.display = 'none';
+            }
+        }
+
+        lucide.createIcons();
+        initOntologyIcons();
+        setSlide(0);
+    })();
+</script>
+</body>
+</html>

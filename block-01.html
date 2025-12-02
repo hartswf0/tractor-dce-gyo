@@ -1,0 +1,1596 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ONYX // Ontological Ancestor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        /* ===================================================================
+           FORENSIC OLOG TABLE: Unified Mapping of Ontological Entities
+           Format: [Entity, Component, Feature, Morphism, SourceOlog]
+           =================================================================== */
+        --olog-table: [
+            ["APP_ROOT", "DOMRoot", "SpatialContainment", "mounts GV+CB+ED+MO", "OLOG2"],
+            ["DK_001", "lines", "SourceIngestion", "ingest() → textarea", "OLOG2"],
+            ["DK_001", "blocks", "BlockInstantiation", "parse() → regex", "OLOG2"],
+            ["DK_001", "edges", "DependencyGraphing", "definitions lookup", "OLOG2"],
+            ["DK_001", "activeIdx", "FocusManagement", "cell.onclick", "OLOG2"],
+            ["CB_001", "bridge-nav", "StreamPopulation", "updateNav() → chips", "OLOG2"],
+            ["GV_001", "grid", "CellMaterialization", "render() → 81 blocks", "OLOG2"],
+            ["GV_001", "wire-layer", "PathGeneration", "drawWires() → Bézier", "OLOG2"],
+            ["XR_001", "ClassStateMachine", "SelectiveHighlighting", "xray() → .up/.down/.focus", "OLOG2"],
+            ["ED_001", "code-scroller", "ScrollSynchronization", "scroller.onscroll", "OLOG2"],
+            ["ED_001", "minimap", "OverviewRendering", "renderMinimap() → 2D", "OLOG2"],
+            ["MO_001", "modal-overlay", "VisibilityToggle", "toggleModal() → classList", "OLOG2"],
+            ["E1.1", "sidebar", "Collapsibility", "toggleSidebar() → width", "OLOG1"],
+            ["E1.1", "Tools-Repository", "NodeFactory", "renderTools() → icon mapping", "OLOG1"],
+            ["E1.2", "nodes-layer", "IsometricRendering", "ICONS.getIsoCube()", "OLOG1"],
+            ["E1.2", "connections-layer", "EdgeMaterialization", "SVG <line> with marker", "OLOG1"],
+            ["E1.3", "inspector", "PropertyEditing", "updateLabel() → node update", "OLOG1"],
+            ["E1.4", "console", "MessageLogging", "logToConsole() → appendChild", "OLOG1"],
+            ["E1.5", "toast", "TemporalNotification", "setTimeout() → auto-remove", "OLOG1"],
+            ["E1.7", "STATE", "Persistence", "localStorage.setItem()", "OLOG1+2"],
+            ["E1.8", "EventBus", "DragHandling", "startDrag() → mousemove", "OLOG1"],
+            ["E1.9", "VIEW_MODE", "LayoutTransformation", "switch() → display toggle", "OLOG1"],
+            ["E1.10", "ICONS", "VisualEncoding", "symbolFromBlock() + getIsoCube()", "OLOG1+2"],
+            ["INGEST", "textarea", "CodeImport", "parseCode() → blocks", "OLOG2"],
+            ["PREVIEW", "iframe", "LiveRendering", "blob URL → src", "OLOG2"],
+            ["AUTOPLAY", "Interval", "SequenceController", "setInterval() → xray()", "OLOG2"],
+            ["LIVERELOAD", "WebSocket", "AutoReload", "onmessage → reload", "OLOG2"]
+        ];
+
+        /* ===================================================================
+           THEME SYSTEM (THEME)
+           → Variables: --bg, --panel, --surface, --border, --text-main, --text-muted
+           → Variables: --func, --var, --tag, --ctrl, --focus, --up, --down, --wire-base
+           =================================================================== */
+        :root {
+            /* Core palette */
+            --bg: #0b1121;
+            --panel: #0f172a;
+            --surface: #1e293b;
+            --border: #334155;
+            --text-main: #e2e8f0;
+            --text-muted: #64748b;
+            --font-ui: 'JetBrains Mono', monospace;
+            --font-code: 'JetBrains Mono', monospace;
+            
+            /* Semantic colors */
+            --func: #fbbf24;
+            --var: #60a5fa;
+            --tag: #c084fc;
+            --ctrl: #f87171;
+            --focus: rgba(245, 158, 11, 0.2);
+            --up: rgba(34, 197, 94, 0.3);
+            --down: rgba(239, 68, 68, 0.3);
+            --wire-base: #475569;
+            
+            /* Motion */
+            --ease: cubic-bezier(0.4, 0, 0.2, 1);
+            
+            /* Layout dimensions */
+            --header-height: 64px;
+            --console-height: 256px;
+            --sidebar-width: 288px;
+            --inspector-width: 320px;
+            
+            /* LEGOS grid overlay */
+            --grid-color: #334155;
+        }
+
+        /* Theme modes */
+        [data-theme="dark"] { /* Already set */ }
+        [data-theme="parchment"] {
+            --bg: #fefce8; --panel: #fef9c3; --surface: #fde047; --border: #facc15;
+            --text-muted: #eab308; --text-main: #713f12; --wire-base: #facc15;
+            --func: #dc2626; --var: #2563eb; --tag: #7c3aed; --ctrl: #16a34a;
+            --focus: rgba(245, 158, 11, 0.4);
+        }
+        [data-theme="terminal"] {
+            --bg: #171717; --panel: #262626; --surface: #404040; --border: #525252;
+            --text-muted: #737373; --text-main: #86efac; --wire-base: #22c55e;
+            --func: #fde047; --var: #93c5fd; --tag: #d8b4fe; --ctrl: #fca5a5;
+            --focus: rgba(34, 197, 94, 0.3);
+        }
+
+        /* Base reset */
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            margin: 0;
+            font-family: var(--font-ui);
+            background: var(--bg);
+            color: var(--text-main);
+            overscroll-behavior: none;
+            overflow: hidden;
+        }
+
+        /* Scrollbars */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--panel); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--surface); }
+
+        /* Layout grid (LAYOUT) */
+        .layout-root {
+            display: grid;
+            grid-template-areas: 
+                "sidebar header header"
+                "sidebar canvas inspector"
+                "console console console";
+            grid-template-columns: var(--sidebar-width) 1fr var(--inspector-width);
+            grid-template-rows: var(--header-height) 1fr var(--console-height);
+            width: 100vw;
+            height: 100dvh;
+        }
+        @media (max-width: 768px) {
+            .layout-root {
+                grid-template-areas: 
+                    "header header header"
+                    "canvas canvas canvas"
+                    "console console console";
+                grid-template-columns: 0px 1fr 0px;
+            }
+        }
+        #header-bar { grid-area: header; }
+        #canvas-area { grid-area: canvas; }
+        #sidebar { grid-area: sidebar; }
+        #inspector { grid-area: inspector; }
+        #console-panel { grid-area: console; }
+
+        /* Isometric icon styles */
+        .iso-icon { width: 100%; height: 100%; display: block; }
+
+        /* Animations */
+        @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes fadeUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes pulse-ring { 0% { transform: scale(0.8); opacity: 0.5; } 100% { transform: scale(2); opacity: 0; } }
+        @keyframes grid-fade { 0% { opacity: 0.05; } 100% { opacity: 0.15; } }
+        .animate-slide-in-right { animation: slideInRight 0.3s var(--ease) forwards; }
+        .animate-fade-up { animation: fadeUp 0.3s var(--ease) forwards; }
+        .animate-grid-fade { animation: grid-fade 2s ease-in-out infinite alternate; }
+
+        /* Header bar */
+        .header-bar {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 1rem; background: var(--panel);
+            border-bottom: 1px solid var(--border);
+            z-index: 900;
+        }
+        .nav-deck {
+            display: flex; gap: 0.5rem;
+            background: var(--surface);
+            padding: 0.25rem; border-radius: 0.5rem;
+        }
+        .nav-tab {
+            padding: 0.5rem 1rem; border-radius: 0.375rem;
+            font-size: 0.875rem; color: var(--text-muted);
+            cursor: pointer; transition: all 0.2s var(--ease);
+        }
+        .nav-tab.active {
+            background: var(--focus); color: var(--func);
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.2);
+        }
+
+        /* Sidebar (E1.1) */
+        .sidebar {
+            background: var(--panel);
+            border-right: 1px solid var(--border);
+            display: flex; flex-direction: column;
+            transition: width 0.3s var(--ease);
+            overflow: hidden; z-index: 500;
+        }
+        .sidebar-collapsed { width: 0px !important; }
+        .sidebar-expanded { width: var(--sidebar-width) !important; }
+        .tool-item {
+            display: flex; align-items: center; gap: 0.75rem;
+            padding: 0.75rem; margin: 0.25rem;
+            border-radius: 0.5rem; color: var(--text-main);
+            cursor: pointer; transition: all 0.2s var(--ease);
+        }
+        .tool-item:hover {
+            background: var(--surface); transform: translateX(4px);
+        }
+        .tool-item .icon { width: 2rem; height: 2rem; flex-shrink: 0; }
+
+        /* Canvas workspace (E1.2 + GV_001) */
+        #canvas-area {
+            position: relative; width: 100%; height: 100%;
+            overflow: hidden; background: var(--bg);
+        }
+        .grid-overlay {
+            position: absolute; inset: 0;
+            pointer-events: none; opacity: 0.1;
+            background-image: 
+                linear-gradient(var(--grid-color) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        #grid-shell {
+            position: absolute; inset: 0; margin: auto;
+            aspect-ratio: 1 / 1;
+            width: min(100%, calc(100dvh - var(--header-height) - var(--console-height)));
+            max-height: 100%;
+        }
+
+        /* 9x9 Grid (GV_001.grid) */
+        #grid-lock {
+            position: absolute; inset: 0;
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            grid-template-rows: repeat(9, 1fr);
+            gap: 1px; padding: 0;
+            pointer-events: none;
+            z-index: 5;
+        }
+        .grid-cell {
+            background: var(--panel); border: 1px solid var(--border);
+            border-radius: 0.375rem; position: relative;
+            pointer-events: auto; transition: all 0.2s var(--ease);
+            display: flex; align-items: center; justify-content: center;
+            min-height: 0; min-width: 0;
+        }
+        .grid-cell:hover {
+            border-color: var(--func);
+            box-shadow: 0 0 10px rgba(251, 191, 36, 0.2);
+        }
+        .grid-cell.focus {
+            background: var(--focus);
+            border-color: var(--func);
+        }
+        .grid-cell.active {
+            border-color: var(--up);
+            background: rgba(34, 197, 94, 0.1);
+        }
+
+        /* Nodes layer (E1.2.3 + nodes-layer) */
+        #nodes-layer {
+            position: absolute; inset: 0;
+            z-index: 10; pointer-events: none;
+        }
+        .node-instance {
+            position: absolute; transform: translate(-50%, -50%);
+            cursor: grab; pointer-events: auto;
+            transition: transform 0.2s var(--ease);
+            z-index: 10;
+        }
+        .node-instance:hover {
+            transform: translate(-50%, -50%) scale(1.1);
+            z-index: 50;
+        }
+        .node-instance.selected {
+            transform: translate(-50%, -50%) scale(1.15);
+            z-index: 50;
+        }
+        .node-halo {
+            position: absolute; inset: 0;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--func) 0%, transparent 70%);
+            opacity: 0; transition: opacity 0.3s var(--ease);
+        }
+        .node-instance:hover .node-halo { opacity: 0.3; }
+        .node-instance.selected .node-halo { opacity: 0.6; }
+
+        /* Connections layer (E1.2.5 + wire-layer) */
+        #connections-layer {
+            position: absolute; inset: 0;
+            pointer-events: none; z-index: 6;
+        }
+        path.wire {
+            fill: none; stroke: var(--wire-base); stroke-width: 1.5;
+            opacity: 0.4; transition: opacity 0.2s var(--ease);
+        }
+        path.wire.active {
+            opacity: 1; stroke-width: 2.5;
+            filter: drop-shadow(0 0 4px currentColor);
+        }
+        path.wire.up { stroke: var(--up); color: var(--up); }
+        path.wire.down { stroke: var(--down); color: var(--down); }
+
+        /* Code editor (ED_001) */
+        #code-editor {
+            display: none; position: absolute; inset: 0;
+            background: var(--bg); padding: 1rem;
+            overflow-y: auto; font-family: var(--font-code);
+            font-size: 0.875rem; line-height: 1.5;
+            z-index: 15;
+        }
+        .editor-active #code-editor { display: block; }
+        .line {
+            padding: 0.125rem 0.5rem;
+            border-left: 2px solid transparent;
+            transition: all 0.2s var(--ease);
+            white-space: pre-wrap;
+        }
+        .line:hover { background: var(--surface); }
+        .line.active {
+            background: var(--focus);
+            border-left-color: var(--func);
+        }
+        .token-func { color: var(--func); }
+        .token-var { color: var(--var); }
+        .token-tag { color: var(--tag); }
+        .token-ctrl { color: var(--ctrl); }
+        .token-comment { color: var(--text-muted); font-style: italic; }
+
+        /* Preview frame (PREVIEW) */
+        #preview-frame {
+            display: none; position: absolute; inset: 0;
+            width: 100%; height: 100%; border: none; background: white;
+            z-index: 20;
+        }
+        .preview-active #preview-frame { display: block; }
+
+        /* Inspector (E1.3 + bridge-nav chips) */
+        #inspector {
+            background: var(--panel);
+            border-left: 1px solid var(--border);
+            display: flex; flex-direction: column;
+            transition: transform 0.3s var(--ease);
+            z-index: 999; overflow: hidden;
+        }
+        .inspector-collapsed { transform: translateX(100%); }
+        .inspector-expanded { transform: translateX(0); }
+        @media (max-width: 768px) {
+            #inspector {
+                position: fixed; top: var(--header-height);
+                left: 0; right: 0; height: 50vh;
+                transform: translateY(100%);
+                border-left: none; border-top: 1px solid var(--border);
+            }
+            .inspector-expanded { transform: translateY(0) !important; }
+        }
+
+        /* Navigation chips (CB_001.bridge-nav) */
+        #nav-up, #nav-down {
+            display: flex; align-items: center; gap: 0.5rem;
+            overflow-x: auto; height: 100%;
+        }
+        .chip {
+            display: inline-flex; height: 22px; align-items: center; padding: 0 8px;
+            border-radius: 4px; font-size: 10px; border: 1px solid var(--border);
+            background: var(--surface); color: var(--text-muted); cursor: pointer;
+            white-space: nowrap; transition: all 0.1s var(--ease);
+        }
+        .chip:hover {
+            border-color: var(--text-main); color: var(--text-main);
+            transform: translateY(-1px);
+        }
+        .chip.up { border-left: 2px solid var(--up); }
+        .chip.down { border-right: 2px solid var(--down); }
+
+        /* Console (E1.4 + console-panel) */
+        #console-panel {
+            background: var(--panel);
+            border-top: 1px solid var(--border);
+            transition: height 0.3s var(--ease);
+            z-index: 200;
+        }
+        .console-collapsed { height: 2rem !important; }
+        .log-entry {
+            font-family: var(--font-code); font-size: 0.75rem;
+            padding: 0.25rem 0.5rem; border-bottom: 1px solid var(--border);
+        }
+        .log-success { color: #22c55e; }
+        .log-info { color: #60a5fa; }
+        .log-warn { color: var(--func); }
+        .log-error { color: #f87171; }
+
+        /* Toast (E1.5) */
+        #toast-container {
+            position: fixed; bottom: 1rem; left: 50%;
+            transform: translateX(-50%); z-index: 1000;
+            display: flex; flex-direction: column; gap: 0.5rem;
+            width: 90%; max-width: 400px; pointer-events: none;
+        }
+        .toast {
+            background: var(--panel); border: 1px solid var(--func);
+            color: var(--text-main); padding: 0.75rem; border-radius: 0.5rem;
+            font-size: 0.875rem; backdrop-filter: blur(4px);
+            display: flex; align-items: center; gap: 0.5rem;
+            pointer-events: auto; animation: fadeUp 0.3s var(--ease);
+        }
+
+        /* Theme switcher */
+        .theme-switcher {
+            display: flex; gap: 0.25rem; padding: 0.25rem;
+            background: var(--surface); border-radius: 0.375rem;
+        }
+        .theme-btn {
+            padding: 0.25rem 0.5rem; border-radius: 0.25rem;
+            font-size: 0.75rem; cursor: pointer;
+            color: var(--text-muted); transition: all 0.2s var(--ease);
+        }
+        .theme-btn.active {
+            background: var(--focus); color: var(--func);
+        }
+
+        /* Mobile toggles */
+        #mobile-menu-btn {
+            display: none; position: absolute; top: 1rem; left: 1rem;
+            z-index: 1000; padding: 0.5rem;
+            background: var(--panel); border: 1px solid var(--border);
+            border-radius: 0.375rem; cursor: pointer;
+        }
+        @media (max-width: 768px) { #mobile-menu-btn { display: block; } }
+    </style>
+<base target="_blank">
+</head>
+<body class="layout-root" data-theme="dark">
+    <!-- ===================================================================
+         TOAST NOTIFICATION LAYER (E1.5)
+         =================================================================== -->
+    <div id="toast-container"></div>
+
+    <!-- ===================================================================
+         INGESTION SIDEBLADE (INGEST + MO_001)
+         =================================================================== -->
+    <div id="sideblade-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center;">
+        <div style="width: 90%; max-width: 600px; background: var(--panel); border: 1px solid var(--border); border-radius: 0.5rem; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+            <h3 style="color: var(--func); font-weight: bold; font-size: 1.125rem;">INGEST CODE OR NODES</h3>
+            <textarea id="paste-input" placeholder="Paste JavaScript, HTML, or node definitions JSON..." style="background: var(--bg); border: 1px solid var(--border); padding: 0.5rem; color: var(--text-main); font-family: var(--font-code); min-height: 120px; border-radius: 0.375rem;"></textarea>
+            <div style="display: flex; gap: 0.5rem;">
+                <button onclick="INGEST.loadCode()" class="tool-item" style="flex: 1; justify-content: center;">LOAD CODE</button>
+                <button onclick="INGEST.loadNodes()" class="tool-item" style="flex: 1; justify-content: center;">LOAD NODES</button>
+                <button onclick="INGEST.toggle()" class="tool-item" style="flex: 1; justify-content: center;">CANCEL</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================
+         HEADER BAR (CB_001.bridge-meta + LAYOUT.Header_Bar)
+         =================================================================== -->
+    <button id="mobile-menu-btn" onclick="SIDEBAR.toggle()">
+        <i data-lucide="menu" style="color: var(--text-main); width: 1rem; height: 1rem;"></i>
+    </button>
+    
+    <header id="header-bar" class="header-bar">
+        <div class="nav-deck">
+            <button class="nav-tab active" data-view="system" onclick="VIEW.switch('system')">SYSTEM</button>
+            <button class="nav-tab" data-view="story" onclick="VIEW.switch('story')">STORY</button>
+            <button class="nav-tab" data-view="code" onclick="VIEW.switch('code')">CODE</button>
+            <button class="nav-tab" data-view="preview" onclick="VIEW.switch('preview')">PREVIEW</button>
+        </div>
+        
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <!-- AUTOPLAY toggle -->
+            <button id="btn-play" onclick="AUTOPLAY.toggle()" title="Toggle Autoplay" style="padding: 0.5rem; border: 1px solid var(--border); border-radius: 0.375rem; background: var(--panel);">
+                <i data-lucide="play" style="color: var(--text-muted); width: 1rem; height: 1rem;"></i>
+            </button>
+            
+            <!-- THEME switcher -->
+            <div class="theme-switcher">
+                <button class="theme-btn active" data-theme="dark" onclick="THEME.switch('dark')">DARK</button>
+                <button class="theme-btn" data-theme="parchment" onclick="THEME.switch('parchment')">PARCH</button>
+                <button class="theme-btn" data-theme="terminal" onclick="THEME.switch('terminal')">TERM</button>
+            </div>
+            
+            <!-- INGEST trigger -->
+            <button onclick="INGEST.toggle()" title="Ingest" style="padding: 0.5rem; border: 1px solid var(--border); border-radius: 0.375rem; background: var(--panel);">
+                <i data-lucide="upload" style="color: var(--text-muted); width: 1rem; height: 1rem;"></i>
+            </button>
+            
+            <!-- Grid snap toggle -->
+            <button onclick="GRID.toggleSnap()" title="Toggle Grid Snap" style="padding: 0.5rem; border: 1px solid var(--border); border-radius: 0.375rem; background: var(--panel);">
+                <i data-lucide="grid-3x3" style="color: var(--text-muted); width: 1rem; height: 1rem;"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- ===================================================================
+         SIDEBAR (E1.1: UI-Sidebar + TOOLS)
+         =================================================================== -->
+    <aside id="sidebar" class="sidebar sidebar-expanded">
+        <div style="height: var(--header-height); display: flex; align-items: center; padding: 0 1rem; border-bottom: 1px solid var(--border);">
+            <div class="icon" style="margin-right: 0.75rem;">
+                <svg viewBox="0 0 40 40" class="iso-icon"><path d="M20 4 L36 12 L20 20 L4 12 Z" fill="#fbbf24" stroke="#1e293b" stroke-width="1"/><path d="M4 12 L20 20 L20 38 L4 30 Z" fill="#f59e0b" stroke="#1e293b" stroke-width="1"/><path d="M36 12 L20 20 L20 38 L36 30 Z" fill="#d97706" stroke="#1e293b" stroke-width="1"/></svg>
+            </div>
+            <div>
+                <span style="font-weight: bold; color: var(--text-main);">ONYX</span>
+                <span style="font-size: 0.625rem; color: var(--func); display: block;">Ontological Nexus</span>
+            </div>
+        </div>
+        
+        <div id="tools-list" style="flex: 1; overflow-y: auto; padding: 0.5rem;"></div>
+        
+        <div style="padding: 0.5rem; font-size: 0.625rem; color: var(--text-muted); text-align: center;">
+            Drag nodes → grid cells • Click blocks → inspect
+        </div>
+        
+        <div style="padding: 1rem; border-top: 1px solid var(--border);">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                <span style="font-size: 0.75rem; color: var(--text-muted);">Storage</span>
+                <span id="storage-status" style="font-size: 0.75rem; color: #22c55e;">Synced</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.625rem; color: var(--text-muted);">
+                <div style="width: 0.5rem; height: 0.5rem; background: var(--panel); border: 1px solid var(--border); border-radius: 0.125rem;"></div>
+                <span>Local Persistence</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ===================================================================
+         CANVAS WORKSPACE (E1.2 + GV_001)
+         =================================================================== -->
+    <main id="canvas-area">
+        <!-- Background grid -->
+        <div class="grid-overlay animate-grid-fade"></div>
+        
+        <!-- Central grid shell -->
+        <div id="grid-shell">
+            <!-- 9×9 Code Grid (GV_001) -->
+            <div id="grid-lock"></div>
+            
+            <!-- Isometric Nodes Layer (E1.2.3) -->
+            <div id="nodes-layer"></div>
+            
+            <!-- Connections/Wires Layer (E1.2.5 + wire-layer) -->
+            <svg id="connections-layer"></svg>
+            
+            <!-- Code Editor (ED_001) -->
+            <div id="code-editor"></div>
+            
+            <!-- Preview Frame (PREVIEW) -->
+            <iframe id="preview-frame"></iframe>
+            
+            <!-- Minimap (ED_001.minimap) -->
+            <canvas id="minimap" style="position: absolute; right: 1rem; top: 1rem; width: 150px; height: 100px; background: var(--panel); border: 1px solid var(--border); border-radius: 0.375rem; cursor: pointer; z-index: 100;"></canvas>
+            
+            <!-- Coordinates HUD -->
+            <div class="absolute bottom-2 left-2 text-[10px] text-cyan-500/60 font-mono hidden md:block">XY: <span id="coords">00.0, 00.0</span></div>
+        </div>
+    </main>
+
+    <!-- ===================================================================
+         INSPECTOR (E1.3 + CB_001.nav-focus)
+         =================================================================== -->
+    <aside id="inspector" class="inspector-collapsed">
+        <div style="height: 3rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 1rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <div class="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div>
+                <span style="font-weight: bold; color: var(--text-main);">Inspector</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <!-- Focus label (CB_001) -->
+                <span class="focus-label" style="font-size: 8px; color: #444; letter-spacing: 0.1em; margin-bottom: 2px;">FOCUS</span>
+                <span class="focus-val" id="nav-label" style="font-size: 12px; font-weight: 800; color: var(--focus); white-space: nowrap;">--</span>
+                <button onclick="INSPECTOR.close()" style="color: var(--text-muted);">
+                    <i data-lucide="x" style="width: 1rem; height: 1rem;"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Dependency streams (CB_001.bridge-nav) -->
+        <div style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; padding: 0.5rem 1rem; background: var(--panel); border-bottom: 1px solid var(--border);">
+            <div class="nav-stream upstream" id="nav-up" style="justify-content: flex-end;"></div>
+            <div class="nav-focus" style="display: flex; flex-direction: column; align-items: center; min-width: 100px;">
+                <span class="focus-label">FOCUS</span>
+                <span class="focus-val" id="nav-label-center">--</span>
+            </div>
+            <div class="nav-stream downstream" id="nav-down"></div>
+        </div>
+        
+        <div id="inspector-content" style="flex: 1; overflow-y: auto; padding: 1rem;"></div>
+        
+        <div style="padding: 1rem; border-top: 1px solid var(--border);">
+            <button onclick="INSPECTOR.delete()" style="width: 100%; padding: 0.75rem; background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid #f87171; border-radius: 0.375rem; font-size: 0.75rem; font-weight: bold; text-transform: uppercase;">DELETE ENTITY</button>
+        </div>
+    </aside>
+
+    <!-- ===================================================================
+         CONSOLE (E1.4 + console-panel)
+         =================================================================== -->
+    <div id="console-panel" style="height: var(--console-height);">
+        <div id="console-header" style="height: 2rem; background: var(--surface); display: flex; align-items: center; justify-content: space-between; padding: 0 1rem; cursor: pointer; border-bottom: 1px solid var(--border);" onclick="CONSOLE.toggle()">
+            <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-muted); font-size: 0.75rem; font-weight: bold;">
+                <i data-lucide="terminal" style="width: 1rem; height: 1rem;"></i>
+                <span>SYSTEM CONSOLE</span>
+            </div>
+            <i id="console-toggle-icon" data-lucide="chevron-down" style="width: 1rem; height: 1rem; color: var(--text-muted);"></i>
+        </div>
+        <div id="console-content" style="height: calc(100% - 2rem); overflow-y: auto; padding: 0.5rem;"></div>
+    </div>
+
+    <script>
+        // ===================================================================
+        // UNIFIED STATE (DK_001 + E1.6)
+        // ===================================================================
+        const STATE = {
+            // Code/kernel state (Inception)
+            lines: [],
+            blocks: Array(81).fill(null),
+            edges: [],
+            definitions: new Map(),
+            lineData: [],
+            activeIdx: null,
+            autoplayInterval: null,
+            
+            // Node/story state (LEGOS)
+            systemNodes: [],
+            selectedNodeId: null,
+            snapToGrid: true,
+            
+            // UI state
+            viewMode: 'system',
+            theme: 'dark',
+            consoleOpen: true,
+            sidebarOpen: true,
+            
+            // Drag state
+            isDragging: false,
+            draggedNodeId: null,
+            lastX: 0,
+            lastY: 0
+        };
+
+        // ===================================================================
+        // ISOMETRIC ICONS (E1.10)
+        // ===================================================================
+        const ICONS = {
+            getIsoCube(color = "blue", opacity = 1) {
+                const colors = {
+                    blue: { top: '#60a5fa', left: '#3b82f6', right: '#2563eb' },
+                    yellow: { top: '#fcd34d', left: '#f59e0b', right: '#d97706' },
+                    cyan: { top: '#22d3ee', left: '#06b6d4', right: '#0891b2' },
+                    purple: { top: '#e879f9', left: '#c026d3', right: '#a21caf' },
+                    green: { top: '#4ade80', left: '#16a34a', right: '#15803d' }
+                };
+                const c = colors[color] || colors.blue;
+                return `<svg viewBox="0 0 40 40" class="iso-icon"><path d="M20 4 L36 12 L20 20 L4 12 Z" fill="${c.top}" stroke="#1e293b" stroke-width="1"/><path d="M4 12 L20 20 L20 38 L4 30 Z" fill="${c.left}" stroke="#1e293b" stroke-width="1"/><path d="M36 12 L20 20 L20 38 L36 30 Z" fill="${c.right}" stroke="#1e293b" stroke-width="1"/></svg>`;
+            },
+            Entity: () => ICONS.getIsoCube('blue'),
+            Core: () => ICONS.getIsoCube('yellow'),
+            Goal: () => `<div class="relative w-full h-full"><div class="absolute -top-2 left-0 right-0 mx-auto w-4 h-4 flex justify-center items-center text-yellow-400"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg></div>${ICONS.getIsoCube('blue')}</div>`,
+            Obstacle: () => `<div class="relative w-full h-full flex items-center justify-center"><div class="w-3/4 h-3/4 relative">${ICONS.getIsoCube('blue')}</div><div class="absolute right-0 h-full w-1 bg-slate-400/80"></div><div class="absolute right-1 top-1/2 w-3 h-0.5 bg-yellow-400"></div></div>`,
+            Morphism: () => `<div class="relative w-full h-full flex items-center justify-between"><div class="w-5 h-5">${ICONS.getIsoCube('blue')}</div><div class="flex-1 h-0.5 bg-yellow-400 mx-1 relative"></div><div class="w-5 h-5">${ICONS.getIsoCube('blue')}</div></div>`,
+            Shift: () => `<div class="relative w-full h-full flex items-center justify-center"><div class="w-5 h-5 opacity-50">${ICONS.getIsoCube('blue')}</div><div class="absolute z-10 text-yellow-400"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="currentColor"/></svg></div><div class="w-5 h-5 opacity-50">${ICONS.getIsoCube('blue')}</div></div>`,
+            Location: () => `<div class="relative w-full h-full flex items-center justify-center"><div class="absolute top-0 right-0 w-4 h-4">${ICONS.getIsoCube('cyan')}</div><div class="absolute bottom-0 left-0 w-4 h-4">${ICONS.getIsoCube('cyan')}</div></div>`,
+            Timepoint: () => `<div class="relative w-full h-full flex items-center justify-center"><div class="w-3/4 h-3/4">${ICONS.getIsoCube('cyan')}</div><div class="absolute -right-1 -bottom-1 w-5 h-5 bg-[var(--bg)] rounded-full border border-cyan-500 flex items-center justify-center"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" fill="none"/></svg></div></div>`,
+            Scene: () => `<div class="relative w-full h-full flex items-center justify-center p-1"><div class="absolute top-0 left-0 w-2 h-2 border-l-2 border-t-2 border-cyan-400"></div><div class="absolute top-0 right-0 w-2 h-2 border-r-2 border-t-2 border-cyan-400"></div><div class="absolute bottom-0 left-0 w-2 h-2 border-l-2 border-b-2 border-cyan-400"></div><div class="absolute bottom-0 right-0 w-2 h-2 border-r-2 border-b-2 border-cyan-400"></div><div class="flex gap-0.5"><div class="w-3 h-3">${ICONS.getIsoCube('cyan')}</div><div class="w-3 h-3">${ICONS.getIsoCube('cyan')}</div></div></div>`,
+            Story: () => `<div class="relative w-full h-full flex flex-col items-center justify-start pt-1"><div class="w-4 h-4 z-10">${ICONS.getIsoCube('cyan')}</div><div class="w-full h-0.5 bg-cyan-500/50"></div><div class="flex gap-1 mt-2"><div class="w-2.5 h-2.5">${ICONS.getIsoCube('cyan')}</div><div class="w-2.5 h-2.5">${ICONS.getIsoCube('cyan')}</div><div class="w-2.5 h-2.5">${ICONS.getIsoCube('cyan')}</div></div></div>`
+        };
+
+        // ===================================================================
+        // GRID HELPER (GV_001 + E1.2.2)
+        // ===================================================================
+        const GRID = {
+            step: 100 / 9,
+            snapToGrid: true,
+            
+            center(col, row) {
+                const x = (col + 0.5) * this.step;
+                const y = (row + 0.5) * this.step;
+                return { x, y, row, col, cellIndex: row * 9 + col };
+            },
+            
+            snap(x, y) {
+                const col = Math.max(0, Math.min(8, Math.floor(x / this.step)));
+                const row = Math.max(0, Math.min(8, Math.floor(y / this.step)));
+                return this.center(col, row);
+            },
+            
+            toggleSnap() {
+                this.snapToGrid = !this.snapToGrid;
+                LOG.toast(`Grid snap: ${this.snapToGrid ? 'ON' : 'OFF'}`);
+            }
+        };
+
+        // ===================================================================
+        // PARSER (PR_001 + PARSER_ENGINE)
+        // ===================================================================
+        const PARSER = {
+            patterns: {
+                fn: /(?:function|class)\s+(\w+)|(\w+)\s*\(/,
+                vr: /(?:const|let|var)\s+(\w+)/,
+                tag: /^<(\w+)/,
+                comment: /\/\/(.*)$/,
+                scopeStart: /[{([]/,
+                scopeEnd: /[}\])]/
+            },
+
+            parseCode(text) {
+                const lines = text.split('\n').filter(l => l.trim());
+                STATE.lines = lines;
+                STATE.lineData = [];
+                STATE.definitions.clear();
+                STATE.blocks = Array(81).fill(null);
+                STATE.edges = [];
+                
+                const lpc = Math.ceil(lines.length / 81);
+                
+                lines.forEach((line, i) => {
+                    const cellIdx = Math.floor(i / lpc);
+                    const trimmed = line.trim();
+                    
+                    let type = 'other';
+                    let name = null;
+                    
+                    if (trimmed.match(this.patterns.tag)) {
+                        type = 'tag';
+                        name = trimmed.match(this.patterns.tag)[1];
+                    } else if (trimmed.match(this.patterns.fn)) {
+                        type = 'func';
+                        name = (trimmed.match(this.patterns.fn)[1] || trimmed.match(this.patterns.fn)[2]);
+                    } else if (trimmed.match(this.patterns.vr)) {
+                        type = 'var';
+                        name = trimmed.match(this.patterns.vr)[1];
+                    } else if (trimmed.match(this.patterns.comment)) {
+                        type = 'comment';
+                    }
+                    
+                    STATE.lineData.push({ type, index: i });
+                    
+                    if (!STATE.blocks[cellIdx] && name) {
+                        const pri = type === 'func' ? 3 : type === 'tag' ? 2 : 1;
+                        STATE.blocks[cellIdx] = {
+                            idx: cellIdx,
+                            type, name, line: i, pri,
+                            deps: [], callers: []
+                        };
+                        STATE.definitions.set(name, cellIdx);
+                    }
+                });
+
+                // Dependency wiring
+                lines.forEach((line, i) => {
+                    const cellIdx = Math.floor(i / lpc);
+                    const words = line.match(/\w+/g) || [];
+                    words.forEach(word => {
+                        if (STATE.definitions.has(word) && STATE.blocks[cellIdx]) {
+                            const targetIdx = STATE.definitions.get(word);
+                            if (targetIdx !== cellIdx) {
+                                STATE.edges.push({from: cellIdx, to: targetIdx});
+                                STATE.blocks[cellIdx].deps.push(targetIdx);
+                                if (STATE.blocks[targetIdx]) {
+                                    STATE.blocks[targetIdx].callers = STATE.blocks[targetIdx].callers || [];
+                                    STATE.blocks[targetIdx].callers.push(cellIdx);
+                                }
+                            }
+                        }
+                    });
+                });
+
+                // Deduplicate
+                STATE.blocks.forEach(b => {
+                    if (b) {
+                        b.deps = [...new Set(b.deps)];
+                        b.callers = [...new Set(b.callers)];
+                    }
+                });
+                
+                LOG.info(`Parsed ${lines.length} lines into ${STATE.blocks.filter(b => b).length} blocks`);
+            },
+
+            parseNodes(defs) {
+                if (!Array.isArray(defs)) throw new Error("Expected array");
+                STATE.systemNodes = defs.map((node, i) => ({
+                    ...node,
+                    id: node.id || Date.now() + i,
+                    icon: node.icon || 'Entity',
+                    x: node.x || Math.random() * 100,
+                    y: node.y || Math.random() * 100
+                }));
+                LOG.info(`Loaded ${STATE.systemNodes.length} nodes`);
+            }
+        };
+
+        // ===================================================================
+        // RENDERER (REN_001 + VISUAL_RENDERER)
+        // ===================================================================
+        const RENDERER = {
+            blocks() {
+                const container = document.getElementById('grid-lock');
+                container.innerHTML = '';
+                
+                for (let i = 0; i < 81; i++) {
+                    const block = STATE.blocks[i];
+                    const cell = document.createElement('div');
+                    cell.className = 'grid-cell';
+                    cell.dataset.index = i;
+                    
+                    if (block) {
+                        cell.classList.add('focus');
+                        const symbol = this.symbolFromBlock(block);
+                        cell.innerHTML = `<div style="font-size: 1.5rem;">${symbol}</div><div style="font-size: 0.5rem; margin-top: -4px; opacity: 0.7;">${block.name.slice(0, 4)}</div>`;
+                        cell.onclick = () => {
+                            STATE.activeIdx = i;
+                            NAV.xray(i);
+                        };
+                        
+                        if (STATE.activeIdx === i) {
+                            cell.classList.add('ring-2', 'ring-cyan-400');
+                        }
+                    }
+                    
+                    container.appendChild(cell);
+                }
+            },
+
+            symbolFromBlock(block) {
+                const type = block.type || 'other';
+                const symbols = { func: '⚡', var: '◆', tag: '◻', comment: '//', other: '○' };
+                return symbols[type] || '○';
+            },
+
+            nodes() {
+                const container = document.getElementById('nodes-layer');
+                container.innerHTML = STATE.systemNodes.map(node => {
+                    const isSelected = STATE.selectedNodeId === node.id;
+                    const iconFn = ICONS[node.icon] || ICONS.Entity;
+                    return `
+                    <div class="node-instance ${isSelected ? 'selected' : ''}" 
+                         style="left: ${node.x}%; top: ${node.y}%;"
+                         data-node-id="${node.id}"
+                         onmousedown="EVENTS.startDrag(event, ${node.id})"
+                         onclick="INSPECTOR.select(${node.id})">
+                        <div class="node-halo"></div>
+                        <div class="w-16 h-16 drop-shadow-2xl">${iconFn()}</div>
+                        <div class="absolute -bottom-6 left-1/2 transform -translate-x-1/2 whitespace-nowrap px-2 py-0.5 bg-[var(--panel)]/90 border border-cyan-500/30 rounded text-[10px] text-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                            &lt;${node.label || node.type}&gt;
+                        </div>
+                    </div>`;
+                }).join('');
+                lucide.createIcons();
+            },
+
+            connections() {
+                const svg = document.getElementById('connections-layer');
+                svg.innerHTML = '';
+                
+                if (STATE.viewMode === 'system' || STATE.viewMode === 'story') {
+                    this.renderNodeConnections(svg);
+                }
+                
+                if ((STATE.viewMode === 'code' || STATE.viewMode === 'system') && STATE.edges.length) {
+                    this.renderCodeEdges(svg);
+                }
+            },
+
+            renderNodeConnections(svg) {
+                const core = STATE.systemNodes.find(n => n.id === 1);
+                if (!core) return;
+                
+                STATE.systemNodes.forEach(node => {
+                    if (node.id === 1) return;
+                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    line.setAttribute('x1', `${core.x}%`);
+                    line.setAttribute('y1', `${core.y}%`);
+                    line.setAttribute('x2', `${node.x}%`);
+                    line.setAttribute('y2', `${node.y}%`);
+                    line.setAttribute('stroke', '#0ea5e9');
+                    line.setAttribute('stroke-width', '1');
+                    line.setAttribute('stroke-opacity', '0.3');
+                    svg.appendChild(line);
+                });
+            },
+
+            renderCodeEdges(svg) {
+                STATE.edges.forEach(edge => {
+                    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    const fromCell = GRID.center(edge.from % 9, Math.floor(edge.from / 9));
+                    const toCell = GRID.center(edge.to % 9, Math.floor(edge.to / 9));
+                    
+                    const d = `M ${fromCell.x}% ${fromCell.y}% C ${fromCell.x + 10}% ${fromCell.y}%, ${toCell.x - 10}% ${toCell.y}%, ${toCell.x}% ${toCell.y}%`;
+                    path.setAttribute('d', d);
+                    path.setAttribute('class', 'wire');
+                    path.dataset.from = edge.from;
+                    path.dataset.to = edge.to;
+                    svg.appendChild(path);
+                });
+            },
+
+            code() {
+                const editor = document.getElementById('code-editor');
+                editor.innerHTML = STATE.lines.map((line, i) => {
+                    const isActive = STATE.activeIdx !== null && 
+                        Math.floor(i / Math.ceil(STATE.lines.length / 81)) === STATE.activeIdx;
+                    
+                    let highlighted = line
+                        .replace(/(function|class|const|let|var|if|return)/g, '<span class="token-ctrl">$1</span>')
+                        .replace(/(\w+)\s*\(/g, '<span class="token-func">$1</span>(')
+                        .replace(/(\w+)\s*=/g, '<span class="token-var">$1</span> =')
+                        .replace(/<(\w+)/g, '&lt;<span class="token-tag">$1</span>')
+                        .replace(/(\/\/.*$)/gm, '<span class="token-comment">$1</span>');
+                    
+                    return `<div class="line ${isActive ? 'active' : ''}" data-line="${i}">${highlighted}</div>`;
+                }).join('');
+            },
+
+            preview() {
+                const frame = document.getElementById('preview-frame');
+                if (!STATE.lines.length) return;
+                const blob = new Blob([STATE.lines.join('\n')], { type: 'text/html' });
+                frame.src = URL.createObjectURL(blob);
+            }
+        };
+
+        // ===================================================================
+        // NAVIGATION (NAV + CB_001)
+        // ===================================================================
+        const NAV = {
+            xray(idx) {
+                STATE.activeIdx = idx;
+                
+                // Reset visual states
+                document.querySelectorAll('.grid-cell').forEach(cell => {
+                    cell.classList.remove('ring-2', 'ring-cyan-400', 'active');
+                });
+                document.querySelectorAll('.wire').forEach(w => {
+                    w.classList.remove('active', 'up', 'down');
+                    w.style.opacity = '0.4';
+                });
+                document.querySelectorAll('.line').forEach(l => l.classList.remove('active'));
+                
+                // Update inspector label
+                document.getElementById('nav-label').textContent = STATE.blocks[idx]?.name || '--';
+                document.getElementById('nav-label-center').textContent = STATE.blocks[idx]?.name || '--';
+                
+                if (idx === null || !STATE.blocks[idx]) {
+                    this.updateStreams(null);
+                    return;
+                }
+                
+                const block = STATE.blocks[idx];
+                
+                // Highlight cell
+                const cell = document.querySelector(`[data-index="${idx}"]`);
+                if (cell) cell.classList.add('active');
+                
+                // Highlight code line
+                const lineEl = document.querySelector(`[data-line="${block.line}"]`);
+                if (lineEl) lineEl.classList.add('active');
+                
+                // Highlight dependencies
+                block.callers?.forEach(c => {
+                    const w = document.querySelector(`path[data-from="${c}"][data-to="${idx}"]`);
+                    if (w) { w.classList.add('active', 'up'); w.style.opacity = '1'; }
+                });
+                block.deps?.forEach(d => {
+                    const w = document.querySelector(`path[data-from="${idx}"][data-to="${d}"]`);
+                    if (w) { w.classList.add('active', 'down'); w.style.opacity = '1'; }
+                });
+                
+                this.updateStreams(block);
+            },
+            
+            updateStreams(data) {
+                const up = document.getElementById('nav-up');
+                const down = document.getElementById('nav-down');
+                up.innerHTML = ''; down.innerHTML = '';
+                
+                if (!data) {
+                    up.innerHTML = '<span class="empty-msg">ROOT</span>';
+                    down.innerHTML = '<span class="empty-msg">LEAF</span>';
+                    return;
+                }
+                
+                const mkChip = (idx, cls) => {
+                    const b = STATE.blocks[idx];
+                    if (!b) return;
+                    const chip = document.createElement('div');
+                    chip.className = `chip ${cls}`;
+                    chip.textContent = b.name;
+                    chip.onclick = () => { STATE.activeIdx = idx; this.xray(idx); };
+                    return chip;
+                };
+                
+                if (!data.callers?.length) up.innerHTML = '<span class="empty-msg">ROOT</span>';
+                else data.callers.forEach(c => up.appendChild(mkChip(c, 'up')));
+                
+                if (!data.deps?.length) down.innerHTML = '<span class="empty-msg">LEAF</span>';
+                else data.deps.forEach(d => down.appendChild(mkChip(d, 'down')));
+            },
+            
+            scrollToLine(idx) {
+                const lineEl = document.querySelector(`[data-line="${idx}"]`);
+                lineEl?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        };
+
+        // ===================================================================
+        // SIDEBAR (E1.1)
+        // ===================================================================
+        const SIDEBAR = {
+            toggle() {
+                STATE.sidebarOpen = !STATE.sidebarOpen;
+                const sidebar = document.getElementById('sidebar');
+                sidebar.classList.toggle('sidebar-collapsed', !STATE.sidebarOpen);
+                sidebar.classList.toggle('sidebar-expanded', STATE.sidebarOpen);
+                LOG.toast(STATE.sidebarOpen ? 'Sidebar opened' : 'Sidebar collapsed');
+            },
+            
+            renderTools() {
+                const tools = [
+                    { label: 'Entity', icon: 'Entity' },
+                    { label: 'Core', icon: 'Core' },
+                    { label: 'Goal', icon: 'Goal' },
+                    { label: 'Obstacle', icon: 'Obstacle' },
+                    { label: 'Morphism', icon: 'Morphism' },
+                    { label: 'Shift', icon: 'Shift' },
+                    { label: 'Location', icon: 'Location' },
+                    { label: 'Timepoint', icon: 'Timepoint' },
+                    { label: 'Scene', icon: 'Scene' },
+                    { label: 'Story', icon: 'Story' }
+                ];
+                
+                const container = document.getElementById('tools-list');
+                container.innerHTML = tools.map(tool => `
+                    <div class="tool-item" onclick="SIDEBAR.addNode('${tool.label}', '${tool.icon}')">
+                        <div class="icon">${ICONS[tool.icon]()}</div>
+                        <div style="display: flex; flex-direction: column;">
+                            <span style="font-size: 0.875rem; color: var(--text-main);">${tool.label}</span>
+                            <span style="font-size: 0.625rem; color: var(--text-muted);">&lt;${tool.icon}&gt;</span>
+                        </div>
+                    </div>
+                `).join('');
+                lucide.createIcons();
+            },
+            
+            addNode(type, iconKey) {
+                const id = Date.now();
+                const pos = GRID.center(Math.floor(Math.random() * 9), Math.floor(Math.random() * 9));
+                const newNode = {
+                    id,
+                    type: type.toLowerCase(),
+                    icon: iconKey,
+                    label: `${type}<${type}>`,
+                    x: pos.x,
+                    y: pos.y
+                };
+                
+                STATE.systemNodes.push(newNode);
+                RENDERER.nodes();
+                RENDERER.connections();
+                PERSISTENCE.save();
+                
+                INSPECTOR.select(id);
+                LOG.toast(`Added ${type}`);
+                
+                if (window.innerWidth <= 768) this.toggle();
+            }
+        };
+
+        // ===================================================================
+        // INSPECTOR (E1.3)
+        // ===================================================================
+        const INSPECTOR = {
+            select(id) {
+                STATE.selectedNodeId = id;
+                RENDERER.nodes();
+                
+                const node = STATE.systemNodes.find(n => n.id === id);
+                if (!node) return;
+                
+                const content = document.getElementById('inspector-content');
+                content.innerHTML = `
+                    <div class="space-y-4 animate-fade-up">
+                        <div class="space-y-2">
+                            <label class="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">Identity</label>
+                            <div class="p-3 rounded bg-slate-800/50 border border-slate-700/50 space-y-2">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm text-slate-400">ID</span>
+                                    <span class="text-xs font-mono text-cyan-500">#${node.id.toString().slice(-4)}</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm text-slate-400">Type</span>
+                                    <span class="text-xs font-mono text-yellow-500 uppercase">${node.type}</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm text-slate-400">Label</span>
+                                    <input type="text" value="${node.label}" 
+                                           onchange="INSPECTOR.updateLabel(${node.id}, this.value)"
+                                           class="text-right text-sm bg-transparent border-b border-slate-600 focus:border-cyan-500 outline-none text-white w-32" />
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm text-slate-400">Grid</span>
+                                    <span class="text-xs font-mono text-slate-400">${GRID.snap(node.x, node.y).cellIndex}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                const inspector = document.getElementById('inspector');
+                inspector.classList.remove('inspector-collapsed');
+                inspector.classList.add('inspector-expanded');
+            },
+            
+            updateLabel(id, value) {
+                const node = STATE.systemNodes.find(n => n.id === id);
+                if (node) {
+                    node.label = value;
+                    RENDERER.nodes();
+                    LOG.toast('Label updated');
+                    PERSISTENCE.save();
+                }
+            },
+            
+            delete() {
+                if (!STATE.selectedNodeId) return;
+                if (STATE.selectedNodeId === 1) {
+                    LOG.toast('Cannot delete core system');
+                    return;
+                }
+                
+                STATE.systemNodes = STATE.systemNodes.filter(n => n.id !== STATE.selectedNodeId);
+                STATE.selectedNodeId = null;
+                
+                RENDERER.nodes();
+                RENDERER.connections();
+                this.close();
+                LOG.toast('Entity deleted');
+                PERSISTENCE.save();
+            },
+            
+            close() {
+                STATE.selectedNodeId = null;
+                const inspector = document.getElementById('inspector');
+                inspector.classList.add('inspector-collapsed');
+                inspector.classList.remove('inspector-expanded');
+                RENDERER.nodes();
+            }
+        };
+
+        // ===================================================================
+        // CONSOLE (E1.4)
+        // ===================================================================
+        const CONSOLE = {
+            toggle() {
+                STATE.consoleOpen = !STATE.consoleOpen;
+                const panel = document.getElementById('console-panel');
+                panel.classList.toggle('console-collapsed', !STATE.consoleOpen);
+                
+                const icon = document.getElementById('console-toggle-icon');
+                icon.setAttribute('data-lucide', STATE.consoleOpen ? 'chevron-down' : 'chevron-up');
+                lucide.createIcons();
+            },
+            
+            log(type, msg) {
+                const container = document.getElementById('console-content');
+                const entry = document.createElement('div');
+                entry.className = `log-entry log-${type.toLowerCase()}`;
+                entry.innerHTML = `<span class="font-bold">${type}</span> <span>${msg}</span>`;
+                container.prepend(entry);
+            }
+        };
+
+        // ===================================================================
+        // EVENTS (E1.8 + EVENT_DISPATCHER)
+        // ===================================================================
+        const EVENTS = {
+            startDrag(e, id) {
+                STATE.isDragging = true;
+                STATE.draggedNodeId = id;
+                const evt = e.touches ? e.touches[0] : e;
+                STATE.lastX = evt.clientX;
+                STATE.lastY = evt.clientY;
+                document.body.style.cursor = 'grabbing';
+                e.preventDefault();
+            },
+            
+            handleDragMove(e) {
+                if (!STATE.isDragging || !STATE.draggedNodeId) return;
+                e.preventDefault();
+                
+                const evt = e.touches ? e.touches[0] : e;
+                const deltaX = evt.clientX - STATE.lastX;
+                const deltaY = evt.clientY - STATE.lastY;
+                
+                STATE.lastX = evt.clientX;
+                STATE.lastY = evt.clientY;
+                
+                const canvasRect = document.getElementById('canvas-area').getBoundingClientRect();
+                const percentX = (deltaX / canvasRect.width) * 100;
+                const percentY = (deltaY / canvasRect.height) * 100;
+                
+                const node = STATE.systemNodes.find(n => n.id === STATE.draggedNodeId);
+                if (node) {
+                    let newX = Math.max(0, Math.min(100, node.x + percentX));
+                    let newY = Math.max(0, Math.min(100, node.y + percentY));
+                    
+                    if (GRID.snapToGrid) {
+                        const snapped = GRID.snap(newX, newY);
+                        newX = snapped.x; newY = snapped.y;
+                    }
+                    
+                    node.x = newX; node.y = newY;
+                    
+                    const el = document.querySelector(`[data-node-id="${node.id}"]`);
+                    if (el) {
+                        el.style.left = `${node.x}%`;
+                        el.style.top = `${node.y}%`;
+                    }
+                    
+                    document.getElementById('coords').innerText = `${node.x.toFixed(1)}, ${node.y.toFixed(1)}`;
+                    RENDERER.connections();
+                }
+            },
+            
+            handleDragEnd() {
+                if (!STATE.isDragging) return;
+                STATE.isDragging = false;
+                STATE.draggedNodeId = null;
+                document.body.style.cursor = 'default';
+                PERSISTENCE.save();
+            }
+        };
+
+        // ===================================================================
+        // VIEW (E1.9 + VIEW_MODE)
+        // ===================================================================
+        const VIEW = {
+            switch(mode) {
+                STATE.viewMode = mode;
+                
+                document.querySelectorAll('.nav-tab').forEach(tab => {
+                    tab.classList.toggle('active', tab.dataset.view === mode);
+                });
+                
+                // Hide all views
+                ['#nodes-layer', '#grid-lock', '#code-editor', '#preview-frame'].forEach(sel => {
+                    document.querySelector(sel).style.display = 'none';
+                });
+                
+                switch(mode) {
+                    case 'system':
+                        document.getElementById('nodes-layer').style.display = 'block';
+                        document.getElementById('grid-lock').style.display = 'grid';
+                        break;
+                    case 'story':
+                        document.getElementById('nodes-layer').style.display = 'block';
+                        document.getElementById('grid-lock').style.display = 'none';
+                        this.arrangeStory();
+                        break;
+                    case 'code':
+                        document.getElementById('code-editor').style.display = 'block';
+                        document.getElementById('grid-lock').style.display = 'grid';
+                        RENDERER.code();
+                        break;
+                    case 'preview':
+                        document.getElementById('preview-frame').style.display = 'block';
+                        RENDERER.preview();
+                        break;
+                }
+                
+                RENDERER.connections();
+                LOG.toast(`View: ${mode}`);
+            },
+            
+            arrangeStory() {
+                // Place nodes in narrative order on grid
+                const positions = [
+                    [4, 1], [2, 3], [6, 3], [1, 5], 
+                    [4, 5], [7, 5], [2, 7], [4, 7]
+                ];
+                STATE.systemNodes.forEach((node, i) => {
+                    if (i === 0) return; // Skip core
+                    const pos = GRID.center(...(positions[i-1] || [4, 4]));
+                    node.x = pos.x; node.y = pos.y;
+                });
+                RENDERER.nodes();
+            }
+        };
+
+        // ===================================================================
+        // INGEST (INGEST + MO_001)
+        // ===================================================================
+        const INGEST = {
+            toggle() {
+                const overlay = document.getElementById('sideblade-overlay');
+                overlay.style.display = overlay.style.display === 'flex' ? 'none' : 'flex';
+            },
+            
+            loadCode() {
+                const text = document.getElementById('paste-input').value;
+                if (!text.trim()) return LOG.toast('No code to load');
+                
+                PARSER.parseCode(text);
+                this.toggle();
+                VIEW.switch('code');
+                RENDERER.blocks();
+                RENDERER.connections();
+                PERSISTENCE.save();
+                LOG.toast('Code loaded');
+            },
+            
+            loadNodes() {
+                try {
+                    const text = document.getElementById('paste-input').value;
+                    const defs = JSON.parse(text);
+                    PARSER.parseNodes(defs);
+                    this.toggle();
+                    VIEW.switch('system');
+                    RENDERER.nodes();
+                    RENDERER.connections();
+                    PERSISTENCE.save();
+                    LOG.toast('Nodes loaded');
+                } catch(e) {
+                    LOG.error('Invalid JSON: ' + e.message);
+                }
+            }
+        };
+
+        // ===================================================================
+        // AUTOPLAY (AUTOPLAY_SYSTEM)
+        // ===================================================================
+        const AUTOPLAY = {
+            toggle() {
+                if (STATE.autoplayInterval) {
+                    clearInterval(STATE.autoplayInterval);
+                    STATE.autoplayInterval = null;
+                    document.getElementById('btn-play').innerHTML = '<i data-lucide="play" style="color: var(--text-muted); width: 1rem; height: 1rem;"></i>';
+                } else {
+                    const blocks = STATE.blocks.filter(b => b);
+                    if (!blocks.length) return LOG.toast('No blocks to play');
+                    
+                    let i = 0;
+                    STATE.autoplayInterval = setInterval(() => {
+                        const idx = blocks[i % blocks.length].idx;
+                        NAV.xray(idx);
+                        i++;
+                    }, 1200);
+                    
+                    document.getElementById('btn-play').innerHTML = '<i data-lucide="pause" style="color: var(--func); width: 1rem; height: 1rem;"></i>';
+                }
+                lucide.createIcons();
+            }
+        };
+
+        // ===================================================================
+        // THEME (THEME_SYSTEM)
+        // ===================================================================
+        const THEME = {
+            switch(mode) {
+                document.documentElement.setAttribute('data-theme', mode);
+                STATE.theme = mode;
+                document.querySelectorAll('.theme-btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.theme === mode);
+                });
+                LOG.toast(`Theme: ${mode}`);
+            }
+        };
+
+        // ===================================================================
+        // PERSISTENCE (E1.7)
+        // ===================================================================
+        const STORAGE_KEY = 'onyx_block01_state_v1';
+
+        const PERSISTENCE = {
+            save() {
+                const data = {
+                    _version: 1,
+                    systemNodes: STATE.systemNodes,
+                    viewMode: STATE.viewMode,
+                    snapToGrid: GRID.snapToGrid,
+                    sidebarOpen: STATE.sidebarOpen,
+                    consoleOpen: STATE.consoleOpen,
+                    theme: STATE.theme,
+                    lines: STATE.lines,
+                    blocks: STATE.blocks,
+                    edges: STATE.edges,
+                    activeIdx: STATE.activeIdx
+                };
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+                
+                const status = document.getElementById('storage-status');
+                status.textContent = 'Synced';
+                status.style.color = '#22c55e';
+                setTimeout(() => { status.textContent = 'Idle'; status.style.color = 'var(--text-muted)'; }, 1000);
+            },
+            
+            load() {
+                try {
+                    const raw = localStorage.getItem(STORAGE_KEY);
+                    if (!raw) throw new Error('No saved state');
+                    
+                    const data = JSON.parse(raw);
+                    if (data._version !== 1) throw new Error('Version mismatch');
+                    
+                    Object.assign(STATE, data);
+                    GRID.snapToGrid = data.snapToGrid;
+                    THEME.switch(data.theme || 'dark');
+                    
+                    if (!STATE.systemNodes.length) {
+                        // Default nodes on grid
+                        const defaults = [
+                            { id: 1, type: 'core', icon: 'Core', label: 'Core<Core>', grid: [4, 4] },
+                            { id: 2, type: 'entity', icon: 'Entity', label: 'Entity<Entity>', grid: [4, 5] }
+                        ];
+                        STATE.systemNodes = defaults.map(d => {
+                            const pos = GRID.center(d.grid[0], d.grid[1]);
+                            return { ...d, x: pos.x, y: pos.y };
+                        });
+                    }
+                    
+                    VIEW.switch(STATE.viewMode);
+                    
+                } catch(e) {
+                    // Fresh defaults
+                    const defaults = [
+                        { id: 1, type: 'core', icon: 'Core', label: 'Core<Core>', grid: [4, 4] },
+                        { id: 2, type: 'entity', icon: 'Entity', label: 'Entity<Entity>', grid: [4, 6] },
+                        { id: 3, type: 'goal', icon: 'Goal', label: 'Goal<Goal>', grid: [2, 2] },
+                        { id: 4, type: 'morphism', icon: 'Morphism', label: 'Morphism<Morphism>', grid: [6, 2] }
+                    ];
+                    STATE.systemNodes = defaults.map(d => {
+                        const pos = GRID.center(d.grid[0], d.grid[1]);
+                        return { ...d, x: pos.x, y: pos.y };
+                    });
+                    THEME.switch('dark');
+                    VIEW.switch('system');
+                }
+            }
+        };
+
+        // ===================================================================
+        // BRICK BRIDGE (9×9 BrickRecord import / export)
+        // Schema: { id, cellIndex, row, col, brickType, ontologyType, label, props }
+        // ===================================================================
+        function exportOnyxBricks() {
+            const records = [];
+            for (let cellIndex = 0; cellIndex < 81; cellIndex++) {
+                const row = Math.floor(cellIndex / 9);
+                const col = cellIndex % 9;
+                const block = STATE.blocks[cellIndex];
+
+                // Base brick type from code grid
+                const brickType = block?.type || 'empty';
+                let label = block?.name || '';
+
+                // Overlay: see if an ontology node sits in this cell
+                let ontologyType = 'none';
+                const node = STATE.systemNodes.find(n => GRID.snap(n.x, n.y).cellIndex === cellIndex);
+                if (node) {
+                    ontologyType = node.type || 'entity';
+                    label = node.label || label || ontologyType;
+                }
+
+                records.push({
+                    id: `onyx_${cellIndex}_${block?.name || ontologyType || 'cell'}`,
+                    cellIndex,
+                    row,
+                    col,
+                    brickType,
+                    ontologyType,
+                    label,
+                    props: {}
+                });
+            }
+            return records;
+        }
+
+        function importOnyxBricks(records) {
+            if (!Array.isArray(records)) return;
+
+            // Rebuild ontology nodes from bricks with an ontologyType
+            STATE.systemNodes = records
+                .filter(r => r.ontologyType && r.ontologyType !== 'none')
+                .map((r, idx) => {
+                    const col = typeof r.col === 'number' ? r.col : (r.cellIndex ?? idx) % 9;
+                    const row = typeof r.row === 'number' ? r.row : Math.floor((r.cellIndex ?? idx) / 9);
+                    const pos = GRID.center(col, row);
+                    return {
+                        id: r.id || Date.now() + idx,
+                        type: (r.ontologyType || 'entity').toLowerCase(),
+                        icon: (r.ontologyType && ICONS[r.ontologyType.charAt(0).toUpperCase() + r.ontologyType.slice(1)]) ? r.ontologyType.charAt(0).toUpperCase() + r.ontologyType.slice(1) : 'Entity',
+                        label: r.label || `${r.ontologyType}<${r.brickType || 'cell'}>`,
+                        x: pos.x,
+                        y: pos.y
+                    };
+                });
+
+            // Optionally seed code blocks so grid isnt empty
+            STATE.blocks = Array(81).fill(null);
+            records.forEach((r, idx) => {
+                const cellIndex = typeof r.cellIndex === 'number' ? r.cellIndex : idx;
+                if (cellIndex < 0 || cellIndex >= 81) return;
+                if (r.brickType && r.brickType !== 'empty') {
+                    STATE.blocks[cellIndex] = {
+                        idx: cellIndex,
+                        type: r.brickType,
+                        name: r.label || r.brickType,
+                        line: 0,
+                        pri: 1,
+                        deps: [],
+                        callers: []
+                    };
+                }
+            });
+
+            RENDERER.nodes();
+            RENDERER.blocks();
+            RENDERER.connections();
+            PERSISTENCE.save();
+            LOG.toast(`Imported ${records.length} bricks into ONYX`);
+        }
+
+        // Expose bridge API for parent / sibling tools
+        window.ONYX_EXPORT_BRICKS = exportOnyxBricks;
+        window.ONYX_IMPORT_BRICKS = importOnyxBricks;
+
+        // Lightweight message bridge
+        window.addEventListener('message', (event) => {
+            const msg = event.data;
+            if (!msg || typeof msg !== 'object') return;
+            switch (msg.kind) {
+                case 'BRICKS_TO_ONYX':
+                    importOnyxBricks(msg.bricks || []);
+                    break;
+                case 'REQUEST_ONYX_BRICKS':
+                    event.source?.postMessage({
+                        kind: 'ONYX_BRICKS',
+                        bricks: exportOnyxBricks()
+                    }, '*');
+                    break;
+            }
+        });
+
+        // ===================================================================
+        // LOG (E1.5 + console)
+        // ===================================================================
+        const LOG = {
+            info(msg) { CONSOLE.log('INFO', msg); },
+            success(msg) { CONSOLE.log('SUCCESS', msg); },
+            warn(msg) { CONSOLE.log('WARN', msg); },
+            error(msg) { CONSOLE.log('ERROR', msg); },
+            toast(msg) {
+                const container = document.getElementById('toast-container');
+                const toast = document.createElement('div');
+                toast.className = 'toast';
+                toast.innerHTML = `<i data-lucide="check-circle" style="color: var(--func); width: 1rem; height: 1rem;"></i> ${msg}`;
+                container.appendChild(toast);
+                lucide.createIcons();
+                setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
+            }
+        };
+
+        // ===================================================================
+        // INITIALIZATION (LCM_001)
+        // ===================================================================
+        function init() {
+            lucide.createIcons();
+            CONSOLE.log('SYSTEM', 'Initializing ontological ancestor...');
+            
+            PERSISTENCE.load();
+            
+            // Render initial UI
+            SIDEBAR.renderTools();
+            RENDERER.nodes();
+            RENDERER.blocks();
+            RENDERER.connections();
+            
+            // Event listeners
+            document.addEventListener('mousemove', EVENTS.handleDragMove);
+            document.addEventListener('mouseup', EVENTS.handleDragEnd);
+            document.addEventListener('touchmove', EVENTS.handleDragMove, { passive: false });
+            document.addEventListener('touchend', EVENTS.handleDragEnd);
+            window.addEventListener('resize', () => RENDERER.connections());
+            
+            // Default code example
+            if (!STATE.lines.length) {
+                const example = `// Example system
+function parseNode() {
+    const nodes = [];
+    return nodes;
+}
+class Entity {
+    constructor() {
+        this.id = Math.random();
+    }
+}`;
+                document.getElementById('paste-input').value = example;
+                INGEST.loadCode();
+            }
+            
+            CONSOLE.log('SUCCESS', 'System initialized');
+            CONSOLE.log('INFO', `Loaded ${STATE.systemNodes.length} nodes, ${STATE.blocks.filter(b => b).length} blocks`);
+        }
+
+        // ===================================================================
+        // START
+        // ===================================================================
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

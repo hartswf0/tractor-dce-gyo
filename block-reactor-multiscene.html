@@ -1,0 +1,1796 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ONYX Multi-Scene Reactor</title>
+  <style>
+    :root {
+      --bg: #050505;
+      --panel: #0a0a0a;
+      --border: #222;
+      --text: #e5e5e5;
+      --text-dim: #666;
+      --accent: #fafafa;
+      --core: #facc15;
+      --entity: #60a5fa;
+      --goal: #fde68a;
+      --obstacle: #f97373;
+      --morphism: #22d3ee;
+      --location: #a3e635;
+      --timepoint: #e879f9;
+      --scene: #38bdf8;
+      --story: #4ade80;
+      --font-mono: "JetBrains Mono", SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    html[data-theme='parch'] {
+      --bg: #fefce8;
+      --panel: #fef9c3;
+      --border: #eab308;
+      --text: #713f12;
+      --text-dim: #a16207;
+      --accent: #1f2937;
+    }
+
+    html[data-theme='terminal'] {
+      --bg: #050505;
+      --panel: #000000;
+      --border: #22c55e;
+      --text: #a7f3d0;
+      --text-dim: #4ade80;
+      --accent: #bbf7d0;
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #020617;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #1f2937;
+      border-radius: 999px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #4b5563;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-mono);
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
+    }
+
+    .hidden { display: none; }
+
+    /* GLOBAL HEADER */
+    .global-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 48px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      z-index: 100;
+    }
+
+    .global-header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .global-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--scene);
+      letter-spacing: 0.1em;
+    }
+
+    .global-controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .scene-nav-btn {
+      padding: 4px 8px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      cursor: pointer;
+      border-radius: 3px;
+    }
+
+    .scene-nav-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .scene-nav-btn.active {
+      background: var(--scene);
+      color: var(--bg);
+      border-color: var(--scene);
+    }
+
+    .view-toggle {
+      padding: 4px 12px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      cursor: pointer;
+      border-radius: 3px;
+    }
+
+    .view-toggle:hover {
+      border-color: var(--goal);
+      color: var(--goal);
+    }
+
+    /* MAIN CONTAINER */
+    .main-container {
+      margin-top: 48px;
+      height: calc(100vh - 48px);
+      height: calc(100dvh - 48px);
+      position: relative;
+    }
+
+    /* SINGLE VIEW (MOBILE SWIPE) */
+    .scenes-swipe-container {
+      height: 100%;
+      display: flex;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .scenes-swipe-container.dragging {
+      transition: none;
+    }
+
+    .scene-wrapper {
+      min-width: 100%;
+      height: 100%;
+      padding: 0 16px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* GRID VIEW (DESKTOP) */
+    .scenes-grid-container {
+      height: 100%;
+      display: flex;
+      flex-direction: row;
+      align-items: stretch;
+      overflow-x: auto;
+      overflow-y: hidden;
+      gap: 0;
+      padding: 0;
+    }
+
+    .scene-grid-item {
+      height: 100%;
+      flex: 0 0 360px;
+      display: flex;
+      align-items: stretch;
+      justify-content: stretch;
+    }
+
+    /* STORYBOARD CARDS (GRID VIEW) */
+    .storyboard-scene {
+      width: 100%;
+      max-width: 360px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      padding: 8px 10px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .storyboard-header {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--text-dim);
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+
+    .storyboard-title-left span:first-child {
+      color: var(--scene);
+    }
+
+    .storyboard-title-left span:last-child {
+      margin-left: 0.4rem;
+      color: var(--text-dim);
+    }
+
+    .storyboard-grid-shell {
+      padding-top: 4px;
+    }
+
+    .storyboard-grid-shell .grid {
+      gap: 1px;
+    }
+
+    .storyboard-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 6px;
+      margin-top: 2px;
+      font-size: 9px;
+    }
+
+    .storyboard-role-chip {
+      padding: 1px 5px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+    }
+
+    .storyboard-entity-chip {
+      padding: 1px 5px;
+      border-radius: 999px;
+      border: 1px solid var(--entity);
+      color: var(--entity);
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* SCENE COMPONENT (Reactor Stack) */
+    .reactor {
+      width: 100%;
+      max-width: 460px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      border-left: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      background: var(--panel);
+    }
+
+    .scene-header {
+      flex: 0 0 auto;
+      padding: 0.6rem 0.9rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      color: var(--text-dim);
+    }
+
+    .scene-header-left span:first-child { color: var(--scene); }
+    .scene-header-left span:last-child { margin-left: 0.5rem; }
+
+    .scene-header-roles {
+      display: flex;
+      gap: 0.5rem;
+      font-size: 10px;
+    }
+
+    .scene-header-right {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .scene-fork-badge {
+      font-size: 8px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      padding: 1px 6px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: #555;
+      margin-left: 0.5rem;
+    }
+
+    /* Forked scene column styling */
+    .scene-grid-item.forked .reactor {
+      background: #020617;
+      border-left-color: var(--scene);
+      border-right-color: var(--scene);
+    }
+
+    .scene-grid-item.forked .scene-fork-badge {
+      border-color: var(--scene);
+      color: var(--scene);
+    }
+
+    .scene-addr {
+      font-size: 9px;
+      color: #444;
+    }
+
+    .scene-tools {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .scene-tool-btn {
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+      font-size: 8px;
+      padding: 1px 4px;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+
+    .scene-tool-btn:hover {
+      border-color: var(--scene);
+      color: var(--scene);
+    }
+
+    .role-pill {
+      padding: 1px 6px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+    }
+
+    /* GRID */
+    .retina {
+      flex: 0 0 auto;
+      padding: 0.75rem 0.9rem 0.25rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(9, 1fr);
+      grid-template-rows: repeat(9, 1fr);
+      gap: 1px;
+      width: 100%;
+      aspect-ratio: 1;
+    }
+
+    .cell {
+      background: #050505;
+      border: 1px solid #111;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .cell-icon-svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .cell.active {
+      background: #111827;
+      border-color: var(--accent);
+    }
+
+    .cell.linked {
+      border-color: var(--scene);
+    }
+
+    .cell-kind-Core { color: var(--core); }
+    .cell-kind-Entity { color: var(--entity); }
+    .cell-kind-Goal { color: var(--goal); }
+    .cell-kind-Obstacle { color: var(--obstacle); }
+    .cell-kind-Morphism { color: var(--morphism); }
+    .cell-kind-Location { color: var(--location); }
+    .cell-kind-Timepoint { color: var(--timepoint); }
+
+    /* TIMELINE */
+    .timeline {
+      flex: 1 1 auto;
+      overflow-y: auto;
+      padding: 0.6rem 0.9rem 0.8rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+      scroll-behavior: smooth;
+    }
+
+    .beat {
+      font-size: 12px;
+      line-height: 1.5;
+      padding: 0.4rem 0.45rem;
+      border-left: 1px solid var(--border);
+      cursor: pointer;
+      color: var(--text-dim);
+      transition: all 0.15s ease;
+      max-width: 44rem;
+    }
+
+    .beat:hover {
+      background: rgba(255,255,255,0.02);
+      border-color: var(--accent);
+      color: var(--text);
+    }
+
+    .beat.active {
+      background: #020617;
+      border-color: var(--accent);
+    }
+
+    .beat.linked {
+      border-color: var(--scene);
+    }
+
+    .beat.entity-match {
+      border-left-color: var(--entity);
+      background: rgba(56,189,248,0.06);
+    }
+
+    .beat-label {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      margin-bottom: 2px;
+      color: #444;
+    }
+
+    .beat-icon {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      margin-right: 4px;
+      vertical-align: middle;
+    }
+
+    .beat-addr {
+      margin-left: 4px;
+      opacity: 0.6;
+    }
+
+    .beat-text {
+      color: var(--text);
+      margin-top: 2px;
+    }
+
+    .beat-entity-id {
+      margin-left: 6px;
+      font-size: 8px;
+      color: var(--text-dim);
+    }
+
+    .beat-actions {
+      margin-top: 4px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 4px;
+    }
+
+    .beat-fork-btn {
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+      font-size: 8px;
+      padding: 1px 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      cursor: pointer;
+    }
+
+    .beat-fork-btn:hover {
+      border-color: var(--scene);
+      color: var(--scene);
+    }
+
+    /* ACTUATOR */
+    .actuator {
+      flex: 0 0 auto;
+      padding: 0.55rem 0.9rem 0.7rem;
+      border-top: 1px solid var(--border);
+      background: var(--bg);
+      display: flex;
+      align-items: flex-start;
+      gap: 0.55rem;
+      position: relative;
+    }
+
+    .prompt-glyph {
+      font-size: 11px;
+      color: var(--text-dim);
+      padding-top: 2px;
+    }
+
+    textarea {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      resize: none;
+      min-height: 20px;
+      max-height: 96px;
+      line-height: 1.5;
+      padding: 0;
+    }
+
+    textarea::placeholder { color: #333; }
+
+    .status-light {
+      position: absolute;
+      right: 0.9rem;
+      bottom: 0.7rem;
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: #222;
+      transition: all 0.2s ease;
+    }
+
+    .status-light.processing {
+      background: var(--scene);
+      box-shadow: 0 0 10px rgba(56,189,248,0.8);
+    }
+
+    /* ENTITY REGISTRY */
+    .entity-registry {
+      position: fixed;
+      right: -280px;
+      top: 48px;
+      bottom: 0;
+      width: 280px;
+      background: var(--panel);
+      border-left: 1px solid var(--border);
+      transition: right 0.3s ease;
+      z-index: 90;
+      overflow-y: auto;
+      padding: 16px;
+    }
+
+    .entity-registry.open {
+      right: 0;
+    }
+
+    .entity-registry-toggle {
+      position: absolute;
+      left: -32px;
+      top: 16px;
+      padding: 8px 4px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-right: none;
+      color: var(--text-dim);
+      font-size: 10px;
+      cursor: pointer;
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+    }
+
+    .entity-item {
+      padding: 8px;
+      margin-bottom: 8px;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      font-size: 10px;
+      cursor: pointer;
+    }
+
+    .entity-item:hover {
+      border-color: var(--accent);
+    }
+
+    .entity-item.active {
+      border-color: var(--scene);
+      background: rgba(56,189,248,0.1);
+    }
+
+    .entity-appearances {
+      font-size: 8px;
+      color: var(--text-dim);
+      margin-top: 4px;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      .scenes-grid-container {
+        flex-direction: column;
+        overflow-x: hidden;
+        overflow-y: auto;
+      }
+
+      .scene-grid-item {
+        flex: 0 0 auto;
+        display: flex;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Global Header -->
+  <header class="global-header">
+    <div class="global-title">ONYX MULTI-SCENE REACTOR</div>
+    <div class="global-controls">
+      <button class="scene-nav-btn" id="prevBtn" title="Prev Scene">←</button>
+      <span id="sceneCounter" style="font-size: 10px; color: var(--text-dim);">1 / 1</span>
+      <button class="scene-nav-btn" id="nextBtn" title="Next Scene">→</button>
+      <button class="scene-nav-btn" id="addBtn" title="Add Scene">+</button>
+      <button class="scene-nav-btn" id="forkBtn" title="Fork Scene">fork</button>
+      <button class="view-toggle" id="viewToggle" title="Toggle View">GRID</button>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-container">
+    <!-- Single Scene View (Mobile Swipe) -->
+    <div class="scenes-swipe-container" id="swipeContainer"></div>
+
+    <!-- Grid View (Desktop) -->
+    <div class="scenes-grid-container hidden" id="gridContainer"></div>
+  </main>
+
+  <!-- Entity Registry Panel -->
+  <aside class="entity-registry" id="entityRegistry">
+    <div class="entity-registry-toggle" id="registryToggle">ENTITIES</div>
+    <h3 style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px;">Entity Registry</h3>
+    <div id="entityList"></div>
+  </aside>
+
+  <script>
+    // ===== ICONS (from Hyperclay Reactor / Skeleton) =====
+    const ICONS = {
+      getIsoCube(color = 'blue') {
+        const colors = {
+          blue:   { top: '#60a5fa', left: '#3b82f6', right: '#2563eb' },
+          yellow: { top: '#fcd34d', left: '#f59e0b', right: '#d97706' },
+          cyan:   { top: '#22d3ee', left: '#06b6d4', right: '#0891b2' },
+          purple: { top: '#e879f9', left: '#c026d3', right: '#a21caf' },
+          green:  { top: '#4ade80', left: '#16a34a', right: '#15803d' },
+          red:    { top: '#f97373', left: '#ef4444', right: '#dc2626' }
+        };
+        const c = colors[color] || colors.blue;
+        return `<svg viewBox="0 0 40 40" class="cell-icon-svg"><path d="M20 4 L36 12 L20 20 L4 12 Z" fill="${c.top}" stroke="#020617" stroke-width="1"/><path d="M4 12 L20 20 L20 38 L4 30 Z" fill="${c.left}" stroke="#020617" stroke-width="1"/><path d="M36 12 L20 20 L20 38 L36 30 Z" fill="${c.right}" stroke="#020617" stroke-width="1"/></svg>`;
+      },
+      Entity: () => ICONS.getIsoCube('blue'),
+      Core: () => ICONS.getIsoCube('yellow'),
+      Goal: () => `<div style="position:relative;width:100%;height:100%;"><div style="position:absolute;top:2px;left:50%;transform:translateX(-50%);width:12px;height:12px;color:#facc15;"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg></div>${ICONS.getIsoCube('blue')}</div>`,
+      Obstacle: () => `<div style="position:relative;width:100%;height:100%;"><div style="position:absolute;inset:4px;">${ICONS.getIsoCube('blue')}</div><div style="position:absolute;right:4px;top:4px;bottom:4px;width:3px;background:rgba(148,163,184,0.9);"></div><div style="position:absolute;right:4px;top:50%;width:10px;height:2px;background:#facc15;transform:translateY(-50%);"></div></div>`,
+      Morphism: () => `<div style="position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:space-between;padding:4px;"><div style="width:14px;height:14px;">${ICONS.getIsoCube('blue')}</div><div style="flex:1;height:2px;background:#facc15;margin:0 4px;"></div><div style="width:14px;height:14px;">${ICONS.getIsoCube('blue')}</div></div>`,
+      Location: () => `<div style="position:relative;width:100%;height:100%;"><div style="position:absolute;top:4px;right:4px;width:14px;height:14px;">${ICONS.getIsoCube('cyan')}</div><div style="position:absolute;bottom:4px;left:4px;width:14px;height:14px;">${ICONS.getIsoCube('cyan')}</div></div>`,
+      Timepoint: () => `<div style="position:relative;width:100%;height:100%;"><div style="position:absolute;inset:6px;">${ICONS.getIsoCube('cyan')}</div><div style="position:absolute;right:2px;bottom:2px;width:16px;height:16px;border-radius:999px;background:#050505;border:1px solid #22d3ee;display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" fill="none"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>`
+    };
+
+    // ===== ENTITY MANAGER =====
+    const EntityManager = {
+      entities: new Map(),
+      index: new Map(), // key: `${type}:${label}` -> entityId
+      counters: {},     // per-type counters for short IDs
+
+      create(type, label, sceneId, cellIndex) {
+        const key = `${type}:${label}`;
+        let id = this.index.get(key);
+        let entity;
+
+        if (id && (entity = this.entities.get(id))) {
+          entity.appearances.set(sceneId, cellIndex);
+          return id;
+        }
+
+        id = `e_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`;
+        const count = (this.counters[type] || 0) + 1;
+        this.counters[type] = count;
+        const prefixMap = {
+          Core: 'C',
+          Entity: 'E',
+          Goal: 'G',
+          Obstacle: 'O',
+          Morphism: 'M',
+          Location: 'L',
+          Timepoint: 'T'
+        };
+        const prefix = prefixMap[type] || 'E';
+        const shortId = `${prefix}${String(count).padStart(2, '0')}`;
+
+        entity = {
+          id,
+          shortId,
+          type,
+          label,
+          appearances: new Map([[sceneId, cellIndex]])
+        };
+        this.entities.set(id, entity);
+        this.index.set(key, id);
+        return id;
+      },
+
+      get(id) { return this.entities.get(id); },
+
+      addAppearance(idOrType, sceneId, cellIndex, labelOverride) {
+        // Allow either direct id or (type,label) tuple
+        if (this.entities.has(idOrType)) {
+          const entity = this.entities.get(idOrType);
+          entity.appearances.set(sceneId, cellIndex);
+          return entity.id;
+        }
+        if (labelOverride) {
+          return this.create(idOrType, labelOverride, sceneId, cellIndex);
+        }
+        return null;
+      },
+
+      getAll() {
+        return Array.from(this.entities.values());
+      }
+    };
+
+    // Color accents for key story entities so they can be tracked across scenes
+    const ENTITY_COLOR_MAP = {
+      TWITTER_CORE: '#facc15',
+      TRUST_SAFETY: '#60a5fa',
+      POLICY_TEAM: '#38bdf8',
+      ALGO_PIPELINE: '#22d3ee',
+      MOD_QUEUE: '#4ade80',
+      FBI_CONTACT: '#a855f7',
+      DNC_CONTACT: '#f97373',
+      SLACK_THREAD: '#22c55e',
+      EMAIL_CHAIN: '#eab308',
+      JOURNALIST_TAIBBI: '#fb923c',
+      JOURNALIST_WEISS: '#2dd4bf',
+      INTERNAL_EMAILS: '#fbbf24',
+      INTERNAL_SLACK: '#22c55e',
+      SCANDAL_BACKFIRE: '#f97373'
+    };
+
+    function getEntityColor(kind, label) {
+      if (ENTITY_COLOR_MAP[label]) return ENTITY_COLOR_MAP[label];
+      switch (kind) {
+        case 'Core': return 'var(--core)';
+        case 'Goal': return 'var(--goal)';
+        case 'Obstacle': return 'var(--obstacle)';
+        case 'Morphism': return 'var(--morphism)';
+        case 'Location': return 'var(--location)';
+        case 'Timepoint': return 'var(--timepoint)';
+        case 'Entity':
+        default:
+          return 'var(--entity)';
+      }
+    }
+
+    // ===== SCENE COMPONENT =====
+    class SceneComponent {
+      constructor(scene, index) {
+        this.scene = scene;
+        this.index = index;
+        this.activeBeatId = null;
+        this.activeCellIndex = null;
+        this.container = null;
+      }
+
+      render() {
+        const div = document.createElement('div');
+        div.className = 'reactor';
+        div.innerHTML = `
+          <div class="scene-header">
+            <div class="scene-header-left">
+              <span>SCENE ${String(this.index + 1).padStart(2, '0')}</span>
+              <span>// ${this.scene.title || 'Untitled'}</span>
+              <span class="scene-fork-badge">${this.scene.parent ? 'FORK' : 'ROOT'}</span>
+            </div>
+            <div class="scene-header-right">
+              <div class="scene-header-roles" id="roles-${this.index}"></div>
+              <div class="scene-addr" id="addr-${this.index}">CELL -- · --</div>
+              <div class="scene-tools">
+                <button type="button" class="scene-tool-btn scene-fork-btn" data-index="${this.index}">fork</button>
+                <button type="button" class="scene-tool-btn scene-export-btn" data-index="${this.index}">exp</button>
+              </div>
+            </div>
+          </div>
+          <div class="retina">
+            <div class="grid" id="grid-${this.index}"></div>
+          </div>
+          <div class="timeline" id="timeline-${this.index}"></div>
+          <div class="actuator">
+            <div class="prompt-glyph">&gt;&gt;&gt;</div>
+            <textarea id="input-${this.index}" rows="1" placeholder="Add a beat..."></textarea>
+            <div class="status-light" id="status-${this.index}"></div>
+          </div>
+        `;
+
+        this.container = div;
+        this.cacheDOM();
+        this.attachEvents();
+        this.renderGrid();
+        this.renderTimeline();
+        this.renderPills();
+        return div;
+      }
+
+      cacheDOM() {
+        this.gridEl = this.container.querySelector(`#grid-${this.index}`);
+        this.timelineEl = this.container.querySelector(`#timeline-${this.index}`);
+        this.inputEl = this.container.querySelector(`#input-${this.index}`);
+        this.statusEl = this.container.querySelector(`#status-${this.index}`);
+        this.addrEl = this.container.querySelector(`#addr-${this.index}`);
+        this.rolesEl = this.container.querySelector(`#roles-${this.index}`);
+        this.forkBtn = this.container.querySelector('.scene-fork-btn');
+        this.exportBtn = this.container.querySelector('.scene-export-btn');
+      }
+
+      attachEvents() {
+        // Grid clicks (event delegation)
+        this.gridEl.addEventListener('click', (e) => {
+          const cell = e.target.closest('.cell');
+          if (!cell) return;
+          const idx = parseInt(cell.dataset.idx, 10);
+          if (e.altKey || e.metaKey) {
+            SceneManager.forkSceneFromCell(this.index, idx);
+            return;
+          }
+          const beat = this.scene.beats.find(b => b.cellIndex === idx);
+          if (beat) this.setActiveBeat(beat.id);
+          else this.setActiveCell(idx);
+        });
+
+        // Timeline clicks
+        this.timelineEl.addEventListener('click', (e) => {
+          const forkBtn = e.target.closest('.beat-fork-btn');
+          if (forkBtn) {
+            e.stopPropagation();
+            const beatId = forkBtn.dataset.id;
+            SceneManager.forkSceneFromBeat(this.index, beatId);
+            return;
+          }
+          const beatEl = e.target.closest('.beat');
+          if (beatEl) this.setActiveBeat(beatEl.dataset.id);
+        });
+
+        // Input
+        this.inputEl.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            const text = this.inputEl.value.trim();
+            if (!text) return;
+            this.commitBeat(text);
+            this.inputEl.value = '';
+            this.autoResize();
+          }
+        });
+
+        this.inputEl.addEventListener('input', () => this.autoResize());
+
+        // Tools
+        if (this.forkBtn) {
+          this.forkBtn.addEventListener('click', () => SceneManager.forkScene(this.index));
+        }
+        if (this.exportBtn) {
+          this.exportBtn.addEventListener('click', () => this.export());
+        }
+      }
+
+      renderGrid() {
+        this.gridEl.innerHTML = '';
+        this.scene.grid.forEach((cell, idx) => {
+          const el = document.createElement('div');
+          el.className = 'cell';
+          el.dataset.idx = idx;
+
+          if (cell) {
+            el.innerHTML = ICONS[cell.kind] ? ICONS[cell.kind]() : '';
+            el.classList.add('cell-kind-' + cell.kind);
+            const color = getEntityColor(cell.kind, cell.label);
+            el.style.borderColor = color;
+          }
+
+          if (idx === this.activeCellIndex) el.classList.add('active');
+          if (this.scene.beats.some(b => b.cellIndex === idx)) el.classList.add('linked');
+
+          this.gridEl.appendChild(el);
+        });
+      }
+
+      renderTimeline() {
+        this.timelineEl.innerHTML = '';
+        this.scene.beats.forEach(beat => {
+          const el = document.createElement('div');
+          el.className = 'beat';
+          el.dataset.id = beat.id;
+          if (beat.id === this.activeBeatId) el.classList.add('active');
+
+          const cell = this.scene.grid[beat.cellIndex];
+          const entity = beat.entityId ? EntityManager.get(beat.entityId) : null;
+          const color = cell ? getEntityColor(cell.kind, cell.label) : getEntityColor(beat.kind, beat.label);
+          el.style.borderLeftColor = color;
+
+          const label = document.createElement('div');
+          label.className = 'beat-label';
+          label.style.color = color;
+
+          if (ICONS[beat.kind]) {
+            const iconSpan = document.createElement('span');
+            iconSpan.className = 'beat-icon';
+            iconSpan.innerHTML = ICONS[beat.kind]();
+            label.appendChild(iconSpan);
+          }
+
+          const labelText = document.createElement('span');
+          labelText.textContent = beat.label;
+          label.appendChild(labelText);
+
+          const addrSpan = document.createElement('span');
+          addrSpan.className = 'beat-addr';
+          addrSpan.textContent = this.formatCellAddress(beat.cellIndex);
+          label.appendChild(addrSpan);
+
+          if (entity && entity.shortId) {
+            const entSpan = document.createElement('span');
+            entSpan.className = 'beat-entity-id';
+            entSpan.textContent = entity.shortId;
+            label.appendChild(entSpan);
+          }
+
+          const text = document.createElement('div');
+          text.className = 'beat-text';
+          text.textContent = beat.text;
+
+          const actions = document.createElement('div');
+          actions.className = 'beat-actions';
+          const forkBtn = document.createElement('button');
+          forkBtn.className = 'beat-fork-btn';
+          forkBtn.textContent = 'FORK';
+          forkBtn.dataset.id = beat.id;
+          actions.appendChild(forkBtn);
+
+          el.appendChild(label);
+          el.appendChild(text);
+          el.appendChild(actions);
+          this.timelineEl.appendChild(el);
+        });
+      }
+
+      renderPills() {
+        const counts = {};
+        this.scene.grid.forEach(cell => {
+          if (!cell) return;
+          counts[cell.kind] = (counts[cell.kind] || 0) + 1;
+        });
+
+        this.rolesEl.innerHTML = Object.keys(counts).sort().map(kind =>
+          `<div class="role-pill">${kind.substring(0, 3).toUpperCase()}: ${counts[kind]}</div>`
+        ).join('');
+      }
+
+      setActiveBeat(beatId) {
+        this.activeBeatId = beatId;
+        const beat = this.scene.beats.find(b => b.id === beatId);
+        this.activeCellIndex = beat ? beat.cellIndex : null;
+        this.updateAddr();
+        this.renderGrid();
+        this.renderTimeline();
+        this.flashStatus();
+      }
+
+      setActiveCell(idx) {
+        this.activeCellIndex = idx;
+        this.activeBeatId = null;
+        this.updateAddr();
+        this.renderGrid();
+      }
+
+      updateAddr() {
+        if (this.activeCellIndex != null) {
+          this.addrEl.textContent = `CELL ${this.activeCellIndex} · ${this.formatCellAddress(this.activeCellIndex)}`;
+        } else {
+          this.addrEl.textContent = 'CELL -- · --';
+        }
+      }
+
+      formatCellAddress(idx) {
+        if (idx == null || idx < 0) return '-- · --';
+        const row = Math.floor(idx / 9);
+        const col = idx % 9;
+        return `R${row} · C${col}`;
+      }
+
+      commitBeat(text) {
+        if (!text) return;
+        const kind = this.inferKind(text);
+        const cellIndex = this.findOrCreateCell(kind, text);
+        const entityId = EntityManager.create(kind, text.split(' ')[0], this.scene.id, cellIndex);
+
+        const beat = {
+          id: `b_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+          kind,
+          cellIndex,
+          label: kind.toUpperCase(),
+          text,
+          entityId
+        };
+
+        this.scene.beats.push(beat);
+        this.setActiveBeat(beat.id);
+        this.renderPills();
+      }
+
+      inferKind(text) {
+        const t = text.toLowerCase();
+        if (t.match(/core|constraint|origin/)) return 'Core';
+        if (t.match(/entity|character|agent/)) return 'Entity';
+        if (t.match(/goal|target|aim/)) return 'Goal';
+        if (t.match(/obstacle|conflict|block/)) return 'Obstacle';
+        if (t.match(/morphism|transform|bridge/)) return 'Morphism';
+        if (t.match(/location|place|zone/)) return 'Location';
+        if (t.match(/time|moment|t\+/)) return 'Timepoint';
+        return 'Entity';
+      }
+
+      findOrCreateCell(kind, text) {
+        const existing = this.scene.grid.findIndex((cell, i) =>
+          cell && cell.kind === kind && !this.scene.beats.some(b => b.cellIndex === i)
+        );
+        if (existing !== -1) return existing;
+
+        const empty = this.scene.grid.findIndex(c => !c);
+        if (empty !== -1) {
+          this.scene.grid[empty] = { kind, label: kind.toUpperCase() };
+          return empty;
+        }
+        return 40; // center fallback
+      }
+
+      autoResize() {
+        this.inputEl.style.height = 'auto';
+        this.inputEl.style.height = this.inputEl.scrollHeight + 'px';
+      }
+
+      flashStatus() {
+        this.statusEl.classList.add('processing');
+        setTimeout(() => this.statusEl.classList.remove('processing'), 200);
+      }
+
+      export() {
+        const payload = {
+          id: this.scene.id,
+          title: this.scene.title,
+          grid: this.scene.grid,
+          beats: this.scene.beats
+        };
+        console.log('SCENE_EXPORT', JSON.stringify(payload, null, 2));
+        this.flashStatus();
+      }
+    }
+
+    // ===== SCENE MANAGER =====
+    const SceneManager = {
+      scenes: [],
+      currentIndex: 0,
+      viewMode: 'grid', // 'single' or 'grid'
+
+      init() {
+        console.log('[ONYX] SceneManager.init()');
+        this.scenes = this.createSeedScenes();
+        this.currentIndex = 0;
+        this.bootstrapEntitiesFromScenes();
+
+        const swipe = document.getElementById('swipeContainer');
+        const grid = document.getElementById('gridContainer');
+        const toggle = document.getElementById('viewToggle');
+        if (swipe && grid) {
+          swipe.classList.add('hidden');
+          grid.classList.remove('hidden');
+        }
+        if (toggle) toggle.textContent = 'SINGLE';
+
+        console.log('[ONYX] Seed scenes:', this.scenes.map(s => s.id));
+        this.render();
+        this.bindEvents();
+      },
+
+      createScene(title) {
+        return {
+          id: `sc_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+          title,
+          grid: Array(81).fill(null),
+          beats: [],
+          parent: null,
+          timestamp: Date.now()
+        };
+      },
+
+      createSeedScenes() {
+        const now = Date.now();
+
+        // Scene 0: Moderation lattice before the Twitter Files
+        const scene0 = {
+          id: 'sc_twitter_core',
+          title: 'Twitter Files // Moderation Lattice',
+          grid: Array(81).fill(null),
+          beats: [],
+          parent: null,
+          timestamp: now
+        };
+
+        scene0.grid[40] = { kind: 'Core', label: 'TWITTER_CORE' };
+        scene0.grid[11] = { kind: 'Goal', label: 'REDUCE_MISINFO' };
+        scene0.grid[13] = { kind: 'Goal', label: 'PROTECT_BRAND' };
+        scene0.grid[69] = { kind: 'Obstacle', label: 'USER_TRUST_RISK' };
+        scene0.grid[76] = { kind: 'Obstacle', label: 'GOV_PRESSURE' };
+        scene0.grid[39] = { kind: 'Entity', label: 'TRUST_SAFETY' };
+        scene0.grid[41] = { kind: 'Entity', label: 'POLICY_TEAM' };
+        scene0.grid[31] = { kind: 'Entity', label: 'ALGO_PIPELINE' };
+        scene0.grid[49] = { kind: 'Entity', label: 'MOD_QUEUE' };
+        scene0.grid[32] = { kind: 'Morphism', label: 'PIPELINE_TO_QUEUE' };
+        scene0.grid[22] = { kind: 'Timepoint', label: 'T0_STATUS_QUO' };
+
+        scene0.beats = [
+          {
+            id: 'b_s0_core',
+            kind: 'Core',
+            cellIndex: 40,
+            label: 'CORE',
+            text: 'Twitter platform core moderates global speech as central actor.',
+            entityId: null
+          },
+          {
+            id: 'b_s0_goal_misinfo',
+            kind: 'Goal',
+            cellIndex: 11,
+            label: 'GOAL',
+            text: 'Goal: reduce visible misinformation on the public timeline.',
+            entityId: null
+          },
+          {
+            id: 'b_s0_goal_brand',
+            kind: 'Goal',
+            cellIndex: 13,
+            label: 'GOAL',
+            text: 'Goal: protect brand, advertisers, and perceived safety of the feed.',
+            entityId: null
+          },
+          {
+            id: 'b_s0_entity_pipeline',
+            kind: 'Entity',
+            cellIndex: 31,
+            label: 'ENTITY',
+            text: 'Entity: ranking and labeling pipeline that scores tweets for risk.',
+            entityId: null
+          },
+          {
+            id: 'b_s0_morphism_queue',
+            kind: 'Morphism',
+            cellIndex: 32,
+            label: 'MORPHISM',
+            text: 'Morphism: risky tweets are routed into moderation queues for review.',
+            entityId: null
+          },
+          {
+            id: 'b_s0_obstacle_trust',
+            kind: 'Obstacle',
+            cellIndex: 69,
+            label: 'OBSTACLE',
+            text: 'Obstacle: user trust erodes when enforcement looks uneven or opaque.',
+            entityId: null
+          },
+          {
+            id: 'b_s0_obstacle_gov',
+            kind: 'Obstacle',
+            cellIndex: 76,
+            label: 'OBSTACLE',
+            text: 'Obstacle: informal government and partner pressure on moderation calls.',
+            entityId: null
+          },
+          {
+            id: 'b_s0_timepoint',
+            kind: 'Timepoint',
+            cellIndex: 22,
+            label: 'TIME',
+            text: 'Timepoint: status quo before the Twitter Files disclosures.',
+            entityId: null
+          }
+        ];
+
+        // Scene 1: Backchannel requests and internal Slack
+        const scene1 = {
+          id: 'sc_twitter_backchannel',
+          title: 'Twitter Files // Backchannel Pressure',
+          grid: Array(81).fill(null),
+          beats: [],
+          parent: 'sc_twitter_core',
+          timestamp: now + 1
+        };
+
+        scene1.grid[40] = { kind: 'Core', label: 'TWITTER_CORE' };
+        scene1.grid[39] = { kind: 'Entity', label: 'FBI_CONTACT' };
+        scene1.grid[41] = { kind: 'Entity', label: 'DNC_CONTACT' };
+        scene1.grid[31] = { kind: 'Entity', label: 'TRUST_SAFETY' };
+        scene1.grid[49] = { kind: 'Entity', label: 'SLACK_THREAD' };
+        scene1.grid[30] = { kind: 'Entity', label: 'EMAIL_CHAIN' };
+        scene1.grid[13] = { kind: 'Goal', label: 'AVOID_SCANDAL' };
+        scene1.grid[14] = { kind: 'Goal', label: 'MINIMIZE_HARM' };
+        scene1.grid[69] = { kind: 'Obstacle', label: 'USER_PERCEPTION' };
+        scene1.grid[76] = { kind: 'Obstacle', label: 'PR_FALLOUT' };
+        scene1.grid[32] = { kind: 'Morphism', label: 'FBI_TO_TRUST' };
+        scene1.grid[50] = { kind: 'Morphism', label: 'DNC_TO_TRUST' };
+        scene1.grid[23] = { kind: 'Timepoint', label: 'T1_REQUESTS' };
+
+        scene1.beats = [
+          {
+            id: 'b_s1_core',
+            kind: 'Core',
+            cellIndex: 40,
+            label: 'CORE',
+            text: 'Core: the same moderation core now receives direct inbound requests.',
+            entityId: null
+          },
+          {
+            id: 'b_s1_entity_fbi',
+            kind: 'Entity',
+            cellIndex: 39,
+            label: 'ENTITY',
+            text: 'Entity: FBI and other agencies send flagged accounts and tweets.',
+            entityId: null
+          },
+          {
+            id: 'b_s1_entity_dnc',
+            kind: 'Entity',
+            cellIndex: 41,
+            label: 'ENTITY',
+            text: 'Entity: party and campaign contacts escalate moderation asks.',
+            entityId: null
+          },
+          {
+            id: 'b_s1_morphism_fbi',
+            kind: 'Morphism',
+            cellIndex: 32,
+            label: 'MORPHISM',
+            text: 'Morphism: FBI contact forwards lists into Trust & Safety for action.',
+            entityId: null
+          },
+          {
+            id: 'b_s1_morphism_dnc',
+            kind: 'Morphism',
+            cellIndex: 50,
+            label: 'MORPHISM',
+            text: 'Morphism: campaign staff route reports through internal Slack threads.',
+            entityId: null
+          },
+          {
+            id: 'b_s1_goal',
+            kind: 'Goal',
+            cellIndex: 13,
+            label: 'GOAL',
+            text: 'Goal: avoid scandal while claiming neutral, rule-based enforcement.',
+            entityId: null
+          },
+          {
+            id: 'b_s1_obstacle_perception',
+            kind: 'Obstacle',
+            cellIndex: 69,
+            label: 'OBSTACLE',
+            text: 'Obstacle: user perception shifts when takedowns map to one side.',
+            entityId: null
+          },
+          {
+            id: 'b_s1_timepoint',
+            kind: 'Timepoint',
+            cellIndex: 23,
+            label: 'TIME',
+            text: 'Timepoint: backchannel pressure era documented in internal emails.',
+            entityId: null
+          }
+        ];
+
+        // Scene 2: Disclosure and public reconstruction
+        const scene2 = {
+          id: 'sc_twitter_disclosure',
+          title: 'Twitter Files // Disclosure Thread',
+          grid: Array(81).fill(null),
+          beats: [],
+          parent: 'sc_twitter_backchannel',
+          timestamp: now + 2
+        };
+
+        scene2.grid[40] = { kind: 'Core', label: 'TWITTER_FILES_THREAD' };
+        scene2.grid[39] = { kind: 'Entity', label: 'JOURNALIST_TAIBBI' };
+        scene2.grid[41] = { kind: 'Entity', label: 'JOURNALIST_WEISS' };
+        scene2.grid[31] = { kind: 'Entity', label: 'INTERNAL_EMAILS' };
+        scene2.grid[49] = { kind: 'Entity', label: 'INTERNAL_SLACK' };
+        scene2.grid[11] = { kind: 'Goal', label: 'EXPOSE_MECHANICS' };
+        scene2.grid[13] = { kind: 'Goal', label: 'RESTORE_TRUST' };
+        scene2.grid[69] = { kind: 'Obstacle', label: 'INTERNAL_PANIC' };
+        scene2.grid[76] = { kind: 'Obstacle', label: 'REPUTATIONAL_RISK' };
+        scene2.grid[32] = { kind: 'Morphism', label: 'DOCS_TO_THREAD' };
+        scene2.grid[50] = { kind: 'Morphism', label: 'THREAD_TO_PUBLIC' };
+        scene2.grid[24] = { kind: 'Timepoint', label: 'T2_DISCLOSURE' };
+
+        scene2.beats = [
+          {
+            id: 'b_s2_core',
+            kind: 'Core',
+            cellIndex: 40,
+            label: 'CORE',
+            text: 'Core: Twitter Files thread reframes moderation lattice as a story.',
+            entityId: null
+          },
+          {
+            id: 'b_s2_entity_journalists',
+            kind: 'Entity',
+            cellIndex: 39,
+            label: 'ENTITY',
+            text: 'Entity: invited journalists interpret raw Slack and email artifacts.',
+            entityId: null
+          },
+          {
+            id: 'b_s2_morphism_docs',
+            kind: 'Morphism',
+            cellIndex: 32,
+            label: 'MORPHISM',
+            text: 'Morphism: internal documents are sequenced into a public thread.',
+            entityId: null
+          },
+          {
+            id: 'b_s2_goal_expose',
+            kind: 'Goal',
+            cellIndex: 11,
+            label: 'GOAL',
+            text: 'Goal: expose the mechanics of backchannel moderation decisions.',
+            entityId: null
+          },
+          {
+            id: 'b_s2_goal_trust',
+            kind: 'Goal',
+            cellIndex: 13,
+            label: 'GOAL',
+            text: 'Goal: restore some public trust by making the hidden ledger legible.',
+            entityId: null
+          },
+          {
+            id: 'b_s2_obstacle_panic',
+            kind: 'Obstacle',
+            cellIndex: 69,
+            label: 'OBSTACLE',
+            text: 'Obstacle: internal panic over exposure of names, judgments, and bias.',
+            entityId: null
+          },
+          {
+            id: 'b_s2_obstacle_reputation',
+            kind: 'Obstacle',
+            cellIndex: 76,
+            label: 'OBSTACLE',
+            text: 'Obstacle: reputational risk to both the platform and disclosing actors.',
+            entityId: null
+          },
+          {
+            id: 'b_s2_timepoint',
+            kind: 'Timepoint',
+            cellIndex: 24,
+            label: 'TIME',
+            text: 'Timepoint: public disclosure moment when private grids become visible.',
+            entityId: null
+          }
+        ];
+
+        const scene3 = {
+          id: 'sc_twitter_fork_strict',
+          title: 'Twitter Files // Fork: Strict Enforcement',
+          grid: scene1.grid.slice(),
+          beats: [],
+          parent: 'sc_twitter_backchannel',
+          timestamp: now + 3,
+          gridDiff: [
+            { cell: 13, from: 'Goal', to: 'Obstacle', reason: 'strict enforcement perceived as partisan' }
+          ]
+        };
+
+        scene3.grid[13] = { kind: 'Obstacle', label: 'SCANDAL_BACKFIRE' };
+
+        scene3.beats = [
+          {
+            id: 'b_s3_core',
+            kind: 'Core',
+            cellIndex: 40,
+            label: 'CORE',
+            text: 'Fork: strict enforcement branch where backchannel requests shape policy.',
+            entityId: null
+          },
+          {
+            id: 'b_s3_goal',
+            kind: 'Goal',
+            cellIndex: 14,
+            label: 'GOAL',
+            text: 'Goal: aggressively remove flagged content to minimize perceived harms.',
+            entityId: null
+          },
+          {
+            id: 'b_s3_obstacle_backfire',
+            kind: 'Obstacle',
+            cellIndex: 13,
+            label: 'OBSTACLE',
+            text: 'Obstacle: scandal backfires as enforcement maps cleanly onto one faction.',
+            entityId: null
+          }
+        ];
+
+        return [scene0, scene1, scene2, scene3];
+      },
+
+      bootstrapEntitiesFromScenes() {
+        this.scenes.forEach((scene) => {
+          scene.beats.forEach((beat) => {
+            const label = beat.text.split(' ')[0] || beat.label || beat.kind;
+            const entityId = EntityManager.create(beat.kind, label, scene.id, beat.cellIndex);
+            beat.entityId = entityId;
+          });
+        });
+      },
+
+      addScene() {
+        this.scenes.push(this.createScene(`Scene ${this.scenes.length + 1}`));
+        this.currentIndex = this.scenes.length - 1;
+        this.render();
+        this.flashStatus();
+      },
+
+      forkScene(index) {
+        const source = this.scenes[index];
+        if (!source) return;
+        // Prefer to fork from the first beat if present so we retain origin metadata
+        if (source.beats && source.beats.length) {
+          this.forkSceneFromBeat(index, source.beats[0].id);
+        } else {
+          const fork = JSON.parse(JSON.stringify(source));
+          fork.id = `sc_${Date.now()}`;
+          fork.title = `${source.title} (Fork)`;
+          fork.parent = source.id;
+          fork.timestamp = Date.now();
+          fork.forkOrigin = { type: 'scene' };
+
+          this.scenes.splice(index + 1, 0, fork);
+          this.currentIndex = index + 1;
+          this.render();
+          this.flashStatus();
+        }
+      },
+
+      forkSceneFromBeat(sceneIndex, beatId) {
+        const source = this.scenes[sceneIndex];
+        if (!source) return;
+        const beat = source.beats.find(b => b.id === beatId);
+        const fork = JSON.parse(JSON.stringify(source));
+        fork.id = `sc_${Date.now()}`;
+        fork.title = `${source.title} (Fork: beat)`;
+        fork.parent = source.id;
+        fork.timestamp = Date.now();
+        fork.forkOrigin = {
+          type: 'beat',
+          beatId: beat ? beat.id : null,
+          cellIndex: beat ? beat.cellIndex : null
+        };
+
+        this.scenes.splice(sceneIndex + 1, 0, fork);
+        this.currentIndex = sceneIndex + 1;
+        this.render();
+        this.flashStatus();
+      },
+
+      forkSceneFromCell(sceneIndex, cellIndex) {
+        const source = this.scenes[sceneIndex];
+        if (!source) return;
+        const fork = JSON.parse(JSON.stringify(source));
+        fork.id = `sc_${Date.now()}`;
+        fork.title = `${source.title} (Fork: cell ${cellIndex})`;
+        fork.parent = source.id;
+        fork.timestamp = Date.now();
+        fork.forkOrigin = {
+          type: 'cell',
+          cellIndex
+        };
+
+        this.scenes.splice(sceneIndex + 1, 0, fork);
+        this.currentIndex = sceneIndex + 1;
+        this.render();
+        this.flashStatus();
+      },
+
+      nextScene() {
+        if (this.currentIndex < this.scenes.length - 1) {
+          this.currentIndex++;
+          this.render();
+        }
+      },
+
+      prevScene() {
+        if (this.currentIndex > 0) {
+          this.currentIndex--;
+          this.render();
+        }
+      },
+
+      toggleView() {
+        this.viewMode = this.viewMode === 'single' ? 'grid' : 'single';
+        console.log('[ONYX] toggleView ->', this.viewMode);
+        const swipe = document.getElementById('swipeContainer');
+        const grid = document.getElementById('gridContainer');
+        const toggle = document.getElementById('viewToggle');
+
+        if (this.viewMode === 'single') {
+          swipe.classList.remove('hidden');
+          grid.classList.add('hidden');
+          if (toggle) toggle.textContent = 'GRID';
+        } else {
+          swipe.classList.add('hidden');
+          grid.classList.remove('hidden');
+          if (toggle) toggle.textContent = 'SINGLE';
+        }
+        this.render();
+      },
+
+      render() {
+        console.log('[ONYX] Render viewMode=%s scenes=%d', this.viewMode, this.scenes.length);
+        this.updateCounter();
+        this.renderEntityRegistry();
+
+        if (this.viewMode === 'single') {
+          this.renderSwipeView();
+        } else {
+          this.renderGridView();
+        }
+      },
+
+      renderSwipeView() {
+        const container = document.getElementById('swipeContainer');
+        container.innerHTML = '';
+
+        this.scenes.forEach((scene, index) => {
+          const wrapper = document.createElement('div');
+          wrapper.className = 'scene-wrapper';
+          const component = new SceneComponent(scene, index);
+          wrapper.appendChild(component.render());
+          container.appendChild(wrapper);
+        });
+
+        container.style.transform = `translateX(-${this.currentIndex * 100}%)`;
+      },
+
+      renderGridView() {
+        console.log('[ONYX] renderGridView scenesToShow=%d', this.scenes.length);
+        const container = document.getElementById('gridContainer');
+        if (!container) return;
+        container.innerHTML = '';
+
+        const scenesToShow = this.scenes.length;
+        for (let i = 0; i < scenesToShow; i++) {
+          const scene = this.scenes[i];
+          const wrapper = document.createElement('div');
+          wrapper.className = 'scene-grid-item';
+          if (scene.parent) wrapper.classList.add('forked');
+
+          const component = new SceneComponent(scene, i);
+          wrapper.appendChild(component.render());
+          container.appendChild(wrapper);
+        }
+      },
+
+      renderStoryboardGrid(scene, index, gridEl) {
+        if (!gridEl) return;
+        gridEl.innerHTML = '';
+        scene.grid.forEach((cell, idx) => {
+          const el = document.createElement('div');
+          el.className = 'cell';
+          el.dataset.idx = idx;
+
+          if (cell) {
+            el.innerHTML = ICONS[cell.kind] ? ICONS[cell.kind]() : '';
+            el.classList.add('cell-kind-' + cell.kind);
+            const color = getEntityColor(cell.kind, cell.label);
+            el.style.borderColor = color;
+          }
+
+          gridEl.appendChild(el);
+        });
+      },
+
+      renderStoryboardMeta(scene, metaEl) {
+        if (!metaEl) return;
+
+        const counts = {};
+        const entities = [];
+
+        scene.grid.forEach((cell) => {
+          if (!cell) return;
+          counts[cell.kind] = (counts[cell.kind] || 0) + 1;
+          if (cell.kind === 'Entity' || cell.kind === 'Core' || cell.kind === 'Goal' || cell.kind === 'Obstacle') {
+            if (!entities.find(e => e.label === cell.label && e.kind === cell.kind)) {
+              entities.push({ kind: cell.kind, label: cell.label });
+            }
+          }
+        });
+
+        const roleChips = Object.keys(counts).sort().map(kind => {
+          return `<span class="storyboard-role-chip">${kind.substring(0, 3).toUpperCase()}: ${counts[kind]}</span>`;
+        }).join(' ');
+
+        const entityChips = entities.map((e) => {
+          const color = getEntityColor(e.kind, e.label);
+          return `<span class="storyboard-entity-chip" style="border-color:${color};color:${color};">${e.label}</span>`;
+        }).join(' ');
+
+        metaEl.innerHTML = `${roleChips}${entityChips ? ' ' + entityChips : ''}`;
+      },
+
+      updateCounter() {
+        document.getElementById('sceneCounter').textContent = `${this.currentIndex + 1} / ${this.scenes.length}`;
+      },
+
+      renderEntityRegistry() {
+        const list = document.getElementById('entityList');
+        const entities = EntityManager.getAll();
+
+        list.innerHTML = entities.map(entity => {
+          const appearances = Array.from(entity.appearances.entries());
+          const sceneCount = new Set(appearances.map(([sceneId]) => sceneId)).size;
+          const totalCount = appearances.length;
+          return `
+            <div class="entity-item" onclick="SceneManager.selectEntity('${entity.id}')">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 20px; height: 20px;">${ICONS[entity.type] ? ICONS[entity.type]() : ''}</div>
+                <div>
+                  <div style="font-weight: 600;">${entity.shortId || ''} · ${entity.label}</div>
+                  <div style="font-size: 8px; color: var(--text-dim);">${entity.type} · ${sceneCount} scenes · ${totalCount} cells</div>
+                </div>
+              </div>
+              <div class="entity-appearances">
+                ${appearances.map(([sceneId, cell]) => `${sceneId}·${cell}`).join(', ')}
+              </div>
+            </div>
+          `;
+        }).join('');
+      },
+
+      selectEntity(entityId) {
+        const entity = EntityManager.get(entityId);
+        if (!entity) return;
+
+        document.querySelectorAll('.cell').forEach(cell => {
+          cell.style.boxShadow = '';
+        });
+
+        document.querySelectorAll('.beat').forEach(b => {
+          b.classList.remove('entity-match');
+        });
+
+        entity.appearances.forEach((cellIndex, sceneId) => {
+          const sceneIndex = this.scenes.findIndex(s => s.id === sceneId);
+          if (sceneIndex === -1) return;
+          const cell = document.querySelector(`#grid-${sceneIndex} .cell[data-idx="${cellIndex}"]`);
+          if (cell) {
+            cell.style.boxShadow = '0 0 0 2px var(--entity) inset';
+          }
+
+          const beats = this.scenes[sceneIndex].beats;
+          beats.forEach(beat => {
+            if (beat.entityId === entityId) {
+              const beatEl = document.querySelector(`#timeline-${sceneIndex} .beat[data-id="${beat.id}"]`);
+              if (beatEl) beatEl.classList.add('entity-match');
+            }
+          });
+        });
+      },
+
+      bindEvents() {
+        document.getElementById('prevBtn').onclick = () => this.prevScene();
+        document.getElementById('nextBtn').onclick = () => this.nextScene();
+        document.getElementById('addBtn').onclick = () => this.addScene();
+        document.getElementById('forkBtn').onclick = () => this.forkScene(this.currentIndex);
+        document.getElementById('viewToggle').onclick = () => this.toggleView();
+
+        document.getElementById('registryToggle').onclick = () => {
+          document.getElementById('entityRegistry').classList.toggle('open');
+        };
+
+        document.addEventListener('keydown', (e) => {
+          if (e.metaKey || e.ctrlKey) {
+            if (e.key === 'ArrowRight') this.nextScene();
+            if (e.key === 'ArrowLeft') this.prevScene();
+          }
+        });
+      },
+
+      flashStatus() {
+        const status = document.getElementById('sceneCounter');
+        status.style.color = 'var(--scene)';
+        setTimeout(() => { status.style.color = 'var(--text-dim)'; }, 500);
+      }
+    };
+
+    // ===== SWIPE MANAGER (Mobile) =====
+    const SwipeManager = {
+      startX: 0,
+      currentX: 0,
+      isDragging: false,
+
+      init() {
+        const container = document.getElementById('swipeContainer');
+        container.addEventListener('touchstart', (e) => this.start(e.touches[0].clientX), { passive: true });
+        container.addEventListener('touchmove', (e) => this.move(e.touches[0].clientX), { passive: true });
+        container.addEventListener('touchend', () => this.end());
+
+        container.addEventListener('mousedown', (e) => this.start(e.clientX));
+        container.addEventListener('mousemove', (e) => this.move(e.clientX));
+        container.addEventListener('mouseup', () => this.end());
+        container.addEventListener('mouseleave', () => this.end());
+      },
+
+      start(x) {
+        this.startX = x;
+        this.currentX = x;
+        this.isDragging = true;
+        document.getElementById('swipeContainer').classList.add('dragging');
+      },
+
+      move(x) {
+        if (!this.isDragging) return;
+        this.currentX = x;
+        const delta = x - this.startX;
+        const container = document.getElementById('swipeContainer');
+        const current = SceneManager.currentIndex;
+        const translate = -current * 100 + (delta / window.innerWidth) * 100;
+        container.style.transform = `translateX(${translate}%)`;
+      },
+
+      end() {
+        if (!this.isDragging) return;
+        this.isDragging = false;
+        const container = document.getElementById('swipeContainer');
+        container.classList.remove('dragging');
+
+        const delta = this.currentX - this.startX;
+        if (Math.abs(delta) > 50) {
+          if (delta > 0) SceneManager.prevScene();
+          else SceneManager.nextScene();
+        }
+
+        container.style.transform = `translateX(-${SceneManager.currentIndex * 100}%)`;
+      }
+    };
+
+    // ===== INITIALIZATION =====
+    document.addEventListener('DOMContentLoaded', () => {
+      SceneManager.init();
+      SwipeManager.init();
+
+      // Double-tap to toggle view
+      let lastTap = 0;
+      document.addEventListener('touchend', () => {
+        const now = Date.now();
+        if (now - lastTap < 300) {
+          SceneManager.toggleView();
+        }
+        lastTap = now;
+      });
+    });
+  </script>
+</body>
+</html>

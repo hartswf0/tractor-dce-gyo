@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ANCESTOR // OLOG_COMPOSITE</title>
+    <style>
+        /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+           ◻[APP] ROOT APPLICATION ENTITY
+           → UI_SUBSTRATE: Cascading variable ontology (Reality skinning)
+           → THEME_SYSTEM: Dynamic aesthetic boundary (Light/dark distinction)
+           ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+        :root {
+            --bg: #050505; --panel: #0a0a0a; --surface: #111; --border: #222;
+            --text-main: #e4e4e7; --text-muted: #52525b; --wire-base: #222;
+            --func: #f43f5e; --var: #2dd4bf; --tag: #8b5cf6; --ctrl: #fbbf24;
+            --focus: #ffffff; --up: #3b82f6; --down: #10b981;
+            --font: 'JetBrains Mono', 'Menlo', monospace; --ease: cubic-bezier(0.19, 1, 0.22, 1);
+        }
+        [data-theme="light"] {
+            --bg: #f4f4f5; --panel: #ffffff; --surface: #e4e4e7; --border: #d4d4d8;
+            --text-main: #18181b; --text-muted: #a1a1aa; --wire-base: #e4e4e7;
+            --focus: #000000;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            margin: 0; height: 100vh; height: 100dvh;
+            background: var(--bg); color: var(--text-main);
+            font-family: var(--font); display: flex; flex-direction: column;
+            overflow: hidden; transition: background 0.3s, color 0.3s;
+        }
+
+        /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+           ◻[BLD] MODAL SYSTEM (Sideblade)
+           → Modal utility space (Hidden/revealed distinction)
+           → blade-overlay: Click-off dismissal with blur affordance
+           ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+        .sideblade {
+            position: fixed; top: 0; left: 0; bottom: 0; width: 320px;
+            background: var(--bg); border-right: 1px solid var(--border);
+            transform: translateX(-100%); transition: transform 0.3s var(--ease);
+            z-index: 999; padding: 20px; display: flex; flex-direction: column; gap: 24px;
+            box-shadow: 10px 0 50px rgba(0,0,0,0.5);
+        }
+        .sideblade.open { transform: translateX(0); }
+        .blade-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(2px);
+            z-index: 900; opacity: 0; pointer-events: none; transition: opacity 0.3s;
+        }
+        .blade-overlay.open { opacity: 1; pointer-events: all; }
+        .blade-header {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid var(--border); padding-bottom: 10px;
+        }
+        .blade-title { font-weight: 900; letter-spacing: 0.2em; font-size: 12px; color: var(--text-main); }
+        .close-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 14px; }
+        .section-label {
+            font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em;
+        }
+        .tool-btn {
+            flex: 1; padding: 10px; background: var(--panel); border: 1px solid var(--border);
+            color: var(--text-main); font-family: inherit; font-size: 10px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            border-radius: 4px; transition: 0.2s;
+        }
+        .tool-btn:hover { border-color: var(--func); color: var(--func); }
+        .tool-btn.active { background: var(--func); color: #000; border-color: var(--func); }
+        textarea.ingest-box {
+            background: var(--panel); border: 1px solid var(--border); color: var(--text-main);
+            width: 100%; height: 120px; padding: 10px; font-family: inherit; font-size: 10px; resize: none;
+        }
+
+        /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+           ◻[NAV] NAVIGATION DECK (Symbolic compass)
+           → Ontological orientation through labeled symbols
+           → Chip system for dependency cross-referencing
+           ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+        header {
+            height: 48px; flex: 0 0 auto; background: var(--bg);
+            border-bottom: 1px solid var(--border); display: flex; align-items: center;
+            padding: 0 16px; gap: 16px; z-index: 500;
+        }
+        .menu-trigger {
+            width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+            border: 1px solid var(--border); background: var(--panel); color: var(--func);
+            font-size: 16px; cursor: pointer; border-radius: 50%; transition: all 0.2s var(--ease);
+        }
+        .menu-trigger:hover { transform: scale(1.1); border-color: var(--func); box-shadow: 0 0 10px var(--func); }
+        .nav-deck {
+            flex: 1; display: flex; align-items: center; justify-content: center; gap: 12px;
+            overflow-x: auto; scrollbar-width: none; height: 100%;
+            mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+        }
+        .nav-group { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 60px; }
+        .nav-label { font-size: 7px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 2px; }
+        .nav-val { font-size: 11px; font-weight: 700; color: var(--text-main); white-space: nowrap; }
+        #nav-focus { color: var(--focus); }
+        .chip {
+            padding: 2px 6px; border-radius: 3px; border: 1px solid var(--border);
+            background: var(--panel); font-size: 9px; cursor: pointer; margin: 0 2px;
+        }
+        .chip:hover { border-color: currentColor; }
+        .chip.up { color: var(--up); }
+        .chip.down { color: var(--down); }
+
+        /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+           ◻[GRD] GRID SYSTEM (9×9 Code cosmos)
+           → Spatial metaphorization of ontological units
+           → Block event surface for interaction affordance
+           ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+        .viewport {
+            flex: 0 0 45vh; background: var(--panel); position: relative; overflow: hidden;
+            display: flex; align-items: center; justify-content: center;
+            border-bottom: 1px solid var(--border);
+        }
+        .grid-lock {
+            height: 90%; aspect-ratio: 1/1; position: relative; max-width: 90vw;
+        }
+        .grid {
+            display: grid; grid-template-columns: repeat(9, 1fr); grid-template-rows: repeat(9, 1fr);
+            gap: 2px; width: 100%; height: 100%; position: relative; z-index: 10;
+        }
+        .block {
+            background: var(--bg); border: 1px solid var(--border); border-radius: 2px;
+            cursor: pointer; position: relative; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; transition: all 0.2s var(--ease);
+        }
+        .block-icon { font-size: 10px; opacity: 0.3; margin-bottom: 2px; }
+        .block-label { font-size: 6px; opacity: 0.5; max-width: 90%; overflow: hidden; white-space: nowrap; font-weight: 500; }
+        .port { position: absolute; width: 3px; height: 3px; background: var(--border); border-radius: 50%; left: 50%; transform: translateX(-50%); transition: 0.2s; }
+        .port.in { top: -2px; } .port.out { bottom: -2px; }
+        /* Interaction States */
+        .block:hover { background: var(--panel); border-color: var(--text-main); z-index: 100; transform: scale(1.15); }
+        .block:active { transform: scale(0.95); }
+        .block.focus {
+            background: var(--focus); border-color: var(--focus); color: var(--bg);
+            z-index: 200; transform: scale(1.2); box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+        .block.focus .block-icon, .block.focus .block-label { opacity: 1; color: var(--bg); font-weight: 800; }
+        .block.focus .port { background: var(--focus); }
+        .block.up { border-color: var(--up); background: rgba(59, 130, 246, 0.1); color: var(--up); z-index: 50; }
+        .block.down { border-color: var(--down); background: rgba(16, 185, 129, 0.1); color: var(--down); z-index: 50; }
+        .block.muted { opacity: 0.05; filter: grayscale(1); transform: scale(0.9); }
+        /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+           ◻[WRS] WIRE SYSTEM (Relational conduits)
+           → SVG path generation for dependency topology
+           → Bezier curve morphology for visual flow
+           ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+        .wire-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 20; overflow: visible; }
+        path.cable { fill: none; stroke: var(--wire-base); stroke-width: 1; opacity: 0.1; transition: opacity 0.3s; }
+        path.cable.active { opacity: 1; stroke-width: 1.5; filter: drop-shadow(0 0 2px currentColor); }
+        path.cable.up { stroke: var(--up); }
+        path.cable.down { stroke: var(--down); }
+
+        /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+           ◻[RSZ] RESIZER SYSTEM (Boundary negotiator)
+           → Dimensional mutability affordance
+           → Row-resize cursor for viewport height modification
+           ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+        .resizer {
+            height: 6px; background: var(--bg); cursor: row-resize; flex-shrink: 0; z-index: 300;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .grip { width: 40px; height: 2px; background: var(--border); border-radius: 2px; transition: 0.2s; }
+        .resizer:hover .grip { background: var(--func); width: 60px; }
+
+        /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+           ◻[EDT] EDITOR SYSTEM (Textual manifold)
+           → Linear code inspection surface
+           → Syntax highlighting morphism
+           ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+        .editor { flex: 1; background: var(--bg); display: flex; position: relative; overflow: hidden; }
+        .code-scroll { flex: 1; overflow-y: auto; padding: 20px 0 100px; scroll-behavior: smooth; }
+        .line { display: flex; padding: 2px 12px; font-size: 11px; line-height: 18px; cursor: pointer; border-left: 3px solid transparent; white-space: pre; color: var(--text-muted); }
+        .line:hover { color: var(--text-main); background: var(--panel); }
+        .line.active { background: var(--panel); border-left-color: var(--focus); color: var(--text-main); }
+        .line.up { border-left-color: var(--up); background: rgba(59, 130, 246, 0.05); }
+        .line.down { border-left-color: var(--down); background: rgba(16, 185, 129, 0.05); }
+        .ln { width: 35px; text-align: right; margin-right: 15px; opacity: 0.3; user-select: none; }
+        /* Syntax highlighting */
+        .kwd { color: var(--func); } .def { color: var(--text-main); font-weight: bold; }
+        .var { color: var(--var); } .tag { color: var(--tag); }
+
+        /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+           ◻[MMP] MINIMAP SYSTEM (Topographical summary)
+           → Canvas-based navigational scaling
+           → Viewport projection indicator
+           ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+        .minimap-rail { width: 48px; border-left: 1px solid var(--border); background: var(--panel); position: relative; z-index: 20; flex-shrink: 0; }
+        canvas { width: 100%; height: 100%; cursor: crosshair; display: block; }
+        .mm-view { position: absolute; left: 0; right: 0; top: 0; height: 0; background: rgba(128,128,128,0.1); border: 1px solid rgba(128,128,128,0.3); pointer-events: none; }
+
+        /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+           ◻[AUD] AUDIO SYSTEM (Sonic affirmation plane)
+           → Temporal signal generation via Web Audio API
+           → FREQ mapping for type-based pitch differentiation
+           ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+        /* Audio system has no visual DOM representation - operates via JS API */
+    </style>
+<base target="_blank">
+</head>
+<body>
+
+    <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+         ◻[NAV] NAVIGATION DECK STRUCTURE
+         → Entity mapping: NAV → deck DOM container
+         → Component mapping: nav-group → categorical organization
+         → Feature mapping: Dynamic chip injection via updateNav()
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <header>
+        <button class="menu-trigger" onclick="toggleBlade()">✦</button>
+        <div class="nav-deck" id="nav-deck">
+            <div class="nav-group">
+                <span class="nav-label">SYSTEM</span>
+                <span class="nav-val" style="color:var(--text-muted)">IDLE</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+         ◻[GRD] GRID SYSTEM STRUCTURE
+         → Entity mapping: GRD → grid-lock container
+         → Component mapping: blocks → 81 DOM elements
+         → Feature mapping: Spatial rendering via renderGrid()
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <div class="viewport" id="viewport">
+        <div class="grid-lock" id="grid-lock">
+            <div class="grid" id="grid"></div>
+            <svg class="wire-canvas" id="wires"></svg>
+        </div>
+    </div>
+
+    <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+         ◻[RSZ] RESIZER SYSTEM STRUCTURE
+         → Entity mapping: RSZ → resizer element
+         → Component mapping: grip → visual handle
+         → Feature mapping: Drag gesture → viewport height mutation
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <div class="resizer" id="resizer"><div class="grip"></div></div>
+
+    <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+         ◻[EDT] EDITOR SYSTEM STRUCTURE
+         → Entity mapping: EDT → editor container
+         → Component mapping: code-scroll → line surface
+         → Component mapping: minimap-rail → canvas summary
+         → Feature mapping: Syntax render + scroll tracking
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <div class="editor">
+        <div class="code-scroll" id="scroller">
+            <div id="code-content"></div>
+        </div>
+        <div class="minimap-rail">
+            <canvas id="minimap"></canvas>
+            <div class="mm-view" id="mm-view"></div>
+        </div>
+    </div>
+
+    <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+         ◻[BLD] MODAL SYSTEM STRUCTURE (Sideblade)
+         → Entity mapping: BLD → sideblade overlay
+         → Component mapping: tool-btn → interactive controls
+         → Component mapping: ingest-box → code injection portal
+         → Feature mapping: Modal toggle + parse cascade
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+    <div class="blade-overlay" id="blade-overlay" onclick="toggleBlade()"></div>
+    <div class="sideblade" id="sideblade">
+        <div class="blade-header">
+            <span class="blade-title">ANCESTOR // UTILITY</span>
+            <button class="close-btn" onclick="toggleBlade()">✕</button>
+        </div>
+        <div class="blade-section">
+            <span class="section-label">Environment</span>
+            <div class="tool-row">
+                <button class="tool-btn" onclick="toggleTheme()">◑ Theme</button>
+                <button class="tool-btn" id="audio-btn" onclick="toggleAudio()">🔊 Audio</button>
+                <button class="tool-btn" onclick="toggleFlow()">▶ Flow</button>
+            </div>
+            <button class="tool-btn" onclick="document.documentElement.requestFullscreen()">⛶ Fullscreen</button>
+        </div>
+        <div class="blade-section">
+            <span class="section-label">Data Ingestion</span>
+            <textarea class="ingest-box" id="paste-input" placeholder="// Paste Source Code..."></textarea>
+            <button class="tool-btn active" onclick="ingest()">LOAD DATA</button>
+        </div>
+        <div class="blade-section" style="margin-top:auto">
+            <span class="section-label">System</span>
+            <div style="font-size:10px; color:var(--text-muted)">
+                v4.0.0 ANCESTOR<br>
+                Nodes: <span id="stat-nodes">0</span> | Wires: <span id="stat-wires">0</span> | Playing: <span id="stat-playing">false</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // ◻[STATE_ENGINE] CORE STATE ENTITY (Unified from OLOG 2)
+        // → lines: Array<String> - Linear address space (Component)
+        // → blocks: Array<Block|null> - 81-cell spatial registry (Component)
+        // → conns: Array<Connection> - Directed graph edges (Component)
+        // → audio: AudioContext|null - Temporal synthesis channel (Component)
+        // → sound: Boolean - Auditory feedback toggle (Component)
+        // → playing: Boolean - Flow progression state (Component)
+        // → filename: String - Source identifier (Component)
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        const STATE = {
+            lines: [],
+            blocks: new Array(81).fill(null),
+            conns: [],
+            audio: null,
+            sound: false,
+            playing: false,
+            filename: 'default'
+        };
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // ◻[PARSER_ENGINE] PARSER ENTITY (Combined patterns from both ologs)
+        // → LEXICAL_PATTERNS: Object<RegExp> - Symbol extraction morphisms
+        // → PRIORITY_HIERARCHY: Object<Number> - Precedence ontology
+        // → DEFINITION_REGISTRY: Object<Number> - Symbol table
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        const PARSER = {
+            patterns: {
+                function: /(?:function|class)\s+(\w+)|(\w+)\s*\(/,
+                variable: /(?:const|let|var)\s+(\w+)/,
+                tag: /^<(\w+)/,
+                cssClass: /\.([\w-]+)/g,  // From OLOG 2 CSS parsing
+                cssId: /#([\w-]+)/g        // From OLOG 2 CSS parsing
+            },
+            priority: { function: 5, class: 5, tag: 4, style: 3, control: 2, variable: 1 },
+            registry: {}
+        };
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // ◻[AUDIO_ENGINE] AUDIO SYSTEM (Combined capabilities)
+        // → FREQ: Object<Number> - Type-to-frequency mapping (Component)
+        // → ctx: AudioContext - Oscillator generation (Component)
+        // → gain: GainNode - Master volume (Component)
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        const AUDIO = {
+            ctx: null,
+            gain: null,
+            FREQ: {
+                function: 600, variable: 500, tag: 700,
+                up: 300, down: 800, focus: 900
+            },
+            init() {
+                if (this.ctx) return;
+                const AC = window.AudioContext || window.webkitAudioContext;
+                this.ctx = new AC();
+                this.gain = this.ctx.createGain();
+                this.gain.gain.value = 0.05;
+                this.gain.connect(this.ctx.destination);
+            },
+            tick(freq = 600) {
+                if (!STATE.sound || !this.ctx) return;
+                if (this.ctx.state === 'suspended') this.ctx.resume();
+                const osc = this.ctx.createOscillator();
+                const env = this.ctx.createGain();
+                osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(freq / 2, this.ctx.currentTime + 0.05);
+                env.gain.setValueAtTime(0.5, this.ctx.currentTime);
+                env.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.05);
+                osc.connect(env).connect(this.gain);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.05);
+            },
+            hum(type) {
+                if (!STATE.sound || !this.ctx) return;
+                const freq = this.FREQ[type] || 400;
+                const osc = this.ctx.createOscillator();
+                const env = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                env.gain.setValueAtTime(0, this.ctx.currentTime);
+                env.gain.linearRampToValueAtTime(0.1, this.ctx.currentTime + 0.1);
+                env.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.4);
+                osc.connect(env).connect(this.gain);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.4);
+            }
+        };
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // ◻[DOM_REGISTRY] RENDER ENGINE CACHE (From OLOG 2)
+        // → Cached element references for direct manipulation
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        const DOM = {
+            grid: document.getElementById('grid'),
+            wires: document.getElementById('wires'),
+            code: document.getElementById('code-content'),
+            scroll: document.getElementById('scroller'),
+            deck: document.getElementById('nav-deck'),
+            lock: document.getElementById('grid-lock'),
+            mm: document.getElementById('minimap'),
+            mmv: document.getElementById('mm-view'),
+            vp: document.getElementById('viewport')
+        };
+
+        let activeIdx = null;
+        let flowInterval = null;
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // FEATURE: CODE_PARSE → Morphism: parse() transforms source → STATE
+        // → Operates on: STATE.lines, STATE.blocks, STATE.conns
+        // → Systems: LEXICAL_PATTERNS matching, PRIORITY_HIERARCHY resolution, chunking
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        function parse(source) {
+            STATE.lines = source.split('\n');
+            STATE.blocks = new Array(81).fill(null);
+            STATE.conns = [];
+            PARSER.registry = {};
+
+            const lpc = Math.ceil(STATE.lines.length / 81);
+            STATE.lines.forEach((line, i) => {
+                const cellIdx = Math.floor(i / lpc);
+                const trim = line.trim();
+                let type = null, name = null, pri = 0;
+
+                // Multi-pattern lexical analysis
+                const fnMatch = trim.match(PARSER.patterns.function);
+                if (fnMatch && !trim.includes('=')) {
+                    type = 'function';
+                    name = fnMatch[1] || fnMatch[2];
+                    pri = PARSER.priority.function;
+                }
+                const varMatch = trim.match(PARSER.patterns.variable);
+                if (varMatch && !type) {
+                    type = 'variable';
+                    name = varMatch[1];
+                    pri = PARSER.priority.variable;
+                }
+                const tagMatch = trim.match(PARSER.patterns.tag);
+                if (tagMatch && !type) {
+                    type = 'tag';
+                    name = tagMatch[1].toUpperCase();
+                    pri = PARSER.priority.tag;
+                }
+
+                if (type && name) {
+                    const existing = STATE.blocks[cellIdx];
+                    if (!existing || existing.pri < pri) {
+                        STATE.blocks[cellIdx] = {
+                            idx: cellIdx, type, name, matchKey: name,
+                            line: i, pri, deps: [], callers: []
+                        };
+                        PARSER.registry[name] = cellIdx;
+                    }
+                }
+            });
+
+            // Dependency wiring pass
+            STATE.lines.forEach((line, i) => {
+                const cellIdx = Math.floor(i / lpc);
+                const fromBlock = STATE.blocks[cellIdx];
+                const trim = line.trim();
+                const words = [...trim.matchAll(/(\w+)/g)];
+
+                for (const m of words) {
+                    const target = m[1];
+                    const toIdx = PARSER.registry[target];
+                    if (toIdx !== undefined && toIdx !== cellIdx) {
+                        STATE.conns.push({ from: cellIdx, to: toIdx });
+                        if (fromBlock) fromBlock.deps.push(toIdx);
+                        const toBlock = STATE.blocks[toIdx];
+                        if (toBlock) toBlock.callers.push(cellIdx);
+                    }
+                }
+            });
+
+            // Deduplication
+            STATE.conns = [...new Set(STATE.conns.map(JSON.stringify))].map(JSON.parse);
+            STATE.blocks.forEach(b => {
+                if (b) {
+                    b.deps = [...new Set(b.deps)];
+                    b.callers = [...new Set(b.callers)];
+                }
+            });
+
+            updateStats();
+        }
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // FEATURE: VISUAL_RENDER → Morphism: render() projects STATE → DOM
+        // → Operates on: GRID, WIRES, CODE, HUD
+        // → Systems: Grid synthesis, SVG path generation, syntax highlighting
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        function render() {
+            // Render Grid (9×9)
+            DOM.grid.innerHTML = '';
+            const lpc = Math.ceil(STATE.lines.length / 81);
+            for (let i = 0; i < 81; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'block';
+                cell.dataset.index = i;
+                const block = STATE.blocks[i];
+                if (block) {
+                    const icon = block.type === 'function' ? 'ƒ' : block.type === 'tag' ? '<>' : '=';
+                    cell.innerHTML = `<div class="port in"></div><div class="block-icon">${icon}</div><div class="block-label">${block.name}</div><div class="port out"></div>`;
+                    cell.setAttribute('data-type', block.type);
+                } else {
+                    cell.style.opacity = '0.1';
+                    cell.innerHTML = '·';
+                }
+                cell.onmouseenter = () => { if (activeIdx === null) { xray(i); AUDIO.tick(800 + i * 5); } };
+                cell.onclick = (e) => { e.stopPropagation(); activate(i); };
+                DOM.grid.appendChild(cell);
+            }
+
+            // Render Code Lines
+            DOM.code.innerHTML = '';
+            STATE.lines.forEach((line, i) => {
+                const div = document.createElement('div');
+                div.className = 'line';
+                div.id = `L${i}`;
+                let html = line.replace(/</g, '&lt;');
+                // Syntax highlighting
+                html = html.replace(/(function|class|const|let|var|if|return)/g, '<span class="kwd">$1</span>');
+                html = html.replace(/([a-zA-Z0-9_]+)\(/g, '<span class="var">$1</span>(');
+                const block = STATE.blocks[Math.floor(i / lpc)];
+                if (block && line.includes(block.name)) {
+                    html = html.replace(new RegExp(block.name, 'g'), `<span class="def">${block.name}</span>`);
+                }
+                div.innerHTML = `<div class="ln">${i}</div>${html}`;
+                div.onclick = () => activate(Math.floor(i / lpc));
+                DOM.code.appendChild(div);
+            });
+
+            renderMinimap();
+            drawWires();
+            updateNav();
+        }
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // FEATURE: BLOCK_ACTIVATE → Morphism: activate() transforms focus state
+        // → Operates on: activeIdx, BLOCK classes, HUD, WIRES
+        // → Systems: CSS class cascade, chip generation, scroll sync
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        function activate(idx) {
+            if (!STATE.blocks[idx]) return;
+            activeIdx = idx;
+            xray(idx);
+            scrollToLine(idx * Math.ceil(STATE.lines.length / 81));
+            AUDIO.hum('up');
+            if (navigator.vibrate) navigator.vibrate(10);
+        }
+
+        function xray(idx) {
+            // Reset all states
+            document.querySelectorAll('.block').forEach(b => b.className = 'block');
+            document.querySelectorAll('.cable').forEach(w => w.setAttribute('class', 'cable'));
+            document.querySelectorAll('.line').forEach(l => l.className = 'line');
+
+            if (idx === null || !STATE.blocks[idx]) {
+                document.querySelectorAll('.block').forEach(b => b.classList.remove('muted'));
+                return;
+            }
+
+            const block = STATE.blocks[idx];
+            const lpc = Math.ceil(STATE.lines.length / 81);
+
+            // Mute all
+            document.querySelectorAll('.block').forEach(b => b.classList.add('muted'));
+            document.querySelectorAll('.cable').forEach(w => w.style.opacity = '0.05');
+
+            // Focus target
+            const targetEl = DOM.grid.children[idx];
+            targetEl.classList.remove('muted');
+            targetEl.classList.add('focus');
+            for (let i = idx * lpc; i < (idx + 1) * lpc; i++) {
+                document.getElementById(`L${i}`)?.classList.add('active');
+            }
+
+            // Highlight callers (upstream)
+            block.callers.forEach(c => {
+                DOM.grid.children[c]?.classList.remove('muted');
+                DOM.grid.children[c]?.classList.add('up');
+                const w = document.querySelector(`path[data-from="${c}"][data-to="${idx}"]`);
+                if (w) { w.setAttribute('class', 'cable active up'); w.style.opacity = '1'; }
+                document.getElementById(`L${c * lpc}`)?.classList.add('up');
+            });
+
+            // Highlight deps (downstream)
+            block.deps.forEach(d => {
+                DOM.grid.children[d]?.classList.remove('muted');
+                DOM.children[d]?.classList.add('down');
+                const w = document.querySelector(`path[data-from="${idx}"][data-to="${d}"]`);
+                if (w) { w.setAttribute('class', 'cable active down'); w.style.opacity = '1'; }
+                document.getElementById(`L${d * lpc}`)?.classList.add('down');
+            });
+
+            updateNav(block);
+        }
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // FEATURE: DEPENDENCY_TRACE → Morphism: HUD chip synthesis
+        // → Operates on: NAV deck, BLOCK callers/deps
+        // → Systems: Chip instantiation with onclick recursion
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        function updateNav(data = null) {
+            DOM.deck.innerHTML = '';
+            if (!data) {
+                DOM.deck.innerHTML = `<div class="nav-group"><span class="nav-label">SYSTEM</span><span class="nav-val" style="color:var(--text-muted)">IDLE</span></div>`;
+                return;
+            }
+            // Focus chip
+            const focusGrp = document.createElement('div'); focusGrp.className = 'nav-group';
+            focusGrp.innerHTML = `<span class="nav-label">FOCUS</span><span class="nav-val" id="nav-focus">${data.name}</span>`;
+            DOM.deck.appendChild(focusGrp);
+            // Callers (upstream)
+            const callersGrp = document.createElement('div'); callersGrp.className = 'nav-group';
+            callersGrp.innerHTML = `<span class="nav-label">USED BY</span><div id="callers-chips" style="display:flex"></div>`;
+            DOM.deck.appendChild(callersGrp);
+            if (data.callers.length === 0) document.getElementById('callers-chips').innerHTML = `<span style="font-size:9px; opacity:0.5">ROOT</span>`;
+            else data.callers.forEach(c => document.getElementById('callers-chips').appendChild(mkChip(c, 'up')));
+            // Deps (downstream)
+            const depsGrp = document.createElement('div'); depsGrp.className = 'nav-group';
+            depsGrp.innerHTML = `<span class="nav-label">USES</span><div id="deps-chips" style="display:flex"></div>`;
+            DOM.deck.appendChild(depsGrp);
+            if (data.deps.length === 0) document.getElementById('deps-chips').innerHTML = `<span style="font-size:9px; opacity:0.5">LEAF</span>`;
+            else data.deps.forEach(d => document.getElementById('deps-chips').appendChild(mkChip(d, 'down')));
+        }
+
+        function mkChip(idx, cls) {
+            const block = STATE.blocks[idx];
+            const chip = document.createElement('div');
+            chip.className = `chip ${cls}`;
+            chip.innerText = block.name;
+            chip.onclick = (e) => { e.stopPropagation(); activate(idx); };
+            return chip;
+        }
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // FEATURE: FLOW_PLAYBACK → Morphism: Sequential block activation
+        // → Operates on: STATE.playing, blocks, AUDIO
+        // → Systems: Interval-based iteration, pulse animation
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        function toggleFlow() {
+            STATE.playing = !STATE.playing;
+            const btn = document.querySelector('#audio-btn');
+            btn.classList.toggle('active');
+            document.getElementById('stat-playing').innerText = STATE.playing;
+            if (STATE.playing) {
+                let current = 0;
+                flowInterval = setInterval(() => {
+                    if (current >= 81) current = 0;
+                    if (STATE.blocks[current]) {
+                        activate(current);
+                        const block = STATE.blocks[current];
+                        AUDIO.sfx(block.type, 200);
+                    }
+                    current++;
+                }, 800);
+            } else {
+                clearInterval(flowInterval);
+                xray(null);
+            }
+        }
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // FEATURE: AUDIO_SYNTHESIS → Morphism: sfx() generates temporal signals
+        // → Operates on: AUDIO.ctx, STATE.sound
+        // → Systems: Oscillator → Gain → Destination pipeline
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        function sfx(type, duration) {
+            if (!STATE.sound || !AUDIO.ctx) return;
+            const osc = AUDIO.ctx.createOscillator();
+            const env = AUDIO.ctx.createGain();
+            const freq = AUDIO.FREQ[type] || 500;
+            osc.frequency.setValueAtTime(freq, AUDIO.ctx.currentTime);
+            env.gain.setValueAtTime(0.3, AUDIO.ctx.currentTime);
+            env.gain.exponentialRampToValueAtTime(0.001, AUDIO.ctx.currentTime + duration / 1000);
+            osc.connect(env).connect(AUDIO.gain);
+            osc.start();
+            osc.stop(AUDIO.ctx.currentTime + duration / 1000);
+        }
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // FEATURE: RESPONSIVE_LAYOUT → Morphism: ResizeObserver triggers wire redraw
+        // → Operates on: GRID_CONTAINER bounding box
+        // → Systems: Bezier recalculation, xray refresh
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        function drawWires() {
+            DOM.wires.innerHTML = '';
+            const cr = DOM.lock.getBoundingClientRect();
+            if (cr.width === 0) return;
+            const unique = [...new Set(STATE.conns.map(JSON.stringify))].map(JSON.parse);
+            unique.forEach(e => {
+                const fromEl = DOM.grid.children[e.from];
+                const toEl = DOM.grid.children[e.to];
+                if (!fromEl || !toEl) return;
+                const r1 = fromEl.getBoundingClientRect();
+                const r2 = toEl.getBoundingClientRect();
+                const x1 = r1.left - cr.left + r1.width / 2;
+                const y1 = r1.bottom - cr.top - 2;
+                const x2 = r2.left - cr.left + r2.width / 2;
+                const y2 = r2.top - cr.top + 2;
+                const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                path.setAttribute("d", `M ${x1} ${y1} C ${x1} ${y1 + 20}, ${x2} ${y2 - 20}, ${x2} ${y2}`);
+                path.setAttribute("class", "cable");
+                path.dataset.from = e.from;
+                path.dataset.to = e.to;
+                DOM.wires.appendChild(path);
+            });
+        }
+
+        const ro = new ResizeObserver(() => { drawWires(); if (activeIdx !== null) xray(activeIdx); });
+        ro.observe(DOM.lock);
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // FEATURE: MMP_RENDER → Morphism: Canvas line rasterization
+        // → Operates on: STATE.lines, DOM.mm canvas
+        // → Systems: fillRect per line with type-based coloration
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        function renderMinimap() {
+            const ctx = DOM.mm.getContext('2d');
+            const rect = DOM.mm.getBoundingClientRect();
+            DOM.mm.width = rect.width; DOM.mm.height = rect.height;
+            const lh = rect.height / STATE.lines.length;
+            STATE.lines.forEach((line, i) => {
+                if (!line.trim()) return;
+                const block = STATE.blocks[Math.floor(i / Math.ceil(STATE.lines.length / 81))];
+                ctx.fillStyle = block && block.type === 'function' ? '#f43f5e' : '#333';
+                ctx.fillRect(0, i * lh, rect.width, lh);
+            });
+        }
+
+        DOM.scroll.addEventListener('scroll', () => {
+            const pct = DOM.scroll.scrollTop / (DOM.scroll.scrollHeight - DOM.scroll.clientHeight);
+            const h = DOM.mm.getBoundingClientRect().height;
+            const vh = (DOM.scroll.clientHeight / DOM.scroll.scrollHeight) * h;
+            DOM.mmv.style.height = `${vh}px`;
+            DOM.mmv.style.top = `${pct * (h - vh)}px`;
+        });
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // FEATURE: CODE_INGESTION → Morphism: ingest() recycles modal → parse → render
+        // → Operates on: STATE, modal state
+        // → Systems: Value extraction, cascade trigger
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        function ingest() {
+            const val = document.getElementById('paste-input').value;
+            if (val.trim()) {
+                STATE.filename = 'custom';
+                parse(val);
+                render();
+                toggleBlade();
+            }
+        }
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // UI UTILITY MORPHISMS (Theme, Audio, Modal, Scroll)
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        function toggleTheme() {
+            document.body.dataset.theme = document.body.dataset.theme === 'dark' ? 'light' : 'dark';
+            setTimeout(drawWires, 100);
+        }
+
+        function toggleAudio() {
+            AUDIO.init();
+            STATE.sound = !STATE.sound;
+            document.getElementById('audio-btn').classList.toggle('active');
+        }
+
+        function toggleBlade() {
+            document.getElementById('sideblade').classList.toggle('open');
+            document.getElementById('blade-overlay').classList.toggle('open');
+        }
+
+        function scrollToLine(idx) {
+            const el = document.getElementById(`L${idx}`);
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // ◻[RSZ] RESIZER DRAG MORPHISM
+        // → Event chain: mousedown → mousemove → mouseup
+        // → Transforms: viewport height dimension
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        const resizer = document.getElementById('resizer');
+        let isResizing = false, startY, startH;
+        resizer.addEventListener('mousedown', e => { isResizing = true; startY = e.clientY; startH = DOM.vp.getBoundingClientRect().height; });
+        window.addEventListener('mousemove', e => {
+            if (!isResizing) return;
+            const newH = startH + (e.clientY - startY);
+            if (newH > 100 && newH < window.innerHeight * 0.8) DOM.vp.style.flex = `0 0 ${newH}px`;
+            drawWires();
+        });
+        window.addEventListener('mouseup', () => isResizing = false);
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // GLOBAL EVENT BINDING (Clear focus on body click)
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        document.body.addEventListener('click', () => {
+            if (!event.target.closest('.block') && !event.target.closest('.line')) {
+                activeIdx = null;
+                xray(null);
+            }
+        });
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // STATISTICS UPDATE (Provenance tracking)
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        function updateStats() {
+            document.getElementById('stat-nodes').innerText = STATE.blocks.filter(b => b).length;
+            document.getElementById('stat-wires').innerText = STATE.conns.length;
+        }
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // BOOT SEQUENCE: Initial parse of self-referential source
+        // → parse() → render() → minimap → wire observer
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        parse(document.documentElement.outerHTML);
+        render();
+        updateStats();
+    </script>
+</body>
+</html>
