@@ -314,6 +314,7 @@
       </div>
       <textarea class="ingest" id="paste-input" placeholder="// Paste code to replace reality..." data-olog-component="C8.2:IngestionPort"></textarea>
       <button class="btn" style="width:100%; margin-top:8px; border-color:var(--func); color:var(--func)" onclick="APP.UI.ingest()" data-olog-morphism="M33_INGEST_CODE">LOAD</button>
+      <button class="btn" style="width:100%; margin-top:4px; font-size:9px;" onclick="APP.UI.loadDemo()">Load demo JSON</button>
     </div>
     
     <!-- THEMING: OLOG 1 Feature F0.1, OLOG 2 F13_VIEW_SWITCH ── -->
@@ -1023,6 +1024,28 @@
             setTimeout(() => APP.RENDERER.renderMinimap(), 100); // Re-render for colors
             console.log('[M0.1.1] Theme set to:', theme);
           }
+        },
+
+        // Convenience: load demo LEGOS multi-channel JSON from same directory
+        loadDemo: function() {
+          const url = 'legos-multi-channel-1764651203785.json';
+          console.log('[ONYX-ABS] Loading demo JSON from', url);
+          fetch(url)
+            .then(function(res) {
+              if (!res.ok) throw new Error('HTTP ' + res.status + ' ' + res.statusText);
+              return res.json();
+            })
+            .then(function(data) {
+              try {
+                APP.LEGOS.loadFromJson(data);
+                console.log('[ONYX-ABS] Demo JSON loaded into ONYX Abs + SceneCollection');
+              } catch (e) {
+                console.error('[ONYX-ABS] Failed to load demo JSON into ONYX Abs:', e);
+              }
+            })
+            .catch(function(err) {
+              console.error('[ONYX-ABS] Failed to fetch demo JSON:', err);
+            });
         },
         
         // M33_INGEST_CODE: Reality replacement / LEGOS ingest
