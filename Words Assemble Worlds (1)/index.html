@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WORDS ASSEMBLE WORLDS · Image Script</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #020617;
+      color: #e5e7eb;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      padding: 10px 16px;
+      background: #020617;
+      border-bottom: 1px solid #111827;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+      font-size: 13px;
+    }
+
+    header h1 {
+      font-size: 14px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #fbbf24;
+    }
+
+    header .meta {
+      font-size: 11px;
+      color: #9ca3af;
+      text-align: right;
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 10px 16px 14px 16px;
+      gap: 8px;
+    }
+
+    .stage {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at top, #111827, #020617);
+      border: 1px solid #111827;
+      border-radius: 6px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .stage img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      image-rendering: auto;
+      background: #000;
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    .controls-left,
+    .controls-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    button.nav-btn {
+      background: #020617;
+      color: #e5e7eb;
+      border: 1px solid #1f2937;
+      padding: 4px 8px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      border-radius: 3px;
+    }
+
+    button.nav-btn:hover {
+      border-color: #38bdf8;
+      color: #f9fafb;
+    }
+
+    .slide-indicator {
+      font-size: 11px;
+      color: #d1d5db;
+    }
+
+    .hint {
+      font-size: 10px;
+      color: #6b7280;
+    }
+
+    .filename {
+      font-family: "Courier New", monospace;
+      font-size: 11px;
+      color: #9ca3af;
+    }
+
+    @media (max-width: 640px) {
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      header .meta {
+        text-align: left;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>WORDS ASSEMBLE WORLDS · PNG SCRIPT</h1>
+    <div class="meta">
+      <div>Folder: <code>Words Assemble Worlds (1)</code></div>
+      <div>Use ← → or click buttons to advance.</div>
+    </div>
+  </header>
+
+  <main>
+    <div class="stage">
+      <img id="slideImage" src="" alt="Slide" />
+    </div>
+
+    <div class="controls">
+      <div class="controls-left">
+        <button class="nav-btn" id="prevBtn">◀ Prev</button>
+        <button class="nav-btn" id="nextBtn">Next ▶</button>
+        <div class="slide-indicator" id="slideIndicator"></div>
+      </div>
+      <div class="controls-right">
+        <div class="filename" id="filenameLabel"></div>
+        <div class="hint">Keys: ← / → · Home / End jump</div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Simple ordered list of slides (15 PNGs in this folder)
+    const slides = [
+      '1.png',
+      '2.png',
+      '3.png',
+      '4.png',
+      '5.png',
+      '6.png',
+      '7.png',
+      '8.png',
+      '9.png',
+      '10.png',
+      '11.png',
+      '12.png',
+      '13.png',
+      '14.png',
+      '15.png'
+    ];
+
+    let currentIndex = 0;
+
+    const imgEl = document.getElementById('slideImage');
+    const indicatorEl = document.getElementById('slideIndicator');
+    const filenameEl = document.getElementById('filenameLabel');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+
+    function clampIndex(i) {
+      if (i < 0) return 0;
+      if (i >= slides.length) return slides.length - 1;
+      return i;
+    }
+
+    function updateSlide() {
+      const file = slides[currentIndex];
+      imgEl.src = file;
+      imgEl.alt = `Slide ${currentIndex + 1}: ${file}`;
+      indicatorEl.textContent = `Slide ${currentIndex + 1} / ${slides.length}`;
+      filenameEl.textContent = file;
+
+      prevBtn.disabled = currentIndex === 0;
+      nextBtn.disabled = currentIndex === slides.length - 1;
+    }
+
+    function goNext() {
+      if (currentIndex < slides.length - 1) {
+        currentIndex++;
+        updateSlide();
+      }
+    }
+
+    function goPrev() {
+      if (currentIndex > 0) {
+        currentIndex--;
+        updateSlide();
+      }
+    }
+
+    prevBtn.addEventListener('click', goPrev);
+    nextBtn.addEventListener('click', goNext);
+
+    document.addEventListener('keydown', (ev) => {
+      if (ev.key === 'ArrowRight') {
+        goNext();
+      } else if (ev.key === 'ArrowLeft') {
+        goPrev();
+      } else if (ev.key === 'Home') {
+        currentIndex = 0;
+        updateSlide();
+      } else if (ev.key === 'End') {
+        currentIndex = slides.length - 1;
+        updateSlide();
+      }
+    });
+
+    // Initialize
+    updateSlide();
+  </script>
+</body>
+</html>
