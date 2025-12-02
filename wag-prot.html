@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>W.A.G. PROTOCOL | COGNITIVE ARCHITECT</title>
+    <style>
+        :root {
+            --bg-dark: #050505;
+            --bg-panel: #0f0f0f;
+            --bg-active: #1a1a1a;
+            --border: #333333;
+            --text-main: #e0e0e0;
+            --text-dim: #666666;
+            --accent: #ff3c00; /* International Orange */
+            --accent-glow: rgba(255, 60, 0, 0.1);
+            --font-tech: 'Courier New', Courier, monospace;
+            --font-sans: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            --sidebar-width: 280px;
+            --inspector-width: 320px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
+        
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: var(--font-sans);
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            display: grid;
+            grid-template-areas: "nav main inspector";
+            grid-template-columns: var(--sidebar-width) 1fr var(--inspector-width);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* --- TYPOGRAPHY --- */
+        h1, h2, h3 { font-weight: 500; letter-spacing: -0.5px; }
+        .mono { font-family: var(--font-tech); font-size: 0.75rem; letter-spacing: 0.5px; }
+        .label { color: var(--text-dim); font-size: 0.65rem; text-transform: uppercase; margin-bottom: 5px; display: block; }
+        .val { color: var(--text-main); font-size: 0.8rem; }
+
+        /* --- NAVIGATION (LEFT) --- */
+        #nav-panel {
+            grid-area: nav;
+            background: var(--bg-panel);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            z-index: 20;
+        }
+
+        .header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .brand { font-size: 0.9rem; font-weight: bold; color: var(--accent); letter-spacing: 2px; }
+
+        .nav-group { padding: 20px 0 0 0; }
+        .group-title { padding: 0 20px 10px; color: var(--text-dim); font-family: var(--font-tech); font-size: 0.65rem; }
+
+        button.nav-item {
+            width: 100%;
+            text-align: left;
+            background: transparent;
+            border: none;
+            color: var(--text-dim);
+            padding: 8px 20px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            border-left: 2px solid transparent;
+            font-family: var(--font-sans);
+            transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        button.nav-item:hover { background: var(--bg-active); color: var(--text-main); }
+        
+        button.nav-item.active {
+            background: var(--bg-active);
+            color: var(--text-main);
+            border-left: 2px solid var(--accent);
+        }
+
+        /* --- MAIN STAGE (CENTER) --- */
+        #main-stage {
+            grid-area: main;
+            background: #000;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #top-bar {
+            height: 40px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            background: var(--bg-dark);
+        }
+
+        #sequence-indicator { font-family: var(--font-tech); font-size: 0.8rem; color: var(--accent); }
+
+        #viewport-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        iframe { width: 100%; height: 100%; border: none; }
+
+        /* Thesis Overlay */
+        #content-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-dark);
+            padding: 60px;
+            overflow-y: auto;
+            display: none;
+        }
+        #content-overlay.visible { display: block; }
+
+        .thesis-content { max-width: 800px; margin: 0 auto; }
+        .hero-text { font-size: 2rem; line-height: 1.3; font-weight: 300; margin-bottom: 30px; }
+        .hero-text strong { color: var(--accent); font-weight: 500; }
+        .sub-text { color: #888; line-height: 1.6; max-width: 600px; }
+
+        /* --- INSPECTOR (RIGHT) --- */
+        #inspector-panel {
+            grid-area: inspector;
+            background: var(--bg-panel);
+            border-left: 1px solid var(--border);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            z-index: 20;
+        }
+
+        .meta-block { margin-bottom: 30px; }
+        
+        .tag { 
+            display: inline-block; 
+            padding: 3px 6px; 
+            border: 1px solid var(--border); 
+            font-size: 0.65rem; 
+            color: var(--text-dim); 
+            margin-right: 4px; margin-bottom: 4px; 
+        }
+
+        /* Scenario Prompter Box */
+        .scenario-terminal {
+            background: #000;
+            border: 1px solid var(--border);
+            padding: 15px;
+            font-family: var(--font-tech);
+            font-size: 0.8rem;
+            color: var(--accent);
+            margin-top: auto;
+            position: relative;
+        }
+        .scenario-terminal::before {
+            content: "SCENARIO_PROMPT >>";
+            display: block;
+            font-size: 0.6rem;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+            border-bottom: 1px dashed #333;
+            padding-bottom: 5px;
+        }
+
+        /* --- PRESENTATION MODE UTILS --- */
+        body.presentation-mode {
+            grid-template-columns: 0px 1fr 0px; /* Collapse sidebars */
+        }
+        
+        body.presentation-mode #nav-panel, 
+        body.presentation-mode #inspector-panel {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        body.presentation-mode #top-bar {
+            background: transparent;
+            position: absolute;
+            top: 0; left: 0; width: 100%;
+            z-index: 100;
+            pointer-events: none;
+            border: none;
+        }
+        
+        body.presentation-mode #sequence-indicator {
+            background: rgba(0,0,0,0.7);
+            padding: 5px 10px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+        }
+        .btn-ctrl {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            padding: 4px 8px;
+            font-family: var(--font-tech);
+            font-size: 0.7rem;
+            cursor: pointer;
+        }
+        .btn-ctrl:hover { border-color: var(--accent); color: var(--accent); }
+
+    </style>
+</head>
+<body>
+
+    <!-- LEFT: NAVIGATION -->
+    <div id="nav-panel">
+        <div class="header">
+            <div class="brand">W.A.G. PROTOCOL v8</div>
+            <div class="mono" style="margin-top:5px; opacity:0.5;">COGNITIVE ARCHITECT</div>
+        </div>
+        <div id="nav-list">
+            <!-- Populated by JS -->
+        </div>
+    </div>
+
+    <!-- CENTER: MAIN STAGE -->
+    <div id="main-stage">
+        <div id="top-bar">
+            <div id="sequence-indicator">SEQ 01 / 15</div>
+            <div class="controls" style="pointer-events: auto;">
+                <button class="btn-ctrl" onclick="prevSlide()">[ PREV ]</button>
+                <button class="btn-ctrl" onclick="togglePresentation()">[ P : MODE ]</button>
+                <button class="btn-ctrl" onclick="nextSlide()">[ NEXT ]</button>
+            </div>
+        </div>
+
+        <div id="viewport-container">
+            <iframe id="main-frame" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            
+            <!-- Thesis / Text Overlay -->
+            <div id="content-overlay">
+                <div class="thesis-content">
+                    <div class="label" style="color:var(--accent);">MANIFESTO</div>
+                    <div class="hero-text" id="overlay-text"></div>
+                    <div class="sub-text" id="overlay-sub"></div>
+                    <br><br>
+                    <button class="btn-ctrl" onclick="nextSlide()" style="padding:15px; font-size:0.9rem;">INITIATE SEQUENCE &rarr;</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT: INSPECTOR -->
+    <div id="inspector-panel">
+        <div class="meta-block">
+            <span class="label">MODULE TITLE</span>
+            <h2 id="meta-title">...</h2>
+        </div>
+
+        <div class="meta-block">
+            <span class="label">OPERATOR / COLLABORATOR</span>
+            <div class="mono val" id="meta-author">...</div>
+        </div>
+
+        <div class="meta-block">
+            <span class="label">THE PROBLEM</span>
+            <p class="val" id="meta-problem" style="color: #999; line-height:1.4;">...</p>
+        </div>
+
+        <div class="meta-block">
+            <span class="label">TARGET AUDIENCE</span>
+            <div id="meta-tags" style="margin-top:5px;"></div>
+        </div>
+
+        <div class="scenario-terminal">
+            <div id="scenario-text">Loading heuristic...</div>
+        </div>
+
+        <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:10px;">
+             <a href="#" id="source-link" target="_blank" class="mono" style="color:var(--text-dim); text-decoration:none;">OPEN SOURCE ↗</a>
+        </div>
+    </div>
+
+    <script>
+        // --- CONTENT DATABASE ---
+        const modules = [
+            {
+                id: 'thesis',
+                group: '00_CORE',
+                title: 'Words Assemble Worlds',
+                author: 'System Thesis',
+                type: 'text',
+                content: 'Words don’t describe worlds. They <strong>compile</strong> them.<br>We are turning natural language into 3D models and social grids.',
+                sub: 'Operative Ekphrasis: Democratizing design via Freirean pedagogy. Moving away from the "Black Box" of generic AI towards spatial precision.',
+                problem: 'The disconnect between natural language and spatial output.',
+                audience: ['Designers', 'Researchers', 'World Builders'],
+                scenario: 'If you describe a room, does the AI build the walls or the space between them?',
+                link: '#'
+            },
+            {
+                id: 'planning',
+                group: '00_CORE',
+                title: 'Project Planning & Docs',
+                author: 'Central Repository',
+                type: 'iframe',
+                url: 'https://hartswf0.github.io/tractor-dce-gyo/',
+                problem: 'Documentation drift in evolved complex systems.',
+                audience: ['Planners', 'Managers'],
+                scenario: 'How do we track the "Wild Ass Guess" without losing data rigor?',
+                link: 'https://hartswf0.github.io/tractor-dce-gyo/'
+            },
+            {
+                id: 'gpt',
+                group: '01_ENGINE',
+                title: 'Cognitive Architect (GPT)',
+                author: 'OpenAI / Custom',
+                type: 'iframe',
+                url: 'https://chatgpt.com/g/g-6928ce54fbe48191a18ecd544414675f-legos-cognitive-architect-v8-0',
+                problem: 'The gap between conceptual "talk" and physical build files (MPD).',
+                audience: ['Lego Fans', 'Architects'],
+                scenario: 'Prompt: "Build a paradox." Observe the structural failure points.',
+                link: 'https://chatgpt.com/g/g-6928ce54fbe48191a18ecd544414675f-legos-cognitive-architect-v8-0'
+            },
+            {
+                id: 'onyx',
+                group: '01_ENGINE',
+                title: 'Onyx Studio',
+                author: 'WAG Toolset',
+                type: 'iframe',
+                url: 'https://hartswf0.github.io/tractor-dce-gyo/onyx-studio.html',
+                problem: 'AI Hallucinations vs. Deterministic Design.',
+                audience: ['Layout Artists', 'Planners'],
+                scenario: 'A sanctuary for direct manipulation. No AI. Just you and the grid.',
+                link: 'https://hartswf0.github.io/tractor-dce-gyo/onyx-studio.html'
+            },
+            {
+                id: 'core',
+                group: '01_ENGINE',
+                title: 'Core Trajectories',
+                author: 'Parallel Dev',
+                type: 'iframe',
+                url: 'https://hartswf0.github.io/core-age/',
+                problem: 'Managing parallel timelines in mechanic development.',
+                audience: ['Devs'],
+                scenario: 'Isolate gravity from narrative. Does the story fall apart?',
+                link: 'https://hartswf0.github.io/core-age/'
+            },
+            {
+                id: 'training',
+                group: '02_NETWORK',
+                title: 'Training Ground',
+                author: 'Jordan Caldwell',
+                type: 'iframe',
+                url: 'https://hartswf0.github.io/func-sub/func-index.html',
+                problem: 'Converting passive users into active Operators.',
+                audience: ['Experience Designers', 'Metal Fans'],
+                scenario: 'Speculation & Operator Upgrade. What happens when the interface becomes hostile (Black Metal)?',
+                link: 'https://hartswf0.github.io/func-sub/func-index.html'
+            },
+            {
+                id: 'fork',
+                group: '02_NETWORK',
+                title: 'The Fork',
+                author: 'Kayla Evans (PhD)',
+                type: 'iframe',
+                url: 'https://hartswf0.github.io/the-fork/',
+                problem: 'Ethical choices are missed in passive NLP interfaces.',
+                audience: ['Ethicists', 'Gamers'],
+                scenario: 'Active vs Passive Decisions. Make the research feel like a video game to expose bias.',
+                link: 'https://hartswf0.github.io/the-fork/'
+            },
+            {
+                id: 'tetrad',
+                group: '02_NETWORK',
+                title: 'Thousand-Tetrad',
+                author: 'Shuruq Tramontini',
+                type: 'iframe',
+                url: 'https://hartswf0.github.io/1000-small-futures/',
+                problem: 'Pre-scripted meaning in simulations.',
+                audience: ['Sim Devs'],
+                scenario: 'Emergent Sims. The agent must learn relevance in a messy apartment. Objects have no prescribed meaning.',
+                link: 'https://hartswf0.github.io/1000-small-futures/'
+            },
+            {
+                id: 'branching',
+                group: '02_NETWORK',
+                title: 'Branching Paths',
+                author: 'Terhi Marttila',
+                type: 'iframe',
+                url: 'https://terhimarttila.com/',
+                problem: 'The "API-ification" of the web.',
+                audience: ['Web Artists'],
+                scenario: 'Explore multiple channels in one place. Hand-built representation vs. Generated content.',
+                link: 'https://terhimarttila.com/'
+            },
+            {
+                id: 'simpsons',
+                group: '03_CINEMA',
+                title: 'WA: Simpsons',
+                author: 'Synthetic Agency',
+                type: 'iframe',
+                url: 'https://www.youtube.com/embed/ctPjAhfJA0Y?autoplay=1&mute=1',
+                problem: 'Storyboarding is too slow.',
+                audience: ['Filmmakers'],
+                scenario: 'Inverse storyboarding. Watch the AI attempt to understand humor through geometry.',
+                link: 'https://youtu.be/ctPjAhfJA0Y'
+            },
+            {
+                id: 'carrot',
+                group: '03_CINEMA',
+                title: 'Carrot Uprising',
+                author: 'Grid Narrative',
+                type: 'iframe',
+                url: 'https://www.youtube.com/embed/hdTEJSyZahs?autoplay=1&mute=1',
+                problem: 'Tension between Structure (Grid) and Life (Carrot).',
+                audience: ['Storytellers'],
+                scenario: 'Can a grid be an antagonist?',
+                link: 'https://youtu.be/hdTEJSyZahs'
+            },
+            {
+                id: 'shield',
+                group: '04_ARTIFACTS',
+                title: 'Shield of Achilles',
+                author: 'Homer / WAG',
+                type: 'iframe',
+                url: 'https://hartswf0.github.io/tractor-dce-gyo/shield-of-achilles.html',
+                problem: 'Visualizing recursive narrative layers.',
+                audience: ['Classicists'],
+                scenario: 'Ekphrasis: The text builds the world. We just render it.',
+                link: 'https://hartswf0.github.io/tractor-dce-gyo/shield-of-achilles.html'
+            }
+        ];
+
+        // --- STATE MANAGEMENT ---
+        let currentIndex = 0;
+
+        // --- DOM ELEMENTS ---
+        const navList = document.getElementById('nav-list');
+        const mainFrame = document.getElementById('main-frame');
+        const overlay = document.getElementById('content-overlay');
+        const overlayText = document.getElementById('overlay-text');
+        const overlaySub = document.getElementById('overlay-sub');
+        
+        // Meta Elements
+        const metaTitle = document.getElementById('meta-title');
+        const metaAuthor = document.getElementById('meta-author');
+        const metaProblem = document.getElementById('meta-problem');
+        const metaTags = document.getElementById('meta-tags');
+        const scenarioText = document.getElementById('scenario-text');
+        const sourceLink = document.getElementById('source-link');
+        const seqIndicator = document.getElementById('sequence-indicator');
+
+        // --- INITIALIZATION ---
+        function init() {
+            // Build Navigation
+            let currentGroup = '';
+            modules.forEach((mod, index) => {
+                // Group Headers
+                if (mod.group !== currentGroup) {
+                    const groupTitle = document.createElement('div');
+                    groupTitle.className = 'group-title';
+                    groupTitle.innerText = mod.group;
+                    navList.appendChild(groupTitle);
+                    currentGroup = mod.group;
+                }
+                
+                // Buttons
+                const btn = document.createElement('button');
+                btn.className = 'nav-item';
+                btn.innerHTML = `<span>${mod.title}</span> <span style="opacity:0.3">${index + 1 < 10 ? '0'+(index+1) : index+1}</span>`;
+                btn.onclick = () => loadSlide(index);
+                navList.appendChild(btn);
+            });
+
+            // Keyboard Listeners
+            document.addEventListener('keydown', (e) => {
+                if(e.key === 'ArrowRight') nextSlide();
+                if(e.key === 'ArrowLeft') prevSlide();
+                if(e.key.toLowerCase() === 'p') togglePresentation();
+            });
+
+            loadSlide(0);
+        }
+
+        // --- CORE FUNCTIONS ---
+        function loadSlide(index) {
+            if (index < 0 || index >= modules.length) return;
+            currentIndex = index;
+            const data = modules[index];
+
+            // Update UI State
+            document.querySelectorAll('.nav-item').forEach((b, i) => {
+                if(i === index) b.classList.add('active');
+                else b.classList.remove('active');
+            });
+
+            // Update Sequence Display
+            seqIndicator.innerText = `SEQ ${index + 1 < 10 ? '0'+(index+1) : index+1} / ${modules.length}`;
+
+            // Handle Content Type
+            if (data.type === 'text') {
+                mainFrame.style.display = 'none';
+                overlay.classList.add('visible');
+                overlayText.innerHTML = data.content;
+                overlaySub.innerHTML = data.sub;
+            } else {
+                overlay.classList.remove('visible');
+                mainFrame.style.display = 'block';
+                // Only refresh iframe if source is different to save bandwidth/flicker
+                if (mainFrame.src !== data.url) mainFrame.src = data.url;
+            }
+
+            // Update Inspector
+            metaTitle.innerText = data.title;
+            metaAuthor.innerText = data.author;
+            metaProblem.innerText = data.problem;
+            scenarioText.innerText = data.scenario;
+            sourceLink.href = data.link;
+
+            // Update Tags
+            metaTags.innerHTML = '';
+            data.audience.forEach(tag => {
+                const t = document.createElement('span');
+                t.className = 'tag';
+                t.innerText = tag;
+                metaTags.appendChild(t);
+            });
+        }
+
+        function nextSlide() {
+            if (currentIndex < modules.length - 1) loadSlide(currentIndex + 1);
+        }
+
+        function prevSlide() {
+            if (currentIndex > 0) loadSlide(currentIndex - 1);
+        }
+
+        function togglePresentation() {
+            document.body.classList.toggle('presentation-mode');
+        }
+
+        // Run
+        init();
+
+    </script>
+</body>
+</html>

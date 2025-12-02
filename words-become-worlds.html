@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WORDS BECOME WORLDS · WAG / LEGOS</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Courier New', monospace;
+      background: #6b7c8c;
+      overflow-x: hidden;
+      color: #0f172a;
+    }
+
+    .board {
+      position: relative;
+      background:
+        repeating-linear-gradient(0deg, transparent, transparent 8px, rgba(0,0,0,0.03) 8px, rgba(0,0,0,0.03) 9px),
+        repeating-linear-gradient(90deg, transparent, transparent 8px, rgba(0,0,0,0.03) 8px, rgba(0,0,0,0.03) 9px),
+        #7a8a9a;
+      min-height: 100vh;
+      padding: 24px;
+      box-shadow: inset 0 0 50px rgba(0,0,0,0.25);
+      max-width: 1200px;
+      margin: 0 auto 40px auto;
+    }
+
+    .header-strip {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .label-brick {
+      background: linear-gradient(135deg, #2b5a7f 0%, #1e4a68 100%);
+      color: white;
+      padding: 8px 16px;
+      font-weight: 900;
+      font-size: 11px;
+      letter-spacing: 1px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3), inset 0 -2px 4px rgba(0,0,0,0.2);
+      position: relative;
+      cursor: default;
+    }
+
+    .label-brick::before {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 70%;
+      height: 3px;
+      background: rgba(255,255,255,0.3);
+      border-radius: 1px;
+    }
+
+    .section-title {
+      background: rgba(0,0,0,0.6);
+      color: white;
+      padding: 8px 16px;
+      font-size: 16px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      margin: 26px 0 12px 0;
+      display: inline-block;
+      text-transform: uppercase;
+    }
+
+    .section-copy {
+      background: rgba(255,255,255,0.9);
+      padding: 14px 16px;
+      font-size: 14px;
+      line-height: 1.7;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+
+    .section-copy p + p {
+      margin-top: 6px;
+    }
+
+    .section-copy ul {
+      margin: 6px 0 0 16px;
+    }
+
+    .section-copy li {
+      margin-bottom: 2px;
+    }
+
+    .emphasis {
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .tagline-row {
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 12px;
+    }
+
+    .tagline {
+      background: rgba(0,0,0,0.65);
+      color: #fefce8;
+      padding: 4px 8px;
+      letter-spacing: 1px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .frame-panel {
+      margin-top: 26px;
+      background: rgba(0,0,0,0.5);
+      padding: 12px 12px 14px 12px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.35);
+    }
+
+    .frame-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+      margin-bottom: 4px;
+      color: #e5e7eb;
+    }
+
+    .frame-title {
+      font-size: 16px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    .frame-meta {
+      font-size: 11px;
+      color: #cbd5f5;
+    }
+
+    .frame-description {
+      font-size: 13px;
+      color: #e5e7eb;
+      margin-bottom: 10px;
+    }
+
+    .frame-shell {
+      position: relative;
+      background: #020617;
+      border: 1px solid rgba(15,23,42,0.9);
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.75);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .frame-shell iframe {
+      width: 100%;
+      height: min(60vh, 480px);
+      border: none;
+      background: #020617;
+    }
+
+    .frame-fallback {
+      padding: 6px 8px;
+      font-size: 9px;
+      color: #94a3b8;
+      border-top: 1px solid rgba(30,64,175,0.6);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+      background: rgba(15,23,42,0.9);
+    }
+
+    .frame-fallback a {
+      color: #38bdf8;
+      text-decoration: underline;
+      word-break: break-all;
+    }
+
+    .frame-fallback span.hint {
+      font-size: 8px;
+      color: #64748b;
+      white-space: nowrap;
+    }
+
+    .films-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .film-card {
+      background: rgba(0,0,0,0.6);
+      padding: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    }
+
+    .film-title {
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      color: #e5e7eb;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+    }
+
+    .film-iframe-shell iframe {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      border: none;
+      background: #020617;
+    }
+
+    .film-meta {
+      margin-top: 4px;
+      font-size: 10px;
+      color: #c7d2fe;
+    }
+
+    .collab-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    .collab-card {
+      background: rgba(0,0,0,0.6);
+      padding: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+      color: #e5e7eb;
+      font-size: 12px;
+    }
+
+    .collab-name {
+      font-weight: 900;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+
+    .collab-role {
+      font-size: 11px;
+      color: #cbd5f5;
+      margin-bottom: 4px;
+    }
+
+    .collab-card a {
+      color: #38bdf8;
+      text-decoration: underline;
+    }
+
+    .collab-iframe-shell {
+      margin-top: 6px;
+      border: 1px solid rgba(148,163,184,0.5);
+      background: #020617;
+      box-shadow: inset 0 0 6px rgba(0,0,0,0.7);
+    }
+
+    .collab-iframe-shell iframe {
+      width: 100%;
+      height: 220px;
+      border: none;
+      background: #020617;
+    }
+
+    .wag-thesis {
+      margin-top: 16px;
+      background: rgba(255,255,255,0.92);
+      padding: 14px 16px;
+      font-size: 13px;
+      line-height: 1.7;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+
+    .wag-thesis p + p {
+      margin-top: 6px;
+    }
+
+    @media (max-width: 768px) {
+      .board {
+        padding: 14px;
+        margin-bottom: 20px;
+      }
+      .frame-shell iframe {
+        height: 260px;
+      }
+      .section-title {
+        font-size: 14px;
+      }
+      .section-copy {
+        font-size: 13px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="board">
+    <div class="header-strip">
+      <div class="label-brick">WATSON HARTSOE</div>
+      <div class="label-brick">WORDS BECOME WORLDS</div>
+      <div class="label-brick">WAG · LEGOS</div>
+      <div class="label-brick">FALL 2025</div>
+    </div>
+
+    <!-- 1. WHAT ISSUES / PROBLEMS -->
+    <div class="section-title">WHAT ISSUE(S) / PROBLEM(S) ARE WE ADDRESSING?</div>
+    <div class="section-copy">
+      <p><span class="emphasis">Can we prompt scenarios and explore alternative possibilities?</span></p>
+      <p>
+        Most AI tools treat prompts as one-off tricks. We want <span class="emphasis">scenario grounds</span> where you can
+        rehearse hard choices, branch paths, and come back to the same world later.
+      </p>
+      <p>
+        We are <span class="emphasis">exploring the spatial possibilities of AI</span>: instead of single answers, we care about
+        grids, rooms, timelines, and routes players can walk.
+      </p>
+      <p>
+        We also want a space between LEGO and Roblox: for people who love building worlds but are
+        <span class="emphasis">scared of being trapped in a platform</span>.
+      </p>
+      <div class="tagline-row">
+        <div class="tagline">EVOLVED TOWARDS A BIGGER GOAL</div>
+        <div class="tagline">OPERATIVE EKPHRASIS</div>
+        <div class="tagline">WORDS BECOME WORLDS</div>
+      </div>
+    </div>
+
+    <!-- 2. AUDIENCE -->
+    <div class="section-title">WHO IS THIS FOR?</div>
+    <div class="section-copy">
+      <p>People who need to stage and re-stage situations, not just watch a single demo:</p>
+      <ul>
+        <li>Designers and experience designers.</li>
+        <li>Researchers in HCI, AI, digital media, and responsible computing.</li>
+        <li>World builders, speculative writers, and scenario trainers.</li>
+        <li>Artists, filmmakers, storyboarders, and planners.</li>
+        <li>LEGO fans who want structure without jumping straight into Roblox.</li>
+        <li>Anyone curious about simulation but cautious about platform lock-in.</li>
+      </ul>
+    </div>
+
+    <!-- 3. WHAT I CREATED: WAG + STUDIO FAMILY -->
+    <div class="section-title">WHAT I CREATED · WAG / LEGOS STUDIO FAMILY</div>
+    <div class="section-copy">
+      <p>
+        <span class="emphasis">WAG (Words Assemble Geometry / Grids / Generations)</span> claims words don’t just describe
+        worlds, they <span class="emphasis">compile</span> them. LEGOS chat logs, scripts, and briefings become 3D models and social
+        grids that democratize design.
+      </p>
+      <p>
+        Under the hood, this is a small <span class="emphasis">GAME ENGINE</span> made of:
+      </p>
+      <ul>
+        <li>General-purpose utilities for mapping stories into channels, scenes, and 9×9 grids.</li>
+        <li>Two GPT orbits (scenario generator + structure weaver).</li>
+        <li>LEGOS surfaces where <span class="emphasis">words become worlds</span> you can replay.</li>
+        <li>Vignettes and studios for planning, documentation, and film experiments.</li>
+      </ul>
+    </div>
+
+    <!-- ONYX STUDIO -->
+    <div class="frame-panel" aria-labelledby="onyx-title">
+      <div class="frame-header">
+        <div class="frame-title" id="onyx-title">ONYX STUDIO</div>
+        <div class="frame-meta">Supportive · minimal AI · good for planning</div>
+      </div>
+      <div class="frame-description">
+        The ONYX Studio is a <span class="emphasis">scenario grid</span> for planning and documenting stories without leaning on
+        live APIs. Older AI is baked into the flows; the surface today is meant to be steady scaffolding for writers,
+        planners, and LEGOS exports.
+      </div>
+      <div class="frame-shell">
+        <iframe
+          src="onyx-studio.html"
+          title="ONYX Studio overview"
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"
+        ></iframe>
+        <div class="frame-fallback">
+          <span>Open ONYX Studio in a new tab:</span>
+          <a href="https://hartswf0.github.io/tractor-dce-gyo/onyx-studio.html" target="_blank" rel="noopener noreferrer">https://hartswf0.github.io/tractor-dce-gyo/onyx-studio.html</a>
+          <span class="hint">If the iframe is blocked, use this link.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CORE AGE -->
+    <div class="frame-panel" aria-labelledby="coreage-title">
+      <div class="frame-header">
+        <div class="frame-title" id="coreage-title">CORE AGE</div>
+        <div class="frame-meta">Core trajectories and mechanics</div>
+      </div>
+      <div class="frame-description">
+        CORE AGE explores <span class="emphasis">parallel development</span>: tracking trajectories, mechanics, and systems that
+        grow side-by-side. It is a sibling surface to the LEGOS manifest, focused on dynamics over time.
+      </div>
+      <div class="frame-shell">
+        <iframe
+          src="https://hartswf0.github.io/core-age/"
+          title="CORE AGE · Parallel Development"
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"
+        ></iframe>
+        <div class="frame-fallback">
+          <span>Open CORE AGE in a new tab:</span>
+          <a href="https://hartswf0.github.io/core-age/" target="_blank" rel="noopener noreferrer">https://hartswf0.github.io/core-age/</a>
+          <span class="hint">Parallel development trajectories.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROJECT PLANNING & DOCUMENTATION -->
+    <div class="frame-panel" aria-labelledby="planning-title">
+      <div class="frame-header">
+        <div class="frame-title" id="planning-title">PROJECT PLANNING &amp; DOCUMENTATION</div>
+        <div class="frame-meta">LEGOS manifest · project grid</div>
+      </div>
+      <div class="frame-description">
+        The main LEGOS manifest keeps track of <span class="emphasis">studios, tools, and scenes</span>. It’s the planning layer
+        that everything else sits on: where each brick, studio, and film plugs into the larger assembly.
+      </div>
+      <div class="frame-shell">
+        <iframe
+          src="index.html"
+          title="DCE-GYO LEGOS manifest"
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"
+        ></iframe>
+        <div class="frame-fallback">
+          <span>Open the project manifest:</span>
+          <a href="https://hartswf0.github.io/tractor-dce-gyo/" target="_blank" rel="noopener noreferrer">https://hartswf0.github.io/tractor-dce-gyo/</a>
+          <span class="hint">Full LEGOS grid view.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- GRECIAN URN / SHIELD / BALL JAR / HOMER -->
+    <div class="frame-panel" aria-labelledby="urn-title">
+      <div class="frame-header">
+        <div class="frame-title" id="urn-title">GRECIAN URN · SHIELD OF ACHILLES · BALL JAR · HOMER</div>
+        <div class="frame-meta">Inverse storyboarding · operative ekphrasis</div>
+      </div>
+      <div class="frame-description">
+        These LEGOS studios treat classic images and texts as <span class="emphasis">interfaces</span>: Grecian urns, Achilles'
+        shield, ball jars, and HOMER itself become control panels for assembling and re-assembling scenes.
+      </div>
+      <div class="frame-shell">
+        <iframe
+          src="grecian-urn.html"
+          title="Grecian Urn studio"
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"
+        ></iframe>
+        <div class="frame-fallback">
+          <span>Studios:</span>
+          <a href="https://hartswf0.github.io/tractor-dce-gyo/grecian-urn.html" target="_blank" rel="noopener noreferrer">GRECIAN URN</a>
+          &middot;
+          <a href="https://hartswf0.github.io/tractor-dce-gyo/shield-of-achilles.html" target="_blank" rel="noopener noreferrer">SHIELD OF ACHILLES</a>
+          &middot;
+          <a href="https://hartswf0.github.io/tractor-dce-gyo/ball-jar.html" target="_blank" rel="noopener noreferrer">BALL JAR</a>
+          &middot;
+          <a href="https://hartswf0.github.io/tractor-dce-gyo/homer.html" target="_blank" rel="noopener noreferrer">HOMER</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- WAG THESIS TEXT BLOCK -->
+    <div class="wag-thesis">
+      <p>
+        <strong>Thesis.</strong>
+        <span class="emphasis">WAG</span> (Words Assemble Geometry / Grids / Generations) claims words don’t describe worlds,
+        they <strong>compile</strong> them. Natural language turns into 3D models and social grids that democratize design and,
+        via Freirean pedagogy, make tech a tool of liberation.
+      </p>
+      <p>
+        Imagine if you could build anything just by talking about it’like telling a story, but the computer actually makes
+        what you're saying appear in front of you. You don’t need fancy degrees or complicated software. You just say
+        ‘make a red box’ or ‘build me a little house’ and it happens. WAG is a "Wild Ass Guess" approach: try things, see
+        what works, and learn as you go.
+      </p>
+      <p>
+        The point is giving regular people’not just tech experts’t he power to bring their ideas to life, and to keep
+        listening to collaborators about how to make it easier and more just.
+      </p>
+      <p>
+        GPT orbits that support this work:
+      </p>
+      <ul>
+        <li>
+          <strong>LEGOS COGNITIVE ARCHITECT v8.0</strong> · Words Assemble Grids, Geometries, and Generations —
+          <a href="https://chatgpt.com/g/g-6928ce54fbe48191a18ecd544414675f-legos-cognitive-architect-v8-0" target="_blank" rel="noopener noreferrer">open tool</a>
+        </li>
+        <li>
+          <strong>LE-BUILD-BUILD</strong> · translates complex creative ideas into build-ready LEGO MPD files with inventory —
+          <a href="https://chatgpt.com/g/g-6920e3c02e548191a474407dac776edf-le-build-build" target="_blank" rel="noopener noreferrer">open tool</a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- FILMS: CARROT UPRISING, GRID 47, WORDS ASSEMBLE -->
+    <div class="section-title">FILMS · CARROT UPRISING / GRID 47 / WORDS ASSEMBLE</div>
+    <div class="section-copy">
+      <p>Film experiments test the engine in motion: what happens when WAG and LEGOS leave the browser and hit the edit bay?</p>
+    </div>
+    <div class="films-grid" aria-label="Film experiments">
+      <div class="film-card">
+        <div class="film-title">Carrot Uprising &middot; 4GRID</div>
+        <div class="film-iframe-shell">
+          <iframe
+            src="https://www.youtube.com/embed/hdTEJSyZahs"
+            title="Carrot Uprising 4GRID"
+            loading="lazy"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            referrerpolicy="no-referrer-when-downgrade"
+          ></iframe>
+        </div>
+        <div class="film-meta">
+          <a href="https://youtu.be/hdTEJSyZahs" target="_blank" rel="noopener noreferrer">Open on YouTube</a>
+        </div>
+      </div>
+
+      <div class="film-card">
+        <div class="film-title">Carrot Uprising &middot; SA vs Files</div>
+        <div class="film-iframe-shell">
+          <iframe
+            src="https://www.youtube.com/embed/X5xCx2oa2Xw"
+            title="Carrot Uprising SA vs Files"
+            loading="lazy"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            referrerpolicy="no-referrer-when-downgrade"
+          ></iframe>
+        </div>
+        <div class="film-meta">
+          <a href="https://youtu.be/X5xCx2oa2Xw" target="_blank" rel="noopener noreferrer">Open on YouTube</a>
+        </div>
+      </div>
+
+      <div class="film-card">
+        <div class="film-title">GRID 47</div>
+        <div class="film-iframe-shell">
+          <iframe
+            src="https://www.youtube.com/embed/Pvx9OBBRNn0"
+            title="GRID 47 film"
+            loading="lazy"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            referrerpolicy="no-referrer-when-downgrade"
+          ></iframe>
+        </div>
+        <div class="film-meta">
+          <a href="https://youtu.be/Pvx9OBBRNn0" target="_blank" rel="noopener noreferrer">Open on YouTube</a>
+        </div>
+      </div>
+
+      <div class="film-card">
+        <div class="film-title">Words Assemble · Undaunted Courage</div>
+        <div class="film-iframe-shell">
+          <iframe
+            src="https://www.youtube.com/embed/6uur2TqTTKA"
+            title="Words Assemble: Undaunted Courage"
+            loading="lazy"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            referrerpolicy="no-referrer-when-downgrade"
+          ></iframe>
+        </div>
+        <div class="film-meta">
+          <a href="https://youtu.be/6uur2TqTTKA" target="_blank" rel="noopener noreferrer">Open on YouTube</a>
+        </div>
+      </div>
+
+      <div class="film-card">
+        <div class="film-title">Words Assemble · Simpsons</div>
+        <div class="film-iframe-shell">
+          <iframe
+            src="https://www.youtube.com/embed/ctPjAhfJA0Y"
+            title="Words Assemble: Simpsons"
+            loading="lazy"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            referrerpolicy="no-referrer-when-downgrade"
+          ></iframe>
+        </div>
+        <div class="film-meta">
+          <a href="https://youtu.be/ctPjAhfJA0Y" target="_blank" rel="noopener noreferrer">Open on YouTube</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- COLLABORATORS / TRAINING GROUND -->
+    <div class="section-title">TRAINING GROUND · COLLABORATORS</div>
+    <div class="section-copy">
+      <p>
+        These collaborators used the engine as a <span class="emphasis">training ground</span>: onboarding flows, ethical forks,
+        thousand sims, branching paths, and latent-space control surfaces.
+      </p>
+    </div>
+    <div class="collab-grid" aria-label="Collaborators and projects">
+      <div class="collab-card">
+        <div class="collab-name">Jordan Caldwell</div>
+        <div class="collab-role">Experience Designer · World Builder</div>
+        <p>
+          Black metal speculation and operator upgrades. Jordan used the engine to build a <span class="emphasis">better
+          onboarding</span>: training operators to move through heavy scenarios instead of just watching them.
+        </p>
+        <p>
+          Tool surface:
+          <a href="https://hartswf0.github.io/func-sub/func-index.html" target="_blank" rel="noopener noreferrer">func-sub index</a>
+        </p>
+        <p>
+          Visual work (Instagram, may not embed):
+          <a href="https://www.instagram.com/p/DRC2pQwiZ46GBWBSzfLZt-qx0Rzr8272kaotXE0/?img_index=1" target="_blank" rel="noopener noreferrer">Carrot / worldbuilding stills</a>.
+        </p>
+        <div class="collab-iframe-shell" aria-hidden="true">
+          <iframe
+            src="https://hartswf0.github.io/func-sub/func-index.html"
+            title="Training Ground · func-sub"
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+          ></iframe>
+        </div>
+      </div>
+
+      <div class="collab-card">
+        <div class="collab-name">Kayla Uleah Evans</div>
+        <div class="collab-role">Human-Centered Computing PhD</div>
+        <p>
+          Kayla pushed the system to <span class="emphasis">feel more like a video game</span> while staying grounded in ethics:
+          how active and passive decisions get madeand missedin NLP research settings.
+        </p>
+        <p>
+          Project:
+          <a href="https://hartswf0.github.io/the-fork/" target="_blank" rel="noopener noreferrer">The Fork</a>
+        </p>
+        <p>
+          Paper: “Active and Passive Decisions: How ethical choices are made (and missed) in NLP research settings”
+          &mdash; 2025 Summit on Responsible Computing, AI, and Society.
+        </p>
+        <div class="collab-iframe-shell" aria-hidden="true">
+          <iframe
+            src="https://hartswf0.github.io/the-fork/"
+            title="The Fork · Kayla Uleah Evans"
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+          ></iframe>
+        </div>
+      </div>
+
+      <div class="collab-card">
+        <div class="collab-name">Shuruq Tramontini</div>
+        <div class="collab-role">Creative Technical Artist · 3D Artist</div>
+        <p>
+          With Shuruq, we headed toward <span class="emphasis">a thousand procedurally generated, web-friendly, open-ended
+          emergent sims</span>. Thousand-Tetrad extends Ian Cheng’s <em>Thousand Lives</em> into the browser.
+        </p>
+        <p>
+          Project:
+          <a href="https://hartswf0.github.io/1000-small-futures/" target="_blank" rel="noopener noreferrer">THOUSAND-TETRAD</a>
+        </p>
+        <div class="collab-iframe-shell" aria-hidden="true">
+          <iframe
+            src="https://hartswf0.github.io/1000-small-futures/"
+            title="THOUSAND-TETRAD · Shuruq Tramontini"
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+          ></iframe>
+        </div>
+      </div>
+
+      <div class="collab-card">
+        <div class="collab-name">Terhi Marttila</div>
+        <div class="collab-role">Artist / Researcher</div>
+        <p>
+          Terhi works at the crossroads of voice, writing, and playful interaction. Here the focus was
+          <span class="emphasis">branching paths and post-human interfaces</span>: exploring multiple channels in the same
+          place and making it easier to use the engine without API keys.
+        </p>
+        <p>
+          Studio:
+          <a href="https://hartswf0.github.io/1000-small-futures/" target="_blank" rel="noopener noreferrer">Branching paths / Thousand-Tetrad</a>
+        </p>
+        <p>
+          Personal site:
+          <a href="https://terhimarttila.com/" target="_blank" rel="noopener noreferrer">terhimarttila.com</a>
+        </p>
+        <div class="collab-iframe-shell" aria-hidden="true">
+          <iframe
+            src="https://hartswf0.github.io/1000-small-futures/"
+            title="Branching Paths · Terhi Marttila"
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+          ></iframe>
+        </div>
+      </div>
+
+      <div class="collab-card">
+        <div class="collab-name">So-youn (Soy) Jang</div>
+        <div class="collab-role">PhD Student, Digital Media</div>
+        <p>
+          TETRAD explored <span class="emphasis">how to move through latent space without prompting</span>: not enough AI,
+          too much AI, and getting stuck in between. Early control surfaces let you steer generative systems without living in
+          a text box.
+        </p>
+        <p>
+          Related work:
+          <a href="https://hartswf0.github.io/1000-small-futures/" target="_blank" rel="noopener noreferrer">THOUSAND-TETRAD</a> (initial control surfaces).
+        </p>
+        <div class="collab-iframe-shell" aria-hidden="true">
+          <iframe
+            src="https://hartswf0.github.io/1000-small-futures/"
+            title="TETRAD · latent space surfaces"
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+          ></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
