@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>ONYX Wing · Story Skeleton Player</title>
+  <style>
+    :root {
+      --bg: #020617;
+      --panel: #020617;
+      --surface: #020617;
+      --border: #1e293b;
+      --accent: #38bdf8;
+      --accent-soft: rgba(56, 189, 248, 0.2);
+      --accent-strong: rgba(56, 189, 248, 0.6);
+      --text-main: #e5e7eb;
+      --text-muted: #64748b;
+      --danger: #f97373;
+      --radius: 14px;
+      --shadow: 0 18px 40px rgba(15, 23, 42, 0.9);
+      --ease: cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Mono", Menlo, monospace;
+      background: radial-gradient(circle at top, #0b1120 0, #020617 55%);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 10px;
+    }
+
+    .shell {
+      width: 100%;
+      max-width: 1040px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.5), rgba(15, 23, 42, 0.98));
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      box-shadow: var(--shadow);
+    }
+
+    .title-block {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .title {
+      font-size: 14px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .subtitle {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .chip-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .chip {
+      font-size: 10px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.8);
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      background: rgba(15, 23, 42, 0.92);
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: 230px minmax(0, 1fr);
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    @media (max-width: 800px) {
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .chip-row {
+        justify-content: flex-start;
+      }
+      main {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .panel {
+      border-radius: var(--radius);
+      background: radial-gradient(circle at top left, rgba(15, 23, 42, 0.98), #020617);
+      border: 1px solid rgba(30, 64, 175, 0.7);
+      padding: 10px;
+      box-shadow: var(--shadow);
+    }
+
+    .panel h2 {
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .scene-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      max-height: 420px;
+      overflow-y: auto;
+      padding-right: 3px;
+    }
+
+    .scene-item {
+      border-radius: 999px;
+      border: 1px solid rgba(30, 64, 175, 0.6);
+      background: rgba(15, 23, 42, 0.95);
+      padding: 6px 9px;
+      font-size: 11px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: all 0.15s var(--ease);
+      color: var(--text-muted);
+    }
+
+    .scene-item span.id {
+      opacity: 0.8;
+      font-size: 10px;
+    }
+
+    .scene-item span.label {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 150px;
+    }
+
+    .scene-item.active {
+      border-color: var(--accent-strong);
+      background: var(--accent-soft);
+      color: var(--text-main);
+    }
+
+    .scene-item:hover {
+      border-color: var(--accent-strong);
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.9fr);
+      gap: 8px;
+    }
+
+    @media (max-width: 900px) {
+      .detail-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .card {
+      border-radius: 12px;
+      border: 1px solid rgba(30, 64, 175, 0.7);
+      background: rgba(15, 23, 42, 0.96);
+      padding: 8px 10px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .card h3 {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.11em;
+      color: var(--text-muted);
+    }
+
+    .card p {
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .tag {
+      font-size: 10px;
+      border-radius: 999px;
+      padding: 3px 8px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      color: var(--text-muted);
+    }
+
+    .entity-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      border-radius: 999px;
+      padding: 3px 8px;
+      border: 1px solid rgba(56, 189, 248, 0.7);
+      background: rgba(15, 23, 42, 0.95);
+    }
+
+    .entity-pill span.role {
+      font-size: 9px;
+      color: var(--text-muted);
+    }
+
+    footer {
+      margin-top: 4px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(30, 64, 175, 0.6);
+      background: radial-gradient(circle at top, rgba(15, 23, 42, 0.98), #020617);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    button {
+      font-family: inherit;
+    }
+
+    .btn {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(56, 189, 248, 0.9);
+      background: radial-gradient(circle at top, rgba(56, 189, 248, 0.45), #020617 70%);
+      color: #e0f2fe;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+      opacity: 0.9;
+    }
+
+    .btn-secondary {
+      border-color: rgba(148, 163, 184, 0.8);
+      background: rgba(15, 23, 42, 0.95);
+      color: var(--text-muted);
+    }
+
+    .status {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    .status span.dot {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: var(--danger);
+      margin-right: 4px;
+    }
+
+    .status span.dot.ok {
+      background: #22c55e;
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div class="title-block">
+        <div class="title">ONYX WING</div>
+        <div class="subtitle">Story skeletons → spoken summaries · chapters as scenes</div>
+      </div>
+      <div class="chip-row">
+        <div class="chip">Phone-ready</div>
+        <div class="chip">Reads JSON</div>
+        <div class="chip">TTS hooks</div>
+      </div>
+    </header>
+
+    <main>
+      <aside class="panel" aria-label="Scene list">
+        <h2>Chapters</h2>
+        <div id="scene-list" class="scene-list"></div>
+      </aside>
+
+      <section class="panel" aria-label="Scene details">
+        <h2 id="scene-title">No scene loaded</h2>
+        <div id="scene-chapter" class="status" style="margin-bottom:6px;"></div>
+        <div class="detail-grid">
+          <div class="card">
+            <h3>Location & Shift</h3>
+            <p id="scene-location" style="margin-top:4px;"></p>
+            <p id="scene-shift" style="margin-top:4px;"></p>
+          </div>
+          <div class="card">
+            <h3>Core, Actors, Goal, Obstacle</h3>
+            <p id="scene-core" style="margin-top:4px;"></p>
+            <div class="tag-row" id="scene-entities" style="margin-top:4px;"></div>
+            <p id="scene-goal" style="margin-top:4px;"></p>
+            <p id="scene-obstacle" style="margin-top:4px;"></p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="controls">
+        <button class="btn" type="button" onclick="WING.speakCurrent()">▶ Speak scene summary</button>
+        <button class="btn btn-secondary" type="button" onclick="WING.stopSpeaking()">■ Stop</button>
+      </div>
+      <div class="status" id="tts-status">
+        <span class="dot" id="tts-dot"></span>
+        <span id="tts-label">Loading skeleton…</span>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    const WING = {
+      scenes: [],
+      selectedIndex: 0,
+      voices: [],
+
+      init() {
+        this.loadSkeleton();
+        if ('speechSynthesis' in window) {
+          const loadVoices = () => {
+            this.voices = window.speechSynthesis.getVoices();
+            this.updateTtsStatus();
+          };
+          window.speechSynthesis.onvoiceschanged = loadVoices;
+          loadVoices();
+        } else {
+          this.updateTtsStatus(true, 'No TTS available in this browser');
+        }
+      },
+
+      loadSkeleton() {
+        fetch('onyx-story-skeleton.json')
+          .then(r => r.json())
+          .then(data => {
+            this.scenes = Array.isArray(data.scenes) ? data.scenes : [];
+            this.renderSceneList();
+            if (this.scenes.length) {
+              this.selectScene(0);
+              this.updateTtsStatus();
+            } else {
+              this.updateTtsStatus(true, 'No scenes found in skeleton');
+            }
+          })
+          .catch(err => {
+            console.error('Failed to load onyx-story-skeleton.json', err);
+            this.updateTtsStatus(true, 'Could not load onyx-story-skeleton.json');
+          });
+      },
+
+      renderSceneList() {
+        const list = document.getElementById('scene-list');
+        if (!list) return;
+        list.innerHTML = '';
+        this.scenes.forEach((sc, idx) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'scene-item' + (idx === this.selectedIndex ? ' active' : '');
+          const idSpan = document.createElement('span');
+          idSpan.className = 'id';
+          const chNum = typeof sc.chapter === 'number' ? sc.chapter : (idx + 1);
+          idSpan.textContent = String(chNum).padStart(2, '0');
+          const labelSpan = document.createElement('span');
+          labelSpan.className = 'label';
+          labelSpan.textContent = sc.titleCore || sc.id || 'Untitled';
+          btn.appendChild(idSpan);
+          btn.appendChild(labelSpan);
+          btn.addEventListener('click', () => {
+            this.selectScene(idx);
+          });
+          list.appendChild(btn);
+        });
+      },
+
+      selectScene(idx) {
+        if (!this.scenes.length) return;
+        this.selectedIndex = Math.max(0, Math.min(this.scenes.length - 1, idx));
+        this.renderSceneList();
+        this.renderSceneDetail();
+      },
+
+      renderSceneDetail() {
+        const sc = this.scenes[this.selectedIndex];
+        if (!sc) return;
+
+        const titleEl = document.getElementById('scene-title');
+        const chapEl = document.getElementById('scene-chapter');
+        const locEl = document.getElementById('scene-location');
+        const shiftEl = document.getElementById('scene-shift');
+        const coreEl = document.getElementById('scene-core');
+        const entsEl = document.getElementById('scene-entities');
+        const goalEl = document.getElementById('scene-goal');
+        const obsEl = document.getElementById('scene-obstacle');
+
+        if (titleEl) titleEl.textContent = sc.titleCore || sc.id || 'Untitled scene';
+        if (chapEl) {
+          const chNum = typeof sc.chapter === 'number' ? sc.chapter : (this.selectedIndex + 1);
+          chapEl.textContent = `Chapter ${chNum} · ${sc.id || ''}`;
+        }
+        if (locEl) locEl.textContent = sc.locationLine || '';
+        if (shiftEl) shiftEl.textContent = sc.shiftLine || '';
+        if (coreEl) coreEl.textContent = sc.titleCore || '';
+
+        if (entsEl) {
+          entsEl.innerHTML = '';
+          (sc.entities || []).forEach(ent => {
+            const pill = document.createElement('span');
+            pill.className = 'entity-pill';
+            const nameSpan = document.createElement('span');
+            nameSpan.textContent = ent.label || ent.id;
+            const roleSpan = document.createElement('span');
+            roleSpan.className = 'role';
+            if (ent.role) roleSpan.textContent = ent.role;
+            pill.appendChild(nameSpan);
+            if (ent.role) pill.appendChild(roleSpan);
+            entsEl.appendChild(pill);
+          });
+        }
+
+        if (goalEl) goalEl.textContent = sc.goal ? `Goal: ${sc.goal}` : '';
+        if (obsEl) obsEl.textContent = sc.obstacle ? `Obstacle: ${sc.obstacle}` : '';
+      },
+
+      updateTtsStatus(error = false, message) {
+        const dot = document.getElementById('tts-dot');
+        const label = document.getElementById('tts-label');
+        if (!dot || !label) return;
+
+        if (error) {
+          dot.classList.remove('ok');
+          label.textContent = message || 'Error loading data.';
+          return;
+        }
+
+        const hasScenes = this.scenes && this.scenes.length > 0;
+        const hasVoices = this.voices && this.voices.length > 0;
+        if (hasScenes && hasVoices) {
+          dot.classList.add('ok');
+          label.textContent = 'Ready · scenes loaded, TTS available';
+        } else if (hasScenes) {
+          dot.classList.remove('ok');
+          label.textContent = 'Scenes loaded · waiting for TTS voices…';
+        } else {
+          dot.classList.remove('ok');
+          label.textContent = 'Loading skeleton…';
+        }
+      },
+
+      pickVoice() {
+        if (!this.voices || !this.voices.length) return null;
+        // Prefer an English voice; this is a simple heuristic stub.
+        const en = this.voices.filter(v => (v.lang || '').toLowerCase().startsWith('en'));
+        return en[0] || this.voices[0];
+      },
+
+      speakCurrent() {
+        if (!('speechSynthesis' in window)) return;
+        const sc = this.scenes[this.selectedIndex];
+        if (!sc) return;
+
+        window.speechSynthesis.cancel();
+
+        const voice = this.pickVoice();
+        const makeUtter = (text, opts = {}) => {
+          const u = new SpeechSynthesisUtterance(text);
+          if (voice) u.voice = voice;
+          if (opts.pitch != null) u.pitch = opts.pitch;
+          if (opts.rate != null) u.rate = opts.rate;
+          return u;
+        };
+
+        const seq = [];
+        const chNum = typeof sc.chapter === 'number' ? sc.chapter : (this.selectedIndex + 1);
+        seq.push(makeUtter(`Chapter ${chNum}. ${sc.titleCore || ''}.`, { pitch: 1.0, rate: 0.98 }));
+        if (sc.locationLine) seq.push(makeUtter(`Location: ${sc.locationLine}`, { pitch: 1.0, rate: 1.0 }));
+        if (sc.shiftLine) seq.push(makeUtter(`Shift: ${sc.shiftLine}`, { pitch: 1.0, rate: 1.0 }));
+
+        (sc.entities || []).forEach((ent, idx) => {
+          const base = 0.98 + idx * 0.05;
+          const role = ent.role ? `, ${ent.role}` : '';
+          seq.push(makeUtter(`Actor ${idx + 1}: ${ent.label || ent.id}${role}.`, { pitch: base, rate: 1.02 }));
+        });
+
+        if (sc.goal) seq.push(makeUtter(`Goal: ${sc.goal}`, { pitch: 1.02, rate: 1.0 }));
+        if (sc.obstacle) seq.push(makeUtter(`Obstacle: ${sc.obstacle}`, { pitch: 0.98, rate: 0.98 }));
+
+        seq.forEach(u => window.speechSynthesis.speak(u));
+      },
+
+      stopSpeaking() {
+        if (!('speechSynthesis' in window)) return;
+        window.speechSynthesis.cancel();
+      }
+    };
+
+    window.addEventListener('DOMContentLoaded', () => WING.init());
+  </script>
+</body>
+</html>

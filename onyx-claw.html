@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEON ARENA // LINGUISTIC WRESTLING</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@300;400;500;700&family=Inter:wght@300;400;500;600&family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+
+    <style>
+        :root {
+            /* Minimal Palette */
+            --neon-cyan: #00ffff;
+            --neon-magenta: #ff00ff;
+            --neon-yellow: #ffff00;
+            --neon-green: #00ff00;
+            --pure-black: #000;
+            --pure-white: #fff;
+            --gray-10: #0a0a0a;
+            --gray-20: #1a1a1a;
+            --gray-30: #2a2a2a;
+            --gray-40: #3a3a3a;
+            --gray-80: #888;
+            --text-dim: #666;
+            --text-bright: #eee;
+            --text-gold: #d4af37;
+            
+            /* Layout */
+            --sidebar-width: 280px;
+            --header-height: 70px;
+            --title-section-height: 120px;
+            --arena-height: calc(100vh - var(--header-height) - var(--title-section-height));
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--pure-black);
+            color: var(--text-bright);
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        /* GRID LAYOUT */
+        .arena-container {
+            display: grid;
+            grid-template-columns: var(--sidebar-width) 1fr;
+            grid-template-rows: var(--header-height) var(--title-section-height) 1fr;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            grid-column: 1;
+            grid-row: 1 / -1;
+            background: var(--gray-10);
+            border-right: 1px solid var(--gray-30);
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+        }
+
+        .sidebar-header {
+            padding: 1.2rem;
+            border-bottom: 1px solid var(--gray-30);
+        }
+
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            font-size: 16px;
+            letter-spacing: 1px;
+            color: var(--neon-yellow);
+        }
+
+        .logo-sub {
+            font-size: 10px;
+            color: var(--text-dim);
+            margin-top: 0.3rem;
+            letter-spacing: 1px;
+        }
+
+        /* MATCH NAVIGATION */
+        .match-nav {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem 0;
+        }
+
+        .match-item {
+            padding: 1rem 1.2rem;
+            border-bottom: 1px solid var(--gray-20);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .match-item:hover {
+            background: var(--gray-20);
+        }
+
+        .match-item.active {
+            background: var(--gray-30);
+            border-left: 3px solid var(--neon-cyan);
+        }
+
+        .match-id {
+            font-size: 10px;
+            color: var(--neon-yellow);
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-bottom: 0.3rem;
+        }
+
+        .match-preview {
+            font-size: 12px;
+            color: var(--text-bright);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* TOP HEADER */
+        .header {
+            grid-column: 2;
+            grid-row: 1;
+            background: var(--gray-10);
+            border-bottom: 1px solid var(--gray-30);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+        }
+
+        .header-section {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header-label {
+            font-size: 9px;
+            color: var(--text-dim);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 0.3rem;
+        }
+
+        .header-value {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-bright);
+            letter-spacing: 0.5px;
+        }
+
+        .header-vs {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            color: var(--neon-yellow);
+            font-size: 20px;
+            letter-spacing: 2px;
+        }
+
+        /* TITLE SECTION - NEW CENTER PIECE */
+        .title-section {
+            grid-column: 2;
+            grid-row: 2;
+            background: var(--gray-20);
+            border-bottom: 1px solid var(--gray-30);
+            padding: 1.5rem 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        .title-container {
+            flex: 1;
+            text-align: center;
+        }
+
+        .main-title {
+            font-family: 'Cinzel', serif;
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--text-bright);
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+        }
+
+        .subtitle {
+            font-size: 13px;
+            color: var(--text-dim);
+            font-style: italic;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.5;
+        }
+
+        .match-id-large {
+            position: absolute;
+            right: 2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--neon-yellow);
+            background: var(--gray-30);
+            padding: 0.5rem 1rem;
+            border: 2px solid var(--neon-yellow);
+            box-shadow: 0 0 20px rgba(255, 255, 0, 0.2);
+        }
+
+        /* ARENA SECTION */
+        .arena-section {
+            grid-column: 2;
+            grid-row: 3;
+            background: var(--pure-black);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        /* FIGHTER COLUMNS */
+        .fighter-column {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            position: relative;
+            overflow-y: auto;
+        }
+
+        .fighter-column.left {
+            background: linear-gradient(135deg, rgba(0,0,0,1), rgba(20,0,40,1));
+            border-right: 1px solid var(--gray-30);
+        }
+
+        .fighter-column.right {
+            background: linear-gradient(225deg, rgba(0,0,0,1), rgba(40,20,0,1));
+            border-left: 1px solid var(--gray-30);
+        }
+
+        .fighter-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            line-height: 1;
+            margin-bottom: 1rem;
+            text-align: center;
+            color: var(--fighter-color);
+            text-shadow: 0 0 20px var(--fighter-color);
+        }
+
+        .fighter-theory {
+            font-size: 11px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--fighter-color);
+            opacity: 0.8;
+            margin-bottom: 2rem;
+            border: 1px solid currentColor;
+            padding: 0.4rem 0.8rem;
+            text-align: center;
+        }
+
+        .score-display {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 5rem;
+            font-weight: 900;
+            color: var(--fighter-color);
+            margin: 1rem 0;
+            text-shadow: 0 0 30px var(--fighter-color);
+            line-height: 1;
+        }
+
+        .score-label {
+            font-size: 11px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 0.5rem;
+        }
+
+        /* ESSAY CONTENT */
+        .essay-content {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-top: 1px solid var(--gray-40);
+            max-width: 500px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .essay-title {
+            font-family: 'Cinzel', serif;
+            font-size: 14px;
+            color: var(--text-gold);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .essay-text {
+            font-size: 12px;
+            color: var(--text-bright);
+            line-height: 1.6;
+        }
+
+        .essay-text p {
+            margin-bottom: 1rem;
+        }
+
+        /* ASSESSMENT SECTION */
+        .assessment-section {
+            margin-top: 2rem;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .assessment-title {
+            font-size: 11px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.8rem;
+            border-bottom: 1px solid var(--gray-40);
+            padding-bottom: 0.5rem;
+        }
+
+        .criteria-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.5rem;
+        }
+
+        .criteria-item {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 0.8rem;
+            border-left: 3px solid;
+            font-size: 11px;
+        }
+
+        .criteria-item.light {
+            border-left-color: var(--neon-green);
+        }
+
+        .criteria-item.shadow {
+            border-left-color: var(--neon-magenta);
+        }
+
+        .criteria-item.void {
+            border-left-color: #ff3366;
+        }
+
+        .criteria-name {
+            font-weight: 700;
+            color: var(--text-bright);
+            margin-bottom: 0.3rem;
+        }
+
+        .criteria-evidence {
+            font-style: italic;
+            color: var(--text-dim);
+            margin-bottom: 0.3rem;
+        }
+
+        .criteria-critique {
+            color: var(--text-bright);
+            margin-bottom: 0.3rem;
+        }
+
+        .criteria-verdict {
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 10px;
+            margin-top: 0.5rem;
+        }
+
+        /* VERDICT BADGE */
+        .verdict-badge {
+            margin-top: 2rem;
+            font-size: 12px;
+            padding: 0.5rem 1.5rem;
+            border: 2px solid;
+            color: var(--fighter-color);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 700;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .verdict-badge.winner {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        /* NAVIGATION CONTROLS */
+        .nav-controls {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 1rem;
+            z-index: 100;
+        }
+
+        .nav-btn {
+            width: 40px;
+            height: 40px;
+            background: var(--gray-30);
+            border: 2px solid var(--neon-cyan);
+            color: var(--neon-cyan);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .nav-btn:hover {
+            background: var(--neon-cyan);
+            color: var(--pure-black);
+            transform: scale(1.1);
+        }
+
+        .nav-btn.random {
+            background: var(--neon-magenta);
+            border-color: var(--neon-magenta);
+            color: var(--pure-black);
+        }
+
+        .nav-btn.random:hover {
+            background: var(--pure-black);
+            color: var(--neon-magenta);
+        }
+
+        /* FULL ESSAY MODAL */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 2rem;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--gray-10);
+            border: 2px solid var(--neon-cyan);
+            width: 90%;
+            max-width: 900px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 0 50px rgba(0, 255, 255, 0.3);
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--gray-30);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--gray-20);
+        }
+
+        .modal-title {
+            font-family: 'Cinzel', serif;
+            font-size: 1.5rem;
+            color: var(--neon-cyan);
+            letter-spacing: 1px;
+        }
+
+        .close-btn {
+            background: none;
+            border: 2px solid var(--text-dim);
+            color: var(--text-dim);
+            width: 40px;
+            height: 40px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .close-btn:hover {
+            border-color: var(--neon-cyan);
+            color: var(--neon-cyan);
+        }
+
+        .modal-body {
+            padding: 2rem;
+        }
+
+        .essay-full {
+            color: var(--text-bright);
+            line-height: 1.8;
+            font-size: 14px;
+            max-width: 80ch;
+            margin: 0 auto;
+        }
+
+        .essay-full p {
+            margin-bottom: 1.5rem;
+            text-align: justify;
+        }
+
+        .essay-full p:first-child:first-letter {
+            font-family: 'Cinzel', serif;
+            font-size: 3rem;
+            float: left;
+            line-height: 1;
+            margin-right: 0.5rem;
+            color: var(--neon-yellow);
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 1024px) {
+            .arena-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: var(--header-height) var(--title-section-height) 1fr auto;
+            }
+            
+            .sidebar {
+                grid-column: 1;
+                grid-row: 4;
+                border-right: none;
+                border-top: 1px solid var(--gray-30);
+                max-height: 200px;
+            }
+            
+            .header, .title-section, .arena-section {
+                grid-column: 1;
+            }
+            
+            .arena-section {
+                grid-template-columns: 1fr;
+                grid-template-rows: 1fr 1fr;
+                height: auto;
+            }
+            
+            .fighter-column {
+                min-height: 50vh;
+            }
+            
+            .nav-controls {
+                bottom: 220px;
+            }
+            
+            .match-id-large {
+                position: relative;
+                right: auto;
+                top: auto;
+                transform: none;
+                display: inline-block;
+                margin-top: 1rem;
+                font-size: 1.5rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .title-section {
+                padding: 1rem;
+            }
+            
+            .main-title {
+                font-size: 1.5rem;
+            }
+            
+            .match-id-large {
+                font-size: 1.2rem;
+                padding: 0.3rem 0.8rem;
+            }
+            
+            .fighter-name {
+                font-size: 1.8rem;
+            }
+            
+            .score-display {
+                font-size: 3.5rem;
+            }
+            
+            .nav-controls {
+                bottom: 240px;
+            }
+        }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--gray-10);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--gray-40);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--neon-cyan);
+        }
+
+        /* ANIMATIONS */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="arena-container">
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">NEON ARENA</div>
+                <div class="logo-sub">LINGUISTIC WRESTLING</div>
+            </div>
+            
+            <div class="match-nav" id="matchNav">
+                <!-- Matches will be populated by JavaScript -->
+            </div>
+        </div>
+        
+        <!-- HEADER -->
+        <div class="header">
+            <div class="header-section">
+                <div class="header-label">CHAPTER</div>
+                <div class="header-value" id="chapterLabel">15</div>
+            </div>
+            
+            <div class="header-vs" id="headerVs">THE INTERPRETATION OF CULTURES</div>
+            
+            <div class="header-section" style="text-align: right;">
+                <div class="header-label">DRAMA</div>
+                <div class="header-value" id="dramaLabel">---</div>
+            </div>
+        </div>
+        
+        <!-- TITLE SECTION - CENTER PIECE -->
+        <div class="title-section">
+            <div class="title-container">
+                <div class="main-title" id="mainTitle">THE ANATOMIST MEETS THE ARCHITECT</div>
+                <div class="subtitle" id="subtitle">The Design of the Self • Clifford Geertz via Tim Ingold</div>
+                <div class="match-id-large" id="matchIdLarge">M-15</div>
+            </div>
+        </div>
+        
+        <!-- ARENA SECTION -->
+        <div class="arena-section">
+            <!-- LEFT FIGHTER -->
+            <div class="fighter-column left" id="fighterLeft">
+                <div class="fighter-name" id="fighterLeftName">THE ANATOMIST</div>
+                <div class="fighter-theory" id="fighterLeftTheory">[STRATIGRAPHIC VIEW]</div>
+                <div class="score-display" id="fighterLeftScore">30</div>
+                <div class="score-label">/100</div>
+                
+                <div class="essay-content">
+                    <div class="essay-title">GUARDIAN ASSESSMENT</div>
+                    <div class="essay-text" id="fighterLeftEssay">
+                        <p><strong>Fatal Flaw: The "Onion" Fallacy.</strong> The Anatomist assumes that if you strip away the particular, you find the universal. Geertz proves that if you strip away the particular, you find nothing functioning at all.</p>
+                        <p><strong>Epistemic Risk:</strong> This view blinds science to the reality that humanity is defined by its diversity, not its uniformity.</p>
+                    </div>
+                </div>
+                
+                <div class="assessment-section">
+                    <div class="assessment-title">CRITERIA AUDIT</div>
+                    <div class="criteria-grid" id="fighterLeftCriteria">
+                        <!-- Criteria will be populated -->
+                    </div>
+                </div>
+                
+                <div class="verdict-badge" id="fighterLeftVerdict">VERDICT: SHADOW</div>
+            </div>
+            
+            <!-- RIGHT FIGHTER -->
+            <div class="fighter-column right" id="fighterRight">
+                <div class="fighter-name" id="fighterRightName">THE ARCHITECT</div>
+                <div class="fighter-theory" id="fighterRightTheory">[SYNTHETIC CONTROL MECHANISM]</div>
+                <div class="score-display" id="fighterRightScore">94</div>
+                <div class="score-label">/100</div>
+                
+                <div class="essay-content">
+                    <div class="essay-title">GUARDIAN ASSESSMENT</div>
+                    <div class="essay-text" id="fighterRightEssay">
+                        <p><strong>Paradigm Shift:</strong> The Architect successfully replaces the metaphor of "clothing" (hiding the truth) with the metaphor of "software" (enabling the function).</p>
+                        <p><strong>Resolution:</strong> It solves the dilemma of Relativism. We are not "blank slates" but "unfinished slates" that require specific cultural particularities to exist.</p>
+                    </div>
+                </div>
+                
+                <div class="assessment-section">
+                    <div class="assessment-title">CRITERIA AUDIT</div>
+                    <div class="criteria-grid" id="fighterRightCriteria">
+                        <!-- Criteria will be populated -->
+                    </div>
+                </div>
+                
+                <div class="verdict-badge winner" id="fighterRightVerdict">VERDICT: LIGHT</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- NAVIGATION CONTROLS -->
+    <div class="nav-controls">
+        <button class="nav-btn" id="prevMatch">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <button class="nav-btn random" id="randomMatch">
+            <i class="fas fa-dice"></i>
+        </button>
+        <button class="nav-btn" id="nextMatch">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+    </div>
+    
+    <!-- FULL ESSAY MODAL -->
+    <div class="modal-overlay" id="essayModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title" id="modalTitle">FULL NARRATIVE ESSAY</div>
+                <button class="close-btn" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="essay-full" id="modalEssayContent">
+                    <!-- Essay content will be populated -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Sample match data with focus on language and essay content
+        const matches = [
+            {
+                id: "M-15",
+                chapter: "15",
+                title: "THE ANATOMIST MEETS THE ARCHITECT",
+                subtitle: "The Design of the Self • Clifford Geertz via Tim Ingold",
+                drama: "THE INTERPRETATION OF CULTURES",
+                essay: `In the dusty wings of the Grand Theater of Being, where the costumes of history hang in endless rows, two figures stand over a sleeping actor. The actor is dressed in the elaborate, gilded silks of a Javanese dancer.
+
+One figure is THE ANATOMIST. He holds a scalpel and a set of calipers. He is a child of the Enlightenment, a disciple of Newton and Bacon. He believes that truth is a solid, immutable core buried beneath layers of debris.
+
+'He is asleep', says The Anatomist, eyeing the Javanese dancer. 'And while he sleeps, he is trapped in that costume. To understand him—to understand Man—we must strip him. We must peel away the silk, the batik, the golden fingernails. These are mere accretions. They are the "garb and appearance" of local custom. Beneath them lies the Universal Man—the naked reasoner, unchanged by time or place, moved by the same passions that moved the Greeks.'
+
+The Anatomist reaches out to remove the dancer's headdress. 'My method is Stratigraphic. I shall remove the Cultural layer, then the Social layer, then the Psychological layer. Finally, I shall reveal the Biological bedrock. Only when he is naked will we see the Consensus Gentium—the common denominator of humanity.'
+
+The other figure is THE ARCHITECT. He carries no scalpel, but a set of blueprints and a flow-chart. He sees the actor not as a core to be uncovered, but as a structure that has been built.
+
+'Stop', commands The Architect. 'You think you are stripping away a costume. In reality, you are dismantling the man himself. If you peel away his culture—his Javanese reverence, his specific way of smiling, his intricate etiquette—you will not find a "Universal Man." You will find a monstrosity.'
+
+The Anatomist sneers. 'Nonsense. The biology is the hardware. The culture is just the drapery.'
+
+'You are mistaken', says The Architect. 'The hardware evolved to fit the drapery. Think of the Ice Age. For a million years, this creature's brain ballooned in size. It grew not in isolation, but in the presence of tools, language, and ritual. The brain is an unfinished organ. It relies on these external programs—these cultural recipes—to function. Without them, this man is not a "noble savage." He is a mental basket case. He is an exploded chaos of pointless acts.'
+
+The Architect points to the sleeping dancer's hands, trained to move in precise, symbolic gestures.
+
+'You look for Man with a capital "M" in the things that everyone does—eating, sleeping, mating. You look for the "lowest common denominator." But that is a hollow victory. It is like saying a Cathedral is just stone and glass. To understand Chartres, you must understand the specific theology that aligned the stones. To understand this man, you must understand the Javanese "software" that runs his nervous system.'
+
+'He is an unfinished animal', The Architect concludes. 'He completes himself not by becoming "General Man," but by becoming a particular man. If you strip him of his particularities, you do not reveal his essence. You dissolve his existence.'`,
+                p1: {
+                    name: "THE ANATOMIST",
+                    theory: "[STRATIGRAPHIC VIEW]",
+                    score: 30,
+                    color: "#ff00ff",
+                    essay: "<p><strong>Fatal Flaw: The 'Onion' Fallacy.</strong> The Anatomist assumes that if you strip away the particular, you find the universal. Geertz proves that if you strip away the particular, you find nothing functioning at all.</p><p><strong>Epistemic Risk:</strong> This view blinds science to the reality that humanity is defined by its diversity, not its uniformity.</p>",
+                    criteria: [
+                        { name: "Substantiality of Universals", evidence: "Claims 'inward motions arise from the same desires'", critique: "Fake Universals. Fails to define universals with specific content.", verdict: "shadow" },
+                        { name: "The Layer-Cake Model", evidence: "'Peel off the cultural layer... find the biological bedrock'", critique: "Biological Fallacy. Ignores that brain and culture co-evolved.", verdict: "void" }
+                    ],
+                    verdict: "SHADOW",
+                    summary: "Score: 30/100 (Fail) - The 'Onion' Fallacy. Searching for a ghost."
+                },
+                p2: {
+                    name: "THE ARCHITECT",
+                    theory: "[SYNTHETIC CONTROL MECHANISM]",
+                    score: 94,
+                    color: "#00ffff",
+                    essay: "<p><strong>Paradigm Shift:</strong> The Architect successfully replaces the metaphor of 'clothing' (hiding the truth) with the metaphor of 'software' (enabling the function).</p><p><strong>Resolution:</strong> It solves the dilemma of Relativism. We are not 'blank slates' but 'unfinished slates' that require specific cultural particularities to exist.</p>",
+                    criteria: [
+                        { name: "The 'Information Gap'", evidence: "'Man is the animal most desperately dependent upon extragenetic control mechanisms'", critique: "High Empirical Fidelity. Aligns with modern neurology and paleoanthropology.", verdict: "light" },
+                        { name: "Rejection of Typology", evidence: "'Becoming human is becoming individual'", critique: "Methodological Rigor. Validates study of the 'odd' as a window into human potential.", verdict: "light" },
+                        { name: "Co-Evolution", evidence: "'Culture was ingredient... in the production of that animal itself'", critique: "Structural Integrity. Destroys the Stratigraphic view with feedback loop theory.", verdict: "light" }
+                    ],
+                    verdict: "LIGHT",
+                    summary: "Score: 94/100 (Distinction) - Analyzes the living machine. Scientifically robust."
+                },
+                comparison: [
+                    ["Metaphor", "Peeling an Onion", "Building a Cathedral"],
+                    ["Human Nature", "Constant / Hidden Core", "Variable / Programmed"],
+                    ["Biology/Culture", "Separate Layers", "Interactive / Co-constitutive"],
+                    ["The Particular", "Accidental / Irrelevant", "Essential / Constitutive"]
+                ]
+            },
+            {
+                id: "M-12",
+                chapter: "12",
+                title: "THE BISHOP MEETS THE FOREMAN",
+                subtitle: "Language as Reference vs Language as Use • Wittgensteinian Turn",
+                drama: "THE SOUL OF STATECRAFT",
+                essay: `On the outskirts of an ancient city—a sprawling labyrinth of twisting alleyways, modern boulevards, and haphazard extensions—two figures stand amidst a dusty construction site. The ground is littered with building stones: blocks, pillars, slabs, and beams.
+
+One figure is THE BISHOP, a man of solemn demeanor, robed in the heavy velvet of classical antiquity. He gestures with a pointed finger, as if baptizing the world with nouns. The other is THE FOREMAN, a restless pragmatic figure in work boots, his pockets bristling with slide rules, glue pots, and crumpled diagrams.
+
+'Observe', says THE BISHOP, pointing to a flat piece of stone. 'Here is the essence of language. I point, and I utter the sound: Slab. A golden thread of association is instantly spun between the sound and the object. The word names the thing.'
+
+The Foreman squints. 'And what happens when I say: Five slabs?' The Bishop hesitates. The Foreman presses: 'What did you picture? Five individual things? A numeral? A quantity?'`,
+                p1: {
+                    name: "THE BISHOP",
+                    theory: "[AUGUSTINIAN REFERENTIAL]",
+                    score: 35,
+                    color: "#d4af37",
+                    essay: "<p><strong>Fatal Flaw: Fido-Fido Fallacy.</strong> Assumes every word functions like name-tag. Works for 'Table' but fails for 'Five'.</p><p><strong>Ontological Scope:</strong> Catastrophic Narrowing. Cannot handle abstract concepts or functional words.</p>",
+                    criteria: [
+                        { name: "Ontological Scope", evidence: "Words name objects", critique: "Catastrophic Narrowing. Works for 'Table' but fails for 'Five'", verdict: "void" },
+                        { name: "Acquisition", evidence: "Ostensive teaching", critique: "Mentalist Speculation. Assumes language of thought", verdict: "shadow" }
+                    ],
+                    verdict: "SHADOW",
+                    summary: "Score: 35/100 - Presents naive theory with limited empirical scope."
+                },
+                p2: {
+                    name: "THE FOREMAN",
+                    theory: "[LANGUAGE-GAMES]",
+                    score: 92,
+                    color: "#00ff00",
+                    essay: "<p><strong>Toolbox Analogy:</strong> Dissolves confusion by showing language as functional toolkit.</p><p><strong>Language Games:</strong> Allow infinite variability and context sensitivity that referential theory cannot capture.</p>",
+                    criteria: [
+                        { name: "Empirical Fidelity", evidence: "Five Red Apples example", critique: "High Fidelity. Acknowledges different word functions", verdict: "light" },
+                        { name: "Contextual Awareness", evidence: "Language as ancient city", critique: "Structural Integrity. Captures historical accumulation", verdict: "light" },
+                        { name: "Handling Intent", evidence: "Understanding not hidden mental process", critique: "Strong but potentially dismissive of phenomenology", verdict: "shadow" }
+                    ],
+                    verdict: "LIGHT",
+                    summary: "Score: 92/100 - Presents robust modular theory accepting language as functional form of life."
+                },
+                comparison: [
+                    ["Meaning", "Correlation (Word ↔ Object)", "Function (Word ↔ Tool)"],
+                    ["Learning", "Ostensive Definition", "Training / Enculturation"],
+                    ["Agency", "Mental (Internal Image)", "Kinetic (Public Action)"]
+                ]
+            },
+            {
+                id: "M-13",
+                chapter: "13",
+                title: "THE SCRIBE MEETS THE GOLEM",
+                subtitle: "Modular Syntax vs Procedural Semantics • The SHRDLU Revolution",
+                drama: "FORECASTING STYLES",
+                essay: `In a stark, brightly lit void, there exists a floating table. Upon it sits a collection of childish things: a red cube, a blue pyramid, a green box. There is no weather here, no history, and no ambiguity. This is the Micro-World.
+
+Hovering above this table are two entities. One is THE SCRIBE, a creature made of paper and ink, holding a vast dictionary and a book of grammar rules. The Scribe sees the world as a stream of symbols to be diagrammed.
+
+The other is THE GOLEM, a mechanical arm made of LISP code and procedural logic, connected to a single, unblinking eye. The Golem sees the world as a series of subroutines to be executed.
+
+The Scribe begins: 'I have parsed your utterance. It is syntactically well-formed. According to my dictionary, "pick" is a verb, "up" is a preposition, and "block" is a noun.'
+
+The Golem responds: 'I have executed your command. The block is now in my hand. What next?'`,
+                p1: {
+                    name: "THE SCRIBE",
+                    theory: "[MODULAR SYNTAX]",
+                    score: 40,
+                    color: "#ffff00",
+                    essay: "<p><strong>Fatal Flaw: Horizontal Architecture.</strong> Elegant but pragmatically useless for real-time understanding.</p><p><strong>Efficiency:</strong> Bureaucratic Overhead. Produces trees but not outcomes.</p>",
+                    criteria: [
+                        { name: "Ambiguity", evidence: "Boy Plants dilemma", critique: "Critical Failure. Produces semantic nonsense", verdict: "shadow" },
+                        { name: "Efficiency", evidence: "Tree construction complete", critique: "Bureaucratic Overhead. Wrong variable", verdict: "void" }
+                    ],
+                    verdict: "SHADOW",
+                    summary: "Score: 40/100 - Produces trees; fails to produce understanding."
+                },
+                p2: {
+                    name: "THE GOLEM",
+                    theory: "[PROCEDURAL SEMANTICS]",
+                    score: 88,
+                    color: "#ff5500",
+                    essay: "<p><strong>Data as Programs Paradigm Shift:</strong> Language understanding requires world model integration.</p><p><strong>Vertical Integration:</strong> Models real-time processing with goal-stack transparency.</p>",
+                    criteria: [
+                        { name: "Integration", evidence: "Vertical system with integrated faculties", critique: "High Efficacy. Models real-time processing", verdict: "light" },
+                        { name: "Transparency", evidence: "Tracks goal-stack", critique: "Strong Audit Trail. Explainable AI", verdict: "light" },
+                        { name: "Scope", evidence: "Blocks World constraint", critique: "Deceptive Simplicity. Finite domain", verdict: "shadow" }
+                    ],
+                    verdict: "LIGHT",
+                    summary: "Score: 88/100 - Produces outcomes. Language understanding requires world model."
+                },
+                comparison: [
+                    ["Architecture", "Horizontal (Stages)", "Vertical (Integrated)"],
+                    ["Meaning", "Dictionary Definition", "Executable Procedure"],
+                    ["Ambiguity", "Paralysis", "Inference via World Model"]
+                ]
+            }
+        ];
+
+        let currentMatchIndex = 0;
+
+        // DOM Elements
+        const matchNav = document.getElementById('matchNav');
+        const chapterLabel = document.getElementById('chapterLabel');
+        const dramaLabel = document.getElementById('dramaLabel');
+        const headerVs = document.getElementById('headerVs');
+        const mainTitle = document.getElementById('mainTitle');
+        const subtitle = document.getElementById('subtitle');
+        const matchIdLarge = document.getElementById('matchIdLarge');
+        
+        // Fighter elements
+        const fighterLeft = document.getElementById('fighterLeft');
+        const fighterLeftName = document.getElementById('fighterLeftName');
+        const fighterLeftTheory = document.getElementById('fighterLeftTheory');
+        const fighterLeftScore = document.getElementById('fighterLeftScore');
+        const fighterLeftEssay = document.getElementById('fighterLeftEssay');
+        const fighterLeftCriteria = document.getElementById('fighterLeftCriteria');
+        const fighterLeftVerdict = document.getElementById('fighterLeftVerdict');
+        
+        const fighterRight = document.getElementById('fighterRight');
+        const fighterRightName = document.getElementById('fighterRightName');
+        const fighterRightTheory = document.getElementById('fighterRightTheory');
+        const fighterRightScore = document.getElementById('fighterRightScore');
+        const fighterRightEssay = document.getElementById('fighterRightEssay');
+        const fighterRightCriteria = document.getElementById('fighterRightCriteria');
+        const fighterRightVerdict = document.getElementById('fighterRightVerdict');
+        
+        // Navigation buttons
+        const prevMatchBtn = document.getElementById('prevMatch');
+        const nextMatchBtn = document.getElementById('nextMatch');
+        const randomMatchBtn = document.getElementById('randomMatch');
+        
+        // Modal
+        const essayModal = document.getElementById('essayModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalEssayContent = document.getElementById('modalEssayContent');
+        const closeModalBtn = document.getElementById('closeModal');
+
+        // Initialize match navigation
+        function initializeMatchNav() {
+            matchNav.innerHTML = '';
+            matches.forEach((match, index) => {
+                const matchItem = document.createElement('div');
+                matchItem.className = 'match-item';
+                if (index === currentMatchIndex) matchItem.classList.add('active');
+                
+                matchItem.innerHTML = `
+                    <div class="match-id">${match.id}</div>
+                    <div class="match-preview">${match.title}</div>
+                `;
+                
+                matchItem.addEventListener('click', () => {
+                    loadMatch(index);
+                });
+                
+                matchNav.appendChild(matchItem);
+            });
+        }
+
+        // Load a specific match
+        function loadMatch(index) {
+            currentMatchIndex = index;
+            const match = matches[index];
+            
+            // Update active match in navigation
+            document.querySelectorAll('.match-item').forEach((item, i) => {
+                item.classList.toggle('active', i === index);
+            });
+            
+            // Update header
+            chapterLabel.textContent = match.chapter;
+            dramaLabel.textContent = match.drama;
+            headerVs.textContent = match.drama;
+            
+            // Update title section
+            mainTitle.textContent = match.title;
+            subtitle.textContent = match.subtitle;
+            matchIdLarge.textContent = match.id;
+            
+            // Update fighter left
+            fighterLeftName.textContent = match.p1.name;
+            fighterLeftTheory.textContent = match.p1.theory;
+            animateScore(fighterLeftScore, match.p1.score);
+            fighterLeft.style.setProperty('--fighter-color', match.p1.color);
+            fighterLeftEssay.innerHTML = match.p1.essay;
+            fighterLeftVerdict.textContent = `VERDICT: ${match.p1.verdict}`;
+            fighterLeftVerdict.style.borderColor = match.p1.color;
+            fighterLeftVerdict.style.color = match.p1.color;
+            fighterLeftVerdict.classList.toggle('winner', match.p1.score > match.p2.score);
+            
+            // Update left criteria
+            fighterLeftCriteria.innerHTML = match.p1.criteria.map(crit => `
+                <div class="criteria-item ${crit.verdict}">
+                    <div class="criteria-name">${crit.name}</div>
+                    <div class="criteria-evidence">${crit.evidence}</div>
+                    <div class="criteria-critique">${crit.critique}</div>
+                    <div class="criteria-verdict" style="color: ${getVerdictColor(crit.verdict)}">${crit.verdict.toUpperCase()}</div>
+                </div>
+            `).join('');
+            
+            // Update fighter right
+            fighterRightName.textContent = match.p2.name;
+            fighterRightTheory.textContent = match.p2.theory;
+            animateScore(fighterRightScore, match.p2.score);
+            fighterRight.style.setProperty('--fighter-color', match.p2.color);
+            fighterRightEssay.innerHTML = match.p2.essay;
+            fighterRightVerdict.textContent = `VERDICT: ${match.p2.verdict}`;
+            fighterRightVerdict.style.borderColor = match.p2.color;
+            fighterRightVerdict.style.color = match.p2.color;
+            fighterRightVerdict.classList.toggle('winner', match.p2.score > match.p1.score);
+            
+            // Update right criteria
+            fighterRightCriteria.innerHTML = match.p2.criteria.map(crit => `
+                <div class="criteria-item ${crit.verdict}">
+                    <div class="criteria-name">${crit.name}</div>
+                    <div class="criteria-evidence">${crit.evidence}</div>
+                    <div class="criteria-critique">${crit.critique}</div>
+                    <div class="criteria-verdict" style="color: ${getVerdictColor(crit.verdict)}">${crit.verdict.toUpperCase()}</div>
+                </div>
+            `).join('');
+            
+            // Add fade-in animation
+            document.querySelectorAll('.fighter-column').forEach(col => {
+                col.classList.add('fade-in');
+                setTimeout(() => col.classList.remove('fade-in'), 500);
+            });
+        }
+
+        // Animate score counting
+        function animateScore(element, target) {
+            const current = parseInt(element.textContent) || 0;
+            const diff = target - current;
+            const steps = 20;
+            const step = diff / steps;
+            
+            let currentStep = 0;
+            const timer = setInterval(() => {
+                currentStep++;
+                const value = Math.round(current + (step * currentStep));
+                element.textContent = value;
+                
+                if (currentStep >= steps) {
+                    clearInterval(timer);
+                    element.textContent = target;
+                }
+            }, 30);
+        }
+
+        // Get color for verdict
+        function getVerdictColor(verdict) {
+            switch(verdict) {
+                case 'light': return '#00ff00';
+                case 'shadow': return '#ff00ff';
+                case 'void': return '#ff3366';
+                default: return '#ffffff';
+            }
+        }
+
+        // Open full essay modal
+        function openEssayModal() {
+            const match = matches[currentMatchIndex];
+            modalTitle.textContent = `${match.id}: ${match.title}`;
+            modalEssayContent.innerHTML = `
+                <p><strong>Chapter ${match.chapter}:</strong> ${match.subtitle}</p>
+                <p><strong>Drama:</strong> ${match.drama}</p>
+                <hr style="border: none; border-top: 1px solid var(--gray-40); margin: 1.5rem 0;">
+                ${match.essay.split('\n\n').map(p => `<p>${p}</p>`).join('')}
+            `;
+            essayModal.classList.add('active');
+        }
+
+        // Close modal
+        function closeEssayModal() {
+            essayModal.classList.remove('active');
+        }
+
+        // Event Listeners
+        prevMatchBtn.addEventListener('click', () => {
+            const newIndex = (currentMatchIndex - 1 + matches.length) % matches.length;
+            loadMatch(newIndex);
+        });
+
+        nextMatchBtn.addEventListener('click', () => {
+            const newIndex = (currentMatchIndex + 1) % matches.length;
+            loadMatch(newIndex);
+        });
+
+        randomMatchBtn.addEventListener('click', () => {
+            const randomIndex = Math.floor(Math.random() * matches.length);
+            loadMatch(randomIndex);
+        });
+
+        closeModalBtn.addEventListener('click', closeEssayModal);
+        essayModal.addEventListener('click', (e) => {
+            if (e.target === essayModal) {
+                closeEssayModal();
+            }
+        });
+
+        // Click on title section to open essay modal
+        document.querySelector('.title-container').addEventListener('click', openEssayModal);
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            switch(e.key) {
+                case 'ArrowLeft':
+                    prevMatchBtn.click();
+                    break;
+                case 'ArrowRight':
+                    nextMatchBtn.click();
+                    break;
+                case ' ':
+                case 'Enter':
+                    e.preventDefault();
+                    openEssayModal();
+                    break;
+                case 'Escape':
+                    closeEssayModal();
+                    break;
+                case 'r':
+                    randomMatchBtn.click();
+                    break;
+            }
+        });
+
+        // Initialize
+        initializeMatchNav();
+        loadMatch(0);
+    </script>
+</body>
+</html>

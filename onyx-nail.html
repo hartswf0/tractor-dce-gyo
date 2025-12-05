@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ARCHIVE_CORE_SYSTEM</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@400;600&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+
+    <style>
+        :root {
+            /* CYBER-BRUTALISM PALETTE */
+            --bg: #050505;
+            --panel: #111111;
+            --border: #333333;
+            --border-active: #555;
+            
+            --text-main: #e0e0e0;
+            --text-dim: #666666;
+            
+            --accent: #ff3300;   /* TE Orange - Action/Active */
+            --data: #00ff9d;     /* Data/Success */
+            --selection: #00ccff; /* Selection State */
+            
+            --sidebar-w: 260px;
+            --nav-h: 55px;
+            
+            --font-ui: 'JetBrains Mono', monospace;
+            --font-body: 'Merriweather', serif;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+        
+        body {
+            background: var(--bg);
+            color: var(--text-main);
+            font-family: var(--font-ui);
+            margin: 0;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            display: grid;
+            grid-template-areas: "sidebar main";
+            grid-template-columns: var(--sidebar-w) 1fr;
+            font-size: 13px;
+        }
+
+        /* --- SIDEBAR --- */
+        #sidebar {
+            grid-area: sidebar;
+            background: var(--panel);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .brand-header {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .search-box {
+            padding: 0.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .search-input {
+            width: 100%;
+            background: #000;
+            border: 1px solid #333;
+            color: var(--accent);
+            padding: 8px;
+            font-family: var(--font-ui);
+            text-transform: uppercase;
+        }
+
+        .file-tree {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0;
+            list-style: none;
+            margin: 0;
+        }
+        
+        .tree-item {
+            padding: 10px 1rem;
+            border-bottom: 1px solid #222;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.1s;
+        }
+        .tree-item:hover { background: #1a1a1a; }
+        .tree-item.active { 
+            background: #1a1a1a; 
+            border-left: 3px solid var(--accent);
+            padding-left: calc(1rem - 3px);
+        }
+        .tree-meta { font-size: 10px; color: var(--text-dim); }
+
+        /* --- MAIN AREA --- */
+        #main {
+            grid-area: main;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg);
+            overflow: hidden;
+        }
+
+        /* Top Status Bar */
+        .status-bar {
+            height: 40px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 1rem;
+            justify-content: space-between;
+            background: rgba(5,5,5,0.95);
+            backdrop-filter: blur(5px);
+            z-index: 50;
+        }
+
+        /* Content Viewport */
+        .viewport {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            position: relative;
+            padding-bottom: 60px; /* Space for nav */
+        }
+
+        /* --- VIEWS --- */
+        .view-section { display: none; height: 100%; }
+        .view-section.active { display: block; }
+
+        /* 1. READER VIEW */
+        .reader-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+        .essay-text {
+            font-family: var(--font-body);
+            line-height: 1.7;
+            font-size: 16px;
+            color: #d4d4d4;
+        }
+        .essay-text p { margin-bottom: 1.5rem; }
+        
+        /* 2. GRID/VISUAL VIEW */
+        .grid-layout {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 1px;
+            background: var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+        .grid-cell {
+            background: var(--bg);
+            aspect-ratio: 1;
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .grid-cell:hover img { opacity: 0.8; }
+        .grid-cell img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .select-check {
+            position: absolute; top: 4px; right: 4px;
+            width: 18px; height: 18px;
+            background: rgba(0,0,0,0.8);
+            border: 1px solid #555;
+            display: none;
+            align-items: center; justify-content: center;
+            color: var(--selection); font-size: 12px;
+        }
+        .grid-cell:hover .select-check, .grid-cell.selected .select-check { display: flex; }
+        .grid-cell.selected { border: 2px solid var(--selection); }
+        .grid-cell.selected .select-check { background: var(--selection); color: #000; }
+
+        /* 3. DATA VIEW */
+        .data-dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            height: 100%;
+        }
+        .fighter-col {
+            padding: 1.5rem;
+            overflow-y: auto;
+            border-right: 1px solid var(--border);
+        }
+        .fighter-col:last-child { border-right: none; }
+        .score-display { font-size: 3rem; font-weight: 700; margin: 1rem 0; line-height: 1; }
+        .crit-item {
+            margin-bottom: 1rem;
+            padding-left: 0.5rem;
+            border-left: 2px solid #333;
+        }
+        .crit-item.light { border-color: var(--data); }
+        .crit-item.void { border-color: var(--accent); }
+
+        /* 4. SLIDE OVERLAY (Global) */
+        #slide-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: #000;
+            z-index: 2000;
+            display: none;
+            flex-direction: column;
+        }
+        #slide-stage {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        #slide-img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .slide-ctrl {
+            position: absolute;
+            background: transparent; border: none;
+            color: #fff; font-size: 2rem;
+            padding: 2rem; cursor: pointer;
+        }
+        .slide-ctrl:hover { color: var(--accent); }
+
+        /* --- BOTTOM COMMAND BAR --- */
+        #cmd-bar {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: var(--nav-h);
+            background: var(--panel);
+            border-top: 1px solid var(--border);
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            z-index: 100;
+        }
+        .cmd-btn {
+            background: transparent; border: none; border-right: 1px solid #222;
+            color: var(--text-dim);
+            font-family: var(--font-ui);
+            font-size: 10px;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            gap: 4px;
+            cursor: pointer;
+        }
+        .cmd-btn:hover { color: #fff; background: #1a1a1a; }
+        .cmd-btn.active { color: var(--accent); background: #151515; box-shadow: inset 0 -2px 0 var(--accent); }
+        .cmd-btn i { font-size: 16px; }
+
+        /* --- SELECTION PANEL (Floating) --- */
+        #sel-panel {
+            position: absolute;
+            top: 50px; right: 10px;
+            width: 200px;
+            background: rgba(10,10,10,0.95);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(10px);
+            padding: 1rem;
+            display: none;
+            z-index: 90;
+        }
+        #sel-panel.active { display: block; }
+        .sel-header { 
+            color: var(--selection); font-weight: 700; 
+            display: flex; justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+        .btn-action {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            cursor: pointer;
+            text-align: left;
+            font-family: var(--font-ui);
+            font-size: 11px;
+        }
+        .btn-action:hover { border-color: var(--selection); color: var(--selection); }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            body { grid-template-columns: 1fr; grid-template-areas: "main"; }
+            #sidebar { 
+                position: fixed; top: 0; bottom: 0; left: 0; width: 85%; 
+                transform: translateX(-100%); 
+                box-shadow: 10px 0 20px rgba(0,0,0,0.5);
+            }
+            #sidebar.open { transform: translateX(0); }
+            .data-dashboard { grid-template-columns: 1fr; grid-template-rows: auto auto; }
+            .fighter-col { border-right: none; border-bottom: 1px solid var(--border); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR -->
+    <aside id="sidebar">
+        <div class="brand-header">
+            <span style="font-weight:700; letter-spacing:-0.5px;">ARCHIVE<span style="color:var(--accent)">.SYS</span></span>
+            <button class="cmd-btn" id="close-sidebar" style="width:30px; height:30px; border:none; color:var(--text-dim)"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="search-box">
+            <input type="text" class="search-input" placeholder="SEARCH DATABASE..." id="search-input">
+        </div>
+        <ul class="file-tree" id="file-list">
+            <!-- Populated via JS -->
+        </ul>
+    </aside>
+
+    <!-- MAIN INTERFACE -->
+    <main id="main">
+        <!-- TOP STATUS -->
+        <div class="status-bar">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <button id="toggle-sidebar-btn" style="background:none; border:none; color:var(--text-main); cursor:pointer;"><i class="fas fa-bars"></i></button>
+                <div id="breadcrumb" class="mono" style="font-size:11px; color:var(--text-dim)">INDEX</div>
+            </div>
+            <div class="mono" style="font-size:11px; color:var(--data)" id="sys-clock">00:00:00</div>
+        </div>
+
+        <!-- SELECTION PANEL -->
+        <div id="sel-panel">
+            <div class="sel-header">
+                <span>SELECTION</span>
+                <span id="sel-count">0</span>
+            </div>
+            <button class="btn-action" onclick="app.clearSelection()">CLEAR</button>
+            <button class="btn-action" onclick="app.exportSelection()">EXPORT JSON</button>
+            <button class="btn-action" onclick="app.createPlaylist()">CREATE PLAYLIST</button>
+        </div>
+
+        <!-- VIEWPORT -->
+        <div class="viewport">
+            
+            <!-- 1. TEXT VIEW (Reader) -->
+            <div id="view-text" class="view-section">
+                <div class="reader-container">
+                    <div style="border-bottom:1px dashed #333; padding-bottom:1rem; margin-bottom:2rem;">
+                        <h1 id="read-title" style="margin:0; font-size:1.5rem;">Select a File</h1>
+                        <div id="read-meta" class="mono" style="color:var(--text-dim); margin-top:0.5rem; font-size:11px;"></div>
+                    </div>
+                    <div id="read-content" class="essay-text"></div>
+                </div>
+            </div>
+
+            <!-- 2. GRID VIEW (Visuals) -->
+            <div id="view-grid" class="view-section">
+                <div class="grid-layout" id="grid-container">
+                    <!-- Populated via JS -->
+                </div>
+            </div>
+
+            <!-- 3. DATA VIEW (Analysis) -->
+            <div id="view-data" class="view-section">
+                <div class="data-dashboard">
+                    <div class="fighter-col" id="col-p1">
+                        <!-- P1 Data -->
+                    </div>
+                    <div class="fighter-col" id="col-p2">
+                        <!-- P2 Data -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. MATRIX VIEW (Diff) -->
+             <div id="view-matrix" class="view-section" style="padding:1rem;">
+                <table style="width:100%; border-collapse:collapse; font-size:12px;">
+                    <tbody id="matrix-body"></tbody>
+                </table>
+            </div>
+
+        </div>
+
+        <!-- BOTTOM CMD BAR -->
+        <div id="cmd-bar">
+            <button class="cmd-btn" data-view="text" onclick="app.setView('text')">
+                <i class="fas fa-align-left"></i>
+                <span>TEXT</span>
+            </button>
+            <button class="cmd-btn" data-view="grid" onclick="app.setView('grid')">
+                <i class="fas fa-th"></i>
+                <span>VISUAL</span>
+            </button>
+            <button class="cmd-btn" data-view="data" onclick="app.setView('data')">
+                <i class="fas fa-chart-pie"></i>
+                <span>DATA</span>
+            </button>
+            <button class="cmd-btn" data-view="matrix" onclick="app.setView('matrix')">
+                <i class="fas fa-columns"></i>
+                <span>DIFF</span>
+            </button>
+            <button class="cmd-btn" onclick="app.toggleSelectionPanel()">
+                <i class="fas fa-check-square"></i>
+                <span>SELECT</span>
+            </button>
+        </div>
+    </main>
+
+    <!-- FULLSCREEN SLIDE OVERLAY -->
+    <div id="slide-overlay">
+        <div style="padding:1rem; display:flex; justify-content:space-between; color:var(--text-dim);">
+            <span id="slide-counter" class="mono">1 / 10</span>
+            <button onclick="app.closeSlide()" style="background:none; border:none; color:#fff; cursor:pointer;">CLOSE [ESC]</button>
+        </div>
+        <div id="slide-stage">
+            <button class="slide-ctrl" style="left:0" onclick="app.prevSlide()">&#10094;</button>
+            <div id="slide-content" style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;">
+                <!-- Image or Text Block injected here -->
+            </div>
+            <button class="slide-ctrl" style="right:0" onclick="app.nextSlide()">&#10095;</button>
+        </div>
+        <div id="slide-caption" style="padding:1rem; text-align:center; color:#888; font-family:var(--font-body);"></div>
+    </div>
+
+<script>
+    // --- MOCK DATABASE ---
+    const DB = [
+        {
+            id: "M-15",
+            title: "Anatomist vs Architect",
+            subtitle: "Design of the Self • Geertz",
+            text: `In the dusty wings of the Grand Theater of Being, where the costumes of history hang in endless rows, two figures stand over a sleeping actor. The actor is dressed in the elaborate, gilded silks of a Javanese dancer.<br><br>One figure is THE ANATOMIST. He holds a scalpel and a set of calipers. He is a child of the Enlightenment. 'He is asleep', says The Anatomist. 'To understand him, we must strip him. Remove the culture, reveal the biological bedrock.'<br><br>The other figure is THE ARCHITECT. He carries blueprints. 'Stop', commands The Architect. 'If you peel away his culture, you will not find a Universal Man. You will find a monstrosity. The brain is an unfinished organ that requires culture to function.'`,
+            images: [
+                { color: "#2c3e50", caption: "The Grand Theater" },
+                { color: "#c0392b", caption: "The Scalpel" },
+                { color: "#27ae60", caption: "The Blueprint" },
+                { color: "#8e44ad", caption: "Javanese Dancer" }
+            ],
+            p1: { name: "Anatomist", score: 30, theory: "Stratigraphic", criteria: [ {n:"Universals", v:"void", t:"Fake Universals"}, {n:"Layers", v:"void", t:"Bio Fallacy"} ] },
+            p2: { name: "Architect", score: 94, theory: "Synthetic", criteria: [ {n:"Info Gap", v:"light", t:"High Fidelity"}, {n:"Co-Evo", v:"light", t:"Feedback Loop"} ] },
+            matrix: [ ["Metaphor", "Onion", "Cathedral"], ["Nature", "Core", "Artifact"] ]
+        },
+        {
+            id: "M-12",
+            title: "Bishop vs Foreman",
+            subtitle: "Language Games • Wittgenstein",
+            text: `On the outskirts of an ancient city... two figures stand amidst a dusty construction site.<br><br>THE BISHOP points. 'Observe. I say "Slab", and the word names the thing. A golden thread of meaning.'<br><br>THE FOREMAN squints. 'And if I say "Five Slabs"? Do you see five things, or a math problem? Words are tools, not labels.'`,
+            images: [
+                { color: "#7f8c8d", caption: "Construction Site" },
+                { color: "#f1c40f", caption: "The Golden Thread" },
+                { color: "#e67e22", caption: "Five Slabs" }
+            ],
+            p1: { name: "Bishop", score: 35, theory: "Referential", criteria: [ {n:"Scope", v:"void", t:"Narrowing"}, {n:"Agency", v:"shadow", t:"Mentalism"} ] },
+            p2: { name: "Foreman", score: 92, theory: "Pragmatic", criteria: [ {n:"Fidelity", v:"light", t:"High Empirical"}, {n:"Context", v:"light", t:"Structural"} ] },
+            matrix: [ ["Meaning", "Label", "Tool"], ["Learning", "Definition", "Training"] ]
+        }
+    ];
+
+    // --- APP CONTROLLER ---
+    const app = {
+        state: {
+            currentIdx: 0,
+            view: 'text',
+            slideIdx: 0,
+            selection: new Set(), // Store IDs "fileIdx-imgIdx"
+            sidebarOpen: window.innerWidth > 768
+        },
+
+        init() {
+            this.renderSidebar();
+            this.loadItem(0);
+            this.updateClock();
+            setInterval(() => this.updateClock(), 1000);
+            
+            // Events
+            document.getElementById('toggle-sidebar-btn').onclick = () => this.toggleSidebar();
+            document.getElementById('close-sidebar').onclick = () => this.toggleSidebar();
+            document.addEventListener('keydown', (e) => this.handleKey(e));
+        },
+
+        updateClock() {
+            const now = new Date();
+            document.getElementById('sys-clock').innerText = now.toLocaleTimeString('en-US', {hour12:false});
+        },
+
+        toggleSidebar() {
+            this.state.sidebarOpen = !this.state.sidebarOpen;
+            const el = document.getElementById('sidebar');
+            if(this.state.sidebarOpen) el.classList.add('open');
+            else el.classList.remove('open');
+        },
+
+        renderSidebar() {
+            const list = document.getElementById('file-list');
+            list.innerHTML = '';
+            
+            DB.forEach((item, idx) => {
+                const li = document.createElement('li');
+                li.className = `tree-item ${idx === this.state.currentIdx ? 'active' : ''}`;
+                li.onclick = () => this.loadItem(idx);
+                li.innerHTML = `
+                    <div>
+                        <div style="font-weight:600; font-size:12px;">${item.id}</div>
+                        <div style="font-size:11px;">${item.title}</div>
+                    </div>
+                    <div class="tree-meta mono">${item.images.length} IMG</div>
+                `;
+                list.appendChild(li);
+            });
+        },
+
+        loadItem(idx) {
+            this.state.currentIdx = idx;
+            const data = DB[idx];
+            
+            // Update Sidebar Active State
+            this.renderSidebar();
+
+            // 1. Text View
+            document.getElementById('read-title').textContent = data.title;
+            document.getElementById('read-meta').textContent = `${data.id} // ${data.subtitle}`;
+            document.getElementById('read-content').innerHTML = data.text;
+            document.getElementById('breadcrumb').textContent = `${data.id} / ${data.title.toUpperCase()}`;
+
+            // 2. Grid View
+            const grid = document.getElementById('grid-container');
+            grid.innerHTML = '';
+            data.images.forEach((img, i) => {
+                const id = `${idx}-${i}`;
+                const cell = document.createElement('div');
+                cell.className = `grid-cell ${this.state.selection.has(id) ? 'selected' : ''}`;
+                // Using colored divs to simulate images for this demo
+                cell.innerHTML = `
+                    <div style="width:100%; height:100%; background:${img.color}; display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,0.3); font-size:2rem; font-weight:bold;">${i+1}</div>
+                    <div class="select-check"><i class="fas fa-check"></i></div>
+                `;
+                cell.onclick = (e) => {
+                    // Simple click selects
+                    this.toggleSelect(id, cell);
+                };
+                cell.ondblclick = () => {
+                    this.openSlide(i);
+                }
+                grid.appendChild(cell);
+            });
+
+            // 3. Data View
+            const renderFighter = (divId, p, isWin) => {
+                const el = document.getElementById(divId);
+                const color = isWin ? 'var(--accent)' : 'var(--data)'; // Flip colors just for visual difference
+                el.innerHTML = `
+                    <div class="mono" style="color:${color}; margin-bottom:5px;">${p.name.toUpperCase()}</div>
+                    <div class="mono" style="font-size:10px; color:#888;">${p.theory}</div>
+                    <div class="score-display" style="color:${color}">${p.score}</div>
+                    <div>
+                        ${p.criteria.map(c => `
+                            <div class="crit-item ${c.v}">
+                                <div style="font-weight:bold;">${c.n}</div>
+                                <div style="color:#666; font-size:11px;">${c.t}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            };
+            const p1Win = data.p1.score > data.p2.score;
+            renderFighter('col-p1', data.p1, p1Win);
+            renderFighter('col-p2', data.p2, !p1Win);
+
+            // 4. Matrix View
+            const tbody = document.getElementById('matrix-body');
+            tbody.innerHTML = '';
+            data.matrix.forEach(row => {
+                tbody.innerHTML += `
+                    <tr style="border-bottom:1px solid #222;">
+                        <td style="padding:10px; color:#666; width:20%">${row[0]}</td>
+                        <td style="padding:10px; border-left:1px dashed #333; width:40%">${row[1]}</td>
+                        <td style="padding:10px; border-left:1px dashed #333; width:40%">${row[2]}</td>
+                    </tr>
+                `;
+            });
+
+            // If mobile, close sidebar after select
+            if(window.innerWidth <= 768) {
+                this.state.sidebarOpen = false;
+                document.getElementById('sidebar').classList.remove('open');
+            }
+        },
+
+        setView(viewName) {
+            this.state.view = viewName;
+            
+            // UI Toggles
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.getElementById(`view-${viewName}`).classList.add('active');
+            
+            document.querySelectorAll('.cmd-btn').forEach(el => el.classList.remove('active'));
+            document.querySelector(`.cmd-btn[data-view="${viewName}"]`)?.classList.add('active');
+            
+            // Special handling for Data View (Scroll reset)
+            if(viewName === 'text') document.querySelector('.viewport').scrollTop = 0;
+        },
+
+        // --- SELECTION LOGIC ---
+        toggleSelect(id, element) {
+            if(this.state.selection.has(id)) {
+                this.state.selection.delete(id);
+                element.classList.remove('selected');
+            } else {
+                this.state.selection.add(id);
+                element.classList.add('selected');
+            }
+            this.updateSelPanel();
+        },
+        
+        toggleSelectionPanel() {
+            const p = document.getElementById('sel-panel');
+            p.classList.toggle('active');
+            this.updateSelPanel();
+        },
+
+        updateSelPanel() {
+            document.getElementById('sel-count').innerText = this.state.selection.size;
+        },
+
+        clearSelection() {
+            this.state.selection.clear();
+            this.loadItem(this.state.currentIdx); // Re-render to clear visuals
+            this.updateSelPanel();
+        },
+
+        exportSelection() {
+            if(this.state.selection.size === 0) return alert("Empty Selection");
+            const exportData = Array.from(this.state.selection);
+            console.log("Exporting", exportData);
+            alert(`Exported ${exportData.length} items to Console`);
+        },
+
+        // --- SLIDESHOW LOGIC ---
+        openSlide(imgIdx) {
+            this.state.slideIdx = imgIdx;
+            document.getElementById('slide-overlay').style.display = 'flex';
+            this.renderSlide();
+        },
+        
+        closeSlide() {
+            document.getElementById('slide-overlay').style.display = 'none';
+        },
+
+        renderSlide() {
+            const item = DB[this.state.currentIdx];
+            const img = item.images[this.state.slideIdx];
+            const stage = document.getElementById('slide-content');
+            
+            // Simulating image
+            stage.innerHTML = `<div style="width:80%; height:80%; background:${img.color}; box-shadow:0 0 50px ${img.color};"></div>`;
+            document.getElementById('slide-caption').innerText = img.caption;
+            document.getElementById('slide-counter').innerText = `${this.state.slideIdx + 1} / ${item.images.length}`;
+        },
+
+        nextSlide() {
+            const max = DB[this.state.currentIdx].images.length - 1;
+            this.state.slideIdx = this.state.slideIdx >= max ? 0 : this.state.slideIdx + 1;
+            this.renderSlide();
+        },
+
+        prevSlide() {
+            const max = DB[this.state.currentIdx].images.length - 1;
+            this.state.slideIdx = this.state.slideIdx <= 0 ? max : this.state.slideIdx - 1;
+            this.renderSlide();
+        },
+
+        handleKey(e) {
+            if(document.getElementById('slide-overlay').style.display === 'flex') {
+                if(e.key === 'ArrowRight') this.nextSlide();
+                if(e.key === 'ArrowLeft') this.prevSlide();
+                if(e.key === 'Escape') this.closeSlide();
+            }
+        }
+    };
+
+    // BOOT
+    document.addEventListener('DOMContentLoaded', () => {
+        app.init();
+        app.setView('text'); // Default view
+    });
+
+</script>
+</body>
+</html>

@@ -28,6 +28,10 @@
             --theme-scene: #c084fc;
             --theme-story: #e879f9;
             --ease: cubic-bezier(0.4, 0, 0.2, 1);
+            --grid-focus-bg: rgba(59, 130, 246, 0.1);
+            --grid-focus-border: rgba(59, 130, 246, 0.3);
+            --grid-neighbor-bg: rgba(96, 165, 250, 0.06);
+            --grid-neighbor-border: rgba(96, 165, 250, 0.35);
         }
 
         body {
@@ -76,6 +80,20 @@
             --theme-border: #e5c48f;
             --theme-text-main: #2b2a26;
             --theme-text-muted: #7a6a4a;
+        }
+
+        .theme-parchment .grid-overlay {
+            opacity: 0.22;
+        }
+
+        .theme-parchment .grid-cell {
+            border-color: rgba(0, 0, 0, 0.12);
+        }
+
+        .theme-parchment .node-label {
+            color: #0e7490;
+            background: rgba(15, 23, 42, 0.06);
+            border-color: rgba(14, 116, 144, 0.45);
         }
 
         .theme-terminal {
@@ -146,7 +164,23 @@
 
         #connections-layer path.link-auto {
             stroke-dasharray: 4 8;
-            animation: link-flow 4s linear infinite;
+            animation: link-flow 8s linear infinite;
+        }
+
+        #connections-layer .link-arrow {
+            pointer-events: none;
+        }
+
+        #connections-layer text.link-label {
+            font-family: 'JetBrains Mono', monospace;
+            paint-order: stroke;
+            stroke: #0b1121;
+            stroke-width: 0.6;
+        }
+
+        #connections-layer .link-morphism-icon {
+            stroke: #0f172a;
+            stroke-width: 0.4;
         }
 
         @keyframes link-flow {
@@ -169,6 +203,29 @@
 
         .node-instance.selected {
             filter: drop-shadow(0 0 20px var(--theme-core));
+        }
+
+        .node-instance.struct-inactive {
+            opacity: 0.6;
+            filter: grayscale(0.3);
+        }
+
+        .node-instance.struct-inactive .node-label {
+            opacity: 0.8;
+        }
+
+        .node-instance.story-incomplete {
+            opacity: 0.4;
+            filter: grayscale(0.5) blur(0.2px);
+        }
+
+        .node-instance.multi-selected::after {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 999px;
+            border: 1px dashed rgba(56, 189, 248, 0.9);
+            pointer-events: none;
         }
 
         .node-halo {
@@ -262,13 +319,13 @@
         }
 
         .grid-cell.focus {
-            background: rgba(59, 130, 246, 0.1);
-            border-color: rgba(59, 130, 246, 0.3);
+            background: var(--grid-focus-bg, rgba(59, 130, 246, 0.1));
+            border-color: var(--grid-focus-border, rgba(59, 130, 246, 0.3));
         }
 
         .grid-cell.neighbor {
-            background: rgba(96, 165, 250, 0.06);
-            border-color: rgba(96, 165, 250, 0.35);
+            background: var(--grid-neighbor-bg, rgba(96, 165, 250, 0.06));
+            border-color: var(--grid-neighbor-border, rgba(96, 165, 250, 0.35));
         }
 
         .log-entry {
@@ -438,8 +495,8 @@
     </aside>
 
     <!-- Canvas -->
-    <main class="relative bg-[var(--theme-bg)] overflow-hidden">
-        <div id="grid-shell" class="absolute inset-0">
+    <main id="onyx-main" class="relative bg-[var(--theme-bg)] overflow-hidden">
+        <div id="grid-shell" class="absolute">
             <div class="absolute inset-0 animate-grid-fade opacity-10 pointer-events-none grid-overlay"></div>
             <div id="grid-lock" class="absolute inset-0 grid grid-cols-9 grid-rows-9 gap-0 p-0 z-10"></div>
             <div id="nodes-layer" class="absolute inset-0 z-20 pointer-events-none"></div>
@@ -501,6 +558,7 @@
     </div>
 
     <script>
+        console.log('[ONYX] main script loaded');
         // =========================================
         // STATE MANAGEMENT
         // =========================================
@@ -508,6 +566,8 @@
             nodes: [],
             links: [],
             selectedNodeId: null,
+            multiSelectedIds: [],
+            collapsedContainers: [],
             viewMode: 'system',
             theme: 'dark',
             draggedNodeId: null,
@@ -516,7 +576,8 @@
             sceneMeta: null,
             sidebarCollapsed: false,
             inspectorCollapsed: false,
-            consoleCollapsed: false
+            consoleCollapsed: false,
+            showLinkNames: true
         };
 
         // =========================================
@@ -547,6 +608,54 @@
                 });
 
                 if (!node) return;
+
+                const root = document.documentElement;
+                let focusBg = 'rgba(59, 130, 246, 0.1)';
+                let focusBorder = 'rgba(59, 130, 246, 0.3)';
+                let neighBg = 'rgba(96, 165, 250, 0.06)';
+                let neighBorder = 'rgba(96, 165, 250, 0.35)';
+
+                if (node.icon === 'Scene') {
+                    focusBg = 'rgba(192, 132, 252, 0.12)';
+                    focusBorder = 'rgba(192, 132, 252, 0.5)';
+                    neighBg = 'rgba(192, 132, 252, 0.06)';
+                    neighBorder = 'rgba(192, 132, 252, 0.35)';
+                } else if (node.icon === 'Timepoint') {
+                    focusBg = 'rgba(56, 189, 248, 0.12)';
+                    focusBorder = 'rgba(56, 189, 248, 0.5)';
+                    neighBg = 'rgba(56, 189, 248, 0.06)';
+                    neighBorder = 'rgba(56, 189, 248, 0.35)';
+                } else if (node.icon === 'Location') {
+                    focusBg = 'rgba(168, 85, 247, 0.12)';
+                    focusBorder = 'rgba(168, 85, 247, 0.5)';
+                    neighBg = 'rgba(168, 85, 247, 0.06)';
+                    neighBorder = 'rgba(168, 85, 247, 0.35)';
+                } else if (node.icon === 'Story') {
+                    focusBg = 'rgba(244, 114, 182, 0.12)';
+                    focusBorder = 'rgba(244, 114, 182, 0.5)';
+                    neighBg = 'rgba(244, 114, 182, 0.06)';
+                    neighBorder = 'rgba(244, 114, 182, 0.35)';
+                } else if (node.icon === 'Core') {
+                    focusBg = 'rgba(250, 204, 21, 0.16)';
+                    focusBorder = 'rgba(250, 204, 21, 0.6)';
+                    neighBg = 'rgba(250, 204, 21, 0.08)';
+                    neighBorder = 'rgba(250, 204, 21, 0.4)';
+                } else if (node.icon === 'Goal') {
+                    focusBg = 'rgba(74, 222, 128, 0.16)';
+                    focusBorder = 'rgba(74, 222, 128, 0.6)';
+                    neighBg = 'rgba(74, 222, 128, 0.08)';
+                    neighBorder = 'rgba(74, 222, 128, 0.4)';
+                } else if (node.icon === 'Obstacle') {
+                    focusBg = 'rgba(248, 113, 113, 0.16)';
+                    focusBorder = 'rgba(248, 113, 113, 0.6)';
+                    neighBg = 'rgba(248, 113, 113, 0.08)';
+                    neighBorder = 'rgba(248, 113, 113, 0.4)';
+                }
+
+                root.style.setProperty('--grid-focus-bg', focusBg);
+                root.style.setProperty('--grid-focus-border', focusBorder);
+                root.style.setProperty('--grid-neighbor-bg', neighBg);
+                root.style.setProperty('--grid-neighbor-border', neighBorder);
 
                 const pos = this.snap(node.x, node.y);
                 const baseRow = pos.row;
@@ -658,6 +767,41 @@
                     return;
                 }
 
+                // Composite scene pattern: "X wants Y but Z"
+                const scenePattern = /(.+?)\s+wants\s+(.+?)\s+but\s+(.+)/i;
+                const sceneMatch = cmd.match(scenePattern);
+                if (sceneMatch) {
+                    const [, who, goalLabel, obstacleLabel] = sceneMatch;
+                    const entityId = this.findOrSpawn(who.trim(), 'Entity');
+                    const goalId = this.findOrSpawn(goalLabel.trim(), 'Goal');
+                    const obstacleId = this.findOrSpawn(obstacleLabel.trim(), 'Obstacle');
+
+                    // Desire and conflict links
+                    if (!STATE.links.find(l => l.from === entityId && l.to === goalId && l.type === 'desire')) {
+                        STATE.links.push({ from: entityId, to: goalId, type: 'desire' });
+                    }
+                    if (!STATE.links.find(l => l.from === obstacleId && l.to === entityId && l.type === 'conflict')) {
+                        STATE.links.push({ from: obstacleId, to: entityId, type: 'conflict' });
+                    }
+
+                    // Structural Scene beat containing E/G/O
+                    const sceneLabel = `Scene · ${who.trim()} vs ${obstacleLabel.trim()}`;
+                    const sceneId = this.spawnNode('Scene', sceneLabel);
+
+                    [entityId, goalId, obstacleId].forEach(id => {
+                        if (!STATE.links.find(l => l.from === id && l.to === sceneId && l.type === 'inside')) {
+                            STATE.links.push({ from: id, to: sceneId, type: 'inside' });
+                        }
+                    });
+
+                    RENDERER.nodes();
+                    RENDERER.connections();
+                    PERSISTENCE.save();
+                    LOG.toast('Scene created with Entity/Goal/Obstacle');
+                    input.value = '';
+                    return;
+                }
+
                 // Parse natural language: "A wants B" / "A opposes B" / "A becomes B"
                 const regex = /(.+?)\s+(wants|opposes|becomes|is inside)\s+(.+)/i;
                 const match = cmd.match(regex);
@@ -743,7 +887,37 @@
                     y: snapped.y
                 };
 
+                if (type === 'Timepoint') {
+                    newNode.time = '';
+                }
+
+                if (type === 'Location') {
+                    newNode.lat = null;
+                    newNode.lng = null;
+                }
+
                 STATE.nodes.push(newNode);
+
+                // Auto-Core: every new Scene gets a Core child that carries its name
+                if (type === 'Scene') {
+                    const coreLabel = newNode.label || 'Scene';
+                    const coreId = Date.now() + Math.random();
+                    const snapped = GRID.snap(newNode.x, newNode.y);
+                    const step = 100 / 9;
+                    const coreNode = {
+                        id: coreId,
+                        type: 'core',
+                        icon: 'Core',
+                        label: coreLabel,
+                        x: snapped.x - step * 0.25,
+                        y: snapped.y - step * 0.25
+                    };
+                    STATE.nodes.push(coreNode);
+                    if (!STATE.links.some(l => l.from === coreId && l.to === id && l.type === 'inside')) {
+                        STATE.links.push({ from: coreId, to: id, type: 'inside' });
+                    }
+                }
+
                 RENDERER.nodes();
                 RENDERER.connections();
                 PERSISTENCE.save();
@@ -788,26 +962,128 @@
         // RENDERER
         // =========================================
         const RENDERER = {
+            slotStatus(node) {
+                const slots = { E: false, C: false, G: false, O: false };
+                if (node.icon !== 'Scene' && node.icon !== 'Story') return slots;
+
+                const relatedIds = new Set();
+
+                STATE.links.forEach(link => {
+                    if (link.from === node.id) relatedIds.add(link.to);
+                    if (link.to === node.id) relatedIds.add(link.from);
+                });
+
+                if (node.icon === 'Story') {
+                    const sceneIds = new Set();
+                    STATE.links.forEach(link => {
+                        if (link.from === node.id || link.to === node.id) {
+                            const otherId = link.from === node.id ? link.to : link.from;
+                            const other = STATE.nodes.find(n => n.id === otherId);
+                            if (other && other.icon === 'Scene') {
+                                sceneIds.add(otherId);
+                            }
+                        }
+                    });
+
+                    if (sceneIds.size) {
+                        STATE.links.forEach(link => {
+                            if (sceneIds.has(link.from)) relatedIds.add(link.to);
+                            if (sceneIds.has(link.to)) relatedIds.add(link.from);
+                        });
+                    }
+                }
+
+                relatedIds.forEach(id => {
+                    const n = STATE.nodes.find(x => x.id === id);
+                    if (!n) return;
+                    if (n.icon === 'Entity') slots.E = true;
+                    else if (n.icon === 'Core') slots.C = true;
+                    else if (n.icon === 'Goal') slots.G = true;
+                    else if (n.icon === 'Obstacle') slots.O = true;
+                });
+
+                return slots;
+            },
+
             nodes() {
                 const container = document.getElementById('nodes-layer');
+
+                // Compute nodes hidden by collapsed containers (Scenes/Stories)
+                const collapsedSet = new Set(STATE.collapsedContainers || []);
+                const childrenByParent = {};
+                STATE.links.forEach(link => {
+                    if (link.type === 'inside') {
+                        if (!childrenByParent[link.to]) childrenByParent[link.to] = [];
+                        childrenByParent[link.to].push(link.from);
+                    }
+                });
+                const hidden = new Set();
+                const isContainerId = (id) => {
+                    const n = STATE.nodes.find(x => x.id === id);
+                    return n && (n.icon === 'Scene' || n.icon === 'Story');
+                };
+                const markHiddenFrom = (cid) => {
+                    const kids = childrenByParent[cid];
+                    if (!kids) return;
+                    kids.forEach(childId => {
+                        if (hidden.has(childId)) return;
+                        hidden.add(childId);
+                        if (isContainerId(childId)) markHiddenFrom(childId);
+                    });
+                };
+                collapsedSet.forEach(id => markHiddenFrom(id));
+
                 container.innerHTML = STATE.nodes.map(node => {
+                    if (hidden.has(node.id)) return '';
                     const isSelected = STATE.selectedNodeId === node.id;
+                    const isMulti = STATE.multiSelectedIds && STATE.multiSelectedIds.includes(node.id);
                     const iconFn = ICONS[node.icon] || ICONS.Entity;
+                    const slots = this.slotStatus(node);
+                    const showSlots = node.icon === 'Scene' || node.icon === 'Story';
+                    const slotCount = (slots.E ? 1 : 0) + (slots.C ? 1 : 0) + (slots.G ? 1 : 0) + (slots.O ? 1 : 0);
+                    const isScene = node.icon === 'Scene';
+                    const isStory = node.icon === 'Story';
+                    let displayLabel = node.label;
+                    if (isScene || isStory) {
+                        for (const link of STATE.links) {
+                            if (link.type === 'inside' && link.to === node.id) {
+                                const child = STATE.nodes.find(x => x.id === link.from);
+                                if (child && child.icon === 'Core' && child.label) {
+                                    displayLabel = child.label;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    const inactiveScene = isScene && slotCount < 2;
+                    const inactiveStory = isStory && slotCount < 4;
+                    const isStoryMode = STATE.viewMode === 'story';
+                    const incompleteClass = (isStoryMode && (inactiveScene || inactiveStory)) ? ' story-incomplete' : '';
+                    const extraClass = (inactiveScene || inactiveStory) ? ' struct-inactive' + incompleteClass : '';
+                    const slotBadge = showSlots ? `
+                        <div class="absolute -top-5 left-1/2 transform -translate-x-1/2 flex gap-1">
+                            <span class="w-2 h-2 rounded-full border border-sky-400" style="background-color: rgba(56,189,248,${slots.E ? 1 : 0.15});"></span>
+                            <span class="w-2 h-2 rounded-full border border-amber-300" style="background-color: rgba(252,211,77,${slots.C ? 1 : 0.15});"></span>
+                            <span class="w-2 h-2 rounded-full border border-emerald-300" style="background-color: rgba(52,211,153,${slots.G ? 1 : 0.15});"></span>
+                            <span class="w-2 h-2 rounded-full border border-rose-300" style="background-color: rgba(248,113,113,${slots.O ? 1 : 0.15});"></span>
+                        </div>
+                    ` : '';
                     return `
-                    <div class="node-instance ${isSelected ? 'selected' : ''}" 
+                    <div class="node-instance ${isSelected ? 'selected' : ''}${extraClass}${isMulti ? ' multi-selected' : ''}" 
                          style="left: ${node.x}%; top: ${node.y}%; pointer-events: auto;"
                          data-node-id="${node.id}"
                          onmousedown="EVENTS.startDrag(event, ${node.id})"
                          ontouchstart="EVENTS.startDrag(event, ${node.id})"
-                         onclick="INSPECTOR.select(${node.id})"
+                         onclick="EVENTS.handleClick(event, ${node.id})"
                          ondblclick="INSPECTOR.selectAndFocus(${node.id})"
                          oncontextmenu="INSPECTOR.onContextMenu(event, ${node.id})">
                         <div class="node-halo"></div>
                         <div class="w-16 h-16 drop-shadow-2xl">
                             ${iconFn()}
                         </div>
-                        <div class="absolute -bottom-6 left-1/2 transform -translate-x-1/2 whitespace-nowrap px-2 py-0.5 bg-[var(--theme-panel)]/90 border border-cyan-500/30 rounded text-[10px] text-cyan-400 pointer-events-none">
-                            ${node.label}
+                        ${slotBadge}
+                        <div class="node-label absolute -bottom-6 left-1/2 transform -translate-x-1/2 whitespace-nowrap px-2 py-0.5 bg-[var(--theme-panel)]/90 border border-cyan-500/30 rounded text-[10px] text-cyan-400 pointer-events-none">
+                            ${displayLabel}
                         </div>
                     </div>`;
                 }).join('');
@@ -824,7 +1100,33 @@
                 svg.setAttribute('preserveAspectRatio', 'none');
                 svg.innerHTML = '';
 
+                // Compute nodes hidden by collapsed containers to avoid drawing links to them
+                const collapsedSet = new Set(STATE.collapsedContainers || []);
+                const childrenByParent = {};
                 STATE.links.forEach(link => {
+                    if (link.type === 'inside') {
+                        if (!childrenByParent[link.to]) childrenByParent[link.to] = [];
+                        childrenByParent[link.to].push(link.from);
+                    }
+                });
+                const hidden = new Set();
+                const isContainerId = (id) => {
+                    const n = STATE.nodes.find(x => x.id === id);
+                    return n && (n.icon === 'Scene' || n.icon === 'Story');
+                };
+                const markHiddenFrom = (cid) => {
+                    const kids = childrenByParent[cid];
+                    if (!kids) return;
+                    kids.forEach(childId => {
+                        if (hidden.has(childId)) return;
+                        hidden.add(childId);
+                        if (isContainerId(childId)) markHiddenFrom(childId);
+                    });
+                };
+                collapsedSet.forEach(id => markHiddenFrom(id));
+
+                STATE.links.forEach(link => {
+                    if (hidden.has(link.from) || hidden.has(link.to)) return;
                     const n1 = STATE.nodes.find(n => n.id === link.from);
                     const n2 = STATE.nodes.find(n => n.id === link.to);
                     if (!n1 || !n2) return;
@@ -834,8 +1136,15 @@
 
                     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
 
-                    const cx = (p1.x + p2.x) / 2;
-                    const cy = (p1.y + p2.y) / 2 - 10;
+                    const midX = (p1.x + p2.x) / 2;
+                    let midY = (p1.y + p2.y) / 2 - 10;
+                    const isSceneLike = (n1.icon === 'Scene' || n2.icon === 'Scene' || n1.icon === 'Story' || n2.icon === 'Story' || n1.icon === 'Location' || n2.icon === 'Location' || n1.icon === 'Timepoint' || n2.icon === 'Timepoint');
+                    if (link.type === 'inside' && isSceneLike) {
+                        midY = (p1.y + p2.y) / 2 - 3;
+                    }
+
+                    const cx = midX;
+                    const cy = midY;
                     const d = `M ${p1.x} ${p1.y} Q ${cx} ${cy} ${p2.x} ${p2.y}`;
 
                     path.setAttribute('d', d);
@@ -849,14 +1158,33 @@
                     if (link.type === 'desire') {
                         color = '#fcd34d';
                         width = 1.6;
-                        opacity = 0.75;
+                        opacity = 0.85;
                     } else if (link.type === 'conflict') {
                         color = '#f87171';
                         width = 1.6;
-                        opacity = 0.75;
+                        opacity = 0.85;
+                    } else if (link.type === 'inside') {
+                        color = '#a855f7';
+                        width = 1.4;
+                        opacity = 0.7;
+                    } else if (link.type === 'shift') {
+                        color = '#22c55e';
+                        width = 1.5;
+                        opacity = 0.8;
                     } else if (link.type === 'morphism') {
-                        color = isAuto ? '#22d3ee' : '#38bdf8';
-                        className += isAuto ? ' link-auto' : '';
+                        let base = '#38bdf8';
+                        if (n1.icon === 'Entity') base = '#38bdf8';
+                        else if (n1.icon === 'Core') base = '#fbbf24';
+                        else if (n1.icon === 'Goal') base = '#22c55e';
+                        else if (n1.icon === 'Obstacle') base = '#f97373';
+                        else if (n1.icon === 'Scene') base = '#c084fc';
+                        else if (n1.icon === 'Story') base = '#e879f9';
+                        else if (n1.icon === 'Location' || n1.icon === 'Timepoint') base = '#a855f7';
+
+                        color = base;
+                        width = isAuto ? 1.0 : 1.4;
+                        opacity = isAuto ? 0.35 : 0.7;
+                        if (isAuto) className += ' link-auto';
                     }
 
                     path.setAttribute('stroke', color);
@@ -870,6 +1198,22 @@
                     }
 
                     svg.appendChild(path);
+
+                    const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    const angle = Math.atan2(p2.y - cy, p2.x - cx);
+                    const size = 2.5;
+                    const ax = p2.x;
+                    const ay = p2.y;
+                    const x1 = ax - size * Math.cos(angle - Math.PI / 6);
+                    const y1 = ay - size * Math.sin(angle - Math.PI / 6);
+                    const x2 = ax - size * Math.cos(angle + Math.PI / 6);
+                    const y2 = ay - size * Math.sin(angle + Math.PI / 6);
+                    const ad = `M ${ax} ${ay} L ${x1} ${y1} L ${x2} ${y2} Z`;
+                    arrow.setAttribute('d', ad);
+                    arrow.setAttribute('fill', color);
+                    arrow.setAttribute('fill-opacity', opacity);
+                    arrow.setAttribute('class', 'link-arrow');
+                    svg.appendChild(arrow);
                 });
             },
 
@@ -913,6 +1257,8 @@
         const VIEW_MODE = {
             switch(mode) {
                 STATE.viewMode = mode;
+                // Clear multi-selection when switching views
+                STATE.multiSelectedIds = [];
 
                 document.querySelectorAll('.nav-tab').forEach(tab => {
                     tab.classList.toggle('active', tab.dataset.view === mode);
@@ -933,20 +1279,147 @@
             },
 
             arrangeAsTree() {
-                // Simple tree layout
-                const core = STATE.nodes.find(n => n.type === 'core');
-                if (core) {
-                    const pos = GRID.center(4, 1);
-                    core.x = pos.x;
-                    core.y = pos.y;
+                // Simple tree layout, with STORY-mode bias toward scenes/time/space
+                const scenes = STATE.nodes.filter(n => n.icon === 'Scene');
+
+                // If there are no scenes yet, fall back to legacy core-centric layout
+                if (!scenes.length) {
+                    const core = STATE.nodes.find(n => n.type === 'core');
+                    if (core) {
+                        const pos = GRID.center(4, 1);
+                        core.x = pos.x;
+                        core.y = pos.y;
+                    }
+
+                    const others = STATE.nodes.filter(n => n.type !== 'core');
+                    const cols = [1, 3, 5, 7];
+                    others.forEach((n, i) => {
+                        const pos = GRID.center(cols[i % cols.length], 3 + Math.floor(i / cols.length) * 2);
+                        n.x = pos.x;
+                        n.y = pos.y;
+                    });
+
+                    RENDERER.nodes();
+                    RENDERER.connections();
+                    return;
                 }
 
-                const others = STATE.nodes.filter(n => n.type !== 'core');
-                const cols = [1, 3, 5, 7];
-                others.forEach((n, i) => {
-                    const pos = GRID.center(cols[i % cols.length], 3 + Math.floor(i / cols.length) * 2);
-                    n.x = pos.x;
-                    n.y = pos.y;
+                const stories = STATE.nodes.filter(n => n.icon === 'Story');
+                const timepoints = STATE.nodes.filter(n => n.icon === 'Timepoint');
+                const locations = STATE.nodes.filter(n => n.icon === 'Location');
+
+                // Sort scenes in story order: left-to-right by current grid column, then by row
+                scenes.sort((a, b) => {
+                    const sa = GRID.snap(a.x, a.y);
+                    const sb = GRID.snap(b.x, b.y);
+                    if (sa.col !== sb.col) return sa.col - sb.col;
+                    return sa.row - sb.row;
+                });
+
+                const beatCols = [1, 3, 5, 7];
+
+                // Place scenes as beats across rows 4, 6, 8
+                scenes.forEach((scene, i) => {
+                    const col = beatCols[i % beatCols.length];
+                    const row = 4 + 2 * Math.floor(i / beatCols.length); // 4, 6, 8
+                    const safeRow = Math.min(row, 8);
+                    const pos = GRID.center(col, safeRow);
+                    scene.x = pos.x;
+                    scene.y = pos.y;
+                });
+
+                // Helper to get average column from a set of node ids
+                const avgColForIds = (ids) => {
+                    let sum = 0;
+                    let count = 0;
+                    ids.forEach(id => {
+                        const n = STATE.nodes.find(x => x.id === id);
+                        if (!n) return;
+                        const snap = GRID.snap(n.x, n.y);
+                        sum += snap.col;
+                        count += 1;
+                    });
+                    if (!count) return 4; // center
+                    return Math.round(sum / count);
+                };
+
+                // Place stories above their attached scenes (row 1)
+                stories.forEach(story => {
+                    const sceneIds = new Set();
+                    STATE.links.forEach(link => {
+                        if (link.from === story.id || link.to === story.id) {
+                            const otherId = link.from === story.id ? link.to : link.from;
+                            const other = STATE.nodes.find(n => n.id === otherId);
+                            if (other && other.icon === 'Scene') {
+                                sceneIds.add(otherId);
+                            }
+                        }
+                    });
+
+                    const colIdx = avgColForIds(sceneIds);
+                    const pos = GRID.center(colIdx, 1);
+                    story.x = pos.x;
+                    story.y = pos.y;
+                });
+
+                // Timepoints: align to lanes above nearest/linked scene (row 2)
+                timepoints.forEach(tp => {
+                    let hostScene = null;
+                    let linkedSceneIds = new Set();
+
+                    STATE.links.forEach(link => {
+                        if (link.from === tp.id || link.to === tp.id) {
+                            const otherId = link.from === tp.id ? link.to : link.from;
+                            const other = STATE.nodes.find(n => n.id === otherId);
+                            if (other && other.icon === 'Scene') {
+                                linkedSceneIds.add(otherId);
+                            }
+                        }
+                    });
+
+                    if (linkedSceneIds.size) {
+                        const colIdx = avgColForIds(linkedSceneIds);
+                        const pos = GRID.center(colIdx, 2);
+                        tp.x = pos.x;
+                        tp.y = pos.y;
+                    } else if (scenes.length) {
+                        // Fallback: attach to closest scene by column
+                        let best = scenes[0];
+                        let bestDist = Infinity;
+                        const tpSnap = GRID.snap(tp.x, tp.y);
+                        scenes.forEach(scene => {
+                            const sSnap = GRID.snap(scene.x, scene.y);
+                            const dist = Math.abs(sSnap.col - tpSnap.col);
+                            if (dist < bestDist) {
+                                bestDist = dist;
+                                best = scene;
+                            }
+                        });
+                        const sSnap = GRID.snap(best.x, best.y);
+                        const pos = GRID.center(sSnap.col, 2);
+                        tp.x = pos.x;
+                        tp.y = pos.y;
+                    }
+                });
+
+                // Locations: align just below timepoints / above scenes (row 3)
+                locations.forEach(loc => {
+                    let hostSceneIds = new Set();
+
+                    STATE.links.forEach(link => {
+                        if (link.from === loc.id || link.to === loc.id) {
+                            const otherId = link.from === loc.id ? link.to : link.from;
+                            const other = STATE.nodes.find(n => n.id === otherId);
+                            if (other && other.icon === 'Scene') {
+                                hostSceneIds.add(otherId);
+                            }
+                        }
+                    });
+
+                    const colIdx = hostSceneIds.size ? avgColForIds(hostSceneIds) : GRID.snap(loc.x, loc.y).col;
+                    const pos = GRID.center(colIdx, 3);
+                    loc.x = pos.x;
+                    loc.y = pos.y;
                 });
 
                 RENDERER.nodes();
@@ -1040,11 +1513,17 @@
         // =========================================
         const INSPECTOR = {
             select(id) {
+                console.error('[INSPECTOR.select] start', { id, nodeCount: STATE.nodes.length });
+                LOG.info(`[INSPECTOR.select] id=${id}, nodes=${STATE.nodes.length}`);
                 STATE.selectedNodeId = id;
                 RENDERER.nodes();
 
                 const node = STATE.nodes.find(n => n.id === id);
-                if (!node) return;
+                if (!node) {
+                    console.error('[INSPECTOR.select] no node found for id', id);
+                    LOG.warn(`[INSPECTOR.select] no node found for id=${id}`);
+                    return;
+                }
 
                 GRID.highlightNeighborhood(node);
 
@@ -1075,7 +1554,23 @@
                     return target && target.icon === 'Location';
                 });
 
+                const linksForNode = STATE.links
+                    .map((link, index) => ({ link, index }))
+                    .filter(({ link }) => link.from === node.id || link.to === node.id);
+
+                const isTimepoint = node.icon === 'Timepoint';
+                const isLocation = node.icon === 'Location';
+                const isContainer = node.icon === 'Scene' || node.icon === 'Story';
+                const isCollapsed = isContainer && Array.isArray(STATE.collapsedContainers) && STATE.collapsedContainers.includes(node.id);
+
                 const content = document.getElementById('inspector-content');
+                if (!content) {
+                    console.error('[INSPECTOR.select] inspector-content not found in DOM');
+                    LOG.error('[INSPECTOR.select] inspector-content not found in DOM');
+                    return;
+                }
+                console.error('[INSPECTOR.select] rendering node', { id: node.id, label: node.label, icon: node.icon });
+                LOG.info(`[INSPECTOR.select] rendering ${node.label} (${node.icon})`);
                 content.innerHTML = `
                     <div class="space-y-4 animate-fade-up">
                         <div class="p-3 rounded bg-[var(--theme-surface)] border border-[var(--theme-border)]">
@@ -1101,20 +1596,101 @@
                                 <option value="Story" ${node.icon === 'Story' ? 'selected' : ''}>Story</option>
                             </select>
                         </div>
+                        ${isTimepoint ? `
+                        <div class="p-3 rounded bg-[var(--theme-surface)] border border-[var(--theme-border)]">
+                            <div class="text-[10px] uppercase tracking-wider text-[var(--theme-text-muted)] mb-2">Time</div>
+                            <input type="text" value="${node.time || ''}"
+                                   placeholder="e.g. 1890, Act II, dawn"
+                                   onchange="INSPECTOR.updateTime(${node.id}, this.value)"
+                                   class="w-full bg-transparent border-b border-[var(--theme-border)] focus:border-cyan-500 outline-none text-xs" />
+                        </div>
+                        ` : ''}
+                        ${isLocation ? `
+                        <div class="p-3 rounded bg-[var(--theme-surface)] border border-[var(--theme-border)]">
+                            <div class="text-[10px] uppercase tracking-wider text-[var(--theme-text-muted)] mb-2">Coordinates</div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <div class="text-[9px] text-[var(--theme-text-muted)] mb-1">Latitude</div>
+                                    <input type="text" value="${(typeof node.lat === 'number' ? node.lat : '')}"
+                                           placeholder="e.g. 37.7749"
+                                           onchange="INSPECTOR.updateLocation(${node.id}, 'lat', this.value)"
+                                           class="w-full bg-transparent border-b border-[var(--theme-border)] focus:border-cyan-500 outline-none text-[10px]" />
+                                </div>
+                                <div>
+                                    <div class="text-[9px] text-[var(--theme-text-muted)] mb-1">Longitude</div>
+                                    <input type="text" value="${(typeof node.lng === 'number' ? node.lng : '')}"
+                                           placeholder="e.g. -122.4194"
+                                           onchange="INSPECTOR.updateLocation(${node.id}, 'lng', this.value)"
+                                           class="w-full bg-transparent border-b border-[var(--theme-border)] focus:border-cyan-500 outline-none text-[10px]" />
+                                </div>
+                            </div>
+                        </div>
+                        ` : ''}
                         <div class="p-3 rounded bg-[var(--theme-surface)] border border-[var(--theme-border)]">
                             <div class="text-[10px] uppercase tracking-wider text-[var(--theme-text-muted)] mb-2">Actions</div>
                             <button onclick="INSPECTOR.forkScene()"
                                 class="w-full py-2 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-md text-[10px] font-semibold uppercase tracking-wide hover:border-[var(--theme-core)]">
                                 Fork scene from this
                             </button>
+                            <button onclick="INSPECTOR.exportJson()"
+                                class="w-full mt-2 py-2 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-md text-[10px] font-semibold uppercase tracking-wide hover:border-cyan-500">
+                                Export inspector JSON
+                            </button>
+                            ${isContainer ? `
+                            <button onclick="INSPECTOR.toggleContainer(${node.id})"
+                                class="w-full mt-2 py-2 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-md text-[10px] font-semibold uppercase tracking-wide hover:border-[var(--theme-core)]">
+                                ${isCollapsed ? 'Expand' : 'Collapse'} ${node.icon}
+                            </button>
+                            ` : ''}
+                            <div class="mt-3 grid grid-cols-1 gap-1 text-[10px]">
+                                <button onclick="INSPECTOR.makeSceneFromSelection()"
+                                    class="w-full py-1 bg-[var(--theme-surface)] border border-dashed border-[var(--theme-border)] rounded-md uppercase tracking-wide hover:border-[var(--theme-core)]">
+                                    Make Scene from selection
+                                </button>
+                                <button onclick="INSPECTOR.attachSelectionToStory()"
+                                    class="w-full py-1 bg-[var(--theme-surface)] border border-dashed border-[var(--theme-border)] rounded-md uppercase tracking-wide hover:border-[var(--theme-core)]">
+                                    Attach selection to Story
+                                </button>
+                            </div>
                         </div>
                         <div class="p-3 rounded bg-[var(--theme-surface)] border border-[var(--theme-border)]">
-                            <div class="text-[10px] uppercase tracking-wider text-[var(--theme-text-muted)] mb-2">Links</div>
+                            <div class="flex items-center justify-between mb-2">
+                                <div class="text-[10px] uppercase tracking-wider text-[var(--theme-text-muted)]">Links</div>
+                                <button onclick="INSPECTOR.toggleLinkNames()"
+                                    class="text-[9px] px-2 py-0.5 rounded-full border border-[var(--theme-border)] text-[var(--theme-text-muted)] hover:border-[var(--theme-core)] hover:text-[var(--theme-core)]">
+                                    ${STATE.showLinkNames ? 'Names: ON' : 'Names: OFF'}
+                                </button>
+                            </div>
                             <div class="text-xs space-y-1">
-                                ${STATE.links.filter(l => l.from === node.id || l.to === node.id).map(link => {
+                                ${linksForNode.map(({ link, index }) => {
                     const isOut = link.from === node.id;
                     const other = STATE.nodes.find(n => n.id === (isOut ? link.to : link.from));
-                    return other ? `<div>${isOut ? '→' : '←'} ${link.type}: ${other.label}</div>` : '';
+                    if (!other) return '';
+                    const hasReverse = STATE.links.some(l => l.from === link.to && l.to === link.from && l.type === link.type);
+                    const dir = hasReverse ? '↔' : (isOut ? '→' : '←');
+                    const label = (link.label || '').replace(/"/g, '&quot;');
+                    const type = link.type || 'link';
+                    let typeColor = '#64748b';
+                    if (type === 'desire') typeColor = '#facc15';
+                    else if (type === 'conflict') typeColor = '#f97373';
+                    else if (type === 'inside') typeColor = '#c084fc';
+                    else if (type === 'shift') typeColor = '#22c55e';
+                    else if (type === 'morphism') typeColor = '#22d3ee';
+                    const nameInput = STATE.showLinkNames ? `<input type="text" value="${label}" 
+                                                placeholder="name"
+                                                onchange="INSPECTOR.updateLinkLabel(${index}, this.value)"
+                                                class="w-20 bg-transparent border-b border-[var(--theme-border)] focus:border-cyan-500 outline-none text-[10px] px-1" />` : '';
+                    return `
+                                        <div class="flex items-center gap-1">
+                                            <span class="text-[10px]" style="color:${typeColor}">${dir}</span>
+                                            <button type="button" onclick="INSPECTOR.cycleLinkType(${index})" class="uppercase text-[9px] px-1 py-0.5 rounded-full border" style="border-color:${typeColor};color:${typeColor}">${type}</button>
+                                            <span class="flex-1 truncate">${other.label}</span>
+                                            ${nameInput}
+                                            <button onclick="INSPECTOR.deleteLink(${index})" 
+                                                class="text-[10px] text-red-400 hover:text-red-300 px-1">
+                                                ✕
+                                            </button>
+                                        </div>`;
                 }).join('') || '<div class="text-[var(--theme-text-muted)]">No links</div>'}
                             </div>
                         </div>
@@ -1183,6 +1759,73 @@
                 }
             },
 
+            updateTime(id, value) {
+                const node = STATE.nodes.find(n => n.id === id);
+                if (!node) return;
+                node.time = value.trim();
+                PERSISTENCE.save();
+                LOG.toast('Time updated');
+            },
+
+            updateLocation(id, field, value) {
+                const node = STATE.nodes.find(n => n.id === id);
+                if (!node) return;
+                const trimmed = value.trim();
+                if (!trimmed) {
+                    node[field] = null;
+                } else {
+                    const num = Number(trimmed);
+                    node[field] = Number.isFinite(num) ? num : trimmed;
+                }
+                PERSISTENCE.save();
+                LOG.toast('Location updated');
+            },
+
+            cycleLinkType(index) {
+                const link = STATE.links[index];
+                if (!link) return;
+                const order = ['morphism', 'shift', 'desire', 'conflict', 'inside'];
+                const current = link.type || 'morphism';
+                const idx = order.indexOf(current);
+                const next = order[(idx + 1 + order.length) % order.length];
+                link.type = next;
+                RENDERER.connections();
+                PERSISTENCE.save();
+                if (STATE.selectedNodeId) {
+                    this.select(STATE.selectedNodeId);
+                }
+                LOG.toast(`Link type: ${next}`);
+            },
+
+            toggleLinkNames() {
+                STATE.showLinkNames = !STATE.showLinkNames;
+                RENDERER.connections();
+                if (STATE.selectedNodeId) {
+                    this.select(STATE.selectedNodeId);
+                }
+            },
+
+            updateLinkLabel(index, value) {
+                const link = STATE.links[index];
+                if (!link) return;
+                const trimmed = value.trim();
+                link.label = trimmed || undefined;
+                PERSISTENCE.save();
+                LOG.toast('Link name updated');
+            },
+
+            deleteLink(index) {
+                const link = STATE.links[index];
+                if (!link) return;
+                STATE.links.splice(index, 1);
+                RENDERER.connections();
+                PERSISTENCE.save();
+                if (STATE.selectedNodeId) {
+                    this.select(STATE.selectedNodeId);
+                }
+                LOG.toast('Link removed');
+            },
+
             delete() {
                 if (!STATE.selectedNodeId) return;
 
@@ -1207,6 +1850,69 @@
                 GRID.highlightNeighborhood(null);
             },
 
+            exportJson() {
+                if (!STATE.selectedNodeId) return;
+                const node = STATE.nodes.find(n => n.id === STATE.selectedNodeId);
+                if (!node) return;
+
+                const links = STATE.links
+                    .map((link, index) => ({ link, index }))
+                    .filter(({ link }) => link.from === node.id || link.to === node.id)
+                    .map(({ link, index }) => {
+                        const isOut = link.from === node.id;
+                        const otherId = isOut ? link.to : link.from;
+                        const other = STATE.nodes.find(n => n.id === otherId);
+                        return {
+                            index,
+                            direction: isOut ? 'out' : 'in',
+                            type: link.type,
+                            label: link.label || null,
+                            from: link.from,
+                            to: link.to,
+                            otherId,
+                            otherLabel: other ? other.label : null
+                        };
+                    });
+
+                const nodePayload = {
+                    id: node.id,
+                    label: node.label,
+                    type: node.type,
+                    icon: node.icon,
+                    x: node.x,
+                    y: node.y
+                };
+
+                if (node.time) {
+                    nodePayload.time = node.time;
+                }
+                if (typeof node.lat === 'number') {
+                    nodePayload.lat = node.lat;
+                }
+                if (typeof node.lng === 'number') {
+                    nodePayload.lng = node.lng;
+                }
+
+                const payload = {
+                    node: nodePayload,
+                    links
+                };
+
+                const json = JSON.stringify(payload, null, 2);
+
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(json).then(() => {
+                        LOG.toast('Inspector JSON copied to clipboard');
+                    }).catch(() => {
+                        console.log('INSPECTOR JSON', json);
+                        LOG.info('Inspector JSON logged to console');
+                    });
+                } else {
+                    console.log('INSPECTOR JSON', json);
+                    LOG.info('Inspector JSON logged to console');
+                }
+            },
+
             updateType(id, typeLabel) {
                 const node = STATE.nodes.find(n => n.id === id);
                 if (!node) return;
@@ -1214,6 +1920,14 @@
                 const canonical = typeLabel.charAt(0).toUpperCase() + typeLabel.slice(1).toLowerCase();
                 node.type = canonical.toLowerCase();
                 node.icon = canonical;
+
+                if (canonical === 'Timepoint' && typeof node.time === 'undefined') {
+                    node.time = '';
+                }
+                if (canonical === 'Location') {
+                    if (typeof node.lat === 'undefined') node.lat = null;
+                    if (typeof node.lng === 'undefined') node.lng = null;
+                }
 
                 RENDERER.nodes();
                 PERSISTENCE.save();
@@ -1252,6 +1966,71 @@
                 SCENE_IO.loadScene(SCENE_IO.currentIndex);
 
                 LOG.success(`Forked new scene from "${nodeLabel}"`);
+            },
+
+            toggleContainer(id) {
+                const node = STATE.nodes.find(n => n.id === id);
+                if (!node || (node.icon !== 'Scene' && node.icon !== 'Story')) {
+                    LOG.warn('toggleContainer is only valid for Scene/Story');
+                    return;
+                }
+
+                if (!Array.isArray(STATE.collapsedContainers)) STATE.collapsedContainers = [];
+                const idx = STATE.collapsedContainers.indexOf(id);
+                const collapsing = idx === -1;
+                if (collapsing) STATE.collapsedContainers.push(id);
+                else STATE.collapsedContainers.splice(idx, 1);
+
+                RENDERER.nodes();
+                RENDERER.connections();
+                PERSISTENCE.save();
+                LOG.toast(`${collapsing ? 'Collapsed' : 'Expanded'} ${node.icon}`);
+            },
+
+            makeSceneFromSelection() {
+                const ids = (STATE.multiSelectedIds || []).slice();
+                if (!ids.length) return;
+
+                const label = `Scene · ${ids.length} parts`;
+                const sceneId = COMPILER.spawnNode('Scene', label);
+
+                ids.forEach(id => {
+                    if (!STATE.links.some(l => l.from === id && l.to === sceneId && l.type === 'inside')) {
+                        STATE.links.push({ from: id, to: sceneId, type: 'inside' });
+                    }
+                });
+
+                STATE.selectedNodeId = sceneId;
+                STATE.multiSelectedIds = [];
+                RENDERER.nodes();
+                RENDERER.connections();
+                PERSISTENCE.save();
+                LOG.toast(`Created Scene from ${ids.length} nodes`);
+            },
+
+            attachSelectionToStory() {
+                if (!STATE.selectedNodeId) return;
+                const story = STATE.nodes.find(n => n.id === STATE.selectedNodeId && n.icon === 'Story');
+                if (!story) {
+                    LOG.warn('Select a Story node first');
+                    LOG.toast('Select a Story to attach selection');
+                    return;
+                }
+
+                const ids = (STATE.multiSelectedIds || []).filter(id => id !== story.id);
+                if (!ids.length) return;
+
+                ids.forEach(id => {
+                    if (!STATE.links.some(l => l.from === id && l.to === story.id && l.type === 'inside')) {
+                        STATE.links.push({ from: id, to: story.id, type: 'inside' });
+                    }
+                });
+
+                STATE.multiSelectedIds = [];
+                RENDERER.nodes();
+                RENDERER.connections();
+                PERSISTENCE.save();
+                LOG.toast(`Attached ${ids.length} nodes to Story`);
             },
 
             selectAndFocus(id) {
@@ -1315,6 +2094,39 @@
         };
 
         // =========================================
+        // STRUCTURE HELPERS
+        // =========================================
+        const STRUCTURE = {
+            autoAttach(node) {
+                if (!node) return;
+
+                const step = 100 / 9;
+                const cellX = Math.round(node.x / step);
+                const cellY = Math.round(node.y / step);
+
+                const host = STATE.nodes.find(n =>
+                    (n.icon === 'Scene' || n.icon === 'Story') &&
+                    n.id !== node.id &&
+                    Math.round(n.x / step) === cellX &&
+                    Math.round(n.y / step) === cellY
+                );
+
+                if (!host) return;
+
+                if (STATE.links.some(l => l.from === node.id && l.to === host.id && l.type === 'inside')) return;
+
+                STATE.links.push({ from: node.id, to: host.id, type: 'inside' });
+
+                if (typeof FEEDBACK !== 'undefined') {
+                    const freq = host.icon === 'Story' ? 540 : 420;
+                    FEEDBACK.playTone(freq, 0.08);
+                }
+
+                LOG.toast(`Attached ${node.label} to ${host.icon.toLowerCase()} ${host.label}`);
+            }
+        };
+
+        // =========================================
         // EVENTS
         // =========================================
         const EVENTS = {
@@ -1327,6 +2139,30 @@
                 STATE.lastY = evt.clientY;
 
                 document.body.style.cursor = 'grabbing';
+            },
+
+            handleClick(e, id) {
+                // Cmd/Ctrl-click toggles multi-selection; plain click selects single
+                const multiKey = e.metaKey || e.ctrlKey;
+                if (!multiKey) {
+                    console.log('[EVENTS.handleClick] single select', { id });
+                    STATE.multiSelectedIds = [];
+                    INSPECTOR.select(id);
+                    return;
+                }
+
+                e.stopPropagation();
+                console.log('[EVENTS.handleClick] multi-select toggle', { id, before: STATE.multiSelectedIds });
+                const list = STATE.multiSelectedIds || [];
+                const idx = list.indexOf(id);
+                if (idx === -1) {
+                    list.push(id);
+                } else {
+                    list.splice(idx, 1);
+                }
+                STATE.multiSelectedIds = list;
+                console.log('[EVENTS.handleClick] multi-selected now', { after: STATE.multiSelectedIds });
+                INSPECTOR.select(id);
             },
 
             handleDragMove(e) {
@@ -1373,10 +2209,13 @@
                         el.style.left = `${node.x}%`;
                         el.style.top = `${node.y}%`;
                     }
+
+                    STRUCTURE.autoAttach(node);
                 }
 
                 STATE.draggedNodeId = null;
                 document.body.style.cursor = 'default';
+                RENDERER.nodes();
                 RENDERER.connections();
                 GRID.highlightNeighborhood(node || null);
                 PERSISTENCE.save();
@@ -1732,6 +2571,20 @@
             }
         };
 
+        function fitGridShellSquare() {
+            const mainEl = document.getElementById('onyx-main');
+            const shell = document.getElementById('grid-shell');
+            if (!mainEl || !shell) return;
+            const rect = mainEl.getBoundingClientRect();
+            const size = Math.min(rect.width, rect.height);
+            const offsetX = (rect.width - size) / 2;
+            const offsetY = (rect.height - size) / 2;
+            shell.style.width = `${size}px`;
+            shell.style.height = `${size}px`;
+            shell.style.left = `${offsetX}px`;
+            shell.style.top = `${offsetY}px`;
+        }
+
         // =========================================
         // LAYOUT (PANEL COLLAPSE)
         // =========================================
@@ -1741,6 +2594,7 @@
                 body.classList.toggle('sidebar-collapsed', !!STATE.sidebarCollapsed);
                 body.classList.toggle('inspector-collapsed', !!STATE.inspectorCollapsed);
                 body.classList.toggle('console-collapsed', !!STATE.consoleCollapsed);
+                fitGridShellSquare();
             },
 
             toggleSidebar() {
@@ -1776,6 +2630,9 @@
             RENDERER.nodes();
             RENDERER.connections();
             LAYOUT.apply();
+            fitGridShellSquare();
+
+            window.addEventListener('resize', fitGridShellSquare);
 
             // Event listeners
             document.addEventListener('mousemove', EVENTS.handleDragMove);

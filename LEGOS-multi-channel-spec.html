@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LEGOS Multi‑Channel JSON → ONYX Scenes</title>
+  <style>
+    :root {
+      --bg: #020617;
+      --panel: #020617;
+      --surface: #020617;
+      --border: #1e293b;
+      --text: #e5e7eb;
+      --muted: #64748b;
+      --accent: #38bdf8;
+      --accent-soft: rgba(56, 189, 248, 0.18);
+      --good: #22c55e;
+      --warn: #eab308;
+      --danger: #f97373;
+      --radius: 12px;
+      --shadow: 0 20px 40px rgba(15, 23, 42, 0.75);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Mono", Menlo, monospace;
+      background: radial-gradient(circle at top, #0b1120, #020617 60%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+    }
+
+    .shell {
+      width: 100%;
+      max-width: 960px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: 999px;
+      background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.35), rgba(15, 23, 42, 0.95));
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      box-shadow: var(--shadow);
+    }
+
+    .title-block {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .title {
+      font-size: 14px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .subtitle {
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    .pill-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .pill {
+      font-size: 10px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.65);
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    main {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    section {
+      background: radial-gradient(circle at top left, rgba(30, 64, 175, 0.5), rgba(15, 23, 42, 0.98));
+      border-radius: var(--radius);
+      border: 1px solid rgba(30, 64, 175, 0.6);
+      padding: 14px 14px 16px;
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.9);
+    }
+
+    section:nth-of-type(2) {
+      background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.3), rgba(15, 23, 42, 0.98));
+      border-color: rgba(56, 189, 248, 0.6);
+    }
+
+    section:nth-of-type(3) {
+      background: radial-gradient(circle at top left, rgba(52, 211, 153, 0.3), rgba(15, 23, 42, 0.98));
+      border-color: rgba(52, 211, 153, 0.6);
+    }
+
+    section:nth-of-type(4) {
+      background: radial-gradient(circle at top left, rgba(236, 72, 153, 0.3), rgba(15, 23, 42, 0.98));
+      border-color: rgba(236, 72, 153, 0.6);
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .section-title {
+      font-size: 12px;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .section-tag {
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      white-space: nowrap;
+    }
+
+    .hint {
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 10px;
+      line-height: 1.4;
+    }
+
+    .hint strong {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .grid-two {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+      gap: 12px;
+    }
+
+    @media (max-width: 700px) {
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+        border-radius: 18px;
+      }
+      .pill-row {
+        justify-content: flex-start;
+      }
+      .grid-two {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .card {
+      border-radius: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      background: rgba(15, 23, 42, 0.9);
+      padding: 10px 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .card-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      color: var(--muted);
+    }
+
+    .json-box {
+      position: relative;
+    }
+
+    pre, textarea {
+      width: 100%;
+      border-radius: 8px;
+      border: 1px solid rgba(15, 23, 42, 0.9);
+      background: #020617;
+      color: #e5e7eb;
+      font-family: "SF Mono", ui-monospace, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 11px;
+      line-height: 1.5;
+      padding: 10px 10px 12px;
+      overflow-x: auto;
+      white-space: pre;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 220px;
+      max-height: 420px;
+    }
+
+    .copy-row {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 6px;
+    }
+
+    button.copy-btn {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(56, 189, 248, 0.9);
+      background: radial-gradient(circle at top, rgba(56, 189, 248, 0.4), #020617 70%);
+      color: #e0f2fe;
+      cursor: pointer;
+    }
+
+    button.copy-btn:active {
+      transform: translateY(1px);
+      opacity: 0.9;
+    }
+
+    .legend-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-size: 10px;
+    }
+
+    .legend-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 6px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      background: rgba(15, 23, 42, 0.95);
+      color: var(--muted);
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(15, 23, 42, 0.9);
+    }
+
+    .dot-entity { background: #38bdf8; }
+    .dot-goal { background: #22c55e; }
+    .dot-obstacle { background: #f97373; }
+    .dot-location { background: #a855f7; }
+    .dot-shift { background: #fbbf24; }
+
+    .flow-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 10px;
+      margin-top: 4px;
+      align-items: center;
+    }
+
+    .flow-box {
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      background: rgba(15, 23, 42, 0.9);
+      white-space: nowrap;
+    }
+
+    .flow-arrow {
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(9, minmax(0, 1fr));
+      gap: 1px;
+      background: rgba(15, 23, 42, 1);
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid rgba(30, 64, 175, 0.9);
+    }
+
+    .cell {
+      aspect-ratio: 1 / 1;
+      background: radial-gradient(circle at top, rgba(15, 23, 42, 0.95), #020617);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      color: rgba(148, 163, 184, 0.95);
+    }
+
+    .cell.kind-E { color: #38bdf8; }
+    .cell.kind-G { color: #22c55e; }
+    .cell.kind-O { color: #f97373; }
+    .cell.kind-L { color: #a855f7; }
+    .cell.kind-S { color: #fbbf24; }
+
+    .bullet-list {
+      font-size: 11px;
+      line-height: 1.5;
+      color: var(--muted);
+    }
+
+    .bullet-list li {
+      margin-left: 16px;
+      margin-bottom: 4px;
+    }
+
+    footer {
+      margin-top: 4px;
+      font-size: 10px;
+      color: var(--muted);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div class="title-block">
+        <div class="title">LEGOS MULTI‑CHANNEL JSON</div>
+        <div class="subtitle">One file → ONYX Abs / Tail scenes · copy template, change words</div>
+      </div>
+      <div class="pill-row">
+        <div class="pill">Human</div>
+        <div class="pill">Machine</div>
+        <div class="pill">Phone‑first</div>
+      </div>
+    </header>
+
+    <main>
+      <!-- STEP 1: COPY TEMPLATE -->
+      <section aria-label="Copyable JSON template">
+        <div class="section-head">
+          <div class="section-title">Step 1 · Copy this JSON</div>
+          <div class="section-tag">Template · LEGOS multi‑channel</div>
+        </div>
+        <p class="hint">
+          This is the <strong>smallest useful</strong> multi‑channel file. Paste into ONYX Abs / Merge import, or
+          save as <code>.json</code>.
+        </p>
+        <div class="card json-box">
+          <div class="card-title">legos-multi-channel.json</div>
+          <textarea id="json-template" readonly>{
+  "exportedAt": "2025-01-01T00:00:00.000Z",
+  "theme": "theme-crt",
+  "channels": [
+    {
+      "id": "ch-001",
+      "name": "My First Scene",
+      "scenario": "demo-story",
+      "channelColor": "#38bdf8",
+      "symbolicId": "SCN0001",
+      "ringBinding": "R0001",
+
+      "messages": [
+        {
+          "id": "M0001",
+          "role": "system",
+          "text": "Composing scene context for the grid.",
+          "timestamp": "2025-01-01T00:00:01.000Z"
+        },
+        {
+          "id": "M0002",
+          "role": "assistant",
+          "text": "Opening on the rooftop garden\nThe hero looks down over the city and decides what to change.",
+          "timestamp": "2025-01-01T00:00:10.000Z"
+        },
+        {
+          "id": "M0003",
+          "role": "user",
+          "text": "The hero wants to protect the street market from a coming storm.",
+          "timestamp": "2025-01-01T00:00:20.000Z"
+        }
+      ],
+
+      "grid": [
+        [
+          {
+            "id": "market_square",
+            "type": "Location",
+            "symbol": "L",
+            "label": "Street Market",
+            "entity": {
+              "id": "market_square",
+              "type": "Location",
+              "name": "Street Market"
+            }
+          },
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          null, null, null, null, null, null, null, null, null
+        ],
+        [
+          null, null, null, null,
+          {
+            "id": "storm_front",
+            "type": "Obstacle",
+            "symbol": "O",
+            "label": "Incoming Storm",
+            "entity": {
+              "id": "storm_front",
+              "type": "Obstacle",
+              "name": "Incoming Storm"
+            }
+          },
+          null, null, null, null
+        ],
+        [
+          null, null, null, null, null, null, null, null, null
+        ],
+        [
+          null, null, null, null,
+          {
+            "id": "hero",
+            "type": "Entity",
+            "symbol": "E",
+            "label": "Rooftop Hero",
+            "entity": {
+              "id": "hero",
+              "type": "Entity",
+              "name": "Rooftop Hero"
+            }
+          },
+          null, null, null, null
+        ]
+      ]
+    }
+  ]
+}</textarea>
+          <div class="copy-row">
+            <button class="copy-btn" type="button" onclick="copyTemplate()">Copy JSON</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- STEP 2: SHOW SHAPE -->
+      <section aria-label="Show the data shape visually">
+        <div class="section-head">
+          <div class="section-title">Step 2 · See the shape</div>
+          <div class="section-tag">Show · dont tell</div>
+        </div>
+        <p class="hint">
+          One <strong>channel</strong> is one conversation. Messages become <strong>beats</strong>. The 9 d79
+          grid becomes <strong>nodes</strong> in ONYX.
+        </p>
+        <div class="grid-two">
+          <div class="card">
+            <div class="card-title">Channel → Messages → Beats</div>
+            <div class="flow-row">
+              <div class="flow-box">channels[0]</div>
+              <span class="flow-arrow">⇢</span>
+              <div class="flow-box">messages[]</div>
+              <span class="flow-arrow">⇢</span>
+              <div class="flow-box">beats[] in SceneCollection.scenes[0]</div>
+            </div>
+            <ul class="bullet-list" style="margin-top:8px;">
+              <li><strong>assistant</strong> messages with a line break become <strong>Scene</strong> beats (title = first line).</li>
+              <li><strong>user</strong> messages become <strong>Narration</strong> beats.</li>
+              <li><strong>system</strong> messages become <strong>Instruction</strong> beats (unless they start with "Composing scene").</li>
+            </ul>
+          </div>
+          <div class="card">
+            <div class="card-title">Grid → 9 d79 layout</div>
+            <div class="mini-grid" aria-hidden="true">
+              <div class="cell kind-L">L</div>
+              <div class="cell"></div>
+              <div class="cell"></div>
+              <div class="cell"></div>
+              <div class="cell"></div>
+              <div class="cell"></div>
+              <div class="cell"></div>
+              <div class="cell"></div>
+              <div class="cell"></div>
+
+              <div class="cell"></div>
+              <div class="cell"></div>
+              <div class="cell"></div>
+              <div class="cell"></div>
+              <div class="cell"></div>
+              <div class="cell"></div>
+              <div class="cell"></div>
+              <div class="cell"></div>
+              <div class="cell"></div>
+
+              <div class="cell"></div>
+              <div class="cell"></div>
+              <div class="cell"></div>
+              <div class="cell"></div>
+              <div class="cell kind-O">O</div>
+              <div class="cell"></div>
+              <div class="cell"></div>
+              <div class="cell"></div>
+              <div class="cell"></div>
+
+              <div class="cell"></div>
+              <div class="cell"></div>
+              <div class="cell"></div>
+              <div class="cell"></div>
+              <div class="cell"></div>
+              <div class="cell"></div>
+              <div class="cell"></div>
+              <div class="cell"></div>
+              <div class="cell"></div>
+
+              <div class="cell"></div>
+              <div class="cell"></div>
+              <div class="cell"></div>
+              <div class="cell"></div>
+              <div class="cell kind-E">E</div>
+              <div class="cell"></div>
+              <div class="cell"></div>
+              <div class="cell"></div>
+              <div class="cell"></div>
+
+              <!-- remaining rows are empty in this mini picture -->
+              <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+              <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+              <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+              <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+            </div>
+            <div class="legend-row" style="margin-top:6px;">
+              <div class="legend-pill"><span class="dot dot-entity"></span> Entity (E)</div>
+              <div class="legend-pill"><span class="dot dot-goal"></span> Goal (G)</div>
+              <div class="legend-pill"><span class="dot dot-obstacle"></span> Obstacle (O)</div>
+              <div class="legend-pill"><span class="dot dot-location"></span> Location (L)</div>
+              <div class="legend-pill"><span class="dot dot-shift"></span> Shift (S)</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- STEP 3: HOW ONYX PARSES IT -->
+      <section aria-label="How ONYX parses LEGOS multi-channel JSON">
+        <div class="section-head">
+          <div class="section-title">Step 3 · How ONYX reads it</div>
+          <div class="section-tag">Help · pipeline</div>
+        </div>
+        <p class="hint">
+          The same JSON powers <strong>ONYX Abs</strong>, <strong>Block Merge</strong>, and <strong>ONYX Tail</strong>.
+          You only need to get the <strong>shape</strong> right.
+        </p>
+        <div class="card">
+          <div class="flow-row">
+            <div class="flow-box">legos-multi-channel.json</div>
+            <span class="flow-arrow">⇢</span>
+            <div class="flow-box">ONYX Abs · Paste in ingest box</div>
+            <span class="flow-arrow">⇢</span>
+            <div class="flow-box">APP.LEGOS.multiChannelToSceneCollection()</div>
+            <span class="flow-arrow">⇢</span>
+            <div class="flow-box">SceneCollection.scenes[]</div>
+            <span class="flow-arrow">⇢</span>
+            <div class="flow-box">Shared via localStorage (onyx_scene_collection)</div>
+          </div>
+          <ul class="bullet-list" style="margin-top:10px;">
+            <li>If JSON has <code>channels[]</code>, ONYX converts it to a <code>SceneCollection</code> object.</li>
+            <li>Each <code>channel</code> becomes one <code>scene</code> in the collection.</li>
+            <li><code>channel.messages[]</code> become <code>scene.beats[]</code> (Scene / Narration / Instruction).</li>
+            <li><code>channel.grid</code> becomes a 9 d79 array of cells that ONYX Tail turns into cubes on the grid.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- QUICK REFERENCE -->
+      <section aria-label="Quick reference for machines and humans">
+        <div class="section-head">
+          <div class="section-title">Quick reference · keys that matter</div>
+          <div class="section-tag">Schema slice</div>
+        </div>
+        <div class="card">
+          <pre>{
+  "channels": [
+    {
+      "id": "string",          // required – stable id per channel
+      "name": "string",        // human label, shown in lists
+      "scenario": "string?",   // optional story / project id
+      "channelColor": "#RRGGBB?", // optional accent color
+      "symbolicId": "string?", // optional external id
+      "ringBinding": "string?",// optional bus / ring id
+
+      "messages": [             // time-ordered transcript
+        { "id": "M0001", "role": "system|user|assistant", "text": "..." }
+      ],
+
+      "grid": [                 // up to 9 rows of up to 9 cells
+        [ { "type": "Entity|Goal|Obstacle|Location|Shift|Timepoint", ... }, null, ... ]
+      ]
+    }
+  ]
+}</pre>
+          <ul class="bullet-list" style="margin-top:8px;">
+            <li>You can start from the template above and only change <strong>words</strong> (labels, names, text).</li>
+            <li>Missing rows in <code>grid</code> are treated as empty; ONYX always builds a full 9 d79 internally.</li>
+            <li>Extra fields are ignored safely; machines just need this core shape.</li>
+          </ul>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      Paste · Edit words · Save as <code>.json</code> · Load in ONYX. The shape stays the same.
+    </footer>
+  </div>
+
+  <script>
+    function copyTemplate() {
+      const ta = document.getElementById('json-template');
+      if (!ta) return;
+      ta.select();
+      ta.setSelectionRange(0, ta.value.length);
+      try {
+        const ok = document.execCommand('copy');
+        if (!ok && navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(ta.value).catch(() => {});
+        }
+      } catch (e) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(ta.value).catch(() => {});
+        }
+      }
+      window.getSelection().removeAllRanges();
+    }
+  </script>
+</body>
+</html>

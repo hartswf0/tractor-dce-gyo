@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ARCHIVE_CORE_ENTERPRISE</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+
+    <style>
+        :root {
+            /* DARK THEME (Default) */
+            --bg: #09090b;
+            --panel: #121214;
+            --surface: #1c1c1f;
+            --border: #27272a;
+            --border-highlight: #3f3f46;
+            
+            --text-main: #e4e4e7;
+            --text-muted: #a1a1aa;
+            --text-dim: #52525b;
+            
+            --accent: #f97316; /* Orange */
+            --accent-glow: rgba(249, 115, 22, 0.15);
+            --success: #10b981;
+            --danger: #ef4444;
+            --selection: #3b82f6;
+            
+            --font-ui: 'JetBrains Mono', monospace;
+            --font-sans: 'Inter', sans-serif;
+            --font-body: 'Merriweather', serif;
+            
+            --sidebar-w: 320px;
+            --nav-h: 50px;
+        }
+
+        /* LIGHT THEME OVERRIDES */
+        body.theme-light {
+            --bg: #f4f4f5;
+            --panel: #ffffff;
+            --surface: #f3f4f6;
+            --border: #e4e4e7;
+            --border-highlight: #d4d4d8;
+            
+            --text-main: #18181b;
+            --text-muted: #52525b;
+            --text-dim: #a1a1aa;
+            
+            --accent: #ea580c;
+            --accent-glow: rgba(234, 88, 12, 0.1);
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+        
+        body {
+            background: var(--bg);
+            color: var(--text-main);
+            font-family: var(--font-sans);
+            margin: 0;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            display: grid;
+            grid-template-areas: "sidebar main";
+            grid-template-columns: var(--sidebar-w) 1fr;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        /* --- SCROLLBARS --- */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border-highlight); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+
+        /* --- SIDEBAR --- */
+        #sidebar {
+            grid-area: sidebar;
+            background: var(--panel);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .sb-header {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .sb-title {
+            font-family: var(--font-ui);
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            font-size: 14px;
+        }
+
+        .search-container {
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border);
+            background: var(--panel);
+        }
+
+        .search-input {
+            width: 100%;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 8px 12px;
+            font-family: var(--font-ui);
+            font-size: 12px;
+            border-radius: 4px;
+            transition: border-color 0.2s;
+        }
+        .search-input:focus { border-color: var(--accent); }
+
+        .file-list {
+            flex: 1;
+            overflow-y: auto;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .file-item {
+            display: grid;
+            grid-template-columns: 45px 1fr auto;
+            padding: 10px 1rem;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            align-items: center;
+            transition: background 0.1s;
+            gap: 10px;
+        }
+
+        .file-item:hover { background: var(--surface); }
+        .file-item.active { 
+            background: var(--accent-glow); 
+            border-left: 3px solid var(--accent);
+            padding-left: calc(1rem - 3px);
+        }
+
+        .f-id { font-family: var(--font-ui); font-size: 11px; color: var(--text-dim); font-weight: 600; }
+        .f-title { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .f-meta { font-family: var(--font-ui); font-size: 10px; color: var(--text-muted); text-align: right; }
+
+        /* --- MAIN AREA --- */
+        #main {
+            grid-area: main;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .top-bar {
+            height: 48px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 1rem;
+            justify-content: space-between;
+            background: var(--bg);
+        }
+
+        .breadcrumbs {
+            font-family: var(--font-ui);
+            font-size: 12px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .breadcrumbs span.active { color: var(--text-main); font-weight: 600; }
+
+        .top-actions { display: flex; gap: 8px; }
+
+        .btn-icon {
+            background: transparent; border: 1px solid transparent;
+            color: var(--text-muted);
+            width: 32px; height: 32px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
+        }
+        .btn-icon:hover { background: var(--surface); color: var(--text-main); border-color: var(--border); }
+        .btn-icon.active { color: var(--accent); background: var(--accent-glow); border-color: var(--accent); }
+
+        /* --- VIEWPORT --- */
+        .viewport {
+            flex: 1;
+            overflow-y: auto;
+            padding-bottom: 60px; /* Space for bottom nav */
+            position: relative;
+        }
+
+        /* View: Text */
+        .doc-wrapper {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+        .doc-header { border-bottom: 1px solid var(--border); padding-bottom: 2rem; margin-bottom: 2rem; }
+        .doc-h1 { font-family: var(--font-body); font-size: 2rem; margin: 0 0 0.5rem 0; color: var(--text-main); }
+        .doc-meta { font-family: var(--font-ui); color: var(--accent); font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
+        
+        .doc-body {
+            font-family: var(--font-body);
+            font-size: 17px;
+            line-height: 1.8;
+            color: var(--text-main);
+        }
+        .doc-body p { margin-bottom: 1.5em; }
+        .doc-body h1,
+        .doc-body h2,
+        .doc-body h3,
+        .doc-body h4 {
+            font-family: var(--font-body);
+            margin: 1.6em 0 0.6em;
+            line-height: 1.3;
+        }
+        .doc-body h1 { font-size: 2.1rem; }
+        .doc-body h2 { font-size: 1.6rem; }
+        .doc-body h3 { font-size: 1.3rem; }
+        .doc-body h4 { font-size: 1.1rem; text-transform: uppercase; letter-spacing: 0.04em; }
+        .doc-body ul { margin: 0 0 1.4em 1.5em; padding: 0; }
+        .doc-body li { margin: 0.2em 0; }
+        .doc-body hr { border: none; border-top: 1px solid var(--border); margin: 2em 0; }
+
+        /* View: Grid (Scalable) */
+        .grid-view {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 1px;
+            background: var(--border);
+            padding: 1px;
+        }
+        .grid-item {
+            background: var(--bg);
+            aspect-ratio: 1;
+            position: relative;
+            cursor: pointer;
+            overflow: hidden;
+        }
+        .grid-item:hover .grid-overlay { opacity: 1; }
+        .grid-img-placeholder {
+            width: 100%; height: 100%;
+            display: flex; align-items: center; justify-content: center;
+            font-family: var(--font-ui); color: var(--text-dim);
+            font-size: 2rem; font-weight: 700;
+            background: var(--surface);
+        }
+        .grid-overlay {
+            position: absolute; inset: 0;
+            background: rgba(0,0,0,0.5);
+            opacity: 0; transition: opacity 0.2s;
+            display: flex; align-items: flex-start; justify-content: flex-end;
+            padding: 8px;
+        }
+        .check-box {
+            width: 20px; height: 20px;
+            border: 2px solid #fff;
+            border-radius: 3px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .grid-item.selected .check-box { background: var(--selection); border-color: var(--selection); }
+        .grid-item.selected .grid-overlay { opacity: 1; background: rgba(59, 130, 246, 0.2); border: 2px solid var(--selection); }
+
+        /* View: Data */
+        .data-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            height: 100%;
+            min-height: 600px;
+        }
+        .fighter-panel {
+            padding: 2rem;
+            border-right: 1px solid var(--border);
+            overflow-y: auto;
+        }
+        .fighter-score { font-family: var(--font-ui); font-size: 4rem; font-weight: 700; color: var(--text-main); line-height: 1; margin: 1rem 0; }
+        .fighter-meta {
+            font-family: var(--font-ui);
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+        .fighter-meta .meta-row { margin-bottom: 4px; }
+        .fighter-meta .meta-label { font-weight: 600; margin-right: 4px; }
+        .meta-chip {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 999px;
+            border: 1px solid var(--border-highlight);
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .winner-pill {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 999px;
+            background: var(--accent-glow);
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            font-size: 10px;
+            font-family: var(--font-ui);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+        .criterion {
+            margin-bottom: 12px;
+            padding: 10px;
+            background: var(--surface);
+            border-left: 3px solid transparent;
+            border-radius: 0 4px 4px 0;
+        }
+        .criterion.pass { border-color: var(--success); }
+        .criterion.fail { border-color: var(--danger); }
+        .criterion.twilight { border-color: var(--accent); }
+        
+        /* --- BOTTOM COMMAND --- */
+        #cmd-bar {
+            position: fixed;
+            left: 50%;
+            bottom: 16px;
+            transform: translateX(-50%);
+            height: 44px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            display: flex;
+            align-items: center;
+            padding: 0 6px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            z-index: 200;
+        }
+        
+        .cmd-tab {
+            height: 32px;
+            padding: 0 16px;
+            border-radius: 16px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-family: var(--font-ui);
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex; align-items: center; gap: 6px;
+            transition: all 0.2s;
+        }
+        .cmd-tab:hover { color: var(--text-main); }
+        .cmd-tab.active { background: var(--surface); color: var(--accent); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 1024px) {
+            #sidebar { width: 280px; }
+            .doc-wrapper { padding: 2rem 1.5rem; }
+        }
+
+        @media (max-width: 768px) {
+            body { grid-template-columns: 1fr; grid-template-areas: "main"; }
+            #sidebar { 
+                position: fixed; top: 0; bottom: 0; left: 0; width: 85%; max-width: 320px;
+                transform: translateX(-100%); 
+                box-shadow: 10px 0 30px rgba(0,0,0,0.3);
+            }
+            #sidebar.open { transform: translateX(0); }
+            
+            .data-layout { grid-template-columns: 1fr; border-bottom: 1px solid var(--border); }
+            .fighter-panel { border-right: none; border-bottom: 1px solid var(--border); height: auto; }
+            
+            #cmd-bar {
+                bottom: 0; left: 0; right: 0; transform: none;
+                width: 100%; border-radius: 0; border: none; border-top: 1px solid var(--border);
+                justify-content: space-between; padding: 0 1rem;
+            }
+            .cmd-tab { flex-direction: column; height: 100%; padding: 8px 0; gap: 4px; font-size: 9px; border-radius: 0; background: transparent !important; }
+            .cmd-tab i { font-size: 16px; }
+            .cmd-tab.active { color: var(--accent); box-shadow: none; }
+        }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body class="theme-dark"> <!-- Default Theme -->
+
+    <!-- SIDEBAR -->
+    <aside id="sidebar">
+        <div class="sb-header">
+            <div class="sb-title">ARCHIVE_CORE <span style="color:var(--accent); font-size:10px;">V2.0</span></div>
+            <button class="btn-icon" id="close-sb-mobile" style="display:none;"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="search-container">
+            <input type="text" class="search-input" id="search-input" placeholder="Filter by ID, Title, or Tag...">
+        </div>
+        <!-- Virtualized List Container -->
+        <ul class="file-list" id="file-list">
+            <!-- JS Populated -->
+        </ul>
+        <div style="padding:10px; border-top:1px solid var(--border); font-size:10px; color:var(--text-dim); text-align:center;">
+            DB STATUS: ONLINE • <span id="record-count">0</span> RECORDS
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main id="main">
+        <!-- HEADER -->
+        <div class="top-bar">
+            <div style="display:flex; align-items:center; gap:12px;">
+                <button class="btn-icon" id="toggle-sb"><i class="fas fa-bars"></i></button>
+                <div class="breadcrumbs" id="breadcrumbs">
+                    <span>LIBRARY</span> <i class="fas fa-chevron-right" style="font-size:8px;"></i>
+                    <span class="active" id="crumb-id">SELECT FILE</span>
+                </div>
+            </div>
+            <div class="top-actions">
+                <button class="btn-icon" id="theme-toggle" title="Toggle Light Mode"><i class="fas fa-sun"></i></button>
+                <button class="btn-icon" title="Settings"><i class="fas fa-cog"></i></button>
+                <button class="btn-icon" style="color:var(--accent); border-color:var(--accent);" title="Export"><i class="fas fa-download"></i></button>
+            </div>
+        </div>
+
+        <!-- VIEWPORT -->
+        <div class="viewport" id="viewport">
+            
+            <!-- VIEW: TEXT -->
+            <div id="view-text" class="view-panel">
+                <div class="doc-wrapper">
+                    <div class="doc-header">
+                        <div class="doc-meta" id="doc-id">M-00</div>
+                        <h1 class="doc-h1" id="doc-title">Select a File</h1>
+                        <div style="color:var(--text-muted); font-size:14px; font-style:italic;" id="doc-sub">System Ready</div>
+                    </div>
+                    <div class="doc-body" id="doc-content">
+                        <p style="color:var(--text-dim)">Select an item from the sidebar to begin analysis.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: VISUAL -->
+            <div id="view-visual" class="view-panel hidden">
+                <div class="grid-view" id="visual-grid">
+                    <!-- Grid items injected -->
+                </div>
+            </div>
+
+            <!-- VIEW: DATA -->
+            <div id="view-data" class="view-panel hidden">
+                <div class="data-layout">
+                    <div class="fighter-panel">
+                        <div class="doc-meta">ENTITY A</div>
+                        <h2 id="p1-name" style="margin:5px 0 1rem 0;">-</h2>
+                        <div class="fighter-score" id="p1-score">00</div>
+                        <div class="fighter-meta" id="p1-meta"></div>
+                        <div id="p1-stats"></div>
+                    </div>
+                    <div class="fighter-panel">
+                        <div class="doc-meta">ENTITY B</div>
+                        <h2 id="p2-name" style="margin:5px 0 1rem 0;">-</h2>
+                        <div class="fighter-score" id="p2-score">00</div>
+                        <div class="fighter-meta" id="p2-meta"></div>
+                        <div id="p2-stats"></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- FLOATING COMMAND BAR -->
+        <div id="cmd-bar">
+            <button class="cmd-tab active" data-target="text" onclick="app.switchView('text')">
+                <i class="fas fa-align-left"></i> <span>TEXT</span>
+            </button>
+            <button class="cmd-tab" data-target="visual" onclick="app.switchView('visual')">
+                <i class="fas fa-th"></i> <span>VISUAL</span>
+            </button>
+            <button class="cmd-tab" data-target="data" onclick="app.switchView('data')">
+                <i class="fas fa-chart-pie"></i> <span>DATA</span>
+            </button>
+            <div style="width:1px; height:16px; background:var(--border); margin:0 4px;"></div>
+            <button class="cmd-tab" id="select-indicator" onclick="app.toggleSelectMode()">
+                <i class="fas fa-check-square"></i> <span id="sel-count">0</span>
+            </button>
+        </div>
+    </main>
+
+<script>
+    const CHAPTER_SOURCES = [
+        { id: 'M-12', file: 'ch12.md' },
+        { id: 'M-14', file: 'ch14.md' },
+        { id: 'M-16', file: 'ch16.md' }
+    ];
+
+    async function loadChapterSources() {
+        async function tryLoad(url, mapFn) {
+            try {
+                const res = await fetch(url);
+                if (!res || !res.ok) return null;
+                const data = await res.json();
+                const mapped = mapFn(data).filter((src) => src.file);
+                return mapped.length ? mapped : null;
+            } catch (e) {
+                console.warn('Failed to load chapter sources from', url, e);
+                return null;
+            }
+        }
+
+        const fromFinalDecisions = await tryLoad('chapter-final-decisions.json', (data) => {
+            if (!Array.isArray(data)) return [];
+            return data.map((ch) => ({
+                id: ch.id || (typeof ch.chapterId === 'number' ? `M-${String(ch.chapterId).padStart(2, '0')}` : undefined),
+                file: ch.file || '',
+                title: ch.chapterTitle || '',
+                subtitle: ch.pairTitle || ''
+            }));
+        });
+        if (fromFinalDecisions) return fromFinalDecisions;
+
+        const fromManifest = await tryLoad('chapter-manifest.json', (manifest) => {
+            if (!manifest || !Array.isArray(manifest.chapters)) return [];
+            return manifest.chapters.map((ch) => ({
+                id: ch.id || (typeof ch.chapter === 'number' ? `M-${String(ch.chapter).padStart(2, '0')}` : undefined),
+                file: ch.file || '',
+                title: ch.chapterTitle || '',
+                subtitle: ch.pairTitle || ''
+            }));
+        });
+        if (fromManifest) return fromManifest;
+
+        // Fallback to hard-coded sources
+        return CHAPTER_SOURCES;
+    }
+
+    async function loadMarkdownDB() {
+        const records = [];
+        const sources = await loadChapterSources();
+        for (const src of sources) {
+            try {
+                const res = await fetch(src.file);
+                if (!res || !res.ok) continue;
+                const md = await res.text();
+                records.push(parseMarkdownChapter(md, src));
+            } catch (e) {
+                console.warn('Failed to load chapter', src.file, e);
+            }
+        }
+        if (!records.length) {
+            return generateMockDB(60);
+        }
+        return records;
+    }
+
+    function parsePomlBlock(md) {
+        const text = (md || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+        const match = text.match(/<poml>[\s\S]*?<\/poml>/i);
+        if (!match) return null;
+        const poml = match[0];
+
+        function extractTag(tag) {
+            const re = new RegExp('<' + tag + '>([\\s\\S]*?)<\\/' + tag + '>', 'i');
+            const m = poml.match(re);
+            return m ? m[1].trim() : '';
+        }
+
+        const role = extractTag('role');
+        const taskText = extractTag('task');
+        let modelA = '';
+        let modelB = '';
+        if (taskText) {
+            const lines = taskText.split('\n').map((l) => l.trim());
+            const one = lines.find((l) => /^1\./.test(l));
+            const two = lines.find((l) => /^2\./.test(l));
+            if (one) modelA = one.replace(/^1\.\s*/, '').trim();
+            if (two) modelB = two.replace(/^2\.\s*/, '').trim();
+        }
+
+        return { role, taskText, modelA, modelB };
+    }
+
+    function parseGuardianAssessments(md) {
+        const text = (md || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+        const results = [];
+        const re = /^#\s*ASSESSMENT\s+(\d+):\s+CANDIDATE\s+"([^"]+)"(?:\s*\(([^)]+)\))?/gm;
+        let match;
+
+        while ((match = re.exec(text)) !== null && results.length < 2) {
+            const labelNumber = parseInt(match[1], 10) || null;
+            const name = match[2].trim();
+            const alias = match[3] ? match[3].trim() : null;
+            const start = match.index;
+
+            const nextAssessmentIdx = text.indexOf('\n# ASSESSMENT', start + 1);
+            const finalVerdictIdx = text.indexOf('\n### FINAL COMPARATIVE VERDICT', start + 1);
+            let end = text.length;
+            if (nextAssessmentIdx !== -1 && nextAssessmentIdx < end) end = nextAssessmentIdx;
+            if (finalVerdictIdx !== -1 && finalVerdictIdx < end) end = finalVerdictIdx;
+
+            const slice = text.slice(start, end);
+
+            let theoreticalSubmission = '';
+            const theoryMatch = slice.match(/\*\*Theoretical Submission:\*\*\s*([^\n]+)/);
+            if (theoryMatch) {
+                theoreticalSubmission = theoryMatch[1].trim();
+            }
+
+            let coreTask = '';
+            let darknessPrior = '';
+            let intendedFrame = '';
+            const coreMatch = slice.match(/\*\*Core Task:\*\*\s*([^\n]+)/);
+            if (coreMatch) coreTask = coreMatch[1].trim();
+            const darkMatch = slice.match(/\*\*Darkness Prior:\*\*\s*([^\n]+)/);
+            if (darkMatch) darknessPrior = darkMatch[1].trim();
+            const frameMatch = slice.match(/\*\*Intended Frame:\*\*\s*([^\n]+)/);
+            if (frameMatch) intendedFrame = frameMatch[1].trim();
+
+            let darknessPriorLevel = '';
+            let darknessPriorLabel = '';
+            if (darknessPrior) {
+                const dpMatch = darknessPrior.match(/(Low|Moderate|High)\s+risk\s+of\s+\*\*([^*]+)\*\*/i);
+                if (dpMatch) {
+                    darknessPriorLevel = dpMatch[1];
+                    darknessPriorLabel = dpMatch[2];
+                }
+            }
+
+            let score = 0;
+            let scoreLabel = '';
+            const scoreMatch = slice.match(/\*\*Score:\s*([0-9]+)\/100(?:\s*\(([^)]+)\))?/);
+            if (scoreMatch) {
+                score = parseInt(scoreMatch[1], 10) || 0;
+                if (scoreMatch[2]) scoreLabel = scoreMatch[2].trim();
+            }
+
+            let justificationText = '';
+            const justMarker = '**Guardian Justification:**';
+            const justIdx = slice.indexOf(justMarker);
+            if (justIdx !== -1) {
+                const after = slice.slice(justIdx + justMarker.length);
+                const endMatch = after.search(/\n-{3,}\n|^#\s*ASSESSMENT|\n###\s*FINAL COMPARATIVE VERDICT/m);
+                const body = endMatch === -1 ? after : after.slice(0, endMatch);
+                justificationText = body.trim();
+            }
+
+            let justification = null;
+            if (justificationText) {
+                const lines = justificationText.split('\n');
+                const mapped = {};
+                for (let i = 0; i < lines.length; i++) {
+                    const rawLine = lines[i].trim();
+                    if (!rawLine.startsWith('*')) continue;
+                    const m = rawLine.match(/\*+\s*\*\*([^:]+):\*\*\s*(.+)/);
+                    if (m) {
+                        const key = m[1].trim().toLowerCase().replace(/\s+/g, '_');
+                        const val = m[2].trim();
+                        if (key && val) mapped[key] = val;
+                    }
+                }
+                if (Object.keys(mapped).length) justification = mapped;
+            }
+
+            let criteria = [];
+            const forensicIdx = slice.indexOf('### 2. Forensic Audit');
+            const gradeIdx = slice.indexOf('### 3. Overall Grade');
+            if (forensicIdx !== -1) {
+                const forensicBlock = gradeIdx !== -1 ? slice.slice(forensicIdx, gradeIdx) : slice.slice(forensicIdx);
+                const critRe = /####\s+Criterion\s+([A-Z]):\s+(.+)\n([\s\S]*?)(?=^####\s+Criterion\s+[A-Z]:|^###\s+3\.|^#\s*ASSESSMENT|\n---|\n###\s*FINAL COMPARATIVE VERDICT|$)/gm;
+                let cm;
+                while ((cm = critRe.exec(forensicBlock)) !== null) {
+                    const code = cm[1];
+                    const title = cm[2].trim();
+                    const body = cm[3] || '';
+
+                    let evidence = '';
+                    const evMatch = body.match(/\*\*Evidence:\*\*\s*([\s\S]*?)(?=\n\*\s+\*\*Guardian Critique:\*\*|\n####\s+Criterion|\n###\s+3\.|$)/);
+                    if (evMatch) evidence = evMatch[1].trim();
+
+                    let critique = '';
+                    const gcMatch = body.match(/\*\*Guardian Critique:\*\*\s*([\s\S]*?)(?=\*+\s*Verdict:|\n####\s+Criterion|\n###\s+3\.|$)/);
+                    if (gcMatch) critique = gcMatch[1].trim();
+
+                    let strength = '';
+                    const strengthMatch = body.match(/\*Strength:\*\s*([^\n]+)/);
+                    if (strengthMatch) strength = strengthMatch[1].trim();
+
+                    let rawVerdict = null;
+                    let verdictClass = null;
+                    const verdictMatch = body.match(/\*Verdict:\*\s*\*\*(Light|Twilight|Shadow|Void)\*\*/i);
+                    if (verdictMatch) {
+                        rawVerdict = verdictMatch[1];
+                        const vLower = rawVerdict.toLowerCase();
+                        if (vLower === 'light') verdictClass = 'pass';
+                        else if (vLower === 'twilight') verdictClass = 'twilight';
+                        else verdictClass = 'fail';
+                    }
+
+                    criteria.push({
+                        code,
+                        title,
+                        evidence,
+                        critique,
+                        strength,
+                        rawVerdict,
+                        verdictClass
+                    });
+                }
+            }
+
+            results.push({
+                labelNumber,
+                name,
+                alias,
+                theoreticalSubmission,
+                calibration: {
+                    coreTask,
+                    darknessPrior,
+                    darknessPriorLevel,
+                    darknessPriorLabel,
+                    intendedFrame
+                },
+                score,
+                scoreLabel,
+                justificationText,
+                justification,
+                criteria
+            });
+        }
+        return results;
+    }
+
+    function parseFinalComparativeVerdict(md) {
+        const text = (md || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+        const idx = text.indexOf('### FINAL COMPARATIVE VERDICT');
+        if (idx === -1) return null;
+        const slice = text.slice(idx);
+
+        let winnerName = '';
+        const winnerMatch = slice.match(/\*\*Winner:\*\*\s*\*\*([^*]+)\*\*/);
+        if (winnerMatch) {
+            winnerName = winnerMatch[1].trim();
+        }
+
+        let tableMarkdown = '';
+        const tableStart = slice.indexOf('\n|');
+        if (tableStart !== -1) {
+            const lines = slice.slice(tableStart).split('\n');
+            const tableLines = [];
+            for (let i = 0; i < lines.length; i++) {
+                const l = lines[i];
+                if (!l.trim().startsWith('|')) break;
+                tableLines.push(l);
+            }
+            tableMarkdown = tableLines.join('\n').trim();
+        }
+
+        let rows = [];
+        if (tableMarkdown) {
+            const tLines = tableMarkdown.split('\n');
+            if (tLines.length > 2) {
+                for (let i = 2; i < tLines.length; i++) {
+                    const row = tLines[i].trim();
+                    if (!row || !row.startsWith('|')) continue;
+                    const cells = row.split('|').map((c) => c.trim()).filter((c) => c.length > 0);
+                    if (cells.length >= 4) {
+                        rows.push({
+                            feature: cells[0],
+                            a: cells[1],
+                            b: cells[2],
+                            preference: cells[3]
+                        });
+                    }
+                }
+            }
+        }
+
+        return { winnerName, tableMarkdown, rows };
+    }
+
+    function parseMarkdownChapter(md, src) {
+        const normalized = (md || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+        const lines = normalized.split('\n');
+        let chapterLabel = '';
+        let title = '';
+        let subtitle = '';
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i].trim();
+            if (!chapterLabel && /^#\s*Chapter\s+/i.test(line)) {
+                chapterLabel = line.replace(/^#\s*/, '').trim();
+            } else if (!title && line.startsWith('## ')) {
+                title = line.replace(/^##\s*/, '').trim();
+            } else if (title && !subtitle && line.startsWith('## ')) {
+                subtitle = line.replace(/^##\s*/, '').trim();
+            }
+        }
+
+        const assessments = parseGuardianAssessments(normalized);
+        const p1Assessment = assessments[0] || null;
+        const p2Assessment = assessments[1] || null;
+
+        function makeParticipant(assessment, fallbackName, fallbackScore) {
+            const name = (assessment && assessment.name) || fallbackName;
+            const score = assessment && typeof assessment.score === 'number' ? assessment.score : fallbackScore;
+            const criteria = assessment && Array.isArray(assessment.criteria)
+                ? assessment.criteria.map((c) => ({
+                    n: c.title || (c.code ? `Criterion ${c.code}` : 'Criterion'),
+                    s: c.verdictClass || 'fail',
+                    rawVerdict: c.rawVerdict || null,
+                    evidence: c.evidence || '',
+                    critique: c.critique || '',
+                    strength: c.strength || ''
+                }))
+                : [];
+            return { name, score, criteria };
+        }
+
+        const idFromSrc = src && src.id ? src.id : null;
+        const chapterNum = (chapterLabel.match(/\d+/) || [null])[0];
+        const idFromChapter = chapterNum ? `M-${String(chapterNum).padStart(2, '0')}` : null;
+
+        const poml = parsePomlBlock(normalized);
+        const finalVerdict = parseFinalComparativeVerdict(normalized);
+
+        const p1 = makeParticipant(p1Assessment, 'Candidate A', 0);
+        const p2 = makeParticipant(p2Assessment, 'Candidate B', 0);
+
+        return {
+            id: idFromSrc || idFromChapter || 'M-000',
+            title: title || (src && src.title) || 'Untitled Match',
+            subtitle: subtitle || chapterLabel || (src && src.subtitle) || '',
+            text: simpleMarkdownToHtml(normalized),
+            p1,
+            p2,
+            poml,
+            assessments,
+            finalVerdict,
+            images: [],
+            tags: []
+        };
+    }
+
+    function parseGuardianCandidates(md) {
+        const assessments = parseGuardianAssessments(md);
+        return assessments.map(function (a) { return { name: a.name, score: a.score }; });
+    }
+
+    function simpleMarkdownToHtml(md) {
+        if (!md) return '';
+        const normalized = md.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+        const lines = normalized.split('\n');
+        const out = [];
+        let inList = false;
+        function closeList() {
+            if (inList) {
+                out.push('</ul>');
+                inList = false;
+            }
+        }
+        for (let i = 0; i < lines.length; i++) {
+            const raw = lines[i];
+            const line = raw.trimEnd();
+            const trimmed = line.trim();
+            if (!trimmed) {
+                closeList();
+                out.push('');
+                continue;
+            }
+            if (trimmed.startsWith('# ')) {
+                closeList();
+                out.push('<h1>' + escapeInline(trimmed.slice(2).trim()) + '</h1>');
+            } else if (trimmed.startsWith('## ')) {
+                closeList();
+                out.push('<h2>' + escapeInline(trimmed.slice(3).trim()) + '</h2>');
+            } else if (trimmed.startsWith('### ')) {
+                closeList();
+                out.push('<h3>' + escapeInline(trimmed.slice(4).trim()) + '</h3>');
+            } else if (trimmed.startsWith('#### ')) {
+                closeList();
+                out.push('<h4>' + escapeInline(trimmed.slice(5).trim()) + '</h4>');
+            } else if (trimmed === '***' || trimmed === '---') {
+                closeList();
+                out.push('<hr>');
+            } else if (trimmed.startsWith('* ') || trimmed.startsWith('- ')) {
+                const item = trimmed.replace(/^([*-])\s+/, '');
+                if (!inList) {
+                    inList = true;
+                    out.push('<ul>');
+                }
+                out.push('<li>' + escapeInline(item) + '</li>');
+            } else {
+                closeList();
+                out.push('<p>' + escapeInline(trimmed) + '</p>');
+            }
+        }
+        closeList();
+        return out.join('\n');
+    }
+
+    function escapeInline(str) {
+        let out = String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+        out = out.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+        out = out.replace(/(^|[\s(])\*(?!\*)([^*]+?)\*(?=([\s).]|$))/g, '$1<em>$2</em>$3');
+        return out;
+    }
+
+    // --- SCALABILITY ENGINE: Mock Data Generator ---
+    function generateMockDB(count = 50) {
+        const db = [];
+        const templates = [
+            { t: "Anatomist vs Architect", s: "Design of Self", theoryA: "Stratigraphic", theoryB: "Synthetic" },
+            { t: "Bishop vs Foreman", s: "Language Games", theoryA: "Referential", theoryB: "Pragmatic" },
+            { t: "Fox vs Hedgehog", s: "Forecasting Styles", theoryA: "Specialist", theoryB: "Generalist" },
+            { t: "Ghost vs Machine", s: "Dualism", theoryA: "Cartesian", theoryB: "Materialist" },
+            { t: "Tourist vs Pilgrim", s: "Modes of Travel", theoryA: "Hedonistic", theoryB: "Sacred" }
+        ];
+
+        const lorem = "In the vast archives of conceptual history, we observe a recurring conflict. One entity seeks structure, the other seeks flow. The implications of this dichotomy ripple through the fabric of our understanding, creating distinct epistemological landscapes. To measure is to know, says one; to experience is to become, says the other.";
+
+        for (let i = 1; i <= count; i++) {
+            const template = templates[i % templates.length];
+            const p1Score = Math.floor(Math.random() * 50) + 20;
+            const p2Score = Math.floor(Math.random() * 50) + 40;
+            
+            // Generate visual grid items (colored blocks)
+            const images = [];
+            for(let j=0; j < Math.floor(Math.random()*15)+5; j++) {
+                images.push({
+                    color: `hsl(${Math.random()*360}, 60%, 40%)`,
+                    id: `IMG-${i}-${j}`
+                });
+            }
+
+            db.push({
+                id: `M-${String(i).padStart(3, '0')}`,
+                title: `${template.t} (Vol. ${i})`,
+                subtitle: template.s,
+                text: `<p><strong>Entry #${i}:</strong> ${lorem}</p><p>${lorem}</p><p>${lorem}</p>`,
+                p1: { name: template.theoryA, score: p1Score, criteria: genCriteria() },
+                p2: { name: template.theoryB, score: p2Score, criteria: genCriteria() },
+                images: images,
+                tags: [i % 2 === 0 ? "Classic" : "Modern", "Philosophy"]
+            });
+        }
+        return db;
+    }
+
+    function genCriteria() {
+        return [
+            { n: "Coherence", s: Math.random() > 0.5 ? "pass" : "fail" },
+            { n: "Empirical", s: Math.random() > 0.5 ? "pass" : "fail" },
+            { n: "Utility", s: Math.random() > 0.5 ? "pass" : "fail" }
+        ];
+    }
+
+    // --- APP CORE ---
+    const app = {
+        db: [],
+        state: {
+            currentIdx: 0,
+            view: 'text',
+            selection: new Set(),
+            theme: 'dark',
+            sidebarOpen: window.innerWidth > 768
+        },
+
+        async init() {
+            try {
+                this.db = await loadMarkdownDB();
+            } catch (e) {
+                console.error('Falling back to mock DB in onyx-thumb:', e);
+                this.db = generateMockDB(60);
+            }
+
+            this.renderSidebar(this.db);
+            document.getElementById('record-count').innerText = this.db.length;
+            this.loadEntry(0);
+            
+            // Listeners
+            document.getElementById('search-input').addEventListener('input', (e) => this.handleSearch(e.target.value));
+            document.getElementById('toggle-sb').onclick = () => this.toggleSidebar();
+            document.getElementById('close-sb-mobile').onclick = () => this.toggleSidebar();
+            
+            // Theme Toggle
+            document.getElementById('theme-toggle').onclick = () => {
+                this.state.theme = this.state.theme === 'dark' ? 'light' : 'dark';
+                document.body.className = this.state.theme === 'dark' ? '' : 'theme-light';
+                const icon = document.querySelector('#theme-toggle i');
+                icon.className = this.state.theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+            };
+
+            // Mobile Check
+            if (window.innerWidth <= 768) document.getElementById('close-sb-mobile').style.display = 'block';
+        },
+
+        renderSidebar(data) {
+            const list = document.getElementById('file-list');
+            list.innerHTML = '';
+            
+            // Using DocumentFragment for performance with large lists
+            const fragment = document.createDocumentFragment();
+            
+            data.forEach((item, idx) => {
+                const li = document.createElement('li');
+                li.className = `file-item ${item.id === this.db[this.state.currentIdx].id ? 'active' : ''}`;
+                li.onclick = () => this.loadEntry(this.db.indexOf(item)); // Find original index
+                
+                // Status dot color based on winner score
+                const winnerScore = Math.max(item.p1.score, item.p2.score);
+                const statusColor = winnerScore > 80 ? 'var(--success)' : 'var(--accent)';
+                
+                li.innerHTML = `
+                    <div class="f-id">${item.id}</div>
+                    <div class="f-title">${item.title}</div>
+                    <div class="f-meta" style="display:flex; align-items:center; gap:6px;">
+                        <span>${item.images.length}</span> <i class="fas fa-image"></i>
+                        <div style="width:6px; height:6px; border-radius:50%; background:${statusColor}"></div>
+                    </div>
+                `;
+                fragment.appendChild(li);
+            });
+            list.appendChild(fragment);
+        },
+
+        loadEntry(idx) {
+            this.state.currentIdx = idx;
+            const data = this.db[idx];
+            
+            // Update Sidebar Highlights (Simple class toggle for performance)
+            const items = document.querySelectorAll('.file-item');
+            items.forEach(el => el.classList.remove('active'));
+            // Note: In a real app with filtered lists, we'd map ID to DOM element
+            
+            // Header
+            document.getElementById('crumb-id').innerText = data.id;
+            document.getElementById('doc-id').innerText = data.id;
+            document.getElementById('doc-title').innerText = data.title;
+            document.getElementById('doc-sub').innerText = data.subtitle;
+            document.getElementById('doc-content').innerHTML = data.text;
+
+            // Visual Grid
+            const grid = document.getElementById('visual-grid');
+            grid.innerHTML = '';
+            data.images.forEach((img) => {
+                const div = document.createElement('div');
+                div.className = `grid-item ${this.state.selection.has(img.id) ? 'selected' : ''}`;
+                div.innerHTML = `
+                    <div class="grid-img-placeholder" style="background:${img.color}">
+                        <span style="opacity:0.2; font-size:12px;">${img.id}</span>
+                    </div>
+                    <div class="grid-overlay">
+                        <div class="check-box"><i class="fas fa-check" style="font-size:10px; color:white"></i></div>
+                    </div>
+                `;
+                div.onclick = () => this.toggleSelection(img.id, div);
+                grid.appendChild(div);
+            });
+
+            // Data View
+            const assessments = Array.isArray(data.assessments) ? data.assessments : [];
+            const a1 = assessments[0] || null;
+            const a2 = assessments[1] || null;
+            const winnerName = data.finalVerdict && data.finalVerdict.winnerName
+                ? String(data.finalVerdict.winnerName).toLowerCase()
+                : null;
+            const poml = data.poml || null;
+
+            const renderStats = (p, a, idPrefix) => {
+                const nameEl = document.getElementById(`${idPrefix}-name`);
+                const scoreEl = document.getElementById(`${idPrefix}-score`);
+                const metaEl = document.getElementById(`${idPrefix}-meta`);
+                const statsEl = document.getElementById(`${idPrefix}-stats`);
+
+                if (!nameEl || !scoreEl || !statsEl) return;
+
+                const isWinner = p && p.name && winnerName
+                    ? p.name.toLowerCase() === winnerName
+                    : false;
+
+                nameEl.textContent = p.name;
+                scoreEl.textContent = p.score;
+
+                if (metaEl) {
+                    let metaHtml = '';
+
+                    if (isWinner) {
+                        metaHtml += '<div class="meta-row"><span class="winner-pill">WINNER</span></div>';
+                    }
+
+                    if (poml) {
+                        let modelText = '';
+                        if (idPrefix === 'p1' && poml.modelA) modelText = poml.modelA;
+                        if (idPrefix === 'p2' && poml.modelB) modelText = poml.modelB;
+                        if (modelText) {
+                            metaHtml += `<div class="meta-row"><span class="meta-label">Model:</span> ${escapeInline(modelText)}</div>`;
+                        }
+                    }
+
+                    if (a && a.calibration) {
+                        if (a.calibration.coreTask) {
+                            metaHtml += `<div class="meta-row"><span class="meta-label">Core Task:</span> ${escapeInline(a.calibration.coreTask)}</div>`;
+                        }
+                        if (a.calibration.intendedFrame) {
+                            metaHtml += `<div class="meta-row"><span class="meta-label">Frame:</span> ${escapeInline(a.calibration.intendedFrame)}</div>`;
+                        }
+                        if (a.calibration.darknessPriorLevel || a.calibration.darknessPriorLabel) {
+                            const lvl = a.calibration.darknessPriorLevel || '';
+                            const lbl = a.calibration.darknessPriorLabel || '';
+                            const text = (lvl ? lvl + ' risk' : '').concat(lbl ? (lvl ? ' of ' : '') + lbl : '');
+                            if (text) {
+                                metaHtml += `<div class="meta-row"><span class="meta-chip">${escapeInline(text)}</span></div>`;
+                            }
+                        } else if (a.calibration.darknessPrior) {
+                            metaHtml += `<div class="meta-row"><span class="meta-label">Darkness Prior:</span> ${escapeInline(a.calibration.darknessPrior)}</div>`;
+                        }
+                    }
+
+                    if (typeof p.score === 'number' && a && a.scoreLabel) {
+                        metaHtml += `<div class="meta-row"><span class="meta-label">Grade:</span> ${escapeInline(`${p.score}/100 (${a.scoreLabel})`)}</div>`;
+                    }
+
+                    if (a && a.justification) {
+                        if (a.justification.fatal_flaw) {
+                            metaHtml += `<div class="meta-row"><span class="meta-label">Fatal Flaw:</span> ${escapeInline(a.justification.fatal_flaw)}</div>`;
+                        }
+                        if (a.justification.paradigm_shift) {
+                            metaHtml += `<div class="meta-row"><span class="meta-label">Paradigm Shift:</span> ${escapeInline(a.justification.paradigm_shift)}</div>`;
+                        }
+                    }
+
+                    metaHtml = metaHtml || '';
+                    metaEl.innerHTML = metaHtml;
+                }
+
+                const truncate = (str, max) => {
+                    if (!str) return '';
+                    const s = String(str);
+                    return s.length <= max ? s : s.slice(0, max - 1) + '…';
+                };
+
+                statsEl.innerHTML = (p.criteria || []).map(function (c) {
+                    const verdictLabel = c.rawVerdict ? c.rawVerdict : c.s;
+                    const hasDetail = c.strength || c.evidence || c.critique;
+                    let body = '';
+
+                    if (verdictLabel) {
+                        body += `<div style="font-size:10px; opacity:0.8; text-transform:uppercase; margin-bottom:4px;">Verdict: ${escapeInline(verdictLabel)}</div>`;
+                    }
+                    if (c.strength) {
+                        body += `<div style="font-size:11px; margin-bottom:4px;"><span class="meta-label">Strength:</span> ${escapeInline(truncate(c.strength, 180))}</div>`;
+                    }
+                    if (c.evidence) {
+                        body += `<div style="font-size:11px; margin-bottom:4px;"><span class="meta-label">Evidence:</span> ${escapeInline(truncate(c.evidence, 220))}</div>`;
+                    }
+                    if (c.critique) {
+                        body += `<div style="font-size:11px;"><span class="meta-label">Critique:</span> ${escapeInline(truncate(c.critique, 220))}</div>`;
+                    }
+
+                    return `
+                        <div class="criterion ${c.s}">
+                            <div style="font-weight:600; font-size:12px; margin-bottom:${hasDetail ? 4 : 0}px;">${escapeInline(c.n)}</div>
+                            ${body}
+                        </div>
+                    `;
+                }).join('');
+            };
+
+            renderStats(data.p1, a1, 'p1');
+            renderStats(data.p2, a2, 'p2');
+
+            // Close sidebar on mobile
+            if(window.innerWidth <= 768) {
+                this.state.sidebarOpen = false;
+                document.getElementById('sidebar').classList.remove('open');
+            }
+        },
+
+        switchView(viewName) {
+            // Hide all panels
+            document.querySelectorAll('.view-panel').forEach(el => el.classList.add('hidden'));
+            // Show target
+            document.getElementById(`view-${viewName}`).classList.remove('hidden');
+            // Update Tabs
+            document.querySelectorAll('.cmd-tab').forEach(el => el.classList.remove('active'));
+            document.querySelector(`.cmd-tab[data-target="${viewName}"]`).classList.add('active');
+            
+            this.state.view = viewName;
+        },
+
+        toggleSidebar() {
+            this.state.sidebarOpen = !this.state.sidebarOpen;
+            const sb = document.getElementById('sidebar');
+            if(this.state.sidebarOpen) sb.classList.add('open');
+            else sb.classList.remove('open');
+        },
+
+        handleSearch(query) {
+            const term = query.toLowerCase();
+            const filtered = this.db.filter(item => 
+                item.title.toLowerCase().includes(term) || 
+                item.id.toLowerCase().includes(term)
+            );
+            this.renderSidebar(filtered);
+        },
+
+        toggleSelection(id, domElement) {
+            if(this.state.selection.has(id)) {
+                this.state.selection.delete(id);
+                domElement.classList.remove('selected');
+            } else {
+                this.state.selection.add(id);
+                domElement.classList.add('selected');
+            }
+            document.getElementById('sel-count').innerText = this.state.selection.size;
+            
+            // Visual feedback on the selection tab
+            const tab = document.getElementById('select-indicator');
+            if(this.state.selection.size > 0) {
+                tab.style.color = 'var(--selection)';
+            } else {
+                tab.style.color = 'var(--text-muted)';
+            }
+        }
+    };
+
+    // Run
+    document.addEventListener('DOMContentLoaded', () => app.init());
+
+</script>
+</body>
+</html>

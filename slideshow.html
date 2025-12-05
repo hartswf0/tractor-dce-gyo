@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>ARCHIVE_CORE_ENTERPRISE</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <style>
+        :root {
+            --bg: #09090b; --panel: #121214; --surface: #1c1c1f; --border: #27272a; --border-highlight: #3f3f46;
+            --text-main: #e4e4e7; --text-muted: #a1a1aa; --text-dim: #52525b;
+            --accent: #f97316; --accent-glow: rgba(249, 115, 22, 0.15);
+            --success: #10b981; --danger: #ef4444; --selection: #3b82f6;
+            --font-ui: 'JetBrains Mono', monospace; --font-sans: 'Inter', sans-serif; --font-body: 'Merriweather', serif;
+            --sidebar-w: 320px; --nav-h: 50px; --touch-min: 44px;
+        }
+        body.theme-light {
+            --bg: #f4f4f5; --panel: #ffffff; --surface: #f3f4f6; --border: #e4e4e7; --border-highlight: #d4d4d8;
+            --text-main: #18181b; --text-muted: #52525b; --text-dim: #a1a1aa;
+            --accent: #ea580c; --accent-glow: rgba(234, 88, 12, 0.1);
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+        html { -webkit-text-size-adjust: 100%; }
+        body {
+            background: var(--bg); color: var(--text-main); font-family: var(--font-sans);
+            margin: 0; height: 100vh; width: 100vw; overflow: hidden;
+            display: grid; grid-template-areas: "sidebar main"; grid-template-columns: var(--sidebar-w) 1fr;
+            transition: background 0.3s, color 0.3s;
+        }
+        body.sidebar-open { overflow: hidden; } /* Prevent background scroll on mobile */
+
+        /* --- SCROLLBARS --- */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border-highlight); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+
+        /* --- SIDEBAR --- */
+        #sidebar {
+            grid-area: sidebar; background: var(--panel); border-right: 1px solid var(--border);
+            display: flex; flex-direction: column; z-index: 100;
+            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .sidebar-backdrop {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+            z-index: 99; opacity: 0; transition: opacity 0.25s;
+        }
+        .sidebar-backdrop.active { display: block; opacity: 1; }
+        .sb-header {
+            padding: 1rem; border-bottom: 1px solid var(--border); display: flex;
+            align-items: center; justify-content: space-between; min-height: var(--nav-h);
+        }
+        .sb-title {
+            font-family: var(--font-ui); font-weight: 700; letter-spacing: -0.5px; font-size: 14px;
+        }
+        .search-container {
+            padding: 0.75rem; border-bottom: 1px solid var(--border); background: var(--panel);
+            position: sticky; top: 0; z-index: 10;
+        }
+        .search-input {
+            width: 100%; background: var(--surface); border: 1px solid var(--border);
+            color: var(--text-main); padding: 10px 12px; font-family: var(--font-ui);
+            font-size: 13px; border-radius: 6px; transition: border-color 0.2s;
+        }
+        .search-input:focus { border-color: var(--accent); }
+        .file-list {
+            flex: 1; overflow-y: auto; list-style: none; padding: 0; margin: 0;
+            -webkit-overflow-scrolling: touch; /* Momentum scroll on iOS */
+        }
+        .file-item {
+            display: grid; grid-template-columns: 45px 1fr auto; padding: 12px 1rem;
+            border-bottom: 1px solid var(--border); cursor: pointer; align-items: center;
+            transition: background 0.1s; gap: 10px; min-height: var(--touch-min);
+        }
+        .file-item:hover { background: var(--surface); }
+        .file-item.active {
+            background: var(--accent-glow); border-left: 3px solid var(--accent);
+            padding-left: calc(1rem - 3px);
+        }
+        .f-id {
+            font-family: var(--font-ui); font-size: 11px; color: var(--text-dim); font-weight: 600;
+        }
+        .f-title {
+            font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .f-meta {
+            font-family: var(--font-ui); font-size: 10px; color: var(--text-muted);
+            text-align: right; display: flex; align-items: center; gap: 6px;
+        }
+        .status-dot {
+            width: 8px; height: 8px; border-radius: 50%; transition: transform 0.2s;
+        }
+        .file-item:active .status-dot { transform: scale(1.5); }
+
+        /* --- MAIN AREA --- */
+        #main {
+            grid-area: main; display: flex; flex-direction: column; background: var(--bg);
+            position: relative; overflow: hidden;
+        }
+        .top-bar {
+            height: var(--nav-h); border-bottom: 1px solid var(--border); display: flex;
+            align-items: center; padding: 0 1rem; justify-content: space-between;
+            background: var(--bg); position: sticky; top: 0; z-index: 50;
+        }
+        .breadcrumbs {
+            font-family: var(--font-ui); font-size: 12px; color: var(--text-muted);
+            display: flex; align-items: center; gap: 8px;
+        }
+        .breadcrumbs span.active {
+            color: var(--text-main); font-weight: 600;
+        }
+        .top-actions { display: flex; gap: 8px; }
+        .btn-icon {
+            background: transparent; border: 1px solid transparent; color: var(--text-muted);
+            width: 36px; height: 36px; border-radius: 6px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s; font-size: 14px;
+        }
+        .btn-icon:hover { background: var(--surface); color: var(--text-main); border-color: var(--border); }
+        .btn-icon.active { color: var(--accent); background: var(--accent-glow); border-color: var(--accent); }
+        .btn-icon:active { transform: scale(0.95); }
+
+        /* --- VIEWPORT --- */
+        .viewport {
+            flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
+            padding-bottom: env(safe-area-inset-bottom); /* iPhone X+ */
+        }
+
+        /* View: Text */
+        .doc-wrapper {
+            max-width: 900px; margin: 0 auto; padding: 3rem 2rem;
+        }
+        .doc-header {
+            border-bottom: 1px solid var(--border); padding-bottom: 2rem; margin-bottom: 2rem;
+        }
+        .doc-h1 {
+            font-family: var(--font-body); font-size: 2rem; margin: 0 0 0.5rem 0;
+            color: var(--text-main); line-height: 1.2;
+        }
+        .doc-meta {
+            font-family: var(--font-ui); color: var(--accent); font-size: 12px;
+            text-transform: uppercase; letter-spacing: 1px;
+        }
+        .doc-body {
+            font-family: var(--font-body); font-size: 17px; line-height: 1.8;
+            color: var(--text-main);
+        }
+        .doc-body p { margin-bottom: 1.5em; }
+        .empty-state {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 60vh; color: var(--text-dim); text-align: center; padding: 2rem;
+        }
+        .empty-state i { font-size: 3rem; margin-bottom: 1rem; opacity: 0.3; }
+
+        /* View: Visual */
+        .grid-view {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 1px; background: var(--border); padding: 1px;
+        }
+        .grid-item {
+            background: var(--bg); aspect-ratio: 1; position: relative; cursor: pointer;
+            overflow: hidden; transition: transform 0.1s;
+        }
+        .grid-item:active { transform: scale(0.96); }
+        .grid-img-placeholder {
+            width: 100%; height: 100%; display: flex; align-items: center;
+            justify-content: center; font-family: var(--font-ui); color: var(--text-dim);
+            font-size: 2rem; font-weight: 700; background: var(--surface);
+        }
+        .grid-overlay {
+            position: absolute; inset: 0; background: rgba(0,0,0,0.5);
+            opacity: 0; transition: opacity 0.2s;
+            display: flex; align-items: flex-start; justify-content: flex-end; padding: 8px;
+        }
+        .check-box {
+            width: 44px; height: 44px; border: 2px solid #fff; border-radius: 6px;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.3); transition: all 0.2s;
+        }
+        .grid-item.selected .check-box {
+            background: var(--selection); border-color: var(--selection);
+        }
+        .grid-item.selected .grid-overlay {
+            opacity: 1; background: rgba(59, 130, 246, 0.2); border: 2px solid var(--selection);
+        }
+
+        /* View: Data */
+        .data-layout {
+            display: grid; grid-template-columns: 1fr 1fr; height: 100%; min-height: 600px;
+        }
+        .fighter-panel {
+            padding: 2rem; border-right: 1px solid var(--border); overflow-y: auto;
+        }
+        .fighter-score {
+            font-family: var(--font-ui); font-size: 4rem; font-weight: 700;
+            color: var(--text-main); line-height: 1; margin: 1rem 0;
+        }
+        .criterion {
+            margin-bottom: 12px; padding: 10px; background: var(--surface);
+            border-left: 3px solid transparent; border-radius: 0 4px 4px 0;
+        }
+        .criterion.pass { border-color: var(--success); }
+        .criterion.fail { border-color: var(--danger); }
+
+        /* --- BOTTOM COMMAND --- */
+        #cmd-bar {
+            position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%);
+            height: 44px; background: var(--panel); border: 1px solid var(--border);
+            border-radius: 22px; display: flex; align-items: center; padding: 0 6px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2); z-index: 200;
+        }
+        .cmd-tab {
+            height: 32px; padding: 0 16px; border-radius: 16px; border: none;
+            background: transparent; color: var(--text-muted); font-family: var(--font-ui);
+            font-size: 11px; font-weight: 600; cursor: pointer;
+            display: flex; align-items: center; gap: 6px; transition: all 0.2s;
+        }
+        .cmd-tab:hover { color: var(--text-main); }
+        .cmd-tab.active {
+            background: var(--surface); color: var(--accent);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .cmd-tab:active { transform: scale(0.95); }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 1024px) {
+            #sidebar { width: 280px; }
+            .doc-wrapper { padding: 2rem 1.5rem; }
+        }
+        @media (max-width: 768px) {
+            body {
+                grid-template-columns: 1fr; grid-template-areas: "main";
+            }
+            #sidebar {
+                position: fixed; top: 0; bottom: 0; left: 0; width: 85%; max-width: 320px;
+                transform: translateX(-100%); box-shadow: 10px 0 30px rgba(0,0,0,0.3);
+            }
+            #sidebar.open { transform: translateX(0); }
+            .sidebar-backdrop { display: block; opacity: 0; pointer-events: none; }
+            .sidebar-backdrop.active { opacity: 1; pointer-events: all; }
+            
+            .doc-wrapper { padding: 1.5rem 1rem; }
+            .doc-h1 { font-size: 1.5rem; }
+            .doc-body { font-size: 16px; line-height: 1.7; }
+            
+            .grid-view {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+                gap: 2px; padding: 2px;
+            }
+            .grid-img-placeholder { font-size: 1.2rem; }
+            .grid-overlay { opacity: 1; } /* Always show on mobile */
+            .check-box {
+                width: 32px; height: 32px; border-width: 2px;
+            }
+            
+            .data-layout { grid-template-columns: 1fr; }
+            .fighter-panel {
+                padding: 1.5rem; border-right: none; border-bottom: 1px solid var(--border);
+            }
+            .fighter-score { font-size: 2.5rem; }
+            
+            #cmd-bar {
+                bottom: 0; left: 0; right: 0; transform: none; width: 100%;
+                border-radius: 0; border: none; border-top: 1px solid var(--border);
+                justify-content: space-around; padding: 0;
+                height: calc(50px + env(safe-area-inset-bottom));
+            }
+            .cmd-tab {
+                flex-direction: column; height: 100%; padding: 8px 0; gap: 4px;
+                font-size: 10px; border-radius: 0; background: transparent !important;
+                min-width: var(--touch-min);
+            }
+            .cmd-tab i { font-size: 18px; }
+            .cmd-tab span { display: none; } /* Hide text on mobile */
+            .cmd-tab#select-indicator span { display: block; font-size: 9px; }
+        }
+
+        .hidden { display: none; }
+        .fade-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="theme-dark">
+    <aside id="sidebar">
+        <div class="sb-header">
+            <div class="sb-title">ARCHIVE_CORE <span style="color:var(--accent); font-size:10px;">V2.1</span></div>
+            <button class="btn-icon" id="close-sb-mobile" style="display:none;" aria-label="Close sidebar">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="search-container">
+            <input type="text" class="search-input" id="search-input" placeholder="Filter by ID, Title, or Tag..." aria-label="Search files">
+        </div>
+        <ul class="file-list" id="file-list" role="listbox"></ul>
+        <div style="padding:10px; border-top:1px solid var(--border); font-size:10px; color:var(--text-dim); text-align:center;">
+            DB STATUS: ONLINE • <span id="record-count">0</span> RECORDS
+        </div>
+    </aside>
+    <div class="sidebar-backdrop" id="sidebar-backdrop" aria-hidden="true"></div>
+
+    <main id="main">
+        <div class="top-bar">
+            <div style="display:flex; align-items:center; gap:12px;">
+                <button class="btn-icon" id="toggle-sb" aria-label="Toggle sidebar">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="breadcrumbs" id="breadcrumbs">
+                    <span>LIBRARY</span> <i class="fas fa-chevron-right" style="font-size:8px;"></i>
+                    <span class="active" id="crumb-id">SELECT FILE</span>
+                </div>
+            </div>
+            <div class="top-actions">
+                <button class="btn-icon" id="theme-toggle" title="Toggle Light Mode" aria-label="Toggle theme">
+                    <i class="fas fa-sun"></i>
+                </button>
+                <button class="btn-icon" title="Settings" aria-label="Settings">
+                    <i class="fas fa-cog"></i>
+                </button>
+                <button class="btn-icon" style="color:var(--accent); border-color:var(--accent);" title="Export" aria-label="Export">
+                    <i class="fas fa-download"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="viewport" id="viewport">
+            <div id="view-text" class="view-panel">
+                <div class="doc-wrapper">
+                    <div class="doc-header">
+                        <div class="doc-meta" id="doc-id">M-00</div>
+                        <h1 class="doc-h1" id="doc-title">Select a File</h1>
+                        <div style="color:var(--text-muted); font-size:14px; font-style:italic;" id="doc-sub">System Ready</div>
+                    </div>
+                    <div class="doc-body" id="doc-content">
+                        <p style="color:var(--text-dim)">Select an item from the sidebar to begin analysis.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-visual" class="view-panel hidden">
+                <div class="grid-view" id="visual-grid"></div>
+                <div id="visual-empty" class="empty-state hidden">
+                    <i class="fas fa-images"></i>
+                    <p>No visual assets for this entry</p>
+                </div>
+            </div>
+
+            <div id="view-data" class="view-panel hidden">
+                <div class="data-layout">
+                    <div class="fighter-panel">
+                        <div class="doc-meta">ENTITY A</div>
+                        <h2 id="p1-name" style="margin:5px 0 1rem 0;">-</h2>
+                        <div class="fighter-score" id="p1-score">00</div>
+                        <div id="p1-stats"></div>
+                    </div>
+                    <div class="fighter-panel">
+                        <div class="doc-meta">ENTITY B</div>
+                        <h2 id="p2-name" style="margin:5px 0 1rem 0;">-</h2>
+                        <div class="fighter-score" id="p2-score">00</div>
+                        <div id="p2-stats"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="cmd-bar">
+            <button class="cmd-tab active" data-target="text" aria-label="Text view">
+                <i class="fas fa-align-left"></i> <span>TEXT</span>
+            </button>
+            <button class="cmd-tab" data-target="visual" aria-label="Visual view">
+                <i class="fas fa-th"></i> <span>VISUAL</span>
+            </button>
+            <button class="cmd-tab" data-target="data" aria-label="Data view">
+                <i class="fas fa-chart-pie"></i> <span>DATA</span>
+            </button>
+            <div style="width:1px; height:16px; background:var(--border); margin:0 4px;"></div>
+            <button class="cmd-tab" id="select-indicator" aria-label="Selection mode">
+                <i class="fas fa-check-square"></i> <span id="sel-count">0</span>
+            </button>
+        </div>
+    </main>
+
+    <script>
+        const CHAPTER_SOURCES = [
+            { id: 'M-12', file: 'ch12.md' },
+            { id: 'M-14', file: 'ch14.md' },
+            { id: 'M-16', file: 'ch16.md' }
+        ];
+
+        async function loadMarkdownDB() {
+            const records = [];
+            for (const src of CHAPTER_SOURCES) {
+                try {
+                    const res = await fetch(src.file);
+                    if (!res || !res.ok) continue;
+                    const md = await res.text();
+                    records.push(parseMarkdownChapter(md, src));
+                } catch (e) {
+                    console.warn('Failed to load chapter', src.file, e);
+                }
+            }
+            if (!records.length) return generateMockDB(60);
+            return records;
+        }
+
+        function parseMarkdownChapter(md, src) {
+            const normalized = (md || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+            const lines = normalized.split('\n');
+            let chapterLabel = ''; let title = ''; let subtitle = '';
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!chapterLabel && /^#\s*Chapter\s+/i.test(line)) {
+                    chapterLabel = line.replace(/^#\s*/, '').trim();
+                } else if (!title && line.startsWith('## ')) {
+                    title = line.replace(/^##\s*/, '').trim();
+                } else if (title && !subtitle && line.startsWith('## ')) {
+                    subtitle = line.replace(/^##\s*/, '').trim();
+                }
+            }
+            const guardians = parseGuardianCandidates(normalized);
+            const p1 = guardians[0] || { name: 'Candidate A', score: 0 };
+            const p2 = guardians[1] || { name: 'Candidate B', score: 0 };
+            const idFromSrc = src?.id || null;
+            const chapterNum = (chapterLabel.match(/\d+/) || [null])[0];
+            const idFromChapter = chapterNum ? `M-${String(chapterNum).padStart(2, '0')}` : null;
+            return {
+                id: idFromSrc || idFromChapter || 'M-000',
+                title: title || src?.title || 'Untitled Match',
+                subtitle: subtitle || chapterLabel || src?.subtitle || '',
+                text: simpleMarkdownToHtml(normalized),
+                p1: { name: p1.name, score: p1.score, criteria: [] },
+                p2: { name: p2.name, score: p2.score, criteria: [] },
+                images: [],
+                tags: []
+            };
+        }
+
+        function parseGuardianCandidates(md) {
+            const text = (md || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+            const results = [];
+            const re = /^#\s*ASSESSMENT\s+\d+:\s+CANDIDATE\s+"([^"]+)"/gm;
+            let match;
+            while ((match = re.exec(text)) !== null && results.length < 2) {
+                const name = match[1].trim();
+                const start = match.index;
+                const nextIdx = text.indexOf('\n# ASSESSMENT', start + 1);
+                const slice = text.slice(start, nextIdx === -1 ? undefined : nextIdx);
+                const scoreMatch = slice.match(/Score:\s*([0-9]+)/);
+                const score = scoreMatch ? (parseInt(scoreMatch[1], 10) || 0) : 0;
+                results.push({ name, score });
+            }
+            return results;
+        }
+
+        function simpleMarkdownToHtml(md) {
+            if (!md) return '';
+            const normalized = md.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+            const lines = normalized.split('\n');
+            const out = [];
+            for (let i = 0; i < lines.length; i++) {
+                const raw = lines[i];
+                const line = raw.trimEnd();
+                if (!line.trim()) { out.push(''); continue; }
+                if (line.startsWith('# ')) {
+                    out.push('<h1>' + escapeInline(line.slice(2).trim()) + '</h1>');
+                } else if (line.startsWith('## ')) {
+                    out.push('<h2>' + escapeInline(line.slice(3).trim()) + '</h2>');
+                } else if (line === '***') {
+                    out.push('<hr>');
+                } else {
+                    out.push('<p>' + escapeInline(line) + '</p>');
+                }
+            }
+            return out.join('\n');
+        }
+
+        function escapeInline(str) {
+            let out = String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+            out = out.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+            out = out.replace(/(^|[\s(])\*(?!\*)([^*]+?)\*(?=([\s).]|$))/g, '$1<em>$2</em>$3');
+            return out;
+        }
+
+        function generateMockDB(count = 50) {
+            const db = [];
+            const templates = [
+                { t: "Anatomist vs Architect", s: "Design of Self", theoryA: "Stratigraphic", theoryB: "Synthetic" },
+                { t: "Bishop vs Foreman", s: "Language Games", theoryA: "Referential", theoryB: "Pragmatic" },
+                { t: "Fox vs Hedgehog", s: "Forecasting Styles", theoryA: "Specialist", theoryB: "Generalist" },
+                { t: "Ghost vs Machine", s: "Dualism", theoryA: "Cartesian", theoryB: "Materialist" },
+                { t: "Tourist vs Pilgrim", s: "Modes of Travel", theoryA: "Hedonistic", theoryB: "Sacred" }
+            ];
+            const lorem = "In the vast archives of conceptual history, we observe a recurring conflict. One entity seeks structure, the other seeks flow. The implications of this dichotomy ripple through the fabric of our understanding, creating distinct epistemological landscapes. To measure is to know, says one; to experience is to become, says the other.";
+            for (let i = 1; i <= count; i++) {
+                const template = templates[i % templates.length];
+                const p1Score = Math.floor(Math.random() * 50) + 20;
+                const p2Score = Math.floor(Math.random() * 50) + 40;
+                const images = [];
+                for (let j = 0; j < Math.floor(Math.random() * 15) + 5; j++) {
+                    images.push({
+                        color: `hsl(${Math.random() * 360}, 60%, 40%)`,
+                        id: `IMG-${i}-${j}`
+                    });
+                }
+                db.push({
+                    id: `M-${String(i).padStart(3, '0')}`,
+                    title: `${template.t} (Vol. ${i})`,
+                    subtitle: template.s,
+                    text: `<p><strong>Entry #${i}:</strong> ${lorem}</p><p>${lorem}</p><p>${lorem}</p>`,
+                    p1: { name: template.theoryA, score: p1Score, criteria: genCriteria() },
+                    p2: { name: template.theoryB, score: p2Score, criteria: genCriteria() },
+                    images: images,
+                    tags: [i % 2 === 0 ? "Classic" : "Modern", "Philosophy"]
+                });
+            }
+            return db;
+        }
+
+        function genCriteria() {
+            return [
+                { n: "Coherence", s: Math.random() > 0.5 ? "pass" : "fail" },
+                { n: "Empirical", s: Math.random() > 0.5 ? "pass" : "fail" },
+                { n: "Utility", s: Math.random() > 0.5 ? "pass" : "fail" }
+            ];
+        }
+
+        // --- APP CORE ---
+        const app = {
+            db: [],
+            state: {
+                currentIdx: 0,
+                view: 'text',
+                selection: new Set(),
+                theme: 'dark',
+                sidebarOpen: window.innerWidth > 768
+            },
+
+            async init() {
+                try { this.db = await loadMarkdownDB(); } 
+                catch (e) {
+                    console.error('Falling back to mock DB', e);
+                    this.db = generateMockDB(60);
+                }
+                this.renderSidebar(this.db);
+                document.getElementById('record-count').innerText = this.db.length;
+                this.loadEntry(0);
+
+                // Event Listeners
+                document.getElementById('search-input').addEventListener('input', (e) => this.handleSearch(e.target.value));
+                document.getElementById('toggle-sb').addEventListener('click', () => this.toggleSidebar());
+                document.getElementById('close-sb-mobile').addEventListener('click', () => this.toggleSidebar());
+                document.getElementById('sidebar-backdrop').addEventListener('click', () => this.toggleSidebar());
+                
+                // Keyboard navigation
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'ArrowDown' && this.state.currentIdx < this.db.length - 1) {
+                        this.loadEntry(this.state.currentIdx + 1);
+                    } else if (e.key === 'ArrowUp' && this.state.currentIdx > 0) {
+                        this.loadEntry(this.state.currentIdx - 1);
+                    } else if (e.key === 'Escape' && this.state.sidebarOpen && window.innerWidth <= 768) {
+                        this.toggleSidebar();
+                    }
+                });
+
+                // Theme Toggle
+                const themeBtn = document.getElementById('theme-toggle');
+                themeBtn.addEventListener('click', () => {
+                    this.state.theme = this.state.theme === 'dark' ? 'light' : 'dark';
+                    document.body.className = this.state.theme === 'dark' ? '' : 'theme-light';
+                    themeBtn.innerHTML = `<i class="fas ${this.state.theme === 'dark' ? 'fa-sun' : 'fa-moon'}"></i>`;
+                });
+
+                // Mobile detection
+                if (window.innerWidth <= 768) {
+                    document.getElementById('close-sb-mobile').style.display = 'flex';
+                }
+
+                // Swipe gestures for mobile
+                let touchStartX = 0;
+                let touchEndX = 0;
+                document.addEventListener('touchstart', (e) => {
+                    touchStartX = e.changedTouches[0].screenX;
+                });
+                document.addEventListener('touchend', (e) => {
+                    touchEndX = e.changedTouches[0].screenX;
+                    this.handleSwipe(touchStartX, touchEndX);
+                });
+            },
+
+            handleSwipe(start, end) {
+                const threshold = 50;
+                const diff = start - end;
+                if (Math.abs(diff) < threshold) return;
+                
+                if (diff > 0 && !this.state.sidebarOpen) {
+                    // Swipe left - next item
+                    if (this.state.currentIdx < this.db.length - 1) {
+                        this.loadEntry(this.state.currentIdx + 1);
+                    }
+                } else if (diff < 0 && !this.state.sidebarOpen) {
+                    // Swipe right - previous item
+                    if (this.state.currentIdx > 0) {
+                        this.loadEntry(this.state.currentIdx - 1);
+                    }
+                } else if (diff > 0 && window.innerWidth <= 768) {
+                    // Swipe left on mobile - open sidebar
+                    if (!this.state.sidebarOpen) this.toggleSidebar();
+                }
+            },
+
+            renderSidebar(data) {
+                const list = document.getElementById('file-list');
+                list.innerHTML = '';
+                const fragment = document.createDocumentFragment();
+                
+                data.forEach((item) => {
+                    const li = document.createElement('li');
+                    li.className = 'file-item fade-in';
+                    li.dataset.index = this.db.indexOf(item); // Store original index
+                    if (item.id === this.db[this.state.currentIdx].id) li.classList.add('active');
+                    
+                    // Status dot color
+                    const winnerScore = Math.max(item.p1.score, item.p2.score);
+                    const statusColor = winnerScore > 80 ? 'var(--success)' : 'var(--accent)';
+                    
+                    li.innerHTML = `
+                        <div class="f-id">${item.id}</div>
+                        <div class="f-title">${item.title}</div>
+                        <div class="f-meta">
+                            <span>${item.images.length}</span> <i class="fas fa-image"></i>
+                            <div class="status-dot" style="background:${statusColor}"></div>
+                        </div>
+                    `;
+                    fragment.appendChild(li);
+                });
+                list.appendChild(fragment);
+            },
+
+            loadEntry(idx) {
+                this.state.currentIdx = idx;
+                const data = this.db[idx];
+                
+                // Update active state in sidebar
+                document.querySelectorAll('.file-item').forEach(el => {
+                    el.classList.toggle('active', parseInt(el.dataset.index) === idx);
+                });
+
+                // Update header
+                document.getElementById('crumb-id').innerText = data.id;
+                document.getElementById('doc-id').innerText = data.id;
+                document.getElementById('doc-title').innerText = data.title;
+                document.getElementById('doc-sub').innerText = data.subtitle;
+                document.getElementById('doc-content').innerHTML = data.text;
+
+                // Visual Grid
+                const grid = document.getElementById('visual-grid');
+                const empty = document.getElementById('visual-empty');
+                grid.innerHTML = '';
+                if (data.images.length === 0) {
+                    grid.classList.add('hidden');
+                    empty.classList.remove('hidden');
+                } else {
+                    grid.classList.remove('hidden');
+                    empty.classList.add('hidden');
+                    data.images.forEach((img) => {
+                        const div = document.createElement('div');
+                        div.className = `grid-item ${this.state.selection.has(img.id) ? 'selected' : ''}`;
+                        div.innerHTML = `
+                            <div class="grid-img-placeholder" style="background:${img.color}">
+                                <span style="opacity:0.2; font-size:12px;">${img.id}</span>
+                            </div>
+                            <div class="grid-overlay">
+                                <div class="check-box"><i class="fas fa-check" style="font-size:12px; color:white"></i></div>
+                            </div>
+                        `;
+                        div.addEventListener('click', () => this.toggleSelection(img.id, div));
+                        grid.appendChild(div);
+                    });
+                }
+
+                // Data View
+                const renderStats = (p, idPrefix) => {
+                    document.getElementById(`${idPrefix}-name`).innerText = p.name;
+                    document.getElementById(`${idPrefix}-score`).innerText = p.score;
+                    const container = document.getElementById(`${idPrefix}-stats`);
+                    container.innerHTML = p.criteria.map(c => `
+                        <div class="criterion ${c.s}">
+                            <div style="font-weight:600; font-size:12px;">${c.n}</div>
+                            <div style="font-size:10px; opacity:0.7; text-transform:uppercase;">${c.s}</div>
+                        </div>
+                    `).join('');
+                };
+                renderStats(data.p1, 'p1');
+                renderStats(data.p2, 'p2');
+
+                // Close sidebar on mobile
+                if (window.innerWidth <= 768 && this.state.sidebarOpen) {
+                    this.toggleSidebar();
+                }
+            },
+
+            switchView(viewName) {
+                document.querySelectorAll('.view-panel').forEach(el => el.classList.add('hidden'));
+                document.getElementById(`view-${viewName}`).classList.remove('hidden');
+                document.querySelectorAll('.cmd-tab').forEach(el => el.classList.remove('active'));
+                document.querySelector(`.cmd-tab[data-target="${viewName}"]`).classList.add('active');
+                this.state.view = viewName;
+            },
+
+            toggleSidebar() {
+                this.state.sidebarOpen = !this.state.sidebarOpen;
+                const sb = document.getElementById('sidebar');
+                const backdrop = document.getElementById('sidebar-backdrop');
+                const body = document.body;
+                
+                if (this.state.sidebarOpen) {
+                    sb.classList.add('open');
+                    body.classList.add('sidebar-open');
+                    backdrop.classList.add('active');
+                } else {
+                    sb.classList.remove('open');
+                    body.classList.remove('sidebar-open');
+                    backdrop.classList.remove('active');
+                }
+            },
+
+            handleSearch(query) {
+                const term = query.toLowerCase().trim();
+                const filtered = this.db.filter(item =>
+                    item.title.toLowerCase().includes(term) ||
+                    item.id.toLowerCase().includes(term) ||
+                    (item.tags && item.tags.some(tag => tag.toLowerCase().includes(term)))
+                );
+                this.renderSidebar(filtered);
+            },
+
+            toggleSelection(id, domElement) {
+                if (this.state.selection.has(id)) {
+                    this.state.selection.delete(id);
+                    domElement.classList.remove('selected');
+                } else {
+                    this.state.selection.add(id);
+                    domElement.classList.add('selected');
+                }
+                document.getElementById('sel-count').innerText = this.state.selection.size;
+                const tab = document.getElementById('select-indicator');
+                tab.style.color = this.state.selection.size > 0 ? 'var(--selection)' : 'var(--text-muted)';
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => app.init());
+    </script>
+</body>
+</html>

@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARENA ARCHIVE // CONCEPTUAL WRESTLING</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cormorant:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=EB+Garamond:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+
+    <style>
+        :root {
+            /* Terminal Colors */
+            --terminal-bg: #0a0a0a;
+            --terminal-green: #00ff00;
+            --terminal-cyan: #00ffff;
+            --terminal-yellow: #ffff00;
+            --terminal-red: #ff0055;
+            --terminal-text: #cccccc;
+            --terminal-dim: #666666;
+            --terminal-border: #333333;
+            
+            /* Parchment Colors */
+            --parchment-bg: #f5f1e8;
+            --parchment-dark: #e6dfd0;
+            --parchment-text: #3a3a3a;
+            --parchment-accent: #8b4513;
+            --parchment-gold: #b8860b;
+            --parchment-ink: #2c1810;
+            
+            /* Layout */
+            --sidebar-width: 280px;
+            --header-height: 60px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--terminal-bg);
+            color: var(--terminal-text);
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        /* TERMINAL CRACKLE EFFECT */
+        .terminal-crackle {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(transparent 95%, rgba(0, 255, 0, 0.02) 95%),
+                linear-gradient(90deg, transparent 95%, rgba(0, 255, 0, 0.02) 95%);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 9998;
+            opacity: 0.3;
+        }
+
+        .scan-line {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(to right, transparent, var(--terminal-green), transparent);
+            opacity: 0.1;
+            animation: scan 8s linear infinite;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        @keyframes scan {
+            0% { top: 0%; }
+            100% { top: 100%; }
+        }
+
+        /* MAIN LAYOUT */
+        .archive-container {
+            display: grid;
+            grid-template-columns: var(--sidebar-width) 1fr 1fr;
+            grid-template-rows: var(--header-height) 1fr;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* SIDEBAR - TERMINAL NAV */
+        .terminal-sidebar {
+            grid-column: 1;
+            grid-row: 1 / -1;
+            background: var(--terminal-bg);
+            border-right: 1px solid var(--terminal-border);
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            overflow: hidden;
+        }
+
+        .terminal-header {
+            padding: 1.2rem;
+            border-bottom: 1px solid var(--terminal-border);
+            position: relative;
+        }
+
+        .terminal-header::after {
+            content: "";
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, var(--terminal-green), transparent);
+        }
+
+        .archive-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 14px;
+            letter-spacing: 2px;
+            color: var(--terminal-green);
+        }
+
+        .archive-subtitle {
+            font-size: 10px;
+            color: var(--terminal-dim);
+            margin-top: 0.3rem;
+            letter-spacing: 1px;
+        }
+
+        /* TERMINAL OUTPUT */
+        .terminal-output {
+            flex: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            line-height: 1.5;
+            color: var(--terminal-text);
+        }
+
+        .terminal-line {
+            margin-bottom: 0.5rem;
+            white-space: pre-wrap;
+        }
+
+        .terminal-prompt {
+            color: var(--terminal-green);
+        }
+
+        .terminal-cmd {
+            color: var(--terminal-cyan);
+        }
+
+        .terminal-arg {
+            color: var(--terminal-yellow);
+        }
+
+        .terminal-error {
+            color: var(--terminal-red);
+        }
+
+        /* MATCH NAV */
+        .match-nav {
+            border-top: 1px solid var(--terminal-border);
+            padding: 1rem 0;
+        }
+
+        .match-item {
+            padding: 0.8rem 1.2rem;
+            border-bottom: 1px solid rgba(51, 51, 51, 0.5);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .match-item:hover {
+            background: rgba(0, 255, 0, 0.05);
+        }
+
+        .match-item.active {
+            background: rgba(0, 255, 0, 0.1);
+            border-left: 3px solid var(--terminal-green);
+        }
+
+        .match-id {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--terminal-green);
+            font-weight: 700;
+        }
+
+        .match-preview {
+            font-size: 11px;
+            color: var(--terminal-text);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 150px;
+        }
+
+        /* HEADER */
+        .main-header {
+            grid-column: 2 / -1;
+            grid-row: 1;
+            background: var(--terminal-bg);
+            border-bottom: 1px solid var(--terminal-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+        }
+
+        .header-info {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .info-block {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-label {
+            font-size: 9px;
+            color: var(--terminal-dim);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .info-value {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--terminal-text);
+            letter-spacing: 0.5px;
+        }
+
+        .vs-divider {
+            font-family: 'Cinzel', serif;
+            font-weight: 700;
+            font-size: 18px;
+            color: var(--terminal-green);
+            letter-spacing: 2px;
+        }
+
+        /* PARCHMENT SECTION - LEFT */
+        .parchment-section {
+            grid-column: 2;
+            grid-row: 2;
+            background: var(--parchment-bg);
+            border-right: 1px solid var(--parchment-dark);
+            position: relative;
+            overflow: hidden;
+            padding: 2rem;
+        }
+
+        /* Parchment texture */
+        .parchment-section::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                linear-gradient(0deg, transparent 95%, rgba(139, 69, 19, 0.1) 95%),
+                linear-gradient(90deg, transparent 95%, rgba(139, 69, 19, 0.1) 95%);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .parchment-section::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" opacity="0.03"><filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23noise)"/></svg>');
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .parchment-content {
+            position: relative;
+            z-index: 3;
+            height: 100%;
+            overflow-y: auto;
+            padding-right: 1rem;
+        }
+
+        .chapter-header {
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--parchment-gold);
+        }
+
+        .chapter-number {
+            font-family: 'Cinzel', serif;
+            font-size: 12px;
+            color: var(--parchment-gold);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .chapter-title {
+            font-family: 'Cormorant', serif;
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--parchment-ink);
+            line-height: 1.2;
+            margin-bottom: 0.5rem;
+        }
+
+        .chapter-subtitle {
+            font-family: 'EB Garamond', serif;
+            font-style: italic;
+            font-size: 1rem;
+            color: var(--parchment-accent);
+        }
+
+        .essay-content {
+            font-family: 'EB Garamond', serif;
+            font-size: 16px;
+            line-height: 1.8;
+            color: var(--parchment-text);
+        }
+
+        .essay-content p {
+            margin-bottom: 1.5rem;
+            text-align: justify;
+            text-justify: inter-word;
+        }
+
+        .essay-content p:first-of-type:first-letter {
+            font-family: 'Cinzel', serif;
+            font-size: 3.5rem;
+            float: left;
+            line-height: 0.8;
+            margin-right: 0.5rem;
+            margin-top: 0.3rem;
+            color: var(--parchment-gold);
+        }
+
+        .drop-cap {
+            font-family: 'Cinzel', serif;
+            font-size: 3.5rem;
+            float: left;
+            line-height: 0.8;
+            margin-right: 0.5rem;
+            margin-top: 0.3rem;
+            color: var(--parchment-gold);
+        }
+
+        /* TERMINAL ARENA - RIGHT */
+        .terminal-arena {
+            grid-column: 3;
+            grid-row: 2;
+            background: var(--terminal-bg);
+            display: flex;
+            flex-direction: column;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .arena-header {
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--terminal-border);
+        }
+
+        .arena-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--terminal-green);
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+        }
+
+        .arena-subtitle {
+            font-size: 11px;
+            color: var(--terminal-dim);
+            letter-spacing: 0.5px;
+        }
+
+        /* FIGHTER CARDS - TERMINAL STYLE */
+        .fighter-cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .fighter-card {
+            background: rgba(20, 20, 20, 0.8);
+            border: 1px solid var(--terminal-border);
+            padding: 1.5rem;
+            position: relative;
+        }
+
+        .fighter-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--terminal-green);
+            opacity: 0.3;
+        }
+
+        .fighter-card.winner::before {
+            opacity: 1;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.3; }
+            50% { opacity: 1; }
+            100% { opacity: 0.3; }
+        }
+
+        .fighter-name {
+            font-family: 'Cinzel', serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--terminal-text);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .fighter-theory {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            color: var(--terminal-green);
+            letter-spacing: 1px;
+            margin-bottom: 1rem;
+            border: 1px solid var(--terminal-border);
+            padding: 0.3rem 0.6rem;
+            display: inline-block;
+        }
+
+        .score-display {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--terminal-green);
+            margin: 1rem 0;
+            text-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+        }
+
+        .score-label {
+            font-size: 11px;
+            color: var(--terminal-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1.5rem;
+        }
+
+        /* ASSESSMENT GRID */
+        .assessment-grid {
+            margin-top: 1.5rem;
+        }
+
+        .assessment-title {
+            font-size: 11px;
+            color: var(--terminal-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--terminal-border);
+            padding-bottom: 0.5rem;
+        }
+
+        .criteria-item {
+            padding: 0.8rem;
+            border-left: 3px solid;
+            margin-bottom: 0.5rem;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .criteria-item.light {
+            border-left-color: var(--terminal-green);
+        }
+
+        .criteria-item.shadow {
+            border-left-color: var(--terminal-yellow);
+        }
+
+        .criteria-item.void {
+            border-left-color: var(--terminal-red);
+        }
+
+        .criteria-name {
+            font-weight: 700;
+            color: var(--terminal-text);
+            margin-bottom: 0.3rem;
+            font-size: 11px;
+        }
+
+        .criteria-evidence {
+            font-style: italic;
+            color: var(--terminal-dim);
+            margin-bottom: 0.3rem;
+            font-size: 10px;
+        }
+
+        .criteria-critique {
+            color: var(--terminal-text);
+            font-size: 11px;
+            margin-bottom: 0.5rem;
+        }
+
+        .criteria-verdict {
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 9px;
+        }
+
+        /* VERDICT SECTION */
+        .verdict-section {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--terminal-border);
+        }
+
+        .verdict-title {
+            font-family: 'Cinzel', serif;
+            font-size: 14px;
+            color: var(--terminal-green);
+            margin-bottom: 1rem;
+            letter-spacing: 1px;
+        }
+
+        .verdict-text {
+            font-size: 12px;
+            line-height: 1.6;
+            color: var(--terminal-text);
+        }
+
+        /* COMPARISON TABLE */
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 2rem;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 0.8rem;
+            text-align: left;
+            border: 1px solid var(--terminal-border);
+            font-size: 11px;
+        }
+
+        .comparison-table th {
+            background: rgba(0, 0, 0, 0.5);
+            color: var(--terminal-green);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .comparison-table td {
+            color: var(--terminal-text);
+        }
+
+        /* NAVIGATION CONTROLS */
+        .nav-controls {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 1rem;
+            z-index: 1000;
+        }
+
+        .nav-btn {
+            width: 40px;
+            height: 40px;
+            background: var(--terminal-bg);
+            border: 1px solid var(--terminal-green);
+            color: var(--terminal-green);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nav-btn:hover {
+            background: var(--terminal-green);
+            color: var(--terminal-bg);
+        }
+
+        .nav-btn.random {
+            background: var(--terminal-bg);
+            border-color: var(--terminal-yellow);
+            color: var(--terminal-yellow);
+        }
+
+        .nav-btn.random:hover {
+            background: var(--terminal-yellow);
+            color: var(--terminal-bg);
+        }
+
+        /* SCROLLBARS */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--terminal-bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--terminal-border);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--terminal-green);
+        }
+
+        .parchment-content::-webkit-scrollbar-track {
+            background: var(--parchment-dark);
+        }
+
+        .parchment-content::-webkit-scrollbar-thumb {
+            background: var(--parchment-accent);
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 1200px) {
+            .archive-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: var(--header-height) 1fr 1fr auto;
+            }
+            
+            .terminal-sidebar {
+                grid-column: 1;
+                grid-row: 4;
+                border-right: none;
+                border-top: 1px solid var(--terminal-border);
+                max-height: 200px;
+            }
+            
+            .main-header {
+                grid-column: 1;
+                grid-row: 1;
+            }
+            
+            .parchment-section {
+                grid-column: 1;
+                grid-row: 2;
+                border-right: none;
+                border-bottom: 1px solid var(--parchment-dark);
+            }
+            
+            .terminal-arena {
+                grid-column: 1;
+                grid-row: 3;
+            }
+            
+            .nav-controls {
+                bottom: 220px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-header {
+                padding: 0 1rem;
+            }
+            
+            .parchment-section,
+            .terminal-arena {
+                padding: 1rem;
+            }
+            
+            .fighter-cards {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-controls {
+                bottom: 240px;
+            }
+        }
+
+        /* TYPEWRITER EFFECT */
+        .typewriter {
+            overflow: hidden;
+            white-space: nowrap;
+            margin: 0 auto;
+            letter-spacing: .15em;
+        }
+
+        /* TERMINAL BLINKING CURSOR */
+        .cursor {
+            display: inline-block;
+            width: 8px;
+            height: 16px;
+            background-color: var(--terminal-green);
+            animation: blink 1s infinite;
+            margin-left: 2px;
+            vertical-align: middle;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="terminal-crackle"></div>
+    <div class="scan-line"></div>
+    
+    <div class="archive-container">
+        <!-- TERMINAL SIDEBAR -->
+        <div class="terminal-sidebar">
+            <div class="terminal-header">
+                <div class="archive-title">ARENA ARCHIVE</div>
+                <div class="archive-subtitle">CONCEPTUAL WRESTLING DATABASE</div>
+            </div>
+            
+            <div class="terminal-output">
+                <div class="terminal-line">
+                    <span class="terminal-prompt">archive@arena:~$</span> <span class="terminal-cmd">load</span> <span class="terminal-arg">database</span>
+                </div>
+                <div class="terminal-line">Initializing Archive System...</div>
+                <div class="terminal-line">Loading Match Records...</div>
+                <div class="terminal-line">Establishing Terminal Connection...</div>
+                <div class="terminal-line" id="currentCommand">
+                    <span class="terminal-prompt">archive@arena:~$</span> <span class="terminal-cmd">view</span> <span class="terminal-arg">match</span> M-15
+                </div>
+                <div class="terminal-line">Match M-15 loaded successfully.</div>
+                <div class="terminal-line">Guardian Assessment System: <span style="color: var(--terminal-green);">ONLINE</span></div>
+                <div class="terminal-line">Terminal ready for navigation.</div>
+                <div class="terminal-line">&nbsp;</div>
+                <div class="terminal-line">
+                    <span class="terminal-prompt">archive@arena:~$</span> <span class="cursor"></span>
+                </div>
+            </div>
+            
+            <div class="match-nav" id="matchNav">
+                <!-- Matches will be populated by JavaScript -->
+            </div>
+        </div>
+        
+        <!-- MAIN HEADER -->
+        <div class="main-header">
+            <div class="header-info">
+                <div class="info-block">
+                    <div class="info-label">CHAPTER</div>
+                    <div class="info-value" id="chapterLabel">15</div>
+                </div>
+                <div class="info-block">
+                    <div class="info-label">DRAMA</div>
+                    <div class="info-value" id="dramaLabel">THE INTERPRETATION OF CULTURES</div>
+                </div>
+            </div>
+            
+            <div class="vs-divider" id="vsDivider">ARCHIVE TERMINAL</div>
+            
+            <div class="header-info">
+                <div class="info-block" style="text-align: right;">
+                    <div class="info-label">STATUS</div>
+                    <div class="info-value" id="statusLabel">ACTIVE</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- PARCHMENT SECTION - ESSAY -->
+        <div class="parchment-section">
+            <div class="parchment-content">
+                <div class="chapter-header">
+                    <div class="chapter-number" id="chapterNumber">CHAPTER 15</div>
+                    <div class="chapter-title" id="chapterTitle">When The Anatomist Meets The Architect</div>
+                    <div class="chapter-subtitle" id="chapterSubtitle">The Design of the Self • Clifford Geertz via Tim Ingold</div>
+                </div>
+                
+                <div class="essay-content" id="essayContent">
+                    <!-- Essay content will be populated -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- TERMINAL ARENA - ASSESSMENTS -->
+        <div class="terminal-arena">
+            <div class="arena-header">
+                <div class="arena-title">GUARDIAN ASSESSMENT TERMINAL</div>
+                <div class="arena-subtitle">Dark Matter Guardian Analysis // Match: <span id="arenaMatchId">M-15</span></div>
+            </div>
+            
+            <!-- FIGHTER CARDS -->
+            <div class="fighter-cards">
+                <!-- LEFT FIGHTER -->
+                <div class="fighter-card" id="fighterLeftCard">
+                    <div class="fighter-name" id="fighterLeftName">THE ANATOMIST</div>
+                    <div class="fighter-theory" id="fighterLeftTheory">[STRATIGRAPHIC VIEW]</div>
+                    <div class="score-display" id="fighterLeftScore">30</div>
+                    <div class="score-label">/100</div>
+                    
+                    <div class="assessment-grid">
+                        <div class="assessment-title">CRITERIA AUDIT</div>
+                        <div id="fighterLeftCriteria">
+                            <!-- Criteria will be populated -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- RIGHT FIGHTER -->
+                <div class="fighter-card winner" id="fighterRightCard">
+                    <div class="fighter-name" id="fighterRightName">THE ARCHITECT</div>
+                    <div class="fighter-theory" id="fighterRightTheory">[SYNTHETIC CONTROL MECHANISM]</div>
+                    <div class="score-display" id="fighterRightScore">94</div>
+                    <div class="score-label">/100</div>
+                    
+                    <div class="assessment-grid">
+                        <div class="assessment-title">CRITERIA AUDIT</div>
+                        <div id="fighterRightCriteria">
+                            <!-- Criteria will be populated -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- VERDICT SECTION -->
+            <div class="verdict-section">
+                <div class="verdict-title">DARK MATTER GUARDIAN VERDICT</div>
+                <div class="verdict-text" id="verdictText">
+                    <!-- Verdict text will be populated -->
+                </div>
+            </div>
+            
+            <!-- COMPARISON TABLE -->
+            <div style="margin-top: 2rem;">
+                <div class="assessment-title">COMPARATIVE ANALYSIS</div>
+                <table class="comparison-table" id="comparisonTable">
+                    <!-- Comparison table will be populated -->
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- NAVIGATION CONTROLS -->
+    <div class="nav-controls">
+        <button class="nav-btn" id="prevMatch">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <button class="nav-btn random" id="randomMatch">
+            <i class="fas fa-dice"></i>
+        </button>
+        <button class="nav-btn" id="nextMatch">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+    </div>
+    
+    <script>
+        // Sample match data
+        const matches = [
+            {
+                id: "M-15",
+                chapter: "15",
+                title: "When The Anatomist Meets The Architect",
+                subtitle: "The Design of the Self • Clifford Geertz via Tim Ingold",
+                drama: "THE INTERPRETATION OF CULTURES",
+                essay: `In the dusty wings of the Grand Theater of Being, where the costumes of history hang in endless rows, two figures stand over a sleeping actor. The actor is dressed in the elaborate, gilded silks of a Javanese dancer.
+
+One figure is THE ANATOMIST. He holds a scalpel and a set of calipers. He is a child of the Enlightenment, a disciple of Newton and Bacon. He believes that truth is a solid, immutable core buried beneath layers of debris.
+
+'He is asleep', says The Anatomist, eyeing the Javanese dancer. 'And while he sleeps, he is trapped in that costume. To understand him—to understand Man—we must strip him. We must peel away the silk, the batik, the golden fingernails. These are mere accretions. They are the "garb and appearance" of local custom. Beneath them lies the Universal Man—the naked reasoner, unchanged by time or place, moved by the same passions that moved the Greeks.'
+
+The Anatomist reaches out to remove the dancer's headdress. 'My method is Stratigraphic. I shall remove the Cultural layer, then the Social layer, then the Psychological layer. Finally, I shall reveal the Biological bedrock. Only when he is naked will we see the Consensus Gentium—the common denominator of humanity.'
+
+The other figure is THE ARCHITECT. He carries no scalpel, but a set of blueprints and a flow-chart. He sees the actor not as a core to be uncovered, but as a structure that has been built.
+
+'Stop', commands The Architect. 'You think you are stripping away a costume. In reality, you are dismantling the man himself. If you peel away his culture—his Javanese reverence, his specific way of smiling, his intricate etiquette—you will not find a "Universal Man." You will find a monstrosity.'
+
+The Anatomist sneers. 'Nonsense. The biology is the hardware. The culture is just the drapery.'
+
+'You are mistaken', says The Architect. 'The hardware evolved to fit the drapery. Think of the Ice Age. For a million years, this creature's brain ballooned in size. It grew not in isolation, but in the presence of tools, language, and ritual. The brain is an unfinished organ. It relies on these external programs—these cultural recipes—to function. Without them, this man is not a "noble savage." He is a mental basket case. He is an exploded chaos of pointless acts.'
+
+The Architect points to the sleeping dancer's hands, trained to move in precise, symbolic gestures.
+
+'You look for Man with a capital "M" in the things that everyone does—eating, sleeping, mating. You look for the "lowest common denominator." But that is a hollow victory. It is like saying a Cathedral is just stone and glass. To understand Chartres, you must understand the specific theology that aligned the stones. To understand this man, you must understand the Javanese "software" that runs his nervous system.'
+
+'He is an unfinished animal', The Architect concludes. 'He completes himself not by becoming "General Man," but by becoming a particular man. If you strip him of his particularities, you do not reveal his essence. You dissolve his existence.'`,
+                p1: {
+                    name: "THE ANATOMIST",
+                    theory: "[STRATIGRAPHIC VIEW]",
+                    score: 30,
+                    criteria: [
+                        { name: "Substantiality of Universals", evidence: "Claims 'inward motions arise from the same desires'", critique: "Fake Universals. Fails to define universals with specific content.", verdict: "shadow" },
+                        { name: "The Layer-Cake Model", evidence: "'Peel off the cultural layer... find the biological bedrock'", critique: "Biological Fallacy. Ignores that brain and culture co-evolved.", verdict: "void" }
+                    ],
+                    summary: "Score: 30/100 (Fail) - The 'Onion' Fallacy. Searching for a ghost."
+                },
+                p2: {
+                    name: "THE ARCHITECT",
+                    theory: "[SYNTHETIC CONTROL MECHANISM]",
+                    score: 94,
+                    criteria: [
+                        { name: "The 'Information Gap'", evidence: "'Man is the animal most desperately dependent upon extragenetic control mechanisms'", critique: "High Empirical Fidelity. Aligns with modern neurology and paleoanthropology.", verdict: "light" },
+                        { name: "Rejection of Typology", evidence: "'Becoming human is becoming individual'", critique: "Methodological Rigor. Validates study of the 'odd' as a window into human potential.", verdict: "light" },
+                        { name: "Co-Evolution", evidence: "'Culture was ingredient... in the production of that animal itself'", critique: "Structural Integrity. Destroys the Stratigraphic view with feedback loop theory.", verdict: "light" }
+                    ],
+                    summary: "Score: 94/100 (Distinction) - Analyzes the living machine. Scientifically robust."
+                },
+                comparison: [
+                    ["Metaphor", "Peeling an Onion", "Building a Cathedral"],
+                    ["Human Nature", "Constant / Hidden Core", "Variable / Programmed"],
+                    ["Biology/Culture", "Separate Layers", "Interactive / Co-constitutive"],
+                    ["The Particular", "Accidental / Irrelevant", "Essential / Constitutive"]
+                ],
+                verdict: "The Anatomist searches for a ghost; The Architect analyzes the living machine. By recognizing that man is a 'symbolizing, conceptualizing, meaning-seeking' animal who is biologically dependent on culture to organize his own brain, the Architect provides a theory that is scientifically robust and philosophically satisfying. Man is an artifact of his own creation."
+            },
+            {
+                id: "M-12",
+                chapter: "12",
+                title: "When The Bishop Meets The Foreman",
+                subtitle: "Language as Reference vs Language as Use • Wittgensteinian Turn",
+                drama: "THE SOUL OF STATECRAFT",
+                essay: `On the outskirts of an ancient city—a sprawling labyrinth of twisting alleyways, modern boulevards, and haphazard extensions—two figures stand amidst a dusty construction site. The ground is littered with building stones: blocks, pillars, slabs, and beams.
+
+One figure is THE BISHOP, a man of solemn demeanor, robed in the heavy velvet of classical antiquity. He gestures with a pointed finger, as if baptizing the world with nouns. The other is THE FOREMAN, a restless pragmatic figure in work boots, his pockets bristling with slide rules, glue pots, and crumpled diagrams.
+
+'Observe', says THE BISHOP, pointing to a flat piece of stone. 'Here is the essence of language. I point, and I utter the sound: Slab. A golden thread of association is instantly spun between the sound and the object. The word names the thing.'
+
+The Foreman squints. 'And what happens when I say: Five slabs?' The Bishop hesitates. The Foreman presses: 'What did you picture? Five individual things? A numeral? A quantity?'`,
+                p1: {
+                    name: "THE BISHOP",
+                    theory: "[AUGUSTINIAN REFERENTIAL]",
+                    score: 35,
+                    criteria: [
+                        { name: "Ontological Scope", evidence: "Words name objects", critique: "Catastrophic Narrowing. Works for 'Table' but fails for 'Five'", verdict: "void" },
+                        { name: "Acquisition", evidence: "Ostensive teaching", critique: "Mentalist Speculation. Assumes language of thought", verdict: "shadow" }
+                    ],
+                    summary: "Score: 35/100 - Presents naive theory with limited empirical scope."
+                },
+                p2: {
+                    name: "THE FOREMAN",
+                    theory: "[LANGUAGE-GAMES]",
+                    score: 92,
+                    criteria: [
+                        { name: "Empirical Fidelity", evidence: "Five Red Apples example", critique: "High Fidelity. Acknowledges different word functions", verdict: "light" },
+                        { name: "Contextual Awareness", evidence: "Language as ancient city", critique: "Structural Integrity. Captures historical accumulation", verdict: "light" },
+                        { name: "Handling Intent", evidence: "Understanding not hidden mental process", critique: "Strong but potentially dismissive of phenomenology", verdict: "shadow" }
+                    ],
+                    summary: "Score: 92/100 - Presents robust modular theory accepting language as functional form of life."
+                },
+                comparison: [
+                    ["Meaning", "Correlation (Word ↔ Object)", "Function (Word ↔ Tool)"],
+                    ["Learning", "Ostensive Definition", "Training / Enculturation"],
+                    ["Agency", "Mental (Internal Image)", "Kinetic (Public Action)"]
+                ],
+                verdict: "Bishop presents naive theory. Foreman presents robust modular theory accepting language as functional form of life."
+            }
+        ];
+
+        let currentMatchIndex = 0;
+
+        // DOM Elements
+        const matchNav = document.getElementById('matchNav');
+        const currentCommand = document.getElementById('currentCommand');
+        const chapterLabel = document.getElementById('chapterLabel');
+        const dramaLabel = document.getElementById('dramaLabel');
+        const statusLabel = document.getElementById('statusLabel');
+        const vsDivider = document.getElementById('vsDivider');
+        const chapterNumber = document.getElementById('chapterNumber');
+        const chapterTitle = document.getElementById('chapterTitle');
+        const chapterSubtitle = document.getElementById('chapterSubtitle');
+        const essayContent = document.getElementById('essayContent');
+        const arenaMatchId = document.getElementById('arenaMatchId');
+        
+        // Fighter elements
+        const fighterLeftCard = document.getElementById('fighterLeftCard');
+        const fighterLeftName = document.getElementById('fighterLeftName');
+        const fighterLeftTheory = document.getElementById('fighterLeftTheory');
+        const fighterLeftScore = document.getElementById('fighterLeftScore');
+        const fighterLeftCriteria = document.getElementById('fighterLeftCriteria');
+        
+        const fighterRightCard = document.getElementById('fighterRightCard');
+        const fighterRightName = document.getElementById('fighterRightName');
+        const fighterRightTheory = document.getElementById('fighterRightTheory');
+        const fighterRightScore = document.getElementById('fighterRightScore');
+        const fighterRightCriteria = document.getElementById('fighterRightCriteria');
+        
+        const verdictText = document.getElementById('verdictText');
+        const comparisonTable = document.getElementById('comparisonTable');
+        
+        // Navigation buttons
+        const prevMatchBtn = document.getElementById('prevMatch');
+        const nextMatchBtn = document.getElementById('nextMatch');
+        const randomMatchBtn = document.getElementById('randomMatch');
+
+        // Initialize match navigation
+        function initializeMatchNav() {
+            matchNav.innerHTML = '';
+            matches.forEach((match, index) => {
+                const matchItem = document.createElement('div');
+                matchItem.className = 'match-item';
+                if (index === currentMatchIndex) matchItem.classList.add('active');
+                
+                matchItem.innerHTML = `
+                    <div class="match-id">${match.id}</div>
+                    <div class="match-preview">${match.title}</div>
+                `;
+                
+                matchItem.addEventListener('click', () => {
+                    loadMatch(index);
+                });
+                
+                matchNav.appendChild(matchItem);
+            });
+        }
+
+        // Load a specific match
+        function loadMatch(index) {
+            currentMatchIndex = index;
+            const match = matches[index];
+            
+            // Update active match in navigation
+            document.querySelectorAll('.match-item').forEach((item, i) => {
+                item.classList.toggle('active', i === index);
+            });
+            
+            // Update terminal command
+            currentCommand.innerHTML = `<span class="terminal-prompt">archive@arena:~$</span> <span class="terminal-cmd">view</span> <span class="terminal-arg">match</span> ${match.id}`;
+            
+            // Update header
+            chapterLabel.textContent = match.chapter;
+            dramaLabel.textContent = match.drama;
+            statusLabel.textContent = "ACTIVE";
+            vsDivider.textContent = match.drama;
+            
+            // Update parchment section
+            chapterNumber.textContent = `CHAPTER ${match.chapter}`;
+            chapterTitle.textContent = match.title;
+            chapterSubtitle.textContent = match.subtitle;
+            
+            // Format essay with proper paragraphs and drop caps
+            const paragraphs = match.essay.split('\n\n');
+            const essayHTML = paragraphs.map((para, i) => {
+                if (i === 0) {
+                    return `<p><span class="drop-cap">${para.charAt(0)}</span>${para.slice(1)}</p>`;
+                }
+                return `<p>${para}</p>`;
+            }).join('');
+            
+            essayContent.innerHTML = essayHTML;
+            
+            // Update arena section
+            arenaMatchId.textContent = match.id;
+            
+            // Update fighter left
+            fighterLeftName.textContent = match.p1.name;
+            fighterLeftTheory.textContent = match.p1.theory;
+            animateScore(fighterLeftScore, match.p1.score);
+            fighterLeftCard.classList.toggle('winner', match.p1.score > match.p2.score);
+            
+            // Update left criteria
+            fighterLeftCriteria.innerHTML = match.p1.criteria.map(crit => `
+                <div class="criteria-item ${crit.verdict}">
+                    <div class="criteria-name">${crit.name}</div>
+                    <div class="criteria-evidence">${crit.evidence}</div>
+                    <div class="criteria-critique">${crit.critique}</div>
+                    <div class="criteria-verdict" style="color: ${getVerdictColor(crit.verdict)}">${crit.verdict.toUpperCase()}</div>
+                </div>
+            `).join('');
+            
+            // Update fighter right
+            fighterRightName.textContent = match.p2.name;
+            fighterRightTheory.textContent = match.p2.theory;
+            animateScore(fighterRightScore, match.p2.score);
+            fighterRightCard.classList.toggle('winner', match.p2.score > match.p1.score);
+            
+            // Update right criteria
+            fighterRightCriteria.innerHTML = match.p2.criteria.map(crit => `
+                <div class="criteria-item ${crit.verdict}">
+                    <div class="criteria-name">${crit.name}</div>
+                    <div class="criteria-evidence">${crit.evidence}</div>
+                    <div class="criteria-critique">${crit.critique}</div>
+                    <div class="criteria-verdict" style="color: ${getVerdictColor(crit.verdict)}">${crit.verdict.toUpperCase()}</div>
+                </div>
+            `).join('');
+            
+            // Update verdict
+            verdictText.textContent = match.verdict;
+            
+            // Update comparison table
+            comparisonTable.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>Feature</th>
+                        <th>${match.p1.name}</th>
+                        <th>${match.p2.name}</th>
+                        <th>Guardian Preference</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${match.comparison.map(row => `
+                        <tr>
+                            <td>${row[0]}</td>
+                            <td>${row[1]}</td>
+                            <td>${row[2]}</td>
+                            <td>${row[2].includes("Cathedral") || row[2].includes("Programmed") || row[2].includes("Co-constitutive") || row[2].includes("Essential") ? match.p2.name : match.p1.name}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            `;
+            
+            // Add terminal typing effect to new command
+            typeTerminalCommand();
+        }
+
+        // Animate score counting
+        function animateScore(element, target) {
+            const current = parseInt(element.textContent) || 0;
+            const diff = target - current;
+            const steps = 20;
+            const step = diff / steps;
+            
+            let currentStep = 0;
+            const timer = setInterval(() => {
+                currentStep++;
+                const value = Math.round(current + (step * currentStep));
+                element.textContent = value;
+                
+                if (currentStep >= steps) {
+                    clearInterval(timer);
+                    element.textContent = target;
+                }
+            }, 30);
+        }
+
+        // Get color for verdict
+        function getVerdictColor(verdict) {
+            switch(verdict) {
+                case 'light': return '#00ff00';
+                case 'shadow': return '#ffff00';
+                case 'void': return '#ff0055';
+                default: return '#cccccc';
+            }
+        }
+
+        // Type terminal command effect
+        function typeTerminalCommand() {
+            const command = `view match ${matches[currentMatchIndex].id}`;
+            const prompt = document.querySelector('.terminal-prompt');
+            const cmdSpan = document.querySelector('.terminal-cmd');
+            const argSpan = document.querySelector('.terminal-arg');
+            
+            // Reset
+            cmdSpan.textContent = '';
+            argSpan.textContent = '';
+            
+            // Type command
+            let i = 0;
+            const typing = setInterval(() => {
+                if (i < command.length) {
+                    if (i < 5) {
+                        cmdSpan.textContent += command.charAt(i);
+                    } else {
+                        argSpan.textContent += command.charAt(i);
+                    }
+                    i++;
+                } else {
+                    clearInterval(typing);
+                }
+            }, 50);
+        }
+
+        // Event Listeners
+        prevMatchBtn.addEventListener('click', () => {
+            const newIndex = (currentMatchIndex - 1 + matches.length) % matches.length;
+            loadMatch(newIndex);
+        });
+
+        nextMatchBtn.addEventListener('click', () => {
+            const newIndex = (currentMatchIndex + 1) % matches.length;
+            loadMatch(newIndex);
+        });
+
+        randomMatchBtn.addEventListener('click', () => {
+            const randomIndex = Math.floor(Math.random() * matches.length);
+            loadMatch(randomIndex);
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            switch(e.key) {
+                case 'ArrowLeft':
+                    prevMatchBtn.click();
+                    break;
+                case 'ArrowRight':
+                    nextMatchBtn.click();
+                    break;
+                case 'r':
+                case 'R':
+                    randomMatchBtn.click();
+                    break;
+                case ' ':
+                    // Scroll parchment content
+                    document.querySelector('.parchment-content').scrollBy(0, 100);
+                    break;
+            }
+        });
+
+        // Initialize
+        initializeMatchNav();
+        loadMatch(0);
+        
+        // Add some terminal lines dynamically
+        setTimeout(() => {
+            const terminalOutput = document.querySelector('.terminal-output');
+            const newLine = document.createElement('div');
+            newLine.className = 'terminal-line';
+            newLine.innerHTML = `System time: ${new Date().toLocaleTimeString()}`;
+            terminalOutput.appendChild(newLine);
+        }, 1000);
+    </script>
+</body>
+</html>

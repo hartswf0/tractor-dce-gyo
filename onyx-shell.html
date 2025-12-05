@@ -1,0 +1,1838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Archive Reader • Conceptual Wrestling</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant:wght@300;400;500;600;700&family=EB+Garamond:wght@400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+
+    <style>
+        :root {
+            /* Color Scheme */
+            --parchment: #f9f5e8;
+            --parchment-dark: #e8e2d1;
+            --parchment-border: #d4c9b1;
+            --ink-dark: #2c1810;
+            --ink-light: #4a3c30;
+            --accent-gold: #b8860b;
+            --accent-green: #2e8b57;
+            --accent-orange: #d2691e;
+            --accent-red: #8b0000;
+            
+            /* Terminal */
+            --terminal-bg: #1a1a1a;
+            --terminal-text: #d4d4d4;
+            --terminal-border: #444;
+            --terminal-accent: #4ec9b0;
+            
+            /* Layout */
+            --sidebar-width: 280px;
+            --line-number-width: 50px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: 'Cormorant', serif;
+            background: var(--parchment);
+            color: var(--ink-light);
+            font-size: 16px;
+            line-height: 1.8;
+        }
+
+        /* UTILITY CLASSES */
+        .hidden { display: none !important; }
+        .collapsed { height: 0 !important; opacity: 0 !important; pointer-events: none !important; }
+        .expanded { height: auto !important; opacity: 1 !important; }
+        .mobile-only { display: none; }
+
+        @media (max-width: 768px) {
+            .mobile-only { display: block; }
+            .desktop-only { display: none; }
+        }
+
+        /* MAIN LAYOUT */
+        .reader-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            grid-template-rows: auto 1fr auto;
+            height: 100vh;
+            width: 100vw;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* TOP TOOLBAR - Minimal */
+        .toolbar {
+            background: var(--parchment-dark);
+            border-bottom: 1px solid var(--parchment-border);
+            padding: 0.8rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 100;
+            min-height: 56px;
+        }
+
+        .toolbar-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .breadcrumb {
+            display: none;
+        }
+
+        .match-select {
+            font-family: 'EB Garamond', serif;
+            font-size: 17px;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            border: 1px solid var(--parchment-border);
+            background: white;
+            color: var(--ink-dark);
+            font-weight: 600;
+            min-width: 260px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 0.8rem;
+        }
+
+        /* Hide legacy sidebar toggle now that sidebar is removed */
+        .control-btn#toggleSidebar {
+            display: none;
+        }
+
+        .control-btn#exportBtn,
+        .control-btn#printBtn {
+            display: none;
+        }
+
+        .control-btn {
+            background: transparent;
+            border: 1px solid var(--parchment-border);
+            color: var(--ink-light);
+            width: 36px;
+            height: 36px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .control-btn:hover {
+            background: rgba(0, 0, 0, 0.05);
+            border-color: var(--accent-gold);
+            color: var(--accent-gold);
+        }
+
+        .control-btn.active {
+            background: var(--accent-gold);
+            border-color: var(--accent-gold);
+            color: var(--parchment);
+        }
+
+        /* MAIN CONTENT AREA */
+        .content-area {
+            display: grid;
+            grid-template-columns: 1fr;
+            grid-template-rows: 1fr;
+            overflow: hidden;
+            position: relative;
+        }
+        /* Sidebar removed; always single-column content area */
+
+        /* SIDEBAR - Match Navigation */
+        .match-sidebar {
+            display: none;
+        }
+
+        @media (max-width: 1023px) {
+            .match-sidebar {
+                position: absolute;
+                top: 0;
+                left: 0;
+                bottom: 0;
+                width: var(--sidebar-width);
+                z-index: 1000;
+                transform: translateX(-100%);
+                box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+            }
+            
+            .match-sidebar.open {
+                transform: translateX(0);
+            }
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--parchment-border);
+        }
+
+        .archive-title {
+            font-family: 'EB Garamond', serif;
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--ink-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .archive-subtitle {
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            color: var(--ink-light);
+            opacity: 0.7;
+        }
+
+        .match-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem 0;
+        }
+
+        .match-item {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .match-item:hover {
+            background: rgba(0, 0, 0, 0.03);
+        }
+
+        .match-item.active {
+            background: rgba(184, 134, 11, 0.1);
+            border-left: 3px solid var(--accent-gold);
+        }
+
+        .match-id {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--accent-gold);
+            margin-bottom: 0.3rem;
+            font-weight: 500;
+        }
+
+        .match-title {
+            font-family: 'EB Garamond', serif;
+            font-size: 14px;
+            color: var(--ink-dark);
+            line-height: 1.4;
+        }
+
+        /* READING AREA - With Line Numbers */
+        .reading-area {
+            position: relative;
+            overflow: hidden;
+            display: flex;
+        }
+
+        .line-numbers {
+            display: none;
+        }
+
+        .line-number {
+            padding: 0 1rem;
+            line-height: 2;
+            height: 2em;
+        }
+
+        .essay-content {
+            flex: 1;
+            padding: 2rem 2rem 2rem calc(var(--line-number-width) + 2rem);
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .chapter-meta {
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 2px solid var(--parchment-border);
+        }
+
+        .chapter-number {
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            color: var(--accent-gold);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+        }
+
+        .chapter-title {
+            font-family: 'EB Garamond', serif;
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: var(--ink-dark);
+            line-height: 1.2;
+            margin-bottom: 0.5rem;
+        }
+
+        .chapter-subtitle {
+            font-family: 'Cormorant', serif;
+            font-size: 1.2rem;
+            color: var(--ink-light);
+            font-style: italic;
+        }
+
+        .essay-text {
+            max-width: 900px;
+            margin: 0 auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+        }
+
+        .essay-lines {
+            width: 100%;
+        }
+
+        .essay-line {
+            display: flex;
+            align-items: flex-start;
+            padding: 0.1rem 0;
+        }
+
+        .inline-line-num {
+            width: 3ch;
+            margin-right: 1ch;
+            text-align: right;
+            color: var(--ink-light);
+            opacity: 0.6;
+        }
+
+        .essay-line-text {
+            display: inline-block;
+            white-space: pre-wrap;
+            flex: 1;
+        }
+
+        /* TERMINAL PANEL - Collapsible / Draggable Overlay */
+        .terminal-panel {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+            background: var(--terminal-bg);
+            border-left: 1px solid var(--terminal-border);
+            border-top: 1px solid var(--terminal-border);
+            display: flex;
+            flex-direction: column;
+            transform: translateY(calc(100% - 48px));
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 100;
+            max-height: 80vh;
+            height: 60vh;
+        }
+
+        .terminal-panel.expanded {
+            transform: translateY(0);
+        }
+
+        @media (max-width: 768px) {
+            .terminal-panel {
+                width: 100%;
+                border-left: none;
+            }
+        }
+
+        .terminal-header {
+            background: #2a2a2a;
+            padding: 0.8rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--terminal-border);
+            cursor: pointer;
+            min-height: 48px;
+        }
+
+        .terminal-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            color: var(--terminal-accent);
+            font-weight: 500;
+        }
+
+        .terminal-toggle {
+            background: transparent;
+            border: none;
+            color: var(--terminal-text);
+            cursor: pointer;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .terminal-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+        }
+
+        .terminal-inner {
+            max-width: 900px;
+            margin: 0 auto;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* TERMINAL CONTENT */
+        .assessment-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        @media (max-width: 1024px) {
+            .assessment-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .fighter-card {
+            background: transparent;
+            border: 1px solid var(--terminal-border);
+            padding: 1rem 1.25rem;
+            position: relative;
+        }
+
+        .fighter-card.winner {
+            border-left: 3px solid var(--accent-orange);
+        }
+
+        .fighter-card.loser {
+            border-left: 3px solid var(--accent-green);
+        }
+
+        .fighter-header {
+            margin-bottom: 0.75rem;
+        }
+
+        .fighter-name {
+            font-family: 'EB Garamond', serif;
+            font-size: 1.8rem;
+            color: var(--terminal-text);
+            margin-bottom: 0.5rem;
+            line-height: 1.2;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .fighter-theory {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--terminal-accent);
+            letter-spacing: 0.5px;
+            opacity: 0.8;
+        }
+
+        .guardian-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin: 0 0 0.75rem 0;
+        }
+
+        .guardian-filter-btn {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            padding: 0.15rem 0.55rem;
+            border-radius: 2px;
+            border: 1px solid var(--terminal-border);
+            background: transparent;
+            color: var(--terminal-text);
+            cursor: pointer;
+        }
+
+        .guardian-filter-btn.active {
+            background: #333333;
+            border-color: var(--terminal-accent);
+        }
+
+        .guardian-section.hidden-section {
+            display: none;
+        }
+
+        .fighter-card.winner .fighter-name {
+            color: var(--accent-orange);
+        }
+
+        .fighter-card.loser .fighter-name {
+            color: var(--accent-green);
+        }
+
+        .fighter-copy-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: transparent;
+            border: 1px solid var(--terminal-border);
+            color: var(--terminal-text);
+            border-radius: 3px;
+            font-size: 10px;
+            padding: 0.2rem 0.4rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .fighter-copy-btn:hover {
+            border-color: var(--terminal-accent);
+            color: var(--terminal-accent);
+        }
+
+        .score-display {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 3rem;
+            font-weight: 600;
+            margin: 1rem 0;
+            line-height: 1;
+        }
+
+        .fighter-card.winner .score-display {
+            color: var(--accent-orange);
+        }
+
+        .fighter-card.loser .score-display {
+            color: var(--accent-green);
+        }
+
+        .criteria-list {
+            margin-top: 0.75rem;
+        }
+
+        .criteria-item {
+            padding: 0.4rem 0.4rem 0.4rem 0.6rem;
+            border-left: 2px solid;
+            margin-bottom: 0.4rem;
+            background: transparent;
+        }
+
+        .criteria-item.light {
+            border-left-color: var(--accent-green);
+        }
+
+        .criteria-item.shadow {
+            border-left-color: #d2691e;
+        }
+
+        .criteria-item.void {
+            border-left-color: var(--accent-red);
+        }
+
+        .criteria-name {
+            font-weight: 600;
+            color: var(--terminal-text);
+            margin-bottom: 0.3rem;
+            font-size: 13px;
+        }
+
+        .criteria-evidence {
+            font-style: italic;
+            color: #999;
+            margin-bottom: 0.3rem;
+            font-size: 12px;
+        }
+
+        .criteria-critique {
+            color: var(--terminal-text);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .features-list {
+            margin-top: 0.5rem;
+            font-size: 12px;
+        }
+
+        .feature-item {
+            margin-bottom: 0.2rem;
+        }
+
+        .feature-name {
+            font-weight: 600;
+            margin-right: 0.25rem;
+        }
+
+        .verdict-section {
+            background: transparent;
+            padding: 0.75rem 0 0.75rem 0;
+            border-top: 1px solid var(--terminal-border);
+            margin-top: 0.5rem;
+        }
+
+        .verdict-title {
+            font-family: 'EB Garamond', serif;
+            font-size: 18px;
+            color: var(--terminal-accent);
+            margin-bottom: 1rem;
+        }
+
+        .verdict-text {
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--terminal-text);
+        }
+
+        /* TERMINAL SUMMARY / TITLES */
+        .terminal-summary {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--terminal-text);
+            margin-bottom: 1rem;
+            padding-bottom: 0.8rem;
+            border-bottom: 1px solid var(--terminal-border);
+        }
+
+        .terminal-summary-main {
+            font-weight: 600;
+            color: var(--terminal-accent);
+            margin-bottom: 0.2rem;
+        }
+
+        .terminal-summary-sub {
+            font-size: 11px;
+            color: #aaaaaa;
+        }
+
+        .assessment-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--terminal-text);
+            opacity: 0.8;
+        }
+
+        /* BOTTOM CONTROLS - Mobile */
+        .bottom-controls {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--parchment-dark);
+            border-top: 1px solid var(--parchment-border);
+            display: none;
+            padding: 0.8rem;
+            z-index: 200;
+        }
+
+        .mobile-nav {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+        }
+
+        .mobile-btn {
+            background: var(--parchment);
+            border: 1px solid var(--parchment-border);
+            color: var(--ink-dark);
+            padding: 0.8rem;
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 11px;
+            text-align: center;
+        }
+
+        .mobile-btn:hover {
+            background: rgba(184, 134, 11, 0.1);
+            border-color: var(--accent-gold);
+        }
+
+        .mobile-btn i {
+            margin-bottom: 0.3rem;
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .bottom-controls {
+                display: block;
+            }
+            
+            .toolbar {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.4rem;
+            }
+
+            .toolbar-left {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .match-select {
+                flex: 0 0 auto;
+                max-width: 60%;
+            }
+
+            .reading-area {
+                padding-bottom: 80px;
+            }
+            
+            .essay-content {
+                padding-left: 1.25rem;
+                padding-right: 1.25rem;
+            }
+            
+            .chapter-title {
+                font-size: 2rem;
+            }
+        }
+
+        .toolbar-menu {
+            position: absolute;
+            top: 56px;
+            right: 1.5rem;
+            background: var(--parchment-dark);
+            border: 1px solid var(--parchment-border);
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            padding: 0.25rem 0;
+            min-width: 160px;
+            display: none;
+            z-index: 150;
+        }
+
+        .toolbar-menu.open {
+            display: block;
+        }
+
+        .toolbar-menu-item {
+            width: 100%;
+            padding: 0.4rem 0.9rem;
+            background: transparent;
+            border: none;
+            text-align: left;
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            color: var(--ink-dark);
+            cursor: pointer;
+        }
+
+        .toolbar-menu-item:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        /* EXPORT STYLES */
+        .export-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+
+        .export-overlay.active {
+            display: flex;
+        }
+
+        .export-dialog {
+            background: var(--parchment);
+            border: 1px solid var(--parchment-border);
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 2rem;
+            border-radius: 4px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .export-options {
+            margin: 1.5rem 0;
+        }
+
+        .export-option {
+            padding: 1rem;
+            border: 1px solid var(--parchment-border);
+            margin-bottom: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .export-option:hover {
+            border-color: var(--accent-gold);
+            background: rgba(184, 134, 11, 0.05);
+        }
+
+        /* ANIMATIONS */
+        .fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* SCROLLBAR STYLING */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--parchment-dark);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--parchment-border);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-gold);
+        }
+
+        .terminal-content::-webkit-scrollbar-track {
+            background: #2a2a2a;
+        }
+
+        .terminal-content::-webkit-scrollbar-thumb {
+            background: var(--terminal-border);
+        }
+
+        /* READABILITY ENHANCEMENTS */
+        .highlight {
+            background: rgba(184, 134, 11, 0.1);
+            border-left: 3px solid var(--accent-gold);
+            padding: 0.5rem 1rem;
+            margin: 1.5rem 0;
+            font-style: italic;
+        }
+
+        .quote {
+            font-family: 'EB Garamond', serif;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: var(--ink-dark);
+            padding: 1.5rem;
+            border-left: 4px solid var(--accent-gold);
+            margin: 2rem 0;
+            background: rgba(184, 134, 11, 0.05);
+        }
+
+        .emphasis {
+            font-weight: 600;
+            color: var(--ink-dark);
+        }
+
+        /* SELECTION / COPY SUPPORT */
+        .selected-block {
+            background: rgba(184, 134, 11, 0.18);
+            box-shadow: inset 0 0 0 1px var(--accent-gold);
+        }
+
+        /* PRINT STYLES */
+        @media print {
+            .toolbar,
+            .bottom-controls,
+            .match-sidebar {
+                display: none !important;
+            }
+            
+            .reading-area {
+                padding: 0;
+                margin: 0;
+            }
+            
+            .essay-content {
+                padding: 0;
+                margin: 0;
+            }
+            
+            .line-numbers {
+                display: none;
+            }
+            
+            body {
+                background: white;
+                color: black;
+                font-size: 12pt;
+            }
+
+            .terminal-panel {
+                position: static !important;
+                width: 100% !important;
+                max-height: none !important;
+                transform: none !important;
+                border: none !important;
+                margin-top: 2rem;
+                background: transparent !important;
+            }
+
+            .terminal-content {
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+            <div class="reader-container">
+        <!-- TOP TOOLBAR -->
+        <div class="toolbar">
+            <div class="toolbar-left">
+                <div class="breadcrumb" id="breadcrumb">
+                    <span id="currentMatchId">M-15</span> • <span id="currentMatchTitle">The Anatomist vs The Architect</span>
+                </div>
+                <select id="matchSelect" class="match-select"></select>
+            </div>
+            
+            <div class="controls">
+                <button class="control-btn" id="toggleSidebar" title="Toggle navigation">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <button class="control-btn" id="toggleTerminal" title="Toggle assessment panel">
+                    <i class="fas fa-terminal"></i>
+                </button>
+                <button class="control-btn" id="copySelection" title="Copy selected paragraphs">
+                    <i class="fas fa-copy"></i>
+                </button>
+                <button class="control-btn" id="exportBtn" title="Export document">
+                    <i class="fas fa-download"></i>
+                </button>
+                <button class="control-btn" id="printBtn" title="Print">
+                    <i class="fas fa-print"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- MAIN CONTENT AREA -->
+        <div class="content-area">
+            <!-- SIDEBAR - Match Navigation -->
+            <div class="match-sidebar" id="matchSidebar">
+                <div class="sidebar-header">
+                    <div class="archive-title">Archive Reader</div>
+                    <div class="archive-subtitle">Conceptual Wrestling Matches</div>
+                </div>
+                
+                <div class="match-list" id="matchList">
+                    <!-- Matches will be populated by JavaScript -->
+                </div>
+            </div>
+            
+            <!-- READING AREA -->
+            <div class="reading-area">
+                <!-- Line Numbers -->
+                <div class="line-numbers" id="lineNumbers">
+                    <!-- Line numbers will be populated by JavaScript -->
+                </div>
+                
+                <!-- Essay Content -->
+                <div class="essay-content" id="essayContent">
+                    <div class="chapter-meta">
+                        <div class="chapter-number" id="chapterNumber">Chapter 15</div>
+                        <div class="chapter-title" id="chapterTitle">When The Anatomist Meets The Architect</div>
+                        <div class="chapter-subtitle" id="chapterSubtitle">The Design of the Self • Clifford Geertz via Tim Ingold</div>
+                    </div>
+                    
+                    <div class="essay-text" id="essayText">
+                        <!-- Essay content will be populated -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- TERMINAL PANEL - Collapsible -->
+        <div class="terminal-panel" id="terminalPanel">
+            <div class="terminal-header" id="terminalHeader">
+                <div class="terminal-title">Dark Matter Guardian Assessment</div>
+                <button class="terminal-toggle" id="terminalToggleButton">
+                    <i class="fas fa-chevron-up" id="terminalIcon"></i>
+                </button>
+            </div>
+            
+            <div class="terminal-content" id="terminalContent">
+                <!-- Assessment content will be populated -->
+            </div>
+        </div>
+        
+        <!-- BOTTOM CONTROLS - Mobile -->
+        <div class="bottom-controls">
+            <div class="mobile-nav">
+                <button class="mobile-btn" id="mobileSidebar">
+                    <i class="fas fa-book"></i>
+                    Matches
+                </button>
+                <button class="mobile-btn" id="mobileTerminal">
+                    <i class="fas fa-balance-scale"></i>
+                    Assessment
+                </button>
+                <button class="mobile-btn" id="mobileExport">
+                    <i class="fas fa-share"></i>
+                    Export
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- EXPORT OVERLAY -->
+    <div class="export-overlay" id="exportOverlay">
+        <div class="export-dialog">
+            <h3 style="font-family: 'EB Garamond', serif; margin-bottom: 1.5rem; color: var(--ink-dark);">
+                Export Document
+            </h3>
+            
+            <div class="export-options">
+                <div class="export-option" data-format="markdown">
+                    <i class="fas fa-file-alt" style="color: var(--accent-gold);"></i>
+                    <div>
+                        <strong>Markdown (.md)</strong>
+                        <div style="font-size: 12px; color: var(--ink-light);">For note-taking and documentation</div>
+                    </div>
+                </div>
+                
+                <div class="export-option" data-format="pdf">
+                    <i class="fas fa-file-pdf" style="color: var(--accent-red);"></i>
+                    <div>
+                        <strong>PDF Document</strong>
+                        <div style="font-size: 12px; color: var(--ink-light);">For printing and archiving</div>
+                    </div>
+                </div>
+                
+                <div class="export-option" data-format="json">
+                    <i class="fas fa-code" style="color: var(--accent-green);"></i>
+                    <div>
+                        <strong>JSON Data</strong>
+                        <div style="font-size: 12px; color: var(--ink-light);">For data analysis and processing</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                <button id="exportCancel" style="flex: 1; padding: 0.8rem; background: transparent; border: 1px solid var(--parchment-border); color: var(--ink-light); cursor: pointer;">
+                    Cancel
+                </button>
+                <button id="exportConfirm" style="flex: 1; padding: 0.8rem; background: var(--accent-gold); border: none; color: white; cursor: pointer;">
+                    Export
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Sample match data
+        const matches = [
+            {
+                id: "M-15",
+                chapter: "15",
+                title: "When The Anatomist Meets The Architect",
+                subtitle: "The Design of the Self • Clifford Geertz via Tim Ingold",
+                drama: "The Interpretation of Cultures",
+                essay: `In the dusty wings of the Grand Theater of Being, where the costumes of history hang in endless rows, two figures stand over a sleeping actor. The actor is dressed in the elaborate, gilded silks of a Javanese dancer.
+
+One figure is THE ANATOMIST. He holds a scalpel and a set of calipers. He is a child of the Enlightenment, a disciple of Newton and Bacon. He believes that truth is a solid, immutable core buried beneath layers of debris.
+
+'He is asleep', says The Anatomist, eyeing the Javanese dancer. 'And while he sleeps, he is trapped in that costume. To understand him—to understand Man—we must strip him. We must peel away the silk, the batik, the golden fingernails. These are mere accretions. They are the "garb and appearance" of local custom. Beneath them lies the Universal Man—the naked reasoner, unchanged by time or place, moved by the same passions that moved the Greeks.'
+
+The Anatomist reaches out to remove the dancer's headdress. 'My method is Stratigraphic. I shall remove the Cultural layer, then the Social layer, then the Psychological layer. Finally, I shall reveal the Biological bedrock. Only when he is naked will we see the Consensus Gentium—the common denominator of humanity.'
+
+The other figure is THE ARCHITECT. He carries no scalpel, but a set of blueprints and a flow-chart. He sees the actor not as a core to be uncovered, but as a structure that has been built.
+
+'Stop', commands The Architect. 'You think you are stripping away a costume. In reality, you are dismantling the man himself. If you peel away his culture—his Javanese reverence, his specific way of smiling, his intricate etiquette—you will not find a "Universal Man." You will find a monstrosity.'
+
+The Anatomist sneers. 'Nonsense. The biology is the hardware. The culture is just the drapery.'
+
+'You are mistaken', says The Architect. 'The hardware evolved to fit the drapery. Think of the Ice Age. For a million years, this creature's brain ballooned in size. It grew not in isolation, but in the presence of tools, language, and ritual. The brain is an unfinished organ. It relies on these external programs—these cultural recipes—to function. Without them, this man is not a "noble savage." He is a mental basket case. He is an exploded chaos of pointless acts.'
+
+The Architect points to the sleeping dancer's hands, trained to move in precise, symbolic gestures.
+
+'You look for Man with a capital "M" in the things that everyone does—eating, sleeping, mating. You look for the "lowest common denominator." But that is a hollow victory. It is like saying a Cathedral is just stone and glass. To understand Chartres, you must understand the specific theology that aligned the stones. To understand this man, you must understand the Javanese "software" that runs his nervous system.'
+
+'He is an unfinished animal', The Architect concludes. 'He completes himself not by becoming "General Man," but by becoming a particular man. If you strip him of his particularities, you do not reveal his essence. You dissolve his existence.'`,
+                p1: {
+                    name: "The Anatomist",
+                    theory: "Stratigraphic Enlightenment View",
+                    score: 30,
+                    criteria: [
+                        { name: "Substantiality of Universals", evidence: "Claims 'inward motions arise from the same desires'", critique: "Fake Universals. Fails to define universals with specific content.", verdict: "shadow" },
+                        { name: "The Layer-Cake Model", evidence: "'Peel off the cultural layer... find the biological bedrock'", critique: "Biological Fallacy. Ignores that brain and culture co-evolved.", verdict: "void" }
+                    ],
+                    summary: "Score: 30/100 (Fail) - The 'Onion' Fallacy. Searching for a ghost.",
+                    verdict: "Shadow"
+                },
+                p2: {
+                    name: "The Architect",
+                    theory: "Synthetic Control Mechanism Model",
+                    score: 94,
+                    criteria: [
+                        { name: "The 'Information Gap'", evidence: "'Man is the animal most desperately dependent upon extragenetic control mechanisms'", critique: "High Empirical Fidelity. Aligns with modern neurology and paleoanthropology.", verdict: "light" },
+                        { name: "Rejection of Typology", evidence: "'Becoming human is becoming individual'", critique: "Methodological Rigor. Validates study of the 'odd' as a window into human potential.", verdict: "light" },
+                        { name: "Co-Evolution", evidence: "'Culture was ingredient... in the production of that animal itself'", critique: "Structural Integrity. Destroys the Stratigraphic view with feedback loop theory.", verdict: "light" }
+                    ],
+                    summary: "Score: 94/100 (Distinction) - Analyzes the living machine. Scientifically robust.",
+                    verdict: "Light"
+                },
+                comparison: [
+                    ["Metaphor", "Peeling an Onion", "Building a Cathedral"],
+                    ["Human Nature", "Constant / Hidden Core", "Variable / Programmed"],
+                    ["Biology/Culture", "Separate Layers", "Interactive / Co-constitutive"],
+                    ["The Particular", "Accidental / Irrelevant", "Essential / Constitutive"]
+                ],
+                finalVerdict: "The Anatomist searches for a ghost; The Architect analyzes the living machine. By recognizing that man is a 'symbolizing, conceptualizing, meaning-seeking' animal who is biologically dependent on culture to organize his own brain, the Architect provides a theory that is scientifically robust and philosophically satisfying. Man is an artifact of his own creation."
+            },
+            {
+                id: "M-12",
+                chapter: "12",
+                title: "When The Bishop Meets The Foreman",
+                subtitle: "Language as Reference vs Language as Use • Wittgensteinian Turn",
+                drama: "The Soul of Statecraft",
+                essay: `On the outskirts of an ancient city—a sprawling labyrinth of twisting alleyways, modern boulevards, and haphazard extensions—two figures stand amidst a dusty construction site. The ground is littered with building stones: blocks, pillars, slabs, and beams.
+
+One figure is THE BISHOP, a man of solemn demeanor, robed in the heavy velvet of classical antiquity. He gestures with a pointed finger, as if baptizing the world with nouns. The other is THE FOREMAN, a restless pragmatic figure in work boots, his pockets bristling with slide rules, glue pots, and crumpled diagrams.
+
+'Observe', says THE BISHOP, pointing to a flat piece of stone. 'Here is the essence of language. I point, and I utter the sound: Slab. A golden thread of association is instantly spun between the sound and the object. The word names the thing.'
+
+The Foreman squints. 'And what happens when I say: Five slabs?' The Bishop hesitates. The Foreman presses: 'What did you picture? Five individual things? A numeral? A quantity?'`,
+                p1: {
+                    name: "The Bishop",
+                    theory: "Augustinian Referential",
+                    score: 35,
+                    criteria: [
+                        { name: "Ontological Scope", evidence: "Words name objects", critique: "Catastrophic Narrowing. Works for 'Table' but fails for 'Five'", verdict: "void" },
+                        { name: "Acquisition", evidence: "Ostensive teaching", critique: "Mentalist Speculation. Assumes language of thought", verdict: "shadow" }
+                    ],
+                    summary: "Score: 35/100 - Presents naive theory with limited empirical scope.",
+                    verdict: "Shadow"
+                },
+                p2: {
+                    name: "The Foreman",
+                    theory: "Language-Games",
+                    score: 92,
+                    criteria: [
+                        { name: "Empirical Fidelity", evidence: "Five Red Apples example", critique: "High Fidelity. Acknowledges different word functions", verdict: "light" },
+                        { name: "Contextual Awareness", evidence: "Language as ancient city", critique: "Structural Integrity. Captures historical accumulation", verdict: "light" },
+                        { name: "Handling Intent", evidence: "Understanding not hidden mental process", critique: "Strong but potentially dismissive of phenomenology", verdict: "shadow" }
+                    ],
+                    summary: "Score: 92/100 - Presents robust modular theory accepting language as functional form of life.",
+                    verdict: "Light"
+                },
+                comparison: [
+                    ["Meaning", "Correlation (Word ↔ Object)", "Function (Word ↔ Tool)"],
+                    ["Learning", "Ostensive Definition", "Training / Enculturation"],
+                    ["Agency", "Mental (Internal Image)", "Kinetic (Public Action)"]
+                ],
+                finalVerdict: "Bishop presents naive theory. Foreman presents robust modular theory accepting language as functional form of life."
+            }
+        ];
+
+        let currentMatchIndex = 0;
+        let terminalExpanded = false;
+        let sidebarOpen = false;
+
+        // DOM Elements
+        const breadcrumb = document.getElementById('breadcrumb');
+        const currentMatchId = document.getElementById('currentMatchId');
+        const currentMatchTitle = document.getElementById('currentMatchTitle');
+        const matchSidebar = document.getElementById('matchSidebar');
+        const matchList = document.getElementById('matchList');
+        const lineNumbers = document.getElementById('lineNumbers');
+        const chapterNumber = document.getElementById('chapterNumber');
+        const chapterTitle = document.getElementById('chapterTitle');
+        const chapterSubtitle = document.getElementById('chapterSubtitle');
+        const essayText = document.getElementById('essayText');
+        const terminalPanel = document.getElementById('terminalPanel');
+        const terminalContent = document.getElementById('terminalContent');
+        const terminalIcon = document.getElementById('terminalIcon');
+        const exportOverlay = document.getElementById('exportOverlay');
+
+        // Buttons
+        const toggleSidebarBtn = document.getElementById('toggleSidebar');
+        const toggleTerminalBtn = document.getElementById('toggleTerminal');
+        const terminalHeader = document.getElementById('terminalHeader');
+        const terminalToggleBtn = document.getElementById('terminalToggleButton');
+        const matchSelect = document.getElementById('matchSelect');
+        const exportBtn = document.getElementById('exportBtn');
+        const printBtn = document.getElementById('printBtn');
+        const copySelectionBtn = document.getElementById('copySelection');
+        const mobileSidebarBtn = document.getElementById('mobileSidebar');
+        const mobileTerminalBtn = document.getElementById('mobileTerminal');
+        const mobileExportBtn = document.getElementById('mobileExport');
+        const exportCancelBtn = document.getElementById('exportCancel');
+        const exportConfirmBtn = document.getElementById('exportConfirm');
+
+        // Overlay resize state
+        let terminalIsResizing = false;
+        let terminalResizeStartY = 0;
+        let terminalResizeStartHeight = 0;
+
+        // Initialize
+        function init() {
+            initializeMatchList();
+            initializeMatchSelect();
+            loadMatch(0);
+            setupEventListeners();
+            updateLineNumbers();
+            
+            // Auto-collapse terminal on mobile
+            if (window.innerWidth < 768) {
+                terminalPanel.classList.remove('expanded');
+                terminalIcon.className = 'fas fa-chevron-up';
+            }
+        }
+
+        // Initialize match list
+        function initializeMatchList() {
+            matchList.innerHTML = '';
+            matches.forEach((match, index) => {
+                const matchItem = document.createElement('div');
+                matchItem.className = 'match-item';
+                if (index === currentMatchIndex) matchItem.classList.add('active');
+                
+                matchItem.innerHTML = `
+                    <div class="match-id">${match.id}</div>
+                    <div class="match-title">${match.title}</div>
+                `;
+                
+                matchItem.addEventListener('click', () => {
+                    loadMatch(index);
+                    if (window.innerWidth < 1024) {
+                        matchSidebar.classList.remove('open');
+                        sidebarOpen = false;
+                    }
+                });
+                
+                matchList.appendChild(matchItem);
+            });
+        }
+
+        // Initialize top match dropdown
+        function initializeMatchSelect() {
+            if (!matchSelect) return;
+            matchSelect.innerHTML = '';
+            matches.forEach((match, index) => {
+                const opt = document.createElement('option');
+                opt.value = String(index);
+                opt.textContent = `${match.id}  ${match.title}`;
+                matchSelect.appendChild(opt);
+            });
+            matchSelect.value = String(currentMatchIndex);
+            matchSelect.addEventListener('change', (e) => {
+                const idx = parseInt(e.target.value, 10);
+                if (!Number.isNaN(idx)) {
+                    loadMatch(idx);
+                }
+            });
+        }
+
+        // Load a specific match
+        function loadMatch(index) {
+            currentMatchIndex = index;
+            const match = matches[index];
+            
+            // Update active match in navigation
+            document.querySelectorAll('.match-item').forEach((item, i) => {
+                item.classList.toggle('active', i === index);
+            });
+            
+            // Update breadcrumb
+            currentMatchId.textContent = match.id;
+            currentMatchTitle.textContent = match.title;
+            breadcrumb.innerHTML = `<span>${match.id}</span> • <span>${match.title}</span>`;
+            if (matchSelect) {
+                matchSelect.value = String(index);
+            }
+            
+            // Update chapter info
+            chapterNumber.textContent = `Chapter ${match.chapter}`;
+            chapterTitle.textContent = match.title;
+            chapterSubtitle.textContent = match.subtitle;
+            
+            // Render essay as fixed, numbered monospace lines (code/brief style)
+            essayText.innerHTML = renderEssayLines(match.essay || '');
+            
+            // Update line numbers after essay loads
+            setTimeout(updateLineNumbers, 100);
+            
+            // Enable paragraph / block selection for easier copying
+            setupSelectableBlocks();
+            
+            // Update terminal content
+            updateTerminalContent(match);
+            
+            // Add fade-in animation
+            essayText.classList.add('fade-in');
+            setTimeout(() => essayText.classList.remove('fade-in'), 300);
+        }
+
+        // Render essay as numbered monospace lines for citation / legal-style reading
+        function renderEssayLines(text) {
+            const normalized = (text || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+            const lines = normalized.split('\n');
+            let html = '<div class="essay-lines">';
+            lines.forEach((line, idx) => {
+                const lineNo = idx + 1;
+                html += `<div class="essay-line" data-line-index="${lineNo}">` +
+                        `<span class="inline-line-num">${lineNo}</span>` +
+                        `<span class="essay-line-text">${escapeHtml(line)}</span>` +
+                        `</div>`;
+            });
+            html += '</div>';
+            return html;
+        }
+
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        // Paragraph / line selection to support copying key excerpts
+        const selectedBlocks = new Set();
+        let lastSelectedIndex = null;
+
+        function setupSelectableBlocks() {
+            selectedBlocks.clear();
+            const lines = essayText.querySelectorAll('.essay-line');
+            lines.forEach((el) => {
+                const idx = el.dataset.lineIndex;
+                el.classList.remove('selected-block');
+                el.addEventListener('click', handleBlockClick);
+            });
+        }
+
+        function handleBlockClick(e) {
+            // Allow normal text selection when user is dragging
+            if (window.getSelection && window.getSelection().toString()) return;
+            const el = e.currentTarget;
+            const idx = el.dataset.lineIndex;
+            if (!idx) return;
+            const numIdx = parseInt(idx, 10);
+
+            if (e.shiftKey && lastSelectedIndex !== null) {
+                // Range selection with Shift: select all lines between last and current
+                const start = Math.min(lastSelectedIndex, numIdx);
+                const end = Math.max(lastSelectedIndex, numIdx);
+                for (let i = start; i <= end; i++) {
+                    const lineEl = essayText.querySelector(`.essay-line[data-line-index="${i}"]`);
+                    if (!lineEl) continue;
+                    selectedBlocks.add(String(i));
+                    lineEl.classList.add('selected-block');
+                }
+            } else {
+                if (selectedBlocks.has(idx)) {
+                    selectedBlocks.delete(idx);
+                    el.classList.remove('selected-block');
+                } else {
+                    selectedBlocks.add(idx);
+                    el.classList.add('selected-block');
+                }
+                lastSelectedIndex = numIdx;
+            }
+        }
+
+        async function copySelectedBlocksToClipboard() {
+            if (!selectedBlocks.size) {
+                // If nothing selected, copy entire essay as plain text
+                const fullText = essayText.innerText || '';
+                if (!fullText) return;
+                try {
+                    await navigator.clipboard.writeText(fullText);
+                } catch (e) {
+                    console.warn('Clipboard copy failed:', e);
+                }
+                return;
+            }
+
+            const indices = Array.from(selectedBlocks).map(i => parseInt(i, 10)).sort((a, b) => a - b);
+            const blocks = indices.map(i => {
+                const el = essayText.querySelector(`.essay-line[data-line-index="${i}"]`);
+                return el ? el.innerText : '';
+            }).filter(Boolean);
+
+            const text = blocks.join('\n\n');
+            try {
+                await navigator.clipboard.writeText(text);
+            } catch (e) {
+                console.warn('Clipboard copy failed:', e);
+            }
+        }
+
+        // Update line numbers based on essay content (exact per-line mapping)
+        function updateLineNumbers() {
+            const lines = essayText.querySelectorAll('.essay-line');
+            const lineCount = lines.length;
+            
+            // Generate line numbers
+            let lineNumbersHTML = '';
+            for (let i = 1; i <= lineCount; i++) {
+                // Group numbers by 5 for readability
+                if (i % 5 === 0) {
+                    lineNumbersHTML += `<div class="line-number" style="font-weight: 600;">${i}</div>`;
+                } else {
+                    lineNumbersHTML += `<div class="line-number">${i}</div>`;
+                }
+            }
+            
+            lineNumbers.innerHTML = lineNumbersHTML;
+        }
+
+        // Update terminal content
+        function updateTerminalContent(match) {
+            const leftIsWinner = match.p1.score >= match.p2.score;
+            const winner = leftIsWinner ? match.p1 : match.p2;
+            const loser = leftIsWinner ? match.p2 : match.p1;
+
+            const winnerName = winner.name;
+            const winnerScore = winner.score;
+            const loserName = loser.name;
+            const loserScore = loser.score;
+
+            const hasComparison = Array.isArray(match.comparison) && match.comparison.length > 0;
+
+            let p1Features = '';
+            let p2Features = '';
+            if (hasComparison) {
+                p1Features = '<div class="features-list">' +
+                    match.comparison.map(function(row) {
+                        const feature = row[0] || '';
+                        const val = row[1] || '';
+                        return '<div class="feature-item"><span class="feature-name">' +
+                            feature + ':</span> ' + val + '</div>';
+                    }).join('') +
+                    '</div>';
+                p2Features = '<div class="features-list">' +
+                    match.comparison.map(function(row) {
+                        const feature = row[0] || '';
+                        const val = row[2] || '';
+                        return '<div class="feature-item"><span class="feature-name">' +
+                            feature + ':</span> ' + val + '</div>';
+                    }).join('') +
+                    '</div>';
+            }
+
+            terminalContent.innerHTML = `
+                <div class="terminal-inner">
+                <div class="guardian-filters">
+                    <button class="guardian-filter-btn active" data-target="all">ALL</button>
+                    <button class="guardian-filter-btn" data-target="fighters">FIGHTERS</button>
+                    <button class="guardian-filter-btn" data-target="comparison">TABLE</button>
+                    <button class="guardian-filter-btn" data-target="verdict">TEXT</button>
+                </div>
+                <div class="terminal-summary guardian-section" data-section="fighters" style="margin-top: 0.75rem;">
+                    <div class="terminal-summary-main">${match.id} • ${match.drama}</div>
+                    <div class="terminal-summary-sub">
+                        Winner: <strong>${winnerName}</strong> (${winnerScore})
+                        &nbsp;vs&nbsp;
+                        ${loserName} (${loserScore})
+                    </div>
+                </div>
+                <div class="assessment-grid guardian-section" data-section="fighters" style="margin-top: 0.5rem;">
+                    <div class="fighter-card ${leftIsWinner ? 'winner' : 'loser'}" id="fighterLeftCard">
+                        <button class="fighter-copy-btn" data-side="p1" title="Copy ${match.p1.name} assessment">
+                            <i class="fas fa-copy"></i>
+                            <span>Copy</span>
+                        </button>
+                        <div class="fighter-header">
+                            <div class="fighter-name">${match.p1.name}</div>
+                            <div class="fighter-theory">${match.p1.theory}</div>
+                        </div>
+                        <div class="score-display">${match.p1.score}</div>
+                        <div style="font-size: 12px; color: #888; margin-bottom: 0.5rem;">/100</div>
+                        <div class="criteria-list">
+                            ${match.p1.criteria.map(crit => `
+                                <div class="criteria-item ${crit.verdict}">
+                                    <div class="criteria-name">${crit.name}</div>
+                                    <div class="criteria-evidence">${crit.evidence}</div>
+                                    <div class="criteria-critique">${crit.critique}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        ${match.p1.summary ? `<div style="margin-top: 0.75rem; font-size: 12px; color: #bbbbbb;">${match.p1.summary}</div>` : ''}
+                        ${p1Features}
+                        <div style="margin-top: 1rem; font-size: 12px; color: ${winner === match.p1 ? '#d2691e' : '#2e8b57'};">
+                            <strong>Verdict:</strong> ${match.p1.verdict}
+                        </div>
+                    </div>
+                    
+                    <div class="fighter-card ${!leftIsWinner ? 'winner' : 'loser'}" id="fighterRightCard">
+                        <button class="fighter-copy-btn" data-side="p2" title="Copy ${match.p2.name} assessment">
+                            <i class="fas fa-copy"></i>
+                            <span>Copy</span>
+                        </button>
+                        <div class="fighter-header">
+                            <div class="fighter-name">${match.p2.name}</div>
+                            <div class="fighter-theory">${match.p2.theory}</div>
+                        </div>
+                        <div class="score-display">${match.p2.score}</div>
+                        <div style="font-size: 12px; color: #888; margin-bottom: 0.5rem;">/100</div>
+                        <div class="criteria-list">
+                            ${match.p2.criteria.map(crit => `
+                                <div class="criteria-item ${crit.verdict}">
+                                    <div class="criteria-name">${crit.name}</div>
+                                    <div class="criteria-evidence">${crit.evidence}</div>
+                                    <div class="criteria-critique">${crit.critique}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        ${match.p2.summary ? `<div style="margin-top: 0.75rem; font-size: 12px; color: #bbbbbb;">${match.p2.summary}</div>` : ''}
+                        ${p2Features}
+                        <div style="margin-top: 1rem; font-size: 12px; color: ${winner === match.p2 ? '#d2691e' : '#2e8b57'};">
+                            <strong>Verdict:</strong> ${match.p2.verdict}
+                        </div>
+                    </div>
+                </div>
+                ${hasComparison ? `
+                <div class="guardian-section" data-section="comparison" style="margin-top: 1.0rem;">
+                    <div class="assessment-title">Comparative Analysis</div>
+                    <table style="width: 100%; border-collapse: collapse; margin-top: 0.75rem; font-size: 14px;">
+                        <thead>
+                            <tr style="background: #333;">
+                                <th style="padding: 0.6rem; text-align: left; border: 1px solid #555;">Feature</th>
+                                <th style="padding: 0.6rem; text-align: left; border: 1px solid #555;">${match.p1.name}</th>
+                                <th style="padding: 0.6rem; text-align: left; border: 1px solid #555;">${match.p2.name}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${match.comparison.map(row => `
+                                <tr>
+                                    <td style="padding: 0.6rem; border: 1px solid #555; background: #1e1e1e;">${row[0]}</td>
+                                    <td style="padding: 0.6rem; border: 1px solid #555; background: #1e1e1e;">${row[1]}</td>
+                                    <td style="padding: 0.6rem; border: 1px solid #555; background: #1e1e1e;">${row[2]}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+                ` : ''}
+                <div class="verdict-section guardian-section" data-section="verdict">
+                    <div class="verdict-title">Final Guardian Verdict</div>
+                    <div class="verdict-text">${match.finalVerdict}</div>
+                </div>
+                </div>
+            `;
+
+            // Wire copy buttons for each candidate
+            const copyButtons = terminalContent.querySelectorAll('.fighter-copy-btn');
+            copyButtons.forEach(btn => {
+                const side = btn.dataset.side;
+                btn.addEventListener('click', () => {
+                    copyCandidateAssessmentToClipboard(match, side);
+                });
+            });
+
+            // Wire section filter buttons
+            const filterButtons = terminalContent.querySelectorAll('.guardian-filter-btn');
+            const sections = terminalContent.querySelectorAll('.guardian-section');
+            filterButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const target = btn.dataset.target || 'all';
+                    filterButtons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    sections.forEach(sec => {
+                        const secType = sec.dataset.section;
+                        if (target === 'all' || target === secType) {
+                            sec.classList.remove('hidden-section');
+                        } else {
+                            sec.classList.add('hidden-section');
+                        }
+                    });
+                });
+            });
+        }
+
+        // Copy a single candidate's assessment (name, theory, score, summary, criteria) to clipboard
+        async function copyCandidateAssessmentToClipboard(match, side) {
+            const candidate = side === 'p2' ? match.p2 : match.p1;
+            if (!candidate) return;
+
+            let text = '';
+            text += `${match.id}: ${candidate.name} — ${candidate.theory}\n`;
+            text += `Score: ${candidate.score}/100\n`;
+            if (candidate.summary) {
+                text += `Summary: ${candidate.summary}\n`;
+            }
+            text += `\nCriteria:\n`;
+            if (Array.isArray(candidate.criteria)) {
+                candidate.criteria.forEach(crit => {
+                    const verdict = (crit.verdict || '').toString().toUpperCase();
+                    text += `- [${verdict}] ${crit.name}: ${crit.critique}\n`;
+                    if (crit.evidence) {
+                        text += `  Evidence: ${crit.evidence}\n`;
+                    }
+                });
+            }
+            if (match.finalVerdict) {
+                text += `\nFinal Verdict: ${match.finalVerdict}\n`;
+            }
+
+            try {
+                await navigator.clipboard.writeText(text);
+            } catch (e) {
+                console.warn('Clipboard copy (candidate) failed:', e);
+            }
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Toggle sidebar
+            toggleSidebarBtn.addEventListener('click', () => {
+                if (window.innerWidth < 1024) {
+                    sidebarOpen = !sidebarOpen;
+                    matchSidebar.classList.toggle('open', sidebarOpen);
+                } else {
+                    // For desktop, we might want a different behavior
+                    console.log('Sidebar toggle on desktop');
+                }
+            });
+
+            // Toggle terminal panel
+            toggleTerminalBtn.addEventListener('click', () => {
+                terminalExpanded = !terminalExpanded;
+                terminalPanel.classList.toggle('expanded', terminalExpanded);
+                terminalIcon.className = terminalExpanded ? 'fas fa-chevron-down' : 'fas fa-chevron-up';
+                toggleTerminalBtn.classList.toggle('active', terminalExpanded);
+            });
+
+            terminalToggleBtn.addEventListener('click', () => {
+                terminalExpanded = !terminalExpanded;
+                terminalPanel.classList.toggle('expanded', terminalExpanded);
+                terminalIcon.className = terminalExpanded ? 'fas fa-chevron-down' : 'fas fa-chevron-up';
+                toggleTerminalBtn.classList.toggle('active', terminalExpanded);
+            });
+
+            // Drag header to resize overlay height (desktop)
+            if (terminalHeader) {
+                terminalHeader.addEventListener('mousedown', onTerminalResizeStart);
+            }
+            window.addEventListener('mousemove', onTerminalResizeMove);
+            window.addEventListener('mouseup', onTerminalResizeEnd);
+
+            // Mobile controls
+            mobileSidebarBtn.addEventListener('click', () => {
+                sidebarOpen = !sidebarOpen;
+                matchSidebar.classList.toggle('open', sidebarOpen);
+            });
+
+            mobileTerminalBtn.addEventListener('click', () => {
+                terminalExpanded = !terminalExpanded;
+                terminalPanel.classList.toggle('expanded', terminalExpanded);
+                terminalIcon.className = terminalExpanded ? 'fas fa-chevron-down' : 'fas fa-chevron-up';
+            });
+
+            // Copy selection / essay
+            copySelectionBtn.addEventListener('click', () => {
+                copySelectedBlocksToClipboard();
+            });
+
+            // Export functionality
+            exportBtn.addEventListener('click', () => exportOverlay.classList.add('active'));
+            mobileExportBtn.addEventListener('click', () => exportOverlay.classList.add('active'));
+            exportCancelBtn.addEventListener('click', () => exportOverlay.classList.remove('active'));
+            
+            // Print functionality
+            printBtn.addEventListener('click', () => window.print());
+
+            // Export options
+            document.querySelectorAll('.export-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    const format = this.dataset.format;
+                    document.querySelectorAll('.export-option').forEach(opt => {
+                        opt.style.background = '';
+                        opt.style.borderColor = '';
+                    });
+                    this.style.background = 'rgba(184, 134, 11, 0.1)';
+                    this.style.borderColor = 'var(--accent-gold)';
+                    
+                    exportConfirmBtn.onclick = () => {
+                        exportDocument(format);
+                        exportOverlay.classList.remove('active');
+                    };
+                });
+            });
+
+            // Close export overlay when clicking outside
+            exportOverlay.addEventListener('click', (e) => {
+                if (e.target === exportOverlay) {
+                    exportOverlay.classList.remove('active');
+                }
+            });
+
+            // Update line numbers on resize
+            window.addEventListener('resize', updateLineNumbers);
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                // Escape closes modals and panels
+                if (e.key === 'Escape') {
+                    exportOverlay.classList.remove('active');
+                    if (window.innerWidth < 1024 && sidebarOpen) {
+                        matchSidebar.classList.remove('open');
+                        sidebarOpen = false;
+                    }
+                }
+                
+                // Arrow keys for navigation
+                if (e.key === 'ArrowLeft') {
+                    const newIndex = (currentMatchIndex - 1 + matches.length) % matches.length;
+                    loadMatch(newIndex);
+                }
+                if (e.key === 'ArrowRight') {
+                    const newIndex = (currentMatchIndex + 1) % matches.length;
+                    loadMatch(newIndex);
+                }
+                
+                // Space toggles terminal
+                if (e.key === ' ' && !e.target.matches('input, textarea, [contenteditable]')) {
+                    e.preventDefault();
+                    terminalExpanded = !terminalExpanded;
+                    terminalPanel.classList.toggle('expanded', terminalExpanded);
+                    terminalIcon.className = terminalExpanded ? 'fas fa-chevron-down' : 'fas fa-chevron-up';
+                    toggleTerminalBtn.classList.toggle('active', terminalExpanded);
+                }
+
+                // Ctrl/Cmd+C when there is no selection: copy selected blocks or full essay
+                if ((e.key === 'c' || e.key === 'C') && (e.metaKey || e.ctrlKey)) {
+                    if (!(window.getSelection && window.getSelection().toString())) {
+                        e.preventDefault();
+                        copySelectedBlocksToClipboard();
+                    }
+                }
+            });
+
+            // Close sidebar when clicking outside on mobile
+            document.addEventListener('click', (e) => {
+                if (window.innerWidth < 1024 && sidebarOpen && 
+                    !matchSidebar.contains(e.target) && 
+                    e.target !== toggleSidebarBtn && 
+                    e.target !== mobileSidebarBtn &&
+                    !mobileSidebarBtn.contains(e.target)) {
+                    matchSidebar.classList.remove('open');
+                    sidebarOpen = false;
+                }
+            });
+        }
+
+        // Start resizing terminal overlay
+        function onTerminalResizeStart(e) {
+            if (window.innerWidth < 768) return; // keep drag simple on desktop for now
+            if (e.button !== 0) return;
+            if (!terminalExpanded) return;
+            if (e.target.closest('#terminalToggleButton')) return;
+            terminalIsResizing = true;
+            terminalResizeStartY = e.clientY;
+            terminalResizeStartHeight = terminalPanel.getBoundingClientRect().height;
+            e.preventDefault();
+        }
+
+        // Handle resize drag move
+        function onTerminalResizeMove(e) {
+            if (!terminalIsResizing) return;
+            const delta = terminalResizeStartY - e.clientY;
+            const minHeight = 220;
+            const maxHeight = Math.min(window.innerHeight * 0.9, window.innerHeight - 80);
+            let newHeight = terminalResizeStartHeight + delta;
+            newHeight = Math.max(minHeight, Math.min(maxHeight, newHeight));
+            terminalPanel.style.height = `${newHeight}px`;
+        }
+
+        // End resize drag
+        function onTerminalResizeEnd() {
+            terminalIsResizing = false;
+        }
+
+        // Export document function
+        function exportDocument(format) {
+            const match = matches[currentMatchIndex];
+            let content = '';
+            
+            switch(format) {
+                case 'markdown':
+                    content = `# ${match.id}: ${match.title}\n\n`;
+                    content += `**Chapter ${match.chapter}** • ${match.subtitle}\n\n`;
+                    content += `---\n\n`;
+                    content += match.essay.replace(/\n\n/g, '\n\n');
+                    content += `\n\n---\n\n`;
+                    content += `## Guardian Assessment\n\n`;
+                    content += `### ${match.p1.name} (${match.p1.score}/100)\n`;
+                    content += `*Theory:* ${match.p1.theory}\n\n`;
+                    match.p1.criteria.forEach(crit => {
+                        content += `- **${crit.name}**: ${crit.critique} (${crit.verdict})\n`;
+                    });
+                    content += `\n### ${match.p2.name} (${match.p2.score}/100)\n`;
+                    content += `*Theory:* ${match.p2.theory}\n\n`;
+                    match.p2.criteria.forEach(crit => {
+                        content += `- **${crit.name}**: ${crit.critique} (${crit.verdict})\n`;
+                    });
+                    content += `\n**Final Verdict:** ${match.finalVerdict}\n`;
+                    break;
+                    
+                case 'json':
+                    content = JSON.stringify(match, null, 2);
+                    break;
+                    
+                case 'pdf':
+                default:
+                    // For PDF, we'll open print dialog
+                    window.print();
+                    return;
+            }
+            
+            // Create download link
+            const blob = new Blob([content], { type: format === 'json' ? 'application/json' : 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${match.id}_${match.title.replace(/\s+/g, '_')}.${format === 'json' ? 'json' : 'md'}`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
