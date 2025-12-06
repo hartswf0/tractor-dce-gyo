@@ -234,6 +234,39 @@
         .doc-body ul { margin: 0 0 1.4em 1.5em; padding: 0; }
         .doc-body li { margin: 0.2em 0; }
         .doc-body hr { border: none; border-top: 1px solid var(--border); margin: 2em 0; }
+        .doc-body pre.poml-block {
+            padding: 12px 14px;
+            margin: 1.5em 0;
+            border-radius: 6px;
+            background: #020617;
+            border: 1px solid var(--border);
+            overflow-x: auto;
+        }
+        .doc-body pre.poml-block code {
+            font-family: var(--font-ui);
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+        .doc-body table.md-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.8em 0;
+            font-size: 13px;
+        }
+        .doc-body table.md-table th,
+        .doc-body table.md-table td {
+            border: 1px solid var(--border);
+            padding: 6px 8px;
+            vertical-align: top;
+        }
+        .doc-body table.md-table th {
+            background: var(--surface);
+            font-family: var(--font-ui);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+        }
 
         /* View: Grid (Scalable) */
         .grid-view {
@@ -285,6 +318,8 @@
             padding: 2rem;
             border-right: 1px solid var(--border);
             overflow-y: auto;
+            background: var(--panel);
+            position: relative;
         }
         .fighter-score { font-family: var(--font-ui); font-size: 4rem; font-weight: 700; color: var(--text-main); line-height: 1; margin: 1rem 0; }
         .fighter-meta {
@@ -316,6 +351,158 @@
             text-transform: uppercase;
             letter-spacing: 0.08em;
         }
+        .fighter-panel.winner {
+            box-shadow: 0 0 0 1px var(--accent);
+            background:
+                radial-gradient(circle at top left, var(--accent-glow), transparent 55%),
+                var(--panel);
+        }
+        .assessment-body {
+            font-family: var(--font-body);
+            font-size: 14px;
+            line-height: 1.7;
+            color: var(--text-main);
+            margin-top: 1.25rem;
+            padding-top: 1rem;
+            border-top: 1px dashed var(--border-highlight);
+        }
+        .assessment-body h3 {
+            font-family: var(--font-ui);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--text-muted);
+            margin: 1rem 0 0.4rem;
+        }
+        .assessment-body h4 {
+            font-family: var(--font-ui);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin: 0.9rem 0 0.4rem;
+            padding: 4px 6px;
+            border-radius: 4px;
+            background: var(--surface);
+            border-left: 3px solid var(--border-highlight);
+        }
+        .assessment-body p {
+            margin: 0 0 0.9em;
+        }
+        .assessment-body ul {
+            margin: 0 0 0.9em 1.4em;
+            padding: 0;
+        }
+        .assessment-body li { margin: 0.2em 0; }
+        .assessment-body li > strong:first-child {
+            display: inline-block;
+            margin-right: 4px;
+            font-family: var(--font-ui);
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+        }
+        .assessment-body .verdict-chip {
+            display: inline-block;
+            padding: 1px 6px;
+            border-radius: 999px;
+            border: 1px solid var(--border-highlight);
+            font-family: var(--font-ui);
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-left: 2px;
+        }
+        .assessment-body .verdict-light {
+            border-color: var(--success);
+            color: var(--success);
+            background: rgba(16, 185, 129, 0.08);
+        }
+        .assessment-body .verdict-twilight {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: var(--accent-glow);
+        }
+        .assessment-body .verdict-fail {
+            border-color: var(--danger);
+            color: var(--danger);
+            background: rgba(239, 68, 68, 0.08);
+        }
+        .assessment-body hr {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 1.5em 0;
+        }
+        .assessment-body table.md-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.8em 0;
+            font-size: 13px;
+        }
+        .assessment-body table.md-table th,
+        .assessment-body table.md-table td {
+            border: 1px solid var(--border);
+            padding: 6px 8px;
+            vertical-align: top;
+        }
+        .assessment-body table.md-table th {
+            background: var(--surface);
+            font-family: var(--font-ui);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+        }
+        .criteria-compare {
+            max-width: 1000px;
+            margin: 0 auto 2.5rem auto;
+            padding: 1.5rem 2rem 2rem 2rem;
+            border-top: 1px solid var(--border);
+            background: var(--panel);
+            font-family: var(--font-ui);
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+        .criteria-compare h3 {
+            margin: 0 0 0.75rem 0;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--text-main);
+        }
+        .criteria-compare table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .criteria-compare th,
+        .criteria-compare td {
+            border: 1px solid var(--border);
+            padding: 6px 8px;
+            vertical-align: top;
+        }
+        .criteria-compare th {
+            background: var(--surface);
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+        }
+        .criteria-compare .crit-col-label {
+            white-space: nowrap;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+        .criteria-compare .crit-entity-name {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 2px;
+            color: var(--text-main);
+        }
+        .criteria-compare .crit-criterion-name {
+            display: block;
+            font-size: 10px;
+            color: var(--text-muted);
+        }
         .criterion {
             margin-bottom: 12px;
             padding: 10px;
@@ -326,6 +513,240 @@
         .criterion.pass { border-color: var(--success); }
         .criterion.fail { border-color: var(--danger); }
         .criterion.twilight { border-color: var(--accent); }
+
+        /* --- AUDIO VIEW (Chat-like, Mobile-first) --- */
+        .audio-wrapper {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg);
+        }
+        
+        /* Sticky header with controls */
+        .audio-header {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: var(--panel);
+            border-bottom: 1px solid var(--border);
+            padding: 0.75rem 1rem;
+        }
+        .audio-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 0.5rem;
+        }
+        .audio-chapter-id {
+            font-family: var(--font-ui);
+            font-size: 11px;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background: var(--accent-glow);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+        .audio-chapter-title {
+            font-family: var(--font-ui);
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .audio-controls {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .audio-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+        .audio-btn:hover, .audio-btn.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+        .audio-btn#audio-play { width: 44px; height: 44px; font-size: 14px; }
+        .audio-progress {
+            flex: 1;
+            background: var(--surface);
+            border-radius: 4px;
+            height: 6px;
+            margin: 0 8px;
+            position: relative;
+            overflow: hidden;
+        }
+        .audio-progress-bar {
+            height: 100%;
+            background: var(--accent);
+            width: 0%;
+            transition: width 0.2s;
+        }
+        .audio-progress-text {
+            font-family: var(--font-ui);
+            font-size: 10px;
+            color: var(--text-muted);
+            min-width: 50px;
+            text-align: right;
+        }
+        .audio-settings {
+            display: flex;
+            gap: 12px;
+            margin-top: 0.5rem;
+            padding-top: 0.5rem;
+            border-top: 1px solid var(--border);
+        }
+        .audio-toggle {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-family: var(--font-ui);
+            font-size: 10px;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+        .audio-toggle input { width: 14px; height: 14px; accent-color: var(--accent); }
+        
+        /* Chat-like transcript */
+        .audio-transcript {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            padding-bottom: 80px; /* Space for bottom nav */
+            scroll-behavior: smooth;
+        }
+        
+        /* Base message bubble */
+        .audio-line {
+            max-width: 85%;
+            padding: 0.6rem 0.9rem;
+            margin-bottom: 0.6rem;
+            border-radius: 16px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .audio-line:hover { transform: scale(1.01); }
+        .audio-line.active {
+            box-shadow: 0 0 0 2px var(--accent);
+        }
+        .audio-line.played { opacity: 0.6; }
+        
+        /* Speaker label */
+        .audio-speaker {
+            font-family: var(--font-ui);
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 3px;
+            display: block;
+        }
+        .audio-action {
+            font-family: var(--font-ui);
+            font-size: 9px;
+            font-style: italic;
+            color: var(--text-dim);
+            margin-top: 4px;
+        }
+        .audio-text {
+            font-family: var(--font-body);
+            font-size: 14px;
+            line-height: 1.5;
+            color: var(--text-main);
+        }
+        
+        /* Narration - centered, muted */
+        .audio-line.type-narration {
+            max-width: 90%;
+            margin: 1rem auto;
+            background: transparent;
+            border: 1px dashed var(--border);
+            text-align: center;
+            border-radius: 8px;
+        }
+        .audio-line.type-narration .audio-speaker { display: none; }
+        .audio-line.type-narration .audio-text {
+            font-size: 13px;
+            font-style: italic;
+            color: var(--text-muted);
+        }
+        
+        /* Speaker 1 (P1) - left aligned, red accent */
+        .audio-line.speaker-p1 {
+            margin-right: auto;
+            margin-left: 0;
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(239, 68, 68, 0.05) 100%);
+            border-bottom-left-radius: 4px;
+        }
+        .audio-line.speaker-p1 .audio-speaker { color: #ef4444; }
+        
+        /* Speaker 2 (P2) - right aligned, blue accent */
+        .audio-line.speaker-p2 {
+            margin-left: auto;
+            margin-right: 0;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(59, 130, 246, 0.05) 100%);
+            border-bottom-right-radius: 4px;
+        }
+        .audio-line.speaker-p2 .audio-speaker { color: #3b82f6; }
+        
+        /* Shouts - emphasized */
+        .audio-line.type-shout {
+            background: linear-gradient(135deg, rgba(249, 115, 22, 0.2) 0%, rgba(249, 115, 22, 0.1) 100%);
+            border: 1px solid var(--accent);
+        }
+        .audio-line.type-shout .audio-text {
+            font-weight: 600;
+            font-size: 16px;
+        }
+        .audio-line.type-shout .audio-speaker { color: var(--accent); }
+        
+        /* Presenter intro */
+        .audio-line.type-presenter {
+            max-width: 100%;
+            margin: 0 auto 1.5rem;
+            background: linear-gradient(135deg, var(--surface) 0%, var(--panel) 100%);
+            border: 1px solid var(--border);
+            text-align: center;
+            padding: 1rem;
+        }
+        .audio-line.type-presenter .audio-speaker { color: var(--selection); font-size: 10px; }
+        .audio-line.type-presenter .audio-text { font-size: 16px; font-weight: 500; }
+        
+        /* Hide toggles */
+        .audio-line.hide-text .audio-text { display: none; }
+        .audio-line.hide-speaker .audio-speaker { display: none; }
+        .audio-line.hide-action .audio-action { display: none; }
+        
+        /* Mobile adjustments */
+        @media (max-width: 768px) {
+            .audio-wrapper { padding: 0; }
+            .audio-header { padding: 0.5rem 0.75rem; }
+            .audio-title { flex-wrap: wrap; }
+            .audio-chapter-title { font-size: 12px; }
+            .audio-btn { width: 32px; height: 32px; font-size: 11px; }
+            .audio-btn#audio-play { width: 40px; height: 40px; }
+            .audio-transcript { padding: 0.75rem; padding-bottom: 100px; }
+            .audio-line { max-width: 88%; padding: 0.5rem 0.75rem; }
+            .audio-text { font-size: 13px; }
+            .audio-settings { gap: 8px; flex-wrap: wrap; }
+        }
         
         /* --- BOTTOM COMMAND --- */
         #cmd-bar {
@@ -426,7 +847,7 @@
             <div class="top-actions">
                 <button class="btn-icon" id="theme-toggle" title="Toggle Light Mode"><i class="fas fa-sun"></i></button>
                 <button class="btn-icon" title="Settings"><i class="fas fa-cog"></i></button>
-                <button class="btn-icon" style="color:var(--accent); border-color:var(--accent);" title="Export"><i class="fas fa-download"></i></button>
+                <button class="btn-icon" id="export-btn" style="color:var(--accent); border-color:var(--accent);" title="Export full JSON"><i class="fas fa-download"></i></button>
             </div>
         </div>
 
@@ -463,6 +884,7 @@
                         <div class="fighter-score" id="p1-score">00</div>
                         <div class="fighter-meta" id="p1-meta"></div>
                         <div id="p1-stats"></div>
+                        <div class="fighter-meta" id="p1-assessment"></div>
                     </div>
                     <div class="fighter-panel">
                         <div class="doc-meta">ENTITY B</div>
@@ -470,6 +892,58 @@
                         <div class="fighter-score" id="p2-score">00</div>
                         <div class="fighter-meta" id="p2-meta"></div>
                         <div id="p2-stats"></div>
+                        <div class="fighter-meta" id="p2-assessment"></div>
+                    </div>
+                </div>
+                <div id="criteria-compare" class="criteria-compare"></div>
+            </div>
+
+            <!-- VIEW: AUDIO (Chat-like Play Mode) -->
+            <div id="view-audio" class="view-panel hidden">
+                <div class="audio-wrapper">
+                    <!-- Sticky Header with Controls -->
+                    <div class="audio-header">
+                        <div class="audio-title">
+                            <span class="audio-chapter-id" id="audio-chapter-id">M-00</span>
+                            <span class="audio-chapter-title" id="audio-chapter-title">Select a chapter</span>
+                        </div>
+                        <div class="audio-controls">
+                            <button class="audio-btn" id="audio-prev" title="Previous"><i class="fas fa-step-backward"></i></button>
+                            <button class="audio-btn" id="audio-play" title="Play"><i class="fas fa-play"></i></button>
+                            <button class="audio-btn" id="audio-pause" title="Pause"><i class="fas fa-pause"></i></button>
+                            <button class="audio-btn" id="audio-stop" title="Stop"><i class="fas fa-stop"></i></button>
+                            <button class="audio-btn" id="audio-next" title="Next"><i class="fas fa-step-forward"></i></button>
+                            <div class="audio-progress">
+                                <div class="audio-progress-bar" id="audio-progress-bar"></div>
+                            </div>
+                            <span class="audio-progress-text" id="audio-progress-text">0 / 0</span>
+                        </div>
+                        <div class="audio-settings">
+                            <label class="audio-toggle">
+                                <input type="checkbox" id="audio-show-text" checked>
+                                <span>Text</span>
+                            </label>
+                            <label class="audio-toggle">
+                                <input type="checkbox" id="audio-show-narration" checked>
+                                <span>Narration</span>
+                            </label>
+                            <label class="audio-toggle">
+                                <input type="checkbox" id="audio-show-action" checked>
+                                <span>Actions</span>
+                            </label>
+                            <label class="audio-toggle">
+                                <span>Speed</span>
+                                <input type="range" id="audio-speed" min="0.5" max="2" step="0.1" value="1" style="width:60px;">
+                                <span id="audio-speed-val">1x</span>
+                            </label>
+                        </div>
+                    </div>
+                    <!-- Chat-like Transcript -->
+                    <div class="audio-transcript" id="audio-transcript">
+                        <div class="audio-line type-presenter">
+                            <span class="audio-speaker">PRESENTER</span>
+                            <span class="audio-text">Select a chapter to begin playback.</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -486,6 +960,9 @@
             </button>
             <button class="cmd-tab" data-target="data" onclick="app.switchView('data')">
                 <i class="fas fa-chart-pie"></i> <span>DATA</span>
+            </button>
+            <button class="cmd-tab" data-target="audio" onclick="app.switchView('audio')">
+                <i class="fas fa-headphones"></i> <span>AUDIO</span>
             </button>
             <div style="width:1px; height:16px; background:var(--border); margin:0 4px;"></div>
             <button class="cmd-tab" id="select-indicator" onclick="app.toggleSelectMode()">
@@ -549,7 +1026,10 @@
                 const res = await fetch(src.file);
                 if (!res || !res.ok) continue;
                 const md = await res.text();
-                records.push(parseMarkdownChapter(md, src));
+                const rec = parseMarkdownChapter(md, src);
+                // Keep original markdown around for possible verdict explanation rendering
+                rec._rawMarkdown = md;
+                records.push(rec);
             } catch (e) {
                 console.warn('Failed to load chapter', src.file, e);
             }
@@ -671,8 +1151,16 @@
             let criteria = [];
             const forensicIdx = slice.indexOf('### 2. Forensic Audit');
             const gradeIdx = slice.indexOf('### 3. Overall Grade');
+            const calibIdx = slice.indexOf('### 1.');
+            let calibrationBlock = '';
+            let forensicBlock = '';
+            let overallBlock = '';
+            if (calibIdx !== -1) {
+                const endForCalib = forensicIdx !== -1 ? forensicIdx : (gradeIdx !== -1 ? gradeIdx : slice.length);
+                calibrationBlock = slice.slice(calibIdx, endForCalib).trim();
+            }
             if (forensicIdx !== -1) {
-                const forensicBlock = gradeIdx !== -1 ? slice.slice(forensicIdx, gradeIdx) : slice.slice(forensicIdx);
+                forensicBlock = (gradeIdx !== -1 ? slice.slice(forensicIdx, gradeIdx) : slice.slice(forensicIdx)).trim();
                 const critRe = /####\s+Criterion\s+([A-Z]):\s+(.+)\n([\s\S]*?)(?=^####\s+Criterion\s+[A-Z]:|^###\s+3\.|^#\s*ASSESSMENT|\n---|\n###\s*FINAL COMPARATIVE VERDICT|$)/gm;
                 let cm;
                 while ((cm = critRe.exec(forensicBlock)) !== null) {
@@ -687,6 +1175,10 @@
                     let critique = '';
                     const gcMatch = body.match(/\*\*Guardian Critique:\*\*\s*([\s\S]*?)(?=\*+\s*Verdict:|\n####\s+Criterion|\n###\s+3\.|$)/);
                     if (gcMatch) critique = gcMatch[1].trim();
+
+                    let darkMatter = '';
+                    const dmMatch = body.match(/\*Dark Matter:\*\s*([^\n]+)/i);
+                    if (dmMatch) darkMatter = dmMatch[1].trim();
 
                     let strength = '';
                     const strengthMatch = body.match(/\*Strength:\*\s*([^\n]+)/);
@@ -708,11 +1200,16 @@
                         title,
                         evidence,
                         critique,
+                        darkMatter,
                         strength,
                         rawVerdict,
                         verdictClass
                     });
                 }
+            }
+
+            if (gradeIdx !== -1) {
+                overallBlock = slice.slice(gradeIdx).trim();
             }
 
             results.push({
@@ -731,7 +1228,11 @@
                 scoreLabel,
                 justificationText,
                 justification,
-                criteria
+                criteria,
+                calibrationText: calibrationBlock,
+                forensicText: forensicBlock,
+                overallGradeText: overallBlock,
+                rawSection: slice.trim()
             });
         }
         return results;
@@ -791,14 +1292,20 @@
         let chapterLabel = '';
         let title = '';
         let subtitle = '';
+        let chapterIdx = -1;
+        let titleIdx = -1;
+        let subtitleIdx = -1;
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i].trim();
             if (!chapterLabel && /^#\s*Chapter\s+/i.test(line)) {
                 chapterLabel = line.replace(/^#\s*/, '').trim();
+                chapterIdx = i;
             } else if (!title && line.startsWith('## ')) {
                 title = line.replace(/^##\s*/, '').trim();
+                titleIdx = i;
             } else if (title && !subtitle && line.startsWith('## ')) {
                 subtitle = line.replace(/^##\s*/, '').trim();
+                subtitleIdx = i;
             }
         }
 
@@ -816,7 +1323,8 @@
                     rawVerdict: c.rawVerdict || null,
                     evidence: c.evidence || '',
                     critique: c.critique || '',
-                    strength: c.strength || ''
+                    strength: c.strength || '',
+                    darkMatter: c.darkMatter || ''
                 }))
                 : [];
             return { name, score, criteria };
@@ -829,14 +1337,53 @@
         const poml = parsePomlBlock(normalized);
         const finalVerdict = parseFinalComparativeVerdict(normalized);
 
+        // Derive body markdown: drop top-level chapter/title headings from TEXT view
+        let bodyStart = 0;
+        if (subtitleIdx !== -1) bodyStart = subtitleIdx + 1;
+        else if (titleIdx !== -1) bodyStart = titleIdx + 1;
+        else if (chapterIdx !== -1) bodyStart = chapterIdx + 1;
+        // Skip leading empty lines after headings
+        while (bodyStart < lines.length && !lines[bodyStart].trim()) {
+            bodyStart++;
+        }
+        let bodyMd = lines.slice(bodyStart).join('\n');
+
+        // Reorder FINAL COMPARATIVE VERDICT: move it just after the <poml> block
+        // so readers see the comparative verdict table and winner summary
+        // between the POML prompt and the detailed assessments.
+        const finalHeader = '### FINAL COMPARATIVE VERDICT';
+        const finalIdxInBody = bodyMd.indexOf(finalHeader);
+        if (finalIdxInBody !== -1) {
+            const finalBlock = bodyMd.slice(finalIdxInBody).trim();
+            const pre = bodyMd.slice(0, finalIdxInBody);
+            const pomlRe = /<poml>[\s\S]*?<\/poml>/i;
+            const pomlMatch = pre.match(pomlRe);
+            let reordered;
+            if (pomlMatch) {
+                const pomlStart = pomlMatch.index || 0;
+                const pomlEnd = pomlStart + pomlMatch[0].length;
+                const preBeforePoml = pre.slice(0, pomlStart);
+                const preAfterPoml = pre.slice(pomlEnd);
+                reordered = preBeforePoml
+                    + pomlMatch[0] + '\n\n'
+                    + finalBlock + '\n\n'
+                    + preAfterPoml;
+            } else {
+                // If no POML block, surface the comparative verdict at the top
+                reordered = finalBlock + '\n\n' + pre;
+            }
+            bodyMd = reordered;
+        }
+
         const p1 = makeParticipant(p1Assessment, 'Candidate A', 0);
         const p2 = makeParticipant(p2Assessment, 'Candidate B', 0);
 
         return {
             id: idFromSrc || idFromChapter || 'M-000',
+            file: src && src.file ? src.file : null,
             title: title || (src && src.title) || 'Untitled Match',
             subtitle: subtitle || chapterLabel || (src && src.subtitle) || '',
-            text: simpleMarkdownToHtml(normalized),
+            text: simpleMarkdownToHtml(bodyMd),
             p1,
             p2,
             poml,
@@ -858,11 +1405,37 @@
         const lines = normalized.split('\n');
         const out = [];
         let inList = false;
+        let inPoml = false;
+        let pomlLines = [];
         function closeList() {
             if (inList) {
                 out.push('</ul>');
                 inList = false;
             }
+        }
+        function renderTable(blockLines) {
+            if (!blockLines || blockLines.length < 2) return '';
+            const headerLine = blockLines[0];
+            const bodyLines = blockLines.slice(2);
+            const headerCells = headerLine.replace(/^\||\|$/g, '').split('|').map((c) => c.trim());
+            let html = '<table class="md-table"><thead><tr>';
+            for (let i = 0; i < headerCells.length; i++) {
+                html += '<th>' + escapeInline(headerCells[i]) + '</th>';
+            }
+            html += '</tr></thead><tbody>';
+            for (let i = 0; i < bodyLines.length; i++) {
+                const rowLine = bodyLines[i].trim();
+                if (!rowLine || !rowLine.startsWith('|')) continue;
+                const cells = rowLine.replace(/^\||\|$/g, '').split('|').map((c) => c.trim());
+                html += '<tr>';
+                for (let j = 0; j < headerCells.length; j++) {
+                    const cell = cells[j] != null ? cells[j] : '';
+                    html += '<td>' + escapeInline(cell) + '</td>';
+                }
+                html += '</tr>';
+            }
+            html += '</tbody></table>';
+            return html;
         }
         for (let i = 0; i < lines.length; i++) {
             const raw = lines[i];
@@ -872,6 +1445,39 @@
                 closeList();
                 out.push('');
                 continue;
+            }
+            if (trimmed.startsWith('<poml')) {
+                closeList();
+                inPoml = true;
+                pomlLines = [line];
+                continue;
+            }
+            if (inPoml) {
+                pomlLines.push(line);
+                if (trimmed.includes('</poml>')) {
+                    const blockText = pomlLines.join('\n');
+                    out.push('<pre class="poml-block"><code>' + escapeInline(blockText) + '</code></pre>');
+                    inPoml = false;
+                    pomlLines = [];
+                }
+                continue;
+            }
+            if (trimmed.startsWith('|')) {
+                const next = i + 1 < lines.length ? lines[i + 1].trim() : '';
+                if (next.startsWith('|') && /-/.test(next)) {
+                    closeList();
+                    const tableLines = [trimmed, next];
+                    i += 2;
+                    while (i < lines.length) {
+                        const t = lines[i].trim();
+                        if (!t.startsWith('|')) break;
+                        tableLines.push(t);
+                        i++;
+                    }
+                    i--;
+                    out.push(renderTable(tableLines));
+                    continue;
+                }
             }
             if (trimmed.startsWith('# ')) {
                 closeList();
@@ -999,8 +1605,46 @@
                 icon.className = this.state.theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
             };
 
+            // Export full JSON of parsed chapters
+            const exportBtn = document.getElementById('export-btn');
+            if (exportBtn) {
+                exportBtn.onclick = () => this.exportFullJson();
+            }
+
             // Mobile Check
             if (window.innerWidth <= 768) document.getElementById('close-sb-mobile').style.display = 'block';
+        },
+
+        exportFullJson() {
+            if (!Array.isArray(this.db) || !this.db.length) return;
+
+            // Build a clean, exportable shape for each chapter
+            const payload = this.db.map((ch) => ({
+                id: ch.id,
+                file: ch.file || null,
+                title: ch.title,
+                subtitle: ch.subtitle,
+                text: ch.text || '',                // rendered TEXT view body (HTML)
+                poml: ch.poml || null,              // parsed <poml> block
+                p1: ch.p1 || null,                  // derived participant A summary
+                p2: ch.p2 || null,                  // derived participant B summary
+                assessments: Array.isArray(ch.assessments) ? ch.assessments : [],
+                finalVerdict: ch.finalVerdict || null,
+                images: Array.isArray(ch.images) ? ch.images : [],
+                tags: Array.isArray(ch.tags) ? ch.tags : [],
+                rawMarkdown: ch._rawMarkdown || null
+            }));
+
+            const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const ts = new Date().toISOString().replace(/[:.]/g, '-');
+            a.href = url;
+            a.download = `onyx-full-data-${ts}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         },
 
         renderSidebar(data) {
@@ -1080,6 +1724,7 @@
                 const scoreEl = document.getElementById(`${idPrefix}-score`);
                 const metaEl = document.getElementById(`${idPrefix}-meta`);
                 const statsEl = document.getElementById(`${idPrefix}-stats`);
+                const assessEl = document.getElementById(`${idPrefix}-assessment`);
 
                 if (!nameEl || !scoreEl || !statsEl) return;
 
@@ -1090,13 +1735,24 @@
                 nameEl.textContent = p.name;
                 scoreEl.textContent = p.score;
 
+                // Highlight panel for winner
+                if (metaEl) {
+                    const panelEl = metaEl.closest('.fighter-panel');
+                    if (panelEl) {
+                        if (isWinner) panelEl.classList.add('winner');
+                        else panelEl.classList.remove('winner');
+                    }
+                }
+
                 if (metaEl) {
                     let metaHtml = '';
 
+                    // Winner badge
                     if (isWinner) {
                         metaHtml += '<div class="meta-row"><span class="winner-pill">WINNER</span></div>';
                     }
 
+                    // High-level model label from POML
                     if (poml) {
                         let modelText = '';
                         if (idPrefix === 'p1' && poml.modelA) modelText = poml.modelA;
@@ -1106,83 +1762,160 @@
                         }
                     }
 
-                    if (a && a.calibration) {
-                        if (a.calibration.coreTask) {
-                            metaHtml += `<div class="meta-row"><span class="meta-label">Core Task:</span> ${escapeInline(a.calibration.coreTask)}</div>`;
-                        }
-                        if (a.calibration.intendedFrame) {
-                            metaHtml += `<div class="meta-row"><span class="meta-label">Frame:</span> ${escapeInline(a.calibration.intendedFrame)}</div>`;
-                        }
-                        if (a.calibration.darknessPriorLevel || a.calibration.darknessPriorLabel) {
-                            const lvl = a.calibration.darknessPriorLevel || '';
-                            const lbl = a.calibration.darknessPriorLabel || '';
-                            const text = (lvl ? lvl + ' risk' : '').concat(lbl ? (lvl ? ' of ' : '') + lbl : '');
-                            if (text) {
-                                metaHtml += `<div class="meta-row"><span class="meta-chip">${escapeInline(text)}</span></div>`;
-                            }
-                        } else if (a.calibration.darknessPrior) {
-                            metaHtml += `<div class="meta-row"><span class="meta-label">Darkness Prior:</span> ${escapeInline(a.calibration.darknessPrior)}</div>`;
+                    // Compact Darkness Prior chip (full sentence lives in assessment text below)
+                    if (a && a.calibration && (a.calibration.darknessPriorLevel || a.calibration.darknessPriorLabel)) {
+                        const lvl = a.calibration.darknessPriorLevel || '';
+                        const lbl = a.calibration.darknessPriorLabel || '';
+                        const text = (lvl ? lvl + ' risk' : '').concat(lbl ? (lvl ? ' of ' : '') + lbl : '');
+                        if (text) {
+                            metaHtml += `<div class="meta-row"><span class="meta-chip">${escapeInline(text)}</span></div>`;
                         }
                     }
 
+                    // Grade summary
                     if (typeof p.score === 'number' && a && a.scoreLabel) {
                         metaHtml += `<div class="meta-row"><span class="meta-label">Grade:</span> ${escapeInline(`${p.score}/100 (${a.scoreLabel})`)}</div>`;
-                    }
-
-                    if (a && a.justification) {
-                        if (a.justification.fatal_flaw) {
-                            metaHtml += `<div class="meta-row"><span class="meta-label">Fatal Flaw:</span> ${escapeInline(a.justification.fatal_flaw)}</div>`;
-                        }
-                        if (a.justification.paradigm_shift) {
-                            metaHtml += `<div class="meta-row"><span class="meta-label">Paradigm Shift:</span> ${escapeInline(a.justification.paradigm_shift)}</div>`;
-                        }
                     }
 
                     metaHtml = metaHtml || '';
                     metaEl.innerHTML = metaHtml;
                 }
 
-                const truncate = (str, max) => {
-                    if (!str) return '';
-                    const s = String(str);
-                    return s.length <= max ? s : s.slice(0, max - 1) + '…';
-                };
+                let assessmentHtml = '';
+                if (a && a.calibrationText) {
+                    assessmentHtml += simpleMarkdownToHtml(a.calibrationText);
+                }
+                if (a && a.forensicText) {
+                    assessmentHtml += simpleMarkdownToHtml(a.forensicText);
+                }
+                if (a && a.overallGradeText) {
+                    assessmentHtml += simpleMarkdownToHtml(a.overallGradeText);
+                }
 
-                statsEl.innerHTML = (p.criteria || []).map(function (c) {
-                    const verdictLabel = c.rawVerdict ? c.rawVerdict : c.s;
-                    const hasDetail = c.strength || c.evidence || c.critique;
-                    let body = '';
+                // Highlight verdict words (Light/Twilight/Shadow/Void) as chips
+                if (assessmentHtml) {
+                    assessmentHtml = assessmentHtml.replace(/<strong>(Light|Twilight|Shadow|Void)<\/strong>/g, function (_, word) {
+                        const v = String(word || '').toLowerCase();
+                        let cls = 'verdict-fail';
+                        if (v === 'light') cls = 'verdict-light';
+                        else if (v === 'twilight') cls = 'verdict-twilight';
+                        return '<span class="verdict-chip ' + cls + '"><strong>' + word + '</strong></span>';
+                    });
+                }
 
-                    if (verdictLabel) {
-                        body += `<div style="font-size:10px; opacity:0.8; text-transform:uppercase; margin-bottom:4px;">Verdict: ${escapeInline(verdictLabel)}</div>`;
-                    }
-                    if (c.strength) {
-                        body += `<div style="font-size:11px; margin-bottom:4px;"><span class="meta-label">Strength:</span> ${escapeInline(truncate(c.strength, 180))}</div>`;
-                    }
-                    if (c.evidence) {
-                        body += `<div style="font-size:11px; margin-bottom:4px;"><span class="meta-label">Evidence:</span> ${escapeInline(truncate(c.evidence, 220))}</div>`;
-                    }
-                    if (c.critique) {
-                        body += `<div style="font-size:11px;"><span class="meta-label">Critique:</span> ${escapeInline(truncate(c.critique, 220))}</div>`;
-                    }
+                statsEl.innerHTML = assessmentHtml
+                    ? `<div class="assessment-body">${assessmentHtml}</div>`
+                    : '';
 
-                    return `
-                        <div class="criterion ${c.s}">
-                            <div style="font-weight:600; font-size:12px; margin-bottom:${hasDetail ? 4 : 0}px;">${escapeInline(c.n)}</div>
-                            ${body}
-                        </div>
-                    `;
-                }).join('');
+                if (assessEl) {
+                    assessEl.innerHTML = '';
+                }
             };
 
             renderStats(data.p1, a1, 'p1');
             renderStats(data.p2, a2, 'p2');
+
+            // Comparative criteria grid under both entities
+            const compareEl = document.getElementById('criteria-compare');
+            if (compareEl) {
+                let html = '';
+
+                // Final comparative verdict block (winner + explanation + table)
+                const fv = data.finalVerdict;
+                const rawMd = data._rawMarkdown || '';
+                if (fv && (fv.winnerName || fv.tableMarkdown)) {
+                    let winnerBlock = '';
+                    if (fv.winnerName) {
+                        // Try to extract the paragraph after **Winner:** line from raw markdown
+                        let explanation = '';
+                        const winRe = /\*\*Winner:\*\*\s*\*\*([^*]+)\*\*[\s\S]*?(?:\n\n([^#\n][^\n]*))/i;
+                        const m = rawMd.match(winRe);
+                        if (m && m[2]) explanation = m[2].trim();
+                        winnerBlock = '<div style="margin-bottom:0.75rem;">'
+                            + '<span class="crit-col-label">Final Verdict: </span>'
+                            + '<span style="font-weight:600;">' + escapeInline(fv.winnerName) + '</span>';
+                        if (explanation) {
+                            winnerBlock += '<span style="display:block; margin-top:4px; font-size:11px; color:var(--text-main);">'
+                                + escapeInline(explanation)
+                                + '</span>';
+                        }
+                        winnerBlock += '</div>';
+                    }
+
+                    let tableBlock = '';
+                    if (fv.tableMarkdown) {
+                        tableBlock = simpleMarkdownToHtml(fv.tableMarkdown);
+                    }
+
+                    if (winnerBlock || tableBlock) {
+                        html += '<div style="margin-bottom:1.25rem;">'
+                            + '<h3>Final Comparative Verdict</h3>'
+                            + winnerBlock
+                            + (tableBlock ? '<div class="doc-body">' + tableBlock + '</div>' : '')
+                            + '</div>';
+                    }
+                }
+
+                // Criteria alignment grid
+                const p1 = data.p1 || { criteria: [] };
+                const p2 = data.p2 || { criteria: [] };
+                const c1 = Array.isArray(p1.criteria) ? p1.criteria : [];
+                const c2 = Array.isArray(p2.criteria) ? p2.criteria : [];
+                const maxLen = Math.max(c1.length, c2.length);
+
+                if (maxLen > 0) {
+                    html += '<h3>Criterion-by-Criterion Comparison</h3>';
+                    html += '<table><thead><tr>'
+                        + '<th class="crit-col-label">Criterion</th>'
+                        + '<th>' + escapeInline(p1.name || 'Entity A') + '</th>'
+                        + '<th>' + escapeInline(p2.name || 'Entity B') + '</th>'
+                        + '</tr></thead><tbody>';
+
+                    for (let i = 0; i < maxLen; i++) {
+                        const left = c1[i] || null;
+                        const right = c2[i] || null;
+                        const label = left && left.n ? left.n : (right && right.n ? right.n : 'Criterion ' + String(i + 1));
+                        const leftVerdict = left && left.rawVerdict ? String(left.rawVerdict) : '';
+                        const rightVerdict = right && right.rawVerdict ? String(right.rawVerdict) : '';
+
+                        function verdictChip(v) {
+                            if (!v) return '';
+                            const lower = v.toLowerCase();
+                            let cls = 'verdict-fail';
+                            if (lower === 'light') cls = 'verdict-light';
+                            else if (lower === 'twilight') cls = 'verdict-twilight';
+                            return '<span class="verdict-chip ' + cls + '">' + escapeInline(v) + '</span>';
+                        }
+
+                        html += '<tr>';
+                        html += '<td><span class="crit-col-label">' + escapeInline(label) + '</span></td>';
+                        html += '<td>';
+                        if (left) {
+                            html += verdictChip(leftVerdict);
+                        }
+                        html += '</td>';
+                        html += '<td>';
+                        if (right) {
+                            html += verdictChip(rightVerdict);
+                        }
+                        html += '</td>';
+                        html += '</tr>';
+                    }
+
+                    html += '</tbody></table>';
+                }
+
+                compareEl.innerHTML = html;
+            }
 
             // Close sidebar on mobile
             if(window.innerWidth <= 768) {
                 this.state.sidebarOpen = false;
                 document.getElementById('sidebar').classList.remove('open');
             }
+            
+            // Load audio for this chapter
+            this.audio.loadChapter(data);
         },
 
         switchView(viewName) {
@@ -1230,11 +1963,471 @@
             } else {
                 tab.style.color = 'var(--text-muted)';
             }
+        },
+
+        // ============ AUDIO PLAYBACK SYSTEM ============
+        audio: {
+            synth: null,
+            voices: [],
+            lines: [],
+            currentIndex: -1,
+            isPlaying: false,
+            isPaused: false,
+            speed: 1.0,
+            showText: true,
+            showAction: true,
+            p1Name: '',
+            p2Name: '',
+            voiceMap: {},  // speaker name -> voice
+            
+            init() {
+                this.synth = window.speechSynthesis;
+                
+                // Load voices (may be async)
+                const loadVoices = () => {
+                    this.voices = this.synth.getVoices();
+                    console.log('Loaded', this.voices.length, 'voices');
+                };
+                loadVoices();
+                if (speechSynthesis.onvoiceschanged !== undefined) {
+                    speechSynthesis.onvoiceschanged = loadVoices;
+                }
+                
+                // Bind controls
+                document.getElementById('audio-play').onclick = () => this.play();
+                document.getElementById('audio-pause').onclick = () => this.pause();
+                document.getElementById('audio-stop').onclick = () => this.stop();
+                document.getElementById('audio-prev').onclick = () => this.prev();
+                document.getElementById('audio-next').onclick = () => this.next();
+                
+                document.getElementById('audio-speed').oninput = (e) => {
+                    this.speed = parseFloat(e.target.value);
+                    document.getElementById('audio-speed-val').textContent = this.speed.toFixed(1) + 'x';
+                };
+                
+                document.getElementById('audio-show-text').onchange = (e) => {
+                    this.showText = e.target.checked;
+                    this.updateLineVisibility();
+                };
+                
+                document.getElementById('audio-show-narration').onchange = () => {
+                    this.updateLineVisibility();
+                };
+                
+                document.getElementById('audio-show-action').onchange = (e) => {
+                    this.showAction = e.target.checked;
+                    this.updateLineVisibility();
+                };
+            },
+            
+            assignVoices(participants) {
+                // ═══════════════════════════════════════════════════════════
+                // VOICE CASTING SYSTEM
+                // ═══════════════════════════════════════════════════════════
+                // We need 4 distinct voices for a radio play:
+                //   PRESENTER - Announces chapters (authoritative, British)
+                //   NARRATOR  - Reads stage directions (warm, storytelling)
+                //   P1        - First speaker dialogue (gender-appropriate)
+                //   P2        - Second speaker dialogue (gender-appropriate)
+                // ═══════════════════════════════════════════════════════════
+                
+                const p1 = participants.p1 || 'Entity A';
+                const p2 = participants.p2 || 'Entity B';
+                
+                // Infer gender from character names
+                const inferGender = (name) => {
+                    const upper = (name || '').toUpperCase();
+                    // Female indicators
+                    if (/WOMAN|GIRL|MOTHER|QUEEN|WITCH|MAIDEN|BRIDE|SISTER|DAUGHTER|WIFE|PRIESTESS|GODDESS|EMPRESS|PRINCESS/.test(upper)) {
+                        return 'female';
+                    }
+                    // Male indicators (most characters default to male in this corpus)
+                    return 'male';
+                };
+                
+                const p1Gender = inferGender(p1);
+                const p2Gender = inferGender(p2);
+                
+                // Get all English voices, excluding novelty/robotic ones
+                const noveltyVoices = ['Albert', 'Bad News', 'Bahh', 'Bells', 'Boing', 
+                    'Bubbles', 'Cellos', 'Good News', 'Jester', 'Junior', 'Organ', 
+                    'Superstar', 'Trinoids', 'Whisper', 'Wobble', 'Zarvox'];
+                
+                const enVoices = this.voices.filter(v => 
+                    v.lang.startsWith('en') && 
+                    !noveltyVoices.some(n => v.name.includes(n))
+                );
+                
+                // Helper: find first matching voice by name patterns
+                const findVoice = (...patterns) => {
+                    for (const pattern of patterns) {
+                        const found = enVoices.find(v => v.name.includes(pattern));
+                        if (found) return found;
+                    }
+                    return null;
+                };
+                
+                // Helper: find voice not already used
+                const findUnused = (...used) => {
+                    return enVoices.find(v => !used.includes(v)) || used[0];
+                };
+                
+                // ─────────────────────────────────────────────────────────────
+                // VOICE SELECTION PRIORITY
+                // ─────────────────────────────────────────────────────────────
+                
+                // Male voice pool
+                const maleVoices = ['Fred', 'Ralph', 'Daniel', 'Rishi', 'Rocko', 
+                    'Grandpa', 'Reed (English (US))', 'Eddy (English (US))', 'Reed (English (UK))'];
+                // Female voice pool  
+                const femaleVoices = ['Samantha', 'Karen', 'Moira', 'Tessa', 'Kathy',
+                    'Flo', 'Shelley', 'Grandma'];
+                
+                // PRESENTER: British authority - Daniel is ideal (BBC-style)
+                const presenterVoice = findVoice('Daniel', 'Reed (English (UK))', 
+                    'Eddy (English (UK))', 'Fred', 'Ralph') || enVoices[0];
+                
+                // NARRATOR: Warm female for intimate storytelling
+                const narratorVoice = findVoice('Samantha', 'Karen', 'Tessa', 'Kathy', 
+                    'Flo', 'Shelley') || findUnused(presenterVoice);
+                
+                // P1: Gender-appropriate voice
+                let p1Voice;
+                if (p1Gender === 'female') {
+                    p1Voice = findVoice(...femaleVoices.filter(v => 
+                        !narratorVoice?.name?.includes(v)));
+                } else {
+                    p1Voice = findVoice(...maleVoices.filter(v => 
+                        !presenterVoice?.name?.includes(v)));
+                }
+                p1Voice = p1Voice || findUnused(presenterVoice, narratorVoice);
+                
+                // P2: Gender-appropriate voice (different from P1)
+                let p2Voice;
+                if (p2Gender === 'female') {
+                    p2Voice = findVoice(...femaleVoices.filter(v => 
+                        !narratorVoice?.name?.includes(v) && !p1Voice?.name?.includes(v)));
+                } else {
+                    p2Voice = findVoice(...maleVoices.filter(v => 
+                        !presenterVoice?.name?.includes(v) && !p1Voice?.name?.includes(v)));
+                }
+                p2Voice = p2Voice || findUnused(presenterVoice, narratorVoice, p1Voice);
+                
+                // ─────────────────────────────────────────────────────────────
+                // STORE VOICE MAP
+                // ─────────────────────────────────────────────────────────────
+                
+                this.voiceMap = {
+                    'PRESENTER': presenterVoice,
+                    'NARRATOR': narratorVoice,
+                    [p1.toUpperCase()]: p1Voice,
+                    [p2.toUpperCase()]: p2Voice
+                };
+                
+                // Log voice cast to console
+                console.log('🎭 Voice Cast:');
+                console.log(`  PRESENTER: ${presenterVoice?.name || 'default'} (chapter intros)`);
+                console.log(`  NARRATOR:  ${narratorVoice?.name || 'default'} (stage directions)`);
+                console.log(`  ${p1.toUpperCase()} [${p1Gender}]: ${p1Voice?.name || 'default'}`);
+                console.log(`  ${p2.toUpperCase()} [${p2Gender}]: ${p2Voice?.name || 'default'}`);
+                console.log(`  Available: ${enVoices.length} quality voices (${this.voices.length} total)`);
+            },
+            
+            loadChapter(chapterData) {
+                this.stop();
+                this.lines = [];
+                this.currentIndex = -1;
+                
+                const id = chapterData.id || 'M-00';
+                const title = chapterData.title || 'Unknown Chapter';
+                const subtitle = chapterData.subtitle || '';
+                const p1Name = chapterData.p1?.name || chapterData.assessments?.[0]?.name || 'Entity A';
+                const p2Name = chapterData.p2?.name || chapterData.assessments?.[1]?.name || 'Entity B';
+                
+                // Store participant names for speaker alignment
+                this.p1Name = p1Name.toUpperCase();
+                this.p2Name = p2Name.toUpperCase();
+                
+                // Update header
+                document.getElementById('audio-chapter-id').textContent = id;
+                document.getElementById('audio-chapter-title').textContent = title;
+                
+                // Assign voices
+                this.assignVoices({ p1: p1Name, p2: p2Name });
+                
+                // Build script: Presenter intro
+                this.lines.push({
+                    type: 'presenter',
+                    speaker: 'PRESENTER',
+                    text: `Chapter ${id.replace('M-', '')}. ${title}. ${subtitle}`,
+                    action: null
+                });
+                
+                // Try to load full script from chapter folder
+                const folderName = this.getFolderName(id, p1Name, p2Name);
+                fetch(`chapters/${folderName}/script.json`)
+                    .then(res => res.ok ? res.json() : null)
+                    .then(data => {
+                        if (data && data.script) {
+                            // Use full script with narration, dialogue, shouts
+                            data.script.forEach(el => {
+                                // Skip very short narration (orphan punctuation)
+                                if (el.type === 'narration' && el.text.length < 3) return;
+                                this.lines.push(el);
+                            });
+                        } else {
+                            // Fallback to dialogue.json
+                            return fetch(`chapters/${folderName}/dialogue.json`).then(r => r.ok ? r.json() : null);
+                        }
+                    })
+                    .then(data => {
+                        if (data && data.dialogue && this.lines.length <= 1) {
+                            data.dialogue.forEach(line => {
+                                this.lines.push({
+                                    type: 'dialogue',
+                                    speaker: line.speaker,
+                                    text: line.text,
+                                    action: line.verb
+                                });
+                            });
+                        }
+                        this.renderTranscript();
+                    })
+                    .catch(() => {
+                        this.renderTranscript();
+                    });
+            },
+            
+            getFolderName(id, p1, p2) {
+                const clean = (s) => s.replace(/[^A-Z\-]/gi, '-').replace(/-+/g, '-');
+                return `${id}_${clean(p1)}-vs-${clean(p2)}`;
+            },
+            
+            renderTranscript() {
+                const container = document.getElementById('audio-transcript');
+                
+                container.innerHTML = this.lines.map((line, i) => {
+                    const type = line.type || 'dialogue';
+                    const speaker = line.speaker || '';
+                    const speakerUpper = speaker.toUpperCase();
+                    
+                    // Determine speaker alignment (P1 left, P2 right, narration center)
+                    let speakerClass = '';
+                    if (type === 'dialogue' || type === 'shout') {
+                        if (speakerUpper.includes(this.p1Name?.split(' ').pop())) {
+                            speakerClass = 'speaker-p1';
+                        } else if (speakerUpper.includes(this.p2Name?.split(' ').pop())) {
+                            speakerClass = 'speaker-p2';
+                        }
+                    }
+                    
+                    const typeClass = `type-${type}`;
+                    const hideText = this.showText ? '' : 'hide-text';
+                    const hideAction = this.showAction ? '' : 'hide-action';
+                    
+                    // Build action/stage direction text
+                    const actionHtml = line.action ? `<span class="audio-action">(${this.escapeHtml(line.action)})</span>` : '';
+                    
+                    return `<div class="audio-line ${typeClass} ${speakerClass} ${hideText} ${hideAction}" 
+                                 data-index="${i}"
+                                 onclick="app.audio.jumpTo(${i})">
+                        <span class="audio-speaker">${this.escapeHtml(speaker)}</span>
+                        <span class="audio-text">${this.escapeHtml(line.text)}</span>
+                        ${actionHtml}
+                    </div>`;
+                }).join('');
+                
+                this.updateProgress();
+            },
+            
+            updateLineVisibility() {
+                const showNarration = document.getElementById('audio-show-narration')?.checked ?? true;
+                document.querySelectorAll('.audio-line').forEach(el => {
+                    el.classList.toggle('hide-text', !this.showText);
+                    el.classList.toggle('hide-action', !this.showAction);
+                    // Hide/show narration lines entirely
+                    if (el.classList.contains('type-narration')) {
+                        el.style.display = showNarration ? '' : 'none';
+                    }
+                });
+            },
+            
+            updateProgress() {
+                const total = this.lines.length;
+                const current = this.currentIndex + 1;
+                const pct = total > 0 ? (current / total) * 100 : 0;
+                
+                document.getElementById('audio-progress-bar').style.width = pct + '%';
+                document.getElementById('audio-progress-text').textContent = `${current} / ${total}`;
+                
+                // Update line states
+                document.querySelectorAll('.audio-line').forEach((el, i) => {
+                    el.classList.toggle('active', i === this.currentIndex);
+                    el.classList.toggle('played', i < this.currentIndex);
+                });
+                
+                // Scroll active line into view
+                const activeLine = document.querySelector('.audio-line.active');
+                if (activeLine) {
+                    activeLine.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            },
+            
+            speak(text, speaker, type, callback) {
+                if (!this.synth) return callback && callback();
+                
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = this.speed;
+                
+                // Adjust pitch and voice based on type and speaker
+                if (type === 'narration') {
+                    utterance.pitch = 0.95;
+                    utterance.rate = this.speed * 0.9; // Slower, more measured for narration
+                    utterance.voice = this.voiceMap['NARRATOR'] || this.voiceMap['PRESENTER'] || this.voices[0];
+                } else if (type === 'shout') {
+                    utterance.pitch = 1.2;
+                    utterance.rate = this.speed * 1.1; // Faster for shouts
+                    utterance.volume = 1.0;
+                    // Use speaker's voice
+                    const voice = this.voiceMap[speaker] || this.voiceMap['PRESENTER'] || this.voices[0];
+                    if (voice) utterance.voice = voice;
+                } else if (type === 'presenter') {
+                    utterance.pitch = 1.0;
+                    utterance.voice = this.voiceMap['PRESENTER'] || this.voices[0];
+                } else {
+                    // Dialogue - use speaker's assigned voice
+                    const speakerUpper = (speaker || '').toUpperCase();
+                    let voice = null;
+                    // Try to match speaker to voice map
+                    for (const [key, v] of Object.entries(this.voiceMap)) {
+                        if (speakerUpper.includes(key.split(' ').pop())) {
+                            voice = v;
+                            break;
+                        }
+                    }
+                    utterance.voice = voice || this.voiceMap['PRESENTER'] || this.voices[0];
+                    utterance.pitch = speakerUpper.includes(this.p1Name?.split(' ').pop()) ? 0.9 : 1.1;
+                }
+                
+                utterance.onend = () => callback && callback();
+                utterance.onerror = (e) => {
+                    console.warn('Speech error:', e);
+                    callback && callback();
+                };
+                
+                this.synth.speak(utterance);
+            },
+            
+            play() {
+                if (this.lines.length === 0) return;
+                
+                if (this.isPaused) {
+                    this.synth.resume();
+                    this.isPaused = false;
+                    this.isPlaying = true;
+                    document.getElementById('audio-play').classList.add('active');
+                    return;
+                }
+                
+                if (this.isPlaying) return;
+                
+                this.isPlaying = true;
+                document.getElementById('audio-play').classList.add('active');
+                
+                if (this.currentIndex < 0) this.currentIndex = 0;
+                this.playCurrentLine();
+            },
+            
+            playCurrentLine() {
+                if (!this.isPlaying || this.currentIndex >= this.lines.length) {
+                    this.stop();
+                    return;
+                }
+                
+                const line = this.lines[this.currentIndex];
+                this.updateProgress();
+                
+                // Skip hidden narration lines
+                const showNarration = document.getElementById('audio-show-narration')?.checked ?? true;
+                if (line.type === 'narration' && !showNarration) {
+                    this.currentIndex++;
+                    this.playCurrentLine();
+                    return;
+                }
+                
+                this.speak(line.text, line.speaker, line.type, () => {
+                    if (this.isPlaying && !this.isPaused) {
+                        this.currentIndex++;
+                        this.playCurrentLine();
+                    }
+                });
+            },
+            
+            pause() {
+                if (this.synth && this.isPlaying) {
+                    this.synth.pause();
+                    this.isPaused = true;
+                    this.isPlaying = false;
+                    document.getElementById('audio-play').classList.remove('active');
+                }
+            },
+            
+            stop() {
+                if (this.synth) {
+                    this.synth.cancel();
+                }
+                this.isPlaying = false;
+                this.isPaused = false;
+                this.currentIndex = -1;
+                document.getElementById('audio-play').classList.remove('active');
+                this.updateProgress();
+            },
+            
+            prev() {
+                if (this.currentIndex > 0) {
+                    this.synth.cancel();
+                    this.currentIndex--;
+                    this.updateProgress();
+                    if (this.isPlaying) {
+                        this.playCurrentLine();
+                    }
+                }
+            },
+            
+            next() {
+                if (this.currentIndex < this.lines.length - 1) {
+                    this.synth.cancel();
+                    this.currentIndex++;
+                    this.updateProgress();
+                    if (this.isPlaying) {
+                        this.playCurrentLine();
+                    }
+                }
+            },
+            
+            jumpTo(index) {
+                if (index >= 0 && index < this.lines.length) {
+                    this.synth.cancel();
+                    this.currentIndex = index;
+                    this.updateProgress();
+                    if (this.isPlaying) {
+                        this.playCurrentLine();
+                    }
+                }
+            },
+            
+            escapeHtml(str) {
+                if (!str) return '';
+                return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            }
         }
     };
 
     // Run
-    document.addEventListener('DOMContentLoaded', () => app.init());
+    document.addEventListener('DOMContentLoaded', () => {
+        app.init();
+        app.audio.init();
+    });
 
 </script>
 </body>
