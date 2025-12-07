@@ -151,7 +151,7 @@
         }
 
         .f-id { font-family: var(--font-ui); font-size: 11px; color: var(--text-dim); font-weight: 600; }
-        .f-title { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .f-title { font-size: 12px; font-weight: 500; line-height: 1.3; }
         .f-meta { font-family: var(--font-ui); font-size: 10px; color: var(--text-muted); text-align: right; }
 
         /* --- MAIN AREA --- */
@@ -1375,9 +1375,8 @@
                 </div>
             </div>
             <div class="top-actions">
-                <button class="btn-icon" id="theme-toggle" title="Toggle Light Mode"><i class="fas fa-sun"></i></button>
-                <button class="btn-icon" title="Settings"><i class="fas fa-cog"></i></button>
-                <button class="btn-icon" id="export-btn" style="color:var(--accent); border-color:var(--accent);" title="Export full JSON"><i class="fas fa-download"></i></button>
+                <button class="btn-icon" id="theme-toggle" title="Toggle Light/Dark Mode"><i class="fas fa-sun"></i></button>
+                <button class="btn-icon" id="export-btn" style="color:var(--accent); border-color:var(--accent);" title="Download all chapters as JSON (parsed data, scores, verdicts)"><i class="fas fa-download"></i></button>
             </div>
         </div>
 
@@ -2221,9 +2220,12 @@
                 const isViewed = this.state.viewedChapters?.has(originalIdx);
                 const isCurrent = originalIdx === this.state.currentIdx;
                 
+                // Format title: break before "meets THE"
+                const formattedTitle = item.title.replace(/\s+(meets\s+THE)/, '<br>$1');
+                
                 li.innerHTML = `
                     <div class="f-id">${item.id}</div>
-                    <div class="f-title">${item.title}</div>
+                    <div class="f-title">${formattedTitle}</div>
                     <div class="f-meta" style="display:flex; align-items:center; gap:6px;">
                         ${isViewed ? '<i class="fas fa-check" style="font-size:8px; color:var(--success)"></i>' : ''}
                         <div style="width:6px; height:6px; border-radius:50%; background:${isCurrent ? 'var(--accent)' : statusColor}; ${isCurrent ? 'box-shadow: 0 0 8px var(--accent);' : ''}"></div>
