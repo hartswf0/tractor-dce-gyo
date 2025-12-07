@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arena Reader • Agon Archive</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg: #faf8f3;
+            --surface: #ffffff;
+            --border: #e5e0d5;
+            --text: #2c2416;
+            --dim: #8a8070;
+            --muted: #b5a99a;
+            
+            /* Speaker colors */
+            --speaker-1: #8b2500;
+            --speaker-1-bg: rgba(139, 37, 0, 0.08);
+            --speaker-2: #1a4d6e;
+            --speaker-2-bg: rgba(26, 77, 110, 0.08);
+            
+            /* Verdict colors */
+            --light: #2e7d32;
+            --light-bg: rgba(46, 125, 50, 0.1);
+            --shadow: #c62828;
+            --shadow-bg: rgba(198, 40, 40, 0.1);
+            --twilight: #e65100;
+            --twilight-bg: rgba(230, 81, 0, 0.1);
+            
+            /* Highlight color for quoted text */
+            --highlight: rgba(255, 220, 100, 0.4);
+            --highlight-border: rgba(255, 180, 50, 0.8);
+            
+            /* Layout */
+            --sidebar-width: 300px;
+            --content-max: 700px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0f0d0a;
+                --surface: #1a1814;
+                --border: #2a2620;
+                --text: #e8e4dc;
+                --dim: #8a8070;
+                --muted: #5a5448;
+                --speaker-1: #e07050;
+                --speaker-1-bg: rgba(224, 112, 80, 0.12);
+                --speaker-2: #5090b0;
+                --speaker-2-bg: rgba(80, 144, 176, 0.12);
+            }
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: 'Cormorant', serif;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 17px;
+            line-height: 1.7;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+           MAIN LAYOUT: Two columns (dialogue + insights)
+        ═══════════════════════════════════════════════════════════════ */
+        .arena-container {
+            display: grid;
+            grid-template-columns: 1fr var(--sidebar-width);
+            grid-template-rows: auto 1fr auto;
+            height: 100vh;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* ─────────────────────────────────────────────────────────────
+           HEADER
+        ───────────────────────────────────────────────────────────── */
+        .arena-header {
+            grid-column: 1 / -1;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--surface);
+        }
+
+        .arena-title {
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--dim);
+        }
+
+        .arena-chapter {
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .arena-nav {
+            display: flex;
+            gap: 8px;
+        }
+
+        .arena-nav button {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            padding: 6px 12px;
+            font-family: 'Inter', sans-serif;
+            font-size: 11px;
+            cursor: pointer;
+            color: var(--dim);
+            transition: all 0.2s;
+        }
+
+        .arena-nav button:hover {
+            border-color: var(--text);
+            color: var(--text);
+        }
+
+        /* ─────────────────────────────────────────────────────────────
+           DIALOGUE COLUMN (Main content)
+        ───────────────────────────────────────────────────────────── */
+        .dialogue-column {
+            grid-column: 1;
+            grid-row: 2;
+            overflow-y: auto;
+            padding: 1.5rem 2rem;
+            scroll-behavior: smooth;
+        }
+
+        .dialogue-line {
+            margin-bottom: 1.5rem;
+            padding: 0.75rem 1rem;
+            border-radius: 4px;
+            position: relative;
+            transition: background 0.2s;
+        }
+
+        .dialogue-line:hover {
+            background: var(--surface);
+        }
+
+        .dialogue-line.active {
+            background: var(--surface);
+            box-shadow: inset 3px 0 0 var(--speaker-1);
+        }
+        
+        /* Highlighted quote within dialogue */
+        .dialogue-line.has-highlight {
+            background: var(--surface);
+        }
+        
+        .dialogue-line .highlight-quote {
+            background: var(--highlight);
+            border-bottom: 2px solid var(--highlight-border);
+            padding: 2px 4px;
+            border-radius: 3px;
+            transition: all 0.3s;
+            display: inline;
+            box-decoration-break: clone;
+            -webkit-box-decoration-break: clone;
+        }
+        
+        .dialogue-line.quote-active .highlight-quote {
+            background: rgba(255, 200, 50, 0.7);
+            box-shadow: 0 0 12px rgba(255, 180, 50, 0.6), 0 2px 4px rgba(0,0,0,0.1);
+            border-bottom-color: var(--twilight);
+            animation: pulse-highlight 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes pulse-highlight {
+            0%, 100% { box-shadow: 0 0 8px rgba(255, 180, 50, 0.4); }
+            50% { box-shadow: 0 0 16px rgba(255, 180, 50, 0.8); }
+        }
+
+        /* Speaker label */
+        .speaker-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            font-weight: 500;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .speaker-1 .speaker-label { color: var(--speaker-1); }
+        .speaker-2 .speaker-label { color: var(--speaker-2); }
+
+        /* Dialogue text */
+        .dialogue-text {
+            font-size: 17px;
+            line-height: 1.7;
+        }
+
+        .dialogue-text em { font-style: italic; }
+        .dialogue-text strong { font-weight: 600; }
+
+        /* Narration */
+        .dialogue-line.narration {
+            color: var(--dim);
+            font-style: italic;
+            padding-left: 2rem;
+            border-left: 2px solid var(--border);
+        }
+
+        .dialogue-line.narration .speaker-label { display: none; }
+
+        /* ─────────────────────────────────────────────────────────────
+           INSIGHTS SIDEBAR (Right)
+           Cards that align with dialogue lines - NO STACKING
+        ───────────────────────────────────────────────────────────── */
+        .insights-column {
+            grid-column: 2;
+            grid-row: 2;
+            overflow-y: auto;
+            padding: 1rem;
+            border-left: 1px solid var(--border);
+            background: var(--surface);
+            position: relative;
+        }
+
+        .insights-column::-webkit-scrollbar { width: 4px; }
+        .insights-column::-webkit-scrollbar-thumb { background: var(--border); }
+
+        .insight-card {
+            position: absolute;
+            left: 1rem;
+            right: 1rem;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 0.75rem;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .insight-card:hover {
+            border-color: var(--dim);
+            transform: translateX(-4px);
+            box-shadow: -4px 2px 12px rgba(0,0,0,0.1);
+        }
+        
+        .insight-card.active {
+            border-color: var(--highlight-border);
+            box-shadow: -4px 2px 16px rgba(255, 180, 50, 0.3);
+        }
+
+        .insight-card.verdict-light {
+            border-left: 3px solid var(--light);
+            background: var(--light-bg);
+        }
+
+        .insight-card.verdict-shadow {
+            border-left: 3px solid var(--shadow);
+            background: var(--shadow-bg);
+        }
+
+        .insight-card.verdict-twilight {
+            border-left: 3px solid var(--twilight);
+            background: var(--twilight-bg);
+        }
+
+        .insight-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .insight-badge {
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 2px;
+            background: var(--surface);
+        }
+
+        .verdict-light .insight-badge { background: var(--light); color: #fff; }
+        .verdict-shadow .insight-badge { background: var(--shadow); color: #fff; }
+        .verdict-twilight .insight-badge { background: var(--twilight); color: #fff; }
+
+        .insight-evidence {
+            font-style: italic;
+            color: var(--text);
+            margin-bottom: 8px;
+            font-size: 12px;
+            padding: 6px 8px;
+            background: var(--highlight);
+            border-left: 3px solid var(--highlight-border);
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
+            position: relative;
+            line-height: 1.4;
+        }
+        
+        .insight-evidence::before {
+            content: '❝';
+            position: absolute;
+            left: -2px;
+            top: -4px;
+            font-size: 16px;
+            color: var(--highlight-border);
+            font-style: normal;
+        }
+        
+        .insight-evidence:hover {
+            background: rgba(255, 200, 50, 0.5);
+            border-left-color: var(--twilight);
+            transform: translateX(-2px);
+            box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        /* Color-code evidence by verdict type */
+        .verdict-light .insight-evidence {
+            background: rgba(46, 125, 50, 0.15);
+            border-left-color: var(--light);
+        }
+        .verdict-light .insight-evidence::before {
+            color: var(--light);
+        }
+        
+        .verdict-shadow .insight-evidence {
+            background: rgba(198, 40, 40, 0.12);
+            border-left-color: var(--shadow);
+        }
+        .verdict-shadow .insight-evidence::before {
+            color: var(--shadow);
+        }
+        
+        .verdict-twilight .insight-evidence {
+            background: rgba(230, 81, 0, 0.12);
+            border-left-color: var(--twilight);
+        }
+        .verdict-twilight .insight-evidence::before {
+            color: var(--twilight);
+        }
+
+        .insight-critique {
+            font-family: 'Inter', sans-serif;
+            font-size: 11px;
+            line-height: 1.5;
+            color: var(--text);
+        }
+
+        .insight-critique strong {
+            color: var(--speaker-1);
+        }
+
+        /* ─────────────────────────────────────────────────────────────
+           FOOTER: Guardian Verdict Panel
+        ───────────────────────────────────────────────────────────── */
+        .arena-footer {
+            grid-column: 1 / -1;
+            border-top: 1px solid var(--border);
+            background: var(--surface);
+        }
+
+        .verdict-header {
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .verdict-header:hover {
+            background: var(--bg);
+        }
+
+        .verdict-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--dim);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .verdict-title::before {
+            content: '◆';
+            color: var(--twilight);
+        }
+
+        .verdict-toggle {
+            font-size: 10px;
+            color: var(--muted);
+        }
+
+        .verdict-content {
+            display: none;
+            padding: 1rem 1.5rem 1.5rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .verdict-content.expanded {
+            display: block;
+        }
+
+        .verdict-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .verdict-candidate {
+            padding: 1rem;
+            background: var(--bg);
+            border-radius: 4px;
+        }
+
+        .verdict-candidate-name {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .verdict-score {
+            font-size: 32px;
+            font-weight: 300;
+            margin-bottom: 8px;
+        }
+
+        .verdict-candidate.winner .verdict-score {
+            color: var(--light);
+        }
+
+        .verdict-candidate.loser .verdict-score {
+            color: var(--shadow);
+        }
+
+        .verdict-table {
+            width: 100%;
+            margin-top: 1rem;
+            border-collapse: collapse;
+            font-family: 'Inter', sans-serif;
+            font-size: 11px;
+        }
+
+        .verdict-table th {
+            text-align: left;
+            padding: 6px 8px;
+            border-bottom: 1px solid var(--border);
+            font-weight: 500;
+            color: var(--dim);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 9px;
+        }
+
+        .verdict-table td {
+            padding: 6px 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        /* ─────────────────────────────────────────────────────────────
+           TRANSCLUSION LINE (connects dialogue to insight)
+        ───────────────────────────────────────────────────────────── */
+        .transclusion-line {
+            position: fixed;
+            height: 2px;
+            background: linear-gradient(to right, var(--highlight-border), var(--highlight-border));
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s, top 0.15s ease-out;
+            z-index: 100;
+        }
+
+        .transclusion-line.active {
+            opacity: 0.8;
+        }
+        
+        /* Transclusion dot endpoints */
+        .transclusion-dot {
+            position: fixed;
+            width: 8px;
+            height: 8px;
+            background: var(--highlight-border);
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 101;
+            transform: translate(-50%, -50%);
+        }
+        
+        .transclusion-dot.active {
+            opacity: 1;
+        }
+
+        /* ─────────────────────────────────────────────────────────────
+           RESPONSIVE - Mobile-first improvements
+        ───────────────────────────────────────────────────────────── */
+        @media (max-width: 900px) {
+            .arena-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr auto auto;
+            }
+            
+            .insights-column {
+                grid-column: 1;
+                grid-row: 3;
+                border-left: none;
+                border-top: 1px solid var(--border);
+                max-height: 40vh;
+                overflow-y: auto;
+                padding: 0.75rem;
+            }
+            
+            .insight-card {
+                position: relative !important;
+                top: auto !important;
+                margin-bottom: 0.75rem;
+            }
+            
+            .arena-footer {
+                grid-row: 4;
+            }
+            
+            .transclusion-line,
+            .transclusion-dot {
+                display: none;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .arena-header {
+                padding: 0.75rem 1rem;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+            
+            .arena-chapter {
+                font-size: 15px;
+            }
+            
+            .arena-nav {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .arena-nav button {
+                flex: 1;
+                text-align: center;
+            }
+            
+            .dialogue-column {
+                padding: 1rem;
+            }
+            
+            .dialogue-line {
+                padding: 0.5rem 0.75rem;
+                margin-bottom: 1rem;
+            }
+            
+            .dialogue-text {
+                font-size: 15px;
+            }
+            
+            .insights-column {
+                max-height: 35vh;
+            }
+            
+            .insight-card {
+                padding: 0.6rem;
+            }
+            
+            .verdict-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .verdict-table {
+                font-size: 10px;
+            }
+            
+            .verdict-table th,
+            .verdict-table td {
+                padding: 4px 6px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="arena-container">
+        <!-- Header -->
+        <header class="arena-header">
+            <div>
+                <div class="arena-title">Agon Archive</div>
+                <div class="arena-chapter" id="chapter-title">M-27: The Transmitter vs The Ritualist</div>
+            </div>
+            <nav class="arena-nav">
+                <button id="prev-btn">← Prev</button>
+                <button id="next-btn">Next →</button>
+            </nav>
+        </header>
+
+        <!-- Dialogue Column -->
+        <div class="dialogue-column" id="dialogue"></div>
+
+        <!-- Insights Sidebar -->
+        <div class="insights-column" id="insights"></div>
+
+        <!-- Footer: Guardian Verdict -->
+        <footer class="arena-footer">
+            <div class="verdict-header" onclick="toggleVerdict()">
+                <span class="verdict-title">Dark Matter Guardian Verdict</span>
+                <span class="verdict-toggle" id="verdict-toggle">▼</span>
+            </div>
+            <div class="verdict-content" id="verdict-content">
+                <div class="verdict-grid" id="verdict-grid"></div>
+                <table class="verdict-table" id="verdict-table"></table>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Transclusion Line and Dots -->
+    <div class="transclusion-line" id="transclusion-line"></div>
+    <div class="transclusion-dot" id="transclusion-dot-start"></div>
+    <div class="transclusion-dot" id="transclusion-dot-end"></div>
+
+    <script>
+        // ═══════════════════════════════════════════════════════════════
+        // ARENA READER
+        // Displays dialogue with aligned insight cards
+        // ═══════════════════════════════════════════════════════════════
+
+        const state = {
+            chapterId: 'M-27',
+            script: [],
+            insights: [],
+            activeLineIndex: -1
+        };
+
+        // Load chapter data
+        async function loadChapter(id) {
+            state.chapterId = id;
+            
+            // Try to load from script manifest
+            try {
+                const res = await fetch('chapters/script-manifest.json');
+                const manifest = await res.json();
+                const chapter = manifest.chapters.find(c => c.id === id);
+                
+                if (chapter) {
+                    state.script = chapter.script || [];
+                    document.getElementById('chapter-title').textContent = 
+                        `${id}: ${chapter.participants?.p1 || 'Speaker 1'} vs ${chapter.participants?.p2 || 'Speaker 2'}`;
+                    
+                    renderDialogue(chapter);
+                    renderInsights(chapter);
+                    renderVerdict(chapter);
+                }
+            } catch (e) {
+                console.error('Failed to load chapter:', e);
+            }
+        }
+
+        // Render dialogue lines
+        function renderDialogue(chapter) {
+            const container = document.getElementById('dialogue');
+            const p1 = (chapter.participants?.p1 || '').toUpperCase();
+            const p2 = (chapter.participants?.p2 || '').toUpperCase();
+            
+            let html = '';
+            
+            state.script.forEach((line, i) => {
+                const isP1 = line.speaker?.toUpperCase().includes(p1.split(' ').pop());
+                const isP2 = line.speaker?.toUpperCase().includes(p2.split(' ').pop());
+                const speakerClass = isP1 ? 'speaker-1' : (isP2 ? 'speaker-2' : '');
+                const typeClass = line.type === 'narration' ? 'narration' : '';
+                
+                html += `
+                    <div class="dialogue-line ${speakerClass} ${typeClass}" 
+                         data-index="${i}" 
+                         onclick="activateLine(${i})">
+                        ${line.speaker && line.type !== 'narration' ? 
+                            `<span class="speaker-label">${escapeHtml(line.speaker)}</span>` : ''}
+                        <span class="dialogue-text" data-original="${escapeHtml(line.text)}">${escapeHtml(line.text)}</span>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        // Render insight cards positioned to align with dialogue
+        function renderInsights(chapter) {
+            const container = document.getElementById('insights');
+            container.innerHTML = '';
+            
+            // Generate insights from script analysis
+            // These would normally come from the assessment data
+            const insights = generateInsights(chapter);
+            state.insights = insights;
+            
+            // Position cards after dialogue is rendered
+            requestAnimationFrame(() => {
+                insights.forEach((insight, i) => {
+                    const lineEl = document.querySelector(`.dialogue-line[data-index="${insight.lineIndex}"]`);
+                    if (!lineEl) return;
+                    
+                    const lineRect = lineEl.getBoundingClientRect();
+                    const containerRect = container.getBoundingClientRect();
+                    const topOffset = lineRect.top - containerRect.top + container.scrollTop;
+                    
+                    const card = document.createElement('div');
+                    card.className = `insight-card verdict-${insight.verdict}`;
+                    card.style.top = `${topOffset}px`;
+                    card.dataset.lineIndex = insight.lineIndex;
+                    
+                    card.innerHTML = `
+                        <div class="insight-title">
+                            ${insight.title}
+                            <span class="insight-badge">${insight.verdict}</span>
+                        </div>
+                        <div class="insight-evidence" data-quote="${escapeHtml(insight.quoteText || '')}">"${escapeHtml(insight.evidence)}"</div>
+                        <div class="insight-critique">${insight.critique}</div>
+                    `;
+                    
+                    // Hover to show transclusion line and highlight quote
+                    card.addEventListener('mouseenter', () => showTransclusion(insight.lineIndex, card, insight.quoteText));
+                    card.addEventListener('mouseleave', hideTransclusion);
+                    
+                    // Click on evidence to scroll to and highlight
+                    const evidenceEl = card.querySelector('.insight-evidence');
+                    evidenceEl.addEventListener('click', () => scrollToQuote(insight.lineIndex, insight.quoteText));
+                    
+                    container.appendChild(card);
+                });
+                
+                // Prevent card stacking by adjusting positions
+                preventCardStacking();
+            });
+        }
+
+        // Prevent insight cards from overlapping
+        function preventCardStacking() {
+            const cards = Array.from(document.querySelectorAll('.insight-card'));
+            if (cards.length < 2) return;
+            
+            // Sort by top position
+            cards.sort((a, b) => parseFloat(a.style.top) - parseFloat(b.style.top));
+            
+            let lastBottom = 0;
+            const gap = 12; // Minimum gap between cards
+            
+            cards.forEach(card => {
+                const currentTop = parseFloat(card.style.top);
+                const cardHeight = card.offsetHeight;
+                
+                if (currentTop < lastBottom + gap) {
+                    // Push card down to avoid overlap
+                    card.style.top = `${lastBottom + gap}px`;
+                }
+                
+                lastBottom = parseFloat(card.style.top) + cardHeight;
+            });
+        }
+
+        // Generate insights from chapter data
+        function generateInsights(chapter) {
+            const insights = [];
+            const script = chapter.script || [];
+            
+            // Find key dialogue moments and generate insights
+            script.forEach((line, i) => {
+                if (line.type === 'dialogue' && line.text.length > 40) {
+                    // Look for argumentative patterns and extract key quotes
+                    const ritualMatch = line.text.match(/(ritual|sacred|communion|performance)[^.!?]*[.!?]/i);
+                    if (ritualMatch) {
+                        const quoteText = ritualMatch[0].trim();
+                        insights.push({
+                            lineIndex: i,
+                            title: 'Ritual vs Performance',
+                            verdict: /ritual|sacred|communion/i.test(quoteText) ? 'light' : 'twilight',
+                            evidence: quoteText.slice(0, 50) + (quoteText.length > 50 ? '...' : ''),
+                            quoteText: quoteText, // Full quote for highlighting
+                            critique: line.speaker?.includes('RITUALIST') 
+                                ? '<strong>Phenomenological Depth</strong>. Appeals to lived experience of the sacred.'
+                                : '<strong>Post-Structuralist Stroke</strong>. Deconstructs the ritual/performance binary.'
+                        });
+                    }
+                    
+                    const langMatch = line.text.match(/(language|map|territory|meaning)[^.!?]*[.!?]/i);
+                    if (langMatch && !ritualMatch) {
+                        const quoteText = langMatch[0].trim();
+                        insights.push({
+                            lineIndex: i,
+                            title: 'Map vs Territory',
+                            verdict: 'twilight',
+                            evidence: quoteText.slice(0, 50) + (quoteText.length > 50 ? '...' : ''),
+                            quoteText: quoteText,
+                            critique: '<strong>Semiotic Tension</strong>. The map-territory distinction is itself a map.'
+                        });
+                    }
+                    
+                    // Look for key philosophical terms
+                    const philMatch = line.text.match(/(truth|reality|existence|being|essence)[^.!?]*[.!?]/i);
+                    if (philMatch && !ritualMatch && !langMatch) {
+                        const quoteText = philMatch[0].trim();
+                        insights.push({
+                            lineIndex: i,
+                            title: 'Ontological Claim',
+                            verdict: 'shadow',
+                            evidence: quoteText.slice(0, 50) + (quoteText.length > 50 ? '...' : ''),
+                            quoteText: quoteText,
+                            critique: '<strong>Metaphysical Assertion</strong>. Requires grounding in observable phenomena.'
+                        });
+                    }
+                }
+            });
+            
+            // Limit to avoid clutter
+            return insights.slice(0, 8);
+        }
+
+        // Show transclusion line connecting card to dialogue and highlight quote
+        function showTransclusion(lineIndex, card, quoteText) {
+            const line = document.querySelector(`.dialogue-line[data-index="${lineIndex}"]`);
+            const transclusionLine = document.getElementById('transclusion-line');
+            const dotStart = document.getElementById('transclusion-dot-start');
+            const dotEnd = document.getElementById('transclusion-dot-end');
+            
+            if (!line || !transclusionLine) return;
+            
+            // Highlight the specific quote within the dialogue
+            if (quoteText) {
+                highlightQuote(line, quoteText);
+            }
+            
+            const lineRect = line.getBoundingClientRect();
+            const cardRect = card.getBoundingClientRect();
+            
+            // Find the highlighted quote element if it exists
+            const highlightEl = line.querySelector('.highlight-quote');
+            const sourceRect = highlightEl ? highlightEl.getBoundingClientRect() : lineRect;
+            
+            const y = (sourceRect.top + sourceRect.bottom) / 2;
+            const startX = sourceRect.right + 4;
+            const endX = cardRect.left - 4;
+            
+            // Position the line
+            transclusionLine.style.top = `${y}px`;
+            transclusionLine.style.left = `${startX}px`;
+            transclusionLine.style.width = `${Math.max(0, endX - startX)}px`;
+            transclusionLine.classList.add('active');
+            
+            // Position the dots
+            dotStart.style.top = `${y}px`;
+            dotStart.style.left = `${startX}px`;
+            dotStart.classList.add('active');
+            
+            dotEnd.style.top = `${y}px`;
+            dotEnd.style.left = `${endX}px`;
+            dotEnd.classList.add('active');
+            
+            // Highlight the line and card
+            line.classList.add('active', 'quote-active');
+            card.classList.add('active');
+        }
+
+        function hideTransclusion() {
+            document.getElementById('transclusion-line').classList.remove('active');
+            document.getElementById('transclusion-dot-start').classList.remove('active');
+            document.getElementById('transclusion-dot-end').classList.remove('active');
+            
+            // Remove highlights
+            document.querySelectorAll('.dialogue-line.active').forEach(el => {
+                el.classList.remove('active', 'quote-active');
+                // Restore original text
+                const textEl = el.querySelector('.dialogue-text');
+                if (textEl && textEl.dataset.original) {
+                    textEl.innerHTML = textEl.dataset.original;
+                }
+            });
+            document.querySelectorAll('.insight-card.active').forEach(el => el.classList.remove('active'));
+        }
+        
+        // Highlight a specific quote within a dialogue line
+        function highlightQuote(lineEl, quoteText) {
+            const textEl = lineEl.querySelector('.dialogue-text');
+            if (!textEl || !quoteText) return;
+            
+            const original = textEl.dataset.original || textEl.textContent;
+            const escapedQuote = quoteText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const regex = new RegExp(`(${escapedQuote})`, 'i');
+            
+            if (regex.test(original)) {
+                textEl.innerHTML = original.replace(regex, '<span class="highlight-quote">$1</span>');
+                lineEl.classList.add('has-highlight');
+            }
+        }
+        
+        // Scroll to a quote and highlight it
+        function scrollToQuote(lineIndex, quoteText) {
+            const line = document.querySelector(`.dialogue-line[data-index="${lineIndex}"]`);
+            if (!line) return;
+            
+            // Scroll the line into view
+            line.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            // Highlight after scroll
+            setTimeout(() => {
+                if (quoteText) {
+                    highlightQuote(line, quoteText);
+                }
+                line.classList.add('active', 'quote-active');
+                
+                // Remove highlight after 3 seconds
+                setTimeout(() => {
+                    line.classList.remove('quote-active');
+                    const textEl = line.querySelector('.dialogue-text');
+                    if (textEl && textEl.dataset.original) {
+                        textEl.innerHTML = textEl.dataset.original;
+                    }
+                }, 3000);
+            }, 400);
+        }
+
+        // Activate a dialogue line
+        function activateLine(index) {
+            state.activeLineIndex = index;
+            document.querySelectorAll('.dialogue-line').forEach((el, i) => {
+                el.classList.toggle('active', i === index);
+            });
+        }
+
+        // Render verdict panel
+        function renderVerdict(chapter) {
+            const grid = document.getElementById('verdict-grid');
+            const p1 = chapter.participants?.p1 || 'Candidate 1';
+            const p2 = chapter.participants?.p2 || 'Candidate 2';
+            
+            // Mock scores - would come from assessment data
+            const score1 = 45;
+            const score2 = 88;
+            const winner = score2 > score1 ? p2 : p1;
+            
+            grid.innerHTML = `
+                <div class="verdict-candidate ${winner === p1 ? 'winner' : 'loser'}">
+                    <div class="verdict-candidate-name">${escapeHtml(p1)}</div>
+                    <div class="verdict-score">${score1}</div>
+                </div>
+                <div class="verdict-candidate ${winner === p2 ? 'winner' : 'loser'}">
+                    <div class="verdict-candidate-name">${escapeHtml(p2)}</div>
+                    <div class="verdict-score">${score2}</div>
+                </div>
+            `;
+            
+            // Comparison table
+            const table = document.getElementById('verdict-table');
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>Feature</th>
+                        <th>${escapeHtml(p1)}</th>
+                        <th>${escapeHtml(p2)}</th>
+                        <th>Guardian</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>"Basis"</td>
+                        <td>Soul/Feeling</td>
+                        <td>Data/Learning</td>
+                        <td style="color: var(--speaker-2)">★ Observable</td>
+                    </tr>
+                    <tr>
+                        <td>"Ritual"</td>
+                        <td>Sacred Bond</td>
+                        <td>Performance</td>
+                        <td style="color: var(--speaker-2)">★ Deconstructs</td>
+                    </tr>
+                    <tr>
+                        <td>"Community"</td>
+                        <td>Human-Centric</td>
+                        <td>Language-Centric</td>
+                        <td style="color: var(--speaker-2)">★ More inclusive</td>
+                    </tr>
+                </tbody>
+            `;
+        }
+
+        // Toggle verdict panel
+        function toggleVerdict() {
+            const content = document.getElementById('verdict-content');
+            const toggle = document.getElementById('verdict-toggle');
+            content.classList.toggle('expanded');
+            toggle.textContent = content.classList.contains('expanded') ? '▲' : '▼';
+        }
+
+        // Utility
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text.replace(/[&<>"']/g, m => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            }[m]));
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            preventCardStacking();
+        });
+        
+        // Sync scroll between dialogue and insights (for aligned cards)
+        document.getElementById('dialogue').addEventListener('scroll', () => {
+            // Re-position insight cards on scroll (desktop only)
+            if (window.innerWidth > 900) {
+                const insights = document.getElementById('insights');
+                const dialogueScroll = document.getElementById('dialogue').scrollTop;
+                insights.scrollTop = dialogueScroll;
+            }
+        });
+
+        // Initialize
+        loadChapter('M-27');
+    </script>
+</body>
+</html>

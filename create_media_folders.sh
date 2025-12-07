@@ -1,0 +1,66 @@
+#!/bin/bash
+
+# Create media folders for each chapter
+mkdir -p media
+
+declare -A chapters=(
+  ["12"]="THE-BISHOP-vs-THE-FOREMAN"
+  ["13"]="THE-SCRIBE-vs-THE-GOLEM"
+  ["14"]="THE-NAVIGATOR-vs-THE-CARTOGRAPHER"
+  ["15"]="THE-ANATOMIST-vs-THE-ARCHITECT"
+  ["16"]="THE-ARCHIVIST-vs-THE-WIZARD"
+  ["17"]="THE-BARD-vs-THE-MECHANIC"
+  ["18"]="THE-TAXONOMIST-vs-THE-INTERPRETER"
+  ["19"]="THE-WEAVER-vs-THE-CONSTRUCTOR"
+  ["20"]="THE-SIMULATOR-vs-THE-SIMULACRUM"
+  ["21"]="THE-ORACLE-vs-THE-CHILD"
+  ["22"]="THE-SYMBOLIST-vs-THE-VISUALIZER"
+  ["23"]="THE-PLAIN-MAN-vs-THE-ANTHROPOLOGIST"
+  ["24"]="THE-FUNCTIONALIST-vs-THE-SYMBOLIST"
+  ["25"]="THE-PLANNER-vs-THE-DRIFTER"
+  ["26"]="THE-PROMOTER-vs-THE-SEMIOLOGIST"
+  ["27"]="THE-TRANSMITTER-vs-THE-RITUALIST"
+  ["28"]="THE-CONNOISSEUR-vs-THE-SURGEON"
+  ["29"]="THE-CHRONICLER-vs-THE-RAGPICKER"
+  ["30"]="THE-TOURIST-vs-THE-PHILOSOPHER"
+  ["31"]="THE-POPULIST-vs-THE-HEGEMON"
+  ["32"]="THE-SCEPTIC-vs-THE-CHILD-MACHINE"
+  ["33"]="THE-SINGULARITARIAN-vs-THE-KIN-MAKER"
+  ["34"]="THE-ENGINEER-vs-THE-WOODCUTTER"
+  ["35"]="THE-WARDEN-vs-THE-SURFER"
+  ["36"]="THE-HUNTER-vs-THE-FUNCTIONARY"
+  ["37"]="THE-HOST-vs-THE-PARASITE"
+  ["38"]="THE-PRODUCER-vs-THE-PARASITE"
+  ["39"]="THE-TORTOISE-vs-THE-DUCK"
+  ["40"]="THE-MONAD-vs-THE-CACOPHONY"
+  ["41"]="THE-BROTHER-vs-THE-MONEY-CHANGER"
+  ["42"]="THE-WARRIOR-vs-THE-TROUBLEMAKER"
+  ["43"]="THE-SPECTATOR-vs-THE-PARASITE"
+  ["44"]="THE-VICTOR-vs-THE-DEVIL"
+  ["45"]="THE-GRIEVER-vs-THE-ASTROBIOLOGIST"
+  ["46"]="THE-PROPHET-vs-THE-ENGINEER"
+  ["47"]="THE-BUREAUCRAT-vs-THE-CULTIVATOR"
+  ["47b"]="THE-DUALIST-vs-THE-SYMBIOGENETICIST"
+  ["48"]="THE-DREAMER-vs-THE-CONTROLLER"
+  ["49"]="THE-PLANNER-vs-THE-PILOT"
+  ["51"]="THE-IDEALIST-vs-THE-SYSTEM-BUILDER"
+  ["53"]="THE-KANTIAN-vs-THE-BIOLOGIST"
+  ["63"]="THE-ARTIST-vs-THE-MACHINE"
+)
+
+for num in "${!chapters[@]}"; do
+  title="${chapters[$num]}"
+  folder="media/ch${num}_${title}"
+  mkdir -p "$folder"
+  # Create a placeholder README
+  echo "# Chapter ${num}: ${title//-/ }" > "$folder/README.md"
+  echo "" >> "$folder/README.md"
+  echo "Place visual media for this chapter here." >> "$folder/README.md"
+  echo "- Images: .jpg, .png, .webp" >> "$folder/README.md"
+  echo "- Videos: .mp4, .webm" >> "$folder/README.md"
+  echo "- Audio: .mp3, .wav" >> "$folder/README.md"
+  echo "Created: $folder"
+done
+
+echo ""
+echo "Created $(ls -d media/ch* | wc -l) chapter media folders"
