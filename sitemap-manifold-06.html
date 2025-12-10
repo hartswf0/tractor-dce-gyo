@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SITEMAP Manifold 06 — Thesis Pathways over Studios</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #f8f6f2;
+      --surface: #fff;
+      --border: #e0dcd4;
+      --text: #2d2a26;
+      --text-dim: #8a857d;
+      --accent: #ff6b35;
+      --accent-dim: #ffeee8;
+      --pyramid: #3b82f6;
+      --essay: #10b981;
+      --intervention: #8b5cf6;
+      --poml: #f59e0b;
+      --source: #ec4899;
+    }
+
+    body {
+      font-family: 'Georgia', serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .title {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .subtitle {
+      font-size: 12px;
+      color: var(--text-dim);
+      font-style: italic;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      font-family: inherit;
+      font-size: 13px;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+
+    .btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .btn.primary {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    .main {
+      display: grid;
+      grid-template-columns: 280px 1fr 320px;
+      height: calc(100vh - 60px);
+    }
+
+    .palette {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      padding: 16px;
+    }
+
+    .palette-section {
+      margin-bottom: 24px;
+    }
+
+    .palette-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-dim);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .palette-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .path-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .path-card {
+      aspect-ratio: 1;
+      border: 2px solid var(--border);
+      border-radius: 6px;
+      cursor: grab;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      background: var(--surface);
+      transition: all 0.2s;
+    }
+
+    .path-card:hover { border-color: var(--accent); transform: scale(1.05); }
+    .path-card.dragging { opacity: 0.5; }
+
+    .source-items { display: flex; flex-direction: column; gap: 6px; }
+
+    .source-item {
+      padding: 8px 12px;
+      background: var(--bg);
+      border-radius: 4px;
+      font-size: 12px;
+      cursor: grab;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .source-item:hover { background: var(--accent-dim); }
+
+    .source-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .source-dot.pyramid { background: var(--pyramid); }
+    .source-dot.essay { background: var(--essay); }
+    .source-dot.intervention { background: var(--intervention); }
+    .source-dot.poml { background: var(--poml); }
+    .source-dot.source { background: var(--source); }
+
+    .canvas-container {
+      padding: 24px;
+      overflow: auto;
+      background:
+        radial-gradient(circle at center, rgba(0, 0, 0, 0.02) 0%, transparent 70%),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px),
+        linear-gradient(var(--border) 1px, transparent 1px);
+      background-size: 100% 100%, 40px 40px, 40px 40px;
+    }
+
+    .canvas {
+      min-width: 1200px;
+      min-height: 800px;
+      position: relative;
+    }
+
+    .connections {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .placed-card {
+      position: absolute;
+      width: 80px;
+      height: 80px;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      cursor: move;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      transition: box-shadow 0.2s;
+    }
+
+    .placed-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
+    .placed-card.selected { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
+    .placed-card.speculative { background: #1a1a1a; color: white; }
+
+    .placed-pawn {
+      position: absolute;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      cursor: move;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 600;
+      color: white;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .placed-pawn.selected {
+      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.8), 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .detail-panel {
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      padding: 24px;
+      overflow-y: auto;
+    }
+
+    .panel-section { margin-bottom: 24px; }
+
+    .panel-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .panel-title .step {
+      width: 24px;
+      height: 24px;
+      background: var(--accent);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+    }
+
+    .panel-desc {
+      font-size: 13px;
+      color: var(--text-dim);
+      margin-bottom: 16px;
+    }
+
+    .input-group { margin-bottom: 16px; }
+    .input-group label {
+      display: block;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+    }
+
+    .input-group textarea,
+    .input-group input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 13px;
+      resize: vertical;
+    }
+
+    .input-group textarea:focus,
+    .input-group input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding: 12px;
+      background: var(--bg);
+      border-radius: 6px;
+      font-size: 11px;
+    }
+
+    .legend-item { display: flex; align-items: center; gap: 6px; }
+
+    .questions { display: flex; flex-direction: column; gap: 12px; }
+    .question-item {
+      padding: 12px;
+      background: var(--bg);
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .question-item:hover { background: var(--accent-dim); }
+    .question-item.answered { border-left: 3px solid var(--accent); }
+
+    @media (max-width: 1024px) {
+      .main { grid-template-columns: 1fr; }
+      .palette, .detail-panel { display: none; }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div>
+      <div class="title">SITEMAP Thesis Pathways</div>
+      <div class="subtitle">Auto-built from file-learnings.json over DCE‑GYO studios</div>
+    </div>
+    <div class="header-actions">
+      <button class="btn" onclick="clearCanvas()">Clear</button>
+      <button class="btn" onclick="exportPath()">Export JSON</button>
+    </div>
+  </header>
+
+  <main class="main">
+    <aside class="palette">
+      <div class="palette-section">
+        <div class="palette-title">Path Cards</div>
+        <div class="path-cards">
+          <div class="path-card" draggable="true" data-type="straight" title="Straight path">↔</div>
+          <div class="path-card" draggable="true" data-type="turn" title="Turn">↪</div>
+          <div class="path-card" draggable="true" data-type="fork" title="Fork / Decision">⑂</div>
+          <div class="path-card" draggable="true" data-type="intersection" title="Intersection">✚</div>
+          <div class="path-card" draggable="true" data-type="barrier" title="Barrier / Gap">⊘</div>
+          <div class="path-card" draggable="true" data-type="bridge" title="Bridge">⌒</div>
+          <div class="path-card" draggable="true" data-type="loop" title="Feedback loop">↺</div>
+          <div class="path-card" draggable="true" data-type="terminus" title="Terminus">◉</div>
+          <div class="path-card" draggable="true" data-type="speculative" title="Speculative (dark)">?</div>
+        </div>
+      </div>
+
+      <div class="palette-section">
+        <div class="palette-title">Pyramids (Conceptual Frames)</div>
+        <div class="source-items" id="pyramidSources"></div>
+      </div>
+
+      <div class="palette-section">
+        <div class="palette-title">Essays / Docs</div>
+        <div class="source-items" id="essaySources"></div>
+      </div>
+
+      <div class="palette-section">
+        <div class="palette-title">Interventions / Studios</div>
+        <div class="source-items" id="interventionSources"></div>
+      </div>
+
+      <div class="palette-section">
+        <div class="palette-title">Theoretical / OLOG Sources</div>
+        <div class="source-items" id="theorySources"></div>
+      </div>
+    </aside>
+
+    <div class="canvas-container">
+      <svg class="connections" id="connections"></svg>
+      <div class="canvas" id="canvas" ondragover="event.preventDefault()" ondrop="handleDrop(event)"></div>
+    </div>
+
+    <aside class="detail-panel">
+      <div class="panel-section">
+        <div class="panel-title"><span class="step">1</span> Incident / Question</div>
+        <div class="panel-desc">What question, tension, or design problem in the sitemap are you exploring?</div>
+        <div class="input-group">
+          <label>Core Question</label>
+          <textarea id="incidentQuestion" rows="3" placeholder="e.g., How do HOMER, TIMBER, and BULL actually connect in practice?"></textarea>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-title"><span class="step">2</span> Legend</div>
+        <div class="legend">
+          <div class="legend-item"><span class="source-dot pyramid"></span> Pyramid (Conceptual frame)</div>
+          <div class="legend-item"><span class="source-dot essay"></span> Essay / Doc</div>
+          <div class="legend-item"><span class="source-dot intervention"></span> Intervention / Studio</div>
+          <div class="legend-item"><span class="source-dot source"></span> Theory / OLOG</div>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-title"><span class="step">3</span> Selected Item</div>
+        <div id="selectedInfo" class="panel-desc">Drag items from the left onto the grid, then click one to annotate.</div>
+        <div class="input-group" id="noteGroup" style="display:none;">
+          <label>Your Annotation</label>
+          <textarea id="itemNote" rows="3" placeholder="Add your notes about this connection or source..."></textarea>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-title"><span class="step">4</span> Reflection Prompts</div>
+        <div class="questions">
+          <div class="question-item" onclick="toggleQuestion(this)">Where does the sitemap path feel over‑determined?</div>
+          <div class="question-item" onclick="toggleQuestion(this)">Where are the conceptual gaps or barriers?</div>
+          <div class="question-item" onclick="toggleQuestion(this)">Which studios act as unexpected bridges?</div>
+          <div class="question-item" onclick="toggleQuestion(this)">What speculative connections (dark paths) could exist?</div>
+          <div class="question-item" onclick="toggleQuestion(this)">What would falsify this studio argument?</div>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <script>
+    // Dynamic sources built from sitemap data
+    let sources = {
+      pyramids: [],
+      essays: [],
+      interventions: [],
+      theories: []
+    };
+
+    function classifyCategory(f) {
+      const name = f.file.toLowerCase();
+      const title = (f.title || '').toLowerCase();
+      const patt = (f.patterns || '').toLowerCase();
+
+      // Pyramids: conceptual frameworks and sitemaps
+      if (name.includes('sitemap') || title.includes('pyramid') || title.includes('void') || title.includes('negative space')) {
+        return 'pyramids';
+      }
+      // Theories / OLOGs / philosophy
+      if (name.includes('olog') || title.includes('olog') || title.includes('philosophy')) {
+        return 'theories';
+      }
+      // Interventions: core interactive experiences / studios
+      if (name.includes('thousand-tetrad') || name.includes('fork.html') || name.includes('holo-project') ||
+          name.includes('mac-01') || name.includes('homer.html') || name.includes('timber-studio') ||
+          name.includes('bull-assembly-studio') || name.includes('onyx-thumb') || name.includes('wag-hub') ) {
+        return 'interventions';
+      }
+      // Essays / docs / tutorials
+      if (name.endsWith('.md.html') || title.includes('tutorial') || title.includes('report') ||
+          name.includes('tutorial') || name.includes('README') || name.includes('REPORT')) {
+        return 'essays';
+      }
+      // Fallback by patterns
+      if (patt.includes('onyx') || patt.includes('legos') || patt.includes('mpd')) {
+        return 'interventions';
+      }
+      return null;
+    }
+
+    async function buildSourcesFromSitemap() {
+      try {
+        const res = await fetch('file-learnings.json');
+        const data = await res.json();
+        const files = data.files.filter(f => !f._end && f.file && f.born);
+
+        files.forEach(f => {
+          const cat = classifyCategory(f);
+          if (!cat || !sources[cat]) return;
+          const name = f.title || f.file.replace('.html', '');
+          const desc = f.patterns || '';
+          const id = f.file.replace(/[^a-z0-9_-]/gi, '-');
+          sources[cat].push({ id, name, desc, file: f.file });
+        });
+
+        // Sort for readability
+        Object.keys(sources).forEach(k => {
+          sources[k].sort((a, b) => a.name.localeCompare(b.name));
+        });
+      } catch (e) {
+        console.warn('Failed to load file-learnings.json, falling back to static seed', e);
+        // Minimal static seed if JSON missing
+        sources.pyramids = [
+          { id: 'sitemap-core', name: 'Sitemap Core', desc: 'Conceptual sitemap views', file: 'sitemap.html' }
+        ];
+      }
+    }
+
+    // Original Thesis Pathways logic adapted to dynamic sources
+    let placedItems = [];
+    let selectedItem = null;
+    let itemIdCounter = 0;
+
+    function renderSources(containerId, items, type) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = items.map(item => `
+        <div class="source-item" draggable="true" data-type="${type}" data-id="${item.id || ''}" data-name="${item.name}" data-desc="${item.desc || ''}" data-file="${item.file || ''}">
+          <span class="source-dot ${type === 'pyramids' ? 'pyramid' : type === 'essays' ? 'essay' : type === 'interventions' ? 'intervention' : 'source'}"></span>
+          <span>${item.name}</span>
+        </div>
+      `).join('');
+    }
+
+    function setupDragEvents() {
+      document.querySelectorAll('[draggable="true"]').forEach(el => {
+        el.addEventListener('dragstart', handleDragStart);
+        el.addEventListener('dragend', handleDragEnd);
+      });
+    }
+
+    function handleDragStart(e) {
+      e.target.classList.add('dragging');
+      e.dataTransfer.setData('text/plain', JSON.stringify({
+        type: e.target.dataset.type,
+        id: e.target.dataset.id,
+        name: e.target.dataset.name,
+        desc: e.target.dataset.desc,
+        file: e.target.dataset.file,
+        symbol: e.target.textContent.trim()
+      }));
+    }
+
+    function handleDragEnd(e) {
+      e.target.classList.remove('dragging');
+    }
+
+    function handleDrop(e) {
+      e.preventDefault();
+      const canvas = document.getElementById('canvas');
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left - 40;
+      const y = e.clientY - rect.top - 40;
+      const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+
+      if (["straight","turn","fork","intersection","barrier","bridge","loop","terminus","speculative"].includes(data.type)) {
+        placeCard(x, y, data);
+      } else {
+        placePawn(x, y, data);
+      }
+    }
+
+    function placeCard(x, y, data) {
+      const id = `card-${itemIdCounter++}`;
+      const symbols = {
+        straight: '↔', turn: '↪', fork: '⑂', intersection: '✚',
+        barrier: '⊘', bridge: '⌒', loop: '↺', terminus: '◉', speculative: '?'
+      };
+      const card = document.createElement('div');
+      card.className = `placed-card ${data.type === 'speculative' ? 'speculative' : ''}`;
+      card.id = id;
+      card.style.left = x + 'px';
+      card.style.top = y + 'px';
+      card.textContent = symbols[data.type];
+      card.onclick = () => selectItem(id);
+      makeDraggable(card);
+      document.getElementById('canvas').appendChild(card);
+      placedItems.push({ id, type: 'card', cardType: data.type, x, y, note: '' });
+    }
+
+    function placePawn(x, y, data) {
+      const id = `pawn-${itemIdCounter++}`;
+      const pawn = document.createElement('div');
+      pawn.className = `placed-pawn ${data.type}`;
+      pawn.id = id;
+      pawn.style.left = x + 'px';
+      pawn.style.top = y + 'px';
+      pawn.textContent = (data.name || '?').charAt(0).toUpperCase();
+      pawn.title = `${data.name || ''}: ${data.desc || ''}`;
+      pawn.onclick = () => selectItem(id);
+      makeDraggable(pawn);
+      document.getElementById('canvas').appendChild(pawn);
+      placedItems.push({ id, type: 'pawn', sourceType: data.type, name: data.name, desc: data.desc, file: data.file, x, y, note: '' });
+    }
+
+    function makeDraggable(el) {
+      let startX, startY, initialX, initialY;
+      el.onmousedown = (e) => {
+        if (e.target.tagName === 'TEXTAREA') return;
+        startX = e.clientX; startY = e.clientY;
+        initialX = parseInt(el.style.left) || 0;
+        initialY = parseInt(el.style.top) || 0;
+        document.onmousemove = (e2) => {
+          const dx = e2.clientX - startX;
+          const dy = e2.clientY - startY;
+          el.style.left = (initialX + dx) + 'px';
+          el.style.top = (initialY + dy) + 'px';
+          const item = placedItems.find(i => i.id === el.id);
+          if (item) { item.x = initialX + dx; item.y = initialY + dy; }
+        };
+        document.onmouseup = () => {
+          document.onmousemove = null;
+          document.onmouseup = null;
+        };
+      };
+    }
+
+    function selectItem(id) {
+      document.querySelectorAll('.selected').forEach(el => el.classList.remove('selected'));
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.classList.add('selected');
+      selectedItem = placedItems.find(i => i.id === id);
+      const info = document.getElementById('selectedInfo');
+      const noteGroup = document.getElementById('noteGroup');
+      const noteInput = document.getElementById('itemNote');
+      if (!selectedItem) return;
+      if (selectedItem.type === 'pawn') {
+        info.innerHTML = `<strong>${selectedItem.name}</strong><br>${selectedItem.desc || ''}<br><small>${selectedItem.file || ''}</small>`;
+      } else {
+        info.innerHTML = `<strong>Path Card:</strong> ${selectedItem.cardType}`;
+      }
+      noteGroup.style.display = 'block';
+      noteInput.value = selectedItem.note || '';
+      noteInput.onchange = () => { selectedItem.note = noteInput.value; };
+    }
+
+    function toggleQuestion(el) { el.classList.toggle('answered'); }
+
+    function clearCanvas() {
+      if (!confirm('Clear all items from canvas?')) return;
+      document.getElementById('canvas').innerHTML = '';
+      placedItems = [];
+      selectedItem = null;
+    }
+
+    function exportPath() {
+      const data = {
+        timestamp: new Date().toISOString(),
+        question: document.getElementById('incidentQuestion').value,
+        items: placedItems
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `sitemap-pathway-${Date.now()}.json`;
+      a.click();
+    }
+
+    async function init() {
+      await buildSourcesFromSitemap();
+      renderSources('pyramidSources', sources.pyramids, 'pyramids');
+      renderSources('essaySources', sources.essays, 'essays');
+      renderSources('interventionSources', sources.interventions, 'interventions');
+      renderSources('theorySources', sources.theories, 'source');
+      setupDragEvents();
+    }
+
+    init();
+  </script>
+</body>
+
+</html>

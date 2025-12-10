@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>▣ MODULEX SITEMAP — Planning Board</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='10' y='10' width='80' height='80' rx='8' fill='%23c9302c'/><circle cx='35' cy='35' r='12' fill='%23e74c3c'/><circle cx='65' cy='35' r='12' fill='%23e74c3c'/><circle cx='35' cy='65' r='12' fill='%23e74c3c'/><circle cx='65' cy='65' r='12' fill='%23e74c3c'/></svg>">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap');
+    
+    :root {
+      /* Modulex Planning Board Palette */
+      --board-bg: #2d3436;
+      --board-grid: #3d4447;
+      --board-line: #4a5568;
+      
+      /* Modulex Brick Colors (1966 palette) */
+      --mx-white: #f5f5f0;
+      --mx-black: #1a1a1a;
+      --mx-red: #c9302c;
+      --mx-blue: #2980b9;
+      --mx-yellow: #f1c40f;
+      --mx-green: #27ae60;
+      --mx-orange: #e67e22;
+      --mx-brown: #8b4513;
+      --mx-gray: #7f8c8d;
+      --mx-buff: #d4a574;
+      --mx-terracotta: #cd5c5c;
+      --mx-olive: #6b8e23;
+      
+      /* UI */
+      --text: #ecf0f1;
+      --text-dim: #95a5a6;
+      --stud-shadow: rgba(0,0,0,0.4);
+      --stud-highlight: rgba(255,255,255,0.15);
+      
+      /* Grid unit = 5mm conceptually */
+      --unit: 20px;
+      --stud-size: 8px;
+    }
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--board-bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    
+    /* === PLANNING BOARD GRID BACKGROUND === */
+    .board {
+      min-height: 100vh;
+      background-image: 
+        linear-gradient(var(--board-line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--board-line) 1px, transparent 1px);
+      background-size: var(--unit) var(--unit);
+      background-position: -1px -1px;
+      padding: calc(var(--unit) * 2);
+    }
+    
+    /* === HEADER STRIP (like a Modulex label rail) === */
+    .header-rail {
+      display: flex;
+      align-items: center;
+      gap: calc(var(--unit) * 2);
+      padding: calc(var(--unit) * 0.75) calc(var(--unit) * 1.5);
+      background: linear-gradient(180deg, #3d4447 0%, #2d3436 100%);
+      border: 2px solid var(--board-line);
+      border-radius: 4px;
+      margin-bottom: calc(var(--unit) * 2);
+      flex-wrap: wrap;
+    }
+    
+    .logo-brick {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--mx-red);
+      padding: 8px 16px;
+      border-radius: 3px;
+      box-shadow: 
+        inset 0 -3px 0 rgba(0,0,0,0.3),
+        inset 0 1px 0 rgba(255,255,255,0.2),
+        2px 2px 4px rgba(0,0,0,0.4);
+    }
+    
+    .logo-brick .studs {
+      display: flex;
+      gap: 4px;
+    }
+    
+    .logo-brick .stud {
+      width: var(--stud-size);
+      height: var(--stud-size);
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.3), transparent 60%),
+                  linear-gradient(180deg, #d94a47 0%, #a82824 100%);
+      border-radius: 50%;
+      box-shadow: 
+        inset 0 -1px 2px var(--stud-shadow),
+        0 1px 1px var(--stud-highlight);
+    }
+    
+    .logo-brick .title {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.15em;
+      color: var(--mx-white);
+      text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    }
+    
+    .stats-strip {
+      display: flex;
+      gap: calc(var(--unit) * 1.5);
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      color: var(--text-dim);
+    }
+    
+    .stat { display: flex; align-items: center; gap: 6px; }
+    .stat-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--mx-yellow);
+    }
+    .stat-val { color: var(--text); font-weight: 500; }
+    
+    .search-brick {
+      flex: 1;
+      min-width: 200px;
+      max-width: 400px;
+      position: relative;
+    }
+    
+    .search-brick input {
+      width: 100%;
+      padding: 10px 14px 10px 36px;
+      background: var(--board-bg);
+      border: 2px solid var(--board-line);
+      border-radius: 3px;
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      transition: border-color 0.2s;
+    }
+    
+    .search-brick input:focus {
+      outline: none;
+      border-color: var(--mx-yellow);
+    }
+    
+    .search-brick::before {
+      content: "⌕";
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-dim);
+      font-size: 14px;
+    }
+    
+    /* === MAIN LAYOUT === */
+    .layout {
+      display: grid;
+      grid-template-columns: 220px 1fr 280px;
+      gap: calc(var(--unit) * 1.5);
+      min-height: calc(100vh - var(--unit) * 10);
+    }
+    
+    @media (max-width: 1100px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar, .inspector { display: none; }
+    }
+    
+    /* === SIDEBAR (Category Rails) === */
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: calc(var(--unit) * 1.5);
+    }
+    
+    .rail {
+      background: linear-gradient(180deg, #3a3f42 0%, #2d3436 100%);
+      border: 2px solid var(--board-line);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    
+    .rail-header {
+      padding: 10px 12px;
+      background: var(--board-line);
+      font-family: 'DM Mono', monospace;
+      font-size: 8px;
+      letter-spacing: 0.2em;
+      color: var(--text-dim);
+      border-bottom: 1px solid rgba(0,0,0,0.3);
+    }
+    
+    .rail-items {
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    
+    .rail-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      background: var(--board-bg);
+      border: 1px solid transparent;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    
+    .rail-item:hover {
+      border-color: var(--mx-yellow);
+      transform: translateX(2px);
+    }
+    
+    .rail-item.active {
+      background: var(--mx-yellow);
+      color: var(--mx-black);
+      box-shadow: 
+        inset 0 -2px 0 rgba(0,0,0,0.2),
+        2px 2px 4px rgba(0,0,0,0.3);
+    }
+    
+    .rail-item .brick-icon {
+      width: 16px;
+      height: 10px;
+      border-radius: 2px;
+      box-shadow: 
+        inset 0 -2px 0 rgba(0,0,0,0.3),
+        inset 0 1px 0 rgba(255,255,255,0.2);
+      position: relative;
+    }
+    
+    .rail-item .brick-icon::after {
+      content: "";
+      position: absolute;
+      top: -3px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 5px;
+      height: 5px;
+      background: inherit;
+      border-radius: 50%;
+      box-shadow: 
+        inset 0 -1px 1px rgba(0,0,0,0.3),
+        0 1px 0 rgba(255,255,255,0.1);
+    }
+    
+    .rail-item .name {
+      flex: 1;
+      font-size: 10px;
+      font-weight: 500;
+    }
+    
+    .rail-item .count {
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      opacity: 0.6;
+    }
+    
+    .rail-item.active .count { opacity: 0.8; }
+    
+    /* === MAIN BOARD (Brick Grid) === */
+    .main-board {
+      background: linear-gradient(180deg, #353b3e 0%, #2d3436 100%);
+      border: 2px solid var(--board-line);
+      border-radius: 4px;
+      padding: calc(var(--unit) * 1);
+      overflow-y: auto;
+      max-height: calc(100vh - var(--unit) * 12);
+    }
+    
+    .sort-rail {
+      display: flex;
+      gap: 6px;
+      margin-bottom: calc(var(--unit) * 1);
+      padding-bottom: calc(var(--unit) * 0.75);
+      border-bottom: 1px solid var(--board-line);
+    }
+    
+    .sort-btn {
+      padding: 6px 12px;
+      background: var(--board-bg);
+      border: 1px solid var(--board-line);
+      border-radius: 3px;
+      color: var(--text-dim);
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    
+    .sort-btn:hover { border-color: var(--text-dim); color: var(--text); }
+    .sort-btn.active { 
+      background: var(--mx-blue); 
+      border-color: var(--mx-blue); 
+      color: white;
+      box-shadow: inset 0 -2px 0 rgba(0,0,0,0.3);
+    }
+    
+    /* === BRICK CARDS === */
+    .brick-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: calc(var(--unit) * 0.75);
+    }
+    
+    .brick {
+      position: relative;
+      background: var(--brick-color, var(--mx-gray));
+      border-radius: 4px;
+      padding: 14px 12px 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+      box-shadow: 
+        inset 0 -4px 0 rgba(0,0,0,0.25),
+        inset 0 1px 0 rgba(255,255,255,0.15),
+        3px 3px 6px rgba(0,0,0,0.4);
+    }
+    
+    .brick:hover {
+      transform: translateY(-2px);
+      box-shadow: 
+        inset 0 -4px 0 rgba(0,0,0,0.25),
+        inset 0 1px 0 rgba(255,255,255,0.15),
+        4px 6px 12px rgba(0,0,0,0.5);
+    }
+    
+    .brick.selected {
+      outline: 3px solid var(--mx-yellow);
+      outline-offset: 2px;
+    }
+    
+    /* Studs on top of brick */
+    .brick-studs {
+      position: absolute;
+      top: -4px;
+      left: 10px;
+      display: flex;
+      gap: 6px;
+    }
+    
+    .brick-stud {
+      width: 10px;
+      height: 10px;
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.25), transparent 60%),
+                  linear-gradient(180deg, 
+                    color-mix(in srgb, var(--brick-color, var(--mx-gray)) 100%, white 15%) 0%, 
+                    color-mix(in srgb, var(--brick-color, var(--mx-gray)) 100%, black 20%) 100%);
+      border-radius: 50%;
+      box-shadow: 
+        inset 0 -2px 3px var(--stud-shadow),
+        0 2px 2px rgba(0,0,0,0.3);
+    }
+    
+    .brick-name {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--mx-white);
+      text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 4px;
+    }
+    
+    .brick-title {
+      font-size: 8px;
+      color: rgba(255,255,255,0.7);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 8px;
+    }
+    
+    .brick-meta {
+      display: flex;
+      gap: 8px;
+      font-family: 'DM Mono', monospace;
+      font-size: 8px;
+      color: rgba(255,255,255,0.6);
+    }
+    
+    /* Tech tags as mini-bricks */
+    .brick-tech {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 8px;
+    }
+    
+    .tech-tag {
+      padding: 2px 6px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 2px;
+      font-family: 'DM Mono', monospace;
+      font-size: 7px;
+      font-weight: 500;
+      color: var(--tag-color, var(--mx-white));
+      box-shadow: inset 0 -1px 0 rgba(0,0,0,0.2);
+    }
+    
+    /* Connection indicators */
+    .brick-links {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      font-family: 'DM Mono', monospace;
+      font-size: 8px;
+      color: rgba(255,255,255,0.5);
+    }
+    
+    .link-connector {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+    
+    .connector-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--mx-yellow);
+      box-shadow: 0 0 4px var(--mx-yellow);
+    }
+    
+    .connector-dot.incoming { background: var(--mx-green); box-shadow: 0 0 4px var(--mx-green); }
+    
+    /* === INSPECTOR (Detail Panel) === */
+    .inspector {
+      background: linear-gradient(180deg, #3a3f42 0%, #2d3436 100%);
+      border: 2px solid var(--board-line);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    
+    .insp-empty {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      color: var(--text-dim);
+      font-size: 10px;
+      padding: 20px;
+      text-align: center;
+    }
+    
+    .insp-empty .placeholder-brick {
+      width: 60px;
+      height: 40px;
+      background: var(--board-line);
+      border-radius: 4px;
+      position: relative;
+      box-shadow: inset 0 -3px 0 rgba(0,0,0,0.2);
+    }
+    
+    .insp-empty .placeholder-brick::before {
+      content: "";
+      position: absolute;
+      top: -5px;
+      left: 10px;
+      width: 12px;
+      height: 12px;
+      background: var(--board-line);
+      border-radius: 50%;
+      box-shadow: 18px 0 0 var(--board-line);
+    }
+    
+    .insp-content { display: none; }
+    .insp-content.show { display: block; }
+    
+    .insp-header {
+      padding: 16px;
+      background: var(--brick-color, var(--mx-gray));
+      position: relative;
+    }
+    
+    .insp-header .studs {
+      position: absolute;
+      top: -5px;
+      left: 16px;
+      display: flex;
+      gap: 8px;
+    }
+    
+    .insp-header .stud {
+      width: 14px;
+      height: 14px;
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.3), transparent 60%),
+                  linear-gradient(180deg, 
+                    color-mix(in srgb, var(--brick-color, var(--mx-gray)) 100%, white 20%) 0%, 
+                    color-mix(in srgb, var(--brick-color, var(--mx-gray)) 100%, black 25%) 100%);
+      border-radius: 50%;
+      box-shadow: inset 0 -2px 3px var(--stud-shadow);
+    }
+    
+    .insp-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--mx-white);
+      text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+      word-break: break-all;
+      margin-top: 8px;
+    }
+    
+    .insp-subtitle {
+      font-size: 9px;
+      color: rgba(255,255,255,0.7);
+      margin-top: 4px;
+      word-break: break-all;
+    }
+    
+    .insp-body { padding: 16px; }
+    
+    .insp-section {
+      margin-bottom: 16px;
+    }
+    
+    .insp-section-title {
+      font-family: 'DM Mono', monospace;
+      font-size: 8px;
+      letter-spacing: 0.15em;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid var(--board-line);
+    }
+    
+    .insp-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      font-size: 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    
+    .insp-label { color: var(--text-dim); }
+    .insp-val { font-weight: 500; font-family: 'DM Mono', monospace; }
+    
+    .insp-tech {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+    
+    /* Connection tree */
+    .conn-tree {
+      background: var(--board-bg);
+      border: 1px solid var(--board-line);
+      border-radius: 3px;
+      padding: 10px;
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      color: var(--text-dim);
+      max-height: 120px;
+      overflow-y: auto;
+    }
+    
+    .conn-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 0;
+    }
+    
+    .conn-item a {
+      color: var(--mx-yellow);
+      text-decoration: none;
+    }
+    
+    .conn-item a:hover { text-decoration: underline; }
+    
+    .conn-arrow { color: var(--text-dim); }
+    .conn-arrow.out { color: var(--mx-yellow); }
+    .conn-arrow.in { color: var(--mx-green); }
+    
+    .open-btn {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      background: var(--mx-yellow);
+      color: var(--mx-black);
+      border: none;
+      border-radius: 3px;
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      text-decoration: none;
+      text-align: center;
+      box-shadow: 
+        inset 0 -3px 0 rgba(0,0,0,0.2),
+        2px 2px 4px rgba(0,0,0,0.3);
+      transition: all 0.15s;
+    }
+    
+    .open-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 
+        inset 0 -3px 0 rgba(0,0,0,0.2),
+        3px 4px 8px rgba(0,0,0,0.4);
+    }
+    
+    /* Taxonomy depth indicator */
+    .taxonomy-depth {
+      display: flex;
+      gap: 2px;
+      margin-top: 12px;
+    }
+    
+    .depth-block {
+      width: 20px;
+      height: 8px;
+      background: var(--board-line);
+      border-radius: 2px;
+      transition: background 0.2s;
+    }
+    
+    .depth-block.active { background: var(--mx-yellow); }
+    
+    /* Footer link */
+    .board-link {
+      position: fixed;
+      bottom: 16px;
+      right: 16px;
+      padding: 10px 16px;
+      background: var(--mx-red);
+      color: var(--mx-white);
+      border-radius: 3px;
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      font-weight: 500;
+      text-decoration: none;
+      box-shadow: 
+        inset 0 -2px 0 rgba(0,0,0,0.3),
+        3px 3px 6px rgba(0,0,0,0.4);
+      z-index: 100;
+    }
+    
+    .board-link:hover { transform: translateY(-1px); }
+  </style>
+</head>
+<body>
+
+<div class="board">
+  <header class="header-rail">
+    <div class="logo-brick">
+      <div class="studs">
+        <div class="stud"></div>
+        <div class="stud"></div>
+      </div>
+      <span class="title">MODULEX SITEMAP</span>
+    </div>
+    
+    <div class="stats-strip">
+      <div class="stat"><div class="stat-dot"></div> Files: <span class="stat-val" id="statFiles">—</span></div>
+      <div class="stat"><div class="stat-dot" style="background:var(--mx-green)"></div> Size: <span class="stat-val" id="statSize">—</span></div>
+      <div class="stat"><div class="stat-dot" style="background:var(--mx-blue)"></div> Links: <span class="stat-val" id="statLinks">—</span></div>
+    </div>
+    
+    <div class="search-brick">
+      <input type="text" id="search" placeholder="Search bricks...">
+    </div>
+  </header>
+  
+  <div class="layout">
+    <!-- Sidebar Rails -->
+    <aside class="sidebar">
+      <div class="rail">
+        <div class="rail-header">TECHNOLOGIES</div>
+        <div class="rail-items" id="techRail"></div>
+      </div>
+      
+      <div class="rail">
+        <div class="rail-header">CATEGORIES</div>
+        <div class="rail-items" id="catRail"></div>
+      </div>
+      
+      <div class="rail">
+        <div class="rail-header">RECENT BUILDS</div>
+        <div class="rail-items" id="recentRail"></div>
+      </div>
+    </aside>
+    
+    <!-- Main Board -->
+    <main class="main-board">
+      <div class="sort-rail">
+        <button class="sort-btn active" data-sort="name">A→Z</button>
+        <button class="sort-btn" data-sort="size">Size</button>
+        <button class="sort-btn" data-sort="date">Recent</button>
+        <button class="sort-btn" data-sort="links">Links</button>
+        <button class="sort-btn" data-sort="lines">Lines</button>
+      </div>
+      <div class="brick-grid" id="brickGrid"></div>
+    </main>
+    
+    <!-- Inspector -->
+    <aside class="inspector">
+      <div class="insp-empty" id="inspEmpty">
+        <div class="placeholder-brick"></div>
+        <div>Select a brick to inspect</div>
+      </div>
+      <div class="insp-content" id="inspContent">
+        <div class="insp-header" id="inspHeader">
+          <div class="studs">
+            <div class="stud"></div>
+            <div class="stud"></div>
+            <div class="stud"></div>
+          </div>
+          <div class="insp-title" id="inspTitle"></div>
+          <div class="insp-subtitle" id="inspSubtitle"></div>
+        </div>
+        <div class="insp-body">
+          <div class="insp-section">
+            <div class="insp-section-title">SPECIFICATIONS</div>
+            <div class="insp-row"><span class="insp-label">Size</span><span class="insp-val" id="inspSize"></span></div>
+            <div class="insp-row"><span class="insp-label">Lines</span><span class="insp-val" id="inspLines"></span></div>
+            <div class="insp-row"><span class="insp-label">Modified</span><span class="insp-val" id="inspDate"></span></div>
+            <div class="insp-row"><span class="insp-label">Age</span><span class="insp-val" id="inspAge"></span></div>
+            <div class="insp-row"><span class="insp-label">Category</span><span class="insp-val" id="inspCat"></span></div>
+          </div>
+          
+          <div class="insp-section">
+            <div class="insp-section-title">TECHNOLOGIES</div>
+            <div class="insp-tech" id="inspTech"></div>
+          </div>
+          
+          <div class="insp-section">
+            <div class="insp-section-title">OUTGOING CONNECTIONS (<span id="inspOutCount">0</span>)</div>
+            <div class="conn-tree" id="inspOutLinks"></div>
+          </div>
+          
+          <div class="insp-section">
+            <div class="insp-section-title">INCOMING CONNECTIONS (<span id="inspInCount">0</span>)</div>
+            <div class="conn-tree" id="inspInLinks"></div>
+          </div>
+          
+          <div class="insp-section">
+            <div class="insp-section-title">TAXONOMY DEPTH</div>
+            <div class="taxonomy-depth" id="inspDepth">
+              <div class="depth-block"></div>
+              <div class="depth-block"></div>
+              <div class="depth-block"></div>
+              <div class="depth-block"></div>
+              <div class="depth-block"></div>
+            </div>
+          </div>
+          
+          <a class="open-btn" id="openBtn" href="#" target="_blank">▶ OPEN FILE</a>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<a href="sitemap.html" class="board-link">◈ PYRAMID VIEW</a>
+
+<script>
+// Modulex color palette for categories
+const CAT_COLORS = {
+  onyx:     { color: '#9b59b6', name: 'ONYX' },
+  homer:    { color: '#8e44ad', name: 'Homer' },
+  block:    { color: '#c9302c', name: 'Block' },
+  brick:    { color: '#f1c40f', name: 'Brick' },
+  wag:      { color: '#e67e22', name: 'WAG' },
+  mento:    { color: '#e91e63', name: 'Mento' },
+  tutorial: { color: '#d4a574', name: 'Tutorial' },
+  studio:   { color: '#2980b9', name: 'Studio' },
+  legos:    { color: '#27ae60', name: 'LEGOS' },
+  ator:     { color: '#1abc9c', name: '-ator' },
+  misc:     { color: '#7f8c8d', name: 'Misc' },
+};
+
+const TECH_COLORS = {
+  three:      { color: '#27ae60', name: 'Three.js' },
+  broadcast:  { color: '#2980b9', name: 'Broadcast' },
+  tailwind:   { color: '#06b6d4', name: 'Tailwind' },
+  ldraw:      { color: '#e67e22', name: 'LDraw' },
+  seeds:      { color: '#e91e63', name: 'Seeds' },
+  fontawesome:{ color: '#9b59b6', name: 'FontAwesome' },
+};
+
+let DATA = { files: [] };
+let selected = null;
+let sort = 'name';
+let query = '';
+let filterTech = null;
+let filterCat = null;
+let inLinks = {};
+
+// Helpers
+const fmtSize = b => b < 1024 ? b + ' B' : b < 1048576 ? (b/1024).toFixed(1) + ' KB' : (b/1048576).toFixed(1) + ' MB';
+const fmtDate = ts => new Date(ts * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+const fmtAge = ts => {
+  const d = Math.floor((Date.now()/1000 - ts) / 86400);
+  return d === 0 ? 'Today' : d === 1 ? '1d' : d < 30 ? d + 'd' : d < 365 ? Math.floor(d/30) + 'mo' : Math.floor(d/365) + 'y';
+};
+
+// Calculate taxonomy depth based on connections
+const calcDepth = (name) => {
+  const f = DATA.files.find(x => x.name === name);
+  if (!f) return 0;
+  const outCount = f.links.length;
+  const inCount = (inLinks[name] || []).length;
+  const techCount = f.tech.length;
+  return Math.min(5, Math.ceil((outCount + inCount + techCount) / 2));
+};
+
+// Build incoming links
+function buildInLinks() {
+  inLinks = {};
+  DATA.files.forEach(f => {
+    f.links.forEach(l => {
+      if (!inLinks[l]) inLinks[l] = [];
+      inLinks[l].push(f.name);
+    });
+  });
+}
+
+// Render sidebar rails
+function renderSidebar() {
+  // Tech rail
+  const techCounts = {};
+  DATA.files.forEach(f => f.tech.forEach(t => techCounts[t] = (techCounts[t] || 0) + 1));
+  
+  document.getElementById('techRail').innerHTML = Object.entries(TECH_COLORS)
+    .filter(([k]) => techCounts[k])
+    .map(([k, v]) => `
+      <div class="rail-item ${filterTech === k ? 'active' : ''}" data-tech="${k}">
+        <div class="brick-icon" style="background:${v.color}"></div>
+        <span class="name">${v.name}</span>
+        <span class="count">${techCounts[k]}</span>
+      </div>
+    `).join('');
+  
+  document.querySelectorAll('[data-tech]').forEach(el => {
+    el.onclick = () => { 
+      filterTech = filterTech === el.dataset.tech ? null : el.dataset.tech; 
+      renderSidebar(); 
+      renderGrid(); 
+    };
+  });
+  
+  // Category rail
+  const catCounts = {};
+  DATA.files.forEach(f => catCounts[f.category] = (catCounts[f.category] || 0) + 1);
+  
+  document.getElementById('catRail').innerHTML = Object.entries(CAT_COLORS)
+    .filter(([k]) => catCounts[k])
+    .map(([k, v]) => `
+      <div class="rail-item ${filterCat === k ? 'active' : ''}" data-cat="${k}">
+        <div class="brick-icon" style="background:${v.color}"></div>
+        <span class="name">${v.name}</span>
+        <span class="count">${catCounts[k]}</span>
+      </div>
+    `).join('');
+  
+  document.querySelectorAll('[data-cat]').forEach(el => {
+    el.onclick = () => { 
+      filterCat = filterCat === el.dataset.cat ? null : el.dataset.cat; 
+      renderSidebar(); 
+      renderGrid(); 
+    };
+  });
+  
+  // Recent rail
+  const recent = [...DATA.files].sort((a, b) => b.modified - a.modified).slice(0, 8);
+  document.getElementById('recentRail').innerHTML = recent.map(f => `
+    <div class="rail-item" data-file="${f.name}">
+      <div class="brick-icon" style="background:${CAT_COLORS[f.category]?.color || '#7f8c8d'}"></div>
+      <span class="name" style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${f.name.replace('.html','')}</span>
+    </div>
+  `).join('');
+  
+  document.querySelectorAll('[data-file]').forEach(el => {
+    el.onclick = () => selectFile(el.dataset.file);
+  });
+}
+
+// Render brick grid
+function renderGrid() {
+  let files = [...DATA.files];
+  
+  if (filterTech) files = files.filter(f => f.tech.includes(filterTech));
+  if (filterCat) files = files.filter(f => f.category === filterCat);
+  if (query) files = files.filter(f => 
+    f.name.toLowerCase().includes(query) || 
+    (f.title || '').toLowerCase().includes(query)
+  );
+  
+  if (sort === 'name') files.sort((a, b) => a.name.localeCompare(b.name));
+  if (sort === 'size') files.sort((a, b) => b.size - a.size);
+  if (sort === 'date') files.sort((a, b) => b.modified - a.modified);
+  if (sort === 'links') files.sort((a, b) => 
+    (b.links.length + (inLinks[b.name]?.length || 0)) - 
+    (a.links.length + (inLinks[a.name]?.length || 0))
+  );
+  if (sort === 'lines') files.sort((a, b) => b.lines - a.lines);
+  
+  document.getElementById('brickGrid').innerHTML = files.map(f => {
+    const cat = CAT_COLORS[f.category] || { color: '#7f8c8d' };
+    const inCount = inLinks[f.name]?.length || 0;
+    const studCount = Math.min(4, Math.max(1, Math.ceil(f.size / 15000)));
+    
+    return `
+      <div class="brick ${selected === f.name ? 'selected' : ''}" 
+           data-file="${f.name}" 
+           style="--brick-color:${cat.color}">
+        <div class="brick-studs">
+          ${Array(studCount).fill('<div class="brick-stud"></div>').join('')}
+        </div>
+        <div class="brick-name">${f.name}</div>
+        ${f.title ? `<div class="brick-title">${f.title}</div>` : ''}
+        <div class="brick-meta">
+          <span>${fmtSize(f.size)}</span>
+          <span>${f.lines} ln</span>
+          <span>${fmtAge(f.modified)}</span>
+        </div>
+        ${f.tech.length ? `
+          <div class="brick-tech">
+            ${f.tech.map(t => `<span class="tech-tag" style="--tag-color:${TECH_COLORS[t]?.color || '#fff'}">${TECH_COLORS[t]?.name || t}</span>`).join('')}
+          </div>
+        ` : ''}
+        ${f.links.length + inCount > 0 ? `
+          <div class="brick-links">
+            <div class="link-connector">
+              <div class="connector-dot"></div>
+              <span>${f.links.length} out</span>
+            </div>
+            <div class="link-connector">
+              <div class="connector-dot incoming"></div>
+              <span>${inCount} in</span>
+            </div>
+          </div>
+        ` : ''}
+      </div>
+    `;
+  }).join('');
+  
+  document.querySelectorAll('.brick[data-file]').forEach(el => {
+    el.onclick = () => selectFile(el.dataset.file);
+  });
+}
+
+// Select file for inspector
+function selectFile(name) {
+  selected = name;
+  const f = DATA.files.find(x => x.name === name);
+  if (!f) return;
+  
+  const cat = CAT_COLORS[f.category] || { color: '#7f8c8d', name: 'Misc' };
+  
+  document.getElementById('inspEmpty').style.display = 'none';
+  document.getElementById('inspContent').classList.add('show');
+  document.getElementById('inspHeader').style.setProperty('--brick-color', cat.color);
+  
+  document.getElementById('inspTitle').textContent = f.name;
+  document.getElementById('inspSubtitle').textContent = f.title || '';
+  document.getElementById('inspSize').textContent = fmtSize(f.size);
+  document.getElementById('inspLines').textContent = f.lines.toLocaleString();
+  document.getElementById('inspDate').textContent = fmtDate(f.modified);
+  document.getElementById('inspAge').textContent = fmtAge(f.modified);
+  document.getElementById('inspCat').textContent = cat.name;
+  
+  document.getElementById('inspTech').innerHTML = f.tech.length ?
+    f.tech.map(t => `<span class="tech-tag" style="--tag-color:${TECH_COLORS[t]?.color || '#fff'}">${TECH_COLORS[t]?.name || t}</span>`).join('') :
+    '<span style="color:var(--text-dim); font-size:9px;">None</span>';
+  
+  document.getElementById('inspOutCount').textContent = f.links.length;
+  document.getElementById('inspOutLinks').innerHTML = f.links.length ?
+    f.links.map(l => `<div class="conn-item"><span class="conn-arrow out">→</span><a href="${l}">${l}</a></div>`).join('') :
+    '<div style="color:var(--text-dim);">No outgoing links</div>';
+  
+  const ins = inLinks[f.name] || [];
+  document.getElementById('inspInCount').textContent = ins.length;
+  document.getElementById('inspInLinks').innerHTML = ins.length ?
+    ins.map(l => `<div class="conn-item"><span class="conn-arrow in">←</span><a href="${l}">${l}</a></div>`).join('') :
+    '<div style="color:var(--text-dim);">No incoming links</div>';
+  
+  // Taxonomy depth
+  const depth = calcDepth(f.name);
+  document.querySelectorAll('.depth-block').forEach((el, i) => {
+    el.classList.toggle('active', i < depth);
+  });
+  
+  document.getElementById('openBtn').href = f.name;
+  
+  renderGrid();
+}
+
+// Stats
+function updateStats() {
+  document.getElementById('statFiles').textContent = DATA.files.length;
+  document.getElementById('statSize').textContent = fmtSize(DATA.files.reduce((s, f) => s + f.size, 0));
+  document.getElementById('statLinks').textContent = DATA.files.reduce((s, f) => s + f.links.length, 0);
+}
+
+// Events
+document.querySelectorAll('.sort-btn').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    sort = btn.dataset.sort;
+    renderGrid();
+  };
+});
+
+document.getElementById('search').oninput = e => { 
+  query = e.target.value.toLowerCase(); 
+  renderGrid(); 
+};
+
+// Load data
+fetch('sitemap-data.json')
+  .then(r => r.json())
+  .then(d => {
+    DATA = d;
+    buildInLinks();
+    updateStats();
+    renderSidebar();
+    renderGrid();
+  })
+  .catch(e => {
+    document.getElementById('brickGrid').innerHTML = `
+      <div style="grid-column:1/-1; text-align:center; padding:60px 20px; color:var(--text-dim);">
+        <div class="placeholder-brick" style="margin:0 auto 16px; width:80px; height:50px; background:var(--board-line); border-radius:4px; position:relative;">
+          <div style="position:absolute; top:-6px; left:15px; width:14px; height:14px; background:var(--board-line); border-radius:50%; box-shadow:22px 0 0 var(--board-line);"></div>
+        </div>
+        <div style="font-size:11px; margin-bottom:8px;">Could not load sitemap-data.json</div>
+        <div style="font-size:9px; font-family:'DM Mono',monospace;">Run: ./analyze-sitemap.sh > sitemap-data.json</div>
+      </div>
+    `;
+  });
+</script>
+
+</body>
+</html>

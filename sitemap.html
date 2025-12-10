@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>◈ SITEMAP // Integrated Pyramid</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>◈</text></svg>">
+  <style>
+    :root {
+      --bg: #0a0a0c;
+      --surface: #111114;
+      --border: #222228;
+      --text: #e4e4e7;
+      --muted: #71717a;
+      
+      /* Pyramid colors */
+      --void: #8b5cf6;      /* Void Management */
+      --nsp: #ef4444;       /* Negative Space Programming */
+      --context: #f59e0b;   /* Context as Material */
+      --lego: #3b82f6;      /* Digital LEGO Ecosystem */
+      --modulex: #10b981;   /* Modulex Geometric Schism */
+      --cheng: #ec4899;     /* Ian Cheng Research */
+      --studio: #06b6d4;    /* DCE-GYO Studio Tools */
+      --onyx: #a855f7;      /* ONYX Narrative System */
+    }
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: 'SF Mono', 'Menlo', monospace;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    
+    header {
+      text-align: center;
+      padding: 40px 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 40px;
+    }
+    
+    h1 {
+      font-size: 14px;
+      letter-spacing: 0.3em;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    
+    .title {
+      font-size: 32px;
+      font-weight: 200;
+      letter-spacing: 0.1em;
+    }
+    
+    .subtitle {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 12px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    
+    /* Pyramid Grid */
+    .pyramid-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+    
+    .pyramid {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    
+    .pyramid-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .pyramid-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+    
+    .pyramid-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+    }
+    
+    .pyramid-desc {
+      font-size: 9px;
+      color: var(--muted);
+    }
+    
+    .pyramid-body {
+      padding: 16px 20px;
+      font-size: 10px;
+    }
+    
+    .node {
+      padding: 6px 0;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    
+    .node:last-child { border-bottom: none; }
+    
+    .node-prefix {
+      color: var(--muted);
+      font-size: 9px;
+      min-width: 20px;
+    }
+    
+    .node-label {
+      flex: 1;
+    }
+    
+    .node a {
+      color: inherit;
+      text-decoration: none;
+      border-bottom: 1px dotted var(--border);
+    }
+    
+    .node a:hover {
+      color: #fff;
+      border-color: #fff;
+    }
+    
+    .entity { color: var(--text); }
+    .morphism { color: var(--muted); font-style: italic; }
+    
+    /* Unified Sitemap Tree */
+    .unified-tree {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 40px;
+    }
+    
+    .tree-title {
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      color: var(--muted);
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    
+    pre.tree {
+      font-size: 10px;
+      line-height: 1.8;
+      overflow-x: auto;
+      color: var(--muted);
+    }
+    
+    pre.tree .e { color: var(--text); }           /* entity */
+    pre.tree .m { color: #71717a; font-style: italic; }  /* morphism */
+    pre.tree .g { color: #525252; }               /* group */
+    pre.tree .void { color: var(--void); }
+    pre.tree .nsp { color: var(--nsp); }
+    pre.tree .context { color: var(--context); }
+    pre.tree .lego { color: var(--lego); }
+    pre.tree .modulex { color: var(--modulex); }
+    pre.tree .cheng { color: var(--cheng); }
+    pre.tree .studio { color: var(--studio); }
+    pre.tree .onyx { color: var(--onyx); }
+    
+    /* Links section */
+    .links-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+    }
+    
+    .link-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px 16px;
+      text-decoration: none;
+      color: var(--text);
+      font-size: 10px;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .link-card:hover {
+      border-color: #fff;
+      transform: translateY(-2px);
+    }
+    
+    .link-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    
+    footer {
+      text-align: center;
+      padding: 40px 20px;
+      border-top: 1px solid var(--border);
+      margin-top: 40px;
+      font-size: 9px;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>DCE-GYO</h1>
+  <div class="title">◈ INTEGRATED SITEMAP</div>
+  <div class="subtitle">
+    Eight pyramids unified through <code>&lt;Negative Space Programming&gt;</code>: 
+    designing systems where invalid states are unrepresentable by structure, 
+    not merely handled at runtime.
+  </div>
+</header>
+
+<div class="unified-tree">
+  <div class="tree-title">UNIFIED ONTOLOGY</div>
+  <pre class="tree"><span class="e">&lt;DCE-GYO Integrated System&gt;</span>
+├── <span class="g">{Theoretical Foundations}</span>
+│   ├── <span class="nsp">&lt;Negative Space Programming&gt;</span>
+│   │   ├── <span class="e">&lt;state space&gt;</span> → <span class="e">&lt;valid states&gt;</span> ∪ <span class="e">&lt;invalid states&gt;</span>
+│   │   ├── <span class="e">&lt;negative space&gt;</span> := <span class="e">&lt;invalid states&gt;</span> ∩ <span class="e">&lt;reachable states&gt;</span>
+│   │   ├── <span class="m">[makes unrepresentable]</span> via <span class="e">&lt;types&gt;</span>, <span class="e">&lt;contracts&gt;</span>, <span class="e">&lt;parsers&gt;</span>
+│   │   ├── <span class="e">&lt;ghost evidence&gt;</span> := <span class="e">&lt;deleted defensive code&gt;</span>
+│   │   └── <span class="e">&lt;weird machine&gt;</span> ← <span class="m">[emerges when]</span> <span class="e">&lt;negative space&gt;</span> <span class="m">[is exploited]</span>
+│   │
+│   ├── <span class="void">&lt;Void Management&gt;</span>
+│   │   ├── <span class="e">&lt;Void&gt;</span> := <span class="e">&lt;possibility space&gt;</span> of <span class="e">&lt;generative system&gt;</span>
+│   │   ├── <span class="e">&lt;Scene&gt;</span> := <span class="e">&lt;accumulated context&gt;</span> <span class="m">[constraining]</span> <span class="e">&lt;Void&gt;</span>
+│   │   ├── <span class="e">&lt;Sintering&gt;</span> := <span class="m">[applying]</span> <span class="e">&lt;constraints&gt;</span> + <span class="e">&lt;intent&gt;</span> as heat/pressure
+│   │   ├── <span class="e">&lt;Quasi-Creature&gt;</span> := <span class="e">&lt;generative system&gt;</span> in <span class="e">&lt;Uncanny Valley of Agency&gt;</span>
+│   │   └── <span class="e">&lt;Seamful Design&gt;</span> <span class="m">[exposes]</span> <span class="e">&lt;seams&gt;</span> for <span class="e">&lt;legibility&gt;</span>
+│   │
+│   └── <span class="context">&lt;Context as Material&gt;</span>
+│       ├── <span class="e">&lt;LLM context&gt;</span> := <span class="e">&lt;finite material&gt;</span> with <span class="e">&lt;economic cost&gt;</span>
+│       ├── <span class="e">&lt;Context Engineering Pipeline&gt;</span>: <span class="m">[Write]</span> → <span class="m">[Select]</span> → <span class="m">[Compress]</span> → <span class="m">[Isolate]</span>
+│       ├── <span class="e">&lt;Agentic Context Engineering&gt;</span>: <span class="e">&lt;Generator&gt;</span> + <span class="e">&lt;Reflector&gt;</span> + <span class="e">&lt;Curator&gt;</span>
+│       ├── <span class="e">&lt;Living Playbook&gt;</span> := <span class="e">&lt;procedural memory&gt;</span> <span class="m">[maintained by]</span> <span class="e">&lt;agent&gt;</span>
+│       └── <span class="e">&lt;thick output&gt;</span> ← <span class="e">&lt;Thick Description&gt;</span> + <span class="e">&lt;Situated Action&gt;</span>
+│
+├── <span class="g">{Case Studies}</span>
+│   ├── <span class="cheng">&lt;Ian Cheng Research&gt;</span>
+│   │   ├── <span class="e">&lt;Life After BOB&gt;</span> := <span class="e">&lt;live simulation film&gt;</span>
+│   │   │   ├── <span class="e">&lt;Chalice Wong&gt;</span> <span class="m">[cohabits]</span> <span class="e">&lt;BOB (Bag of Beliefs)&gt;</span>
+│   │   │   └── <span class="m">[explores]</span> <span class="e">&lt;scripted destiny&gt;</span> vs <span class="e">&lt;emergent experience&gt;</span>
+│   │   ├── <span class="e">&lt;Thousand Lives&gt;</span> := <span class="e">&lt;turtle AI agent&gt;</span> <span class="m">[optimizing]</span> <span class="e">&lt;life scripts&gt;</span>
+│   │   ├── <span class="e">&lt;Metis Suns Studio&gt;</span> <span class="m">[implements]</span> <span class="e">&lt;studio model&gt;</span>
+│   │   └── <span class="e">&lt;worlder&gt;</span> := <span class="e">&lt;artist&gt;</span> <span class="m">[constructing]</span> <span class="e">&lt;rule-based universes&gt;</span>
+│   │
+│   └── <span class="modulex">&lt;Modulex Geometric Schism&gt;</span>
+│       ├── <span class="e">&lt;5mm cubic geometry&gt;</span> <span class="m">[diverges from]</span> <span class="e">&lt;LEGO 5:6 aspect ratio&gt;</span>
+│       ├── <span class="e">&lt;M20 System&gt;</span> := <span class="e">&lt;1:20 scale&gt;</span> for <span class="e">&lt;architectural modeling&gt;</span>
+│       ├── <span class="e">&lt;Industriplanlægning&gt;</span> := <span class="e">&lt;planning board pivot&gt;</span>
+│       ├── <span class="e">&lt;Plancopy&gt;</span> := <span class="e">&lt;photocopy-optimized&gt;</span> <span class="e">&lt;planning system&gt;</span>
+│       └── <span class="e">&lt;2015 Revival&gt;</span> <span class="m">[suppressed by]</span> <span class="e">&lt;LEGO acquisition&gt;</span>
+│
+├── <span class="g">{Digital Ecosystems}</span>
+│   └── <span class="lego">&lt;Digital LEGO Ecosystem&gt;</span>
+│       ├── <span class="e">&lt;Material-Digital Dialectic&gt;</span>
+│       │   ├── <span class="e">&lt;Physical Brick&gt;</span>: <span class="e">&lt;ABS&gt;</span>, <span class="e">&lt;clutch power&gt;</span>, <span class="e">&lt;tolerance&gt;</span>
+│       │   └── <span class="e">&lt;Digital Brick&gt;</span>: <span class="e">&lt;asset file&gt;</span>, <span class="e">&lt;vector geometry&gt;</span>
+│       ├── <span class="e">&lt;LDraw Standard&gt;</span> := <span class="e">&lt;plain text&gt;</span> + <span class="e">&lt;primitives library&gt;</span>
+│       │   ├── <span class="e">&lt;DAT&gt;</span> := <span class="e">&lt;part definition&gt;</span>
+│       │   ├── <span class="e">&lt;LDR&gt;</span> := <span class="e">&lt;model file&gt;</span>
+│       │   └── <span class="e">&lt;MPD&gt;</span> := <span class="e">&lt;multi-part document&gt;</span>
+│       ├── <span class="e">&lt;BrickLink Studio&gt;</span> <span class="m">[unifies]</span> <span class="e">&lt;LDraw&gt;</span> + <span class="e">&lt;LDD usability&gt;</span>
+│       └── <span class="e">&lt;Gaussian Splatting&gt;</span> := <span class="e">&lt;future rendering&gt;</span>
+│
+├── <span class="g">{Production Tools}</span>
+│   └── <span class="studio">&lt;DCE-GYO Studio&gt;</span>
+│       ├── <span class="e">&lt;Swiss/Frank/Grace&gt;</span> := <span class="e">&lt;unified studio surface&gt;</span>
+│       │   ├── <span class="e">&lt;Swiss&gt;</span> := <span class="e">&lt;designer hub&gt;</span>
+│       │   ├── <span class="e">&lt;Frank&gt;</span> := <span class="e">&lt;9×9 grid bus&gt;</span>
+│       │   └── <span class="e">&lt;Grace&gt;</span> := <span class="e">&lt;3D editor/viewer&gt;</span>
+│       ├── <span class="e">&lt;GOLD&gt;</span> := <span class="e">&lt;canonical MPD editor&gt;</span>
+│       ├── <span class="e">&lt;Courage&gt;</span> := <span class="e">&lt;experimental viewer&gt;</span> <span class="m">[generates]</span> <span class="e">&lt;stud_skeleton&gt;</span>
+│       ├── <span class="e">&lt;WERE&gt;</span> := <span class="e">&lt;bone/orb editor&gt;</span>
+│       ├── <span class="e">&lt;Master&gt;</span> := <span class="e">&lt;tuning surface&gt;</span>
+│       ├── <span class="e">&lt;Mento&gt;</span> := <span class="e">&lt;camera/brickfilm capture&gt;</span>
+│       ├── <span class="e">&lt;Plato's Cave&gt;</span> := <span class="e">&lt;Shield-of-Achilles reconstruction&gt;</span>
+│       └── <span class="e">&lt;-ators&gt;</span>: <span class="e">&lt;Minifigurator&gt;</span>, <span class="e">&lt;Locationator&gt;</span>, <span class="e">&lt;Vehiculator&gt;</span>, <span class="e">&lt;Sceneerator&gt;</span>
+│
+└── <span class="g">{Narrative Systems}</span>
+    └── <span class="onyx">&lt;ONYX System&gt;</span>
+        ├── <span class="e">&lt;ONYX-ABS (Branch)&gt;</span> := <span class="e">&lt;code forensics&gt;</span>
+        │   ├── <span class="e">&lt;9×9 grid&gt;</span> <span class="m">[compresses]</span> <span class="e">&lt;code lines&gt;</span>
+        │   ├── <span class="e">&lt;D0-D8 registers&gt;</span> := <span class="e">&lt;state containers&gt;</span>
+        │   └── <span class="e">&lt;X-ray&gt;</span> := <span class="m">[transitive closure]</span> of <span class="e">&lt;dependencies&gt;</span>
+        ├── <span class="e">&lt;ONYX-TAIL (Arch)&gt;</span> := <span class="e">&lt;narrative composition&gt;</span>
+        │   ├── <span class="e">&lt;STATE.nodes[]&gt;</span> := <span class="e">&lt;free-floating entities&gt;</span>
+        │   ├── <span class="e">&lt;STATE.links[]&gt;</span> := <span class="e">&lt;semantic relationships&gt;</span>
+        │   │   └── types: <span class="e">&lt;desire&gt;</span>, <span class="e">&lt;conflict&gt;</span>, <span class="e">&lt;inside&gt;</span>, <span class="e">&lt;contains&gt;</span>
+        │   └── <span class="e">&lt;Compiler&gt;</span> <span class="m">[parses]</span> "X wants Y but Z"
+        ├── <span class="e">&lt;scenario-seeds.json&gt;</span> := 57 scenarios × 12 families × 4 stages
+        │   └── stages: <span class="e">&lt;GROUND&gt;</span>, <span class="e">&lt;SITE&gt;</span>, <span class="e">&lt;SKY&gt;</span>, <span class="e">&lt;PERSPECTIVE&gt;</span>
+        └── <span class="e">&lt;thousand-tetrad.html&gt;</span> := <span class="e">&lt;full scenario definitions&gt;</span>
+</pre>
+</div>
+
+<h2 style="font-size:11px; letter-spacing:0.2em; color:var(--muted); margin-bottom:20px; text-align:center;">PYRAMID CARDS</h2>
+
+<div class="pyramid-grid">
+  
+  <div class="pyramid">
+    <div class="pyramid-header">
+      <div class="pyramid-icon" style="background:var(--nsp)20; color:var(--nsp);">✕</div>
+      <div>
+        <div class="pyramid-title">NEGATIVE SPACE PROGRAMMING</div>
+        <div class="pyramid-desc">Making invalid states unrepresentable</div>
+      </div>
+    </div>
+    <div class="pyramid-body">
+      <div class="node"><span class="node-prefix">├</span><span class="node-label entity">&lt;state space&gt; = valid ∪ invalid</span></div>
+      <div class="node"><span class="node-prefix">├</span><span class="node-label entity">&lt;negative space&gt; = reachable invalid</span></div>
+      <div class="node"><span class="node-prefix">├</span><span class="node-label morphism">[constrain] via types, contracts, parsers</span></div>
+      <div class="node"><span class="node-prefix">├</span><span class="node-label entity">&lt;ghost evidence&gt; = deleted checks</span></div>
+      <div class="node"><span class="node-prefix">└</span><span class="node-label entity">&lt;weird machine&gt; = exploited negative space</span></div>
+    </div>
+  </div>
+  
+  <div class="pyramid">
+    <div class="pyramid-header">
+      <div class="pyramid-icon" style="background:var(--void)20; color:var(--void);">◎</div>
+      <div>
+        <div class="pyramid-title">VOID MANAGEMENT</div>
+        <div class="pyramid-desc">Shaping generative possibility space</div>
+      </div>
+    </div>
+    <div class="pyramid-body">
+      <div class="node"><span class="node-prefix">├</span><span class="node-label entity">&lt;Void&gt; = probability distribution</span></div>
+      <div class="node"><span class="node-prefix">├</span><span class="node-label entity">&lt;Scene&gt; = accumulated context</span></div>
+      <div class="node"><span class="node-prefix">├</span><span class="node-label entity">&lt;Sintering&gt; = constraint + intent</span></div>
+      <div class="node"><span class="node-prefix">├</span><span class="node-label entity">&lt;Quasi-Creature&gt; = uncanny agent</span></div>
+      <div class="node"><span class="node-prefix">└</span><span class="node-label entity">&lt;Seamful Design&gt; = exposed seams</span></div>
+    </div>
+  </div>
+  
+  <div class="pyramid">
+    <div class="pyramid-header">
+      <div class="pyramid-icon" style="background:var(--context)20; color:var(--context);">▣</div>
+      <div>
+        <div class="pyramid-title">CONTEXT AS MATERIAL</div>
+        <div class="pyramid-desc">LLM context as finite, costly resource</div>
+      </div>
+    </div>
+    <div class="pyramid-body">
+      <div class="node"><span class="node-prefix">├</span><span class="node-label morphism">[Write] → [Select] → [Compress] → [Isolate]</span></div>
+      <div class="node"><span class="node-prefix">├</span><span class="node-label entity">&lt;Generator&gt; + &lt;Reflector&gt; + &lt;Curator&gt;</span></div>
+      <div class="node"><span class="node-prefix">├</span><span class="node-label entity">&lt;Living Playbook&gt; = procedural memory</span></div>
+      <div class="node"><span class="node-prefix">├</span><span class="node-label entity">&lt;thick output&gt; = culturally situated</span></div>
+      <div class="node"><span class="node-prefix">└</span><span class="node-label entity">&lt;Context Rot&gt; = degradation at scale</span></div>
+    </div>
+  </div>
+  
+  <div class="pyramid">
+    <div class="pyramid-header">
+      <div class="pyramid-icon" style="background:var(--cheng)20; color:var(--cheng);">◇</div>
+      <div>
+        <div class="pyramid-title">IAN CHENG RESEARCH</div>
+        <div class="pyramid-desc">Digital storytelling lineage</div>
+      </div>
+    </div>
+    <div class="pyramid-body">
+      <div class="node"><span class="node-prefix">├</span><span class="node-label entity">&lt;Life After BOB&gt; = live simulation</span></div>
+      <div class="node"><span class="node-prefix">├</span><span class="node-label entity">&lt;Thousand Lives&gt; = turtle optimization</span></div>
+      <div class="node"><span class="node-prefix">├</span><span class="node-label entity">&lt;Metis Suns Studio&gt; = production</span></div>
+      <div class="node"><span class="node-prefix">├</span><span class="node-label entity">&lt;worlder&gt; = rule-based universe maker</span></div>
+      <div class="node"><span class="node-prefix">└</span><span class="node-label entity">&lt;BOB&gt; = Bag of Beliefs AI</span></div>
+    </div>
+  </div>
+  
+  <div class="pyramid">
+    <div class="pyramid-header">
+      <div class="pyramid-icon" style="background:var(--modulex)20; color:var(--modulex);">□</div>
+      <div>
+        <div class="pyramid-title">MODULEX SCHISM</div>
+        <div class="pyramid-desc">5mm cube vs LEGO 5:6 ratio</div>
+      </div>
+    </div>
+    <div class="pyramid-body">
+      <div class="node"><span class="node-prefix">├</span><span class="node-label entity">&lt;M20&gt; = 1:20 architectural scale</span></div>
+      <div class="node"><span class="node-prefix">├</span><span class="node-label entity">&lt;Industriplanlægning&gt; = planning pivot</span></div>
+      <div class="node"><span class="node-prefix">├</span><span class="node-label entity">&lt;Plancopy&gt; = photocopy-optimized</span></div>
+      <div class="node"><span class="node-prefix">├</span><span class="node-label entity">&lt;Interior 10&gt; = signage system</span></div>
+      <div class="node"><span class="node-prefix">└</span><span class="node-label entity">&lt;2015 Revival&gt; → suppressed</span></div>
+    </div>
+  </div>
+  
+  <div class="pyramid">
+    <div class="pyramid-header">
+      <div class="pyramid-icon" style="background:var(--lego)20; color:var(--lego);">■</div>
+      <div>
+        <div class="pyramid-title">DIGITAL LEGO ECOSYSTEM</div>
+        <div class="pyramid-desc">Material-digital dialectic</div>
+      </div>
+    </div>
+    <div class="pyramid-body">
+      <div class="node"><span class="node-prefix">├</span><span class="node-label entity">&lt;LDraw&gt; = community standard</span></div>
+      <div class="node"><span class="node-prefix">├</span><span class="node-label entity">&lt;MPD&gt; = multi-part document</span></div>
+      <div class="node"><span class="node-prefix">├</span><span class="node-label entity">&lt;BrickLink Studio&gt; = unified tool</span></div>
+      <div class="node"><span class="node-prefix">├</span><span class="node-label entity">&lt;L3P/POVRay&gt; = photorealism</span></div>
+      <div class="node"><span class="node-prefix">└</span><span class="node-label entity">&lt;Gaussian Splatting&gt; = future</span></div>
+    </div>
+  </div>
+  
+  <div class="pyramid">
+    <div class="pyramid-header">
+      <div class="pyramid-icon" style="background:var(--studio)20; color:var(--studio);">◻</div>
+      <div>
+        <div class="pyramid-title">DCE-GYO STUDIO</div>
+        <div class="pyramid-desc">Production tool ecosystem</div>
+      </div>
+    </div>
+    <div class="pyramid-body">
+      <div class="node"><span class="node-prefix">├</span><span class="node-label"><a href="swiss-frank-grace-studio.html">&lt;Swiss/Frank/Grace&gt;</a> = unified surface</span></div>
+      <div class="node"><span class="node-prefix">├</span><span class="node-label"><a href="wag-viewer-prime-integration-20251112-055341 copy/wag-gold-editor.html">&lt;GOLD&gt;</a> = canonical MPD editor</span></div>
+      <div class="node"><span class="node-prefix">├</span><span class="node-label"><a href="wag-viewer-prime-integration-20251112-055341 copy/wag-courage.html">&lt;Courage&gt;</a> = experimental viewer</span></div>
+      <div class="node"><span class="node-prefix">├</span><span class="node-label"><a href="platos-cave.html">&lt;Plato's Cave&gt;</a> = reconstruction</span></div>
+      <div class="node"><span class="node-prefix">└</span><span class="node-label"><a href="homer-quickstart.html">&lt;HOMER&gt;</a> = pipeline tutorial</span></div>
+    </div>
+  </div>
+  
+  <div class="pyramid">
+    <div class="pyramid-header">
+      <div class="pyramid-icon" style="background:var(--onyx)20; color:var(--onyx);">◈</div>
+      <div>
+        <div class="pyramid-title">ONYX SYSTEM</div>
+        <div class="pyramid-desc">Narrative structure tools</div>
+      </div>
+    </div>
+    <div class="pyramid-body">
+      <div class="node"><span class="node-prefix">├</span><span class="node-label"><a href="onyx-abs.html">&lt;ONYX-ABS&gt;</a> = code forensics (Branch)</span></div>
+      <div class="node"><span class="node-prefix">├</span><span class="node-label"><a href="onyx-tail.html">&lt;ONYX-TAIL&gt;</a> = narrative (Arch)</span></div>
+      <div class="node"><span class="node-prefix">├</span><span class="node-label"><a href="scenario-families.html">&lt;Scenario Families&gt;</a> = 57 seeds</span></div>
+      <div class="node"><span class="node-prefix">├</span><span class="node-label"><a href="thousand-tetrad.html">&lt;Thousand Tetrad&gt;</a> = full defs</span></div>
+      <div class="node"><span class="node-prefix">└</span><span class="node-label"><a href="scenario-seeds.json">&lt;scenario-seeds.json&gt;</a> = data</span></div>
+    </div>
+  </div>
+  
+</div>
+
+<h2 style="font-size:11px; letter-spacing:0.2em; color:var(--muted); margin-bottom:20px; text-align:center;">THE HYBRID FRANKENSTEIN</h2>
+
+<div class="unified-tree">
+  <pre class="tree"><span class="e">&lt;Hybrid Frankenstein&gt;</span> := The system that <span class="m">[unifies]</span> all pyramids
+
+<span class="g">{Core Insight}</span>
+  All eight pyramids share a common structure:
+  
+  1. <span class="nsp">&lt;Negative Space&gt;</span> ≅ <span class="void">&lt;Void&gt;</span> ≅ <span class="context">&lt;Context Window&gt;</span> ≅ <span class="lego">&lt;State Space&gt;</span>
+     → The <span class="e">&lt;possibility space&gt;</span> that must be <span class="m">[constrained]</span>
+  
+  2. <span class="nsp">&lt;Types/Contracts&gt;</span> ≅ <span class="void">&lt;Scene/Sintering&gt;</span> ≅ <span class="context">&lt;Pipeline&gt;</span> ≅ <span class="lego">&lt;LDraw Spec&gt;</span>
+     → The <span class="e">&lt;structural constraints&gt;</span> that <span class="m">[shape]</span> the space
+  
+  3. <span class="nsp">&lt;Ghost Evidence&gt;</span> ≅ <span class="void">&lt;Seamful Design&gt;</span> ≅ <span class="context">&lt;Thick Output&gt;</span> ≅ <span class="onyx">&lt;X-ray&gt;</span>
+     → The <span class="e">&lt;visible traces&gt;</span> of <span class="m">[successful constraint]</span>
+
+<span class="g">{The Frankenstein}</span>
+  <span class="e">&lt;ONYX-CORE&gt;</span> should be:
+  
+  ├── <span class="m">[Grid as Negative Space]</span>
+  │   └── 9×9 cells = 81 possible states
+  │   └── <span class="m">[Unoccupied cells]</span> = <span class="e">&lt;negative space&gt;</span> made visible
+  │   └── <span class="m">[Occupied cells]</span> = <span class="e">&lt;valid states&gt;</span> by construction
+  │
+  ├── <span class="m">[Scene as Context]</span>
+  │   └── Each scene = bounded <span class="e">&lt;context window&gt;</span>
+  │   └── <span class="m">[Write/Select/Compress/Isolate]</span> = scene operations
+  │   └── <span class="e">&lt;Living Playbook&gt;</span> = saved scene collection
+  │
+  ├── <span class="m">[Nodes as Quasi-Creatures]</span>
+  │   └── Entity, Goal, Obstacle = <span class="e">&lt;agents with intent&gt;</span>
+  │   └── Links = <span class="e">&lt;semantic relationships&gt;</span> (desire, conflict)
+  │   └── <span class="m">[Sintering]</span> = compiler parsing "X wants Y but Z"
+  │
+  ├── <span class="m">[X-ray as Ghost Evidence]</span>
+  │   └── Transitive closure shows <span class="e">&lt;deleted paths&gt;</span>
+  │   └── What's NOT connected = <span class="e">&lt;negative space&gt;</span>
+  │   └── <span class="e">&lt;Seamful Design&gt;</span> = visible dependency structure
+  │
+  └── <span class="m">[Scenario Seeds as Worlding]</span>
+      └── 57 scenarios = <span class="e">&lt;rule-based universes&gt;</span>
+      └── 4 stages = <span class="e">&lt;substrate development cycle&gt;</span>
+      └── Load seeds = <span class="m">[instantiate]</span> <span class="e">&lt;Void&gt;</span> into <span class="e">&lt;Scene&gt;</span>
+</pre>
+</div>
+
+<h2 style="font-size:11px; letter-spacing:0.2em; color:var(--muted); margin-bottom:20px; text-align:center;">QUICK LINKS</h2>
+
+<div class="links-grid">
+  <a href="index.html" class="link-card"><span class="link-dot" style="background:var(--studio)"></span>Project Manifest</a>
+  <a href="swiss-frank-grace-studio.html" class="link-card"><span class="link-dot" style="background:var(--studio)"></span>Studio</a>
+  <a href="onyx-abs.html" class="link-card"><span class="link-dot" style="background:var(--onyx)"></span>ONYX Branch</a>
+  <a href="onyx-tail.html" class="link-card"><span class="link-dot" style="background:var(--onyx)"></span>ONYX Arch</a>
+  <a href="scenario-families.html" class="link-card"><span class="link-dot" style="background:var(--onyx)"></span>Scenario Families</a>
+  <a href="thousand-tetrad.html" class="link-card"><span class="link-dot" style="background:var(--onyx)"></span>Thousand Tetrad</a>
+  <a href="platos-cave.html" class="link-card"><span class="link-dot" style="background:var(--lego)"></span>Plato's Cave</a>
+  <a href="homer-quickstart.html" class="link-card"><span class="link-dot" style="background:var(--lego)"></span>HOMER Quickstart</a>
+  <a href="VOID-MANAGEMENT-PAPER.md" class="link-card"><span class="link-dot" style="background:var(--void)"></span>Void Management</a>
+  <a href="CONTEXT-ENGINEERING-GENEALOGY.md" class="link-card"><span class="link-dot" style="background:var(--context)"></span>Context Engineering</a>
+</div>
+
+<footer>
+  <div>◈ DCE-GYO // 2025</div>
+  <div style="margin-top:8px;">Eight pyramids. One integrated system. Negative space made visible.</div>
+</footer>
+
+</body>
+</html>

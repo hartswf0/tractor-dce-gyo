@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>▣ EVOLUTION · LITE</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+    :root {
+      --bg: #05070a;
+      --surface: #0f1115;
+      --surface-soft: #151921;
+      --border: #1f2430;
+      --text: #f9fafb;
+      --text-dim: #9ca3af;
+
+      --fam-swiss: #14b8a6;
+      --fam-gold: #eab308;
+      --fam-onyx: #a855f7;
+      --fam-brick: #3b82f6;
+      --fam-ator: #ec4899;
+      --fam-wag: #f97316;
+      --fam-homer: #22c55e;
+      --fam-timber: #22c55e;
+      --fam-bull: #ef4444;
+      --fam-core: #8b5cf6;
+      --fam-tutorial: #fbbf24;
+      --fam-block: #6366f1;
+      --fam-mento: #14b8a6;
+      --fam-misc: #6b7280;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', -apple-system, system-ui, sans-serif;
+      background:
+        radial-gradient(circle at 1px 1px, rgba(15,23,42,0.9) 1px, transparent 0) 0 0/12px 12px,
+        radial-gradient(circle at 1px 1px, rgba(15,23,42,0.7) 1px, transparent 0) 6px 6px/12px 12px,
+        linear-gradient(180deg, #020617 0%, #020617 40%, #030712 100%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .app {
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 16px 14px 28px;
+    }
+
+    .header {
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: linear-gradient(180deg, #f97316 0%, #e11d48 50%, #7f1d1d 100%);
+      border: 1px solid rgba(0,0,0,0.65);
+      box-shadow:
+        0 4px 0 rgba(0,0,0,0.75),
+        0 10px 20px rgba(0,0,0,0.75);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(16px);
+      overflow: visible;
+    }
+
+    .header::before {
+      content: "";
+      position: absolute;
+      top: -9px;
+      left: 18px;
+      right: 18px;
+      height: 12px;
+      background:
+        radial-gradient(circle at 15% 35%, rgba(255,255,255,0.4) 0, transparent 55%),
+        radial-gradient(circle at 50% 35%, rgba(255,255,255,0.35) 0, transparent 55%),
+        radial-gradient(circle at 85% 35%, rgba(255,255,255,0.3) 0, transparent 55%);
+      background-color: #fda4af;
+      border-radius: 999px;
+      box-shadow:
+        inset 0 -3px 5px rgba(0,0,0,0.45),
+        0 2px 3px rgba(0,0,0,0.55);
+    }
+
+    .title {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .title-main {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+    }
+
+    .title-sub {
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+
+    .stats {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 2px;
+      font-size: 10px;
+      color: var(--text-dim);
+    }
+
+    .stat-val { color: var(--fam-gold); font-weight: 600; }
+
+    /* Timeline list */
+    .timeline {
+      margin-top: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .day-block {
+      position: relative;
+      background: linear-gradient(180deg, #111827 0%, #020617 100%);
+      border-radius: 12px;
+      border: 1px solid rgba(15,23,42,0.9);
+      box-shadow:
+        0 3px 0 rgba(0,0,0,0.85),
+        0 9px 14px rgba(0,0,0,0.85);
+      overflow: hidden;
+    }
+
+    .day-block::before {
+      content: "";
+      position: absolute;
+      top: -7px;
+      left: 18px;
+      right: 18px;
+      height: 10px;
+      background:
+        radial-gradient(circle at 18% 40%, rgba(255,255,255,0.35) 0, transparent 55%),
+        radial-gradient(circle at 50% 40%, rgba(255,255,255,0.3) 0, transparent 55%),
+        radial-gradient(circle at 82% 40%, rgba(255,255,255,0.25) 0, transparent 55%);
+      background-color: #1f2937;
+      border-radius: 999px;
+      box-shadow:
+        inset 0 -3px 4px rgba(0,0,0,0.6),
+        0 2px 3px rgba(0,0,0,0.7);
+    }
+
+    .day-header {
+      padding: 10px 12px 6px;
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .day-date {
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .day-weekday {
+      font-size: 10px;
+      color: var(--text-dim);
+    }
+
+    .day-count {
+      font-size: 10px;
+      color: var(--text-dim);
+    }
+
+    .files {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 0 8px 8px;
+    }
+
+    .file-card {
+      position: relative;
+      display: flex;
+      gap: 8px;
+      padding: 10px 9px 9px;
+      border-radius: 10px;
+      background: radial-gradient(circle at 20% 0%, rgba(255,255,255,0.12) 0, transparent 45%),
+                  linear-gradient(180deg, #111827 0%, #020617 100%);
+      border: 1px solid rgba(15,23,42,0.9);
+      box-shadow:
+        0 2px 0 rgba(0,0,0,0.7),
+        0 6px 10px rgba(0,0,0,0.8);
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .file-card::before {
+      content: "";
+      position: absolute;
+      top: -6px;
+      left: 18px;
+      width: 12px;
+      height: 12px;
+      background:
+        radial-gradient(circle at 35% 35%, rgba(255,255,255,0.5) 0, transparent 55%),
+        linear-gradient(180deg, rgba(148,163,184,0.85) 0%, rgba(55,65,81,1) 100%);
+      border-radius: 999px;
+      box-shadow:
+        inset 0 -3px 4px rgba(0,0,0,0.6),
+        0 2px 3px rgba(0,0,0,0.7);
+    }
+
+    .file-strip {
+      width: 4px;
+      border-radius: 999px;
+      background: var(--studio-color, var(--fam-misc));
+      flex-shrink: 0;
+    }
+
+    .file-main {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .file-top-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 6px;
+      margin-bottom: 2px;
+    }
+
+    .file-name {
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .file-studio {
+      font-size: 9px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: rgba(15,23,42,0.9);
+      border: 1px solid rgba(148,163,184,0.6);
+      color: var(--studio-color, var(--fam-misc));
+      flex-shrink: 0;
+    }
+
+    .file-logline {
+      font-size: 11px;
+      color: var(--text-dim);
+      line-height: 1.4;
+    }
+
+    .file-meta-row {
+      margin-top: 4px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      font-size: 9px;
+      color: var(--text-dim);
+    }
+
+    .file-order {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      color: var(--fam-gold);
+    }
+
+    .file-patterns {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .pattern-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 8px;
+      padding: 1px 5px;
+      border-radius: 999px;
+      background: rgba(15,23,42,0.9);
+      border: 1px solid rgba(31,41,55,0.9);
+    }
+
+    /* Studio legend */
+    .studio-legend {
+      margin-top: 18px;
+      padding: 10px 12px;
+      background: rgba(15,23,42,0.9);
+      border-radius: 12px;
+      border: 1px solid rgba(55,65,81,0.8);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-size: 10px;
+    }
+
+    .legend-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(15,23,42,0.9);
+      border: 1px solid rgba(31,41,55,0.9);
+      white-space: nowrap;
+    }
+
+    .legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--color);
+    }
+
+    .footer-link {
+      position: fixed;
+      bottom: 12px;
+      right: 12px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: radial-gradient(circle at top left, #22c55e, #2563eb);
+      color: white;
+      font-size: 10px;
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    @media (max-width: 480px) {
+      .header { padding: 10px 10px; }
+      .file-card { padding: 8px 7px; }
+      .app { padding-inline: 10px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app">
+  <header class="header">
+    <div class="title">
+      <div class="title-main">EVOLUTION · LITE</div>
+      <div class="title-sub">Birth order + studio color, one scroll</div>
+    </div>
+    <div class="stats">
+      <div><span class="stat-val" id="fileCount">–</span> files</div>
+      <div><span class="stat-val" id="dayCount">–</span> days</div>
+    </div>
+  </header>
+
+  <div class="timeline" id="timeline"></div>
+
+  <div class="studio-legend" id="studioLegend"></div>
+</div>
+
+<a href="index.html" class="footer-link">INDEX</a>
+
+<script>
+const STUDIOS = {
+  'swiss-frank-grace': { label: 'SWISS / FRANK / GRACE', color: 'var(--fam-swiss)', keys: ['swiss', 'frank', 'grace'] },
+  'gold-courage':      { label: 'GOLD / COURAGE',        color: 'var(--fam-gold)',  keys: ['gold', 'courage'] },
+  'homer':             { label: 'HOMER',                  color: 'var(--fam-homer)', keys: ['homer'] },
+  'timber':            { label: 'TIMBER',                 color: 'var(--fam-timber)', keys: ['timber'] },
+  'bull':              { label: 'BULL',                   color: 'var(--fam-bull)',  keys: ['bull-assembly', 'bull-assembly-studio'] },
+  'onyx':              { label: 'ONYX',                   color: 'var(--fam-onyx)',  keys: ['onyx-'] },
+  'brick':             { label: 'BRICK GRID',             color: 'var(--fam-brick)', keys: ['brick-'] },
+  'ator':              { label: '-ATORS',                 color: 'var(--fam-ator)',  keys: ['ator', 'minifig', 'locationator', 'vehiculator', 'sceneerator', 'movieator', 'worldinator'] },
+  'wag':               { label: 'WAG CORE',               color: 'var(--fam-wag)',   keys: ['wag-'] },
+  'tutorials':         { label: 'TUTORIALS',              color: 'var(--fam-tutorial)', keys: ['tutorial', 'quickstart'] },
+  'core':              { label: 'CORE PROJECTS',          color: 'var(--fam-core)',  keys: ['thousand-tetrad', 'fork.html', 'holo-project', 'mac-01'] },
+  'mento':             { label: 'MENTO',                  color: 'var(--fam-mento)', keys: ['mento'] },
+};
+
+function classifyFile(f) {
+  const name = f.file.toLowerCase();
+  const patterns = (f.patterns || '').toLowerCase();
+  const title = (f.title || '').toLowerCase();
+  const hay = `${name} ${patterns} ${title}`;
+  for (const [id, studio] of Object.entries(STUDIOS)) {
+    if (studio.keys.some(key => hay.includes(key))) {
+      return { id, label: studio.label, color: studio.color };
+    }
+  }
+  return { id: 'misc', label: 'MISC', color: 'var(--fam-misc)' };
+}
+
+function logline(f) {
+  if (f.title && f.title.length > 10) {
+    return f.title.replace(/^(WAG|ONYX|LEGOS|BRICK|BLOCK)\s*[-–—·:]\s*/i, '').trim();
+  }
+  const p = f.patterns || '';
+  if (p.includes('GOLD') && p.includes('MPD')) return 'MPD ↔ GOLD bridge and validator';
+  if (p.includes('ONYX')) return 'ONYX view into Guardian debates';
+  if (p.includes('LEGOS')) return 'LEGOS grammar / worldbuilding tool';
+  if (p.includes('grid')) return 'Grid-based studio surface';
+  return f.file.replace('.html', '').replace(/-/g, ' ');
+}
+
+let FILES = [];
+
+fetch('file-learnings.json')
+  .then(r => r.json())
+  .then(d => {
+    FILES = d.files.filter(f => !f._end && f.file.endsWith('.html'));
+    FILES.sort((a,b) => a.born - b.born);
+    FILES = FILES.map(f => ({
+      ...f,
+      studio: classifyFile(f),
+      logline: logline(f)
+    }));
+    render();
+  })
+  .catch(err => {
+    document.getElementById('timeline').innerHTML = '<div style="color:var(--text-dim);font-size:12px;">Failed to load file-learnings.json</div>';
+    console.error(err);
+  });
+
+function render() {
+  // Stats
+  document.getElementById('fileCount').textContent = FILES.length;
+  const daysSet = new Set();
+  FILES.forEach(f => {
+    const d = new Date(f.born * 1000);
+    daysSet.add(`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`);
+  });
+  document.getElementById('dayCount').textContent = daysSet.size;
+
+  // Group by day (most recent first)
+  const days = {};
+  FILES.forEach((f, idx) => {
+    const d = new Date(f.born * 1000);
+    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    if (!days[key]) days[key] = { date: d, files: [] };
+    days[key].files.push({ ...f, order: idx + 1 });
+  });
+
+  const sortedDays = Object.entries(days).sort((a,b) => b[0].localeCompare(a[0]));
+
+  document.getElementById('timeline').innerHTML = sortedDays.map(([key, day]) => {
+    const d = day.date;
+    const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' });
+    const weekday = d.toLocaleDateString('en-US', { weekday: 'short' });
+
+    const filesHtml = day.files.map(f => {
+      const patterns = (f.patterns || '').split(',').filter(x => x.trim() && !x.includes('Binary')).slice(0,3);
+      return `
+        <a href="${f.file}" class="file-card" style="--studio-color:${f.studio.color}">
+          <div class="file-strip"></div>
+          <div class="file-main">
+            <div class="file-top-row">
+              <div class="file-name">${f.file.replace('.html','')}</div>
+              <div class="file-studio">${f.studio.label}</div>
+            </div>
+            <div class="file-logline">${f.logline}</div>
+            <div class="file-meta-row">
+              <span class="file-order">#${f.order}</span>
+              <span>${patterns.length ? '·' : ''}</span>
+              <div class="file-patterns">
+                ${patterns.map(p => `<span class="pattern-tag">${p}</span>`).join('')}
+              </div>
+            </div>
+          </div>
+        </a>`;
+    }).join('');
+
+    return `
+      <section class="day-block">
+        <header class="day-header">
+          <div>
+            <div class="day-date">${dateStr}</div>
+            <div class="day-weekday">${weekday}</div>
+          </div>
+          <div class="day-count">${day.files.length} file${day.files.length!==1?'s':''}</div>
+        </header>
+        <div class="files">${filesHtml}</div>
+      </section>`;
+  }).join('');
+
+  renderLegend();
+}
+
+function renderLegend() {
+  const legend = document.getElementById('studioLegend');
+  const present = new Set(FILES.map(f => f.studio.id));
+  const items = Object.entries(STUDIOS).filter(([id]) => present.has(id));
+
+  legend.innerHTML = items.map(([id, s]) => `
+    <div class="legend-pill">
+      <span class="legend-dot" style="--color:${s.color}"></span>
+      <span>${s.label}</span>
+    </div>`).join('');
+}
+</script>
+
+</body>
+</html>

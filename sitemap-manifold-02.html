@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>▣ SITEMAP MANIFOLD 02 – Associative Terrain Graph</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --bg: #f4f0e8;
+      --ink: #111111;
+      --accent: #ff5a00;
+      --accent-soft: #f2b167;
+      --frame: #222222;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #e0ded7;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+      color: var(--ink);
+    }
+
+    .shell {
+      background: var(--bg);
+      border-radius: 18px;
+      padding: 16px 20px 20px;
+      box-shadow:
+        0 16px 40px rgba(0, 0, 0, 0.18),
+        0 0 0 2px rgba(0, 0, 0, 0.05);
+      max-width: 760px;
+      width: 95vw;
+    }
+
+    .head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 8px;
+    }
+
+    .head-title {
+      font-size: 0.85rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }
+
+    .head-sub {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      opacity: 0.7;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 14px;
+      border: 1px solid rgba(0, 0, 0, 0.15);
+      background: var(--bg);
+    }
+
+    .footer {
+      margin-top: 8px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      opacity: 0.7;
+    }
+
+    .footer span {
+      white-space: nowrap;
+    }
+
+    @media (max-width: 600px) {
+      .shell {
+        padding: 12px 12px 14px;
+        border-radius: 14px;
+      }
+
+      .head-title {
+        font-size: 0.78rem;
+      }
+
+      .head-sub {
+        display: none;
+      }
+
+      .footer {
+        flex-direction: column;
+        gap: 4px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="shell">
+    <div class="head">
+      <div class="head-title">SITEMAP MANIFOLD 02 · Associative Terrain Graph</div>
+      <div class="head-sub">Contours of Studio Phase × Cultural Role</div>
+    </div>
+    <canvas id="atgCanvas" width="720" height="720"></canvas>
+    <div class="footer">
+      <span>Click map: Play / Pause trail</span>
+      <span>Mode pill: Contour ⇄ Heat / Keys: [C] / [H]</span>
+    </div>
+  </div>
+
+  <script>
+    // ---------- CONFIG ----------
+
+    const canvas = document.getElementById("atgCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const W = canvas.width;
+    const H = canvas.height;
+
+    const margin = 80;
+    const mapX = margin;
+    const mapY = margin;
+    const mapW = W - margin * 2;
+    const mapH = H - margin * 2;
+
+    const gridW = 60;
+    const gridH = 60;
+
+    // PHASES and ROLES are cultural phases/roles for the codebase
+    const PHASES = ["Proto", "Studios", "Pipelines", "Performances", "Archives"];
+    const ROLES = ["Tech", "Editor", "Performer", "Community"];
+
+    // These will be filled from file-learnings.json
+    let trailEvents = [];
+    let maxTime = 1;
+
+    let viewMode = "contour"; // 'contour' | 'heat'
+    let playing = true;
+    let currentTime = 0;
+    let lastFrameTime = performance.now();
+
+    // Terrain scalar field
+    const field = new Float32Array(gridW * gridH);
+    const fieldNorm = new Float32Array(gridW * gridH);
+
+    // ---------- UTILS ----------
+
+    function lerp(a, b, t) {
+      return a + (b - a) * t;
+    }
+
+    function heightToColor(h) {
+      // 0..1 -> sand → amber → deep orange
+      const clamped = Math.max(0, Math.min(1, h));
+      const hue = lerp(35, 20, clamped); // warm yellow → red-orange
+      const sat = lerp(40, 85, clamped);
+      const light = lerp(88, 45, clamped);
+      return `hsl(${hue}, ${sat}%, ${light}%)`;
+    }
+
+    function eventToGrid(e) {
+      const pIndex = PHASES.indexOf(e.phase);
+      const rIndex = ROLES.indexOf(e.role);
+      if (pIndex < 0 || rIndex < 0) return null;
+      const xNorm = PHASES.length === 1 ? 0.5 : pIndex / (PHASES.length - 1);
+      const yNorm = ROLES.length === 1 ? 0.5 : rIndex / (ROLES.length - 1);
+      const gx = Math.round(xNorm * (gridW - 1));
+      const gy = Math.round(yNorm * (gridH - 1));
+      return { gx, gy };
+    }
+
+    function eventToCanvasPoint(e) {
+      const pIndex = PHASES.indexOf(e.phase);
+      const rIndex = ROLES.indexOf(e.role);
+      if (pIndex < 0 || rIndex < 0) return { x: mapX, y: mapY };
+      const xNorm = PHASES.length === 1 ? 0.5 : pIndex / (PHASES.length - 1);
+      const yNorm = ROLES.length === 1 ? 0.5 : rIndex / (ROLES.length - 1);
+      const x = mapX + xNorm * mapW;
+      const y = mapY + yNorm * mapH;
+      return { x, y };
+    }
+
+    function stampGaussianField(gx, gy, intensity) {
+      const radius = Math.floor(gridW / 8); // "width" of a habit peak
+      const sigma2 = Math.pow(radius * 0.75, 2);
+
+      for (let y = gy - radius; y <= gy + radius; y++) {
+        if (y < 0 || y >= gridH) continue;
+        for (let x = gx - radius; x <= gx + radius; x++) {
+          if (x < 0 || x >= gridW) continue;
+          const dx = x - gx;
+          const dy = y - gy;
+          const dist2 = dx * dx + dy * dy;
+          if (dist2 > radius * radius) continue;
+          const falloff = Math.exp(-dist2 / (2 * sigma2));
+          const idx = y * gridW + x;
+          field[idx] += intensity * falloff;
+        }
+      }
+    }
+
+    // ---------- STUDIO / ROLE MAPPING FROM SITEMAP ----------
+
+    const STUDIOS = {
+      'swiss-frank-grace': { label: 'Swiss / Frank / Grace', keys: ['swiss', 'frank', 'grace'] },
+      'gold-courage':      { label: 'Gold / Courage',        keys: ['gold', 'courage'] },
+      'homer':             { label: 'Homer',                  keys: ['homer'] },
+      'timber':            { label: 'Timber',                 keys: ['timber'] },
+      'bull':              { label: 'Bull',                   keys: ['bull-assembly', 'bull-assembly-studio'] },
+      'onyx':              { label: 'Onyx',                   keys: ['onyx-'] },
+      'brick':             { label: 'Brick Grid',             keys: ['brick-'] },
+      'ator':              { label: '-ators',                 keys: ['ator', 'minifig', 'locationator', 'vehiculator', 'sceneerator', 'movieator', 'worldinator'] },
+      'wag':               { label: 'WAG core',               keys: ['wag-'] },
+      'tutorials':         { label: 'Tutorials',              keys: ['tutorial', 'quickstart'] },
+      'core':              { label: 'Core projects',          keys: ['thousand-tetrad', 'fork.html', 'holo-project', 'mac-01'] },
+      'mento':             { label: 'Mento',                  keys: ['mento'] },
+    };
+
+    function classifyStudio(file, patterns, title) {
+      const hay = `${file.toLowerCase()} ${(patterns || '').toLowerCase()} ${(title || '').toLowerCase()}`;
+      for (const [id, s] of Object.entries(STUDIOS)) {
+        if (s.keys.some(k => hay.includes(k))) return id;
+      }
+      return 'misc';
+    }
+
+    function phaseForFile(f) {
+      const name = f.file.toLowerCase();
+      const patt = (f.patterns || '').toLowerCase();
+      const studio = classifyStudio(f.file, f.patterns, f.title);
+
+      // Archives: docs, ologs, manifests
+      if (name.includes('tutorial') || name.includes('olog') || name.includes('readme') || name.includes('docs') || name.includes('manifest')) {
+        return 'Archives';
+      }
+
+      // Pipelines: MPD / stud skeleton / LDraw heavy or pipeline studios
+      if (patt.includes('mpd') || patt.includes('ldraw') || patt.includes('stud') || patt.includes('skeleton') || studio === 'timber' || studio === 'bull') {
+        return 'Pipelines';
+      }
+
+      // Studios: HOMER, Swiss/Frank/Grace shells
+      if (studio === 'homer' || studio === 'swiss-frank-grace') {
+        return 'Studios';
+      }
+
+      // Performances: WAG decks, ONYX readers, core experience projects
+      if (studio === 'wag' || studio === 'core' || studio === 'onyx' || name.includes('words-become-worlds') || name.includes('wag-pres') || name.includes('wag-prot') || name.includes('wag-work')) {
+        return 'Performances';
+      }
+
+      // Proto: early bricks / ators / legos worldbuilding
+      if (studio === 'brick' || studio === 'ator' || patt.includes('legos')) {
+        return 'Proto';
+      }
+
+      return 'Proto';
+    }
+
+    function roleForFile(f) {
+      const name = f.file.toLowerCase();
+      const patt = (f.patterns || '').toLowerCase();
+
+      // Community: tutorials, theory, ologs, readmes
+      if (name.includes('tutorial') || name.includes('olog') || name.includes('readme') || name.includes('docs')) {
+        return 'Community';
+      }
+
+      // Tech: low-level MPD / stud / LDraw / skeleton infra
+      if (patt.includes('mpd') || patt.includes('ldraw') || patt.includes('stud') || patt.includes('skeleton')) {
+        return 'Tech';
+      }
+
+      // Editor: studios / editors / GOLD / grids
+      if (name.includes('editor') || name.includes('studio') || patt.includes('gold') || patt.includes('grid')) {
+        return 'Editor';
+      }
+
+      // Performer: ONYX readers, slides, cinematic surfaces, core projects
+      if (patt.includes('onyx') || name.includes('thumb') || name.includes('pres') || name.includes('fork.html') || name.includes('thousand-tetrad')) {
+        return 'Performer';
+      }
+
+      return 'Tech';
+    }
+
+    function buildEvents(files) {
+      const sorted = [...files].sort((a, b) => a.born - b.born);
+      const n = sorted.length;
+      if (!n) return { events: [], maxT: 1 };
+
+      const totalT = 18; // seconds span for the trail
+      const events = [];
+
+      sorted.forEach((f, i) => {
+        const phase = phaseForFile(f);
+        const role = roleForFile(f);
+        if (!PHASES.includes(phase) || !ROLES.includes(role)) return;
+        const t = (i / Math.max(n - 1, 1)) * totalT;
+        const patternCount = (f.patterns || '').split(',').filter(x => x.trim() && !x.includes('Binary')).length;
+        const intensity = Math.min(0.5 + 0.1 * patternCount, 1.3);
+        events.push({ t, phase, role, intensity });
+      });
+
+      return { events, maxT: totalT };
+    }
+
+    // ---------- BUILD TERRAIN FROM TRAIL ----------
+
+    function buildField() {
+      field.fill(0);
+      trailEvents.forEach((e) => {
+        const g = eventToGrid(e);
+        if (!g) return;
+        stampGaussianField(g.gx, g.gy, e.intensity);
+      });
+
+      // Normalize
+      let min = Infinity;
+      let max = -Infinity;
+      for (let i = 0; i < field.length; i++) {
+        const v = field[i];
+        if (v < min) min = v;
+        if (v > max) max = v;
+      }
+      const span = max - min || 1;
+      for (let i = 0; i < field.length; i++) {
+        fieldNorm[i] = (field[i] - min) / span;
+      }
+    }
+
+    // ---------- DRAWING ----------
+
+    function drawBackground() {
+      ctx.fillStyle = "#f4f0e8";
+      ctx.fillRect(0, 0, W, H);
+
+      // Simple frame
+      ctx.strokeStyle = "rgba(0,0,0,0.6)";
+      ctx.lineWidth = 1.4;
+      ctx.strokeRect(mapX - 2.5, mapY - 2.5, mapW + 5, mapH + 5);
+    }
+
+    function drawHeatmap() {
+      const cellW = mapW / (gridW - 1);
+      const cellH = mapH / (gridH - 1);
+      for (let gy = 0; gy < gridH - 1; gy++) {
+        for (let gx = 0; gx < gridW - 1; gx++) {
+          const idx = gy * gridW + gx;
+          const v = fieldNorm[idx];
+          ctx.fillStyle = heightToColor(v);
+          const x = mapX + gx * cellW;
+          const y = mapY + gy * cellH;
+          ctx.fillRect(x, y, cellW + 1, cellH + 1);
+        }
+      }
+    }
+
+    function drawContours() {
+      const cellW = mapW / (gridW - 1);
+      const cellH = mapH / (gridH - 1);
+      const levels = [0.18, 0.3, 0.42, 0.54, 0.66, 0.78, 0.9];
+
+      for (let li = 0; li < levels.length; li++) {
+        const level = levels[li];
+        ctx.beginPath();
+        for (let gy = 0; gy < gridH - 1; gy++) {
+          for (let gx = 0; gx < gridW - 1; gx++) {
+            const i0 = gy * gridW + gx;
+            const vTL = fieldNorm[i0];
+            const vTR = fieldNorm[i0 + 1];
+            const vBL = fieldNorm[i0 + gridW];
+            const vBR = fieldNorm[i0 + gridW + 1];
+            drawIsoCell(gx, gy, vTL, vTR, vBR, vBL, level, cellW, cellH);
+          }
+        }
+        const alpha = 0.08 + li * 0.05;
+        ctx.strokeStyle = `rgba(10, 10, 10, ${alpha.toFixed(3)})`;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+    }
+
+    function drawIsoCell(gx, gy, v0, v1, v2, v3, level, cellW, cellH) {
+      const x0 = mapX + gx * cellW;
+      const y0 = mapY + gy * cellH;
+
+      const points = [];
+
+      // edges: top (v0-v1), right (v1-v2), bottom (v2-v3), left (v3-v0)
+      const t0 = v0 >= level;
+      const t1 = v1 >= level;
+      const t2 = v2 >= level;
+      const t3 = v3 >= level;
+
+      if (t0 !== t1) {
+        points.push({ x: x0 + cellW * 0.5, y: y0 }); // top mid
+      }
+      if (t1 !== t2) {
+        points.push({ x: x0 + cellW, y: y0 + cellH * 0.5 }); // right mid
+      }
+      if (t2 !== t3) {
+        points.push({ x: x0 + cellW * 0.5, y: y0 + cellH }); // bottom mid
+      }
+      if (t3 !== t0) {
+        points.push({ x: x0, y: y0 + cellH * 0.5 }); // left mid
+      }
+
+      if (points.length === 2) {
+        ctx.moveTo(points[0].x, points[0].y);
+        ctx.lineTo(points[1].x, points[1].y);
+      } else if (points.length === 4) {
+        // approximate two segments
+        ctx.moveTo(points[0].x, points[0].y);
+        ctx.lineTo(points[1].x, points[1].y);
+        ctx.moveTo(points[2].x, points[2].y);
+        ctx.lineTo(points[3].x, points[3].y);
+      }
+    }
+
+    function drawTrail(time) {
+      const events = trailEvents;
+      if (!events.length) return;
+
+      // Path up to current time
+      ctx.save();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = "rgba(0, 0, 0, 0.9)";
+      ctx.beginPath();
+
+      let started = false;
+      for (let i = 0; i < events.length; i++) {
+        const e = events[i];
+        if (e.t > time && i > 0) break;
+        const { x, y } = e.pos;
+        if (!started) {
+          ctx.moveTo(x, y);
+          started = true;
+        } else {
+          ctx.lineTo(x, y);
+        }
+      }
+      ctx.stroke();
+      ctx.restore();
+
+      // Marker position between events
+      let marker;
+      if (time <= events[0].t) {
+        marker = events[0].pos;
+      } else if (time >= maxTime) {
+        marker = events[events.length - 1].pos;
+      } else {
+        let i = 0;
+        while (i < events.length - 1 && events[i + 1].t < time) i++;
+        const a = events[i];
+        const b = events[i + 1];
+        const localT = (time - a.t) / (b.t - a.t || 1);
+        marker = {
+          x: lerp(a.pos.x, b.pos.x, localT),
+          y: lerp(a.pos.y, b.pos.y, localT),
+        };
+      }
+
+      // Marker dot
+      ctx.save();
+      ctx.fillStyle = "#ff5a00";
+      ctx.strokeStyle = "#111";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(marker.x, marker.y, 7, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      // soft halo
+      ctx.beginPath();
+      ctx.strokeStyle = "rgba(255, 90, 0, 0.25)";
+      ctx.lineWidth = 8;
+      ctx.arc(marker.x, marker.y, 12, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawAxesAndLabels() {
+      ctx.save();
+      ctx.strokeStyle = "rgba(0,0,0,0.45)";
+      ctx.lineWidth = 1;
+
+      const x0 = mapX;
+      const y0 = mapY + mapH;
+
+      // Axes
+      ctx.beginPath();
+      ctx.moveTo(x0, y0);
+      ctx.lineTo(mapX + mapW, y0);
+      ctx.moveTo(x0, y0);
+      ctx.lineTo(x0, mapY);
+      ctx.stroke();
+
+      // Phase labels (x-axis)
+      ctx.fillStyle = "#111";
+      ctx.font = "11px system-ui, sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+      PHASES.forEach((phase, i) => {
+        const x =
+          mapX + (PHASES.length === 1 ? 0.5 : i / (PHASES.length - 1)) * mapW;
+        const y = y0 + 10;
+        ctx.fillText(phase, x, y);
+      });
+
+      // Role labels (y-axis)
+      ctx.textAlign = "right";
+      ctx.textBaseline = "middle";
+      ROLES.forEach((role, j) => {
+        const y =
+          mapY + (ROLES.length === 1 ? 0.5 : j / (ROLES.length - 1)) * mapH;
+        const x = mapX - 8;
+        ctx.fillText(role, x, y);
+      });
+
+      // Vertical axis title
+      ctx.save();
+      ctx.translate(mapX - 40, mapY + mapH / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("Roles", 0, 0);
+      ctx.restore();
+
+      // Horizontal axis title
+      ctx.textAlign = "center";
+      ctx.textBaseline = "bottom";
+      ctx.fillText("Phases", mapX + mapW / 2, mapY - 6);
+
+      ctx.restore();
+    }
+
+    function getModePillRect() {
+      const w = 96;
+      const h = 24;
+      const x = mapX + mapW - w - 10;
+      const y = mapY - h - 12;
+      return { x, y, w, h };
+    }
+
+    function drawModePill() {
+      const pill = getModePillRect();
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(pill.x, pill.y, pill.w, pill.h, 14);
+      ctx.fillStyle =
+        viewMode === "contour" ? "rgba(0,0,0,0.85)" : "rgba(0,0,0,0.18)";
+      ctx.fill();
+
+      ctx.strokeStyle = "rgba(0,0,0,0.6)";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      ctx.font = "10px system-ui, sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillStyle = viewMode === "contour" ? "#f4f0e8" : "#111111";
+      const label = viewMode === "contour" ? "Contour" : "Heatmap";
+      ctx.fillText(label, pill.x + pill.w / 2, pill.y + pill.h / 2);
+
+      ctx.restore();
+    }
+
+    function drawPlayIndicator() {
+      ctx.save();
+      const r = 9;
+      const cx = mapX + 18;
+      const cy = mapY - 24;
+
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.fillStyle = playing ? "#00aa66" : "#aaaaaa";
+      ctx.fill();
+
+      ctx.strokeStyle = "rgba(0,0,0,0.6)";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.fillStyle = "#f4f0e8";
+      if (playing) {
+        // pause icon
+        ctx.fillRect(cx - 3, cy - 4, 2, 8);
+        ctx.fillRect(cx + 1, cy - 4, 2, 8);
+      } else {
+        // play icon
+        ctx.moveTo(cx - 3, cy - 5);
+        ctx.lineTo(cx - 3, cy + 5);
+        ctx.lineTo(cx + 4, cy);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      ctx.restore();
+    }
+
+    // ---------- MAIN RENDER LOOP ----------
+
+    function render() {
+      drawBackground();
+
+      if (viewMode === "heat") {
+        drawHeatmap();
+      } else {
+        // subtle base heat under contours
+        ctx.save();
+        ctx.globalAlpha = 0.9;
+        drawHeatmap();
+        ctx.restore();
+        drawContours();
+      }
+
+      drawTrail(currentTime);
+      drawAxesAndLabels();
+      drawModePill();
+      drawPlayIndicator();
+    }
+
+    function loop(now) {
+      const dt = (now - lastFrameTime) / 1000;
+      lastFrameTime = now;
+
+      if (playing) {
+        currentTime += dt * (maxTime / 12); // full loop in ~12 seconds
+        if (currentTime > maxTime) currentTime -= maxTime;
+      }
+
+      render();
+      requestAnimationFrame(loop);
+    }
+
+    // ---------- INTERACTION ----------
+
+    canvas.addEventListener("click", (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      const pill = getModePillRect();
+      const inPill =
+        x >= pill.x && x <= pill.x + pill.w && y >= pill.y && y <= pill.y + pill.h;
+
+      if (inPill) {
+        viewMode = viewMode === "contour" ? "heat" : "contour";
+      } else {
+        playing = !playing;
+      }
+    });
+
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "c" || e.key === "C") {
+        viewMode = "contour";
+      } else if (e.key === "h" || e.key === "H") {
+        viewMode = "heat";
+      } else if (e.key === " ") {
+        playing = !playing;
+      }
+    });
+
+    // ---------- INIT: load sitemap data and build trail ----------
+
+    fetch('file-learnings.json')
+      .then(r => r.json())
+      .then(d => {
+        const files = d.files.filter(f => !f._end && f.file && f.born);
+        const built = buildEvents(files);
+        trailEvents = built.events;
+        maxTime = built.maxT;
+        if (!trailEvents.length) {
+          buildField();
+          render();
+          requestAnimationFrame(loop);
+          return;
+        }
+        trailEvents.forEach(e => e.pos = eventToCanvasPoint(e));
+        buildField();
+        render();
+        requestAnimationFrame(loop);
+      })
+      .catch(err => {
+        console.error('Failed to load file-learnings.json', err);
+        // Fallback: render empty map
+        buildField();
+        render();
+        requestAnimationFrame(loop);
+      });
+  </script>
+</body>
+</html>

@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>▣ INFRASTRUCTURAL SITEMAP — Evolution & Studios</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='10' y='10' width='80' height='80' rx='8' fill='%23c9302c'/><circle cx='35' cy='35' r='12' fill='%23e74c3c'/><circle cx='65' cy='35' r='12' fill='%23e74c3c'/><circle cx='35' cy='65' r='12' fill='%23e74c3c'/><circle cx='65' cy='65' r='12' fill='%23e74c3c'/></svg>">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+    
+    :root {
+      --bg: #1a1d21;
+      --surface: #22262b;
+      --surface-2: #2a2f35;
+      --border: #3a3f45;
+      --text: #e8eaed;
+      --text-dim: #8b9098;
+      --accent: #f5cd2f;
+      --red: #e05555;
+      --blue: #5b9bd5;
+      --green: #6bc96b;
+      --orange: #e89b4a;
+      --purple: #a87fd4;
+      --teal: #4db6ac;
+      --pink: #e879a9;
+      
+      /* Studio family colors */
+      --fam-swiss: #4db6ac;
+      --fam-gold: #f5cd2f;
+      --fam-onyx: #a87fd4;
+      --fam-brick: #5b9bd5;
+      --fam-ator: #e879a9;
+      --fam-wag: #e89b4a;
+      --fam-core: #6bc96b;
+      --fam-docs: #8b9098;
+    }
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+    
+    .container {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+    
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 16px 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: var(--red);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    
+    .logo-text {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+    
+    .view-tabs {
+      display: flex;
+      gap: 4px;
+      background: var(--bg);
+      padding: 4px;
+      border-radius: 6px;
+    }
+    
+    .view-tab {
+      padding: 8px 16px;
+      background: transparent;
+      border: none;
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    
+    .view-tab:hover { color: var(--text); }
+    .view-tab.active { background: var(--accent); color: var(--bg); }
+    
+    .stats {
+      margin-left: auto;
+      display: flex;
+      gap: 24px;
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+    
+    .stat-val { color: var(--accent); font-weight: 600; }
+    
+    /* Week/Day Timeline */
+    .timeline-controls {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    
+    .granularity-toggle {
+      display: flex;
+      gap: 4px;
+      background: var(--surface);
+      padding: 4px;
+      border-radius: 6px;
+    }
+    
+    .gran-btn {
+      padding: 6px 12px;
+      background: transparent;
+      border: none;
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-dim);
+      cursor: pointer;
+    }
+    
+    .gran-btn:hover { color: var(--text); }
+    .gran-btn.active { background: var(--blue); color: white; }
+    
+    .timeline {
+      display: flex;
+      gap: 4px;
+      padding: 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 20px;
+      overflow-x: auto;
+      flex-wrap: wrap;
+    }
+    
+    .time-unit {
+      flex: 0 0 auto;
+      padding: 8px 12px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: all 0.15s;
+      position: relative;
+      min-width: 80px;
+      text-align: center;
+    }
+    
+    .time-unit:hover { border-color: var(--text-dim); color: var(--text); }
+    .time-unit.active { background: var(--blue); border-color: var(--blue); color: white; }
+    
+    .time-unit .count {
+      display: block;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      margin-top: 2px;
+    }
+    
+    .time-unit.active .count { color: white; }
+    
+    .time-unit .label {
+      font-size: 8px;
+      letter-spacing: 0.05em;
+      opacity: 0.7;
+    }
+    
+    /* Main content grid */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 20px;
+    }
+    
+    @media (max-width: 1100px) {
+      .main-grid { grid-template-columns: 1fr; }
+    }
+    
+    /* Birth order view */
+    .birth-view {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    
+    .day-group {
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .day-group:last-child { border-bottom: none; }
+    
+    .day-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: var(--surface-2);
+      cursor: pointer;
+    }
+    
+    .day-date {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent);
+      min-width: 100px;
+    }
+    
+    .day-weekday {
+      font-size: 11px;
+      color: var(--text-dim);
+      min-width: 60px;
+    }
+    
+    .day-count {
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-left: auto;
+    }
+    
+    .day-files {
+      padding: 8px 16px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    
+    /* File brick */
+    .file-brick {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      text-decoration: none;
+      transition: all 0.15s;
+      border-left: 4px solid var(--brick-color, var(--text-dim));
+    }
+    
+    .file-brick:hover {
+      border-color: var(--brick-color, var(--text-dim));
+      transform: translateX(4px);
+    }
+    
+    .file-order {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--accent);
+      min-width: 32px;
+    }
+    
+    .file-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      flex: 1;
+    }
+    
+    .file-title {
+      font-size: 10px;
+      color: var(--text-dim);
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
+    .file-patterns {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+    
+    .pattern-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 8px;
+      font-weight: 600;
+      padding: 2px 6px;
+      background: var(--surface-2);
+      border-radius: 3px;
+      color: var(--text-dim);
+    }
+    
+    .pattern-tag.GOLD { background: rgba(245,205,47,0.2); color: var(--accent); }
+    .pattern-tag.LEGOS { background: rgba(224,85,85,0.2); color: var(--red); }
+    .pattern-tag.ONYX { background: rgba(168,127,212,0.2); color: var(--purple); }
+    .pattern-tag.MPD { background: rgba(91,155,213,0.2); color: var(--blue); }
+    .pattern-tag.iframe { background: rgba(77,182,172,0.2); color: var(--teal); }
+    .pattern-tag.stud { background: rgba(107,201,107,0.2); color: var(--green); }
+    
+    /* Learnings Panel */
+    .learnings-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      position: sticky;
+      top: 24px;
+      max-height: calc(100vh - 48px);
+      overflow-y: auto;
+    }
+    
+    .panel-header {
+      padding: 14px 16px;
+      background: var(--surface-2);
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+    
+    .panel-section {
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .panel-section:last-child { border-bottom: none; }
+    
+    .section-title {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: var(--text-dim);
+      margin-bottom: 10px;
+    }
+    
+    /* Infrastructural Analysis */
+    .infra-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+    
+    .infra-card:last-child { margin-bottom: 0; }
+    
+    .infra-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+    
+    .infra-content {
+      font-size: 11px;
+      color: var(--text);
+      line-height: 1.6;
+    }
+    
+    .infra-content code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      background: var(--surface-2);
+      padding: 1px 4px;
+      border-radius: 3px;
+    }
+    
+    /* Pattern frequency */
+    .pattern-freq {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 0;
+    }
+    
+    .pattern-name {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      min-width: 80px;
+    }
+    
+    .pattern-bar {
+      flex: 1;
+      height: 6px;
+      background: var(--surface-2);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    
+    .pattern-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 3px;
+    }
+    
+    .pattern-count {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--text-dim);
+      min-width: 24px;
+      text-align: right;
+    }
+    
+    /* Studios view */
+    .studios-view {
+      display: none;
+    }
+    
+    .studios-view.active {
+      display: block;
+    }
+    
+    .birth-view-container {
+      display: block;
+    }
+    
+    .birth-view-container.hidden {
+      display: none;
+    }
+    
+    /* Export button */
+    .export-btn {
+      padding: 10px 16px;
+      background: var(--purple);
+      border: none;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 600;
+      color: white;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 12px;
+    }
+    
+    .export-btn:hover { opacity: 0.9; }
+    
+    /* Footer */
+    .footer-link {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 10px 18px;
+      background: var(--red);
+      color: white;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      text-decoration: none;
+      z-index: 100;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header class="header">
+    <div class="logo">
+      <div class="logo-icon">▣</div>
+      <span class="logo-text">INFRASTRUCTURAL SITEMAP</span>
+    </div>
+    
+    <div class="view-tabs">
+      <button class="view-tab active" data-view="birth">BIRTH ORDER</button>
+      <button class="view-tab" data-view="learnings">LEARNINGS</button>
+    </div>
+    
+    <div class="stats">
+      <span>Files: <span class="stat-val" id="fileCount">—</span></span>
+      <span>Days: <span class="stat-val" id="dayCount">—</span></span>
+      <span>Patterns: <span class="stat-val" id="patternCount">—</span></span>
+    </div>
+  </header>
+  
+  <div class="timeline-controls">
+    <div class="granularity-toggle">
+      <button class="gran-btn active" data-gran="day">DAYS</button>
+      <button class="gran-btn" data-gran="week">WEEKS</button>
+      <button class="gran-btn" data-gran="month">MONTHS</button>
+    </div>
+  </div>
+  
+  <div class="timeline" id="timeline"></div>
+  
+  <div class="main-grid">
+    <div class="birth-view-container" id="birthContainer">
+      <div class="birth-view" id="birthView"></div>
+    </div>
+    
+    <div class="learnings-panel" id="learningsPanel">
+      <div class="panel-header">INFRASTRUCTURAL LEARNINGS</div>
+      
+      <div class="panel-section">
+        <div class="section-title">PATTERN FREQUENCY</div>
+        <div id="patternFreq"></div>
+      </div>
+      
+      <div class="panel-section">
+        <div class="section-title">INVERSION ANALYSIS</div>
+        
+        <div class="infra-card">
+          <div class="infra-label">SURFACE → PROCESS</div>
+          <div class="infra-content" id="surfaceProcess">
+            Loading analysis...
+          </div>
+        </div>
+        
+        <div class="infra-card">
+          <div class="infra-label">USER → WORKER</div>
+          <div class="infra-content" id="userWorker">
+            Loading analysis...
+          </div>
+        </div>
+        
+        <div class="infra-card">
+          <div class="infra-label">DEEP STRUCTURES</div>
+          <div class="infra-content" id="deepStructures">
+            Loading analysis...
+          </div>
+        </div>
+      </div>
+      
+      <div class="panel-section">
+        <div class="section-title">EXPORT FOR SYSTEM</div>
+        <button class="export-btn" onclick="exportLearnings()">
+          Export as System Definition JSON
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<a href="index.html" class="footer-link">← INDEX</a>
+
+<script>
+let FILES = [];
+let granularity = 'day';
+let activeTimeUnit = null;
+
+// Colors for patterns
+const PATTERN_COLORS = {
+  GOLD: '#f5cd2f',
+  LEGOS: '#e05555',
+  ONYX: '#a87fd4',
+  MPD: '#5b9bd5',
+  iframe: '#4db6ac',
+  stud: '#6bc96b',
+  courage: '#e05555',
+  frank: '#e89b4a',
+  grace: '#6bc96b',
+  swiss: '#8b9098',
+  master: '#6bc96b',
+  were: '#5b9bd5',
+  mento: '#4db6ac',
+  weaver: '#5b9bd5',
+  skeleton: '#a87fd4',
+  LDraw: '#5b9bd5',
+  THREE: '#e879a9',
+  BroadcastChannel: '#e89b4a',
+  localStorage: '#4db6ac',
+};
+
+// Load file learnings
+fetch('file-learnings.json')
+  .then(r => r.json())
+  .then(d => {
+    FILES = d.files.filter(f => !f._end && f.file.endsWith('.html'));
+    FILES.sort((a, b) => a.born - b.born);
+    render();
+  })
+  .catch(e => {
+    console.error('Failed to load file-learnings.json', e);
+    document.getElementById('birthView').innerHTML = '<div style="padding:20px;color:var(--text-dim);">Failed to load file-learnings.json</div>';
+  });
+
+function render() {
+  renderStats();
+  renderTimeline();
+  renderBirthView();
+  renderLearnings();
+}
+
+function renderStats() {
+  document.getElementById('fileCount').textContent = FILES.length;
+  
+  const days = new Set();
+  FILES.forEach(f => {
+    const d = new Date(f.born * 1000);
+    days.add(`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`);
+  });
+  document.getElementById('dayCount').textContent = days.size;
+  
+  const patterns = new Set();
+  FILES.forEach(f => {
+    if (f.patterns) {
+      f.patterns.split(',').forEach(p => {
+        if (p.trim()) patterns.add(p.trim());
+      });
+    }
+  });
+  document.getElementById('patternCount').textContent = patterns.size;
+}
+
+function getTimeKey(ts) {
+  const d = new Date(ts * 1000);
+  if (granularity === 'day') {
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  } else if (granularity === 'week') {
+    // Get week number
+    const startOfYear = new Date(d.getFullYear(), 0, 1);
+    const weekNum = Math.ceil(((d - startOfYear) / 86400000 + startOfYear.getDay() + 1) / 7);
+    return `${d.getFullYear()}-W${String(weekNum).padStart(2,'0')}`;
+  } else {
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  }
+}
+
+function getTimeLabel(key) {
+  if (granularity === 'day') {
+    const [y, m, d] = key.split('-');
+    const date = new Date(y, m-1, d);
+    return {
+      main: `${date.toLocaleDateString('en-US', { month: 'short' })} ${d}`,
+      sub: date.toLocaleDateString('en-US', { weekday: 'short' })
+    };
+  } else if (granularity === 'week') {
+    const [y, w] = key.split('-W');
+    return { main: `Week ${w}`, sub: y };
+  } else {
+    const [y, m] = key.split('-');
+    const date = new Date(y, m-1, 1);
+    return { main: date.toLocaleDateString('en-US', { month: 'short' }), sub: y };
+  }
+}
+
+function renderTimeline() {
+  const groups = {};
+  FILES.forEach(f => {
+    const key = getTimeKey(f.born);
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(f);
+  });
+  
+  const sorted = Object.entries(groups).sort((a, b) => a[0].localeCompare(b[0]));
+  
+  document.getElementById('timeline').innerHTML = sorted.map(([key, files]) => {
+    const label = getTimeLabel(key);
+    return `
+      <div class="time-unit ${activeTimeUnit === key ? 'active' : ''}" data-key="${key}">
+        <span class="label">${label.sub}</span>
+        <span class="count">${files.length}</span>
+        ${label.main}
+      </div>
+    `;
+  }).join('');
+  
+  document.querySelectorAll('.time-unit').forEach(el => {
+    el.onclick = () => {
+      activeTimeUnit = activeTimeUnit === el.dataset.key ? null : el.dataset.key;
+      renderTimeline();
+      renderBirthView();
+    };
+  });
+}
+
+function getFileColor(f) {
+  if (f.patterns) {
+    if (f.patterns.includes('GOLD')) return PATTERN_COLORS.GOLD;
+    if (f.patterns.includes('LEGOS')) return PATTERN_COLORS.LEGOS;
+    if (f.patterns.includes('ONYX')) return PATTERN_COLORS.ONYX;
+    if (f.patterns.includes('courage')) return PATTERN_COLORS.courage;
+    if (f.patterns.includes('MPD')) return PATTERN_COLORS.MPD;
+    if (f.patterns.includes('stud')) return PATTERN_COLORS.stud;
+  }
+  if (f.file.includes('onyx')) return PATTERN_COLORS.ONYX;
+  if (f.file.includes('brick')) return PATTERN_COLORS.MPD;
+  if (f.file.includes('homer')) return PATTERN_COLORS.mento;
+  if (f.file.includes('tutorial')) return PATTERN_COLORS.GOLD;
+  return '#8b9098';
+}
+
+function renderBirthView() {
+  // Group by day
+  const days = {};
+  let filteredFiles = FILES;
+  
+  if (activeTimeUnit) {
+    filteredFiles = FILES.filter(f => getTimeKey(f.born) === activeTimeUnit);
+  }
+  
+  filteredFiles.forEach((f, globalIdx) => {
+    const d = new Date(f.born * 1000);
+    const dayKey = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    if (!days[dayKey]) days[dayKey] = { date: d, files: [] };
+    days[dayKey].files.push({ ...f, order: FILES.indexOf(f) + 1 });
+  });
+  
+  const sorted = Object.entries(days).sort((a, b) => a[0].localeCompare(b[0]));
+  
+  document.getElementById('birthView').innerHTML = sorted.map(([key, day]) => {
+    const weekday = day.date.toLocaleDateString('en-US', { weekday: 'long' });
+    const dateStr = day.date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    
+    return `
+      <div class="day-group">
+        <div class="day-header">
+          <span class="day-date">${dateStr}</span>
+          <span class="day-weekday">${weekday}</span>
+          <span class="day-count">${day.files.length} files born</span>
+        </div>
+        <div class="day-files">
+          ${day.files.map(f => {
+            const patterns = f.patterns ? f.patterns.split(',').filter(p => p.trim() && !p.includes('Binary')) : [];
+            return `
+              <a href="${f.file}" class="file-brick" style="--brick-color:${getFileColor(f)}">
+                <span class="file-order">#${f.order}</span>
+                <span class="file-name">${f.file.replace('.html', '')}</span>
+                <span class="file-title">${f.title || ''}</span>
+                <div class="file-patterns">
+                  ${patterns.slice(0, 4).map(p => `<span class="pattern-tag ${p}">${p}</span>`).join('')}
+                </div>
+              </a>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderLearnings() {
+  // Pattern frequency
+  const patternCounts = {};
+  FILES.forEach(f => {
+    if (f.patterns) {
+      f.patterns.split(',').forEach(p => {
+        p = p.trim();
+        if (p && !p.includes('Binary')) {
+          patternCounts[p] = (patternCounts[p] || 0) + 1;
+        }
+      });
+    }
+  });
+  
+  const maxCount = Math.max(...Object.values(patternCounts));
+  const sortedPatterns = Object.entries(patternCounts).sort((a, b) => b[1] - a[1]).slice(0, 12);
+  
+  document.getElementById('patternFreq').innerHTML = sortedPatterns.map(([p, count]) => `
+    <div class="pattern-freq">
+      <span class="pattern-name" style="color:${PATTERN_COLORS[p] || 'var(--text-dim)'}">${p}</span>
+      <div class="pattern-bar">
+        <div class="pattern-fill" style="width:${(count/maxCount)*100}%; background:${PATTERN_COLORS[p] || 'var(--text-dim)'}"></div>
+      </div>
+      <span class="pattern-count">${count}</span>
+    </div>
+  `).join('');
+  
+  // Infrastructural analysis
+  const iframeFiles = FILES.filter(f => f.patterns?.includes('iframe'));
+  const broadcastFiles = FILES.filter(f => f.patterns?.includes('BroadcastChannel'));
+  const studFiles = FILES.filter(f => f.patterns?.includes('stud') || f.patterns?.includes('skeleton'));
+  
+  document.getElementById('surfaceProcess').innerHTML = `
+    <strong>Surface Artifacts:</strong> ${FILES.length} HTML tools<br>
+    <strong>Deep Process:</strong> ${iframeFiles.length} files use <code>iframe</code> embedding (studio composition)<br>
+    ${broadcastFiles.length} files use <code>BroadcastChannel</code> (inter-tool messaging)<br>
+    <em>Insight:</em> Tools are frozen rituals of the SWISS→FRANK→COURAGE→WEAVER pipeline.
+  `;
+  
+  document.getElementById('userWorker').innerHTML = `
+    <strong>User-facing:</strong> Editors (GOLD, GRACE, COURAGE)<br>
+    <strong>Worker-facing:</strong> ${studFiles.length} skeleton/stud tools maintain the MPD↔GOLD bridge<br>
+    <em>Invisible labor:</em> The <code>stud_skeleton</code> and <code>StudMap</code> systems that make editors work.
+  `;
+  
+  // Find studio patterns
+  const studioPatterns = ['swiss', 'frank', 'courage', 'weaver', 'were', 'master', 'mento'];
+  const studioFiles = FILES.filter(f => studioPatterns.some(p => f.patterns?.includes(p)));
+  
+  document.getElementById('deepStructures').innerHTML = `
+    <strong>The Meeting:</strong> HOMER Studio (7-component chain)<br>
+    <strong>The Budget:</strong> MPD file format constraints<br>
+    <strong>The Law:</strong> LDraw specification compliance<br>
+    <strong>Lingua Franca:</strong> GOLD format as risk/interop standard<br>
+    <em>${studioFiles.length} files participate in the studio ritual.</em>
+  `;
+}
+
+function exportLearnings() {
+  const patternCounts = {};
+  FILES.forEach(f => {
+    if (f.patterns) {
+      f.patterns.split(',').forEach(p => {
+        p = p.trim();
+        if (p && !p.includes('Binary')) {
+          patternCounts[p] = (patternCounts[p] || 0) + 1;
+        }
+      });
+    }
+  });
+  
+  const systemDef = {
+    version: "3.1",
+    mode: "infrastructural_sitemap",
+    generated: new Date().toISOString(),
+    ontology: {
+      surface_artifacts: FILES.map(f => ({
+        file: f.file,
+        title: f.title,
+        born: f.born,
+        patterns: f.patterns?.split(',').filter(p => p.trim() && !p.includes('Binary')) || []
+      })),
+      deep_structures: {
+        meetings: ["HOMER Studio", "TIMBER Studio", "BULL Assembly"],
+        budgets: ["MPD format", "LDraw spec", "GOLD schema"],
+        laws: ["stud_skeleton_v2", "StudMap", "BroadcastChannel protocol"],
+        lingua_franca: "GOLD format"
+      },
+      pattern_frequency: patternCounts
+    },
+    transformations: {
+      invert_artifact: "HTML tool → Studio ritual that produced it",
+      displace_user: "Editor user → Skeleton/stud maintainer",
+      piggyback_policy: "Ethics → LDraw compliance, GOLD interop"
+    },
+    birth_order: FILES.map((f, i) => ({
+      order: i + 1,
+      file: f.file,
+      born: new Date(f.born * 1000).toISOString()
+    }))
+  };
+  
+  const blob = new Blob([JSON.stringify(systemDef, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'infrastructural-learnings.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// Granularity toggle
+document.querySelectorAll('.gran-btn').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('.gran-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    granularity = btn.dataset.gran;
+    activeTimeUnit = null;
+    renderTimeline();
+    renderBirthView();
+  };
+});
+
+// View tabs
+document.querySelectorAll('.view-tab').forEach(tab => {
+  tab.onclick = () => {
+    document.querySelectorAll('.view-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    // For now both views show the same content
+  };
+});
+</script>
+
+</body>
+</html>

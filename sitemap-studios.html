@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>▣ STUDIO CONSTRUCTIONS — Modulex Planning Board</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='10' y='10' width='80' height='80' rx='8' fill='%23c9302c'/><circle cx='35' cy='35' r='12' fill='%23e74c3c'/><circle cx='65' cy='35' r='12' fill='%23e74c3c'/><circle cx='35' cy='65' r='12' fill='%23e74c3c'/><circle cx='65' cy='65' r='12' fill='%23e74c3c'/></svg>">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap');
+    
+    :root {
+      --board-bg: #2d3436;
+      --board-grid: #3d4447;
+      --board-line: #4a5568;
+      
+      /* Studio Colors - from index.html */
+      --studio-swiss: #4a9d9c;    /* teal */
+      --studio-plato: #2980b9;    /* blue */
+      --studio-homer: #4a9d9c;    /* teal */
+      --studio-gold: #f4d03f;     /* yellow */
+      --studio-timber: #4a9d9c;   /* teal */
+      --studio-bull: #d64550;     /* red */
+      --studio-brick: #5ba8cc;    /* blue */
+      --studio-onyx: #9b6b9e;     /* purple */
+      --studio-wag: #9b6b9e;      /* purple */
+      --studio-core: #9b6b9e;     /* purple */
+      --studio-docs: #8a8a8a;     /* gray */
+      --studio-misc: #6a5a4d;     /* brown */
+      
+      /* Brick Colors */
+      --mx-white: #f5f5f0;
+      --mx-black: #1a1a1a;
+      --mx-red: #d64550;
+      --mx-blue: #5ba8cc;
+      --mx-yellow: #f4d03f;
+      --mx-green: #a3c95a;
+      --mx-orange: #e67e22;
+      --mx-teal: #4a9d9c;
+      --mx-purple: #9b6b9e;
+      --mx-gray: #8a8a8a;
+      --mx-pink: #f5b7c8;
+      --mx-lime: #c8e66d;
+      --mx-brown: #6a5a4d;
+      --mx-cyan: #5ba8cc;
+      
+      --text: #ecf0f1;
+      --text-dim: #95a5a6;
+      --unit: 20px;
+    }
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--board-bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    
+    .board {
+      min-height: 100vh;
+      background-image: 
+        linear-gradient(var(--board-line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--board-line) 1px, transparent 1px);
+      background-size: var(--unit) var(--unit);
+      padding: calc(var(--unit) * 1.5);
+    }
+    
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 12px 16px;
+      background: linear-gradient(180deg, #3d4447 0%, #2d3436 100%);
+      border: 2px solid var(--board-line);
+      border-radius: 4px;
+      margin-bottom: calc(var(--unit) * 1.5);
+      flex-wrap: wrap;
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--mx-red);
+      padding: 8px 14px;
+      border-radius: 3px;
+      box-shadow: inset 0 -3px 0 rgba(0,0,0,0.3), 2px 2px 4px rgba(0,0,0,0.4);
+    }
+    
+    .logo-studs {
+      display: flex;
+      gap: 4px;
+    }
+    
+    .logo-stud {
+      width: 8px;
+      height: 8px;
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.3), transparent 60%),
+                  linear-gradient(180deg, #e05a64 0%, #b83642 100%);
+      border-radius: 50%;
+      box-shadow: inset 0 -1px 2px rgba(0,0,0,0.4);
+    }
+    
+    .logo-text {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      color: var(--mx-white);
+      text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    }
+    
+    .view-tabs {
+      display: flex;
+      gap: 4px;
+    }
+    
+    .view-tab {
+      padding: 8px 14px;
+      background: var(--board-bg);
+      border: 1px solid var(--board-line);
+      border-radius: 3px;
+      color: var(--text-dim);
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    
+    .view-tab:hover { border-color: var(--text-dim); color: var(--text); }
+    .view-tab.active { 
+      background: var(--mx-yellow); 
+      border-color: var(--mx-yellow); 
+      color: var(--mx-black);
+      box-shadow: inset 0 -2px 0 rgba(0,0,0,0.2);
+    }
+    
+    .stats {
+      margin-left: auto;
+      display: flex;
+      gap: 16px;
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      color: var(--text-dim);
+    }
+    
+    .stat-val { color: var(--text); font-weight: 500; }
+    
+    /* Timeline Strip */
+    .timeline-strip {
+      display: flex;
+      gap: 4px;
+      padding: 10px 14px;
+      background: var(--board-bg);
+      border: 2px solid var(--board-line);
+      border-radius: 4px;
+      margin-bottom: calc(var(--unit) * 1.5);
+      overflow-x: auto;
+    }
+    
+    .timeline-month {
+      flex: 0 0 auto;
+      padding: 6px 12px;
+      background: var(--board-line);
+      border-radius: 3px;
+      font-family: 'DM Mono', monospace;
+      font-size: 8px;
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: all 0.15s;
+      position: relative;
+    }
+    
+    .timeline-month:hover { color: var(--text); }
+    .timeline-month.active { background: var(--mx-blue); color: var(--mx-white); }
+    
+    .timeline-month .count {
+      position: absolute;
+      top: -6px;
+      right: -4px;
+      background: var(--mx-yellow);
+      color: var(--mx-black);
+      font-size: 7px;
+      font-weight: 600;
+      padding: 2px 4px;
+      border-radius: 8px;
+      min-width: 14px;
+      text-align: center;
+    }
+    
+    /* Studios Grid */
+    .studios-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: calc(var(--unit) * 1);
+    }
+    
+    /* Studio Card */
+    .studio {
+      background: linear-gradient(180deg, #3a3f42 0%, #2d3436 100%);
+      border: 2px solid var(--board-line);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    
+    .studio-header {
+      padding: 14px 16px;
+      background: var(--studio-color, var(--mx-gray));
+      position: relative;
+      cursor: pointer;
+    }
+    
+    .studio-header::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: rgba(255,255,255,0.3);
+    }
+    
+    .studio-studs {
+      position: absolute;
+      top: -5px;
+      left: 14px;
+      display: flex;
+      gap: 6px;
+    }
+    
+    .studio-stud {
+      width: 12px;
+      height: 12px;
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.3), transparent 60%),
+                  linear-gradient(180deg, 
+                    color-mix(in srgb, var(--studio-color, var(--mx-gray)) 100%, white 20%) 0%, 
+                    color-mix(in srgb, var(--studio-color, var(--mx-gray)) 100%, black 20%) 100%);
+      border-radius: 50%;
+      box-shadow: inset 0 -2px 3px rgba(0,0,0,0.4);
+    }
+    
+    .studio-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: var(--mx-white);
+      text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+      margin-top: 6px;
+    }
+    
+    .studio-subtitle {
+      font-size: 8px;
+      color: rgba(255,255,255,0.7);
+      margin-top: 4px;
+    }
+    
+    .studio-meta {
+      display: flex;
+      gap: 12px;
+      margin-top: 8px;
+      font-family: 'DM Mono', monospace;
+      font-size: 8px;
+      color: rgba(255,255,255,0.6);
+    }
+    
+    /* Minimap - shows how bricks connect */
+    .studio-minimap {
+      padding: 12px;
+      background: var(--board-bg);
+      border-top: 1px solid var(--board-line);
+      min-height: 80px;
+    }
+    
+    .minimap-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      align-items: flex-start;
+    }
+    
+    /* Mini brick in minimap */
+    .mini-brick {
+      position: relative;
+      padding: 4px 8px;
+      background: var(--brick-color, var(--mx-gray));
+      border-radius: 2px;
+      font-size: 7px;
+      font-weight: 600;
+      color: var(--mx-white);
+      text-shadow: 0 1px 1px rgba(0,0,0,0.5);
+      box-shadow: 
+        inset 0 -2px 0 rgba(0,0,0,0.25),
+        1px 1px 2px rgba(0,0,0,0.3);
+      cursor: pointer;
+      transition: all 0.12s;
+      text-decoration: none;
+      white-space: nowrap;
+      max-width: 100px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .mini-brick:hover {
+      transform: translateY(-1px);
+      box-shadow: 
+        inset 0 -2px 0 rgba(0,0,0,0.25),
+        2px 3px 6px rgba(0,0,0,0.4);
+    }
+    
+    .mini-brick::before {
+      content: "";
+      position: absolute;
+      top: -3px;
+      left: 4px;
+      width: 5px;
+      height: 5px;
+      background: inherit;
+      border-radius: 50%;
+      box-shadow: inset 0 -1px 1px rgba(0,0,0,0.3);
+    }
+    
+    .mini-brick.hub {
+      padding: 6px 10px;
+      font-size: 8px;
+    }
+    
+    .mini-brick.hub::after {
+      content: "";
+      position: absolute;
+      top: -3px;
+      left: 14px;
+      width: 5px;
+      height: 5px;
+      background: inherit;
+      border-radius: 50%;
+      box-shadow: inset 0 -1px 1px rgba(0,0,0,0.3);
+    }
+    
+    /* Connection lines in minimap */
+    .minimap-row {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      width: 100%;
+      margin-bottom: 4px;
+    }
+    
+    .minimap-connector {
+      width: 12px;
+      height: 2px;
+      background: var(--mx-yellow);
+      opacity: 0.6;
+    }
+    
+    .minimap-arrow {
+      color: var(--mx-yellow);
+      font-size: 8px;
+      opacity: 0.6;
+    }
+    
+    .minimap-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 7px;
+      color: var(--text-dim);
+      padding: 2px 0;
+      flex-shrink: 0;
+      width: 50px;
+    }
+    
+    /* Brick rows in minimap */
+    .minimap-section {
+      margin-bottom: 8px;
+    }
+    
+    .minimap-section-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 7px;
+      letter-spacing: 0.1em;
+      color: var(--text-dim);
+      margin-bottom: 4px;
+      padding-left: 2px;
+    }
+    
+    .minimap-bricks {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 3px;
+    }
+    
+    /* Chronological View */
+    .chrono-view {
+      display: none;
+    }
+    
+    .chrono-view.active {
+      display: block;
+    }
+    
+    .chrono-month {
+      margin-bottom: calc(var(--unit) * 1.5);
+    }
+    
+    .chrono-month-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      background: var(--board-line);
+      border-radius: 4px;
+      margin-bottom: 10px;
+    }
+    
+    .chrono-month-title {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+    }
+    
+    .chrono-month-count {
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      color: var(--text-dim);
+    }
+    
+    .chrono-files {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding-left: 14px;
+    }
+    
+    .chrono-brick {
+      position: relative;
+      padding: 8px 12px;
+      background: var(--brick-color, var(--mx-gray));
+      border-radius: 3px;
+      font-size: 9px;
+      font-weight: 500;
+      color: var(--mx-white);
+      text-shadow: 0 1px 1px rgba(0,0,0,0.5);
+      box-shadow: 
+        inset 0 -3px 0 rgba(0,0,0,0.25),
+        2px 2px 4px rgba(0,0,0,0.3);
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.12s;
+    }
+    
+    .chrono-brick:hover {
+      transform: translateY(-2px);
+    }
+    
+    .chrono-brick::before {
+      content: "";
+      position: absolute;
+      top: -4px;
+      left: 8px;
+      width: 8px;
+      height: 8px;
+      background: inherit;
+      border-radius: 50%;
+      box-shadow: inset 0 -1px 2px rgba(0,0,0,0.3), 12px 0 0 currentColor;
+    }
+    
+    .chrono-brick .day {
+      font-family: 'DM Mono', monospace;
+      font-size: 7px;
+      opacity: 0.7;
+      margin-top: 2px;
+    }
+    
+    /* Studios View */
+    .studios-view {
+      display: block;
+    }
+    
+    .studios-view.hidden {
+      display: none;
+    }
+    
+    /* Footer */
+    .footer-link {
+      position: fixed;
+      bottom: 16px;
+      right: 16px;
+      padding: 10px 16px;
+      background: var(--mx-red);
+      color: var(--mx-white);
+      border-radius: 3px;
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      font-weight: 500;
+      text-decoration: none;
+      box-shadow: inset 0 -2px 0 rgba(0,0,0,0.3), 3px 3px 6px rgba(0,0,0,0.4);
+      z-index: 100;
+    }
+    
+    /* Tooltip */
+    .mini-brick[title]:hover::after {
+      content: attr(title);
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.95);
+      color: var(--mx-white);
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-size: 8px;
+      font-weight: 400;
+      white-space: nowrap;
+      z-index: 100;
+      margin-bottom: 6px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      text-shadow: none;
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  </style>
+</head>
+<body>
+
+<div class="board">
+  <header class="header">
+    <div class="logo">
+      <div class="logo-studs">
+        <div class="logo-stud"></div>
+        <div class="logo-stud"></div>
+      </div>
+      <span class="logo-text">STUDIO CONSTRUCTIONS</span>
+    </div>
+    
+    <div class="view-tabs">
+      <button class="view-tab active" data-view="studios">STUDIOS</button>
+      <button class="view-tab" data-view="chrono">TIMELINE</button>
+    </div>
+    
+    <div class="stats">
+      <span>Studios: <span class="stat-val" id="studioCount">—</span></span>
+      <span>Files: <span class="stat-val" id="fileCount">—</span></span>
+      <span>Connections: <span class="stat-val" id="linkCount">—</span></span>
+    </div>
+  </header>
+  
+  <div class="timeline-strip" id="timeline"></div>
+  
+  <div class="studios-view" id="studiosView">
+    <div class="studios-grid" id="studiosGrid"></div>
+  </div>
+  
+  <div class="chrono-view" id="chronoView"></div>
+</div>
+
+<a href="index.html" class="footer-link">← INDEX</a>
+
+<script>
+// Studios defined from index.html structure
+const STUDIOS = [
+  {
+    id: 'swiss-frank-grace',
+    name: 'SWISS / FRANK / GRACE',
+    subtitle: 'Designer Hub + Bus + Editor',
+    color: '#4a9d9c',
+    hub: 'swiss-frank-grace-studio.html',
+    components: [
+      { name: 'SWISS', file: 'wag-viewer-prime-integration-20251112-055341 copy/swiss-designator.html', color: '#8a8a8a', role: 'hub' },
+      { name: 'FRANK', file: 'wag-frank.html', color: '#e67e22', role: 'core' },
+      { name: 'GRACE', file: 'wag-viewer-prime-integration-20251112-055341 copy/wag-grace-editor.html', color: '#a3c95a', role: 'core' },
+      { name: 'MOMENTO', file: 'Brickfilm_Studio_Kit/REALITY MEDIA_MOMENTO/momento.html', color: '#4a9d9c', role: 'tool' },
+    ],
+    ators: [
+      { name: 'MINIFIG', file: 'minifigurator-02.html', color: '#9b6b9e' },
+      { name: 'LOCATION', file: 'locationator.html', color: '#5ba8cc' },
+      { name: 'VEHICLE', file: 'vehiculator.html', color: '#e67e22' },
+      { name: 'SCENE', file: 'sceneerator.html', color: '#4a9d9c' },
+    ],
+    docs: [
+      { name: 'SWISS DOCS', file: 'wag-viewer-prime-integration-20251112-055341 copy/swiss-docs.html' },
+      { name: 'FRANK DOCS', file: 'wag-viewer-prime-integration-20251112-055341 copy/swiss-frank-scene.html' },
+    ]
+  },
+  {
+    id: 'platos-cave',
+    name: "PLATO'S CAVE / GRECIAN URN",
+    subtitle: 'Shield-of-Achilles Reconstruction',
+    color: '#2980b9',
+    hub: 'platos-cave.html',
+    components: [
+      { name: 'PLATOS CAVE', file: 'platos-cave.html', color: '#5ba8cc', role: 'hub' },
+      { name: 'GRECIAN URN', file: 'grecian-urn.html', color: '#9b6b9e', role: 'hub' },
+    ],
+    docs: [
+      { name: '20Q TUTORIAL', file: '20q-tutorial.html', color: '#5ba8cc' },
+      { name: 'CAVE TUTORIAL', file: 'PLATOS-CAVE-tutorial.html', color: '#5ba8cc' },
+    ]
+  },
+  {
+    id: 'gold-courage',
+    name: 'GOLD / COURAGE',
+    subtitle: 'Flagship MPD Editors',
+    color: '#f4d03f',
+    components: [
+      { name: 'GOLD', file: 'wag-viewer-prime-integration-20251112-055341 copy/wag-gold-editor.html', color: '#f4d03f', role: 'hub' },
+      { name: 'COURAGE', file: 'wag-viewer-prime-integration-20251112-055341 copy/wag-courage.html', color: '#d64550', role: 'hub' },
+      { name: 'GRACE', file: 'wag-viewer-prime-integration-20251112-055341 copy/wag-grace-editor.html', color: '#a3c95a', role: 'hub' },
+    ],
+    variants: [
+      { name: 'SCENES', file: 'wag-viewer-prime-integration-20251112-055341 copy/wag-gold-scenes.html', color: '#f4d03f' },
+      { name: 'PRIME', file: 'wag-viewer-prime-integration-20251112-055341 copy/wag-viewer-prime.html', color: '#5ba8cc' },
+    ]
+  },
+  {
+    id: 'timber',
+    name: 'TIMBER STUDIO',
+    subtitle: 'GOLD + Selection Bus',
+    color: '#4a9d9c',
+    hub: 'timber-studio.html',
+    components: [
+      { name: 'COURAGE', file: 'wag-viewer-prime-integration-20251112-055341 copy/wag-courage.html', color: '#d64550', role: 'source' },
+      { name: 'WERE', file: 'wag-were.html', color: '#5ba8cc', role: 'tool' },
+      { name: 'MASTER', file: 'wag-master.html', color: '#a3c95a', role: 'tool' },
+      { name: 'SYMBIOGENE', file: 'wag-symbiogene.html', color: '#9b6b9e', role: 'tool' },
+    ],
+    flow: 'COURAGE → GOLD → WERE / MASTER',
+    docs: [
+      { name: 'TIMBER DOCS', file: 'timber-docs.html' },
+      { name: 'TIMBER TUTORIAL', file: 'TIMBER-tutorial-prime.html' },
+    ]
+  },
+  {
+    id: 'bull-assembly',
+    name: 'BULL ASSEMBLY',
+    subtitle: 'MPD · GOLD · Studs',
+    color: '#d64550',
+    hub: 'bull-assembly-studio.html',
+    components: [
+      { name: 'COURAGE', file: 'wag-viewer-prime-integration-20251112-055341 copy/wag-courage.html', color: '#d64550', role: 'source' },
+      { name: 'WEAVER', file: 'wag-viewer-prime-integration-20251112-055341 copy/assembly-line.html', color: '#5ba8cc', role: 'tool' },
+      { name: 'LINE GRID', file: 'line-grid-viewer.html', color: '#4a9d9c', role: 'tool' },
+    ],
+    flow: 'COURAGE → GOLD → WEAVER → WERE / MASTER',
+    docs: [
+      { name: 'BULL TUTORIAL', file: 'bull-assembly-tutorial.html' },
+    ]
+  },
+  {
+    id: 'homer',
+    name: 'HOMER STUDIO',
+    subtitle: 'Trubador Chain',
+    color: '#4a9d9c',
+    hub: 'homer.html',
+    components: [
+      { name: 'SWISS', file: 'wag-viewer-prime-integration-20251112-055341 copy/swiss-designator.html', color: '#8a8a8a', role: 'hub' },
+      { name: 'FRANK', file: 'wag-frank.html', color: '#e67e22', role: 'bus' },
+      { name: 'COURAGE', file: 'wag-viewer-prime-integration-20251112-055341 copy/wag-courage.html', color: '#d64550', role: 'editor' },
+      { name: 'WEAVER', file: 'wag-viewer-prime-integration-20251112-055341 copy/assembly-line.html', color: '#5ba8cc', role: 'tool' },
+      { name: 'WERE', file: 'wag-were.html', color: '#5ba8cc', role: 'lab' },
+      { name: 'MASTER', file: 'wag-master.html', color: '#a3c95a', role: 'lab' },
+      { name: 'MENTO', file: 'Brickfilm_Studio_Kit/REALITY MEDIA_MOMENTO/momento.html', color: '#4a9d9c', role: 'capture' },
+    ],
+    flow: 'SWISS · FRANK · COURAGE · WEAVER · WERE · MASTER · MENTO',
+    docs: [
+      { name: 'HOMER QUICKSTART', file: 'homer-quickstart.html' },
+      { name: 'HOMER STEPS', file: 'homer-step1-swiss-frank-courage.html' },
+    ]
+  },
+  {
+    id: 'brick-grid',
+    name: 'BRICK GRID FAMILY',
+    subtitle: '9×9 Code Terrain',
+    color: '#5ba8cc',
+    hub: 'brick-grid-family.html',
+    components: [
+      { name: 'BRANCH', file: 'brick-branch.html', color: '#5ba8cc', role: 'core' },
+      { name: 'ARCH', file: 'brick-arch.html', color: '#9b6b9e', role: 'core' },
+      { name: 'APEX', file: 'brick-apex.html', color: '#e67e22', role: 'core' },
+      { name: 'SOVEREIGN', file: 'brick-sovereign.html', color: '#a3c95a', role: 'tool' },
+      { name: 'BUILD BUS', file: 'build-bus.html', color: '#4a9d9c', role: 'tool' },
+      { name: 'XANADU', file: 'brickadu.html', color: '#5ba8cc', role: 'tool' },
+    ],
+    docs: [
+      { name: 'BRICKBENDER', file: 'BRICKBENDER-PHILOSOPHY.md' },
+      { name: 'BRICK OLOG', file: 'BRICK-GRID-OLOG.md' },
+    ]
+  },
+  {
+    id: 'onyx',
+    name: 'DCE-GYO / ONYX',
+    subtitle: 'Guardian Debates',
+    color: '#9b6b9e',
+    hub: 'onyx-core-index.html',
+    components: [
+      { name: 'ONYX INDEX', file: 'onyx-core-index.html', color: '#9b6b9e', role: 'hub' },
+      { name: 'ONYX THUMB', file: 'onyx-thumb.html', color: '#e67e22', role: 'player' },
+      { name: 'BIBLIOGRAPHY', file: 'onyx-bibliography.html', color: '#9b6b9e', role: 'data' },
+      { name: 'ONYX ABS', file: 'onyx-abs.html', color: '#5ba8cc', role: 'view' },
+    ],
+    docs: [
+      { name: 'THUMB DOCS', file: 'ONYX-THUMB-README.md' },
+    ]
+  },
+  {
+    id: 'wag-presentations',
+    name: 'WAG PRESENTATIONS',
+    subtitle: 'Words Become Worlds',
+    color: '#9b6b9e',
+    hub: 'words-become-worlds.html',
+    components: [
+      { name: 'WORDS BECOME WORLDS', file: 'words-become-worlds.html', color: '#9b6b9e', role: 'hub' },
+      { name: 'WAG SLIDES', file: 'wag-pres.html', color: '#f4d03f', role: 'deck' },
+      { name: 'WAG PROTOCOL', file: 'wag-prot.html', color: '#5ba8cc', role: 'deck' },
+      { name: 'WAG WORKSITE', file: 'wag-work.html', color: '#a3c95a', role: 'hub' },
+      { name: 'WAG HUB', file: 'wag-hub.html', color: '#4a9d9c', role: 'hub' },
+    ]
+  },
+  {
+    id: 'core-projects',
+    name: 'CORE PROJECTS',
+    subtitle: 'Playable Theory',
+    color: '#9b6b9e',
+    components: [
+      { name: 'THOUSAND TETRAD', file: 'thousand-tetrad.html', color: '#9b6b9e', role: 'hub' },
+      { name: 'THE FORK', file: 'fork.html', color: '#4a9d9c', role: 'hub' },
+      { name: 'HOLO PROJECT', file: 'holo-project.html', color: '#f5b7c8', role: 'hub' },
+      { name: 'MAC 01', file: 'mac-01.html', color: '#c8e66d', role: 'hub' },
+    ]
+  },
+  {
+    id: 'tutorials',
+    name: 'STUDIO TUTORIALS',
+    subtitle: 'Guides & Walkthroughs',
+    color: '#f4d03f',
+    components: [
+      { name: 'QUICKSTART', file: 'studio-tutorial.html', color: '#f4d03f', role: 'guide' },
+      { name: 'DESIGNER HUB', file: 'studio-tutorial-02.html', color: '#8a8a8a', role: 'guide' },
+      { name: 'LEGOS TUTORIAL', file: 'LEGOS-tutorial-prime.html', color: '#d64550', role: 'guide' },
+      { name: 'LEGOS-GPT', file: 'LEGOS-GPT.html', color: '#d64550', role: 'grammar' },
+      { name: 'LEGOS↔LDRAW', file: 'LEGOS-to-Ldraw-bridge.html', color: '#e67e22', role: 'bridge' },
+      { name: 'STUD SKELETON', file: 'STUD-SKELETON-tutorial-visual.html', color: '#9b6b9e', role: 'guide' },
+      { name: 'MENTO CAMERA', file: 'MENTO-tutorial-prime.html', color: '#4a9d9c', role: 'guide' },
+    ]
+  },
+];
+
+let DATA = { files: [] };
+let activeView = 'studios';
+let activeMonth = null;
+
+// Load sitemap data
+fetch('sitemap-data.json')
+  .then(r => r.json())
+  .then(d => {
+    DATA = d;
+    render();
+  })
+  .catch(() => {
+    // Render with just studio definitions
+    render();
+  });
+
+function render() {
+  renderStats();
+  renderTimeline();
+  renderStudios();
+  renderChrono();
+}
+
+function renderStats() {
+  document.getElementById('studioCount').textContent = STUDIOS.length;
+  document.getElementById('fileCount').textContent = DATA.files?.length || '—';
+  
+  let linkCount = 0;
+  STUDIOS.forEach(s => {
+    linkCount += (s.components?.length || 0) + (s.ators?.length || 0) + (s.docs?.length || 0) + (s.variants?.length || 0);
+  });
+  document.getElementById('linkCount').textContent = linkCount;
+}
+
+function renderTimeline() {
+  if (!DATA.files?.length) {
+    document.getElementById('timeline').innerHTML = '<span style="color:var(--text-dim); font-size:9px;">Load sitemap-data.json for timeline</span>';
+    return;
+  }
+  
+  // Group by month
+  const months = {};
+  DATA.files.forEach(f => {
+    const d = new Date(f.modified * 1000);
+    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    const label = d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+    if (!months[key]) months[key] = { label, files: [] };
+    months[key].files.push(f);
+  });
+  
+  const sorted = Object.entries(months).sort((a,b) => b[0].localeCompare(a[0]));
+  
+  document.getElementById('timeline').innerHTML = sorted.map(([key, m]) => `
+    <div class="timeline-month ${activeMonth === key ? 'active' : ''}" data-month="${key}">
+      ${m.label}
+      <span class="count">${m.files.length}</span>
+    </div>
+  `).join('');
+  
+  document.querySelectorAll('.timeline-month').forEach(el => {
+    el.onclick = () => {
+      activeMonth = activeMonth === el.dataset.month ? null : el.dataset.month;
+      renderTimeline();
+      renderChrono();
+    };
+  });
+}
+
+function renderStudios() {
+  document.getElementById('studiosGrid').innerHTML = STUDIOS.map(studio => {
+    const componentCount = (studio.components?.length || 0) + (studio.ators?.length || 0);
+    
+    return `
+      <div class="studio" style="--studio-color:${studio.color}">
+        <div class="studio-header" onclick="window.open('${studio.hub || studio.components?.[0]?.file || '#'}', '_blank')">
+          <div class="studio-studs">
+            <div class="studio-stud"></div>
+            <div class="studio-stud"></div>
+            <div class="studio-stud"></div>
+          </div>
+          <div class="studio-title">${studio.name}</div>
+          <div class="studio-subtitle">${studio.subtitle}</div>
+          <div class="studio-meta">
+            <span>${componentCount} components</span>
+            ${studio.flow ? `<span>→ ${studio.flow.split('→').length} stages</span>` : ''}
+          </div>
+        </div>
+        <div class="studio-minimap">
+          ${renderMinimap(studio)}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderMinimap(studio) {
+  let html = '';
+  
+  // Hub brick
+  if (studio.hub) {
+    html += `
+      <div class="minimap-section">
+        <div class="minimap-section-label">HUB</div>
+        <div class="minimap-bricks">
+          <a href="${studio.hub}" class="mini-brick hub" style="--brick-color:${studio.color}" title="${studio.hub}">
+            ${studio.name.split('/')[0].trim()}
+          </a>
+        </div>
+      </div>
+    `;
+  }
+  
+  // Components
+  if (studio.components?.length) {
+    html += `
+      <div class="minimap-section">
+        <div class="minimap-section-label">COMPONENTS</div>
+        <div class="minimap-bricks">
+          ${studio.components.map(c => `
+            <a href="${c.file}" class="mini-brick" style="--brick-color:${c.color || studio.color}" title="${c.file}">
+              ${c.name}
+            </a>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+  
+  // -ators
+  if (studio.ators?.length) {
+    html += `
+      <div class="minimap-section">
+        <div class="minimap-section-label">-ATORS</div>
+        <div class="minimap-bricks">
+          ${studio.ators.map(a => `
+            <a href="${a.file}" class="mini-brick" style="--brick-color:${a.color || '#9b6b9e'}" title="${a.file}">
+              ${a.name}
+            </a>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+  
+  // Variants
+  if (studio.variants?.length) {
+    html += `
+      <div class="minimap-section">
+        <div class="minimap-section-label">VARIANTS</div>
+        <div class="minimap-bricks">
+          ${studio.variants.map(v => `
+            <a href="${v.file}" class="mini-brick" style="--brick-color:${v.color || '#8a8a8a'}" title="${v.file}">
+              ${v.name}
+            </a>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+  
+  // Flow diagram
+  if (studio.flow) {
+    html += `
+      <div class="minimap-section">
+        <div class="minimap-section-label">FLOW</div>
+        <div class="minimap-bricks" style="align-items:center;">
+          ${studio.flow.split('·').map((stage, i) => `
+            ${i > 0 ? '<span class="minimap-arrow">→</span>' : ''}
+            <span style="font-family:'DM Mono',monospace; font-size:7px; color:var(--mx-yellow);">${stage.trim()}</span>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+  
+  // Docs
+  if (studio.docs?.length) {
+    html += `
+      <div class="minimap-section">
+        <div class="minimap-section-label">DOCS</div>
+        <div class="minimap-bricks">
+          ${studio.docs.map(d => `
+            <a href="${d.file}" class="mini-brick" style="--brick-color:#8a8a8a" title="${d.file}">
+              ${d.name}
+            </a>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+  
+  return html;
+}
+
+function renderChrono() {
+  if (!DATA.files?.length) {
+    document.getElementById('chronoView').innerHTML = '<div style="padding:20px; color:var(--text-dim);">Load sitemap-data.json for timeline view</div>';
+    return;
+  }
+  
+  // Group by month
+  const months = {};
+  DATA.files.forEach(f => {
+    const d = new Date(f.modified * 1000);
+    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    const label = d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    if (!months[key]) months[key] = { label, files: [] };
+    months[key].files.push({ ...f, day: d.getDate() });
+  });
+  
+  // Filter if month selected
+  let sorted = Object.entries(months).sort((a,b) => b[0].localeCompare(a[0]));
+  if (activeMonth) {
+    sorted = sorted.filter(([k]) => k === activeMonth);
+  }
+  
+  // Get studio color for file
+  const getFileColor = (name) => {
+    for (const s of STUDIOS) {
+      if (s.hub === name) return s.color;
+      for (const c of (s.components || [])) {
+        if (c.file === name || c.file.endsWith('/' + name)) return c.color;
+      }
+      for (const a of (s.ators || [])) {
+        if (a.file === name) return a.color;
+      }
+    }
+    // Fallback by name pattern
+    if (name.includes('gold')) return '#f4d03f';
+    if (name.includes('courage')) return '#d64550';
+    if (name.includes('grace')) return '#a3c95a';
+    if (name.includes('onyx')) return '#9b6b9e';
+    if (name.includes('brick')) return '#5ba8cc';
+    if (name.includes('wag')) return '#4a9d9c';
+    if (name.includes('tutorial')) return '#f4d03f';
+    return '#8a8a8a';
+  };
+  
+  document.getElementById('chronoView').innerHTML = sorted.map(([key, m]) => `
+    <div class="chrono-month">
+      <div class="chrono-month-header">
+        <span class="chrono-month-title">${m.label}</span>
+        <span class="chrono-month-count">${m.files.length} files</span>
+      </div>
+      <div class="chrono-files">
+        ${m.files.sort((a,b) => b.day - a.day).map(f => `
+          <a href="${f.name}" class="chrono-brick" style="--brick-color:${getFileColor(f.name)}">
+            ${f.name.replace('.html','').substring(0,20)}
+            <div class="day">${f.day}th</div>
+          </a>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+// View switching
+document.querySelectorAll('.view-tab').forEach(tab => {
+  tab.onclick = () => {
+    document.querySelectorAll('.view-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    activeView = tab.dataset.view;
+    
+    document.getElementById('studiosView').classList.toggle('hidden', activeView !== 'studios');
+    document.getElementById('chronoView').classList.toggle('active', activeView === 'chrono');
+  };
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>▣ EVOLUTION SITEMAP — Studios · Similarity · Timeline</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='10' y='10' width='80' height='80' rx='8' fill='%23c9302c'/><circle cx='35' cy='35' r='12' fill='%23e74c3c'/><circle cx='65' cy='35' r='12' fill='%23e74c3c'/><circle cx='35' cy='65' r='12' fill='%23e74c3c'/><circle cx='65' cy='65' r='12' fill='%23e74c3c'/></svg>">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+    
+    :root {
+      --bg: #0f1114;
+      --surface: #1a1d21;
+      --surface-2: #22262b;
+      --border: #2a2f35;
+      --text: #e8eaed;
+      --text-dim: #6b7280;
+      
+      /* Studio family colors */
+      --fam-swiss: #14b8a6;
+      --fam-gold: #eab308;
+      --fam-onyx: #a855f7;
+      --fam-brick: #3b82f6;
+      --fam-ator: #ec4899;
+      --fam-wag: #f97316;
+      --fam-homer: #14b8a6;
+      --fam-timber: #22c55e;
+      --fam-bull: #ef4444;
+      --fam-core: #8b5cf6;
+      --fam-tutorial: #fbbf24;
+      --fam-block: #6366f1;
+      --fam-misc: #6b7280;
+    }
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    
+    .container {
+      max-width: 1800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 14px 18px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #ef4444, #f97316);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+    
+    .view-tabs {
+      display: flex;
+      gap: 2px;
+      background: var(--bg);
+      padding: 3px;
+      border-radius: 8px;
+    }
+    
+    .view-tab {
+      padding: 8px 14px;
+      background: transparent;
+      border: none;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    
+    .view-tab:hover { color: var(--text); }
+    .view-tab.active { background: var(--fam-gold); color: #000; }
+    
+    .stats {
+      margin-left: auto;
+      display: flex;
+      gap: 20px;
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+    
+    .stat-val { color: var(--fam-gold); font-weight: 600; }
+    
+    /* Evolution Timeline - horizontal swim lanes */
+    .evolution-container {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    
+    .evolution-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: var(--surface-2);
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .evolution-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+    
+    .time-scale {
+      display: flex;
+      gap: 4px;
+      margin-left: auto;
+    }
+    
+    .scale-btn {
+      padding: 4px 10px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-size: 9px;
+      font-weight: 600;
+      color: var(--text-dim);
+      cursor: pointer;
+    }
+    
+    .scale-btn:hover { color: var(--text); }
+    .scale-btn.active { background: var(--fam-brick); border-color: var(--fam-brick); color: white; }
+    
+    .evolution-lanes {
+      padding: 16px;
+      overflow-x: auto;
+    }
+    
+    .lane {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+      min-height: 36px;
+    }
+    
+    .lane:last-child { margin-bottom: 0; }
+    
+    .lane-label {
+      width: 100px;
+      flex-shrink: 0;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--lane-color, var(--text-dim));
+      padding-right: 12px;
+      text-align: right;
+    }
+    
+    .lane-track {
+      flex: 1;
+      display: flex;
+      gap: 3px;
+      align-items: center;
+      min-width: 800px;
+      position: relative;
+      height: 28px;
+      background: rgba(255,255,255,0.02);
+      border-radius: 4px;
+      padding: 0 4px;
+    }
+    
+    .lane-dot {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: var(--dot-color, var(--text-dim));
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 8px;
+      font-weight: 700;
+      color: white;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    }
+    
+    .lane-dot:hover {
+      transform: scale(1.3);
+      z-index: 10;
+    }
+    
+    .lane-dot::after {
+      content: attr(data-name);
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.95);
+      color: white;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 9px;
+      font-weight: 500;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s;
+      margin-bottom: 6px;
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .lane-dot:hover::after { opacity: 1; }
+    
+    /* Main grid */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 16px;
+    }
+    
+    @media (max-width: 1100px) {
+      .main-grid { grid-template-columns: 1fr; }
+    }
+    
+    /* Files list */
+    .files-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    
+    .panel-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: var(--surface-2);
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .panel-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+    
+    .filter-pills {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+      margin-left: auto;
+    }
+    
+    .filter-pill {
+      padding: 4px 10px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      font-size: 9px;
+      font-weight: 600;
+      color: var(--text-dim);
+      cursor: pointer;
+    }
+    
+    .filter-pill:hover { color: var(--text); }
+    .filter-pill.active { 
+      background: var(--pill-color, var(--fam-gold)); 
+      border-color: var(--pill-color, var(--fam-gold)); 
+      color: #000; 
+    }
+    
+    .files-list {
+      max-height: 600px;
+      overflow-y: auto;
+    }
+    
+    /* File card */
+    .file-card {
+      display: block;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      text-decoration: none;
+      transition: background 0.15s;
+      border-left: 4px solid var(--card-color, var(--text-dim));
+    }
+    
+    .file-card:hover { background: var(--surface-2); }
+    .file-card:last-child { border-bottom: none; }
+    
+    .file-top {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    
+    .file-order {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--fam-gold);
+      min-width: 28px;
+    }
+    
+    .file-info { flex: 1; }
+    
+    .file-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+    
+    .file-logline {
+      font-size: 11px;
+      color: var(--text-dim);
+      line-height: 1.4;
+    }
+    
+    .file-studio {
+      font-size: 9px;
+      font-weight: 700;
+      padding: 3px 8px;
+      background: var(--card-color, var(--text-dim));
+      color: white;
+      border-radius: 4px;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    }
+    
+    .file-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    
+    .file-date {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      color: var(--text-dim);
+    }
+    
+    .file-patterns {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+    
+    .pattern-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 8px;
+      font-weight: 600;
+      padding: 2px 6px;
+      background: var(--surface-2);
+      border-radius: 3px;
+      color: var(--text-dim);
+    }
+    
+    /* Studios panel */
+    .studios-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    
+    .studio-group {
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .studio-group:last-child { border-bottom: none; }
+    
+    .studio-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      background: var(--surface-2);
+      cursor: pointer;
+    }
+    
+    .studio-color {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+      background: var(--studio-color, var(--text-dim));
+    }
+    
+    .studio-name {
+      font-size: 11px;
+      font-weight: 700;
+    }
+    
+    .studio-count {
+      margin-left: auto;
+      font-size: 10px;
+      color: var(--text-dim);
+    }
+    
+    .studio-desc {
+      font-size: 9px;
+      color: var(--text-dim);
+      padding: 0 14px 10px;
+      line-height: 1.5;
+    }
+    
+    .studio-files {
+      padding: 8px 14px 14px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+    
+    .studio-file {
+      padding: 5px 10px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-size: 9px;
+      font-weight: 600;
+      color: var(--text);
+      text-decoration: none;
+      transition: all 0.15s;
+    }
+    
+    .studio-file:hover {
+      background: var(--studio-color, var(--text-dim));
+      color: white;
+      border-color: var(--studio-color, var(--text-dim));
+    }
+    
+    /* Similarity indicator */
+    .similarity-bar {
+      height: 3px;
+      background: var(--bg);
+      border-radius: 2px;
+      margin-top: 6px;
+      overflow: hidden;
+    }
+    
+    .similarity-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--fam-brick), var(--fam-onyx));
+      border-radius: 2px;
+    }
+    
+    /* Footer */
+    .footer-link {
+      position: fixed;
+      bottom: 16px;
+      right: 16px;
+      padding: 10px 16px;
+      background: linear-gradient(135deg, #ef4444, #f97316);
+      color: white;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      text-decoration: none;
+      z-index: 100;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header class="header">
+    <div class="logo">
+      <div class="logo-icon">▣</div>
+      <span>EVOLUTION SITEMAP</span>
+    </div>
+    
+    <div class="view-tabs">
+      <button class="view-tab active" data-view="evolution">EVOLUTION</button>
+      <button class="view-tab" data-view="studios">STUDIOS</button>
+      <button class="view-tab" data-view="similarity">SIMILARITY</button>
+    </div>
+    
+    <div class="stats">
+      <span>Files: <span class="stat-val" id="fileCount">—</span></span>
+      <span>Studios: <span class="stat-val" id="studioCount">—</span></span>
+      <span>Days Active: <span class="stat-val" id="dayCount">—</span></span>
+    </div>
+  </header>
+  
+  <!-- Evolution Timeline -->
+  <div class="evolution-container">
+    <div class="evolution-header">
+      <span class="evolution-title">STUDIO EVOLUTION OVER TIME</span>
+      <div class="time-scale">
+        <button class="scale-btn active" data-scale="day">DAYS</button>
+        <button class="scale-btn" data-scale="week">WEEKS</button>
+      </div>
+    </div>
+    <div class="evolution-lanes" id="evolutionLanes"></div>
+  </div>
+  
+  <div class="main-grid">
+    <!-- Files Panel -->
+    <div class="files-panel">
+      <div class="panel-header">
+        <span class="panel-title">FILES BY BIRTH ORDER</span>
+        <div class="filter-pills" id="filterPills"></div>
+      </div>
+      <div class="files-list" id="filesList"></div>
+    </div>
+    
+    <!-- Studios Panel -->
+    <div class="studios-panel">
+      <div class="panel-header">
+        <span class="panel-title">STUDIO FAMILIES</span>
+      </div>
+      <div id="studiosList"></div>
+    </div>
+  </div>
+</div>
+
+<a href="index.html" class="footer-link">← INDEX</a>
+
+<script>
+// Studio definitions with logline generators
+const STUDIOS = {
+  'swiss-frank-grace': {
+    name: 'SWISS / FRANK / GRACE',
+    color: '#14b8a6',
+    desc: 'Designer hub for scene designation, message bus routing, and graceful editing. The core studio pipeline.',
+    patterns: ['swiss', 'frank', 'grace'],
+    keywords: ['swiss', 'frank', 'grace', 'designator', 'bus']
+  },
+  'gold-courage': {
+    name: 'GOLD / COURAGE',
+    color: '#eab308',
+    desc: 'Flagship MPD editors. GOLD for strict line editing, COURAGE for visual manipulation with skeleton export.',
+    patterns: ['GOLD', 'courage'],
+    keywords: ['gold', 'courage', 'editor', 'mpd']
+  },
+  'homer': {
+    name: 'HOMER STUDIO',
+    color: '#14b8a6',
+    desc: 'The Trubador chain: SWISS → FRANK → COURAGE → WEAVER → WERE → MASTER → MENTO. Full pipeline.',
+    patterns: ['homer'],
+    keywords: ['homer', 'trubador']
+  },
+  'timber': {
+    name: 'TIMBER STUDIO',
+    color: '#22c55e',
+    desc: 'GOLD + Selection bus. Courage emits, WERE/MASTER receive. Skeleton-centric workflow.',
+    patterns: ['timber', 'were', 'master'],
+    keywords: ['timber', 'were', 'master', 'skeleton']
+  },
+  'bull': {
+    name: 'BULL ASSEMBLY',
+    color: '#ef4444',
+    desc: 'MPD → GOLD → Studs pipeline. Assembly line for stud skeleton generation.',
+    patterns: ['bull', 'assembly', 'weaver'],
+    keywords: ['bull', 'assembly', 'weaver', 'line']
+  },
+  'onyx': {
+    name: 'DCE-GYO / ONYX',
+    color: '#a855f7',
+    desc: 'Guardian debates reader system. Body parts (head, neck, shell, wing, tail, claw, nail) for modular reading.',
+    patterns: ['ONYX', 'onyx'],
+    keywords: ['onyx', 'guardian', 'debate', 'arena', 'archive']
+  },
+  'brick-grid': {
+    name: 'BRICK GRID FAMILY',
+    color: '#3b82f6',
+    desc: '9×9 code terrain instruments. Branch, Arch, Apex, Sovereign for code archaeology.',
+    patterns: ['brick'],
+    keywords: ['brick-', 'grid', 'branch', 'arch', 'apex', 'sovereign']
+  },
+  'ators': {
+    name: '-ATOR BUILDERS',
+    color: '#ec4899',
+    desc: 'Generative builders: Minifigurator, Locationator, Vehiculator, Sceneerator, Movieator, Worldinator.',
+    patterns: ['minifig', 'location', 'vehicle', 'scene', 'movie', 'world'],
+    keywords: ['ator', 'minifig', 'location', 'vehicle', 'scene', 'movie', 'world']
+  },
+  'block': {
+    name: 'BLOCK REACTORS',
+    color: '#6366f1',
+    desc: 'Ontological ancestry tools. Forensic reconstruction, LEGOS↔ONYX bridges, reactor presentations.',
+    patterns: ['block'],
+    keywords: ['block-', 'reactor', 'ancestor', 'merge']
+  },
+  'wag-core': {
+    name: 'WAG PRESENTATIONS',
+    color: '#f97316',
+    desc: 'Words Become Worlds. Slides, protocol, worksite, hub. The public-facing WAG constellation.',
+    patterns: ['wag-'],
+    keywords: ['words-become', 'wag-pres', 'wag-prot', 'wag-work', 'wag-hub', 'wag00']
+  },
+  'tutorials': {
+    name: 'TUTORIALS & DOCS',
+    color: '#fbbf24',
+    desc: 'Quickstarts, walkthroughs, visual guides. Learning infrastructure for the studio system.',
+    patterns: ['tutorial'],
+    keywords: ['tutorial', 'quickstart', 'guide', 'docs']
+  },
+  'core-projects': {
+    name: 'CORE PROJECTS',
+    color: '#8b5cf6',
+    desc: 'Playable theory: Thousand Tetrad (McLuhan), The Fork (trolley problem), Holo Project (3D entities).',
+    patterns: ['LEGOS', 'scenario'],
+    keywords: ['thousand', 'tetrad', 'fork', 'holo', 'mac-01']
+  },
+  'mento': {
+    name: 'MENTO CAPTURE',
+    color: '#14b8a6',
+    desc: 'Brickfilm camera and capture system. GLB export, narrative moments, cinematic tools.',
+    patterns: ['mento'],
+    keywords: ['mento', 'camera', 'capture', 'glb']
+  }
+};
+
+// Generate logline from file data
+function generateLogline(f) {
+  if (f.title && f.title.length > 10) {
+    // Clean up title
+    let logline = f.title
+      .replace(/^(WAG|ONYX|LEGOS|BRICK|BLOCK)\s*[-–—·:]\s*/i, '')
+      .replace(/\s*[-–—·]\s*$/, '');
+    return logline;
+  }
+  
+  // Generate from patterns
+  const patterns = f.patterns ? f.patterns.split(',').filter(p => p.trim()) : [];
+  if (patterns.includes('GOLD') && patterns.includes('courage')) {
+    return 'MPD editor with GOLD export and skeleton generation';
+  }
+  if (patterns.includes('iframe') && patterns.includes('stud')) {
+    return 'Studio composition with stud skeleton integration';
+  }
+  if (patterns.includes('ONYX')) {
+    return 'Ontological grid for narrative structure';
+  }
+  if (patterns.includes('LEGOS')) {
+    return 'LEGOS grammar for modular storytelling';
+  }
+  if (patterns.includes('grid')) {
+    return 'Grid-based interface for structured editing';
+  }
+  
+  return f.file.replace('.html', '').replace(/-/g, ' ');
+}
+
+// Classify file into studio
+function classifyFile(f) {
+  const name = f.file.toLowerCase();
+  const patterns = (f.patterns || '').toLowerCase();
+  const title = (f.title || '').toLowerCase();
+  const combined = name + ' ' + patterns + ' ' + title;
+  
+  for (const [id, studio] of Object.entries(STUDIOS)) {
+    for (const kw of studio.keywords) {
+      if (combined.includes(kw)) {
+        return { id, ...studio };
+      }
+    }
+  }
+  
+  return { id: 'misc', name: 'MISCELLANEOUS', color: '#6b7280', desc: 'Uncategorized files' };
+}
+
+// Calculate similarity score between files
+function similarity(f1, f2) {
+  const p1 = new Set((f1.patterns || '').split(',').filter(p => p.trim()));
+  const p2 = new Set((f2.patterns || '').split(',').filter(p => p.trim()));
+  if (p1.size === 0 || p2.size === 0) return 0;
+  
+  const intersection = [...p1].filter(x => p2.has(x)).length;
+  const union = new Set([...p1, ...p2]).size;
+  return intersection / union;
+}
+
+let FILES = [];
+let activeStudio = null;
+let timeScale = 'day';
+
+// Load data
+fetch('file-learnings.json')
+  .then(r => r.json())
+  .then(d => {
+    FILES = d.files
+      .filter(f => !f._end && f.file.endsWith('.html'))
+      .map(f => ({
+        ...f,
+        studio: classifyFile(f),
+        logline: generateLogline(f)
+      }));
+    FILES.sort((a, b) => a.born - b.born);
+    render();
+  })
+  .catch(e => console.error(e));
+
+function render() {
+  renderStats();
+  renderEvolution();
+  renderFilters();
+  renderFiles();
+  renderStudios();
+}
+
+function renderStats() {
+  document.getElementById('fileCount').textContent = FILES.length;
+  
+  const studios = new Set(FILES.map(f => f.studio.id));
+  document.getElementById('studioCount').textContent = studios.size;
+  
+  const days = new Set();
+  FILES.forEach(f => {
+    const d = new Date(f.born * 1000);
+    days.add(`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`);
+  });
+  document.getElementById('dayCount').textContent = days.size;
+}
+
+function renderEvolution() {
+  // Group files by studio
+  const studioFiles = {};
+  FILES.forEach(f => {
+    const sid = f.studio.id;
+    if (!studioFiles[sid]) studioFiles[sid] = [];
+    studioFiles[sid].push(f);
+  });
+  
+  // Get time range
+  const minTime = Math.min(...FILES.map(f => f.born));
+  const maxTime = Math.max(...FILES.map(f => f.born));
+  const range = maxTime - minTime;
+  
+  // Render lanes
+  const lanes = Object.entries(studioFiles)
+    .filter(([id]) => id !== 'misc')
+    .sort((a, b) => Math.min(...a[1].map(f => f.born)) - Math.min(...b[1].map(f => f.born)));
+  
+  document.getElementById('evolutionLanes').innerHTML = lanes.map(([id, files]) => {
+    const studio = STUDIOS[id] || { name: id, color: '#6b7280' };
+    
+    const dots = files.map(f => {
+      const pos = ((f.born - minTime) / range) * 100;
+      const order = FILES.indexOf(f) + 1;
+      return `<div class="lane-dot" 
+        style="left:${pos}%; --dot-color:${studio.color}" 
+        data-name="${f.file.replace('.html', '')}"
+        onclick="window.open('${f.file}', '_blank')">${order}</div>`;
+    }).join('');
+    
+    return `
+      <div class="lane" style="--lane-color:${studio.color}">
+        <div class="lane-label">${studio.name.split('/')[0].trim()}</div>
+        <div class="lane-track">${dots}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderFilters() {
+  const studioIds = [...new Set(FILES.map(f => f.studio.id))].filter(id => id !== 'misc');
+  
+  document.getElementById('filterPills').innerHTML = `
+    <div class="filter-pill ${!activeStudio ? 'active' : ''}" 
+         style="--pill-color:var(--fam-gold)" 
+         onclick="setFilter(null)">ALL</div>
+    ${studioIds.slice(0, 6).map(id => {
+      const studio = STUDIOS[id] || { name: id, color: '#6b7280' };
+      return `<div class="filter-pill ${activeStudio === id ? 'active' : ''}" 
+                   style="--pill-color:${studio.color}" 
+                   onclick="setFilter('${id}')">${studio.name.split('/')[0].trim()}</div>`;
+    }).join('')}
+  `;
+}
+
+function setFilter(studioId) {
+  activeStudio = studioId;
+  renderFilters();
+  renderFiles();
+}
+
+function renderFiles() {
+  let filtered = FILES;
+  if (activeStudio) {
+    filtered = FILES.filter(f => f.studio.id === activeStudio);
+  }
+  
+  document.getElementById('filesList').innerHTML = filtered.map((f, i) => {
+    const order = FILES.indexOf(f) + 1;
+    const date = new Date(f.born * 1000);
+    const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const weekday = date.toLocaleDateString('en-US', { weekday: 'short' });
+    const patterns = f.patterns ? f.patterns.split(',').filter(p => p.trim() && !p.includes('Binary')).slice(0, 4) : [];
+    
+    // Calculate similarity to previous file
+    const prevFile = filtered[i - 1];
+    const sim = prevFile ? similarity(f, prevFile) : 0;
+    
+    return `
+      <a href="${f.file}" class="file-card" style="--card-color:${f.studio.color}">
+        <div class="file-top">
+          <span class="file-order">#${order}</span>
+          <div class="file-info">
+            <div class="file-name">${f.file.replace('.html', '')}</div>
+            <div class="file-logline">${f.logline}</div>
+          </div>
+          <span class="file-studio">${f.studio.name.split('/')[0].trim()}</span>
+        </div>
+        <div class="file-meta">
+          <span class="file-date">${weekday} ${dateStr}</span>
+          <div class="file-patterns">
+            ${patterns.map(p => `<span class="pattern-tag">${p}</span>`).join('')}
+          </div>
+        </div>
+        ${sim > 0.3 ? `<div class="similarity-bar"><div class="similarity-fill" style="width:${sim * 100}%"></div></div>` : ''}
+      </a>
+    `;
+  }).join('');
+}
+
+function renderStudios() {
+  const studioFiles = {};
+  FILES.forEach(f => {
+    const sid = f.studio.id;
+    if (!studioFiles[sid]) studioFiles[sid] = [];
+    studioFiles[sid].push(f);
+  });
+  
+  const sorted = Object.entries(studioFiles)
+    .filter(([id]) => id !== 'misc')
+    .sort((a, b) => b[1].length - a[1].length);
+  
+  document.getElementById('studiosList').innerHTML = sorted.map(([id, files]) => {
+    const studio = STUDIOS[id] || { name: id, color: '#6b7280', desc: '' };
+    
+    return `
+      <div class="studio-group" style="--studio-color:${studio.color}">
+        <div class="studio-header" onclick="setFilter('${id}')">
+          <div class="studio-color"></div>
+          <span class="studio-name">${studio.name}</span>
+          <span class="studio-count">${files.length} files</span>
+        </div>
+        <div class="studio-desc">${studio.desc}</div>
+        <div class="studio-files">
+          ${files.slice(0, 8).map(f => `
+            <a href="${f.file}" class="studio-file">${f.file.replace('.html', '').substring(0, 18)}</a>
+          `).join('')}
+          ${files.length > 8 ? `<span class="studio-file" style="opacity:0.5">+${files.length - 8} more</span>` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// Time scale toggle
+document.querySelectorAll('.scale-btn').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('.scale-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    timeScale = btn.dataset.scale;
+    renderEvolution();
+  };
+});
+
+// View tabs
+document.querySelectorAll('.view-tab').forEach(tab => {
+  tab.onclick = () => {
+    document.querySelectorAll('.view-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+  };
+});
+</script>
+
+</body>
+</html>

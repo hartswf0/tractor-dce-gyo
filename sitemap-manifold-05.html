@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>SITEMAP Manifold 05 | Choose‑Your‑Own Studio Adventure</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap');
+
+    :root {
+      --bg: #050816;
+      --land: #101322;
+      --ink: #e5e7eb;
+      --ink-dim: #9ca3af;
+      --accent-light: #22c55e;
+      --accent-dark: #ea580c;
+      --path-light: #22c55e;
+      --path-dark: #ef4444;
+      --path-neutral: #eab308;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: radial-gradient(circle at top, #1e293b, #020617 60%);
+      color: var(--ink);
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      overflow: hidden;
+    }
+
+    #stage {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      grid-template-columns: minmax(0, 2.3fr) minmax(280px, 1.1fr);
+    }
+
+    #map-wrap {
+      position: relative;
+    }
+
+    canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .texture-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.35;
+      mix-blend-mode: overlay;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.45'/%3E%3C/svg%3E");
+    }
+
+    #labels-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .geo-label {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      font-family: 'Cinzel', serif;
+      font-weight: 700;
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(226,232,240,0.8);
+      text-shadow: 0 0 20px #020617;
+      pointer-events: auto;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      white-space: nowrap;
+    }
+
+    .geo-label span {
+      display: block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.06em;
+      color: rgba(148,163,184,0.9);
+      margin-top: 2px;
+    }
+
+    .geo-label:hover {
+      transform: translate(-50%, -60%);
+      color: var(--accent-light);
+    }
+
+    /* Story panel */
+    #story-panel {
+      position: relative;
+      background: radial-gradient(circle at top, rgba(15,23,42,0.9), rgba(15,23,42,0.98));
+      border-left: 1px solid rgba(30,64,175,0.5);
+      padding: 16px 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .story-header {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .story-title {
+      font-family: 'Cinzel', serif;
+      font-size: 16px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .story-sub {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--ink-dim);
+    }
+
+    .incident-input {
+      margin-top: 4px;
+    }
+
+    .incident-input textarea {
+      width: 100%;
+      min-height: 40px;
+      resize: vertical;
+      background: rgba(15,23,42,0.9);
+      border-radius: 6px;
+      border: 1px solid rgba(148,163,184,0.4);
+      color: var(--ink);
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      padding: 6px 8px;
+    }
+
+    .incident-input textarea::placeholder {
+      color: rgba(148,163,184,0.7);
+    }
+
+    .meta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 2px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      color: var(--ink-dim);
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .pill {
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.5);
+      font-size: 9px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      color: var(--ink-dim);
+      background: rgba(15,23,42,0.6);
+      transition: all 0.18s;
+    }
+
+    .pill.active {
+      border-color: var(--accent-light);
+      color: var(--accent-light);
+      background: rgba(34,197,94,0.08);
+    }
+
+    .step-list {
+      flex: 1 1 auto;
+      overflow-y: auto;
+      padding-right: 4px;
+      border-top: 1px solid rgba(30,64,175,0.5);
+      margin-top: 8px;
+    }
+
+    .step-card {
+      border-radius: 8px;
+      border: 1px solid rgba(30,64,175,0.6);
+      background: rgba(15,23,42,0.85);
+      padding: 8px 8px 7px;
+      margin-top: 6px;
+      font-size: 11px;
+    }
+
+    .step-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+
+    .step-index {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--ink-dim);
+    }
+
+    .step-label {
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .step-tags {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+    }
+
+    .step-tag {
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.5);
+      color: var(--ink-dim);
+    }
+
+    .step-body {
+      margin-top: 4px;
+      color: var(--ink-dim);
+      font-size: 11px;
+      line-height: 1.4;
+    }
+
+    .step-alt {
+      margin-top: 4px;
+      font-size: 10px;
+      color: #f97316;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .step-form {
+      margin-top: 6px;
+      border-radius: 8px;
+      border: 1px dashed rgba(148,163,184,0.6);
+      padding: 8px 8px 7px;
+      font-size: 11px;
+    }
+
+    .step-form textarea {
+      width: 100%;
+      min-height: 32px;
+      resize: vertical;
+      border-radius: 5px;
+      border: 1px solid rgba(148,163,184,0.4);
+      background: rgba(15,23,42,0.9);
+      color: var(--ink);
+      font-size: 11px;
+      padding: 4px 6px;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .step-form textarea::placeholder {
+      color: rgba(148,163,184,0.7);
+    }
+
+    .step-form-footer {
+      margin-top: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      color: var(--ink-dim);
+    }
+
+    .btn-primary {
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--accent-light);
+      background: rgba(34,197,94,0.1);
+      color: var(--accent-light);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .btn-primary:hover {
+      background: rgba(34,197,94,0.2);
+    }
+
+    @media (max-width: 800px) {
+      #stage {
+        grid-template-columns: 1fr;
+      }
+      #story-panel {
+        position: absolute;
+        inset: auto 0 0 0;
+        max-height: 60vh;
+      }
+    }
+  </style>
+</head>
+<body>
+<div id="stage">
+  <div id="map-wrap">
+    <canvas id="map"></canvas>
+    <div class="texture-overlay"></div>
+    <div id="labels-layer"></div>
+  </div>
+  <aside id="story-panel">
+    <div class="story-header">
+      <div class="story-title">ETHICS PATHWAYS · STUDIOS</div>
+      <div class="story-sub">Choose‑your‑own adventure over the sitemap terrain</div>
+      <div class="incident-input">
+        <textarea id="incident-input" placeholder="Phase 1 — Describe the incident or tension you want to walk through (e.g. a confusing studio, a broken flow, or an architectural doubt)."></textarea>
+        <div class="meta-row">
+          <span id="selected-region-label">Region: —</span>
+          <span id="step-count">Steps: 0</span>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div style="font-size:10px; text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-dim); margin-top:6px;">Terrain Metaphor · Current Step</div>
+      <div class="pill-row" id="terrain-pills">
+        <div class="pill" data-type="road">Straight Road</div>
+        <div class="pill" data-type="roadblock">Roadblock</div>
+        <div class="pill" data-type="pothole">Pothole</div>
+        <div class="pill" data-type="intersection">Intersection</div>
+        <div class="pill" data-type="bridge">Bridge</div>
+      </div>
+    </div>
+
+    <div class="step-form">
+      <div style="font-size:10px; text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-dim);">Step · Action & Emotion</div>
+      <textarea id="step-action" placeholder="Phase 3 — What happened at this step? What did you do? What did you feel?"></textarea>
+      <div class="step-form-footer">
+        <span>Click a region on the map to anchor this step.</span>
+        <button class="btn-primary" id="btn-add-step">Add Step</button>
+      </div>
+    </div>
+
+    <div class="step-list" id="step-list"></div>
+  </aside>
+</div>
+
+<script>
+(function() {
+  const CONFIG = { GRID_W: 220, GRID_H: 130 };
+  let width, height, heatGrid;
+  let REGIONS = [];
+  const mapCanvas = document.getElementById('map');
+  const ctx = mapCanvas.getContext('2d');
+
+  const story = {
+    incident: '',
+    steps: [],
+    terrain: 'road',
+    selectedRegion: null
+  };
+
+  const STUDIO_DEFS = {
+    'swiss-frank-grace': { id: 'swiss-frank-grace', label: 'Swiss / Frank / Grace', pos: { x: 0.15, y: 0.32 } },
+    'gold-courage':      { id: 'gold-courage',      label: 'Gold / Courage',       pos: { x: 0.3,  y: 0.18 } },
+    'homer':             { id: 'homer',             label: 'Homer Studio',         pos: { x: 0.32, y: 0.48 } },
+    'timber':            { id: 'timber',            label: 'Timber',               pos: { x: 0.5,  y: 0.3  } },
+    'bull':              { id: 'bull',              label: 'Bull Assembly',        pos: { x: 0.6,  y: 0.2  } },
+    'onyx':              { id: 'onyx',              label: 'ONYX',                 pos: { x: 0.7,  y: 0.45 } },
+    'brick':             { id: 'brick',             label: 'Brick Grid',           pos: { x: 0.18, y: 0.72 } },
+    'ator':              { id: 'ator',              label: '-ators',              pos: { x: 0.38, y: 0.8  } },
+    'wag':               { id: 'wag',               label: 'WAG Core',             pos: { x: 0.8,  y: 0.68 } },
+    'tutorials':         { id: 'tutorials',         label: 'Docs / Tutorials',     pos: { x: 0.12, y: 0.52 } },
+    'core':              { id: 'core',              label: 'Core Projects',        pos: { x: 0.6,  y: 0.8  } },
+    'mento':             { id: 'mento',             label: 'Mento',                pos: { x: 0.85, y: 0.32 } }
+  };
+
+  function classifyStudio(file, patterns, title) {
+    const hay = `${file.toLowerCase()} ${(patterns||'').toLowerCase()} ${(title||'').toLowerCase()}`;
+    const defs = {
+      'swiss-frank-grace': ['swiss', 'frank', 'grace'],
+      'gold-courage': ['wag-gold', 'wag-courage', 'gold-editor'],
+      'homer': ['homer'],
+      'timber': ['timber-studio', 'timber-docs'],
+      'bull': ['bull-assembly'],
+      'onyx': ['onyx-'],
+      'brick': ['brick-', 'hyper-grid'],
+      'ator': ['ator', 'minifigurator', 'locationator', 'vehiculator', 'sceneerator', 'movieator', 'worldinator'],
+      'wag': ['wag-hub', 'wag-pres', 'wag-prot', 'wag-work', 'words-become-worlds'],
+      'tutorials': ['tutorial', 'OLOG', 'README', 'PHILOSOPHY'],
+      'core': ['thousand-tetrad', 'fork.html', 'holo-project', 'mac-01'],
+      'mento': ['mento']
+    };
+    for (const [id, keys] of Object.entries(defs)) {
+      if (keys.some(k => hay.includes(k.toLowerCase()))) return id;
+    }
+    return null;
+  }
+
+  function handleResize() {
+    width = window.innerWidth * 0.65;
+    height = window.innerHeight;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    mapCanvas.width = width * dpr;
+    mapCanvas.height = height * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    CONFIG.GRID_W = 220;
+    CONFIG.GRID_H = Math.floor(220 * (height / width));
+  }
+
+  function pseudoRandom(x, y) {
+    return Math.sin(x * 12.9898 + y * 78.233) * 43758.5453 - Math.floor(Math.sin(x * 12.9898 + y * 78.233) * 43758.5453);
+  }
+
+  function noise(x, y) {
+    const i = Math.floor(x); const j = Math.floor(y);
+    const u = x - i; const v = y - j;
+    const su = u * u * (3 - 2 * u); const sv = v * v * (3 - 2 * v);
+    const a = pseudoRandom(i, j); const b = pseudoRandom(i + 1, j);
+    const c = pseudoRandom(i, j + 1); const d = pseudoRandom(i + 1, j + 1);
+    return (a * (1 - su) + b * su) * (1 - sv) + (c * (1 - su) + d * su) * sv;
+  }
+
+  function initTerrain() {
+    heatGrid = new Float32Array(CONFIG.GRID_W * CONFIG.GRID_H);
+    for (let y = 0; y < CONFIG.GRID_H; y++) {
+      for (let x = 0; x < CONFIG.GRID_W; x++) {
+        const nx = x / CONFIG.GRID_W; const ny = y / CONFIG.GRID_H;
+        let h = noise(nx * 3.5, ny * 3.5) * 0.5 + noise(nx * 8, ny * 8) * 0.25;
+        REGIONS.forEach(r => {
+          const d = Math.sqrt((nx - r.x) ** 2 + (ny - r.y) ** 2);
+          if (d < 0.16) h += (0.16 - d) * (1.5 + r.weight);
+        });
+        heatGrid[y * CONFIG.GRID_W + x] = Math.max(0, h);
+      }
+    }
+  }
+
+  function drawTerrain() {
+    ctx.clearRect(0, 0, width, height);
+    ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--bg-land') || '#020617';
+    ctx.fillRect(0, 0, width, height);
+
+    const cw = width / CONFIG.GRID_W;
+    const ch = height / CONFIG.GRID_H;
+
+    // Heat
+    for (let y = 0; y < CONFIG.GRID_H; y++) {
+      for (let x = 0; x < CONFIG.GRID_W; x++) {
+        const idx = y * CONFIG.GRID_H + x;
+        const val = heatGrid[y * CONFIG.GRID_W + x];
+        if (val > 0.1) {
+          const alpha = Math.min(val * 0.4, 0.9);
+          ctx.fillStyle = `rgba(180, 83, 9, ${alpha.toFixed(3)})`;
+          ctx.fillRect(x * cw, y * ch, cw + 0.5, ch + 0.5);
+        }
+      }
+    }
+
+    // Contours
+    const levels = 10;
+    ctx.lineWidth = 0.8;
+    ctx.strokeStyle = 'rgba(15,23,42,0.9)';
+    ctx.beginPath();
+    for (let y = 0; y < CONFIG.GRID_H - 1; y++) {
+      for (let x = 0; x < CONFIG.GRID_W - 1; x++) {
+        const idx = y * CONFIG.GRID_W + x;
+        const v = heatGrid[idx];
+        const right = heatGrid[idx + 1];
+        const down = heatGrid[idx + CONFIG.GRID_W];
+        const l1 = Math.floor(v * levels);
+        const l2 = Math.floor(right * levels);
+        const l3 = Math.floor(down * levels);
+        const vx = x * cw; const vy = y * ch;
+        if (v > 0.15) {
+          if (l1 !== l2) { ctx.moveTo((x + 1) * cw, vy); ctx.lineTo((x + 1) * cw, vy + ch); }
+          if (l1 !== l3) { ctx.moveTo(vx, vy + ch); ctx.lineTo(vx + cw, vy + ch); }
+        }
+      }
+    }
+    ctx.globalAlpha = 0.3;
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    // Studios as hubs
+    REGIONS.forEach(r => {
+      const px = r.x * width;
+      const py = r.y * height;
+      const base = 4 + r.weight * 1.6;
+      ctx.beginPath();
+      ctx.arc(px, py, base, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(15,23,42,0.98)';
+      ctx.fill();
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = 'rgba(248,250,252,0.85)';
+      ctx.stroke();
+    });
+
+    // Path overlay
+    if (story.steps.length > 0) {
+      ctx.lineWidth = 3;
+      ctx.lineJoin = 'round';
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      story.steps.forEach((step, i) => {
+        const r = step.region;
+        if (!r) return;
+        const x = r.x * width;
+        const y = r.y * height;
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      });
+      ctx.strokeStyle = 'rgba(34,197,94,0.9)';
+      ctx.stroke();
+
+      // Draw markers and type colors
+      story.steps.forEach(step => {
+        const r = step.region; if (!r) return;
+        const x = r.x * width; const y = r.y * height;
+        let col = '--path-neutral';
+        if (step.terrain === 'road') col = '--path-light';
+        else if (step.terrain === 'roadblock' || step.terrain === 'pothole') col = '--path-dark';
+        else if (step.terrain === 'intersection') col = '--path-neutral';
+        else if (step.terrain === 'bridge') col = '--path-light';
+        const cval = getComputedStyle(document.documentElement).getPropertyValue(col).trim() || '#22c55e';
+        ctx.beginPath();
+        ctx.arc(x, y, 5, 0, Math.PI * 2);
+        ctx.fillStyle = cval;
+        ctx.fill();
+      });
+    }
+  }
+
+  function createLabels() {
+    const layer = document.getElementById('labels-layer');
+    layer.innerHTML = '';
+    REGIONS.forEach(r => {
+      const el = document.createElement('div');
+      el.className = 'geo-label';
+      el.dataset.id = r.id;
+      el.style.left = (r.x * 100) + '%';
+      el.style.top = (r.y * 100) + '%';
+      el.innerHTML = `${r.label}<span>${r.count} files</span>`;
+      el.onclick = () => {
+        story.selectedRegion = r;
+        document.getElementById('selected-region-label').textContent = `Region: ${r.label}`;
+      };
+      layer.appendChild(el);
+    });
+  }
+
+  function renderSteps() {
+    const list = document.getElementById('step-list');
+    list.innerHTML = '';
+    story.steps.forEach((s, i) => {
+      const div = document.createElement('div');
+      div.className = 'step-card';
+      const icon = s.terrain === 'road' ? 'STRAIGHT' :
+        s.terrain === 'roadblock' ? 'ROADBLOCK' :
+        s.terrain === 'pothole' ? 'POTHOLE' :
+        s.terrain === 'intersection' ? 'INTERSECTION' : 'BRIDGE';
+      div.innerHTML = `
+        <div class="step-head">
+          <div>
+            <div class="step-index">#${i + 1}</div>
+            <div class="step-label">${s.region ? s.region.label : 'Unplaced'}</div>
+          </div>
+          <div class="step-tag">${icon}</div>
+        </div>
+        <div class="step-body">${s.action || '<em>No description</em>'}</div>
+        ${s.alt ? `<div class="step-alt">ALT PATH: ${s.alt}</div>` : ''}
+      `;
+      list.appendChild(div);
+    });
+    document.getElementById('step-count').textContent = `Steps: ${story.steps.length}`;
+  }
+
+  function attachUI() {
+    const terrainPills = document.getElementById('terrain-pills').querySelectorAll('.pill');
+    terrainPills.forEach(p => {
+      p.addEventListener('click', () => {
+        terrainPills.forEach(x => x.classList.remove('active'));
+        p.classList.add('active');
+        story.terrain = p.dataset.type;
+      });
+    });
+    terrainPills[0].classList.add('active');
+
+    document.getElementById('incident-input').addEventListener('input', e => {
+      story.incident = e.target.value;
+    });
+
+    document.getElementById('btn-add-step').addEventListener('click', () => {
+      if (!story.selectedRegion) {
+        alert('Click a region on the map first to anchor this step.');
+        return;
+      }
+      const action = document.getElementById('step-action').value.trim();
+      const step = {
+        region: story.selectedRegion,
+        terrain: story.terrain,
+        action,
+        alt: ''
+      };
+      story.steps.push(step);
+      document.getElementById('step-action').value = '';
+      renderSteps();
+      drawTerrain();
+    });
+  }
+
+  async function loadSitemap() {
+    try {
+      const res = await fetch('file-learnings.json');
+      const data = await res.json();
+      const files = data.files.filter(f => !f._end && f.file && f.born);
+      const groups = {};
+      files.forEach(f => {
+        const id = classifyStudio(f.file, f.patterns, f.title);
+        if (!id || !STUDIO_DEFS[id]) return;
+        if (!groups[id]) groups[id] = [];
+        groups[id].push(f);
+      });
+      REGIONS = Object.values(STUDIO_DEFS).map(def => {
+        const g = groups[def.id] || [];
+        return {
+          id: def.id,
+          x: def.pos.x,
+          y: def.pos.y,
+          label: def.label,
+          count: g.length,
+          weight: g.length > 12 ? 2 : g.length > 4 ? 1 : 0
+        };
+      });
+    } catch (e) {
+      console.warn('Failed to load sitemap for manifold 05, using static regions', e);
+      REGIONS = Object.values(STUDIO_DEFS).map(def => ({
+        id: def.id,
+        x: def.pos.x,
+        y: def.pos.y,
+        label: def.label,
+        count: 0,
+        weight: 1
+      }));
+    }
+  }
+
+  async function init() {
+    await loadSitemap();
+    handleResize();
+    initTerrain();
+    createLabels();
+    attachUI();
+    drawTerrain();
+    window.addEventListener('resize', () => { handleResize(); initTerrain(); drawTerrain(); createLabels(); });
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>

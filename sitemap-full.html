@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>◈ DCE-GYO Full Sitemap</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>◈</text></svg>">
+  <style>
+    :root {
+      --bg: #0a0a0c;
+      --surface: #111114;
+      --border: #222228;
+      --text: #e4e4e7;
+      --muted: #71717a;
+      
+      /* Category colors */
+      --studio: #06b6d4;
+      --onyx: #a855f7;
+      --tutorial: #f59e0b;
+      --editor: #3b82f6;
+      --research: #10b981;
+      --block: #ef4444;
+      --mento: #ec4899;
+      --homer: #8b5cf6;
+      --wag: #f97316;
+      --brick: #eab308;
+    }
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: 'SF Mono', 'Menlo', monospace;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 20px;
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+    
+    header {
+      text-align: center;
+      padding: 30px 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 30px;
+    }
+    
+    h1 {
+      font-size: 11px;
+      letter-spacing: 0.3em;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    
+    .title {
+      font-size: 28px;
+      font-weight: 200;
+      letter-spacing: 0.1em;
+    }
+    
+    .stats {
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 12px;
+    }
+    
+    /* Search */
+    .search-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+      align-items: center;
+    }
+    
+    .search-bar input {
+      flex: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 11px;
+    }
+    
+    .search-bar input:focus {
+      outline: none;
+      border-color: var(--studio);
+    }
+    
+    .filter-pills {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    
+    .pill {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--muted);
+      transition: all 0.15s;
+    }
+    
+    .pill:hover, .pill.active {
+      border-color: currentColor;
+      color: var(--text);
+    }
+    
+    .pill[data-cat="studio"] { --accent: var(--studio); }
+    .pill[data-cat="onyx"] { --accent: var(--onyx); }
+    .pill[data-cat="tutorial"] { --accent: var(--tutorial); }
+    .pill[data-cat="editor"] { --accent: var(--editor); }
+    .pill[data-cat="research"] { --accent: var(--research); }
+    .pill[data-cat="block"] { --accent: var(--block); }
+    .pill[data-cat="mento"] { --accent: var(--mento); }
+    .pill[data-cat="homer"] { --accent: var(--homer); }
+    .pill[data-cat="wag"] { --accent: var(--wag); }
+    .pill[data-cat="brick"] { --accent: var(--brick); }
+    
+    .pill.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #000;
+    }
+    
+    /* Grid */
+    .section {
+      margin-bottom: 32px;
+    }
+    
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .section-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    
+    .section-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+    }
+    
+    .section-count {
+      font-size: 9px;
+      color: var(--muted);
+      margin-left: auto;
+    }
+    
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 8px;
+    }
+    
+    .item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      text-decoration: none;
+      color: var(--text);
+      font-size: 9px;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .item:hover {
+      border-color: #fff;
+      transform: translateY(-1px);
+    }
+    
+    .item.hidden { display: none; }
+    
+    .item-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    
+    .item-name {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
+    .item-ext {
+      color: var(--muted);
+      font-size: 8px;
+    }
+    
+    /* Comparison view */
+    .compare-toggle {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--studio);
+      color: #000;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+      z-index: 100;
+    }
+    
+    .compare-toggle:hover {
+      transform: scale(1.05);
+    }
+    
+    footer {
+      text-align: center;
+      padding: 30px 20px;
+      border-top: 1px solid var(--border);
+      margin-top: 40px;
+      font-size: 9px;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>DCE-GYO</h1>
+  <div class="title">◈ FULL PROJECT SITEMAP</div>
+  <div class="stats" id="stats">Loading...</div>
+</header>
+
+<div class="search-bar">
+  <input type="text" id="search" placeholder="Search files..." />
+  <div class="filter-pills">
+    <span class="pill active" data-cat="all">ALL</span>
+    <span class="pill" data-cat="studio" style="--accent:var(--studio)">STUDIO</span>
+    <span class="pill" data-cat="onyx" style="--accent:var(--onyx)">ONYX</span>
+    <span class="pill" data-cat="tutorial" style="--accent:var(--tutorial)">TUTORIAL</span>
+    <span class="pill" data-cat="editor" style="--accent:var(--editor)">EDITOR</span>
+    <span class="pill" data-cat="homer" style="--accent:var(--homer)">HOMER</span>
+    <span class="pill" data-cat="mento" style="--accent:var(--mento)">MENTO</span>
+    <span class="pill" data-cat="wag" style="--accent:var(--wag)">WAG</span>
+    <span class="pill" data-cat="brick" style="--accent:var(--brick)">BRICK</span>
+    <span class="pill" data-cat="block" style="--accent:var(--block)">BLOCK</span>
+    <span class="pill" data-cat="research" style="--accent:var(--research)">RESEARCH</span>
+  </div>
+</div>
+
+<main id="content"></main>
+
+<a href="sitemap.html" class="compare-toggle">◈ PYRAMID VIEW</a>
+
+<footer>
+  <div>◈ DCE-GYO // 2025</div>
+  <div style="margin-top:6px;">Auto-generated sitemap from project files</div>
+</footer>
+
+<script>
+const FILES = {
+  // STUDIO SURFACES
+  studio: {
+    title: 'STUDIO SURFACES',
+    color: '#06b6d4',
+    items: [
+      { name: 'Swiss/Frank/Grace Studio', href: 'swiss-frank-grace-studio.html' },
+      { name: 'Plato\'s Cave', href: 'platos-cave.html' },
+      { name: 'Grecian Urn', href: 'grecian-urn.html' },
+      { name: 'Ator Studio', href: 'ator-studio.html' },
+      { name: 'Timber Studio', href: 'timber-studio.html' },
+      { name: 'Cool Timber Studio', href: 'cool-timber-studio.html' },
+      { name: 'Homer Studio', href: 'homer-studio.html' },
+      { name: 'Bull Assembly Studio', href: 'bull-assembly-studio.html' },
+      { name: 'Courage/Master Studio', href: 'courage-master-studio.html' },
+      { name: 'Courage/Were Studio', href: 'courage-were-studio.html' },
+      { name: 'Mobile Weaver Studio', href: 'mobile-weaver-studio.html' },
+      { name: 'Mobile Assembler', href: 'mobile-assembler.html' },
+      { name: 'Mobile Blue Loom', href: 'mobile-blue-loom.html' },
+      { name: 'Trubador Suite', href: 'trubador-suite.html' },
+    ]
+  },
+  
+  // ONYX SYSTEM
+  onyx: {
+    title: 'ONYX SYSTEM',
+    color: '#a855f7',
+    items: [
+      { name: 'ONYX-ABS (Branch)', href: 'onyx-abs.html' },
+      { name: 'ONYX-TAIL (Arch)', href: 'onyx-tail.html' },
+      { name: 'ONYX Studio', href: 'onyx-studio.html' },
+      { name: 'ONYX Arena', href: 'onyx-arena.html' },
+      { name: 'ONYX Shell', href: 'onyx-shell.html' },
+      { name: 'ONYX Monolith', href: 'onyx-monolith.html' },
+      { name: 'ONYX Head', href: 'onyx-head.html' },
+      { name: 'ONYX Neck', href: 'onyx-neck.html' },
+      { name: 'ONYX Wing', href: 'onyx-wing.html' },
+      { name: 'ONYX Claw', href: 'onyx-claw.html' },
+      { name: 'ONYX Nail', href: 'onyx-nail.html' },
+      { name: 'ONYX Thumb', href: 'onyx-thumb.html' },
+      { name: 'ONYX Core Index', href: 'onyx-core-index.html' },
+      { name: 'ONYX Bibliography', href: 'onyx-bibliography.html' },
+      { name: 'ONYX Studio Tutorial', href: 'onyx-studio-tutorial.html' },
+      { name: 'ONYX Studio Slides', href: 'onyx-studio-slides.html' },
+      { name: 'Thousand ONYX', href: 'thousand-onyx.html' },
+      { name: 'Thousand Tetrad', href: 'thousand-tetrad.html' },
+      { name: 'Scenario Families', href: 'scenario-families.html' },
+    ]
+  },
+  
+  // TUTORIALS
+  tutorial: {
+    title: 'TUTORIALS & GUIDES',
+    color: '#f59e0b',
+    items: [
+      { name: 'Studio Tutorial', href: 'studio-tutorial.html' },
+      { name: 'Studio Tutorial 02', href: 'studio-tutorial-02.html' },
+      { name: 'LEGOS Tutorial', href: 'LEGOS-tutorial-prime.html' },
+      { name: 'LEGOS-GPT Grammar', href: 'LEGOS-GPT.html' },
+      { name: 'LEGOS↔LDraw Bridge', href: 'LEGOS-to-Ldraw-bridge.html' },
+      { name: 'TIMBER Tutorial', href: 'TIMBER-tutorial-prime.html' },
+      { name: 'Stud Skeleton Guide', href: 'STUD-SKELETON-tutorial-visual.html' },
+      { name: 'Stud Skeleton Prime', href: 'STUD-SKELETON-tutorial-prime.html' },
+      { name: 'Bull Assembly Tutorial', href: 'bull-assembly-tutorial.html' },
+      { name: 'MENTO Tutorial', href: 'MENTO-tutorial-prime.html' },
+      { name: 'Plato\'s Cave Tutorial', href: 'PLATOS-CAVE-tutorial.html' },
+      { name: '20Q Walkthrough', href: '20q-tutorial.html' },
+      { name: 'Homer Quickstart', href: 'homer-quickstart.html' },
+      { name: 'Homer Tutorial', href: 'tutorial-homer.html' },
+      { name: 'LDraw Color Guide', href: 'ldraw-color-geometry-guide.html' },
+    ]
+  },
+  
+  // EDITORS
+  editor: {
+    title: 'EDITORS & VIEWERS',
+    color: '#3b82f6',
+    items: [
+      { name: 'GOLD Editor', href: 'wag-viewer-prime-integration-20251112-055341 copy/wag-gold-editor.html' },
+      { name: 'GOLD Scenes', href: 'wag-viewer-prime-integration-20251112-055341 copy/wag-gold-scenes.html' },
+      { name: 'Courage', href: 'wag-viewer-prime-integration-20251112-055341 copy/wag-courage.html' },
+      { name: 'Grace Editor', href: 'wag-viewer-prime-integration-20251112-055341 copy/wag-grace-editor.html' },
+      { name: 'Swiss Designator', href: 'wag-viewer-prime-integration-20251112-055341 copy/swiss-designator.html' },
+      { name: 'Bronze Editor', href: 'wag-bronze-editor.html' },
+      { name: 'Silver Editor', href: 'wag-silver-editor.html' },
+      { name: 'Primitive Editor', href: 'wag-primitive-editor.html' },
+      { name: 'Viewer Prime', href: 'wag-viewer-prime-integration-20251112-055341 copy/wag-viewer-prime.html' },
+      { name: 'Parts Browser', href: 'wag-viewer-prime-integration-20251112-055341 copy/parts-browser.html' },
+      { name: 'Assembly Line', href: 'wag-viewer-prime-integration-20251112-055341 copy/assembly-line.html' },
+      { name: 'LDraw Visualizer', href: 'ldraw-visualizer.html' },
+      { name: 'Line Grid Viewer', href: 'line-grid-viewer.html' },
+      { name: 'MPD Validator', href: 'mpd-validator.html' },
+      { name: 'Parts Materializer', href: 'parts-materializer.html' },
+    ]
+  },
+  
+  // HOMER PIPELINE
+  homer: {
+    title: 'HOMER PIPELINE',
+    color: '#8b5cf6',
+    items: [
+      { name: 'Homer Prime', href: 'homer-prime.html' },
+      { name: 'Homer Quickstart', href: 'homer-quickstart.html' },
+      { name: 'Homer Research Log', href: 'homer-research-log.html' },
+      { name: 'Step 1: Swiss/Frank/Courage', href: 'homer-step1-swiss-frank-courage.html' },
+      { name: 'Step 2: Courage RB→GOLD', href: 'homer-step2-courage-rb-gold.html' },
+      { name: 'Step 3: Weaver/GOLD Bus', href: 'homer-step3-weaver-assembly-gold-bus.html' },
+      { name: 'Step 4: Master Tune', href: 'homer-step4-master-tune-return.html' },
+      { name: 'Step 5: Mento Brickfilm', href: 'homer-step5-mento-brickfilm.html' },
+    ]
+  },
+  
+  // MENTO CAMERAS
+  mento: {
+    title: 'MENTO CAMERAS',
+    color: '#ec4899',
+    items: [
+      { name: 'Mento 368', href: 'mento-368.html' },
+      { name: 'Mento 369', href: 'mento-369.html' },
+      { name: 'Mento 371', href: 'mento-371.html' },
+      { name: 'Mento 372', href: 'mento-372.html' },
+      { name: 'Mento 373', href: 'mento-373.html' },
+      { name: 'Mento Camera MPD Guide', href: 'mento-camera-mpd-guide.html' },
+      { name: 'Mento GLB Desert', href: 'mento-glb-desert.html' },
+      { name: 'Ball Jar', href: 'ball-jar.html' },
+    ]
+  },
+  
+  // WAG TOOLS
+  wag: {
+    title: 'WAG TOOLS',
+    color: '#f97316',
+    items: [
+      { name: 'WAG Frank', href: 'wag-frank.html' },
+      { name: 'WAG Hub', href: 'wag-hub.html' },
+      { name: 'WAG Master', href: 'wag-master.html' },
+      { name: 'WAG Were', href: 'wag-were.html' },
+      { name: 'WAG Symbiogene', href: 'wag-symbiogene.html' },
+      { name: 'WAG Symbiote', href: 'wag-symbiote.html' },
+      { name: 'WAG Infinity', href: 'wag-infinity.html' },
+      { name: 'WAG Inspector', href: 'wag-inspector.html' },
+      { name: 'WAG Fork Integrated', href: 'wag-fork-integrated.html' },
+      { name: 'WAG Fork MPD Editor', href: 'wag-fork-mpd-editor.html' },
+      { name: 'WAG Cleanroom', href: 'wag-cleanroom.html' },
+      { name: 'WAG Cool Courage', href: 'wag-cool-courage.html' },
+      { name: 'WAG Cool Master', href: 'wag-cool-master.html' },
+      { name: 'WAG Cool Were', href: 'wag-cool-were.html' },
+      { name: 'WAG Skeleton Digital Twin', href: 'wag-skeleton-digital-twin.html' },
+      { name: 'WAG Stud Skeleton Harness', href: 'wag-stud-skeleton-test-harness.html' },
+    ]
+  },
+  
+  // BRICK TOOLS
+  brick: {
+    title: 'BRICK TOOLS',
+    color: '#eab308',
+    items: [
+      { name: 'Brick Apex', href: 'brick-apex.html' },
+      { name: 'Brick Arch', href: 'brick-arch.html' },
+      { name: 'Brick Architect', href: 'brick-architect.html' },
+      { name: 'Brick Branch', href: 'brick-branch.html' },
+      { name: 'Brick Create', href: 'brick-create.html' },
+      { name: 'Brick Grid Family', href: 'brick-grid-family.html' },
+      { name: 'Brick Inc', href: 'brick-inc.html' },
+      { name: 'Brick Sovereign', href: 'brick-sovereign.html' },
+      { name: 'Brick Super', href: 'brick-super.html' },
+      { name: 'Brick Utility', href: 'brick-utility.html' },
+      { name: 'Brickadu', href: 'brickadu.html' },
+      { name: 'Brickbender Philosophy', href: 'brickbender-philosophy.html' },
+      { name: 'LGI Brickbender', href: 'lgi-brickbender.html' },
+      { name: 'LGI Pro', href: 'lgi-pro.html' },
+    ]
+  },
+  
+  // BLOCK REACTORS
+  block: {
+    title: 'BLOCK REACTORS',
+    color: '#ef4444',
+    items: [
+      { name: 'Block 00', href: 'block-00.html' },
+      { name: 'Block 01', href: 'block-01.html' },
+      { name: 'Block 02', href: 'block-02.html' },
+      { name: 'Block 03', href: 'block-03.html' },
+      { name: 'Block 04', href: 'block-04.html' },
+      { name: 'Block 05', href: 'block-05.html' },
+      { name: 'Block Ancestor', href: 'block-ancestor.html' },
+      { name: 'Block Frank Tetrad', href: 'block-frank-tetrad.html' },
+      { name: 'Block LEGO', href: 'block-lego.html' },
+      { name: 'Block Merge Pro', href: 'block-merge-pro-00.html' },
+      { name: 'Block Reactor', href: 'block-reactor.html' },
+      { name: 'Block Reactor Multiscene', href: 'block-reactor-multiscene.html' },
+      { name: 'Block Reactor Presentation', href: 'block-reactor-presentation.html' },
+      { name: 'Block Reactor Skeleton', href: 'block-reactor-skeleton.html' },
+      { name: 'Block UT', href: 'block-ut.html' },
+    ]
+  },
+  
+  // -ATORS
+  ators: {
+    title: '-ATORS (BUILDERS)',
+    color: '#14b8a6',
+    items: [
+      { name: 'Minifigurator', href: 'minifigurator.html' },
+      { name: 'Minifigurator 02', href: 'minifigurator-02.html' },
+      { name: 'Locationator', href: 'locationator.html' },
+      { name: 'Vehiculator', href: 'vehiculator.html' },
+      { name: 'Sceneerator', href: 'sceneerator.html' },
+      { name: 'Sceneerator 02', href: 'sceneerator-02.html' },
+      { name: 'Sceneerator 03', href: 'sceneerator-03.html' },
+      { name: 'Movieator', href: 'movieator.html' },
+      { name: 'Movieator 02', href: 'movieator-02.html' },
+      { name: 'Worldinator', href: 'worldinator.html' },
+      { name: 'Worldinator 02', href: 'worldinator-02.html' },
+      { name: 'Taxonomizer', href: 'taxonomizer.html' },
+    ]
+  },
+  
+  // RESEARCH DOCS
+  research: {
+    title: 'RESEARCH & DOCUMENTATION',
+    color: '#10b981',
+    items: [
+      { name: 'Project Index', href: 'index.html' },
+      { name: 'Sitemap (Pyramid)', href: 'sitemap.html' },
+      { name: 'Research Index', href: 'research-index.html' },
+      { name: 'Seed Index', href: 'seed-index.html' },
+      { name: 'Swiss Docs', href: 'wag-viewer-prime-integration-20251112-055341 copy/swiss-docs.html' },
+      { name: 'Swiss Frank Scene', href: 'wag-viewer-prime-integration-20251112-055341 copy/swiss-frank-scene.html' },
+      { name: 'Swiss Quickstart', href: 'wag-viewer-prime-integration-20251112-055341 copy/swiss-quickstart.html' },
+      { name: 'Timber Docs', href: 'timber-docs.html' },
+      { name: 'LEGOS Multi-Channel Spec', href: 'LEGOS-multi-channel-spec.html' },
+      { name: 'Shield of Achilles', href: 'shield-of-achilles.html' },
+      { name: 'Conveyor', href: 'conveyor.html' },
+      { name: 'Fork', href: 'fork.html' },
+      { name: 'Frank Sync Notes', href: 'frank-sync-notes.html' },
+    ]
+  },
+  
+  // MARKDOWN RESEARCH
+  markdown: {
+    title: 'RESEARCH PAPERS (MD)',
+    color: '#6366f1',
+    items: [
+      { name: 'Void Management Paper', href: 'VOID-MANAGEMENT-PAPER.md', ext: 'md' },
+      { name: 'Void Management Extended', href: 'VOID-MANAGEMENT-EXTENDED-PAPER.md', ext: 'md' },
+      { name: 'Void Management Toolkit', href: 'VOID-MANAGEMENT-TOOLKIT-ESSAY.md', ext: 'md' },
+      { name: 'Void Management Implementation', href: 'VOID-MANAGEMENT-IMPLEMENTATION-PAPER.md', ext: 'md' },
+      { name: 'Void Management Research', href: 'VOID-MANAGEMENT-RESEARCH.md', ext: 'md' },
+      { name: 'Void Management Sintering', href: 'VOID-MANAGEMENT-SINTERING-REPORT.md', ext: 'md' },
+      { name: 'Context Engineering Genealogy', href: 'CONTEXT-ENGINEERING-GENEALOGY.md', ext: 'md' },
+      { name: 'Brickbender Philosophy', href: 'BRICKBENDER-PHILOSOPHY.md', ext: 'md' },
+      { name: 'Grace Editor Philosophy', href: 'GRACE-EDITOR-PHILOSOPHY.md', ext: 'md' },
+      { name: 'Homer Engine Research', href: 'homer-engine-research.md', ext: 'md' },
+      { name: 'Homer Studio OLOG', href: 'HOMER-STUDIO-OLOG.md', ext: 'md' },
+      { name: 'Plato\'s Cave OLOG', href: 'PLATOS-CAVE-OLOG.md', ext: 'md' },
+      { name: 'Shield of Achilles OLOG', href: 'SHIELD-OF-ACHILLES-OLOG.md', ext: 'md' },
+      { name: 'Brick Grid OLOG', href: 'BRICK-GRID-OLOG.md', ext: 'md' },
+      { name: 'Mento Homer OLOG', href: 'MENTO-HOMER-OLOG.md', ext: 'md' },
+      { name: 'WAG Cool OLOG', href: 'WAG-COOL-OLOG.md', ext: 'md' },
+      { name: 'WAG Unified Weaver OLOG', href: 'WAG-UNIFIED-WEAVER-OLOG.md', ext: 'md' },
+      { name: 'Taxonomizer OLOG', href: 'TAXONOMIZER-OLOG.md', ext: 'md' },
+      { name: 'Script Parsing Prospectus', href: 'SCRIPT-PARSING-PROSPECTUS.md', ext: 'md' },
+      { name: 'ONYX Downstream Prompt', href: 'ONYX-DOWNSTREAM-PROMPT.md', ext: 'md' },
+    ]
+  },
+  
+  // MISC
+  misc: {
+    title: 'MISCELLANEOUS',
+    color: '#71717a',
+    items: [
+      { name: 'Hyper Grid', href: 'hyper-grid.html' },
+      { name: 'Hyper Monitor', href: 'hyper-monitor.html' },
+      { name: 'Grid Walk Prime', href: 'grid-walk-prime.html' },
+      { name: 'Bag Cultivator', href: 'bag-cultivator.html' },
+      { name: 'Stud Bag', href: 'stud-bag.html' },
+      { name: 'Bus Orchestrator', href: 'bus-orchestrator.html' },
+      { name: 'Build Bus', href: 'build-bus.html' },
+      { name: 'Hello World Reversed', href: 'hello-world-reversed.html' },
+      { name: 'Holo Project', href: 'holo-project.html' },
+      { name: 'Kimi Chat', href: 'kimi-chat.html' },
+      { name: 'Words Become Worlds', href: 'words-become-worlds.html' },
+      { name: 'Worlds That Speak', href: 'worlds-that-speak.html' },
+      { name: 'Slideshow', href: 'slideshow.html' },
+      { name: 'Adapt Plus Index', href: 'adapt-plus-index.html' },
+    ]
+  }
+};
+
+// Render
+function render(filter = 'all', search = '') {
+  const content = document.getElementById('content');
+  const searchLower = search.toLowerCase();
+  let totalItems = 0;
+  let visibleItems = 0;
+  
+  content.innerHTML = Object.entries(FILES).map(([cat, section]) => {
+    const items = section.items.filter(item => {
+      totalItems++;
+      const matchesFilter = filter === 'all' || cat === filter;
+      const matchesSearch = !search || item.name.toLowerCase().includes(searchLower);
+      if (matchesFilter && matchesSearch) visibleItems++;
+      return matchesFilter && matchesSearch;
+    });
+    
+    if (items.length === 0) return '';
+    
+    return `
+      <div class="section" data-cat="${cat}">
+        <div class="section-header">
+          <span class="section-dot" style="background:${section.color}"></span>
+          <span class="section-title">${section.title}</span>
+          <span class="section-count">${items.length}</span>
+        </div>
+        <div class="grid">
+          ${items.map(item => `
+            <a href="${item.href}" class="item">
+              <span class="item-dot" style="background:${section.color}"></span>
+              <span class="item-name">${item.name}</span>
+              ${item.ext ? `<span class="item-ext">.${item.ext}</span>` : ''}
+            </a>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }).join('');
+  
+  document.getElementById('stats').textContent = 
+    `${visibleItems} of ${totalItems} files • ${Object.keys(FILES).length} categories`;
+}
+
+// Events
+document.querySelectorAll('.pill').forEach(pill => {
+  pill.addEventListener('click', () => {
+    document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+    pill.classList.add('active');
+    render(pill.dataset.cat, document.getElementById('search').value);
+  });
+});
+
+document.getElementById('search').addEventListener('input', (e) => {
+  const activePill = document.querySelector('.pill.active');
+  render(activePill?.dataset.cat || 'all', e.target.value);
+});
+
+// Init
+render();
+</script>
+
+</body>
+</html>

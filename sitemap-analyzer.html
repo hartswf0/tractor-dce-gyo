@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>◈ DCE-GYO Sitemap Analyzer</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>◈</text></svg>">
+  <style>
+    :root {
+      --bg: #0a0a0c;
+      --surface: #111114;
+      --surface2: #18181b;
+      --border: #27272a;
+      --text: #e4e4e7;
+      --muted: #71717a;
+      --accent: #8b5cf6;
+      --green: #10b981;
+      --blue: #3b82f6;
+      --orange: #f97316;
+      --pink: #ec4899;
+      --cyan: #06b6d4;
+    }
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: 'SF Mono', 'Menlo', monospace;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    
+    /* Layout */
+    .app {
+      display: grid;
+      grid-template-columns: 280px 1fr 320px;
+      grid-template-rows: auto 1fr;
+      height: 100vh;
+    }
+    
+    header {
+      grid-column: 1 / -1;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    
+    .logo {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+    }
+    
+    .stats-bar {
+      display: flex;
+      gap: 20px;
+      font-size: 10px;
+      color: var(--muted);
+    }
+    
+    .stat { display: flex; align-items: center; gap: 6px; }
+    .stat-value { color: var(--text); font-weight: 600; }
+    
+    /* Sidebar */
+    .sidebar {
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      padding: 16px;
+    }
+    
+    .sidebar-section {
+      margin-bottom: 20px;
+    }
+    
+    .sidebar-title {
+      font-size: 9px;
+      letter-spacing: 0.15em;
+      color: var(--muted);
+      margin-bottom: 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .resource-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    
+    .resource-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 10px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    
+    .resource-item:hover {
+      border-color: var(--accent);
+    }
+    
+    .resource-item.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #000;
+    }
+    
+    .resource-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    
+    .resource-name { flex: 1; }
+    .resource-count { color: var(--muted); font-size: 9px; }
+    .resource-item.active .resource-count { color: rgba(0,0,0,0.6); }
+    
+    /* Main content */
+    .main {
+      overflow-y: auto;
+      padding: 20px;
+    }
+    
+    .file-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 12px;
+    }
+    
+    .file-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    
+    .file-card:hover {
+      border-color: var(--text);
+      transform: translateY(-2px);
+    }
+    
+    .file-card.selected {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent);
+    }
+    
+    .file-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    
+    .file-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    
+    .file-info { flex: 1; min-width: 0; }
+    
+    .file-name {
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .file-meta {
+      font-size: 9px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+    
+    .file-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 10px;
+    }
+    
+    .tag {
+      padding: 3px 8px;
+      border-radius: 10px;
+      font-size: 8px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+    }
+    
+    .tag-three { background: var(--green)20; color: var(--green); }
+    .tag-broadcast { background: var(--blue)20; color: var(--blue); }
+    .tag-tailwind { background: var(--cyan)20; color: var(--cyan); }
+    .tag-ldraw { background: var(--orange)20; color: var(--orange); }
+    .tag-seeds { background: var(--pink)20; color: var(--pink); }
+    
+    .file-links {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+      font-size: 9px;
+      color: var(--muted);
+    }
+    
+    .file-links-count {
+      color: var(--text);
+    }
+    
+    /* Inspector */
+    .inspector {
+      border-left: 1px solid var(--border);
+      overflow-y: auto;
+      padding: 16px;
+    }
+    
+    .inspector-empty {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: var(--muted);
+      font-size: 10px;
+    }
+    
+    .inspector-content { display: none; }
+    .inspector-content.active { display: block; }
+    
+    .inspector-header {
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .inspector-title {
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      word-break: break-all;
+    }
+    
+    .inspector-subtitle {
+      font-size: 9px;
+      color: var(--muted);
+    }
+    
+    .inspector-section {
+      margin-bottom: 16px;
+    }
+    
+    .inspector-section-title {
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    
+    .inspector-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      font-size: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .inspector-row:last-child { border-bottom: none; }
+    
+    .inspector-label { color: var(--muted); }
+    .inspector-value { font-weight: 500; }
+    
+    .link-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    
+    .link-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 8px;
+      background: var(--surface2);
+      border-radius: 4px;
+      font-size: 9px;
+      text-decoration: none;
+      color: var(--text);
+      transition: background 0.15s;
+    }
+    
+    .link-item:hover {
+      background: var(--border);
+    }
+    
+    .link-arrow {
+      color: var(--muted);
+      font-size: 8px;
+    }
+    
+    .dep-graph {
+      background: var(--surface2);
+      border-radius: 6px;
+      padding: 12px;
+      font-size: 9px;
+      font-family: inherit;
+      white-space: pre-wrap;
+      color: var(--muted);
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    
+    .open-btn {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      background: var(--accent);
+      color: #000;
+      border: none;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      text-decoration: none;
+      text-align: center;
+      margin-top: 16px;
+    }
+    
+    .open-btn:hover {
+      filter: brightness(1.1);
+    }
+    
+    /* Sort controls */
+    .sort-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    
+    .sort-btn {
+      padding: 6px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 9px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    
+    .sort-btn:hover, .sort-btn.active {
+      border-color: var(--accent);
+      color: var(--text);
+    }
+    
+    .search-input {
+      flex: 1;
+      min-width: 150px;
+      padding: 6px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 10px;
+    }
+    
+    .search-input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+
+<div class="app">
+  <header>
+    <div class="logo">◈ SITEMAP ANALYZER</div>
+    <div class="stats-bar">
+      <div class="stat"><span>Files:</span> <span class="stat-value" id="totalFiles">0</span></div>
+      <div class="stat"><span>Total Size:</span> <span class="stat-value" id="totalSize">0</span></div>
+      <div class="stat"><span>Links:</span> <span class="stat-value" id="totalLinks">0</span></div>
+      <div class="stat"><span>Shared Resources:</span> <span class="stat-value" id="totalResources">0</span></div>
+    </div>
+  </header>
+  
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-title">SHARED RESOURCES</div>
+      <div class="resource-list" id="resourceList"></div>
+    </div>
+    
+    <div class="sidebar-section">
+      <div class="sidebar-title">CLUSTERS</div>
+      <div class="resource-list" id="clusterList"></div>
+    </div>
+    
+    <div class="sidebar-section">
+      <div class="sidebar-title">TIMELINE</div>
+      <div id="timeline" style="font-size:9px; color:var(--muted);"></div>
+    </div>
+  </aside>
+  
+  <main class="main">
+    <div class="sort-bar">
+      <input type="text" class="search-input" id="searchInput" placeholder="Search files...">
+      <button class="sort-btn active" data-sort="name">Name</button>
+      <button class="sort-btn" data-sort="size">Size</button>
+      <button class="sort-btn" data-sort="date">Recent</button>
+      <button class="sort-btn" data-sort="links">Links</button>
+    </div>
+    <div class="file-grid" id="fileGrid"></div>
+  </main>
+  
+  <aside class="inspector">
+    <div class="inspector-empty" id="inspectorEmpty">
+      Select a file to inspect
+    </div>
+    <div class="inspector-content" id="inspectorContent">
+      <div class="inspector-header">
+        <div class="inspector-title" id="inspectorTitle"></div>
+        <div class="inspector-subtitle" id="inspectorSubtitle"></div>
+      </div>
+      
+      <div class="inspector-section">
+        <div class="inspector-section-title">METADATA</div>
+        <div class="inspector-row">
+          <span class="inspector-label">Size</span>
+          <span class="inspector-value" id="inspectorSize"></span>
+        </div>
+        <div class="inspector-row">
+          <span class="inspector-label">Modified</span>
+          <span class="inspector-value" id="inspectorDate"></span>
+        </div>
+        <div class="inspector-row">
+          <span class="inspector-label">Age</span>
+          <span class="inspector-value" id="inspectorAge"></span>
+        </div>
+        <div class="inspector-row">
+          <span class="inspector-label">Category</span>
+          <span class="inspector-value" id="inspectorCategory"></span>
+        </div>
+      </div>
+      
+      <div class="inspector-section">
+        <div class="inspector-section-title">TECHNOLOGIES</div>
+        <div id="inspectorTech" style="display:flex; flex-wrap:wrap; gap:4px;"></div>
+      </div>
+      
+      <div class="inspector-section">
+        <div class="inspector-section-title">OUTGOING LINKS</div>
+        <div class="link-list" id="inspectorOutLinks"></div>
+      </div>
+      
+      <div class="inspector-section">
+        <div class="inspector-section-title">INCOMING LINKS</div>
+        <div class="link-list" id="inspectorInLinks"></div>
+      </div>
+      
+      <div class="inspector-section">
+        <div class="inspector-section-title">DEPENDENCY TREE</div>
+        <pre class="dep-graph" id="inspectorDepGraph"></pre>
+      </div>
+      
+      <a class="open-btn" id="openBtn" href="#" target="_blank">OPEN FILE →</a>
+    </div>
+  </aside>
+</div>
+
+<script>
+// File data - this would ideally be generated server-side
+// For now, we'll use static data based on the analysis
+const FILES_DATA = [
+  // ONYX System
+  { name: 'onyx-abs.html', size: 66967, modified: 1765347814, category: 'onyx', tech: ['tailwind'], links: [], inLinks: ['onyx-core-index.html', 'onyx-studio-tutorial.html'] },
+  { name: 'onyx-tail.html', size: 129996, modified: 1765347900, category: 'onyx', tech: ['tailwind'], links: [], inLinks: [] },
+  { name: 'onyx-head.html', size: 55173, modified: 1764670355, category: 'onyx', tech: [], links: [], inLinks: ['onyx-core-index.html', 'onyx-studio-tutorial.html'] },
+  { name: 'onyx-shell.html', size: 71914, modified: 1764847314, category: 'onyx', tech: [], links: [], inLinks: ['onyx-core-index.html'] },
+  { name: 'onyx-neck.html', size: 47692, modified: 1764842378, category: 'onyx', tech: [], links: [], inLinks: ['onyx-core-index.html'] },
+  { name: 'onyx-claw.html', size: 47504, modified: 1764841877, category: 'onyx', tech: [], links: [], inLinks: ['onyx-core-index.html'] },
+  { name: 'onyx-nail.html', size: 27991, modified: 1764846951, category: 'onyx', tech: [], links: [], inLinks: ['onyx-core-index.html'] },
+  { name: 'onyx-wing.html', size: 15924, modified: 1764837076, category: 'onyx', tech: [], links: [], inLinks: [] },
+  { name: 'onyx-thumb.html', size: 162747, modified: 1765103993, category: 'onyx', tech: [], links: [], inLinks: ['onyx-bibliography.html', 'adapt-plus-index.html'] },
+  { name: 'onyx-arena.html', size: 39607, modified: 1765088011, category: 'onyx', tech: [], links: [], inLinks: ['onyx-core-index.html', 'adapt-plus-index.html'] },
+  { name: 'onyx-monolith.html', size: 7712, modified: 1764845803, category: 'onyx', tech: [], links: [], inLinks: ['onyx-core-index.html'] },
+  { name: 'onyx-bibliography.html', size: 18524, modified: 1765200528, category: 'onyx', tech: [], links: ['onyx-thumb.html'], inLinks: ['onyx-core-index.html'] },
+  { name: 'onyx-core-index.html', size: 24524, modified: 1765337730, category: 'onyx', tech: [], links: ['index.html', 'onyx-abs.html', 'onyx-arena.html', 'onyx-bibliography.html', 'onyx-claw.html', 'onyx-head.html', 'onyx-monolith.html', 'onyx-nail.html', 'onyx-neck.html', 'onyx-shell.html'], inLinks: [] },
+  { name: 'onyx-studio.html', size: 7175, modified: 1764679908, category: 'onyx', tech: [], links: ['onyx-studio-slides.html', 'onyx-studio-tutorial.html'], inLinks: ['onyx-studio-slides.html', 'onyx-studio-tutorial.html'] },
+  { name: 'onyx-studio-tutorial.html', size: 27346, modified: 1764679724, category: 'onyx', tech: [], links: ['brick-architect.html', 'brick-branch.html', 'lgi-brickbender.html', 'onyx-abs.html', 'onyx-head.html', 'onyx-studio.html', 'onyx-tail.html'], inLinks: ['onyx-studio.html'] },
+  { name: 'onyx-studio-slides.html', size: 16116, modified: 1764679905, category: 'onyx', tech: [], links: ['onyx-studio-tutorial.html', 'onyx-studio.html'], inLinks: ['onyx-studio.html'] },
+  { name: 'thousand-onyx.html', size: 504194, modified: 1764642559, category: 'onyx', tech: [], links: [], inLinks: [] },
+  { name: 'thousand-tetrad.html', size: 692075, modified: 1764648569, category: 'onyx', tech: [], links: [], inLinks: [] },
+  { name: 'scenario-families.html', size: 19302, modified: 1765347765, category: 'onyx', tech: ['seeds'], links: [], inLinks: [] },
+  
+  // Studio
+  { name: 'swiss-frank-grace-studio.html', size: 85000, modified: 1764500000, category: 'studio', tech: ['three', 'broadcast', 'ldraw'], links: [], inLinks: ['index.html'] },
+  { name: 'platos-cave.html', size: 45000, modified: 1764400000, category: 'studio', tech: ['broadcast'], links: [], inLinks: ['index.html'] },
+  { name: 'grecian-urn.html', size: 38000, modified: 1764300000, category: 'studio', tech: ['broadcast', 'ldraw'], links: [], inLinks: ['index.html'] },
+  { name: 'timber-studio.html', size: 42000, modified: 1764200000, category: 'studio', tech: ['three', 'broadcast'], links: [], inLinks: [] },
+  { name: 'homer-studio.html', size: 35000, modified: 1764100000, category: 'studio', tech: ['broadcast'], links: [], inLinks: [] },
+  
+  // Homer Pipeline
+  { name: 'homer-quickstart.html', size: 28000, modified: 1764000000, category: 'homer', tech: ['ldraw'], links: ['homer-step1-swiss-frank-courage.html', 'homer-step2-courage-rb-gold.html', 'homer-step3-weaver-assembly-gold-bus.html', 'homer-step4-master-tune-return.html', 'homer-step5-mento-brickfilm.html'], inLinks: ['homer-step1-swiss-frank-courage.html', 'homer-step2-courage-rb-gold.html', 'homer-step3-weaver-assembly-gold-bus.html', 'homer-step4-master-tune-return.html', 'homer-step5-mento-brickfilm.html'] },
+  { name: 'homer-step1-swiss-frank-courage.html', size: 22000, modified: 1763900000, category: 'homer', tech: ['ldraw'], links: ['homer-quickstart.html'], inLinks: ['homer-quickstart.html', 'homer-tutorial-base.html'] },
+  { name: 'homer-step2-courage-rb-gold.html', size: 20000, modified: 1763800000, category: 'homer', tech: ['ldraw'], links: ['homer-quickstart.html'], inLinks: ['homer-quickstart.html', 'homer-tutorial-base.html'] },
+  { name: 'homer-step3-weaver-assembly-gold-bus.html', size: 21000, modified: 1763700000, category: 'homer', tech: ['ldraw'], links: ['homer-quickstart.html'], inLinks: ['homer-quickstart.html', 'homer-tutorial-base.html'] },
+  { name: 'homer-step4-master-tune-return.html', size: 19000, modified: 1763600000, category: 'homer', tech: ['ldraw'], links: ['homer-quickstart.html'], inLinks: ['homer-quickstart.html', 'homer-tutorial-base.html'] },
+  { name: 'homer-step5-mento-brickfilm.html', size: 23000, modified: 1763500000, category: 'homer', tech: ['ldraw'], links: ['homer-quickstart.html'], inLinks: ['homer-quickstart.html', 'homer-tutorial-base.html'] },
+  
+  // Tutorials
+  { name: 'LEGOS-tutorial-prime.html', size: 35000, modified: 1763400000, category: 'tutorial', tech: ['ldraw'], links: ['LEGOS-GPT.html', 'LEGOS-to-Ldraw-bridge.html'], inLinks: ['index.html'] },
+  { name: 'LEGOS-GPT.html', size: 28000, modified: 1763300000, category: 'tutorial', tech: [], links: ['LEGOS-to-Ldraw-bridge.html'], inLinks: ['LEGOS-tutorial-prime.html'] },
+  { name: 'LEGOS-to-Ldraw-bridge.html', size: 32000, modified: 1763200000, category: 'tutorial', tech: ['ldraw'], links: [], inLinks: ['LEGOS-tutorial-prime.html', 'LEGOS-GPT.html'] },
+  { name: 'TIMBER-tutorial-prime.html', size: 30000, modified: 1763100000, category: 'tutorial', tech: [], links: [], inLinks: ['cool-timber-studio.html', 'index.html'] },
+  { name: 'STUD-SKELETON-tutorial-visual.html', size: 25000, modified: 1763000000, category: 'tutorial', tech: [], links: [], inLinks: ['index.html'] },
+  { name: 'PLATOS-CAVE-tutorial.html', size: 27000, modified: 1762900000, category: 'tutorial', tech: [], links: [], inLinks: ['index.html'] },
+  { name: '20q-tutorial.html', size: 24000, modified: 1762800000, category: 'tutorial', tech: [], links: [], inLinks: ['index.html'] },
+  { name: 'MENTO-tutorial-prime.html', size: 26000, modified: 1762700000, category: 'tutorial', tech: [], links: [], inLinks: ['index.html'] },
+  
+  // Block Reactors
+  { name: 'block-00.html', size: 45000, modified: 1762600000, category: 'block', tech: ['three'], links: [], inLinks: [] },
+  { name: 'block-01.html', size: 77871, modified: 1764626084, category: 'block', tech: ['three', 'tailwind', 'ldraw'], links: [], inLinks: [] },
+  { name: 'block-02.html', size: 45017, modified: 1764624554, category: 'block', tech: ['three'], links: [], inLinks: [] },
+  { name: 'block-03.html', size: 20534, modified: 1764624643, category: 'block', tech: ['three', 'tailwind'], links: [], inLinks: [] },
+  { name: 'block-04.html', size: 56177, modified: 1764625101, category: 'block', tech: ['three', 'tailwind', 'ldraw'], links: [], inLinks: [] },
+  { name: 'block-05.html', size: 82823, modified: 1764626086, category: 'block', tech: ['three', 'tailwind', 'ldraw'], links: [], inLinks: [] },
+  { name: 'block-reactor.html', size: 45308, modified: 1764633738, category: 'block', tech: ['three', 'ldraw'], links: [], inLinks: [] },
+  { name: 'block-frank-tetrad.html', size: 692075, modified: 1764648569, category: 'block', tech: ['three', 'broadcast', 'ldraw'], links: [], inLinks: [] },
+  
+  // Brick Tools
+  { name: 'brick-branch.html', size: 66427, modified: 1764677551, category: 'brick', tech: [], links: [], inLinks: ['brick-grid-fam-00.html', 'brick-grid-fam-01.html', 'brick-grid-family.html', 'brickadu.html', 'onyx-studio-tutorial.html'] },
+  { name: 'brick-architect.html', size: 33387, modified: 1764677566, category: 'brick', tech: [], links: [], inLinks: ['brick-grid-fam-00.html', 'brick-grid-fam-01.html', 'brick-grid-family.html', 'onyx-studio-tutorial.html'] },
+  { name: 'brick-apex.html', size: 25000, modified: 1762500000, category: 'brick', tech: [], links: [], inLinks: ['brick-grid-fam-00.html', 'brick-grid-fam-01.html', 'brick-grid-family.html', 'index.html'] },
+  { name: 'brick-grid-family.html', size: 28000, modified: 1762400000, category: 'brick', tech: [], links: ['brick-apex.html', 'brick-architect.html', 'brick-branch.html', 'brick-create.html', 'brick-inc.html', 'brick-utility.html', 'brickbender-philosophy.html', 'build-bus.html', 'hyper-grid-00.html'], inLinks: ['brick-grid-fam-00.html', 'brick-grid-fam-01.html', 'brickadu.html'] },
+  
+  // WAG Tools
+  { name: 'wag-frank.html', size: 35000, modified: 1762300000, category: 'wag', tech: ['broadcast'], links: [], inLinks: ['index.html'] },
+  { name: 'wag-master.html', size: 32000, modified: 1762200000, category: 'wag', tech: ['three', 'broadcast'], links: [], inLinks: [] },
+  { name: 'wag-were.html', size: 30000, modified: 1762100000, category: 'wag', tech: ['three', 'broadcast'], links: [], inLinks: [] },
+  { name: 'wag-symbiogene.html', size: 28000, modified: 1762000000, category: 'wag', tech: ['broadcast'], links: [], inLinks: [] },
+  
+  // Mento
+  { name: 'mento-368.html', size: 22000, modified: 1761900000, category: 'mento', tech: ['three'], links: [], inLinks: [] },
+  { name: 'mento-369.html', size: 23000, modified: 1761800000, category: 'mento', tech: ['three'], links: [], inLinks: [] },
+  { name: 'mento-373.html', size: 25000, modified: 1761700000, category: 'mento', tech: ['three'], links: [], inLinks: [] },
+  { name: 'ball-jar.html', size: 28000, modified: 1761600000, category: 'mento', tech: ['three', 'ldraw'], links: [], inLinks: ['index.html'] },
+  
+  // Index
+  { name: 'index.html', size: 109790, modified: 1765337743, category: 'index', tech: [], links: ['20q-tutorial.html', 'swiss-frank-grace-studio.html', 'platos-cave.html', 'grecian-urn.html', 'LEGOS-tutorial-prime.html', 'TIMBER-tutorial-prime.html', 'STUD-SKELETON-tutorial-visual.html', 'PLATOS-CAVE-tutorial.html', 'MENTO-tutorial-prime.html', 'homer-quickstart.html', 'wag-frank.html', 'brick-apex.html', 'ball-jar.html'], inLinks: ['onyx-core-index.html', 'adapt-plus-index.html'] },
+  { name: 'sitemap.html', size: 29753, modified: 1765352363, category: 'index', tech: [], links: [], inLinks: ['sitemap-full.html'] },
+  { name: 'sitemap-full.html', size: 22932, modified: 1765353505, category: 'index', tech: [], links: ['sitemap.html'], inLinks: [] },
+  
+  // Research
+  { name: 'research-index.html', size: 8383, modified: 1764916593, category: 'research', tech: [], links: [], inLinks: [] },
+  { name: 'adapt-plus-index.html', size: 28117, modified: 1765089485, category: 'research', tech: [], links: ['index.html', 'onyx-arena.html', 'onyx-thumb.html'], inLinks: [] },
+  { name: 'worlds-that-speak.html', size: 32461, modified: 1765089893, category: 'research', tech: [], links: [], inLinks: [] },
+];
+
+// Shared resources
+const RESOURCES = {
+  three: { name: 'Three.js', color: '#10b981', files: [] },
+  broadcast: { name: 'BroadcastChannel', color: '#3b82f6', files: [] },
+  tailwind: { name: 'Tailwind CSS', color: '#06b6d4', files: [] },
+  ldraw: { name: 'LDraw/MPD', color: '#f97316', files: [] },
+  seeds: { name: 'Scenario Seeds', color: '#ec4899', files: [] },
+};
+
+// Categories
+const CATEGORIES = {
+  onyx: { name: 'ONYX', color: '#a855f7' },
+  studio: { name: 'Studio', color: '#06b6d4' },
+  homer: { name: 'Homer', color: '#8b5cf6' },
+  tutorial: { name: 'Tutorial', color: '#f59e0b' },
+  block: { name: 'Block', color: '#ef4444' },
+  brick: { name: 'Brick', color: '#eab308' },
+  wag: { name: 'WAG', color: '#f97316' },
+  mento: { name: 'Mento', color: '#ec4899' },
+  index: { name: 'Index', color: '#71717a' },
+  research: { name: 'Research', color: '#10b981' },
+};
+
+// Build resource index
+FILES_DATA.forEach(f => {
+  f.tech.forEach(t => {
+    if (RESOURCES[t]) RESOURCES[t].files.push(f.name);
+  });
+});
+
+// State
+let selectedFile = null;
+let currentSort = 'name';
+let currentSearch = '';
+let activeResource = null;
+
+// Helpers
+function formatSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+function formatDate(ts) {
+  return new Date(ts * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function formatAge(ts) {
+  const days = Math.floor((Date.now() / 1000 - ts) / 86400);
+  if (days === 0) return 'Today';
+  if (days === 1) return 'Yesterday';
+  if (days < 30) return days + ' days ago';
+  if (days < 365) return Math.floor(days / 30) + ' months ago';
+  return Math.floor(days / 365) + ' years ago';
+}
+
+// Render resources sidebar
+function renderResources() {
+  const list = document.getElementById('resourceList');
+  list.innerHTML = Object.entries(RESOURCES).map(([key, res]) => `
+    <div class="resource-item ${activeResource === key ? 'active' : ''}" data-resource="${key}">
+      <span class="resource-dot" style="background:${res.color}"></span>
+      <span class="resource-name">${res.name}</span>
+      <span class="resource-count">${res.files.length}</span>
+    </div>
+  `).join('');
+  
+  list.querySelectorAll('.resource-item').forEach(item => {
+    item.addEventListener('click', () => {
+      activeResource = activeResource === item.dataset.resource ? null : item.dataset.resource;
+      renderResources();
+      renderFiles();
+    });
+  });
+}
+
+// Render clusters sidebar
+function renderClusters() {
+  const list = document.getElementById('clusterList');
+  const clusters = {};
+  
+  Object.entries(CATEGORIES).forEach(([key, cat]) => {
+    clusters[key] = FILES_DATA.filter(f => f.category === key).length;
+  });
+  
+  list.innerHTML = Object.entries(CATEGORIES).map(([key, cat]) => `
+    <div class="resource-item" data-cluster="${key}">
+      <span class="resource-dot" style="background:${cat.color}"></span>
+      <span class="resource-name">${cat.name}</span>
+      <span class="resource-count">${clusters[key]}</span>
+    </div>
+  `).join('');
+}
+
+// Render timeline
+function renderTimeline() {
+  const timeline = document.getElementById('timeline');
+  const sorted = [...FILES_DATA].sort((a, b) => b.modified - a.modified).slice(0, 10);
+  
+  timeline.innerHTML = sorted.map(f => `
+    <div style="padding:4px 0; border-bottom:1px solid var(--border);">
+      <div style="color:var(--text)">${f.name}</div>
+      <div>${formatAge(f.modified)}</div>
+    </div>
+  `).join('');
+}
+
+// Render files
+function renderFiles() {
+  const grid = document.getElementById('fileGrid');
+  
+  let files = [...FILES_DATA];
+  
+  // Filter by resource
+  if (activeResource) {
+    files = files.filter(f => f.tech.includes(activeResource));
+  }
+  
+  // Filter by search
+  if (currentSearch) {
+    const q = currentSearch.toLowerCase();
+    files = files.filter(f => f.name.toLowerCase().includes(q));
+  }
+  
+  // Sort
+  if (currentSort === 'name') files.sort((a, b) => a.name.localeCompare(b.name));
+  if (currentSort === 'size') files.sort((a, b) => b.size - a.size);
+  if (currentSort === 'date') files.sort((a, b) => b.modified - a.modified);
+  if (currentSort === 'links') files.sort((a, b) => (b.links.length + b.inLinks.length) - (a.links.length + a.inLinks.length));
+  
+  grid.innerHTML = files.map(f => {
+    const cat = CATEGORIES[f.category] || { color: '#71717a' };
+    return `
+      <div class="file-card ${selectedFile === f.name ? 'selected' : ''}" data-file="${f.name}">
+        <div class="file-header">
+          <div class="file-icon" style="background:${cat.color}20; color:${cat.color}">◈</div>
+          <div class="file-info">
+            <div class="file-name">${f.name}</div>
+            <div class="file-meta">${formatSize(f.size)} • ${formatAge(f.modified)}</div>
+          </div>
+        </div>
+        <div class="file-tags">
+          ${f.tech.map(t => `<span class="tag tag-${t}">${RESOURCES[t]?.name || t}</span>`).join('')}
+        </div>
+        ${f.links.length + f.inLinks.length > 0 ? `
+          <div class="file-links">
+            <span class="file-links-count">${f.links.length}</span> out • 
+            <span class="file-links-count">${f.inLinks.length}</span> in
+          </div>
+        ` : ''}
+      </div>
+    `;
+  }).join('');
+  
+  grid.querySelectorAll('.file-card').forEach(card => {
+    card.addEventListener('click', () => selectFile(card.dataset.file));
+  });
+}
+
+// Select file
+function selectFile(name) {
+  selectedFile = name;
+  const file = FILES_DATA.find(f => f.name === name);
+  if (!file) return;
+  
+  document.getElementById('inspectorEmpty').style.display = 'none';
+  document.getElementById('inspectorContent').classList.add('active');
+  
+  document.getElementById('inspectorTitle').textContent = file.name;
+  document.getElementById('inspectorSubtitle').textContent = CATEGORIES[file.category]?.name || 'Unknown';
+  document.getElementById('inspectorSize').textContent = formatSize(file.size);
+  document.getElementById('inspectorDate').textContent = formatDate(file.modified);
+  document.getElementById('inspectorAge').textContent = formatAge(file.modified);
+  document.getElementById('inspectorCategory').textContent = CATEGORIES[file.category]?.name || 'Unknown';
+  
+  document.getElementById('inspectorTech').innerHTML = file.tech.map(t => 
+    `<span class="tag tag-${t}">${RESOURCES[t]?.name || t}</span>`
+  ).join('') || '<span style="color:var(--muted); font-size:9px;">None detected</span>';
+  
+  document.getElementById('inspectorOutLinks').innerHTML = file.links.length ? 
+    file.links.map(l => `<a href="${l}" class="link-item"><span class="link-arrow">→</span> ${l}</a>`).join('') :
+    '<span style="color:var(--muted); font-size:9px;">No outgoing links</span>';
+  
+  document.getElementById('inspectorInLinks').innerHTML = file.inLinks.length ?
+    file.inLinks.map(l => `<a href="${l}" class="link-item"><span class="link-arrow">←</span> ${l}</a>`).join('') :
+    '<span style="color:var(--muted); font-size:9px;">No incoming links</span>';
+  
+  // Build dependency tree
+  const tree = buildDepTree(file.name, 0, new Set());
+  document.getElementById('inspectorDepGraph').textContent = tree || 'No dependencies';
+  
+  document.getElementById('openBtn').href = file.name;
+  
+  renderFiles();
+}
+
+function buildDepTree(name, depth, visited) {
+  if (depth > 3 || visited.has(name)) return '';
+  visited.add(name);
+  
+  const file = FILES_DATA.find(f => f.name === name);
+  if (!file) return '';
+  
+  const indent = '  '.repeat(depth);
+  let result = indent + (depth > 0 ? '└─ ' : '') + name + '\n';
+  
+  file.links.forEach(link => {
+    result += buildDepTree(link, depth + 1, visited);
+  });
+  
+  return result;
+}
+
+// Update stats
+function updateStats() {
+  document.getElementById('totalFiles').textContent = FILES_DATA.length;
+  document.getElementById('totalSize').textContent = formatSize(FILES_DATA.reduce((sum, f) => sum + f.size, 0));
+  document.getElementById('totalLinks').textContent = FILES_DATA.reduce((sum, f) => sum + f.links.length, 0);
+  document.getElementById('totalResources').textContent = Object.keys(RESOURCES).length;
+}
+
+// Events
+document.querySelectorAll('.sort-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentSort = btn.dataset.sort;
+    renderFiles();
+  });
+});
+
+document.getElementById('searchInput').addEventListener('input', (e) => {
+  currentSearch = e.target.value;
+  renderFiles();
+});
+
+// Init
+updateStats();
+renderResources();
+renderClusters();
+renderTimeline();
+renderFiles();
+</script>
+
+</body>
+</html>

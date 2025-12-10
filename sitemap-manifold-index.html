@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SITEMAP Manifold Index</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;500;600&display=swap');
+
+    :root {
+      --bg: #020617;
+      --surface: #0b1120;
+      --card: #020617;
+      --border: #1f2937;
+      --ink: #e5e7eb;
+      --ink-dim: #9ca3af;
+      --accent: #38bdf8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      background: radial-gradient(circle at top, #111827, #020617 60%);
+      color: var(--ink);
+      font-family: 'Inter', -apple-system, system-ui, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 12px;
+    }
+
+    .shell {
+      width: 100%;
+      max-width: 980px;
+      background: var(--surface);
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      box-shadow:
+        0 20px 60px rgba(0,0,0,0.7),
+        0 0 0 1px rgba(15,23,42,0.9);
+      padding: 20px 22px 22px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .title {
+      font-family: 'Cinzel', serif;
+      font-size: 20px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    .sub {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--ink-dim);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .card {
+      position: relative;
+      padding: 12px 12px 11px;
+      border-radius: 12px;
+      background: radial-gradient(circle at top, rgba(15,23,42,0.98), rgba(15,23,42,0.96));
+      border: 1px solid rgba(31,41,55,0.9);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .card-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--ink-dim);
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .card-desc {
+      font-size: 11px;
+      color: var(--ink-dim);
+      line-height: 1.5;
+    }
+
+    .meta {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      display: flex;
+      justify-content: space-between;
+      margin-top: 4px;
+      color: rgba(148,163,184,0.9);
+    }
+
+    .link {
+      margin-top: 6px;
+      align-self: flex-start;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 4px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(56,189,248,0.8);
+      color: var(--accent);
+      text-decoration: none;
+      transition: all 0.15s;
+    }
+
+    .link:hover {
+      background: rgba(56,189,248,0.08);
+    }
+
+    footer {
+      margin-top: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      color: var(--ink-dim);
+      text-align: right;
+    }
+
+    @media (max-width: 640px) {
+      .shell { padding: 16px 14px 18px; }
+      header { flex-direction: column; align-items: flex-start; }
+      .title { font-size: 17px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div>
+        <div class="title">SITEMAP MANIFOLDS</div>
+        <div class="sub">Different terrains for reading DCE‑GYO as a world</div>
+      </div>
+      <div class="sub">This index links only to local *.html manifold views.</div>
+    </header>
+
+    <div class="grid">
+      <article class="card">
+        <div class="card-tag">MANIFOLD · 01</div>
+        <div class="card-title">Cultural Manifold (v1)</div>
+        <div class="card-desc">
+          ATG‑style contour field over studios and roles using file births and pattern signatures.
+          X = studio phase, Y = cultural role.
+        </div>
+        <div class="meta"><span>File: sitemap-manifold.html</span><span>Mode: Contours + slider</span></div>
+        <a class="link" href="sitemap-manifold.html">Open</a>
+      </article>
+
+      <article class="card">
+        <div class="card-tag">MANIFOLD · 02</div>
+        <div class="card-title">Cultural Manifold (ATG Shell)</div>
+        <div class="card-desc">
+          Thesis‑styled ATG 2.0 shell wired to sitemap data. Phases × roles viewed as a scrolling contour / heatmap trail.
+        </div>
+        <div class="meta"><span>File: sitemap-manifold-02.html</span><span>Mode: Contour ⇄ Heat</span></div>
+        <a class="link" href="sitemap-manifold-02.html">Open</a>
+      </article>
+
+      <article class="card">
+        <div class="card-tag">MANIFOLD · 03</div>
+        <div class="card-title">Unified Terrain (Multi‑repo ATG)</div>
+        <div class="card-desc">
+          Hand‑authored ATG map spanning WAG atlas, The Fork, 1000 Small Futures, Role Deck, cinema basins, and collaborators.
+        </div>
+        <div class="meta"><span>File: sitemap-manifold-03.html</span><span>Mode: Static atlas</span></div>
+        <a class="link" href="sitemap-manifold-03.html">Open</a>
+      </article>
+
+      <article class="card">
+        <div class="card-tag">MANIFOLD · 04</div>
+        <div class="card-title">Studios as Territory (Agents)</div>
+        <div class="card-desc">
+          Agents roam an elevation field where each studio family is a territory. Trails and peaks come from sitemap file clusters;
+          portals open live tools inside an erosion crater.
+        </div>
+        <div class="meta"><span>File: sitemap-manifold-04.html</span><span>Mode: Agents + portals</span></div>
+        <a class="link" href="sitemap-manifold-04.html">Open</a>
+      </article>
+
+      <article class="card">
+        <div class="card-tag">MANIFOLD · 05</div>
+        <div class="card-title">Ethics Pathways · Studios</div>
+        <div class="card-desc">
+          Ethics‑Pathways‑inspired map: studios as regions, steps as terrain metaphors (road, roadblock, bridge).
+          Lets you trace an emotional / architectural path through the sitemap.
+        </div>
+        <div class="meta"><span>File: sitemap-manifold-05.html</span><span>Mode: Storyboard</span></div>
+        <a class="link" href="sitemap-manifold-05.html">Open</a>
+      </article>
+
+      <article class="card">
+        <div class="card-tag">MANIFOLD · 06</div>
+        <div class="card-title">Thesis Pathways over SITEMAP</div>
+        <div class="card-desc">
+          Thesis Pathways grid, but auto‑populated from sitemap files (pyramids, essays, interventions, theories).
+          Drag sources and path cards to build argument routes through the studio ecology.
+        </div>
+        <div class="meta"><span>File: sitemap-manifold-06.html</span><span>Mode: Argument builder</span></div>
+        <a class="link" href="sitemap-manifold-06.html">Open</a>
+      </article>
+    </div>
+
+    <footer>
+      SITEMAP · Manifold Index · Local build
+    </footer>
+  </div>
+</body>
+</html>

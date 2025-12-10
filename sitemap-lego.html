@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>▣ LEGO SITEMAP — Studio Constructions</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='10' y='10' width='80' height='80' rx='8' fill='%23c9302c'/><circle cx='35' cy='35' r='12' fill='%23e74c3c'/><circle cx='65' cy='35' r='12' fill='%23e74c3c'/><circle cx='35' cy='65' r='12' fill='%23e74c3c'/><circle cx='65' cy='65' r='12' fill='%23e74c3c'/></svg>">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&display=swap');
+    
+    :root {
+      --board: #7a8a9a;
+      --board-dark: #6b7c8c;
+      --shadow: rgba(0,0,0,0.35);
+      
+      /* LEGO Colors */
+      --red: #c4281b;
+      --blue: #0055bf;
+      --yellow: #f5cd2f;
+      --green: #4b9f4a;
+      --orange: #fe8a18;
+      --teal: #008f9b;
+      --purple: #81007b;
+      --pink: #fc97ac;
+      --lime: #bbd42a;
+      --tan: #d9bb7a;
+      --gray: #6d6e5c;
+      --dark-gray: #4b4f4f;
+      --white: #f4f4f4;
+      --black: #1b2a34;
+      --brown: #583927;
+      --cyan: #00aac8;
+    }
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--board);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    /* Baseplate texture */
+    .baseplate {
+      background: 
+        repeating-linear-gradient(0deg, transparent, transparent 7px, rgba(0,0,0,0.04) 7px, rgba(0,0,0,0.04) 8px),
+        repeating-linear-gradient(90deg, transparent, transparent 7px, rgba(0,0,0,0.04) 7px, rgba(0,0,0,0.04) 8px),
+        var(--board);
+      min-height: calc(100vh - 40px);
+      padding: 20px;
+      box-shadow: inset 0 0 60px rgba(0,0,0,0.15);
+      border-radius: 4px;
+    }
+    
+    /* Header strip */
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+    
+    .title-brick {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: linear-gradient(180deg, #d93a2e 0%, var(--red) 50%, #a82015 100%);
+      padding: 12px 20px;
+      border-radius: 3px;
+      box-shadow: 
+        0 4px 0 #8a1a12,
+        0 6px 8px var(--shadow),
+        inset 0 1px 0 rgba(255,255,255,0.3);
+    }
+    
+    .title-studs {
+      display: flex;
+      gap: 6px;
+    }
+    
+    .title-stud {
+      width: 14px;
+      height: 14px;
+      background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.4) 0%, transparent 50%),
+                  linear-gradient(180deg, #e84a3e 0%, #b82518 100%);
+      border-radius: 50%;
+      box-shadow: 
+        inset 0 -3px 4px rgba(0,0,0,0.3),
+        0 2px 2px rgba(0,0,0,0.2);
+    }
+    
+    .title-text {
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      color: white;
+      text-shadow: 0 2px 3px rgba(0,0,0,0.4);
+    }
+    
+    .view-btns {
+      display: flex;
+      gap: 4px;
+    }
+    
+    .view-btn {
+      padding: 10px 16px;
+      background: linear-gradient(180deg, #f8f8f8 0%, #e0e0e0 100%);
+      border: none;
+      border-radius: 3px;
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 700;
+      color: #333;
+      cursor: pointer;
+      box-shadow: 
+        0 3px 0 #bbb,
+        0 4px 6px var(--shadow);
+      transition: all 0.1s;
+    }
+    
+    .view-btn:hover { transform: translateY(-1px); }
+    .view-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #bbb; }
+    .view-btn.active {
+      background: linear-gradient(180deg, #ffe44d 0%, var(--yellow) 100%);
+      box-shadow: 0 3px 0 #c9a520, 0 4px 6px var(--shadow);
+    }
+    
+    .stats {
+      margin-left: auto;
+      display: flex;
+      gap: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.9);
+      text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    }
+    
+    /* Timeline */
+    .timeline {
+      display: flex;
+      gap: 6px;
+      padding: 12px;
+      background: rgba(0,0,0,0.15);
+      border-radius: 4px;
+      margin-bottom: 24px;
+      overflow-x: auto;
+    }
+    
+    .month-brick {
+      flex: 0 0 auto;
+      padding: 8px 14px;
+      background: linear-gradient(180deg, #7a7a6a 0%, var(--gray) 50%, #5a5a4a 100%);
+      border-radius: 2px;
+      font-size: 11px;
+      font-weight: 700;
+      color: white;
+      cursor: pointer;
+      box-shadow: 
+        0 3px 0 #4a4a3a,
+        0 4px 6px var(--shadow);
+      transition: all 0.1s;
+      position: relative;
+    }
+    
+    .month-brick:hover { transform: translateY(-2px); }
+    .month-brick.active {
+      background: linear-gradient(180deg, #0077df 0%, var(--blue) 50%, #003f8f 100%);
+      box-shadow: 0 3px 0 #002f6f, 0 4px 6px var(--shadow);
+    }
+    
+    .month-count {
+      position: absolute;
+      top: -8px;
+      right: -6px;
+      background: var(--yellow);
+      color: #333;
+      font-size: 9px;
+      font-weight: 800;
+      padding: 2px 5px;
+      border-radius: 10px;
+      box-shadow: 0 2px 4px var(--shadow);
+    }
+    
+    /* Studios Grid */
+    .studios {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+      gap: 24px;
+    }
+    
+    @media (max-width: 500px) {
+      .studios { grid-template-columns: 1fr; }
+    }
+    
+    /* Studio = a LEGO construction */
+    .studio {
+      background: rgba(255,255,255,0.08);
+      border-radius: 6px;
+      padding: 16px;
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.1);
+    }
+    
+    .studio-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      background: linear-gradient(180deg, 
+        color-mix(in srgb, var(--studio-color) 100%, white 20%) 0%, 
+        var(--studio-color) 50%, 
+        color-mix(in srgb, var(--studio-color) 100%, black 25%) 100%);
+      border-radius: 3px;
+      margin-bottom: 12px;
+      box-shadow: 
+        0 4px 0 color-mix(in srgb, var(--studio-color) 100%, black 40%),
+        0 6px 8px var(--shadow);
+    }
+    
+    .studio-label-studs {
+      display: flex;
+      gap: 5px;
+    }
+    
+    .studio-label-stud {
+      width: 12px;
+      height: 12px;
+      background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.4) 0%, transparent 50%),
+                  linear-gradient(180deg, 
+                    color-mix(in srgb, var(--studio-color) 100%, white 30%) 0%, 
+                    color-mix(in srgb, var(--studio-color) 100%, black 15%) 100%);
+      border-radius: 50%;
+      box-shadow: inset 0 -2px 3px rgba(0,0,0,0.3);
+    }
+    
+    .studio-label-text {
+      font-size: 13px;
+      font-weight: 800;
+      color: white;
+      text-shadow: 0 2px 3px rgba(0,0,0,0.4);
+      letter-spacing: 0.04em;
+    }
+    
+    .studio-subtitle {
+      font-size: 10px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.7);
+      margin-left: 8px;
+    }
+    
+    /* Brick construction area */
+    .construction {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 12px;
+      background: rgba(0,0,0,0.12);
+      border-radius: 4px;
+    }
+    
+    .brick-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      align-items: flex-end;
+    }
+    
+    .row-label {
+      width: 70px;
+      flex-shrink: 0;
+      font-size: 9px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.5);
+      letter-spacing: 0.08em;
+      padding: 8px 0;
+      text-align: right;
+      padding-right: 10px;
+    }
+    
+    /* Individual LEGO brick */
+    .brick {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 10px 14px 8px;
+      min-width: 70px;
+      background: linear-gradient(180deg, 
+        color-mix(in srgb, var(--brick-color, var(--gray)) 100%, white 15%) 0%, 
+        var(--brick-color, var(--gray)) 50%, 
+        color-mix(in srgb, var(--brick-color, var(--gray)) 100%, black 20%) 100%);
+      border-radius: 2px;
+      font-size: 10px;
+      font-weight: 700;
+      color: white;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+      text-decoration: none;
+      cursor: pointer;
+      box-shadow: 
+        0 3px 0 color-mix(in srgb, var(--brick-color, var(--gray)) 100%, black 35%),
+        0 4px 6px var(--shadow),
+        inset 0 1px 0 rgba(255,255,255,0.2);
+      transition: all 0.1s;
+    }
+    
+    .brick:hover {
+      transform: translateY(-3px);
+      box-shadow: 
+        0 6px 0 color-mix(in srgb, var(--brick-color, var(--gray)) 100%, black 35%),
+        0 8px 12px var(--shadow),
+        inset 0 1px 0 rgba(255,255,255,0.2);
+    }
+    
+    .brick:active {
+      transform: translateY(1px);
+      box-shadow: 
+        0 2px 0 color-mix(in srgb, var(--brick-color, var(--gray)) 100%, black 35%),
+        0 3px 4px var(--shadow);
+    }
+    
+    /* Studs on brick */
+    .brick::before {
+      content: "";
+      position: absolute;
+      top: -6px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 14px;
+      height: 14px;
+      background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.35) 0%, transparent 50%),
+                  linear-gradient(180deg, 
+                    color-mix(in srgb, var(--brick-color, var(--gray)) 100%, white 25%) 0%, 
+                    color-mix(in srgb, var(--brick-color, var(--gray)) 100%, black 10%) 100%);
+      border-radius: 50%;
+      box-shadow: 
+        inset 0 -3px 4px rgba(0,0,0,0.25),
+        0 2px 3px rgba(0,0,0,0.2);
+    }
+    
+    /* 2-stud brick */
+    .brick.w2::before {
+      width: 14px;
+      left: 25%;
+      box-shadow: 
+        inset 0 -3px 4px rgba(0,0,0,0.25),
+        0 2px 3px rgba(0,0,0,0.2),
+        28px 0 0 color-mix(in srgb, var(--brick-color, var(--gray)) 100%, white 25%);
+    }
+    
+    .brick.w2::after {
+      content: "";
+      position: absolute;
+      top: -6px;
+      left: calc(75% - 7px);
+      width: 14px;
+      height: 14px;
+      background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.35) 0%, transparent 50%),
+                  linear-gradient(180deg, 
+                    color-mix(in srgb, var(--brick-color, var(--gray)) 100%, white 25%) 0%, 
+                    color-mix(in srgb, var(--brick-color, var(--gray)) 100%, black 10%) 100%);
+      border-radius: 50%;
+      box-shadow: inset 0 -3px 4px rgba(0,0,0,0.25), 0 2px 3px rgba(0,0,0,0.2);
+    }
+    
+    .brick.w2 { min-width: 100px; }
+    .brick.w3 { min-width: 130px; }
+    .brick.w4 { min-width: 160px; }
+    .brick.hub { min-width: 180px; font-size: 11px; padding: 12px 18px 10px; }
+    
+    /* Birth order badge */
+    .birth-badge {
+      position: absolute;
+      bottom: -4px;
+      right: -4px;
+      background: var(--yellow);
+      color: #333;
+      font-size: 7px;
+      font-weight: 800;
+      padding: 2px 4px;
+      border-radius: 6px;
+      box-shadow: 0 1px 3px var(--shadow);
+    }
+    
+    /* Flow arrow */
+    .flow-arrow {
+      display: flex;
+      align-items: center;
+      padding: 0 6px;
+      font-size: 14px;
+      color: var(--yellow);
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+    
+    /* Chronological view */
+    .chrono-view {
+      display: none;
+    }
+    
+    .chrono-view.active {
+      display: block;
+    }
+    
+    .chrono-month {
+      margin-bottom: 20px;
+    }
+    
+    .chrono-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 16px;
+      background: linear-gradient(180deg, #5a5a4a 0%, #4a4a3a 100%);
+      border-radius: 3px;
+      margin-bottom: 10px;
+      box-shadow: 0 3px 0 #3a3a2a, 0 4px 6px var(--shadow);
+    }
+    
+    .chrono-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: white;
+    }
+    
+    .chrono-count {
+      font-size: 11px;
+      color: rgba(255,255,255,0.6);
+    }
+    
+    .chrono-bricks {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding-left: 20px;
+    }
+    
+    .studios-view {
+      display: block;
+    }
+    
+    .studios-view.hidden {
+      display: none;
+    }
+    
+    /* Footer */
+    .footer-link {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 10px 18px;
+      background: linear-gradient(180deg, #d93a2e 0%, var(--red) 100%);
+      color: white;
+      border-radius: 3px;
+      font-size: 11px;
+      font-weight: 700;
+      text-decoration: none;
+      box-shadow: 0 3px 0 #8a1a12, 0 4px 8px var(--shadow);
+      z-index: 100;
+    }
+    
+    .footer-link:hover { transform: translateY(-2px); }
+  </style>
+</head>
+<body>
+
+<div class="baseplate">
+  <header class="header">
+    <div class="title-brick">
+      <div class="title-studs">
+        <div class="title-stud"></div>
+        <div class="title-stud"></div>
+      </div>
+      <span class="title-text">STUDIO CONSTRUCTIONS</span>
+    </div>
+    
+    <div class="view-btns">
+      <button class="view-btn active" data-view="studios">STUDIOS</button>
+      <button class="view-btn" data-view="chrono">BIRTH ORDER</button>
+    </div>
+    
+    <div class="stats">
+      <span id="studioCount">— studios</span>
+      <span id="fileCount">— bricks</span>
+    </div>
+  </header>
+  
+  <div class="timeline" id="timeline"></div>
+  
+  <div class="studios-view" id="studiosView">
+    <div class="studios" id="studios"></div>
+  </div>
+  
+  <div class="chrono-view" id="chronoView"></div>
+</div>
+
+<a href="index.html" class="footer-link">← INDEX</a>
+
+<script>
+// LEGO Colors
+const COLORS = {
+  red: '#c4281b',
+  blue: '#0055bf',
+  yellow: '#f5cd2f',
+  green: '#4b9f4a',
+  orange: '#fe8a18',
+  teal: '#008f9b',
+  purple: '#81007b',
+  pink: '#fc97ac',
+  lime: '#bbd42a',
+  tan: '#d9bb7a',
+  gray: '#6d6e5c',
+  white: '#e0e0e0',
+  cyan: '#00aac8',
+  brown: '#583927',
+};
+
+// Studios with their brick constructions
+const STUDIOS = [
+  {
+    name: 'SWISS / FRANK / GRACE',
+    subtitle: 'Designer Hub',
+    color: COLORS.teal,
+    hub: { name: 'STUDIO', file: 'swiss-frank-grace-studio.html', color: COLORS.teal },
+    rows: [
+      { label: 'CORE', bricks: [
+        { name: 'SWISS', file: 'wag-viewer-prime-integration-20251112-055341 copy/swiss-designator.html', color: COLORS.gray },
+        { name: 'FRANK', file: 'wag-frank.html', color: COLORS.orange },
+        { name: 'GRACE', file: 'wag-viewer-prime-integration-20251112-055341 copy/wag-grace-editor.html', color: COLORS.green },
+        { name: 'MOMENTO', file: 'Brickfilm_Studio_Kit/REALITY MEDIA_MOMENTO/momento.html', color: COLORS.teal },
+      ]},
+      { label: '-ATORS', bricks: [
+        { name: 'MINIFIG', file: 'minifigurator-02.html', color: COLORS.purple },
+        { name: 'LOCATION', file: 'locationator.html', color: COLORS.blue },
+        { name: 'VEHICLE', file: 'vehiculator.html', color: COLORS.orange },
+        { name: 'SCENE', file: 'sceneerator.html', color: COLORS.teal },
+      ]},
+    ]
+  },
+  {
+    name: 'GOLD / COURAGE / GRACE',
+    subtitle: 'Flagship Editors',
+    color: COLORS.yellow,
+    rows: [
+      { label: 'EDITORS', bricks: [
+        { name: 'GOLD', file: 'wag-viewer-prime-integration-20251112-055341 copy/wag-gold-editor.html', color: COLORS.yellow, w: 'hub' },
+        { name: 'COURAGE', file: 'wag-viewer-prime-integration-20251112-055341 copy/wag-courage.html', color: COLORS.red, w: 'hub' },
+        { name: 'GRACE', file: 'wag-viewer-prime-integration-20251112-055341 copy/wag-grace-editor.html', color: COLORS.green, w: 'hub' },
+      ]},
+      { label: 'VARIANTS', bricks: [
+        { name: 'SCENES', file: 'wag-viewer-prime-integration-20251112-055341 copy/wag-gold-scenes.html', color: COLORS.yellow },
+        { name: 'PRIME', file: 'wag-viewer-prime-integration-20251112-055341 copy/wag-viewer-prime.html', color: COLORS.blue },
+        { name: 'PARTS', file: 'wag-viewer-prime-integration-20251112-055341 copy/parts-browser.html', color: COLORS.cyan },
+      ]},
+    ]
+  },
+  {
+    name: 'TIMBER STUDIO',
+    subtitle: 'GOLD + Selection Bus',
+    color: COLORS.teal,
+    hub: { name: 'TIMBER', file: 'timber-studio.html', color: COLORS.teal },
+    rows: [
+      { label: 'FLOW', flow: ['COURAGE', '→', 'GOLD', '→', 'WERE', '/', 'MASTER'] },
+      { label: 'TOOLS', bricks: [
+        { name: 'COURAGE', file: 'wag-viewer-prime-integration-20251112-055341 copy/wag-courage.html', color: COLORS.red },
+        { name: 'WERE', file: 'wag-were.html', color: COLORS.blue },
+        { name: 'MASTER', file: 'wag-master.html', color: COLORS.green },
+        { name: 'SYMBIOGENE', file: 'wag-symbiogene.html', color: COLORS.purple },
+      ]},
+    ]
+  },
+  {
+    name: 'HOMER STUDIO',
+    subtitle: 'Trubador Chain',
+    color: COLORS.teal,
+    hub: { name: 'HOMER', file: 'homer.html', color: COLORS.teal },
+    rows: [
+      { label: 'FLOW', flow: ['SWISS', '→', 'FRANK', '→', 'COURAGE', '→', 'WEAVER', '→', 'WERE', '→', 'MASTER', '→', 'MENTO'] },
+      { label: 'CHAIN', bricks: [
+        { name: 'SWISS', file: 'wag-viewer-prime-integration-20251112-055341 copy/swiss-designator.html', color: COLORS.gray },
+        { name: 'FRANK', file: 'wag-frank.html', color: COLORS.orange },
+        { name: 'COURAGE', file: 'wag-viewer-prime-integration-20251112-055341 copy/wag-courage.html', color: COLORS.red },
+        { name: 'WEAVER', file: 'wag-viewer-prime-integration-20251112-055341 copy/assembly-line.html', color: COLORS.blue },
+        { name: 'WERE', file: 'wag-were.html', color: COLORS.blue },
+        { name: 'MASTER', file: 'wag-master.html', color: COLORS.green },
+        { name: 'MENTO', file: 'Brickfilm_Studio_Kit/REALITY MEDIA_MOMENTO/momento.html', color: COLORS.teal },
+      ]},
+      { label: 'DOCS', bricks: [
+        { name: 'QUICKSTART', file: 'homer-quickstart.html', color: COLORS.yellow },
+        { name: 'STEPS', file: 'homer-step1-swiss-frank-courage.html', color: COLORS.blue },
+      ]},
+    ]
+  },
+  {
+    name: 'BULL ASSEMBLY',
+    subtitle: 'MPD · GOLD · Studs',
+    color: COLORS.red,
+    hub: { name: 'BULL ASSEMBLY', file: 'bull-assembly-studio.html', color: COLORS.red },
+    rows: [
+      { label: 'FLOW', flow: ['COURAGE', '→', 'GOLD', '→', 'WEAVER', '→', 'WERE', '/', 'MASTER'] },
+      { label: 'TOOLS', bricks: [
+        { name: 'COURAGE', file: 'wag-viewer-prime-integration-20251112-055341 copy/wag-courage.html', color: COLORS.red },
+        { name: 'WEAVER', file: 'wag-viewer-prime-integration-20251112-055341 copy/assembly-line.html', color: COLORS.blue },
+        { name: 'LINE GRID', file: 'line-grid-viewer.html', color: COLORS.cyan },
+      ]},
+    ]
+  },
+  {
+    name: "PLATO'S CAVE",
+    subtitle: 'Shield of Achilles',
+    color: COLORS.blue,
+    rows: [
+      { label: 'STUDIOS', bricks: [
+        { name: "PLATO'S CAVE", file: 'platos-cave.html', color: COLORS.blue, w: 'hub' },
+        { name: 'GRECIAN URN', file: 'grecian-urn.html', color: COLORS.purple, w: 'hub' },
+      ]},
+      { label: 'GUIDES', bricks: [
+        { name: '20Q TUTORIAL', file: '20q-tutorial.html', color: COLORS.blue },
+        { name: 'CAVE TUTORIAL', file: 'PLATOS-CAVE-tutorial.html', color: COLORS.blue },
+      ]},
+    ]
+  },
+  {
+    name: 'BRICK GRID FAMILY',
+    subtitle: '9×9 Code Terrain',
+    color: COLORS.blue,
+    hub: { name: 'ATLAS', file: 'brick-grid-family.html', color: COLORS.teal },
+    rows: [
+      { label: 'CORE', bricks: [
+        { name: 'BRANCH', file: 'brick-branch.html', color: COLORS.blue },
+        { name: 'ARCH', file: 'brick-arch.html', color: COLORS.purple },
+        { name: 'APEX', file: 'brick-apex.html', color: COLORS.orange },
+      ]},
+      { label: 'TOOLS', bricks: [
+        { name: 'SOVEREIGN', file: 'brick-sovereign.html', color: COLORS.green },
+        { name: 'BUILD BUS', file: 'build-bus.html', color: COLORS.teal },
+        { name: 'XANADU', file: 'brickadu.html', color: COLORS.blue },
+        { name: 'CREATE', file: 'brick-create.html', color: COLORS.pink },
+      ]},
+    ]
+  },
+  {
+    name: 'DCE-GYO / ONYX',
+    subtitle: 'Guardian Debates',
+    color: COLORS.purple,
+    hub: { name: 'ONYX INDEX', file: 'onyx-core-index.html', color: COLORS.purple },
+    rows: [
+      { label: 'READERS', bricks: [
+        { name: 'ONYX THUMB', file: 'onyx-thumb.html', color: COLORS.orange, w: 'hub' },
+        { name: 'BIBLIOGRAPHY', file: 'onyx-bibliography.html', color: COLORS.purple },
+        { name: 'ONYX ABS', file: 'onyx-abs.html', color: COLORS.blue },
+      ]},
+      { label: 'BODY', bricks: [
+        { name: 'HEAD', file: 'onyx-head.html', color: COLORS.purple },
+        { name: 'NECK', file: 'onyx-neck.html', color: COLORS.purple },
+        { name: 'SHELL', file: 'onyx-shell.html', color: COLORS.purple },
+        { name: 'WING', file: 'onyx-wing.html', color: COLORS.purple },
+        { name: 'TAIL', file: 'onyx-tail.html', color: COLORS.purple },
+        { name: 'CLAW', file: 'onyx-claw.html', color: COLORS.purple },
+        { name: 'NAIL', file: 'onyx-nail.html', color: COLORS.purple },
+      ]},
+    ]
+  },
+  {
+    name: 'CORE PROJECTS',
+    subtitle: 'Playable Theory',
+    color: COLORS.purple,
+    rows: [
+      { label: 'PROJECTS', bricks: [
+        { name: 'THOUSAND TETRAD', file: 'thousand-tetrad.html', color: COLORS.purple, w: 'hub' },
+        { name: 'THE FORK', file: 'fork.html', color: COLORS.teal, w: 'w2' },
+        { name: 'HOLO PROJECT', file: 'holo-project.html', color: COLORS.pink, w: 'w2' },
+        { name: 'MAC 01', file: 'mac-01.html', color: COLORS.lime, w: 'w2' },
+      ]},
+    ]
+  },
+  {
+    name: 'TUTORIALS',
+    subtitle: 'Guides & Walkthroughs',
+    color: COLORS.yellow,
+    rows: [
+      { label: 'STUDIO', bricks: [
+        { name: 'QUICKSTART', file: 'studio-tutorial.html', color: COLORS.yellow },
+        { name: 'DESIGNER HUB', file: 'studio-tutorial-02.html', color: COLORS.gray },
+      ]},
+      { label: 'LEGOS', bricks: [
+        { name: 'LEGOS TUTORIAL', file: 'LEGOS-tutorial-prime.html', color: COLORS.red },
+        { name: 'LEGOS-GPT', file: 'LEGOS-GPT.html', color: COLORS.red },
+        { name: 'LEGOS↔LDRAW', file: 'LEGOS-to-Ldraw-bridge.html', color: COLORS.orange },
+      ]},
+      { label: 'SKELETON', bricks: [
+        { name: 'STUD SKELETON', file: 'STUD-SKELETON-tutorial-visual.html', color: COLORS.purple },
+        { name: 'TIMBER', file: 'TIMBER-tutorial-prime.html', color: COLORS.teal },
+        { name: 'BULL', file: 'bull-assembly-tutorial.html', color: COLORS.red },
+      ]},
+    ]
+  },
+  {
+    name: 'WAG PRESENTATIONS',
+    subtitle: 'Words Become Worlds',
+    color: COLORS.purple,
+    rows: [
+      { label: 'DECKS', bricks: [
+        { name: 'WORDS BECOME WORLDS', file: 'words-become-worlds.html', color: COLORS.purple, w: 'hub' },
+        { name: 'WAG SLIDES', file: 'wag-pres.html', color: COLORS.yellow },
+        { name: 'WAG PROTOCOL', file: 'wag-prot.html', color: COLORS.blue },
+        { name: 'WAG WORKSITE', file: 'wag-work.html', color: COLORS.green },
+        { name: 'WAG HUB', file: 'wag-hub.html', color: COLORS.teal },
+      ]},
+    ]
+  },
+];
+
+let BIRTH_DATES = {};
+let activeView = 'studios';
+let activeMonth = null;
+
+// Load birth dates
+fetch('birth-dates.json')
+  .then(r => r.json())
+  .then(d => { BIRTH_DATES = d; render(); })
+  .catch(() => render());
+
+function render() {
+  renderStats();
+  renderTimeline();
+  renderStudios();
+  renderChrono();
+}
+
+function renderStats() {
+  document.getElementById('studioCount').textContent = STUDIOS.length + ' studios';
+  let brickCount = 0;
+  STUDIOS.forEach(s => {
+    if (s.hub) brickCount++;
+    s.rows?.forEach(r => brickCount += r.bricks?.length || 0);
+  });
+  document.getElementById('fileCount').textContent = brickCount + ' bricks';
+}
+
+function renderTimeline() {
+  const months = {};
+  Object.entries(BIRTH_DATES).forEach(([file, ts]) => {
+    if (file === '_end') return;
+    const d = new Date(ts * 1000);
+    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    const label = d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+    if (!months[key]) months[key] = { label, count: 0 };
+    months[key].count++;
+  });
+  
+  const sorted = Object.entries(months).sort((a,b) => a[0].localeCompare(b[0]));
+  
+  document.getElementById('timeline').innerHTML = sorted.map(([key, m]) => `
+    <div class="month-brick ${activeMonth === key ? 'active' : ''}" data-month="${key}">
+      ${m.label}
+      <span class="month-count">${m.count}</span>
+    </div>
+  `).join('');
+  
+  document.querySelectorAll('.month-brick').forEach(el => {
+    el.onclick = () => {
+      activeMonth = activeMonth === el.dataset.month ? null : el.dataset.month;
+      renderTimeline();
+      renderChrono();
+    };
+  });
+}
+
+function getBirthOrder(file) {
+  const ts = BIRTH_DATES[file];
+  if (!ts) return null;
+  const sorted = Object.entries(BIRTH_DATES)
+    .filter(([k]) => k !== '_end')
+    .sort((a,b) => a[1] - b[1]);
+  const idx = sorted.findIndex(([k]) => k === file);
+  return idx >= 0 ? idx + 1 : null;
+}
+
+function renderBrick(b, showBirth = false) {
+  const birth = showBirth ? getBirthOrder(b.file) : null;
+  const wClass = b.w || '';
+  return `
+    <a href="${b.file}" class="brick ${wClass}" style="--brick-color:${b.color}" title="${b.file}">
+      ${b.name}
+      ${birth ? `<span class="birth-badge">#${birth}</span>` : ''}
+    </a>
+  `;
+}
+
+function renderStudios() {
+  document.getElementById('studios').innerHTML = STUDIOS.map(studio => `
+    <div class="studio" style="--studio-color:${studio.color}">
+      <div class="studio-label">
+        <div class="studio-label-studs">
+          <div class="studio-label-stud"></div>
+          <div class="studio-label-stud"></div>
+          <div class="studio-label-stud"></div>
+        </div>
+        <span class="studio-label-text">${studio.name}</span>
+        <span class="studio-subtitle">${studio.subtitle}</span>
+      </div>
+      
+      <div class="construction">
+        ${studio.hub ? `
+          <div class="brick-row">
+            <span class="row-label">HUB</span>
+            ${renderBrick({ ...studio.hub, w: 'hub' }, true)}
+          </div>
+        ` : ''}
+        
+        ${(studio.rows || []).map(row => `
+          <div class="brick-row">
+            <span class="row-label">${row.label}</span>
+            ${row.flow ? row.flow.map(f => 
+              f === '→' || f === '/' ? `<span class="flow-arrow">${f}</span>` : 
+              `<span style="font-size:10px; font-weight:700; color:var(--yellow); text-shadow:0 1px 2px rgba(0,0,0,0.3);">${f}</span>`
+            ).join('') : ''}
+            ${row.bricks ? row.bricks.map(b => renderBrick(b, true)).join('') : ''}
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderChrono() {
+  const months = {};
+  Object.entries(BIRTH_DATES).forEach(([file, ts]) => {
+    if (file === '_end' || !file.endsWith('.html')) return;
+    const d = new Date(ts * 1000);
+    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    const label = d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    if (!months[key]) months[key] = { label, files: [] };
+    months[key].files.push({ name: file, ts, day: d.getDate() });
+  });
+  
+  let sorted = Object.entries(months).sort((a,b) => a[0].localeCompare(b[0]));
+  if (activeMonth) sorted = sorted.filter(([k]) => k === activeMonth);
+  
+  // Get color for file
+  const getColor = (name) => {
+    if (name.includes('gold')) return COLORS.yellow;
+    if (name.includes('courage')) return COLORS.red;
+    if (name.includes('grace')) return COLORS.green;
+    if (name.includes('onyx')) return COLORS.purple;
+    if (name.includes('brick')) return COLORS.blue;
+    if (name.includes('wag')) return COLORS.teal;
+    if (name.includes('homer')) return COLORS.teal;
+    if (name.includes('tutorial')) return COLORS.yellow;
+    if (name.includes('mento')) return COLORS.teal;
+    if (name.includes('block')) return COLORS.blue;
+    return COLORS.gray;
+  };
+  
+  document.getElementById('chronoView').innerHTML = sorted.map(([key, m]) => `
+    <div class="chrono-month">
+      <div class="chrono-header">
+        <span class="chrono-title">${m.label}</span>
+        <span class="chrono-count">${m.files.length} files born</span>
+      </div>
+      <div class="chrono-bricks">
+        ${m.files.sort((a,b) => a.ts - b.ts).map((f, i) => {
+          const order = getBirthOrder(f.name);
+          return `
+            <a href="${f.name}" class="brick" style="--brick-color:${getColor(f.name)}" title="Born: ${new Date(f.ts*1000).toLocaleDateString()}">
+              ${f.name.replace('.html','').substring(0,18)}
+              ${order ? `<span class="birth-badge">#${order}</span>` : ''}
+            </a>
+          `;
+        }).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+// View switching
+document.querySelectorAll('.view-btn').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeView = btn.dataset.view;
+    
+    document.getElementById('studiosView').classList.toggle('hidden', activeView !== 'studios');
+    document.getElementById('chronoView').classList.toggle('active', activeView === 'chrono');
+  };
+});
+</script>
+
+</body>
+</html>

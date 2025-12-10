@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>◈ DCE-GYO Live Sitemap</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>◈</text></svg>">
+  <style>
+    :root {
+      --bg: #0a0a0c;
+      --surface: #111114;
+      --surface2: #18181b;
+      --border: #27272a;
+      --text: #e4e4e7;
+      --muted: #71717a;
+      --accent: #8b5cf6;
+    }
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: 'SF Mono', 'Menlo', monospace;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    
+    .app {
+      display: grid;
+      grid-template-columns: 260px 1fr 300px;
+      grid-template-rows: auto 1fr;
+      height: 100vh;
+    }
+    
+    @media (max-width: 900px) {
+      .app { grid-template-columns: 1fr; }
+      .sidebar, .inspector { display: none; }
+    }
+    
+    header {
+      grid-column: 1 / -1;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    
+    .logo {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+    }
+    
+    .stats {
+      display: flex;
+      gap: 16px;
+      font-size: 9px;
+      color: var(--muted);
+    }
+    
+    .stat-val { color: var(--text); font-weight: 600; }
+    
+    .regen-btn {
+      margin-left: auto;
+      padding: 6px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 9px;
+      cursor: pointer;
+    }
+    
+    .regen-btn:hover { border-color: var(--accent); color: var(--text); }
+    
+    /* Sidebar */
+    .sidebar {
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      padding: 14px;
+    }
+    
+    .sb-title {
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      margin-bottom: 8px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .sb-list { display: flex; flex-direction: column; gap: 3px; margin-bottom: 16px; }
+    
+    .sb-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      font-size: 9px;
+      cursor: pointer;
+      transition: all 0.12s;
+    }
+    
+    .sb-item:hover { border-color: var(--accent); }
+    .sb-item.active { background: var(--accent); border-color: var(--accent); color: #000; }
+    
+    .sb-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .sb-name { flex: 1; }
+    .sb-count { color: var(--muted); font-size: 8px; }
+    .sb-item.active .sb-count { color: rgba(0,0,0,0.5); }
+    
+    /* Main */
+    .main {
+      overflow-y: auto;
+      padding: 16px;
+    }
+    
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+    
+    .search {
+      flex: 1;
+      min-width: 140px;
+      padding: 7px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 10px;
+    }
+    
+    .search:focus { outline: none; border-color: var(--accent); }
+    
+    .sort-btn {
+      padding: 7px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 9px;
+      cursor: pointer;
+    }
+    
+    .sort-btn:hover, .sort-btn.active { border-color: var(--accent); color: var(--text); }
+    
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 10px;
+    }
+    
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px;
+      cursor: pointer;
+      transition: all 0.12s;
+    }
+    
+    .card:hover { border-color: var(--text); transform: translateY(-1px); }
+    .card.selected { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+    
+    .card-head {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    
+    .card-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+    
+    .card-info { flex: 1; min-width: 0; }
+    
+    .card-name {
+      font-size: 10px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .card-title {
+      font-size: 8px;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 2px;
+    }
+    
+    .card-meta {
+      font-size: 8px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+    
+    .card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 3px;
+      margin-top: 8px;
+    }
+    
+    .tag {
+      padding: 2px 6px;
+      border-radius: 8px;
+      font-size: 7px;
+      font-weight: 600;
+    }
+    
+    .tag-three { background: #10b98120; color: #10b981; }
+    .tag-broadcast { background: #3b82f620; color: #3b82f6; }
+    .tag-tailwind { background: #06b6d420; color: #06b6d4; }
+    .tag-ldraw { background: #f9731620; color: #f97316; }
+    .tag-seeds { background: #ec489920; color: #ec4899; }
+    .tag-fontawesome { background: #8b5cf620; color: #8b5cf6; }
+    
+    .card-links {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid var(--border);
+      font-size: 8px;
+      color: var(--muted);
+    }
+    
+    .card-links span { color: var(--text); }
+    
+    /* Inspector */
+    .inspector {
+      border-left: 1px solid var(--border);
+      overflow-y: auto;
+      padding: 14px;
+    }
+    
+    .insp-empty {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      font-size: 9px;
+    }
+    
+    .insp-content { display: none; }
+    .insp-content.show { display: block; }
+    
+    .insp-header {
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .insp-title {
+      font-size: 11px;
+      font-weight: 600;
+      word-break: break-all;
+    }
+    
+    .insp-subtitle {
+      font-size: 8px;
+      color: var(--muted);
+      margin-top: 4px;
+      word-break: break-all;
+    }
+    
+    .insp-section { margin-bottom: 14px; }
+    
+    .insp-section-title {
+      font-size: 8px;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    
+    .insp-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 5px 0;
+      font-size: 9px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .insp-row:last-child { border-bottom: none; }
+    .insp-label { color: var(--muted); }
+    .insp-val { font-weight: 500; }
+    
+    .link-list { display: flex; flex-direction: column; gap: 3px; }
+    
+    .link-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 7px;
+      background: var(--surface2);
+      border-radius: 4px;
+      font-size: 8px;
+      text-decoration: none;
+      color: var(--text);
+    }
+    
+    .link-item:hover { background: var(--border); }
+    .link-arrow { color: var(--muted); }
+    
+    .open-btn {
+      display: block;
+      width: 100%;
+      padding: 9px;
+      background: var(--accent);
+      color: #000;
+      border: none;
+      border-radius: 5px;
+      font-family: inherit;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      text-decoration: none;
+      text-align: center;
+      margin-top: 14px;
+    }
+    
+    .open-btn:hover { filter: brightness(1.1); }
+    
+    .dep-tree {
+      background: var(--surface2);
+      border-radius: 5px;
+      padding: 10px;
+      font-size: 8px;
+      white-space: pre-wrap;
+      color: var(--muted);
+      max-height: 150px;
+      overflow-y: auto;
+    }
+    
+    .compare-link {
+      position: fixed;
+      bottom: 16px;
+      right: 16px;
+      padding: 10px 16px;
+      background: var(--accent);
+      color: #000;
+      border-radius: 6px;
+      font-size: 9px;
+      font-weight: 700;
+      text-decoration: none;
+      z-index: 100;
+    }
+    
+    .compare-link:hover { transform: scale(1.03); }
+  </style>
+</head>
+<body>
+
+<div class="app">
+  <header>
+    <div class="logo">◈ LIVE SITEMAP</div>
+    <div class="stats">
+      <span>Files: <span class="stat-val" id="statFiles">-</span></span>
+      <span>Size: <span class="stat-val" id="statSize">-</span></span>
+      <span>Links: <span class="stat-val" id="statLinks">-</span></span>
+      <span>Generated: <span class="stat-val" id="statGen">-</span></span>
+    </div>
+    <button class="regen-btn" onclick="alert('Run: ./analyze-sitemap.sh > sitemap-data.json')">↻ Regenerate</button>
+  </header>
+  
+  <aside class="sidebar">
+    <div class="sb-title">TECHNOLOGIES</div>
+    <div class="sb-list" id="techList"></div>
+    
+    <div class="sb-title">CATEGORIES</div>
+    <div class="sb-list" id="catList"></div>
+    
+    <div class="sb-title">RECENT (10)</div>
+    <div class="sb-list" id="recentList"></div>
+  </aside>
+  
+  <main class="main">
+    <div class="toolbar">
+      <input type="text" class="search" id="search" placeholder="Search files...">
+      <button class="sort-btn active" data-sort="name">Name</button>
+      <button class="sort-btn" data-sort="size">Size</button>
+      <button class="sort-btn" data-sort="date">Recent</button>
+      <button class="sort-btn" data-sort="links">Links</button>
+      <button class="sort-btn" data-sort="lines">Lines</button>
+    </div>
+    <div class="grid" id="grid"></div>
+  </main>
+  
+  <aside class="inspector">
+    <div class="insp-empty" id="inspEmpty">Select a file</div>
+    <div class="insp-content" id="inspContent">
+      <div class="insp-header">
+        <div class="insp-title" id="inspTitle"></div>
+        <div class="insp-subtitle" id="inspSubtitle"></div>
+      </div>
+      
+      <div class="insp-section">
+        <div class="insp-section-title">METADATA</div>
+        <div class="insp-row"><span class="insp-label">Size</span><span class="insp-val" id="inspSize"></span></div>
+        <div class="insp-row"><span class="insp-label">Lines</span><span class="insp-val" id="inspLines"></span></div>
+        <div class="insp-row"><span class="insp-label">Modified</span><span class="insp-val" id="inspDate"></span></div>
+        <div class="insp-row"><span class="insp-label">Age</span><span class="insp-val" id="inspAge"></span></div>
+        <div class="insp-row"><span class="insp-label">Category</span><span class="insp-val" id="inspCat"></span></div>
+      </div>
+      
+      <div class="insp-section">
+        <div class="insp-section-title">TECHNOLOGIES</div>
+        <div id="inspTech" style="display:flex; flex-wrap:wrap; gap:3px;"></div>
+      </div>
+      
+      <div class="insp-section">
+        <div class="insp-section-title">OUTGOING LINKS (<span id="inspOutCount">0</span>)</div>
+        <div class="link-list" id="inspOutLinks"></div>
+      </div>
+      
+      <div class="insp-section">
+        <div class="insp-section-title">INCOMING LINKS (<span id="inspInCount">0</span>)</div>
+        <div class="link-list" id="inspInLinks"></div>
+      </div>
+      
+      <div class="insp-section">
+        <div class="insp-section-title">DEPENDENCY TREE</div>
+        <pre class="dep-tree" id="inspDepTree"></pre>
+      </div>
+      
+      <a class="open-btn" id="openBtn" href="#" target="_blank">OPEN FILE →</a>
+    </div>
+  </aside>
+</div>
+
+<a href="sitemap.html" class="compare-link">◈ PYRAMID VIEW</a>
+
+<script>
+const TECH_META = {
+  three: { name: 'Three.js', color: '#10b981' },
+  broadcast: { name: 'BroadcastChannel', color: '#3b82f6' },
+  tailwind: { name: 'Tailwind', color: '#06b6d4' },
+  ldraw: { name: 'LDraw/MPD', color: '#f97316' },
+  seeds: { name: 'Seeds', color: '#ec4899' },
+  fontawesome: { name: 'FontAwesome', color: '#8b5cf6' },
+};
+
+const CAT_META = {
+  onyx: { name: 'ONYX', color: '#a855f7' },
+  homer: { name: 'Homer', color: '#8b5cf6' },
+  block: { name: 'Block', color: '#ef4444' },
+  brick: { name: 'Brick', color: '#eab308' },
+  wag: { name: 'WAG', color: '#f97316' },
+  mento: { name: 'Mento', color: '#ec4899' },
+  tutorial: { name: 'Tutorial', color: '#f59e0b' },
+  studio: { name: 'Studio', color: '#06b6d4' },
+  legos: { name: 'LEGOS', color: '#10b981' },
+  ator: { name: '-ator', color: '#14b8a6' },
+  misc: { name: 'Misc', color: '#71717a' },
+};
+
+let DATA = { files: [] };
+let selected = null;
+let sort = 'name';
+let query = '';
+let filterTech = null;
+let filterCat = null;
+let inLinks = {};
+
+// Helpers
+const fmtSize = b => b < 1024 ? b + ' B' : b < 1048576 ? (b/1024).toFixed(1) + ' KB' : (b/1048576).toFixed(1) + ' MB';
+const fmtDate = ts => new Date(ts * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+const fmtAge = ts => {
+  const d = Math.floor((Date.now()/1000 - ts) / 86400);
+  return d === 0 ? 'Today' : d === 1 ? 'Yesterday' : d < 30 ? d + 'd ago' : d < 365 ? Math.floor(d/30) + 'mo ago' : Math.floor(d/365) + 'y ago';
+};
+
+// Build incoming links index
+function buildInLinks() {
+  inLinks = {};
+  DATA.files.forEach(f => {
+    f.links.forEach(l => {
+      if (!inLinks[l]) inLinks[l] = [];
+      inLinks[l].push(f.name);
+    });
+  });
+}
+
+// Render sidebar
+function renderSidebar() {
+  // Tech
+  const techCounts = {};
+  DATA.files.forEach(f => f.tech.forEach(t => techCounts[t] = (techCounts[t] || 0) + 1));
+  
+  document.getElementById('techList').innerHTML = Object.entries(TECH_META)
+    .filter(([k]) => techCounts[k])
+    .map(([k, v]) => `
+      <div class="sb-item ${filterTech === k ? 'active' : ''}" data-tech="${k}">
+        <span class="sb-dot" style="background:${v.color}"></span>
+        <span class="sb-name">${v.name}</span>
+        <span class="sb-count">${techCounts[k] || 0}</span>
+      </div>
+    `).join('');
+  
+  document.querySelectorAll('[data-tech]').forEach(el => {
+    el.onclick = () => { filterTech = filterTech === el.dataset.tech ? null : el.dataset.tech; renderSidebar(); renderGrid(); };
+  });
+  
+  // Categories
+  const catCounts = {};
+  DATA.files.forEach(f => catCounts[f.category] = (catCounts[f.category] || 0) + 1);
+  
+  document.getElementById('catList').innerHTML = Object.entries(CAT_META)
+    .filter(([k]) => catCounts[k])
+    .map(([k, v]) => `
+      <div class="sb-item ${filterCat === k ? 'active' : ''}" data-cat="${k}">
+        <span class="sb-dot" style="background:${v.color}"></span>
+        <span class="sb-name">${v.name}</span>
+        <span class="sb-count">${catCounts[k] || 0}</span>
+      </div>
+    `).join('');
+  
+  document.querySelectorAll('[data-cat]').forEach(el => {
+    el.onclick = () => { filterCat = filterCat === el.dataset.cat ? null : el.dataset.cat; renderSidebar(); renderGrid(); };
+  });
+  
+  // Recent
+  const recent = [...DATA.files].sort((a, b) => b.modified - a.modified).slice(0, 10);
+  document.getElementById('recentList').innerHTML = recent.map(f => `
+    <div class="sb-item" data-file="${f.name}">
+      <span class="sb-dot" style="background:${CAT_META[f.category]?.color || '#71717a'}"></span>
+      <span class="sb-name" style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${f.name}</span>
+    </div>
+  `).join('');
+  
+  document.querySelectorAll('[data-file]').forEach(el => {
+    el.onclick = () => selectFile(el.dataset.file);
+  });
+}
+
+// Render grid
+function renderGrid() {
+  let files = [...DATA.files];
+  
+  if (filterTech) files = files.filter(f => f.tech.includes(filterTech));
+  if (filterCat) files = files.filter(f => f.category === filterCat);
+  if (query) files = files.filter(f => f.name.toLowerCase().includes(query) || (f.title || '').toLowerCase().includes(query));
+  
+  if (sort === 'name') files.sort((a, b) => a.name.localeCompare(b.name));
+  if (sort === 'size') files.sort((a, b) => b.size - a.size);
+  if (sort === 'date') files.sort((a, b) => b.modified - a.modified);
+  if (sort === 'links') files.sort((a, b) => (b.links.length + (inLinks[b.name]?.length || 0)) - (a.links.length + (inLinks[a.name]?.length || 0)));
+  if (sort === 'lines') files.sort((a, b) => b.lines - a.lines);
+  
+  document.getElementById('grid').innerHTML = files.map(f => {
+    const cat = CAT_META[f.category] || { color: '#71717a' };
+    const inCount = inLinks[f.name]?.length || 0;
+    return `
+      <div class="card ${selected === f.name ? 'selected' : ''}" data-file="${f.name}">
+        <div class="card-head">
+          <div class="card-icon" style="background:${cat.color}20; color:${cat.color}">◈</div>
+          <div class="card-info">
+            <div class="card-name">${f.name}</div>
+            ${f.title ? `<div class="card-title">${f.title}</div>` : ''}
+            <div class="card-meta">${fmtSize(f.size)} • ${f.lines} lines • ${fmtAge(f.modified)}</div>
+          </div>
+        </div>
+        ${f.tech.length ? `<div class="card-tags">${f.tech.map(t => `<span class="tag tag-${t}">${TECH_META[t]?.name || t}</span>`).join('')}</div>` : ''}
+        ${f.links.length + inCount > 0 ? `<div class="card-links"><span>${f.links.length}</span> out • <span>${inCount}</span> in</div>` : ''}
+      </div>
+    `;
+  }).join('');
+  
+  document.querySelectorAll('.card[data-file]').forEach(el => {
+    el.onclick = () => selectFile(el.dataset.file);
+  });
+}
+
+// Select file
+function selectFile(name) {
+  selected = name;
+  const f = DATA.files.find(x => x.name === name);
+  if (!f) return;
+  
+  document.getElementById('inspEmpty').style.display = 'none';
+  document.getElementById('inspContent').classList.add('show');
+  
+  document.getElementById('inspTitle').textContent = f.name;
+  document.getElementById('inspSubtitle').textContent = f.title || '';
+  document.getElementById('inspSize').textContent = fmtSize(f.size);
+  document.getElementById('inspLines').textContent = f.lines.toLocaleString();
+  document.getElementById('inspDate').textContent = fmtDate(f.modified);
+  document.getElementById('inspAge').textContent = fmtAge(f.modified);
+  document.getElementById('inspCat').textContent = CAT_META[f.category]?.name || f.category;
+  
+  document.getElementById('inspTech').innerHTML = f.tech.length ?
+    f.tech.map(t => `<span class="tag tag-${t}">${TECH_META[t]?.name || t}</span>`).join('') :
+    '<span style="color:var(--muted); font-size:8px;">None</span>';
+  
+  document.getElementById('inspOutCount').textContent = f.links.length;
+  document.getElementById('inspOutLinks').innerHTML = f.links.length ?
+    f.links.map(l => `<a href="${l}" class="link-item"><span class="link-arrow">→</span> ${l}</a>`).join('') :
+    '<span style="color:var(--muted); font-size:8px;">None</span>';
+  
+  const ins = inLinks[f.name] || [];
+  document.getElementById('inspInCount').textContent = ins.length;
+  document.getElementById('inspInLinks').innerHTML = ins.length ?
+    ins.map(l => `<a href="${l}" class="link-item"><span class="link-arrow">←</span> ${l}</a>`).join('') :
+    '<span style="color:var(--muted); font-size:8px;">None</span>';
+  
+  document.getElementById('inspDepTree').textContent = buildTree(f.name, 0, new Set()) || 'No dependencies';
+  document.getElementById('openBtn').href = f.name;
+  
+  renderGrid();
+}
+
+function buildTree(name, depth, visited) {
+  if (depth > 3 || visited.has(name)) return '';
+  visited.add(name);
+  const f = DATA.files.find(x => x.name === name);
+  if (!f) return '';
+  let out = '  '.repeat(depth) + (depth ? '└─ ' : '') + name + '\n';
+  f.links.forEach(l => out += buildTree(l, depth + 1, visited));
+  return out;
+}
+
+// Stats
+function updateStats() {
+  document.getElementById('statFiles').textContent = DATA.files.length;
+  document.getElementById('statSize').textContent = fmtSize(DATA.files.reduce((s, f) => s + f.size, 0));
+  document.getElementById('statLinks').textContent = DATA.files.reduce((s, f) => s + f.links.length, 0);
+  document.getElementById('statGen').textContent = DATA.generated ? new Date(DATA.generated).toLocaleString() : '-';
+}
+
+// Events
+document.querySelectorAll('.sort-btn').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    sort = btn.dataset.sort;
+    renderGrid();
+  };
+});
+
+document.getElementById('search').oninput = e => { query = e.target.value.toLowerCase(); renderGrid(); };
+
+// Load data
+fetch('sitemap-data.json')
+  .then(r => r.json())
+  .then(d => {
+    DATA = d;
+    buildInLinks();
+    updateStats();
+    renderSidebar();
+    renderGrid();
+  })
+  .catch(e => {
+    document.getElementById('grid').innerHTML = `
+      <div style="grid-column:1/-1; text-align:center; padding:40px; color:var(--muted);">
+        <div style="font-size:11px; margin-bottom:8px;">Could not load sitemap-data.json</div>
+        <div style="font-size:9px;">Run: <code>./analyze-sitemap.sh > sitemap-data.json</code></div>
+      </div>
+    `;
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>SITEMAP Manifold 04 | Studios as Territory</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap');
+
+    :root {
+      --bg-land: #e8e4dc;
+      --ink-primary: #1c1917;
+      --ink-secondary: #57534e;
+      --ink-faint: #a8a29e;
+      --accent-geo: #b45309;
+      --accent-active: #0f766e;
+      --strata-dark: #2a2623;
+      --strata-light: #d6d3cd;
+    }
+
+    body.dark-mode {
+      --bg-land: #0a0a0a;
+      --ink-primary: #e5e5e5;
+      --ink-secondary: #737373;
+      --ink-faint: #262626;
+      --accent-geo: #fb923c;
+      --accent-active: #2dd4bf;
+      --strata-dark: #000000;
+      --strata-light: #262626;
+    }
+
+    body {
+      background-color: #050505;
+      color: var(--ink-primary);
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    #stage {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
+
+    #iframe-layer {
+      position: absolute;
+      z-index: 0;
+      width: 100%;
+      height: 100%;
+      display: none;
+      background: white;
+      transition: filter 0.5s;
+    }
+
+    #iframe-layer.active {
+      display: block;
+    }
+
+    #active-frame {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    canvas {
+      position: absolute;
+      inset: 0;
+      z-index: 10;
+      pointer-events: auto;
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    body.portal-active canvas {
+      transform: scale(1.02);
+    }
+
+    .texture-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 11;
+      opacity: 0.5;
+      mix-blend-mode: multiply;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.3'/%3E%3C/svg%3E");
+    }
+
+    body.dark-mode .texture-overlay {
+      mix-blend-mode: overlay;
+      opacity: 0.15;
+    }
+
+    #labels-layer {
+      position: absolute;
+      inset: 0;
+      z-index: 20;
+      pointer-events: none;
+    }
+
+    .geo-label {
+      position: absolute;
+      transform: translate(-50%, -60%);
+      font-family: 'Cinzel', serif;
+      font-weight: 700;
+      font-size: 0.8rem;
+      color: var(--ink-primary);
+      opacity: 0.55;
+      pointer-events: auto;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      text-align: center;
+      letter-spacing: 0.1em;
+      text-shadow: 0 0 12px var(--bg-land);
+      padding: 6px 10px;
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+
+    .geo-label:hover {
+      opacity: 0.85;
+      transform: translate(-50%, -64%);
+      text-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    }
+
+    .geo-label.active-label {
+      opacity: 1;
+      color: var(--accent-active);
+      text-shadow: 0 0 22px rgba(0, 0, 0, 0.8);
+    }
+
+    .geo-label.hidden-label {
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(-50%, -40%);
+    }
+
+    .hud-bar {
+      position: fixed;
+      top: 32px;
+      left: 32px;
+      z-index: 30;
+      pointer-events: none;
+      mix-blend-mode: exclusion;
+    }
+
+    .close-btn {
+      position: fixed;
+      top: 32px;
+      right: 32px;
+      z-index: 100;
+      width: 56px;
+      height: 56px;
+      background: var(--ink-primary);
+      color: var(--bg-land);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      transform: scale(0.8) rotate(-90deg);
+    }
+
+    .close-btn.visible {
+      opacity: 1;
+      pointer-events: auto;
+      transform: scale(1) rotate(0deg);
+    }
+
+    .close-btn:hover {
+      transform: scale(1.1) rotate(90deg);
+      background: var(--accent-geo);
+    }
+
+    .portal-controls {
+      position: fixed;
+      top: 32px;
+      right: 100px;
+      z-index: 100;
+      display: flex;
+      gap: 8px;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.4s;
+    }
+
+    .portal-controls.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .portal-btn {
+      width: 44px;
+      height: 44px;
+      background: var(--bg-land);
+      color: var(--ink-primary);
+      border: 1px solid var(--ink-secondary);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .portal-btn:hover {
+      background: var(--accent-active);
+      color: var(--bg-land);
+    }
+
+    body.portal-active canvas {
+      pointer-events: none;
+    }
+
+    .control-dock {
+      position: fixed;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 30;
+      display: flex;
+      gap: 16px;
+      background: var(--bg-land);
+      padding: 10px 24px;
+      border-radius: 32px;
+      border: 1px solid var(--ink-secondary);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s;
+    }
+
+    body.portal-active .control-dock {
+      transform: translateX(-50%) translateY(200%);
+    }
+
+    .btn-icon {
+      color: var(--ink-primary);
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-icon:hover {
+      color: var(--accent-geo);
+      transform: scale(1.1);
+    }
+
+    .status-text {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--ink-secondary);
+      margin-top: 8px;
+      opacity: 0.9;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+    }
+
+    .hover-preview {
+      position: fixed;
+      left: 32px;
+      bottom: 32px;
+      max-width: 260px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.96);
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      color: #e5e7eb;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      line-height: 1.5;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      z-index: 25;
+    }
+
+    .hover-preview.visible {
+      opacity: 1;
+    }
+
+    .hover-preview-title {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+
+    .hover-preview-sub {
+      font-size: 0.65rem;
+      color: #9ca3af;
+      margin-top: 2px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="stage">
+    <div id="iframe-layer">
+      <iframe id="active-frame" src=""></iframe>
+    </div>
+
+    <canvas id="c"></canvas>
+    <div class="texture-overlay"></div>
+    <div id="labels-layer"></div>
+  </div>
+
+  <div class="hud-bar">
+    <h1 class="text-4xl font-serif font-bold italic tracking-tighter" style="color: #888;">
+      SITEMAP <span
+        class="not-italic text-xs font-sans font-semibold tracking-widest ml-2 uppercase border border-current px-2 py-1 rounded-full">Studios
+        as Territory</span>
+    </h1>
+    <div class="status-text" id="hud-status" style="color: #888;">SYSTEM IDLE</div>
+  </div>
+
+  <div id="hover-preview" class="hover-preview"></div>
+
+  <div id="portal-controls" class="portal-controls">
+    <button id="btn-newtab" class="portal-btn" title="Open in new tab">
+      <i data-lucide="external-link" class="w-5 h-5"></i>
+    </button>
+    <button id="btn-fullscreen" class="portal-btn" title="Fullscreen">
+      <i data-lucide="maximize" class="w-5 h-5"></i>
+    </button>
+  </div>
+
+  <div id="btn-close" class="close-btn">
+    <i data-lucide="x" class="w-8 h-8"></i>
+  </div>
+
+  <div class="control-dock">
+    <button id="btn-theme" class="btn-icon"><i data-lucide="moon" class="w-5 h-5"></i></button>
+    <div class="w-px h-4 bg-[var(--ink-secondary)] opacity-30 my-auto"></div>
+    <button id="btn-reset" class="btn-icon"><i data-lucide="rotate-ccw" class="w-5 h-5"></i></button>
+    <button id="btn-sound" class="btn-icon"><i data-lucide="volume-2" class="w-5 h-5"></i></button>
+  </div>
+
+  <script>
+    (function () {
+      lucide.createIcons();
+
+      const CONFIG = {
+        GRID_W: 240,
+        GRID_H: 140,
+        AGENTS: 32,
+      };
+
+      let audioCtx = null;
+      let audioEnabled = true;
+
+      function initAudio() {
+        if (audioCtx) return;
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) {
+          audioEnabled = false;
+          return;
+        }
+        audioCtx = new AC();
+      }
+
+      function playTone(freq, dur, gainVal) {
+        if (!audioEnabled) return;
+        initAudio();
+        if (!audioCtx) return;
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(gainVal, now);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + dur);
+      }
+
+      function sonifyHover(region) {
+        if (!region) return;
+        const lvl = region.trailLevel || 0;
+        const base = 220;
+        const freq = base + lvl * 55 + Math.min(region.commits || 0, 20) * 2;
+        playTone(freq, 0.12, 0.035);
+      }
+
+      function sonifyPortal(region) {
+        if (!region) return;
+        playTone(180, 0.22, 0.07);
+        setTimeout(() => playTone(110, 0.35, 0.06), 80);
+      }
+
+      let heatGrid;
+      let agents = [];
+      let width, height;
+
+      let REGIONS = [];
+      let RAW_ACTIVITIES = {};
+
+      const STUDIO_DEFS = {
+        'swiss-frank-grace': {
+          id: 'swiss-frank-grace', label: 'SWISS / FRANK / GRACE',
+          pos: { x: 0.18, y: 0.35 },
+          url: 'swiss-frank-grace-studio.html',
+          desc: 'Designer hub + bus + editor constellation.',
+          type: 'highlands'
+        },
+        'gold-courage': {
+          id: 'gold-courage', label: 'GOLD / COURAGE',
+          pos: { x: 0.32, y: 0.22 },
+          url: 'wag-viewer-prime-integration-20251112-055341 copy/wag-gold-editor.html',
+          desc: 'Flagship MPD editors and GOLD pipeline.',
+          type: 'plateau'
+        },
+        'homer': {
+          id: 'homer', label: 'HOMER STUDIO',
+          pos: { x: 0.32, y: 0.5 },
+          url: 'homer.html',
+          desc: 'Trubador chain: Swiss → Frank → Courage → Weaver → Were → Master → Mento.',
+          type: 'mountain'
+        },
+        'timber': {
+          id: 'timber', label: 'TIMBER',
+          pos: { x: 0.5, y: 0.32 },
+          url: 'timber-studio.html',
+          desc: 'Selection bus and stud skeleton labs.',
+          type: 'ridge'
+        },
+        'bull': {
+          id: 'bull', label: 'BULL ASSEMBLY',
+          pos: { x: 0.6, y: 0.2 },
+          url: 'bull-assembly-studio.html',
+          desc: 'MPD → GOLD → stud skeleton line.',
+          type: 'plateau'
+        },
+        'onyx': {
+          id: 'onyx', label: 'ONYX',
+          pos: { x: 0.7, y: 0.45 },
+          url: 'onyx-thumb.html',
+          desc: 'Guardian debates reader body and archive.',
+          type: 'mountain'
+        },
+        'brick': {
+          id: 'brick', label: 'BRICK GRID',
+          pos: { x: 0.2, y: 0.7 },
+          url: 'brick-grid-family.html',
+          desc: '9×9 code terrains and hyper-grids.',
+          type: 'highlands'
+        },
+        'ator': {
+          id: 'ator', label: '-ATORS',
+          pos: { x: 0.4, y: 0.8 },
+          url: 'ator-studio.html',
+          desc: 'Minifig / Location / Vehicle / Scene / Movie / World builders.',
+          type: 'plateau'
+        },
+        'wag': {
+          id: 'wag', label: 'WAG CORE',
+          pos: { x: 0.8, y: 0.65 },
+          url: 'wag-hub.html',
+          desc: 'Words Assemble Geometries presentations and hub.',
+          type: 'valley'
+        },
+        'tutorials': {
+          id: 'tutorials', label: 'DOCS / TUTORIALS',
+          pos: { x: 0.12, y: 0.52 },
+          url: 'studio-tutorial.html',
+          desc: 'OLOGs, READMEs, and quickstarts.',
+          type: 'shelf'
+        },
+        'core': {
+          id: 'core', label: 'CORE PROJECTS',
+          pos: { x: 0.6, y: 0.8 },
+          url: 'thousand-tetrad.html',
+          desc: 'Thousand Tetrad, Fork, Holo, MAC‑01.',
+          type: 'mountain'
+        },
+        'mento': {
+          id: 'mento', label: 'MENTO',
+          pos: { x: 0.85, y: 0.32 },
+          url: 'Brickfilm_Studio_Kit/REALITY MEDIA_MOMENTO/momento.html',
+          desc: 'Capture layer and brickfilm camera.',
+          type: 'islands'
+        }
+      };
+
+      function classifyStudio(file, patterns, title) {
+        const hay = `${file.toLowerCase()} ${(patterns || '').toLowerCase()} ${(title || '').toLowerCase()}`;
+        const defs = {
+          'swiss-frank-grace': ['swiss', 'frank', 'grace'],
+          'gold-courage': ['wag-gold', 'wag-courage', 'gold-editor'],
+          'homer': ['homer'],
+          'timber': ['timber-studio', 'timber-docs'],
+          'bull': ['bull-assembly'],
+          'onyx': ['onyx-'],
+          'brick': ['brick-', 'hyper-grid'],
+          'ator': ['ator', 'minifigurator', 'locationator', 'vehiculator', 'sceneerator', 'movieator', 'worldinator'],
+          'wag': ['wag-hub', 'wag-pres', 'wag-prot', 'wag-work', 'words-become-worlds'],
+          'tutorials': ['tutorial', 'OLOG', 'README', 'PHILOSOPHY'],
+          'core': ['thousand-tetrad', 'fork.html', 'holo-project', 'mac-01'],
+          'mento': ['mento']
+        };
+        for (const [id, keys] of Object.entries(defs)) {
+          if (keys.some(k => hay.includes(k.toLowerCase()))) return id;
+        }
+        return null;
+      }
+
+      function handleResize() {
+        width = window.innerWidth;
+        height = window.innerHeight;
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const canvas = document.getElementById('c');
+        const ctx = canvas.getContext('2d');
+        canvas.width = width * dpr;
+        canvas.height = height * dpr;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        CONFIG.GRID_W = 240;
+        CONFIG.GRID_H = Math.floor(240 * (height / width));
+      }
+
+      function pseudoRandom(x, y) {
+        return Math.sin(x * 12.9898 + y * 78.233) * 43758.5453 - Math.floor(Math.sin(x * 12.9898 + y * 78.233) * 43758.5453);
+      }
+
+      function noise(x, y) {
+        const i = Math.floor(x); const j = Math.floor(y);
+        const u = x - i; const v = y - j;
+        const su = u * u * (3 - 2 * u); const sv = v * v * (3 - 2 * v);
+        const a = pseudoRandom(i, j); const b = pseudoRandom(i + 1, j);
+        const c = pseudoRandom(i, j + 1); const d = pseudoRandom(i + 1, j + 1);
+        return (a * (1 - su) + b * su) * (1 - sv) + (c * (1 - su) + d * su) * sv;
+      }
+
+      function deposit(nx, ny, radPct, val) {
+        const gx = Math.floor(nx * CONFIG.GRID_W);
+        const gy = Math.floor(ny * CONFIG.GRID_H);
+        const r = Math.ceil(radPct * CONFIG.GRID_W);
+        for (let y = gy - r; y <= gy + r; y++) {
+          for (let x = gx - r; x <= gx + r; x++) {
+            if (x >= 0 && x < CONFIG.GRID_W && y >= 0 && y < CONFIG.GRID_H) {
+              const d = Math.sqrt((x - gx) ** 2 + (y - gy) ** 2);
+              if (d < r) heatGrid[y * CONFIG.GRID_W + x] += val * 0.1;
+            }
+          }
+        }
+      }
+
+      class Agent {
+        constructor() {
+          this.pos = { x: Math.random(), y: Math.random() };
+          this.pickTarget();
+          this.color = ['#b45309', '#0f766e', '#7c2d12'][Math.floor(Math.random() * 3)];
+        }
+        pickTarget() {
+          this.targetRegion = REGIONS[Math.floor(Math.random() * REGIONS.length)];
+          this.targetPos = {
+            x: this.targetRegion.x + (Math.random() - 0.5) * 0.1,
+            y: this.targetRegion.y + (Math.random() - 0.5) * 0.1
+          };
+        }
+        update() {
+          if (!this.targetRegion) return;
+          const aspect = width / height;
+          const dx = (this.targetPos.x - this.pos.x) * aspect;
+          const dy = (this.targetPos.y - this.pos.y);
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist < 0.02) {
+            deposit(this.pos.x, this.pos.y, 0.03, 0.35);
+            this.pickTarget();
+          } else {
+            const speed = 0.0004;
+            this.pos.x += (dx / dist) * speed / aspect;
+            this.pos.y += (dy / dist) * speed;
+            this.pos.x += (Math.random() - 0.5) * 0.0015;
+            this.pos.y += (Math.random() - 0.5) * 0.0015;
+            if (Math.random() > 0.7) deposit(this.pos.x, this.pos.y, 0.01, 0.05);
+          }
+        }
+      }
+
+      const canvas = document.getElementById('c');
+      const ctx = canvas.getContext('2d');
+      const iframeLayer = document.getElementById('iframe-layer');
+      const activeFrame = document.getElementById('active-frame');
+      const btnClose = document.getElementById('btn-close');
+      const hudStatus = document.getElementById('hud-status');
+      const hoverPreview = document.getElementById('hover-preview');
+
+      let activeRegion = null;
+      const portalState = {
+        open: false,
+        radius: 0,
+        targetRadius: 0,
+        center: { x: 0, y: 0 },
+        noiseOffset: 0,
+        vertices: []
+      };
+
+      async function loadSitemapData() {
+        try {
+          const res = await fetch('file-learnings.json');
+          const data = await res.json();
+          const files = data.files.filter(f => !f._end && f.file && f.born);
+
+          const studioGroups = {};
+          files.forEach(f => {
+            const sid = classifyStudio(f.file, f.patterns, f.title);
+            if (!sid || !STUDIO_DEFS[sid]) return;
+            if (!studioGroups[sid]) studioGroups[sid] = { files: [], patterns: {} };
+            studioGroups[sid].files.push(f);
+            (f.patterns || '').split(',').forEach(p => {
+              const k = p.trim();
+              if (!k || k.includes('Binary')) return;
+              studioGroups[sid].patterns[k] = (studioGroups[sid].patterns[k] || 0) + 1;
+            });
+          });
+
+          REGIONS = [];
+          RAW_ACTIVITIES = {};
+          Object.values(STUDIO_DEFS).forEach(def => {
+            const group = studioGroups[def.id] || { files: [], patterns: {} };
+            const count = group.files.length;
+            const commits = count;
+            let dateRange = '';
+            if (count) {
+              const borns = group.files.map(f => f.born * 1000);
+              const min = new Date(Math.min(...borns));
+              const max = new Date(Math.max(...borns));
+              const fmt = d => d.toISOString().slice(0, 10);
+              dateRange = `${fmt(min)} → ${fmt(max)}`;
+            }
+            const topPatterns = Object.entries(group.patterns)
+              .sort((a, b) => b[1] - a[1])
+              .slice(0, 4)
+              .map(([k]) => k);
+
+            const trailLevel = count > 10 ? 2 : count > 4 ? 1 : 0;
+
+            RAW_ACTIVITIES[def.id] = {
+              url: def.url,
+              type: def.type,
+              moves: topPatterns
+            };
+
+            REGIONS.push({
+              id: def.id,
+              x: def.pos.x,
+              y: def.pos.y,
+              label: def.label,
+              desc: def.desc,
+              commits,
+              dateRange,
+              trailLevel
+            });
+          });
+        } catch (e) {
+          console.warn('Failed to load file-learnings.json, falling back to static regions', e);
+          REGIONS = Object.values(STUDIO_DEFS).map(def => ({
+            id: def.id,
+            x: def.pos.x,
+            y: def.pos.y,
+            label: def.label,
+            desc: def.desc,
+            commits: 0,
+            dateRange: '',
+            trailLevel: 1
+          }));
+        }
+      }
+
+      function createLabels() {
+        const labelsContainer = document.getElementById('labels-layer');
+        labelsContainer.innerHTML = '';
+        REGIONS.forEach(r => {
+          const el = document.createElement('div');
+          el.className = 'geo-label';
+          el.dataset.id = r.id;
+          el.style.left = (r.x * 100) + '%';
+          el.style.top = (r.y * 100) + '%';
+          el.innerHTML = `${r.label}<br><span style="display:block;font-family:'JetBrains Mono',monospace;font-size:0.65rem;opacity:0.7;letter-spacing:0.08em;text-transform:uppercase;">${r.commits || 0} files</span>`;
+
+          el.addEventListener('mouseenter', () => {
+            if (activeRegion) return;
+            setHoveredRegion(r, true);
+          });
+
+          el.addEventListener('mouseleave', () => {
+            if (activeRegion) return;
+            setHoveredRegion(null, false);
+          });
+
+          el.addEventListener('click', (evt) => {
+            evt.stopPropagation();
+            if (!activeRegion) openPortal(r);
+          });
+          labelsContainer.appendChild(el);
+        });
+      }
+
+      function initTerrain() {
+        heatGrid = new Float32Array(CONFIG.GRID_W * CONFIG.GRID_H);
+        for (let y = 0; y < CONFIG.GRID_H; y++) {
+          for (let x = 0; x < CONFIG.GRID_W; x++) {
+            const nx = x / CONFIG.GRID_W; const ny = y / CONFIG.GRID_H;
+            let h = noise(nx * 4, ny * 4) * 0.5 + noise(nx * 9, ny * 9) * 0.2;
+            REGIONS.forEach(r => {
+              const d = Math.sqrt((nx - r.x) ** 2 + (ny - r.y) ** 2);
+              if (d < 0.15) h += (0.15 - d) * (2 + (r.trailLevel || 1));
+            });
+            heatGrid[y * CONFIG.GRID_W + x] = Math.max(0, h);
+          }
+        }
+      }
+
+      function openPortal(region) {
+        activeRegion = region;
+        const activity = RAW_ACTIVITIES[region.id];
+        if (!activity || !activity.url) return;
+
+        sonifyPortal(region);
+
+        const dim = Math.sqrt(width * width + height * height);
+        portalState.targetRadius = dim * 0.6;
+        portalState.center = { x: region.x * width, y: region.y * height };
+        portalState.open = true;
+
+        portalState.vertices = [];
+        const numVerts = 60;
+        for (let i = 0; i < numVerts; i++) {
+          portalState.vertices.push({
+            angle: (i / numVerts) * Math.PI * 2,
+            noise: Math.random() * 0.2
+          });
+        }
+
+        document.body.classList.add('portal-active');
+        iframeLayer.classList.add('active');
+        activeFrame.src = activity.url;
+        activeFrame.dataset.currentUrl = activity.url;
+
+        btnClose.classList.add('visible');
+        document.getElementById('portal-controls').classList.add('visible');
+
+        document.querySelectorAll('.geo-label').forEach(el => {
+          if (el.dataset.id === region.id) el.classList.add('hidden-label');
+        });
+
+        hudStatus.textContent = `PORTAL: ${region.label}`;
+      }
+
+      function closePortal() {
+        portalState.targetRadius = 0;
+        document.body.classList.remove('portal-active');
+        btnClose.classList.remove('visible');
+        document.getElementById('portal-controls').classList.remove('visible');
+        document.querySelectorAll('.geo-label').forEach(el => el.classList.remove('hidden-label'));
+        hudStatus.textContent = 'SYSTEM IDLE';
+        setTimeout(() => {
+          activeRegion = null;
+          portalState.open = false;
+          activeFrame.src = '';
+          iframeLayer.classList.remove('active');
+        }, 600);
+      }
+
+      function openInNewTab() {
+        const url = activeFrame.dataset.currentUrl;
+        if (url) window.open(url, '_blank');
+      }
+
+      function toggleFullscreen() {
+        if (!document.fullscreenElement) {
+          iframeLayer.requestFullscreen().catch(() => { });
+        } else {
+          document.exitFullscreen();
+        }
+      }
+
+      function toggleTheme() {
+        document.body.classList.toggle('dark-mode');
+      }
+
+      let hoveredRegion = null;
+
+      function updateHoverPreview(region) {
+        if (!region) {
+          hoverPreview.classList.remove('visible');
+          hoverPreview.innerHTML = '';
+          return;
+        }
+        const activity = RAW_ACTIVITIES[region.id] || {};
+        const moves = (activity.moves || []).slice(0, 3);
+        hoverPreview.innerHTML = `
+          <div class="hover-preview-title">${region.label}</div>
+          <div class="hover-preview-sub">${region.commits || 0} files${region.dateRange ? ` · ${region.dateRange}` : ''}</div>
+          ${moves.length ? `<div class="hover-preview-sub">${moves.join(' · ')}</div>` : ''}
+        `;
+        hoverPreview.classList.add('visible');
+      }
+
+      function setHoveredRegion(region, fromLabel) {
+        if (region === hoveredRegion) return;
+        hoveredRegion = region;
+
+        document.querySelectorAll('.geo-label').forEach(el => el.classList.remove('active-label'));
+        if (region) {
+          const label = document.querySelector(`.geo-label[data-id="${region.id}"]`);
+          if (label) label.classList.add('active-label');
+          canvas.style.cursor = 'pointer';
+          hudStatus.textContent = `EXCAVATE: ${region.label}`;
+          hudStatus.style.color = 'var(--accent-active)';
+          updateHoverPreview(region);
+          if (!fromLabel) sonifyHover(region);
+        } else {
+          canvas.style.cursor = 'default';
+          hudStatus.textContent = 'SYSTEM IDLE';
+          hudStatus.style.color = 'inherit';
+          updateHoverPreview(null);
+        }
+      }
+
+      function handleHover(e) {
+        if (activeRegion) return;
+        const rect = canvas.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / width;
+        const y = (e.clientY - rect.top) / height;
+        let hit = null; let minDist = 999;
+        REGIONS.forEach(r => {
+          const d = Math.sqrt((r.x - x) ** 2 + (r.y - y) ** 2);
+          if (d < 0.23 && d < minDist) { minDist = d; hit = r; }
+        });
+        setHoveredRegion(hit, false);
+      }
+
+      function handleClick() {
+        if (activeRegion || !hoveredRegion) return;
+        openPortal(hoveredRegion);
+      }
+
+      function loop() {
+        agents.forEach(a => a.update());
+        portalState.radius += (portalState.targetRadius - portalState.radius) * 0.05;
+        portalState.noiseOffset += 0.01;
+
+        const isDark = document.body.classList.contains('dark-mode');
+        const bg = getComputedStyle(document.body).getPropertyValue('--bg-land').trim();
+        const strataDark = getComputedStyle(document.body).getPropertyValue('--strata-dark').trim();
+        const ink = getComputedStyle(document.body).getPropertyValue('--ink-primary').trim();
+
+        ctx.clearRect(0, 0, width, height);
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, width, height);
+
+        const cw = width / CONFIG.GRID_W;
+        const ch = height / CONFIG.GRID_H;
+        for (let y = 0; y < CONFIG.GRID_H; y++) {
+          for (let x = 0; x < CONFIG.GRID_W; x++) {
+            const idx = y * CONFIG.GRID_W + x;
+            const val = heatGrid[idx];
+            let isZone = false;
+            if (!activeRegion && hoveredRegion) {
+              const nx = x / CONFIG.GRID_W; const ny = y / CONFIG.GRID_H;
+              if (Math.sqrt((nx - hoveredRegion.x) ** 2 + (ny - hoveredRegion.y) ** 2) < 0.12) isZone = true;
+            }
+            if (val > 0.1 || isZone) {
+              let alpha = Math.min(val * 0.4, 0.9);
+              if (isZone) alpha = Math.max(alpha, 0.25);
+              ctx.fillStyle = isDark ? `rgba(251, 146, 60, ${alpha})` : `rgba(180, 83, 9, ${alpha})`;
+              ctx.fillRect(x * cw, y * ch, cw + 0.5, ch + 0.5);
+            }
+          }
+        }
+
+        const levels = 12;
+        ctx.lineWidth = 1.0;
+        ctx.strokeStyle = ink;
+        ctx.beginPath();
+        for (let y = 0; y < CONFIG.GRID_H - 1; y++) {
+          for (let x = 0; x < CONFIG.GRID_W - 1; x++) {
+            const idx = y * CONFIG.GRID_W + x;
+            const val = heatGrid[idx];
+            const right = heatGrid[idx + 1];
+            const down = heatGrid[idx + CONFIG.GRID_W];
+            const l1 = Math.floor(val * levels);
+            const l2 = Math.floor(right * levels);
+            const l3 = Math.floor(down * levels);
+            if (val > 0.15) {
+              if (l1 !== l2) { ctx.moveTo((x + 1) * cw, y * ch); ctx.lineTo((x + 1) * cw, (y + 1) * ch); }
+              if (l1 !== l3) { ctx.moveTo(x * cw, (y + 1) * ch); ctx.lineTo((x + 1) * cw, (y + 1) * ch); }
+            }
+          }
+        }
+        ctx.globalAlpha = 0.3;
+        ctx.stroke();
+        ctx.globalAlpha = 1.0;
+
+        // Studio hubs as explicit topology markers
+        REGIONS.forEach(r => {
+          const px = r.x * width;
+          const py = r.y * height;
+          const base = 10 + (r.trailLevel || 0) * 4;
+          const extra = Math.min(Math.sqrt(r.commits || 0) * 1.2, 14);
+          const radius = base + extra;
+
+          ctx.beginPath();
+          ctx.arc(px, py, radius, 0, Math.PI * 2);
+          ctx.strokeStyle = isDark ? 'rgba(15,23,42,0.95)' : 'rgba(87,83,78,0.9)';
+          ctx.lineWidth = 2.2;
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.arc(px, py, Math.max(radius - 6, 8), 0, Math.PI * 2);
+          ctx.strokeStyle = isDark ? 'rgba(248,250,252,0.9)' : 'rgba(24,24,27,0.95)';
+          ctx.lineWidth = 1.4;
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.arc(px, py, 4 + (r.trailLevel || 0), 0, Math.PI * 2);
+          ctx.fillStyle = isDark ? 'rgba(248,250,252,0.96)' : 'rgba(24,24,27,0.98)';
+          ctx.fill();
+        });
+
+        ctx.fillStyle = ink;
+        agents.forEach(a => {
+          if (!a.targetRegion) return;
+          let col = '#b45309';
+          switch (RAW_ACTIVITIES[a.targetRegion.id]?.type) {
+            case 'mountain': col = '#ea580c'; break;
+            case 'plateau': col = '#16a34a'; break;
+            case 'valley': col = '#0ea5e9'; break;
+            case 'highlands': col = '#22c55e'; break;
+            case 'ridge': col = '#64748b'; break;
+            case 'islands': col = '#facc15'; break;
+            case 'shelf': col = '#e5e7eb'; break;
+          }
+          ctx.fillStyle = col;
+          ctx.fillRect(a.pos.x * width, a.pos.y * height, 2, 2);
+        });
+
+        if (portalState.radius > 1) {
+          const cx = portalState.center.x;
+          const cy = portalState.center.y;
+          const r = portalState.radius;
+          const getJaggedR = (angle, baseR, seed) => {
+            const n = Math.sin(angle * 10 + portalState.noiseOffset) * 0.05 + Math.cos(angle * 25 + seed) * 0.02;
+            return baseR * (1 + n);
+          };
+
+          ctx.save();
+          ctx.globalCompositeOperation = 'destination-out';
+          ctx.beginPath();
+          portalState.vertices.forEach((v, i) => {
+            const radius = getJaggedR(v.angle, r, v.noise);
+            const px = cx + Math.cos(v.angle) * radius;
+            const py = cy + Math.sin(v.angle) * radius;
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+          });
+          ctx.closePath();
+          ctx.fill();
+          ctx.restore();
+
+          const layers = 3;
+          for (let j = 0; j < layers; j++) {
+            ctx.beginPath();
+            const layerOffset = 10 + j * 15;
+            ctx.strokeStyle = j % 2 === 0 ? strataDark : ink;
+            ctx.lineWidth = 2;
+            ctx.globalAlpha = 0.6 - (j * 0.15);
+            portalState.vertices.forEach((v, i) => {
+              const radius = getJaggedR(v.angle, r + layerOffset, v.noise);
+              const px = cx + Math.cos(v.angle) * radius;
+              const py = cy + Math.sin(v.angle) * radius;
+              if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+            });
+            ctx.closePath();
+            ctx.stroke();
+          }
+          ctx.globalAlpha = 1.0;
+        }
+
+        requestAnimationFrame(loop);
+      }
+
+      async function init() {
+        await loadSitemapData();
+        handleResize();
+        initTerrain();
+        createLabels();
+
+        for (let i = 0; i < CONFIG.AGENTS; i++) agents.push(new Agent());
+
+        window.addEventListener('resize', handleResize);
+        canvas.addEventListener('mousemove', handleHover);
+        canvas.addEventListener('click', handleClick);
+        btnClose.addEventListener('click', closePortal);
+        document.getElementById('btn-newtab').addEventListener('click', openInNewTab);
+        document.getElementById('btn-fullscreen').addEventListener('click', toggleFullscreen);
+        document.getElementById('btn-theme').addEventListener('click', toggleTheme);
+        document.getElementById('btn-reset').addEventListener('click', () => window.location.reload());
+        document.getElementById('btn-sound').addEventListener('click', () => {
+          audioEnabled = !audioEnabled;
+          const icon = document.querySelector('#btn-sound i');
+          if (icon) {
+            icon.setAttribute('data-lucide', audioEnabled ? 'volume-2' : 'volume-x');
+            lucide.createIcons();
+          }
+          if (audioEnabled) initAudio();
+        });
+        document.addEventListener('keydown', e => { if (e.key === 'Escape' && activeRegion) closePortal(); });
+
+        requestAnimationFrame(loop);
+      }
+
+      init();
+    })();
+  </script>
+</body>
+
+</html>

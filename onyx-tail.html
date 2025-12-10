@@ -487,9 +487,13 @@
                 <i class="fas fa-gem w-4 h-4"></i>
                 <span>Heist</span>
             </button>
-            <button onclick="COMPILER.loadScenario('romance')" class="tool-item w-full justify-center">
+            <button onclick="COMPILER.loadScenario('romance')" class="tool-item w-full justify-center mb-2">
                 <i class="fas fa-heart w-4 h-4"></i>
                 <span>Romance</span>
+            </button>
+            <button onclick="PERSISTENCE.loadScenarioSeeds()" class="tool-item w-full justify-center" style="border-color: var(--theme-scene);">
+                <i class="fas fa-database w-4 h-4" style="color: var(--theme-scene);"></i>
+                <span style="color: var(--theme-scene);">Load 57 Seeds</span>
             </button>
         </div>
     </aside>
@@ -2133,10 +2137,13 @@
             startDrag(e, id) {
                 e.stopPropagation();
                 STATE.draggedNodeId = id;
+                STATE.dragMoved = false; // Track if actual drag occurred
 
                 const evt = e.touches ? e.touches[0] : e;
                 STATE.lastX = evt.clientX;
                 STATE.lastY = evt.clientY;
+                STATE.dragStartX = evt.clientX;
+                STATE.dragStartY = evt.clientY;
 
                 document.body.style.cursor = 'grabbing';
             },
@@ -2173,6 +2180,10 @@
                 const deltaX = evt.clientX - STATE.lastX;
                 const deltaY = evt.clientY - STATE.lastY;
 
+                // Mark as actual drag if moved more than 5px threshold
+                const totalDist = Math.abs(evt.clientX - STATE.dragStartX) + Math.abs(evt.clientY - STATE.dragStartY);
+                if (totalDist > 5) STATE.dragMoved = true;
+
                 STATE.lastX = evt.clientX;
                 STATE.lastY = evt.clientY;
 
@@ -2195,10 +2206,19 @@
                 }
             },
 
-            handleDragEnd() {
+            handleDragEnd(e) {
                 if (!STATE.draggedNodeId) return;
 
-                const node = STATE.nodes.find(n => n.id === STATE.draggedNodeId);
+                const nodeId = STATE.draggedNodeId;
+                const node = STATE.nodes.find(n => n.id === nodeId);
+                
+                // If no actual drag movement, treat as tap/click for selection
+                if (!STATE.dragMoved && node) {
+                    STATE.draggedNodeId = null;
+                    document.body.style.cursor = 'default';
+                    INSPECTOR.select(nodeId);
+                    return;
+                }
                 if (node) {
                     const snapped = GRID.snap(node.x, node.y);
                     node.x = snapped.x;
@@ -2268,7 +2288,25 @@
                     inspectorCollapsed: STATE.inspectorCollapsed,
                     consoleCollapsed: STATE.consoleCollapsed
                 };
-                localStorage.setItem('onyx_storytelling_state', JSON.stringify(data));
+                try {
+                    localStorage.setItem('onyx_storytelling_state', JSON.stringify(data));
+                } catch (e) {
+                    // Quota exceeded - clear old data and retry with minimal state
+                    console.warn('[PERSISTENCE] Quota exceeded, clearing old state');
+                    try {
+                        localStorage.removeItem('onyx_storytelling_state');
+                        // Save only essential data (limit nodes to last 50)
+                        const minimalData = {
+                            nodes: data.nodes.slice(-50),
+                            links: data.links.slice(-100),
+                            viewMode: data.viewMode,
+                            theme: data.theme
+                        };
+                        localStorage.setItem('onyx_storytelling_state', JSON.stringify(minimalData));
+                    } catch (e2) {
+                        console.error('[PERSISTENCE] Cannot save even minimal state');
+                    }
+                }
             },
 
             load() {
@@ -2293,6 +2331,89 @@
                 } catch (e) {
                     LOG.error('Failed to load state');
                 }
+            },
+            
+            // Load scenario seeds from scenario-seeds.json
+            loadScenarioSeeds() {
+                const url = 'scenario-seeds.json';
+                console.log('[ONYX-TAIL] Loading scenario seeds from', url);
+                fetch(url)
+                    .then(res => {
+                        if (!res.ok) throw new Error('HTTP ' + res.status);
+                        return res.json();
+                    })
+                    .then(data => {
+                        const STAGE_COLORS = {
+                            GROUND: '#3b82f6',
+                            SITE: '#10b981',
+                            SKY: '#f97316',
+                            PERSPECTIVE: '#ef4444'
+                        };
+                        
+                        // Clear existing and create from seeds
+                        STATE.nodes = [];
+                        STATE.links = [];
+                        
+                        let col = 0;
+                        Object.entries(data.categories).forEach(([catId, cat]) => {
+                            // Category node
+                            const catPos = GRID.center(col, 0);
+                            const catNode = {
+                                id: Date.now() + Math.random() * 1000,
+                                type: 'place',
+                                icon: 'Place',
+                                label: catId,
+                                stage: cat.stage,
+                                x: catPos.x,
+                                y: catPos.y
+                            };
+                            STATE.nodes.push(catNode);
+                            
+                            // Scenario nodes under category
+                            let row = 1;
+                            cat.ids.forEach(id => {
+                                const s = data.scenarios[id];
+                                if (!s) return;
+                                
+                                const pos = GRID.center(col, row);
+                                const node = {
+                                    id: Date.now() + Math.random() * 1000,
+                                    type: 'entity',
+                                    icon: 'Entity',
+                                    label: s.name,
+                                    symbol: s.symbol,
+                                    role: s.role,
+                                    goal: s.goal,
+                                    obstacle: s.obstacle,
+                                    stage: s.stage,
+                                    category: s.category,
+                                    scenarioId: s.id,
+                                    x: pos.x,
+                                    y: pos.y
+                                };
+                                STATE.nodes.push(node);
+                                
+                                // Link to category
+                                STATE.links.push({
+                                    from: catNode.id,
+                                    to: node.id,
+                                    type: 'contains'
+                                });
+                                
+                                row++;
+                            });
+                            col++;
+                        });
+                        
+                        RENDERER.nodes();
+                        RENDERER.connections();
+                        this.save();
+                        LOG.toast('Loaded ' + STATE.nodes.length + ' scenario seeds');
+                    })
+                    .catch(err => {
+                        console.error('[ONYX-TAIL] Failed to load scenario seeds:', err);
+                        LOG.error('Failed to load scenario-seeds.json. Use local server.');
+                    });
             }
         };
 

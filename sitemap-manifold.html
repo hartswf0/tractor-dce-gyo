@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>▣ CULTURAL MANIFOLD — DCE‑GYO SITEMAP</title>
+  <style>
+    :root {
+      --bg: #f5f5f4;
+      --fg: #111827;
+      --accent: #e11d48;
+      --trail: #2563eb;
+      --grid: rgba(0, 0, 0, 0.08);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "JetBrains Mono", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", monospace;
+      background: radial-gradient(circle at top, #e5e7eb, #f9fafb 60%);
+      color: var(--fg);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      gap: 14px;
+    }
+
+    h1 {
+      font-size: 1rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+    }
+
+    .subtitle {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      opacity: 0.75;
+      text-align: center;
+    }
+
+    #canvas-wrap {
+      position: relative;
+      width: min(90vw, 520px);
+      height: min(90vw, 520px);
+      background: #fff;
+      border: 2px solid var(--fg);
+      box-shadow: 6px 6px 0 var(--accent);
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      cursor: crosshair;
+    }
+
+    .axis-labels {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      font-size: 0.55rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .axis-labels div {
+      position: absolute;
+      color: var(--fg);
+      background: rgba(255, 255, 255, 0.9);
+      padding: 2px 4px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      max-width: 520px;
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    button {
+      padding: 7px 10px;
+      border: 2px solid var(--fg);
+      background: white;
+      color: var(--fg);
+      font-family: inherit;
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+
+    button:hover { background: var(--fg); color: white; }
+
+    button.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+
+    input[type="range"] {
+      flex: 1;
+      height: 2px;
+      background: var(--grid);
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      background: var(--accent);
+      cursor: pointer;
+      border: none;
+    }
+
+    .info-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      max-width: 520px;
+      width: 100%;
+      justify-content: space-between;
+      margin-top: 4px;
+    }
+
+    .info {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      opacity: 0.65;
+    }
+
+    .status {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      opacity: 0.9;
+    }
+
+    .status span { font-weight: 700; }
+
+    .legend {
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      opacity: 0.8;
+      max-width: 520px;
+      width: 100%;
+      margin-top: 6px;
+    }
+
+    .legend-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid #000;
+      font-size: 0.6rem;
+      background: #fff;
+    }
+
+    .pill-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #000;
+    }
+
+    @media (max-width: 480px) {
+      body { padding: 12px; }
+      .controls { gap: 6px; }
+      button { padding: 6px 8px; }
+    }
+  </style>
+  <base target="_blank">
+</head>
+<body>
+  <h1>CULTURAL MANIFOLD · DCE‑GYO</h1>
+  <div class="subtitle">Studios & roles as a contour field over project time</div>
+
+  <div id="canvas-wrap">
+    <canvas id="canvas"></canvas>
+    <div class="axis-labels" id="axes"></div>
+  </div>
+
+  <div class="controls">
+    <button id="mode-fluid" class="active">Fluid</button>
+    <button id="mode-trail">Trail</button>
+    <input type="range" id="progress" min="0" max="100" value="100">
+    <button id="btn-play">▶</button>
+  </div>
+
+  <div class="info-row">
+    <div class="info">Fluid: click to disturb · Trail: scrub / play birth order</div>
+    <button id="btn-download">Download PNG</button>
+  </div>
+
+  <div class="status">
+    Phase: <span id="phase-label">–</span> · Role: <span id="role-label">–</span>
+  </div>
+
+  <div class="legend">
+    Axes: X = Studio phase · Y = Cultural role
+    <div class="legend-row">
+      <span class="pill"><span class="pill-dot" style="background:#0f766e"></span>Proto</span>
+      <span class="pill"><span class="pill-dot" style="background:#22c55e"></span>Studios</span>
+      <span class="pill"><span class="pill-dot" style="background:#fb923c"></span>Pipelines</span>
+      <span class="pill"><span class="pill-dot" style="background:#6366f1"></span>Performances</span>
+      <span class="pill"><span class="pill-dot" style="background:#6b7280"></span>Archives</span>
+    </div>
+  </div>
+
+  <script>
+    // --- CONFIG ---
+    const LOGICAL_SIZE = 20;
+    const RENDER_RES = 80;
+    const PHASES = ['Proto', 'Studios', 'Pipelines', 'Performances', 'Archives'];
+    const ROLES = ['Infrastructure', 'Editor', 'Performer', 'Community'];
+
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const axes = document.getElementById('axes');
+    const phaseLabel = document.getElementById('phase-label');
+    const roleLabel = document.getElementById('role-label');
+
+    const btnFluid = document.getElementById('mode-fluid');
+    const btnTrail = document.getElementById('mode-trail');
+    const progressSlider = document.getElementById('progress');
+    const btnPlay = document.getElementById('btn-play');
+    const btnDownload = document.getElementById('btn-download');
+
+    let width, height, dpr;
+    let mode = 'fluid';
+    let progress = 100;      // 0–100 (trail time)
+    let playing = false;
+    let lastTime = performance.now();
+
+    const logicGrid = new Float32Array(LOGICAL_SIZE * LOGICAL_SIZE);
+    const renderGrid = new Float32Array(RENDER_RES * RENDER_RES);
+
+    // Filled after loading file-learnings.json
+    let trailEvents = [];
+    let maxTime = 1;
+
+    const getLIdx = (x, y) => y * LOGICAL_SIZE + x;
+    const getRIdx = (x, y) => y * RENDER_RES + x;
+
+    // --- SETUP / RESIZE ---
+    function resize() {
+      const rect = canvas.parentElement.getBoundingClientRect();
+      width = rect.width;
+      height = rect.height;
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    function setupAxes() {
+      axes.innerHTML = '';
+      // X: phases
+      PHASES.forEach((phase, i) => {
+        const el = document.createElement('div');
+        el.style.bottom = '4px';
+        el.style.left = (i / (PHASES.length - 1) * 100) + '%';
+        el.style.transform = 'translateX(-50%)';
+        el.textContent = phase;
+        axes.appendChild(el);
+      });
+      // Y: roles
+      ROLES.forEach((role, i) => {
+        const el = document.createElement('div');
+        el.style.left = '4px';
+        el.style.top = (i / (ROLES.length - 1) * 100) + '%';
+        el.style.transform = 'translateY(-50%)';
+        el.textContent = role;
+        axes.appendChild(el);
+      });
+    }
+
+    // --- FILE MAPPING ---
+    const STUDIOS = {
+      'swiss-frank-grace': { label: 'Swiss / Frank / Grace', keys: ['swiss', 'frank', 'grace'] },
+      'gold-courage':      { label: 'Gold / Courage',        keys: ['gold', 'courage'] },
+      'homer':             { label: 'Homer',                  keys: ['homer'] },
+      'timber':            { label: 'Timber',                 keys: ['timber'] },
+      'bull':              { label: 'Bull',                   keys: ['bull-assembly', 'bull-assembly-studio'] },
+      'onyx':              { label: 'Onyx',                   keys: ['onyx-'] },
+      'brick':             { label: 'Brick Grid',             keys: ['brick-'] },
+      'ator':              { label: '-ators',                 keys: ['ator', 'minifig', 'locationator', 'vehiculator', 'sceneerator', 'movieator', 'worldinator'] },
+      'wag':               { label: 'WAG core',               keys: ['wag-'] },
+      'tutorials':         { label: 'Tutorials',              keys: ['tutorial', 'quickstart'] },
+      'core':              { label: 'Core projects',          keys: ['thousand-tetrad', 'fork.html', 'holo-project', 'mac-01'] },
+      'mento':             { label: 'Mento',                  keys: ['mento'] },
+    };
+
+    function classifyStudio(file, patterns, title) {
+      const hay = `${file.toLowerCase()} ${(patterns||'').toLowerCase()} ${(title||'').toLowerCase()}`;
+      for (const [id, s] of Object.entries(STUDIOS)) {
+        if (s.keys.some(k => hay.includes(k))) return id;
+      }
+      return 'misc';
+    }
+
+    function phaseForFile(f) {
+      const name = f.file.toLowerCase();
+      const patt = (f.patterns || '').toLowerCase();
+      const studio = classifyStudio(f.file, f.patterns, f.title);
+      if (name.includes('tutorial') || name.includes('olog') || name.includes('readme') || name.includes('docs') || name.includes('manifest')) return 'Archives';
+      if (patt.includes('stud') || patt.includes('skeleton') || patt.includes('mpd')) return 'Pipelines';
+      if (studio === 'timber' || studio === 'bull') return 'Pipelines';
+      if (studio === 'homer' || studio === 'swiss-frank-grace') return 'Studios';
+      if (studio === 'wag' || studio === 'core' || studio === 'onyx') return 'Performances';
+      // Early bricks, blocks, actors as proto
+      if (studio === 'brick' || studio === 'ator' || patt.includes('legos')) return 'Proto';
+      return 'Proto';
+    }
+
+    function roleForFile(f) {
+      const name = f.file.toLowerCase();
+      const patt = (f.patterns || '').toLowerCase();
+      if (name.includes('tutorial') || name.includes('olog') || name.includes('readme') || name.includes('docs')) return 'Community';
+      if (patt.includes('mpd') || patt.includes('ldraw') || patt.includes('stud') || patt.includes('skeleton')) return 'Infrastructure';
+      if (name.includes('editor') || name.includes('studio') || patt.includes('gold') || patt.includes('grid')) return 'Editor';
+      if (patt.includes('onyx') || name.includes('thumb') || name.includes('pres') || name.includes('words-become-worlds') || name.includes('fork.html') || name.includes('thousand-tetrad')) return 'Performer';
+      return 'Infrastructure';
+    }
+
+    function buildEvents(files) {
+      const sorted = [...files].sort((a,b) => a.born - b.born);
+      const n = sorted.length;
+      if (!n) return [];
+      const events = [];
+      const maxT = 18; // total trail duration
+      sorted.forEach((f, i) => {
+        const phase = phaseForFile(f);
+        const role = roleForFile(f);
+        if (!PHASES.includes(phase) || !ROLES.includes(role)) return;
+        const t = (i / Math.max(n - 1, 1)) * maxT;
+        const inten = 0.4 + 0.1 * Math.min((f.patterns || '').split(',').filter(x => x.trim()).length, 5);
+        events.push({ t, phase, role, intensity: Math.min(inten, 1.0) });
+      });
+      return { events, maxT };
+    }
+
+    // --- MAPPING ---
+    function eventToGrid(e) {
+      const px = PHASES.indexOf(e.phase);
+      const ry = ROLES.indexOf(e.role);
+      if (px < 0 || ry < 0) return null;
+      const gx = Math.round((px / (PHASES.length - 1)) * (LOGICAL_SIZE - 1));
+      const gy = Math.round((ry / (ROLES.length - 1)) * (LOGICAL_SIZE - 1));
+      return { gx, gy };
+    }
+
+    // --- STAMP + FIELD ---
+    function stamp(gx, gy, intensity) {
+      const radius = 3;
+      const sigma2 = radius * radius;
+      for (let y = gy - radius; y <= gy + radius; y++) {
+        if (y < 0 || y >= LOGICAL_SIZE) continue;
+        for (let x = gx - radius; x <= gx + radius; x++) {
+          if (x < 0 || x >= LOGICAL_SIZE) continue;
+          const dx = x - gx;
+          const dy = y - gy;
+          const dist2 = dx * dx + dy * dy;
+          const falloff = Math.exp(-dist2 / (2 * sigma2));
+          logicGrid[getLIdx(x, y)] += intensity * falloff;
+        }
+      }
+    }
+
+    function interpolate() {
+      const scale = (LOGICAL_SIZE - 1) / (RENDER_RES - 1);
+      for (let y = 0; y < RENDER_RES; y++) {
+        for (let x = 0; x < RENDER_RES; x++) {
+          const lx = x * scale;
+          const ly = y * scale;
+          const x0 = Math.floor(lx), y0 = Math.floor(ly);
+          const x1 = Math.min(x0 + 1, LOGICAL_SIZE - 1);
+          const y1 = Math.min(y0 + 1, LOGICAL_SIZE - 1);
+          const tx = lx - x0, ty = ly - y0;
+
+          const v00 = logicGrid[getLIdx(x0, y0)];
+          const v10 = logicGrid[getLIdx(x1, y0)];
+          const v01 = logicGrid[getLIdx(x0, y1)];
+          const v11 = logicGrid[getLIdx(x1, y1)];
+
+          const top = v00 * (1 - tx) + v10 * tx;
+          const bot = v01 * (1 - tx) + v11 * tx;
+          renderGrid[getRIdx(x, y)] = top * (1 - ty) + bot * ty;
+        }
+      }
+    }
+
+    // --- DRAWING ---
+    function drawContours() {
+      const cellW = width / RENDER_RES;
+      const cellH = height / RENDER_RES;
+      const levels = 10;
+
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 0.7;
+
+      for (let l = 1; l <= levels; l++) {
+        const thr = (l / levels) * 2.5;
+        ctx.beginPath();
+
+        for (let y = 0; y < RENDER_RES - 1; y++) {
+          for (let x = 0; x < RENDER_RES - 1; x++) {
+            const v0 = renderGrid[getRIdx(x, y)];
+            const v1 = renderGrid[getRIdx(x + 1, y)];
+            const v2 = renderGrid[getRIdx(x + 1, y + 1)];
+            const v3 = renderGrid[getRIdx(x, y + 1)];
+
+            const bin = (v0 > thr ? 8 : 0) | (v1 > thr ? 4 : 0) |
+                        (v2 > thr ? 2 : 0) | (v3 > thr ? 1 : 0);
+            if (bin === 0 || bin === 15) continue;
+
+            const lerp = (a, b, t) => a + t * (b - a);
+            const safe = (a, b) => a === b ? 0.5 : (thr - a) / (b - a);
+
+            const a = { x: lerp(x, x + 1, safe(v0, v1)), y };
+            const b = { x: x + 1, y: lerp(y, y + 1, safe(v1, v2)) };
+            const c = { x: lerp(x, x + 1, safe(v3, v2)), y: y + 1 };
+            const d = { x, y: lerp(y, y + 1, safe(v0, v3)) };
+
+            const sx = p => p.x * cellW;
+            const sy = p => p.y * cellH;
+
+            switch (bin) {
+              case 1: case 14: ctx.moveTo(sx(c), sy(c)); ctx.lineTo(sx(d), sy(d)); break;
+              case 2: case 13: ctx.moveTo(sx(b), sy(b)); ctx.lineTo(sx(c), sy(c)); break;
+              case 3: case 12: ctx.moveTo(sx(b), sy(b)); ctx.lineTo(sx(d), sy(d)); break;
+              case 4: case 11: ctx.moveTo(sx(a), sy(a)); ctx.lineTo(sx(b), sy(b)); break;
+              case 5:
+                ctx.moveTo(sx(a), sy(a)); ctx.lineTo(sx(d), sy(d));
+                ctx.moveTo(sx(b), sy(b)); ctx.lineTo(sx(c), sy(c));
+                break;
+              case 6: case 9: ctx.moveTo(sx(a), sy(a)); ctx.lineTo(sx(c), sy(c)); break;
+              case 7: case 8: ctx.moveTo(sx(a), sy(a)); ctx.lineTo(sx(d), sy(d)); break;
+              case 10:
+                ctx.moveTo(sx(a), sy(a)); ctx.lineTo(sx(b), sy(b));
+                ctx.moveTo(sx(c), sy(c)); ctx.lineTo(sx(d), sy(d));
+                break;
+            }
+          }
+        }
+        ctx.stroke();
+      }
+    }
+
+    function drawTrail() {
+      if (!trailEvents.length) return;
+      const currentTime = (progress / 100) * maxTime;
+      const visible = trailEvents.filter(e => e.t <= currentTime);
+      if (!visible.length) return;
+
+      const cellW = width / LOGICAL_SIZE;
+      const cellH = height / LOGICAL_SIZE;
+
+      ctx.strokeStyle = varComputed('--trail') || '#2563eb';
+      ctx.lineWidth = 3;
+      ctx.lineJoin = 'round';
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+
+      visible.forEach((e, i) => {
+        const pos = eventToGrid(e);
+        if (!pos) return;
+        const x = pos.gx * cellW;
+        const y = pos.gy * cellH;
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+
+      const last = visible[visible.length - 1];
+      const lastPos = eventToGrid(last);
+      if (lastPos) {
+        const x = lastPos.gx * cellW;
+        const y = lastPos.gy * cellH;
+        ctx.fillStyle = varComputed('--trail') || '#2563eb';
+        ctx.beginPath();
+        ctx.arc(x, y, 6, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      phaseLabel.textContent = last.phase;
+      roleLabel.textContent = last.role;
+    }
+
+    function varComputed(name) {
+      return getComputedStyle(document.documentElement).getPropertyValue(name) || null;
+    }
+
+    // --- MAIN LOOP ---
+    function tick(dt) {
+      if (mode === 'fluid') {
+        const next = new Float32Array(logicGrid.length);
+        for (let i = 0; i < logicGrid.length; i++) {
+          const x = i % LOGICAL_SIZE;
+          const y = Math.floor(i / LOGICAL_SIZE);
+          let sum = logicGrid[i];
+          let count = 1;
+          const dirs = [[0, 1], [0, -1], [1, 0], [-1, 0]];
+          for (const [dx, dy] of dirs) {
+            const nx = x + dx, ny = y + dy;
+            if (nx >= 0 && nx < LOGICAL_SIZE && ny >= 0 && ny < LOGICAL_SIZE) {
+              sum += logicGrid[getLIdx(nx, ny)];
+              count++;
+            }
+          }
+          next[i] = (sum / count) * 0.985;
+        }
+        logicGrid.set(next);
+      } else {
+        // Trail-driven field
+        logicGrid.fill(0);
+        const currentTime = (progress / 100) * maxTime;
+        for (const e of trailEvents) {
+          if (e.t > currentTime) continue;
+          const pos = eventToGrid(e);
+          if (pos) stamp(pos.gx, pos.gy, e.intensity);
+        }
+      }
+
+      interpolate();
+    }
+
+    function renderFrame() {
+      ctx.clearRect(0, 0, width, height);
+
+      // faint grid
+      ctx.strokeStyle = 'rgba(0,0,0,0.08)';
+      ctx.lineWidth = 1;
+      const step = width / 10;
+      ctx.beginPath();
+      for (let x = 0; x <= width; x += step) {
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, height);
+      }
+      for (let y = 0; y <= height; y += step) {
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+      }
+      ctx.stroke();
+
+      drawContours();
+
+      if (mode === 'trail') drawTrail();
+      else {
+        phaseLabel.textContent = '–';
+        roleLabel.textContent = '–';
+      }
+    }
+
+    function loop(now) {
+      const dt = (now - lastTime) / 1000;
+      lastTime = now;
+
+      if (mode === 'trail' && playing) {
+        const speed = 18; // seconds for full loop
+        const delta = (dt / speed) * 100;
+        progress = (progress + delta) % 100;
+        progressSlider.value = progress;
+      }
+
+      tick(dt);
+      renderFrame();
+      requestAnimationFrame(loop);
+    }
+
+    // --- EVENTS ---
+    window.addEventListener('resize', () => {
+      resize();
+      setupAxes();
+    });
+
+    canvas.addEventListener('click', (e) => {
+      if (mode !== 'fluid') return;
+      const rect = canvas.getBoundingClientRect();
+      const xNorm = (e.clientX - rect.left) / width;
+      const yNorm = (e.clientY - rect.top) / height;
+      const gx = Math.floor(xNorm * LOGICAL_SIZE);
+      const gy = Math.floor(yNorm * LOGICAL_SIZE);
+      stamp(gx, gy, 1);
+    });
+
+    btnFluid.addEventListener('click', () => {
+      mode = 'fluid';
+      btnFluid.classList.add('active');
+      btnTrail.classList.remove('active');
+      playing = false;
+      btnPlay.textContent = '▶';
+    });
+
+    btnTrail.addEventListener('click', () => {
+      mode = 'trail';
+      btnTrail.classList.add('active');
+      btnFluid.classList.remove('active');
+    });
+
+    progressSlider.addEventListener('input', (e) => {
+      progress = parseInt(e.target.value, 10);
+    });
+
+    btnPlay.addEventListener('click', () => {
+      if (mode !== 'trail') mode = 'trail';
+      btnTrail.classList.add('active');
+      btnFluid.classList.remove('active');
+      playing = !playing;
+      btnPlay.textContent = playing ? '❚❚' : '▶';
+    });
+
+    btnDownload.addEventListener('click', () => {
+      const link = document.createElement('a');
+      link.download = 'sitemap-manifold.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    });
+
+    // --- INIT DATA LOAD ---
+    fetch('file-learnings.json')
+      .then(r => r.json())
+      .then(d => {
+        const files = d.files.filter(f => !f._end && f.file && f.born);
+        const built = buildEvents(files);
+        trailEvents = built.events;
+        maxTime = built.maxT;
+        resize();
+        setupAxes();
+        requestAnimationFrame(loop);
+      })
+      .catch(err => {
+        console.error('Failed to load file-learnings.json', err);
+        resize();
+        setupAxes();
+        requestAnimationFrame(loop);
+      });
+  </script>
+</body>
+</html>

@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SCENARIO FAMILIES — Substrate Development Cycle</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E*%3C/text%3E%3C/svg%3E">
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #12121a;
+      --border: #2a2a3a;
+      --text: #e4e4e7;
+      --muted: #71717a;
+      --ground: #3b82f6;
+      --site: #10b981;
+      --sky: #f97316;
+      --perspective: #ef4444;
+      --accent: #a855f7;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'JetBrains Mono', 'SF Mono', monospace;
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+    
+    header {
+      background: linear-gradient(135deg, #1a1a2e 0%, #0a0a0f 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 24px 32px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    h1 {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    h1 span { color: var(--accent); }
+    .stats {
+      display: flex;
+      gap: 24px;
+      font-size: 11px;
+    }
+    .stat {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .stat-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+    .stat-dot.ground { background: var(--ground); }
+    .stat-dot.site { background: var(--site); }
+    .stat-dot.sky { background: var(--sky); }
+    .stat-dot.perspective { background: var(--perspective); }
+    
+    main {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 32px;
+    }
+    
+    /* Video Section */
+    .video-section {
+      margin-bottom: 48px;
+      padding: 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+    .video-section h2 {
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 16px;
+    }
+    .video-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 24px;
+    }
+    .video-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .video-card iframe {
+      width: 100%;
+      aspect-ratio: 16/9;
+      border: none;
+    }
+    .video-card .video-info {
+      padding: 12px 16px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .video-card .video-title {
+      color: var(--text);
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    
+    /* Cycle Diagram */
+    .cycle-diagram {
+      margin: 48px 0;
+      padding: 32px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+    .cycle-diagram h2 {
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 24px;
+      text-align: center;
+    }
+    .cycle-flow {
+      display: flex;
+      justify-content: space-between;
+      align-items: stretch;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .cycle-stage {
+      flex: 1;
+      min-width: 200px;
+      padding: 16px;
+      border-radius: 8px;
+      border: 2px solid;
+    }
+    .cycle-stage.ground { border-color: var(--ground); background: rgba(59, 130, 246, 0.05); }
+    .cycle-stage.site { border-color: var(--site); background: rgba(16, 185, 129, 0.05); }
+    .cycle-stage.sky { border-color: var(--sky); background: rgba(249, 115, 22, 0.05); }
+    .cycle-stage.perspective { border-color: var(--perspective); background: rgba(239, 68, 68, 0.05); }
+    .cycle-stage-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      margin-bottom: 8px;
+    }
+    .cycle-stage.ground .cycle-stage-title { color: var(--ground); }
+    .cycle-stage.site .cycle-stage-title { color: var(--site); }
+    .cycle-stage.sky .cycle-stage-title { color: var(--sky); }
+    .cycle-stage.perspective .cycle-stage-title { color: var(--perspective); }
+    .cycle-families {
+      font-size: 10px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    .cycle-arrow {
+      display: flex;
+      align-items: center;
+      font-size: 20px;
+      color: var(--border);
+    }
+    
+    /* Stage Section */
+    .stage {
+      margin-bottom: 48px;
+    }
+    .stage-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid var(--border);
+    }
+    .stage-indicator {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+    }
+    .stage-indicator.ground { background: var(--ground); }
+    .stage-indicator.site { background: var(--site); }
+    .stage-indicator.sky { background: var(--sky); }
+    .stage-indicator.perspective { background: var(--perspective); }
+    .stage-title {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+    .stage-desc {
+      font-size: 11px;
+      color: var(--muted);
+      margin-left: auto;
+    }
+    
+    /* Family */
+    .family {
+      margin-bottom: 32px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .family-header {
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.02);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .family-name {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    .family-count {
+      font-size: 10px;
+      color: var(--muted);
+      background: var(--bg);
+      padding: 2px 8px;
+      border-radius: 10px;
+      margin-left: auto;
+    }
+    
+    /* Scenario Grid */
+    .scenario-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 1px;
+      background: var(--border);
+    }
+    .scenario {
+      background: var(--bg);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .scenario:hover {
+      background: rgba(168, 85, 247, 0.1);
+      transform: translateY(-1px);
+    }
+    .scenario-symbol {
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 1;
+      color: var(--accent);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .scenario-id {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+    }
+    .scenario-name {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .scenario-desc {
+      font-size: 10px;
+      color: var(--muted);
+      line-height: 1.3;
+    }
+    
+    /* Summary Table */
+    .summary {
+      margin-top: 48px;
+    }
+    .summary h2 {
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+    .summary-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+    }
+    .summary-table th,
+    .summary-table td {
+      padding: 10px 12px;
+      text-align: left;
+      border: 1px solid var(--border);
+    }
+    .summary-table th {
+      background: var(--surface);
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .summary-table td {
+      background: var(--bg);
+    }
+    .summary-table tr:hover td {
+      background: var(--surface);
+    }
+    
+    /* Loading */
+    .loading {
+      text-align: center;
+      padding: 64px;
+      color: var(--muted);
+    }
+    
+    footer {
+      margin-top: 64px;
+      padding: 24px 32px;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      font-size: 10px;
+      color: var(--muted);
+    }
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    footer a:hover {
+      text-decoration: underline;
+    }
+    
+    @media (max-width: 768px) {
+      main { padding: 16px; }
+      .video-grid { grid-template-columns: 1fr; }
+      .scenario-grid { grid-template-columns: repeat(2, 1fr); }
+      .cycle-flow { flex-direction: column; }
+      .cycle-arrow { transform: rotate(90deg); justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <h1>SCENARIO <span>FAMILIES</span> — Substrate Development Cycle</h1>
+      <div class="stats" id="stats">
+        <div class="stat"><div class="stat-dot ground"></div> GROUND: <span id="groundCount">-</span></div>
+        <div class="stat"><div class="stat-dot site"></div> SITE: <span id="siteCount">-</span></div>
+        <div class="stat"><div class="stat-dot sky"></div> SKY: <span id="skyCount">-</span></div>
+        <div class="stat"><div class="stat-dot perspective"></div> PERSPECTIVE: <span id="perspectiveCount">-</span></div>
+        <div class="stat" style="font-weight:700;">TOTAL: <span id="totalCount">-</span></div>
+      </div>
+    </div>
+  </header>
+  
+  <main>
+    <!-- Video Section -->
+    <section class="video-section">
+      <h2>EXPERIMENT VIDEOS</h2>
+      <div class="video-grid">
+        <div class="video-card">
+          <iframe src="https://www.youtube.com/embed/Pvx9OBBRNn0" allowfullscreen></iframe>
+          <div class="video-info">
+            <div class="video-title">Thousand Tetrad — McLuhan Engine Demo</div>
+            <div>57 scenarios running through tetrad analysis</div>
+          </div>
+        </div>
+        <div class="video-card">
+          <iframe src="https://www.youtube.com/embed/X_hDTkllpAc" allowfullscreen></iframe>
+          <div class="video-info">
+            <div class="video-title">Scenario Families — Development Cycle</div>
+            <div>Ground / Site / Sky / Perspective substrate flow</div>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Cycle Diagram -->
+    <section class="cycle-diagram">
+      <h2>Development Substrate Cycle</h2>
+      <div class="cycle-flow">
+        <div class="cycle-stage ground">
+          <div class="cycle-stage-title">GROUND</div>
+          <div class="cycle-families">
+            Foundational theory<br>
+            Core frameworks<br>
+            Pattern languages<br>
+            <strong>BLANK, NOVEL</strong>
+          </div>
+        </div>
+        <div class="cycle-arrow">-></div>
+        <div class="cycle-stage site">
+          <div class="cycle-stage-title">SITE</div>
+          <div class="cycle-families">
+            Domain application<br>
+            Professional contexts<br>
+            Specific use cases<br>
+            <strong>MEDIA, MEDICAL, DIGITAL</strong>
+          </div>
+        </div>
+        <div class="cycle-arrow">-></div>
+        <div class="cycle-stage sky">
+          <div class="cycle-stage-title">SKY</div>
+          <div class="cycle-families">
+            Narrative integration<br>
+            Story-driven worlds<br>
+            Character-based<br>
+            <strong>1000LIVES, FEEDLOOP, BLACKMETAL, ANIMATED</strong>
+          </div>
+        </div>
+        <div class="cycle-arrow">-></div>
+        <div class="cycle-stage perspective">
+          <div class="cycle-stage-title">PERSPECTIVE</div>
+          <div class="cycle-families">
+            Critical analysis<br>
+            Persuasion + ethics<br>
+            Consciousness studies<br>
+            <strong>MYTHIC, EKPHRASTIC, CULTURAL, PERSUASION</strong>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Dynamic Content -->
+    <div id="content">
+      <div class="loading">Loading scenario data...</div>
+    </div>
+    
+    <footer>
+      <p>SCENARIO FAMILIES — DCE-GYO Archive</p>
+      <p>
+        <a href="thousand-tetrad.html">Thousand Tetrad</a> · 
+        <a href="index.html">Archive Index</a> · 
+        <a href="fork.html">The Fork</a>
+      </p>
+      <p style="margin-top:8px;">Data source: <a href="scenario-seeds.json">scenario-seeds.json</a></p>
+    </footer>
+  </main>
+  
+  <script>
+    // ═══════════════════════════════════════════════════════════════════
+    // SCENARIO FAMILIES — Data-driven rendering from scenario-seeds.json
+    // ═══════════════════════════════════════════════════════════════════
+    
+    const STAGE_ORDER = ['GROUND', 'SITE', 'SKY', 'PERSPECTIVE'];
+    const STAGE_DESCRIPTIONS = {
+      GROUND: 'Core frameworks and pattern languages',
+      SITE: 'Professional contexts and specific use cases',
+      SKY: 'Story-driven worlds and character-based scenarios',
+      PERSPECTIVE: 'Persuasion, ethics, and consciousness studies'
+    };
+    
+    async function loadScenarioData() {
+      try {
+        const response = await fetch('scenario-seeds.json');
+        if (!response.ok) throw new Error('Failed to load scenario-seeds.json');
+        return await response.json();
+      } catch (e) {
+        console.error('[SCENARIO-FAMILIES] Load error:', e);
+        return null;
+      }
+    }
+    
+    function renderScenarios(data) {
+      const content = document.getElementById('content');
+      if (!data) {
+        content.innerHTML = '<div class="loading">Error loading scenario data. Run via local server.</div>';
+        return;
+      }
+      
+      // Count by stage
+      const stageCounts = { GROUND: 0, SITE: 0, SKY: 0, PERSPECTIVE: 0 };
+      Object.values(data.scenarios).forEach(s => {
+        if (stageCounts[s.stage] !== undefined) stageCounts[s.stage]++;
+      });
+      
+      // Update header stats
+      document.getElementById('groundCount').textContent = stageCounts.GROUND;
+      document.getElementById('siteCount').textContent = stageCounts.SITE;
+      document.getElementById('skyCount').textContent = stageCounts.SKY;
+      document.getElementById('perspectiveCount').textContent = stageCounts.PERSPECTIVE;
+      document.getElementById('totalCount').textContent = Object.keys(data.scenarios).length;
+      
+      // Group categories by stage
+      const stageCategories = {};
+      STAGE_ORDER.forEach(stage => stageCategories[stage] = []);
+      
+      Object.entries(data.categories).forEach(([catId, cat]) => {
+        if (stageCategories[cat.stage]) {
+          stageCategories[cat.stage].push({ id: catId, ...cat });
+        }
+      });
+      
+      // Render stages
+      let html = '';
+      STAGE_ORDER.forEach(stage => {
+        const categories = stageCategories[stage];
+        if (categories.length === 0) return;
+        
+        html += `
+          <section class="stage">
+            <div class="stage-header">
+              <div class="stage-indicator ${stage.toLowerCase()}"></div>
+              <div class="stage-title">${stage} — ${getStageLabel(stage)}</div>
+              <div class="stage-desc">${STAGE_DESCRIPTIONS[stage]}</div>
+            </div>
+        `;
+        
+        categories.forEach(cat => {
+          const scenarios = cat.ids.map(id => data.scenarios[id]).filter(Boolean);
+          html += `
+            <div class="family">
+              <div class="family-header">
+                <div class="family-name">${cat.id} — ${cat.label}</div>
+                <div class="family-count">${scenarios.length} scenarios</div>
+              </div>
+              <div class="scenario-grid">
+          `;
+          
+          scenarios.forEach(s => {
+            html += `
+              <div class="scenario" data-id="${s.id}" title="${s.goal}">
+                <div class="scenario-symbol">${s.symbol || s.id[0].toUpperCase()}</div>
+                <div class="scenario-id">${s.id.toUpperCase()}</div>
+                <div class="scenario-name">${s.name}</div>
+                <div class="scenario-desc">${s.obstacle || s.role}</div>
+              </div>
+            `;
+          });
+          
+          html += '</div></div>';
+        });
+        
+        html += '</section>';
+      });
+      
+      // Summary table
+      html += `
+        <section class="summary">
+          <h2>Family Statistics</h2>
+          <table class="summary-table">
+            <thead>
+              <tr>
+                <th>Family</th>
+                <th>Count</th>
+                <th>Stage</th>
+                <th>Label</th>
+              </tr>
+            </thead>
+            <tbody>
+      `;
+      
+      Object.entries(data.categories).forEach(([catId, cat]) => {
+        const count = cat.ids.filter(id => data.scenarios[id]).length;
+        const stageColor = `var(--${cat.stage.toLowerCase()})`;
+        html += `
+          <tr>
+            <td>${catId}</td>
+            <td>${count}</td>
+            <td style="color:${stageColor}">${cat.stage}</td>
+            <td>${cat.label}</td>
+          </tr>
+        `;
+      });
+      
+      html += `
+              <tr style="font-weight:700;background:var(--surface)">
+                <td>TOTAL</td>
+                <td>${Object.keys(data.scenarios).length}</td>
+                <td colspan="2">${Object.keys(data.categories).length} families across 4 stages</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+      `;
+      
+      content.innerHTML = html;
+      
+      // Click handler for scenarios
+      content.querySelectorAll('.scenario').forEach(el => {
+        el.addEventListener('click', () => {
+          const id = el.dataset.id;
+          const scenario = data.scenarios[id];
+          if (scenario) {
+            console.log('[SCENARIO]', scenario);
+            // Could open in thousand-tetrad or ONYX
+          }
+        });
+      });
+    }
+    
+    function getStageLabel(stage) {
+      const labels = {
+        GROUND: 'Foundational Substrates',
+        SITE: 'Domain Applications',
+        SKY: 'Narrative Integration',
+        PERSPECTIVE: 'Critical Analysis'
+      };
+      return labels[stage] || stage;
+    }
+    
+    // Initialize
+    loadScenarioData().then(renderScenarios);
+    
+    // Export for ONYX integration
+    window.SCENARIO_SEEDS = {
+      load: loadScenarioData,
+      getById: async (id) => {
+        const data = await loadScenarioData();
+        return data?.scenarios[id] || null;
+      },
+      getByCategory: async (catId) => {
+        const data = await loadScenarioData();
+        const cat = data?.categories[catId];
+        if (!cat) return [];
+        return cat.ids.map(id => data.scenarios[id]).filter(Boolean);
+      },
+      getByStage: async (stage) => {
+        const data = await loadScenarioData();
+        if (!data) return [];
+        return Object.values(data.scenarios).filter(s => s.stage === stage);
+      }
+    };
+  </script>
+</body>
+</html>

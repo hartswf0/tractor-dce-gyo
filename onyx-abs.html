@@ -315,6 +315,7 @@
       <textarea class="ingest" id="paste-input" placeholder="// Paste code to replace reality..." data-olog-component="C8.2:IngestionPort"></textarea>
       <button class="btn" style="width:100%; margin-top:8px; border-color:var(--func); color:var(--func)" onclick="APP.UI.ingest()" data-olog-morphism="M33_INGEST_CODE">LOAD</button>
       <button class="btn" style="width:100%; margin-top:4px; font-size:9px;" onclick="APP.UI.loadDemo()">Load demo JSON</button>
+      <button class="btn" style="width:100%; margin-top:4px; font-size:9px; border-color:var(--accent); color:var(--accent);" onclick="APP.UI.loadScenarioSeeds()">Load Scenario Seeds</button>
     </div>
     
     <!-- THEMING: OLOG 1 Feature F0.1, OLOG 2 F13_VIEW_SWITCH ── -->
@@ -1048,6 +1049,79 @@
             });
         },
         
+        // Load scenario seeds from scenario-seeds.json and convert to ONYX nodes
+        loadScenarioSeeds: function() {
+          const url = 'scenario-seeds.json';
+          console.log('[ONYX-ABS] Loading scenario seeds from', url);
+          fetch(url)
+            .then(function(res) {
+              if (!res.ok) throw new Error('HTTP ' + res.status + ' ' + res.statusText);
+              return res.json();
+            })
+            .then(function(data) {
+              // Convert scenario seeds to ONYX-compatible structure
+              const scenes = [];
+              const STAGE_COLORS = {
+                GROUND: '#3b82f6',
+                SITE: '#10b981',
+                SKY: '#f97316',
+                PERSPECTIVE: '#ef4444'
+              };
+              
+              // Create category nodes as parents
+              const categoryNodes = {};
+              let y = 0;
+              Object.entries(data.categories).forEach(function([catId, cat]) {
+                const catNode = {
+                  id: 'cat_' + catId,
+                  label: catId,
+                  type: 'category',
+                  stage: cat.stage,
+                  color: STAGE_COLORS[cat.stage] || '#a855f7',
+                  x: 100,
+                  y: y,
+                  children: []
+                };
+                categoryNodes[catId] = catNode;
+                scenes.push(catNode);
+                y += 200;
+              });
+              
+              // Create scenario nodes
+              Object.values(data.scenarios).forEach(function(s) {
+                const catNode = categoryNodes[s.category];
+                if (!catNode) return;
+                
+                const node = {
+                  id: 'scenario_' + s.id,
+                  label: s.name,
+                  symbol: s.symbol,
+                  type: 'scenario',
+                  role: s.role,
+                  goal: s.goal,
+                  obstacle: s.obstacle,
+                  stage: s.stage,
+                  category: s.category,
+                  color: STAGE_COLORS[s.stage] || '#a855f7',
+                  x: catNode.x + 250,
+                  y: catNode.y + (catNode.children.length * 60),
+                  parent: catNode.id
+                };
+                catNode.children.push(node.id);
+                scenes.push(node);
+              });
+              
+              // Load into ONYX
+              const payload = { scenes: scenes };
+              APP.LEGOS.loadFromJson(payload);
+              console.log('[ONYX-ABS] Loaded', scenes.length, 'scenario seed nodes');
+            })
+            .catch(function(err) {
+              console.error('[ONYX-ABS] Failed to fetch scenario seeds:', err);
+              alert('Failed to load scenario-seeds.json. Run via local server (npx serve .)');
+            });
+        },
+        
         // M33_INGEST_CODE: Reality replacement / LEGOS ingest
         ingest: function() {
           const v = document.getElementById('paste-input').value;
@@ -1151,7 +1225,7 @@
               document.getElementById(`L${d * lpc}`)?.classList.add('down');
             });
             
-            this.updateHUD(root);
+            APP.NAV.updateHUD(root);
             APP.RENDERER.updateBranch(root);
           },
           
@@ -1290,23 +1364,29 @@
       LIVERELOAD: {
         // M48_CONNECT_WS, M49_HANDLE_MSG, M50_REFRESH_CSS: Injected by live-server
         connect: function() {
-          if ('WebSocket' in window) {
-            (function() {
-              const protocol = window.location.protocol === 'http:' ? 'ws://' : 'wss://';
-              const address = protocol + window.location.host + window.location.pathname + '/ws';
-              const socket = new WebSocket(address);
-              socket.onmessage = function(msg) {
-                if (msg.data === 'reload') window.location.reload();
-                else if (msg.data === 'refreshcss') {
-                  // M50_REFRESH_CSS: Refresh CSS links
-                  document.querySelectorAll('link[rel="stylesheet"]').forEach(link => {
-                    const url = link.href.replace(/(&|\?)_cacheOverride=\d+/, '');
-                    link.href = url + (url.indexOf('?') >= 0 ? '&' : '?') + '_cacheOverride=' + (new Date().valueOf());
-                  });
-                }
-              };
-              console.log('[M48_CONNECT_WS] Live reload enabled');
-            })();
+          // Skip WebSocket for file:// protocol or missing host
+          if (!('WebSocket' in window) || !window.location.host) {
+            console.log('[M48_CONNECT_WS] Skipped (no host or file:// protocol)');
+            return;
+          }
+          try {
+            const protocol = window.location.protocol === 'http:' ? 'ws://' : 'wss://';
+            const address = protocol + window.location.host + '/ws';
+            const socket = new WebSocket(address);
+            socket.onmessage = function(msg) {
+              if (msg.data === 'reload') window.location.reload();
+              else if (msg.data === 'refreshcss') {
+                // M50_REFRESH_CSS: Refresh CSS links
+                document.querySelectorAll('link[rel="stylesheet"]').forEach(link => {
+                  const url = link.href.replace(/(&|\?)_cacheOverride=\d+/, '');
+                  link.href = url + (url.indexOf('?') >= 0 ? '&' : '?') + '_cacheOverride=' + (new Date().valueOf());
+                });
+              }
+            };
+            socket.onerror = function() { /* silent fail */ };
+            console.log('[M48_CONNECT_WS] Live reload enabled');
+          } catch (e) {
+            console.log('[M48_CONNECT_WS] WebSocket unavailable');
           }
         }()
       },

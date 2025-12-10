@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ONYX Core Index — DCE-GYO</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg: #0a0a0a;
+            --surface: #141414;
+            --surface-2: #1a1a1a;
+            --border: #2a2a2a;
+            --text: #e8e8e8;
+            --text-dim: #888;
+            --onyx: #1a1a2e;
+            --accent: #a855f7;
+            --accent-glow: rgba(168, 85, 247, 0.15);
+            --gold: #fbbf24;
+            --cyan: #22d3ee;
+            --green: #4ade80;
+            --red: #f87171;
+            --orange: #fb923c;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        
+        /* Header */
+        .header {
+            background: linear-gradient(180deg, var(--onyx) 0%, var(--bg) 100%);
+            border-bottom: 1px solid var(--border);
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 300;
+            letter-spacing: 0.3em;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--gold) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .header p {
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            letter-spacing: 0.1em;
+        }
+        
+        .header .count {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.25rem 1rem;
+            background: var(--accent-glow);
+            border: 1px solid var(--accent);
+            border-radius: 20px;
+            font-size: 0.75rem;
+            color: var(--accent);
+        }
+        
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        /* Section */
+        .section {
+            margin-bottom: 3rem;
+        }
+        
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .section-header h2 {
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            color: var(--text-dim);
+        }
+        
+        .section-header .badge {
+            font-size: 0.7rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            background: var(--surface-2);
+            color: var(--text-dim);
+        }
+        
+        /* Grid */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
+        }
+        
+        /* Card */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.25rem;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+        }
+        
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--card-accent, var(--accent));
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        .card:hover::before {
+            opacity: 1;
+        }
+        
+        .card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            background: var(--accent-glow);
+            color: var(--accent);
+        }
+        
+        .card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .card-title .tag {
+            font-size: 0.6rem;
+            padding: 0.15rem 0.4rem;
+            border-radius: 3px;
+            background: var(--surface-2);
+            color: var(--text-dim);
+            font-weight: 400;
+        }
+        
+        .card-desc {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            line-height: 1.5;
+        }
+        
+        .card-meta {
+            margin-top: 1rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--border);
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .card-meta span {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        
+        /* Featured Card */
+        .card.featured {
+            grid-column: span 2;
+            background: linear-gradient(135deg, var(--onyx) 0%, var(--surface) 100%);
+            border-color: var(--accent);
+        }
+        
+        .card.featured .card-icon {
+            width: 56px;
+            height: 56px;
+            font-size: 1.5rem;
+            background: var(--accent);
+            color: var(--bg);
+        }
+        
+        /* Color variants */
+        .card.gold { --card-accent: var(--gold); }
+        .card.gold .card-icon { background: rgba(251, 191, 36, 0.15); color: var(--gold); }
+        
+        .card.cyan { --card-accent: var(--cyan); }
+        .card.cyan .card-icon { background: rgba(34, 211, 238, 0.15); color: var(--cyan); }
+        
+        .card.green { --card-accent: var(--green); }
+        .card.green .card-icon { background: rgba(74, 222, 128, 0.15); color: var(--green); }
+        
+        .card.red { --card-accent: var(--red); }
+        .card.red .card-icon { background: rgba(248, 113, 113, 0.15); color: var(--red); }
+        
+        .card.orange { --card-accent: var(--orange); }
+        .card.orange .card-icon { background: rgba(251, 146, 60, 0.15); color: var(--orange); }
+        
+        /* Comparison Table */
+        .comparison {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 2rem;
+        }
+        
+        .comparison table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+        }
+        
+        .comparison th {
+            background: var(--surface-2);
+            padding: 0.75rem 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-dim);
+            font-size: 0.7rem;
+            letter-spacing: 0.1em;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .comparison td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border);
+            vertical-align: top;
+        }
+        
+        .comparison tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .comparison tr:hover {
+            background: var(--surface-2);
+        }
+        
+        .comparison .name {
+            font-weight: 600;
+            color: var(--accent);
+        }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-dim);
+            font-size: 0.75rem;
+            border-top: 1px solid var(--border);
+        }
+        
+        .footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+                letter-spacing: 0.15em;
+            }
+            
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .card.featured {
+                grid-column: span 1;
+            }
+            
+            .comparison {
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>ONYX</h1>
+        <p>DIALECTICAL CHAPTER EXPLORER — GUARDIAN DEBATES</p>
+        <div class="count">21 FILES IN CONSTELLATION</div>
+    </header>
+    
+    <div class="container">
+        
+        <!-- FLAGSHIP -->
+        <section class="section">
+            <div class="section-header">
+                <h2>FLAGSHIP READERS</h2>
+                <span class="badge">Primary interfaces for reading chapters</span>
+            </div>
+            <div class="grid">
+                <a href="onyx-thumb.html" class="card featured">
+                    <div class="card-icon"><i class="fas fa-play-circle"></i></div>
+                    <div class="card-title">ONYX THUMB <span class="tag">FLAGSHIP</span></div>
+                    <div class="card-desc">
+                        Cinematic audio-visual reader. TEXT/VISUAL/PLAY modes, TTS with distinct voices, 
+                        synchronized slideshow, fullscreen cinema mode with subtitles, keyboard shortcuts.
+                        The primary DCE-GYO experience.
+                    </div>
+                    <div class="card-meta">
+                        <span><i class="fas fa-microphone"></i> TTS</span>
+                        <span><i class="fas fa-images"></i> Slideshow</span>
+                        <span><i class="fas fa-tv"></i> Cinema</span>
+                        <span><i class="fas fa-mobile-alt"></i> Mobile</span>
+                    </div>
+                </a>
+                
+                <a href="onyx-abs.html" class="card cyan">
+                    <div class="card-icon"><i class="fas fa-th"></i></div>
+                    <div class="card-title">ONYX ABSTRACT</div>
+                    <div class="card-desc">
+                        Grid-based abstract view. Quick chapter overview with assessment data, 
+                        scores, and verdict summaries in a compact card layout.
+                    </div>
+                    <div class="card-meta">
+                        <span><i class="fas fa-grip"></i> Grid</span>
+                        <span><i class="fas fa-chart-bar"></i> Scores</span>
+                    </div>
+                </a>
+                
+                <a href="onyx-bibliography.html" class="card gold">
+                    <div class="card-icon"><i class="fas fa-book"></i></div>
+                    <div class="card-title">ONYX BIBLIOGRAPHY</div>
+                    <div class="card-desc">
+                        Printable bibliography table. All chapters with title, author, 
+                        text/media status, winner, logline. CSV export.
+                    </div>
+                    <div class="card-meta">
+                        <span><i class="fas fa-print"></i> Print</span>
+                        <span><i class="fas fa-download"></i> CSV</span>
+                    </div>
+                </a>
+            </div>
+        </section>
+        
+        <!-- BODY PARTS -->
+        <section class="section">
+            <div class="section-header">
+                <h2>BODY PARTS</h2>
+                <span class="badge">Anatomical naming — different reader styles</span>
+            </div>
+            <div class="grid">
+                <a href="onyx-head.html" class="card">
+                    <div class="card-icon"><i class="fas fa-brain"></i></div>
+                    <div class="card-title">ONYX HEAD</div>
+                    <div class="card-desc">
+                        Analytical reader focused on the intellectual structure. 
+                        Emphasizes argument mapping and logical flow.
+                    </div>
+                </a>
+                
+                <a href="onyx-neck.html" class="card">
+                    <div class="card-icon"><i class="fas fa-link"></i></div>
+                    <div class="card-title">ONYX NECK</div>
+                    <div class="card-desc">
+                        Connection-focused reader. Bridges between chapters, 
+                        showing thematic links and conceptual transitions.
+                    </div>
+                </a>
+                
+                <a href="onyx-wing.html" class="card">
+                    <div class="card-icon"><i class="fas fa-feather-alt"></i></div>
+                    <div class="card-title">ONYX WING</div>
+                    <div class="card-desc">
+                        Expansive reader with broad navigation. 
+                        Quick flight between distant chapters.
+                    </div>
+                </a>
+                
+                <a href="onyx-tail.html" class="card">
+                    <div class="card-icon"><i class="fas fa-history"></i></div>
+                    <div class="card-title">ONYX TAIL</div>
+                    <div class="card-desc">
+                        Retrospective reader. Follows the trail of arguments, 
+                        tracking how ideas evolve across debates.
+                    </div>
+                </a>
+                
+                <a href="onyx-claw.html" class="card red">
+                    <div class="card-icon"><i class="fas fa-gavel"></i></div>
+                    <div class="card-title">ONYX CLAW</div>
+                    <div class="card-desc">
+                        Aggressive reader. Highlights conflicts, contradictions, 
+                        and the sharpest points of debate.
+                    </div>
+                </a>
+                
+                <a href="onyx-nail.html" class="card">
+                    <div class="card-icon"><i class="fas fa-thumbtack"></i></div>
+                    <div class="card-title">ONYX NAIL</div>
+                    <div class="card-desc">
+                        Precision reader. Pins down specific quotes and 
+                        key passages for close examination.
+                    </div>
+                </a>
+            </div>
+        </section>
+        
+        <!-- ENVIRONMENTS -->
+        <section class="section">
+            <div class="section-header">
+                <h2>ENVIRONMENTS</h2>
+                <span class="badge">Immersive reading spaces</span>
+            </div>
+            <div class="grid">
+                <a href="onyx-shell.html" class="card green">
+                    <div class="card-icon"><i class="fas fa-scroll"></i></div>
+                    <div class="card-title">ONYX SHELL</div>
+                    <div class="card-desc">
+                        Parchment-style archive reader. Classical aesthetic with 
+                        warm tones, serif typography, scholarly atmosphere.
+                    </div>
+                    <div class="card-meta">
+                        <span><i class="fas fa-palette"></i> Parchment</span>
+                    </div>
+                </a>
+                
+                <a href="onyx-arena.html" class="card orange">
+                    <div class="card-icon"><i class="fas fa-theater-masks"></i></div>
+                    <div class="card-title">ONYX ARENA</div>
+                    <div class="card-desc">
+                        Agon-style debate arena. Light theme with speaker colors, 
+                        emphasizing the confrontational nature of debates.
+                    </div>
+                    <div class="card-meta">
+                        <span><i class="fas fa-sun"></i> Light</span>
+                        <span><i class="fas fa-users"></i> Speakers</span>
+                    </div>
+                </a>
+                
+                <a href="onyx-monolith.html" class="card">
+                    <div class="card-icon"><i class="fas fa-monument"></i></div>
+                    <div class="card-title">ONYX MONOLITH</div>
+                    <div class="card-desc">
+                        Single-chapter deep dive. Full narrative adaptation 
+                        with Dark Matter Guardian Assessment.
+                    </div>
+                </a>
+            </div>
+        </section>
+        
+        <!-- STUDIO -->
+        <section class="section">
+            <div class="section-header">
+                <h2>STUDIO & TOOLS</h2>
+                <span class="badge">Creation and analysis tools</span>
+            </div>
+            <div class="grid">
+                <a href="onyx-studio.html" class="card">
+                    <div class="card-icon"><i class="fas fa-desktop"></i></div>
+                    <div class="card-title">ONYX STUDIO</div>
+                    <div class="card-desc">
+                        Multi-panel workspace. Tabbed interface for working 
+                        with multiple chapters and tools simultaneously.
+                    </div>
+                </a>
+                
+                <a href="onyx-studio-slides.html" class="card">
+                    <div class="card-icon"><i class="fas fa-presentation"></i></div>
+                    <div class="card-title">ONYX STUDIO SLIDES</div>
+                    <div class="card-desc">
+                        Presentation mode. Converts chapters into 
+                        slide-based format for teaching or sharing.
+                    </div>
+                </a>
+                
+                <a href="onyx-studio-tutorial.html" class="card gold">
+                    <div class="card-icon"><i class="fas fa-graduation-cap"></i></div>
+                    <div class="card-title">ONYX STUDIO TUTORIAL</div>
+                    <div class="card-desc">
+                        Walkthrough guide for using ONYX Studio tools 
+                        and understanding the chapter format.
+                    </div>
+                </a>
+                
+                <a href="thousand-onyx.html" class="card cyan">
+                    <div class="card-icon"><i class="fas fa-atom"></i></div>
+                    <div class="card-title">THOUSAND ONYX</div>
+                    <div class="card-desc">
+                        McLuhan Tetrad Analyzer. Applies the four laws 
+                        (enhance, obsolesce, retrieve, reverse) to chapters.
+                    </div>
+                    <div class="card-meta">
+                        <span><i class="fas fa-cube"></i> Tetrad</span>
+                    </div>
+                </a>
+            </div>
+        </section>
+        
+        <!-- DATA -->
+        <section class="section">
+            <div class="section-header">
+                <h2>DATA & DOCS</h2>
+                <span class="badge">Supporting files</span>
+            </div>
+            <div class="grid">
+                <a href="ONYX-THUMB-README.md" class="card">
+                    <div class="card-icon"><i class="fas fa-file-alt"></i></div>
+                    <div class="card-title">ONYX THUMB README</div>
+                    <div class="card-desc">
+                        Documentation for the flagship reader. Features, 
+                        keyboard shortcuts, and technical notes.
+                    </div>
+                </a>
+                
+                <a href="ONYX-DOWNSTREAM-PROMPT.md" class="card">
+                    <div class="card-icon"><i class="fas fa-robot"></i></div>
+                    <div class="card-title">ONYX DOWNSTREAM PROMPT</div>
+                    <div class="card-desc">
+                        AI prompt template for generating new chapters 
+                        in the Guardian debate format.
+                    </div>
+                </a>
+                
+                <a href="onyx-chapter-template.md" class="card">
+                    <div class="card-icon"><i class="fas fa-file-code"></i></div>
+                    <div class="card-title">ONYX CHAPTER TEMPLATE</div>
+                    <div class="card-desc">
+                        Markdown template for authoring new Guardian 
+                        debate chapters.
+                    </div>
+                </a>
+                
+                <a href="onyx-story-skeleton.json" class="card">
+                    <div class="card-icon"><i class="fas fa-sitemap"></i></div>
+                    <div class="card-title">ONYX STORY SKELETON</div>
+                    <div class="card-desc">
+                        JSON structure defining the narrative skeleton 
+                        and chapter relationships.
+                    </div>
+                </a>
+                
+                <a href="onyx-full-data-2025-12-06T01-45-19-862Z.json" class="card">
+                    <div class="card-icon"><i class="fas fa-database"></i></div>
+                    <div class="card-title">ONYX FULL DATA EXPORT</div>
+                    <div class="card-desc">
+                        Complete JSON export of all parsed chapter data, 
+                        scores, and assessments.
+                    </div>
+                </a>
+            </div>
+        </section>
+        
+        <!-- COMPARISON TABLE -->
+        <section class="section">
+            <div class="section-header">
+                <h2>COMPARISON</h2>
+                <span class="badge">How they differ</span>
+            </div>
+            <div class="comparison">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>FILE</th>
+                            <th>TYPE</th>
+                            <th>THEME</th>
+                            <th>KEY FEATURE</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="name">onyx-thumb</td>
+                            <td>Reader</td>
+                            <td>Dark terminal</td>
+                            <td>TTS, Cinema mode, Slideshow sync</td>
+                        </tr>
+                        <tr>
+                            <td class="name">onyx-abs</td>
+                            <td>Overview</td>
+                            <td>Dark minimal</td>
+                            <td>Grid cards, Quick scan</td>
+                        </tr>
+                        <tr>
+                            <td class="name">onyx-bibliography</td>
+                            <td>Reference</td>
+                            <td>Dark table</td>
+                            <td>Print-ready, CSV export</td>
+                        </tr>
+                        <tr>
+                            <td class="name">onyx-shell</td>
+                            <td>Reader</td>
+                            <td>Parchment/scholarly</td>
+                            <td>Classical aesthetic</td>
+                        </tr>
+                        <tr>
+                            <td class="name">onyx-arena</td>
+                            <td>Reader</td>
+                            <td>Light/agon</td>
+                            <td>Speaker colors, Debate focus</td>
+                        </tr>
+                        <tr>
+                            <td class="name">onyx-studio</td>
+                            <td>Workspace</td>
+                            <td>Dark IDE</td>
+                            <td>Multi-panel, Tabs</td>
+                        </tr>
+                        <tr>
+                            <td class="name">thousand-onyx</td>
+                            <td>Analyzer</td>
+                            <td>Green terminal</td>
+                            <td>McLuhan Tetrad</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        
+    </div>
+    
+    <footer class="footer">
+        <p>ONYX CORE INDEX — Part of <a href="index.html">DCE-GYO</a></p>
+        <p style="margin-top:0.5rem;">Guardian Debates: Dialectical Encounters in Technological Governance</p>
+    </footer>
+</body>
+</html>
