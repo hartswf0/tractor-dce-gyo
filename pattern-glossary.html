@@ -1,0 +1,2473 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pattern Glossary | WAG Studio · DCE-GYO</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,500;1,400&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap');
+
+        :root {
+            --bg: #0d0d12;
+            --surface: #18181b;
+            --surface-alt: #27272a;
+            --card-border: #3f3f46;
+            --ink: #fafafa;
+            --ink-secondary: #a1a1aa;
+            --ink-tertiary: #71717a;
+            --accent: #eab308;
+            --accent-bg: rgba(234, 179, 8, 0.12);
+            --link: #60a5fa;
+            --pattern-color: #a78bfa;
+            --decision-color: #34d399;
+            --morphism-bg: rgba(234, 179, 8, 0.08);
+            --wag: #f472b6;
+            --onyx: #22d3ee;
+            --brick: #f97316;
+            --legos: #a3e635;
+        }
+
+        [data-theme="light"] {
+            --bg: #fafafa;
+            --surface: #ffffff;
+            --surface-alt: #f5f5f5;
+            --card-border: #e5e5e5;
+            --ink: #1a1a1a;
+            --ink-secondary: #525252;
+            --ink-tertiary: #737373;
+            --accent: #b45309;
+            --accent-bg: #fef3c7;
+            --link: #1d4ed8;
+            --pattern-color: #6d28d9;
+            --decision-color: #047857;
+            --morphism-bg: #fffbeb;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html {
+            font-size: 18px;
+            scroll-behavior: smooth;
+        }
+
+        @media (max-width: 768px) {
+            html { font-size: 16px; }
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--ink);
+            font-family: 'Source Serif 4', Georgia, serif;
+            line-height: 1.7;
+            padding: 0 1rem;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        h1, h2, h3, h4 {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.3;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        h2 {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--accent);
+            margin: 2.5rem 0 1rem;
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 0.5rem;
+        }
+
+        h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        p {
+            margin-bottom: 1rem;
+            max-width: 65ch;
+        }
+
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9em;
+            background: var(--surface-alt);
+            padding: 0.15em 0.4em;
+            border-radius: 3px;
+        }
+
+        a {
+            color: var(--link);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .container {
+            max-width: 52rem;
+            margin: 0 auto;
+            padding: 2rem 0 4rem;
+        }
+
+        /* Sidebar Layout for Desktop */
+        @media (min-width: 1200px) {
+            body {
+                display: flex;
+                justify-content: center;
+            }
+            .container {
+                max-width: 58rem;
+                margin-left: 280px;
+            }
+            .toc {
+                position: fixed;
+                left: 1rem;
+                top: 4rem;
+                width: 260px;
+                max-height: calc(100vh - 6rem);
+                overflow-y: auto;
+                margin-bottom: 0;
+                z-index: 50;
+            }
+            .toc-list {
+                columns: 1;
+            }
+        }
+
+        @media (min-width: 1400px) {
+            .container {
+                margin-left: 300px;
+            }
+            .toc {
+                width: 280px;
+                left: 2rem;
+            }
+        }
+
+        /* Scroll anchor offset */
+        :target {
+            scroll-margin-top: 2rem;
+        }
+
+        [id] {
+            scroll-margin-top: 2rem;
+        }
+
+        /* Header */
+        header {
+            margin-bottom: 2rem;
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            color: var(--ink-secondary);
+            font-style: italic;
+        }
+
+        .meta {
+            font-size: 0.8rem;
+            color: var(--ink-tertiary);
+            margin-top: 0.5rem;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .back-nav {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--ink-secondary);
+            text-decoration: none;
+            font-size: 0.8rem;
+            margin-bottom: 1.5rem;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .back-nav:hover {
+            color: var(--accent);
+        }
+
+        /* Theme toggle */
+        .theme-toggle {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: 1px solid var(--card-border);
+            background: var(--surface);
+            color: var(--ink);
+            cursor: pointer;
+            font-size: 1.25rem;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .theme-toggle:hover {
+            background: var(--accent-bg);
+        }
+
+        /* Table of Contents */
+        .toc {
+            background: var(--surface);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 1.25rem;
+            margin-bottom: 2rem;
+        }
+
+        .toc-title {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--ink-tertiary);
+            margin-bottom: 0.75rem;
+        }
+
+        .toc-list {
+            list-style: none;
+            columns: 2;
+            column-gap: 1.5rem;
+        }
+
+        @media (max-width: 480px) {
+            .toc-list { columns: 1; }
+        }
+
+        .toc-list a {
+            color: var(--link);
+            text-decoration: none;
+            font-size: 0.85rem;
+            display: block;
+            padding: 0.25rem 0;
+        }
+
+        .toc-list a:hover {
+            text-decoration: underline;
+        }
+
+        .toc-section {
+            font-weight: 600;
+            margin-top: 12px;
+            color: var(--accent);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding-top: 8px;
+            border-top: 1px solid var(--card-border);
+        }
+
+        .toc-list li:first-child .toc-section,
+        .toc-list .toc-section:first-child {
+            border-top: none;
+            padding-top: 0;
+            margin-top: 0;
+        }
+
+        .toc-list a.active {
+            color: var(--accent);
+            font-weight: 600;
+            background: var(--accent-bg);
+            border-radius: 3px;
+            padding-left: 0.5rem;
+            margin-left: -0.5rem;
+        }
+
+        /* TOC scrollbar */
+        .toc::-webkit-scrollbar {
+            width: 6px;
+        }
+        .toc::-webkit-scrollbar-track {
+            background: var(--surface-alt);
+            border-radius: 3px;
+        }
+        .toc::-webkit-scrollbar-thumb {
+            background: var(--card-border);
+            border-radius: 3px;
+        }
+        .toc::-webkit-scrollbar-thumb:hover {
+            background: var(--accent);
+        }
+
+        /* Quick stats bar */
+        .stats-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin: 1rem 0 1.5rem;
+            padding: 0.75rem 1rem;
+            background: var(--surface);
+            border: 1px solid var(--card-border);
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-family: 'Inter', sans-serif;
+        }
+        .stats-bar .stat {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .stats-bar .stat-num {
+            font-weight: 600;
+            color: var(--accent);
+        }
+        .stats-bar .stat-label {
+            color: var(--ink-secondary);
+        }
+
+        /* Section return link */
+        .section-return {
+            float: right;
+            font-size: 0.7rem;
+            color: var(--ink-tertiary);
+            text-decoration: none;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .section-return:hover {
+            color: var(--accent);
+        }
+
+        /* Anchor links */
+        .pattern-name::after,
+        .anchor-link {
+            content: " #";
+            color: var(--ink-tertiary);
+            opacity: 0;
+            transition: opacity 0.2s;
+            font-size: 0.8em;
+        }
+
+        .pattern-card:hover .pattern-name::after {
+            opacity: 0.5;
+        }
+
+        /* Print styles */
+        @media print {
+            body {
+                background: white;
+                color: black;
+                font-size: 11pt;
+            }
+            .toc {
+                position: static;
+                page-break-after: always;
+            }
+            .theme-toggle, .back-nav, .section-return {
+                display: none;
+            }
+            .pattern-card {
+                page-break-inside: avoid;
+                border: 1px solid #ccc;
+            }
+            a {
+                color: black;
+                text-decoration: underline;
+            }
+            .zone-chip {
+                border: 1px solid #999;
+                background: white;
+                color: #333;
+            }
+        }
+
+        /* Ontology Grid */
+        .onto-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 0.75rem;
+            margin: 1rem 0 2rem;
+        }
+
+        .onto-card {
+            background: var(--surface);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .onto-sym {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
+            font-size: 1.5rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .onto-name {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .onto-desc {
+            font-size: 0.8rem;
+            color: var(--ink-secondary);
+            line-height: 1.5;
+        }
+
+        /* Morphisms */
+        .morphism {
+            border: 1px solid var(--card-border);
+            padding: 1rem 1.25rem;
+            margin: 1rem 0;
+            border-radius: 6px;
+        }
+
+        .morphism-formula {
+            font-family: ui-monospace, 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .morphism-plain {
+            font-size: 0.9rem;
+            font-style: italic;
+            color: var(--ink-secondary);
+            margin-bottom: 0.75rem;
+        }
+
+        .morphism-example {
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+
+        /* Pattern Cards */
+        .pattern-card {
+            background: var(--surface);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            margin: 1.5rem 0;
+            overflow: hidden;
+        }
+
+        .pattern-head {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--card-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .pattern-name {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: var(--pattern-color);
+        }
+
+        .pattern-zones {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+        }
+
+        .zone-chip {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.65rem;
+            font-weight: 500;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            background: var(--surface-alt);
+            color: var(--ink-secondary);
+        }
+
+        .pattern-body {
+            padding: 1.25rem;
+        }
+
+        .pattern-def {
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            border-left: 3px solid var(--pattern-color);
+            padding-left: 1rem;
+        }
+
+        .pattern-meta {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 0.5rem 1rem;
+            font-size: 0.85rem;
+        }
+
+        .pattern-meta dt {
+            font-weight: 600;
+            color: var(--ink-tertiary);
+            font-family: 'Inter', sans-serif;
+        }
+
+        .pattern-meta dd {
+            color: var(--ink-secondary);
+        }
+
+        .pattern-refs {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--card-border);
+            font-size: 0.8rem;
+        }
+
+        .pattern-refs-title {
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            color: var(--ink-tertiary);
+            margin-bottom: 0.5rem;
+        }
+
+        .pattern-refs cite {
+            font-style: normal;
+            display: block;
+            color: var(--ink-secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        /* Tool Type Badge */
+        .tool-type {
+            font-size: 0.7rem;
+            font-weight: 400;
+            color: var(--ink-tertiary);
+            margin-left: 8px;
+        }
+
+        /* Golden Path */
+        .golden-path-box {
+            background: linear-gradient(135deg, var(--surface) 0%, var(--accent-bg) 100%);
+            border: 2px solid var(--accent);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .golden-path-box h3 {
+            color: var(--accent);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .golden-flow {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+        }
+
+        .golden-flow .step {
+            background: var(--surface);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            border: 1px solid var(--card-border);
+        }
+
+        .golden-flow .arrow {
+            color: var(--accent);
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 4rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--card-border);
+            font-size: 0.8rem;
+            color: var(--ink-tertiary);
+            text-align: center;
+            font-family: 'Inter', sans-serif;
+        }
+
+        footer a {
+            color: var(--accent);
+        }
+
+        /* Grounding Box */
+        .grounding {
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            color: var(--ink-secondary);
+            border-left: 2px solid var(--accent);
+            padding-left: 0.75rem;
+        }
+
+        .grounding strong {
+            display: block;
+            color: var(--ink-tertiary);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">☀</button>
+
+    <div class="container">
+        <a href="project-genome-dce-gyo.html" class="back-nav">← Project Genome</a>
+
+        <header>
+            <h1>Pattern Glossary</h1>
+            <p class="subtitle">Recurring behaviors and design patterns across the WAG Studio Suite, grounded in HCI, CSCW, and computational narratology.</p>
+            <p class="meta">Last updated: December 2025</p>
+        </header>
+
+        <div class="stats-bar">
+            <div class="stat"><span class="stat-num">24</span><span class="stat-label">patterns</span></div>
+            <div class="stat"><span class="stat-num">8</span><span class="stat-label">ontology types</span></div>
+            <div class="stat"><span class="stat-num">6</span><span class="stat-label">morphisms</span></div>
+            <div class="stat"><span class="stat-num">9</span><span class="stat-label">OLOGs sourced</span></div>
+            <div class="stat"><span class="stat-num">38</span><span class="stat-label">citations</span></div>
+            <div class="stat"><span class="stat-num">8</span><span class="stat-label">domains</span></div>
+        </div>
+
+        <!-- ABSTRACT -->
+        <section id="abstract" style="margin-bottom: 2rem; padding: 1.25rem; background: var(--surface); border: 1px solid var(--card-border); border-radius: 8px;">
+            <h2 style="margin-top: 0; border: none; padding: 0;">Abstract</h2>
+            <p style="font-size: 0.9rem; text-align: justify; margin-bottom: 0;">The WAG Studio Suite materializes a philosophy of visible infrastructure. Built on <a href="#ldraw-composition">LDraw</a>—where LEGO bricks exist as lines of code—the suite treats the context window as the scarcest resource in computing. Its architecture—canonical MPD files, skeleton ownership graphs, broadcast-bus synchronization—reflects the shift from "prompt engineering" to "context engineering" (<a href="https://karpathy.ai">Karpathy, 2025</a>). By preserving thick description (<a href="https://www.basicbooks.com/titles/clifford-geertz/the-interpretation-of-cultures/9780465093564/">Geertz</a>), captured grammar (<a href="https://pages.gseis.ucla.edu/faculty/agre/capture.html">Agre</a>), and seamful design (<a href="https://dl.acm.org/doi/10.1145/1031607.1031622">Chalmers</a>), the suite offers a model for human-AI collaboration grounded in the thirty-year history of the contested digital brick.</p>
+        </section>
+
+        <nav class="toc">
+            <div class="toc-title">Contents</div>
+            <ul class="toc-list">
+                <li><a href="#abstract">Abstract</a></li>
+                <li><a href="#ontology">Ontology Types (C-T-A-M-D-S-P-I)</a></li>
+                <li><a href="#morphisms">Morphisms</a></li>
+                <li class="toc-section">Core Tools</li>
+                <li><a href="#swiss">Swiss (Launcher)</a></li>
+                <li><a href="#courage">COURAGE (Viewer)</a></li>
+                <li><a href="#gold">GOLD (Editor)</a></li>
+                <li><a href="#frank">Frank (Protocol)</a></li>
+                <li><a href="#grace">Grace (Batch)</a></li>
+                <li><a href="#mento">MENTO (Camera)</a></li>
+                <li class="toc-section">Shells</li>
+                <li><a href="#timber">TIMBER (Debug)</a></li>
+                <li><a href="#homer">HOMER (Full)</a></li>
+                <li class="toc-section">Labs</li>
+                <li><a href="#were">WERE (Skeleton)</a></li>
+                <li><a href="#weaver">WEAVER (Builder)</a></li>
+                <li><a href="#master">MASTER (Validator)</a></li>
+                <li class="toc-section">Design Patterns</li>
+                <li><a href="#anti-tool">anti-tool</a></li>
+                <li><a href="#stud-skeleton">stud-skeleton</a></li>
+                <li><a href="#mpd-truth">mpd-truth</a></li>
+                <li><a href="#frank-bus">frank-bus</a></li>
+                <li><a href="#progressive-disclosure">progressive-disclosure</a></li>
+                <li><a href="#shell-wiring">shell-wiring</a></li>
+                <li><a href="#scene-snapshot">scene-snapshot</a></li>
+                <li><a href="#ldraw-composition">ldraw-composition</a></li>
+                <li class="toc-section">OLOG-Sourced</li>
+                <li><a href="#gs2p-stack">GS2P-stack</a></li>
+                <li><a href="#9x9-grid">9x9-grid</a></li>
+                <li><a href="#tetrad-analysis">tetrad-analysis</a></li>
+                <li><a href="#olog-format">olog-format</a></li>
+                <li><a href="#single-file-html">single-file-html</a></li>
+                <li><a href="#file-learnings">file-learnings</a></li>
+                <li><a href="#manifold-view">manifold-view</a></li>
+                <li><a href="#taxonomy-tree">taxonomy-tree</a></li>
+                <li><a href="#iframe-composition">iframe-composition</a></li>
+                <li class="toc-section">Philosophy & AI</li>
+                <li><a href="#situated-action">situated-action</a></li>
+                <li><a href="#intra-action">intra-action</a></li>
+                <li><a href="#agential-cut">agential-cut</a></li>
+                <li><a href="#worlding">worlding</a></li>
+                <li><a href="#context-rot">context-rot</a></li>
+                <li><a href="#void-management">void-management</a></li>
+                <li class="toc-section">Reference</li>
+                <li><a href="#bibliography">Works Cited (31)</a></li>
+            </ul>
+        </nav>
+
+        <!-- GOLDEN PATH -->
+        <div class="golden-path-box">
+            <h3>The Golden Path (Start Here)</h3>
+            <div class="golden-flow">
+                <span class="step">Open Swiss</span>
+                <span class="arrow">→</span>
+                <span class="step">Load MPD</span>
+                <span class="arrow">→</span>
+                <span class="step">View in COURAGE</span>
+                <span class="arrow">→</span>
+                <span class="step">Edit in GOLD</span>
+                <span class="arrow">→</span>
+                <span class="step">Export GLB</span>
+            </div>
+            <p style="margin-top:1rem;font-size:0.85rem;color:var(--ink-secondary);">
+                <strong>You need:</strong> an <code>.mpd</code> file + LDraw parts library (bundled). Output: shareable 3D model.
+            </p>
+        </div>
+
+        <!-- ONTOLOGY SECTION -->
+        <section id="ontology">
+            <h2>Ontology Types (C-T-A-M-D-S-P-I) <a href="#" class="section-return">↑ top</a></h2>
+            
+            <div style="border: 1px solid var(--card-border); border-radius: 8px; padding: 1.25rem; margin-bottom: 1.5rem;">
+                <p style="font-size: 0.95rem; line-height: 1.7; margin: 0 0 0.75rem 0;"><strong>The Parallel Genealogies:</strong> The WAG Studio Suite and the LDraw ecosystem share a common grammar—a way of thinking about creative work as <em>traceable</em>, <em>accountable</em>, and <em>regenerable</em>. To demonstrate the ontology types defined below, we use <a href="#ldraw-composition">James Jessiman and the thirty-year history of the digital LEGO brick</a> as our running example.</p>
+                <p style="font-size: 0.85rem; color: var(--ink-secondary); margin: 0;">Every type in the WAG Genome finds its prototype in the LDraw story.</p>
+            </div>
+            
+            <p>These types form a <em>genome schema</em> for tracking creative provenance—who made what, when, why, and how. This structure draws from David Spivak's <em>Ontology Logs</em> (ologs) for knowledge representation.</p>
+
+            <style>
+                .onto-expanded { display: grid; gap: 1.5rem; margin-top: 1.5rem; }
+                .onto-row { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px; padding: 1.25rem; }
+                .onto-row-head { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; border-bottom: 1px solid var(--card-border); padding-bottom: 0.75rem; }
+                .onto-row-sym { font-size: 1.25rem; font-weight: bold; width: 2rem; text-align: center; font-family: ui-monospace, monospace; }
+                .onto-row-name { font-weight: 600; font-size: 1.1rem; }
+                .onto-row-def { font-size: 0.9rem; margin-bottom: 1rem; font-style: italic; color: var(--ink-secondary); }
+                .onto-quote { border-left: 2px solid var(--ink-secondary); padding: 0.5rem 0 0.5rem 1rem; font-size: 0.85rem; font-style: italic; margin: 1rem 0; color: var(--ink-secondary); }
+                .onto-quote cite { display: block; font-style: normal; font-size: 0.75rem; margin-top: 0.5rem; }
+                .onto-interp { font-size: 0.85rem; margin-top: 1rem; padding-top: 0.75rem; border-top: 1px dashed var(--card-border); }
+                .shuffle-quote { border-left: 2px solid var(--card-border); padding: 0.5rem 0 0.5rem 1rem; font-size: 0.85rem; font-style: italic; margin: 1rem 0; }
+                .shuffle-quote cite { display: block; font-style: normal; font-size: 0.75rem; color: var(--ink-secondary); margin-top: 0.5rem; }
+                .ldraw-example { margin-top: 1rem; font-size: 0.9rem; line-height: 1.6; padding-top: 0.75rem; border-top: 1px dashed var(--card-border); }
+                .ldraw-example h5 { margin: 0 0 0.75rem 0; font-size: 0.9rem; font-weight: 600; color: var(--ink); }
+            </style>
+
+            <div class="onto-expanded">
+                <div class="onto-row">
+                    <div class="onto-row-head">
+                        <div class="onto-row-sym" style="color:#eab308">C</div>
+                        <div class="onto-row-name">Creator</div>
+                    </div>
+                    <div class="onto-row-def">The human author whose decisions shape the trail—the accountable actor.</div>
+                    <div class="onto-quote">
+                        "The point is that agency, once constituted by the intersection of material and social phenomena, can be called to account for itself, and is thus inextricably linked to power."
+                        <cite>— Suchman, L. A. (1987). Plans and Situated Actions, p. 182</cite>
+                    </div>
+                    <div class="ldraw-example">
+                        <p style="margin: 0;"><strong>LDraw Example:</strong> James Jessiman's <em>situated action</em> was to take the Community side in a dialectical struggle—not through rhetoric, but through code. When he died in 1997, his agency could be "called to account" because it was <em>legible</em>. The <code>.dat</code> files he authored carried his name in the <code>!AUTHOR</code> header. The community could continue his work because his situated actions were visible in the Trail.</p>
+                    </div>
+                </div>
+
+                <div class="onto-row">
+                    <div class="onto-row-head">
+                        <div class="onto-row-sym" style="color:#60a5fa">T</div>
+                        <div class="onto-row-name">Trail</div>
+                    </div>
+                    <div class="onto-row-def">The evolving history of a creative work. A temporal sequence of artifacts and decisions.</div>
+                    <div class="onto-quote">
+                        "The owner of the memex... runs a trail of his interest through the maze of materials available to him... He adds marginal notes and comments... He builds at will an associative index which works in accordance with the truly marvelous manner of the human mind."
+                        <cite>— Bush, V. (1945). As We May Think. The Atlantic</cite>
+                    </div>
+                    <div class="ldraw-example">
+                        <p style="margin: 0;"><strong>LDraw Example:</strong> The LDraw library is not a static database—it is a Trail, an evolving sedimentary record. The library is governed by SteerCo and LSB; new parts undergo peer review. <code>3001.dat</code> (the 2×4 brick) was authored by Jessiman in 1995; later parts carry the names of community members. Because the file format was plain text, it was inspectable, editable, and immortal—a "White Box" ecosystem.</p>
+                    </div>
+                </div>
+
+                <div class="onto-row">
+                    <div class="onto-row-head">
+                        <div class="onto-row-sym" style="color:#34d399">A</div>
+                        <div class="onto-row-name">Artifact</div>
+                    </div>
+                    <div class="onto-row-def">Concrete outputs: MPD files, JSON manifests, GLB exports. The "objectified" creative moment.</div>
+                    <div class="onto-quote">
+                        "A cognitive artifact is a material object whose physical structure has been shaped by its participation in cultural practices... they function in the distribution and coordination of cognitive functions."
+                        <cite>— Hutchins, E. (1995). Cognition in the Wild, p. 354</cite>
+                    </div>
+                    <div class="ldraw-example">
+                        <p style="margin: 0;"><strong>LDraw Example:</strong> Jessiman's most elegant artifact was not a brick—it was <code>stud.dat</code>, a single file representing the knob on top of a brick. Every other part references this file; if you improve <code>stud.dat</code>, you improve thousands of parts instantly. The architecture is recursive: <code>3001.dat</code> does not contain geometry—it contains <em>calls</em> to primitives. One file update upgrades the entire history of digital LEGO.</p>
+                    </div>
+                </div>
+
+                <div class="onto-row">
+                    <div class="onto-row-head">
+                        <div class="onto-row-sym" style="color:#f472b6">M</div>
+                        <div class="onto-row-name">Metadata</div>
+                    </div>
+                    <div class="onto-row-def">Timestamps, file-learnings, birth dates. "Data about data"—the invisible infrastructure.</div>
+                    <div class="onto-quote">
+                        "Infrastructure is defined as an embedded, standardized, transparent, and ultimately invisible set of resources that supports a wide range of social and technical activities."
+                        <cite>— Bowker, G. C., & Star, S. L. (1999). Sorting Things Out, p. 34</cite>
+                    </div>
+                    <div class="ldraw-example">
+                        <p style="margin: 0;"><strong>LDraw Example:</strong> Every LDraw part file begins with metadata: <code>!AUTHOR</code> traces provenance, <code>!LICENSE</code> enables redistribution, <code>UPDATE</code> signals certification. When this metadata works, it is transparent—users don't think about it. When it breaks, coordination fails. Metadata is LEGO's social contract encoded in text.</p>
+                    </div>
+                </div>
+
+                <div class="onto-row">
+                    <div class="onto-row-head">
+                        <div class="onto-row-sym" style="color:#a78bfa">D</div>
+                        <div class="onto-row-name">Decision</div>
+                    </div>
+                    <div class="onto-row-def">Architectural choices: "use stud_skeleton," "adopt Frank bus." Traces of reflection-in-action.</div>
+                    <div class="onto-quote">
+                        "The practitioner allows himself to experience confusion and uncertainty... he frames the situation, and conducts an experiment in place. He is engaged in a reflection-in-action which disappears when it is successful."
+                        <cite>— Schön, D. A. (1983). The Reflective Practitioner, p. 68</cite>
+                    </div>
+                    <div class="ldraw-example">
+                        <p style="margin: 0;"><strong>LDraw Example:</strong> Jessiman defined a custom coordinate unit: 1 LDU = 0.4 mm, with studs being 12 LDU diameter. This integer-based system avoided floating-point errors on early 90s hardware. The decision "disappears when successful"—users today don't know they're using LDU. But the coherence of the entire 10,000-part library depends on this single architectural choice.</p>
+                    </div>
+                </div>
+
+                <div class="onto-row">
+                    <div class="onto-row-head">
+                        <div class="onto-row-sym" style="color:#f97316">S</div>
+                        <div class="onto-row-name">Tool</div>
+                    </div>
+                    <div class="onto-row-def">Software that transforms artifacts. Swiss, COURAGE, GOLD, MENTO. The instruments of creation.</div>
+                    <div class="onto-quote">
+                        "An instrument is an artefact dedicated to the accomplishment of an action... The fundamental idea is to turn abstract operations into manipulable objects."
+                        <cite>— Beaudouin-Lafon, M. (2000). Instrumental Interaction. CHI '00</cite>
+                    </div>
+                    <div class="ldraw-example">
+                        <p style="margin: 0;"><strong>LDraw Example:</strong> Jessiman didn't just define a file format—he wrote LDraw.EXE, the first viewer. The open format enabled a Tool ecosystem: LDView (1998), MLCad (2000), LPub (2002), BrickLink Studio (2018). The "White Box" architecture of LDraw meant that anyone with Notepad could participate in the ecosystem—unlike the "Black Box" of LEGO Digital Designer.</p>
+                    </div>
+                </div>
+
+                <div class="onto-row">
+                    <div class="onto-row-head">
+                        <div class="onto-row-sym" style="color:#22d3ee">P</div>
+                        <div class="onto-row-name">Pattern</div>
+                    </div>
+                    <div class="onto-row-def">Recurring structure detected across artifacts. The reusable "core of the solution."</div>
+                    <div class="onto-quote">
+                        "Each pattern describes a problem which occurs over and over again in our environment, and then describes the core of the solution to that problem, in such a way that you can use this solution a million times over."
+                        <cite>— Alexander, C., et al. (1977). A Pattern Language, p. x</cite>
+                    </div>
+                    <div class="ldraw-example">
+                        <p style="margin: 0;"><strong>LDraw Example:</strong> Line Type 1 (The Reference) allows a single <code>stud.dat</code> file to be referenced thousands of times without duplicating geometry. This is Alexander's pattern made literal: never hardcode geometry; always reference a primitive. The syntax <code>1 &lt;color&gt; x y z ... stud.dat</code> embodies what Parnas (1972) called "information hiding."</p>
+                    </div>
+                </div>
+
+                <div class="onto-row">
+                    <div class="onto-row-head">
+                        <div class="onto-row-sym" style="color:#ef4444">I</div>
+                        <div class="onto-row-name">Intent</div>
+                    </div>
+                    <div class="onto-row-def">The creator's purpose. The "why" behind artifacts—the thick description.</div>
+                    <div class="onto-quote">
+                        "What... transforms a twitch into a wink... is the structure of significance... which the anthropologist describes as 'thick description'."
+                        <cite>— Geertz, C. (1973). The Interpretation of Cultures, p. 7</cite>
+                    </div>
+                    <div class="ldraw-example">
+                        <p style="margin: 0;"><strong>LDraw Example:</strong> The thin description: to render LEGO bricks. The <em>thick</em> description: while Darwin burned through budget in a corporate lab, an Australian teenager wrote a program to model his own creations. The Intent was grounded in the hacker ethos of the mid-90s: a teenager who couldn't afford every brick could now model them all. This was liberation from scarcity—preservation of the "Platonic Ideal" of the brick.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- MORPHISMS SECTION -->
+        <section id="morphisms">
+            <h2>Morphisms (Relationships) <a href="#" class="section-return">↑ top</a></h2>
+            <p>Following category theory (cf. Spivak's <em>Category Theory for the Sciences</em>), these are structure-preserving maps between types. Each morphism has a prototype in the <a href="#ldraw-composition">Jessiman story</a>.</p>
+
+            <div class="morphism">
+                <div class="morphism-formula">generates : C → T</div>
+                <div class="morphism-plain">A Creator generates a Trail through sustained practice.</div>
+                <div class="morphism-example"><strong>LDraw:</strong> James Jessiman generated the LDraw Trail from 1995 to 1997—a library of foundational parts, a file format specification, and the first viewer. After his death, the community continued the Trail. Today, the LDraw library contains over 10,000 "certified" parts.</div>
+            </div>
+
+            <div class="morphism">
+                <div class="morphism-formula">contains : T → {A, M, D}</div>
+                <div class="morphism-plain">A Trail contains Artifacts, Metadata, and Decisions.</div>
+                <div class="morphism-example"><strong>LDraw:</strong> The LDraw Trail contains <strong>Artifacts</strong> (10,000+ <code>.dat</code> part files), <strong>Metadata</strong> (<code>!AUTHOR</code>, <code>!LICENSE</code> headers), and <strong>Decisions</strong> (LDU coordinates, Type 0-5 line syntax, the primitive reference pattern). The Trail is sedimentary—each layer depends on the layers beneath it.</div>
+            </div>
+
+            <div class="morphism">
+                <div class="morphism-formula">transforms : S × A → A'</div>
+                <div class="morphism-plain">A Tool transforms an Artifact into a new Artifact.</div>
+                <div class="morphism-example"><strong>LDraw:</strong> LDraw.EXE transformed <code>.dat</code> files (text) into rendered images (pixels). LPub transforms MPD files into building instructions (PDF). BrickLink Studio (2018) transforms LDraw files into high-fidelity renders. Each transformation preserves structure.</div>
+            </div>
+
+            <div class="morphism">
+                <div class="morphism-formula">syncs : Frank × {S₁, S₂, ...} → coherence</div>
+                <div class="morphism-plain">Frank bus synchronizes multiple Tools into coherent state.</div>
+                <div class="morphism-example"><strong>LDraw (Analog):</strong> In the pre-internet era, LDraw coherence was maintained through mailing lists. LUGNET forums served as the "Frank bus"—broadcasting part updates, certification decisions, and bug reports. What was social infrastructure in LDraw is technical infrastructure in WAG.</div>
+            </div>
+
+            <div class="morphism">
+                <div class="morphism-formula">derives : A → stud_skeleton</div>
+                <div class="morphism-plain">An MPD Artifact derives a stud_skeleton ownership map.</div>
+                <div class="morphism-example"><strong>LDraw:</strong> Every LDraw model implicitly contains an ownership structure: which brick owns which stud. Jessiman's design enabled this derivation—because bricks were defined in a coordinate system (LDU), ownership could be computed geometrically. The skeleton was latent in the format from the beginning.</div>
+            </div>
+
+            <div class="morphism">
+                <div class="morphism-formula">supports : S → I</div>
+                <div class="morphism-plain">A Tool supports the Creator's Intent.</div>
+                <div class="morphism-example"><strong>LDraw:</strong> Jessiman's Intent was liberation: freeing the brick from scarcity. His tools supported this by making the brick <em>inspectable</em> (plain text), <em>editable</em> (any user could modify coordinates), and <em>immortal</em> (text survives where binary formats decay).</div>
+            </div>
+
+            <!-- Jessiman Morphism Conclusion -->
+            <div style="border: 1px solid var(--card-border); border-radius: 8px; padding: 1.25rem; margin-top: 1.5rem;">
+                <h3 style="margin: 0 0 1rem 0; font-size: 1rem;">Conclusion: The Jessiman Morphism</h3>
+                <p style="font-size: 0.9rem; margin-bottom: 1rem;">The LDraw history is not just an example—it is a <em>prototype</em>. Every type in the WAG Genome finds its first instantiation in the Jessiman story:</p>
+                <table style="width: 100%; font-size: 0.85rem; border-collapse: collapse;">
+                    <tr style="border-bottom: 1px solid var(--card-border);"><td style="padding: 0.4rem 0; width: 35%;"><strong>Creator (C)</strong></td><td>James Jessiman</td></tr>
+                    <tr style="border-bottom: 1px solid var(--card-border);"><td style="padding: 0.4rem 0;"><strong>Trail (T)</strong></td><td>LDraw.org library</td></tr>
+                    <tr style="border-bottom: 1px solid var(--card-border);"><td style="padding: 0.4rem 0;"><strong>Artifact (A)</strong></td><td><code>.dat</code> part files, <code>stud.dat</code></td></tr>
+                    <tr style="border-bottom: 1px solid var(--card-border);"><td style="padding: 0.4rem 0;"><strong>Metadata (M)</strong></td><td><code>!AUTHOR</code>, <code>!LICENSE</code> headers</td></tr>
+                    <tr style="border-bottom: 1px solid var(--card-border);"><td style="padding: 0.4rem 0;"><strong>Decision (D)</strong></td><td>LDU coordinates, primitive pattern</td></tr>
+                    <tr style="border-bottom: 1px solid var(--card-border);"><td style="padding: 0.4rem 0;"><strong>Tool (S)</strong></td><td>LDraw.EXE, LDView, MLCad</td></tr>
+                    <tr style="border-bottom: 1px solid var(--card-border);"><td style="padding: 0.4rem 0;"><strong>Pattern (P)</strong></td><td>Primitive reference, modular decomposition</td></tr>
+                    <tr><td style="padding: 0.4rem 0;"><strong>Intent (I)</strong></td><td>Liberation from scarcity</td></tr>
+                </table>
+                <p style="font-size: 0.9rem; margin: 1rem 0 0 0;">The morphism <code>Jessiman → WAG</code> is structure-preserving. What was true for the contested digital brick remains true for the contested AI context window.</p>
+                <p style="font-size: 0.9rem; margin: 0.5rem 0 0 0; font-style: italic;"><strong>Jessiman saw that a brick could be a word. We see that a context window can be a scene. The gesture is the same.</strong></p>
+            </div>
+        </section>
+
+        <!-- CORE TOOLS SECTION -->
+        <section id="core-tools">
+            <h2>Core Tools (Apps &amp; Protocols) <a href="#" class="section-return">↑ top</a></h2>
+            <p>These are the primary runnable surfaces of the WAG Studio Suite. Each entry follows a "Function First" structure: what it <em>does</em>, what it <em>accepts</em>, and what it <em>pairs with</em>.</p>
+
+            <!-- Swiss -->
+            <article class="pattern-card" id="swiss">
+                <div class="pattern-head">
+                    <div class="pattern-name">SWISS<span class="tool-type">(App — Launcher)</span></div>
+                    <div class="pattern-zones">
+                        <span class="zone-chip" style="background:rgba(244,114,182,0.2);color:#f472b6">WAG</span>
+                    </div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">The Dashboard. Start here. Opens other tools and routes you to the right place. Click a tool name → it opens.</div>
+                    <dl class="pattern-meta">
+                        <dt>📄 File</dt>
+                        <dd><a href="swiss-frank-grace-studio.html">swiss-frank-grace-studio.html</a></dd>
+                        <dt>📚 Tutorial</dt>
+                        <dd><a href="studio-tutorial.html">Swiss/Frank/Grace - LEGO Quickstart</a></dd>
+                        <dt>Inputs</dt>
+                        <dd>None (it's the entrypoint)</dd>
+                        <dt>Outputs</dt>
+                        <dd>URL routing to target app</dd>
+                        <dt>Opens</dt>
+                        <dd>COURAGE, GOLD, Grace, TIMBER, HOMER, MENTO</dd>
+                        <dt>Works alone?</dt>
+                        <dd>Yes. It is the starting point.</dd>
+                        <dt>Common failure</dt>
+                        <dd>404 links if files moved; check file paths.</dd>
+                    </dl>
+                    <div class="pattern-refs">
+                        <div class="pattern-refs-title">Name Rationale</div>
+                        <cite>"Swiss Army Knife" — the multi-tool that opens everything else.</cite>
+                    </div>
+                </div>
+            </article>
+
+            <!-- COURAGE -->
+            <article class="pattern-card" id="courage">
+                <div class="pattern-head">
+                    <div class="pattern-name">COURAGE<span class="tool-type">(App — 3D Viewer)</span></div>
+                    <div class="pattern-zones">
+                        <span class="zone-chip" style="background:rgba(244,114,182,0.2);color:#f472b6">WAG</span>
+                    </div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">The Viewer. Renders MPD as interactive 3D via Three.js. Orbit, zoom, click to select bricks. This is where you see your scene.</div>
+                    <dl class="pattern-meta">
+                        <dt>📄 Files</dt>
+                        <dd>
+                            <a href="wag-cool-courage.html">wag-cool-courage.html</a> (ICE LAB wrapper)<br>
+                            <a href="courage-master-studio.html">courage-master-studio.html</a><br>
+                            <a href="courage-were-studio.html">courage-were-studio.html</a>
+                        </dd>
+                        <dt>📚 Tutorial</dt>
+                        <dd><a href="studio-tutorial.html">Swiss/Frank/Grace - LEGO Quickstart</a></dd>
+                        <dt>Inputs</dt>
+                        <dd>MPD file (+ LDraw parts library)</dd>
+                        <dt>Outputs</dt>
+                        <dd>3D render, selection events, optional GLB export</dd>
+                        <dt>Pairs with</dt>
+                        <dd>GOLD (edit selected), MENTO (capture), Frank (sync)</dd>
+                        <dt>Works alone?</dt>
+                        <dd>Yes, for viewing. Requires GOLD for editing.</dd>
+                        <dt>Common failure</dt>
+                        <dd>Missing parts → blank/partial scene. Check LDraw library path. Console shows 404s.</dd>
+                    </dl>
+                    <div class="pattern-refs">
+                        <div class="pattern-refs-title">Name Rationale</div>
+                        <cite>"Courage to look closely" — close reading of a scene.</cite>
+                    </div>
+                </div>
+            </article>
+
+            <!-- GOLD -->
+            <article class="pattern-card" id="gold">
+                <div class="pattern-head">
+                    <div class="pattern-name">GOLD<span class="tool-type">(App — Line Editor)</span></div>
+                    <div class="pattern-zones">
+                        <span class="zone-chip" style="background:rgba(244,114,182,0.2);color:#f472b6">WAG</span>
+                    </div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">The Line Editor. Edit one LDraw line at a time. Change position, color, rotation of individual bricks. Precision work.</div>
+                    <dl class="pattern-meta">
+                        <dt>📄 Files</dt>
+                        <dd>
+                            Part of integrated shells (TIMBER, HOMER)<br>
+                            <a href="homer-step2-courage-rb-gold.html">homer-step2-courage-rb-gold.html</a> (GOLD workflow)<br>
+                            <a href="homer-step3-weaver-assembly-gold-bus.html">homer-step3-weaver-assembly-gold-bus.html</a>
+                        </dd>
+                        <dt>📚 Tutorial</dt>
+                        <dd><a href="homer-step2-courage-rb-gold.html">HOMER Step 2: Courage → GOLD</a></dd>
+                        <dt>Inputs</dt>
+                        <dd>MPD file, selection events from COURAGE (via Frank)</dd>
+                        <dt>Outputs</dt>
+                        <dd>Modified MPD line, stud attribution updates, JSON scene snapshots</dd>
+                        <dt>Pairs with</dt>
+                        <dd>COURAGE (click brick → edit here), MASTER (validation)</dd>
+                        <dt>Works alone?</dt>
+                        <dd>Yes, as text editor. Better with COURAGE for visual feedback.</dd>
+                        <dt>Common failure</dt>
+                        <dd>Editing wrong line → geometry misaligns. Use MASTER to validate.</dd>
+                    </dl>
+                    <div class="pattern-refs">
+                        <div class="pattern-refs-title">Name Rationale</div>
+                        <cite>"GOLD standard" — precise, valuable, line-level edits.</cite>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Frank -->
+            <article class="pattern-card" id="frank">
+                <div class="pattern-head">
+                    <div class="pattern-name">FRANK<span class="tool-type">(Protocol — Sync Bus)</span></div>
+                    <div class="pattern-zones">
+                        <span class="zone-chip" style="background:rgba(244,114,182,0.2);color:#f472b6">WAG</span>
+                    </div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">The Wiring. Syncs data between tools using <code>window.postMessage</code>. If GOLD and COURAGE are in separate tabs, Frank keeps them in sync.</div>
+                    <dl class="pattern-meta">
+                        <dt>📄 Files</dt>
+                        <dd>
+                            <a href="wag-frank.html">wag-frank.html</a> (Grid & Minifigs)<br>
+                            <a href="frank-sync-notes.html">frank-sync-notes.html</a> (Documentation)
+                        </dd>
+                        <dt>📚 Tutorial</dt>
+                        <dd><a href="homer-step1-swiss-frank-courage.html">HOMER Step 1: Swiss → Frank → Courage</a></dd>
+                        <dt>Mechanism</dt>
+                        <dd><code>window.postMessage</code> with channels: selection, file-open, line-edit, camera</dd>
+                        <dt>Inputs</dt>
+                        <dd>Events from any WAG tool</dd>
+                        <dt>Outputs</dt>
+                        <dd>Routed events to subscribed tools</dd>
+                        <dt>Required?</dt>
+                        <dd>No for single-tool use. Yes for multi-tool sync.</dd>
+                        <dt>Common failure</dt>
+                        <dd>Nothing syncs across tools → use TIMBER/HOMER shell (pre-wired)</dd>
+                    </dl>
+                    <div class="pattern-refs">
+                        <div class="pattern-refs-title">Name Rationale</div>
+                        <cite>"Frankenstein" — stitches separate tools into one living system.</cite>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Grace -->
+            <article class="pattern-card" id="grace">
+                <div class="pattern-head">
+                    <div class="pattern-name">GRACE<span class="tool-type">(App — Batch Editor)</span></div>
+                    <div class="pattern-zones">
+                        <span class="zone-chip" style="background:rgba(244,114,182,0.2);color:#f472b6">WAG</span>
+                    </div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">The Batch Editor. Edit multiple models at once. Add/remove submodels, reorganize scene structure. For big changes.</div>
+                    <dl class="pattern-meta">
+                        <dt>📄 Files</dt>
+                        <dd>
+                            <a href="swiss-frank-grace-studio.html">swiss-frank-grace-studio.html</a> (integrated with Swiss/Frank)
+                        </dd>
+                        <dt>📖 Documentation</dt>
+                        <dd>
+                            GRACE-EDITOR-PHILOSOPHY.md<br>
+                            GRACE-FEATURES.md<br>
+                            GRACE-3D-TRANSFORM-WIDGETS.md
+                        </dd>
+                        <dt>Inputs</dt>
+                        <dd>MPD file</dd>
+                        <dt>Outputs</dt>
+                        <dd>Modified MPD with structural changes, GLB exports</dd>
+                        <dt>Pairs with</dt>
+                        <dd>GOLD (line edits), COURAGE (preview)</dd>
+                        <dt>Use when</dt>
+                        <dd>Adding/removing whole submodels, not individual bricks</dd>
+                    </dl>
+                    <div class="pattern-refs">
+                        <div class="pattern-refs-title">Name Rationale</div>
+                        <cite>"Grace" — elegant handling of complex, multi-part operations.</cite>
+                    </div>
+                </div>
+            </article>
+
+            <!-- MENTO -->
+            <article class="pattern-card" id="mento">
+                <div class="pattern-head">
+                    <div class="pattern-name">MENTO<span class="tool-type">(App — Camera Toolkit)</span></div>
+                    <div class="pattern-zones">
+                        <span class="zone-chip" style="background:rgba(244,114,182,0.2);color:#f472b6">WAG</span>
+                    </div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">Camera Controls. Capture screenshots, set keyframes, animate camera moves. Multiple versions with different capabilities.</div>
+                    <dl class="pattern-meta">
+                        <dt>📄 Files</dt>
+                        <dd>
+                            <a href="mento-368.html">mento-368.html</a> — MENTO MASTER v8.0 (basic capture)<br>
+                            <a href="mento-369.html">mento-369.html</a> — keyframe support<br>
+                            <a href="mento-372.html">mento-372.html</a> — improved controls<br>
+                            <a href="mento-373.html">mento-373.html</a> — animation/orbit rigs
+                        </dd>
+                        <dt>📚 Tutorial</dt>
+                        <dd>
+                            <a href="MENTO-tutorial-prime.html">MENTO Tutorial Prime</a><br>
+                            <a href="homer-step5-mento-brickfilm.html">HOMER Step 5: MENTO Brickfilm</a>
+                        </dd>
+                        <dt>Inputs</dt>
+                        <dd>Camera state from COURAGE, MPD shot definitions</dd>
+                        <dt>Outputs</dt>
+                        <dd>PNG screenshots, camera keyframes, animation data</dd>
+                        <dt>Pairs with</dt>
+                        <dd>COURAGE (framing), HOMER shell (integrated)</dd>
+                        <dt>Start with</dt>
+                        <dd>MENTO-368. Upgrade to 373 for orbit rigs.</dd>
+                        <dt>Common failure</dt>
+                        <dd>Record blank → browser tab not focused or canvas off-screen.</dd>
+                    </dl>
+                    <div class="pattern-refs">
+                        <div class="pattern-refs-title">Name Rationale</div>
+                        <cite>"Memento" shortened — capturing moments in time.</cite>
+                    </div>
+                </div>
+            </article>
+        </section>
+
+        <!-- SHELLS SECTION -->
+        <section id="shells">
+            <h2>Shells (Pre-Wired Workspaces) <a href="#" class="section-return">↑ top</a></h2>
+            <p>Shells dock multiple tools together with Frank bus pre-connected. Use these instead of opening separate tabs.</p>
+
+            <!-- TIMBER -->
+            <article class="pattern-card" id="timber">
+                <div class="pattern-head">
+                    <div class="pattern-name">TIMBER<span class="tool-type">(Shell — Debug Studio)</span></div>
+                    <div class="pattern-zones">
+                        <span class="zone-chip" style="background:rgba(247,151,22,0.2);color:#f97316">SHELL</span>
+                    </div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">Debug Studio. Docks COURAGE + WERE + MASTER in one window with Frank bus pre-wired. Use this for skeleton debugging.</div>
+                    <dl class="pattern-meta">
+                        <dt>📄 Files</dt>
+                        <dd>
+                            <a href="timber-studio.html">timber-studio.html</a> — TIMBER Studio: Courage / WERE / Master<br>
+                            <a href="cool-timber-studio.html">cool-timber-studio.html</a> — alternate variant<br>
+                            <a href="timber-docs.html">timber-docs.html</a> — documentation
+                        </dd>
+                        <dt>📚 Tutorial</dt>
+                        <dd><a href="TIMBER-tutorial-prime.html">TIMBER Studio – LEGO Quickstart</a></dd>
+                        <dt>Contains</dt>
+                        <dd>COURAGE, WERE, MASTER panels</dd>
+                        <dt>Bus</dt>
+                        <dd>Frank (pre-connected)</dd>
+                        <dt>Inputs</dt>
+                        <dd>MPD file, LDraw library</dd>
+                        <dt>Use when</dt>
+                        <dd>Debugging stud_skeleton issues, validating transforms</dd>
+                        <dt>Common failure</dt>
+                        <dd>Panels don't resize → refresh. Hierarchy empty → MPD parse error.</dd>
+                    </dl>
+                    <div class="pattern-refs">
+                        <div class="pattern-refs-title">Name Rationale</div>
+                        <cite>"Timber" as in construction framing — the skeleton that holds the suite together.</cite>
+                    </div>
+                </div>
+            </article>
+
+            <!-- HOMER -->
+            <article class="pattern-card" id="homer">
+                <div class="pattern-head">
+                    <div class="pattern-name">HOMER<span class="tool-type">(Shell — Full Studio)</span></div>
+                    <div class="pattern-zones">
+                        <span class="zone-chip" style="background:rgba(247,151,22,0.2);color:#f97316">SHELL</span>
+                    </div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">Full Studio. Docks ALL tools (Swiss, COURAGE, GOLD, Grace, WEAVER, WERE, MASTER) + MENTO camera. The everything-in-one-window option.</div>
+                    <dl class="pattern-meta">
+                        <dt>📄 Files</dt>
+                        <dd>
+                            <a href="homer-studio.html">homer-studio.html</a> — main full studio<br>
+                            <a href="homer.html">homer.html</a> — alternate entry<br>
+                            <a href="homer-quickstart.html">homer-quickstart.html</a>
+                        </dd>
+                        <dt>📚 Tutorials</dt>
+                        <dd>
+                            <a href="homer-tutorial-base.html">HOMER Tutorial Base</a><br>
+                            <a href="tutorial-homer.html">Tutorial: HOMER</a><br>
+                            <strong>Step-by-step workflow:</strong><br>
+                            <a href="homer-step1-swiss-frank-courage.html">Step 1: Swiss → Frank → Courage</a><br>
+                            <a href="homer-step2-courage-rb-gold.html">Step 2: Courage → GOLD</a><br>
+                            <a href="homer-step3-weaver-assembly-gold-bus.html">Step 3: Weaver Assembly</a><br>
+                            <a href="homer-step4-master-tune-return.html">Step 4: Master Tune</a><br>
+                            <a href="homer-step5-mento-brickfilm.html">Step 5: MENTO Brickfilm</a>
+                        </dd>
+                        <dt>Contains</dt>
+                        <dd>All core apps + MENTO camera</dd>
+                        <dt>Bus</dt>
+                        <dd>Frank (pre-connected)</dd>
+                        <dt>Use when</dt>
+                        <dd>You want camera capture alongside editing</dd>
+                    </dl>
+                    <div class="pattern-refs">
+                        <div class="pattern-refs-title">Name Rationale</div>
+                        <cite>"Homer" — the epic poet. The full narrative toolkit.</cite>
+                    </div>
+                </div>
+            </article>
+        </section>
+
+        <!-- LABS SECTION -->
+        <section id="labs">
+            <h2>Labs (Experimental Debug Tools) <a href="#" class="section-return">↑ top</a></h2>
+            <p>These tools help diagnose and fix issues. They're "second-order" tools — tools for understanding tools.</p>
+
+            <!-- WERE -->
+            <article class="pattern-card" id="were">
+                <div class="pattern-head">
+                    <div class="pattern-name">WERE<span class="tool-type">(Lab — Skeleton Visualizer)</span></div>
+                    <div class="pattern-zones">
+                        <span class="zone-chip" style="background:rgba(167,139,250,0.2);color:#a78bfa">LAB</span>
+                    </div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">Skeleton Visualizer. Shows which brick owns which stud. Highlights orphan studs (parts without owners). "The Werewolf reveals the hidden skeleton beneath the surface."</div>
+
+                    <div class="grounding">
+                        <strong>Academic Grounding</strong>
+                        <p><strong>Textual Inspectability:</strong> "LDraw survived because it treated the brick as a <em>linguistic construct</em>. This textual inspectability meant that the 'Void' was visible and manageable." WERE makes abstract ownership data VISIBLE as colored overlays.</p>
+                        <p><strong>Seamful Design (<a href="https://dl.acm.org/doi/10.1145/1031607.1031622">Chalmers &amp; Galani 2004</a>):</strong> WERE deliberately exposes the "seams"—ownership boundaries, gaps, and orphan studs normally invisible to the user.</p>
+                        <p><strong>Present-at-Hand (<a href="https://www.goodreads.com/book/show/53482">Winograd &amp; Flores 1986</a>):</strong> When things "look wrong," WERE shifts the user from ready-to-hand tool use to present-at-hand inspection. The skeleton becomes an <em>object of analysis</em>.</p>
+                    </div>
+
+                    <dl class="pattern-meta">
+                        <dt>📄 Files</dt>
+                        <dd>
+                            <a href="wag-were.html">wag-were.html</a> ·
+                            <a href="wag-cool-were.html">wag-cool-were.html</a> (ICE) ·
+                            <a href="courage-were-studio.html">courage-were-studio.html</a>
+                        </dd>
+                        <dt>📚 Tutorial</dt>
+                        <dd><a href="STUD-SKELETON-tutorial-visual.html">STUD-SKELETON Tutorial (Visual)</a></dd>
+                        <dt>Mechanism</dt>
+                        <dd>Color-coded overlay: Green = owned studs, Red = orphans, Yellow = disputed ownership</dd>
+                        <dt>Pairs with</dt>
+                        <dd>WEAVER (rebuild skeleton), MASTER (validate transforms)</dd>
+                        <dt>Theoretical Function</dt>
+                        <dd>Makes the invisible VISIBLE. Opens the White Box.</dd>
+                    </dl>
+                </div>
+            </article>
+
+            <!-- WEAVER -->
+            <article class="pattern-card" id="weaver">
+                <div class="pattern-head">
+                    <div class="pattern-name">WEAVER<span class="tool-type">(Lab — Skeleton Builder)</span></div>
+                    <div class="pattern-zones">
+                        <span class="zone-chip" style="background:rgba(167,139,250,0.2);color:#a78bfa">LAB</span>
+                    </div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">Skeleton Builder. Connects parts into a skeleton graph. Run this to rebuild stud attribution after major edits. The "spine" that holds the scene together.</div>
+
+                    <div class="grounding">
+                        <strong>Academic Grounding</strong>
+                        <p><strong>Rigid Skeleton (Negative Space Programming):</strong> "If the Pyramid is a structure of stone, the AI that inhabits it cannot be a fluid gas; it must have a <strong>rigid skeleton</strong>." WEAVER constructs the rigid structure that makes the scene coherent.</p>
+                        <p><strong>Graph Construction (<a href="https://arxiv.org/abs/1204.5222">Spivak Ologs 2012</a>):</strong> The skeleton is an olog where studs are objects and ownership relations are morphisms. WEAVER constructs this category from MPD geometry.</p>
+                        <p><strong>Modular Assembly (<a href="https://dl.acm.org/doi/10.1145/361598.361623">Parnas 1972</a>):</strong> Like LDraw's hierarchical architecture (stud.dat → brick → submodel → scene), WEAVER builds the skeleton bottom-up, composing local ownership into global coherence.</p>
+                    </div>
+
+                    <dl class="pattern-meta">
+                        <dt>📄 Files</dt>
+                        <dd>
+                            <a href="mobile-weaver-studio.html">mobile-weaver-studio.html</a> ·
+                            <a href="homer-step3-weaver-assembly-gold-bus.html">homer-step3-weaver-assembly-gold-bus.html</a>
+                        </dd>
+                        <dt>📖 Documentation</dt>
+                        <dd>WAG-UNIFIED-WEAVER-OLOG.md</dd>
+                        <dt>Inputs</dt>
+                        <dd>MPD file (geometry)</dd>
+                        <dt>Outputs</dt>
+                        <dd><code>stud_skeleton.json</code> (ownership map with source_hash, built_at metadata)</dd>
+                        <dt>Theoretical Function</dt>
+                        <dd>Converting geometry into typed structure. Rigidity from fluidity.</dd>
+                    </dl>
+                </div>
+            </article>
+
+            <!-- MASTER -->
+            <article class="pattern-card" id="master">
+                <div class="pattern-head">
+                    <div class="pattern-name">MASTER<span class="tool-type">(Lab — Transform Validator)</span></div>
+                    <div class="pattern-zones">
+                        <span class="zone-chip" style="background:rgba(167,139,250,0.2);color:#a78bfa">LAB</span>
+                    </div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">Transform Validator. Checks that part positions/rotations are valid. Catches misaligned bricks. The "master check" before export. "Parse, don't validate."</div>
+
+                    <div class="grounding">
+                        <strong>Academic Grounding</strong>
+                        <p><strong>Parse, Don't Validate (<a href="https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/">King 2019</a>):</strong> "Traditional validation checks an input and returns a boolean. However, the input remains in its original, potentially dangerous format." MASTER doesn't just flag errors—it PARSES the scene into a typed structure where illegal states are structurally impossible.</p>
+                        <p><strong>Hoare Logic (<a href="https://dl.acm.org/doi/10.1145/363235.363259">Hoare 1969</a>):</strong> {Precondition} Command {Postcondition}. MASTER implements this visually: Precondition = valid MPD structure, Command = user edits, Postcondition = stud_skeleton coherence.</p>
+                        <p><strong>Ownership Model (<a href="https://doc.rust-lang.org/book/ch04-00-understanding-ownership.html">Rust Book</a>):</strong> MASTER catches the DCE-GYO equivalent of null pointer errors: orphan studs and null references in the skeleton.</p>
+                    </div>
+
+                    <dl class="pattern-meta">
+                        <dt>📄 Files</dt>
+                        <dd>
+                            <a href="wag-master.html">wag-master.html</a> ·
+                            <a href="wag-cool-master.html">wag-cool-master.html</a> (ICE) ·
+                            <a href="courage-master-studio.html">courage-master-studio.html</a>
+                        </dd>
+                        <dt>📚 Tutorial</dt>
+                        <dd><a href="homer-step4-master-tune-return.html">HOMER Step 4: Master Tune</a></dd>
+                        <dt>Inputs</dt>
+                        <dd>MPD + stud_skeleton</dd>
+                        <dt>Outputs</dt>
+                        <dd>Validation report (pass/fail/warnings)</dd>
+                        <dt>Theoretical Function</dt>
+                        <dd>Postcondition checker. Enforces Hoare triplet before export.</dd>
+                    </dl>
+                </div>
+            </article>
+
+            <!-- Labs Reflective Account -->
+            <details style="margin: 1.5rem 0; background: var(--surface); border: 1px solid var(--card-border); border-radius: 8px;">
+                <summary style="padding: 1rem; cursor: pointer; font-family: 'Inter', sans-serif; font-weight: 600; color: var(--accent);">
+                    📄 The DCE-GYO Labs Toolkit: A Reflective Account
+                </summary>
+                <div style="padding: 0 1.25rem 1.25rem; font-size: 0.85rem; line-height: 1.7;">
+                    
+                    <h4 style="color: var(--accent); margin: 1rem 0 0.5rem; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em;">1. Toolkit Description</h4>
+                    <p>The DCE-GYO Labs Toolkit (WERE, WEAVER, MASTER) comprises a set of <strong>second-order tools</strong>—tools designed for understanding and repairing the core architecture of the primary WAG suite. The core function is to ensure structural coherence between the scene's geometry (the MPD file) and its underlying ownership graph (<code>stud_skeleton.json</code>).</p>
+                    <p>The toolkit exemplifies <em>anti-bundler, single-file HTML architecture</em>, often embedded together in a shell like TIMBER. Users interact via direct manipulation and visual feedback (WERE's colored overlays). Input: MPD file + existing stud-skeleton data. Output: repaired <code>stud_skeleton.json</code> (WEAVER) or validation report (MASTER).</p>
+
+                    <h4 style="color: var(--accent); margin: 1rem 0 0.5rem; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em;">2. Issues Addressed</h4>
+                    <p>The Labs address a critical <strong>Reflection Gap</strong> and <strong>Visibility Gap</strong> inherent to complex, generative systems with loosely coupled, message-bus (Frank Bus) architecture:</p>
+                    <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+                        <li><strong>Reflection Gap:</strong> Design work proceeds too fast for structural consistency checks, leaving the "space of illegal states" representable in memory.</li>
+                        <li><strong>Visibility Gap:</strong> The stud-skeleton—mapping geometric parts to ownership—is invisible. When errors occur, the system's breakdown is opaque.</li>
+                    </ul>
+                    <p>The Labs resolve this by making the invisible ownership graph <em>visible</em> (WERE), <em>rebuildable</em> (WEAVER), and <em>formally checkable</em> (MASTER).</p>
+
+                    <h4 style="color: var(--accent); margin: 1rem 0 0.5rem; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em;">3. Audiences</h4>
+                    <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+                        <li><strong>Primary:</strong> Researcher-practitioners, system architects, and expert builders engaged in major editing or integration tasks.</li>
+                        <li><strong>Secondary:</strong> All end-users of DCE-GYO tools (COURAGE, GOLD)—the Labs ensure core stability.</li>
+                        <li><strong>Tertiary:</strong> Future developers and maintainers who use the tools as <em>documentation-in-action</em>.</li>
+                    </ul>
+
+                    <h4 style="color: var(--accent); margin: 1rem 0 0.5rem; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em;">4. Context of Use</h4>
+                    <p>The toolkit is designed for the <strong>Breakdown Phase</strong> of the design cycle—explicitly invoked when the primary tool's transparent operation fails (when <em>ready-to-hand</em> becomes <em>present-at-hand</em>). Primary contexts:</p>
+                    <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+                        <li><strong>Audit:</strong> MASTER before export</li>
+                        <li><strong>Debug:</strong> WERE/WEAVER after major, high-risk edits</li>
+                    </ul>
+                    <p>Workflow: After a major merge or global transformation, run WERE to inspect → WEAVER to rebuild → MASTER to validate the Hoare Postcondition before marking the artifact safe for downstream use.</p>
+
+                    <h4 style="color: var(--accent); margin: 1rem 0 0.5rem; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em;">5. Levers and Leverage Points</h4>
+                    <p>Following <a href="https://www.sciencedirect.com/science/article/pii/S0306457313000239">Shilton's (2013)</a> values levers framework:</p>
+                    <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+                        <li><strong>Integration:</strong> The stud-skeleton embeds <em>explicit Ownership</em> (analogous to Rust's linear types) into the technical specification.</li>
+                        <li><strong>Reflection:</strong> WERE forces reflection by making the invisible breakdown visible via <a href="https://dl.acm.org/doi/10.1145/1031607.1031622">Seamful Design (Chalmers & Galani, 2004)</a>.</li>
+                    </ul>
+                    <p>Applying <a href="https://donellameadows.org/archives/leverage-points-places-to-intervene-in-a-system/">Meadows' (1999)</a> leverage points hierarchy:</p>
+                    <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+                        <li><strong>Level 9 (Information Flows):</strong> WERE/WEAVER make the critical stud-skeleton generation transparent and modifiable.</li>
+                        <li><strong>Level 6 (Rules):</strong> MASTER introduces a Hoare Postcondition—preventing illegal states from entering the export pipeline.</li>
+                    </ul>
+                    <p>In <a href="https://www.lessig.org/product/code/">Lessig's (2006)</a> regulatory modes, the system relies on <strong>Architecture</strong>: the Labs form structural constraints that elevate good practice to required practice.</p>
+
+                    <h4 style="color: var(--accent); margin: 1rem 0 0.5rem; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em;">6. Design Process</h4>
+                    <p>The Labs emerged through a <em>reactive, autoethnographic design process</em> driven by failures of the loosely-coupled system. The core insight came from LDraw's history—treating the brick as a "linguistic construct" enabled "textual inspectability."</p>
+                    <p>WERE was born from the frustration of selection failing to sync in COURAGE. This revealed that the "Billion Dollar Mistake" (null references/orphan studs) was the system's greatest vulnerability. WEAVER was then built to actively repair this by constructing a rigid skeleton, inspired by the desire to implement <a href="https://dl.acm.org/doi/10.1145/363235.363259">Hoare Logic</a> visually.</p>
+
+                    <h4 style="color: var(--accent); margin: 1rem 0 0.5rem; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em;">7. Learnings and Reflections</h4>
+                    <p>Building the Labs Toolkit revealed that <strong>rigidity is the precondition for agency</strong> in a generative system. Key insights:</p>
+                    <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+                        <li><strong>"Parse, Don't Validate" is a design philosophy:</strong> MASTER taught that merely flagging an error is insufficient; the architecture must make the illegal state <em>unrepresentable</em> or <em>un-exportable</em>.</li>
+                        <li><strong>Breakdown is a Feature:</strong> By making the present-at-hand moment productive, the Labs turn failure into a mechanism for learning and repair.</li>
+                        <li><strong>The true locus of integrity:</strong> Not the MPD file alone, but the <code>stud_skeleton</code>—the rigid ownership graph.</li>
+                    </ul>
+                    <p><em>If starting over:</em> Prioritize making the stud-skeleton a primary, version-controlled artifact from day one, rather than allowing WEAVER to be an afterthought for repair.</p>
+
+                    <h4 style="color: var(--accent); margin: 1rem 0 0.5rem; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em;">8. Future Directions</h4>
+                    <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+                        <li><strong>Integration:</strong> Connect MASTER output directly to the GOLD editor's undo stack, allowing "step back" to the last valid state.</li>
+                        <li><strong>Generalization:</strong> Abstract the ownership model and Hoare Logic validation into a library for other generative systems—implementing "Rust for X" ownership in any domain.</li>
+                        <li><strong>Validation:</strong> Conduct user studies comparing recovery rates in seamless COURAGE vs. seam-exposed TIMBER environments.</li>
+                    </ul>
+                </div>
+            </details>
+        </section>
+
+        <!-- PATTERNS SECTION -->
+        <section id="patterns">
+            <h2>Design Patterns <a href="#" class="section-return">↑ top</a></h2>
+            <p>Recurring behaviors and architectural decisions across the DCE-GYO system.</p>
+
+            <!-- anti-tool -->
+            <article class="pattern-card" id="anti-tool">
+                <div class="pattern-head">
+                    <div class="pattern-name">anti-tool</div>
+                    <div class="pattern-zones">
+                        <span class="zone-chip" style="background:rgba(244,114,182,0.2);color:#f472b6">WAG</span>
+                        <span class="zone-chip" style="background:rgba(163,230,53,0.2);color:#a3e635">LEGOS</span>
+                    </div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">A design philosophy where the interface minimizes administrative overhead (menus, toolbars) to allow the user's spatial thinking to dominate. The tool becomes "ready-to-hand," visible only when it breaks down.</div>
+
+                    <div class="grounding">
+                        <strong>Academic Grounding</strong>
+                        <p><strong>Instrumental Interaction:</strong> Aligns with Beaudouin-Lafon's model — reification turns commands into manipulable objects.</p>
+                        <p><strong>Phenomenology:</strong> Heidegger's <em>Zuhandenheit</em> (ready-to-hand) vs <em>Vorhandenheit</em> (present-at-hand). Anti-tools strive for transparency.</p>
+                    </div>
+
+                    <dl class="pattern-meta">
+                        <dt>Mechanism</dt>
+                        <dd>Remove menus, toolbars, options. Provide only direct manipulation. The grid itself becomes the cognitive scaffold.</dd>
+                        <dt>In DCE-GYO</dt>
+                        <dd>COURAGE viewer, BRICK Grid, single-file HTML tools</dd>
+                    </dl>
+                </div>
+            </article>
+
+            <!-- stud-skeleton -->
+            <article class="pattern-card" id="stud-skeleton">
+                <div class="pattern-head">
+                    <div class="pattern-name">stud-skeleton</div>
+                    <div class="pattern-zones">
+                        <span class="zone-chip" style="background:rgba(244,114,182,0.2);color:#f472b6">WAG</span>
+                        <span class="zone-chip" style="background:rgba(167,139,250,0.2);color:#a78bfa">SKELETON</span>
+                    </div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">A data structure that maps "stud at position X belongs to part line Y." This is how selections and edits stay coherent across tools.</div>
+
+                    <div class="grounding">
+                        <strong>Academic Grounding</strong>
+                        <p><strong>Scene Graphs:</strong> Standard in computer graphics for managing transform hierarchies and spatial relationships.</p>
+                        <p><strong>Shared Artifacts:</strong> Tang (1991) shows how groups use shared artifacts in collaborative settings. stud-skeleton is the canonical shared representation that must remain coherent across tools.</p>
+                        <p><strong>Ownership Models:</strong> Makes implicit relationships explicit at the data level.</p>
+                    </div>
+
+                    <dl class="pattern-meta">
+                        <dt>Created by</dt>
+                        <dd>WEAVER, GOLD</dd>
+                        <dt>Used by</dt>
+                        <dd>WERE (display), COURAGE (selection), MASTER (validation)</dd>
+                        <dt>If missing</dt>
+                        <dd>Selection may not sync correctly. Rebuild via WEAVER.</dd>
+                        <dt>Freshness</dt>
+                        <dd>Should carry source_hash, built_at, tool_version</dd>
+                    </dl>
+                </div>
+            </article>
+
+            <!-- mpd-truth -->
+            <article class="pattern-card" id="mpd-truth">
+                <div class="pattern-head">
+                    <div class="pattern-name">mpd-truth</div>
+                    <div class="pattern-zones">
+                        <span class="zone-chip" style="background:rgba(52,211,153,0.2);color:#34d399">FORMAT</span>
+                    </div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">"One Truth, Many Views." The MPD file is the canonical artifact. Everything else (renders, skeletons, exports) must be regenerable from MPD + manifests.</div>
+
+                    <div class="grounding">
+                        <strong>Academic Grounding</strong>
+                        <p><strong>Shared Artifacts:</strong> Tang (1991) emphasizes the importance of shared, canonical representations in collaborative work. MPD is that shared artifact.</p>
+                        <p><strong>Single Source of Truth:</strong> Principle from software engineering that reduces data duplication and inconsistencies.</p>
+                    </div>
+
+                    <dl class="pattern-meta">
+                        <dt>Principle</dt>
+                        <dd>If it can't be regenerated from MPD, it's user-facing state and must be explicit (saved, versioned, diffable)</dd>
+                        <dt>Created by</dt>
+                        <dd>Grace, GOLD, any text editor</dd>
+                        <dt>Consumed by</dt>
+                        <dd>COURAGE (render), GOLD (edit), MENTO (capture)</dd>
+                        <dt>Exports to</dt>
+                        <dd>GLB (for web), PNG (screenshots)</dd>
+                    </dl>
+                </div>
+            </article>
+
+            <!-- frank-bus -->
+            <article class="pattern-card" id="frank-bus">
+                <div class="pattern-head">
+                    <div class="pattern-name">frank-bus</div>
+                    <div class="pattern-zones">
+                        <span class="zone-chip" style="background:rgba(244,114,182,0.2);color:#f472b6">WAG</span>
+                        <span class="zone-chip" style="background:rgba(247,151,22,0.2);color:#f97316">PROTOCOL</span>
+                    </div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">Message bus pattern using <code>window.postMessage</code> for cross-tool synchronization without tight coupling.</div>
+
+                    <div class="grounding">
+                        <strong>Academic Grounding</strong>
+                        <p><strong>Articulation Work:</strong> Schmidt & Bannon (1992) describe the necessary coordination overhead to manage multiple tasks and tools. Frank Bus actively supports this by managing synchronization complexity.</p>
+                        <p><strong>Event-Driven Architecture:</strong> Pattern for loosely-coupled components to communicate via events.</p>
+                    </div>
+
+                    <dl class="pattern-meta">
+                        <dt>Channels</dt>
+                        <dd>selection, file-open, line-edit, camera</dd>
+                        <dt>Guarantee</dt>
+                        <dd>"Edit in GOLD updates selection/render in COURAGE"</dd>
+                        <dt>Failure mode</dt>
+                        <dd>Nothing syncs → use TIMBER/HOMER shell (pre-wired)</dd>
+                        <dt>Alternative</dt>
+                        <dd>SYNC OFF mode — graceful degradation to single-tool</dd>
+                    </dl>
+                </div>
+            </article>
+
+            <!-- progressive-disclosure -->
+            <article class="pattern-card" id="progressive-disclosure">
+                <div class="pattern-head">
+                    <div class="pattern-name">progressive-disclosure</div>
+                    <div class="pattern-zones">
+                        <span class="zone-chip" style="background:rgba(234,179,8,0.2);color:#eab308">UX</span>
+                    </div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">"Less is more." Beginners see 10% of the interface. Experts can expand to see 100%. Complexity is earned, not imposed.</div>
+
+                    <div class="grounding">
+                        <strong>Academic Grounding</strong>
+                        <p><strong>Cognitive Load Theory:</strong> Minimize extraneous load for novices while providing expert pathways.</p>
+                        <p><strong>Jobs-ification:</strong> Show the promise, not the plumbing. Function before myth.</p>
+                    </div>
+
+                    <dl class="pattern-meta">
+                        <dt>Mechanism</dt>
+                        <dd>Collapsible sections, "Learn more" toggles, audience switches</dd>
+                        <dt>In DCE-GYO</dt>
+                        <dd>Project Genome page, tutorial sections, glossary disclosures</dd>
+                    </dl>
+                </div>
+            </article>
+
+            <!-- shell-wiring -->
+            <article class="pattern-card" id="shell-wiring">
+                <div class="pattern-head">
+                    <div class="pattern-name">shell-wiring</div>
+                    <div class="pattern-zones">
+                        <span class="zone-chip" style="background:rgba(247,151,22,0.2);color:#f97316">SHELL</span>
+                    </div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">Pre-wired shells (TIMBER, HOMER) that embed multiple tools in iframes with Frank bus already connected. Users don't configure tabs manually.</div>
+
+                    <dl class="pattern-meta">
+                        <dt>Benefit</dt>
+                        <dd>Eliminates "nothing syncs" failure for beginners</dd>
+                        <dt>Trade-off</dt>
+                        <dd>Less flexibility than manual multi-tab setup</dd>
+                        <dt>Pattern</dt>
+                        <dd>If multi-tab sync breaks, route users into pre-wired shell automatically</dd>
+                    </dl>
+                </div>
+            </article>
+
+            <!-- scene-snapshot -->
+            <article class="pattern-card" id="scene-snapshot">
+                <div class="pattern-head">
+                    <div class="pattern-name">scene-snapshot</div>
+                    <div class="pattern-zones">
+                        <span class="zone-chip" style="background:rgba(96,165,250,0.2);color:#60a5fa">GOLD</span>
+                    </div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">Capturing complete application state as a serializable JSON object to enable persistence, sharing, and "time travel."</div>
+
+                    <div class="grounding">
+                        <strong>Academic Grounding</strong>
+                        <p><strong>PROV-O Ontology:</strong> Moreira et al. (2016) W3C PROV standard is the authority on deep provenance—tracking who made what, when, why, and how.</p>
+                        <p><strong>Memento Pattern:</strong> Architectural support for undo/restore.</p>
+                    </div>
+
+                    <dl class="pattern-meta">
+                        <dt>Mechanism</dt>
+                        <dd>Serialize grid state, cursor position, metadata to JSON. Load by parsing and hydrating.</dd>
+                        <dt>Files</dt>
+                        <dd><code>gold-*.json</code>, <code>wag-gold-scene.json</code></dd>
+                    </dl>
+                </div>
+            </article>
+
+            <!-- ldraw-composition: CASE STUDY -->
+            <article class="pattern-card" id="ldraw-composition" style="background: linear-gradient(135deg, var(--surface) 0%, rgba(52,211,153,0.05) 100%); border: 2px solid rgba(52,211,153,0.3);">
+                <div class="pattern-head">
+                    <div class="pattern-name" style="font-size: 1.1rem;">ldraw-composition <span style="font-size: 0.7rem; font-weight: normal; opacity: 0.7; margin-left: 0.5rem;">CASE STUDY</span></div>
+                    <div class="pattern-zones">
+                        <span class="zone-chip" style="background:rgba(52,211,153,0.2);color:#34d399">FORMAT</span>
+                        <span class="zone-chip" style="background:rgba(239,68,68,0.2);color:#ef4444">THEORY</span>
+                        <span class="zone-chip" style="background:rgba(167,139,250,0.2);color:#a78bfa">STS</span>
+                    </div>
+                </div>
+                <div class="pattern-body" style="font-size: 0.9rem; line-height: 1.8;">
+
+                    <!-- Essay Header -->
+                    <div style="text-align: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--card-border);">
+                        <h3 style="font-family: 'Newsreader', 'Georgia', serif; font-size: 1.4rem; font-weight: 400; margin: 0; letter-spacing: -0.02em;">The Linguistic Brick</h3>
+                        <p style="font-style: italic; color: var(--ink-tertiary); margin: 0.5rem 0 0 0; font-size: 0.8rem;">On LEGO, LDraw, and the Architecture of Context</p>
+                    </div>
+
+                    <!-- I. The LEGO-AI Entanglement (LEAD) -->
+                    <p style="font-family: 'Newsreader', 'Georgia', serif; text-align: justify;">An LDraw file is plain text. It is hierarchical. It is human-readable. It constrains infinite geometric possibility into a coherent scene. The MPD format—Multi-Part Document—is a scene graph encoded as ASCII, where submodels reference submodels in recursive descent.</p>
+
+                    <p style="font-family: 'Newsreader', 'Georgia', serif; text-align: justify;">In the era of Generative AI, a context window is the same thing.</p>
+
+                    <p style="font-family: 'Newsreader', 'Georgia', serif; text-align: justify;">Researchers call the entropy that accumulates when unstructured tokens flood a model's memory "Context Rot." The antidote is structure. The antidote is hierarchy. The antidote is the <a href="https://pages.gseis.ucla.edu/faculty/agre/capture.html">captured grammar</a> of a well-designed prompt.</p>
+
+                    <p style="font-family: 'Newsreader', 'Georgia', serif; text-align: justify;">In our research, we posit that the MPD file <em>is</em> the context window. The stud is the token. The library is the retrieval corpus. And the governance problem—who certifies which parts enter the canon—is the "Alignment Problem," translated into geometry.</p>
+
+                    <p style="font-family: 'Newsreader', 'Georgia', serif; text-align: justify;">This is the LEGO-AI Entanglement. To understand it, we must look back thirty years to a moment where the "digital brick" split into two distinct ontologies.</p>
+
+                    <!-- II. Darwin vs. LDraw -->
+                    <h4 style="font-family: 'Newsreader', 'Georgia', serif; font-size: 1rem; font-weight: 500; margin: 1.5rem 0 0.75rem; padding-top: 1rem; border-top: 1px solid var(--card-border);">Darwin vs. LDraw: The Black Box and the Open Text</h4>
+
+                    <p style="font-family: 'Newsreader', 'Georgia', serif; text-align: justify;">In 1995, the LEGO Group was burning through millions developing "Darwin"—a secretive physics simulation running on Silicon Graphics supercomputers. Darwin attempted to simulate "clutch power"—the satisfying resistance when two bricks snap together. It treated the digital brick as a physical simulation, locked inside a massive binary file called <code>db.lif</code>—uneditable, unextendable, and proprietary.</p>
+
+                    <p style="font-family: 'Newsreader', 'Georgia', serif; text-align: justify;">Simultaneously, an Australian teenager named James Jessiman wrote the code that would outlast them all. He called it LDraw.</p>
+
+                    <p style="font-family: 'Newsreader', 'Georgia', serif; text-align: justify;">Jessiman defined the LEGO brick not as a mesh, not as physics, and not as an asset locked in a corporate vault, but as <em>language</em>.</p>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0; font-size: 0.85rem;">
+                        <div style="padding: 0.75rem; background: rgba(239,68,68,0.1); border-radius: 4px;"><strong>Darwin (The Image)</strong><br>Binary, sealed, heavy.</div>
+                        <div style="padding: 0.75rem; background: rgba(52,211,153,0.1); border-radius: 4px;"><strong>LDraw (The Word)</strong><br>Plain ASCII, open, inspectable.</div>
+                    </div>
+
+                    <p style="font-family: 'Newsreader', 'Georgia', serif; text-align: justify;">Jessiman didn't care about physics; he cared about syntax. His <code>.dat</code> files were scripts. A 2×4 brick was a reference to a library file (<code>3001.dat</code>), positioned in integers because early '90s hardware couldn't handle floating-point math.</p>
+
+                    <p style="font-family: 'Newsreader', 'Georgia', serif; text-align: justify;">This distinction is pure <em>Operative Ekphrasis</em>. Darwin tried to represent the brick through simulation (Ekphrastic Hope). LDraw <em>performed</em> the brick through text (Operative Ekphrasis). Darwin ran on machines that cost more than houses and is now dead. LDraw ran on anything, and files from 1996 still open today.</p>
+
+                    <!-- III. The Syntax of the Stud -->
+                    <h4 style="font-family: 'Newsreader', 'Georgia', serif; font-size: 1rem; font-weight: 500; margin: 1.5rem 0 0.75rem; padding-top: 1rem; border-top: 1px solid var(--card-border);">The Syntax of the Stud</h4>
+
+                    <p style="font-family: 'Newsreader', 'Georgia', serif; text-align: justify;">The "Linguistic Brick" is built on a modular architecture that prefigures modern AI tokenization. Consider the stud.</p>
+
+                    <p style="font-family: 'Newsreader', 'Georgia', serif; text-align: justify;">In the physical world, a stud is a cylinder. In Jessiman's world, the stud was <code>stud.dat</code>: a single file defining that geometry. Every other part in the library <em>referenced</em> this file. Thousands of parts, all pointing at the same few lines of code.</p>
+
+                    <p style="font-family: 'Newsreader', 'Georgia', serif; text-align: justify;">This is <a href="#void-management">Void Management</a>. If you improved <code>stud.dat</code>—perhaps adding triangles for smoother renders—you improved every part that used it, instantly. This hierarchical efficiency allowed for infinite scaling on limited hardware.</p>
+
+                    <p style="font-family: 'Newsreader', 'Georgia', serif; text-align: justify;">But a language needs a dictionary, and a dictionary needs editors. When Jessiman died in 1997 at the age of twenty-five, a "martyrdom effect" solidified his hobbyist project into a sacred text. The LDraw.org Steering Committee (SteerCo) and Standards Board (LSB) emerged to govern the library. Part authoring became democratic yet strictly peer-reviewed. New parts had to be "certified" before entering the official collection.</p>
+
+                    <p style="font-family: 'Newsreader', 'Georgia', serif; text-align: justify;">This was the first successful attempt at solving the Alignment Problem for digital matter. The community built a "White Box" where the grammar of the brick was transparent, unlike the "Black Box" of LEGO's official tools, where users waited helplessly for corporate patches.</p>
+
+                    <!-- IV. The Antidote to Context Rot -->
+                    <h4 style="font-family: 'Newsreader', 'Georgia', serif; font-size: 1rem; font-weight: 500; margin: 1.5rem 0 0.75rem; padding-top: 1rem; border-top: 1px solid var(--card-border);">The Antidote to Context Rot</h4>
+
+                    <p style="font-family: 'Newsreader', 'Georgia', serif; text-align: justify;">In our project, we utilize this history to solve the problems of current Generative AI. When we prompt a video generator with natural language ("Make a LEGO castle"), the model hallucinates. It suffers from <a href="#context-rot">context rot</a>; the geometry melts.</p>
+
+                    <p style="font-family: 'Newsreader', 'Georgia', serif; text-align: justify;">By using LDraw as the input—by using the Linguistic Brick—we provide the model with a rigid skeletal structure. We feed the AI the "captured grammar" of the MPD file.</p>
+
+                    <!-- V. Convergence -->
+                    <p style="font-family: 'Newsreader', 'Georgia', serif; text-align: justify; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--card-border);">In 2018, the ecosystem finally converged when BrickLink acquired LEGO's rendering technology. The Corporation and the Community merged. But the cultural victory had been won decades earlier.</p>
+
+                    <p style="font-family: 'Newsreader', 'Georgia', serif; text-align: justify;">It was won by a young man in Australia who saw that a brick could be a word.</p>
+
+                    <p style="font-family: 'Newsreader', 'Georgia', serif; text-align: justify;">He proved that text is durable. That syntax survives where physics perishes. And that words, unlike plastics, do not wear out.</p>
+
+                    <!-- Technical Reference (Collapsed) -->
+                    <details style="margin-top: 2rem; background: rgba(0,0,0,0.15); border-radius: 6px;">
+                        <summary style="padding: 0.75rem 1rem; cursor: pointer; font-size: 0.8rem; font-family: 'Inter', sans-serif; color: var(--ink-secondary);">📐 Technical Reference</summary>
+                        <div style="padding: 0 1rem 1rem;">
+                            <dl class="pattern-meta" style="font-size: 0.8rem;">
+                                <dt>Line Types</dt>
+                                <dd>Type 0 = meta, Type 1 = part reference, Type 2-5 = geometry primitives</dd>
+                                <dt>Coordinate System</dt>
+                                <dd>LDraw Unit (LDU): 1 LDU = 0.4mm. Stud = 12 LDU diameter. Integer-based.</dd>
+                                <dt>Mechanism</dt>
+                                <dd>MPD files contain multiple submodels; reference via <code>1 color x y z ... submodel.ldr</code>. Parse recursively.</dd>
+                                <dt>Historical Arc</dt>
+                                <dd>Panter (1986) → Darwin (1996, failed) → LDraw (1995, survived) → LDD (2004) → BrickLink Studio (2018)</dd>
+                                <dt>In DCE-GYO</dt>
+                                <dd>MPD as canonical artifact, LDraw parsing in COURAGE, stud_skeleton ownership, WEAVER assembly</dd>
+                            </dl>
+                        </div>
+                    </details>
+
+                    <!-- Works Cited -->
+                    <div class="pattern-refs" style="margin-top: 1.5rem;">
+                        <div class="pattern-refs-title">Works Cited</div>
+                        <cite>Agre, P. (1994). Surveillance and Capture. <em>The Information Society</em>, 10(2). <a href="https://pages.gseis.ucla.edu/faculty/agre/capture.html" target="_blank">Article</a></cite>
+                        <cite>LDraw.org (1995–2025). <em>LDraw File Format Specification</em>. <a href="https://www.ldraw.org" target="_blank">ldraw.org</a></cite>
+                        <cite>Parnas, D. L. (1972). On the Criteria for Decomposing Systems. <em>CACM</em>, 15(12). <a href="https://dl.acm.org/doi/10.1145/361598.361623" target="_blank">ACM</a></cite>
+                        <cite>SHUFFLE Corpus (2025). <em>Digital LEGO History Research Architecture</em>.</cite>
+                    </div>
+                </div>
+            </article>
+
+            <!-- GS2P-stack -->
+            <article class="pattern-card" id="gs2p-stack">
+                <div class="pattern-head">
+                    <div class="pattern-name">GS2P-stack</div>
+                    <div class="pattern-zones">
+                        <span class="zone-chip" style="background:rgba(34,211,238,0.2);color:#22d3ee">BRICK</span>
+                        <span class="zone-chip" style="background:rgba(163,230,53,0.2);color:#a3e635">LEGOS</span>
+                    </div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">Ground → Site → Sky → Perspective. A worldbuilding stack that layers navigation (where you walk), places (where events happen), atmosphere (how it feels), and viewpoint (what is shown).</div>
+
+                    <dl class="pattern-meta">
+                        <dt>📄 Source</dt>
+                        <dd><a href="BRICKBENDER-PHILOSOPHY.md">BRICKBENDER-PHILOSOPHY.md</a></dd>
+                        <dt>Layers</dt>
+                        <dd>
+                            <strong>Ground:</strong> walkable corridors, safe zones<br>
+                            <strong>Site:</strong> places and boundaries<br>
+                            <strong>Sky:</strong> atmosphere and mood<br>
+                            <strong>Perspective:</strong> camera and viewpoint
+                        </dd>
+                        <dt>In DCE-GYO</dt>
+                        <dd>BRICK Grid family, brickbender-philosophy.html, scenario-seeds.json stages</dd>
+                    </dl>
+                </div>
+            </article>
+
+            <!-- 9x9-grid -->
+            <article class="pattern-card" id="9x9-grid">
+                <div class="pattern-head">
+                    <div class="pattern-name">9x9-grid</div>
+                    <div class="pattern-zones">
+                        <span class="zone-chip" style="background:rgba(34,211,238,0.2);color:#22d3ee">BRICK</span>
+                    </div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">81-cell spatial metaphor for code/world navigation. Each cell is a "location patch" that can be painted with different layers. The grid becomes a cognitive scaffold for seeing code as terrain.</div>
+
+                    <dl class="pattern-meta">
+                        <dt>📄 Source</dt>
+                        <dd><a href="BRICK-GRID-OLOG.md">BRICK-GRID-OLOG.md</a></dd>
+                        <dt>Mechanism</dt>
+                        <dd>Row-major indexing: cell index = row*9 + col. Cells 0-80.</dd>
+                        <dt>Files</dt>
+                        <dd>brick-branch.html, brick-apex.html, brick-sovereign.html, brick-create.html</dd>
+                    </dl>
+                </div>
+            </article>
+
+            <!-- tetrad-analysis -->
+            <article class="pattern-card" id="tetrad-analysis">
+                <div class="pattern-head">
+                    <div class="pattern-name">tetrad-analysis</div>
+                    <div class="pattern-zones">
+                        <span class="zone-chip" style="background:rgba(239,68,68,0.2);color:#ef4444">THEORY</span>
+                    </div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">McLuhan's Four Laws of Media applied as scenario operators. Every technology Enhances, Obsolesces, Retrieves, and Reverses.</div>
+
+                    <div class="grounding">
+                        <strong>Academic Grounding</strong>
+                        <p><strong>Laws of Media:</strong> McLuhan & McLuhan (1988). The New Science.</p>
+                    </div>
+
+                    <dl class="pattern-meta">
+                        <dt>📄 Files</dt>
+                        <dd>
+                            <a href="thousand-tetrad.html">thousand-tetrad.html</a><br>
+                            <a href="block-frank-tetrad.html">block-frank-tetrad.html</a>
+                        </dd>
+                        <dt>Operators</dt>
+                        <dd>
+                            <strong>Enhance:</strong> What does it amplify?<br>
+                            <strong>Obsolesce:</strong> What does it push aside?<br>
+                            <strong>Retrieve:</strong> What does it bring back?<br>
+                            <strong>Reverse:</strong> What does it become when pushed to extreme?
+                        </dd>
+                    </dl>
+                </div>
+            </article>
+
+            <!-- olog-format -->
+            <article class="pattern-card" id="olog-format">
+                <div class="pattern-head">
+                    <div class="pattern-name">olog-format</div>
+                    <div class="pattern-zones">
+                        <span class="zone-chip" style="background:rgba(234,179,8,0.2);color:#eab308">DOCS</span>
+                    </div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">Ontology Log format: Objects (what worlds does this touch?) + Morphisms (what arrows matter?) + Theory + Limitations. Standard documentation pattern across DCE-GYO.</div>
+
+                    <div class="grounding">
+                        <strong>Academic Grounding</strong>
+                        <p><strong>Ologs:</strong> Spivak (2012). A Categorical Framework for Knowledge Representation.</p>
+                        <p><strong>Design Rationale:</strong> Carroll (2003) on design rationale documentation—how design choices comprise the "design rationale" of the system.</p>
+                    </div>
+
+                    <dl class="pattern-meta">
+                        <dt>📄 Examples</dt>
+                        <dd>
+                            BRICK-GRID-OLOG.md, SITEMAP-OLOG.md, TAXONOMIZER-OLOG.md,<br>
+                            HOMER-STUDIO-OLOG.md, SHIELD-OF-ACHILLES-OLOG.md
+                        </dd>
+                        <dt>Structure</dt>
+                        <dd>§0 Overview → §1 Objects → §2 Morphisms → §3 Theory → §4 Limitations</dd>
+                    </dl>
+                </div>
+            </article>
+
+            <!-- single-file-html -->
+            <article class="pattern-card" id="single-file-html">
+                <div class="pattern-head">
+                    <div class="pattern-name">single-file-html</div>
+                    <div class="pattern-zones">
+                        <span class="zone-chip" style="background:rgba(244,114,182,0.2);color:#f472b6">WAG</span>
+                    </div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">Anti-bundler philosophy. Each tool is a self-contained HTML file with inline CSS and JS. No build step, no node_modules, no webpack. Open in browser → it works.</div>
+
+                    <dl class="pattern-meta">
+                        <dt>Benefits</dt>
+                        <dd>
+                            Portable (copy one file)<br>
+                            Inspectable (view source → see everything)<br>
+                            Forkable (save-as → instant variant)
+                        </dd>
+                        <dt>Trade-off</dt>
+                        <dd>Larger file sizes, some code duplication across tools</dd>
+                        <dt>External deps</dt>
+                        <dd>CDN only: Three.js, Tone.js. All else inline.</dd>
+                    </dl>
+                </div>
+            </article>
+
+            <!-- file-learnings -->
+            <article class="pattern-card" id="file-learnings">
+                <div class="pattern-head">
+                    <div class="pattern-name">file-learnings</div>
+                    <div class="pattern-zones">
+                        <span class="zone-chip" style="background:rgba(96,165,250,0.2);color:#60a5fa">META</span>
+                    </div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">Pattern detection from git history. Each file carries metadata: birth date, detected patterns (GOLD, ONYX, LEGOS, MPD, stud_skeleton, WAG), and learnings.</div>
+
+                    <dl class="pattern-meta">
+                        <dt>📄 Files</dt>
+                        <dd>
+                            file-learnings.json<br>
+                            birth-dates.json
+                        </dd>
+                        <dt>Source</dt>
+                        <dd><a href="SITEMAP-OLOG.md">SITEMAP-OLOG.md</a></dd>
+                        <dt>Used by</dt>
+                        <dd>sitemap-evolution.html, sitemap-manifold-*.html, timeline views</dd>
+                    </dl>
+                </div>
+            </article>
+
+            <!-- manifold-view -->
+            <article class="pattern-card" id="manifold-view">
+                <div class="pattern-head">
+                    <div class="pattern-name">manifold-view</div>
+                    <div class="pattern-zones">
+                        <span class="zone-chip" style="background:rgba(96,165,250,0.2);color:#60a5fa">VIZ</span>
+                    </div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">Topological terrain visualization. The repo is rendered as navigable terrain with contours, territories, and pathways. Six manifolds show different cultural/technical perspectives.</div>
+
+                    <dl class="pattern-meta">
+                        <dt>📄 Files</dt>
+                        <dd>
+                            sitemap-manifold-01.html through sitemap-manifold-06.html
+                        </dd>
+                        <dt>Data source</dt>
+                        <dd>file-learnings.json drives the manifold landscape</dd>
+                        <dt>Metaphor</dt>
+                        <dd>Files as peaks, patterns as mountain ranges, studios as valleys</dd>
+                    </dl>
+                </div>
+            </article>
+
+            <!-- taxonomy-tree -->
+            <article class="pattern-card" id="taxonomy-tree">
+                <div class="pattern-head">
+                    <div class="pattern-name">taxonomy-tree</div>
+                    <div class="pattern-zones">
+                        <span class="zone-chip" style="background:rgba(247,151,22,0.2);color:#f97316">NAV</span>
+                    </div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">Hierarchical parts navigation. KINGDOM → PHYLUM → CLASS → ORDER → FAMILY. Select branches to form playlists, export to MPD catalog or JSON slice.</div>
+
+                    <dl class="pattern-meta">
+                        <dt>📄 Source</dt>
+                        <dd><a href="TAXONOMIZER-OLOG.md">TAXONOMIZER-OLOG.md</a></dd>
+                        <dt>Files</dt>
+                        <dd>
+                            parts-taxonomy.json<br>
+                            taxonomy_data.js<br>
+                            Taxonomizer tool
+                        </dd>
+                        <dt>Exports</dt>
+                        <dd>MPD catalogs (6-column grid), JSON slices with taxonomyPath</dd>
+                    </dl>
+                </div>
+            </article>
+
+            <!-- iframe-composition -->
+            <article class="pattern-card" id="iframe-composition">
+                <div class="pattern-head">
+                    <div class="pattern-name">iframe-composition</div>
+                    <div class="pattern-zones">
+                        <span class="zone-chip" style="background:rgba(247,151,22,0.2);color:#f97316">SHELL</span>
+                    </div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">Shells embed standalone tools in iframes. Each iframe is a complete tool; the shell provides layout, chrome, and Frank bus wiring between them.</div>
+
+                    <dl class="pattern-meta">
+                        <dt>Used by</dt>
+                        <dd>TIMBER, HOMER, Shield of Achilles</dd>
+                        <dt>Benefits</dt>
+                        <dd>
+                            Tools remain standalone<br>
+                            Isolation (CSS/JS don't conflict)<br>
+                            Easy to swap panels
+                        </dd>
+                        <dt>Wiring</dt>
+                        <dd>Frank bus via window.postMessage between iframes</dd>
+                    </dl>
+                </div>
+            </article>
+
+            <!-- PHILOSOPHY & AI PATTERNS SECTION -->
+            <h3 style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--card-border); color: var(--accent);">Philosophy of Science & AI Patterns</h3>
+            <p style="font-size: 0.8rem; color: var(--ink-secondary); margin-bottom: 1rem;">Patterns grounded in new materialism, quantum philosophy, and LLM research.</p>
+
+            <!-- situated-action -->
+            <article class="pattern-card" id="situated-action">
+                <div class="pattern-head">
+                    <div class="pattern-name">situated-action</div>
+                    <div class="pattern-zones">
+                        <span class="zone-chip" style="background:rgba(239,68,68,0.2);color:#ef4444">THEORY</span>
+                    </div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">Plans are resources for action, not specifications for it. The actual course of creative work is always situated, improvised, and emerges from immediate context.</div>
+
+                    <div class="onto-quote">
+                        "The idea that a person's behavior is directed by a plan suggests that the actual course of action... is governed by the plan... Our analysis points to the opposite conclusion: plans are resources for situated action, not specifications for it."
+                        <cite>— Suchman, L. A. (1987). Plans and Situated Actions, p. 59</cite>
+                    </div>
+
+                    <div class="onto-interp"><strong>Interpretation:</strong> This pattern grounds the flexibility of WAG tool use. The Core Tools define a "Golden Path" (a plan), but the ultimate creative action is always situated, improvised, and emerges from the user's interaction with the immediate data environment.</div>
+                </div>
+            </article>
+
+            <!-- intra-action -->
+            <article class="pattern-card" id="intra-action">
+                <div class="pattern-head">
+                    <div class="pattern-name">intra-action</div>
+                    <div class="pattern-zones">
+                        <span class="zone-chip" style="background:rgba(168,85,247,0.2);color:#a855f7">PHILOSOPHY</span>
+                    </div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">Entities don't pre-exist their relations—they emerge through entanglement. Creator and Artifact are mutually constituted in the act of creation.</div>
+
+                    <div class="onto-quote">
+                        "The notion of intra-action recognizes that the 'differentiating' of the 'components' of phenomena... is enacted from within the phenomenon and does not precede it."
+                        <cite>— Barad, K. (2007). Meeting the Universe Halfway, p. 139</cite>
+                    </div>
+
+                    <div class="onto-interp"><strong>Interpretation:</strong> The WAG Suite is a phenomenon where knower and known (Creator and Artifact) emerge together. Knowledge (e.g., a complete MPD model) is intra-actively produced at the moment the Creator's Intent and the Tool's capabilities entangle, rather than being a property of either component alone.</div>
+                </div>
+            </article>
+
+            <!-- agential-cut -->
+            <article class="pattern-card" id="agential-cut">
+                <div class="pattern-head">
+                    <div class="pattern-name">agential-cut</div>
+                    <div class="pattern-zones">
+                        <span class="zone-chip" style="background:rgba(168,85,247,0.2);color:#a855f7">PHILOSOPHY</span>
+                    </div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">The performative boundary that resolves ontological indeterminacy. Design decisions that separate "subject" from "object" where no prior distinction exists.</div>
+
+                    <div class="onto-quote">
+                        "The agential cut is a performative resolution of the ontological indeterminacy... it enacts a separation between 'subject' and 'object' (in contrast to the more familiar Cartesian cut which takes this distinction for granted)."
+                        <cite>— Barad, K. (2007). Meeting the Universe Halfway, p. 140</cite>
+                    </div>
+
+                    <div class="onto-interp"><strong>Interpretation:</strong> The agential-cut is the design boundary (e.g., the 1-million token window, the JSON schema format) that the system imposes on the probabilistic "Void." This cut is a performative act that resolves the inherent ambiguity of the AI's latent space, making a specific reality (the constrained completion) accessible to the user.</div>
+
+                    <dl class="pattern-meta">
+                        <dt>Examples in DCE-GYO</dt>
+                        <dd>LDraw line type syntax, stud_skeleton ownership boundaries, MPD submodel partitioning</dd>
+                    </dl>
+                </div>
+            </article>
+
+            <!-- worlding -->
+            <article class="pattern-card" id="worlding">
+                <div class="pattern-head">
+                    <div class="pattern-name">worlding</div>
+                    <div class="pattern-zones">
+                        <span class="zone-chip" style="background:rgba(168,85,247,0.2);color:#a855f7">PHILOSOPHY</span>
+                        <span class="zone-chip" style="background:rgba(34,211,238,0.2);color:#22d3ee">AI</span>
+                    </div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">Creating self-sustaining simulated ecosystems with their own laws, metabolism, and "bag of beliefs." The imposition of a deterministic grid upon the wilderness of generative possibility.</div>
+
+                    <div class="onto-quote">
+                        "A world is not a narrative but a gated garden with laws and borders... it is the imposition of a grid upon the wilderness of generative possibility."
+                        <cite>— Cheng, I. (2018). Emissaries Guide to Worlding (paraphrased)</cite>
+                    </div>
+
+                    <div class="onto-interp"><strong>Interpretation:</strong> Worlding defines the architecture of the AI environment. The WAG Suite itself is a "gated garden" (the Frank bus ecosystem) where Void-Management imposes deterministic laws (LDraw geometry, stud-skeleton coherence) upon the open-ended possibility space, shifting the user's role from consumer to Caretaker/Architect.</div>
+
+                    <dl class="pattern-meta">
+                        <dt>Cheng's Framework</dt>
+                        <dd>
+                            <strong>Metabolism:</strong> How the world processes inputs<br>
+                            <strong>Bag of Beliefs:</strong> The world's internal state<br>
+                            <strong>Caretaker:</strong> The user who tends the world
+                        </dd>
+                    </dl>
+                </div>
+            </article>
+
+            <!-- context-rot -->
+            <article class="pattern-card" id="context-rot">
+                <div class="pattern-head">
+                    <div class="pattern-name">context-rot</div>
+                    <div class="pattern-zones">
+                        <span class="zone-chip" style="background:rgba(34,211,238,0.2);color:#22d3ee">AI</span>
+                    </div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">The empirical degradation of LLM performance when relevant information is placed in the middle of long contexts. The "U-shaped retrieval curve."</div>
+
+                    <div class="onto-quote">
+                        "Language models are better at retrieving information from the beginning and end of the context... performance drops rapidly when relevant information is placed in the middle of the input context."
+                        <cite>— Liu, N. F., et al. (2024). Lost in the Middle. TACL, 12, p. 158</cite>
+                    </div>
+
+                    <div class="onto-interp"><strong>Interpretation:</strong> The empirical finding of the "U-shaped retrieval curve" grounds context-rot. The pattern acknowledges that model performance degrades as irrelevant data accumulates, necessitating active Void-Management strategies to place critical information at the "edges" of the context window to prevent entropy.</div>
+
+                    <dl class="pattern-meta">
+                        <dt>Design Response</dt>
+                        <dd>Void-Management: actively curate context, prune stale information, anchor critical data at beginning/end</dd>
+                    </dl>
+                </div>
+            </article>
+
+            <!-- void-management -->
+            <article class="pattern-card" id="void-management">
+                <div class="pattern-head">
+                    <div class="pattern-name">void-management</div>
+                    <div class="pattern-zones">
+                        <span class="zone-chip" style="background:rgba(34,211,238,0.2);color:#22d3ee">AI</span>
+                        <span class="zone-chip" style="background:rgba(239,68,68,0.2);color:#ef4444">THEORY</span>
+                    </div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">Active curation of the AI context window to counteract context-rot. Treating context as finite RAM that must be managed, not a bottomless log.</div>
+
+                    <div class="grounding">
+                        <strong>Academic Grounding</strong>
+                        <p><strong>Context as RAM:</strong> Karpathy (2024) "Software 3.0" — context window is the new execution environment.</p>
+                        <p><strong>Lost in the Middle:</strong> Liu et al. (2024) — empirical evidence for why management is necessary.</p>
+                    </div>
+
+                    <dl class="pattern-meta">
+                        <dt>Strategies</dt>
+                        <dd>
+                            Anchor critical facts at context edges<br>
+                            Prune stale/irrelevant history<br>
+                            Use structured formats (JSON, MPD) as "jars"<br>
+                            Periodic summarization checkpoints
+                        </dd>
+                        <dt>In DCE-GYO</dt>
+                        <dd>MPD-truth as canonical artifact, scene-snapshot for state capture, stud-skeleton for ownership clarity</dd>
+                    </dl>
+                </div>
+            </article>
+        </section>
+
+        <!-- BIBLIOGRAPHY -->
+        <section id="bibliography" style="margin-top: 3rem; border-top: 1px solid var(--card-border); padding-top: 2rem;">
+            <h2>Works Cited <a href="#" class="section-return">↑ top</a></h2>
+            <p style="font-size: 0.8rem; color: var(--ink-secondary); margin-bottom: 1.5rem;">38 sources across HCI, CSCW, philosophy of science, category theory, and AI research. All links verified December 2025.</p>
+            
+            <style>
+                .bib-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
+                .bib-table th { text-align: left; padding: 0.5rem; border-bottom: 2px solid var(--card-border); color: var(--accent); }
+                .bib-table td { padding: 0.5rem; border-bottom: 1px solid var(--card-border); vertical-align: top; }
+                .bib-table td:first-child { width: 45%; }
+                .bib-table td:nth-child(2) { width: 25%; color: var(--ink-secondary); }
+                .bib-table td:nth-child(3) { width: 20%; }
+                .bib-table td:last-child { width: 10%; text-align: right; }
+                .bib-table a { color: var(--accent); text-decoration: none; }
+                .bib-table a:hover { text-decoration: underline; }
+                .bib-section { margin-top: 1.5rem; }
+                .bib-section h3 { font-size: 0.85rem; color: var(--accent); margin-bottom: 0.5rem; }
+            </style>
+
+            <div class="bib-section">
+                <h3>I. Design Patterns & HCI Foundations</h3>
+                <table class="bib-table">
+                    <tr>
+                        <td>Alexander, C., et al. (1977). <em>A Pattern Language: Towns, Buildings, Construction</em>. Oxford UP.</td>
+                        <td>Pattern = problem + solution</td>
+                        <td>Pattern glossary structure</td>
+                        <td><a href="https://global.oup.com/academic/product/a-pattern-language-9780195019193" target="_blank">Link</a></td>
+                    </tr>
+                    <tr>
+                        <td>Beaudouin-Lafon, M. (2000). Instrumental Interaction. <em>CHI '00</em>.</td>
+                        <td>Reification of commands</td>
+                        <td>Tools as instruments, anti-tool</td>
+                        <td><a href="https://dl.acm.org/doi/10.1145/332040.332473" target="_blank">ACM</a></td>
+                    </tr>
+                    <tr>
+                        <td>Gamma, E., et al. (1994). <em>Design Patterns: Elements of Reusable Object-Oriented Software</em>. Addison-Wesley.</td>
+                        <td>Memento Pattern</td>
+                        <td>scene-snapshot pattern</td>
+                        <td><a href="https://refactoring.guru/design-patterns/memento" target="_blank">Memento</a></td>
+                    </tr>
+                    <tr>
+                        <td>Norman, D. A. (1988). <em>The Design of Everyday Things</em>. Basic Books.</td>
+                        <td>Affordances, constraints</td>
+                        <td>Anti-tool transparency</td>
+                        <td><a href="https://mitpress.mit.edu/9780262640374/the-design-of-everyday-things/" target="_blank">MIT</a></td>
+                    </tr>
+                    <tr>
+                        <td>Winograd, T., & Flores, F. (1986). <em>Understanding Computers and Cognition</em>. Addison-Wesley.</td>
+                        <td>Ready-to-hand, breakdown</td>
+                        <td>Anti-tool philosophy</td>
+                        <td><a href="https://www.goodreads.com/book/show/53482.Understanding_Computers_and_Cognition" target="_blank">Book</a></td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="bib-section">
+                <h3>II. CSCW & Infrastructure</h3>
+                <table class="bib-table">
+                    <tr>
+                        <td>Chalmers, M., & Galani, A. (2004). Seamful Interweaving. <em>CSCW '04</em>.</td>
+                        <td>Seamful design</td>
+                        <td>Frank bus visibility</td>
+                        <td><a href="https://dl.acm.org/doi/10.1145/1031607.1031622" target="_blank">ACM</a></td>
+                    </tr>
+                    <tr>
+                        <td>Dourish, P. (2001). <em>Where the Action Is</em>. MIT Press.</td>
+                        <td>Embodied interaction</td>
+                        <td>Context as sediment</td>
+                        <td><a href="https://mitpress.mit.edu/9780262541787/where-the-action-is/" target="_blank">MIT</a></td>
+                    </tr>
+                    <tr>
+                        <td>Star, S. L., & Ruhleder, K. (1996). Steps Toward an Ecology of Infrastructure. <em>ISR</em>, 7(1).</td>
+                        <td>Infrastructure as installed base</td>
+                        <td>Shell-wiring, Frank</td>
+                        <td><a href="https://pubsonline.informs.org/doi/10.1287/isre.7.1.111" target="_blank">INFORMS</a></td>
+                    </tr>
+                    <tr>
+                        <td>Lessig, L. (2006). <em>Code: Version 2.0</em>. Basic Books.</td>
+                        <td>Code as law, architecture as regulation</td>
+                        <td>Labs as architectural constraint</td>
+                        <td><a href="https://www.lessig.org/product/code/" target="_blank">Book</a></td>
+                    </tr>
+                    <tr>
+                        <td>Shilton, K. (2013). Values Levers: Building Ethics into Design. <em>Sci. Tech. Human Values</em>, 38(3).</td>
+                        <td>Integration, Anticipation, Reflection</td>
+                        <td>Labs levers</td>
+                        <td><a href="https://journals.sagepub.com/doi/10.1177/0162243912436985" target="_blank">SAGE</a></td>
+                    </tr>
+                    <tr>
+                        <td>Suchman, L. A. (1987). <em>Plans and Situated Actions</em>. Cambridge UP.</td>
+                        <td>Situated action, plans as resources</td>
+                        <td>Creator type (C), situated-action</td>
+                        <td><a href="https://www.cambridge.org/core/books/plans-and-situated-actions/F35CCCE4B2AE1CDE48E9E5E58CD3D4CC" target="_blank">Cambridge</a></td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="bib-section">
+                <h3>III. Cognition & Learning</h3>
+                <table class="bib-table">
+                    <tr>
+                        <td>Hutchins, E. (1995). <em>Cognition in the Wild</em>. MIT Press.</td>
+                        <td>Distributed cognition</td>
+                        <td>Cognitive artifacts</td>
+                        <td><a href="https://mitpress.mit.edu/9780262581462/cognition-in-the-wild/" target="_blank">MIT</a></td>
+                    </tr>
+                    <tr>
+                        <td>Lave, J., & Wenger, E. (1991). <em>Situated Learning</em>. Cambridge UP.</td>
+                        <td>Legitimate peripheral participation</td>
+                        <td>Trail generation</td>
+                        <td><a href="https://www.cambridge.org/core/books/situated-learning/6915ABD21C8E4619F750A4D4ACA616CD" target="_blank">Cambridge</a></td>
+                    </tr>
+                    <tr>
+                        <td>Sweller, J. (1988). Cognitive Load Theory. <em>Learning and Instruction</em>, 8(3).</td>
+                        <td>Extraneous vs germane load</td>
+                        <td>Progressive disclosure</td>
+                        <td><a href="https://www.sciencedirect.com/science/article/pii/S0959475204000063" target="_blank">Article</a></td>
+                    </tr>
+                    <tr>
+                        <td>Vygotsky, L. S. (1978). <em>Mind in Society</em>. Harvard UP.</td>
+                        <td>Zone of Proximal Development</td>
+                        <td>Progressive scaffolding</td>
+                        <td><a href="https://www.hup.harvard.edu/books/9780674576292" target="_blank">Harvard</a></td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="bib-section">
+                <h3>IV. Philosophy of Science & New Materialism</h3>
+                <table class="bib-table">
+                    <tr>
+                        <td>Barad, K. (2007). <em>Meeting the Universe Halfway</em>. Duke UP.</td>
+                        <td>Intra-action, agential cut</td>
+                        <td>Intra-action, Agential-Cut patterns</td>
+                        <td><a href="https://www.dukeupress.edu/meeting-the-universe-halfway" target="_blank">Duke</a></td>
+                    </tr>
+                    <tr>
+                        <td>Bateson, G. (1972). <em>Steps to an Ecology of Mind</em>. U Chicago Press.</td>
+                        <td>Difference that makes a difference</td>
+                        <td>Skeleton freshness signals</td>
+                        <td><a href="https://press.uchicago.edu/ucp/books/book/chicago/S/bo3620295.html" target="_blank">Chicago</a></td>
+                    </tr>
+                    <tr>
+                        <td>Cheng, I. (2018). <em>Emissaries Guide to Worlding</em>. Koenig Books.</td>
+                        <td>Worlding, Metabolism, Bag of Beliefs</td>
+                        <td>Worlding, Metabolism patterns</td>
+                        <td><a href="https://www.abebooks.com/9783960983316/Emissaries-Guide-Worlding-Ian-Cheng-3960983316/plp" target="_blank">AbeBooks</a></td>
+                    </tr>
+                    <tr>
+                        <td>Latour, B. (2005). <em>Reassembling the Social</em>. Oxford UP.</td>
+                        <td>Actor-Network Theory</td>
+                        <td>Frank as intermediary</td>
+                        <td><a href="https://global.oup.com/academic/product/reassembling-the-social-9780199256044" target="_blank">Oxford</a></td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="bib-section">
+                <h3>V. Category Theory & Formal Methods</h3>
+                <table class="bib-table">
+                    <tr>
+                        <td>Hoare, C. A. R. (1969). An Axiomatic Basis for Computer Programming. <em>CACM</em>, 12(10).</td>
+                        <td>Hoare Logic, Precondition/Postcondition</td>
+                        <td>MASTER validation</td>
+                        <td><a href="https://dl.acm.org/doi/10.1145/363235.363259" target="_blank">ACM</a></td>
+                    </tr>
+                    <tr>
+                        <td>King, A. (2019). Parse, don't validate. <em>Blog post</em>.</td>
+                        <td>Type-driven design</td>
+                        <td>MASTER, NSP</td>
+                        <td><a href="https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/" target="_blank">Blog</a></td>
+                    </tr>
+                    <tr>
+                        <td>LDraw.org (1995–2025). <em>LDraw File Format Specification</em>.</td>
+                        <td>Linguistic Brick, SteerCo governance</td>
+                        <td>ldraw-composition</td>
+                        <td><a href="https://www.ldraw.org/article/218.html" target="_blank">Spec</a></td>
+                    </tr>
+                    <tr>
+                        <td>Mozilla Foundation. <em>The Rust Book: Ownership</em>.</td>
+                        <td>Linear types, ownership model</td>
+                        <td>stud-skeleton</td>
+                        <td><a href="https://doc.rust-lang.org/book/ch04-00-understanding-ownership.html" target="_blank">Rust</a></td>
+                    </tr>
+                    <tr>
+                        <td>Parnas, D. L. (1972). On the Criteria To Be Used in Decomposing Systems into Modules. <em>CACM</em>, 15(12).</td>
+                        <td>Modular decomposition</td>
+                        <td>LDraw composition, WEAVER</td>
+                        <td><a href="https://dl.acm.org/doi/10.1145/361598.361623" target="_blank">ACM</a></td>
+                    </tr>
+                    <tr>
+                        <td>Spivak, D. I. (2012). Ologs: A Categorical Framework. <em>arXiv:1204.5222</em>.</td>
+                        <td>Structure-preserving maps</td>
+                        <td>Genome morphisms, WEAVER</td>
+                        <td><a href="https://arxiv.org/abs/1204.5222" target="_blank">arXiv</a></td>
+                    </tr>
+                    <tr>
+                        <td>Spivak, D. I. (2014). <em>Category Theory for the Sciences</em>. MIT Press.</td>
+                        <td>Functorial Mapping</td>
+                        <td>Morphisms section</td>
+                        <td><a href="https://mitpress.mit.edu/9780262028134/category-theory-for-the-sciences/" target="_blank">MIT</a></td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="bib-section">
+                <h3>VI. Cultural Theory & Interpretation</h3>
+                <table class="bib-table">
+                    <tr>
+                        <td>Agre, P. (1994). Surveillance and Capture. <em>JASIS</em>, 45(9), 717–725.</td>
+                        <td>Captured grammar</td>
+                        <td>Frank protocol, LDraw line types</td>
+                        <td><a href="https://pages.gseis.ucla.edu/faculty/agre/capture.html" target="_blank">Article</a></td>
+                    </tr>
+                    <tr>
+                        <td>Bowker, G. C., & Star, S. L. (1999). <em>Sorting Things Out</em>. MIT Press.</td>
+                        <td>Classification as infrastructure</td>
+                        <td>Metadata type (M)</td>
+                        <td><a href="https://mitpress.mit.edu/9780262522953/sorting-things-out/" target="_blank">MIT</a></td>
+                    </tr>
+                    <tr>
+                        <td>Bush, V. (1945). As We May Think. <em>The Atlantic</em>.</td>
+                        <td>Associative trails</td>
+                        <td>Trail type (T)</td>
+                        <td><a href="https://www.theatlantic.com/magazine/archive/1945/07/as-we-may-think/303881/" target="_blank">Atlantic</a></td>
+                    </tr>
+                    <tr>
+                        <td>Geertz, C. (1973). <em>The Interpretation of Cultures</em>. Basic Books.</td>
+                        <td>Thick vs thin meaning</td>
+                        <td>Intent type (I)</td>
+                        <td><a href="https://www.basicbooks.com/titles/clifford-geertz/the-interpretation-of-cultures/9780465093564/" target="_blank">Basic</a></td>
+                    </tr>
+                    <tr>
+                        <td>Hill, W. C., et al. (1992). Edit Wear and Read Wear. <em>CHI '92</em>.</td>
+                        <td>History visible in artifact</td>
+                        <td>stud-skeleton provenance</td>
+                        <td><a href="https://dl.acm.org/doi/10.1145/142750.142751" target="_blank">ACM</a></td>
+                    </tr>
+                    <tr>
+                        <td>Mitchell, W.J.T. (1994). <em>Picture Theory</em>. U. Chicago Press.</td>
+                        <td>Ekphrastic fear, word vs. image</td>
+                        <td>ldraw-composition (BRICKTEXT)</td>
+                        <td><a href="https://press.uchicago.edu/ucp/books/book/chicago/P/bo3637775.html" target="_blank">Chicago</a></td>
+                    </tr>
+                    <tr>
+                        <td>Schön, D. A. (1983). <em>The Reflective Practitioner</em>. Basic Books.</td>
+                        <td>Reflection-in-action</td>
+                        <td>Decision traces</td>
+                        <td><a href="https://www.routledge.com/The-Reflective-Practitioner-How-Professionals-Think-in-Action/Schon/p/book/9781857423198" target="_blank">Routledge</a></td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="bib-section">
+                <h3>VII. AI & Context Engineering</h3>
+                <table class="bib-table">
+                    <tr>
+                        <td>Karpathy, A. (2024). Software 3.0. (Talks and Essays).</td>
+                        <td>Vibe coding, Context as RAM</td>
+                        <td>Vibe-coding, mpd-truth (as "jar")</td>
+                        <td><a href="https://www.zdnet.com/article/andrej-karpathys-software-3-0-heralds-a-new-era-in-programming/" target="_blank">ZDNET</a></td>
+                    </tr>
+                    <tr>
+                        <td>Liu, N. F., et al. (2024). Lost in the Middle: How Language Models Use Long Contexts. <em>TACL</em>, 12, 157–173.</td>
+                        <td>Context Rot, U-Shaped Retrieval</td>
+                        <td>Context-rot, Void-Management</td>
+                        <td><a href="https://aclanthology.org/2024.tacl-1.9/" target="_blank">ACL</a></td>
+                    </tr>
+                    <tr>
+                        <td>Meadows, D. (1999). Leverage Points: Places to Intervene in a System. Sustainability Institute.</td>
+                        <td>System intervention</td>
+                        <td>Decision type (D)</td>
+                        <td><a href="https://donellameadows.org/archives/leverage-points-places-to-intervene-in-a-system/" target="_blank">PDF</a></td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="bib-section">
+                <h3>VIII. Activity Theory</h3>
+                <table class="bib-table">
+                    <tr>
+                        <td>Leontiev, A. N. (1978). <em>Activity, Consciousness, and Personality</em>. Prentice-Hall.</td>
+                        <td>Activity/Action/Operation</td>
+                        <td>Shell pre-wiring</td>
+                        <td><a href="https://www.marxists.org/archive/leontev/works/activity-consciousness.pdf" target="_blank">PDF</a></td>
+                    </tr>
+                </table>
+            </div>
+        </section>
+
+        <footer>
+            Part of the <a href="project-genome-dce-gyo.html">DCE-GYO Project Genome</a> knowledge infrastructure.<br>
+            Patterns verified against source code December 2025.
+        </footer>
+    </div>
+
+    <script>
+        // Theme toggle
+        const toggle = document.getElementById('theme-toggle');
+        let isDark = localStorage.getItem('theme') !== 'light';
+
+        function setTheme(dark) {
+            document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+            toggle.textContent = dark ? '☀' : '☽';
+            localStorage.setItem('theme', dark ? 'dark' : 'light');
+            isDark = dark;
+        }
+
+        setTheme(isDark);
+        toggle.onclick = () => setTheme(!isDark);
+
+        // Scroll-spy for TOC highlighting
+        const tocLinks = document.querySelectorAll('.toc-list a[href^="#"]');
+        const sections = Array.from(tocLinks).map(link => {
+            const id = link.getAttribute('href').slice(1);
+            return document.getElementById(id);
+        }).filter(Boolean);
+
+        function updateActiveToc() {
+            const scrollPos = window.scrollY + 100;
+            let activeId = null;
+            
+            for (const section of sections) {
+                if (section.offsetTop <= scrollPos) {
+                    activeId = section.id;
+                }
+            }
+            
+            tocLinks.forEach(link => {
+                link.classList.toggle('active', link.getAttribute('href') === '#' + activeId);
+            });
+        }
+
+        window.addEventListener('scroll', updateActiveToc, { passive: true });
+        updateActiveToc();
+
+        // Smooth scroll for TOC links
+        tocLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                const id = link.getAttribute('href').slice(1);
+                const target = document.getElementById(id);
+                if (target) {
+                    e.preventDefault();
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    history.pushState(null, '', '#' + id);
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

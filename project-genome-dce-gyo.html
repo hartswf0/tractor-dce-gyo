@@ -1,0 +1,3162 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Genome | DCE-GYO Studio Atlas</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600&family=JetBrains+Mono:wght@400;600&family=Inter:wght@300;400;600&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0d0d12;
+            --surface: #14141a;
+            --surface-2: #1a1a22;
+            --ink: #e8e8e8;
+            --ink-dim: #888;
+            --ink-muted: #555;
+            --accent: #d97706;
+            --accent-dim: rgba(217, 119, 6, 0.2);
+            --cluster-wag: #f59e0b;
+            --cluster-skeleton: #10b981;
+            --cluster-brick: #3b82f6;
+            --cluster-core: #8b5cf6;
+            --cluster-onyx: #ec4899;
+            --cluster-sitemap: #06b6d4;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--ink);
+            font-family: 'Inter', sans-serif;
+            line-height: 1.7;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 100px 24px 60px;
+        }
+
+        /* Sticky Nav */
+        .sticky-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: var(--bg);
+            border-bottom: 1px solid var(--surface-2);
+            padding: 10px 24px;
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease;
+        }
+
+        .sticky-nav-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .nav-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--accent);
+            margin-right: 8px;
+            white-space: nowrap;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 0 30px;
+            border-bottom: 1px solid var(--surface-2);
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-family: 'Crimson Pro', serif;
+            font-size: 2.4rem;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 0.95rem;
+            color: var(--ink-dim);
+            max-width: 700px;
+            margin: 0 auto 16px;
+        }
+
+        .course-info {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--ink-muted);
+        }
+
+        /* Onboarding Grid */
+        .onboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .onboard-card {
+            background: var(--surface);
+            border-radius: 8px;
+            padding: 14px 16px;
+            border-left: 3px solid var(--accent);
+        }
+
+        .onboard-card h3 {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 6px;
+        }
+
+        .onboard-card p {
+            font-size: 0.8rem;
+            color: var(--ink-dim);
+            line-height: 1.4;
+        }
+
+        .onboard-card .count {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--ink);
+            margin-right: 6px;
+        }
+
+        /* Nav Bricks */
+        .nav-brick {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.6rem;
+            padding: 4px 10px;
+            border-radius: 3px;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border: 1px solid transparent;
+        }
+
+        .nav-brick:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .nav-brick.brick-wag { background: rgba(245, 158, 11, 0.2); color: var(--cluster-wag); border-color: rgba(245, 158, 11, 0.3); }
+        .nav-brick.brick-skeleton { background: rgba(16, 185, 129, 0.2); color: var(--cluster-skeleton); border-color: rgba(16, 185, 129, 0.3); }
+        .nav-brick.brick-brick { background: rgba(59, 130, 246, 0.2); color: var(--cluster-brick); border-color: rgba(59, 130, 246, 0.3); }
+        .nav-brick.brick-core { background: rgba(139, 92, 246, 0.2); color: var(--cluster-core); border-color: rgba(139, 92, 246, 0.3); }
+        .nav-brick.brick-onyx { background: rgba(236, 72, 153, 0.2); color: var(--cluster-onyx); border-color: rgba(236, 72, 153, 0.3); }
+        .nav-brick.brick-sitemap { background: rgba(6, 182, 212, 0.2); color: var(--cluster-sitemap); border-color: rgba(6, 182, 212, 0.3); }
+        .nav-brick.brick-meta { background: var(--surface); color: var(--ink-dim); border-color: var(--surface-2); }
+
+        /* Status Chips */
+        .status-chip {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.55rem;
+            padding: 2px 8px;
+            border-radius: 3px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-left: 8px;
+        }
+
+        .status-live { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+        .status-doc { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
+        .status-experimental { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+        .status-archive { background: rgba(107, 114, 128, 0.2); color: #6b7280; }
+
+        /* Quickstart Card */
+        .quickstart {
+            background: linear-gradient(135deg, var(--accent-dim), rgba(217, 119, 6, 0.05));
+            border: 1px solid var(--accent);
+            border-radius: 8px;
+            padding: 20px 24px;
+            margin-bottom: 32px;
+        }
+
+        .quickstart h2 {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 12px;
+        }
+
+        .quickstart-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .quickstart-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .quickstart-item .role {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            color: var(--ink-muted);
+            text-transform: uppercase;
+        }
+
+        .quickstart-item a {
+            color: var(--ink);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .quickstart-item a:hover {
+            color: var(--accent);
+        }
+
+        .quickstart-item .desc {
+            font-size: 0.75rem;
+            color: var(--ink-dim);
+        }
+
+        /* Compact Arc Flow */
+        .arc-flow-compact {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin: 12px 0;
+            padding: 10px 14px;
+            background: var(--surface);
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+        }
+
+        .arc-flow-compact .stage {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .arc-flow-compact .arrow {
+            color: var(--ink-muted);
+        }
+
+        /* Olog Legend - Compact */
+        .olog-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding: 10px 14px;
+            background: var(--surface);
+            border-radius: 8px;
+            margin-bottom: 24px;
+        }
+
+        .olog-legend-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.6rem;
+            color: var(--ink-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            width: 100%;
+            margin-bottom: 4px;
+        }
+
+        .olog-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.75rem;
+        }
+
+        .olog-symbol {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            color: var(--accent);
+            width: 24px;
+        }
+
+        .olog-label {
+            color: var(--ink-dim);
+        }
+
+        /* Timeline */
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 8px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(to bottom,
+                    var(--cluster-wag),
+                    var(--cluster-skeleton),
+                    var(--cluster-brick),
+                    var(--cluster-core),
+                    var(--cluster-onyx),
+                    var(--cluster-sitemap));
+        }
+
+        .project {
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .project::before {
+            content: '';
+            position: absolute;
+            left: -22px;
+            top: 8px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid var(--bg);
+        }
+
+        .project.cluster-wag::before {
+            background: var(--cluster-wag);
+        }
+
+        .project.cluster-skeleton::before {
+            background: var(--cluster-skeleton);
+        }
+
+        .project.cluster-brick::before {
+            background: var(--cluster-brick);
+        }
+
+        .project.cluster-core::before {
+            background: var(--cluster-core);
+        }
+
+        .project.cluster-onyx::before {
+            background: var(--cluster-onyx);
+        }
+
+        .project.cluster-sitemap::before {
+            background: var(--cluster-sitemap);
+        }
+
+        /* Featured Project Highlight */
+        .project.featured-project {
+            background: linear-gradient(135deg, var(--accent-dim), transparent);
+            border-radius: 12px;
+            padding: 20px;
+            margin-left: -20px;
+            border: 1px solid rgba(217, 119, 6, 0.3);
+        }
+
+        .project.featured-project::after {
+            content: 'GOLDEN PATH';
+            position: absolute;
+            top: -8px;
+            right: 20px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.55rem;
+            background: var(--accent);
+            color: var(--bg);
+            padding: 2px 8px;
+            border-radius: 3px;
+            letter-spacing: 0.1em;
+        }
+
+        /* Smooth Scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Scroll margin for sticky nav */
+        [id] {
+            scroll-margin-top: 70px;
+        }
+
+        .project-header {
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        .project-name {
+            font-family: 'Crimson Pro', serif;
+            font-size: 1.55rem;
+            font-weight: 600;
+            color: var(--ink);
+        }
+
+        .project-week {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            padding: 3px 10px;
+            border-radius: 12px;
+        }
+
+        .project.cluster-wag .project-week {
+            background: rgba(245, 158, 11, 0.18);
+            color: var(--cluster-wag);
+        }
+
+        .project.cluster-skeleton .project-week {
+            background: rgba(16, 185, 129, 0.18);
+            color: var(--cluster-skeleton);
+        }
+
+        .project.cluster-brick .project-week {
+            background: rgba(59, 130, 246, 0.18);
+            color: var(--cluster-brick);
+        }
+
+        .project.cluster-core .project-week {
+            background: rgba(139, 92, 246, 0.18);
+            color: var(--cluster-core);
+        }
+
+        .project.cluster-onyx .project-week {
+            background: rgba(236, 72, 153, 0.18);
+            color: var(--cluster-onyx);
+        }
+
+        .project.cluster-sitemap .project-week {
+            background: rgba(6, 182, 212, 0.18);
+            color: var(--cluster-sitemap);
+        }
+
+        .project-tagline {
+            font-size: 0.98rem;
+            color: var(--ink-dim);
+            margin-bottom: 14px;
+            font-style: italic;
+        }
+
+        /* Genome Table */
+        .genome {
+            background: var(--surface);
+            border-radius: 10px;
+            padding: 18px 18px 16px;
+            margin-bottom: 16px;
+        }
+
+        .genome-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--accent);
+            margin-bottom: 10px;
+        }
+
+        .genome-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .genome-row {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 10px 12px;
+            background: var(--surface-2);
+            border-radius: 6px;
+            border-left: 3px solid var(--accent);
+        }
+
+        .genome-key {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .genome-key .letter {
+            font-size: 0.9rem;
+            background: var(--accent);
+            color: var(--bg);
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+        }
+
+        .genome-key .codon-name {
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: var(--ink-dim);
+        }
+
+        .genome-value {
+            font-size: 0.85rem;
+            color: var(--ink);
+            line-height: 1.6;
+        }
+
+        /* About / Lists */
+        .about {
+            margin-bottom: 12px;
+        }
+
+        .about h4 {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--accent);
+            margin-bottom: 6px;
+        }
+
+        .about p {
+            font-size: 0.9rem;
+            color: var(--ink-dim);
+        }
+
+        .about ul {
+            margin-left: 20px;
+            margin-top: 6px;
+        }
+
+        .about li {
+            font-size: 0.85rem;
+            color: var(--ink-dim);
+            margin-bottom: 4px;
+        }
+
+        .about li strong {
+            color: var(--ink);
+        }
+
+        /* Links */
+        a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .project-links {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .project-link {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            padding: 6px 12px;
+            background: var(--accent-dim);
+            color: var(--accent);
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .project-link:hover {
+            background: var(--accent);
+            color: var(--bg);
+            text-decoration: none;
+        }
+
+        /* Journey Section */
+        .journey-section {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 26px 24px 24px;
+            margin-top: 48px;
+        }
+
+        .journey-section .arc-title {
+            margin-bottom: 10px;
+        }
+
+        .journey-insight {
+            background: var(--surface-2);
+            border-left: 3px solid var(--accent);
+            padding: 14px 18px;
+            margin: 14px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .journey-insight p {
+            font-size: 0.95rem;
+            color: var(--ink);
+        }
+
+        .journey-insight .source {
+            font-size: 0.75rem;
+            color: var(--ink-muted);
+            margin-top: 6px;
+        }
+
+        /* Glossary */
+        .glossary-section {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 26px 24px 24px;
+            margin-top: 48px;
+        }
+
+        .glossary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .glossary-entry {
+            display: flex;
+            gap: 12px;
+            padding: 12px 14px;
+            background: var(--surface-2);
+            border-radius: 8px;
+            align-items: flex-start;
+        }
+
+        .glossary-term {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--accent);
+            min-width: 80px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .glossary-def {
+            font-size: 0.85rem;
+            color: var(--ink-dim);
+            line-height: 1.5;
+        }
+
+        .glossary-category {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--ink-muted);
+            margin-top: 20px;
+            margin-bottom: 10px;
+            padding-bottom: 6px;
+            border-bottom: 1px dashed var(--surface-2);
+        }
+
+        .glossary-category:first-child {
+            margin-top: 0;
+        }
+
+        .glossary-term a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .glossary-def a {
+            color: var(--accent);
+            text-decoration: none;
+            border-bottom: 1px dotted var(--accent);
+        }
+
+        .glossary-def a:hover {
+            border-bottom-style: solid;
+        }
+
+        .glossary-entry[id] {
+            scroll-margin-top: 80px;
+        }
+
+        /* Type Tags */
+        .type-tag {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.55rem;
+            padding: 2px 6px;
+            border-radius: 3px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-left: 6px;
+            vertical-align: middle;
+        }
+
+        .type-app { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+        .type-shell { background: rgba(139, 92, 246, 0.2); color: #8b5cf6; }
+        .type-protocol { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+        .type-format { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
+        .type-dataset { background: rgba(6, 182, 212, 0.2); color: #06b6d4; }
+        .type-lab { background: rgba(236, 72, 153, 0.2); color: #ec4899; }
+        .type-view { background: rgba(107, 114, 128, 0.2); color: #6b7280; }
+
+        /* Glossary Contract Details */
+        .glossary-contract {
+            font-size: 0.7rem;
+            color: var(--ink-muted);
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px dashed var(--surface-2);
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 4px 12px;
+        }
+
+        .glossary-contract dt {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.6rem;
+            color: var(--ink-dim);
+            text-transform: uppercase;
+        }
+
+        .glossary-contract dd {
+            color: var(--ink-dim);
+        }
+
+        /* Drive Section */
+        .drive-section {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 32px;
+        }
+
+        .drive-section h2 {
+            font-family: 'Crimson Pro', serif;
+            font-size: 1.3rem;
+            color: var(--accent);
+            margin-bottom: 16px;
+        }
+
+        .drive-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .drive-card {
+            background: var(--surface-2);
+            border-radius: 8px;
+            padding: 16px;
+            border-left: 3px solid var(--accent);
+        }
+
+        .drive-card h3 {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+        }
+
+        .drive-card .steps {
+            font-size: 0.8rem;
+            color: var(--ink-dim);
+            line-height: 1.6;
+        }
+
+        .drive-card .steps code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            background: var(--surface);
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: var(--ink);
+        }
+
+        .drive-card .requires {
+            font-size: 0.65rem;
+            color: var(--ink-muted);
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px dashed var(--surface);
+        }
+
+        .drive-card .tutorial-link {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.6rem;
+            color: var(--accent);
+            text-decoration: none;
+            margin-top: 8px;
+            display: inline-block;
+        }
+
+        .drive-card .tutorial-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Failure Routing */
+        .failure-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .failure-card {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 8px;
+            padding: 12px 14px;
+        }
+
+        .failure-card .symptom {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            color: #ef4444;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .failure-card .fix {
+            font-size: 0.75rem;
+            color: var(--ink-dim);
+        }
+
+        .failure-card .go-to {
+            font-size: 0.7rem;
+            color: var(--accent);
+            margin-top: 6px;
+        }
+
+        /* Follow Along Mode - Dual Iframe */
+        .follow-along-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg);
+            z-index: 200;
+            display: none;
+            flex-direction: column;
+            opacity: 0;
+            transform: scale(0.98);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .follow-along-overlay.active {
+            display: flex;
+        }
+
+        .follow-along-overlay.visible {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .follow-along-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 16px;
+            background: var(--surface);
+            border-bottom: 2px solid var(--accent);
+            flex-shrink: 0;
+        }
+
+        .follow-along-header h2 {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .follow-along-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .follow-along-btn {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.6rem;
+            padding: 6px 12px;
+            background: var(--surface-2);
+            border: 1px solid var(--surface-2);
+            border-radius: 4px;
+            color: var(--ink-dim);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .follow-along-btn:hover {
+            background: var(--accent);
+            color: var(--bg);
+            border-color: var(--accent);
+        }
+
+        .follow-along-btn.exit {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+        }
+
+        .follow-along-btn.exit:hover {
+            background: #ef4444;
+            color: white;
+        }
+
+        .follow-along-panes {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .follow-along-pane {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+
+        .follow-along-pane.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .follow-along-pane:first-child {
+            transition-delay: 0.1s;
+        }
+
+        .follow-along-pane:last-child {
+            transition-delay: 0.2s;
+        }
+
+        .follow-along-pane + .follow-along-pane {
+            border-left: 2px solid var(--accent);
+        }
+
+        .pane-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 12px;
+            background: var(--surface-2);
+            border-bottom: 1px solid var(--surface);
+        }
+
+        .pane-header .pane-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            color: var(--ink-dim);
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pane-header .pane-label {
+            font-size: 0.55rem;
+            padding: 2px 6px;
+            background: var(--accent);
+            color: var(--bg);
+            border-radius: 3px;
+        }
+
+        .pane-header .pane-actions {
+            display: flex;
+            gap: 4px;
+        }
+
+        .pane-action-btn {
+            background: none;
+            border: none;
+            color: var(--ink-muted);
+            font-size: 0.8rem;
+            cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 3px;
+            transition: all 0.2s;
+        }
+
+        .pane-action-btn:hover {
+            background: var(--surface);
+            color: var(--ink);
+        }
+
+        .follow-along-pane iframe {
+            flex: 1;
+            border: none;
+            background: var(--bg);
+        }
+
+        /* Resize handle */
+        .pane-resizer {
+            width: 6px;
+            background: var(--accent);
+            cursor: col-resize;
+            transition: background 0.2s;
+        }
+
+        .pane-resizer:hover {
+            background: var(--cluster-wag);
+        }
+
+        @media (max-width: 900px) {
+            .follow-along-panes {
+                flex-direction: column;
+            }
+
+            .follow-along-pane + .follow-along-pane {
+                border-left: none;
+                border-top: 2px solid var(--accent);
+            }
+
+            .pane-resizer {
+                width: 100%;
+                height: 6px;
+                cursor: row-resize;
+            }
+        }
+
+        /* Tutorial Button Styles */
+        .tutorial-btn {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.6rem;
+            padding: 4px 10px;
+            background: var(--surface);
+            border: 1px solid var(--accent);
+            border-radius: 4px;
+            color: var(--accent);
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .tutorial-btn:hover {
+            background: var(--accent);
+            color: var(--bg);
+        }
+
+        .tutorial-btn .icon {
+            font-size: 0.8rem;
+        }
+
+        /* Tutorial Card Enhancement */
+        .drive-card .tutorial-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* Progressive Disclosure - Collapsible Sections */
+        .disclosure-section {
+            margin-top: 24px;
+        }
+
+        .disclosure-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--surface);
+            border: 1px solid var(--surface-2);
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--ink-dim);
+            text-align: left;
+            transition: all 0.2s;
+        }
+
+        .disclosure-toggle:hover {
+            background: var(--surface-2);
+            color: var(--ink);
+        }
+
+        .disclosure-toggle .arrow {
+            transition: transform 0.3s;
+        }
+
+        .disclosure-toggle.open .arrow {
+            transform: rotate(90deg);
+        }
+
+        .disclosure-content {
+            display: none;
+            padding-top: 16px;
+        }
+
+        .disclosure-content.open {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Golden Path - Hero Section */
+        .golden-path {
+            background: linear-gradient(135deg, var(--surface) 0%, rgba(234, 179, 8, 0.1) 100%);
+            border: 2px solid var(--accent);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .golden-path h2 {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.1rem;
+            color: var(--accent);
+            margin-bottom: 8px;
+        }
+
+        .golden-path .tagline {
+            color: var(--ink-dim);
+            font-size: 0.85rem;
+            margin-bottom: 16px;
+        }
+
+        .golden-path .flow {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+            margin: 16px 0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+        }
+
+        .golden-path .flow-step {
+            background: var(--surface-2);
+            padding: 8px 14px;
+            border-radius: 6px;
+            color: var(--ink);
+        }
+
+        .golden-path .flow-arrow {
+            color: var(--accent);
+        }
+
+        .golden-path .requirement {
+            font-size: 0.7rem;
+            color: var(--ink-muted);
+            margin-top: 12px;
+            padding: 8px 12px;
+            background: var(--bg);
+            border-radius: 6px;
+        }
+
+        .golden-path .start-btn {
+            display: inline-block;
+            margin-top: 16px;
+            padding: 12px 24px;
+            background: var(--accent);
+            color: var(--bg);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .golden-path .start-btn:hover {
+            background: #d4a000;
+            transform: translateY(-2px);
+        }
+
+        /* Default Workflow Crown */
+        .workflow-default {
+            position: relative;
+            border: 2px solid var(--accent) !important;
+        }
+
+        .workflow-default::before {
+            content: 'START HERE';
+            position: absolute;
+            top: -10px;
+            left: 16px;
+            background: var(--accent);
+            color: var(--bg);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.55rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        /* Audience Toggle */
+        .audience-toggle {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .audience-btn {
+            padding: 8px 16px;
+            background: var(--surface);
+            border: 1px solid var(--surface-2);
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            color: var(--ink-dim);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .audience-btn.active {
+            background: var(--accent);
+            color: var(--bg);
+            border-color: var(--accent);
+        }
+
+        .audience-btn:hover:not(.active) {
+            background: var(--surface-2);
+        }
+
+        /* Hide expert content by default */
+        body:not(.expert-mode) .expert-only {
+            display: none;
+        }
+
+        @media (max-width: 900px) {
+            .tutorial-companion {
+                width: 100%;
+                top: auto;
+                bottom: 0;
+                height: 50vh;
+                border-left: none;
+                border-top: 2px solid var(--accent);
+            }
+
+            body.tutorial-mode .container {
+                max-width: 100%;
+                margin-right: 0;
+                padding-bottom: 52vh;
+            }
+        }
+
+        /* Theoretical Framework Section */
+        .framework-section {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 26px 24px 24px;
+            margin-top: 32px;
+        }
+
+        .framework-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .framework-card {
+            background: var(--surface-2);
+            border-radius: 8px;
+            padding: 16px;
+            border-left: 3px solid var(--accent);
+        }
+
+        .framework-card h4 {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .framework-card .lever-type {
+            font-size: 0.65rem;
+            color: var(--ink-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 6px;
+        }
+
+        .framework-card p {
+            font-size: 0.85rem;
+            color: var(--ink-dim);
+            line-height: 1.5;
+        }
+
+        .framework-card .tools {
+            margin-top: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .framework-card .tool-chip {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.6rem;
+            padding: 2px 8px;
+            background: var(--surface);
+            border-radius: 4px;
+            color: var(--ink-dim);
+        }
+
+        .framework-cite {
+            font-size: 0.7rem;
+            color: var(--ink-muted);
+            margin-top: 20px;
+            padding-top: 12px;
+            border-top: 1px dashed var(--surface-2);
+            font-style: italic;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 34px 0 10px;
+            border-top: 1px solid var(--surface-2);
+            margin-top: 44px;
+        }
+
+        .footer-text {
+            font-size: 0.8rem;
+            color: var(--ink-muted);
+        }
+
+        .credits {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--ink-dim);
+            margin-top: 10px;
+        }
+
+        /* Cluster Stats Bar */
+        .cluster-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 14px;
+            padding: 10px 14px;
+            background: var(--surface);
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .stat-label {
+            color: var(--ink-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-value {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .stat-patterns {
+            color: var(--ink-dim);
+            font-size: 0.65rem;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .container {
+                padding-top: 120px;
+            }
+
+            .sticky-nav-inner {
+                gap: 6px;
+            }
+
+            .nav-brick {
+                font-size: 0.55rem;
+                padding: 3px 8px;
+            }
+
+            .nav-title {
+                width: 100%;
+                margin-bottom: 4px;
+            }
+
+            .quickstart-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .arc-flow-compact {
+                justify-content: center;
+            }
+
+            .onboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .genome-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .cluster-stats {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .olog-legend {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .project.featured-project {
+                margin-left: 0;
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Sticky Navigation -->
+    <nav class="sticky-nav">
+        <div class="sticky-nav-inner">
+            <span class="nav-title">DCE-GYO</span>
+            <a href="#wag-studio-suite" class="nav-brick brick-wag">WAG Studio</a>
+            <a href="#skeleton-labs" class="nav-brick brick-skeleton">Skeleton</a>
+            <a href="#homer-mento-chain" class="nav-brick brick-skeleton">Homer</a>
+            <a href="#brick-grid-family" class="nav-brick brick-brick">Brick</a>
+            <a href="#core-projects" class="nav-brick brick-core">Core</a>
+            <a href="#prompts-and-systems" class="nav-brick brick-core">Prompts</a>
+            <a href="#bags-bus-labs" class="nav-brick brick-wag">Labs</a>
+            <a href="#onyx-dce-gyo" class="nav-brick brick-onyx">ONYX</a>
+            <a href="#sitemap-manifolds" class="nav-brick brick-sitemap">Manifolds</a>
+            <a href="#how-to-drive" class="nav-brick brick-meta">[H] How To</a>
+            <a href="#glossary" class="nav-brick brick-meta">[G] Glossary</a>
+            <a href="#framework" class="nav-brick brick-meta">[F] Framework</a>
+        </div>
+    </nav>
+
+    <div class="container">
+
+        <header>
+            <h1>DCE-GYO Studio Atlas</h1>
+            <p class="subtitle">An integrated web workbench for creating, editing, and rendering 3D LEGO scenes using text and code. Think of it as: VS Code meets LEGO Digital Designer, running in your browser.</p>
+        </header>
+
+        <!-- Quickstart Card -->
+        <div class="quickstart">
+            <h2>* Quickstart — Pick Your Path</h2>
+            <div class="quickstart-grid">
+                <div class="quickstart-item">
+                    <span class="role">Builder</span>
+                    <a href="swiss-frank-grace-studio.html">WAG Studio Suite</a>
+                    <span class="desc">Edit MPD scenes with Swiss (launcher), Frank (bus), Grace (batch), GOLD (line)</span>
+                </div>
+                <div class="quickstart-item">
+                    <span class="role">Viewer</span>
+                    <a href="onyx-thumb.html">ONYX Thumb</a>
+                    <span class="desc">Watch the Guardian debates as cinematic playback with TEXT / VISUAL / PLAY modes</span>
+                </div>
+                <div class="quickstart-item">
+                    <span class="role">Architect</span>
+                    <a href="sitemap-manifold-index.html">SITEMAP Manifolds</a>
+                    <span class="desc">Explore the codebase as navigable terrain — contours, territories, pathways</span>
+                </div>
+                <div class="quickstart-item">
+                    <span class="role">Hello World</span>
+                    <a href="hello-world.html">Render a 2x4 Brick</a>
+                    <span class="desc">Verify the system works. Load a scene, see it render, confirm the pipeline</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Evolution Arc -->
+        <div class="arc-flow-compact">
+            <span class="stage">HELLO WORLD</span><span class="arrow">→</span>
+            <span class="stage">WAG STUDIO</span><span class="arrow">→</span>
+            <span class="stage">SKELETON LABS</span><span class="arrow">→</span>
+            <span class="stage">HOMER/MENTO</span><span class="arrow">→</span>
+            <span class="stage">BRICK GRID</span><span class="arrow">→</span>
+            <span class="stage">ONYX</span><span class="arrow">→</span>
+            <span class="stage">MANIFOLDS</span>
+        </div>
+
+        <!-- Genome Schema Legend -->
+        <div class="olog-legend">
+            <span class="olog-legend-title">Genome Schema — How Each Cluster Is Documented</span>
+            <div class="olog-item"><span class="olog-symbol">C</span><span class="olog-label">Creator — who built it</span></div>
+            <div class="olog-item"><span class="olog-symbol">T</span><span class="olog-label">Trail — how it evolved</span></div>
+            <div class="olog-item"><span class="olog-symbol">A</span><span class="olog-label">Artifact — the files you use</span></div>
+            <div class="olog-item"><span class="olog-symbol">M</span><span class="olog-label">Metadata — documentation</span></div>
+            <div class="olog-item"><span class="olog-symbol">D</span><span class="olog-label">Decision — why this way</span></div>
+            <div class="olog-item"><span class="olog-symbol">S</span><span class="olog-label">Tool — what you run</span></div>
+            <div class="olog-item"><span class="olog-symbol">P</span><span class="olog-label">Pattern — recurring shapes</span></div>
+            <div class="olog-item"><span class="olog-symbol">I</span><span class="olog-label">Intent — the goal</span></div>
+        </div>
+
+        <div class="timeline">
+
+            <!-- Cluster: WAG Studio Suite -->
+            <article class="project cluster-wag featured-project" id="wag-studio-suite" data-match="swiss,frank,grace,gold,courage,wag-,studio-tutorial">
+                <div class="project-header">
+                    <h2 class="project-name">WAG Studio Suite <span class="status-chip status-live">LIVE</span></h2>
+                    <span class="project-week">The Dashboard · Start Here</span>
+                </div>
+                <p class="project-tagline"><strong>Plain English:</strong> This is your main workspace. Open a LEGO scene file, edit it line-by-line or in batches, see it render in 3D. Everything else plugs into this.</p>
+
+                <div class="genome">
+                    <div class="genome-title">Genome Segment</div>
+                    <div class="genome-grid">
+                        <div class="genome-row"><span class="genome-key"><span class="letter">C</span><span class="codon-name">Creator</span></span><span class="genome-value">Watson
+                                Hartsoe</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">T</span><span class="codon-name">Trail</span></span><span class="genome-value">HELLO
+                                WORLD → Featured models → Swiss / Frank / Grace Studio</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">A</span><span class="codon-name">Artifact</span></span><span class="genome-value">Swiss
+                                designator hub, Frank bus/router, Grace and GOLD editors, Momento capture, -ator
+                                tools (Minifig, Location, Vehicle, Scene).</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">M</span><span class="codon-name">Metadata</span></span><span class="genome-value">GRACE
+                                docs (PHILOSOPHY / FEATURES / UPDATES), MPD structure guide, LDraw parts + root models
+                                manifests, quarantine list.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">D</span><span class="codon-name">Decision</span></span><span class="genome-value">Treat
+                                Swiss / Frank / Grace + GOLD / COURAGE as one OS over MPD files, not isolated apps;
+                                privilege explicit buses over hidden glue.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">S</span><span class="codon-name">Tool</span></span><span class="genome-value">Swiss
+                                hub, Frank wag‑frank bus, GOLD line editor, Grace batch editor, Courage flagship
+                                viewer, Momento capture, MPD validator and parts browser.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">P</span><span class="codon-name">Pattern</span></span><span class="genome-value">BUS
+                                pattern (wag‑frank), LEGO board manifest, MPD as canonical scene object, editors as
+                                peers around a shared manifest.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">I</span><span class="codon-name">Intent</span></span><span class="genome-value">Make a
+                                3D production pipeline that is legible, copy‑pasteable, and debuggable without opaque
+                                IDEs or vendor lock‑in.</span></div>
+                    </div>
+                </div>
+
+                <div class="about">
+                    <h4>Key Concepts</h4>
+                    <ul>
+                        <li><strong>Studio as OS</strong> — the Swiss / Frank / Grace header in
+                            <code>index.html</code> is a literal desktop.</li>
+                        <li><strong>Editors as equal‑tier</strong> — GOLD, GRACE, and COURAGE share the stage, with
+                            explicit docs and parity notes.</li>
+                        <li><strong>Manifest discipline</strong> — MPD models, manifests, and scripts are surfaced as
+                            bricks, not hidden.</li>
+                    </ul>
+                </div>
+
+                <div class="project-links">
+                    <a href="index.html" class="project-link" target="_blank">Manifest (index.html)</a>
+                    <a href="swiss-frank-grace-studio.html" class="project-link" target="_blank">Swiss / Frank /
+                        Grace Studio</a>
+                    <a href="wag-viewer-prime-integration-20251112-055341 copy/wag-gold-editor.html" class="project-link"
+                        target="_blank">GOLD Editor</a>
+                    <a href="wag-viewer-prime-integration-20251112-055341 copy/wag-grace-editor.html"
+                        class="project-link" target="_blank">GRACE Editor</a>
+                    <a href="wag-viewer-prime-integration-20251112-055341 copy/wag-courage.html" class="project-link"
+                        target="_blank">COURAGE Viewer</a>
+                </div>
+            </article>
+
+            <!-- Cluster: Skeleton Labs -->
+            <article class="project cluster-skeleton" id="skeleton-labs" data-match="timber,bull-assembly,skeleton,were,symbiogene,wag-master,wag-infinity">
+                <div class="project-header">
+                    <h2 class="project-name">Skeleton Labs <span class="status-chip status-experimental">EXPERIMENTAL</span></h2>
+                    <span class="project-week">Debug Tools · See What's Hidden</span>
+                </div>
+                <p class="project-tagline"><strong>Plain English:</strong> Tools that show you what's normally invisible—which brick owns which stud, where parts touch the ground, what's connected to what. Like X-ray vision for LEGO scenes.</p>
+
+                <div class="genome">
+                    <div class="genome-title">Genome Segment</div>
+                    <div class="genome-grid">
+                        <div class="genome-row"><span class="genome-key"><span class="letter">C</span><span class="codon-name">Creator</span></span><span class="genome-value">Watson
+                                Hartsoe</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">T</span><span class="codon-name">Trail</span></span><span class="genome-value">Courage
+                                calibration scenes → WAG WERE / SYMBIOGENE / MASTER → TIMBER Studio → Bull Assembly
+                                Studio.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">A</span><span class="codon-name">Artifact</span></span><span class="genome-value">Courage
+                                GOLD snapshots (mpd_content + stud_skeleton_v2), calibration compass and vehicle MPDs,
+                                WAG WERE / MASTER / SYMBIOGENE labs, TIMBER Studio shell, Bull Assembly Studio and
+                                line‑grid viewer.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">M</span><span class="codon-name">Metadata</span></span><span class="genome-value">COURAGE
+                                SKELETON pipeline OLOG, WAG‑COOL‑OLOG, WAG‑UNIFIED‑WEAVER‑OLOG, GOLD calibration JSON,
+                                orphan stud snapshots.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">D</span><span class="codon-name">Decision</span></span><span class="genome-value">Model
+                                skeletons as first‑class data (stud_skeleton_v2, grid_spec, ground_violations), accept
+                                open problems like orphan studs instead of hiding them.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">S</span><span class="codon-name">Tool</span></span><span class="genome-value">WAG
+                                WERE, WAG MASTER LAB, WAG SYMBIOGENE, TIMBER Studio bus, Bull Assembly Studio,
+                                line‑grid viewer, WAG INFINITY.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">P</span><span class="codon-name">Pattern</span></span><span class="genome-value">Loops:
+                                COURAGE → GOLD → WEAVER → WERE / MASTER; GOLD + selection loops across TIMBER; skeleton
+                                debug loops via SYMBIOGENE / INFINITY.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">I</span><span class="codon-name">Intent</span></span><span class="genome-value">Make
+                                invisible constraints in 3D scenes (ownership, gravity, ground contact) observable and
+                                editable at the line and stud level.</span></div>
+                    </div>
+                </div>
+
+                <div class="about">
+                    <h4>Key Concepts</h4>
+                    <ul>
+                        <li><strong>Stud ownership</strong> — the GOLD stud line attribution problem is surfaced as an
+                            explicit open issue.</li>
+                        <li><strong>Bus + lab separation</strong> — TIMBER handles GOLD / selection buses; labs focus on
+                            visualization and manipulation.</li>
+                        <li><strong>Calibration scenes</strong> — dedicated MPDs (compass, vehicle) anchor repeatable
+                            tests across tools.</li>
+                    </ul>
+                </div>
+
+                <div class="project-links">
+                    <a href="wag-master.html" class="project-link" target="_blank">WAG MASTER LAB</a>
+                    <a href="wag-were.html" class="project-link" target="_blank">WAG WERE</a>
+                    <a href="wag-symbiogene.html" class="project-link" target="_blank">WAG SYMBIOGENE</a>
+                    <a href="timber-studio.html" class="project-link" target="_blank">TIMBER Studio</a>
+                    <a href="bull-assembly-studio.html" class="project-link" target="_blank">Bull Assembly Studio</a>
+                    <a href="COURAGE-SKELETON-PIPELINE.md" class="project-link" target="_blank">Courage Skeleton
+                        Pipeline</a>
+                </div>
+            </article>
+
+            <!-- Cluster: HOMER × MENTO Chain -->
+            <article class="project cluster-skeleton" id="homer-mento-chain" data-match="homer,mento,shield-of-achilles,grecian-urn,ball-jar,trubador">
+                <div class="project-header">
+                    <h2 class="project-name">HOMER × MENTO Chain <span class="status-chip status-live">LIVE</span></h2>
+                    <span class="project-week">Camera + Capture · Record Your Scenes</span>
+                </div>
+                <p class="project-tagline"><strong>Plain English:</strong> A super-studio that puts all your editing tools on one screen, plus camera controls to capture screenshots and animations. HOMER docks everything; MENTO handles the camera.</p>
+
+                <div class="genome">
+                    <div class="genome-title">Genome Segment</div>
+                    <div class="genome-grid">
+                        <div class="genome-row"><span class="genome-key"><span class="letter">C</span><span class="codon-name">Creator</span></span><span class="genome-value">Watson
+                                Hartsoe</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">T</span><span class="codon-name">Trail</span></span><span class="genome-value">WAG
+                                studio editors → HOMER Trubador chain → MENTO 702 lab → pivot to
+                                mento‑368/369/373 and Shield‑of‑Achilles / Ball Jar shells.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">A</span><span class="codon-name">Artifact</span></span><span class="genome-value">HOMER
+                                Studio shells (<code>homer.html</code>, quickstart, step docs), MENTO camera surfaces
+                                (<code>mento-glb-desert.html</code>, <code>mento-368.html</code>, <code>mento-369.html</code>,
+                                <code>mento-372.html</code>, <code>mento-373.html</code>), and mounting shells (Shield of
+                                Achilles, Grecian Urn, Ball Jar).</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">M</span><span class="codon-name">Metadata</span></span><span class="genome-value">HOMER
+                                Studio OLOG, MENTO camera olog block in the manifest, MENTO‑HOMER‑OLOG, SHIELD‑OF‑ACHILLES‑OLOG,
+                                and frustration logs describing 702 as lab‑not‑tool.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">D</span><span class="codon-name">Decision</span></span><span class="genome-value">Give
+                                camera paths a single clear authority, separate preview from capture, and designate
+                                <code>mento-368.html</code> / <code>mento-369.html</code> as canonical sensor surfaces
+                                instead of overloading the 702 studio.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">S</span><span class="codon-name">Tool</span></span><span class="genome-value">HOMER
+                                Studio, MENTO 368/369/372/373 panels, Shield of Achilles shell, Grecian Urn Studio,
+                                Ball Jar Studio.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">P</span><span class="codon-name">Pattern</span></span><span class="genome-value">Camera
+                                paths as first‑class data, docking camera instruments beside COURAGE / WEAVER / WERE /
+                                MASTER, and treating 702 as an experiment log that feeds a calmer 368/369 sensor
+                                instrument.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">I</span><span class="codon-name">Intent</span></span><span class="genome-value">Provide
+                                a reliable, manifest‑backed camera toolkit that can ride on top of the WAG production
+                                stack without hidden coordinate surprises.</span></div>
+                    </div>
+                </div>
+
+                <div class="about">
+                    <h4>Key Concepts</h4>
+                    <ul>
+                        <li><strong>Tool vs. lab</strong> — 702 is explicitly retired as a camera lab; 368/369/373 become
+                            the everyday instruments.</li>
+                        <li><strong>Mounting surfaces</strong> — HOMER and Shield‑of‑Achilles shells show how MENTO rides
+                            alongside COURAGE/WEAVER/WERE/MASTER rather than replacing them.</li>
+                        <li><strong>Timing as tradeoff</strong> — 368 treats capture presets and device budgets as
+                            explicit parameters, not hidden quality knobs.</li>
+                    </ul>
+                </div>
+
+                <div class="project-links">
+                    <a href="homer.html" class="project-link" target="_blank">HOMER Studio</a>
+                    <a href="homer-quickstart.html" class="project-link" target="_blank">HOMER Quickstart</a>
+                    <a href="homer-step1-swiss-frank-courage.html" class="project-link" target="_blank">HOMER Step
+                        Docs</a>
+                    <a href="mento-368.html" class="project-link" target="_blank">MENTO‑368</a>
+                    <a href="mento-369.html" class="project-link" target="_blank">MENTO‑369</a>
+                    <a href="mento-373.html" class="project-link" target="_blank">MENTO‑373</a>
+                    <a href="shield-of-achilles.html" class="project-link" target="_blank">Shield of Achilles
+                        Shell</a>
+                    <a href="MENTO-HOMER-OLOG.md" class="project-link" target="_blank">MENTO × HOMER OLOG</a>
+                </div>
+            </article>
+
+            <!-- Cluster: BRICK Grid Family -->
+            <article class="project cluster-brick" id="brick-grid-family" data-match="brick-,hyper-grid,hyper-monitor,brickadu,brickbender,lgi-,build-bus">
+                <div class="project-header">
+                    <h2 class="project-name">BRICK Grid Family <span class="status-chip status-live">LIVE</span></h2>
+                    <span class="project-week">Navigation · Move Through Code Like a Map</span>
+                </div>
+                <p class="project-tagline"><strong>Plain English:</strong> Instead of folders and file lists, see your code as a 9×9 grid you can walk around. Click a cell, see what's there. Like a city map for your codebase.</p>
+
+                <div class="genome">
+                    <div class="genome-title">Genome Segment</div>
+                    <div class="genome-grid">
+                        <div class="genome-row"><span class="genome-key"><span class="letter">C</span><span class="codon-name">Creator</span></span><span class="genome-value">Watson
+                                Hartsoe</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">T</span><span class="codon-name">Trail</span></span><span class="genome-value">LEGOS
+                                framework → 9×9 BRICK grids → TAXONOMIZER and Minifigurator channel.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">A</span><span class="codon-name">Artifact</span></span><span class="genome-value">BRICK
+                                GRID atlas, BRICK BRANCH / ARCH / APEX / SOVEREIGN / BUILD BUS / CREATE / XANADU GRID,
+                                Taxonomizer tree and exports, Minifig buckets.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">M</span><span class="codon-name">Metadata</span></span><span class="genome-value">BRICK
+                                GRID OLOG, BRICKBENDER PHILOSOPHY (Ground / Site / Sky / Perspective), TAXONOMIZER
+                                OLOG, taxonomy‑batch and catalog MPDs.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">D</span><span class="codon-name">Decision</span></span><span class="genome-value">Adopt
+                                a single 9×9 spatial metaphor for code, flows, and hypertext, and treat taxonomy exports
+                                as functors into MPD and JSON worlds.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">S</span><span class="codon-name">Tool</span></span><span class="genome-value">BRICK
+                                BRANCH / ARCH / APEX / SOVEREIGN / BUILD BUS / UTILITY / CREATE / XANADU GRID,
+                                Taxonomizer UI and export functors F and G.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">P</span><span class="codon-name">Pattern</span></span><span class="genome-value">GS2P
+                                (Ground / Site / Sky / Perspective) mapping, playlists as subfunctors, MPD catalogs and
+                                taxonomy‑batch JSON as slices of a world graph.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">I</span><span class="codon-name">Intent</span></span><span class="genome-value">Give
+                                creators a terrain view of their code and parts so they can move through systems like a
+                                landscape instead of a folder tree.</span></div>
+                    </div>
+                </div>
+
+                <div class="about">
+                    <h4>Key Concepts</h4>
+                    <ul>
+                        <li><strong>9×9 invariants</strong> — same grid supports debugging, architecture, hypertext, and
+                            live preview.</li>
+                        <li><strong>Taxonomy → scene</strong> — taxonomy‑batch JSON feeds Minifigurator buckets and
+                            catalog MPDs.</li>
+                        <li><strong>Playlist semantics</strong> — selection playlists become functors from ontology to
+                            concrete scenes.</li>
+                    </ul>
+                </div>
+
+                <div class="project-links">
+                    <a href="brick-grid-family.html" class="project-link" target="_blank">Brick Grid Atlas</a>
+                    <a href="BRICK-GRID-OLOG.md" class="project-link" target="_blank">BRICK GRID OLOG</a>
+                    <a href="TAXONOMIZER-OLOG.md" class="project-link" target="_blank">TAXONOMIZER OLOG</a>
+                </div>
+            </article>
+
+            <!-- Cluster: Core Projects / Playable Theory -->
+            <article class="project cluster-core" id="core-projects" data-match="thousand-tetrad,fork,holo-project,mac-01,hello-world">
+                <div class="project-header">
+                    <h2 class="project-name">Core Projects — Playable Theory <span class="status-chip status-experimental">EXPERIMENTAL</span></h2>
+                    <span class="project-week">Games · Play With Ideas</span>
+                </div>
+                <p class="project-tagline"><strong>Plain English:</strong> Interactive toys for thinking. Run scenarios, explore ethical dilemmas, simulate negotiations. The ideas we test here become features in the main tools.</p>
+
+                <div class="genome">
+                    <div class="genome-title">Genome Segment</div>
+                    <div class="genome-grid">
+                        <div class="genome-row"><span class="genome-key"><span class="letter">C</span><span class="codon-name">Creator</span></span><span class="genome-value">Watson
+                                Hartsoe + collaborators (Soy Jang, Kayla Uleah Evans)</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">T</span><span class="codon-name">Trail</span></span><span class="genome-value">TILTH
+                                failure → Thousand‑Tetrad scenarios → The Fork gridworld → HOLO 3D entity simulation →
+                                MAC 01 experiments.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">A</span><span class="codon-name">Artifact</span></span><span class="genome-value">McLuhan
+                                tetrad engine with dozens of scenarios, trolley‑problem gridworld, HOLO continuous
+                                3D world, MAC 01 generative UI experiments.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">M</span><span class="codon-name">Metadata</span></span><span class="genome-value">Scenario
+                                seeds JSON, world manifests, prompt guides and research notes in companion repos;
+                                DCE‑GYO pulls them in as linked surfaces.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">D</span><span class="codon-name">Decision</span></span><span class="genome-value">Use
+                                playable theory (tetrads, games, live worlds) as the proving ground for UI and data
+                                patterns later re‑used in WAG / ONYX / SITEMAP.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">S</span><span class="codon-name">Tool</span></span><span class="genome-value">Thousand
+                                Tetrad engine, The Fork, HOLO Project shell, MAC 01 interface prototypes.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">P</span><span class="codon-name">Pattern</span></span><span class="genome-value">Tetrad
+                                operators, grid navigation of ethical space, continuous 3D transitions, operator‑driven
+                                scene changes.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">I</span><span class="codon-name">Intent</span></span><span class="genome-value">Bind
+                                abstract theory (McLuhan, ethics, negotiation) to concrete, manipulable scenes that can
+                                later be folded into the studio atlas.</span></div>
+                    </div>
+                </div>
+
+                <div class="about">
+                    <h4>Key Concepts</h4>
+                    <ul>
+                        <li><strong>Scenarios as DNA</strong> — scenario‑seeds.json becomes a shared substrate for ONYX
+                            and future tools.</li>
+                        <li><strong>Forking worlds</strong> — The Fork and HOLO explore branching and persistence in
+                            ways that re‑enter DCE‑GYO via WAG tools.</li>
+                    </ul>
+                </div>
+
+                <div class="project-links">
+                    <a href="thousand-tetrad.html" class="project-link" target="_blank">Thousand Tetrad</a>
+                    <a href="fork.html" class="project-link" target="_blank">The Fork</a>
+                    <a href="holo-project.html" class="project-link" target="_blank">HOLO Project</a>
+                    <a href="mac-01.html" class="project-link" target="_blank">MAC 01</a>
+                </div>
+            </article>
+
+            <!-- Cluster: WAG Presentations -->
+            <article class="project cluster-core" id="wag-presentations" data-match="words-become-worlds,wag-pres,wag-prot,wag-work,wag-hub,wag00">
+                <div class="project-header">
+                    <h2 class="project-name">WAG Presentations <span class="status-chip status-doc">DOCS</span></h2>
+                    <span class="project-week">Storytelling · Explain It To Others</span>
+                </div>
+                <p class="project-tagline"><strong>Plain English:</strong> Slide decks and overview pages that explain what WAG is and why it exists. Share these with people who ask "what are you building?"</p>
+
+                <div class="genome">
+                    <div class="genome-title">Genome Segment</div>
+                    <div class="genome-grid">
+                        <div class="genome-row"><span class="genome-key"><span class="letter">C</span><span class="codon-name">Creator</span></span><span class="genome-value">Watson
+                                Hartsoe</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">T</span><span class="codon-name">Trail</span></span><span class="genome-value">Core
+                                WAG experiments → Words Become Worlds single page → WAG slides, protocol, worksite, hub,
+                                and PNG script.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">A</span><span class="codon-name">Artifact</span></span><span class="genome-value">WORDS
+                                BECOME WORLDS deck, WAG slides, WAG protocol shell, WAG worksite, PNG script slideshow,
+                                and WAG hub / index surfaces.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">M</span><span class="codon-name">Metadata</span></span><span class="genome-value">Copy
+                                embedded in these pages: problem / audience statements, tool inventories, collaborator
+                                acknowledgements, and links out to ONYX, LEGOS, and studios.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">D</span><span class="codon-name">Decision</span></span><span class="genome-value">Expose
+                                the WAG constellation as a legible product story rather than as scattered tools, using
+                                single‑page presentations as bridges.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">S</span><span class="codon-name">Tool</span></span><span class="genome-value">WAG
+                                presentation shells (<code>words-become-worlds.html</code>, <code>wag-pres.html</code>,
+                                <code>wag-prot.html</code>, <code>wag-work.html</code>, WAG hub and PNG script index).
+                            </span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">P</span><span class="codon-name">Pattern</span></span><span class="genome-value">Slide‑like
+                                shells that still behave like tools: iframe stacks, protocol overlays, and hubs that
+                                orchestrate other surfaces.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">I</span><span class="codon-name">Intent</span></span><span class="genome-value">Give
+                                external audiences an on‑ramp into the studio OS without needing to understand every
+                                underlying lab.</span></div>
+                    </div>
+                </div>
+
+                <div class="about">
+                    <h4>Key Concepts</h4>
+                    <ul>
+                        <li><strong>Playable decks</strong> — presentation pages double as live indexes into tools and
+                            films.</li>
+                        <li><strong>Protocol shells</strong> — WAG PROTOCOL and WAG WORKSITE stage workflows, not just
+                            slides.</li>
+                    </ul>
+                </div>
+
+                <div class="project-links">
+                    <a href="words-become-worlds.html" class="project-link" target="_blank">Words Become Worlds</a>
+                    <a href="wag-pres.html" class="project-link" target="_blank">WAG Slides</a>
+                    <a href="wag-prot.html" class="project-link" target="_blank">WAG Protocol</a>
+                    <a href="wag-work.html" class="project-link" target="_blank">WAG Worksite</a>
+                    <a href="wag-hub.html" class="project-link" target="_blank">WAG Hub</a>
+                </div>
+            </article>
+
+            <!-- Cluster: Prompts & Systems -->
+            <article class="project cluster-core" id="prompts-and-systems" data-match="LEGOS-,ldraw-,prompt,ator-,minifig,sceneerator,worldinator,movieator">
+                <div class="project-header">
+                    <h2 class="project-name">Prompts &amp; Systems <span class="status-chip status-doc">DOCS</span></h2>
+                    <span class="project-week">Templates · How to Talk to the AI</span>
+                </div>
+                <p class="project-tagline"><strong>Plain English:</strong> Pre-written instructions that tell AI how to build LEGO scenes. Copy a template, fill in your idea, get valid scene files out. The recipes behind the magic.</p>
+
+                <div class="genome">
+                    <div class="genome-title">Genome Segment</div>
+                    <div class="genome-grid">
+                        <div class="genome-row"><span class="genome-key"><span class="letter">C</span><span class="codon-name">Creator</span></span><span class="genome-value">Watson
+                                Hartsoe</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">T</span><span class="codon-name">Trail</span></span><span class="genome-value">HELLO
+                                WORLD MPD discipline → LEGOS‑GPT + YAML templates → prompt library and minifig/scene
+                                builders.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">A</span><span class="codon-name">Artifact</span></span><span class="genome-value">Prompt
+                                library (LEGOS‑GPT/Grace Master Builder spec, LEGOS scene YAML, MPD templates for HELLO,
+                                Simpsons, Monkey), LEGOS+MPD paired examples, Minifigurator, LDraw builder, GLB/color
+                                geometry guide, Monkey container/modular build docs.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">M</span><span class="codon-name">Metadata</span></span><span class="genome-value">Prompt
+                                specs, YAML schemas, MPD template comments, and build guides that document how LLMs,
+                                YAML, MPD, and GLB relate.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">D</span><span class="codon-name">Decision</span></span><span class="genome-value">Treat
+                                prompt patterns and file templates as part of the toolkit, not throwaway scaffolding;
+                                make scene formats explicit.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">S</span><span class="codon-name">Tool</span></span><span class="genome-value">Prompt
+                                library, Minifigurator, LDraw builder, GLB color/geometry audit pages, Monkey container
+                                build scripts.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">P</span><span class="codon-name">Pattern</span></span><span class="genome-value">Text →
+                                YAML → MPD → GLB as a consistent chain; templates and paired examples as reusable
+                                levers rather than ad‑hoc notes.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">I</span><span class="codon-name">Intent</span></span><span class="genome-value">Lower
+                                the skill and reflection gaps for building valid MPD/GLB scenes from prompts and
+                                storyboards.</span></div>
+                    </div>
+                </div>
+
+                <div class="about">
+                    <h4>Key Concepts</h4>
+                    <ul>
+                        <li><strong>Prompt infrastructure</strong> — POML specs and templates are first‑class
+                            infrastructure, not scratchpad prompts.</li>
+                        <li><strong>Format literacy</strong> — HELLO/SIMPSONS/MONKEY templates and GLB guides teach how
+                            formats behave before LLMs get involved.</li>
+                    </ul>
+                </div>
+
+                <div class="project-links">
+                    <a href="prompt-library/LEGOS-GPT_Grace-Master-Builder.poml" class="project-link" target="_blank">LEGOS‑GPT
+                        System Spec</a>
+                    <a href="prompt-library/LEGOS-scene-template.yaml" class="project-link" target="_blank">LEGOS
+                        Scene YAML</a>
+                    <a href="prompt-library/LEGOS-plus-MPD-pair.txt" class="project-link" target="_blank">LEGOS+MPD
+                        Pair</a>
+                    <a href="minifigurator.html" class="project-link" target="_blank">Minifigurator</a>
+                    <a href="ldraw-color-geometry-guide.html" class="project-link" target="_blank">GLB Color /
+                        Geometry Guide</a>
+                </div>
+            </article>
+
+            <!-- Cluster: Bags, Bus, and Labs -->
+            <article class="project cluster-wag" id="bags-bus-labs" data-match="bag-,stud-bag,bus-orchestrator,kimi-chat,wag-cleanroom,wag-inspector,grid-walk,taxonomizer,parts-materializer">
+                <div class="project-header">
+                    <h2 class="project-name">Bags, Bus, and Labs <span class="status-chip status-experimental">EXPERIMENTAL</span></h2>
+                    <span class="project-week">Micro-Tools · Small Experiments</span>
+                </div>
+                <p class="project-tagline"><strong>Plain English:</strong> Tiny focused tools that do one thing well. Test playlists, route data between apps, inspect what's happening inside. The R&D sandbox for new features.</p>
+
+                <div class="genome">
+                    <div class="genome-title">Genome Segment</div>
+                    <div class="genome-grid">
+                        <div class="genome-row"><span class="genome-key"><span class="letter">C</span><span class="codon-name">Creator</span></span><span class="genome-value">Watson
+                                Hartsoe</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">T</span><span class="codon-name">Trail</span></span><span class="genome-value">Taxonomy
+                                and playlist work → stud‑bag and bag‑cult experiments → grid‑walk and bus orchestrator
+                                shells → KIMI chat and WAG cleanroom/inspector tools.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">A</span><span class="codon-name">Artifact</span></span><span class="genome-value">Stud
+                                Bag, Bag Cult 00, Bag Cultivator, Grid Walk Prime, Bus Orchestrator, KIMI Chat surface,
+                                WAG Cleanroom and Inspector labs, HOMER tutorial shells.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">M</span><span class="codon-name">Metadata</span></span><span class="genome-value">Inline
+                                documentation and tooltips in these shells; TAXONOMIZER OLOG and BRICKBENDER PHILOSOPHY
+                                as upstream theory for bags and playlists.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">D</span><span class="codon-name">Decision</span></span><span class="genome-value">Prototype
+                                discrete behaviors (bagging, routing, inspection) in small labs before wiring them into
+                                heavier studios like HOMER or TIMBER.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">S</span><span class="codon-name">Tool</span></span><span class="genome-value">Stud
+                                Bag and Bag Cult tools, Grid Walk Prime, Bus Orchestrator, KIMI Chat, WAG Cleanroom,
+                                WAG Inspector, HOMER tutorial shells.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">P</span><span class="codon-name">Pattern</span></span><span class="genome-value">Bags
+                                as explicit containers, grids as navigable playlists, buses as orchestrators, and
+                                cleanroom labs for controlled experiments.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">I</span><span class="codon-name">Intent</span></span><span class="genome-value">Open
+                                up the "small levers" in the system—bags, buses, and inspection harnesses—so they can be
+                                reasoned about and recombined.</span></div>
+                    </div>
+                </div>
+
+                <div class="about">
+                    <h4>Key Concepts</h4>
+                    <ul>
+                        <li><strong>Playlist experiments</strong> — Bag tools and grid walks test selection semantics
+                            outside heavy studios.</li>
+                        <li><strong>Bus prototypes</strong> — Bus Orchestrator and KIMI Chat exercise multi‑tool routing
+                            and external API flows.</li>
+                    </ul>
+                </div>
+
+                <div class="project-links">
+                    <a href="stud-bag.html" class="project-link" target="_blank">Stud Bag</a>
+                    <a href="bag-cult-00.html" class="project-link" target="_blank">Bag Cult 00</a>
+                    <a href="bag-cultivator.html" class="project-link" target="_blank">Bag Cultivator</a>
+                    <a href="grid-walk-prime.html" class="project-link" target="_blank">Grid Walk Prime</a>
+                    <a href="bus-orchestrator.html" class="project-link" target="_blank">Bus Orchestrator</a>
+                    <a href="kimi-chat.html" class="project-link" target="_blank">KIMI Chat</a>
+                    <a href="wag-cleanroom.html" class="project-link" target="_blank">WAG Cleanroom</a>
+                    <a href="wag-inspector.html" class="project-link" target="_blank">WAG Inspector</a>
+                </div>
+            </article>
+
+            <!-- Cluster: DCE-GYO / ONYX -->
+            <article class="project cluster-onyx" id="onyx-dce-gyo" data-match="onyx-studio,onyx-head,onyx-tail,onyx-abs,onyx-arena,onyx-shell,onyx-wing,onyx-claw">
+                <div class="project-header">
+                    <h2 class="project-name">DCE-GYO / ONYX <span class="status-chip status-live">LIVE</span></h2>
+                    <span class="project-week">Reading · Watch AI Debates</span>
+                </div>
+                <p class="project-tagline"><strong>Plain English:</strong> A Netflix-style player for reading AI debates. Pick a chapter, read the text, see the visuals, or hit play to hear it spoken aloud. Searchable, exportable, archivable.</p>
+
+                <div class="genome">
+                    <div class="genome-title">Genome Segment</div>
+                    <div class="genome-grid">
+                        <div class="genome-row"><span class="genome-key"><span class="letter">C</span><span class="codon-name">Creator</span></span><span class="genome-value">Watson
+                                Hartsoe</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">T</span><span class="codon-name">Trail</span></span><span class="genome-value">Guardian
+                                encounters → DCE‑GYO markdown chapters → ONYX Thumb cinematic reader and abstract
+                                grids.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">A</span><span class="codon-name">Artifact</span></span><span class="genome-value">ONYX
+                                Thumb player (text, visual, play modes, TTS), ONYX core index, research index,
+                                bibliography table, abstract grid views.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">M</span><span class="codon-name">Metadata</span></span><span class="genome-value">chapter‑manifest
+                                and chapter‑final‑decisions JSON, media manifest, ONYX THUMB README with feature and
+                                shortcut catalog.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">D</span><span class="codon-name">Decision</span></span><span class="genome-value">Treat
+                                debates and readings as a navigable dataset with manifest‑backed exports (tables,
+                                CSVs), not just a single playback UI.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">S</span><span class="codon-name">Tool</span></span><span class="genome-value">ONYX
+                                Thumb, ONYX Abstract grid, research index, bibliography view, ONYX Core Index.</span>
+                        </div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">P</span><span class="codon-name">Pattern</span></span><span class="genome-value">Three
+                                modes (TEXT / VISUAL / PLAY), chapter coverage graphs, manifest‑driven views, and
+                                TTS‑backed scene playback.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">I</span><span class="codon-name">Intent</span></span><span class="genome-value">Create a
+                                durable, navigable export of the DCE‑GYO reading trail that survives beyond any single
+                                LLM or UI implementation.</span></div>
+                    </div>
+                </div>
+
+                <div class="about">
+                    <h4>Key Concepts</h4>
+                    <ul>
+                        <li><strong>Manifest‑first reader</strong> — ONYX is backed by explicit JSON manifests and media
+                            manifests.</li>
+                        <li><strong>Mode switching</strong> — TEXT / VISUAL / PLAY provide multiple ways to traverse the
+                            same chapter data.</li>
+                        <li><strong>Exportability</strong> — bibliography, research index, and decision tables turn a
+                            cinematic experience into a dataset.</li>
+                    </ul>
+                </div>
+
+                <div class="project-links">
+                    <a href="onyx-core-index.html" class="project-link" target="_blank">ONYX Core Index</a>
+                    <a href="onyx-thumb.html" class="project-link" target="_blank">ONYX Thumb</a>
+                    <a href="onyx-abs.html" class="project-link" target="_blank">ONYX Abstract</a>
+                    <a href="onyx-bibliography.html" class="project-link" target="_blank">Bibliography</a>
+                    <a href="research-index.html" class="project-link" target="_blank">Research Index</a>
+                    <a href="ONYX-THUMB-README.md" class="project-link" target="_blank">ONYX Thumb Docs</a>
+                </div>
+            </article>
+
+            <!-- Cluster: ONYX Archive -->
+            <article class="project cluster-onyx" id="onyx-archive" data-match="onyx-thumb,onyx-nail,onyx-neck,onyx-monolith,block-,research-index,slideshow,adapt-plus">
+                <div class="project-header">
+                    <h2 class="project-name">ONYX Archive <span class="status-chip status-archive">ARCHIVE</span></h2>
+                    <span class="project-week">Data · The Raw Materials</span>
+                </div>
+                <p class="project-tagline"><strong>Plain English:</strong> The database behind the reader. Chapter transcripts, speaker assignments, verdict logs. If you want to build something new on top of the debates, start here.</p>
+
+                <div class="genome">
+                    <div class="genome-title">Genome Segment</div>
+                    <div class="genome-grid">
+                        <div class="genome-row"><span class="genome-key"><span class="letter">C</span><span class="codon-name">Creator</span></span><span class="genome-value">Watson
+                                Hartsoe</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">T</span><span class="codon-name">Trail</span></span><span class="genome-value">DCE‑GYO
+                                markdown archive → chapter/script manifests → ONYX Thumb and Abstract views → full JSON
+                                export for downstream tools.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">A</span><span class="codon-name">Artifact</span></span><span class="genome-value">ONYX
+                                Thumb and ABS tools, ONYX downstream prompt, chapter template, audio voice system docs,
+                                chapter manifest JSONs (chapters, scripts, dialogue), and a complete JSON export of all
+                                parsed chapter data.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">M</span><span class="codon-name">Metadata</span></span><span class="genome-value">ONYX
+                                chapter manifests, script manifest, dialogue manifest, ONYX‑FULL‑DATA export, and
+                                documentation for voice assignment and script parsing prospects.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">D</span><span class="codon-name">Decision</span></span><span class="genome-value">Treat
+                                the archive itself as a toolkit: clearly separate raw texts, parsed scripts, dialogue
+                                subsets, and final verdicts so future tools can plug in.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">S</span><span class="codon-name">Tool</span></span><span class="genome-value">ONYX
+                                archive helpers (downstream prompt, chapter template, voice system, parsing prospectus),
+                                manifest JSONs, and data exports.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">P</span><span class="codon-name">Pattern</span></span><span class="genome-value">Layered
+                                data views: from raw markdown to chapter manifests to per‑line scripts and final
+                                decisions, all accessible via ONYX surfaces.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">I</span><span class="codon-name">Intent</span></span><span class="genome-value">Ensure
+                                that the DCE‑GYO debates remain usable dark matter for future research—searchable,
+                                parsable, and remountable in new readers.</span></div>
+                    </div>
+                </div>
+
+                <div class="about">
+                    <h4>Key Concepts</h4>
+                    <ul>
+                        <li><strong>Archive as toolkit</strong> — manifests and exports are designed for reuse by
+                            downstream systems, not just ONYX Thumb.</li>
+                        <li><strong>Script parsing</strong> — the script manifest (1090 elements) and parsing
+                            prospectus open space for future semantic parsers and radio‑play engines.</li>
+                    </ul>
+                </div>
+
+                <div class="project-links">
+                    <a href="ONYX-DOWNSTREAM-PROMPT.md" class="project-link" target="_blank">Downstream Prompt</a>
+                    <a href="onyx-chapter-template.md" class="project-link" target="_blank">Chapter Template</a>
+                    <a href="AUDIO-VOICE-SYSTEM.md" class="project-link" target="_blank">Audio Voice System</a>
+                    <a href="SCRIPT-PARSING-PROSPECTUS.md" class="project-link" target="_blank">Script Parsing
+                        Prospectus</a>
+                    <a href="chapters/manifest.json" class="project-link" target="_blank">Chapter Manifest</a>
+                    <a href="chapters/script-manifest.json" class="project-link" target="_blank">Script Manifest</a>
+                    <a href="onyx-full-data-2025-12-06T01-45-19-862Z.json" class="project-link" target="_blank">Full
+                        Data Export</a>
+                </div>
+            </article>
+
+            <!-- Cluster: SITEMAP Manifolds -->
+            <article class="project cluster-sitemap" id="sitemap-manifolds" data-match="sitemap,manifold">
+                <div class="project-header">
+                    <h2 class="project-name">SITEMAP / Manifolds <span class="status-chip status-live">LIVE</span></h2>
+                    <span class="project-week">Visualization · See the Whole System</span>
+                </div>
+                <p class="project-tagline"><strong>Plain English:</strong> Interactive maps that show how all the files and tools connect. See the codebase as a landscape you can fly over. Find patterns, spot gaps, understand the architecture.</p>
+
+                <div class="genome">
+                    <div class="genome-title">Genome Segment</div>
+                    <div class="genome-grid">
+                        <div class="genome-row"><span class="genome-key"><span class="letter">C</span><span class="codon-name">Creator</span></span><span class="genome-value">Watson
+                                Hartsoe</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">T</span><span class="codon-name">Trail</span></span><span class="genome-value">Sitemap
+                                crawl → file‑learnings dataset → evolution / infrastructure → manifold family (N,
+                                μ₁–μ₃).</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">A</span><span class="codon-name">Artifact</span></span><span class="genome-value">Sitemap
+                                evolution views, infrastructural excavation, cultural contour fields, unified terrain,
+                                studio territories with agents, Ethics Pathways and Thesis Pathways manifolds, manifold
+                                index.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">M</span><span class="codon-name">Metadata</span></span><span class="genome-value">SITEMAP
+                                OLOG (objects T, F, Σ, M, N), file‑learnings.json, birth‑dates.json, sitemap‑data.json,
+                                manifold manifest.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">D</span><span class="codon-name">Decision</span></span><span class="genome-value">Treat
+                                the repo as a world to survey; elevating manifolds to explicit objects (N) and
+                                projection morphisms (μ) rather than ad‑hoc visuals.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">S</span><span class="codon-name">Tool</span></span><span class="genome-value">Sitemap
+                                evolution / evolution‑lite, sitemap‑infrastructure, sitemap‑manifold 01–06, manifold
+                                index as hub.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">P</span><span class="codon-name">Pattern</span></span><span class="genome-value">Studios
+                                as territories, agents that "eat" heat, cultural contour lines, Ethics / Thesis
+                                overlays, LEGO boards as surface projections.</span></div>
+                        <div class="genome-row"><span class="genome-key"><span class="letter">I</span><span class="codon-name">Intent</span></span><span class="genome-value">Make the
+                                history and structure of the repo explorable as a set of terrains, paths, and overlays
+                                rather than only as a file tree or commit log.</span></div>
+                    </div>
+                </div>
+
+                <div class="about">
+                    <h4>Key Concepts</h4>
+                    <ul>
+                        <li><strong>Topological manifolds (N)</strong> — cultural fields, unified terrain, territories,
+                            and pathways as a single object family.</li>
+                        <li><strong>Projection μ</strong> — explicit morphisms (μ₁–μ₃) from (T, F, Σ, M) to
+                            manifolds.</li>
+                        <li><strong>Shared substrate</strong> — all manifolds consume the same studio / file‑learnings
+                            / birth‑order data.</li>
+                    </ul>
+                </div>
+
+                <div class="project-links">
+                    <a href="sitemap-evolution-lite.html" class="project-link" target="_blank">Sitemap Evolution
+                        (lite)</a>
+                    <a href="sitemap-infrastructure.html" class="project-link" target="_blank">Sitemap
+                        Infrastructure</a>
+                    <a href="sitemap-manifold-index.html" class="project-link" target="_blank">Manifold Index</a>
+                    <a href="SITEMAP-OLOG.md" class="project-link" target="_blank">SITEMAP OLOG</a>
+                </div>
+            </article>
+
+        </div>
+
+        <section class="journey-section">
+            <h2 class="arc-title">Key Learnings Across Clusters</h2>
+
+            <div class="journey-insight">
+                <p>Skeleton data (stud_skeleton, per‑line stud maps) exposed where tools could not yet keep promises:
+                    orphan studs without line ownership, calibration scenes that break naive assumptions, and the need
+                    for explicit buses between labs.</p>
+                <div class="source">Skeleton pipeline OLOGs · COURAGE / WERE / MASTER labs</div>
+            </div>
+
+            <div class="journey-insight">
+                <p>The same patterns reappear everywhere: LEGO boards, 9×9 grids, Taxonomizer playlists, SITEMAP
+                    manifolds, and ONYX manifests all treat worlds as graphs and terrains rather than as monolithic
+                    apps.</p>
+                <div class="source">BRICK‑GRID‑OLOG · TAXONOMIZER‑OLOG · SITEMAP‑OLOG</div>
+            </div>
+
+            <div class="journey-insight">
+                <p>DCE‑GYO resolves earlier frustrations with "vibe‑coded" sites by insisting on manifest‑backed exports:
+                    MPD + GOLD snapshots, taxonomy slices, chapter manifests, and manifold indexes that others can pick
+                    up and continue.</p>
+                <div class="source">DCE‑GYO / ONYX cluster · WAG documentation suite</div>
+            </div>
+        </section>
+
+        <!-- How to Drive This System - Jobs-ified -->
+        <section class="drive-section" id="how-to-drive">
+
+            <!-- LAYER 0: THE GOLDEN PATH (what everyone sees first) -->
+            <div class="golden-path">
+                <h2>WAG Studio</h2>
+                <p class="tagline">Make cinematic LEGO scenes in your browser.</p>
+
+                <div class="flow">
+                    <span class="flow-step">1. Open scene</span>
+                    <span class="flow-arrow">→</span>
+                    <span class="flow-step">2. Edit bricks</span>
+                    <span class="flow-arrow">→</span>
+                    <span class="flow-step">3. Export GLB</span>
+                </div>
+
+                <p class="requirement">
+                    <strong>You need:</strong> an <code>.mpd</code> file (we have examples) + the parts library (bundled).
+                </p>
+
+                <a href="swiss-frank-grace-studio.html" class="start-btn">Open Studio</a>
+            </div>
+
+            <!-- LAYER 1: THREE WORKFLOWS (one crowned as default) -->
+            <h3 class="glossary-category">Do one thing in 10 minutes</h3>
+            <div class="drive-grid">
+                <div class="drive-card workflow-default">
+                    <h3>View a Scene</h3>
+                    <div class="steps">
+                        Open viewer → drag-drop <code>.mpd</code> → orbit and zoom.
+                    </div>
+                    <div class="tutorial-actions">
+                        <button class="tutorial-btn" data-tutorial="studio-tutorial.html" data-tutorial-title="Studio Basics">
+                            <span class="icon">◧</span> Follow Along
+                        </button>
+                        <a href="wag-cool-courage.html" class="tutorial-btn" target="_blank">
+                            <span class="icon">↗</span> Open Viewer
+                        </a>
+                    </div>
+                </div>
+                <div class="drive-card">
+                    <h3>Edit One Brick</h3>
+                    <div class="steps">
+                        Open editor → load scene → click a brick → change it → see it update.
+                    </div>
+                    <div class="tutorial-actions">
+                        <button class="tutorial-btn" data-tutorial="TIMBER-tutorial-prime.html" data-tutorial-title="TIMBER Studio">
+                            <span class="icon">◧</span> Follow Along
+                        </button>
+                        <a href="timber-studio.html" class="tutorial-btn" target="_blank">
+                            <span class="icon">↗</span> Open Editor
+                        </a>
+                    </div>
+                </div>
+                <div class="drive-card">
+                    <h3>Capture a Shot</h3>
+                    <div class="steps">
+                        Open studio → load scene → frame it → capture screenshot.
+                    </div>
+                    <div class="tutorial-actions">
+                        <button class="tutorial-btn" data-tutorial="MENTO-tutorial-prime.html" data-tutorial-title="MENTO Camera">
+                            <span class="icon">◧</span> Follow Along
+                        </button>
+                        <a href="homer-studio.html" class="tutorial-btn" target="_blank">
+                            <span class="icon">↗</span> Open Camera
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LAYER 2: WHEN THINGS BREAK (collapsible) -->
+            <div class="disclosure-section">
+                <button class="disclosure-toggle" onclick="this.classList.toggle('open'); this.nextElementSibling.classList.toggle('open');">
+                    <span class="arrow">▶</span> When things break (4 common fixes)
+                </button>
+                <div class="disclosure-content">
+            <div class="failure-grid">
+                <div class="failure-card">
+                    <div class="symptom">Missing parts / 404 errors</div>
+                    <div class="fix">LDraw library not loaded or path wrong. Parts referenced in MPD aren't found.</div>
+                    <div class="go-to">→ Check <a href="ldraw-color-geometry-guide.html">LDraw Setup Guide</a> or <a href="#term-taxonomizer">TAXONOMIZER</a></div>
+                </div>
+                <div class="failure-card">
+                    <div class="symptom">Selection not syncing</div>
+                    <div class="fix">Frank bus not connected between tabs/panels. postMessage channels not wired.</div>
+                    <div class="go-to">→ Use a <a href="#term-timber">TIMBER</a> or <a href="#term-homer">HOMER</a> shell (pre-wired) instead of separate tabs</div>
+                </div>
+                <div class="failure-card">
+                    <div class="symptom">Blank or partial render</div>
+                    <div class="fix">MPD file malformed, or parts library incomplete. Check console for 404s.</div>
+                    <div class="go-to">→ Validate with <a href="wag-inspector.html">WAG Inspector</a> or <a href="#term-master">MASTER</a></div>
+                </div>
+                <div class="failure-card">
+                    <div class="symptom">Stud attribution errors</div>
+                    <div class="fix">stud_skeleton mapping incomplete. Some parts have no owner.</div>
+                    <div class="go-to">→ Debug in <a href="#term-were">WERE</a> lab, rebuild skeleton via <a href="#term-weaver">WEAVER</a></div>
+                </div>
+                <div class="failure-card">
+                    <div class="symptom">Camera/capture confusion</div>
+                    <div class="fix">Multiple MENTO versions exist. 702 is experimental and may not work.</div>
+                    <div class="go-to">→ Start with <a href="mento-368.html">MENTO-368</a> (basic), then <a href="mento-373.html">MENTO-373</a> (advanced)</div>
+                </div>
+                <div class="failure-card">
+                    <div class="symptom">Tool not loading / "Cannot GET"</div>
+                    <div class="fix">File path may be wrong or server not running. Try these steps:</div>
+                    <div class="go-to">
+                        → Hit yellow refresh button (if visible)<br>
+                        → Refresh the whole page (Cmd+R / F5)<br>
+                        → Open browser DevTools (F12 / Cmd+Option+I) → check Console for errors<br>
+                        → Copy error message → send to <strong>LEGOS-GPT</strong> or <strong>LE-BUILD-0BUILD</strong> for debug
+                    </div>
+                </div>
+            </div>
+                </div><!-- end disclosure-content -->
+            </div><!-- end disclosure-section -->
+
+            <!-- LAYER 1.5: TUTORIALS (open by default - critical for beginners!) -->
+            <h3 class="glossary-category" style="margin-top:24px;">Step-by-step tutorials</h3>
+            <p style="color:var(--ink-muted);font-size:0.75rem;margin-bottom:12px;">Click "Follow Along" to learn while doing — tutorial + tool side by side.</p>
+            <div class="disclosure-content open">
+            <div class="glossary-grid">
+                <div class="glossary-entry" style="border: 2px solid var(--accent); position: relative;">
+                    <span style="position:absolute;top:-8px;left:12px;background:var(--accent);color:var(--bg);font-size:0.55rem;padding:2px 6px;border-radius:3px;font-weight:700;">START HERE</span>
+                    <span class="glossary-term">Studio Basics</span>
+                    <span class="glossary-def">Your first win: load a scene, look around, export it. 5 minutes.</span>
+                    <div class="tutorial-actions" style="margin-top:8px;">
+                        <button class="tutorial-btn" data-tutorial="studio-tutorial.html" data-tutorial-title="Studio Basics"><span class="icon">◧</span> Follow Along</button>
+                    </div>
+                </div>
+                <div class="glossary-entry">
+                    <span class="glossary-term">Camera Capture</span>
+                    <span class="glossary-def">Take a screenshot of your scene. 5 minutes.</span>
+                    <div class="tutorial-actions" style="margin-top:8px;">
+                        <button class="tutorial-btn" data-tutorial="MENTO-tutorial-prime.html" data-tutorial-title="Camera Capture"><span class="icon">◧</span> Follow Along</button>
+                    </div>
+                </div>
+                <div class="glossary-entry">
+                    <span class="glossary-term">Edit a Brick</span>
+                    <span class="glossary-def">Click a brick, change it, see it update. 10 minutes.</span>
+                    <div class="tutorial-actions" style="margin-top:8px;">
+                        <button class="tutorial-btn" data-tutorial="TIMBER-tutorial-prime.html" data-tutorial-title="Edit a Brick"><span class="icon">◧</span> Follow Along</button>
+                    </div>
+                </div>
+                <div class="glossary-entry">
+                    <span class="glossary-term">Full Studio Tour</span>
+                    <span class="glossary-def">All tools working together. 15 minutes.</span>
+                    <div class="tutorial-actions" style="margin-top:8px;">
+                        <button class="tutorial-btn" data-tutorial="homer-tutorial-base.html" data-tutorial-title="Full Studio"><span class="icon">◧</span> Follow Along</button>
+                    </div>
+                </div>
+            </div>
+
+            <details style="margin-top:16px;">
+                <summary style="cursor:pointer;color:var(--ink-dim);font-size:0.75rem;font-family:'JetBrains Mono',monospace;">+ 4 more advanced tutorials</summary>
+                <div class="glossary-grid" style="margin-top:12px;">
+                <div class="glossary-entry">
+                    <span class="glossary-term">Stud Skeleton</span>
+                    <span class="glossary-def">How brick ownership works internally.</span>
+                    <div class="tutorial-actions" style="margin-top:8px;">
+                        <button class="tutorial-btn" data-tutorial="STUD-SKELETON-tutorial-prime.html" data-tutorial-title="Stud Skeleton"><span class="icon">◧</span> Follow Along</button>
+                    </div>
+                </div>
+                <div class="glossary-entry">
+                    <span class="glossary-term">LEGOS Grammar</span>
+                    <span class="glossary-def">Narrative structure for AI prompts.</span>
+                    <div class="tutorial-actions" style="margin-top:8px;">
+                        <button class="tutorial-btn" data-tutorial="LEGOS-tutorial-prime.html" data-tutorial-title="LEGOS Grammar"><span class="icon">◧</span> Follow Along</button>
+                    </div>
+                </div>
+                <div class="glossary-entry">
+                    <span class="glossary-term">ONYX Reader</span>
+                    <span class="glossary-def">Guardian debates cinematic viewer.</span>
+                    <div class="tutorial-actions" style="margin-top:8px;">
+                        <button class="tutorial-btn" data-tutorial="onyx-studio-tutorial.html" data-tutorial-title="ONYX Reader"><span class="icon">◧</span> Follow Along</button>
+                    </div>
+                </div>
+                <div class="glossary-entry">
+                    <span class="glossary-term">Bull Assembly</span>
+                    <span class="glossary-def">Complex multi-model scene building.</span>
+                    <div class="tutorial-actions" style="margin-top:8px;">
+                        <button class="tutorial-btn" data-tutorial="bull-assembly-tutorial.html" data-tutorial-title="Bull Assembly"><span class="icon">◧</span> Follow Along</button>
+                    </div>
+                </div>
+                </div>
+            </details>
+            </div><!-- end tutorials section -->
+
+            <div class="disclosure-section">
+                <button class="disclosure-toggle" onclick="this.classList.toggle('open'); this.nextElementSibling.classList.toggle('open');">
+                    <span class="arrow">▶</span> Camera surfaces (MENTO 368 → 373)
+                </button>
+                <div class="disclosure-content">
+            <p style="color:var(--ink-muted);font-size:0.75rem;margin-bottom:12px;">The numbers encode capability levels.</p>
+            <div class="glossary-grid">
+                <div class="glossary-entry">
+                    <span class="glossary-term">MENTO-368</span>
+                    <span class="glossary-def"><strong>Basic camera controls.</strong> Single-shot capture. Start here.</span>
+                </div>
+                <div class="glossary-entry">
+                    <span class="glossary-term">MENTO-369</span>
+                    <span class="glossary-def"><strong>Shot list / keyframes.</strong> Define multiple camera positions.</span>
+                </div>
+                <div class="glossary-entry">
+                    <span class="glossary-term">MENTO-373</span>
+                    <span class="glossary-def"><strong>Cinematic moves.</strong> Orbit rigs, fly-throughs, animation export.</span>
+                </div>
+                <div class="glossary-entry">
+                    <span class="glossary-term">MENTO-702</span>
+                    <span class="glossary-def"><strong>Experimental lab.</strong> Unstable. Used for testing new camera features.</span>
+                </div>
+            </div>
+                </div><!-- end disclosure-content -->
+            </div><!-- end disclosure-section -->
+
+        </section>
+
+        <!-- LAYER 4: REFERENCE (the full glossary, collapsed by default for toolsmiths) -->
+        <section class="glossary-section" id="glossary">
+            <div class="disclosure-section">
+                <button class="disclosure-toggle" onclick="this.classList.toggle('open'); this.nextElementSibling.classList.toggle('open');">
+                    <span class="arrow">▶</span> <strong>Reference:</strong> Glossary, Formats, Tool Contracts (for toolsmiths)
+                </button>
+                <div class="disclosure-content">
+
+            <h3 class="glossary-category">Formats — What the Files Are</h3>
+            <div class="glossary-grid">
+                <div class="glossary-entry" id="term-mpd">
+                    <span class="glossary-term"><a href="#term-mpd">MPD</a> <span class="type-tag type-format">Format</span></span>
+                    <span class="glossary-def"><strong>Multi-Part Document.</strong> The canonical artifact of truth. A text file containing multiple LDraw models bundled together. This is what you edit, save, and share.</span>
+                    <dl class="glossary-contract">
+                        <dt>Created by</dt><dd>Grace, GOLD, any text editor</dd>
+                        <dt>Consumed by</dt><dd>COURAGE (render), GOLD (edit), Grace (batch edit)</dd>
+                        <dt>Exports to</dt><dd>GLB (for web), PNG (screenshots)</dd>
+                    </dl>
+                </div>
+                <div class="glossary-entry" id="term-ldraw">
+                    <span class="glossary-term"><a href="#term-ldraw">LDraw</a> <span class="type-tag type-format">Format</span></span>
+                    <span class="glossary-def"><strong>LEGO Draw.</strong> Open standard for LEGO CAD. Each line describes a part placement: position, rotation, color, part ID. MPD bundles multiple LDraw models.</span>
+                    <dl class="glossary-contract">
+                        <dt>Line types</dt><dd>Type 1 = part, Type 0 = meta, Type 2-5 = geometry</dd>
+                        <dt>Parts library</dt><dd>Required. ~10k official parts as .dat files</dd>
+                    </dl>
+                </div>
+                <div class="glossary-entry" id="term-ldraw-line">
+                    <span class="glossary-term"><a href="#term-ldraw-line">LDraw Line</a> <span class="type-tag type-format">Format</span></span>
+                    <span class="glossary-def"><strong>What GOLD edits.</strong> A single line in an MPD file: <code>1 [color] [x y z] [matrix] [part.dat]</code>. This is the atomic unit of a LEGO scene.</span>
+                </div>
+                <div class="glossary-entry" id="term-glb">
+                    <span class="glossary-term"><a href="#term-glb">GLB</a></span>
+                    <span class="glossary-def"><strong>GL Binary (glTF).</strong> Binary 3D model format. The export target for web-ready LEGO scenes rendered via Three.js in <a href="#term-courage">COURAGE</a>.</span>
+                </div>
+                <div class="glossary-entry" id="term-poml">
+                    <span class="glossary-term"><a href="#term-poml">POML</a></span>
+                    <span class="glossary-def"><strong>Prompt-Oriented Markup Language.</strong> Structured format for LLM system prompts used in <a href="#term-legos">LEGOS</a>-GPT and template libraries. Defines agent roles and phase sequences.</span>
+                </div>
+                <div class="glossary-entry" id="term-json">
+                    <span class="glossary-term"><a href="#term-json">JSON</a></span>
+                    <span class="glossary-def"><strong>JavaScript Object Notation.</strong> Data interchange format used for manifests, <a href="#term-file-learnings">file-learnings</a>, chapter data, and <a href="#term-taxonomizer">TAXONOMIZER</a> exports.</span>
+                </div>
+            </div>
+
+            <h3 class="glossary-category">Core Apps — The Main Workbench</h3>
+            <div class="glossary-grid">
+                <div class="glossary-entry" id="term-wag">
+                    <span class="glossary-term"><a href="#term-wag">WAG</a> <span class="type-tag type-app">System</span></span>
+                    <span class="glossary-def"><strong>Words Assemble Geometries.</strong> The overarching system. Not a single app — a family of tools that share MPD files and communicate via Frank bus.</span>
+                </div>
+                <div class="glossary-entry" id="term-swiss">
+                    <span class="glossary-term"><a href="#term-swiss">Swiss</a> <span class="type-tag type-app">App</span></span>
+                    <span class="glossary-def"><strong>The Dashboard.</strong> Start here. Opens other tools and routes you to the right place. Click a tool name → it opens.</span>
+                    <dl class="glossary-contract">
+                        <dt>Opens</dt><dd>COURAGE, GOLD, Grace, TIMBER, HOMER</dd>
+                        <dt>Works alone?</dt><dd>Yes, standalone launcher</dd>
+                    </dl>
+                </div>
+                <div class="glossary-entry" id="term-frank">
+                    <span class="glossary-term"><a href="#term-frank">Frank</a> <span class="type-tag type-protocol">Protocol</span></span>
+                    <span class="glossary-def"><strong>The Wiring.</strong> Syncs data between tools using window.postMessage. If GOLD and COURAGE are in separate tabs, Frank keeps them in sync.</span>
+                    <dl class="glossary-contract">
+                        <dt>Messages</dt><dd>selection, file-open, line-edit, camera</dd>
+                        <dt>Required?</dt><dd>No for single-tool use. Yes for multi-tool sync.</dd>
+                        <dt>Failure symptom</dt><dd>Nothing syncs across tabs → use TIMBER/HOMER shell instead</dd>
+                    </dl>
+                </div>
+                <div class="glossary-entry" id="term-grace">
+                    <span class="glossary-term"><a href="#term-grace">Grace</a> <span class="type-tag type-app">App</span></span>
+                    <span class="glossary-def"><strong>The Batch Editor.</strong> Edit multiple models at once. Add/remove submodels, reorganize scene structure. For big changes.</span>
+                    <dl class="glossary-contract">
+                        <dt>Inputs</dt><dd>MPD file</dd>
+                        <dt>Outputs</dt><dd>Modified MPD</dd>
+                        <dt>Pairs with</dt><dd>GOLD (line edits), COURAGE (preview)</dd>
+                    </dl>
+                </div>
+                <div class="glossary-entry" id="term-gold">
+                    <span class="glossary-term"><a href="#term-gold">GOLD</a> <span class="type-tag type-app">App</span></span>
+                    <span class="glossary-def"><strong>The Line Editor.</strong> Edit one LDraw line at a time. Change position, color, rotation of individual bricks. Precision work.</span>
+                    <dl class="glossary-contract">
+                        <dt>Inputs</dt><dd>MPD file, selection from COURAGE</dd>
+                        <dt>Outputs</dt><dd>Modified MPD line, stud attribution</dd>
+                        <dt>Pairs with</dt><dd>COURAGE (click brick → edit here)</dd>
+                        <dt>Works alone?</dt><dd>Yes, but better with COURAGE for visual feedback</dd>
+                    </dl>
+                </div>
+                <div class="glossary-entry" id="term-courage">
+                    <span class="glossary-term"><a href="#term-courage">COURAGE</a> <span class="type-tag type-app">App</span></span>
+                    <span class="glossary-def"><strong>The Viewer.</strong> Renders MPD as interactive 3D. Orbit, zoom, click to select bricks. This is where you see your scene.</span>
+                    <dl class="glossary-contract">
+                        <dt>Inputs</dt><dd>MPD file (+ LDraw parts library)</dd>
+                        <dt>Outputs</dt><dd>3D render, selection events, optional GLB export</dd>
+                        <dt>Pairs with</dt><dd>GOLD (edit selected), MENTO (capture)</dd>
+                        <dt>Common failure</dt><dd>Missing parts → blank/partial scene. Check LDraw library path.</dd>
+                    </dl>
+                </div>
+            </div>
+
+            <h3 class="glossary-category">Labs — Experimental Debug Tools</h3>
+            <div class="glossary-grid">
+                <div class="glossary-entry" id="term-were">
+                    <span class="glossary-term"><a href="#term-were">WERE</a> <span class="type-tag type-lab">Lab</span></span>
+                    <span class="glossary-def"><strong>Skeleton Visualizer.</strong> Shows which brick owns which stud. Highlights orphan studs (parts without owners). Use when things look wrong.</span>
+                    <dl class="glossary-contract">
+                        <dt>Inputs</dt><dd>MPD + stud_skeleton data</dd>
+                        <dt>Shows</dt><dd>Ownership problems, gaps in skeleton</dd>
+                    </dl>
+                </div>
+                <div class="glossary-entry" id="term-weaver">
+                    <span class="glossary-term"><a href="#term-weaver">WEAVER</a> <span class="type-tag type-lab">Lab</span></span>
+                    <span class="glossary-def"><strong>Skeleton Builder.</strong> Connects parts into a skeleton graph. Run this to rebuild stud attribution after major edits.</span>
+                </div>
+                <div class="glossary-entry" id="term-master">
+                    <span class="glossary-term"><a href="#term-master">MASTER</a> <span class="type-tag type-lab">Lab</span></span>
+                    <span class="glossary-def"><strong>Transform Validator.</strong> Checks that part positions/rotations are valid. Catches misaligned bricks. The "master check" before export.</span>
+                </div>
+                <div class="glossary-entry" id="term-stud-skeleton">
+                    <span class="glossary-term"><a href="#term-stud-skeleton">stud_skeleton</a> <span class="type-tag type-dataset">Data</span></span>
+                    <span class="glossary-def"><strong>Ownership Map.</strong> A data structure that says "stud at position X belongs to part line Y." This is how selections and edits stay coherent across tools.</span>
+                    <dl class="glossary-contract">
+                        <dt>Created by</dt><dd>WEAVER, GOLD</dd>
+                        <dt>Used by</dt><dd>WERE (display), COURAGE (selection)</dd>
+                        <dt>If missing</dt><dd>Selection may not sync correctly. Rebuild via WEAVER.</dd>
+                    </dl>
+                </div>
+            </div>
+
+            <h3 class="glossary-category">Shells — Pre-Wired Multi-Tool Layouts</h3>
+            <div class="glossary-grid">
+                <div class="glossary-entry" id="term-timber">
+                    <span class="glossary-term"><a href="#term-timber">TIMBER</a> <span class="type-tag type-shell">Shell</span></span>
+                    <span class="glossary-def"><strong>Debug Studio.</strong> Docks COURAGE + GOLD + WERE + MASTER in one window with Frank bus pre-wired. Use this for skeleton debugging.</span>
+                    <dl class="glossary-contract">
+                        <dt>Contains</dt><dd>COURAGE, GOLD, WERE, MASTER panels</dd>
+                        <dt>Bus</dt><dd>Frank (pre-connected)</dd>
+                    </dl>
+                </div>
+                <div class="glossary-entry" id="term-homer">
+                    <span class="glossary-term"><a href="#term-homer">HOMER</a> <span class="type-tag type-shell">Shell</span></span>
+                    <span class="glossary-def"><strong>Full Studio.</strong> Docks ALL tools (Swiss, COURAGE, GOLD, Grace, WEAVER, WERE, MASTER) + MENTO camera. The everything-in-one-window option.</span>
+                    <dl class="glossary-contract">
+                        <dt>Contains</dt><dd>All core apps + MENTO</dd>
+                        <dt>Use when</dt><dd>You want camera capture alongside editing</dd>
+                    </dl>
+                </div>
+                <div class="glossary-entry" id="term-shield">
+                    <span class="glossary-term"><a href="#term-shield">Shield of Achilles</a> <span class="type-tag type-shell">Shell</span></span>
+                    <span class="glossary-def"><strong>Presentation Shell.</strong> HOMER + MENTO in a polished frame for demos and exports. Named for the Iliad's famous crafted object.</span>
+                </div>
+            </div>
+
+            <h3 class="glossary-category">Camera — MENTO Toolkit</h3>
+            <div class="glossary-grid">
+                <div class="glossary-entry" id="term-mento">
+                    <span class="glossary-term"><a href="#term-mento">MENTO</a> <span class="type-tag type-app">App</span></span>
+                    <span class="glossary-def"><strong>Camera Controls.</strong> Capture screenshots, set keyframes, animate camera moves. See MENTO Surfaces Legend above for version differences.</span>
+                    <dl class="glossary-contract">
+                        <dt>Inputs</dt><dd>Camera state from COURAGE</dd>
+                        <dt>Outputs</dt><dd>PNG screenshots, camera keyframes, animation data</dd>
+                        <dt>Start with</dt><dd>MENTO-368 (basic), upgrade to 373 for animation</dd>
+                    </dl>
+                </div>
+            </div>
+
+            <h3 class="glossary-category">ONYX — Reading &amp; Archive</h3>
+            <div class="glossary-grid">
+                <div class="glossary-entry" id="term-onyx">
+                    <span class="glossary-term"><a href="#term-onyx">ONYX</a></span>
+                    <span class="glossary-def"><strong>Cinematic reader.</strong> Displays <a href="#term-dce-gyo">DCE-GYO</a> Guardian debates with TEXT / VISUAL / PLAY modes. Uses TTS playback and <a href="#term-json">JSON</a> manifests.</span>
+                </div>
+                <div class="glossary-entry" id="term-dce-gyo">
+                    <span class="glossary-term"><a href="#term-dce-gyo">DCE-GYO</a></span>
+                    <span class="glossary-def"><strong>Dark Constellation Encounters — Grow Your Own.</strong> The Guardian AI debate archive and its surrounding toolkit. Read via <a href="#term-onyx">ONYX</a>.</span>
+                </div>
+                <div class="glossary-entry" id="term-thumb">
+                    <span class="glossary-term"><a href="#term-thumb">Thumb / ABS</a></span>
+                    <span class="glossary-def"><strong><a href="#term-onyx">ONYX</a> surfaces.</strong> Thumb is the main player; ABS (Abstract) shows grid/research views. Both consume chapter <a href="#term-json">JSON</a> manifests.</span>
+                </div>
+                <div class="glossary-entry" id="term-tts">
+                    <span class="glossary-term"><a href="#term-tts">TTS</a></span>
+                    <span class="glossary-def"><strong>Text-To-Speech.</strong> Audio playback system in <a href="#term-onyx">ONYX</a> PLAY mode. Voices Guardian debates for cinematic experience.</span>
+                </div>
+            </div>
+
+            <h3 class="glossary-category">BRICK Grid &amp; Taxonomy</h3>
+            <div class="glossary-grid">
+                <div class="glossary-entry" id="term-brick-grid">
+                    <span class="glossary-term"><a href="#term-brick-grid">BRICK Grid</a></span>
+                    <span class="glossary-def"><strong>9×9 spatial metaphor.</strong> For code and hypertext navigation. Family includes BRANCH, ARCH, APEX, SOVEREIGN, BUILD BUS. Uses <a href="#term-gs2p">GS2P</a> mapping.</span>
+                </div>
+                <div class="glossary-entry" id="term-taxonomizer">
+                    <span class="glossary-term"><a href="#term-taxonomizer">TAXONOMIZER</a></span>
+                    <span class="glossary-def"><strong>Interactive parts taxonomy browser.</strong> Exports playlists to <a href="#term-mpd">MPD</a> catalogs and <a href="#term-json">JSON</a> via functors F and G.</span>
+                </div>
+                <div class="glossary-entry" id="term-gs2p">
+                    <span class="glossary-term"><a href="#term-gs2p">GS2P</a></span>
+                    <span class="glossary-def"><strong>Ground / Site / Sky / Perspective.</strong> The four-level spatial mapping used in BRICKBENDER philosophy. Structures <a href="#term-brick-grid">BRICK Grid</a> layers.</span>
+                </div>
+            </div>
+
+            <h3 class="glossary-category">LEGOS Framework</h3>
+            <div class="glossary-grid">
+                <div class="glossary-entry" id="term-legos">
+                    <span class="glossary-term"><a href="#term-legos">LEGOS</a></span>
+                    <span class="glossary-def"><strong>Narrative architecture grammar.</strong> Structures stories as scenes, entities, and relationships for LLM → <a href="#term-mpd">MPD</a> pipelines. Defined in <a href="#term-poml">POML</a> specs.</span>
+                </div>
+                <div class="glossary-entry" id="term-tetrad">
+                    <span class="glossary-term"><a href="#term-tetrad">Tetrad</a></span>
+                    <span class="glossary-def"><strong>McLuhan's Four Laws of Media.</strong> Enhance, obsolesce, retrieve, reverse. Used as scenario operators in Thousand Tetrad engine.</span>
+                </div>
+                <div class="glossary-entry" id="term-llm">
+                    <span class="glossary-term"><a href="#term-llm">LLM</a></span>
+                    <span class="glossary-def"><strong>Large Language Model.</strong> AI system that interprets <a href="#term-legos">LEGOS</a> prompts and generates <a href="#term-mpd">MPD</a> scenes. Guided by <a href="#term-poml">POML</a> specs.</span>
+                </div>
+            </div>
+
+            <h3 class="glossary-category">SITEMAP &amp; Manifolds</h3>
+            <div class="glossary-grid">
+                <div class="glossary-entry" id="term-manifold">
+                    <span class="glossary-term"><a href="#term-manifold">Manifold</a></span>
+                    <span class="glossary-def"><strong>Topological visualization.</strong> Represents the repo as navigable terrain. Six manifolds (01–06) show cultural contours, territories, and pathways. Driven by <a href="#term-file-learnings">file-learnings</a>.</span>
+                </div>
+                <div class="glossary-entry" id="term-olog">
+                    <span class="glossary-term"><a href="#term-olog">OLOG</a></span>
+                    <span class="glossary-def"><strong>Ontological Log.</strong> Structured documentation format listing objects (O), morphisms (→), theory, and limitations for a system. Used across all clusters.</span>
+                </div>
+                <div class="glossary-entry" id="term-file-learnings">
+                    <span class="glossary-term"><a href="#term-file-learnings">file-learnings</a></span>
+                    <span class="glossary-def"><strong><a href="#term-json">JSON</a> dataset.</strong> File metadata: birth dates, detected patterns, and titles. Drives timeline and <a href="#term-manifold">manifold</a> visualizations.</span>
+                </div>
+            </div>
+
+            <h3 class="glossary-category">Naming Conventions</h3>
+            <div class="glossary-grid">
+                <div class="glossary-entry" id="term-ator">
+                    <span class="glossary-term"><a href="#term-ator">-ator suffix</a></span>
+                    <span class="glossary-def"><strong>Builder tools.</strong> Minifigurator, Locationator, Vehiculator, Sceneerator, Worldinator, Movieator. Generate <a href="#term-mpd">MPD</a> scenes from prompts.</span>
+                </div>
+                <div class="glossary-entry" id="term-wag-prefix">
+                    <span class="glossary-term"><a href="#term-wag-prefix">wag- prefix</a></span>
+                    <span class="glossary-def"><strong><a href="#term-wag">WAG</a> ecosystem tools.</strong> wag-<a href="#term-frank">frank</a>, wag-cool, wag-inspector, wag-cleanroom, etc.</span>
+                </div>
+                <div class="glossary-entry" id="term-onyx-prefix">
+                    <span class="glossary-term"><a href="#term-onyx-prefix">onyx- prefix</a></span>
+                    <span class="glossary-def"><strong><a href="#term-onyx">ONYX</a> reader surfaces.</strong> onyx-<a href="#term-thumb">thumb</a>, onyx-abs, onyx-tail, onyx-head, onyx-shell, onyx-wing, etc.</span>
+                </div>
+                <div class="glossary-entry" id="term-brick-prefix">
+                    <span class="glossary-term"><a href="#term-brick-prefix">brick- prefix</a></span>
+                    <span class="glossary-def"><strong><a href="#term-brick-grid">BRICK Grid</a> family.</strong> brick-branch, brick-arch, brick-apex, brick-sovereign, brick-create, etc.</span>
+                </div>
+                <div class="glossary-entry" id="term-mento-prefix">
+                    <span class="glossary-term"><a href="#term-mento-prefix">mento- prefix</a></span>
+                    <span class="glossary-def"><strong><a href="#term-mento">MENTO</a> camera surfaces.</strong> mento-368, mento-369, mento-372, mento-373, mento-702 (lab).</span>
+                </div>
+                <div class="glossary-entry" id="term-sitemap-prefix">
+                    <span class="glossary-term"><a href="#term-sitemap-prefix">sitemap- prefix</a></span>
+                    <span class="glossary-def"><strong>Sitemap views.</strong> sitemap-evolution, sitemap-infrastructure, sitemap-<a href="#term-manifold">manifold</a>-01 through 06.</span>
+                </div>
+            </div>
+
+                </div><!-- end disclosure-content -->
+            </div><!-- end disclosure-section -->
+        </section>
+
+        <!-- Theoretical Framework Section (also collapsed for toolsmiths) -->
+        <section class="framework-section" id="framework">
+            <div class="disclosure-section">
+                <button class="disclosure-toggle" onclick="this.classList.toggle('open'); this.nextElementSibling.classList.toggle('open');">
+                    <span class="arrow">▶</span> <strong>Theory:</strong> Levers, Leverage Points, Regulatory Modes
+                </button>
+                <div class="disclosure-content">
+            <h2 class="arc-title">Theoretical Framework: Levers &amp; Leverage Points</h2>
+            <p style="color:var(--ink-dim);font-size:0.85rem;margin-bottom:20px;">
+                Analysis of DCE-GYO through three theoretical lenses: Shilton's Values Levers, Meadows' Leverage Points, and Lessig's Regulatory Modes.
+            </p>
+
+            <h3 class="glossary-category">Shilton's Values Levers (2013)</h3>
+            <p style="color:var(--ink-muted);font-size:0.75rem;margin-bottom:12px;">Moments in design where ethical reflection becomes possible.</p>
+            <div class="framework-grid">
+                <div class="framework-card">
+                    <div class="lever-type">Anticipation Lever</div>
+                    <h4>Future Consequence Surfacing</h4>
+                    <p><a href="#term-tetrad">Tetrad</a> analysis in Thousand Tetrad forces creators to consider reversal risks before building. <a href="#term-olog">OLOG</a> "Limitations" sections require explicit acknowledgment of what tools cannot do.</p>
+                    <div class="tools">
+                        <span class="tool-chip">Thousand Tetrad</span>
+                        <span class="tool-chip">OLOG format</span>
+                        <span class="tool-chip">Pattern Glossary</span>
+                    </div>
+                </div>
+                <div class="framework-card">
+                    <div class="lever-type">Reflection Lever</div>
+                    <h4>Deliberation Before Action</h4>
+                    <p><a href="#term-poml">POML</a> library's PLAN→THINK→SPEAK phase sequencing forces deliberation. <a href="#term-gold">GOLD</a> line-by-line editing creates pause for examining each element.</p>
+                    <div class="tools">
+                        <span class="tool-chip">POML specs</span>
+                        <span class="tool-chip">GOLD editor</span>
+                        <span class="tool-chip">Genome Sequencer</span>
+                    </div>
+                </div>
+                <div class="framework-card">
+                    <div class="lever-type">Integration Lever</div>
+                    <h4>Values in Technical Specs</h4>
+                    <p><a href="#term-legos">LEGOS</a> grammar embeds narrative structure into <a href="#term-mpd">MPD</a> format. <a href="#term-stud-skeleton">stud_skeleton</a> makes ownership explicit at the data level, not just UI.</p>
+                    <div class="tools">
+                        <span class="tool-chip">LEGOS grammar</span>
+                        <span class="tool-chip">stud_skeleton</span>
+                        <span class="tool-chip">MPD manifests</span>
+                    </div>
+                </div>
+                <div class="framework-card">
+                    <div class="lever-type">Participation Lever</div>
+                    <h4>Stakeholder Voices</h4>
+                    <p><a href="#term-onyx">ONYX</a> preserves Guardian debate voices for future reference. <a href="#term-manifold">Manifold</a> visualizations make hidden creator trails visible to others.</p>
+                    <div class="tools">
+                        <span class="tool-chip">ONYX archive</span>
+                        <span class="tool-chip">Manifolds</span>
+                        <span class="tool-chip">file-learnings</span>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="glossary-category">Meadows' Leverage Points (1999)</h3>
+            <p style="color:var(--ink-muted);font-size:0.75rem;margin-bottom:12px;">Places to intervene in complex systems, from parameters to paradigms.</p>
+            <div class="framework-grid">
+                <div class="framework-card">
+                    <div class="lever-type">Level 9 — Information Flows</div>
+                    <h4>Making Hidden Trails Visible</h4>
+                    <p><a href="#term-file-learnings">file-learnings</a> and birth-dates expose previously invisible creation history. <a href="#term-manifold">Manifolds</a> visualize repo structure as navigable terrain.</p>
+                    <div class="tools">
+                        <span class="tool-chip">file-learnings.json</span>
+                        <span class="tool-chip">sitemap-evolution</span>
+                        <span class="tool-chip">Manifold 01–06</span>
+                    </div>
+                </div>
+                <div class="framework-card">
+                    <div class="lever-type">Level 6 — Rules of the System</div>
+                    <h4>Changing What Counts</h4>
+                    <p><a href="#term-olog">OLOG</a> format changes what counts as "documented"—requires objects, morphisms, theory, limitations. <a href="#term-mpd">MPD</a> discipline changes what counts as "a scene."</p>
+                    <div class="tools">
+                        <span class="tool-chip">OLOG format</span>
+                        <span class="tool-chip">MPD discipline</span>
+                        <span class="tool-chip">Genome schema</span>
+                    </div>
+                </div>
+                <div class="framework-card">
+                    <div class="lever-type">Level 4 — Self-Organization</div>
+                    <h4>Creating Your Own Patterns</h4>
+                    <p>Practitioners can create their own <a href="#term-poml">POML</a> prompts, <a href="#term-brick-grid">BRICK Grid</a> layouts, and <a href="#term-taxonomizer">taxonomy</a> exports rather than consuming pre-made frameworks.</p>
+                    <div class="tools">
+                        <span class="tool-chip">POML library</span>
+                        <span class="tool-chip">BRICK Grid family</span>
+                        <span class="tool-chip">TAXONOMIZER</span>
+                    </div>
+                </div>
+                <div class="framework-card">
+                    <div class="lever-type">Level 2 — System Goals</div>
+                    <h4>From "Ship Fast" to "Ship Grounded"</h4>
+                    <p>The toolkit shifts goals from quick output to manifest-backed, auditable artifacts. <a href="#term-gold">GOLD</a> snapshots, <a href="#term-json">JSON</a> manifests, and <a href="#term-olog">OLOG</a> documentation enable future continuation.</p>
+                    <div class="tools">
+                        <span class="tool-chip">GOLD snapshots</span>
+                        <span class="tool-chip">Chapter manifests</span>
+                        <span class="tool-chip">Genome reports</span>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="glossary-category">Lessig's Regulatory Modes (2006)</h3>
+            <p style="color:var(--ink-muted);font-size:0.75rem;margin-bottom:12px;">Four modalities that constrain behavior: Law, Norms, Market, Architecture.</p>
+            <div class="framework-grid">
+                <div class="framework-card">
+                    <div class="lever-type">Architecture</div>
+                    <h4>Built-In Constraints</h4>
+                    <p><a href="#term-courage">COURAGE</a> requires loading <a href="#term-mpd">MPD</a> data before visualization. <a href="#term-frank">Frank</a> bus architecture enforces message-passing between tools. <a href="#term-gs2p">GS2P</a> layers structure navigation.</p>
+                    <div class="tools">
+                        <span class="tool-chip">Frank bus</span>
+                        <span class="tool-chip">GS2P layers</span>
+                        <span class="tool-chip">Single-file HTML</span>
+                    </div>
+                </div>
+                <div class="framework-card">
+                    <div class="lever-type">Norms</div>
+                    <h4>Social Expectations</h4>
+                    <p>Making <a href="#term-olog">OLOG</a> documentation "normal" practice. Making citation auditing standard via Void Guardian. Making skeleton debugging an expected step via <a href="#term-were">WERE</a>/<a href="#term-master">MASTER</a>.</p>
+                    <div class="tools">
+                        <span class="tool-chip">OLOG convention</span>
+                        <span class="tool-chip">Skeleton labs</span>
+                        <span class="tool-chip">Calibration scenes</span>
+                    </div>
+                </div>
+                <div class="framework-card">
+                    <div class="lever-type">Law (Soft)</div>
+                    <h4>Policy Outputs</h4>
+                    <p><a href="#term-onyx">ONYX</a> chapter-final-decisions <a href="#term-json">JSON</a> codifies Guardian verdicts. <a href="#term-taxonomizer">TAXONOMIZER</a> exports enforce playlist boundaries. Genome C-T-A-M-D-S-P-I schema structures what must be documented.</p>
+                    <div class="tools">
+                        <span class="tool-chip">Chapter decisions</span>
+                        <span class="tool-chip">Genome schema</span>
+                        <span class="tool-chip">Taxonomy exports</span>
+                    </div>
+                </div>
+                <div class="framework-card">
+                    <div class="lever-type">Market (Implicit)</div>
+                    <h4>Value of Grounded Work</h4>
+                    <p>The toolkit demonstrates ROI of manifest-backed design: <a href="#term-file-learnings">file-learnings</a> enables future analysis, <a href="#term-gold">GOLD</a> snapshots enable continuation, <a href="#term-olog">OLOG</a> enables handoff.</p>
+                    <div class="tools">
+                        <span class="tool-chip">file-learnings</span>
+                        <span class="tool-chip">GOLD snapshots</span>
+                        <span class="tool-chip">Exportable manifests</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="framework-cite">
+                <strong>Citations:</strong><br>
+                Shilton, K. (2013). Values Levers: Building Ethics Into Design. <em>Science, Technology, &amp; Human Values</em>, 38(3), 374-397.<br>
+                Meadows, D. (1999). Leverage Points: Places to Intervene in a System. <em>Sustainability Institute</em>.<br>
+                Lessig, L. (2006). <em>Code: And Other Laws of Cyberspace, Version 2.0</em>. Basic Books.
+            </div>
+
+                </div><!-- end disclosure-content -->
+            </div><!-- end disclosure-section -->
+        </section>
+
+        <footer>
+            <p class="footer-text">Project Genome · DCE‑GYO Repository</p>
+            <p class="credits">Creator: Watson Hartsoe · Genome surface generated by Cascade · December 2025</p>
+        </footer>
+    </div>
+
+    <script>
+        // Cluster file pattern matchers
+        const CLUSTER_PATTERNS = {
+            'wag-studio-suite': ['swiss', 'frank', 'grace', 'gold', 'courage', 'wag-', 'studio-tutorial', 'minifig', 'vehic', 'location', 'scene', 'world'],
+            'skeleton-labs': ['timber', 'bull-assembly', 'skeleton', 'were', 'symbiogene', 'wag-master', 'wag-infinity', 'cool-timber'],
+            'homer-mento-chain': ['homer', 'mento', 'shield-of-achilles', 'grecian-urn', 'ball-jar', 'trubador'],
+            'brick-grid-family': ['brick-', 'hyper-grid', 'hyper-monitor', 'brickadu', 'brickbender', 'lgi-', 'build-bus'],
+            'core-projects': ['thousand-tetrad', 'fork', 'holo-project', 'mac-01', 'hello-world'],
+            'wag-presentations': ['words-become-worlds', 'wag-pres', 'wag-prot', 'wag-work', 'wag-hub', 'wag00'],
+            'prompts-and-systems': ['LEGOS-', 'ldraw-', 'prompt', 'ator-'],
+            'bags-bus-labs': ['bag-', 'stud-bag', 'bus-orchestrator', 'kimi-chat', 'wag-cleanroom', 'wag-inspector', 'grid-walk', 'taxonomizer', 'parts-materializer'],
+            'onyx-dce-gyo': ['onyx-studio', 'onyx-head', 'onyx-tail', 'onyx-abs', 'onyx-arena', 'onyx-shell', 'onyx-wing', 'onyx-claw'],
+            'onyx-archive': ['onyx-thumb', 'onyx-nail', 'onyx-neck', 'onyx-monolith', 'block-', 'research-index', 'slideshow', 'adapt-plus'],
+            'sitemap-manifolds': ['sitemap', 'manifold']
+        };
+
+        function formatDate(ts) {
+            const d = new Date(ts * 1000);
+            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        }
+
+        function classifyFile(file) {
+            const fname = file.file.toLowerCase();
+            const patterns = (file.patterns || '').toLowerCase();
+            const title = (file.title || '').toLowerCase();
+            const combined = `${fname} ${patterns} ${title}`;
+
+            for (const [cluster, terms] of Object.entries(CLUSTER_PATTERNS)) {
+                for (const term of terms) {
+                    if (combined.includes(term.toLowerCase())) {
+                        return cluster;
+                    }
+                }
+            }
+            return null;
+        }
+
+        async function loadAndComputeStats() {
+            try {
+                const res = await fetch('file-learnings.json');
+                const data = await res.json();
+                const files = data.files.filter(f => f.file && !f._end);
+
+                // Group files by cluster
+                const clusterFiles = {};
+                for (const cluster of Object.keys(CLUSTER_PATTERNS)) {
+                    clusterFiles[cluster] = [];
+                }
+
+                for (const file of files) {
+                    const cluster = classifyFile(file);
+                    if (cluster && clusterFiles[cluster]) {
+                        clusterFiles[cluster].push(file);
+                    }
+                }
+
+                // Compute stats for each cluster
+                for (const [clusterId, clusterData] of Object.entries(clusterFiles)) {
+                    const article = document.getElementById(clusterId);
+                    if (!article || clusterData.length === 0) continue;
+
+                    // Sort by birth date
+                    clusterData.sort((a, b) => a.born - b.born);
+                    const earliest = clusterData[0].born;
+                    const latest = clusterData[clusterData.length - 1].born;
+                    const durationDays = Math.ceil((latest - earliest) / 86400);
+
+                    // Count patterns
+                    const patternCounts = {};
+                    for (const f of clusterData) {
+                        if (f.patterns) {
+                            for (const p of f.patterns.split(',')) {
+                                const pt = p.trim();
+                                if (pt && pt !== 'Binary file (standard input) matches') {
+                                    patternCounts[pt] = (patternCounts[pt] || 0) + 1;
+                                }
+                            }
+                        }
+                    }
+                    const topPatterns = Object.entries(patternCounts)
+                        .sort((a, b) => b[1] - a[1])
+                        .slice(0, 4)
+                        .map(([p]) => p);
+
+                    // Build stats bar
+                    const statsBar = document.createElement('div');
+                    statsBar.className = 'cluster-stats';
+                    statsBar.innerHTML = `
+                        <div class="stat-item">
+                            <span class="stat-label">Files</span>
+                            <span class="stat-value">${clusterData.length}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Range</span>
+                            <span class="stat-value">${formatDate(earliest)} – ${formatDate(latest)}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Duration</span>
+                            <span class="stat-value">${durationDays} days</span>
+                        </div>
+                        ${topPatterns.length > 0 ? `<div class="stat-item">
+                            <span class="stat-label">Patterns</span>
+                            <span class="stat-patterns">${topPatterns.join(' · ')}</span>
+                        </div>` : ''}
+                    `;
+
+                    // Insert after tagline
+                    const tagline = article.querySelector('.project-tagline');
+                    if (tagline) {
+                        tagline.after(statsBar);
+                    }
+                }
+
+                // Update header with computed totals
+                const allCounted = Object.values(clusterFiles).flat();
+                const uniqueFiles = new Set(allCounted.map(f => f.file));
+                const courseInfo = document.querySelector('.course-info');
+                if (courseInfo && uniqueFiles.size > 0) {
+                    courseInfo.textContent = `Repo: hartswf0/tractor-dce-gyo · ${uniqueFiles.size} tracked files · Genome computed from file-learnings.json`;
+                }
+
+            } catch (e) {
+                console.warn('Could not load file-learnings.json:', e);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadAndComputeStats);
+
+        // Follow Along Mode - Dual Iframe System
+        const FollowAlong = {
+            overlay: null,
+            tutorialIframe: null,
+            toolIframe: null,
+            tutorialTitle: null,
+            toolTitle: null,
+
+            // Map tutorials to their corresponding tools (verified file names)
+            toolMap: {
+                'studio-tutorial.html': { url: 'wag-cool-courage.html', name: 'COURAGE Viewer' },
+                'studio-tutorial-02.html': { url: 'wag-cool-courage.html', name: 'COURAGE Viewer' },
+                'TIMBER-tutorial-prime.html': { url: 'timber-studio.html', name: 'TIMBER Studio' },
+                'MENTO-tutorial-prime.html': { url: 'mento-368.html', name: 'MENTO-368 Camera' },
+                'homer-tutorial-base.html': { url: 'homer-studio.html', name: 'HOMER Studio' },
+                'tutorial-homer.html': { url: 'homer-studio.html', name: 'HOMER Studio' },
+                'STUD-SKELETON-tutorial-prime.html': { url: 'courage-were-studio.html', name: 'COURAGE + WERE' },
+                'STUD-SKELETON-tutorial-visual.html': { url: 'wag-were.html', name: 'WERE Lab' },
+                'LEGOS-tutorial-prime.html': { url: 'swiss-frank-grace-studio.html', name: 'WAG Studio' },
+                'onyx-studio-tutorial.html': { url: 'onyx-thumb.html', name: 'ONYX Thumb' },
+                'bull-assembly-tutorial.html': { url: 'bull-assembly-studio.html', name: 'Bull Assembly' },
+                'mento-camera-mpd-guide.html': { url: 'mento-368.html', name: 'MENTO-368' },
+                '20q-tutorial.html': { url: 'thousand-tetrad.html', name: '20 Questions' }
+            },
+
+            init() {
+                // Create overlay
+                const overlay = document.createElement('div');
+                overlay.className = 'follow-along-overlay';
+                overlay.innerHTML = `
+                    <div class="follow-along-header">
+                        <h2>Follow Along Mode</h2>
+                        <div class="follow-along-controls">
+                            <button class="follow-along-btn swap" title="Swap panes">⇄ Swap</button>
+                            <button class="follow-along-btn exit" title="Exit follow along mode">✕ Exit</button>
+                        </div>
+                    </div>
+                    <div class="follow-along-panes">
+                        <div class="follow-along-pane" id="tutorial-pane">
+                            <div class="pane-header">
+                                <div class="pane-title">
+                                    <span class="pane-label">Tutorial</span>
+                                    <span class="pane-name">Loading...</span>
+                                </div>
+                                <div class="pane-actions">
+                                    <button class="pane-action-btn pop-out" title="Open in new tab">↗</button>
+                                </div>
+                            </div>
+                            <iframe src="about:blank"></iframe>
+                        </div>
+                        <div class="pane-resizer"></div>
+                        <div class="follow-along-pane" id="tool-pane">
+                            <div class="pane-header">
+                                <div class="pane-title">
+                                    <span class="pane-label">Tool</span>
+                                    <span class="pane-name">Loading...</span>
+                                </div>
+                                <div class="pane-actions">
+                                    <button class="pane-action-btn pop-out" title="Open in new tab">↗</button>
+                                </div>
+                            </div>
+                            <iframe src="about:blank"></iframe>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(overlay);
+
+                this.overlay = overlay;
+                this.tutorialIframe = overlay.querySelector('#tutorial-pane iframe');
+                this.toolIframe = overlay.querySelector('#tool-pane iframe');
+                this.tutorialTitle = overlay.querySelector('#tutorial-pane .pane-name');
+                this.toolTitle = overlay.querySelector('#tool-pane .pane-name');
+
+                // Exit button
+                overlay.querySelector('.exit').addEventListener('click', () => this.close());
+
+                // Swap button
+                overlay.querySelector('.swap').addEventListener('click', () => this.swap());
+
+                // Pop-out buttons
+                overlay.querySelector('#tutorial-pane .pop-out').addEventListener('click', () => {
+                    window.open(this.tutorialIframe.src, '_blank');
+                });
+                overlay.querySelector('#tool-pane .pop-out').addEventListener('click', () => {
+                    window.open(this.toolIframe.src, '_blank');
+                });
+
+                // ESC key to close
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && this.overlay.classList.contains('active')) {
+                        this.close();
+                    }
+                });
+
+                // Handle follow-along triggers
+                document.addEventListener('click', (e) => {
+                    const btn = e.target.closest('[data-tutorial]');
+                    if (btn) {
+                        e.preventDefault();
+                        const tutorialUrl = btn.dataset.tutorial;
+                        const tutorialName = btn.dataset.tutorialTitle || 'Tutorial';
+                        this.open(tutorialUrl, tutorialName);
+                    }
+                });
+            },
+
+            open(tutorialUrl, tutorialName) {
+                // Get corresponding tool (fallback to swiss-frank-grace-studio.html which is verified to exist)
+                const tool = this.toolMap[tutorialUrl] || { url: 'swiss-frank-grace-studio.html', name: 'WAG Studio (Default)' };
+                
+                console.log(`[Follow Along] Tutorial: ${tutorialUrl} → Tool: ${tool.url}`);
+
+                // Set sources
+                this.tutorialIframe.src = tutorialUrl;
+                this.toolIframe.src = tool.url;
+                this.tutorialTitle.textContent = tutorialName;
+                this.toolTitle.textContent = tool.name;
+
+                // Animate in
+                this.overlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+
+                requestAnimationFrame(() => {
+                    this.overlay.classList.add('visible');
+                    // Stagger pane animations
+                    setTimeout(() => {
+                        this.overlay.querySelectorAll('.follow-along-pane').forEach(pane => {
+                            pane.classList.add('visible');
+                        });
+                    }, 100);
+                });
+            },
+
+            close() {
+                // Animate out
+                this.overlay.querySelectorAll('.follow-along-pane').forEach(pane => {
+                    pane.classList.remove('visible');
+                });
+                this.overlay.classList.remove('visible');
+
+                setTimeout(() => {
+                    this.overlay.classList.remove('active');
+                    this.tutorialIframe.src = 'about:blank';
+                    this.toolIframe.src = 'about:blank';
+                    document.body.style.overflow = '';
+                }, 300);
+            },
+
+            swap() {
+                const tutorialPane = this.overlay.querySelector('#tutorial-pane');
+                const toolPane = this.overlay.querySelector('#tool-pane');
+                const panes = this.overlay.querySelector('.follow-along-panes');
+                
+                // Animate swap
+                tutorialPane.style.transition = 'transform 0.3s ease';
+                toolPane.style.transition = 'transform 0.3s ease';
+                
+                if (panes.firstElementChild === tutorialPane) {
+                    panes.appendChild(tutorialPane);
+                } else {
+                    panes.insertBefore(toolPane, tutorialPane);
+                }
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            FollowAlong.init();
+        });
+    </script>
+
+    <!-- Follow Along Overlay (created by JS) -->
+</body>
+
+</html>
