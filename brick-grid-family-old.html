@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>INCEPTION // BRICK_GRID_FAMILY</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <style>
+    :root {
+      --bg: #020617;
+      --panel: #020617;
+      --surface: #0b1120;
+      --border: #1f2937;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --accent: #38bdf8;
+      --accent-soft: rgba(56, 189, 248, 0.12);
+      --func: #f97373;
+      --var: #2dd4bf;
+      --tag: #a855f7;
+      --ctrl: #facc15;
+      --font: 'JetBrains Mono', 'Menlo', monospace;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      margin: 0;
+      height: 100vh;
+      height: 100dvh;
+      background: radial-gradient(circle at top left,#0f172a 0,#020617 45%,#000 100%);
+      color: var(--text);
+      font-family: var(--font);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    header {
+      flex: 0 0 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(15,23,42,0.96);
+      backdrop-filter: blur(10px);
+      font-size: 11px;
+      z-index: 20;
+    }
+    .brand { font-weight: 900; letter-spacing: 0.16em; color: #9ca3af; }
+    .brand span { color: var(--accent); }
+    .subtitle { font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+    .legend {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      font-size: 9px;
+      color: var(--muted);
+    }
+    .pill {
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      padding: 3px 8px;
+      background: rgba(15,23,42,0.8);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .swatch {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+    }
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 10px 14px 14px 14px;
+      overflow: hidden;
+      gap: 10px;
+    }
+    .grid-shell {
+      flex: 1;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 8px;
+      min-height: 0;
+    }
+    .row-labels {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 9px;
+      color: var(--muted);
+    }
+    .row-labels span { padding: 2px 6px; border-radius: 3px; background: rgba(15,23,42,0.7); border: 1px solid var(--border); }
+    .family-grid {
+      flex: 1;
+      display: grid;
+      grid-template-columns: repeat(4,minmax(0,1fr));
+      grid-auto-rows: minmax(0,1fr);
+      gap: 8px;
+      min-height: 0;
+    }
+    @media (max-width: 1024px) {
+      .family-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    }
+    @media (max-width: 640px) {
+      header { flex-wrap: wrap; gap: 4px; height: auto; padding-top: 6px; padding-bottom: 6px; }
+      .family-grid { grid-template-columns: repeat(1,minmax(0,1fr)); }
+    }
+    .card {
+      position: relative;
+      border-radius: 8px;
+      border: 1px solid rgba(31,41,55,0.9);
+      background: radial-gradient(circle at top,#020617 0,#020617 40%,#020617 100%);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      padding: 8px;
+      min-height: 0;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top center,rgba(56,189,248,0.08),transparent 60%);
+      opacity: 0;
+      transition: opacity 0.15s ease-out;
+      pointer-events: none;
+    }
+    .card:hover::before { opacity: 1; }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+      gap: 4px;
+    }
+    .card-title {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text);
+    }
+    .card-tag {
+      font-size: 9px;
+      color: var(--muted);
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(15,23,42,0.8);
+      white-space: nowrap;
+    }
+    .card-body {
+      flex: 1;
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+      gap: 4px;
+      min-height: 0;
+    }
+    .card-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-size: 9px;
+      margin-top: 2px;
+    }
+    .card-link {
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(15,23,42,0.9);
+      color: var(--muted);
+      text-decoration: none;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+    .card-link:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .schema-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      font-size: 9px;
+      color: var(--muted);
+    }
+    .schema-row span.label {
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: #6b7280;
+    }
+    .schema-row span.value {
+      color: #e5e7eb;
+    }
+    .gs2p-bar {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #6b7280;
+    }
+    .gs-pill {
+      border-radius: 999px;
+      padding: 1px 5px;
+      border: 1px solid rgba(55,65,81,0.9);
+      background: rgba(15,23,42,0.8);
+      color: #9ca3af;
+    }
+    .gs-pill.strong { border-color: var(--accent); color: var(--accent); }
+    .gs-pill.g { border-color: #22d3ee; color: #22d3ee; }
+    .gs-pill.s { border-color: #38bdf8; color: #38bdf8; }
+    .gs-pill.sky { border-color: #a855f7; color: #a855f7; }
+    .gs-pill.p { border-color: #facc15; color: #facc15; }
+    .card-notes {
+      font-size: 9px;
+      color: var(--muted);
+      line-height: 1.5;
+      overflow: auto;
+      padding-right: 2px;
+    }
+    .card-notes b { color: var(--accent); font-weight: 600; }
+    .mini-grid {
+      position: absolute;
+      right: 6px;
+      bottom: 6px;
+      width: 40px;
+      height: 40px;
+      border-radius: 4px;
+      border: 1px solid #1f2937;
+      display: grid;
+      grid-template-columns: repeat(3,1fr);
+      grid-template-rows: repeat(3,1fr);
+      overflow: hidden;
+      opacity: 0.7;
+    }
+    .mini-cell {
+      border-right: 1px solid #111827;
+      border-bottom: 1px solid #111827;
+      background: #020617;
+    }
+    .mini-cell.filled { background: rgba(56,189,248,0.22); }
+    .mini-cell.focus { background: rgba(248,250,252,0.9); }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <div class="brand">INCEPTION <span>//</span> BRICK_GRID_FAMILY</div>
+      <div class="subtitle">9×9 INSTRUMENTS · FORM / FUNCTION MAP</div>
+    </div>
+    <div class="legend">
+      <span class="pill"><span class="swatch" style="background:var(--accent-soft);"></span> Grid-based tool</span>
+      <span class="pill"><span class="swatch" style="background:#22d3ee;"></span> Ground</span>
+      <span class="pill"><span class="swatch" style="background:#38bdf8;"></span> Site</span>
+      <span class="pill"><span class="swatch" style="background:#a855f7;"></span> Sky</span>
+      <span class="pill"><span class="swatch" style="background:#facc15;"></span> Perspective</span>
+    </div>
+  </header>
+
+  <main>
+    <div class="grid-shell">
+      <div class="row-labels">
+        <span>Worldbuilding / Story</span>
+        <span>Code Sensing</span>
+        <span>UI / Surface</span>
+        <span>Architectural Graph</span>
+      </div>
+      <div class="family-grid">
+        <!-- Brickbender philosophy -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Brickbender</div>
+            <div class="card-tag">Philosophy · 9×9 world</div>
+          </div>
+          <div class="card-body">
+            <div class="card-links">
+              <a href="brickbender-philosophy.html" class="card-link">Open grid</a>
+              <a href="BRICKBENDER-PHILOSOPHY.md" class="card-link">Read doc</a>
+            </div>
+            <div class="schema-row">
+              <span class="label">Canvas</span><span class="value">&nbsp;9×9 location patches</span>
+            </div>
+            <div class="schema-row">
+              <span class="label">Ingest</span><span class="value">&nbsp;Hand-authored example</span>
+            </div>
+            <div class="gs2p-bar">
+              <span>GS2P</span>
+              <span class="gs-pill g strong">Ground</span>
+              <span class="gs-pill s strong">Site</span>
+              <span class="gs-pill sky strong">Sky</span>
+              <span class="gs-pill p strong">Perspective</span>
+            </div>
+            <div class="card-notes">
+              Canonical definition of <b>Ground / Site / Sky / Perspective</b> on a 9×9 grid. Teaches the Lab‑A → Crater Edge path and LEGOS primitives as a worldbuilding grammar.
+            </div>
+          </div>
+          <div class="mini-grid">
+            <div class="mini-cell filled"></div><div class="mini-cell filled"></div><div class="mini-cell"></div>
+            <div class="mini-cell"></div><div class="mini-cell focus"></div><div class="mini-cell"></div>
+            <div class="mini-cell"></div><div class="mini-cell"></div><div class="mini-cell"></div>
+          </div>
+        </div>
+
+        <!-- LGI Brickbender -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">LGI–Brickbender</div>
+            <div class="card-tag">GS2P mapper</div>
+          </div>
+          <div class="card-body">
+            <div class="card-links">
+              <a href="lgi-brickbender.html" class="card-link">Open mapper</a>
+            </div>
+            <div class="schema-row">
+              <span class="label">Canvas</span><span class="value">&nbsp;Freeform GS2P nodes</span>
+            </div>
+            <div class="schema-row">
+              <span class="label">Ingest</span><span class="value">&nbsp;Palette + parsed code → 81 cells</span>
+            </div>
+            <div class="gs2p-bar">
+              <span>GS2P</span>
+              <span class="gs-pill g strong">G</span>
+              <span class="gs-pill s strong">S</span>
+              <span class="gs-pill sky strong">Sky</span>
+              <span class="gs-pill p strong">P</span>
+            </div>
+            <div class="card-notes">
+              Turns any codebase into a <b>GS2P graph</b>: functions, vars, tags, controls become nodes auto‑tagged as ground/site/sky/perspective, with editable roles and JSON export.
+            </div>
+          </div>
+          <div class="mini-grid">
+            <div class="mini-cell"></div><div class="mini-cell filled"></div><div class="mini-cell"></div>
+            <div class="mini-cell filled"></div><div class="mini-cell"></div><div class="mini-cell filled"></div>
+            <div class="mini-cell"></div><div class="mini-cell filled"></div><div class="mini-cell"></div>
+          </div>
+        </div>
+
+        <!-- Brick-Branch -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Brick‑Branch</div>
+            <div class="card-tag">Multimodal core</div>
+          </div>
+          <div class="card-body">
+            <div class="card-links">
+              <a href="brick-branch.html" class="card-link">Open instrument</a>
+            </div>
+            <div class="schema-row">
+              <span class="label">Canvas</span><span class="value">&nbsp;9×9 code blocks + branches</span>
+            </div>
+            <div class="schema-row">
+              <span class="label">Ingest</span><span class="value">&nbsp;Self or pasted code</span>
+            </div>
+            <div class="gs2p-bar">
+              <span>GS2P</span>
+              <span class="gs-pill g strong">G</span>
+              <span class="gs-pill s">S</span>
+              <span class="gs-pill sky">Sky</span>
+              <span class="gs-pill p">P</span>
+            </div>
+            <div class="card-notes">
+              Sonified, haptic explorer of code flows. Uses 9×9 grid + wires + playback + <b>branch instances</b> to feel where execution runs and to isolate regions of interest.
+            </div>
+          </div>
+          <div class="mini-grid">
+            <div class="mini-cell filled"></div><div class="mini-cell filled"></div><div class="mini-cell"></div>
+            <div class="mini-cell"></div><div class="mini-cell focus"></div><div class="mini-cell filled"></div>
+            <div class="mini-cell"></div><div class="mini-cell"></div><div class="mini-cell filled"></div>
+          </div>
+        </div>
+
+        <!-- Brick-Architect -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Brick‑Architect</div>
+            <div class="card-tag">Structure HUD</div>
+          </div>
+          <div class="card-body">
+            <div class="card-links">
+              <a href="brick-architect.html" class="card-link">Open HUD</a>
+            </div>
+            <div class="schema-row">
+              <span class="label">Canvas</span><span class="value">&nbsp;9×9 code grid + HUD</span>
+            </div>
+            <div class="schema-row">
+              <span class="label">Ingest</span><span class="value">&nbsp;Self or pasted code</span>
+            </div>
+            <div class="gs2p-bar">
+              <span>GS2P</span>
+              <span class="gs-pill g strong">G</span>
+              <span class="gs-pill s strong">S</span>
+              <span class="gs-pill sky">Sky</span>
+              <span class="gs-pill p">P</span>
+            </div>
+            <div class="card-notes">
+              High‑contrast <b>dependency HUD</b>: FOCUS + UPSTREAM / USES chip racks over a 9×9 code map. No playback, but sharp architectural skeleton for navigation and design decisions.
+            </div>
+          </div>
+          <div class="mini-grid">
+            <div class="mini-cell filled"></div><div class="mini-cell"></div><div class="mini-cell filled"></div>
+            <div class="mini-cell"></div><div class="mini-cell focus"></div><div class="mini-cell"></div>
+            <div class="mini-cell"></div><div class="mini-cell"></div><div class="mini-cell"></div>
+          </div>
+        </div>
+
+        <!-- Hyper-Monitor -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Hyper‑Monitor</div>
+            <div class="card-tag">Runtime grid</div>
+          </div>
+          <div class="card-body">
+            <div class="card-links">
+              <a href="hyper-monitor.html" class="card-link">Open monitor</a>
+            </div>
+            <div class="schema-row">
+              <span class="label">Canvas</span><span class="value">&nbsp;9×9 semantic code blocks</span>
+            </div>
+            <div class="schema-row">
+              <span class="label">Ingest</span><span class="value">&nbsp;Parsed source + trace</span>
+            </div>
+            <div class="gs2p-bar">
+              <span>GS2P</span>
+              <span class="gs-pill g strong">G</span>
+              <span class="gs-pill s">S</span>
+              <span class="gs-pill sky">Sky*</span>
+              <span class="gs-pill p strong">P</span>
+            </div>
+            <div class="card-notes">
+              Visualizes definitions and calls on 9×9 with optional <b>runtime flashes</b>. Serves as a structural + temporal perspective over the same code LGI–Brickbender analyzes.
+            </div>
+          </div>
+          <div class="mini-grid">
+            <div class="mini-cell"></div><div class="mini-cell filled"></div><div class="mini-cell"></div>
+            <div class="mini-cell filled"></div><div class="mini-cell"></div><div class="mini-cell filled"></div>
+            <div class="mini-cell"></div><div class="mini-cell"></div><div class="mini-cell"></div>
+          </div>
+        </div>
+
+        <!-- Hyper-Grid -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Hyper‑Grid</div>
+            <div class="card-tag">Inception builder</div>
+          </div>
+          <div class="card-body">
+            <div class="card-links">
+              <a href="hyper-grid.html" class="card-link">Open builder</a>
+            </div>
+            <div class="schema-row">
+              <span class="label">Canvas</span><span class="value">&nbsp;9×9 UI bricks → HTML</span>
+            </div>
+            <div class="schema-row">
+              <span class="label">Ingest</span><span class="value">&nbsp;Manual painting</span>
+            </div>
+            <div class="gs2p-bar">
+              <span>GS2P</span>
+              <span class="gs-pill g strong">G</span>
+              <span class="gs-pill s strong">S</span>
+              <span class="gs-pill sky">Sky</span>
+              <span class="gs-pill p strong">P</span>
+            </div>
+            <div class="card-notes">
+              Simple 9×9 surface for sketching HTML layouts. Treats each cell as a visual <b>site</b>, generating a concrete DOM “ground” and preview as perspective.
+            </div>
+          </div>
+          <div class="mini-grid">
+            <div class="mini-cell filled"></div><div class="mini-cell"></div><div class="mini-cell filled"></div>
+            <div class="mini-cell"></div><div class="mini-cell"></div><div class="mini-cell"></div>
+            <div class="mini-cell filled"></div><div class="mini-cell"></div><div class="mini-cell filled"></div>
+          </div>
+        </div>
+
+        <!-- Hyper-Grid-00 -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Hyper‑Grid‑00</div>
+            <div class="card-tag">Media for thinking</div>
+          </div>
+          <div class="card-body">
+            <div class="card-links">
+              <a href="hyper-grid-00.html" class="card-link">Open surface</a>
+            </div>
+            <div class="schema-row">
+              <span class="label">Canvas</span><span class="value">&nbsp;9×9 UI / state grid</span>
+            </div>
+            <div class="schema-row">
+              <span class="label">Ingest</span><span class="value">&nbsp;Painting + JSON I/O</span>
+            </div>
+            <div class="gs2p-bar">
+              <span>GS2P</span>
+              <span class="gs-pill g strong">G</span>
+              <span class="gs-pill s strong">S</span>
+              <span class="gs-pill sky strong">Sky</span>
+              <span class="gs-pill p strong">P</span>
+            </div>
+            <div class="card-notes">
+              Richer sibling of Hyper‑Grid: adds SOURCE / PREVIEW / STATE + log. The grid becomes a <b>thinking surface</b> for UI and data, mirroring Brickbender’s layered stack.
+            </div>
+          </div>
+          <div class="mini-grid">
+            <div class="mini-cell filled"></div><div class="mini-cell filled"></div><div class="mini-cell filled"></div>
+            <div class="mini-cell"></div><div class="mini-cell"></div><div class="mini-cell"></div>
+            <div class="mini-cell filled"></div><div class="mini-cell filled"></div><div class="mini-cell filled"></div>
+          </div>
+        </div>
+
+        <!-- LGI-Pro -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">LGI–Pro</div>
+            <div class="card-tag">Architect graph</div>
+          </div>
+          <div class="card-body">
+            <div class="card-links">
+              <a href="lgi-pro.html" class="card-link">Open graph</a>
+            </div>
+            <div class="schema-row">
+              <span class="label">Canvas</span><span class="value">&nbsp;Freeform node graph</span>
+            </div>
+            <div class="schema-row">
+              <span class="label">Ingest</span><span class="value">&nbsp;Manual entities & edges</span>
+            </div>
+            <div class="gs2p-bar">
+              <span>GS2P</span>
+              <span class="gs-pill g strong">G</span>
+            <div class="mini-cell"></div><div class="mini-cell filled"></div><div class="mini-cell"></div>
+          </div>
+        </div>
+
+        <!-- Forking Path (INC) -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Forking Path</div>
+            <div class="card-tag">Incremental branches</div>
+          </div>
+          <div class="card-body">
+            <div class="card-links">
+              <a href="brick-inc.html" class="card-link">Open grid</a>
+            </div>
+            <div class="schema-row">
+              <span class="label">Canvas</span><span class="value">&nbsp;9×9 code grid + branch bar</span>
+            </div>
+            <div class="schema-row">
+              <span class="label">Ingest</span><span class="value">&nbsp;Self or pasted code</span>
+            </div>
+            <div class="gs2p-bar">
+              <span>GS2P</span>
+              <span class="gs-pill g strong">G</span>
+              <span class="gs-pill s strong">S</span>
+              <span class="gs-pill sky">Sky</span>
+              <span class="gs-pill p strong">P</span>
+            </div>
+            <div class="card-notes">
+              FORKING_PATH view over code: autoplay walks branches, branch bar tracks nested scopes, and PREVIEW highlights matching DOM nodes with a green <b>inception-focus</b> bounding box.
+            </div>
+          </div>
+          <div class="mini-grid">
+            <div class="mini-cell"></div><div class="mini-cell filled"></div><div class="mini-cell"></div>
+            <div class="mini-cell filled"></div><div class="mini-cell focus"></div><div class="mini-cell filled"></div>
+            <div class="mini-cell"></div><div class="mini-cell filled"></div><div class="mini-cell"></div>
+          </div>
+        </div>
+
+        <!-- Build-Bus -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Build‑Bus</div>
+            <div class="card-tag">Preview bus</div>
+          </div>
+          <div class="card-body">
+            <div class="card-links">
+              <a href="build-bus.html" class="card-link">Open bus</a>
+            </div>
+            <div class="schema-row">
+              <span class="label">Canvas</span><span class="value">&nbsp;9×9 code grid + live iframe</span>
+            </div>
+            <div class="schema-row">
+              <span class="label">Ingest</span><span class="value">&nbsp;Self or pasted UI shells</span>
+            </div>
+            <div class="gs2p-bar">
+              <span>GS2P</span>
+              <span class="gs-pill g strong">G</span>
+              <span class="gs-pill s strong">S</span>
+              <span class="gs-pill sky strong">Sky</span>
+              <span class="gs-pill p strong">P</span>
+            </div>
+            <div class="card-notes">
+              Acts as a <b>bus</b> between BRICK grids and a running HTML surface: grid focus + autoplay drive the preview, with scope crumbs and DOM highlight for debugging complex flows.
+            </div>
+          </div>
+          <div class="mini-grid">
+            <div class="mini-cell filled"></div><div class="mini-cell"></div><div class="mini-cell filled"></div>
+            <div class="mini-cell"></div><div class="mini-cell"></div><div class="mini-cell"></div>
+            <div class="mini-cell filled"></div><div class="mini-cell filled"></div><div class="mini-cell"></div>
+          </div>
+        </div>
+
+        <!-- Brick-Apex -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Brick‑Apex</div>
+            <div class="card-tag">Apex editor</div>
+          </div>
+          <div class="card-body">
+            <div class="card-links">
+              <a href="brick-apex.html" class="card-link">Open apex</a>
+            </div>
+            <div class="schema-row">
+              <span class="label">Canvas</span><span class="value">&nbsp;9×9 apex grid + code editor</span>
+            </div>
+            <div class="schema-row">
+              <span class="label">Ingest</span><span class="value">&nbsp;Self or pasted code</span>
+            </div>
+            <div class="gs2p-bar">
+              <span>GS2P</span>
+              <span class="gs-pill g strong">G</span>
+              <span class="gs-pill s strong">S</span>
+              <span class="gs-pill sky">Sky</span>
+              <span class="gs-pill p strong">P</span>
+            </div>
+            <div class="card-notes">
+              Integrated apex surface: 9×9 grid, rich code editor, branch bar, and preview. Good for editing the very instruments that make up the Brick‑Grid system.
+            </div>
+          </div>
+          <div class="mini-grid">
+            <div class="mini-cell"></div><div class="mini-cell filled"></div><div class="mini-cell"></div>
+            <div class="mini-cell"></div><div class="mini-cell focus"></div><div class="mini-cell"></div>
+            <div class="mini-cell filled"></div><div class="mini-cell"></div><div class="mini-cell filled"></div>
+          </div>
+        </div>
+
+        <!-- Brick Utility (Aether) -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Brick‑Utility</div>
+            <div class="card-tag">Aether grid</div>
+          </div>
+          <div class="card-body">
+            <div class="card-links">
+              <a href="brick-utility.html" class="card-link">Open utility</a>
+            </div>
+            <div class="schema-row">
+              <span class="label">Canvas</span><span class="value">&nbsp;9×9 semantic map + HUD</span>
+            </div>
+            <div class="schema-row">
+              <span class="label">Ingest</span><span class="value">&nbsp;Self or pasted code</span>
+            </div>
+            <div class="gs2p-bar">
+              <span>GS2P</span>
+              <span class="gs-pill g strong">G</span>
+              <span class="gs-pill s strong">S</span>
+              <span class="gs-pill sky">Sky</span>
+              <span class="gs-pill p">P</span>
+            </div>
+            <div class="card-notes">
+              Lightweight <b>Aether</b> instrument: 9×9 semantic grid with audio ticks and HUD stats (node/wire counts). Good for quick GS2P parsing and structural inspection.
+            </div>
+          </div>
+          <div class="mini-grid">
+            <div class="mini-cell filled"></div><div class="mini-cell"></div><div class="mini-cell filled"></div>
+            <div class="mini-cell"></div><div class="mini-cell"></div><div class="mini-cell"></div>
+            <div class="mini-cell"></div><div class="mini-cell filled"></div><div class="mini-cell"></div>
+          </div>
+        </div>
+
+        <!-- Brick-Create (Hyper Grid FULL_STACK) -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Brick‑Create</div>
+            <div class="card-tag">Full‑stack grid</div>
+          </div>
+          <div class="card-body">
+            <div class="card-links">
+              <a href="brick-create.html" class="card-link">Open FULL_STACK</a>
+            </div>
+            <div class="schema-row">
+              <span class="label">Canvas</span><span class="value">&nbsp;9×9 HTML/CSS/JS grid</span>
+            </div>
+            <div class="schema-row">
+              <span class="label">Ingest</span><span class="value">&nbsp;Self or pasted full‑stack code</span>
+            </div>
+            <div class="gs2p-bar">
+              <span>GS2P</span>
+              <span class="gs-pill g strong">G</span>
+              <span class="gs-pill s strong">S</span>
+              <span class="gs-pill sky strong">Sky</span>
+              <span class="gs-pill p strong">P</span>
+            </div>
+            <div class="card-notes">
+              Treats functions, DOM tags, controls, and styles as peers on the 9×9. Lets you see <b>layout, logic, and styling</b> as one terrain and trace dependencies across the stack.
+            </div>
+          </div>
+          <div class="mini-grid">
+            <div class="mini-cell filled"></div><div class="mini-cell"></div><div class="mini-cell filled"></div>
+            <div class="mini-cell"></div><div class="mini-cell focus"></div><div class="mini-cell"></div>
+            <div class="mini-cell filled"></div><div class="mini-cell"></div><div class="mini-cell filled"></div>
+          </div>
+        </div>
+
+        <!-- Brick Grid Olog / Docs -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Brick‑Grid Olog</div>
+            <div class="card-tag">Research notes</div>
+          </div>
+          <div class="card-body">
+            <div class="card-links">
+              <a href="BRICK-GRID-OLOG.md" class="card-link">Read olog</a>
+              <a href="brick-grid-family.html" class="card-link">Open atlas</a>
+            </div>
+            <div class="schema-row">
+              <span class="label">Scope</span><span class="value">&nbsp;All 9×9 BRICK / Hyper tools</span>
+            </div>
+            <div class="schema-row">
+              <span class="label">Relates</span><span class="value">&nbsp;Brickbender, Taxonomizer, LGI, GOLD bus</span>
+            </div>
+            <div class="gs2p-bar">
+              <span>GS2P</span>
+              <span class="gs-pill g strong">G</span>
+              <span class="gs-pill s strong">S</span>
+              <span class="gs-pill sky strong">Sky</span>
+              <span class="gs-pill p strong">P</span>
+            </div>
+            <div class="card-notes">
+              Formalizes the <b>objects and morphisms</b> of the Brick Grid family: code terrain, branches, scopes, previews, buses, and how they map to GS2P worldbuilding and studio tools.
+            </div>
+          </div>
+          <div class="mini-grid">
+            <div class="mini-cell filled"></div><div class="mini-cell filled"></div><div class="mini-cell filled"></div>
+            <div class="mini-cell filled"></div><div class="mini-cell focus"></div><div class="mini-cell filled"></div>
+            <div class="mini-cell filled"></div><div class="mini-cell filled"></div><div class="mini-cell filled"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+</body>
+</html>
