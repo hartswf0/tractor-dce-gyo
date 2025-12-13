@@ -34,40 +34,41 @@
             overflow: hidden;
         }
 
-        /* --- HEADER: Z-AXIS + PALETTE + TOOLS --- */
+        /* --- HEADER: TWO ROWS --- */
         header {
-            height: 56px;
             border-bottom: 1px solid var(--border);
             display: flex;
-            align-items: center;
-            padding: 0 16px;
+            flex-direction: column;
             background: #000;
-            gap: 12px;
             flex-shrink: 0;
             font-size: 11px;
             letter-spacing: 0.05em;
         }
-
-        .brand { color: var(--accent); font-weight: bold; }
-        .divider { width: 1px; height: 20px; background: var(--border); }
-
-        .breadcrumbs {
-            flex: 0 0 auto;
+        
+        .header-row {
             display: flex;
-            gap: 8px;
-            overflow-x: auto;
-            scrollbar-width: none;
-            max-width: 22vw;
+            align-items: center;
+            padding: 6px 12px;
+            gap: 10px;
+            flex-wrap: wrap;
         }
-        .crumb {
-            color: var(--text-dim);
-            cursor: pointer;
-            white-space: nowrap;
+        
+        .header-row:first-child {
+            border-bottom: 1px solid #1a1a1a;
         }
-        .crumb:hover { color: var(--text); text-decoration: underline; }
-        .crumb.active { color: var(--accent); font-weight: bold; }
 
-        .depth-meter { color: var(--secondary); flex: 0 0 auto; white-space: nowrap; }
+        .brand-icon {
+            width: 28px;
+            height: 28px;
+            flex-shrink: 0;
+        }
+        
+        .brand-icon svg {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .divider { width: 1px; height: 20px; background: var(--border); }
 
         .tools {
             display: flex;
@@ -155,6 +156,36 @@
         .brick.active {
             border-color: var(--accent);
             color: var(--accent);
+        }
+
+        .palette-wrap {
+            position: relative;
+        }
+
+        .palette-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: #111;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 6px;
+            z-index: 100;
+            min-width: 120px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+        }
+
+        .palette-dropdown.open {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .palette-dropdown .brick {
+            width: 100%;
+            justify-content: flex-start;
+            padding: 6px 10px;
         }
 
         /* --- SPLIT VIEW --- */
@@ -598,6 +629,75 @@
             z-index: 100000;
         }
         .toast.show { display: block; }
+        
+        /* MOBILE STYLES */
+        @media (max-width: 600px) {
+            .header-row {
+                padding: 8px;
+                gap: 6px;
+            }
+            
+            .toolbtn {
+                padding: 8px 10px;
+                font-size: 11px;
+                min-height: 36px;
+            }
+            
+            .brand-icon {
+                width: 32px;
+                height: 32px;
+            }
+            
+            .divider { display: none; }
+            
+            .tog {
+                padding: 6px;
+            }
+            
+            .tog label {
+                display: none;
+            }
+            
+            .tog input[type="range"] {
+                width: 50px;
+            }
+            
+            .palette-dropdown {
+                right: auto;
+                left: 0;
+            }
+            
+            .grid-shell {
+                width: 95vw;
+                height: 95vw;
+            }
+            
+            .source-panel {
+                height: 200px;
+            }
+            
+            .hint-overlay {
+                font-size: 9px;
+                padding: 6px 8px;
+                max-width: 90vw;
+            }
+            
+            .cell {
+                padding: 2px;
+            }
+            
+            .cell-header {
+                font-size: 7px;
+            }
+            
+            .cell-body {
+                font-size: 7px !important;
+            }
+            
+            .cell-footer {
+                font-size: 6px;
+            }
+        }
     </style>
 
     <script>
@@ -612,54 +712,76 @@
 
     <!-- UI LAYER -->
     <header>
-        <div class="brand">HYPER_GRID_v2</div>
-        <div class="divider"></div>
-        <div class="breadcrumbs" id="breadcrumbs"><span class="crumb active">GRID_PAGE</span></div>
-        <div class="divider"></div>
-        <div class="depth-meter" id="depth-meter">BRICK: LAYOUT</div>
-
-        <div class="divider"></div>
-
-        <div class="tools">
-            <button class="toolbtn" id="undoBtn" title="Undo (Ctrl/⌘+Z)">↶ UNDO</button>
-            <button class="toolbtn" id="redoBtn" title="Redo (Ctrl/⌘+Shift+Z)">↷ REDO</button>
-            <button class="toolbtn" id="saveBtn" title="Save to localStorage">SAVE</button>
-            <button class="toolbtn" id="loadBtn" title="Load from localStorage">LOAD</button>
-            <button class="toolbtn primary" id="exportBtn" title="Export snapshot">EXPORT</button>
-            <button class="toolbtn" id="importBtn" title="Import snapshot">IMPORT</button>
-
-            <div class="tog" title="Zoom the grid (overcome cognitive limits)">
-                <label>ZOOM</label>
-                <input id="zoom" type="range" min="60" max="160" value="100">
+        <!-- ROW 1: Brand + Actions -->
+        <div class="header-row">
+            <div class="brand-icon">
+                <svg viewBox="0 0 32 32" fill="none">
+                    <rect x="2" y="2" width="8" height="8" rx="1" fill="#00ff9d"/>
+                    <rect x="12" y="2" width="8" height="8" rx="1" fill="#0088ff"/>
+                    <rect x="22" y="2" width="8" height="8" rx="1" fill="#00ff9d" opacity="0.5"/>
+                    <rect x="2" y="12" width="8" height="8" rx="1" fill="#0088ff"/>
+                    <rect x="12" y="12" width="8" height="8" rx="1" fill="#fff"/>
+                    <rect x="22" y="12" width="8" height="8" rx="1" fill="#0088ff"/>
+                    <rect x="2" y="22" width="8" height="8" rx="1" fill="#00ff9d" opacity="0.5"/>
+                    <rect x="12" y="22" width="8" height="8" rx="1" fill="#0088ff"/>
+                    <rect x="22" y="22" width="8" height="8" rx="1" fill="#00ff9d"/>
+                </svg>
             </div>
-
-            <div class="tog" title="Show the action flow overlay (surface the invisible)">
+            <button class="toolbtn" id="undoBtn" title="Undo">↶</button>
+            <button class="toolbtn" id="redoBtn" title="Redo">↷</button>
+            <button class="toolbtn" id="saveBtn" title="Save">SAVE</button>
+            <button class="toolbtn" id="loadBtn" title="Load">LOAD</button>
+            <div class="divider"></div>
+            <button class="toolbtn primary" id="exportHtmlBtn" title="Export HTML">HTML</button>
+            <button class="toolbtn" id="previewIframeBtn" title="Preview">👁</button>
+            <button class="toolbtn" id="importHtmlBtn" title="Gridify HTML">GRIDIFY</button>
+            <div class="divider"></div>
+            <div class="palette-wrap">
+                <button class="toolbtn" id="paletteToggle">▢ DIV ▾</button>
+                <div class="palette-dropdown" id="palette">
+                    <div style="font-size:8px;color:#666;padding:2px 6px;border-bottom:1px solid #333;">CODE</div>
+                    <button class="brick" data-type="func"><span class="glyph" style="color:#f43f5e">ƒ</span>FUNC</button>
+                    <button class="brick" data-type="variable"><span class="glyph" style="color:#2dd4bf">=</span>VAR</button>
+                    <button class="brick" data-type="control"><span class="glyph" style="color:#fbbf24">⟳</span>CTRL</button>
+                    <button class="brick" data-type="style"><span class="glyph" style="color:#ec4899">#</span>CSS</button>
+                    <div style="font-size:8px;color:#666;padding:2px 6px;border-bottom:1px solid #333;">MARKUP</div>
+                    <button class="brick" data-type="tag"><span class="glyph" style="color:#8b5cf6"><></span>TAG</button>
+                    <button class="brick active" data-type="layout"><span class="glyph">▢</span>DIV</button>
+                    <button class="brick" data-type="heading"><span class="glyph">H</span>H1</button>
+                    <button class="brick" data-type="text"><span class="glyph">≡</span>TEXT</button>
+                    <button class="brick" data-type="link"><span class="glyph">↗</span>LINK</button>
+                    <button class="brick" data-type="button"><span class="glyph">●</span>BTN</button>
+                    <button class="brick" data-type="empty"><span class="glyph">×</span>ERASE</button>
+                </div>
+            </div>
+        </div>
+        <!-- ROW 2: View controls -->
+        <div class="header-row">
+            <button class="toolbtn" id="exportBtn" title="Export JSON">JSON</button>
+            <button class="toolbtn" id="importBtn" title="Import JSON">IMPORT</button>
+            <div class="divider"></div>
+            <div class="tog" title="Zoom">
+                <label>Z</label>
+                <input id="zoom" type="range" min="60" max="160" value="100" style="width:60px;">
+            </div>
+            <div class="tog" title="Flow overlay">
                 <label>FLOW</label>
                 <input id="flowToggle" type="checkbox" checked>
             </div>
-
-            <div class="tog" title="Dim empty cells (focus)">
+            <div class="tog" title="Focus mode">
                 <label>FOCUS</label>
                 <input id="focusToggle" type="checkbox">
             </div>
-        </div>
-
-        <div class="divider"></div>
-
-        <div class="palette" id="palette">
-            <button class="brick active" data-type="layout"><span class="glyph">▢</span><span>DIV</span></button>
-            <button class="brick" data-type="button"><span class="glyph">●</span><span>BTN</span></button>
-            <button class="brick" data-type="text"><span class="glyph">≡</span><span>TEXT</span></button>
-            <button class="brick" data-type="empty"><span class="glyph">×</span><span>ERASE</span></button>
+            <div class="divider"></div>
+            <span id="depth-meter" style="color:var(--accent);font-size:10px;">DIV</span>
         </div>
     </header>
 
     <main>
         <!-- THE MAP (Top) -->
         <div class="grid-viewport">
-            <div class="hint-overlay" id="hint">
-                <b>MEDIA FOR THINKING:</b> paint bricks → watch source, preview, state, and flow update in lockstep.
-                <div class="mini">Tip: hold mouse/touch and drag to paint. Ctrl/⌘+Z undo. Export snapshots for remix.</div>
+            <div class="hint-overlay" id="hint" onclick="this.style.display='none'" style="cursor:pointer;">
+                <b>WEBSITE BUILDER</b> · Paint → Export HTML · Double-click to edit · <span style="opacity:0.5">[click to dismiss]</span>
             </div>
 
             <div class="grid-shell" id="gridShell">
@@ -727,6 +849,23 @@
 
     <div class="toast" id="toast">OK</div>
 
+    <!-- Iframe Preview Modal -->
+    <div class="modal" id="iframeModal" aria-hidden="true">
+        <div class="modal-card" style="width: min(95vw, 1200px); max-height: 95vh;">
+            <div class="modal-head">
+                <b id="iframeModalTitle">PREVIEW</b>
+                <div style="display:flex;gap:8px;">
+                    <button class="toolbtn" id="iframeNewTab">OPEN IN NEW TAB</button>
+                    <button class="toolbtn" id="iframeDownload">DOWNLOAD .HTML</button>
+                    <button class="x" id="iframeModalClose" title="Close">×</button>
+                </div>
+            </div>
+            <div style="flex:1;display:flex;min-height:0;">
+                <iframe id="previewIframe" style="flex:1;border:none;background:#fff;"></iframe>
+            </div>
+        </div>
+    </div>
+
 <script>
 // HYPER_GRID Media for Thinking the Unthinkable
 (function() {
@@ -734,11 +873,26 @@
     const CELL_COUNT = GRID_SIZE * GRID_SIZE;
     const STORAGE_KEY = 'HYPER_GRID_v2.snapshot';
 
+    // Code-aware brick types with semantic colors (inspired by INTERACTIVE_CODE_ENVIRONMENT)
     const BRICK_TYPES = {
-        layout: { id: 'layout', label: 'DIV', tag: 'div', className: 'layout-block', glyph: '▢', defaultText: 'Layout block' },
-        button: { id: 'button', label: 'BTN', tag: 'button', className: 'btn-block', glyph: '●', defaultText: 'Click me' },
-        text:   { id: 'text',   label: 'TEXT', tag: 'p',   className: 'text-block',   glyph: '≡', defaultText: 'Sample text...' },
-        empty:  { id: 'empty',  label: 'EMPTY', tag: null, className: '', glyph: '×', defaultText: '' }
+        // CODE LAYER - JS
+        func:    { id: 'func',    label: 'ƒ',     tag: 'div',    className: 'func-block',    glyph: 'ƒ', defaultText: 'function', spanW: 1, spanH: 1, color: '#fff', bg: '#f43f5e' },
+        variable:{ id: 'variable',label: 'VAR',   tag: 'div',    className: 'var-block',     glyph: '=', defaultText: 'var', spanW: 1, spanH: 1, color: '#fff', bg: '#2dd4bf' },
+        control: { id: 'control', label: 'CTRL',  tag: 'div',    className: 'ctrl-block',    glyph: '⟳', defaultText: 'if', spanW: 1, spanH: 1, color: '#000', bg: '#fbbf24' },
+        // MARKUP LAYER - HTML
+        tag:     { id: 'tag',     label: 'TAG',   tag: 'div',    className: 'tag-block',     glyph: '<>', defaultText: 'div', spanW: 1, spanH: 1, color: '#fff', bg: '#8b5cf6' },
+        heading: { id: 'heading', label: 'H1',    tag: 'h1',     className: 'heading-block', glyph: 'H', defaultText: 'Heading', spanW: 2, spanH: 1, color: '#0f172a', bg: '#fff' },
+        text:    { id: 'text',    label: 'TEXT',  tag: 'p',      className: 'text-block',    glyph: '≡', defaultText: 'Text', spanW: 1, spanH: 1, color: '#334155', bg: '#fffbeb' },
+        link:    { id: 'link',    label: 'LINK',  tag: 'a',      className: 'link-block',    glyph: '↗', defaultText: 'Link', spanW: 1, spanH: 1, color: '#2563eb', bg: '#eff6ff' },
+        // STYLE LAYER - CSS
+        style:   { id: 'style',   label: 'CSS',   tag: 'div',    className: 'style-block',   glyph: '#', defaultText: '.class', spanW: 1, spanH: 1, color: '#fff', bg: '#ec4899' },
+        // STRUCTURAL
+        layout:  { id: 'layout',  label: 'DIV',   tag: 'div',    className: 'layout-block',  glyph: '▢', defaultText: '', spanW: 1, spanH: 1, color: '#94a3b8', bg: '#f1f5f9' },
+        button:  { id: 'button',  label: 'BTN',   tag: 'button', className: 'btn-block',     glyph: '●', defaultText: 'Button', spanW: 1, spanH: 1, color: '#fff', bg: '#2563eb' },
+        input:   { id: 'input',   label: 'INPUT', tag: 'input',  className: 'input-block',   glyph: '▭', defaultText: 'placeholder', spanW: 2, spanH: 1, color: '#64748b', bg: '#fff' },
+        image:   { id: 'image',   label: 'IMG',   tag: 'img',    className: 'img-block',     glyph: '◫', defaultText: '', spanW: 1, spanH: 1, color: '#64748b', bg: '#e2e8f0' },
+        nav:     { id: 'nav',     label: 'NAV',   tag: 'nav',    className: 'nav-block',     glyph: '☰', defaultText: 'Menu', spanW: 3, spanH: 1, color: '#fff', bg: '#0f172a' },
+        empty:   { id: 'empty',   label: 'EMPTY', tag: null,     className: '',              glyph: '×', defaultText: '', spanW: 1, spanH: 1, color: '#333', bg: 'transparent' }
     };
 
     // --- State ---
@@ -769,7 +923,6 @@
     const gridShell = document.getElementById('gridShell');
     const flowLayer = document.getElementById('flowLayer');
     const sourceEl = document.getElementById('source-stream');
-    const breadcrumbsEl = document.getElementById('breadcrumbs');
     const depthMeter = document.getElementById('depth-meter');
     const nodeCountEl = document.getElementById('node-count');
     const paletteEl = document.getElementById('palette');
@@ -785,7 +938,20 @@
     const saveBtn = document.getElementById('saveBtn');
     const loadBtn = document.getElementById('loadBtn');
     const exportBtn = document.getElementById('exportBtn');
+    const exportHtmlBtn = document.getElementById('exportHtmlBtn');
+    const previewIframeBtn = document.getElementById('previewIframeBtn');
     const importBtn = document.getElementById('importBtn');
+    const importHtmlBtn = document.getElementById('importHtmlBtn');
+    
+    const iframeModal = document.getElementById('iframeModal');
+    const previewIframe = document.getElementById('previewIframe');
+    const iframeNewTab = document.getElementById('iframeNewTab');
+    const iframeDownload = document.getElementById('iframeDownload');
+    const iframeModalClose = document.getElementById('iframeModalClose');
+    
+    let currentHtmlBlob = null;
+    
+    const paletteToggle = document.getElementById('paletteToggle');
 
     const tabs = document.querySelectorAll('.tab');
     const panes = document.querySelectorAll('.pane');
@@ -834,9 +1000,10 @@
 
     // ---------- HUD / palette ----------
     function updateHUD() {
-        depthMeter.textContent = 'BRICK: ' + currentBrickType.toUpperCase();
-        undoBtn.style.opacity = undoStack.length ? '1' : '0.55';
-        redoBtn.style.opacity = redoStack.length ? '1' : '0.55';
+        const def = BRICK_TYPES[currentBrickType];
+        if (depthMeter) depthMeter.textContent = def ? def.label : currentBrickType.toUpperCase();
+        if (undoBtn) undoBtn.style.opacity = undoStack.length ? '1' : '0.55';
+        if (redoBtn) redoBtn.style.opacity = redoStack.length ? '1' : '0.55';
     }
 
     function setCurrentBrickType(type) {
@@ -849,6 +1016,17 @@
             const t = btn.getAttribute('data-type');
             btn.classList.toggle('active', t === type);
         });
+        // Update toggle button text
+        const def = BRICK_TYPES[type];
+        if (paletteToggle && def) {
+            paletteToggle.textContent = def.glyph + ' ' + def.label + ' ▾';
+        }
+        // Close dropdown
+        if (paletteEl) paletteEl.classList.remove('open');
+    }
+    
+    function togglePalette() {
+        if (paletteEl) paletteEl.classList.toggle('open');
     }
 
     // ---------- Undo / redo ----------
@@ -914,6 +1092,57 @@
         renderState();
     }
 
+    function editCellText(index) {
+        const cell = gridState[index];
+        if (!cell || cell.type === 'empty') return;
+        
+        const def = BRICK_TYPES[cell.type] || BRICK_TYPES.layout;
+        
+        // Open edit modal with all properties
+        modal.classList.add('open');
+        modal.setAttribute('aria-hidden', 'false');
+        modalTitle.textContent = 'EDIT ' + def.label + ' [' + Math.floor(index/9) + ',' + (index%9) + ']';
+        
+        const p = cell.props;
+        modalText.value = [
+            'text: ' + (p.text || def.defaultText),
+            'bg: ' + (p.bg || ''),
+            'color: ' + (p.color || ''),
+            'href: ' + (p.href || ''),
+            'spanW: ' + (p.spanW || 1),
+            'spanH: ' + (p.spanH || 1)
+        ].join('\n');
+        
+        modalActions.innerHTML = '';
+        
+        const save = document.createElement('button');
+        save.className = 'toolbtn primary';
+        save.textContent = 'SAVE';
+        save.addEventListener('click', () => {
+            pushCheckpoint('edit-cell');
+            // Parse the textarea
+            const lines = modalText.value.split('\n');
+            lines.forEach(line => {
+                const [key, ...rest] = line.split(':');
+                const val = rest.join(':').trim();
+                if (key && key.trim()) {
+                    const k = key.trim();
+                    if (k === 'text') cell.props.text = val;
+                    else if (k === 'bg') cell.props.bg = val;
+                    else if (k === 'color') cell.props.color = val;
+                    else if (k === 'href') cell.props.href = val;
+                    else if (k === 'spanW') cell.props.spanW = parseInt(val) || 1;
+                    else if (k === 'spanH') cell.props.spanH = parseInt(val) || 1;
+                }
+            });
+            logAction('edit', { idx: index });
+            closeModal();
+            updateAll();
+        });
+        
+        modalActions.appendChild(save);
+    }
+
     function cellCoord(index) {
         return {
             row: Math.floor(index / GRID_SIZE),
@@ -942,18 +1171,32 @@
                 cell.classList.add(cellState.type);
 
                 const order = stamp[index] ? String(stamp[index]).padStart(2, '0') : '--';
+                const cellText = cellState.props.text || def.defaultText || '';
+                const displayText = cellText.length > 12 ? cellText.slice(0, 11) + '…' : cellText;
+                
+                // Use custom colors if set, otherwise use type defaults
+                const bg = cellState.props.bg || def.bg || '';
+                const color = cellState.props.color || def.color || '#888';
+                const href = cellState.props.href || '';
+                
+                // Apply type-specific styling to the cell itself
+                cell.style.borderColor = bg !== 'transparent' ? bg : '#333';
+                cell.style.borderLeftWidth = '3px';
+                cell.style.borderLeftColor = bg !== 'transparent' ? bg : def.color;
+                
+                let bodyStyle = 'font-size:9px;justify-content:center;text-align:center;flex:1;display:flex;align-items:center;';
+                bodyStyle += 'background:' + bg + ';border-radius:3px;margin:2px;';
+                bodyStyle += 'color:' + color + ';';
 
                 cell.innerHTML = `
                     <div class="cell-header">
-                        <span class="cell-tag">${def.label}</span>
+                        <span class="cell-tag" style="color:${def.color};background:${def.bg};padding:1px 3px;border-radius:2px;">${def.label}${href ? '↗' : ''}</span>
                         <span class="cell-idx">${row},${col}</span>
                     </div>
-                    <div class="cell-body">
-                        <div class="code-line med"></div>
-                        <div class="code-line short attr"></div>
-                        <div class="code-line med"></div>
+                    <div class="cell-body" style="${bodyStyle}">
+                        ${displayText ? '<div style="padding:2px;">' + escapeHtml(displayText) + '</div>' : ''}
                     </div>
-                    <div class="cell-footer">${def.glyph}·T${order}</div>
+                    <div class="cell-footer">T${order}</div>
                 `;
             }
 
@@ -1000,6 +1243,14 @@
             cell.addEventListener('click', () => {
                 // click fallback for non-pointer browsers
                 selectCell(index);
+            });
+
+            // Double-click to edit text
+            cell.addEventListener('dblclick', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (cellState.type === 'empty') return;
+                editCellText(index);
             });
 
             gridEl.appendChild(cell);
@@ -1406,6 +1657,330 @@
         modal.setAttribute('aria-hidden', 'true');
     }
 
+    // ---------- HTML Export (standalone file) ----------
+    function generateStandaloneHtml() {
+        const filled = [];
+        for (let i = 0; i < CELL_COUNT; i++) {
+            if (gridState[i].type !== 'empty' && stamp[i] > 0) filled.push(i);
+        }
+
+        let bodyContent = '';
+        filled.forEach((idx) => {
+            const { row, col } = cellCoord(idx);
+            const cell = gridState[idx];
+            const def = BRICK_TYPES[cell.type] || BRICK_TYPES.layout;
+            const text = cell.props.text || def.defaultText;
+            const spanW = cell.props.spanW || def.spanW || 1;
+            const spanH = cell.props.spanH || def.spanH || 1;
+            const bg = cell.props.bg || '';
+            const color = cell.props.color || '';
+            
+            // CSS Grid positioning (1-indexed)
+            const gridRow = (row + 1);
+            const gridCol = (col + 1);
+            // Use custom colors or fall back to type defaults
+            const finalBg = bg || def.bg || '#fff';
+            const finalColor = color || def.color || '#333';
+            let style = 'grid-row: ' + gridRow + ' / span ' + spanH + '; grid-column: ' + gridCol + ' / span ' + spanW + ';';
+            style += ' background: ' + finalBg + ';';
+            style += ' color: ' + finalColor + ';';
+            
+            const tag = def.tag;
+            if (tag === 'div') {
+                bodyContent += '  <div class="' + def.className + '" style="' + style + '">' + text + '<' + '/div>\n';
+            } else if (tag === 'button') {
+                bodyContent += '  <button class="' + def.className + '" style="' + style + '">' + text + '<' + '/button>\n';
+            } else if (tag === 'p') {
+                bodyContent += '  <p class="' + def.className + '" style="' + style + '">' + text + '<' + '/p>\n';
+            } else if (tag === 'h1') {
+                bodyContent += '  <h1 class="' + def.className + '" style="' + style + '">' + text + '<' + '/h1>\n';
+            } else if (tag === 'input') {
+                bodyContent += '  <input class="' + def.className + '" style="' + style + '" placeholder="' + text + '">\n';
+            } else if (tag === 'img') {
+                bodyContent += '  <div class="' + def.className + '" style="' + style + '">IMG<' + '/div>\n';
+            } else if (tag === 'nav') {
+                bodyContent += '  <nav class="' + def.className + '" style="' + style + '">' + text + '<' + '/nav>\n';
+            } else if (tag === 'a') {
+                const href = cell.props.href || '#';
+                bodyContent += '  <a class="' + def.className + '" href="' + href + '" style="' + style + '">' + text + '<' + '/a>\n';
+            }
+        });
+
+        const timestamp = new Date().toISOString().slice(0,19).replace(/[T:]/g, '-');
+        
+        // Build HTML as array to avoid closing tag issues in script
+        const lines = [
+            '<!DOCTYPE html>',
+            '<html lang="en">',
+            '<head>',
+            '  <meta charset="UTF-8">',
+            '  <meta name="viewport" content="width=device-width, initial-scale=1.0">',
+            '  <title>HYPER_GRID Export - ' + timestamp + '<' + '/title>',
+            '  <style>',
+            '    * { box-sizing: border-box; margin: 0; padding: 0; }',
+            '    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f8fafc; min-height: 100vh; }',
+            '    .grid-page { display: grid; grid-template-columns: repeat(9, 1fr); grid-template-rows: repeat(9, minmax(60px, auto)); gap: 8px; max-width: 900px; margin: 0 auto; padding: 20px; min-height: 100vh; }',
+            '    .layout-block { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; display: flex; align-items: center; justify-content: center; }',
+            '    .btn-block { background: #2563eb; color: #fff; border: none; border-radius: 8px; padding: 12px 20px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; }',
+            '    .btn-block:hover { background: #1d4ed8; transform: translateY(-1px); }',
+            '    .text-block { color: #334155; font-size: 14px; line-height: 1.6; padding: 12px; display: flex; align-items: center; }',
+            '    .heading-block { font-size: 24px; font-weight: 700; color: #0f172a; padding: 16px; display: flex; align-items: center; }',
+            '    .input-block { border: 2px solid #e2e8f0; border-radius: 8px; padding: 12px 16px; font-size: 14px; background: #fff; }',
+            '    .input-block:focus { border-color: #2563eb; outline: none; }',
+            '    .img-block { background: #e2e8f0; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 12px; }',
+            '    .nav-block { background: #0f172a; color: #fff; padding: 16px 24px; border-radius: 8px; display: flex; align-items: center; font-weight: 600; }',
+            '    .link-block { color: #2563eb; text-decoration: none; font-weight: 500; display: flex; align-items: center; padding: 8px; }',
+            '    .link-block:hover { text-decoration: underline; }',
+            '  <' + '/style>',
+            '<' + '/head>',
+            '<body>',
+            '<div class="grid-page">',
+            bodyContent,
+            '<' + '/div>',
+            '<!-- Generated by HYPER_GRID at ' + timestamp + ' -->',
+            '<!-- Brick count: ' + filled.length + ' -->',
+            '<' + '/body>',
+            '<' + '/html>'
+        ];
+        return lines.join('\n');
+    }
+
+    function openIframePreview() {
+        const html = generateStandaloneHtml();
+        currentHtmlBlob = new Blob([html], { type: 'text/html' });
+        const blobUrl = URL.createObjectURL(currentHtmlBlob);
+        previewIframe.src = blobUrl;
+        iframeModal.classList.add('open');
+        iframeModal.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeIframeModal() {
+        iframeModal.classList.remove('open');
+        iframeModal.setAttribute('aria-hidden', 'true');
+        previewIframe.src = '';
+    }
+
+    function openHtmlNewTab() {
+        const html = generateStandaloneHtml();
+        const blob = new Blob([html], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank');
+    }
+
+    function downloadHtml() {
+        const html = generateStandaloneHtml();
+        const blob = new Blob([html], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'hyper-grid-export-' + Date.now() + '.html';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        toastMsg('DOWNLOADED');
+    }
+
+    function openHtmlExportModal() {
+        modal.classList.add('open');
+        modal.setAttribute('aria-hidden', 'false');
+        modalActions.innerHTML = '';
+        modalTitle.textContent = 'EXPORT HTML';
+        modalText.value = generateStandaloneHtml();
+
+        const copy = document.createElement('button');
+        copy.className = 'toolbtn primary';
+        copy.textContent = 'COPY HTML';
+        copy.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(modalText.value);
+                toastMsg('COPIED');
+            } catch (_) {
+                toastMsg('COPY FAILED');
+            }
+        });
+
+        const dl = document.createElement('button');
+        dl.className = 'toolbtn';
+        dl.textContent = 'DOWNLOAD';
+        dl.addEventListener('click', downloadHtml);
+
+        modalActions.appendChild(copy);
+        modalActions.appendChild(dl);
+    }
+
+    // ---------- HTML Import / Gridify ----------
+    function openGridifyModal() {
+        modal.classList.add('open');
+        modal.setAttribute('aria-hidden', 'false');
+        modalActions.innerHTML = '';
+        modalTitle.textContent = 'GRIDIFY HTML';
+        modalText.value = '';
+        modalText.placeholder = 'Paste HTML here to place elements on the grid...';
+
+        const apply = document.createElement('button');
+        apply.className = 'toolbtn primary';
+        apply.textContent = 'GRIDIFY';
+        apply.addEventListener('click', () => {
+            try {
+                pushCheckpoint('gridify');
+                gridifyHtml(modalText.value);
+                toastMsg('GRIDIFIED');
+                logAction('gridify', {});
+                closeModal();
+                updateAll();
+            } catch (e) {
+                toastMsg('PARSE ERROR');
+                console.error(e);
+            }
+        });
+
+        modalActions.appendChild(apply);
+    }
+
+    function gridifyHtml(htmlStr) {
+        pushCheckpoint('gridify');
+        
+        // Clear grid
+        gridState.forEach((_, i) => {
+            gridState[i] = { type: 'empty', props: {} };
+            stamp[i] = 0;
+        });
+        
+        const entities = [];
+        
+        // ========== LAYER 1: CSS PARSER ==========
+        const styleMatches = htmlStr.match(/<style[^>]*>([\s\S]*?)<\/style>/gi) || [];
+        styleMatches.forEach(styleBlock => {
+            const css = styleBlock.replace(/<\/?style[^>]*>/gi, '');
+            // Extract CSS variables
+            const varMatches = css.match(/--[\w-]+:\s*[^;]+/g) || [];
+            varMatches.slice(0, 10).forEach(v => {
+                const [name, value] = v.split(':').map(s => s.trim());
+                entities.push({ type: 'style', text: name, fullText: v, layer: 'css', priority: 3 });
+            });
+            // Extract selectors
+            const selectorMatches = css.match(/([.#][\w-]+)\s*\{/g) || [];
+            selectorMatches.slice(0, 15).forEach(s => {
+                const sel = s.replace(/\s*\{/, '');
+                entities.push({ type: 'style', text: sel, fullText: sel, layer: 'css', priority: 2 });
+            });
+        });
+        
+        // ========== LAYER 2: JS PARSER ==========
+        const scriptMatches = htmlStr.match(/<script[^>]*>([\s\S]*?)<\/script>/gi) || [];
+        scriptMatches.forEach(scriptBlock => {
+            const js = scriptBlock.replace(/<\/?script[^>]*>/gi, '');
+            // Extract functions
+            const funcMatches = js.match(/(?:function|class)\s+(\w+)/g) || [];
+            funcMatches.forEach(f => {
+                const name = f.replace(/(?:function|class)\s+/, '');
+                entities.push({ type: 'func', text: name, fullText: f, layer: 'js', priority: 5 });
+            });
+            // Extract const/let/var declarations
+            const varMatches = js.match(/(?:const|let|var)\s+(\w+)/g) || [];
+            varMatches.slice(0, 20).forEach(v => {
+                const name = v.replace(/(?:const|let|var)\s+/, '');
+                entities.push({ type: 'variable', text: name, fullText: v, layer: 'js', priority: 2 });
+            });
+            // Extract control flow
+            const ctrlMatches = js.match(/\b(if|for|while|return|switch|try|catch)\b/g) || [];
+            [...new Set(ctrlMatches)].forEach(c => {
+                entities.push({ type: 'control', text: c, fullText: c, layer: 'js', priority: 1 });
+            });
+        });
+        
+        // ========== LAYER 3: HTML PARSER ==========
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(htmlStr, 'text/html');
+        
+        const tagMap = {
+            'div': 'tag', 'section': 'tag', 'article': 'tag', 'main': 'tag', 'header': 'tag', 'footer': 'tag',
+            'nav': 'nav', 'button': 'button', 'a': 'link',
+            'p': 'text', 'span': 'text', 'li': 'text',
+            'h1': 'heading', 'h2': 'heading', 'h3': 'heading', 'h4': 'heading',
+            'input': 'input', 'textarea': 'input', 'img': 'image'
+        };
+        
+        function classifyElement(el) {
+            const tag = el.tagName ? el.tagName.toLowerCase() : '';
+            const cls = (el.className || '').toLowerCase();
+            // Detect semantic intent from class names
+            if (cls.includes('narration') || cls.includes('speech') || cls.includes('concept')) return 'text';
+            if (cls.includes('header') || cls.includes('title')) return 'heading';
+            if (cls.includes('btn') || cls.includes('button')) return 'button';
+            return tagMap[tag] || 'tag';
+        }
+        
+        function extractLeaves(el, depth) {
+            const children = Array.from(el.children);
+            const hasTextChildren = children.some(c => c.textContent && c.textContent.trim());
+            const directText = Array.from(el.childNodes).some(n => n.nodeType === 3 && n.textContent.trim());
+            
+            if (children.length === 0 || directText || !hasTextChildren) {
+                const tag = el.tagName ? el.tagName.toLowerCase() : '';
+                if (tagMap[tag] && el.textContent) {
+                    const text = el.textContent.trim().slice(0, 50);
+                    if (text || tag === 'img' || tag === 'input') {
+                        const inlineStyle = el.getAttribute('style') || '';
+                        let bg = '', color = '';
+                        if (inlineStyle) {
+                            const bgMatch = inlineStyle.match(/background[^:]*:\s*([^;]+)/i);
+                            const colorMatch = inlineStyle.match(/(?:^|[^-])color:\s*([^;]+)/i);
+                            if (bgMatch) bg = bgMatch[1].trim();
+                            if (colorMatch) color = colorMatch[1].trim();
+                        }
+                        entities.push({
+                            type: classifyElement(el),
+                            text: text,
+                            fullText: el.textContent.trim().slice(0, 100),
+                            layer: 'html',
+                            priority: tag.match(/^h[1-6]$/) ? 4 : 2,
+                            bg, color,
+                            href: el.getAttribute('href') || '',
+                            classes: el.className || '',
+                            originalTag: tag
+                        });
+                    }
+                }
+            } else {
+                children.forEach(c => extractLeaves(c, depth + 1));
+            }
+        }
+        
+        extractLeaves(doc.body, 0);
+        
+        // ========== SORT & PLACE ==========
+        // Sort by priority (higher first), then by layer order (js, css, html)
+        const layerOrder = { js: 0, css: 1, html: 2 };
+        entities.sort((a, b) => {
+            if (b.priority !== a.priority) return b.priority - a.priority;
+            return layerOrder[a.layer] - layerOrder[b.layer];
+        });
+        
+        // Place on grid (max 81)
+        const toPlace = entities.slice(0, 81);
+        toPlace.forEach((ent, i) => {
+            gridState[i] = {
+                type: ent.type,
+                props: {
+                    text: ent.text,
+                    fullText: ent.fullText,
+                    bg: ent.bg || '',
+                    color: ent.color || '',
+                    href: ent.href || '',
+                    classes: ent.classes || '',
+                    originalTag: ent.originalTag || '',
+                    layer: ent.layer
+                }
+            };
+            stamp[i] = ++clock;
+        });
+        
+        logAction('gridify', { count: toPlace.length, layers: { js: entities.filter(e => e.layer === 'js').length, css: entities.filter(e => e.layer === 'css').length, html: entities.filter(e => e.layer === 'html').length } });
+        updateAll();
+    }
+
     // ---------- Update all ----------
     function updateAll() {
         renderGrid();
@@ -1418,20 +1993,13 @@
         if (!paletteEl) return;
         const buttons = paletteEl.querySelectorAll('.brick');
         buttons.forEach(btn => {
-            btn.addEventListener('click', () => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent closing dropdown before selection
                 const type = btn.getAttribute('data-type');
+                console.log('Brick selected:', type);
                 setCurrentBrickType(type);
             });
         });
-    }
-
-    function initBreadcrumbs() {
-        if (!breadcrumbsEl) return;
-        breadcrumbsEl.innerHTML = '';
-        const span = document.createElement('span');
-        span.className = 'crumb active';
-        span.textContent = 'GRID_PAGE / LAYER_0';
-        breadcrumbsEl.appendChild(span);
     }
 
     function initTabs() {
@@ -1448,11 +2016,36 @@
         saveBtn.addEventListener('click', saveToLocal);
         loadBtn.addEventListener('click', loadFromLocal);
         exportBtn.addEventListener('click', () => openModal('export'));
+        exportHtmlBtn.addEventListener('click', openHtmlExportModal);
+        previewIframeBtn.addEventListener('click', openIframePreview);
         importBtn.addEventListener('click', () => openModal('import'));
+        importHtmlBtn.addEventListener('click', openGridifyModal);
 
         modalClose.addEventListener('click', closeModal);
         modal.addEventListener('click', (e) => {
             if (e.target === modal) closeModal();
+        });
+        
+        // Iframe modal controls
+        iframeModalClose.addEventListener('click', closeIframeModal);
+        iframeModal.addEventListener('click', (e) => {
+            if (e.target === iframeModal) closeIframeModal();
+        });
+        iframeNewTab.addEventListener('click', openHtmlNewTab);
+        iframeDownload.addEventListener('click', downloadHtml);
+        
+        // Palette dropdown toggle
+        if (paletteToggle) {
+            paletteToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                togglePalette();
+            });
+        }
+        // Close palette when clicking outside
+        document.addEventListener('click', (e) => {
+            if (paletteEl && !paletteEl.contains(e.target) && e.target !== paletteToggle && !paletteToggle.contains(e.target)) {
+                paletteEl.classList.remove('open');
+            }
         });
 
         zoomEl.addEventListener('input', () => {
@@ -1508,7 +2101,6 @@
 
     function init() {
         initPalette();
-        initBreadcrumbs();
         initTabs();
         initControls();
 

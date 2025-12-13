@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Understanding AI: Operative Ekphrasis</title>
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: 'Comic Neue', 'Comic Sans MS', cursive;
+    background: #fff;
+    color: #000;
+    line-height: 1.4;
+  }
+  
+  .comic-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  .page {
+    background: #fff;
+    border: 3px solid #000;
+    margin-bottom: 40px;
+    padding: 20px;
+    box-shadow: 8px 8px 0 #ddd;
+  }
+  
+  .page-header {
+    text-align: center;
+    font-size: 2em;
+    font-weight: 800;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-family: 'Impact', sans-serif;
+  }
+  
+  .panels {
+    display: grid;
+    gap: 20px;
+  }
+  
+  .panel {
+    border: 2px solid #000;
+    padding: 15px;
+    background: #fff;
+    position: relative;
+  }
+  
+  .grid-2 { grid-template-columns: 1fr 1fr; }
+  .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .grid-4 { grid-template-columns: repeat(4, 1fr); }
+  
+  .narration {
+    background: #fffdcd;
+    padding: 12px;
+    border-left: 4px solid #ff6b6b;
+    font-style: italic;
+    margin-bottom: 10px;
+  }
+  
+  .speech-bubble {
+    background: #fff;
+    border: 2px solid #000;
+    border-radius: 12px;
+    padding: 12px 16px;
+    position: relative;
+    margin: 10px 0;
+    font-weight: bold;
+  }
+  
+  .speech-bubble::before {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 20px;
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 10px solid #000;
+  }
+  
+  .concept-box {
+    background: #e3f2fd;
+    border: 1px dashed #2196f3;
+    padding: 12px;
+    margin: 10px 0;
+    font-size: 0.9em;
+  }
+  
+  .arrow {
+    display: inline-block;
+    font-size: 2em;
+    color: #ff6b6b;
+  }
+  
+  .geometric {
+    width: 50px;
+    height: 50px;
+    margin: 10px auto;
+  }
+  
+  .circle { 
+    background: #ff6b6b;
+    border-radius: 50%;
+  }
+  
+  .triangle {
+    width: 0;
+    height: 0;
+    border-left: 25px solid transparent;
+    border-right: 25px solid transparent;
+    border-bottom: 50px solid #4ecdc4;
+    background: transparent;
+  }
+  
+  .square { background: #95e1d3; }
+  
+  .red { color: #ff6b6b; font-weight: 800; }
+  .blue { color: #2196f3; font-weight: 800; }
+  .purple { color: #9b59b6; font-weight: 800; }
+  .green { color: #27ae60; font-weight: 800; }
+  
+  .center { text-align: center; }
+  .bold { font-weight: 800; }
+  
+  .footer {
+    text-align: center;
+    font-size: 0.85em;
+    color: #666;
+    margin-top: 40px;
+    padding: 20px;
+    border-top: 2px solid #000;
+  }
+
+  @media (max-width: 768px) {
+    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+  }
+</style>
+<base target="_blank">
+</head>
+<body>
+  
+  <div class="comic-container">
+    
+    <!-- PAGE 1: INTRO -->
+    <div class="page">
+      <div class="page-header">Understanding AI: A Visual Primer</div>
+      <div class="panels grid-2">
+        <div class="panel">
+          <div class="narration">This is a story about language that <em>does</em> things. Not describes—<strong>executes</strong>.</div>
+          <div class="center">
+            <div class="geometric circle"></div>
+            <div class="arrow">→</div>
+            <div class="geometric triangle"></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="speech-bubble">Forget magic spells. A prompt is a <span class="red">VECTOR</span>.</div>
+          <div class="narration">It has <strong>magnitude</strong> and <strong>direction</strong>. It pushes against chaos.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE 2: LATENT SPACE -->
+    <div class="page">
+      <div class="page-header">The Synthetic Commons</div>
+      <div class="panels grid-3">
+        <div class="panel">
+          <div class="narration">Not a database. Not an archive. A <span class="blue">continuous, high-dimensional gel</span>.</div>
+        </div>
+        <div class="panel">
+          <div class="center">
+            <div class="geometric square" style="width: 60px; height: 60px; background: linear-gradient(45deg, #ff6b6b, #4ecdc4);"></div>
+          </div>
+          <div class="speech-bubble">Text and image dissolve like salt in water.</div>
+        </div>
+        <div class="panel">
+          <div class="concept-box">THE SOURCE PARADOX: The model carries every influence but cannot point to any single one.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE 3: OPERATIVE EKPHRASIS -->
+    <div class="page">
+      <div class="page-header">Operative Ekphrasis: From Description to Execution</div>
+      <div class="panels grid-3">
+        <div class="panel">
+          <div class="narration purple">OLD EKPHRASIS</div>
+          <div class="speech-bubble">"The shield of Achilles, shimmering..." <br><span class="arrow">→</span> Points outward to what's already there.</div>
+        </div>
+        <div class="panel">
+          <div class="narration green">OPERATIVE EKPHRASIS</div>
+          <div class="speech-bubble">"Surreal floating city, bioluminescent ruins..." <br><span class="arrow">→</span> SUMMONS what never existed.</div>
+        </div>
+        <div class="panel">
+          <div class="concept-box red">The sentence EXECUTES. It is a <strong>cosmogonic spell</strong> cast in silicon.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE 4: ONTOLOGICAL COLLAPSE -->
+    <div class="page">
+      <div class="page-header">CLIP: Ontological Collapse</div>
+      <div class="panels grid-4">
+        <div class="panel">
+          <div class="narration">Text & Image used to be separate worlds...</div>
+          <div class="center" style="font-size: 2em;">🗣️ ⬌ 🖼️</div>
+        </div>
+        <div class="panel">
+          <div class="speech-bubble">CLIP forces them into <span class="red">ONE SHARED SPACE</span>.</div>
+        </div>
+        <div class="panel">
+          <div class="concept-box">Word becomes coordinate for vision. Language is now a <strong>topography</strong>.</div>
+        </div>
+        <div class="panel">
+          <div class="center" style="font-size: 1.5em;">
+            <span class="blue">SUNSET</span> = 🌅<br>
+            <span class="blue">TREE</span> = 🌳
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE 5: THE BLURRY MEAN -->
+    <div class="page">
+      <div class="page-header">Entropy Basin: The Crisis of the Blurry Mean</div>
+      <div class="panels grid-2">
+        <div class="panel">
+          <div class="narration">Without guidance, everything drifts toward the <span class="red">lowest energy state</span>.</div>
+          <div class="center" style="font-size: 3em; margin: 15px 0;">
+            🌀 → 🟰 → 💩
+          </div>
+          <div class="speech-bubble">Statistical Mush. The Unloved Average. Cautious Centrism.</div>
+        </div>
+        <div class="panel">
+          <div class="concept-box">This is the model's <strong>gravitational sink</strong>. Its natural state is <em>not</em> creativity—it's statistical safety.</div>
+          <div class="narration green">Abundance becomes a gravity sink. Visual slop.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE 6: VECTORS & STEERING -->
+    <div class="page">
+      <div class="page-header">Vectors: Reading the Arrows</div>
+      <div class="panels grid-2">
+        <div class="panel">
+          <div class="narration">A prompt is an <span class="red">ARROW</span>. It encodes:</div>
+          <ul style="margin: 10px 0; padding-left: 20px;">
+            <li>What the world looks like</li>
+            <li>What it excludes</li>
+            <li>Biases as <strong>topological valleys</strong></li>
+          </ul>
+          <div class="speech-bubble">To steer culture, first map its slopes.</div>
+        </div>
+        <div class="panel">
+          <div class="narration blue">THICK PROMPT = HIGH VECTOR MAGNITUDE</div>
+          <div class="center" style="font-size: 2em;">➡️➡️➡️</div>
+          <div class="concept-box">Densely loaded prompts = larger divergence from the mean. <strong>Linguistic shove!</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE 7: THERMODYNAMICS OF CREATION -->
+    <div class="page">
+      <div class="page-header">Negentropy: Creation as Subtraction</div>
+      <div class="panels grid-3">
+        <div class="panel">
+          <div class="narration">The model learns to predict the tiny step that removes a speck of noise.</div>
+          <div class="speech-bubble">Creation is <span class="green">subtraction of entropy</span>.</div>
+        </div>
+        <div class="panel">
+          <div class="center" style="font-size: 2em;">🔁 × 50</div>
+          <div class="narration">Repeat the prediction and the <strong>ghost of the archive re-coalesces</strong>.</div>
+        </div>
+        <div class="panel">
+          <div class="concept-box red">Operative Ekphrasis as <strong>thermodynamic miracle</strong> performed by calculus.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE 8: ESCAPING THE BASIN -->
+    <div class="page">
+      <div class="page-header">Escape Velocity: Injecting Energy</div>
+      <div class="panels grid-2">
+        <div class="panel">
+          <div class="narration">To escape the entropy basin, you must <span class="red">inject energy</span>.</div>
+          <div class="speech-bubble">⚡ LINGUISTIC TORQUE ⚡</div>
+          <div class="narration">Push uphill toward rarer, riskier coordinates.</div>
+        </div>
+        <div class="panel">
+          <div class="concept-box">SPECIFICITY must outweigh statistical safety. This is the <strong>struggle against gravity</strong>.</div>
+          <div class="center">
+            <div style="display: inline-block; width: 30px; height: 100px; background: linear-gradient(to top, #ff6b6b, #fff);"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE 9: THE JAZZ OF PROMPTING -->
+    <div class="page">
+      <div class="page-header">Improvisation: Call & Response</div>
+      <div class="panels grid-3" style="text-align: center;">
+        <div class="panel">
+          <div class="narration red">HUMAN CUE</div>
+          <div class="speech-bubble">"A city of music..."</div>
+        </div>
+        <div class="panel">
+          <div class="narration blue">AI SOLO</div>
+          <div class="geometric square" style="background: #ff6b6b; margin: 20px auto;"></div>
+        </div>
+        <div class="panel">
+          <div class="narration green">HUMAN RESPONSE</div>
+          <div class="speech-bubble">"More synthwave..."</div>
+          <div class="concept-box">Each iteration builds a <strong>shared micro-culture</strong>.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE 10: ETHICS & ECOLOGY -->
+    <div class="page">
+      <div class="page-header">The Supply Chain: Ghost Labor & Upstream Ethics</div>
+      <div class="panels grid-2">
+        <div class="panel">
+          <div class="narration">REMIX raises old questions anew:</div>
+          <ul style="margin: 10px 0; padding-left: 20px;">
+            <li>Consent for training data</li>
+            <li>Ghost labor of artists</li>
+            <li>Ecological cost of abundance</li>
+          </ul>
+          <div class="speech-bubble">Ethics must travel upstream from output → dataset → hardware → mine.</div>
+        </div>
+        <div class="panel">
+          <div class="narration red">RECURSIVE IMAGETEXT ECOLOGY</div>
+          <div class="concept-box">Tomorrow's models feed on today's algorithmic dreams. We are building a hall of mirrors.</div>
+          <div class="center" style="font-size: 2em;">🔁🪞🪞🪞</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE 11: ALGORITHMIC ATOMIZATION -->
+    <div class="page">
+      <div class="page-header">Atomization: The Invisibility Paradox</div>
+      <div class="panels grid-3">
+        <div class="panel">
+          <div class="narration">Traditional Remix: Sampling whole beats.</div>
+          <div class="center" style="font-size: 2em;">🎵 → 🔁</div>
+        </div>
+        <div class="panel">
+          <div class="narration red">Algorithmic Atomization: Weights, invisible and distributed.</div>
+          <div class="center" style="font-size: 2em;">⚛️ → 🎭</div>
+        </div>
+        <div class="panel">
+          <div class="concept-box">AI depends on culture, yet <strong>obscures its sources</strong>. The archive becomes a silent hum.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE 12: CRITICAL PRACTICE -->
+    <div class="page">
+      <div class="page-header">Archaeology of the Latent</div>
+      <div class="panels grid-2">
+        <div class="panel">
+          <div class="narration">ASK OF EVERY OUTPUT:</div>
+          <ol style="margin: 10px 0; padding-left: 20px;">
+            <li>What human labor is compressed?</li>
+            <li>What bias is amplified?</li>
+            <li>What metaphor collapses?</li>
+          </ol>
+          <div class="speech-bubble">Viewing must become <span class="blue">excavation</span>.</div>
+        </div>
+        <div class="panel">
+          <div class="concept-box red">The artist is now a <strong>curator</strong>, a <strong>filter</strong>, a <strong>gardener</strong> of递归 ecologies.</div>
+          <div class="narration">Critique becomes crop rotation for the media field.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE 13: CONCLUSION -->
+    <div class="page">
+      <div class="page-header">The Politics of Physics</div>
+      <div class="panels grid-2">
+        <div class="panel">
+          <div class="narration">Collective human labor carves the landscape.</div>
+          <div class="center" style="font-size: 3em;">👥⛏️🏔️</div>
+        </div>
+        <div class="panel">
+          <div class="narration blue">Individual intent chooses direction & thrust.</div>
+          <div class="center" style="font-size: 3em;">🧭⚡</div>
+        </div>
+      </div>
+      <div class="panels" style="margin-top: 20px;">
+        <div class="panel">
+          <div class="speech-bubble center" style="font-size: 1.5em;">
+            Value lies not in owning the field...<br>
+            <span class="arrow">↓</span><br>
+            ...but in learning to ride its slopes <span class="red">responsibly</span>.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p>Inspired by Scott McCloud's <em>Understanding Comics</em> | Concepts from Bolter, Hartsoe & Bajohr</p>
+      <p>AI is physics, not magic. Prompts are vectors, not spells.</p>
+    </div>
+
+  </div>
+</body>
+</html>
