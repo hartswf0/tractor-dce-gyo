@@ -7925,6 +7925,11 @@
             setTimeout(() => pasteTextarea.focus(), 100);
         }
         
+        // PASTE button click - critical for mobile where clipboard API may not work
+        if (pasteZoneBtn) {
+            pasteZoneBtn.addEventListener('click', showPasteZone);
+        }
+        
         function hidePasteZone() {
             pasteZone.classList.remove('active');
         }
