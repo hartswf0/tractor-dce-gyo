@@ -1900,6 +1900,20 @@
             S.playback.active = true;
         };
 
+        // Draw source onto destination context preserving aspect ratio (letterbox/pillarbox)
+        function drawWithAspect(src, ctx, dstW, dstH) {
+            const srcW = src.width || src.videoWidth || dstW;
+            const srcH = src.height || src.videoHeight || dstH;
+            const scale = Math.min(dstW / srcW, dstH / srcH);
+            const w = srcW * scale;
+            const h = srcH * scale;
+            const x = (dstW - w) / 2;
+            const y = (dstH - h) / 2;
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, dstW, dstH);
+            ctx.drawImage(src, x, y, w, h);
+        }
+
         // --- ANIMATION LOOP ---
         function animate() {
             requestAnimationFrame(animate);
