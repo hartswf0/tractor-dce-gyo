@@ -1057,8 +1057,6 @@
                 <div style="width: 1px; height: 20px; background: var(--border-primary); margin: 0 4px;"></div>
                 <button class="panel-btn" id="copy-all-btn" title="Copy entire MPD to clipboard" style="background: var(--accent); color: var(--bg-main); font-weight: 600;">📋 COPY ALL</button>
                 <button class="panel-btn" id="paste-zone-btn" title="Paste MPD text into a new file">📥 PASTE</button>
-                <button class="panel-btn" id="copy-ground-btn" title="Copy ground-corrected MPD to clipboard">📋 FIX GROUND</button>
-                <button class="panel-btn" id="copy-skeleton-btn" title="Copy stud skeleton as MPD to clipboard">📋 SKELETON</button>
                 <button class="panel-btn" id="render-btn" title="Force Render">⟳</button>
             </div>
         </div>
@@ -1079,6 +1077,7 @@
                 <button class="panel-btn" id="reset-quick" title="Reset View">⌖</button>
                 <button class="panel-btn" id="skeleton-quick" title="Skeleton-only view">💀</button>
                 <button class="panel-btn" id="ground-toggle-btn" title="Toggle ground corrections">🪨</button>
+                <button class="panel-btn" id="magnet-snap-btn" title="Snap all parts to nearest stud grid">🧲</button>
                 <button class="panel-btn" id="stud-normal-quick" title="Toggle normal (cyan) studs" style="color:#00ffff;">●</button>
                 <button class="panel-btn" id="stud-problem-quick" title="Toggle problem (red) studs" style="color:#ff4444;">●</button>
                 <button class="panel-btn" id="stud-ghost-quick" title="Toggle ghost (green) studs" style="color:#00ff00;">●</button>
@@ -5307,7 +5306,13 @@
                     S - Auto spin toggle<br>
                     ⌖ - Reset camera view<br>
                     💀 - Skeleton-only view<br>
-                    🪨 - Ground corrections toggle<br>
+                    🪨 - Ground corrections (lift below-ground parts)<br>
+                    🧲 - Magnet (click cycles modes, double-click auto-assembles):<br>
+                    <span style="color:#888; padding-left:12px;">→ SNAP: Align to 20 LDU stud grid</span><br>
+                    <span style="color:#888; padding-left:12px;">→ SPREAD: Resolve overlapping parts</span><br>
+                    <span style="color:#888; padding-left:12px;">→ STACK: Connect parts vertically</span><br>
+                    <span style="color:#888; padding-left:12px;">→ VOIDS: Show empty grid positions (magenta)</span><br>
+                    <span style="color:#888; padding-left:12px;">→ DOUBLE-CLICK: Full auto-assembly</span><br>
                     <span style="color:#00ffff">●</span> - Cyan stud markers (normal)<br>
                     <span style="color:#ff4444">●</span> - Red stud markers (below ground)<br>
                     <span style="color:#00ff00">●</span> - Green ghost markers<br>
@@ -5495,6 +5500,29 @@
             groundBtn.addEventListener('click', () => {
                 const active = toggleGroundCorrections();
                 setToggleButtonState(groundBtn, active);
+            });
+        }
+        
+        // Magnet snap button - single click cycles modes, double click auto-assembles
+        const magnetBtn = document.getElementById('magnet-snap-btn');
+        if (magnetBtn) {
+            let lastClickTime = 0;
+            magnetBtn.addEventListener('click', (e) => {
+                const now = Date.now();
+                if (now - lastClickTime < 300) {
+                    // Double click - full auto-assemble
+                    if (typeof autoAssembleScene === 'function') {
+                        autoAssembleScene();
+                    }
+                } else {
+                    // Single click - cycle through modes
+                    if (typeof magnetSnapAllPartsAdvanced === 'function') {
+                        magnetSnapAllPartsAdvanced();
+                    } else {
+                        magnetSnapAllParts();
+                    }
+                }
+                lastClickTime = now;
             });
         }
         
@@ -8839,16 +8867,32 @@ function highlightLinesAtGridPosition(gridX, gridY) {
         }
         const plateHeight = 8;
         const epsilon = 0.001;
+        
+        // Find the GLOBAL maximum deltaY across ALL violations
+        // All parts below ground should move by the SAME amount to stay together
+        let globalMaxDelta = 0;
         summary.forEach(entry => {
-            const idx = entry && typeof entry.lineNum === 'number' ? entry.lineNum : null;
-            if (idx === null || idx < 0 || idx >= editorLines.length) return;
-            let delta = entry.maxDeltaY;
-            if (!isFinite(delta)) return;
-            const snapped = Math.round(delta / plateHeight) * plateHeight;
-            if (Math.abs(snapped) < epsilon) return;
-            const existing = offsets.get(idx);
-            if (existing === undefined || Math.abs(snapped) > Math.abs(existing)) {
-                offsets.set(idx, snapped);
+            if (entry && typeof entry.maxDeltaY === 'number' && isFinite(entry.maxDeltaY)) {
+                if (entry.maxDeltaY > globalMaxDelta) {
+                    globalMaxDelta = entry.maxDeltaY;
+                }
+            }
+        });
+        
+        // Snap to plate height
+        const snappedGlobalDelta = Math.round(globalMaxDelta / plateHeight) * plateHeight;
+        if (Math.abs(snappedGlobalDelta) < epsilon) {
+            STATE.groundTransforms = [];
+            return offsets;
+        }
+        
+        console.log('[GROUND] Global delta to lift entire model:', snappedGlobalDelta);
+        
+        // Apply the SAME offset to ALL type-1 lines in the model
+        // This lifts the entire model uniformly, keeping all parts together
+        editorLines.forEach((line, idx) => {
+            if (parseType1Line(line)) {
+                offsets.set(idx, snappedGlobalDelta);
             }
         });
 
@@ -8948,40 +8992,797 @@ function highlightLinesAtGridPosition(gridX, gridY) {
 
     function toggleGroundCorrections() {
         const statusText = document.getElementById('status-text');
-        if (!STATE.groundActive) {
-            const originalText = Array.isArray(editorLines) ? editorLines.join('\n') : '';
-            const correctedLines = buildGroundCorrectedLines();
-            const correctedText = correctedLines.join('\n');
-            if (correctedText === originalText) {
-                if (statusText) statusText.textContent = 'No ground corrections to apply';
-                return false;
-            }
+        const groundBtn = document.getElementById('ground-toggle-btn');
+        
+        // Show loading state
+        if (groundBtn) {
+            groundBtn.disabled = true;
+            groundBtn.textContent = '⏳';
+        }
+        if (statusText) statusText.textContent = 'Processing ground corrections...';
+        
+        // Use setTimeout to allow UI to update before heavy computation
+        setTimeout(() => {
+            if (!STATE.groundActive) {
+                const originalText = Array.isArray(editorLines) ? editorLines.join('\n') : '';
+                const correctedLines = buildGroundCorrectedLines();
+                const correctedText = correctedLines.join('\n');
+                if (correctedText === originalText) {
+                    if (statusText) statusText.textContent = 'No ground corrections to apply';
+                    if (groundBtn) {
+                        groundBtn.disabled = false;
+                        groundBtn.textContent = '🪨';
+                    }
+                    return false;
+                }
 
-            STATE.groundOriginalLines = Array.isArray(editorLines) ? [...editorLines] : [];
-            editorLines = correctedLines;
-            if (STATE.scenes[STATE.activeSceneIdx]) {
-                STATE.scenes[STATE.activeSceneIdx].lines = [...editorLines];
-            }
-            renderEditor(editorLines);
-            if (statusText) statusText.textContent = 'Ground corrections applied';
-            STATE.groundActive = true;
-        } else {
-            if (Array.isArray(STATE.groundOriginalLines) && STATE.groundOriginalLines.length) {
-                editorLines = [...STATE.groundOriginalLines];
+                STATE.groundOriginalLines = Array.isArray(editorLines) ? [...editorLines] : [];
+                editorLines = correctedLines;
                 if (STATE.scenes[STATE.activeSceneIdx]) {
                     STATE.scenes[STATE.activeSceneIdx].lines = [...editorLines];
                 }
                 renderEditor(editorLines);
-                if (statusText) statusText.textContent = 'Ground corrections reverted';
-            } else if (statusText) {
-                statusText.textContent = 'No original scene to restore';
+                if (statusText) statusText.textContent = '🪨 Ground corrections applied';
+                STATE.groundActive = true;
+            } else {
+                if (Array.isArray(STATE.groundOriginalLines) && STATE.groundOriginalLines.length) {
+                    editorLines = [...STATE.groundOriginalLines];
+                    if (STATE.scenes[STATE.activeSceneIdx]) {
+                        STATE.scenes[STATE.activeSceneIdx].lines = [...editorLines];
+                    }
+                    renderEditor(editorLines);
+                    if (statusText) statusText.textContent = '🪨 Ground corrections reverted';
+                } else if (statusText) {
+                    statusText.textContent = 'No original scene to restore';
+                }
+                STATE.groundActive = false;
             }
-            STATE.groundActive = false;
-        }
 
-        setTimeout(() => compile(), 200);
+            // Restore button state
+            if (groundBtn) {
+                groundBtn.disabled = false;
+                groundBtn.textContent = '🪨';
+            }
+
+            setTimeout(() => compile(), 200);
+        }, 50);
+        
         return STATE.groundActive;
     }
+
+    // Magnet snap - snaps all parts to nearest stud grid positions
+    function magnetSnapAllParts() {
+        const statusText = document.getElementById('status-text');
+        const magnetBtn = document.getElementById('magnet-snap-btn');
+        
+        if (!Array.isArray(editorLines) || !editorLines.length) {
+            if (statusText) statusText.textContent = 'No parts to snap';
+            return;
+        }
+        
+        // Show loading state
+        if (magnetBtn) {
+            magnetBtn.disabled = true;
+            magnetBtn.textContent = '⏳';
+        }
+        if (statusText) statusText.textContent = 'Snapping to stud grid...';
+        
+        setTimeout(() => {
+            const studSpacing = 20; // LDU between studs (X/Z)
+            const plateHeight = 8;  // LDU per plate height (Y)
+            let snappedCount = 0;
+            
+            const newLines = editorLines.map((line, idx) => {
+                const parsed = parseType1Line(line);
+                if (!parsed) return line;
+                
+                // Snap X and Z to stud grid (multiples of 20)
+                const snappedX = Math.round(parsed.x / studSpacing) * studSpacing;
+                const snappedZ = Math.round(parsed.z / studSpacing) * studSpacing;
+                // Snap Y to plate height (multiples of 8)
+                const snappedY = Math.round(parsed.y / plateHeight) * plateHeight;
+                
+                // Check if anything changed
+                if (snappedX !== parsed.x || snappedY !== parsed.y || snappedZ !== parsed.z) {
+                    snappedCount++;
+                    // Rebuild the line with snapped coordinates
+                    const parts = line.trim().split(/\s+/);
+                    if (parts.length >= 14) {
+                        parts[2] = snappedX.toString();
+                        parts[3] = snappedY.toString();
+                        parts[4] = snappedZ.toString();
+                        // Preserve leading whitespace
+                        const leading = line.match(/^(\s*)/)[1] || '';
+                        return leading + parts.join(' ');
+                    }
+                }
+                return line;
+            });
+            
+            if (snappedCount > 0) {
+                // Play satisfying click sound
+                playMagnetClickSound();
+                
+                editorLines = newLines;
+                if (STATE.scenes[STATE.activeSceneIdx]) {
+                    STATE.scenes[STATE.activeSceneIdx].lines = [...editorLines];
+                }
+                renderEditor(editorLines);
+                if (statusText) statusText.textContent = `🧲 Snapped ${snappedCount} parts to grid`;
+                
+                // Recompile after a short delay
+                setTimeout(() => compile(), 200);
+            } else {
+                if (statusText) statusText.textContent = '🧲 All parts already on grid';
+            }
+            
+            // Restore button state
+            if (magnetBtn) {
+                magnetBtn.disabled = false;
+                magnetBtn.textContent = '🧲';
+            }
+        }, 50);
+    }
+    
+    // Play a satisfying magnetic click sound
+    function playMagnetClickSound() {
+        try {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            
+            // Create a short "click" sound
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            // Quick attack, quick decay for a "snap" feel
+            oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(200, audioCtx.currentTime + 0.1);
+            
+            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+            
+            oscillator.start(audioCtx.currentTime);
+            oscillator.stop(audioCtx.currentTime + 0.15);
+            
+            // Clean up
+            setTimeout(() => audioCtx.close(), 200);
+        } catch (e) {
+            console.log('[MAGNET] Audio not available:', e.message);
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // VOID MANAGEMENT SYSTEM - Auto-Assembly via Negative Space
+    // ═══════════════════════════════════════════════════════════════
+    
+    // Get bounding box for a part based on known dimensions or estimation
+    function estimatePartBounds(parsed) {
+        // Common part dimension patterns (in LDU)
+        // Format: partId pattern -> { width, height, depth } in studs/plates
+        const studSize = 20;
+        const plateHeight = 8;
+        const brickHeight = 24;
+        
+        const partId = (parsed.partId || '').toLowerCase();
+        let w = 1, h = 1, d = 1; // Default 1x1x1 plate
+        
+        // Try to extract dimensions from part name
+        // Pattern: NxM in filename (e.g., 3001 = 2x4 brick, 3003 = 2x2 brick)
+        const knownParts = {
+            '3001': { w: 4, h: 3, d: 2 },  // 2x4 brick
+            '3002': { w: 3, h: 3, d: 2 },  // 2x3 brick
+            '3003': { w: 2, h: 3, d: 2 },  // 2x2 brick
+            '3004': { w: 2, h: 3, d: 1 },  // 1x2 brick
+            '3005': { w: 1, h: 3, d: 1 },  // 1x1 brick
+            '3006': { w: 10, h: 3, d: 2 }, // 2x10 brick
+            '3007': { w: 8, h: 3, d: 2 },  // 2x8 brick
+            '3008': { w: 8, h: 3, d: 1 },  // 1x8 brick
+            '3009': { w: 6, h: 3, d: 1 },  // 1x6 brick
+            '3010': { w: 4, h: 3, d: 1 },  // 1x4 brick
+            '3020': { w: 4, h: 1, d: 2 },  // 2x4 plate
+            '3021': { w: 3, h: 1, d: 2 },  // 2x3 plate
+            '3022': { w: 2, h: 1, d: 2 },  // 2x2 plate
+            '3023': { w: 2, h: 1, d: 1 },  // 1x2 plate
+            '3024': { w: 1, h: 1, d: 1 },  // 1x1 plate
+            '3031': { w: 4, h: 1, d: 4 },  // 4x4 plate
+            '3032': { w: 6, h: 1, d: 4 },  // 4x6 plate
+            '3033': { w: 10, h: 1, d: 6 }, // 6x10 plate
+            '3034': { w: 8, h: 1, d: 2 },  // 2x8 plate
+            '3035': { w: 8, h: 1, d: 4 },  // 4x8 plate
+            '3036': { w: 8, h: 1, d: 6 },  // 6x8 plate
+            '3039': { w: 2, h: 2, d: 2 },  // 2x2 slope 45
+            '3040': { w: 2, h: 2, d: 1 },  // 1x2 slope 45
+            '3041': { w: 4, h: 4, d: 2 },  // 2x4 slope 45 double
+            '3660': { w: 2, h: 2, d: 2 },  // 2x2 slope inverted
+            '3665': { w: 2, h: 2, d: 1 },  // 1x2 slope inverted
+            '3068': { w: 2, h: 1, d: 2 },  // 2x2 tile
+            '3069': { w: 2, h: 1, d: 1 },  // 1x2 tile
+            '3070': { w: 1, h: 1, d: 1 },  // 1x1 tile
+            '3795': { w: 2, h: 1, d: 2 },  // 2x2 plate with hole
+            '3623': { w: 3, h: 1, d: 1 },  // 1x3 plate
+            '3710': { w: 4, h: 1, d: 1 },  // 1x4 plate
+            '3666': { w: 6, h: 1, d: 1 },  // 1x6 plate
+            '3460': { w: 8, h: 1, d: 1 },  // 1x8 plate
+            '4477': { w: 10, h: 1, d: 1 }, // 1x10 plate
+        };
+        
+        // Extract base part number
+        const baseNum = partId.match(/(\d{4,5})/);
+        if (baseNum && knownParts[baseNum[1]]) {
+            const dims = knownParts[baseNum[1]];
+            w = dims.w;
+            h = dims.h;
+            d = dims.d;
+        } else {
+            // Heuristic: try to guess from filename patterns
+            const sizeMatch = partId.match(/(\d+)\s*x\s*(\d+)/i);
+            if (sizeMatch) {
+                w = parseInt(sizeMatch[1]) || 1;
+                d = parseInt(sizeMatch[2]) || 1;
+            }
+            // Check for "baseplate" - large
+            if (partId.includes('baseplate') || partId.includes('32 x 32')) {
+                w = 32; d = 32; h = 1;
+            }
+            // Check for track pieces
+            if (partId.includes('track') || partId.includes('30401') || partId.includes('30402')) {
+                w = 16; d = 16; h = 1;
+            }
+        }
+        
+        // Apply rotation matrix to dimensions
+        const a = Math.abs(parsed.a), b = Math.abs(parsed.b), c = Math.abs(parsed.c);
+        const d1 = Math.abs(parsed.d), e = Math.abs(parsed.e), f = Math.abs(parsed.f);
+        const g = Math.abs(parsed.g), h1 = Math.abs(parsed.h), i = Math.abs(parsed.i);
+        
+        // Calculate world-space extents
+        const worldW = (w * studSize * Math.max(a, b, c)) || (w * studSize);
+        const worldH = (h * plateHeight * Math.max(d1, e, f)) || (h * plateHeight);
+        const worldD = (d * studSize * Math.max(g, h1, i)) || (d * studSize);
+        
+        return {
+            minX: parsed.x - worldW / 2,
+            maxX: parsed.x + worldW / 2,
+            minY: parsed.y - worldH,
+            maxY: parsed.y,
+            minZ: parsed.z - worldD / 2,
+            maxZ: parsed.z + worldD / 2,
+            studW: w,
+            studD: d,
+            studH: h
+        };
+    }
+    
+    // Check if two bounding boxes overlap
+    function boundsOverlap(a, b, margin = 2) {
+        return !(a.maxX + margin < b.minX || a.minX - margin > b.maxX ||
+                 a.maxY + margin < b.minY || a.minY - margin > b.maxY ||
+                 a.maxZ + margin < b.minZ || a.minZ - margin > b.maxZ);
+    }
+    
+    // Build a void map - grid of occupied and empty stud positions
+    function buildVoidMap() {
+        const studSpacing = 20;
+        const plateHeight = 8;
+        const occupied = new Map(); // "x,y,z" -> lineNum
+        const voidPositions = [];
+        
+        // First pass: mark all occupied positions
+        editorLines.forEach((line, idx) => {
+            const parsed = parseType1Line(line);
+            if (!parsed) return;
+            
+            const bounds = estimatePartBounds(parsed);
+            const studW = bounds.studW || 1;
+            const studD = bounds.studD || 1;
+            const studH = bounds.studH || 1;
+            
+            // Mark grid cells this part occupies
+            for (let sx = 0; sx < studW; sx++) {
+                for (let sz = 0; sz < studD; sz++) {
+                    for (let sy = 0; sy < studH; sy++) {
+                        const wx = Math.round((parsed.x - (studW - 1) * 10 + sx * studSpacing) / studSpacing) * studSpacing;
+                        const wy = Math.round((parsed.y - sy * plateHeight) / plateHeight) * plateHeight;
+                        const wz = Math.round((parsed.z - (studD - 1) * 10 + sz * studSpacing) / studSpacing) * studSpacing;
+                        const key = `${wx},${wy},${wz}`;
+                        occupied.set(key, idx);
+                    }
+                }
+            }
+        });
+        
+        // Find bounding box of scene
+        let minX = Infinity, maxX = -Infinity;
+        let minZ = Infinity, maxZ = -Infinity;
+        let minY = Infinity, maxY = -Infinity;
+        
+        occupied.forEach((_, key) => {
+            const [x, y, z] = key.split(',').map(Number);
+            minX = Math.min(minX, x); maxX = Math.max(maxX, x);
+            minY = Math.min(minY, y); maxY = Math.max(maxY, y);
+            minZ = Math.min(minZ, z); maxZ = Math.max(maxZ, z);
+        });
+        
+        // Expand bounds slightly
+        minX -= studSpacing * 2; maxX += studSpacing * 2;
+        minZ -= studSpacing * 2; maxZ += studSpacing * 2;
+        
+        // Second pass: find void positions (empty grid cells within bounds)
+        for (let x = minX; x <= maxX; x += studSpacing) {
+            for (let z = minZ; z <= maxZ; z += studSpacing) {
+                const groundKey = `${x},0,${z}`;
+                if (!occupied.has(groundKey)) {
+                    voidPositions.push({ x, y: 0, z, layer: 0 });
+                }
+            }
+        }
+        
+        return { occupied, voidPositions, bounds: { minX, maxX, minY, maxY, minZ, maxZ } };
+    }
+    
+    // Advanced magnet: detect overlaps and spread parts
+    function magnetSpreadParts() {
+        const statusText = document.getElementById('status-text');
+        const magnetBtn = document.getElementById('magnet-snap-btn');
+        
+        if (!Array.isArray(editorLines) || !editorLines.length) {
+            if (statusText) statusText.textContent = 'No parts to spread';
+            return;
+        }
+        
+        if (magnetBtn) {
+            magnetBtn.disabled = true;
+            magnetBtn.textContent = '⏳';
+        }
+        if (statusText) statusText.textContent = 'Analyzing overlaps...';
+        
+        setTimeout(() => {
+            const studSpacing = 20;
+            const plateHeight = 8;
+            
+            // Parse all parts and their bounds
+            const parts = [];
+            editorLines.forEach((line, idx) => {
+                const parsed = parseType1Line(line);
+                if (parsed) {
+                    const bounds = estimatePartBounds(parsed);
+                    parts.push({ idx, parsed, bounds, line });
+                }
+            });
+            
+            if (parts.length < 2) {
+                if (statusText) statusText.textContent = 'Need 2+ parts to spread';
+                if (magnetBtn) { magnetBtn.disabled = false; magnetBtn.textContent = '🧲'; }
+                return;
+            }
+            
+            // Find overlapping pairs
+            const overlaps = [];
+            for (let i = 0; i < parts.length; i++) {
+                for (let j = i + 1; j < parts.length; j++) {
+                    if (boundsOverlap(parts[i].bounds, parts[j].bounds)) {
+                        overlaps.push([i, j]);
+                    }
+                }
+            }
+            
+            console.log('[VOID] Found', overlaps.length, 'overlapping pairs');
+            
+            if (overlaps.length === 0) {
+                // No overlaps - try stacking instead
+                magnetStackParts(parts);
+                return;
+            }
+            
+            // Resolve overlaps by spreading parts
+            let movedCount = 0;
+            const occupied = new Set();
+            
+            // Mark first part's position as occupied
+            parts.forEach((p, i) => {
+                const key = `${Math.round(p.parsed.x / studSpacing)},${Math.round(p.parsed.z / studSpacing)}`;
+                if (i === 0) occupied.add(key);
+            });
+            
+            // Move overlapping parts to nearest free position
+            const newLines = [...editorLines];
+            
+            overlaps.forEach(([i, j]) => {
+                const partB = parts[j];
+                let bestX = partB.parsed.x;
+                let bestZ = partB.parsed.z;
+                let found = false;
+                
+                // Spiral outward to find free position
+                for (let radius = 1; radius <= 20 && !found; radius++) {
+                    for (let dx = -radius; dx <= radius && !found; dx++) {
+                        for (let dz = -radius; dz <= radius && !found; dz++) {
+                            if (Math.abs(dx) !== radius && Math.abs(dz) !== radius) continue;
+                            
+                            const testX = Math.round((partB.parsed.x + dx * studSpacing) / studSpacing) * studSpacing;
+                            const testZ = Math.round((partB.parsed.z + dz * studSpacing) / studSpacing) * studSpacing;
+                            const key = `${Math.round(testX / studSpacing)},${Math.round(testZ / studSpacing)}`;
+                            
+                            if (!occupied.has(key)) {
+                                bestX = testX;
+                                bestZ = testZ;
+                                occupied.add(key);
+                                found = true;
+                            }
+                        }
+                    }
+                }
+                
+                if (bestX !== partB.parsed.x || bestZ !== partB.parsed.z) {
+                    // Rebuild line with new position
+                    const lineParts = partB.line.trim().split(/\s+/);
+                    if (lineParts.length >= 14) {
+                        lineParts[2] = bestX.toString();
+                        lineParts[4] = bestZ.toString();
+                        const leading = partB.line.match(/^(\s*)/)[1] || '';
+                        newLines[partB.idx] = leading + lineParts.join(' ');
+                        movedCount++;
+                    }
+                }
+            });
+            
+            if (movedCount > 0) {
+                playMagnetClickSound();
+                editorLines = newLines;
+                if (STATE.scenes[STATE.activeSceneIdx]) {
+                    STATE.scenes[STATE.activeSceneIdx].lines = [...editorLines];
+                }
+                renderEditor(editorLines);
+                if (statusText) statusText.textContent = `🧲 Spread ${movedCount} overlapping parts`;
+                setTimeout(() => compile(), 200);
+            } else {
+                if (statusText) statusText.textContent = '🧲 No overlaps to resolve';
+            }
+            
+            if (magnetBtn) { magnetBtn.disabled = false; magnetBtn.textContent = '🧲'; }
+        }, 50);
+    }
+    
+    // Stack compatible parts - connect via studs
+    function magnetStackParts(parts) {
+        const statusText = document.getElementById('status-text');
+        const magnetBtn = document.getElementById('magnet-snap-btn');
+        const studSpacing = 20;
+        const plateHeight = 8;
+        
+        if (!parts || parts.length < 2) {
+            if (statusText) statusText.textContent = '🧲 No parts to stack';
+            if (magnetBtn) { magnetBtn.disabled = false; magnetBtn.textContent = '🧲'; }
+            return;
+        }
+        
+        // Sort by Y (lowest first - these become the base)
+        const sortedParts = [...parts].sort((a, b) => b.parsed.y - a.parsed.y);
+        
+        // Try to stack higher parts onto lower parts
+        let stackedCount = 0;
+        const newLines = [...editorLines];
+        const usedPositions = new Set();
+        
+        // First, mark base layer positions
+        sortedParts.slice(0, Math.ceil(sortedParts.length / 3)).forEach(p => {
+            const gx = Math.round(p.parsed.x / studSpacing);
+            const gz = Math.round(p.parsed.z / studSpacing);
+            for (let dx = 0; dx < (p.bounds.studW || 1); dx++) {
+                for (let dz = 0; dz < (p.bounds.studD || 1); dz++) {
+                    usedPositions.add(`${gx + dx},0,${gz + dz}`);
+                }
+            }
+        });
+        
+        // Stack remaining parts
+        sortedParts.slice(Math.ceil(sortedParts.length / 3)).forEach((part, i) => {
+            const stackHeight = (i % 3 + 1) * plateHeight * 3; // Vary heights
+            const gx = Math.round(part.parsed.x / studSpacing);
+            const gz = Math.round(part.parsed.z / studSpacing);
+            
+            // Find a position on top of existing parts
+            let foundX = part.parsed.x;
+            let foundY = -stackHeight;
+            let foundZ = part.parsed.z;
+            let found = false;
+            
+            // Look for a base position with space above
+            for (const key of usedPositions) {
+                const [bx, by, bz] = key.split(',').map(Number);
+                if (by === 0) { // Ground level
+                    const testKey = `${bx},${stackHeight / plateHeight},${bz}`;
+                    if (!usedPositions.has(testKey)) {
+                        foundX = bx * studSpacing;
+                        foundY = -stackHeight;
+                        foundZ = bz * studSpacing;
+                        usedPositions.add(testKey);
+                        found = true;
+                        break;
+                    }
+                }
+            }
+            
+            if (found && (foundX !== part.parsed.x || foundY !== part.parsed.y || foundZ !== part.parsed.z)) {
+                const lineParts = part.line.trim().split(/\s+/);
+                if (lineParts.length >= 14) {
+                    lineParts[2] = foundX.toString();
+                    lineParts[3] = foundY.toString();
+                    lineParts[4] = foundZ.toString();
+                    const leading = part.line.match(/^(\s*)/)[1] || '';
+                    newLines[part.idx] = leading + lineParts.join(' ');
+                    stackedCount++;
+                }
+            }
+        });
+        
+        if (stackedCount > 0) {
+            playMagnetClickSound();
+            playMagnetClickSound(); // Double click for stacking
+            editorLines = newLines;
+            if (STATE.scenes[STATE.activeSceneIdx]) {
+                STATE.scenes[STATE.activeSceneIdx].lines = [...editorLines];
+            }
+            renderEditor(editorLines);
+            if (statusText) statusText.textContent = `🧲 Stacked ${stackedCount} parts`;
+            setTimeout(() => compile(), 200);
+        } else {
+            if (statusText) statusText.textContent = '🧲 Parts already arranged';
+        }
+        
+        if (magnetBtn) { magnetBtn.disabled = false; magnetBtn.textContent = '🧲'; }
+    }
+    
+    // Visualize void positions in the scene
+    function drawVoidOverlay() {
+        if (!STATE || !STATE.viewer || !STATE.viewer.scene || !window.THREE) return;
+        
+        const scene = STATE.viewer.scene;
+        
+        // Remove existing void overlay
+        if (STATE.voidOverlayGroup && STATE.voidOverlayGroup.parent) {
+            STATE.voidOverlayGroup.parent.remove(STATE.voidOverlayGroup);
+        }
+        
+        const voidMap = buildVoidMap();
+        if (!voidMap.voidPositions.length) {
+            console.log('[VOID] No void positions to visualize');
+            return;
+        }
+        
+        const group = new THREE.Group();
+        group.name = 'VoidOverlay';
+        
+        const geometry = new THREE.RingGeometry(6, 8, 6);
+        const material = new THREE.MeshBasicMaterial({ 
+            color: 0xff00ff, // Magenta for voids
+            transparent: true,
+            opacity: 0.4,
+            side: THREE.DoubleSide
+        });
+        
+        // Limit to prevent performance issues
+        const maxVoids = 200;
+        const voidsToShow = voidMap.voidPositions.slice(0, maxVoids);
+        
+        voidsToShow.forEach(v => {
+            const ring = new THREE.Mesh(geometry, material);
+            ring.position.set(v.x, v.y + 1, v.z);
+            ring.rotation.x = -Math.PI / 2;
+            group.add(ring);
+        });
+        
+        scene.add(group);
+        STATE.voidOverlayGroup = group;
+        console.log('[VOID] Drew', voidsToShow.length, 'void positions (magenta rings)');
+    }
+    
+    // Master magnet function - cycles through modes
+    let magnetMode = 0; // 0 = snap, 1 = spread, 2 = stack, 3 = void
+    
+    function magnetSnapAllPartsAdvanced() {
+        magnetMode = (magnetMode + 1) % 4;
+        
+        const statusText = document.getElementById('status-text');
+        
+        switch (magnetMode) {
+            case 0:
+                if (statusText) statusText.textContent = '🧲 Mode: SNAP to grid';
+                magnetSnapAllParts();
+                break;
+            case 1:
+                if (statusText) statusText.textContent = '🧲 Mode: SPREAD overlaps';
+                magnetSpreadParts();
+                break;
+            case 2:
+                if (statusText) statusText.textContent = '🧲 Mode: STACK parts';
+                const parts = [];
+                editorLines.forEach((line, idx) => {
+                    const parsed = parseType1Line(line);
+                    if (parsed) {
+                        const bounds = estimatePartBounds(parsed);
+                        parts.push({ idx, parsed, bounds, line });
+                    }
+                });
+                magnetStackParts(parts);
+                break;
+            case 3:
+                if (statusText) statusText.textContent = '🧲 Mode: Show VOIDS';
+                drawVoidOverlay();
+                break;
+        }
+    }
+    
+    // Auto-assemble: the big one - try to connect all parts intelligently
+    function autoAssembleScene() {
+        const statusText = document.getElementById('status-text');
+        const magnetBtn = document.getElementById('magnet-snap-btn');
+        
+        if (!Array.isArray(editorLines) || !editorLines.length) {
+            if (statusText) statusText.textContent = 'No parts to assemble';
+            return;
+        }
+        
+        if (magnetBtn) {
+            magnetBtn.disabled = true;
+            magnetBtn.textContent = '⏳';
+        }
+        if (statusText) statusText.textContent = '🤖 Auto-assembling scene...';
+        
+        setTimeout(() => {
+            const studSpacing = 20;
+            const plateHeight = 8;
+            
+            // Parse all parts
+            const parts = [];
+            editorLines.forEach((line, idx) => {
+                const parsed = parseType1Line(line);
+                if (parsed) {
+                    const bounds = estimatePartBounds(parsed);
+                    parts.push({ 
+                        idx, 
+                        parsed, 
+                        bounds, 
+                        line,
+                        placed: false,
+                        gridX: 0,
+                        gridY: 0,
+                        gridZ: 0
+                    });
+                }
+            });
+            
+            if (parts.length === 0) {
+                if (statusText) statusText.textContent = 'No valid parts found';
+                if (magnetBtn) { magnetBtn.disabled = false; magnetBtn.textContent = '🧲'; }
+                return;
+            }
+            
+            // Sort by size (largest first)
+            parts.sort((a, b) => {
+                const sizeA = (a.bounds.studW || 1) * (a.bounds.studD || 1);
+                const sizeB = (b.bounds.studW || 1) * (b.bounds.studD || 1);
+                return sizeB - sizeA;
+            });
+            
+            // Grid for tracking occupied positions
+            const grid = new Map(); // "gx,gy,gz" -> partIdx
+            
+            // Place largest part at origin
+            const firstPart = parts[0];
+            firstPart.gridX = 0;
+            firstPart.gridY = 0;
+            firstPart.gridZ = 0;
+            firstPart.placed = true;
+            
+            // Mark its cells as occupied
+            for (let dx = 0; dx < (firstPart.bounds.studW || 1); dx++) {
+                for (let dz = 0; dz < (firstPart.bounds.studD || 1); dz++) {
+                    grid.set(`${dx},0,${dz}`, 0);
+                }
+            }
+            
+            // Place remaining parts using spiral placement
+            let placedCount = 1;
+            let spiralRadius = 1;
+            let currentLayer = 0;
+            
+            for (let i = 1; i < parts.length; i++) {
+                const part = parts[i];
+                const w = part.bounds.studW || 1;
+                const d = part.bounds.studD || 1;
+                let placed = false;
+                
+                // Try to find a valid position
+                for (let layer = 0; layer <= 3 && !placed; layer++) {
+                    for (let radius = 0; radius <= 15 && !placed; radius++) {
+                        // Spiral pattern
+                        for (let angle = 0; angle < 8 && !placed; angle++) {
+                            const gx = Math.round(Math.cos(angle * Math.PI / 4) * radius);
+                            const gz = Math.round(Math.sin(angle * Math.PI / 4) * radius);
+                            
+                            // Check if position is free
+                            let canPlace = true;
+                            for (let dx = 0; dx < w && canPlace; dx++) {
+                                for (let dz = 0; dz < d && canPlace; dz++) {
+                                    if (grid.has(`${gx + dx},${layer},${gz + dz}`)) {
+                                        canPlace = false;
+                                    }
+                                }
+                            }
+                            
+                            if (canPlace) {
+                                part.gridX = gx;
+                                part.gridY = layer;
+                                part.gridZ = gz;
+                                part.placed = true;
+                                placed = true;
+                                placedCount++;
+                                
+                                // Mark cells
+                                for (let dx = 0; dx < w; dx++) {
+                                    for (let dz = 0; dz < d; dz++) {
+                                        grid.set(`${gx + dx},${layer},${gz + dz}`, i);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Convert grid positions back to world coordinates
+            const newLines = [...editorLines];
+            let movedCount = 0;
+            
+            parts.forEach(part => {
+                if (part.placed) {
+                    const worldX = part.gridX * studSpacing;
+                    const worldY = -part.gridY * plateHeight * 3; // Stack height
+                    const worldZ = part.gridZ * studSpacing;
+                    
+                    if (worldX !== part.parsed.x || worldY !== part.parsed.y || worldZ !== part.parsed.z) {
+                        const lineParts = part.line.trim().split(/\s+/);
+                        if (lineParts.length >= 14) {
+                            lineParts[2] = worldX.toString();
+                            lineParts[3] = worldY.toString();
+                            lineParts[4] = worldZ.toString();
+                            const leading = part.line.match(/^(\s*)/)[1] || '';
+                            newLines[part.idx] = leading + lineParts.join(' ');
+                            movedCount++;
+                        }
+                    }
+                }
+            });
+            
+            if (movedCount > 0) {
+                // Play multiple clicks for dramatic effect
+                playMagnetClickSound();
+                setTimeout(() => playMagnetClickSound(), 100);
+                setTimeout(() => playMagnetClickSound(), 200);
+                
+                editorLines = newLines;
+                if (STATE.scenes[STATE.activeSceneIdx]) {
+                    STATE.scenes[STATE.activeSceneIdx].lines = [...editorLines];
+                }
+                renderEditor(editorLines);
+                if (statusText) statusText.textContent = `🤖 Assembled ${placedCount}/${parts.length} parts`;
+                setTimeout(() => compile(), 200);
+            } else {
+                if (statusText) statusText.textContent = '🤖 Scene already assembled';
+            }
+            
+            if (magnetBtn) { magnetBtn.disabled = false; magnetBtn.textContent = '🧲'; }
+        }, 50);
+    }
+    
+    // Expose auto-assemble for double-click on magnet button
+    window.autoAssembleScene = autoAssembleScene;
+    window.magnetSpreadParts = magnetSpreadParts;
+    window.drawVoidOverlay = drawVoidOverlay;
+    window.buildVoidMap = buildVoidMap;
 
     function buildStudSkeletonMPD() {
         const studs = STATE.studSkeleton || [];
@@ -9137,29 +9938,6 @@ function highlightLinesAtGridPosition(gridX, gridY) {
                 }, 2000);
             });
         });
-        
-        const copyGroundBtn = document.getElementById('copy-ground-btn');
-        if (copyGroundBtn) {
-            copyGroundBtn.addEventListener('click', () => {
-                const text = buildGroundCorrectedMPD();
-                if (!text) return;
-                navigator.clipboard.writeText(text).then(() => {
-                    const statusText = document.getElementById('status-text');
-                    if (statusText) {
-                        statusText.textContent = '📋 Copied ground-corrected MPD';
-                        statusText.style.color = 'var(--accent)';
-                        statusText.style.fontWeight = '700';
-                        setTimeout(() => {
-                            statusText.textContent = 'Ready';
-                            statusText.style.color = '';
-                            statusText.style.fontWeight = '';
-                        }, 2000);
-                    }
-                }).catch(err => {
-                    console.warn('[STUD] Failed to copy ground-corrected MPD', err);
-                });
-            });
-        }
         
         // 💚 SELECT ALL button
         document.getElementById('select-all-btn').addEventListener('click', () => {
