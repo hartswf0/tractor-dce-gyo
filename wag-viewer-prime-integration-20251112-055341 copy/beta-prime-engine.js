@@ -107,7 +107,10 @@
             const threeColor = new THREE.Color(color);
             engine.scene.background = threeColor;
             engine.renderer.setClearColor(threeColor);
-            engine.render();
+            // Force immediate render
+            if (engine.renderer && engine.scene && engine.camera) {
+                engine.renderer.render(engine.scene, engine.camera);
+            }
         };
 
         engine.loadPath = async function (path, meta = {}, onProgress) {

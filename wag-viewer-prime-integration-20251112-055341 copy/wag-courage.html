@@ -1082,6 +1082,7 @@
                 <button class="panel-btn" id="stud-normal-quick" title="Toggle normal (cyan) studs" style="color:#00ffff;">●</button>
                 <button class="panel-btn" id="stud-problem-quick" title="Toggle problem (red) studs" style="color:#ff4444;">●</button>
                 <button class="panel-btn" id="stud-ghost-quick" title="Toggle ghost (green) studs" style="color:#00ff00;">●</button>
+                <button class="panel-btn" id="part-control-quick" title="Toggle part centers (yellow)" style="color:#ffff00;">●</button>
             </div>
             <div style="flex: 1;"></div>
             <div style="display: flex; gap: 4px; align-items: center;">
@@ -2415,7 +2416,8 @@
             skeletonOnly: false,
             studNormal: true,
             studProblem: true,
-            studGhost: true
+            studGhost: true,
+            partControlOverlay: false
         },
         libraryFileMap: null,  // Still need this for LDraw parts
         groundOriginalLines: null,
@@ -3935,9 +3937,12 @@
         }
 
         drawStudSkeletonOverlay();
-        if (typeof buildPartControlSkeleton === 'function' && typeof drawPartControlOverlay === 'function') {
-            buildPartControlSkeleton();
-            drawPartControlOverlay();
+        // Only build part control skeleton if the overlay is enabled (performance optimization)
+        if (STATE.diagnostics && STATE.diagnostics.partControlOverlay !== false) {
+            if (typeof buildPartControlSkeleton === 'function' && typeof drawPartControlOverlay === 'function') {
+                buildPartControlSkeleton();
+                drawPartControlOverlay();
+            }
         }
     }
     
@@ -4824,6 +4829,15 @@
         if (STATE.partControlGroup && STATE.partControlGroup.parent) {
             STATE.partControlGroup.parent.remove(STATE.partControlGroup);
         }
+        
+        // Check if part control overlay is enabled via diagnostics toggle
+        const diag = STATE.diagnostics || {};
+        if (diag.partControlOverlay === false) {
+            console.log('[PART] Part control overlay disabled');
+            STATE.partControlGroup = null;
+            return;
+        }
+        
         const nodes = STATE.partControlSkeleton || [];
         if (!nodes.length) {
             console.log('[PART] No part control nodes to draw');
@@ -4845,7 +4859,8 @@
         nodes.forEach(node => {
             if (!node.worldPos) return;
             const marker = new THREE.Mesh(geometry, material);
-            marker.position.set(node.worldPos.x, node.worldPos.y, node.worldPos.z);
+            // LDraw coordinates transformed via rotation.x = Math.PI: X stays, Y and Z are negated
+            marker.position.set(node.worldPos.x, -node.worldPos.y, -node.worldPos.z);
             marker.userData = marker.userData || {};
             marker.userData.lineNum = node.lineNum;
             marker.userData.partId = node.partId;
@@ -4914,8 +4929,18 @@
         });
 
         // Draw overlay and compare mesh count to nodes length
+        // Temporarily enable overlay for test
+        const wasEnabled = STATE.diagnostics.partControlOverlay;
+        STATE.diagnostics.partControlOverlay = true;
         drawPartControlOverlay();
         const group = STATE.partControlGroup;
+        
+        // Restore previous state and clean up if it was disabled
+        STATE.diagnostics.partControlOverlay = wasEnabled;
+        if (!wasEnabled) {
+            drawPartControlOverlay(); // This will remove the overlay since toggle is off
+        }
+        
         const overlayCount = group && Array.isArray(group.children) ? group.children.length : 0;
         result.overlayDots = overlayCount;
         if (overlayCount !== nodes.length) {
@@ -5254,50 +5279,97 @@
                 border: 2px solid var(--accent);
                 border-radius: 8px;
                 padding: 20px;
-                max-width: 400px;
+                max-width: 480px;
                 z-index: 10000;
                 box-shadow: 0 8px 32px rgba(0,0,0,0.8);
                 color: var(--text-primary);
             `;
             
             helpMenu.innerHTML = `
-                <h3 style="color: var(--accent); margin: 0 0 12px 0;">💚 GRACE EDITOR</h3>
-                <div style="font-size: 12px; line-height: 1.6; margin-bottom: 16px; max-height: 60vh; overflow-y: auto;">
-                    <strong style="color: var(--accent);">SELECTION:</strong><br>
+                <h3 style="color: var(--accent); margin: 0 0 12px 0;">🧱 WAG COURAGE - Interface Guide</h3>
+                <div style="font-size: 11px; line-height: 1.5; margin-bottom: 16px; max-height: 60vh; overflow-y: auto;">
+                    
+                    <strong style="color: var(--accent);">━━━ HEADER BAR ━━━</strong><br>
+                    <span style="color:#888">Left side:</span><br>
+                    🧱 - App title<br>
+                    ↶ ↷ - Undo / Redo<br>
+                    📋 COPY ALL - Copy entire MPD<br>
+                    ⌖ Select / ⊗ Lock - Editor modes<br>
+                    <span style="color:#888">Right side:</span><br>
+                    ? - This help menu<br>
+                    💔 - Error panel (click to see issues)<br>
+                    🌙/☀️/🌿 - Theme toggle (also changes 3D background)<br>
+                    <br>
+                    
+                    <strong style="color: var(--accent);">━━━ VIEWER TOOLBAR ━━━</strong><br>
+                    <span style="color:#888">Left group:</span><br>
+                    3D / 2D - View mode tabs<br>
+                    S - Auto spin toggle<br>
+                    ⌖ - Reset camera view<br>
+                    💀 - Skeleton-only view<br>
+                    🪨 - Ground corrections toggle<br>
+                    <span style="color:#00ffff">●</span> - Cyan stud markers (normal)<br>
+                    <span style="color:#ff4444">●</span> - Red stud markers (below ground)<br>
+                    <span style="color:#00ff00">●</span> - Green ghost markers<br>
+                    <span style="color:#ffff00">●</span> - Yellow part centers<br>
+                    <br>
+                    <span style="color:#888">Right group:</span><br>
+                    W - Wireframe toggle<br>
+                    A - Axes helper toggle<br>
+                    G - Grid toggle<br>
+                    Y - Flip Y axis<br>
+                    ▣ - Toggle minimap<br>
+                    IMG - Screenshot (4:3 + GOLD JSON)<br>
+                    GOLD - Import GOLD JSON file<br>
+                    GLB - Export scene as GLB<br>
+                    <span style="color:#b91c1c">RB</span> - Red Bull sampler<br>
+                    <br>
+                    
+                    <strong style="color: var(--accent);">━━━ VIEWER ━━━</strong><br>
+                    ↖ A1 - Grid origin corner marker<br>
+                    Drag - Rotate camera<br>
+                    Scroll - Zoom in/out<br>
+                    Right-drag - Pan camera<br>
+                    Click brick - Select in editor<br>
+                    <br>
+                    
+                    <strong style="color: var(--accent);">━━━ KEYBOARD SHORTCUTS ━━━</strong><br>
                     Cmd+Click - Multi-select lines<br>
                     Cmd+A - Select all lines<br>
-                    Esc - Deselect all<br>
                     Cmd+I - Invert selection<br>
-                    Click selected (when many) → Deselect all<br>
-                    <br>
-                    <strong style="color: var(--accent);">PASTE & EDIT:</strong><br>
-                    📋 COPY ALL - Copy entire MPD to clipboard<br>
-                    Ctrl+V - Paste anywhere (10+ lines = new file)<br>
-                    Delete/Backspace - Delete selected lines<br>
-                    <br>
-                    <strong style="color: var(--accent);">BATCH EDIT:</strong><br>
-                    Cmd+E - Replace numbers in selection<br>
-                    Cmd+/ - Toggle sections ON/OFF (comment)<br>
-                    Great for coordinates, colors, sizes<br>
-                    Example: Change all "120" to "240"<br>
-                    <br>
-                    <strong style="color: var(--accent);">SHORTCUTS:</strong><br>
+                    Esc - Deselect all<br>
                     Cmd+S - Compile/Render scene<br>
                     Cmd+C - Copy selected lines<br>
-                    Cmd+Z - Undo | Cmd+Shift+Z - Redo<br>
-                    ↶ ↷ buttons also work<br>
-                    Right-click line - Actions menu<br>
+                    Cmd+V - Paste (10+ lines = new file)<br>
+                    Cmd+Z - Undo<br>
+                    Cmd+Shift+Z - Redo<br>
+                    Cmd+E - Batch replace numbers<br>
+                    Cmd+/ - Toggle comment (0 ↔ line)<br>
+                    Delete/Backspace - Delete selected<br>
+                    Right-click - Context menu<br>
                     <br>
-                    <strong style="color: var(--accent);">GRACEFUL ERRORS:</strong><br>
+                    
+                    <strong style="color: var(--accent);">━━━ EDITOR PANEL ━━━</strong><br>
+                    Click line - Select single<br>
+                    Shift+Click - Range select<br>
+                    Cmd+Click - Toggle selection<br>
+                    🔒 Lock icon - Line is locked<br>
+                    Pink background - Missing part<br>
+                    Gold highlight - Currently selected<br>
+                    Minimap - Click to scroll<br>
+                    <br>
+                    
+                    <strong style="color: var(--accent);">━━━ 2D GRID VIEW ━━━</strong><br>
+                    Frank grid (A1-I9) layout<br>
+                    Click cell - Select parts at position<br>
+                    Color = LDraw color code<br>
+                    <br>
+                    
+                    <strong style="color: var(--accent);">━━━ ERROR HANDLING ━━━</strong><br>
                     💔 Pink lines = Missing parts<br>
-                    Click error panel to jump to line<br>
-                    Scene renders with pink placeholders<br>
-                    Copy error report to fix issues<br>
-                    <br>
-                    <strong style="color: var(--accent);">VIEWER:</strong><br>
-                    W - Wireframe | A - Axes | G - Grid<br>
-                    S - Spin | Y - Flip Y<br>
-                    IMG - Screenshot (4:3 + JSON)<br>
+                    Click error panel → Jump to line<br>
+                    Pink placeholders render in scene<br>
+                    Copy error report to diagnose<br>
                 </div>
                 <button id="fullscreen-btn" style="
                     background: var(--accent);
@@ -5350,7 +5422,7 @@
             }, 100);
         });
         
-        // Theme toggle button
+        // Theme toggle button - also changes 3D scene background
         document.getElementById('theme-btn').addEventListener('click', () => {
             const root = document.documentElement;
             const btn = document.getElementById('theme-btn');
@@ -5359,6 +5431,7 @@
             const themes = ['dark', 'light', 'green'];
             const icons = { dark: '🌙', light: '☀️', green: '🌿' };
             const labels = { dark: 'Dark', light: 'Light', green: 'Green' };
+            const sceneBgs = { dark: '#000000', light: '#ffffff', green: '#0a1f1a' };
             
             const currentIdx = themes.indexOf(currentTheme);
             const nextIdx = (currentIdx + 1) % themes.length;
@@ -5367,6 +5440,12 @@
             root.setAttribute('data-theme', nextTheme);
             btn.textContent = icons[nextTheme];
             btn.title = `Theme: ${labels[nextTheme]}`;
+            
+            // Update 3D scene background to match theme
+            if (STATE.viewer && STATE.viewer.setBackgroundColor) {
+                STATE.viewer.setBackgroundColor(sceneBgs[nextTheme]);
+                console.log('[BG] Scene background set to:', sceneBgs[nextTheme]);
+            }
             
             const statusText = document.getElementById('status-text');
             if (statusText) statusText.textContent = `Theme: ${labels[nextTheme]}`;
@@ -5383,7 +5462,8 @@
             'skeleton-quick': 'skeletonOnly',
             'stud-normal-quick': 'studNormal',
             'stud-problem-quick': 'studProblem',
-            'stud-ghost-quick': 'studGhost'
+            'stud-ghost-quick': 'studGhost',
+            'part-control-quick': 'partControlOverlay'
         };
         Object.entries(wagyMap).forEach(([btnId, diagKey]) => {
             const btn = document.getElementById(btnId);
@@ -5395,6 +5475,15 @@
                     if (STATE.viewer) STATE.viewer.setDiagnostics(STATE.diagnostics);
                     if (diagKey === 'studNormal' || diagKey === 'studProblem' || diagKey === 'studGhost') {
                         drawStudSkeletonOverlay();
+                    }
+                    if (diagKey === 'partControlOverlay') {
+                        // Build skeleton on-demand if enabling and not yet built
+                        if (STATE.diagnostics.partControlOverlay && (!STATE.partControlSkeleton || !STATE.partControlSkeleton.length)) {
+                            if (typeof buildPartControlSkeleton === 'function') {
+                                buildPartControlSkeleton();
+                            }
+                        }
+                        drawPartControlOverlay();
                     }
                 });
             }
