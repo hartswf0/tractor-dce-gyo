@@ -1,0 +1,44 @@
+0 FILE Power_Shift.mpd
+0 Name: The Power Shift (Large Form)
+0 Author: Mento Typology
+0 !LDRAW_ORG Model
+
+0 // ============================================================
+0 // MENTO LIGHTING: HIGH CONTRAST DRAMA
+0 // ============================================================
+0 // TOP LIGHT: "Divine" or Interrogation style
+0 !MENTO LIGHT "Top Down" TYPE SPOT POS 0 -200 0 TGT 0 0 0 COLOR #FFFFFF INTENSITY 2.0 SHADOWS TRUE
+
+0 // UNDER LIGHT: Activated for the Low Angle shot (Monster lighting)
+0 !MENTO LIGHT "Uplight" TYPE POINT POS 0 10 20 COLOR #FF4444 INTENSITY 1.5
+
+0 // ============================================================
+0 // MENTO CAMERA: VERTICAL AXIS MOVEMENT
+0 // ============================================================
+0 // KEY 1: HIGH ANGLE (Vulnerable, looking down on subject)
+0 !MENTO SHOT "Vulnerable High" POS 0 -150 100 TGT 0 -40 0 LENS 35
+
+0 // KEY 2: TRANSITION (Crane Down - the shift begins)
+0 !MENTO SHOT "Crane Mid" POS 0 -80 120 TGT 0 -40 0 LENS 40
+
+0 // KEY 3: LOW ANGLE (Dominant, subject towers over camera)
+0 !MENTO SHOT "Dominant Low" POS 0 10 80 TGT 0 -80 0 LENS 24
+
+0 // ============================================================
+0 // SCENE GEOMETRY (The Antagonist)
+0 // ============================================================
+0 // THRONE / PODIUM - Stacked black bricks
+1 0 0 0 0 4 0 0 0 1 0 0 0 2 3001.dat
+1 0 0 -24 0 3 0 0 0 1 0 0 0 2 3001.dat
+1 0 0 -48 0 2 0 0 0 1 0 0 0 1 3001.dat
+
+0 // FIGURE: Standing tall on podium
+1 4 0 -72 0 1 0 0 0 1 0 0 0 1 970c00.dat
+1 4 0 -104 0 1 0 0 0 1 0 0 0 1 973.dat
+1 14 0 -128 0 1 0 0 0 1 0 0 0 1 3626bp01.dat
+
+0 // FLOOR: Dark ground plane
+1 72 0 24 0 10 0 0 0 1 0 0 0 10 3032.dat
+
+0 STEP
+0 NOFILE

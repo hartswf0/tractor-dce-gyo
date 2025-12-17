@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WAG Courage Research Index | Brickfilm Production System</title>
+    <style>
+        :root {
+            --bg-main: #0a0a0a;
+            --bg-card: #111;
+            --bg-hover: #1a1a1a;
+            --accent: #ffd700;
+            --accent-dim: #b8860b;
+            --text-primary: #e0e0e0;
+            --text-secondary: #888;
+            --border: #333;
+            --success: #2a2;
+            --warning: #fa0;
+            --error: #f44;
+        }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            background: var(--bg-main);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            border-bottom: 3px solid var(--accent);
+            padding-bottom: 24px;
+            margin-bottom: 40px;
+        }
+        
+        h1 {
+            color: var(--accent);
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+        
+        .vision-box {
+            background: linear-gradient(135deg, #1a1a0a 0%, #0a0a0a 100%);
+            border: 2px solid var(--accent);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 40px;
+        }
+        
+        .vision-box h2 {
+            color: var(--accent);
+            margin-bottom: 16px;
+            font-size: 1.2rem;
+        }
+        
+        .vision-box p {
+            margin-bottom: 12px;
+        }
+        
+        .challenge-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin: 24px 0;
+        }
+        
+        .challenge-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 16px;
+        }
+        
+        .challenge-card h4 {
+            color: var(--accent);
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+        
+        .challenge-card .status {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .status.done { background: var(--success); color: #000; }
+        .status.progress { background: var(--warning); color: #000; }
+        .status.blocked { background: var(--error); color: #fff; }
+        .status.research { background: #66f; color: #fff; }
+        
+        section {
+            margin-bottom: 48px;
+        }
+        
+        h2 {
+            color: var(--accent);
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        h3 {
+            color: var(--text-primary);
+            font-size: 1rem;
+            margin: 24px 0 12px;
+        }
+        
+        .olog-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .olog-entry {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+            transition: all 0.2s;
+        }
+        
+        .olog-entry:hover {
+            border-color: var(--accent);
+            background: var(--bg-hover);
+        }
+        
+        .olog-entry a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 700;
+        }
+        
+        .olog-entry a:hover {
+            text-decoration: underline;
+        }
+        
+        .olog-entry .desc {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-top: 4px;
+        }
+        
+        .olog-entry .date {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            white-space: nowrap;
+        }
+        
+        .scene-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 16px;
+        }
+        
+        .scene-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 16px;
+            transition: all 0.2s;
+        }
+        
+        .scene-card:hover {
+            border-color: var(--accent);
+        }
+        
+        .scene-card h4 {
+            color: var(--accent);
+            margin-bottom: 8px;
+        }
+        
+        .scene-card .meta {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            margin-bottom: 8px;
+        }
+        
+        .scene-card .event {
+            color: var(--text-primary);
+            font-size: 0.85rem;
+            font-style: italic;
+        }
+        
+        .tech-stack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 16px;
+        }
+        
+        .tech-tag {
+            background: var(--bg-hover);
+            border: 1px solid var(--border);
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+        
+        .roadmap {
+            position: relative;
+            padding-left: 24px;
+            border-left: 2px solid var(--border);
+        }
+        
+        .roadmap-item {
+            position: relative;
+            margin-bottom: 24px;
+            padding-left: 24px;
+        }
+        
+        .roadmap-item::before {
+            content: '';
+            position: absolute;
+            left: -29px;
+            top: 4px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--border);
+        }
+        
+        .roadmap-item.done::before { background: var(--success); }
+        .roadmap-item.progress::before { background: var(--warning); }
+        .roadmap-item.future::before { background: var(--border); border: 2px solid var(--accent); }
+        
+        .roadmap-item h4 {
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+        
+        .roadmap-item p {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+        
+        .launch-btn {
+            display: inline-block;
+            background: var(--accent);
+            color: var(--bg-main);
+            padding: 12px 24px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 700;
+            margin-top: 16px;
+            transition: all 0.2s;
+        }
+        
+        .launch-btn:hover {
+            background: var(--accent-dim);
+            transform: translateY(-2px);
+        }
+        
+        footer {
+            margin-top: 60px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border);
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🎬 WAG COURAGE RESEARCH INDEX</h1>
+        <p class="subtitle">Brickfilm Production System · OLOG Research Reports · December 2025</p>
+    </header>
+    
+    <div class="vision-box">
+        <h2>🎯 THE CHALLENGE: From MPD to Full Brickfilms</h2>
+        <p>
+            <strong>The Goal:</strong> Build a complete browser-based system for creating animated LEGO films ("brickfilms") 
+            using LDraw MPD files as the scene format, Three.js for rendering, and custom extensions for cinematic control.
+        </p>
+        <p>
+            <strong>What's at Stake:</strong> The ability to go from a script or storyboard → inverse storyboard builds → 
+            rendered animated sequences, all in-browser, with drag-drop part selection, MENTO lighting/camera control, 
+            and timeline-based sequencing.
+        </p>
+        
+        <div class="challenge-grid">
+            <div class="challenge-card">
+                <span class="status progress">IN PROGRESS</span>
+                <h4>Parts Catalog → Scene</h4>
+                <p>Adding parts from catalog browser to active scene. Visual feedback working, compile sometimes freezes.</p>
+            </div>
+            <div class="challenge-card">
+                <span class="status done">DONE</span>
+                <h4>Multiload Import</h4>
+                <p>📁 button + drag-drop for batch MPD import. Each file becomes a scene tab.</p>
+            </div>
+            <div class="challenge-card">
+                <span class="status research">RESEARCH</span>
+                <h4>MENTO Directives</h4>
+                <p>Custom LDraw extensions for lighting (!MENTO LIGHT) and camera shots (!MENTO SHOT).</p>
+            </div>
+            <div class="challenge-card">
+                <span class="status blocked">BLOCKED</span>
+                <h4>LDrawLoader Materials</h4>
+                <p>parse() method not creating proper materials. Workaround in place, needs upstream fix.</p>
+            </div>
+        </div>
+        
+        <a href="wag-courage.html" class="launch-btn">🚀 LAUNCH WAG COURAGE</a>
+    </div>
+    
+    <section>
+        <h2>📋 OLOG Research Reports</h2>
+        
+        <div class="olog-list">
+            <div class="olog-entry">
+                <div>
+                    <a href="OLOG-cinematic-mpd-experiments-20251217.md">Cinematic MPD Experiments</a>
+                    <div class="desc">
+                        MENTO directive syntax for lighting & camera. Four Deleuzian image-type experiments 
+                        (Fragmented Hero, Symbolic Void, Memory Loop, Power Shift). Multiload implemented.
+                    </div>
+                </div>
+                <div>
+                    <span class="status progress">IN PROGRESS</span>
+                    <div class="date">2025-12-17</div>
+                </div>
+            </div>
+            
+            <div class="olog-entry">
+                <div>
+                    <a href="OLOG-courage-architecture-20251217.md">Courage Architecture</a>
+                    <div class="desc">
+                        2D/3D coordinate transforms (Z-axis inversion). Library 279K variants = path lookup. 
+                        FRANK grid origin (↖ A1). Search vs Category parts selection.
+                    </div>
+                </div>
+                <div>
+                    <span class="status research">RESEARCH</span>
+                    <div class="date">2025-12-17</div>
+                </div>
+            </div>
+            
+            <div class="olog-entry">
+                <div>
+                    <a href="OLOG-ldraw-material-pathology-20251217.md">LDraw Material Pathology</a>
+                    <div class="desc">
+                        Debug session for page freeze in catalog browser. Heavy stud computation, missing compile guards. 
+                        LDrawLoader.parse() material issues - workaround applied.
+                    </div>
+                </div>
+                <div>
+                    <span class="status progress">IN PROGRESS</span>
+                    <div class="date">2025-12-17</div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <section>
+        <h2>🎬 Brickfilm Scene Library</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 16px;">
+            Inverse-storyboard builds: Each scene is a complete MPD with timestamped events, 
+            LDU coordinates, build times, and key animation moments.
+        </p>
+        
+        <div class="scene-grid">
+            <div class="scene-card">
+                <h4>Scene 05: Grocery Store</h4>
+                <div class="meta">Duration: PT31S–PT37S (6s) · Volume: 8×4×5 brick · ⭐⭐⭐</div>
+                <div class="event">KEY: Maggie scanned and bagged as grocery item</div>
+            </div>
+            
+            <div class="scene-card">
+                <h4>Scene 06: Band</h4>
+                <div class="meta">Musical sequence</div>
+                <div class="event">Band performance scene</div>
+            </div>
+            
+            <div class="scene-card">
+                <h4>Scene 07: Street</h4>
+                <div class="meta">Exterior location</div>
+                <div class="event">Street-level action</div>
+            </div>
+            
+            <div class="scene-card">
+                <h4>Scene 08: Montage</h4>
+                <div class="meta">Multiple quick cuts</div>
+                <div class="event">Montage sequence</div>
+            </div>
+            
+            <div class="scene-card">
+                <h4>Scene 09: Driveway</h4>
+                <div class="meta">Exterior residential</div>
+                <div class="event">Driveway scene</div>
+            </div>
+            
+            <div class="scene-card">
+                <h4>Scene 10: Finale</h4>
+                <div class="meta">Conclusion</div>
+                <div class="event">Final sequence</div>
+            </div>
+            
+            <div class="scene-card">
+                <h4>Credits Display</h4>
+                <div class="meta">End credits</div>
+                <div class="event">Credit roll build</div>
+            </div>
+        </div>
+    </section>
+    
+    <section>
+        <h2>🗺️ Roadmap to Full Brickfilms</h2>
+        
+        <div class="roadmap">
+            <div class="roadmap-item done">
+                <h4>Phase 1: Scene Editing</h4>
+                <p>MPD editor with line-by-line control, checkboxes for enable/disable, part highlighting in 3D view.</p>
+            </div>
+            
+            <div class="roadmap-item done">
+                <h4>Phase 2: Parts Catalog</h4>
+                <p>279K part library with taxonomy (kingdoms/phyla) and folk categories (themes). Search and browse.</p>
+            </div>
+            
+            <div class="roadmap-item done">
+                <h4>Phase 3: Multiload</h4>
+                <p>Import multiple MPD files as scene tabs. Drag-drop support. Scene switching.</p>
+            </div>
+            
+            <div class="roadmap-item progress">
+                <h4>Phase 4: Parts → Scene Pipeline</h4>
+                <p>Add parts from catalog to scene with proper positioning. Currently debugging compile race conditions.</p>
+            </div>
+            
+            <div class="roadmap-item progress">
+                <h4>Phase 5: MENTO Parser</h4>
+                <p>Extract !MENTO LIGHT and !MENTO SHOT directives. Apply to Three.js scene.</p>
+            </div>
+            
+            <div class="roadmap-item future">
+                <h4>Phase 6: Shot Selector</h4>
+                <p>Camera preset UI. Click shot name → animate camera to position. Focal length → FOV conversion.</p>
+            </div>
+            
+            <div class="roadmap-item future">
+                <h4>Phase 7: Timeline Sequencer</h4>
+                <p>Scene ordering, transition timing, keyframe interpolation between shots.</p>
+            </div>
+            
+            <div class="roadmap-item future">
+                <h4>Phase 8: Render Pipeline</h4>
+                <p>Frame-by-frame capture, video export, brickfilm output.</p>
+            </div>
+        </div>
+    </section>
+    
+    <section>
+        <h2>🔧 Technical Stack</h2>
+        <div class="tech-stack">
+            <span class="tech-tag">Three.js r169</span>
+            <span class="tech-tag">LDrawLoader</span>
+            <span class="tech-tag">MPD/LDR Format</span>
+            <span class="tech-tag">MENTO Extensions</span>
+            <span class="tech-tag">Vanilla JS</span>
+            <span class="tech-tag">CSS Variables</span>
+            <span class="tech-tag">LocalStorage</span>
+            <span class="tech-tag">File API</span>
+            <span class="tech-tag">Drag & Drop</span>
+        </div>
+    </section>
+    
+    <section>
+        <h2>📁 MPD Experiments</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 16px;">
+            Test files with MENTO cinematic directives (load via 📁 button):
+        </p>
+        <div class="scene-grid">
+            <div class="scene-card">
+                <h4>01. Fragmented Hero</h4>
+                <div class="meta">Action-Image · Small Form · 85mm</div>
+                <div class="event">Handheld, low-key chiaroscuro, intimate crisis</div>
+            </div>
+            <div class="scene-card">
+                <h4>02. Symbolic Void</h4>
+                <div class="meta">Perception-Image · 24mm Wide</div>
+                <div class="event">Gaseous perception, monochrome alienation</div>
+            </div>
+            <div class="scene-card">
+                <h4>03. Memory Loop</h4>
+                <div class="meta">Mental-Image · Relation · 100mm</div>
+                <div class="event">Bracket syntagma, golden hour nostalgia</div>
+            </div>
+            <div class="scene-card">
+                <h4>04. Power Shift</h4>
+                <div class="meta">Action-Image · Large Form · Crane</div>
+                <div class="event">High→Low angle, divine/demonic lighting</div>
+            </div>
+        </div>
+    </section>
+    
+    <footer>
+        <p>WAG Courage · DCE-GYO Project · December 2025</p>
+        <p>Research logs indexed from OLOG-INDEX.md</p>
+    </footer>
+</body>
+</html>

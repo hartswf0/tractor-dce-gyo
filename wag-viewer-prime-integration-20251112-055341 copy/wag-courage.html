@@ -2302,7 +2302,9 @@
             <span id="lib-status" style="font-size: 10px; color: var(--text-tertiary);">Library: Loading...</span>
         </div>
         
+        <button class="footer-corner-btn" id="import-mpd-btn" title="Import MPD Files" style="right: 60px;">📁</button>
         <button class="footer-corner-btn" id="new-scene-btn" title="New Scene">+</button>
+        <input type="file" id="mpd-file-input" accept=".mpd,.ldr,.dat" multiple style="display: none;">
     </footer>
     
     <!-- Grace Error Panel (slides up from bottom) -->
@@ -5236,6 +5238,127 @@
             switchScene(STATE.scenes.length - 1);
         });
         
+        // Import MPD Files button (📁)
+        document.getElementById('import-mpd-btn').addEventListener('click', () => {
+            document.getElementById('mpd-file-input').click();
+        });
+        
+        // Handle MPD file imports (multiload)
+        document.getElementById('mpd-file-input').addEventListener('change', async (e) => {
+            const files = Array.from(e.target.files);
+            if (files.length === 0) return;
+            
+            console.log(`[IMPORT] Loading ${files.length} MPD file(s)...`);
+            document.getElementById('status-text').textContent = `📁 Importing ${files.length} file(s)...`;
+            
+            let imported = 0;
+            let errors = 0;
+            
+            for (const file of files) {
+                try {
+                    const text = await file.text();
+                    const lines = text.split('\n');
+                    
+                    // Extract name from file or first 0 FILE line
+                    let sceneName = file.name.replace(/\.(mpd|ldr|dat)$/i, '');
+                    const fileMatch = lines.find(l => l.trim().startsWith('0 FILE'));
+                    if (fileMatch) {
+                        sceneName = fileMatch.replace('0 FILE', '').trim().replace(/\.(mpd|ldr|dat)$/i, '');
+                    }
+                    
+                    // Create scene with imported lines
+                    const newScene = createScene(sceneName, lines);
+                    STATE.scenes.push(newScene);
+                    imported++;
+                    
+                    console.log(`[IMPORT] ✓ Loaded: ${sceneName} (${lines.length} lines)`);
+                    
+                } catch (err) {
+                    console.error(`[IMPORT] ✗ Failed to load ${file.name}:`, err);
+                    errors++;
+                }
+            }
+            
+            // Update UI
+            updateSceneSelector();
+            
+            // Switch to last imported scene
+            if (imported > 0) {
+                switchScene(STATE.scenes.length - 1);
+            }
+            
+            // Status feedback
+            const msg = errors > 0 
+                ? `📁 Imported ${imported}/${files.length} files (${errors} failed)`
+                : `📁 Imported ${imported} file(s) successfully`;
+            document.getElementById('status-text').textContent = msg;
+            
+            // Reset file input for future imports
+            e.target.value = '';
+        });
+        
+        // Drag and Drop MPD files onto viewer
+        const viewerContainer = document.getElementById('viewer-container');
+        if (viewerContainer) {
+            viewerContainer.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                viewerContainer.style.outline = '3px dashed var(--accent)';
+                viewerContainer.style.outlineOffset = '-3px';
+            });
+            
+            viewerContainer.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                viewerContainer.style.outline = '';
+            });
+            
+            viewerContainer.addEventListener('drop', async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                viewerContainer.style.outline = '';
+                
+                const files = Array.from(e.dataTransfer.files).filter(f => 
+                    /\.(mpd|ldr|dat)$/i.test(f.name)
+                );
+                
+                if (files.length === 0) {
+                    document.getElementById('status-text').textContent = '⚠️ No MPD/LDR files found in drop';
+                    return;
+                }
+                
+                console.log(`[DROP] Importing ${files.length} file(s)...`);
+                document.getElementById('status-text').textContent = `📁 Importing ${files.length} file(s)...`;
+                
+                let imported = 0;
+                for (const file of files) {
+                    try {
+                        const text = await file.text();
+                        const lines = text.split('\n');
+                        
+                        let sceneName = file.name.replace(/\.(mpd|ldr|dat)$/i, '');
+                        const fileMatch = lines.find(l => l.trim().startsWith('0 FILE'));
+                        if (fileMatch) {
+                            sceneName = fileMatch.replace('0 FILE', '').trim().replace(/\.(mpd|ldr|dat)$/i, '');
+                        }
+                        
+                        const newScene = createScene(sceneName, lines);
+                        STATE.scenes.push(newScene);
+                        imported++;
+                        console.log(`[DROP] ✓ Loaded: ${sceneName}`);
+                    } catch (err) {
+                        console.error(`[DROP] ✗ Failed: ${file.name}`, err);
+                    }
+                }
+                
+                if (imported > 0) {
+                    updateSceneSelector();
+                    switchScene(STATE.scenes.length - 1);
+                    document.getElementById('status-text').textContent = `📁 Dropped ${imported} file(s)`;
+                }
+            });
+        }
+        
         // 💚 SCENE SELECTOR - Load MPD files from dropdown
         document.getElementById('scene-selector').addEventListener('change', async (e) => {
             const mpdPath = e.target.value;
@@ -6469,6 +6592,15 @@
                         `;
                         partDiv.querySelector('.add-single-part').addEventListener('click', (e) => {
                             e.stopPropagation();
+                            // Immediate visual feedback
+                            const btn = e.target;
+                            btn.textContent = '✓';
+                            btn.style.background = '#2a2';
+                            setTimeout(() => {
+                                btn.textContent = '➕';
+                                btn.style.background = 'var(--accent)';
+                            }, 400);
+                            // Add part
                             addPartToScene([part], part.filename);
                         });
                         partDiv.addEventListener('click', () => {
@@ -6542,7 +6674,18 @@
                         loadPartsToScene(batch, `${name} (${start + 1}-${end})`, true);
                     });
                     
-                    document.getElementById('load-batch-add').addEventListener('click', () => {
+                    document.getElementById('load-batch-add').addEventListener('click', (e) => {
+                        // Immediate visual feedback
+                        const btn = e.target;
+                        btn.textContent = '✓ ADDING...';
+                        btn.style.background = '#2a2';
+                        btn.disabled = true;
+                        setTimeout(() => {
+                            btn.textContent = '➕ ADD TO SCENE';
+                            btn.style.background = '';
+                            btn.disabled = false;
+                        }, 1000);
+                        // Add parts
                         addPartToScene(batch, `${name} (${start + 1}-${end})`);
                     });
                 }
@@ -6550,8 +6693,17 @@
                 renderPage();
             }
             
-            // Add parts to existing scene
+            // Add parts to existing scene (batch add with array of part objects)
             function addPartToScene(parts, name) {
+                console.log('[ADD-PART] addPartToScene called with', parts?.length, 'parts, name:', name);
+                console.log('[ADD-PART] parts:', parts);
+                console.log('[ADD-PART] editorLines defined?', Array.isArray(editorLines), 'length:', editorLines?.length);
+                
+                if (!Array.isArray(parts) || parts.length === 0) {
+                    console.error('[ADD-PART] Invalid parts array:', parts);
+                    return;
+                }
+                
                 const GRID_SPACING = 200;
                 const COLUMNS = 6;
                 const Y_OFFSET = -50;
@@ -6599,8 +6751,22 @@
                 renderEditor(editorLines);
                 document.getElementById('status-text').textContent = `➕ Added ${parts.length} parts to scene`;
                 
-                // Auto-compile
-                setTimeout(() => compileCurrentMPD(), 500);
+                console.log('[ADD-PART] Batch add complete:', parts.length, 'parts, total lines now:', editorLines.length);
+                
+                // Auto-compile (wrapped in try-catch to prevent freeze)
+                // Force reset compileInProgress in case it got stuck
+                compileInProgress = false;
+                
+                setTimeout(async () => {
+                    console.log('[ADD-PART] Starting compile...');
+                    try {
+                        await compile();
+                        console.log('[ADD-PART] Compile finished');
+                    } catch (err) {
+                        console.error('[ADD-PART] Compile failed:', err);
+                        document.getElementById('status-text').textContent = `⚠️ Added parts but compile failed: ${err.message}`;
+                    }
+                }, 500);
             }
             
             // Generate MPD from parts and load to scene
@@ -7014,10 +7180,10 @@
                                     playMagnetClickSound();
                                 });
                                 
-                                // Add button
+                                // Add button - use single part adder (not batch)
                                 partDiv.querySelector('.add-btn').addEventListener('click', (e) => {
                                     e.stopPropagation();
-                                    addPartToScene(part.path);
+                                    addSinglePartToScene(part.path);
                                     playMagnetClickSound();
                                 });
                                 
@@ -7060,9 +7226,9 @@
                             });
                         });
                         
-                        // Add all selected button
+                        // Add all selected button - use single part adder for each
                         document.getElementById('add-selected-btn').addEventListener('click', () => {
-                            selectedParts.forEach(path => addPartToScene(path));
+                            selectedParts.forEach(path => addSinglePartToScene(path));
                             playMagnetClickSound();
                             setTimeout(() => playMagnetClickSound(), 100);
                             document.getElementById('status-text').textContent = `➕ Added ${selectedParts.size} parts`;
@@ -7185,9 +7351,20 @@
                 }, 150); // Debounce delay
             });
             
-            // Helper function to add part to scene with proper file hygiene
-            function addPartToScene(partPath) {
-                if (!Array.isArray(editorLines)) return;
+            // Helper function to add SINGLE part to scene with proper file hygiene
+            // (Note: addPartToScene above handles batch adds with array of parts)
+            function addSinglePartToScene(partPath) {
+                console.log('[ADD-SINGLE] addSinglePartToScene called with partPath:', partPath);
+                console.log('[ADD-SINGLE] editorLines defined?', Array.isArray(editorLines), 'length:', editorLines?.length);
+                
+                if (!partPath || typeof partPath !== 'string') {
+                    console.error('[ADD-SINGLE] Invalid partPath:', partPath);
+                    return;
+                }
+                if (!Array.isArray(editorLines)) {
+                    console.error('[ADD-SINGLE] editorLines not an array:', editorLines);
+                    return;
+                }
                 
                 // Generate a random color 1-15
                 const color = Math.floor(Math.random() * 15) + 1;
@@ -7267,8 +7444,22 @@
                 const statusText = document.getElementById('status-text');
                 if (statusText) statusText.textContent = `➕ Added: ${partFilename}`;
                 
-                // Recompile
-                setTimeout(() => compile(), 200);
+                console.log('[ADD-SINGLE] Part added successfully:', partFilename, 'total lines now:', editorLines.length);
+                
+                // Recompile (wrapped to prevent freeze)
+                // Force reset compileInProgress in case it got stuck
+                compileInProgress = false;
+                
+                setTimeout(async () => {
+                    console.log('[ADD-SINGLE] Starting compile...');
+                    try {
+                        await compile();
+                        console.log('[ADD-SINGLE] Compile finished');
+                    } catch (err) {
+                        console.error('[ADD-SINGLE] Compile failed:', err);
+                        document.getElementById('status-text').textContent = `⚠️ Compile error: ${err.message}`;
+                    }
+                }, 300);
             }
             
             // Create a fresh properly-formatted MPD for building
@@ -7910,114 +8101,37 @@
                 }
             }
 
-            // FOLK mode - TRACTOR FOLKOLOGICUS + Themes + Minifig Library
+            // FOLK mode - SIMPLIFIED like Search experience
             function showFolkMode() {
-                const ecologies = {
-                    '1◯ CIRCLE': { parts: [], desc: 'Boundaries & Containers · What defines Us vs Them', icon: '◯' },
-                    '2⇄ TRADE': { parts: [], desc: 'Movement & Exchange · Vehicles that cross boundaries', icon: '⇄' },
-                    '3♥ HEART': { parts: [], desc: 'Life & Care · Living things that need tending', icon: '♥' },
-                    '4⚘ SEED': { parts: [], desc: 'Foundation & Building · Basic elements that grow', icon: '⚘' },
-                    '5△ CHOICE': { parts: [], desc: 'Connection & Articulation · Joints between gestures', icon: '△' },
-                    '6◈ PATTERN': { parts: [], desc: 'Order & Decoration · The unseen structure', icon: '◈' },
-                    '7∅ ZERO': { parts: [], desc: 'Mechanism & Unseen · Technical truth beneath', icon: '∅' }
-                };
-                
-                // Classify parts into TRACTOR FOLKOLOGICUS modules
-                Object.values(taxonomy.kingdoms).forEach(kingdomData => {
-                    Object.values(kingdomData.phyla).forEach(phylumData => {
-                        Object.values(phylumData.classes).forEach(classData => {
-                            Object.values(classData.orders).forEach(orderData => {
-                                Object.values(orderData.families).forEach(familyData => {
-                                    familyData.parts.forEach(part => {
-                                        const text = `${part.description} ${part.name}`.toLowerCase();
-                                        
-                                        // 1. CIRCLE - Boundaries, structures, containers
-                                        if (text.match(/baseplate|wall|fence|gate|door|window|panel|container|box|border|frame/i)) {
-                                            ecologies['1◯ CIRCLE'].parts.push(part);
-                                        }
-                                        // 2. TRADE - Movement, vehicles, transportation
-                                        else if (text.match(/wheel|tire|car|truck|boat|ship|train|vehicle|propeller|wing|engine/i)) {
-                                            ecologies['2⇄ TRADE'].parts.push(part);
-                                        }
-                                        // 3. HEART - Life, minifigs, living things
-                                        else if (text.match(/minifig|head|torso|leg|arm|animal|plant|tree|flower|face/i)) {
-                                            ecologies['3♥ HEART'].parts.push(part);
-                                        }
-                                        // 4. SEED - Foundation, basic building blocks
-                                        else if (text.match(/brick|plate|tile|slope|wedge|cylinder|cone/i)) {
-                                            ecologies['4⚘ SEED'].parts.push(part);
-                                        }
-                                        // 5. CHOICE - Connectors, hinges, articulation
-                                        else if (text.match(/hinge|axle|connector|joint|turntable|ball|socket|pin|clip/i)) {
-                                            ecologies['5△ CHOICE'].parts.push(part);
-                                        }
-                                        // 6. PATTERN - Decorative, printed, stickers
-                                        else if (text.match(/sticker|print|pattern|decorated|emblem|logo|flag|sign/i)) {
-                                            ecologies['6◈ PATTERN'].parts.push(part);
-                                        }
-                                        // 7. ZERO - Technical, electric, mechanisms
-                                        else if (text.match(/technic|electric|motor|sensor|gear|chain|cable|magnet|rotor/i)) {
-                                            ecologies['7∅ ZERO'].parts.push(part);
-                                        }
-                                        // Default to SEED if unclear
-                                        else {
-                                            ecologies['4⚘ SEED'].parts.push(part);
-                                        }
-                                    });
-                                });
-                            });
-                        });
-                    });
-                });
-                
-                // Also collect theme-based ecologies
+                // Collect all parts by theme (fast single pass)
                 const themes = {
-                    '⚔️ Star Wars': [],
-                    '🏰 Castle': [],
-                    '🚀 Space': [],
-                    '🏙️ City': [],
-                    '🏴‍☠️ Pirates': [],
-                    '🚂 Train': [],
-                    '🤖 Bionicle': [],
-                    '⚡ Harry Potter': [],
-                    '⚙️ Technic': []
+                    'Star Wars': { icon: '⚔️', parts: [], pattern: /star wars|sw|vader|stormtrooper|x-wing|death star|lightsaber|jedi|sith/i },
+                    'Castle': { icon: '🏰', parts: [], pattern: /castle|knight|dragon|medieval|sword|shield|crown|kingdom/i },
+                    'Space': { icon: '🚀', parts: [], pattern: /space|rocket|astronaut|satellite|moon|mars|ufo/i },
+                    'City': { icon: '🏙️', parts: [], pattern: /city|police|fire|ambulance|hospital|road|traffic/i },
+                    'Pirates': { icon: '🏴‍☠️', parts: [], pattern: /pirate|ship|treasure|skull|cannon|sailor/i },
+                    'Train': { icon: '🚂', parts: [], pattern: /train|railway|track|locomotive|wagon|station/i },
+                    'Technic': { icon: '⚙️', parts: [], pattern: /technic|gear|axle|motor|pneumatic/i },
+                    'Vehicle': { icon: '🚗', parts: [], pattern: /wheel|tire|car|truck|boat|airplane|helicopter/i },
+                    'Minifig': { icon: '👤', parts: [], pattern: /minifig|head|torso|leg|arm|hand|face/i },
+                    'Nature': { icon: '🌿', parts: [], pattern: /tree|plant|flower|animal|rock|water|leaf/i }
                 };
                 
-                Object.values(taxonomy.kingdoms).forEach(kingdomData => {
-                    Object.values(kingdomData.phyla).forEach(phylumData => {
-                        Object.values(phylumData.classes).forEach(classData => {
-                            Object.values(classData.orders).forEach(orderData => {
-                                Object.values(orderData.families).forEach(familyData => {
-                                    familyData.parts.forEach(part => {
+                // Single pass classification
+                const allParts = [];
+                Object.values(taxonomy.kingdoms).forEach(k => {
+                    Object.values(k.phyla).forEach(p => {
+                        Object.values(p.classes).forEach(c => {
+                            Object.values(c.orders).forEach(o => {
+                                Object.values(o.families).forEach(f => {
+                                    f.parts.forEach(part => {
+                                        allParts.push(part);
                                         const text = `${part.description} ${part.name}`.toLowerCase();
-                                        
-                                        // Theme detection
-                                        if (text.match(/star wars|sw|r2-d2|c-3po|vader|stormtrooper|x-wing|death star/i)) {
-                                            themes['⚔️ Star Wars'].push(part);
-                                        }
-                                        if (text.match(/castle|knight|dragon|medieval|sword|shield|horse|crown/i)) {
-                                            themes['🏰 Castle'].push(part);
-                                        }
-                                        if (text.match(/space|rocket|astronaut|satellite|moon/i)) {
-                                            themes['🚀 Space'].push(part);
-                                        }
-                                        if (text.match(/city|police|fire|car|truck|building|road/i)) {
-                                            themes['🏙️ City'].push(part);
-                                        }
-                                        if (text.match(/pirate|ship|treasure|skull|cannon/i)) {
-                                            themes['🏴‍☠️ Pirates'].push(part);
-                                        }
-                                        if (text.match(/train|railway|track|locomotive|wagon/i)) {
-                                            themes['🚂 Train'].push(part);
-                                        }
-                                        if (text.match(/bionicle|toa|mata/i)) {
-                                            themes['🤖 Bionicle'].push(part);
-                                        }
-                                        if (text.match(/harry potter|hogwarts|wizard/i)) {
-                                            themes['⚡ Harry Potter'].push(part);
-                                        }
-                                        if (text.match(/technic/i)) {
-                                            themes['⚙️ Technic'].push(part);
+                                        for (const [name, theme] of Object.entries(themes)) {
+                                            if (theme.pattern.test(text)) {
+                                                theme.parts.push(part);
+                                                break;
+                                            }
                                         }
                                     });
                                 });
@@ -8026,251 +8140,187 @@
                     });
                 });
                 
-                // Show folk categories in left panel
-                leftPanel.innerHTML = `
-                    <div style="color: var(--accent); font-weight: 700; margin-bottom: 16px; font-size: 14px; border-bottom: 2px solid var(--accent); padding-bottom: 8px;">
-                        FOLK CATEGORIES<br>
-                        <span style="font-size: 11px; font-weight: 400; color: #aaa;">Two ways to organize</span>
-                    </div>
-                `;
+                // Hide left panel, use full width
+                leftPanel.style.display = 'none';
+                rightPanel.style.flex = '1';
                 
-                // Add PLAN section
-                const planSection = document.createElement('div');
-                planSection.style.cssText = 'margin-bottom: 24px;';
-                planSection.innerHTML = `
-                    <div style="color: var(--text-primary); font-weight: 700; font-size: 12px; margin-bottom: 8px; padding: 8px; background: var(--bg-main); border-radius: 4px;">
-                        PLAN v1.1 · TRACTOR FOLKOLOGICUS
-                    </div>
-                `;
-                leftPanel.appendChild(planSection);
+                let currentTheme = null;
+                let currentSearch = '';
                 
-                Object.entries(ecologies).forEach(([moduleName, moduleData]) => {
-                    const btn = document.createElement('button');
-                    btn.style.cssText = `
-                        width: 100%;
-                        padding: 10px;
-                        margin-bottom: 6px;
-                        background: var(--bg-secondary);
-                        border: 1px solid var(--border-primary);
-                        border-radius: 4px;
-                        cursor: pointer;
-                        text-align: left;
-                        color: var(--text-primary);
-                        transition: all 0.2s;
-                    `;
-                    btn.innerHTML = `
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <div style="font-size: 14px;">${moduleData.icon}</div>
-                            <div style="flex: 1;">
-                                <div style="font-weight: 700; color: var(--accent); font-size: 11px;">${moduleName}</div>
-                                <div style="font-size: 9px; color: #666;">${moduleData.parts.length.toLocaleString()} parts</div>
-                            </div>
-                            <div style="color: var(--accent);">▶</div>
+                function renderFolkUI() {
+                    rightPanel.innerHTML = '';
+                    
+                    // Theme chips header
+                    const header = document.createElement('div');
+                    header.style.cssText = 'margin-bottom: 16px;';
+                    header.innerHTML = `
+                        <div style="color: var(--accent); font-weight: 700; font-size: 14px; margin-bottom: 12px;">
+                            🌾 FOLK THEMES · Click to browse, ➕ to add parts
                         </div>
-                    `;
-                    btn.addEventListener('mouseenter', () => btn.style.background = 'var(--accent)');
-                    btn.addEventListener('mouseleave', () => btn.style.background = 'var(--bg-secondary)');
-                    btn.addEventListener('click', () => {
-                        showNestedView(moduleName, moduleData.parts, moduleData.desc);
-                    });
-                    leftPanel.appendChild(btn);
-                });
-                
-                // Add Ecology/Themes section
-                const themesSection = document.createElement('div');
-                themesSection.style.cssText = 'margin-top: 24px; padding-top: 24px; border-top: 2px solid var(--border-primary);';
-                themesSection.innerHTML = `
-                    <div style="color: var(--text-primary); font-weight: 700; font-size: 12px; margin-bottom: 8px; padding: 8px; background: var(--bg-main); border-radius: 4px;">
-                        🌍 ECOLOGY · Themes by Setting
-                    </div>
-                `;
-                leftPanel.appendChild(themesSection);
-                
-                Object.entries(themes).filter(([_, parts]) => parts.length > 0).forEach(([themeName, themeParts]) => {
-                    const btn = document.createElement('button');
-                    btn.style.cssText = `
-                        width: 100%;
-                        padding: 10px;
-                        margin-bottom: 6px;
-                        background: var(--bg-secondary);
-                        border: 1px solid var(--border-primary);
-                        border-radius: 4px;
-                        cursor: pointer;
-                        text-align: left;
-                        color: var(--text-primary);
-                        transition: all 0.2s;
-                    `;
-                    btn.innerHTML = `
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <div style="flex: 1;">
-                                <div style="font-weight: 700; color: var(--accent); font-size: 11px;">${themeName}</div>
-                                <div style="font-size: 9px; color: #666;">${themeParts.length.toLocaleString()} parts</div>
-                            </div>
-                            <div style="color: var(--accent);">▶</div>
-                        </div>
-                    `;
-                    btn.addEventListener('mouseenter', () => btn.style.background = 'var(--accent)');
-                    btn.addEventListener('mouseleave', () => btn.style.background = 'var(--bg-secondary)');
-                    btn.addEventListener('click', () => {
-                        showNestedView(themeName, themeParts, `Parts from the ${themeName} theme`);
-                    });
-                    leftPanel.appendChild(btn);
-                });
-                
-                // Minifig library section
-                if (minifigLibrary) {
-                    const minifigSection = document.createElement('div');
-                    minifigSection.style.cssText = 'margin-top: 24px; padding-top: 24px; border-top: 2px solid var(--border-primary);';
-                    minifigSection.innerHTML = `
-                        <div style="color: var(--text-primary); font-weight: 700; font-size: 12px; margin-bottom: 8px; padding: 8px; background: var(--bg-main); border-radius: 4px; display: flex; justify-content: space-between;">
-                            <span>👤 MINIFIG LIBRARY · Fully Assembled Characters</span>
-                            <span style="font-size: 10px; color: #aaa;">${minifigLibrary.stats.curatedCount} curated · ${minifigLibrary.stats.partBuckets.heads} heads</span>
-                        </div>
-                    `;
-
-                    const curatedList = document.createElement('div');
-                    curatedList.style.cssText = 'display: flex; flex-direction: column; gap: 8px;';
-                    (minifigLibrary.curated || []).forEach((character) => {
-                        const entryBtn = document.createElement('button');
-                        entryBtn.style.cssText = `
+                        <div id="folk-theme-chips" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px;"></div>
+                        <input type="text" id="folk-search" placeholder="🔍 Filter within theme..." style="
                             width: 100%;
                             padding: 10px;
-                            background: var(--bg-secondary);
                             border: 1px solid var(--border-primary);
                             border-radius: 4px;
-                            cursor: pointer;
-                            text-align: left;
+                            background: var(--bg-main);
                             color: var(--text-primary);
-                            transition: all 0.2s;
+                            font-size: 12px;
+                        ">
+                    `;
+                    rightPanel.appendChild(header);
+                    
+                    // Create theme chips
+                    const chipsContainer = header.querySelector('#folk-theme-chips');
+                    Object.entries(themes).filter(([_, t]) => t.parts.length > 0).forEach(([name, theme]) => {
+                        const chip = document.createElement('button');
+                        const isActive = currentTheme === name;
+                        chip.style.cssText = `
+                            padding: 6px 12px;
+                            border-radius: 16px;
+                            border: 1px solid ${isActive ? 'var(--accent)' : 'var(--border-primary)'};
+                            background: ${isActive ? 'var(--accent)' : 'var(--bg-secondary)'};
+                            color: ${isActive ? '#000' : 'var(--text-primary)'};
+                            cursor: pointer;
+                            font-size: 11px;
+                            font-weight: 600;
                         `;
-                        entryBtn.innerHTML = `
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <div>
-                                    <div style="font-weight: 700; color: var(--accent); font-size: 12px;">${character.title}</div>
-                                    <div style="font-size: 10px; color: #888;">${character.personality || ''}</div>
-                                </div>
-                                <div style="color: var(--accent); font-size: 12px;">VIEW →</div>
-                            </div>
-                        `;
-                        entryBtn.addEventListener('mouseenter', () => entryBtn.style.background = 'var(--accent)');
-                        entryBtn.addEventListener('mouseleave', () => entryBtn.style.background = 'var(--bg-secondary)');
-                        entryBtn.addEventListener('click', () => showMinifigDetail(character));
-                        curatedList.appendChild(entryBtn);
-                    });
-                    minifigSection.appendChild(curatedList);
-
-                    const builder = renderMinifigBuilder();
-                    if (builder) {
-                        minifigSection.appendChild(builder);
-                    }
-
-                    leftPanel.appendChild(minifigSection);
-                }
-
-                // Nested view function - shows subcategories
-                function showNestedView(categoryName, parts, description) {
-                    // Group parts by kingdom for nested organization
-                    const subcategories = {};
-                    parts.forEach(part => {
-                        const kingdom = extractKingdom(part.description, part.name);
-                        if (!subcategories[kingdom]) subcategories[kingdom] = [];
-                        subcategories[kingdom].push(part);
+                        chip.textContent = `${theme.icon} ${name} (${theme.parts.length})`;
+                        chip.addEventListener('click', () => {
+                            currentTheme = currentTheme === name ? null : name;
+                            currentSearch = '';
+                            renderFolkUI();
+                        });
+                        chipsContainer.appendChild(chip);
                     });
                     
-                    rightPanel.innerHTML = `
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid var(--accent);">
-                            <div>
-                                <div style="color: var(--accent); font-weight: 700; font-size: 16px;">${categoryName}</div>
-                                <div style="font-size: 11px; color: #888; margin-top: 4px;">${description}</div>
-                            </div>
-                            <button id="back-to-folk" style="
+                    // Search filter
+                    const searchInput = header.querySelector('#folk-search');
+                    searchInput.value = currentSearch;
+                    searchInput.addEventListener('input', (e) => {
+                        currentSearch = e.target.value.toLowerCase();
+                        renderResults();
+                    });
+                    
+                    // Results grid
+                    const grid = document.createElement('div');
+                    grid.id = 'folk-results-grid';
+                    grid.style.cssText = `
+                        display: grid;
+                        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                        gap: 8px;
+                        max-height: calc(100vh - 320px);
+                        overflow-y: auto;
+                        padding: 4px;
+                    `;
+                    rightPanel.appendChild(grid);
+                    
+                    renderResults();
+                    
+                    function renderResults() {
+                        const grid = document.getElementById('folk-results-grid');
+                        grid.innerHTML = '';
+                        
+                        let parts = currentTheme ? themes[currentTheme].parts : allParts.slice(0, 200);
+                        
+                        if (currentSearch) {
+                            parts = parts.filter(p => 
+                                `${p.filename} ${p.description} ${p.name}`.toLowerCase().includes(currentSearch)
+                            );
+                        }
+                        
+                        const displayParts = parts.slice(0, 100);
+                        
+                        if (!currentTheme && !currentSearch) {
+                            grid.innerHTML = `
+                                <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #888;">
+                                    <div style="font-size: 24px; margin-bottom: 12px;">🌾</div>
+                                    <div>Select a theme above to browse parts</div>
+                                    <div style="font-size: 11px; margin-top: 8px;">Or use the search bar at the top</div>
+                                </div>
+                            `;
+                            return;
+                        }
+                        
+                        if (displayParts.length === 0) {
+                            grid.innerHTML = `<div style="grid-column: 1 / -1; color: #888; text-align: center; padding: 20px;">No parts found</div>`;
+                            return;
+                        }
+                        
+                        displayParts.forEach(part => {
+                            const card = document.createElement('div');
+                            card.style.cssText = `
                                 background: var(--bg-secondary);
                                 border: 1px solid var(--border-primary);
-                                color: var(--text-primary);
-                                padding: 6px 12px;
                                 border-radius: 4px;
-                                cursor: pointer;
-                                font-size: 11px;
-                            ">← BACK</button>
-                        </div>
-                        <div style="color: var(--text-primary); font-size: 11px; font-weight: 600; margin-bottom: 12px;">
-                            ${parts.length.toLocaleString()} parts organized into ${Object.keys(subcategories).length} subcategories
-                        </div>
-                    `;
-                    
-                    // Back button
-                    setTimeout(() => {
-                        document.getElementById('back-to-folk').addEventListener('click', showFolkMode);
-                    }, 0);
-                    
-                    // Show subcategories
-                    Object.entries(subcategories).sort((a, b) => b[1].length - a[1].length).forEach(([subcat, subparts]) => {
-                        const subcatDiv = document.createElement('div');
-                        subcatDiv.style.cssText = `
-                            padding: 12px;
-                            margin-bottom: 8px;
-                            background: var(--bg-secondary);
-                            border: 1px solid var(--border-primary);
-                            border-radius: 4px;
-                            cursor: pointer;
-                            transition: all 0.2s;
-                            display: flex;
-                            justify-content: space-between;
-                            align-items: center;
-                        `;
-                        subcatDiv.innerHTML = `
-                            <div>
-                                <div style="font-weight: 700; color: var(--accent); font-size: 13px;">${subcat}</div>
-                                <div style="font-size: 10px; color: #888; margin-top: 2px;">${subparts.length} parts</div>
-                            </div>
-                            <div style="color: var(--accent); font-size: 12px;">VIEW →</div>
-                        `;
-                        subcatDiv.addEventListener('mouseenter', () => subcatDiv.style.background = 'var(--accent)');
-                        subcatDiv.addEventListener('mouseleave', () => subcatDiv.style.background = 'var(--bg-secondary)');
-                        subcatDiv.addEventListener('click', () => {
-                            showPaginatedParts(subparts, `${categoryName} → ${subcat}`, rightPanel);
+                                padding: 10px;
+                                display: flex;
+                                align-items: center;
+                                gap: 10px;
+                            `;
+                            card.innerHTML = `
+                                <div style="
+                                    width: 50px; height: 50px;
+                                    background: var(--bg-main);
+                                    border-radius: 4px;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    font-size: 10px;
+                                    color: var(--accent);
+                                    flex-shrink: 0;
+                                ">${part.filename.split('.')[0].substring(0, 6)}</div>
+                                <div style="flex: 1; min-width: 0;">
+                                    <div style="font-weight: 700; color: var(--accent); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${part.filename}</div>
+                                    <div style="font-size: 10px; color: #aaa; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${part.description || part.name}</div>
+                                </div>
+                                <button class="folk-add-btn" style="
+                                    background: var(--accent);
+                                    border: none;
+                                    width: 32px;
+                                    height: 32px;
+                                    border-radius: 4px;
+                                    cursor: pointer;
+                                    font-size: 14px;
+                                    flex-shrink: 0;
+                                ">➕</button>
+                            `;
+                            
+                            // Direct click handler with feedback
+                            card.querySelector('.folk-add-btn').addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                console.log('[FOLK-ADD] Adding part:', part.filename);
+                                
+                                // Visual feedback
+                                const btn = e.target;
+                                btn.textContent = '✓';
+                                btn.style.background = '#2a2';
+                                setTimeout(() => {
+                                    btn.textContent = '➕';
+                                    btn.style.background = 'var(--accent)';
+                                }, 500);
+                                
+                                // Add the part
+                                addSinglePartToScene(part.path || part.filename);
+                                
+                                // Status update
+                                const status = document.getElementById('status-text');
+                                if (status) status.textContent = `➕ Added: ${part.filename}`;
+                            });
+                            
+                            grid.appendChild(card);
                         });
-                        rightPanel.appendChild(subcatDiv);
-                    });
+                        
+                        if (parts.length > 100) {
+                            const more = document.createElement('div');
+                            more.style.cssText = 'grid-column: 1 / -1; text-align: center; padding: 12px; color: var(--accent); font-size: 11px;';
+                            more.textContent = `Showing 100 of ${parts.length} parts. Use search to filter.`;
+                            grid.appendChild(more);
+                        }
+                    }
                 }
                 
-                // Helper to extract kingdom
-                function extractKingdom(desc, name) {
-                    const text = (desc || name || '').toLowerCase();
-                    if (text.includes('minifig')) return 'MINIFIG';
-                    if (text.includes('brick')) return 'BRICK';
-                    if (text.includes('plate')) return 'PLATE';
-                    if (text.includes('tile')) return 'TILE';
-                    if (text.includes('slope')) return 'SLOPE';
-                    if (text.includes('wheel') || text.includes('tire')) return 'WHEEL';
-                    if (text.includes('window')) return 'WINDOW';
-                    if (text.includes('door')) return 'DOOR';
-                    if (text.includes('technic')) return 'TECHNIC';
-                    if (text.includes('panel')) return 'PANEL';
-                    return 'OTHER';
-                }
-                
-                rightPanel.innerHTML = `
-                    <div style="text-align: center; padding: 60px 40px; color: #aaa;">
-                        <div style="font-size: 36px; margin-bottom: 16px;">🌾</div>
-                        <div style="font-size: 16px; font-weight: 700; color: var(--accent); margin-bottom: 12px;">
-                            Folk Categories
-                        </div>
-                        <div style="font-size: 12px; line-height: 1.8; max-width: 400px; margin: 0 auto;">
-                            Two ways to organize the same parts:<br><br>
-                            <strong style="color: var(--text-primary);">PLAN v1.1</strong><br>
-                            Parts by their <em>role</em> in the system<br>
-                            (Circle, Trade, Heart, Seed...)<br><br>
-                            <strong style="color: var(--text-primary);">🌍 ECOLOGY</strong><br>
-                            Parts by their <em>theme</em> or setting<br>
-                            (Star Wars, Castle, Space...)<br><br>
-                            <strong style="color: var(--text-primary);">👤 MINIFIG LIBRARY</strong><br>
-                            Fully assembled characters + custom builder<br>
-                            (Drag archetypes or assemble your own)<br><br>
-                            Click any category to explore nested subcategories →
-                        </div>
-                    </div>
-                `;
+                renderFolkUI();
             }
             
             // Mode switching
@@ -8288,7 +8338,9 @@
                     minifigBtn.style.color = 'var(--text-primary)';
                 }
                 
-                // Restore taxonomy view
+                // Restore taxonomy view (show left panel again since FOLK hides it)
+                leftPanel.style.display = '';
+                rightPanel.style.flex = '';
                 leftPanel.innerHTML = '';
                 const kingdomsList = document.createElement('div');
                 kingdomsList.innerHTML = '<div style="color: var(--accent); font-weight: 700; margin-bottom: 12px; font-size: 13px;">KINGDOMS (Part Families)</div>';
@@ -8697,8 +8749,9 @@ function render2DGrid() {
             if (Number.isNaN(xLdu) || Number.isNaN(zLdu)) return;
 
             // Map LDraw coordinates into Frank cell offsets (Δx, Δz) using 160 LDU spacing
-            const colOffset = Math.round(xLdu / FRANK_GRID_CONFIG.cellSizeLDU);
-            const rowOffset = Math.round(zLdu / FRANK_GRID_CONFIG.cellSizeLDU);
+            // NEGATE both to match 3D view orientation (rotation.x = Math.PI flips both axes)
+            const colOffset = -Math.round(xLdu / FRANK_GRID_CONFIG.cellSizeLDU);
+            const rowOffset = -Math.round(zLdu / FRANK_GRID_CONFIG.cellSizeLDU);
 
             // Clamp to visible 9×9 Frank grid (-4..4) so far-away parts don't break the view
             if (Math.abs(colOffset) > FRANK_GRID_CONFIG.halfCells || Math.abs(rowOffset) > FRANK_GRID_CONFIG.halfCells) {
@@ -8789,8 +8842,9 @@ function highlightLinesAtGridPosition(gridX, gridY) {
             const zLdu = parseFloat(tokens[4]);
             if (Number.isNaN(xLdu) || Number.isNaN(zLdu)) return;
 
-            const colOffset = Math.round(xLdu / FRANK_GRID_CONFIG.cellSizeLDU);
-            const rowOffset = Math.round(zLdu / FRANK_GRID_CONFIG.cellSizeLDU);
+            // NEGATE to match 3D view orientation (same as render2DGrid)
+            const colOffset = -Math.round(xLdu / FRANK_GRID_CONFIG.cellSizeLDU);
+            const rowOffset = -Math.round(zLdu / FRANK_GRID_CONFIG.cellSizeLDU);
 
             if (colOffset === gridX && rowOffset === gridY) {
                 matchingIndices.push(idx);

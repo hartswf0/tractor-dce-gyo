@@ -2622,10 +2622,12 @@
                 entry.count++;
                 
                 // 💚 GRACE: Return fake pink cube geometry so it actually renders!
-                // Simple 20x20x20 pink box using quad primitives
+                // Must be a properly-formatted LDraw subfile with NOFILE terminator
                 const fakeData = `0 FILE ${partName}
-0 💚 GRACE PLACEHOLDER - Part not found
+0 Placeholder - Part not found
 0 Name: ${partName}
+0 Author: Grace Placeholder
+0 !LDRAW_ORG Unofficial_Part
 0 BFC CERTIFY CCW
 
 0 // Pink cube geometry (20x20x20 LDU)
@@ -2635,6 +2637,8 @@
 4 494  10 -10 -10  10  10 -10  10  10  10  10 -10  10
 4 494 -10 -10  10  10 -10  10  10  10  10 -10  10  10
 4 494 -10 -10 -10 -10  10 -10  10  10 -10  10 -10 -10
+
+0 NOFILE
 `;
                 return new Response(fakeData, {
                     status: 200,
@@ -2652,17 +2656,18 @@
         return {
             name: name || `Scene ${STATE.scenes.length + 1}`,
             lines: initialLines.length ? initialLines : [
-                '0 FILE untitled.mpd',
-                '0 Name: untitled',
-                '0 Author: ',
-                '0 ',
-                '0 WRITE YOUR DESCRIPTION HERE',
-                '0 ',
+                `0 FILE wag_scene_${Date.now()}.mpd`,
+                `0 Name: WAG Scene ${STATE.scenes.length + 1}`,
+                '0 Author: WAG Courage Builder',
+                '0 !LDRAW_ORG Model',
+                '0 !LICENSE Redistributable under CCAL version 2.0',
                 '0 BFC CERTIFY CCW',
                 '0 ',
-                '0 !CATEGORY ',
+                '0 // Default starter brick - add more parts below!',
+                '1 4 0 0 0 1 0 0 0 1 0 0 0 1 3001.dat',
                 '0 ',
-                ''
+                '0 STEP',
+                '0 NOFILE'
             ],
             lockedLines: new Set(),
             timestamp: Date.now()
@@ -8278,8 +8283,9 @@ function render2DGrid() {
             if (Number.isNaN(xLdu) || Number.isNaN(zLdu)) return;
 
             // Map LDraw coordinates into Frank cell offsets (Δx, Δz) using 160 LDU spacing
-            const colOffset = Math.round(xLdu / FRANK_GRID_CONFIG.cellSizeLDU);
-            const rowOffset = Math.round(zLdu / FRANK_GRID_CONFIG.cellSizeLDU);
+            // NEGATE both to match 3D view orientation (rotation.x = Math.PI flips both axes)
+            const colOffset = -Math.round(xLdu / FRANK_GRID_CONFIG.cellSizeLDU);
+            const rowOffset = -Math.round(zLdu / FRANK_GRID_CONFIG.cellSizeLDU);
 
             // Clamp to visible 9×9 Frank grid (-4..4) so far-away parts don't break the view
             if (Math.abs(colOffset) > FRANK_GRID_CONFIG.halfCells || Math.abs(rowOffset) > FRANK_GRID_CONFIG.halfCells) {
@@ -8370,8 +8376,9 @@ function highlightLinesAtGridPosition(gridX, gridY) {
             const zLdu = parseFloat(tokens[4]);
             if (Number.isNaN(xLdu) || Number.isNaN(zLdu)) return;
 
-            const colOffset = Math.round(xLdu / FRANK_GRID_CONFIG.cellSizeLDU);
-            const rowOffset = Math.round(zLdu / FRANK_GRID_CONFIG.cellSizeLDU);
+            // NEGATE to match 3D view orientation (same as render2DGrid)
+            const colOffset = -Math.round(xLdu / FRANK_GRID_CONFIG.cellSizeLDU);
+            const rowOffset = -Math.round(zLdu / FRANK_GRID_CONFIG.cellSizeLDU);
 
             if (colOffset === gridX && rowOffset === gridY) {
                 matchingIndices.push(idx);

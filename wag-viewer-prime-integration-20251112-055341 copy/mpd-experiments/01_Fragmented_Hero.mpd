@@ -1,0 +1,39 @@
+0 FILE Fragmented_Hero.mpd
+0 Name: The Fragmented Hero (Small Form)
+0 Author: Mento Typology
+0 !LDRAW_ORG Model
+
+0 // ============================================================
+0 // MENTO LIGHTING: LOW-KEY & CHIAROSCURO
+0 // ============================================================
+0 // KEY LIGHT: Hard, side-lighting to sculpt the face (Chiaroscuro)
+0 !MENTO LIGHT "Hero Key" TYPE SPOT POS -50 20 100 TGT 0 -40 0 COLOR #FFEEDD INTENSITY 2.5 SHADOWS TRUE
+
+0 // FILL LIGHT: Very weak, cool fill to keep shadows deep but detailed
+0 !MENTO LIGHT "Shadow Fill" TYPE POINT POS 50 -20 50 COLOR #001133 INTENSITY 0.2
+
+0 // RIM LIGHT: Separation from the void behind
+0 !MENTO LIGHT "Rim Edge" TYPE SPOT POS 0 -100 -100 TGT 0 -60 0 COLOR #AACCFF INTENSITY 3.0
+
+0 // ============================================================
+0 // MENTO CAMERA: HANDHELD & MEDIUM CLOSE-UP
+0 // ============================================================
+0 // SHOT 1: The realization (Handheld feel achieved via micro-jitters in sequence)
+0 !MENTO SHOT "Fragmented 1" POS 30 -35 60 TGT 0 -45 0 LENS 85
+0 !MENTO SHOT "Fragmented 2" POS 32 -34 61 TGT 0 -45 0 LENS 85
+0 !MENTO SHOT "Fragmented 3" POS 29 -36 59 TGT 0 -45 0 LENS 85
+
+0 // ============================================================
+0 // SCENE GEOMETRY (The Hero)
+0 // ============================================================
+0 // HERO: Centered minifig
+1 16 0 0 0 1 0 0 0 1 0 0 0 1 970c00.dat
+1 16 0 -32 0 1 0 0 0 1 0 0 0 1 973.dat
+1 16 0 -56 0 1 0 0 0 1 0 0 0 1 3626bp01.dat
+
+0 // BACKGROUND: Vague industrial shapes
+1 72 -100 0 -100 1 0 0 0 4 0 0 0 1 3001.dat
+1 72 100 0 -100 1 0 0 0 4 0 0 0 1 3001.dat
+
+0 STEP
+0 NOFILE

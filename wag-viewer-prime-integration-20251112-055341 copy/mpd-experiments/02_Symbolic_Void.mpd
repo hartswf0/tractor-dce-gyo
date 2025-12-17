@@ -1,0 +1,43 @@
+0 FILE Symbolic_Void.mpd
+0 Name: The Symbolic Void (Perception-Image)
+0 Author: Mento Typology
+0 !LDRAW_ORG Model
+
+0 // ============================================================
+0 // MENTO LIGHTING: MONOCHROMATIC COOL
+0 // ============================================================
+0 // AMBIENT: Global cool wash
+0 !MENTO LIGHT "Global Wash" TYPE SUN POS 0 -1000 0 TGT 0 0 0 COLOR #8899AA INTENSITY 0.5 SHADOWS FALSE
+
+0 // SOURCE: A distant, indifferent light source (The Moon/City Glow)
+0 !MENTO LIGHT "Distant Source" TYPE SUN POS 500 -200 -500 TGT 0 0 0 COLOR #00FFFF INTENSITY 1.2 SHADOWS TRUE
+
+0 // ============================================================
+0 // MENTO CAMERA: GASEOUS PERCEPTION
+0 // ============================================================
+0 // SHOT 1: Extreme Wide, High Angle, Static
+0 !MENTO SHOT "The Void Wide" POS 0 -400 400 TGT 0 0 0 LENS 24
+
+0 // SHOT 2: Slow, detached drift (Liquid Perception)
+0 !MENTO SHOT "The Drift Start" POS -200 -100 200 TGT 0 -50 0 LENS 35
+0 !MENTO SHOT "The Drift End" POS 200 -100 200 TGT 0 -50 0 LENS 35
+
+0 // ============================================================
+0 // SCENE GEOMETRY (Ruins)
+0 // ============================================================
+0 // GROUND: Scattered tiles baseplate
+1 7 0 0 0 20 0 0 0 1 0 0 0 20 3031.dat
+
+0 // RUIN 1: Tilted arch
+1 72 -80 -40 -80 0.707 0 -0.707 0 1 0 0.707 0 0.707 2356.dat
+
+0 // RUIN 2: Collapsed column
+1 72 60 0 40 0.9 0 0.4 0 1 0 -0.4 0 0.9 2356.dat
+
+0 // SUBJECT: Tiny figure lost in the void
+1 4 0 0 0 1 0 0 0 1 0 0 0 1 970c00.dat
+1 4 0 -32 0 1 0 0 0 1 0 0 0 1 973.dat
+1 4 0 -56 0 1 0 0 0 1 0 0 0 1 3626bp01.dat
+
+0 STEP
+0 NOFILE
