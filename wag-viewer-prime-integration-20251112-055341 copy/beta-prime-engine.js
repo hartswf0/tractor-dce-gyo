@@ -314,6 +314,19 @@
         engine.clear();
 
         group.rotation.x = Math.PI;
+        
+        // Ensure all meshes have materials (fallback for LDrawLoader issues)
+        group.traverse(child => {
+            if (child.isMesh && !child.material) {
+                console.warn('[PRIME] Mesh missing material, applying fallback');
+                child.material = new THREE.MeshStandardMaterial({
+                    color: 0x808080,
+                    metalness: 0.1,
+                    roughness: 0.7
+                });
+            }
+        });
+        
         const wrapper = new THREE.Group();
         wrapper.add(group);
         engine.scene.add(wrapper);
