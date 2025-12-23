@@ -703,6 +703,10 @@
 
 			} // Material was not found
 
+			// Fallback for color code -1 (inherit parent) - use main color
+			if ( colourCode === '-1' ) {
+				return this.getMaterial( '16' );
+			}
 
 			return null;
 

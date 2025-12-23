@@ -360,10 +360,21 @@
             content: '💔 MISSING';
             position: absolute;
             right: 8px;
+        }
+        .editor-line.compile-error {
+            background: rgba(255, 60, 60, 0.2) !important;
+            border-left: 3px solid #ff3c3c !important;
+            position: relative;
+            animation: errorPulse 2s ease-in-out infinite;
+        }
+        .editor-line.compile-error::after {
+            content: '⚠️ ERROR';
+            position: absolute;
+            right: 8px;
             top: 50%;
             transform: translateY(-50%);
-            color: #ff69b4;
-            font-size: 11px;
+            font-size: 9px;
+            color: #ff3c3c;
             font-weight: 700;
             background: rgba(0,0,0,0.7);
             padding: 2px 8px;
@@ -372,6 +383,249 @@
         @keyframes errorPulse {
             0%, 100% { background: rgba(255, 105, 180, 0.15); }
             50% { background: rgba(255, 105, 180, 0.25); }
+        }
+        
+        /* Toast notification system */
+        .toast-container {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 8px;
+            pointer-events: none;
+        }
+        .toast {
+            background: linear-gradient(135deg, #1a3a1a 0%, #0a200a 100%);
+            border: 1px solid var(--accent);
+            border-radius: 8px;
+            padding: 10px 16px;
+            color: var(--accent);
+            font-size: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 20px rgba(0,255,136,0.3);
+            animation: toastIn 0.3s ease-out, toastOut 0.3s ease-in 1.7s forwards;
+            pointer-events: auto;
+        }
+        .toast-icon { font-size: 16px; }
+        .toast-text { flex: 1; }
+        .toast-undo {
+            background: transparent;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .toast-undo:hover { background: var(--accent); color: #000; }
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateX(100px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes toastOut {
+            from { opacity: 1; transform: translateX(0); }
+            to { opacity: 0; transform: translateX(100px); }
+        }
+        
+        /* Staging queue (recently added parts) */
+        .staging-queue {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 8px;
+            padding: 8px;
+            z-index: 9999;
+            max-width: 280px;
+            display: none;
+        }
+        .staging-queue.has-items { display: block; }
+        .staging-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--border-primary);
+        }
+        .staging-title { font-size: 10px; color: var(--accent); font-weight: 700; }
+        .staging-clear { background: none; border: none; color: #888; font-size: 9px; cursor: pointer; }
+        .staging-clear:hover { color: #f66; }
+        .staging-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            max-height: 80px;
+            overflow-y: auto;
+        }
+        .staging-item {
+            background: var(--bg-main);
+            border: 1px solid var(--border-primary);
+            border-radius: 4px;
+            padding: 3px 6px;
+            font-size: 8px;
+            color: #aaa;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .staging-item-remove {
+            background: none;
+            border: none;
+            color: #666;
+            font-size: 10px;
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+        }
+        .staging-item-remove:hover { color: #f66; }
+        
+        /* Part image lightbox */
+        .part-lightbox {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.95);
+            z-index: 20000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            touch-action: pan-y;
+        }
+        .part-lightbox-main {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            width: 100%;
+            max-width: 800px;
+        }
+        .part-lightbox-nav {
+            background: rgba(0,255,136,0.2);
+            border: 2px solid var(--accent);
+            color: var(--accent);
+            font-size: 28px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+        .part-lightbox-nav:hover {
+            background: var(--accent);
+            color: #000;
+        }
+        .part-lightbox-nav:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        @media (max-width: 600px) {
+            .part-lightbox-nav {
+                width: 40px;
+                height: 40px;
+                font-size: 20px;
+            }
+        }
+        .part-lightbox-image-wrap {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px;
+        }
+        .part-lightbox img {
+            max-width: 80vw;
+            max-height: 50vh;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 8px 40px rgba(0,255,136,0.3);
+        }
+        @media (max-width: 600px) {
+            .part-lightbox img {
+                max-width: 90vw;
+                max-height: 40vh;
+            }
+        }
+        .part-lightbox-info {
+            margin-top: 16px;
+            text-align: center;
+            color: var(--accent);
+            width: 100%;
+            max-width: 400px;
+        }
+        .part-lightbox-info h3 {
+            font-size: 18px;
+            margin: 0 0 8px 0;
+        }
+        .part-lightbox-info p {
+            font-size: 12px;
+            color: #888;
+            margin: 4px 0;
+        }
+        .part-lightbox-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        .part-lightbox-actions button {
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .part-lightbox-add {
+            background: var(--accent);
+            border: none;
+            color: #000;
+        }
+        .part-lightbox-add:hover {
+            transform: scale(1.05);
+        }
+        .part-lightbox-copy {
+            background: transparent;
+            border: 2px solid var(--accent);
+            color: var(--accent);
+        }
+        .part-lightbox-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: rgba(0,0,0,0.5);
+            border: 2px solid var(--accent);
+            color: var(--accent);
+            font-size: 20px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .part-lightbox-counter {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            color: #666;
+            font-size: 12px;
+        }
+        .swipe-hint {
+            position: absolute;
+            bottom: 16px;
+            color: #444;
+            font-size: 11px;
         }
         
         .line-checkbox {
@@ -2610,6 +2864,83 @@
         panel.classList.remove('visible');
     }
     
+    // COMPILE ERROR TRACKING - parse LDrawLoader errors and highlight offending lines
+    const COMPILE_ERRORS = [];
+    
+    function trackCompileError(errorMsg) {
+        // Parse error messages like 'at line 16' or 'line 16:'
+        const lineMatch = errorMsg.match(/line\s+(\d+)/i);
+        const colorMatch = errorMsg.match(/colour code ["']?(-?\d+)["']?/i);
+        
+        const errorInfo = {
+            message: errorMsg,
+            lineNum: lineMatch ? parseInt(lineMatch[1]) : null,
+            colorCode: colorMatch ? colorMatch[1] : null,
+            timestamp: Date.now()
+        };
+        
+        COMPILE_ERRORS.push(errorInfo);
+        console.log('[DEBUG] Tracked compile error:', errorInfo);
+        
+        // If we found a line number, highlight it
+        if (errorInfo.lineNum && editorContainer) {
+            highlightCompileErrorLine(errorInfo.lineNum, errorInfo.message);
+        }
+        
+        return errorInfo;
+    }
+    
+    function highlightCompileErrorLine(lineNum, errorMsg) {
+        const lineIndex = lineNum - 1;
+        const lineEl = editorContainer.children[lineIndex];
+        if (lineEl) {
+            lineEl.classList.add('compile-error');
+            lineEl.setAttribute('title', `⚠️ Error: ${errorMsg}`);
+            lineEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            // Add visual error indicator
+            if (!lineEl.querySelector('.error-indicator')) {
+                const indicator = document.createElement('span');
+                indicator.className = 'error-indicator';
+                indicator.textContent = '⚠️';
+                indicator.style.cssText = 'position: absolute; right: 4px; font-size: 12px;';
+                indicator.setAttribute('title', errorMsg);
+                lineEl.style.position = 'relative';
+                lineEl.appendChild(indicator);
+            }
+        }
+    }
+    
+    function clearCompileErrors() {
+        COMPILE_ERRORS.length = 0;
+        document.querySelectorAll('.editor-line.compile-error').forEach(el => {
+            el.classList.remove('compile-error');
+            el.removeAttribute('title');
+            const indicator = el.querySelector('.error-indicator');
+            if (indicator) indicator.remove();
+        });
+    }
+    
+    // Intercept console.error to catch LDrawLoader warnings
+    const originalConsoleError = console.error;
+    const originalConsoleWarn = console.warn;
+    
+    console.error = function(...args) {
+        const msg = args.join(' ');
+        if (msg.includes('LDrawLoader') || msg.includes('colour code')) {
+            trackCompileError(msg);
+        }
+        originalConsoleError.apply(console, args);
+    };
+    
+    console.warn = function(...args) {
+        const msg = args.join(' ');
+        if (msg.includes('LDrawLoader') || msg.includes('colour code')) {
+            trackCompileError(msg);
+        }
+        originalConsoleWarn.apply(console, args);
+    };
+    
     // Intercept fetch to catch 404s gracefully and CREATE PLACEHOLDERS!
     const originalFetch = window.fetch;
     window.fetch = function(...args) {
@@ -3307,8 +3638,9 @@
         if (text.trim()) {
             console.log('📝 Compiling', enabledLines.length, 'enabled lines...');
             
-            // Clear previous missing parts tracking
+            // Clear previous error tracking
             MISSING_PARTS.clear();
+            clearCompileErrors();
             
             try {
                 await loadManualText(text, {
@@ -5952,13 +6284,15 @@
         };
 
         async function openCatalogBrowser() {
-            // Load taxonomy, minifig library, and location library
+            // Load taxonomy, enriched index, and other libraries
             let taxonomy;
+            let enrichedIndex = null;  // NEW: Enriched parts index with categories/keywords/connectors
             let minifigLibrary = null;
             let locationLibrary = null;
             try {
-                const [taxonomyResponse, minifigResponse, locationResponse] = await Promise.all([
+                const [taxonomyResponse, enrichedResponse, minifigResponse, locationResponse] = await Promise.all([
                     fetch('parts-taxonomy.json'),
+                    fetch('ldraw-parts-index.json').catch(() => null),  // NEW
                     fetch('minifig-library.json').catch(() => null),
                     fetch('location-library.json').catch(() => null)
                 ]);
@@ -5968,6 +6302,25 @@
                 } catch (analysisError) {
                     console.warn('Taxonomy primitive analysis failed', analysisError);
                 }
+                
+                // NEW: Load enriched index
+                if (enrichedResponse) {
+                    try {
+                        enrichedIndex = await enrichedResponse.json();
+                        console.log('✅ Enriched index loaded:', enrichedIndex.meta);
+                        
+                        // Build lookup map for fast access by filename
+                        enrichedIndex.lookup = new Map();
+                        enrichedIndex.parts.forEach(p => {
+                            enrichedIndex.lookup.set(p.f, p);
+                        });
+                        console.log(`📊 Built lookup map for ${enrichedIndex.lookup.size} parts`);
+                    } catch (enrichedError) {
+                        console.warn('Enriched index failed to load. Run: node build-parts-index.js', enrichedError);
+                        enrichedIndex = null;
+                    }
+                }
+                
                 if (minifigResponse) {
                     try {
                         minifigLibrary = await minifigResponse.json();
@@ -6113,7 +6466,7 @@
             // Search box
             const searchBox = document.createElement('input');
             searchBox.type = 'text';
-            searchBox.placeholder = '🔍 Search parts... (e.g., "3001", "brick 1x2", "minifig head")';
+            searchBox.placeholder = '🔍 Search parts... (e.g., "brick 1x2", "minifig -star", "plate -technic")';
             searchBox.style.cssText = `
                 width: 100%;
                 padding: ${isMobileCatalog ? '10px' : '12px'};
@@ -6125,6 +6478,104 @@
                 margin-bottom: ${isMobileCatalog ? '12px' : '16px'};
             `;
             content.appendChild(searchBox);
+            
+            // ═══════════════════════════════════════════════════════════
+            // SHARED SELECTION TOOLBAR (visible in all modes)
+            // ═══════════════════════════════════════════════════════════
+            if (!window.catalogSelectedParts) window.catalogSelectedParts = new Set();
+            const catalogSelection = window.catalogSelectedParts;
+            
+            const selectionBar = document.createElement('div');
+            selectionBar.id = 'catalog-selection-bar';
+            selectionBar.style.cssText = `
+                display: none;
+                align-items: center;
+                gap: 12px;
+                padding: 10px 16px;
+                background: linear-gradient(135deg, #1a3a1a 0%, #0a200a 100%);
+                border: 2px solid var(--accent);
+                border-radius: 8px;
+                margin-bottom: 12px;
+            `;
+            selectionBar.innerHTML = `
+                <span style="font-size: 14px;">☑️</span>
+                <span id="catalog-selection-count" style="font-weight: 700; color: var(--accent);">0</span>
+                <span style="color: #888; font-size: 12px;">parts selected</span>
+                <div style="flex: 1;"></div>
+                <button id="catalog-clear-selection" style="
+                    background: transparent;
+                    border: 1px solid #666;
+                    color: #888;
+                    padding: 6px 12px;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-size: 11px;
+                ">Clear</button>
+                <button id="catalog-add-selected" style="
+                    background: var(--accent);
+                    border: none;
+                    color: #000;
+                    padding: 8px 16px;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-weight: 700;
+                    font-size: 12px;
+                ">➕ ADD TO SCENE</button>
+            `;
+            content.appendChild(selectionBar);
+            
+            // Selection toolbar update function (global for all modes)
+            function updateCatalogSelectionUI() {
+                const count = catalogSelection.size;
+                const countEl = document.getElementById('catalog-selection-count');
+                const bar = document.getElementById('catalog-selection-bar');
+                
+                if (countEl) countEl.textContent = count;
+                if (bar) bar.style.display = count > 0 ? 'flex' : 'none';
+                
+                // Update all part cards to show selection state
+                document.querySelectorAll('.catalog-part-card').forEach(card => {
+                    const path = card.dataset.path;
+                    if (catalogSelection.has(path)) {
+                        card.style.borderColor = 'var(--accent)';
+                        card.style.background = 'rgba(0, 255, 136, 0.15)';
+                        const indicator = card.querySelector('.select-indicator');
+                        if (indicator) indicator.textContent = '✓';
+                    } else {
+                        card.style.borderColor = 'var(--border-primary)';
+                        card.style.background = 'var(--bg-secondary)';
+                        const indicator = card.querySelector('.select-indicator');
+                        if (indicator) indicator.textContent = '○';
+                    }
+                });
+                
+                console.log('[SELECTION] Updated:', count, 'parts selected');
+            }
+            
+            // Selection toolbar button handlers (use selectionBar reference, not document)
+            selectionBar.querySelector('#catalog-clear-selection').addEventListener('click', () => {
+                catalogSelection.clear();
+                updateCatalogSelectionUI();
+                console.log('[SELECTION] Cleared');
+            });
+            
+            selectionBar.querySelector('#catalog-add-selected').addEventListener('click', () => {
+                if (catalogSelection.size === 0) return;
+                
+                console.log('[SELECTION] Adding', catalogSelection.size, 'parts to scene');
+                let addedCount = 0;
+                catalogSelection.forEach(path => {
+                    addSinglePartToScene(path);
+                    addedCount++;
+                });
+                
+                document.getElementById('status-text').textContent = `➕ Added ${addedCount} parts to scene`;
+                catalogSelection.clear();
+                updateCatalogSelectionUI();
+            });
+            
+            // Make update function globally available
+            window.updateCatalogSelectionUI = updateCatalogSelectionUI;
             
             // Main content area
             const mainArea = document.createElement('div');
@@ -6540,59 +6991,119 @@
                     `;
                     parentElement.appendChild(loadControls);
                     
-                    // Parts list with previews
-                    batch.forEach(part => {
+                    // Parts list with selection support
+                    const catalogSelection = window.catalogSelectedParts || new Set();
+                    
+                    // Build lightbox-compatible parts list for navigation
+                    const lightboxPartsList = batch.map(part => {
+                        const enriched = enrichedIndex?.lookup?.get(part.filename);
+                        const partNum = part.filename.replace('.dat', '');
+                        const baseNum = enriched?.b || partNum.replace(/[a-z]+\d*$|p[br]\d+.*$|s\d+$/i, '');
+                        return {
+                            partNum,
+                            description: part.description || part.name,
+                            category: enriched?.c,
+                            imgUrl: `https://cdn.rebrickable.com/media/parts/ldraw/0/${partNum}.png`,
+                            fallbackUrl: partNum !== baseNum ? `https://cdn.rebrickable.com/media/parts/ldraw/0/${baseNum}.png` : null,
+                            path: part.path
+                        };
+                    });
+                    
+                    batch.forEach((part, batchIdx) => {
+                        const isSelected = catalogSelection.has(part.path);
+                        
+                        // Get enriched data
+                        const enriched = enrichedIndex?.lookup?.get(part.filename);
+                        const partNum = part.filename.replace('.dat', '');
+                        const baseNum = enriched?.b || partNum.replace(/[a-z]+\d*$|p[br]\d+.*$|s\d+$/i, '');
+                        const imgUrl = `https://cdn.rebrickable.com/media/parts/ldraw/0/${partNum}.png`;
+                        const fallbackUrl = partNum !== baseNum ? `https://cdn.rebrickable.com/media/parts/ldraw/0/${baseNum}.png` : null;
+                        
+                        // Connector badges
+                        const connectors = enriched?.n || [];
+                        const connIcons = { 'stud': '⬤', 'tube': '○', 'clip': '📎', 'axle-hole': '✚', 'technic-hole': '◉' };
+                        const connBadges = connectors.slice(0, 3).map(c => 
+                            `<span title="${c}" style="font-size: 8px; opacity: 0.7;">${connIcons[c] || '•'}</span>`
+                        ).join('');
+                        
                         const partDiv = document.createElement('div');
+                        partDiv.className = 'catalog-part-card';
+                        partDiv.dataset.path = part.path;
                         partDiv.style.cssText = `
                             padding: ${isMobileCatalog ? '6px' : '8px'};
                             margin-bottom: 4px;
-                            background: var(--bg-secondary);
+                            background: ${isSelected ? 'rgba(0, 255, 136, 0.15)' : 'var(--bg-secondary)'};
+                            border: 2px solid ${isSelected ? 'var(--accent)' : 'var(--border-primary)'};
                             border-radius: 4px;
                             font-size: ${isMobileCatalog ? '10px' : '11px'};
                             cursor: pointer;
-                            transition: all 0.2s;
+                            transition: all 0.15s;
                             display: flex;
-                            justify-content: space-between;
                             align-items: center;
-                            gap: ${isMobileCatalog ? '8px' : '12px'};
+                            gap: ${isMobileCatalog ? '6px' : '8px'};
                         `;
                         partDiv.innerHTML = `
-                            <div class="part-preview" style="
-                                width: ${isMobileCatalog ? '48px' : '60px'};
-                                height: ${isMobileCatalog ? '48px' : '60px'};
-                                background: var(--bg-main);
-                                border: 1px solid var(--border-primary);
+                            <span class="select-indicator" style="
+                                width: 18px; height: 18px;
+                                border-radius: 50%;
+                                border: 2px solid var(--accent);
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                font-size: 10px;
+                                color: var(--accent);
+                                flex-shrink: 0;
+                            ">${isSelected ? '✓' : '○'}</span>
+                            <div class="part-img-container" title="Click to enlarge" style="
+                                width: ${isMobileCatalog ? '40px' : '48px'};
+                                height: ${isMobileCatalog ? '40px' : '48px'};
+                                background: #1a1a1a;
                                 border-radius: 4px;
                                 display: flex;
                                 align-items: center;
                                 justify-content: center;
-                                color: var(--accent);
-                                font-size: ${isMobileCatalog ? '8px' : '9px'};
-                                text-align: center;
                                 flex-shrink: 0;
-                            ">
-                                <div style="padding: 4px;">
-                                    📦<br>${part.filename.split('.')[0].substring(0, 6)}
+                                overflow: hidden;
+                                cursor: zoom-in;
+                            "><img src="${imgUrl}" alt="${partNum}" style="max-width: 100%; max-height: 100%; object-fit: contain;" 
+                                onerror="this.onerror=null; window.imageLoadStats.failed++; window.imageLoadStats.failedParts.push('${partNum}'); ${fallbackUrl ? `this.src='${fallbackUrl}';` : `this.style.display='none'; this.parentNode.innerHTML='🧱';`}"
+                                onload="window.imageLoadStats.loaded++"></div>
+                            <div style="flex: 1; min-width: 0;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="font-weight: 700; color: var(--accent); font-size: 10px;">${part.filename}</span>
+                                    <span style="display: flex; gap: 3px; align-items: center;">
+                                        ${enriched?.sig ? `<span style="font-size: 6px; background: #333; padding: 1px 3px; border-radius: 2px; color: #0f8; font-family: monospace;">${enriched.sig}</span>` : ''}
+                                        ${connBadges}
+                                    </span>
                                 </div>
+                                <div style="color: #888; font-size: 9px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${(part.description || part.name).slice(0, 40)}</div>
+                                ${enriched?.c ? `<div style="font-size: 7px; color: #666; margin-top: 1px;">${enriched.c}</div>` : ''}
                             </div>
-                            <div style="flex: 1;">
-                                <div style="font-weight: 700; color: var(--accent);">${part.filename}</div>
-                                <div style="color: #aaa; font-size: ${isMobileCatalog ? '9px' : '10px'};">${part.description || part.name}</div>
+                            <div style="display: flex; flex-direction: column; gap: 4px; flex-shrink: 0;">
+                                <button class="copy-btn" title="Copy path" style="background: var(--bg-main); border: 1px solid var(--border-primary); padding: 4px 6px; border-radius: 3px; cursor: pointer; font-size: 8px;">📋</button>
+                                <button class="add-single-part" title="Add now" style="background: var(--accent); border: none; padding: 4px 6px; border-radius: 3px; cursor: pointer; font-size: 8px; color: #000;">➕</button>
                             </div>
-                            <button class="add-single-part" style="
-                                background: var(--accent);
-                                border: none;
-                                padding: ${isMobileCatalog ? '3px 6px' : '4px 8px'};
-                                border-radius: 4px;
-                                cursor: pointer;
-                                font-size: ${isMobileCatalog ? '9px' : '10px'};
-                                color: var(--bg-main);
-                                flex-shrink: 0;
-                            ">➕</button>
                         `;
+                        
+                        // Image click for lightbox with navigation
+                        partDiv.querySelector('.part-img-container').addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            if (window.setLightboxParts && window.showPartLightbox) {
+                                window.setLightboxParts(lightboxPartsList, batchIdx);
+                                window.showPartLightbox(partNum, part.description || part.name, enriched?.c, imgUrl, fallbackUrl, part.path);
+                            }
+                        });
+                        
+                        // Copy button
+                        partDiv.querySelector('.copy-btn').addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            navigator.clipboard.writeText(part.path);
+                            document.getElementById('status-text').textContent = `📋 Copied: ${part.path}`;
+                        });
+                        
+                        // Add single part button
                         partDiv.querySelector('.add-single-part').addEventListener('click', (e) => {
                             e.stopPropagation();
-                            // Immediate visual feedback
                             const btn = e.target;
                             btn.textContent = '✓';
                             btn.style.background = '#2a2';
@@ -6600,13 +7111,21 @@
                                 btn.textContent = '➕';
                                 btn.style.background = 'var(--accent)';
                             }, 400);
-                            // Add part
-                            addPartToScene([part], part.filename);
+                            addSinglePartToScene(part.path);
                         });
-                        partDiv.addEventListener('click', () => {
-                            navigator.clipboard.writeText(part.path);
-                            document.getElementById('status-text').textContent = `📋 Copied: ${part.path}`;
+                        
+                        // Click card to toggle selection
+                        partDiv.addEventListener('click', (e) => {
+                            if (e.target.closest('button')) return;
+                            if (catalogSelection.has(part.path)) {
+                                catalogSelection.delete(part.path);
+                            } else {
+                                catalogSelection.add(part.path);
+                            }
+                            if (window.updateCatalogSelectionUI) window.updateCatalogSelectionUI();
+                            console.log('[SELECTION] Toggled:', part.filename, '| Total:', catalogSelection.size);
                         });
+                        
                         parentElement.appendChild(partDiv);
                     });
                     
@@ -6952,25 +7471,88 @@
                                 Object.entries(classData.orders).forEach(([order, orderData]) => {
                                     Object.entries(orderData.families).forEach(([family, familyData]) => {
                                         familyData.parts.forEach(part => {
+                                            // ENRICHED: Get metadata from enriched index
+                                            const enriched = enrichedIndex?.lookup?.get(part.filename);
+                                            const partNum = part.filename.replace('.dat', '');
+                                            const baseNum = enriched?.b || partNum.replace(/[a-z]+\d*$|p[br]\d+.*$|s\d+$/i, '');
+                                            const imgUrl = `https://cdn.rebrickable.com/media/parts/ldraw/0/${partNum}.png`;
+                                            const fallbackUrl = partNum !== baseNum ? `https://cdn.rebrickable.com/media/parts/ldraw/0/${baseNum}.png` : null;
+                                            
+                                            // Connector badges from enriched data
+                                            const connectors = enriched?.n || [];
+                                            const connIcons = { 'stud': '⬤', 'tube': '○', 'clip': '📎', 'axle-hole': '✚', 'technic-hole': '◉' };
+                                            const connBadges = connectors.slice(0, 3).map(c => 
+                                                `<span title="${c}" style="font-size: 8px; opacity: 0.7;">${connIcons[c] || '•'}</span>`
+                                            ).join('');
+                                            
+                                            // Use shared selection
+                                            const catalogSelection = window.catalogSelectedParts || new Set();
+                                            const isSelected = catalogSelection.has(part.path);
+                                            
                                             const partDiv = document.createElement('div');
+                                            partDiv.className = 'catalog-part-card';
+                                            partDiv.dataset.path = part.path;
                                             partDiv.style.cssText = `
-                                                padding: 8px;
+                                                padding: 6px;
                                                 margin-bottom: 4px;
-                                                background: var(--bg-secondary);
+                                                background: ${isSelected ? 'rgba(0, 255, 136, 0.15)' : 'var(--bg-secondary)'};
+                                                border: 2px solid ${isSelected ? 'var(--accent)' : 'var(--border-primary)'};
                                                 border-radius: 4px;
                                                 font-size: 11px;
                                                 cursor: pointer;
-                                                transition: all 0.2s;
+                                                transition: all 0.15s;
+                                                display: flex;
+                                                gap: 6px;
+                                                align-items: center;
                                             `;
                                             partDiv.innerHTML = `
-                                                <div style="font-weight: 700; color: var(--accent);">${part.filename}</div>
-                                                <div style="color: #aaa;">${part.description || part.name}</div>
+                                                <span class="select-indicator" style="width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--accent); display: flex; align-items: center; justify-content: center; font-size: 9px; color: var(--accent); flex-shrink: 0;">${isSelected ? '✓' : '○'}</span>
+                                                <div style="flex-shrink: 0; width: 36px; height: 36px; background: #1a1a1a; border-radius: 4px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                                    <img src="${imgUrl}" alt="${partNum}" style="max-width: 100%; max-height: 100%; object-fit: contain;" 
+                                                        onerror="this.onerror=null; ${fallbackUrl ? `this.src='${fallbackUrl}';` : `this.style.display='none'; this.parentNode.innerHTML='🧱';`}">
+                                                </div>
+                                                <div style="flex: 1; min-width: 0;">
+                                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                                        <span style="font-weight: 700; color: var(--accent); font-size: 9px;">${part.filename}</span>
+                                                        <span style="display: flex; gap: 3px; align-items: center;">
+                                                            ${enriched?.sig ? `<span style="font-size: 6px; background: #333; padding: 1px 3px; border-radius: 2px; color: #0f8; font-family: monospace;">${enriched.sig}</span>` : ''}
+                                                            ${connBadges}
+                                                        </span>
+                                                    </div>
+                                                    <div style="color: #888; font-size: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${(part.description || part.name).slice(0, 35)}</div>
+                                                </div>
+                                                <div style="display: flex; gap: 3px; flex-shrink: 0;">
+                                                    <button class="tax-copy-btn" title="Copy path" style="background: var(--bg-main); border: 1px solid var(--border-primary); padding: 3px 5px; border-radius: 3px; cursor: pointer; font-size: 8px;">📋</button>
+                                                    <button class="tax-add-btn" title="Add now" style="background: var(--accent); border: none; padding: 3px 5px; border-radius: 3px; cursor: pointer; font-size: 8px; color: #000;">➕</button>
+                                                </div>
                                             `;
-                                            partDiv.addEventListener('mouseenter', () => partDiv.style.background = 'var(--accent)');
-                                            partDiv.addEventListener('mouseleave', () => partDiv.style.background = 'var(--bg-secondary)');
-                                            partDiv.addEventListener('click', () => {
+                                            // Copy button
+                                            partDiv.querySelector('.tax-copy-btn').addEventListener('click', (e) => {
+                                                e.stopPropagation();
                                                 navigator.clipboard.writeText(part.path);
                                                 document.getElementById('status-text').textContent = `📋 Copied: ${part.path}`;
+                                            });
+                                            // Add to scene button (immediate)
+                                            partDiv.querySelector('.tax-add-btn').addEventListener('click', (e) => {
+                                                e.stopPropagation();
+                                                addSinglePartToScene(part.path);
+                                                e.target.textContent = '✓';
+                                                e.target.style.background = '#0a0';
+                                                setTimeout(() => {
+                                                    e.target.textContent = '➕';
+                                                    e.target.style.background = 'var(--accent)';
+                                                }, 400);
+                                            });
+                                            // Click card to toggle selection
+                                            partDiv.addEventListener('click', (e) => {
+                                                if (e.target.closest('button')) return;
+                                                if (catalogSelection.has(part.path)) {
+                                                    catalogSelection.delete(part.path);
+                                                } else {
+                                                    catalogSelection.add(part.path);
+                                                }
+                                                if (window.updateCatalogSelectionUI) window.updateCatalogSelectionUI();
+                                                console.log('[SELECTION] Toggled:', part.filename, '| Total:', catalogSelection.size);
                                             });
                                             phylumContent.appendChild(partDiv);
                                         });
@@ -7006,10 +7588,20 @@
                         rightPanel.innerHTML = `
                             <div style="padding: 20px; text-align: center;">
                                 <div style="font-size: 48px; margin-bottom: 16px;">🔍</div>
-                                <div style="color: var(--accent); font-weight: 700; margin-bottom: 8px;">Search Parts</div>
-                                <div style="color: #888; font-size: 12px; line-height: 1.6;">
-                                    Type at least 2 characters to search<br><br>
-                                    <strong>Try:</strong> "3001" • "brick" • "plate" • "minifig" • "wheel" • "slope"
+                                <div style="color: var(--accent); font-weight: 700; margin-bottom: 12px;">Smart Part Search</div>
+                                <div style="color: #888; font-size: 11px; line-height: 1.8; text-align: left; max-width: 320px; margin: 0 auto;">
+                                    <strong style="color: var(--accent);">✨ New Features:</strong><br>
+                                    • <strong>Synonyms:</strong> "cheese" → finds "Slope 30 1x1"<br>
+                                    • <strong>Normalize:</strong> "2 x 4" = "2x4" = "two by four"<br>
+                                    • <strong>Exclude:</strong> "-technic" removes technic parts<br>
+                                    • <strong>Word match:</strong> "car" won't match "cardboard"<br><br>
+                                    
+                                    <strong style="color: var(--accent);">🎯 Try these:</strong><br>
+                                    • <code style="background:#333;padding:2px 6px;border-radius:3px;">cheese</code> → slope 30 1x1<br>
+                                    • <code style="background:#333;padding:2px 6px;border-radius:3px;">jumper</code> → plate 1x2 offset<br>
+                                    • <code style="background:#333;padding:2px 6px;border-radius:3px;">erling</code> → headlight brick<br>
+                                    • <code style="background:#333;padding:2px 6px;border-radius:3px;">clip -technic</code> → clips, no technic<br>
+                                    • <code style="background:#333;padding:2px 6px;border-radius:3px;">wheel -train</code> → wheels, no train
                                 </div>
                             </div>
                         `;
@@ -7021,31 +7613,80 @@
                         if (!window.catalogSelectedParts) window.catalogSelectedParts = new Set();
                         const selectedParts = window.catalogSelectedParts;
                         
+                        // Parse search terms for display
+                        const displayTerms = query.split(/\s+/).filter(t => t.length > 0);
+                        const posDisplay = displayTerms.filter(t => !t.startsWith('-')).map(t => `<span style="color: #4f4;">${t}</span>`).join(' ');
+                        const negDisplay = displayTerms.filter(t => t.startsWith('-')).map(t => `<span style="color: #f44;">${t}</span>`).join(' ');
+                        const termsDisplay = [posDisplay, negDisplay].filter(Boolean).join(' ');
+                        
                         // Create results container with filters
                         const resultsContainer = document.createElement('div');
                         resultsContainer.innerHTML = `
                             <div style="color: var(--accent); font-weight: 700; font-size: 16px; margin-bottom: 12px; border-bottom: 2px solid var(--border-primary); padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-                                <span>🔍 "${query}"</span>
+                                <span>🔍 ${termsDisplay || query}</span>
                                 <span id="search-count" style="font-size: 12px; color: #888;"></span>
                             </div>
                             
-                            <!-- Filter chips -->
-                            <div id="filter-chips" style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px;">
-                                <button class="filter-chip active" data-filter="all" style="padding: 4px 10px; border-radius: 12px; border: 1px solid var(--accent); background: var(--accent); color: #000; font-size: 10px; cursor: pointer; transition: all 0.15s;">All</button>
-                                <button class="filter-chip" data-filter="brick" style="padding: 4px 10px; border-radius: 12px; border: 1px solid var(--border-primary); background: var(--bg-secondary); color: var(--text-primary); font-size: 10px; cursor: pointer; transition: all 0.15s;">🧱 Bricks</button>
-                                <button class="filter-chip" data-filter="plate" style="padding: 4px 10px; border-radius: 12px; border: 1px solid var(--border-primary); background: var(--bg-secondary); color: var(--text-primary); font-size: 10px; cursor: pointer; transition: all 0.15s;">▬ Plates</button>
-                                <button class="filter-chip" data-filter="slope" style="padding: 4px 10px; border-radius: 12px; border: 1px solid var(--border-primary); background: var(--bg-secondary); color: var(--text-primary); font-size: 10px; cursor: pointer; transition: all 0.15s;">📐 Slopes</button>
-                                <button class="filter-chip" data-filter="tile" style="padding: 4px 10px; border-radius: 12px; border: 1px solid var(--border-primary); background: var(--bg-secondary); color: var(--text-primary); font-size: 10px; cursor: pointer; transition: all 0.15s;">⬜ Tiles</button>
-                                <button class="filter-chip" data-filter="minifig" style="padding: 4px 10px; border-radius: 12px; border: 1px solid var(--border-primary); background: var(--bg-secondary); color: var(--text-primary); font-size: 10px; cursor: pointer; transition: all 0.15s;">🧍 Minifig</button>
-                                <button class="filter-chip" data-filter="technic" style="padding: 4px 10px; border-radius: 12px; border: 1px solid var(--border-primary); background: var(--bg-secondary); color: var(--text-primary); font-size: 10px; cursor: pointer; transition: all 0.15s;">⚙️ Technic</button>
+                            <!-- Category filter chips (official LDraw !CATEGORY) -->
+                            <div id="filter-chips" style="display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px;">
+                                <button class="filter-chip active" data-filter="all" style="padding: 3px 8px; border-radius: 10px; border: 1px solid var(--accent); background: var(--accent); color: #000; font-size: 9px; cursor: pointer; transition: all 0.15s;">All</button>
+                                <button class="filter-chip" data-filter="brick" style="padding: 3px 8px; border-radius: 10px; border: 1px solid var(--border-primary); background: var(--bg-secondary); color: var(--text-primary); font-size: 9px; cursor: pointer;">🧱 Brick</button>
+                                <button class="filter-chip" data-filter="plate" style="padding: 3px 8px; border-radius: 10px; border: 1px solid var(--border-primary); background: var(--bg-secondary); color: var(--text-primary); font-size: 9px; cursor: pointer;">▬ Plate</button>
+                                <button class="filter-chip" data-filter="tile" style="padding: 3px 8px; border-radius: 10px; border: 1px solid var(--border-primary); background: var(--bg-secondary); color: var(--text-primary); font-size: 9px; cursor: pointer;">⬜ Tile</button>
+                                <button class="filter-chip" data-filter="slope" style="padding: 3px 8px; border-radius: 10px; border: 1px solid var(--border-primary); background: var(--bg-secondary); color: var(--text-primary); font-size: 9px; cursor: pointer;">📐 Slope</button>
+                                <button class="filter-chip" data-filter="technic" style="padding: 3px 8px; border-radius: 10px; border: 1px solid var(--border-primary); background: var(--bg-secondary); color: var(--text-primary); font-size: 9px; cursor: pointer;">⚙️ Technic</button>
+                                <button class="filter-chip" data-filter="minifig" style="padding: 3px 8px; border-radius: 10px; border: 1px solid var(--border-primary); background: var(--bg-secondary); color: var(--text-primary); font-size: 9px; cursor: pointer;">🧍 Minifig</button>
+                                <button class="filter-chip" data-filter="wedge" style="padding: 3px 8px; border-radius: 10px; border: 1px solid var(--border-primary); background: var(--bg-secondary); color: var(--text-primary); font-size: 9px; cursor: pointer;">◢ Wedge</button>
+                                <button class="filter-chip" data-filter="vehicle" style="padding: 3px 8px; border-radius: 10px; border: 1px solid var(--border-primary); background: var(--bg-secondary); color: var(--text-primary); font-size: 9px; cursor: pointer;">🚗 Vehicle</button>
+                                <button class="filter-chip" data-filter="window" style="padding: 3px 8px; border-radius: 10px; border: 1px solid var(--border-primary); background: var(--bg-secondary); color: var(--text-primary); font-size: 9px; cursor: pointer;">🪟 Window</button>
+                                <button class="filter-chip" data-filter="door" style="padding: 3px 8px; border-radius: 10px; border: 1px solid var(--border-primary); background: var(--bg-secondary); color: var(--text-primary); font-size: 9px; cursor: pointer;">🚪 Door</button>
+                                <button class="filter-chip" data-filter="wheel" style="padding: 3px 8px; border-radius: 10px; border: 1px solid var(--border-primary); background: var(--bg-secondary); color: var(--text-primary); font-size: 9px; cursor: pointer;">◎ Wheel</button>
+                                <button class="filter-chip" data-filter="plant" style="padding: 3px 8px; border-radius: 10px; border: 1px solid var(--border-primary); background: var(--bg-secondary); color: var(--text-primary); font-size: 9px; cursor: pointer;">🌿 Plant</button>
+                                <button class="filter-chip" data-filter="animal" style="padding: 3px 8px; border-radius: 10px; border: 1px solid var(--border-primary); background: var(--bg-secondary); color: var(--text-primary); font-size: 9px; cursor: pointer;">🐾 Animal</button>
+                            </div>
+                            
+                            <!-- Connector facets (from enriched index) -->
+                            <div id="connector-chips" style="display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px;">
+                                <span style="font-size: 9px; color: #666; padding: 3px 0;">Connectors:</span>
+                                <button class="connector-chip" data-connector="clip" style="padding: 2px 6px; border-radius: 8px; border: 1px solid #555; background: transparent; color: #aaa; font-size: 8px; cursor: pointer;">📎 clip</button>
+                                <button class="connector-chip" data-connector="bar" style="padding: 2px 6px; border-radius: 8px; border: 1px solid #555; background: transparent; color: #aaa; font-size: 8px; cursor: pointer;">| bar</button>
+                                <button class="connector-chip" data-connector="pin-hole" style="padding: 2px 6px; border-radius: 8px; border: 1px solid #555; background: transparent; color: #aaa; font-size: 8px; cursor: pointer;">◉ pin-hole</button>
+                                <button class="connector-chip" data-connector="axle-hole" style="padding: 2px 6px; border-radius: 8px; border: 1px solid #555; background: transparent; color: #aaa; font-size: 8px; cursor: pointer;">✚ axle-hole</button>
+                                <button class="connector-chip" data-connector="hinge" style="padding: 2px 6px; border-radius: 8px; border: 1px solid #555; background: transparent; color: #aaa; font-size: 8px; cursor: pointer;">↔ hinge</button>
+                                <button class="connector-chip" data-connector="ball-joint" style="padding: 2px 6px; border-radius: 8px; border: 1px solid #555; background: transparent; color: #aaa; font-size: 8px; cursor: pointer;">● ball</button>
+                                <button class="connector-chip" data-connector="studs" style="padding: 2px 6px; border-radius: 8px; border: 1px solid #555; background: transparent; color: #aaa; font-size: 8px; cursor: pointer;">⬤ studs</button>
+                            </div>
+                            
+                            <!-- Sort options -->
+                            <div style="display: flex; gap: 8px; margin-bottom: 12px; align-items: center; flex-wrap: wrap;">
+                                <span style="font-size: 10px; color: #888;">Sort:</span>
+                                <button class="sort-btn active" data-sort="relevance" style="padding: 3px 8px; border-radius: 4px; border: 1px solid var(--accent); background: var(--accent); color: #000; font-size: 9px; cursor: pointer;">⭐ Relevance</button>
+                                <button class="sort-btn" data-sort="size-asc" style="padding: 3px 8px; border-radius: 4px; border: 1px solid var(--border-primary); background: var(--bg-secondary); color: var(--text-secondary); font-size: 9px; cursor: pointer;">📏 Size ↑</button>
+                                <button class="sort-btn" data-sort="size-desc" style="padding: 3px 8px; border-radius: 4px; border: 1px solid var(--border-primary); background: var(--bg-secondary); color: var(--text-secondary); font-size: 9px; cursor: pointer;">📏 Size ↓</button>
+                                <button class="sort-btn" data-sort="name" style="padding: 3px 8px; border-radius: 4px; border: 1px solid var(--border-primary); background: var(--bg-secondary); color: var(--text-secondary); font-size: 9px; cursor: pointer;">🔤 Name</button>
+                                <button class="sort-btn" data-sort="simple" style="padding: 3px 8px; border-radius: 4px; border: 1px solid var(--border-primary); background: var(--bg-secondary); color: var(--text-secondary); font-size: 9px; cursor: pointer;">🟢 Simple</button>
+                                <span style="flex: 1;"></span>
+                                <button id="create-scene-from-search" style="padding: 4px 10px; border-radius: 4px; border: 1px solid var(--accent); background: var(--bg-secondary); color: var(--accent); font-size: 10px; cursor: pointer; font-weight: 600;">📁 New Scene: "${query}"</button>
                             </div>
                             
                             <!-- Selection toolbar -->
-                            <div id="selection-toolbar" style="display: none; background: var(--accent); color: #000; padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+                            <div id="selection-toolbar" style="display: none; background: var(--accent); color: #000; padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; justify-content: space-between; align-items: center;">
                                 <span><strong id="selected-count">0</strong> selected</span>
                                 <div style="display: flex; gap: 8px;">
+                                    <button id="select-visible-btn" style="background: transparent; color: #000; border: 1px solid #000; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 11px;">Select Visible</button>
                                     <button id="add-selected-btn" style="background: #000; color: var(--accent); border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 600;">➕ Add All</button>
                                     <button id="clear-selection-btn" style="background: transparent; color: #000; border: 1px solid #000; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 11px;">Clear</button>
+                                </div>
+                            </div>
+                            
+                            <!-- Progress bar showing position in results -->
+                            <div id="results-progress" style="margin-bottom: 12px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                    <span id="showing-range" style="font-size: 10px; color: #888;">Showing 0 of 0</span>
+                                    <button id="select-all-filtered-btn" style="background: var(--bg-secondary); border: 1px solid var(--border-primary); padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 10px; color: var(--text-secondary);">☑️ Select All Filtered</button>
+                                </div>
+                                <div style="height: 4px; background: var(--bg-secondary); border-radius: 2px; overflow: hidden;">
+                                    <div id="progress-bar" style="height: 100%; background: var(--accent); width: 0%; transition: width 0.3s;"></div>
                                 </div>
                             </div>
                             
@@ -7061,36 +7702,247 @@
                         const filterChips = document.querySelectorAll('.filter-chip');
                         
                         let activeFilter = 'all';
+                        let activeConnectors = new Set();  // For connector facet filtering
+                        let currentSort = 'relevance';
                         let count = 0;
                         const results = [];
+                        const PAGE_SIZE = 100;
+                        let currentPage = 0;
+                        let currentFiltered = [];
                         
-                        // Collect all matching parts
+                        // Extract size from description (e.g., "1x2", "2x4", "1x1x2")
+                        function extractSize(desc) {
+                            const match = desc.match(/(\d+)\s*x\s*(\d+)(?:\s*x\s*(\d+))?/i);
+                            if (match) {
+                                const w = parseInt(match[1]) || 1;
+                                const l = parseInt(match[2]) || 1;
+                                const h = parseInt(match[3]) || 1;
+                                return { w, l, h, area: w * l, volume: w * l * h, str: match[0] };
+                            }
+                            return { w: 1, l: 1, h: 1, area: 1, volume: 1, str: '' };
+                        }
+                        
+                        // Estimate complexity from filename (more digits/letters = more complex)
+                        function estimateComplexity(filename) {
+                            const base = filename.replace('.dat', '');
+                            // Simple parts: 3001, 3002, etc. Complex: 973pr1234, 92456pb123
+                            const hasPattern = /p[br]\d+|c\d+|d\d+/.test(base);
+                            const numLen = (base.match(/\d+/g) || []).join('').length;
+                            return hasPattern ? 3 : (numLen > 4 ? 2 : 1);
+                        }
+                        
+                        // ═══════════════════════════════════════════════════════════
+                        // DIMENSION NORMALIZATION - "2 x 4" → "2x4", "one by two" → "1x2"
+                        // ═══════════════════════════════════════════════════════════
+                        function normalizeQuery(q) {
+                            return q
+                                .replace(/(\d+)\s*[xX×]\s*(\d+)(?:\s*[xX×]\s*(\d+))?/g, (m, a, b, c) => 
+                                    c ? `${a}x${b}x${c}` : `${a}x${b}`)  // "2 x 4" → "2x4"
+                                .replace(/\bone\b/gi, '1').replace(/\btwo\b/gi, '2')
+                                .replace(/\bthree\b/gi, '3').replace(/\bfour\b/gi, '4')
+                                .replace(/\bfive\b/gi, '5').replace(/\bsix\b/gi, '6')
+                                .replace(/\beight\b/gi, '8').replace(/\bten\b/gi, '10')
+                                .replace(/\btwelve\b/gi, '12').replace(/\bsixteen\b/gi, '16')
+                                .toLowerCase().trim();
+                        }
+                        
+                        // ═══════════════════════════════════════════════════════════
+                        // SYNONYM MAP - Builder slang → Official LDraw terms
+                        // ═══════════════════════════════════════════════════════════
+                        const SYNONYMS = {
+                            // Common nicknames
+                            'cheese': ['slope 30 1 x 1', '54200', 'cheese slope', 'cheese wedge'],
+                            'jumper': ['plate 1 x 2 offset', 'plate 1 x 2 with 1 stud', '3794', '15573', 'jumper plate'],
+                            'erling': ['headlight', 'brick 1 x 1 with headlight', '4070'],
+                            'travis': ['brick 1 x 1 with studs on 4 sides', '4733'],
+                            'snot': ['stud not on top', 'sideways', 'bracket'],
+                            
+                            // Connection types
+                            'clip': ['holder', 'claw', 'bar holder', 'clip horizontal', 'clip vertical'],
+                            'bar': ['handle', 'rod', 'antenna', 'lightsaber blade'],
+                            'stud': ['knob', 'bump', 'pip'],
+                            'anti-stud': ['tube', 'underside tube'],
+                            'pin': ['connector peg', 'friction pin', 'axle pin'],
+                            'axle': ['cross axle', 'technic axle'],
+                            
+                            // Part types
+                            'baseplate': ['base plate', 'plate 32 x 32', 'plate 48 x 48'],
+                            'wing': ['wedge plate', 'wedge'],
+                            'door': ['door frame', 'door 1 x 4'],
+                            'window': ['window frame', 'window 1 x 2'],
+                            'wheel': ['tyre', 'tire', 'rim'],
+                            'tyre': ['tire', 'wheel'],
+                            
+                            // Minifig
+                            'head': ['minifig head', 'minifigure head'],
+                            'torso': ['minifig torso', 'minifigure torso', 'body'],
+                            'legs': ['minifig legs', 'minifigure legs', 'hips'],
+                            'hair': ['minifig hair', 'minifigure hair', 'wig'],
+                            'helmet': ['minifig helmet', 'headgear'],
+                            'cape': ['minifig cape', 'cloth cape'],
+                            
+                            // Themes
+                            'castle': ['knight', 'medieval', 'kingdom'],
+                            'space': ['spaceship', 'rocket', 'astronaut', 'classic space'],
+                            'pirate': ['ship', 'sail', 'cannon'],
+                            'train': ['locomotive', 'railway', 'track'],
+                            'city': ['town', 'modular', 'building']
+                        };
+                        
+                        // Expand a term with its synonyms (returns array of terms to match)
+                        function expandWithSynonyms(term) {
+                            const normalized = term.toLowerCase();
+                            const expanded = [normalized];
+                            
+                            // Check if term is a key in synonyms
+                            if (SYNONYMS[normalized]) {
+                                expanded.push(...SYNONYMS[normalized]);
+                            }
+                            
+                            // Check if term appears in any synonym list (reverse lookup)
+                            for (const [key, aliases] of Object.entries(SYNONYMS)) {
+                                if (aliases.some(a => a.includes(normalized) || normalized.includes(a))) {
+                                    expanded.push(key);
+                                    expanded.push(...aliases);
+                                }
+                            }
+                            
+                            return [...new Set(expanded)]; // Dedupe
+                        }
+                        
+                        // Normalize the query first
+                        const normalizedQuery = normalizeQuery(query);
+                        console.log('[SEARCH] Normalized query:', query, '→', normalizedQuery);
+                        
+                        // Parse search terms from NORMALIZED query
+                        const terms = normalizedQuery.split(/\s+/).filter(t => t.length > 0);
+                        const positiveTerms = terms.filter(t => !t.startsWith('-'));
+                        const negativeTerms = terms.filter(t => t.startsWith('-')).map(t => t.slice(1)).filter(t => t.length > 0);
+                        
+                        // Expand positive terms with synonyms
+                        const expandedPositiveTerms = positiveTerms.map(t => ({
+                            original: t,
+                            expanded: expandWithSynonyms(t)
+                        }));
+                        
+                        console.log('[SEARCH] Terms expanded:', expandedPositiveTerms.map(e => `${e.original} → [${e.expanded.join(', ')}]`));
+                        
+                        // Word boundary matching helper - matches whole words only
+                        // e.g., "car" matches "car", "cars", but NOT "cardboard", "carton"
+                        function wordMatch(text, term) {
+                            const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                            const regex = new RegExp(`\\b${escaped}(s|es|ed|ing)?\\b`, 'i');
+                            return regex.test(text);
+                        }
+                        
+                        // Substring match (for size patterns like "1x2", part IDs)
+                        function substringMatch(text, term) {
+                            return text.includes(term);
+                        }
+                        
+                        // Smart match: picks strategy based on term format
+                        function smartMatch(text, term) {
+                            // Size patterns (1x2, 2x4) should use substring
+                            if (/^\d+x\d+/.test(term)) return substringMatch(text, term);
+                            // Part IDs (all digits) use substring
+                            if (/^\d{3,}$/.test(term)) return substringMatch(text, term);
+                            // Short terms (1-2 chars) use substring
+                            if (term.length <= 2) return substringMatch(text, term);
+                            // Longer terms use word boundary
+                            return wordMatch(text, term);
+                        }
+                        
+                        // Check if ANY of the expanded synonyms match
+                        function synonymMatch(text, expandedTerm) {
+                            return expandedTerm.expanded.some(syn => smartMatch(text, syn));
+                        }
+                        
+                        console.log('[SEARCH] Positive:', positiveTerms, 'Negative:', negativeTerms);
+                        
+                        // Collect all matching parts (enhanced with enriched index if available)
                         Object.values(taxonomy.kingdoms).forEach(kingdomData => {
                             Object.values(kingdomData.phyla).forEach(phylumData => {
                                 Object.values(phylumData.classes).forEach(classData => {
                                     Object.values(classData.orders).forEach(orderData => {
                                         Object.values(orderData.families).forEach(familyData => {
                                             familyData.parts.forEach(part => {
-                                                const text = `${part.filename} ${part.name} ${part.description}`.toLowerCase();
-                                                if (text.includes(query)) {
-                                                    // Score relevance (filename match = higher)
+                                                // Get enriched data if available
+                                                const enriched = enrichedIndex?.lookup?.get(part.filename);
+                                                
+                                                // Build searchable text - include keywords from enriched index
+                                                let text = `${part.filename} ${part.name} ${part.description}`.toLowerCase();
+                                                if (enriched) {
+                                                    // Add official keywords to searchable text
+                                                    if (enriched.k) text += ' ' + enriched.k.join(' ');
+                                                    // Add official category
+                                                    if (enriched.c) text += ' ' + enriched.c.toLowerCase();
+                                                }
+                                                
+                                                // Check ALL positive terms match (using SYNONYM expansion)
+                                                const matchesPositive = expandedPositiveTerms.length === 0 || 
+                                                    expandedPositiveTerms.every(expTerm => synonymMatch(text, expTerm));
+                                                
+                                                // Check NO negative terms match (using smart matching - no synonym expansion for exclusions)
+                                                const matchesNegative = negativeTerms.length === 0 ||
+                                                    negativeTerms.every(term => !smartMatch(text, term));
+                                                
+                                                if (matchesPositive && matchesNegative) {
+                                                    // Score relevance (filename match = higher, synonym match = bonus)
                                                     let score = 0;
-                                                    if (part.filename.toLowerCase().includes(query)) score += 10;
-                                                    if (part.filename.toLowerCase() === query) score += 20;
-                                                    if (part.filename.toLowerCase().startsWith(query)) score += 5;
-                                                    
-                                                    // Detect part type for filtering
-                                                    let partType = 'other';
-                                                    const desc = (part.description || '').toLowerCase();
                                                     const fname = part.filename.toLowerCase();
-                                                    if (desc.includes('brick') || fname.includes('brick')) partType = 'brick';
-                                                    else if (desc.includes('plate') || fname.includes('plate')) partType = 'plate';
-                                                    else if (desc.includes('slope') || fname.includes('slope')) partType = 'slope';
-                                                    else if (desc.includes('tile') || fname.includes('tile')) partType = 'tile';
-                                                    else if (desc.includes('minifig') || fname.includes('minifig')) partType = 'minifig';
-                                                    else if (desc.includes('technic') || fname.includes('technic')) partType = 'technic';
                                                     
-                                                    results.push({ part, score, partType });
+                                                    expandedPositiveTerms.forEach(expTerm => {
+                                                        // Direct match on original term = highest
+                                                        if (fname.includes(expTerm.original)) score += 15;
+                                                        if (fname === expTerm.original || fname === expTerm.original + '.dat') score += 25;
+                                                        if (fname.startsWith(expTerm.original)) score += 8;
+                                                        
+                                                        // Synonym matches = good but lower
+                                                        expTerm.expanded.forEach(syn => {
+                                                            if (syn !== expTerm.original && text.includes(syn)) score += 3;
+                                                        });
+                                                        
+                                                        // NEW: Boost for keyword match from enriched index
+                                                        if (enriched?.k?.some(k => k.includes(expTerm.original))) score += 12;
+                                                        // NEW: Boost for category match
+                                                        if (enriched?.c?.toLowerCase().includes(expTerm.original)) score += 10;
+                                                    });
+                                                    
+                                                    // Use enriched data or extract from description
+                                                    const desc = (part.description || '').toLowerCase();
+                                                    const size = enriched?.s || extractSize(part.description || part.name || '');
+                                                    const complexity = estimateComplexity(part.filename);
+                                                    
+                                                    // Use official !CATEGORY if available, else infer from description
+                                                    let partType = enriched?.c?.toLowerCase() || 'other';
+                                                    if (partType === 'other') {
+                                                        if (desc.includes('brick') || fname.includes('brick')) partType = 'brick';
+                                                        else if (desc.includes('plate') || fname.includes('plate')) partType = 'plate';
+                                                        else if (desc.includes('slope') || fname.includes('slope')) partType = 'slope';
+                                                        else if (desc.includes('tile') || fname.includes('tile')) partType = 'tile';
+                                                        else if (desc.includes('minifig') || fname.includes('minifig')) partType = 'minifig';
+                                                        else if (desc.includes('technic') || fname.includes('technic')) partType = 'technic';
+                                                    }
+                                                    
+                                                    // NEW: Add connector info from enriched index
+                                                    const connectors = enriched?.n || [];
+                                                    const keywords = enriched?.k || [];
+                                                    const isAlias = enriched?.a === 1;
+                                                    const isObsolete = enriched?.o === 1;
+                                                    
+                                                    // Skip alias/obsolete parts by default (lower rank)
+                                                    if (isAlias || isObsolete) score -= 50;
+                                                    
+                                                    results.push({ 
+                                                        part, score, partType, size, complexity,
+                                                        connectors, keywords, 
+                                                        category: enriched?.c,
+                                                        basePartId: enriched?.b,
+                                                        variationType: enriched?.t,
+                                                        // NEW: Shadow Library connectivity data
+                                                        connectivitySig: enriched?.sig,  // e.g., "S8-T3"
+                                                        snapCount: enriched?.sc
+                                                    });
                                                 }
                                             });
                                         });
@@ -7126,20 +7978,74 @@
                             });
                         }
                         
-                        // Render results with optional filter
-                        function renderResults(filterType = 'all') {
-                            resultsGrid.innerHTML = '';
-                            const filtered = filterType === 'all' 
-                                ? results 
-                                : results.filter(r => r.partType === filterType);
+                        // Render results with optional filter and pagination
+                        function renderResults(filterType = 'all', append = false) {
+                            if (!append) {
+                                resultsGrid.innerHTML = '';
+                                currentPage = 0;
+                            }
                             
-                            filtered.slice(0, 100).forEach(({ part, partType }) => {
+                            // Filter by category
+                            currentFiltered = filterType === 'all' 
+                                ? [...results]
+                                : results.filter(r => r.partType?.toLowerCase() === filterType || 
+                                                     r.category?.toLowerCase() === filterType);
+                            
+                            // Filter by active connectors (if any selected)
+                            if (activeConnectors && activeConnectors.size > 0) {
+                                currentFiltered = currentFiltered.filter(r => {
+                                    if (!r.connectors || r.connectors.length === 0) return false;
+                                    // Part must have ALL selected connectors
+                                    return [...activeConnectors].every(c => r.connectors.includes(c));
+                                });
+                            }
+                            
+                            // Apply current sort
+                            switch(currentSort) {
+                                case 'size-asc':
+                                    currentFiltered.sort((a, b) => a.size.volume - b.size.volume);
+                                    break;
+                                case 'size-desc':
+                                    currentFiltered.sort((a, b) => b.size.volume - a.size.volume);
+                                    break;
+                                case 'name':
+                                    currentFiltered.sort((a, b) => a.part.filename.localeCompare(b.part.filename));
+                                    break;
+                                case 'simple':
+                                    currentFiltered.sort((a, b) => a.complexity - b.complexity);
+                                    break;
+                                default: // relevance
+                                    currentFiltered.sort((a, b) => b.score - a.score);
+                            }
+                            
+                            const startIdx = currentPage * PAGE_SIZE;
+                            const endIdx = Math.min(startIdx + PAGE_SIZE, currentFiltered.length);
+                            const pageResults = currentFiltered.slice(startIdx, endIdx);
+                            
+                            // Update progress bar and range display
+                            const showingRangeEl = document.getElementById('showing-range');
+                            const progressBar = document.getElementById('progress-bar');
+                            if (showingRangeEl) {
+                                const showing = Math.min(endIdx, currentFiltered.length);
+                                showingRangeEl.textContent = `Showing ${showing} of ${currentFiltered.length}`;
+                            }
+                            if (progressBar) {
+                                const pct = currentFiltered.length > 0 ? (endIdx / currentFiltered.length) * 100 : 0;
+                                progressBar.style.width = `${pct}%`;
+                            }
+                            
+                            pageResults.forEach(({ part, partType, size, complexity, connectors, connectivitySig, snapCount, basePartId, category }) => {
                                 const isSelected = selectedParts.has(part.path);
                                 const partDiv = document.createElement('div');
                                 partDiv.className = 'part-card';
                                 partDiv.dataset.path = part.path;
+                                
+                                // Complexity indicators
+                                const complexityIcon = complexity === 1 ? '🟢' : complexity === 2 ? '🟡' : '🔴';
+                                const complexityLabel = complexity === 1 ? 'Simple' : complexity === 2 ? 'Medium' : 'Complex';
+                                
                                 partDiv.style.cssText = `
-                                    padding: 10px;
+                                    padding: 8px;
                                     background: ${isSelected ? 'rgba(0, 255, 136, 0.1)' : 'var(--bg-main)'};
                                     border-radius: 6px;
                                     font-size: 11px;
@@ -7148,16 +8054,44 @@
                                     border: 2px solid ${isSelected ? 'var(--accent)' : 'var(--border-primary)'};
                                     position: relative;
                                 `;
+                                
+                                // Rebrickable image URL - try part number, then base part for variants
+                                const partNum = part.filename.replace('.dat', '');
+                                const baseNum = basePartId || partNum.replace(/[a-z]+\d*$|p[br]\d+.*$|s\d+$/i, '');
+                                const imgUrl = `https://cdn.rebrickable.com/media/parts/ldraw/0/${partNum}.png`;
+                                const fallbackUrl = partNum !== baseNum ? `https://cdn.rebrickable.com/media/parts/ldraw/0/${baseNum}.png` : null;
+                                
+                                // Connector badges
+                                const connectorBadges = (connectors || []).slice(0, 3).map(c => {
+                                    const icons = { 'stud': '⬤', 'tube': '○', 'clip': '📎', 'axle-hole': '✚', 'technic-hole': '◉', 'bar': '|', 'hinge': '↔' };
+                                    return `<span title="${c}" style="font-size: 7px; opacity: 0.7;">${icons[c] || '•'}</span>`;
+                                }).join('');
+                                
                                 partDiv.innerHTML = `
-                                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 4px;">
-                                        <span class="select-indicator" style="width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--accent); display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--accent);">${isSelected ? '✓' : '○'}</span>
-                                        <div style="display: flex; gap: 4px;">
-                                            <button class="copy-btn" title="Copy path" style="background: var(--bg-secondary); border: none; padding: 3px 5px; border-radius: 3px; cursor: pointer; font-size: 9px;">📋</button>
-                                            <button class="add-btn" title="Add to scene" style="background: var(--accent); border: none; padding: 3px 5px; border-radius: 3px; cursor: pointer; font-size: 9px; color: #000;">➕</button>
+                                    <div style="display: flex; gap: 6px;">
+                                        <!-- Part thumbnail from Rebrickable -->
+                                        <div class="part-thumb" style="flex-shrink: 0; width: 52px; height: 52px; background: #1a1a1a; border-radius: 4px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                            <img src="${imgUrl}" alt="${partNum}" style="max-width: 100%; max-height: 100%; object-fit: contain;" 
+                                                onerror="this.onerror=null; ${fallbackUrl ? `this.src='${fallbackUrl}';` : `this.style.display='none'; this.parentNode.innerHTML='<span style=\\'font-size:24px;opacity:0.3\\'>🧱</span>';`}">
+                                        </div>
+                                        <div style="flex: 1; min-width: 0;">
+                                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 2px;">
+                                                <span class="select-indicator" style="width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--accent); display: flex; align-items: center; justify-content: center; font-size: 8px; color: var(--accent);">${isSelected ? '✓' : '○'}</span>
+                                                <div style="display: flex; gap: 2px; align-items: center;">
+                                                    ${connectivitySig ? `<span title="Connectivity: ${connectivitySig}" style="font-size: 6px; background: #333; padding: 1px 3px; border-radius: 2px; color: #0f8; font-family: monospace;">${connectivitySig}</span>` : ''}
+                                                    ${size?.str ? `<span style="font-size: 6px; background: var(--bg-secondary); padding: 1px 3px; border-radius: 2px; color: #aaa;">${size.str}</span>` : ''}
+                                                    <button class="copy-btn" title="Copy path" style="background: var(--bg-secondary); border: none; padding: 2px 4px; border-radius: 3px; cursor: pointer; font-size: 7px;">📋</button>
+                                                    <button class="add-btn" title="Add to scene" style="background: var(--accent); border: none; padding: 2px 4px; border-radius: 3px; cursor: pointer; font-size: 7px; color: #000;">➕</button>
+                                                </div>
+                                            </div>
+                                            <div style="font-weight: 700; color: var(--accent); font-size: 9px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${part.filename}</div>
+                                            <div style="color: #888; font-size: 8px; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${(part.description || part.name).slice(0, 40)}</div>
+                                            <div style="display: flex; gap: 4px; margin-top: 2px; align-items: center;">
+                                                ${category ? `<span style="font-size: 6px; background: #2a2a2a; padding: 1px 4px; border-radius: 2px; color: #888;">${category}</span>` : ''}
+                                                ${connectorBadges ? `<span style="display: flex; gap: 2px;">${connectorBadges}</span>` : ''}
+                                            </div>
                                         </div>
                                     </div>
-                                    <div style="font-weight: 700; color: var(--accent); font-size: 11px;">${part.filename}</div>
-                                    <div style="color: #888; font-size: 9px; line-height: 1.3; margin-top: 2px;">${(part.description || part.name).slice(0, 50)}${(part.description || '').length > 50 ? '...' : ''}</div>
                                 `;
                                 
                                 // Toggle selection on card click
@@ -7190,15 +8124,49 @@
                                 resultsGrid.appendChild(partDiv);
                             });
                             
-                            // Update count
+                            // Update count in header
                             if (searchCountEl) {
-                                const total = filtered.length;
-                                searchCountEl.textContent = total > 100 
-                                    ? `${total} found (showing 100)` 
-                                    : `${total} found`;
+                                searchCountEl.textContent = `${currentFiltered.length} found`;
                             }
                             
-                            if (filtered.length === 0) {
+                            // Remove old Load More button if exists
+                            const oldLoadMore = document.getElementById('load-more-btn');
+                            if (oldLoadMore) oldLoadMore.remove();
+                            
+                            // Add Load More button if there are more results
+                            if (endIdx < currentFiltered.length) {
+                                const loadMoreBtn = document.createElement('button');
+                                loadMoreBtn.id = 'load-more-btn';
+                                loadMoreBtn.style.cssText = `
+                                    grid-column: 1 / -1;
+                                    padding: 12px 24px;
+                                    background: var(--bg-secondary);
+                                    border: 2px solid var(--accent);
+                                    border-radius: 6px;
+                                    color: var(--accent);
+                                    font-weight: 700;
+                                    cursor: pointer;
+                                    margin-top: 8px;
+                                    transition: all 0.2s;
+                                `;
+                                loadMoreBtn.textContent = `📦 Load Next ${Math.min(PAGE_SIZE, currentFiltered.length - endIdx)} (${currentFiltered.length - endIdx} remaining)`;
+                                loadMoreBtn.addEventListener('mouseenter', () => {
+                                    loadMoreBtn.style.background = 'var(--accent)';
+                                    loadMoreBtn.style.color = '#000';
+                                });
+                                loadMoreBtn.addEventListener('mouseleave', () => {
+                                    loadMoreBtn.style.background = 'var(--bg-secondary)';
+                                    loadMoreBtn.style.color = 'var(--accent)';
+                                });
+                                loadMoreBtn.addEventListener('click', () => {
+                                    currentPage++;
+                                    renderResults(activeFilter, true);
+                                    playMagnetClickSound();
+                                });
+                                resultsGrid.appendChild(loadMoreBtn);
+                            }
+                            
+                            if (currentFiltered.length === 0) {
                                 resultsGrid.innerHTML = `
                                     <div style="grid-column: 1 / -1; color: #888; text-align: center; padding: 30px;">
                                         No ${filterType === 'all' ? '' : filterType + ' '}parts found
@@ -7226,6 +8194,26 @@
                             });
                         });
                         
+                        // Connector chip handlers (toggle filter)
+                        document.querySelectorAll('.connector-chip').forEach(chip => {
+                            chip.addEventListener('click', () => {
+                                const connector = chip.dataset.connector;
+                                if (activeConnectors.has(connector)) {
+                                    activeConnectors.delete(connector);
+                                    chip.style.background = 'transparent';
+                                    chip.style.borderColor = '#555';
+                                    chip.style.color = '#aaa';
+                                } else {
+                                    activeConnectors.add(connector);
+                                    chip.style.background = 'var(--accent)';
+                                    chip.style.borderColor = 'var(--accent)';
+                                    chip.style.color = '#000';
+                                }
+                                renderResults(activeFilter);
+                                updateSelectionUI();
+                            });
+                        });
+                        
                         // Add all selected button - use single part adder for each
                         document.getElementById('add-selected-btn').addEventListener('click', () => {
                             selectedParts.forEach(path => addSinglePartToScene(path));
@@ -7240,6 +8228,75 @@
                         document.getElementById('clear-selection-btn').addEventListener('click', () => {
                             selectedParts.clear();
                             updateSelectionUI();
+                        });
+                        
+                        // Select visible (currently displayed) parts
+                        document.getElementById('select-visible-btn').addEventListener('click', () => {
+                            document.querySelectorAll('.part-card').forEach(card => {
+                                selectedParts.add(card.dataset.path);
+                            });
+                            updateSelectionUI();
+                            playMagnetClickSound();
+                        });
+                        
+                        // Select ALL filtered parts (not just visible page)
+                        document.getElementById('select-all-filtered-btn').addEventListener('click', () => {
+                            currentFiltered.forEach(({ part }) => {
+                                selectedParts.add(part.path);
+                            });
+                            updateSelectionUI();
+                            document.getElementById('status-text').textContent = `☑️ Selected all ${currentFiltered.length} filtered parts`;
+                            playMagnetClickSound();
+                        });
+                        
+                        // Sort button handlers
+                        document.querySelectorAll('.sort-btn').forEach(btn => {
+                            btn.addEventListener('click', () => {
+                                document.querySelectorAll('.sort-btn').forEach(b => {
+                                    b.style.background = 'var(--bg-secondary)';
+                                    b.style.borderColor = 'var(--border-primary)';
+                                    b.style.color = 'var(--text-secondary)';
+                                    b.classList.remove('active');
+                                });
+                                btn.style.background = 'var(--accent)';
+                                btn.style.borderColor = 'var(--accent)';
+                                btn.style.color = '#000';
+                                btn.classList.add('active');
+                                currentSort = btn.dataset.sort;
+                                renderResults(activeFilter);
+                                updateSelectionUI();
+                            });
+                        });
+                        
+                        // Create scene from search - names file after search query
+                        document.getElementById('create-scene-from-search').addEventListener('click', () => {
+                            // Sanitize query for filename
+                            const sanitized = query.replace(/[^a-zA-Z0-9_-]/g, '_').toLowerCase().slice(0, 30);
+                            const sceneName = `${sanitized}_scene`;
+                            const timestamp = Date.now();
+                            
+                            const newScene = {
+                                name: sceneName,
+                                lines: [
+                                    `0 FILE ${sanitized}_${timestamp}.mpd`,
+                                    `0 Name: ${query} Scene`,
+                                    '0 Author: WAG Courage Builder',
+                                    '0 !LDRAW_ORG Model',
+                                    `0 // Parts from search: ${query}`,
+                                    '0 ',
+                                    '0 STEP',
+                                    '0 NOFILE'
+                                ],
+                                lockedLines: new Set(),
+                                timestamp
+                            };
+                            
+                            STATE.scenes.push(newScene);
+                            STATE.activeSceneIdx = STATE.scenes.length - 1;
+                            renderSceneTabs();
+                            renderEditor(newScene.lines);
+                            document.getElementById('status-text').textContent = `📁 Created scene: ${sceneName}`;
+                            playMagnetClickSound();
                         });
                         
                         // Initial render
@@ -7351,6 +8408,266 @@
                 }, 150); // Debounce delay
             });
             
+            // ═══════════════════════════════════════════════════════════
+            // PART IMAGE LIGHTBOX SYSTEM (with navigation & add-to-scene)
+            // ═══════════════════════════════════════════════════════════
+            
+            // Track image load stats
+            window.imageLoadStats = { loaded: 0, failed: 0, failedParts: [] };
+            
+            // Track browsable parts for navigation
+            window.lightboxParts = [];
+            window.lightboxIndex = 0;
+            
+            function showPartLightbox(partNum, description, category, imgUrl, fallbackUrl, partPath) {
+                // Remove existing lightbox
+                const existing = document.querySelector('.part-lightbox');
+                if (existing) existing.remove();
+                
+                const parts = window.lightboxParts;
+                const idx = window.lightboxIndex;
+                const hasPrev = idx > 0;
+                const hasNext = idx < parts.length - 1;
+                const showNav = parts.length > 1;
+                
+                const lightbox = document.createElement('div');
+                lightbox.className = 'part-lightbox';
+                lightbox.innerHTML = `
+                    <button class="part-lightbox-close">×</button>
+                    ${showNav ? `<div class="part-lightbox-counter">${idx + 1} / ${parts.length}</div>` : ''}
+                    
+                    <div class="part-lightbox-main">
+                        ${showNav ? `<button class="part-lightbox-nav prev" ${!hasPrev ? 'disabled' : ''}>←</button>` : ''}
+                        <div class="part-lightbox-image-wrap">
+                            <img src="${imgUrl}" alt="${partNum}" 
+                                onerror="this.onerror=null; ${fallbackUrl ? `this.src='${fallbackUrl}';` : `this.src=''; this.parentNode.innerHTML='<div style=\\'font-size:48px;\\'>🧱</div><div style=\\'color:#666; margin-top:8px;\\'>Image not available</div>';`}">
+                        </div>
+                        ${showNav ? `<button class="part-lightbox-nav next" ${!hasNext ? 'disabled' : ''}>→</button>` : ''}
+                    </div>
+                    
+                    <div class="part-lightbox-info">
+                        <h3>${partNum}.dat</h3>
+                        <p>${description || 'No description'}</p>
+                        ${category ? `<p style="color: var(--accent);">${category}</p>` : ''}
+                        
+                        <div class="part-lightbox-actions">
+                            <button class="part-lightbox-add">➕ ADD TO SCENE</button>
+                            <button class="part-lightbox-copy">📋 COPY PATH</button>
+                        </div>
+                    </div>
+                    
+                    ${showNav ? `<div class="swipe-hint">← Swipe or use arrows →</div>` : ''}
+                `;
+                
+                // Close button
+                lightbox.querySelector('.part-lightbox-close').addEventListener('click', () => lightbox.remove());
+                
+                // Click outside to close
+                lightbox.addEventListener('click', (e) => {
+                    if (e.target === lightbox) lightbox.remove();
+                });
+                
+                // Add to scene button
+                lightbox.querySelector('.part-lightbox-add').addEventListener('click', () => {
+                    const path = partPath || `parts/${partNum}.dat`;
+                    addSinglePartToScene(path);
+                    // Visual feedback
+                    const btn = lightbox.querySelector('.part-lightbox-add');
+                    btn.textContent = '✓ ADDED!';
+                    btn.style.background = '#0a0';
+                    setTimeout(() => {
+                        btn.textContent = '➕ ADD TO SCENE';
+                        btn.style.background = 'var(--accent)';
+                    }, 1000);
+                });
+                
+                // Copy path button
+                lightbox.querySelector('.part-lightbox-copy').addEventListener('click', () => {
+                    const path = partPath || `parts/${partNum}.dat`;
+                    navigator.clipboard.writeText(path);
+                    const btn = lightbox.querySelector('.part-lightbox-copy');
+                    btn.textContent = '✓ COPIED!';
+                    setTimeout(() => btn.textContent = '📋 COPY PATH', 1000);
+                });
+                
+                // Navigation buttons
+                if (showNav) {
+                    const prevBtn = lightbox.querySelector('.part-lightbox-nav.prev');
+                    const nextBtn = lightbox.querySelector('.part-lightbox-nav.next');
+                    
+                    if (prevBtn) {
+                        prevBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            if (idx > 0) {
+                                window.lightboxIndex = idx - 1;
+                                navigateToCurrentPart();
+                            }
+                        });
+                    }
+                    if (nextBtn) {
+                        nextBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            if (idx < parts.length - 1) {
+                                window.lightboxIndex = idx + 1;
+                                navigateToCurrentPart();
+                            }
+                        });
+                    }
+                }
+                
+                // Keyboard navigation
+                const keyHandler = (e) => {
+                    if (e.key === 'Escape') {
+                        lightbox.remove();
+                        document.removeEventListener('keydown', keyHandler);
+                    } else if (e.key === 'ArrowLeft' && hasPrev) {
+                        window.lightboxIndex = idx - 1;
+                        navigateToCurrentPart();
+                        document.removeEventListener('keydown', keyHandler);
+                    } else if (e.key === 'ArrowRight' && hasNext) {
+                        window.lightboxIndex = idx + 1;
+                        navigateToCurrentPart();
+                        document.removeEventListener('keydown', keyHandler);
+                    }
+                };
+                document.addEventListener('keydown', keyHandler);
+                
+                // Touch swipe support
+                let touchStartX = 0;
+                let touchEndX = 0;
+                
+                lightbox.addEventListener('touchstart', (e) => {
+                    touchStartX = e.changedTouches[0].screenX;
+                }, { passive: true });
+                
+                lightbox.addEventListener('touchend', (e) => {
+                    touchEndX = e.changedTouches[0].screenX;
+                    const diff = touchStartX - touchEndX;
+                    
+                    if (Math.abs(diff) > 50) { // Minimum swipe distance
+                        if (diff > 0 && hasNext) {
+                            // Swipe left = next
+                            window.lightboxIndex = idx + 1;
+                            navigateToCurrentPart();
+                        } else if (diff < 0 && hasPrev) {
+                            // Swipe right = prev
+                            window.lightboxIndex = idx - 1;
+                            navigateToCurrentPart();
+                        }
+                    }
+                }, { passive: true });
+                
+                document.body.appendChild(lightbox);
+                console.log('[LIGHTBOX] Opened:', partNum, 'Index:', idx, '/', parts.length);
+            }
+            
+            // Navigate to part at current index
+            function navigateToCurrentPart() {
+                const parts = window.lightboxParts;
+                const idx = window.lightboxIndex;
+                if (idx >= 0 && idx < parts.length) {
+                    const p = parts[idx];
+                    showPartLightbox(p.partNum, p.description, p.category, p.imgUrl, p.fallbackUrl, p.path);
+                }
+            }
+            
+            // Set browsable parts list (call before opening lightbox)
+            function setLightboxParts(partsArray, startIndex = 0) {
+                window.lightboxParts = partsArray;
+                window.lightboxIndex = startIndex;
+            }
+            
+            // Make globally available
+            window.showPartLightbox = showPartLightbox;
+            window.setLightboxParts = setLightboxParts;
+            
+            // ═══════════════════════════════════════════════════════════
+            // TOAST & STAGING QUEUE SYSTEM
+            // ═══════════════════════════════════════════════════════════
+            
+            // Create toast container if not exists
+            let toastContainer = document.querySelector('.toast-container');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.className = 'toast-container';
+                document.body.appendChild(toastContainer);
+            }
+            
+            // Staging queue for recently added parts
+            const stagingQueue = [];
+            let stagingEl = null;
+            
+            function showToast(message, partPath, partFilename) {
+                const toast = document.createElement('div');
+                toast.className = 'toast';
+                toast.innerHTML = `
+                    <span class="toast-icon">✓</span>
+                    <span class="toast-text">${message}</span>
+                `;
+                toastContainer.appendChild(toast);
+                
+                // Add to staging queue
+                addToStagingQueue(partPath, partFilename);
+                
+                // Remove after animation
+                setTimeout(() => toast.remove(), 2000);
+            }
+            
+            function addToStagingQueue(partPath, partFilename) {
+                // Add to queue (keep last 10)
+                stagingQueue.unshift({ path: partPath, filename: partFilename, time: Date.now() });
+                if (stagingQueue.length > 10) stagingQueue.pop();
+                
+                renderStagingQueue();
+            }
+            
+            function renderStagingQueue() {
+                // Create or get staging element
+                if (!stagingEl) {
+                    stagingEl = document.createElement('div');
+                    stagingEl.className = 'staging-queue';
+                    stagingEl.innerHTML = `
+                        <div class="staging-header">
+                            <span class="staging-title">📦 Recently Added (${stagingQueue.length})</span>
+                            <button class="staging-clear">Clear</button>
+                        </div>
+                        <div class="staging-items"></div>
+                    `;
+                    document.body.appendChild(stagingEl);
+                    
+                    stagingEl.querySelector('.staging-clear').addEventListener('click', () => {
+                        stagingQueue.length = 0;
+                        renderStagingQueue();
+                    });
+                }
+                
+                // Update content
+                const itemsEl = stagingEl.querySelector('.staging-items');
+                stagingEl.querySelector('.staging-title').textContent = `📦 Recently Added (${stagingQueue.length})`;
+                
+                if (stagingQueue.length === 0) {
+                    stagingEl.classList.remove('has-items');
+                    return;
+                }
+                
+                stagingEl.classList.add('has-items');
+                itemsEl.innerHTML = stagingQueue.map((item, idx) => `
+                    <div class="staging-item" data-idx="${idx}">
+                        <span>${item.filename}</span>
+                        <button class="staging-item-remove" data-idx="${idx}">×</button>
+                    </div>
+                `).join('');
+                
+                // Remove handlers
+                itemsEl.querySelectorAll('.staging-item-remove').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const idx = parseInt(e.target.dataset.idx);
+                        stagingQueue.splice(idx, 1);
+                        renderStagingQueue();
+                    });
+                });
+            }
+            
             // Helper function to add SINGLE part to scene with proper file hygiene
             // (Note: addPartToScene above handles batch adds with array of parts)
             function addSinglePartToScene(partPath) {
@@ -7443,6 +8760,9 @@
                 
                 const statusText = document.getElementById('status-text');
                 if (statusText) statusText.textContent = `➕ Added: ${partFilename}`;
+                
+                // Show toast notification with staging queue
+                showToast(`Added: ${partFilename}`, partPath, partFilename);
                 
                 console.log('[ADD-SINGLE] Part added successfully:', partFilename, 'total lines now:', editorLines.length);
                 
@@ -8146,6 +9466,8 @@
                 
                 let currentTheme = null;
                 let currentSearch = '';
+                let folkPage = 0;
+                const FOLK_PAGE_SIZE = 50;
                 
                 function renderFolkUI() {
                     rightPanel.innerHTML = '';
@@ -8188,7 +9510,7 @@
                         chip.textContent = `${theme.icon} ${name} (${theme.parts.length})`;
                         chip.addEventListener('click', () => {
                             currentTheme = currentTheme === name ? null : name;
-                            currentSearch = '';
+                            folkPage = 0; // Reset page, keep search
                             renderFolkUI();
                         });
                         chipsContainer.appendChild(chip);
@@ -8199,6 +9521,7 @@
                     searchInput.value = currentSearch;
                     searchInput.addEventListener('input', (e) => {
                         currentSearch = e.target.value.toLowerCase();
+                        folkPage = 0; // Reset to first page when searching
                         renderResults();
                     });
                     
@@ -8221,91 +9544,196 @@
                         const grid = document.getElementById('folk-results-grid');
                         grid.innerHTML = '';
                         
-                        let parts = currentTheme ? themes[currentTheme].parts : allParts.slice(0, 200);
+                        // Get parts from selected theme only (or show prompt)
+                        let parts = currentTheme ? themes[currentTheme].parts : [];
                         
-                        if (currentSearch) {
+                        // Apply search filter within the theme
+                        if (currentSearch && parts.length > 0) {
                             parts = parts.filter(p => 
                                 `${p.filename} ${p.description} ${p.name}`.toLowerCase().includes(currentSearch)
                             );
                         }
                         
-                        const displayParts = parts.slice(0, 100);
+                        // If no theme selected but searching, search all parts
+                        if (!currentTheme && currentSearch) {
+                            parts = allParts.filter(p => 
+                                `${p.filename} ${p.description} ${p.name}`.toLowerCase().includes(currentSearch)
+                            );
+                        }
+                        
+                        const totalParts = parts.length;
+                        const totalPages = Math.ceil(totalParts / FOLK_PAGE_SIZE);
+                        const start = folkPage * FOLK_PAGE_SIZE;
+                        const end = Math.min(start + FOLK_PAGE_SIZE, totalParts);
+                        const displayParts = parts.slice(start, end);
                         
                         if (!currentTheme && !currentSearch) {
                             grid.innerHTML = `
                                 <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #888;">
                                     <div style="font-size: 24px; margin-bottom: 12px;">🌾</div>
                                     <div>Select a theme above to browse parts</div>
-                                    <div style="font-size: 11px; margin-top: 8px;">Or use the search bar at the top</div>
+                                    <div style="font-size: 11px; margin-top: 8px;">Or use the search bar to find specific parts</div>
                                 </div>
                             `;
                             return;
                         }
                         
-                        if (displayParts.length === 0) {
-                            grid.innerHTML = `<div style="grid-column: 1 / -1; color: #888; text-align: center; padding: 20px;">No parts found</div>`;
+                        if (totalParts === 0) {
+                            grid.innerHTML = `<div style="grid-column: 1 / -1; color: #888; text-align: center; padding: 20px;">No parts found${currentSearch ? ` for "${currentSearch}"` : ''}</div>`;
                             return;
                         }
                         
-                        displayParts.forEach(part => {
+                        // Add pagination header
+                        const paginationHeader = document.createElement('div');
+                        paginationHeader.style.cssText = 'grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; padding: 8px 0; margin-bottom: 8px; border-bottom: 1px solid var(--border-primary);';
+                        paginationHeader.innerHTML = `
+                            <span style="color: var(--accent); font-weight: 700; font-size: 12px;">
+                                ${currentTheme ? `${themes[currentTheme].icon} ${currentTheme}` : 'Search Results'}
+                                ${currentSearch ? ` · "${currentSearch}"` : ''} 
+                                · ${start + 1}-${end} of ${totalParts}
+                            </span>
+                            <div style="display: flex; gap: 8px;">
+                                <button id="folk-prev" ${folkPage === 0 ? 'disabled' : ''} style="padding: 6px 12px; background: ${folkPage === 0 ? '#333' : 'var(--accent)'}; border: none; border-radius: 4px; cursor: ${folkPage === 0 ? 'not-allowed' : 'pointer'}; color: ${folkPage === 0 ? '#666' : '#000'}; font-weight: 700;">← Prev</button>
+                                <span style="padding: 6px 12px; color: var(--text-primary);">${folkPage + 1} / ${totalPages || 1}</span>
+                                <button id="folk-next" ${folkPage >= totalPages - 1 ? 'disabled' : ''} style="padding: 6px 12px; background: ${folkPage >= totalPages - 1 ? '#333' : 'var(--accent)'}; border: none; border-radius: 4px; cursor: ${folkPage >= totalPages - 1 ? 'not-allowed' : 'pointer'}; color: ${folkPage >= totalPages - 1 ? '#666' : '#000'}; font-weight: 700;">Next →</button>
+                            </div>
+                        `;
+                        grid.appendChild(paginationHeader);
+                        
+                        // Add pagination event listeners
+                        paginationHeader.querySelector('#folk-prev')?.addEventListener('click', () => {
+                            if (folkPage > 0) {
+                                folkPage--;
+                                renderResults();
+                            }
+                        });
+                        paginationHeader.querySelector('#folk-next')?.addEventListener('click', () => {
+                            if (folkPage < totalPages - 1) {
+                                folkPage++;
+                                renderResults();
+                            }
+                        });
+                        
+                        // Use shared selection
+                        const catalogSelection = window.catalogSelectedParts || new Set();
+                        
+                        // Build lightbox parts list for navigation
+                        const lightboxPartsList = displayParts.map(part => {
+                            const enriched = enrichedIndex?.lookup?.get(part.filename);
+                            const partNum = part.filename.replace('.dat', '');
+                            const baseNum = enriched?.b || partNum.replace(/[a-z]+\d*$|p[br]\d+.*$|s\d+$/i, '');
+                            return {
+                                partNum,
+                                description: part.description || part.name,
+                                category: enriched?.c,
+                                imgUrl: `https://cdn.rebrickable.com/media/parts/ldraw/0/${partNum}.png`,
+                                fallbackUrl: partNum !== baseNum ? `https://cdn.rebrickable.com/media/parts/ldraw/0/${baseNum}.png` : null,
+                                path: part.path || `parts/${part.filename}`
+                            };
+                        });
+                        
+                        displayParts.forEach((part, partIdx) => {
+                            const partPath = part.path || `parts/${part.filename}`;
+                            const isSelected = catalogSelection.has(partPath);
+                            
+                            // ENRICHED: Get metadata from enriched index
+                            const enriched = enrichedIndex?.lookup?.get(part.filename);
+                            const partNum = part.filename.replace('.dat', '');
+                            const baseNum = enriched?.b || partNum.replace(/[a-z]+\d*$|p[br]\d+.*$|s\d+$/i, '');
+                            const imgUrl = `https://cdn.rebrickable.com/media/parts/ldraw/0/${partNum}.png`;
+                            const fallbackUrl = partNum !== baseNum ? `https://cdn.rebrickable.com/media/parts/ldraw/0/${baseNum}.png` : null;
+                            
+                            // Connector badges
+                            const connectors = enriched?.n || [];
+                            const connIcons = { 'stud': '⬤', 'tube': '○', 'clip': '📎', 'axle-hole': '✚', 'technic-hole': '◉' };
+                            const connBadges = connectors.slice(0, 3).map(c => 
+                                `<span title="${c}" style="font-size: 8px; opacity: 0.7;">${connIcons[c] || '•'}</span>`
+                            ).join('');
+                            
                             const card = document.createElement('div');
+                            card.className = 'catalog-part-card';
+                            card.dataset.path = partPath;
                             card.style.cssText = `
-                                background: var(--bg-secondary);
-                                border: 1px solid var(--border-primary);
+                                background: ${isSelected ? 'rgba(0, 255, 136, 0.15)' : 'var(--bg-secondary)'};
+                                border: 2px solid ${isSelected ? 'var(--accent)' : 'var(--border-primary)'};
                                 border-radius: 4px;
-                                padding: 10px;
+                                padding: 8px;
                                 display: flex;
                                 align-items: center;
-                                gap: 10px;
+                                gap: 8px;
+                                cursor: pointer;
+                                transition: all 0.15s;
                             `;
                             card.innerHTML = `
-                                <div style="
-                                    width: 50px; height: 50px;
-                                    background: var(--bg-main);
+                                <span class="select-indicator" style="width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--accent); display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--accent); flex-shrink: 0;">${isSelected ? '✓' : '○'}</span>
+                                <div class="part-img-container" title="Click to enlarge" style="
+                                    width: 44px; height: 44px;
+                                    background: #1a1a1a;
                                     border-radius: 4px;
                                     display: flex;
                                     align-items: center;
                                     justify-content: center;
-                                    font-size: 10px;
-                                    color: var(--accent);
                                     flex-shrink: 0;
-                                ">${part.filename.split('.')[0].substring(0, 6)}</div>
+                                    overflow: hidden;
+                                    cursor: zoom-in;
+                                "><img src="${imgUrl}" alt="${partNum}" style="max-width: 100%; max-height: 100%; object-fit: contain;" 
+                                    onerror="this.onerror=null; ${fallbackUrl ? `this.src='${fallbackUrl}';` : `this.style.display='none'; this.parentNode.innerHTML='🧱';`}"></div>
                                 <div style="flex: 1; min-width: 0;">
-                                    <div style="font-weight: 700; color: var(--accent); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${part.filename}</div>
-                                    <div style="font-size: 10px; color: #aaa; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${part.description || part.name}</div>
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <span style="font-weight: 700; color: var(--accent); font-size: 10px;">${part.filename}</span>
+                                        <span style="display: flex; gap: 3px; align-items: center;">
+                                            ${enriched?.sig ? `<span style="font-size: 6px; background: #333; padding: 1px 3px; border-radius: 2px; color: #0f8; font-family: monospace;">${enriched.sig}</span>` : ''}
+                                            ${connBadges}
+                                        </span>
+                                    </div>
+                                    <div style="font-size: 9px; color: #888; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${(part.description || part.name).slice(0, 35)}</div>
+                                    ${enriched?.c ? `<div style="font-size: 7px; color: #666; margin-top: 1px;">${enriched.c}</div>` : ''}
                                 </div>
-                                <button class="folk-add-btn" style="
-                                    background: var(--accent);
-                                    border: none;
-                                    width: 32px;
-                                    height: 32px;
-                                    border-radius: 4px;
-                                    cursor: pointer;
-                                    font-size: 14px;
-                                    flex-shrink: 0;
-                                ">➕</button>
+                                <div style="display: flex; flex-direction: column; gap: 3px; flex-shrink: 0;">
+                                    <button class="folk-copy-btn" title="Copy path" style="background: var(--bg-main); border: 1px solid var(--border-primary); width: 26px; height: 26px; border-radius: 4px; cursor: pointer; font-size: 9px;">📋</button>
+                                    <button class="folk-add-btn" title="Add now" style="background: var(--accent); border: none; width: 26px; height: 26px; border-radius: 4px; cursor: pointer; font-size: 10px;">➕</button>
+                                </div>
                             `;
                             
-                            // Direct click handler with feedback
+                            // Image click for lightbox with navigation
+                            card.querySelector('.part-img-container').addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                if (window.setLightboxParts && window.showPartLightbox) {
+                                    window.setLightboxParts(lightboxPartsList, partIdx);
+                                    window.showPartLightbox(partNum, part.description || part.name, enriched?.c, imgUrl, fallbackUrl, partPath);
+                                }
+                            });
+                            
+                            // Copy button handler
+                            card.querySelector('.folk-copy-btn').addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                navigator.clipboard.writeText(partPath);
+                                document.getElementById('status-text').textContent = `📋 Copied: ${part.filename}`;
+                            });
+                            
+                            // Add button handler (immediate add)
                             card.querySelector('.folk-add-btn').addEventListener('click', (e) => {
                                 e.stopPropagation();
-                                console.log('[FOLK-ADD] Adding part:', part.filename);
-                                
-                                // Visual feedback
                                 const btn = e.target;
                                 btn.textContent = '✓';
                                 btn.style.background = '#2a2';
                                 setTimeout(() => {
                                     btn.textContent = '➕';
                                     btn.style.background = 'var(--accent)';
-                                }, 500);
-                                
-                                // Add the part
-                                addSinglePartToScene(part.path || part.filename);
-                                
-                                // Status update
-                                const status = document.getElementById('status-text');
-                                if (status) status.textContent = `➕ Added: ${part.filename}`;
+                                }, 400);
+                                addSinglePartToScene(partPath);
+                            });
+                            
+                            // Card click to toggle selection
+                            card.addEventListener('click', (e) => {
+                                if (e.target.closest('button')) return;
+                                if (catalogSelection.has(partPath)) {
+                                    catalogSelection.delete(partPath);
+                                } else {
+                                    catalogSelection.add(partPath);
+                                }
+                                if (window.updateCatalogSelectionUI) window.updateCatalogSelectionUI();
+                                console.log('[SELECTION] Toggled:', part.filename, '| Total:', catalogSelection.size);
                             });
                             
                             grid.appendChild(card);

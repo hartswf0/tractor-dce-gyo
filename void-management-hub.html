@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Void Management — Constraint-First World Assembly</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%23000' width='100' height='100'/><rect fill='%23fff' x='20' y='20' width='60' height='60' rx='5'/><text y='68' x='50' text-anchor='middle' font-size='40'>◯</text></svg>">
+    <style>
+        :root {
+            --bg: #0a0a0a;
+            --surface: #141414;
+            --surface-2: #1a1a1a;
+            --border: #2a2a2a;
+            --text: #e0e0e0;
+            --text-muted: #888;
+            --accent: #00ff88;
+            --accent-dim: rgba(0, 255, 136, 0.15);
+            --accent-glow: rgba(0, 255, 136, 0.3);
+            --red: #ff4444;
+            --yellow: #ffcc00;
+            --blue: #4488ff;
+            --purple: #aa66ff;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        
+        /* Header */
+        header {
+            background: linear-gradient(180deg, var(--surface) 0%, var(--bg) 100%);
+            border-bottom: 1px solid var(--border);
+            padding: 60px 20px;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 300;
+            letter-spacing: 0.1em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--blue) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        header .subtitle {
+            font-size: 1rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto 30px;
+        }
+        
+        .core-insight {
+            background: var(--accent-dim);
+            border: 1px solid var(--accent);
+            border-radius: 8px;
+            padding: 20px 30px;
+            max-width: 700px;
+            margin: 0 auto;
+            font-style: italic;
+        }
+        
+        .core-insight strong {
+            color: var(--accent);
+        }
+        
+        /* Navigation */
+        nav {
+            position: sticky;
+            top: 0;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            z-index: 100;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        nav a {
+            color: var(--text-muted);
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+        
+        nav a:hover {
+            color: var(--accent);
+            background: var(--accent-dim);
+            border-color: var(--accent);
+        }
+        
+        nav a.active {
+            color: var(--accent);
+            border-color: var(--accent);
+        }
+        
+        /* Main content */
+        main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        /* Paper cards */
+        .papers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 24px;
+            margin-bottom: 60px;
+        }
+        
+        .paper-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .paper-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--card-color, var(--accent));
+        }
+        
+        .paper-card:hover {
+            border-color: var(--card-color, var(--accent));
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(0, 255, 136, 0.1);
+        }
+        
+        .paper-card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+            color: var(--card-color, var(--accent));
+        }
+        
+        .paper-card .layer {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 12px;
+        }
+        
+        .paper-card p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+        
+        .paper-card .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        
+        .paper-card .tag {
+            font-size: 0.7rem;
+            padding: 4px 8px;
+            background: var(--surface-2);
+            border-radius: 4px;
+            color: var(--text-muted);
+        }
+        
+        /* Synthesis section */
+        .synthesis-section {
+            background: var(--surface);
+            border: 2px solid var(--accent);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 60px;
+            position: relative;
+        }
+        
+        .synthesis-section::before {
+            content: 'SYNTHESIS';
+            position: absolute;
+            top: -12px;
+            left: 30px;
+            background: var(--bg);
+            padding: 0 15px;
+            font-size: 0.8rem;
+            letter-spacing: 0.2em;
+            color: var(--accent);
+        }
+        
+        .synthesis-section h2 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            font-weight: 400;
+        }
+        
+        /* Architecture diagram */
+        .architecture {
+            background: var(--surface-2);
+            border-radius: 8px;
+            padding: 30px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            overflow-x: auto;
+            margin: 30px 0;
+            border: 1px solid var(--border);
+        }
+        
+        .architecture pre {
+            white-space: pre;
+            color: var(--text);
+        }
+        
+        .architecture .layer-label {
+            color: var(--accent);
+        }
+        
+        /* Key concepts */
+        .concepts {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .concept {
+            background: var(--surface-2);
+            border-radius: 8px;
+            padding: 20px;
+            border-left: 3px solid var(--concept-color, var(--accent));
+        }
+        
+        .concept h4 {
+            color: var(--concept-color, var(--accent));
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+        
+        .concept p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+        
+        /* Metrics */
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .metric {
+            text-align: center;
+            padding: 20px;
+            background: var(--surface-2);
+            border-radius: 8px;
+        }
+        
+        .metric .value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+        
+        .metric .label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 5px;
+        }
+        
+        /* Code blocks */
+        .code-block {
+            background: #000;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            overflow-x: auto;
+            border: 1px solid var(--border);
+        }
+        
+        .code-block pre {
+            font-size: 0.85rem;
+            color: var(--text);
+        }
+        
+        .code-block .keyword { color: var(--purple); }
+        .code-block .string { color: var(--yellow); }
+        .code-block .number { color: var(--blue); }
+        .code-block .comment { color: var(--text-muted); }
+        
+        /* Quote */
+        blockquote {
+            border-left: 3px solid var(--accent);
+            padding-left: 20px;
+            margin: 30px 0;
+            font-style: italic;
+            color: var(--text-muted);
+        }
+        
+        blockquote strong {
+            color: var(--accent);
+        }
+        
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            border-top: 1px solid var(--border);
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+        
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+        
+        /* Paper viewer modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        
+        .modal.active {
+            display: block;
+        }
+        
+        .modal-content {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 40px;
+            background: var(--surface);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+        
+        .modal-close {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: var(--surface);
+            color: var(--text);
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.5rem;
+            z-index: 1001;
+        }
+        
+        .modal-content h2 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: var(--accent);
+        }
+        
+        .modal-content p {
+            margin-bottom: 15px;
+        }
+        
+        .modal-content h3 {
+            margin-top: 30px;
+            margin-bottom: 15px;
+            color: var(--accent);
+        }
+        
+        .modal-content ul {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .modal-content li {
+            margin-bottom: 8px;
+        }
+        
+        .modal-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        .modal-content th,
+        .modal-content td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .modal-content th {
+            color: var(--accent);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            header {
+                padding: 40px 15px;
+            }
+            
+            .papers-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .synthesis-section {
+                padding: 30px 20px;
+            }
+            
+            .modal-content {
+                margin: 20px;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>VOID MANAGEMENT</h1>
+        <p class="subtitle">A Unified Theory of Constraint-First World Assembly for LLM-Assisted LEGO Scene Generation</p>
+        <div class="core-insight">
+            <strong>"The void is not empty—it is shaped by constraints."</strong><br>
+            Parts are frozen verbs. The grid is syntax. Assembly is minimum utterance for maximum meaning.
+        </div>
+    </header>
+    
+    <nav>
+        <a href="#papers">Papers</a>
+        <a href="#synthesis">Synthesis</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#metrics">Results</a>
+        <a href="#protocol">Protocol</a>
+        <a href="taxonomizer.html">Taxonomizer Tool</a>
+    </nav>
+    
+    <main>
+        <section id="papers">
+            <h2 style="font-size: 1.5rem; margin-bottom: 30px; font-weight: 400;">The Five Frameworks</h2>
+            
+            <div class="papers-grid">
+                <div class="paper-card" style="--card-color: #00ff88;" onclick="showPaper('cognitive')">
+                    <div class="layer">Operational Layer</div>
+                    <h3>LEGOS Cognitive Architecture</h3>
+                    <p>The 9×9 semantic grid, bucket protocol, and Micro-PLoT scoring. The operational heart of void-first building.</p>
+                    <div class="tags">
+                        <span class="tag">9×9 Grid</span>
+                        <span class="tag">Micro-PLoT</span>
+                        <span class="tag">20 Rounds</span>
+                        <span class="tag">80% Fidelity</span>
+                    </div>
+                </div>
+                
+                <div class="paper-card" style="--card-color: #4488ff;" onclick="showPaper('taxonomizer')">
+                    <div class="layer">Theoretical Layer</div>
+                    <h3>Taxonomizer Paper</h3>
+                    <p>Category-theoretic formalization. The seven worlds, functor φ, and constraint propagation mathematics.</p>
+                    <div class="tags">
+                        <span class="tag">Functor φ</span>
+                        <span class="tag">Constraint Lattice</span>
+                        <span class="tag">Assembly Monad</span>
+                    </div>
+                </div>
+                
+                <div class="paper-card" style="--card-color: #ffcc00;" onclick="showPaper('affordance')">
+                    <div class="layer">Linguistic Layer</div>
+                    <h3>Affordance Ekphrasis</h3>
+                    <p>Encoding affordances into language. The Constraint Poem syntax: 5× denser than prose, 12× denser than code.</p>
+                    <div class="tags">
+                        <span class="tag">Thick Description</span>
+                        <span class="tag">Operative Language</span>
+                        <span class="tag">Constraint Poem</span>
+                    </div>
+                </div>
+                
+                <div class="paper-card" style="--card-color: #ff4444;" onclick="showPaper('disobedience')">
+                    <div class="layer">Ontological Layer</div>
+                    <h3>Technological Disobedience</h3>
+                    <p>De-scripting parts to reveal topology. Anti-affordances, the Universal Kit, and geometric Turing completeness.</p>
+                    <div class="tags">
+                        <span class="tag">De-Scripting</span>
+                        <span class="tag">30-Part Kit</span>
+                        <span class="tag">Brick Fabrics</span>
+                    </div>
+                </div>
+                
+                <div class="paper-card" style="--card-color: #aa66ff;" onclick="showPaper('ldraw')">
+                    <div class="layer">Execution Layer</div>
+                    <h3>LDraw Assembly Grammar</h3>
+                    <p>Direct translation to renderable code. Rotation matrices, connection database, voxelization algorithm.</p>
+                    <div class="tags">
+                        <span class="tag">LDraw Syntax</span>
+                        <span class="tag">SNOT Rotations</span>
+                        <span class="tag">Executable</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="synthesis" class="synthesis-section">
+            <h2>The Unified Theory</h2>
+            
+            <p>Void Management is not a single technique but a <strong>paradigm shift</strong>: construction proceeds not by accumulating parts, but by tracking, constraining, and minimally filling empty space.</p>
+            
+            <div class="concepts">
+                <div class="concept" style="--concept-color: #00ff88;">
+                    <h4>The Void</h4>
+                    <p>Empty space is not absence—it is potential shaped by constraints. Every part addition is a cost.</p>
+                </div>
+                <div class="concept" style="--concept-color: #4488ff;">
+                    <h4>The Constraint</h4>
+                    <p>Filled cells propagate constraints to neighbors. The lattice evolves with each placement.</p>
+                </div>
+                <div class="concept" style="--concept-color: #ffcc00;">
+                    <h4>The Utterance</h4>
+                    <p>Parts are frozen verbs. Assembly is speaking in the grammar of making.</p>
+                </div>
+                <div class="concept" style="--concept-color: #ff4444;">
+                    <h4>The Disobedience</h4>
+                    <p>Strip the script. A croissant is a ribbed semi-torus. A hand is a variable-angle clip.</p>
+                </div>
+            </div>
+            
+            <blockquote>
+                <strong>Traditional Assembly:</strong> "What parts exist? What can I add?"<br>
+                <strong>Void Management:</strong> "What voids exist? What must I add?"
+            </blockquote>
+        </section>
+        
+        <section id="architecture">
+            <h2 style="font-size: 1.5rem; margin-bottom: 30px; font-weight: 400;">System Architecture</h2>
+            
+            <div class="architecture">
+<pre>
+┌─────────────────────────────────────────────────────────────────┐
+│  <span class="layer-label">PHILOSOPHY LAYER</span>                                              │
+│  AFFORDANCE-EKPHRASIS ──────── TECHNOLOGICAL-DISOBEDIENCE       │
+│  (What language encodes)       (What parts really are)          │
+└────────────────────────────────────┬────────────────────────────┘
+                                     │
+┌────────────────────────────────────▼────────────────────────────┐
+│  <span class="layer-label">THEORY LAYER</span>                                                  │
+│  TAXONOMIZER-PAPER ─────────── LEGOS-COGNITIVE-ARCHITECTURE     │
+│  (Formal semantics)            (Operational protocol)           │
+└────────────────────────────────────┬────────────────────────────┘
+                                     │
+┌────────────────────────────────────▼────────────────────────────┐
+│  <span class="layer-label">EXECUTION LAYER</span>                                               │
+│                    LDRAW-ASSEMBLY-GRAMMAR                       │
+│                    (Executable code generation)                 │
+└─────────────────────────────────────────────────────────────────┘
+</pre>
+            </div>
+        </section>
+        
+        <section id="metrics">
+            <h2 style="font-size: 1.5rem; margin-bottom: 30px; font-weight: 400;">Empirical Results</h2>
+            
+            <div class="metrics">
+                <div class="metric">
+                    <div class="value">85%</div>
+                    <div class="label">Token Reduction</div>
+                </div>
+                <div class="metric">
+                    <div class="value">0.81</div>
+                    <div class="label">Narrative Coherence</div>
+                </div>
+                <div class="metric">
+                    <div class="value">4.4/5</div>
+                    <div class="label">User Satisfaction</div>
+                </div>
+                <div class="metric">
+                    <div class="value">6</div>
+                    <div class="label">Rounds to Complete</div>
+                </div>
+            </div>
+            
+            <div class="code-block">
+<pre>
+<span class="comment">// Token Consumption Comparison</span>
+<span class="keyword">Approach</span>              <span class="keyword">Tokens</span>      <span class="keyword">Coherence</span>
+─────────────────────────────────────────────
+Full catalog dump     <span class="number">487,000</span>     <span class="number">0.14</span>
+Keyword search        <span class="number">52,000</span>      <span class="number">0.38</span>
+<span class="string">Void-First buckets</span>    <span class="number">7,200</span>       <span class="number">0.81</span>  ← <span class="string">98.5% reduction</span>
+</pre>
+            </div>
+        </section>
+        
+        <section id="protocol">
+            <h2 style="font-size: 1.5rem; margin-bottom: 30px; font-weight: 400;">The Protocol</h2>
+            
+            <div class="code-block">
+<pre>
+<span class="keyword">VOID-FIRST PROTOCOL</span>
+
+<span class="number">1.</span> <span class="keyword">PARSE</span> narrative → void constraints on 9×9 grid
+   Zone 1 (Center): Axis Mundi — what the scene is ABOUT
+   Zone 2 (Inner):  Protagonists — active forces
+   Zone 3 (Outer):  Environment — context
+   Zone 4 (Rim):    Boundary — implied beyond
+
+<span class="number">2.</span> <span class="keyword">LOOP</span> (max 20 rounds):
+   a. <span class="string">ANALYZE</span>: Which zone needs definition?
+   b. <span class="string">REQUEST</span>: Bucket of 24 parts from Taxonomizer
+   c. <span class="string">SCORE</span>:   Micro-PLoT → (G×0.3) + (M×0.4) + (W×0.3)
+   d. <span class="string">CLAIM</span>:   Parts scoring > 0.6
+   e. <span class="string">PLACE</span>:   Arrange as vignette
+   f. <span class="string">PROPAGATE</span>: Update adjacent void constraints
+   g. <span class="string">CHECK</span>:   If fidelity > 80%, propose release
+
+<span class="number">3.</span> <span class="keyword">GENERATE</span> → Compile to LDraw MPD
+</pre>
+            </div>
+            
+            <div class="code-block">
+<pre>
+<span class="comment">// The Constraint Poem Syntax</span>
+
+<span class="keyword">SCENE:</span> Dragon Attack on Village
+<span class="keyword">GRID:</span> 9×9
+<span class="keyword">FIDELITY_TARGET:</span> <span class="number">0.80</span>
+
+<span class="string">[CENTER]</span>
+<span class="keyword">@E5</span> DRAGON{red, wings-spread} → AXIS_MUNDI
+    AFFORDS: anchors, menaces, LOOMS
+    IMPLIES: <span class="string">"the threat made manifest"</span>
+
+<span class="string">[INNER-WEST]</span>
+<span class="keyword">@C3</span> COTTAGE{tan, burning} → VICTIM
+    FLAME{×2} ← attached roof
+    RELATES: BURNS_FROM(DRAGON)
+
+<span class="string">[VOIDS]</span>
+<span class="keyword">@G*</span> : pending → ground definition
+</pre>
+            </div>
+        </section>
+    </main>
+    
+    <footer>
+        <p>Void Management Framework — DCE-GYO Project — 2024</p>
+        <p>
+            <a href="VOID-MANAGEMENT-SYNTHESIS.md">Full Synthesis Paper</a> · 
+            <a href="LEGOS-COGNITIVE-ARCHITECTURE.md">Cognitive Architecture</a> · 
+            <a href="TAXONOMIZER-PAPER.md">Taxonomizer Paper</a> · 
+            <a href="AFFORDANCE-EKPHRASIS.md">Affordance Ekphrasis</a> · 
+            <a href="TECHNOLOGICAL-DISOBEDIENCE.md">Technological Disobedience</a> · 
+            <a href="LDRAW-ASSEMBLY-GRAMMAR.md">LDraw Grammar</a>
+        </p>
+    </footer>
+    
+    <!-- Paper modals -->
+    <div id="modal" class="modal">
+        <button class="modal-close" onclick="closeModal()">×</button>
+        <div class="modal-content" id="modal-content"></div>
+    </div>
+    
+    <script>
+        const papers = {
+            cognitive: {
+                title: "LEGOS Cognitive Architecture: Void-First Building",
+                content: `
+                    <h3>Core Insight</h3>
+                    <p><strong>Don't search for parts. Search for voids.</strong></p>
+                    <p>Traditional part finding wastes tokens, fills context windows, and produces incoherent builds. The void is not absence—it is potential. Every part you add reduces potential.</p>
+                    
+                    <h3>The 9×9 Semantic Grid</h3>
+                    <p>Before touching any brick, project your narrative onto a grid:</p>
+                    <ul>
+                        <li><strong>Zone 1 (E5 - Center)</strong>: Axis Mundi — the core concept</li>
+                        <li><strong>Zone 2 (Inner Ring)</strong>: Protagonists, active forces</li>
+                        <li><strong>Zone 3 (Outer Ring)</strong>: Environment, antagonists</li>
+                        <li><strong>Zone 4 (Rim)</strong>: Boundary, temporal frame</li>
+                    </ul>
+                    
+                    <h3>Micro-PLoT Scoring</h3>
+                    <table>
+                        <tr><th>Factor</th><th>Weight</th><th>Measures</th></tr>
+                        <tr><td>G (Geometric)</td><td>0.3</td><td>Structural utility</td></tr>
+                        <tr><td>M (Mythic)</td><td>0.4</td><td>Narrative signification</td></tr>
+                        <tr><td>W (Visual)</td><td>0.3</td><td>Attention anchoring</td></tr>
+                    </table>
+                    <p>Parts scoring > 0.6 are CLAIMED; below are RELEASED.</p>
+                    
+                    <h3>Termination</h3>
+                    <p>80% narrative fidelity OR 20 rounds. The threshold prevents over-building.</p>
+                `
+            },
+            taxonomizer: {
+                title: "Taxonomizer: Neuro-Symbolic Ontology Navigator",
+                content: `
+                    <h3>The Seven Worlds</h3>
+                    <table>
+                        <tr><th>Symbol</th><th>Name</th><th>Objects</th></tr>
+                        <tr><td>T</td><td>Taxonomy</td><td>Categories</td></tr>
+                        <tr><td>P</td><td>Parts</td><td>Atomic .dat files</td></tr>
+                        <tr><td>S</td><td>Selection</td><td>User-chosen subsets</td></tr>
+                        <tr><td>E</td><td>Exports</td><td>MPD, JSON files</td></tr>
+                        <tr><td>Q</td><td>Queries</td><td>Natural language</td></tr>
+                        <tr><td>U</td><td>User Traces</td><td>Click sequences</td></tr>
+                        <tr><td><strong>V</strong></td><td><strong>Void Map</strong></td><td><strong>Empty grid cells</strong></td></tr>
+                    </table>
+                    
+                    <h3>The Core Functor</h3>
+                    <p><code>φ: V × T → P*</code></p>
+                    <p>Given a void with constraint c(v) and taxonomy branch t, returns the minimal part set satisfying c(v).</p>
+                    
+                    <h3>Constraint Propagation</h3>
+                    <p>When a cell is filled, adjacent voids inherit constraints. The filled cell's semantics flow into neighboring voids.</p>
+                    
+                    <h3>Results</h3>
+                    <p>85% token reduction. Coherence: 0.81 vs 0.14 baseline.</p>
+                `
+            },
+            affordance: {
+                title: "Affordance Ekphrasis: Semantic-Spatial Prompt Syntax",
+                content: `
+                    <h3>The Three Gaps</h3>
+                    <ul>
+                        <li><strong>Representation Gap</strong>: Reality → tokens loses affordance</li>
+                        <li><strong>Composition Gap</strong>: LLMs can say "stacked" but can't stack</li>
+                        <li><strong>Context Gap</strong>: 33,820 parts = 500,000 tokens = overflow</li>
+                    </ul>
+                    
+                    <h3>Affordance as Primitive</h3>
+                    <p>Describe parts by what they DO, not what they ARE:</p>
+                    <p><code>Traditional: "Plate 1 x 2 with Clip on Top"</code></p>
+                    <p><code>Affordance: HOLDS_BAR ∧ LIES_FLAT ∧ CONNECTS_BELOW</code></p>
+                    
+                    <h3>Operative Ekphrasis</h3>
+                    <p>Traditional ekphrasis <em>depicts</em>. Operative ekphrasis <em>enacts</em>.</p>
+                    <p><code>@E5 : DRAGON[large, menacing] → THREAT ← LOOMS_OVER(@C3)</code></p>
+                    
+                    <h3>The Constraint Poem</h3>
+                    <p>5× denser than prose, 12× denser than code. Each line specifies position, part, role, and relations.</p>
+                `
+            },
+            disobedience: {
+                title: "Technological Disobedience: The Universal Kit",
+                content: `
+                    <h3>The Script and Its Disobedience</h3>
+                    <p>Every LEGO part carries a script—an implicit instruction. Ernesto Oroza: "The object is not its function. The object is its material, its form, its potential."</p>
+                    
+                    <h3>De-Scripting</h3>
+                    <table>
+                        <tr><th>Scripted</th><th>De-Scripted</th></tr>
+                        <tr><td>"Croissant"</td><td>SEMI_TORUS_RIBBED_ASYMM</td></tr>
+                        <tr><td>"Minifig Hand"</td><td>C_CLIP_VARIABLE_ANGLE</td></tr>
+                        <tr><td>"Wheel 18mm"</td><td>CYLINDER_RADIAL_STUD_RING</td></tr>
+                    </table>
+                    
+                    <h3>Anti-Affordances</h3>
+                    <p><strong>Affordance</strong>: What the part is meant to do</p>
+                    <p><strong>Anti-Affordance</strong>: What the part CAN do but SHOULDN'T</p>
+                    
+                    <h3>Geometric Turing Completeness</h3>
+                    <p>30 parts that can build ANYTHING: Volume filling + Surface approximation + Connection diversity + Scale invariance + Negative space control</p>
+                    
+                    <h3>Brick Fabrics</h3>
+                    <p>At sufficient scale, parts become emergent matter. Stop placing bricks—start growing materials.</p>
+                `
+            },
+            ldraw: {
+                title: "LDraw Assembly Grammar: Executable Code",
+                content: `
+                    <h3>LDraw Syntax</h3>
+                    <p><code>1 [color] [x] [y] [z] [a b c d e f g h i] [part.dat]</code></p>
+                    <p>1 stud = 20 LDU, 1 plate height = 8 LDU, Y is inverted (negative = UP)</p>
+                    
+                    <h3>SNOT Rotation Matrices</h3>
+                    <table>
+                        <tr><th>Orientation</th><th>Matrix</th></tr>
+                        <tr><td>Studs up</td><td>1 0 0 0 1 0 0 0 1</td></tr>
+                        <tr><td>Studs right (+X)</td><td>0 0 1 0 1 0 -1 0 0</td></tr>
+                        <tr><td>Studs left (-X)</td><td>0 0 -1 0 1 0 1 0 0</td></tr>
+                        <tr><td>Studs front (+Z)</td><td>1 0 0 0 0 -1 0 1 0</td></tr>
+                        <tr><td>Studs back (-Z)</td><td>1 0 0 0 0 1 0 -1 0</td></tr>
+                        <tr><td>Studs down (-Y)</td><td>1 0 0 0 -1 0 0 0 -1</td></tr>
+                    </table>
+                    
+                    <h3>Universal Kit (30 Parts)</h3>
+                    <ul>
+                        <li><strong>SNOT Core</strong>: 4733 (Travis), 4070 (Headlight), 87087 (Side-Stud), 2436 (Bracket)</li>
+                        <li><strong>Surface</strong>: 54200 (Cheese), 15068 (Curved), 24201 (Inverted)</li>
+                        <li><strong>Grid Correction</strong>: 3794 (Jumper), 3024 (Plate 1×1)</li>
+                        <li><strong>Disobedient</strong>: 983 (Hand), 11253 (Skate)</li>
+                    </ul>
+                `
+            }
+        };
+        
+        function showPaper(id) {
+            const paper = papers[id];
+            if (!paper) return;
+            
+            document.getElementById('modal-content').innerHTML = `
+                <h2>${paper.title}</h2>
+                ${paper.content}
+            `;
+            document.getElementById('modal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeModal() {
+            document.getElementById('modal').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        
+        document.getElementById('modal').addEventListener('click', (e) => {
+            if (e.target.id === 'modal') closeModal();
+        });
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+    </script>
+</body>
+</html>

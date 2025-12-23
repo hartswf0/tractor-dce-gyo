@@ -66,6 +66,48 @@
   - Direct ➕ buttons with visual feedback
   - Parts addition still debugging (compile race conditions)
 
+- **ADVANCED SEARCH** (wag-courage.html)
+  - Negative search: `-word` excludes parts containing that word
+  - **Word boundary matching**: "car" finds "car", "cars" but NOT "cardboard"
+  - Metadata extraction: size (1x2, 2x4), complexity (🟢🟡🔴)
+  - Sort options: Relevance, Size ↑↓, Name A-Z, Simple first
+  - Pagination: Load More button (100 per page), progress bar
+  - Selection: Select Visible, Select All Filtered (even unloaded)
+  - **Create Scene from Search**: `📁 New Scene: "query"` button
+  - Filenames derived from search term (e.g., `brick_1x2_scene.mpd`)
+
+- **COMPILE ERROR DEBUGGING** (wag-courage.html + LDrawLoader.js)
+  - LDrawLoader: Added fallback for color code `-1` (inherit parent)
+  - Error line highlighting: Red border + "⚠️ ERROR" badge
+  - Console intercept: Captures LDrawLoader warnings with line numbers
+  - Auto-scroll: Jumps to error line in editor for debugging
+
+- **ENRICHED PARTS INDEX** (build-parts-index.js → ldraw-parts-index.json)
+  - Parses all 23,511 .dat files to extract header metadata
+  - Extracts: `!CATEGORY`, `!KEYWORDS`, author, description
+  - 63 official LDraw categories (Brick, Plate, Tile, Slope, Technic, Minifig, etc.)
+  - 15 connector types detected from descriptions (clip, bar, pin-hole, axle-hole, hinge, ball-joint, etc.)
+  - Base part vs variation classification (print/color/mold variants)
+  - Alias/obsolete part flagging (lower ranking in search)
+  - 5MB JSON index with lookup map for fast access
+
+- **FACETED SEARCH UI** (wag-courage.html)
+  - 13 category filter chips (official LDraw !CATEGORY)
+  - 7 connector facet chips (toggleable AND filter)
+  - Search now uses enriched index for keywords + categories
+  - Synonym expansion from builder slang to LDraw terms
+  - Dimension normalization ("2 x 4" → "2x4")
+
+- **SINTERED INDEX** (taxonomy + enriched merged at runtime)
+  - Taxonomy provides hierarchical structure: Kingdom → Phylum → Class → Order → Family
+  - Enriched index provides metadata: connectors, keywords, category, images
+  - Runtime merge via `enrichedIndex.lookup.get(part.filename)`
+  - All browse modes now show:
+    - **Rebrickable thumbnails** with fallback to base part for variants
+    - **Connectivity signature** (e.g., `S8-T3` = 8 studs, 3 tubes)
+    - **Connector icons** (⬤ stud, ○ tube, 📎 clip, ✚ axle-hole, ◉ technic-hole)
+    - **Official !CATEGORY** badge
+
 - **VISUAL RESEARCH INDEX** (wag-viewer/index.html)
   - HTML dashboard for OLOG research reports
   - Brickfilm production roadmap (8 phases)
