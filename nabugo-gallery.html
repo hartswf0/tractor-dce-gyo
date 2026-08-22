@@ -62,6 +62,13 @@ section{margin-bottom:26px}
 .card .name .bar{width:3px;height:13px;border-radius:2px;flex:0 0 auto}
 .card .what{margin-top:5px;font-size:12px;color:var(--dim);line-height:1.5}
 .card .tags{margin-top:8px;display:flex;flex-wrap:wrap;gap:4px}
+/* A reference card is a picture first — it is the thing you are building toward,
+   and a row of text is no use as a bar. */
+.card.ref{padding:0;overflow:hidden}
+.card.ref img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;background:#111}
+.card.ref .body{padding:12px 14px 13px}
+.card .num{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10px;
+  color:var(--faint);letter-spacing:.16em;margin-right:6px}
 .tag{font-size:10px;padding:2px 7px;border-radius:999px;background:#17171e;
   color:var(--faint);letter-spacing:.04em}
 .tag.live{background:#0f2a1a;color:#8ef0b0}
@@ -86,14 +93,48 @@ footer code{background:#131319;padding:1px 5px;border-radius:3px;font-size:10px}
 <main id="main"></main>
 
 <footer>
-  Everything compiles against <code>ldraw/</code> in this repo: 15,117 indexed parts with real
-  bounding boxes, 40,280 extracted stud ports. Builds are checked for collisions, support and
-  cohesion before anything is judged. Nothing here calls a model.
+  Everything compiles against <code>ldraw/</code> in this repo: 16,910 indexed parts with real
+  bounding boxes, 44,329 extracted stud ports. Builds are checked for collisions, support and
+  cohesion before anything is judged, and then measured against 17 real LEGO kits in
+  <code>kits/</code>. Nothing here calls a model.
 </footer>
 
 <script>
 /* One list, rendered. Adding a builder means adding a row. */
 const GENERATIONS = [
+  {
+    id: 'g0', name: 'The bar — what we are judged against', color: '#e2b04a',
+    blurb: 'Two kinds of reference, and the difference is the whole point. A CARD is an ' +
+           'illustration: a brief you can only judge by eye, so a critic looking at one can be ' +
+           'talked into anything. A KIT is a real LEGO set authored in LDraw, with a part list, a ' +
+           'colour count, a submodel tree and a bounding box — so a critic can put ours next to ' +
+           'it and we can lose. Build toward the cards; be judged against the kits.',
+    items: [
+      { href: 'references/05-castle-fortress.png', name: 'Castle · Fortress', n: 5,
+        art: 'references/05-castle-fortress.thumb.png',
+        what: 'Defend, dominate, and dwell. Broken down by Brand\u2019s six shearing layers in references/index.json.',
+        tags: ['card', 'reference'] },
+      { href: 'references/12-fallingwater-terrace.png', name: 'Fallingwater · Terrace', n: 12,
+        art: 'references/12-fallingwater-terrace.thumb.png',
+        what: 'Architecture as landscape. Stone core, cantilever slabs, the fall underneath.',
+        tags: ['card', 'reference'] },
+      { href: 'kits/ATTRIBUTION.md', name: '17 real LEGO kits', what:
+        'From the LDraw Official Model Repository, CC BY 2.0. 10174 UCS Imperial AT-ST is 89 ' +
+        'submodels and 1,153 placements; 7140 X-wing is 21 and 346. Default bar is 5935 Island ' +
+        'Hopper \u2014 the one kit in the corpus that is a place with a building, a vehicle, water, ' +
+        'minifigs and props, which is what our generators claim to make.',
+        tags: ['kit', 'file'], file: true },
+      { href: 'kit-index.json', name: 'kit-index.json', what:
+        'Every kit measured on eighty metrics: repetition profile, part-family mix, colour ' +
+        'entropy, SNOT rate, lattice discipline, submodel depth and reuse, density, and the ' +
+        'shearing-layer share of each. Plus the corpus norm, which is the bar when no single ' +
+        'kit is named.', tags: ['kit', 'file'], file: true },
+      { href: 'GAUNTLET-CONTRACT.md', name: 'The gauntlet contract', what:
+        'Twelve blind-comparison axes, measured the same way on both sides and never summed. ' +
+        'The gates that run before any axis is scored. The six-layer build plan with its clocks, ' +
+        'its part families and what each layer may not touch.', tags: ['kit', 'file'], file: true }
+    ]
+  },
   {
     id: 'g1', name: 'Generation 1 — the round loop', color: 'var(--gen1)',
     blurb: 'A Micro-PLoT audit over a 9×9 semantic tray. Buckets in, vignettes out. ' +
@@ -194,15 +235,19 @@ function render() {
       '<h2 class="gen mono"><span class="dot" style="background:' + g.color + '"></span>' +
         esc(g.name) + '<span class="n">' + items.length + '</span></h2>' +
       '<p class="blurb">' + esc(g.blurb) + '</p>' +
-      '<div class="grid">' + items.map(i =>
-        '<a class="card" href="' + i.href + '"' + (i.file ? '' : '') + '>' +
+      '<div class="grid">' + items.map(i => {
+        const body =
           '<div class="name"><span class="bar" style="background:' + g.color + '"></span>' +
-            esc(i.name) + '</div>' +
+            (i.n != null ? '<span class="num">' + i.n + '</span>' : '') + esc(i.name) + '</div>' +
           '<div class="what">' + esc(i.what) + '</div>' +
           '<div class="tags">' + i.tags.map(t =>
             '<span class="tag' + (t === 'live' ? ' live' : t === 'file' ? ' file' : '') + '">' +
-            esc(t) + '</span>').join('') + '</div>' +
-        '</a>').join('') +
+            esc(t) + '</span>').join('') + '</div>';
+        return i.art
+          ? '<a class="card ref" href="' + i.href + '"><img src="' + esc(i.art) + '" alt="" ' +
+            'loading="lazy"><div class="body">' + body + '</div></a>'
+          : '<a class="card" href="' + i.href + '">' + body + '</a>';
+      }).join('') +
       '</div></section>';
   }).join('') || '<div class="empty">Nothing matches that filter.</div>';
 }
