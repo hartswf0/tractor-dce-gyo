@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Isabela</title>
+<link rel="icon" type="image/svg+xml" href="ball-jar-favicon.svg" />
+<link rel="stylesheet" href="./nabugo.css" />
+<link rel="stylesheet" href="./expedition.css" />
+<style>
+  :root{ --sea: #fbbf24; }
+  .vessel{ background:#1a1206; color:var(--sea); }
+  .chip.sea{ color:var(--sea); border-color:var(--sea); }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="bar">
+    <span class="brand" id="vesselName">Isabela</span>
+    <span class="spacer"></span>
+    <span class="chip" id="chipWatch">Watch 0</span>
+    <span class="chip sea" id="chipParts">0 pieces</span>
+    <span class="chip" id="chipGround">— LDU</span>
+    <span class="chip" id="chipCat">catalogue —</span>
+    <span class="chip" id="chipStores">stores —</span>
+    <span class="chip" id="chipBus">Bus —</span>
+  </header>
+  <div class="vessel"><b>Isabela</b><i id="vesselNote">The largest island. One dense settlement — masons on nearly every watch, ground taken slowly.</i></div>
+  <div class="progress"><i id="progress" style="width:0%"></i></div>
+
+  <main class="exped">
+    <!-- LEFT: the orders -->
+    <div class="col">
+      <div class="sec-head">Brief</div>
+      <div class="sec-body">
+        <select id="briefSel"></select>
+        <div id="briefDesc" class="muted" style="margin-top:6px;line-height:1.5"></div>
+      </div>
+      <div class="sec-head">Void ledger</div>
+      <div class="sec-body" id="voids"></div>
+      <div class="sec-head">Manifest <span class="n">what stands</span></div>
+      <div class="sec-body" id="manifest"></div>
+      <div class="sec-head">Inspector</div>
+      <div class="sec-body" id="inspect"></div>
+      <div class="sec-head">Orders</div>
+      <div class="sec-body">
+        <div class="row" style="display:flex;gap:6px;align-items:center">
+          <span class="muted" style="flex:0 0 auto;font-size:8px">PIECES</span>
+          <input id="pieces" type="range" min="200" max="4000" step="100" value="3000" style="flex:1">
+          <span class="muted" id="piecesVal" style="flex:0 0 auto">3000</span>
+        </div>
+        <div style="display:flex;gap:4px;margin-top:6px">
+          <button id="btnSail" class="go" style="flex:2">Sail</button>
+          <button id="btnWatch" style="flex:1">Watch</button>
+          <button id="btnReset" style="flex:1">Refit</button>
+        </div>
+        <div style="display:flex;gap:4px;margin-top:4px">
+          <button id="btnDl" style="flex:1">Download MPD</button>
+          <button id="btnBroadcast" style="flex:1">Broadcast</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CENTRE -->
+    <div class="col">
+      <div class="viewport">
+        <div class="canvas" id="canvas"></div>
+        <div class="tools">
+          <button id="btnFit">Fit</button><button id="btnEdges">Edges</button>
+          <button id="btnGrid">Grid</button><button id="btnSpin">Spin</button>
+        </div>
+        <div class="status" id="status">booting…</div>
+      </div>
+      <div style="flex:0 0 auto;border-top:1px solid var(--line)">
+        <div class="sec-head">Palette <span class="n">roles the district is built from</span></div>
+        <div class="sec-body" id="palette" style="max-height:130px;overflow-y:auto"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT: the log -->
+    <div class="col">
+      <div class="sec-head">Ship's log <span class="n" id="nLog">0</span></div>
+      <div class="scrolly" style="padding:4px 6px" id="log"></div>
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="./examples/js/loaders/LDrawLoader.js"></script>
+<script src="./beta-prime-engine.js"></script>
+<script src="./nabugo.js"></script>
+<script src="./nabugo-evo.js"></script>
+<script src="./nabugo-modules.js"></script>
+<script src="./nabugo-crew.js"></script>
+<script src="./nabugo-ui.js"></script>
+<script src="./expedition-page.js"></script>
+<script>
+ExpeditionBoot({ title:'Isabela', source:'isabela', brief:'atlantis', background:0x1a1206,
+     note:'The largest island. One dense settlement — masons on nearly every watch, ground taken slowly.',
+     roster:['surveyor','quarryman','mason','mason','mason','mason','mason','bosun','mason','mason','mason','purser','mason','mason','inspector'],
+     extent:1100, maxExtent:5200, maxWatches:900, seed:1835, renderEvery:140,
+     colors:{ slab:19, tile:15, shaft:15, capital:15, base:19, beam:19, rake:15, tread:19,
+              block:19, coral:27, frond:2, rubble:70, hull:70, spar:70, dome:15, relic:14, ground:19 } });
+</script>
+</body>
+</html>
