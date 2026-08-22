@@ -219,9 +219,48 @@ class NabugoScene {
     if (opts.brief) L.push('0 // BRIEF: ' + opts.brief);
     if (opts.meta)  L.push('0 // NABUGO ' + JSON.stringify(opts.meta));
 
+    // ── submodels ────────────────────────────────────────────────────────
+    // Every kit in kits/ is cut into submodels — 89 of them in the UCS AT-ST,
+    // 21 in the X-wing, six levels deep — and everything this engine has ever
+    // emitted was one flat block. Anything carrying an `asm` stamp is an
+    // assembly and gets its own 0 FILE, in local coordinates so that two
+    // identical figures reference the SAME submodel twice, the way a kit
+    // instances a repeated unit rather than authoring it again.
+    const asmGroups = new Map();
+    const loose = [];
+    for (const p of this.places) {
+      if (p.asm) {
+        if (!asmGroups.has(p.asm)) asmGroups.set(p.asm, []);
+        asmGroups.get(p.asm).push(p);
+      } else loose.push(p);
+    }
+    const subs = new Map();          // signature -> { file, lines }
+    const refs = new Map();          // asm id -> { file, origin, colour }
+    if (!opts.flat) {
+      for (const [id, ps] of asmGroups) {
+        const o = ps[0].pos;
+        const local = ps.map(p => ({ p, d: [p.pos[0] - o[0], p.pos[1] - o[1], p.pos[2] - o[2]] }));
+        const sig = local.map(x => x.p.part + '/' + x.p.color + '/' + x.d.map(n).join(',') +
+                                   '/' + x.p.mat.map(n).join(',')).join('|');
+        let sub = subs.get(sig);
+        if (!sub) {
+          const kind = (ps[0].vignette || id).replace(/\W+/g, '-').toLowerCase();
+          sub = { file: kind + '-' + (subs.size + 1) + '.ldr',
+                  lines: local.map(x => '1 ' + x.p.color + ' ' + x.d.map(n).join(' ') + ' ' +
+                                        x.p.mat.map(n).join(' ') + ' parts/' + x.p.part + '.dat'),
+                  uses: 0 };
+          subs.set(sig, sub);
+        }
+        sub.uses++;
+        refs.set(id, { file: sub.file, origin: o, colour: ps[0].color });
+      }
+    } else {
+      for (const ps of asmGroups.values()) loose.push(...ps);
+    }
+
     // One STEP per vignette keeps the build readable in any LDraw editor.
     const groups = new Map();
-    for (const p of this.places) {
+    for (const p of loose) {
       const key = p.vignette || '(loose)';
       if (!groups.has(key)) groups.set(key, []);
       groups.get(key).push(p);
@@ -235,6 +274,26 @@ class NabugoScene {
         L.push('1 ' + p.color + ' ' + p.pos.map(n).join(' ') + ' ' +
                p.mat.map(n).join(' ') + ' parts/' + p.part + '.dat');
       }
+    }
+    if (refs.size) {
+      L.push('');
+      L.push('0 STEP');
+      L.push('0 // assemblies — ' + refs.size + ' placed from ' + subs.size + ' submodels');
+      for (const r of refs.values()) {
+        L.push('1 ' + r.colour + ' ' + r.origin.map(n).join(' ') + ' ' +
+               NabugoGeom.IDENT.map(n).join(" ") + " " + r.file);
+      }
+    }
+
+    for (const sub of subs.values()) {
+      L.push('');
+      L.push('0 FILE ' + sub.file);
+      L.push('0 Name: ' + sub.file);
+      L.push('0 Author: ' + (opts.author || 'Nabugo Engine'));
+      L.push('0 !LDRAW_ORG Unofficial_Model');
+      L.push('0 BFC CERTIFY CCW');
+      if (sub.uses > 1) L.push('0 // instanced ' + sub.uses + ' times');
+      L.push(...sub.lines);
     }
     return L.join('\n') + '\n';
   }
