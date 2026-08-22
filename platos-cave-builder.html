@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Plato's Cave Builder — LEGOS × LDraw</title>
+<link rel="icon" type="image/svg+xml" href="ball-jar-favicon.svg" />
+<style>
+  :root{
+    color-scheme: dark;
+    --bg:#050505; --panel:#0c0c0e; --line:#242428; --line-soft:#1a1a1d;
+    --text:#e6e6e8; --muted:#8a8a92;
+    --z1:#f472b6; --z2:#22d3ee; --z3:#facc15; --z4:#4ade80;
+    --claim:#4ade80; --pass:#6b6b72;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--text);
+    font-family:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,monospace;font-size:11px;overflow:hidden;}
+  button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit;}
+  .shell{display:flex;flex-direction:column;height:100vh;}
+  header.bar{display:flex;align-items:center;gap:10px;padding:5px 8px;
+    border-bottom:1px solid var(--line);background:#000;white-space:nowrap;}
+  .brand{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:#fff;}
+  .sub{font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);}
+  .bar .spacer{flex:1;}
+  .chip{font-size:8px;letter-spacing:.1em;text-transform:uppercase;padding:2px 6px;
+    border:1px solid var(--line);border-radius:2px;color:var(--muted);}
+  .chip.live{color:var(--z4);border-color:#1d4a2c;}
+  .chip.dead{color:#f87171;border-color:#4a1d1d;}
+  main{flex:1;display:grid;grid-template-columns:250px minmax(0,1fr) 330px;min-height:0;}
+  .col{display:flex;flex-direction:column;min-height:0;min-width:0;border-right:1px solid var(--line);}
+  .col:last-child{border-right:none;border-left:1px solid var(--line);}
+  .sec{border-bottom:1px solid var(--line-soft);}
+  .sec-head{display:flex;align-items:center;gap:6px;padding:4px 8px;background:#0a0a0c;
+    font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);
+    border-bottom:1px solid var(--line-soft);cursor:pointer;user-select:none;}
+  .sec-head .n{margin-left:auto;color:#54545c;}
+  .sec-body{padding:6px 8px;}
+  .scrolly{overflow-y:auto;flex:1;min-height:0;}
+  #viewport{flex:1 1 auto;min-height:300px;position:relative;background:#050505;overflow:hidden;}
+  #viewer-canvas{position:absolute;inset:0;}
+  .vp-overlay{position:absolute;left:8px;bottom:8px;font-size:8px;color:var(--muted);
+    letter-spacing:.1em;text-transform:uppercase;pointer-events:none;}
+  .vp-tools{position:absolute;right:8px;top:8px;display:flex;gap:4px;}
+  button{background:#131316;border:1px solid var(--line);border-radius:2px;
+    padding:3px 7px;cursor:pointer;letter-spacing:.08em;text-transform:uppercase;font-size:8px;}
+  button:hover{border-color:#3a3a42;background:#191920;}
+  button:disabled{opacity:.4;cursor:not-allowed;}
+  button.go{background:#0f2a1a;border-color:#1d4a2c;color:#8ef0b0;}
+  button.go:hover{background:#143a24;}
+  button.warn{background:#2a1a0f;border-color:#4a331d;color:#f0c98e;}
+  textarea,input,select{width:100%;background:#08080a;border:1px solid var(--line);
+    border-radius:2px;padding:4px 5px;outline:none;}
+  textarea{resize:vertical;min-height:60px;line-height:1.5;}
+  textarea:focus,input:focus,select:focus{border-color:#3a3a42;}
+  label.lbl{display:block;font-size:8px;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--muted);margin:6px 0 3px;}
+  .row{display:flex;gap:4px;align-items:center;}
+  .row>*{min-width:0;}
+  /* ---- LEGOS graph ---- */
+  .legos-line{padding:2px 0;line-height:1.5;border-bottom:1px dotted #17171a;}
+  .legos-line:last-child{border-bottom:none;}
+  .tok-e{color:#c4b5fd;} .tok-m{color:#67e8f9;} .tok-g{color:#86efac;}
+  .tok-o{color:#fca5a5;} .tok-s{color:#fcd34d;}
+  .zpill{display:inline-block;font-size:7px;padding:0 3px;border-radius:2px;
+    letter-spacing:.1em;vertical-align:middle;margin-right:4px;color:#000;font-weight:700;}
+  .z1{background:var(--z1);} .z2{background:var(--z2);}
+  .z3{background:var(--z3);} .z4{background:var(--z4);}
+  /* ---- 9x9 dig site ---- */
+  .digsite{display:grid;grid-template-columns:12px repeat(9,1fr);gap:1px;font-size:7px;
+    max-width:340px;margin:0 auto;}
+  .dg-h{color:#44444c;text-align:center;line-height:14px;}
+  .cell{aspect-ratio:1;border:1px solid #1b1b1f;background:#0a0a0c;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;color:#3a3a42;position:relative;}
+  .cell:hover{border-color:#4a4a55;}
+  .cell.sel{outline:1px solid #fff;outline-offset:-2px;}
+  .cell.zone1{border-color:#3a1f2c;} .cell.zone2{border-color:#12333a;}
+  .cell.zone3{border-color:#3a331a;} .cell.zone4{border-color:#1b3a26;}
+  .cell.filled{color:#000;font-weight:700;}
+  .cell.filled.zone1{background:var(--z1);} .cell.filled.zone2{background:var(--z2);}
+  .cell.filled.zone3{background:var(--z3);} .cell.filled.zone4{background:var(--z4);}
+  /* ---- ledger ---- */
+  table.ledger{width:100%;border-collapse:collapse;font-size:9px;}
+  table.ledger th{font-size:7px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);
+    text-align:left;padding:2px 3px;border-bottom:1px solid var(--line);font-weight:400;}
+  table.ledger td{padding:2px 3px;border-bottom:1px solid #131316;vertical-align:top;}
+  table.ledger tr.pass td{color:var(--pass);}
+  .verdict{font-size:7px;letter-spacing:.08em;padding:0 3px;border-radius:2px;}
+  .verdict.claim{background:#0f2a1a;color:#8ef0b0;}
+  .verdict.pass{background:#1a1a1d;color:#6b6b72;}
+  .desc{color:var(--muted);font-size:8px;display:block;line-height:1.3;}
+  .bar-meter{height:3px;background:#131316;border-radius:2px;overflow:hidden;margin-top:3px;}
+  .bar-meter i{display:block;height:100%;background:linear-gradient(90deg,#f472b6,#facc15,#4ade80);}
+  .kv{display:flex;justify-content:space-between;padding:1px 0;color:var(--muted);}
+  .kv b{color:var(--text);font-weight:400;}
+  pre.mpdout{margin:0;max-height:150px;overflow:auto;background:#08080a;border:1px solid var(--line);
+    padding:5px;font-size:8px;line-height:1.4;white-space:pre;}
+  .toast{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);background:#111;
+    border:1px solid var(--line);padding:5px 10px;font-size:9px;opacity:0;transition:opacity .2s;
+    pointer-events:none;z-index:50;}
+  .toast.on{opacity:1;}
+  .vign{border:1px solid var(--line);border-radius:2px;padding:3px 5px;margin-bottom:3px;
+    display:flex;gap:5px;align-items:center;}
+  .vign .x{margin-left:auto;cursor:pointer;color:#6b6b72;}
+  .vign .x:hover{color:#f87171;}
+  @media (max-width:1100px){
+    main{grid-template-columns:1fr;grid-template-rows:auto 45vh auto;}
+    .col{border-right:none;border-bottom:1px solid var(--line);max-height:38vh;}
+    .col:last-child{border-left:none;}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="bar">
+    <span class="brand">Plato's Cave Builder</span>
+    <span class="sub">LEGOS × LDraw · Micro-PLoT loop</span>
+    <span class="spacer"></span>
+    <span class="chip" id="chipRound">Round 0/20</span>
+    <span class="chip" id="chipFid">Fidelity 0%</span>
+    <span class="chip" id="chipLib">Library —</span>
+    <span class="chip" id="chipBus">Bus —</span>
+  </header>
+
+  <main>
+    <!-- ============ LEFT: LEGOS scene graph ============ -->
+    <div class="col">
+      <div class="sec-head">Legos Scene Graph <span class="n" id="graphCount"></span></div>
+      <div class="scrolly" id="graphPane"></div>
+      <div class="sec">
+        <div class="sec-body">
+          <label class="lbl">Active Zone (targets the audit)</label>
+          <select id="zoneSel">
+            <option value="1">Z1 · Center — The Shadow Screen</option>
+            <option value="2">Z2 · Inner — Captives &amp; Mechanism</option>
+            <option value="3">Z3 · Outer — Cave &amp; Fire</option>
+            <option value="4">Z4 · Rim — Ascent &amp; Sun</option>
+          </select>
+          <div class="row" style="margin-top:6px;">
+            <button id="btnSeed" class="warn" style="flex:1;">Load seed MPD</button>
+            <button id="btnReset" style="flex:1;">Reset graph</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ CENTER: viewer ============ -->
+    <div class="col">
+      <div id="viewport">
+        <div id="viewer-canvas"></div>
+        <div class="vp-tools">
+          <button id="btnFit">Fit</button>
+          <button id="btnSpin">Spin</button>
+          <button id="btnEdges">Edges</button>
+          <button id="btnGrid">Grid</button>
+        </div>
+        <div class="vp-overlay" id="vpStatus">booting LDraw…</div>
+      </div>
+      <div class="sec" style="border-bottom:none;border-top:1px solid var(--line);flex:0 0 auto;">
+        <div class="sec-head">The Dig Site — 9×9 semantic tray</div>
+        <div class="sec-body">
+          <div class="digsite" id="digsite"></div>
+          <div class="row" style="margin-top:6px;flex-wrap:wrap;">
+            <span class="sub" id="cellInfo" style="flex:1 1 160px;">cell E5 · Z1 · empty</span>
+            <button id="btnEmit" class="go">Render + Emit MPD</button>
+            <button id="btnDownload">Download</button>
+            <button id="btnBroadcast">Broadcast → frankbus</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ RIGHT: bucket → ledger → claim ============ -->
+    <div class="col">
+      <div class="sec">
+        <div class="sec-head">1 · Bag of bricks (bucket intake)</div>
+        <div class="sec-body">
+          <textarea id="bucketIn" spellcheck="false"
+            placeholder="Paste part ids (3001, 4347.dat), or paste a whole MPD — type-1 lines are harvested automatically."></textarea>
+          <div class="row" style="margin-top:4px;">
+            <button id="btnDump" style="flex:1;">Dump a bag</button>
+            <button id="btnAudit" class="go" style="flex:1;">Audit bucket</button>
+          </div>
+          <div class="row" style="margin-top:4px;">
+            <span class="sub" style="flex:1;">Claim threshold</span>
+            <input id="thresh" type="range" min="0" max="100" value="45" style="flex:2;">
+            <span class="sub" id="threshVal">0.45</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sec-head">2 · Micro-PLoT ledger <span class="n" id="ledgerCount">0</span></div>
+      <div class="scrolly" style="padding:0 8px;">
+        <table class="ledger">
+          <thead><tr><th>Part</th><th>G</th><th>M</th><th>W</th><th>Σ</th><th></th></tr></thead>
+          <tbody id="ledgerBody"></tbody>
+        </table>
+      </div>
+
+      <div class="sec" style="border-top:1px solid var(--line);border-bottom:none;">
+        <div class="sec-head">3 · Claim &amp; cluster</div>
+        <div class="sec-body">
+          <div class="row">
+            <select id="geomSel" style="flex:2;">
+              <option value="row">Row — linear rank</option>
+              <option value="ring">Ring — radial cluster</option>
+              <option value="pyramid">Pyramid — stacked triangle</option>
+              <option value="wall">Wall — vertical grid</option>
+              <option value="stack">Stack — vertical column</option>
+              <option value="pair">Pair — mirrored anchors</option>
+              <option value="radial">Radial — outward spokes</option>
+            </select>
+            <select id="colorSel" style="flex:1;"></select>
+          </div>
+          <div class="row" style="margin-top:4px;">
+            <span class="sub" style="flex:1;">Spacing</span>
+            <input id="spacing" type="range" min="16" max="120" value="40" style="flex:2;">
+            <span class="sub" id="spacingVal">40</span>
+          </div>
+          <label class="lbl">Vignette name</label>
+          <input id="vignName" placeholder="e.g. The Bound Rank">
+          <button id="btnClaim" class="go" style="width:100%;margin-top:5px;">Claim into cell <span id="claimCell">E5</span></button>
+        </div>
+      </div>
+
+      <div class="sec-head">4 · Global scene graph <span class="n" id="vignCount">0</span></div>
+      <div class="scrolly" style="padding:6px 8px;" id="vignList"></div>
+
+      <div class="sec" style="border-top:1px solid var(--line);border-bottom:none;">
+        <div class="sec-head">5 · Checkpoint</div>
+        <div class="sec-body">
+          <div class="kv"><span>Round</span><b id="ckRound">0 / 20</b></div>
+          <div class="kv"><span>Zones covered</span><b id="ckZones">0 / 4</b></div>
+          <div class="kv"><span>Parts placed</span><b id="ckParts">0</b></div>
+          <div class="kv"><span>Narrative fidelity</span><b id="ckFid">0%</b></div>
+          <div class="bar-meter"><i id="ckBar" style="width:0%"></i></div>
+          <div class="sub" id="ckAdvice" style="margin-top:6px;line-height:1.5;"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="./examples/js/loaders/LDrawLoader.js"></script>
+<script src="./beta-prime-engine.js"></script>
+<script>
+(function(){
+'use strict';
+
+// ════════════════════════════════════════════════════════════════════
+// CONFIG
+// ════════════════════════════════════════════════════════════════════
+const LDRAW_BASE = './ldraw/';        // vendored library, served statically
+const PARTS_DIR  = 'parts/';          // house convention for type-1 refs
+const RESOLVE_MAP_URL = './ldraw-resolve-map.json';  // kills the loader's 404 probing
+const CELL       = 80;                // LDU per semantic-grid cell
+const GRID_N     = 9;
+const ROWS       = ['A','B','C','D','E','F','G','H','I'];
+const MAX_ROUNDS = 20;
+
+const COLORS = [
+  [0,'Black'],[1,'Blue'],[2,'Green'],[4,'Red'],[7,'Light Grey'],[14,'Yellow'],
+  [15,'White'],[25,'Orange'],[27,'Lime'],[70,'Reddish Brown'],[71,'Light Bluish Grey'],
+  [72,'Dark Bluish Grey'],[36,'Trans Red'],[46,'Trans Yellow'],[47,'Trans Clear']
+];
+
+// ════════════════════════════════════════════════════════════════════
+// THE LEGOS SCENE GRAPH — Republic VII, 514a–520a
+// ════════════════════════════════════════════════════════════════════
+const LEGOS = {
+  title: "Plato's Cave",
+  description: "Prisoners take shadows cast by a fire behind them for the whole of reality; one is dragged out and sees the sun.",
+  location: "<The Cave> — a subterranean chamber with a mouth open toward the light",
+  entities: [
+    {id:'prisoners', type:'character', name:'The Prisoners', zone:2, traits:['bound','forward-facing','lifelong']},
+    {id:'shadows',   type:'idea',      name:'The Shadows',   zone:1, traits:['projected','mistaken-for-real']},
+    {id:'screen',    type:'object',    name:'The Shadow Screen', zone:1, traits:['flat','lit-from-behind']},
+    {id:'parapet',   type:'object',    name:'The Parapet Walkway', zone:2, traits:['raised','traversed']},
+    {id:'puppeteers',type:'character', name:'The Puppeteers', zone:2, traits:['hidden','carrying','unnamed']},
+    {id:'artifacts', type:'object',    name:'The Carried Artifacts', zone:2, traits:['statues','shapes-of-things']},
+    {id:'fire',      type:'system',    name:'The Fire',      zone:3, traits:['false-light','behind','constant']},
+    {id:'cave',      type:'system',    name:'The Cave Itself', zone:3, traits:['container','sunless','echoing']},
+    {id:'ascent',    type:'object',    name:'The Steep Ascent', zone:4, traits:['rough','uphill','painful']},
+    {id:'sun',       type:'idea',      name:'The Sun (The Good)', zone:4, traits:['true-light','blinding-at-first','source']},
+    {id:'freed',     type:'character', name:'The Freed Prisoner', zone:4, traits:['unbound','dazzled','returning']}
+  ],
+  goals: [
+    {id:'g_see',    name:'See what is actually there',   owner:'freed'},
+    {id:'g_hold',   name:'Keep the shadow-order intact', owner:'puppeteers'},
+    {id:'g_return', name:'Bring the others out',         owner:'freed'}
+  ],
+  obstacles: [
+    {id:'o_chains', name:'The Chains',            affects:'g_see'},
+    {id:'o_glare',  name:'Pain of the True Light',affects:'g_see'},
+    {id:'o_habit',  name:'Habituation to Shadow', affects:'g_return'},
+    {id:'o_scorn',  name:'The Scorn of the Bound',affects:'g_return'}
+  ],
+  shifts: [
+    {id:'s_unbind', name:'The Unbinding',   causes:['o_chains'], results_in:'freed'},
+    {id:'s_ascend', name:'The Ascent',      causes:['o_glare'],  results_in:'g_see'},
+    {id:'s_descend',name:'The Return',      causes:['o_scorn'],  results_in:'g_return'}
+  ],
+  relations: [
+    ['casts',      'fire',       'shadows'],
+    ['carries',    'puppeteers', 'artifacts'],
+    ['occludes',   'parapet',    'puppeteers'],
+    ['receives',   'screen',     'shadows'],
+    ['mistakes',   'prisoners',  'shadows'],
+    ['binds',      'cave',       'prisoners'],
+    ['leads_to',   'ascent',     'sun'],
+    ['illuminates','sun',        'cave'],
+    ['was',        'freed',      'prisoners']
+  ]
+};
+
+// Zone lexicons drive Mythic Likelihood (M)
+const ZONES = {
+  1:{key:'z1',name:'Center — The Shadow Screen', cls:'zone1',
+     lex:['window','glass','pane','panel','sheet','flag','screen','door','tile','banner','frame','trans']},
+  2:{key:'z2',name:'Inner — Captives & Mechanism', cls:'zone2',
+     lex:['minifig','torso','head','leg','arm','hand','train','base','track','chain','statue','wing','figure','hips','headdress','neckwear']},
+  3:{key:'z3',name:'Outer — Cave & Fire', cls:'zone3',
+     lex:['rock','panel','fairing','hull','slope','wedge','cone','flame','torch','canyon','baseplate','brick','cylinder','support','boat','wall']},
+  4:{key:'z4',name:'Rim — Ascent & Sun', cls:'zone4',
+     lex:['wheel','dish','radar','round','sun','stair','staircase','ladder','ramp','disc','ring','flywheel','arch','antenna','propeller','plate']}
+};
+
+// The seed scene: the stabilized Plato's Cave, as shipped in platos-cave.mpd
+const SEED_MPD_URL = './platos-cave.mpd';
+
+// A default bag of bricks, drawn from parts that exist in the vendored library.
+const BAG = [
+  '6092','50820','47713','100662','10677','4347','6584','285c01','16360','10164',
+  '4229','30230','100662p01','6024p02','47757','4788','15336p01','4032a',
+  '3001','3002','3003','3004','3005','3020','3022','3023','3024','3062b','3068b',
+  '3069b','3040','3665','3660','4286','2431','3937','3941','3942c','4032a','4073',
+  '3626b','3814','3815','3816','3817','3818','3819','970c00','973','3839a','2412b',
+  '30363','60481','3675','4460b','6222','3957a','3308','3307','2419','2420','3005',
+  '43898','30602','54200','15068','11477','24309','22388','61409','85984','3298'
+];
+
+// ════════════════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════════════════
+const S = {
+  engine:null, bus:null,
+  round:0,
+  selCell:{r:4,c:4},
+  ledger:[],           // [{id, desc, cat, G, M, W, score, claim}]
+  vignettes:[],        // [{id,name,zone,cell,geom,color,parts:[...],lines:[...]}]
+  partCache:new Map(),
+  seedLines:[]
+};
+
+const $ = id => document.getElementById(id);
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('on');
+  clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('on'),1800); }
+
+// ════════════════════════════════════════════════════════════════════
+// GRID ↔ WORLD
+// ════════════════════════════════════════════════════════════════════
+// Row A..I maps to -Z..+Z, column 1..9 maps to -X..+X, so the tray reads
+// like a top-down plan of the cave.
+function cellLabel(r,c){ return ROWS[r] + (c+1); }
+function cellToWorld(r,c){
+  return { x:(c-(GRID_N-1)/2)*CELL, z:(r-(GRID_N-1)/2)*CELL };
+}
+// Chebyshev ring distance from the centre defines the semantic zone.
+function cellZone(r,c){
+  const d = Math.max(Math.abs(r-4), Math.abs(c-4));
+  if (d===0) return 1;
+  if (d===1) return 2;
+  if (d<=3)  return 3;
+  return 4;
+}
+
+// ════════════════════════════════════════════════════════════════════
+// PART METADATA — read straight off the hosted .dat headers
+// ════════════════════════════════════════════════════════════════════
+function normalizePartId(raw){
+  let s = String(raw||'').trim().replace(/\\/g,'/');
+  s = s.replace(/^\.?\//,'').replace(/^ldraw\//i,'').replace(/^parts\//i,'');
+  s = s.replace(/\.dat$/i,'');
+  return s;
+}
+
+async function fetchPartMeta(id){
+  if (S.partCache.has(id)) return S.partCache.get(id);
+  let meta = { id, desc:'(not in library)', cat:'', keywords:'', ok:false };
+  try{
+    const res = await fetch(LDRAW_BASE + PARTS_DIR + id + '.dat');
+    if (res.ok){
+      // Headers live in the first handful of lines; no need for the whole file.
+      const text = (await res.text()).slice(0, 4096);
+      const lines = text.split(/\r?\n/);
+      const first = (lines[0]||'').replace(/^0\s*/,'').trim();
+      let cat='', kw='';
+      for (const l of lines.slice(0,40)){
+        const mc = l.match(/^0\s+!CATEGORY\s+(.+)$/i);   if (mc) cat = mc[1].trim();
+        const mk = l.match(/^0\s+!KEYWORDS\s+(.+)$/i);   if (mk) kw += ' ' + mk[1].trim();
+      }
+      if (!cat) cat = first.split(/\s+/)[0].replace(/^~/,'');
+      meta = { id, desc:first, cat, keywords:kw.trim(), ok:true };
+    }
+  }catch(e){ /* offline / missing part — meta stays not-ok */ }
+  S.partCache.set(id, meta);
+  return meta;
+}
+
+// ---- Micro-PLoT axes -------------------------------------------------
+function parseFootprint(desc){
+  const m = desc.match(/(\d+)\s*x\s*(\d+)(?:\s*x\s*(\d+))?/i);
+  if (!m) return {w:1,d:1,h:1,area:1};
+  const w=+m[1], d=+m[2], h=m[3]?+m[3]:1;
+  return {w,d,h,area:w*d};
+}
+
+// Geometric Prior: does the part offer structural utility?
+function scoreG(meta){
+  const t = (meta.desc + ' ' + meta.cat).toLowerCase();
+  let g = 0.45;
+  if (/baseplate|\bplate\b|\bbrick\b|\btile\b|panel|slope|wedge|support|bracket/.test(t)) g = 0.85;
+  else if (/technic|hinge|\barm\b|axle|train|\bbase\b|turntable|\bbar\b/.test(t))          g = 0.70;
+  else if (/window|door|fence|wheel|dish|cone|cylinder|arch|stair|ladder/.test(t))         g = 0.62;
+  else if (/minifig|animal|plant|figure|sticker|hair|headgear/.test(t))                    g = 0.35;
+  const fp = parseFootprint(meta.desc);
+  if (fp.area >= 8)  g += 0.08;
+  if (fp.area >= 64) g += 0.05;
+  if (/^~/.test(meta.desc))        g -= 0.18;   // ~ marks a sub-part / obsolete alias
+  if (/obsolete|moved to/i.test(t)) g -= 0.30;
+  if (!meta.ok) g = 0;
+  return Math.max(0, Math.min(1, g));
+}
+
+// Mythic Likelihood: does it embody the signifier of the ACTIVE zone?
+function scoreM(meta, zone){
+  if (!meta.ok) return 0;
+  const t = (meta.desc + ' ' + meta.cat + ' ' + meta.keywords).toLowerCase();
+  const lex = ZONES[zone].lex;
+  let hits = 0;
+  for (const w of lex) if (t.includes(w)) hits++;
+  let m = 0.12 + hits * 0.26;
+  if (/pattern|print/i.test(t)) m += 0.08;      // decorated parts carry meaning
+  return Math.max(0, Math.min(1, m));
+}
+
+// Visual Weight: does it have the gravity to anchor a cell?
+function scoreW(meta){
+  if (!meta.ok) return 0;
+  const fp = parseFootprint(meta.desc);
+  const w = Math.log2(fp.area + 1) / Math.log2(1025);   // 32x32 baseplate → 1.0
+  const bonus = /baseplate|hull|panel|fairing/i.test(meta.desc) ? 0.12 : 0;
+  return Math.max(0, Math.min(1, w + bonus));
+}
+
+function microPlot(meta, zone){
+  const G = scoreG(meta), M = scoreM(meta, zone), W = scoreW(meta);
+  return { G, M, W, score: G*0.3 + M*0.4 + W*0.3 };
+}
+
+// ════════════════════════════════════════════════════════════════════
+// BUCKET INTAKE
+// ════════════════════════════════════════════════════════════════════
+function harvestIds(text){
+  const out = [];
+  const seen = new Set();
+  const lines = String(text||'').split(/\r?\n/);
+  const looksLikeMpd = lines.some(l => /^\s*1\s+/.test(l));
+  if (looksLikeMpd){
+    for (const l of lines){
+      const t = l.trim();
+      if (!t.startsWith('1 ')) continue;
+      const tk = t.split(/\s+/);
+      if (tk.length < 15) continue;
+      const id = normalizePartId(tk.slice(14).join(' '));
+      if (id && !seen.has(id)){ seen.add(id); out.push(id); }
+    }
+  } else {
+    for (const raw of String(text||'').split(/[\s,;]+/)){
+      const id = normalizePartId(raw);
+      if (id && !seen.has(id)){ seen.add(id); out.push(id); }
+    }
+  }
+  return out;
+}
+
+async function auditBucket(){
+  const zone = +$('zoneSel').value;
+  const ids = harvestIds($('bucketIn').value);
+  if (!ids.length){ toast('Bucket is empty — dump a bag or paste part ids'); return; }
+  $('btnAudit').disabled = true;
+  $('vpStatus').textContent = 'auditing ' + ids.length + ' candidates…';
+  const thresh = (+$('thresh').value)/100;
+
+  const metas = await Promise.all(ids.slice(0,120).map(fetchPartMeta));
+  S.ledger = metas.map(meta => {
+    const p = microPlot(meta, zone);
+    return { ...meta, ...p, claim: meta.ok && p.score >= thresh };
+  }).sort((a,b)=>b.score-a.score);
+
+  S.round = Math.min(MAX_ROUNDS, S.round + 1);
+  renderLedger();
+  updateCheckpoint();
+  $('btnAudit').disabled = false;
+  $('vpStatus').textContent = 'audit complete · ' + S.ledger.filter(r=>r.claim).length + ' claimable';
+}
+
+function rescoreLedger(){
+  const zone = +$('zoneSel').value;
+  const thresh = (+$('thresh').value)/100;
+  S.ledger = S.ledger.map(r=>{
+    const p = microPlot(r, zone);
+    return { ...r, ...p, claim: r.ok && p.score >= thresh };
+  }).sort((a,b)=>b.score-a.score);
+  renderLedger();
+}
+
+function renderLedger(){
+  const tb = $('ledgerBody');
+  tb.innerHTML = '';
+  $('ledgerCount').textContent = S.ledger.length;
+  for (const r of S.ledger){
+    const tr = document.createElement('tr');
+    if (!r.claim) tr.className = 'pass';
+    tr.innerHTML =
+      '<td><b>'+r.id+'</b><span class="desc">'+escapeHtml(r.desc.slice(0,54))+'</span></td>'+
+      '<td>'+r.G.toFixed(2)+'</td><td>'+r.M.toFixed(2)+'</td><td>'+r.W.toFixed(2)+'</td>'+
+      '<td><b>'+r.score.toFixed(2)+'</b></td>'+
+      '<td><span class="verdict '+(r.claim?'claim':'pass')+'">'+(r.claim?'CLAIM':'PASS')+'</span></td>';
+    tr.addEventListener('click', ()=>{ r.claim = !r.claim; renderLedger(); });
+    tb.appendChild(tr);
+  }
+}
+
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c =>
+  ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+// ════════════════════════════════════════════════════════════════════
+// VIGNETTE GEOMETRY — the "sophisticated composition" generators
+// ════════════════════════════════════════════════════════════════════
+const IDENT = [1,0,0, 0,1,0, 0,0,1];
+function rotY(deg){
+  const a = deg*Math.PI/180, c = Math.cos(a), s = Math.sin(a);
+  return [c,0,s, 0,1,0, -s,0,c];
+}
+function num(n){ return (Math.round(n*1000)/1000).toString(); }
+function typeOne(color, x, y, z, m, part){
+  return '1 '+color+' '+num(x)+' '+num(y)+' '+num(z)+' '+m.map(num).join(' ')+' '+PARTS_DIR+part+'.dat';
+}
+
+function buildVignette(geom, parts, anchor, color, spacing){
+  const {x:ax, z:az} = anchor;
+  const lines = [];
+  const n = parts.length;
+  if (!n) return lines;
+
+  if (geom === 'row'){
+    const span = (n-1)*spacing;
+    parts.forEach((p,i)=> lines.push(typeOne(color, ax - span/2 + i*spacing, 0, az, IDENT, p)));
+
+  } else if (geom === 'ring'){
+    const r = Math.max(spacing, (n*spacing)/(2*Math.PI));
+    parts.forEach((p,i)=>{
+      const a = (i/n)*Math.PI*2;
+      lines.push(typeOne(color, ax + Math.cos(a)*r, 0, az + Math.sin(a)*r, rotY(-a*180/Math.PI), p));
+    });
+
+  } else if (geom === 'pyramid'){
+    // Rows shrink by one as they rise; LDraw +Y is down, so we step negative.
+    let i = 0, row = 0;
+    let perRow = Math.max(1, Math.ceil((Math.sqrt(8*n+1)-1)/2));
+    while (i < n && perRow > 0){
+      const span = (perRow-1)*spacing;
+      for (let k=0; k<perRow && i<n; k++, i++){
+        lines.push(typeOne(color, ax - span/2 + k*spacing, -row*(spacing*0.6), az, IDENT, parts[i]));
+      }
+      perRow--; row++;
+    }
+
+  } else if (geom === 'wall'){
+    const cols = Math.max(1, Math.ceil(Math.sqrt(n)));
+    parts.forEach((p,i)=>{
+      const c = i % cols, r = Math.floor(i/cols);
+      lines.push(typeOne(color, ax + (c-(cols-1)/2)*spacing, -r*(spacing*0.6), az, IDENT, p));
+    });
+
+  } else if (geom === 'stack'){
+    parts.forEach((p,i)=> lines.push(typeOne(color, ax, -i*(spacing*0.6), az, IDENT, p)));
+
+  } else if (geom === 'pair'){
+    parts.forEach((p,i)=>{
+      const side = (i % 2 === 0) ? -1 : 1;
+      const tier = Math.floor(i/2);
+      lines.push(typeOne(color, ax + side*spacing, -tier*(spacing*0.6), az, side<0?IDENT:rotY(180), p));
+    });
+
+  } else if (geom === 'radial'){
+    parts.forEach((p,i)=>{
+      const a = (i/n)*Math.PI*2;
+      const r = spacing * 1.4;
+      lines.push(typeOne(color, ax + Math.cos(a)*r, 0, az + Math.sin(a)*r, rotY(-(i/n)*360), p));
+    });
+  }
+  return lines;
+}
+
+function claimVignette(){
+  const claimed = S.ledger.filter(r=>r.claim).map(r=>r.id);
+  if (!claimed.length){ toast('Nothing claimed in the ledger'); return; }
+  const {r,c} = S.selCell;
+  const zone  = cellZone(r,c);
+  const geom  = $('geomSel').value;
+  const color = +$('colorSel').value;
+  const spacing = +$('spacing').value;
+  const anchor = cellToWorld(r,c);
+  const name = ($('vignName').value || '').trim() ||
+               (geom.toUpperCase() + ' @ ' + cellLabel(r,c));
+
+  const lines = buildVignette(geom, claimed, anchor, color, spacing);
+  S.vignettes.push({
+    id:'v'+Date.now().toString(36),
+    name, zone, cell:cellLabel(r,c), geom, color,
+    parts:claimed.slice(), lines
+  });
+  $('vignName').value = '';
+  renderVignettes(); renderDigsite(); updateCheckpoint();
+  toast('Claimed ' + claimed.length + ' parts into ' + cellLabel(r,c));
+}
+
+function renderVignettes(){
+  const host = $('vignList');
+  host.innerHTML = '';
+  $('vignCount').textContent = S.vignettes.length;
+  if (!S.vignettes.length){
+    host.innerHTML = '<div class="sub" style="color:#54545c;">no vignettes claimed yet</div>';
+    return;
+  }
+  S.vignettes.forEach((v,i)=>{
+    const d = document.createElement('div');
+    d.className = 'vign';
+    d.innerHTML = '<span class="zpill '+ZONES[v.zone].cls.replace('zone','z')+'">Z'+v.zone+'</span>'+
+      '<span>'+escapeHtml(v.name)+'</span>'+
+      '<span class="desc" style="display:inline;">'+v.cell+' · '+v.parts.length+'p</span>'+
+      '<span class="x" title="remove">✕</span>';
+    d.querySelector('.x').addEventListener('click', ()=>{
+      S.vignettes.splice(i,1); renderVignettes(); renderDigsite(); updateCheckpoint();
+    });
+    host.appendChild(d);
+  });
+}
+
+// ════════════════════════════════════════════════════════════════════
+// MPD COMPOSITION
+// ════════════════════════════════════════════════════════════════════
+function composeMPD(){
+  const L = [];
+  L.push('0 FILE platos-cave-build.mpd');
+  L.push('0 Name: platos-cave-build.mpd');
+  L.push('0 Author: Plato\'s Cave Builder (LEGOS × LDraw)');
+  L.push('0 !LDRAW_ORG Model');
+  L.push('0 BFC CERTIFY CCW');
+  L.push('0 // '+LEGOS.title+' — '+LEGOS.description);
+  L.push('0 // PC_META '+JSON.stringify({
+    version:'1.0', round:S.round, grid:GRID_N+'x'+GRID_N, cell:CELL,
+    fidelity:Math.round(fidelity()), vignettes:S.vignettes.length
+  }));
+
+  if (S.seedLines.length){
+    L.push('');
+    L.push('0 STEP');
+    L.push('0 // ---- SEED: stabilized Plato\'s Cave ----');
+    L.push(...S.seedLines);
+  }
+
+  for (let z=1; z<=4; z++){
+    const vs = S.vignettes.filter(v=>v.zone===z);
+    if (!vs.length) continue;
+    L.push('');
+    L.push('0 STEP');
+    L.push('0 // ---- ZONE '+z+': '+ZONES[z].name+' ----');
+    for (const v of vs){
+      L.push('0 // PC_VIGNETTE '+JSON.stringify({
+        name:v.name, cell:v.cell, zone:v.zone, geom:v.geom, parts:v.parts.length
+      }));
+      L.push(...v.lines);
+    }
+  }
+  return L;
+}
+
+async function emitAndRender(){
+  const lines = composeMPD();
+  if (lines.filter(l=>l.startsWith('1 ')).length === 0){
+    toast('Nothing to render — claim a vignette or load the seed'); return;
+  }
+  const text = lines.join('\n') + '\n';
+  $('vpStatus').textContent = 'rendering…';
+  try{
+    await S.engine.loadText(text, {name:'platos-cave-build', origin:'PlatosCaveBuilder'}, 'platos-cave-build.mpd');
+    frame();
+    const st = S.engine.getStats();
+    $('vpStatus').textContent = st.meshes + ' meshes · ' + st.triangles.toLocaleString() + ' tris · round ' + S.round;
+  }catch(e){
+    console.error(e);
+    $('vpStatus').textContent = 'render failed: ' + (e && e.message ? e.message : e);
+    toast('Render failed — see console');
+  }
+  return text;
+}
+
+// BetaPrimeEngine's fit leaves a generous margin; pull in so the build fills
+// the viewport the way the tray does.
+function frame(zoom = 0.58){
+  if (!S.engine || !S.engine.modelWrapper) return;
+  S.engine.fitToCurrent();
+  const cam = S.engine.camera, tgt = S.engine.controls.target;
+  cam.position.set(
+    tgt.x + (cam.position.x - tgt.x) * zoom,
+    tgt.y + (cam.position.y - tgt.y) * zoom,
+    tgt.z + (cam.position.z - tgt.z) * zoom
+  );
+  S.engine.controls.update();
+}
+
+function downloadMPD(){
+  const text = composeMPD().join('\n') + '\n';
+  const blob = new Blob([text], {type:'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'platos-cave-build.mpd';
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+  toast('MPD downloaded');
+}
+
+// ════════════════════════════════════════════════════════════════════
+// FRANKBUS — the same BroadcastChannel the -ators and ball-jar speak
+// ════════════════════════════════════════════════════════════════════
+function initBus(){
+  if (typeof BroadcastChannel === 'undefined'){
+    $('chipBus').textContent = 'Bus n/a'; $('chipBus').className = 'chip dead'; return;
+  }
+  S.bus = new BroadcastChannel('wag-frank');
+  $('chipBus').textContent = 'Bus wag-frank'; $('chipBus').className = 'chip live';
+
+  S.bus.addEventListener('message', (ev)=>{
+    const msg = ev.data;
+    if (!msg || typeof msg !== 'object' || !msg.kind) return;
+    if (msg.source === 'platos-cave-builder') return;
+
+    // Any inbound MPD-bearing message becomes a bag of bricks to audit.
+    const p = msg.payload || {};
+    let text = null;
+    if (typeof p.mpd_content === 'string') text = p.mpd_content;
+    else if (Array.isArray(p.mpdLines))    text = p.mpdLines.join('\n');
+    else if (typeof msg.mpd_content === 'string') text = msg.mpd_content;
+    else if (Array.isArray(p.parts))       text = p.parts.join('\n');
+
+    if (text){
+      const cur = $('bucketIn').value.trim();
+      $('bucketIn').value = (cur ? cur + '\n' : '') + text;
+      toast('Bucket received from ' + (msg.source || msg.kind));
+    }
+  });
+}
+
+function broadcast(){
+  if (!S.bus){ toast('No BroadcastChannel in this browser'); return; }
+  const lines = composeMPD();
+  const text  = lines.join('\n') + '\n';
+  S.bus.postMessage({
+    kind: 'scene-mpd',
+    source: 'platos-cave-builder',
+    ts: Date.now(),
+    payload: {
+      name: LEGOS.title + ' — round ' + S.round,
+      filename: 'platos-cave-build.mpd',
+      mode: 'replace',
+      mpdLines: lines,       // wag-frank / grace shape
+      mpd_content: text,     // ball-jar / mento / gold shape
+      scene: {
+        title: LEGOS.title,
+        round: S.round,
+        fidelity: Math.round(fidelity()),
+        vignettes: S.vignettes.map(v=>({name:v.name, cell:v.cell, zone:v.zone, geom:v.geom, parts:v.parts}))
+      }
+    }
+  });
+  toast('Broadcast on wag-frank · ' + lines.filter(l=>l.startsWith('1 ')).length + ' parts');
+}
+
+// ════════════════════════════════════════════════════════════════════
+// FIDELITY
+// ════════════════════════════════════════════════════════════════════
+// Coverage of the four zones (60%), spatial spread across cells (25%),
+// and sheer part count against a target of 60 (15%).
+function fidelity(){
+  const zoneTarget = {1:1, 2:3, 3:3, 4:2};
+  let zScore = 0, zTotalWeight = 0;
+  for (let z=1; z<=4; z++){
+    const have = S.vignettes.filter(v=>v.zone===z).length + (S.seedLines.length ? 1 : 0);
+    zScore += Math.min(have, zoneTarget[z]) / zoneTarget[z];
+    zTotalWeight += 1;
+  }
+  const zoneCov = zScore / zTotalWeight;
+  const cells = new Set(S.vignettes.map(v=>v.cell)).size;
+  const spread = Math.min(1, cells / 9);
+  const parts = S.vignettes.reduce((a,v)=>a+v.parts.length, 0) +
+                S.seedLines.filter(l=>l.startsWith('1 ')).length;
+  const mass = Math.min(1, parts / 60);
+  return 100 * (zoneCov*0.60 + spread*0.25 + mass*0.15);
+}
+
+function updateCheckpoint(){
+  const f = fidelity();
+  const zonesCovered = [1,2,3,4].filter(z=>S.vignettes.some(v=>v.zone===z)).length;
+  const parts = S.vignettes.reduce((a,v)=>a+v.parts.length,0) +
+                S.seedLines.filter(l=>l.startsWith('1 ')).length;
+  $('ckRound').textContent  = S.round + ' / ' + MAX_ROUNDS;
+  $('ckZones').textContent  = zonesCovered + ' / 4';
+  $('ckParts').textContent  = parts;
+  $('ckFid').textContent    = Math.round(f) + '%';
+  $('ckBar').style.width    = Math.round(f) + '%';
+  $('chipRound').textContent = 'Round ' + S.round + '/' + MAX_ROUNDS;
+  $('chipFid').textContent   = 'Fidelity ' + Math.round(f) + '%';
+
+  let advice;
+  if (f >= 80 || S.round >= MAX_ROUNDS){
+    advice = 'RELEASE CONDITION MET — the scene is narratively stable. Emit the MPD, or keep refining a specific zone.';
+  } else {
+    const thin = [1,2,3,4].filter(z=>!S.vignettes.some(v=>v.zone===z));
+    advice = thin.length
+      ? 'Under-specified: ' + thin.map(z=>'Z'+z+' ('+ZONES[z].name.split('—')[1].trim()+')').join(', ') + '. Switch the active zone and audit a bucket for it.'
+      : 'All four zones seeded. Add density or spread vignettes across more cells to pass 80%.';
+  }
+  $('ckAdvice').textContent = advice;
+}
+
+// ════════════════════════════════════════════════════════════════════
+// RENDERERS
+// ════════════════════════════════════════════════════════════════════
+function renderGraph(){
+  const host = $('graphPane');
+  const out = [];
+  const push = (html)=> out.push('<div class="legos-line">'+html+'</div>');
+  const zp = z => '<span class="zpill z'+z+'">Z'+z+'</span>';
+
+  push('<span class="tok-e">'+escapeHtml(LEGOS.title)+'</span> <span class="desc" style="display:inline;">'+escapeHtml(LEGOS.location)+'</span>');
+  out.push('<div class="sec-head" style="margin-top:4px;">Entities</div>');
+  for (const e of LEGOS.entities)
+    push(zp(e.zone)+'<span class="tok-e">&lt;'+escapeHtml(e.name)+'&gt;</span> <span class="desc" style="display:inline;">'+e.type+' · '+e.traits.join(', ')+'</span>');
+
+  out.push('<div class="sec-head">Goals</div>');
+  for (const g of LEGOS.goals)
+    push('<span class="tok-g">&lt;'+escapeHtml(g.name)+'&gt;</span> <span class="desc" style="display:inline;">owner: '+g.owner+'</span>');
+
+  out.push('<div class="sec-head">Obstacles</div>');
+  for (const o of LEGOS.obstacles)
+    push('<span class="tok-o">&lt;'+escapeHtml(o.name)+'&gt;</span> <span class="desc" style="display:inline;">blocks: '+o.affects+'</span>');
+
+  out.push('<div class="sec-head">Shifts</div>');
+  for (const s of LEGOS.shifts)
+    push('<span class="tok-s">&lt;'+escapeHtml(s.name)+'&gt;</span> <span class="desc" style="display:inline;">resolves: '+s.causes.join(', ')+' → '+s.results_in+'</span>');
+
+  out.push('<div class="sec-head">Relations</div>');
+  for (const [m,a,b] of LEGOS.relations)
+    push('<span class="tok-m">['+m+']</span> '+a+' <span class="tok-m">→</span> '+b);
+
+  host.innerHTML = out.join('');
+  $('graphCount').textContent = LEGOS.entities.length + 'E ' + LEGOS.relations.length + 'M';
+}
+
+function renderDigsite(){
+  const host = $('digsite');
+  host.innerHTML = '';
+  const occupied = new Map();
+  S.vignettes.forEach(v => occupied.set(v.cell, (occupied.get(v.cell)||0)+1));
+
+  host.appendChild(el('div','dg-h',''));
+  for (let c=0;c<GRID_N;c++) host.appendChild(el('div','dg-h', String(c+1)));
+
+  for (let r=0;r<GRID_N;r++){
+    host.appendChild(el('div','dg-h', ROWS[r]));
+    for (let c=0;c<GRID_N;c++){
+      const z = cellZone(r,c);
+      const label = cellLabel(r,c);
+      const cnt = occupied.get(label) || 0;
+      const d = el('div','cell '+ZONES[z].cls + (cnt?' filled':'') +
+        ((S.selCell.r===r && S.selCell.c===c)?' sel':''), cnt ? String(cnt) : '·');
+      d.title = label + ' · Zone ' + z + ' · ' + ZONES[z].name;
+      d.addEventListener('click', ()=>{ S.selCell={r,c}; renderDigsite(); syncCellInfo(); });
+      host.appendChild(d);
+    }
+  }
+  syncCellInfo();
+}
+function el(tag, cls, txt){ const d=document.createElement(tag); d.className=cls; d.textContent=txt; return d; }
+
+function syncCellInfo(){
+  const {r,c} = S.selCell;
+  const z = cellZone(r,c);
+  const label = cellLabel(r,c);
+  const here = S.vignettes.filter(v=>v.cell===label);
+  const w = cellToWorld(r,c);
+  $('cellInfo').textContent = 'cell '+label+' · Z'+z+' · x='+w.x+' z='+w.z+' · '+
+    (here.length ? here.length+' vignette(s)' : 'empty');
+  $('claimCell').textContent = label;
+  $('zoneSel').value = String(z);
+}
+
+// ════════════════════════════════════════════════════════════════════
+// SEED
+// ════════════════════════════════════════════════════════════════════
+async function loadSeed(){
+  try{
+    const res = await fetch(SEED_MPD_URL);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const text = await res.text();
+    S.seedLines = text.split(/\r?\n/).filter(l=>{
+      const t = l.trim();
+      return t.startsWith('1 ') || (t.startsWith('0 //') && !t.includes('PC_META'));
+    });
+    toast('Seed loaded · ' + S.seedLines.filter(l=>l.trim().startsWith('1 ')).length + ' parts');
+    updateCheckpoint();
+    await emitAndRender();
+  }catch(e){
+    console.error(e);
+    toast('Could not load ' + SEED_MPD_URL + ' — serve this page over HTTP');
+    $('vpStatus').textContent = 'seed load failed: ' + e.message;
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════
+// BOOT
+// ════════════════════════════════════════════════════════════════════
+// The loader finds sub-files by trial and error; every miss is a real 404 on a
+// static host. Pre-seeding its fileMap with the primitive layout skips that.
+async function loadResolveMap(){
+  try{
+    const res = await fetch(RESOLVE_MAP_URL);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const map = await res.json();
+    S.engine.setFileMap(map);
+    $('chipLib').textContent = 'Library ./ldraw/ · ' + Object.keys(map).length + ' mapped';
+  }catch(e){
+    // Not fatal: the loader still resolves everything, just noisily.
+    console.warn('[PC] resolve map unavailable, falling back to loader probing', e);
+    $('chipLib').textContent = 'Library ./ldraw/ (unmapped)';
+  }
+}
+
+function initViewer(){
+  try{
+    S.engine = BetaPrimeEngine.create({
+      canvas: $('viewer-canvas'),
+      loaderPath: LDRAW_BASE,
+      background: 0x050505,
+      grid: { size: CELL*GRID_N, divisions: GRID_N, color1: 0x2a2a33, color2: 0x17171c },
+      axesSize: 120
+    });
+    S.engine.setDiagnostics({ axes:false, grid:true });
+    S.engine.ready.then(loadResolveMap).then(()=>{
+      $('chipLib').className = 'chip live';
+      $('vpStatus').textContent = 'LDraw ready — load the seed or audit a bucket';
+    });
+  }catch(e){
+    console.error(e);
+    $('chipLib').textContent = 'Library failed';
+    $('chipLib').className = 'chip dead';
+    $('vpStatus').textContent = 'viewer init failed: ' + e.message;
+  }
+}
+
+function initControls(){
+  COLORS.forEach(([code,name])=>{
+    const o = document.createElement('option');
+    o.value = code; o.textContent = code + ' ' + name;
+    if (code === 71) o.selected = true;
+    $('colorSel').appendChild(o);
+  });
+
+  $('btnDump').addEventListener('click', ()=>{
+    const shuffled = BAG.slice().sort(()=>Math.random()-0.5).slice(0, 18);
+    $('bucketIn').value = shuffled.join('\n');
+    toast('Dumped ' + shuffled.length + ' bricks');
+  });
+  $('btnAudit').addEventListener('click', auditBucket);
+  $('btnClaim').addEventListener('click', claimVignette);
+  $('btnEmit').addEventListener('click', emitAndRender);
+  $('btnDownload').addEventListener('click', downloadMPD);
+  $('btnBroadcast').addEventListener('click', broadcast);
+  $('btnSeed').addEventListener('click', loadSeed);
+  $('btnReset').addEventListener('click', ()=>{
+    S.vignettes = []; S.seedLines = []; S.ledger = []; S.round = 0;
+    renderVignettes(); renderLedger(); renderDigsite(); updateCheckpoint();
+    if (S.engine) S.engine.clear();
+    $('vpStatus').textContent = 'graph reset';
+  });
+
+  $('btnFit').addEventListener('click', ()=> frame());
+  let spin=false, edges=true, grid=true;
+  $('btnSpin').addEventListener('click', ()=>{ spin=!spin; S.engine && S.engine.setAutoSpin(spin); });
+  $('btnEdges').addEventListener('click',()=>{ edges=!edges; S.engine && S.engine.setDiagnostics({showEdges:edges}); });
+  $('btnGrid').addEventListener('click', ()=>{ grid=!grid;  S.engine && S.engine.setDiagnostics({grid:grid}); });
+
+  $('thresh').addEventListener('input', e=>{
+    $('threshVal').textContent = (+e.target.value/100).toFixed(2);
+    if (S.ledger.length) rescoreLedger();
+  });
+  $('spacing').addEventListener('input', e=> $('spacingVal').textContent = e.target.value);
+  $('zoneSel').addEventListener('change', ()=>{ if (S.ledger.length) rescoreLedger(); });
+}
+
+renderGraph();
+renderDigsite();
+renderVignettes();
+updateCheckpoint();
+initControls();
+initBus();
+initViewer();
+
+// Expose for console-driven / agent-driven building.
+window.PlatosCave = {
+  state: S, LEGOS, ZONES,
+  audit: auditBucket, claim: claimVignette, emit: emitAndRender,
+  broadcast, compose: composeMPD, fidelity,
+  setBucket: t => { $('bucketIn').value = t; },
+  selectCell: (row, col) => { S.selCell = {r:ROWS.indexOf(row.toUpperCase()), c:col-1}; renderDigsite(); }
+};
+})();
+</script>
+</body>
+</html>
