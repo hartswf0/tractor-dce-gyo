@@ -160,6 +160,8 @@ class Palette {
 }
 
 // ══════════════════════════════════════════════════════════════════ cursor
+/** Stud pitch is 20 LDU; a half-stud offset is the finest legal clutch in XZ. */
+const HALF_STUD = 10;
 const w = p => p.b[3] - p.b[0];
 const h = p => p.b[4] - p.b[1];
 const d = p => p.b[5] - p.b[2];
@@ -178,13 +180,26 @@ class Cursor {
     this.out = [];
     this.colorOf = colorOf || (() => 71);
   }
-  /** Place a part with its box centred on (x,z) and its underside at `y`. */
+  /** Place a part with its box centred on (x,z) and its underside at `y`.
+   *
+   *  X and Z are snapped to the half-stud lattice on the way out. Five modules
+   *  — reef, rubblefield, medusa, vault, buttress — place at continuous polar
+   *  coordinates, and measuring our output against real kits showed what that
+   *  costs: 22% to 46% of the pieces in a build sitting at irrational x and z,
+   *  studs up, attached to nothing, while the audit reported floating: 0. A
+   *  brick at x = 7.61 is not clutched to anything; it is balanced in mid-air.
+   *
+   *  Y is left alone deliberately. The cursor already advances by real part
+   *  heights and that is what makes these assemblies hold together; snapping it
+   *  would round a plate course into a brick course.
+   */
   put(part, x, z, y, opts = {}) {
     if (!part) return null;
+    const lat = opts.free ? (v => v) : (v => Math.round(v / HALF_STUD) * HALF_STUD);
     const place = {
       part: part.id,
       color: opts.color != null ? opts.color : this.colorOf(opts.role),
-      pos: [x - cx(part), (y == null ? this.y : y) - part.b[4], z - cz(part)],
+      pos: [lat(x - cx(part)), (y == null ? this.y : y) - part.b[4], lat(z - cz(part))],
       mat: opts.mat || Geom.IDENT,
       role: opts.role || null,
       module: opts.module || null

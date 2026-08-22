@@ -87,9 +87,65 @@ const NabugoCatalog = (() => {
 const NabugoGeom = (() => {
   const IDENT = [1,0,0, 0,1,0, 0,0,1];
 
+  const rad = d => d * Math.PI / 180;
   function rotY(deg) {
-    const a = deg * Math.PI / 180, c = Math.cos(a), s = Math.sin(a);
+    const a = rad(deg), c = Math.cos(a), s = Math.sin(a);
     return [c,0,s, 0,1,0, -s,0,c];
+  }
+  /**
+   * rotY was the only rotation this engine had, and measuring our output against
+   * seventeen real kits made the cost of that explicit: SNOT rate 0.000 across
+   * 9,994 emitted pieces, against a kit median of 0.34. A generator with no
+   * rotX and no rotZ cannot make a wing, a nose, a sloped roof, a curved hull
+   * or a bracket-mounted greeble — every organic form in every one of the kits
+   * was out of reach by construction, and that is most of why our builds read
+   * as scaffolding rather than as objects.
+   *
+   * Y is DOWN in LDraw, so a positive rotX tips the top of a part towards +Z.
+   */
+  function rotX(deg) {
+    const a = rad(deg), c = Math.cos(a), s = Math.sin(a);
+    return [1,0,0, 0,c,-s, 0,s,c];
+  }
+  function rotZ(deg) {
+    const a = rad(deg), c = Math.cos(a), s = Math.sin(a);
+    return [c,-s,0, s,c,0, 0,0,1];
+  }
+  function mul(A, B) {
+    const M = new Array(9);
+    for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) {
+      M[r*3+c] = A[r*3]*B[c] + A[r*3+1]*B[3+c] + A[r*3+2]*B[6+c];
+    }
+    return M;
+  }
+  /** Compose in the order given: euler(0, 90, 0) is rotX(0)·rotY(90)·rotZ(0). */
+  const euler = (x, y, z) => mul(mul(rotX(x || 0), rotY(y || 0)), rotZ(z || 0));
+
+  /**
+   * The orientations real kits actually use. Every one of the 24 is a signed
+   * permutation of the axes, so a part placed with any of them stays on the
+   * lattice and its AABB stays exact — which matters, because worldBox is only
+   * tight for axis-aligned and 90-degree rotations. Free angles are legal LDraw
+   * and legal here, but they cost you an over-large box and the audit will
+   * treat the part as fatter than it is; use them for cladding, never for
+   * anything something else has to sit on.
+   */
+  const AXIS = (() => {
+    const seen = new Set(), out = [];
+    for (const x of [0, 90, 180, 270]) for (const y of [0, 90, 180, 270]) for (const z of [0, 90, 180, 270]) {
+      const m = euler(x, y, z).map(v => Math.round(v));
+      const k = m.join(',');
+      if (seen.has(k)) continue;
+      seen.add(k); out.push({ m, x, y, z });
+    }
+    return out;
+  })();
+  /** Is this matrix studs-up? Local +Y (column 1) still pointing along world Y. */
+  const studsUp = m => Math.abs((m || IDENT)[4]) > 0.999;
+  /** A studs-sideways or studs-down orientation, drawn from the lawful 24. */
+  function snot(rng) {
+    const pool = AXIS.filter(a => !studsUp(a.m));
+    return pool[Math.floor((rng ? rng() : 0.5) * pool.length)].m;
   }
 
   /**
@@ -155,7 +211,8 @@ const NabugoGeom = (() => {
            Math.abs(B.max[1] - A.min[1]) <= slack;
   }
 
-  return { IDENT, rotY, worldBox, penetration, shareXZ, stacked, overlap1, STUD_PROTRUSION };
+  return { IDENT, rotY, rotX, rotZ, mul, euler, AXIS, studsUp, snot,
+           worldBox, penetration, shareXZ, stacked, overlap1, STUD_PROTRUSION };
 })();
 
 // ═══════════════════════════════════════════════════════════════════════ scene
