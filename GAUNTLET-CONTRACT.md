@@ -109,6 +109,16 @@ applicable axis is won.
 
 **Ties go to the kit.** Our value must strictly beat the bar's.
 
+> **The self-comparison test, stated precisely.** Judging a kit against itself is the
+> canonical check that the critic is honest, but the thing that must come back level is the
+> **blind kernel**, not the verdict. `blindWinner` must be `TIE` on all twelve axes, because
+> the two sides are byte-identical and no measure may separate them. The verdict on those
+> same twelve rows is then `LOSS`, and that is correct, not a bug: a tie is a loss because
+> the kit keeps the point. Verified today on `5935-island-hopper` against itself — twelve
+> rows, `blindWinner: TIE`, `margin: 0`, `distOurs === distBar`, twelve `LOSS` verdicts with
+> `why: "dead level with the kit at …; ties go to the kit"`. Anyone reading twelve LOSSes
+> there and concluding the critic is broken will break a working critic. Read `blindWinner`.
+
 ### 3.1 Applicability rule
 
 An axis is **N/A for a given bar** when the bar's own value falls outside the axis band. A bar that
