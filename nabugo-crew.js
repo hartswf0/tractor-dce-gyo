@@ -681,5 +681,8 @@ class Expedition {
   }
 }
 
-global.NabugoCrew = { Stores, Tools, CREW, Expedition };
+// `commit` is the single checked placement path in this repo and the contract
+// names it as public API (GAUNTLET-CONTRACT.md 4.2); NabugoBrand.Build.place
+// wraps it rather than opening a second way in. Exported, not changed.
+global.NabugoCrew = { Stores, Tools, commit, surfaceAt, CREW, Expedition };
 })(typeof window !== 'undefined' ? window : globalThis);
