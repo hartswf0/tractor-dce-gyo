@@ -118,10 +118,20 @@ const NabugoGeom = (() => {
 
   const overlap1 = (a0,a1,b0,b1) => Math.min(a1,b1) - Math.max(a0,b0);
 
-  /** Signed interpenetration volume; <= 0 means the boxes only touch or miss. */
+  /**
+   * Signed interpenetration volume; <= 0 means the boxes only touch or miss.
+   *
+   * The vertical tolerance is deliberately larger than the horizontal one. An
+   * LDraw part's bounding box includes the 4 LDU its studs protrude, so two
+   * bricks in a perfectly legal stack always share that much Y — the stud is
+   * inside the tube, which is the join, not a clash. Treating it as a clash
+   * made every stack illegal, which is why builds came out as scattered
+   * single parts that never sat on one another.
+   */
+  const STUD_PROTRUSION = 4;
   function penetration(A, B) {
     const dx = overlap1(A.min[0],A.max[0],B.min[0],B.max[0]) - TOL;
-    const dy = overlap1(A.min[1],A.max[1],B.min[1],B.max[1]) - TOL;
+    const dy = overlap1(A.min[1],A.max[1],B.min[1],B.max[1]) - (STUD_PROTRUSION + TOL / 2);
     const dz = overlap1(A.min[2],A.max[2],B.min[2],B.max[2]) - TOL;
     if (dx <= 0 || dy <= 0 || dz <= 0) return 0;
     return dx * dy * dz;
@@ -139,11 +149,13 @@ const NabugoGeom = (() => {
    */
   function stacked(A, B) {
     if (!shareXZ(A, B)) return false;
-    return Math.abs(A.max[1] - B.min[1]) <= TOL * 2 ||
-           Math.abs(B.max[1] - A.min[1]) <= TOL * 2;
+    // Seated within a stud's depth of the other's face counts as resting on it.
+    const slack = STUD_PROTRUSION + TOL;
+    return Math.abs(A.max[1] - B.min[1]) <= slack ||
+           Math.abs(B.max[1] - A.min[1]) <= slack;
   }
 
-  return { IDENT, rotY, worldBox, penetration, shareXZ, stacked, overlap1 };
+  return { IDENT, rotY, worldBox, penetration, shareXZ, stacked, overlap1, STUD_PROTRUSION };
 })();
 
 // ═══════════════════════════════════════════════════════════════════════ scene
@@ -816,6 +828,76 @@ const NabugoBrief = (() => {
       churnZone: 0,
       note: 'Lines, not nodes. The path and ring generators do most of the work here; ' +
             'a knot in Zone 1 should physically connect things that arrive from different cells.'
+    },
+
+    /**
+     * Atlantis. The brief the evolutionary layer was built for: a place nobody
+     * has seen, so no readymade "is" it, and the only way to reach it is to let
+     * several ecologies exchange material until something surfaces that the
+     * description did not ask for.
+     *
+     * The voids are written to describe an absence without naming its answer.
+     * "Is it a temple, a machine, an organism, or a ruin?" is left open on
+     * purpose — the bag is allowed to answer it, and the void ledger records
+     * when the material contradicts the brief.
+     */
+    atlantis: {
+      key: 'atlantis',
+      title: 'Atlantis',
+      description: 'A city under water that was once above it. Resurrected from parts that never meant to be it.',
+      massTarget: 90,
+      zoneTargets: {1:1, 2:3, 3:4, 4:2},
+      ecologies: ['eco_aquatic_membrane', 'eco_monumental_architecture', 'eco_animal_morphology'],
+      zones: {
+        1: { name: 'The Axis — what the city is built around',
+             lex: ['crystal','trans','antenna','cone','spire','dish','light','lamp','well'] },
+        2: { name: 'The Monuments — temples, gates, columns',
+             lex: ['arch','column','panel','wall','gate','brick','baseplate','cylinder','stair'] },
+        3: { name: 'The Drowned Environment — reef, ruin, current',
+             lex: ['rock','plant','seaweed','coral','shell','fin','slope','wedge','boat','hull','ruin'] },
+        4: { name: 'The Boundary — the sea itself, and what crosses it',
+             lex: ['windscreen','canopy','dome','glass','sail','wing','propeller','hose','flexible'] }
+      },
+      churnZone: 0,
+      voids: [
+        { id: 'v_axis', zone: 1, narrative_need: 'Something the whole city is oriented toward',
+          ecologies: ['eco_luminous_machine', 'eco_aquatic_membrane', 'eco_ritual'],
+          functions: ['ceremonial_center', 'navigational_anchor'],
+          assembly_roles: ['foundation', 'vertical_support', 'crown'],
+          open_questions: ['Is it a temple, a machine, an organism, or a ruin?'] },
+        { id: 'v_gate', zone: 2, narrative_need: 'A threshold that reads as ceremonial rather than defensive',
+          ecologies: ['eco_monumental_architecture', 'eco_technic_motion', 'eco_curved_enclosure'],
+          functions: ['processional_entrance'],
+          assembly_roles: ['foundation', 'vertical_support', 'enclosure'] },
+        { id: 'v_temple', zone: 2, narrative_need: 'A structure that appears grown rather than constructed',
+          ecologies: ['eco_animal_morphology', 'eco_monumental_architecture'],
+          functions: ['distant_landmark'],
+          assembly_roles: ['foundation', 'vertical_support', 'enclosure', 'crown'] },
+        { id: 'v_habitation', zone: 2, narrative_need: 'Somewhere a figure could plausibly live',
+          ecologies: ['eco_curved_enclosure', 'eco_aquatic_membrane', 'eco_ritual'],
+          functions: ['inhabited_scale'],
+          assembly_roles: ['foundation', 'enclosure', 'ornament'] },
+        { id: 'v_reef', zone: 3, narrative_need: 'The sea taking the city back',
+          ecologies: ['eco_ruin', 'eco_animal_morphology', 'eco_aquatic_membrane'],
+          functions: ['historical_damage'],
+          assembly_roles: ['foundation', 'ornament'] },
+        { id: 'v_machinery', zone: 3, narrative_need: 'Evidence the city once did something, not just stood',
+          ecologies: ['eco_technic_motion', 'eco_luminous_machine'],
+          functions: ['hidden_machinery'],
+          assembly_roles: ['foundation', 'vertical_support', 'ornament'] },
+        { id: 'v_boundary', zone: 4, narrative_need: 'Where the water stops and does not',
+          ecologies: ['eco_aquatic_membrane', 'eco_curved_enclosure'],
+          functions: ['boundary'],
+          assembly_roles: ['foundation', 'enclosure'] },
+        { id: 'v_arrival', zone: 4, narrative_need: 'Something that crossed the boundary to get here',
+          ecologies: ['eco_technic_motion', 'eco_aquatic_membrane', 'eco_animal_morphology'],
+          functions: ['transportation'],
+          assembly_roles: ['foundation', 'vertical_support'] }
+      ],
+      note: 'No readymade is Atlantis, so the finches have to arrive at it by exchange: ' +
+            'animal parts doing architectural work, vehicle parts doing ritual work. ' +
+            'The void ledger records when the material contradicts the brief — a temple ' +
+            'that compiles as a machine is a result, not an error.'
     },
 
     cave: {

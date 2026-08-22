@@ -39,7 +39,8 @@
 <div class="shell">
   <header class="bar">
     <span class="brand">Nabugo</span>
-    <span class="creed">two doctrines · one brief · one catalogue</span>
+    <span class="creed" id="modeCreed">two doctrines · one brief · one catalogue</span>
+    <button id="btnMode" style="margin-left:8px">⇄ Aviary</button>
     <span class="spacer"></span>
     <span class="chip" id="chipRound">Round 0/20</span>
     <span class="chip op" id="chipOp">OP —</span>
@@ -103,6 +104,20 @@
       </div>
     </div>
 
+    <!-- ══════════ THIRD LANE — only used by the aviary ══════════ -->
+    <div class="col lane" id="laneC" style="display:none">
+      <div class="viewport">
+        <div class="canvas" id="canvasC"></div>
+        <div class="tag" id="tagC" style="color:#a78bfa">Warbler · fine, tool-using</div>
+        <div class="tools"><button id="fitC">Fit</button><button id="edgesC">Edges</button></div>
+        <div class="status" id="statusC">—</div>
+      </div>
+      <div class="lane-foot">
+        <div class="sec-head" id="headC">Warbler ledger <span class="n" id="nC">0</span></div>
+        <div class="sec-body" id="metC" style="max-height:190px;overflow-y:auto"></div>
+      </div>
+    </div>
+
     <!-- ══════════ TRACE ══════════ -->
     <div class="col">
       <div class="sec-head">The tray</div>
@@ -122,12 +137,17 @@
 <script src="./examples/js/loaders/LDrawLoader.js"></script>
 <script src="./beta-prime-engine.js"></script>
 <script src="./nabugo.js"></script>
+<script src="./nabugo-evo.js"></script>
 <script src="./nabugo-ui.js"></script>
 <script>
 (async function(){
 'use strict';
 const N = window.Nabugo, U = window.NabugoUI, $ = U.$;
-const S = { arena:null, vOp:null, vCo:null, running:false, briefKey:'theseus' };
+const E = window.NabugoEvo;
+// Two modes over the same page: DUEL runs the doctrines from nabugo.js, AVIARY
+// runs the three finches from nabugo-evo.js. Same viewers, same tray, same bus.
+const S = { mode:'duel', arena:null, aviary:null,
+            vOp:null, vCo:null, vC:null, running:false, briefKey:'theseus', portsReady:false };
 
 // ── boot ────────────────────────────────────────────────────────────────
 try {
@@ -148,11 +168,12 @@ if (N.Bus.connect('nabugo-arena')) {
   $('chipBus').textContent = 'Bus n/a';
 }
 
-for (const [id, key] of [['canvasOp','vOp'], ['canvasCo','vCo']]) {
+for (const [id, key] of [['canvasOp','vOp'], ['canvasCo','vCo'], ['canvasC','vC']]) {
   try { S[key] = await U.makeViewer($(id)); }
   catch (e) {
     console.error(e);
-    $(id === 'canvasOp' ? 'statusOp' : 'statusCo').textContent = 'viewer failed: ' + e.message;
+    const sid = id === 'canvasOp' ? 'statusOp' : id === 'canvasCo' ? 'statusCo' : 'statusC';
+    $(sid).textContent = 'viewer failed: ' + e.message;
   }
 }
 
@@ -172,19 +193,80 @@ function renderBrief(b) {
 }
 
 // ── loop ────────────────────────────────────────────────────────────────
+function lanes() {
+  return S.mode === 'duel'
+    ? [{ v: S.vOp, status: 'statusOp', met: 'metOp', n: 'nOp', cls: 'op',
+         get: () => S.arena.a, label: 'operator' },
+       { v: S.vCo, status: 'statusCo', met: 'metCo', n: 'nCo', cls: 'co',
+         get: () => S.arena.b, label: 'correspondence' }]
+    : S.aviary.birds.map((b, i) => ({
+        v: [S.vOp, S.vCo, S.vC][i],
+        status: ['statusOp','statusCo','statusC'][i],
+        met: ['metOp','metCo','metC'][i],
+        n: ['nOp','nCo','nC'][i],
+        cls: 'op', get: () => b, label: b.finch.key
+      }));
+}
+
+async function setMode(mode) {
+  S.running = false;
+  S.mode = mode;
+  const aviary = mode === 'aviary';
+  $('laneC').style.display = aviary ? '' : 'none';
+  document.querySelector('main.arena').style.gridTemplateColumns =
+    aviary ? '230px minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) 260px'
+           : '230px minmax(0,1fr) minmax(0,1fr) 260px';
+  $('btnMode').textContent = aviary ? '⇄ Duel' : '⇄ Aviary';
+  $('modeCreed').textContent = aviary
+    ? 'three beaks · one brief · one gene pool'
+    : 'two doctrines · one brief · one catalogue';
+
+  if (aviary && !S.portsReady) {
+    try { const pm = await E.Ports.load('./nabugo-ports.json'); S.portsReady = true;
+          $('chipCat').textContent = 'Catalogue ' + N.Catalog.size().toLocaleString() +
+            ' · ' + pm.ports.toLocaleString() + ' ports'; }
+    catch (e) { U.toast('Port registry unavailable — the compiler needs it'); return; }
+  }
+  if (aviary) {
+    S.briefKey = N.Brief.BRIEFS[S.briefKey] && N.Brief.BRIEFS[S.briefKey].voids ? S.briefKey : 'atlantis';
+    $('briefSel').value = S.briefKey;
+  }
+  reset();
+}
+
 function reset() {
-  S.arena = new N.Arena(S.briefKey);
-  renderBrief(S.arena.brief);
+  if (S.mode === 'duel') {
+    S.arena = new N.Arena(S.briefKey);
+    renderBrief(S.arena.brief);
+    $('tagC').textContent = '';
+  } else {
+    S.aviary = new E.Aviary(S.briefKey);
+    renderBrief(S.aviary.brief);
+    const tags = [['op','#22d3ee'], ['co','#f472b6'], ['c','#a78bfa']];
+    S.aviary.birds.forEach((b, i) => {
+      const el = document.querySelectorAll('.lane .tag')[i];
+      if (el) { el.textContent = b.finch.name + ' · ' + b.finch.beak; el.style.color = tags[i][1]; }
+      const head = [$('nOp'), $('nCo'), $('nC')][i];
+      if (head && head.parentElement) head.parentElement.childNodes[0].nodeValue = b.finch.name + ' ledger ';
+    });
+  }
   paint();
   redraw();
 }
 
 async function step() {
-  if (!S.arena || (S.arena.a.settled && S.arena.b.settled)) return false;
-  S.arena.step();
+  if (S.mode === 'duel') {
+    if (!S.arena || (S.arena.a.settled && S.arena.b.settled)) return false;
+    S.arena.step();
+  } else {
+    if (!S.aviary || S.aviary.birds.every(b => b.settled)) return false;
+    S.aviary.step();
+  }
   paint();
   await redraw();
-  return !(S.arena.a.settled && S.arena.b.settled);
+  return S.mode === 'duel'
+    ? !(S.arena.a.settled && S.arena.b.settled)
+    : !S.aviary.birds.every(b => b.settled);
 }
 
 async function run(n) {
@@ -201,14 +283,20 @@ async function run(n) {
   $('btnRun').classList.remove('stop');
 }
 
-// Sequential, not concurrent: two loaders racing for the same connection pool
-// is what made a step take tens of seconds.
+// Sequential, not concurrent: several loaders racing for the same connection
+// pool is what made a step take tens of seconds.
 async function redraw() {
-  await U.render(S.vOp, S.arena.a.scene, $('statusOp'), 'operator');
-  await U.render(S.vCo, S.arena.b.scene, $('statusCo'), 'correspondence');
+  for (const L of lanes()) {
+    if (!L.v) continue;
+    await U.render(L.v, L.get().scene, $(L.status), L.label);
+  }
 }
 
 function paint() {
+  return S.mode === 'duel' ? paintDuel() : paintAviary();
+}
+
+function paintDuel() {
   const A = S.arena, sb = A.scoreboard();
   U.metrics($('metOp'), sb.operator, 'op');
   U.metrics($('metCo'), sb.correspondence, 'co');
@@ -221,7 +309,6 @@ function paint() {
     (A.b.settled ? ' · settled' : '');
   $('nOp').textContent = A.a.round; $('nCo').textContent = A.b.round;
 
-  // Interleave both traces newest-first so the duel reads as one conversation.
   const all = [...A.a.trace, ...A.b.trace].sort((x, y) => y.round - x.round || (x.doctrine < y.doctrine ? -1 : 1));
   $('nTrace').textContent = all.length;
   $('tracePane').innerHTML = all.length
@@ -239,27 +326,83 @@ function paint() {
       U.esc(sb.correspondence.defect.killer) + '</b></div>';
 }
 
+function paintAviary() {
+  const A = S.aviary, board = A.scoreboard();
+  const cls = ['op','co','op'];
+  board.forEach((s, i) => {
+    U.metrics($(['metOp','metCo','metC'][i]), s.audit, cls[i]);
+    $(['nOp','nCo','nC'][i]).textContent = s.round;
+  });
+  U.tray($('tray'), A.birds.map(b => ({ scene: b.scene, cls: 'op' })));
+
+  $('chipRound').textContent = 'Round ' + A.round + '/16';
+  $('chipOp').textContent = board[0].finch.toUpperCase() + ' ' + board[0].audit.parts + 'p';
+  $('chipCo').textContent = board[1].finch.toUpperCase() + ' ' + board[1].audit.parts + 'p';
+
+  // Every generation from every bird, newest first, so the three can be read
+  // against each other rather than one at a time.
+  const rows = [];
+  A.birds.forEach(b => b.history.forEach(h => rows.push({ b, h })));
+  rows.sort((x, y) => y.h.round - x.h.round);
+  $('nTrace').textContent = rows.length;
+  $('tracePane').innerHTML = rows.length ? rows.map(({ b, h }) => {
+    const c = h.chosen;
+    return '<div class="rec ' + (b.finch.key === 'cactus' ? 'co' : 'op') + '">' +
+      '<div class="rec-head"><b>R' + h.round + '</b><span>' + b.finch.key.toUpperCase() + '</span>' +
+      '<span>' + U.esc(h.void) + '</span><span>' + h.cell + '</span>' +
+      '<span>' + h.generated + '→' + h.survivors + '→' + h.frontier + '</span>' +
+      (c ? '<span>' + (c.champion || '') + '</span>' : '') + '</div>' +
+      '<div class="rec-kill">' + U.esc(c ? c.claim : (h.note || 'nothing committed')) + '</div>' +
+      (c && c.lineage.length ? '<div class="rec-note">' + U.esc(c.lineage.join(' → ')) + '</div>' : '') +
+      (h.emergent ? '<div class="rec-commit">' + U.esc(h.emergent) + '</div>' : '') +
+      '</div>';
+  }).join('')
+    : '<div class="muted">No generations yet. STEP draws a bag for each beak, compiles every ' +
+      'genome, and lets only what survives the gates reach a judge.</div>';
+
+  // The verdict bar becomes a per-axis champion board: who leads each judge.
+  const axes = E.Judges.names;
+  const best = k => {
+    let win = null, top = -1;
+    board.forEach(s => { const v = s.scores ? s.scores[k] : -1; if (v > top) { top = v; win = s.finch; } });
+    return top >= 0 ? win : '—';
+  };
+  $('verdict').innerHTML =
+    axes.map(k => '<div>' + k + '<b class="op">' + best(k).toUpperCase() + '</b></div>').join('') +
+    '<div>parts<b class="tie">' + board.map(s => s.audit.parts).join(' / ') + '</b></div>' +
+    '<div>voids resolved<b class="tie">' +
+      board.map(s => s.ledger.resolved.length + '/' + (A.brief.voids || []).length).join(' / ') + '</b></div>';
+}
+
 // ── controls ────────────────────────────────────────────────────────────
 $('btnStep').addEventListener('click', step);
 $('btnRun').addEventListener('click', () => run(20));
 $('btnReset').addEventListener('click', () => { S.running = false; reset(); });
+$('btnMode').addEventListener('click', () => setMode(S.mode === 'duel' ? 'aviary' : 'duel'));
+$('fitC').addEventListener('click', () => U.frame(S.vC));
+let eC = true;
+$('edgesC').addEventListener('click', () => S.vC && S.vC.setDiagnostics({ showEdges: (eC = !eC) }));
 $('fitOp').addEventListener('click', () => U.frame(S.vOp));
 $('fitCo').addEventListener('click', () => U.frame(S.vCo));
 let eOp = true, eCo = true;
 $('edgesOp').addEventListener('click', () => S.vOp && S.vOp.setDiagnostics({ showEdges: (eOp = !eOp) }));
 $('edgesCo').addEventListener('click', () => S.vCo && S.vCo.setDiagnostics({ showEdges: (eCo = !eCo) }));
-$('btnDlOp').addEventListener('click', () =>
-  U.download(S.arena.a.toMPD(), 'nabugo-' + S.briefKey + '-operator.mpd'));
-$('btnDlCo').addEventListener('click', () =>
-  U.download(S.arena.b.toMPD(), 'nabugo-' + S.briefKey + '-correspondence.mpd'));
+$('btnDlOp').addEventListener('click', () => {
+  const L = lanes()[0]; U.download(L.get().toMPD(), 'nabugo-' + S.briefKey + '-' + L.label + '.mpd');
+});
+$('btnDlCo').addEventListener('click', () => {
+  const L = lanes()[1]; U.download(L.get().toMPD(), 'nabugo-' + S.briefKey + '-' + L.label + '.mpd');
+});
 $('btnBroadcast').addEventListener('click', () => {
-  const sb = S.arena.scoreboard();
-  const ok = N.Bus.emit(S.arena.a.scene, { name: sb.brief + ' · OPERATOR', ...sb.operator }, 'nabugo-arena') &&
-             N.Bus.emit(S.arena.b.scene, { name: sb.brief + ' · CORRESPONDENCE', ...sb.correspondence }, 'nabugo-arena');
-  U.toast(ok ? 'Both builds broadcast on wag-frank' : 'No BroadcastChannel in this browser');
+  let ok = false;
+  for (const L of lanes()) {
+    const b = L.get();
+    ok = N.Bus.emit(b.scene, { name: (b.brief.title) + ' · ' + L.label, ...b.audit() }, 'nabugo-arena') || ok;
+  }
+  U.toast(ok ? 'All lanes broadcast on wag-frank' : 'No BroadcastChannel in this browser');
 });
 
-reset();
+setMode('duel');
 window.NabugoArena = S;   // console access: NabugoArena.arena.run(20)
 })();
 </script>
