@@ -28,6 +28,7 @@
   --hx-fg:#eaeaef; --hx-dim:#8b8b96; --hx-faint:#55555f;
   --hx-accent:#22d3ee;
   --hx-ok:#4ade80; --hx-warn:#facc15; --hx-bad:#f87171;
+  --hx-rail:58px;
   --hx-tap:46px;
   --hx-mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,monospace;
   --hx-ui:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
@@ -38,7 +39,9 @@ html,body{margin:0;padding:0;height:100%;overflow:hidden;background:var(--hx-bg)
   overscroll-behavior:none}
 button,input,textarea,select{font:inherit;color:inherit}
 
-.hx{display:flex;flex-direction:column;height:100dvh;width:100vw;overflow:hidden}
+/* The frame is two columns: the stack, and the rail beside it. */
+.hx{display:flex;flex-direction:row;height:100dvh;width:100vw;overflow:hidden}
+.hx-stack{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;overflow:hidden}
 
 /* ── head ──────────────────────────────────────────────────────────────── */
 .hx-head{flex:0 0 auto;display:flex;align-items:center;gap:8px;
@@ -78,19 +81,26 @@ button,input,textarea,select{font:inherit;color:inherit}
 .hx-window{flex:1 1 auto;min-height:0;position:relative;overflow:hidden;background:var(--hx-bg)}
 .hx-world{position:absolute;inset:0;touch-action:none}
 .hx-canvas{position:absolute;inset:0}
-.hx-status{position:absolute;left:12px;bottom:10px;max-width:52%;font-family:var(--hx-mono);
+.hx-status{position:absolute;left:12px;bottom:10px;max-width:50%;font-family:var(--hx-mono);
   font-size:9px;letter-spacing:.07em;text-transform:uppercase;color:var(--hx-dim);
   pointer-events:none;text-shadow:0 1px 8px #000}
-.hx-hint{position:absolute;right:12px;bottom:10px;max-width:44%;text-align:right;font-family:var(--hx-mono);
+.hx-hint{position:absolute;right:12px;bottom:10px;max-width:46%;text-align:right;
+  white-space:nowrap;transition:opacity .4s;font-family:var(--hx-mono);
   font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--hx-faint);
   pointer-events:none}
 
 /* the active panel, over the world */
+/* A panel covers the world bed. The world is still mounted underneath — the
+   renderer keeps its context and the panel is a sheet over it, not a page
+   that replaced it. */
 .hx-panel{position:absolute;inset:0;overflow-y:auto;overscroll-behavior:contain;
-  -webkit-overflow-scrolling:touch;background:var(--hx-panel);padding:10px 12px 16px}
+  -webkit-overflow-scrolling:touch;background:rgba(10,10,13,.97);
+  backdrop-filter:blur(14px);padding:10px 12px 16px;
+  animation:hx-cover .16s ease-out}
 .hx-panel[hidden]{display:none}
+@keyframes hx-cover{from{transform:translateY(14px);opacity:0}to{transform:none;opacity:1}}
 .hx-panel-head{position:sticky;top:-10px;z-index:2;margin:-10px -12px 8px;
-  padding:8px 12px;background:var(--hx-panel);border-bottom:1px solid var(--hx-line);
+  padding:8px 12px;background:rgba(10,10,13,.98);border-bottom:1px solid var(--hx-line);
   font-family:var(--hx-mono);font-size:8px;letter-spacing:.16em;text-transform:uppercase;
   color:var(--hx-faint)}
 
@@ -123,22 +133,24 @@ button,input,textarea,select{font:inherit;color:inherit}
   border:1px solid #124a55;border-radius:10px;background:#062a31;color:var(--hx-accent);font-size:15px}
 .hx-composer .send:active{background:#0a3d47}
 
-/* ── THE RAIL — horizontal, at the base, one of them ───────────────────── */
-.hx-rail{flex:0 0 auto;display:flex;background:#000;border-top:1px solid var(--hx-line);
-  padding-bottom:env(safe-area-inset-bottom)}
-/* Six tabs have to fit 390px without scrolling — a rail you have to scroll to
-   reach is a rail with hidden destinations, which is how the last one failed.
-   flex:1 1 0 with a small floor divides the width instead of overflowing it. */
-.hx-rail button{flex:1 1 0;min-width:52px;min-height:54px;border:none;background:transparent;
-  color:var(--hx-faint);font-family:var(--hx-mono);font-size:8px;letter-spacing:.04em;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
-  padding:6px 2px;border-top:2px solid transparent;overflow:hidden;text-overflow:ellipsis}
-.hx-rail button .g{font-size:15px;line-height:1;opacity:.85}
-.hx-rail button[aria-pressed="true"]{color:var(--hx-fg);border-top-color:var(--hx-accent)}
+/* ── THE RAIL — vertical, down the side, one of them ──────────────────── */
+.hx-rail{flex:0 0 var(--hx-rail);display:flex;flex-direction:column;
+  justify-content:flex-start;background:#000;border-left:1px solid var(--hx-line);
+  padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);
+  overflow-y:auto;scrollbar-width:none}
+.hx-rail::-webkit-scrollbar{display:none}
+/* Packed, not stretched. flex:1 1 0 divided 844px between six items and gave
+   each an 140px block with a label floating in the middle of it. */
+.hx-rail button{flex:0 0 auto;height:78px;width:100%;border:none;background:transparent;
+  color:var(--hx-faint);font-family:var(--hx-mono);font-size:8px;letter-spacing:.06em;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  padding:8px 2px;border-right:2px solid transparent;overflow:hidden}
+.hx-rail button .g{font-size:17px;line-height:1;opacity:.8}
+.hx-rail button + button{border-top:1px solid #101015}
+.hx-rail button[aria-pressed="true"]{color:var(--hx-fg);border-right-color:var(--hx-accent);
+  background:#0c0c10}
 .hx-rail button[aria-pressed="true"] .g{opacity:1;color:var(--hx-accent)}
-.hx-rail button:active{background:#111116}
-.hx[data-busy="1"] .hx-ticker .w{color:var(--hx-warn)}
-.hx[data-busy="1"] .hx-rail{opacity:.72}
+.hx-rail button:active{background:#141419}
 
 /* ── furniture panels use ───────────────────────────────────────────────── */
 .hx-row{display:flex;gap:7px;align-items:stretch;margin-bottom:7px}
@@ -192,14 +204,15 @@ button,input,textarea,select{font:inherit;color:inherit}
 /* ── wide: the same one rail and one window, with more air. The rail stays
       at the base — moving it would be a second layout to keep working. ─── */
 @media (min-width:900px){
-  .hx-rail button{min-width:104px;max-width:150px;font-size:10px;letter-spacing:.1em}
-  .hx-rail{justify-content:center}
+  :root{ --hx-rail:112px; }
+  .hx-rail button{flex:0 0 auto;min-height:56px;flex-direction:row;gap:9px;
+    justify-content:flex-start;padding:8px 14px;font-size:10px;letter-spacing:.1em}
+  .hx-rail button .g{font-size:15px}
   .hx-panel{padding:14px max(16px,calc((100vw - 900px)/2)) 20px}
   .hx-panel-head{margin-left:calc(-1 * max(16px,(100vw - 900px)/2));
     margin-right:calc(-1 * max(16px,(100vw - 900px)/2));
     padding-left:max(16px,calc((100vw - 900px)/2));
     padding-right:max(16px,calc((100vw - 900px)/2))}
-  .hx-composer{padding:8px max(10px,calc((100vw - 900px)/2))}
-  .hx-ticker{padding-left:max(12px,calc((100vw - 900px)/2))}
+  .hx-composer{padding:8px 14px}
   .hx-text{min-height:38dvh}
 }

@@ -68,7 +68,7 @@ function mount(cfg) {
   const world = h('div', 'hx-world');
   const canvas = h('div', 'hx-canvas');
   const status = h('div', 'hx-status', 'booting…');
-  const hint = h('div', 'hx-hint', 'drag · pinch · double-tap to fit');
+  const hint = h('div', 'hx-hint', 'double-tap to fit');
   world.append(canvas, status, hint);
   const panel = h('section', 'hx-panel');
   panel.hidden = true;
@@ -90,12 +90,17 @@ function mount(cfg) {
 
   // ── the one rail ──────────────────────────────────────────────────────
   const rail = h('nav', 'hx-rail');
-  root.append(head, ticker, win, trace, composer, rail);
+  // The rail runs down the side, full height, beside everything else — so the
+  // stack keeps its own column and the rail is never one more horizontal band
+  // competing with the composer for the bottom of the screen.
+  const stack = h('div', 'hx-stack');
+  stack.append(head, ticker, win, trace, composer);
+  root.append(stack, rail);
   document.body.appendChild(root);
   const toast = h('div', 'hx-toast');
   document.body.appendChild(toast);
 
-  const hx = { el: { root, win, world, canvas, status, panel, trace, composer, input, rail },
+  const hx = { el: { root, stack, win, world, canvas, status, panel, trace, composer, input, rail },
                active: 'world', cfg };
 
   // ── log store. The wall is a panel now, so the lines live here and the
@@ -231,6 +236,7 @@ function mount(cfg) {
   // be instant, so it is the only one that gets to be a gesture.
   (function doubleTapFit() {
     let last = 0;
+    world.addEventListener('pointerdown', () => { hint.style.opacity = '0'; }, { once: true });
     world.addEventListener('pointerup', () => {
       const t = Date.now();
       if (t - last < 320 && cfg.onFit) cfg.onFit(hx);
