@@ -23,22 +23,18 @@ async function boot(cfg) {
     placeholder: 'run 5 · seed 1234 · assert parts > 1200 · help',
     wallEmpty: cfg.creed,
     traceEmpty: 'no rounds yet',
-    modes: [
-      { id: 'script', label: 'SCRIPT', title: 'ATORScript · the genome', build: trayScript },
-      { id: 'run',    label: 'RUN',    title: 'the loop',                build: trayRun },
-      { id: 'claims', label: 'CLAIMS', title: "the script's own asserts", build: trayClaims },
-      { id: 'built',  label: 'BUILT',  title: 'what compiled',           build: trayBuilt }
+    panels: [
+      { id: 'script', label: 'SCRIPT', glyph: '⌗', title: 'ATORScript · the genome', build: panelScript },
+      { id: 'run',    label: 'RUN',    glyph: '▶', title: 'the loop',                build: panelRun },
+      { id: 'claims', label: 'CLAIMS', glyph: '✓', title: "the script's own asserts", build: panelClaims },
+      { id: 'built',  label: 'BUILT',  glyph: '▦', title: 'what compiled',           build: panelBuilt }
     ],
     onCommand: command,
     onWorld: async (canvasEl, hx) => {
       St.viewer = await U.makeViewer(canvasEl, { background: cfg.background });
-      hx.tool('FIT',  () => U.frame(St.viewer, 0.72));
-      let e = true, g = true, sp = false;
-      hx.tool('EDGE', () => St.viewer.setDiagnostics({ showEdges: (e = !e) }));
-      hx.tool('GRID', () => St.viewer.setDiagnostics({ grid: (g = !g) }));
-      hx.tool('SPIN', () => St.viewer.setAutoSpin(sp = !sp));
       await load();
     },
+    onFit: () => U.frame(St.viewer, 0.72),
     onTrace: i => {
       const h = St.loop && St.loop.history[i];
       if (h) hx.say('TRACE', 'round ' + (h.round || i + 1) + ' — ' + describe(h), { kind: 'sys' });
@@ -116,7 +112,7 @@ async function boot(cfg) {
     hx.refresh('run');
     let n = 0;
     while (St.running && (limit == null || n++ < limit) && await step()) {
-      await new Promise(r => setTimeout(r, 20));
+      await new Promise(r => setTimeout(r, 55));   // leave the rail tappable mid-run
     }
     St.running = false;
     hx.refresh('run');
@@ -185,7 +181,7 @@ async function boot(cfg) {
   }
 
   // ── trays ──────────────────────────────────────────────────────────────
-  function trayScript(el) {
+  function panelScript(el) {
     const ta = Hilux.h('textarea', 'hx-text');
     ta.spellcheck = false; ta.value = St.src;
     ta.addEventListener('input', () => { St.src = ta.value; });
@@ -220,7 +216,7 @@ async function boot(cfg) {
     ));
   }
 
-  function trayRun(el) {
+  function panelRun(el) {
     el.appendChild(hx.row(
       hx.btn('Step', () => step()),
       hx.btn(St.running ? 'Stop' : cfg.runLabel, () => run(null), St.running ? 'stop' : 'go')
@@ -229,6 +225,8 @@ async function boot(cfg) {
       hx.btn('Run 5', () => run(5)),
       hx.btn('Refit', () => { St.src = L.SEEDS[cfg.seedScript]; make(); })
     ));
+    el.appendChild(hx.cap('view'));
+    el.appendChild(hx.viewRow(St.viewer));
     el.appendChild(hx.cap('export'));
     el.appendChild(hx.row(
       hx.btn('Download MPD', () => U.download(St.loop.toMPD(), cfg.source + '.mpd')),
@@ -250,9 +248,9 @@ async function boot(cfg) {
     }
   }
 
-  function trayClaims(el) {
+  function panelClaims(el) {
     const r = current();
-    if (!r || !r.verdicts) { el.appendChild(Hilux.h('div', 'hx-wall-empty', 'nothing compiled yet')); return; }
+    if (!r || !r.verdicts) { el.appendChild(Hilux.h('div', 'hx-empty', 'nothing compiled yet')); return; }
     el.appendChild(hx.cap("the script's own asserts, checked"));
     for (const v of r.verdicts) {
       const row = hx.kv(v.text, v.detail, v.pass ? 'ok' : 'bad');
@@ -269,9 +267,9 @@ async function boot(cfg) {
     }
   }
 
-  function trayBuilt(el) {
+  function panelBuilt(el) {
     const r = current();
-    if (!r || !r.audit) { el.appendChild(Hilux.h('div', 'hx-wall-empty', 'nothing compiled yet')); return; }
+    if (!r || !r.audit) { el.appendChild(Hilux.h('div', 'hx-empty', 'nothing compiled yet')); return; }
     const a = r.audit;
     el.appendChild(hx.cap('compiled'));
     el.appendChild(hx.kv('pieces', a.parts.toLocaleString()));

@@ -1,31 +1,32 @@
 /**
- * HILUX — one chassis, every load
- * ================================
- * Hilux owns the DOM. A builder hands it a config and gets back a shell with
- * five things it can talk to: the world, the tray, the trace, the wall and the
- * composer. Nothing below writes its own layout, which is the whole point —
- * the previous pages each invented one, and each of them fell apart at 390px.
+ * HILUX — one rail, one window
+ * =============================
+ * The previous version had two rails on the same edge: modes down the right,
+ * and the view controls stacked down the right of the world inside it. A rail
+ * in a window beside a rail, with about eighty pixels of window left between
+ * them. This one has exactly one of each.
+ *
+ *   ONE RAIL     horizontal, at the base, where the thumb is.
+ *   ONE WINDOW   above it. The world is its floor and never unmounts — panels
+ *                slide over, so the WebGL context survives a mode switch and
+ *                you are always one tap from the build.
+ *
+ * A builder hands Hilux a config and gets a shell back:
  *
  *   const hx = Hilux.mount({
- *     title: 'Cathedral Forager',
- *     chips: ['round', 'score', 'parts'],
- *     modes: [
- *       { id:'script', label:'SCRIPT', title:'ATORScript · the genome',
- *         build(el, hx) { ... } },
- *       { id:'run',    label:'RUN',    build(el, hx) { ... } }
+ *     title: 'Ground Finch',
+ *     chips: ['round', 'parts'],
+ *     panels: [
+ *       { id:'run', label:'RUN', glyph:'▶', build(el, hx){ ... } },
+ *       { id:'voids', label:'VOIDS', glyph:'○', build(el, hx){ ... } }
  *     ],
- *     onCommand(text, hx) { ... },
- *     onWorld(canvasEl, hx) { ... }          // return whatever you like
+ *     onCommand(text, hx){ ... },
+ *     onWorld(canvasEl, hx){ ... }
  *   });
  *
- *   hx.chip('parts', '1,084 pieces', 'hot');
- *   hx.say('BUILDER', 'raised a colonnade at 0,0', { kind:'ok' });
- *   hx.trace(rounds.map(r => ({ label:'R'+r.n, bad:!r.ok })), current);
- *   hx.refresh('script');                    // rebuild one tray
- *
- * Interactions, from the wireframe: tap the active rail tab to collapse the
- * tray, long-press any tab to peek at it without switching, drag the divider
- * to grow the wall, and the pin on a tray row copies it to the wall.
+ * WORLD and LOG are built in and always first — every builder needs them and
+ * none of them should have to write them. View controls are not a rail: the
+ * window fits on a double-tap and the rest live in the WORLD panel.
  */
 (function (global) {
 'use strict';
@@ -38,131 +39,115 @@ const h = (tag, cls, txt) => {
 };
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c =>
   ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
-const now = () => {
-  const d = new Date();
-  return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
-};
 
 function mount(cfg) {
   document.body.innerHTML = '';
   document.title = cfg.title || 'Hilux';
-
   const root = h('div', 'hx');
-  const main = h('div', 'hx-main');
 
-  // ── header ───────────────────────────────────────────────────────────
+  // ── head ──────────────────────────────────────────────────────────────
   const head = h('header', 'hx-head');
-  // Tapping the title goes back to the gallery. On a phone there is no other
-  // way out of a full-screen app shell, and the browser's back button is not
-  // where anyone's thumb is.
   const home = h('a', 'hx-home', '◂');
   home.href = cfg.home || './nabugo-gallery.html';
-  home.title = 'back to the gallery';
   const title = h('a', 'hx-title', cfg.title || '');
   title.href = cfg.home || './nabugo-gallery.html';
-  head.append(home, title);
   const chips = h('div', 'hx-chips');
-  head.appendChild(chips);
+  head.append(home, title, chips);
   const chipEls = new Map();
   for (const id of (cfg.chips || [])) {
-    const c = h('span', 'hx-chip', '—');
-    chipEls.set(id, c); chips.appendChild(c);
+    const c = h('span', 'hx-chip', '—'); chipEls.set(id, c); chips.appendChild(c);
   }
 
-  // ── world ────────────────────────────────────────────────────────────
+  // ── ticker ────────────────────────────────────────────────────────────
+  const ticker = h('div', 'hx-ticker');
+  const tickWho = h('span', 'w', ''), tickMsg = h('span', 'm', cfg.wallEmpty || 'ready');
+  ticker.append(tickWho, tickMsg);
+
+  // ── the one window ────────────────────────────────────────────────────
+  const win = h('main', 'hx-window');
   const world = h('div', 'hx-world');
   const canvas = h('div', 'hx-canvas');
-  const status = h('div', 'hx-world-status', 'booting…');
-  const tools = h('div', 'hx-world-tools');
-  world.append(canvas, status, tools);
+  const status = h('div', 'hx-status', 'booting…');
+  const hint = h('div', 'hx-hint', 'drag · pinch · double-tap to fit');
+  world.append(canvas, status, hint);
+  const panel = h('section', 'hx-panel');
+  panel.hidden = true;
+  win.append(world, panel);
 
-  // ── tray ─────────────────────────────────────────────────────────────
-  const tray = h('div', 'hx-tray');
-  const trayTitle = h('div', 'hx-tray-title');
-  const trayGrab = h('span', 'hx-grab');
-  const trayLabel = h('span', '', '');
-  trayTitle.append(trayLabel, trayGrab);
-  const trayBody = h('div', 'hx-tray-body');
-  tray.append(trayTitle, trayBody);
-  world.appendChild(tray);
-
-  // ── trace ────────────────────────────────────────────────────────────
+  // ── trace ─────────────────────────────────────────────────────────────
   const trace = h('div', 'hx-trace');
   const traceRail = h('div', 'hx-trace-rail');
   trace.appendChild(traceRail);
 
-  // ── divider + wall ───────────────────────────────────────────────────
-  const divider = h('div', 'hx-divider');
-  divider.appendChild(h('i'));
-  const wall = h('div', 'hx-wall');
-
-  // ── composer ─────────────────────────────────────────────────────────
+  // ── composer ──────────────────────────────────────────────────────────
   const composer = h('form', 'hx-composer');
   const plus = h('button', 'plus', '+'); plus.type = 'button';
-  const input = h('input'); input.placeholder = cfg.placeholder || 'Command or message…';
+  const input = h('input');
+  input.placeholder = cfg.placeholder || 'command…';
   input.autocomplete = 'off'; input.autocapitalize = 'off'; input.spellcheck = false;
   const send = h('button', 'send', '➤'); send.type = 'submit';
   composer.append(plus, input, send);
 
-  // ── rail ─────────────────────────────────────────────────────────────
+  // ── the one rail ──────────────────────────────────────────────────────
   const rail = h('nav', 'hx-rail');
-  const railBtns = new Map();
-
-  main.append(head, world, trace, divider, wall, composer);
-  root.append(main, rail);
+  root.append(head, ticker, win, trace, composer, rail);
   document.body.appendChild(root);
   const toast = h('div', 'hx-toast');
   document.body.appendChild(toast);
 
-  // ═══════════════════════════════════════════════════════════════════════
-  const hx = {
-    el: { root, world, canvas, status, tools, tray, trayBody, trace, wall, composer, input, rail },
-    modes: cfg.modes || [], active: null, collapsed: false, cfg
-  };
+  const hx = { el: { root, win, world, canvas, status, panel, trace, composer, input, rail },
+               active: 'world', cfg };
 
-  // ── chips ────────────────────────────────────────────────────────────
+  // ── log store. The wall is a panel now, so the lines live here and the
+  //    panel renders them on demand rather than being the only copy. ─────
+  const lines = [];
+  const railBtns = new Map();
+
   hx.chip = (id, text, cls) => {
     let c = chipEls.get(id);
     if (!c) { c = h('span', 'hx-chip'); chipEls.set(id, c); chips.appendChild(c); }
-    c.textContent = text;
-    c.className = 'hx-chip' + (cls ? ' ' + cls : '');
-    return c;
-  };
-
-  // ── world tools ──────────────────────────────────────────────────────
-  hx.tool = (label, fn) => {
-    const b = h('button', '', label);
-    b.type = 'button';
-    b.addEventListener('click', ev => { ev.preventDefault(); fn(hx); });
-    tools.appendChild(b);
-    return b;
+    c.textContent = text; c.className = 'hx-chip' + (cls ? ' ' + cls : '');
   };
   hx.status = t => { status.textContent = t; };
+  /** Mark the shell busy. A round can block the thread for most of a second,
+   *  and an unexplained unresponsive tab reads as broken rather than working. */
+  hx.busy = on => {
+    root.dataset.busy = on ? '1' : '';
+    tickWho.textContent = on ? 'WORKING' : tickWho.textContent;
+  };
 
-  // ── the wall ─────────────────────────────────────────────────────────
-  let wallCount = 0;
   hx.say = (who, text, opts = {}) => {
-    if (!wallCount) wall.innerHTML = '';
-    const line = h('div', 'hx-line' + (opts.kind ? ' ' + opts.kind : ''));
-    line.append(h('span', 't', opts.at || now()), h('span', 'w', who || ''));
-    const m = h('span', 'm');
-    m.textContent = text;
-    if (opts.pre) { const p = h('pre'); p.textContent = opts.pre; m.appendChild(p); }
-    line.appendChild(m);
-    // Stick to the bottom only when the reader is already there.
-    const atBottom = wall.scrollTop + wall.clientHeight >= wall.scrollHeight - 30;
-    wall.appendChild(line);
-    wallCount++;
-    if (atBottom) wall.scrollTop = wall.scrollHeight;
-    return line;
+    const rec = { who: who || '', text, kind: opts.kind || '', pre: opts.pre || '' };
+    lines.push(rec);
+    if (lines.length > 600) lines.splice(0, 200);
+    tickWho.textContent = rec.who;
+    tickMsg.textContent = text;
+    ticker.className = 'hx-ticker' + (rec.kind ? ' ' + rec.kind : '');
+    if (hx.active === 'log') appendLine(rec);
+    return rec;
   };
-  hx.clearWall = (msg) => {
-    wallCount = 0;
-    wall.innerHTML = '';
-    if (msg) wall.appendChild(h('div', 'hx-wall-empty', msg));
+  hx.clearWall = msg => {
+    lines.length = 0;
+    tickWho.textContent = ''; tickMsg.textContent = msg || cfg.wallEmpty || 'ready';
+    ticker.className = 'hx-ticker';
+    if (hx.active === 'log') show('log', { force: true });
   };
 
-  // ── the trace ────────────────────────────────────────────────────────
+  function appendLine(rec) {
+    const body = panel.querySelector('.hx-log');
+    if (!body) return;
+    const atBottom = panel.scrollTop + panel.clientHeight >= panel.scrollHeight - 40;
+    body.appendChild(lineEl(rec));
+    if (atBottom) panel.scrollTop = panel.scrollHeight;
+  }
+  function lineEl(rec) {
+    const el = h('div', 'hx-line' + (rec.kind ? ' ' + rec.kind : ''));
+    el.append(h('span', 'w', rec.who));
+    el.appendChild(h('span', 'm', rec.text));
+    if (rec.pre) { const p = h('pre'); p.textContent = rec.pre; el.appendChild(p); }
+    return el;
+  }
+
   hx.trace = (points, activeIdx) => {
     traceRail.innerHTML = '';
     if (!points || !points.length) {
@@ -178,134 +163,109 @@ function mount(cfg) {
       d.addEventListener('click', () => cfg.onTrace && cfg.onTrace(i, p, hx));
       traceRail.appendChild(d);
     });
-    // Keep the head of the run in view as it grows.
     if (activeIdx != null) {
       const el = traceRail.children[activeIdx];
       if (el && el.scrollIntoView) el.scrollIntoView({ inline: 'center', block: 'nearest' });
     }
   };
 
-  // ── modes and the tray ───────────────────────────────────────────────
+  // ── panels ────────────────────────────────────────────────────────────
+  // WORLD and LOG are built in. Every builder wants them and none of them
+  // should have to write them, or invent a second place for view controls.
+  const WORLD = { id: 'world', label: 'WORLD', glyph: '◫' };
+  const LOG = {
+    id: 'log', label: 'LOG', glyph: '≡',
+    build(el) {
+      const body = h('div', 'hx-log');
+      if (!lines.length) body.appendChild(h('div', 'hx-empty', cfg.wallEmpty || 'nothing yet'));
+      else for (const r of lines) body.appendChild(lineEl(r));
+      el.appendChild(body);
+      requestAnimationFrame(() => { panel.scrollTop = panel.scrollHeight; });
+    }
+  };
+  const panels = [WORLD, LOG, ...(cfg.panels || [])];
+  hx.panels = panels;
+
   function show(id, opts = {}) {
-    const mode = hx.modes.find(m => m.id === id);
-    if (!mode) return;
-    // Tapping the tab that is already showing puts the tray away — the world
-    // is what you came to look at.
-    if (hx.active === id && !opts.force && !opts.peek) {
-      hx.collapsed = !hx.collapsed;
-      tray.classList.toggle('collapsed', hx.collapsed);
+    const p = panels.find(x => x.id === id);
+    if (!p) return;
+    hx.active = id;
+    railBtns.forEach((b, k) => b.setAttribute('aria-pressed', String(k === id)));
+
+    if (id === 'world') {
+      panel.hidden = true;
+      panel.innerHTML = '';
+      // The renderer sized itself while hidden behind a panel; give it the
+      // window back before the next frame.
+      if (cfg.onResize) cfg.onResize(hx);
       return;
     }
-    hx.active = id;
-    hx.collapsed = false;
-    tray.classList.remove('collapsed');
-    tray.classList.toggle('peek', !!opts.peek);
-    trayLabel.textContent = mode.title || mode.label;
-    trayBody.innerHTML = '';
-    try { mode.build && mode.build(trayBody, hx); }
-    catch (e) { trayBody.appendChild(h('div', 'hx-wall-empty', 'tray failed: ' + e.message)); console.error(e); }
-    railBtns.forEach((b, k) => b.setAttribute('aria-pressed', String(k === id)));
+    panel.hidden = false;
+    panel.innerHTML = '';
+    panel.appendChild(h('div', 'hx-panel-head', p.title || p.label));
+    try { p.build && p.build(panel, hx); }
+    catch (e) { panel.appendChild(h('div', 'hx-empty', 'panel failed: ' + e.message)); console.error(e); }
+    panel.scrollTop = 0;
   }
   hx.show = show;
   hx.refresh = id => { if (!id || hx.active === id) show(hx.active, { force: true }); };
 
-  for (const m of hx.modes) {
-    const b = h('button', '', m.label);
+  for (const p of panels) {
+    const b = h('button');
     b.type = 'button';
     b.setAttribute('aria-pressed', 'false');
-    railBtns.set(m.id, b);
-
-    // Long-press peeks without switching: hold a tab, read it, let go.
-    let timer = null, peeked = false, prior = null;
-    const start = () => {
-      peeked = false;
-      timer = setTimeout(() => {
-        peeked = true; prior = hx.active;
-        show(m.id, { peek: true });
-        if (navigator.vibrate) navigator.vibrate(8);
-      }, 420);
-    };
-    const end = ev => {
-      clearTimeout(timer);
-      if (peeked) {
-        ev.preventDefault();
-        tray.classList.remove('peek');
-        if (prior && prior !== m.id) show(prior, { force: true });
-        peeked = false;
-      }
-    };
-    b.addEventListener('pointerdown', start);
-    b.addEventListener('pointerup', end);
-    b.addEventListener('pointerleave', () => clearTimeout(timer));
-    b.addEventListener('pointercancel', () => { clearTimeout(timer); peeked = false; });
-    b.addEventListener('click', ev => { if (peeked) { ev.preventDefault(); return; } show(m.id); });
+    b.append(h('span', 'g', p.glyph || '•'), h('span', '', p.label));
+    b.addEventListener('click', () => {
+      // Tapping the panel you are already on returns you to the world. One tap
+      // to anything, one tap back — no tab is ever a dead end.
+      show(hx.active === p.id && p.id !== 'world' ? 'world' : p.id);
+    });
+    railBtns.set(p.id, b);
     rail.appendChild(b);
   }
 
-  // ── divider: grow the wall, within limits that keep the world usable ──
-  (function draggable() {
-    let dragging = false, startY = 0, startH = 0;
-    const px = () => wall.getBoundingClientRect().height;
-    const onDown = e => {
-      dragging = true; startY = (e.touches ? e.touches[0] : e).clientY; startH = px();
-      divider.setPointerCapture && e.pointerId != null && divider.setPointerCapture(e.pointerId);
-      e.preventDefault();
-    };
-    const onMove = e => {
-      if (!dragging) return;
-      const y = (e.touches ? e.touches[0] : e).clientY;
-      const want = startH + (startY - y);
-      const max = window.innerHeight * 0.66;
-      document.documentElement.style.setProperty('--hx-wall',
-        Math.max(64, Math.min(max, want)) + 'px');
-      e.preventDefault();
-    };
-    const onUp = () => { dragging = false; if (cfg.onResize) cfg.onResize(hx); };
-    divider.addEventListener('pointerdown', onDown);
-    window.addEventListener('pointermove', onMove, { passive: false });
-    window.addEventListener('pointerup', onUp);
-    // Double-tap the divider to snap between a glance and a read.
+  // Tapping the ticker opens the log it is a one-line summary of.
+  ticker.addEventListener('click', () => show(hx.active === 'log' ? 'world' : 'log'));
+
+  // Double-tap the window to fit. This is the only view control that needs to
+  // be instant, so it is the only one that gets to be a gesture.
+  (function doubleTapFit() {
     let last = 0;
-    divider.addEventListener('click', () => {
+    world.addEventListener('pointerup', () => {
       const t = Date.now();
-      if (t - last < 320) {
-        const big = px() > window.innerHeight * 0.4;
-        document.documentElement.style.setProperty('--hx-wall', big ? '22dvh' : '58dvh');
-        if (cfg.onResize) cfg.onResize(hx);
-      }
+      if (t - last < 320 && cfg.onFit) cfg.onFit(hx);
       last = t;
     });
   })();
 
-  // ── composer ─────────────────────────────────────────────────────────
+  // ── composer ──────────────────────────────────────────────────────────
   composer.addEventListener('submit', ev => {
     ev.preventDefault();
     const text = input.value.trim();
     if (!text) return;
     input.value = '';
+    input.blur();
     hx.say('YOU', text, { kind: 'hot' });
     if (cfg.onCommand) cfg.onCommand(text, hx);
   });
   plus.addEventListener('click', () => {
     if (cfg.onPlus) return cfg.onPlus(hx);
-    // Default: cycle the rail, so the button is never dead.
-    const i = hx.modes.findIndex(m => m.id === hx.active);
-    show(hx.modes[(i + 1) % hx.modes.length].id, { force: true });
+    const i = panels.findIndex(p => p.id === hx.active);
+    show(panels[(i + 1) % panels.length].id);
   });
 
-  // Keep the composer above the on-screen keyboard.
+  // Keep the composer clear of the on-screen keyboard.
   if (window.visualViewport) {
     const vv = window.visualViewport;
     const fit = () => {
       const gap = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
-      main.style.paddingBottom = gap ? gap + 'px' : '';
-      if (gap) wall.scrollTop = wall.scrollHeight;
+      root.style.paddingBottom = gap ? gap + 'px' : '';
     };
     vv.addEventListener('resize', fit);
     vv.addEventListener('scroll', fit);
   }
 
-  // ── odds and ends builders keep needing ──────────────────────────────
+  // ── furniture ─────────────────────────────────────────────────────────
   hx.toast = msg => {
     toast.textContent = msg; toast.classList.add('on');
     clearTimeout(toast._t); toast._t = setTimeout(() => toast.classList.remove('on'), 1900);
@@ -320,19 +280,13 @@ function mount(cfg) {
   hx.cap = t => h('div', 'hx-cap', t);
   hx.kv = (k, v, cls) => {
     const d = h('div', 'hx-kv');
-    d.append(h('span', '', k));
-    d.appendChild(h('b', cls || '', String(v)));
+    d.append(h('span', '', k), h('b', cls || '', String(v)));
     return d;
   };
-  /** A row that can be pinned into the wall — the wireframe's pin affordance. */
   hx.pinnable = (node, text) => {
     const p = h('button', 'hx-pin', '⌖');
-    p.type = 'button'; p.title = 'pin to the wall';
-    p.addEventListener('click', ev => {
-      ev.stopPropagation();
-      hx.say('PIN', text, { kind: 'sys' });
-      hx.toast('pinned');
-    });
+    p.type = 'button';
+    p.addEventListener('click', ev => { ev.stopPropagation(); hx.say('PIN', text, { kind: 'sys' }); hx.toast('pinned to the log'); });
     node.insertBefore(p, node.firstChild);
     return node;
   };
@@ -347,20 +301,21 @@ function mount(cfg) {
     s.addEventListener('change', () => fn(s.value, hx));
     return s;
   };
+  /** The view controls, as a row of buttons in a panel. Not a rail. */
+  hx.viewRow = viewer => hx.row(
+    hx.btn('Fit',   () => cfg.onFit && cfg.onFit(hx)),
+    hx.btn('Edges', () => { hx._e = !hx._e; viewer && viewer.setDiagnostics({ showEdges: hx._e }); }),
+    hx.btn('Grid',  () => { hx._g = !hx._g; viewer && viewer.setDiagnostics({ grid: hx._g }); }),
+    hx.btn('Spin',  () => { hx._s = !hx._s; viewer && viewer.setAutoSpin(hx._s); })
+  );
+  hx._e = true; hx._g = true; hx._s = false;
   hx.esc = esc;
 
-  // ── go ───────────────────────────────────────────────────────────────
-  hx.clearWall(cfg.wallEmpty || 'Nothing yet.');
   hx.trace(null);
-  // Build the first tray on the next tick, not inside mount(). A builder's tray
-  // function naturally closes over the shell it is being handed — running it
-  // before mount() has returned means that binding is still in its temporal
-  // dead zone, and every tray throws on first paint.
-  if (hx.modes.length) queueMicrotask(() => show(hx.modes[0].id, { force: true }));
+  show('world');
   if (cfg.onWorld) {
     Promise.resolve(cfg.onWorld(canvas, hx)).catch(e => {
-      hx.status('world failed: ' + e.message);
-      console.error(e);
+      hx.status('world failed: ' + e.message); console.error(e);
     });
   }
   if (cfg.onReady) Promise.resolve().then(() => cfg.onReady(hx));

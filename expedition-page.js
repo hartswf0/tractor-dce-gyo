@@ -21,22 +21,18 @@ async function boot(cfg) {
     placeholder: 'run · sail 40 · pieces 2500 · brief ingold · help',
     wallEmpty: cfg.note,
     traceEmpty: 'no watches stood',
-    modes: [
-      { id: 'orders',   label: 'ORDERS',   title: 'orders',              build: trayOrders },
-      { id: 'manifest', label: 'WORKS',    title: 'the works, so far',   build: trayManifest },
-      { id: 'voids',    label: 'VOIDS',    title: 'the void ledger',     build: trayVoids },
-      { id: 'palette',  label: 'PALETTE',  title: 'roles this district is built from', build: trayPalette }
+    panels: [
+      { id: 'orders',   label: 'ORDERS',  glyph: '▶', title: 'orders',            build: panelOrders },
+      { id: 'manifest', label: 'WORKS',   glyph: '▦', title: 'the works, so far', build: panelManifest },
+      { id: 'voids',    label: 'VOIDS',   glyph: '○', title: 'the void ledger',   build: panelVoids },
+      { id: 'palette',  label: 'PALETTE', glyph: '◈', title: 'roles this district is built from', build: panelPalette }
     ],
     onCommand: command,
     onWorld: async (canvasEl, hx) => {
       St.viewer = await U.makeViewer(canvasEl, { background: cfg.background });
-      hx.tool('FIT',  () => U.frame(St.viewer, 0.72));
-      let e = true, g = true, sp = false;
-      hx.tool('EDGE', () => St.viewer.setDiagnostics({ showEdges: (e = !e) }));
-      hx.tool('GRID', () => St.viewer.setDiagnostics({ grid: (g = !g) }));
-      hx.tool('SPIN', () => St.viewer.setAutoSpin(sp = !sp));
       await load();
     },
+    onFit: () => U.frame(St.viewer, 0.72),
     onTrace: i => {
       const e = St.exp && St.exp.log[i];
       if (e) hx.say('TRACE', 'watch ' + e.watch + ' · ' + e.who + ' — ' + e.note, { kind: 'sys' });
@@ -102,7 +98,7 @@ async function boot(cfg) {
     St.running = true; hx.refresh('orders');
     let n = 0;
     while (St.running && (limit == null || n++ < limit) && await watch()) {
-      if (n % 3 === 0) await new Promise(r => setTimeout(r, 0));
+      await new Promise(r => setTimeout(r, n % 4 === 0 ? 45 : 0));
     }
     St.running = false; hx.refresh('orders');
     await render(true);
@@ -126,7 +122,7 @@ async function boot(cfg) {
   }
 
   // ── trays ──────────────────────────────────────────────────────────────
-  function trayOrders(el) {
+  function panelOrders(el) {
     el.appendChild(hx.cap('brief'));
     el.appendChild(hx.select(
       Object.values(N.Brief.BRIEFS).map(b => ({ value: b.key, label: b.title })),
@@ -149,6 +145,8 @@ async function boot(cfg) {
       hx.btn('Watch ×20', () => sail(20)),
       hx.btn('Refit', () => { St.running = false; refit(); })
     ));
+    el.appendChild(hx.cap('view'));
+    el.appendChild(hx.viewRow(St.viewer));
     el.appendChild(hx.cap('export'));
     el.appendChild(hx.row(
       hx.btn('Download MPD', () => U.download(St.exp.toMPD(), cfg.source + '-' + St.briefKey + '.mpd')),
@@ -158,10 +156,10 @@ async function boot(cfg) {
     ));
   }
 
-  function trayManifest(el) {
+  function panelManifest(el) {
     const x = St.exp; if (!x) return;
     const man = x.manifest();
-    if (!man.length) { el.appendChild(Hilux.h('div', 'hx-wall-empty', 'nothing raised yet')); return; }
+    if (!man.length) { el.appendChild(Hilux.h('div', 'hx-empty', 'nothing raised yet')); return; }
     el.appendChild(hx.cap('raised'));
     for (const m of man) {
       const row = hx.kv(m.module + ' ×' + m.n, m.parts);
@@ -178,7 +176,7 @@ async function boot(cfg) {
     el.appendChild(hx.kv('span LDU', a.span.join(' × ')));
   }
 
-  function trayVoids(el) {
+  function panelVoids(el) {
     const x = St.exp; if (!x) return;
     const s = x.ledger.summary();
     const block = (title, list, cls) => {
@@ -200,10 +198,10 @@ async function boot(cfg) {
     }
   }
 
-  function trayPalette(el) {
+  function panelPalette(el) {
     const x = St.exp; if (!x) return;
     if (!x.palette || !x.palette.log.length) {
-      el.appendChild(Hilux.h('div', 'hx-wall-empty', 'the quarryman has not drawn yet'));
+      el.appendChild(Hilux.h('div', 'hx-empty', 'the quarryman has not drawn yet'));
       return;
     }
     el.appendChild(hx.cap('role → part'));

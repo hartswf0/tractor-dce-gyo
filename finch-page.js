@@ -21,22 +21,18 @@ async function boot(cfg) {
     placeholder: 'run · step · brief cave · mpd · help',
     wallEmpty: finch.strategy,
     traceEmpty: 'no generations yet',
-    modes: [
-      { id: 'run',      label: 'RUN',     title: finch.latin + ' · ' + finch.beak, build: trayRun },
-      { id: 'voids',    label: 'VOIDS',   title: 'void ledger · not a percentage', build: trayVoids },
-      { id: 'archive',  label: 'ARCHIVE', title: 'losers are kept',                build: trayArchive },
-      { id: 'built',    label: 'BUILT',   title: 'the standing build',             build: trayBuilt }
+    panels: [
+      { id: 'run',     label: 'RUN',     glyph: '▶', title: finch.latin + ' · ' + finch.beak, build: panelRun },
+      { id: 'voids',   label: 'VOIDS',   glyph: '○', title: 'void ledger · not a percentage', build: panelVoids },
+      { id: 'archive', label: 'ARCHIVE', glyph: '⧉', title: 'losers are kept',                build: panelArchive },
+      { id: 'built',   label: 'BUILT',   glyph: '▦', title: 'the standing build',             build: panelBuilt }
     ],
     onCommand: command,
     onWorld: async (canvasEl, hx) => {
       St.viewer = await U.makeViewer(canvasEl, { background: cfg.background });
-      hx.tool('FIT',  () => U.frame(St.viewer, 0.72));
-      let e = true, g = true, sp = false;
-      hx.tool('EDGE', () => St.viewer.setDiagnostics({ showEdges: (e = !e) }));
-      hx.tool('GRID', () => St.viewer.setDiagnostics({ grid: (g = !g) }));
-      hx.tool('SPIN', () => St.viewer.setAutoSpin(sp = !sp));
       await load();
     },
+    onFit: () => U.frame(St.viewer, 0.72),
     onTrace: i => {
       const h = St.pop && St.pop.history[i];
       if (h) hx.say('TRACE', 'round ' + h.round + ' · ' + h.void + ' at ' + h.cell +
@@ -94,7 +90,7 @@ async function boot(cfg) {
     St.running = true; hx.refresh('run');
     let n = 0;
     while (St.running && (limit == null || n++ < limit) && await step()) {
-      await new Promise(r => setTimeout(r, 20));
+      await new Promise(r => setTimeout(r, 55));   // leave the rail tappable mid-run
     }
     St.running = false; hx.refresh('run');
     await render();
@@ -131,7 +127,7 @@ async function boot(cfg) {
     if (hx.active === 'run') hx.refresh('run');
   }
 
-  function trayRun(el) {
+  function panelRun(el) {
     el.appendChild(hx.cap('brief'));
     el.appendChild(hx.select(
       Object.values(N.Brief.BRIEFS).map(b => ({ value: b.key, label: b.title })),
@@ -150,6 +146,8 @@ async function boot(cfg) {
     el.appendChild(hx.kv('migrant / wild', finch.migrantFrom + ' / ' + finch.wild));
     el.appendChild(hx.kv('population', finch.population + ' + ' + finch.mutationsPerRound));
     el.appendChild(hx.kv('operators', finch.ops.join(', ')));
+    el.appendChild(hx.cap('view'));
+    el.appendChild(hx.viewRow(St.viewer));
     el.appendChild(hx.cap('export'));
     el.appendChild(hx.row(
       hx.btn('Download MPD', () => U.download(St.pop.toMPD(), 'finch-' + cfg.finch + '-' + St.briefKey + '.mpd')),
@@ -159,7 +157,7 @@ async function boot(cfg) {
     ));
   }
 
-  function trayVoids(el) {
+  function panelVoids(el) {
     const s = St.pop.ledger.summary();
     const block = (t, list, cls) => { if (!list.length) return;
       el.appendChild(hx.cap(t)); list.forEach(v => el.appendChild(hx.kv(v, t === 'resolved' ? '✓' : '—', cls))); };
@@ -173,14 +171,14 @@ async function boot(cfg) {
     }
   }
 
-  function trayArchive(el) {
+  function panelArchive(el) {
     const c = St.pop.archive.counts();
     el.appendChild(hx.cap('archives · a rejected genome can mutate and return'));
     Object.entries(c).forEach(([k, v]) =>
       el.appendChild(hx.kv(k, v, k === 'novel' ? 'ok' : k === 'fossil' ? '' : '')));
   }
 
-  function trayBuilt(el) {
+  function panelBuilt(el) {
     const a = St.pop.audit();
     el.appendChild(hx.cap('standing build'));
     el.appendChild(hx.kv('pieces', a.parts));
