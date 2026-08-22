@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Nabugo — the arena</title>
+<link rel="icon" type="image/svg+xml" href="ball-jar-favicon.svg" />
+<link rel="stylesheet" href="./nabugo.css" />
+<style>
+  main.arena{flex:1;display:grid;grid-template-columns:230px minmax(0,1fr) minmax(0,1fr) 260px;min-height:0}
+  main.arena > .col{border-right:1px solid var(--line)}
+  main.arena > .col:last-child{border-right:none}
+  .lane{display:flex;flex-direction:column;min-height:0}
+  .lane .viewport .tag.op{color:var(--op)}
+  .lane .viewport .tag.co{color:var(--co)}
+  .lane-foot{border-top:1px solid var(--soft);flex:0 0 auto}
+  .verdictbar{display:flex;gap:0;border-top:1px solid var(--line);background:#000;
+    font-size:8px;letter-spacing:.12em;text-transform:uppercase}
+  .verdictbar div{flex:1;padding:5px 9px;border-right:1px solid var(--soft);color:var(--dim)}
+  .verdictbar div:last-child{border-right:none}
+  .verdictbar b{display:block;font-size:10px;margin-top:2px;letter-spacing:.06em}
+  .verdictbar b.op{color:var(--op)} .verdictbar b.co{color:var(--co)} .verdictbar b.tie{color:var(--dim)}
+  .zoneline{padding:2px 0;border-bottom:1px dotted #17171a;line-height:1.5}
+  .zoneline:last-child{border-bottom:none}
+  .zpill{display:inline-block;font-size:7px;padding:0 4px;border-radius:2px;margin-right:5px;
+    color:#000;font-weight:700}
+  .zpill.z1{background:var(--z1)}.zpill.z2{background:var(--z2)}
+  .zpill.z3{background:var(--z3)}.zpill.z4{background:var(--z4)}
+  .lex{color:var(--faint);font-size:8px;display:block}
+  @media (max-width:1200px){
+    main.arena{grid-template-columns:1fr 1fr;grid-template-rows:auto 46vh auto}
+    main.arena > .col:first-child,
+    main.arena > .col:last-child{grid-column:1/-1;max-height:34vh;border-right:none;
+      border-bottom:1px solid var(--line)}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="bar">
+    <span class="brand">Nabugo</span>
+    <span class="creed">two doctrines · one brief · one catalogue</span>
+    <span class="spacer"></span>
+    <span class="chip" id="chipRound">Round 0/20</span>
+    <span class="chip op" id="chipOp">OP —</span>
+    <span class="chip co" id="chipCo">CO —</span>
+    <span class="chip" id="chipCat">Catalogue —</span>
+    <span class="chip" id="chipBus">Bus —</span>
+  </header>
+
+  <main class="arena">
+    <!-- ══════════ BRIEF ══════════ -->
+    <div class="col">
+      <div class="sec-head">Brief</div>
+      <div class="sec-body">
+        <select id="briefSel"></select>
+        <div id="briefDesc" class="muted" style="margin-top:6px;line-height:1.5"></div>
+      </div>
+      <div class="sec-head">Zones &amp; voids</div>
+      <div class="scrolly" style="padding:6px 9px" id="zonePane"></div>
+      <div class="sec-head">Note</div>
+      <div class="sec-body muted" id="briefNote" style="line-height:1.55"></div>
+      <div class="sec-head">Run</div>
+      <div class="sec-body">
+        <div style="display:flex;gap:4px">
+          <button id="btnStep" class="go" style="flex:1">Step</button>
+          <button id="btnRun" class="go" style="flex:1">Run 20</button>
+          <button id="btnReset" style="flex:1">Reset</button>
+        </div>
+        <div style="display:flex;gap:4px;margin-top:4px">
+          <button id="btnBroadcast" style="flex:1">Broadcast</button>
+          <button id="btnDlOp" style="flex:1">↓ OP</button>
+          <button id="btnDlCo" style="flex:1">↓ CO</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ OPERATOR LANE ══════════ -->
+    <div class="col lane">
+      <div class="viewport">
+        <div class="canvas" id="canvasOp"></div>
+        <div class="tag op">Operator · fucked until proven otherwise</div>
+        <div class="tools"><button id="fitOp">Fit</button><button id="edgesOp">Edges</button></div>
+        <div class="status" id="statusOp">booting…</div>
+      </div>
+      <div class="lane-foot">
+        <div class="sec-head">Operator ledger <span class="n" id="nOp">0</span></div>
+        <div class="sec-body" id="metOp" style="max-height:190px;overflow-y:auto"></div>
+      </div>
+    </div>
+
+    <!-- ══════════ CORRESPONDENCE LANE ══════════ -->
+    <div class="col lane">
+      <div class="viewport">
+        <div class="canvas" id="canvasCo"></div>
+        <div class="tag co">Correspondence · one telling gesture</div>
+        <div class="tools"><button id="fitCo">Fit</button><button id="edgesCo">Edges</button></div>
+        <div class="status" id="statusCo">booting…</div>
+      </div>
+      <div class="lane-foot">
+        <div class="sec-head">Correspondence ledger <span class="n" id="nCo">0</span></div>
+        <div class="sec-body" id="metCo" style="max-height:190px;overflow-y:auto"></div>
+      </div>
+    </div>
+
+    <!-- ══════════ TRACE ══════════ -->
+    <div class="col">
+      <div class="sec-head">The tray</div>
+      <div class="sec-body"><div class="tray" id="tray"></div></div>
+      <div class="sec-head">Round trace <span class="n" id="nTrace">0</span></div>
+      <div class="scrolly" style="padding:6px 8px" id="tracePane">
+        <div class="muted">No rounds yet. STEP takes both doctrines through one gesture each.</div>
+      </div>
+    </div>
+  </main>
+
+  <div class="verdictbar" id="verdict"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="./examples/js/loaders/LDrawLoader.js"></script>
+<script src="./beta-prime-engine.js"></script>
+<script src="./nabugo.js"></script>
+<script src="./nabugo-ui.js"></script>
+<script>
+(async function(){
+'use strict';
+const N = window.Nabugo, U = window.NabugoUI, $ = U.$;
+const S = { arena:null, vOp:null, vCo:null, running:false, briefKey:'theseus' };
+
+// ── boot ────────────────────────────────────────────────────────────────
+try {
+  const meta = await N.Catalog.load('./nabugo-parts.json');
+  $('chipCat').textContent = 'Catalogue ' + meta.count.toLocaleString();
+  $('chipCat').className = 'chip live';
+} catch (e) {
+  $('chipCat').textContent = 'Catalogue failed';
+  $('chipCat').className = 'chip dead';
+  U.toast('Could not load nabugo-parts.json — serve this page over HTTP');
+}
+
+if (N.Bus.connect('nabugo-arena')) {
+  $('chipBus').textContent = 'Bus wag-frank';
+  $('chipBus').className = 'chip live';
+  N.Bus.onInbound(({ msg }) => U.toast('Bus: ' + msg.kind + ' from ' + (msg.source || '?')));
+} else {
+  $('chipBus').textContent = 'Bus n/a';
+}
+
+for (const [id, key] of [['canvasOp','vOp'], ['canvasCo','vCo']]) {
+  try { S[key] = await U.makeViewer($(id)); }
+  catch (e) {
+    console.error(e);
+    $(id === 'canvasOp' ? 'statusOp' : 'statusCo').textContent = 'viewer failed: ' + e.message;
+  }
+}
+
+// ── brief ───────────────────────────────────────────────────────────────
+U.briefOptions($('briefSel'), S.briefKey);
+$('briefSel').addEventListener('change', e => { S.briefKey = e.target.value; reset(); });
+
+function renderBrief(b) {
+  $('briefDesc').textContent = b.description;
+  $('briefNote').textContent = b.note || '';
+  $('zonePane').innerHTML = [1,2,3,4].map(z => {
+    const zn = b.zones[z];
+    return '<div class="zoneline"><span class="zpill z' + z + '">Z' + z + '</span>' +
+      U.esc(zn.name) + '<span class="lex">' + U.esc(zn.lex.slice(0, 8).join(' · ')) + '</span>' +
+      '<span class="lex">target ' + b.zoneTargets[z] + ' vignette(s)</span></div>';
+  }).join('');
+}
+
+// ── loop ────────────────────────────────────────────────────────────────
+function reset() {
+  S.arena = new N.Arena(S.briefKey);
+  renderBrief(S.arena.brief);
+  paint();
+  redraw();
+}
+
+async function step() {
+  if (!S.arena || (S.arena.a.settled && S.arena.b.settled)) return false;
+  S.arena.step();
+  paint();
+  await redraw();
+  return !(S.arena.a.settled && S.arena.b.settled);
+}
+
+async function run(n) {
+  if (S.running) { S.running = false; return; }
+  S.running = true;
+  $('btnRun').textContent = 'Stop';
+  $('btnRun').classList.add('stop');
+  for (let i = 0; i < n && S.running; i++) {
+    if (!(await step())) break;
+    await new Promise(r => setTimeout(r, 40));
+  }
+  S.running = false;
+  $('btnRun').textContent = 'Run 20';
+  $('btnRun').classList.remove('stop');
+}
+
+// Sequential, not concurrent: two loaders racing for the same connection pool
+// is what made a step take tens of seconds.
+async function redraw() {
+  await U.render(S.vOp, S.arena.a.scene, $('statusOp'), 'operator');
+  await U.render(S.vCo, S.arena.b.scene, $('statusCo'), 'correspondence');
+}
+
+function paint() {
+  const A = S.arena, sb = A.scoreboard();
+  U.metrics($('metOp'), sb.operator, 'op');
+  U.metrics($('metCo'), sb.correspondence, 'co');
+  U.tray($('tray'), [{ scene: A.a.scene, cls: 'op' }, { scene: A.b.scene, cls: 'co' }]);
+
+  $('chipRound').textContent = 'Round ' + A.round + '/20';
+  $('chipOp').textContent = 'OP ' + sb.operator.fidelity + '% · ' + sb.operator.parts + 'p' +
+    (A.a.settled ? ' · settled' : '');
+  $('chipCo').textContent = 'CO ' + sb.correspondence.fidelity + '% · ' + sb.correspondence.parts + 'p' +
+    (A.b.settled ? ' · settled' : '');
+  $('nOp').textContent = A.a.round; $('nCo').textContent = A.b.round;
+
+  // Interleave both traces newest-first so the duel reads as one conversation.
+  const all = [...A.a.trace, ...A.b.trace].sort((x, y) => y.round - x.round || (x.doctrine < y.doctrine ? -1 : 1));
+  $('nTrace').textContent = all.length;
+  $('tracePane').innerHTML = all.length
+    ? all.map(U.traceRec).join('')
+    : '<div class="muted">No rounds yet. STEP takes both doctrines through one gesture each.</div>';
+
+  const cls = w => w === 'OPERATOR' ? 'op' : w === 'CORRESPONDENCE' ? 'co' : 'tie';
+  const short = w => w === 'OPERATOR' ? 'OPERATOR' : w === 'CORRESPONDENCE' ? 'CORRESPOND' : 'TIE';
+  $('verdict').innerHTML =
+    ['fidelity','economy','variety','soundness'].map(k =>
+      '<div>' + k + '<b class="' + cls(sb.leads[k]) + '">' + short(sb.leads[k]) + '</b></div>').join('') +
+    '<div>operator says<b class="op" style="font-size:8px;letter-spacing:0;text-transform:none">' +
+      U.esc(sb.operator.defect.killer) + '</b></div>' +
+    '<div>correspondence says<b class="co" style="font-size:8px;letter-spacing:0;text-transform:none">' +
+      U.esc(sb.correspondence.defect.killer) + '</b></div>';
+}
+
+// ── controls ────────────────────────────────────────────────────────────
+$('btnStep').addEventListener('click', step);
+$('btnRun').addEventListener('click', () => run(20));
+$('btnReset').addEventListener('click', () => { S.running = false; reset(); });
+$('fitOp').addEventListener('click', () => U.frame(S.vOp));
+$('fitCo').addEventListener('click', () => U.frame(S.vCo));
+let eOp = true, eCo = true;
+$('edgesOp').addEventListener('click', () => S.vOp && S.vOp.setDiagnostics({ showEdges: (eOp = !eOp) }));
+$('edgesCo').addEventListener('click', () => S.vCo && S.vCo.setDiagnostics({ showEdges: (eCo = !eCo) }));
+$('btnDlOp').addEventListener('click', () =>
+  U.download(S.arena.a.toMPD(), 'nabugo-' + S.briefKey + '-operator.mpd'));
+$('btnDlCo').addEventListener('click', () =>
+  U.download(S.arena.b.toMPD(), 'nabugo-' + S.briefKey + '-correspondence.mpd'));
+$('btnBroadcast').addEventListener('click', () => {
+  const sb = S.arena.scoreboard();
+  const ok = N.Bus.emit(S.arena.a.scene, { name: sb.brief + ' · OPERATOR', ...sb.operator }, 'nabugo-arena') &&
+             N.Bus.emit(S.arena.b.scene, { name: sb.brief + ' · CORRESPONDENCE', ...sb.correspondence }, 'nabugo-arena');
+  U.toast(ok ? 'Both builds broadcast on wag-frank' : 'No BroadcastChannel in this browser');
+});
+
+reset();
+window.NabugoArena = S;   // console access: NabugoArena.arena.run(20)
+})();
+</script>
+</body>
+</html>

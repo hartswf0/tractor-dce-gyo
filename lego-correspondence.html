@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Correspondence — one telling gesture</title>
+<link rel="icon" type="image/svg+xml" href="ball-jar-favicon.svg" />
+<link rel="stylesheet" href="./nabugo.css" />
+<style>
+  main.co{flex:1;display:grid;grid-template-columns:300px minmax(0,1fr) 270px;min-height:0}
+  main.co > .col{border-right:1px solid var(--line)}
+  main.co > .col:last-child{border-right:none}
+  .creed-strip{padding:5px 9px;background:#1c0813;border-bottom:1px solid #55123a;
+    font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:#f9a8d4}
+  /* the accusation chain: scout -> critic -> builder, one row each */
+  .chain{border-left:2px solid #2a2a30;margin-left:5px;padding-left:9px}
+  .link{position:relative;padding:5px 0 7px}
+  .link::before{content:'';position:absolute;left:-14px;top:9px;width:7px;height:7px;
+    border-radius:50%;background:#2a2a30;border:1px solid #0b0b0d}
+  .link.scout::before{background:#a78bfa}
+  .link.critic::before{background:var(--co)}
+  .link.builder::before{background:var(--ok)}
+  .link .who{font-size:7px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint)}
+  .link.scout .who{color:#a78bfa}
+  .link.critic .who{color:var(--co)}
+  .link.builder .who{color:var(--ok)}
+  .link .said{margin-top:1px;line-height:1.45}
+  .link .said.kill{color:#fff}
+  .traj{display:inline-block;font-size:7px;padding:0 4px;border-radius:2px;margin-left:4px;
+    letter-spacing:.1em}
+  .traj.BETTER{background:#0f2a1a;color:#8ef0b0}
+  .traj.SAME{background:#332616;color:#fcd34d}
+  .traj.WORSE{background:#2a1010;color:#f8a5a5}
+  .traj.NEW{background:#1e293b;color:#93c5fd}
+  .round-sep{font-size:7px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint);
+    border-top:1px solid var(--soft);margin-top:6px;padding-top:5px}
+  .economy{display:flex;align-items:baseline;gap:6px;margin-top:4px}
+  .economy b{font-size:20px;color:var(--co);font-weight:400;line-height:1}
+  .economy span{font-size:8px;color:var(--dim);letter-spacing:.1em;text-transform:uppercase}
+  @media (max-width:1100px){
+    main.co{grid-template-columns:1fr;grid-template-rows:auto 46vh auto}
+    main.co > .col{border-right:none;border-bottom:1px solid var(--line);max-height:38vh}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="bar">
+    <span class="brand">Correspondence</span>
+    <span class="creed">scout · critic · builder — one gesture a round</span>
+    <span class="spacer"></span>
+    <span class="chip" id="chipRound">Round 0/20</span>
+    <span class="chip co" id="chipFid">Fidelity 0%</span>
+    <span class="chip" id="chipParts">0 parts</span>
+    <span class="chip" id="chipCat">Catalogue —</span>
+    <span class="chip" id="chipBus">Bus —</span>
+  </header>
+  <div class="creed-strip">Imply, don't saturate. Pick one thing. A missing major part beats a detail; structure beats trim. The accusation is the builder's next prompt.</div>
+
+  <main class="co">
+    <!-- ══════════ LEFT: the chain ══════════ -->
+    <div class="col">
+      <div class="sec-head">Accusation chain <span class="n" id="nChain">0</span></div>
+      <div class="scrolly" style="padding:8px 10px" id="chain">
+        <div class="muted">No rounds yet. Each round the scout picks the worst-observed zone, the critic names one defect, and the builder answers it with a single gesture.</div>
+      </div>
+    </div>
+
+    <!-- ══════════ CENTRE ══════════ -->
+    <div class="col">
+      <div class="viewport">
+        <div class="canvas" id="canvas"></div>
+        <div class="tools">
+          <button id="btnFit">Fit</button><button id="btnEdges">Edges</button>
+          <button id="btnGrid">Grid</button><button id="btnSpin">Spin</button>
+        </div>
+        <div class="status" id="status">booting…</div>
+      </div>
+      <div style="flex:0 0 auto;border-top:1px solid var(--line)">
+        <div class="sec-head">The tray</div>
+        <div class="sec-body"><div class="tray" id="tray"></div></div>
+        <div class="sec-head">Run</div>
+        <div class="sec-body">
+          <div style="display:flex;gap:4px">
+            <select id="briefSel" style="flex:2"></select>
+            <button id="btnStep" class="go" style="flex:1">Step</button>
+            <button id="btnRun" class="go" style="flex:1">Run 20</button>
+            <button id="btnReset" style="flex:1">Reset</button>
+          </div>
+          <div style="display:flex;gap:4px;margin-top:4px">
+            <button id="btnDl" style="flex:1">Download MPD</button>
+            <button id="btnBroadcast" style="flex:1">Broadcast</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ RIGHT ══════════ -->
+    <div class="col">
+      <div class="sec-head">Economy</div>
+      <div class="sec-body">
+        <div class="economy"><b id="ecoParts">0</b><span>parts carrying<br>the whole brief</span></div>
+        <div class="muted" id="ecoNote" style="margin-top:6px;line-height:1.5"></div>
+      </div>
+      <div class="sec-head">Ledger</div>
+      <div class="sec-body" id="metrics"></div>
+      <div class="sec-head">Brief</div>
+      <div class="sec-body muted" id="briefDesc" style="line-height:1.55"></div>
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="./examples/js/loaders/LDrawLoader.js"></script>
+<script src="./beta-prime-engine.js"></script>
+<script src="./nabugo.js"></script>
+<script src="./nabugo-ui.js"></script>
+<script>
+(async function(){
+'use strict';
+const N = window.Nabugo, U = window.NabugoUI, $ = U.$;
+const S = { d:null, viewer:null, running:false, briefKey:'theseus' };
+
+try {
+  const meta = await N.Catalog.load('./nabugo-parts.json');
+  $('chipCat').textContent = 'Catalogue ' + meta.count.toLocaleString();
+  $('chipCat').className = 'chip live';
+} catch (e) {
+  $('chipCat').textContent = 'Catalogue failed'; $('chipCat').className = 'chip dead';
+  U.toast('Could not load nabugo-parts.json — serve over HTTP');
+}
+if (N.Bus.connect('lego-correspondence')) {
+  $('chipBus').textContent = 'Bus wag-frank'; $('chipBus').className = 'chip live';
+} else $('chipBus').textContent = 'Bus n/a';
+
+try { S.viewer = await U.makeViewer($('canvas'), { background: 0x0a0406 }); }
+catch (e) { $('status').textContent = 'viewer failed: ' + e.message; }
+
+U.briefOptions($('briefSel'), S.briefKey);
+$('briefSel').addEventListener('change', e => { S.briefKey = e.target.value; reset(); });
+
+function reset() {
+  S.d = new N.Doctrine('CORRESPONDENCE', N.Brief.BRIEFS[S.briefKey]);
+  $('briefDesc').textContent = S.d.brief.description + '  ' + (S.d.brief.note || '');
+  paint(); U.render(S.viewer, S.d.scene, $('status'), 'correspondence');
+}
+
+async function step() {
+  if (!S.d || S.d.settled) return false;
+  S.d.step();
+  paint();
+  await U.render(S.viewer, S.d.scene, $('status'), 'correspondence');
+  return !S.d.settled;
+}
+
+async function run(n) {
+  if (S.running) { S.running = false; return; }
+  S.running = true; $('btnRun').textContent = 'Stop'; $('btnRun').classList.add('stop');
+  for (let i = 0; i < n && S.running; i++) {
+    if (!(await step())) break;
+    await new Promise(r => setTimeout(r, 40));
+  }
+  S.running = false; $('btnRun').textContent = 'Run 20'; $('btnRun').classList.remove('stop');
+}
+
+function paint() {
+  const a = S.d.audit();
+  U.metrics($('metrics'), a, 'co');
+  U.tray($('tray'), [{ scene: S.d.scene, cls: 'co' }]);
+  $('chipRound').textContent = 'Round ' + S.d.round + '/20' + (S.d.settled ? ' · settled' : '');
+  $('chipFid').textContent = 'Fidelity ' + a.fidelity + '%';
+  $('chipParts').textContent = a.parts + ' parts';
+  $('ecoParts').textContent = a.parts;
+  $('ecoNote').textContent = a.parts
+    ? a.fidelity + '% of the brief told with ' + a.parts + ' part' + (a.parts === 1 ? '' : 's') +
+      ' across ' + a.cells + ' cell' + (a.cells === 1 ? '' : 's') + '. ' +
+      'Every part left out is one the viewer supplies.'
+    : 'Nothing placed yet.';
+
+  const t = S.d.trace;
+  $('nChain').textContent = t.length;
+  $('chain').innerHTML = t.length ? t.slice().reverse().map(chainLinks).join('')
+    : '<div class="muted">No rounds yet.</div>';
+}
+
+/**
+ * One round, rendered as the three-part correspondence the doctrine actually
+ * runs: where to look, what is wrong, what was done about it.
+ */
+function chainLinks(r) {
+  const traj = r.delta > 0 ? 'BETTER' : r.delta < 0 ? 'WORSE' : (r.round === 1 ? 'NEW' : 'SAME');
+  const zone = r.defect.zone && S.d.brief.zones[r.defect.zone]
+    ? S.d.brief.zones[r.defect.zone].name : 'the whole tray';
+  return '<div class="round-sep">Round ' + r.round + ' · fidelity ' + r.after.fidelity + '%' +
+    '<span class="traj ' + traj + '">' + traj + '</span></div>' +
+    '<div class="chain">' +
+      '<div class="link scout"><div class="who">Scout · where to look</div>' +
+        '<div class="said">' + U.esc(zone) + '</div></div>' +
+      '<div class="link critic"><div class="who">Critic · ' + r.defect.kind + '</div>' +
+        '<div class="said kill">' + U.esc(N.Lens.describe(r)) + '</div></div>' +
+      '<div class="link builder"><div class="who">Builder · one gesture</div>' +
+        '<div class="said">' + U.esc(r.note) + '</div>' +
+        (r.added.length || r.removed.length
+          ? '<div class="who" style="margin-top:2px">+' + r.added.length + ' −' + r.removed.length + '</div>' : '') +
+      '</div>' +
+      (r.commitment
+        ? '<div class="link"><div class="who">Commitment · the accusation survived twice</div>' +
+          '<div class="said" style="color:var(--warn)">' + U.esc(r.commitment) + '</div></div>' : '') +
+    '</div>';
+}
+
+$('btnStep').addEventListener('click', step);
+$('btnRun').addEventListener('click', () => run(20));
+$('btnReset').addEventListener('click', () => { S.running = false; reset(); });
+$('btnFit').addEventListener('click', () => U.frame(S.viewer));
+let e = true, g = true, sp = false;
+$('btnEdges').addEventListener('click', () => S.viewer && S.viewer.setDiagnostics({ showEdges: (e = !e) }));
+$('btnGrid').addEventListener('click',  () => S.viewer && S.viewer.setDiagnostics({ grid: (g = !g) }));
+$('btnSpin').addEventListener('click',  () => S.viewer && S.viewer.setAutoSpin(sp = !sp));
+$('btnDl').addEventListener('click', () => U.download(S.d.toMPD(), 'correspondence-' + S.briefKey + '.mpd'));
+$('btnBroadcast').addEventListener('click', () => {
+  const a = S.d.audit();
+  U.toast(N.Bus.emit(S.d.scene, { name: S.d.brief.title + ' · CORRESPONDENCE', ...a }, 'lego-correspondence')
+    ? 'Broadcast on wag-frank' : 'No BroadcastChannel in this browser');
+});
+
+reset();
+window.Correspondence = S;
+})();
+</script>
+</body>
+</html>
