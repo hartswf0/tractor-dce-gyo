@@ -23,6 +23,7 @@ async function boot(cfg) {
     placeholder: 'run 5 · seed 1234 · assert parts > 1200 · help',
     wallEmpty: cfg.creed,
     traceEmpty: 'no rounds yet',
+    rounds: true,
     panels: [
       { id: 'script', label: 'SCRIPT', glyph: '⌗', title: 'ATORScript · the genome', build: panelScript },
       { id: 'run',    label: 'RUN',    glyph: '▶', title: 'the loop',                build: panelRun },
@@ -128,6 +129,7 @@ async function boot(cfg) {
 
   /** Each round becomes a line on the wall, in the voice of whoever did it. */
   function report(h) {
+    roundCard(h);
     if (cfg.kind === 'forager') {
       if (h.fail) hx.say('CRITIC', h.fail + ' — ' + h.detail, { kind: 'bad' });
       else hx.say('CRITIC', h.detail, { kind: 'ok' });
@@ -142,6 +144,31 @@ async function boot(cfg) {
       h.offspring.filter(o => o.onFrontier).slice(0, 3).forEach(o =>
         hx.say('LINEAGE', o.lineage + ' ← ' + o.parent + ' · ' + (o.note || '') +
                ' → ' + o.parts + ' pieces', { kind: 'sys' }));
+    }
+  }
+
+  /** One card per round, in the shape the roots used. */
+  function roundCard(h) {
+    if (cfg.kind === 'forager') {
+      const pct = Math.round((h.score == null ? 0 : h.score) * 100);
+      hx.logRound({
+        who: 'ROUND ' + (h.round || '?') + ' · FORAGER',
+        score: pct + '%', delta: h.kept ? 1 : -1,
+        text: h.detail || h.fail || '',
+        before: (h.wasParts != null ? h.wasParts : '—') + ' pcs',
+        after: (h.parts != null ? h.parts : '—') + ' pcs',
+        changed: (h.move || '—') + (h.kept ? '' : ' (dropped)')
+      });
+    } else {
+      const c = h.champion || {};
+      hx.logRound({
+        who: 'ROUND ' + (h.round || '?') + ' · SCRIPTORIUM',
+        score: c.passed + '/' + c.total, delta: c.passed === c.total ? 1 : 0,
+        text: 'champion ' + c.lineage + ' — ' + (c.parts || 0).toLocaleString() +
+              ' pieces, ' + c.height + ' LDU tall',
+        before: 'bred ' + h.bred, after: 'frontier ' + h.frontier,
+        changed: (h.offspring || []).filter(o => o.onFrontier).map(o => o.note).filter(Boolean).slice(0, 2).join(' · ') || '—'
+      });
     }
   }
 

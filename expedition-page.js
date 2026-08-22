@@ -21,6 +21,7 @@ async function boot(cfg) {
     placeholder: 'run · sail 40 · pieces 2500 · brief ingold · help',
     wallEmpty: cfg.note,
     traceEmpty: 'no watches stood',
+    rounds: true,
     panels: [
       { id: 'orders',   label: 'ORDERS',  glyph: '▶', title: 'orders',            build: panelOrders },
       { id: 'manifest', label: 'WORKS',   glyph: '▦', title: 'the works, so far', build: panelManifest },
@@ -66,7 +67,7 @@ async function boot(cfg) {
     });
     if (cfg.colors) St.exp.colors = cfg.colors;
     St.lastRender = 0;
-    hx.clearWall();
+    hx.clearWall(); hx.clearRounds();
     hx.say('SYSTEM', cfg.note, { kind: 'sys' });
     hx.say('SYSTEM', 'brief: ' + St.exp.brief.title + ' — ' + St.exp.brief.description, { kind: 'sys' });
     paint();
@@ -83,10 +84,19 @@ async function boot(cfg) {
 
   async function watch(force) {
     if (!St.exp || St.exp.settled) return false;
+    const before = St.exp.site.count;
     const e = St.exp.watch();
     if (e) {
       const kind = e.parts > 0 ? 'ok' : /refused|no |error/i.test(e.note) ? 'warn' : 'sys';
       hx.say(e.who.toUpperCase(), (e.parts > 0 ? '+' + e.parts + ' · ' : '') + e.note, { kind });
+      // A watch that laid nothing down is still a watch; the card says so.
+      if (e.parts > 0) hx.logRound({
+        who: 'WATCH ' + e.watch + ' · ' + e.who.toUpperCase(),
+        score: '+' + e.parts, delta: 1, text: e.note,
+        before: before.toLocaleString() + ' pcs',
+        after: St.exp.site.count.toLocaleString() + ' pcs',
+        changed: St.exp.site.extent + ' LDU ground'
+      });
     }
     paint();
     await render(force);

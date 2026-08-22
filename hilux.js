@@ -1,32 +1,30 @@
 /**
- * HILUX — one rail, one window
- * =============================
- * The previous version had two rails on the same edge: modes down the right,
- * and the view controls stacked down the right of the world inside it. A rail
- * in a window beside a rail, with about eighty pixels of window left between
- * them. This one has exactly one of each.
+ * HILUX — one rail, one window, and the world always in it
+ * ========================================================
+ * The last pass made every panel a sheet that covered the whole window, which
+ * killed the only thing the workflow actually needs: seeing the build while
+ * you read what was said about it. The roots — operative-builder-trace — had
+ * the 3D scene pinned to the top of the screen with the discourse sized under
+ * it and a transport in between. That is what this is.
  *
- *   ONE RAIL     horizontal, at the base, where the thumb is.
- *   ONE WINDOW   above it. The world is its floor and never unmounts — panels
- *                slide over, so the WebGL context survives a mode switch and
- *                you are always one tap from the build.
+ *   BED        the 3D world. Top of the window. Never covered by anything.
+ *   TRANSPORT  prev · play · scrubber · next · n/total. Directly under the bed.
+ *   SHEET      log, run, script, voids — every panel. Rises from the bottom,
+ *              stops before the bed, sized by its grip, dragged away downward.
+ *   RAIL       one rail down the side, collapsible to a strip of glyphs.
  *
  * A builder hands Hilux a config and gets a shell back:
  *
  *   const hx = Hilux.mount({
  *     title: 'Ground Finch',
  *     chips: ['round', 'parts'],
- *     panels: [
- *       { id:'run', label:'RUN', glyph:'▶', build(el, hx){ ... } },
- *       { id:'voids', label:'VOIDS', glyph:'○', build(el, hx){ ... } }
- *     ],
- *     onCommand(text, hx){ ... },
- *     onWorld(canvasEl, hx){ ... }
+ *     panels: [ { id:'run', label:'RUN', glyph:'▶', build(el, hx){ ... } } ],
+ *     onCommand(text, hx){}, onWorld(canvasEl, hx){}, onFit(hx){},
+ *     onTrace(i, point, hx){}, onPlay(playing, hx){}, onResize(hx){}
  *   });
  *
- * WORLD and LOG are built in and always first — every builder needs them and
- * none of them should have to write them. View controls are not a rail: the
- * window fits on a double-tap and the rest live in the WORLD panel.
+ * WORLD and LOG are built in. WORLD is not a panel that opens — it is what you
+ * get when the sheet is down.
  */
 (function (global) {
 'use strict';
@@ -39,6 +37,7 @@ const h = (tag, cls, txt) => {
 };
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c =>
   ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
 
 function mount(cfg) {
   document.body.innerHTML = '';
@@ -63,21 +62,38 @@ function mount(cfg) {
   const tickWho = h('span', 'w', ''), tickMsg = h('span', 'm', cfg.wallEmpty || 'ready');
   ticker.append(tickWho, tickMsg);
 
-  // ── the one window ────────────────────────────────────────────────────
+  // ── the window: bed · transport · sheet ───────────────────────────────
   const win = h('main', 'hx-window');
-  const world = h('div', 'hx-world');
+
+  const bed = h('div', 'hx-bed');
   const canvas = h('div', 'hx-canvas');
   const status = h('div', 'hx-status', 'booting…');
   const hint = h('div', 'hx-hint', 'double-tap to fit');
-  world.append(canvas, status, hint);
-  const panel = h('section', 'hx-panel');
-  panel.hidden = true;
-  win.append(world, panel);
+  bed.append(canvas, status, hint);
 
-  // ── trace ─────────────────────────────────────────────────────────────
-  const trace = h('div', 'hx-trace');
+  const transport = h('div', 'hx-transport');
+  const tPrev = h('button', 'hx-tbtn', '⏮'); tPrev.type = 'button'; tPrev.title = 'previous';
+  const tPlay = h('button', 'hx-tbtn', '▶'); tPlay.type = 'button'; tPlay.title = 'play';
+  const scrub = h('div', 'hx-scrub');
   const traceRail = h('div', 'hx-trace-rail');
-  trace.appendChild(traceRail);
+  scrub.appendChild(traceRail);
+  const tNext = h('button', 'hx-tbtn', '⏭'); tNext.type = 'button'; tNext.title = 'next';
+  const tCount = h('span', 'hx-count', '0/0');
+  tPlay.hidden = !cfg.onPlay;
+  transport.append(tPrev, tPlay, scrub, tNext, tCount);
+
+  const sheet = h('div', 'hx-sheet');
+  const grip = h('div', 'hx-grip');
+  const gripBar = h('i');
+  const gripTitle = h('span', 't', 'LOG');
+  const gripTall = h('button', '', '⌃'); gripTall.type = 'button'; gripTall.title = 'taller';
+  const gripDown = h('button', '', '✕'); gripDown.type = 'button'; gripDown.title = 'close';
+  grip.append(gripBar, gripTitle, gripTall, gripDown);
+  const panel = h('section', 'hx-panel');
+  sheet.append(grip, panel);
+  sheet.hidden = true;
+
+  win.append(bed, transport, sheet);
 
   // ── composer ──────────────────────────────────────────────────────────
   const composer = h('form', 'hx-composer');
@@ -88,34 +104,90 @@ function mount(cfg) {
   const send = h('button', 'send', '➤'); send.type = 'submit';
   composer.append(plus, input, send);
 
-  // ── the one rail ──────────────────────────────────────────────────────
+  // ── the one rail, down the side ───────────────────────────────────────
   const rail = h('nav', 'hx-rail');
-  // The rail runs down the side, full height, beside everything else — so the
-  // stack keeps its own column and the rail is never one more horizontal band
-  // competing with the composer for the bottom of the screen.
   const stack = h('div', 'hx-stack');
-  stack.append(head, ticker, win, trace, composer);
+  stack.append(head, ticker, win, composer);
   root.append(stack, rail);
   document.body.appendChild(root);
   const toast = h('div', 'hx-toast');
   document.body.appendChild(toast);
 
-  const hx = { el: { root, stack, win, world, canvas, status, panel, trace, composer, input, rail },
+  const hx = { el: { root, stack, win, bed, world: bed, canvas, status, panel, sheet,
+                     transport, composer, input, rail },
                active: 'world', cfg };
 
-  // ── log store. The wall is a panel now, so the lines live here and the
-  //    panel renders them on demand rather than being the only copy. ─────
   const lines = [];
   const railBtns = new Map();
 
+  // ══ THE SHEET ═════════════════════════════════════════════════════════
+  // Height in px, driven by the grip. The bed has a CSS floor (26dvh) and the
+  // sheet is flex-shrinkable, so no drag can ever push the world off screen —
+  // the layout refuses before the maths does. HALF and TALL are the two rests.
+  let sheetH = 0, lastOpen = 0;
+  const sheetMax = () => Math.max(120, win.clientHeight - Math.round(window.innerHeight * 0.28) - 34);
+  const rests = () => { const m = sheetMax(); return [0, Math.round(m * 0.58), m]; };
+
+  function setSheet(px, animate) {
+    sheetH = Math.round(clamp(px, 0, sheetMax()));
+    sheet.classList.toggle('snapping', !!animate);
+    sheet.hidden = sheetH <= 0;
+    root.style.setProperty('--hx-sheet', sheetH + 'px');
+    if (sheetH > 0) lastOpen = sheetH;
+    gripTall.textContent = sheetH >= sheetMax() - 8 ? '⌄' : '⌃';
+    // The bed just changed size; the renderer has to hear about it.
+    if (animate) setTimeout(bedResized, 200); else bedResized();
+  }
+  let resizeT = 0;
+  function bedResized() {
+    clearTimeout(resizeT);
+    resizeT = setTimeout(() => { if (cfg.onResize) cfg.onResize(hx); }, 20);
+  }
+  window.addEventListener('resize', () => { if (sheetH) setSheet(sheetH); bedResized(); });
+
+  (function dragGrip() {
+    let id = null, y0 = 0, h0 = 0, moved = false;
+    grip.addEventListener('pointerdown', ev => {
+      if (ev.target.tagName === 'BUTTON') return;
+      id = ev.pointerId; y0 = ev.clientY; h0 = sheetH; moved = false;
+      grip.setPointerCapture(id);
+      sheet.classList.remove('snapping');
+    });
+    grip.addEventListener('pointermove', ev => {
+      if (id == null || ev.pointerId !== id) return;
+      const d = y0 - ev.clientY;
+      if (Math.abs(d) > 3) moved = true;
+      setSheet(h0 + d, false);
+    });
+    const end = ev => {
+      if (id == null || (ev && ev.pointerId !== id)) return;
+      id = null;
+      if (!moved) { setSheet(sheetH >= rests()[2] - 8 ? rests()[1] : rests()[2], true); return; }
+      const r = rests();
+      let best = r[0];
+      for (const v of r) if (Math.abs(v - sheetH) < Math.abs(best - sheetH)) best = v;
+      setSheet(best, true);
+      if (best === 0) show('world');
+    };
+    grip.addEventListener('pointerup', end);
+    grip.addEventListener('pointercancel', end);
+  })();
+
+  gripTall.addEventListener('click', () => {
+    const r = rests();
+    const tall = sheetH >= r[2] - 8;
+    setSheet(tall ? r[1] : r[2], true);
+    gripTall.textContent = tall ? '⌃' : '⌄';
+  });
+  gripDown.addEventListener('click', () => show('world'));
+
+  // ══ log ═══════════════════════════════════════════════════════════════
   hx.chip = (id, text, cls) => {
     let c = chipEls.get(id);
     if (!c) { c = h('span', 'hx-chip'); chipEls.set(id, c); chips.appendChild(c); }
     c.textContent = text; c.className = 'hx-chip' + (cls ? ' ' + cls : '');
   };
   hx.status = t => { status.textContent = t; };
-  /** Mark the shell busy. A round can block the thread for most of a second,
-   *  and an unexplained unresponsive tab reads as broken rather than working. */
   hx.busy = on => {
     root.dataset.busy = on ? '1' : '';
     tickWho.textContent = on ? 'WORKING' : tickWho.textContent;
@@ -153,19 +225,25 @@ function mount(cfg) {
     return el;
   }
 
+  // ══ transport ═════════════════════════════════════════════════════════
+  let tracePts = [], traceIdx = null;
   hx.trace = (points, activeIdx) => {
+    tracePts = points || []; traceIdx = activeIdx;
     traceRail.innerHTML = '';
-    if (!points || !points.length) {
+    const n = tracePts.length;
+    tCount.textContent = n ? ((activeIdx == null ? n : activeIdx + 1) + '/' + n) : '0/0';
+    tPrev.disabled = tNext.disabled = !n;
+    if (!n) {
       traceRail.appendChild(h('span', 'hx-trace-empty', cfg.traceEmpty || 'no rounds yet'));
       return;
     }
-    points.forEach((p, i) => {
+    tracePts.forEach((p, i) => {
       const d = h('div', 'hx-trace-dot' +
-        (i === activeIdx ? ' now' : i < (activeIdx == null ? points.length : activeIdx) ? ' done' : '') +
+        (i === activeIdx ? ' now' : i < (activeIdx == null ? n : activeIdx) ? ' done' : '') +
         (p.bad ? ' bad' : ''));
       d.title = p.label || ('#' + (i + 1));
       d.appendChild(h('i'));
-      d.addEventListener('click', () => cfg.onTrace && cfg.onTrace(i, p, hx));
+      d.addEventListener('click', () => goTrace(i));
       traceRail.appendChild(d);
     });
     if (activeIdx != null) {
@@ -173,10 +251,28 @@ function mount(cfg) {
       if (el && el.scrollIntoView) el.scrollIntoView({ inline: 'center', block: 'nearest' });
     }
   };
+  function goTrace(i) {
+    if (!tracePts.length) return;
+    i = clamp(i, 0, tracePts.length - 1);
+    if (cfg.onTrace) cfg.onTrace(i, tracePts[i], hx);
+    else hx.trace(tracePts, i);
+  }
+  tPrev.addEventListener('click', () => goTrace((traceIdx == null ? tracePts.length : traceIdx) - 1));
+  tNext.addEventListener('click', () => goTrace((traceIdx == null ? -1 : traceIdx) + 1));
+  hx.playing = false;
+  tPlay.addEventListener('click', () => {
+    hx.playing = !hx.playing;
+    tPlay.textContent = hx.playing ? '❚❚' : '▶';
+    tPlay.classList.toggle('on', hx.playing);
+    if (cfg.onPlay) cfg.onPlay(hx.playing, hx);
+  });
+  hx.setPlaying = on => {
+    hx.playing = !!on;
+    tPlay.textContent = hx.playing ? '❚❚' : '▶';
+    tPlay.classList.toggle('on', hx.playing);
+  };
 
-  // ── panels ────────────────────────────────────────────────────────────
-  // WORLD and LOG are built in. Every builder wants them and none of them
-  // should have to write them, or invent a second place for view controls.
+  // ══ panels ════════════════════════════════════════════════════════════
   const WORLD = { id: 'world', label: 'WORLD', glyph: '◫' };
   const LOG = {
     id: 'log', label: 'LOG', glyph: '≡',
@@ -188,7 +284,29 @@ function mount(cfg) {
       requestAnimationFrame(() => { panel.scrollTop = panel.scrollHeight; });
     }
   };
-  const panels = [WORLD, LOG, ...(cfg.panels || [])];
+  // The roots kept a card per cycle: who acted, what it scored, what it did,
+  // and what the build was before and after. A page opts in with rounds:true
+  // and calls hx.logRound() once a cycle; the transport scrubs them.
+  const rounds = [];
+  hx.rounds = rounds;
+  hx.logRound = rec => {
+    rounds.push(rec || {});
+    if (hx.active === 'rounds') show('rounds', { force: true });
+    return rec;
+  };
+  hx.clearRounds = () => { rounds.length = 0; if (hx.active === 'rounds') show('rounds', { force: true }); };
+  const ROUNDS = {
+    id: 'rounds', label: 'ROUNDS', glyph: '◆', title: 'cycle by cycle',
+    build(el) {
+      if (!rounds.length) return void el.appendChild(h('div', 'hx-empty', 'no cycles yet'));
+      for (let i = rounds.length - 1; i >= 0; i--) {
+        const c = hx.round(rounds[i]);
+        c.addEventListener('click', () => goTrace(i));
+        el.appendChild(c);
+      }
+    }
+  };
+  const panels = [WORLD, LOG, ...(cfg.rounds ? [ROUNDS] : []), ...(cfg.panels || [])];
   hx.panels = panels;
 
   function show(id, opts = {}) {
@@ -198,46 +316,68 @@ function mount(cfg) {
     railBtns.forEach((b, k) => b.setAttribute('aria-pressed', String(k === id)));
 
     if (id === 'world') {
-      panel.hidden = true;
+      setSheet(0, true);
       panel.innerHTML = '';
-      // The renderer sized itself while hidden behind a panel; give it the
-      // window back before the next frame.
-      if (cfg.onResize) cfg.onResize(hx);
       return;
     }
-    panel.hidden = false;
+    gripTitle.textContent = p.title || p.label;
     panel.innerHTML = '';
-    panel.appendChild(h('div', 'hx-panel-head', p.title || p.label));
     try { p.build && p.build(panel, hx); }
     catch (e) { panel.appendChild(h('div', 'hx-empty', 'panel failed: ' + e.message)); console.error(e); }
     panel.scrollTop = 0;
+    if (sheetH <= 0) setSheet(lastOpen || rests()[1], true);
   }
   hx.show = show;
   hx.refresh = id => { if (!id || hx.active === id) show(hx.active, { force: true }); };
+  /** Size the sheet from a page: 'peek' | 'half' | 'tall' | 'down'. */
+  hx.sheet = where => {
+    const r = rests();
+    if (where === 'down') return show('world');
+    setSheet(where === 'tall' ? r[2] : where === 'peek' ? Math.round(r[1] * 0.55) : r[1], true);
+  };
 
   for (const p of panels) {
     const b = h('button');
     b.type = 'button';
     b.setAttribute('aria-pressed', 'false');
-    b.append(h('span', 'g', p.glyph || '•'), h('span', '', p.label));
+    const g = h('span', 'g', p.glyph || '•'), l = h('span', 'l', p.label);
+    b.append(g, l);
     b.addEventListener('click', () => {
-      // Tapping the panel you are already on returns you to the world. One tap
-      // to anything, one tap back — no tab is ever a dead end.
       show(hx.active === p.id && p.id !== 'world' ? 'world' : p.id);
     });
     railBtns.set(p.id, b);
     rail.appendChild(b);
   }
 
+  // ── rail collapse ─────────────────────────────────────────────────────
+  // The rail is 58px of a 390px screen. On a long script or a wide log that is
+  // worth reclaiming, so it folds to a strip of glyphs and every mode is still
+  // one tap away. The choice is remembered.
+  const railToggle = h('button', 'hx-railtoggle');
+  railToggle.type = 'button';
+  railToggle.title = 'collapse the rail';
+  railToggle.appendChild(h('span', 'g', '›'));
+  rail.insertBefore(railToggle, rail.firstChild);
+  function setRail(slim) {
+    root.dataset.rail = slim ? 'slim' : '';
+    railToggle.firstChild.textContent = slim ? '‹' : '›';
+    railToggle.title = slim ? 'expand the rail' : 'collapse the rail';
+    try { localStorage.setItem('hx.rail', slim ? 'slim' : 'wide'); } catch (e) {}
+    bedResized();
+  }
+  railToggle.addEventListener('click', () => setRail(root.dataset.rail !== 'slim'));
+  let slim0 = false;
+  try { slim0 = localStorage.getItem('hx.rail') === 'slim'; } catch (e) {}
+  setRail(slim0);
+
   // Tapping the ticker opens the log it is a one-line summary of.
   ticker.addEventListener('click', () => show(hx.active === 'log' ? 'world' : 'log'));
 
-  // Double-tap the window to fit. This is the only view control that needs to
-  // be instant, so it is the only one that gets to be a gesture.
+  // Double-tap the bed to fit.
   (function doubleTapFit() {
     let last = 0;
-    world.addEventListener('pointerdown', () => { hint.style.opacity = '0'; }, { once: true });
-    world.addEventListener('pointerup', () => {
+    bed.addEventListener('pointerdown', () => { hint.style.opacity = '0'; }, { once: true });
+    bed.addEventListener('pointerup', () => {
       const t = Date.now();
       if (t - last < 320 && cfg.onFit) cfg.onFit(hx);
       last = t;
@@ -260,7 +400,6 @@ function mount(cfg) {
     show(panels[(i + 1) % panels.length].id);
   });
 
-  // Keep the composer clear of the on-screen keyboard.
   if (window.visualViewport) {
     const vv = window.visualViewport;
     const fit = () => {
@@ -289,6 +428,29 @@ function mount(cfg) {
     d.append(h('span', '', k), h('b', cls || '', String(v)));
     return d;
   };
+  /** A round, the way the roots showed one: who, what it scored, what it did,
+   *  and what the build looked like before and after. */
+  hx.round = (o = {}) => {
+    const c = h('div', 'hx-round');
+    const hd = h('header');
+    hd.append(h('span', 'n', o.who || 'ROUND'));
+    if (o.score != null) hd.appendChild(h('span', 's' + (o.delta > 0 ? ' up' : o.delta < 0 ? ' down' : ''),
+      String(o.score)));
+    c.appendChild(hd);
+    if (o.text) c.appendChild(h('div', 'd', o.text));
+    if (o.before != null || o.after != null || o.changed != null) {
+      const ba = h('div', 'ba');
+      const cell = (label, v) => { const d = h('div'); d.append(h('span', '', label), document.createTextNode(String(v))); return d; };
+      if (o.before != null) ba.appendChild(cell('before', o.before));
+      if (o.after != null) ba.appendChild(cell('after', o.after));
+      if (o.changed != null) ba.appendChild(cell('what changed', o.changed));
+      c.appendChild(ba);
+    }
+    // A doctrine decorates its own card — a blast bar, an accusation chain —
+    // without Hilux needing to know what either of those is.
+    if (typeof o.decorate === 'function') { try { o.decorate(c, hx); } catch (e) {} }
+    return c;
+  };
   hx.pinnable = (node, text) => {
     const p = h('button', 'hx-pin', '⌖');
     p.type = 'button';
@@ -307,7 +469,6 @@ function mount(cfg) {
     s.addEventListener('change', () => fn(s.value, hx));
     return s;
   };
-  /** The view controls, as a row of buttons in a panel. Not a rail. */
   hx.viewRow = viewer => hx.row(
     hx.btn('Fit',   () => cfg.onFit && cfg.onFit(hx)),
     hx.btn('Edges', () => { hx._e = !hx._e; viewer && viewer.setDiagnostics({ showEdges: hx._e }); }),
@@ -325,6 +486,7 @@ function mount(cfg) {
     });
   }
   if (cfg.onReady) Promise.resolve().then(() => cfg.onReady(hx));
+  global.__hx = hx;   // one handle, for the console and for the tests
   return hx;
 }
 

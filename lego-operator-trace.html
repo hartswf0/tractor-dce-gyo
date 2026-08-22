@@ -2,239 +2,29 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Operator Trace — fucked until proven otherwise</title>
 <link rel="icon" type="image/svg+xml" href="ball-jar-favicon.svg" />
-<link rel="stylesheet" href="./nabugo.css" />
-<style>
-  :root{ --accent: var(--op); }
-  main.op{flex:1;display:grid;grid-template-columns:250px minmax(0,1fr) 320px;min-height:0}
-  main.op > .col{border-right:1px solid var(--line)}
-  main.op > .col:last-child{border-right:none}
-  .creed-strip{padding:5px 9px;background:#08181c;border-bottom:1px solid #12333a;
-    font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:#67e8f9}
-  /* blast radius — the trace's own metric: how much each gesture disturbed */
-  .blast{display:flex;align-items:center;gap:5px;margin-top:3px}
-  .blast .bar{flex:1;height:4px;background:#131316;border-radius:2px;overflow:hidden;display:flex}
-  .blast .bar i{height:100%}
-  .blast .bar i.add{background:var(--ok)}
-  .blast .bar i.rm{background:var(--bad)}
-  .blast span{font-size:7px;color:var(--faint);letter-spacing:.08em}
-  .worldline{display:flex;gap:1px;height:26px;align-items:flex-end;padding:4px 0}
-  .worldline i{flex:1;background:#12333a;min-height:1px;position:relative}
-  .worldline i.rev{background:#4a3a12}
-  .worldline i.dn{background:#4a1d1d}
-  .defect{padding:6px 9px;background:#0d0d10;border-left:2px solid var(--op);margin-bottom:6px}
-  .defect .k{font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:var(--op)}
-  .defect .t{margin-top:2px}
-  .ids{font-size:8px;color:var(--faint);margin-top:2px;word-break:break-all}
-  @media (max-width:1100px){
-    main.op{grid-template-columns:1fr;grid-template-rows:auto 46vh auto}
-    main.op > .col{border-right:none;border-bottom:1px solid var(--line);max-height:38vh}
-  }
-</style>
+<link rel="stylesheet" href="./hilux.css" />
 </head>
 <body>
-<div class="shell">
-  <header class="bar">
-    <span class="brand">Operator Trace</span>
-    <span class="creed">registered scan · blast radius · revert on regression</span>
-    <span class="spacer"></span>
-    <span class="chip" id="chipRound">Round 0/20</span>
-    <span class="chip op" id="chipFid">Fidelity 0%</span>
-    <span class="chip" id="chipWorld">World 0</span>
-    <span class="chip" id="chipCat">Catalogue —</span>
-    <span class="chip" id="chipBus">Bus —</span>
-  </header>
-  <div class="creed-strip">Assume the build is fucked. Distinguish a building failure from an eye failure. Measure before you believe.</div>
-
-  <main class="op">
-    <!-- ══════════ LEFT ══════════ -->
-    <div class="col">
-      <div class="sec-head">Brief</div>
-      <div class="sec-body">
-        <select id="briefSel"></select>
-        <div id="briefDesc" class="muted" style="margin-top:6px;line-height:1.5"></div>
-      </div>
-
-      <div class="sec-head">Current accusation</div>
-      <div class="sec-body"><div class="defect" id="defect"></div></div>
-
-      <div class="sec-head">Registered scan <span class="n">measured, not inferred</span></div>
-      <div class="sec-body" id="scan"></div>
-
-      <div class="sec-head">Run</div>
-      <div class="sec-body">
-        <div style="display:flex;gap:4px">
-          <button id="btnStep" class="go" style="flex:1">Step</button>
-          <button id="btnRun" class="go" style="flex:1">Run 20</button>
-          <button id="btnReset" style="flex:1">Reset</button>
-        </div>
-        <div style="display:flex;gap:4px;margin-top:4px">
-          <button id="btnDl" style="flex:1">Download MPD</button>
-          <button id="btnBroadcast" style="flex:1">Broadcast</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ══════════ CENTRE ══════════ -->
-    <div class="col">
-      <div class="viewport">
-        <div class="canvas" id="canvas"></div>
-        <div class="tools">
-          <button id="btnFit">Fit</button><button id="btnEdges">Edges</button>
-          <button id="btnGrid">Grid</button><button id="btnSpin">Spin</button>
-        </div>
-        <div class="status" id="status">booting…</div>
-      </div>
-      <div style="flex:0 0 auto;border-top:1px solid var(--line)">
-        <div class="sec-head">World line <span class="n" id="wlNote">fidelity per round · amber = reverted</span></div>
-        <div class="sec-body"><div class="worldline" id="worldline"></div></div>
-        <div class="sec-head">The tray</div>
-        <div class="sec-body"><div class="tray" id="tray"></div></div>
-      </div>
-    </div>
-
-    <!-- ══════════ RIGHT ══════════ -->
-    <div class="col">
-      <div class="sec-head">Ledger</div>
-      <div class="sec-body" id="metrics"></div>
-      <div class="sec-head">Build trace <span class="n" id="nTrace">0</span></div>
-      <div class="scrolly" style="padding:6px 8px" id="trace">
-        <div class="muted">Nothing recorded. Every gesture logs what actually changed, not what was intended.</div>
-      </div>
-    </div>
-  </main>
-</div>
-
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script src="./examples/js/loaders/LDrawLoader.js"></script>
 <script src="./beta-prime-engine.js"></script>
 <script src="./nabugo.js"></script>
 <script src="./nabugo-ui.js"></script>
+<script src="./hilux.js"></script>
+<script src="./duel-page.js"></script>
 <script>
-(async function(){
-'use strict';
-const N = window.Nabugo, U = window.NabugoUI, $ = U.$;
-const S = { d:null, viewer:null, running:false, briefKey:'theseus' };
-
-try {
-  const meta = await N.Catalog.load('./nabugo-parts.json');
-  $('chipCat').textContent = 'Catalogue ' + meta.count.toLocaleString();
-  $('chipCat').className = 'chip live';
-} catch (e) {
-  $('chipCat').textContent = 'Catalogue failed'; $('chipCat').className = 'chip dead';
-  U.toast('Could not load nabugo-parts.json — serve over HTTP');
-}
-if (N.Bus.connect('lego-operator-trace')) {
-  $('chipBus').textContent = 'Bus wag-frank'; $('chipBus').className = 'chip live';
-} else $('chipBus').textContent = 'Bus n/a';
-
-try { S.viewer = await U.makeViewer($('canvas'), { background: 0x04080a }); }
-catch (e) { $('status').textContent = 'viewer failed: ' + e.message; }
-
-U.briefOptions($('briefSel'), S.briefKey);
-$('briefSel').addEventListener('change', e => { S.briefKey = e.target.value; reset(); });
-
-function reset() {
-  S.d = new N.Doctrine('OPERATOR', N.Brief.BRIEFS[S.briefKey]);
-  $('briefDesc').textContent = S.d.brief.description;
-  paint(); U.render(S.viewer, S.d.scene, $('status'), 'operator');
-}
-
-async function step() {
-  if (!S.d || S.d.settled) return false;
-  S.d.step();
-  paint();
-  await U.render(S.viewer, S.d.scene, $('status'), 'operator');
-  return !S.d.settled;
-}
-
-async function run(n) {
-  if (S.running) { S.running = false; return; }
-  S.running = true; $('btnRun').textContent = 'Stop'; $('btnRun').classList.add('stop');
-  for (let i = 0; i < n && S.running; i++) {
-    if (!(await step())) break;
-    await new Promise(r => setTimeout(r, 40));
-  }
-  S.running = false; $('btnRun').textContent = 'Run 20'; $('btnRun').classList.remove('stop');
-}
-
-function paint() {
-  const a = S.d.audit();
-  U.metrics($('metrics'), a, 'op');
-  U.tray($('tray'), [{ scene: S.d.scene, cls: 'op' }]);
-  $('chipRound').textContent = 'Round ' + S.d.round + '/20' + (S.d.settled ? ' · settled' : '');
-  $('chipFid').textContent = 'Fidelity ' + a.fidelity + '%';
-  $('chipWorld').textContent = 'World ' + S.d.scene.version;
-
-  $('defect').innerHTML =
-    '<div class="k">' + a.defect.kind + '</div>' +
-    '<div class="t">' + U.esc(a.defect.killer) + '</div>' +
-    (a.defect.ids.length ? '<div class="ids">' + U.esc(a.defect.ids.join(' ')) + '</div>' : '');
-
-  // The scan panel is the OPERATIVE question, transposed: is the build wrong,
-  // or is the measurement wrong? Everything here is computed, never inferred.
-  $('scan').innerHTML =
-    kv('WORLD_TRUE objects', a.parts) +
-    kv('distinct parts', a.unique) +
-    kv('interpenetrations', a.collisions, a.collisions ? 'bad' : 'ok') +
-    kv('unsupported', a.floating, a.floating ? 'bad' : 'ok') +
-    kv('cluster cohesion', Math.round(a.cohesion * 100) + '%',
-       a.cohesion >= .9 ? 'ok' : a.cohesion >= .6 ? 'warn' : 'bad') +
-    kv('separate clusters', a.components) +
-    kv('worst penetration', a.worstPen + ' LDU³', a.worstPen ? 'bad' : 'ok') +
-    kv('last blast radius', S.d.trace.length ? S.d.trace[S.d.trace.length-1].blast : 0) +
-    kv('reverted gestures', S.d.trace.filter(r => r.reverted).length,
-       S.d.trace.some(r => r.reverted) ? 'warn' : 'ok');
-
-  const t = S.d.trace;
-  $('nTrace').textContent = t.length;
-  $('trace').innerHTML = t.length
-    ? t.slice().reverse().map(recWithBlast).join('')
-    : '<div class="muted">Nothing recorded.</div>';
-
-  const max = Math.max(1, ...t.map(r => r.after.fidelity));
-  $('worldline').innerHTML = t.map(r =>
-    '<i class="' + (r.reverted ? 'rev' : r.delta < 0 ? 'dn' : '') + '" title="R' + r.round +
-    ' · ' + r.defect.kind + ' · f' + r.after.fidelity + '" style="height:' +
-    Math.max(2, Math.round(100 * r.after.fidelity / max)) + '%"></i>').join('')
-    || '<span class="muted">no rounds yet</span>';
-}
-
-function kv(k, v, cls) {
-  return '<div class="kv"><span>' + k + '</span><b' + (cls ? ' class="' + cls + '"' : '') + '>' + v + '</b></div>';
-}
-
-/** The trace record, plus the blast bar this doctrine exists to show. */
-function recWithBlast(r) {
-  const total = Math.max(1, r.added.length + r.removed.length);
-  const bar = '<div class="blast"><div class="bar">' +
-    '<i class="add" style="width:' + (100 * r.added.length / total) + '%"></i>' +
-    '<i class="rm" style="width:' + (100 * r.removed.length / total) + '%"></i></div>' +
-    '<span>+' + r.added.length + ' −' + r.removed.length + '</span></div>';
-  return U.traceRec(r).replace('</div>\n', '</div>').replace(/<\/div>$/, bar + '</div>');
-}
-
-$('btnStep').addEventListener('click', step);
-$('btnRun').addEventListener('click', () => run(20));
-$('btnReset').addEventListener('click', () => { S.running = false; reset(); });
-$('btnFit').addEventListener('click', () => U.frame(S.viewer));
-let e = true, g = true, sp = false;
-$('btnEdges').addEventListener('click', () => S.viewer && S.viewer.setDiagnostics({ showEdges: (e = !e) }));
-$('btnGrid').addEventListener('click',  () => S.viewer && S.viewer.setDiagnostics({ grid: (g = !g) }));
-$('btnSpin').addEventListener('click',  () => S.viewer && S.viewer.setAutoSpin(sp = !sp));
-$('btnDl').addEventListener('click', () => U.download(S.d.toMPD(), 'operator-' + S.briefKey + '.mpd'));
-$('btnBroadcast').addEventListener('click', () => {
-  const a = S.d.audit();
-  U.toast(N.Bus.emit(S.d.scene, { name: S.d.brief.title + ' · OPERATOR', ...a }, 'lego-operator-trace')
-    ? 'Broadcast on wag-frank' : 'No BroadcastChannel in this browser');
+DuelBoot.boot({
+  title: 'Operator Trace',
+  doctrine: 'OPERATOR',
+  source: 'lego-operator-trace',
+  background: 0x04080a,
+  brief: 'theseus',
+  creed: 'Assume the build is fucked. Distinguish a building failure from an eye failure. Measure before you believe.'
 });
-
-reset();
-window.OperatorTrace = S;
-})();
 </script>
 </body>
 </html>

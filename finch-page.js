@@ -21,6 +21,7 @@ async function boot(cfg) {
     placeholder: 'run · step · brief cave · mpd · help',
     wallEmpty: finch.strategy,
     traceEmpty: 'no generations yet',
+    rounds: true,
     panels: [
       { id: 'run',     label: 'RUN',     glyph: '▶', title: finch.latin + ' · ' + finch.beak, build: panelRun },
       { id: 'voids',   label: 'VOIDS',   glyph: '○', title: 'void ledger · not a percentage', build: panelVoids },
@@ -61,7 +62,7 @@ async function boot(cfg) {
   function reset() {
     St.pop = new E.Population(cfg.finch, N.Brief.BRIEFS[St.briefKey]);
     St.lastRender = -1;
-    hx.clearWall();
+    hx.clearWall(); hx.clearRounds();
     hx.say('SYSTEM', finch.strategy, { kind: 'sys' });
     hx.say('SYSTEM', 'brief: ' + St.pop.brief.title, { kind: 'sys' });
     paint();
@@ -78,8 +79,9 @@ async function boot(cfg) {
 
   async function step() {
     if (!St.pop || St.pop.settled) return false;
+    const before = St.pop.scene.places.length;
     const rec = St.pop.step();
-    if (rec) report(rec);
+    if (rec) report(rec, before);
     paint();
     await render();
     return !St.pop.settled;
@@ -96,7 +98,17 @@ async function boot(cfg) {
     await render();
   }
 
-  function report(r) {
+  function report(r, before) {
+    // The card the roots showed: who acted, what it cost, before and after.
+    const after = St.pop.scene.places.length;
+    hx.logRound({
+      who: 'CYCLE ' + r.round + ' · ' + (r.chosen ? 'BUILDER' : 'SCOUT'),
+      score: after, delta: after - (before == null ? after : before),
+      text: r.chosen ? r.chosen.claim : (r.note || 'nothing survived the gates'),
+      before: (before == null ? after : before) + ' pcs',
+      after: after + ' pcs',
+      changed: r.void + ' at ' + r.cell + ' · ' + r.survivors + '/' + r.generated + ' viable'
+    });
     hx.say('SCOUT', r.void + ' at ' + r.cell + ' · zone ' + r.zone, { kind: 'sys' });
     hx.say('COMPILER', r.generated + ' genomes drawn · ' + r.rejected + ' refused by the gates · ' +
            r.survivors + ' viable · ' + r.frontier + ' on the frontier',
