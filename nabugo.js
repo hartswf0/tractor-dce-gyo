@@ -184,6 +184,10 @@ class NabugoScene {
       vignette: place.vignette || null,
       strategy: place.strategy || null,
       round: place.round || 0,
+      // An assembly stamp travels with the placement: the audit needs it to
+      // know that these parts are one object, and toMPD needs it to cut a
+      // submodel where a real kit would have one.
+      asm: place.asm || null,
       locked: !!place.locked
     };
     this.places.push(p);
@@ -271,12 +275,19 @@ const NabugoAudit = (() => {
     const compiles = unknown.length === 0;
 
     // -- collision: interpenetrating solids -----------------------------------
+    // An assembly is one object and does not interpenetrate itself. A minifig's
+    // arm is inside its torso, a wheel is inside its arch, and a windscreen sits
+    // down over the studs it clips to — in every real LDraw kit. Counting those
+    // as defects made the first minifig this engine ever placed also the first
+    // nine collisions it ever reported. Parts carrying the same `asm` stamp are
+    // one object; everything without a stamp is checked against everything.
     const collisions = [];
     let worstPen = 0;
     for (let i = 0; i < places.length; i++) {
       if (!boxes[i]) continue;
       for (let j = i + 1; j < places.length; j++) {
         if (!boxes[j]) continue;
+        if (places[i].asm && places[i].asm === places[j].asm) continue;
         const v = NabugoGeom.penetration(boxes[i], boxes[j]);
         if (v > 0) {
           collisions.push({ a: places[i].pid, b: places[j].pid, vol: Math.round(v),
@@ -303,6 +314,17 @@ const NabugoAudit = (() => {
           }
         }
       }
+    }
+    // An assembly stands or falls together: a minifig's head is held by its
+    // torso, not by the ground, so grounding one part grounds the assembly.
+    const byAsm = new Map();
+    places.forEach((p, i) => {
+      if (!p.asm || !boxes[i]) return;
+      if (!byAsm.has(p.asm)) byAsm.set(p.asm, []);
+      byAsm.get(p.asm).push(i);
+    });
+    for (const group of byAsm.values()) {
+      if (group.some(i => grounded.has(i))) group.forEach(i => grounded.add(i));
     }
     const floating = places.filter((_, i) => boxes[i] && !grounded.has(i)).map(p => p.pid);
 

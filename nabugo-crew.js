@@ -76,6 +76,11 @@ function commit(exp, places, opts = {}) {
   const kept = [];
   let clashed = 0, unsupported = 0;
 
+  // An assembly is one object. A minifig's arms are meant to be inside its
+  // torso and a wheel is meant to be inside its arch; checking a figure against
+  // its own parts is what refused every minifig with "2 of 4 pieces clash".
+  // The group is still checked against the world, which is the check that matters.
+  const selfClash = opts.selfClash !== false;
   for (const p of places) {
     const box = Geom.worldBox(p);
     if (!box) { clashed++; continue; }
@@ -83,7 +88,7 @@ function commit(exp, places, opts = {}) {
       const b = Geom.worldBox(q);
       return b && Geom.penetration(box, b) > 0;
     });
-    if (hitsWorld || boxes.some(b => Geom.penetration(box, b) > 0)) { clashed++; continue; }
+    if (hitsWorld || (selfClash && boxes.some(b => Geom.penetration(box, b) > 0))) { clashed++; continue; }
     kept.push({ p, box }); boxes.push(box);
   }
 
@@ -140,9 +145,14 @@ const Tools = {
     const pool = Stores.figures;
     if (!pool.length) return { ok: false, reason: 'no curated figures loaded' };
     const fig = pool[Math.floor(exp.rng() * pool.length)];
+    const asm = 'fig' + (exp.asmNo = (exp.asmNo || 0) + 1);
     // Y offsets down a standing minifig, LDraw Y-down: legs, torso, arms, head.
-    const LAYER = { 'LEGS': 0, 'HIPS': 0, 'TORSO': -28, 'LEFT ARM': -28,
-                    'RIGHT ARM': -28, 'LEFT HAND': -28, 'RIGHT HAND': -28, 'HEAD': -56 };
+    // dy down the figure and dx out to the sides. Arms hang off the torso at
+    // about ten LDU either way and hands another six; stacking them all on the
+    // centre line put a whole minifig inside its own chest.
+    const LAYER = { 'LEGS': [0, 0], 'HIPS': [0, 0], 'TORSO': [-28, 0],
+                    'LEFT ARM': [-30, -11], 'RIGHT ARM': [-30, 11],
+                    'LEFT HAND': [-46, -15], 'RIGHT HAND': [-46, 15], 'HEAD': [-60, 0] };
     // Stand on whatever is actually underfoot at (x,z), not at y=0.
     const deck = surfaceAt(exp, at.x, at.z);
     if (deck == null) return { ok: false, reason: 'no deck under ' + at.x + ',' + at.z };
@@ -152,20 +162,96 @@ const Tools = {
       const id = String(p.filename || '').replace(/\.dat$/i, '');
       const part = Catalog.get(id);
       if (!part) continue;
-      const dy = LAYER[p.label] != null ? LAYER[p.label] : -28;
+      const off = LAYER[p.label] || [-28, 0];
       out.push({ part: id, color: p.colorCode != null ? p.colorCode : (fig.colorCode || 4),
-                 pos: [at.x - (part.b[0] + part.b[3]) / 2, deck + dy - part.b[4],
+                 pos: [at.x + off[1] - (part.b[0] + part.b[3]) / 2, deck + off[0] - part.b[4],
                        at.z - (part.b[2] + part.b[5]) / 2],
                  mat: Geom.IDENT,
-                 role: (p.label || 'part').toLowerCase(), module: 'crew:' + fig.id });
+                 role: (p.label || 'part').toLowerCase(), module: 'crew:' + fig.id, asm });
     }
     if (!out.length) return { ok: false, reason: 'figure ' + fig.id + ' resolved to nothing' };
+    settleGroup(out, deck);
     // A figure is not made of independently supported parts — a head rests on a
     // torso, not on the ground — so the group is exempted from the support
     // sweep and checked only for clashes, as one object.
-    const c = commit(exp, out, { atomic: true, requireSupport: false });
+    const c = commit(exp, out, { atomic: true, requireSupport: false, selfClash: false });
     if (!c.ok) return { ok: false, reason: c.reason };
-    return { ok: true, parts: c.parts, note: fig.title + ' — ' + (fig.archetype || '') };
+    const asked = (fig.parts || []).length;
+    return { ok: true, parts: c.parts,
+             note: fig.title + ' — ' + (fig.archetype || '') +
+                   (c.parts < asked ? '  (' + c.parts + ' of ' + asked + ' parts in the catalogue)' : '') };
+  },
+
+  /**
+   * Assemble a vessel from the vehiculator's own library and stand it on the
+   * site. vehicle-library.json has been loading on every page for months and
+   * nothing has ever read it: Stores.vessels was live and no hand called it.
+   * A vehicle is one object — chassis, then whatever sits on the chassis — so
+   * it commits atomically and is exempt from the per-part support sweep the
+   * way a figure is.
+   */
+  launch(exp, at, opts = {}) {
+    const types = Stores.vessels;
+    if (!types.length) return { ok: false, reason: 'no vessel types loaded' };
+    const t = opts.type ? types.find(v => v.chassis && v.chassis.length && opts.type) || types[0]
+                        : types[Math.floor(exp.rng() * types.length)];
+    const pick = a => (a && a.length) ? a[Math.floor(exp.rng() * a.length)] : null;
+    const idOf = e => e ? String(e.filename || '').replace(/\.dat$/i, '') : null;
+    const partOf = e => { const id = idOf(e); return id ? Catalog.get(id) : null; };
+
+    const chassisEntry = pick(t.chassis);
+    const chassis = partOf(chassisEntry);
+    if (!chassis) return { ok: false, reason: 'chassis not in the catalogue' };
+
+    const deck = surfaceAt(exp, at.x, at.z);
+    if (deck == null) return { ok: false, reason: 'no deck under ' + at.x + ',' + at.z };
+
+    const cx = p => (p.b[0] + p.b[3]) / 2, cz = p => (p.b[2] + p.b[5]) / 2;
+    const hOf = p => p.b[4] - p.b[1];
+    const colour = opts.colour != null ? opts.colour
+                 : [1, 4, 14, 15, 71, 72][Math.floor(exp.rng() * 6)];
+    const asm = 'ves' + (exp.asmNo = (exp.asmNo || 0) + 1);
+
+    const out = [{ part: idOf(chassisEntry), color: colour,
+                   pos: [at.x - cx(chassis), deck - chassis.b[4], at.z - cz(chassis)],
+                   mat: Geom.IDENT, role: 'chassis', module: 'vessel', asm }];
+
+    // Everything else rides on the chassis deck, front to back along Z so a
+    // windscreen does not land on top of an engine.
+    let top = deck - hOf(chassis);
+    const zSpan = chassis.b[5] - chassis.b[2];
+    const riders = [['windscreen', -zSpan * 0.22], ['engine', zSpan * 0.26], ['wings', 0]];
+    for (const [slot, dz] of riders) {
+      const e = pick(t[slot]); const part = partOf(e);
+      if (!part) continue;
+      // Refuse a rider wider than the thing it rides on; that is how you get a
+      // 6x8 fuselage panel balanced on a 4x4 car base.
+      if ((part.b[3] - part.b[0]) > (chassis.b[3] - chassis.b[0]) * 1.6) continue;
+      out.push({ part: idOf(e), color: colour,
+                 pos: [at.x - cx(part), top - part.b[4], at.z + dz - cz(part)],
+                 mat: Geom.IDENT, role: slot, module: 'vessel', asm });
+    }
+
+    // Wheels only where the chassis actually has pins for them. A train base
+    // and a boat hull carry their own; bolting four more on is how a build
+    // stops reading as a real thing.
+    if (/wheel pins?/i.test(chassisEntry.description || '') && t.wheels && t.wheels.length) {
+      const e = pick(t.wheels); const w = partOf(e);
+      if (w && (w.b[3] - w.b[0]) < (chassis.b[3] - chassis.b[0])) {
+        const ox = (chassis.b[3] - chassis.b[0]) / 2, oz = (chassis.b[5] - chassis.b[2]) / 2;
+        for (const [sx, sz] of [[-1,-1],[1,-1],[-1,1],[1,1]]) {
+          out.push({ part: idOf(e), color: 0,
+                     pos: [at.x + sx * ox - cx(w), deck - w.b[4], at.z + sz * oz * 0.6 - cz(w)],
+                     mat: Geom.IDENT, role: 'wheel', module: 'vessel', asm });
+        }
+      }
+    }
+
+    settleGroup(out, deck);
+    const c = commit(exp, out, { atomic: true, requireSupport: false, selfClash: false });
+    if (!c.ok) return { ok: false, reason: c.reason };
+    const kind = (chassisEntry.description || 'vessel').split(/\s{2,}|\s+\d/)[0];
+    return { ok: true, parts: c.parts, note: kind + ' — ' + out.length + ' pieces at ' + at.x + ',' + at.z };
   },
 
   /** Inspect. Facts only; the log records them whether or not they are good. */
@@ -196,6 +282,80 @@ function surfaceAt(exp, x, z) {
     if (best == null || b.min[1] < best) best = b.min[1];   // Y-down: min is highest
   }
   return best;
+}
+
+/**
+ * Somewhere with a deck under it. The purser used to compute one point,
+ * `c.z + c.d/2 + 40` — forty LDU past the far edge of the claim — and muster
+ * there. That is deliberately off the built footprint, so surfaceAt returned
+ * null and every single figure in every single expedition was refused with
+ * "no deck under". Six hundred pieces and not one minifig, all voyage.
+ *
+ * So: probe. On the claim first, because a figure standing on the thing is
+ * more legible than one standing beside it, then the four approaches, then
+ * anywhere on the site at all. First candidate with something underfoot wins.
+ */
+/**
+ * Drop a finished assembly until its lowest part rests on the deck. The layer
+ * table assumes a whole minifig — legs, hips, torso, arms, head — but several
+ * of the curated figures resolve to only four parts in our catalogue, and a
+ * figure with no legs placed by the table hovers twenty-eight LDU above the
+ * ground and audits as four floating parts. Settling the group by its own
+ * lowest point works whatever survived resolution.
+ */
+function settleGroup(out, deck) {
+  let lowest = -Infinity;                 // Y is down: the lowest point is the largest Y
+  for (const o of out) {
+    const part = Catalog.get(o.part);
+    if (!part) continue;
+    const bottom = o.pos[1] + part.b[4];
+    if (bottom > lowest) lowest = bottom;
+  }
+  if (lowest === -Infinity) return out;
+  const dy = deck - lowest;
+  if (dy) for (const o of out) o.pos[1] += dy;
+  return out;
+}
+
+function roomAt(exp, x, z, half, height) {
+  const deck = surfaceAt(exp, x, z);
+  if (deck == null) return null;
+  // Y is down: the deck is the smallest Y at this column, so the volume a
+  // figure or a vessel needs is deck-height .. deck. A point with a deck under
+  // it is not the same as a point with room on it — the first version checked
+  // only the former and lost half its figures to "2 of 4 pieces clash".
+  const box = { min: [x - half, deck - height, z - half], max: [x + half, deck - 2, z + half] };
+  for (const p of exp.site.places) {
+    const b = Geom.worldBox(p);
+    if (b && Geom.penetration(box, b) > 0) return null;
+  }
+  return deck;
+}
+
+function standing(exp, need = {}) {
+  const half = need.half == null ? 14 : need.half;
+  const height = need.height == null ? 72 : need.height;
+  const claims = exp.site.claims.filter(c => c.label !== 'ground');
+  const cand = [];
+  const jitter = f => Math.round((exp.rng() - 0.5) * f);
+  for (const c of claims) {
+    cand.push({ x: Math.round(c.x) + jitter(c.w * 0.5), z: Math.round(c.z) + jitter(c.d * 0.5) });
+    for (const [dx, dz] of [[0, 1], [0, -1], [1, 0], [-1, 0]]) {
+      cand.push({ x: Math.round(c.x + dx * (c.w / 2 + 30)), z: Math.round(c.z + dz * (c.d / 2 + 30)) });
+    }
+  }
+  // Last resort: stand on whatever has actually been laid, wherever that is.
+  const places = exp.site.places;
+  for (let i = 0; i < 24 && places.length; i++) {
+    const p = places[Math.floor(exp.rng() * places.length)];
+    const b = Geom.worldBox(p);
+    if (b) cand.push({ x: Math.round((b.min[0] + b.max[0]) / 2), z: Math.round((b.min[2] + b.max[2]) / 2) });
+  }
+  for (let i = cand.length - 1; i > 0; i--) {            // seeded shuffle, not a fixed order
+    const j = Math.floor(exp.rng() * (i + 1)); const t = cand[i]; cand[i] = cand[j]; cand[j] = t;
+  }
+  for (const c of cand) if (roomAt(exp, c.x, c.z, half, height) != null) return { x: c.x, z: c.z, y: 0 };
+  return null;
 }
 
 // ═══════════════════════════════════════════════════════════════════ crew
@@ -283,14 +443,21 @@ const CREW = {
   purser: {
     name: 'Purser', job: 'musters the crew onto the site',
     watch(exp) {
-      const claims = exp.site.claims.filter(c => c.label !== 'ground');
-      if (!claims.length) return { note: 'nowhere to stand yet' };
-      const c = claims[Math.floor(exp.rng() * claims.length)];
-      const at = { x: Math.round(c.x + (exp.rng() - 0.5) * c.w * 0.6),
-                   z: Math.round(c.z + c.d / 2 + 40), y: 0 };
+      const at = standing(exp, { half: 14, height: 76 });
+      if (!at) return { note: 'nowhere with room to stand' };
       const r = Tools.muster(exp, at);
       return r.ok ? { parts: r.parts, note: r.note + ' at ' + at.x + ',' + at.z }
                   : { note: 'no muster: ' + r.reason };
+    }
+  },
+
+  coxswain: {
+    name: 'Coxswain', job: 'brings a vessel alongside',
+    watch(exp) {
+      const at = standing(exp, { half: 46, height: 56 });
+      if (!at) return { note: 'no quay with room alongside' };
+      const r = Tools.launch(exp, at);
+      return r.ok ? { parts: r.parts, note: r.note } : { note: 'no vessel: ' + r.reason };
     }
   },
 
@@ -330,7 +497,8 @@ class Expedition {
     this.brief = opts.brief || N.Brief.BRIEFS.atlantis;
     this.roster = opts.roster ||
       ['surveyor','quarryman','bosun','mason','mason','mason','mason','naturalist',
-       'mason','shipwright','mason','purser','mason','naturalist','inspector'];
+       'mason','shipwright','mason','purser','mason','coxswain','mason','naturalist',
+       'purser','mason','inspector'];
     this.target = null;
     this.plan = [];
     this.palette = null;
@@ -462,7 +630,7 @@ class Expedition {
     const s = new N.Scene(this.brief.title + ' · ' + this.name);
     for (const p of this.site.places) {
       s.add({ part: p.part, color: p.color, pos: p.pos, mat: p.mat,
-              vignette: p.module, strategy: p.role, zone: 2 });
+              vignette: p.module, strategy: p.role, zone: 2, asm: p.asm });
     }
     return s;
   }
