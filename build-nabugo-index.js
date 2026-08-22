@@ -145,17 +145,28 @@ function header(file) {
     const mk = l.match(/^0\s+!KEYWORDS\s+(.+)$/i); if (mk) kw += (kw ? ', ' : '') + mk[1].trim();
   }
   if (!cat) cat = desc.replace(/^~/, '').split(/\s+/)[0] || '';
-  return { desc, cat, kw };
+  // The leading ~ is a library-status marker, not part of the name. Leaving it
+  // in means /^Minifig Hips/ never matches the part called ~Minifig Hips.
+  return { desc: desc.replace(/^~\s*/, ''), cat, kw };
 }
 
 // ------------------------------------------------------------------ build set
-// Sticker/pattern/obsolete variants explode the catalogue without adding
-// construction options, so the index keeps buildable geometry only.
-const SKIP_DESC = /^(~|_)|sticker|obsolete|moved to|\(needs work\)|~moved/i;
+// Stickers are decals, "Moved to X" is an alias whose target is already indexed,
+// and "(Needs Work)" is unfinished geometry. None of those add a construction
+// option, so they stay out.
+const SKIP_DESC = /^_|sticker|moved to|\(needs work\)/i;
+
+// A leading ~ marks a file LDraw no longer treats as a primary part. Most are
+// helper shapes, but the ones tagged (Obsolete) are real superseded parts with
+// real geometry, and excluding all 895 of them is why every minifig this engine
+// ever placed was a head, a torso and two arms: 3815 ~Minifig Hips, 3816 and
+// 3817 the legs, all three obsolete, all three still what the kits are made of.
+const OBSOLETE = /\(obsolete\)/i;
 
 function isCandidate(name, h) {
   if (!h || !h.desc) return false;
   if (SKIP_DESC.test(h.desc)) return false;
+  if (/^~/.test(h.desc) && !OBSOLETE.test(h.desc)) return false;
   if (/^u9\d/i.test(name)) return false;          // internal sub-assemblies
   return true;
 }

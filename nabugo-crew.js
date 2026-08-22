@@ -146,27 +146,45 @@ const Tools = {
     if (!pool.length) return { ok: false, reason: 'no curated figures loaded' };
     const fig = pool[Math.floor(exp.rng() * pool.length)];
     const asm = 'fig' + (exp.asmNo = (exp.asmNo || 0) + 1);
-    // Y offsets down a standing minifig, LDraw Y-down: legs, torso, arms, head.
-    // dy down the figure and dx out to the sides. Arms hang off the torso at
-    // about ten LDU either way and hands another six; stacking them all on the
-    // centre line put a whole minifig inside its own chest.
-    const LAYER = { 'LEGS': [0, 0], 'HIPS': [0, 0], 'TORSO': [-28, 0],
-                    'LEFT ARM': [-30, -11], 'RIGHT ARM': [-30, 11],
-                    'LEFT HAND': [-46, -15], 'RIGHT HAND': [-46, 15], 'HEAD': [-60, 0] };
-    // Stand on whatever is actually underfoot at (x,z), not at y=0.
+    // ── the standing minifig, taken from the bar rather than invented ──────
+    // Three different kits author the identical skeleton — 7140's Biggs
+    // Darklighter and Rebel Technician, and 1621's driver — so these are not
+    // our numbers, they are LEGO's. Origins, not undersides: every offset is
+    // relative to the TORSO origin at zero.
+    //
+    //   head  3626      y -24
+    //   torso  973      y   0
+    //   arms  3818/19   y  +9   x -/+15.552, splayed ~9.8 degrees at the shoulder
+    //   hips  3815      y +32
+    //   legs  3816/17   y +44
+    //
+    // The legs reach 28 LDU below their own origin, so the whole figure stands
+    // on a deck when the torso origin is 72 above it.
+    const SPLAY_L = [0.985, -0.17, 0, 0.17, 0.985, 0, 0, 0, 1];
+    const SPLAY_R = [0.985, 0.17, 0, -0.17, 0.985, 0, 0, 0, 1];
+    const BONE = {
+      'HEAD':      [-24, 0, null], 'HEADGEAR': [-24, 0, null],
+      'TORSO':     [0, 0, null],
+      'LEFT ARM':  [9, -15.552, SPLAY_L], 'RIGHT ARM': [9, 15.552, SPLAY_R],
+      'LEFT HAND': [24, -23.863, SPLAY_L], 'RIGHT HAND': [24, 23.863, SPLAY_R],
+      'HIPS':      [32, 0, null],
+      'LEGS':      [44, 0, null], 'LEFT LEG': [44, 0, null], 'RIGHT LEG': [44, 0, null]
+    };
+    const LEG_DROP = 72;                       // torso origin to the soles
+
     const deck = surfaceAt(exp, at.x, at.z);
     if (deck == null) return { ok: false, reason: 'no deck under ' + at.x + ',' + at.z };
+    const torsoY = deck - LEG_DROP;
 
     const out = [];
     for (const p of (fig.parts || [])) {
       const id = String(p.filename || '').replace(/\.dat$/i, '');
       const part = Catalog.get(id);
       if (!part) continue;
-      const off = LAYER[p.label] || [-28, 0];
+      const bone = BONE[String(p.label || '').toUpperCase()] || BONE.TORSO;
       out.push({ part: id, color: p.colorCode != null ? p.colorCode : (fig.colorCode || 4),
-                 pos: [at.x + off[1] - (part.b[0] + part.b[3]) / 2, deck + off[0] - part.b[4],
-                       at.z - (part.b[2] + part.b[5]) / 2],
-                 mat: Geom.IDENT,
+                 pos: [at.x + bone[1], torsoY + bone[0], at.z],
+                 mat: bone[2] || Geom.IDENT,
                  role: (p.label || 'part').toLowerCase(), module: 'crew:' + fig.id, asm });
     }
     if (!out.length) return { ok: false, reason: 'figure ' + fig.id + ' resolved to nothing' };
