@@ -1,169 +1,240 @@
 /**
- * EXPEDITION PAGE
- * The driving surface. hms-beagle.html, isabela.html and santiago.html set a
- * config and hand over.
+ * EXPEDITION PAGE — the three survey vessels, mounted on Hilux.
  *
- * One button does the work. The rest of the page is the ship's log: who was on
- * watch, what they raised, how many pieces it took, and what the inspector
- * found. Resurrecting a city is a great many watches, so the log is the thing
- * you actually read.
+ * The ship's log is the wall; there is nowhere better for it. Each watch is one
+ * line in the voice of whoever stood it, which is what makes a four-hundred
+ * watch voyage readable at all.
  */
 (function (global) {
 'use strict';
 
 async function boot(cfg) {
   const N = global.Nabugo, E = global.NabugoEvo, M = global.NabugoModules,
-        C = global.NabugoCrew, U = global.NabugoUI, $ = U.$;
-  const S = { exp: null, viewer: null, running: false, briefKey: cfg.brief || 'atlantis',
-              dirty: false, lastRender: 0 };
-  global.ExpeditionPage = S;
+        C = global.NabugoCrew, U = global.NabugoUI;
+  const St = { exp: null, viewer: null, running: false, lastRender: 0,
+               briefKey: cfg.brief || 'atlantis', pieces: cfg.pieces || 1800 };
+  global.ExpeditionPage = St;
 
-  $('vesselName').textContent = cfg.title;
-  $('vesselNote').textContent = cfg.note;
+  const hx = Hilux.mount({
+    title: cfg.title,
+    chips: ['watch', 'parts', 'ground', 'cat'],
+    placeholder: 'run · sail 40 · pieces 2500 · brief ingold · help',
+    wallEmpty: cfg.note,
+    traceEmpty: 'no watches stood',
+    modes: [
+      { id: 'orders',   label: 'ORDERS',   title: 'orders',              build: trayOrders },
+      { id: 'manifest', label: 'WORKS',    title: 'the works, so far',   build: trayManifest },
+      { id: 'voids',    label: 'VOIDS',    title: 'the void ledger',     build: trayVoids },
+      { id: 'palette',  label: 'PALETTE',  title: 'roles this district is built from', build: trayPalette }
+    ],
+    onCommand: command,
+    onWorld: async (canvasEl, hx) => {
+      St.viewer = await U.makeViewer(canvasEl, { background: cfg.background });
+      hx.tool('FIT',  () => U.frame(St.viewer, 0.72));
+      let e = true, g = true, sp = false;
+      hx.tool('EDGE', () => St.viewer.setDiagnostics({ showEdges: (e = !e) }));
+      hx.tool('GRID', () => St.viewer.setDiagnostics({ grid: (g = !g) }));
+      hx.tool('SPIN', () => St.viewer.setAutoSpin(sp = !sp));
+      await load();
+    },
+    onTrace: i => {
+      const e = St.exp && St.exp.log[i];
+      if (e) hx.say('TRACE', 'watch ' + e.watch + ' · ' + e.who + ' — ' + e.note, { kind: 'sys' });
+    },
+    onResize: () => St.viewer && St.viewer.updateRendererSize()
+  });
+  St.hx = hx;
 
-  try {
-    const cm = await N.Catalog.load('./nabugo-parts.json');
-    const pm = await E.Ports.load('./nabugo-ports.json');
-    const st = await C.Stores.load();
-    $('chipCat').textContent = cm.count.toLocaleString() + ' parts · ' + pm.ports.toLocaleString() + ' ports';
-    $('chipCat').className = 'chip live';
-    $('chipStores').textContent = st.shells + ' shells · ' + st.figures + ' figures · ' + st.vessels + ' vessels';
-    $('chipStores').className = st.figures ? 'chip live' : 'chip dead';
-  } catch (e) {
-    $('chipCat').textContent = 'catalogue failed'; $('chipCat').className = 'chip dead';
-    U.toast('Serve this page over HTTP — it needs its data files'); return;
+  async function load() {
+    try {
+      const cm = await N.Catalog.load('./nabugo-parts.json');
+      await E.Ports.load('./nabugo-ports.json');
+      const st = await C.Stores.load();
+      hx.chip('cat', (cm.count / 1000).toFixed(1) + 'k parts', 'ok');
+      hx.say('SYSTEM', cm.count.toLocaleString() + ' parts · stores: ' + st.shells +
+             ' shells, ' + st.figures + ' figures, ' + st.vessels + ' vessels', { kind: 'sys' });
+    } catch (err) {
+      hx.chip('cat', 'no catalogue', 'bad');
+      hx.say('SYSTEM', 'Serve over HTTP — this page needs its data files.', { kind: 'bad' });
+      return;
+    }
+    if (N.Bus.connect(cfg.source)) hx.say('SYSTEM', 'bus wag-frank connected', { kind: 'sys' });
+    refit();
   }
 
-  if (N.Bus.connect(cfg.source)) { $('chipBus').textContent = 'Bus wag-frank'; $('chipBus').className = 'chip live'; }
-  else $('chipBus').textContent = 'Bus n/a';
-
-  try { S.viewer = await U.makeViewer($('canvas'), { background: cfg.background }); }
-  catch (e) { $('status').textContent = 'viewer failed: ' + e.message; }
-
-  U.briefOptions($('briefSel'), S.briefKey);
-  $('briefSel').addEventListener('change', e => { S.briefKey = e.target.value; reset(); });
-  $('pieces').addEventListener('input', e => {
-    $('piecesVal').textContent = e.target.value;
-    if (S.exp) S.exp.piecesWanted = +e.target.value;
-  });
-
-  function reset() {
-    S.exp = new C.Expedition({
-      name: cfg.title, brief: N.Brief.BRIEFS[S.briefKey],
-      roster: cfg.roster, pieces: +$('pieces').value,
-      extent: cfg.extent, maxExtent: cfg.maxExtent,
+  function refit() {
+    St.exp = new C.Expedition({
+      name: cfg.title, brief: N.Brief.BRIEFS[St.briefKey], roster: cfg.roster,
+      pieces: St.pieces, extent: cfg.extent, maxExtent: cfg.maxExtent,
       maxWatches: cfg.maxWatches || 600, seed: cfg.seed
     });
-    if (cfg.colors) S.exp.colors = cfg.colors;
-    $('briefDesc').textContent = S.exp.brief.description;
-    paint(true);
-    U.render(S.viewer, S.exp.scene(), $('status'), cfg.source);
+    if (cfg.colors) St.exp.colors = cfg.colors;
+    St.lastRender = 0;
+    hx.clearWall();
+    hx.say('SYSTEM', cfg.note, { kind: 'sys' });
+    hx.say('SYSTEM', 'brief: ' + St.exp.brief.title + ' — ' + St.exp.brief.description, { kind: 'sys' });
+    paint();
+    render(true);
   }
 
-  /** One watch. Rendering 1,700 parts every watch would be unwatchable, so the
-   *  viewer refreshes on a piece-count delta instead of on every turn. */
+  async function render(force) {
+    if (!St.viewer || !St.exp) return;
+    const n = St.exp.site.count;
+    if (!force && n - St.lastRender < (cfg.renderEvery || 90)) return;
+    St.lastRender = n;
+    await U.render(St.viewer, St.exp.scene(), hx.el.status, cfg.source);
+  }
+
   async function watch(force) {
-    if (!S.exp || S.exp.settled) return false;
-    const before = S.exp.site.count;
-    S.exp.watch();
-    if (S.exp.site.count !== before) S.dirty = true;
-    paint();
-    if (force || (S.dirty && S.exp.site.count - S.lastRender >= (cfg.renderEvery || 90))) {
-      S.lastRender = S.exp.site.count; S.dirty = false;
-      await U.render(S.viewer, S.exp.scene(), $('status'), cfg.source);
+    if (!St.exp || St.exp.settled) return false;
+    const e = St.exp.watch();
+    if (e) {
+      const kind = e.parts > 0 ? 'ok' : /refused|no |error/i.test(e.note) ? 'warn' : 'sys';
+      hx.say(e.who.toUpperCase(), (e.parts > 0 ? '+' + e.parts + ' · ' : '') + e.note, { kind });
     }
-    return !S.exp.settled;
+    paint();
+    await render(force);
+    return !St.exp.settled;
   }
 
-  async function sail(n) {
-    if (S.running) { S.running = false; return; }
-    S.running = true;
-    $('btnSail').textContent = 'Heave to';
-    $('btnSail').classList.add('stop');
-    for (let i = 0; i < n && S.running; i++) {
-      if (!(await watch())) break;
-      if (i % 4 === 3) await new Promise(r => setTimeout(r, 0));
+  async function sail(limit) {
+    if (St.running) { St.running = false; return; }
+    St.running = true; hx.refresh('orders');
+    let n = 0;
+    while (St.running && (limit == null || n++ < limit) && await watch()) {
+      if (n % 3 === 0) await new Promise(r => setTimeout(r, 0));
     }
-    S.running = false;
-    $('btnSail').textContent = 'Sail';
-    $('btnSail').classList.remove('stop');
-    await U.render(S.viewer, S.exp.scene(), $('status'), cfg.source);
+    St.running = false; hx.refresh('orders');
+    await render(true);
     paint();
+    if (St.exp.settled) hx.say('SYSTEM', 'in port — ' + St.exp.site.count.toLocaleString() +
+                               ' pieces over ' + St.exp.watchNo + ' watches', { kind: 'ok' });
   }
 
-  function paint(full) {
-    const x = S.exp, a = x.lastAudit || (full ? x.audit() : null);
-    $('chipWatch').textContent = 'Watch ' + x.watchNo + (x.settled ? ' · in port' : '');
-    $('chipParts').textContent = x.site.count.toLocaleString() + ' / ' + x.piecesWanted.toLocaleString() + ' pieces';
-    const pct = Math.min(100, Math.round(100 * x.site.count / x.piecesWanted));
-    $('progress').style.width = pct + '%';
-    $('chipGround').textContent = x.site.extent + ' LDU of ground';
+  function paint() {
+    const x = St.exp; if (!x) return;
+    hx.chip('watch', 'W' + x.watchNo + (x.settled ? ' · port' : ''));
+    hx.chip('parts', x.site.count.toLocaleString() + ' / ' + x.piecesWanted.toLocaleString(),
+            x.site.count >= x.piecesWanted ? 'ok' : 'hot');
+    hx.chip('ground', x.site.extent + ' LDU');
+    // One dot per watch that actually put something down; a voyage is long and
+    // the trace should show the landfalls, not the empty water.
+    const marks = x.log.filter(e => e.parts > 0);
+    hx.trace(marks.map(e => ({ label: 'W' + e.watch + ' +' + e.parts })), marks.length - 1);
+    if (['manifest','voids','palette'].includes(hx.active)) hx.refresh();
+    if (hx.active === 'orders') hx.refresh('orders');
+  }
 
-    // ---- manifest: what has actually been raised ---------------------------
+  // ── trays ──────────────────────────────────────────────────────────────
+  function trayOrders(el) {
+    el.appendChild(hx.cap('brief'));
+    el.appendChild(hx.select(
+      Object.values(N.Brief.BRIEFS).map(b => ({ value: b.key, label: b.title })),
+      St.briefKey, v => { St.briefKey = v; refit(); }));
+    el.appendChild(hx.cap('pieces wanted'));
+    const rng = Hilux.h('input', 'hx-input');
+    rng.type = 'range'; rng.min = 200; rng.max = 4000; rng.step = 100; rng.value = St.pieces;
+    const lbl = Hilux.h('div', 'hx-kv');
+    lbl.append(Hilux.h('span', '', 'target'), Hilux.h('b', '', String(St.pieces)));
+    rng.addEventListener('input', () => {
+      St.pieces = +rng.value; lbl.lastChild.textContent = rng.value;
+      if (St.exp) St.exp.piecesWanted = St.pieces;
+    });
+    el.append(rng, lbl);
+    el.appendChild(hx.row(
+      hx.btn(St.running ? 'Heave to' : 'Sail', () => sail(null), St.running ? 'stop' : 'go'),
+      hx.btn('Watch', () => watch(true))
+    ));
+    el.appendChild(hx.row(
+      hx.btn('Watch ×20', () => sail(20)),
+      hx.btn('Refit', () => { St.running = false; refit(); })
+    ));
+    el.appendChild(hx.cap('export'));
+    el.appendChild(hx.row(
+      hx.btn('Download MPD', () => U.download(St.exp.toMPD(), cfg.source + '-' + St.briefKey + '.mpd')),
+      hx.btn('Broadcast', () => hx.toast(
+        N.Bus.emit(St.exp.scene(), { name: cfg.title }, cfg.source)
+          ? 'broadcast on wag-frank' : 'no BroadcastChannel here'))
+    ));
+  }
+
+  function trayManifest(el) {
+    const x = St.exp; if (!x) return;
     const man = x.manifest();
-    $('manifest').innerHTML = man.length
-      ? man.map(m => '<div class="kv"><span>' + U.esc(m.module) + ' ×' + m.n +
-          '</span><b>' + m.parts + '</b></div>').join('') +
-        '<div class="kv" style="border-top:1px solid var(--soft);margin-top:3px;padding-top:3px">' +
-        '<span>total</span><b>' + man.reduce((s, m) => s + m.parts, 0) + '</b></div>'
-      : '<div class="muted">nothing raised yet</div>';
-
-    // ---- the palette this district is being built from ---------------------
-    $('palette').innerHTML = x.palette && x.palette.log.length
-      ? x.palette.log.slice(-9).map(l => '<div class="palrow">' + U.esc(l) + '</div>').join('')
-      : '<div class="muted">the quarryman has not drawn yet</div>';
-
-    // ---- void ledger --------------------------------------------------------
-    const sum = x.ledger.summary();
-    const row = (k, list, cls) => list.length
-      ? '<div class="ledger-row"><span class="state ' + cls + '">' + k + '</span>' +
-        list.map(v => '<span class="vpill">' + U.esc(v) + '</span>').join('') + '</div>' : '';
-    $('voids').innerHTML = row('resolved', sum.resolved, 'ok') +
-                           row('partial', sum.partial, 'warn') +
-                           row('unresolved', sum.unresolved, 'bad') ||
-                           '<div class="muted">no voids</div>';
-
-    if (a) {
-      $('inspect').innerHTML =
-        kv('parts', a.parts.toLocaleString()) + kv('distinct', a.unique) +
-        kv('compiles', a.compiles ? 'YES' : 'NO', a.compiles ? 'ok' : 'bad') +
-        kv('collisions', a.collisions, a.collisions ? 'bad' : 'ok') +
-        kv('floating', a.floating, a.floating ? 'bad' : 'ok') +
-        kv('span LDU', a.span.join(' × '));
+    if (!man.length) { el.appendChild(Hilux.h('div', 'hx-wall-empty', 'nothing raised yet')); return; }
+    el.appendChild(hx.cap('raised'));
+    for (const m of man) {
+      const row = hx.kv(m.module + ' ×' + m.n, m.parts);
+      hx.pinnable(row, m.module + ' ×' + m.n + ' — ' + m.parts + ' pieces');
+      el.appendChild(row);
     }
-
-    // ---- ship's log ---------------------------------------------------------
-    const log = x.log;
-    $('nLog').textContent = log.length;
-    const view = log.slice(-160).reverse();
-    $('log').innerHTML = view.length ? view.map(e =>
-      '<div class="watchrow' + (e.parts > 0 ? ' did' : '') + '">' +
-        '<span class="w">' + e.watch + '</span>' +
-        '<span class="who ' + e.who.toLowerCase() + '">' + e.who + '</span>' +
-        '<span class="p">' + (e.parts > 0 ? '+' + e.parts : '·') + '</span>' +
-        '<span class="n">' + U.esc(e.note) + '</span>' +
-      '</div>').join('')
-      : '<div class="muted">No watches stood. SAIL sets the crew to work — surveyor, ' +
-        'quarryman, bosun, then the masons.</div>';
+    el.appendChild(hx.kv('total', man.reduce((s, m) => s + m.parts, 0)));
+    const a = x.lastAudit || x.audit();
+    el.appendChild(hx.cap('inspector'));
+    el.appendChild(hx.kv('distinct', a.unique));
+    el.appendChild(hx.kv('compiles', a.compiles ? 'YES' : 'NO', a.compiles ? 'ok' : 'bad'));
+    el.appendChild(hx.kv('collisions', a.collisions, a.collisions ? 'bad' : 'ok'));
+    el.appendChild(hx.kv('floating', a.floating, a.floating ? 'bad' : 'ok'));
+    el.appendChild(hx.kv('span LDU', a.span.join(' × ')));
   }
-  const kv = (k, v, cls) => '<div class="kv"><span>' + k + '</span><b' +
-    (cls ? ' class="' + cls + '"' : '') + '>' + v + '</b></div>';
 
-  $('btnWatch').addEventListener('click', () => watch(true));
-  $('btnSail').addEventListener('click', () => sail(cfg.maxWatches || 600));
-  $('btnReset').addEventListener('click', () => { S.running = false; reset(); });
-  $('btnFit').addEventListener('click', () => U.frame(S.viewer, 0.72));
-  let e = true, g = true, sp = false;
-  $('btnEdges').addEventListener('click', () => S.viewer && S.viewer.setDiagnostics({ showEdges: (e = !e) }));
-  $('btnGrid').addEventListener('click',  () => S.viewer && S.viewer.setDiagnostics({ grid: (g = !g) }));
-  $('btnSpin').addEventListener('click',  () => S.viewer && S.viewer.setAutoSpin(sp = !sp));
-  $('btnDl').addEventListener('click', () => U.download(S.exp.toMPD(), cfg.source + '-' + S.briefKey + '.mpd'));
-  $('btnBroadcast').addEventListener('click', () =>
-    U.toast(N.Bus.emit(S.exp.scene(), { name: S.exp.brief.title + ' · ' + cfg.title }, cfg.source)
-      ? 'Broadcast on wag-frank' : 'No BroadcastChannel in this browser'));
+  function trayVoids(el) {
+    const x = St.exp; if (!x) return;
+    const s = x.ledger.summary();
+    const block = (title, list, cls) => {
+      if (!list.length) return;
+      el.appendChild(hx.cap(title));
+      list.forEach(v => el.appendChild(hx.kv(v, title === 'resolved' ? '✓' : '—', cls)));
+    };
+    block('resolved', s.resolved, 'ok');
+    block('partial', s.partial, 'warn');
+    block('unresolved', s.unresolved, 'bad');
+    if (s.emergent && s.emergent.length) {
+      el.appendChild(hx.cap('emergent · the brief, contradicted'));
+      s.emergent.forEach(e => {
+        const d = Hilux.h('div', 'hx-kv');
+        d.appendChild(Hilux.h('span', '', e));
+        hx.pinnable(d, e);
+        el.appendChild(d);
+      });
+    }
+  }
 
-  reset();
+  function trayPalette(el) {
+    const x = St.exp; if (!x) return;
+    if (!x.palette || !x.palette.log.length) {
+      el.appendChild(Hilux.h('div', 'hx-wall-empty', 'the quarryman has not drawn yet'));
+      return;
+    }
+    el.appendChild(hx.cap('role → part'));
+    x.palette.log.slice(-14).forEach(l => {
+      const [role, rest] = l.split(' → ');
+      const row = hx.kv(role, rest || '');
+      hx.pinnable(row, l);
+      el.appendChild(row);
+    });
+  }
+
+  function command(text) {
+    const [verb, ...rest] = text.trim().split(/\s+/);
+    const v = verb.toLowerCase(), arg = rest.join(' ');
+    // `run` is what everyone types first, whatever the metaphor says.
+    if (v === 'sail' || v === 'run' || v === 'go') return sail(Number(arg) || null);
+    if (v === 'watch')  return Number(arg) ? sail(Number(arg)) : watch(true);
+    if (v === 'stop')   { St.running = false; return hx.say('SYSTEM', 'heaving to', { kind: 'sys' }); }
+    if (v === 'refit')  { St.running = false; return refit(); }
+    if (v === 'pieces') { St.pieces = Number(arg) || St.pieces;
+                          if (St.exp) St.exp.piecesWanted = St.pieces;
+                          hx.refresh('orders'); return hx.say('SYSTEM', 'target ' + St.pieces, { kind: 'sys' }); }
+    if (v === 'brief')  { if (N.Brief.BRIEFS[arg]) { St.briefKey = arg; return refit(); }
+                          return hx.say('SYSTEM', 'briefs: ' + Object.keys(N.Brief.BRIEFS).join(', '), { kind: 'bad' }); }
+    if (v === 'mpd')    { U.download(St.exp.toMPD(), cfg.source + '.mpd'); return hx.toast('downloaded'); }
+    if (v === 'fit')    return U.frame(St.viewer, 0.72);
+    if (v === 'help' || v === '?')
+      return hx.say('SYSTEM', 'sail|run [n] · watch [n] · stop · refit · pieces <n> · ' +
+                    'brief <key> · mpd · fit', { kind: 'sys' });
+    hx.say('SYSTEM', 'unknown — try `help`', { kind: 'bad' });
+  }
 }
-
 global.ExpeditionBoot = boot;
 })(window);

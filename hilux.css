@@ -1,0 +1,231 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   HILUX — one chassis, every load
+   ═══════════════════════════════════════════════════════════════════════════
+   The old pages were three desktop columns that "went responsive" by stacking
+   into `grid-template-rows: auto 44vh auto` with `max-height:44vh` on each —
+   132vh of panels crammed into 100vh, absolutely-positioned toolbars landing on
+   whatever ended up underneath. On a phone that is not a layout, it is a pile.
+
+   So: one invariant screen, four bands and a rail. Every builder mounts into it.
+
+     WORLD      the 3D scene. Always present, always the biggest thing.
+     TRAY       the active mode's controls, floating over the world's foot.
+     TRACE      one thin line. Where you are in the run.
+     WALL       the discourse. Elastic — drag the divider to grow it.
+     COMPOSER   always visible. Never scrolls away.
+     RAIL       mode tabs down the right edge. The active mode fills the tray.
+
+   Nothing nests a scroller inside a scroller. Nothing is measured in vh except
+   the two bands that are allowed to breathe, and those use dvh so the mobile
+   browser chrome cannot eat them.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root{
+  color-scheme: dark;
+  --hx-bg:#050506; --hx-panel:#0b0b0e; --hx-line:#232329; --hx-soft:#15151a;
+  --hx-fg:#e9e9ee; --hx-dim:#8b8b95; --hx-faint:#54545e;
+  --hx-accent:#22d3ee;
+  --hx-ok:#4ade80; --hx-warn:#facc15; --hx-bad:#f87171;
+  --hx-rail:46px;
+  --hx-wall:34dvh;         /* the draggable one */
+  --hx-tap:44px;
+  --hx-mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,monospace;
+  --hx-ui:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+}
+
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;height:100%;overflow:hidden;background:var(--hx-bg);
+  color:var(--hx-fg);font:12px/1.45 var(--hx-ui);-webkit-text-size-adjust:100%;
+  overscroll-behavior:none}
+button,input,textarea,select{font:inherit;color:inherit}
+
+/* ── frame ─────────────────────────────────────────────────────────────── */
+.hx{display:flex;height:100dvh;width:100vw;overflow:hidden}
+.hx-main{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;overflow:hidden}
+
+/* ── header ────────────────────────────────────────────────────────────── */
+.hx-head{flex:0 0 auto;display:flex;align-items:center;gap:8px;
+  padding:calc(6px + env(safe-area-inset-top)) 10px 6px 12px;
+  background:#000;border-bottom:1px solid var(--hx-line);
+  overflow-x:auto;scrollbar-width:none;white-space:nowrap}
+.hx-head::-webkit-scrollbar{display:none}
+.hx-home{flex:0 0 auto;width:26px;height:var(--hx-tap);display:flex;align-items:center;
+  justify-content:center;color:var(--hx-dim);font-size:17px;text-decoration:none;margin-left:-6px}
+.hx-home:active{color:var(--hx-fg)}
+.hx-title{font-family:var(--hx-mono);font-size:11px;letter-spacing:.16em;
+  text-transform:uppercase;font-weight:600;flex:0 0 auto;color:inherit;text-decoration:none;
+  display:flex;align-items:center;min-height:var(--hx-tap)}
+.hx-chips{display:flex;gap:5px;flex:0 0 auto;margin-left:auto}
+.hx-chip{font-family:var(--hx-mono);font-size:9px;letter-spacing:.07em;
+  text-transform:uppercase;padding:3px 7px;border:1px solid var(--hx-line);
+  border-radius:3px;color:var(--hx-dim);flex:0 0 auto}
+.hx-chip.ok{color:var(--hx-ok);border-color:#1d4a2c}
+.hx-chip.bad{color:var(--hx-bad);border-color:#4a1d1d}
+.hx-chip.hot{color:var(--hx-accent);border-color:#124a55}
+
+/* ── world ─────────────────────────────────────────────────────────────── */
+.hx-world{flex:1 1 auto;min-height:26dvh;position:relative;background:var(--hx-bg);
+  overflow:hidden;touch-action:none}
+.hx-canvas{position:absolute;inset:0}
+.hx-world-status{position:absolute;left:10px;bottom:8px;font-family:var(--hx-mono);
+  font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--hx-dim);
+  pointer-events:none;text-shadow:0 1px 6px #000;max-width:60%}
+.hx-world-tools{position:absolute;right:8px;top:8px;display:flex;gap:4px;flex-direction:column}
+/* 44px: these sit over a 3D scene the finger is also dragging, so they need
+   to be unmissable rather than merely present. */
+.hx-world-tools button{width:44px;height:44px;background:rgba(10,10,14,.82);
+  border:1px solid var(--hx-line);border-radius:4px;font-family:var(--hx-mono);
+  font-size:8px;letter-spacing:.06em;color:var(--hx-dim);cursor:pointer;
+  backdrop-filter:blur(4px)}
+.hx-world-tools button:active{background:#1d1d26;color:var(--hx-fg)}
+
+/* ── tray: floats over the world's foot, never steals layout height ────── */
+.hx-tray{position:absolute;left:0;right:0;bottom:0;max-height:55%;
+  background:linear-gradient(180deg,rgba(6,6,9,.10),rgba(6,6,9,.94) 22%);
+  border-top:1px solid var(--hx-line);
+  padding:8px 10px calc(8px) 10px;overflow-y:auto;overscroll-behavior:contain;
+  transform:translateY(0);transition:transform .18s ease,opacity .18s ease;
+  backdrop-filter:blur(9px)}
+.hx-tray[hidden]{display:none}
+.hx-tray.collapsed{transform:translateY(101%);opacity:0;pointer-events:none}
+.hx-tray.peek{box-shadow:0 -12px 30px rgba(0,0,0,.6)}
+.hx-tray-title{font-family:var(--hx-mono);font-size:8px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--hx-faint);margin-bottom:6px;
+  display:flex;align-items:center;gap:6px}
+.hx-tray-title .hx-grab{flex:1;height:3px;border-radius:2px;background:var(--hx-line);
+  max-width:44px;margin:0 auto}
+
+/* ── trace: one thin line ──────────────────────────────────────────────── */
+.hx-trace{flex:0 0 auto;height:36px;display:flex;align-items:center;gap:0;
+  padding:0 12px;background:#08080b;border-top:1px solid var(--hx-line);
+  border-bottom:1px solid var(--hx-line);overflow-x:auto;scrollbar-width:none;
+  touch-action:pan-x}
+.hx-trace::-webkit-scrollbar{display:none}
+.hx-trace-rail{display:flex;align-items:center;flex:1 0 auto;min-width:100%}
+.hx-trace-dot{position:relative;flex:1 0 18px;height:36px;display:flex;
+  align-items:center;justify-content:center;cursor:pointer;min-width:18px}
+.hx-trace-dot::before{content:'';position:absolute;left:0;right:0;height:1px;
+  background:var(--hx-line)}
+.hx-trace-dot i{position:relative;width:6px;height:6px;border-radius:50%;
+  background:#2c2c34;transition:all .15s}
+.hx-trace-dot.done i{background:var(--hx-dim)}
+.hx-trace-dot.now i{background:var(--hx-accent);width:10px;height:10px;
+  box-shadow:0 0 0 3px rgba(34,211,238,.16)}
+.hx-trace-dot.bad i{background:var(--hx-bad)}
+.hx-trace-empty{font-family:var(--hx-mono);font-size:8px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--hx-faint)}
+
+/* ── divider ───────────────────────────────────────────────────────────── */
+.hx-divider{flex:0 0 auto;height:14px;display:flex;align-items:center;
+  justify-content:center;cursor:row-resize;background:#08080b;touch-action:none}
+.hx-divider i{width:34px;height:3px;border-radius:2px;background:var(--hx-line)}
+.hx-divider:active i{background:var(--hx-accent)}
+
+/* ── wall ──────────────────────────────────────────────────────────────── */
+.hx-wall{flex:0 0 var(--hx-wall);min-height:0;overflow-y:auto;
+  overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
+  padding:6px 12px 10px;background:var(--hx-bg);font-family:var(--hx-mono);font-size:11px}
+.hx-line{display:grid;grid-template-columns:auto auto 1fr;gap:8px;align-items:baseline;
+  padding:3px 0;border-bottom:1px dotted #131318;line-height:1.45}
+.hx-line .t{color:var(--hx-faint);font-size:9px}
+.hx-line .w{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--hx-dim)}
+.hx-line .m{color:var(--hx-fg);overflow-wrap:anywhere;min-width:0}
+.hx-line.sys .m{color:var(--hx-dim)}
+.hx-line.ok .w{color:var(--hx-ok)} .hx-line.bad .w{color:var(--hx-bad)}
+.hx-line.warn .w{color:var(--hx-warn)} .hx-line.hot .w{color:var(--hx-accent)}
+.hx-line pre{margin:3px 0 0;white-space:pre-wrap;overflow-wrap:anywhere;
+  color:var(--hx-dim);font-size:10px}
+.hx-wall-empty{color:var(--hx-faint);padding:10px 0;line-height:1.6;font-family:var(--hx-ui)}
+
+/* ── composer ──────────────────────────────────────────────────────────── */
+.hx-composer{flex:0 0 auto;display:flex;align-items:center;gap:7px;
+  padding:7px 10px calc(7px + env(safe-area-inset-bottom));
+  background:#000;border-top:1px solid var(--hx-line)}
+.hx-composer .plus{flex:0 0 auto;width:var(--hx-tap);height:var(--hx-tap);
+  border:1px solid var(--hx-line);border-radius:9px;background:#111116;
+  font-size:19px;line-height:1;color:var(--hx-dim);cursor:pointer}
+.hx-composer input{flex:1 1 auto;min-width:0;height:var(--hx-tap);
+  background:#0d0d11;border:1px solid var(--hx-line);border-radius:9px;
+  padding:0 12px;font-size:16px;outline:none}  /* 16px: stops iOS zooming on focus */
+.hx-composer input:focus{border-color:var(--hx-accent)}
+.hx-composer .send{flex:0 0 auto;width:var(--hx-tap);height:var(--hx-tap);
+  border:1px solid #124a55;border-radius:9px;background:#062a31;
+  color:var(--hx-accent);font-size:15px;cursor:pointer}
+.hx-composer .send:active{background:#0a3d47}
+
+/* ── rail ──────────────────────────────────────────────────────────────── */
+.hx-rail{flex:0 0 var(--hx-rail);display:flex;flex-direction:column;
+  background:#000;border-left:1px solid var(--hx-line);
+  padding-top:calc(env(safe-area-inset-top));padding-bottom:env(safe-area-inset-bottom);
+  overflow-y:auto;scrollbar-width:none}
+.hx-rail::-webkit-scrollbar{display:none}
+.hx-rail button{flex:0 0 auto;min-height:64px;width:100%;border:none;
+  border-bottom:1px solid var(--hx-line);background:transparent;color:var(--hx-faint);
+  font-family:var(--hx-mono);font-size:9px;letter-spacing:.12em;cursor:pointer;
+  writing-mode:vertical-rl;text-orientation:mixed;padding:10px 0;
+  display:flex;align-items:center;justify-content:center;transform:rotate(180deg)}
+.hx-rail button[aria-pressed="true"]{background:var(--hx-fg);color:#000;font-weight:700}
+.hx-rail button:active{background:#1d1d26;color:var(--hx-fg)}
+.hx-rail button[aria-pressed="true"]:active{background:#cfcfd6;color:#000}
+
+/* ── generic tray furniture, so builders do not each invent their own ──── */
+.hx-row{display:flex;gap:6px;align-items:center;margin-bottom:6px;flex-wrap:wrap}
+.hx-row > *{min-width:0}
+.hx-btn{min-height:var(--hx-tap);padding:0 13px;background:#131319;
+  border:1px solid var(--hx-line);border-radius:8px;font-family:var(--hx-mono);
+  font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--hx-fg);
+  cursor:pointer;flex:1 1 auto}
+.hx-btn:active{background:#1d1d26}
+.hx-btn.go{background:#062a31;border-color:#124a55;color:#8ee9f7}
+.hx-btn.stop{background:#2a0f0f;border-color:#4a1d1d;color:#f8a5a5}
+.hx-btn[disabled]{opacity:.35}
+.hx-sel,.hx-input{min-height:var(--hx-tap);width:100%;background:#0d0d11;
+  border:1px solid var(--hx-line);border-radius:8px;padding:0 11px;font-size:16px;outline:none}
+.hx-text{width:100%;min-height:150px;background:#08080c;border:1px solid var(--hx-line);
+  border-radius:8px;padding:9px 10px;font-family:var(--hx-mono);font-size:12px;
+  line-height:1.5;white-space:pre;overflow-x:auto;outline:none;resize:vertical}
+.hx-text:focus{border-color:var(--hx-accent)}
+.hx-kv{display:flex;justify-content:space-between;gap:10px;padding:3px 0;
+  font-family:var(--hx-mono);font-size:11px;color:var(--hx-dim);
+  border-bottom:1px dotted #141419}
+.hx-kv b{color:var(--hx-fg);font-weight:400;text-align:right;overflow-wrap:anywhere}
+.hx-kv b.ok{color:var(--hx-ok)} .hx-kv b.bad{color:var(--hx-bad)} .hx-kv b.warn{color:var(--hx-warn)}
+.hx-cap{font-family:var(--hx-mono);font-size:8px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--hx-faint);margin:8px 0 4px}
+.hx-cap:first-child{margin-top:0}
+.hx-pin{float:right;width:24px;height:24px;border:none;background:transparent;
+  color:var(--hx-faint);cursor:pointer;font-size:12px}
+.hx-pin:active{color:var(--hx-accent)}
+.hx-tag{display:inline-block;font-family:var(--hx-mono);font-size:8px;padding:2px 6px;
+  border-radius:999px;background:#16161c;color:var(--hx-faint);margin:0 3px 3px 0}
+.hx-meter{height:3px;background:#131318;border-radius:2px;overflow:hidden;margin:4px 0}
+.hx-meter i{display:block;height:100%;background:var(--hx-accent);transition:width .3s}
+
+/* ── toast ─────────────────────────────────────────────────────────────── */
+.hx-toast{position:fixed;left:50%;transform:translateX(-50%);
+  bottom:calc(74px + env(safe-area-inset-bottom));background:#16161c;
+  border:1px solid var(--hx-line);border-radius:8px;padding:9px 14px;font-size:12px;
+  opacity:0;transition:opacity .2s;pointer-events:none;z-index:90;max-width:82vw;
+  text-align:center}
+.hx-toast.on{opacity:1}
+
+/* ── desktop: the same screen, with room. The rail widens, the tray can sit
+      beside the world instead of over it. No new layout, just more air. ─── */
+@media (min-width:860px){
+  :root{ --hx-rail:104px; --hx-wall:30dvh; }
+  .hx-world-tools button{width:40px;height:34px}
+  .hx-rail button{writing-mode:horizontal-tb;transform:none;min-height:52px;font-size:10px}
+  .hx-tray{left:auto;right:0;top:0;bottom:0;width:340px;max-height:none;
+    border-top:none;border-left:1px solid var(--hx-line);
+    background:linear-gradient(90deg,rgba(6,6,9,.10),rgba(6,6,9,.95) 14%)}
+  .hx-tray.collapsed{transform:translateX(101%)}
+  .hx-world-tools{right:352px}
+  .hx-tray.collapsed ~ .hx-world-tools{right:8px}
+  .hx-title{font-size:12px}
+  .hx-wall{font-size:11.5px}
+}
+@media (min-width:1400px){
+  :root{ --hx-wall:26dvh; }
+  .hx-tray{width:400px}
+  .hx-world-tools{right:412px}
+}

@@ -1,165 +1,220 @@
 /**
- * FINCH PAGE
- * A single beak, watched closely. The three finch-*.html pages set FINCH_KEY
- * and BRIEF_KEY and hand over; everything they share lives here.
+ * FINCH PAGE — one beak, mounted on Hilux.
  *
- * What this shows that the arena does not: the whole round, generation by
- * generation. How many genomes were drawn, how many the compiler refused and
- * why, which survivors made the Pareto frontier, which axis each was champion
- * of, and what the archive kept from the ones that lost.
+ * The wall carries the generation-by-generation account: what was drawn, what
+ * the compiler refused and why, which survivor took the cell and on which axis
+ * it was champion. That reads far better as a running discourse than it ever
+ * did as a third column.
  */
 (function (global) {
 'use strict';
 
 async function boot(cfg) {
-  const N = global.Nabugo, E = global.NabugoEvo, U = global.NabugoUI, $ = U.$;
-  const S = { pop: null, viewer: null, running: false, briefKey: cfg.brief || 'atlantis' };
-  global.FinchPage = S;
-
+  const N = global.Nabugo, E = global.NabugoEvo, U = global.NabugoUI;
+  const St = { pop: null, viewer: null, running: false, briefKey: cfg.brief || 'atlantis', lastRender: -1 };
+  global.FinchPage = St;
   const finch = E.FINCHES[cfg.finch];
-  $('beak').textContent = finch.beak;
-  $('latin').textContent = finch.latin;
-  $('strategy').textContent = finch.strategy;
 
-  try {
-    const cm = await N.Catalog.load('./nabugo-parts.json');
-    const pm = await E.Ports.load('./nabugo-ports.json');
-    $('chipCat').textContent = cm.count.toLocaleString() + ' parts · ' + pm.ports.toLocaleString() + ' ports';
-    $('chipCat').className = 'chip live';
-  } catch (e) {
-    $('chipCat').textContent = 'catalogue failed';
-    $('chipCat').className = 'chip dead';
-    U.toast('Could not load the catalogue — serve this page over HTTP');
-    return;
+  const hx = Hilux.mount({
+    title: finch.name,
+    chips: ['round', 'parts', 'viable', 'cat'],
+    placeholder: 'run · step · brief cave · mpd · help',
+    wallEmpty: finch.strategy,
+    traceEmpty: 'no generations yet',
+    modes: [
+      { id: 'run',      label: 'RUN',     title: finch.latin + ' · ' + finch.beak, build: trayRun },
+      { id: 'voids',    label: 'VOIDS',   title: 'void ledger · not a percentage', build: trayVoids },
+      { id: 'archive',  label: 'ARCHIVE', title: 'losers are kept',                build: trayArchive },
+      { id: 'built',    label: 'BUILT',   title: 'the standing build',             build: trayBuilt }
+    ],
+    onCommand: command,
+    onWorld: async (canvasEl, hx) => {
+      St.viewer = await U.makeViewer(canvasEl, { background: cfg.background });
+      hx.tool('FIT',  () => U.frame(St.viewer, 0.72));
+      let e = true, g = true, sp = false;
+      hx.tool('EDGE', () => St.viewer.setDiagnostics({ showEdges: (e = !e) }));
+      hx.tool('GRID', () => St.viewer.setDiagnostics({ grid: (g = !g) }));
+      hx.tool('SPIN', () => St.viewer.setAutoSpin(sp = !sp));
+      await load();
+    },
+    onTrace: i => {
+      const h = St.pop && St.pop.history[i];
+      if (h) hx.say('TRACE', 'round ' + h.round + ' · ' + h.void + ' at ' + h.cell +
+                    (h.chosen ? ' — ' + h.chosen.claim : ' — nothing committed'), { kind: 'sys' });
+    },
+    onResize: () => St.viewer && St.viewer.updateRendererSize()
+  });
+  St.hx = hx;
+
+  async function load() {
+    try {
+      const cm = await N.Catalog.load('./nabugo-parts.json');
+      const pm = await E.Ports.load('./nabugo-ports.json');
+      hx.chip('cat', (cm.count / 1000).toFixed(1) + 'k parts', 'ok');
+      hx.say('SYSTEM', cm.count.toLocaleString() + ' parts · ' + pm.ports.toLocaleString() +
+             ' ports · beak: ' + finch.beak, { kind: 'sys' });
+    } catch (err) {
+      hx.chip('cat', 'no catalogue', 'bad');
+      hx.say('SYSTEM', 'Serve over HTTP — this page needs its data files.', { kind: 'bad' });
+      return;
+    }
+    if (N.Bus.connect('finch-' + cfg.finch)) hx.say('SYSTEM', 'bus wag-frank connected', { kind: 'sys' });
+    reset();
   }
 
-  if (N.Bus.connect('finch-' + cfg.finch)) {
-    $('chipBus').textContent = 'Bus wag-frank'; $('chipBus').className = 'chip live';
-  } else $('chipBus').textContent = 'Bus n/a';
-
-  try { S.viewer = await U.makeViewer($('canvas'), { background: cfg.background }); }
-  catch (e) { $('status').textContent = 'viewer failed: ' + e.message; }
-
-  U.briefOptions($('briefSel'), S.briefKey);
-  $('briefSel').addEventListener('change', e => { S.briefKey = e.target.value; reset(); });
-
   function reset() {
-    S.pop = new E.Population(cfg.finch, N.Brief.BRIEFS[S.briefKey]);
-    $('briefDesc').textContent = S.pop.brief.description;
+    St.pop = new E.Population(cfg.finch, N.Brief.BRIEFS[St.briefKey]);
+    St.lastRender = -1;
+    hx.clearWall();
+    hx.say('SYSTEM', finch.strategy, { kind: 'sys' });
+    hx.say('SYSTEM', 'brief: ' + St.pop.brief.title, { kind: 'sys' });
     paint();
-    U.render(S.viewer, S.pop.scene, $('status'), cfg.finch);
+    render();
+  }
+
+  async function render() {
+    if (!St.viewer || !St.pop) return;
+    const n = St.pop.scene.places.length;
+    if (n === St.lastRender) return;
+    St.lastRender = n;
+    await U.render(St.viewer, St.pop.scene, hx.el.status, cfg.finch);
   }
 
   async function step() {
-    if (!S.pop || S.pop.settled) return false;
-    S.pop.step();
+    if (!St.pop || St.pop.settled) return false;
+    const rec = St.pop.step();
+    if (rec) report(rec);
     paint();
-    await U.render(S.viewer, S.pop.scene, $('status'), cfg.finch);
-    return !S.pop.settled;
+    await render();
+    return !St.pop.settled;
   }
 
-  async function run(n) {
-    if (S.running) { S.running = false; return; }
-    S.running = true; $('btnRun').textContent = 'Stop'; $('btnRun').classList.add('stop');
-    for (let i = 0; i < n && S.running; i++) {
-      if (!(await step())) break;
-      await new Promise(r => setTimeout(r, 40));
+  async function run(limit) {
+    if (St.running) { St.running = false; return; }
+    St.running = true; hx.refresh('run');
+    let n = 0;
+    while (St.running && (limit == null || n++ < limit) && await step()) {
+      await new Promise(r => setTimeout(r, 20));
     }
-    S.running = false; $('btnRun').textContent = 'Run 16'; $('btnRun').classList.remove('stop');
+    St.running = false; hx.refresh('run');
+    await render();
+  }
+
+  function report(r) {
+    hx.say('SCOUT', r.void + ' at ' + r.cell + ' · zone ' + r.zone, { kind: 'sys' });
+    hx.say('COMPILER', r.generated + ' genomes drawn · ' + r.rejected + ' refused by the gates · ' +
+           r.survivors + ' viable · ' + r.frontier + ' on the frontier',
+           { kind: r.survivors ? 'sys' : 'warn' });
+    if (r.chosen) {
+      const c = r.chosen;
+      hx.say('JUDGES', 'champion on ' + (c.champion || '—') + ' — ' + c.claim +
+             ' (' + c.parts + ' pieces)',
+             { kind: 'ok',
+               pre: c.lineage && c.lineage.length ? c.lineage.join(' → ') : '' });
+      if (c.ecologies && c.ecologies.length)
+        hx.say('ECOLOGY', c.ecologies.map(e => (E.Ecology.get(e) || {}).name || e).join(' · '), { kind: 'sys' });
+    } else if (r.note) {
+      hx.say('SYSTEM', r.note, { kind: 'warn' });
+    }
+    if (r.emergent) hx.say('EMERGENT', r.emergent, { kind: 'warn' });
   }
 
   function paint() {
-    const p = S.pop, a = p.audit(), arc = p.archive.counts(), led = p.ledger;
-    U.metrics($('metrics'), a, cfg.cls);
-    U.tray($('tray'), [{ scene: p.scene, cls: cfg.cls }]);
-    $('chipRound').textContent = 'Round ' + p.round + '/' + p.maxRounds + (p.settled ? ' · settled' : '');
-    $('chipParts').textContent = a.parts + ' parts';
-    $('chipViable').textContent = arc.viable + ' viable';
-
-    // ---- void ledger, in place of a fidelity percentage --------------------
-    const row = (state, list, cls) => list.length
-      ? '<div class="ledger-row"><span class="state ' + cls + '">' + state + '</span>' +
-        list.map(id => '<span class="vpill">' + U.esc(id) + '</span>').join('') + '</div>' : '';
-    const sum = led.summary();
-    $('voids').innerHTML =
-      row('resolved', sum.resolved, 'ok') +
-      row('partial', sum.partial, 'warn') +
-      row('unresolved', sum.unresolved, 'bad') ||
-      '<div class="muted">no voids yet</div>';
-
-    // ---- the material talking back -----------------------------------------
-    $('emergent').innerHTML = led.emergent.length
-      ? led.emergent.slice().reverse().map(e =>
-          '<div class="emergent"><span class="r">R' + e.round + '</span>' + U.esc(e.note) +
-          '<span class="parts">' + U.esc(e.parts.join(', ')) + '</span></div>').join('')
-      : '<div class="muted">The brief has not been contradicted yet. When a part from a ' +
-        'neighbouring ecology survives here as structure, the void gets rewritten.</div>';
-
-    // ---- archives ----------------------------------------------------------
-    $('archive').innerHTML = Object.entries(arc).map(([k, v]) =>
-      '<div class="kv"><span>' + k + '</span><b class="' +
-      (k === 'fossil' ? 'muted' : k === 'novel' ? 'ok' : '') + '">' + v + '</b></div>').join('');
-
-    // ---- generations -------------------------------------------------------
-    const h = p.history;
-    $('nGen').textContent = h.length;
-    $('generations').innerHTML = h.length
-      ? h.slice().reverse().map(genRec).join('')
-      : '<div class="muted">No generations yet. Each round draws a bag, composes genomes, ' +
-        'compiles them, and lets only what survives the gates reach a judge.</div>';
+    const p = St.pop; if (!p) return;
+    const a = p.audit(), arc = p.archive.counts();
+    hx.chip('round', 'R' + p.round + '/' + p.maxRounds + (p.settled ? ' · settled' : ''));
+    hx.chip('parts', a.parts + ' pieces', a.collisions || a.floating ? 'bad' : 'hot');
+    hx.chip('viable', arc.viable + ' viable · ' + arc.novel + ' novel');
+    hx.trace(p.history.map(h => ({ label: 'R' + h.round + ' ' + h.void, bad: !h.chosen })),
+             p.history.length - 1);
+    if (['voids','archive','built'].includes(hx.active)) hx.refresh();
+    if (hx.active === 'run') hx.refresh('run');
   }
 
-  function genRec(r) {
-    const c = r.chosen;
-    const bars = c ? Object.entries(c.scores).map(([k, v]) =>
-      '<div class="axis"><span>' + k.slice(0, 4) + '</span>' +
-      '<i style="width:' + Math.round(v * 100) + '%"></i><b>' + v.toFixed(2) + '</b></div>').join('') : '';
-    const front = (r.frontierDetail || []).map(f =>
-      '<div class="cand' + (c && f.claim === c.claim ? ' won' : '') + '">' +
-      '<span class="ch">' + (f.champion || '—') + '</span>' +
-      '<span class="pt">' + f.parts + 'p</span>' +
-      (f.lineage.length ? '<span class="lin">' + U.esc(f.lineage.join(' → ')) + '</span>' : '') +
-      '</div>').join('');
-    return '<div class="gen">' +
-      '<div class="gen-head"><b>R' + r.round + '</b>' +
-        '<span class="void">' + U.esc(r.void) + '</span>' +
-        '<span class="cell">' + r.cell + '</span>' +
-        '<span class="flow">' + r.generated + ' drawn · ' + r.rejected + ' refused · ' +
-          r.survivors + ' viable · ' + r.frontier + ' on frontier</span></div>' +
-      (c ? '<div class="gen-claim">' + U.esc(c.claim) + '</div>' +
-           '<div class="gen-eco">' + (c.ecologies.length
-             ? c.ecologies.map(e => '<span class="ecopill">' +
-                 U.esc((E.Ecology.get(e) || {}).name || e) + '</span>').join('') : '') +
-           (c.lineage.length ? '<span class="lin">' + U.esc(c.lineage.join(' → ')) + '</span>' : '') +
-           '</div>' +
-           '<div class="axes">' + bars + '</div>' +
-           '<div class="why">' + U.esc(c.evidence[c.champion] || '') + '</div>'
-         : '<div class="gen-claim muted">' + U.esc(r.note || 'nothing committed') + '</div>') +
-      (r.substituted ? '<div class="sub">frontier substitution: the chosen build could not land, ' +
-        '“' + U.esc(r.substituted) + '” took the cell</div>' : '') +
-      (front ? '<div class="frontier">' + front + '</div>' : '') +
-      (r.emergent ? '<div class="emergent inline">' + U.esc(r.emergent) + '</div>' : '') +
-      '</div>';
+  function trayRun(el) {
+    el.appendChild(hx.cap('brief'));
+    el.appendChild(hx.select(
+      Object.values(N.Brief.BRIEFS).map(b => ({ value: b.key, label: b.title })),
+      St.briefKey, v => { St.briefKey = v; reset(); }));
+    el.appendChild(hx.row(
+      hx.btn('Step', () => step()),
+      hx.btn(St.running ? 'Stop' : 'Run', () => run(null), St.running ? 'stop' : 'go')
+    ));
+    el.appendChild(hx.row(
+      hx.btn('Run 5', () => run(5)),
+      hx.btn('Reset', () => { St.running = false; reset(); })
+    ));
+    el.appendChild(hx.cap('this beak'));
+    el.appendChild(hx.kv('composition', Object.entries(finch.composition)
+      .map(([k, v]) => k.slice(0, 4) + ' ' + v).join(' ')));
+    el.appendChild(hx.kv('migrant / wild', finch.migrantFrom + ' / ' + finch.wild));
+    el.appendChild(hx.kv('population', finch.population + ' + ' + finch.mutationsPerRound));
+    el.appendChild(hx.kv('operators', finch.ops.join(', ')));
+    el.appendChild(hx.cap('export'));
+    el.appendChild(hx.row(
+      hx.btn('Download MPD', () => U.download(St.pop.toMPD(), 'finch-' + cfg.finch + '-' + St.briefKey + '.mpd')),
+      hx.btn('Broadcast', () => hx.toast(
+        N.Bus.emit(St.pop.scene, { name: finch.name }, 'finch-' + cfg.finch)
+          ? 'broadcast on wag-frank' : 'no BroadcastChannel here'))
+    ));
   }
 
-  $('btnStep').addEventListener('click', step);
-  $('btnRun').addEventListener('click', () => run(16));
-  $('btnReset').addEventListener('click', () => { S.running = false; reset(); });
-  $('btnFit').addEventListener('click', () => U.frame(S.viewer));
-  let e = true, g = true, sp = false;
-  $('btnEdges').addEventListener('click', () => S.viewer && S.viewer.setDiagnostics({ showEdges: (e = !e) }));
-  $('btnGrid').addEventListener('click',  () => S.viewer && S.viewer.setDiagnostics({ grid: (g = !g) }));
-  $('btnSpin').addEventListener('click',  () => S.viewer && S.viewer.setAutoSpin(sp = !sp));
-  $('btnDl').addEventListener('click', () =>
-    U.download(S.pop.toMPD(), 'finch-' + cfg.finch + '-' + S.briefKey + '.mpd'));
-  $('btnBroadcast').addEventListener('click', () => {
-    U.toast(N.Bus.emit(S.pop.scene,
-      { name: S.pop.brief.title + ' · ' + finch.name, ...S.pop.audit() },
-      'finch-' + cfg.finch) ? 'Broadcast on wag-frank' : 'No BroadcastChannel in this browser');
-  });
+  function trayVoids(el) {
+    const s = St.pop.ledger.summary();
+    const block = (t, list, cls) => { if (!list.length) return;
+      el.appendChild(hx.cap(t)); list.forEach(v => el.appendChild(hx.kv(v, t === 'resolved' ? '✓' : '—', cls))); };
+    block('resolved', s.resolved, 'ok');
+    block('partial', s.partial, 'warn');
+    block('unresolved', s.unresolved, 'bad');
+    if (s.emergent.length) {
+      el.appendChild(hx.cap('emergent'));
+      s.emergent.forEach(e => { const d = Hilux.h('div', 'hx-kv');
+        d.appendChild(Hilux.h('span', '', e)); hx.pinnable(d, e); el.appendChild(d); });
+    }
+  }
 
-  reset();
+  function trayArchive(el) {
+    const c = St.pop.archive.counts();
+    el.appendChild(hx.cap('archives · a rejected genome can mutate and return'));
+    Object.entries(c).forEach(([k, v]) =>
+      el.appendChild(hx.kv(k, v, k === 'novel' ? 'ok' : k === 'fossil' ? '' : '')));
+  }
+
+  function trayBuilt(el) {
+    const a = St.pop.audit();
+    el.appendChild(hx.cap('standing build'));
+    el.appendChild(hx.kv('pieces', a.parts));
+    el.appendChild(hx.kv('distinct', a.unique));
+    el.appendChild(hx.kv('compiles', a.compiles ? 'YES' : 'NO', a.compiles ? 'ok' : 'bad'));
+    el.appendChild(hx.kv('collisions', a.collisions, a.collisions ? 'bad' : 'ok'));
+    el.appendChild(hx.kv('floating', a.floating, a.floating ? 'bad' : 'ok'));
+    el.appendChild(hx.kv('cohesion', Math.round(a.cohesion * 100) + '%'));
+    el.appendChild(hx.kv('zones', a.zonesHit + ' / 4'));
+    el.appendChild(hx.kv('cells', a.cells));
+    el.appendChild(hx.kv('span LDU', a.span.join(' × ')));
+    if (a.strategies.length) {
+      el.appendChild(hx.cap('strategies'));
+      const d = Hilux.h('div');
+      a.strategies.forEach(s => d.appendChild(Hilux.h('span', 'hx-tag', s)));
+      el.appendChild(d);
+    }
+  }
+
+  function command(text) {
+    const [verb, ...rest] = text.trim().split(/\s+/);
+    const v = verb.toLowerCase(), arg = rest.join(' ');
+    if (v === 'run')   return run(Number(arg) || null);
+    if (v === 'step')  return step();
+    if (v === 'stop')  { St.running = false; return hx.say('SYSTEM', 'stopped', { kind: 'sys' }); }
+    if (v === 'reset') { St.running = false; return reset(); }
+    if (v === 'brief') { if (N.Brief.BRIEFS[arg]) { St.briefKey = arg; return reset(); }
+                         return hx.say('SYSTEM', 'briefs: ' + Object.keys(N.Brief.BRIEFS).join(', '), { kind: 'bad' }); }
+    if (v === 'mpd')   { U.download(St.pop.toMPD(), 'finch-' + cfg.finch + '.mpd'); return hx.toast('downloaded'); }
+    if (v === 'fit')   return U.frame(St.viewer, 0.72);
+    if (v === 'help' || v === '?')
+      return hx.say('SYSTEM', 'run [n] · step · stop · reset · brief <key> · mpd · fit', { kind: 'sys' });
+    hx.say('SYSTEM', 'unknown — try `help`', { kind: 'bad' });
+  }
 }
-
 global.FinchBoot = boot;
 })(window);
