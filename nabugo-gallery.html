@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#050505" />
+<title>Nabugo Gallery</title>
+<link rel="icon" type="image/svg+xml" href="ball-jar-favicon.svg" />
+<style>
+/* Phone first. Everything here has to be reachable with a thumb, so the layout
+   starts as one column of large targets and only becomes a grid when there is
+   room for one. */
+:root{
+  color-scheme: dark;
+  --bg:#050505; --card:#0c0c10; --line:#23232a; --soft:#16161c;
+  --fg:#e9e9ec; --dim:#8d8d96; --faint:#55555f;
+  --gen1:#f472b6; --gen2:#22d3ee; --gen3:#4ade80; --gen4:#f0b429; --gen5:#a78bfa;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--fg);
+  font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+  -webkit-text-size-adjust:100%}
+a{color:inherit;text-decoration:none}
+.mono{font-family:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,monospace}
+
+header{position:sticky;top:0;z-index:20;background:rgba(5,5,5,.94);
+  backdrop-filter:blur(8px);border-bottom:1px solid var(--line);
+  padding:calc(10px + env(safe-area-inset-top)) 16px 10px}
+h1{margin:0;font-size:15px;letter-spacing:.22em;text-transform:uppercase;font-weight:600}
+.sub{margin-top:3px;font-size:11px;color:var(--dim);line-height:1.45}
+
+/* filter chips — scrollable row, big enough to tap */
+.filters{display:flex;gap:6px;overflow-x:auto;padding:9px 16px 3px;
+  scrollbar-width:none;-ms-overflow-style:none}
+.filters::-webkit-scrollbar{display:none}
+/* 44px minimum: these are thumb targets on a phone before they are anything else. */
+.filters button{flex:0 0 auto;background:#131319;border:1px solid var(--line);
+  color:var(--dim);border-radius:999px;padding:0 15px;min-height:44px;font-size:11px;
+  letter-spacing:.08em;text-transform:uppercase;cursor:pointer;font-family:inherit}
+.filters button[aria-pressed="true"]{background:#1d1d26;color:var(--fg);border-color:#3d3d4a}
+
+main{padding:14px 16px calc(28px + env(safe-area-inset-bottom))}
+section{margin-bottom:26px}
+.gen{display:flex;align-items:baseline;gap:9px;margin:0 0 4px;
+  font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
+.gen .dot{width:7px;height:7px;border-radius:50%;flex:0 0 auto}
+.gen .n{margin-left:auto;color:var(--faint);letter-spacing:0;text-transform:none}
+.blurb{font-size:12px;color:var(--dim);line-height:1.55;margin:0 0 11px}
+
+.grid{display:grid;grid-template-columns:1fr;gap:10px}
+@media (min-width:560px){ .grid{grid-template-columns:1fr 1fr} }
+@media (min-width:900px){ .grid{grid-template-columns:repeat(3,1fr)} }
+@media (min-width:1280px){ .grid{grid-template-columns:repeat(4,1fr)} }
+
+.card{display:block;background:var(--card);border:1px solid var(--line);
+  border-radius:11px;padding:13px 14px;min-height:78px;position:relative;
+  transition:border-color .15s,transform .08s}
+.card:active{transform:scale(.985)}
+.card:hover{border-color:#3d3d4a}
+.card .name{font-size:14px;font-weight:600;letter-spacing:.01em;
+  display:flex;align-items:baseline;gap:7px}
+.card .name .bar{width:3px;height:13px;border-radius:2px;flex:0 0 auto}
+.card .what{margin-top:5px;font-size:12px;color:var(--dim);line-height:1.5}
+.card .tags{margin-top:8px;display:flex;flex-wrap:wrap;gap:4px}
+.tag{font-size:10px;padding:2px 7px;border-radius:999px;background:#17171e;
+  color:var(--faint);letter-spacing:.04em}
+.tag.live{background:#0f2a1a;color:#8ef0b0}
+.tag.file{background:#1a1622;color:#c4a7e0}
+
+footer{border-top:1px solid var(--line);padding:16px;font-size:11px;
+  color:var(--faint);line-height:1.6}
+footer code{background:#131319;padding:1px 5px;border-radius:3px;font-size:10px}
+.empty{color:var(--faint);font-size:12px;padding:8px 0}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Nabugo Gallery</h1>
+  <div class="sub">Every builder on this branch, oldest generation first. Each one runs in the
+    browser against the vendored LDraw library — no key, no server.</div>
+</header>
+
+<div class="filters" id="filters"></div>
+
+<main id="main"></main>
+
+<footer>
+  Everything compiles against <code>ldraw/</code> in this repo: 15,117 indexed parts with real
+  bounding boxes, 40,280 extracted stud ports. Builds are checked for collisions, support and
+  cohesion before anything is judged. Nothing here calls a model.
+</footer>
+
+<script>
+/* One list, rendered. Adding a builder means adding a row. */
+const GENERATIONS = [
+  {
+    id: 'g1', name: 'Generation 1 — the round loop', color: 'var(--gen1)',
+    blurb: 'A Micro-PLoT audit over a 9×9 semantic tray. Buckets in, vignettes out. ' +
+           'This is where the scoring, the zones and the tray came from.',
+    items: [
+      { href: 'platos-cave-builder.html', name: "Plato's Cave Builder",
+        what: 'Bucket intake, G/M/W ledger, claim and cluster, fidelity checkpoint.',
+        tags: ['round loop', 'tray', 'micro-plot'] },
+      { href: 'platos-cave.html', name: "Plato's Cave Studio",
+        what: 'The original manual studio the builder replaced.', tags: ['studio'] },
+      { href: 'platos-cave.mpd', name: 'platos-cave.mpd',
+        what: 'The stabilized seed scene. Every reference verified.', tags: ['file'], file: true }
+    ]
+  },
+  {
+    id: 'g2', name: 'Generation 2 — dueling doctrines', color: 'var(--gen2)',
+    blurb: 'Two temperaments over one brief and one catalogue. Ball-jar without the iframes: ' +
+           'one shared scene graph, one geometry kernel, one scoring function.',
+    items: [
+      { href: 'nabugo.html', name: 'Nabugo Arena',
+        what: 'Both doctrines side by side. The ⇄ Aviary button switches to the three finches.',
+        tags: ['arena', 'duel', 'aviary'] },
+      { href: 'lego-operator-trace.html', name: 'Operator Trace',
+        what: 'Fucked until proven otherwise. Blast radius per gesture, reverts on regression.',
+        tags: ['doctrine'] },
+      { href: 'lego-correspondence.html', name: 'Correspondence',
+        what: 'Scout, critic, builder. One telling gesture a round.', tags: ['doctrine'] }
+    ]
+  },
+  {
+    id: 'g3', name: 'Generation 3 — the aviary', color: 'var(--gen3)',
+    blurb: 'Evolutionary ecology. Relational genomes compiled against a real port registry, ' +
+           'hard viability gates, six judges on a Pareto frontier, six archives so losers survive.',
+    items: [
+      { href: 'finch-ground.html', name: 'Ground Finch',
+        what: 'Heavy crushing beak. Anchors and supports first, no weak axis tolerated.',
+        tags: ['finch', 'brickwork'] },
+      { href: 'finch-cactus.html', name: 'Cactus Finch',
+        what: 'Long probing beak. Membranes and signals, selects for what the brief makes legible.',
+        tags: ['finch', 'readymade'] },
+      { href: 'finch-warbler.html', name: 'Warbler Finch',
+        what: 'Fine tool-using beak. Highest migrant fraction, takes the strangest thing on the frontier.',
+        tags: ['finch', 'kitbash'] }
+    ]
+  },
+  {
+    id: 'g4', name: 'Generation 4 — expeditions', color: 'var(--gen4)',
+    blurb: 'Compound assemblies at last: a column repeated six times, not six loose bricks. ' +
+           'A crew of nine takes a watch each, drawing on the -ator libraries for ground and figures. ' +
+           'Builds run to a thousand-odd pieces.',
+    items: [
+      { href: 'hms-beagle.html', name: 'HMS Beagle',
+        what: 'The survey vessel. Balanced crew, whole coastline, one button and a ship’s log.',
+        tags: ['expedition', 'driver'] },
+      { href: 'isabela.html', name: 'Isabela',
+        what: 'The largest island. One dense settlement — masons on nearly every watch.',
+        tags: ['expedition', 'dense'] },
+      { href: 'santiago.html', name: 'Santiago',
+        what: 'A drowned island. Ruin and reef outnumber temple.', tags: ['expedition', 'drowned'] }
+    ]
+  },
+  {
+    id: 'g5', name: 'Generation 5 — the script is the genome', color: 'var(--gen5)',
+    blurb: 'A giant build is not forty thousand MPD lines; it is a compact programme that compiles ' +
+           'into them. ATORScript states the world, the ecologies and the claims — and one changed ' +
+           'number regenerates hundreds of placements.',
+    items: [
+      { href: 'cathedral-forager.html', name: 'Cathedral Forager',
+        what: 'Underwater cathedral ruin. The programme states what it wants; the forager searches ' +
+              'the catalogue until the claims are satisfied.',
+        tags: ['atorscript', 'foraging', 'live'] },
+      { href: 'medusa-scriptorium.html', name: 'Medusa Scriptorium',
+        what: 'Jellyfish data temples. A population of programmes under selection — mutate, cross, ' +
+              'compile, keep a frontier.',
+        tags: ['atorscript', 'evolution', 'live'] }
+    ]
+  },
+  {
+    id: 'docs', name: 'Notes', color: 'var(--dim)',
+    blurb: 'What was built, what broke, and what is still wrong.',
+    items: [
+      { href: 'NABUGO.md', name: 'NABUGO.md', what: 'The engine: catalogue, geometry, audit, doctrines.', tags: ['file'], file: true },
+      { href: 'NABUGO-EVOLUTION.md', name: 'NABUGO-EVOLUTION.md', what: 'Ecologies, genomes, judges, archives.', tags: ['file'], file: true },
+      { href: 'PLATOS-CAVE-LDRAW-BRIDGE.md', name: 'PLATOS-CAVE-LDRAW-BRIDGE.md', what: 'How the parts are hosted and called.', tags: ['file'], file: true },
+      { href: 'index.html', name: 'Full project index', what: 'Everything else in this repository.', tags: ['index'] }
+    ]
+  }
+];
+
+const ALL_TAGS = ['all', ...new Set(GENERATIONS.flatMap(g => g.items.flatMap(i => i.tags)))];
+let active = 'all';
+
+function render() {
+  document.getElementById('main').innerHTML = GENERATIONS.map(g => {
+    const items = g.items.filter(i => active === 'all' || i.tags.includes(active));
+    if (!items.length) return '';
+    return '<section>' +
+      '<h2 class="gen mono"><span class="dot" style="background:' + g.color + '"></span>' +
+        esc(g.name) + '<span class="n">' + items.length + '</span></h2>' +
+      '<p class="blurb">' + esc(g.blurb) + '</p>' +
+      '<div class="grid">' + items.map(i =>
+        '<a class="card" href="' + i.href + '"' + (i.file ? '' : '') + '>' +
+          '<div class="name"><span class="bar" style="background:' + g.color + '"></span>' +
+            esc(i.name) + '</div>' +
+          '<div class="what">' + esc(i.what) + '</div>' +
+          '<div class="tags">' + i.tags.map(t =>
+            '<span class="tag' + (t === 'live' ? ' live' : t === 'file' ? ' file' : '') + '">' +
+            esc(t) + '</span>').join('') + '</div>' +
+        '</a>').join('') +
+      '</div></section>';
+  }).join('') || '<div class="empty">Nothing matches that filter.</div>';
+}
+
+document.getElementById('filters').innerHTML = ALL_TAGS.map(t =>
+  '<button data-tag="' + esc(t) + '" aria-pressed="' + (t === 'all') + '">' + esc(t) + '</button>').join('');
+document.getElementById('filters').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  active = b.dataset.tag;
+  document.querySelectorAll('#filters button').forEach(x =>
+    x.setAttribute('aria-pressed', String(x.dataset.tag === active)));
+  render();
+});
+
+function esc(s){ return String(s).replace(/[&<>"']/g, c =>
+  ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+render();
+</script>
+</body>
+</html>

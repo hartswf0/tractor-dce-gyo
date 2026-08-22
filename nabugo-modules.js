@@ -461,6 +461,156 @@ const MODULES = {
     return pack(cur, [ribs * step, 100], 120, 'wreck');
   },
 
+  /**
+   * A ribbed vault. Arches sprung in both directions from four piers, which is
+   * the move that makes a ceiling read as gothic rather than as a lid.
+   */
+  vault(ctx, o = {}) {
+    const bays = o.bays || 3, span = o.span || 120, piers = o.piers || 5;
+    const arch = ctx.palette.get('arch') || ctx.palette.get('rake');
+    const shaft = ctx.palette.get('shaft');
+    if (!arch || !shaft) return null;
+    const cur = new Cursor(ctx.origin, ctx.colorOf);
+    const riseCourses = o.height || 7;
+    let top = 0;
+
+    for (let b = 0; b < bays; b++) {
+      const z = ctx.origin.z + (b - (bays - 1) / 2) * span;
+      for (const dx of [-span / 2, span / 2]) {
+        let y = 0;
+        for (let i = 0; i < riseCourses; i++) {
+          cur.put(shaft, ctx.origin.x + dx, z, y, { role: 'shaft', module: 'vault' });
+          y -= h(shaft) - 4;
+        }
+        top = Math.max(top, -y);
+      }
+    }
+    // The ribs: an arch across each bay, and one along the nave between bays.
+    const aw = w(arch);
+    for (let b = 0; b < bays; b++) {
+      const z = ctx.origin.z + (b - (bays - 1) / 2) * span;
+      const n = Math.max(1, Math.round(span / aw));
+      for (let i = 0; i < n; i++) {
+        cur.put(arch, ctx.origin.x + (i + 0.5 - n / 2) * aw, z, -top,
+                { role: 'arch', module: 'vault' });
+      }
+    }
+    return pack(cur, [span * 1.4, bays * span], top + h(arch), 'vault');
+  },
+
+  /** Flying buttresses: the reason a cathedral wall can be mostly window. */
+  buttress(ctx, o = {}) {
+    const n = o.count || 4, reach = o.reach || 80, courses = o.courses || 6;
+    const block = ctx.palette.get('block');
+    const rake = ctx.palette.get('rake');
+    if (!block) return null;
+    const cur = new Cursor(ctx.origin, ctx.colorOf);
+    for (let i = 0; i < n; i++) {
+      const z = ctx.origin.z + (i - (n - 1) / 2) * (reach * 1.2);
+      for (const side of [-1, 1]) {
+        // A pier that steps outward as it falls — the buttress leaning in.
+        for (let c = 0; c < courses; c++) {
+          const out = reach * (c / courses);
+          cur.put(block, ctx.origin.x + side * out, z, -(courses - 1 - c) * (h(block) - 4),
+                  { role: 'block', module: 'buttress' });
+        }
+        if (rake) {
+          cur.put(rake, ctx.origin.x + side * reach, z, 0,
+                  { role: 'rake', module: 'buttress', mat: Geom.rotY(side < 0 ? 180 : 0) });
+        }
+      }
+    }
+    return pack(cur, [reach * 2 + 40, n * reach * 1.2], courses * 24, 'buttress');
+  },
+
+  /** A spire. Narrows as it climbs, which is the whole idea of a spire. */
+  spire(ctx, o = {}) {
+    const courses = o.courses || 12;
+    const shaft = ctx.palette.get('shaft');
+    const cone = ctx.palette.get('cone') || ctx.palette.get('capital');
+    if (!shaft) return null;
+    const cur = new Cursor(ctx.origin, ctx.colorOf);
+    let y = 0;
+    for (let c = 0; c < courses; c++) {
+      const ring = c < courses * 0.4 ? 4 : c < courses * 0.75 ? 2 : 1;
+      const r = ring === 4 ? 20 : ring === 2 ? 14 : 0;
+      for (let i = 0; i < ring; i++) {
+        const a = (i / ring) * Math.PI * 2;
+        cur.put(shaft, ctx.origin.x + Math.cos(a) * r, ctx.origin.z + Math.sin(a) * r, y,
+                { role: 'shaft', module: 'spire' });
+      }
+      y -= h(shaft) - 4;
+    }
+    if (cone) { cur.put(cone, ctx.origin.x, ctx.origin.z, y, { role: 'cone', module: 'spire' }); y -= h(cone); }
+    return pack(cur, [60, 60], -y, 'spire');
+  },
+
+  /**
+   * A jellyfish. A bell of dishes with tentacles hanging from its rim — the
+   * one module here that is deliberately not architecture, because a data
+   * temple that only looks like a building has not earned the name.
+   */
+  medusa(ctx, o = {}) {
+    const tentacles = o.tentacles || 8, drop = o.drop || 8, lift = o.lift || 0;
+    const dome = ctx.palette.get('dome') || ctx.palette.get('capital');
+    const bar = ctx.palette.get('spar');
+    const bead = ctx.palette.get('coral');
+    if (!dome) return null;
+    const cur = new Cursor(ctx.origin, ctx.colorOf);
+    const y0 = -lift;
+
+    // The bell: stacked dishes, widest at the bottom.
+    for (let i = 0; i < 3; i++) {
+      cur.put(dome, ctx.origin.x, ctx.origin.z, y0 - i * (h(dome) - 4),
+              { role: 'dome', module: 'medusa' });
+    }
+    const rim = Math.max(24, w(dome) / 2);
+    for (let t = 0; t < tentacles; t++) {
+      const a = (t / tentacles) * Math.PI * 2;
+      const tx = ctx.origin.x + Math.cos(a) * rim, tz = ctx.origin.z + Math.sin(a) * rim;
+      const part = bar || bead;
+      if (!part) continue;
+      // Hanging, so each link is placed below the last — the one place in this
+      // library where the build descends instead of rising.
+      for (let k = 0; k < drop; k++) {
+        cur.put(part, tx, tz, y0 + k * (h(part) - 2),
+                { role: 'spar', module: 'medusa' });
+      }
+      if (bead) cur.put(bead, tx, tz, y0 + drop * (h(part) - 2), { role: 'coral', module: 'medusa' });
+    }
+    return pack(cur, [rim * 2 + 40, rim * 2 + 40], lift + 3 * h(dome), 'medusa');
+  },
+
+  /**
+   * A data stack. Racks of identical modules, which is what a server hall is
+   * and also, conveniently, what LEGO is best at.
+   */
+  datastack(ctx, o = {}) {
+    const racks = o.racks || 4, height = o.height || 10, depth = o.depth || 3;
+    const block = ctx.palette.get('block');
+    const lamp = ctx.palette.get('coral');
+    if (!block) return null;
+    const cur = new Cursor(ctx.origin, ctx.colorOf);
+    const bw = w(block), bd = d(block), bh = h(block) - 4;
+    for (let r = 0; r < racks; r++) {
+      const x = ctx.origin.x + (r - (racks - 1) / 2) * (bw + 20);
+      for (let k = 0; k < depth; k++) {
+        const z = ctx.origin.z + (k - (depth - 1) / 2) * bd;
+        for (let c = 0; c < height; c++) {
+          cur.put(block, x, z, -c * bh, { role: 'block', module: 'datastack' });
+        }
+      }
+      // Indicator lamps up the face of every third rack.
+      if (lamp && r % 2 === 0) {
+        for (let c = 1; c < height; c += 3) {
+          cur.put(lamp, x, ctx.origin.z - (depth / 2) * bd - 10, -c * bh,
+                  { role: 'coral', module: 'datastack', color: o.lampColor != null ? o.lampColor : 36 });
+        }
+      }
+    }
+    return pack(cur, [racks * (bw + 20), depth * bd + 40], height * bh, 'datastack');
+  },
+
   /** A shrine: a small enclosure with something inside worth enclosing. */
   shrine(ctx, o = {}) {
     const cur = new Cursor(ctx.origin, ctx.colorOf);
@@ -565,6 +715,68 @@ const STRUCTURES = {
     const shrine = MODULES.shrine(shift(ctx, 0, 0), {});
     if (shrine) { lift(shrine.places, y); out.push(...shrine.places); }
     return { places: out, footprint: [300, 300], height: 160, parts: out.length, module: 'gardens' };
+  },
+
+  /** A cathedral: nave, vault, buttresses, spire. Drowned by default. */
+  cathedral(ctx, o = {}) {
+    const out = [];
+    const bays = o.bays || 4, span = o.span || 120;
+    const plinth = MODULES.plinth(ctx, { studsX: 18, studsZ: Math.round(bays * span / LDU) + 4, courses: 2 });
+    if (plinth) out.push(...plinth.places);
+    const y = plinth ? plinth.height : 0;
+
+    const vault = MODULES.vault(shift(ctx, 0, 0), { bays, span, height: o.height || 8 });
+    if (vault) { lift(vault.places, y); out.push(...vault.places); }
+
+    const butt = MODULES.buttress(shift(ctx, 0, 0), { count: bays, reach: 90, courses: 6 });
+    if (butt) { lift(butt.places, y); out.push(...butt.places); }
+
+    const spire = MODULES.spire(shift(ctx, 0, -(bays / 2 + 0.6) * span), { courses: o.spire || 14 });
+    if (spire) { lift(spire.places, y); out.push(...spire.places); }
+
+    const reef = MODULES.reef(shift(ctx, 0, (bays / 2) * span), { clumps: o.clumps || 18, spread: 130 });
+    if (reef) out.push(...reef.places);
+
+    return { places: out, footprint: [420, bays * span + 260], height: (vault ? vault.height : 0) + y + 200,
+             parts: out.length, module: 'cathedral' };
+  },
+
+  /** A data temple: a colonnade around a rack hall, with a medusa moored above. */
+  datatemple(ctx, o = {}) {
+    const out = [];
+    const plinth = MODULES.plinth(ctx, { studsX: 16, studsZ: 14, courses: 2 });
+    if (plinth) out.push(...plinth.places);
+    const y = plinth ? plinth.height : 0;
+
+    const stack = MODULES.datastack(shift(ctx, 0, 0),
+      { racks: o.racks || 5, height: o.height || 10, depth: o.depth || 3, lampColor: o.lampColor });
+    if (stack) { lift(stack.places, y); out.push(...stack.places); }
+
+    const col = MODULES.colonnade(shift(ctx, 0, -140), { columns: o.columns || 7, drums: 8, pitch: 50 });
+    const col2 = MODULES.colonnade(shift(ctx, 0, 140), { columns: o.columns || 7, drums: 8, pitch: 50 });
+    for (const c of [col, col2]) if (c) { lift(c.places, y); out.push(...c.places); }
+
+    const med = MODULES.medusa(shift(ctx, 0, 0),
+      { tentacles: o.tentacles || 10, drop: 6, lift: (stack ? stack.height : 200) + y + 60 });
+    if (med) out.push(...med.places);
+
+    return { places: out, footprint: [420, 400], height: (stack ? stack.height : 0) + y + 260,
+             parts: out.length, module: 'datatemple' };
+  },
+
+  /** A bloom of jellyfish at different depths. */
+  bloom(ctx, o = {}) {
+    const n = o.count || 5;
+    const out = [];
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * Math.PI * 2 + ctx.rng();
+      const r = 60 + ctx.rng() * 160;
+      const m = MODULES.medusa(shift(ctx, Math.cos(a) * r, Math.sin(a) * r),
+        { tentacles: 6 + Math.floor(ctx.rng() * 6), drop: 4 + Math.floor(ctx.rng() * 6),
+          lift: 120 + Math.floor(ctx.rng() * 220) });
+      if (m) out.push(...m.places);
+    }
+    return { places: out, footprint: [460, 460], height: 420, parts: out.length, module: 'bloom' };
   },
 
   harbour(ctx, o = {}) {

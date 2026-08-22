@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Cathedral Forager</title>
+<link rel="icon" type="image/svg+xml" href="ball-jar-favicon.svg" />
+<link rel="stylesheet" href="./nabugo.css" />
+<link rel="stylesheet" href="./loop.css" />
+<style>
+  :root{ --loop: #67e8f9; }
+  .creedbar{ background:#04161a; color:var(--loop); }
+  .chip.loop{ color:var(--loop); border-color:var(--loop); }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="bar">
+    <span class="brand">Cathedral Forager</span>
+    <span class="spacer"></span>
+    <span class="chip" id="chipRound">Round 0</span>
+    <span class="chip loop" id="chipScore">—</span>
+    <span class="chip" id="chipParts">0 pieces</span>
+    <span class="chip" id="chipCat">catalogue —</span>
+    <span class="chip" id="chipBus">Bus —</span>
+  </header>
+  <div class="creedbar" id="creed">The programme states what it wants. The forager goes into the catalogue to find material that satisfies it — recruiting ecologies, pinning roles, redrawing the bag. It never edits geometry.</div>
+  <div class="progress"><i id="progress" style="width:0%"></i></div>
+
+  <main class="loop">
+    <!-- LEFT: the genome -->
+    <div class="col">
+      <div class="sec-head">ATORScript <span class="n">the genome · editable</span></div>
+      <div class="sec-body"><textarea id="script" class="script" spellcheck="false"></textarea></div>
+      <div class="sec-body" style="padding-top:0">
+        <div style="display:flex;gap:4px">
+          <button id="btnCompile" class="go" style="flex:2">Compile as written</button>
+          <button id="btnDlScript" style="flex:1">↓ .ator</button>
+        </div>
+        <div style="display:flex;gap:4px;margin-top:4px">
+          <button id="btnStep" class="go" style="flex:1">Step</button>
+          <button id="btnRun" class="go" style="flex:2">Forage</button>
+          <button id="btnReset" style="flex:1">Reset</button>
+        </div>
+        <div style="display:flex;gap:4px;margin-top:4px">
+          <button id="btnDl" style="flex:1">Download MPD</button>
+          <button id="btnBroadcast" style="flex:1">Broadcast</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CENTRE -->
+    <div class="col">
+      <div class="viewport">
+        <div class="canvas" id="canvas"></div>
+        <div class="tools">
+          <button id="btnFit">Fit</button><button id="btnEdges">Edges</button>
+          <button id="btnGrid">Grid</button><button id="btnSpin">Spin</button>
+        </div>
+        <div class="status" id="status">booting…</div>
+      </div>
+      <div style="flex:0 0 auto;border-top:1px solid var(--line)">
+        <div class="sec-head">Claims <span class="n">the script's own asserts, checked</span></div>
+        <div class="sec-body" id="claims" style="max-height:170px;overflow-y:auto"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="col">
+      <div class="sec-head">Compiled</div>
+      <div class="sec-body" id="audit"></div>
+      <div class="sec-head" id="traitsHead">Traits <span class="n">no weighted sum</span></div>
+      <div class="sec-body" id="traits"></div>
+      <div class="sec-head">Rounds <span class="n" id="nLog">0</span></div>
+      <div class="scrolly" style="padding:6px 8px" id="log"></div>
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="./examples/js/loaders/LDrawLoader.js"></script>
+<script src="./beta-prime-engine.js"></script>
+<script src="./nabugo.js"></script>
+<script src="./nabugo-evo.js"></script>
+<script src="./nabugo-modules.js"></script>
+<script src="./nabugo-atorscript.js"></script>
+<script src="./nabugo-loops.js"></script>
+<script src="./nabugo-ui.js"></script>
+<script src="./loop-page.js"></script>
+<script>LoopBoot({ kind:'forager', title:'Cathedral Forager', source:'cathedral-forager', seedScript:'cathedral', background:0x04161a, seed:1831, creed:'', runLabel:'Forage' });</script>
+</body>
+</html>
