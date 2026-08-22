@@ -422,6 +422,48 @@ function mount(cfg) {
     b.addEventListener('click', () => fn(hx, b));
     return b;
   };
+  /** The thing being built toward, kept in the corner of the bed. Pass null to
+   *  clear it. Tapping the plate gives the reference the whole bed until it is
+   *  tapped away — a deliberate, reversible swap of what you are looking at,
+   *  which is the one case where covering the world is the point. */
+  let refPlate = null, refFull = null, refCur = null;
+  hx.reference = ref => {
+    refCur = ref || null;
+    if (refPlate) { refPlate.remove(); refPlate = null; }
+    if (refFull) { refFull.remove(); refFull = null; }
+    if (!ref) return;
+    refPlate = h('div', 'hx-ref');
+    if (ref.thumb || ref.image) {
+      const im = h('img'); im.src = ref.thumb || ref.image; im.alt = ''; refPlate.appendChild(im);
+    }
+    const t = h('div', 't');
+    t.append(h('div', 'n', ref.sub || ref.kind || 'reference'), h('div', 'm', ref.name || ''));
+    refPlate.appendChild(t);
+    // the bed's double-tap-to-fit listens on pointerup, so the plate has to stop
+    // that too or opening the reference also reframes the camera behind it
+    refPlate.addEventListener('pointerup', ev => ev.stopPropagation());
+    refPlate.addEventListener('click', ev => { ev.stopPropagation(); hx.referenceFull(!refFull); });
+    bed.appendChild(refPlate);
+  };
+  hx.referenceFull = on => {
+    if (refFull) { refFull.remove(); refFull = null; }
+    if (!on || !refCur) return;
+    refFull = h('div', 'hx-reffull');
+    refFull.addEventListener('pointerup', ev => ev.stopPropagation());
+    refFull.addEventListener('click', () => hx.referenceFull(false));
+    if (refCur.image || refCur.thumb) {
+      const im = h('img'); im.src = refCur.image || refCur.thumb; im.alt = ''; refFull.appendChild(im);
+    }
+    const cap = h('div', 'cap');
+    cap.appendChild(h('span', '', (refCur.n != null ? refCur.n + ' · ' : '') + (refCur.sub || refCur.kind || '')));
+    cap.appendChild(h('b', '', refCur.name || ''));
+    if (refCur.tagline) cap.appendChild(h('i', '', refCur.tagline));
+    refFull.appendChild(cap);
+    const x = h('button', '', '✕'); x.type = 'button';
+    x.addEventListener('click', ev => { ev.stopPropagation(); hx.referenceFull(false); });
+    refFull.appendChild(x);
+    bed.appendChild(refFull);
+  };
   hx.cap = t => h('div', 'hx-cap', t);
   hx.kv = (k, v, cls) => {
     const d = h('div', 'hx-kv');
@@ -479,6 +521,7 @@ function mount(cfg) {
   hx.esc = esc;
 
   hx.trace(null);
+  if (cfg.reference) hx.reference(cfg.reference);
   show('world');
   if (cfg.onWorld) {
     Promise.resolve(cfg.onWorld(canvas, hx)).catch(e => {
