@@ -605,6 +605,22 @@ class Build {
     return { held: cands.filter(c => held.has(c)), dropped: cands.filter(c => !held.has(c)), rescued };
   }
 
+  /**
+   * Ask NabugoModules.Palette for a part to play a role, and hold it to the open
+   * layer's allow-list. The Palette is sticky by design — a role keeps its part
+   * so the same column repeats — but its roles were written for STRUCTURE and
+   * SKIN, and NOT_STRUCTURAL correctly bans every hinge and clip from all of
+   * them; anything it offers that this layer may not touch falls back.
+   */
+  role(name, fallback) {
+    const spec = this.layer ? LAYER_BY_ID.get(this.layer) : null;
+    let pick = null;
+    try { pick = this.palette.get(name); } catch (e) { pick = null; }
+    if (!pick) return fallback;
+    if (spec && !this._familyAllowed(spec, familyOf(pick.id), pick.id, null)) return fallback;
+    return pick.id;
+  }
+
   // ────────────────────────────────────────────────────── assemblies
   /**
    * Cut a submodel. Everything `fn` places lands inside it. Nesting is legal and
@@ -1212,10 +1228,11 @@ const SKIN = {
   ],
 
   /** The apron strip: three plates, three different tiles, three yaws. */
+  // The apron runs away from the water, so its paving does too.
   APRON_FIELD: [
-    [VOCAB.tile['1x4'], 0, 0, 90, 15], [VOCAB.tile['1x1'], 0, 60, 0, 4],
-    [VOCAB.round['1x1brick'], -20, 60, 0, 4], [VOCAB.round['1x1brick'], 20, 60, 0, 15],
-    [VOCAB.tile.grille, 0, 120, 90, 72]
+    [VOCAB.tile['1x4'], 0, 0, 90, 15], [VOCAB.tile['1x1'], 0, -60, 0, 4],
+    [VOCAB.round['1x1brick'], -20, -60, 0, 4], [VOCAB.round['1x1brick'], 20, -60, 0, 15],
+    [VOCAB.tile.grille, 0, -120, 90, 72]
   ]
 };
 
@@ -1379,8 +1396,12 @@ const STUFF = {
   prop(b, o = {}) {
     const at0 = o.at || { x: 0, z: 0 };
     const y = o.y == null ? GROUND_TOP : o.y;
-    return [at(VOCAB.stuff.flag, at0.x, at0.z, y, { color: 4, role: 'flag' }),
-            at(VOCAB.stuff.plant, at0.x + 40, at0.z, y, { color: 2, role: 'plant' }),
+    // The one place the Palette can speak here: a relic is whatever the brief's
+    // ecology throws up, and nothing downstream depends on its footprint.
+    const relic = b.role('relic', VOCAB.stuff.flag);
+    const frond = b.role('frond', VOCAB.stuff.plant);
+    return [at(relic, at0.x, at0.z, y, { color: 4, role: 'relic' }),
+            at(frond, at0.x + 80, at0.z, y, { color: 2, role: 'plant' }),
             at('11055', at0.x - 40, at0.z, y, { mat: Geom.rotY(180), color: 14, role: 'flag' })].filter(Boolean);
   }
 };
@@ -1458,15 +1479,23 @@ function pass(building, layerId, rng) {
   if (layerId === 'SITE') {
     run('plate', SITE.plate(b, { at: P.origin, part: P.ground }));
     run('shoreline', SITE.shoreline(b, { at: P.water, part: VOCAB.water[1], n: 1 }));
-    run('plot', SITE.plot(b, { at: P.apron, n: 3, pitch: 60 }));
+    run('plot', SITE.plot(b, { at: P.apron, n: P.apronRuns, pitch: P.apronPitch }));
 
   } else if (layerId === 'STRUCTURE') {
     const shell = b.asm('hut shell', bb => {
-      run('frame', STRUCTURE.frame(bb, { at: P.huts[0], studs: P.hutStuds, courses: P.courses }));
+      run('frame', STRUCTURE.frame(bb, { at: P.huts[0], studs: P.hutStuds, courses: P.courses,
+                                         color: P.structureColours[0] }));
     });
-    const turned = turnInstance(b, shell, P.huts[1]);
-    byGen.frame = (byGen.frame || 0) + turned.parts;
-    for (const why of turned.refused || []) refused.push({ gen: 'frame-instance', why });
+    if (P.repeatHut) {
+      const turned = turnInstance(b, shell, P.huts[1]);
+      byGen.frame = (byGen.frame || 0) + turned.parts;
+      for (const why of turned.refused || []) refused.push({ gen: 'frame-instance', why });
+    } else {
+      b.asm('north hut shell', bb => {
+        run('frame', STRUCTURE.frame(bb, { at: P.huts[1], studs: P.hutStuds, courses: P.courses,
+                                           color: P.structureColours[2] || P.structureColours[0] }));
+      });
+    }
     // Tier B: a two-brick pier, cut once and used at all four deck corners.
     const legPitch = (P.deckStuds - 1) * STUD / 2;
     const legDef = b.asm('pier leg', bb => {
@@ -1481,12 +1510,13 @@ function pass(building, layerId, rng) {
                     { color: 72, role: 'deck' })]);
     run('spine', STRUCTURE.spine(b, { at: P.spine, courses: 3 }));
     run('quay', STRUCTURE.quay(b, { at: P.quay, y: GROUND_TOP }));
-    run('boathouse', STRUCTURE.frame(b, { at: P.boathouse, studs: 6, courses: 3,
-                                          y: P.quayTop, color: 70, deckColor: 72 }));
+    run('boathouse', STRUCTURE.frame(b, { at: P.boathouse, studs: 6, courses: 3, y: P.quayTop,
+                                          color: P.structureColours[P.structureColours.length - 2],
+                                          deckColor: 72 }));
 
   } else if (layerId === 'SKIN') {
     const crown = b.asm('hut crown', bb => {
-      run('cladding', SKIN.cladding(bb, { at: P.huts[0], studs: P.hutStuds,
+      run('cladding', SKIN.cladding(bb, { at: P.huts[0], studs: P.hutStuds, perHost: P.perHost,
                                           y: GROUND_TOP - P.courses * BRICK - PLATE }),
           { selfClash: false });
       run('roof', SKIN.roof(bb, { at: P.huts[0], studs: P.hutStuds,
@@ -1499,9 +1529,19 @@ function pass(building, layerId, rng) {
                   max: [h.x + 60, GROUND_TOP - 5 * BRICK - 12, h.z + 19] }, 'future storey over ' +
                 Math.round(h.x) + ',' + Math.round(h.z));
     }
-    const turned = turnInstance(b, crown, P.huts[1]);
-    byGen.cladding = (byGen.cladding || 0) + turned.parts;
-    for (const why of turned.refused || []) refused.push({ gen: 'crown-instance', why });
+    if (P.repeatHut) {
+      const turned = turnInstance(b, crown, P.huts[1]);
+      byGen.cladding = (byGen.cladding || 0) + turned.parts;
+      for (const why of turned.refused || []) refused.push({ gen: 'crown-instance', why });
+    } else {
+      b.asm('north hut crown', bb => {
+        run('cladding', SKIN.cladding(bb, { at: P.huts[1], studs: P.hutStuds, perHost: P.perHost,
+                                            y: GROUND_TOP - P.courses * BRICK - PLATE,
+                                            color: 19, cladColor: 14 }), { selfClash: false });
+        run('roof', SKIN.roof(bb, { at: P.huts[1], studs: P.hutStuds, color: 14,
+                                    y: GROUND_TOP - P.courses * BRICK - PLATE - BRICK }));
+      });
+    }
     b.asm('beacon', bb => {
       // The drum, then a course of corner rounds SUBSTITUTED for a drum at the
       // banded height — same outer diameter, different part — then the cap.
@@ -1547,9 +1587,12 @@ function pass(building, layerId, rng) {
                                          y: deckSurface == null ? GROUND_TOP : deckSurface, torso: 4 }),
           { atomic: true, selfClash: false, requireSupport: false });
     }, { kind: 'figure' });
-    const res = shiftInstance(b, fig, P.figures[1].x - P.figures[0].x, P.figures[1].z - P.figures[0].z);
-    byGen.minifig = (byGen.minifig || 0) + res.parts;
-    for (const why of res.refused || []) refused.push({ gen: 'figure-instance', why });
+    for (let i = 1; i < P.figures.length; i++) {
+      const res = shiftInstance(b, fig, P.figures[i].x - P.figures[0].x,
+                                        P.figures[i].z - P.figures[0].z);
+      byGen.minifig = (byGen.minifig || 0) + res.parts;
+      for (const why of res.refused || []) refused.push({ gen: 'figure-instance', why });
+    }
     b.asm('runabout', bb => {
       run('vehicle', STUFF.vehicle(bb, { at: P.yard }),
           { atomic: true, selfClash: false, requireSupport: false });
@@ -1777,7 +1820,12 @@ function toMPD(building, opts = {}) {
  * clash gate has nothing to refuse.
  */
 function planFor(temperament, seed) {
-  const studs = 6, courses = 3;
+  const T = temperament || TEMPERAMENT.LOW;
+  const studs = 6;
+  // LOW ROAD counts in bricks and repeats the bay; HIGH ROAD counts in plates,
+  // so it gets a fourth course, a third cladding stud per anchor, a wider apron
+  // and a second hut cut as its own block instead of the first one again.
+  const courses = T.courseUnit === PLATE ? 4 : 3;
   const crownY = GROUND_TOP - courses * BRICK - PLATE;   // on top of the frame's ceiling
   // A crown is 12 LDU wider than its hut on every face — that is what a side
   // stud plus a plate body measures — so two 6-stud huts need 160 between
@@ -1789,6 +1837,10 @@ function planFor(temperament, seed) {
   return {
     origin: { x: 0, z: 0 }, ground: VOCAB.ground[0],
     huts, hutStuds: studs, courses, crownY,
+    perHost: T.snotTarget >= 0.3 ? 3 : 2,
+    apronRuns: T.tileCapRate >= 0.5 ? 5 : 3,
+    repeatHut: T.reuseTarget >= 0.25,
+    structureColours: T.stapleOnly ? [71, 72] : [71, 72, 70, 0],
     deck, deckStuds, deckTop,
     spine: { x: 40, z: 130 }, spineTop: GROUND_TOP - 3 * BRICK,
     quay: { x: -110, z: 270 }, quayTop: GROUND_TOP - PLATE,
@@ -1796,14 +1848,17 @@ function planFor(temperament, seed) {
     // another block: instanced pieces above 60% of the model is its own failure.
     boathouse: { x: 30, z: 290 },
     beacon: { x: 40, z: 40 },
-    water: { x: -100, z: 180 }, apron: { x: 130, z: -140 },
-    // One opening per hole the frame left. Hut B is the same block turned 180
-    // degrees about its centre, so its holes are hut A's holes reflected.
+    water: { x: -100, z: 180 }, apron: { x: 130, z: -20 }, apronPitch: -60,
+    // One opening per hole the frame left. On the LOW road hut B is hut A
+    // turned 180 degrees about its centre, so its holes are hut A's reflected;
+    // on the HIGH road it is its own block, facing the same way.
     openings: [
       { x: -50,  z: -100, y: GROUND_TOP - BRICK, mat: yaw },
       { x: -100, z: -50,  y: GROUND_TOP },
-      { x: -150, z: 60,   y: GROUND_TOP - BRICK, mat: yaw },
-      { x: -100, z: 10,   y: GROUND_TOP },
+      (T.reuseTarget >= 0.25 ? { x: -150, z: 60,  y: GROUND_TOP - BRICK, mat: yaw }
+                             : { x: -50,  z: 60,  y: GROUND_TOP - BRICK, mat: yaw }),
+      (T.reuseTarget >= 0.25 ? { x: -100, z: 10,  y: GROUND_TOP }
+                             : { x: -100, z: 110, y: GROUND_TOP }),
       { x: 80,   z: 290,  y: GROUND_TOP - PLATE - BRICK, mat: yaw },
       { x: 30,   z: 340,  y: GROUND_TOP - PLATE }
     ],
@@ -1811,7 +1866,10 @@ function planFor(temperament, seed) {
     fittings: { x: -110, z: 330 },
     ladder: { x: -150, z: 270 }, ladderY: GROUND_TOP - PLATE,
     path: { x: -30, z: -30 },
-    figures: [{ x: 0, z: -140 }, { x: 60, z: -140 }],
+    // The HIGH road cuts more blocks and repeats fewer of them, so it needs a
+    // third figure to keep instanced pieces over its own 15% floor.
+    figures: T.reuseTarget >= 0.25 ? [{ x: 0, z: -140 }, { x: 60, z: -140 }]
+                                   : [{ x: 0, z: -140 }, { x: 60, z: -140 }, { x: 40, z: -20 }],
     yard: { x: 140, z: 80 }, prop: { x: -140, z: 190 },
     seed
   };
@@ -1833,6 +1891,7 @@ async function compose(opts = {}) {
     name: opts.subject || 'shore-station', focusAxis: opts.focusAxis || null,
     plan: planFor(TEMPERAMENT[temper], seed)
   });
+  build.plan.temperament = TEMPERAMENT[temper].id;
   build.reports = [];
   for (const spec of LAYERS) build.reports.push(pass(build, spec.id, build.rng));
   return build;
