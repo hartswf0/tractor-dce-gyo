@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#050505" />
+<title>The Bar and the Builds</title>
+<link rel="icon" type="image/svg+xml" href="ball-jar-favicon.svg" />
+<style>
+:root{
+  color-scheme: dark;
+  --bg:#050505; --card:#0c0c10; --line:#23232a; --soft:#16161c;
+  --fg:#e9e9ec; --dim:#8d8d96; --faint:#55555f;
+  --bar:#e2b04a; --ours:#22d3ee; --ok:#4ade80; --bad:#f87171;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--fg);
+  font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+  -webkit-text-size-adjust:100%}
+a{color:inherit;text-decoration:none}
+.mono{font-family:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,monospace}
+
+header{position:sticky;top:0;z-index:20;background:rgba(5,5,5,.94);
+  backdrop-filter:blur(8px);border-bottom:1px solid var(--line);
+  padding:calc(10px + env(safe-area-inset-top)) 16px 10px}
+h1{margin:0;font-size:15px;letter-spacing:.22em;text-transform:uppercase;font-weight:600}
+.sub{margin-top:3px;font-size:11px;color:var(--dim);line-height:1.45}
+nav{display:flex;gap:6px;padding:9px 16px 3px;overflow-x:auto;scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
+nav a{flex:0 0 auto;background:#131319;border:1px solid var(--line);color:var(--dim);
+  border-radius:999px;padding:0 15px;min-height:44px;display:flex;align-items:center;
+  font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+
+main{padding:14px 16px calc(28px + env(safe-area-inset-bottom))}
+section{margin-bottom:30px}
+h2{display:flex;align-items:baseline;gap:9px;margin:0 0 4px;font-size:11px;
+  letter-spacing:.18em;text-transform:uppercase;color:var(--dim);font-weight:600}
+h2 .dot{width:7px;height:7px;border-radius:50%;flex:0 0 auto}
+h2 .n{margin-left:auto;color:var(--faint);letter-spacing:0;text-transform:none;font-weight:400}
+.blurb{font-size:12px;color:var(--dim);line-height:1.6;margin:0 0 12px}
+
+.grid{display:grid;grid-template-columns:1fr;gap:12px}
+@media (min-width:620px){ .grid{grid-template-columns:1fr 1fr} }
+@media (min-width:1000px){ .grid{grid-template-columns:repeat(3,1fr)} }
+
+.card{display:block;background:var(--card);border:1px solid var(--line);border-radius:12px;
+  overflow:hidden;transition:border-color .15s,transform .08s}
+.card:active{transform:scale(.99)}
+.card:hover{border-color:#3d3d4a}
+.card img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;background:#08080b}
+.body{padding:12px 14px 14px}
+.name{font-size:14px;font-weight:600;display:flex;align-items:baseline;gap:8px}
+.name .set{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10px;
+  color:var(--faint);letter-spacing:.12em}
+.what{margin-top:5px;font-size:12px;color:var(--dim);line-height:1.5}
+.stats{margin-top:9px;display:flex;flex-wrap:wrap;gap:5px}
+.stat{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10px;padding:3px 8px;
+  border-radius:999px;background:#17171e;color:var(--dim)}
+.stat b{color:var(--fg);font-weight:400}
+.files{margin-top:10px;display:flex;gap:7px;flex-wrap:wrap}
+.files a{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10px;
+  letter-spacing:.06em;text-transform:uppercase;padding:0 14px;min-height:44px;
+  display:inline-flex;align-items:center;border-radius:8px;
+  background:#141419;border:1px solid var(--line);color:var(--dim)}
+.files a:active{background:#1e1e28;color:var(--fg)}
+footer{border-top:1px solid var(--line);padding:16px;font-size:11px;color:var(--faint);line-height:1.65}
+footer code{background:#131319;padding:1px 5px;border-radius:3px;font-size:10px}
+.note{background:#0d0d12;border:1px solid var(--line);border-left:2px solid var(--bar);
+  border-radius:8px;padding:11px 13px;font-size:12px;color:var(--dim);line-height:1.6;margin:0 0 14px}
+.empty{color:var(--faint);font-size:12px;padding:10px 0}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>The Bar and the Builds</h1>
+  <div class="sub">Every file on this page was produced by the code in this repo and committed
+    next to it. Nothing here is a mock-up.</div>
+</header>
+
+<nav>
+  <a href="#bar">The bar</a><a href="#ours">What we built</a>
+  <a href="nabugo-gallery.html">Gallery</a><a href="kits.html">Kits, live</a>
+  <a href="gauntlet.html">The gauntlet</a>
+</nav>
+
+<main>
+  <section id="bar">
+    <h2><span class="dot" style="background:var(--bar)"></span>The bar — real LEGO sets
+      <span class="n" id="nBar"></span></h2>
+    <p class="blurb">Sixteen actual LEGO sets authored in LDraw, from the Official Model Repository
+      by way of the three.js LDrawLoader example (CC BY 2.0). Every render below was made by loading
+      the set's own <code>.mpd</code> into the same viewer our builders use. The numbers are measured,
+      not quoted: <code>build-kit-index.js</code> resolves each set's submodel tree with matrix
+      composition and reports 80 metrics per kit.</p>
+    <div class="grid" id="barGrid"></div>
+  </section>
+
+  <section id="ours">
+    <h2><span class="dot" style="background:var(--ours)"></span>What we built
+      <span class="n" id="nOurs"></span></h2>
+    <p class="note"><b>These are not curated.</b> Each one is whatever the builder produced on a
+      single unattended run at the piece count named — no reruns, no picking the good seed. Where a
+      build looks thin or scattered, that is the state of the generator, and the gauntlet's job is
+      to say so in numbers.</p>
+    <div class="grid" id="oursGrid"></div>
+  </section>
+</main>
+
+<footer>
+  Renders are the LDraw parts library drawn by <code>beta-prime-engine.js</code> at 1400px, flat
+  shaded with edges, quantised to 192 colours. Every <code>.mpd</code> opens in LDView, LeoCAD,
+  Bricklink Studio or any LDraw tool. Kit files are CC BY 2.0 from the LDraw Official Model
+  Repository; LEGO® is a trademark of the LEGO Group, which does not sponsor or endorse this work.
+</footer>
+
+<script>
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c =>
+  ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pct = v => v == null ? '—' : (v * 100).toFixed(0) + '%';
+const title = k => k.replace(/^\d+-/, '').replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+const setNo = k => (k.match(/^(\d+)/) || [, ''])[1];
+
+function card(o) {
+  return '<div class="card">' +
+    (o.img ? '<a href="' + esc(o.img) + '"><img src="' + esc(o.thumb || o.img) + '" alt="" loading="lazy"></a>' : '') +
+    '<div class="body">' +
+      '<div class="name">' + (o.set ? '<span class="set">SET ' + esc(o.set) + '</span>' : '') +
+        esc(o.name) + '</div>' +
+      '<div class="what">' + esc(o.what) + '</div>' +
+      '<div class="stats">' + (o.stats || []).map(s =>
+        '<span class="stat">' + esc(s[0]) + ' <b>' + esc(s[1]) + '</b></span>').join('') + '</div>' +
+      '<div class="files">' + (o.files || []).map(f =>
+        '<a href="' + esc(f[1]) + '">' + esc(f[0]) + '</a>').join('') + '</div>' +
+    '</div></div>';
+}
+
+(async function () {
+  try {
+    const idx = await (await fetch('./kit-index.json')).json();
+    const kits = idx.kits.filter(k => !k.degenerate && k.pieces > 0)
+                         .sort((a, b) => b.pieces - a.pieces);
+    document.getElementById('nBar').textContent = kits.length + ' sets';
+    document.getElementById('barGrid').innerHTML = kits.map(k => card({
+      set: setNo(k.kit), name: title(k.kit),
+      img: 'kits/renders/' + k.kit + '.png', thumb: 'kits/renders/' + k.kit + '.thumb.png',
+      what: (k.rootDescription || '').slice(0, 90) || 'an official LDraw model of the set',
+      stats: [
+        ['pieces', k.pieces.toLocaleString()],
+        ['distinct', k.distinct],
+        ['blocks', (k.submodel && k.submodel.modelBlocks) || 1],
+        ['colours', k.colours],
+        ['snot', pct(k.snotRateLocal)],
+        ['lattice', pct(k.gridAlignLocal)]
+      ],
+      files: [['mpd', 'kits/' + k.kit + '.mpd'], ['png', 'kits/renders/' + k.kit + '.png']]
+    })).join('');
+  } catch (e) {
+    document.getElementById('barGrid').innerHTML =
+      '<div class="empty">kit-index.json did not load — serve this page over HTTP.</div>';
+  }
+
+  try {
+    const m = await (await fetch('./builds/manifest.json')).json();
+    document.getElementById('nOurs').textContent = m.builds.length + ' builds';
+    document.getElementById('oursGrid').innerHTML = m.builds.map(b => card({
+      name: title(b.id), img: 'builds/' + b.id + '.png', thumb: 'builds/' + b.id + '.thumb.png',
+      what: b.note,
+      stats: [['pieces', b.pieces.toLocaleString()], ['blocks', b.blocks],
+              ['kb', Math.round(b.bytes / 1024)]],
+      files: [['mpd', 'builds/' + b.id + '.mpd'], ['png', 'builds/' + b.id + '.png'],
+              ['run it', b.page]]
+    })).join('');
+  } catch (e) {
+    document.getElementById('oursGrid').innerHTML =
+      '<div class="empty">builds/manifest.json did not load — serve this page over HTTP.</div>';
+  }
+})();
+</script>
+</body>
+</html>
