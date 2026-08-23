@@ -1496,12 +1496,38 @@ function pass(building, layerId, rng) {
                                            color: P.structureColours[2] || P.structureColours[0] }));
       });
     }
+    // AX-SYMMETRY. Build.mirror has existed since this file was written and
+    // nothing has ever called it, which is why our symmetry measured 0.017
+    // against a 0.30 floor while the corpus runs 0.755 and six of ten kits are
+    // strongly mirror-symmetric about their long axis. Never a negated matrix
+    // column: mirror() uses the chirality twin where one exists and a 180
+    // degree turn where the part has two-fold symmetry, and refuses the rest.
+    if (P.mirrorFrame) {
+      const made = b.site.places.slice(before);
+      const m = b.mirror(made, P.mirrorPlane || 'x',
+                         P.mirrorAbout == null ? P.origin.x : P.mirrorAbout);
+      if (m.places.length) {
+        b.asm('mirrored frame', () => { run('mirror', m.places); });
+      }
+      const seen = new Set();
+      for (const why of (m.refused || [])) {
+        if (seen.has(why)) continue;
+        seen.add(why);
+        refused.push({ gen: 'mirror', why: why + ' has no chirality twin and no two-fold turn' });
+      }
+    }
+
     // Tier B: a two-brick pier, cut once and used at all four deck corners.
     const legPitch = (P.deckStuds - 1) * STUD / 2;
     const legDef = b.asm('pier leg', bb => {
       run('leg', STRUCTURE.leg(bb, { at: { x: P.deck.x - legPitch, z: P.deck.z - legPitch } }));
     });
-    for (const [sx, sz] of [[1, -1], [-1, 1], [1, 1]]) {
+    // instanceCap makes reuse adjustable in small steps. Without it the only
+    // reuse lever was repeatHut, a boolean, and the controller swung between
+    // 0.547 and 0.033 either side of a 0.177 kit forever.
+    const legCorners = [[1, -1], [-1, 1], [1, 1]]
+      .slice(0, P.instanceCap == null ? 3 : Math.max(0, Math.min(3, P.instanceCap)));
+    for (const [sx, sz] of legCorners) {
       const res = shiftInstance(b, legDef, (sx + 1) * legPitch, (sz + 1) * legPitch);
       byGen.leg = (byGen.leg || 0) + res.parts;
       for (const why of res.refused || []) refused.push({ gen: 'leg-instance', why });
@@ -1876,6 +1902,151 @@ function planFor(temperament, seed) {
 }
 
 /**
+ * ANSWER THE ACCUSATION.
+ *
+ * The loop was open. NabugoGauntlet computed a brief every round, named the
+ * worst axis, and handed it over; nothing here read it, so six rounds produced
+ * six identical builds and the exit condition — winning the blind comparison —
+ * was unreachable by construction. This is the seam that closes it.
+ *
+ * A response changes GENERATOR PARAMETERS ONLY. It never touches a gate, never
+ * relaxes a band, never edits the measurement. If a response cannot move the
+ * axis, the axis stays lost and the transcript says so; the one thing it may
+ * not do is make the number look better than the build.
+ *
+ * `pressure` is how many rounds this axis has been the accusation, so a
+ * repeated accusation pushes further in the same direction rather than taking
+ * the same one step again. Steps are capped: a builder that keeps escalating
+ * turns one lost axis into three.
+ */
+function respond(plan, T, brief, pressure, losing) {
+  // Every open accusation, worst last so it wins any conflict with a milder
+  // one. Answering only the newest made the loop oscillate: the mirror went in,
+  // the hut instance came back, and the score swung 7/5, 5/7, 7/5 forever.
+  const queue = [];
+  for (const l of (losing || [])) if (!brief || l.axis !== brief.axis) queue.push(l);
+  if (brief && brief.axis) queue.push(brief);
+  for (const acc of queue) plan = respondOne(plan, T, acc, pressure);
+  return plan;
+}
+
+function respondOne(plan, T, brief, pressure) {
+  if (!brief || !brief.axis) return plan;
+  // DEAD ZONE. An axis that is inside its band and already close to the target
+  // is left alone. Without this the controller keeps pushing an axis it has
+  // effectively won, drives it out the other side, and oscillates: reuse went
+  // 0.547, 0.033, 0.472, 0.033 either side of a 0.177 kit, round after round.
+  const b0 = brief.band || [-Infinity, Infinity];
+  const inBand = brief.ours != null && brief.ours >= b0[0] && brief.ours <= b0[1];
+  if (inBand && brief.target != null && brief.ours != null) {
+    const span = Math.abs(b0[1] - b0[0]) || 1;
+    if (Math.abs(brief.ours - brief.target) < 0.08 * span) return plan;
+  }
+  const n = Math.min(4, Math.max(1, (pressure && pressure[brief.axis]) || 1));
+  // Which way to move. `over` means we have too much of the thing, which is
+  // most of what we lose on: reuse 0.547 against 0.050, stuff 0.119 against
+  // 0.049, density 5.46 against 1.27. Overshoot is a loss, so the response to
+  // half of these axes is to do LESS.
+  const target = brief.target, ours = brief.ours;
+  const over = target != null && ours != null && ours > target;
+  plan.answered = (plan.answered || []).concat([{ axis: brief.axis, over, n }]);
+
+  switch (brief.axis) {
+    case 'AX-REUSE': {
+      // Spend the fine lever before the coarse one. The pier-leg cap moves
+      // reuse a few points at a time; the hut instance moves it forty, so it
+      // only flips once the cap has run out.
+      const cap = plan.instanceCap == null ? 3 : plan.instanceCap;
+      if (over) {
+        if (cap > 0) plan.instanceCap = Math.max(0, cap - 1);
+        else plan.repeatHut = false;
+      } else {
+        if (plan.repeatHut === false) plan.repeatHut = true;
+        else plan.instanceCap = Math.min(3, cap + 1);
+      }
+      break;
+    }
+
+    case 'AX-SYMMETRY':
+      // The frame gets a mirror image about the spine. mirror() has existed
+      // since this file was written and nothing has ever called it.
+      plan.mirrorFrame = !over;
+      plan.mirrorPlane = 'x';
+      plan.mirrorAbout = plan.origin.x;
+      break;
+
+    case 'AX-VOCAB':
+      // Distinct parts per piece. Widen or narrow the pick per role.
+      plan.vocabSpread = over ? Math.max(0, 1 - n) : 1 + n;
+      break;
+
+    case 'AX-STUFF':
+      plan.figures = over ? plan.figures.slice(0, Math.max(1, plan.figures.length - n))
+                          : plan.figures.concat([{ x: -40 - 30 * n, z: -140 }]);
+      break;
+
+    case 'AX-DENSITY':
+      // Density is pieces per unit of envelope, so the lever is the envelope.
+      // Spread the plan out when we are too dense, draw it in when too sparse.
+      plan.spread = over ? 1 + 0.35 * n : Math.max(0.4, 1 - 0.2 * n);
+      break;
+
+    case 'AX-POSE':
+    case 'AX-ROT':
+      // Angle lives on the joint, not in the part — the corpus is emphatic:
+      // 10174 has 50 posed joints at 28 distinct angles while its part matrices
+      // stay orthogonal at 0.98 axis-90. So pose more instances, not more parts.
+      plan.poseJoints = over ? Math.max(0, 2 - n) : 2 + n;
+      break;
+
+    case 'AX-SNOT':
+      plan.perHost = Math.max(1, Math.min(5, plan.perHost + (over ? -n : n)));
+      break;
+
+    case 'AX-COLOUR':
+      plan.structureColours = over ? plan.structureColours.slice(0, 2)
+                                   : [71, 72, 70, 0, 19, 4].slice(0, 2 + n);
+      break;
+
+    case 'AX-SERVICES':
+      plan.openings = over ? plan.openings.slice(0, Math.max(2, plan.openings.length - n))
+                           : plan.openings;
+      plan.extraFittings = over ? 0 : n;
+      break;
+
+    case 'AX-LATTICE':
+      // Being MORE aligned than a kit is a loss: the 13% a real kit spends off
+      // the lattice is SNOT and half-stud offset, which is discipline.
+      plan.halfStudDrift = over ? 0 : n;
+      break;
+
+    case 'AX-ANATOMY':
+      plan.blockSplit = over ? Math.max(0, 1 - n) : 1 + n;
+      break;
+
+    default:
+      break;
+  }
+  return plan;
+}
+
+/** Spread the plan's fixed anchor points out from the origin, or draw them in. */
+function spreadPlan(plan, k) {
+  if (!k || k === 1) return plan;
+  const o = plan.origin;
+  const move = pt => (pt && typeof pt.x === 'number'
+    ? { ...pt, x: Math.round((o.x + (pt.x - o.x) * k) / 10) * 10,
+               z: Math.round((o.z + (pt.z - o.z) * k) / 10) * 10 }
+    : pt);
+  for (const key of ['deck', 'spine', 'quay', 'boathouse', 'beacon', 'water', 'apron',
+                     'path', 'yard', 'prop']) plan[key] = move(plan[key]);
+  plan.huts = plan.huts.map(move);
+  plan.figures = plan.figures.map(move);
+  plan.openings = plan.openings.map(op => ({ ...move(op), y: op.y, mat: op.mat }));
+  return plan;
+}
+
+/**
  * Compose a whole build: six layers, six clocks, in order. The brief may name
  * one focus axis; it changes the generator parameters, never the gates.
  */
@@ -1886,10 +2057,26 @@ async function compose(opts = {}) {
 
   const temper = opts.temperament === 'HIGH' ? 'HIGH' : 'LOW';
   const seed = opts.seed == null ? 0xB2A4D : opts.seed;
+  // Carry the previous round's plan forward. Rebuilding it from the defaults
+  // every round threw away every adjustment the last accusation earned, which
+  // is why the loop could answer one axis and never two.
+  const prev = opts.previous && opts.previous.plan;
+  const base = prev ? JSON.parse(JSON.stringify(prev)) : planFor(TEMPERAMENT[temper], seed);
+  if (prev) {
+    // Matrices do not survive a JSON round trip as anything the placer wants,
+    // and the seed belongs to this round.
+    base.openings = planFor(TEMPERAMENT[temper], seed).openings
+      .slice(0, base.openings ? base.openings.length : undefined);
+    base.seed = seed;
+    delete base.answered;
+  }
+  const plan = respond(base, TEMPERAMENT[temper],
+                       opts.brief || null, opts.pressure || null, opts.losing || null);
+  if (plan.spread) spreadPlan(plan, plan.spread);
   const build = new Build({
     seed, temperament: temper, bar: opts.bar || null,
     name: opts.subject || 'shore-station', focusAxis: opts.focusAxis || null,
-    plan: planFor(TEMPERAMENT[temper], seed)
+    plan
   });
   build.plan.temperament = TEMPERAMENT[temper].id;
   build.reports = [];
@@ -1899,7 +2086,8 @@ async function compose(opts = {}) {
 
 global.NabugoBrand = { LAYERS, TEMPERAMENT, MINIFIG_SKELETON, VOCAB, Build, familyOf, twoFoldY,
                        SITE, STRUCTURE, SKIN, SERVICES, SPACE, STUFF,
-                       pass, audit, toMPD, compose, planFor, trappedFast, defExtent,
+                       pass, audit, toMPD, compose, planFor, respond, respondOne, spreadPlan,
+                       trappedFast, defExtent,
                        turnInstance, shiftInstance };
 
 })(typeof window !== 'undefined' ? window : globalThis);

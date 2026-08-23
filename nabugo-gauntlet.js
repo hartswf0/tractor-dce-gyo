@@ -257,6 +257,12 @@ function blindVector(v) {
  * ('Left Foot' vs 'parts/5935 - plane.ldr') that give the author away. Layer
  * stamps are dropped because only our placements carry them.
  */
+/**
+ * The `0` lines a blinded model may keep. Everything else on a `0` line is a
+ * name, a theme, an author or a set number, and names the entrant.
+ */
+const STRUCTURAL_META = /^\s*0\s+(FILE|NOFILE|STEP|ROTSTEP|CLEAR|PAUSE|SAVE|BFC|!COLOUR|!TEXMAP|!DATA|!LDCAD|!PY)\b/i;
+
 function blindPlacements(places) {
   const blocks = new Map(), asms = new Map();
   return (places || []).map((p) => {
@@ -293,8 +299,11 @@ function blindText(text) {
   for (const ln of lines) {
     const f = /^\s*0\s+FILE\s+(.+?)\s*$/i.exec(ln);
     if (f) { out.push('0 FILE ' + names.get(f[1].toLowerCase())); continue; }
-    if (/^\s*0\s+(Author|Name|!LDRAW_ORG|!LICENSE|!HELP|!CATEGORY|!KEYWORDS|!HISTORY|!CMDLINE)\b/i.test(ln)) continue;
     if (/^\s*0\s*\/\//.test(ln)) continue;
+    // A blacklist leaked: `0 Island Hopper`, `0 Minifig - Miss Gail Storm` and
+    // five `0 !THEME Adventurers, Dino Island` all survived it on 5935 alone.
+    // Only structural metas are kept; every other `0` line is a name.
+    if (/^\s*0(\s|$)/.test(ln) && !STRUCTURAL_META.test(ln)) continue;
     const t = ln.trim().split(/\s+/);
     if (t[0] === '1' && t.length >= 15) {
       const ref = t.slice(14).join(' ');
@@ -605,11 +614,19 @@ function magnitudeOf(why) {
  * Provenance: NabugoKits.measure over KITS minus 6156, 2026-08-22.
  */
 const CORPUS_CEILING = Object.freeze({
-  'G-CLASH':  Object.freeze({ rate: 1.6528, argmax: '10174-imperial-atst-ucs', of: 'interpenetrating pairs per piece' }),
-  'G-FLOAT':  Object.freeze({ rate: 0.8298, argmax: '30054-atst-mini', of: 'unfooted placements per piece' }),
-  'G-BUFFER': Object.freeze({ occ: Object.freeze([0.5293, 0.7063, 0.8091]),
+  'G-CLASH':  Object.freeze({ rate: 1.652830, argmax: '10174-imperial-atst-ucs', of: 'interpenetrating pairs per piece' }),
+  'G-FLOAT':  Object.freeze({ rate: 0.829787, argmax: '30054-atst-mini', of: 'unfooted placements per piece' }),
+  'G-BUFFER': Object.freeze({ occ: Object.freeze([0.529293, 0.706349, 0.809091]),
                               argmax: '4838 / 6965 / car', of: 'envelope occupancy STRUCTURE, +SKIN, ALL' }),
 });
+
+/**
+ * The ceiling is inclusive. Stored to six places against a value rounded to
+ * six places, so the kit that SETS a ceiling must land exactly on it and must
+ * not void against itself. Before this tolerance 10174 voided its own
+ * G-CLASH by 3e-5 and 6965 its own G-BUFFER by 5e-5.
+ */
+const CEILING_EPS = 1e-6;
 
 /** How far past the corpus ceiling this gate failure is, or null if unmeasurable. */
 function pastCeiling(id, oursVector) {
@@ -661,7 +678,7 @@ function gateRows(oursVector, bar, policy) {
       const c = CORPUS_CEILING[id];
       if (past) {
         rate = past.value; ceiling = past.ceiling;
-        voids = past.over > 0;
+        voids = past.over > CEILING_EPS;
         note = voids
           ? ' — and past the corpus ceiling: ' + fmt(past.value) + ' ' + past.which + ' against ' +
             fmt(past.ceiling) + ', worse than any of the sixteen real kits (' + c.argmax + ')'
@@ -823,9 +840,19 @@ function builderFor(opts) {
   if (opts && typeof opts.builder === 'function') return opts.builder;
   const B = global.NabugoBrand;
   if (B && typeof B.compose === 'function') {
+    // The whole accusation, not just its name. A builder handed the string
+    // 'AX-REUSE' knows an axis was named; a builder handed the brief knows it
+    // is at 0.547 against a target of 0.050 and which way to move. Dropping
+    // the rest here is what made the loop open: six rounds, six identical
+    // builds, the same worst axis every time.
     return (req) => B.compose({
-      bar: req.bar, seed: req.seed, temperament: req.temperament,
-      subject: req.subject, focusAxis: req.brief ? req.brief.axis : null,
+      bar: req.bar, seed: req.seed, round: req.round,
+      temperament: req.temperament, subject: req.subject,
+      focusAxis: req.brief ? req.brief.axis : null,
+      brief: req.brief || null,
+      losing: req.losing || null,
+      pressure: req.pressure || null,
+      previous: req.previous || null,
     });
   }
   return null;
@@ -873,10 +900,27 @@ async function round(state) {
 
   let built;
   try {
+    // Pressure: how many rounds each axis has now been the accusation. A
+    // builder that only ever sees the latest brief will take one step and take
+    // it again; one that sees the count can keep going in the same direction.
+    const pressure = {};
+    for (const h of state.history) if (h && h.worst) pressure[h.worst] = (pressure[h.worst] || 0) + 1;
+    if (accused) pressure[accused.axis] = (pressure[accused.axis] || 0) + 1;
+
+    // Every axis still open, not just the newest one. Answering one accusation
+    // at a time made the loop oscillate: fixing symmetry reset the reuse
+    // response, fixing reuse dropped the mirror, and the score swung 7/5, 5/7,
+    // 7/5 forever. A brief is the priority, not the whole of the work.
+    const losing = state.result && !state.result.void
+      ? state.result.axes.filter((a) => a.verdict === 'LOSS')
+          .map((a) => ({ axis: a.id, ours: a.ours, target: a.target,
+                         band: a.band, layer: a.layer }))
+      : [];
+
     built = await build({
       bar: state.bar, seed: state.seed + state.round, round: state.round,
       temperament: state.temperament, subject: state.subject,
-      brief: accused, previous: state.build, vector: beforeVector,
+      brief: accused, losing, pressure, previous: state.build, vector: beforeVector,
     });
   } catch (err) {
     return stop(state, 'builder threw on round ' + state.round + ': ' + (err && err.message || err));
