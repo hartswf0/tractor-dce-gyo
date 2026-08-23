@@ -846,6 +846,7 @@ function builderFor(opts) {
     // the rest here is what made the loop open: six rounds, six identical
     // builds, the same worst axis every time.
     return (req) => B.compose({
+      card: req.card || null,
       bar: req.bar, seed: req.seed, round: req.round,
       temperament: req.temperament, subject: req.subject,
       focusAxis: req.brief ? req.brief.axis : null,
@@ -864,6 +865,9 @@ async function start(opts) {
   const bar = await K.bar(o.kit || '5935-island-hopper');
   return {
     bar, seed: o.seed === undefined ? 1 : o.seed,
+    // Which card the builder is working from. Without this the loop could only
+    // ever ask for the one hard-coded layout, whatever the brief said.
+    card: o.card || null,
     temperament: o.temperament === 'HIGH' ? 'HIGH' : 'LOW',
     subject: o.subject || '',
     round: 0, build: null, vector: null, result: null, brief: null,
@@ -920,6 +924,7 @@ async function round(state) {
     built = await build({
       bar: state.bar, seed: state.seed + state.round, round: state.round,
       temperament: state.temperament, subject: state.subject,
+      card: state.card || null,
       brief: accused, losing, pressure, previous: state.build, vector: beforeVector,
     });
   } catch (err) {

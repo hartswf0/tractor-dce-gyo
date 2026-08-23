@@ -210,7 +210,7 @@ async function boot(cfg) {
     hx.clearWall(); hx.clearRounds();
     hx.status('measuring the bar…');
     St.g = await G.start({ kit: St.kit, seed: St.seed, temperament: St.temperament,
-                           subject: cfg.brief || '' });
+                           card: St.card, subject: cfg.brief || '' });
     St.pickKit = St.kit;
     St.kitVec.set(St.g.bar.kit, St.g.bar.vector);
     const b = St.g.bar, rec = K.KITS.find(k => k.kit === b.kit) || {};
@@ -818,6 +818,22 @@ async function boot(cfg) {
       if (!rec) return void hx.say('SYSTEM', 'kits: ' + K.KITS.map(k => k.set).join(', '), { kind: 'bad' });
       if (/^bar/.test(low)) return void setBar(rec.kit);
       St.pickKit = rec.kit; hx.show('kit'); return void showKit(rec.kit);
+    }
+    // WHICH BUILDING. The layout used to be a constant, so this was a command
+    // there was no point in having.
+    if ((m = low.match(/^card\s+(\S+)$/))) {
+      const cards = (B && B.CARDS) || {};
+      const key = Object.keys(cards).find(k => k.startsWith(m[1]));
+      if (!key && !/^(shore|none)$/.test(m[1])) {
+        return void hx.say('SYSTEM', 'cards: shore, ' + Object.keys(cards).join(', '), { kind: 'bad' });
+      }
+      St.card = key || null;
+      const c = key ? cards[key] : null;
+      hx.say('SYSTEM', 'building ' + (c ? c.name : 'the shore station') + ' from now on', { kind: 'ok' });
+      if (c) hx.reference({ name: c.name, sub: c.sub, tagline: c.tagline, kind: 'card',
+                            image: c.reference, thumb: c.reference });
+      else hx.reference(null);
+      return void reset();
     }
     if ((m = low.match(/^layer\s+(\w+)$/))) {
       const id = m[1].toUpperCase();

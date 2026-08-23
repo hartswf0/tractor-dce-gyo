@@ -1065,9 +1065,10 @@ const STRUCTURE = {
    *  being used four times under one deck. */
   leg(b, o = {}) {
     const at0 = o.at || { x: 0, z: 0 };
+    const base = o.y == null ? GROUND_TOP : o.y;
     const out = [];
     for (let c = 0; c < (o.courses || 2); c++) {
-      out.push(at(VOCAB.brick['1x1'], at0.x, at0.z, GROUND_TOP - c * BRICK,
+      out.push(at(VOCAB.brick['1x1'], at0.x, at0.z, base - c * BRICK,
                   { color: o.color == null ? 72 : o.color, role: 'leg' }));
     }
     return out.filter(Boolean);
@@ -1457,6 +1458,189 @@ function turnInstance(b, defId, centre) {
   return b.instance(defId, [centre.x + c[0], 0, centre.z + c[2]], Geom.rotY(180));
 }
 
+/** The tail every layer pass shares. */
+function closeLayer(b, layerId, spec, before, byGen, refused) {
+  const placed = b.site.places.length - before;
+  const close = b.closeLayer();
+  return { layer: layerId, clock: spec.clock, placed, byGenerator: byGen,
+           refused, refusedCount: refused.length, share: close.share,
+           occupancy: close.occupancy, ceiling: close.ceiling, ok: close.ok, why: close.why };
+}
+
+/**
+ * Build one layer of whatever the card's massing describes.
+ *
+ * Each kind is handled once, for every layer it touches, so a tower's frame,
+ * its cone, its arrow slit and the figure at its foot are all traceable to the
+ * same massing entry — and so the layer rules still hold: STRUCTURE never lays
+ * a roof, SERVICES never touches the frame, and STUFF goes last and rests on a
+ * surface that already exists.
+ */
+function massingPass(b, layerId, P, run, byGen, refused, before) {
+  const M = P.massing;
+  const structCol = P.structureColours || [71, 72, 70];
+  const skinCol = P.skinColour == null ? 4 : P.skinColour;
+  const accent = P.accentColour == null ? 15 : P.accentColour;
+  const yOf = level => GROUND_TOP - (level || 0) * BRICK;
+
+  if (layerId === 'SITE') {
+    run('plate', SITE.plate(b, { at: P.origin, part: P.ground, color: P.groundColour }));
+    for (const m of M) if (m.kind === 'water')
+      run('shoreline', SITE.shoreline(b, { at: m.at, part: VOCAB.water[1], n: 2 }));
+    return;
+  }
+
+  if (layerId === 'STRUCTURE') {
+    for (const m of M) {
+      if (m.kind === 'block') {
+        // One def, then instances. A castle's four corner towers are the same
+        // tower four times, which is what makes them identical and symmetric.
+        const def = b.asm(m.name, bb => {
+          run('frame', STRUCTURE.frame(bb, {
+            at: m.at, studs: m.studs, courses: m.courses,
+            door: m.door !== false, window: m.window !== false,
+            color: structCol[0], deckColor: structCol[1] || 72 }));
+        }, { kind: m.layerRole || 'block' });
+        m._def = def;
+        for (const inst of (m.instances || [])) {
+          // shiftInstance, not instance: b.instance takes an ABSOLUTE origin and
+          // a raw delta put the four corner towers in the middle of the plot.
+          const r = shiftInstance(b, def, inst.x - m.at.x, inst.z - m.at.z);
+          byGen.frame = (byGen.frame || 0) + r.parts;
+          for (const why of r.refused || []) refused.push({ gen: 'block-instance', why });
+        }
+      } else if (m.kind === 'terrace' && m.level) {
+        // A cantilever is not free. Real Fallingwater anchors its slabs into the
+        // stone core; in LEGO the slab has to reach something or the support
+        // sweep throws it away, which is what happened to all three terraces.
+        // So the massing overlaps the core AND the outer corner gets a pier.
+        const half = m.studs * STUD / 2;
+        b.asm(m.name + ' pier', bb => {
+          run('leg', STRUCTURE.leg(bb, { at: { x: m.at.x + half - 10, z: m.at.z + half - 10 },
+                                         courses: m.level, color: structCol[2] || 71 }));
+        }, { kind: 'pier' });
+      } else if (m.kind === 'wall') {
+        // A CURTAIN WALL, laid as brickwork. A run of STRUCTURE.bay put one
+        // brick per course at n spaced points, which is a row of posts, not a
+        // wall — and the 1x6 bricks overlapped their neighbours and were
+        // refused. This lays 1x6 bricks end to end along the run and staggers
+        // every other course by half a brick, which is a running bond and the
+        // reason the thing reads as masonry.
+        const dx = m.to.x - m.from.x, dz = m.to.z - m.from.z;
+        const len = Math.hypot(dx, dz);
+        const along = m.axis || (Math.abs(dx) >= Math.abs(dz) ? 'x' : 'z');
+        const yaw = along === 'z' ? Geom.rotY(90) : Geom.IDENT.slice();
+        const PITCH = 120;                       // a 1x6 brick, end to end
+        const n = Math.max(1, Math.floor(len / PITCH));
+        const courses = m.courses || 3;
+        b.asm(m.name, bb => {
+          for (let c = 0; c < courses; c++) {
+            const stagger = (c % 2) * (PITCH / 2);
+            for (let i = 0; i <= n; i++) {
+              const d = i * PITCH + stagger;
+              if (d > len) continue;
+              const t = d / len;
+              // The gate is a hole STRUCTURE leaves; SERVICES hangs the arch.
+              if (m.gate && Math.abs(t - 0.5) < 0.22 && c < courses - 1) continue;
+              run('bay', [at(VOCAB.brick['1x6'],
+                             Math.round((m.from.x + dx * t) / 10) * 10,
+                             Math.round((m.from.z + dz * t) / 10) * 10,
+                             GROUND_TOP - c * BRICK,
+                             { mat: yaw, color: structCol[c % structCol.length],
+                               role: 'curtain' })].filter(Boolean));
+            }
+          }
+        }, { kind: 'wall' });
+      }
+    }
+    return;
+  }
+
+  if (layerId === 'SKIN') {
+    for (const m of M) {
+      if (m.kind === 'block' && m.roof) {
+        const spots = [m.at].concat(m.instances || []);
+        const y = yOf(m.courses) - PLATE;
+        // One roof def per block kind, instanced onto every copy of it.
+        // Roof and cladding at the same height fought each other: every side
+        // stud the cladding wanted was already under a roof slope. The clad
+        // course goes one brick lower, on the wall head, where it belongs.
+        const def = b.asm(m.name + ' roof', bb => {
+          run('roof', SKIN.roof(bb, { at: m.at, studs: m.studs, y, color: skinCol }));
+          run('cladding', SKIN.cladding(bb, { at: m.at, studs: m.studs, y: y + BRICK,
+                                              color: accent, cladColor: skinCol }),
+              { selfClash: false });
+        }, { kind: 'roof' });
+        for (const sp of spots.slice(1)) {
+          const r = shiftInstance(b, def, sp.x - m.at.x, sp.z - m.at.z);
+          byGen.roof = (byGen.roof || 0) + r.parts;
+          for (const why of r.refused || []) refused.push({ gen: 'roof-instance', why });
+        }
+      } else if (m.kind === 'wall' && m.crenellate) {
+        // Battlements: a band along the head of the wall, not a recolour of it.
+        const dx = m.to.x - m.from.x, dz = m.to.z - m.from.z;
+        run('band', SKIN.band(b, { at: { x: m.from.x + dx / 2, z: m.from.z + dz / 2 },
+                                   y: yOf(m.courses || 3), color: accent }));
+      } else if (m.kind === 'terrace') {
+        // A SLAB IS ONE OBJECT. The support sweep checks every tile on its own,
+        // so a six-stud terrace overhanging a four-stud core lost every tile
+        // that was not directly over a wall — which is most of them, and which
+        // is exactly what a cantilever is. The slab goes in as an assembly, the
+        // way a minifig or a vessel does, and it is allowed to overhang because
+        // STRUCTURE has already put a pier under its outer corner. A terrace at
+        // level 0 gets no pier and no exemption: it must rest on the ground.
+        const cantilever = !!m.level;
+        b.asm(m.name, bb => {
+          run('paving', SKIN.paving(bb, { at: m.at, studs: m.studs,
+                                          y: yOf(m.level), color: structCol[1] || 72 }),
+              cantilever ? { atomic: false, requireSupport: false, selfClash: false } : {});
+        }, { kind: 'terrace' });
+      }
+    }
+    return;
+  }
+
+  if (layerId === 'SERVICES') {
+    for (const m of M) {
+      if (m.kind === 'block' && (m.opening || m.window !== false)) {
+        const spots = [m.at].concat(m.instances || []);
+        for (const sp of spots) {
+          // On the ground course. At yOf(1) the window hung in the door gap with
+          // nothing under it and the support sweep threw all four away.
+          run('opening', SERVICES.opening(b, { at: { x: sp.x, z: sp.z + m.studs * STUD / 2 - 10 },
+                                               y: GROUND_TOP, color: 47 }));
+        }
+      }
+      if (m.kind === 'terrace' && m.level) {
+        run('ladder', SERVICES.ladder(b, { at: { x: m.at.x, z: m.at.z + m.studs * STUD / 2 },
+                                           y: yOf(m.level) }));
+      }
+    }
+    return;
+  }
+
+  if (layerId === 'SPACE') {
+    for (const m of M) if (m.kind === 'terrace')
+      run('deck', SPACE.deck(b, { at: m.at, studs: Math.max(2, m.studs - 2),
+                                  y: yOf(m.level) - PLATE }));   // on top of the paving
+    return;
+  }
+
+  if (layerId === 'STUFF') {
+    for (const f of (P.figures || [])) {
+      b.asm('figure', bb => {
+        run('minifig', STUFF.minifig(bb, { at: f }),
+            { atomic: true, selfClash: false, requireSupport: false });
+      }, { kind: 'figure' });
+    }
+    for (const pr of (P.props || [])) {
+      const y = b.surface(pr.x, pr.z);
+      run('prop', STUFF.prop(b, { at: pr, y: y == null ? GROUND_TOP : y }));
+    }
+    return;
+  }
+}
+
 /**
  * Run one layer's generation pass. Opens the layer, generates, closes it, and
  * reports what was placed, what was refused and which constraint refused it.
@@ -1475,6 +1659,16 @@ function pass(building, layerId, rng) {
     return res;
   };
   const P = b.plan;
+
+  // ── the massing path ──────────────────────────────────────────────────
+  // A card names the parts of the building and where they go; the six layers
+  // build whatever is on that list. The shore station keeps its own branch
+  // below because it is hand-tuned and winning, and breaking a working layout
+  // to prove that all layouts should go through one path is not a trade.
+  if (P.massing) {
+    massingPass(b, layerId, P, run, byGen, refused, before);
+    return closeLayer(b, layerId, spec, before, byGen, refused);
+  }
 
   if (layerId === 'SITE') {
     run('plate', SITE.plate(b, { at: P.origin, part: P.ground }));
@@ -1845,6 +2039,124 @@ function toMPD(building, opts = {}) {
  * six studs of hut, six of deck and two of edge, which is the only reason the
  * clash gate has nothing to refuse.
  */
+// ══════════════════════════════════════════════════════════════════ the cards
+/**
+ * A CARD IS A BUILD ORDER.
+ *
+ * planFor used to return one hard-coded recipe — two huts, a deck, a quay, a
+ * boathouse — so no matter how many rounds the gauntlet ran, and no matter what
+ * it accused, the answer was always another shore station. One structure, for
+ * the whole engine, forever. Meanwhile references/index.json already carried
+ * the castle broken down by Brand's six layers and nothing read it.
+ *
+ * So a card compiles to a MASSING: a list of the parts of the building, each
+ * with a kind and a place. The six layers walk that list. Every element goes
+ * through the same generators the shore station uses — frame, bay, roof, band,
+ * paving, opening, minifig — because the point is not new generators, it is
+ * that the layout stops being a constant.
+ *
+ * KINDS
+ *   block    a frame: a walled box `studs` across and `courses` high. A tower,
+ *            a keep, a gatehouse, a hut. `instances` places the SAME def again
+ *            at other spots, which is how a castle gets four identical corner
+ *            towers and why reuse and symmetry come out of the massing rather
+ *            than out of a post-pass.
+ *   wall     a run of bays from one point to another. A curtain wall.
+ *   terrace  a slab at a height. A courtyard, a cantilever, a deck.
+ *   water    a shoreline.
+ *
+ * Coordinates are LDU on the half-stud lattice, origin at the plot centre,
+ * y measured down from GROUND_TOP because LDraw Y is down.
+ */
+const CARDS = {
+  castle: {
+    id: 'castle', name: 'Castle', sub: 'FORTRESS',
+    tagline: 'Defend, dominate, and dwell.',
+    reference: 'references/05-castle-fortress.png',
+    ground: '3865',                                   // baseplate 32 x 32
+    colours: { structure: [71, 72, 70], skin: 0, accent: 4, ground: 2 },
+    massing: [
+      // Four corner towers, one block instanced four times. This is the whole
+      // of AX-REUSE and most of AX-SYMMETRY, and it is what a castle IS.
+      { kind: 'block', name: 'corner tower', at: { x: -140, z: -140 }, studs: 4, courses: 5,
+        roof: 'cone', door: false, window: true, layerRole: 'tower',
+        instances: [{ x: 140, z: -140 }, { x: -140, z: 140 }, { x: 140, z: 140 }] },
+      // Curtain wall on all four sides, crenellated along the head.
+      { kind: 'wall', name: 'curtain north', from: { x: -140, z: -140 }, to: { x: 140, z: -140 },
+        courses: 3, crenellate: true },
+      { kind: 'wall', name: 'curtain south', from: { x: -140, z: 140 }, to: { x: 140, z: 140 },
+        courses: 3, crenellate: true, gate: true },
+      { kind: 'wall', name: 'curtain west', from: { x: -140, z: -140 }, to: { x: -140, z: 140 },
+        courses: 3, crenellate: true },
+      { kind: 'wall', name: 'curtain east', from: { x: 140, z: -140 }, to: { x: 140, z: 140 },
+        courses: 3, crenellate: true },
+      // The keep: taller than the towers, ridged rather than coned, at the centre.
+      { kind: 'block', name: 'keep', at: { x: 0, z: -40 }, studs: 6, courses: 6,
+        roof: 'ridge', window: true, layerRole: 'keep' },
+      // The gatehouse breaks the south wall. STRUCTURE leaves the hole;
+      // SERVICES hangs the arch in it.
+      { kind: 'block', name: 'gatehouse', at: { x: 0, z: 140 }, studs: 4, courses: 4,
+        roof: 'ridge', door: true, opening: true, layerRole: 'gate' },
+      { kind: 'terrace', name: 'inner ward', at: { x: 0, z: 60 }, studs: 6, level: 0 }
+    ],
+    figures: [{ x: -60, z: 180 }, { x: 60, z: 180 }],
+    props: [{ x: -190, z: 60 }, { x: 190, z: -60 }]
+  },
+
+  fallingwater: {
+    id: 'fallingwater', name: 'Fallingwater', sub: 'TERRACE',
+    tagline: 'Architecture as landscape.',
+    reference: 'references/12-fallingwater-terrace.png',
+    ground: '3811',
+    colours: { structure: [70, 72, 71], skin: 19, accent: 15, ground: 10 },
+    massing: [
+      // The stone core: tall, narrow, the only thing that touches the ground on
+      // every floor. Everything else hangs off it.
+      { kind: 'block', name: 'stone core', at: { x: 0, z: 0 }, studs: 4, courses: 8,
+        roof: null, window: false, layerRole: 'core' },
+      // Three cantilever slabs, each stepped out and up. A terrace is SPACE
+      // resting on STRUCTURE, which is exactly Brand's point about the layers.
+      // Each slab reaches back over the core — x and z chosen so the footprint
+      // overlaps the core's 4-stud ring — and steps out the other way.
+      { kind: 'terrace', name: 'living terrace', at: { x: -50, z: 20 }, studs: 6, level: 3 },
+      { kind: 'terrace', name: 'bedroom terrace', at: { x: 50, z: -20 }, studs: 6, level: 5 },
+      { kind: 'terrace', name: 'guest terrace', at: { x: -30, z: -40 }, studs: 4, level: 7 },
+      // A low service wing set back into the hill.
+      { kind: 'block', name: 'service wing', at: { x: 120, z: 90 }, studs: 4, courses: 3,
+        roof: null, window: true, layerRole: 'wing' },
+      { kind: 'water', name: 'the fall', at: { x: -60, z: 170 } }
+    ],
+    figures: [{ x: 40, z: 150 }],
+    props: [{ x: -170, z: -60 }, { x: 170, z: 30 }, { x: -150, z: 140 }]
+  }
+};
+
+/**
+ * Compile a card into a plan. The massing carries the layout; everything else
+ * here is the knobs respond() turns. A card that names no massing falls through
+ * to the shore station, which is still the only layout with its own hand-tuned
+ * code path — it wins six of twelve axes and is not worth breaking to prove a
+ * point about uniformity.
+ */
+function planForCard(cardId, temperament, seed) {
+  const card = CARDS[cardId];
+  if (!card) return planFor(temperament, seed);
+  const T = temperament || TEMPERAMENT.LOW;
+  const base = planFor(T, seed);
+  const c = card.colours || {};
+  return Object.assign(base, {
+    card: card.id, cardName: card.name, reference: card.reference,
+    massing: card.massing.map(m => Object.assign({}, m)),
+    ground: card.ground || base.ground,
+    groundColour: c.ground == null ? 71 : c.ground,
+    structureColours: (c.structure || base.structureColours).slice(),
+    skinColour: c.skin == null ? 4 : c.skin,
+    accentColour: c.accent == null ? 15 : c.accent,
+    figures: (card.figures || []).map(f => Object.assign({}, f)),
+    props: (card.props || []).map(f => Object.assign({}, f))
+  });
+}
+
 function planFor(temperament, seed) {
   const T = temperament || TEMPERAMENT.LOW;
   const studs = 6;
@@ -2060,13 +2372,18 @@ async function compose(opts = {}) {
   // Carry the previous round's plan forward. Rebuilding it from the defaults
   // every round threw away every adjustment the last accusation earned, which
   // is why the loop could answer one axis and never two.
-  const prev = opts.previous && opts.previous.plan;
-  const base = prev ? JSON.parse(JSON.stringify(prev)) : planFor(TEMPERAMENT[temper], seed);
+  const cardId = opts.card || (opts.brief && opts.brief.card) || null;
+  const prev = opts.previous && opts.previous.plan &&
+               (!cardId || opts.previous.plan.card === cardId) ? opts.previous.plan : null;
+  const base = prev ? JSON.parse(JSON.stringify(prev))
+             : (cardId ? planForCard(cardId, TEMPERAMENT[temper], seed)
+                       : planFor(TEMPERAMENT[temper], seed));
   if (prev) {
     // Matrices do not survive a JSON round trip as anything the placer wants,
     // and the seed belongs to this round.
-    base.openings = planFor(TEMPERAMENT[temper], seed).openings
-      .slice(0, base.openings ? base.openings.length : undefined);
+    const fresh = base.card ? planForCard(base.card, TEMPERAMENT[temper], seed)
+                            : planFor(TEMPERAMENT[temper], seed);
+    base.openings = fresh.openings.slice(0, base.openings ? base.openings.length : undefined);
     base.seed = seed;
     delete base.answered;
   }
@@ -2075,7 +2392,7 @@ async function compose(opts = {}) {
   if (plan.spread) spreadPlan(plan, plan.spread);
   const build = new Build({
     seed, temperament: temper, bar: opts.bar || null,
-    name: opts.subject || 'shore-station', focusAxis: opts.focusAxis || null,
+    name: opts.subject || plan.cardName || 'shore-station', focusAxis: opts.focusAxis || null,
     plan
   });
   build.plan.temperament = TEMPERAMENT[temper].id;
@@ -2084,7 +2401,8 @@ async function compose(opts = {}) {
   return build;
 }
 
-global.NabugoBrand = { LAYERS, TEMPERAMENT, MINIFIG_SKELETON, VOCAB, Build, familyOf, twoFoldY,
+global.NabugoBrand = { LAYERS, TEMPERAMENT, MINIFIG_SKELETON, VOCAB, CARDS, planForCard,
+                       Build, familyOf, twoFoldY,
                        SITE, STRUCTURE, SKIN, SERVICES, SPACE, STUFF,
                        pass, audit, toMPD, compose, planFor, respond, respondOne, spreadPlan,
                        trappedFast, defExtent,
