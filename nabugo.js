@@ -245,6 +245,15 @@ class NabugoScene {
       // know that these parts are one object, and toMPD needs it to cut a
       // submodel where a real kit would have one.
       asm: place.asm || null,
+      // A compiled placement carries the joint that created it. Geometry is
+      // not evidence of attachment: this record is. Keeping it on the scene
+      // lets viability distinguish a legal stud/tube clutch from two boxes
+      // that merely happen to touch.
+      connection: place.connection ? {
+        ...place.connection,
+        parentPort: place.connection.parentPort && place.connection.parentPort.slice(),
+        childPort: place.connection.childPort && place.connection.childPort.slice()
+      } : null,
       locked: !!place.locked
     };
     this.places.push(p);
