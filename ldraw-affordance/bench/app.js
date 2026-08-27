@@ -1,45 +1,151 @@
-import {loadIndex,compatibility,scoreSuite,ablation,varietyScore,bestConnection,toLDraw,seamTax,ID,transformPoint} from '../src/engine.js';
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { LDrawLoader } from 'three/addons/loaders/LDrawLoader.js';
+import {loadIndex,compatibility,scoreSuite,ablation,varietyScore,bestConnection,toLDraw,seamTax,ID} from '../src/engine.js';
+
 const [library,rules,tasks]=await Promise.all([
- fetch('../library/core.json').then(r=>r.json()),fetch('../library/compatibility.json').then(r=>r.json()),fetch('../tests/task-suite.json').then(r=>r.json())
+  fetch('../library/core.json').then(r=>r.json()),
+  fetch('../library/compatibility.json').then(r=>r.json()),
+  fetch('../tests/task-suite.json').then(r=>r.json())
 ]);
-const index=loadIndex(library); let assembly=[]; let selectedInstance=null; let selectedPort=null;
+const index=loadIndex(library);
+let assembly=[], selectedInstance=null, selectedPort=null;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 $('#partCount').textContent=`${library.parts.length} parts`;
+
+// --- REAL LDRAW VIEWER -------------------------------------------------------
+const canvas=$('#canvas');
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));
+renderer.setClearColor(0xe8e8e3,1);
+renderer.outputColorSpace=THREE.SRGBColorSpace;
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(36,1,1,10000);
+camera.position.set(180,130,220);
+const controls=new OrbitControls(camera,canvas);
+controls.enableDamping=true;
+controls.dampingFactor=.08;
+controls.target.set(0,0,0);
+scene.add(new THREE.HemisphereLight(0xffffff,0x777777,2.3));
+const key=new THREE.DirectionalLight(0xffffff,2.8);key.position.set(200,300,250);scene.add(key);
+const fill=new THREE.DirectionalLight(0xffffff,1.2);fill.position.set(-180,100,-120);scene.add(fill);
+const grid=new THREE.GridHelper(500,25,0x777777,0xbbbbbb);grid.position.y=24;scene.add(grid);
+
+const loader=new LDrawLoader();
+loader.setPartsLibraryPath('../../ldraw/');
+let ldrawReady=false, modelRoot=null, renderSerial=0;
+try{
+  await loader.preloadMaterials('../../ldraw/LDConfig.ldr');
+  ldrawReady=true;
+  $('#geomStatus').textContent='REAL LDRAW READY';
+}catch(err){
+  console.error(err);
+  $('#geomStatus').textContent='LDRAW MATERIAL ERROR';
+  $('#viewnote').textContent='Could not load ldraw/LDConfig.ldr';
+}
+
+function disposeTree(root){
+  if(!root)return;
+  root.traverse(o=>{
+    if(o.geometry)o.geometry.dispose?.();
+    if(o.material){const ms=Array.isArray(o.material)?o.material:[o.material];ms.forEach(m=>m.dispose?.())}
+  });
+}
+function fitCamera(root){
+  const box=new THREE.Box3().setFromObject(root); if(box.isEmpty())return;
+  const size=box.getSize(new THREE.Vector3()), center=box.getCenter(new THREE.Vector3());
+  const radius=Math.max(size.x,size.y,size.z,20);
+  controls.target.copy(center);
+  camera.position.copy(center).add(new THREE.Vector3(radius*1.5,radius*1.15,radius*1.7));
+  camera.near=Math.max(.1,radius/200); camera.far=Math.max(5000,radius*40);camera.updateProjectionMatrix();controls.update();
+}
+function renderReal(){
+  const serial=++renderSerial;
+  if(modelRoot){scene.remove(modelRoot);disposeTree(modelRoot);modelRoot=null}
+  if(!assembly.length){$('#geomStatus').textContent=ldrawReady?'REAL LDRAW READY':'LDRAW NOT READY';return}
+  if(!ldrawReady)return;
+  const mpd=toLDraw(assembly,index,'AFFORDANCE-BUILD');
+  $('#geomStatus').textContent='PARSING MPD…';
+  try{
+    loader.parse(mpd,group=>{
+      if(serial!==renderSerial){disposeTree(group);return}
+      modelRoot=group;
+      // LDrawLoader returns the real triangles/lines generated from the official .dat tree.
+      scene.add(group);
+      fitCamera(group);
+      $('#geomStatus').textContent=`REAL LDRAW · ${assembly.length} PART${assembly.length===1?'':'S'}`;
+    });
+  }catch(err){
+    console.error(err);
+    $('#geomStatus').textContent='LDRAW PARSE ERROR';
+    $('#viewnote').textContent=String(err.message||err);
+  }
+}
+function resize3D(){
+  const r=canvas.getBoundingClientRect();
+  renderer.setSize(Math.max(1,r.width),Math.max(1,r.height),false);
+  camera.aspect=Math.max(1,r.width)/Math.max(1,r.height);camera.updateProjectionMatrix();
+}
+function animate(){requestAnimationFrame(animate);resize3D();controls.update();renderer.render(scene,camera)}
+animate();
+
+// --- SEMANTIC / AFFORDANCE BUILDER -----------------------------------------
 function instancePart(i){return index.get(i.partId)}
 function isUsed(inst,portId){return (inst.usedPorts||[]).includes(portId)}
-function addRoot(part){assembly=[{uid:crypto.randomUUID(),partId:part.id,t:[0,0,0],r:ID,usedPorts:[],seamTax:0,parent:null}]; selectedInstance=assembly[0]; selectedPort=part.ports.find(p=>p.gender==='male')?.id||part.ports[0]?.id; refresh();}
+function addRoot(part){
+  assembly=[{uid:crypto.randomUUID(),partId:part.id,t:[0,0,0],r:ID,usedPorts:[],seamTax:0,parent:null}];
+  selectedInstance=assembly[0];selectedPort=part.ports.find(p=>p.gender==='male')?.id||part.ports[0]?.id;refresh();
+}
 function addPart(part){
- if(!assembly.length){addRoot(part);return}
- const parent=selectedInstance||assembly[assembly.length-1], pp=instancePart(parent).ports.find(p=>p.id===selectedPort);
- if(!pp||isUsed(parent,pp.id)){flash('SELECT AN OPEN PORT');return}
- const snap=bestConnection(parent,instancePart(parent),pp.id,part,rules); if(!snap){flash('NO DIRECT INTERFACE — ADAPTER REQUIRED');return}
- parent.usedPorts=[...(parent.usedPorts||[]),pp.id];
- const child={uid:crypto.randomUUID(),partId:part.id,t:snap.t,r:snap.r,usedPorts:[snap.childPortId],seamTax:snap.tax,parent:parent.uid,joint:snap.joint,via:`${pp.id} ↔ ${snap.childPortId}`};
- assembly.push(child); selectedInstance=child; selectedPort=part.ports.find(p=>!child.usedPorts.includes(p.id))?.id||null; refresh();
+  if(!assembly.length){addRoot(part);return}
+  const parent=selectedInstance||assembly[assembly.length-1], pp=instancePart(parent).ports.find(p=>p.id===selectedPort);
+  if(!pp||isUsed(parent,pp.id)){flash('SELECT AN OPEN PORT');return}
+  const snap=bestConnection(parent,instancePart(parent),pp.id,part,rules);
+  if(!snap){flash('NO DIRECT INTERFACE — ADAPTER REQUIRED');return}
+  parent.usedPorts=[...(parent.usedPorts||[]),pp.id];
+  const child={uid:crypto.randomUUID(),partId:part.id,t:snap.t,r:snap.r,usedPorts:[snap.childPortId],seamTax:snap.tax,parent:parent.uid,joint:snap.joint,via:`${pp.id} ↔ ${snap.childPortId}`};
+  assembly.push(child);selectedInstance=child;selectedPort=part.ports.find(p=>!child.usedPorts.includes(p.id))?.id||null;refresh();
 }
-function flash(text){const n=$('#viewnote');const old=n.textContent;n.textContent=text;n.style.background='var(--hot)';setTimeout(()=>{n.textContent=old;n.style.background='#fff'},900)}
-function exposedPorts(){ if(!selectedInstance)return []; return instancePart(selectedInstance).ports.filter(p=>!isUsed(selectedInstance,p.id)); }
+function flash(text){const n=$('#viewnote'),old=n.textContent;n.textContent=text;n.style.background='var(--hot)';setTimeout(()=>{n.textContent=old;n.style.background='#fff'},1100)}
+function exposedPorts(){if(!selectedInstance)return[];return instancePart(selectedInstance).ports.filter(p=>!isUsed(selectedInstance,p.id))}
 function renderParts(){
- const target=selectedInstance&&selectedPort?instancePart(selectedInstance).ports.find(p=>p.id===selectedPort):null;
- const sorted=[...library.parts].sort((a,b)=>varietyScore(b)-varietyScore(a)); $('#parts').innerHTML='';
- for(const p of sorted){const ok=!target||p.ports.some(cp=>compatibility(target,cp,rules)); const b=document.createElement('button');b.className='partCard';b.disabled=!ok;b.innerHTML=`<b>${p.id}</b>${p.name}<small>${p.family} · V${varietyScore(p)}</small>`;b.onclick=()=>addPart(p);$('#parts').appendChild(b)}
+  const target=selectedInstance&&selectedPort?instancePart(selectedInstance).ports.find(p=>p.id===selectedPort):null;
+  const sorted=[...library.parts].sort((a,b)=>varietyScore(b)-varietyScore(a));$('#parts').innerHTML='';
+  for(const p of sorted){
+    const ok=!target||p.ports.some(cp=>compatibility(target,cp,rules));
+    const b=document.createElement('button');b.className='partCard';b.disabled=!ok;
+    b.innerHTML=`<b>${p.id}</b>${p.name}<small>${p.family} · V${varietyScore(p)} · ${p.file}</small>`;b.onclick=()=>addPart(p);$('#parts').appendChild(b)
+  }
 }
-function renderPorts(){const el=$('#ports');el.innerHTML=''; if(!selectedInstance){el.innerHTML='<button>ADD ANY PART TO START</button>';return} const p=instancePart(selectedInstance); for(const port of p.ports){const b=document.createElement('button');b.className='portBtn'+(isUsed(selectedInstance,port.id)?' used':'')+(selectedPort===port.id?' selected':'');b.disabled=isUsed(selectedInstance,port.id);b.innerHTML=`${port.id}<small>${port.gender} ${port.type} · ${port.confidence}</small>`;b.onclick=()=>{selectedPort=port.id;renderPorts();renderParts()};el.appendChild(b)}}
-function renderAssembly(){const el=$('#assemblyList');el.innerHTML=''; assembly.forEach((inst,i)=>{const p=instancePart(inst);const d=document.createElement('div');d.className='instance';d.innerHTML=`<button>${i===0?'ROOT':'SELECT'}</button><div><b>${p.id} ${p.name}</b><div class="ops">${inst.via||'origin'} · ${inst.joint||'free'}</div></div><span class="tax">${inst.seamTax?inst.seamTax.toFixed(2):'0.00'}</span>`;d.querySelector('button').onclick=()=>{selectedInstance=inst;selectedPort=exposedPorts()[0]?.id||null;refresh()};el.appendChild(d)})}
-function renderTests(){const s=scoreSuite(tasks,library.parts), abl=ablation(tasks,library); $('#testSummary').innerHTML=`<div class="metric"><span>CAPABILITY</span><b>${s.got}/${s.total}</b></div><div class="metric"><span>PARTS</span><b>${library.parts.length}</b></div><div class="metric"><span>TOP ABLATION</span><b>${abl[0]?.loss||0}</b></div>`; const el=$('#tests');el.innerHTML='<div class="testrow"><b>LOSS</b><b>ABLATION / WHAT COLLAPSES IF REMOVED</b><b>V</b></div>'; for(const a of abl){const p=index.get(a.id),r=document.createElement('div');r.className='testrow';r.innerHTML=`<span class="${a.loss?'fail':'pass'}">${a.loss}</span><div><b>${a.id} ${a.name}</b><div class="ops">${p.operators.join(' · ')}</div></div><span>${varietyScore(p)}</span>`;el.appendChild(r)} }
-function renderLibrary(q=''){q=q.toLowerCase();const el=$('#library');el.innerHTML='';[...library.parts].sort((a,b)=>varietyScore(b)-varietyScore(a)).filter(p=>JSON.stringify(p).toLowerCase().includes(q)).forEach(p=>{const r=document.createElement('div');r.className='librow';r.innerHTML=`<b>${p.id}</b><div><b>${p.name}</b><div class="ops">${p.operators.join(' · ')}<br>${p.ports.map(x=>`${x.gender} ${x.type}:${x.id}`).join(' · ')}</div></div><span class="badge">V ${varietyScore(p)}</span>`;el.appendChild(r)})}
-function refresh(){renderPorts();renderParts();renderAssembly();$('#attention').textContent=`tax ${seamTax(assembly).toFixed(2)}`;draw()}
+function renderPorts(){
+  const el=$('#ports');el.innerHTML='';if(!selectedInstance){el.innerHTML='<button>CHOOSE ANY REAL LDRAW PART</button>';return}
+  const p=instancePart(selectedInstance);
+  for(const port of p.ports){const b=document.createElement('button');b.className='portBtn'+(isUsed(selectedInstance,port.id)?' used':'')+(selectedPort===port.id?' selected':'');b.disabled=isUsed(selectedInstance,port.id);b.innerHTML=`${port.id}<small>${port.gender} ${port.type} · ${port.confidence}</small>`;b.onclick=()=>{selectedPort=port.id;renderPorts();renderParts()};el.appendChild(b)}
+}
+function renderAssembly(){
+  const el=$('#assemblyList');el.innerHTML='';assembly.forEach((inst,i)=>{const p=instancePart(inst),d=document.createElement('div');d.className='instance';d.innerHTML=`<button>${i===0?'ROOT':'SELECT'}</button><div><b>${p.id} ${p.name}</b><div class="ops">${p.file} · ${inst.via||'origin'} · ${inst.joint||'free'}</div></div><span class="tax">${inst.seamTax?inst.seamTax.toFixed(2):'0.00'}</span>`;d.querySelector('button').onclick=()=>{selectedInstance=inst;selectedPort=instancePart(inst).ports.find(p=>!isUsed(inst,p.id))?.id||null;refresh()};el.appendChild(d)})
+}
+function renderTests(){
+  const s=scoreSuite(tasks,library.parts),abl=ablation(tasks,library);$('#testSummary').innerHTML=`<div class="metric"><span>CAPABILITY</span><b>${s.got}/${s.total}</b></div><div class="metric"><span>PARTS</span><b>${library.parts.length}</b></div><div class="metric"><span>TOP ABLATION</span><b>${abl[0]?.loss||0}</b></div>`;
+  const el=$('#tests');el.innerHTML='<div class="testrow"><b>LOSS</b><b>ABLATION / WHAT COLLAPSES IF REMOVED</b><b>V</b></div>';
+  for(const a of abl){const p=index.get(a.id),r=document.createElement('div');r.className='testrow';r.innerHTML=`<span class="${a.loss?'fail':'pass'}">${a.loss}</span><div><b>${a.id} ${a.name}</b><div class="ops">${p.operators.join(' · ')}</div></div><span>${varietyScore(p)}</span>`;el.appendChild(r)}
+}
+function renderLibrary(q=''){q=q.toLowerCase();const el=$('#library');el.innerHTML='';[...library.parts].sort((a,b)=>varietyScore(b)-varietyScore(a)).filter(p=>JSON.stringify(p).toLowerCase().includes(q)).forEach(p=>{const r=document.createElement('div');r.className='librow';r.innerHTML=`<b>${p.id}</b><div><b>${p.name}</b><div class="ops">${p.file}<br>${p.operators.join(' · ')}<br>${p.ports.map(x=>`${x.gender} ${x.type}:${x.id}`).join(' · ')}</div></div><span class="badge">V ${varietyScore(p)}</span>`;el.appendChild(r)})}
+function refresh(){renderPorts();renderParts();renderAssembly();$('#attention').textContent=`tax ${seamTax(assembly).toFixed(2)}`;renderReal()}
+
 $('#filter').oninput=e=>renderLibrary(e.target.value);
 $('#resetBtn').onclick=()=>{assembly=[];selectedInstance=null;selectedPort=null;refresh()};
-$('#undoBtn').onclick=()=>{if(!assembly.length)return;const gone=assembly.pop(); if(gone?.parent){const p=assembly.find(x=>x.uid===gone.parent); if(p&&gone.via){const pid=gone.via.split(' ↔ ')[0];p.usedPorts=(p.usedPorts||[]).filter(x=>x!==pid)}} selectedInstance=assembly.at(-1)||null;selectedPort=selectedInstance?instancePart(selectedInstance).ports.find(p=>!isUsed(selectedInstance,p.id))?.id:null;refresh()};
-$('#exportBtn').onclick=()=>{if(!assembly.length){flash('BUILD SOMETHING FIRST');return}const text=toLDraw(assembly,index,'AFFORDANCE-BUILD');const blob=new Blob([text],{type:'text/plain'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='affordance-build.mpd';a.click();URL.revokeObjectURL(a.href)};
+$('#undoBtn').onclick=()=>{if(!assembly.length)return;const gone=assembly.pop();if(gone?.parent){const p=assembly.find(x=>x.uid===gone.parent);if(p&&gone.via){const pid=gone.via.split(' ↔ ')[0];p.usedPorts=(p.usedPorts||[]).filter(x=>x!==pid)}}selectedInstance=assembly.at(-1)||null;selectedPort=selectedInstance?instancePart(selectedInstance).ports.find(p=>!isUsed(selectedInstance,p.id))?.id:null;refresh()};
+$('#exportBtn').onclick=()=>{if(!assembly.length){flash('BUILD SOMETHING FIRST');return}const text=toLDraw(assembly,index,'AFFORDANCE-BUILD'),blob=new Blob([text],{type:'text/plain'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='affordance-build.mpd';a.click();URL.revokeObjectURL(a.href)};
 function connect(parent,portId,partId){selectedInstance=parent;selectedPort=portId;addPart(index.get(partId));return selectedInstance}
-$('#benchBtn').onclick=()=>{addRoot(index.get('3005'));let b=connect(assembly[0],'top','3700');let s=connect(b,'top','4070');connect(s,'front','3024');selectedInstance=b;selectedPort='hole';addPart(index.get('2780'));flash('BENCH: SYSTEM → TECHNIC + SNOT + SIDE PLATE');};
+$('#benchBtn').onclick=()=>{
+  addRoot(index.get('3005'));
+  const gateway=connect(assembly[0],'top','3700');
+  const snot=connect(gateway,'top','4070');
+  connect(snot,'front','3024');
+  selectedInstance=gateway;selectedPort='hole';addPart(index.get('2780'));
+  flash('REAL BUILD: 3005 → 3700 → 4070 → SIDE 3024 + 2780 PIN');
+};
 $$('#tabs button').forEach(b=>b.onclick=()=>{$$('#tabs button').forEach(x=>x.classList.toggle('active',x===b));$$('.panel').forEach(p=>p.classList.remove('activePanel'));$('#'+b.dataset.tab+'Panel').classList.add('activePanel');if(b.dataset.tab==='test')renderTests();if(b.dataset.tab==='library')renderLibrary($('#filter').value)});
-const canvas=$('#canvas'),ctx=canvas.getContext('2d');
-function resize(){const d=devicePixelRatio||1,r=canvas.getBoundingClientRect();canvas.width=r.width*d;canvas.height=r.height*d;ctx.setTransform(d,0,0,d,0,0);draw()}addEventListener('resize',resize);
-const iso=p=>[p[0]*0.72-p[2]*0.72,(p[0]+p[2])*0.34+p[1]*0.72];
-function worldCorners(inst,p){const [w,h,d]=p.dims;const pts=[];for(const x of[-w/2,w/2])for(const y of[0,h])for(const z of[-d/2,d/2])pts.push(transformPoint(inst,[x,y,z]));return pts}
-function drawBox(inst,p,offset,scale,sel){const pts=worldCorners(inst,p).map(iso).map(([x,y])=>[offset[0]+x*scale,offset[1]+y*scale]);const edge=[[0,1],[0,2],[0,4],[1,3],[1,5],[2,3],[2,6],[3,7],[4,5],[4,6],[5,7],[6,7]];ctx.strokeStyle=sel?'#ff4f2e':'#111';ctx.lineWidth=sel?3:1.5;for(const [a,b] of edge){ctx.beginPath();ctx.moveTo(...pts[a]);ctx.lineTo(...pts[b]);ctx.stroke()}ctx.fillStyle='#111';ctx.font='10px monospace';const c=pts.reduce((a,p)=>[a[0]+p[0]/8,a[1]+p[1]/8],[0,0]);ctx.fillText(p.id,c[0]+4,c[1]-4)}
-function draw(){const r=canvas.getBoundingClientRect();ctx.clearRect(0,0,r.width,r.height);if(!assembly.length){ctx.fillStyle='#111';ctx.font='bold 18px monospace';ctx.textAlign='center';ctx.fillText('ADD A PART',r.width/2,r.height/2);ctx.textAlign='left';return}let all=[];assembly.forEach(i=>all.push(...worldCorners(i,instancePart(i)).map(iso)));let minX=Math.min(...all.map(p=>p[0])),maxX=Math.max(...all.map(p=>p[0])),minY=Math.min(...all.map(p=>p[1])),maxY=Math.max(...all.map(p=>p[1]));let s=Math.min((r.width-50)/(maxX-minX||40),(r.height-50)/(maxY-minY||40),3);let off=[r.width/2-(minX+maxX)*s/2,r.height/2-(minY+maxY)*s/2];assembly.forEach(i=>drawBox(i,instancePart(i),off,s,i===selectedInstance));if(selectedInstance&&selectedPort){const port=instancePart(selectedInstance).ports.find(p=>p.id===selectedPort);if(port){const q=iso(transformPoint(selectedInstance,port.p));ctx.beginPath();ctx.arc(off[0]+q[0]*s,off[1]+q[1]*s,7,0,Math.PI*2);ctx.fillStyle='#ffdf2b';ctx.fill();ctx.strokeStyle='#111';ctx.stroke()}}}
-renderTests();renderLibrary();refresh();resize();
+
+renderTests();renderLibrary();refresh();
