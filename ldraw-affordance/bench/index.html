@@ -17,25 +17,25 @@ button,input{font:inherit;color:inherit}button{background:var(--paper);border:1.
 #assemblyList{min-height:0;overflow:auto;padding:4px}.instance{display:block;width:100%;min-height:54px;text-align:left;margin:0 0 4px;padding:6px;border:1px solid #aaa;background:#fff}.instance.current{outline:2px solid var(--hot);outline-offset:-2px}.instance b,.instance span,.instance small{display:block}.instance b{font-size:10px}.instance span{font-size:9px;margin-top:2px}.instance small{font-size:8px;color:var(--muted);margin-top:2px}
 #testPanel{grid-template-rows:64px minmax(0,1fr)}#testSummary{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;padding:5px;border-bottom:1px solid #111}.metric{border:1px solid #111;padding:5px}.metric span{font-size:8px}.metric b{display:block;font-size:18px}.scrollY{overflow:auto;min-height:0}.testrow,.librow{display:grid;grid-template-columns:58px 1fr 42px;gap:7px;padding:7px;border-bottom:1px solid #bbb;font-size:10px;align-items:start}.testrow small,.librow small{color:var(--muted);font-size:8px}.testrow.head{position:sticky;top:0;background:var(--paper);z-index:2}.pass{background:var(--ok)}.fail{background:var(--bad)}
 #libraryPanel{grid-template-rows:50px minmax(0,1fr)}#filter{margin:5px;border:1.5px solid #111;padding:8px;background:#fff;min-height:40px}.badge{border:1px solid #111;padding:2px 4px;font-size:9px;white-space:nowrap}
-@media(max-width:680px){#app{grid-template-rows:42px minmax(0,1fr) 48%}header strong{font-size:10px}#viewnote{max-width:58%}#buildWorkspace{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) 76px}#chooser{border-right:0;grid-template-rows:68px minmax(0,1fr)}#assemblyList{display:flex;gap:4px;overflow-x:auto;overflow-y:hidden;border-top:1px solid #111}.instance{flex:0 0 150px;margin:0}.rail button{flex-basis:112px}#buildActions button{font-size:10px}}
+@media(max-width:680px){#app{grid-template-rows:42px minmax(0,1fr) 48%}header strong{font-size:10px}#partCount{display:none}#viewnote{max-width:58%}#buildWorkspace{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) 76px}#chooser{border-right:0;grid-template-rows:68px minmax(0,1fr)}#assemblyList{display:flex;gap:4px;overflow-x:auto;overflow-y:hidden;border-top:1px solid #111}.instance{flex:0 0 150px;margin:0}.rail button{flex-basis:112px}#buildActions button{font-size:10px}}
 </style>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}</script>
 </head>
 <body>
 <div id="app">
-<header><strong>LDRAW / USE-LIBRARY</strong><span class="stat" id="partCount">--</span><span class="stat" id="attention">tax 0.00</span></header>
-<section id="view"><div id="threeHost"></div><div id="viewnote">Real .dat geometry. Building a chair from semantic ports.</div><div id="geomStatus">INITIALIZING…</div></section>
+<header><strong>LDRAW / USE-LIBRARY</strong><span class="stat" id="partCount">--</span><span class="stat" id="vocab">vocab 0/19</span><span class="stat" id="attention">tax 0.00</span></header>
+<section id="view"><div id="threeHost"></div><div id="viewnote">One coherent object. Every current part-type gets a job.</div><div id="geomStatus">INITIALIZING…</div></section>
 <section id="dock">
 <nav id="tabs"><button data-tab="build" class="active">BUILD</button><button data-tab="test">TEST</button><button data-tab="library">LIBRARY</button></nav>
 <div id="buildPanel" class="panel activePanel">
-  <div id="buildActions"><button id="chairBtn">BUILD CHAIR</button><button id="operatorBtn">OPERATOR TEST</button><button id="stepBtn">STEP</button><button id="undoBtn">UNDO</button><button id="resetBtn">RESET</button><button id="exportBtn">EXPORT MPD</button></div>
-  <div id="trace">EMPTY · REAL LDRAW ONLY</div>
+  <div id="buildActions"><button id="chairBtn">BUILD ALL 19</button><button id="operatorBtn">CHAIR</button><button id="stepBtn">STEP</button><button id="undoBtn">UNDO</button><button id="resetBtn">RESET</button><button id="exportBtn">EXPORT MPD</button></div>
+  <div id="trace">FIELD STATION 19 · REAL LDRAW ONLY</div>
   <div id="buildWorkspace"><div id="chooser"><div class="rail" id="ports"></div><div class="rail" id="parts"></div></div><div id="assemblyList"></div></div>
 </div>
 <div id="testPanel" class="panel"><div id="testSummary"></div><div class="scrollY" id="tests"></div></div>
 <div id="libraryPanel" class="panel"><input id="filter" placeholder="part · operator · port"><div class="scrollY" id="library"></div></div>
 </section>
 </div>
-<script type="module" src="./app.js?v=chair-port-lattice-1"></script>
+<script type="module" src="./app.js?v=field-station-19-1"></script>
 </body>
 </html>
