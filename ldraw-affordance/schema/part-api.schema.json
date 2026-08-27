@@ -1,0 +1,17 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://hartswf0.github.io/tractor-dce-gyo/ldraw-affordance/schema/part-api.schema.json",
+  "title":"LDraw Affordance Part API",
+  "type":"object",
+  "required":["id","file","name","family","dims","ports","operators"],
+  "properties":{
+    "id":{"type":"string"},
+    "file":{"type":"string","pattern":"\\.dat$"},
+    "name":{"type":"string"},
+    "family":{"type":"string"},
+    "dims":{"type":"array","prefixItems":[{"type":"number"},{"type":"number"},{"type":"number"}],"minItems":3,"maxItems":3},
+    "ports":{"type":"array","items":{"type":"object","required":["id","type","gender","p","n","confidence"],"properties":{"id":{"type":"string"},"type":{"enum":["stud","pin","axle","bar","clip","ball","socket","rail","custom"]},"gender":{"enum":["male","female","neutral"]},"p":{"type":"array","minItems":3,"maxItems":3,"items":{"type":"number"}},"n":{"type":"array","minItems":3,"maxItems":3,"items":{"type":"number"}},"up":{"type":"array","minItems":3,"maxItems":3,"items":{"type":"number"}},"confidence":{"enum":["exact","semantic","approx"]},"capacity":{"type":"number","minimum":1}}}},
+    "operators":{"type":"array","uniqueItems":true,"items":{"type":"string"}},
+    "tags":{"type":"array","uniqueItems":true,"items":{"type":"string"}}
+  }
+}
