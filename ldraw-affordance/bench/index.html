@@ -3,41 +3,39 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover,user-scalable=no">
-<title>LDraw Affordance Bench</title>
+<title>LDraw Affordance Builder</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' fill='%23f7f7f2'/><rect x='10' y='20' width='44' height='32' fill='%23ffdf2b' stroke='%23000' stroke-width='4'/><circle cx='22' cy='18' r='7' fill='%23ffdf2b' stroke='%23000' stroke-width='4'/><circle cx='42' cy='18' r='7' fill='%23ffdf2b' stroke='%23000' stroke-width='4'/></svg>">
 <style>
-:root{--ink:#0b0b0b;--paper:#f7f7f2;--line:#0b0b0b;--muted:#666;--hot:#ffdf2b;--ok:#22d3a6;--warn:#ff704d}
+:root{--ink:#0a0a0a;--paper:#faf9f4;--world:#f1f0eb;--muted:#666;--hot:#ffdf2b;--ok:#1bcf9a;--bad:#ff725c}
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--paper);color:var(--ink);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
-button{font:inherit;color:inherit;background:var(--paper);border:2px solid var(--line);border-radius:0;min-height:44px;padding:8px 10px;font-weight:700;touch-action:manipulation}button:active,.active{background:var(--hot)}
-#app{height:100dvh;display:grid;grid-template-rows:52px minmax(0,1fr) 46%}
-header{display:flex;align-items:center;gap:8px;padding:6px;border-bottom:2px solid var(--line);overflow-x:auto;white-space:nowrap}header strong{font-size:14px;margin-right:auto}.stat{font-size:11px;border:1px solid var(--line);padding:5px 7px}
-#view{position:relative;min-height:0;border-bottom:2px solid var(--line);background:#e8e8e3}#threeHost{position:absolute;inset:0}#threeHost canvas{width:100%!important;height:100%!important;display:block;touch-action:none}#viewnote{position:absolute;left:8px;top:8px;font-size:11px;background:#fff;border:1px solid #111;padding:5px;max-width:72%;z-index:3}#geomStatus{position:absolute;right:8px;top:8px;font-size:10px;background:#fff;border:1px solid #111;padding:5px;z-index:3}
-#dock{min-height:0;display:grid;grid-template-rows:50px minmax(0,1fr)}#tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:0}#tabs button{border-width:0 2px 2px 0}#tabs button:last-child{border-right:0}
-.panel{display:none;min-height:0;height:100%}.panel.activePanel{display:grid}.scrollY{overflow:auto;overscroll-behavior:contain}.rail{display:flex;gap:6px;overflow-x:auto;padding:6px;min-height:58px;border-bottom:1px solid var(--line);align-items:stretch}.rail button{min-width:112px;text-align:left}
-#buildPanel{grid-template-rows:auto auto minmax(0,1fr)}#buildActions{display:flex;gap:6px;padding:6px;border-bottom:1px solid var(--line);overflow-x:auto}#buildActions button{white-space:nowrap}.partCard small,.portBtn small{display:block;font-weight:400;color:var(--muted);margin-top:4px}.partCard b{display:block;font-size:12px}.portBtn.used{opacity:.35;text-decoration:line-through}.portBtn.selected{background:var(--hot)}
-#assemblyList{padding:6px;overflow:auto}.instance{display:grid;grid-template-columns:54px 1fr auto;gap:8px;align-items:center;border-bottom:1px solid #bbb;padding:7px 2px;font-size:12px}.instance button{min-height:36px}.tax{font-variant-numeric:tabular-nums}
-#testPanel{grid-template-rows:auto minmax(0,1fr)}#testSummary{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:6px;border-bottom:1px solid var(--line)}.metric{border:2px solid var(--line);padding:8px}.metric b{display:block;font-size:20px}.testrow,.librow{display:grid;grid-template-columns:64px 1fr auto;gap:8px;border-bottom:1px solid #bbb;padding:8px;font-size:12px}.pass{background:var(--ok)}.fail{background:var(--warn)}
-#libraryPanel{grid-template-rows:auto minmax(0,1fr)}#filter{margin:6px;border:2px solid #111;padding:10px;font:inherit;background:white;min-height:44px}.ops{color:var(--muted);font-size:10px;line-height:1.4;margin-top:3px}.badge{border:1px solid #111;padding:2px 4px;font-size:10px;white-space:nowrap}
-@media(min-width:900px){#app{grid-template-rows:52px minmax(0,1fr) 38%}.partCard{min-width:150px}}
+button,input{font:inherit;color:inherit}button{background:var(--paper);border:1.5px solid #111;border-radius:0;min-height:42px;padding:7px 10px;font-weight:750;touch-action:manipulation;cursor:pointer}button:active,.active{background:var(--hot)}button:disabled{opacity:.28;cursor:default}.small{font-size:10px;color:var(--muted)}
+#app{height:100dvh;display:grid;grid-template-rows:44px minmax(0,1fr) 42%}header{display:flex;align-items:center;gap:7px;padding:5px 7px;border-bottom:2px solid #111;white-space:nowrap;overflow:hidden}header strong{font-size:12px;letter-spacing:.04em;margin-right:auto;overflow:hidden;text-overflow:ellipsis}.stat{border:1px solid #111;padding:4px 6px;font-size:10px;flex:none}
+#view{position:relative;min-height:0;background:var(--world);border-bottom:2px solid #111}#threeHost{position:absolute;inset:0}#threeHost canvas{width:100%!important;height:100%!important;display:block;touch-action:none}#viewnote,#geomStatus{position:absolute;top:7px;background:rgba(255,255,255,.94);border:1px solid #111;padding:5px 7px;font-size:10px;z-index:5;pointer-events:none}#viewnote{left:7px;max-width:62%}#viewnote.hot{background:var(--hot)}#geomStatus{right:7px;max-width:35%;text-align:right}
+#dock{min-height:0;display:grid;grid-template-rows:44px minmax(0,1fr);background:var(--paper)}#tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-bottom:2px solid #111}#tabs button{border:0;border-right:1.5px solid #111;min-width:0}#tabs button:last-child{border-right:0}
+.panel{display:none;min-height:0}.panel.activePanel{display:grid}#buildPanel{grid-template-rows:48px 32px minmax(0,1fr)}#buildActions{display:flex;align-items:center;gap:5px;padding:4px 6px;border-bottom:1px solid #111;overflow-x:auto;overflow-y:hidden}#buildActions button{white-space:nowrap;min-height:38px;padding:5px 9px}#chairBtn{background:var(--hot)}#trace{display:flex;align-items:center;padding:0 8px;border-bottom:1px solid #111;font-size:10px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#buildWorkspace{min-height:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(210px,34%)}#chooser{min-width:0;min-height:0;display:grid;grid-template-rows:78px minmax(0,1fr);border-right:1px solid #111}.rail{display:flex;gap:5px;overflow-x:auto;overflow-y:hidden;padding:5px;border-bottom:1px solid #bbb;align-items:stretch}.rail:last-child{border-bottom:0}.rail button{flex:0 0 128px;text-align:left;overflow:hidden}.portBtn b,.partCard b{display:block;font-size:11px}.portBtn small,.partCard small{display:block;color:var(--muted);font-size:9px;margin-top:3px;line-height:1.15}.partCard span{display:block;font-size:10px;line-height:1.05;margin-top:2px}.portBtn.used{opacity:.25;text-decoration:line-through}.portBtn.selected{background:var(--hot)}.emptyHint{padding:8px;font-size:10px;color:var(--muted)}
+#assemblyList{min-height:0;overflow:auto;padding:4px}.instance{display:block;width:100%;min-height:54px;text-align:left;margin:0 0 4px;padding:6px;border:1px solid #aaa;background:#fff}.instance.current{outline:2px solid var(--hot);outline-offset:-2px}.instance b,.instance span,.instance small{display:block}.instance b{font-size:10px}.instance span{font-size:9px;margin-top:2px}.instance small{font-size:8px;color:var(--muted);margin-top:2px}
+#testPanel{grid-template-rows:64px minmax(0,1fr)}#testSummary{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;padding:5px;border-bottom:1px solid #111}.metric{border:1px solid #111;padding:5px}.metric span{font-size:8px}.metric b{display:block;font-size:18px}.scrollY{overflow:auto;min-height:0}.testrow,.librow{display:grid;grid-template-columns:58px 1fr 42px;gap:7px;padding:7px;border-bottom:1px solid #bbb;font-size:10px;align-items:start}.testrow small,.librow small{color:var(--muted);font-size:8px}.testrow.head{position:sticky;top:0;background:var(--paper);z-index:2}.pass{background:var(--ok)}.fail{background:var(--bad)}
+#libraryPanel{grid-template-rows:50px minmax(0,1fr)}#filter{margin:5px;border:1.5px solid #111;padding:8px;background:#fff;min-height:40px}.badge{border:1px solid #111;padding:2px 4px;font-size:9px;white-space:nowrap}
+@media(max-width:680px){#app{grid-template-rows:42px minmax(0,1fr) 48%}header strong{font-size:10px}#viewnote{max-width:58%}#buildWorkspace{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) 76px}#chooser{border-right:0;grid-template-rows:68px minmax(0,1fr)}#assemblyList{display:flex;gap:4px;overflow-x:auto;overflow-y:hidden;border-top:1px solid #111}.instance{flex:0 0 150px;margin:0}.rail button{flex-basis:112px}#buildActions button{font-size:10px}}
 </style>
-<script type="importmap">
-{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}
-</script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}</script>
 </head>
 <body>
 <div id="app">
-<header><strong>AFFORDANCE LDRAW / REAL PART BENCH</strong><span class="stat" id="partCount">-- parts</span><span class="stat" id="attention">tax 0.00</span></header>
-<section id="view"><div id="threeHost"></div><div id="viewnote">Real .dat geometry. RUN BENCH builds five actual LDraw parts.</div><div id="geomStatus">INITIALIZING…</div></section>
+<header><strong>LDRAW / USE-LIBRARY</strong><span class="stat" id="partCount">--</span><span class="stat" id="attention">tax 0.00</span></header>
+<section id="view"><div id="threeHost"></div><div id="viewnote">Real .dat geometry. Building a chair from semantic ports.</div><div id="geomStatus">INITIALIZING…</div></section>
 <section id="dock">
 <nav id="tabs"><button data-tab="build" class="active">BUILD</button><button data-tab="test">TEST</button><button data-tab="library">LIBRARY</button></nav>
 <div id="buildPanel" class="panel activePanel">
-<div id="buildActions"><button id="benchBtn">RUN BENCH</button><button id="undoBtn">UNDO</button><button id="resetBtn">RESET</button><button id="exportBtn">EXPORT MPD</button></div>
-<div class="rail" id="ports"></div>
-<div><div class="rail" id="parts"></div><div id="assemblyList"></div></div>
+  <div id="buildActions"><button id="chairBtn">BUILD CHAIR</button><button id="operatorBtn">OPERATOR TEST</button><button id="stepBtn">STEP</button><button id="undoBtn">UNDO</button><button id="resetBtn">RESET</button><button id="exportBtn">EXPORT MPD</button></div>
+  <div id="trace">EMPTY · REAL LDRAW ONLY</div>
+  <div id="buildWorkspace"><div id="chooser"><div class="rail" id="ports"></div><div class="rail" id="parts"></div></div><div id="assemblyList"></div></div>
 </div>
 <div id="testPanel" class="panel"><div id="testSummary"></div><div class="scrollY" id="tests"></div></div>
-<div id="libraryPanel" class="panel"><input id="filter" placeholder="Filter part, operator, port..."><div class="scrollY" id="library"></div></div>
+<div id="libraryPanel" class="panel"><input id="filter" placeholder="part · operator · port"><div class="scrollY" id="library"></div></div>
 </section>
 </div>
-<script type="module" src="./app.js?v=conditional-1"></script>
+<script type="module" src="./app.js?v=chair-port-lattice-1"></script>
 </body>
 </html>
