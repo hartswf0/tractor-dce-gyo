@@ -1,0 +1,15 @@
+{
+  "version":"0.1.0",
+  "tasks":[
+    {"id":"stack","name":"Stack vertically","requiresAnyOperators":["EXTEND","THIN"],"requiresPortTypes":["stud"],"weight":1},
+    {"id":"fine-height","name":"Resolve plate height","requiresOperators":["RESOLVE_HEIGHT"],"weight":2},
+    {"id":"half-stud","name":"Create half-stud offset","requiresOperators":["OFFSET_HALF_STUD"],"weight":4},
+    {"id":"sideways","name":"Turn build plane 90 degrees","requiresOperators":["TURN_PLANE_90"],"weight":5},
+    {"id":"system-technic","name":"Bridge System to Technic","requiresOperators":["BRIDGE_SYSTEM_TECHNIC"],"weight":5},
+    {"id":"pin-joint","name":"Join Technic holes","requiresOperators":["JOIN_PIN"],"weight":3},
+    {"id":"shaft","name":"Transmit rotation on axle","requiresOperators":["TRANSMIT_ROTATION"],"weight":3},
+    {"id":"retain","name":"Stop axial travel","requiresOperators":["STOP_AXIAL"],"weight":2},
+    {"id":"pin-axle","name":"Translate pin protocol to axle protocol","requiresOperators":["CONVERT_PIN_AXLE"],"weight":5},
+    {"id":"axis-90","name":"Turn Technic axis 90 degrees","requiresOperators":["TURN_AXIS_90"],"weight":5}
+  ]
+}
