@@ -1,0 +1,15 @@
+import fs from 'node:fs';
+import {loadIndex,scoreSuite,ablation,bestConnection,toLDraw,ID} from '../src/engine.js';
+const library=JSON.parse(fs.readFileSync(new URL('../library/core.json',import.meta.url)));
+const rules=JSON.parse(fs.readFileSync(new URL('../library/compatibility.json',import.meta.url)));
+const tasks=JSON.parse(fs.readFileSync(new URL('./task-suite.json',import.meta.url)));
+const index=loadIndex(library);
+const score=scoreSuite(tasks,library.parts);
+if(score.got!==score.total) throw new Error(`capability suite failed ${score.got}/${score.total}`);
+const parent={partId:'3005',t:[0,0,0],r:ID};
+const snap=bestConnection(parent,index.get('3005'),'top',index.get('3024'),rules);
+if(!snap) throw new Error('stud snap failed');
+if(Math.abs(snap.t[1]-(-8))>1e-6) throw new Error(`plate expected y=-8 got ${snap.t[1]}`);
+const mpd=toLDraw([parent,snap],index,'BENCH-01');
+if(!mpd.includes('3005.dat')||!mpd.includes('3024.dat')) throw new Error('MPD export failed');
+console.log(JSON.stringify({parts:library.parts.length,capability:`${score.got}/${score.total}`,snapY:snap.t[1],seamTax:snap.tax,topAblations:ablation(tasks,library).slice(0,8),mpd},null,2));
