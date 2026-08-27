@@ -27,7 +27,7 @@ const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamp
 scene.add(new THREE.HemisphereLight(0xffffff,0x777777,2.5));
 const key=new THREE.DirectionalLight(0xffffff,2.4);key.position.set(220,300,180);scene.add(key);
 const fill=new THREE.DirectionalLight(0xffffff,1.0);fill.position.set(-160,100,-140);scene.add(fill);
-const grid=new THREE.GridHelper(260,13,0x999999,0xd1d1cc);grid.visible=false;scene.add(grid);
+const grid=new THREE.GridHelper(300,15,0x999999,0xd1d1cc);grid.visible=false;scene.add(grid);
 const loader=new LDrawLoader();loader.setConditionalLineMaterial(LDrawConditionalLineMaterial);loader.setPartsLibraryPath('../../ldraw/');
 let ldrawReady=false,modelWrapper=null,renderSerial=0;
 function resize(){const w=Math.max(1,host.clientWidth),h=Math.max(1,host.clientHeight);renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}
@@ -45,7 +45,7 @@ function geomStats(root){let meshes=0,triangles=0;root.traverse(o=>{if(o.isMesh&
 try{
   const probe=await fetch('../../ldraw/LDConfig.ldr',{cache:'no-store'});if(!probe.ok)throw new Error(`LDConfig HTTP ${probe.status}`);
   await loader.preloadMaterials('../../ldraw/LDConfig.ldr');ldrawReady=true;
-  $('#geomStatus').textContent='REAL LDRAW READY';$('#viewnote').textContent='Real .dat geometry. The chair will assemble itself.';
+  $('#geomStatus').textContent='REAL LDRAW READY';$('#viewnote').textContent='All 19 part-types will assemble into one field station.';
 }catch(err){console.error('[LDRAW INIT]',err);$('#geomStatus').textContent='LDRAW INIT ERROR';$('#viewnote').textContent=String(err?.message||err)}
 function renderReal(){
   const serial=++renderSerial;
@@ -66,6 +66,7 @@ function renderReal(){
 // AFFORDANCE ASSEMBLY --------------------------------------------------------
 function instancePart(i){return index.get(i.partId)}
 function isUsed(inst,id){return(inst.usedPorts||[]).includes(id)}
+function coverage(){return new Set(assembly.map(x=>x.partId)).size}
 function makeRoot(part,color=16,label='root'){
   const inst={uid:crypto.randomUUID(),partId:part.id,t:[0,0,0],r:ID,usedPorts:[],seamTax:0,parent:null,color,label};
   assembly=[inst];selectedInstance=inst;selectedPort=part.ports.find(p=>p.gender==='male')?.id||part.ports[0]?.id;refresh();return inst
@@ -87,7 +88,7 @@ function addPart(part){
 function resetAssembly(){assembly=[];selectedInstance=null;selectedPort=null;demoCursor=0;demoNodes={};refresh()}
 function flash(text){const n=$('#viewnote'),old=n.textContent;n.textContent=text;n.classList.add('hot');setTimeout(()=>{n.textContent=old;n.classList.remove('hot')},1200)}
 function renderPorts(){
-  const el=$('#ports');el.innerHTML='';if(!selectedInstance){el.innerHTML='<span class="emptyHint">Select a real part or run the chair.</span>';return}
+  const el=$('#ports');el.innerHTML='';if(!selectedInstance){el.innerHTML='<span class="emptyHint">Select a real part or build the 19-part vocabulary.</span>';return}
   const part=instancePart(selectedInstance);
   for(const port of part.ports){const b=document.createElement('button');b.className='portBtn'+(isUsed(selectedInstance,port.id)?' used':'')+(selectedPort===port.id?' selected':'');b.disabled=isUsed(selectedInstance,port.id);b.innerHTML=`<b>${port.id}</b><small>${port.gender} ${port.type} · ${port.p.join(',')}</small>`;b.onclick=()=>{selectedPort=port.id;renderPorts();renderParts()};el.appendChild(b)}
 }
@@ -109,9 +110,38 @@ function renderTests(){
 function renderLibrary(q=''){
   q=q.toLowerCase();const el=$('#library');el.innerHTML='';[...library.parts].sort((a,b)=>varietyScore(b)-varietyScore(a)).filter(p=>JSON.stringify(p).toLowerCase().includes(q)).forEach(p=>{const exact=p.ports.filter(x=>x.confidence==='exact').length,r=document.createElement('div');r.className='librow';r.innerHTML=`<b>${p.id}</b><div><b>${p.name}</b><small>${p.operators.join(' · ')}<br>${p.ports.length} ports · ${exact} exact</small></div><span class="badge">V${varietyScore(p)}</span>`;el.appendChild(r)})
 }
-function refresh(){renderPorts();renderParts();renderAssembly();$('#attention').textContent=`tax ${seamTax(assembly).toFixed(2)}`;renderReal()}
+function refresh(){renderPorts();renderParts();renderAssembly();$('#attention').textContent=`tax ${seamTax(assembly).toFixed(2)}`;const v=$('#vocab');if(v)v.textContent=`vocab ${coverage()}/${library.parts.length}`;renderReal()}
 
 // VISIBLE BUILD PROGRAMS -----------------------------------------------------
+// FIELD STATION uses every unique part type in core.json at least once.
+const FIELD_STATION=[
+  {key:'base',root:'3001',color:7,label:'CHASSIS · 2×4 BRICK'},
+  {key:'deck',parent:'base',port:'top-0',part:'3020',color:15,label:'DECK · 2×4 PLATE'},
+  {key:'legFL',parent:'base',port:'bottom-0',part:'3005',color:0,label:'LANDING LEG · FRONT LEFT'},
+  {key:'legFR',parent:'base',port:'bottom-3',part:'3005',color:0,label:'LANDING LEG · FRONT RIGHT'},
+  {key:'legBL',parent:'base',port:'bottom-4',part:'3005',color:0,label:'LANDING LEG · BACK LEFT'},
+  {key:'legBR',parent:'base',port:'bottom-7',part:'3005',color:0,label:'LANDING LEG · BACK RIGHT'},
+  {key:'cabin',parent:'deck',port:'top-0',part:'3003',color:14,label:'CABIN · 2×2 BRICK'},
+  {key:'console',parent:'deck',port:'top-2',part:'3004',color:4,label:'CONTROL POD · 1×2 BRICK'},
+  {key:'techBay',parent:'deck',port:'top-6',part:'3700',color:1,label:'REAR TECHNIC GATEWAY'},
+  {key:'roof',parent:'cabin',port:'top-nw',part:'3022',color:14,label:'CABIN ROOF · 2×2 PLATE'},
+  {key:'consoleCap',parent:'console',port:'top-l',part:'3023',color:4,label:'CONTROL POD CAP · 1×2 PLATE'},
+  {key:'rail',parent:'roof',port:'top-sw',part:'3710',color:15,label:'INSTRUMENT RAIL · 1×4 PLATE'},
+  {key:'jumper',parent:'rail',port:'top-1',part:'15573',color:4,label:'CENTERING JUMPER · HALF-STUD OFFSET'},
+  {key:'mast',parent:'jumper',port:'top-center',part:'3005',color:7,label:'SENSOR MAST'},
+  {key:'camera',parent:'mast',port:'top',part:'4070',color:14,label:'HEADLIGHT BRICK · TURN PLANE 90°'},
+  {key:'cameraFace',parent:'camera',port:'front',part:'3024',color:1,label:'SIDEWAYS CAMERA FACE'},
+  {key:'sideSensor',parent:'consoleCap',port:'top-r',part:'87087',color:14,label:'SIDE-STUD SENSOR'},
+  {key:'bracket',parent:'sideSensor',port:'front',part:'99780',color:7,label:'BRACKET · SECOND 90° PLANE'},
+  {key:'visor',parent:'bracket',port:'vertical',part:'3024',color:4,label:'INSTRUMENT VISOR'},
+  {key:'pin1',parent:'techBay',port:'hole-back',part:'2780',color:0,label:'FRICTION PIN · REAR BOOM'},
+  {key:'cross',parent:'pin1',port:'b',part:'6536',color:7,label:'CROSS BLOCK · TURN AXIS 90°'},
+  {key:'axle',parent:'cross',port:'axle-hole',part:'4519',color:0,label:'3L AXLE · SENSOR BOOM'},
+  {key:'bush',parent:'axle',port:'b',part:'3713',color:4,label:'BUSH · AXIAL STOP'},
+  {key:'techBay2',parent:'roof',port:'top-nw',part:'3700',color:1,label:'UPPER TECHNIC GATEWAY'},
+  {key:'converter',parent:'techBay2',port:'hole-front',part:'43093',color:0,label:'PIN → AXLE TRANSLATOR'},
+  {key:'converterCap',parent:'converter',port:'axle',part:'3713',color:4,label:'TRANSLATOR END STOP'}
+];
 const CHAIR=[
   {key:'seat',root:'3020',color:4,label:'SEAT · 2×4 PLATE'},
   {key:'legFL',parent:'seat',port:'bottom-0',part:'3005',color:1,label:'LEG · FRONT LEFT'},
@@ -124,37 +154,31 @@ const CHAIR=[
   {key:'backR2',parent:'backR1',port:'top',part:'3005',color:14,label:'BACK POST · RIGHT 2'},
   {key:'rail',parent:'backL2',port:'top',part:'3710',color:4,label:'BACK RAIL · 1×4 PLATE'}
 ];
-const OPERATOR=[
-  {key:'base',root:'3700',color:4,label:'SYSTEM ↔ TECHNIC GATEWAY'},
-  {key:'snot',parent:'base',port:'top-l',part:'4070',color:14,label:'TURN BUILD PLANE 90°'},
-  {key:'side',parent:'snot',port:'front',part:'3024',color:1,label:'SIDEWAYS PLATE'},
-  {key:'pin',parent:'base',port:'hole-front',part:'2780',color:0,label:'TECHNIC PIN'}
-];
-function loadPlan(plan,name){resetAssembly();demoPlan=plan;demoCursor=0;demoNodes={};$('#trace').textContent=`${name} · READY · ${plan.length} REAL PARTS`}
+function loadPlan(plan,name){resetAssembly();demoPlan=plan;demoCursor=0;demoNodes={};$('#trace').textContent=`${name} · READY · ${plan.length} REAL PARTS · VOCAB 0/${library.parts.length}`}
 async function stepPlan(){
   if(!demoPlan||demoCursor>=demoPlan.length)return false;
   const s=demoPlan[demoCursor];let inst;
   if(s.root)inst=makeRoot(index.get(s.root),s.color,s.label);else inst=attach(demoNodes[s.parent],s.port,s.part,s.color,s.label);
   if(!inst){$('#trace').textContent=`STEP ${demoCursor+1} FAILED · ${s.label}`;return false}
-  demoNodes[s.key]=inst;demoCursor++;$('#trace').textContent=`STEP ${demoCursor}/${demoPlan.length} · ${s.label} · ${instancePart(inst).file}`;
-  await new Promise(r=>setTimeout(r,650));return true
+  demoNodes[s.key]=inst;demoCursor++;$('#trace').textContent=`STEP ${demoCursor}/${demoPlan.length} · ${s.label} · VOCAB ${coverage()}/${library.parts.length}`;
+  await new Promise(r=>setTimeout(r,430));return true
 }
 async function playPlan(plan,name){
   if(demoBusy)return;demoBusy=true;loadPlan(plan,name);$$('#buildActions button').forEach(b=>b.disabled=true);
   while(demoCursor<demoPlan.length){if(!await stepPlan())break}
   $$('#buildActions button').forEach(b=>b.disabled=false);demoBusy=false;
-  if(demoCursor===demoPlan.length){$('#trace').textContent=`${name} COMPLETE · ${assembly.length} REAL LDRAW PARTS · TAX ${seamTax(assembly).toFixed(2)}`;flash(`${name} BUILT FROM PORTS, NOT PROXY GEOMETRY`)}
+  if(demoCursor===demoPlan.length){$('#trace').textContent=`${name} COMPLETE · ${assembly.length} REAL PARTS · VOCAB ${coverage()}/${library.parts.length} · TAX ${seamTax(assembly).toFixed(2)}`;flash(`${name} · ALL ${coverage()} PART-TYPES IN ONE ASSEMBLY`)}
 }
 
-$('#chairBtn').onclick=()=>playPlan(CHAIR,'CHAIR');
-$('#operatorBtn').onclick=()=>playPlan(OPERATOR,'OPERATOR TEST');
-$('#stepBtn').onclick=async()=>{if(demoBusy)return;if(!demoPlan||demoCursor>=demoPlan.length)loadPlan(CHAIR,'CHAIR');await stepPlan()};
-$('#resetBtn').onclick=()=>{demoPlan=null;resetAssembly();$('#trace').textContent='EMPTY · CHOOSE BUILD CHAIR'};
-$('#undoBtn').onclick=()=>{if(!assembly.length)return;const gone=assembly.pop();if(gone?.parent){const p=assembly.find(x=>x.uid===gone.parent);if(p&&gone.via){const pid=gone.via.split(' ↔ ')[0];p.usedPorts=(p.usedPorts||[]).filter(x=>x!==pid)}}selectedInstance=assembly.at(-1)||null;selectedPort=selectedInstance?instancePart(selectedInstance).ports.find(p=>!isUsed(selectedInstance,p.id))?.id:null;renderPorts();renderParts();renderAssembly();$('#attention').textContent=`tax ${seamTax(assembly).toFixed(2)}`;renderReal()};
-$('#exportBtn').onclick=()=>{if(!assembly.length){flash('BUILD SOMETHING FIRST');return}const text=toLDraw(assembly,index,'AFFORDANCE-BUILD'),blob=new Blob([text],{type:'text/plain'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='affordance-build.mpd';a.click();URL.revokeObjectURL(a.href)};
+$('#chairBtn').onclick=()=>playPlan(FIELD_STATION,'FIELD STATION 19');
+$('#operatorBtn').onclick=()=>playPlan(CHAIR,'CHAIR');
+$('#stepBtn').onclick=async()=>{if(demoBusy)return;if(!demoPlan||demoCursor>=demoPlan.length)loadPlan(FIELD_STATION,'FIELD STATION 19');await stepPlan()};
+$('#resetBtn').onclick=()=>{demoPlan=null;resetAssembly();$('#trace').textContent='EMPTY · BUILD ALL 19'};
+$('#undoBtn').onclick=()=>{if(!assembly.length)return;const gone=assembly.pop();if(gone?.parent){const p=assembly.find(x=>x.uid===gone.parent);if(p&&gone.via){const pid=gone.via.split(' ↔ ')[0];p.usedPorts=(p.usedPorts||[]).filter(x=>x!==pid)}}selectedInstance=assembly.at(-1)||null;selectedPort=selectedInstance?instancePart(selectedInstance).ports.find(p=>!isUsed(selectedInstance,p.id))?.id:null;renderPorts();renderParts();renderAssembly();$('#attention').textContent=`tax ${seamTax(assembly).toFixed(2)}`;const v=$('#vocab');if(v)v.textContent=`vocab ${coverage()}/${library.parts.length}`;renderReal()};
+$('#exportBtn').onclick=()=>{if(!assembly.length){flash('BUILD SOMETHING FIRST');return}const text=toLDraw(assembly,index,'AFFORDANCE-BUILD'),blob=new Blob([text],{type:'text/plain'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='field-station-19.mpd';a.click();URL.revokeObjectURL(a.href)};
 $('#filter').oninput=e=>renderLibrary(e.target.value);
 $$('#tabs button').forEach(b=>b.onclick=()=>{$$('#tabs button').forEach(x=>x.classList.toggle('active',x===b));$$('.panel').forEach(p=>p.classList.remove('activePanel'));$('#'+b.dataset.tab+'Panel').classList.add('activePanel');if(b.dataset.tab==='test')renderTests();if(b.dataset.tab==='library')renderLibrary($('#filter').value)});
 renderTests();renderLibrary();refresh();
 
-// First load should prove the system without requiring the user to hunt for a control.
-if(ldrawReady)setTimeout(()=>playPlan(CHAIR,'CHAIR'),450);
+// First load shows the whole language doing useful work.
+if(ldrawReady)setTimeout(()=>playPlan(FIELD_STATION,'FIELD STATION 19'),450);
