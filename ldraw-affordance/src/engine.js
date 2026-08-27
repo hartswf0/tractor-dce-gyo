@@ -1,0 +1,90 @@
+export function loadIndex(library){ return new Map(library.parts.map(p=>[p.id,p])); }
+export function keyPort(p){ return `${p.type}:${p.gender}`; }
+export function oppositeGender(a,b){ return (a==='male'&&b==='female')||(a==='female'&&b==='male')||a==='neutral'||b==='neutral'; }
+export function compatibility(pa,pb,rules){
+  const rule=rules.rules.find(r=>{
+    const ab=r.a.type===pa.type&&r.a.gender===pa.gender&&r.b.type===pb.type&&r.b.gender===pb.gender;
+    const ba=r.a.type===pb.type&&r.a.gender===pb.gender&&r.b.type===pa.type&&r.b.gender===pa.gender;
+    return ab||ba;
+  });
+  if(!rule || !oppositeGender(pa.gender,pb.gender)) return null;
+  const conf=rules.confidenceTax||{};
+  return {joint:rule.joint,tax:rule.baseTax+(conf[pa.confidence]||0)+(conf[pb.confidence]||0)};
+}
+export function allOperators(parts){ return new Set(parts.flatMap(p=>p.operators||[])); }
+export function allPortTypes(parts){ return new Set(parts.flatMap(p=>p.ports||[]).map(p=>p.type)); }
+export function taskPass(task,parts){
+  const ops=allOperators(parts), ports=allPortTypes(parts);
+  if(task.requiresOperators && !task.requiresOperators.every(x=>ops.has(x))) return false;
+  if(task.requiresAnyOperators && !task.requiresAnyOperators.some(x=>ops.has(x))) return false;
+  if(task.requiresPortTypes && !task.requiresPortTypes.every(x=>ports.has(x))) return false;
+  return true;
+}
+export function scoreSuite(tasks,parts){
+  let got=0,total=0; const results=[];
+  for(const t of tasks.tasks){ const w=t.weight||1; total+=w; const pass=taskPass(t,parts); if(pass) got+=w; results.push({...t,pass}); }
+  return {got,total,ratio:total?got/total:0,results};
+}
+export function ablation(tasks,library){
+  const base=scoreSuite(tasks,library.parts);
+  return library.parts.map(part=>{
+    const reduced=library.parts.filter(p=>p.id!==part.id); const s=scoreSuite(tasks,reduced);
+    return {id:part.id,name:part.name,loss:base.got-s.got,ratioLoss:base.total?(base.got-s.got)/base.total:0};
+  }).sort((a,b)=>b.loss-a.loss||a.id.localeCompare(b.id));
+}
+export function varietyScore(part){
+  const pt=new Set(part.ports.map(p=>p.type));
+  const bridge=(part.tags||[]).includes('adapter')?3:0;
+  const orient=(part.operators||[]).filter(x=>/TURN|OFFSET|CHANGE_COORDINATE/.test(x)).length;
+  const kinetic=(part.operators||[]).filter(x=>/ROTATION|JOIN|RETAIN|LOCK/.test(x)).length;
+  const redundancy=(part.tags||[]).includes('redundant-length')?2:0;
+  return 3*pt.size+3*orient+3*bridge+2*kinetic+(part.operators||[]).length-redundancy;
+}
+
+const ORIENTATIONS = (()=>{
+  const axes=[[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]];
+  const dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+  const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+  const mats=[];
+  for(const x of axes) for(const y of axes){ if(dot(x,y)!==0) continue; const z=cross(x,y); if(z.every(v=>v===0)) continue; mats.push([x,y,z]); }
+  return mats.map(cols=>[
+    cols[0][0],cols[1][0],cols[2][0],
+    cols[0][1],cols[1][1],cols[2][1],
+    cols[0][2],cols[1][2],cols[2][2]
+  ]);
+})();
+const mv=(m,v)=>[m[0]*v[0]+m[1]*v[1]+m[2]*v[2],m[3]*v[0]+m[4]*v[1]+m[5]*v[2],m[6]*v[0]+m[7]*v[1]+m[8]*v[2]];
+const add=(a,b)=>a.map((x,i)=>x+b[i]); const sub=(a,b)=>a.map((x,i)=>x-b[i]);
+const neg=a=>a.map(x=>-x); const dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+export const ID=[1,0,0,0,1,0,0,0,1];
+export function transformPoint(inst,p){ return add(inst.t,mv(inst.r,p)); }
+export function transformVector(inst,v){ return mv(inst.r,v); }
+export function snapChild(parentInst,parentPort,childPart,childPort){
+  const pn=transformVector(parentInst,parentPort.n), pup=transformVector(parentInst,parentPort.up||[0,0,-1]);
+  let best=null;
+  for(const r of ORIENTATIONS){
+    const cn=mv(r,childPort.n), cup=mv(r,childPort.up||[0,0,-1]);
+    if(dot(cn,neg(pn))<0.999) continue;
+    const upScore=dot(cup,pup);
+    if(!best||upScore>best.upScore) best={r,upScore};
+  }
+  if(!best) best={r:ID,upScore:-9};
+  const target=transformPoint(parentInst,parentPort.p);
+  const childOffset=mv(best.r,childPort.p);
+  return {partId:childPart.id,t:sub(target,childOffset),r:best.r};
+}
+export function bestConnection(parentInst,parentPart,parentPortId,childPart,rules){
+  const pp=parentPart.ports.find(p=>p.id===parentPortId); if(!pp) return null;
+  const candidates=[];
+  for(const cp of childPart.ports){ const c=compatibility(pp,cp,rules); if(c) candidates.push({cp,c}); }
+  candidates.sort((a,b)=>a.c.tax-b.c.tax);
+  if(!candidates.length) return null;
+  const chosen=candidates[0]; return {...snapChild(parentInst,pp,childPart,chosen.cp),parentPortId,childPortId:chosen.cp.id,joint:chosen.c.joint,tax:chosen.c.tax};
+}
+export function seamTax(assembly){ return assembly.reduce((s,x)=>s+(x.seamTax||x.tax||0),0); }
+export function toLDraw(assembly,index,title='AFFORDANCE-BENCH'){
+  const fmt=n=>Math.abs(n)<1e-9?'0':Number(n.toFixed(6)).toString();
+  const out=[`0 ${title}`,`0 Name: ${title}.mpd`,`0 !LDRAW_ORG Model`,`0 // generated by LDraw Affordance API`];
+  for(const inst of assembly){ const p=index.get(inst.partId); const m=inst.r||ID,t=inst.t||[0,0,0]; out.push(`1 16 ${fmt(t[0])} ${fmt(t[1])} ${fmt(t[2])} ${m.map(fmt).join(' ')} ${p.file}`); }
+  return out.join('\n')+'\n';
+}
