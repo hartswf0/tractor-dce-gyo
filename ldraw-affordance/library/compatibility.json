@@ -1,11 +1,13 @@
 {
-  "version":"0.1.0",
+  "version":"0.2.0",
   "rules":[
-    {"a":{"type":"stud","gender":"male"},"b":{"type":"stud","gender":"female"},"baseTax":0.10,"joint":"clutch"},
-    {"a":{"type":"pin","gender":"male"},"b":{"type":"pin","gender":"female"},"baseTax":0.18,"joint":"technic-pin"},
-    {"a":{"type":"axle","gender":"male"},"b":{"type":"axle","gender":"female"},"baseTax":0.16,"joint":"technic-axle"}
+    {"a":{"type":"stud","gender":"male"},"b":{"type":"stud","gender":"female"},"baseTax":0.10,"joint":"clutch","normalRelation":"opposed","motion":"seat","approach":10},
+    {"a":{"type":"pin","gender":"male"},"b":{"type":"pin","gender":"female"},"baseTax":0.18,"joint":"technic-pin","normalRelation":"same","motion":"insert","approach":28},
+    {"a":{"type":"axle","gender":"male"},"b":{"type":"axle","gender":"female"},"baseTax":0.16,"joint":"technic-axle","normalRelation":"same","motion":"insert","approach":28}
   ],
   "confidenceTax":{"exact":0,"semantic":0.08,"approx":0.25},
   "noveltyTax":0.20,
-  "manualTax":0.35
+  "manualTax":0.35,
+  "positionTolerance":0.01,
+  "normalTolerance":0.999
 }
