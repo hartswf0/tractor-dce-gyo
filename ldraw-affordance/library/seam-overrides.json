@@ -1,5 +1,5 @@
 {
-  "version":"0.2.0",
+  "version":"0.3.0",
   "principle":"A port datum is the physical seating plane or insertion mouth, not the decorative tip of the connector.",
   "parts":{
     "4070":{
@@ -8,6 +8,16 @@
     "87087":{
       "front":{"p":[0,10,-10],"n":[0,0,-1],"up":[0,-1,0],"confidence":"exact","datum":"stud-base","source":"87087.dat: stud2a origin 0 10 -10"},
       "top":{"confidence":"exact"}
+    },
+    "99780":{
+      "replacePorts":[
+        {"id":"top-l","type":"stud","gender":"male","p":[-10,0,0],"n":[0,-1,0],"up":[0,0,-1],"confidence":"exact","datum":"stud-base"},
+        {"id":"top-r","type":"stud","gender":"male","p":[10,0,0],"n":[0,-1,0],"up":[0,0,-1],"confidence":"exact","datum":"stud-base"},
+        {"id":"bottom-l","type":"stud","gender":"female","p":[-10,8,0],"n":[0,1,0],"up":[0,0,-1],"confidence":"semantic","datum":"receiver-plane"},
+        {"id":"bottom-r","type":"stud","gender":"female","p":[10,8,0],"n":[0,1,0],"up":[0,0,-1],"confidence":"semantic","datum":"receiver-plane"},
+        {"id":"front-l","type":"stud","gender":"male","p":[-10,-2,-14],"n":[0,0,-1],"up":[0,-1,0],"confidence":"exact","datum":"stud-base"},
+        {"id":"front-r","type":"stud","gender":"male","p":[10,-2,-14],"n":[0,0,-1],"up":[0,-1,0],"confidence":"exact","datum":"stud-base"}
+      ]
     },
     "3700":{
       "hole-front":{"datum":"insertion-mouth","confidence":"exact"},
