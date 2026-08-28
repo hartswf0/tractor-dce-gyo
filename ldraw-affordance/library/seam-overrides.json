@@ -1,25 +1,33 @@
 {
-  "version":"0.3.0",
-  "principle":"A port datum is the physical seating plane or insertion mouth, not the decorative tip of the connector.",
+  "version":"0.4.0",
+  "principle":"A port datum is the physical seating plane or insertion mouth, not the decorative tip of the connector. Stud clicks require a real LDraw male stud primitive plus an exact female receiver datum.",
   "parts":{
+    "15573":{
+      "top-center":{"confidence":"exact","datum":"stud-base","source":"15573.dat: stud2.dat origin 0 0 0"},
+      "bottom-l":{"confidence":"exact","datum":"receiver-plane","source":"15573.dat underside plane y=8, left grid center"},
+      "bottom-r":{"confidence":"exact","datum":"receiver-plane","source":"15573.dat underside plane y=8, right grid center"}
+    },
     "4070":{
       "front":{"p":[0,10,-6],"n":[0,0,-1],"up":[0,-1,0],"confidence":"exact","datum":"stud-base","source":"4070.dat: stud2a origin 0 10 -6"}
     },
     "87087":{
-      "front":{"p":[0,10,-10],"n":[0,0,-1],"up":[0,-1,0],"confidence":"exact","datum":"stud-base","source":"87087.dat: stud2a origin 0 10 -10"},
-      "top":{"confidence":"exact"}
+      "front":{"p":[0,10,-10],"n":[0,0,-1],"up":[0,-1,0],"confidence":"exact","datum":"stud-base","source":"87087.dat side stud primitive"},
+      "top":{"confidence":"exact"},
+      "bottom":{"confidence":"exact","datum":"receiver-plane"}
     },
     "99780":{
       "replacePorts":[
-        {"id":"top-l","type":"stud","gender":"male","p":[-10,0,0],"n":[0,-1,0],"up":[0,0,-1],"confidence":"exact","datum":"stud-base"},
-        {"id":"top-r","type":"stud","gender":"male","p":[10,0,0],"n":[0,-1,0],"up":[0,0,-1],"confidence":"exact","datum":"stud-base"},
-        {"id":"bottom-l","type":"stud","gender":"female","p":[-10,8,0],"n":[0,1,0],"up":[0,0,-1],"confidence":"semantic","datum":"receiver-plane"},
-        {"id":"bottom-r","type":"stud","gender":"female","p":[10,8,0],"n":[0,1,0],"up":[0,0,-1],"confidence":"semantic","datum":"receiver-plane"},
-        {"id":"front-l","type":"stud","gender":"male","p":[-10,-2,-14],"n":[0,0,-1],"up":[0,-1,0],"confidence":"exact","datum":"stud-base"},
-        {"id":"front-r","type":"stud","gender":"male","p":[10,-2,-14],"n":[0,0,-1],"up":[0,-1,0],"confidence":"exact","datum":"stud-base"}
+        {"id":"top-l","type":"stud","gender":"male","p":[-10,0,0],"n":[0,-1,0],"up":[0,0,-1],"confidence":"exact","datum":"stud-base","source":"99780.dat -> stug-2x1.dat"},
+        {"id":"top-r","type":"stud","gender":"male","p":[10,0,0],"n":[0,-1,0],"up":[0,0,-1],"confidence":"exact","datum":"stud-base","source":"99780.dat -> stug-2x1.dat"},
+        {"id":"bottom-l","type":"stud","gender":"female","p":[-10,8,0],"n":[0,1,0],"up":[0,0,-1],"confidence":"exact","datum":"receiver-plane","source":"99780.dat base underside y=8"},
+        {"id":"bottom-r","type":"stud","gender":"female","p":[10,8,0],"n":[0,1,0],"up":[0,0,-1],"confidence":"exact","datum":"receiver-plane","source":"99780.dat base underside y=8"},
+        {"id":"front-l","type":"stud","gender":"male","p":[-10,-2,-14],"n":[0,0,-1],"up":[0,-1,0],"confidence":"exact","datum":"stud-base","source":"99780.dat -> stug2-1x2.dat"},
+        {"id":"front-r","type":"stud","gender":"male","p":[10,-2,-14],"n":[0,0,-1],"up":[0,-1,0],"confidence":"exact","datum":"stud-base","source":"99780.dat -> stug2-1x2.dat"}
       ]
     },
     "3700":{
+      "bottom-l":{"confidence":"exact","datum":"receiver-plane"},
+      "bottom-r":{"confidence":"exact","datum":"receiver-plane"},
       "hole-front":{"datum":"insertion-mouth","confidence":"exact"},
       "hole-back":{"datum":"insertion-mouth","confidence":"exact"}
     },
