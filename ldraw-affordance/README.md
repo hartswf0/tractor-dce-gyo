@@ -2,20 +2,94 @@
 
 **Second library, not replacement library.**
 
-The existing `ldraw/` tree remains authoritative for geometry. This sibling library describes **use**: interfaces, ports, transformations, compatibility, attention at seams, and the capabilities that disappear when a part is removed.
+The existing `ldraw/` tree remains authoritative for geometry. This sibling library describes **use**: ports, transformations, compatibility, releasers, and the physical operations that a part can silence in an assembly.
 
 > Do not standardize the object. Standardize how objects meet.
 
+> Do not build from a part script. Hear what the substrate still needs.
+
+## Two libraries
+
+```text
+ldraw/
+  parts/4070.dat
+  p/stud.dat
+       ↓
+  authoritative geometry
+
+ldraw-affordance/
+  ports
+  operators
+  compatibility
+  releasers
+  connector audits
+       ↓
+  what the geometry can do
+```
+
+A part's semantic API can propose a connection. It cannot certify one.
+
+## CLICK is a reserved state
+
+**Compatible is not clicked. Aligned is not clicked. A coincident semantic port is not clicked.**
+
+For a LEGO stud joint the builder may emit `CLICK` only when all of the following are true:
+
+1. a male semantic port is backed by an actual male LDraw stud primitive (`stud.dat`, `stud2.dat`, or `stud2a.dat`, including recursive subparts/stud groups);
+2. the female anti-stud receiver datum is calibrated `exact`;
+3. the transformed real stud base and receiver datum coincide within tolerance;
+4. their physical axes oppose correctly.
+
+`src/ldraw-connectors.js` recursively reads the real `.dat` tree and derives male stud coordinates from primitive transforms. `bench/beaver.js` uses that geometry oracle before consuming a port, extinguishing a releaser, playing the click sound, or firing haptic feedback.
+
+If verification fails:
+
+```text
+NO CLICK
+→ do not consume either port
+→ do not extinguish the releaser
+→ keep hearing the physical demand
+```
+
+Pin and axle protocols can be seated when both endpoints are calibrated, but they do **not** borrow the LEGO stud `CLICK` state.
+
+## Beaver / releaser loop
+
+The current bench is deliberately not a `BUILD ALL PARTS` demonstration.
+
+It begins with an existing substrate. The world emits local demands such as:
+
+```text
+SIDE-FACING STUD NEEDED HERE
+A STUD IS NEEDED BETWEEN THE EXISTING STUDS
+PIN SOCKET NEEDED AT THIS SERVICE DATUM
+```
+
+The builder repeatedly performs:
+
+```text
+READ SUBSTRATE
+→ strongest unresolved releaser
+→ search usable parts/operators
+→ propose a physical handshake
+→ verify connector geometry
+→ place only if verified
+→ reread substrate
+→ stop when quiet
+```
+
+`tests/releaser-field.json` contains the current benchmark field. Removing the SNOT family should leave the side-facing-stud releaser loud. The builder must stop rather than route around a missing capability with decorative geometry.
+
 ## What is here
 
-- `library/core.json` — first 18-part operational basis. Each part points to its normal LDraw `.dat` file and adds ports + operators.
-- `library/compatibility.json` — connection protocol rules and seam-tax defaults.
-- `schema/part-api.schema.json` — machine-readable API contract.
-- `src/engine.js` — compatibility, snapping, MPD export, capability scoring, and ablation.
-- `tests/task-suite.json` — tasks used to ask whether the vocabulary can stack, offset, turn planes, bridge System/Technic, translate pin/axle, etc.
-- `tests/run-tests.mjs` — zero-dependency command-line bench.
-- `bench/index.html` — phone-first instrument for building through exposed ports and testing variety absorption.
-- `bench/bench-01.mpd` — generated proof-of-loop model.
+- `library/core.json` — operational part vocabulary. Geometry remains in normal LDraw `.dat` files.
+- `library/compatibility.json` — protocol compatibility and seating rules.
+- `library/seam-overrides.json` — calibrated connector datums with provenance.
+- `src/engine.js` — transforms, compatibility, snapping, MPD output, task scoring and ablation.
+- `src/ldraw-connectors.js` — recursive geometry oracle for real LDraw stud primitives.
+- `tests/task-suite.json` — capability-ablation corpus.
+- `tests/releaser-field.json` — substrate-driven/beaver benchmark.
+- `bench/index.html` + `bench/beaver.js` — phone-first real-LDraw builder.
 
 ## Part API
 
@@ -28,25 +102,23 @@ A part is not only a mesh or noun.
   "name": "Brick 1 x 1 with Headlight",
   "ports": [
     {"id":"top","type":"stud","gender":"male","p":[0,0,0],"n":[0,-1,0]},
-    {"id":"front","type":"stud","gender":"male","p":[0,10,-10],"n":[0,0,-1]}
+    {"id":"front","type":"stud","gender":"male","p":[0,10,-6],"n":[0,0,-1]}
   ],
   "operators": ["TURN_PLANE_90", "EXPOSE_SIDE_STUD", "OFFSET_PLATE"]
 }
 ```
 
-The `.dat` says what `4070` **is geometrically**. This entry says what it **does in assemblies**.
+But the semantic claim `front = male stud` is checked against the actual `4070.dat` reference to `stud2a.dat` before it can participate in a click.
 
 ### Confidence
 
-Port geometry is explicitly marked:
+- `exact` — calibrated from/against real LDraw geometry and eligible for physical verification.
+- `semantic` — useful description but **not sufficient for CLICK**.
+- `approx` — exploratory only; never a verified connector.
 
-- `exact` — anchored from verified LDraw geometry.
-- `semantic` — connection is correct but the port abstracts a multi-stud or internal receiving region.
-- `approx` — usable for exploration but needs geometric calibration before precision production.
+The library should become stricter over time, not more confident by declaration.
 
-This prevents the semantic library from pretending that inferred connector coordinates are ground truth.
-
-## Run the bench
+## Run
 
 From the repository root:
 
@@ -60,90 +132,44 @@ Open:
 http://localhost:8000/ldraw-affordance/bench/
 ```
 
-Or, when GitHub Pages serves the repository:
+or Pages:
 
 ```text
 https://hartswf0.github.io/tractor-dce-gyo/ldraw-affordance/bench/
 ```
 
-The bench has three surfaces:
+Press **RUN BEAVER** or **HEAR + ACT**. The user gesture arms WebAudio. An audible/haptic stud click is produced only by a geometry-certified stud↔anti-stud handshake.
 
-1. **BUILD** — choose an exposed port, then choose a compatible part. The engine snaps compatible port frames, accumulates seam tax, and exports an MPD.
-2. **TEST** — run the current capability suite and rank parts by **ablation loss**: what becomes impossible when this part is removed?
-3. **LIBRARY** — inspect the vocabulary by operator, connector, and provisional variety score rather than by conventional LEGO category.
+Press **REMOVE SNOT FAMILY** and run again. The first side-facing-stud cue should remain `STILL HEAR / BLOCKED` and no stud click should occur.
 
-`RUN BENCH` constructs a small mixed assembly that exercises ordinary stud stacking, the System→Technic bridge, a side-stud SNOT turn, a sideways plate, and a Technic pin.
+## Variety / Basic LDraw
 
-## Command-line test
-
-```bash
-cd ldraw-affordance
-node tests/run-tests.mjs
-```
-
-Current assertions include:
-
-- every task in the initial suite is covered by the vocabulary;
-- stud→receiver snapping works;
-- a plate snapped to the top of a brick resolves to `Y=-8 LDU`;
-- MPD export contains the expected LDraw parts;
-- ablation ranks interface/adapter primitives by capability loss.
-
-## Attention model
-
-For a direct seam:
-
-```text
-seam tax = protocol base tax
-         + confidence tax(part A port)
-         + confidence tax(part B port)
-```
-
-The schema is intentionally ready to grow into the larger seam model:
-
-```text
-IDENTIFY + GEOMETRY + DATUM + ORIENTATION + TOLERANCE
-+ ACCESS + TOOLING + FASTENER + SEQUENCE + HOLDING
-+ VERIFICATION + REVERSIBILITY + DAMAGE + NOVELTY
-```
-
-The important unit is the **edge between parts**, not only the nodes.
-
-## Variety / Basic LDraw experiment
-
-`tests/task-suite.json` is the first executable definition of “absorbs variety.” A vocabulary gets credit for retaining operational capabilities, not for containing many shapes.
-
-Ablation is computed as:
+The vocabulary is evaluated by what classes of physical demands it can silence, not by how many pieces it contains.
 
 ```text
 loss(part) = capability_score(full vocabulary)
            - capability_score(vocabulary without part)
 ```
 
-This makes a 2×4 brick cheap to remove when smaller Cartesian primitives can substitute for it, while a jumper, SNOT element, System/Technic gateway, or pin↔axle translator can score highly because removing it destroys a whole operation.
+This is why adapters/operators can matter more than another long brick. A useful primitive does not merely add geometry. It makes a recurring physical problem go quiet.
 
-The next scale step is not to hand-pick 64 parts. It is to expand the task corpus from real OMR assemblies and ask the search to discover the smallest vocabulary preserving the largest set of connection/topology operations.
+## Attention
 
-## Relation to Tractor / BRICK
+The seam is where attention **leaks** when a reusable operation fails to close itself.
 
-The implementation follows the repo's existing BRICK pattern:
+A good interface is self-locating, self-constraining, visible, reversible, and repeatable. With repetition, the situated attention required by a solved seam should approach zero.
 
-```text
-source geometry → semantic projection → focused object/port
-→ legal neighbors → actuation → preview → trace/test
-```
-
-Here the shared coordinate system is LDraw's LDU transform space, and the semantic atoms are physical ports/operators rather than code blocks.
+But amortization happens only **after physical verification**. A bad handshake does not become cheap merely because we repeat it.
 
 ## Rule for expansion
 
 Every new entry must answer:
 
-1. Which existing `.dat` geometry does it refer to?
-2. What ports does it expose?
-3. Which physical protocol does each port speak?
-4. Which transformations/operators become possible because this part exists?
-5. Is each port coordinate exact, semantic, or approximate?
-6. What task fails when this part is ablated?
+1. Which real `.dat` geometry does it refer to?
+2. What connector primitives or calibrated receiver datums support each port claim?
+3. What physical demand/releaser can the part silence?
+4. What operation does it add to the vocabulary?
+5. Can a proposed connection be independently verified rather than inferred from semantic coincidence?
+6. What capability fails when the part/operator is removed?
 
-If question 6 has no answer, the part is probably vocabulary bulk rather than a primitive.
+If the library cannot answer #2, the port may be useful for search, but **it cannot click**.
