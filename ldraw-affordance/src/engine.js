@@ -66,12 +66,15 @@ const len=a=>Math.hypot(a[0],a[1],a[2]);
 export const ID=[1,0,0,0,1,0,0,0,1];
 export function transformPoint(inst,p){ return add(inst.t,mv(inst.r,p)); }
 export function transformVector(inst,v){ return mv(inst.r,v); }
-export function seamTargetNormal(parentInst,parentPort,connection){
+export function seamTargetNormal(parentInst,parentPort,childPort,connection){
   const pn=transformVector(parentInst,parentPort.n);
+  if(connection?.normalRelation==='insert'){
+    return childPort.gender==='male'?pn:neg(pn);
+  }
   return connection?.normalRelation==='same'?pn:neg(pn);
 }
 export function snapChild(parentInst,parentPort,childPart,childPort,connection={normalRelation:'opposed'}){
-  const desired=seamTargetNormal(parentInst,parentPort,connection);
+  const desired=seamTargetNormal(parentInst,parentPort,childPort,connection);
   const pup=transformVector(parentInst,parentPort.up||[0,0,-1]);
   let best=null;
   for(const r of ORIENTATIONS){
@@ -88,7 +91,7 @@ export function snapChild(parentInst,parentPort,childPart,childPort,connection={
 export function inspectSeam(parentInst,parentPort,childInst,childPort,connection,rules={}){
   const a=transformPoint(parentInst,parentPort.p),b=transformPoint(childInst,childPort.p);
   const posError=len(sub(a,b));
-  const targetN=seamTargetNormal(parentInst,parentPort,connection);
+  const targetN=seamTargetNormal(parentInst,parentPort,childPort,connection);
   const childN=transformVector(childInst,childPort.n);
   const normalDot=dot(targetN,childN);
   const positionTolerance=rules.positionTolerance??0.01,normalTolerance=rules.normalTolerance??0.999;
