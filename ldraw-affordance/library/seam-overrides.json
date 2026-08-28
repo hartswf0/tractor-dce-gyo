@@ -1,5 +1,5 @@
 {
-  "version":"0.1.0",
+  "version":"0.2.0",
   "principle":"A port datum is the physical seating plane or insertion mouth, not the decorative tip of the connector.",
   "parts":{
     "4070":{
@@ -20,6 +20,24 @@
     "4519":{
       "a":{"datum":"shaft-end","confidence":"exact"},
       "b":{"datum":"shaft-end","confidence":"exact"}
+    },
+    "43093":{
+      "pin":{"p":[-20,0,0],"n":[-1,0,0],"up":[0,-1,0],"datum":"shaft-end","confidence":"exact"},
+      "axle":{"p":[20,0,0],"n":[1,0,0],"up":[0,-1,0],"datum":"shaft-end","confidence":"exact"}
+    },
+    "3713":{
+      "replacePorts":[
+        {"id":"axis-front","type":"axle","gender":"female","p":[0,0,-10],"n":[0,0,-1],"up":[0,-1,0],"confidence":"exact","datum":"insertion-mouth"},
+        {"id":"axis-back","type":"axle","gender":"female","p":[0,0,10],"n":[0,0,1],"up":[0,-1,0],"confidence":"exact","datum":"insertion-mouth"}
+      ]
+    },
+    "6536":{
+      "replacePorts":[
+        {"id":"axle-left","type":"axle","gender":"female","p":[-10,0,0],"n":[-1,0,0],"up":[0,-1,0],"confidence":"exact","datum":"insertion-mouth"},
+        {"id":"axle-right","type":"axle","gender":"female","p":[10,0,0],"n":[1,0,0],"up":[0,-1,0],"confidence":"exact","datum":"insertion-mouth"},
+        {"id":"pin-front","type":"pin","gender":"female","p":[0,20,-10],"n":[0,0,-1],"up":[0,-1,0],"confidence":"exact","datum":"insertion-mouth"},
+        {"id":"pin-back","type":"pin","gender":"female","p":[0,20,10],"n":[0,0,1],"up":[0,-1,0],"confidence":"exact","datum":"insertion-mouth"}
+      ]
     }
   }
 }
