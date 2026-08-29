@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover,user-scalable=no">
+<title>LDRAW — Beaver Builds a Whole House</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' fill='%23faf9f4'/><path d='M10 44h44L32 14z' fill='%23ff372b' stroke='%23000' stroke-width='4'/><rect x='16' y='34' width='32' height='20' fill='%23faf9f4' stroke='%23000' stroke-width='4'/><rect x='28' y='42' width='8' height='12' fill='%23ffdf2b' stroke='%23000' stroke-width='3'/></svg>">
+<style>
+:root{--ink:#080808;--paper:#faf9f4;--world:#f2f0e9;--muted:#6b6b6b;--yellow:#ffdf2b;--red:#ff372b;--green:#18be74}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--paper);color:var(--ink);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}button,a{font:inherit;color:inherit}button{background:var(--paper);border:1.5px solid #111;border-radius:0;min-height:42px;padding:7px 10px;font-weight:850;touch-action:manipulation}button:active{background:var(--yellow)}button:disabled{opacity:.3}
+#app{height:100dvh;display:grid;grid-template-rows:42px minmax(0,1fr) 45%}header{display:flex;align-items:center;gap:5px;padding:4px 6px;border-bottom:2px solid #111;white-space:nowrap;overflow-x:auto}header strong{margin-right:auto;font-size:11px}.chip{border:1px solid #111;padding:4px 6px;font-size:9px;flex:none}.pass{background:var(--green)}.fail{background:var(--red);color:#fff}
+#view{position:relative;min-height:0;background:var(--world);border-bottom:2px solid #111}#threeHost{position:absolute;inset:0}canvas{display:block;width:100%!important;height:100%!important;touch-action:none}#geom{position:absolute;right:6px;top:6px;background:#fff;border:1px solid #111;padding:4px 6px;font-size:8px;z-index:4}
+#hear{position:absolute;left:6px;top:6px;width:min(560px,72%);border:2px solid #111;padding:6px 8px;background:#fff;z-index:5;pointer-events:none}#hear.loud{background:var(--yellow)}#hear.blocked{background:var(--red);color:#fff}#hear.quiet{background:var(--green)}#hearLabel{font-size:8px;letter-spacing:.14em;display:block}#hearText{font-size:13px;font-weight:950;line-height:1.1;display:block;margin-top:2px}
+#dock{min-height:0;display:grid;grid-template-rows:48px 58px minmax(0,1fr)}#controls{display:flex;gap:4px;padding:4px 5px;overflow-x:auto;border-bottom:1px solid #111}#controls button,#controls a{white-space:nowrap;min-height:38px;font-size:9px}#runBtn{background:var(--yellow)}#controls a{display:flex;align-items:center;padding:6px 9px;border:1.5px solid #111;text-decoration:none;font-weight:850}
+#decisionRow{display:grid;grid-template-columns:72px minmax(0,1fr);border-bottom:2px solid #111}#phase{display:flex;align-items:center;justify-content:center;border-right:1px solid #111;font-weight:950;font-size:10px}#decisionWrap{min-width:0;padding:5px 7px;overflow:hidden}#decision{font-size:10px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#proof{font-size:8px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#lower{min-height:0;display:grid;grid-template-columns:1fr 1fr}.pane{min-height:0;overflow:auto}.pane:first-child{border-right:1px solid #111}.title{background:var(--paper);border-bottom:1px solid #111;border-top:1px solid #111;padding:5px 7px;font-size:8px;font-weight:950}.cue,.piece,.unit{padding:6px 7px;border-bottom:1px solid #bbb;font-size:9px}.cue{display:grid;grid-template-columns:58px 1fr;gap:6px}.cue b{font-size:8px}.cue span,.piece span{font-weight:850}.cue small{grid-column:2}.cue small,.piece small,.unit small{display:block;color:var(--muted);font-size:7px;margin-top:2px;line-height:1.25}.cue.loud{background:var(--yellow)}.cue.blocked{background:var(--red);color:#fff}.cue.blocked small{color:#fff}.cue.wait{opacity:.7}.cue.quiet{background:var(--green)}.piece.provisional{background:#ffe4df}.unit.ok{border-left:5px solid var(--green)}.unit.bad{border-left:5px solid var(--red)}
+@media(max-width:680px){#app{grid-template-rows:40px minmax(0,1fr) 52%}header strong{font-size:9px}#counts{display:none}#hear{width:68%}#hearText{font-size:11px}#dock{grid-template-rows:46px 62px minmax(0,1fr)}#lower{grid-template-columns:1fr}.pane:last-child{display:none}#controls button,#controls a{font-size:8px;padding:6px 8px}.unit{padding:5px 6px}}
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}</script>
+</head>
+<body>
+<div id="app">
+<header><strong>BEAVER / WHOLE HOUSE</strong><span class="chip" id="selftest">SELF TEST --</span><span class="chip" id="progress">0/0</span><span class="chip" id="signals">--</span><span class="chip" id="parts">--</span><span class="chip" id="counts">--</span></header>
+<section id="view"><div id="threeHost"></div><div id="hear"><span id="hearLabel">HEAR</span><span id="hearText">reading the site…</span></div><div id="geom">INITIALIZING…</div></section>
+<section id="dock">
+  <div id="controls"><button id="runBtn">BUILD WHOLE HOUSE</button><button id="stepBtn">HEAR · TRY · TEST</button><button id="resetBtn">RESET SITE</button><button id="exportBtn">EXPORT MPD</button><a href="../beaver/">SMALL TEST</a></div>
+  <div id="decisionRow"><div id="phase">HEAR</div><div id="decisionWrap"><div id="decision">A house is a field of local structural demands, not a part list.</div><div id="proof">REAL 3867.DAT SITE SLAB · exact stud seating · every accumulated joint re-tested after every placement · red roof / white walls are real LDraw parts</div></div></div>
+  <div id="lower">
+    <div class="pane"><div class="title">OPEN RELEASERS · WALL / DOOR / WINDOWS / ROOF</div><div id="cueList"></div><div class="title">BOOT TESTS · MUST PASS BEFORE BUILD</div><div id="testDetail"></div></div>
+    <div class="pane"><div class="title">COMMITTED PARTS · VERIFIED CONTACTS</div><div id="pieceList"></div></div>
+  </div>
+</section>
+</div>
+<script type="module" src="./app.js?v=whole-house-1"></script>
+</body>
+</html>
