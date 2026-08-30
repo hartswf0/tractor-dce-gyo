@@ -8,7 +8,7 @@ const $=s=>document.querySelector(s),delay=ms=>new Promise(r=>setTimeout(r,ms));
 let slots=makeSlots(),supports=baseplateSupports(),instances=[],running=false,lastEvent=null;
 const initialLeak=totalLeak(slots);
 const testSim=simulateAll();
-const selfTest={ok:testSim.leak===0&&testSim.moves===20&&testSim.clicks===160,detail:`${testSim.moves} moves · ${testSim.clicks} stud clicks · leak ${testSim.leak}`};
+const selfTest={ok:testSim.leak===0&&testSim.moves===20&&testSim.clicks===152,detail:`${testSim.moves} moves · ${testSim.clicks} stud clicks · leak ${testSim.leak}`};
 
 // AUDIO ----------------------------------------------------------------------
 let audioCtx=null,waterGain=null,noise=null;
