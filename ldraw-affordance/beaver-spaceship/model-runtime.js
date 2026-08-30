@@ -1,5 +1,5 @@
-import * as core from './model-fixed.js';
-export * from './model-fixed.js';
+import * as core from './model-final.js';
+export * from './model-final.js';
 
 export function makePlan(){
   const plan=core.makePlan();
