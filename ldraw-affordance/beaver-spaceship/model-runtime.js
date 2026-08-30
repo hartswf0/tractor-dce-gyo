@@ -27,6 +27,16 @@ export function makePlan(){
     starboardTopSegment({id:'airlock-jamb-cap-right',file:'3005.dat',name:'Brick 1 x 1',a:37,b:37,label:'AIRLOCK RIGHT JAMB CAP'})
   );
 
+  for(const z of [15,19]){
+    const lintel=plan.find(a=>a.id===`spine-${z}-4-24`);
+    if(!lintel)throw new Error(`Missing bearing lintel at spine z${z}`);
+    lintel.minContacts=4;
+    lintel.minSpread=140;
+    lintel.severity=132;
+    lintel.weight=20;
+    lintel.label=`BEARING SPINE LINTEL z${z} · SPANS PASSAGE ON BOTH JAMBS`;
+  }
+
   for(const side of ['port','starboard'])for(const x of [28,36]){
     const engine=plan.find(a=>a.id===`${side}-engine-${x}-3`);
     if(!engine)throw new Error(`Missing final engine stage ${side}-${x}`);
