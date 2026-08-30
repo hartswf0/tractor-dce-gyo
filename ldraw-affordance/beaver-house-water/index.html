@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover,user-scalable=no">
+<title>BEAVER / HOUSE LEAK FIELD</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><path d='M32 4C22 20 14 30 14 42a18 18 0 0036 0C50 30 42 20 32 4z' fill='%23168dff' stroke='%23000' stroke-width='4'/></svg>">
+<style>
+:root{--ink:#080808;--paper:#faf9f4;--world:#f2f0e9;--muted:#696969;--yellow:#ffdf2b;--red:#ff382c;--green:#18be74;--blue:#168dff}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--paper);color:var(--ink);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}button{font:inherit;color:inherit;background:var(--paper);border:1.5px solid #111;border-radius:0;min-height:40px;padding:7px 10px;font-weight:850;touch-action:manipulation}button:active{background:var(--yellow)}button:disabled{opacity:.3}
+#app{height:100dvh;display:grid;grid-template-rows:42px minmax(0,1fr) 44%}header{display:flex;align-items:center;gap:5px;padding:4px 6px;border-bottom:2px solid #111;overflow-x:auto;white-space:nowrap}header strong{font-size:10px;margin-right:auto}.chip{font-size:8px;border:1px solid #111;padding:4px 6px;flex:none}.pass{background:var(--green)}.fail{background:var(--red);color:#fff}
+#view{position:relative;min-height:0;background:var(--world);border-bottom:2px solid #111}#threeHost{position:absolute;inset:0}canvas{display:block;width:100%!important;height:100%!important;touch-action:none}#geom{position:absolute;right:6px;top:6px;background:#fff;border:1px solid #111;padding:4px 6px;font-size:8px;z-index:4}
+#hear{position:absolute;left:6px;top:6px;width:min(600px,72%);border:2px solid #111;background:#fff;padding:7px 9px;z-index:5;pointer-events:none}#hear.loud{background:var(--blue);color:#fff}#hear.blocked{background:var(--red);color:#fff}#hear.quiet{background:var(--green)}#hearLabel{display:block;font-size:8px;letter-spacing:.13em}#hearText{display:block;font-size:13px;font-weight:950;line-height:1.1;margin-top:2px}
+#dock{min-height:0;display:grid;grid-template-rows:48px 58px minmax(0,1fr)}#controls{display:flex;gap:4px;padding:4px 5px;border-bottom:1px solid #111;overflow-x:auto}#controls button{font-size:9px;white-space:nowrap;min-height:38px}#runBtn{background:var(--blue);color:#fff}
+#decisionRow{display:grid;grid-template-columns:76px minmax(0,1fr);border-bottom:2px solid #111}#phase{display:flex;align-items:center;justify-content:center;border-right:1px solid #111;font-size:10px;font-weight:950}#decisionWrap{padding:5px 7px;min-width:0;overflow:hidden}#decision{font-size:10px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#proof{font-size:8px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#lower{min-height:0;display:grid;grid-template-columns:1fr 1fr}.pane{min-height:0;overflow:auto}.pane:first-child{border-right:1px solid #111}.title{position:sticky;top:0;background:var(--paper);padding:5px 7px;border-bottom:1px solid #111;font-size:8px;font-weight:950;z-index:2}.flow,.piece{display:grid;grid-template-columns:55px 1fr;gap:6px;padding:6px 7px;border-bottom:1px solid #bbb;font-size:9px}.flow b{color:var(--blue)}.flow.hot{background:#e5f2ff}.flow span,.piece span{font-weight:850}.flow small,.piece small{grid-column:2;color:var(--muted);font-size:7px}.flow.quiet{background:var(--green)}#testDetail{padding:6px 7px;font-size:8px;border-bottom:1px solid #111}
+@media(max-width:680px){#app{grid-template-rows:40px minmax(0,1fr) 51%}header strong{font-size:8px}#scale,#sealed{display:none}#hear{width:70%}#hearText{font-size:11px}#dock{grid-template-rows:46px 62px minmax(0,1fr)}#lower{grid-template-columns:1fr}.pane:last-child{display:none}#controls button{font-size:8px;padding:6px 8px}}
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}</script>
+</head>
+<body>
+<div id="app">
+<header><strong>BEAVER / HOUSE LEAK FIELD</strong><span class="chip" id="selftest">SELF TEST --</span><span class="chip" id="scale">--</span><span class="chip" id="leak">--</span><span class="chip" id="sealed">--</span><span class="chip" id="parts">--</span></header>
+<section id="view"><div id="threeHost"></div><div id="hear"><span id="hearLabel">HEAR WATER</span><span id="hearText">reading envelope…</span></div><div id="geom">INITIALIZING…</div></section>
+<section id="dock">
+  <div id="controls"><button id="runBtn">BUILD UNTIL DRY</button><button id="stepBtn">HEAR · TRY · TEST</button><button id="resetBtn">RESET LEAK</button><button id="exportBtn">EXPORT MPD</button></div>
+  <div id="decisionRow"><div id="phase">HEAR</div><div id="decisionWrap"><div id="decision">Water is the error signal.</div><div id="proof">32 × 16 stud inhabitable scale · 7-brick walls · frames may still leak · glass/door leaf are SEAL events, never fake stud clicks</div></div></div>
+  <div id="lower">
+    <div class="pane"><div class="title">FLOW CROSSING THE ENVELOPE · LOUDEST FIRST</div><div id="flowList"></div><div class="title">MODEL SELF-TEST</div><div id="testDetail"></div></div>
+    <div class="pane"><div class="title">WHAT WATER CAUSED THE BEAVER TO ADD</div><div id="moduleList"></div></div>
+  </div>
+</section>
+</div>
+<script type="module" src="./app.js?v=water-house-1"></script>
+</body>
+</html>
