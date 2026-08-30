@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {HOUSE,MODULES,CLOSURES,makeSlots,baseplateSupports,moduleForSlot,canSeat,commitModule,totalLeak,leakOf,simulateAll,actionable} from '../beaver-house-water/model.js';
+import {HOUSE,CLOSURES,makeSlots,baseplateSupports,moduleForSlot,canSeat,commitModule,totalLeak,leakOf,simulateAll,actionable} from '../beaver-house-water/model.js';
 
 console.log('BEAVER HOUSE / WATER FIELD');
 assert.equal(HOUSE.lengthStuds,32,'house length must remain 32 studs');
@@ -42,7 +42,7 @@ assert.equal(leakOf(door),0,'closed door must stop its flow signal');
 const sim=simulateAll();
 assert.equal(sim.leak,0,'beaver must not stop while any envelope flow remains');
 assert.equal(sim.moves,20,'12 wall/frame moves + 4 roof moves + 4 closure moves');
-assert.equal(sim.clicks,160,'only verified stud contacts contribute clicks');
+assert.equal(sim.clicks,152,'only verified stud contacts contribute clicks: 88 wall/base contacts + 64 roof contacts');
 assert.equal(sim.slots.every(s=>s.state==='sealed'),true,'every exterior slot ends sealed');
 assert.equal(sim.instances.filter(x=>x.closure).length,4,'door + three window closures installed');
 
