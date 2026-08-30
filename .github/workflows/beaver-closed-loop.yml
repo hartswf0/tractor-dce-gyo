@@ -8,6 +8,7 @@ on:
       - 'ldraw-affordance/beaver-house-complex/**'
       - 'ldraw-affordance/beaver-house-complex-v2/**'
       - 'ldraw-affordance/beaver-spaceship/**'
+      - 'ldraw-affordance/beaver-spaceship-live/**'
       - 'ldraw-affordance/beaver-world/**'
       - 'ldraw-affordance/library/**'
       - 'ldraw-affordance/src/**'
@@ -32,4 +33,6 @@ jobs:
           node-version: '22'
       - name: Run LDraw affordance and beaver tests
         working-directory: ldraw-affordance
-        run: npm test
+        run: |
+          npm test
+          node --check beaver-spaceship-live/live.js
