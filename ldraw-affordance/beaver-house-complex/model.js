@@ -19,7 +19,7 @@ const PART={1:{file:'3005.dat',name:'Brick 1 x 1'},2:{file:'3004.dat',name:'Bric
 let serial=0;
 
 function rectCells(ix0,ix1,iz0,iz1,y){const out=[];for(let ix=ix0;ix<=ix1;ix++)for(let iz=iz0;iz<=iz1;iz++)out.push([S(ix),y,S(iz)]);return out}
-function actionBase(o){return{id:o.id||`a${++serial}`,placed:false,requires:[],signal:'WATER',severity:50,weight:1,color:15,...o}}
+function actionBase(o){return{placed:false,requires:[],signal:'WATER',severity:50,weight:1,color:15,...o,id:o.id||`a${++serial}`}}
 function rectPart({id,file,name,ix0,ix1,iz0,iz1,topY,height,r=ID,color=15,minContacts,signal='WATER',severity=50,weight=1,label,requires=[],minSpread=0}){
   const bottomY=topY+height,bottom=rectCells(ix0,ix1,iz0,iz1,bottomY),top=rectCells(ix0,ix1,iz0,iz1,topY);
   return actionBase({id,file,name,t:[C(ix0,ix1),topY,C(iz0,iz1)],r,color,bottom,top,minContacts:minContacts??bottom.length,minSpread,signal,severity,weight,label,requires,kind:'structure'});
