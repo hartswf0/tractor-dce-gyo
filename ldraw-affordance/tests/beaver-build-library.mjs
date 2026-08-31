@@ -10,11 +10,30 @@ const library=read('library/core.json');
 const rules=read('library/compatibility.json');
 const overrides=read('library/seam-overrides.json');
 
+function latchStudMilestones(solver){
+  for(const s of solver.hear().states){
+    if(s.solved&&s.feature.prerequisite.type==='stud'&&s.feature.completion.kind==='port')solver.state.completed.add(s.feature.id);
+  }
+}
+function runBuild(solver,max=400){
+  let moves=0,result=null;
+  latchStudMilestones(solver);
+  while(moves<max){
+    result=solver.step();
+    if(result.status==='retry')continue;
+    latchStudMilestones(solver);
+    if(result.status!=='acted')break;
+    moves++;
+  }
+  const h=solver.hear();
+  return{moves,result,quiet:!h.strongest,remaining:h.unresolved.map(x=>x.feature.id)};
+}
+
 const results=[];
 for(const build of BUILDS){
   for(const [mode,expect] of Object.entries(build.expect||{full:'quiet'})){
     const solver=createSolver({library,rules,overrides,field:build,vocabMode:mode});
-    const out=solver.run(400),audit=solver.audit();
+    const out=runBuild(solver),audit=solver.audit();
     const actual=out.quiet?'quiet':'blocked';
     results.push({build:build.id,mode,expect,actual,moves:out.moves,parts:solver.state.assembly.length,clicks:solver.state.stats.clicks,remaining:out.remaining});
     if(!audit.ok)throw new Error(`${build.id}/${mode}: accumulated joint audit failed`);
