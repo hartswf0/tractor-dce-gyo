@@ -42,8 +42,18 @@ for(const build of BUILDS){
 }
 
 const full=results.filter(r=>r.mode==='full');
+const floors={
+  'serious-courtyard-house':{moves:80,clicks:500,parts:100},
+  'serious-frame-tower':{moves:50,clicks:400,parts:60},
+  'serious-stepped-dam':{moves:50,clicks:350,parts:60}
+};
+for(const [id,min] of Object.entries(floors)){
+  const r=full.find(x=>x.build===id);if(!r)throw new Error(`${id}: serious build missing`);
+  for(const k of ['moves','clicks','parts'])if(r[k]<min[k])throw new Error(`${id}: serious regression ${k} ${r[k]} < ${min[k]}`);
+}
+
 console.log('BEAVER / BASE BUILD LIBRARY');
 console.log(`PASS · ${BUILDS.length} builds · ${results.length} build×vocabulary trials`);
 for(const r of full)console.log(`${r.actual==='quiet'?'QUIET':'BLOCKED'} · ${r.build} · ${r.moves} moves · ${r.clicks} clicks · ${r.parts} total parts${r.remaining.length?` · hears ${r.remaining.join(',')}`:''}`);
 const serious=full.filter(r=>r.tier==='serious');
-if(serious.length)console.log(`SERIOUS TIER · ${serious.map(r=>`${r.build}:${r.moves} moves/${r.clicks} clicks`).join(' · ')}`);
+if(serious.length)console.log(`SERIOUS TIER · ${serious.map(r=>`${r.build}:${r.moves} moves/${r.clicks} clicks/${r.parts} parts`).join(' · ')}`);
