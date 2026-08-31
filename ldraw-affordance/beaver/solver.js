@@ -4,6 +4,8 @@ import {physicalHandshake,auditAssembly} from './handshake.js';
 const dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
 const dist=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1],a[2]-b[2]);
 const volume=p=>(p.dims||[99,99,99]).reduce((a,b)=>a*b,1);
+const vectorKey=v=>v.map(n=>Math.round(n*1000)).join(',');
+const portKey=(type,gender,p,n)=>`${type}|${gender}|${vectorKey(p)}|${vectorKey(n)}`;
 
 export function prepareLibrary(source,overrides={}){
   const library=structuredClone(source);
@@ -30,6 +32,10 @@ export function strictRules(source){
 export function createSolver({library:librarySource,rules:rulesSource,overrides={},field,vocabMode='full'}){
   const library=prepareLibrary(librarySource,overrides),rules=strictRules(rulesSource),index=loadIndex(library);
   const state={field:structuredClone(field),assembly:[],completed:new Set(),rejected:new Set(),stats:{tries:0,rejected:0,clicks:0,placements:0,audits:0},last:null};
+  const targetIndex=new Map();
+  for(const feature of state.field.features){
+    const spec=feature.prerequisite,key=portKey(spec.type,spec.gender,spec.p,spec.n),rows=targetIndex.get(key)||[];rows.push(feature.id);targetIndex.set(key,rows)
+  }
   const partOf=inst=>index.get(inst.partId);
   const isUsed=(inst,id)=>(inst.usedPorts||[]).includes(id);
   const usePort=(inst,id)=>{inst.usedPorts??=[];if(!inst.usedPorts.includes(id))inst.usedPorts.push(id)};
@@ -57,23 +63,23 @@ export function createSolver({library:librarySource,rules:rulesSource,overrides=
     }
     return out;
   }
-  function matchingOpenPort(spec){
+  function matchingOpenPort(spec,rows=null){
     let best=null;
-    for(const row of openPorts()){
+    for(const row of rows||openPorts()){
       if(row.port.type!==spec.type||row.port.gender!==spec.gender)continue;
       const d=dist(row.p,spec.p),nd=dot(row.n,spec.n),score=d+(1-nd)*100;
       if(!best||score<best.score)best={...row,d,nd,score};
     }
     return best&&best.d<=(spec.tolerance??.05)&&best.nd>.999?best:null;
   }
-  function featureState(feature){
+  function featureState(feature,rows=null){
     if(state.completed.has(feature.id))return{solved:true,feature};
-    const port=matchingOpenPort(feature.prerequisite);
+    const port=matchingOpenPort(feature.prerequisite,rows);
     if(feature.completion.kind==='port')return port?{solved:true,feature,port}:{solved:false,stage:'expose',feature};
     return port?{solved:false,stage:'mate',feature,port}:{solved:false,stage:'expose',feature};
   }
   function hear(){
-    const states=state.field.features.map(featureState),unresolved=states.filter(x=>!x.solved).sort((a,b)=>b.feature.severity-a.feature.severity);
+    const rows=openPorts(),states=state.field.features.map(feature=>featureState(feature,rows)),unresolved=states.filter(x=>!x.solved).sort((a,b)=>b.feature.severity-a.feature.severity);
     return{states,unresolved,strongest:unresolved[0]||null};
   }
   function outputError(inst,port,spec){
@@ -86,13 +92,8 @@ export function createSolver({library:librarySource,rules:rulesSource,overrides=
     let covered=0;
     for(const out of part.ports){
       if(out.type!=='stud'||out.gender!=='male'||out.confidence!=='exact')continue;
-      const p=transformPoint(probe,out.p),n=transformVector(probe,out.n);
-      for(const feature of state.field.features){
-        if(state.completed.has(feature.id))continue;
-        const spec=feature.prerequisite;
-        if(spec.type!=='stud'||spec.gender!=='male')continue;
-        if(dist(p,spec.p)<=(spec.tolerance??.05)&&dot(n,spec.n)>.999){covered++;break}
-      }
+      const p=transformPoint(probe,out.p),n=transformVector(probe,out.n),ids=targetIndex.get(portKey(out.type,out.gender,p,n));
+      if(ids?.some(id=>!state.completed.has(id)))covered++;
     }
     return Math.max(1,covered);
   }
