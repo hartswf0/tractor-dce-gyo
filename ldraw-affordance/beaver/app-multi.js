@@ -3,8 +3,8 @@ import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {LDrawLoader} from 'three/addons/loaders/LDrawLoader.js';
 import {LDrawConditionalLineMaterial} from 'three/addons/materials/LDrawConditionalLineMaterial.js';
 import {toLDraw} from '../src/engine.js';
-import {createSolver} from './solver.js';
-import {BUILDS,VOCAB_MODES} from './builds-runtime.js';
+import {createSolver} from './solver.js?v=serious-house-ii';
+import {BUILDS,VOCAB_MODES} from './builds-runtime.js?v=serious-house-ii';
 
 const $=s=>document.querySelector(s),byId=id=>document.getElementById(id),delay=ms=>new Promise(r=>setTimeout(r,ms));
 const [library,rules,overrides]=await Promise.all([
@@ -53,12 +53,12 @@ function renderUI(){
   $('#buildName').textContent=b.name;$('#buildCategory').textContent=b.category.toUpperCase();$('#buildDesc').textContent=`${b.description}${b.tier==='serious'?` · ${b.features.length} physical signals`:''}`;
   $('#signals').textContent=`${h.unresolved.length} SIGNAL${h.unresolved.length===1?'':'S'}`;$('#parts').textContent=`${clean.length} PARTS`;$('#counts').textContent=`CLICK ${solver.state.stats.clicks} · AUDIT ${solver.state.stats.audits}`;
   $('#expect').textContent=exp?`EXPECT ${exp.toUpperCase()}`:'UNSCORED';$('#expect').className=`chip ${exp==='quiet'?'pass':exp==='blocked'?'warn':''}`;
-  const action=h.strongest?solver.chooseAction(h.strongest):null;
+  const action=h.strongest&&!(running&&serious())?solver.chooseAction(h.strongest):h.strongest?{}:null;
   if(!h.strongest){$('#hear').className='quiet';$('#hearLabel').textContent='QUIET';$('#hearText').textContent='Nothing is asking for another part.'}
   else{$('#hear').className=action?'loud':'blocked';$('#hearLabel').textContent=action?'HEAR':'STILL HEAR';$('#hearText').textContent=h.strongest.stage==='mate'?h.strongest.feature.completion.label:h.strongest.feature.prerequisite.cry}
-  const rows=b.tier==='serious'?h.unresolved.slice(0,60):h.states,hidden=b.tier==='serious'?Math.max(0,h.unresolved.length-rows.length):0;
+  const cap=running&&serious()?24:60,rows=b.tier==='serious'?h.unresolved.slice(0,cap):h.states,hidden=b.tier==='serious'?Math.max(0,h.unresolved.length-rows.length):0;
   $('#cueList').innerHTML=(rows.length?rows.map(s=>{const active=h.strongest?.feature.id===s.feature.id,state=s.solved?'QUIET':active?(action?'LOUD':'BLOCKED'):'WAIT';return`<div class="cue ${state.toLowerCase()}"><b>${state}</b><span>${s.feature.label}</span><small>${s.solved?'signal extinguished':s.stage==='mate'?s.feature.completion.label:s.feature.prerequisite.cry}</small></div>`}).join(''):`<div class="cue quiet"><b>QUIET</b><span>ALL SIGNALS EXTINGUISHED</span></div>`)+(hidden?`<div class="cue wait"><b>+${hidden}</b><span>MORE SIGNALS STILL AUDIBLE</span><small>solver hears them; display is capped for mobile</small></div>`:'');
-  $('#pieceList').innerHTML=clean.map((x,i)=>{const p=solver.partOf(x),contacts=(x.jointRecord?1:0)+(x.secondaryJoints?.length||0);return`<div class="piece"><b>${String(i+1).padStart(2,'0')} · ${p.id}</b><span>${p.name}</span><small>${x.seed?'SUBSTRATE':`${x.label||''} · ${contacts} verified contact${contacts===1?'':'s'}`}</small></div>`}).join('');
+  if(!(mobile&&serious()&&running))$('#pieceList').innerHTML=clean.map((x,i)=>{const p=solver.partOf(x),contacts=(x.jointRecord?1:0)+(x.secondaryJoints?.length||0);return`<div class="piece"><b>${String(i+1).padStart(2,'0')} · ${p.id}</b><span>${p.name}</span><small>${x.seed?'SUBSTRATE':`${x.label||''} · ${contacts} verified contact${contacts===1?'':'s'}`}</small></div>`}).join('');
   $('#suiteList').innerHTML=BUILDS.map((x,i)=>{const key=`${x.id}|${vocabMode}`,r=suiteResults.get(key);return`<button class="suite ${i===buildIndex?'active':''} ${r?.actual||''}" data-i="${i}"><b>${String(i+1).padStart(2,'0')}</b> ${x.name}<small>${r?r.actual.toUpperCase():x.tier==='serious'?'SERIOUS':x.category}</small></button>`}).join('');
   document.querySelectorAll('.suite').forEach(el=>el.onclick=()=>selectBuild(Number(el.dataset.i)));
 }
@@ -71,11 +71,16 @@ function toggle(v){for(const id of LOCK_IDS){const el=byId(id);if(el)el.disabled
 function recoverUI(error,where){console.error(`BEAVER UI ERROR · ${where}`,error);running=false;toggle(false);setPhase('UI ERROR',`${where} failed`,error?.message||String(error));renderUI()}
 
 async function act(show=true){
+  if(!show){
+    const r=solver.step();
+    if(r.status==='retry')return'retry';if(r.status!=='acted')return r.status;
+    latchStudMilestones();lastOk=true;return'acted';
+  }
   const h=solver.hear();if(!h.strongest){setPhase('QUIET','stop building','no releaser remains');renderUI();return'complete'}
   const action=solver.chooseAction(h.strongest);if(!action){setPhase('STILL HEAR',h.strongest.feature.prerequisite.cry,`NO VERIFIED RESPONSE · ${h.strongest.feature.prerequisite.operatorHint||'NO OPERATOR'}`);renderUI();return'blocked'}
-  const cp=contactPoint(action);lastPoint=cp||h.strongest.feature.prerequisite.p;lastOk=false;setPhase('TRY',`${action.part.id} ${action.part.name}`,`${action.signalCoverage?`${action.signalCoverage} signals · ${action.potentialContacts} potential contacts · `:''}preflight exact handshake`);renderUI();if(show){await renderReal(false);await delay(serious()?55:170)}
+  const cp=contactPoint(action);lastPoint=cp||h.strongest.feature.prerequisite.p;lastOk=false;setPhase('TRY',`${action.part.id} ${action.part.name}`,`${action.signalCoverage?`${action.signalCoverage} signals · ${action.potentialContacts} potential contacts · `:''}preflight exact handshake`);renderUI();await renderReal(false);await delay(serious()?55:170);
   const r=solver.step();if(r.status==='retry'){setPhase('REJECT',action.part.name,r.reason||'handshake rejected');renderUI();return'retry'}if(r.status!=='acted')return r.status;
-  latchStudMilestones();lastOk=true;if(show)clickSound(r.contacts);setPhase(r.contacts>1?`CLICK ×${r.contacts}`:'CLICK',`${r.action.part.id} accepted`,`${r.contacts} verified contact${r.contacts===1?'':'s'} · accumulated assembly re-audited`);renderUI();if(show){await renderReal(false);await delay(serious()?70:210)}return'acted';
+  latchStudMilestones();lastOk=true;clickSound(r.contacts);setPhase(r.contacts>1?`CLICK ×${r.contacts}`:'CLICK',`${r.action.part.id} accepted`,`${r.contacts} verified contact${r.contacts===1?'':'s'} · accumulated assembly re-audited`);renderUI();await renderReal(false);await delay(serious()?70:210);return'acted';
 }
 async function run(){
   if(running)return;audio();running=true;toggle(true);
@@ -84,7 +89,7 @@ async function run(){
     while(moves<max&&guard++<max*8){const show=moves%stride===0,r=await act(show);if(r==='retry')continue;if(r!=='acted')break;moves++}
     scoreCurrent();renderUI();await renderReal(true)
   }catch(error){recoverUI(error,'RUN BEAVER');return}
-  finally{running=false;toggle(false)}
+  finally{running=false;toggle(false);renderUI()}
 }
 function scoreCurrent(){const actual=solver.hear().strongest?'blocked':'quiet',exp=expected();suiteResults.set(`${BUILDS[buildIndex].id}|${vocabMode}`,{actual,pass:!exp||actual===exp})}
 async function runSuite(){
