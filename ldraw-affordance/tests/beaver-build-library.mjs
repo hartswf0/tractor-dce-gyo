@@ -44,6 +44,7 @@ for(const build of BUILDS){
 const full=results.filter(r=>r.mode==='full');
 const floors={
   'serious-courtyard-house':{moves:80,clicks:500,parts:100},
+  'serious-courtyard-house-ii':{moves:250,clicks:1500,parts:300},
   'serious-frame-tower':{moves:50,clicks:400,parts:60},
   'serious-stepped-dam':{moves:50,clicks:350,parts:60}
 };
