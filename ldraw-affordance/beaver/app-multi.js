@@ -4,7 +4,7 @@ import {LDrawLoader} from 'three/addons/loaders/LDrawLoader.js';
 import {LDrawConditionalLineMaterial} from 'three/addons/materials/LDrawConditionalLineMaterial.js';
 import {toLDraw} from '../src/engine.js';
 import {createSolver} from './solver.js';
-import {BUILDS,VOCAB_MODES} from './builds.js';
+import {BUILDS,VOCAB_MODES} from './builds-runtime.js';
 
 const $=s=>document.querySelector(s),delay=ms=>new Promise(r=>setTimeout(r,ms));
 const [library,rules,overrides]=await Promise.all([
@@ -40,6 +40,7 @@ function contactPoint(action){return action?.parentInst&&action?.parentPort?solv
 function setPhase(phase,text,proof=''){ $('#phase').textContent=phase;$('#decision').textContent=text;$('#proof').textContent=proof }
 function renderUI(){
   const b=BUILDS[buildIndex],h=solver.hear(),clean=solver.state.assembly.filter(x=>!x.provisional),exp=expected();
+  $('#buildSelect').value=String(buildIndex);$('#vocabSelect').value=vocabMode;
   $('#buildName').textContent=b.name;$('#buildCategory').textContent=b.category.toUpperCase();$('#buildDesc').textContent=b.description;
   $('#signals').textContent=`${h.unresolved.length} SIGNAL${h.unresolved.length===1?'':'S'}`;$('#parts').textContent=`${clean.length} PARTS`;$('#counts').textContent=`CLICK ${solver.state.stats.clicks} · AUDIT ${solver.state.stats.audits}`;
   $('#expect').textContent=exp?`EXPECT ${exp.toUpperCase()}`:'UNSCORED';$('#expect').className=`chip ${exp==='quiet'?'pass':exp==='blocked'?'warn':''}`;
