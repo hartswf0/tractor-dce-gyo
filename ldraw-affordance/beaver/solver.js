@@ -81,9 +81,41 @@ export function createSolver({library:librarySource,rules:rulesSource,overrides=
     const p=transformPoint(inst,port.p),n=transformVector(inst,port.n);
     return dist(p,spec.p)+(1-dot(n,spec.n))*100;
   }
+  function signalCoverage(probe,part){
+    if(state.field.objective!=='bonded')return 1;
+    let covered=0;
+    for(const out of part.ports){
+      if(out.type!=='stud'||out.gender!=='male'||out.confidence!=='exact')continue;
+      const p=transformPoint(probe,out.p),n=transformVector(probe,out.n);
+      for(const feature of state.field.features){
+        if(state.completed.has(feature.id))continue;
+        const spec=feature.prerequisite;
+        if(spec.type!=='stud'||spec.gender!=='male')continue;
+        if(dist(p,spec.p)<=(spec.tolerance??.05)&&dot(n,spec.n)>.999){covered++;break}
+      }
+    }
+    return Math.max(1,covered);
+  }
+  function potentialSecondaryContacts(probe,part,primaryParent,primaryChildPortId,rows){
+    if(state.field.objective!=='bonded')return 0;
+    const usedChild=new Set([primaryChildPortId]),usedParent=new Set([`${primaryParent.inst.uid}|${primaryParent.port.id}`]);
+    let count=0;
+    for(const cp of part.ports){
+      if(usedChild.has(cp.id))continue;
+      for(const row of rows){
+        const key=`${row.inst.uid}|${row.port.id}`;if(usedParent.has(key))continue;
+        const connection=compatibility(row.port,cp,rules);if(!connection)continue;
+        const test=physicalHandshake(row.inst,row.port,probe,cp,connection,rules);
+        if(!test.ok||!test.clickable)continue;
+        usedChild.add(cp.id);usedParent.add(key);count++;break;
+      }
+    }
+    return count;
+  }
   function candidateForExpose(cue){
-    const spec=cue.feature.prerequisite,candidates=[];
-    for(const parent of openPorts())for(const part of library.parts){
+    const spec=cue.feature.prerequisite,candidates=[],allOpen=openPorts(),tol=spec.tolerance??.05,maxReach=state.field.maxReach??140;
+    const parents=allOpen.filter(row=>dist(row.p,spec.p)<=maxReach);
+    for(const parent of parents)for(const part of library.parts){
       if(disabled(part))continue;
       for(const cp of part.ports){
         const connection=compatibility(parent.port,cp,rules);if(!connection)continue;
@@ -92,15 +124,17 @@ export function createSolver({library:librarySource,rules:rulesSource,overrides=
         if(!incoming.ok)continue;
         for(const out of part.ports){
           if(out.id===cp.id)continue;
-          const error=outputError(probe,out,spec);if(!Number.isFinite(error))continue;
+          const error=outputError(probe,out,spec);if(!Number.isFinite(error)||error>tol)continue;
           const operatorBonus=(part.operators||[]).some(op=>(spec.operatorHint||'').includes(op))?-1000:0;
-          const score=error*1e6+volume(part)+operatorBonus,a={kind:'expose',cue,parentInst:parent.inst,parentPort:parent.port,part,childPort:cp,outputPort:out,connection,snap,incoming,error,score};
+          const secondary=potentialSecondaryContacts(probe,part,parent,cp.id,allOpen),contacts=1+secondary,coverage=signalCoverage(probe,part);
+          const physicalCost=state.field.objective==='bonded'?volume(part)/(coverage*coverage*contacts)+volume(part)*1e-6:volume(part);
+          const score=error*1e6+physicalCost+operatorBonus,a={kind:'expose',cue,parentInst:parent.inst,parentPort:parent.port,part,childPort:cp,outputPort:out,connection,snap,incoming,error,score,potentialContacts:contacts,signalCoverage:coverage};
           if(!state.rejected.has(actionSig(a)))candidates.push(a);
         }
       }
     }
-    candidates.sort((a,b)=>a.score-b.score);const tol=spec.tolerance??.05;
-    return candidates.find(x=>x.error<=tol)||null;
+    candidates.sort((a,b)=>a.score-b.score);
+    return candidates[0]||null;
   }
   function candidateForMate(cue){
     const target=cue.port,prefer=cue.feature.completion.preferFamily,candidates=[];
