@@ -6,7 +6,7 @@ import {toLDraw} from '../src/engine.js';
 import {createSolver} from './solver.js';
 import {BUILDS,VOCAB_MODES} from './builds-runtime.js';
 
-const $=s=>document.querySelector(s),delay=ms=>new Promise(r=>setTimeout(r,ms));
+const $=s=>document.querySelector(s),byId=id=>document.getElementById(id),delay=ms=>new Promise(r=>setTimeout(r,ms));
 const [library,rules,overrides]=await Promise.all([
   fetch('../library/core.json',{cache:'no-store'}).then(r=>r.json()),
   fetch('../library/compatibility.json',{cache:'no-store'}).then(r=>r.json()),
@@ -52,8 +52,15 @@ function renderUI(){
   $('#suiteList').innerHTML=BUILDS.map((x,i)=>{const key=`${x.id}|${vocabMode}`,r=suiteResults.get(key);return`<button class="suite ${i===buildIndex?'active':''} ${r?.actual||''}" data-i="${i}"><b>${String(i+1).padStart(2,'0')}</b> ${x.name}<small>${r?r.actual.toUpperCase():x.category}</small></button>`}).join('');
   document.querySelectorAll('.suite').forEach(el=>el.onclick=()=>selectBuild(Number(el.dataset.i)));
 }
-async function selectBuild(i){if(running)return;buildIndex=(i+BUILDS.length)%BUILDS.length;makeSolver();lastPoint=null;setPhase('HEAR','read the strongest local releaser','same solver · different world');renderUI();await renderReal(true)}
-function toggle(v){for(const id of ['runBtn','stepBtn','resetBtn','nextBtn','suiteBtn','buildSelect','vocabSelect'])$(id).disabled=v}
+async function selectBuild(i){
+  if(running){renderUI();return}
+  buildIndex=(i+BUILDS.length)%BUILDS.length;makeSolver();lastPoint=null;setPhase('HEAR','read the strongest local releaser','same solver · different world');renderUI();await renderReal(true)
+}
+const LOCK_IDS=['runBtn','stepBtn','resetBtn','nextBtn','suiteBtn','buildSelect','vocabSelect'];
+function toggle(v){for(const id of LOCK_IDS){const el=byId(id);if(el)el.disabled=v}}
+function recoverUI(error,where){
+  console.error(`BEAVER UI ERROR · ${where}`,error);running=false;toggle(false);setPhase('UI ERROR',`${where} failed`,error?.message||String(error));renderUI()
+}
 
 async function act(show=true){
   const h=solver.hear();if(!h.strongest){setPhase('QUIET','stop building','no releaser remains');renderUI();return'complete'}
@@ -62,22 +69,39 @@ async function act(show=true){
   const r=solver.step();if(r.status==='retry'){setPhase('REJECT',action.part.name,r.reason||'handshake rejected');renderUI();return'retry'}if(r.status!=='acted')return r.status;
   latchStudMilestones();lastOk=true;clickSound(r.contacts);setPhase(r.contacts>1?`CLICK ×${r.contacts}`:'CLICK',`${r.action.part.id} accepted`,`${r.contacts} verified contact${r.contacts===1?'':'s'} · accumulated assembly re-audited`);renderUI();if(show){await renderReal(false);await delay(210)}return'acted';
 }
-async function run(){if(running)return;audio();running=true;toggle(true);for(let i=0;i<160;i++){const r=await act(true);if(r==='retry')continue;if(r!=='acted')break}running=false;toggle(false);scoreCurrent();renderUI();await renderReal(true)}
+async function run(){
+  if(running)return;audio();running=true;toggle(true);
+  try{
+    for(let i=0;i<160;i++){const r=await act(true);if(r==='retry')continue;if(r!=='acted')break}
+    scoreCurrent();renderUI();await renderReal(true)
+  }catch(error){recoverUI(error,'RUN BEAVER');return}
+  finally{running=false;toggle(false)}
+}
 function scoreCurrent(){const actual=solver.hear().strongest?'blocked':'quiet',exp=expected();suiteResults.set(`${BUILDS[buildIndex].id}|${vocabMode}`,{actual,pass:!exp||actual===exp})}
 async function runSuite(){
   if(running)return;running=true;toggle(true);suiteResults=new Map();const old=buildIndex;
-  for(let i=0;i<BUILDS.length;i++){
-    buildIndex=i;makeSolver();let guard=0;
-    while(guard++<400){const r=solver.step();if(r.status==='retry')continue;latchStudMilestones();if(r.status!=='acted')break}
-    scoreCurrent();renderUI();await delay(0);
-  }
-  buildIndex=old;makeSolver();running=false;toggle(false);setPhase('SUITE',`${[...suiteResults.values()].filter(x=>x.pass).length}/${BUILDS.length} expected outcomes`,`${vocabMode} · green=quiet · red=blocked`);renderUI();await renderReal(true);
+  try{
+    for(let i=0;i<BUILDS.length;i++){
+      buildIndex=i;makeSolver();let guard=0;
+      while(guard++<400){const r=solver.step();if(r.status==='retry')continue;latchStudMilestones();if(r.status!=='acted')break}
+      scoreCurrent();renderUI();await delay(0);
+    }
+    buildIndex=old;makeSolver();setPhase('SUITE',`${[...suiteResults.values()].filter(x=>x.pass).length}/${BUILDS.length} expected outcomes`,`${vocabMode} · green=quiet · red=blocked`);renderUI();await renderReal(true)
+  }catch(error){buildIndex=old;makeSolver();recoverUI(error,'RUN SUITE');return}
+  finally{running=false;toggle(false)}
 }
-function reset(){if(running)return;makeSolver();lastPoint=null;setPhase('HEAR','read the strongest local releaser','nothing placed without a physical test');renderUI();renderReal(true)}
+function reset(){if(running){renderUI();return}makeSolver();lastPoint=null;setPhase('HEAR','read the strongest local releaser','nothing placed without a physical test');renderUI();renderReal(true)}
+async function singleStep(){
+  if(running)return;audio();running=true;toggle(true);
+  try{await act(true);scoreCurrent();renderUI()}
+  catch(error){recoverUI(error,'HEAR · TRY · TEST')}
+  finally{running=false;toggle(false)}
+}
 
 $('#buildSelect').innerHTML=BUILDS.map((b,i)=>`<option value="${i}">${String(i+1).padStart(2,'0')} · ${b.name}</option>`).join('');
 $('#vocabSelect').innerHTML=VOCAB_MODES.map(v=>`<option value="${v.id}">${v.name}</option>`).join('');
-$('#buildSelect').onchange=e=>selectBuild(Number(e.target.value));$('#vocabSelect').onchange=e=>{vocabMode=e.target.value;suiteResults=new Map();reset()};
-$('#runBtn').onclick=run;$('#stepBtn').onclick=async()=>{if(running)return;audio();toggle(true);await act(true);toggle(false);scoreCurrent();renderUI()};$('#resetBtn').onclick=reset;$('#nextBtn').onclick=()=>selectBuild(buildIndex+1);$('#suiteBtn').onclick=runSuite;
+$('#buildSelect').onchange=e=>selectBuild(Number(e.target.value));
+$('#vocabSelect').onchange=e=>{if(running){e.target.value=vocabMode;return}vocabMode=e.target.value;suiteResults=new Map();reset()};
+$('#runBtn').onclick=run;$('#stepBtn').onclick=singleStep;$('#resetBtn').onclick=reset;$('#nextBtn').onclick=()=>selectBuild(buildIndex+1);$('#suiteBtn').onclick=runSuite;
 $('#exportBtn').onclick=()=>{const text=toLDraw(solver.state.assembly,solver.index,`BEAVER-${BUILDS[buildIndex].id.toUpperCase()}`),blob=new Blob([text],{type:'text/plain'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`beaver-${BUILDS[buildIndex].id}.mpd`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500)};
 makeSolver();renderUI();renderReal(true);
