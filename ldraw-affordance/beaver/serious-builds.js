@@ -1,7 +1,6 @@
 const ID=[1,0,0,0,1,0,0,0,1];
 const port=(id,severity,label,p,operatorHint='EXTEND')=>({id,severity,label,prerequisite:{kind:'port',type:'stud',gender:'male',p,n:[0,-1,0],tolerance:.05,cry:label.toUpperCase(),operatorHint},completion:{kind:'port'}});
 const range=(a,b,step=20)=>Array.from({length:Math.floor((b-a)/step)+1},(_,i)=>a+i*step);
-const key=(x,z)=>`${x}:${z}`;
 
 function plateFoundation(nx,nz,{x0=0,z0=0,color=71}={}){
   const seeds=[];
@@ -47,6 +46,45 @@ function courtyardHouse(){
   };
 }
 
+function courtyardHouseII(){
+  const xs=range(-230,230),zs=range(-130,130),band=bandCells(xs,zs,2),features=[];
+  let severity=60000;
+  const groundDoor=(x,z,c)=>c<=4&&[-10,10].includes(x)&&[-130,-110].includes(z);
+  const groundWindow=(x,z,c)=>{
+    if(c<2||c>4)return false;
+    const front=[-150,-130].includes(x)&&[-130,-110].includes(z);
+    const backL=[-150,-130].includes(x)&&[110,130].includes(z);
+    const backR=[130,150].includes(x)&&[110,130].includes(z);
+    return front||backL||backR;
+  };
+  for(let c=1;c<=5;c++){
+    const cells=band.filter(([x,z])=>!groundDoor(x,z,c)&&!groundWindow(x,z,c));
+    severity=addLayer(features,cells,-24*c,severity,`GROUND WALL ${c}`,'EXTEND / SPAN / BRANCH')-100;
+  }
+  severity=addLayer(features,band,-128,severity,'LEVEL TWO DECK RING','THIN / SPAN / BRANCH')-100;
+  const upperWindow=(x,z,c)=>{
+    if(c<2||c>3)return false;
+    const frontL=[-150,-130].includes(x)&&[-130,-110].includes(z);
+    const frontR=[130,150].includes(x)&&[-130,-110].includes(z);
+    const backL=[-150,-130].includes(x)&&[110,130].includes(z);
+    const backR=[130,150].includes(x)&&[110,130].includes(z);
+    return frontL||frontR||backL||backR;
+  };
+  for(let c=1;c<=4;c++){
+    const y=-128-24*c,cells=band.filter(([x,z])=>!upperWindow(x,z,c));
+    severity=addLayer(features,cells,y,severity,`UPPER WALL ${c}`,'EXTEND / SPAN / BRANCH')-100;
+  }
+  severity=addLayer(features,band,-232,severity,'UPPER ROOF RING','THIN / SPAN / BRANCH')-100;
+  severity=addLayer(features,band,-256,severity,'UPPER PARAPET','EXTEND / SPAN / BRANCH')-100;
+  severity=addLayer(features,band,-264,severity,'UPPER PARAPET CAP','THIN / SPAN / BRANCH')-100;
+  return{
+    id:'serious-courtyard-house-ii',name:'SERIOUS COURTYARD HOUSE II',category:'serious / architecture',tier:'serious',
+    description:'24×14-stud two-story courtyard house. Five-course ground story, real doorway and window voids, bonded level-two deck ring, four-course upper story with four windows, upper roof, parapet and cap.',
+    principle:'The same small vocabulary must sustain an architectural dependency chain for two complete stories without a house-specific solver.',
+    objective:'bonded',maxReach:120,maxMoves:1200,visualStride:6,seeds:plateFoundation(6,7),features,expect:{full:'quiet'}
+  };
+}
+
 function frameTower(){
   const xs=range(-70,70),zs=range(-30,30),footprint=rectangleCells(xs,zs),features=[];
   let severity=18000,y=0;
@@ -88,4 +126,4 @@ function steppedDam(){
   };
 }
 
-export const SERIOUS_BUILDS=[courtyardHouse(),frameTower(),steppedDam()];
+export const SERIOUS_BUILDS=[courtyardHouse(),courtyardHouseII(),frameTower(),steppedDam()];
