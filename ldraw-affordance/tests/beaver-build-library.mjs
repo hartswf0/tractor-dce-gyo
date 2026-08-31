@@ -16,9 +16,9 @@ function latchStudMilestones(solver){
   }
 }
 function runBuild(solver,max=400){
-  let moves=0,result=null;
+  let moves=0,result=null,guard=0;
   latchStudMilestones(solver);
-  while(moves<max){
+  while(moves<max&&guard++<max*8){
     result=solver.step();
     if(result.status==='retry')continue;
     latchStudMilestones(solver);
@@ -33,9 +33,9 @@ const results=[];
 for(const build of BUILDS){
   for(const [mode,expect] of Object.entries(build.expect||{full:'quiet'})){
     const solver=createSolver({library,rules,overrides,field:build,vocabMode:mode});
-    const out=runBuild(solver),audit=solver.audit();
+    const out=runBuild(solver,build.maxMoves||400),audit=solver.audit();
     const actual=out.quiet?'quiet':'blocked';
-    results.push({build:build.id,mode,expect,actual,moves:out.moves,parts:solver.state.assembly.length,clicks:solver.state.stats.clicks,remaining:out.remaining});
+    results.push({build:build.id,tier:build.tier||'probe',mode,expect,actual,moves:out.moves,parts:solver.state.assembly.length,clicks:solver.state.stats.clicks,remaining:out.remaining});
     if(!audit.ok)throw new Error(`${build.id}/${mode}: accumulated joint audit failed`);
     if(actual!==expect)throw new Error(`${build.id}/${mode}: expected ${expect}, got ${actual}; remaining=${out.remaining.join(',')}`);
   }
@@ -44,4 +44,6 @@ for(const build of BUILDS){
 const full=results.filter(r=>r.mode==='full');
 console.log('BEAVER / BASE BUILD LIBRARY');
 console.log(`PASS · ${BUILDS.length} builds · ${results.length} build×vocabulary trials`);
-for(const r of full)console.log(`${r.actual==='quiet'?'QUIET':'BLOCKED'} · ${r.build} · ${r.moves} moves · ${r.clicks} clicks${r.remaining.length?` · hears ${r.remaining.join(',')}`:''}`);
+for(const r of full)console.log(`${r.actual==='quiet'?'QUIET':'BLOCKED'} · ${r.build} · ${r.moves} moves · ${r.clicks} clicks · ${r.parts} total parts${r.remaining.length?` · hears ${r.remaining.join(',')}`:''}`);
+const serious=full.filter(r=>r.tier==='serious');
+if(serious.length)console.log(`SERIOUS TIER · ${serious.map(r=>`${r.build}:${r.moves} moves/${r.clicks} clicks`).join(' · ')}`);
