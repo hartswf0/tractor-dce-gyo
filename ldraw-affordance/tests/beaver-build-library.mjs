@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createSolver} from '../beaver/solver.js';
-import {BUILDS} from '../beaver/builds.js';
+import {BUILDS} from '../beaver/builds-runtime.js';
 
 const here=path.dirname(fileURLToPath(import.meta.url));
 const read=name=>JSON.parse(fs.readFileSync(path.join(here,'..',name),'utf8'));
