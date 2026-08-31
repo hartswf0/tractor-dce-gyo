@@ -15,7 +15,8 @@ if(app.includes('$(id).disabled'))throw new Error('Regression: toggle uses CSS t
 if(!app.includes('byId=id=>document.getElementById(id)'))throw new Error('UI lock must use getElementById');
 if(!app.includes("$('#buildSelect').value=String(buildIndex)"))throw new Error('Build selector must resync to actual solver state');
 if(!app.includes("$('#vocabSelect').value=vocabMode"))throw new Error('Vocabulary selector must resync to actual solver state');
-const releases=(app.match(/finally\{running=false;toggle\(false\)\}/g)||[]).length;
+const finallyBlocks=app.match(/finally\{[^}]*\}/g)||[];
+const releases=finallyBlocks.filter(block=>block.includes('running=false')&&block.includes('toggle(false)')).length;
 if(releases<3)throw new Error(`Expected RUN, STEP and SUITE finally-release guards; found ${releases}`);
 
 console.log('BEAVER / UI CONTRACT');
