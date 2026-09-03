@@ -81,3 +81,14 @@ and it overshoots every kit's band in the close-all form. So the field must be a
 of SOLICITATIONS (weighted), not a to-do list of every open port — which is what the
 zettels said before the number did (Z-CASTLE-FIELD-AFFORDANCES-001,
 Z-HOGWARTS-REWARD-SHAPING-TRAP-001).
+
+THE ARENA (added after the seeds were written): each seed was then run as its own separate agent
+in one world (arena/world.js), each building its own castle from the same card, judged blind against
+5935. See RESULTS.txt in this folder for the table, the per-axis verdicts and every agent's notes.
+  S01  FIELD-ROUTING          pieces  205 · W/L 7/5 · open share 0.225
+  S02  RESIDUAL-PACKET        pieces  184 · W/L 8/4 · open share 0.312
+  S03  BUILDERS-GAME          pieces  213 · W/L 5/7 · open share 0.178
+  S04  DECOMPILE-FIRST        pieces  245 · W/L 7/5 · open share 0.325
+  S05  BODY-AND-JOINTS        pieces  262 · W/L 2/10 · open share 0.122
+  S06  EVENT-TRIGGERED-CALL   pieces  185 · W/L 7/5 · open share 0.258
+  S07  CARD-TO-MASSING        pieces  138 · W/L 8/4 · open share 0.386

@@ -15,8 +15,8 @@ for s in R['seeds']:
     bid = f"arena-{sid.lower()}-{name}"
     shutil.copyfile(src, os.path.join(REPO, 'builds', bid + '.mpd'))
     if os.path.exists(png):
-        im = Image.open(png).convert('RGB'); im.quantize(192).save(os.path.join(REPO, 'builds', bid + '.png'))
-        th = im.copy(); th.thumbnail((320, 320)); th.quantize(128).save(os.path.join(REPO, 'builds', bid + '.thumb.png'))
+        im = Image.open(png).convert('RGB'); im.save(os.path.join(REPO, 'builds', bid + '.png'))
+        th = im.copy(); th.thumbnail((320, 320)); th.save(os.path.join(REPO, 'builds', bid + '.thumb.png'))
     text = open(src).read()
     man['builds'].append({'id': bid, 'page': 'slipcase-build/arena/world.js', 'note': f"seed {sid} {s['name']}: its own castle, built by a separate agent through the arena world; {s['wins']}W/{s['losses']}L vs 5935, open share {s['share']}", 'pieces': s['pieces'], 'blocks': s['blocks'], 'bytes': len(text.encode())})
     added.append(bid)

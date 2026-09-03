@@ -393,6 +393,13 @@ MUTATION OPERATORS
   m3  the model sees the kit's own card (decompiled by S04) as a one-shot example
 """
 
+ARENA = None
+try:
+    ARENA = json.load(open(os.path.join(HERE, 'arena', 'results.json')))
+except Exception: ARENA = None
+if ARENA:
+    README += "\nTHE ARENA (added after the seeds were written): each seed was then run as its own separate agent\nin one world (arena/world.js), each building its own castle from the same card, judged blind against\n5935. See RESULTS.txt in this folder for the table, the per-axis verdicts and every agent's notes.\n" + '\n'.join(f"  {x['seed']}  {x['name']:<22} " + (f"pieces {x['pieces']:>4} · W/L {x['wins']}/{x['losses']} · open share {x['share']}" if x.get('status') == 'DONE' else str(x.get('status'))) for x in ARENA['seeds']) + '\n'
+
 def seed_files(poml_text, request_line):
     return [
         ('README.txt', README),

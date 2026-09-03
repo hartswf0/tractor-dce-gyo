@@ -268,6 +268,8 @@ if os.path.exists(os.path.join(ARENA, 'results.json')):
         rec['sha256'] = sha(open(os.path.join(DESK, rel), 'rb').read()); rec['bytes'] = os.path.getsize(os.path.join(DESK, rel)); resources.append(rec)
     add_arena('results.json', os.path.join(ARENA, 'results.json'), 'dataset', 'Seven seeds run as seven separate agents in one world; per-seed verdicts, shares, counts, notes.', ['_PROMPTS/RESULTS.txt'])
     add_arena('RESULTS.md', os.path.join(ARENA, 'RESULTS.md'), 'file', 'The seven castles side by side, per-axis verdicts, and each agent\'s notes.', ['_PROMPTS/RESULTS.txt'])
+    if os.path.exists(os.path.join(ARENA, 'SEVEN-CASTLES.png')): add_arena('SEVEN-CASTLES.png', os.path.join(ARENA, 'SEVEN-CASTLES.png'), 'image', 'The baseline and the seven agents\' castles in one contact sheet (isorender.py, no browser).', ['RESULTS.md'])
+    if os.path.exists(os.path.join(ARENA, 'isorender.py')): add_arena('isorender.py', os.path.join(ARENA, 'isorender.py'), 'code', 'Standalone isometric renderer: catalogue boxes, painter-sorted, no browser or WebGL.', ['arena'])
     for f in ['world.js', 'compose.js', 'collect.js', 'WORLD.md', 'BRIEF-COMMON.md'] + [f'BRIEF-S0{i}.md' for i in range(1, 8)]:
         if os.path.exists(os.path.join(ARENA, f)): add_arena(f, os.path.join(ARENA, f), 'code' if f.endswith('.js') else 'prompt', 'The arena world / harness / the exact brief each agent received.', ['arena'])
     for s_ in ARENA_RES['seeds']:
