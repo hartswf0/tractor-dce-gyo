@@ -47,6 +47,15 @@ function graphStats(placements,graph){
   const comps=componentSets(placements,graph.edges),connected=new Set(graph.edges.flatMap(e=>[e.a,e.b]));
   return{contacts:graph.edges.length,connectedNodes:connected.size,isolatedNodes:placements.length-connected.size,components:comps.length,largestComponent:comps[0]?.size||0,topComponents:comps.slice(0,12).map(c=>c.size)};
 }
+const fmt=n=>Number.isInteger(Number(n))?String(Number(n)):Number(n).toFixed(8).replace(/0+$/,'').replace(/\.$/,'');
+function flatLDraw(placements,{title='Beaver projection',onlyReal=true}={}){
+  const rows=[`0 ${title}`,'0 Name: beaver-projection.ldr'];let written=0,skipped=0;
+  for(const p of placements){
+    if(onlyReal&&!realPartExists(p.partId)){skipped++;continue}
+    rows.push(`1 ${p.color??16} ${p.t.map(fmt).join(' ')} ${p.r.map(fmt).join(' ')} ${String(p.partId).replace(/\.dat$/i,'')}.dat`);written++;
+  }
+  return{text:rows.join('\n')+'\n',written,skipped};
+}
 
 if(!fs.existsSync(targetPath))throw new Error(`Target missing: ${targetPath}`);
 if(!fs.existsSync(shadowRoot))throw new Error(`Shadow library missing: ${shadowRoot}`);
@@ -106,17 +115,27 @@ if(largestPlacements.length){
   console.log(`BEAVER / STRICT LARGEST COMPONENT · ${largestRun.built}/${largestPlacements.length} parts · ${largestRun.clicks} CLICK proofs · ${largestRun.roots} root · ${largestRun.quiet?'QUIET':'LOUD'}`);
 }
 
+fs.mkdirSync(path.dirname(outPath),{recursive:true});
+const visual=flatLDraw(target.placements,{title:'Beaver Hogwarts target projection · only locally available geometry'});
+const proof=flatLDraw(largestPlacements,{title:'Beaver Hogwarts largest strict stud-connected component'});
+const visualPath=path.join(path.dirname(outPath),'71043-visual.ldr'),proofPath=path.join(path.dirname(outPath),'largest-component.ldr');
+fs.writeFileSync(visualPath,visual.text);fs.writeFileSync(proofPath,proof.text);
+console.log(`VISUAL PROJECTION · ${visual.written}/${summary.placements} pieces · skipped ${visual.skipped}`);
+console.log(`PROOF PROJECTION · ${proof.written}/${largestPlacements.length} pieces`);
+
 const report={
-  schema:'beaver-hogwarts-audit-2',generatedAt:new Date().toISOString(),source:sourceMeta,
+  schema:'beaver-hogwarts-audit-3',generatedAt:new Date().toISOString(),source:sourceMeta,
   target:{placements:summary.placements,uniquePartIds:summary.uniqueParts,sections:target.sections,calibration:target.calibration},
   ldrawCoverage:{types:typesWithReal.length,totalTypes:summary.uniqueParts,instances:instancesWithReal,totalInstances:summary.placements,missingTypes:compiledRows.filter(r=>!r.realLDraw).map(r=>({partId:r.partId,instances:r.instances}))},
   shadowCoverage:{typesWithAnyPorts:typesWithPorts.length,typesWithClickableStudPorts:typesWithClicks.length,instancesWhoseTypeHasClickableStudPorts:instancesWithClickType,totalPorts:compiledRows.reduce((a,r)=>a+r.ports,0),totalClickableStudPorts:compiledRows.reduce((a,r)=>a+r.clickableStudPorts,0),unsupportedReasonCounts:countReasons(compiledRows)},
-  strictStudGraph:strictStats,
+  strictStudGraph:{...strictStats,largestComponentUids:[...largest]},
   toleranceDiagnostics:diagnostics,
   largestComponentBeaver:largestRun,
+  visualProjection:{instances:visual.written,skippedMissingGeometry:visual.skipped,file:path.basename(visualPath)},
+  proofProjection:{instances:proof.written,file:path.basename(proofPath)},
   caveat:'Only the strict profile can earn CLICK. Looser profiles diagnose source/connector numerical disagreement only. Clips, bars, hinges, Technic insertion, flex, collision, gravity and temporary-support physics remain outside CLICK unless separately modeled.',
   parts:compiledRows
 };
-fs.mkdirSync(path.dirname(outPath),{recursive:true});fs.writeFileSync(outPath,JSON.stringify(report,null,2));
+fs.writeFileSync(outPath,JSON.stringify(report,null,2));
 console.log(`REPORT ${outPath}`);
-console.log(`HOGWARTS SUMMARY JSON ${JSON.stringify({placements:report.target.placements,uniquePartIds:report.target.uniquePartIds,ldrawTypes:`${report.ldrawCoverage.types}/${report.ldrawCoverage.totalTypes}`,shadowClickTypes:`${report.shadowCoverage.typesWithClickableStudPorts}/${report.target.uniquePartIds}`,strict:report.strictStudGraph,diagnostics:report.toleranceDiagnostics.map(x=>({name:x.name,contacts:x.contacts,largest:x.largestComponent,components:x.components})),beaver:report.largestComponentBeaver})}`);
+console.log(`HOGWARTS SUMMARY JSON ${JSON.stringify({placements:report.target.placements,uniquePartIds:report.target.uniquePartIds,ldrawTypes:`${report.ldrawCoverage.types}/${report.ldrawCoverage.totalTypes}`,shadowClickTypes:`${report.shadowCoverage.typesWithClickableStudPorts}/${report.target.uniquePartIds}`,strict:{...report.strictStudGraph,largestComponentUids:undefined},diagnostics:report.toleranceDiagnostics.map(x=>({name:x.name,contacts:x.contacts,largest:x.largestComponent,components:x.components})),beaver:report.largestComponentBeaver,visual:report.visualProjection,proof:report.proofProjection})}`);
