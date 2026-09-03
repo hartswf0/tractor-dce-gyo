@@ -230,12 +230,12 @@ switch (CMD) {
     if (SEED === 'S05' && !joints) { out('REFUSED: this world requires a JOINTS prediction: --joints takes=<n>,gives=<m>'); S.refusals++; save(S); break; }
     const port = findPort(S, F, portRef);
     const req = { part, colour, portRef, facing, offset: offset[0] || offset[1] ? offset : null };
-    if (port.err) { S.refusals++; out(refusedPacket(S, F, req, { why: port.err, kind: 'port' })); save(S); break; }
+    if (port.err) { S.refusals++; S.log.push({ t: 'refused', part, colour, portRef, facing, why: port.err }); out(refusedPacket(S, F, req, { why: port.err, kind: 'port' })); save(S); break; }
     if (!Number.isInteger(colour)) { out('REFUSED: colour must be an LDraw colour number'); S.refusals++; save(S); break; }
     const r = tryPlace(S, F, part, colour, port, facing, offset);
     if (!r.ok) { S.refusals++; S.log.push({ t: 'refused', part, colour, portRef, facing, why: r.why }); out(refusedPacket(S, F, req, r)); save(S); break; }
     const info = partInfo(part);
-    if (joints) { const actual = { takes: r.takes, gives: info.studs.length }; if (joints.takes !== actual.takes || joints.gives !== actual.gives) { S.jointsChecks.wrong++; S.refusals++; out(`REFUSED: JOINTS prediction wrong. You said takes=${joints.takes},gives=${joints.gives}. True JOINTS: takes ${actual.takes} stud(s) of ${r.under.slice(0,4).map(s=>s.id).join(' ')}; gives ${actual.gives} up. Place again with the true line.`); save(S); break; } S.jointsChecks.right++; }
+    if (joints) { const actual = { takes: r.takes, gives: info.studs.length }; if (joints.takes !== actual.takes || joints.gives !== actual.gives) { S.jointsChecks.wrong++; S.refusals++; S.log.push({ t: 'refused', part, colour, portRef, facing, why: `JOINTS prediction wrong: said takes=${joints.takes},gives=${joints.gives}; true takes=${r.takes},gives=${info.studs.length}` }); out(`REFUSED: JOINTS prediction wrong. You said takes=${joints.takes},gives=${joints.gives}. True JOINTS: takes ${actual.takes} stud(s) of ${r.under.slice(0,4).map(s=>s.id).join(' ')}; gives ${actual.gives} up. Place again with the true line.`); save(S); break; } S.jointsChecks.right++; }
     commit(S, r); const F1 = field(S); S.lastPattern = { part, colour, facing, offset };
     if (CMD === 'put') S.hand = null;
     out(seatedPacket(S, F, F1, r)); save(S); break; }
