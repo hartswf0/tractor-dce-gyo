@@ -19,7 +19,7 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Fetch public 71043 model index and choose strongest LDraw target
+      - name: Fetch public 71043 model index and choose fallback
         working-directory: ldraw-affordance
         shell: bash
         run: |
@@ -29,8 +29,7 @@ jobs:
           curl --fail --location --retry 4 --retry-all-errors "$INDEX" -o target/lego-models-index.json
           python3 - <<'PY'
           import json, os, urllib.parse
-          p='target/lego-models-index.json'
-          idx=json.load(open(p,encoding='utf-8'))
+          idx=json.load(open('target/lego-models-index.json',encoding='utf-8'))
           entry=idx.get('sets',{}).get('71043') or idx.get('sets',{}).get('71043-1')
           if not entry: raise SystemExit('71043 absent from public model index')
           models=entry.get('models',[])
@@ -43,56 +42,70 @@ jobs:
               [m for m in models if ext(m) in {'.ldr','.mpd'} and not m.get('conv')],
           ]
           chosen=next((xs[0] for xs in tiers if xs),None)
-          if not chosen:
-              print(json.dumps(models,indent=2))
-              raise SystemExit('No exact-LDraw or Studio source available for 71043; refusing approximate pose conversion')
+          if not chosen: raise SystemExit('No exact-LDraw/Studio fallback source for 71043')
           enc='/'.join(urllib.parse.quote(x,safe='') for x in chosen['path'].split('/'))
-          meta={'set':'71043','catalog':{k:entry.get(k) for k in ('name','year','parts')},'selected':chosen,'candidates':models,'encodedPath':enc}
+          meta={'set':'71043','catalog':{k:entry.get(k) for k in ('name','year','parts')},'selected':chosen,'fallbackSelected':chosen,'candidates':models,'encodedPath':enc}
           json.dump(meta,open('target/source-meta.json','w',encoding='utf-8'),indent=2)
           open('target/source-path.txt','w').write(chosen['path'])
           open('target/source-encoded.txt','w').write(enc)
-          print('SELECTED',json.dumps(chosen,sort_keys=True))
+          print('FALLBACK',json.dumps(chosen,sort_keys=True))
           print('CANDIDATES',json.dumps(models,sort_keys=True))
           PY
 
-      - name: Download target model and normalize to LDraw text
+      - name: Prefer original Studio archive and normalize model.ldr
         working-directory: ldraw-affordance
         shell: bash
         run: |
           set -euo pipefail
           BASE='https://pub-02c7ef4c74d5445691176fe4b4455d50.r2.dev/models'
-          ENCODED="$(cat target/source-encoded.txt)"
-          SOURCE="$(cat target/source-path.txt)"
-          curl --fail --location --retry 4 --retry-all-errors "$BASE/$ENCODED" -o target/source.bin
+          RAW_IO="$BASE/IO/71043.io"
+          if curl --fail --location --retry 2 --retry-all-errors "$RAW_IO" -o target/source.bin; then
+            echo 'FOUND ORIGINAL STUDIO IO/71043.io'
+            python3 - <<'PY'
+          import json
+          p='target/source-meta.json'; m=json.load(open(p)); m['selected']={'src':'io','path':'IO/71043.io','tier':0,'note':'original Studio archive probed directly'}; json.dump(m,open(p,'w'),indent=2)
+          PY
+          else
+            echo 'Original Studio archive not public at expected corpus path; using indexed fallback'
+            ENCODED="$(cat target/source-encoded.txt)"
+            curl --fail --location --retry 4 --retry-all-errors "$BASE/$ENCODED" -o target/source.bin
+          fi
           python3 - <<'PY'
           import json, os, zipfile
           meta=json.load(open('target/source-meta.json'))
-          source=meta['selected']['path']
-          ext=os.path.splitext(source)[1].lower()
+          source=meta['selected']['path']; ext=os.path.splitext(source)[1].lower()
           if ext in ('.ldr','.mpd'):
-              data=open('target/source.bin','rb').read()
-              text=data.decode('utf-8-sig')
+              text=open('target/source.bin','rb').read().decode('utf-8-sig')
               if not any(line.lstrip().startswith('1 ') for line in text.splitlines()): raise SystemExit('Downloaded LDraw source has no type-1 placements')
               open('target/71043.ldr','w',encoding='utf-8').write(text)
+              meta['normalizedFrom']=source
           elif ext=='.io':
               with zipfile.ZipFile('target/source.bin') as z:
                   names={n.lower():n for n in z.namelist()}
                   text=None; picked=None
-                  for candidate in ('model.ldr','model2.ldr','modelv2.ldr'):
+                  # model.ldr is mandatory for physics when original Studio archive exists:
+                  # it is aligned to official LDraw part origins. Never silently prefer model2.
+                  order=('model.ldr','model2.ldr','modelv2.ldr')
+                  for candidate in order:
                       actual=names.get(candidate)
                       if not actual: continue
+                      raw=None
                       for pwd in (None,b'soho0909'):
                           try: raw=z.read(actual,pwd=pwd); break
-                          except RuntimeError: raw=None
+                          except (RuntimeError,NotImplementedError): raw=None
                       if raw is None: continue
                       t=raw.decode('utf-8-sig')
                       if any(line.lstrip().startswith('1 ') for line in t.splitlines()): text=t; picked=candidate; break
                   if text is None: raise SystemExit('Studio archive contains no readable LDraw placement file')
                   open('target/71043.ldr','w',encoding='utf-8').write(text)
                   meta['studioEntry']=picked
-                  json.dump(meta,open('target/source-meta.json','w'),indent=2)
+                  meta['normalizedFrom']=f'{source}:{picked}'
+                  if source=='IO/71043.io' and picked!='model.ldr':
+                      meta['physicsWarning']='Original archive lacked a readable model.ldr; connector-origin equivalence is not certified.'
           else:
               raise SystemExit(f'Chosen source {source} is not exact LDraw/Studio; refusing conversion')
+          json.dump(meta,open('target/source-meta.json','w'),indent=2)
+          print('NORMALIZED_FROM',meta.get('normalizedFrom'))
           print('TARGET_BYTES',os.path.getsize('target/71043.ldr'))
           PY
           rm -f target/source.bin
