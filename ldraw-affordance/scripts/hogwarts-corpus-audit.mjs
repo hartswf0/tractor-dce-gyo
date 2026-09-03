@@ -1,7 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {spawnSync} from 'node:child_process';
 import {flattenLDraw,summarizeTarget} from '../beaver-hogwarts/target-import.js';
 import {createShadowCompiler,buildStudContactGraph} from '../beaver-hogwarts/shadow-connectors.js';
 import {createTargetBeaver} from '../beaver-hogwarts/target-beaver.js';
@@ -57,7 +56,7 @@ function flatLDraw(placements,{title='Beaver projection',onlyReal=true}={}){
   }
   return{text:rows.join('\n')+'\n',written,skipped};
 }
-function sourceAllowsSevenBuilders(meta){
+function sourceAllowsAgentPlacements(meta){
   if(!meta)return{ok:false,reason:'NO_SOURCE_META'};
   const selected=meta.selected||{};
   const p=String(selected.path||'');
@@ -131,7 +130,7 @@ console.log(`VISUAL PROJECTION · ${visual.written}/${summary.placements} pieces
 console.log(`PROOF PROJECTION · ${proof.written}/${largestPlacements.length} pieces`);
 
 const report={
-  schema:'beaver-hogwarts-audit-4-seven-builders',generatedAt:new Date().toISOString(),source:sourceMeta,
+  schema:'beaver-hogwarts-audit-5-chatgpt-agent-loop',generatedAt:new Date().toISOString(),source:sourceMeta,
   target:{placements:summary.placements,uniquePartIds:summary.uniqueParts,sections:target.sections,calibration:target.calibration},
   ldrawCoverage:{types:typesWithReal.length,totalTypes:summary.uniqueParts,instances:instancesWithReal,totalInstances:summary.placements,missingTypes:compiledRows.filter(r=>!r.realLDraw).map(r=>({partId:r.partId,instances:r.instances}))},
   shadowCoverage:{typesWithAnyPorts:typesWithPorts.length,typesWithClickableStudPorts:typesWithClicks.length,instancesWhoseTypeHasClickableStudPorts:instancesWithClickType,totalPorts:compiledRows.reduce((a,r)=>a+r.ports,0),totalClickableStudPorts:compiledRows.reduce((a,r)=>a+r.clickableStudPorts,0),unsupportedReasonCounts:countReasons(compiledRows)},
@@ -144,31 +143,16 @@ const report={
   parts:compiledRows
 };
 
-const sevenGate=sourceAllowsSevenBuilders(sourceMeta);
-report.sevenBuilders={status:'NOT_RUN',gate:sevenGate};
-const sevenRunner=path.join(here,'hogwarts-seven-builders.mjs');
-if(sevenGate.ok&&fs.existsSync(sevenRunner)){
-  const sevenOut=path.join(path.dirname(outPath),'seven-builders');
-  console.log(`SEVEN BUILDERS · START · ${sevenGate.reason}`);
-  const args=[sevenRunner,targetPath,shadowRoot,sevenOut];
-  if(sourceMetaPath)args.push(sourceMetaPath);
-  const child=spawnSync(process.execPath,args,{cwd:affordanceRoot,encoding:'utf8',maxBuffer:64*1024*1024,timeout:20*60*1000});
-  if(child.stdout)process.stdout.write(child.stdout);
-  if(child.stderr)process.stderr.write(child.stderr);
-  const summaryPath=path.join(sevenOut,'SUMMARY.json');
-  if(child.status===0&&fs.existsSync(summaryPath)){
-    const sevenSummary=JSON.parse(fs.readFileSync(summaryPath,'utf8'));
-    report.sevenBuilders={status:'GENERATED',gate:sevenGate,summary:sevenSummary};
-    console.log(`SEVEN BUILDERS · GENERATED · ${sevenSummary.uniqueFirst128Trajectories}/7 distinct first-128 trajectories`);
-  }else{
-    report.sevenBuilders={status:'FAILED',gate:sevenGate,exitCode:child.status,signal:child.signal,error:child.error?String(child.error):null,stderrTail:String(child.stderr||'').slice(-8000)};
-    console.log(`SEVEN BUILDERS · FAILED · exit ${child.status}`);
-  }
-}else{
-  report.sevenBuilders={status:sevenGate.ok?'RUNNER_MISSING':'BLOCKED_BY_TARGET_NORMALIZATION',gate:sevenGate};
-  console.log(`SEVEN BUILDERS · ${report.sevenBuilders.status} · ${sevenGate.reason}`);
-}
+const placementGate=sourceAllowsAgentPlacements(sourceMeta);
+report.sevenAgents={
+  status:placementGate.ok?'READY_FOR_LLM_LOOP':'BLOCKED_BY_TARGET_NORMALIZATION',
+  placementGate,
+  generativeAuthority:'LLM_ONLY',
+  validator:'scripts/chatgpt-agent-proposal-validator.mjs',
+  note:'This audit never generates a trajectory. Seven persistent LLM contexts must author actions independently.'
+};
+console.log(`SEVEN LLM AGENTS · ${report.sevenAgents.status} · ${placementGate.reason}`);
 
 fs.writeFileSync(outPath,JSON.stringify(report,null,2));
 console.log(`REPORT ${outPath}`);
-console.log(`HOGWARTS SUMMARY JSON ${JSON.stringify({placements:report.target.placements,uniquePartIds:report.target.uniquePartIds,ldrawTypes:`${report.ldrawCoverage.types}/${report.ldrawCoverage.totalTypes}`,shadowClickTypes:`${report.shadowCoverage.typesWithClickableStudPorts}/${report.target.uniquePartIds}`,strict:{...report.strictStudGraph,largestComponentUids:undefined},diagnostics:report.toleranceDiagnostics.map(x=>({name:x.name,contacts:x.contacts,largest:x.largestComponent,components:x.components})),beaver:report.largestComponentBeaver,visual:report.visualProjection,proof:report.proofProjection,sevenBuilders:report.sevenBuilders.status})}`);
+console.log(`HOGWARTS SUMMARY JSON ${JSON.stringify({placements:report.target.placements,uniquePartIds:report.target.uniquePartIds,ldrawTypes:`${report.ldrawCoverage.types}/${report.ldrawCoverage.totalTypes}`,shadowClickTypes:`${report.shadowCoverage.typesWithClickableStudPorts}/${report.target.uniquePartIds}`,strict:{...report.strictStudGraph,largestComponentUids:undefined},diagnostics:report.toleranceDiagnostics.map(x=>({name:x.name,contacts:x.contacts,largest:x.largestComponent,components:x.components})),beaver:report.largestComponentBeaver,visual:report.visualProjection,proof:report.proofProjection,sevenAgents:report.sevenAgents.status})}`);
