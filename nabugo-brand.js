@@ -2389,6 +2389,10 @@ async function compose(opts = {}) {
   }
   const plan = respond(base, TEMPERAMENT[temper],
                        opts.brief || null, opts.pressure || null, opts.losing || null);
+  // An agent outside the loop may set plan fields directly (the arena's S06 seed
+  // answers events by changing one parameter). Applied after respond() so the
+  // override is the last word.
+  if (opts.plan && typeof opts.plan === 'object') Object.assign(plan, opts.plan);
   if (plan.spread) spreadPlan(plan, plan.spread);
   const build = new Build({
     seed, temperament: temper, bar: opts.bar || null,

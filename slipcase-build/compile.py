@@ -257,11 +257,34 @@ W('000__RESOURCES.txt', f"RESOURCES — {CHECKPOINT}\nStates: LINK_ONLY · SNAPS
 with open(os.path.join(DESK, '_SLIPCASE', 'RESOURCES.jsonl'), 'w', encoding='utf-8') as f:
     for r in resources: f.write(json.dumps(r, ensure_ascii=False) + '\n')
 
+# ─────────────────────────────────────────── arena (seven seeds, seven castles) — only if the run exists
+ARENA = os.path.join(HERE, 'arena'); ARENA_RES = None
+if os.path.exists(os.path.join(ARENA, 'results.json')):
+    ARENA_RES = json.load(open(os.path.join(ARENA, 'results.json')))
+    os.makedirs(os.path.join(DESK, '_RESOURCES', 'arena'), exist_ok=True)
+    def add_arena(name, src, type_, note, used_by):
+        rel = os.path.join('_RESOURCES', 'arena', name); shutil.copyfile(src, os.path.join(DESK, rel))
+        rec = dict(name='arena/' + name, type=type_, state='GENERATED', local=rel, url=None, doi=None, note=note, used_by=used_by, provided_by='arena/world.js', author=None, year=None, title=None)
+        rec['sha256'] = sha(open(os.path.join(DESK, rel), 'rb').read()); rec['bytes'] = os.path.getsize(os.path.join(DESK, rel)); resources.append(rec)
+    add_arena('results.json', os.path.join(ARENA, 'results.json'), 'dataset', 'Seven seeds run as seven separate agents in one world; per-seed verdicts, shares, counts, notes.', ['_PROMPTS/RESULTS.txt'])
+    add_arena('RESULTS.md', os.path.join(ARENA, 'RESULTS.md'), 'file', 'The seven castles side by side, per-axis verdicts, and each agent\'s notes.', ['_PROMPTS/RESULTS.txt'])
+    for f in ['world.js', 'compose.js', 'collect.js', 'WORLD.md', 'BRIEF-COMMON.md'] + [f'BRIEF-S0{i}.md' for i in range(1, 8)]:
+        if os.path.exists(os.path.join(ARENA, f)): add_arena(f, os.path.join(ARENA, f), 'code' if f.endswith('.js') else 'prompt', 'The arena world / harness / the exact brief each agent received.', ['arena'])
+    for s_ in ARENA_RES['seeds']:
+        if s_.get('status') != 'DONE': continue
+        sid = s_['seed']; d = os.path.join(ARENA, 'runs', sid)
+        for f, t_, n_ in [(f'castle-{sid}.mpd', 'model', 'the castle this seed built'), (f'castle-{sid}.png', 'image', 'neutral render of that file'), ('NOTES.md', 'file', 'the agent\'s own notes'), ('report.json', 'dataset', 'judge + field for the emitted file'), ('card.json', 'prompt', 'the card the agent wrote'), ('groups.json', 'dataset', 'the decompilation the agent wrote')]:
+            if os.path.exists(os.path.join(d, f)): add_arena(f'{sid}__{f}', os.path.join(d, f), t_, f'{sid} {s_["name"]}: {n_}.', ['RESULTS.md'])
+    W(os.path.join('_PROMPTS', 'RESULTS.txt'), 'ARENA RESULTS — the seven seeds run as seven separate agents\n' + open(os.path.join(ARENA, 'RESULTS.md'), encoding='utf-8').read())
+
 # ─────────────────────────────────────────── prompts
 request_line = Zj['request']
 for fn, text in prompts.seed_files(POML, request_line): W(os.path.join('_PROMPTS', fn), text)
 assert open(os.path.join(DESK, '_PROMPTS', '00__ASSEMBLY-PROMPT__SLIPCASE-POML.txt'), encoding='utf-8').read() == POML
-W('000__PROMPTS.txt', f"PROMPTS — {CHECKPOINT}\n\nCONSEQUENTIAL PROMPTS PRESERVED EXACTLY\n  _PROMPTS/00__ASSEMBLY-PROMPT__SLIPCASE-POML.txt   the POML that assembled this package ({len(POML)} chars, sha256 {sha(POML)})\n  _PROMPTS/00__REQUEST-LINE.txt                     the request line preceding the batches ({len(request_line)} chars)\n\nSEED PROMPTS (the stones) — see _PROMPTS/README.txt for how to test and evolve them\n" + '\n'.join(f"  {m['id']}  {m['name']:<22} {m['status']:<22} draws on {', '.join(m['zettels'])}" for m in prompts.SEED_META) + '\n')
+arena_note = ''
+if ARENA_RES:
+    arena_note = '\n\nARENA — each seed run as its own agent in one world (see _PROMPTS/RESULTS.txt, _RESOURCES/arena/)\n' + '\n'.join(f"  {x['seed']}  {x['name']:<22} " + (f"pieces {x['pieces']:>4} · W/L {x['wins']}/{x['losses']} · open share {x['share']}" if x.get('status') == 'DONE' else x.get('status', '')) for x in ARENA_RES['seeds']) + f"\n  BASE  layered builder         pieces {ARENA_RES['baseline']['pieces']:>4} · W/L {ARENA_RES['baseline']['wins']}/{ARENA_RES['baseline']['losses']} · open share {ARENA_RES['baseline']['share']}"
+W('000__PROMPTS.txt', f"PROMPTS — {CHECKPOINT}{arena_note}\n\nCONSEQUENTIAL PROMPTS PRESERVED EXACTLY\n  _PROMPTS/00__ASSEMBLY-PROMPT__SLIPCASE-POML.txt   the POML that assembled this package ({len(POML)} chars, sha256 {sha(POML)})\n  _PROMPTS/00__REQUEST-LINE.txt                     the request line preceding the batches ({len(request_line)} chars)\n\nSEED PROMPTS (the stones) — see _PROMPTS/README.txt for how to test and evolve them\n" + '\n'.join(f"  {m['id']}  {m['name']:<22} {m['status']:<22} draws on {', '.join(m['zettels'])}" for m in prompts.SEED_META) + '\n')
 
 # ─────────────────────────────────────────── MOCs and arrangements
 by_order = {c['order']: c for c in cards}
