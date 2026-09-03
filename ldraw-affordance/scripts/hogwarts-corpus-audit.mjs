@@ -14,7 +14,6 @@ const shadowRoot=path.resolve(process.argv[3]||'target/LDCadShadowLibrary');
 const outPath=path.resolve(process.argv[4]||'target/hogwarts-report.json');
 const sourceMetaPath=process.argv[5]?path.resolve(process.argv[5]):null;
 
-const readMaybe=p=>{try{return fs.readFileSync(p,'utf8')}catch{return null}};
 const norm=s=>String(s||'').replace(/\\/g,'/').replace(/^\.\//,'');
 function diskLoad(root,p){
   const n=norm(p),candidates=[n,n.toLowerCase()];
@@ -44,6 +43,10 @@ function countReasons(rows){
   const m=new Map();for(const r of rows)for(const x of r.unsupported||[])m.set(x.split(':')[0],(m.get(x.split(':')[0])||0)+1);
   return Object.fromEntries([...m].sort((a,b)=>b[1]-a[1]));
 }
+function graphStats(placements,graph){
+  const comps=componentSets(placements,graph.edges),connected=new Set(graph.edges.flatMap(e=>[e.a,e.b]));
+  return{contacts:graph.edges.length,connectedNodes:connected.size,isolatedNodes:placements.length-connected.size,components:comps.length,largestComponent:comps[0]?.size||0,topComponents:comps.slice(0,12).map(c=>c.size)};
+}
 
 if(!fs.existsSync(targetPath))throw new Error(`Target missing: ${targetPath}`);
 if(!fs.existsSync(shadowRoot))throw new Error(`Shadow library missing: ${shadowRoot}`);
@@ -72,32 +75,48 @@ const instancesWithClickType=compiledRows.filter(r=>r.clickableStudPorts>0).redu
 console.log(`LDRAW COVERAGE · ${typesWithReal.length}/${summary.uniqueParts} types · ${instancesWithReal}/${summary.placements} instances`);
 console.log(`STUD-PROTOCOL COVERAGE · ${typesWithClicks.length}/${summary.uniqueParts} types · ${instancesWithClickType}/${summary.placements} instances`);
 
-console.log('CONTACT GRAPH · matching exact transformed stud/anti-stud seats…');
-const graph=buildStudContactGraph(target.placements,compiledByPart,{positionTolerance:.08,normalTolerance:.999});
-const strictEdges=graph.edges.filter(e=>e.protocol==='STUD_CLUTCH'&&e.d<=.005&&e.normalDot<=-.999999);
-const strictGraph={...graph,edges:strictEdges};
-const comps=componentSets(target.placements,strictEdges),largest=comps[0]||new Set();
+// Diagnose source precision independently from the physical proof threshold.
+// Each profile is recomputed from scratch: filtering a looser greedy matching can
+// hide stricter alternatives when a port was already claimed by a near match.
+const profiles=[
+  {name:'strict',positionTolerance:.005,normalTolerance:.999999},
+  {name:'p01',positionTolerance:.01,normalTolerance:.99999},
+  {name:'p02',positionTolerance:.02,normalTolerance:.9999},
+  {name:'p05',positionTolerance:.05,normalTolerance:.999},
+  {name:'p08',positionTolerance:.08,normalTolerance:.999},
+  {name:'p25',positionTolerance:.25,normalTolerance:.995},
+  {name:'p50',positionTolerance:.5,normalTolerance:.99}
+];
+const diagnostics=[];let strictGraph=null,strictStats=null,strictComps=null;
+console.log('CONTACT GRAPH · tolerance sweep (diagnostic profiles do NOT earn CLICK)…');
+for(const profile of profiles){
+  const graph=buildStudContactGraph(target.placements,compiledByPart,profile),stats=graphStats(target.placements,graph);
+  diagnostics.push({...profile,...stats});
+  console.log(`GRAPH ${profile.name} · ${stats.contacts} contacts · ${stats.connectedNodes} nodes · ${stats.components} components · largest ${stats.largestComponent}`);
+  if(profile.name==='strict'){strictGraph=graph;strictStats=stats;strictComps=componentSets(target.placements,graph.edges)}
+}
+const largest=strictComps?.[0]||new Set();
 const largestPlacements=target.placements.filter(p=>largest.has(p.uid)),largestGraph=inducedGraph(largest,strictGraph);
-console.log(`STRICT GRAPH · ${strictEdges.length} certified contacts · ${comps.length} components · largest ${largest.size}`);
 
 let largestRun=null;
 if(largestPlacements.length){
   const beaver=createTargetBeaver({placements:largestPlacements,graph:largestGraph});
   const run=beaver.run(largestPlacements.length*2+10);
   largestRun={moves:run.moves,built:run.state.built.size,roots:run.state.roots.size,clicks:run.state.clicks,rejected:run.state.rejected,quiet:run.hear.state==='QUIET',auditOk:run.audit.ok};
-  console.log(`BEAVER / LARGEST COMPONENT · ${largestRun.built}/${largestPlacements.length} parts · ${largestRun.clicks} CLICK proofs · ${largestRun.roots} root · ${largestRun.quiet?'QUIET':'LOUD'}`);
+  console.log(`BEAVER / STRICT LARGEST COMPONENT · ${largestRun.built}/${largestPlacements.length} parts · ${largestRun.clicks} CLICK proofs · ${largestRun.roots} root · ${largestRun.quiet?'QUIET':'LOUD'}`);
 }
 
 const report={
-  schema:'beaver-hogwarts-audit-1',generatedAt:new Date().toISOString(),source:sourceMeta,
+  schema:'beaver-hogwarts-audit-2',generatedAt:new Date().toISOString(),source:sourceMeta,
   target:{placements:summary.placements,uniquePartIds:summary.uniqueParts,sections:target.sections,calibration:target.calibration},
   ldrawCoverage:{types:typesWithReal.length,totalTypes:summary.uniqueParts,instances:instancesWithReal,totalInstances:summary.placements,missingTypes:compiledRows.filter(r=>!r.realLDraw).map(r=>({partId:r.partId,instances:r.instances}))},
   shadowCoverage:{typesWithAnyPorts:typesWithPorts.length,typesWithClickableStudPorts:typesWithClicks.length,instancesWhoseTypeHasClickableStudPorts:instancesWithClickType,totalPorts:compiledRows.reduce((a,r)=>a+r.ports,0),totalClickableStudPorts:compiledRows.reduce((a,r)=>a+r.clickableStudPorts,0),unsupportedReasonCounts:countReasons(compiledRows)},
-  strictStudGraph:{contacts:strictEdges.length,connectedNodes:new Set(strictEdges.flatMap(e=>[e.a,e.b])).size,isolatedNodes:summary.placements-new Set(strictEdges.flatMap(e=>[e.a,e.b])).size,components:comps.length,largestComponent:largest.size,topComponents:comps.slice(0,25).map(c=>c.size)},
+  strictStudGraph:strictStats,
+  toleranceDiagnostics:diagnostics,
   largestComponentBeaver:largestRun,
-  caveat:'This certifies only modeled capped stud-clutch contacts inherited from LDCad Shadow metadata. Clips, bars, hinges, Technic insertion, flex, collision, gravity and temporary-support physics remain outside CLICK unless separately modeled.',
+  caveat:'Only the strict profile can earn CLICK. Looser profiles diagnose source/connector numerical disagreement only. Clips, bars, hinges, Technic insertion, flex, collision, gravity and temporary-support physics remain outside CLICK unless separately modeled.',
   parts:compiledRows
 };
 fs.mkdirSync(path.dirname(outPath),{recursive:true});fs.writeFileSync(outPath,JSON.stringify(report,null,2));
 console.log(`REPORT ${outPath}`);
-console.log(`HOGWARTS SUMMARY JSON ${JSON.stringify({placements:report.target.placements,uniquePartIds:report.target.uniquePartIds,ldrawTypes:`${report.ldrawCoverage.types}/${report.ldrawCoverage.totalTypes}`,shadowClickTypes:`${report.shadowCoverage.typesWithClickableStudPorts}/${report.target.uniquePartIds}`,contacts:report.strictStudGraph.contacts,components:report.strictStudGraph.components,largestComponent:report.strictStudGraph.largestComponent,beaver:report.largestComponentBeaver})}`);
+console.log(`HOGWARTS SUMMARY JSON ${JSON.stringify({placements:report.target.placements,uniquePartIds:report.target.uniquePartIds,ldrawTypes:`${report.ldrawCoverage.types}/${report.ldrawCoverage.totalTypes}`,shadowClickTypes:`${report.shadowCoverage.typesWithClickableStudPorts}/${report.target.uniquePartIds}`,strict:report.strictStudGraph,diagnostics:report.toleranceDiagnostics.map(x=>({name:x.name,contacts:x.contacts,largest:x.largestComponent,components:x.components})),beaver:report.largestComponentBeaver})}`);
