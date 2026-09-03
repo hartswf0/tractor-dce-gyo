@@ -47,6 +47,8 @@ canvas:active{cursor:grabbing}
 @media(max-width:900px){#hud .tag{display:none}#hud{font-size:10px;max-width:62%}}
 #caption{position:absolute;left:12px;right:12px;bottom:10px;font-size:12px;color:var(--dim);pointer-events:none}
 #caption b{color:var(--hot);font-weight:600}
+#hint{position:absolute;left:12px;bottom:30px;font-size:11px;color:var(--dimmer);pointer-events:none;transition:opacity .6s}
+#hint.gone{opacity:0}
 
 aside{border-left:1px solid var(--line);display:grid;grid-template-rows:auto 1fr;min-height:0;background:var(--panel)}
 @media(max-width:900px){aside{border-left:none;border-top:1px solid var(--line)}}
@@ -64,8 +66,17 @@ pre{white-space:pre-wrap;word-break:break-word;font:12px/1.5 var(--mono);color:v
 .trace .row .rep{display:block;color:var(--dimmer);font-size:11px;padding-left:26px}
 .trace .row.on .rep{color:var(--dim)}
 .trace .ref{color:var(--loss);font-size:11px;padding:2px 6px 2px 32px}
+.ev{margin:0 0 8px;border-left:2px solid var(--line);padding:2px 0 2px 8px}
+.ev .lab{display:block;font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--dimmer);margin-bottom:2px}
+.ev pre{font-size:11.5px;line-height:1.45;color:var(--dim)}
+.ev.think{border-left-color:#4b6b8a}.ev.think pre{color:#a9bacb}
+.ev.say{border-left-color:var(--acc)}.ev.say pre{color:var(--ink)}
+.ev.run{border-left-color:var(--hot)}.ev.run pre{color:#e7b08a}
+.ev.back pre{color:var(--dimmer)}
+.ev.err{border-left-color:var(--loss)}.ev.err pre{color:#e2565a}
 .axes{width:100%;border-collapse:collapse;font-size:12px}
 .axes td{padding:2px 6px 2px 0;border-bottom:1px solid var(--line);white-space:nowrap}
+.axes td:last-child{white-space:normal}
 .axes td.v{width:44px}
 .axes .W{color:var(--win)}.axes .L{color:var(--loss)}
 .bar{position:relative;height:7px;background:#141a21;border:1px solid var(--line);min-width:110px}
@@ -96,15 +107,19 @@ footer .t b{color:var(--ink)}
       <canvas id="c"></canvas>
       <div id="hud"></div>
       <div id="viewbtns">
-        <button data-view="iso">iso</button><button data-view="front">front</button>
+        <button data-view="iso">iso</button><button data-view="spin" id="spinbtn">spin</button>
+        <button data-view="front">front</button><button data-view="back">back</button>
         <button data-view="top">top</button><button data-view="ghost" id="ghostbtn">ghost</button>
       </div>
       <div id="caption"></div>
+      <div id="hint">drag to orbit · wheel to zoom · shift-drag to pan · space plays</div>
     </div>
     <aside>
       <div id="tabs">
         <button data-tab="trace" class="on">trace</button>
         <button data-tab="verdict">verdict</button>
+        <button data-tab="reasoning">reasoning</button>
+        <button data-tab="cost">token burn</button>
         <button data-tab="prompt">prompt</button>
         <button data-tab="notes">notes</button>
         <button data-tab="world">world</button>
@@ -136,7 +151,7 @@ const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&am
 const fail = m => { const e = $('#err'); e.style.display = 'block'; e.textContent = m; };
 
 // ── state
-const V = { data: null, seed: null, step: 0, playing: false, speed: 4, ghost: true,
+const V = { data: null, traces: null, spin: 0, filter: 'all', seed: null, step: 0, playing: false, speed: 4, ghost: true,
             yaw: -0.62, pitch: 0.58, zoom: 1, pan: { x: 0, y: 0 }, tab: 'trace', raf: 0, acc: 0, last: 0 };
 
 // ── canvas 3D: every piece is its catalogue box, painter-sorted. No WebGL, no loader:
@@ -314,6 +329,70 @@ function paneNotes() {
   p.appendChild(el('pre', null, esc(S.notes || 'No notes for this build.')));
   return p;
 }
+function fmt(n) { return (n == null ? '—' : n.toLocaleString()); }
+function paneReasoning() {
+  const S = V.seed, p = el('div');
+  const T = V.traces && V.traces.seeds ? V.traces.seeds[S.id] : null;
+  if (!T) { p.appendChild(el('p', 'kv', S.id === 'BASE'
+    ? 'No agent, so no reasoning: the layered builder compiled the card by itself.'
+    : 'No transcript was recorded for this build.')); return p; }
+  const n = k => T.events.filter(e => e.k === k).length;
+  p.appendChild(el('h3', null, T.events.length + ' recorded events — the agent\'s own transcript'));
+  p.appendChild(el('p', 'kv', n('think') + ' thinking · ' + n('say') + ' said · ' + n('run') + ' commands · ' +
+    n('back') + ' replies from the world (' + T.events.filter(e => e.err).length + ' errors). ' + esc(T.note)));
+  const filt = el('div', null, '');
+  for (const [k, lab] of [['all', 'everything'], ['think', 'thinking only'], ['run', 'commands only'], ['err', 'errors only']]) {
+    const b = el('button', 'flt' + (V.filter === k ? ' on' : ''), lab);
+    b.style.cssText = 'font-size:11px;margin:0 4px 8px 0';
+    b.onclick = () => { V.filter = k; renderPane(); };
+    filt.appendChild(b);
+  }
+  p.appendChild(filt);
+  const keep = e => V.filter === 'all' || !V.filter ? true : V.filter === 'err' ? e.err : e.k === V.filter;
+  for (const e of T.events) {
+    if (!keep(e)) continue;
+    if (e.k === 'think') p.appendChild(el('div', 'ev think', '<span class="lab">thinking</span><pre>' + esc(e.s) + '</pre>'));
+    else if (e.k === 'say') p.appendChild(el('div', 'ev say', '<span class="lab">says</span><pre>' + esc(e.s) + '</pre>'));
+    else if (e.k === 'run') p.appendChild(el('div', 'ev run', '<span class="lab">' + esc(e.tool) + '</span><pre>' + esc(e.s) + '</pre>'));
+    else p.appendChild(el('div', 'ev back' + (e.err ? ' err' : ''), '<span class="lab">' + (e.err ? 'error' : 'the world') + '</span><pre>' + esc(e.s) + '</pre>'));
+  }
+  return p;
+}
+function paneCost() {
+  const S = V.seed, p = el('div');
+  const T = V.traces && V.traces.seeds ? V.traces.seeds[S.id] : null;
+  if (!T) { p.appendChild(el('p', 'kv', S.id === 'BASE' ? 'No agent ran, so nothing was spent on tokens. The layered builder is ordinary code.' : 'No transcript was recorded for this build.')); return p; }
+  const u = T.usage, all = V.traces.seeds;
+  const tot = Object.values(all).reduce((a, s) => (a.output += s.usage.output, a.requests += s.usage.requests, a.cache_read += s.usage.cache_read, a.cache_write += s.usage.cache_write, a.input += s.usage.input, a), { output: 0, requests: 0, cache_read: 0, cache_write: 0, input: 0 });
+  p.appendChild(el('h3', null, 'what this agent burned'));
+  const t = el('table', 'axes');
+  const row = (k, v, note) => t.appendChild(el('tr', null, '<td>' + k + '</td><td class="kv" style="text-align:right"><b>' + v + '</b></td><td class="kv">' + (note || '') + '</td>'));
+  row('model requests', fmt(u.requests), '');
+  row('output tokens', fmt(u.output), 'what it wrote: reasoning and commands');
+  row('input tokens', fmt(u.input), 'fresh, uncached');
+  row('cache written', fmt(u.cache_write), '');
+  row('cache read', fmt(u.cache_read), 'the bulk of the burn: context re-read each turn');
+  row('wall clock', T.seconds != null ? (Math.floor(T.seconds / 60) + 'm ' + (T.seconds % 60) + 's') : '—', '');
+  row('tool calls', fmt(Object.values(T.tools).reduce((a, b) => a + b, 0)), Object.entries(T.tools).sort((a, b) => b[1] - a[1]).map(x => x[0] + '×' + x[1]).join(', '));
+  if (S.pieces) row('output tokens per piece', Math.round(u.output / S.pieces).toLocaleString(), S.pieces + ' pieces placed');
+  p.appendChild(t);
+  p.appendChild(el('h3', null, 'all seven, side by side'));
+  const t2 = el('table', 'axes');
+  t2.appendChild(el('tr', null, '<td class="kv">seed</td><td class="kv" style="text-align:right">requests</td><td class="kv" style="text-align:right">output</td><td class="kv" style="text-align:right">cache read</td><td class="kv" style="text-align:right">pieces</td><td class="kv" style="text-align:right">W/L</td>'));
+  for (const s of V.data.seeds) {
+    const q = all[s.id]; if (!q) continue;
+    t2.appendChild(el('tr', null, '<td' + (s.id === S.id ? ' style="color:var(--hot)"' : '') + '>' + s.id + '</td>' +
+      '<td class="kv" style="text-align:right">' + fmt(q.usage.requests) + '</td>' +
+      '<td class="kv" style="text-align:right">' + fmt(q.usage.output) + '</td>' +
+      '<td class="kv" style="text-align:right">' + fmt(q.usage.cache_read) + '</td>' +
+      '<td class="kv" style="text-align:right">' + s.pieces + '</td>' +
+      '<td class="kv" style="text-align:right">' + s.wins + '/' + s.losses + '</td>'));
+  }
+  t2.appendChild(el('tr', null, '<td><b>all</b></td><td class="kv" style="text-align:right"><b>' + fmt(tot.requests) + '</b></td><td class="kv" style="text-align:right"><b>' + fmt(tot.output) + '</b></td><td class="kv" style="text-align:right"><b>' + fmt(tot.cache_read) + '</b></td><td></td><td></td>'));
+  p.appendChild(t2);
+  p.appendChild(el('p', 'kv', 'Cache reads dominate because every turn re-reads the whole conversation. Output tokens are the honest measure of how much each agent actually wrote.'));
+  return p;
+}
 function paneWorld() {
   const p = el('div');
   p.appendChild(el('h3', null, 'the world every agent shared'));
@@ -322,8 +401,9 @@ function paneWorld() {
 }
 function renderPane() {
   const p = $('#pane'); p.innerHTML = '';
-  p.appendChild({ trace: paneTrace, verdict: paneVerdict, prompt: panePrompt, notes: paneNotes, world: paneWorld }[V.tab]());
+  p.appendChild({ trace: paneTrace, verdict: paneVerdict, reasoning: paneReasoning, cost: paneCost, prompt: panePrompt, notes: paneNotes, world: paneWorld }[V.tab]());
   if (V.tab === 'trace') { const on = p.querySelector('.row.on'); if (on) on.scrollIntoView({ block: 'center' }); }
+  else p.scrollTop = 0;
 }
 
 // ── transport
@@ -350,6 +430,14 @@ function tick(ts) {
 }
 function play() { if (V.step >= V.seed.steps.length) setStep(0); V.playing = true; V.last = 0; $('#play').textContent = '⏸'; $('#play').classList.add('on'); V.raf = requestAnimationFrame(tick); }
 function stop() { V.playing = false; cancelAnimationFrame(V.raf); $('#play').textContent = '▶'; $('#play').classList.remove('on'); }
+
+let spinRaf = 0, spinLast = 0;
+function spin(ts) {
+  if (!V.spin) { cancelAnimationFrame(spinRaf); return; }
+  if (ts) { if (spinLast) V.yaw += Math.min(0.05, (ts - spinLast) / 1000) * 0.45; spinLast = ts; }
+  draw(); spinRaf = requestAnimationFrame(spin);
+}
+function fadeHint() { const e = $('#hint'); if (e) setTimeout(() => e.classList.add('gone'), 6000); }
 
 function pickSeed(id) {
   stop();
@@ -384,7 +472,9 @@ function boot(data) {
     const v = b.dataset.view;
     if (v === 'iso') { V.yaw = -0.62; V.pitch = 0.58; V.zoom = 1; V.pan = { x: 0, y: 0 }; }
     if (v === 'front') { V.yaw = 0; V.pitch = 0.18; }
+    if (v === 'back') { V.yaw = Math.PI; V.pitch = 0.18; }
     if (v === 'top') { V.yaw = -0.62; V.pitch = 1.35; }
+    if (v === 'spin') { V.spin = V.spin ? 0 : 1; b.classList.toggle('on', !!V.spin); if (V.spin) spin(); }
     if (v === 'ghost') { V.ghost = !V.ghost; b.classList.toggle('on', V.ghost); }
     draw();
   });
@@ -416,11 +506,13 @@ function boot(data) {
   addEventListener('resize', resize);
   const want = decodeURIComponent(location.hash.slice(1));
   pickSeed(data.seeds.some(s => s.id === want) ? want : 'S01');
-  resize();
+  resize(); fadeHint();
 }
 
-fetch('./arena-data.json').then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-  .then(boot)
+Promise.all([
+  fetch('./arena-data.json').then(r => { if (!r.ok) throw new Error('arena-data.json HTTP ' + r.status); return r.json(); }),
+  fetch('./arena-traces.json').then(r => r.ok ? r.json() : null).catch(() => null)
+]).then(([d, t]) => { V.traces = t; boot(d); })
   .catch(e => fail('arena-data.json did not load (' + e.message + '). This page reads it over HTTP — open it from a served copy, not from a file:// path.'));
 })();
 </script>
