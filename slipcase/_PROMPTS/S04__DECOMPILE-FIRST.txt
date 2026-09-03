@@ -1,0 +1,33 @@
+SEED S04 — DECOMPILE-FIRST
+"Do not ask how to build it first; ask how it can come apart."
+
+STATUS: UNTESTED. The kit index measures anatomy (kit-index.json) but nothing yet
+disassembles a kit into a removable-order plan.
+
+GROUNDED IN
+  Z-ASAP-DISASSEMBLY-001               assembly by disassembly (Tian et al., ASAP)
+  Z-HOGWARTS-DEMONSTRATION-001         three completed towers specify the fourth
+  Z-LDRAW-HISTORY-001                  the MPD carries a real construction history that is not the minimal one
+  Z-MANUAL2SKILL-HIERARCHY-001         the manual compiles into a hierarchy before it compiles into motion
+
+HYPOTHESIS
+Given a real kit, a model that first lists the order in which pieces can be removed
+(each removal must leave every remaining piece supported) produces a build order whose
+replay, with the card's substitutions, lands inside the kit's anatomy and reuse bands.
+
+THE PROMPT (turn 1: decompile)
+  Here is a kit as a list of BODY lines with their supports (which pieces each piece
+  rests on, from the open-port field). List the pieces in an order in which each can be
+  removed leaving the rest supported. Group consecutive removals that share a support
+  into a named sub-assembly. Output: a tree, not a list.
+THE PROMPT (turn 2: rebuild by substitution)
+  Replay the tree in reverse as a build order. Wherever the card says <substitution>,
+  swap the sub-assembly but keep its BODY line (same footprint and height).
+
+MEASURE
+  AX-ANATOMY, AX-REUSE, AX-SYMMETRY against the same kit; G-FLOAT on the replay.
+
+MUTATION OPERATORS
+  m1  support from AABB contact vs. from the port index
+  m2  grouping threshold: 2, 4, 8 pieces per named sub-assembly
+  m3  reverse replay exact vs. with one substitution per sub-assembly

@@ -1,0 +1,24 @@
+REBUILD — SLIPCASE__LDRAW-ASSEMBLY-FIELD__2026-09-03
+
+FROM THE DECK ALONE (no compiler needed)
+  python3 _SLIPCASE/rebuild.py ZETTELS.jsonl <out-dir>
+  → writes every root card and _MD mirror from the embedded payloads and checks each SHA-256.
+  The compiler ran this test before packaging; see _SLIPCASE/VERIFICATION.txt → RECONSTRUCTION STATE.
+
+FROM index.html ALONE
+  index.html embeds the same deck (window.SLIP.zettels[].payload, .filename, .sha256). Save the
+  "ZETTELS.jsonl" download it offers, then run the line above. Hashes can be re-checked in the
+  page (section REBUILD) with the browser's SubtleCrypto where available.
+
+FULL REBUILD (numbers, renders, paper) — needs the repository
+  cd tractor-dce-gyo/slipcase-build
+  python3 extract.py                # raw paste → work/zettels.json + work/poml.txt
+  node measure-field.js             # → work/field/field-results.json + before/after MPDs
+  python3 -m http.server 8899 &     # from the repository root, for the viewer
+  node render-field.js              # → work/field/*.png (Chromium)
+  python3 compile.py                # → desk/ and the ZIP
+  Sources of all five scripts are in _RESOURCES/.
+
+WHAT CANNOT BE REBUILT FROM THIS PACKAGE
+  The repository catalogue (nabugo-parts.json), port index and kit corpus are not included
+  (see _RESOURCES/repository, LINK_ONLY). The two control kits and four repository files are.

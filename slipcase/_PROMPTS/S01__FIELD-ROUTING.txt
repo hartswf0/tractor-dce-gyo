@@ -1,0 +1,76 @@
+SEED S01 — FIELD-ROUTING
+"Show the builder the field of open ports, not the castle."
+
+STATUS: TESTED in its naive form (closing pass). The routed-LLM form is UNTESTED.
+
+GROUNDED IN
+  Z-CASTLE-FIELD-AFFORDANCES-001      landscape vs field of relevant affordances (van Dijk & Rietveld)
+  Z-CASTLE-AFFORDANCE-COMPETITION-001 actions compete before deliberation (Cisek)
+  Z-CASTLE-ATTENTION-TAX-INVERSION-001 the tax is making the wrong things explicit
+  Z-LDRAW-CONNECTION-GAP-001          LDraw knows where a brick is, not how it connects
+  Z-HOGWARTS-REWARD-SHAPING-TRAP-001  closing what looks unfinished can make the build impossible
+
+HYPOTHESIS
+A model given the current field of open ports (with the piece in hand) places pieces
+that bond, instead of pieces that float or interpenetrate, and its builds approach the
+kits' structural open-stud share without being told coordinates.
+
+THE SHADOW MEASURE
+A stud faces air when the point 2 LDU above its base, along its own axis, lies inside
+no other placement's catalogue box. Structural studs exclude baseplates and the ground
+level. share = open structural studs / structural studs. Kit band: 0.112–0.431.
+
+THE PROMPT (system)
+  You are placing one LEGO piece at a time into an LDraw model. You never see the
+  whole model. You see the FIELD: the open ports that currently solicit a piece,
+  ranked. Each port line reads
+    PORT p<n>  on <part desc> (<colour>)  level <y/8 plates>  up|side  ragged <k of n covered>  cluster <w x d>
+  and the piece in hand reads
+    HAND <part> <desc>  <w x d> · <h> tall · gives <n> up · takes <m>
+  Answer with ONE relation, never a coordinate:
+    PLACE HAND ON p<n> FACING <north|east|south|west> [FLUSH|OFFSET 1]
+  or
+    PASS p<n> — <one reason: keep open for <what> | not reachable | wrong colour>
+  A port you PASS stays in the field with your reason attached. The world will answer
+  SEATED (which studs you took, which you gave) or REFUSED (what you hit, or what floats).
+
+THE PROMPT (turn)
+  FIELD (top 8, of <N> open):
+    p1 … p8 as above
+  HAND: <BODY line>
+  CARD: <one line from the reference card: e.g. "corner tower, 4 studs, 5 courses, cone roof">
+  LAST: <SEATED|REFUSED packet from the previous turn>
+
+WHAT THE WORLD RETURNS
+  SEATED  took <n> studs of p<n>; gave <m> up, <k> side; field now <N'> open (+new ports listed)
+  REFUSED <clash with part … | floats: no port under | off lattice>
+
+MEASURE
+  Shadow: structural open share before/after, against the kit band.
+  Axes: AX-DENSITY, AX-LATTICE (relation placement is on-lattice by construction),
+        AX-SNOT (side-facing ports), AX-REUSE (unchanged: this seed does not name modules).
+  Gates: G-CLASH and G-FLOAT must stay green: every SEATED is a bonded placement.
+
+EVIDENCE (naive form: no model, a pass that tiles every open structural stud)
+  card-castle              share 0.227 → close-all 0.019 → ragged 0.148   pieces 182 → 262 → 209   bar verdict W/L 4/8 → 4/8 → 4/8
+  card-fallingwater        share 0.419 → close-all 0.000 → ragged 0.419   pieces 93 → 367 → 93   bar verdict W/L 1/11 → 3/9 → 1/11
+  gauntlet-shore-station   share 0.426 → close-all 0.088 → ragged 0.346   pieces 208 → 359 → 239   bar verdict W/L 5/7 → 4/8 → 6/6
+  hms-beagle               share 0.553 → close-all 0.046 → ragged 0.382   pieces 648 → 1264 → 851   bar verdict W/L 1/11 → 1/11 → 1/11
+  finch-cactus             share 0.541 → close-all 0.126 → ragged 0.186   pieces 78 → 128 → 120   bar verdict W/L 1/11 → 2/10 → 2/10
+  medusa-scriptorium       share 0.367 → close-all 0.019 → ragged 0.149   pieces 1672 → 3165 → 2644   bar verdict W/L 1/11 → 1/11 → 1/11
+  Control on real kits (the pass is wrong there — kits keep surfaces open on purpose):
+  5935-island-hopper       open/piece 1.773 → close-all 0.183 (added 103 tiles) → ragged 0.565 (added 73)
+  7140-xwing-fighter       open/piece 1.69 → close-all 0.293 (added 143 tiles) → ragged 0.469 (added 112)
+
+FAILURE MODE FOUND
+  Close-all overshoots below every kit's band; the routed form must rank ports by
+  solicitation (raggedness, proximity to the working front, card intent) and let the
+  model PASS ports with a reason. That is exactly the "keep this cavity open" line
+  in Z-CASTLE-FIELD-AFFORDANCES-001.
+
+MUTATION OPERATORS
+  m1  rank ports by raggedness only / by proximity to last placement / by card intent
+  m2  field size k = 4, 8, 16
+  m3  allow PASS with reason vs. forbid PASS
+  m4  include side ports (SNOT) in the field vs. up ports only
+  m5  hand chosen by the world (inventory prior) vs. chosen by the model from a 20-part tray
