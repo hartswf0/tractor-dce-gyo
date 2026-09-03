@@ -8,12 +8,13 @@ const params=new URLSearchParams(location.search);
 const DEFAULT_SOURCE='https://pub-02c7ef4c74d5445691176fe4b4455d50.r2.dev/models/IOModel2V2/71043.ldr';
 const source=params.get('source')||DEFAULT_SOURCE;
 const startMode=params.get('mode')==='proof'?'proof':'target';
+const staticMode=params.get('static')==='1';
 const missing=new Set(['16478','13765','64807']);
-let proofUids=[],rawText='',mode=startMode,root=null,lastBox=null,serial=0;
+let proofUids=[],rawText='',mode=startMode,root=null,lastBox=null,serial=0,raf=0;
 
 const host=$('#threeHost');
-const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
-renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.5));
+const renderer=new THREE.WebGLRenderer({antialias:!staticMode,preserveDrawingBuffer:true,powerPreference:'high-performance'});
+renderer.setPixelRatio(staticMode?1:Math.min(devicePixelRatio||1,1.5));
 renderer.setClearColor(0xf4f1e8);
 renderer.outputColorSpace=THREE.SRGBColorSpace;
 renderer.shadowMap.enabled=false;
@@ -21,7 +22,7 @@ host.appendChild(renderer.domElement);
 const scene=new THREE.Scene();
 const camera=new THREE.PerspectiveCamera(34,1,.1,50000);
 const controls=new OrbitControls(camera,renderer.domElement);
-controls.enableDamping=true;controls.dampingFactor=.07;controls.screenSpacePanning=true;
+controls.enableDamping=!staticMode;controls.dampingFactor=.07;controls.screenSpacePanning=true;
 scene.add(new THREE.HemisphereLight(0xffffff,0x6c7180,2.2));
 const sun=new THREE.DirectionalLight(0xffffff,2.8);sun.position.set(1200,1800,900);scene.add(sun);
 const fill=new THREE.DirectionalLight(0xffffff,1.0);fill.position.set(-900,600,-1200);scene.add(fill);
@@ -30,12 +31,13 @@ loader.setConditionalLineMaterial(LDrawConditionalLineMaterial);
 loader.setPartsLibraryPath('../../ldraw/');
 
 function resize(){const w=Math.max(1,host.clientWidth),h=Math.max(1,host.clientHeight);renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}
-function animate(){requestAnimationFrame(animate);resize();controls.update();renderer.render(scene,camera)}
-requestAnimationFrame(animate);
+function draw(){resize();controls.update();renderer.render(scene,camera)}
+function animate(){draw();raf=requestAnimationFrame(animate)}
+if(!staticMode)raf=requestAnimationFrame(animate);
 function dispose(r){r?.traverse(o=>{o.geometry?.dispose?.();for(const m of(Array.isArray(o.material)?o.material:[o.material]))m?.dispose?.()})}
 function clear(){if(root){scene.remove(root);dispose(root);root=null}}
-function fit(){if(!root)return;const b=new THREE.Box3().setFromObject(root);if(b.isEmpty())return;lastBox=b.clone();const s=b.getSize(new THREE.Vector3()),c=b.getCenter(new THREE.Vector3()),d=Math.max(s.x,s.y,s.z);controls.target.copy(c);camera.position.set(c.x+d*.92,c.y+d*.55,c.z+d*1.32);camera.near=Math.max(.1,d/10000);camera.far=d*20;camera.updateProjectionMatrix();controls.update()}
-function front(){if(!lastBox)return;const s=lastBox.getSize(new THREE.Vector3()),c=lastBox.getCenter(new THREE.Vector3()),d=Math.max(s.x,s.y,s.z);controls.target.copy(c);camera.position.set(c.x,c.y+d*.12,c.z+d*1.55);controls.update()}
+function fit(){if(!root)return;const b=new THREE.Box3().setFromObject(root);if(b.isEmpty())return;lastBox=b.clone();const s=b.getSize(new THREE.Vector3()),c=b.getCenter(new THREE.Vector3()),d=Math.max(s.x,s.y,s.z);controls.target.copy(c);camera.position.set(c.x+d*.92,c.y+d*.55,c.z+d*1.32);camera.near=Math.max(.1,d/10000);camera.far=d*20;camera.updateProjectionMatrix();controls.update();if(staticMode)draw()}
+function front(){if(!lastBox)return;const s=lastBox.getSize(new THREE.Vector3()),c=lastBox.getCenter(new THREE.Vector3()),d=Math.max(s.x,s.y,s.z);controls.target.copy(c);camera.position.set(c.x,c.y+d*.12,c.z+d*1.55);controls.update();if(staticMode)draw()}
 function type1(line){const p=line.trim().split(/\s+/);if(p[0]!=='1'||p.length<15)return null;return{ref:p.slice(14).join(' '),parts:p}}
 function cleanId(ref){return String(ref).replace(/\\/g,'/').split('/').pop().replace(/\.dat$/i,'')}
 function selectedText(which){
@@ -60,9 +62,11 @@ function setState(which){
 }
 async function render(which,{refit=true}={}){
   if(which==='proof'&&!proofUids.length)return;
+  document.body.dataset.renderReady='0';
   const n=++serial,sel=selectedText(which);mode=which;setState(which);$('#loading').className='';$('#loading').innerHTML=`RENDERING ${which==='target'?'5,929 PIECES':'CERTIFIED 25'}<br><small>${sel.kept.toLocaleString()} local LDraw instances</small>`;
-  await new Promise((resolve,reject)=>loader.parse(sel.text,g=>{if(n!==serial){dispose(g);resolve();return}clear();root=new THREE.Group();root.rotation.x=Math.PI;root.add(g);scene.add(root);if(refit)fit();resolve()},e=>reject(e)));
-  $('#loading').className='done';document.body.dataset.renderReady='1';document.body.dataset.mode=which;
+  await new Promise((resolve,reject)=>loader.parse(sel.text,g=>{if(n!==serial){dispose(g);resolve();return}clear();if(staticMode)g.traverse(o=>{if(o.isLine||o.isLineSegments)o.visible=false});root=new THREE.Group();root.rotation.x=Math.PI;root.add(g);scene.add(root);if(refit)fit();else if(staticMode)draw();resolve()},e=>reject(e)));
+  if(staticMode){draw();await new Promise(r=>requestAnimationFrame(()=>{draw();r()}))}
+  $('#loading').className='done';document.body.dataset.renderReady='1';document.body.dataset.mode=which;document.body.dataset.renderedPieces=String(sel.kept);
 }
 
 $('#targetBtn').onclick=()=>render('target');
