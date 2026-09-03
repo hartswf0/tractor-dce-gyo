@@ -1,0 +1,38 @@
+SEED S03 — BUILDERS-GAME
+"'Slab!' is not a prompt until the world knows what bringing a slab means."
+
+STATUS: UNTESTED.
+
+GROUNDED IN
+  Z-HOGWARTS-BUILDER-GAME-001          the call is a move inside a shared world (Wittgenstein, BrickNet)
+  Z-HOGWARTS-DEIXIS-001                "d — slab — there": count, reference, place, orientation
+  Z-CASTLE-DEICTIC-BINDING-001         THE OPEN STUD BESIDE THIS WINDOW beats instance 5291 (Agre; Pook & Ballard)
+  Z-HOGWARTS-HIERARCHICAL-SLAB-001     "slab" must eventually name a tower
+  Z-HOGWARTS-TWO-ASSEMBLIES-001        building the castle builds the language that can build it
+
+HYPOTHESIS
+A builder allowed to coin a noun for a completed relation, which the world then
+instances as a submodel, reaches the kit's reuse and anatomy bands faster than one
+that places pieces one by one — and its prompts get shorter as it goes.
+
+THE PROMPT (system)
+  You build by calls, not coordinates. The world keeps the state. Roles you may use:
+    HAND, HERE (the port you last seated on), LAST (the last piece), THE OPEN STUD
+    BESIDE <named thing>, THE <name> (anything you have named).
+  Calls:
+    BRING <part> [<colour>]                     the world puts it in HAND
+    PUT HERE | PUT ON <role> FACING <dir>       one placement
+    AGAIN <role> AT <role>                      repeat the last placement pattern there
+    NAME THIS <noun>                            the pieces since your last NAME become one thing
+    <noun> AT <role> [MIRRORED]                 instance a named thing (the world writes a 0 FILE)
+  The world answers SEATED / REFUSED (packet as in S02) and, after NAME, tells you the
+  noun's BODY line (size, height, gives/takes) so you can use it like a part.
+
+MEASURE
+  AX-REUSE (instanced blocks), AX-ANATOMY (submodel depth), AX-SYMMETRY (MIRRORED),
+  tokens per placement over the run (should fall), and the number of nouns coined.
+
+MUTATION OPERATORS
+  m1  forbid NAME (ablation) / allow NAME / require NAME every 12 placements
+  m2  deictic roles only vs. stable ids only vs. both
+  m3  the world proposes a noun after a repeated pattern (stigmergic) vs. the model must

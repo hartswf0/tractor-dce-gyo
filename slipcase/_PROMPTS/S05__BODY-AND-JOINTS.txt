@@ -1,0 +1,37 @@
+SEED S05 — BODY-AND-JOINTS
+"Give the piece proprioception: it knows what space it takes and what it can take."
+
+STATUS: PARTIAL / UNVERIFIED here. A BODY line per part and a JOINTS line per placement
+were computed once in the originating session (e.g. "3001 Brick 2x4 4x2 · 24 tall ·
+gives 8 up · takes 3"); that computation is not preserved in this package, so treat
+the format as a proposal and the earlier numbers as unverified.
+
+GROUNDED IN
+  Z-CASTLE-MULTIPLE-BODY-SCHEMAS-001   several partial action schemas, not one self-model
+  Z-CASTLE-CONTACT-AS-OBSERVATION-001  the click is evidence, not only reward
+  Z-LDRAW-CONNECTION-GAP-001           geometry is not connectability
+  Z-HOGWARTS-ACTION-GRAMMAR-001        verbs before parts
+
+HYPOTHESIS
+A model that must echo a JOINTS line ("takes studs 3,4 of p17; gives 8 up, 0 side")
+before the world accepts a placement makes fewer floating and interpenetrating
+placements than one that emits LDraw lines directly.
+
+THE LINES
+  BODY   <part> <desc>  <w x d> · <h> tall · gives <n> up [· <m> side] · takes <k>
+  JOINTS <placement>: takes <studs> of <port owner>; gives <n> up, <m> side; touches <parts>
+
+THE PROMPT (system)
+  Every part you may use is listed once with its BODY line. Before each placement you
+  write its JOINTS line as a prediction. The world checks it: if the prediction is
+  wrong the placement is REFUSED with the true JOINTS line. Say what you learned in
+  one line, then place again.
+
+MEASURE
+  G-CLASH, G-FLOAT (should be green by construction); prediction accuracy of the
+  JOINTS line over the run (should rise); AX-SNOT if side ports are used.
+
+MUTATION OPERATORS
+  m1  BODY lines for the 20 most common parts only vs. for every part in the tray
+  m2  JOINTS predicted vs. JOINTS reported after the fact (ablation)
+  m3  add the port index's exact stud coordinates vs. counts only

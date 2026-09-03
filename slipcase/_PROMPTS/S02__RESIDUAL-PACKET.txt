@@ -1,0 +1,39 @@
+SEED S02 — RESIDUAL-PACKET
+"The useful part of 'wrong' is the difference it points to."
+
+STATUS: PARTIAL. The gauntlet brief already returns an axis-level residual
+("STRUCTURE: … You are at 0.09 (too low); 5935 is at 0.33. Land inside 0.28–0.40").
+No per-placement residual exists yet.
+
+GROUNDED IN
+  Z-HOGWARTS-ERROR-RESIDUAL-001        YOU PLACED / TARGET / CONSEQUENCE (Lightman, Shinn, Pun)
+  Z-CASTLE-PRECISION-WEIGHTED-ERROR-001 weigh the residual by how much the validator can be trusted
+  Z-CASTLE-BEAVER-ERROR-SURFACE-001    an error code that already narrows the repair routine
+  Z-HOGWARTS-REWARD-TWO-CHANNELS-001   reward and explanation train different things
+
+HYPOTHESIS
+A builder that receives a structured residual after every refused placement corrects
+the right variable on its next attempt more often than one receiving "refused" or a
+scalar, and the correction transfers to the next occurrence of the same motif.
+
+THE PACKET (what the world says after each placement)
+  YOU PLACED   <part> <colour> at p<n> facing <dir>
+  TARGET       <what the card wanted here: e.g. "curtain wall course 3, crenellated">
+  CONSEQUENCE  clash: <parts hit, overlap in LDU> | float: <no port under, gap in LDU>
+               | open-port delta: +<gave> −<took> | axis delta: AX-… <ours before → after> vs bar
+  TRUST        <validator name>: exact | approximate (AABB) | visual
+  REPAIR       <one of: reseat | lower one plate | rotate 90 | change part | leave open>
+
+THE PROMPT (turn)
+  LAST: <the packet>
+  Then: "Say which field of the packet you are changing, then place again."
+
+MEASURE
+  Corrections per refusal (how many turns until SEATED), repeat-error rate on the next
+  homologous motif, and the axis the packet named (does it move toward the band?).
+
+MUTATION OPERATORS
+  m1  packet with / without REPAIR hint
+  m2  packet with / without TRUST line
+  m3  scalar only (−1) as the ablation
+  m4  packet plus a one-line LESSON the model must write before its next move (Reflexion form)

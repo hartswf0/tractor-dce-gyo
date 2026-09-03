@@ -1,0 +1,37 @@
+SEED S06 — EVENT-TRIGGERED-CALL
+"The reasoner is scheduled by the castle, not by the clock."
+
+STATUS: UNTESTED.
+
+GROUNDED IN
+  Z-CASTLE-EVENT-TRIGGERED-THOUGHT-001 event-triggered control (Tabuada)
+  Z-CASTLE-COOK-DING-SCHEDULER-001     change regime at the complicated joint
+  Z-HOGWARTS-ATTENTION-BUDGET-001      not every brick deserves a chain of thought
+  Z-HOGWARTS-VERIFY-COMPUTE-001        some bricks need thinking, others need checking
+  Z-CASTLE-ULTRASTABLE-ESCALATION-001  change policy only when an essential variable leaves its band
+
+HYPOTHESIS
+Running the layer generators (SITE→STUFF) unattended and calling the model only on
+events reaches the same per-axis verdicts as calling it every placement, at a fraction
+of the tokens, and does better at the junctions where the generators refuse.
+
+EVENTS (each is a packet, the packet is the prompt)
+  E1 REFUSAL-STREAK   the generator refused k placements in a row at one site
+  E2 VALIDATORS-DISAGREE  AABB says clash, port index says seated
+  E3 AXIS-LEFT-BAND   an axis that was in band left it after this layer
+  E4 NOVEL-MOTIF      a placement pattern with no precedent in the run
+  E5 FIELD-STAGNANT   the open-port field has not changed for n placements
+
+THE PROMPT (turn, on event)
+  EVENT <id> at <site>: <packet>. Options: continue | change part | change generator
+  parameter <name> | name and instance the last k pieces | leave open and move on.
+  Answer with one option and one sentence.
+
+MEASURE
+  Tokens per run, model calls per run, per-axis verdicts vs. the every-placement
+  baseline, and success rate at refusal sites.
+
+MUTATION OPERATORS
+  m1  event set {E1} / {E1,E3} / all five
+  m2  streak threshold k = 2, 4, 8
+  m3  model may change one parameter vs. may rewrite the generator's plan

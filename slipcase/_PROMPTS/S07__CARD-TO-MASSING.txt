@@ -1,0 +1,35 @@
+SEED S07 — CARD-TO-MASSING
+"The reference card compiles to a build order."
+
+STATUS: IMPLEMENTED in the repository (nabugo-brand.js: CARDS, planForCard, massingPass).
+Two cards yield two different structures: builds/card-castle.mpd (182 pieces) and
+builds/card-fallingwater.mpd (93 pieces), rendered in builds/*.png.
+
+GROUNDED IN
+  Z-MANUAL2SKILL-HIERARCHY-001         manual → hierarchical graph → subgoal → pose
+  Z-HOLODECK-CONSTRAINT-COMPILER-001   language specifies relations; a solver spends the coordinates
+  Z-HOGWARTS-SPACE-COLLAPSE-001        the inventory is a prior, not a lookup table
+  Z-CASTLE-SPACE-AS-COMPUTATION-001    arrange the workspace so geometry does the reasoning
+
+HYPOTHESIS
+A model asked to write a CARD (massing in the six Brand layers: site, structure, skin,
+services, space plan, stuff) for a reference image produces, through the fixed
+compiler, a build that lands in more axis bands than a model asked to write LDraw.
+
+THE PROMPT (turn)
+  Here is the reference (image + one line). Write the card, not the model:
+    ground <part> ; colours {structure, skin, accent, ground}
+    massing: block|wall|terrace|water entries with at/from/to, studs, courses, roof,
+             door/window/gate, instances (mirrored positions)
+    figures: <count and where> ; props: <list>
+  The compiler will build it; you will get the per-axis verdict back and may edit
+  the card, never the LDraw.
+
+MEASURE
+  All twelve axes against the chosen kit; pieces and blocks; refusals per layer
+  (the compiler reports them).
+
+MUTATION OPERATORS
+  m1  card fields exposed: massing only / massing + colours / everything
+  m2  one edit per round vs. rewrite the card each round
+  m3  the model sees the kit's own card (decompiled by S04) as a one-shot example
