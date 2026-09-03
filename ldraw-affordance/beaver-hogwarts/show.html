@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<title>Beaver / Show Hogwarts</title>
+<style>
+:root{--ink:#0a0a0a;--paper:#f4f1e8;--yellow:#ffdf2b;--green:#25bd78;--red:#ff4a3d;--blue:#dcecff;--muted:#666}*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--paper);color:var(--ink);font:12px/1.25 ui-monospace,SFMono-Regular,Menlo,monospace}body{display:grid;grid-template-rows:auto 1fr}.top{z-index:5;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;padding:8px 10px;border-bottom:2px solid var(--ink);background:rgba(244,241,232,.96);backdrop-filter:blur(8px)}.brand{font-weight:950;letter-spacing:.02em}.truth{font-size:10px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.state{padding:5px 8px;border:1px solid var(--ink);font-weight:900;background:var(--yellow)}main{position:relative;min-height:0}#threeHost{position:absolute;inset:0}canvas{display:block;width:100%;height:100%;touch-action:none}.hud{position:absolute;left:10px;top:10px;z-index:4;display:grid;grid-template-columns:repeat(4,minmax(78px,1fr));width:min(680px,calc(100% - 20px));border:2px solid var(--ink);background:rgba(244,241,232,.91);backdrop-filter:blur(8px)}.metric{padding:8px 9px;border-right:1px solid var(--ink)}.metric:last-child{border-right:0}.metric b{display:block;font-size:18px}.metric small{font-size:8px;color:var(--muted)}.controls{position:absolute;right:10px;bottom:10px;z-index:4;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.controls button{border:1.5px solid var(--ink);background:rgba(255,255,255,.92);padding:8px 10px;font:inherit;font-weight:900;color:inherit}.controls button.active{background:var(--yellow)}.note{position:absolute;left:10px;bottom:10px;z-index:4;max-width:min(580px,calc(100% - 180px));padding:8px 10px;border:1px solid var(--ink);background:rgba(244,241,232,.92);font-size:10px}.note b{display:block;margin-bottom:3px}.note span{color:var(--muted)}#loading{position:absolute;inset:0;z-index:6;display:grid;place-items:center;background:var(--paper);font-size:14px;font-weight:900;text-align:center;padding:30px}#loading.done{display:none}#loading.bad{background:var(--red);color:#fff}.badgeTarget{background:var(--red);color:#fff}.badgeProof{background:var(--green)}
+@media(max-width:700px){.top{grid-template-columns:1fr auto}.truth{grid-column:1/-1;grid-row:2}.hud{grid-template-columns:1fr 1fr}.metric:nth-child(2){border-right:0}.metric:nth-child(-n+2){border-bottom:1px solid var(--ink)}.note{max-width:calc(100% - 20px);bottom:58px}.controls{left:10px;right:10px;justify-content:stretch}.controls button{flex:1}.metric b{font-size:15px}}
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}</script>
+</head>
+<body>
+<div class="top"><div class="brand">BEAVER / HOGWARTS 71043</div><div class="truth" id="truth">TARGET POSE ≠ PHYSICAL PROOF</div><div class="state" id="state">LOADING</div></div>
+<main>
+<div id="threeHost"></div>
+<div class="hud">
+  <div class="metric"><b>5,936</b><small>TARGET POSES</small></div>
+  <div class="metric"><b>5,929</b><small>LOCAL GEOMETRY</small></div>
+  <div class="metric"><b>1,271</b><small>STRICT CONTACTS</small></div>
+  <div class="metric"><b>25</b><small>LARGEST CERTIFIED COMPONENT</small></div>
+</div>
+<div class="note"><b id="noteTitle">THE WHOLE CASTLE IS A TARGET, NOT A PROOF.</b><span id="noteText">The red state stays loud until the connector graph can physically account for the assembly. Seven target instances currently lack local geometry and are omitted from this view.</span></div>
+<div class="controls"><button id="targetBtn" class="active">TARGET</button><button id="proofBtn">CERTIFIED 25</button><button id="frontBtn">FRONT</button><button id="homeBtn">FIT</button></div>
+<div id="loading">FETCHING 71043<br><small>5,936 target poses · real LDraw geometry</small></div>
+</main>
+<script type="module" src="./show.js?v=hogwarts-show-1"></script>
+</body>
+</html>
