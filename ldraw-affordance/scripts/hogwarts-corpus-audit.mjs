@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {spawnSync} from 'node:child_process';
 import {flattenLDraw,summarizeTarget} from '../beaver-hogwarts/target-import.js';
 import {createShadowCompiler,buildStudContactGraph} from '../beaver-hogwarts/shadow-connectors.js';
 import {createTargetBeaver} from '../beaver-hogwarts/target-beaver.js';
@@ -56,6 +57,18 @@ function flatLDraw(placements,{title='Beaver projection',onlyReal=true}={}){
   }
   return{text:rows.join('\n')+'\n',written,skipped};
 }
+function sourceAllowsSevenBuilders(meta){
+  if(!meta)return{ok:false,reason:'NO_SOURCE_META'};
+  const selected=meta.selected||{};
+  const p=String(selected.path||'');
+  const ext=path.extname(p).toLowerCase();
+  const src=String(selected.src||'').toLowerCase();
+  if(p==='IO/71043.io'&&meta.studioEntry==='model.ldr')return{ok:true,reason:'ORIGINAL_STUDIO_MODEL_LDR'};
+  if((ext==='.ldr'||ext==='.mpd')&&(src==='ldr'||src==='omr')&&!selected.conv)return{ok:true,reason:'NATIVE_LDRAW_OR_OMR'};
+  if(src.startsWith('io_model2')||/iomodel2/i.test(p))return{ok:false,reason:'MODEL2_ORIGIN_FAMILY'};
+  if(ext==='.io'&&meta.studioEntry!=='model.ldr')return{ok:false,reason:'STUDIO_MODEL_LDR_NOT_ESTABLISHED'};
+  return{ok:false,reason:'PART_ORIGIN_COMPATIBILITY_UNPROVEN'};
+}
 
 if(!fs.existsSync(targetPath))throw new Error(`Target missing: ${targetPath}`);
 if(!fs.existsSync(shadowRoot))throw new Error(`Shadow library missing: ${shadowRoot}`);
@@ -65,10 +78,7 @@ const summary=summarizeTarget(target);
 const sourceMeta=sourceMetaPath&&fs.existsSync(sourceMetaPath)?JSON.parse(fs.readFileSync(sourceMetaPath,'utf8')):null;
 console.log(`HOGWARTS TARGET · ${summary.placements} instances · ${summary.uniqueParts} unique part IDs`);
 
-const compiler=createShadowCompiler({
-  loadReal:async p=>diskLoad(ldrawRoot,p),
-  loadShadow:async p=>diskLoad(shadowRoot,p)
-});
+const compiler=createShadowCompiler({loadReal:async p=>diskLoad(ldrawRoot,p),loadShadow:async p=>diskLoad(shadowRoot,p)});
 const compiledByPart=new Map(),compiledRows=[];
 let i=0;
 for(const row of summary.parts){
@@ -84,9 +94,6 @@ const instancesWithClickType=compiledRows.filter(r=>r.clickableStudPorts>0).redu
 console.log(`LDRAW COVERAGE · ${typesWithReal.length}/${summary.uniqueParts} types · ${instancesWithReal}/${summary.placements} instances`);
 console.log(`STUD-PROTOCOL COVERAGE · ${typesWithClicks.length}/${summary.uniqueParts} types · ${instancesWithClickType}/${summary.placements} instances`);
 
-// Diagnose source precision independently from the physical proof threshold.
-// Each profile is recomputed from scratch: filtering a looser greedy matching can
-// hide stricter alternatives when a port was already claimed by a near match.
 const profiles=[
   {name:'strict',positionTolerance:.005,normalTolerance:.999999},
   {name:'p01',positionTolerance:.01,normalTolerance:.99999},
@@ -124,7 +131,7 @@ console.log(`VISUAL PROJECTION · ${visual.written}/${summary.placements} pieces
 console.log(`PROOF PROJECTION · ${proof.written}/${largestPlacements.length} pieces`);
 
 const report={
-  schema:'beaver-hogwarts-audit-3',generatedAt:new Date().toISOString(),source:sourceMeta,
+  schema:'beaver-hogwarts-audit-4-seven-builders',generatedAt:new Date().toISOString(),source:sourceMeta,
   target:{placements:summary.placements,uniquePartIds:summary.uniqueParts,sections:target.sections,calibration:target.calibration},
   ldrawCoverage:{types:typesWithReal.length,totalTypes:summary.uniqueParts,instances:instancesWithReal,totalInstances:summary.placements,missingTypes:compiledRows.filter(r=>!r.realLDraw).map(r=>({partId:r.partId,instances:r.instances}))},
   shadowCoverage:{typesWithAnyPorts:typesWithPorts.length,typesWithClickableStudPorts:typesWithClicks.length,instancesWhoseTypeHasClickableStudPorts:instancesWithClickType,totalPorts:compiledRows.reduce((a,r)=>a+r.ports,0),totalClickableStudPorts:compiledRows.reduce((a,r)=>a+r.clickableStudPorts,0),unsupportedReasonCounts:countReasons(compiledRows)},
@@ -136,6 +143,32 @@ const report={
   caveat:'Only the strict profile can earn CLICK. Looser profiles diagnose source/connector numerical disagreement only. Clips, bars, hinges, Technic insertion, flex, collision, gravity and temporary-support physics remain outside CLICK unless separately modeled.',
   parts:compiledRows
 };
+
+const sevenGate=sourceAllowsSevenBuilders(sourceMeta);
+report.sevenBuilders={status:'NOT_RUN',gate:sevenGate};
+const sevenRunner=path.join(here,'hogwarts-seven-builders.mjs');
+if(sevenGate.ok&&fs.existsSync(sevenRunner)){
+  const sevenOut=path.join(path.dirname(outPath),'seven-builders');
+  console.log(`SEVEN BUILDERS · START · ${sevenGate.reason}`);
+  const args=[sevenRunner,targetPath,shadowRoot,sevenOut];
+  if(sourceMetaPath)args.push(sourceMetaPath);
+  const child=spawnSync(process.execPath,args,{cwd:affordanceRoot,encoding:'utf8',maxBuffer:64*1024*1024,timeout:20*60*1000});
+  if(child.stdout)process.stdout.write(child.stdout);
+  if(child.stderr)process.stderr.write(child.stderr);
+  const summaryPath=path.join(sevenOut,'SUMMARY.json');
+  if(child.status===0&&fs.existsSync(summaryPath)){
+    const sevenSummary=JSON.parse(fs.readFileSync(summaryPath,'utf8'));
+    report.sevenBuilders={status:'GENERATED',gate:sevenGate,summary:sevenSummary};
+    console.log(`SEVEN BUILDERS · GENERATED · ${sevenSummary.uniqueFirst128Trajectories}/7 distinct first-128 trajectories`);
+  }else{
+    report.sevenBuilders={status:'FAILED',gate:sevenGate,exitCode:child.status,signal:child.signal,error:child.error?String(child.error):null,stderrTail:String(child.stderr||'').slice(-8000)};
+    console.log(`SEVEN BUILDERS · FAILED · exit ${child.status}`);
+  }
+}else{
+  report.sevenBuilders={status:sevenGate.ok?'RUNNER_MISSING':'BLOCKED_BY_TARGET_NORMALIZATION',gate:sevenGate};
+  console.log(`SEVEN BUILDERS · ${report.sevenBuilders.status} · ${sevenGate.reason}`);
+}
+
 fs.writeFileSync(outPath,JSON.stringify(report,null,2));
 console.log(`REPORT ${outPath}`);
-console.log(`HOGWARTS SUMMARY JSON ${JSON.stringify({placements:report.target.placements,uniquePartIds:report.target.uniquePartIds,ldrawTypes:`${report.ldrawCoverage.types}/${report.ldrawCoverage.totalTypes}`,shadowClickTypes:`${report.shadowCoverage.typesWithClickableStudPorts}/${report.target.uniquePartIds}`,strict:{...report.strictStudGraph,largestComponentUids:undefined},diagnostics:report.toleranceDiagnostics.map(x=>({name:x.name,contacts:x.contacts,largest:x.largestComponent,components:x.components})),beaver:report.largestComponentBeaver,visual:report.visualProjection,proof:report.proofProjection})}`);
+console.log(`HOGWARTS SUMMARY JSON ${JSON.stringify({placements:report.target.placements,uniquePartIds:report.target.uniquePartIds,ldrawTypes:`${report.ldrawCoverage.types}/${report.ldrawCoverage.totalTypes}`,shadowClickTypes:`${report.shadowCoverage.typesWithClickableStudPorts}/${report.target.uniquePartIds}`,strict:{...report.strictStudGraph,largestComponentUids:undefined},diagnostics:report.toleranceDiagnostics.map(x=>({name:x.name,contacts:x.contacts,largest:x.largestComponent,components:x.components})),beaver:report.largestComponentBeaver,visual:report.visualProjection,proof:report.proofProjection,sevenBuilders:report.sevenBuilders.status})}`);
