@@ -1,0 +1,100 @@
+name: Hogwarts 71043 Visual Proof
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'ldraw-affordance/beaver-hogwarts/show.html'
+      - 'ldraw-affordance/beaver-hogwarts/show.js'
+      - 'ldraw-affordance/scripts/hogwarts-corpus-audit.mjs'
+      - 'ldraw-affordance/scripts/hogwarts-screenshot.mjs'
+      - '.github/workflows/hogwarts-preview.yml'
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Fetch public 71043 target
+        working-directory: ldraw-affordance
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p target
+          curl --fail --location --retry 4 --retry-all-errors \
+            'https://pub-02c7ef4c74d5445691176fe4b4455d50.r2.dev/models/IOModel2V2/71043.ldr' \
+            -o target/71043.ldr
+          cat > target/source-meta.json <<'JSON'
+          {
+            "set":"71043",
+            "selected":{"src":"io_model2_v2","path":"IOModel2V2/71043.ldr"},
+            "normalizedFrom":"IOModel2V2/71043.ldr",
+            "purpose":"visualize the same target used by the strict audit; pose is not physical proof"
+          }
+          JSON
+
+      - name: Fetch LDCad Shadow connector semantics
+        working-directory: ldraw-affordance
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 https://github.com/RolandMelkert/LDCadShadowLibrary.git target/LDCadShadowLibrary
+          git -C target/LDCadShadowLibrary rev-parse HEAD > target/shadow-revision.txt
+
+      - name: Recompute strict physical graph
+        working-directory: ldraw-affordance
+        run: node scripts/hogwarts-corpus-audit.mjs target/71043.ldr target/LDCadShadowLibrary target/hogwarts-report.json target/source-meta.json
+
+      - name: Expose only proof membership to the temporary viewer
+        working-directory: ldraw-affordance
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          r=json.load(open('target/hogwarts-report.json'))
+          p={
+            'schema':'beaver-hogwarts-proof-1',
+            'uids':r['strictStudGraph']['largestComponentUids'],
+            'contacts':r['strictStudGraph']['contacts'],
+            'clicks':r['largestComponentBeaver']['clicks']
+          }
+          json.dump(p,open('beaver-hogwarts/proof-uids.json','w'),indent=2)
+          print('PROOF_UIDS',len(p['uids']))
+          PY
+
+      - name: Install browser renderer
+        working-directory: ldraw-affordance
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Render target and certified component
+        working-directory: ldraw-affordance
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8765 --directory .. >/tmp/hogwarts-http.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID 2>/dev/null || true' EXIT
+          sleep 2
+          node scripts/hogwarts-screenshot.mjs
+          test -s target/hogwarts-target.png
+          test -s target/hogwarts-proof-25.png
+
+      - name: Publish pictures and audit only
+        uses: actions/upload-artifact@v4
+        with:
+          name: hogwarts-71043-visual-proof
+          path: |
+            ldraw-affordance/target/hogwarts-target.png
+            ldraw-affordance/target/hogwarts-proof-25.png
+            ldraw-affordance/target/hogwarts-report.json
+            ldraw-affordance/target/source-meta.json
+            ldraw-affordance/target/shadow-revision.txt
+          if-no-files-found: error
+          retention-days: 30
