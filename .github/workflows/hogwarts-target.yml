@@ -1,0 +1,121 @@
+name: Hogwarts 71043 Target Beaver
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'ldraw-affordance/beaver-hogwarts/**'
+      - 'ldraw-affordance/scripts/hogwarts-corpus-audit.mjs'
+      - 'ldraw-affordance/tests/hogwarts-*.mjs'
+      - '.github/workflows/hogwarts-target.yml'
+
+jobs:
+  audit-real-target:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Fetch public 71043 model index and choose strongest LDraw target
+        working-directory: ldraw-affordance
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p target
+          INDEX='https://pub-02c7ef4c74d5445691176fe4b4455d50.r2.dev/lego-models-index.json'
+          curl --fail --location --retry 4 --retry-all-errors "$INDEX" -o target/lego-models-index.json
+          python3 - <<'PY'
+          import json, os, urllib.parse
+          p='target/lego-models-index.json'
+          idx=json.load(open(p,encoding='utf-8'))
+          entry=idx.get('sets',{}).get('71043') or idx.get('sets',{}).get('71043-1')
+          if not entry: raise SystemExit('71043 absent from public model index')
+          models=entry.get('models',[])
+          if not models: raise SystemExit('71043 has no indexed models')
+          def ext(m): return os.path.splitext(m.get('path',''))[1].lower()
+          def authentic(m): return m.get('src') in {'ldr','omr','io'} or str(m.get('src','')).startswith('io_model2')
+          tiers=[
+              [m for m in models if authentic(m) and ext(m) in {'.ldr','.mpd'} and not m.get('conv')],
+              [m for m in models if authentic(m) and ext(m)=='.io' and not m.get('conv')],
+              [m for m in models if ext(m) in {'.ldr','.mpd'} and not m.get('conv')],
+          ]
+          chosen=next((xs[0] for xs in tiers if xs),None)
+          if not chosen:
+              print(json.dumps(models,indent=2))
+              raise SystemExit('No exact-LDraw or Studio source available for 71043; refusing approximate pose conversion')
+          enc='/'.join(urllib.parse.quote(x,safe='') for x in chosen['path'].split('/'))
+          meta={'set':'71043','catalog':{k:entry.get(k) for k in ('name','year','parts')},'selected':chosen,'candidates':models,'encodedPath':enc}
+          json.dump(meta,open('target/source-meta.json','w',encoding='utf-8'),indent=2)
+          open('target/source-path.txt','w').write(chosen['path'])
+          open('target/source-encoded.txt','w').write(enc)
+          print('SELECTED',json.dumps(chosen,sort_keys=True))
+          print('CANDIDATES',json.dumps(models,sort_keys=True))
+          PY
+
+      - name: Download target model and normalize to LDraw text
+        working-directory: ldraw-affordance
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE='https://pub-02c7ef4c74d5445691176fe4b4455d50.r2.dev/models'
+          ENCODED="$(cat target/source-encoded.txt)"
+          SOURCE="$(cat target/source-path.txt)"
+          curl --fail --location --retry 4 --retry-all-errors "$BASE/$ENCODED" -o target/source.bin
+          python3 - <<'PY'
+          import json, os, zipfile
+          meta=json.load(open('target/source-meta.json'))
+          source=meta['selected']['path']
+          ext=os.path.splitext(source)[1].lower()
+          if ext in ('.ldr','.mpd'):
+              data=open('target/source.bin','rb').read()
+              text=data.decode('utf-8-sig')
+              if not any(line.lstrip().startswith('1 ') for line in text.splitlines()): raise SystemExit('Downloaded LDraw source has no type-1 placements')
+              open('target/71043.ldr','w',encoding='utf-8').write(text)
+          elif ext=='.io':
+              with zipfile.ZipFile('target/source.bin') as z:
+                  names={n.lower():n for n in z.namelist()}
+                  text=None; picked=None
+                  for candidate in ('model.ldr','model2.ldr','modelv2.ldr'):
+                      actual=names.get(candidate)
+                      if not actual: continue
+                      for pwd in (None,b'soho0909'):
+                          try: raw=z.read(actual,pwd=pwd); break
+                          except RuntimeError: raw=None
+                      if raw is None: continue
+                      t=raw.decode('utf-8-sig')
+                      if any(line.lstrip().startswith('1 ') for line in t.splitlines()): text=t; picked=candidate; break
+                  if text is None: raise SystemExit('Studio archive contains no readable LDraw placement file')
+                  open('target/71043.ldr','w',encoding='utf-8').write(text)
+                  meta['studioEntry']=picked
+                  json.dump(meta,open('target/source-meta.json','w'),indent=2)
+          else:
+              raise SystemExit(f'Chosen source {source} is not exact LDraw/Studio; refusing conversion')
+          print('TARGET_BYTES',os.path.getsize('target/71043.ldr'))
+          PY
+          rm -f target/source.bin
+
+      - name: Fetch LDCad Shadow connector semantics
+        working-directory: ldraw-affordance
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 https://github.com/RolandMelkert/LDCadShadowLibrary.git target/LDCadShadowLibrary
+          git -C target/LDCadShadowLibrary rev-parse HEAD | tee target/shadow-revision.txt
+
+      - name: Run strict Hogwarts contact graph and blank-history Beaver
+        working-directory: ldraw-affordance
+        run: node scripts/hogwarts-corpus-audit.mjs target/71043.ldr target/LDCadShadowLibrary target/hogwarts-report.json target/source-meta.json
+
+      - name: Publish audit artifact, not the community target file
+        uses: actions/upload-artifact@v4
+        with:
+          name: hogwarts-71043-beaver-audit
+          path: |
+            ldraw-affordance/target/hogwarts-report.json
+            ldraw-affordance/target/source-meta.json
+            ldraw-affordance/target/shadow-revision.txt
+          if-no-files-found: error
+          retention-days: 30
