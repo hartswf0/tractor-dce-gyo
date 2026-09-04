@@ -1,0 +1,103 @@
+{
+  "version": "0.1.0",
+  "principle": "Render real official LDraw geometry. Promote only claims supported by geometry, official metadata, grid arithmetic, or an already-compiled shortcut. Visual adjacency is never a click.",
+  "tests": [
+    {
+      "id": "AV-01",
+      "vignette": "V01_COMPLETE_HOUSE",
+      "title": "Complete house is already an assembly",
+      "question": "Does one official shortcut really compile a building-sized subtree rather than merely resembling a house?",
+      "truth": "INTERNAL_SHORTCUT_CONFIRMED",
+      "parts": [
+        {"id":"u9310c01","name":"Fabuland House Block Complete","t":[0,0,0],"color":16}
+      ],
+      "assertions": [
+        {"kind":"geometryNonEmpty","label":"real house geometry parses"},
+        {"kind":"sourceContains","part":"u9310c01","text":"!LDRAW_ORG Shortcut","label":"official file is a shortcut"},
+        {"kind":"referenceCountAtLeast","part":"u9310c01","value":8,"label":"shortcut contains at least 8 placed child references"}
+      ]
+    },
+    {
+      "id": "AV-02",
+      "vignette": "V02_GARAGE_DOOR_NATIVE",
+      "title": "Garage and garage door are a native pair",
+      "question": "Can the bench distinguish a documented native mating relation from a merely plausible pairing?",
+      "truth": "NATIVE_CONFIRMED",
+      "parts": [
+        {"id":"721","name":"Garage 4 x 8 x 3","t":[0,0,0],"color":16},
+        {"id":"722","name":"Garage Door","t":[0,0,0],"color":4}
+      ],
+      "assertions": [
+        {"kind":"geometryNonEmpty","label":"garage + door geometry parses"},
+        {"kind":"reciprocalHelp","a":"721","b":"722","label":"both official headers explicitly name the other as the fitting mate"}
+      ]
+    },
+    {
+      "id": "AV-03",
+      "vignette": "V08_ROAD_TOPOLOGY",
+      "title": "32-stud road modules orchestrate on a real grid",
+      "question": "Can repeated world chunks be placed by their actual LDraw pitch rather than eyeballing a scene?",
+      "truth": "GRID_CONFIRMED",
+      "parts": [
+        {"id":"606","name":"32 x 32 Straight Road","t":[0,0,0],"color":16},
+        {"id":"607","name":"32 x 32 Crossroads","t":[640,0,0],"color":16},
+        {"id":"608","name":"32 x 32 T-Junction","t":[1280,0,0],"color":16},
+        {"id":"609","name":"32 x 32 Curve","t":[1920,0,0],"color":16}
+      ],
+      "assertions": [
+        {"kind":"geometryNonEmpty","label":"all road geometry parses"},
+        {"kind":"bboxXZApprox","parts":["606","607","608","609"],"x":640,"z":640,"tolerance":10,"label":"each module measures approximately 640 x 640 LDU"},
+        {"kind":"gridPitch","axis":"x","value":640,"tolerance":0.001,"label":"serialized centers are exactly one 32-stud module apart"}
+      ]
+    },
+    {
+      "id": "AV-04",
+      "vignette": "V07_SPIRAL_STAIR",
+      "title": "Shared family is not yet a solved stair joint",
+      "question": "Will the bench refuse to call two staircase-family pieces assembled when no exact relative transform has been promoted?",
+      "truth": "FAMILY_EXPECTED",
+      "expectedOutcome": "BLOCKED_AS_DESIGNED",
+      "parts": [
+        {"id":"40243","name":"Spiral Stair Riser","t":[0,0,0],"color":16},
+        {"id":"40244","name":"Spiral Stair Axle","t":[260,0,0],"color":16}
+      ],
+      "assertions": [
+        {"kind":"geometryNonEmpty","label":"both stair-family geometries parse"},
+        {"kind":"truthMustRemainOpen","allowed":["FAMILY_EXPECTED","ADAPTER_REQUIRED","OPEN_DATUM"],"label":"family resemblance cannot promote a click"}
+      ]
+    },
+    {
+      "id": "AV-05",
+      "vignette": "V10_WET_CORE",
+      "title": "Wet fixtures need a plumbing adapter grammar",
+      "question": "Will the bench keep geometric placement separate from water-system compatibility?",
+      "truth": "ADAPTER_REQUIRED",
+      "expectedOutcome": "BLOCKED_AS_DESIGNED",
+      "parts": [
+        {"id":"30018","name":"Belville Bathtub 6 x 12","t":[0,0,0],"color":16},
+        {"id":"15327","name":"Duplo Shower Head on Stand","t":[360,0,0],"color":16},
+        {"id":"4599b","name":"Tap","t":[520,0,0],"color":16}
+      ],
+      "assertions": [
+        {"kind":"geometryNonEmpty","label":"bathtub, shower and tap all parse as real geometry"},
+        {"kind":"truthMustRemainOpen","allowed":["ADAPTER_REQUIRED","OPEN_DATUM"],"label":"rendering together does not invent a fluid connection"}
+      ]
+    },
+    {
+      "id": "AV-06",
+      "vignette": "V13_MATERIAL_HANDLING",
+      "title": "Forklift imports a complete machine subtree",
+      "question": "Can the bench recognize a complete operational machine shortcut before rebuilding its mast and chassis from primitives?",
+      "truth": "INTERNAL_SHORTCUT_CONFIRMED",
+      "parts": [
+        {"id":"46564","name":"Forklift Complete","t":[0,0,0],"color":16}
+      ],
+      "assertions": [
+        {"kind":"geometryNonEmpty","label":"complete forklift geometry parses"},
+        {"kind":"sourceContains","part":"46564","text":"!LDRAW_ORG Shortcut","label":"official file is a shortcut"},
+        {"kind":"referenceCountAtLeast","part":"46564","value":3,"label":"complete machine contains multiple explicit child references"},
+        {"kind":"sourceContains","part":"46564","text":"4518b.dat","label":"shortcut contains its forklift rail/mast assembly"}
+      ]
+    }
+  ]
+}

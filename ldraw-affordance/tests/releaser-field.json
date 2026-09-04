@@ -1,0 +1,56 @@
+{
+  "version": "0.1.1",
+  "name": "SERVICE NODE",
+  "principle": "The build is not a part script. The substrate emits local affordance demands. Act on the strongest unresolved demand until it goes quiet.",
+  "seed": {"partId": "3020", "color": 71, "label": "GROUND / EXISTING SUBSTRATE"},
+  "features": [
+    {
+      "id": "side-panel",
+      "severity": 100,
+      "label": "SIDE PANEL",
+      "prerequisite": {
+        "kind": "port",
+        "type": "stud",
+        "gender": "male",
+        "p": [-30, -14, -16],
+        "n": [0, 0, -1],
+        "tolerance": 0.05,
+        "cry": "SIDE-FACING STUD NEEDED HERE",
+        "operatorHint": "TURN_PLANE_90 / EXPOSE_SIDE_STUD"
+      },
+      "completion": {"kind": "mate", "preferFamily": "resolution", "label": "SEAT A SMALL PANEL ON THAT STUD"}
+    },
+    {
+      "id": "centered-mast",
+      "severity": 80,
+      "label": "CENTERED MAST",
+      "prerequisite": {
+        "kind": "port",
+        "type": "stud",
+        "gender": "male",
+        "p": [0, -8, -10],
+        "n": [0, -1, 0],
+        "tolerance": 0.05,
+        "cry": "A STUD IS NEEDED BETWEEN THE EXISTING STUDS",
+        "operatorHint": "OFFSET_HALF_STUD / CENTER"
+      },
+      "completion": {"kind": "mate", "preferFamily": "matter", "label": "GROW THE MAST FROM THE CENTERED STUD"}
+    },
+    {
+      "id": "technic-socket",
+      "severity": 60,
+      "label": "TECHNIC SERVICE SOCKET",
+      "prerequisite": {
+        "kind": "port",
+        "type": "pin",
+        "gender": "female",
+        "p": [20, -14, 0],
+        "n": [0, 0, -1],
+        "tolerance": 0.05,
+        "cry": "PIN SOCKET NEEDED AT THIS SERVICE DATUM",
+        "operatorHint": "BRIDGE_SYSTEM_TECHNIC"
+      },
+      "completion": {"kind": "port"}
+    }
+  ]
+}

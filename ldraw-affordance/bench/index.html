@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover,user-scalable=no">
+<title>LDraw — Hear the Substrate</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' fill='%23faf9f4'/><circle cx='32' cy='32' r='23' fill='%23ffdf2b' stroke='%23000' stroke-width='4'/><circle cx='32' cy='32' r='7' fill='%23000'/></svg>">
+<style>
+:root{--ink:#090909;--paper:#faf9f4;--world:#f2f0e9;--muted:#696969;--hot:#ffdf2b;--red:#ff372b;--orange:#ff9f1a;--green:#1abf77;--blue:#2357a6}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--paper);color:var(--ink);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+button{font:inherit;color:inherit;background:var(--paper);border:1.5px solid #111;border-radius:0;min-height:42px;padding:7px 10px;font-weight:800;touch-action:manipulation;cursor:pointer}button:active{background:var(--hot)}button:disabled{opacity:.3;cursor:default}
+#app{height:100dvh;display:grid;grid-template-rows:44px minmax(0,1fr) 42%}
+header{display:flex;align-items:center;gap:7px;padding:5px 7px;border-bottom:2px solid #111;overflow:hidden;white-space:nowrap}header strong{font-size:12px;letter-spacing:.04em;margin-right:auto;overflow:hidden;text-overflow:ellipsis}.stat{font-size:10px;border:1px solid #111;padding:4px 6px;flex:none}
+#view{position:relative;min-height:0;background:var(--world);border-bottom:2px solid #111}#threeHost{position:absolute;inset:0}#threeHost canvas{width:100%!important;height:100%!important;display:block;touch-action:none}#geomStatus{position:absolute;right:7px;top:7px;background:#fff;border:1px solid #111;padding:5px 7px;font-size:9px;z-index:4}
+#hearBox{position:absolute;left:7px;top:7px;width:min(520px,70%);padding:7px 9px;border:2px solid #111;background:#fff;z-index:5;pointer-events:none}#hearBox.hearing{background:var(--hot)}#hearBox.screaming{background:var(--red);color:#fff}#hearBox.quiet{background:var(--green)}#hearKicker{display:block;font-size:9px;letter-spacing:.12em}#hearText{display:block;font-size:14px;font-weight:900;margin-top:2px;line-height:1.1}#hearMeta{display:block;font-size:8px;margin-top:4px;opacity:.8}
+#dock{min-height:0;display:grid;grid-template-rows:50px 64px minmax(0,1fr)}
+#controls{display:flex;gap:5px;align-items:center;padding:4px 6px;border-bottom:1px solid #111;overflow-x:auto;overflow-y:hidden}#controls button{white-space:nowrap;min-height:40px}#runBtn{background:var(--hot)}#vignetteBtn{background:#fff}#breakBtn.broken{background:var(--red);color:white}
+#act{display:grid;grid-template-columns:66px minmax(0,1fr);border-bottom:2px solid #111;min-height:0}#act b{display:flex;align-items:center;justify-content:center;border-right:1px solid #111;font-size:10px}#actText{padding:7px 9px;font-size:10px;line-height:1.25;overflow:auto}
+#lower{min-height:0;display:grid;grid-template-columns:1fr 1fr}#cues,#pieces{min-height:0;overflow:auto}#cues{border-right:1px solid #111}.sectionTitle{position:sticky;top:0;background:var(--paper);border-bottom:1px solid #111;padding:5px 7px;font-size:9px;font-weight:900;z-index:2}
+.cue,.piece{display:grid;grid-template-columns:60px 1fr;gap:7px;padding:7px;border:0;border-bottom:1px solid #bbb;border-radius:0;width:100%;text-align:left;font-size:10px;min-height:0;font-weight:400}.cue b,.piece b{font-size:9px}.cue span,.piece span{font-weight:800}.cue small,.piece small{grid-column:2;color:var(--muted);font-size:8px;line-height:1.25}.cue.loud{background:var(--hot)}.cue.blocked{background:var(--red);color:white}.cue.blocked small{color:white}.cue.quiet{opacity:.48}.cue.wait{opacity:.72}
+@media(max-width:680px){#app{grid-template-rows:42px minmax(0,1fr) 49%}header strong{font-size:10px}#fieldName{display:none}#hearBox{width:68%;max-width:none}#hearText{font-size:12px}#dock{grid-template-rows:48px 72px minmax(0,1fr)}#controls button{font-size:9px;padding:6px 8px}#lower{grid-template-columns:1fr}#pieces{display:none}.cue{grid-template-columns:54px 1fr}}
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}</script>
+</head>
+<body>
+<div id="app">
+<header><strong>LDRAW / HEAR THE SUBSTRATE</strong><span class="stat" id="fieldName">--</span><span class="stat" id="signalCount">--</span><span class="stat" id="partCount">--</span></header>
+<section id="view">
+  <div id="threeHost"></div>
+  <div id="hearBox" class="hearing"><span id="hearKicker">HEAR</span><span id="hearText">Reading substrate…</span><span id="hearMeta"></span></div>
+  <div id="geomStatus">INITIALIZING…</div>
+</section>
+<section id="dock">
+  <div id="controls"><button id="runBtn">RUN BEAVER</button><button id="stepBtn">HEAR + ACT</button><button id="resetBtn">RESET</button><button id="breakBtn">REMOVE SNOT FAMILY</button><button id="exportBtn">EXPORT MPD</button><button id="vignetteBtn">VIGNETTES</button></div>
+  <div id="act"><b>ACT</b><div id="actText">No semantic handshake counts as a click. Real stud geometry must seat into a calibrated anti-stud receiver.</div></div>
+  <div id="lower">
+    <div id="cues"><div class="sectionTitle">LOCAL RELEASERS · STRONGEST FIRST</div><div id="cueList"></div></div>
+    <div id="pieces"><div class="sectionTitle">ONLY GEOMETRY-CERTIFIED CONTACTS SILENCE THE CUE</div><div id="assemblyList"></div></div>
+  </div>
+</section>
+</div>
+<script type="module">
+const mode=new URLSearchParams(location.search).get('mode');
+const btn=document.querySelector('#vignetteBtn');
+if(mode==='vignettes'){
+  import('./vignette-tests.js?v=av01');
+}else{
+  btn.onclick=()=>{location.href='./?mode=vignettes&v=av01'};
+  import('./beaver.js?v=a18daddb');
+}
+</script>
+</body>
+</html>

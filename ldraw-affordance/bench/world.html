@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Hidden Lego · World Chunk Bench</title>
+<style>
+:root{--ink:#0a0a0a;--paper:#faf9f4;--world:#f1f0eb;--muted:#666;--hot:#ffdf2b;--ok:#1bcf9a;--warn:#ffb84d;--bad:#ff725c}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--paper);color:var(--ink);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+button,select{font:inherit;color:inherit}button,select{background:var(--paper);border:1.5px solid #111;border-radius:0;min-height:42px;padding:7px 10px;font-weight:750;touch-action:manipulation}button{cursor:pointer}button:active{background:var(--hot)}button:disabled,select:disabled{opacity:.35}
+#app{height:100dvh;display:grid;grid-template-rows:44px minmax(0,1fr) 44%}header{display:flex;align-items:center;gap:7px;padding:5px 7px;border-bottom:2px solid #111;white-space:nowrap;overflow:hidden}header strong{font-size:12px;letter-spacing:.04em;margin-right:auto}.stat{border:1px solid #111;padding:4px 6px;font-size:10px;flex:none}
+#view{position:relative;min-height:0;background:var(--world);border-bottom:2px solid #111}#threeHost{position:absolute;inset:0}#threeHost canvas{width:100%!important;height:100%!important;display:block;touch-action:none}#geomStatus,#trace{position:absolute;background:rgba(255,255,255,.94);border:1px solid #111;padding:5px 7px;font-size:10px;z-index:5;pointer-events:none}#geomStatus{right:7px;top:7px}#trace{left:7px;top:7px;max-width:70%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#dock{display:grid;grid-template-rows:49px 57px minmax(0,1fr);min-height:0}#controls{display:flex;align-items:center;gap:5px;padding:4px 6px;border-bottom:1px solid #111;overflow-x:auto}#controls button{white-space:nowrap;min-height:38px;padding:5px 9px}#allBtn{background:var(--hot)}
+#meta{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;padding:5px 7px;border-bottom:1px solid #111;align-items:center}#worldSelect{width:100%;min-width:0;min-height:38px;background:#fff}.truth{border:1px solid #111;padding:5px 7px;font-size:9px}#buildTitle{font-size:11px;font-weight:850}#buildPurpose{font-size:9px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#workspace{display:grid;grid-template-columns:minmax(0,1fr) minmax(230px,38%);min-height:0}#assembly,#coverageList{overflow:auto;min-height:0;padding:5px}#assembly{border-right:1px solid #111}.instance,.chunk{display:block;width:100%;text-align:left;margin-bottom:4px;background:#fff}.instance b,.instance span,.instance small,.chunk b,.chunk span,.chunk small{display:block}.instance b,.chunk b{font-size:10px}.instance span,.chunk span{font-size:9px}.instance small,.chunk small{font-size:8px;color:var(--muted);margin-top:2px}.instance.solved{border-left:7px solid var(--ok)}.instance.partial{border-left:7px solid var(--warn)}.instance.open{border-left:7px solid var(--bad)}.chunk{opacity:.48}.chunk.queued{opacity:.72}.chunk.seen{opacity:.82}.chunk.used{opacity:1;background:var(--hot)}
+@media(max-width:680px){#app{grid-template-rows:42px minmax(0,1fr) 50%}#workspace{grid-template-columns:1fr;grid-template-rows:48% 52%}#assembly{border-right:0;border-bottom:1px solid #111;display:flex;gap:4px;overflow-x:auto;overflow-y:hidden}.instance{flex:0 0 170px}#trace{max-width:62%}header #buildCount{display:none}}
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}</script>
+</head>
+<body>
+<div id="app">
+<header><strong>LDRAW / WORLD CHUNK BENCH</strong><span class="stat" id="partCount">--</span><span class="stat" id="buildCount">--</span><span class="stat" id="coverage">scene 0</span><span class="stat" id="attention">leak 0.000</span></header>
+<section id="view"><div id="threeHost"></div><div id="trace">INITIALIZING…</div><div id="geomStatus">LDRAW…</div></section>
+<section id="dock">
+<div id="controls"><button id="allBtn">RUN ALL 74</button><button id="playBtn">BUILD</button><button id="stepBtn">STEP</button><button id="prevBtn">PREV</button><button id="nextBtn">NEXT</button><button id="resetBtn">RESET</button><button id="exportBtn">EXPORT MPD</button></div>
+<div id="meta"><div><select id="worldSelect"></select><div id="buildTitle"></div><div id="buildPurpose"></div></div><div class="truth" id="truth">--</div></div>
+<div id="workspace"><div id="assembly"></div><div id="coverageList"></div></div>
+</section>
+</div>
+<script type="module" src="./world.js?v=world-v1"></script>
+</body>
+</html>

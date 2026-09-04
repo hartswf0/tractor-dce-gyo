@@ -1,0 +1,27 @@
+name: Assembly Vignettes
+
+on:
+  push:
+    paths:
+      - 'ldraw/**'
+      - 'ldraw-affordance/tests/vignette-tests.json'
+      - 'ldraw-affordance/tests/run-vignette-tests.mjs'
+      - '.github/workflows/assembly-vignettes.yml'
+  workflow_dispatch:
+
+jobs:
+  test-vignettes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run recursive LDraw vignette tests
+        run: node ldraw-affordance/tests/run-vignette-tests.mjs
+      - name: Upload vignette report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: assembly-vignette-test-results
+          path: ldraw-affordance/tests/vignette-test-results.json

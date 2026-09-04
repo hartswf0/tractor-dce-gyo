@@ -1,0 +1,25 @@
+name: Beaver Closed Loop
+
+on:
+  push:
+    paths:
+      - 'ldraw-affordance/beaver/**'
+      - 'ldraw-affordance/library/**'
+      - 'ldraw-affordance/src/**'
+      - 'ldraw-affordance/tests/beaver-closed-loop.mjs'
+      - 'ldraw-affordance/tests/releaser-field.json'
+      - 'ldraw-affordance/package.json'
+      - '.github/workflows/beaver-closed-loop.yml'
+  workflow_dispatch:
+
+jobs:
+  hard-handshake:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run LDraw affordance and beaver tests
+        working-directory: ldraw-affordance
+        run: npm test
