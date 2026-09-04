@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>Triage — seven traces, read cold</title>
+<link rel="icon" type="image/svg+xml" href="ball-jar-favicon.svg" />
+<style>
+:root{
+  --bg:#0a0a0a; --paper:#111111; --line:#282828; --hair:#1c1c1c;
+  --ink:#ececec; --dim:#8d8d8d; --dimmer:#4a4a4a;
+  --blood:#d8464a; --bloodDim:#5a2426;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink)}
+body{font:13px/1.5 var(--mono);min-height:100vh}
+a{color:var(--ink);text-decoration:underline;text-decoration-color:var(--dimmer);text-underline-offset:2px}
+a:hover{text-decoration-color:var(--ink)}
+button{font:inherit;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:0;cursor:pointer;padding:5px 11px}
+button:hover{border-color:var(--dim)}
+button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+h1,h2,h3{font-weight:normal;margin:0}
+.mono-num{font-variant-numeric:tabular-nums}
+
+header{position:sticky;top:0;z-index:5;display:flex;gap:16px;align-items:baseline;flex-wrap:wrap;
+  padding:14px 18px;border-bottom:1px solid var(--line);background:rgba(10,10,10,.92);backdrop-filter:blur(2px)}
+header h1{font-size:15px;letter-spacing:.08em;text-transform:uppercase}
+header .sub{color:var(--dim);font-size:11.5px}
+header .right{margin-left:auto;display:flex;gap:10px;align-items:center;color:var(--dim);font-size:11.5px}
+#modes{display:flex;gap:0;margin-left:8px}
+#modes button{padding:5px 12px;font-size:11px;letter-spacing:.04em;text-transform:uppercase}
+#modes button:not(:first-child){border-left:none}
+
+main{max-width:1180px;margin:0 auto;padding:22px 18px 80px}
+.lede{color:var(--dim);font-size:12.5px;max-width:74ch;margin:0 0 22px;border-left:2px solid var(--blood);padding-left:12px}
+.lede b{color:var(--ink);font-weight:normal;border-bottom:1px solid var(--dimmer)}
+
+/* ---------- overview: card grid ---------- */
+#overview{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
+.card{background:var(--bg);padding:12px;cursor:pointer;display:flex;flex-direction:column;gap:8px}
+.card:hover{background:#0e0e0e}
+.card .id{display:flex;justify-content:space-between;align-items:baseline}
+.card .id b{font-size:14px;letter-spacing:.03em}
+.card .id span{color:var(--dimmer);font-size:11px}
+.card .tag{color:var(--dim);font-size:11.5px;min-height:2.6em}
+.card .shot{position:relative;aspect-ratio:4/3;background:#000;border:1px solid var(--hair);overflow:hidden}
+.card .shot img{width:100%;height:100%;object-fit:cover;filter:grayscale(1) contrast(1.08)}
+.card .shot .tri{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,.72);color:var(--dim);
+  font-size:10px;padding:2px 5px;letter-spacing:.02em}
+.card .wl{display:flex;gap:10px;font-size:11.5px;color:var(--dim)}
+.card .wl b{color:var(--ink);font-weight:normal}
+.card .flag{color:var(--blood);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase}
+.ledgerbar{height:5px;background:#161616;border:1px solid var(--hair);position:relative}
+.ledgerbar i{position:absolute;inset:0 auto 0 0;background:var(--ink)}
+.card .diag{color:var(--dimmer);font-size:11px;border-top:1px dashed var(--hair);padding-top:7px}
+.card .diag b{color:var(--dim);font-weight:normal}
+
+/* ---------- ledger mode: one big table ---------- */
+table.ledger{width:100%;border-collapse:collapse;font-size:12px}
+table.ledger th{text-align:left;font-weight:normal;color:var(--dim);font-size:10.5px;letter-spacing:.06em;
+  text-transform:uppercase;padding:6px 10px;border-bottom:1px solid var(--line);cursor:pointer;white-space:nowrap}
+table.ledger th:hover{color:var(--ink)}
+table.ledger th.sorted{color:var(--ink)}
+table.ledger td{padding:6px 10px;border-bottom:1px solid var(--hair);white-space:nowrap}
+table.ledger tr{cursor:pointer}
+table.ledger tr:hover td{background:#0e0e0e}
+table.ledger td.name b{letter-spacing:.03em}
+table.ledger td.name span{display:block;color:var(--dimmer);font-size:10.5px}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+td.loss{color:var(--blood)}
+.miniledger{display:inline-block;width:56px;height:9px;background:#161616;border:1px solid var(--hair);position:relative;vertical-align:middle}
+.miniledger i{position:absolute;top:0;bottom:0;left:0;background:var(--ink)}
+
+/* ---------- diagnosis mode ---------- */
+#diag .dtop{display:flex;gap:8px;align-items:baseline;margin-bottom:4px}
+#diag .dtop h2{font-size:20px;letter-spacing:.02em}
+#diag .dtop .tag{color:var(--dim);font-size:12.5px}
+#diag .cutoff{display:inline-block;color:var(--blood);border:1px solid var(--bloodDim);padding:1px 7px;font-size:10.5px;
+  letter-spacing:.06em;text-transform:uppercase;margin-left:4px}
+.dgrid{display:grid;grid-template-columns:1.1fr 1fr;gap:22px;margin-top:16px}
+@media(max-width:880px){.dgrid{grid-template-columns:1fr}}
+.pane{border:1px solid var(--line)}
+.pane h3{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);
+  padding:9px 12px;border-bottom:1px solid var(--line)}
+.pane .body{padding:12px}
+
+.proof{position:relative}
+.proof img{width:100%;display:block;filter:grayscale(1) contrast(1.08)}
+.proof .cap{padding:8px 12px;color:var(--dim);font-size:11.5px;border-top:1px solid var(--line)}
+.proof .cap b{color:var(--ink);font-weight:normal}
+
+.axes-t{width:100%;border-collapse:collapse;font-size:12px}
+.axes-t td{padding:3px 6px 3px 0;border-bottom:1px solid var(--hair);white-space:nowrap}
+.axes-t td.g{width:14px;text-align:center}
+.axes-t .W td.g{color:var(--dim)}
+.axes-t .L td.g{color:var(--blood)}
+.axes-t td.bar{width:120px}
+.axes-t td.val{font-variant-numeric:tabular-nums;color:var(--dim);width:96px}
+
+.counts-row{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--dim);padding:0 0 4px}
+.counts-row b{color:var(--ink);font-weight:normal}
+.counts-row .warn{color:var(--blood)}
+
+.spark{padding:12px}
+.spark svg{width:100%;height:74px;display:block}
+.spark .axis{display:flex;justify-content:space-between;color:var(--dimmer);font-size:10px;margin-top:2px}
+#turndetail{border-top:1px solid var(--line);padding:10px 12px;font-size:11.5px;color:var(--dim);min-height:52px}
+#turndetail b{color:var(--ink);font-weight:normal}
+#turndetail .tool{display:inline-block;border:1px solid var(--hair);padding:0 5px;margin-right:4px;color:var(--dim)}
+
+table.growth{width:100%;border-collapse:collapse;font-size:11.5px}
+table.growth td{padding:4px 6px 4px 0;border-bottom:1px solid var(--hair);vertical-align:top}
+table.growth td.chars{color:var(--blood);text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+table.growth td.tool{color:var(--dim)}
+table.growth td.tool b{color:var(--ink);font-weight:normal}
+
+details.notes{border-top:1px solid var(--line)}
+details.notes summary{cursor:pointer;padding:9px 12px;color:var(--dim);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase}
+details.notes summary:hover{color:var(--ink)}
+details.notes pre{white-space:pre-wrap;word-break:break-word;font:12px/1.55 var(--mono);color:var(--dim);
+  margin:0;padding:0 12px 12px;max-height:340px;overflow:auto}
+
+.hidden{display:none!important}
+.back{color:var(--dim);font-size:11.5px;cursor:pointer;display:inline-block;margin-bottom:10px}
+.back:hover{color:var(--ink)}
+#err{color:var(--blood);padding:20px}
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-thumb{background:var(--line)}
+</style>
+</head>
+<body>
+<header>
+  <h1>Triage</h1>
+  <span class="sub">seven agent transcripts, read cold — not a chart, a diagnosis</span>
+  <span id="modes">
+    <button data-m="overview" class="on">Overview</button>
+    <button data-m="ledger">Ledger</button>
+  </span>
+  <span class="right"><a href="arena.html">arena</a> · <a href="builds.html">builds</a></span>
+</header>
+<main>
+  <p class="lede" id="lede"></p>
+  <div id="overview"></div>
+  <div id="ledger" class="hidden"></div>
+  <div id="diag" class="hidden"></div>
+</main>
+<script>
+const $ = (s, r) => (r || document).querySelector(s);
+const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
+const fmt = n => n == null ? '—' : n.toLocaleString('en-US');
+const pct = n => n == null ? '—' : Math.round(n * 100) + '%';
+
+let DATA = null, SEL = null, SORT = { k: 'share', dir: -1 };
+
+fetch('./triage-data.json').then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+  .then(d => { DATA = d; boot(); })
+  .catch(e => { $('main').innerHTML = '<p id="err">triage-data.json did not load: ' + e.message + '</p>'; });
+
+function boot() {
+  $('#lede').innerHTML = 'Eight builds on one card: <b>BASE</b> is the compiler running alone, no agent, no prompt. ' +
+    '<b>S01–S07</b> are seven agents, each with its own seed prompt, each with its own transcript. ' +
+    'Every number below is read from those transcripts and from a captured render of the real geometry — nothing here is estimated.';
+  renderOverview();
+  renderLedger();
+  $$('#modes button').forEach(b => b.onclick = () => setMode(b.dataset.m));
+}
+
+function setMode(m) {
+  $$('#modes button').forEach(b => b.classList.toggle('on', b.dataset.m === m));
+  $('#overview').classList.toggle('hidden', m !== 'overview');
+  $('#ledger').classList.toggle('hidden', m !== 'ledger');
+  $('#diag').classList.toggle('hidden', m !== 'diag');
+}
+
+function diagLine(s) {
+  if (!s.cache) return 'no agent transcript — this one was compiled, not built by a model.';
+  const peak = Math.max(...s.cache.turns.map(t => t.cache_read));
+  const g = s.cache.top_context_growth[0];
+  if (!g) return 'peak context ' + fmt(peak) + ' tok across ' + s.cache.total.requests + ' requests.';
+  const tool = (g.names[0] || '').split(':')[0];
+  return 'context peaked at ' + fmt(peak) + ' tok. the single biggest regrowth was a ' + fmt(g.chars) +
+    '-char ' + tool + ' result that stayed in every turn after it — that is what got reread, over and over, at the cached rate.';
+}
+
+function card(s) {
+  const el = document.createElement('div');
+  el.className = 'card';
+  el.onclick = () => openDiag(s.id);
+  const cut = s.cutoff ? '<div class="flag">cut off</div>' : '';
+  el.innerHTML = `
+    <div class="id"><b>${s.id}</b><span>${s.mode}</span></div>
+    <div class="tag">${s.name} — ${s.tagline}</div>
+    <div class="shot"><img loading="lazy" src="${s.image}" alt="${s.id} render"><div class="tri">${fmt(s.triangles)} real triangles</div></div>
+    <div class="wl"><span>${s.pieces} pieces</span><span><b>${s.wins}</b> won</span><span><b>${s.losses}</b> lost</span><span>${pct(s.share)} share</span></div>
+    <div class="ledgerbar"><i style="width:${Math.round((s.share||0)*100)}%"></i></div>
+    ${cut}
+    <div class="diag"><b>read:</b> ${diagLine(s)}</div>
+  `;
+  return el;
+}
+
+function renderOverview() {
+  const host = $('#overview'); host.innerHTML = '';
+  DATA.seeds.forEach(s => host.appendChild(card(s)));
+}
+
+const LEDGER_COLS = [
+  { k: 'id', label: 'build', num: false },
+  { k: 'pieces', label: 'pieces', num: true },
+  { k: 'wins', label: 'won', num: true },
+  { k: 'losses', label: 'lost', num: true },
+  { k: 'share', label: 'share', num: true, fmt: pct, bar: true },
+  { k: 'requests', label: 'requests', num: true, get: s => s.cache ? s.cache.total.requests : null },
+  { k: 'output', label: 'output tok', num: true, get: s => s.cache ? s.cache.total.output : null },
+  { k: 'cache_read', label: 'cache read (sum)', num: true, get: s => s.cache ? s.cache.total.cache_read : null },
+  { k: 'peak', label: 'peak/turn', num: true, get: s => s.cache ? Math.max(...s.cache.turns.map(t => t.cache_read)) : null },
+  { k: 'refusals', label: 'refusals', num: true, get: s => (s.counts || {}).refusals, warn: true },
+  { k: 'undos', label: 'undos', num: true, get: s => (s.counts || {}).undos, warn: true },
+];
+
+function val(s, col) { return col.get ? col.get(s) : s[col.k]; }
+
+function renderLedger() {
+  const host = $('#ledger');
+  const rows = DATA.seeds.slice();
+  const col = LEDGER_COLS.find(c => c.k === SORT.k) || LEDGER_COLS[0];
+  rows.sort((a, b) => {
+    const av = val(a, col), bv = val(b, col);
+    if (av == null) return 1; if (bv == null) return -1;
+    if (typeof av === 'string') return SORT.dir * av.localeCompare(bv);
+    return SORT.dir * (av - bv);
+  });
+  const maxShare = Math.max(...DATA.seeds.map(s => s.share || 0));
+  let html = '<table class="ledger"><thead><tr>';
+  LEDGER_COLS.forEach(c => html += `<th data-k="${c.k}" class="${c.k === SORT.k ? 'sorted' : ''}">${c.label}${c.k === SORT.k ? (SORT.dir < 0 ? ' ↓' : ' ↑') : ''}</th>`);
+  html += '</tr></thead><tbody>';
+  rows.forEach(s => {
+    html += `<tr data-id="${s.id}">`;
+    LEDGER_COLS.forEach(c => {
+      let v = val(s, c);
+      if (c.k === 'id') { html += `<td class="name"><b>${s.id}</b><span>${s.name}</span></td>`; return; }
+      const cls = c.num ? 'num' : '';
+      const warnCls = c.warn && v ? ' loss' : '';
+      let out = v == null ? '—' : (c.fmt ? c.fmt(v) : fmt(v));
+      if (c.bar && v != null) {
+        out = `<span class="miniledger"><i style="width:${maxShare ? Math.round(v / maxShare * 100) : 0}%"></i></span> ${out}`;
+      }
+      html += `<td class="${cls}${warnCls}">${out}</td>`;
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  host.innerHTML = html;
+  $$('table.ledger th', host).forEach(th => th.onclick = () => {
+    if (SORT.k === th.dataset.k) SORT.dir *= -1; else SORT = { k: th.dataset.k, dir: -1 };
+    renderLedger();
+  });
+  $$('table.ledger tr[data-id]', host).forEach(tr => tr.onclick = () => openDiag(tr.dataset.id));
+}
+
+function axisRow(a) {
+  const win = a.verdict === 'WIN';
+  const ours = a.ours != null ? Math.round(a.ours * 100) : null;
+  const bar = a.bar != null ? Math.round(a.bar * 100) : null;
+  const w = ours == null ? 0 : Math.min(100, ours);
+  return `<tr class="${win ? 'W' : 'L'}">
+    <td class="g">${win ? '·' : '×'}</td>
+    <td>${a.id.replace('AX-', '')}</td>
+    <td class="bar"><div class="ledgerbar" style="height:5px"><i style="width:${w}%"></i>${bar != null ? `<u style="position:absolute;left:${Math.min(100,bar)}%;top:-2px;bottom:-2px;width:1px;background:var(--dim)"></u>` : ''}</div></td>
+    <td class="val">${ours == null ? '—' : ours + '% vs ' + bar + '%'}</td>
+  </tr>`;
+}
+
+function sparkline(s) {
+  if (!s.cache) return '<div class="spark"><p style="color:var(--dim)">no transcript — nothing to trace.</p></div>';
+  const turns = s.cache.turns;
+  const max = Math.max(...turns.map(t => t.cache_read), 1);
+  const w = 1000, h = 74, n = turns.length;
+  const stepX = n > 1 ? w / (n - 1) : w;
+  const growThresh = 4000;
+  let bars = '';
+  turns.forEach((t, i) => {
+    const x = Math.round(i * stepX);
+    const bh = Math.max(1, Math.round(t.cache_read / max * (h - 4)));
+    const y = h - bh;
+    const big = t.result_chars > growThresh;
+    bars += `<rect data-i="${i}" x="${x}" y="${y}" width="${Math.max(1.4, stepX - .6)}" height="${bh}" fill="${big ? 'var(--blood)' : 'var(--ink)'}" opacity="${big ? '0.95' : '0.55'}"></rect>`;
+  });
+  return `<div class="spark">
+    <svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">${bars}</svg>
+    <div class="axis"><span>request 0</span><span>peak ${fmt(max)} tok</span><span>request ${n - 1}</span></div>
+  </div>
+  <div id="turndetail">click a bar — each one is a real request; the red bars are where a tool result was big enough to reread every turn after.</div>`;
+}
+
+function bindSpark(s) {
+  if (!s.cache) return;
+  $$('#diag svg rect').forEach(r => r.onclick = () => {
+    const t = s.cache.turns[+r.dataset.i];
+    const tools = t.tools.length ? t.tools.map(x => `<span class="tool">${x}</span>`).join('') : '<span class="tool">no tool call</span>';
+    $('#turndetail').innerHTML = `<b>request ${t.n}</b> — cache read ${fmt(t.cache_read)} tok, cache write ${fmt(t.cache_write)} tok, output ${fmt(t.output)} tok<br>
+      called: ${tools}${t.result_chars ? ` — result brought back ${fmt(t.result_chars)} chars into context` : ''}`;
+  });
+}
+
+function growthTable(s) {
+  if (!s.cache || !s.cache.top_context_growth.length) return '<p style="color:var(--dim);padding:0 12px 12px">nothing over 500 characters came back in a single tool result.</p>';
+  let html = '<table class="growth">';
+  s.cache.top_context_growth.forEach(g => {
+    const name = g.names[0] || '(unnamed)';
+    const [tool, ...rest] = name.split(':');
+    html += `<tr><td class="chars">${fmt(g.chars)}c</td><td class="tool"><b>${tool}</b> ${(rest.join(':') || '').replace(/</g, '&lt;')}</td></tr>`;
+  });
+  html += '</table>';
+  return html;
+}
+
+function openDiag(id) {
+  SEL = id;
+  const s = DATA.seeds.find(x => x.id === id);
+  setMode('diag');
+  const counts = s.counts || {};
+  const joints = counts.joints || {};
+  const cutoffHtml = s.cutoff ? `<span class="cutoff">cut off — ${s.cutoff.replace(/^cut off by /, '')}</span>` : '';
+  const frictionHtml = 'calls' in counts ? `
+    <div class="counts-row">
+      <span><b>${fmt(counts.calls)}</b> tool calls</span>
+      <span class="${counts.refusals ? 'warn' : ''}"><b>${fmt(counts.refusals)}</b> refusals</span>
+      <span class="${counts.undos ? 'warn' : ''}"><b>${fmt(counts.undos)}</b> undos</span>
+      <span><b>${fmt(counts.named)}</b> named groups</span>
+      <span><b>${fmt(counts.instances)}</b> instanced</span>
+      <span class="${joints.wrong ? 'warn' : ''}"><b>${fmt(joints.right)}/${fmt((joints.right||0)+(joints.wrong||0))}</b> joints correct</span>
+    </div>` : 'rounds' in counts ? `
+    <div class="counts-row"><span>this one worked in <b>${fmt(counts.rounds)}</b> rounds of plan → judge → card, not piece by piece — no per-piece friction to trace.</span></div>` : `
+    <div class="counts-row"><span>no per-piece friction tracked for this build.</span></div>`;
+  $('#diag').innerHTML = `
+    <span class="back" id="backBtn">‹ back to all eight</span>
+    <div class="dtop"><h2>${s.id} — ${s.name}</h2><span class="tag">${s.tagline}</span></div>
+    <div class="tag">${s.mode} · ${s.pieces} pieces · ${s.wins} won / ${s.losses} lost of 12 axes · ${pct(s.share)} of the kit's structural share ${cutoffHtml}</div>
+    <div class="dgrid">
+      <div>
+        <div class="pane proof">
+          <h3>real geometry, captured</h3>
+          <img src="${s.image}" alt="${s.id} render">
+          <div class="cap"><b>${fmt(s.triangles)} triangles</b> rendered from actual .dat part meshes via the LDraw loader — isometric, orbit camera free. not a box stand-in.</div>
+        </div>
+        <div class="pane" style="margin-top:16px">
+          <h3>verdict — 12 axes, blind against the kit</h3>
+          <div class="body">
+            <table class="axes-t">${s.axes.map(axisRow).join('')}</table>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="pane">
+          <h3>friction while building</h3>
+          <div class="body">${frictionHtml}</div>
+        </div>
+        <div class="pane" style="margin-top:16px">
+          <h3>context, request by request — what was cached, what got reread</h3>
+          ${sparkline(s)}
+        </div>
+        <div class="pane" style="margin-top:16px">
+          <h3>what actually grew the context</h3>
+          ${growthTable(s)}
+        </div>
+        <details class="notes" style="margin-top:16px;border:1px solid var(--line)">
+          <summary>build notes — as written after the run</summary>
+          <pre>${(s.notes || '(none)').replace(/</g, '&lt;')}</pre>
+        </details>
+      </div>
+    </div>
+  `;
+  $('#backBtn').onclick = () => setMode('overview');
+  bindSpark(s);
+}
+</script>
+</body>
+</html>
