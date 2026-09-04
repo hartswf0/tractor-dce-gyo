@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>Assembly Arena</title>
+<link rel="icon" type="image/svg+xml" href="ball-jar-favicon.svg" />
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="./examples/js/loaders/LDrawLoader.js"></script>
+<script src="./beta-prime-engine.js"></script>
+<script src="./nabugo.js"></script>
+<script src="./nabugo-ui.js"></script>
+<style>
+:root{
+  --bg:#f4f2ec; --line:#ded8ca; --hair:#eae5d8;
+  --ink:#1b1913; --dim:#847d6c; --dimmer:#b0a897;
+  --accent:#9c3b34;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink)}
+body{font:13.5px/1.5 var(--sans);overflow:hidden}
+.n{font-family:var(--mono);font-variant-numeric:tabular-nums}
+button{font:12.5px var(--sans);color:var(--ink);background:transparent;border:1px solid var(--line);
+  border-radius:999px;cursor:pointer;padding:5px 14px;white-space:nowrap}
+button:hover{border-color:var(--dim)}
+button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+button .pc{color:var(--dimmer);font-size:11px;margin-left:3px}
+button.on .pc{color:#8d8878}
+button:disabled{opacity:.4;cursor:default}
+a{color:var(--dim);text-decoration:none}a:hover{color:var(--ink)}
+
+#app{display:grid;grid-template-rows:auto 1fr auto;height:100dvh}
+
+header{display:flex;gap:14px;align-items:center;flex-wrap:wrap;padding:14px 22px}
+header h1{margin:0;font-size:13px;font-weight:600;letter-spacing:.22em;text-transform:uppercase}
+#objs{display:flex;gap:6px;margin-left:6px;overflow-x:auto;scrollbar-width:none}
+#objs::-webkit-scrollbar{display:none}
+header .right{margin-left:auto;display:flex;gap:14px;font-size:12.5px}
+
+main{position:relative;min-height:0}
+#stage{position:absolute;inset:0}
+#stage canvas{display:block;width:100%;height:100%}
+
+.plate{position:absolute;pointer-events:none;font-size:12px}
+#idplate{left:26px;top:18px;line-height:1.65}
+#idplate b{display:block;font-size:21px;font-weight:600;letter-spacing:.01em;margin-bottom:3px}
+#idplate span{display:block;color:var(--dim);font-size:11.5px;letter-spacing:.04em}
+#readout{right:26px;top:18px;text-align:right;display:grid;grid-template-columns:auto auto;
+  gap:2px 14px;align-items:baseline}
+#readout dt{color:var(--dimmer);font-size:10px;letter-spacing:.09em;text-transform:uppercase;text-align:right}
+#readout dd{margin:0;font-size:13.5px;text-align:right}
+#readout dd.hot{color:var(--accent)}
+#status{left:26px;bottom:16px;color:var(--dim);font-size:11.5px}
+#status.busy{color:var(--accent)}
+
+footer{padding:0 22px 16px}
+.scrub{display:flex;align-items:center;gap:16px;padding:10px 0 4px}
+.scrub input{flex:1;-webkit-appearance:none;appearance:none;background:transparent;height:18px;cursor:pointer}
+.scrub input::-webkit-slider-runnable-track{height:1px;background:var(--line)}
+.scrub input::-moz-range-track{height:1px;background:var(--line)}
+.scrub input::-webkit-slider-thumb{-webkit-appearance:none;width:11px;height:11px;border-radius:50%;
+  background:var(--ink);margin-top:-5px}
+.scrub input::-moz-range-thumb{width:11px;height:11px;border:none;border-radius:50%;background:var(--ink)}
+.scrub .end{color:var(--dimmer);font-size:11px;min-width:44px}
+.scrub .end.r{text-align:right}
+#ticks{position:relative;height:9px;margin:0 66px 0 60px}
+#ticks i{position:absolute;bottom:0;width:1px;height:6px;background:var(--line)}
+#ticks i.now{background:var(--ink);height:9px}
+
+#space{display:flex;gap:0;overflow-x:auto;padding:4px 0 0;scrollbar-width:thin}
+#space .s{flex:0 0 auto;padding:7px 15px 7px 0;margin-right:15px;border-right:1px solid var(--hair);
+  cursor:pointer;line-height:1.35}
+#space .s:hover .t{color:var(--accent)}
+#space .s.on .t{color:var(--accent);font-weight:600}
+#space .s .t{font-size:12.5px;white-space:nowrap}
+#space .s .m{color:var(--dim);font-size:11px;white-space:nowrap}
+#space .none{color:var(--dimmer);font-size:12px;padding:7px 0}
+#err{position:absolute;left:26px;right:26px;bottom:40px;color:var(--accent);font-size:12.5px}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>Assembly Arena</h1>
+    <span id="objs"></span>
+    <span class="right"><a href="arena.html">arena</a><a href="triage.html">triage</a><a href="builds.html">builds</a></span>
+  </header>
+  <main>
+    <div id="stage"></div>
+    <div class="plate" id="idplate"></div>
+    <dl class="plate" id="readout"></dl>
+    <div class="plate" id="status"></div>
+    <div id="err"></div>
+  </main>
+  <footer>
+    <div id="ticks"></div>
+    <div class="scrub">
+      <span class="end n" id="scrubMin">0</span>
+      <input type="range" id="scrub" min="0" max="1" value="1" step="1">
+      <span class="end r n" id="scrubMax">0</span>
+    </div>
+    <div id="space"></div>
+  </footer>
+</div>
+<script>
+const $ = s => document.querySelector(s);
+const fmt = n => n == null ? '—' : n.toLocaleString('en-US');
+
+let DATA = null, engine = null;
+let OBJ = null;        // the assembly-data entry for the object on the floor
+let PATH = null;       // its flattened build order
+let LIB = '';          // custom parts the vendored library cannot supply
+let K = 0;             // how many placements are down
+let SEL = -1;          // which structure is lit, -1 for none
+let busy = false, queued = null, needFrame = true;
+
+const GHOST = 47;      // LDraw Trans_Clear — what a piece looks like when it is not the point
+
+boot();
+
+async function boot() {
+  try {
+    DATA = await (await fetch('./assembly-data.json')).json();
+  } catch (e) { return fail('assembly-data.json did not load: ' + e.message); }
+
+  $('#objs').innerHTML = DATA.objects
+    .map(o => `<button data-id="${o.id}">${o.id} <span class="pc n">${fmt(o.parts)}</span></button>`).join('');
+  $('#objs').onclick = e => { const b = e.target.closest('button'); if (b) load(b.dataset.id); };
+
+  $('#scrub').oninput = e => { K = +e.target.value; paintPlates(); markStep(); schedule(); };
+
+  try {
+    engine = await NabugoUI.makeViewer($('#stage'), { background: 0xf4f2ec });
+    engine.setDiagnostics({ axes: false, grid: false });
+  } catch (e) { return fail('viewer failed: ' + e.message); }
+
+  load('CASTLE-CARD');
+}
+
+function fail(msg) { $('#err').textContent = msg; }
+
+async function load(id) {
+  const o = DATA.objects.find(x => x.id === id);
+  if (!o) return;
+  OBJ = o; SEL = -1; PATH = null; needFrame = true;
+  document.querySelectorAll('#objs button').forEach(b => b.classList.toggle('on', b.dataset.id === id));
+  status('reading ' + id + '…');
+  paintPlates();
+  try {
+    PATH = await (await fetch('./assembly-paths/' + id + '.json')).json();
+    const r = await fetch('./assembly-paths/' + id + '-inline.mpd');
+    LIB = r.ok ? await r.text() : '';
+  } catch (e) { return fail('could not read the build path for ' + id + ': ' + e.message); }
+
+  K = PATH.lines.length;
+  const sc = $('#scrub');
+  sc.max = K; sc.value = K;
+  $('#scrubMin').textContent = '0';
+  $('#scrubMax').textContent = fmt(K);
+  paintTicks();
+  paintSpace();
+  paintPlates();
+  schedule();
+}
+
+function paintTicks() {
+  if (!PATH) return;
+  const n = PATH.lines.length, host = $('#ticks');
+  if (PATH.steps_total < 2) { host.innerHTML = ''; return; }
+  let seen = -1, html = '';
+  PATH.step.forEach((s, i) => {
+    if (s !== seen) {
+      seen = s;
+      html += `<i data-at="${i}" style="left:${(i / n * 100).toFixed(3)}%"></i>`;
+    }
+  });
+  host.innerHTML = html;
+  markStep();
+}
+
+/** The step mark the scrubber is standing in. */
+function markStep() {
+  document.querySelectorAll('#ticks i').forEach(el => {
+    el.classList.toggle('now', PATH && K > 0 && PATH.step[+el.dataset.at] === PATH.step[K - 1]);
+  });
+}
+
+/** The structures this object reuses — the ones a copy number applies to. */
+function reused() {
+  if (!OBJ) return [];
+  return OBJ.top_subs.filter(s => s.n > 1);
+}
+
+function paintSpace() {
+  const host = $('#space'), subs = reused();
+  if (!subs.length) {
+    host.innerHTML = '<div class="none">nothing in this one is built twice — every structure is its own</div>';
+    return;
+  }
+  host.innerHTML = subs.map(s => {
+    const idx = PATH ? PATH.sub_names.indexOf(s.id) : -1;
+    return `<div class="s" data-sub="${idx}">
+      <div class="t">${shortName(s.id)}</div>
+      <div class="m n">×${s.n} · ${s.parts} parts · saves ${s.saved}</div>
+    </div>`;
+  }).join('');
+  host.onclick = e => {
+    const el = e.target.closest('.s'); if (!el) return;
+    const idx = +el.dataset.sub;
+    SEL = (SEL === idx) ? -1 : idx;
+    document.querySelectorAll('#space .s').forEach(d =>
+      d.classList.toggle('on', +d.dataset.sub === SEL));
+    schedule();
+  };
+}
+
+function shortName(id) {
+  return id.replace(/\.ldr$/i, '').replace(/^\d+\s*-\s*/, '');
+}
+
+function paintPlates() {
+  if (!OBJ) return;
+  $('#idplate').innerHTML =
+    `<b>${OBJ.id}</b><span>${OBJ.root}</span><span>${fmt(OBJ.parts)} pieces · ${fmt(OBJ.distinct_parts)} kinds</span>`;
+
+  let placed = K, repeated = 0, structures = new Set();
+  if (PATH) {
+    for (let i = 0; i < K; i++) {
+      if (PATH.occ[i] > 1) repeated++;
+      if (PATH.sub[i] >= 0) structures.add(PATH.sub[i]);
+    }
+  }
+  const step = (PATH && K > 0) ? PATH.step[K - 1] + 1 : 0;
+  const rows = [
+    ['placed', `${fmt(placed)} / ${fmt(OBJ.parts)}`, false],
+    ['step', PATH && PATH.steps_total > 1 ? `${fmt(step)} / ${fmt(PATH.steps_total)}` : '—', false],
+    ['structures', PATH ? `${fmt(structures.size)} / ${fmt(PATH.sub_names.length)}` : '—', false],
+    ['already built', fmt(repeated), repeated > 0],
+    ['a · reuse', fmt(OBJ.a_reuse), false],
+    ['a · one by one', fmt(OBJ.a_naive), false],
+  ];
+  $('#readout').innerHTML = rows.map(([k, v, hot]) =>
+    `<dt>${k}</dt><dd class="n${hot ? ' hot' : ''}">${v}</dd>`).join('');
+}
+
+function status(t, isBusy) {
+  const el = $('#status');
+  el.textContent = t || '';
+  el.classList.toggle('busy', !!isBusy);
+}
+
+/** Renders coalesce: a drag fires many times, only the last one matters. */
+function schedule() {
+  if (busy) { queued = true; return; }
+  busy = true; queued = false;
+  draw().finally(() => {
+    busy = false;
+    if (queued) schedule();
+  });
+}
+
+function buildText() {
+  const out = ['0 FILE arena-build.ldr', '0 !LDRAW_ORG Unofficial_Model'];
+  for (let i = 0; i < K; i++) {
+    const line = PATH.lines[i];
+    if (SEL >= 0 && PATH.sub[i] !== SEL) {
+      // everything that is not the structure under the finger goes to glass
+      out.push(line.replace(/^1 -?\d+ /, '1 ' + GHOST + ' '));
+    } else {
+      out.push(line);
+    }
+  }
+  return out.join('\n') + '\n\n' + LIB;
+}
+
+async function draw() {
+  if (!engine || !PATH) return;
+  if (K === 0) { engine.clear(); status('nothing placed yet'); return; }
+  const heavy = K > 600 ? ' — a big one, this takes a while' : '';
+  status('building ' + fmt(K) + ' pieces…' + heavy, true);
+  const t0 = performance.now();
+  try {
+    await engine.loadText(buildText(), { name: OBJ.id }, OBJ.id + '.mpd');
+    // Framing only on a change of object: scrubbing and lighting a structure
+    // must not yank the camera out of wherever it has been put.
+    if (needFrame) { NabugoUI.frame(engine, 0.46); needFrame = false; }
+    const st = engine.getStats();
+    const secs = ((performance.now() - t0) / 1000).toFixed(1);
+    status(`${fmt(st.triangles)} triangles · ${secs}s` +
+      (SEL >= 0 ? ` · ${shortName(PATH.sub_names[SEL])} lit, ×${copiesOf(SEL)}` : ''));
+  } catch (e) {
+    status('');
+    fail('render failed: ' + (e.message || e));
+  }
+}
+
+function copiesOf(idx) {
+  const name = PATH.sub_names[idx];
+  const s = OBJ.top_subs.find(x => x.id === name);
+  return s ? s.n : '?';
+}
+</script>
+</body>
+</html>
