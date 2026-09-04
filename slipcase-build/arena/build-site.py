@@ -29,16 +29,17 @@ def desc(pid):
     r = ISO.resolve(pid)
     return ISO.PARTS[r]['d'].replace('  ', ' ').strip() if r else pid
 
-def box_of(pid, mat, pos):
-    r = ISO.resolve(pid)
-    if not r: return None
-    x0, y0, z0, x1, y1, z1 = ISO.PARTS[r]['b']
-    xs, ys, zs = [], [], []
-    for i in range(8):
-        lx = x1 if i & 1 else x0; ly = y1 if i & 2 else y0; lz = z1 if i & 4 else z0
-        w = ISO.apply(mat, [lx, ly, lz])
-        xs.append(w[0] + pos[0]); ys.append(w[1] + pos[1]); zs.append(w[2] + pos[2])
-    return [round(min(xs), 1), round(min(ys), 1), round(min(zs), 1), round(max(xs), 1), round(max(ys), 1), round(max(zs), 1)]
+def resolvable(pid):
+    return ISO.resolve(pid) is not None
+
+def r2(v):
+    return round(v, 2)
+
+def ldraw_line(part, colour, pos, mat):
+    """An exact type-1 LDraw line for one placement, in world coordinates."""
+    p = ' '.join(str(r2(x)) for x in pos)
+    m = ' '.join(str(r2(x)) for x in mat)
+    return f"1 {colour} {p} {m} {part}.dat"
 
 def read(path, default=''):
     return open(path, encoding='utf-8').read() if os.path.exists(path) else default
@@ -57,10 +58,11 @@ def steps_from_state(seed):
         elif e.get('t') == 'refused': refusals.setdefault(seen + 1, []).append(e)
     steps = []
     for i, p in enumerate(S['places']):
-        b = box_of(p['part'], p['mat'], p['pos'])
-        if not b: continue
+        if not resolvable(p['part']): continue
         e = by_i.get(i)
-        st = dict(i=i, part=p['part'], d=desc(p['part']), c=p.get('color', 16), b=b,
+        st = dict(i=i, part=p['part'], d=desc(p['part']), c=p.get('color', 16),
+                  pos=[r2(x) for x in p['pos']], mat=[r2(x) for x in p['mat']],
+                  line=ldraw_line(p['part'], p.get('color', 16), p['pos'], p['mat']),
                   g=p.get('group') or p.get('instanceOf') or None)
         if i == 0: st['cmd'] = f"init — {desc(p['part'])}"; st['reply'] = 'the ground: every stud is an open port'
         elif i in inst_at:
@@ -108,8 +110,10 @@ def steps_from_mpd(seed, path):
             if ref in blocks: walk(ref, wp, wm, wc, ref.replace('.ldr', ''), depth + 1)
             else:
                 pid = ref.replace('.dat', '').replace('\\', '/').rsplit('/', 1)[-1]
-                b = box_of(pid, wm, wp)
-                if b: steps.append(dict(i=len(steps), part=pid, d=desc(pid), c=wc, b=b, g=tag))
+                if resolvable(pid):
+                    steps.append(dict(i=len(steps), part=pid, d=desc(pid), c=wc,
+                                       pos=[r2(x) for x in wp], mat=[r2(x) for x in wm],
+                                       line=ldraw_line(pid, wc, wp, wm), g=tag))
     walk(order[0], [0, 0, 0], [1, 0, 0, 0, 1, 0, 0, 0, 1], 7, 'root')
     return steps
 

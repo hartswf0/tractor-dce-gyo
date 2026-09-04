@@ -159,7 +159,7 @@ function refusedPacket(S, F, req, r) {
 // ───────────────────────────── emit / judge
 function ldrLine(pl) { return `1 ${pl.color} ${pl.pos[0]} ${pl.pos[1]} ${pl.pos[2]} ${pl.mat.join(' ')} ${pl.part}.dat`; }
 function emit(S) {
-  const name = `castle-${SEED}`; const lines = [`0 FILE ${name}.ldr`, `0 ${name} — built in the arena by seed ${SEED}`, `0 Name: ${name}.ldr`, `0 Author: arena/world.js`];
+  const name = `castle-${SEED}`; const lines = [`0 FILE ${name}.ldr`, `0 ${name} — built in the arena by seed ${SEED}`, `0 Name: ${name}.ldr`, `0 Author: arena/world.js`, `0 !LDRAW_ORG Unofficial_Model`];
   const subs = [];
   const defined = new Set();
   S.places.forEach((pl, i) => {
@@ -167,7 +167,7 @@ function emit(S) {
     if (pl.group && S.groups[pl.group] && S.groups[pl.group].members.length > 1) {
       if (!defined.has(pl.group)) { defined.add(pl.group); const g = S.groups[pl.group]; const a = S.places[g.members[0]].pos;
         lines.push(`1 16 ${a[0]} ${a[1]} ${a[2]} 1 0 0 0 1 0 0 0 1 ${pl.group}.ldr`);
-        subs.push([`0 FILE ${pl.group}.ldr`, `0 ${pl.group}`, `0 Name: ${pl.group}.ldr`].concat(g.members.map(m => { const q = S.places[m]; return `1 ${q.color} ${q.pos[0]-a[0]} ${q.pos[1]-a[1]} ${q.pos[2]-a[2]} ${q.mat.join(' ')} ${q.part}.dat`; })));
+        subs.push([`0 FILE ${pl.group}.ldr`, `0 ${pl.group}`, `0 Name: ${pl.group}.ldr`, `0 !LDRAW_ORG Unofficial_Model`].concat(g.members.map(m => { const q = S.places[m]; return `1 ${q.color} ${q.pos[0]-a[0]} ${q.pos[1]-a[1]} ${q.pos[2]-a[2]} ${q.mat.join(' ')} ${q.part}.dat`; })));
       }
       return;
     }
@@ -178,7 +178,7 @@ function emit(S) {
     if (defined.has(noun)) continue;                 // already written as a placed group
     if (!(S.instances || []).some(i => i.noun === noun)) continue;
     defined.add(noun);
-    subs.push([`0 FILE ${noun}.ldr`, `0 ${noun}`, `0 Name: ${noun}.ldr`].concat(g.map(q => `1 ${q.color} ${q.pos[0]} ${q.pos[1]} ${q.pos[2]} ${q.mat.join(' ')} ${q.part}.dat`)));
+    subs.push([`0 FILE ${noun}.ldr`, `0 ${noun}`, `0 Name: ${noun}.ldr`, `0 !LDRAW_ORG Unofficial_Model`].concat(g.map(q => `1 ${q.color} ${q.pos[0]} ${q.pos[1]} ${q.pos[2]} ${q.mat.join(' ')} ${q.part}.dat`)));
   }
   return lines.concat(...subs).join('\n') + '\n';
 }

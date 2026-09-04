@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <title>The Arena — seven prompts, seven castles, built step by step</title>
 <link rel="icon" type="image/svg+xml" href="ball-jar-favicon.svg" />
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="./examples/js/loaders/LDrawLoader.js"></script>
+<script src="./beta-prime-engine.js"></script>
+<script src="./nabugo.js"></script>
+<script src="./nabugo-ui.js"></script>
 <style>
 :root{
   --bg:#0b0d10; --panel:#11151a; --line:#1e252d; --ink:#dde3ea; --dim:#7d8994; --dimmer:#4d5761;
@@ -38,8 +44,8 @@ header .right{margin-left:auto;display:flex;gap:8px;align-items:center;color:var
 main{display:grid;grid-template-columns:1fr 380px;min-height:0}
 @media(max-width:900px){main{grid-template-columns:1fr;grid-template-rows:minmax(240px,44dvh) 1fr}}
 #stage{position:relative;min-width:0;min-height:0;background:radial-gradient(120% 90% at 50% 30%,#12171d 0%,#0b0d10 70%)}
-canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
-canvas:active{cursor:grabbing}
+#stage3d{position:absolute;inset:0}
+#stage3d canvas{display:block;width:100%;height:100%}
 #hud{position:absolute;left:12px;top:10px;font-size:11px;color:var(--dim);pointer-events:none;line-height:1.6}
 #hud b{color:var(--ink);font-weight:600}
 #viewbtns{position:absolute;right:10px;top:10px;display:flex;gap:5px}
@@ -104,7 +110,7 @@ footer .t b{color:var(--ink)}
   <div id="seeds"></div>
   <main>
     <div id="stage">
-      <canvas id="c"></canvas>
+      <div id="stage3d"></div>
       <div id="hud"></div>
       <div id="viewbtns">
         <button data-view="iso">iso</button><button data-view="spin" id="spinbtn">spin</button>
@@ -151,96 +157,129 @@ const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&am
 const fail = m => { const e = $('#err'); e.style.display = 'block'; e.textContent = m; };
 
 // ── state
-const V = { data: null, traces: null, spin: 0, filter: 'all', seed: null, step: 0, playing: false, speed: 4, ghost: true,
-            yaw: -0.62, pitch: 0.58, zoom: 1, pan: { x: 0, y: 0 }, tab: 'trace', raf: 0, acc: 0, last: 0 };
+const V = { data: null, traces: null, spin: 0, filter: 'all', seed: null, step: 0, playing: false, speed: 4, ghost: false,
+            tab: 'trace', raf: 0, acc: 0, last: 0 };
 
-// ── canvas 3D: every piece is its catalogue box, painter-sorted. No WebGL, no loader:
-// the vendored LDraw loader crashes on part 60592 (a window every castle uses), and a
-// picture you cannot trust is worse than none.
-const cv = $('#c'), ctx = cv.getContext('2d');
-function resize() {
-  const r = cv.getBoundingClientRect(), d = Math.min(2, window.devicePixelRatio || 1);
-  cv.width = Math.max(1, r.width * d); cv.height = Math.max(1, r.height * d);
-  ctx.setTransform(d, 0, 0, d, 0, 0); draw();
+// ── the real viewer: BetaPrimeEngine + LDrawLoader, the same stack every other
+// page in this repo uses. Every piece is the actual catalogue mesh — studs,
+// slopes, arches — not a box. OrbitControls (built into the engine) gives free
+// drag-to-orbit, wheel-to-zoom, right-drag-to-pan; nothing here reimplements that.
+let engine = null;
+const ghostCache = new Map();          // seed id -> loaded ghost THREE.Group wrapper
+let ghostLoader = null;                // its own loader instance — LDrawLoader keeps parse
+                                        // state on `this`, so sharing engine.loader with the
+                                        // live model would race two parses against one stack
+function ensureGhostLoader() {
+  if (ghostLoader) return ghostLoader;
+  ghostLoader = new THREE.LDrawLoader();
+  ghostLoader.path = engine.loader.path;
+  if (engine.loader.fileMap) ghostLoader.setFileMap({ ...engine.loader.fileMap });
+  ghostLoader.setMaterials(engine.loader.materials.slice());
+  ghostLoader.subobjectCache = engine.loader.subobjectCache;  // share fetched file text (safe, immutable);
+                                                                // parse state (parseScopesStack) stays separate
+  return ghostLoader;
 }
-function rot(x, y, z) {                       // LDraw: y grows downward
-  const cy = Math.cos(V.yaw), sy = Math.sin(V.yaw);
-  const X = x * cy + z * sy, Z = -x * sy + z * cy;
-  const cp = Math.cos(V.pitch), sp = Math.sin(V.pitch);
-  return { x: X, y: y * cp + Z * sp, d: Z * cp - y * sp };
+const GHOST_MAT = () => new THREE.MeshBasicMaterial({ color: 0x5c6672, transparent: true, opacity: 0.16, depthWrite: false });
+const GHOST_LINE_MAT = () => new THREE.LineBasicMaterial({ color: 0x3a4552, transparent: true, opacity: 0.4 });
+
+async function initEngine() {
+  engine = await NabugoUI.makeViewer(document.getElementById('stage3d'), { background: 0x0b0d10 });
+  window.__arena = { engine: () => engine, V, setStep, setView, VIEWS };   // debug hook, same pattern as window.__hx elsewhere in this repo
+  return engine;
 }
-function shade(hex, f) {
-  const n = parseInt(hex.slice(1), 16);
-  const r = Math.min(255, (n >> 16 & 255) * f) | 0, g = Math.min(255, (n >> 8 & 255) * f) | 0, b = Math.min(255, (n & 255) * f) | 0;
-  return 'rgb(' + r + ',' + g + ',' + b + ')';
+function textFor(seed, upto) {
+  const lines = seed.steps.slice(0, upto).map(s => s.line).filter(Boolean);
+  return ['0 FILE frame.ldr', '0 Name: frame.ldr', '0 !LDRAW_ORG Unofficial_Model'].concat(lines).join('\n') + '\n';
 }
-function fit(steps) {
-  let m = { x0: 1e9, x1: -1e9, y0: 1e9, y1: -1e9 };
-  for (const s of steps) {
-    for (let i = 0; i < 8; i++) {
-      const p = rot(i & 1 ? s.b[3] : s.b[0], i & 2 ? s.b[4] : s.b[1], i & 4 ? s.b[5] : s.b[2]);
-      if (p.x < m.x0) m.x0 = p.x; if (p.x > m.x1) m.x1 = p.x;
-      if (p.y < m.y0) m.y0 = p.y; if (p.y > m.y1) m.y1 = p.y;
-    }
+function clearGhost() {
+  if (engine && engine._ghostWrapper) {
+    engine.scene.remove(engine._ghostWrapper);
+    engine._ghostWrapper.traverse(o => { if (o.geometry) o.geometry.dispose(); });
+    engine._ghostWrapper = null;
   }
-  return m;
 }
-function draw() {
-  const S = V.seed; if (!S) return;
-  const W = cv.clientWidth, H = cv.clientHeight;
-  ctx.clearRect(0, 0, W, H);
-  const all = S.steps, shown = all.slice(0, V.step);
-  const m = fit(all);
-  const sc = Math.min((W - 60) / Math.max(m.x1 - m.x0, 1), (H - 70) / Math.max(m.y1 - m.y0, 1)) * V.zoom;
-  const ox = W / 2 - (m.x0 + m.x1) / 2 * sc + V.pan.x, oy = H / 2 - (m.y0 + m.y1) / 2 * sc + V.pan.y;
-  const P = (x, y, z) => { const p = rot(x, y, z); return [p.x * sc + ox, p.y * sc + oy, p.d]; };
-  const face = (pts, fill, stroke, alpha) => {
-    ctx.globalAlpha = alpha; ctx.beginPath();
-    ctx.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
-    ctx.closePath(); ctx.fillStyle = fill; ctx.fill();
-    if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 1; ctx.stroke(); }
-    ctx.globalAlpha = 1;
-  };
-  const box = (s, alpha, hi) => {
-    const [x0, y0, z0, x1, y1, z1] = s.b;
-    const hex = V.data.colours[String(s.c)] || '#9aa4ad';
-    const c = rot((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2);
-    // the three faces that point at the camera
-    const xf = rot(1, 0, 0).d < 0 ? x1 : x0, zf = rot(0, 0, 1).d < 0 ? z1 : z0;
-    const top = [P(x0, y0, z0), P(x1, y0, z0), P(x1, y0, z1), P(x0, y0, z1)];
-    const sx = [P(xf, y0, z0), P(xf, y0, z1), P(xf, y1, z1), P(xf, y1, z0)];
-    const sz = [P(x0, y0, zf), P(x1, y0, zf), P(x1, y1, zf), P(x0, y1, zf)];
-    const edge = hi ? '#fff' : 'rgba(0,0,0,.45)';
-    face(sz, shade(hex, .70), edge, alpha);
-    face(sx, shade(hex, .86), edge, alpha);
-    face(top, shade(hex, 1.08), edge, alpha);
-    if (hi) { ctx.globalAlpha = 1; ctx.strokeStyle = '#ff7043'; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.moveTo(top[0][0], top[0][1]); for (let i = 1; i < 4; i++) ctx.lineTo(top[i][0], top[i][1]); ctx.closePath(); ctx.stroke(); }
-    return c.d;
-  };
-  const depth = s => rot((s.b[0] + s.b[3]) / 2, (s.b[1] + s.b[4]) / 2, (s.b[2] + s.b[5]) / 2).d;
-  if (V.ghost) {
-    // what is still to come, as a wireframe target: the shape fills itself in
-    const rest = all.slice(V.step).slice().sort((a, b) => depth(b) - depth(a));
-    ctx.globalAlpha = .5; ctx.strokeStyle = '#38434f'; ctx.lineWidth = 1;
-    for (const s of rest) {
-      const [x0, y0, z0, x1, y1, z1] = s.b;
-      const t = [P(x0, y0, z0), P(x1, y0, z0), P(x1, y0, z1), P(x0, y0, z1)];
-      const bo = [P(x0, y1, z0), P(x1, y1, z0), P(x1, y1, z1), P(x0, y1, z1)];
-      ctx.beginPath();
-      ctx.moveTo(t[0][0], t[0][1]); for (let i = 1; i < 4; i++) ctx.lineTo(t[i][0], t[i][1]); ctx.closePath();
-      for (let i = 0; i < 4; i++) { ctx.moveTo(t[i][0], t[i][1]); ctx.lineTo(bo[i][0], bo[i][1]); }
-      ctx.stroke();
+async function ghostGroupFor(seed) {
+  if (ghostCache.has(seed.id)) return ghostCache.get(seed.id);
+  const text = textFor(seed, seed.steps.length);
+  const group = await new Promise((resolve, reject) => {
+    try { ensureGhostLoader().parse(text, seed.id + '-ghost.mpd', resolve); } catch (e) { reject(e); }
+  });
+  group.rotation.x = Math.PI;                 // match finalizeGroup's LDraw->three.js flip
+  group.traverse(o => {
+    if (o.isMesh) o.material = GHOST_MAT();
+    else if (o.isLineSegments) o.material = GHOST_LINE_MAT();
+  });
+  const wrapper = new THREE.Group(); wrapper.add(group);
+  ghostCache.set(seed.id, wrapper);
+  return wrapper;
+}
+async function updateGhost(seed) {
+  clearGhost();
+  if (!V.ghost) return;
+  try {
+    const wrapper = await ghostGroupFor(seed);
+    engine._ghostWrapper = wrapper;
+    engine.scene.add(wrapper);
+  } catch (e) { /* the ghost is a nicety; a failed ghost load never blocks the build */ }
+}
+function textForRange(seed, from, upto) {
+  const lines = seed.steps.slice(from, upto).map(s => s.line).filter(Boolean);
+  if (!lines.length) return null;
+  return ['0 FILE delta.ldr', '0 Name: delta.ldr', '0 !LDRAW_ORG Unofficial_Model'].concat(lines).join('\n') + '\n';
+}
+// Reparsing every placed piece from scratch on every step would cost O(step) work
+// per frame — fine for one jump, ruinous over a 200-piece playback. So once a seed's
+// model exists, a forward step only parses and appends the NEW pieces directly into
+// the live scene graph; only a seed switch or a rewind past what is already built
+// pays for a full reload. Calls are queued (busy/next), the same pattern NabugoUI's
+// own render() uses, so a burst of steps during fast playback converges on the last
+// one asked for instead of racing to build the same delta twice.
+let renderBusy = false, renderQueued = false;
+function renderScene() {
+  if (renderBusy) { renderQueued = true; return; }
+  renderBusy = true;
+  paintStep().catch(e => console.warn('render failed', e)).finally(() => {
+    renderBusy = false;
+    if (renderQueued) { renderQueued = false; renderScene(); }
+  });
+}
+async function paintStep() {
+  const S = V.seed; if (!S || !engine) return;
+  const target = V.step;
+  const built = engine._builtSeed === S.id ? engine._builtCount : 0;
+  if (built === 0 || target < built) {
+    await NabugoUI.render(engine, textFor(S, target), null, S.id);
+    engine._builtSeed = S.id; engine._builtCount = target;
+  } else if (target > built) {
+    const delta = textForRange(S, built, target);
+    if (delta && engine.modelRoot) {
+      const group = await new Promise((resolve, reject) => { try { engine.loader.parse(delta, S.id + '-delta.mpd', resolve); } catch (e) { reject(e); } });
+      group.traverse(o => { if (o.isMesh) { const mats = Array.isArray(o.material) ? o.material : [o.material]; mats.forEach(m => { if (m) { m.side = THREE.DoubleSide; m.needsUpdate = true; } }); } });
+      while (group.children.length) engine.modelRoot.add(group.children[0]);
+    } else if (delta) {
+      await NabugoUI.render(engine, textFor(S, target), null, S.id);
     }
-    ctx.globalAlpha = 1;
+    engine._builtSeed = S.id; engine._builtCount = target;
   }
-  const order = shown.slice().sort((a, b) => depth(b) - depth(a));
-  for (const s of order) box(s, 1, false);
-  const cur = shown[shown.length - 1]; if (cur) box(cur, 1, true);
+  if (V.step === target) updateCaption(S);
+}
+function updateCaption(S) {
+  const cur = S.steps[V.step - 1];
   const g = cur && cur.g ? ' · in <b>' + esc(cur.g) + '</b>' : '';
-  $('#caption').innerHTML = cur ? ('placing <b>' + esc(cur.d) + '</b>' + g) : 'the empty plate';
+  $('#caption').innerHTML = cur ? ('placing <b>' + esc(cur.d) + '</b>' + g) : (V.step === 0 ? 'the empty plate' : 'built');
 }
-
+function setView(dir) {
+  if (!engine) return;
+  const target = (engine.modelWrapper || engine._ghostWrapper);
+  if (!target) return;
+  const box = new THREE.Box3().setFromObject(target);
+  const size = box.getSize(new THREE.Vector3()), center = box.getCenter(new THREE.Vector3());
+  const r = Math.max(size.length() * 0.62, 60);
+  engine.camera.position.set(center.x + dir[0] * r, center.y + dir[1] * r, center.z + dir[2] * r);
+  engine.controls.target.copy(center);
+  engine.controls.update();
+}
+const VIEWS = { iso: [1, 0.9, 1], front: [0, 0.35, 1.3], back: [0, 0.35, -1.3], top: [0.001, 1.6, 0.001] };
 // ── panels
 function paneTrace() {
   const S = V.seed, p = el('div', 'trace');
@@ -412,7 +451,7 @@ function setStep(n, quiet) {
   V.step = Math.max(0, Math.min(S.steps.length, n));
   $('#scrub').value = V.step;
   $('#tcount').innerHTML = 'step <b>' + V.step + '</b> / ' + S.steps.length;
-  draw();
+  renderScene();
   if (!quiet && V.tab === 'trace') {
     const rows = $('#pane').querySelectorAll('.row');
     rows.forEach((r, i) => r.classList.toggle('on', i === V.step - 1));
@@ -431,11 +470,9 @@ function tick(ts) {
 function play() { if (V.step >= V.seed.steps.length) setStep(0); V.playing = true; V.last = 0; $('#play').textContent = '⏸'; $('#play').classList.add('on'); V.raf = requestAnimationFrame(tick); }
 function stop() { V.playing = false; cancelAnimationFrame(V.raf); $('#play').textContent = '▶'; $('#play').classList.remove('on'); }
 
-let spinRaf = 0, spinLast = 0;
-function spin(ts) {
-  if (!V.spin) { cancelAnimationFrame(spinRaf); return; }
-  if (ts) { if (spinLast) V.yaw += Math.min(0.05, (ts - spinLast) / 1000) * 0.45; spinLast = ts; }
-  draw(); spinRaf = requestAnimationFrame(spin);
+function setSpin(on) {
+  V.spin = on ? 1 : 0;
+  if (engine && engine.controls) { engine.controls.autoRotate = !!on; engine.controls.autoRotateSpeed = 2.2; }
 }
 function fadeHint() { const e = $('#hint'); if (e) setTimeout(() => e.classList.add('gone'), 6000); }
 
@@ -450,6 +487,9 @@ function pickSeed(id) {
     ' · <span style="color:var(--win)">' + S.wins + 'W</span>/<span style="color:var(--loss)">' + S.losses + 'L</span>' +
     ' · open ' + S.share + (S.cutoff ? '<br><span style="color:var(--hot)">unfinished — ' + esc(S.cutoff) + '</span>' : '');
   setStep(0, true); renderPane();
+  Promise.resolve(renderScene()).then(() => setView(VIEWS.iso));
+  updateGhost(S);
+  if (engine && engine.controls) engine.controls.autoRotate = !!V.spin;
   location.hash = S.id;
 }
 
@@ -470,15 +510,12 @@ function boot(data) {
   });
   document.querySelectorAll('#viewbtns button').forEach(b => b.onclick = () => {
     const v = b.dataset.view;
-    if (v === 'iso') { V.yaw = -0.62; V.pitch = 0.58; V.zoom = 1; V.pan = { x: 0, y: 0 }; }
-    if (v === 'front') { V.yaw = 0; V.pitch = 0.18; }
-    if (v === 'back') { V.yaw = Math.PI; V.pitch = 0.18; }
-    if (v === 'top') { V.yaw = -0.62; V.pitch = 1.35; }
-    if (v === 'spin') { V.spin = V.spin ? 0 : 1; b.classList.toggle('on', !!V.spin); if (V.spin) spin(); }
-    if (v === 'ghost') { V.ghost = !V.ghost; b.classList.toggle('on', V.ghost); }
-    draw();
+    if (VIEWS[v]) setView(VIEWS[v]);
+    if (v === 'spin') { setSpin(!V.spin); b.classList.toggle('on', !!V.spin); }
+    if (v === 'ghost') { V.ghost = !V.ghost; b.classList.toggle('on', V.ghost); updateGhost(V.seed); }
   });
-  $('#ghostbtn').classList.add('on');
+  // ghost starts off: it is a full second copy of the finished castle, loaded on its
+  // own LDrawLoader — real work, so it only happens once someone actually asks for it.
   $('#play').onclick = () => V.playing ? stop() : play();
   $('#next').onclick = () => { stop(); setStep(V.step + 1); };
   $('#prev').onclick = () => { stop(); setStep(V.step - 1); };
@@ -490,30 +527,21 @@ function boot(data) {
     if (e.key === ' ') { e.preventDefault(); V.playing ? stop() : play(); }
     if (e.key === 'ArrowRight') { stop(); setStep(V.step + (e.shiftKey ? 10 : 1)); }
     if (e.key === 'ArrowLeft') { stop(); setStep(V.step - (e.shiftKey ? 10 : 1)); }
-    if (e.key === 'g') { V.ghost = !V.ghost; $('#ghostbtn').classList.toggle('on', V.ghost); draw(); }
+    if (e.key === 'g') { V.ghost = !V.ghost; $('#ghostbtn').classList.toggle('on', V.ghost); updateGhost(V.seed); }
   });
-  let drag = null;
-  cv.addEventListener('pointerdown', e => { drag = { x: e.clientX, y: e.clientY, yaw: V.yaw, pitch: V.pitch, pan: { ...V.pan }, shift: e.shiftKey }; cv.setPointerCapture(e.pointerId); });
-  cv.addEventListener('pointermove', e => {
-    if (!drag) return;
-    const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
-    if (drag.shift) { V.pan = { x: drag.pan.x + dx, y: drag.pan.y + dy }; }
-    else { V.yaw = drag.yaw + dx * 0.008; V.pitch = Math.max(-0.2, Math.min(1.45, drag.pitch + dy * 0.006)); }
-    draw();
-  });
-  addEventListener('pointerup', () => { drag = null; });
-  cv.addEventListener('wheel', e => { e.preventDefault(); V.zoom = Math.max(0.3, Math.min(6, V.zoom * (e.deltaY < 0 ? 1.12 : 0.9))); draw(); }, { passive: false });
-  addEventListener('resize', resize);
+  // drag-to-orbit, wheel-to-zoom, right-drag-to-pan all come free from the engine's
+  // own OrbitControls — nothing to wire up by hand.
   const want = decodeURIComponent(location.hash.slice(1));
   pickSeed(data.seeds.some(s => s.id === want) ? want : 'S01');
-  resize(); fadeHint();
+  fadeHint();
 }
 
 Promise.all([
+  initEngine(),
   fetch('./arena-data.json').then(r => { if (!r.ok) throw new Error('arena-data.json HTTP ' + r.status); return r.json(); }),
   fetch('./arena-traces.json').then(r => r.ok ? r.json() : null).catch(() => null)
-]).then(([d, t]) => { V.traces = t; boot(d); })
-  .catch(e => fail('arena-data.json did not load (' + e.message + '). This page reads it over HTTP — open it from a served copy, not from a file:// path.'));
+]).then(([, d, t]) => { V.traces = t; boot(d); })
+  .catch(e => fail('the page did not load (' + e.message + '). This needs a real 3D context (WebGL) and to be served over HTTP, not opened from a file:// path.'));
 })();
 </script>
 </body>
