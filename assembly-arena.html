@@ -118,6 +118,8 @@ let SEL = -1;          // which structure is lit, -1 for none
 let busy = false, queued = null, needFrame = true;
 
 const GHOST = 47;      // LDraw Trans_Clear — what a piece looks like when it is not the point
+const HEAVY = 600;     // above this many pieces a full render stops being quick
+const OPEN_AT = 400;   // so a heavy object opens here, part-built
 
 boot();
 
@@ -155,11 +157,15 @@ async function load(id) {
     LIB = r.ok ? await r.text() : '';
   } catch (e) { return fail('could not read the build path for ' + id + ': ' + e.message); }
 
-  K = PATH.lines.length;
+  // A big object is opened part-built rather than finished: the first render
+  // stays quick, and mid-assembly is where an assembly arena should start
+  // anyway. Push the scrubber to the right to pay for the rest.
+  const total = PATH.lines.length;
+  K = total > HEAVY ? Math.min(total, OPEN_AT) : total;
   const sc = $('#scrub');
-  sc.max = K; sc.value = K;
+  sc.max = total; sc.value = K;
   $('#scrubMin').textContent = '0';
-  $('#scrubMax').textContent = fmt(K);
+  $('#scrubMax').textContent = fmt(total);
   paintTicks();
   paintSpace();
   paintPlates();
