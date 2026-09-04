@@ -39,6 +39,7 @@ const DOWN = 2;
 // ══════════════════════════════════════════════════════════════════════ ports
 const NabugoPorts = (() => {
   let map = {}, loaded = false, meta = null;
+  const normalized = new Map();
 
   async function load(url = './nabugo-ports.json') {
     if (loaded) return meta;
@@ -58,7 +59,26 @@ const NabugoPorts = (() => {
    */
   function of(id) {
     const rec = map[id];
-    if (rec) return rec;
+    if (rec) {
+      if (normalized.has(id)) return normalized.get(id);
+      const part = Catalog.get(id);
+      if (!part) return rec;
+      // The LDraw tube primitive starts inside the underside cavity. Its
+      // origin is geometry, not the insertion plane. Move female ports to the
+      // underside insertion plane. For a normal brick this corrects y=4 to
+      // y=24; aligning y=4 was burying each new brick twenty LDU inside its
+      // parent. Lateral sockets need their own cavity-depth extractor and are
+      // deliberately left untouched here.
+      const b = part.b;
+      const seated = rec.map(p => {
+        if (p[0] !== 1) return p;
+        const q = p.slice();
+        if (q[4] === 2) q[2] = b[4];
+        return q;
+      });
+      normalized.set(id, seated);
+      return seated;
+    }
     return synthesise(id);
   }
 
@@ -69,7 +89,11 @@ const NabugoPorts = (() => {
     const z0 = p.b[2];
     const nx = Math.max(1, Math.round((x1 - x0) / 20));
     const nz = Math.max(1, Math.round((z1 - z0) / 20));
-    if (nx * nz > 4096) return [];
+    // Only lattices omitted by build-nabugo-ports (more than MAX_PORTS=48)
+    // may be reconstructed. The old fallback invented studs on every part
+    // absent from the registry: tiles, animals, plants and accessories became
+    // fake baseplates just because their AABB happened to span 20 LDU.
+    if (nx * nz <= 48 || nx * nz > 4096 || !/baseplate|plate|brick/i.test(p.c + ' ' + p.d)) return [];
     const out = [];
     for (let i = 0; i < nx; i++) for (let k = 0; k < nz; k++) {
       out.push([0, Math.round(x0 + 10 + i*20), Math.round(y0 + 4), Math.round(z0 + 10 + k*20), UP]);
@@ -81,9 +105,10 @@ const NabugoPorts = (() => {
   const tubes = id => of(id).filter(p => p[0] === 1);
   /** Ports on the part's upward face — where something can be stacked. */
   const topStuds = id => studs(id).filter(p => p[4] === UP);
+  const undersideTubes = id => tubes(id).filter(p => p[4] === DOWN);
   const has = id => !!map[id];
 
-  return { load, of, studs, tubes, topStuds, has, get meta(){ return meta; },
+  return { load, of, studs, tubes, topStuds, undersideTubes, has, get meta(){ return meta; },
            get count(){ return Object.keys(map).length; } };
 })();
 
@@ -229,8 +254,11 @@ const NabugoEcology = (() => {
       if (spec.cat.test(p.c)) s += 0.5;
       for (const w of spec.lex) if (p._t.includes(w)) s += 0.28;
       if (s <= 0.2) continue;
-      // Ports are what let the compiler join a part to anything. A part with
-      // none can still be an ornament but never a support.
+      // Every non-root genome member must be placeable by the compiler we
+      // actually have. Clip/bar, pin/axle and minifig joints will join this
+      // pool only when their port families exist; until then they cannot leak
+      // through as floating decoration.
+      if (guild !== 'anchors' && !NabugoPorts.undersideTubes(p.id).length) continue;
       if (NabugoPorts.of(p.id).length) s += 0.15;
       scored.push({ p, s });
     }
@@ -491,54 +519,96 @@ const NabugoOperators = (() => {
 /**
  * Genome -> exact placements. This is the part that must never guess.
  *
- * Stacking rule, in LDraw's Y-down world: a part's underside is its AABB max Y
- * and its top face is its AABB min Y plus the 4 LDU the studs protrude. To seat
- * B on A, B.pos.y = (A top face, in world) - B.b[4]. XZ is snapped to A's
- * actual stud lattice, taken from the port registry, so the join is one the
- * bricks could really make.
+ * A placement is derived from a pair of compatible ports. The parent's male
+ * port and the child's female port must coincide in world space and point in
+ * opposite directions. Bounding boxes only reject collisions; they never
+ * manufacture a connection.
  */
 const NabugoCompiler = (() => {
 
-  const STUD_H = 4;
+  const EPS = 0.75;
+  const applyPoint = (m, pos, p) => [
+    m[0]*p[1] + m[1]*p[2] + m[2]*p[3] + pos[0],
+    m[3]*p[1] + m[4]*p[2] + m[5]*p[3] + pos[1],
+    m[6]*p[1] + m[7]*p[2] + m[8]*p[3] + pos[2]
+  ];
+  const applyLocalPoint = (m, p) => [
+    m[0]*p[1] + m[1]*p[2] + m[2]*p[3],
+    m[3]*p[1] + m[4]*p[2] + m[5]*p[3],
+    m[6]*p[1] + m[7]*p[2] + m[8]*p[3]
+  ];
+  const applyAxis = (m, axis) => {
+    const a = AXES[axis];
+    return [m[0]*a[0] + m[1]*a[1] + m[2]*a[2],
+            m[3]*a[0] + m[4]*a[1] + m[5]*a[2],
+            m[6]*a[0] + m[7]*a[1] + m[8]*a[2]];
+  };
+  const axisIs = (a, b) => a[0]*b[0] + a[1]*b[1] + a[2]*b[2] > 0.985;
+  const samePoint = (a, b) => Math.abs(a[0]-b[0]) <= EPS &&
+                                    Math.abs(a[1]-b[1]) <= EPS &&
+                                    Math.abs(a[2]-b[2]) <= EPS;
+  const portKey = p => p.map(v => Math.round(v)).join(',');
 
-  function topFaceY(place) {
-    const box = Geom.worldBox(place);
-    if (!box) return null;
-    const part = Catalog.get(place.part);
-    const hasTop = NabugoPorts.topStuds(place.part).length > 0;
-    // min[1] is the highest point. If studs are present that highest point is
-    // the stud tip, and the seating face is STUD_H below it.
-    return hasTop ? box.min[1] + STUD_H : box.min[1];
+  /** Actual upward male ports offered by a placed parent. */
+  function worldStuds(place) {
+    const m = place.mat || Geom.IDENT;
+    return NabugoPorts.studs(place.part)
+      .filter(p => axisIs(applyAxis(m, p[4]), AXES[UP]))
+      .map(p => ({ port: p, point: applyPoint(m, place.pos, p) }));
+  }
+
+  /** Actual downward female receivers available under an oriented child. */
+  function childTubes(partId, mat) {
+    return NabugoPorts.tubes(partId)
+      .filter(p => axisIs(applyAxis(mat, p[4]), AXES[DOWN]));
   }
 
   /**
-   * World-space XZ of the seats a parent offers.
-   *
-   * Preferred: its actual upward studs from the registry — a real clutch join.
-   * Fallback: a lattice over its top face. A tile, a dish or a smooth slope has
-   * no studs and cannot be clutched, but something can still rest on it, and
-   * refusing to place anything there meant every genome whose foundation was a
-   * tile compiled down to a single brick.
+   * Every transform here is proved by at least one coincident stud/tube pair.
+   * Multi-port matches are preferred and all covered parent studs are consumed.
    */
-  function studLattice(place) {
-    const part = Catalog.get(place.part);
-    if (!part) return { seats: [], join: 'none' };
-    const m = place.mat || Geom.IDENT, [px, , pz] = place.pos;
-    const xf = (x, y, z) => [ m[0]*x + m[1]*y + m[2]*z + px, m[6]*x + m[7]*y + m[8]*z + pz ];
+  function dockCandidates(parent, partId, mat, consumed) {
+    const studs = worldStuds(parent).filter(s => !consumed.has(portKey(s.point)));
+    const tubes = childTubes(partId, mat);
+    if (!studs.length || !tubes.length) return [];
 
-    const studs = NabugoPorts.topStuds(place.part);
-    if (studs.length) return { seats: studs.map(s => xf(s[1], s[2], s[3])), join: 'stud' };
+    const candidates = new Map();
+    for (const stud of studs) for (const tube of tubes) {
+      const local = applyLocalPoint(mat, tube);
+      const pos = [stud.point[0]-local[0], stud.point[1]-local[1], stud.point[2]-local[2]];
+      const key = portKey(pos);
+      if (candidates.has(key)) continue;
 
-    // Rest surface: one seat per 20 LDU of top face, capped so a baseplate does
-    // not produce a thousand.
-    const [x0, , z0, x1, , z1] = part.b;
-    const nx = Math.min(8, Math.max(1, Math.round((x1 - x0) / 20)));
-    const nz = Math.min(8, Math.max(1, Math.round((z1 - z0) / 20)));
-    const seats = [];
-    for (let i = 0; i < nx; i++) for (let k = 0; k < nz; k++) {
-      seats.push(xf(x0 + (i + 0.5) * (x1 - x0) / nx, 0, z0 + (k + 0.5) * (z1 - z0) / nz));
+      const matched = [];
+      for (const s of studs) {
+        const hit = tubes.some(t => samePoint(s.point, applyPoint(mat, pos, t)));
+        if (hit) matched.push(portKey(s.point));
+      }
+      if (matched.length) candidates.set(key, { pos, matched, parentPort: stud.port, childPort: tube });
     }
-    return { seats, join: 'rest' };
+
+    const parentBox = Geom.worldBox(parent);
+    const cx = parentBox ? (parentBox.min[0] + parentBox.max[0]) / 2 : parent.pos[0];
+    const cz = parentBox ? (parentBox.min[2] + parentBox.max[2]) / 2 : parent.pos[2];
+    return [...candidates.values()].sort((a, b) =>
+      b.matched.length - a.matched.length ||
+      Math.hypot(a.pos[0]-cx, a.pos[2]-cz) - Math.hypot(b.pos[0]-cx, b.pos[2]-cz));
+  }
+
+  /** Re-prove a stored joint from current transforms; never trust the stamp. */
+  function validateJoint(scene, child) {
+    const c = child.connection;
+    if (!c || c.kind !== 'stud-tube' || !Array.isArray(c.parentPort) || !Array.isArray(c.childPort)) return false;
+    const parent = scene.places.find(p => p.pid === c.target);
+    if (!parent || c.parentPort[0] !== 0 || c.childPort[0] !== 1) return false;
+    const contains = (ports, port) => ports.some(p => p.length === port.length && p.every((v, i) => v === port[i]));
+    if (!contains(NabugoPorts.studs(parent.part), c.parentPort) ||
+        !contains(NabugoPorts.tubes(child.part), c.childPort)) return false;
+    const pm = parent.mat || Geom.IDENT, cm = child.mat || Geom.IDENT;
+    const pa = applyAxis(pm, c.parentPort[4]), ca = applyAxis(cm, c.childPort[4]);
+    if (pa[0]*ca[0] + pa[1]*ca[1] + pa[2]*ca[2] > -0.985) return false;
+    return samePoint(applyPoint(pm, parent.pos, c.parentPort),
+                     applyPoint(cm, child.pos, c.childPort));
   }
 
   function compile(genome, anchor, opts = {}) {
@@ -555,10 +625,12 @@ const NabugoCompiler = (() => {
     const stage = (partId, x, y, z, mat, meta) => {
       const p = Catalog.get(partId);
       if (!p) { failures.push({ assembly: meta.id, reason: 'part not in catalogue', part: partId }); return null; }
-      const trial = { part: partId, color, pos: [x - (p.b[0] + p.b[3]) / 2, y, z - (p.b[2] + p.b[5]) / 2],
+      const pos = meta.exact ? [x, y, z]
+        : [x - (p.b[0] + p.b[3]) / 2, y, z - (p.b[2] + p.b[5]) / 2];
+      const trial = { part: partId, color, pos,
                       mat: mat || Geom.IDENT, cell, zone,
                       vignette: meta.vignette, strategy: meta.role, round: opts.round || 0,
-                      join: meta.join };
+                      connection: meta.connection || null };
       const box = Geom.worldBox(trial);
       if (!box) { failures.push({ assembly: meta.id, reason: 'no geometry', part: partId }); return null; }
       for (const q of scene.places) {
@@ -579,7 +651,7 @@ const NabugoCompiler = (() => {
         const p = Catalog.get(a.part);
         if (!p) { failures.push({ assembly: a.id, reason: 'part not in catalogue', part: a.part }); continue; }
         const rec = stage(a.part, anchor.x, -p.b[4], anchor.z, spin,
-                          { id: a.id, role: a.role, vignette, join: 'ground' });
+                          { id: a.id, role: a.role, vignette });
         if (rec) { placed.set(a.id, rec); lastPlaced = rec; }
         continue;
       }
@@ -599,29 +671,26 @@ const NabugoCompiler = (() => {
 
       for (const parent of chain) {
         if (landed) break;
-        const seatY = topFaceY(parent);
-        if (seatY === null) continue;
-        const { seats: lattice, join } = studLattice(parent);
-        if (!lattice.length) continue;
-        tried++;
-
         const key = parent.pid;
         if (!consumed.has(key)) consumed.set(key, new Set());
         const used = consumed.get(key);
-        const free = lattice.filter(sx => !used.has(seatKey(sx)));
-        const pool = free.length ? free : lattice;
+        const matrices = Array.from({ length: n }, (_, i) =>
+          a.symmetry === 'radial' && n > 1 ? Geom.rotY(-(i / n) * 360)
+          : (a.symmetry === 'bilateral' && i % 2 ? Geom.rotY(180) : spin));
+        const candidates = matrices.flatMap((mat, i) =>
+          dockCandidates(parent, a.part, mat, used).map(c => ({ ...c, mat, order: i })));
+        if (!candidates.length) continue;
+        tried++;
 
-        const y = seatY - child.b[4];
-        const seats = chooseSeats(pool, n, a.symmetry, rng);
-        seats.forEach((sx, i) => {
-          const mat = a.symmetry === 'radial' && n > 1
-            ? Geom.rotY(-(i / n) * 360)
-            : (a.symmetry === 'bilateral' && i % 2 ? Geom.rotY(180) : spin);
-          const rec = stage(a.part, sx[0], y, sx[1], mat,
-                            { id: a.id, role: a.role, vignette, join });
+        chooseDockings(candidates, n, a.symmetry, rng).forEach(c => {
+          const rec = stage(a.part, c.pos[0], c.pos[1], c.pos[2], c.mat,
+                            { id: a.id, role: a.role, vignette, exact: true,
+                              connection: { kind: 'stud-tube', target: parent.pid,
+                                parentPort: c.parentPort, childPort: c.childPort,
+                                engaged: c.matched.length } });
           if (rec) {
             landed++;
-            used.add(seatKey(sx));
+            c.matched.forEach(k => used.add(k));
             lastPlaced = rec;
             if (!placed.has(a.id)) placed.set(a.id, rec);
           }
@@ -629,21 +698,25 @@ const NabugoCompiler = (() => {
       }
       if (!landed) {
         failures.push({ assembly: a.id, part: a.part,
-          reason: tried ? 'every seat rejected' : 'no parent offered a seat' });
+          reason: tried ? 'every legal stud/tube docking collided' :
+            'no compatible parent stud and child underside tube' });
       }
     }
 
     return { scene, failures, placedCount: scene.count };
   }
 
-  /** Pick n stud seats from a lattice, honouring the requested symmetry. */
-  function chooseSeats(lattice, n, symmetry, rng) {
+  /** Pick n proved dockings, honouring the requested symmetry. */
+  function chooseDockings(candidates, n, symmetry, rng) {
+    const lattice = candidates.map(c => [c.pos[0], c.pos[2], c]);
     if (n === 1) {
       // Centre of the lattice reads as deliberate; a random stud reads as spill.
       const cx = lattice.reduce((s, p) => s + p[0], 0) / lattice.length;
       const cz = lattice.reduce((s, p) => s + p[1], 0) / lattice.length;
-      return [lattice.slice().sort((a, b) =>
-        (Math.hypot(a[0]-cx, a[1]-cz)) - (Math.hypot(b[0]-cx, b[1]-cz)))[0]];
+      const best = lattice.slice().sort((a, b) =>
+        b[2].matched.length - a[2].matched.length ||
+        (Math.hypot(a[0]-cx, a[1]-cz)) - (Math.hypot(b[0]-cx, b[1]-cz)))[0];
+      return best ? [best[2]] : [];
     }
     if (symmetry === 'bilateral') {
       const sorted = lattice.slice().sort((a, b) => a[0] - b[0]);
@@ -651,7 +724,7 @@ const NabugoCompiler = (() => {
       for (let i = 0; i < n; i++) {
         out.push(i % 2 ? sorted[sorted.length - 1 - Math.floor(i/2)] : sorted[Math.floor(i/2)]);
       }
-      return out.filter(Boolean);
+      return out.filter(Boolean).map(x => x[2]);
     }
     if (symmetry === 'radial') {
       const cx = lattice.reduce((s, p) => s + p[0], 0) / lattice.length;
@@ -659,16 +732,15 @@ const NabugoCompiler = (() => {
       const sorted = lattice.slice().sort((a, b) =>
         Math.atan2(a[1]-cz, a[0]-cx) - Math.atan2(b[1]-cz, b[0]-cx));
       const step = Math.max(1, Math.floor(sorted.length / n));
-      return Array.from({ length: n }, (_, i) => sorted[(i * step) % sorted.length]);
+      return Array.from({ length: n }, (_, i) => sorted[(i * step) % sorted.length])
+        .filter(Boolean).map(x => x[2]);
     }
     const out = [];
     for (let i = 0; i < n; i++) out.push(lattice[Math.floor(rng() * lattice.length)]);
-    return out.filter(Boolean);
+    return out.filter(Boolean).map(x => x[2]);
   }
 
-  const seatKey = s => Math.round(s[0]) + ',' + Math.round(s[1]);
-
-  return { compile, topFaceY, studLattice };
+  return { compile, worldStuds, childTubes, dockCandidates, validateJoint };
 })();
 
 // ══════════════════════════════════════════════════════════════════ viability
@@ -679,11 +751,17 @@ const NabugoCompiler = (() => {
 const NabugoViability = (() => {
   function check(scene, brief) {
     const a = N.Audit.run(scene, brief);
+    const hasLegalOrigin = p => {
+      if (p.connection) return NabugoCompiler.validateJoint(scene, p);
+      const b = Geom.worldBox(p);
+      return !!b && Math.abs(b.max[1]) <= 4.5;
+    };
     const gates = {
       hasParts:    a.parts > 0,
       validParts:  a.compiles,
       noCollision: a.collisions === 0,
       supported:   a.floating === 0,
+      legalJoints: scene.places.every(hasLegalOrigin),
       coherent:    a.cohesion >= 0.99
     };
     const failed = Object.entries(gates).filter(([, v]) => !v).map(([k]) => k);
@@ -1143,7 +1221,17 @@ class NabugoPopulation {
         return b && Geom.penetration(box, b) > 0;
       }));
       if (clashes) continue;
-      for (const p of cand.scene.places) this.scene.add({ ...p });
+      // Scene.add allocates new pids. Preserve the graph by remapping each
+      // candidate-local parent id to the id allocated in the standing world.
+      const pidMap = new Map();
+      for (const p of cand.scene.places) {
+        const connection = p.connection ? {
+          ...p.connection,
+          target: pidMap.get(p.connection.target) || p.connection.target
+        } : null;
+        const added = this.scene.add({ ...p, connection });
+        pidMap.set(p.pid, added.pid);
+      }
       committed = cand;
       break;
     }

@@ -176,6 +176,12 @@ function main() {
       const a = axisIndex(r.d);
       if (a < 0) { oblique++; continue; }
       const rec = [r.t, Math.round(r.p[0]), Math.round(r.p[1]), Math.round(r.p[2]), a];
+      // A tube primitive begins inside the underside cavity (normally y=4).
+      // Its clutch plane is the part's underside face (normally y=8 for a
+      // plate or y=24 for a brick). Store the semantic receiver plane rather
+      // than the primitive's internal origin. Lateral sockets require a
+      // separate cavity-depth pass and remain at their primitive origins.
+      if (r.t === 1 && a === 2) rec[2] = Math.round(part.b[4]);
       const key = rec.join(',');
       if (seen.has(key)) continue;
       seen.add(key);
