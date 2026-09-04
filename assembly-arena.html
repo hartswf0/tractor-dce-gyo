@@ -288,8 +288,10 @@ async function draw() {
   const heavy = K > 600 ? ' — a big one, this takes a while' : '';
   status('building ' + fmt(K) + ' pieces…' + heavy, true);
   const t0 = performance.now();
+  const release = holdFrame();
   try {
     await engine.loadText(buildText(), { name: OBJ.id }, OBJ.id + '.mpd');
+    release();
     // Framing only on a change of object: scrubbing and lighting a structure
     // must not yank the camera out of wherever it has been put.
     if (needFrame) { NabugoUI.frame(engine, 0.46); needFrame = false; }
@@ -300,7 +302,25 @@ async function draw() {
   } catch (e) {
     status('');
     fail('render failed: ' + (e.message || e));
+  } finally {
+    release();
   }
+}
+
+/**
+ * The engine's animation loop draws every frame no matter what, and a build of
+ * this size is assembled on the same thread it draws on. While geometry is
+ * going together there is nothing new to look at, so the frame is held and the
+ * loader gets the thread to itself. Contained here on purpose: the engine is
+ * shared with other pages that have no such problem.
+ */
+function holdFrame() {
+  const r = engine && engine.renderer;
+  if (!r || r.__held) return () => {};
+  const real = r.render.bind(r);
+  r.render = () => {};
+  r.__held = true;
+  return () => { if (r.__held) { r.render = real; r.__held = false; } };
 }
 
 function copiesOf(idx) {
