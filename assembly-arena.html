@@ -32,11 +32,11 @@ button.on .pc{color:#8d8878}
 button:disabled{opacity:.4;cursor:default}
 a{color:var(--dim);text-decoration:none}a:hover{color:var(--ink)}
 
-#app{display:grid;grid-template-rows:auto 1fr auto;height:100dvh}
+#app{display:grid;grid-template-rows:auto 1fr auto;grid-template-columns:minmax(0,1fr);height:100dvh}
 
 header{display:flex;gap:14px;align-items:center;flex-wrap:wrap;padding:14px 22px}
 header h1{margin:0;font-size:13px;font-weight:600;letter-spacing:.22em;text-transform:uppercase}
-#objs{display:flex;gap:6px;margin-left:6px;overflow-x:auto;scrollbar-width:none}
+#objs{display:flex;gap:6px;margin-left:6px;overflow-x:auto;scrollbar-width:none;min-width:0}
 #objs::-webkit-scrollbar{display:none}
 header .right{margin-left:auto;display:flex;gap:14px;font-size:12.5px}
 
@@ -56,7 +56,7 @@ main{position:relative;min-height:0}
 #status{left:26px;bottom:16px;color:var(--dim);font-size:11.5px}
 #status.busy{color:var(--accent)}
 
-footer{padding:0 22px 16px}
+footer{padding:0 22px 16px;min-width:0}
 .scrub{display:flex;align-items:center;gap:16px;padding:10px 0 4px}
 .scrub input{flex:1;-webkit-appearance:none;appearance:none;background:transparent;height:18px;cursor:pointer}
 .scrub input::-webkit-slider-runnable-track{height:1px;background:var(--line)}
@@ -70,7 +70,7 @@ footer{padding:0 22px 16px}
 #ticks i{position:absolute;bottom:0;width:1px;height:6px;background:var(--line)}
 #ticks i.now{background:var(--ink);height:9px}
 
-#space{display:flex;gap:0;overflow-x:auto;padding:4px 0 0;scrollbar-width:thin}
+#space{display:flex;gap:0;overflow-x:auto;padding:4px 0 0;scrollbar-width:thin;min-width:0}
 #space .s{flex:0 0 auto;padding:7px 15px 7px 0;margin-right:15px;border-right:1px solid var(--hair);
   cursor:pointer;line-height:1.35}
 #space .s:hover .t{color:var(--accent)}
