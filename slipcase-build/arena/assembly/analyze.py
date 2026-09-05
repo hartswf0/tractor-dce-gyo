@@ -196,6 +196,7 @@ def analyse(path, label):
 
 
 TARGETS = [
+    ('kits/75421-darth-vader-tie-fighter.mpd', 'VADER-TIE'),
     ('kits/10174-imperial-atst-ucs.mpd', 'AT-ST'),
     ('kits/7140-xwing-fighter.mpd', 'X-WING'),
     ('kits/5935-island-hopper.mpd', 'ISLAND-HOPPER'),

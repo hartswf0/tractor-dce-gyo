@@ -139,6 +139,7 @@ async function boot() {
     engine.setDiagnostics({ axes: false, grid: false });
   } catch (e) { return fail('viewer failed: ' + e.message); }
 
+  window.__assembly = { engine: () => engine, load, state: () => ({ obj: OBJ && OBJ.id, k: K, sel: SEL }) };
   load('CASTLE-CARD');
 }
 
