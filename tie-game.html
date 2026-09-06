@@ -107,7 +107,7 @@ button{font:inherit;color:var(--ink);border:none;border-radius:16px;cursor:point
 <div id="dock">
   <button id="build" disabled>Build<span class="sub" id="bsub">loading</span></button>
   <button id="reset" title="start over">↺</button>
-  <div class="hint">drag to orbit · pinch to zoom · hold build to auto</div>
+  <div class="hint">drag · pinch · hold to auto-build</div>
 </div>
 
 <div class="veil" id="start">
@@ -287,7 +287,7 @@ async function render(all) {
   r.render = () => {};                      // hold the frame while the geometry goes together
   try {
     await engine.loadText(buildText(all), { name: 'game' }, 'game.mpd');
-    if (!framed) NabugoUI.frame(engine, 0.55);
+    if (!framed) NabugoUI.frame(engine, 0.42);   // portrait: let the ship fill the middle
   } catch (e) { fail('render failed: ' + (e.message || e)); }
   finally { r.render = real; }
 }
