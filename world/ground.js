@@ -10,7 +10,7 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const lerp = (a, b, t) => a + (b - a) * t;
 
 /** field: { n, res (m), h Float32Array(n*n) absolute metres, cx, cy (grid coords of the origin), datum } */
-function make(field, M) {
+function make(field, M, paint) {
   const { n, res, cx, cy } = field, datum = field.datum;
   const H = new Float32Array(n * n); for (let i = 0; i < n * n; i++) H[i] = field.h[i] - datum;
   const at = (i, j) => H[clamp(j, 0, n - 1) * n + clamp(i, 0, n - 1)];
@@ -30,24 +30,29 @@ function make(field, M) {
   };
   const N = n - 1, SZ = N * res, g = new THREE.PlaneGeometry(SZ, SZ, N, N); g.rotateX(-Math.PI / 2);
   g.translate(SZ / 2 - cx * res, 0, SZ / 2 - cy * res);
-  const pos = g.attributes.position, col = new Float32Array(pos.count * 3);
-  const jit = (x, z) => { const v = Math.sin(x * 12.9898 + z * 78.233) * 43758.5453; return v - Math.floor(v); };
+  const pos = g.attributes.position;
   let lo = Infinity, hi = -Infinity; for (let i = 0; i < n * n; i++) { if (H[i] < lo) lo = H[i]; if (H[i] > hi) hi = H[i]; }
-  for (let i = 0; i < pos.count; i++) {
-    const ix = i % n, iy = (i / n) | 0, x = pos.getX(i), z = pos.getZ(i), h = at(ix, iy); pos.setY(i, h);
-    const sl = Math.hypot(at(ix + 1, iy) - at(ix - 1, iy), at(ix, iy + 1) - at(ix, iy - 1)) / (2 * res), nz = jit(x, z) * .05 - .025;
-    let r, gr, b;                                  // the moss palette, keyed to this window's own relief
-    const t = clamp((h - lo) / Math.max(20, hi - lo), 0, 1);
-    if (sl > .52) { r = .47; gr = .45; b = .42; }
-    else { r = lerp(.40, .56, t); gr = lerp(.47, .56, t); b = lerp(.30, .40, t); }
-    const shade = 1 - clamp(sl * .55, 0, .28);
-    col[i * 3] = clamp(r * shade + nz, 0, 1); col[i * 3 + 1] = clamp(gr * shade + nz, 0, 1); col[i * 3 + 2] = clamp(b * shade + nz, 0, 1);
-  }
-  g.setAttribute('color', new THREE.BufferAttribute(col, 3)); g.computeVertexNormals(); g.computeBoundingSphere();
+  for (let i = 0; i < pos.count; i++) { const ix = i % n, iy = (i / n) | 0; pos.setY(i, at(ix, iy)); }
+  g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(pos.count * 3), 3)); g.computeVertexNormals(); g.computeBoundingSphere();
   G.mesh = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1, metalness: 0 }));
   G.mesh.scale.setScalar(M); G.mesh.name = 'ground';
-  G.lo = lo; G.hi = hi;
+  G.lo = lo; G.hi = hi; G.at = at;
+  recolour(G, paint);
   return G;
+}
+const MOSS = (h, sl, x, z, lo, hi) => { const t = clamp((h - lo) / Math.max(20, hi - lo), 0, 1); if (sl > .52) return [.47, .45, .42]; return [lerp(.40, .56, t), lerp(.47, .56, t), lerp(.30, .40, t)]; };
+/** Paint the vertices with a function of (height, slope, x, z, lo, hi) in metres; drops any imagery. */
+function recolour(G, paint) {
+  paint = paint || MOSS; const g = G.mesh.geometry, pos = g.attributes.position, col = g.attributes.color, n = G.n, res = G.res, at = G.at;
+  const jit = (x, z) => { const v = Math.sin(x * 12.9898 + z * 78.233) * 43758.5453; return v - Math.floor(v); };
+  for (let i = 0; i < pos.count; i++) {
+    const ix = i % n, iy = (i / n) | 0, x = pos.getX(i), z = pos.getZ(i), h = at(ix, iy);
+    const sl = Math.hypot(at(ix + 1, iy) - at(ix - 1, iy), at(ix, iy + 1) - at(ix, iy - 1)) / (2 * res), nz = jit(x, z) * .05 - .025, shade = 1 - clamp(sl * .55, 0, .28);
+    const [r, gr, b] = paint(h, sl, x, z, G.lo, G.hi);
+    col.setXYZ(i, clamp(r * shade + nz, 0, 1), clamp(gr * shade + nz, 0, 1), clamp(b * shade + nz, 0, 1));
+  }
+  col.needsUpdate = true;
+  const m = G.mesh.material; if (m.map) { m.map.dispose(); m.map = null; } m.vertexColors = true; m.color.set(0xffffff); m.needsUpdate = true; G.imagery = null;
 }
 
 /** Drape stitched imagery: per-vertex UVs from the imagery's own projection, so registration is exact. */
@@ -90,8 +95,9 @@ function daylight(scene, renderer, loader, M) {
   scene.background = new THREE.Color(0xb8cbd8);
   scene.fog = new THREE.Fog(lin(0xc9d4d2), 30 * M, 900 * M);
   scene.traverse(o => { if (o.isAmbientLight || o.isDirectionalLight) o.intensity = 0; });
-  scene.add(new THREE.HemisphereLight(lin(0xffffff), lin(0xd8d8d8), 1.35 / Math.PI));
+  const hemi = new THREE.HemisphereLight(lin(0xffffff), lin(0xd8d8d8), 1.35 / Math.PI); scene.add(hemi);
   const dir = new THREE.DirectionalLight(0xffffff, 1.25 / Math.PI); dir.position.set(2, 3, 2).multiplyScalar(1000); scene.add(dir);
+  daylight.lights = { hemi, sun: dir };
   const seen = new Set();
   for (const m of loader.materials || []) for (const x of [m, m.userData && m.userData.edgeMaterial]) {
     if (x && x.color && !seen.has(x)) { seen.add(x); x.color.convertSRGBToLinear(); if (x.emissive) x.emissive.convertSRGBToLinear(); }
@@ -109,5 +115,5 @@ function bakedField() {
 /** Convert a fetched square field (origin at the centre) into the shared shape. */
 function centredField(f) { return { n: f.n, res: f.res, h: f.h, cx: (f.n - 1) / 2, cy: (f.n - 1) / 2, datum: f.datum }; }
 
-window.Ground = { make, drape, roads, daylight, bakedField, centredField };
+window.Ground = { make, drape, recolour, roads, daylight, bakedField, centredField, MOSS };
 })();
