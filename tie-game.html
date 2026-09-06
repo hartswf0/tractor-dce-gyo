@@ -89,6 +89,38 @@ button{font:inherit;color:var(--ink);border:none;border-radius:16px;cursor:point
 .veil .stats b.gold{color:var(--gold)}
 .veil a{color:var(--dim);font-size:12px;letter-spacing:.1em;text-transform:uppercase;text-decoration:none;margin-top:22px}
 #err{position:fixed;left:16px;right:16px;bottom:120px;color:var(--gold);font-size:12px;text-align:center}
+
+/* ---------- flight ---------- */
+#fly{display:none;height:64px;font-size:17px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;
+  background:var(--gold);color:#1a1405;box-shadow:0 8px 24px rgba(245,197,66,.3)}
+#fly .sub{display:block;font-size:10px;font-weight:600;letter-spacing:.14em;opacity:.8;margin-top:1px}
+body.done #build{display:none} body.done #fly{display:block}
+body.fly #dock{display:none}
+#flyui{display:none} body.fly #flyui{display:block}
+/* two sticks, hand-rolled: the handle blooms under the thumb */
+.stick{position:fixed;bottom:calc(env(safe-area-inset-bottom) + 54px);width:46px;height:46px;border-radius:999px;
+  border:2px solid rgba(255,255,255,.55);background:rgba(255,255,255,.12);touch-action:none;z-index:5;
+  transition:width .12s,height .12s,left .12s,right .12s}
+#navMove{left:45px} #navLook{right:45px}
+.stick.live{width:118px;height:118px} #navMove.live{left:9px} #navLook.live{right:9px}
+.stick .nub{position:absolute;left:50%;top:50%;width:26px;height:26px;transform:translate(-50%,-50%);
+  border-radius:999px;background:var(--ink);will-change:transform;pointer-events:none}
+#navMove .nub{box-shadow:0 0 0 5px rgba(77,255,77,.35)} #navLook .nub{box-shadow:0 0 0 5px rgba(224,52,44,.35)}
+#actions{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 150px);
+  display:flex;gap:12px;align-items:center;z-index:5}
+#fire{width:86px;height:86px;border-radius:999px;background:var(--red);font-size:13px;font-weight:800;letter-spacing:.14em;
+  text-transform:uppercase;box-shadow:0 8px 24px rgba(224,52,44,.35);touch-action:none;transition:transform .08s}
+#boost{width:64px;height:64px;border-radius:999px;background:rgba(255,255,255,.12);font-size:11px;font-weight:700;
+  letter-spacing:.12em;text-transform:uppercase;touch-action:none;transition:transform .08s}
+#fire.on,#boost.on{transform:scale(.92)}
+#cross{position:fixed;left:50%;top:50%;width:18px;height:18px;transform:translate(-50%,-50%);border:1.5px solid rgba(255,255,255,.55);
+  border-radius:999px;pointer-events:none}
+#flash{position:fixed;inset:0;background:rgba(224,52,44,.35);opacity:0;pointer-events:none;transition:opacity .12s}
+#flash.on{opacity:1}
+#bar.shield i{background:#4dff4d;transition:width .15s} #bar.shield.low i{background:var(--red)}
+#keys{display:none;position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 16px);transform:translateX(-50%);
+  font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);pointer-events:none;white-space:nowrap}
+@media (hover:hover) and (pointer:fine){.stick,#actions{display:none} body.fly #keys{display:block}}
 </style>
 </head>
 <body>
@@ -106,6 +138,7 @@ button{font:inherit;color:var(--ink);border:none;border-radius:16px;cursor:point
 
 <div id="dock">
   <button id="build" disabled>Build<span class="sub" id="bsub">loading</span></button>
+  <button id="fly">Fly it<span class="sub">take off</span></button>
   <button id="reset" title="start over">↺</button>
   <div class="hint">drag · pinch · hold to auto-build</div>
 </div>
@@ -122,8 +155,24 @@ button{font:inherit;color:var(--ink);border:none;border-radius:16px;cursor:point
   <h1 id="finalPts" class="n">0</h1>
   <div class="meta">points</div>
   <div class="stats" id="finalStats"></div>
-  <button class="go" id="again">Again</button>
+  <button class="go" id="flyBtn" hidden>Fly it</button>
+  <button class="go" id="again" style="background:rgba(255,255,255,.12);margin-top:12px">Again</button>
   <a href="assembly-arena.html">open in the assembly arena ›</a>
+</div>
+
+<div class="veil gone" id="launch">
+  <div class="kicker">Powering up</div>
+  <h1>Take off</h1>
+  <div class="meta">the outpost wakes · the squadron scrambles</div>
+</div>
+
+<div id="flyui">
+  <div id="cross"></div>
+  <div id="flash"></div>
+  <div class="stick" id="navMove"><div class="nub"></div></div>
+  <div class="stick" id="navLook"><div class="nub"></div></div>
+  <div id="actions"><button id="boost">Boost</button><button id="fire">Fire</button></div>
+  <div id="keys">w a s d fly · shift boost · space fire · q e look</div>
 </div>
 <div id="err"></div>
 
@@ -168,12 +217,16 @@ async function boot() {
   $('#go').onclick = start;
   $('#again').onclick = () => { $('#end').classList.add('gone'); start(); };
   $('#reset').onclick = start;
+  $('#fly').onclick = enterFlight;
+  $('#flyBtn').onclick = () => (FLY.over ? flyAgain() : enterFlight());
+  window.addEventListener('pointerdown', unlockAudio, { once: true });
+  window.addEventListener('keydown', unlockAudio, { once: true });
   const b = $('#build');
   b.onclick = place;
   b.addEventListener('pointerdown', () => { holdTimer = setInterval(place, 700); b.classList.add('pressed'); });
   const stop = () => { clearInterval(holdTimer); holdTimer = null; b.classList.remove('pressed'); };
   b.addEventListener('pointerup', stop); b.addEventListener('pointerleave', stop); b.addEventListener('pointercancel', stop);
-  window.__game = { engine: () => engine, place, state: () => ({ at, score, done, chunks: chunks.length }) };
+  Object.assign(window.__game, { engine: () => engine, place, state: () => ({ at, score, done, chunks: chunks.length }) });
 
   b.disabled = false;
   $('#bsub').textContent = 'ready';
@@ -203,7 +256,9 @@ function shortName(idx) {
 }
 
 function start() {
+  if (MODE === 'fly') { location.reload(); return; }   // back to the ghosted build scene, cleanly
   at = 0; score = 0; done = false; t0 = performance.now();
+  $('#flyBtn').hidden = true;
   $('#start').classList.add('gone');
   $('#end').classList.add('gone');
   $('#build').disabled = false;
@@ -212,7 +267,7 @@ function start() {
 }
 
 function place() {
-  if (done || at >= chunks.length) return;
+  if (MODE === 'fly' || done || at >= chunks.length) return;
   const c = chunks[at++];
   const pieces = c.end - c.start + 1;
   const free = c.occ > 1;
@@ -236,6 +291,7 @@ function paint() {
   $('#count').textContent = `${fmt(placed)} / ${fmt(total)} pieces · ${at} / ${chunks.length} structures`;
   $('#bsub').textContent = next ? `${next.end - next.start + 1} pieces` + (next.occ > 1 ? ' · already built' : '') : 'done';
   $('#build').disabled = !next;
+  document.body.classList.toggle('done', !next && done);
 }
 
 let toastTimer = null;
@@ -261,8 +317,10 @@ function finish() {
     ['assembly index', fmt(OBJ.a_reuse), ''],
     ['one by one', fmt(OBJ.a_naive), ''],
   ].map(([k, v, cls]) => `<div><span>${k}</span><b class="${cls}">${v}</b></div>`).join('');
+  const fb = $('#flyBtn'); fb.hidden = false; fb.textContent = 'Fly it';
+  $('#again').textContent = 'Again';
   // let the last structure land before the veil comes down
-  setTimeout(() => $('#end').classList.remove('gone'), 1400);
+  setTimeout(() => { if (MODE === 'build') $('#end').classList.remove('gone'); }, 1400);
 }
 
 /* ---------- rendering: the built part solid, the rest as glass ---------- */
@@ -276,6 +334,7 @@ function buildText(all) {
 }
 
 function schedule() {
+  if (MODE === 'fly') return;               // flight never rebuilds the scene
   if (busy) { queued = true; return; }
   busy = true; queued = false;
   render(false).finally(() => { busy = false; if (queued) schedule(); });
@@ -297,6 +356,459 @@ async function render(all) {
   } catch (e) { fail('render failed: ' + (e.message || e)); }
   finally { r.render = real; }
 }
+
+/* =====================================================================
+   FLIGHT — build it, then fly it and shoot.
+   World frame: the engine flips LDraw to three.js, so the ship's nose is
+   wrapper-local +Z, up is +Y, right is -X. Units are LDU (a stud is 20).
+   ===================================================================== */
+let MODE = 'build';                                   // 'build' | 'fly'
+const isTouch = (navigator.maxTouchPoints || 0) > 0 || matchMedia('(pointer:coarse)').matches;
+const isPortrait = () => innerHeight > innerWidth;
+
+const GROUND = -120, FLOOR = GROUND + 150, CEIL = 2600, ARENA_R = 4000;
+const ARENA_C = new THREE.Vector3(0, 0, -260);        // the outpost
+const CRUISE = 350, BOOSTV = 700, MIN_SPD = 160, SPD_EASE = 2.0, VEL_EASE = 4.0;
+const YAW_RATE = 1.6, PITCH_RATE = 1.3, PITCH_MAX = 1.1, BANK = 0.9, BANK_EASE = 6, IN_EASE = 10;
+const BOLT_N = 48, BOLT_SPD = 2200, ENEMY_BOLT_SPD = 1600, BOLT_LIFE = 1.2, FIRE_RATE = 8, BOLT_R = 20;
+const MUZZLE = [new THREE.Vector3(-16, -12, 144), new THREE.Vector3(16, -12, 144)];  // chin cannon tips
+const XW_SPD = 320, XW_TURN = 1.4, ORBIT_R = 900, ORBIT_W = 0.35, FIRE_RANGE = 1500, XW_MAX = 6;
+const SHIELD_MAX = 100, HIT_DMG = 20, REGEN_DELAY = 3, REGEN_RATE = 5, PLAYER_R = 130;
+
+const FLY = {
+  ready: false, over: false, ship: null, side: null, scenery: null, xw: null,
+  targets: [], enemies: [], bolts: [], debris: [], spawnQueue: [],
+  pos: new THREE.Vector3(), vel: new THREE.Vector3(), quat: new THREE.Quaternion(),
+  yaw: Math.PI, pitch: 0, roll: 0, speed: 0, shields: SHIELD_MAX, lastHit: -9,
+  wave: 0, kills: 0, waveTimer: 0, t: 0, t0: 0, last: 0, hudAcc: 0, muzzle: 0, fireAcc: 1,
+  cam: { az: null, dist: 900, high: 260, hold: 0 }, look: new THREE.Vector3(),
+  input: { x: 0, y: 0, fire: false, boost: false, lookX: 0 },
+  raw: { stick: { x: 0, y: 0, mag: 0 }, look: { x: 0, y: 0, mag: 0 }, fireHeld: false, boostHeld: false, canvasFire: false },
+  keys: new Set(), savedControls: null, portrait: null,
+};
+// scratch objects: nothing is allocated inside the loop
+const V1 = new THREE.Vector3(), V2 = new THREE.Vector3(), V3 = new THREE.Vector3(), FWD = new THREE.Vector3(0, 0, 1);
+const Q1 = new THREE.Quaternion(), Q2 = new THREE.Quaternion(), E1 = new THREE.Euler(), M1 = new THREE.Matrix4();
+const UP = new THREE.Vector3(0, 1, 0), Z1 = new THREE.Vector3(0, 0, 1), X1 = new THREE.Vector3(1, 0, 0);
+const SPH = new THREE.Sphere(), BOX = new THREE.Box3();
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const normAngle = a => { a = (a + Math.PI) % (2 * Math.PI); if (a < 0) a += 2 * Math.PI; return a - Math.PI; };
+const lerpAngle = (a, b, t) => a + normAngle(b - a) * t;
+
+/* ---------- loading: a second loader, never two parses at once ---------- */
+const mpd = (lines, name) => ['0 FILE ' + name + '.ldr', '0 !LDRAW_ORG Unofficial_Model', ...lines].join('\n') + '\n';
+
+function makeSideLoader() {
+  const L = new THREE.LDrawLoader(), m = engine.loader;
+  L.path = m.path;
+  if (m.fileMap) L.setFileMap({ ...m.fileMap });
+  L.setMaterials(m.materials.slice());               // after repairEdgeColours
+  L.subobjectCache = m.subobjectCache;               // shared fetched text; parse state stays separate
+  return L;
+}
+function parseLines(loader, lines, name, lib = '') {
+  return new Promise((ok, no) => {
+    try {
+      loader.parse(mpd(lines, name) + '\n' + lib, name + '.mpd', root => {
+        root.rotation.x = Math.PI;                   // the same LDraw -> three flip the engine applies
+        const w = new THREE.Group(); w.name = name; w.add(root); ok(w);
+      });
+    } catch (e) { no(e); }
+  });
+}
+async function makeTarget(lines, name, hp, pts) {
+  const w = await parseLines(FLY.side, lines, name);
+  engine.scene.add(w);
+  BOX.setFromObject(w).getBoundingSphere(SPH);
+  return { wrapper: w, pos: SPH.center.clone(), r: Math.max(40, SPH.radius), hp, hp0: hp, name, pts, alive: true, pulse: 0, ground: true };
+}
+async function loadXwingTemplate() {
+  let lines, lib = '';
+  try {
+    const p = await (await fetch('./assembly-paths/XWING-MINI.json')).json();
+    lines = p.lines;
+    const r = await fetch('./assembly-paths/XWING-MINI-inline.mpd'); lib = r.ok ? await r.text() : '';
+  } catch (e) {
+    // no flattened path: the kit inlines its own parts, so parse it from its first FILE block
+    const text = await (await fetch('./kits/30051-xwing-mini.mpd')).text();
+    lines = [text.slice(text.indexOf('0 FILE'))]; lib = '';
+  }
+  FLY.xw = await parseLines(FLY.side, lines, 'xwing', lib);
+  FLY.xw.traverse(o => { if (o.isLineSegments) o.visible = false; });   // fewer draw calls per clone
+  BOX.setFromObject(FLY.xw).getBoundingSphere(SPH);
+  FLY.xw.userData.r = Math.max(60, SPH.radius);
+}
+
+/* ---------- entering flight ---------- */
+async function enterFlight() {
+  if (MODE === 'fly' || !done) return;
+  MODE = 'fly'; unlockAudio();
+  $('#end').classList.add('gone'); $('#launch').classList.remove('gone');
+  while (busy) await new Promise(r => setTimeout(r, 30));      // let the last build render land
+  const r = engine.renderer, real = r.render.bind(r);
+  r.render = () => {};
+  try {
+    await engine.loadText(mpd(PATH.lines.slice(0, 108), 'ship'), { name: 'ship' }, 'ship.mpd');
+    FLY.ship = engine.modelWrapper;
+    FLY.side = makeSideLoader();
+    const scenery = [...PATH.lines.slice(108, 120), PATH.lines[124], ...PATH.lines.slice(138, 149)];
+    FLY.scenery = await parseLines(FLY.side, scenery, 'scenery');
+    FLY.scenery.matrixAutoUpdate = false; FLY.scenery.updateMatrix(); engine.scene.add(FLY.scenery);
+    FLY.targets = [
+      await makeTarget(PATH.lines.slice(120, 124), 'radar dish', 3, 400),
+      await makeTarget(PATH.lines.slice(125, 127), 'console', 2, 150),
+      await makeTarget(PATH.lines.slice(127, 138), 'trooper', 1, 100),
+    ];
+    await loadXwingTemplate();
+  } catch (e) {
+    r.render = real; MODE = 'build'; $('#launch').classList.add('gone');
+    return fail('take-off failed: ' + (e.message || e));
+  }
+  FLY.savedControls = engine.controls;
+  engine.controls.enabled = false; engine.controls = null;         // OrbitControls.update() would keep re-aiming the camera
+  if (isTouch) r.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+  initBolts(); initDebris(); bindFlightInput(); resetFlight();
+  r.render = (s, c) => { tick(); real(s, c); };                    // the per-frame hook, installed once
+  document.body.classList.add('fly'); $('#launch').classList.add('gone');
+  $('#bar').classList.add('shield'); $('#bar').querySelectorAll('u').forEach(u => u.remove());
+  FLY.last = performance.now(); FLY.ready = true;
+  startWave(1);
+}
+function resetFlight() {
+  FLY.pos.set(0, 150, 1800); FLY.yaw = Math.PI; FLY.pitch = 0; FLY.roll = 0;
+  FLY.speed = CRUISE; FLY.vel.set(0, 0, -CRUISE);
+  FLY.shields = SHIELD_MAX; FLY.lastHit = -9; FLY.wave = 0; FLY.kills = 0; FLY.waveTimer = 0;
+  FLY.t = 0; FLY.t0 = performance.now(); FLY.over = false;
+  FLY.cam.az = null; FLY.cam.hold = 0; FLY.look.copy(FLY.pos);
+  for (const e of FLY.enemies) engine.scene.remove(e.wrapper);
+  FLY.enemies.length = 0; FLY.spawnQueue.length = 0;
+  for (const b of FLY.bolts) { b.life = 0; b.mesh.visible = false; }
+  for (const d of FLY.debris) { d.life = 0; d.mesh.visible = false; }
+  for (const t of FLY.targets) { t.alive = true; t.hp = t.hp0; t.wrapper.visible = true; t.wrapper.scale.setScalar(1); }
+  setFov();
+}
+function setFov() {
+  const p = isPortrait(); if (p === FLY.portrait) return;
+  FLY.portrait = p; engine.camera.fov = p ? 55 : 50; engine.camera.updateProjectionMatrix();
+}
+function flyAgain() { $('#end').classList.add('gone'); resetFlight(); FLY.last = performance.now(); startWave(1); }
+
+/* ---------- the loop ---------- */
+function tick() {
+  if (!FLY.ready || FLY.over) return;
+  const now = performance.now();
+  const dt = Math.min(0.05, Math.max(0, (now - FLY.last) / 1000)); FLY.last = now; FLY.t += dt;
+  setFov();
+  readInput(dt);
+  stepFlight(dt);
+  FLY.ship.position.copy(FLY.pos); FLY.ship.quaternion.copy(FLY.quat);
+  stepBolts(dt);
+  stepEnemies(dt);
+  stepHits();
+  stepDebris(dt);
+  stepShields(dt);
+  stepCamera(dt);
+  if ((FLY.hudAcc += dt) > 0.1) { FLY.hudAcc = 0; paintFlight(); }
+}
+
+function readInput(dt) {
+  const k = FLY.keys, s = FLY.raw.stick;
+  let wx = (k.has('ArrowRight') || k.has('KeyD') ? 1 : 0) - (k.has('ArrowLeft') || k.has('KeyA') ? 1 : 0);
+  let wy = (k.has('ArrowUp') || k.has('KeyW') ? 1 : 0) - (k.has('ArrowDown') || k.has('KeyS') ? 1 : 0);
+  if (s.mag > 0.05) { wx = s.x * s.mag; wy = s.y * s.mag; }
+  const e = 1 - Math.exp(-dt * IN_EASE);
+  FLY.input.x += (wx - FLY.input.x) * e; FLY.input.y += (wy - FLY.input.y) * e;
+  FLY.input.boost = FLY.raw.boostHeld || k.has('ShiftLeft') || k.has('ShiftRight');
+  FLY.input.fire = FLY.raw.fireHeld || FLY.raw.canvasFire || k.has('Space');
+  FLY.input.lookX = FLY.raw.look.mag > 0.05 ? FLY.raw.look.x : (k.has('KeyE') ? 1 : k.has('KeyQ') ? -1 : 0);
+}
+
+function stepFlight(dt) {
+  const i = FLY.input;
+  FLY.yaw -= i.x * YAW_RATE * dt;                                   // stick right, nose right
+  FLY.pitch = clamp(FLY.pitch + i.y * PITCH_RATE * dt, -PITCH_MAX, PITCH_MAX);
+  FLY.roll += (i.x * BANK - FLY.roll) * (1 - Math.exp(-dt * BANK_EASE));   // the inner wing dips
+  const target = i.boost ? BOOSTV : CRUISE;
+  FLY.speed += (Math.max(MIN_SPD, target) - FLY.speed) * (1 - Math.exp(-dt * SPD_EASE));
+  FLY.quat.setFromEuler(E1.set(-FLY.pitch, FLY.yaw, FLY.roll, 'YXZ'));
+  FWD.set(0, 0, 1).applyQuaternion(FLY.quat);
+  V1.copy(FWD).multiplyScalar(FLY.speed);
+  FLY.vel.lerp(V1, 1 - Math.exp(-dt * VEL_EASE));                  // the lag is the drift
+  FLY.pos.addScaledVector(FLY.vel, dt);
+  if (FLY.pos.y < FLOOR) { FLY.pos.y = FLOOR; if (FLY.vel.y < 0) FLY.vel.y *= -0.35; FLY.pitch = Math.max(FLY.pitch, 0.15); buzz('ground', 20, 400); }
+  if (FLY.pos.y > CEIL) { FLY.pos.y = CEIL; FLY.pitch = Math.min(FLY.pitch, -0.1); }
+  V2.subVectors(ARENA_C, FLY.pos); V2.y = 0; const d = V2.length();
+  if (d > ARENA_R) FLY.yaw = lerpAngle(FLY.yaw, Math.atan2(V2.x, V2.z), 1 - Math.exp(-dt * (d - ARENA_R) / 400));
+}
+
+/* ---------- chase camera: settles behind you, holds where you looked ---------- */
+function stepCamera(dt) {
+  const c = FLY.cam, port = isPortrait();
+  const wantD = port ? 900 : 650, wantH = port ? 260 : 200, ck = 1 - Math.exp(-dt * 1.6);
+  if (c.hold <= 0) { c.dist += (wantD - c.dist) * ck; c.high += (wantH - c.high) * ck; }
+  const behind = FLY.yaw + Math.PI;
+  if (Math.abs(FLY.input.lookX) > 0.02) { c.az = behind + FLY.input.lookX * Math.PI * 0.9; c.hold = 1.1; }
+  else if ((c.hold = Math.max(0, c.hold - dt)) <= 0) c.az = lerpAngle(c.az == null ? behind : c.az, behind, 1 - Math.exp(-dt * (1.1 + FLY.speed * 0.004)));
+  if (c.az == null) c.az = behind;
+  V1.set(FLY.pos.x + Math.sin(c.az) * c.dist, FLY.pos.y + c.high - Math.sin(FLY.pitch) * c.dist * 0.35, FLY.pos.z + Math.cos(c.az) * c.dist);
+  engine.camera.position.lerp(V1, 1 - Math.exp(-dt * 5.5));
+  V2.copy(FLY.pos).addScaledVector(FWD, 320); V2.y += 40;
+  FLY.look.lerp(V2, 1 - Math.exp(-dt * 9));
+  engine.camera.lookAt(FLY.look);
+}
+
+/* ---------- bolts ---------- */
+const boltGeo = new THREE.BoxGeometry(5, 5, 60);
+const matGreen = new THREE.MeshBasicMaterial({ color: 0x4dff4d, blending: THREE.AdditiveBlending, depthWrite: false });
+const matRed = new THREE.MeshBasicMaterial({ color: 0xff3b30, blending: THREE.AdditiveBlending, depthWrite: false });
+function initBolts() {
+  if (FLY.bolts.length) return;
+  for (let i = 0; i < BOLT_N; i++) {
+    const m = new THREE.Mesh(boltGeo, matGreen); m.visible = false; m.frustumCulled = false; engine.scene.add(m);
+    FLY.bolts.push({ mesh: m, vel: new THREE.Vector3(), prev: new THREE.Vector3(), life: 0, enemy: false });
+  }
+}
+function fireBolt(origin, dir, extraVel, enemy) {
+  const b = FLY.bolts.find(b => b.life <= 0); if (!b) return;
+  b.enemy = enemy; b.mesh.material = enemy ? matRed : matGreen; b.life = BOLT_LIFE;
+  b.mesh.position.copy(origin); b.prev.copy(origin);
+  b.vel.copy(dir).multiplyScalar(enemy ? ENEMY_BOLT_SPD : BOLT_SPD).add(extraVel);
+  b.mesh.quaternion.copy(Q1.setFromUnitVectors(Z1, dir)); b.mesh.visible = true;
+}
+function stepBolts(dt) {
+  FLY.fireAcc += dt;
+  if (FLY.input.fire && FLY.fireAcc >= 1 / FIRE_RATE) {
+    FLY.fireAcc = 0;
+    V1.copy(MUZZLE[FLY.muzzle ^= 1]).applyQuaternion(FLY.quat).add(FLY.pos);
+    fireBolt(V1, FWD, FLY.vel, false); blip(900, 180, 0.09, 0.12); buzz('fire', 8, 60);
+  }
+  for (const b of FLY.bolts) {
+    if (b.life <= 0) continue;
+    b.prev.copy(b.mesh.position); b.mesh.position.addScaledVector(b.vel, dt);
+    if ((b.life -= dt) <= 0) b.mesh.visible = false;
+  }
+}
+
+/* ---------- hits, damage, debris ---------- */
+function segHitsSphere(a, b, c, r) {          // the bolt's path this frame against a sphere: no tunnelling
+  V3.subVectors(b, a); const L2 = V3.lengthSq();
+  const t = L2 ? clamp(V1.subVectors(c, a).dot(V3) / L2, 0, 1) : 0;
+  return V2.copy(a).addScaledVector(V3, t).distanceToSquared(c) <= r * r;
+}
+function stepHits() {
+  for (const b of FLY.bolts) {
+    if (b.life <= 0) continue;
+    if (!b.enemy) {
+      let hit = null;
+      for (const t of FLY.targets) if (t.alive && segHitsSphere(b.prev, b.mesh.position, t.pos, t.r + BOLT_R)) { hit = t; break; }
+      if (!hit) for (const e of FLY.enemies) if (e.alive && segHitsSphere(b.prev, b.mesh.position, e.pos, e.r + BOLT_R)) { hit = e; break; }
+      if (hit) { damage(hit); b.life = 0; b.mesh.visible = false; }
+    } else if (segHitsSphere(b.prev, b.mesh.position, FLY.pos, PLAYER_R)) {
+      hurtPlayer(); b.life = 0; b.mesh.visible = false;
+    }
+  }
+  for (const t of FLY.targets) if (t.pulse > 0.01) { t.wrapper.scale.setScalar(1 + 0.25 * t.pulse); t.pulse *= 0.82; }
+  for (const e of FLY.enemies) if (e.pulse > 0.01) { e.wrapper.scale.setScalar(1 + 0.25 * e.pulse); e.pulse *= 0.82; }
+}
+function damage(t) {
+  t.hp -= 1; t.pulse = 1; blip(300, 80, 0.08, 0.1, 'sawtooth');
+  if (t.hp <= 0) destroy(t);
+}
+function destroy(t) {
+  t.alive = false; t.wrapper.visible = false; t.wrapper.scale.setScalar(1);
+  spawnDebris(t.pos, t.ground ? 8 : 12);
+  score += t.pts; toast(t.name, `+${t.pts}`, !t.ground); boom(); buzz('kill', [12, 30, 24], 200);
+  if (!t.ground) FLY.kills++;
+}
+function hurtPlayer() {
+  FLY.shields -= HIT_DMG; FLY.lastHit = FLY.t;
+  const f = $('#flash'); f.classList.add('on'); setTimeout(() => f.classList.remove('on'), 120);
+  blip(140, 60, 0.18, 0.2, 'sawtooth'); buzz('hit', 40, 300);
+  if (FLY.shields <= 0) { FLY.shields = 0; gameOver(); }
+}
+function stepShields(dt) {
+  if (FLY.shields < SHIELD_MAX && FLY.t - FLY.lastHit > REGEN_DELAY) FLY.shields = Math.min(SHIELD_MAX, FLY.shields + REGEN_RATE * dt);
+}
+const debrisGeo = new THREE.BoxGeometry(8, 8, 8);
+const debrisMats = [0x9ba19d, 0x2e2e2e, 0xc91a09].map(c => new THREE.MeshBasicMaterial({ color: c }));
+function initDebris() {
+  if (FLY.debris.length) return;
+  for (let i = 0; i < 48; i++) {
+    const m = new THREE.Mesh(debrisGeo, debrisMats[i % 3]); m.visible = false; m.frustumCulled = false; engine.scene.add(m);
+    FLY.debris.push({ mesh: m, vel: new THREE.Vector3(), life: 0 });
+  }
+}
+function spawnDebris(at, n) {
+  let k = 0;
+  for (const d of FLY.debris) {
+    if (k >= n) break; if (d.life > 0) continue;
+    d.life = 0.8; d.mesh.visible = true; d.mesh.position.copy(at);
+    d.vel.set(Math.random() - .5, Math.random() - .3, Math.random() - .5).normalize().multiplyScalar(150 + Math.random() * 300);
+    d.mesh.rotation.set(Math.random() * 3, Math.random() * 3, 0); k++;
+  }
+}
+function stepDebris(dt) {
+  for (const d of FLY.debris) {
+    if (d.life <= 0) continue;
+    d.vel.y -= 600 * dt; d.mesh.position.addScaledVector(d.vel, dt); d.mesh.rotation.x += 4 * dt;
+    if ((d.life -= dt) <= 0) d.mesh.visible = false;
+  }
+}
+
+/* ---------- the squadron ---------- */
+function startWave(n) {
+  FLY.wave = n; const count = Math.min(XW_MAX, 2 + n);
+  for (let i = 0; i < count; i++) FLY.spawnQueue.push({ at: FLY.t + i * 0.6, i, n: count });
+  toast('Wave ' + n, count + ' X-wings', false);
+}
+function spawnXwing(i, n) {
+  const e = {
+    wrapper: FLY.xw.clone(), pos: new THREE.Vector3(-120 + 240 * i / Math.max(1, n - 1), GROUND + 60, -260),
+    quat: new THREE.Quaternion().setFromAxisAngle(X1, -Math.PI / 2),          // nose up: it launches vertically
+    vel: new THREE.Vector3(), speed: XW_SPD * (0.9 + 0.2 * Math.random()), r: FLY.xw.userData.r,
+    hp: 2, hp0: 2, phase: i * Math.PI * 2 / n, orbitW: ORBIT_W * (i % 2 ? 1 : -1), fireCd: 2 + Math.random(),
+    alive: true, pulse: 0, roll: 0, name: 'X-wing', pts: 250, ground: false, age: 0,
+  };
+  e.wrapper.visible = true; engine.scene.add(e.wrapper); FLY.enemies.push(e);
+}
+function stepEnemies(dt) {
+  while (FLY.spawnQueue.length && FLY.spawnQueue[0].at <= FLY.t) { const s = FLY.spawnQueue.shift(); spawnXwing(s.i, s.n); }
+  let alive = 0;
+  for (const e of FLY.enemies) { if (!e.alive) continue; alive++; steerEnemy(e, dt); }
+  if (!alive && !FLY.spawnQueue.length && FLY.enemies.length) {
+    if ((FLY.waveTimer += dt) > 2) { FLY.waveTimer = 0; for (const e of FLY.enemies) engine.scene.remove(e.wrapper); FLY.enemies.length = 0; startWave(FLY.wave + 1); }
+  }
+}
+function steerEnemy(e, dt) {
+  e.age += dt;
+  if (e.age < 1.5) { V1.copy(e.pos); V1.y += 800; }                       // the scramble: straight up
+  else V1.set(FLY.pos.x + Math.cos(FLY.t * e.orbitW + e.phase) * ORBIT_R,
+              Math.max(FLOOR + 100, FLY.pos.y + 120 * Math.sin(FLY.t * 0.7 + e.phase)),
+              FLY.pos.z + Math.sin(FLY.t * e.orbitW + e.phase) * ORBIT_R);
+  if (e.pos.y < FLOOR + 120) V1.y += 400;                                 // ground avoidance
+  M1.lookAt(V1, e.pos, UP); Q1.setFromRotationMatrix(M1);                  // +Z toward the goal
+  e.quat.rotateTowards(Q1, XW_TURN * dt);
+  V2.set(0, 0, 1).applyQuaternion(e.quat);                                 // nose
+  V3.set(-1, 0, 0).applyQuaternion(e.quat);                                // right
+  const lat = V1.sub(e.pos).normalize().dot(V3);
+  e.roll += (lat * 0.9 - e.roll) * (1 - Math.exp(-dt * 5));
+  e.vel.lerp(V2.multiplyScalar(e.speed), 1 - Math.exp(-dt * 3)); e.pos.addScaledVector(e.vel, dt);
+  e.pos.y = Math.max(e.pos.y, FLOOR + 40);
+  e.wrapper.position.copy(e.pos); e.wrapper.quaternion.copy(e.quat).multiply(Q2.setFromAxisAngle(Z1, e.roll));
+  V2.set(0, 0, 1).applyQuaternion(e.quat); V3.subVectors(FLY.pos, e.pos); const d = V3.length();
+  if ((e.fireCd -= dt) <= 0 && d < FIRE_RANGE && V3.divideScalar(d).dot(V2) > 0.85) {
+    e.fireCd = 1.5 + Math.random() * 1.5;
+    V1.copy(FLY.pos).addScaledVector(FLY.vel, d / ENEMY_BOLT_SPD).sub(e.pos).normalize();   // lead the shot
+    V2.copy(e.pos).addScaledVector(V1, 60);
+    fireBolt(V2, V1, e.vel, true); blip(500, 120, 0.1, 0.06, 'sawtooth');
+  }
+}
+
+/* ---------- HUD, game over ---------- */
+function paintFlight() {
+  const left = FLY.enemies.filter(e => e.alive).length + FLY.targets.filter(t => t.alive).length;
+  $('#lvl').textContent = 'Wave ' + FLY.wave;
+  $('#name').textContent = left + (left === 1 ? ' target' : ' targets');
+  $('#pts').textContent = fmt(score);
+  $('#fill').style.width = (FLY.shields / SHIELD_MAX * 100).toFixed(0) + '%';
+  $('#bar').classList.toggle('low', FLY.shields < 40);
+  $('#count').textContent = `speed ${Math.round(FLY.speed / 10)} · shields ${Math.round(FLY.shields)} · kills ${FLY.kills}`;
+}
+function gameOver() {
+  FLY.over = true;
+  const secs = Math.round((performance.now() - FLY.t0) / 1000);
+  $('#end').querySelector('.kicker').textContent = 'Shot down';
+  $('#finalPts').textContent = fmt(score);
+  $('#finalStats').innerHTML = [
+    ['waves', FLY.wave, ''], ['kills', FLY.kills, 'gold'], ['time', secs + 's', ''], ['pieces', fmt(PATH.lines.length), ''],
+  ].map(([k, v, cls]) => `<div><span>${k}</span><b class="${cls}">${v}</b></div>`).join('');
+  const fb = $('#flyBtn'); fb.hidden = false; fb.textContent = 'Fly again';
+  $('#again').textContent = 'Build again';
+  setTimeout(() => $('#end').classList.remove('gone'), 900);
+}
+
+/* ---------- input: sticks, buttons, keys ---------- */
+function stick(el, out) {
+  const nub = el.querySelector('.nub'); let pid = null, cx = 0, cy = 0;
+  const set = e => {
+    const r = el.getBoundingClientRect(), rad = Math.max(30, Math.min(r.width, r.height) * .34);
+    let dx = e.clientX - cx, dy = e.clientY - cy, m = Math.hypot(dx, dy);
+    if (m > rad) { dx *= rad / m; dy *= rad / m; m = rad; }
+    nub.style.transform = `translate(calc(-50% + ${dx}px),calc(-50% + ${dy}px))`;
+    out.x = dx / rad; out.y = -dy / rad; out.mag = m / rad;
+  };
+  el.addEventListener('pointerdown', e => {
+    if (pid != null) return; pid = e.pointerId; el.setPointerCapture(pid); el.classList.add('live');
+    const r = el.getBoundingClientRect(); cx = r.left + r.width / 2; cy = r.top + r.height / 2; set(e); e.preventDefault();
+  }, { passive: false });
+  el.addEventListener('pointermove', e => { if (e.pointerId !== pid) return; set(e); e.preventDefault(); }, { passive: false });
+  const end = e => { if (e.pointerId !== pid) return; pid = null; el.classList.remove('live'); nub.style.transform = 'translate(-50%,-50%)'; out.x = out.y = out.mag = 0; };
+  el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
+}
+function hold(el, key) {
+  const dn = e => { e.preventDefault(); FLY.raw[key] = true; el.classList.add('on'); };
+  const up = () => { FLY.raw[key] = false; el.classList.remove('on'); };
+  el.addEventListener('pointerdown', dn, { passive: false });
+  el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up); el.addEventListener('pointerleave', up);
+}
+function bindFlightInput() {
+  if (FLY.bound) return; FLY.bound = true;
+  stick($('#navMove'), FLY.raw.stick); stick($('#navLook'), FLY.raw.look);
+  hold($('#fire'), 'fireHeld'); hold($('#boost'), 'boostHeld');
+  const stage = $('#stage');
+  stage.addEventListener('pointerdown', e => { if (MODE === 'fly' && e.target.tagName === 'CANVAS') FLY.raw.canvasFire = true; });
+  const off = () => { FLY.raw.canvasFire = false; };
+  stage.addEventListener('pointerup', off); stage.addEventListener('pointercancel', off); window.addEventListener('pointerup', off);
+  window.addEventListener('keydown', e => {
+    if (MODE !== 'fly' || /INPUT|TEXTAREA/.test(e.target.tagName)) return;
+    FLY.keys.add(e.code); if (/^(Space|Arrow)/.test(e.code)) e.preventDefault();
+  });
+  window.addEventListener('keyup', e => FLY.keys.delete(e.code));
+  window.addEventListener('blur', () => FLY.keys.clear());
+}
+
+/* ---------- sound and touch ---------- */
+let AC = null;
+function unlockAudio() {
+  if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { AC = null; } }
+  if (AC && AC.state === 'suspended') AC.resume();
+}
+function blip(f0, f1, dur, gain = 0.15, type = 'square') {
+  if (!AC) return;
+  const o = AC.createOscillator(), g = AC.createGain(), t = AC.currentTime;
+  o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+  g.gain.setValueAtTime(gain, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  o.connect(g).connect(AC.destination); o.start(t); o.stop(t + dur);
+}
+let noiseBuf = null;
+function boom() {
+  if (!AC) return;
+  if (!noiseBuf) { noiseBuf = AC.createBuffer(1, AC.sampleRate * 0.35, AC.sampleRate); const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length); }
+  const s = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain(), t = AC.currentTime;
+  s.buffer = noiseBuf; f.type = 'lowpass'; f.frequency.value = 900;
+  g.gain.setValueAtTime(0.3, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+  s.connect(f).connect(g).connect(AC.destination); s.start(t);
+}
+const BUZZ = {};
+function buzz(key, pattern, cool) {
+  const n = performance.now(); if (!navigator.vibrate || (BUZZ[key] || 0) > n) return;
+  BUZZ[key] = n + cool; navigator.vibrate(pattern);
+}
+
+/* ---------- test hooks ---------- */
+window.__game = window.__game || {};
+window.__game.fly = {
+  enter: enterFlight,
+  state: () => ({
+    ready: FLY.ready, over: FLY.over, mode: MODE, pos: FLY.pos.toArray(), yaw: FLY.yaw, pitch: FLY.pitch, speed: FLY.speed,
+    shields: FLY.shields, wave: FLY.wave, score, kills: FLY.kills,
+    enemies: FLY.enemies.map(e => ({ pos: e.pos.toArray(), hp: e.hp, alive: e.alive })),
+    targets: FLY.targets.map(t => ({ name: t.name, hp: t.hp, alive: t.alive })),
+    bolts: FLY.bolts.filter(b => b.life > 0).length, calls: engine ? engine.renderer.info.render.calls : 0,
+  }),
+  aimAt: i => { const e = FLY.enemies[i]; if (!e) return; V1.subVectors(e.pos, FLY.pos); FLY.yaw = Math.atan2(V1.x, V1.z); FLY.pitch = Math.atan2(V1.y, Math.hypot(V1.x, V1.z)); FLY.pos.copy(e.pos).addScaledVector(V1.normalize(), -500); FLY.vel.set(0, 0, 0); },
+  press: (code, on) => on ? FLY.keys.add(code) : FLY.keys.delete(code),
+};
 </script>
 </body>
 </html>
