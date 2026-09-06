@@ -290,12 +290,16 @@ async function draw() {
   status('building ' + fmt(K) + ' pieces…' + heavy, true);
   const t0 = performance.now();
   const release = holdFrame();
+  // The engine re-fits the camera on every load; scrubbing and lighting a
+  // structure must not yank the view out of wherever it has been put, so the
+  // camera is restored after the load. Only a change of object frames afresh.
+  const cam = engine.camera, ctl = engine.controls;
+  const pos = cam.position.clone(), tgt = ctl.target.clone();
   try {
     await engine.loadText(buildText(), { name: OBJ.id }, OBJ.id + '.mpd');
     release();
-    // Framing only on a change of object: scrubbing and lighting a structure
-    // must not yank the camera out of wherever it has been put.
     if (needFrame) { NabugoUI.frame(engine, 0.46); needFrame = false; }
+    else { cam.position.copy(pos); ctl.target.copy(tgt); ctl.update(); }
     const st = engine.getStats();
     const secs = ((performance.now() - t0) / 1000).toFixed(1);
     status(`${fmt(st.triangles)} triangles · ${secs}s` +

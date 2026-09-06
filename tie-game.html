@@ -285,9 +285,15 @@ async function render(all) {
   if (!engine) return;
   const r = engine.renderer, real = r.render.bind(r);
   r.render = () => {};                      // hold the frame while the geometry goes together
+  // The engine re-fits the camera on every load. A game cannot have the view
+  // snap back on every tap, so the camera is put back where the player had it;
+  // only the very first load frames the finished ship.
+  const cam = engine.camera, ctl = engine.controls;
+  const pos = cam.position.clone(), tgt = ctl.target.clone();
   try {
     await engine.loadText(buildText(all), { name: 'game' }, 'game.mpd');
     if (!framed) NabugoUI.frame(engine, 0.42);   // portrait: let the ship fill the middle
+    else { cam.position.copy(pos); ctl.target.copy(tgt); ctl.update(); }
   } catch (e) { fail('render failed: ' + (e.message || e)); }
   finally { r.render = real; }
 }
