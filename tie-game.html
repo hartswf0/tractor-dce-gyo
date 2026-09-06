@@ -292,7 +292,7 @@ async function render(all) {
   const pos = cam.position.clone(), tgt = ctl.target.clone();
   try {
     await engine.loadText(buildText(all), { name: 'game' }, 'game.mpd');
-    if (!framed) NabugoUI.frame(engine, 0.42);   // portrait: let the ship fill the middle
+    if (!framed) NabugoUI.frame(engine, 0.68);   // portrait: whole ship and outpost, wings uncropped
     else { cam.position.copy(pos); ctl.target.copy(tgt); ctl.update(); }
   } catch (e) { fail('render failed: ' + (e.message || e)); }
   finally { r.render = real; }
