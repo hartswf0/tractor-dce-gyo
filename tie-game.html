@@ -8,6 +8,7 @@
 <link rel="icon" type="image/svg+xml" href="ball-jar-favicon.svg" />
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script src="./examples/js/loaders/LDrawLoader.js"></script>
 <script src="./beta-prime-engine.js"></script>
 <script src="./nabugo.js"></script>
@@ -15,7 +16,7 @@
 <style>
 :root{
   --bg:#0a0d16; --ink:#f3f1ea; --dim:#8b91a6; --line:rgba(255,255,255,.12);
-  --red:#e0342c; --gold:#f5c542;
+  --red:#e0342c; --gold:#f5c542; --green:#4dff4d;
   --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
   --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
 }
@@ -23,22 +24,15 @@
 html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);overflow:hidden;
   font:15px/1.4 var(--sans);-webkit-user-select:none;user-select:none;overscroll-behavior:none}
 .n{font-family:var(--mono);font-variant-numeric:tabular-nums}
-
 #stage{position:fixed;inset:0}
 #stage canvas{display:block;width:100%;height:100%;touch-action:none}
-/* a cheap star field: nothing to load */
 #stars{position:fixed;inset:0;pointer-events:none;opacity:.55;
   background-image:
-    radial-gradient(1px 1px at 12% 18%,#fff 50%,transparent 51%),
-    radial-gradient(1px 1px at 68% 9%,#fff 50%,transparent 51%),
-    radial-gradient(1.5px 1.5px at 84% 31%,#fff 50%,transparent 51%),
-    radial-gradient(1px 1px at 33% 42%,#fff 50%,transparent 51%),
-    radial-gradient(1px 1px at 91% 64%,#fff 50%,transparent 51%),
-    radial-gradient(1.5px 1.5px at 22% 77%,#fff 50%,transparent 51%),
-    radial-gradient(1px 1px at 57% 88%,#fff 50%,transparent 51%),
-    radial-gradient(1px 1px at 47% 24%,#fff 50%,transparent 51%),
-    radial-gradient(1px 1px at 76% 52%,#fff 50%,transparent 51%),
-    radial-gradient(1px 1px at 8% 58%,#fff 50%,transparent 51%)}
+    radial-gradient(1px 1px at 12% 18%,#fff 50%,transparent 51%),radial-gradient(1px 1px at 68% 9%,#fff 50%,transparent 51%),
+    radial-gradient(1.5px 1.5px at 84% 31%,#fff 50%,transparent 51%),radial-gradient(1px 1px at 33% 42%,#fff 50%,transparent 51%),
+    radial-gradient(1px 1px at 91% 64%,#fff 50%,transparent 51%),radial-gradient(1.5px 1.5px at 22% 77%,#fff 50%,transparent 51%),
+    radial-gradient(1px 1px at 57% 88%,#fff 50%,transparent 51%),radial-gradient(1px 1px at 47% 24%,#fff 50%,transparent 51%),
+    radial-gradient(1px 1px at 76% 52%,#fff 50%,transparent 51%),radial-gradient(1px 1px at 8% 58%,#fff 50%,transparent 51%)}
 
 /* ---------- HUD ---------- */
 #hud{position:fixed;left:0;right:0;top:0;padding:calc(12px + env(safe-area-inset-top)) 16px 10px;
@@ -46,14 +40,17 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);overflow:hi
   background:linear-gradient(var(--bg),rgba(10,13,22,0))}
 #hud .lvl{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
 #hud .name{font-size:18px;font-weight:700;letter-spacing:.01em}
+body.fly #hud .name{font-size:15px}
 #hud .score{text-align:right;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
 #hud .pts{text-align:right;font-size:24px;font-weight:700;line-height:1.1}
 #bar{grid-column:1/-1;height:4px;background:var(--line);border-radius:2px;position:relative;margin-top:6px;overflow:hidden}
 #bar i{position:absolute;inset:0 auto 0 0;background:var(--ink);border-radius:2px;transition:width .35s ease}
 #bar u{position:absolute;top:0;bottom:0;width:2px;background:var(--bg)}
+#bar.shield i{background:var(--green);transition:width .15s} #bar.shield.low i{background:var(--red)}
 #count{grid-column:1/-1;font-size:11px;color:var(--dim);letter-spacing:.06em}
+#players{grid-column:1/-1;font-size:11px;color:var(--gold);letter-spacing:.06em;display:none}
+body.net #players{display:block}
 
-/* ---------- the toast that lands with each structure ---------- */
 #toast{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%) scale(.85);opacity:0;pointer-events:none;
   text-align:center;transition:opacity .18s,transform .18s}
 #toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
@@ -61,66 +58,76 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);overflow:hi
 #toast span{display:block;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-top:2px}
 #toast.free b{color:var(--gold)}
 
-/* ---------- controls ---------- */
+/* ---------- build dock ---------- */
 #dock{position:fixed;left:0;right:0;bottom:0;padding:14px 16px calc(16px + env(safe-area-inset-bottom));
   display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;
   background:linear-gradient(rgba(10,13,22,0),var(--bg) 40%)}
 #dock .hint{grid-column:1/-1;text-align:center;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
 button{font:inherit;color:var(--ink);border:none;border-radius:16px;cursor:pointer}
-#build{height:64px;font-size:17px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;
-  background:var(--red);box-shadow:0 8px 24px rgba(224,52,44,.35);transition:transform .08s}
+#build,#fly{height:64px;font-size:17px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;transition:transform .08s}
+#build{background:var(--red);box-shadow:0 8px 24px rgba(224,52,44,.35)}
 #build:active,#build.pressed{transform:scale(.97)}
 #build:disabled{background:#3a3f52;box-shadow:none;color:var(--dim)}
-#build .sub{display:block;font-size:10px;font-weight:600;letter-spacing:.14em;opacity:.8;margin-top:1px}
+#build .sub,#fly .sub{display:block;font-size:10px;font-weight:600;letter-spacing:.14em;opacity:.8;margin-top:1px}
+#fly{display:none;background:var(--gold);color:#1a1405;box-shadow:0 8px 24px rgba(245,197,66,.3)}
+body.done #build{display:none} body.done #fly{display:block}
 #reset{height:64px;width:64px;background:rgba(255,255,255,.08);font-size:20px}
+body.fly #dock{display:none}
 
-/* ---------- overlays ---------- */
+/* ---------- veils ---------- */
 .veil{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  text-align:center;padding:32px 24px;background:rgba(10,13,22,.78);backdrop-filter:blur(6px);
-  transition:opacity .3s}
+  text-align:center;padding:32px 24px;background:rgba(10,13,22,.78);backdrop-filter:blur(6px);transition:opacity .3s;z-index:20}
 .veil.gone{opacity:0;pointer-events:none}
 .veil .kicker{font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--dim)}
 .veil h1{margin:8px 0 4px;font-size:40px;font-weight:900;letter-spacing:-.01em;line-height:1}
-.veil .meta{color:var(--dim);font-size:13px;margin-bottom:34px}
-.veil .go{height:60px;padding:0 44px;font-size:16px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;background:var(--red)}
+.veil .meta{color:var(--dim);font-size:13px;margin-bottom:30px;min-height:1.4em}
+.veil .go{height:60px;padding:0 40px;font-size:16px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;background:var(--red)}
+.veil .go.alt{background:rgba(255,255,255,.12);margin-top:12px}
+.veil .go.gold{background:var(--gold);color:#1a1405}
+.veil .go:disabled{background:#3a3f52;color:var(--dim)}
 .veil .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px 28px;margin:6px 0 30px;text-align:left}
 .veil .stats span{display:block;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
 .veil .stats b{display:block;font-size:22px;font-weight:800}
 .veil .stats b.gold{color:var(--gold)}
 .veil a{color:var(--dim);font-size:12px;letter-spacing:.1em;text-transform:uppercase;text-decoration:none;margin-top:22px}
-#err{position:fixed;left:16px;right:16px;bottom:120px;color:var(--gold);font-size:12px;text-align:center}
+.veil .row{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;justify-content:center}
+.veil .row .go{height:50px;padding:0 22px;font-size:13px;margin-top:0}
+.veil input{font:inherit;width:120px;text-align:center;letter-spacing:.3em;text-transform:uppercase;padding:12px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.08);color:var(--ink)}
+.veil .code{font-family:var(--mono);font-size:30px;letter-spacing:.3em;color:var(--gold);margin:6px 0}
+#err{position:fixed;left:16px;right:16px;bottom:120px;color:var(--gold);font-size:12px;text-align:center;z-index:30}
 
-/* ---------- flight ---------- */
-#fly{display:none;height:64px;font-size:17px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;
-  background:var(--gold);color:#1a1405;box-shadow:0 8px 24px rgba(245,197,66,.3)}
-#fly .sub{display:block;font-size:10px;font-weight:600;letter-spacing:.14em;opacity:.8;margin-top:1px}
-body.done #build{display:none} body.done #fly{display:block}
-body.fly #dock{display:none}
+/* ---------- flight UI: the whole screen is the control ---------- */
 #flyui{display:none} body.fly #flyui{display:block}
-/* two sticks, hand-rolled: the handle blooms under the thumb */
-.stick{position:fixed;bottom:calc(env(safe-area-inset-bottom) + 54px);width:46px;height:46px;border-radius:999px;
-  border:2px solid rgba(255,255,255,.55);background:rgba(255,255,255,.12);touch-action:none;z-index:5;
-  transition:width .12s,height .12s,left .12s,right .12s}
-#navMove{left:45px} #navLook{right:45px}
-.stick.live{width:118px;height:118px} #navMove.live{left:9px} #navLook.live{right:9px}
-.stick .nub{position:absolute;left:50%;top:50%;width:26px;height:26px;transform:translate(-50%,-50%);
-  border-radius:999px;background:var(--ink);will-change:transform;pointer-events:none}
-#navMove .nub{box-shadow:0 0 0 5px rgba(77,255,77,.35)} #navLook .nub{box-shadow:0 0 0 5px rgba(224,52,44,.35)}
-#actions{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 150px);
-  display:flex;gap:12px;align-items:center;z-index:5}
-#fire{width:86px;height:86px;border-radius:999px;background:var(--red);font-size:13px;font-weight:800;letter-spacing:.14em;
-  text-transform:uppercase;box-shadow:0 8px 24px rgba(224,52,44,.35);touch-action:none;transition:transform .08s}
-#boost{width:64px;height:64px;border-radius:999px;background:rgba(255,255,255,.12);font-size:11px;font-weight:700;
-  letter-spacing:.12em;text-transform:uppercase;touch-action:none;transition:transform .08s}
-#fire.on,#boost.on{transform:scale(.92)}
-#cross{position:fixed;left:50%;top:50%;width:18px;height:18px;transform:translate(-50%,-50%);border:1.5px solid rgba(255,255,255,.55);
-  border-radius:999px;pointer-events:none}
+#stickInd{position:fixed;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:999px;border:2px solid rgba(255,255,255,.35);
+  pointer-events:none;opacity:0;transition:opacity .12s}
+#stickInd.on{opacity:1}
+#stickInd i{position:absolute;left:50%;top:50%;width:28px;height:28px;margin:-14px 0 0 -14px;border-radius:999px;background:var(--ink);
+  box-shadow:0 0 0 5px rgba(77,255,77,.35)}
+#aim{position:fixed;left:50%;top:50%;width:18px;height:18px;margin:-9px 0 0 -9px;border:1.5px solid rgba(255,255,255,.55);border-radius:999px;pointer-events:none}
+#aim.boost{border-color:var(--gold)}
 #flash{position:fixed;inset:0;background:rgba(224,52,44,.35);opacity:0;pointer-events:none;transition:opacity .12s}
 #flash.on{opacity:1}
-#bar.shield i{background:#4dff4d;transition:width .15s} #bar.shield.low i{background:var(--red)}
-#keys{display:none;position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 16px);transform:translateX(-50%);
+#keys{display:none;position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 14px);transform:translateX(-50%);
   font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);pointer-events:none;white-space:nowrap}
-@media (hover:hover) and (pointer:fine){.stick,#actions{display:none} body.fly #keys{display:block}}
+@media (hover:hover) and (pointer:fine){body.fly #keys{display:block}}
+#zones{position:fixed;left:0;right:0;bottom:calc(env(safe-area-inset-bottom) + 14px);display:flex;justify-content:space-between;
+  padding:0 18px;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.28);pointer-events:none}
+@media (hover:hover) and (pointer:fine){#zones{display:none}}
+#fight{position:fixed;right:14px;top:calc(env(safe-area-inset-top) + 92px);display:none;height:40px;padding:0 16px;font-size:12px;
+  font-weight:700;letter-spacing:.14em;text-transform:uppercase;background:var(--red)}
+body.test #fight{display:block}
+
+/* ---------- tune panel ---------- */
+#tune{display:none;position:fixed;left:10px;right:10px;bottom:calc(env(safe-area-inset-bottom) + 40px);
+  background:rgba(10,13,22,.9);border:1px solid var(--line);border-radius:14px;padding:10px 12px;font-size:11px;z-index:15}
+body.tune.fly #tune.open{display:block}
+#tuneToggle{display:none;position:fixed;right:14px;top:calc(env(safe-area-inset-top) + 138px);height:34px;padding:0 14px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;background:rgba(255,255,255,.12);border-radius:999px;z-index:16}
+body.tune.fly #tuneToggle{display:block}
+#tune label{display:grid;grid-template-columns:110px 1fr 54px;gap:8px;align-items:center;margin:3px 0;color:var(--dim)}
+#tune input[type=range]{width:100%}
+#tune b{color:var(--ink);text-align:right}
+#tune .row{display:flex;gap:8px;margin-top:8px}
+#tune button{height:34px;padding:0 14px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;background:rgba(255,255,255,.12)}
 </style>
 </head>
 <body>
@@ -132,6 +139,7 @@ body.fly #dock{display:none}
   <div><div class="score">Score</div><div class="pts n" id="pts">0</div></div>
   <div id="bar"><i id="fill" style="width:0%"></i></div>
   <div id="count" class="n"></div>
+  <div id="players" class="n"></div>
 </div>
 
 <div id="toast"><b id="tb"></b><span id="ts"></span></div>
@@ -140,85 +148,88 @@ body.fly #dock{display:none}
   <button id="build" disabled>Build<span class="sub" id="bsub">loading</span></button>
   <button id="fly">Fly it<span class="sub">take off</span></button>
   <button id="reset" title="start over">↺</button>
-  <div class="hint">drag · pinch · hold to auto-build</div>
+  <div class="hint">tap to place the next structure · hold to auto-build</div>
 </div>
 
 <div class="veil" id="start">
   <div class="kicker">LEGO 75421</div>
   <h1>Vader's TIE</h1>
   <div class="meta">149 pieces · 5 steps · 8 structures</div>
-  <button class="go" id="go">Tap to build</button>
+  <button class="go" id="go">Loading…</button>
 </div>
 
 <div class="veil gone" id="end">
-  <div class="kicker">Complete</div>
+  <div class="kicker" id="endKicker">Complete</div>
   <h1 id="finalPts" class="n">0</h1>
   <div class="meta">points</div>
   <div class="stats" id="finalStats"></div>
   <button class="go" id="flyBtn" hidden>Fly it</button>
-  <button class="go" id="again" style="background:rgba(255,255,255,.12);margin-top:12px">Again</button>
+  <button class="go alt" id="again">Again</button>
   <a href="assembly-arena.html">open in the assembly arena ›</a>
 </div>
 
 <div class="veil gone" id="launch">
-  <div class="kicker">Powering up</div>
-  <h1>Take off</h1>
-  <div class="meta">the outpost wakes · the squadron scrambles</div>
+  <div class="kicker">Take off</div>
+  <h1>Fly it</h1>
+  <div class="meta" id="launchMeta">left thumb steers · right thumb tap fires, hold boosts</div>
+  <button class="go" id="fightBtn">Fight the squadron</button>
+  <button class="go alt" id="testBtn">Flight test</button>
+  <div class="row">
+    <button class="go alt" id="hostBtn">Host a room</button>
+    <input id="codeIn" maxlength="4" placeholder="CODE" autocomplete="off">
+    <button class="go alt" id="joinBtn">Join</button>
+  </div>
+  <div class="code" id="roomCode"></div>
 </div>
 
 <div id="flyui">
-  <div id="cross"></div>
+  <div id="stickInd"><i></i></div>
+  <div id="aim"></div>
   <div id="flash"></div>
-  <div class="stick" id="navMove"><div class="nub"></div></div>
-  <div class="stick" id="navLook"><div class="nub"></div></div>
-  <div id="actions"><button id="boost">Boost</button><button id="fire">Fire</button></div>
-  <div id="keys">w a s d fly · shift boost · space fire · q e look</div>
+  <div id="zones"><span>◀ steer</span><span>fire · hold to boost ▶</span></div>
+  <div id="keys">w a s d steer · shift boost · space fire</div>
+  <button id="fight">Fight</button>
 </div>
+
+<button id="tuneToggle">Tune</button>
+<div id="tune"></div>
 <div id="err"></div>
 
 <script>
+/* =====================================================================
+   TIE Build — build the 75421 TIE tap by tap, then fly it and shoot.
+   World frame: the engine flips LDraw to three.js, so the ship's nose is
+   wrapper-local +Z, up is +Y, right is -X. Units are LDU (a stud is 20).
+   ===================================================================== */
 const $ = s => document.querySelector(s);
-const fmt = n => n.toLocaleString('en-US');
+const fmt = n => (n == null ? '—' : Number(n).toLocaleString('en-US'));
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const Q = new URLSearchParams(location.search);
+window.__game = window.__game || {};
 
 const ID = 'VADER-TIE';
-const GHOST = 47;                 // Trans_Clear: what the ship looks like before you build it
-const PIECE = 10;                 // points per piece
-const FREE_BONUS = 100;           // for a structure you have already built once
+const PIECE = 10, FREE_BONUS = 100;
 
-let engine = null, PATH = null, LIB = '', OBJ = null;
-let chunks = [], at = 0;          // chunks = the real structures in build order; at = next to place
-let score = 0, t0 = 0, done = false;
-let busy = false, queued = false, framed = false;
-let holdTimer = null;
+let engine = null, PATH = null, OBJ = null, FULL = '';
+let chunks = [], at = 0, score = 0, t0 = 0, done = false, holdTimer = null;
+let MODE = 'build';                       // 'build' | 'fly'
+let PARTS = [], READY = false, wantStart = false, GHOST_MAT = null;
+const ORIG = new WeakMap();               // mesh -> its real material (single or array)
 
 boot();
 
-async function boot() {
-  try {
-    const data = await (await fetch('./assembly-data.json')).json();
-    OBJ = data.objects.find(o => o.id === ID);
-    PATH = await (await fetch('./assembly-paths/' + ID + '.json')).json();
-    const r = await fetch('./assembly-paths/' + ID + '-inline.mpd');
-    LIB = r.ok ? await r.text() : '';
-  } catch (e) { return fail('could not load the build: ' + e.message); }
-
-  chunkify();
-  $('#bar').insertAdjacentHTML('beforeend', stepTicks());
-
-  try {
-    engine = await NabugoUI.makeViewer($('#stage'), { background: 0x0a0d16 });
-    engine.setDiagnostics({ axes: false, grid: false });
-  } catch (e) { return fail('viewer failed: ' + e.message); }
-
-  // Frame the finished ship once, so the camera never lurches as it fills in.
-  await render(true);
-  framed = true;
-
-  $('#go').onclick = start;
-  $('#again').onclick = () => { $('#end').classList.add('gone'); start(); };
+/* ---------- boot: the buttons come first, the network second ---------- */
+function wireUI() {
+  $('#go').onclick = () => { if (READY) start(); else { wantStart = true; $('#go').textContent = 'Starting when loaded…'; } };
+  $('#again').onclick = () => { if (MODE === 'fly') location.reload(); else { $('#end').classList.add('gone'); start(); } };
   $('#reset').onclick = start;
-  $('#fly').onclick = enterFlight;
-  $('#flyBtn').onclick = () => (FLY.over ? flyAgain() : enterFlight());
+  $('#fly').onclick = openLaunch;
+  $('#flyBtn').onclick = () => (FLY.over ? flyAgain() : openLaunch());
+  $('#fightBtn').onclick = () => enterFlight({ test: false });
+  $('#testBtn').onclick = () => enterFlight({ test: true });
+  $('#hostBtn').onclick = hostRoom;
+  $('#joinBtn').onclick = joinRoom;
+  $('#fight').onclick = () => { FLY.test = false; document.body.classList.remove('test'); enemiesOn(); };
   window.addEventListener('pointerdown', unlockAudio, { once: true });
   window.addEventListener('keydown', unlockAudio, { once: true });
   const b = $('#build');
@@ -226,64 +237,96 @@ async function boot() {
   b.addEventListener('pointerdown', () => { holdTimer = setInterval(place, 700); b.classList.add('pressed'); });
   const stop = () => { clearInterval(holdTimer); holdTimer = null; b.classList.remove('pressed'); };
   b.addEventListener('pointerup', stop); b.addEventListener('pointerleave', stop); b.addEventListener('pointercancel', stop);
-  Object.assign(window.__game, { engine: () => engine, place, state: () => ({ at, score, done, chunks: chunks.length }) });
+  Object.assign(window.__game, { engine: () => engine, place, state: () => ({ at, score, done, chunks: chunks.length, ready: READY, parts: PARTS.length }) });
+}
+function status(msg) { $('#start .meta').textContent = msg; $('#go').textContent = READY ? 'Tap to build' : (wantStart ? 'Starting when loaded…' : 'Loading…'); }
+function stall(msg) {
+  $('#start .meta').innerHTML = `<div style="color:var(--gold);margin-bottom:12px">${msg}</div><button class="go alt" onclick="location.reload()">Retry</button>`;
+}
+function fail(msg) { $('#err').textContent = msg; console.error(msg); }
 
-  b.disabled = false;
-  $('#bsub').textContent = 'ready';
+const modelText = () => ['0 FILE game.ldr', '0 !LDRAW_ORG Unofficial_Model', ...PATH.lines].join('\n') + '\n\n' + FULL;
+
+async function boot() {
+  wireUI();
+  const t0 = performance.now();
+  const ticker = setInterval(() => { if (!READY) status(`Loading the ship… ${Math.round((performance.now() - t0) / 1000)}s`); }, 500);
+  const watchdog = setTimeout(() => { if (!READY) stall('Still loading after 25 s — the connection may be slow, or a part is missing.'); }, 25000);
+  try {
+    const viewerP = NabugoUI.makeViewer($('#stage'), { background: 0x0a0d16 });
+    const [data, path, full] = await Promise.all([
+      fetch('./assembly-data.json').then(r => r.json()),
+      fetch('./assembly-paths/' + ID + '.json').then(r => r.json()),
+      fetch('./assembly-paths/' + ID + '-full.mpd.txt').then(r => r.ok ? r.text() : ''),
+    ]);
+    OBJ = data.objects.find(o => o.id === ID); PATH = path; FULL = full;
+    chunkify(); $('#bar').insertAdjacentHTML('beforeend', stepTicks());
+    engine = await viewerP;
+    engine.setDiagnostics({ axes: false, grid: false });
+    engine.loader.separateObjects = true;                       // one Group per part, vertices kept local
+    const root = await engine.loadText(modelText(), { name: 'game' }, 'game.mpd');   // the only parse of the ship, ever
+    if (root.children.length !== PATH.lines.length) throw new Error(`expected ${PATH.lines.length} part groups, got ${root.children.length}`);
+    PARTS = root.children.slice();
+    PARTS.forEach((g, i) => {
+      g.name = PATH.lines[i].split(/\s+/)[14]; g.userData.index = i;
+      g.traverse(o => { if (o.isMesh) ORIG.set(o, o.material); });
+    });
+    GHOST_MAT = (engine.loader.getMaterial && engine.loader.getMaterial('47')) || null;
+    if (!GHOST_MAT) GHOST_MAT = new THREE.MeshBasicMaterial({ color: 0xbfd0ff, transparent: true, opacity: 0.18, depthWrite: false });
+    GHOST_MAT.side = THREE.DoubleSide;
+    ghostAll(); NabugoUI.frame(engine, 0.68);
+    FULL = '';                                                   // the cache is warm; never resend the pack
+    READY = true; status('149 pieces · 5 steps · 8 structures');
+    $('#build').disabled = false; $('#bsub').textContent = 'ready';
+    if (wantStart) start();
+  } catch (e) { stall('Could not load the build: ' + (e.message || e)); console.error(e); }
+  finally { clearInterval(ticker); clearTimeout(watchdog); }
 }
 
-function fail(msg) { $('#err').textContent = msg; }
+/* ---------- build mode: reveal by material swap, no re-parse ---------- */
+function ghostPart(g, on) {
+  g.traverse(o => { if (o.isMesh) o.material = on ? GHOST_MAT : (ORIG.get(o) || o.material); else if (o.isLineSegments) o.visible = !on; });
+}
+function ghostAll() { PARTS.forEach(g => ghostPart(g, true)); }
+function reveal(a, b) { for (let i = a; i <= b; i++) ghostPart(PARTS[i], false); }
 
-/** One chunk per contiguous run of the same structure copy — the real build order. */
 function chunkify() {
-  chunks = [];
-  let cur = null;
+  chunks = []; let cur = null;
   PATH.sub.forEach((s, i) => {
     const key = s + ':' + PATH.occ[i];
     if (!cur || cur.key !== key) { cur = { key, sub: s, occ: PATH.occ[i], start: i, end: i }; chunks.push(cur); }
     else cur.end = i;
   });
 }
-
 function stepTicks() {
   const n = PATH.lines.length; let seen = -1, html = '';
-  PATH.step.forEach((s, i) => { if (s !== seen && i > 0) { seen = s; html += `<u style="left:${(i / n * 100).toFixed(2)}%"></u>`; } else if (s !== seen) seen = s; });
+  PATH.step.forEach((s, i) => { if (s !== seen) { if (i > 0) html += `<u style="left:${(i / n * 100).toFixed(2)}%"></u>`; seen = s; } });
   return html;
 }
-
-function shortName(idx) {
-  return PATH.sub_names[idx].replace(/\.ldr$/i, '').replace(/-/g, ' ');
-}
+const shortName = idx => PATH.sub_names[idx].replace(/\.ldr$/i, '').replace(/-/g, ' ');
 
 function start() {
-  if (MODE === 'fly') { location.reload(); return; }   // back to the ghosted build scene, cleanly
+  if (MODE === 'fly') { location.reload(); return; }
   at = 0; score = 0; done = false; t0 = performance.now();
   $('#flyBtn').hidden = true;
-  $('#start').classList.add('gone');
-  $('#end').classList.add('gone');
+  $('#start').classList.add('gone'); $('#end').classList.add('gone');
   $('#build').disabled = false;
-  paint();
-  schedule();
+  ghostAll(); paint();
 }
-
 function place() {
   if (MODE === 'fly' || done || at >= chunks.length) return;
   const c = chunks[at++];
-  const pieces = c.end - c.start + 1;
-  const free = c.occ > 1;
-  let got = pieces * PIECE + (free ? FREE_BONUS : 0);
+  const pieces = c.end - c.start + 1, free = c.occ > 1;
+  const got = pieces * PIECE + (free ? FREE_BONUS : 0);
   score += got;
-  toast(shortName(c.sub) + (free ? '' : ''), free ? `already built · +${got}` : `+${got}`, free);
+  reveal(c.start, c.end);
+  toast(shortName(c.sub), free ? `already built · +${got}` : `+${got}`, free);
   if (at >= chunks.length) finish();
   paint();
-  schedule();
 }
-
 function paint() {
-  const placed = at ? chunks[at - 1].end + 1 : 0;
-  const total = PATH.lines.length;
-  const step = placed ? PATH.step[placed - 1] + 1 : 1;
-  const next = chunks[at];
+  const placed = at ? chunks[at - 1].end + 1 : 0, total = PATH.lines.length;
+  const step = placed ? PATH.step[placed - 1] + 1 : 1, next = chunks[at];
   $('#lvl').textContent = `Step ${step} of ${PATH.steps_total}`;
   $('#name').textContent = next ? 'Next: ' + shortName(next.sub) : 'Complete';
   $('#pts').textContent = fmt(score);
@@ -293,211 +336,201 @@ function paint() {
   $('#build').disabled = !next;
   document.body.classList.toggle('done', !next && done);
 }
-
 let toastTimer = null;
 function toast(big, small, free) {
-  const t = $('#toast');
-  $('#tb').textContent = big; $('#ts').textContent = small;
-  t.classList.toggle('free', !!free);
-  t.classList.add('on');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('on'), 900);
+  const t = $('#toast'); $('#tb').textContent = big; $('#ts').textContent = small;
+  t.classList.toggle('free', !!free); t.classList.add('on');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('on'), 900);
 }
-
 function finish() {
   done = true;
   const secs = Math.round((performance.now() - t0) / 1000);
   const reuse = chunks.filter(c => c.occ > 1).reduce((n, c) => n + c.end - c.start + 1, 0);
+  $('#endKicker').textContent = 'Complete';
   $('#finalPts').textContent = fmt(score);
   $('#finalStats').innerHTML = [
-    ['pieces', fmt(PATH.lines.length), ''],
-    ['time', secs + 's', ''],
-    ['structures', chunks.length, ''],
-    ['placed free', fmt(reuse), 'gold'],
-    ['assembly index', fmt(OBJ.a_reuse), ''],
-    ['one by one', fmt(OBJ.a_naive), ''],
+    ['pieces', fmt(PATH.lines.length), ''], ['time', secs + 's', ''], ['structures', chunks.length, ''],
+    ['placed free', fmt(reuse), 'gold'], ['assembly index', fmt(OBJ.a_reuse), ''], ['one by one', fmt(OBJ.a_naive), ''],
   ].map(([k, v, cls]) => `<div><span>${k}</span><b class="${cls}">${v}</b></div>`).join('');
-  const fb = $('#flyBtn'); fb.hidden = false; fb.textContent = 'Fly it';
-  $('#again').textContent = 'Again';
-  // let the last structure land before the veil comes down
+  const fb = $('#flyBtn'); fb.hidden = false; fb.textContent = 'Fly it'; $('#again').textContent = 'Again';
   setTimeout(() => { if (MODE === 'build') $('#end').classList.remove('gone'); }, 1400);
 }
-
-/* ---------- rendering: the built part solid, the rest as glass ---------- */
-function buildText(all) {
-  const placed = all ? PATH.lines.length : (at ? chunks[at - 1].end + 1 : 0);
-  const out = ['0 FILE game.ldr', '0 !LDRAW_ORG Unofficial_Model'];
-  PATH.lines.forEach((line, i) => {
-    out.push(i < placed ? line : line.replace(/^1 -?\d+ /, '1 ' + GHOST + ' '));
-  });
-  return out.join('\n') + '\n\n' + LIB;
-}
-
-function schedule() {
-  if (MODE === 'fly') return;               // flight never rebuilds the scene
-  if (busy) { queued = true; return; }
-  busy = true; queued = false;
-  render(false).finally(() => { busy = false; if (queued) schedule(); });
-}
-
-async function render(all) {
-  if (!engine) return;
-  const r = engine.renderer, real = r.render.bind(r);
-  r.render = () => {};                      // hold the frame while the geometry goes together
-  // The engine re-fits the camera on every load. A game cannot have the view
-  // snap back on every tap, so the camera is put back where the player had it;
-  // only the very first load frames the finished ship.
-  const cam = engine.camera, ctl = engine.controls;
-  const pos = cam.position.clone(), tgt = ctl.target.clone();
-  try {
-    await engine.loadText(buildText(all), { name: 'game' }, 'game.mpd');
-    if (!framed) NabugoUI.frame(engine, 0.68);   // portrait: whole ship and outpost, wings uncropped
-    else { cam.position.copy(pos); ctl.target.copy(tgt); ctl.update(); }
-  } catch (e) { fail('render failed: ' + (e.message || e)); }
-  finally { r.render = real; }
-}
+function openLaunch() { if (!done) return; $('#end').classList.add('gone'); $('#launch').classList.remove('gone'); }
 
 /* =====================================================================
-   FLIGHT — build it, then fly it and shoot.
-   World frame: the engine flips LDraw to three.js, so the ship's nose is
-   wrapper-local +Z, up is +Y, right is -X. Units are LDU (a stud is 20).
+   FLIGHT — control the flight vector, not the ship.
+   The thumb sets a desired trajectory; velocity pursues it; the nose pursues
+   it faster than velocity does; banking and levelling are automatic; the
+   camera follows velocity. Nothing here models lift, stall or roll input.
    ===================================================================== */
-let MODE = 'build';                                   // 'build' | 'fly'
-const isTouch = (navigator.maxTouchPoints || 0) > 0 || matchMedia('(pointer:coarse)').matches;
-const isPortrait = () => innerHeight > innerWidth;
-
 const GROUND = -120, FLOOR = GROUND + 150, CEIL = 2600, ARENA_R = 4000;
-const ARENA_C = new THREE.Vector3(0, 0, -260);        // the outpost
-const CRUISE = 350, BOOSTV = 700, MIN_SPD = 160, SPD_EASE = 2.0, VEL_EASE = 4.0;
-const YAW_RATE = 1.6, PITCH_RATE = 1.3, PITCH_MAX = 1.1, BANK = 0.9, BANK_EASE = 6, IN_EASE = 10;
-const BOLT_N = 48, BOLT_SPD = 2200, ENEMY_BOLT_SPD = 1600, BOLT_LIFE = 1.2, FIRE_RATE = 8, BOLT_R = 20;
-const MUZZLE = [new THREE.Vector3(-16, -12, 144), new THREE.Vector3(16, -12, 144)];  // chin cannon tips
+const ARENA_C = new THREE.Vector3(0, 0, -260);
+const DEG = Math.PI / 180;
+const TUNE = {                                  // the numbers the flight-test tune panel edits
+  normalSpeed: 350, normalTurn: 100,            // LDU/s, deg/s
+  boostSpeed: 550, boostTurn: 65,
+  hardSpeed: 285, hardTurn: 140, hardAt: 0.85,
+  lead: 1.6,                                    // nose rate / velocity rate
+  spring: 0.20,                                 // s, turn-rate time constant
+  camBlend: 0.7,                                // camera heading: velocity share
+  yawCone: 55, pitchCone: 35, vGain: 0.7, bankMax: 55, elevMax: 55,
+  vaderHold: 0.35, vaderTime: 0.4, vaderLead: 3,
+  slipTime: 0.25, slipMin: 15,                  // sustained nose lead = turn rate x slipTime (deg floor); the Vader turn ignores it
+};
+const MIN_SPD = 160, BOLT_N = 48, BOLT_SPD = 2200, ENEMY_BOLT_SPD = 1600, BOLT_LIFE = 1.2, FIRE_RATE = 8, BOLT_R = 20;
+const MUZZLE = [new THREE.Vector3(-16, -12, 144), new THREE.Vector3(16, -12, 144)];
 const XW_SPD = 320, XW_TURN = 1.4, ORBIT_R = 900, ORBIT_W = 0.35, FIRE_RANGE = 1500, XW_MAX = 6;
 const SHIELD_MAX = 100, HIT_DMG = 20, REGEN_DELAY = 3, REGEN_RATE = 5, PLAYER_R = 130;
 
 const FLY = {
-  ready: false, over: false, ship: null, side: null, scenery: null, xw: null,
-  targets: [], enemies: [], bolts: [], debris: [], spawnQueue: [],
-  pos: new THREE.Vector3(), vel: new THREE.Vector3(), quat: new THREE.Quaternion(),
-  yaw: Math.PI, pitch: 0, roll: 0, speed: 0, shields: SHIELD_MAX, lastHit: -9,
-  wave: 0, kills: 0, waveTimer: 0, t: 0, t0: 0, last: 0, hudAcc: 0, muzzle: 0, fireAcc: 1,
-  cam: { az: null, dist: 900, high: 260, hold: 0 }, look: new THREE.Vector3(),
-  input: { x: 0, y: 0, fire: false, boost: false, lookX: 0 },
-  raw: { stick: { x: 0, y: 0, mag: 0 }, look: { x: 0, y: 0, mag: 0 }, fireHeld: false, boostHeld: false, canvasFire: false },
-  keys: new Set(), savedControls: null, portrait: null,
+  ready: false, over: false, test: false, ship: null, side: null, scenery: null, xw: null, xwParts: null, grid: null, parked: null,
+  targets: [], enemies: [], bolts: [], spawnQueue: [],
+  pos: new THREE.Vector3(), vel: new THREE.Vector3(), velDir: new THREE.Vector3(0, 0, -1), noseDir: new THREE.Vector3(0, 0, -1),
+  desired: new THREE.Vector3(0, 0, -1), quat: new THREE.Quaternion(), speed: 0, bank: 0, turnRate: 0,
+  stick: { x: 0, y: 0, mag: 0 }, want: { x: 0, y: 0 }, boost: false, fire: false, aim: { x: 0, y: 0 },
+  hardT: 0, vaderT: 0, vaderArmed: true,
+  shields: SHIELD_MAX, lastHit: -9, wave: 0, kills: 0, waveTimer: 0, t: 0, t0: 0, last: 0, hudAcc: 0, muzzle: 0, fireAcc: 1,
+  camPos: new THREE.Vector3(), look: new THREE.Vector3(), portrait: null, keys: new Set(), savedControls: null, bound: false,
 };
-// scratch objects: nothing is allocated inside the loop
-const V1 = new THREE.Vector3(), V2 = new THREE.Vector3(), V3 = new THREE.Vector3(), FWD = new THREE.Vector3(0, 0, 1);
-const Q1 = new THREE.Quaternion(), Q2 = new THREE.Quaternion(), E1 = new THREE.Euler(), M1 = new THREE.Matrix4();
+const V1 = new THREE.Vector3(), V2 = new THREE.Vector3(), V3 = new THREE.Vector3(), V4 = new THREE.Vector3();
+const Q1 = new THREE.Quaternion(), Q2 = new THREE.Quaternion(), M1 = new THREE.Matrix4();
 const UP = new THREE.Vector3(0, 1, 0), Z1 = new THREE.Vector3(0, 0, 1), X1 = new THREE.Vector3(1, 0, 0);
 const SPH = new THREE.Sphere(), BOX = new THREE.Box3();
-const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-const normAngle = a => { a = (a + Math.PI) % (2 * Math.PI); if (a < 0) a += 2 * Math.PI; return a - Math.PI; };
-const lerpAngle = (a, b, t) => a + normAngle(b - a) * t;
+const isTouch = (navigator.maxTouchPoints || 0) > 0 || matchMedia('(pointer:coarse)').matches;
+const isPortrait = () => innerHeight > innerWidth;
 
-/* ---------- loading: a second loader, never two parses at once ---------- */
+/** Turn unit vector `a` toward unit vector `b` by at most `maxAngle` (radians), in place. */
+function rotateTowards(a, b, maxAngle) {
+  const d = clamp(a.dot(b), -1, 1), angle = Math.acos(d);
+  if (angle <= maxAngle || angle < 1e-5) { a.copy(b); return a; }
+  V4.crossVectors(a, b);
+  if (V4.lengthSq() < 1e-8) V4.copy(Math.abs(a.y) < 0.9 ? UP : X1).cross(a);   // opposite vectors: pick any orthogonal axis
+  a.applyAxisAngle(V4.normalize(), maxAngle).normalize();
+  return a;
+}
+/** Clamp a direction's elevation to ±maxDeg, keeping its heading. */
+function clampElevation(v, maxDeg) {
+  const lim = Math.sin(maxDeg * DEG);
+  if (Math.abs(v.y) <= lim) return v;
+  const h = Math.hypot(v.x, v.z) || 1e-6, hl = Math.sqrt(1 - lim * lim);
+  v.set(v.x / h * hl, Math.sign(v.y) * lim, v.z / h * hl); return v;
+}
+
+/* ---------- loading helpers: a second loader, never two parses at once ---------- */
 const mpd = (lines, name) => ['0 FILE ' + name + '.ldr', '0 !LDRAW_ORG Unofficial_Model', ...lines].join('\n') + '\n';
-
 function makeSideLoader() {
   const L = new THREE.LDrawLoader(), m = engine.loader;
-  L.path = m.path;
-  if (m.fileMap) L.setFileMap({ ...m.fileMap });
-  L.setMaterials(m.materials.slice());               // after repairEdgeColours
-  L.subobjectCache = m.subobjectCache;               // shared fetched text; parse state stays separate
+  L.path = m.path; if (m.fileMap) L.setFileMap({ ...m.fileMap });
+  L.setMaterials(m.materials.slice()); L.subobjectCache = m.subobjectCache;
   return L;
 }
 function parseLines(loader, lines, name, lib = '') {
   return new Promise((ok, no) => {
-    try {
-      loader.parse(mpd(lines, name) + '\n' + lib, name + '.mpd', root => {
-        root.rotation.x = Math.PI;                   // the same LDraw -> three flip the engine applies
-        const w = new THREE.Group(); w.name = name; w.add(root); ok(w);
-      });
-    } catch (e) { no(e); }
+    try { loader.parse(mpd(lines, name) + '\n' + lib, name + '.mpd', root => { root.rotation.x = Math.PI; const w = new THREE.Group(); w.name = name; w.add(root); ok(w); }); }
+    catch (e) { no(e); }
   });
 }
-async function makeTarget(lines, name, hp, pts) {
-  const w = await parseLines(FLY.side, lines, name);
-  engine.scene.add(w);
-  BOX.setFromObject(w).getBoundingSphere(SPH);
-  return { wrapper: w, pos: SPH.center.clone(), r: Math.max(40, SPH.radius), hp, hp0: hp, name, pts, alive: true, pulse: 0, ground: true };
+function regroup(parts, name) {                  // attach() keeps each part's world transform
+  const w = new THREE.Group(); w.name = name; engine.scene.add(w);
+  for (const p of parts) w.attach(p);
+  w.updateMatrixWorld(true); return w;
 }
-async function loadXwingTemplate() {
-  let lines, lib = '';
-  try {
-    const p = await (await fetch('./assembly-paths/XWING-MINI.json')).json();
-    lines = p.lines;
-    const r = await fetch('./assembly-paths/XWING-MINI-inline.mpd'); lib = r.ok ? await r.text() : '';
-  } catch (e) {
-    // no flattened path: the kit inlines its own parts, so parse it from its first FILE block
-    const text = await (await fetch('./kits/30051-xwing-mini.mpd')).text();
-    lines = [text.slice(text.indexOf('0 FILE'))]; lib = '';
-  }
-  FLY.xw = await parseLines(FLY.side, lines, 'xwing', lib);
-  FLY.xw.traverse(o => { if (o.isLineSegments) o.visible = false; });   // fewer draw calls per clone
-  BOX.setFromObject(FLY.xw).getBoundingSphere(SPH);
-  FLY.xw.userData.r = Math.max(60, SPH.radius);
+function sphereOf(obj) { BOX.setFromObject(obj).getBoundingSphere(SPH); return SPH; }
+function makeTargetFrom(parts, name, hp, pts) {
+  const w = regroup(parts, name); const s = sphereOf(w);
+  return { wrapper: w, template: w.clone(true), pos: s.center.clone(), r: Math.max(40, s.radius), hp, hp0: hp, name, pts, alive: true, pulse: 0, ground: true, vel: new THREE.Vector3() };
+}
+async function loadXwingTemplates() {
+  const p = await (await fetch('./assembly-paths/XWING-MINI.json')).json();
+  const r = await fetch('./assembly-paths/XWING-MINI-full.mpd.txt'); const lib = r.ok ? await r.text() : '';
+  FLY.side.separateObjects = false;
+  FLY.xw = await parseLines(FLY.side, p.lines, 'xwing', lib);               // merged: cheap to fly
+  FLY.xw.traverse(o => { if (o.isLineSegments) o.visible = false; });
+  FLY.xw.userData.r = Math.max(60, sphereOf(FLY.xw).radius);
+  FLY.side.separateObjects = true;
+  FLY.xwParts = await parseLines(FLY.side, p.lines, 'xwing-parts');          // per part: only ever burst
+  FLY.xwParts.traverse(o => { if (o.isLineSegments) o.visible = false; });
+  FLY.xwParts.updateMatrixWorld(true);
+  for (const part of FLY.xwParts.children[0].children) part.userData.r = Math.max(6, sphereOf(part).radius);
 }
 
 /* ---------- entering flight ---------- */
-async function enterFlight() {
+async function enterFlight(opts = {}) {
   if (MODE === 'fly' || !done) return;
-  MODE = 'fly'; unlockAudio();
-  $('#end').classList.add('gone'); $('#launch').classList.remove('gone');
-  while (busy) await new Promise(r => setTimeout(r, 30));      // let the last build render land
-  const r = engine.renderer, real = r.render.bind(r);
-  r.render = () => {};
+  MODE = 'fly'; FLY.test = !!opts.test; unlockAudio();
+  $('#launch').classList.add('gone'); $('#end').classList.add('gone');
   try {
-    await engine.loadText(mpd(PATH.lines.slice(0, 108), 'ship'), { name: 'ship' }, 'ship.mpd');
-    FLY.ship = engine.modelWrapper;
-    FLY.side = makeSideLoader();
-    const scenery = [...PATH.lines.slice(108, 120), PATH.lines[124], ...PATH.lines.slice(138, 149)];
-    FLY.scenery = await parseLines(FLY.side, scenery, 'scenery');
-    FLY.scenery.matrixAutoUpdate = false; FLY.scenery.updateMatrix(); engine.scene.add(FLY.scenery);
+    engine.modelRoot.updateMatrixWorld(true);
+    const P = PARTS;
+    for (const g of P) g.userData.r = Math.max(6, sphereOf(g).radius);
+    FLY.scenery = regroup([...P.slice(108, 120), P[124], ...P.slice(138, 149)], 'scenery');
+    FLY.scenery.matrixAutoUpdate = false; FLY.scenery.updateMatrix();
     FLY.targets = [
-      await makeTarget(PATH.lines.slice(120, 124), 'radar dish', 3, 400),
-      await makeTarget(PATH.lines.slice(125, 127), 'console', 2, 150),
-      await makeTarget(PATH.lines.slice(127, 138), 'trooper', 1, 100),
+      makeTargetFrom(P.slice(120, 124), 'radar dish', 3, 400),
+      makeTargetFrom(P.slice(125, 127), 'console', 2, 150),
+      makeTargetFrom(P.slice(127, 138), 'trooper', 1, 100),
     ];
-    await loadXwingTemplate();
-  } catch (e) {
-    r.render = real; MODE = 'build'; $('#launch').classList.add('gone');
-    return fail('take-off failed: ' + (e.message || e));
-  }
-  FLY.savedControls = engine.controls;
-  engine.controls.enabled = false; engine.controls = null;         // OrbitControls.update() would keep re-aiming the camera
+    FLY.ship = engine.modelWrapper;                                  // modelRoot now holds exactly the ship's 108 parts
+    FLY.side = makeSideLoader();
+    await loadXwingTemplates();
+  } catch (e) { MODE = 'build'; return fail('take-off failed: ' + (e.message || e)); }
+  FLY.savedControls = engine.controls; engine.controls.enabled = false; engine.controls = null;
+  const r = engine.renderer, real = r.render.bind(r);
   if (isTouch) r.setPixelRatio(Math.min(devicePixelRatio, 1.5));
-  initBolts(); initDebris(); bindFlightInput(); resetFlight();
-  r.render = (s, c) => { tick(); real(s, c); };                    // the per-frame hook, installed once
-  document.body.classList.add('fly'); $('#launch').classList.add('gone');
+  // the floor: a faint grid gives the horizon and altitude cues an empty sky cannot
+  FLY.grid = new THREE.GridHelper(12000, 60, 0x1c2236, 0x151a2a); FLY.grid.position.y = GROUND - 2; engine.scene.add(FLY.grid);
+  initBolts(); bindFlightInput(); resetFlight();
+  r.render = (s, c) => { tick(); real(s, c); };
+  document.body.classList.add('fly'); document.body.classList.toggle('test', FLY.test); document.body.classList.toggle('tune', Q.has('tune'));
   $('#bar').classList.add('shield'); $('#bar').querySelectorAll('u').forEach(u => u.remove());
+  if (Q.has('tune')) buildTunePanel();
   FLY.last = performance.now(); FLY.ready = true;
-  startWave(1);
+  if (FLY.test) { parkLandmark(); toast('Flight test', 'two landmarks · no enemies', false); }
+  else enemiesOn();
+  if (NET.on && !NET.host) netSend({ t: 'join' });
+}
+function enemiesOn() { if (FLY.parked) { engine.scene.remove(FLY.parked); FLY.parked = null; } if (!FLY.enemies.length && !FLY.spawnQueue.length && NET.host) startWave(1); }
+function parkLandmark() {
+  if (FLY.parked) return;
+  FLY.parked = FLY.xw.clone(true); FLY.parked.position.set(1500, GROUND + 58, -1200);
+  FLY.parked.quaternion.setFromAxisAngle(UP, 0.6); engine.scene.add(FLY.parked);
 }
 function resetFlight() {
-  FLY.pos.set(0, 150, 1800); FLY.yaw = Math.PI; FLY.pitch = 0; FLY.roll = 0;
-  FLY.speed = CRUISE; FLY.vel.set(0, 0, -CRUISE);
+  FLY.pos.set(0, 150, 1800); FLY.velDir.set(0, 0, -1); FLY.noseDir.set(0, 0, -1); FLY.desired.set(0, 0, -1);
+  FLY.speed = TUNE.normalSpeed; FLY.vel.copy(FLY.velDir).multiplyScalar(FLY.speed); FLY.bank = 0; FLY.turnRate = 0;
+  FLY.stick.x = FLY.stick.y = FLY.stick.mag = 0; FLY.want.x = FLY.want.y = 0; FLY.boost = false; FLY.fire = false;
+  FLY.hardT = 0; FLY.vaderT = 0; FLY.vaderArmed = true;
   FLY.shields = SHIELD_MAX; FLY.lastHit = -9; FLY.wave = 0; FLY.kills = 0; FLY.waveTimer = 0;
   FLY.t = 0; FLY.t0 = performance.now(); FLY.over = false;
-  FLY.cam.az = null; FLY.cam.hold = 0; FLY.look.copy(FLY.pos);
-  for (const e of FLY.enemies) engine.scene.remove(e.wrapper);
-  FLY.enemies.length = 0; FLY.spawnQueue.length = 0;
+  FLY.camPos.copy(FLY.pos).add(V1.set(0, 260, 900)); FLY.look.copy(FLY.pos);
+  for (const e of FLY.enemies) engine.scene.remove(e.wrapper); FLY.enemies.length = 0; FLY.spawnQueue.length = 0;
   for (const b of FLY.bolts) { b.life = 0; b.mesh.visible = false; }
-  for (const d of FLY.debris) { d.life = 0; d.mesh.visible = false; }
-  for (const t of FLY.targets) { t.alive = true; t.hp = t.hp0; t.wrapper.visible = true; t.wrapper.scale.setScalar(1); }
+  clearPieces();
+  if (FLY.ship) { FLY.ship.visible = true; }
+  for (const t of FLY.targets) {
+    if (!t.alive) { t.wrapper = t.template.clone(true); engine.scene.add(t.wrapper); }
+    t.alive = true; t.hp = t.hp0; t.wrapper.visible = true; t.wrapper.scale.setScalar(1);
+  }
   setFov();
 }
 function setFov() {
   const p = isPortrait(); if (p === FLY.portrait) return;
   FLY.portrait = p; engine.camera.fov = p ? 55 : 50; engine.camera.updateProjectionMatrix();
 }
-function flyAgain() { $('#end').classList.add('gone'); resetFlight(); FLY.last = performance.now(); startWave(1); }
+function flyAgain() { $('#end').classList.add('gone'); resetFlight(); FLY.last = performance.now(); if (!FLY.test) enemiesOn(); if (NET.on && !NET.host) netSend({ t: 'join' }); }
 
 /* ---------- the loop ---------- */
 function tick() {
-  if (!FLY.ready || FLY.over) return;
+  if (!FLY.ready) return;
   const now = performance.now();
-  const dt = Math.min(0.05, Math.max(0, (now - FLY.last) / 1000)); FLY.last = now; FLY.t += dt;
+  const dt = Math.min(0.1, Math.max(0, (now - FLY.last) / 1000)); FLY.last = now;   // a slow frame never slows the world below 10 Hz
+  simulate(dt);
+}
+function simulate(dt) {
+  stepPieces(dt);
+  stepRemote(dt);
+  if (FLY.over) { stepCamera(dt); return; }
+  FLY.t += dt;
   setFov();
   readInput(dt);
   stepFlight(dt);
@@ -505,56 +538,128 @@ function tick() {
   stepBolts(dt);
   stepEnemies(dt);
   stepHits();
-  stepDebris(dt);
   stepShields(dt);
   stepCamera(dt);
+  netTick(dt);
   if ((FLY.hudAcc += dt) > 0.1) { FLY.hudAcc = 0; paintFlight(); }
 }
 
+/* ---------- input: the left of the screen steers, the right fires and boosts ---------- */
+const curve = x => Math.sign(x) * Math.pow(Math.abs(x), 1.5);
 function readInput(dt) {
-  const k = FLY.keys, s = FLY.raw.stick;
-  let wx = (k.has('ArrowRight') || k.has('KeyD') ? 1 : 0) - (k.has('ArrowLeft') || k.has('KeyA') ? 1 : 0);
-  let wy = (k.has('ArrowUp') || k.has('KeyW') ? 1 : 0) - (k.has('ArrowDown') || k.has('KeyS') ? 1 : 0);
-  if (s.mag > 0.05) { wx = s.x * s.mag; wy = s.y * s.mag; }
-  const e = 1 - Math.exp(-dt * IN_EASE);
-  FLY.input.x += (wx - FLY.input.x) * e; FLY.input.y += (wy - FLY.input.y) * e;
-  FLY.input.boost = FLY.raw.boostHeld || k.has('ShiftLeft') || k.has('ShiftRight');
-  FLY.input.fire = FLY.raw.fireHeld || FLY.raw.canvasFire || k.has('Space');
-  FLY.input.lookX = FLY.raw.look.mag > 0.05 ? FLY.raw.look.x : (k.has('KeyE') ? 1 : k.has('KeyQ') ? -1 : 0);
+  const k = FLY.keys;
+  let wx = FLY.want.x, wy = FLY.want.y;
+  if (!FLY.touchSteer) {
+    wx = (k.has('ArrowRight') || k.has('KeyD') ? 1 : 0) - (k.has('ArrowLeft') || k.has('KeyA') ? 1 : 0);
+    wy = (k.has('ArrowUp') || k.has('KeyW') ? 1 : 0) - (k.has('ArrowDown') || k.has('KeyS') ? 1 : 0);
+  }
+  const pressed = Math.hypot(wx, wy) > 0.02;
+  const e = 1 - Math.exp(-dt * (pressed ? 25 : 4));          // fast to follow, ~250 ms to recentre
+  FLY.stick.x += (wx - FLY.stick.x) * e; FLY.stick.y += (wy - FLY.stick.y) * e;
+  FLY.stick.mag = Math.min(1, Math.hypot(FLY.stick.x, FLY.stick.y));
+  FLY.boost = FLY.touchBoost || k.has('ShiftLeft') || k.has('ShiftRight');
+  FLY.fire = !FLY.test && (k.has('Space'));
+}
+function stickFromOffset(dx, dy) {                   // pixels from the anchor -> a curved, dead-zoned stick
+  const R = 90; let m = Math.hypot(dx, dy) / R; if (m > 1) { dx /= m; dy /= m; m = 1; }
+  if (m < 0.08) return { x: 0, y: 0 };
+  const g = curve((m - 0.08) / 0.92) / m;            // apply the curve to the magnitude, keep the direction
+  return { x: dx / R * g, y: -dy / R * g * TUNE.vGain };
+}
+function bindFlightInput() {
+  if (FLY.bound) return; FLY.bound = true;
+  const stage = $('#stage'), ind = $('#stickInd'), nub = ind.querySelector('i');
+  let steerId = null, ax = 0, ay = 0, fireId = null, fireAt = 0, fireX = 0, fireY = 0, boostTimer = null;
+  const setInd = (dx, dy) => { nub.style.transform = `translate(${dx}px,${dy}px)`; };
+  stage.addEventListener('pointerdown', e => {
+    if (MODE !== 'fly' || e.target.tagName !== 'CANVAS') return;
+    e.preventDefault(); stage.setPointerCapture(e.pointerId);
+    if (e.clientX < innerWidth * 0.55 && steerId == null) {
+      steerId = e.pointerId; ax = e.clientX; ay = e.clientY; FLY.touchSteer = true;
+      ind.style.left = ax + 'px'; ind.style.top = ay + 'px'; ind.classList.add('on'); setInd(0, 0);
+      FLY.want.x = FLY.want.y = 0;
+    } else if (fireId == null) {
+      fireId = e.pointerId; fireAt = performance.now(); fireX = e.clientX; fireY = e.clientY;
+      if (!FLY.test) fireOnce();                                    // a tap fires at once
+      boostTimer = setTimeout(() => { FLY.touchBoost = true; $('#aim').classList.add('boost'); }, 220);   // a hold boosts
+    }
+  }, { passive: false });
+  stage.addEventListener('pointermove', e => {
+    if (e.pointerId === steerId) {
+      const dx = e.clientX - ax, dy = e.clientY - ay, s = stickFromOffset(dx, dy);
+      FLY.want.x = s.x; FLY.want.y = s.y;
+      const m = Math.min(1, Math.hypot(dx, dy) / 90); setInd(dx * (m ? Math.min(1, 90 / Math.hypot(dx, dy)) : 0), dy * (m ? Math.min(1, 90 / Math.hypot(dx, dy)) : 0));
+    } else if (e.pointerId === fireId) {
+      FLY.aim.x = clamp((e.clientX - fireX) / 120, -1, 1); FLY.aim.y = clamp((e.clientY - fireY) / 120, -1, 1);   // soft aim, ±6°
+    }
+  });
+  const end = e => {
+    if (e.pointerId === steerId) { steerId = null; FLY.touchSteer = false; FLY.want.x = FLY.want.y = 0; ind.classList.remove('on'); }
+    if (e.pointerId === fireId) { fireId = null; clearTimeout(boostTimer); FLY.touchBoost = false; FLY.aim.x = FLY.aim.y = 0; $('#aim').classList.remove('boost'); }
+  };
+  stage.addEventListener('pointerup', end); stage.addEventListener('pointercancel', end); window.addEventListener('pointerup', end);
+  window.addEventListener('keydown', e => {
+    if (MODE !== 'fly' || /INPUT|TEXTAREA/.test(e.target.tagName)) return;
+    FLY.keys.add(e.code); if (/^(Space|Arrow)/.test(e.code)) e.preventDefault();
+  });
+  window.addEventListener('keyup', e => FLY.keys.delete(e.code));
+  window.addEventListener('blur', () => { FLY.keys.clear(); FLY.touchBoost = false; });
 }
 
+/* ---------- the flight model ---------- */
+function regime() {
+  if (FLY.boost) return { speed: TUNE.boostSpeed, turn: TUNE.boostTurn };
+  if (FLY.stick.mag > TUNE.hardAt) return { speed: TUNE.hardSpeed, turn: TUNE.hardTurn };
+  return { speed: TUNE.normalSpeed, turn: TUNE.normalTurn };
+}
 function stepFlight(dt) {
-  const i = FLY.input;
-  FLY.yaw -= i.x * YAW_RATE * dt;                                   // stick right, nose right
-  FLY.pitch = clamp(FLY.pitch + i.y * PITCH_RATE * dt, -PITCH_MAX, PITCH_MAX);
-  FLY.roll += (i.x * BANK - FLY.roll) * (1 - Math.exp(-dt * BANK_EASE));   // the inner wing dips
-  const target = i.boost ? BOOSTV : CRUISE;
-  FLY.speed += (Math.max(MIN_SPD, target) - FLY.speed) * (1 - Math.exp(-dt * SPD_EASE));
-  FLY.quat.setFromEuler(E1.set(-FLY.pitch, FLY.yaw, FLY.roll, 'YXZ'));
-  FWD.set(0, 0, 1).applyQuaternion(FLY.quat);
-  V1.copy(FWD).multiplyScalar(FLY.speed);
-  FLY.vel.lerp(V1, 1 - Math.exp(-dt * VEL_EASE));                  // the lag is the drift
+  const s = FLY.stick, R = regime();
+  // 1. the desired direction: velocity, bent by the thumb inside a cone
+  V1.copy(FLY.velDir);
+  V2.crossVectors(V1, UP); if (V2.lengthSq() < 1e-6) V2.copy(X1); V2.normalize();      // local right
+  FLY.desired.copy(V1).applyAxisAngle(UP, -s.x * TUNE.yawCone * DEG).applyAxisAngle(V2, s.y * TUNE.pitchCone * DEG).normalize();
+  // floor, ceiling and the arena edge bend the desire, never the ship
+  if (FLY.pos.y < FLOOR + 120) FLY.desired.y += (FLOOR + 120 - FLY.pos.y) / 120 * 0.8;
+  if (FLY.pos.y > CEIL - 200) FLY.desired.y -= (FLY.pos.y - (CEIL - 200)) / 200 * 0.8;
+  V3.subVectors(ARENA_C, FLY.pos); V3.y = 0; const dist = V3.length();
+  if (dist > ARENA_R) FLY.desired.addScaledVector(V3.normalize(), Math.min(1.5, (dist - ARENA_R) / 600));
+  clampElevation(FLY.desired.normalize(), TUNE.elevMax);
+  // 2. turn rate springs toward the regime's; speed eases toward the regime's
+  const want = R.turn * DEG * (s.mag || 0);
+  FLY.turnRate += (want - FLY.turnRate) * (1 - Math.exp(-dt / TUNE.spring));
+  FLY.speed += (Math.max(MIN_SPD, R.speed) - FLY.speed) * (1 - Math.exp(-dt / 0.5));
+  // 3. the Vader turn: full deflection, held, lets the nose snap far ahead of the path
+  if (s.mag >= 0.95) { FLY.hardT += dt; if (FLY.vaderArmed && FLY.hardT >= TUNE.vaderHold) { FLY.vaderT = TUNE.vaderTime; FLY.vaderArmed = false; buzz('vader', [10, 20, 30], 500); } }
+  else { FLY.hardT = 0; FLY.vaderArmed = true; }
+  FLY.vaderT = Math.max(0, FLY.vaderT - dt);
+  // 4. velocity pursues the desired direction; the nose pursues it faster
+  rotateTowards(FLY.velDir, FLY.desired, FLY.turnRate * dt);
+  rotateTowards(FLY.noseDir, FLY.desired, FLY.turnRate * TUNE.lead * (FLY.vaderT > 0 ? TUNE.vaderLead : 1) * dt + (s.mag < 0.02 ? 0.6 * dt : 0));
+  if (s.mag < 0.02) rotateTowards(FLY.noseDir, FLY.velDir, 1.2 * dt);          // released: the nose settles onto the path
+  // the nose leads the path, then the path catches up: in a held turn the lead settles at turn rate x slipTime
+  const maxSlip = FLY.vaderT > 0 ? 100 * DEG : Math.max(TUNE.slipMin * DEG, FLY.turnRate * TUNE.slipTime);
+  const slip = Math.acos(clamp(FLY.noseDir.dot(FLY.velDir), -1, 1));
+  if (slip > maxSlip) rotateTowards(FLY.noseDir, FLY.velDir, slip - maxSlip);
+  clampElevation(FLY.noseDir, TUNE.elevMax);
+  FLY.vel.copy(FLY.velDir).multiplyScalar(FLY.speed);
   FLY.pos.addScaledVector(FLY.vel, dt);
-  if (FLY.pos.y < FLOOR) { FLY.pos.y = FLOOR; if (FLY.vel.y < 0) FLY.vel.y *= -0.35; FLY.pitch = Math.max(FLY.pitch, 0.15); buzz('ground', 20, 400); }
-  if (FLY.pos.y > CEIL) { FLY.pos.y = CEIL; FLY.pitch = Math.min(FLY.pitch, -0.1); }
-  V2.subVectors(ARENA_C, FLY.pos); V2.y = 0; const d = V2.length();
-  if (d > ARENA_R) FLY.yaw = lerpAngle(FLY.yaw, Math.atan2(V2.x, V2.z), 1 - Math.exp(-dt * (d - ARENA_R) / 400));
+  if (FLY.pos.y < FLOOR) FLY.pos.y = FLOOR;
+  // 5. orientation: nose along noseDir, always upright, banked into the turn
+  const wantBank = -s.x * TUNE.bankMax * DEG;
+  FLY.bank += (wantBank - FLY.bank) * (1 - Math.exp(-dt / 0.15));
+  M1.lookAt(V1.copy(FLY.pos).add(FLY.noseDir), FLY.pos, UP); FLY.quat.setFromRotationMatrix(M1);
+  FLY.quat.multiply(Q2.setFromAxisAngle(Z1, FLY.bank));
 }
 
-/* ---------- chase camera: settles behind you, holds where you looked ---------- */
+/* ---------- chase camera: follows velocity, with the nose only a hint ---------- */
 function stepCamera(dt) {
-  const c = FLY.cam, port = isPortrait();
-  const wantD = port ? 900 : 650, wantH = port ? 260 : 200, ck = 1 - Math.exp(-dt * 1.6);
-  if (c.hold <= 0) { c.dist += (wantD - c.dist) * ck; c.high += (wantH - c.high) * ck; }
-  const behind = FLY.yaw + Math.PI;
-  if (Math.abs(FLY.input.lookX) > 0.02) { c.az = behind + FLY.input.lookX * Math.PI * 0.9; c.hold = 1.1; }
-  else if ((c.hold = Math.max(0, c.hold - dt)) <= 0) c.az = lerpAngle(c.az == null ? behind : c.az, behind, 1 - Math.exp(-dt * (1.1 + FLY.speed * 0.004)));
-  if (c.az == null) c.az = behind;
-  V1.set(FLY.pos.x + Math.sin(c.az) * c.dist, FLY.pos.y + c.high - Math.sin(FLY.pitch) * c.dist * 0.35, FLY.pos.z + Math.cos(c.az) * c.dist);
-  engine.camera.position.lerp(V1, 1 - Math.exp(-dt * 5.5));
-  V2.copy(FLY.pos).addScaledVector(FWD, 320); V2.y += 40;
-  FLY.look.lerp(V2, 1 - Math.exp(-dt * 9));
-  engine.camera.lookAt(FLY.look);
+  const port = isPortrait(), dist = port ? 900 : 650, high = port ? 260 : 200;
+  V1.copy(FLY.velDir).multiplyScalar(TUNE.camBlend).addScaledVector(FLY.noseDir, 1 - TUNE.camBlend).normalize();
+  V2.copy(FLY.pos).addScaledVector(V1, -dist); V2.y += high;
+  FLY.camPos.lerp(V2, 1 - Math.exp(-dt / 0.25));
+  V3.copy(FLY.pos).addScaledVector(V1, 320); V3.y += 30;
+  FLY.look.lerp(V3, 1 - Math.exp(-dt / 0.12));
+  engine.camera.position.copy(FLY.camPos); engine.camera.up.copy(UP); engine.camera.lookAt(FLY.look);
 }
 
 /* ---------- bolts ---------- */
@@ -565,23 +670,29 @@ function initBolts() {
   if (FLY.bolts.length) return;
   for (let i = 0; i < BOLT_N; i++) {
     const m = new THREE.Mesh(boltGeo, matGreen); m.visible = false; m.frustumCulled = false; engine.scene.add(m);
-    FLY.bolts.push({ mesh: m, vel: new THREE.Vector3(), prev: new THREE.Vector3(), life: 0, enemy: false });
+    FLY.bolts.push({ mesh: m, vel: new THREE.Vector3(), prev: new THREE.Vector3(), life: 0, enemy: false, owner: null });
   }
 }
-function fireBolt(origin, dir, extraVel, enemy) {
+function spawnBoltFrom(b0) {                       // {origin, dir, extraVel, enemy, owner}
   const b = FLY.bolts.find(b => b.life <= 0); if (!b) return;
-  b.enemy = enemy; b.mesh.material = enemy ? matRed : matGreen; b.life = BOLT_LIFE;
-  b.mesh.position.copy(origin); b.prev.copy(origin);
-  b.vel.copy(dir).multiplyScalar(enemy ? ENEMY_BOLT_SPD : BOLT_SPD).add(extraVel);
-  b.mesh.quaternion.copy(Q1.setFromUnitVectors(Z1, dir)); b.mesh.visible = true;
+  b.enemy = b0.enemy; b.owner = b0.owner || null; b.mesh.material = b0.enemy ? matRed : matGreen; b.life = BOLT_LIFE;
+  b.mesh.position.copy(b0.origin); b.prev.copy(b0.origin);
+  b.vel.copy(b0.dir).multiplyScalar(b0.enemy ? ENEMY_BOLT_SPD : BOLT_SPD).add(b0.extraVel);
+  b.mesh.quaternion.copy(Q1.setFromUnitVectors(Z1, b0.dir)); b.mesh.visible = true;
+}
+function fireOnce() {
+  if (FLY.fireAcc < 1 / FIRE_RATE || FLY.over || FLY.test) return;
+  FLY.fireAcc = 0;
+  V1.copy(MUZZLE[FLY.muzzle ^= 1]).applyQuaternion(FLY.quat).add(FLY.pos);
+  V2.copy(FLY.noseDir);
+  if (FLY.aim.x || FLY.aim.y) { V3.crossVectors(V2, UP).normalize(); V2.applyAxisAngle(UP, -FLY.aim.x * 6 * DEG).applyAxisAngle(V3, -FLY.aim.y * 6 * DEG).normalize(); }
+  const shot = { origin: V1.clone(), dir: V2.clone(), extraVel: FLY.vel.clone(), enemy: false, owner: NET.id };
+  spawnBoltFrom(shot); netSend({ t: 'bolt', o: shot.origin.toArray(), d: shot.dir.toArray(), v: shot.extraVel.toArray() });
+  blip(900, 180, 0.09, 0.12); buzz('fire', 8, 60);
 }
 function stepBolts(dt) {
   FLY.fireAcc += dt;
-  if (FLY.input.fire && FLY.fireAcc >= 1 / FIRE_RATE) {
-    FLY.fireAcc = 0;
-    V1.copy(MUZZLE[FLY.muzzle ^= 1]).applyQuaternion(FLY.quat).add(FLY.pos);
-    fireBolt(V1, FWD, FLY.vel, false); blip(900, 180, 0.09, 0.12); buzz('fire', 8, 60);
-  }
+  if (FLY.fire) fireOnce();
   for (const b of FLY.bolts) {
     if (b.life <= 0) continue;
     b.prev.copy(b.mesh.position); b.mesh.position.addScaledVector(b.vel, dt);
@@ -589,8 +700,8 @@ function stepBolts(dt) {
   }
 }
 
-/* ---------- hits, damage, debris ---------- */
-function segHitsSphere(a, b, c, r) {          // the bolt's path this frame against a sphere: no tunnelling
+/* ---------- hits ---------- */
+function segHitsSphere(a, b, c, r) {
   V3.subVectors(b, a); const L2 = V3.lengthSq();
   const t = L2 ? clamp(V1.subVectors(c, a).dot(V3) / L2, 0, 1) : 0;
   return V2.copy(a).addScaledVector(V3, t).distanceToSquared(c) <= r * r;
@@ -598,114 +709,163 @@ function segHitsSphere(a, b, c, r) {          // the bolt's path this frame agai
 function stepHits() {
   for (const b of FLY.bolts) {
     if (b.life <= 0) continue;
-    if (!b.enemy) {
+    const mine = !b.enemy && b.owner === NET.id;
+    if (mine) {
       let hit = null;
       for (const t of FLY.targets) if (t.alive && segHitsSphere(b.prev, b.mesh.position, t.pos, t.r + BOLT_R)) { hit = t; break; }
       if (!hit) for (const e of FLY.enemies) if (e.alive && segHitsSphere(b.prev, b.mesh.position, e.pos, e.r + BOLT_R)) { hit = e; break; }
-      if (hit) { damage(hit); b.life = 0; b.mesh.visible = false; }
-    } else if (segHitsSphere(b.prev, b.mesh.position, FLY.pos, PLAYER_R)) {
-      hurtPlayer(); b.life = 0; b.mesh.visible = false;
+      if (hit) { claimDamage(hit); b.life = 0; b.mesh.visible = false; }
+    } else if (segHitsSphere(b.prev, b.mesh.position, FLY.pos, PLAYER_R)) {     // an enemy's bolt, or a friend's
+      hurtPlayer(b.owner); b.life = 0; b.mesh.visible = false;
     }
   }
   for (const t of FLY.targets) if (t.pulse > 0.01) { t.wrapper.scale.setScalar(1 + 0.25 * t.pulse); t.pulse *= 0.82; }
   for (const e of FLY.enemies) if (e.pulse > 0.01) { e.wrapper.scale.setScalar(1 + 0.25 * e.pulse); e.pulse *= 0.82; }
 }
-function damage(t) {
+function claimDamage(t) {
+  if (NET.host || !NET.on) applyDamage(t, NET.id);
+  else netSend({ t: 'dmg', kind: t.ground ? 'target' : 'xw', id: t.ground ? t.name : t.id });
+}
+function applyDamage(t, by) {
   t.hp -= 1; t.pulse = 1; blip(300, 80, 0.08, 0.1, 'sawtooth');
-  if (t.hp <= 0) destroy(t);
+  if (NET.host) netSend({ t: 'hurt', kind: t.ground ? 'target' : 'xw', id: t.ground ? t.name : t.id, hp: t.hp });
+  if (t.hp <= 0) { destroy(t); if (NET.host) netSend({ t: 'destroy', kind: t.ground ? 'target' : 'xw', id: t.ground ? t.name : t.id, by }); if (by === NET.id || !NET.on) score += t.pts; }
 }
 function destroy(t) {
-  t.alive = false; t.wrapper.visible = false; t.wrapper.scale.setScalar(1);
-  spawnDebris(t.pos, t.ground ? 8 : 12);
-  score += t.pts; toast(t.name, `+${t.pts}`, !t.ground); boom(); buzz('kill', [12, 30, 24], 200);
-  if (!t.ground) FLY.kills++;
+  if (!t.alive) return;
+  t.alive = false; t.wrapper.scale.setScalar(1);
+  if (t.ground) { shatter(t.wrapper, t.pos, t.vel); }
+  else {
+    t.wrapper.visible = false;
+    const g = FLY.xwParts.clone(true);
+    g.position.copy(t.wrapper.position); g.quaternion.copy(t.wrapper.quaternion); g.scale.copy(t.wrapper.scale);
+    engine.scene.add(g); shatter(g, t.pos, t.vel); engine.scene.remove(g);
+    FLY.kills++;
+  }
+  toast(t.name, `+${t.pts}`, !t.ground); boom(); buzz('kill', [12, 30, 24], 200);
 }
-function hurtPlayer() {
+function hurtPlayer(by) {
   FLY.shields -= HIT_DMG; FLY.lastHit = FLY.t;
   const f = $('#flash'); f.classList.add('on'); setTimeout(() => f.classList.remove('on'), 120);
   blip(140, 60, 0.18, 0.2, 'sawtooth'); buzz('hit', 40, 300);
-  if (FLY.shields <= 0) { FLY.shields = 0; gameOver(); }
+  netSend({ t: 'hit', by: by || 'xw', shields: FLY.shields });
+  if (FLY.shields <= 0) {
+    FLY.shields = 0;
+    const g = FLY.ship.clone(true); engine.scene.add(g); shatter(g, FLY.pos, FLY.vel); engine.scene.remove(g);
+    FLY.ship.visible = false;
+    netSend({ t: 'shatter', who: 'player', pos: FLY.pos.toArray(), vel: FLY.vel.toArray() });
+    gameOver();
+  }
 }
 function stepShields(dt) {
   if (FLY.shields < SHIELD_MAX && FLY.t - FLY.lastHit > REGEN_DELAY) FLY.shields = Math.min(SHIELD_MAX, FLY.shields + REGEN_RATE * dt);
 }
-const debrisGeo = new THREE.BoxGeometry(8, 8, 8);
-const debrisMats = [0x9ba19d, 0x2e2e2e, 0xc91a09].map(c => new THREE.MeshBasicMaterial({ color: c }));
-function initDebris() {
-  if (FLY.debris.length) return;
-  for (let i = 0; i < 48; i++) {
-    const m = new THREE.Mesh(debrisGeo, debrisMats[i % 3]); m.visible = false; m.frustumCulled = false; engine.scene.add(m);
-    FLY.debris.push({ mesh: m, vel: new THREE.Vector3(), life: 0 });
-  }
-}
-function spawnDebris(at, n) {
-  let k = 0;
-  for (const d of FLY.debris) {
-    if (k >= n) break; if (d.life > 0) continue;
-    d.life = 0.8; d.mesh.visible = true; d.mesh.position.copy(at);
-    d.vel.set(Math.random() - .5, Math.random() - .3, Math.random() - .5).normalize().multiplyScalar(150 + Math.random() * 300);
-    d.mesh.rotation.set(Math.random() * 3, Math.random() * 3, 0); k++;
-  }
-}
-function stepDebris(dt) {
-  for (const d of FLY.debris) {
-    if (d.life <= 0) continue;
-    d.vel.y -= 600 * dt; d.mesh.position.addScaledVector(d.vel, dt); d.mesh.rotation.x += 4 * dt;
-    if ((d.life -= dt) <= 0) d.mesh.visible = false;
-  }
-}
 
-/* ---------- the squadron ---------- */
+/* ---------- pieces fall apart ---------- */
+const PIECES = [], MAX_PIECES = 400, PIECE_LIFE = 4, PIECE_G = 600;
+function partsOf(container) {
+  // a wrapper > root > parts (a loaded model or its clone), or a regrouped wrapper > parts
+  const c = container.children;
+  if (c.length === 1 && c[0].isGroup && c[0].children.length && c[0].children.every(x => x.isGroup)) return c[0].children.slice();
+  return c.slice();
+}
+function shatter(container, centre, ownerVel) {
+  container.updateMatrixWorld(true);
+  for (const part of partsOf(container)) {
+    if (PIECES.length >= MAX_PIECES) expire(PIECES[0]);
+    engine.scene.attach(part);
+    const r = part.userData.r || 12;
+    V2.subVectors(part.position, centre); if (V2.lengthSq() < 1) V2.set(Math.random() - .5, .3, Math.random() - .5);
+    const vel = V2.normalize().multiplyScalar(150 + Math.random() * 300).addScaledVector(ownerVel, 0.6); vel.y += 80 + Math.random() * 120;
+    PIECES.push({ obj: part, vel: vel.clone(), ang: new THREE.Vector3(Math.random() - .5, Math.random() - .5, Math.random() - .5).normalize().multiplyScalar(2 + Math.random() * 6),
+      life: PIECE_LIFE + Math.random(), rest: false, fade: -1, r, scale0: part.scale.clone() });
+  }
+}
+function expire(p) { if (p.fade < 0) p.fade = 0.4; }
+function stepPieces(dt) {
+  for (let i = PIECES.length - 1; i >= 0; i--) {
+    const p = PIECES[i], o = p.obj;
+    if (p.fade >= 0) { p.fade -= dt; o.scale.copy(p.scale0).multiplyScalar(Math.max(0.001, p.fade / 0.4)); if (p.fade <= 0) { engine.scene.remove(o); PIECES.splice(i, 1); } continue; }
+    if ((p.life -= dt) <= 0) { expire(p); continue; }
+    if (p.rest) continue;
+    p.vel.y -= PIECE_G * dt; o.position.addScaledVector(p.vel, dt);
+    const w = p.ang.length();
+    if (w > 1e-4) { Q1.setFromAxisAngle(V1.copy(p.ang).divideScalar(w), w * dt); o.quaternion.premultiply(Q1); }
+    const floor = GROUND + p.r * 0.6;
+    if (o.position.y < floor) {
+      o.position.y = floor; p.vel.y *= -0.35; p.vel.x *= 0.7; p.vel.z *= 0.7; p.ang.multiplyScalar(0.6);
+      if (p.vel.length() < 25) { p.rest = true; p.vel.set(0, 0, 0); }
+    }
+  }
+}
+function clearPieces() { for (const p of PIECES) engine.scene.remove(p.obj); PIECES.length = 0; }
+
+/* ---------- the squadron (the host simulates; guests replay) ---------- */
 function startWave(n) {
   FLY.wave = n; const count = Math.min(XW_MAX, 2 + n);
-  for (let i = 0; i < count; i++) FLY.spawnQueue.push({ at: FLY.t + i * 0.6, i, n: count });
+  for (let i = 0; i < count; i++) FLY.spawnQueue.push({ at: FLY.t + i * 0.6, i, n: count, id: n * 100 + i });
   toast('Wave ' + n, count + ' X-wings', false);
+  netSend({ t: 'wave', n });
 }
-function spawnXwing(i, n) {
+function spawnXwing(i, n, id) {
   const e = {
-    wrapper: FLY.xw.clone(), pos: new THREE.Vector3(-120 + 240 * i / Math.max(1, n - 1), GROUND + 60, -260),
-    quat: new THREE.Quaternion().setFromAxisAngle(X1, -Math.PI / 2),          // nose up: it launches vertically
-    vel: new THREE.Vector3(), speed: XW_SPD * (0.9 + 0.2 * Math.random()), r: FLY.xw.userData.r,
-    hp: 2, hp0: 2, phase: i * Math.PI * 2 / n, orbitW: ORBIT_W * (i % 2 ? 1 : -1), fireCd: 2 + Math.random(),
+    id, wrapper: FLY.xw.clone(true), pos: new THREE.Vector3(-120 + 240 * i / Math.max(1, n - 1), GROUND + 60, -260),
+    quat: new THREE.Quaternion().setFromAxisAngle(X1, -Math.PI / 2), vel: new THREE.Vector3(),
+    speed: XW_SPD * (0.9 + 0.2 * Math.random()), r: FLY.xw.userData.r, hp: 2, hp0: 2,
+    phase: i * Math.PI * 2 / n, orbitW: ORBIT_W * (i % 2 ? 1 : -1), fireCd: 2 + Math.random(),
     alive: true, pulse: 0, roll: 0, name: 'X-wing', pts: 250, ground: false, age: 0,
+    tPos: null, tQuat: null,                                                   // guest-side interpolation targets
   };
-  e.wrapper.visible = true; engine.scene.add(e.wrapper); FLY.enemies.push(e);
+  e.wrapper.position.copy(e.pos); engine.scene.add(e.wrapper); FLY.enemies.push(e); return e;
 }
 function stepEnemies(dt) {
-  while (FLY.spawnQueue.length && FLY.spawnQueue[0].at <= FLY.t) { const s = FLY.spawnQueue.shift(); spawnXwing(s.i, s.n); }
+  if (FLY.test) return;
+  if (!NET.host) { for (const e of FLY.enemies) if (e.alive && e.tPos) { e.pos.lerp(e.tPos, 1 - Math.exp(-dt * 8)); e.quat.slerp(e.tQuat, 1 - Math.exp(-dt * 8)); e.wrapper.position.copy(e.pos); e.wrapper.quaternion.copy(e.quat); } return; }
+  while (FLY.spawnQueue.length && FLY.spawnQueue[0].at <= FLY.t) { const s = FLY.spawnQueue.shift(); spawnXwing(s.i, s.n, s.id); }
   let alive = 0;
   for (const e of FLY.enemies) { if (!e.alive) continue; alive++; steerEnemy(e, dt); }
   if (!alive && !FLY.spawnQueue.length && FLY.enemies.length) {
     if ((FLY.waveTimer += dt) > 2) { FLY.waveTimer = 0; for (const e of FLY.enemies) engine.scene.remove(e.wrapper); FLY.enemies.length = 0; startWave(FLY.wave + 1); }
   }
 }
+function nearestPlayer(from) {                    // the squadron hunts whoever is closest
+  let best = FLY.pos, bestV = FLY.vel, d = from.distanceToSquared(FLY.pos);
+  for (const r of REMOTE.values()) { if (!r.alive) continue; const dd = from.distanceToSquared(r.pos); if (dd < d) { d = dd; best = r.pos; bestV = r.vel; } }
+  return { pos: best, vel: bestV };
+}
 function steerEnemy(e, dt) {
   e.age += dt;
-  if (e.age < 1.5) { V1.copy(e.pos); V1.y += 800; }                       // the scramble: straight up
-  else V1.set(FLY.pos.x + Math.cos(FLY.t * e.orbitW + e.phase) * ORBIT_R,
-              Math.max(FLOOR + 100, FLY.pos.y + 120 * Math.sin(FLY.t * 0.7 + e.phase)),
-              FLY.pos.z + Math.sin(FLY.t * e.orbitW + e.phase) * ORBIT_R);
-  if (e.pos.y < FLOOR + 120) V1.y += 400;                                 // ground avoidance
-  M1.lookAt(V1, e.pos, UP); Q1.setFromRotationMatrix(M1);                  // +Z toward the goal
+  const P = nearestPlayer(e.pos);
+  if (e.age < 1.5) { V1.copy(e.pos); V1.y += 800; }
+  else V1.set(P.pos.x + Math.cos(FLY.t * e.orbitW + e.phase) * ORBIT_R, Math.max(FLOOR + 100, P.pos.y + 120 * Math.sin(FLY.t * 0.7 + e.phase)), P.pos.z + Math.sin(FLY.t * e.orbitW + e.phase) * ORBIT_R);
+  if (e.pos.y < FLOOR + 120) V1.y += 400;
+  M1.lookAt(V1, e.pos, UP); Q1.setFromRotationMatrix(M1);
   e.quat.rotateTowards(Q1, XW_TURN * dt);
-  V2.set(0, 0, 1).applyQuaternion(e.quat);                                 // nose
-  V3.set(-1, 0, 0).applyQuaternion(e.quat);                                // right
+  V2.set(0, 0, 1).applyQuaternion(e.quat); V3.set(-1, 0, 0).applyQuaternion(e.quat);
   const lat = V1.sub(e.pos).normalize().dot(V3);
   e.roll += (lat * 0.9 - e.roll) * (1 - Math.exp(-dt * 5));
   e.vel.lerp(V2.multiplyScalar(e.speed), 1 - Math.exp(-dt * 3)); e.pos.addScaledVector(e.vel, dt);
   e.pos.y = Math.max(e.pos.y, FLOOR + 40);
   e.wrapper.position.copy(e.pos); e.wrapper.quaternion.copy(e.quat).multiply(Q2.setFromAxisAngle(Z1, e.roll));
-  V2.set(0, 0, 1).applyQuaternion(e.quat); V3.subVectors(FLY.pos, e.pos); const d = V3.length();
+  V2.set(0, 0, 1).applyQuaternion(e.quat); V3.subVectors(P.pos, e.pos); const d = V3.length();
   if ((e.fireCd -= dt) <= 0 && d < FIRE_RANGE && V3.divideScalar(d).dot(V2) > 0.85) {
     e.fireCd = 1.5 + Math.random() * 1.5;
-    V1.copy(FLY.pos).addScaledVector(FLY.vel, d / ENEMY_BOLT_SPD).sub(e.pos).normalize();   // lead the shot
+    V1.copy(P.pos).addScaledVector(P.vel, d / ENEMY_BOLT_SPD).sub(e.pos).normalize();
     V2.copy(e.pos).addScaledVector(V1, 60);
-    fireBolt(V2, V1, e.vel, true); blip(500, 120, 0.1, 0.06, 'sawtooth');
+    const shot = { origin: V2.clone(), dir: V1.clone(), extraVel: e.vel.clone(), enemy: true, owner: 'xw' };
+    spawnBoltFrom(shot); netSend({ t: 'bolt', o: shot.origin.toArray(), d: shot.dir.toArray(), v: shot.extraVel.toArray(), enemy: true });
+    blip(500, 120, 0.1, 0.06, 'sawtooth');
   }
 }
 
 /* ---------- HUD, game over ---------- */
 function paintFlight() {
+  if (FLY.test) {
+    $('#lvl').textContent = 'Flight test'; $('#name').textContent = `speed ${Math.round(FLY.speed / 10)} · ${FLY.boost ? 'boost' : FLY.stick.mag > TUNE.hardAt ? 'hard' : 'cruise'}`;
+    $('#pts').textContent = ''; $('#fill').style.width = '100%';
+    $('#count').textContent = `stick ${FLY.stick.x.toFixed(2)} ${FLY.stick.y.toFixed(2)} · turn ${(FLY.turnRate / DEG).toFixed(0)}°/s · slip ${(Math.acos(clamp(FLY.noseDir.dot(FLY.velDir), -1, 1)) / DEG).toFixed(0)}°${FLY.vaderT > 0 ? ' · VADER' : ''}`;
+    return;
+  }
   const left = FLY.enemies.filter(e => e.alive).length + FLY.targets.filter(t => t.alive).length;
   $('#lvl').textContent = 'Wave ' + FLY.wave;
   $('#name').textContent = left + (left === 1 ? ' target' : ' targets');
@@ -713,58 +873,123 @@ function paintFlight() {
   $('#fill').style.width = (FLY.shields / SHIELD_MAX * 100).toFixed(0) + '%';
   $('#bar').classList.toggle('low', FLY.shields < 40);
   $('#count').textContent = `speed ${Math.round(FLY.speed / 10)} · shields ${Math.round(FLY.shields)} · kills ${FLY.kills}`;
+  if (NET.on) $('#players').textContent = `room ${NET.code} · ${1 + REMOTE.size} pilot${REMOTE.size ? 's' : ''}${NET.host ? ' · host' : ''}`;
 }
 function gameOver() {
   FLY.over = true;
   const secs = Math.round((performance.now() - FLY.t0) / 1000);
-  $('#end').querySelector('.kicker').textContent = 'Shot down';
+  $('#endKicker').textContent = 'Shot down';
   $('#finalPts').textContent = fmt(score);
-  $('#finalStats').innerHTML = [
-    ['waves', FLY.wave, ''], ['kills', FLY.kills, 'gold'], ['time', secs + 's', ''], ['pieces', fmt(PATH.lines.length), ''],
-  ].map(([k, v, cls]) => `<div><span>${k}</span><b class="${cls}">${v}</b></div>`).join('');
-  const fb = $('#flyBtn'); fb.hidden = false; fb.textContent = 'Fly again';
-  $('#again').textContent = 'Build again';
-  setTimeout(() => $('#end').classList.remove('gone'), 900);
+  $('#finalStats').innerHTML = [['waves', FLY.wave, ''], ['kills', FLY.kills, 'gold'], ['time', secs + 's', ''], ['pieces', fmt(PATH.lines.length), '']]
+    .map(([k, v, cls]) => `<div><span>${k}</span><b class="${cls}">${v}</b></div>`).join('');
+  const fb = $('#flyBtn'); fb.hidden = false; fb.textContent = 'Fly again'; $('#again').textContent = 'Build again';
+  setTimeout(() => $('#end').classList.remove('gone'), 1200);
 }
 
-/* ---------- input: sticks, buttons, keys ---------- */
-function stick(el, out) {
-  const nub = el.querySelector('.nub'); let pid = null, cx = 0, cy = 0;
-  const set = e => {
-    const r = el.getBoundingClientRect(), rad = Math.max(30, Math.min(r.width, r.height) * .34);
-    let dx = e.clientX - cx, dy = e.clientY - cy, m = Math.hypot(dx, dy);
-    if (m > rad) { dx *= rad / m; dy *= rad / m; m = rad; }
-    nub.style.transform = `translate(calc(-50% + ${dx}px),calc(-50% + ${dy}px))`;
-    out.x = dx / rad; out.y = -dy / rad; out.mag = m / rad;
-  };
-  el.addEventListener('pointerdown', e => {
-    if (pid != null) return; pid = e.pointerId; el.setPointerCapture(pid); el.classList.add('live');
-    const r = el.getBoundingClientRect(); cx = r.left + r.width / 2; cy = r.top + r.height / 2; set(e); e.preventDefault();
-  }, { passive: false });
-  el.addEventListener('pointermove', e => { if (e.pointerId !== pid) return; set(e); e.preventDefault(); }, { passive: false });
-  const end = e => { if (e.pointerId !== pid) return; pid = null; el.classList.remove('live'); nub.style.transform = 'translate(-50%,-50%)'; out.x = out.y = out.mag = 0; };
-  el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
+/* ---------- tune panel: the numbers are set on the phone, not guessed ---------- */
+function buildTunePanel() {
+  const rows = [['normalSpeed', 150, 700, 5], ['normalTurn', 30, 220, 1], ['boostSpeed', 300, 1000, 5], ['boostTurn', 20, 160, 1],
+    ['hardSpeed', 120, 500, 5], ['hardTurn', 60, 260, 1], ['lead', 1, 3, 0.05], ['slipTime', 0.05, 0.6, 0.01], ['slipMin', 0, 45, 1], ['spring', 0.05, 0.6, 0.01], ['camBlend', 0, 1, 0.05], ['bankMax', 20, 75, 1], ['vaderLead', 1.5, 5, 0.1]];
+  const el = $('#tune');
+  el.innerHTML = rows.map(([k, a, b, st]) => `<label>${k}<input type="range" data-k="${k}" min="${a}" max="${b}" step="${st}" value="${TUNE[k]}"><b data-v="${k}" class="n">${TUNE[k]}</b></label>`).join('') +
+    `<div class="row"><button id="tuneCopy">Copy values</button><button id="tuneReset">Reset</button></div>`;
+  el.querySelectorAll('input').forEach(i => i.oninput = () => { TUNE[i.dataset.k] = +i.value; el.querySelector(`[data-v="${i.dataset.k}"]`).textContent = i.value; });
+  const defaults = { ...TUNE };
+  $('#tuneCopy').onclick = () => { const s = JSON.stringify(TUNE, null, 1); (navigator.clipboard ? navigator.clipboard.writeText(s) : Promise.reject()).then(() => toast('Copied', 'tune values', true), () => prompt('tune values', s)); };
+  $('#tuneReset').onclick = () => { Object.assign(TUNE, defaults); buildTunePanel(); };
+  $('#tuneToggle').onclick = () => el.classList.toggle('open');       // closed, the whole screen steers; open, the sliders sit over it
 }
-function hold(el, key) {
-  const dn = e => { e.preventDefault(); FLY.raw[key] = true; el.classList.add('on'); };
-  const up = () => { FLY.raw[key] = false; el.classList.remove('on'); };
-  el.addEventListener('pointerdown', dn, { passive: false });
-  el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up); el.addEventListener('pointerleave', up);
+
+/* =====================================================================
+   NET — co-op over PeerJS (room codes), or BroadcastChannel for two tabs.
+   Each client owns its ship and the hits on itself; the host owns the
+   squadron and the ground targets and relays every message to everyone.
+   ===================================================================== */
+const NET = { on: false, host: true, id: 'p' + Math.random().toString(36).slice(2, 8), code: '', peer: null, conns: [], bc: null, acc: 0 };
+const REMOTE = new Map();                        // id -> { wrapper, pos, quat, vel, tPos, tQuat, shields, alive, seen }
+const roomCode = () => Array.from({ length: 4 }, () => 'ABCDEFGHJKLMNPQRSTUVWXYZ'[Math.floor(Math.random() * 24)]).join('');
+
+function netSend(msg) {
+  if (!NET.on) return;
+  msg.from = NET.id;
+  if (NET.bc) { NET.bc.postMessage(msg); return; }
+  const s = JSON.stringify(msg);
+  for (const c of NET.conns) { try { c.send(s); } catch (e) {} }
 }
-function bindFlightInput() {
-  if (FLY.bound) return; FLY.bound = true;
-  stick($('#navMove'), FLY.raw.stick); stick($('#navLook'), FLY.raw.look);
-  hold($('#fire'), 'fireHeld'); hold($('#boost'), 'boostHeld');
-  const stage = $('#stage');
-  stage.addEventListener('pointerdown', e => { if (MODE === 'fly' && e.target.tagName === 'CANVAS') FLY.raw.canvasFire = true; });
-  const off = () => { FLY.raw.canvasFire = false; };
-  stage.addEventListener('pointerup', off); stage.addEventListener('pointercancel', off); window.addEventListener('pointerup', off);
-  window.addEventListener('keydown', e => {
-    if (MODE !== 'fly' || /INPUT|TEXTAREA/.test(e.target.tagName)) return;
-    FLY.keys.add(e.code); if (/^(Space|Arrow)/.test(e.code)) e.preventDefault();
-  });
-  window.addEventListener('keyup', e => FLY.keys.delete(e.code));
-  window.addEventListener('blur', () => FLY.keys.clear());
+function relay(msg, except) { if (!NET.host || NET.bc) return; const s = JSON.stringify(msg); for (const c of NET.conns) if (c !== except) { try { c.send(s); } catch (e) {} } }
+function useBroadcast(code) {
+  NET.bc = new BroadcastChannel('tie-game-' + code);
+  NET.bc.onmessage = ev => { if (ev.data && ev.data.from !== NET.id) onNet(ev.data, null); };
+}
+async function hostRoom() {
+  if (NET.on) return;
+  NET.host = true; NET.code = Q.get('room') || roomCode(); NET.on = true;
+  $('#roomCode').textContent = NET.code; $('#hostBtn').disabled = true; document.body.classList.add('net');
+  if (Q.get('net') === 'bc' || !window.Peer) { useBroadcast(NET.code); $('#launchMeta').textContent = 'local room (same browser) · code ' + NET.code; return; }
+  try {
+    NET.peer = new Peer('tie-' + NET.code.toLowerCase());
+    NET.peer.on('connection', c => { NET.conns.push(c); c.on('data', d => { const m = JSON.parse(d); onNet(m, c); relay(m, c); }); c.on('open', () => sendSnapshot(c)); c.on('close', () => { NET.conns = NET.conns.filter(x => x !== c); }); });
+    NET.peer.on('error', e => fail('room error: ' + e.type));
+    $('#launchMeta').textContent = 'share the code · friends tap Join';
+  } catch (e) { useBroadcast(NET.code); }
+}
+async function joinRoom() {
+  if (NET.on) return;
+  const code = ($('#codeIn').value || '').trim().toUpperCase(); if (code.length !== 4) { $('#codeIn').focus(); return; }
+  NET.host = false; NET.code = code; NET.on = true; document.body.classList.add('net'); $('#roomCode').textContent = code;
+  if (Q.get('net') === 'bc' || !window.Peer) { useBroadcast(code); $('#launchMeta').textContent = 'joined local room ' + code; return; }
+  try {
+    NET.peer = new Peer();
+    NET.peer.on('open', () => { const c = NET.peer.connect('tie-' + code.toLowerCase(), { reliable: false }); NET.conns = [c]; c.on('data', d => onNet(JSON.parse(d), c)); c.on('close', () => fail('the host left')); });
+    NET.peer.on('error', e => fail('join error: ' + e.type));
+    $('#launchMeta').textContent = 'joined ' + code;
+  } catch (e) { useBroadcast(code); }
+}
+function sendSnapshot(c) {
+  if (!FLY.ready) return;
+  const m = { t: 'snap', from: NET.id, wave: FLY.wave, enemies: FLY.enemies.map(e => ({ id: e.id, p: e.pos.toArray(), q: e.quat.toArray(), hp: e.hp, alive: e.alive })), targets: FLY.targets.map(t => ({ name: t.name, hp: t.hp, alive: t.alive })) };
+  if (c) c.send(JSON.stringify(m)); else netSend(m);
+}
+function remoteFor(id) {
+  let r = REMOTE.get(id);
+  if (!r && FLY.ship) {
+    const w = FLY.ship.clone(true); w.visible = true; engine.scene.add(w);
+    r = { wrapper: w, pos: new THREE.Vector3(), quat: new THREE.Quaternion(), vel: new THREE.Vector3(), tPos: new THREE.Vector3(), tQuat: new THREE.Quaternion(), shields: SHIELD_MAX, alive: true, seen: FLY.t };
+    REMOTE.set(id, r); toast('Pilot joined', id, true);
+  }
+  return r;
+}
+function onNet(m, conn) {
+  if (!FLY.ready) return;
+  switch (m.t) {
+    case 'join': if (NET.host) sendSnapshot(conn); break;                   // a guest is airborne: tell it the state of the world
+    case 'ship': { const r = remoteFor(m.from); if (!r) break; r.tPos.fromArray(m.p); r.tQuat.fromArray(m.q); r.vel.fromArray(m.v); r.shields = m.s; r.seen = FLY.t; if (!r.alive) { r.alive = true; r.wrapper.visible = true; r.pos.copy(r.tPos); } break; }
+    case 'bolt': spawnBoltFrom({ origin: V1.fromArray(m.o).clone(), dir: V2.fromArray(m.d).clone(), extraVel: V3.fromArray(m.v).clone(), enemy: !!m.enemy, owner: m.enemy ? 'xw' : m.from }); break;
+    case 'dmg': if (NET.host) { const t = m.kind === 'target' ? FLY.targets.find(t => t.name === m.id) : FLY.enemies.find(e => e.id === m.id); if (t && t.alive) applyDamage(t, m.from); } break;
+    case 'hurt': if (!NET.host) { const t = m.kind === 'target' ? FLY.targets.find(t => t.name === m.id) : FLY.enemies.find(e => e.id === m.id); if (t) { t.hp = m.hp; t.pulse = 1; } } break;
+    case 'destroy': if (!NET.host) { const t = m.kind === 'target' ? FLY.targets.find(t => t.name === m.id) : FLY.enemies.find(e => e.id === m.id); if (t && t.alive) { destroy(t); if (m.by === NET.id) score += t.pts; } } break;
+    case 'wave': if (!NET.host) { FLY.wave = m.n; for (const e of FLY.enemies) engine.scene.remove(e.wrapper); FLY.enemies.length = 0; toast('Wave ' + m.n, '', false); } break;
+    case 'xw': if (!NET.host) { for (const s of m.e) { let e = FLY.enemies.find(e => e.id === s.id); if (!e) { e = spawnXwing(0, 1, s.id); e.pos.fromArray(s.p); } e.tPos = e.tPos || new THREE.Vector3(); e.tQuat = e.tQuat || new THREE.Quaternion(); e.tPos.fromArray(s.p); e.tQuat.fromArray(s.q); e.vel.fromArray(s.v); if (e.alive && !s.alive) destroy(e); } } break;
+    case 'snap': if (!NET.host) { FLY.wave = m.wave; for (const s of m.enemies) { if (!FLY.enemies.find(e => e.id === s.id)) { const e = spawnXwing(0, 1, s.id); e.pos.fromArray(s.p); e.quat.fromArray(s.q); e.hp = s.hp; if (!s.alive) { e.alive = false; e.wrapper.visible = false; } } } for (const s of m.targets) { const t = FLY.targets.find(t => t.name === s.name); if (t) { t.hp = s.hp; if (!s.alive && t.alive) { t.alive = false; t.wrapper.visible = false; } } } } break;
+    case 'hit': { const r = REMOTE.get(m.from); if (r) r.shields = m.shields; break; }
+    case 'shatter': { const r = REMOTE.get(m.from); if (r && r.alive) { r.alive = false; const g = r.wrapper.clone(true); engine.scene.add(g); shatter(g, V1.fromArray(m.pos), V2.fromArray(m.vel)); engine.scene.remove(g); r.wrapper.visible = false; boom(); } break; }
+  }
+}
+function netTick(dt) {
+  if (!NET.on) return;
+  if ((NET.acc += dt) >= 1 / 15) {
+    NET.acc = 0;
+    netSend({ t: 'ship', p: FLY.pos.toArray(), q: FLY.quat.toArray(), v: FLY.vel.toArray(), s: FLY.shields });
+    if (NET.host && FLY.enemies.length) netSend({ t: 'xw', e: FLY.enemies.map(e => ({ id: e.id, p: e.pos.toArray(), q: e.wrapper.quaternion.toArray(), v: e.vel.toArray(), alive: e.alive })) });
+  }
+}
+function stepRemote(dt) {
+  for (const [id, r] of REMOTE) {
+    if (!r.alive) continue;
+    r.pos.lerp(r.tPos, 1 - Math.exp(-dt * 10)); r.quat.slerp(r.tQuat, 1 - Math.exp(-dt * 10));
+    r.wrapper.position.copy(r.pos); r.wrapper.quaternion.copy(r.quat);
+    if (FLY.t - r.seen > 8) { engine.scene.remove(r.wrapper); REMOTE.delete(id); }
+  }
 }
 
 /* ---------- sound and touch ---------- */
@@ -790,24 +1015,43 @@ function boom() {
   s.connect(f).connect(g).connect(AC.destination); s.start(t);
 }
 const BUZZ = {};
-function buzz(key, pattern, cool) {
-  const n = performance.now(); if (!navigator.vibrate || (BUZZ[key] || 0) > n) return;
-  BUZZ[key] = n + cool; navigator.vibrate(pattern);
+function buzz(key, pattern, cool) { const n = performance.now(); if (!navigator.vibrate || (BUZZ[key] || 0) > n) return; BUZZ[key] = n + cool; navigator.vibrate(pattern); }
+
+/* ---------- Smart Brick: a stub, on purpose ----------
+   Web Bluetooth needs HTTPS and Chrome on Android. The UUID is the LEGO hub
+   service used by Powered Up; the 2026 Smart Brick's protocol is unpublished,
+   so this only lists what the device exposes. Nothing depends on it. */
+async function connectBrick() {
+  if (!navigator.bluetooth) return fail('Web Bluetooth unavailable in this browser');
+  const d = await navigator.bluetooth.requestDevice({ acceptAllDevices: true, optionalServices: ['00001623-1212-efde-1623-785feabcd123'] });
+  const services = await (await d.gatt.connect()).getPrimaryServices();
+  for (const sv of services) console.log('[brick]', sv.uuid, (await sv.getCharacteristics()).map(c => c.uuid));
+  toast('Brick', d.name || 'connected', true);
 }
 
 /* ---------- test hooks ---------- */
-window.__game = window.__game || {};
 window.__game.fly = {
-  enter: enterFlight,
+  enter: enterFlight, again: flyAgain, tune: TUNE,
   state: () => ({
-    ready: FLY.ready, over: FLY.over, mode: MODE, pos: FLY.pos.toArray(), yaw: FLY.yaw, pitch: FLY.pitch, speed: FLY.speed,
-    shields: FLY.shields, wave: FLY.wave, score, kills: FLY.kills,
-    enemies: FLY.enemies.map(e => ({ pos: e.pos.toArray(), hp: e.hp, alive: e.alive })),
-    targets: FLY.targets.map(t => ({ name: t.name, hp: t.hp, alive: t.alive })),
-    bolts: FLY.bolts.filter(b => b.life > 0).length, calls: engine ? engine.renderer.info.render.calls : 0,
+    ready: FLY.ready, over: FLY.over, test: FLY.test, mode: MODE, pos: FLY.pos.toArray(), velDir: FLY.velDir.toArray(), noseDir: FLY.noseDir.toArray(),
+    speed: FLY.speed, bank: FLY.bank, turnRate: FLY.turnRate, stick: { ...FLY.stick }, vaderT: FLY.vaderT, shields: FLY.shields, wave: FLY.wave, score, kills: FLY.kills,
+    up: V4.set(0, 1, 0).applyQuaternion(FLY.quat).toArray(),
+    enemies: FLY.enemies.map(e => ({ id: e.id, pos: e.pos.toArray(), hp: e.hp, alive: e.alive })), targets: FLY.targets.map(t => ({ name: t.name, hp: t.hp, alive: t.alive })),
+    bolts: FLY.bolts.filter(b => b.life > 0).length, calls: engine ? engine.renderer.info.render.calls : 0, remote: REMOTE.size, netHost: NET.host, netOn: NET.on,
+    cam: engine ? engine.camera.position.toArray() : null,
   }),
-  aimAt: i => { const e = FLY.enemies[i]; if (!e) return; V1.subVectors(e.pos, FLY.pos); FLY.yaw = Math.atan2(V1.x, V1.z); FLY.pitch = Math.atan2(V1.y, Math.hypot(V1.x, V1.z)); FLY.pos.copy(e.pos).addScaledVector(V1.normalize(), -500); FLY.vel.set(0, 0, 0); },
+  pieces: () => PIECES.map(p => ({ y: p.obj.position.y, rest: p.rest })),
+  shipVisible: () => !!(FLY.ship && FLY.ship.visible),
   press: (code, on) => on ? FLY.keys.add(code) : FLY.keys.delete(code),
+  step: sec => { for (let t = 0; t < sec; t += 1 / 60) simulate(1 / 60); FLY.last = performance.now(); },   // frame-rate-independent: the tests drive the world by the clock, not the GPU
+  stick: (x, y) => { FLY.touchSteer = true; FLY.want.x = x; FLY.want.y = y; },
+  release: () => { FLY.touchSteer = false; FLY.want.x = FLY.want.y = 0; },
+  aimAt: i => { const e = FLY.enemies[i]; if (!e) return; V1.subVectors(e.pos, FLY.pos).normalize(); FLY.noseDir.copy(V1); FLY.velDir.copy(V1); FLY.pos.copy(e.pos).addScaledVector(V1, -500); },
+  fire: fireOnce, kill: i => { const e = FLY.enemies[i]; if (e) claimDamage(e), claimDamage(e); },
+  fireAt: p => { V1.set(p[0], p[1], p[2]); V2.subVectors(V1, FLY.pos).normalize(); FLY.noseDir.copy(V2); FLY.velDir.copy(V2); FLY.pos.copy(V1).addScaledVector(V2, -500); FLY.vel.copy(V2).multiplyScalar(FLY.speed); FLY.fireAcc = 1; fireOnce(); },
+  remotes: () => [...REMOTE].map(([id, r]) => ({ id, pos: r.pos.toArray(), shields: r.shields, alive: r.alive })),
+  die: () => { FLY.shields = HIT_DMG; hurtPlayer('xw'); },
+  host: hostRoom, join: code => { $('#codeIn').value = code; return joinRoom(); }, netState: () => ({ on: NET.on, host: NET.host, code: NET.code, conns: NET.conns.length, bc: !!NET.bc }),
 };
 </script>
 </body>

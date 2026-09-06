@@ -162,6 +162,75 @@ def write_inline(path, label, out_dir):
     return len(kept), os.path.getsize(dst)
 
 
+# ───────────────────────────── the full pack: every file the loader would fetch
+RESOLVE = json.load(open(os.path.join(ROOT, 'ldraw-resolve-map.json')))
+FULL = {'VADER-TIE', 'XWING-MINI'}      # the objects tie-game.html loads in one fetch
+
+
+def resolve(ref):
+    """The name LDrawLoader looks up in its cache: the type-1 reference after its
+    fileMap remap, then its two subfolder rules, else verbatim."""
+    n = ref.replace('\\', '/').strip()
+    if n in RESOLVE:
+        return RESOLVE[n]
+    if n.startswith('s/'):
+        return 'parts/' + n
+    if n.startswith('48/'):
+        return 'p/' + n
+    return n
+
+
+def disk_path(name):
+    for c in ('ldraw/' + name, 'ldraw/parts/' + name, 'ldraw/p/' + name):
+        q = os.path.join(ROOT, c)
+        if os.path.exists(q):
+            return q
+    return None
+
+
+def refs_in(text):
+    for line in text.split('\n'):
+        t = line.strip()
+        if t.startswith('1 '):
+            f = t.split(None, 14)
+            if len(f) >= 15:
+                yield f[14]
+
+
+def library_closure(seeds):
+    """{lowercased resolved name: (resolved name, text)} for every file reachable
+    from the seed references — parts, subparts and primitives alike."""
+    out, stack = {}, list(seeds)
+    while stack:
+        name = resolve(stack.pop())
+        key = name.lower()
+        if key in out:
+            continue
+        q = disk_path(name)
+        if not q:
+            print('   MISSING', name)
+            continue
+        text = open(q, encoding='utf-8', errors='ignore').read().replace('\r\n', '\n')
+        out[key] = (name, text)
+        stack.extend(refs_in(text))
+    return out
+
+
+def write_full(d, kit_path, label, out_dir):
+    """One `0 FILE <resolved name>` block per file in the closure, plus any custom
+    blocks the kit inlines. Appended to the game's synthesized model text, it lets the
+    loader draw the whole object without a single HTTP fetch. Written as .txt so
+    GitHub Pages serves it gzipped."""
+    custom = [t for n, t in split_blocks(kit_path) if is_library(n) and not on_disk(n)]
+    seeds = list(refs_in('\n'.join(d['lines']))) + [r for t in custom for r in refs_in(t)]
+    lib = library_closure(seeds)
+    blocks = custom + ['0 FILE %s\n%s\n' % (name, text.rstrip('\n')) for name, text in lib.values()]
+    dst = os.path.join(out_dir, label + '-full.mpd.txt')
+    with open(dst, 'w') as fh:
+        fh.write(''.join(blocks))
+    return len(blocks), os.path.getsize(dst)
+
+
 def main():
     out_dir = os.path.join(ROOT, 'assembly-paths')
     os.makedirs(out_dir, exist_ok=True)
@@ -176,6 +245,9 @@ def main():
         dst = os.path.join(out_dir, label + '.json')
         json.dump(d, open(dst, 'w'), separators=(',', ':'))
         n_inline, inline_bytes = write_inline(p, label, out_dir)
+        if label in FULL:
+            nf, fb = write_full(d, p, label, out_dir)
+            print('   full pack for %s: %d files, %d KB' % (label, nf, fb // 1024))
         index.append({'id': label, 'lines': len(d['lines']), 'steps': d['steps_total'],
                       'subs': len(d['sub_names']), 'kb': round(os.path.getsize(dst) / 1024)})
         print('%-14s %5d placements  %3d steps  %3d subassemblies  %4d KB  '
