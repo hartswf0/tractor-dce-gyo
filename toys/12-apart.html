@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+<meta name="theme-color" content="#b8cbd8" />
+<title>12 · Apart</title>
+<link rel="icon" type="image/svg+xml" href="../ball-jar-favicon.svg" />
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="../examples/js/loaders/LDrawLoader.js"></script>
+<script src="../beta-prime-engine.js"></script>
+<script src="../nabugo.js"></script>
+<script src="../nabugo-ui.js"></script>
+<script src="./terrain-data.js"></script>
+<script src="./common.js"></script>
+</head>
+<body>
+<div id="stage"></div>
+<script>
+/* 12 · Apart. A TIE that never automatically aligns nose and velocity at all. */
+const { DEG, M } = Toy.T;
+const TUNE = { cruise: 390, trajRate: 1.75, trajPitchRate: 1.35, faceRate: 2.65, facePitchRate: 2.15, pitchMax: 1.22 };
+const TRAVEL = new THREE.Vector3(), FACE = new THREE.Vector3(), E = new THREE.Euler(), QT = new THREE.Quaternion();
+let travelYaw = Math.PI, travelPitch = 0, yaw = Math.PI, pitch = 0, apart = 0, shots = 0;
+const lerpAngle = (a, b, t) => { let d = ((b - a + Math.PI) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2) - Math.PI; return a + d * t; };
+const shape = s => { const m = s.mag * s.mag; return { x: s.x * m, y: s.y * m, mag: s.mag }; };   // tie-2's response
+Toy.boot({
+  index: '12 / 12', title: 'Apart',
+  notice: 'Left thumb bends where it goes. Right thumb turns where it looks. Nothing ever brings them back together. Tap right to fire where it looks.',
+  keys: 'wasd momentum · arrows face · space fire',
+  setup(T) { T.pos.set(0, 40 * M, 60 * M); },
+  onTap(T, p) { if (!p.left) { T.fire(FACE, T.vel); shots++; } },
+  onKey(T, code, on) { if (on && code === 'Space') { T.fire(FACE, T.vel); shots++; } },
+  step(T, dt) {
+    const L = shape(T.sticks.L.held ? T.sticks.L : T.keyStick());
+    const kR = T.keys, R = T.sticks.R.held ? shape(T.sticks.R) : { x: (kR.has('ArrowRight') ? 1 : 0) - (kR.has('ArrowLeft') ? 1 : 0), y: (kR.has('ArrowUp') ? 1 : 0) - (kR.has('ArrowDown') ? 1 : 0), mag: 1 };
+    const gain = .20 + .80 * L.mag * L.mag;
+    travelYaw = lerpAngle(travelYaw, travelYaw - L.x * .78, 1 - Math.exp(-dt * TUNE.trajRate * gain));
+    travelPitch += (T.clamp(travelPitch + L.y * .58, -TUNE.pitchMax, TUNE.pitchMax) - travelPitch) * (1 - Math.exp(-dt * TUNE.trajPitchRate * gain));
+    yaw -= R.x * TUNE.faceRate * dt; pitch = T.clamp(pitch + R.y * TUNE.facePitchRate * dt, -TUNE.pitchMax, TUNE.pitchMax);
+    T.quat.setFromEuler(E.set(-pitch, yaw, 0, 'YXZ')); FACE.set(0, 0, 1).applyQuaternion(T.quat);
+    QT.setFromEuler(E.set(-travelPitch, travelYaw, 0, 'YXZ')); TRAVEL.set(0, 0, 1).applyQuaternion(QT);
+    T.vel.copy(TRAVEL).multiplyScalar(TUNE.cruise); T.pos.addScaledVector(T.vel, dt);
+    if (T.keepAbove(8 * M)) travelPitch = Math.max(travelPitch, .12);
+    apart = T.angle(FACE, TRAVEL) / DEG;
+    T.V1.copy(T.pos).addScaledVector(TRAVEL, -58 * M); T.V1.y += 17 * M;
+    T.V2.copy(T.pos).addScaledVector(TRAVEL, 24 * M).addScaledVector(FACE, 6 * M); T.V2.y += 2 * M;
+    if (!T.cam.set) T.placeCamera(T.V1, T.V2);
+    T.cam.pos.lerp(T.V1, 1 - Math.exp(-dt * 3.8)); T.cam.look.lerp(T.V2, 1 - Math.exp(-dt * 6));
+    T.camera.position.copy(T.cam.pos); T.camera.up.copy(T.UP); T.camera.lookAt(T.cam.look);
+  },
+  draw(T) {
+    T.line(T.pos, T.V3.copy(T.pos).addScaledVector(TRAVEL, 45 * M), T.colour.V, [6, 7]); T.mark(T.V3, 'V', T.colour.V);
+    T.line(T.pos, T.V3.copy(T.pos).addScaledVector(FACE, 40 * M), T.colour.N); T.mark(T.V3, 'N', T.colour.N);
+    T.readout(`${apart.toFixed(0)}° apart${apart > 35 ? ' · fire sideways' : ''}\nshots ${shots}`);
+  },
+  state: T => ({ apart, travel: TRAVEL.toArray(), face: FACE.toArray(), shots }),
+  hooks: T => ({ sticks: (L, R) => { Object.assign(T.sticks.L, L ? { ...L, held: true, id: -1 } : { x: 0, y: 0, mag: 0, held: false, id: null }); Object.assign(T.sticks.R, R ? { ...R, held: true, id: -2 } : { x: 0, y: 0, mag: 0, held: false, id: null }); } }),
+});
+</script>
+</body>
+</html>

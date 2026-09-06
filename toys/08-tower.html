@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+<meta name="theme-color" content="#b8cbd8" />
+<title>08 · The tower</title>
+<link rel="icon" type="image/svg+xml" href="../ball-jar-favicon.svg" />
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="../examples/js/loaders/LDrawLoader.js"></script>
+<script src="../beta-prime-engine.js"></script>
+<script src="../nabugo.js"></script>
+<script src="../nabugo-ui.js"></script>
+<script src="./terrain-data.js"></script>
+<script src="./common.js"></script>
+</head>
+<body>
+<div id="stage"></div>
+<script>
+/* 08 · The tower. A single skyscraper whose proximity bends the TIE's trajectory. */
+const { DEG, M } = Toy.T;
+const TUNE = { R: 120, k1: 2.4, k2: 0.9, skimR: 45, steal: 260, decay: 4 };
+const TOWER = new THREE.Vector3(-120 * M, 0, -180 * M);
+let P = null, gain = 0, q = 0, best = 0;
+Toy.boot({
+  index: '08 / 12', title: 'The tower',
+  notice: 'One tower, and the space around it is not empty. Fly near and your path bends; skim it close and it throws you on faster.',
+  keys: 'wasd steer · shift boost',
+  setup(T) {
+    TOWER.y = T.groundH(TOWER.x, TOWER.z);
+    const tower = new THREE.Mesh(new THREE.BoxGeometry(20 * M, 60 * M, 20 * M), new THREE.MeshStandardMaterial({ color: new THREE.Color(0xd8d4cb).convertSRGBToLinear(), roughness: .9 }));
+    tower.position.copy(TOWER); tower.position.y += 30 * M - 2 * M; T.scene.add(tower);
+    const mat = new THREE.LineBasicMaterial({ color: new THREE.Color(0x3a4356).convertSRGBToLinear(), transparent: true, opacity: .5 });
+    for (const f of [.25, .5, .75, 1]) {
+      const pts = []; for (let i = 0; i <= 96; i++) { const a = i / 96 * Math.PI * 2, x = TOWER.x + Math.cos(a) * TUNE.R * f * M, z = TOWER.z + Math.sin(a) * TUNE.R * f * M; pts.push(new THREE.Vector3(x, T.groundH(x, z) + 1.5 * M, z)); }
+      T.scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), mat));
+    }
+    T.pos.set(-120 * M, 40 * M, 80 * M); P = T.makePath();
+  },
+  step(T, dt) {
+    P.step(T.stickL(), T.boost(), dt);
+    const d = T.V1.subVectors(T.pos, TOWER); d.y = 0; const r = d.length() / M;
+    q = r < TUNE.R ? 1 - r / TUNE.R : 0;
+    if (q > 0) {                                   // the field: round the tower, and a little in
+      const n = d.normalize(), t = T.V2.set(-n.z, 0, n.x);
+      if (t.dot(P.velDir) < 0) t.negate();         // whichever way round you arrived
+      const f = T.V3.copy(t).multiplyScalar(TUNE.k1).addScaledVector(n, -TUNE.k2).normalize();
+      T.rotateTowards(P.velDir, f, q * 2.2 * dt); T.rotateTowards(P.noseDir, f, q * 2.2 * dt);
+      if (r < TUNE.skimR && Math.abs(t.dot(P.velDir)) > 0.7) gain += TUNE.steal * q * dt;
+    }
+    gain *= Math.exp(-dt / TUNE.decay); best = Math.max(best, gain);
+    T.pos.addScaledVector(P.velDir, gain * dt);
+    T.chase(P.velDir, 60 * M, 22 * M, 0.3, dt);
+  },
+  draw(T) { T.readout(`${((P.v + gain) / M).toFixed(0)} m/s${gain > 5 ? ' · +' + (gain / M).toFixed(0) + ' stolen' : ''}\nfield ${(q * 100).toFixed(0)}%`); },
+  state: T => ({ velDir: P.velDir.toArray(), speed: P.v + gain, gain, field: q, tower: TOWER.toArray() }),
+  hooks: T => ({ placeAt: (x, z, dx, dz) => { T.pos.set(x, T.groundH(x, z) + 40 * M, z); P.velDir.set(dx, 0, dz).normalize(); P.noseDir.copy(P.velDir); P.turnRate = 0; gain = 0; } }),
+});
+</script>
+</body>
+</html>

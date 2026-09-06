@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+<meta name="theme-color" content="#b8cbd8" />
+<title>04 · One wing</title>
+<link rel="icon" type="image/svg+xml" href="../ball-jar-favicon.svg" />
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="../examples/js/loaders/LDrawLoader.js"></script>
+<script src="../beta-prime-engine.js"></script>
+<script src="../nabugo.js"></script>
+<script src="../nabugo-ui.js"></script>
+<script src="./terrain-data.js"></script>
+<script src="./common.js"></script>
+</head>
+<body>
+<div id="stage"></div>
+<script>
+/* 04 · One wing. A ship missing one LEGO wing whose asymmetry genuinely changes its movement. */
+const { DEG, M } = Toy.T;
+const TUNE = { speed: 350, pullPerM: 0.35, control: 2.6, damp: 1.4, follow: 2.2 };   // rad/s² per metre of mass offset
+const w = { yaw: 0, pitch: 0 }, nose = new THREE.Vector3(0, 0, -1), velDir = new THREE.Vector3(0, 0, -1), E = new THREE.Euler();
+const com = new THREE.Vector3(); let I = { y: 1, x: 1 }, I0 = null, yaw = Math.PI, pitch = 0, torque = { y: 0, x: 0 }, gone = { left: false, right: false };
+function mass(T) {                                // parts weigh their volume; the wings lever the centre of mass sideways
+  let m = 0, cx = 0, cy = 0, cz = 0; const live = [];
+  for (const g of T.parts) if (g.visible) { const mi = Math.pow(g.userData.r, 3); m += mi; cx += g.userData.centre.x * mi; cy += g.userData.centre.y * mi; cz += g.userData.centre.z * mi; live.push([g, mi]); }
+  com.set(cx / m, cy / m, cz / m);
+  let Iy = 0, Ix = 0; for (const [g, mi] of live) { const c = g.userData.centre; Iy += mi * ((c.x - com.x) ** 2 + (c.z - com.z) ** 2); Ix += mi * ((c.y - com.y) ** 2 + (c.z - com.z) ** 2); }
+  I = { y: Iy / m, x: Ix / m }; if (!I0) I0 = { ...I };
+  // thrust along +z through the pod's centreline: an off-centre mass turns that into a steady moment
+  torque = { y: com.x / M * TUNE.pullPerM, x: -com.y / M * TUNE.pullPerM };
+}
+function setWing(T, side, off) { for (const g of T.wings[side]) g.visible = !off; gone[side] = off; mass(T); }
+Toy.boot({
+  index: '04 / 12', title: 'One wing',
+  notice: 'Tap a wing to tear it off. The mass moves, the thrust no longer runs through it, and the ship pulls. Left thumb holds against it.',
+  keys: 'wasd torque · q/e tear a wing',
+  setup(T) { T.pos.set(0, 40 * M, 60 * M); mass(T); },
+  onTap(T, p) { for (const side of ['left', 'right']) { if (gone[side]) continue; for (const g of T.wings[side]) if (T.pick(p.x, p.y, g)) { setWing(T, side, true); return; } } if (gone.left || gone.right) { setWing(T, 'left', false); setWing(T, 'right', false); } },
+  onKey(T, code, on) { if (!on) return; if (code === 'KeyQ') setWing(T, 'left', !gone.left); if (code === 'KeyE') setWing(T, 'right', !gone.right); },
+  step(T, dt) {
+    const s = T.stickL();
+    const agile = { y: I0.y / I.y, x: I0.x / I.x };                                   // less to swing, quicker to swing
+    w.yaw += (torque.y - s.x * TUNE.control * agile.y - w.yaw * TUNE.damp) * dt;
+    w.pitch += (torque.x + s.y * TUNE.control * 0.7 * agile.x - w.pitch * TUNE.damp) * dt;
+    yaw += w.yaw * dt; pitch = T.clamp(pitch + w.pitch * dt, -60 * DEG, 60 * DEG);
+    T.quat.setFromEuler(E.set(-pitch, yaw, -w.yaw * 0.25, 'YXZ')); nose.set(0, 0, 1).applyQuaternion(T.quat);
+    T.rotateTowards(velDir, nose, TUNE.follow * dt);
+    T.vel.copy(velDir).multiplyScalar(TUNE.speed); T.pos.addScaledVector(T.vel, dt); T.keepAbove(8 * M);
+    T.chase(velDir, 60 * M, 18 * M, 0.3, dt);
+  },
+  draw(T) {
+    const c = T.V3.copy(com).applyQuaternion(T.quat).add(T.pos); T.mark(c, 'mass', T.colour.D, 5);
+    T.readout(`centre of mass ${(com.x / M * 100).toFixed(0)} cm ${com.x > 0.5 ? 'right' : com.x < -0.5 ? 'left' : ''}\npulls ${(torque.y / DEG).toFixed(0)}°/s² · yaw ${(w.yaw / DEG).toFixed(0)}°/s\n${gone.left ? 'left wing gone' : ''}${gone.right ? ' right wing gone' : ''}`);
+  },
+  state: T => ({ yawRate: w.yaw, com: com.toArray(), gone: { ...gone }, torque: { ...torque }, agile: I0 ? I0.y / I.y : 1 }),
+  hooks: T => ({ removeWing: side => setWing(T, side, true), restoreWing: side => setWing(T, side, false) }),
+});
+</script>
+</body>
+</html>

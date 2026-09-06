@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+<meta name="theme-color" content="#b8cbd8" />
+<title>01 · The face is free</title>
+<link rel="icon" type="image/svg+xml" href="../ball-jar-favicon.svg" />
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="../examples/js/loaders/LDrawLoader.js"></script>
+<script src="../beta-prime-engine.js"></script>
+<script src="../nabugo.js"></script>
+<script src="../nabugo-ui.js"></script>
+<script src="./terrain-data.js"></script>
+<script src="./common.js"></script>
+</head>
+<body>
+<div id="stage"></div>
+<script>
+/* 01 · The face is free. A TIE moving perfectly straight while the player can rotate it freely through 360°. */
+const { DEG, M } = Toy.T;
+const TUNE = { speed: 350, yawPerWidth: 2.2, pitchPerHeight: 1.6, alt: 40 };
+const velDir = new THREE.Vector3(0, 0, -1), face = new THREE.Vector3(), E = new THREE.Euler();
+let yaw = Math.PI, pitch = 0, drag = null, shots = 0;
+function turn(T, dx, dy) {
+  yaw -= dx / innerWidth * TUNE.yawPerWidth * Math.PI;
+  pitch = T.clamp(pitch + dy / innerHeight * TUNE.pitchPerHeight * Math.PI, -Math.PI / 2 + 0.01, Math.PI / 2 - 0.01);
+}
+Toy.boot({
+  index: '01 / 12', title: 'The face is free',
+  notice: 'It flies a straight line. Drag anywhere to turn its face all the way round. Tap to fire along the nose.',
+  keys: 'arrows turn · space fire',
+  setup(T) { T.pos.set(0, TUNE.alt * T.M, 220 * T.M); T.vel.copy(velDir).multiplyScalar(TUNE.speed); },
+  onDown(T, p) { drag = p; },
+  onMove(T, p) { if (p === drag) turn(T, p.x - p.px, p.y - p.py); },
+  onUp(T, p) { if (p === drag) drag = null; },
+  onTap(T) { T.fire(face, T.vel); shots++; },
+  onKey(T, code, on) { if (on && code === 'Space') { T.fire(face, T.vel); shots++; } },
+  step(T, dt) {
+    const k = T.keys; turn(T, ((k.has('ArrowRight') ? 1 : 0) - (k.has('ArrowLeft') ? 1 : 0)) * 260 * dt, ((k.has('ArrowDown') ? 1 : 0) - (k.has('ArrowUp') ? 1 : 0)) * 260 * dt);
+    T.vel.copy(velDir).multiplyScalar(TUNE.speed); T.pos.addScaledVector(T.vel, dt);
+    const e = T.groundExtent() / 2 - 30 * T.M;
+    if (T.pos.z < -e) { T.pos.z = e; T.cam.set = false; }                  // off the north edge: back in from the south
+    T.quat.setFromEuler(E.set(-pitch, yaw, 0, 'YXZ')); face.set(0, 0, 1).applyQuaternion(T.quat);
+    T.chase(velDir, 60 * M, 18 * M, 0.25, dt);
+  },
+  draw(T) {
+    T.line(T.pos, T.V3.copy(T.pos).addScaledVector(velDir, 45 * M), T.colour.V, [6, 7]); T.mark(T.V3, 'V', T.colour.V);
+    T.line(T.pos, T.V3.copy(T.pos).addScaledVector(face, 40 * M), T.colour.N); T.mark(T.V3, 'N', T.colour.N);
+    T.readout(`face ${Math.round(T.angle(face, velDir) / DEG)}° off the path\nshots ${shots}`);
+  },
+  state: T => ({ yaw, pitch, velDir: velDir.toArray(), face: face.toArray(), shots }),
+  hooks: T => ({ turn: (dx, dy) => turn(T, dx, dy), fire: () => { T.fire(face, T.vel); shots++; } }),
+});
+</script>
+</body>
+</html>
