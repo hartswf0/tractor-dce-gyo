@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+<meta name="theme-color" content="#0a0d16" />
+<title>TIE Build</title>
+<link rel="icon" type="image/svg+xml" href="ball-jar-favicon.svg" />
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="./examples/js/loaders/LDrawLoader.js"></script>
+<script src="./beta-prime-engine.js"></script>
+<script src="./nabugo.js"></script>
+<script src="./nabugo-ui.js"></script>
+<style>
+:root{
+  --bg:#0a0d16; --ink:#f3f1ea; --dim:#8b91a6; --line:rgba(255,255,255,.12);
+  --red:#e0342c; --gold:#f5c542;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);overflow:hidden;
+  font:15px/1.4 var(--sans);-webkit-user-select:none;user-select:none;overscroll-behavior:none}
+.n{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+#stage{position:fixed;inset:0}
+#stage canvas{display:block;width:100%;height:100%;touch-action:none}
+/* a cheap star field: nothing to load */
+#stars{position:fixed;inset:0;pointer-events:none;opacity:.55;
+  background-image:
+    radial-gradient(1px 1px at 12% 18%,#fff 50%,transparent 51%),
+    radial-gradient(1px 1px at 68% 9%,#fff 50%,transparent 51%),
+    radial-gradient(1.5px 1.5px at 84% 31%,#fff 50%,transparent 51%),
+    radial-gradient(1px 1px at 33% 42%,#fff 50%,transparent 51%),
+    radial-gradient(1px 1px at 91% 64%,#fff 50%,transparent 51%),
+    radial-gradient(1.5px 1.5px at 22% 77%,#fff 50%,transparent 51%),
+    radial-gradient(1px 1px at 57% 88%,#fff 50%,transparent 51%),
+    radial-gradient(1px 1px at 47% 24%,#fff 50%,transparent 51%),
+    radial-gradient(1px 1px at 76% 52%,#fff 50%,transparent 51%),
+    radial-gradient(1px 1px at 8% 58%,#fff 50%,transparent 51%)}
+
+/* ---------- HUD ---------- */
+#hud{position:fixed;left:0;right:0;top:0;padding:calc(12px + env(safe-area-inset-top)) 16px 10px;
+  display:grid;grid-template-columns:1fr auto;gap:4px 12px;pointer-events:none;
+  background:linear-gradient(var(--bg),rgba(10,13,22,0))}
+#hud .lvl{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
+#hud .name{font-size:18px;font-weight:700;letter-spacing:.01em}
+#hud .score{text-align:right;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
+#hud .pts{text-align:right;font-size:24px;font-weight:700;line-height:1.1}
+#bar{grid-column:1/-1;height:4px;background:var(--line);border-radius:2px;position:relative;margin-top:6px;overflow:hidden}
+#bar i{position:absolute;inset:0 auto 0 0;background:var(--ink);border-radius:2px;transition:width .35s ease}
+#bar u{position:absolute;top:0;bottom:0;width:2px;background:var(--bg)}
+#count{grid-column:1/-1;font-size:11px;color:var(--dim);letter-spacing:.06em}
+
+/* ---------- the toast that lands with each structure ---------- */
+#toast{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%) scale(.85);opacity:0;pointer-events:none;
+  text-align:center;transition:opacity .18s,transform .18s}
+#toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+#toast b{display:block;font-size:26px;font-weight:800;letter-spacing:.02em;text-shadow:0 2px 18px rgba(0,0,0,.7)}
+#toast span{display:block;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-top:2px}
+#toast.free b{color:var(--gold)}
+
+/* ---------- controls ---------- */
+#dock{position:fixed;left:0;right:0;bottom:0;padding:14px 16px calc(16px + env(safe-area-inset-bottom));
+  display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;
+  background:linear-gradient(rgba(10,13,22,0),var(--bg) 40%)}
+#dock .hint{grid-column:1/-1;text-align:center;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+button{font:inherit;color:var(--ink);border:none;border-radius:16px;cursor:pointer}
+#build{height:64px;font-size:17px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;
+  background:var(--red);box-shadow:0 8px 24px rgba(224,52,44,.35);transition:transform .08s}
+#build:active,#build.pressed{transform:scale(.97)}
+#build:disabled{background:#3a3f52;box-shadow:none;color:var(--dim)}
+#build .sub{display:block;font-size:10px;font-weight:600;letter-spacing:.14em;opacity:.8;margin-top:1px}
+#reset{height:64px;width:64px;background:rgba(255,255,255,.08);font-size:20px}
+
+/* ---------- overlays ---------- */
+.veil{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:32px 24px;background:rgba(10,13,22,.78);backdrop-filter:blur(6px);
+  transition:opacity .3s}
+.veil.gone{opacity:0;pointer-events:none}
+.veil .kicker{font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--dim)}
+.veil h1{margin:8px 0 4px;font-size:40px;font-weight:900;letter-spacing:-.01em;line-height:1}
+.veil .meta{color:var(--dim);font-size:13px;margin-bottom:34px}
+.veil .go{height:60px;padding:0 44px;font-size:16px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;background:var(--red)}
+.veil .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px 28px;margin:6px 0 30px;text-align:left}
+.veil .stats span{display:block;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
+.veil .stats b{display:block;font-size:22px;font-weight:800}
+.veil .stats b.gold{color:var(--gold)}
+.veil a{color:var(--dim);font-size:12px;letter-spacing:.1em;text-transform:uppercase;text-decoration:none;margin-top:22px}
+#err{position:fixed;left:16px;right:16px;bottom:120px;color:var(--gold);font-size:12px;text-align:center}
+</style>
+</head>
+<body>
+<div id="stars"></div>
+<div id="stage"></div>
+
+<div id="hud">
+  <div><div class="lvl" id="lvl">Step —</div><div class="name" id="name">Vader's TIE</div></div>
+  <div><div class="score">Score</div><div class="pts n" id="pts">0</div></div>
+  <div id="bar"><i id="fill" style="width:0%"></i></div>
+  <div id="count" class="n"></div>
+</div>
+
+<div id="toast"><b id="tb"></b><span id="ts"></span></div>
+
+<div id="dock">
+  <button id="build" disabled>Build<span class="sub" id="bsub">loading</span></button>
+  <button id="reset" title="start over">↺</button>
+  <div class="hint">drag to orbit · pinch to zoom · hold build to auto</div>
+</div>
+
+<div class="veil" id="start">
+  <div class="kicker">LEGO 75421</div>
+  <h1>Vader's TIE</h1>
+  <div class="meta">149 pieces · 5 steps · 8 structures</div>
+  <button class="go" id="go">Tap to build</button>
+</div>
+
+<div class="veil gone" id="end">
+  <div class="kicker">Complete</div>
+  <h1 id="finalPts" class="n">0</h1>
+  <div class="meta">points</div>
+  <div class="stats" id="finalStats"></div>
+  <button class="go" id="again">Again</button>
+  <a href="assembly-arena.html">open in the assembly arena ›</a>
+</div>
+<div id="err"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const fmt = n => n.toLocaleString('en-US');
+
+const ID = 'VADER-TIE';
+const GHOST = 47;                 // Trans_Clear: what the ship looks like before you build it
+const PIECE = 10;                 // points per piece
+const FREE_BONUS = 100;           // for a structure you have already built once
+
+let engine = null, PATH = null, LIB = '', OBJ = null;
+let chunks = [], at = 0;          // chunks = the real structures in build order; at = next to place
+let score = 0, t0 = 0, done = false;
+let busy = false, queued = false, framed = false;
+let holdTimer = null;
+
+boot();
+
+async function boot() {
+  try {
+    const data = await (await fetch('./assembly-data.json')).json();
+    OBJ = data.objects.find(o => o.id === ID);
+    PATH = await (await fetch('./assembly-paths/' + ID + '.json')).json();
+    const r = await fetch('./assembly-paths/' + ID + '-inline.mpd');
+    LIB = r.ok ? await r.text() : '';
+  } catch (e) { return fail('could not load the build: ' + e.message); }
+
+  chunkify();
+  $('#bar').insertAdjacentHTML('beforeend', stepTicks());
+
+  try {
+    engine = await NabugoUI.makeViewer($('#stage'), { background: 0x0a0d16 });
+    engine.setDiagnostics({ axes: false, grid: false });
+  } catch (e) { return fail('viewer failed: ' + e.message); }
+
+  // Frame the finished ship once, so the camera never lurches as it fills in.
+  await render(true);
+  framed = true;
+
+  $('#go').onclick = start;
+  $('#again').onclick = () => { $('#end').classList.add('gone'); start(); };
+  $('#reset').onclick = start;
+  const b = $('#build');
+  b.onclick = place;
+  b.addEventListener('pointerdown', () => { holdTimer = setInterval(place, 700); b.classList.add('pressed'); });
+  const stop = () => { clearInterval(holdTimer); holdTimer = null; b.classList.remove('pressed'); };
+  b.addEventListener('pointerup', stop); b.addEventListener('pointerleave', stop); b.addEventListener('pointercancel', stop);
+  window.__game = { engine: () => engine, place, state: () => ({ at, score, done, chunks: chunks.length }) };
+
+  b.disabled = false;
+  $('#bsub').textContent = 'ready';
+}
+
+function fail(msg) { $('#err').textContent = msg; }
+
+/** One chunk per contiguous run of the same structure copy — the real build order. */
+function chunkify() {
+  chunks = [];
+  let cur = null;
+  PATH.sub.forEach((s, i) => {
+    const key = s + ':' + PATH.occ[i];
+    if (!cur || cur.key !== key) { cur = { key, sub: s, occ: PATH.occ[i], start: i, end: i }; chunks.push(cur); }
+    else cur.end = i;
+  });
+}
+
+function stepTicks() {
+  const n = PATH.lines.length; let seen = -1, html = '';
+  PATH.step.forEach((s, i) => { if (s !== seen && i > 0) { seen = s; html += `<u style="left:${(i / n * 100).toFixed(2)}%"></u>`; } else if (s !== seen) seen = s; });
+  return html;
+}
+
+function shortName(idx) {
+  return PATH.sub_names[idx].replace(/\.ldr$/i, '').replace(/-/g, ' ');
+}
+
+function start() {
+  at = 0; score = 0; done = false; t0 = performance.now();
+  $('#start').classList.add('gone');
+  $('#end').classList.add('gone');
+  $('#build').disabled = false;
+  paint();
+  schedule();
+}
+
+function place() {
+  if (done || at >= chunks.length) return;
+  const c = chunks[at++];
+  const pieces = c.end - c.start + 1;
+  const free = c.occ > 1;
+  let got = pieces * PIECE + (free ? FREE_BONUS : 0);
+  score += got;
+  toast(shortName(c.sub) + (free ? '' : ''), free ? `already built · +${got}` : `+${got}`, free);
+  if (at >= chunks.length) finish();
+  paint();
+  schedule();
+}
+
+function paint() {
+  const placed = at ? chunks[at - 1].end + 1 : 0;
+  const total = PATH.lines.length;
+  const step = placed ? PATH.step[placed - 1] + 1 : 1;
+  const next = chunks[at];
+  $('#lvl').textContent = `Step ${step} of ${PATH.steps_total}`;
+  $('#name').textContent = next ? 'Next: ' + shortName(next.sub) : 'Complete';
+  $('#pts').textContent = fmt(score);
+  $('#fill').style.width = (placed / total * 100).toFixed(1) + '%';
+  $('#count').textContent = `${fmt(placed)} / ${fmt(total)} pieces · ${at} / ${chunks.length} structures`;
+  $('#bsub').textContent = next ? `${next.end - next.start + 1} pieces` + (next.occ > 1 ? ' · already built' : '') : 'done';
+  $('#build').disabled = !next;
+}
+
+let toastTimer = null;
+function toast(big, small, free) {
+  const t = $('#toast');
+  $('#tb').textContent = big; $('#ts').textContent = small;
+  t.classList.toggle('free', !!free);
+  t.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('on'), 900);
+}
+
+function finish() {
+  done = true;
+  const secs = Math.round((performance.now() - t0) / 1000);
+  const reuse = chunks.filter(c => c.occ > 1).reduce((n, c) => n + c.end - c.start + 1, 0);
+  $('#finalPts').textContent = fmt(score);
+  $('#finalStats').innerHTML = [
+    ['pieces', fmt(PATH.lines.length), ''],
+    ['time', secs + 's', ''],
+    ['structures', chunks.length, ''],
+    ['placed free', fmt(reuse), 'gold'],
+    ['assembly index', fmt(OBJ.a_reuse), ''],
+    ['one by one', fmt(OBJ.a_naive), ''],
+  ].map(([k, v, cls]) => `<div><span>${k}</span><b class="${cls}">${v}</b></div>`).join('');
+  // let the last structure land before the veil comes down
+  setTimeout(() => $('#end').classList.remove('gone'), 1400);
+}
+
+/* ---------- rendering: the built part solid, the rest as glass ---------- */
+function buildText(all) {
+  const placed = all ? PATH.lines.length : (at ? chunks[at - 1].end + 1 : 0);
+  const out = ['0 FILE game.ldr', '0 !LDRAW_ORG Unofficial_Model'];
+  PATH.lines.forEach((line, i) => {
+    out.push(i < placed ? line : line.replace(/^1 -?\d+ /, '1 ' + GHOST + ' '));
+  });
+  return out.join('\n') + '\n\n' + LIB;
+}
+
+function schedule() {
+  if (busy) { queued = true; return; }
+  busy = true; queued = false;
+  render(false).finally(() => { busy = false; if (queued) schedule(); });
+}
+
+async function render(all) {
+  if (!engine) return;
+  const r = engine.renderer, real = r.render.bind(r);
+  r.render = () => {};                      // hold the frame while the geometry goes together
+  try {
+    await engine.loadText(buildText(all), { name: 'game' }, 'game.mpd');
+    if (!framed) NabugoUI.frame(engine, 0.55);
+  } catch (e) { fail('render failed: ' + (e.message || e)); }
+  finally { r.render = real; }
+}
+</script>
+</body>
+</html>
