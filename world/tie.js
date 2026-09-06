@@ -19,12 +19,14 @@ function create({ ship, M, groundH, aabbs, scene, onImpact }) {
     pos: new THREE.Vector3(), vel: new THREE.Vector3(), prevPos: new THREE.Vector3(), quat: new THREE.Quaternion(),
     travelYaw: 0, travelPitch: 0, yaw: 0, pitch: 0, roll: 0, speed: 0, slide: 0, wasBoost: false, t: 0,
     shields: SHIELD_MAX, lastImpact: -9, impact: { text: '', until: 0 }, flying: false, landing: 0,
-    input: { x: 0, y: 0, mag: 0, boost: false, fire: false }, fireAcc: 1, muzzle: 0,
+    input: { x: 0, y: 0, mag: 0, boost: false, fire: false, torpedo: false }, fireAcc: 1, muzzle: 0, torps: [],
     cam: { dist: 560, high: 145, side: 0, look: new THREE.Vector3(), set: false, fov: 61 },
     bolts: [], hits: 0,
   };
   const geo = new THREE.BoxGeometry(5, 5, 60), mat = new THREE.MeshBasicMaterial({ color: 0x2fbf3f, fog: false });
   for (let i = 0; i < BOLT_N; i++) { const m = new THREE.Mesh(geo, mat); m.visible = false; m.frustumCulled = false; scene.add(m); F.bolts.push({ mesh: m, vel: new THREE.Vector3(), prev: new THREE.Vector3(), life: 0 }); }
+  const tg = new THREE.CylinderGeometry(6, 6, 50, 8), tm = new THREE.MeshBasicMaterial({ color: 0xff3020, fog: false }); tg.rotateX(Math.PI / 2);
+  for (let i = 0; i < 4; i++) { const m = new THREE.Mesh(tg, tm); m.visible = false; m.frustumCulled = false; scene.add(m); F.torps.push({ mesh: m, vel: new THREE.Vector3(), prev: new THREE.Vector3(), life: 0 }); }
   return F;
 }
 function fromVel(F) { const v = F.vel; if (v.lengthSq() < 1) return; F.travelYaw = Math.atan2(v.x, v.z); F.travelPitch = Math.atan2(v.y, Math.hypot(v.x, v.z)); }
@@ -110,13 +112,31 @@ function worldHit(F) {
 /* ───────────────────────── bolts ───────────────────────── */
 const MUZZLE = [new THREE.Vector3(-16, -12, 144), new THREE.Vector3(16, -12, 144)];
 function fire(F) {
-  if (F.fireAcc < 1 / 8) return; F.fireAcc = 0;
+  if (F.fireAcc < 1 / (F.input.boost ? 12 : 8)) return; F.fireAcc = 0;                // strafing: faster while boosting
   const b = F.bolts.find(b => b.life <= 0); if (!b) return;
   V1.copy(MUZZLE[F.muzzle ^= 1]).applyQuaternion(F.quat).add(F.pos); V2.set(0, 0, 1).applyQuaternion(F.quat);
   b.life = BOLT_LIFE; b.mesh.position.copy(V1); b.prev.copy(V1); b.vel.copy(V2).multiplyScalar(BOLT_SPD).add(F.vel); b.mesh.quaternion.copy(Q1.setFromUnitVectors(Z1, V2)); b.mesh.visible = true;
 }
+/** A torpedo: slow, heavy, and it makes a crater wherever it meets anything. */
+function torpedo(F) {
+  const t = F.torps.find(t => t.life <= 0); if (!t) return;
+  V1.set(0, -24, 120).applyQuaternion(F.quat).add(F.pos); V2.set(0, 0, 1).applyQuaternion(F.quat);
+  t.life = 4; t.mesh.position.copy(V1); t.prev.copy(V1); t.vel.copy(V2).multiplyScalar(900).add(F.vel.clone().multiplyScalar(0.5)); t.mesh.quaternion.copy(F.quat); t.mesh.visible = true;
+}
+function stepTorps(F, dt, onBlast) {
+  for (const t of F.torps) {
+    if (t.life <= 0) continue;
+    t.prev.copy(t.mesh.position); t.mesh.position.addScaledVector(t.vel, dt); t.vel.y -= 120 * dt;
+    if ((t.life -= dt) <= 0) { t.mesh.visible = false; continue; }
+    const p = t.mesh.position; let hit = null;
+    if (p.y < F.groundH(p.x, p.z)) hit = p.clone().setY(F.groundH(p.x, p.z));
+    else for (const box of F.aabbs(p.x, p.z, 300)) if (sweepBox(t.prev, p, box, 6, SW)) { hit = SW.p.clone(); break; }
+    if (hit) { t.life = 0; t.mesh.visible = false; if (onBlast) onBlast(hit, t.vel.clone()); }
+  }
+}
 function stepBolts(F, dt, onBoltHit) {
   F.fireAcc += dt; if (F.input.fire) fire(F);
+  if (F.input.torpedo) { F.input.torpedo = false; torpedo(F); }
   for (const b of F.bolts) {
     if (b.life <= 0) continue;
     b.prev.copy(b.mesh.position); b.mesh.position.addScaledVector(b.vel, dt);
@@ -128,10 +148,10 @@ function stepBolts(F, dt, onBoltHit) {
 }
 
 /** One flight frame. Returns true while still flying; false once a landing has finished. */
-function step(F, dt, onBoltHit) {
+function step(F, dt, onBoltHit, onTorpedo) {
   F.t += dt;
   stepFlight(F, dt); ground(F); worldHit(F);
-  stepBolts(F, dt, onBoltHit);
+  stepBolts(F, dt, onBoltHit); stepTorps(F, dt, onTorpedo);
   F.ship.position.copy(F.pos); F.ship.quaternion.copy(F.quat);
   if (F.landing) {
     F.landing += dt; const gh = F.groundH(F.pos.x, F.pos.z);
@@ -161,5 +181,5 @@ function camera(F, cam, dt, portrait) {
   if (Math.abs(cam.fov - fov) > 0.05) { cam.fov = fov; cam.updateProjectionMatrix(); }
 }
 
-window.Tie = { create, board, step, land, camera, fire, CRUISE, BOOST, PLAYER_R, SHIELD_MAX };
+window.Tie = { create, board, step, land, camera, fire, torpedo, CRUISE, BOOST, PLAYER_R, SHIELD_MAX };
 })();

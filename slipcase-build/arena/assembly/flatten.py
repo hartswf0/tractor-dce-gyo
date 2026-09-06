@@ -235,7 +235,8 @@ def write_full(d, kit_path, label, out_dir):
 WORLD_EXTRA = ['parts/3816.dat', 'parts/3817.dat', 'parts/3815.dat', 'parts/973.dat', 'parts/3818.dat', 'parts/3819.dat',
                'parts/3820.dat', 'parts/3626b.dat', 'parts/30368.dat', 'parts/30374.dat', 'parts/522.dat', 'parts/20551c01.dat',
                'parts/3068b.dat', 'parts/3039.dat', 'parts/60592.dat', 'parts/60623.dat', 'parts/3001.dat', 'parts/3020.dat',
-               'parts/3010.dat', 'parts/3004.dat', 'box.dat', '8\\stud.dat', 'stud.dat']
+               'parts/3010.dat', 'parts/3004.dat', 'box.dat', '8\\stud.dat', 'stud.dat',
+               'parts/30408.dat', 'parts/58247.dat', 'parts/3901.dat', 'parts/30370.dat', 'parts/3062b.dat']   # other characters, a detonator
 
 
 def write_world(out_dir):
