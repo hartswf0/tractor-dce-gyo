@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+<meta name="theme-color" content="#b8cbd8" />
+<title>07 · Futures</title>
+<link rel="icon" type="image/svg+xml" href="../ball-jar-favicon.svg" />
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="../examples/js/loaders/LDrawLoader.js"></script>
+<script src="../beta-prime-engine.js"></script>
+<script src="../nabugo.js"></script>
+<script src="../nabugo-ui.js"></script>
+<script src="./terrain-data.js"></script>
+<script src="./common.js"></script>
+</head>
+<body>
+<div id="stage"></div>
+<script>
+/* 07 · Futures. Three translucent projected futures around a continuously moving ship. */
+const { DEG, M } = Toy.T;
+const TUNE = { steps: 26, dt: 0.09, biasFor: 0.6 };
+let P = null, bias = null, futures = [], picked = '';
+const SIM = { velDir: new THREE.Vector3(), desired: new THREE.Vector3(), pos: new THREE.Vector3(), r: new THREE.Vector3() };
+function project(T, stick, boost) {               // the path model's own rules, run ahead without touching the ship
+  const pts = [], s = SIM; s.velDir.copy(P.velDir); s.pos.copy(T.pos); let turnRate = P.turnRate, v = P.v, hit = false;
+  for (let i = 0; i < TUNE.steps; i++) {
+    const dt = TUNE.dt;
+    s.r.crossVectors(s.velDir, T.UP); if (s.r.lengthSq() < 1e-6) s.r.copy(T.V1.set(1, 0, 0)); s.r.normalize();
+    s.desired.copy(s.velDir).applyAxisAngle(T.UP, -stick.x * P.yawCone).applyAxisAngle(s.r, stick.y * 0.7 * P.pitchCone).normalize();
+    const want = (boost ? P.boostTurn : P.turn) * stick.mag;
+    turnRate += (want - turnRate) * (1 - Math.exp(-dt / P.spring)); v += ((boost ? P.boostSpeed : P.speed) - v) * (1 - Math.exp(-dt / 0.5));
+    T.rotateTowards(s.velDir, s.desired, turnRate * dt);
+    s.pos.addScaledVector(s.velDir, v * dt); pts.push(s.pos.clone());
+    if (s.pos.y < T.groundH(s.pos.x, s.pos.z) + 2 * M) { hit = true; break; }
+  }
+  return { pts, hit };
+}
+Toy.boot({
+  index: '07 / 12', title: 'Futures',
+  notice: 'Three paths grow out of the ship: hold what you are doing, let go, or boost. Touch one to lean toward it.',
+  keys: 'wasd steer · shift boost',
+  setup(T) { T.pos.set(0, 40 * M, 60 * M); P = T.makePath(); },
+  onTap(T, p) {
+    let best = null, bd = 44;
+    for (const f of futures) for (const w of f.pts) { const q = T.project(w); if (!q.ok) continue; const d = Math.hypot(q.x - p.x, q.y - p.y); if (d < bd) { bd = d; best = f; } }
+    if (best) { bias = { stick: { ...best.stick }, boost: best.boost, until: T.t + TUNE.biasFor }; picked = best.name; }
+  },
+  step(T, dt) {
+    const live = T.stickL(), boost = T.boost();
+    const use = bias && T.t < bias.until ? bias : { stick: live, boost };
+    if (bias && T.t >= bias.until) { bias = null; picked = ''; }
+    P.step(use.stick, use.boost, dt);
+    const zero = { x: 0, y: 0, mag: 0 };
+    futures = [
+      Object.assign(project(T, live, boost), { name: 'hold', stick: live, boost, colour: T.colour.D, width: 1.2, dash: [] }),
+      Object.assign(project(T, zero, false), { name: 'let go', stick: zero, boost: false, colour: T.colour.V, width: 1.2, dash: [3, 5] }),
+      Object.assign(project(T, live, true), { name: 'boost', stick: live, boost: true, colour: T.colour.N, width: 3, dash: [] }),
+    ];
+    T.chase(P.velDir, 60 * M, 22 * M, 0.3, dt);
+  },
+  draw(T) {
+    for (const f of futures) { T.ribbon(f.pts, f.colour, f.width, f.dash); const end = f.pts[f.pts.length - 1]; if (end) T.mark(end, f.hit ? 'impact' : f.name, f.hit ? '#e0342c' : f.colour, f.hit ? 9 : 4); }
+    T.readout(`${(P.v / M).toFixed(0)} m/s${picked ? '\nleaning: ' + picked : ''}`);
+  },
+  state: T => ({ speed: P.v, boost: !!(bias && T.t < bias.until ? bias.boost : T.boost()), picked, futures: futures.map(f => ({ name: f.name, n: f.pts.length, hit: f.hit, len: f.pts.length > 1 ? f.pts[0].distanceTo(f.pts[f.pts.length - 1]) : 0 })) }),
+  hooks: T => ({ futures: () => futures.map(f => ({ name: f.name, screen: f.pts.map(w => { const q = T.project(w); return [q.x, q.y, q.ok]; }) })) }),
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+<meta name="theme-color" content="#b8cbd8" />
+<title>11 · Shift a piece</title>
+<link rel="icon" type="image/svg+xml" href="../ball-jar-favicon.svg" />
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="../examples/js/loaders/LDrawLoader.js"></script>
+<script src="../beta-prime-engine.js"></script>
+<script src="../nabugo.js"></script>
+<script src="../nabugo-ui.js"></script>
+<script src="./terrain-data.js"></script>
+<script src="./common.js"></script>
+</head>
+<body>
+<div id="stage"></div>
+<script>
+/* 11 · Shift a piece. A LEGO piece that can be moved from one side of the craft to another during flight. */
+const { DEG, M } = Toy.T;
+const TUNE = { speed: 350, pullPerM: 0.55, control: 2.6, damp: 1.4, follow: 2.2, weight: 6 };
+const SOCKETS = { left: new THREE.Vector3(-178, 0, 0), right: new THREE.Vector3(178, 0, 0), top: new THREE.Vector3(0, 96, 0), bottom: new THREE.Vector3(0, -96, 0), home: null };
+const w = { yaw: 0, pitch: 0 }, nose = new THREE.Vector3(0, 0, -1), velDir = new THREE.Vector3(0, 0, -1), E = new THREE.Euler(), com = new THREE.Vector3();
+let yaw = Math.PI, pitch = 0, torque = { y: 0, x: 0 }, piece = null, at = 'home', drag = null, hover = null;
+function mass(T) {
+  let m = 0, cx = 0, cy = 0; for (const g of T.parts) { const mi = Math.pow(g.userData.r, 3) * (g === piece ? TUNE.weight : 1); m += mi; cx += g.userData.centre.x * mi; cy += g.userData.centre.y * mi; }
+  com.set(cx / m, cy / m, 0); torque = { y: com.x / M * TUNE.pullPerM, x: -com.y / M * TUNE.pullPerM };
+}
+function moveTo(T, name) {                        // move the piece's centre onto a socket; root space is LDraw's (x, −y, −z)
+  const s = SOCKETS[name], c = piece.userData.centre, d = T.V1.subVectors(s, c);
+  piece.position.x += d.x; piece.position.y -= d.y; piece.position.z -= d.z; c.copy(s); at = name; mass(T);
+}
+Toy.boot({
+  index: '11 / 12', title: 'Shift a piece',
+  notice: 'One heavy piece, marked. Drag it to a wing tip, the top or the bottom while flying. Where the mass sits is how it turns.',
+  keys: 'wasd torque · 1 2 3 4 0 move the piece',
+  setup(T) {
+    T.pos.set(0, 40 * M, 60 * M);
+    piece = T.pod.reduce((a, g) => g.userData.r > a.userData.r ? g : a, T.pod[0]);
+    SOCKETS.home = piece.userData.centre.clone(); mass(T);
+  },
+  onDown(T, p) { if (T.pick(p.x, p.y, piece)) drag = p; },
+  onMove(T, p) { if (p !== drag) return; let best = null, bd = 1e9; for (const n of Object.keys(SOCKETS)) { const q = T.project(T.V2.copy(SOCKETS[n]).applyQuaternion(T.quat).add(T.pos)); const d = Math.hypot(q.x - p.x, q.y - p.y); if (d < bd) { bd = d; best = n; } } hover = best; },
+  onUp(T, p) { if (p === drag) { if (hover) moveTo(T, hover); drag = null; hover = null; } },
+  onKey(T, code, on) { if (!on) return; const k = { Digit1: 'left', Digit2: 'right', Digit3: 'top', Digit4: 'bottom', Digit0: 'home' }[code]; if (k) moveTo(T, k); },
+  step(T, dt) {
+    const s = drag ? { x: 0, y: 0, mag: 0 } : T.stickL();
+    w.yaw += (torque.y - s.x * TUNE.control - w.yaw * TUNE.damp) * dt;
+    w.pitch += (torque.x + s.y * TUNE.control * 0.7 - w.pitch * TUNE.damp) * dt;
+    yaw += w.yaw * dt; pitch = T.clamp(pitch + w.pitch * dt, -60 * DEG, 60 * DEG);
+    T.quat.setFromEuler(E.set(-pitch, yaw, -w.yaw * 0.25, 'YXZ')); nose.set(0, 0, 1).applyQuaternion(T.quat);
+    T.rotateTowards(velDir, nose, TUNE.follow * dt);
+    T.vel.copy(velDir).multiplyScalar(TUNE.speed); T.pos.addScaledVector(T.vel, dt); T.keepAbove(8 * M);
+    T.chase(velDir, 60 * M, 18 * M, 0.3, dt);
+  },
+  draw(T) {
+    const pc = T.V3.copy(piece.userData.centre).applyQuaternion(T.quat).add(T.pos); T.mark(pc, drag ? '' : 'piece', T.colour.N, 11);
+    if (drag) for (const n of Object.keys(SOCKETS)) { T.mark(T.V3.copy(SOCKETS[n]).applyQuaternion(T.quat).add(T.pos), n, n === hover ? T.colour.N : T.colour.W, n === hover ? 12 : 6); }
+    T.readout(`piece: ${at}\nmass ${(com.x / M * 100).toFixed(0)} cm ${com.x > 0.5 ? 'right' : com.x < -0.5 ? 'left' : ''} · pulls ${(torque.y / DEG).toFixed(0)}°/s²\nyaw ${(w.yaw / DEG).toFixed(0)}°/s`);
+  },
+  state: T => ({ at, yawRate: w.yaw, com: com.toArray(), torque: { ...torque }, piece: piece && piece.name }),
+  hooks: T => ({ moveTo: n => moveTo(T, n) }),
+});
+</script>
+</body>
+</html>

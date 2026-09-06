@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+<meta name="theme-color" content="#b8cbd8" />
+<title>09 · Crossfire</title>
+<link rel="icon" type="image/svg+xml" href="../ball-jar-favicon.svg" />
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="../examples/js/loaders/LDrawLoader.js"></script>
+<script src="../beta-prime-engine.js"></script>
+<script src="../nabugo.js"></script>
+<script src="../nabugo-ui.js"></script>
+<script src="./terrain-data.js"></script>
+<script src="./common.js"></script>
+</head>
+<body>
+<div id="stage"></div>
+<script>
+/* 09 · Crossfire. A target that can only be hit by pointing one way while traveling another. */
+const { DEG, M } = Toy.T;
+const TUNE = { speed: 350, alt: 40, side: 15, lead: -8, r: 4, minAngle: 60 };   // it rides just beside and behind: only a sideways shot can reach it
+const velDir = new THREE.Vector3(0, 0, -1), face = new THREE.Vector3(), E = new THREE.Euler(), TP = new THREE.Vector3();
+let yaw = Math.PI, pitch = 0, drag = null, hits = 0, deflected = 0, flash = 0, target = null, shield = null;
+function turn(T, dx, dy) { yaw -= dx / innerWidth * 2.2 * Math.PI; pitch = T.clamp(pitch + dy / innerHeight * 1.6 * Math.PI, -Math.PI / 2 + .01, Math.PI / 2 - .01); }
+const judge = dir => T => T.angle(dir, velDir) / DEG > TUNE.minAngle ? 'hit' : 'deflected';
+Toy.boot({
+  index: '09 / 12', title: 'Crossfire',
+  notice: 'The target rides beside you behind a shield that faces your path. Only a sideways shot gets through. Drag turns the face; tap fires.',
+  keys: 'arrows turn · space fire',
+  setup(T) {
+    T.pos.set(0, TUNE.alt * M, 220 * M); T.vel.copy(velDir).multiplyScalar(TUNE.speed);
+    target = new THREE.Mesh(new THREE.SphereGeometry(TUNE.r * M, 18, 12), new THREE.MeshStandardMaterial({ color: new THREE.Color(0xd8382e).convertSRGBToLinear(), roughness: .6 }));
+    shield = new THREE.Mesh(new THREE.PlaneGeometry(14 * M, 14 * M), new THREE.MeshBasicMaterial({ color: new THREE.Color(0x70d7ff).convertSRGBToLinear(), transparent: true, opacity: .25, side: THREE.DoubleSide }));
+    shield.position.z = -TUNE.r * M - 1.5 * M; target.add(shield); T.scene.add(target);
+  },
+  onDown(T, p) { drag = p; }, onMove(T, p) { if (p === drag) turn(T, p.x - p.px, p.y - p.py); }, onUp(T, p) { if (p === drag) drag = null; },
+  onTap(T) { T.fire(face, T.vel); },
+  onKey(T, code, on) { if (on && code === 'Space') T.fire(face, T.vel); },
+  step(T, dt) {
+    const k = T.keys; turn(T, ((k.has('ArrowRight') ? 1 : 0) - (k.has('ArrowLeft') ? 1 : 0)) * 260 * dt, ((k.has('ArrowDown') ? 1 : 0) - (k.has('ArrowUp') ? 1 : 0)) * 260 * dt);
+    T.vel.copy(velDir).multiplyScalar(TUNE.speed); T.pos.addScaledVector(T.vel, dt);
+    const e = T.groundExtent() / 2 - 30 * M; if (T.pos.z < -e) { T.pos.z = e; T.cam.set = false; }
+    T.quat.setFromEuler(E.set(-pitch, yaw, 0, 'YXZ')); face.set(0, 0, 1).applyQuaternion(T.quat);
+    TP.set(T.pos.x + TUNE.side * M, T.pos.y, T.pos.z - TUNE.lead * M); target.position.copy(TP);
+    const b = T.hitSphere(TP, TUNE.r * M + 20);
+    if (b) { if (judge(b.dir)(T) === 'hit') { hits++; flash = 1; } else { deflected++; shield.material.opacity = .9; } }
+    flash *= Math.exp(-dt * 6); shield.material.opacity += (.25 - shield.material.opacity) * (1 - Math.exp(-dt * 5));
+    target.scale.setScalar(1 + flash * .5);
+    T.chase(velDir, 60 * M, 18 * M, 0.25, dt);
+  },
+  draw(T) {
+    T.line(T.pos, T.V3.copy(T.pos).addScaledVector(velDir, 45 * M), T.colour.V, [6, 7]); T.mark(T.V3, 'V', T.colour.V);
+    T.line(T.pos, T.V3.copy(T.pos).addScaledVector(face, 40 * M), T.colour.N); T.mark(T.V3, 'N', T.colour.N);
+    T.readout(`hits ${hits} · deflected ${deflected}\nface ${Math.round(T.angle(face, velDir) / DEG)}° off the path`);
+  },
+  state: T => ({ hits, deflected, face: face.toArray(), velDir: velDir.toArray(), target: TP.toArray() }),
+  hooks: T => ({ judge: d => judge(T.V4.fromArray(d).normalize())(T), aimAtTarget: () => { const d = T.V1.subVectors(TP, T.pos).normalize(); yaw = Math.atan2(d.x, d.z); pitch = Math.asin(d.y); }, fire: () => T.fire(face, T.vel), setYaw: y => { yaw = y; } }),
+});
+</script>
+</body>
+</html>

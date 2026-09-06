@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+<meta name="theme-color" content="#b8cbd8" />
+<title>10 · Runaway</title>
+<link rel="icon" type="image/svg+xml" href="../ball-jar-favicon.svg" />
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="../examples/js/loaders/LDrawLoader.js"></script>
+<script src="../beta-prime-engine.js"></script>
+<script src="../nabugo.js"></script>
+<script src="../nabugo-ui.js"></script>
+<script src="./terrain-data.js"></script>
+<script src="./common.js"></script>
+</head>
+<body>
+<div id="stage"></div>
+<script>
+/* 10 · Runaway. A ship that gets farther from the camera under acceleration until the camera must chase it. */
+const { DEG, M } = Toy.T;
+const TUNE = { dist: 55, high: 18, vMax: 480, accel: 260 };
+const camPos = new THREE.Vector3(), camVel = new THREE.Vector3();
+let P = null, dist = 0;
+Toy.boot({
+  index: '10 / 12', title: 'Runaway',
+  notice: 'The camera has a top speed and you can beat it. Boost and the ship pulls away; ease off and it drops back; turn round and it flies at the lens.',
+  keys: 'wasd steer · shift boost',
+  setup(T) { T.pos.set(0, 40 * M, 60 * M); P = T.makePath({ boostSpeed: 700 }); camPos.copy(T.pos).addScaledVector(P.velDir, -TUNE.dist * M); camPos.y += TUNE.high * M; },
+  step(T, dt) {
+    P.step(T.stickL(), T.boost(), dt);
+    T.V1.copy(T.pos).addScaledVector(P.velDir, -TUNE.dist * M); T.V1.y += TUNE.high * M;     // where a chase camera would like to be
+    const want = T.V2.subVectors(T.V1, camPos); const d = want.length();
+    const vWant = Math.min(TUNE.vMax, d * 1.6);                                              // slow to arrive, never faster than its own top speed
+    want.normalize().multiplyScalar(vWant);
+    const dv = T.V3.subVectors(want, camVel), a = Math.min(dv.length(), TUNE.accel * dt);
+    if (dv.length() > 1e-3) camVel.addScaledVector(dv.normalize(), a);
+    camPos.addScaledVector(camVel, dt);
+    const g = T.groundH(camPos.x, camPos.z) + 6 * M; if (camPos.y < g) camPos.y = g;
+    dist = camPos.distanceTo(T.pos);
+    T.camera.position.copy(camPos); T.camera.up.copy(T.UP); T.camera.lookAt(T.pos);
+  },
+  draw(T) { T.readout(`${(P.v / M).toFixed(0)} m/s\ncamera ${(dist / M).toFixed(0)} m behind, ${(camVel.length() / M).toFixed(0)} m/s`); },
+  state: T => ({ speed: P.v, dist, camSpeed: camVel.length() }),
+});
+</script>
+</body>
+</html>

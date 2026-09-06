@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+<meta name="theme-color" content="#b8cbd8" />
+<title>02 · The lure</title>
+<link rel="icon" type="image/svg+xml" href="../ball-jar-favicon.svg" />
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="../examples/js/loaders/LDrawLoader.js"></script>
+<script src="../beta-prime-engine.js"></script>
+<script src="../nabugo.js"></script>
+<script src="../nabugo-ui.js"></script>
+<script src="./terrain-data.js"></script>
+<script src="./common.js"></script>
+</head>
+<body>
+<div id="stage"></div>
+<script>
+/* 02 · The lure. A stationary TIE attached to a draggable camera by an elastic spring. */
+const { DEG, M } = Toy.T;
+const TUNE = { rest: 60, pxPerM: 1 / 0.6, k: 2.4, damp: 1.1, camHigh: 16, vMax: 1100, breakAt: 1.0 };
+const lure = new THREE.Vector3(), anchor = new THREE.Vector3(), vel = new THREE.Vector3(), nose = new THREE.Vector3(0, 0, -1);
+let anchored = true, tension = 0, drag = null, strain = 0;
+function pull(T, dx, dy) {                        // screen delta → the lure moves in the ground plane, camera-relative
+  const f = T.camera.getWorldDirection(T.V1); f.y = 0; f.normalize(); const r = T.V2.crossVectors(f, T.UP).normalize();
+  lure.addScaledVector(r, dx / TUNE.pxPerM * M).addScaledVector(f, -dy / TUNE.pxPerM * M);
+}
+Toy.boot({
+  index: '02 / 12', title: 'The lure',
+  notice: 'Your thumb drags the camera. A spring joins it to the ship. Pull gently and the ship only stares. Pull past the strain and it breaks loose and comes after you.',
+  keys: 'arrows drag the camera',
+  setup(T) { T.pos.set(0, 40 * M, 30 * M); anchor.copy(T.pos); lure.copy(T.pos).add(T.V1.set(0, 0, TUNE.rest * M)); },
+  onDown(T, p) { drag = p; }, onMove(T, p) { if (p === drag) pull(T, p.x - p.px, p.y - p.py); }, onUp(T, p) { if (p === drag) drag = null; },
+  step(T, dt) {
+    const k = T.keys; pull(T, ((k.has('ArrowRight') ? 1 : 0) - (k.has('ArrowLeft') ? 1 : 0)) * 300 * dt, ((k.has('ArrowDown') ? 1 : 0) - (k.has('ArrowUp') ? 1 : 0)) * 300 * dt);
+    const toLure = T.V3.subVectors(lure, T.pos), dist = toLure.length() / M;
+    tension = Math.max(0, (dist - TUNE.rest) / TUNE.rest);
+    if (anchored && tension >= TUNE.breakAt) anchored = false;
+    if (anchored) {                                // held: it stares, and leans a little into the pull
+      T.rotateTowards(nose, T.V1.copy(toLure).normalize(), 2.5 * dt);
+      T.pos.copy(anchor).addScaledVector(T.V1.copy(toLure).normalize(), tension * 6 * M);
+      vel.set(0, 0, 0);
+    } else {                                       // loose: a spring with damping, and its own inertia
+      strain = tension;
+      const stretch = toLure.length() - TUNE.rest * M;                             // a spring with a rest length: it settles a lure's length away
+      vel.addScaledVector(T.V1.copy(toLure).normalize(), stretch * TUNE.k * dt).multiplyScalar(Math.exp(-TUNE.damp * dt));
+      if (vel.length() > TUNE.vMax) vel.setLength(TUNE.vMax);
+      T.pos.addScaledVector(vel, dt); T.keepAbove(8 * M);
+      if (vel.length() > 40) T.rotateTowards(nose, T.V1.copy(vel).normalize(), 4 * dt);
+      else T.rotateTowards(nose, T.V1.copy(toLure).normalize(), 2.5 * dt);
+    }
+    T.vel.copy(vel); T.lookQuat(T.quat, nose);
+    lure.y = T.groundH(lure.x, lure.z) + 30 * M;
+    T.V1.copy(lure); T.V1.y += TUNE.camHigh * M; T.placeCamera(T.V1, T.pos);
+  },
+  draw(T) {
+    const c = tension < 0.5 ? T.colour.W : tension < 1 ? T.colour.D : T.colour.N;
+    T.line(T.pos, lure, c, anchored ? [] : [4, 6], 1 + Math.min(3, tension * 2));
+    const p = T.project(lure); if (p.ok) T.circle(p.x, p.y, 10 + tension * 8, c);
+    T.readout(`tension ${tension.toFixed(2)} ${anchored ? '· held' : '· loose'}\n${(vel.length() / M).toFixed(0)} m/s`);
+  },
+  state: T => ({ tension, anchored, speed: vel.length(), dist: lure.distanceTo(T.pos), lure: lure.toArray() }),
+  hooks: T => ({ pull: (dx, dy) => pull(T, dx, dy) }),
+});
+</script>
+</body>
+</html>

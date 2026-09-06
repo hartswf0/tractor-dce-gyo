@@ -17,9 +17,10 @@ async function makeViewer(host, opts = {}) {
   if (!global.THREE || !global.THREE.LDrawLoader || !global.BetaPrimeEngine) {
     throw new Error('three.js / LDrawLoader / BetaPrimeEngine not loaded');
   }
+  const base = (opts.base || '.').replace(/\/$/, '');     // where ldraw/ and the resolve map live, for pages in a subfolder
   const engine = global.BetaPrimeEngine.create({
     canvas: host,
-    loaderPath: './ldraw/',
+    loaderPath: base + '/ldraw/',
     background: opts.background ?? 0x050505,
     grid: { size: N.CELL * N.GRID, divisions: N.GRID, color1: 0x2a2a33, color2: 0x17171c },
     axesSize: 100
@@ -28,7 +29,7 @@ async function makeViewer(host, opts = {}) {
   await engine.ready;
   repairEdgeColours(engine.loader);
   try {
-    const res = await fetch('./ldraw-resolve-map.json');
+    const res = await fetch(base + '/ldraw-resolve-map.json');
     if (res.ok) engine.setFileMap(await res.json());
   } catch (e) {
     console.warn('[nabugo] resolve map unavailable; loader will probe', e);
