@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+<meta name="theme-color" content="#b8cbd8" />
+<title>Vader's World</title>
+<link rel="icon" type="image/svg+xml" href="ball-jar-favicon.svg" />
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="./examples/js/loaders/LDrawLoader.js"></script>
+<script src="./beta-prime-engine.js"></script>
+<script src="./nabugo.js"></script>
+<script src="./nabugo-ui.js"></script>
+<script src="./toys/terrain-data.js"></script>
+<script src="./world/geo.js"></script>
+<script src="./world/ground.js"></script>
+<script src="./world/bricks.js"></script>
+<script src="./world/vader.js"></script>
+<script src="./world/tie.js"></script>
+<style>
+:root{--ink:#1a1f2a;--dim:#4b5566;--gold:#c8901c;--red:#d8382e;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;--sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:#b8cbd8;color:var(--ink);overflow:hidden;font:15px/1.4 var(--sans);-webkit-user-select:none;user-select:none;overscroll-behavior:none}
+#stage{position:fixed;inset:0}#stage canvas{display:block;width:100%;height:100%;touch-action:none}
+#top{position:fixed;left:0;right:0;top:0;padding:calc(10px + env(safe-area-inset-top)) 14px 8px;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none;z-index:4;gap:12px}
+#top .t{font:11px var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
+#top .n{font-size:17px;font-weight:700;margin-top:2px;max-width:56vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#stat{font:11px/1.5 var(--mono);color:var(--dim);text-align:right;white-space:pre}
+#shield{position:fixed;left:14px;right:14px;top:calc(50px + env(safe-area-inset-top));height:3px;background:rgba(26,31,42,.15);border-radius:2px;overflow:hidden;display:none;z-index:4}
+#shield i{position:absolute;inset:0 auto 0 0;background:#2fbf3f;transition:width .15s}#shield.low i{background:var(--red)}
+body.fly #shield{display:block}
+#msg{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%);font:800 22px var(--sans);letter-spacing:.04em;text-transform:uppercase;color:var(--red);text-shadow:0 1px 8px rgba(255,255,255,.6);opacity:0;transition:opacity .15s;pointer-events:none;z-index:4}
+#msg.on{opacity:1}
+#prompt{position:fixed;left:50%;bottom:calc(64px + env(safe-area-inset-bottom));transform:translateX(-50%);height:52px;padding:0 26px;font:800 14px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:#fff;background:var(--red);border:none;border-radius:16px;box-shadow:0 8px 24px rgba(216,56,46,.35);display:none;z-index:5}
+#prompt.on{display:block}
+#stick{position:fixed;width:116px;height:116px;margin:-58px 0 0 -58px;border-radius:999px;border:2px solid rgba(26,31,42,.35);pointer-events:none;opacity:0;transition:opacity .12s;z-index:4}
+#stick.on{opacity:1}#stick i{position:absolute;left:50%;top:50%;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:999px;background:var(--ink)}
+#find{position:fixed;right:14px;top:calc(58px + env(safe-area-inset-top));display:flex;gap:6px;z-index:6;pointer-events:auto}
+#find input{width:min(52vw,260px);height:34px;border:1px solid rgba(26,31,42,.25);border-radius:10px;padding:0 10px;font:13px var(--sans);background:rgba(255,255,255,.7);color:var(--ink);display:none}
+#find.open input{display:block}
+#find button{height:34px;padding:0 12px;border:none;border-radius:10px;background:rgba(26,31,42,.12);font:11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink)}
+#hint{position:fixed;left:14px;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));font-size:12px;color:var(--dim);text-align:center;pointer-events:none;z-index:4}
+#credit{position:fixed;right:10px;bottom:calc(2px + env(safe-area-inset-bottom));font:9px var(--mono);color:rgba(26,31,42,.45);pointer-events:none;z-index:4}
+#veil{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(184,203,216,.92);z-index:9;text-align:center;padding:24px;transition:opacity .3s}
+#veil.gone{opacity:0;pointer-events:none}
+#veil .k{font:11px var(--mono);letter-spacing:.24em;text-transform:uppercase;color:var(--dim)}
+#veil h1{margin:8px 0 6px;font-size:30px;font-weight:900;letter-spacing:-.01em}
+#veil .m{color:var(--dim);font-size:13px;max-width:320px;min-height:40px}
+#veil ol{list-style:none;margin:14px 0 0;padding:0;font:11px/1.9 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--dim);text-align:left}
+#veil ol li.done{color:var(--ink)}#veil ol li.done::before{content:'✓ '}#veil ol li.now::before{content:'… '}
+#veil button{margin-top:18px;height:48px;padding:0 28px;font:inherit;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#fff;background:var(--red);border:none;border-radius:14px}
+#flash{position:fixed;inset:0;background:rgba(216,56,46,.3);opacity:0;pointer-events:none;transition:opacity .1s;z-index:3}#flash.on{opacity:1}
+#keys{display:none;position:fixed;left:50%;bottom:calc(34px + env(safe-area-inset-bottom));transform:translateX(-50%);font:11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--dim);white-space:nowrap;z-index:4;pointer-events:none}
+@media (hover:hover) and (pointer:fine){#keys{display:block}}
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div id="flash"></div>
+<div id="top"><div><div class="t" id="mode">walk · Vader</div><div class="n" id="place">…</div></div><div id="stat"></div></div>
+<div id="shield"><i id="shieldFill" style="width:100%"></i></div>
+<div id="find"><input id="q" placeholder="a street, a city — or 25.7867, -80.1750" autocomplete="off"><button id="go">Go anywhere</button></div>
+<div id="msg"></div>
+<div id="stick"><i></i></div>
+<button id="prompt">Board the TIE</button>
+<div id="hint">left thumb walks · right thumb looks · tap right swings the saber</div>
+<div id="keys">wasd walk · mouse drag look · space saber · shift run · e board / land</div>
+<div id="credit">terrain AWS · buildings © OpenStreetMap · imagery Esri</div>
+<div id="veil"><div class="k">Vader's world</div><h1 id="vTitle">Finding a place</h1><div class="m" id="vm"></div><ol id="stages"><li data-s="place">place</li><li data-s="ground">ground</li><li data-s="imagery">imagery</li><li data-s="buildings">buildings</li><li data-s="ship">the ship and Vader</li><li data-s="bricks">bricks</li></ol></div>
+<script src="./world/main.js"></script>
+</body>
+</html>

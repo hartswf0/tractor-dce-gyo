@@ -231,6 +231,26 @@ def write_full(d, kit_path, label, out_dir):
     return len(blocks), os.path.getsize(dst)
 
 
+# ───────────────────────── the world pack: the ship, a walking Vader, and the city's bricks
+WORLD_EXTRA = ['parts/3816.dat', 'parts/3817.dat', 'parts/3815.dat', 'parts/973.dat', 'parts/3818.dat', 'parts/3819.dat',
+               'parts/3820.dat', 'parts/3626b.dat', 'parts/30368.dat', 'parts/30374.dat', 'parts/522.dat', 'parts/20551c01.dat',
+               'parts/3068b.dat', 'parts/3039.dat', 'parts/60592.dat', 'parts/60623.dat', 'parts/3001.dat', 'parts/3020.dat',
+               'parts/3010.dat', 'parts/3004.dat', 'box.dat', '8\\stud.dat', 'stud.dat']
+
+
+def write_world(out_dir):
+    """Everything world.html parses in its one load: the TIE's 108 ship parts, the minifig,
+    the cape, and the brick vocabulary the city is built from."""
+    d = json.load(open(os.path.join(out_dir, 'VADER-TIE.json')))
+    seeds = list(refs_in('\n'.join(d['lines'][:108]))) + WORLD_EXTRA
+    lib = library_closure(seeds)
+    blocks = ['0 FILE %s\n%s\n' % (name, text.rstrip('\n')) for name, text in lib.values()]
+    dst = os.path.join(out_dir, 'WORLD-full.mpd.txt')
+    with open(dst, 'w') as fh:
+        fh.write(''.join(blocks))
+    print('   world pack: %d files, %d KB' % (len(blocks), os.path.getsize(dst) // 1024))
+
+
 def main():
     out_dir = os.path.join(ROOT, 'assembly-paths')
     os.makedirs(out_dir, exist_ok=True)
@@ -255,6 +275,7 @@ def main():
               % (label, len(d['lines']), d['steps_total'], len(d['sub_names']),
                  index[-1]['kb'], n_inline, round(inline_bytes / 1024),
                  '  TRUNCATED' if d['truncated'] else ''))
+    write_world(out_dir)
     return index
 
 
