@@ -238,7 +238,8 @@ WORLD_EXTRA = ['parts/3816.dat', 'parts/3817.dat', 'parts/3815.dat', 'parts/973.
                'parts/3010.dat', 'parts/3004.dat', 'box.dat', '8\\stud.dat', 'stud.dat',
                'parts/30408.dat', 'parts/58247.dat', 'parts/3901.dat', 'parts/30370.dat', 'parts/3062b.dat',   # other characters, a detonator
                'parts/3003.dat', 'parts/3005.dat', 'parts/3022.dat', 'parts/3023.dat', 'parts/3024.dat', 'parts/3040b.dat', 'parts/3665a.dat',
-               'parts/3455.dat', 'parts/3823.dat', 'parts/4600.dat', 'parts/4624.dat', 'parts/3641.dat', 'parts/3829c01.dat']   # the master builder's bricks
+               'parts/3455.dat', 'parts/3823.dat', 'parts/4600.dat', 'parts/4624.dat', 'parts/3641.dat', 'parts/3829c01.dat',
+               'parts/3009.dat', 'parts/3008.dat', 'parts/2453b.dat', 'parts/3185.dat', 'parts/4589.dat']   # the master builder's bricks
 
 
 def write_world(out_dir):

@@ -30,7 +30,8 @@ const CUSTOM = [
 ].map(([name, desc, lines]) => `0 FILE ${name}\n0 ${desc}\n0 Name: ${name}\n0 !LDRAW_ORG Unofficial_Part\n0 BFC CERTIFY CCW\n${lines.join('\n')}\n`).join('');
 const HARVEST = ['wall-2x8.dat', 'wall-2x4.dat', 'wall-2x2.dat', 'wall-1x2.dat', 'pane-1x2x2.dat', 'roof-2x4.dat', 'parts/3068b.dat', 'parts/60592.dat', 'parts/60623.dat', 'parts/3001.dat', 'parts/3020.dat',
   'parts/3010.dat', 'parts/3004.dat', 'parts/3032.dat', 'parts/3039.dat', 'parts/87079.dat', 'parts/3941.dat', 'parts/3062b.dat',   // the builder's palette
-  'parts/3003.dat', 'parts/3005.dat', 'parts/3022.dat', 'parts/3023.dat', 'parts/3024.dat', 'parts/3040b.dat', 'parts/3665a.dat', 'parts/3455.dat', 'parts/3823.dat', 'parts/4600.dat', 'parts/4624.dat', 'parts/3641.dat', 'parts/3829c01.dat'];   // and the master builder's
+  'parts/3003.dat', 'parts/3005.dat', 'parts/3022.dat', 'parts/3023.dat', 'parts/3024.dat', 'parts/3040b.dat', 'parts/3665a.dat', 'parts/3455.dat', 'parts/3823.dat', 'parts/4600.dat', 'parts/4624.dat', 'parts/3641.dat', 'parts/3829c01.dat',
+  'parts/3009.dat', 'parts/3008.dat', 'parts/2453b.dat', 'parts/3185.dat', 'parts/4589.dat'];   // and the master builder's
 const KEY = f => f.replace(/^parts\//, '').replace(/\.dat$/, '');
 const lines = () => HARVEST.map(f => `1 16 0 0 0 1 0 0 0 1 0 0 0 1 ${f}`).join('\n');
 

@@ -68,7 +68,7 @@ async function boot() {
   $('#rerender').onclick = () => { try { show(JSON.parse($('#program').value)); } catch (e) { status('that is not JSON: ' + e.message, 'warn'); } };
   $('#download').onclick = () => { if (!S.result) return; NabugoUI.download(Dsl.toMPD(S.result, S.result.name), (S.result.name || 'build') + '.mpd'); };
   $('#copy').onclick = () => { if (!S.program) return; (navigator.clipboard ? navigator.clipboard.writeText(JSON.stringify(S.program)) : Promise.reject()).then(() => status('copied', 'ok'), () => status('copy failed', 'warn')); };
-  $('#send').onclick = () => { if (!S.program) return; try { localStorage.setItem('world.inbox', JSON.stringify({ program: S.program, t: Date.now() })); } catch (e) { status('could not hand over: ' + e.message, 'warn'); return; } location.href = 'world.html?inbox=1'; };
+  $('#send').onclick = () => { if (!S.program) return; try { localStorage.setItem('world.inbox', JSON.stringify({ program: S.program, t: Date.now() })); } catch (e) { status('could not hand over: ' + e.message, 'warn'); return; } location.href = 'word-to-world.html?inbox=1'; };
   try { const bc = new BroadcastChannel('wag-frank'); bc.onmessage = e => onBus(e.data); } catch (e) { }
   const q = new URLSearchParams(location.search); if (q.get('ask')) { $('#prompt').value = q.get('ask'); draft(q.get('ask')); } else show(Dsl.EXAMPLES[1].program, true);
 }
@@ -109,7 +109,7 @@ function showMPD(item) {
   const text = item.lines.join('\n'); S.result = null; S.program = { name: item.name, ops: [{ op: 'mpd', name: item.name, text }] };
   $('#program').value = `# ${item.kind}: ${item.name} — ${item.lines.length} lines (an LDraw model from the -ators)`; status(`${item.name}: ${item.lines.filter(l => l.startsWith('1 ')).length} parts`, 'ok');
   NabugoUI.render(S.engine, Dsl.withHeaders(text.startsWith('0 FILE') ? text : `0 FILE ${item.name}.ldr\n${text}`), $('#status3d'), item.name);
-  $('#send').onclick = () => { try { localStorage.setItem('world.inbox', JSON.stringify({ mpd: text, name: item.name, t: Date.now() })); } catch (e) { return status('could not hand over', 'warn'); } location.href = 'world.html?inbox=1'; };
+  $('#send').onclick = () => { try { localStorage.setItem('world.inbox', JSON.stringify({ mpd: text, name: item.name, t: Date.now() })); } catch (e) { return status('could not hand over', 'warn'); } location.href = 'word-to-world.html?inbox=1'; };
   $('#download').onclick = () => NabugoUI.download(text, item.name.replace(/\W+/g, '_') + '.mpd');
 }
 function paintBus() { const el = $('#busList'); el.innerHTML = ''; for (const it of S.bus) { const d = document.createElement('div'); d.className = 'item'; d.innerHTML = `<b></b><span></span><button>show</button>`; d.querySelector('b').textContent = it.name; d.querySelector('span').textContent = `${it.kind} · ${it.lines.length} lines`; d.querySelector('button').onclick = () => showMPD(it); el.appendChild(d); } }

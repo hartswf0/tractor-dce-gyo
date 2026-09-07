@@ -82,9 +82,10 @@ const Sfx = {
 };
 
 /* ───────────────────────── haptics ───────────────────────── */
-let hapticAt = 0, hapticN = 0;
+let hapticAt = 0, hapticN = 0, touched = false;
+if (typeof window !== 'undefined') { const on = () => { touched = true; }; window.addEventListener('pointerdown', on, { passive: true, once: true }); window.addEventListener('keydown', on, { once: true }); }
 function haptic(pattern) {
-  try { if (!navigator.vibrate) return false; const t = performance.now(); if (t - hapticAt < 60) return false; hapticAt = t; hapticN++; return navigator.vibrate(pattern); } catch (e) { return false; }
+  try { if (!navigator.vibrate || !touched) return false; /* the browser refuses to buzz before a tap, loudly */ const t = performance.now(); if (t - hapticAt < 60) return false; hapticAt = t; hapticN++; return navigator.vibrate(pattern); } catch (e) { return false; }
 }
 haptic.count = () => hapticN;
 

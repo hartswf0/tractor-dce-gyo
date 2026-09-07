@@ -19,8 +19,8 @@ class Props {
     this.kinds = 0; this.parsed = 0;
   }
   setFrame(f) { this.frame = { ...f }; }
-  toRow(p) { const f = this.frame; return [p.id, p.mpd, Math.round(p.x - f.ax), Math.round(p.y + f.datum), Math.round(p.z - f.az), p.yaw & 3]; }
-  fromRow(r) { const f = this.frame; return { id: r[0], mpd: String(r[1] || ''), x: r[2] + f.ax, y: r[3] - f.datum, z: r[4] + f.az, yaw: (r[5] | 0) & 3 }; }
+  toRow(p) { const f = this.frame, r = [p.id, p.mpd, Math.round(p.x - f.ax), Math.round(p.y + f.datum), Math.round(p.z - f.az), p.yaw & 3]; if (p.src) r.push(p.src); return r; }   // src: the build op that made it, so a read build can say it again
+  fromRow(r) { const f = this.frame; return { id: r[0], mpd: String(r[1] || ''), x: r[2] + f.ax, y: r[3] - f.datum, z: r[4] + f.az, yaw: (r[5] | 0) & 3, src: r[6] && typeof r[6] === 'object' ? r[6] : null }; }
   /** Parse LDraw text through the shared loader, one at a time. Resolves to a Group in LDraw's frame. */
   parse(text, name) {
     const run = () => new Promise((res, rej) => { try { const t = setTimeout(() => rej(new Error('parse timed out')), 30000); this.loader.parse(text, name || 'prop.mpd', g => { clearTimeout(t); this.parsed++; res(g); }); } catch (e) { rej(e); } });
@@ -42,7 +42,7 @@ class Props {
     return it;
   }
   /** Place a new prop of ours. */
-  place(mpd, x, y, z, yaw, quiet) { const id = this.pid + '-p' + (++this.next); try { localStorage.setItem('world.props.n', String(this.next)); } catch (e) { } return this.add({ id, mpd, x, y, z, yaw }, quiet); }
+  place(mpd, x, y, z, yaw, quiet, src) { const id = this.pid + '-p' + (++this.next); try { localStorage.setItem('world.props.n', String(this.next)); } catch (e) { } return this.add({ id, mpd, x, y, z, yaw, src: src || null }, quiet); }
   remove(id, quiet) { const it = this.items.get(id); if (!it) return false; if (it.group) this.scene.remove(it.group); this.items.delete(id); if (!quiet) { this.dirty = true; if (this.onEdit) this.onEdit({ rm: [id] }); } return true; }
   clear() { for (const id of [...this.items.keys()]) this.remove(id, true); this.dirty = true; }
   near(x, z, r) { const out = []; for (const it of this.items.values()) { if (!it.box) continue; const b = it.box; if (x + r < b.min.x || x - r > b.max.x || z + r < b.min.z || z - r > b.max.z) continue; out.push(it); } return out; }

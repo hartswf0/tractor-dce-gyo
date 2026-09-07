@@ -131,6 +131,13 @@ const Ai = {
     return this.ask('', { ...opts, messages });
   },
 
+  /** Words about a build that already exists: the whole program comes back, changed as asked. `prev` is { program, messages? } — a read build has no conversation yet. */
+  async edit(prev, words, opts = {}) {
+    const base = (prev.messages && prev.messages.length) ? prev.messages : [{ role: 'user', content: this.userMessage('the build below', opts.context) }, { role: 'assistant', content: JSON.stringify(prev.program) }];
+    const messages = base.concat([{ role: 'user', content: `Change the build: ${words}\nAnswer with the corrected FULL program as JSON only: keep everything that was not asked to change, at the same coordinates, and apply the change to the rest.` }]);
+    return this.ask('', { ...opts, messages });
+  },
+
   stats() { return { calls: this.calls, usage: this.lastUsage, error: this.lastError, model: this.model(), effort: this.effort(), hasKey: !!this.key(), responseId: this.lastResponseId }; },
 };
 window.Ai = Ai;

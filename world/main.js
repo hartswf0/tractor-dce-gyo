@@ -8,7 +8,7 @@ const M = 40;                                                  // LDU per metre:
 const Q = new URLSearchParams(location.search);
 const HLIDARENDI = { lat: 63.7422, lon: -20.108, name: 'Hlíðarendi, Iceland', baked: true };
 const GROUND_SPAN = 2700, DETAIL_SPAN = 900, RELAND_AT = 300, DETONATORS = 6;
-const UP = new THREE.Vector3(0, 1, 0), V1 = new THREE.Vector3(), V2 = new THREE.Vector3(), V3 = new THREE.Vector3(), E1 = new THREE.Euler(), Q1 = new THREE.Quaternion();
+const UP = new THREE.Vector3(0, 1, 0), V1 = new THREE.Vector3(), V2 = new THREE.Vector3(), V3 = new THREE.Vector3(), E1 = new THREE.Euler(), Q1 = new THREE.Quaternion(), B2 = new THREE.Box3();
 
 const W = {
   engine: null, scene: null, camera: null, renderer: null, loader: null,
@@ -24,18 +24,48 @@ if (!Minifig.DEFS[W.character]) W.character = 'vader';
 if (!Worlds.PRESETS[W.world]) W.world = 'earth';
 
 /* ───────────────────────── veil, menu, HUD ───────────────────────── */
-function stage(name, state, note) { const li = $(`#stages li[data-s="${name}"]`); if (li) { li.classList.remove('now', 'done'); li.classList.add(state); } if (note !== undefined) $('#vm').textContent = note; }
-function stall(msg) { $('#vm').innerHTML = msg + '<br><button onclick="location.reload()">Retry</button>'; }
+const VEIL = { t0: performance.now(), stages: {}, timer: 0, hurry: null };
+/** A stage of loading: 'now' starts its clock, 'done' stops it; the note sits beside its name. */
+function stage(name, state, note) {
+  const st = VEIL.stages[name] || (VEIL.stages[name] = { state: '', t0: 0, t1: 0, note: '' });
+  if (state === 'now' && st.state !== 'now') st.t0 = performance.now();
+  if (state === 'done') st.t1 = performance.now();
+  st.state = state; if (note !== undefined) st.note = note;
+  const li = $(`#stages li[data-s="${name}"]`); if (!li) return;
+  if (!li.querySelector('.n')) { const n = li.textContent; li.innerHTML = `<span class="n"></span><span class="d"></span><span class="t"></span>`; li.querySelector('.n').textContent = n; }
+  li.classList.remove('now', 'done'); li.classList.add(state);
+  if (note !== undefined) li.querySelector('.d').textContent = note;
+  veilPaint();
+}
+function veilPaint() {
+  const now = performance.now(), since = (now - VEIL.t0) / 1000; let pending = 0, ship = true;
+  for (const [name, st] of Object.entries(VEIL.stages)) {
+    const li = $(`#stages li[data-s="${name}"] .t`); if (li) li.textContent = st.state === 'now' ? `${((now - st.t0) / 1000) | 0} s` : st.state === 'done' && st.t1 - st.t0 > 1500 ? `${((st.t1 - st.t0) / 1000) | 0} s` : '';
+    if (st.state === 'now') pending++;
+  }
+  ship = VEIL.stages.ship && VEIL.stages.ship.state === 'done';
+  const start = $('#vStart'); if (start) start.hidden = !(since > 15 && !W.ready && VEIL.hurry && pending > 0);
+  const vm = $('#vm');
+  if (!W.ready && since > 90 && !ship && !VEIL.failed) { VEIL.failed = true; vm.innerHTML = 'The ship has not arrived after 90 s. It comes from this site, so the connection is the problem.<br><button onclick="location.reload()">Retry</button>'; }
+  else if (!W.ready && since > 15 && !VEIL.failed && vm) vm.textContent = pending ? 'the slow parts pop in once you are walking' : '';
+}
+function veilTick(on) { clearInterval(VEIL.timer); if (on) { VEIL.t0 = performance.now(); VEIL.failed = false; VEIL.timer = setInterval(veilPaint, 250); } }
+function stall(msg) { veilTick(false); $('#vm').innerHTML = msg + '<br><button onclick="location.reload()">Retry</button>'; }
+/** The Start now button: whatever is still on its way pops in later. */
+function startNow() { if (VEIL.hurry) VEIL.hurry(); }
 function toast(text, ms = 1200) { const m = $('#msg'); m.textContent = text; m.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => m.classList.remove('on'), ms); }
 function flash() { const f = $('#flash'); f.classList.add('on'); setTimeout(() => f.classList.remove('on'), 100); }
 function buildMenu() {
   const chars = Object.entries(Minifig.DEFS).map(([k, d]) => `<button data-as="${k}" class="${k === W.character ? 'on' : ''}">${d.name}</button>`).join('');
   const worlds = Object.entries(Worlds.PRESETS).map(([k, p]) => `<button data-world="${k}" class="${k === W.world ? 'on' : ''}">${p.name}</button>`).join('');
   $('#menu').innerHTML = `<div class="row"><span>play as</span>${chars}</div><div class="row"><span>world</span>${worlds}</div>
+    <div class="row ai"><span>builder</span><input id="aiKey" type="password" placeholder="OpenAI API key (stays here)" autocomplete="off"><input id="aiModel" placeholder="gpt-5.6-sol" autocomplete="off"><select id="aiEffort"><option value="max">max reasoning</option><option value="xhigh">xhigh</option><option value="high">high</option><option value="medium">medium</option><option value="low">low</option><option value="none">none · fastest</option></select></div>
     <div class="row net"><span>together</span><input id="nameIn" placeholder="your name" maxlength="14"><button id="hostBtn">Host a room</button><input id="codeIn" placeholder="CODE" maxlength="4" autocapitalize="characters"><button id="joinBtn">Join</button><button id="linkBtn" hidden>Copy link</button><button id="leaveBtn" hidden>Leave</button><button id="muteBtn" title="sound">🔊</button></div><div class="row"><em id="roomStat"></em></div>`;
   $('#menu').querySelectorAll('[data-as]').forEach(b => b.onclick = () => setCharacter(b.dataset.as));
   $('#menu').querySelectorAll('[data-world]').forEach(b => b.onclick = () => setWorld(b.dataset.world));
   $('#nameIn').value = W.name || ''; $('#nameIn').onchange = () => setName($('#nameIn').value);
+  $('#aiKey').value = Ai.key(); $('#aiModel').value = Ai.model(); $('#aiEffort').value = Ai.effort();
+  $('#aiKey').onchange = () => { Ai.setKey($('#aiKey').value); wbHint(); }; $('#aiModel').onchange = () => { Ai.setModel($('#aiModel').value); $('#aiModel').value = Ai.model(); }; $('#aiEffort').onchange = () => Ai.setEffort($('#aiEffort').value);
   $('#hostBtn').onclick = () => hostRoom(); $('#joinBtn').onclick = () => joinRoom($('#codeIn').value); $('#leaveBtn').onclick = () => leaveRoom();
   $('#linkBtn').onclick = () => { const link = W.room.link(); (navigator.clipboard ? navigator.clipboard.writeText(link) : Promise.reject()).then(() => toast('link copied', 900), () => { prompt('Share this link', link); }); };
   $('#codeIn').addEventListener('keydown', e => { if (e.key === 'Enter') joinRoom($('#codeIn').value); });
@@ -57,21 +87,46 @@ async function resolvePlace() {
   if (!Q.has('noloc')) { stage('place', 'now', 'asking where you are'); const here = await Geo.locate(8000); if (here) return here; }
   return HLIDARENDI;
 }
-async function loadWindow(place) {
-  const P = Geo.proj(place.lat, place.lon), out = { place, P };
-  stage('ground', 'now', 'fetching the ground');
-  let field = null;
-  if (!place.baked) { const f = await Geo.fetchElevation({ lat: place.lat, lon: place.lon, spanM: GROUND_SPAN }); if (f.ok) field = Ground.centredField(f); W.net.elevation = f.ok; }
-  if (!field) { field = Ground.bakedField(); out.baked = true; if (!place.baked) out.place = { ...HLIDARENDI, name: place.name + ' → offline, so ' + HLIDARENDI.name }; }
-  out.field = field; stage('ground', 'done');
-  const wantImg = !out.baked && Worlds.PRESETS[W.world].imagery;
-  const im = wantImg ? (stage('imagery', 'now', 'fetching the aerial imagery'), await Geo.fetchImagery({ lat: place.lat, lon: place.lon, spanM: DETAIL_SPAN * 1.4, P, maxZoom: 16 })) : { ok: false };
-  out.imagery = im.ok ? im : null; W.net.imagery = im.ok; stage('imagery', 'done', im.ok ? '' : wantImg ? 'no imagery: moss it is' : '');
-  stage('buildings', 'now', 'fetching the buildings');
-  const osm = out.baked ? { ok: false } : await Geo.fetchOSM({ lat: place.lat, lon: place.lon, spanM: DETAIL_SPAN, P });
-  if (osm.ok) { out.buildings = osm.buildings; out.roads = osm.roads; } else { const v = Bricks.village(); out.buildings = v.buildings; out.roads = v.roads; out.village = true; }
-  W.net.osm = osm.ok; stage('buildings', 'done', `${out.buildings.length} buildings, ${out.roads.length} roads`);
+const sleep = ms => new Promise(ok => setTimeout(ok, ms));
+/** Ground, imagery and buildings are fetched at once. Buildings (and imagery) get `wait` ms; whatever is late comes in later through installBuildings / lateImagery. */
+async function loadWindow(place, wait = 15000) {
+  const P = Geo.proj(place.lat, place.lon), out = { place, P }, t0 = performance.now(), preset = Worlds.PRESETS[W.world];
+  let hurried = false; const hurry = new Promise(ok => { VEIL.hurry = () => { hurried = true; ok(); }; });
+  const left = () => Math.max(0, wait - (performance.now() - t0));
+  const groundP = (async () => {
+    stage('ground', 'now', 'fetching the ground'); let field = null;
+    if (!place.baked) { const f = await Geo.fetchElevation({ lat: place.lat, lon: place.lon, spanM: GROUND_SPAN }).catch(() => ({ ok: false })); if (f.ok) field = Ground.centredField(f); W.net.elevation = f.ok; }
+    if (!field) { field = Ground.bakedField(); out.baked = true; if (!place.baked) out.place = { ...HLIDARENDI, name: place.name + ' → offline, so ' + HLIDARENDI.name }; }
+    out.field = field; stage('ground', 'done', out.baked && !place.baked ? 'offline: the baked valley' : '');
+  })();
+  const wantImg = !place.baked && preset.imagery;
+  const imgP = wantImg ? (stage('imagery', 'now', 'fetching the aerial imagery'), Geo.fetchImagery({ lat: place.lat, lon: place.lon, spanM: DETAIL_SPAN * 1.4, P, maxZoom: 16 }).catch(() => ({ ok: false }))) : Promise.resolve({ ok: false });
+  const osmCtl = new AbortController();
+  const osmP = place.baked ? Promise.resolve({ ok: false }) : (stage('buildings', 'now', 'fetching the buildings'), Geo.fetchOSM({ lat: place.lat, lon: place.lon, spanM: DETAIL_SPAN, P, signal: osmCtl.signal }).catch(() => ({ ok: false })));
+  await groundP;
+  if (out.baked) { osmCtl.abort(); const v = Bricks.village(); out.buildings = v.buildings; out.roads = v.roads; out.village = true; out.imagery = null; W.net.osm = false; stage('imagery', 'done', wantImg ? 'no imagery: moss it is' : ''); stage('buildings', 'done', `${v.buildings.length} buildings, ${v.roads.length} roads`); return out; }
+  const im = await Promise.race([imgP, sleep(left()).then(() => null), hurry.then(() => null)]);
+  if (im) { out.imagery = im.ok ? im : null; W.net.imagery = im.ok; stage('imagery', 'done', im.ok ? '' : wantImg ? 'no imagery: moss it is' : ''); }
+  else { out.imagery = null; out.imageryTried = true; out.imageryP = imgP; stage('imagery', 'now', 'still on its way'); }
+  const osm = await Promise.race([osmP, sleep(left()).then(() => null), hurry.then(() => null)]);
+  if (osm) applyOSM(out, osm);
+  else { out.buildings = []; out.roads = []; out.pending = osmP; stage('buildings', 'now', hurried ? 'they pop in when they arrive' : 'still fetching · they pop in later'); }
   return out;
+}
+function applyOSM(win, osm) {
+  if (osm.ok) { win.buildings = osm.buildings; win.roads = osm.roads; win.village = false; } else { const v = Bricks.village(); win.buildings = v.buildings; win.roads = v.roads; win.village = true; }
+  W.net.osm = osm.ok; win.pending = null; stage('buildings', 'done', `${win.buildings.length} buildings, ${win.roads.length} roads`);
+}
+/** Buildings that arrived after we started walking: the city, the roads, the crowd and the saved damage. */
+function installBuildings(win, osm) {
+  applyOSM(win, osm); VEIL.buildingsAt = performance.now() / 1000; if (W.win !== win) return;
+  if (W.G.roads) { W.scene.remove(W.G.roads); W.G.roads.geometry.dispose(); W.G.roads = null; }
+  const roads = Ground.roads(W.G, win.roads, M); if (roads) W.scene.add(roads);
+  W.city.set(win.buildings); loadDamage(); W.crowd.setRoads(win.roads);
+  const pos = W.mode === 'walk' ? W.rig.pos : W.tie.pos; if (!W.crowd.remote) W.crowd.populate(pos);
+  if (W.mode === 'walk' && W.city.near(pos.x, pos.z, 2 * M).some(b => Bricks.pointInRing(pos.x / M, pos.z / M, b.ring))) { const s = spawnPoint(win); W.rig.pos.set(s.x * M, W.G.h(s.x * M, s.z * M), s.z * M); }
+  $('#place').textContent = win.place.name + (win.village ? ' · village' : '');
+  toast(win.village ? 'no map here: a village instead' : `${win.buildings.length} buildings arrived`, 1500);
 }
 function installWindow(win) {
   const scene = W.scene, preset = Worlds.PRESETS[W.world];
@@ -86,6 +141,8 @@ function installWindow(win) {
   if (W.crowd) { W.crowd.setRoads(win.roads); }
   if (W.build) { const key = placeKey(win.place), a = anchorOf(win.place), al = win.P.toLocal(a.lat, a.lon), frame = { ax: al.x * M, az: al.z * M, datum: G.datum * M }; W.build.setFrame(frame); const n = W.build.load(key); if (n) toast(`${n} bricks of yours here`, 1200); if (W.draft) { W.draft.setFrame(frame); mbDiscard(true); } if (W.props) { W.props.setFrame(frame); W.props.load(key); } }
   W.dmgKey = 'world.damage.' + placeKey(win.place); loadDamage();
+  if (win.pending) win.pending.then(osm => installBuildings(win, osm));
+  if (win.imageryP) win.imageryP.then(im => { stage('imagery', 'done', im.ok ? '' : 'no imagery: moss it is'); W.net.imagery = im.ok; if (!im.ok) return; win.imagery = im; if (W.win === win && Worlds.PRESETS[W.world].imagery) Ground.drape(W.G, im); });
 }
 /** A place's anchor: its coordinates to a thousandth of a degree (about 100 m), so a jittery GPS fix still finds the same builds. */
 function anchorOf(place) { return place.baked ? { lat: HLIDARENDI.lat, lon: HLIDARENDI.lon } : { lat: Math.round(place.lat * 1000) / 1000, lon: Math.round(place.lon * 1000) / 1000 }; }
@@ -110,7 +167,9 @@ function spawnPoint(win) {
 
 /* ───────────────────────── the one parse ───────────────────────── */
 async function loadModels(engine) {
-  const [path, pack] = await Promise.all([fetch('./assembly-paths/VADER-TIE.json').then(r => r.json()), fetch('./assembly-paths/WORLD-full.mpd.txt').then(r => r.ok ? r.text() : '')]);
+  const kb = n => `${Math.round(n / 1024)} KB`;
+  const [path, pack] = await Promise.all([fetch('./assembly-paths/VADER-TIE.json').then(r => r.json()), fetchText('./assembly-paths/WORLD-full.mpd.txt', (got, total) => stage('ship', 'now', total ? `${kb(got)} of ${kb(total)}` : kb(got)))]);
+  stage('ship', 'now', 'parsing the parts');
   const ship = path.lines.slice(0, 108), figParts = Minifig.harvestLines();
   const text = ['0 FILE world.ldr', '0 !LDRAW_ORG Unofficial_Model', ...ship, ...figParts, Bricks.lines()].join('\n') + '\n\n' + Bricks.CUSTOM + '\n' + pack;
   engine.loader.separateObjects = true;
@@ -118,6 +177,14 @@ async function loadModels(engine) {
   const want = 108 + figParts.length + Bricks.HARVEST.length;
   if (root.children.length !== want) throw new Error(`expected ${want} part groups, got ${root.children.length}`);
   return { root, ship: root.children.slice(0, 108), fig: root.children.slice(108, 108 + figParts.length), harvest: root.children.slice(108 + figParts.length) };
+}
+/** A text fetch that reports its bytes. */
+async function fetchText(url, onProgress) {
+  const r = await fetch(url); if (!r.ok) return '';
+  const total = +r.headers.get('content-length') || 0; if (!r.body || !r.body.getReader) return r.text();
+  const reader = r.body.getReader(), chunks = []; let got = 0;
+  for (;;) { const { done, value } = await reader.read(); if (done) break; chunks.push(value); got += value.length; if (onProgress) onProgress(got, total); }
+  return new Blob(chunks).text();
 }
 /** Raw part geometries (part-local, one material) for the figures and the debris. */
 function harvestRaw(groups) {
@@ -405,7 +472,7 @@ async function maybeReland() {
 async function reland(place, quiet) {
   if (W.relanding) return; W.relanding = true;
   try {
-    if (!quiet) { $('#veil').classList.remove('gone'); $('#vTitle').textContent = 'Going to ' + place.name; for (const li of document.querySelectorAll('#stages li')) li.classList.remove('done', 'now'); stage('place', 'done'); }
+    if (!quiet) { $('#veil').classList.remove('gone'); $('#vTitle').textContent = 'Going to ' + place.name; for (const li of document.querySelectorAll('#stages li')) li.classList.remove('done', 'now'); VEIL.stages = {}; veilTick(true); stage('place', 'done'); stage('ship', 'done'); }
     const win = await loadWindow(place), p = W.mode === 'walk' ? W.rig.pos : W.tie.pos, keep = quiet && W.P ? W.P.toWGS(p.x / M, p.z / M) : null;
     installWindow(win); setWorld(W.world);
     let lx = 0, lz = 0;
@@ -416,7 +483,7 @@ async function reland(place, quiet) {
       else { const sp = W.ship.position, sw = W.prevP.toWGS(sp.x / M, sp.z / M), sl = win.P.toLocal(sw.lat, sw.lon); W.ship.position.set(sl.x * M, W.G.h(sl.x * M, sl.z * M) + 122, sl.z * M); }
     } else { W.tie.pos.set(lx, W.tie.pos.y, lz); W.tie.prevPos.copy(W.tie.pos); }
     W.prevP = win.P; if (!W.crowd.remote) W.crowd.populate(W.mode === 'walk' ? W.rig.pos : W.tie.pos);
-    if (!quiet) { stage('bricks', 'done'); $('#veil').classList.add('gone'); }
+    if (!quiet) { stage('bricks', 'done'); veilTick(false); $('#veil').classList.add('gone'); }
     if (W.room.role === 'host' && !quiet) W.room.send({ t: 'place', place: wirePlace(), world: W.world });
   } catch (e) { console.error(e); if (!quiet) stall('Could not go there: ' + (e.message || e)); }
   finally { W.relanding = false; }
@@ -441,7 +508,7 @@ async function boot() {
   try { Fx.Sfx.muted = Q.get('mute') === '1' || (Q.get('mute') !== '0' && localStorage.getItem('world.mute') === '1'); } catch (e) { }
   const unlock = () => { Fx.Sfx.unlock(); }; window.addEventListener('pointerdown', unlock, { passive: true }); window.addEventListener('keydown', unlock);
   buildMenu(); bindInput(); document.body.dataset.world = W.world;
-  const watchdog = setTimeout(() => { if (!W.ready) stall('Still loading after 40 s. The ground and the buildings come from the network; the ship from this site.'); }, 40000);
+  veilTick(true); const vs = $('#vStart'); if (vs) vs.onclick = startNow;
   try {
     const viewerP = NabugoUI.makeViewer($('#stage'), { background: 0xb8cbd8, base: '.' }), placeP = resolvePlace();
     const engine = await viewerP; W.engine = engine; W.scene = engine.scene; W.camera = engine.camera; W.renderer = engine.renderer; W.loader = engine.loader;
@@ -487,11 +554,10 @@ async function boot() {
     W.bolts.onFire = (o, d, owner, speed) => { if (owner === 'player') Fx.Sfx.blaster(); if (W.room && W.room.role && (owner === 'player' || (owner === 'npc' && W.room.role === 'host'))) W.room.send({ t: 'bolt', o: o.toArray().map(Math.round), d: d.toArray().map(x => +x.toFixed(3)), s: speed, npc: owner === 'npc' }, { fast: true }); };
     { const orig = W.crowd.burst.bind(W.crowd); W.crowd.burst = (n, vel, debris) => { const was = n.alive; orig(n, vel, debris); if (was && W.room && W.room.role === 'guest' && n.ri != null) W.room.send({ t: 'npcHit', i: n.ri }); }; }
     paintPalette();
-    stage('bricks', 'done', ''); W.last = performance.now(); W.ready = true; $('#veil').classList.add('gone'); $('#menu').classList.remove('open'); paint(); hintFor();
+    stage('bricks', 'done', ''); W.last = performance.now(); W.ready = true; VEIL.readyAt = performance.now() / 1000; veilTick(false); $('#veil').classList.add('gone'); $('#menu').classList.remove('open'); paint(); hintFor();
     if (Q.get('room')) joinRoom(Q.get('room'), true);
     bindMaster(); checkInbox();
   } catch (e) { console.error(e); stall('Could not build the world: ' + (e.message || e)); }
-  finally { clearTimeout(watchdog); }
 }
 
 /* ───────────────────────── building ───────────────────────── */
@@ -512,7 +578,7 @@ function bindPalette() {
   const P = $('#palette');
   P.innerHTML = `<div class="parts">${Build.PARTS.map(([part, name]) => `<button data-part="${part}">${name}</button>`).join('')}</div>
     <div class="tools"><span class="cols">${Build.COLOURS.map(c => `<button data-col="${c}" title="${c}"></button>`).join('')}</span>
-    <button data-tool="rot" title="rotate (R)">⟳</button><button data-tool="up" title="lift (])">▲</button><button data-tool="down" title="lower ([)">▼</button><button data-tool="undo" title="undo (⌫)">⌫</button><button data-tool="pick" title="pick up (X)">✋</button><button data-tool="reset" title="reset this place">reset</button><button id="mbBtn" title="the master builder">🧠 build for me</button><button data-tool="place" class="place">PLACE</button></div>`;
+    <button data-tool="rot" title="rotate (R)">⟳</button><button data-tool="up" title="lift (])">▲</button><button data-tool="down" title="lower ([)">▼</button><button data-tool="undo" title="undo (⌫)">⌫</button><button data-tool="pick" title="pick up (X)">✋</button><button data-tool="reset" title="reset this place">reset</button><button data-tool="place" class="place">PLACE</button></div>`;
   P.querySelectorAll('[data-part]').forEach(b => b.onclick = () => { W.build.part = b.dataset.part; W.build.pick = false; paintPalette(); });
   P.querySelectorAll('[data-col]').forEach(b => b.onclick = () => { W.build.col = +b.dataset.col; paintPalette(); });
   P.querySelectorAll('[data-tool]').forEach(b => b.onclick = () => { const B = W.build; switch (b.dataset.tool) { case 'rot': rotateBuild(); break; case 'up': B.lift = Math.min(B.lift + 1, 60); break; case 'down': B.lift = Math.max(B.lift - 1, -60); break; case 'undo': B.undo(); break; case 'pick': setPick(!B.pick); break; case 'reset': if (confirm('Forget every brick built and every wall broken here?')) resetPlace(); break; case 'place': buildAct(); break; } paintPalette(); });
@@ -527,18 +593,39 @@ function paintPalette() {
 
 /* ───────────────────────── the master builder ───────────────────────── */
 function bindMaster() {
-  const P = $('#mb'); if (!P) return;
-  $('#mbBtn').onclick = () => { P.classList.toggle('open'); if (P.classList.contains('open')) { $('#mbKey').value = Ai.key(); $('#mbModel').value = Ai.model(); $('#mbSettings').open = !Ai.key(); setTimeout(() => $('#mbPrompt').focus(), 50); } };
-  $('#mbClose').onclick = () => P.classList.remove('open');
-  $('#mbKey').onchange = () => Ai.setKey($('#mbKey').value); $('#mbModel').onchange = () => Ai.setModel($('#mbModel').value);
-  $('#mbDraft').onclick = () => mbDraft($('#mbPrompt').value);
-  $('#mbPrompt').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); mbDraft($('#mbPrompt').value); } });
-  $('#mbCommit').onclick = () => mbCommit(); $('#mbDiscard').onclick = () => mbDiscard();
-  P.querySelectorAll('[data-nudge]').forEach(b => b.onclick = () => { const [dx, dz, dy, rot] = b.dataset.nudge.split(',').map(Number); mbNudge(dx, dz, dy, rot); });
-  P.querySelectorAll('[data-ask]').forEach(b => b.onclick = () => { $('#mbPrompt').value = b.dataset.ask; mbDraft(b.dataset.ask); });
-  mbStatus('');
+  const T = $('#words'); if (!T) return;
+  const grow = () => { T.style.height = 'auto'; T.style.height = Math.min(150, Math.max(52, T.scrollHeight)) + 'px'; };
+  T.addEventListener('input', grow); T.addEventListener('focus', () => { W.typing = true; }); T.addEventListener('blur', () => { W.typing = false; });
+  T.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); say(T.value); } });
+  $('#wbBuild').onclick = () => say(T.value); $('#wbRead').onclick = () => readBuild();
+  $('#wbCommit').onclick = () => mbCommit(); $('#wbDiscard').onclick = () => mbDiscard();
+  document.querySelectorAll('#wbSheet [data-nudge]').forEach(b => b.onclick = () => { const [dx, dz, dy, rot] = b.dataset.nudge.split(',').map(Number); mbNudge(dx, dz, dy, rot); });
+  const bar = $('#wb'), fit = () => document.documentElement.style.setProperty('--wb', bar.offsetHeight + 'px');   // the buttons above the bar rise with it
+  if (window.ResizeObserver) new ResizeObserver(fit).observe(bar); fit();
+  mbStatus(''); wbHint();
 }
-function mbStatus(text, cls) { W.master.status = text; const e = $('#mbStat'); if (e) { e.textContent = text; e.className = cls || ''; } const has = !!(W.master.result && (W.draft.pieces.size || W.master.ghosts.length)); document.body.classList.toggle('drafting', has); }
+/** The word bar's placeholder says what words do right now. */
+function wbHint() {
+  const T = $('#words'); if (!T) return;
+  T.placeholder = !Ai.key() ? 'paste an OpenAI key under Who · Where, then say what to build' : W.master.result ? 'change it: taller, a red roof, add a knight at the door…' : 'say what to build here: a lighthouse with red bands and a keeper at the door';
+  $('#wbBuild').textContent = W.master.result ? 'Change' : 'Build';
+}
+/** Words go to the model: a fresh build, or a change to the draft that stands. */
+async function say(words) {
+  words = (words || '').trim(); if (!words) return;
+  if (W.master.result && W.master.conv) return mbEdit(words);
+  return mbDraft(words);
+}
+function mbStatus(text, cls) {
+  W.master.status = text; const e = $('#wbStat'); if (e) { $('#wbText').textContent = text; e.className = (text ? 'on ' : '') + (cls || ''); }
+  const has = !!(W.master.result && (W.draft.pieces.size || W.master.ghosts.length)); document.body.classList.toggle('drafting', has); wbHint();
+}
+/** A live "asking…" line: model, effort and the seconds ticking. */
+function mbBusy(what) {
+  clearInterval(W.master.tick); if (!what) return; const t0 = performance.now();
+  const line = () => `${what} ${Ai.model()} · ${Ai.effort()} reasoning · ${((performance.now() - t0) / 1000) | 0} s`;
+  mbStatus(line(), 'busy'); W.master.tick = setInterval(() => { if (W.master.busy) mbStatus(line(), 'busy'); else clearInterval(W.master.tick); }, 500);
+}
 /** Where a draft goes: the reticle's target if there is one, else three metres ahead of the player, on the stud grid. */
 function mbAnchor() {
   const f = W.build.frame; let x, z;
@@ -556,22 +643,38 @@ function mbContext() {
 /** Ask the model, compile, and show the draft. */
 async function mbDraft(prompt) {
   prompt = (prompt || '').trim(); if (!prompt || W.master.busy || W.mode !== 'walk') { if (W.mode !== 'walk') toast('land first', 900); return; }
-  if (!Ai.key()) { $('#mbSettings').open = true; mbStatus('paste an OpenAI key first', 'warn'); $('#mbKey').focus(); return; }
-  W.master.busy = true; mbStatus('asking ' + Ai.model() + '…', 'busy'); $('#mbDraft').disabled = true;
+  if (!Ai.key()) { needKey(); return; }
+  W.master.busy = true; mbBusy('asking'); $('#wbBuild').disabled = true;
   try {
     let r = await Ai.ask(prompt, { context: mbContext() }); let res = Dsl.compile(r.program);
-    if (res.report.unknown.length || res.report.errors.length || res.report.floating > 5) { mbStatus('fixing the program…', 'busy'); try { const r2 = await Ai.repair(r, res.report); const res2 = Dsl.compile(r2.program); if (res2.report.pieces + res2.report.props >= (res.report.pieces + res.report.props) * 0.5) { r = r2; res = res2; } } catch (e) { console.warn('repair', e); } }
-    W.master.conv = r; mbShow(res, r.usage);
+    if (res.report.unknown.length || res.report.errors.length || res.report.floating > 5) { mbBusy('repairing with'); try { const r2 = await Ai.repair(r, res.report); const res2 = Dsl.compile(r2.program); if (res2.report.pieces + res2.report.props >= (res.report.pieces + res.report.props) * 0.5) { r = r2; res = res2; } } catch (e) { console.warn('repair', e); } }
+    W.master.conv = r; W.master.words = prompt; mbShow(res, r.usage);
+  } catch (e) { W.master.busy = false; mbStatus(e.message || String(e), 'warn'); }
+  finally { W.master.busy = false; clearInterval(W.master.tick); $('#wbBuild').disabled = false; }
+}
+function needKey() { $('#menu').classList.add('open'); mbStatus('paste an OpenAI key first (Who · Where → builder)', 'warn'); const k = $('#aiKey'); if (k) k.focus(); }
+/** Words about the draft that stands: the model edits the program and the draft is re-laid in place. */
+async function mbEdit(words) {
+  if (W.master.busy || !W.master.result) return; if (!Ai.key()) { needKey(); return; }
+  const prev = W.master.conv || { program: W.master.program }, keep = { anchor: { ...W.master.anchor }, rot: W.master.rot, ids: W.master.replace };
+  W.master.busy = true; mbBusy('changing with'); $('#wbBuild').disabled = true;
+  try {
+    const r = await Ai.edit(prev, words, { context: mbContext() }); const res = Dsl.compile(r.program);
+    if (!res.report.pieces && !res.report.props) throw new Error('the change left nothing to build');
+    W.master.conv = r; W.master.words = (W.master.words ? W.master.words + ' · ' : '') + words;
+    mbShow(res, r.usage, keep); $('#words').value = ''; $('#words').style.height = '';
   } catch (e) { mbStatus(e.message || String(e), 'warn'); }
-  finally { W.master.busy = false; $('#mbDraft').disabled = false; }
+  finally { W.master.busy = false; clearInterval(W.master.tick); $('#wbBuild').disabled = false; }
 }
 /** Show a compiled result as a see-through draft at the anchor. usage: the model's token counts, if any. */
-function mbShow(res, usage) {
-  mbDiscard(true); const a = mbAnchor(); W.master.result = res; W.master.anchor = a; W.master.rot = 0; W.master.usage = usage || null;
+function mbShow(res, usage, keep) {
+  const conv = W.master.conv, replace = keep ? keep.ids : null, words = W.master.words;
+  mbDiscard(true); const a = keep ? keep.anchor : mbAnchor(); W.master.result = res; W.master.anchor = a; W.master.rot = keep ? keep.rot : 0; W.master.usage = usage || null; W.master.conv = conv; W.master.replace = replace; W.master.words = words;
   mbLay();
   const rep = res.report, fixes = rep.floating + rep.blocked + rep.unknown.length + rep.errors.length;
-  const tok = usage ? ` · ${usage.total_tokens} tokens` : '';
-  mbStatus(`${res.name}: ${rep.pieces} bricks${rep.props ? ` · ${rep.props} props` : ''}${fixes ? ` · ${fixes} fixes` : ''}${tok}`, 'ok');
+  const reasoning = usage && usage.output_tokens_details && usage.output_tokens_details.reasoning_tokens;
+  const tok = usage ? ` · ${usage.total_tokens} tokens${reasoning ? ` (${reasoning} reasoning)` : ''}` : '';
+  mbStatus(`${res.name}: ${rep.pieces} bricks${rep.props ? ` · ${rep.props} props` : ''}${fixes ? ` · ${fixes} fixes` : ''}${tok}${replace ? ' · replaces what stood there' : ''}`, 'ok');
   Fx.Sfx.respawn(); Fx.haptic(15);
 }
 /** Lay the draft's pieces and ghost boxes for the current anchor and turn. */
@@ -591,21 +694,47 @@ function mbPropPlace(pr) {
 function mbNudge(dx, dz, dy, rot) { if (!W.master.result) return; const a = W.master.anchor; a.x += dx * 20; a.z += dz * 20; a.y += dy * 8; if (rot) W.master.rot = (W.master.rot + rot) & 3; mbLay(); }
 /** The draft becomes real: bricks into the shared build, props parsed and placed. */
 async function mbCommit() {
-  const res = W.master.result; if (!res) return;
+  const res = W.master.result; if (!res || W.master.busy) return; if (!W.draft.pieces.size && !W.master.ghosts.length) { mbStatus('nothing drafted yet: say how to change it first', 'warn'); return; }
+  const rep = W.master.replace; let gone = 0;
+  if (rep) { for (const id of rep.ids || []) if (W.build.take(id)) gone++; if (rep.ids && rep.ids.length) queueEdit({ rm: rep.ids }); for (const id of rep.props || []) if (W.props.remove(id)) gone++; }
   const rows = W.draft.rows(); const added = W.build.addRows(rows);
   const props = res.props.map(pr => mbPropPlace(pr)); let placed = 0;
-  for (let i = 0; i < props.length; i++) { const pl = props[i]; const it = await W.props.place(res.props[i].mpd, pl.x, pl.y, pl.z, pl.yaw); if (it) placed++; }
-  mbDiscard(true); mbStatus(`built: ${added.length} bricks${placed ? ` · ${placed} props` : ''}`, 'ok'); toast('built', 900); Fx.Sfx.thud(0.5); Fx.haptic(30);
-  W.tally.built = (W.tally.built || 0) + added.length; return { bricks: added.length, props: placed };
+  for (let i = 0; i < props.length; i++) { const pl = props[i]; const it = await W.props.place(res.props[i].mpd, pl.x, pl.y, pl.z, pl.yaw, false, res.props[i].src || null); if (it) placed++; }
+  mbDiscard(true); mbStatus(`built: ${added.length} bricks${placed ? ` · ${placed} props` : ''}${gone ? ` · replaced ${gone}` : ''}`, 'ok'); toast(gone ? 'rebuilt' : 'built', 900); Fx.Sfx.thud(0.5); Fx.haptic(30);
+  W.tally.built = (W.tally.built || 0) + added.length; return { bricks: added.length, props: placed, replaced: gone };
 }
-function mbDiscard(quiet) { if (W.draft) W.draft.clear(); for (const g of W.master.ghosts) W.scene.remove(g); W.master.ghosts = []; W.master.result = null; W.master.anchor = null; W.master.rot = 0; if (!quiet) mbStatus('discarded'); else mbStatus(W.master.status); }
+/** Read: what the reticle points at (or what stands ahead) — the connected bricks and the props beside them — becomes a program and words. */
+function readBuild() {
+  if (!W.build || W.mode !== 'walk') { toast('land first', 900); return null; }
+  const B = W.build; let seed = null;
+  if (B.on && B.aimedPiece) seed = B.aimedPiece();
+  const d = Minifig.facing(W.rig, V1), ahead = { x: W.rig.pos.x + d.x * 3 * M, z: W.rig.pos.z + d.z * 3 * M };
+  if (!seed) { let bd = Infinity; for (const p of new Set([...B.nearPoint(ahead.x, ahead.z, 6 * M), ...B.nearPoint(W.rig.pos.x, W.rig.pos.z, 8 * M)])) { const dd = Math.hypot(p.x - ahead.x, p.z - ahead.z); if (dd < bd) { bd = dd; seed = p; } } }
+  let propSeed = null; if (!seed) { let bd = Infinity; for (const it of W.props.near(W.rig.pos.x, W.rig.pos.z, 8 * M)) { const dd = it.box.distanceToPoint(V2.set(ahead.x, W.rig.pos.y + M, ahead.z)); if (dd < bd) { bd = dd; propSeed = it; } } }
+  if (!seed && !propSeed) { mbStatus('nothing of yours to read here: look at a build', 'warn'); return null; }
+  const cluster = new Map(), queue = seed ? [seed] : [];
+  while (queue.length && cluster.size < 3000) { const p = queue.pop(); if (cluster.has(p.id)) continue; cluster.set(p.id, p); for (const q of B.around(p.box, 4)) if (!cluster.has(q.id) && q.box.intersectsBox(B1pad(p.box, 4))) queue.push(q); }
+  const bb = new THREE.Box3(); for (const p of cluster.values()) bb.union(p.box); if (propSeed) bb.union(propSeed.box);
+  const props = [...W.props.items.values()].filter(it => it.box && (it === propSeed || it.box.distanceToPoint(bb.clampPoint(it.box.getCenter(V3), V2)) < 2 * M || bb.intersectsBox(it.box)));
+  const f = B.frame, rows = [...cluster.values()].map(p => [p.id, p.part, p.col, p.x - f.ax, p.y + f.datum, p.z - f.az, p.rot]);
+  const pr = props.map(it => ({ x: it.x - f.ax, y: it.y + f.datum, z: it.z - f.az, yaw: it.yaw, src: it.src, mpd: it.mpd }));
+  const program = Dsl.decompile(rows, pr, { name: 'what stands here' }), res = Dsl.compile(program), words = Dsl.caption(program);
+  mbDiscard(true);
+  W.master.result = res; W.master.anchor = { x: program.anchor.x + f.ax, y: program.anchor.y - f.datum, z: program.anchor.z + f.az }; W.master.rot = 0; W.master.conv = { program: { name: program.name, ops: program.ops }, messages: null };
+  W.master.replace = { ids: [...cluster.keys()], props: props.map(it => it.id) }; W.master.words = words; W.master.read = { rows: rows.length, props: props.length, program };
+  const T = $('#words'); if (T) { T.value = words; T.style.height = 'auto'; T.style.height = Math.min(150, Math.max(52, T.scrollHeight)) + 'px'; }
+  mbStatus(`read ${rows.length} bricks${props.length ? ` · ${props.length} props` : ''} into ${program.ops.length} ops · edit the words and press Change`, 'ok'); Fx.haptic(10);
+  return { program, words, rows: rows.length, props: props.length, report: res.report };
+}
+const B1pad = (b, pad) => { B2.copy(b); B2.min.x -= pad; B2.min.y -= pad; B2.min.z -= pad; B2.max.x += pad; B2.max.y += pad; B2.max.z += pad; return B2; };
+function mbDiscard(quiet) { if (W.draft) W.draft.clear(); for (const g of W.master.ghosts) W.scene.remove(g); W.master.ghosts = []; W.master.result = null; W.master.anchor = null; W.master.rot = 0; W.master.conv = null; W.master.replace = null; W.master.words = ''; if (!quiet) { mbStatus('discarded'); const T = $('#words'); if (T) { T.value = ''; T.style.height = ''; } } else mbStatus(W.master.status); }
 /** A program handed over from the studio page (localStorage 'world.inbox'). */
 function checkInbox() {
   let box = null; try { box = JSON.parse(localStorage.getItem('world.inbox') || 'null'); localStorage.removeItem('world.inbox'); } catch (e) { }
   if (!box) return; if (!box.program && box.mpd) box.program = { name: box.name || 'model', ops: [{ op: 'mpd', text: box.mpd, name: box.name || 'model', x: 0, z: 0, facing: 's' }] };
   if (!box.program) return;
   const res = Dsl.compile(box.program); if (!res.report.pieces && !res.report.props) return;
-  if (W.mode !== 'walk') return; $('#mb').classList.add('open'); mbShow(res, null); toast('from the studio: commit or discard', 1500);
+  if (W.mode !== 'walk') return; W.master.conv = { program: box.program, messages: null }; mbShow(res, null); toast('from the studio: commit or discard', 1500);
 }
 
 /* ───────────────────────── playing together ───────────────────────── */
@@ -715,7 +844,7 @@ Object.assign(W, {
   aimAt: (x, y, z) => { if (x == null) { W.build.pin = null; return null; } const o = new THREE.Vector3(x, y + 4 * M, z + 3 * M), d = new THREE.Vector3(x, y, z).sub(o).normalize(); W.build.on = true; W.build.pin = { origin: o, dir: d }; W.build.aimRay(o, d); return W.build.stats().target; }, takeBrick: id => fall(W.build.remove(id)),
   pieces: () => W.build.rows(), pieceAt: id => { const p = W.build.pieces.get(id); return p ? { id, part: p.part, col: p.col, x: p.x, y: p.y, z: p.z, rot: p.rot } : null; }, saveNow: () => { W.build.save(); saveDamage(); }, resetPlace, damage: () => W.city.removedSets(), placeKey: () => placeKey(W.place),
   fx: () => ({ sfx: Fx.Sfx.stats(), haptics: Fx.haptic.count(), smoke: W.smoke.stats(), hits: Fx.Hits.n, tally: { ...W.tally }, craters: W.G.craters || 0, lastCrater: W.lastCrater || null, air: !!W.rig.air, vy: W.rig.vy || 0, assisted: W.tie.assisted, groundHits: W.tie.groundHits }), crater: (x, z, r, d) => crater(new THREE.Vector3(x, 0, z), r, d), groundAt: (x, z) => W.G.h(x, z), groundColour: (x, z) => { const G = W.G, f = G.field, i = Math.round(f.cx + x / M / G.res), j = Math.round(f.cy + z / M / G.res), c = G.mesh.geometry.attributes.color, k = j * G.n + i; return [c.getX(k), c.getY(k), c.getZ(k)]; },
-  mb: () => ({ busy: W.master.busy, status: W.master.status, rot: W.master.rot, anchor: W.master.anchor, draft: W.draft.pieces.size, ghosts: W.master.ghosts.length, report: W.master.result && W.master.result.report, usage: W.master.usage || null }), mbAsk: mbDraft, mbLoad: program => { const res = Dsl.compile(program); mbShow(res, null); return res.report; }, mbCommit, mbDiscard, mbNudge, propStat: () => W.props.stats(), propRows: () => W.props.rows(), propBoxes: () => [...W.props.items.values()].map(it => ({ id: it.id, ready: it.ready, parts: it.meshes.length, box: it.box ? [it.box.min.toArray(), it.box.max.toArray()] : null })), aiStat: () => Ai.stats(),
+  mb: () => ({ busy: W.master.busy, status: W.master.status, rot: W.master.rot, anchor: W.master.anchor, draft: W.draft.pieces.size, ghosts: W.master.ghosts.length, report: W.master.result && W.master.result.report, usage: W.master.usage || null }), mbAsk: mbDraft, say, readBuild, mbEdit, startNow, veil: () => ({ stages: Object.fromEntries(Object.entries(VEIL.stages).map(([k, v]) => [k, v.state])), start: !!($('#vStart') && !$('#vStart').hidden), since: (performance.now() - VEIL.t0) / 1000, readyAt: VEIL.readyAt || 0, buildingsAt: VEIL.buildingsAt || 0 }), pending: () => !!(W.win && W.win.pending), mbLoad: program => { const res = Dsl.compile(program); mbShow(res, null); return res.report; }, mbCommit, mbDiscard, mbNudge, propStat: () => W.props.stats(), propRows: () => W.props.rows(), propBoxes: () => [...W.props.items.values()].map(it => ({ id: it.id, ready: it.ready, parts: it.meshes.length, box: it.box ? [it.box.min.toArray(), it.box.max.toArray()] : null })), aiStat: () => Ai.stats(),
   netStat: () => W.room.stats(), host: hostRoom, join: joinRoom, leave: leaveRoom, remoteList: () => [...W.remotes.values()].map(r => ({ id: r.id, ch: r.ch, mode: r.tgt && r.tgt.m, pos: r.pos.toArray(), visible: r.fig && r.fig.figure.visible, shipVisible: !!r.ship && r.ship.visible })), flushEdits, setName,
   debrisPieces: () => W.debris.pieces.map(p => { const c = W.debris.centre(p, V1); return { part: p.kind.name, y: c.y, x: c.x, z: c.z, rest: p.rest, floor: W.G.h(c.x, c.z) }; }),
   building: i => { const b = W.city.buildings[i]; if (!b.bricks) b.bricks = Bricks.buildBricks(b, W.colours, M); return { id: b.id, kind: b.kind, n: b.bricks.n, removed: b.removed.size, live: b.bricks.n - b.removed.size, cx: b.cx, cz: b.cz, y0: b.y0, yTop: b.yTop, courses: b.courses, ruined: b.ruined }; },
