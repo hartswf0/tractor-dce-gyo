@@ -128,6 +128,8 @@ const Ai = {
     key = (key || this.key()).trim();
     if (!key) throw new Error('no key: enter an OpenAI API key');
     lsSet(MODEL_KEY, MODEL); lsSet(EFFORT_KEY, EFFORT);
+    /* JSON mode needs the word "json" inside the input itself, not only in the instructions, or OpenAI refuses the request. */
+    text = String(text || ''); if (!/json/i.test(text)) text += '\nAnswer with the build program as one JSON object only.';
     const started = Date.now();
     this.emit(stage, detail, 'working', started);
     this.calls++;
