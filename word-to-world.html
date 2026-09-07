@@ -22,11 +22,12 @@
 <script src="./world/characters.js"></script>
 <script src="./world/worlds.js"></script>
 <script src="./world/tie.js"></script>
+<script src="./world/drive.js?v=bc838326"></script>
 <script src="./world/fx.js?v=cf936655"></script>
-<script src="./world/dsl.js?v=e39a6fc0"></script>
+<script src="./world/dsl.js?v=a9b1a3bf"></script>
 <script src="./world/ai.js?v=07540ebc"></script>
 <script src="./world/build.js?v=db2be2c8"></script>
-<script src="./world/props.js?v=da96da4f"></script>
+<script src="./world/props.js?v=c5fd6e8f"></script>
 <script src="./world/net.js"></script>
 <style>
 :root{--wb:96px;--ink:#1a1f2a;--dim:#4b5566;--gold:#c8901c;--red:#d8382e;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;--sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
@@ -49,12 +50,12 @@ html,body{margin:0;height:100%;background:#b8cbd8;color:var(--ink);overflow:hidd
 #menu button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
 #det{position:fixed;left:14px;bottom:calc(var(--wb) + 14px + env(safe-area-inset-bottom));width:56px;height:56px;border:none;border-radius:999px;background:#2f3440;color:#fff;font:800 10px var(--mono);letter-spacing:.08em;text-transform:uppercase;box-shadow:0 8px 24px rgba(26,31,42,.3);display:none;z-index:5}
 #det.on{display:block}
-body.fly #det,body.fly #wb{display:none}
-body.fly{--wb:0px}
+body.fly #det,body.fly #wb,body.ride #det,body.ride #wb,body.ride #wbSay,body.ride #build{display:none}
+body.fly,body.ride{--wb:0px}
 #shield{display:block}
 #msg{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%);font:800 22px var(--sans);letter-spacing:.04em;text-transform:uppercase;color:var(--red);text-shadow:0 1px 8px rgba(255,255,255,.6);opacity:0;transition:opacity .15s;pointer-events:none;z-index:4}
 #msg.on{opacity:1}
-#prompt{position:fixed;left:50%;bottom:calc(var(--wb) + 16px + env(safe-area-inset-bottom));transform:translateX(-50%);height:52px;padding:0 26px;font:800 14px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:#fff;background:var(--red);border:none;border-radius:16px;box-shadow:0 8px 24px rgba(216,56,46,.35);display:none;z-index:5}
+#prompt{position:fixed;left:50%;bottom:calc(var(--wb) + 84px + env(safe-area-inset-bottom));z-index:7;transform:translateX(-50%);height:52px;padding:0 26px;font:800 14px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:#fff;background:var(--red);border:none;border-radius:16px;box-shadow:0 8px 24px rgba(216,56,46,.35);display:none;z-index:5}
 #prompt.on{display:block}
 #stick{position:fixed;width:116px;height:116px;margin:-58px 0 0 -58px;border-radius:999px;border:2px solid rgba(26,31,42,.35);pointer-events:none;opacity:0;transition:opacity .12s;z-index:4}
 #stick.on{opacity:1}#stick i{position:absolute;left:50%;top:50%;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:999px;background:var(--ink)}
@@ -205,6 +206,6 @@ body[data-world="deathstar"] #wbTop button,body[data-world="deathstar"] #wbKeyRo
 <div id="hint">say what to build, or walk: left thumb walks · right thumb looks · tap right swings the saber</div>
 <div id="keys">wasd walk · mouse drag look · space saber · f push · g detonator · b build · shift run · e board / land</div>
 <div id="veil"><div class="k">word to world</div><h1 id="vTitle">Finding a place</h1><div class="bricks"><i></i><i></i><i></i><i></i><i></i></div><div class="m" id="vm"></div><ol id="stages"><li data-s="place">place</li><li data-s="ground">ground</li><li data-s="imagery">imagery</li><li data-s="buildings">buildings</li><li data-s="ship">the ship and Vader</li><li data-s="bricks">bricks</li></ol><button id="vStart" hidden>Start now</button></div>
-<script src="./world/main.js?v=b949e8b0"></script>
+<script src="./world/main.js?v=e8174586"></script>
 </body>
 </html>

@@ -175,13 +175,24 @@ const line = (col, x, y, z, rot, part) => `1 ${col} ${r4(x)} ${r4(y)} ${r4(z)} $
 const r4 = v => (Math.round(v * 1000) / 1000).toString();
 /** A vehicle in the prop frame (LDraw: y down, ground at y = 0, forward = −z). Returns { mpd, w, d, hp } with the footprint in studs. */
 function vehicleMPD(o) {
-  const kind = String(o.kind || 'car').toLowerCase(), col = colOf(o.col, 4), len = clamp(I(o.len, kind === 'truck' ? 10 : 6), 4, 16), wide = kind === 'speeder' ? 2 : 4, L = [];
+  const kind = String(o.kind || 'car').toLowerCase(), col = colOf(o.col, 4), len = clamp(I(o.len, kind === 'truck' ? 10 : kind === 'plane' ? 8 : 6), 4, 16), wide = kind === 'speeder' || kind === 'plane' ? 2 : 4, L = [];
   const zf = -len * STUD / 2, zb = len * STUD / 2;    // front and back edges
   const g = new Grid();                              // the body is bricks too: a local grid in prop cells (x across, z along)
   const bx = -wide / 2, bz = -len / 2, floorY = kind === 'speeder' ? 2 : 4;   // plates above the ground the floor plate sits at
   if (kind === 'boat') { g.fillBox(bx, bz + 1, wide, len - 2, 0, 1, col); g.fillBox(bx, bz + 1, 1, len - 2, 1, 4, col); g.fillBox(bx + wide - 1, bz + 1, 1, len - 2, 1, 4, col); g.fillBox(bx + 1, bz + len - 2, wide - 2, 1, 1, 4, col);
     g.part('3039', col, bx + 1, bz, 1, 0, 2, 2, BRICK); g.part('3040b', col, bx, bz, 1, 0, 1, 2, BRICK); g.part('3040b', col, bx + wide - 1, bz, 1, 0, 1, 2, BRICK);   // the bow: a slope in the middle, a slope each side
     g.fillBox(bx + 1, bz + 2, 1, 1, 4, 5, 71); g.part('3829c01', 0, bx + 1, bz + 3, 4, 0, 2, 1, 1); g.fillBox(bx + 1, bz + len - 3, wide - 2, 1, 4, 4 + BRICK, 15); }   // a helm and a cabin block at the stern
+  else if (kind === 'plane') {
+    g.fillBox(bx, bz + 1, wide, len - 1, floorY, floorY + 1, col);                              // the fuselage floor
+    g.part('3039', col, bx, bz, floorY + 1, 0, 2, 2, BRICK); g.part('3062b', 0, bx, bz - 1, floorY, 0, 1, 1, BRICK); g.part('3062b', 0, bx + 1, bz - 1, floorY, 0, 1, 1, BRICK);   // a sloped nose and the propeller boss
+    for (let zz = bz + 2; zz < bz + len - 2; zz++) g.fillBox(bx, zz, wide, 1, floorY + 1, floorY + 1 + BRICK, col);   // the body
+    g.part('3829c01', 0, bx, bz + 2, floorY + 1 + BRICK, 0, 2, 1, 1);                         // the stick
+    g.fillBox(bx, bz + 3, wide, 1, floorY + 1 + BRICK, floorY + 2 + BRICK, 0);               // the seat
+    const wz = bz + Math.floor(len / 2) - 1; g.fillBox(bx - 4, wz, wide + 8, 2, floorY + 1, floorY + 2, col);   // wings: plates 10 studs across
+    g.part('3040b', col, bx, bz + len - 2, floorY + 1 + BRICK, 2, 1, 2, BRICK); g.part('3040b', col, bx + 1, bz + len - 2, floorY + 1 + BRICK, 2, 1, 2, BRICK);   // the tail fin
+    g.fillBox(bx - 2, bz + len - 2, wide + 4, 1, floorY + 1, floorY + 2, col);                // the tailplane
+    g.fillBox(bx, bz + 2, wide, len - 4, floorY - 2, floorY, 0);                               // undercarriage skids
+  }
   else if (kind === 'speeder') {
     g.fillBox(bx, bz, wide, len, floorY, floorY + 1, col);                                       // the deck
     g.part('3039', col, bx, bz, floorY + 1, 0, 2, 2, BRICK);                                     // the nose: a 2×2 slope
@@ -212,7 +223,7 @@ function vehicleMPD(o) {
     for (const az of [zf + 30, zb - 30]) { L.push(line(0, 0, -23, az, 0, '4600')); for (const sx of [-30, 30]) { L.push(line(71, sx, -18, az, 1, '4624')); L.push(line(0, sx, -18, az, 1, '3641')); } }
   }
   const mpd = ['0 FILE vehicle.ldr', '0 !LDRAW_ORG Unofficial_Model', ...L].join('\n');
-  return { mpd, w: wide, d: len, hp: 12 };
+  return { mpd, w: kind === 'plane' ? wide + 8 : wide, d: len, hp: 12 };
 }
 
 /* ───────────────────────── the tiler ───────────────────────── */
@@ -426,7 +437,7 @@ Ops (all coordinates are the min corner unless said otherwise):
 - {"op":"tree","x","z","h":3,"r":1,"col","trunk"} a tree: a round trunk h bricks tall and a stepped green crown of radius r with a cone on top.
 - {"op":"part","part":"3039","col","x","y","z","rot":0-3,"plate":0} one part from: 3001 2x4 brick, 3003 2x2, 3010 1x4, 3004 1x2, 3005 1x1, 3009 1x6, 3008 1x8, 3020 2x4 plate, 3032 4x6 plate, 3039 2x2 slope, 3040b 1x2 slope, 3068b 2x2 tile, 87079 2x4 tile, 3941 2x2 round, 3062b 1x1 round, 3455 1x6 arch, 3823 windscreen, 60592 window, 60623 door, 2453b 1x1x5 column, 3185 fence, 4589 cone.
 - {"op":"minifig","x","z","facing","as":"vader|stormtrooper|pilot|luke|citizen|knight|pirate|builder","look":{"hat":"hair|cap|helmet|cowboy|tophat|knight|space|trooper|pilot|vader|pirate|none","hatCol","torso":"plain|stripes|anchor|train|pirate|space|zipper","torsoCol","legs","head","tool":"saber|blaster|sword|shield|spear|axe|broom|cup|radio|none","toolCol"}} a standing figure (2×2 studs).
-- {"op":"vehicle","x","z","facing","kind":"car|truck|speeder|boat","len":6,"col"} a vehicle (cars and trucks 4 studs wide with wheels, headlights and a windscreen; speeders 2 wide; boats 4 wide), len studs long; len ≥ 6, trucks 10.
+- {"op":"vehicle","x","z","facing","kind":"car|truck|speeder|boat|plane","len":6,"col"} a vehicle the player can ride: cars, trucks and boats drive (4 studs wide, wheels, headlights, a windscreen); speeders (2 wide) and planes (2 wide with wings 10 across, a tail fin) fly. len ≥ 6, trucks 10, planes 8.
 Colours (LDraw codes or names): 0 black, 1 blue, 2 green, 4 red, 14 yellow, 15 white, 19 tan, 25 orange, 28 dark tan, 70 brown, 71 grey, 72 dark grey, 322 azure, 47 trans-clear, 46 trans-yellow, 36 trans-red.
 Design rules a LEGO designer follows:
 - Proportions: a door is 6 bricks tall, so walls with a door are at least 6 bricks; windows sit at y 1 or 2; a roof begins at the wall top (y = wall y + h); a tower stands about twice the wall height; a house is at least 8×6 studs; a floor between storeys is a slab.
@@ -443,6 +454,7 @@ const EXAMPLES = [
   { ask: 'a lighthouse with red bands and a lamp room', program: { name: 'lighthouse', ops: [{ op: 'box', x: 0, z: 0, w: 8, d: 8, y: 0, h: 1, col: 72 }, { op: 'tower', x: 4, z: 4, r: 3, h: 11, y: 1, col: 15, round: true, crenels: false }, { op: 'band', x: 0, z: 0, w: 8, d: 8, y: 3, h: 2, col: 4 }, { op: 'band', x: 0, z: 0, w: 8, d: 8, y: 8, h: 2, col: 4 }, { op: 'door', x: 2, z: 6, y: 1, facing: 's', col: 0 }, { op: 'slab', x: 0, z: 0, w: 8, d: 8, y: 12, plates: 3, col: 72 }, { op: 'column', x: 1, z: 1, y: 13, h: 2, col: 0 }, { op: 'column', x: 6, z: 1, y: 13, h: 2, col: 0 }, { op: 'column', x: 1, z: 6, y: 13, h: 2, col: 0 }, { op: 'column', x: 6, z: 6, y: 13, h: 2, col: 0 }, { op: 'part', part: '3941', col: 46, x: 3, z: 3, y: 13, rot: 0 }, { op: 'roof', x: 0, z: 0, w: 8, d: 8, y: 15, col: 4, style: 'pyramid' }, { op: 'fence', from: [-2, 10], to: [10, 10], y: 0, col: 15 }, { op: 'minifig', x: 3, z: 9, facing: 's', as: 'pirate' }] } },
   { ask: 'a small shop with an awning and a sign', program: { name: 'shop', ops: [{ op: 'box', x: 0, z: 0, w: 10, d: 8, y: 0, h: 6, col: 19, hollow: true }, { op: 'door', x: 3, z: 7, y: 0, facing: 's', col: 1 }, { op: 'window', x: 0, z: 7, y: 1, facing: 's' }, { op: 'window', x: 8, z: 7, y: 1, facing: 's' }, { op: 'slab', x: -1, z: 8, w: 12, d: 2, y: 6, plates: 1, col: 4 }, { op: 'band', x: 0, z: 0, w: 10, d: 8, y: 5, h: 1, col: 1 }, { op: 'roof', x: 0, z: 0, w: 10, d: 8, y: 6, col: 72, style: 'flat' }, { op: 'column', x: -1, z: 9, y: 0, h: 6, col: 15 }, { op: 'column', x: 10, z: 9, y: 0, h: 6, col: 15 }, { op: 'vehicle', x: 12, z: 2, facing: 's', kind: 'truck', len: 10, col: 1 }, { op: 'minifig', x: 5, z: 10, facing: 's', as: 'citizen', look: { tool: 'cup' } }] } },
   { ask: 'a stone bridge over a stream', program: { name: 'bridge', ops: [{ op: 'box', x: 0, z: 0, w: 4, d: 6, y: 0, h: 3, col: 72 }, { op: 'box', x: 12, z: 0, w: 4, d: 6, y: 0, h: 3, col: 72 }, { op: 'arch', x: 4, z: 0, y: 0, facing: 's', h: 2, col: 72 }, { op: 'arch', x: 4, z: 5, y: 0, facing: 's', h: 2, col: 72 }, { op: 'slab', x: 0, z: 0, w: 16, d: 6, y: 3, plates: 3, col: 71 }, { op: 'fence', from: [0, 0], to: [16, 0], y: 4, col: 72 }, { op: 'fence', from: [0, 5], to: [16, 5], y: 4, col: 72 }, { op: 'tree', x: 18, z: 3, h: 4, r: 2 }, { op: 'minifig', x: 7, z: 2, facing: 'e', as: 'luke' }] } },
+  { ask: 'a small yellow plane to fly', program: { name: 'plane', ops: [{ op: 'vehicle', x: 4, z: 0, facing: 's', kind: 'plane', len: 8, col: 14 }, { op: 'minifig', x: 0, z: 2, facing: 'e', as: 'pilot' }, { op: 'fence', from: [-2, 10], to: [14, 10], y: 0, col: 15 }] } },
 ];
 root.Dsl = { compile, decompile, caption, tile, toRows, toMPD, withHeaders, propYaw, propPlace, box, foot, figureDef, figureMPD, vehicleMPD, DIMS, BRICKS, PLATES, COLOURS, HATS, TORSOS, TOOLS, FIGS, SPEC, EXAMPLES, STUD, PLATE, BRICK, colOf };
 })(typeof window !== 'undefined' ? window : globalThis);
