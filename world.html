@@ -23,7 +23,10 @@
 <script src="./world/worlds.js"></script>
 <script src="./world/tie.js"></script>
 <script src="./world/fx.js"></script>
+<script src="./world/dsl.js"></script>
+<script src="./world/ai.js"></script>
 <script src="./world/build.js"></script>
+<script src="./world/props.js"></script>
 <script src="./world/net.js"></script>
 <style>
 :root{--ink:#1a1f2a;--dim:#4b5566;--gold:#c8901c;--red:#d8382e;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;--sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
@@ -121,6 +124,25 @@ body[data-world="deathstar"] #room{background:rgba(230,234,242,.16)}
 #floats .float.big{font-size:30px}
 @keyframes floatUp{0%{opacity:1;margin-top:0}100%{opacity:0;margin-top:-70px}}
 body[data-world="deathstar"] #tally,body[data-world="deathstar"] #floats .float{text-shadow:0 1px 6px rgba(0,0,0,.8)}
+#mb{position:fixed;left:10px;right:10px;bottom:calc(126px + env(safe-area-inset-bottom));max-height:52vh;overflow:auto;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.94);box-shadow:0 8px 24px rgba(26,31,42,.25);display:none;z-index:7;font-size:13px}
+#mb.open{display:block}
+#mb .h{display:flex;justify-content:space-between;align-items:center;font:11px var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--dim);margin-bottom:6px}
+#mb .h button{border:none;background:none;font-size:16px;color:var(--dim)}
+#mbPrompt{width:100%;height:56px;padding:8px 10px;border:1px solid rgba(26,31,42,.25);border-radius:10px;font:14px var(--sans);resize:none;background:#fff;color:var(--ink)}
+#mb .row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:6px}
+#mb .row button{height:34px;padding:0 12px;border:1px solid rgba(26,31,42,.25);border-radius:10px;background:rgba(26,31,42,.06);font:12px var(--sans);color:var(--ink)}
+#mb .row button.main{background:var(--red);color:#fff;border:none;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+#mb .row button.go{background:#2fbf3f;color:#fff;border:none;font-weight:800}
+#mb .row button:disabled{opacity:.5}
+#mb .chips button{font-size:11px;height:28px;padding:0 9px;border-radius:999px}
+#mbStat{font:11px var(--mono);color:var(--dim);margin-top:6px;min-height:14px;white-space:pre-wrap}
+#mbStat.warn{color:var(--red)}#mbStat.ok{color:#1f7a2f}#mbStat.busy{color:var(--gold)}
+#mb details{margin-top:6px;font-size:12px;color:var(--dim)}#mb details summary{cursor:pointer;font:11px var(--mono);letter-spacing:.14em;text-transform:uppercase}
+#mb details input{width:100%;height:32px;margin-top:4px;padding:0 8px;border:1px solid rgba(26,31,42,.25);border-radius:8px;font:13px var(--mono);background:#fff;color:var(--ink)}
+#mb .commit{display:none}body.drafting #mb .commit{display:flex}
+#mbBtn{background:var(--gold)!important;color:#fff!important;font-weight:800}
+body[data-world="deathstar"] #mb{background:rgba(20,24,32,.95);color:#e6eaf2}body[data-world="deathstar"] #mbPrompt,body[data-world="deathstar"] #mb details input{background:rgba(0,0,0,.4);color:#e6eaf2;border-color:rgba(230,234,242,.3)}
+body[data-world="deathstar"] #mb .row button{background:rgba(230,234,242,.1);color:#e6eaf2;border-color:rgba(230,234,242,.25)}
 #flash{position:fixed;inset:0;background:rgba(216,56,46,.3);opacity:0;pointer-events:none;transition:opacity .1s;z-index:3}#flash.on{opacity:1}
 #keys{display:none;position:fixed;left:50%;bottom:calc(34px + env(safe-area-inset-bottom));transform:translateX(-50%);font:11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--dim);white-space:nowrap;z-index:4;pointer-events:none}
 @media (hover:hover) and (pointer:fine){#keys{display:block}}
@@ -140,6 +162,13 @@ body[data-world="deathstar"] #tally,body[data-world="deathstar"] #floats .float{
 <button id="det">Det</button>
 <button id="build">Build</button>
 <div id="palette"></div>
+<div id="mb"><div class="h"><span>master builder</span><button id="mbClose" title="close">✕</button></div>
+<textarea id="mbPrompt" placeholder="a stone watchtower with a red roof and a knight at the door"></textarea>
+<div class="row"><button id="mbDraft" class="main">Draft</button><span class="chips"><button data-ask="a small stone hut with a red roof and a door">hut</button><button data-ask="a castle gate with two round towers and a knight">gate</button><button data-ask="a red race car with a driver">racer</button><button data-ask="a lighthouse with a white tower, red bands and a lamp room">lighthouse</button></span></div>
+<div class="row commit"><button id="mbCommit" class="go">Commit</button><button id="mbDiscard">Discard</button><button data-nudge="-1,0,0,0">◀</button><button data-nudge="1,0,0,0">▶</button><button data-nudge="0,-1,0,0">▲</button><button data-nudge="0,1,0,0">▼</button><button data-nudge="0,0,1,0">up</button><button data-nudge="0,0,-1,0">down</button><button data-nudge="0,0,0,1">⟳</button></div>
+<div id="mbStat"></div>
+<details id="mbSettings"><summary>key and model</summary><input id="mbKey" type="password" placeholder="OpenAI API key (stays in this browser)" autocomplete="off"><input id="mbModel" placeholder="model, e.g. gpt-4o-mini" autocomplete="off"></details></div>
+
 <div id="reticle"></div>
 <div id="room"></div>
 <div id="tally"></div>
