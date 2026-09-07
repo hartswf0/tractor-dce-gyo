@@ -24,7 +24,7 @@
 <script src="./world/tie.js"></script>
 <script src="./world/fx.js?v=cf936655"></script>
 <script src="./world/dsl.js?v=e39a6fc0"></script>
-<script src="./world/ai.js?v=1b338f04"></script>
+<script src="./world/ai.js?v=d5d000b8"></script>
 <script src="./world/build.js?v=db2be2c8"></script>
 <script src="./world/props.js?v=da96da4f"></script>
 <script src="./world/net.js"></script>
@@ -62,7 +62,7 @@ body.fly{--wb:0px}
 #find input{width:min(52vw,260px);height:34px;border:1px solid rgba(26,31,42,.25);border-radius:10px;padding:0 10px;font:13px var(--sans);background:rgba(255,255,255,.7);color:var(--ink);display:none}
 #find.open input{display:block}
 #find button{height:34px;padding:0 12px;border:none;border-radius:10px;background:rgba(26,31,42,.12);font:11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink)}
-#hint{position:fixed;left:78px;right:78px;bottom:calc(var(--wb) + 4px + env(safe-area-inset-bottom));font-size:11px;line-height:1.3;color:var(--dim);text-align:center;pointer-events:none;z-index:4}
+#hint{position:fixed;left:78px;right:78px;bottom:calc(var(--wb) + 14px + env(safe-area-inset-bottom));font-size:11px;line-height:1.3;color:var(--dim);text-align:center;pointer-events:none;z-index:4}
 #credit{font:9px var(--mono);color:rgba(26,31,42,.45);text-align:right;padding:0 4px;pointer-events:none!important}
 #veil{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(184,203,216,.92);z-index:9;text-align:center;padding:24px;transition:opacity .3s}
 #veil.gone{opacity:0;pointer-events:none}
@@ -94,7 +94,7 @@ body[data-world="deathstar"] #veil{background:rgba(11,13,18,.94)}
 body.fly #build{display:none}
 #palette{position:fixed;left:0;right:0;bottom:calc(var(--wb) + 76px + env(safe-area-inset-bottom));padding:6px 10px;display:none;flex-direction:column;gap:6px;z-index:5;pointer-events:auto}
 body.build #palette{display:flex}
-body.build #hint{bottom:calc(var(--wb) + 4px + env(safe-area-inset-bottom))}
+body.build #hint{bottom:calc(var(--wb) + 14px + env(safe-area-inset-bottom))}
 #palette .parts{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
 #palette .parts::-webkit-scrollbar{display:none}
 #palette .parts button{flex:0 0 auto;height:34px;padding:0 12px;border:1px solid rgba(26,31,42,.25);border-radius:10px;background:rgba(255,255,255,.8);font:12px var(--sans);color:var(--ink);white-space:nowrap}
@@ -156,6 +156,19 @@ body[data-world="deathstar"] #words,body[data-world="deathstar"] #wbRead,body[da
 body[data-world="deathstar"] #wbStat .bar{background:rgba(230,234,242,.18)}
 #menu .ai{display:flex;gap:6px;flex-wrap:wrap;align-items:center}#menu .ai input{width:150px}#menu .ai select{height:30px;border:1px solid rgba(26,31,42,.25);border-radius:9px;font:12px var(--sans);background:rgba(255,255,255,.7);color:var(--ink);padding:0 6px}
 body[data-world="deathstar"] #menu .ai select{background:rgba(20,24,32,.85);color:#e6eaf2;border-color:rgba(230,234,242,.3)}
+#wbTop{display:flex;gap:6px;align-items:center;justify-content:flex-end}
+#wbTop #wbStat{flex:1;min-width:0}
+#wbTop button{height:30px;min-width:34px;padding:0 10px;border:1px solid rgba(26,31,42,.25);border-radius:9px;background:rgba(255,255,255,.85);font:12px var(--sans);color:var(--ink)}
+#wbTop button.on{background:var(--ink);color:#fff}
+#wbKeyRow{display:none;gap:6px;align-items:center}#wbKeyRow.on{display:flex}
+#wbKeyRow input{flex:1;min-width:0;height:40px;padding:0 12px;border:1px solid rgba(26,31,42,.25);border-radius:12px;font:14px var(--mono);background:rgba(255,255,255,.92);color:var(--ink);-webkit-user-select:text;user-select:text}
+#wbKeyRow button{height:40px;padding:0 14px;border:none;border-radius:12px;background:#2fbf3f;color:#fff;font:800 12px var(--sans);letter-spacing:.08em;text-transform:uppercase}
+#wbKeyRow em{flex:1;font:11px var(--mono);color:var(--dim);font-style:normal}
+#wbSay{display:none;position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));transform:translateX(-50%);height:56px;padding:0 22px;border:none;border-radius:999px;background:var(--red);color:#fff;font:800 11px var(--mono);letter-spacing:.14em;text-transform:uppercase;box-shadow:0 8px 24px rgba(216,56,46,.35);z-index:5;white-space:nowrap}
+body.wb-off{--wb:0px}body.wb-off #wb{display:none}body.wb-off #wbSay{display:block}
+body.wb-off #hint{bottom:calc(78px + env(safe-area-inset-bottom));left:14px;right:14px}body.wb-off #keys{bottom:calc(78px + env(safe-area-inset-bottom))}
+body.build #wbSay,body.fly #wbSay{display:none}
+body[data-world="deathstar"] #wbTop button,body[data-world="deathstar"] #wbKeyRow input{background:rgba(20,24,32,.9);color:#e6eaf2;border-color:rgba(230,234,242,.3)}
 #flash{position:fixed;inset:0;background:rgba(216,56,46,.3);opacity:0;pointer-events:none;transition:opacity .1s;z-index:3}#flash.on{opacity:1}
 #keys{display:none;position:fixed;left:50%;bottom:calc(var(--wb) + 4px + env(safe-area-inset-bottom));transform:translateX(-50%);font:11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--dim);white-space:nowrap;z-index:4;pointer-events:none}
 @media (hover:hover) and (pointer:fine){#keys{display:block}}
@@ -175,7 +188,9 @@ body[data-world="deathstar"] #menu .ai select{background:rgba(20,24,32,.85);colo
 <button id="det">Det</button>
 <button id="build">Build</button>
 <div id="palette"></div>
-<div id="wb"><div id="wbStat"><i class="bar"><i></i><i></i><i></i></i><span id="wbText"></span></div>
+<button id="wbSay" title="say what to build">say what to build</button>
+<div id="wb"><div id="wbTop"><div id="wbStat"><i class="bar"><i></i><i></i><i></i></i><span id="wbText"></span></div><button id="wbKeyBtn" title="OpenAI key">🔑</button><button id="wbHide" title="hide the word bar">✕</button></div>
+<div id="wbKeyRow"><input id="wbKey" type="password" placeholder="OpenAI API key · stays in this browser" autocomplete="off"><button id="wbKeyOk">Save</button></div>
 <div id="wbSheet"><button id="wbCommit" class="go">Commit</button><button data-nudge="-1,0,0,0" title="left">◀</button><button data-nudge="1,0,0,0" title="right">▶</button><button data-nudge="0,-1,0,0" title="away">▲</button><button data-nudge="0,1,0,0" title="closer">▼</button><button data-nudge="0,0,1,0">up</button><button data-nudge="0,0,-1,0">down</button><button data-nudge="0,0,0,1" title="turn">⟳</button><button id="wbDiscard" class="no">Discard</button></div>
 <div id="wbRow"><textarea id="words" rows="2" placeholder="say what to build here: a lighthouse with red bands and a keeper at the door" autocomplete="off" autocapitalize="sentences" enterkeyhint="go"></textarea><button id="wbBuild">Build</button><button id="wbRead" title="read the build you are looking at into words">Read</button></div><div id="credit">terrain AWS · buildings © OpenStreetMap · imagery Esri</div></div>
 <div id="reticle"></div>
@@ -186,6 +201,6 @@ body[data-world="deathstar"] #menu .ai select{background:rgba(20,24,32,.85);colo
 <div id="hint">say what to build, or walk: left thumb walks · right thumb looks · tap right swings the saber</div>
 <div id="keys">wasd walk · mouse drag look · space saber · f push · g detonator · b build · shift run · e board / land</div>
 <div id="veil"><div class="k">word to world</div><h1 id="vTitle">Finding a place</h1><div class="bricks"><i></i><i></i><i></i><i></i><i></i></div><div class="m" id="vm"></div><ol id="stages"><li data-s="place">place</li><li data-s="ground">ground</li><li data-s="imagery">imagery</li><li data-s="buildings">buildings</li><li data-s="ship">the ship and Vader</li><li data-s="bricks">bricks</li></ol><button id="vStart" hidden>Start now</button></div>
-<script src="./world/main.js?v=44d2827a"></script>
+<script src="./world/main.js?v=40cf3775"></script>
 </body>
 </html>

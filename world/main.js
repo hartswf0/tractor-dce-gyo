@@ -64,7 +64,7 @@ function buildMenu() {
   $('#menu').querySelectorAll('[data-as]').forEach(b => b.onclick = () => setCharacter(b.dataset.as));
   $('#menu').querySelectorAll('[data-world]').forEach(b => b.onclick = () => setWorld(b.dataset.world));
   $('#nameIn').value = W.name || ''; $('#nameIn').onchange = () => setName($('#nameIn').value);
-  $('#aiKey').value = Ai.key(); $('#aiKey').onchange = () => { Ai.setKey($('#aiKey').value); wbHint(); };
+  $('#aiKey').value = Ai.key(); $('#aiKey').onchange = () => { Ai.setKey($('#aiKey').value); const k = $('#wbKey'); if (k) k.value = Ai.key(); if (Ai.key()) wbKeyRow(false); wbHint(); };
   $('#hostBtn').onclick = () => hostRoom(); $('#joinBtn').onclick = () => joinRoom($('#codeIn').value); $('#leaveBtn').onclick = () => leaveRoom();
   $('#linkBtn').onclick = () => { const link = W.room.link(); (navigator.clipboard ? navigator.clipboard.writeText(link) : Promise.reject()).then(() => toast('link copied', 900), () => { prompt('Share this link', link); }); };
   $('#codeIn').addEventListener('keydown', e => { if (e.key === 'Enter') joinRoom($('#codeIn').value); });
@@ -214,7 +214,7 @@ function hintFor() {
   const d = Minifig.DEFS[W.character];
   $('#hint').textContent = W.mode === 'fly' ? 'drag anywhere to carve · second finger boosts · tap right fires · hold right for a torpedo'
     : W.build && W.build.on ? (W.build.pick ? 'aim at a brick of yours and tap to pick it up' : 'aim with the reticle · tap to place · walk up to stack')
-    : `left thumb walks · right thumb looks · tap right ${d.saber ? 'swings the saber' : d.weapon ? 'fires' : 'shoves'} · two fingers: Force push`;
+    : `left thumb walks · right thumb looks · tap right ${d.saber ? 'swings the saber' : d.weapon ? 'fires' : 'shoves'}${document.body.classList.contains('wb-off') ? ' · say what to build below' : ''}`;
 }
 function setWorld(name) {
   if (!Worlds.PRESETS[name]) return; W.world = name; markMenu();
@@ -563,6 +563,7 @@ async function boot() {
 function toggleBuild(on) {
   const B = W.build; if (!B || W.mode !== 'walk') return; B.on = on === undefined ? !B.on : !!on; if (!B.on) { B.pick = false; B.lift = 0; }
   document.body.classList.toggle('build', B.on); $('#build').classList.toggle('on', B.on); paintPalette(); hintFor();
+  if (B.on) wbOpen(false, true); else if (W.wbWanted) wbOpen(true, true);
   W.rig.figure.traverse(o => { if (!o.isMesh) return; const m = o.material; if (m.userData.op == null) { m.userData.op = m.opacity; m.userData.tr = m.transparent; } m.transparent = B.on ? true : m.userData.tr; m.opacity = B.on ? Math.min(0.35, m.userData.op) : m.userData.op; m.needsUpdate = true; });   // see through yourself while building
 }
 function setPick(on) { W.build.pick = !!on; paintPalette(); }
@@ -577,10 +578,10 @@ function bindPalette() {
   const P = $('#palette');
   P.innerHTML = `<div class="parts">${Build.PARTS.map(([part, name]) => `<button data-part="${part}">${name}</button>`).join('')}</div>
     <div class="tools"><span class="cols">${Build.COLOURS.map(c => `<button data-col="${c}" title="${c}"></button>`).join('')}</span>
-    <button data-tool="rot" title="rotate (R)">⟳</button><button data-tool="up" title="lift (])">▲</button><button data-tool="down" title="lower ([)">▼</button><button data-tool="undo" title="undo (⌫)">⌫</button><button data-tool="pick" title="pick up (X)">✋</button><button data-tool="reset" title="reset this place">reset</button><button data-tool="place" class="place">PLACE</button></div>`;
+    <button data-tool="rot" title="rotate (R)">⟳</button><button data-tool="up" title="lift (])">▲</button><button data-tool="down" title="lower ([)">▼</button><button data-tool="undo" title="undo (⌫)">⌫</button><button data-tool="pick" title="pick up (X)">✋</button><button data-tool="reset" title="reset this place">reset</button><button data-tool="say" title="say what to build">🗣 say</button><button data-tool="place" class="place">PLACE</button></div>`;
   P.querySelectorAll('[data-part]').forEach(b => b.onclick = () => { W.build.part = b.dataset.part; W.build.pick = false; paintPalette(); });
   P.querySelectorAll('[data-col]').forEach(b => b.onclick = () => { W.build.col = +b.dataset.col; paintPalette(); });
-  P.querySelectorAll('[data-tool]').forEach(b => b.onclick = () => { const B = W.build; switch (b.dataset.tool) { case 'rot': rotateBuild(); break; case 'up': B.lift = Math.min(B.lift + 1, 60); break; case 'down': B.lift = Math.max(B.lift - 1, -60); break; case 'undo': B.undo(); break; case 'pick': setPick(!B.pick); break; case 'reset': if (confirm('Forget every brick built and every wall broken here?')) resetPlace(); break; case 'place': buildAct(); break; } paintPalette(); });
+  P.querySelectorAll('[data-tool]').forEach(b => b.onclick = () => { const B = W.build; switch (b.dataset.tool) { case 'rot': rotateBuild(); break; case 'up': B.lift = Math.min(B.lift + 1, 60); break; case 'down': B.lift = Math.max(B.lift - 1, -60); break; case 'undo': B.undo(); break; case 'pick': setPick(!B.pick); break; case 'reset': if (confirm('Forget every brick built and every wall broken here?')) resetPlace(); break; case 'say': toggleBuild(false); wbOpen(true); break; case 'place': buildAct(); break; } paintPalette(); });
 }
 function paintPalette() {
   const B = W.build, P = $('#palette'); if (!B) return;
@@ -599,14 +600,34 @@ function bindMaster() {
   $('#wbBuild').onclick = () => say(T.value); $('#wbRead').onclick = () => readBuild();
   $('#wbCommit').onclick = () => mbCommit(); $('#wbDiscard').onclick = () => mbDiscard();
   document.querySelectorAll('#wbSheet [data-nudge]').forEach(b => b.onclick = () => { const [dx, dz, dy, rot] = b.dataset.nudge.split(',').map(Number); mbNudge(dx, dz, dy, rot); });
-  const bar = $('#wb'), fit = () => document.documentElement.style.setProperty('--wb', bar.offsetHeight + 'px');   // the buttons above the bar rise with it
-  if (window.ResizeObserver) new ResizeObserver(fit).observe(bar); fit();
-  mbStatus(''); wbHint();
+  const bar = $('#wb'), fit = () => document.documentElement.style.setProperty('--wb', (document.body.classList.contains('wb-off') ? 0 : bar.offsetHeight) + 'px');   // the buttons above the bar rise with it
+  if (window.ResizeObserver) new ResizeObserver(fit).observe(bar); W.wbFit = fit;
+  $('#wbSay').onclick = () => wbOpen(true); $('#wbHide').onclick = () => { if (document.body.classList.contains('drafting')) { toast('commit or discard the draft first', 1200); return; } wbOpen(false); };
+  $('#wbKeyBtn').onclick = () => wbKeyRow(); $('#wbKey').onchange = () => saveKey($('#wbKey').value); $('#wbKeyOk').onclick = () => saveKey($('#wbKey').value);
+  $('#wbKey').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); saveKey($('#wbKey').value); } });
+  let wanted = false; try { wanted = localStorage.getItem('world.wb') === '1'; } catch (e) { } W.wbWanted = wanted;
+  wbOpen(wanted, true); mbStatus(''); wbHint();
 }
+/** Open or tuck away the word bar. quiet: a mode change, not the player's choice (which is remembered). */
+function wbOpen(on, quiet) {
+  on = !!on; document.body.classList.toggle('wb-off', !on);
+  if (!quiet) { W.wbWanted = on; try { localStorage.setItem('world.wb', on ? '1' : '0'); } catch (e) { } }
+  if (on && !Ai.key()) wbKeyRow(true);
+  if (W.wbFit) W.wbFit(); hintFor();
+  if (on && !quiet) setTimeout(() => { const T = $('#words'); if (T && !Ai.key()) $('#wbKey').focus(); else if (T) T.focus(); }, 50);
+  return on;
+}
+/** The key row inside the bar: shown when asked, or whenever there is no key yet. */
+function wbKeyRow(on) {
+  const row = $('#wbKeyRow'); if (!row) return; on = on === undefined ? !row.classList.contains('on') : !!on;
+  row.classList.toggle('on', on); $('#wbKeyBtn').classList.toggle('on', on); $('#wbKey').value = Ai.key();
+  if (on) { $('#wbKey').placeholder = Ai.key() ? 'key saved · paste another to replace it' : 'OpenAI API key · stays in this browser'; }
+}
+function saveKey(v) { Ai.setKey(v); const k = $('#aiKey'); if (k) k.value = Ai.key(); if (Ai.key()) { wbKeyRow(false); toast('key saved · ' + Ai.model(), 1200); setTimeout(() => { const T = $('#words'); if (T) T.focus(); }, 50); } wbHint(); }
 /** The word bar's placeholder says what words do right now. */
 function wbHint() {
   const T = $('#words'); if (!T) return;
-  T.placeholder = !Ai.key() ? 'paste an OpenAI key under Who · Where, then say what to build' : W.master.result ? 'change it: taller, a red roof, add a knight at the door…' : 'say what to build here: a lighthouse with red bands and a keeper at the door';
+  T.placeholder = !Ai.key() ? 'paste an OpenAI key above (🔑), then say what to build' : W.master.result ? 'change it: taller, a red roof, add a knight at the door…' : 'say what to build here: a lighthouse with red bands and a keeper at the door';
   $('#wbBuild').textContent = W.master.result ? 'Change' : 'Build';
 }
 /** Words go to the model: a fresh build, or a change to the draft that stands. */
@@ -652,7 +673,7 @@ async function mbDraft(prompt) {
   } catch (e) { W.master.busy = false; mbStatus(e.message || String(e), 'warn'); }
   finally { W.master.busy = false; clearInterval(W.master.tick); $('#wbBuild').disabled = false; }
 }
-function needKey() { $('#menu').classList.add('open'); mbStatus('paste an OpenAI key first (Who · Where → builder)', 'warn'); const k = $('#aiKey'); if (k) k.focus(); }
+function needKey() { wbOpen(true, true); wbKeyRow(true); mbStatus('paste an OpenAI key first: it stays in this browser', 'warn'); const k = $('#wbKey'); if (k) k.focus(); }
 /** Words about the draft that stands: the model edits the program and the draft is re-laid in place. */
 async function mbEdit(words) {
   if (W.master.busy || !W.master.result) return; if (!Ai.key()) { needKey(); return; }
@@ -670,7 +691,7 @@ async function mbEdit(words) {
 function mbShow(res, usage, keep) {
   const conv = W.master.conv, replace = keep ? keep.ids : null, words = W.master.words;
   mbDiscard(true); const a = keep ? keep.anchor : mbAnchor(); W.master.result = res; W.master.anchor = a; W.master.rot = keep ? keep.rot : 0; W.master.usage = usage || null; W.master.conv = conv; W.master.replace = replace; W.master.words = words;
-  mbLay();
+  wbOpen(true, true); mbLay();
   const rep = res.report, fixes = rep.floating + rep.blocked + rep.unknown.length + rep.errors.length;
   const reasoning = usage && usage.output_tokens_details && usage.output_tokens_details.reasoning_tokens;
   const tok = usage ? ` · ${usage.total_tokens} tokens${reasoning ? ` (${reasoning} reasoning)` : ''}` : '';
@@ -722,7 +743,7 @@ function readBuild() {
   mbDiscard(true);
   W.master.result = res; W.master.anchor = { x: program.anchor.x + f.ax, y: program.anchor.y - f.datum, z: program.anchor.z + f.az }; W.master.rot = 0; W.master.conv = { program: { name: program.name, ops: program.ops }, messages: null };
   W.master.replace = { ids: [...cluster.keys()], props: props.map(it => it.id) }; W.master.words = words; W.master.read = { rows: rows.length, props: props.length, program };
-  const T = $('#words'); if (T) { T.value = words; T.style.height = 'auto'; T.style.height = Math.min(150, Math.max(52, T.scrollHeight)) + 'px'; }
+  wbOpen(true, true); const T = $('#words'); if (T) { T.value = words; T.style.height = 'auto'; T.style.height = Math.min(150, Math.max(52, T.scrollHeight)) + 'px'; }
   mbStatus(`read ${rows.length} bricks${props.length ? ` · ${props.length} props` : ''} into ${program.ops.length} ops · edit the words and press Change`, 'ok'); Fx.haptic(10);
   return { program, words, rows: rows.length, props: props.length, report: res.report };
 }
@@ -734,7 +755,7 @@ function checkInbox() {
   if (!box) return; if (!box.program && box.mpd) box.program = { name: box.name || 'model', ops: [{ op: 'mpd', text: box.mpd, name: box.name || 'model', x: 0, z: 0, facing: 's' }] };
   if (!box.program) return;
   const res = Dsl.compile(box.program); if (!res.report.pieces && !res.report.props) return;
-  if (W.mode !== 'walk') return; W.master.conv = { program: box.program, messages: null }; mbShow(res, null); toast('from the studio: commit or discard', 1500);
+  if (W.mode !== 'walk') return; W.master.conv = { program: box.program, messages: null }; wbOpen(true, true); mbShow(res, null); toast('from the studio: commit or discard', 1500);
 }
 
 /* ───────────────────────── playing together ───────────────────────── */
@@ -844,7 +865,7 @@ Object.assign(W, {
   aimAt: (x, y, z) => { if (x == null) { W.build.pin = null; return null; } const o = new THREE.Vector3(x, y + 4 * M, z + 3 * M), d = new THREE.Vector3(x, y, z).sub(o).normalize(); W.build.on = true; W.build.pin = { origin: o, dir: d }; W.build.aimRay(o, d); return W.build.stats().target; }, takeBrick: id => fall(W.build.remove(id)),
   pieces: () => W.build.rows(), pieceAt: id => { const p = W.build.pieces.get(id); return p ? { id, part: p.part, col: p.col, x: p.x, y: p.y, z: p.z, rot: p.rot } : null; }, saveNow: () => { W.build.save(); saveDamage(); }, resetPlace, damage: () => W.city.removedSets(), placeKey: () => placeKey(W.place),
   fx: () => ({ sfx: Fx.Sfx.stats(), haptics: Fx.haptic.count(), smoke: W.smoke.stats(), hits: Fx.Hits.n, tally: { ...W.tally }, craters: W.G.craters || 0, lastCrater: W.lastCrater || null, air: !!W.rig.air, vy: W.rig.vy || 0, assisted: W.tie.assisted, groundHits: W.tie.groundHits }), crater: (x, z, r, d) => crater(new THREE.Vector3(x, 0, z), r, d), groundAt: (x, z) => W.G.h(x, z), groundColour: (x, z) => { const G = W.G, f = G.field, i = Math.round(f.cx + x / M / G.res), j = Math.round(f.cy + z / M / G.res), c = G.mesh.geometry.attributes.color, k = j * G.n + i; return [c.getX(k), c.getY(k), c.getZ(k)]; },
-  mb: () => ({ busy: W.master.busy, status: W.master.status, rot: W.master.rot, anchor: W.master.anchor, draft: W.draft.pieces.size, ghosts: W.master.ghosts.length, report: W.master.result && W.master.result.report, usage: W.master.usage || null }), mbAsk: mbDraft, say, readBuild, mbEdit, startNow, veil: () => ({ stages: Object.fromEntries(Object.entries(VEIL.stages).map(([k, v]) => [k, v.state])), start: !!($('#vStart') && !$('#vStart').hidden), since: (performance.now() - VEIL.t0) / 1000, readyAt: VEIL.readyAt || 0, buildingsAt: VEIL.buildingsAt || 0 }), pending: () => !!(W.win && W.win.pending), mbLoad: program => { const res = Dsl.compile(program); mbShow(res, null); return res.report; }, mbCommit, mbDiscard, mbNudge, propStat: () => W.props.stats(), propRows: () => W.props.rows(), propBoxes: () => [...W.props.items.values()].map(it => ({ id: it.id, ready: it.ready, parts: it.meshes.length, box: it.box ? [it.box.min.toArray(), it.box.max.toArray()] : null })), aiStat: () => Ai.stats(),
+  mb: () => ({ busy: W.master.busy, status: W.master.status, rot: W.master.rot, anchor: W.master.anchor, draft: W.draft.pieces.size, ghosts: W.master.ghosts.length, report: W.master.result && W.master.result.report, usage: W.master.usage || null }), mbAsk: mbDraft, say, readBuild, mbEdit, startNow, wbOpen, wbState: () => ({ open: !document.body.classList.contains('wb-off'), key: !!Ai.key(), keyRow: $('#wbKeyRow').classList.contains('on'), wb: getComputedStyle(document.body).getPropertyValue('--wb').trim() }), veil: () => ({ stages: Object.fromEntries(Object.entries(VEIL.stages).map(([k, v]) => [k, v.state])), start: !!($('#vStart') && !$('#vStart').hidden), since: (performance.now() - VEIL.t0) / 1000, readyAt: VEIL.readyAt || 0, buildingsAt: VEIL.buildingsAt || 0 }), pending: () => !!(W.win && W.win.pending), mbLoad: program => { const res = Dsl.compile(program); mbShow(res, null); return res.report; }, mbCommit, mbDiscard, mbNudge, propStat: () => W.props.stats(), propRows: () => W.props.rows(), propBoxes: () => [...W.props.items.values()].map(it => ({ id: it.id, ready: it.ready, parts: it.meshes.length, box: it.box ? [it.box.min.toArray(), it.box.max.toArray()] : null })), aiStat: () => Ai.stats(),
   netStat: () => W.room.stats(), host: hostRoom, join: joinRoom, leave: leaveRoom, remoteList: () => [...W.remotes.values()].map(r => ({ id: r.id, ch: r.ch, mode: r.tgt && r.tgt.m, pos: r.pos.toArray(), visible: r.fig && r.fig.figure.visible, shipVisible: !!r.ship && r.ship.visible })), flushEdits, setName,
   debrisPieces: () => W.debris.pieces.map(p => { const c = W.debris.centre(p, V1); return { part: p.kind.name, y: c.y, x: c.x, z: c.z, rest: p.rest, floor: W.G.h(c.x, c.z) }; }),
   building: i => { const b = W.city.buildings[i]; if (!b.bricks) b.bricks = Bricks.buildBricks(b, W.colours, M); return { id: b.id, kind: b.kind, n: b.bricks.n, removed: b.removed.size, live: b.bricks.n - b.removed.size, cx: b.cx, cz: b.cz, y0: b.y0, yTop: b.yTop, courses: b.courses, ruined: b.ruined }; },
