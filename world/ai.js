@@ -124,7 +124,18 @@ const Ai = {
     return `${bits.length ? bits.join('. ') + '.\n' : ''}BUILD BRIEF: ${prompt}\nChoose the scale yourself. Make it read correctly at first glance; do not fill the 40×40 workspace just because it exists.`;
   },
 
-  async request(text, { key, signal, stage = 'SOL REASONING', detail = 'designing' } = {}) {
+  /* The ladder when the model spends all its output room on private reasoning: the same text again with less reasoning, twice at most. */
+  async requestSafely(text, opts = {}) {
+    const ladder = ['max', 'high', 'medium']; let err = null;
+    for (let i = 0; i < ladder.length; i++) {
+      const effort = ladder[i], t = i ? `${text}\nYou ran out of output room last time: keep private reasoning short and answer with the JSON program.` : text;
+      try { const out = await this.request(t, { ...opts, effort, detail: i ? `${opts.detail || ''} · again at ${effort} reasoning` : opts.detail }); out.effort = effort; return out; }
+      catch (e) { err = e; if (e && e.reason === 'max_output_tokens' && i < ladder.length - 1) { this.emit('SOL RAN OUT OF ROOM', `after ${e.secs || '?'} s at ${effort} reasoning · trying again at ${ladder[i + 1]}`, 'working'); continue; } throw e; }
+    }
+    throw err;
+  },
+
+  async request(text, { key, signal, stage = 'SOL REASONING', detail = 'designing', effort = EFFORT } = {}) {
     key = (key || this.key()).trim();
     if (!key) throw new Error('no key: enter an OpenAI API key');
     lsSet(MODEL_KEY, MODEL); lsSet(EFFORT_KEY, EFFORT);
@@ -142,9 +153,9 @@ const Ai = {
           model: MODEL,
           instructions: this.system(),
           input: [{ role: 'user', content: [{ type: 'input_text', text: String(text || '') }] }],
-          reasoning: { effort: EFFORT },
+          reasoning: { effort },
           text: { format: { type: 'json_object' }, verbosity: 'low' },
-          max_output_tokens: 24000,
+          max_output_tokens: 64000,
           store: false
         }),
         signal
@@ -167,7 +178,7 @@ const Ai = {
     this.lastResponseId = j.id || null;
     if (j.status === 'incomplete') {
       const why = j.incomplete_details && j.incomplete_details.reason || 'incomplete response';
-      this.lastError = why; this.emit('SOL STOPPED EARLY', why, 'error'); throw new Error(`OpenAI stopped early (${why})`);
+      this.lastError = why; if (why !== 'max_output_tokens') this.emit('SOL STOPPED EARLY', why, 'error'); const err = new Error(why === 'max_output_tokens' ? `the model spent all its output room thinking (${effort} reasoning)` : `OpenAI stopped early (${why})`); err.reason = why; err.secs = Math.round((Date.now() - started) / 1000); throw err;
     }
     if (j.status === 'failed') {
       const why = j.error && j.error.message || 'response failed';
@@ -175,13 +186,14 @@ const Ai = {
     }
     const raw = outputText(j);
     const program = parseProgram(raw), u = j.usage || {}, reasoning = u.output_tokens_details && u.output_tokens_details.reasoning_tokens;
-    this.emit('SOL ANSWERED', `${Math.round((Date.now() - started) / 1000)} s · ${u.total_tokens || 0} tokens${reasoning ? ` (${reasoning} reasoning)` : ''} · ${(program.ops || []).length} ops`, 'done', started, { usage: j.usage || null, calls: this.calls, ms: Date.now() - started, ops: (program.ops || []).length });
-    return { j, raw, program };
+    this.lastEffort = effort;
+    this.emit('SOL ANSWERED', `at ${effort} · ${Math.round((Date.now() - started) / 1000)} s · ${u.total_tokens || 0} tokens${reasoning ? ` (${reasoning} reasoning)` : ''} · ${(program.ops || []).length} ops`, 'done', started, { usage: j.usage || null, calls: this.calls, ms: Date.now() - started, ops: (program.ops || []).length, effort });
+    return { j, raw, program, ms: Date.now() - started };
   },
 
   async ask(prompt, { key, context, signal, onFirst } = {}) {
     key = key || this.key();
-    const first = await this.request(this.userMessage(prompt, context), {
+    const first = await this.requestSafely(this.userMessage(prompt, context), {
       key, signal, stage: '1 / 3 · SOL DESIGNING', detail: 'choosing scale, silhouette and construction'
     });
 
@@ -189,10 +201,14 @@ const Ai = {
     const r1 = compile(first.program), q1 = quality(first.program, r1), a1 = audit(first.program, r1);
     if (typeof onFirst === 'function') { try { onFirst(first.program, r1, { usage: first.j.usage || null }); } catch (e) { } }   // the page can stand the first design while the review runs
 
+    const slow = first.ms > 150000, eased = first.effort && first.effort !== 'max';
+    if (slow || eased) {                                                       // one long call is enough: the review would double it
+      this.emit('REVIEW SKIPPED', slow ? `the design took ${Math.round(first.ms / 60000)} min · change it with words if you like` : `the design needed ${first.effort} reasoning · change it with words if you like`, 'ready');
+      return { program: first.program, usage: first.j.usage || null, raw: first.raw, responseId: first.j.id || null, messages: [], brief: prompt, effort: first.effort };
+    }
     const review = `ORIGINAL BRIEF:\n${this.userMessage(prompt, context)}\n\nFIRST PROGRAM:\n${JSON.stringify(first.program)}\n\nLOCAL AUDIT:\n${a1}\n\nYou are the senior LEGO designer reviewing this first draft. Rebuild the FULL program, not a patch. Preserve what works, but improve first-glance recognition, scale, silhouette, proportion, landmark features and support. Fix compiler failures. Do not merely make it larger or add generic bricks. JSON only.`;
-    const second = await this.request(review, {
-      key, signal, stage: '3 / 3 · SOL REVIEWING', detail: 'critiquing the first build and rebuilding weak geometry'
-    });
+    let second; try { second = await this.requestSafely(review, { key, signal, stage: '3 / 3 · SOL REVIEWING', detail: 'critiquing the first build and rebuilding weak geometry' }); }
+    catch (e) { if (e && e.name === 'AbortError') throw e; this.emit('REVIEW FAILED', `${e.message || e} · keeping the first design`, 'ready'); return { program: first.program, usage: first.j.usage || null, raw: first.raw, responseId: first.j.id || null, messages: [], brief: prompt, effort: first.effort }; }
     const r2 = compile(second.program), q2 = quality(second.program, r2);
 
     const useSecond = q2 >= q1 - 1;
@@ -211,7 +227,7 @@ const Ai = {
     if (report.floating) notes.push(`${report.floating} pieces floated and were dropped`);
     if (report.blocked) notes.push(`${report.blocked} parts collided and were skipped`);
     const text = `CURRENT PROGRAM:\n${JSON.stringify(prev && prev.program || {})}\n\nCOMPILER REPORT:\n${notes.join('; ') || 'host requested a final physical repair'}\n\nReturn the corrected FULL program as JSON only. Preserve recognizable silhouette and intended details; fix support/collisions without collapsing the build into a generic box.`;
-    const out = await this.request(text, { key: opts.key || this.key(), signal: opts.signal, stage: 'COMPILER REPAIR', detail: 'repairing failed physical geometry' });
+    const out = await this.requestSafely(text, { key: opts.key || this.key(), signal: opts.signal, stage: 'COMPILER REPAIR', detail: 'repairing failed physical geometry' });
     const result = compile(out.program), rr = result && result.report || {};
     this.emit('REPAIR READY', `${rr.pieces || 0} pieces · ${rr.floating || 0} floating · ${rr.blocked || 0} blocked`, 'ready');
     return { program: out.program, usage: out.j.usage || null, raw: out.raw, responseId: out.j.id || null, messages: [], brief: prev && prev.brief };
@@ -219,13 +235,13 @@ const Ai = {
 
   async edit(prev, words, opts = {}) {
     const text = `CURRENT FULL PROGRAM:\n${JSON.stringify(prev && prev.program || {})}\n\nCHANGE REQUEST:\n${words}\n\nReturn the corrected FULL program as JSON only. Keep everything not asked to change at the same coordinates and apply the requested change to the rest.`;
-    const out = await this.request(text, { key: opts.key || this.key(), signal: opts.signal, stage: 'SOL CHANGING', detail: String(words || '').slice(0, 80) });
+    const out = await this.requestSafely(text, { key: opts.key || this.key(), signal: opts.signal, stage: 'SOL CHANGING', detail: String(words || '').slice(0, 80) });
     const result = compile(out.program), rr = result && result.report || {};
     this.emit('CHANGE READY', `${rr.pieces || 0} pieces · ${rr.props || 0} props · ${rr.floating || 0} floating`, 'ready');
     return { program: out.program, usage: out.j.usage || null, raw: out.raw, responseId: out.j.id || null, messages: [], brief: prev && prev.brief };
   },
 
-  stats() { return { calls: this.calls, usage: this.lastUsage, error: this.lastError, model: MODEL, effort: EFFORT, hasKey: !!this.key(), responseId: this.lastResponseId }; }
+  stats() { return { calls: this.calls, usage: this.lastUsage, error: this.lastError, model: MODEL, effort: EFFORT, lastEffort: this.lastEffort || null, hasKey: !!this.key(), responseId: this.lastResponseId }; }
 };
 
 window.Ai = Ai;

@@ -745,7 +745,7 @@ function rideFor(words, program) {
 }
 const fmtSec = s => s < 120 ? `${s | 0} s` : `${(s / 60) | 0} min ${(s % 60) | 0} s`;
 /** The short names the strip uses for the brain's stages. */
-function stageName(stage) { const t = String(stage || '').toLowerCase(); if (/design/.test(t)) return 'design 1/3'; if (/local check/.test(t)) return 'check 2/3'; if (/review/.test(t)) return 'review 3/3'; if (/repair/.test(t)) return 'repair'; if (/chang/.test(t)) return 'change'; return t.replace(/\s*·\s*/g, ' · ') || 'thinking'; }
+function stageName(stage) { const t = String(stage || '').toLowerCase(); if (/ran out of room/.test(t)) return 'ran out of room'; if (/design/.test(t)) return 'design 1/3'; if (/local check/.test(t)) return 'check 2/3'; if (/review/.test(t)) return 'review 3/3'; if (/repair/.test(t)) return 'repair'; if (/chang/.test(t)) return 'change'; return t.replace(/\s*·\s*/g, ' · ') || 'thinking'; }
 /** A live line while the brain works: its stage, what it is doing, and the seconds since this build began, never cut off. */
 function mbBusy(what) {
   clearInterval(W.master.tick); if (!what) return; W.master.t0 = performance.now(); W.master.stage = null; W.master.log = []; mbLog('info', `${what} ${Ai.model()} · ${Ai.effort()} reasoning · design, local check, review`);
@@ -768,7 +768,7 @@ function wbLogPaint() { const pre = $('#wbLogText'); if (!pre || $('#wbLog').hid
 function wbLog(on) { const box = $('#wbLog'); if (!box) return; on = on === undefined ? box.hidden : !!on; box.hidden = !on; $('#wbLogBtn').classList.toggle('on', on); if (on) { wbOpen(true, true); wbLogPaint(); } if (W.wbFit) W.wbFit(); }
 Ai.onStatus = (stage, detail, state, started, extra) => {
   if (state === 'working') { if (W.master.busy) W.master.stage = { stage, detail }; mbLog('stage', `${stageName(stage)} · ${detail || ''}`); }
-  else if (state === 'done') mbLog('done', `${stageName(W.master.stage && W.master.stage.stage)} answered · ${detail}`);
+  else if (state === 'done') mbLog('done', `${stageName(W.master.stage && W.master.stage.stage)} answered ${detail}`);
   else if (state === 'error') mbLog('error', `${String(stage).toLowerCase()} · ${detail}`);
   else mbLog('info', `${String(stage).toLowerCase()} · ${detail}`);
 };
