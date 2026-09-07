@@ -34,9 +34,18 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#b8cbd8;fon
   const K='openai_api_key',M='world.ai.model',E='world.ai.effort';
   const gate=document.getElementById('gate'),key=document.getElementById('key'),save=document.getElementById('save'),edit=document.getElementById('edit'),frame=document.getElementById('frame'),boot=document.getElementById('boot');
   const get=()=>{try{return(localStorage.getItem(K)||'').trim()}catch(e){return''}};
+  function patch(){
+    let w,d;try{w=frame.contentWindow;d=frame.contentDocument}catch(e){return}if(!w||!d||!d.head||!d.body)return;
+    let css=d.getElementById('livePatch');
+    if(!css){css=d.createElement('style');css.id='livePatch';css.textContent='body.build #wb{display:none!important}body.build{--wb:0px!important}#wbRead{display:none!important}body.build #hint{bottom:4px!important}';d.head.appendChild(css)}
+    const read=d.getElementById('wbRead');if(read){read.style.display='none';read.tabIndex=-1}
+    const b=d.getElementById('build');if(b)b.textContent=d.body.classList.contains('build')?'DONE':'BUILD';
+    if(!d.getElementById('solFresh')){const s=d.createElement('script');s.id='solFresh';s.src='./world/ai.js?v=bcfda584-'+Date.now();d.head.appendChild(s)}
+  }
+  frame.addEventListener('load',()=>{boot.style.display='none';patch();setTimeout(patch,250);setTimeout(patch,1000);try{new MutationObserver(patch).observe(frame.contentDocument.body,{attributes:true,attributeFilter:['class']})}catch(e){}});
   function load(){
     try{localStorage.setItem(M,'gpt-5.6-sol');localStorage.setItem(E,'max')}catch(e){}
-    gate.classList.add('saved');boot.style.display='none';
+    gate.classList.add('saved');
     frame.src='word-to-world.html?v=live-'+Date.now()+location.hash;
   }
   function store(){const v=(key.value||'').trim();if(!v)return;try{localStorage.setItem(K,v)}catch(e){}load()}
