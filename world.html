@@ -2,20 +2,95 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+<meta name="theme-color" content="#b8cbd8" />
 <title>Brick World</title>
 <meta name="robots" content="noindex" />
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate" />
-<meta http-equiv="pragma" content="no-cache" />
-<meta http-equiv="expires" content="0" />
+<style>
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#b8cbd8;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+#worldFrame{position:fixed;inset:0;width:100%;height:100%;border:0;background:#b8cbd8}
+#keyBtn{position:fixed;left:50%;top:calc(58px + env(safe-area-inset-top));transform:translateX(-50%);z-index:1000;height:34px;min-width:58px;padding:0 12px;border:0;border-radius:10px;background:rgba(26,31,42,.16);color:#1a1f2a;font:800 10px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase;box-shadow:none}
+#keyBtn.has{background:#1a1f2a;color:#fff}
+#keyModal{position:fixed;inset:0;z-index:2000;display:none;align-items:flex-end;padding:12px 12px calc(12px + env(safe-area-inset-bottom));background:rgba(8,12,18,.42)}
+#keyModal.open{display:flex}
+#keyCard{width:100%;max-width:560px;margin:0 auto;padding:14px;border-radius:18px;background:#f8fafb;color:#1a1f2a;box-shadow:0 18px 60px rgba(0,0,0,.3)}
+#keyHead{display:flex;justify-content:space-between;gap:10px;margin-bottom:10px;font:800 11px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase}
+#keyHead small{font-weight:500;color:#657080;letter-spacing:.04em}
+#keyInput{width:100%;height:52px;box-sizing:border-box;border:1px solid rgba(26,31,42,.24);border-radius:13px;padding:0 12px;background:#fff;color:#1a1f2a;font:15px ui-monospace,SFMono-Regular,Menlo,monospace;-webkit-user-select:text;user-select:text}
+#keyInput:focus{outline:2px solid #c8901c;border-color:transparent}
+#keyActions{display:flex;gap:8px;margin-top:10px}
+#keyActions button{height:46px;padding:0 14px;border:1px solid rgba(26,31,42,.2);border-radius:12px;background:#fff;color:#1a1f2a;font:800 12px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+#keyActions .save{flex:1;border:0;background:#1a1f2a;color:#fff}
+#keyActions .remove{color:#b52822}
+#keyNote{margin-top:8px;color:#657080;font:11px/1.35 ui-monospace,SFMono-Regular,Menlo,monospace}
+#boot{position:fixed;inset:0;display:grid;place-items:center;color:#4b5566;font:11px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase;pointer-events:none}
+</style>
+</head>
+<body>
+<div id="boot">opening world…</div>
+<iframe id="worldFrame" title="Brick World"></iframe>
+<button id="keyBtn" type="button">KEY</button>
+<div id="keyModal">
+  <div id="keyCard">
+    <div id="keyHead"><span>Builder key</span><small>GPT-5.6 SOL · MAX</small></div>
+    <input id="keyInput" type="password" placeholder="sk-… OpenAI API key" autocomplete="off" autocapitalize="none" spellcheck="false" />
+    <div id="keyActions"><button class="remove" type="button">Remove</button><button class="close" type="button">Close</button><button class="save" type="button">Save key</button></div>
+    <div id="keyNote">Saved only in this browser for this site. The builder calls OpenAI directly.</div>
+  </div>
+</div>
 <script>
 (function(){
-  const u='world-live.html'+location.search+location.hash;
-  location.replace(u);
+  'use strict';
+  const KEY='openai_api_key', MODEL_KEY='world.ai.model', EFFORT_KEY='world.ai.effort';
+  const frame=document.getElementById('worldFrame'), btn=document.getElementById('keyBtn'), modal=document.getElementById('keyModal'), input=document.getElementById('keyInput'), boot=document.getElementById('boot');
+  const save=modal.querySelector('.save'), close=modal.querySelector('.close'), remove=modal.querySelector('.remove');
+  try{localStorage.setItem(MODEL_KEY,'gpt-5.6-sol');localStorage.setItem(EFFORT_KEY,'max');}catch(e){}
+  function getKey(){try{return (localStorage.getItem(KEY)||'').trim();}catch(e){return '';}}
+  function child(){try{return frame.contentWindow;}catch(e){return null;}}
+  function sync(){const has=!!getKey();btn.textContent=has?'SOL':'KEY';btn.classList.toggle('has',has);}
+  function openKey(){
+    const w=child();
+    try{const b=w&&w.document.getElementById('build');if(w&&w.document.body.classList.contains('build')&&b)b.click();}catch(e){}
+    input.value=getKey();modal.classList.add('open');setTimeout(()=>{input.focus();input.select();},30);
+  }
+  function closeKey(){modal.classList.remove('open');input.blur();sync();}
+  function saveKey(){
+    const v=(input.value||'').trim();if(!v)return;
+    try{localStorage.setItem(KEY,v);}catch(e){}
+    const w=child();try{if(w&&w.Ai&&w.Ai.setKey)w.Ai.setKey(v);const mk=w&&w.document.getElementById('aiKey');if(mk)mk.value=v;}catch(e){}
+    closeKey();
+  }
+  function removeKey(){try{localStorage.removeItem(KEY);}catch(e){} const w=child();try{if(w&&w.Ai&&w.Ai.setKey)w.Ai.setKey('');}catch(e){}input.value='';sync();}
+  btn.onclick=openKey;save.onclick=saveKey;close.onclick=closeKey;remove.onclick=removeKey;
+  input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();saveKey();}else if(e.key==='Escape'){e.preventDefault();closeKey();}});
+  modal.addEventListener('click',e=>{if(e.target===modal)closeKey();});
+
+  function patchChild(){
+    const w=child();if(!w)return;
+    let d;try{d=w.document;}catch(e){return;}if(!d||!d.body)return;
+    boot.style.display='none';
+    let st=d.getElementById('worldWrapperPatch');
+    if(!st){
+      st=d.createElement('style');st.id='worldWrapperPatch';st.textContent='body.build #wb{display:none!important} body.build{--wb:0px!important} #wbRead{display:none!important} body.build #hint{bottom:4px!important}';d.head.appendChild(st);
+    }
+    const read=d.getElementById('wbRead');if(read){read.style.display='none';read.tabIndex=-1;}
+    const b=d.getElementById('build');
+    const paint=()=>{if(b)b.textContent=d.body.classList.contains('build')?'DONE':'BUILD';};
+    paint();
+    if(!d.body.dataset.wrapperWatch){d.body.dataset.wrapperWatch='1';new w.MutationObserver(paint).observe(d.body,{attributes:true,attributeFilter:['class']});}
+    if(b&&!b.dataset.wrapperWatch){b.dataset.wrapperWatch='1';b.addEventListener('click',()=>setTimeout(paint,0));}
+    const words=d.getElementById('words'), wbBuild=d.getElementById('wbBuild');
+    if(words&&!words.dataset.keyGuard){words.dataset.keyGuard='1';words.addEventListener('focus',()=>{if(!getKey()){words.blur();openKey();}});}
+    if(wbBuild&&!wbBuild.dataset.keyGuard){wbBuild.dataset.keyGuard='1';wbBuild.addEventListener('click',e=>{if(!getKey()){e.preventDefault();e.stopImmediatePropagation();openKey();}},true);}
+    try{if(w.Ai&&w.Ai.setModel)w.Ai.setModel('gpt-5.6-sol');if(w.Ai&&w.Ai.setEffort)w.Ai.setEffort('max');if(getKey()&&w.Ai&&w.Ai.setKey)w.Ai.setKey(getKey());}catch(e){}
+    sync();
+  }
+  frame.addEventListener('load',()=>{patchChild();setTimeout(patchChild,250);setTimeout(patchChild,1000);});
+  const sep=location.search?'&':'?';
+  frame.src='word-to-world.html'+location.search+sep+'fresh=61cd9f27'+location.hash;
+  sync();
 })();
 </script>
-<noscript><meta http-equiv="refresh" content="0;url=world-live.html" /></noscript>
-</head>
-<body style="margin:0;background:#b8cbd8;font:15px system-ui;color:#1a1f2a;padding:24px">
-Opening <a href="world-live.html">Brick World</a>…
 </body>
 </html>
