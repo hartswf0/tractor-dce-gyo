@@ -24,12 +24,12 @@
 <script src="./world/tie.js"></script>
 <script src="./world/fx.js?v=cf936655"></script>
 <script src="./world/dsl.js?v=e39a6fc0"></script>
-<script src="./world/ai.js?v=1b338f04"></script>
+<script src="./world/ai.js?v=c7a4a338"></script>
 <script src="./world/build.js?v=db2be2c8"></script>
 <script src="./world/props.js?v=da96da4f"></script>
 <script src="./world/net.js"></script>
 <style>
-:root{--wb:96px;--ink:#1a1f2a;--dim:#4b5566;--gold:#c8901c;--red:#d8382e;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;--sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
+:root{--wb:66px;--ink:#1a1f2a;--dim:#4b5566;--gold:#c8901c;--red:#d8382e;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;--sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;background:#b8cbd8;color:var(--ink);overflow:hidden;font:15px/1.4 var(--sans);-webkit-user-select:none;user-select:none;overscroll-behavior:none}
 #stage{position:fixed;inset:0}#stage canvas{display:block;width:100%;height:100%;touch-action:none}
@@ -51,6 +51,8 @@ html,body{margin:0;height:100%;background:#b8cbd8;color:var(--ink);overflow:hidd
 #det.on{display:block}
 body.fly #det,body.fly #wb{display:none}
 body.fly{--wb:0px}
+body.build #wb{display:none}
+body.build{--wb:0px}
 #shield{display:block}
 #msg{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%);font:800 22px var(--sans);letter-spacing:.04em;text-transform:uppercase;color:var(--red);text-shadow:0 1px 8px rgba(255,255,255,.6);opacity:0;transition:opacity .15s;pointer-events:none;z-index:4}
 #msg.on{opacity:1}
@@ -63,7 +65,7 @@ body.fly{--wb:0px}
 #find.open input{display:block}
 #find button{height:34px;padding:0 12px;border:none;border-radius:10px;background:rgba(26,31,42,.12);font:11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink)}
 #hint{position:fixed;left:78px;right:78px;bottom:calc(var(--wb) + 4px + env(safe-area-inset-bottom));font-size:11px;line-height:1.3;color:var(--dim);text-align:center;pointer-events:none;z-index:4}
-#credit{font:9px var(--mono);color:rgba(26,31,42,.45);text-align:right;padding:0 4px;pointer-events:none!important}
+#credit{display:none}
 #veil{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(184,203,216,.92);z-index:9;text-align:center;padding:24px;transition:opacity .3s}
 #veil.gone{opacity:0;pointer-events:none}
 #veil .k{font:11px var(--mono);letter-spacing:.24em;text-transform:uppercase;color:var(--dim)}
@@ -131,29 +133,34 @@ body[data-world="deathstar"] #room{background:rgba(230,234,242,.16)}
 #floats .float.big{font-size:30px}
 @keyframes floatUp{0%{opacity:1;margin-top:0}100%{opacity:0;margin-top:-70px}}
 body[data-world="deathstar"] #tally,body[data-world="deathstar"] #floats .float{text-shadow:0 1px 6px rgba(0,0,0,.8)}
-#wb{position:fixed;left:0;right:0;bottom:0;padding:6px 10px calc(8px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:6px;background:linear-gradient(rgba(184,203,216,0),rgba(184,203,216,.9) 30%);z-index:6;pointer-events:none}
+
+/* Word builder: one compact row. Status/draft controls float above it instead of making it taller. */
+#wb{position:fixed;left:0;right:0;bottom:0;padding:6px 10px calc(6px + env(safe-area-inset-bottom));display:block;background:linear-gradient(rgba(184,203,216,0),rgba(184,203,216,.92) 38%);z-index:6;pointer-events:none}
 #wb>*{pointer-events:auto}
-#wbStat{display:none;align-items:center;gap:8px;font:11px var(--mono);letter-spacing:.06em;color:var(--dim);min-height:16px;padding:0 4px}
+#wbStat{position:absolute;left:10px;right:10px;bottom:calc(100% + 4px);display:none;align-items:center;gap:8px;font:11px var(--mono);letter-spacing:.04em;color:var(--dim);min-height:30px;padding:6px 9px;border-radius:10px;background:rgba(245,247,249,.94);box-shadow:0 4px 16px rgba(26,31,42,.14)}
 #wbStat.on{display:flex}#wbStat.warn{color:var(--red)}#wbStat.ok{color:#1f7a2f}#wbStat.busy{color:var(--gold)}
-#wbStat .bar{display:none;flex:0 0 auto;width:58px;height:8px;border-radius:2px;overflow:hidden;background:rgba(26,31,42,.15);position:relative}
-#wbStat.busy .bar{display:block}#wbStat .bar i{position:absolute;top:0;bottom:0;width:12px;border-radius:2px;background:var(--gold);animation:brick 1.1s linear infinite}
+body.drafting #wbStat{bottom:calc(100% + 44px)}
+#wbStat .bar{display:none;flex:0 0 auto;width:42px;height:7px;border-radius:2px;overflow:hidden;background:rgba(26,31,42,.15);position:relative}
+#wbStat.busy .bar{display:block}#wbStat .bar i{position:absolute;top:0;bottom:0;width:10px;border-radius:2px;background:var(--gold);animation:brick 1.1s linear infinite}
 #wbStat .bar i:nth-child(2){animation-delay:-.37s;background:var(--red)}#wbStat .bar i:nth-child(3){animation-delay:-.73s;background:var(--ink)}
-@keyframes brick{0%{left:-12px}100%{left:58px}}
+@keyframes brick{0%{left:-10px}100%{left:42px}}
 #wbStat span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#wbSheet{display:none;gap:6px;flex-wrap:wrap;align-items:center}body.drafting #wbSheet{display:flex}
-#wbSheet button{height:34px;min-width:34px;padding:0 9px;border:1px solid rgba(26,31,42,.25);border-radius:10px;background:rgba(255,255,255,.85);font:13px var(--sans);color:var(--ink)}
+#wbSheet{position:absolute;left:10px;right:10px;bottom:calc(100% + 4px);display:none;gap:5px;align-items:center;overflow-x:auto;white-space:nowrap;scrollbar-width:none}#wbSheet::-webkit-scrollbar{display:none}body.drafting #wbSheet{display:flex}
+#wbSheet button{flex:0 0 auto;height:36px;min-width:36px;padding:0 9px;border:1px solid rgba(26,31,42,.25);border-radius:10px;background:rgba(255,255,255,.94);font:13px var(--sans);color:var(--ink);box-shadow:0 3px 12px rgba(26,31,42,.1)}
 #wbSheet button.go{background:#2fbf3f;color:#fff;border:none;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:0 14px}
 #wbSheet button.no{margin-left:auto}
-#wbRow{display:flex;gap:6px;align-items:flex-end}
-#words{flex:1;min-width:0;height:52px;max-height:150px;padding:10px 12px;border:1px solid rgba(26,31,42,.25);border-radius:14px;font:16px/1.35 var(--sans);resize:none;background:rgba(255,255,255,.92);color:var(--ink);-webkit-user-select:text;user-select:text;box-shadow:0 4px 16px rgba(26,31,42,.12)}
-#words:focus{outline:2px solid var(--gold);border-color:transparent}
-#wbBuild{height:52px;padding:0 18px;border:none;border-radius:14px;background:var(--red);color:#fff;font:800 13px var(--sans);letter-spacing:.12em;text-transform:uppercase;box-shadow:0 6px 18px rgba(216,56,46,.35)}
+#wbRow,#wbKeyRow{display:flex;gap:6px;align-items:center}
+#words,#wbKey{flex:1;min-width:0;height:48px;padding:10px 12px;border:1px solid rgba(26,31,42,.25);border-radius:13px;font:15px/1.25 var(--sans);background:rgba(255,255,255,.94);color:var(--ink);-webkit-user-select:text;user-select:text;box-shadow:0 4px 14px rgba(26,31,42,.1)}
+#words{max-height:110px;resize:none}
+#words:focus,#wbKey:focus{outline:2px solid var(--gold);border-color:transparent}
+#wbBuild,#wbKeySave{height:48px;padding:0 15px;border:none;border-radius:13px;background:var(--red);color:#fff;font:800 12px var(--sans);letter-spacing:.1em;text-transform:uppercase;box-shadow:0 5px 16px rgba(216,56,46,.28)}
 #wbBuild:disabled{opacity:.55}
-#wbRead{height:52px;padding:0 12px;border:1px solid rgba(26,31,42,.25);border-radius:14px;background:rgba(255,255,255,.85);color:var(--ink);font:12px var(--mono);letter-spacing:.1em;text-transform:uppercase}
-body.drafting #wbBuild{background:var(--gold);box-shadow:0 6px 18px rgba(200,144,28,.35)}
-body[data-world="deathstar"] #wb{background:linear-gradient(rgba(11,13,18,0),rgba(11,13,18,.92) 30%)}
-body[data-world="deathstar"] #words,body[data-world="deathstar"] #wbRead,body[data-world="deathstar"] #wbSheet button{background:rgba(20,24,32,.9);color:#e6eaf2;border-color:rgba(230,234,242,.3)}
-body[data-world="deathstar"] #wbStat .bar{background:rgba(230,234,242,.18)}
+#wbKeySave{background:var(--ink);box-shadow:0 5px 16px rgba(26,31,42,.2)}
+#wbRead{display:none}
+body.drafting #wbBuild{background:var(--gold);box-shadow:0 5px 16px rgba(200,144,28,.28)}
+body[data-world="deathstar"] #wb{background:linear-gradient(rgba(11,13,18,0),rgba(11,13,18,.94) 38%)}
+body[data-world="deathstar"] #words,body[data-world="deathstar"] #wbKey,body[data-world="deathstar"] #wbSheet button{background:rgba(20,24,32,.94);color:#e6eaf2;border-color:rgba(230,234,242,.3)}
+body[data-world="deathstar"] #wbStat{background:rgba(20,24,32,.96)}
 #menu .ai{display:flex;gap:6px;flex-wrap:wrap;align-items:center}#menu .ai input{width:150px}#menu .ai select{height:30px;border:1px solid rgba(26,31,42,.25);border-radius:9px;font:12px var(--sans);background:rgba(255,255,255,.7);color:var(--ink);padding:0 6px}
 body[data-world="deathstar"] #menu .ai select{background:rgba(20,24,32,.85);color:#e6eaf2;border-color:rgba(230,234,242,.3)}
 #flash{position:fixed;inset:0;background:rgba(216,56,46,.3);opacity:0;pointer-events:none;transition:opacity .1s;z-index:3}#flash.on{opacity:1}
@@ -175,9 +182,13 @@ body[data-world="deathstar"] #menu .ai select{background:rgba(20,24,32,.85);colo
 <button id="det">Det</button>
 <button id="build">Build</button>
 <div id="palette"></div>
-<div id="wb"><div id="wbStat"><i class="bar"><i></i><i></i><i></i></i><span id="wbText"></span></div>
-<div id="wbSheet"><button id="wbCommit" class="go">Commit</button><button data-nudge="-1,0,0,0" title="left">◀</button><button data-nudge="1,0,0,0" title="right">▶</button><button data-nudge="0,-1,0,0" title="away">▲</button><button data-nudge="0,1,0,0" title="closer">▼</button><button data-nudge="0,0,1,0">up</button><button data-nudge="0,0,-1,0">down</button><button data-nudge="0,0,0,1" title="turn">⟳</button><button id="wbDiscard" class="no">Discard</button></div>
-<div id="wbRow"><textarea id="words" rows="2" placeholder="say what to build here: a lighthouse with red bands and a keeper at the door" autocomplete="off" autocapitalize="sentences" enterkeyhint="go"></textarea><button id="wbBuild">Build</button><button id="wbRead" title="read the build you are looking at into words">Read</button></div><div id="credit">terrain AWS · buildings © OpenStreetMap · imagery Esri</div></div>
+<div id="wb">
+  <div id="wbStat"><i class="bar"><i></i><i></i><i></i></i><span id="wbText"></span></div>
+  <div id="wbSheet"><button id="wbCommit" class="go">Commit</button><button data-nudge="-1,0,0,0" title="left">◀</button><button data-nudge="1,0,0,0" title="right">▶</button><button data-nudge="0,-1,0,0" title="away">▲</button><button data-nudge="0,1,0,0" title="closer">▼</button><button data-nudge="0,0,1,0">up</button><button data-nudge="0,0,-1,0">down</button><button data-nudge="0,0,0,1" title="turn">⟳</button><button id="wbDiscard" class="no">Discard</button></div>
+  <div id="wbKeyRow" hidden><input id="wbKey" type="password" placeholder="OpenAI API key · GPT-5.6 Sol max" autocomplete="off"><button id="wbKeySave">Save</button></div>
+  <div id="wbRow"><textarea id="words" rows="1" placeholder="build something here…" autocomplete="off" autocapitalize="sentences" enterkeyhint="go"></textarea><button id="wbBuild">Build</button><button id="wbRead" title="read the build you are looking at into words">Read</button></div>
+  <div id="credit">terrain AWS · buildings © OpenStreetMap · imagery Esri</div>
+</div>
 <div id="reticle"></div>
 <div id="room"></div>
 <div id="tally"></div>
@@ -187,5 +198,25 @@ body[data-world="deathstar"] #menu .ai select{background:rgba(20,24,32,.85);colo
 <div id="keys">wasd walk · mouse drag look · space saber · f push · g detonator · b build · shift run · e board / land</div>
 <div id="veil"><div class="k">word to world</div><h1 id="vTitle">Finding a place</h1><div class="bricks"><i></i><i></i><i></i><i></i><i></i></div><div class="m" id="vm"></div><ol id="stages"><li data-s="place">place</li><li data-s="ground">ground</li><li data-s="imagery">imagery</li><li data-s="buildings">buildings</li><li data-s="ship">the ship and Vader</li><li data-s="bricks">bricks</li></ol><button id="vStart" hidden>Start now</button></div>
 <script src="./world/main.js?v=44d2827a"></script>
+<script>
+(function(){
+  const keyRow=document.getElementById('wbKeyRow'), row=document.getElementById('wbRow'), key=document.getElementById('wbKey'), save=document.getElementById('wbKeySave'), words=document.getElementById('words');
+  function sync(){
+    const has=!!(window.Ai&&Ai.key());
+    keyRow.hidden=has; row.hidden=!has;
+    if(has&&words&&!words.value) words.placeholder='build something here…';
+  }
+  function saveKey(){
+    const v=(key.value||'').trim(); if(!v) return;
+    Ai.setKey(v); key.value=''; sync();
+    const menuKey=document.getElementById('aiKey'); if(menuKey) menuKey.value=Ai.key();
+    if(words) setTimeout(()=>words.focus(),50);
+  }
+  save.addEventListener('click',saveKey);
+  key.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();saveKey();}});
+  document.addEventListener('change',e=>{if(e.target&&e.target.id==='aiKey')setTimeout(sync,0);});
+  sync();
+})();
+</script>
 </body>
 </html>
