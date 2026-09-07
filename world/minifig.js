@@ -130,11 +130,12 @@ function step(rig, dt, ctl, world) {
 }
 
 /** HLIÐARENDI's walking rig, scaled to a 3 m minifig. */
-function camera(rig, camera, dt, look, world, portrait) {
+function camera(rig, camera, dt, look, world, portrait, build) {
   const M = rig.M, c = rig.cam;
-  c.yaw -= look.dx; c.pitch = clamp(c.pitch + look.dy, -0.38, 0.52);
-  const r = (portrait ? 4.65 : 4.15) * ORBIT * M;
+  c.yaw -= look.dx; c.pitch = clamp(c.pitch + look.dy, build ? 0.3 : -0.38, build ? 0.62 : 0.52);
+  const r = (portrait ? 4.65 : 4.15) * ORBIT * M * (build ? 1.2 : 1);
   V1.copy(rig.pos); V1.y += HEAD_M * M;
+  if (build) { V1.x -= Math.sin(c.yaw) * 3 * M; V1.z -= Math.cos(c.yaw) * 3 * M; V1.y -= 0.9 * M; }   // building: from above, looking past the figure at the ground ahead
   V2.set(V1.x + Math.sin(c.yaw) * Math.cos(c.pitch) * r, V1.y + Math.sin(c.pitch) * r + 0.28 * M, V1.z + Math.cos(c.yaw) * Math.cos(c.pitch) * r);
   const gy = world.groundH(V2.x, V2.z) + 0.6 * M; if (V2.y < gy) V2.y = gy;
   if (!c.set) { c.pos.copy(V2); c.look.copy(V1); c.set = true; }

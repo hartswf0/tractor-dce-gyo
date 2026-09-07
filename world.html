@@ -9,6 +9,7 @@
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script src="./examples/js/loaders/LDrawLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script src="./beta-prime-engine.js"></script>
 <script src="./nabugo.js"></script>
 <script src="./nabugo-ui.js"></script>
@@ -21,15 +22,18 @@
 <script src="./world/characters.js"></script>
 <script src="./world/worlds.js"></script>
 <script src="./world/tie.js"></script>
+<script src="./world/build.js"></script>
+<script src="./world/net.js"></script>
 <style>
 :root{--ink:#1a1f2a;--dim:#4b5566;--gold:#c8901c;--red:#d8382e;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;--sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;background:#b8cbd8;color:var(--ink);overflow:hidden;font:15px/1.4 var(--sans);-webkit-user-select:none;user-select:none;overscroll-behavior:none}
 #stage{position:fixed;inset:0}#stage canvas{display:block;width:100%;height:100%;touch-action:none}
 #top{position:fixed;left:0;right:0;top:0;padding:calc(10px + env(safe-area-inset-top)) 14px 8px;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none;z-index:4;gap:12px}
-#top .t{font:11px var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
+#top>div:first-child{flex:1;min-width:0}
+#top .t{font:11px var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #top .n{font-size:17px;font-weight:700;margin-top:2px;max-width:56vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#stat{font:11px/1.5 var(--mono);color:var(--dim);text-align:right;white-space:pre}
+#stat{font:11px/1.5 var(--mono);color:var(--dim);text-align:right;white-space:pre;max-width:56vw;overflow:hidden;text-overflow:ellipsis;flex:0 0 auto}
 #shield{position:fixed;left:14px;right:14px;top:calc(50px + env(safe-area-inset-top));height:3px;background:rgba(26,31,42,.15);border-radius:2px;overflow:hidden;display:none;z-index:4}
 #shield i{position:absolute;inset:0 auto 0 0;background:#2fbf3f;transition:width .15s}#shield.low i{background:var(--red)}
 #menuBtn{position:fixed;left:14px;top:calc(58px + env(safe-area-inset-top));height:34px;padding:0 12px;border:none;border-radius:10px;background:rgba(26,31,42,.12);font:11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink);z-index:6}
@@ -74,6 +78,35 @@ body[data-world="deathstar"] #stick{border-color:rgba(230,234,242,.5)}
 body[data-world="deathstar"] #shield{background:rgba(230,234,242,.18)}
 body[data-world="deathstar"] #credit{color:rgba(230,234,242,.45)}
 body[data-world="deathstar"] #veil{background:rgba(11,13,18,.94)}
+#build{position:fixed;right:14px;bottom:calc(64px + env(safe-area-inset-bottom));width:56px;height:56px;border:none;border-radius:999px;background:#2f3440;color:#fff;font:800 10px var(--mono);letter-spacing:.08em;text-transform:uppercase;box-shadow:0 8px 24px rgba(26,31,42,.3);z-index:5}
+#build.on{background:var(--gold)}
+body.fly #build{display:none}
+#palette{position:fixed;left:0;right:0;bottom:calc(126px + env(safe-area-inset-bottom));padding:6px 10px;display:none;flex-direction:column;gap:6px;z-index:5;pointer-events:auto}
+body.build #palette{display:flex}
+body.build #hint{bottom:calc(14px + env(safe-area-inset-bottom))}
+#palette .parts{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+#palette .parts::-webkit-scrollbar{display:none}
+#palette .parts button{flex:0 0 auto;height:34px;padding:0 12px;border:1px solid rgba(26,31,42,.25);border-radius:10px;background:rgba(255,255,255,.8);font:12px var(--sans);color:var(--ink);white-space:nowrap}
+#palette .parts button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+#palette .tools{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+#palette .cols{display:flex;gap:4px;flex-wrap:wrap}
+#palette .cols button{width:24px;height:24px;border:2px solid rgba(255,255,255,.9);border-radius:6px;box-shadow:0 0 0 1px rgba(26,31,42,.35)}
+#palette .cols button.on{box-shadow:0 0 0 2px var(--gold);transform:scale(1.15)}
+#palette .tools>button{height:32px;min-width:36px;padding:0 10px;border:1px solid rgba(26,31,42,.25);border-radius:9px;background:rgba(255,255,255,.8);font:14px var(--sans);color:var(--ink)}
+#palette .tools>button.on{background:var(--ink);color:#fff}
+#palette .tools>button:disabled{opacity:.4}
+#palette .tools>button.place{margin-left:auto;height:40px;padding:0 18px;font:800 12px var(--sans);letter-spacing:.12em;color:#fff;background:var(--red);border:none;border-radius:12px}
+#reticle{position:fixed;left:50%;top:56%;width:18px;height:18px;margin:-9px 0 0 -9px;border:2px solid rgba(255,255,255,.9);border-radius:999px;box-shadow:0 0 0 1px rgba(26,31,42,.5);pointer-events:none;display:none;z-index:4}
+body.build #reticle{display:block}
+@media (orientation:landscape){#reticle{top:52.5%}}
+#room{position:fixed;left:50%;top:calc(58px + env(safe-area-inset-top));transform:translateX(-50%);height:34px;line-height:34px;padding:0 12px;border-radius:10px;background:rgba(26,31,42,.12);font:11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink);display:none;z-index:6;pointer-events:none;white-space:nowrap}
+#room.on{display:block}
+#menu input{height:30px;width:96px;padding:0 8px;border:1px solid rgba(26,31,42,.25);border-radius:9px;font:12px var(--sans);background:rgba(255,255,255,.7);color:var(--ink)}
+#menu #codeIn{width:64px;text-transform:uppercase;font:13px var(--mono);letter-spacing:.2em}
+#menu em{font:11px var(--mono);color:var(--dim);font-style:normal;letter-spacing:.08em}
+body[data-world="deathstar"] #palette .parts button,body[data-world="deathstar"] #palette .tools>button{background:rgba(20,24,32,.85);color:#e6eaf2;border-color:rgba(230,234,242,.3)}
+body[data-world="deathstar"] #menu input{background:rgba(20,24,32,.85);border-color:rgba(230,234,242,.3)}
+body[data-world="deathstar"] #room{background:rgba(230,234,242,.16)}
 #flash{position:fixed;inset:0;background:rgba(216,56,46,.3);opacity:0;pointer-events:none;transition:opacity .1s;z-index:3}#flash.on{opacity:1}
 #keys{display:none;position:fixed;left:50%;bottom:calc(34px + env(safe-area-inset-bottom));transform:translateX(-50%);font:11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--dim);white-space:nowrap;z-index:4;pointer-events:none}
 @media (hover:hover) and (pointer:fine){#keys{display:block}}
@@ -91,8 +124,12 @@ body[data-world="deathstar"] #veil{background:rgba(11,13,18,.94)}
 <div id="stick"><i></i></div>
 <button id="prompt">Board the TIE</button>
 <button id="det">Det</button>
+<button id="build">Build</button>
+<div id="palette"></div>
+<div id="reticle"></div>
+<div id="room"></div>
 <div id="hint">left thumb walks · right thumb looks · tap right swings the saber · two fingers force push</div>
-<div id="keys">wasd walk · mouse drag look · space saber · f push · g detonator · shift run · e board / land</div>
+<div id="keys">wasd walk · mouse drag look · space saber · f push · g detonator · b build · shift run · e board / land</div>
 <div id="credit">terrain AWS · buildings © OpenStreetMap · imagery Esri</div>
 <div id="veil"><div class="k">Vader's world</div><h1 id="vTitle">Finding a place</h1><div class="m" id="vm"></div><ol id="stages"><li data-s="place">place</li><li data-s="ground">ground</li><li data-s="imagery">imagery</li><li data-s="buildings">buildings</li><li data-s="ship">the ship and Vader</li><li data-s="bricks">bricks</li></ol></div>
 <script src="./world/main.js"></script>

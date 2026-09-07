@@ -24,8 +24,8 @@ class Debris {
     if (this.kinds.has(name)) return this.kinds.get(name);
     geom.computeBoundingBox(); const bb = geom.boundingBox, half = new THREE.Vector3(), centre = new THREE.Vector3(); bb.getSize(half).multiplyScalar(0.5); bb.getCenter(centre);
     if (!geom.attributes.color) { const n = geom.attributes.position.count, c = new Float32Array(n * 3).fill(1); geom.setAttribute('color', new THREE.BufferAttribute(c, 3)); }
-    const im = new THREE.InstancedMesh(geom, this.mat, cap); im.frustumCulled = false; im.name = 'debris:' + name; im.count = cap;
-    for (let i = 0; i < cap; i++) im.setMatrixAt(i, ZERO); im.setColorAt(0, new THREE.Color(1, 1, 1)); im.instanceMatrix.needsUpdate = true;
+    const im = new THREE.InstancedMesh(geom, this.mat, cap); im.frustumCulled = false; im.name = 'debris:' + name; im.count = 0;   // grows with the high-water slot
+    for (let i = 0; i < cap; i++) im.setMatrixAt(i, ZERO); im.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(cap * 3).fill(1), 3); im.instanceMatrix.needsUpdate = true;   // r128 sizes the colour buffer from count, so make it ourselves
     this.scene.add(im);
     const k = { name, im, half, centre, free: Array.from({ length: cap }, (_, i) => cap - 1 - i), r: half.length() }; this.kinds.set(name, k); return k;
   }
@@ -33,7 +33,7 @@ class Debris {
   spawn({ part, matrix, colour, vel, ang }) {
     const k = this.kinds.get(part); if (!k) return null;
     if (!k.free.length) { const old = this.pieces.find(p => p.kind === k); if (old) this.kill(old); else return null; }
-    const slot = k.free.pop();
+    const slot = k.free.pop(); if (slot + 1 > k.im.count) k.im.count = slot + 1;
     const p = { kind: k, slot, pos: new THREE.Vector3(), quat: new THREE.Quaternion(), scl: new THREE.Vector3(), vel: vel ? vel.clone() : new THREE.Vector3(), ang: ang ? ang.clone() : new THREE.Vector3((Math.random() - .5) * 6, (Math.random() - .5) * 6, (Math.random() - .5) * 6), rest: false, settling: 0, age: 0, restAge: 0, aabb: null, cells: [] };
     matrix.decompose(p.pos, p.quat, p.scl);
     k.im.setColorAt(slot, colour || new THREE.Color(1, 1, 1)); k.im.instanceColor.needsUpdate = true;
