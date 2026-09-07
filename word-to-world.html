@@ -22,9 +22,9 @@
 <script src="./world/characters.js?v=0362e99e"></script>
 <script src="./world/worlds.js"></script>
 <script src="./world/tie.js"></script>
-<script src="./world/drive.js?v=05331bf0"></script>
+<script src="./world/drive.js?v=f8c2d6d2"></script>
 <script src="./world/fx.js?v=cf936655"></script>
-<script src="./world/dsl.js?v=a9b1a3bf"></script>
+<script src="./world/dsl.js?v=4cc7d5b0"></script>
 <script src="./world/ai.js?v=07540ebc"></script>
 <script src="./world/build.js?v=db2be2c8"></script>
 <script src="./world/props.js?v=c5fd6e8f"></script>
@@ -146,7 +146,9 @@ body[data-world="deathstar"] #tally,body[data-world="deathstar"] #floats .float{
 #wbSheet{display:none;gap:6px;flex-wrap:wrap;align-items:center}body.drafting #wbSheet{display:flex}
 #wbSheet button{height:34px;min-width:34px;padding:0 9px;border:1px solid rgba(26,31,42,.25);border-radius:10px;background:rgba(255,255,255,.85);font:13px var(--sans);color:var(--ink)}
 #wbSheet button.go{background:#2fbf3f;color:#fff;border:none;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:0 14px}
-#wbSheet button.no{margin-left:auto}
+#wbSheet button.no{margin-left:auto}#wbSheet .ride{display:inline-flex;border:1px solid rgba(26,31,42,.25);border-radius:10px;overflow:hidden}#wbSheet .ride button{border:none;border-radius:0;min-width:44px;font-size:12px}#wbSheet .ride button.on{background:var(--ink);color:#fff}
+#bchip{position:fixed;left:14px;top:calc(100px + env(safe-area-inset-top));max-width:70vw;height:30px;line-height:30px;padding:0 10px;border:none;border-radius:9px;background:rgba(26,31,42,.12);font:11px var(--mono);letter-spacing:.06em;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:none;z-index:6}#bchip.on{display:block}#bchip.busy{background:rgba(200,144,28,.25)}#bchip.ok{background:rgba(47,191,63,.22)}#bchip.warn{background:rgba(216,56,46,.22)}body.fly #bchip{display:none}
+body[data-world="deathstar"] #bchip{background:rgba(230,234,242,.16)}
 #wbRow{display:flex;gap:6px;align-items:flex-end}
 #words{flex:1;min-width:0;height:52px;max-height:150px;padding:10px 12px;border:1px solid rgba(26,31,42,.25);border-radius:14px;font:16px/1.35 var(--sans);resize:none;background:rgba(255,255,255,.92);color:var(--ink);-webkit-user-select:text;user-select:text;box-shadow:0 4px 16px rgba(26,31,42,.12)}
 #words:focus{outline:2px solid var(--gold);border-color:transparent}
@@ -186,6 +188,7 @@ body[data-world="deathstar"] #wbTop button,body[data-world="deathstar"] #wbKeyRo
 <div id="top"><div><div class="t" id="mode">walk · Vader</div><div class="n" id="place">…</div></div><div id="stat"></div></div>
 <div id="shield"><i id="shieldFill" style="width:100%"></i></div>
 <button id="menuBtn">Who · Where</button>
+<button id="bchip"></button>
 <div id="menu"></div>
 <div id="find"><input id="q" placeholder="a street, a city — or 25.7867, -80.1750" autocomplete="off"><button id="go">Go anywhere</button></div>
 <div id="msg"></div>
@@ -198,7 +201,7 @@ body[data-world="deathstar"] #wbTop button,body[data-world="deathstar"] #wbKeyRo
 <div id="wb"><div id="wbTop"><div id="wbStat"><i class="bar"><i></i><i></i><i></i></i><span id="wbText"></span><b id="wbTime"></b></div><button id="wbStop" class="stop" hidden title="stop the model">stop</button><button id="wbLogBtn" title="the build log">log</button><button id="wbKeyBtn" title="OpenAI key">key</button><button id="wbHide" title="hide the word bar">hide</button></div>
 <div id="wbLog" hidden><pre id="wbLogText"></pre><div class="row"><button id="wbLogCopy">copy</button><button id="wbLogClear">clear</button></div></div>
 <div id="wbKeyRow"><input id="wbKey" type="password" placeholder="OpenAI API key · stays in this browser" autocomplete="off"><button id="wbKeyOk">Save</button></div>
-<div id="wbSheet"><button id="wbCommit" class="go">Commit</button><button data-nudge="-1,0,0,0" title="left">◀</button><button data-nudge="1,0,0,0" title="right">▶</button><button data-nudge="0,-1,0,0" title="away">▲</button><button data-nudge="0,1,0,0" title="closer">▼</button><button data-nudge="0,0,1,0">up</button><button data-nudge="0,0,-1,0">down</button><button data-nudge="0,0,0,1" title="turn">⟳</button><button id="wbDiscard" class="no">Discard</button></div>
+<div id="wbSheet"><button id="wbCommit" class="go">Commit</button><span class="ride"><button data-ride="" class="on" title="it stays bricks">bricks</button><button data-ride="drive" title="one thing you can drive">drive</button><button data-ride="fly" title="one thing you can fly">fly</button></span><button id="wbSave" title="keep it in your builds">save</button><button data-nudge="-1,0,0,0" title="left">◀</button><button data-nudge="1,0,0,0" title="right">▶</button><button data-nudge="0,-1,0,0" title="away">▲</button><button data-nudge="0,1,0,0" title="closer">▼</button><button data-nudge="0,0,1,0">up</button><button data-nudge="0,0,-1,0">down</button><button data-nudge="0,0,0,1" title="turn">⟳</button><button id="wbDiscard" class="no">Discard</button></div>
 <div id="wbRow"><textarea id="words" rows="2" placeholder="say what to build here: a lighthouse with red bands and a keeper at the door" autocomplete="off" autocapitalize="sentences" enterkeyhint="go"></textarea><button id="wbBuild">Build</button><button id="wbRead" title="read the build you are looking at into words">Read</button></div><div id="credit">terrain AWS · buildings © OpenStreetMap · imagery Esri</div></div>
 <div id="reticle"></div>
 <div id="room"></div>
@@ -208,6 +211,6 @@ body[data-world="deathstar"] #wbTop button,body[data-world="deathstar"] #wbKeyRo
 <div id="hint">say what to build, or walk: left thumb walks · right thumb looks · tap right swings the saber</div>
 <div id="keys">wasd walk · mouse drag look · space saber · f push · g detonator · b build · shift run · e board / land</div>
 <div id="veil"><div class="k">word to world</div><h1 id="vTitle">Finding a place</h1><div class="bricks"><i></i><i></i><i></i><i></i><i></i></div><div class="m" id="vm"></div><ol id="stages"><li data-s="place">place</li><li data-s="ground">ground</li><li data-s="imagery">imagery</li><li data-s="buildings">buildings</li><li data-s="ship">the ship and Vader</li><li data-s="bricks">bricks</li></ol><button id="vStart" hidden>Start now</button></div>
-<script src="./world/main.js?v=75169995"></script>
+<script src="./world/main.js?v=70f88581"></script>
 </body>
 </html>

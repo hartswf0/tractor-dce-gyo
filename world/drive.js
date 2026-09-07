@@ -18,8 +18,10 @@ const KINDS = {
   boat: { cruise: 8, boost: 12, turn: 1.2, fly: false, hover: 0, ram: 0.8 },
   speeder: { cruise: 15, boost: 30, turn: 2.0, fly: true, hover: 0.6, ram: 0.8, stall: 0 },
   plane: { cruise: 20, boost: 40, turn: 1.6, fly: true, hover: 0, ram: 1, stall: 8 },
+  rover: { cruise: 13, boost: 20, turn: 1.7, fly: false, hover: 0, ram: 1.2 },          // any build the player chose to drive
+  craft: { cruise: 18, boost: 32, turn: 1.8, fly: true, hover: 0.5, ram: 1, stall: 0 },  // any build the player chose to fly: it hovers like a speeder
 };
-const kindOf = it => { const k = it && it.src && String(it.src.kind || 'car').toLowerCase(); return KINDS[k] ? k : 'car'; };
+const kindOf = it => { const src = it && it.src; if (!src) return 'car'; if (src.ride) return src.ride === 'fly' ? 'craft' : 'rover'; const k = String(src.kind || 'car').toLowerCase(); return KINDS[k] ? k : 'car'; };
 
 /** Board a prop. prop: the Props item (group, box, yaw). */
 function create({ prop, M, groundH, aabbs }) {
