@@ -29,7 +29,7 @@ button{height:34px;padding:0 12px;border:1px solid rgba(255,255,255,.18);border-
 button.main{background:var(--red);border:none;font-weight:800;letter-spacing:.08em;text-transform:uppercase}button.go{background:#2fbf3f;border:none;font-weight:800}button:disabled{opacity:.5}
 .chips button{height:28px;font-size:11px;border-radius:999px}
 #stat{font:11px var(--mono);color:var(--dim);min-height:14px;white-space:pre-wrap}#stat.warn{color:#ff6b62}#stat.ok{color:#5fd36f}#stat.busy{color:var(--gold)}
-details{font-size:12px;color:var(--dim)}summary{cursor:pointer;font:11px var(--mono);letter-spacing:.14em;text-transform:uppercase}details input,details select{margin-top:6px;font:12px var(--mono)}
+details{font-size:12px;color:var(--dim)}summary{cursor:pointer;font:11px var(--mono);letter-spacing:.14em;text-transform:uppercase}details input,details select{margin-top:6px;font:12px var(--mono)}#logText{margin:6px 0 0;max-height:200px;overflow:auto;font:11px/1.45 var(--mono);white-space:pre-wrap;word-break:break-word;color:#c9d1dc}
 .settinglabel{display:block;margin-top:7px;font:10px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:rgba(230,234,242,.45)}
 #bus{font-size:12px;color:var(--dim)}#bus .item{display:flex;gap:6px;align-items:center;margin-top:4px}#bus b{color:#e6eaf2;font-weight:600}
 #credit{font:10px var(--mono);color:rgba(230,234,242,.4);margin-top:auto}
@@ -44,6 +44,7 @@ details{font-size:12px;color:var(--dim)}summary{cursor:pointer;font:11px var(--m
     <textarea id="prompt" placeholder="a stone watchtower with a red roof and a knight at the door"></textarea>
     <div class="row"><button id="draft" class="main">Draft</button><span class="chips"><button data-ask="a small stone hut with a red roof and a door">hut</button><button data-ask="a castle gate with two round towers and a knight">gate</button><button data-ask="a red race car with a driver">racer</button><button data-ask="a lighthouse with a white tower, red bands and a lamp room">lighthouse</button></span></div>
     <div id="stat"></div>
+    <details id="log"><summary>build log</summary><pre id="logText"></pre></details>
     <textarea id="program" placeholder="the program appears here — edit it and re-render" spellcheck="false"></textarea>
     <div class="row"><button id="rerender">Re-render</button><button id="download">Download .mpd</button><button id="copy">Copy program</button><button id="send" class="go">Send to world</button></div>
     <details id="settings"><summary>OpenAI</summary><span class="settinglabel">API key</span><input id="key" type="password" placeholder="OpenAI API key (stays in this browser)" autocomplete="off"><span class="settinglabel">model</span><input id="model" placeholder="gpt-5.6-sol" autocomplete="off"><span class="settinglabel">reasoning effort</span><select id="effort"><option value="max">max — strongest</option><option value="xhigh">xhigh</option><option value="high">high</option><option value="medium">medium</option><option value="low">low</option><option value="none">none — fastest</option></select></details>
@@ -57,6 +58,11 @@ details{font-size:12px;color:var(--dim)}summary{cursor:pointer;font:11px var(--m
 const $ = s => document.querySelector(s);
 const S = { engine: null, result: null, program: null, busy: false, bus: [] };
 const status = (t, cls) => { const e = $('#stat'); e.textContent = t; e.className = cls || ''; };
+const LOG = []; let t0 = 0, tick = 0, stageNow = '';
+const logLine = (kind, text) => { const dt = t0 ? (performance.now() - t0) / 1000 : 0; LOG.push(`+${dt.toFixed(1).padStart(6)} s  ${kind.padEnd(7)} ${text}`); if (LOG.length > 200) LOG.shift(); const pre = $('#logText'); if (pre) { pre.textContent = LOG.join('\n'); pre.scrollTop = pre.scrollHeight; } try { console.info('[builder] ' + text); } catch (e) { } };
+const fmtSec = s => s < 120 ? `${s | 0} s` : `${(s / 60) | 0} min ${(s % 60) | 0} s`;
+const startClock = () => { t0 = performance.now(); clearInterval(tick); tick = setInterval(() => { if (S.busy) status(`${stageNow || 'thinking'} · ${fmtSec((performance.now() - t0) / 1000)}`, 'busy'); else clearInterval(tick); }, 500); };
+Ai.onStatus = (stage, detail, state) => { const name = String(stage).toLowerCase(); if (state === 'working') { stageNow = name + (detail ? ' · ' + detail : ''); logLine('stage', stageNow); } else if (state === 'done') logLine('done', `answered · ${detail}`); else if (state === 'error') { logLine('error', `${name} · ${detail}`); $('#log').open = true; } else logLine('info', `${name} · ${detail}`); };
 async function boot() {
   S.engine = await NabugoUI.makeViewer($('#stage'), { background: 0x0b0d10, base: '.' });
   $('#key').value = Ai.key(); $('#model').value = Ai.model(); $('#effort').value = Ai.effort(); $('#settings').open = !Ai.key();
@@ -75,9 +81,9 @@ async function boot() {
 async function draft(prompt) {
   prompt = (prompt || '').trim(); if (!prompt || S.busy) return;
   if (!Ai.key()) { $('#settings').open = true; status('paste an OpenAI key first', 'warn'); $('#key').focus(); return; }
-  S.busy = true; $('#draft').disabled = true; status(`${Ai.model()} · ${Ai.effort()} reasoning…`, 'busy');
+  S.busy = true; $('#draft').disabled = true; LOG.length = 0; startClock(); stageNow = ''; logLine('info', `asking ${Ai.model()} · ${Ai.effort()} reasoning`); status(`${Ai.model()} · ${Ai.effort()} reasoning`, 'busy');
   try {
-    let r = await Ai.ask(prompt, {}); let res = Dsl.compile(r.program);
+    let r = await Ai.ask(prompt, { onFirst: (program, res) => { logLine('compile', `first design: ${res ? res.report.pieces : '?'} bricks · ${res ? res.report.floating : '?'} floating`); show(program, true); } }); let res = Dsl.compile(r.program); logLine('compile', `chosen: ${res.report.pieces} bricks · ${res.report.props} props · ${res.report.floating} floating · ${res.report.blocked} blocked`);
     if (res.report.unknown.length || res.report.errors.length || res.report.floating > 5) {
       status(`compiler found trouble · ${Ai.effort()} repair…`, 'busy');
       try { const r2 = await Ai.repair(r, res.report); const res2 = Dsl.compile(r2.program); if (res2.report.pieces + res2.report.props >= (res.report.pieces + res.report.props) * 0.5) r = r2; } catch (e) { }
@@ -88,8 +94,8 @@ async function draft(prompt) {
       const reasoning = u.output_tokens_details && u.output_tokens_details.reasoning_tokens;
       status(`${$('#stat').textContent} · ${u.total_tokens || 0} tokens${reasoning ? ` · ${reasoning} reasoning` : ''}`, 'ok');
     }
-  } catch (e) { status(e.message || String(e), 'warn'); }
-  finally { S.busy = false; $('#draft').disabled = false; }
+  } catch (e) { logLine('error', e.message || String(e)); status(e.message || String(e), 'warn'); }
+  finally { S.busy = false; clearInterval(tick); $('#draft').disabled = false; }
 }
 function show(program, quiet) {
   S.program = program; const res = Dsl.compile(program); S.result = res; $('#program').value = JSON.stringify(program, null, 1);

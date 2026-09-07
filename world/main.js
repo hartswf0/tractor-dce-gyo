@@ -60,7 +60,7 @@ function buildMenu() {
   const worlds = Object.entries(Worlds.PRESETS).map(([k, p]) => `<button data-world="${k}" class="${k === W.world ? 'on' : ''}">${p.name}</button>`).join('');
   $('#menu').innerHTML = `<div class="row"><span>play as</span>${chars}</div><div class="row"><span>world</span>${worlds}</div>
     <div class="row ai"><span>builder</span><input id="aiKey" type="password" placeholder="OpenAI API key (stays here)" autocomplete="off"><em>${Ai.model()} · ${Ai.effort()} reasoning · designs, checks, reviews</em></div>
-    <div class="row net"><span>together</span><input id="nameIn" placeholder="your name" maxlength="14"><button id="hostBtn">Host a room</button><input id="codeIn" placeholder="CODE" maxlength="4" autocapitalize="characters"><button id="joinBtn">Join</button><button id="linkBtn" hidden>Copy link</button><button id="leaveBtn" hidden>Leave</button><button id="muteBtn" title="sound">🔊</button></div><div class="row"><em id="roomStat"></em></div>`;
+    <div class="row net"><span>together</span><input id="nameIn" placeholder="your name" maxlength="14"><button id="hostBtn">Host a room</button><input id="codeIn" placeholder="CODE" maxlength="4" autocapitalize="characters"><button id="joinBtn">Join</button><button id="linkBtn" hidden>Copy link</button><button id="leaveBtn" hidden>Leave</button><button id="muteBtn" title="sound">sound on</button></div><div class="row"><em id="roomStat"></em></div>`;
   $('#menu').querySelectorAll('[data-as]').forEach(b => b.onclick = () => setCharacter(b.dataset.as));
   $('#menu').querySelectorAll('[data-world]').forEach(b => b.onclick = () => setWorld(b.dataset.world));
   $('#nameIn').value = W.name || ''; $('#nameIn').onchange = () => setName($('#nameIn').value);
@@ -68,7 +68,7 @@ function buildMenu() {
   $('#hostBtn').onclick = () => hostRoom(); $('#joinBtn').onclick = () => joinRoom($('#codeIn').value); $('#leaveBtn').onclick = () => leaveRoom();
   $('#linkBtn').onclick = () => { const link = W.room.link(); (navigator.clipboard ? navigator.clipboard.writeText(link) : Promise.reject()).then(() => toast('link copied', 900), () => { prompt('Share this link', link); }); };
   $('#codeIn').addEventListener('keydown', e => { if (e.key === 'Enter') joinRoom($('#codeIn').value); });
-  const mb = $('#muteBtn'); mb.textContent = Fx.Sfx.muted ? '🔇' : '🔊'; mb.onclick = () => { Fx.Sfx.setMute(!Fx.Sfx.muted); mb.textContent = Fx.Sfx.muted ? '🔇' : '🔊'; Fx.Sfx.unlock(); };
+  const mb = $('#muteBtn'); mb.textContent = Fx.Sfx.muted ? 'sound off' : 'sound on'; mb.onclick = () => { Fx.Sfx.setMute(!Fx.Sfx.muted); mb.textContent = Fx.Sfx.muted ? 'sound off' : 'sound on'; Fx.Sfx.unlock(); };
 }
 function setName(n) { W.name = (n || '').trim().slice(0, 14) || W.name; try { localStorage.setItem('world.name', W.name); } catch (e) { } }
 function roomStat() {
@@ -578,7 +578,7 @@ function bindPalette() {
   const P = $('#palette');
   P.innerHTML = `<div class="parts">${Build.PARTS.map(([part, name]) => `<button data-part="${part}">${name}</button>`).join('')}</div>
     <div class="tools"><span class="cols">${Build.COLOURS.map(c => `<button data-col="${c}" title="${c}"></button>`).join('')}</span>
-    <button data-tool="rot" title="rotate (R)">⟳</button><button data-tool="up" title="lift (])">▲</button><button data-tool="down" title="lower ([)">▼</button><button data-tool="undo" title="undo (⌫)">⌫</button><button data-tool="pick" title="pick up (X)">✋</button><button data-tool="reset" title="reset this place">reset</button><button data-tool="say" title="say what to build">🗣 say</button><button data-tool="place" class="place">PLACE</button></div>`;
+    <button data-tool="rot" title="rotate (R)">⟳</button><button data-tool="up" title="lift (])">▲</button><button data-tool="down" title="lower ([)">▼</button><button data-tool="undo" title="undo (⌫)">⌫</button><button data-tool="pick" title="pick up (X)">pick</button><button data-tool="reset" title="reset this place">reset</button><button data-tool="say" title="say what to build">say</button><button data-tool="place" class="place">PLACE</button></div>`;
   P.querySelectorAll('[data-part]').forEach(b => b.onclick = () => { W.build.part = b.dataset.part; W.build.pick = false; paintPalette(); });
   P.querySelectorAll('[data-col]').forEach(b => b.onclick = () => { W.build.col = +b.dataset.col; paintPalette(); });
   P.querySelectorAll('[data-tool]').forEach(b => b.onclick = () => { const B = W.build; switch (b.dataset.tool) { case 'rot': rotateBuild(); break; case 'up': B.lift = Math.min(B.lift + 1, 60); break; case 'down': B.lift = Math.max(B.lift - 1, -60); break; case 'undo': B.undo(); break; case 'pick': setPick(!B.pick); break; case 'reset': if (confirm('Forget every brick built and every wall broken here?')) resetPlace(); break; case 'say': toggleBuild(false); wbOpen(true); break; case 'place': buildAct(); break; } paintPalette(); });
@@ -603,7 +603,7 @@ function bindMaster() {
   const bar = $('#wb'), fit = () => document.documentElement.style.setProperty('--wb', (document.body.classList.contains('wb-off') ? 0 : bar.offsetHeight) + 'px');   // the buttons above the bar rise with it
   if (window.ResizeObserver) new ResizeObserver(fit).observe(bar); W.wbFit = fit;
   $('#wbSay').onclick = () => wbOpen(true); $('#wbHide').onclick = () => { if (document.body.classList.contains('drafting')) { toast('commit or discard the draft first', 1200); return; } wbOpen(false); };
-  $('#wbKeyBtn').onclick = () => wbKeyRow(); $('#wbKey').onchange = () => saveKey($('#wbKey').value); $('#wbKeyOk').onclick = () => saveKey($('#wbKey').value);
+  $('#wbKeyBtn').onclick = () => wbKeyRow(); $('#wbLogBtn').onclick = () => wbLog(); $('#wbStop').onclick = () => { if (stopBuild()) toast('stopping', 700); }; $('#wbLogCopy').onclick = () => { const t = (W.master.log || []).map(l => `+${l.dt.toFixed(1)}s ${l.kind} ${l.text}`).join('\n'); (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(() => toast('log copied', 800), () => toast('could not copy', 800)); }; $('#wbLogClear').onclick = () => { W.master.log = []; wbLogPaint(); }; $('#wbKey').onchange = () => saveKey($('#wbKey').value); $('#wbKeyOk').onclick = () => saveKey($('#wbKey').value);
   $('#wbKey').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); saveKey($('#wbKey').value); } });
   let wanted = false; try { wanted = localStorage.getItem('world.wb') === '1'; } catch (e) { } W.wbWanted = wanted;
   wbOpen(wanted, true); mbStatus(''); wbHint();
@@ -627,7 +627,7 @@ function saveKey(v) { Ai.setKey(v); const k = $('#aiKey'); if (k) k.value = Ai.k
 /** The word bar's placeholder says what words do right now. */
 function wbHint() {
   const T = $('#words'); if (!T) return;
-  T.placeholder = !Ai.key() ? 'paste an OpenAI key above (🔑), then say what to build' : W.master.result ? 'change it: taller, a red roof, add a knight at the door…' : 'say what to build here: a lighthouse with red bands and a keeper at the door';
+  T.placeholder = !Ai.key() ? 'paste an OpenAI key above (key), then say what to build' : W.master.result ? 'change it: taller, a red roof, add a knight at the door…' : 'say what to build here: a lighthouse with red bands and a keeper at the door';
   $('#wbBuild').textContent = W.master.result ? 'Change' : 'Build';
 }
 /** Words go to the model: a fresh build, or a change to the draft that stands. */
@@ -636,17 +636,39 @@ async function say(words) {
   if (W.master.result && W.master.conv) return mbEdit(words);
   return mbDraft(words);
 }
-function mbStatus(text, cls) {
-  W.master.status = text; const e = $('#wbStat'); if (e) { $('#wbText').textContent = text; e.className = (text ? 'on ' : '') + (cls || ''); }
+function mbStatus(text, cls, time) {
+  W.master.status = text; const e = $('#wbStat'); if (e) { $('#wbText').textContent = text; const t = $('#wbTime'); if (t) t.textContent = time || ''; e.className = (text ? 'on ' : '') + (cls || ''); }
   const has = !!(W.master.result && (W.draft.pieces.size || W.master.ghosts.length)); document.body.classList.toggle('drafting', has); wbHint();
 }
-/** A live "asking…" line: the brain's own stage when it reports one, the model, the effort and the seconds ticking. */
+const fmtSec = s => s < 120 ? `${s | 0} s` : `${(s / 60) | 0} min ${(s % 60) | 0} s`;
+/** The short names the strip uses for the brain's stages. */
+function stageName(stage) { const t = String(stage || '').toLowerCase(); if (/design/.test(t)) return 'design 1/3'; if (/local check/.test(t)) return 'check 2/3'; if (/review/.test(t)) return 'review 3/3'; if (/repair/.test(t)) return 'repair'; if (/chang/.test(t)) return 'change'; return t.replace(/\s*·\s*/g, ' · ') || 'thinking'; }
+/** A live line while the brain works: its stage, what it is doing, and the seconds since this build began, never cut off. */
 function mbBusy(what) {
-  clearInterval(W.master.tick); if (!what) return; const t0 = performance.now(); W.master.stage = null;
-  const line = () => { const st = W.master.stage; return `${st ? st.stage.toLowerCase() + (st.detail ? ' · ' + st.detail : '') : what + ' ' + Ai.model()} · ${Ai.effort()} reasoning · ${((performance.now() - t0) / 1000) | 0} s`; };
-  mbStatus(line(), 'busy'); W.master.tick = setInterval(() => { if (W.master.busy) mbStatus(line(), 'busy'); else clearInterval(W.master.tick); }, 500);
+  clearInterval(W.master.tick); if (!what) return; W.master.t0 = performance.now(); W.master.stage = null; W.master.log = []; mbLog('info', `${what} ${Ai.model()} · ${Ai.effort()} reasoning · design, local check, review`);
+  const line = () => { const st = W.master.stage; return st ? `${stageName(st.stage)}${st.detail ? ' · ' + st.detail : ''}` : `${what} ${Ai.model()}`; };
+  const paint = () => { const since = (performance.now() - W.master.t0) / 1000; mbStatus(line(), 'busy', fmtSec(since)); if (since > 600 && W.master.abort && !W.master.capped) { W.master.capped = true; mbLog('error', 'ten minutes with no answer: stopped'); stopBuild(); } };
+  W.master.capped = false; paint(); W.master.tick = setInterval(() => { if (W.master.busy) paint(); else clearInterval(W.master.tick); }, 500);
+  const sb = $('#wbStop'); if (sb) sb.hidden = false;
 }
-Ai.onStatus = (stage, detail, state) => { if (W.master.busy && state === 'working') W.master.stage = { stage, detail }; };
+function mbIdle() { W.master.busy = false; clearInterval(W.master.tick); W.master.abort = null; $('#wbBuild').disabled = false; const sb = $('#wbStop'); if (sb) sb.hidden = true; }
+/** Stop the call in flight; whatever stands (a first design) stays. */
+function stopBuild() { if (!W.master.abort) return false; W.master.abort.abort(); return true; }
+/** The build log: every stage, every answer with its tokens, every compile, every error, with the seconds since the build began. */
+function mbLog(kind, text) {
+  const log = W.master.log || (W.master.log = []), dt = W.master.t0 ? (performance.now() - W.master.t0) / 1000 : 0;
+  log.push({ t: Date.now(), dt, kind, text }); if (log.length > 200) log.shift();
+  try { console.info(`[builder +${dt.toFixed(1)}s] ${kind}: ${text}`); } catch (e) { }
+  if (kind === 'error') wbLog(true); else wbLogPaint();
+}
+function wbLogPaint() { const pre = $('#wbLogText'); if (!pre || $('#wbLog').hidden) return; pre.textContent = (W.master.log || []).map(l => `+${l.dt.toFixed(1).padStart(6)} s  ${l.kind.padEnd(7)} ${l.text}`).join('\n') || 'nothing yet: press Build'; pre.scrollTop = pre.scrollHeight; }
+function wbLog(on) { const box = $('#wbLog'); if (!box) return; on = on === undefined ? box.hidden : !!on; box.hidden = !on; $('#wbLogBtn').classList.toggle('on', on); if (on) { wbOpen(true, true); wbLogPaint(); } if (W.wbFit) W.wbFit(); }
+Ai.onStatus = (stage, detail, state, started, extra) => {
+  if (state === 'working') { if (W.master.busy) W.master.stage = { stage, detail }; mbLog('stage', `${stageName(stage)} · ${detail || ''}`); }
+  else if (state === 'done') mbLog('done', `${stageName(W.master.stage && W.master.stage.stage)} answered · ${detail}`);
+  else if (state === 'error') mbLog('error', `${String(stage).toLowerCase()} · ${detail}`);
+  else mbLog('info', `${String(stage).toLowerCase()} · ${detail}`);
+};
 /** Where a draft goes: the reticle's target if there is one, else three metres ahead of the player, on the stud grid. */
 function mbAnchor() {
   const f = W.build.frame; let x, z;
@@ -661,41 +683,49 @@ function mbContext() {
   const near = W.city.near(a.x, a.z, 30 * M).length, mine = W.build.nearPoint(a.x, a.z, 30 * M).size, props = W.props.near(a.x, a.z, 30 * M).length;
   return { place: p && p.name, world: W.world, ground: slope, standing: `${near} buildings, ${mine} of your bricks, ${props} props within 30 m` };
 }
-/** Ask the model, compile, and show the draft. */
+/** Ask the model, compile, and show the draft. The first design stands as soon as it compiles; the review replaces it in place. */
 async function mbDraft(prompt) {
   prompt = (prompt || '').trim(); if (!prompt || W.master.busy || W.mode !== 'walk') { if (W.mode !== 'walk') toast('land first', 900); return; }
   if (!Ai.key()) { needKey(); return; }
-  W.master.busy = true; mbBusy('asking'); $('#wbBuild').disabled = true;
+  W.master.busy = true; W.master.abort = new AbortController(); const signal = W.master.abort.signal; mbBusy('asking'); $('#wbBuild').disabled = true;
+  let first = null;
+  const onFirst = program => { const res = Dsl.compile(program); mbLog('compile', compileLine('first design', res)); if (!res.report.pieces && !res.report.props) return; first = res; W.master.conv = { program, messages: [] }; W.master.words = prompt; mbShow(res, null, null, true); W.master.busy = true; W.master.stage = { stage: 'review', detail: 'the first design stands · the review may replace it' }; };
   try {
-    let r = await Ai.ask(prompt, { context: mbContext() }); let res = Dsl.compile(r.program);
-    if (res.report.unknown.length || res.report.errors.length || res.report.floating > 5) { mbBusy('repairing with'); try { const r2 = await Ai.repair(r, res.report); const res2 = Dsl.compile(r2.program); if (res2.report.pieces + res2.report.props >= (res.report.pieces + res.report.props) * 0.5) { r = r2; res = res2; } } catch (e) { console.warn('repair', e); } }
-    W.master.conv = r; W.master.words = prompt; mbShow(res, r.usage);
-  } catch (e) { W.master.busy = false; mbStatus(e.message || String(e), 'warn'); }
-  finally { W.master.busy = false; clearInterval(W.master.tick); $('#wbBuild').disabled = false; }
+    let r = await Ai.ask(prompt, { context: mbContext(), signal, onFirst }); let res = Dsl.compile(r.program); mbLog('compile', compileLine('chosen design', res));
+    if (res.report.unknown.length || res.report.errors.length || res.report.floating > 5) { W.master.stage = { stage: 'repair', detail: 'the compiler found trouble' }; mbLog('info', `repair: ${res.report.unknown.length} unknown ops · ${res.report.errors.length} errors · ${res.report.floating} floating`); try { const r2 = await Ai.repair(r, res.report, { signal }); const res2 = Dsl.compile(r2.program); mbLog('compile', compileLine('repaired', res2)); if (res2.report.pieces + res2.report.props >= (res.report.pieces + res.report.props) * 0.5) { r = r2; res = res2; } else mbLog('info', 'the repair lost too much: keeping the design before it'); } catch (e) { if (e.name === 'AbortError') throw e; mbLog('error', 'repair failed · ' + (e.message || e)); } }
+    W.master.conv = r; W.master.words = prompt; mbShow(res, r.usage, first ? { anchor: { ...W.master.anchor }, rot: W.master.rot, ids: W.master.replace } : null);
+    mbLog('info', `done in ${fmtSec((performance.now() - W.master.t0) / 1000)} · ${res.report.pieces} bricks${res.report.props ? ` · ${res.report.props} props` : ''} · commit or change it`);
+  } catch (e) {
+    if (e.name === 'AbortError') { mbIdle(); mbStatus(first ? `stopped · the first design stands: commit or change it` : 'stopped', 'warn', fmtSec((performance.now() - W.master.t0) / 1000)); return; }
+    mbLog('error', e.message || String(e)); mbIdle(); mbStatus(e.message || String(e), 'warn');
+  }
+  finally { mbIdle(); }
 }
+function compileLine(what, res) { const r = res.report; return `${what}: ${(res.name || 'build')} · ${r.pieces} bricks · ${r.props} props · ${r.floating} floating · ${r.blocked} blocked${r.unknown.length ? ` · unknown ops ${r.unknown.map(u => u.op).join(',')}` : ''}${r.errors.length ? ` · errors ${r.errors.map(u => u.error).join('; ')}` : ''}`; }
 function needKey() { wbOpen(true, true); wbKeyRow(true); mbStatus('paste an OpenAI key first: it stays in this browser', 'warn'); const k = $('#wbKey'); if (k) k.focus(); }
 /** Words about the draft that stands: the model edits the program and the draft is re-laid in place. */
 async function mbEdit(words) {
   if (W.master.busy || !W.master.result) return; if (!Ai.key()) { needKey(); return; }
   const prev = W.master.conv || { program: W.master.program }, keep = { anchor: { ...W.master.anchor }, rot: W.master.rot, ids: W.master.replace };
-  W.master.busy = true; mbBusy('changing with'); $('#wbBuild').disabled = true;
+  W.master.busy = true; W.master.abort = new AbortController(); const signal = W.master.abort.signal; mbBusy('changing with'); $('#wbBuild').disabled = true;
   try {
-    const r = await Ai.edit(prev, words, { context: mbContext() }); const res = Dsl.compile(r.program);
+    const r = await Ai.edit(prev, words, { context: mbContext(), signal }); const res = Dsl.compile(r.program); mbLog('compile', compileLine('changed', res));
     if (!res.report.pieces && !res.report.props) throw new Error('the change left nothing to build');
     W.master.conv = r; W.master.words = (W.master.words ? W.master.words + ' · ' : '') + words;
     mbShow(res, r.usage, keep); $('#words').value = ''; $('#words').style.height = '';
-  } catch (e) { mbStatus(e.message || String(e), 'warn'); }
-  finally { W.master.busy = false; clearInterval(W.master.tick); $('#wbBuild').disabled = false; }
+  } catch (e) { mbIdle(); if (e.name === 'AbortError') { mbStatus('stopped · the draft stands as it was', 'warn'); return; } mbLog('error', e.message || String(e)); mbStatus(e.message || String(e), 'warn'); }
+  finally { mbIdle(); }
 }
 /** Show a compiled result as a see-through draft at the anchor. usage: the model's token counts, if any. */
-function mbShow(res, usage, keep) {
+function mbShow(res, usage, keep, provisional) {
   const conv = W.master.conv, replace = keep ? keep.ids : null, words = W.master.words;
   mbDiscard(true); const a = keep ? keep.anchor : mbAnchor(); W.master.result = res; W.master.anchor = a; W.master.rot = keep ? keep.rot : 0; W.master.usage = usage || null; W.master.conv = conv; W.master.replace = replace; W.master.words = words;
   wbOpen(true, true); mbLay();
   const rep = res.report, fixes = rep.floating + rep.blocked + rep.unknown.length + rep.errors.length;
   const reasoning = usage && usage.output_tokens_details && usage.output_tokens_details.reasoning_tokens;
   const tok = usage ? ` · ${usage.total_tokens} tokens${reasoning ? ` (${reasoning} reasoning)` : ''}` : '';
-  mbStatus(`${res.name}: ${rep.pieces} bricks${rep.props ? ` · ${rep.props} props` : ''}${fixes ? ` · ${fixes} fixes` : ''}${tok}${replace ? ' · replaces what stood there' : ''}`, 'ok');
+  if (provisional) mbStatus(`first design standing: ${rep.pieces} bricks · the review is still thinking`, 'busy', fmtSec((performance.now() - W.master.t0) / 1000));
+  else mbStatus(`${res.name}: ${rep.pieces} bricks${rep.props ? ` · ${rep.props} props` : ''}${fixes ? ` · ${fixes} fixes` : ''}${tok}${replace ? ' · replaces what stood there' : ''}`, 'ok');
   Fx.Sfx.respawn(); Fx.haptic(15);
 }
 /** Lay the draft's pieces and ghost boxes for the current anchor and turn. */
@@ -715,13 +745,13 @@ function mbPropPlace(pr) {
 function mbNudge(dx, dz, dy, rot) { if (!W.master.result) return; const a = W.master.anchor; a.x += dx * 20; a.z += dz * 20; a.y += dy * 8; if (rot) W.master.rot = (W.master.rot + rot) & 3; mbLay(); }
 /** The draft becomes real: bricks into the shared build, props parsed and placed. */
 async function mbCommit() {
-  const res = W.master.result; if (!res || W.master.busy) return; if (!W.draft.pieces.size && !W.master.ghosts.length) { mbStatus('nothing drafted yet: say how to change it first', 'warn'); return; }
+  const res = W.master.result; if (!res) return; if (W.master.busy) { if (!stopBuild()) return; mbLog('info', 'commit: the review was stopped, the first design is committed'); await new Promise(ok => setTimeout(ok, 30)); } if (!W.draft.pieces.size && !W.master.ghosts.length) { mbStatus('nothing drafted yet: say how to change it first', 'warn'); return; }
   const rep = W.master.replace; let gone = 0;
   if (rep) { for (const id of rep.ids || []) if (W.build.take(id)) gone++; if (rep.ids && rep.ids.length) queueEdit({ rm: rep.ids }); for (const id of rep.props || []) if (W.props.remove(id)) gone++; }
   const rows = W.draft.rows(); const added = W.build.addRows(rows);
   const props = res.props.map(pr => mbPropPlace(pr)); let placed = 0;
   for (let i = 0; i < props.length; i++) { const pl = props[i]; const it = await W.props.place(res.props[i].mpd, pl.x, pl.y, pl.z, pl.yaw, false, res.props[i].src || null); if (it) placed++; }
-  mbDiscard(true); mbStatus(`built: ${added.length} bricks${placed ? ` · ${placed} props` : ''}${gone ? ` · replaced ${gone}` : ''}`, 'ok'); toast(gone ? 'rebuilt' : 'built', 900); Fx.Sfx.thud(0.5); Fx.haptic(30);
+  mbDiscard(true); mbLog('info', `committed: ${added.length} bricks${placed ? ` · ${placed} props` : ''}${gone ? ` · replaced ${gone}` : ''}`); mbStatus(`built: ${added.length} bricks${placed ? ` · ${placed} props` : ''}${gone ? ` · replaced ${gone}` : ''}`, 'ok'); toast(gone ? 'rebuilt' : 'built', 900); Fx.Sfx.thud(0.5); Fx.haptic(30);
   W.tally.built = (W.tally.built || 0) + added.length; return { bricks: added.length, props: placed, replaced: gone };
 }
 /** Read: what the reticle points at (or what stands ahead) — the connected bricks and the props beside them — becomes a program and words. */
@@ -748,7 +778,7 @@ function readBuild() {
   return { program, words, rows: rows.length, props: props.length, report: res.report };
 }
 const B1pad = (b, pad) => { B2.copy(b); B2.min.x -= pad; B2.min.y -= pad; B2.min.z -= pad; B2.max.x += pad; B2.max.y += pad; B2.max.z += pad; return B2; };
-function mbDiscard(quiet) { if (W.draft) W.draft.clear(); for (const g of W.master.ghosts) W.scene.remove(g); W.master.ghosts = []; W.master.result = null; W.master.anchor = null; W.master.rot = 0; W.master.conv = null; W.master.replace = null; W.master.words = ''; if (!quiet) { mbStatus('discarded'); const T = $('#words'); if (T) { T.value = ''; T.style.height = ''; } } else mbStatus(W.master.status); }
+function mbDiscard(quiet) { if (!quiet && W.master.busy) stopBuild(); if (W.draft) W.draft.clear(); for (const g of W.master.ghosts) W.scene.remove(g); W.master.ghosts = []; W.master.result = null; W.master.anchor = null; W.master.rot = 0; W.master.conv = null; W.master.replace = null; W.master.words = ''; if (!quiet) { mbStatus('discarded'); const T = $('#words'); if (T) { T.value = ''; T.style.height = ''; } } else mbStatus(W.master.status); }
 /** A program handed over from the studio page (localStorage 'world.inbox'). */
 function checkInbox() {
   let box = null; try { box = JSON.parse(localStorage.getItem('world.inbox') || 'null'); localStorage.removeItem('world.inbox'); } catch (e) { }
@@ -865,7 +895,7 @@ Object.assign(W, {
   aimAt: (x, y, z) => { if (x == null) { W.build.pin = null; return null; } const o = new THREE.Vector3(x, y + 4 * M, z + 3 * M), d = new THREE.Vector3(x, y, z).sub(o).normalize(); W.build.on = true; W.build.pin = { origin: o, dir: d }; W.build.aimRay(o, d); return W.build.stats().target; }, takeBrick: id => fall(W.build.remove(id)),
   pieces: () => W.build.rows(), pieceAt: id => { const p = W.build.pieces.get(id); return p ? { id, part: p.part, col: p.col, x: p.x, y: p.y, z: p.z, rot: p.rot } : null; }, saveNow: () => { W.build.save(); saveDamage(); }, resetPlace, damage: () => W.city.removedSets(), placeKey: () => placeKey(W.place),
   fx: () => ({ sfx: Fx.Sfx.stats(), haptics: Fx.haptic.count(), smoke: W.smoke.stats(), hits: Fx.Hits.n, tally: { ...W.tally }, craters: W.G.craters || 0, lastCrater: W.lastCrater || null, air: !!W.rig.air, vy: W.rig.vy || 0, assisted: W.tie.assisted, groundHits: W.tie.groundHits }), crater: (x, z, r, d) => crater(new THREE.Vector3(x, 0, z), r, d), groundAt: (x, z) => W.G.h(x, z), groundColour: (x, z) => { const G = W.G, f = G.field, i = Math.round(f.cx + x / M / G.res), j = Math.round(f.cy + z / M / G.res), c = G.mesh.geometry.attributes.color, k = j * G.n + i; return [c.getX(k), c.getY(k), c.getZ(k)]; },
-  mb: () => ({ busy: W.master.busy, status: W.master.status, rot: W.master.rot, anchor: W.master.anchor, draft: W.draft.pieces.size, ghosts: W.master.ghosts.length, report: W.master.result && W.master.result.report, usage: W.master.usage || null }), mbAsk: mbDraft, say, readBuild, mbEdit, startNow, wbOpen, wbState: () => ({ open: !document.body.classList.contains('wb-off'), key: !!Ai.key(), keyRow: $('#wbKeyRow').classList.contains('on'), wb: getComputedStyle(document.body).getPropertyValue('--wb').trim() }), veil: () => ({ stages: Object.fromEntries(Object.entries(VEIL.stages).map(([k, v]) => [k, v.state])), start: !!($('#vStart') && !$('#vStart').hidden), since: (performance.now() - VEIL.t0) / 1000, readyAt: VEIL.readyAt || 0, buildingsAt: VEIL.buildingsAt || 0 }), pending: () => !!(W.win && W.win.pending), mbLoad: program => { const res = Dsl.compile(program); mbShow(res, null); return res.report; }, mbCommit, mbDiscard, mbNudge, propStat: () => W.props.stats(), propRows: () => W.props.rows(), propBoxes: () => [...W.props.items.values()].map(it => ({ id: it.id, ready: it.ready, parts: it.meshes.length, box: it.box ? [it.box.min.toArray(), it.box.max.toArray()] : null })), aiStat: () => Ai.stats(),
+  mb: () => ({ busy: W.master.busy, status: W.master.status, rot: W.master.rot, anchor: W.master.anchor, draft: W.draft.pieces.size, ghosts: W.master.ghosts.length, report: W.master.result && W.master.result.report, usage: W.master.usage || null }), mbAsk: mbDraft, say, readBuild, mbEdit, startNow, wbOpen, stopBuild, buildLog: () => (W.master.log || []).slice(), wbLog, wbState: () => ({ open: !document.body.classList.contains('wb-off'), key: !!Ai.key(), keyRow: $('#wbKeyRow').classList.contains('on'), wb: getComputedStyle(document.body).getPropertyValue('--wb').trim() }), veil: () => ({ stages: Object.fromEntries(Object.entries(VEIL.stages).map(([k, v]) => [k, v.state])), start: !!($('#vStart') && !$('#vStart').hidden), since: (performance.now() - VEIL.t0) / 1000, readyAt: VEIL.readyAt || 0, buildingsAt: VEIL.buildingsAt || 0 }), pending: () => !!(W.win && W.win.pending), mbLoad: program => { const res = Dsl.compile(program); mbShow(res, null); return res.report; }, mbCommit, mbDiscard, mbNudge, propStat: () => W.props.stats(), propRows: () => W.props.rows(), propBoxes: () => [...W.props.items.values()].map(it => ({ id: it.id, ready: it.ready, parts: it.meshes.length, box: it.box ? [it.box.min.toArray(), it.box.max.toArray()] : null })), aiStat: () => Ai.stats(),
   netStat: () => W.room.stats(), host: hostRoom, join: joinRoom, leave: leaveRoom, remoteList: () => [...W.remotes.values()].map(r => ({ id: r.id, ch: r.ch, mode: r.tgt && r.tgt.m, pos: r.pos.toArray(), visible: r.fig && r.fig.figure.visible, shipVisible: !!r.ship && r.ship.visible })), flushEdits, setName,
   debrisPieces: () => W.debris.pieces.map(p => { const c = W.debris.centre(p, V1); return { part: p.kind.name, y: c.y, x: c.x, z: c.z, rest: p.rest, floor: W.G.h(c.x, c.z) }; }),
   building: i => { const b = W.city.buildings[i]; if (!b.bricks) b.bricks = Bricks.buildBricks(b, W.colours, M); return { id: b.id, kind: b.kind, n: b.bricks.n, removed: b.removed.size, live: b.bricks.n - b.removed.size, cx: b.cx, cz: b.cz, y0: b.y0, yTop: b.yTop, courses: b.courses, ruined: b.ruined }; },

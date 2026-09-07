@@ -104,9 +104,9 @@ const Ai = {
   lastError: null,
   lastResponseId: null,
 
-  emit(stage, detail, state = 'working', started = 0) {
+  emit(stage, detail, state = 'working', started = 0, extra = null) {
     if (typeof this.onStatus === 'function') {
-      try { this.onStatus(stage, detail, state, started); } catch (e) { }
+      try { this.onStatus(stage, detail, state, started, extra); } catch (e) { }
     }
   },
 
@@ -150,6 +150,7 @@ const Ai = {
         signal
       });
     } catch (e) {
+      if (e && e.name === 'AbortError') { this.lastError = 'stopped'; this.emit('STOPPED', `after ${Math.round((Date.now() - started) / 1000)} s`, 'error'); const err = new Error('stopped'); err.name = 'AbortError'; throw err; }
       this.lastError = 'network';
       this.emit('CONNECTION FAILED', e.message || 'could not reach OpenAI', 'error');
       throw new Error('could not reach OpenAI: ' + (e.message || e));
@@ -173,10 +174,12 @@ const Ai = {
       this.lastError = why; this.emit('SOL FAILED', why, 'error'); throw new Error('OpenAI response failed: ' + why);
     }
     const raw = outputText(j);
-    return { j, raw, program: parseProgram(raw) };
+    const program = parseProgram(raw), u = j.usage || {}, reasoning = u.output_tokens_details && u.output_tokens_details.reasoning_tokens;
+    this.emit('SOL ANSWERED', `${Math.round((Date.now() - started) / 1000)} s · ${u.total_tokens || 0} tokens${reasoning ? ` (${reasoning} reasoning)` : ''} · ${(program.ops || []).length} ops`, 'done', started, { usage: j.usage || null, calls: this.calls, ms: Date.now() - started, ops: (program.ops || []).length });
+    return { j, raw, program };
   },
 
-  async ask(prompt, { key, context, signal } = {}) {
+  async ask(prompt, { key, context, signal, onFirst } = {}) {
     key = key || this.key();
     const first = await this.request(this.userMessage(prompt, context), {
       key, signal, stage: '1 / 3 · SOL DESIGNING', detail: 'choosing scale, silhouette and construction'
@@ -184,6 +187,7 @@ const Ai = {
 
     this.emit('2 / 3 · LOCAL CHECK', 'compiling the first design into actual LEGO geometry', 'working');
     const r1 = compile(first.program), q1 = quality(first.program, r1), a1 = audit(first.program, r1);
+    if (typeof onFirst === 'function') { try { onFirst(first.program, r1, { usage: first.j.usage || null }); } catch (e) { } }   // the page can stand the first design while the review runs
 
     const review = `ORIGINAL BRIEF:\n${this.userMessage(prompt, context)}\n\nFIRST PROGRAM:\n${JSON.stringify(first.program)}\n\nLOCAL AUDIT:\n${a1}\n\nYou are the senior LEGO designer reviewing this first draft. Rebuild the FULL program, not a patch. Preserve what works, but improve first-glance recognition, scale, silhouette, proportion, landmark features and support. Fix compiler failures. Do not merely make it larger or add generic bricks. JSON only.`;
     const second = await this.request(review, {
