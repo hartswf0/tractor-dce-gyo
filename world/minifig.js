@@ -105,6 +105,7 @@ function pose(rig, st) {
 /** ctl: { move: {x, z, mag} world-space, run, saber (trigger), aim }; world: { groundH, pushOut(pos, r) } */
 function step(rig, dt, ctl, world) {
   const M = rig.M; rig.t += dt;
+  if (rig.air) return stepAir(rig, dt, world);
   const mv = ctl.move, want = mv.mag > 0.02 ? mv.mag * (ctl.run ? RUN : WALK) * M : 0;
   if (mv.mag > 0.02) { const goal = Math.atan2(mv.x, mv.z); let d = goal - rig.heading; d = Math.atan2(Math.sin(d), Math.cos(d)); rig.heading += clamp(d, -TURN * dt, TURN * dt); }
   rig.speed += (want - rig.speed) * (1 - Math.exp(-dt * 10));
@@ -129,6 +130,16 @@ function step(rig, dt, ctl, world) {
   pose(rig, { phase: rig.phase, gait: rig.gait, t: rig.t, swing: u, aim: rig.aim });
 }
 
+/** Thrown: the rig flies until it meets the ground again. vel in LDU/s. */
+function throwRig(rig, vel) { rig.air = true; rig.vy = vel.y; rig.airVel = rig.airVel || new THREE.Vector3(); rig.airVel.set(vel.x, 0, vel.z); rig.pos.y += 2; rig.speed = 0; rig.landed = 0; }
+function stepAir(rig, dt, world) {
+  const M = rig.M; rig.vy -= 9.8 * M * dt; rig.pos.y += rig.vy * dt; rig.pos.addScaledVector(rig.airVel, dt); rig.airVel.multiplyScalar(1 - dt * 0.8);
+  if (world.pushOut) world.pushOut(rig.pos, rig.radius);
+  const g = world.groundH(rig.pos.x, rig.pos.z);
+  if (rig.pos.y <= g) { rig.pos.y = g; rig.landed = -rig.vy; rig.air = false; rig.vy = 0; rig.airVel.set(0, 0, 0); }
+  rig.vel.set(rig.airVel.x, rig.vy, rig.airVel.z); rig.figure.rotation.y = rig.heading; rig.figure.rotation.x = rig.air ? clamp(-rig.vy / (8 * M), -0.5, 0.5) : 0;
+  pose(rig, { phase: rig.phase, gait: 0, t: rig.t, swing: null, aim: 0 }); rig.armRP.rotation.x -= 1.2; rig.armLP.rotation.x -= 1.2;   // arms up, flailing
+}
 /** HLIÐARENDI's walking rig, scaled to a 3 m minifig. */
 function camera(rig, camera, dt, look, world, portrait, build) {
   const M = rig.M, c = rig.cam;
@@ -159,5 +170,5 @@ function burst(rig) {
   return Object.entries(rig.mounted).map(([slot, m]) => ({ part: m.part, col: m.col, matrix: m.group.matrixWorld.clone() }));
 }
 
-window.Minifig = { DEFS, citizen, partsOf, lines, harvestLines, CROWD_PARTS, SLOTS, skeleton, mount, pose, step, camera, moveFromStick, facing, saberTip, fist, muzzle, burst, FEET, WALK, RUN };
+window.Minifig = { DEFS, citizen, partsOf, lines, harvestLines, CROWD_PARTS, SLOTS, skeleton, mount, pose, step, throwRig, camera, moveFromStick, facing, saberTip, fist, muzzle, burst, FEET, WALK, RUN };
 })();

@@ -13,11 +13,11 @@ const V1 = new THREE.Vector3(), V2 = new THREE.Vector3(), V3 = new THREE.Vector3
 const Q1 = new THREE.Quaternion(), Q2 = new THREE.Quaternion(), E1 = new THREE.Euler();
 const lerpAngle = (a, b, t) => { let d = ((b - a + Math.PI) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2) - Math.PI; return a + d * t; };
 
-function create({ ship, M, groundH, aabbs, scene, onImpact }) {
+function create({ ship, M, groundH, aabbs, scene, onImpact, targets }) {
   const F = {
-    ship, M, groundH, aabbs, scene, onImpact,
+    ship, M, groundH, aabbs, scene, onImpact, targets: targets || (() => []), assist: 15 * Math.PI / 180,
     pos: new THREE.Vector3(), vel: new THREE.Vector3(), prevPos: new THREE.Vector3(), quat: new THREE.Quaternion(),
-    travelYaw: 0, travelPitch: 0, yaw: 0, pitch: 0, roll: 0, speed: 0, slide: 0, wasBoost: false, t: 0,
+    travelYaw: 0, travelPitch: 0, yaw: 0, pitch: 0, roll: 0, speed: 0, slide: 0, wasBoost: false, t: 0, groundHits: 0, lastClosing: 0, assisted: false,
     shields: SHIELD_MAX, lastImpact: -9, impact: { text: '', until: 0 }, flying: false, landing: 0,
     input: { x: 0, y: 0, mag: 0, boost: false, fire: false, torpedo: false }, fireAcc: 1, muzzle: 0, torps: [],
     cam: { dist: 560, high: 145, side: 0, look: new THREE.Vector3(), set: false, fov: 61 },
@@ -71,14 +71,14 @@ function stepFlight(F, dt) {
 function impact(F, label, dmg, point, sev) {
   if (F.t - F.lastImpact < .14) return; F.lastImpact = F.t;
   F.shields = Math.max(0, F.shields - dmg); F.impact.text = `${label} · −${Math.round(dmg)} shield`; F.impact.until = F.t + 1.15;
-  if (F.onImpact) F.onImpact(point, sev, label);
+  if (F.onImpact) F.onImpact(point, sev, label, F.lastClosing || 0);
 }
 function ground(F) {
   const M = F.M, gh = F.groundH(F.pos.x, F.pos.z), clear = 1.8 * M;
   if (F.pos.y - gh >= clear) return;
   const closing = Math.max(0, -F.vel.y);
   F.pos.y = gh + clear + 1; F.vel.y = Math.abs(F.vel.y) * .18 + 38; F.vel.x *= .82; F.vel.z *= .82;
-  const hit = Math.max(closing, F.speed * .18);
+  const hit = Math.max(closing, F.speed * .18); F.lastClosing = hit;
   impact(F, hit > 360 ? 'GROUND IMPACT' : 'GROUND SCRAPE', clamp((hit - 65) * .105, 4, 68), V3.copy(F.pos).setY(gh), hit / 300);
   fromVel(F);
 }
@@ -100,12 +100,13 @@ function worldHit(F) {
   const boxes = F.aabbs(F.pos.x, F.pos.z, 700), r = PLAYER_R * .72; let best = null;
   for (const box of boxes) if (sweepBox(F.prevPos, F.pos, box, r, SW) && (!best || SW.t < best.t)) best = { t: SW.t, n: SW.n.clone(), p: SW.p.clone() };
   if (!best) return;
-  const n = best.n, closing = Math.max(0, -F.vel.dot(n));
+  const n = best.n, closing = Math.max(0, -F.vel.dot(n)); F.lastClosing = closing;
   F.pos.copy(best.p).addScaledVector(n, PLAYER_R * .74 + 5 - r);
   const vn = F.vel.dot(n); V1.copy(F.vel).addScaledVector(n, -vn);            // tangential
-  F.vel.copy(V1).multiplyScalar(.62).addScaledVector(n, closing * .24 + 28);
+  F.vel.copy(V1).multiplyScalar(.7).addScaledVector(n, closing * .35 + 28);   // it bounces off, keeping most of its way
   if (F.vel.length() < 145) F.vel.setLength(145);
-  impact(F, closing > 330 ? 'STRUCTURE HIT' : 'CLIP', clamp((closing - 45) * .13, 5, 62), best.p, closing / 300);
+  F.roll += (Math.random() - .5) * clamp(closing / 300, 0.3, 1.4);            // and spins from the blow
+  impact(F, closing > 330 ? 'STRUCTURE HIT' : 'CLIP', clamp((closing - 45) * .1, 5, 45), best.p, closing / 300);
   fromVel(F);
 }
 
@@ -115,8 +116,19 @@ function fire(F) {
   if (F.fireAcc < 1 / (F.input.boost ? 12 : 8)) return; F.fireAcc = 0;                // strafing: faster while boosting
   const b = F.bolts.find(b => b.life <= 0); if (!b) return;
   V1.copy(MUZZLE[F.muzzle ^= 1]).applyQuaternion(F.quat).add(F.pos); V2.set(0, 0, 1).applyQuaternion(F.quat);
+  assist(F, V1, V2);
   b.life = BOLT_LIFE; b.mesh.position.copy(V1); b.prev.copy(V1); b.vel.copy(V2).multiplyScalar(BOLT_SPD).add(F.vel); b.mesh.quaternion.copy(Q1.setFromUnitVectors(Z1, V2)); b.mesh.visible = true;
   if (F.onFire) F.onFire(V1.clone(), V2.clone(), b.vel.clone());
+}
+/** Gentle aim assist: bend the shot onto the nearest thing inside a narrow cone ahead — a building's centre or a figure. */
+const AV = new THREE.Vector3();
+function assist(F, origin, dir) {
+  const reach = 120 * F.M; let best = null, bestAng = F.assist;
+  const consider = (px, py, pz) => { AV.set(px - origin.x, py - origin.y, pz - origin.z); const d = AV.length(); if (d < 4 * F.M || d > reach) return; AV.divideScalar(d); const ang = Math.acos(clamp(AV.dot(dir), -1, 1)); if (ang < bestAng) { bestAng = ang; best = AV.clone(); } };
+  for (const b of F.aabbs(F.pos.x, F.pos.z, reach)) consider((b.min.x + b.max.x) / 2, Math.min(b.max.y, Math.max(b.min.y, origin.y)), (b.min.z + b.max.z) / 2);
+  for (const t of F.targets()) consider(t.x, t.y, t.z);
+  if (best) dir.copy(best); F.assisted = !!best;
+  return !!best;
 }
 /** A torpedo: slow, heavy, and it makes a crater wherever it meets anything. */
 function torpedo(F) {
@@ -143,8 +155,8 @@ function stepBolts(F, dt, onBoltHit) {
     b.prev.copy(b.mesh.position); b.mesh.position.addScaledVector(b.vel, dt);
     if ((b.life -= dt) <= 0) { b.mesh.visible = false; continue; }
     const p = b.mesh.position;
-    if (p.y < F.groundH(p.x, p.z)) { b.life = 0; b.mesh.visible = false; continue; }
-    for (const box of F.aabbs(p.x, p.z, 200)) if (sweepBox(b.prev, p, box, 4, SW)) { b.life = 0; b.mesh.visible = false; F.hits++; if (onBoltHit) onBoltHit(SW.p.clone()); break; }
+    const gh = F.groundH(p.x, p.z); if (p.y < gh) { b.life = 0; b.mesh.visible = false; F.groundHits++; if (onBoltHit) onBoltHit(p.clone().setY(gh), 'ground', b.vel.clone()); continue; }
+    for (const box of F.aabbs(p.x, p.z, 200)) if (sweepBox(b.prev, p, box, 4, SW)) { b.life = 0; b.mesh.visible = false; F.hits++; if (onBoltHit) onBoltHit(SW.p.clone(), 'wall', b.vel.clone()); break; }
   }
 }
 

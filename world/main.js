@@ -17,7 +17,7 @@ const W = {
   net: { elevation: null, imagery: null, osm: null }, relanding: false, health: 100, dead: 0, dets: DETONATORS, grenades: [], shake: 0,
   input: { L: { x: 0, y: 0, mag: 0 }, look: { dx: 0, dy: 0 }, run: false, saber: false, fly: { x: 0, y: 0, mag: 0 }, boost: false, fire: false, push: false, torpedo: false },
   stats: { calls: 0 },
-  build: null, room: null, name: null, remotes: new Map(), editQ: { up: [], rm: [] }, editAcc: 0, netAcc: 0, crowdAcc: 0, dmgAcc: 0, dmgSaved: 0, dmgKey: null,
+  build: null, room: null, name: null, smoke: null, tally: { bricks: 0, levelled: 0 }, dentAt: 0, remotes: new Map(), editQ: { up: [], rm: [] }, editAcc: 0, netAcc: 0, crowdAcc: 0, dmgAcc: 0, dmgSaved: 0, dmgKey: null,
 };
 window.__world = W;
 if (!Minifig.DEFS[W.character]) W.character = 'vader';
@@ -32,13 +32,14 @@ function buildMenu() {
   const chars = Object.entries(Minifig.DEFS).map(([k, d]) => `<button data-as="${k}" class="${k === W.character ? 'on' : ''}">${d.name}</button>`).join('');
   const worlds = Object.entries(Worlds.PRESETS).map(([k, p]) => `<button data-world="${k}" class="${k === W.world ? 'on' : ''}">${p.name}</button>`).join('');
   $('#menu').innerHTML = `<div class="row"><span>play as</span>${chars}</div><div class="row"><span>world</span>${worlds}</div>
-    <div class="row net"><span>together</span><input id="nameIn" placeholder="your name" maxlength="14"><button id="hostBtn">Host a room</button><input id="codeIn" placeholder="CODE" maxlength="4" autocapitalize="characters"><button id="joinBtn">Join</button><button id="linkBtn" hidden>Copy link</button><button id="leaveBtn" hidden>Leave</button></div><div class="row"><em id="roomStat"></em></div>`;
+    <div class="row net"><span>together</span><input id="nameIn" placeholder="your name" maxlength="14"><button id="hostBtn">Host a room</button><input id="codeIn" placeholder="CODE" maxlength="4" autocapitalize="characters"><button id="joinBtn">Join</button><button id="linkBtn" hidden>Copy link</button><button id="leaveBtn" hidden>Leave</button><button id="muteBtn" title="sound">🔊</button></div><div class="row"><em id="roomStat"></em></div>`;
   $('#menu').querySelectorAll('[data-as]').forEach(b => b.onclick = () => setCharacter(b.dataset.as));
   $('#menu').querySelectorAll('[data-world]').forEach(b => b.onclick = () => setWorld(b.dataset.world));
   $('#nameIn').value = W.name || ''; $('#nameIn').onchange = () => setName($('#nameIn').value);
   $('#hostBtn').onclick = () => hostRoom(); $('#joinBtn').onclick = () => joinRoom($('#codeIn').value); $('#leaveBtn').onclick = () => leaveRoom();
   $('#linkBtn').onclick = () => { const link = W.room.link(); (navigator.clipboard ? navigator.clipboard.writeText(link) : Promise.reject()).then(() => toast('link copied', 900), () => { prompt('Share this link', link); }); };
   $('#codeIn').addEventListener('keydown', e => { if (e.key === 'Enter') joinRoom($('#codeIn').value); });
+  const mb = $('#muteBtn'); mb.textContent = Fx.Sfx.muted ? '🔇' : '🔊'; mb.onclick = () => { Fx.Sfx.setMute(!Fx.Sfx.muted); mb.textContent = Fx.Sfx.muted ? '🔇' : '🔊'; Fx.Sfx.unlock(); };
 }
 function setName(n) { W.name = (n || '').trim().slice(0, 14) || W.name; try { localStorage.setItem('world.name', W.name); } catch (e) { } }
 function roomStat() {
@@ -257,16 +258,30 @@ function allBoxes(x, z, r) { const a = W.city.aabbs(x, z, r); return W.build ? a
 /* ───────────────────────── destruction ───────────────────────── */
 function fall(list) { for (const f of list) W.debris.spawn({ part: f.part, matrix: f.matrix, colour: f.colour, vel: f.vel }); return list.length; }
 /** A blast: bricks within r fly, the buildings collapse where they lost support, people in reach are thrown. */
-function blast(point, r, vel, people = true, fromNet = false) {
+/** Every blast in the game goes through here: bricks fly, the hole keeps crumbling, smoke rises, it sounds and shakes,
+    people and the player are thrown, and the room hears about it. kind: 'saber' | 'bolt' | 'torp' | 'ram' | 'det' | 'push' | 'debris'. */
+function blast(point, r, vel, people = true, fromNet = false, kind = 'bolt') {
   const n = fall(W.city.blast(point, r, vel)) + (W.build ? fall(W.build.blast(point, r, vel)) : 0);
-  if (!fromNet && W.room && W.room.role) W.room.send({ t: 'blast', p: point.toArray().map(Math.round), r, v: vel ? vel.toArray().map(Math.round) : null });
-  if (people && W.crowd) W.crowd.hitWithin(point, r * 1.1, vel ? vel.clone().multiplyScalar(0.6) : null, W.debris);
-  if (people && W.mode === 'walk' && W.rig.figure.visible) { V1.copy(W.rig.pos); V1.y += 1.2 * M; if (V1.distanceTo(point) < r * 0.9 && r > 3 * M) hurt(40); }
+  if (!fromNet && W.room && W.room.role) W.room.send({ t: 'blast', p: point.toArray().map(Math.round), r, v: vel ? vel.toArray().map(Math.round) : null, k: kind });
+  const shocks = { bolt: 2, torp: 4, ram: 3, det: 3, saber: 1, push: 0, debris: 0 }[kind] || 0;
+  if (shocks && n) W.city.aftershock(point, r, shocks, 0.3, vel);
+  for (const b of W.city.lastTouched || []) if (b.bricks && b.removed.size > 0.3 * b.bricks.n && !(b.smokeUntil > W.t)) { b.smokeUntil = W.t + 8; W.smoke.column(new THREE.Vector3(b.cx * M, b.yTop, b.cz * M), 8); }
+  const size = clamp(r / (8 * M), 0.1, 1);
+  if (n || kind === 'torp' || kind === 'det') { W.smoke.puff(point, Math.min(40, 6 + n), r); Fx.Sfx.boom(size); Fx.haptic(Math.round(20 + size * 60)); W.shake = Math.max(W.shake, size * 0.6); }
+  if (n) { W.tally.bricks += n; Fx.Hits.mark(); Fx.Hits.float('+' + n, n >= 30); }
+  if (people && W.mode === 'walk' && W.rig.figure.visible && !W.dead && r >= 3 * M) { V1.copy(W.rig.pos); V1.y += 1.2 * M; const d = V1.distanceTo(point); if (d < 2 * r) { const away = V1.clone().sub(point); away.y = 0; if (away.lengthSq() < 1) away.set(1, 0, 0); away.normalize().multiplyScalar((4 + 6 * (1 - d / (2 * r))) * M); away.y = 5 * M; if (!W.rig.air) Minifig.throwRig(W.rig, away); hurt(Math.round(d < r ? 40 : 25 * (1 - (d - r) / r))); } }
+  if (people && W.crowd) W.crowd.hitWithin(point, r * 1.6, vel ? vel.clone().multiplyScalar(0.6) : null, W.debris);
   return n;
+}
+/** A crater in the ground (LDU): the field itself changes, so everything stands lower afterwards. Shared with the room. */
+function crater(point, r, depth, fromNet = false) {
+  if (!W.G) return; const gh = W.G.h(point.x, point.z); Ground.crater(W.G, point.x, point.z, r, depth); W.lastCrater = { x: point.x, z: point.z, r, depth, before: gh, after: W.G.h(point.x, point.z) };
+  if (!fromNet && W.room && W.room.role) W.room.send({ t: 'crater', p: [Math.round(point.x), Math.round(gh), Math.round(point.z)], r, d: depth });
+  return gh;
 }
 function forcePush() {
   const f = Minifig.facing(W.rig, V1).clone(), base = W.rig.pos.clone(); base.y += 1 * M;
-  let n = 0; for (const d of [2, 4, 6]) n += fall(W.city.blast(V2.copy(base).addScaledVector(f, d * M), 2 * M, f.clone().multiplyScalar(9 * M)));
+  let n = 0; for (const d of [2, 4, 6]) n += blast(V2.copy(base).addScaledVector(f, d * M), 2 * M, f.clone().multiplyScalar(9 * M), false, false, 'push');
   for (const npc of W.crowd.npcs) { if (!npc.alive) continue; V3.subVectors(npc.pos, W.rig.pos); const d = V3.length() / M; if (d < 7 && V3.normalize().dot(f) > 0.5) W.crowd.burst(npc, f.clone().multiplyScalar(7 * M), W.debris); }
   W.shake = 0.3; toast(n ? 'the Force' : 'nothing there', 600); return n;
 }
@@ -282,20 +297,32 @@ function stepGrenades(dt) {
   for (let i = W.grenades.length - 1; i >= 0; i--) {
     const g = W.grenades[i]; g.vel.y -= 9.8 * M * dt; g.mesh.position.addScaledVector(g.vel, dt); g.mesh.rotation.x += 6 * dt;
     const gh = W.G.h(g.mesh.position.x, g.mesh.position.z); if (g.mesh.position.y < gh + 6) { g.mesh.position.y = gh + 6; g.vel.y = Math.abs(g.vel.y) * 0.25; g.vel.x *= 0.7; g.vel.z *= 0.7; }
-    if ((g.fuse -= dt) <= 0) { W.scene.remove(g.mesh); W.grenades.splice(i, 1); blast(g.mesh.position, 5 * M, null); W.shake = 0.6; flash(); toast('boom', 500); }
+    if ((g.fuse -= dt) <= 0) { W.scene.remove(g.mesh); W.grenades.splice(i, 1); crater(g.mesh.position, 3 * M, 1 * M); blast(g.mesh.position, 5 * M, null, true, false, 'det'); W.shake = 0.6; flash(); toast('boom', 500); }
   }
 }
 function hurt(dmg) {
   if (W.mode !== 'walk' || W.dead) return;
-  W.health = Math.max(0, W.health - dmg); flash();
+  if (dmg <= 0) return; W.health = Math.max(0, W.health - dmg); flash(); Fx.Sfx.hurt(); Fx.haptic(30);
   if (W.health <= 0) { W.dead = 3; for (const f of Minifig.burst(W.rig)) W.debris.spawn({ part: f.part, matrix: f.matrix, colour: W.colours(f.col), vel: new THREE.Vector3((Math.random() - .5) * 3 * M, 3 * M, (Math.random() - .5) * 3 * M) }); W.rig.figure.visible = false; toast('down', 1500); }
 }
 function respawn() {
-  W.dead = 0; W.health = 100; W.dets = DETONATORS;
+  W.dead = 0; W.health = 100; W.dets = DETONATORS; Fx.Sfx.respawn(); W.rig.air = false;
   const s = W.ship.position, side = V1.set(Math.cos(W.tie.yaw), 0, -Math.sin(W.tie.yaw));
   W.rig.pos.set(s.x + side.x * 6 * M, 0, s.z + side.z * 6 * M); pushOut(W.rig.pos, W.rig.radius); W.rig.pos.y = W.G.h(W.rig.pos.x, W.rig.pos.z); W.rig.figure.visible = true; W.rig.cam.set = false;
 }
 
+/** What flying debris can hit: the TIE (shields dent, rubble scatters) and the player's body. */
+function debrisCtx() {
+  const spheres = [];
+  if (W.mode === 'fly') spheres.push({ pos: W.tie.pos, r: Tie.PLAYER_R * 0.8, vel: W.tie.vel, onHit: (p, rel) => { if (rel > 4 * M && W.t - W.dentAt > 0.12) { W.dentAt = W.t; W.tie.shields = Math.max(0, W.tie.shields - 2); Fx.Sfx.clatter(1); Fx.haptic(10); } } });
+  else if (!W.dead) spheres.push({ pos: V3.copy(W.rig.pos).setY(W.rig.pos.y + 1.2 * M), r: 1.1 * M, vel: W.rig.vel, onHit: (p, rel) => { if (rel > 6 * M && W.t - W.dentAt > 0.3) { W.dentAt = W.t; hurt(5); } } });
+  return { spheres, onLand: (p, v) => Fx.Sfx.clatter(clamp(v / (6 * M), 0.2, 1)) };
+}
+/** A TIE bolt lands: on a wall it blasts, on the ground it scorches a small crater. */
+function boltHit(p, kind, vel) {
+  if (kind === 'ground') { crater(p, 1.5 * M, 0.4 * M); W.smoke.puff(p, 8, 1.5 * M); Fx.Sfx.thud(0.35); Fx.haptic(10); W.tally.craters = (W.tally.craters || 0) + 1; return; }
+  blast(p, 3 * M, vel ? vel.clone().multiplyScalar(0.15) : null, true, false, 'bolt'); W.shake = Math.max(W.shake, 0.15);
+}
 /* ───────────────────────── modes ───────────────────────── */
 function nearShip() { if (!W.ship || !W.rig) return Infinity; return Math.hypot(W.ship.position.x - W.rig.pos.x, W.ship.position.z - W.rig.pos.z) / M; }
 function promptAction() { if (!W.ready) return; if (W.mode === 'walk' && nearShip() < 6) board(); else if (W.mode === 'fly' && !W.tie.landing) land(); }
@@ -306,7 +333,7 @@ function board() {
 }
 function land() { if (W.mode === 'fly') { Tie.land(W.tie); toast('landing'); } }
 function landed() {
-  W.mode = 'walk'; document.body.classList.remove('fly'); $('#mode').textContent = 'walk · ' + Minifig.DEFS[W.character].name; hintFor();
+  W.mode = 'walk'; document.body.classList.remove('fly'); $('#mode').textContent = 'walk · ' + Minifig.DEFS[W.character].name; hintFor(); Fx.Sfx.thud(0.4); Fx.haptic(15);
   const s = W.ship.position, side = V1.set(Math.cos(W.tie.yaw), 0, -Math.sin(W.tie.yaw));
   W.rig.pos.set(s.x + side.x * 6 * M, 0, s.z + side.z * 6 * M); pushOut(W.rig.pos, W.rig.radius); W.rig.pos.y = W.G.h(W.rig.pos.x, W.rig.pos.z);
   W.rig.figure.visible = true; W.rig.cam.set = false; W.rig.cam.yaw = W.tie.yaw + Math.PI; W.camera.fov = innerHeight > innerWidth ? 55 : 50; W.camera.updateProjectionMatrix();
@@ -327,7 +354,7 @@ function simulate(dt) {
       Minifig.step(W.rig, dt, { move: MOVE, run: I.run, saber: I.saber && !(W.build && W.build.on), aim: I.aim }, WALK);
       if (wantsShot) { const p = new THREE.Vector3(), dir = new THREE.Vector3(); Minifig.muzzle(W.rig, p, dir); dir.y = -0.05; W.bolts.fire(p, dir, 'player'); }
       I.saber = false;
-      if (W.rig.hit) { const h = W.rig.hit; W.rig.hit = null; const n = blast(h, 1.4 * M, Minifig.facing(W.rig, V2).clone().multiplyScalar(3 * M)); if (n) toast('bricks!', 500); }
+      if (W.rig.hit) { const h = W.rig.hit; W.rig.hit = null; const n = blast(h, 1.4 * M, Minifig.facing(W.rig, V2).clone().multiplyScalar(3 * M), true, false, 'saber'); Fx.Sfx.strike(); Fx.haptic(25); if (n) toast('bricks!', 500); }
       if (I.push) { I.push = false; forcePush(); }
     }
     Minifig.camera(W.rig, W.camera, dt, I.look, WALK, portrait, W.build && W.build.on); I.look.dx = I.look.dy = 0;
@@ -335,19 +362,24 @@ function simulate(dt) {
     const near = nearShip() < 6 && !W.dead; $('#prompt').classList.toggle('on', near); $('#prompt').textContent = 'Board the TIE';
   } else {
     const F = W.tie; F.input.x = I.fly.x; F.input.y = I.fly.y; F.input.mag = I.fly.mag; F.input.boost = I.boost; F.input.fire = I.fire || !!I.fireOnce; I.fireOnce = false; if (I.torpedo) { F.input.torpedo = true; I.torpedo = false; }
-    const still = Tie.step(F, dt, p => blast(p, 1.2 * M, F.vel.clone().multiplyScalar(.15)), (p, v) => { blast(p, 6 * M, v.multiplyScalar(0.1)); W.shake = 0.7; flash(); toast('torpedo', 500); });
+    if (F.input.torpedo) Fx.Sfx.torpedo();
+    const still = Tie.step(F, dt, boltHit, (p, v) => { crater(p, 6 * M, 2 * M); blast(p, 8 * M, v.multiplyScalar(0.1), true, false, 'torp'); W.shake = 0.9; flash(); toast('torpedo', 500); });
+    Fx.Sfx.engine(true, clamp(F.speed / Tie.BOOST, 0, 1), !!F.input.boost);
     Tie.camera(F, W.camera, dt, portrait);
     if (!still) landed();
     else { const alt = (F.pos.y - W.G.h(F.pos.x, F.pos.z)) / M; $('#prompt').classList.toggle('on', !F.landing && alt < 14); $('#prompt').textContent = 'Land'; }
   }
+  if (W.mode !== 'fly') Fx.Sfx.engine(false);
+  { const wantHum = W.mode === 'walk' && !W.dead && d.saber && !(W.build && W.build.on); Fx.Sfx.saber(wantHum); if (W.mode === 'walk' && W.rig.swing && !W.swingWas) Fx.Sfx.swing(); W.swingWas = W.mode === 'walk' && !!W.rig.swing; if (W.rig.landed) { const v = W.rig.landed; W.rig.landed = 0; Fx.Sfx.thud(clamp(v / (10 * M), 0.2, 1)); Fx.haptic(15); if (v > 9 * M) hurt(Math.round((v / M - 9) * 3)); } }
   if (W.shake > 0) { W.shake -= dt; W.camera.position.x += (Math.random() - .5) * W.shake * 12; W.camera.position.y += (Math.random() - .5) * W.shake * 12; }
   W.bolts.step(dt, {
     hitPlayer: b => { if (W.mode === 'walk') { if (W.dead) return false; V1.copy(W.rig.pos); V1.y += 1.3 * M; if (Characters.segHitsSphere(b.prev, b.mesh.position, V1, 0.8 * M)) { hurt(20); return true; } return false; } if (Characters.segHitsSphere(b.prev, b.mesh.position, W.tie.pos, Tie.PLAYER_R * 0.8)) { W.tie.shields = Math.max(0, W.tie.shields - 5); flash(); return true; } return false; },
     hitNpc: b => W.crowd.hitBy(b, W.debris),
-    hitWorld: b => { const p = b.mesh.position; for (const box of W.city.aabbs(p.x, p.z, 60)) if (p.x > box.min.x - 6 && p.x < box.max.x + 6 && p.z > box.min.z - 6 && p.z < box.max.z + 6 && p.y > box.min.y && p.y < box.max.y) { fall(W.city.blast(p, 0.8 * M, b.vel.clone().multiplyScalar(0.05), 3)); return true; } return false; },
+    hitWorld: b => { const p = b.mesh.position; for (const box of W.city.aabbs(p.x, p.z, 60)) if (p.x > box.min.x - 6 && p.x < box.max.x + 6 && p.z > box.min.z - 6 && p.z < box.max.z + 6 && p.y > box.min.y && p.y < box.max.y) { if (b.owner === 'player') blast(p, 1.6 * M, b.vel.clone().multiplyScalar(0.05), true, false, 'bolt'); else if (b.owner === 'npc') fall(W.city.blast(p, 0.6 * M, null, 2)); return true; } return false; },
   });
   fall(W.city.tick(dt));
-  W.debris.step(dt); stepGrenades(dt);
+  W.debris.step(dt, debrisCtx()); stepGrenades(dt); W.smoke.step(dt);
+  { let checked = 0; for (const p of W.debris.pieces) { if (p.rest || p.settling || checked > 80) continue; if (p.vel.lengthSq() < 25 * M * M) continue; checked++; const c = W.debris.centre(p, V1); if (W.crowd.hitWithin(c, 0.9 * M, p.vel.clone().multiplyScalar(0.5), W.debris)) Fx.Sfx.clatter(1); } }
   if (W.room.role) { W.room.tick(dt); netTick(dt); stepRemotes(dt); }
   W.build.tick(dt); if ((W.dmgAcc += dt) > 2) { W.dmgAcc = 0; saveDamage(); }
   W.crowd.step(dt, { player: { pos: W.rig.pos, alive: W.mode === 'walk' && !W.dead, running: W.input.run && W.rig.speed > 3 * M, vel: W.rig.vel }, tie: { pos: W.tie.pos, flying: W.mode === 'fly' }, bolts: W.bolts, debris: W.debris, los, pushOut });
@@ -357,6 +389,7 @@ function simulate(dt) {
 }
 function paint() {
   const st = W.city.stats(), cs = W.crowd.stats();
+  { const t = $('#tally'), txt = W.tally.bricks ? `${W.tally.bricks.toLocaleString()} bricks · ${st.levelled} levelled` : ''; if (t.textContent !== txt) { t.textContent = txt; t.classList.remove('pulse'); void t.offsetWidth; t.classList.add('pulse'); } }
   if (W.mode === 'walk') { $('#stat').textContent = `${st.buildings} buildings · ${cs.alive} people${W.build.pieces.size ? ' · ' + W.build.pieces.size + ' built' : ''}\n${Math.round(W.rig.speed / M * 3.6)} km/h · ${W.dets} detonators`; $('#shieldFill').style.width = W.health + '%'; $('#shield').classList.toggle('low', W.health < 40); $('#det').classList.toggle('on', W.dets > 0 && !W.dead); }
   else { const F = W.tie, alt = Math.round((F.pos.y - W.G.h(F.pos.x, F.pos.z)) / M); $('#stat').textContent = `${alt} m up · ${Math.round(F.speed / M * 3.6)} km/h${F.input.boost ? ' · boost' : ''}\n${F.t < F.impact.until ? F.impact.text : F.slide > .35 ? 'VADER SLIDE' : ''}`; $('#shieldFill').style.width = F.shields + '%'; $('#shield').classList.toggle('low', F.shields < 40); $('#det').classList.remove('on'); if (F.t < F.impact.until && F.impact.text !== W.lastImpact) { W.lastImpact = F.impact.text; toast(F.impact.text.split(' · ')[0], 700); } }
   if (W.mode === 'fly' && W.tie.shields <= 0 && !W.tie.landing) { W.tie.shields = Tie.SHIELD_MAX; toast('shields gone: setting down'); Tie.land(W.tie); }
@@ -404,6 +437,8 @@ async function boot() {
   try { W.name = Q.get('name') || localStorage.getItem('world.name') || ''; } catch (e) { W.name = Q.get('name') || ''; }
   if (!W.name) W.name = 'pilot-' + Build.Build.pid().slice(0, 4);
   W.room = Net.create({ transport: Q.get('net') === 'bc' ? 'bc' : undefined, onMessage: netHandle, onJoin: id => { roomStat(); if (id !== 'host') toast('someone joined', 900); }, onLeave: id => { dropRemote(id); roomStat(); if (id === 'host') leaveRoom(false); else toast('a player left', 900); }, onStatus: roomStat });
+  try { Fx.Sfx.muted = Q.get('mute') === '1' || (Q.get('mute') !== '0' && localStorage.getItem('world.mute') === '1'); } catch (e) { }
+  const unlock = () => { Fx.Sfx.unlock(); }; window.addEventListener('pointerdown', unlock, { passive: true }); window.addEventListener('keydown', unlock);
   buildMenu(); bindInput(); document.body.dataset.world = W.world;
   const watchdog = setTimeout(() => { if (!W.ready) stall('Still loading after 40 s. The ground and the buildings come from the network; the ship from this site.'); }, 40000);
   try {
@@ -432,15 +467,19 @@ async function boot() {
     W.crowd = new Characters.Crowd({ scene: W.scene, M, geoms: W.raw, colours: W.colours, groundH: WORLD.groundH });
     installWindow(win); W.prevP = win.P; setWorld(W.world);
     stage('bricks', 'now', 'laying the bricks');
-    W.tie = Tie.create({ ship: W.ship, M, groundH: WORLD.groundH, aabbs: allBoxes, scene: W.scene, onImpact: (p, sev) => { flash(); W.shake = 0.4; blast(p, 3 * M, W.tie.vel.clone().multiplyScalar(.2), false); } });
+    W.smoke = new Fx.Smoke(W.scene, M);
+    W.tie = Tie.create({ ship: W.ship, M, groundH: WORLD.groundH, aabbs: allBoxes, scene: W.scene, targets: () => { const out = []; for (const n of W.crowd.npcs) if (n.alive) out.push({ x: n.pos.x, y: n.pos.y + 1.2 * M, z: n.pos.z }); for (const r of W.remotes.values()) out.push({ x: r.pos.x, y: r.pos.y + M, z: r.pos.z }); return out; },
+      onImpact: (p, sev, label, closing) => { flash(); W.shake = Math.max(W.shake, 0.3 + sev * 0.4);
+        if (/GROUND/.test(label)) { if (sev > 0.5) { crater(p, 2 * M, 0.5 * M); W.smoke.puff(p, 10, 2 * M); } Fx.Sfx.thud(clamp(sev, 0.3, 1)); Fx.haptic(30); }
+        else { blast(p, (3 + clamp(closing / 300, 0, 3)) * M, W.tie.vel.clone().multiplyScalar(.25), false, false, 'ram'); Fx.Sfx.crunch(); Fx.haptic([40, 30, 60]); } } });
     setCharacter(W.character);
     const s = spawnPoint(win); W.rig.pos.set(s.x * M, W.G.h(s.x * M, s.z * M), s.z * M); W.rig.heading = Math.PI; W.rig.figure.rotation.y = Math.PI; W.rig.cam.yaw = W.rig.heading + Math.PI; parkShip(W.rig.pos.x, W.rig.pos.z);
     W.crowd.populate(W.rig.pos);
     for (let k = 0; k < 20; k++) W.city.update(W.camera, W.rig.pos);
     const r = engine.renderer, real = r.render.bind(r);
     r.render = (sc, c) => { tick(); real(sc, c); W.stats.calls = r.info.render.calls; };
-    W.tie.onFire = (o, d, v) => { if (W.room && W.room.role) W.room.send({ t: 'bolt', o: o.toArray().map(Math.round), d: d.toArray().map(x => +x.toFixed(3)), s: Math.round(v.length()) }, { fast: true }); };
-    W.bolts.onFire = (o, d, owner, speed) => { if (W.room && W.room.role && (owner === 'player' || (owner === 'npc' && W.room.role === 'host'))) W.room.send({ t: 'bolt', o: o.toArray().map(Math.round), d: d.toArray().map(x => +x.toFixed(3)), s: speed, npc: owner === 'npc' }, { fast: true }); };
+    W.tie.onFire = (o, d, v) => { Fx.Sfx.laser(); if (W.room && W.room.role) W.room.send({ t: 'bolt', o: o.toArray().map(Math.round), d: d.toArray().map(x => +x.toFixed(3)), s: Math.round(v.length()) }, { fast: true }); };
+    W.bolts.onFire = (o, d, owner, speed) => { if (owner === 'player') Fx.Sfx.blaster(); if (W.room && W.room.role && (owner === 'player' || (owner === 'npc' && W.room.role === 'host'))) W.room.send({ t: 'bolt', o: o.toArray().map(Math.round), d: d.toArray().map(x => +x.toFixed(3)), s: speed, npc: owner === 'npc' }, { fast: true }); };
     { const orig = W.crowd.burst.bind(W.crowd); W.crowd.burst = (n, vel, debris) => { const was = n.alive; orig(n, vel, debris); if (was && W.room && W.room.role === 'guest' && n.ri != null) W.room.send({ t: 'npcHit', i: n.ri }); }; }
     paintPalette();
     stage('bricks', 'done', ''); W.last = performance.now(); W.ready = true; $('#veil').classList.add('gone'); $('#menu').classList.remove('open'); paint(); hintFor();
@@ -526,7 +565,8 @@ function netHandle(m, from) {
     case 'snap': { if (R.role !== 'guest') break; const mine = W.build.rows(); W.build.applyOps({ up: m.build || [] }); for (const b of W.city.buildings) if (m.damage && m.damage[b.id]) W.city.applyRemoved(b, m.damage[b.id]); if (m.crowd) W.crowd.applyRemote(m.crowd); if (mine.length && mine.length <= 2000) R.send({ t: 'edit', up: mine, rm: [] }); toast(`${(m.build || []).length} bricks in this room`, 1200); break; }
     case 'p': applyRemote(from, m); break;
     case 'bolt': { const o = new THREE.Vector3().fromArray(m.o), d = new THREE.Vector3().fromArray(m.d); W.bolts.fire(o, d, m.npc && R.role === 'guest' ? 'npc' : 'remote', m.s || 1400); break; }
-    case 'blast': blast(new THREE.Vector3().fromArray(m.p), m.r, m.v ? new THREE.Vector3().fromArray(m.v) : null, true, true); break;
+    case 'blast': blast(new THREE.Vector3().fromArray(m.p), m.r, m.v ? new THREE.Vector3().fromArray(m.v) : null, true, true, m.k || 'bolt'); break;
+    case 'crater': crater(new THREE.Vector3().fromArray(m.p), m.r, m.d, true); break;
     case 'edit': { const r = W.build.applyOps({ up: m.up, rm: m.rm }); if (r.added) toast(`${R.players.get(from) ? R.players.get(from).name : 'someone'} built`, 500); break; }
     case 'crowd': if (R.role === 'guest') W.crowd.applyRemote(m.n); break;
     case 'npcHit': if (R.role === 'host') { const n = W.crowd.npcs.find(n => n.i === m.i && n.alive); if (n) W.crowd.burst(n, null, W.debris); } break;
@@ -585,6 +625,7 @@ Object.assign(W, {
   buildStat: () => W.build.stats(), setBuild: toggleBuild, choose: (part, col, rot) => { if (part) W.build.part = part; if (col != null) W.build.col = col; if (rot != null) W.build.rot = rot; paintPalette(); }, placeBrick: buildAct, undo: () => W.build.undo(), setPick, lift: n => { W.build.lift = n; },
   aimAt: (x, y, z) => { if (x == null) { W.build.pin = null; return null; } const o = new THREE.Vector3(x, y + 4 * M, z + 3 * M), d = new THREE.Vector3(x, y, z).sub(o).normalize(); W.build.on = true; W.build.pin = { origin: o, dir: d }; W.build.aimRay(o, d); return W.build.stats().target; }, takeBrick: id => fall(W.build.remove(id)),
   pieces: () => W.build.rows(), pieceAt: id => { const p = W.build.pieces.get(id); return p ? { id, part: p.part, col: p.col, x: p.x, y: p.y, z: p.z, rot: p.rot } : null; }, saveNow: () => { W.build.save(); saveDamage(); }, resetPlace, damage: () => W.city.removedSets(), placeKey: () => placeKey(W.place),
+  fx: () => ({ sfx: Fx.Sfx.stats(), haptics: Fx.haptic.count(), smoke: W.smoke.stats(), hits: Fx.Hits.n, tally: { ...W.tally }, craters: W.G.craters || 0, lastCrater: W.lastCrater || null, air: !!W.rig.air, vy: W.rig.vy || 0, assisted: W.tie.assisted, groundHits: W.tie.groundHits }), crater: (x, z, r, d) => crater(new THREE.Vector3(x, 0, z), r, d), groundAt: (x, z) => W.G.h(x, z), groundColour: (x, z) => { const G = W.G, f = G.field, i = Math.round(f.cx + x / M / G.res), j = Math.round(f.cy + z / M / G.res), c = G.mesh.geometry.attributes.color, k = j * G.n + i; return [c.getX(k), c.getY(k), c.getZ(k)]; },
   netStat: () => W.room.stats(), host: hostRoom, join: joinRoom, leave: leaveRoom, remoteList: () => [...W.remotes.values()].map(r => ({ id: r.id, ch: r.ch, mode: r.tgt && r.tgt.m, pos: r.pos.toArray(), visible: r.fig && r.fig.figure.visible, shipVisible: !!r.ship && r.ship.visible })), flushEdits, setName,
   debrisPieces: () => W.debris.pieces.map(p => { const c = W.debris.centre(p, V1); return { part: p.kind.name, y: c.y, x: c.x, z: c.z, rest: p.rest, floor: W.G.h(c.x, c.z) }; }),
   building: i => { const b = W.city.buildings[i]; if (!b.bricks) b.bricks = Bricks.buildBricks(b, W.colours, M); return { id: b.id, kind: b.kind, n: b.bricks.n, removed: b.removed.size, live: b.bricks.n - b.removed.size, cx: b.cx, cz: b.cz, y0: b.y0, yTop: b.yTop, courses: b.courses, ruined: b.ruined }; },
