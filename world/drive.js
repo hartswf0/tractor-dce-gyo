@@ -64,16 +64,18 @@ function stepDrive(V, dt, ctx) {
   if (ctx.knock && Math.abs(V.speed) > 3 * M) { V2.copy(V.pos); V2.y += 0.6 * M; ctx.knock(V2, V.r + 0.4 * M, V.vel.clone().multiplyScalar(0.6)); }
 }
 function stepFly(V, dt, ctx) {
-  const M = V.M, K = V.K, i = V.input, g = 0.25 + 0.75 * i.mag * i.mag;
-  const gh = V.groundH(V.pos.x, V.pos.z), alt = V.pos.y - gh;
-  const target = V.landing ? 0 : (i.boost ? K.boost : K.cruise) * M * (V.airborne || i.mag > 0.1 ? 1 : 0);
+  const M = V.M, K = V.K, i = V.input, g = 0.25 + 0.75 * i.mag * i.mag, hover = K.stall === 0;
+  const roof = ctx.roofAt ? ctx.roofAt(V.pos.x, V.pos.z, V.pos.y) : -Infinity, gh = Math.max(V.groundH(V.pos.x, V.pos.z), roof), alt = V.pos.y - gh;
+  // throttle: planes cruise on their own once up; speeders fly as hard as the thumb pushes and hover when it lifts
+  const target = V.landing ? (hover ? 0 : 3 * M) : (i.boost ? K.boost : K.cruise) * M * (hover ? clamp(i.mag, 0, 1) : (V.airborne || i.mag > 0.1 ? 1 : 0));
   V.speed += (target - V.speed) * (1 - Math.exp(-dt * (V.landing ? 1.4 : 2.2)));
   V.heading -= i.x * K.turn * g * dt;
-  const wantPitch = V.landing ? -0.25 : clamp(i.y * 0.9, -0.9, 0.9);
-  V.pitch += (wantPitch - V.pitch) * (1 - Math.exp(-dt * 3.5));
-  V.roll += (-i.x * 0.6 - V.roll) * (1 - Math.exp(-dt * 3));
+  const wantPitch = V.landing ? 0 : clamp(i.y * 0.55, -0.55, 0.55);
+  V.pitch += (wantPitch - V.pitch) * (1 - Math.exp(-dt * 2.6));
+  V.roll += (-i.x * 0.5 - V.roll) * (1 - Math.exp(-dt * 3));
   forward(V, V1); V.vel.copy(V1).multiplyScalar(V.speed);
-  if (K.stall && V.speed < K.stall * M) V.vel.y -= (K.stall * M - V.speed) * 1.5 * dt * 60;   // a plane too slow to fly sinks
+  if (V.landing) V.vel.y = -Math.min(15, 5 + alt / M / 8) * M;                                     // a landing comes down at 5 m/s near the ground, faster from high up, wherever the ground is
+  else if (!hover && V.airborne && i.mag < 0.1 && V.speed < K.stall * M) V.vel.y -= (K.stall * M - V.speed) * 0.4;   // a plane that has lost its speed sinks gently
   V.pos.addScaledVector(V.vel, dt);
   const floor = gh + K.hover * M;
   if (V.pos.y <= floor) { V.pos.y = floor; if (V.vel.y < 0) V.vel.y = 0; if (V.pitch < 0) V.pitch *= 0.5;
@@ -83,7 +85,7 @@ function stepFly(V, dt, ctx) {
   if (!V.airborne && !V.landing) { V.pitch = 0; if (V.speed > 5 * M && i.y > 0.1) V.airborne = true; }
   if (V.pos.y > gh + 400 * M) V.pos.y = gh + 400 * M;
   // buildings: a box in the way bounces the vehicle and bruises the wall
-  if (V.aabbs && V.t - V.lastRam > 0.4) { for (const box of V.aabbs(V.pos.x, V.pos.z, V.r)) { if (V.pos.x > box.min.x - V.r && V.pos.x < box.max.x + V.r && V.pos.z > box.min.z - V.r && V.pos.z < box.max.z + V.r && V.pos.y > box.min.y - 0.2 * M && V.pos.y < box.max.y + 0.2 * M) {
+  if (V.aabbs && V.t - V.lastRam > 0.4 && !V.landing) { for (const box of V.aabbs(V.pos.x, V.pos.z, V.r)) { if (V.pos.x > box.min.x - V.r && V.pos.x < box.max.x + V.r && V.pos.z > box.min.z - V.r && V.pos.z < box.max.z + V.r && V.pos.y > box.min.y - 0.2 * M && V.pos.y < box.max.y - 0.3 * M) {
     V.lastRam = V.t; const sp = V.speed / M; V2.copy(V.pos); ctx.blast && sp > 6 && ctx.blast(V2, 3 * M * K.ram, V.vel.clone().multiplyScalar(0.25), 'ram'); ctx.sfx && ctx.sfx.crunch();
     V.pos.addScaledVector(V1, -V.speed * dt * 3); V.speed *= 0.3; V.vel.multiplyScalar(-0.3); V.bumped = V.t; break; } } }
   if (V.landing) V.landing += dt;

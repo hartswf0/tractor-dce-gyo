@@ -60,7 +60,8 @@ function buildMenu() {
   const worlds = Object.entries(Worlds.PRESETS).map(([k, p]) => `<button data-world="${k}" class="${k === W.world ? 'on' : ''}">${p.name}</button>`).join('');
   $('#menu').innerHTML = `<div class="row"><span>play as</span>${chars}</div><div class="row"><span>world</span>${worlds}</div>
     <div class="row ai"><span>builder</span><input id="aiKey" type="password" placeholder="OpenAI API key (stays here)" autocomplete="off"><em>${Ai.model()} · ${Ai.effort()} reasoning · designs, checks, reviews</em></div>
-    <div class="row net"><span>together</span><input id="nameIn" placeholder="your name" maxlength="14"><button id="hostBtn">Host a room</button><input id="codeIn" placeholder="CODE" maxlength="4" autocapitalize="characters"><button id="joinBtn">Join</button><button id="linkBtn" hidden>Copy link</button><button id="leaveBtn" hidden>Leave</button><button id="muteBtn" title="sound">sound on</button></div><div class="row"><em id="roomStat"></em></div>`;
+    <div class="row net"><span>together</span><input id="nameIn" placeholder="your name" maxlength="14"><button id="hostBtn">Host a room</button><input id="codeIn" placeholder="CODE" maxlength="4" autocapitalize="characters"><button id="joinBtn">Join</button><button id="linkBtn" hidden>Copy link</button><button id="leaveBtn" hidden>Leave</button><button id="muteBtn" title="sound">sound on</button><button id="truceBtn" title="nobody shoots, ever">truce off</button></div>
+    <div class="row saves"><span>builds</span><button id="saveLookBtn">save what I look at</button><button id="savesExport">export</button><button id="savesImport">import</button></div><div id="savesList"></div><div class="row"><em id="roomStat"></em></div>`;
   $('#menu').querySelectorAll('[data-as]').forEach(b => b.onclick = () => setCharacter(b.dataset.as));
   $('#menu').querySelectorAll('[data-world]').forEach(b => b.onclick = () => setWorld(b.dataset.world));
   $('#nameIn').value = W.name || ''; $('#nameIn').onchange = () => setName($('#nameIn').value);
@@ -68,6 +69,11 @@ function buildMenu() {
   $('#hostBtn').onclick = () => hostRoom(); $('#joinBtn').onclick = () => joinRoom($('#codeIn').value); $('#leaveBtn').onclick = () => leaveRoom();
   $('#linkBtn').onclick = () => { const link = W.room.link(); (navigator.clipboard ? navigator.clipboard.writeText(link) : Promise.reject()).then(() => toast('link copied', 900), () => { prompt('Share this link', link); }); };
   $('#codeIn').addEventListener('keydown', e => { if (e.key === 'Enter') joinRoom($('#codeIn').value); });
+  $('#truceBtn').onclick = () => { setTruce(!W.truce); toast(W.truce ? 'truce: nobody shoots' : 'truce off', 900); }; setTruce(W.truce);
+  $('#saveLookBtn').onclick = () => { const r = readBuild(); if (r) { const sv = saveBuild(r.program, r.words.replace(/^what stands here: /, '').split(' · ')[0].slice(0, 40)); toast(`saved: ${sv.name}`, 1000); paintSaves(); } };
+  $('#savesExport').onclick = () => { const t = JSON.stringify(loadSaves()); (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(() => toast('builds copied as JSON', 1000), () => prompt('Copy your builds', t)); };
+  $('#savesImport').onclick = () => { const t = prompt('Paste builds JSON'); if (!t) return; try { const arr = JSON.parse(t); let n = 0; for (const e of Array.isArray(arr) ? arr : [arr]) { const prog = e.program || e; if (prog && Array.isArray(prog.ops)) { saveBuild(prog, e.name || prog.name); n++; } } toast(`${n} builds imported`, 1000); paintSaves(); } catch (e) { toast('that is not builds JSON', 1200); } };
+  paintSaves();
   const mb = $('#muteBtn'); mb.textContent = Fx.Sfx.muted ? 'sound off' : 'sound on'; mb.onclick = () => { Fx.Sfx.setMute(!Fx.Sfx.muted); mb.textContent = Fx.Sfx.muted ? 'sound off' : 'sound on'; Fx.Sfx.unlock(); };
 }
 function setName(n) { W.name = (n || '').trim().slice(0, 14) || W.name; try { localStorage.setItem('world.name', W.name); } catch (e) { } }
@@ -212,7 +218,7 @@ function setCharacter(name) {
 }
 function hintFor() {
   const d = Minifig.DEFS[W.character];
-  $('#hint').textContent = W.mode === 'ride' ? (W.veh && W.veh.fly ? 'left thumb: push up to climb, sideways to turn · second finger boosts · Land when low' : 'left thumb: up drives, sideways steers, down reverses · second finger boosts')
+  $('#hint').textContent = W.mode === 'ride' ? (W.veh && W.veh.fly ? 'left thumb: push up to climb, let go to level off, sideways to turn · second finger boosts · Land brings it down anywhere' : 'left thumb: up drives, sideways steers, down reverses · second finger boosts')
     : W.mode === 'fly' ? 'drag anywhere to carve · second finger boosts · tap right fires · hold right for a torpedo'
     : W.build && W.build.on ? (W.build.pick ? 'aim at a brick of yours and tap to pick it up' : 'aim with the reticle · tap to place · walk up to stack')
     : `left thumb walks · right thumb looks · tap right ${d.saber ? 'swings the saber' : d.weapon ? 'fires' : 'shoves'}${document.body.classList.contains('wb-off') ? ' · say what to build below' : ''}`;
@@ -391,6 +397,13 @@ function boltHit(p, kind, vel) {
   if (kind === 'ground') { crater(p, 1.5 * M, 0.4 * M); W.smoke.puff(p, 8, 1.5 * M); Fx.Sfx.thud(0.35); Fx.haptic(10); W.tally.craters = (W.tally.craters || 0) + 1; return; }
   blast(p, 3 * M, vel ? vel.clone().multiplyScalar(0.15) : null, true, false, 'bolt'); W.shake = Math.max(W.shake, 0.15);
 }
+/** Nobody shoots while you build: build mode, the word bar open, a draft standing, the model thinking, typing, a parked ride, or the truce switch. */
+function peaceNow() {
+  if (W.truce) return true; if (W.build && W.build.on) return true; if (W.master && (W.master.busy || W.master.result)) return true;
+  if (W.typing || !document.body.classList.contains('wb-off')) return true; if (W.mode === 'ride' && W.veh && Math.abs(W.veh.speed) < 1 * M) return true;
+  return false;
+}
+function setTruce(on) { W.truce = !!on; try { localStorage.setItem('world.truce', W.truce ? '1' : '0'); } catch (e) { } const b = $('#truceBtn'); if (b) { b.textContent = W.truce ? 'truce on' : 'truce off'; b.classList.toggle('on', W.truce); } }
 /* ───────────────────────── modes ───────────────────────── */
 function nearShip() { if (!W.ship || !W.rig) return Infinity; return Math.hypot(W.ship.position.x - W.rig.pos.x, W.ship.position.z - W.rig.pos.z) / M; }
 /** The nearest vehicle prop (one the builder made with a `vehicle` op) within 4 m, or null. */
@@ -462,7 +475,7 @@ function simulate(dt) {
     const v = !W.dead && nearVehicle(), nearT = nearShip() < 6 && !W.dead; $('#prompt').classList.toggle('on', !!(nearT || v)); $('#prompt').textContent = nearT && (!v || nearShip() * M < v.box.distanceToPoint(W.rig.pos)) ? 'Board the TIE' : v ? `${vehicleVerb(v)} the ${Drive.kindOf(v)}` : 'Board the TIE';
   } else if (W.mode === 'ride') {
     const V = W.veh; V.input.x = I.L.x; V.input.y = I.L.y; V.input.mag = I.L.mag; V.input.boost = I.boost;
-    const alive = Drive.step(V, dt, { pushOut: (pos, r) => vehPushOut(pos, r, V.prop.id), blast: (p, r, vel, kind) => { blast(p, r, vel, true, false, kind); W.shake = Math.max(W.shake, 0.3); flash(); Fx.Sfx.crunch(); Fx.haptic([30, 20, 40]); }, knock: (c, r, vel) => { const n = W.crowd.hitWithin(c, r, vel, W.debris); if (n) { Fx.Sfx.clatter(1); Fx.haptic(15); } }, sfx: { crunch: () => { Fx.Sfx.crunch(); Fx.haptic(20); }, thud: k => Fx.Sfx.thud(k) } });
+    const alive = Drive.step(V, dt, { roofAt: (x, z, y) => { let top = -Infinity; for (const b of W.city.aabbs(x, z, 10)) if (x > b.min.x && x < b.max.x && z > b.min.z && z < b.max.z && b.max.y <= y + 0.5 * M && b.max.y > top) top = b.max.y; return top; }, pushOut: (pos, r) => vehPushOut(pos, r, V.prop.id), blast: (p, r, vel, kind) => { blast(p, r, vel, true, false, kind); W.shake = Math.max(W.shake, 0.3); flash(); Fx.Sfx.crunch(); Fx.haptic([30, 20, 40]); }, knock: (c, r, vel) => { const n = W.crowd.hitWithin(c, r, vel, W.debris); if (n) { Fx.Sfx.clatter(1); Fx.haptic(15); } }, sfx: { crunch: () => { Fx.Sfx.crunch(); Fx.haptic(20); }, thud: k => Fx.Sfx.thud(k) } });
     W.rig.pos.set(V.pos.x, W.G.h(V.pos.x, V.pos.z), V.pos.z); W.rig.heading = V.heading;
     Fx.Sfx.engine(true, clamp(Math.abs(V.speed) / (V.K.boost * M), 0, 1), !!I.boost);
     Drive.camera(V, W.camera, dt, portrait);
@@ -491,7 +504,7 @@ function simulate(dt) {
   { let checked = 0; for (const p of W.debris.pieces) { if (p.rest || p.settling || checked > 80) continue; if (p.vel.lengthSq() < 25 * M * M) continue; checked++; const c = W.debris.centre(p, V1); if (W.crowd.hitWithin(c, 0.9 * M, p.vel.clone().multiplyScalar(0.5), W.debris)) Fx.Sfx.clatter(1); } }
   if (W.room.role) { W.room.tick(dt); netTick(dt); stepRemotes(dt); }
   W.build.tick(dt); if (W.props) W.props.tick(dt); if ((W.dmgAcc += dt) > 2) { W.dmgAcc = 0; saveDamage(); }
-  W.crowd.step(dt, { player: { pos: W.rig.pos, alive: W.mode === 'walk' && !W.dead, running: W.input.run && W.rig.speed > 3 * M, vel: W.rig.vel }, tie: { pos: W.mode === 'ride' ? W.veh.pos : W.tie.pos, flying: W.mode === 'fly' || (W.mode === 'ride' && Math.abs(W.veh.speed) > 2 * M) }, bolts: W.bolts, debris: W.debris, los, pushOut });
+  W.crowd.step(dt, { player: { pos: W.rig.pos, alive: W.mode === 'walk' && !W.dead, peace: peaceNow(), running: W.input.run && W.rig.speed > 3 * M, vel: W.rig.vel }, tie: { pos: W.mode === 'ride' ? W.veh.pos : W.tie.pos, flying: W.mode === 'fly' || (W.mode === 'ride' && Math.abs(W.veh.speed) > 2 * M) }, bolts: W.bolts, debris: W.debris, los, pushOut });
   W.city.update(W.camera, W.mode === 'fly' ? W.tie.pos : W.rig.pos);
   if ((W.hudAcc = (W.hudAcc || 0) + dt) > 0.1) { W.hudAcc = 0; paint(); }
   if ((W.landAcc = (W.landAcc || 0) + dt) > 1) { W.landAcc = 0; maybeReland(); }
@@ -547,6 +560,7 @@ async function boot() {
   try { W.name = Q.get('name') || localStorage.getItem('world.name') || ''; } catch (e) { W.name = Q.get('name') || ''; }
   if (!W.name) W.name = 'pilot-' + Build.Build.pid().slice(0, 4);
   W.room = Net.create({ transport: Q.get('net') === 'bc' ? 'bc' : undefined, onMessage: netHandle, onJoin: id => { roomStat(); if (id !== 'host') toast('someone joined', 900); }, onLeave: id => { dropRemote(id); roomStat(); if (id === 'host') leaveRoom(false); else toast('a player left', 900); }, onStatus: roomStat });
+  try { W.truce = localStorage.getItem('world.truce') === '1'; } catch (e) { W.truce = false; }
   try { Fx.Sfx.muted = Q.get('mute') === '1' || (Q.get('mute') !== '0' && localStorage.getItem('world.mute') === '1'); } catch (e) { }
   const unlock = () => { Fx.Sfx.unlock(); }; window.addEventListener('pointerdown', unlock, { passive: true }); window.addEventListener('keydown', unlock);
   buildMenu(); bindInput(); document.body.dataset.world = W.world;
@@ -632,6 +646,32 @@ function paintPalette() {
   P.querySelectorAll('[data-col]').forEach(b => { if (!b.style.background) { const c = W.colours(+b.dataset.col).clone().convertLinearToSRGB(); b.style.background = c.getStyle(); } b.classList.toggle('on', +b.dataset.col === B.col); });
   const pick = P.querySelector('[data-tool="pick"]'); if (pick) pick.classList.toggle('on', B.pick);
   const undo = P.querySelector('[data-tool="undo"]'); if (undo) undo.disabled = !B.history.length;
+}
+
+/* ───────────────────────── the library of builds ───────────────────────── */
+const SAVES_KEY = 'world.saves', SAVES_MAX = 40;
+function loadSaves() { try { const a = JSON.parse(localStorage.getItem(SAVES_KEY) || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
+function storeSaves(list) { try { localStorage.setItem(SAVES_KEY, JSON.stringify(list.slice(0, SAVES_MAX))); return true; } catch (e) { return false; } }
+/** Keep a program: newest first, a re-save of the same name and op count replaces the old entry. */
+function saveBuild(program, name) {
+  if (!program || !Array.isArray(program.ops)) return null; const res = Dsl.compile(program);
+  const entry = { id: 's' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), name: String(name || program.name || 'build').slice(0, 48), t: Date.now(), program: { name: program.name || name || 'build', ops: program.ops }, bricks: res.report.pieces, props: res.report.props, place: W.place ? W.place.name : '' };
+  const list = loadSaves().filter(e => !(e.name === entry.name && e.program && e.program.ops.length === program.ops.length)); list.unshift(entry); storeSaves(list); paintSaves(); return entry;
+}
+function deleteSave(id) { const list = loadSaves().filter(e => e.id !== id); storeSaves(list); paintSaves(); return list.length; }
+/** Stand a saved build as a draft where you look; commit puts it here. */
+function placeSave(id) { const e = loadSaves().find(x => x.id === id); if (!e) return null; if (W.mode !== 'walk') { toast('land first', 900); return null; } const res = Dsl.compile(e.program); W.master.conv = { program: e.program, messages: [] }; W.master.words = e.name; mbShow(res, null); mbLog('info', `placed from the library: ${e.name}`); $('#menu').classList.remove('open'); toast(`${e.name}: nudge it, then commit`, 1200); return res.report; }
+function wordsSave(id) { const e = loadSaves().find(x => x.id === id); if (!e) return null; mbDiscard(true); const res = Dsl.compile(e.program); W.master.result = res; W.master.anchor = mbAnchor(); W.master.rot = 0; W.master.conv = { program: e.program, messages: [] }; W.master.words = Dsl.caption(e.program); wbOpen(true, true); const T = $('#words'); if (T) { T.value = W.master.words; T.style.height = 'auto'; T.style.height = Math.min(150, Math.max(52, T.scrollHeight)) + 'px'; } mbStatus(`${e.name} from the library: edit the words and press Change, or place it from the menu`, 'ok'); $('#menu').classList.remove('open'); return W.master.words; }
+function whenText(t) { const d = new Date(t), now = new Date(); const hm = d.toTimeString().slice(0, 5); return d.toDateString() === now.toDateString() ? 'today ' + hm : d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + hm; }
+function paintSaves() {
+  const el = $('#savesList'); if (!el) return; const list = loadSaves(); el.innerHTML = '';
+  if (!list.length) { el.innerHTML = '<em>nothing kept yet: every commit lands here</em>'; return; }
+  for (const e of list) {
+    const d = document.createElement('div'); d.className = 'save'; d.innerHTML = `<b></b><em></em><button data-do="place">place</button><button data-do="words">words</button><button data-do="mpd">mpd</button><button data-do="del">delete</button>`;
+    d.querySelector('b').textContent = e.name; d.querySelector('em').textContent = `${e.bricks} bricks${e.props ? ` · ${e.props} props` : ''} · ${whenText(e.t)}${e.place ? ' · ' + e.place.replace(/ → .*/, '').slice(0, 24) : ''}`;
+    d.querySelectorAll('button').forEach(b => b.onclick = () => { switch (b.dataset.do) { case 'place': placeSave(e.id); break; case 'words': wordsSave(e.id); break; case 'mpd': { const res = Dsl.compile(e.program); NabugoUI.download(Dsl.toMPD(res, e.name.replace(/\W+/g, '_')), e.name.replace(/\W+/g, '_') + '.mpd'); break; } case 'del': deleteSave(e.id); break; } });
+    el.appendChild(d);
+  }
 }
 
 /* ───────────────────────── the master builder ───────────────────────── */
@@ -794,6 +834,7 @@ async function mbCommit() {
   const rows = W.draft.rows(); const added = W.build.addRows(rows);
   const props = res.props.map(pr => mbPropPlace(pr)); let placed = 0;
   for (let i = 0; i < props.length; i++) { const pl = props[i]; const it = await W.props.place(res.props[i].mpd, pl.x, pl.y, pl.z, pl.yaw, false, res.props[i].src || null); if (it) placed++; }
+  const prog = W.master.conv && W.master.conv.program; if (prog && Array.isArray(prog.ops) && prog.ops.length) { const sv = saveBuild(prog, (W.master.words && !/^what stands here/.test(W.master.words) ? W.master.words.split(' · ')[0] : prog.name) || prog.name); if (sv) mbLog('info', `kept in the library as "${sv.name}"`); }
   mbDiscard(true); mbLog('info', `committed: ${added.length} bricks${placed ? ` · ${placed} props` : ''}${gone ? ` · replaced ${gone}` : ''}`); mbStatus(`built: ${added.length} bricks${placed ? ` · ${placed} props` : ''}${gone ? ` · replaced ${gone}` : ''}`, 'ok'); toast(gone ? 'rebuilt' : 'built', 900); Fx.Sfx.thud(0.5); Fx.haptic(30);
   W.tally.built = (W.tally.built || 0) + added.length; return { bricks: added.length, props: placed, replaced: gone };
 }
@@ -941,7 +982,7 @@ Object.assign(W, {
   aimAt: (x, y, z) => { if (x == null) { W.build.pin = null; return null; } const o = new THREE.Vector3(x, y + 4 * M, z + 3 * M), d = new THREE.Vector3(x, y, z).sub(o).normalize(); W.build.on = true; W.build.pin = { origin: o, dir: d }; W.build.aimRay(o, d); return W.build.stats().target; }, takeBrick: id => fall(W.build.remove(id)),
   pieces: () => W.build.rows(), pieceAt: id => { const p = W.build.pieces.get(id); return p ? { id, part: p.part, col: p.col, x: p.x, y: p.y, z: p.z, rot: p.rot } : null; }, saveNow: () => { W.build.save(); saveDamage(); }, resetPlace, damage: () => W.city.removedSets(), placeKey: () => placeKey(W.place),
   fx: () => ({ sfx: Fx.Sfx.stats(), haptics: Fx.haptic.count(), smoke: W.smoke.stats(), hits: Fx.Hits.n, tally: { ...W.tally }, craters: W.G.craters || 0, lastCrater: W.lastCrater || null, air: !!W.rig.air, vy: W.rig.vy || 0, assisted: W.tie.assisted, groundHits: W.tie.groundHits }), crater: (x, z, r, d) => crater(new THREE.Vector3(x, 0, z), r, d), groundAt: (x, z) => W.G.h(x, z), groundColour: (x, z) => { const G = W.G, f = G.field, i = Math.round(f.cx + x / M / G.res), j = Math.round(f.cy + z / M / G.res), c = G.mesh.geometry.attributes.color, k = j * G.n + i; return [c.getX(k), c.getY(k), c.getZ(k)]; },
-  mb: () => ({ busy: W.master.busy, status: W.master.status, rot: W.master.rot, anchor: W.master.anchor, draft: W.draft.pieces.size, ghosts: W.master.ghosts.length, report: W.master.result && W.master.result.report, usage: W.master.usage || null }), mbAsk: mbDraft, say, readBuild, mbEdit, startNow, wbOpen, stopBuild, boardVehicle: id => { const it = id ? W.props.items.get(id) : nearVehicle(); if (it) boardVehicle(it); return W.mode; }, leaveVehicle, ride: () => W.veh ? { mode: W.mode, kind: W.veh.kind, fly: W.veh.fly, pos: W.veh.pos.toArray(), heading: W.veh.heading, speed: W.veh.speed, airborne: W.veh.airborne, landing: W.veh.landing, id: W.veh.prop.id } : { mode: W.mode }, prompt: () => ({ on: $('#prompt').classList.contains('on'), text: $('#prompt').textContent }), promptAction, buildLog: () => (W.master.log || []).slice(), wbLog, wbState: () => ({ open: !document.body.classList.contains('wb-off'), key: !!Ai.key(), keyRow: $('#wbKeyRow').classList.contains('on'), wb: getComputedStyle(document.body).getPropertyValue('--wb').trim() }), veil: () => ({ stages: Object.fromEntries(Object.entries(VEIL.stages).map(([k, v]) => [k, v.state])), start: !!($('#vStart') && !$('#vStart').hidden), since: (performance.now() - VEIL.t0) / 1000, readyAt: VEIL.readyAt || 0, buildingsAt: VEIL.buildingsAt || 0 }), pending: () => !!(W.win && W.win.pending), mbLoad: program => { const res = Dsl.compile(program); mbShow(res, null); return res.report; }, mbCommit, mbDiscard, mbNudge, propStat: () => W.props.stats(), propRows: () => W.props.rows(), propBoxes: () => [...W.props.items.values()].map(it => ({ id: it.id, ready: it.ready, parts: it.meshes.length, box: it.box ? [it.box.min.toArray(), it.box.max.toArray()] : null })), aiStat: () => Ai.stats(),
+  mb: () => ({ busy: W.master.busy, status: W.master.status, rot: W.master.rot, anchor: W.master.anchor, draft: W.draft.pieces.size, ghosts: W.master.ghosts.length, report: W.master.result && W.master.result.report, usage: W.master.usage || null }), mbAsk: mbDraft, say, readBuild, mbEdit, startNow, wbOpen, stopBuild, saves: loadSaves, saveBuild, placeSave, deleteSave, wordsSave, setTruce, peace: peaceNow, boardVehicle: id => { const it = id ? W.props.items.get(id) : nearVehicle(); if (it) boardVehicle(it); return W.mode; }, leaveVehicle, ride: () => W.veh ? { mode: W.mode, kind: W.veh.kind, fly: W.veh.fly, pos: W.veh.pos.toArray(), heading: W.veh.heading, speed: W.veh.speed, airborne: W.veh.airborne, landing: W.veh.landing, id: W.veh.prop.id } : { mode: W.mode }, prompt: () => ({ on: $('#prompt').classList.contains('on'), text: $('#prompt').textContent }), promptAction, buildLog: () => (W.master.log || []).slice(), wbLog, wbState: () => ({ open: !document.body.classList.contains('wb-off'), key: !!Ai.key(), keyRow: $('#wbKeyRow').classList.contains('on'), wb: getComputedStyle(document.body).getPropertyValue('--wb').trim() }), veil: () => ({ stages: Object.fromEntries(Object.entries(VEIL.stages).map(([k, v]) => [k, v.state])), start: !!($('#vStart') && !$('#vStart').hidden), since: (performance.now() - VEIL.t0) / 1000, readyAt: VEIL.readyAt || 0, buildingsAt: VEIL.buildingsAt || 0 }), pending: () => !!(W.win && W.win.pending), mbLoad: program => { const res = Dsl.compile(program); mbShow(res, null); return res.report; }, mbCommit, mbDiscard, mbNudge, propStat: () => W.props.stats(), propRows: () => W.props.rows(), propBoxes: () => [...W.props.items.values()].map(it => ({ id: it.id, ready: it.ready, parts: it.meshes.length, box: it.box ? [it.box.min.toArray(), it.box.max.toArray()] : null })), aiStat: () => Ai.stats(),
   netStat: () => W.room.stats(), host: hostRoom, join: joinRoom, leave: leaveRoom, remoteList: () => [...W.remotes.values()].map(r => ({ id: r.id, ch: r.ch, mode: r.tgt && r.tgt.m, pos: r.pos.toArray(), visible: r.fig && r.fig.figure.visible, shipVisible: !!r.ship && r.ship.visible })), flushEdits, setName,
   debrisPieces: () => W.debris.pieces.map(p => { const c = W.debris.centre(p, V1); return { part: p.kind.name, y: c.y, x: c.x, z: c.z, rest: p.rest, floor: W.G.h(c.x, c.z) }; }),
   building: i => { const b = W.city.buildings[i]; if (!b.bricks) b.bricks = Bricks.buildBricks(b, W.colours, M); return { id: b.id, kind: b.kind, n: b.bricks.n, removed: b.removed.size, live: b.bricks.n - b.removed.size, cx: b.cx, cz: b.cz, y0: b.y0, yTop: b.yTop, courses: b.courses, ruined: b.ruined }; },
