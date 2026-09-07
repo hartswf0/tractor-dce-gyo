@@ -59,8 +59,12 @@ class Debris {
     const a = this.rest.get(this.key(x, z)); if (a) for (const q of a) { if (q === self) continue; const bb = q.aabb; if (x > bb.min.x && x < bb.max.x && z > bb.min.z && z < bb.max.z && bb.max.y <= y + 6 && bb.max.y > f) f = bb.max.y; }
     return f;
   }
-  step(dt) {
-    const M = this.M, moving = new Map();
+  /** ctx (optional): { spheres: [{ pos, r, vel, onHit(piece, relSpeed) }], onLand(piece, speed) } — things debris can hit, and a landing report. */
+  step(dt, ctx) {
+    const M = this.M, moving = new Map(), spheres = ctx && ctx.spheres || null, onLand = ctx && ctx.onLand || null;
+    if (spheres) for (const s of spheres) { if (!s.vel || s.vel.length() < 3 * M) continue; const rr = s.r + 30;   // a fast ship sweeps resting rubble aside
+      for (let x = Math.floor((s.pos.x - rr) / CELL); x <= Math.floor((s.pos.x + rr) / CELL); x++) for (let z = Math.floor((s.pos.z - rr) / CELL); z <= Math.floor((s.pos.z + rr) / CELL); z++) { const a = this.rest.get(x + ':' + z); if (!a) continue;
+        for (const q of a.slice()) { const qc = this.centre(q, V1); if (qc.distanceTo(s.pos) > rr) continue; this.unhash(q); q.rest = false; q.settling = 0; q.restAge = 0; q.age = 0; q.vel.copy(s.vel).multiplyScalar(0.4).add(V2.subVectors(qc, s.pos).normalize().multiplyScalar(3 * M)); q.vel.y += 2 * M; q.ang.set((Math.random() - .5) * 8, (Math.random() - .5) * 8, (Math.random() - .5) * 8); if (s.onHit) s.onHit(q, s.vel.length()); } } }
     for (let i = this.pieces.length - 1; i >= 0; i--) {
       const p = this.pieces[i]; p.age += dt;
       if (p.rest) { p.restAge += dt; if (p.restAge > REST_LIFE) { p.scl.multiplyScalar(Math.max(0, 1 - dt * 2)); this.write(p); if (p.scl.x < 0.05) this.kill(p); } continue; }
@@ -73,6 +77,7 @@ class Debris {
       const floor = this.floorAt(lx, lz, low, p);
       if (low < floor) {
         p.pos.y += floor - low;
+        if (onLand && -p.vel.y > 1.5 * M) onLand(p, -p.vel.y);
         if (p.vel.y < 0) p.vel.y = -p.vel.y * 0.3; p.vel.x *= 0.6; p.vel.z *= 0.6; p.ang.multiplyScalar(0.5);
         p.ang.x += (c.z - lz) * 0.02; p.ang.z -= (c.x - lx) * 0.02;                   // it topples toward the corner it landed on
         if (p.vel.length() < 0.4 * M && p.ang.length() < 1) { p.settling = 1e-3; p.target = this.squared(p.quat); p.vel.set(0, 0, 0); p.ang.set(0, 0, 0); }
@@ -88,6 +93,8 @@ class Debris {
         if (speed > 6 * M && this.onWallHit) this.onWallHit(c.clone(), p.vel.clone().multiplyScalar(0.5));
         p.vel.multiplyScalar(0.8);
       }
+      if (spheres) for (const s of spheres) { const want = s.r + p.kind.r * 0.7; V2.subVectors(c, s.pos); const L = V2.length(); if (L > want || L < 1e-3) continue;   // a piece meets a ship or a figure
+        V2.divideScalar(L); p.pos.addScaledVector(V2, want - L); const rel = V3.subVectors(p.vel, s.vel || V3.set(0, 0, 0)).length(); p.vel.copy(s.vel || V3.set(0, 0, 0)).multiplyScalar(0.5).addScaledVector(V2, 4 * M); p.vel.y += 1.5 * M; if (s.onHit) s.onHit(p, rel); }
       // moving pieces push each other apart a little
       const key = this.key(c.x, c.z); let a = moving.get(key); if (!a) { a = []; moving.set(key, a); }
       for (const q of a) { const qc = this.centre(q, V2), d = V3.subVectors(c, qc), L = d.length(), want = (p.kind.r + q.kind.r) * 0.6; if (L > 1e-3 && L < want) { d.divideScalar(L); const push = (want - L) * 0.5; p.pos.addScaledVector(d, push); q.pos.addScaledVector(d, -push); p.vel.addScaledVector(d, 30); q.vel.addScaledVector(d, -30); } }

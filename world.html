@@ -22,6 +22,7 @@
 <script src="./world/characters.js"></script>
 <script src="./world/worlds.js"></script>
 <script src="./world/tie.js"></script>
+<script src="./world/fx.js"></script>
 <script src="./world/build.js"></script>
 <script src="./world/net.js"></script>
 <style>
@@ -107,6 +108,19 @@ body.build #reticle{display:block}
 body[data-world="deathstar"] #palette .parts button,body[data-world="deathstar"] #palette .tools>button{background:rgba(20,24,32,.85);color:#e6eaf2;border-color:rgba(230,234,242,.3)}
 body[data-world="deathstar"] #menu input{background:rgba(20,24,32,.85);border-color:rgba(230,234,242,.3)}
 body[data-world="deathstar"] #room{background:rgba(230,234,242,.16)}
+#tally{position:fixed;left:50%;top:calc(96px + env(safe-area-inset-top));transform:translateX(-50%);font:800 13px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--red);text-shadow:0 1px 6px rgba(255,255,255,.7);pointer-events:none;z-index:4;white-space:nowrap}
+#tally.pulse{animation:pulse .35s ease-out}
+@keyframes pulse{0%{transform:translateX(-50%) scale(1.35)}100%{transform:translateX(-50%) scale(1)}}
+#hitmark{position:fixed;left:50%;top:50%;width:26px;height:26px;margin:-13px 0 0 -13px;pointer-events:none;z-index:4;opacity:0}
+#hitmark::before,#hitmark::after{content:'';position:absolute;background:var(--red);left:50%;top:50%}
+#hitmark::before{width:26px;height:3px;margin:-1.5px 0 0 -13px}#hitmark::after{width:3px;height:26px;margin:-13px 0 0 -1.5px}
+#hitmark.hit{animation:hit .35s ease-out}
+@keyframes hit{0%{opacity:1;transform:rotate(45deg) scale(1.6)}100%{opacity:0;transform:rotate(45deg) scale(.8)}}
+#floats{position:fixed;left:0;right:0;top:44%;pointer-events:none;z-index:4}
+#floats .float{position:absolute;transform:translateX(-50%);font:800 18px var(--sans);color:var(--red);text-shadow:0 1px 6px rgba(255,255,255,.7);animation:floatUp .9s ease-out forwards}
+#floats .float.big{font-size:30px}
+@keyframes floatUp{0%{opacity:1;margin-top:0}100%{opacity:0;margin-top:-70px}}
+body[data-world="deathstar"] #tally,body[data-world="deathstar"] #floats .float{text-shadow:0 1px 6px rgba(0,0,0,.8)}
 #flash{position:fixed;inset:0;background:rgba(216,56,46,.3);opacity:0;pointer-events:none;transition:opacity .1s;z-index:3}#flash.on{opacity:1}
 #keys{display:none;position:fixed;left:50%;bottom:calc(34px + env(safe-area-inset-bottom));transform:translateX(-50%);font:11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--dim);white-space:nowrap;z-index:4;pointer-events:none}
 @media (hover:hover) and (pointer:fine){#keys{display:block}}
@@ -128,6 +142,9 @@ body[data-world="deathstar"] #room{background:rgba(230,234,242,.16)}
 <div id="palette"></div>
 <div id="reticle"></div>
 <div id="room"></div>
+<div id="tally"></div>
+<div id="hitmark"></div>
+<div id="floats"></div>
 <div id="hint">left thumb walks · right thumb looks · tap right swings the saber · two fingers force push</div>
 <div id="keys">wasd walk · mouse drag look · space saber · f push · g detonator · b build · shift run · e board / land</div>
 <div id="credit">terrain AWS · buildings © OpenStreetMap · imagery Esri</div>

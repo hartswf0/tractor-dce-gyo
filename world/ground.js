@@ -61,8 +61,30 @@ function drape(G, imagery) {
   for (let i = 0; i < pos.count; i++) { const t = imagery.uv(pos.getX(i), pos.getZ(i)); uv[i * 2] = t.u; uv[i * 2 + 1] = t.v; }
   g.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
   const tex = new THREE.CanvasTexture(imagery.canvas); tex.encoding = THREE.sRGBEncoding; tex.anisotropy = 4; tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping;
-  const m = G.mesh.material; m.map = tex; m.vertexColors = false; m.color.set(0xffffff); m.needsUpdate = true;
+  const col = g.attributes.color; for (let i = 0; i < col.count; i++) col.setXYZ(i, 1, 1, 1); col.needsUpdate = true;   // white under the imagery, so scorch marks still show
+  const m = G.mesh.material; m.map = tex; m.vertexColors = true; m.color.set(0xffffff); m.needsUpdate = true;
   G.imagery = imagery;
+}
+
+/** A crater: dent the heightfield within r (LDU) by depth (LDU) with a low rim, scorch the vertices, fix the normals nearby.
+    Feet, ships, debris and bolts read the same field, so the ground really is lower afterwards. */
+function crater(G, x, z, r, depth) {
+  const { n, res, H, M } = G, f = G.field, cx = f.cx, cy = f.cy, g = G.mesh.geometry, pos = g.attributes.position, col = g.attributes.color, nor = g.attributes.normal;
+  const xm = x / M, zm = z / M, rm = Math.max(res * 0.8, r / M), dm = depth / M, gi = cx + xm / res, gj = cy + zm / res, span = Math.ceil(rm * 1.3 / res);
+  const i0 = clamp(Math.floor(gi) - span, 0, n - 1), i1 = clamp(Math.ceil(gi) + span, 0, n - 1), j0 = clamp(Math.floor(gj) - span, 0, n - 1), j1 = clamp(Math.ceil(gj) + span, 0, n - 1);
+  let touched = 0;
+  for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
+    const d = Math.hypot((i - gi) * res, (j - gj) * res); if (d > rm * 1.3) continue;
+    const k = j * n + i; let dh; if (d < rm) dh = -dm * (1 - d * d / (rm * rm)); else dh = dm * 0.15 * (1 - (d - rm) / (0.3 * rm));
+    H[k] += dh; pos.setY(k, H[k]); touched++;
+    if (d < rm * 1.1) { const s = (1 - d / (rm * 1.1)) * 0.75; col.setXYZ(k, col.getX(k) * (1 - s) + 0.16 * s, col.getY(k) * (1 - s) + 0.13 * s, col.getZ(k) * (1 - s) + 0.10 * s); }
+  }
+  const at = G.at;
+  for (let j = Math.max(0, j0 - 1); j <= Math.min(n - 1, j1 + 1); j++) for (let i = Math.max(0, i0 - 1); i <= Math.min(n - 1, i1 + 1); i++) {
+    const k = j * n + i, dx = (at(i - 1, j) - at(i + 1, j)) / (2 * res), dz = (at(i, j - 1) - at(i, j + 1)) / (2 * res), L = Math.hypot(dx, 1, dz); nor.setXYZ(k, dx / L, 1 / L, dz / L);
+  }
+  pos.needsUpdate = true; col.needsUpdate = true; nor.needsUpdate = true; G.craters = (G.craters || 0) + 1;
+  return touched;
 }
 
 /** Roads as dark tile strips following the ground, one merged mesh. Widths in metres. */
@@ -115,5 +137,5 @@ function bakedField() {
 /** Convert a fetched square field (origin at the centre) into the shared shape. */
 function centredField(f) { return { n: f.n, res: f.res, h: f.h, cx: (f.n - 1) / 2, cy: (f.n - 1) / 2, datum: f.datum }; }
 
-window.Ground = { make, drape, recolour, roads, daylight, bakedField, centredField, MOSS };
+window.Ground = { make, drape, recolour, crater, roads, daylight, bakedField, centredField, MOSS };
 })();

@@ -263,9 +263,11 @@ class City {
       Returns the fallen pieces with velocities (LDU/s). */
   blast(pt, r, vel, limit = 1e9) {
     const out = [], M = this.M, r2 = r * r;
+    this.lastTouched = [];
     for (const b of this.near(pt.x, pt.z, r)) {
       if (!b.bricks) b.bricks = buildBricks(b, this.colours, M);
       if (pt.y < b.y0 - r || pt.y > b.yTop + r) continue;
+      this.lastTouched.push(b);
       const cand = [];
       b.bricks.list.forEach((br, k) => { if (b.removed.has(k)) return; const el = br.m.elements, d2 = (el[12] - pt.x) ** 2 + (el[13] + 12 - pt.y) ** 2 + (el[14] - pt.z) ** 2; if (d2 < r2) cand.push([d2, k]); });
       cand.sort((a, c) => a[0] - c[0]);
@@ -281,6 +283,12 @@ class City {
     return out;
   }
   /** Bricks left without support fall in waves, lowest course first. */
+  /** Damage keeps spreading: n smaller blasts on the rim of a hole, staggered, run from tick(). */
+  aftershock(pt, r, n, delay = 0.3, vel = null) {
+    if (!this.shocks) this.shocks = [];
+    for (let k = 0; k < n; k++) { const a = Math.random() * Math.PI * 2, up = (Math.random() - .3) * 0.8; const p = new THREE.Vector3(pt.x + Math.cos(a) * r * 0.9, pt.y + up * r, pt.z + Math.sin(a) * r * 0.9); this.shocks.push({ p, r: r * 0.6, due: this.t + delay + k * 0.35, vel }); }
+    if (this.shocks.length > 40) this.shocks.splice(0, this.shocks.length - 40);
+  }
   queueCollapse(b) {
     const gone = unsupported(b); if (!gone.length) return;
     let cmin = Infinity; for (const k of gone) cmin = Math.min(cmin, b.bricks.list[k].meta.course);
@@ -289,6 +297,7 @@ class City {
   /** Release due bricks; returns them for the debris. Bounded per frame. */
   tick(dt) {
     this.t += dt; const out = [];
+    if (this.shocks && this.shocks.length) { const keep = []; for (const q of this.shocks) { if (q.due > this.t) { keep.push(q); continue; } out.push(...this.blast(q.p, q.r, q.vel)); } this.shocks = keep; }
     if (!this.pending.length) return out;
     const keep = []; let n = 0;
     for (const q of this.pending) {
@@ -299,7 +308,7 @@ class City {
     this.pending = keep;
     return out;
   }
-  stats() { let near = 0; for (const t of this.tiles.values()) if (t.state === 'near') near++; return { buildings: this.buildings.length, tiles: this.tiles.size, near, live: this.live, knocked: this.knocked }; }
+  stats() { let near = 0, levelled = 0; for (const t of this.tiles.values()) if (t.state === 'near') near++; for (const b of this.buildings) if (b.ruined) levelled++; return { buildings: this.buildings.length, tiles: this.tiles.size, near, live: this.live, knocked: this.knocked, levelled, shocks: this.shocks ? this.shocks.length : 0 }; }
 }
 
 /** The offline village: houses along two roads of the farm, so the world is never empty. */
