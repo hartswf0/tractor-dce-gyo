@@ -17,7 +17,7 @@ const W = {
   net: { elevation: null, imagery: null, osm: null }, relanding: false, health: 100, dead: 0, dets: DETONATORS, grenades: [], shake: 0,
   input: { L: { x: 0, y: 0, mag: 0 }, look: { dx: 0, dy: 0 }, run: false, saber: false, fly: { x: 0, y: 0, mag: 0 }, boost: false, fire: false, push: false, torpedo: false },
   stats: { calls: 0 },
-  build: null, room: null, name: null, smoke: null, tally: { bricks: 0, levelled: 0 }, dentAt: 0, remotes: new Map(), editQ: { up: [], rm: [] }, editAcc: 0, netAcc: 0, crowdAcc: 0, dmgAcc: 0, dmgSaved: 0, dmgKey: null,
+  build: null, draft: null, props: null, geomsO: null, master: { busy: false, result: null, anchor: null, rot: 0, ghosts: [], conv: null, status: '' }, room: null, name: null, smoke: null, tally: { bricks: 0, levelled: 0 }, dentAt: 0, remotes: new Map(), editQ: { up: [], rm: [] }, editAcc: 0, netAcc: 0, crowdAcc: 0, dmgAcc: 0, dmgSaved: 0, dmgKey: null,
 };
 window.__world = W;
 if (!Minifig.DEFS[W.character]) W.character = 'vader';
@@ -84,7 +84,7 @@ function installWindow(win) {
   if (W.city) { W.city.groundM = G.hM; W.city.set(win.buildings); }
   if (W.debris) W.debris.clear();
   if (W.crowd) { W.crowd.setRoads(win.roads); }
-  if (W.build) { const key = placeKey(win.place), a = anchorOf(win.place), al = win.P.toLocal(a.lat, a.lon); W.build.setFrame({ ax: al.x * M, az: al.z * M, datum: G.datum * M }); const n = W.build.load(key); if (n) toast(`${n} bricks of yours here`, 1200); }
+  if (W.build) { const key = placeKey(win.place), a = anchorOf(win.place), al = win.P.toLocal(a.lat, a.lon), frame = { ax: al.x * M, az: al.z * M, datum: G.datum * M }; W.build.setFrame(frame); const n = W.build.load(key); if (n) toast(`${n} bricks of yours here`, 1200); if (W.draft) { W.draft.setFrame(frame); mbDiscard(true); } if (W.props) { W.props.setFrame(frame); W.props.load(key); } }
   W.dmgKey = 'world.damage.' + placeKey(win.place); loadDamage();
 }
 /** A place's anchor: its coordinates to a thousandth of a degree (about 100 m), so a jittery GPS fix still finds the same builds. */
@@ -99,7 +99,7 @@ function saveDamage() {
   if (!W.dmgKey || W.city.knocked === W.dmgSaved) return; W.dmgSaved = W.city.knocked;
   try { const s = JSON.stringify(W.city.removedSets()); if (s.length > 300000) { if (!W.dmgWarned) { W.dmgWarned = true; toast('too much damage to remember', 1500); } return; } localStorage.setItem(W.dmgKey, s); } catch (e) { }
 }
-function resetPlace() { W.build.forget(); try { localStorage.removeItem(W.dmgKey); } catch (e) { } W.city.set(W.win.buildings); W.debris.clear(); W.dmgSaved = W.city.knocked; if (W.room && W.room.role) W.room.send({ t: 'reset' }); toast('this place is new again', 1200); }
+function resetPlace() { W.build.forget(); if (W.props) W.props.forget(); mbDiscard(true); try { localStorage.removeItem(W.dmgKey); } catch (e) { } W.city.set(W.win.buildings); W.debris.clear(); W.dmgSaved = W.city.knocked; if (W.room && W.room.role) W.room.send({ t: 'reset' }); toast('this place is new again', 1200); }
 function spawnPoint(win) {
   let best = null, bd = 250;
   for (const r of win.roads) for (let i = 0; i < r.pts.length - 1; i++) { const a = r.pts[i], b = r.pts[i + 1], L = Math.hypot(b.x - a.x, b.z - a.z), n = Math.max(1, Math.ceil(L / 5)); for (let k = 0; k <= n; k++) { const p = { x: a.x + (b.x - a.x) * k / n, z: a.z + (b.z - a.z) * k / n }, d = Math.hypot(p.x, p.z); if (d < bd) { bd = d; best = p; } } }
@@ -231,6 +231,7 @@ function readKeys() {
 function pushOut(pos, r) {
   for (const b of W.city.near(pos.x, pos.z, r + 2 * M)) pushRing(pos, r, b.ringL, b.y0, b.yTop);
   if (W.build) W.build.pushOut(pos, r, 100);
+  if (W.props) W.props.pushOut(pos, r, 100);
   if (W.mode === 'walk' && W.ship) { const s = W.ship.position; pushRing(pos, r, [{ x: s.x - 170, z: s.z - 85 }, { x: s.x + 170, z: s.z - 85 }, { x: s.x + 170, z: s.z + 85 }, { x: s.x - 170, z: s.z + 85 }], s.y - 200, s.y + 200); }
 }
 function pushRing(pos, r, ring, y0, y1) {
@@ -251,9 +252,9 @@ function los(a, b) {
 function segCross(ax, az, bx, bz, cx, cz, dx, dz) { const d1 = (bx - ax) * (cz - az) - (bz - az) * (cx - ax), d2 = (bx - ax) * (dz - az) - (bz - az) * (dx - ax), d3 = (dx - cx) * (az - cz) - (dz - cz) * (ax - cx), d4 = (dx - cx) * (bz - cz) - (dz - cz) * (bx - cx); return d1 * d2 < 0 && d3 * d4 < 0; }
 const WORLD = { groundH: (x, z) => W.G.h(x, z), pushOut };
 /** What feet stand on: the ground, or a placed brick no higher than a step above them. */
-const WALK = { groundH: (x, z) => { const g = W.G.h(x, z); if (!W.build || !W.rig) return g; const f = W.build.floorAt(x, z, W.rig.pos.y + 30); return f > g ? f : g; }, pushOut };
+const WALK = { groundH: (x, z) => { const g = W.G.h(x, z); if (!W.build || !W.rig) return g; const f = Math.max(W.build.floorAt(x, z, W.rig.pos.y + 30), W.props ? W.props.floorAt(x, z, W.rig.pos.y + 30) : -Infinity); return f > g ? f : g; }, pushOut };
 /** Boxes that stop ships, bolts and debris: buildings and builds. */
-function allBoxes(x, z, r) { const a = W.city.aabbs(x, z, r); return W.build ? a.concat(W.build.aabbs(x, z, r)) : a; }
+function allBoxes(x, z, r) { let a = W.city.aabbs(x, z, r); if (W.build) a = a.concat(W.build.aabbs(x, z, r)); if (W.props) a = a.concat(W.props.aabbs(x, z, r)); return a; }
 
 /* ───────────────────────── destruction ───────────────────────── */
 function fall(list) { for (const f of list) W.debris.spawn({ part: f.part, matrix: f.matrix, colour: f.colour, vel: f.vel }); return list.length; }
@@ -261,7 +262,7 @@ function fall(list) { for (const f of list) W.debris.spawn({ part: f.part, matri
 /** Every blast in the game goes through here: bricks fly, the hole keeps crumbling, smoke rises, it sounds and shakes,
     people and the player are thrown, and the room hears about it. kind: 'saber' | 'bolt' | 'torp' | 'ram' | 'det' | 'push' | 'debris'. */
 function blast(point, r, vel, people = true, fromNet = false, kind = 'bolt') {
-  const n = fall(W.city.blast(point, r, vel)) + (W.build ? fall(W.build.blast(point, r, vel)) : 0);
+  const n = fall(W.city.blast(point, r, vel)) + (W.build ? fall(W.build.blast(point, r, vel)) : 0) + (W.props ? W.props.blast(point, r, vel) : 0);
   if (!fromNet && W.room && W.room.role) W.room.send({ t: 'blast', p: point.toArray().map(Math.round), r, v: vel ? vel.toArray().map(Math.round) : null, k: kind });
   const shocks = { bolt: 2, torp: 4, ram: 3, det: 3, saber: 1, push: 0, debris: 0 }[kind] || 0;
   if (shocks && n) W.city.aftershock(point, r, shocks, 0.3, vel);
@@ -381,7 +382,7 @@ function simulate(dt) {
   W.debris.step(dt, debrisCtx()); stepGrenades(dt); W.smoke.step(dt);
   { let checked = 0; for (const p of W.debris.pieces) { if (p.rest || p.settling || checked > 80) continue; if (p.vel.lengthSq() < 25 * M * M) continue; checked++; const c = W.debris.centre(p, V1); if (W.crowd.hitWithin(c, 0.9 * M, p.vel.clone().multiplyScalar(0.5), W.debris)) Fx.Sfx.clatter(1); } }
   if (W.room.role) { W.room.tick(dt); netTick(dt); stepRemotes(dt); }
-  W.build.tick(dt); if ((W.dmgAcc += dt) > 2) { W.dmgAcc = 0; saveDamage(); }
+  W.build.tick(dt); if (W.props) W.props.tick(dt); if ((W.dmgAcc += dt) > 2) { W.dmgAcc = 0; saveDamage(); }
   W.crowd.step(dt, { player: { pos: W.rig.pos, alive: W.mode === 'walk' && !W.dead, running: W.input.run && W.rig.speed > 3 * M, vel: W.rig.vel }, tie: { pos: W.tie.pos, flying: W.mode === 'fly' }, bolts: W.bolts, debris: W.debris, los, pushOut });
   W.city.update(W.camera, W.mode === 'walk' ? W.rig.pos : W.tie.pos);
   if ((W.hudAcc = (W.hudAcc || 0) + dt) > 0.1) { W.hudAcc = 0; paint(); }
@@ -458,11 +459,15 @@ async function boot() {
     W.ship = engine.modelWrapper; W.ship.traverse(o => { if (o.isMesh && o.material) for (const m of Array.isArray(o.material) ? o.material : [o.material]) m.fog = true; });
     engine.controls.enabled = false; engine.controls = null;
     W.city = new Bricks.City({ scene: W.scene, M, geoms: W.geoms, groundM: (x, z) => 0, colours: W.colours, palette: Worlds.PRESETS[W.world].palette });
-    W.build = new Build.Build({ scene: W.scene, M, geoms: W.geoms, colours: W.colours, groundH: WORLD.groundH, buildings: (x, z, r) => W.city.aabbs(x, z, r), rings: (x, z) => W.city.near(x, z, 10) });
+    W.geomsO = Bricks.harvestOrigin(models.harvest);
+    W.build = new Build.Build({ scene: W.scene, M, geoms: W.geomsO, colours: W.colours, groundH: WORLD.groundH, buildings: (x, z, r) => W.city.aabbs(x, z, r), rings: (x, z) => W.city.near(x, z, 10) });
     W.build.onEdit = ops => queueEdit(ops);
+    W.draft = new Build.Build({ scene: W.scene, M, geoms: W.geomsO, colours: W.colours, groundH: WORLD.groundH, buildings: (x, z, r) => W.city.aabbs(x, z, r), rings: (x, z) => W.city.near(x, z, 10), ghost: true, cap: 2048 });
     W.debris = new Debris.Debris({ scene: W.scene, M, groundH: WORLD.groundH, aabbs: allBoxes, onWallHit: (p, v) => fall(W.city.blast(p, 0.5 * M, v, 2)) });
     for (const [name, g] of W.geoms) W.debris.register(name, g.geom, name.startsWith('wall') ? 600 : 200);
     for (const [name, g] of W.raw) W.debris.register(name, g, 120);
+    for (const [part, k] of W.build.kinds) W.debris.register('b:' + part, k.geom, 200); W.build.onKind = (part, geom) => W.debris.register('b:' + part, geom, 200);
+    W.props = new Props.Props({ scene: W.scene, loader: W.loader, M, debris: W.debris }); W.props.onEdit = ops => queueEdit(ops, 'prop');
     W.bolts = new Characters.Bolts({ scene: W.scene, M, groundH: WORLD.groundH });
     W.crowd = new Characters.Crowd({ scene: W.scene, M, geoms: W.raw, colours: W.colours, groundH: WORLD.groundH });
     installWindow(win); W.prevP = win.P; setWorld(W.world);
@@ -484,6 +489,7 @@ async function boot() {
     paintPalette();
     stage('bricks', 'done', ''); W.last = performance.now(); W.ready = true; $('#veil').classList.add('gone'); $('#menu').classList.remove('open'); paint(); hintFor();
     if (Q.get('room')) joinRoom(Q.get('room'), true);
+    bindMaster(); checkInbox();
   } catch (e) { console.error(e); stall('Could not build the world: ' + (e.message || e)); }
   finally { clearTimeout(watchdog); }
 }
@@ -506,7 +512,7 @@ function bindPalette() {
   const P = $('#palette');
   P.innerHTML = `<div class="parts">${Build.PARTS.map(([part, name]) => `<button data-part="${part}">${name}</button>`).join('')}</div>
     <div class="tools"><span class="cols">${Build.COLOURS.map(c => `<button data-col="${c}" title="${c}"></button>`).join('')}</span>
-    <button data-tool="rot" title="rotate (R)">⟳</button><button data-tool="up" title="lift (])">▲</button><button data-tool="down" title="lower ([)">▼</button><button data-tool="undo" title="undo (⌫)">⌫</button><button data-tool="pick" title="pick up (X)">✋</button><button data-tool="reset" title="reset this place">reset</button><button data-tool="place" class="place">PLACE</button></div>`;
+    <button data-tool="rot" title="rotate (R)">⟳</button><button data-tool="up" title="lift (])">▲</button><button data-tool="down" title="lower ([)">▼</button><button data-tool="undo" title="undo (⌫)">⌫</button><button data-tool="pick" title="pick up (X)">✋</button><button data-tool="reset" title="reset this place">reset</button><button id="mbBtn" title="the master builder">🧠 build for me</button><button data-tool="place" class="place">PLACE</button></div>`;
   P.querySelectorAll('[data-part]').forEach(b => b.onclick = () => { W.build.part = b.dataset.part; W.build.pick = false; paintPalette(); });
   P.querySelectorAll('[data-col]').forEach(b => b.onclick = () => { W.build.col = +b.dataset.col; paintPalette(); });
   P.querySelectorAll('[data-tool]').forEach(b => b.onclick = () => { const B = W.build; switch (b.dataset.tool) { case 'rot': rotateBuild(); break; case 'up': B.lift = Math.min(B.lift + 1, 60); break; case 'down': B.lift = Math.max(B.lift - 1, -60); break; case 'undo': B.undo(); break; case 'pick': setPick(!B.pick); break; case 'reset': if (confirm('Forget every brick built and every wall broken here?')) resetPlace(); break; case 'place': buildAct(); break; } paintPalette(); });
@@ -517,6 +523,89 @@ function paintPalette() {
   P.querySelectorAll('[data-col]').forEach(b => { if (!b.style.background) { const c = W.colours(+b.dataset.col).clone().convertLinearToSRGB(); b.style.background = c.getStyle(); } b.classList.toggle('on', +b.dataset.col === B.col); });
   const pick = P.querySelector('[data-tool="pick"]'); if (pick) pick.classList.toggle('on', B.pick);
   const undo = P.querySelector('[data-tool="undo"]'); if (undo) undo.disabled = !B.history.length;
+}
+
+/* ───────────────────────── the master builder ───────────────────────── */
+function bindMaster() {
+  const P = $('#mb'); if (!P) return;
+  $('#mbBtn').onclick = () => { P.classList.toggle('open'); if (P.classList.contains('open')) { $('#mbKey').value = Ai.key(); $('#mbModel').value = Ai.model(); $('#mbSettings').open = !Ai.key(); setTimeout(() => $('#mbPrompt').focus(), 50); } };
+  $('#mbClose').onclick = () => P.classList.remove('open');
+  $('#mbKey').onchange = () => Ai.setKey($('#mbKey').value); $('#mbModel').onchange = () => Ai.setModel($('#mbModel').value);
+  $('#mbDraft').onclick = () => mbDraft($('#mbPrompt').value);
+  $('#mbPrompt').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); mbDraft($('#mbPrompt').value); } });
+  $('#mbCommit').onclick = () => mbCommit(); $('#mbDiscard').onclick = () => mbDiscard();
+  P.querySelectorAll('[data-nudge]').forEach(b => b.onclick = () => { const [dx, dz, dy, rot] = b.dataset.nudge.split(',').map(Number); mbNudge(dx, dz, dy, rot); });
+  P.querySelectorAll('[data-ask]').forEach(b => b.onclick = () => { $('#mbPrompt').value = b.dataset.ask; mbDraft(b.dataset.ask); });
+  mbStatus('');
+}
+function mbStatus(text, cls) { W.master.status = text; const e = $('#mbStat'); if (e) { e.textContent = text; e.className = cls || ''; } const has = !!(W.master.result && (W.draft.pieces.size || W.master.ghosts.length)); document.body.classList.toggle('drafting', has); }
+/** Where a draft goes: the reticle's target if there is one, else three metres ahead of the player, on the stud grid. */
+function mbAnchor() {
+  const f = W.build.frame; let x, z;
+  if (W.build.on && W.build.target) { x = W.build.target.x; z = W.build.target.z; } else { const d = Minifig.facing(W.rig, V1); x = W.rig.pos.x + d.x * 3 * M; z = W.rig.pos.z + d.z * 3 * M; }
+  x = Math.round((x - f.ax) / 20) * 20 + f.ax; z = Math.round((z - f.az) / 20) * 20 + f.az;
+  const gh = W.G.h(x, z), y = Math.round((gh + f.datum) / 8) * 8 - f.datum;
+  return { x, y, z };
+}
+function mbContext() {
+  const a = mbAnchor(), p = W.place, gl = W.G.h(a.x + 200, a.z) - W.G.h(a.x - 200, a.z), gs = W.G.h(a.x, a.z + 200) - W.G.h(a.x, a.z - 200);
+  const slope = Math.abs(gl) < 40 && Math.abs(gs) < 40 ? 'flat' : `rises ${Math.round(Math.max(Math.abs(gl), Math.abs(gs)) / M)} m across 10 m`;
+  const near = W.city.near(a.x, a.z, 30 * M).length, mine = W.build.nearPoint(a.x, a.z, 30 * M).size, props = W.props.near(a.x, a.z, 30 * M).length;
+  return { place: p && p.name, world: W.world, ground: slope, standing: `${near} buildings, ${mine} of your bricks, ${props} props within 30 m` };
+}
+/** Ask the model, compile, and show the draft. */
+async function mbDraft(prompt) {
+  prompt = (prompt || '').trim(); if (!prompt || W.master.busy || W.mode !== 'walk') { if (W.mode !== 'walk') toast('land first', 900); return; }
+  if (!Ai.key()) { $('#mbSettings').open = true; mbStatus('paste an OpenAI key first', 'warn'); $('#mbKey').focus(); return; }
+  W.master.busy = true; mbStatus('asking ' + Ai.model() + '…', 'busy'); $('#mbDraft').disabled = true;
+  try {
+    let r = await Ai.ask(prompt, { context: mbContext() }); let res = Dsl.compile(r.program);
+    if (res.report.unknown.length || res.report.errors.length || res.report.floating > 5) { mbStatus('fixing the program…', 'busy'); try { const r2 = await Ai.repair(r, res.report); const res2 = Dsl.compile(r2.program); if (res2.report.pieces + res2.report.props >= (res.report.pieces + res.report.props) * 0.5) { r = r2; res = res2; } } catch (e) { console.warn('repair', e); } }
+    W.master.conv = r; mbShow(res, r.usage);
+  } catch (e) { mbStatus(e.message || String(e), 'warn'); }
+  finally { W.master.busy = false; $('#mbDraft').disabled = false; }
+}
+/** Show a compiled result as a see-through draft at the anchor. usage: the model's token counts, if any. */
+function mbShow(res, usage) {
+  mbDiscard(true); const a = mbAnchor(); W.master.result = res; W.master.anchor = a; W.master.rot = 0; W.master.usage = usage || null;
+  mbLay();
+  const rep = res.report, fixes = rep.floating + rep.blocked + rep.unknown.length + rep.errors.length;
+  const tok = usage ? ` · ${usage.total_tokens} tokens` : '';
+  mbStatus(`${res.name}: ${rep.pieces} bricks${rep.props ? ` · ${rep.props} props` : ''}${fixes ? ` · ${fixes} fixes` : ''}${tok}`, 'ok');
+  Fx.Sfx.respawn(); Fx.haptic(15);
+}
+/** Lay the draft's pieces and ghost boxes for the current anchor and turn. */
+function mbLay() {
+  const res = W.master.result, a = W.master.anchor; if (!res) return;
+  W.draft.clear(); for (const g of W.master.ghosts) W.scene.remove(g); W.master.ghosts = [];
+  const rows = Dsl.toRows(res, { ax: a.x, ay: a.y, az: a.z }); W.draft.addRows(rows, true, true);
+  for (let k = 0; k < W.master.rot; k++) W.draft.turn(a.x, a.z);
+  for (const pr of res.props) { const pl = mbPropPlace(pr); const g = new THREE.Mesh(new THREE.BoxGeometry(pl.w, pl.h, pl.d), new THREE.MeshStandardMaterial({ color: pr.kind === 'vehicle' ? 0x2f7fbf : 0xbf8f2f, transparent: true, opacity: .4, depthWrite: false })); g.position.set(pl.x, pl.y + pl.h / 2, pl.z); g.rotation.y = pl.yaw * Math.PI / 2; g.name = 'draft-prop'; W.scene.add(g); W.master.ghosts.push(g); }
+}
+/** A prop's world placement for the current anchor and turn. */
+function mbPropPlace(pr) {
+  const a = W.master.anchor, pl = Dsl.propPlace(pr, { ax: a.x, ay: a.y, az: a.z }); let dx = pl.x - a.x, dz = pl.z - a.z;
+  for (let k = 0; k < W.master.rot; k++) { const nx = dz, nz = -dx; dx = nx; dz = nz; }
+  return { ...pl, x: a.x + dx, z: a.z + dz, yaw: (pl.yaw + W.master.rot) & 3, w: (W.master.rot & 1) ? pl.d : pl.w, d: (W.master.rot & 1) ? pl.w : pl.d };
+}
+function mbNudge(dx, dz, dy, rot) { if (!W.master.result) return; const a = W.master.anchor; a.x += dx * 20; a.z += dz * 20; a.y += dy * 8; if (rot) W.master.rot = (W.master.rot + rot) & 3; mbLay(); }
+/** The draft becomes real: bricks into the shared build, props parsed and placed. */
+async function mbCommit() {
+  const res = W.master.result; if (!res) return;
+  const rows = W.draft.rows(); const added = W.build.addRows(rows);
+  const props = res.props.map(pr => mbPropPlace(pr)); let placed = 0;
+  for (let i = 0; i < props.length; i++) { const pl = props[i]; const it = await W.props.place(res.props[i].mpd, pl.x, pl.y, pl.z, pl.yaw); if (it) placed++; }
+  mbDiscard(true); mbStatus(`built: ${added.length} bricks${placed ? ` · ${placed} props` : ''}`, 'ok'); toast('built', 900); Fx.Sfx.thud(0.5); Fx.haptic(30);
+  W.tally.built = (W.tally.built || 0) + added.length; return { bricks: added.length, props: placed };
+}
+function mbDiscard(quiet) { if (W.draft) W.draft.clear(); for (const g of W.master.ghosts) W.scene.remove(g); W.master.ghosts = []; W.master.result = null; W.master.anchor = null; W.master.rot = 0; if (!quiet) mbStatus('discarded'); else mbStatus(W.master.status); }
+/** A program handed over from the studio page (localStorage 'world.inbox'). */
+function checkInbox() {
+  let box = null; try { box = JSON.parse(localStorage.getItem('world.inbox') || 'null'); localStorage.removeItem('world.inbox'); } catch (e) { }
+  if (!box) return; if (!box.program && box.mpd) box.program = { name: box.name || 'model', ops: [{ op: 'mpd', text: box.mpd, name: box.name || 'model', x: 0, z: 0, facing: 's' }] };
+  if (!box.program) return;
+  const res = Dsl.compile(box.program); if (!res.report.pieces && !res.report.props) return;
+  if (W.mode !== 'walk') return; $('#mb').classList.add('open'); mbShow(res, null); toast('from the studio: commit or discard', 1500);
 }
 
 /* ───────────────────────── playing together ───────────────────────── */
@@ -535,8 +624,8 @@ function leaveRoom(tell = true) {
   if (W.crowd.remote) { W.crowd.remote = false; for (const n of W.crowd.npcs.slice()) W.crowd.remove(n); W.crowd.mirror = null; W.crowd.populate(W.mode === 'walk' ? W.rig.pos : W.tie.pos); }
   roomStat(); toast('on your own again', 900);
 }
-function queueEdit(ops) { if (ops.up) W.editQ.up.push(...ops.up); if (ops.rm) W.editQ.rm.push(...ops.rm); }
-function flushEdits() { const q = W.editQ; if (!q.up.length && !q.rm.length) return; if (W.room.role) W.room.send({ t: 'edit', up: q.up, rm: q.rm }); W.editQ = { up: [], rm: [] }; }
+function queueEdit(ops, kind) { const q = kind === 'prop' ? (W.propQ = W.propQ || { up: [], rm: [] }) : W.editQ; if (ops.up) q.up.push(...ops.up); if (ops.rm) q.rm.push(...ops.rm); }
+function flushEdits() { for (const [q, k] of [[W.editQ, null], [W.propQ, 'prop']]) { if (!q || (!q.up.length && !q.rm.length)) continue; if (W.room.role) W.room.send({ t: 'edit', up: q.up, rm: q.rm, k }); q.up = []; q.rm = []; } }
 function myState() {
   const r = W.rig, s = W.ship.position;
   const m = { t: 'p', m: W.mode, ch: W.character, hp: W.health, dead: !!W.dead, name: W.name, ship: [Math.round(s.x), Math.round(s.y), Math.round(s.z), +W.ship.quaternion.y.toFixed(3), +W.ship.quaternion.w.toFixed(3)] };
@@ -549,7 +638,7 @@ function netTick(dt) {
   if ((W.editAcc += dt) >= 0.25) { W.editAcc = 0; flushEdits(); }
   if (W.room.role === 'host' && (W.crowdAcc += dt) >= 0.2) { W.crowdAcc = 0; W.room.send({ t: 'crowd', n: W.crowd.serialize() }, { fast: true }); }
 }
-function snapFor(id) { W.room.send({ t: 'snap', build: W.build.rows(), damage: W.city.removedSets(), crowd: W.crowd.serialize(), world: W.world }, { to: id }); }
+function snapFor(id) { W.room.send({ t: 'snap', build: W.build.rows(), props: W.props.rows(), damage: W.city.removedSets(), crowd: W.crowd.serialize(), world: W.world }, { to: id }); }
 async function followHost(place, world) {
   if (world && world !== W.world) setWorld(world);
   if (!samePlace(place)) { toast('going to the host', 1200); await reland(place, false); }
@@ -562,15 +651,15 @@ function netHandle(m, from) {
     case 'hello': if (R.role === 'guest') { R.seen('host', { name: m.name, ch: m.ch }); W.crowd.remote = true; for (const n of W.crowd.npcs.slice()) W.crowd.remove(n); W.crowd.mirror = new Map(); followHost(m.place, m.world); } break;
     case 'place': if (R.role === 'guest') followHost(m.place, m.world); break;
     case 'ready': if (R.role === 'host') snapFor(from); break;
-    case 'snap': { if (R.role !== 'guest') break; const mine = W.build.rows(); W.build.applyOps({ up: m.build || [] }); for (const b of W.city.buildings) if (m.damage && m.damage[b.id]) W.city.applyRemoved(b, m.damage[b.id]); if (m.crowd) W.crowd.applyRemote(m.crowd); if (mine.length && mine.length <= 2000) R.send({ t: 'edit', up: mine, rm: [] }); toast(`${(m.build || []).length} bricks in this room`, 1200); break; }
+    case 'snap': { if (R.role !== 'guest') break; const mine = W.build.rows(); W.build.applyOps({ up: m.build || [] }); if (m.props) { const mineP = W.props.rows(); W.props.applyOps({ up: m.props }); if (mineP.length) R.send({ t: 'edit', up: mineP, rm: [], k: 'prop' }); } for (const b of W.city.buildings) if (m.damage && m.damage[b.id]) W.city.applyRemoved(b, m.damage[b.id]); if (m.crowd) W.crowd.applyRemote(m.crowd); if (mine.length && mine.length <= 2000) R.send({ t: 'edit', up: mine, rm: [] }); toast(`${(m.build || []).length} bricks in this room`, 1200); break; }
     case 'p': applyRemote(from, m); break;
     case 'bolt': { const o = new THREE.Vector3().fromArray(m.o), d = new THREE.Vector3().fromArray(m.d); W.bolts.fire(o, d, m.npc && R.role === 'guest' ? 'npc' : 'remote', m.s || 1400); break; }
     case 'blast': blast(new THREE.Vector3().fromArray(m.p), m.r, m.v ? new THREE.Vector3().fromArray(m.v) : null, true, true, m.k || 'bolt'); break;
     case 'crater': crater(new THREE.Vector3().fromArray(m.p), m.r, m.d, true); break;
-    case 'edit': { const r = W.build.applyOps({ up: m.up, rm: m.rm }); if (r.added) toast(`${R.players.get(from) ? R.players.get(from).name : 'someone'} built`, 500); break; }
+    case 'edit': { const r = m.k === 'prop' ? W.props.applyOps({ up: m.up, rm: m.rm }) : W.build.applyOps({ up: m.up, rm: m.rm }); if (r.added) toast(`${R.players.get(from) ? R.players.get(from).name : 'someone'} built`, 500); break; }
     case 'crowd': if (R.role === 'guest') W.crowd.applyRemote(m.n); break;
     case 'npcHit': if (R.role === 'host') { const n = W.crowd.npcs.find(n => n.i === m.i && n.alive); if (n) W.crowd.burst(n, null, W.debris); } break;
-    case 'reset': W.build.clear(); W.city.set(W.win.buildings); W.debris.clear(); toast('the place was reset', 1000); break;
+    case 'reset': W.build.clear(); W.props.clear(); W.city.set(W.win.buildings); W.debris.clear(); toast('the place was reset', 1000); break;
     case 'bye': dropRemote(from); break;
   }
 }
@@ -626,6 +715,7 @@ Object.assign(W, {
   aimAt: (x, y, z) => { if (x == null) { W.build.pin = null; return null; } const o = new THREE.Vector3(x, y + 4 * M, z + 3 * M), d = new THREE.Vector3(x, y, z).sub(o).normalize(); W.build.on = true; W.build.pin = { origin: o, dir: d }; W.build.aimRay(o, d); return W.build.stats().target; }, takeBrick: id => fall(W.build.remove(id)),
   pieces: () => W.build.rows(), pieceAt: id => { const p = W.build.pieces.get(id); return p ? { id, part: p.part, col: p.col, x: p.x, y: p.y, z: p.z, rot: p.rot } : null; }, saveNow: () => { W.build.save(); saveDamage(); }, resetPlace, damage: () => W.city.removedSets(), placeKey: () => placeKey(W.place),
   fx: () => ({ sfx: Fx.Sfx.stats(), haptics: Fx.haptic.count(), smoke: W.smoke.stats(), hits: Fx.Hits.n, tally: { ...W.tally }, craters: W.G.craters || 0, lastCrater: W.lastCrater || null, air: !!W.rig.air, vy: W.rig.vy || 0, assisted: W.tie.assisted, groundHits: W.tie.groundHits }), crater: (x, z, r, d) => crater(new THREE.Vector3(x, 0, z), r, d), groundAt: (x, z) => W.G.h(x, z), groundColour: (x, z) => { const G = W.G, f = G.field, i = Math.round(f.cx + x / M / G.res), j = Math.round(f.cy + z / M / G.res), c = G.mesh.geometry.attributes.color, k = j * G.n + i; return [c.getX(k), c.getY(k), c.getZ(k)]; },
+  mb: () => ({ busy: W.master.busy, status: W.master.status, rot: W.master.rot, anchor: W.master.anchor, draft: W.draft.pieces.size, ghosts: W.master.ghosts.length, report: W.master.result && W.master.result.report, usage: W.master.usage || null }), mbAsk: mbDraft, mbLoad: program => { const res = Dsl.compile(program); mbShow(res, null); return res.report; }, mbCommit, mbDiscard, mbNudge, propStat: () => W.props.stats(), propRows: () => W.props.rows(), propBoxes: () => [...W.props.items.values()].map(it => ({ id: it.id, ready: it.ready, parts: it.meshes.length, box: it.box ? [it.box.min.toArray(), it.box.max.toArray()] : null })), aiStat: () => Ai.stats(),
   netStat: () => W.room.stats(), host: hostRoom, join: joinRoom, leave: leaveRoom, remoteList: () => [...W.remotes.values()].map(r => ({ id: r.id, ch: r.ch, mode: r.tgt && r.tgt.m, pos: r.pos.toArray(), visible: r.fig && r.fig.figure.visible, shipVisible: !!r.ship && r.ship.visible })), flushEdits, setName,
   debrisPieces: () => W.debris.pieces.map(p => { const c = W.debris.centre(p, V1); return { part: p.kind.name, y: c.y, x: c.x, z: c.z, rest: p.rest, floor: W.G.h(c.x, c.z) }; }),
   building: i => { const b = W.city.buildings[i]; if (!b.bricks) b.bricks = Bricks.buildBricks(b, W.colours, M); return { id: b.id, kind: b.kind, n: b.bricks.n, removed: b.removed.size, live: b.bricks.n - b.removed.size, cx: b.cx, cz: b.cz, y0: b.y0, yTop: b.yTop, courses: b.courses, ruined: b.ruined }; },

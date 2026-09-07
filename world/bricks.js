@@ -29,7 +29,8 @@ const CUSTOM = [
     ...[-30, -10, 10, 30].flatMap(x => [-10, 10].map(z => `1 16 ${x} 0 ${z} 1 0 0 0 1 0 0 0 1 8\\stud.dat`))]],
 ].map(([name, desc, lines]) => `0 FILE ${name}\n0 ${desc}\n0 Name: ${name}\n0 !LDRAW_ORG Unofficial_Part\n0 BFC CERTIFY CCW\n${lines.join('\n')}\n`).join('');
 const HARVEST = ['wall-2x8.dat', 'wall-2x4.dat', 'wall-2x2.dat', 'wall-1x2.dat', 'pane-1x2x2.dat', 'roof-2x4.dat', 'parts/3068b.dat', 'parts/60592.dat', 'parts/60623.dat', 'parts/3001.dat', 'parts/3020.dat',
-  'parts/3010.dat', 'parts/3004.dat', 'parts/3032.dat', 'parts/3039.dat', 'parts/87079.dat', 'parts/3941.dat', 'parts/3062b.dat'];   // the last row is the builder's palette
+  'parts/3010.dat', 'parts/3004.dat', 'parts/3032.dat', 'parts/3039.dat', 'parts/87079.dat', 'parts/3941.dat', 'parts/3062b.dat',   // the builder's palette
+  'parts/3003.dat', 'parts/3005.dat', 'parts/3022.dat', 'parts/3023.dat', 'parts/3024.dat', 'parts/3040b.dat', 'parts/3665a.dat', 'parts/3455.dat', 'parts/3823.dat', 'parts/4600.dat', 'parts/4624.dat', 'parts/3641.dat', 'parts/3829c01.dat'];   // and the master builder's
 const KEY = f => f.replace(/^parts\//, '').replace(/\.dat$/, '');
 const lines = () => HARVEST.map(f => `1 16 0 0 0 1 0 0 0 1 0 0 0 1 ${f}`).join('\n');
 
@@ -51,6 +52,24 @@ function harvest(groups) {
     }
     g.setAttribute('color', new THREE.BufferAttribute(col, 3)); g.computeBoundingSphere();
     geoms.set(KEY(HARVEST[i]), { geom: g, size: sz, tris: p.count / 3 });
+  });
+  return geoms;
+}
+
+/** Like harvest, but the part keeps its own x/z origin (LDraw's stud grid), so asymmetric parts — slopes, doors, windscreens — land on the studs. Adds bb: [x0, x1, z0, z1, h]. */
+function harvestOrigin(groups) {
+  const geoms = new Map();
+  groups.forEach((grp, i) => {
+    let mesh = null; grp.traverse(o => { if (!mesh && o.isMesh) mesh = o; });
+    if (!mesh) return;
+    const g = mesh.geometry.clone(); g.clearGroups(); g.applyMatrix4(FLIP);
+    g.computeBoundingBox(); const bb0 = g.boundingBox; g.translate(0, -bb0.min.y, 0); g.computeBoundingBox();
+    const bb = g.boundingBox, sz = new THREE.Vector3(); bb.getSize(sz);
+    const p = g.attributes.position, col = new Float32Array(p.count * 3);
+    for (let k = 0; k < p.count; k++) { const v = p.getY(k) < 2 ? 0.8 : 1; col[k * 3] = col[k * 3 + 1] = col[k * 3 + 2] = v; }
+    g.setAttribute('color', new THREE.BufferAttribute(col, 3)); g.computeBoundingSphere();
+    const snapE = v => Math.round(v / 10) * 10;   // studs and mould lips: to the nearest half stud
+    geoms.set(KEY(HARVEST[i]), { geom: g, size: sz, bb: [snapE(bb.min.x), snapE(bb.max.x), snapE(bb.min.z), snapE(bb.max.z), Math.max(8, Math.floor((sz.y + 0.5) / 8) * 8)] });   // height to the plate below the studs
   });
   return geoms;
 }
@@ -322,5 +341,5 @@ function village() {
   return { buildings, roads };
 }
 
-window.Bricks = { CUSTOM, HARVEST, lines, harvest, City, village, buildBricks, unsupported, pointInRing, COURSE, CAP };
+window.Bricks = { harvestOrigin, CUSTOM, HARVEST, lines, harvest, City, village, buildBricks, unsupported, pointInRing, COURSE, CAP };
 })();
