@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#b8cbd8">
+<title>Brick World</title>
+<style>html,body{margin:0;height:100%;background:#b8cbd8;font:15px system-ui;color:#1a1f2a}#boot{position:fixed;inset:0;display:grid;place-items:center;font:12px ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase}</style>
+</head>
+<body><div id="boot">opening world…</div>
+<script>
+(async()=>{
+  const stamp='226ee079';
+  try{
+    const q=location.search||'';
+    const r=await fetch('./word-to-world.html?fresh='+stamp,{cache:'no-store'});
+    if(!r.ok) throw new Error('world shell '+r.status);
+    let html=await r.text();
+    html=html.replace('</body>','<script src="./world/ui-shell.js?v='+stamp+'"><\/script></body>');
+    document.open();document.write(html);document.close();
+  }catch(e){document.getElementById('boot').textContent='could not open world · '+e.message;}
+})();
+</script>
+</body>
+</html>
