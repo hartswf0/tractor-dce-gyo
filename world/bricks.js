@@ -28,7 +28,8 @@ const CUSTOM = [
   ['roof-2x4.dat', 'Roof Plate 2 x 4', ['1 16 0 4 0 40 0 0 0 4 0 0 0 20 box.dat',
     ...[-30, -10, 10, 30].flatMap(x => [-10, 10].map(z => `1 16 ${x} 0 ${z} 1 0 0 0 1 0 0 0 1 8\\stud.dat`))]],
 ].map(([name, desc, lines]) => `0 FILE ${name}\n0 ${desc}\n0 Name: ${name}\n0 !LDRAW_ORG Unofficial_Part\n0 BFC CERTIFY CCW\n${lines.join('\n')}\n`).join('');
-const HARVEST = ['wall-2x8.dat', 'wall-2x4.dat', 'wall-2x2.dat', 'wall-1x2.dat', 'pane-1x2x2.dat', 'roof-2x4.dat', 'parts/3068b.dat', 'parts/60592.dat', 'parts/60623.dat', 'parts/3001.dat', 'parts/3020.dat'];
+const HARVEST = ['wall-2x8.dat', 'wall-2x4.dat', 'wall-2x2.dat', 'wall-1x2.dat', 'pane-1x2x2.dat', 'roof-2x4.dat', 'parts/3068b.dat', 'parts/60592.dat', 'parts/60623.dat', 'parts/3001.dat', 'parts/3020.dat',
+  'parts/3010.dat', 'parts/3004.dat', 'parts/3032.dat', 'parts/3039.dat', 'parts/87079.dat', 'parts/3941.dat', 'parts/3062b.dat'];   // the last row is the builder's palette
 const KEY = f => f.replace(/^parts\//, '').replace(/\.dat$/, '');
 const lines = () => HARVEST.map(f => `1 16 0 0 0 1 0 0 0 1 0 0 0 1 ${f}`).join('\n');
 
@@ -252,6 +253,10 @@ class City {
     if (!b.ruined && b.removed.size > 0.6 * b.bricks.n) { b.ruined = true; if (t) { t.far.geometry.dispose(); t.far.geometry = prisms(t.buildings, this.colours); } }
     const br = b.bricks.list[k]; return { part: br.p, matrix: br.m, colour: br.c, b, k };
   }
+  /** Restore damage: mark bricks removed with no debris (a saved or replicated set). Returns how many. */
+  applyRemoved(b, ks) { if (!b.bricks) b.bricks = buildBricks(b, this.colours, this.M); let n = 0; for (const k of ks) if (k >= 0 && k < b.bricks.n && this.removeBrick(b, k)) n++; return n; }
+  /** { osmId: [k, …] } for every damaged building, for saving and for late joiners. */
+  removedSets() { const out = {}; for (const b of this.buildings) if (b.removed && b.removed.size) out[b.id] = [...b.removed]; return out; }
   /** Knock the brick nearest to a point out of a near building; returns what fell, or null. */
   knock(pt, r) { const f = this.blast(pt, r, null, 1); return f[0] || null; }
   /** Every live brick within r of a point falls out, flung away from it; the buildings then collapse where support is lost.

@@ -116,6 +116,7 @@ function fire(F) {
   const b = F.bolts.find(b => b.life <= 0); if (!b) return;
   V1.copy(MUZZLE[F.muzzle ^= 1]).applyQuaternion(F.quat).add(F.pos); V2.set(0, 0, 1).applyQuaternion(F.quat);
   b.life = BOLT_LIFE; b.mesh.position.copy(V1); b.prev.copy(V1); b.vel.copy(V2).multiplyScalar(BOLT_SPD).add(F.vel); b.mesh.quaternion.copy(Q1.setFromUnitVectors(Z1, V2)); b.mesh.visible = true;
+  if (F.onFire) F.onFire(V1.clone(), V2.clone(), b.vel.clone());
 }
 /** A torpedo: slow, heavy, and it makes a crater wherever it meets anything. */
 function torpedo(F) {
@@ -181,5 +182,5 @@ function camera(F, cam, dt, portrait) {
   if (Math.abs(cam.fov - fov) > 0.05) { cam.fov = fov; cam.updateProjectionMatrix(); }
 }
 
-window.Tie = { create, board, step, land, camera, fire, torpedo, CRUISE, BOOST, PLAYER_R, SHIELD_MAX };
+window.Tie = { BOLT_SPD, BOLT_LIFE, create, board, step, land, camera, fire, torpedo, CRUISE, BOOST, PLAYER_R, SHIELD_MAX };
 })();

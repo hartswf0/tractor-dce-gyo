@@ -21,6 +21,7 @@ class Bolts {
     for (let i = 0; i < n; i++) { const m = new THREE.Mesh(geo, red); m.visible = false; m.frustumCulled = false; scene.add(m); this.list.push({ mesh: m, vel: new THREE.Vector3(), prev: new THREE.Vector3(), life: 0, owner: null }); }
   }
   fire(origin, dir, owner, speed = 1400) {
+    if (this.onFire && owner !== 'remote') this.onFire(origin, dir, owner, speed);
     const b = this.list.find(b => b.life <= 0); if (!b) return null;
     b.owner = owner; b.life = 1.6; b.mesh.material = owner === 'player' ? this.mats.green : this.mats.red;
     b.mesh.position.copy(origin); b.prev.copy(origin); b.vel.copy(dir).normalize().multiplyScalar(speed);
@@ -34,7 +35,7 @@ class Bolts {
       if ((b.life -= dt) <= 0) { b.mesh.visible = false; continue; }
       const p = b.mesh.position;
       if (p.y < this.groundH(p.x, p.z)) { b.life = 0; b.mesh.visible = false; continue; }
-      if ((b.owner !== 'player' && hooks.hitPlayer && hooks.hitPlayer(b)) || (b.owner === 'player' && hooks.hitNpc && hooks.hitNpc(b)) || (hooks.hitWorld && hooks.hitWorld(b))) { b.life = 0; b.mesh.visible = false; }
+      if ((b.owner !== 'player' && hooks.hitPlayer && hooks.hitPlayer(b)) || (b.owner !== 'npc' && hooks.hitNpc && hooks.hitNpc(b)) || (hooks.hitWorld && hooks.hitWorld(b))) { b.life = 0; b.mesh.visible = false; }
     }
   }
   live() { return this.list.filter(b => b.life > 0); }
@@ -62,7 +63,7 @@ class Crowd {
   spawn(kind, x, z, seed) {
     if (!this.free.length) return null;
     const def = kind === 'trooper' ? Minifig.DEFS.trooper : Minifig.citizen(seed), i = this.free.pop();
-    const n = { i, kind, def, pos: new THREE.Vector3(x, this.groundH(x, z), z), heading: Math.random() * Math.PI * 2, speed: 0, phase: Math.random() * 6, gait: 0, t: Math.random() * 10, health: kind === 'trooper' ? 40 : 20, alive: true, state: 'patrol', aim: 0, cd: 1 + Math.random(), flee: 0, road: null, seg: 0, dir: 1, pause: 0, slots: this.slotsOf(def) };
+    const n = { i, kind, def, seed, pos: new THREE.Vector3(x, this.groundH(x, z), z), heading: Math.random() * Math.PI * 2, speed: 0, phase: Math.random() * 6, gait: 0, t: Math.random() * 10, health: kind === 'trooper' ? 40 : 20, alive: true, state: 'patrol', aim: 0, cd: 1 + Math.random(), flee: 0, road: null, seg: 0, dir: 1, pause: 0, slots: this.slotsOf(def) };
     for (const slot of n.slots) { const im = this.meshes.get(slot); if (im) { im.setColorAt(i, this.colours(this.colourOf(def, slot))); im.instanceColor.needsUpdate = true; } }
     this.pickRoad(n); this.npcs.push(n); return n;
   }
@@ -94,8 +95,36 @@ class Crowd {
   }
   /** Everyone within r of a point is thrown (and bursts). Returns how many. */
   hitWithin(pt, r, vel, debris) { let k = 0; for (const n of this.npcs) { if (!n.alive) continue; V1.copy(n.pos); V1.y += 1.2 * this.M; if (V1.distanceTo(pt) < r) { this.burst(n, vel, debris); k++; } } return k; }
+  /** Rows for the wire (host): one per living or just-dead figure. */
+  serialize() { return this.npcs.map(n => [n.i, n.kind, Math.round(n.pos.x), Math.round(n.pos.z), +n.heading.toFixed(2), n.alive ? 1 : 0, n.seed | 0, +n.speed.toFixed(0), +n.aim.toFixed(2)]); }
+  /** Mirror the host's crowd (guest): upsert by the host's slot index, drop what the host dropped. */
+  applyRemote(rows) {
+    this.remote = true; if (!this.mirror) this.mirror = new Map(); const keep = new Set();
+    for (const [ri, kind, x, z, h, alive, seed, speed, aim] of rows) {
+      keep.add(ri); let n = this.mirror.get(ri);
+      if (!n) { n = this.spawn(kind, x, z, seed); if (!n) continue; n.ri = ri; n.heading = h; this.mirror.set(ri, n); }
+      if (!n.alive) continue;
+      n.tgt = { x, z, h, speed, aim }; n.state = alive ? (speed ? 'walk' : 'stand') : 'dead';
+      if (!alive) this.burst(n, null, this.debrisFor);
+    }
+    for (const [ri, n] of this.mirror) if (!keep.has(ri)) { this.mirror.delete(ri); this.remove(n); }
+  }
+  /** Guest side: ease every figure toward the host's row and pose it. */
+  stepMirror(dt) {
+    this.t += dt; const M = this.M, k = 1 - Math.exp(-dt * 8);
+    for (const n of this.npcs) {
+      if (!n.alive || !n.tgt) continue;
+      n.pos.x += (n.tgt.x - n.pos.x) * k; n.pos.z += (n.tgt.z - n.pos.z) * k; n.pos.y = this.groundH(n.pos.x, n.pos.z);
+      let d = n.tgt.h - n.heading; d = Math.atan2(Math.sin(d), Math.cos(d)); n.heading += d * k;
+      n.speed += (n.tgt.speed - n.speed) * k; n.aim += (n.tgt.aim - n.aim) * k;
+      const v = Math.abs(n.speed) / M; n.phase += (4.35 + 1.62 * v) * dt; n.gait = clamp(n.gait + (v > 0.08 ? 1 : -1) * dt / 0.15, 0, 1);
+      this.poseTemplate(n);
+      for (const slot of n.slots) { const im = this.meshes.get(slot); if (!im) continue; const s = this.tmpl.slots[slot.startsWith('hat') ? 'hat' : slot.startsWith('weaponR') ? 'weaponR' : slot]; im.setMatrixAt(n.i, s.matrixWorld); im.instanceMatrix.needsUpdate = true; }
+    }
+  }
   /** ctx: { player: {pos, alive, running}, tie: {pos, flying}, bolts, debris, los(a, b) → true if clear, pushOut, playerRadius } */
   step(dt, ctx) {
+    if (this.remote) { this.debrisFor = ctx.debris; return this.stepMirror(dt); }
     this.t += dt; const M = this.M;
     for (const n of this.npcs.slice()) {
       if (!n.alive) { if (this.t - n.deadAt > 30) { this.remove(n); const spots = this.roads.length ? this.roads[Math.floor(Math.random() * this.roads.length)].pts : null; if (spots) { const p = spots[Math.floor(Math.random() * spots.length)]; if (Math.hypot(p.x * M - ctx.player.pos.x, p.z * M - ctx.player.pos.z) > 50 * M) this.spawn(n.kind, p.x * M, p.z * M, Math.floor(Math.random() * 1000)); } } continue; }

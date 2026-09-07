@@ -8,7 +8,7 @@ const M = 40;                                                  // LDU per metre:
 const Q = new URLSearchParams(location.search);
 const HLIDARENDI = { lat: 63.7422, lon: -20.108, name: 'Hlíðarendi, Iceland', baked: true };
 const GROUND_SPAN = 2700, DETAIL_SPAN = 900, RELAND_AT = 300, DETONATORS = 6;
-const UP = new THREE.Vector3(0, 1, 0), V1 = new THREE.Vector3(), V2 = new THREE.Vector3(), V3 = new THREE.Vector3(), E1 = new THREE.Euler();
+const UP = new THREE.Vector3(0, 1, 0), V1 = new THREE.Vector3(), V2 = new THREE.Vector3(), V3 = new THREE.Vector3(), E1 = new THREE.Euler(), Q1 = new THREE.Quaternion();
 
 const W = {
   engine: null, scene: null, camera: null, renderer: null, loader: null,
@@ -17,6 +17,7 @@ const W = {
   net: { elevation: null, imagery: null, osm: null }, relanding: false, health: 100, dead: 0, dets: DETONATORS, grenades: [], shake: 0,
   input: { L: { x: 0, y: 0, mag: 0 }, look: { dx: 0, dy: 0 }, run: false, saber: false, fly: { x: 0, y: 0, mag: 0 }, boost: false, fire: false, push: false, torpedo: false },
   stats: { calls: 0 },
+  build: null, room: null, name: null, remotes: new Map(), editQ: { up: [], rm: [] }, editAcc: 0, netAcc: 0, crowdAcc: 0, dmgAcc: 0, dmgSaved: 0, dmgKey: null,
 };
 window.__world = W;
 if (!Minifig.DEFS[W.character]) W.character = 'vader';
@@ -30,9 +31,21 @@ function flash() { const f = $('#flash'); f.classList.add('on'); setTimeout(() =
 function buildMenu() {
   const chars = Object.entries(Minifig.DEFS).map(([k, d]) => `<button data-as="${k}" class="${k === W.character ? 'on' : ''}">${d.name}</button>`).join('');
   const worlds = Object.entries(Worlds.PRESETS).map(([k, p]) => `<button data-world="${k}" class="${k === W.world ? 'on' : ''}">${p.name}</button>`).join('');
-  $('#menu').innerHTML = `<div class="row"><span>play as</span>${chars}</div><div class="row"><span>world</span>${worlds}</div>`;
+  $('#menu').innerHTML = `<div class="row"><span>play as</span>${chars}</div><div class="row"><span>world</span>${worlds}</div>
+    <div class="row net"><span>together</span><input id="nameIn" placeholder="your name" maxlength="14"><button id="hostBtn">Host a room</button><input id="codeIn" placeholder="CODE" maxlength="4" autocapitalize="characters"><button id="joinBtn">Join</button><button id="linkBtn" hidden>Copy link</button><button id="leaveBtn" hidden>Leave</button></div><div class="row"><em id="roomStat"></em></div>`;
   $('#menu').querySelectorAll('[data-as]').forEach(b => b.onclick = () => setCharacter(b.dataset.as));
   $('#menu').querySelectorAll('[data-world]').forEach(b => b.onclick = () => setWorld(b.dataset.world));
+  $('#nameIn').value = W.name || ''; $('#nameIn').onchange = () => setName($('#nameIn').value);
+  $('#hostBtn').onclick = () => hostRoom(); $('#joinBtn').onclick = () => joinRoom($('#codeIn').value); $('#leaveBtn').onclick = () => leaveRoom();
+  $('#linkBtn').onclick = () => { const link = W.room.link(); (navigator.clipboard ? navigator.clipboard.writeText(link) : Promise.reject()).then(() => toast('link copied', 900), () => { prompt('Share this link', link); }); };
+  $('#codeIn').addEventListener('keydown', e => { if (e.key === 'Enter') joinRoom($('#codeIn').value); });
+}
+function setName(n) { W.name = (n || '').trim().slice(0, 14) || W.name; try { localStorage.setItem('world.name', W.name); } catch (e) { } }
+function roomStat() {
+  const N = W.room, st = N ? N.stats() : null, chip = $('#room');
+  if (!st || !st.role) { chip.textContent = ''; chip.classList.remove('on'); $('#roomStat').textContent = st && st.error ? 'could not connect: ' + st.error : ''; $('#hostBtn').hidden = false; $('#joinBtn').hidden = false; $('#codeIn').hidden = false; $('#linkBtn').hidden = true; $('#leaveBtn').hidden = true; return; }
+  const n = Math.max(st.role === 'guest' ? 2 : 1, st.players.filter(id => id !== 'host').length + 1); chip.textContent = `${st.code} · ${n} player${n > 1 ? 's' : ''}`; chip.classList.add('on');
+  $('#roomStat').textContent = `${st.role === 'host' ? 'hosting' : 'in'} room ${st.code} · share the code or the link`; $('#hostBtn').hidden = true; $('#joinBtn').hidden = true; $('#codeIn').hidden = true; $('#linkBtn').hidden = false; $('#leaveBtn').hidden = false;
 }
 function markMenu() { $('#menu').querySelectorAll('[data-as]').forEach(b => b.classList.toggle('on', b.dataset.as === W.character)); $('#menu').querySelectorAll('[data-world]').forEach(b => b.classList.toggle('on', b.dataset.world === W.world)); }
 
@@ -70,7 +83,22 @@ function installWindow(win) {
   if (W.city) { W.city.groundM = G.hM; W.city.set(win.buildings); }
   if (W.debris) W.debris.clear();
   if (W.crowd) { W.crowd.setRoads(win.roads); }
+  if (W.build) { const key = placeKey(win.place), a = anchorOf(win.place), al = win.P.toLocal(a.lat, a.lon); W.build.setFrame({ ax: al.x * M, az: al.z * M, datum: G.datum * M }); const n = W.build.load(key); if (n) toast(`${n} bricks of yours here`, 1200); }
+  W.dmgKey = 'world.damage.' + placeKey(win.place); loadDamage();
 }
+/** A place's anchor: its coordinates to a thousandth of a degree (about 100 m), so a jittery GPS fix still finds the same builds. */
+function anchorOf(place) { return place.baked ? { lat: HLIDARENDI.lat, lon: HLIDARENDI.lon } : { lat: Math.round(place.lat * 1000) / 1000, lon: Math.round(place.lon * 1000) / 1000 }; }
+function placeKey(place) { if (place.baked) return 'hlidarendi'; const a = anchorOf(place); return a.lat.toFixed(3) + '_' + a.lon.toFixed(3); }
+function loadDamage() {
+  W.dmgSaved = W.city.knocked; let sets = null; try { sets = JSON.parse(localStorage.getItem(W.dmgKey) || 'null'); } catch (e) { }
+  if (!sets) return 0; let n = 0; for (const b of W.city.buildings) if (sets[b.id]) n += W.city.applyRemoved(b, sets[b.id]);
+  W.dmgSaved = W.city.knocked; return n;
+}
+function saveDamage() {
+  if (!W.dmgKey || W.city.knocked === W.dmgSaved) return; W.dmgSaved = W.city.knocked;
+  try { const s = JSON.stringify(W.city.removedSets()); if (s.length > 300000) { if (!W.dmgWarned) { W.dmgWarned = true; toast('too much damage to remember', 1500); } return; } localStorage.setItem(W.dmgKey, s); } catch (e) { }
+}
+function resetPlace() { W.build.forget(); try { localStorage.removeItem(W.dmgKey); } catch (e) { } W.city.set(W.win.buildings); W.debris.clear(); W.dmgSaved = W.city.knocked; if (W.room && W.room.role) W.room.send({ t: 'reset' }); toast('this place is new again', 1200); }
 function spawnPoint(win) {
   let best = null, bd = 250;
   for (const r of win.roads) for (let i = 0; i < r.pts.length - 1; i++) { const a = r.pts[i], b = r.pts[i + 1], L = Math.hypot(b.x - a.x, b.z - a.z), n = Math.max(1, Math.ceil(L / 5)); for (let k = 0; k <= n; k++) { const p = { x: a.x + (b.x - a.x) * k / n, z: a.z + (b.z - a.z) * k / n }, d = Math.hypot(p.x, p.z); if (d < bd) { bd = d; best = p; } } }
@@ -118,12 +146,15 @@ function setCharacter(name) {
 function hintFor() {
   const d = Minifig.DEFS[W.character];
   $('#hint').textContent = W.mode === 'fly' ? 'drag anywhere to carve · second finger boosts · tap right fires · hold right for a torpedo'
+    : W.build && W.build.on ? (W.build.pick ? 'aim at a brick of yours and tap to pick it up' : 'aim with the reticle · tap to place · walk up to stack')
     : `left thumb walks · right thumb looks · tap right ${d.saber ? 'swings the saber' : d.weapon ? 'fires' : 'shoves'} · two fingers: Force push`;
 }
 function setWorld(name) {
   if (!Worlds.PRESETS[name]) return; W.world = name; markMenu();
   if (!W.G) return;
+  const sets = W.city ? W.city.removedSets() : null;
   const p = Worlds.apply(name, { scene: W.scene, G: W.G, city: W.city, lights: Ground.daylight.lights });
+  if (sets) for (const b of W.city.buildings) if (sets[b.id]) W.city.applyRemoved(b, sets[b.id]);   // a new palette keeps the old damage
   if (p.imagery && W.win && W.win.imagery) Ground.drape(W.G, W.win.imagery); else Ground.recolour(W.G, p.paint);
   document.body.dataset.world = name; toast(p.name, 900);
   if (p.imagery && W.win && !W.win.imagery && !W.win.baked && !W.win.imageryTried) lateImagery(W.win);
@@ -165,15 +196,21 @@ function bindInput() {
     if (p.id === lookId) lookId = null;
     if (p.multi && PT.size === 0 && p.moved < 20 && performance.now() - W.multiAt < 450 && W.mode === 'walk') W.input.push = true;   // two-finger tap: the Force
     if (W.mode === 'fly') { if (!p.left && !p.multi && p.moved < 14) { if (hold) W.input.torpedo = true; else if (tap) W.input.fireOnce = true; } }
+    else if (W.build && W.build.on) { if (tap) buildAct(); }
     else if (tap && !p.left) W.input.saber = true;
     if (W.mode === 'walk' && !p.left) W.input.runTouch = false;
   };
   stage.addEventListener('pointerup', end); stage.addEventListener('pointercancel', end); window.addEventListener('pointerup', end);
-  window.addEventListener('keydown', e => { if (/INPUT|TEXTAREA/.test(e.target.tagName)) return; W.keys.add(e.code); if (e.code === 'Space') { if (W.mode === 'walk') W.input.saber = true; e.preventDefault(); } if (e.code === 'KeyE') promptAction(); if (e.code === 'KeyF') W.input.push = true; if (e.code === 'KeyG') throwDetonator(); if (e.code === 'KeyT' && W.mode === 'fly') W.input.torpedo = true; });
+  window.addEventListener('keydown', e => { if (/INPUT|TEXTAREA/.test(e.target.tagName)) return; W.keys.add(e.code);
+    if (W.build && W.build.on && W.mode === 'walk') { if (e.code === 'Space') { buildAct(); e.preventDefault(); return; } if (e.code === 'KeyR') { rotateBuild(); return; } if (e.code === 'BracketLeft') { W.build.lift--; return; } if (e.code === 'BracketRight') { W.build.lift++; return; } if (e.code === 'Backspace') { W.build.undo(); paintPalette(); return; } if (e.code === 'KeyX') { setPick(!W.build.pick); return; } }
+    if (e.code === 'KeyB') { toggleBuild(); return; }
+    if (e.code === 'Space') { if (W.mode === 'walk') W.input.saber = true; e.preventDefault(); } if (e.code === 'KeyE') promptAction(); if (e.code === 'KeyF') W.input.push = true; if (e.code === 'KeyG') throwDetonator(); if (e.code === 'KeyT' && W.mode === 'fly') W.input.torpedo = true; });
   window.addEventListener('keyup', e => W.keys.delete(e.code));
   window.addEventListener('blur', () => W.keys.clear());
   $('#prompt').addEventListener('click', promptAction);
   $('#det').addEventListener('click', throwDetonator);
+  $('#build').addEventListener('click', toggleBuild);
+  bindPalette();
   $('#menuBtn').addEventListener('click', () => $('#menu').classList.toggle('open'));
   $('#go').addEventListener('click', () => { const f = $('#find'); if (!f.classList.contains('open')) { f.classList.add('open'); $('#q').focus(); return; } const q = $('#q').value.trim(); if (q) goAnywhere(q); else f.classList.remove('open'); });
   $('#q').addEventListener('keydown', e => { if (e.key === 'Enter') { const q = $('#q').value.trim(); if (q) goAnywhere(q); } });
@@ -192,6 +229,7 @@ function readKeys() {
 /* ───────────────────────── collisions shared by everyone on foot ───────────────────────── */
 function pushOut(pos, r) {
   for (const b of W.city.near(pos.x, pos.z, r + 2 * M)) pushRing(pos, r, b.ringL, b.y0, b.yTop);
+  if (W.build) W.build.pushOut(pos, r, 100);
   if (W.mode === 'walk' && W.ship) { const s = W.ship.position; pushRing(pos, r, [{ x: s.x - 170, z: s.z - 85 }, { x: s.x + 170, z: s.z - 85 }, { x: s.x + 170, z: s.z + 85 }, { x: s.x - 170, z: s.z + 85 }], s.y - 200, s.y + 200); }
 }
 function pushRing(pos, r, ring, y0, y1) {
@@ -211,12 +249,17 @@ function los(a, b) {
 }
 function segCross(ax, az, bx, bz, cx, cz, dx, dz) { const d1 = (bx - ax) * (cz - az) - (bz - az) * (cx - ax), d2 = (bx - ax) * (dz - az) - (bz - az) * (dx - ax), d3 = (dx - cx) * (az - cz) - (dz - cz) * (ax - cx), d4 = (dx - cx) * (bz - cz) - (dz - cz) * (bx - cx); return d1 * d2 < 0 && d3 * d4 < 0; }
 const WORLD = { groundH: (x, z) => W.G.h(x, z), pushOut };
+/** What feet stand on: the ground, or a placed brick no higher than a step above them. */
+const WALK = { groundH: (x, z) => { const g = W.G.h(x, z); if (!W.build || !W.rig) return g; const f = W.build.floorAt(x, z, W.rig.pos.y + 30); return f > g ? f : g; }, pushOut };
+/** Boxes that stop ships, bolts and debris: buildings and builds. */
+function allBoxes(x, z, r) { const a = W.city.aabbs(x, z, r); return W.build ? a.concat(W.build.aabbs(x, z, r)) : a; }
 
 /* ───────────────────────── destruction ───────────────────────── */
 function fall(list) { for (const f of list) W.debris.spawn({ part: f.part, matrix: f.matrix, colour: f.colour, vel: f.vel }); return list.length; }
 /** A blast: bricks within r fly, the buildings collapse where they lost support, people in reach are thrown. */
-function blast(point, r, vel, people = true) {
-  const n = fall(W.city.blast(point, r, vel));
+function blast(point, r, vel, people = true, fromNet = false) {
+  const n = fall(W.city.blast(point, r, vel)) + (W.build ? fall(W.build.blast(point, r, vel)) : 0);
+  if (!fromNet && W.room && W.room.role) W.room.send({ t: 'blast', p: point.toArray().map(Math.round), r, v: vel ? vel.toArray().map(Math.round) : null });
   if (people && W.crowd) W.crowd.hitWithin(point, r * 1.1, vel ? vel.clone().multiplyScalar(0.6) : null, W.debris);
   if (people && W.mode === 'walk' && W.rig.figure.visible) { V1.copy(W.rig.pos); V1.y += 1.2 * M; if (V1.distanceTo(point) < r * 0.9 && r > 3 * M) hurt(40); }
   return n;
@@ -281,13 +324,14 @@ function simulate(dt) {
     else {
       Minifig.moveFromStick(W.rig, I.L, MOVE);
       const wantsShot = I.saber && !d.saber && d.weapon; I.aim = wantsShot || (I.aimHold && d.weapon);
-      Minifig.step(W.rig, dt, { move: MOVE, run: I.run, saber: I.saber, aim: I.aim }, WORLD);
+      Minifig.step(W.rig, dt, { move: MOVE, run: I.run, saber: I.saber && !(W.build && W.build.on), aim: I.aim }, WALK);
       if (wantsShot) { const p = new THREE.Vector3(), dir = new THREE.Vector3(); Minifig.muzzle(W.rig, p, dir); dir.y = -0.05; W.bolts.fire(p, dir, 'player'); }
       I.saber = false;
       if (W.rig.hit) { const h = W.rig.hit; W.rig.hit = null; const n = blast(h, 1.4 * M, Minifig.facing(W.rig, V2).clone().multiplyScalar(3 * M)); if (n) toast('bricks!', 500); }
       if (I.push) { I.push = false; forcePush(); }
     }
-    Minifig.camera(W.rig, W.camera, dt, I.look, WORLD, portrait); I.look.dx = I.look.dy = 0;
+    Minifig.camera(W.rig, W.camera, dt, I.look, WALK, portrait, W.build && W.build.on); I.look.dx = I.look.dy = 0;
+    if (W.build) W.build.aim(W.camera, portrait);
     const near = nearShip() < 6 && !W.dead; $('#prompt').classList.toggle('on', near); $('#prompt').textContent = 'Board the TIE';
   } else {
     const F = W.tie; F.input.x = I.fly.x; F.input.y = I.fly.y; F.input.mag = I.fly.mag; F.input.boost = I.boost; F.input.fire = I.fire || !!I.fireOnce; I.fireOnce = false; if (I.torpedo) { F.input.torpedo = true; I.torpedo = false; }
@@ -304,6 +348,8 @@ function simulate(dt) {
   });
   fall(W.city.tick(dt));
   W.debris.step(dt); stepGrenades(dt);
+  if (W.room.role) { W.room.tick(dt); netTick(dt); stepRemotes(dt); }
+  W.build.tick(dt); if ((W.dmgAcc += dt) > 2) { W.dmgAcc = 0; saveDamage(); }
   W.crowd.step(dt, { player: { pos: W.rig.pos, alive: W.mode === 'walk' && !W.dead, running: W.input.run && W.rig.speed > 3 * M, vel: W.rig.vel }, tie: { pos: W.tie.pos, flying: W.mode === 'fly' }, bolts: W.bolts, debris: W.debris, los, pushOut });
   W.city.update(W.camera, W.mode === 'walk' ? W.rig.pos : W.tie.pos);
   if ((W.hudAcc = (W.hudAcc || 0) + dt) > 0.1) { W.hudAcc = 0; paint(); }
@@ -311,7 +357,7 @@ function simulate(dt) {
 }
 function paint() {
   const st = W.city.stats(), cs = W.crowd.stats();
-  if (W.mode === 'walk') { $('#stat').textContent = `${st.buildings} buildings · ${cs.alive} people\n${Math.round(W.rig.speed / M * 3.6)} km/h · ${W.dets} detonators`; $('#shieldFill').style.width = W.health + '%'; $('#shield').classList.toggle('low', W.health < 40); $('#det').classList.toggle('on', W.dets > 0 && !W.dead); }
+  if (W.mode === 'walk') { $('#stat').textContent = `${st.buildings} buildings · ${cs.alive} people${W.build.pieces.size ? ' · ' + W.build.pieces.size + ' built' : ''}\n${Math.round(W.rig.speed / M * 3.6)} km/h · ${W.dets} detonators`; $('#shieldFill').style.width = W.health + '%'; $('#shield').classList.toggle('low', W.health < 40); $('#det').classList.toggle('on', W.dets > 0 && !W.dead); }
   else { const F = W.tie, alt = Math.round((F.pos.y - W.G.h(F.pos.x, F.pos.z)) / M); $('#stat').textContent = `${alt} m up · ${Math.round(F.speed / M * 3.6)} km/h${F.input.boost ? ' · boost' : ''}\n${F.t < F.impact.until ? F.impact.text : F.slide > .35 ? 'VADER SLIDE' : ''}`; $('#shieldFill').style.width = F.shields + '%'; $('#shield').classList.toggle('low', F.shields < 40); $('#det').classList.remove('on'); if (F.t < F.impact.until && F.impact.text !== W.lastImpact) { W.lastImpact = F.impact.text; toast(F.impact.text.split(' · ')[0], 700); } }
   if (W.mode === 'fly' && W.tie.shields <= 0 && !W.tie.landing) { W.tie.shields = Tie.SHIELD_MAX; toast('shields gone: setting down'); Tie.land(W.tie); }
 }
@@ -335,8 +381,9 @@ async function reland(place, quiet) {
       if (!quiet) { W.rig.heading = Math.PI; W.rig.cam.yaw = W.rig.heading + Math.PI; parkShip(lx, lz); }
       else { const sp = W.ship.position, sw = W.prevP.toWGS(sp.x / M, sp.z / M), sl = win.P.toLocal(sw.lat, sw.lon); W.ship.position.set(sl.x * M, W.G.h(sl.x * M, sl.z * M) + 122, sl.z * M); }
     } else { W.tie.pos.set(lx, W.tie.pos.y, lz); W.tie.prevPos.copy(W.tie.pos); }
-    W.prevP = win.P; W.crowd.populate(W.mode === 'walk' ? W.rig.pos : W.tie.pos);
+    W.prevP = win.P; if (!W.crowd.remote) W.crowd.populate(W.mode === 'walk' ? W.rig.pos : W.tie.pos);
     if (!quiet) { stage('bricks', 'done'); $('#veil').classList.add('gone'); }
+    if (W.room.role === 'host' && !quiet) W.room.send({ t: 'place', place: wirePlace(), world: W.world });
   } catch (e) { console.error(e); if (!quiet) stall('Could not go there: ' + (e.message || e)); }
   finally { W.relanding = false; }
 }
@@ -354,6 +401,9 @@ async function goAnywhere(q) {
 
 /* ───────────────────────── boot ───────────────────────── */
 async function boot() {
+  try { W.name = Q.get('name') || localStorage.getItem('world.name') || ''; } catch (e) { W.name = Q.get('name') || ''; }
+  if (!W.name) W.name = 'pilot-' + Build.Build.pid().slice(0, 4);
+  W.room = Net.create({ transport: Q.get('net') === 'bc' ? 'bc' : undefined, onMessage: netHandle, onJoin: id => { roomStat(); if (id !== 'host') toast('someone joined', 900); }, onLeave: id => { dropRemote(id); roomStat(); if (id === 'host') leaveRoom(false); else toast('a player left', 900); }, onStatus: roomStat });
   buildMenu(); bindInput(); document.body.dataset.world = W.world;
   const watchdog = setTimeout(() => { if (!W.ready) stall('Still loading after 40 s. The ground and the buildings come from the network; the ship from this site.'); }, 40000);
   try {
@@ -373,24 +423,148 @@ async function boot() {
     W.ship = engine.modelWrapper; W.ship.traverse(o => { if (o.isMesh && o.material) for (const m of Array.isArray(o.material) ? o.material : [o.material]) m.fog = true; });
     engine.controls.enabled = false; engine.controls = null;
     W.city = new Bricks.City({ scene: W.scene, M, geoms: W.geoms, groundM: (x, z) => 0, colours: W.colours, palette: Worlds.PRESETS[W.world].palette });
-    W.debris = new Debris.Debris({ scene: W.scene, M, groundH: WORLD.groundH, aabbs: (x, z, r) => W.city.aabbs(x, z, r), onWallHit: (p, v) => fall(W.city.blast(p, 0.5 * M, v, 2)) });
+    W.build = new Build.Build({ scene: W.scene, M, geoms: W.geoms, colours: W.colours, groundH: WORLD.groundH, buildings: (x, z, r) => W.city.aabbs(x, z, r), rings: (x, z) => W.city.near(x, z, 10) });
+    W.build.onEdit = ops => queueEdit(ops);
+    W.debris = new Debris.Debris({ scene: W.scene, M, groundH: WORLD.groundH, aabbs: allBoxes, onWallHit: (p, v) => fall(W.city.blast(p, 0.5 * M, v, 2)) });
     for (const [name, g] of W.geoms) W.debris.register(name, g.geom, name.startsWith('wall') ? 600 : 200);
     for (const [name, g] of W.raw) W.debris.register(name, g, 120);
     W.bolts = new Characters.Bolts({ scene: W.scene, M, groundH: WORLD.groundH });
     W.crowd = new Characters.Crowd({ scene: W.scene, M, geoms: W.raw, colours: W.colours, groundH: WORLD.groundH });
     installWindow(win); W.prevP = win.P; setWorld(W.world);
     stage('bricks', 'now', 'laying the bricks');
-    W.tie = Tie.create({ ship: W.ship, M, groundH: WORLD.groundH, aabbs: (x, z, r) => W.city.aabbs(x, z, r), scene: W.scene, onImpact: (p, sev) => { flash(); W.shake = 0.4; blast(p, 3 * M, W.tie.vel.clone().multiplyScalar(.2), false); } });
+    W.tie = Tie.create({ ship: W.ship, M, groundH: WORLD.groundH, aabbs: allBoxes, scene: W.scene, onImpact: (p, sev) => { flash(); W.shake = 0.4; blast(p, 3 * M, W.tie.vel.clone().multiplyScalar(.2), false); } });
     setCharacter(W.character);
     const s = spawnPoint(win); W.rig.pos.set(s.x * M, W.G.h(s.x * M, s.z * M), s.z * M); W.rig.heading = Math.PI; W.rig.figure.rotation.y = Math.PI; W.rig.cam.yaw = W.rig.heading + Math.PI; parkShip(W.rig.pos.x, W.rig.pos.z);
     W.crowd.populate(W.rig.pos);
     for (let k = 0; k < 20; k++) W.city.update(W.camera, W.rig.pos);
     const r = engine.renderer, real = r.render.bind(r);
     r.render = (sc, c) => { tick(); real(sc, c); W.stats.calls = r.info.render.calls; };
+    W.tie.onFire = (o, d, v) => { if (W.room && W.room.role) W.room.send({ t: 'bolt', o: o.toArray().map(Math.round), d: d.toArray().map(x => +x.toFixed(3)), s: Math.round(v.length()) }, { fast: true }); };
+    W.bolts.onFire = (o, d, owner, speed) => { if (W.room && W.room.role && (owner === 'player' || (owner === 'npc' && W.room.role === 'host'))) W.room.send({ t: 'bolt', o: o.toArray().map(Math.round), d: d.toArray().map(x => +x.toFixed(3)), s: speed, npc: owner === 'npc' }, { fast: true }); };
+    { const orig = W.crowd.burst.bind(W.crowd); W.crowd.burst = (n, vel, debris) => { const was = n.alive; orig(n, vel, debris); if (was && W.room && W.room.role === 'guest' && n.ri != null) W.room.send({ t: 'npcHit', i: n.ri }); }; }
+    paintPalette();
     stage('bricks', 'done', ''); W.last = performance.now(); W.ready = true; $('#veil').classList.add('gone'); $('#menu').classList.remove('open'); paint(); hintFor();
+    if (Q.get('room')) joinRoom(Q.get('room'), true);
   } catch (e) { console.error(e); stall('Could not build the world: ' + (e.message || e)); }
   finally { clearTimeout(watchdog); }
 }
+
+/* ───────────────────────── building ───────────────────────── */
+function toggleBuild(on) {
+  const B = W.build; if (!B || W.mode !== 'walk') return; B.on = on === undefined ? !B.on : !!on; if (!B.on) { B.pick = false; B.lift = 0; }
+  document.body.classList.toggle('build', B.on); $('#build').classList.toggle('on', B.on); paintPalette(); hintFor();
+  W.rig.figure.traverse(o => { if (!o.isMesh) return; const m = o.material; if (m.userData.op == null) { m.userData.op = m.opacity; m.userData.tr = m.transparent; } m.transparent = B.on ? true : m.userData.tr; m.opacity = B.on ? Math.min(0.35, m.userData.op) : m.userData.op; m.needsUpdate = true; });   // see through yourself while building
+}
+function setPick(on) { W.build.pick = !!on; paintPalette(); }
+function rotateBuild() { W.build.rot = (W.build.rot + 1) % 4; }
+/** The build tap: place the ghost, or pick up what the reticle is on. */
+function buildAct() {
+  const B = W.build; if (!B.on || W.mode !== 'walk' || W.dead) return;
+  if (B.pick) { const p = B.aimedPiece(); if (p) { fall(B.remove(p.id)); toast('picked up', 500); } else toast('nothing to pick up', 600); return; }
+  const p = B.place(); if (p) { paintPalette(); } else toast(B.target ? 'blocked' : 'too far', 600);
+}
+function bindPalette() {
+  const P = $('#palette');
+  P.innerHTML = `<div class="parts">${Build.PARTS.map(([part, name]) => `<button data-part="${part}">${name}</button>`).join('')}</div>
+    <div class="tools"><span class="cols">${Build.COLOURS.map(c => `<button data-col="${c}" title="${c}"></button>`).join('')}</span>
+    <button data-tool="rot" title="rotate (R)">⟳</button><button data-tool="up" title="lift (])">▲</button><button data-tool="down" title="lower ([)">▼</button><button data-tool="undo" title="undo (⌫)">⌫</button><button data-tool="pick" title="pick up (X)">✋</button><button data-tool="reset" title="reset this place">reset</button><button data-tool="place" class="place">PLACE</button></div>`;
+  P.querySelectorAll('[data-part]').forEach(b => b.onclick = () => { W.build.part = b.dataset.part; W.build.pick = false; paintPalette(); });
+  P.querySelectorAll('[data-col]').forEach(b => b.onclick = () => { W.build.col = +b.dataset.col; paintPalette(); });
+  P.querySelectorAll('[data-tool]').forEach(b => b.onclick = () => { const B = W.build; switch (b.dataset.tool) { case 'rot': rotateBuild(); break; case 'up': B.lift = Math.min(B.lift + 1, 60); break; case 'down': B.lift = Math.max(B.lift - 1, -60); break; case 'undo': B.undo(); break; case 'pick': setPick(!B.pick); break; case 'reset': if (confirm('Forget every brick built and every wall broken here?')) resetPlace(); break; case 'place': buildAct(); break; } paintPalette(); });
+}
+function paintPalette() {
+  const B = W.build, P = $('#palette'); if (!B) return;
+  P.querySelectorAll('[data-part]').forEach(b => b.classList.toggle('on', b.dataset.part === B.part && !B.pick));
+  P.querySelectorAll('[data-col]').forEach(b => { if (!b.style.background) { const c = W.colours(+b.dataset.col).clone().convertLinearToSRGB(); b.style.background = c.getStyle(); } b.classList.toggle('on', +b.dataset.col === B.col); });
+  const pick = P.querySelector('[data-tool="pick"]'); if (pick) pick.classList.toggle('on', B.pick);
+  const undo = P.querySelector('[data-tool="undo"]'); if (undo) undo.disabled = !B.history.length;
+}
+
+/* ───────────────────────── playing together ───────────────────────── */
+function wirePlace() { const p = W.place; return { lat: p.lat, lon: p.lon, name: p.name, baked: !!p.baked }; }
+function samePlace(a) { if (!a || !W.place) return false; if (!!a.baked !== !!W.place.baked) return false; if (a.baked) return true; const l = W.P.toLocal(a.lat, a.lon); return Math.hypot(l.x, l.z) < 200; }
+async function hostRoom(code) { if (W.room.role) return; try { await W.room.host(code); toast('room ' + W.room.code, 1200); } catch (e) { toast('could not host: ' + (e.type || e.message), 1500); } roomStat(); }
+async function joinRoom(code, orHost) {
+  code = String(code || '').trim().toUpperCase(); if (W.room.role || code.length !== 4) { if (code.length !== 4) toast('a room code has 4 letters', 900); return; }
+  try { await (orHost ? W.room.joinOrHost(code) : W.room.join(code)); } catch (e) { toast('could not join: ' + (e.type || e.message), 1500); roomStat(); return; }
+  if (W.room.role === 'guest') { W.room.send({ t: 'hi', name: W.name, ch: W.character }); toast('joined ' + code, 1000); } else toast('room ' + code + ' is yours', 1200);
+  roomStat();
+}
+function leaveRoom(tell = true) {
+  for (const id of [...W.remotes.keys()]) dropRemote(id);
+  if (W.room.role) W.room.leave(tell);
+  if (W.crowd.remote) { W.crowd.remote = false; for (const n of W.crowd.npcs.slice()) W.crowd.remove(n); W.crowd.mirror = null; W.crowd.populate(W.mode === 'walk' ? W.rig.pos : W.tie.pos); }
+  roomStat(); toast('on your own again', 900);
+}
+function queueEdit(ops) { if (ops.up) W.editQ.up.push(...ops.up); if (ops.rm) W.editQ.rm.push(...ops.rm); }
+function flushEdits() { const q = W.editQ; if (!q.up.length && !q.rm.length) return; if (W.room.role) W.room.send({ t: 'edit', up: q.up, rm: q.rm }); W.editQ = { up: [], rm: [] }; }
+function myState() {
+  const r = W.rig, s = W.ship.position;
+  const m = { t: 'p', m: W.mode, ch: W.character, hp: W.health, dead: !!W.dead, name: W.name, ship: [Math.round(s.x), Math.round(s.y), Math.round(s.z), +W.ship.quaternion.y.toFixed(3), +W.ship.quaternion.w.toFixed(3)] };
+  if (W.mode === 'walk') { m.x = Math.round(r.pos.x); m.y = Math.round(r.pos.y); m.z = Math.round(r.pos.z); m.h = +r.heading.toFixed(3); m.an = [+r.phase.toFixed(2), +r.gait.toFixed(2), r.swing ? +((r.t - r.swing.t0) / 0.42).toFixed(2) : -1, +r.aim.toFixed(2)]; }
+  else { const F = W.tie; m.x = Math.round(F.pos.x); m.y = Math.round(F.pos.y); m.z = Math.round(F.pos.z); m.q = F.quat.toArray().map(v => +v.toFixed(4)); m.v = F.vel.toArray().map(Math.round); }
+  return m;
+}
+function netTick(dt) {
+  if ((W.netAcc += dt) >= 1 / 12) { W.netAcc = 0; W.room.send(myState(), { fast: true }); }
+  if ((W.editAcc += dt) >= 0.25) { W.editAcc = 0; flushEdits(); }
+  if (W.room.role === 'host' && (W.crowdAcc += dt) >= 0.2) { W.crowdAcc = 0; W.room.send({ t: 'crowd', n: W.crowd.serialize() }, { fast: true }); }
+}
+function snapFor(id) { W.room.send({ t: 'snap', build: W.build.rows(), damage: W.city.removedSets(), crowd: W.crowd.serialize(), world: W.world }, { to: id }); }
+async function followHost(place, world) {
+  if (world && world !== W.world) setWorld(world);
+  if (!samePlace(place)) { toast('going to the host', 1200); await reland(place, false); }
+  W.room.send({ t: 'ready' });
+}
+function netHandle(m, from) {
+  if (!W.ready) return; const R = W.room;
+  switch (m.t) {
+    case 'hi': if (R.role === 'host') { R.seen(from, { name: m.name, ch: m.ch }); R.send({ t: 'hello', place: wirePlace(), world: W.world, name: W.name, ch: W.character }, { to: from }); } break;
+    case 'hello': if (R.role === 'guest') { R.seen('host', { name: m.name, ch: m.ch }); W.crowd.remote = true; for (const n of W.crowd.npcs.slice()) W.crowd.remove(n); W.crowd.mirror = new Map(); followHost(m.place, m.world); } break;
+    case 'place': if (R.role === 'guest') followHost(m.place, m.world); break;
+    case 'ready': if (R.role === 'host') snapFor(from); break;
+    case 'snap': { if (R.role !== 'guest') break; const mine = W.build.rows(); W.build.applyOps({ up: m.build || [] }); for (const b of W.city.buildings) if (m.damage && m.damage[b.id]) W.city.applyRemoved(b, m.damage[b.id]); if (m.crowd) W.crowd.applyRemote(m.crowd); if (mine.length && mine.length <= 2000) R.send({ t: 'edit', up: mine, rm: [] }); toast(`${(m.build || []).length} bricks in this room`, 1200); break; }
+    case 'p': applyRemote(from, m); break;
+    case 'bolt': { const o = new THREE.Vector3().fromArray(m.o), d = new THREE.Vector3().fromArray(m.d); W.bolts.fire(o, d, m.npc && R.role === 'guest' ? 'npc' : 'remote', m.s || 1400); break; }
+    case 'blast': blast(new THREE.Vector3().fromArray(m.p), m.r, m.v ? new THREE.Vector3().fromArray(m.v) : null, true, true); break;
+    case 'edit': { const r = W.build.applyOps({ up: m.up, rm: m.rm }); if (r.added) toast(`${R.players.get(from) ? R.players.get(from).name : 'someone'} built`, 500); break; }
+    case 'crowd': if (R.role === 'guest') W.crowd.applyRemote(m.n); break;
+    case 'npcHit': if (R.role === 'host') { const n = W.crowd.npcs.find(n => n.i === m.i && n.alive); if (n) W.crowd.burst(n, null, W.debris); } break;
+    case 'reset': W.build.clear(); W.city.set(W.win.buildings); W.debris.clear(); toast('the place was reset', 1000); break;
+    case 'bye': dropRemote(from); break;
+  }
+}
+/** A figure or a ship for someone else, kept where their last state says. */
+function remoteFor(id, m) {
+  let r = W.remotes.get(id);
+  if (!r) { r = { id, fig: null, ship: null, ch: null, pos: new THREE.Vector3(m.x, m.y, m.z), heading: m.h || 0, quat: new THREE.Quaternion(), tgt: null, seen: W.t, label: makeLabel(m.name || id.slice(0, 6)) }; W.scene.add(r.label); W.remotes.set(id, r); }
+  if (r.ch !== m.ch || !r.fig) { if (r.fig) W.scene.remove(r.fig.figure); r.fig = makePlayer(m.ch || 'vader'); r.ch = m.ch; r.fig.figure.visible = true; }
+  if (!r.ship) { r.ship = W.ship.clone(true); r.ship.visible = true; W.scene.add(r.ship); }
+  return r;
+}
+function makeLabel(text) {
+  const c = document.createElement('canvas'); c.width = 256; c.height = 64; const g = c.getContext('2d'); g.font = 'bold 34px sans-serif'; g.textAlign = 'center'; g.fillStyle = 'rgba(26,31,42,.75)'; g.fillRect(0, 8, 256, 48); g.fillStyle = '#fff'; g.fillText(text.slice(0, 14), 128, 44);
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthTest: false, fog: false })); sp.scale.set(160, 40, 1); sp.renderOrder = 5; return sp;
+}
+function applyRemote(id, m) { const r = remoteFor(id, m); r.tgt = m; r.seen = W.t; r.name = m.name; }
+function stepRemotes(dt) {
+  const k = 1 - Math.exp(-dt * 10);
+  for (const r of W.remotes.values()) {
+    const m = r.tgt; if (!m) continue;
+    r.pos.lerp(V1.set(m.x, m.y, m.z), k);
+    if (m.ship) { r.ship.position.set(m.ship[0], m.ship[1], m.ship[2]); if (m.m === 'walk') r.ship.quaternion.set(0, m.ship[3], 0, m.ship[4]).normalize(); }
+    if (m.m === 'walk') {
+      let d = m.h - r.heading; d = Math.atan2(Math.sin(d), Math.cos(d)); r.heading += d * k;
+      const f = r.fig; f.figure.visible = !m.dead; f.pos.copy(r.pos); f.figure.rotation.y = r.heading; f.t += dt;
+      const an = m.an || [0, 0, -1, 0]; Minifig.pose(f, { phase: an[0], gait: an[1], t: f.t, swing: an[2] >= 0 && an[2] <= 1 ? an[2] : null, aim: an[3] });
+      r.label.position.set(r.pos.x, r.pos.y + 150, r.pos.z); r.label.visible = !m.dead;
+    } else {
+      r.fig.figure.visible = false; r.quat.slerp(Q1.fromArray(m.q || [0, 0, 0, 1]), k); r.ship.position.copy(r.pos); r.ship.quaternion.copy(r.quat);
+      r.label.position.set(r.pos.x, r.pos.y + 220, r.pos.z); r.label.visible = true;
+    }
+  }
+}
+function dropRemote(id) { const r = W.remotes.get(id); if (!r) return; if (r.fig) W.scene.remove(r.fig.figure); if (r.ship) W.scene.remove(r.ship); W.scene.remove(r.label); W.remotes.delete(id); }
 
 /* ───────────────────────── test hooks ───────────────────────── */
 Object.assign(W, {
@@ -408,6 +582,10 @@ Object.assign(W, {
   saber: () => { W.input.saber = true; }, run: on => { W.input.runHook = on; }, boost: on => { W.input.boostHook = on; }, fire: () => { W.input.fireOnce = true; }, torpedo: () => { W.input.torpedo = true; }, push: () => { W.input.push = true; }, detonate: throwDetonator,
   board, land, setCharacter, setWorld, teleport: (x, z) => { if (W.mode === 'walk') { W.rig.pos.set(x, W.G.h(x, z), z); W.rig.cam.set = false; } else { W.tie.pos.set(x, W.G.h(x, z) + 30 * M, z); W.tie.prevPos.copy(W.tie.pos); } },
   goAnywhere, blast: (x, y, z, r) => blast(new THREE.Vector3(x, y, z), r), hurt, M,
+  buildStat: () => W.build.stats(), setBuild: toggleBuild, choose: (part, col, rot) => { if (part) W.build.part = part; if (col != null) W.build.col = col; if (rot != null) W.build.rot = rot; paintPalette(); }, placeBrick: buildAct, undo: () => W.build.undo(), setPick, lift: n => { W.build.lift = n; },
+  aimAt: (x, y, z) => { if (x == null) { W.build.pin = null; return null; } const o = new THREE.Vector3(x, y + 4 * M, z + 3 * M), d = new THREE.Vector3(x, y, z).sub(o).normalize(); W.build.on = true; W.build.pin = { origin: o, dir: d }; W.build.aimRay(o, d); return W.build.stats().target; }, takeBrick: id => fall(W.build.remove(id)),
+  pieces: () => W.build.rows(), pieceAt: id => { const p = W.build.pieces.get(id); return p ? { id, part: p.part, col: p.col, x: p.x, y: p.y, z: p.z, rot: p.rot } : null; }, saveNow: () => { W.build.save(); saveDamage(); }, resetPlace, damage: () => W.city.removedSets(), placeKey: () => placeKey(W.place),
+  netStat: () => W.room.stats(), host: hostRoom, join: joinRoom, leave: leaveRoom, remoteList: () => [...W.remotes.values()].map(r => ({ id: r.id, ch: r.ch, mode: r.tgt && r.tgt.m, pos: r.pos.toArray(), visible: r.fig && r.fig.figure.visible, shipVisible: !!r.ship && r.ship.visible })), flushEdits, setName,
   debrisPieces: () => W.debris.pieces.map(p => { const c = W.debris.centre(p, V1); return { part: p.kind.name, y: c.y, x: c.x, z: c.z, rest: p.rest, floor: W.G.h(c.x, c.z) }; }),
   building: i => { const b = W.city.buildings[i]; if (!b.bricks) b.bricks = Bricks.buildBricks(b, W.colours, M); return { id: b.id, kind: b.kind, n: b.bricks.n, removed: b.removed.size, live: b.bricks.n - b.removed.size, cx: b.cx, cz: b.cz, y0: b.y0, yTop: b.yTop, courses: b.courses, ruined: b.ruined }; },
 });
