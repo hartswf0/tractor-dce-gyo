@@ -10,6 +10,7 @@
 const URL = 'https://api.openai.com/v1/responses';
 const KEY = 'openai_api_key', MODEL_KEY = 'world.ai.model', EFFORT_KEY = 'world.ai.effort';
 const DEFAULT_MODEL = 'gpt-5.6-sol', DEFAULT_EFFORT = 'max';
+const LEGACY_MODEL = /^gpt-4o(?:$|-)/i;
 const EFFORTS = new Set(['none', 'low', 'medium', 'high', 'xhigh', 'max']);
 const lsGet = k => { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } };
 const lsSet = (k, v) => { try { if (v) localStorage.setItem(k, v); else localStorage.removeItem(k); } catch (e) { } };
@@ -26,10 +27,17 @@ const Ai = {
   key: () => lsGet(KEY).trim(), setKey: v => lsSet(KEY, (v || '').trim()),
   model: () => {
     const saved = lsGet(MODEL_KEY).trim();
-    /* Migrate the old builder default automatically; explicit modern model choices survive. */
-    return (!saved || saved === 'gpt-4o-mini') ? DEFAULT_MODEL : saved;
+    /* Old 4o-era builder choices should not pin this world to a weaker model forever. */
+    if (!saved || LEGACY_MODEL.test(saved)) {
+      if (saved) lsSet(MODEL_KEY, DEFAULT_MODEL);
+      return DEFAULT_MODEL;
+    }
+    return saved;
   },
-  setModel: v => lsSet(MODEL_KEY, (v || '').trim()),
+  setModel: v => {
+    const requested = (v || '').trim();
+    lsSet(MODEL_KEY, (!requested || LEGACY_MODEL.test(requested)) ? DEFAULT_MODEL : requested);
+  },
   effort: () => {
     const e = lsGet(EFFORT_KEY).trim().toLowerCase();
     return EFFORTS.has(e) ? e : DEFAULT_EFFORT;
@@ -53,7 +61,7 @@ const Ai = {
     return `${bits.length ? bits.join('. ') + '.\n' : ''}Build: ${prompt}`;
   },
 
-  /** Ask GPT-5.6 through the Responses API. Resolves { program, usage, raw, messages }. */
+  /** Ask GPT-5.6 Sol through the Responses API. Resolves { program, usage, raw, messages }. */
   async ask(prompt, { key, model, effort, context, messages, signal } = {}) {
     key = key || this.key(); model = model || this.model(); effort = (effort || this.effort()).toLowerCase();
     if (!key) throw new Error('no key: paste an OpenAI API key first');
@@ -134,4 +142,15 @@ const Ai = {
   stats() { return { calls: this.calls, usage: this.lastUsage, error: this.lastError, model: this.model(), effort: this.effort(), hasKey: !!this.key(), responseId: this.lastResponseId }; },
 };
 window.Ai = Ai;
+
+/* Keep the builder UI truthful even if world.html still carries an old 4o-era placeholder. */
+const syncBuilderModelUi = () => {
+  const input = document.getElementById('mbModel');
+  if (!input) return;
+  input.placeholder = 'gpt-5.6-sol (default)';
+  input.title = 'GPT-5.6 Sol · max reasoning by default';
+  if (!input.value || LEGACY_MODEL.test(input.value.trim())) input.value = Ai.model();
+};
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', syncBuilderModelUi, { once: true });
+else syncBuilderModelUi();
 })();
