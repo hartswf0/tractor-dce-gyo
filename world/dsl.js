@@ -22,9 +22,10 @@ const DIMS = {
   '3455': [-60, 60, -10, 10, 24], '3823': [-40, 40, -30, 20, 48], '60592': [-20, 20, -10, 10, 48], '60623': [-4, 67, -7, 7, 137],
   '3068b': [-20, 20, -20, 20, 8], '87079': [-40, 40, -20, 20, 8], '3941': [-20, 20, -20, 20, 24], '3062b': [-10, 10, -10, 10, 24], '4070': [-10, 10, -10, 10, 24], '3070b': [-10, 10, -10, 10, 8],
   '4600': [-34, 34, -20, 20, 10], '4624': [-10, 10, -8, 8, 20], '3641': [-18, 18, -8, 8, 36], '3829c01': [-20, 20, -10, 10, 8], '3822': [-10, 10, -30, 30, 72], '3821': [-10, 10, -30, 30, 72],
+  '2453b': [-10, 10, -10, 10, 120], '3185': [-40, 40, -10, 10, 48], '4589': [-10, 10, -10, 10, 24], '3710': [-40, 40, -10, 10, 8],
   '3626b': [-10, 10, -10, 10, 24], '973': [-20, 20, -10, 10, 32], '3815': [-10, 10, -10, 10, 12], '3816': [-10, 10, -10, 10, 32], '3817': [-10, 10, -10, 10, 32],
 };
-const BRICKS = [['3001', 4, 2], ['3003', 2, 2], ['3010', 4, 1], ['3004', 2, 1], ['3005', 1, 1]];                 // part, studs along x, along z (natural orientation)
+const BRICKS = [['3001', 4, 2], ['3008', 8, 1], ['3009', 6, 1], ['3003', 2, 2], ['3010', 4, 1], ['3004', 2, 1], ['3005', 1, 1]];                 // part, studs along x, along z (natural orientation)
 const PLATES = [['3032', 6, 4], ['3020', 4, 2], ['3022', 2, 2], ['3023', 2, 1], ['3024', 1, 1]];
 const COLOURS = { black: 0, blue: 1, green: 2, red: 4, yellow: 14, white: 15, tan: 19, orange: 25, darktan: 28, brown: 70, grey: 71, darkgrey: 72, azure: 322, sand: 19, lime: 27, pink: 5, purple: 85, trans: 47, transyellow: 46, transred: 36, transblue: 33 };
 const FACE = { n: 0, e: 1, s: 2, w: 3 };
@@ -122,6 +123,18 @@ const OPS = {
   mpd(g, o) { const f = FACE[String(o.facing || 's').toLowerCase()[0]] ?? 2, text = String(o.text || ''); if (!text.trim()) throw new Error('empty mpd'); const lines = text.split('\n'); const body = withHeaders(text.startsWith('0 FILE') ? text : ['0 FILE ' + (o.name || 'model').replace(/\s+/g, '_') + '.ldr', ...lines].join('\n')); g.props.push({ kind: 'mpd', x: I(o.x), z: I(o.z), y: I(o.y) * BRICK, rot: f, mpd: body, w: clamp(I(o.w, 4), 1, 64), d: clamp(I(o.d, 4), 1, 64), hp: clamp(I(o.hp, 12), 1, 120) }); },
   vehicle(g, o) { const f = FACE[String(o.facing || 'e').toLowerCase()[0]] ?? 1; const v = vehicleMPD(o); g.props.push({ kind: 'vehicle', x: I(o.x), z: I(o.z), y: I(o.y) * BRICK, rot: f, mpd: v.mpd, w: v.w, d: v.d, hp: v.hp }); },
 };
+OPS.band = (g, o) => { const x = I(o.x), z = I(o.z), w = clamp(I(o.w, 4), 1, 64), d = clamp(I(o.d, 4), 1, 64), y = I(o.y) * BRICK + I(o.plate), h = o.plates ? clamp(I(o.plates), 1, 12) : clamp(I(o.h, 1), 1, 40) * BRICK, col = colOf(o.col);
+  for (let yy = y; yy < y + h; yy++) for (let xx = x; xx < x + w; xx++) for (let zz = z; zz < z + d; zz++) { const c = g.get(xx, yy, zz); if (c && !c.r) c.col = col; } };   // recolours what stands there: stripes, sills, trims
+OPS.column = (g, o) => { const x = I(o.x), z = I(o.z), y = I(o.y) * BRICK + I(o.plate), hb = clamp(I(o.h, 5), 1, 40), col = colOf(o.col, 15); let k = 0;
+  for (; k + 5 <= hb; k += 5) g.part('2453b', col, x, z, y + k * BRICK, 0, 1, 1, 5 * BRICK);
+  if (k < hb) g.fillBox(x, z, 1, 1, y + k * BRICK, y + hb * BRICK, col); };
+OPS.fence = (g, o) => { const a = o.from || [I(o.x), I(o.z)], b = o.to || [I(o.x) + I(o.len, 4), I(o.z)], x0 = I(a[0]), z0 = I(a[1]), x1 = I(b[0]), z1 = I(b[1]), y = I(o.y) * BRICK, col = colOf(o.col, 15);
+  const alongX = Math.abs(x1 - x0) >= Math.abs(z1 - z0), n = Math.max(1, Math.floor((alongX ? Math.abs(x1 - x0) : Math.abs(z1 - z0)) / 4)), sx = x1 >= x0 ? 1 : -1, sz = z1 >= z0 ? 1 : -1;
+  for (let i = 0; i < n; i++) { const x = alongX ? (sx > 0 ? x0 + i * 4 : x0 - i * 4 - 3) : x0, z = alongX ? z0 : (sz > 0 ? z0 + i * 4 : z0 - i * 4 - 3); g.part('3185', col, x, z, y, alongX ? 0 : 1, alongX ? 4 : 1, alongX ? 1 : 4, 2 * BRICK); } };
+OPS.tree = (g, o) => { const x = I(o.x), z = I(o.z), y = I(o.y) * BRICK, hb = clamp(I(o.h, 3), 1, 12), trunk = colOf(o.trunk, 70), col = colOf(o.col, 2), r = clamp(I(o.r, 1), 1, 3);
+  for (let k = 0; k < hb; k++) g.part('3062b', trunk, x, z, y + k * BRICK, 0, 1, 1, BRICK);
+  const top = y + hb * BRICK; for (let k = 0; k <= r; k++) { const rr = r - k; g.fillBox(x - rr, z - rr, 2 * rr + 1, 2 * rr + 1, top + k * BRICK, top + (k + 1) * BRICK, col); }
+  g.part('4589', col, x, z, top + (r + 1) * BRICK, 0, 1, 1, BRICK); };
 OPS.cylinder = OPS.tower; OPS.pillar = (g, o) => OPS.tower(g, { ...o, r: o.r || 1, round: false, crenels: false });
 
 /* ───────────────────────── figures ───────────────────────── */
@@ -162,17 +175,35 @@ const line = (col, x, y, z, rot, part) => `1 ${col} ${r4(x)} ${r4(y)} ${r4(z)} $
 const r4 = v => (Math.round(v * 1000) / 1000).toString();
 /** A vehicle in the prop frame (LDraw: y down, ground at y = 0, forward = −z). Returns { mpd, w, d, hp } with the footprint in studs. */
 function vehicleMPD(o) {
-  const kind = String(o.kind || 'car').toLowerCase(), col = colOf(o.col, 4), len = clamp(I(o.len, kind === 'truck' ? 8 : 6), 4, 16), wide = kind === 'speeder' ? 2 : 4, L = [];
+  const kind = String(o.kind || 'car').toLowerCase(), col = colOf(o.col, 4), len = clamp(I(o.len, kind === 'truck' ? 10 : 6), 4, 16), wide = kind === 'speeder' ? 2 : 4, L = [];
   const zf = -len * STUD / 2, zb = len * STUD / 2;    // front and back edges
   const g = new Grid();                              // the body is bricks too: a local grid in prop cells (x across, z along)
   const bx = -wide / 2, bz = -len / 2, floorY = kind === 'speeder' ? 2 : 4;   // plates above the ground the floor plate sits at
-  if (kind === 'boat') { g.fillBox(bx, bz + 1, wide, len - 2, 0, 1, col); g.fillBox(bx, bz + 1, 1, len - 2, 1, 4, col); g.fillBox(bx + wide - 1, bz + 1, 1, len - 2, 1, 4, col); g.fillBox(bx + 1, bz + len - 2, wide - 2, 1, 1, 4, col); g.part('3039', col, bx + 1, bz, 1, 0, 2, 2, BRICK); }
-  else {
-    g.fillBox(bx, bz, wide, len, floorY, floorY + 1, col);                                       // floor
-    g.fillBox(bx, bz, wide, 2, floorY + 1, floorY + 1 + BRICK, col);                               // bonnet
+  if (kind === 'boat') { g.fillBox(bx, bz + 1, wide, len - 2, 0, 1, col); g.fillBox(bx, bz + 1, 1, len - 2, 1, 4, col); g.fillBox(bx + wide - 1, bz + 1, 1, len - 2, 1, 4, col); g.fillBox(bx + 1, bz + len - 2, wide - 2, 1, 1, 4, col);
+    g.part('3039', col, bx + 1, bz, 1, 0, 2, 2, BRICK); g.part('3040b', col, bx, bz, 1, 0, 1, 2, BRICK); g.part('3040b', col, bx + wide - 1, bz, 1, 0, 1, 2, BRICK);   // the bow: a slope in the middle, a slope each side
+    g.fillBox(bx + 1, bz + 2, 1, 1, 4, 5, 71); g.part('3829c01', 0, bx + 1, bz + 3, 4, 0, 2, 1, 1); g.fillBox(bx + 1, bz + len - 3, wide - 2, 1, 4, 4 + BRICK, 15); }   // a helm and a cabin block at the stern
+  else if (kind === 'speeder') {
+    g.fillBox(bx, bz, wide, len, floorY, floorY + 1, col);                                       // the deck
+    g.part('3039', col, bx, bz, floorY + 1, 0, 2, 2, BRICK);                                     // the nose: a 2×2 slope
+    g.part('3829c01', 0, bx, bz + 2, floorY + 1, 0, 2, 1, 1);                                    // handlebars
+    g.fillBox(bx, bz + 3, wide, 1, floorY + 1, floorY + 2, 0);                                   // the seat
+    for (let zz = bz + 4; zz < bz + len - 2; zz++) g.fillBox(bx, zz, wide, 1, floorY + 1, floorY + 1 + BRICK, col);   // the engine block
+    g.part('3040b', col, bx, bz + len - 2, floorY + 1, 2, 1, 2, BRICK); g.part('3040b', col, bx + 1, bz + len - 2, floorY + 1, 2, 1, 2, BRICK);   // rear fins
+    g.fillBox(bx, bz + 1, wide, len - 2, floorY - 2, floorY, 0);                                 // a dark skid underneath, so it hovers
+  } else {
+    g.fillBox(bx, bz - 1, wide, len + 1, floorY, floorY + 1, col);                               // floor, one stud further forward for the bumper
+    g.part('3062b', 46, bx, bz - 1, floorY + 1, 0, 1, 1, BRICK); g.part('3062b', 46, bx + wide - 1, bz - 1, floorY + 1, 0, 1, 1, BRICK);   // headlights
+    g.fillBox(bx + 1, bz - 1, wide - 2, 1, floorY + 1, floorY + 2, 0);                           // the bumper
+    for (let xx = bx; xx < bx + wide; xx++) g.part('3040b', col, xx, bz, floorY + 1, 0, 1, 2, BRICK);   // the bonnet slopes down to the front
     g.part('3823', 47, bx, bz + 2, floorY + 1, 0, 4, 2, 2 * BRICK);                                // windscreen (2 × 4 × 2)
-    if (kind === 'truck') { g.fillBox(bx, bz + 4, 1, 2, floorY + 1, floorY + 1 + 2 * BRICK, col); g.fillBox(bx + wide - 1, bz + 4, 1, 2, floorY + 1, floorY + 1 + 2 * BRICK, col); g.fillBox(bx, bz + 4, wide, 2, floorY + 1 + 2 * BRICK, floorY + 2 + 2 * BRICK, col); g.fillBox(bx, bz + 6, wide, len - 6, floorY + 1, floorY + 2, 71); if (len > 6) { g.fillBox(bx, bz + len - 1, wide, 1, floorY + 2, floorY + 2 + BRICK, 71); } }
-    else { g.fillBox(bx, bz + 4, 1, len - 4, floorY + 1, floorY + 1 + BRICK, col); g.fillBox(bx + wide - 1, bz + 4, 1, len - 4, floorY + 1, floorY + 1 + BRICK, col); g.fillBox(bx + 1, bz + len - 1, wide - 2, 1, floorY + 1, floorY + 1 + BRICK, col); g.part('3829c01', 0, bx + 1, bz + 4, floorY + 1, 0, 2, 1, 1); }
+    if (kind === 'truck') { g.fillBox(bx, bz + 4, 1, 2, floorY + 1, floorY + 1 + 2 * BRICK, col); g.fillBox(bx + wide - 1, bz + 4, 1, 2, floorY + 1, floorY + 1 + 2 * BRICK, col); g.fillBox(bx, bz + 4, wide, 2, floorY + 1 + 2 * BRICK, floorY + 2 + 2 * BRICK, col);
+      g.part('3829c01', 0, bx + 1, bz + 4, floorY + 1, 0, 2, 1, 1);
+      g.fillBox(bx, bz + 6, wide, len - 6, floorY + 1, floorY + 2, 71);                            // the bed
+      if (len - 6 >= 4) { g.part('3185', 71, bx, bz + 6, floorY + 2, 1, 1, 4, 2 * BRICK); g.part('3185', 71, bx + wide - 1, bz + 6, floorY + 2, 1, 1, 4, 2 * BRICK); }   // fence rails
+      if (len > 6) g.fillBox(bx, bz + len - 1, wide, 1, floorY + 2, floorY + 2 + BRICK, 71); }
+    else { g.fillBox(bx, bz + 4, 1, len - 4, floorY + 1, floorY + 1 + BRICK, col); g.fillBox(bx + wide - 1, bz + 4, 1, len - 4, floorY + 1, floorY + 1 + BRICK, col); g.fillBox(bx + 1, bz + len - 1, wide - 2, 1, floorY + 1, floorY + 1 + BRICK, col); g.part('3829c01', 0, bx + 1, bz + 4, floorY + 1, 0, 2, 1, 1);
+      g.fillBox(bx, bz + len - 1, wide, 1, floorY + 1 + BRICK, floorY + 2 + BRICK, 0);            // a rear spoiler plate
+      g.part('3062b', 36, bx, bz + len - 1, floorY + 1 + BRICK, 0, 1, 1, BRICK); g.part('3062b', 36, bx + wide - 1, bz + len - 1, floorY + 1 + BRICK, 0, 1, 1, BRICK); }   // tail lights
   }
   const pieces = tile(g, { bond: true }), report = { floating: 0 };
   for (const p of pieces) L.push(pieceLine(p, 0, 0, 0));
@@ -201,8 +232,8 @@ function tile(g, opts = {}) {
       let done = false;
       for (const [part, nw, nd] of BRICKS) for (const rot of [0, 1]) {
         const w = rot ? nd : nw, d = rot ? nw : nd;
-        if (pass === 0 && opts.bond !== false && w === 4 && ((x + shift * 2) % 4)) continue;   // first pass: only well-bonded long bricks
-        if (pass === 0 && opts.bond !== false && d === 4 && ((z + shift * 2) % 4)) continue;
+        if (pass === 0 && opts.bond !== false && w >= 4 && ((x + shift * 2) % 4)) continue;   // first pass: only well-bonded long bricks
+        if (pass === 0 && opts.bond !== false && d >= 4 && ((z + shift * 2) % 4)) continue;
         if (!fits(x, y, z, w, d, BRICK, col, kind)) continue;
         take(x, y, z, w, d, BRICK); out.push({ part, col, x, y, z, rot, w, d, plate: false }); done = true; break;
       }
@@ -262,11 +293,13 @@ function propPlace(pr, { ax = 0, ay = 0, az = 0 } = {}) { return { x: ax + pr.x 
 function compile(program, opts = {}) {
   const g = new Grid(), report = { ops: 0, unknown: [], errors: [], floating: 0, bricks: 0, plates: 0, parts: 0, props: 0 };
   const ops = Array.isArray(program) ? program : (program && Array.isArray(program.ops)) ? program.ops : [];
-  ops.slice(0, opts.maxOps || 120).forEach((o, i) => {
+  ops.slice(0, opts.maxOps || 600).forEach((o, i) => {
     if (o && (o.args || o.object || o.params)) o = { ...o, ...(o.args || o.object || o.params) };   // models sometimes nest the fields; take them either way
     const name = o && String(o.op || o.type || o.kind || '').toLowerCase(); const fn = OPS[name];
     if (!fn) { report.unknown.push({ i, op: name || '?' }); return; }
+    const n0 = g.props.length;
     try { fn(g, o); report.ops++; } catch (e) { report.errors.push({ i, op: name, error: e.message }); }
+    for (let k = n0; k < g.props.length; k++) g.props[k].src = { ...o, op: name };   // a prop remembers the op that made it, so a read build can say it again
   });
   let pieces = tile(g, opts);
   const s = support(g, pieces); pieces = s.pieces; report.floating = s.dropped; report.dropped = s.droppedList;
@@ -276,29 +309,140 @@ function compile(program, opts = {}) {
   return { name: (program && program.name) || 'build', pieces, parts: g.parts, props: g.props, report, extent: ext, maxPlate: g.maxY };
 }
 
+/* ───────────────────────── build → words ───────────────────────── */
+const PLAIN = new Set([...BRICKS.map(b => b[0]), ...PLATES.map(p => p[0]), '3002', '3958', '3034', '3795', '3021', '3710']);
+const NAMES = {}; for (const [n, c] of Object.entries(COLOURS)) if (!(c in NAMES)) NAMES[c] = n.replace(/^darkgrey$/, 'dark grey').replace(/^darktan$/, 'dark tan').replace(/^trans/, 'trans-');
+const PART_NAMES = { '3039': '2×2 slope', '3040b': '1×2 slope', '3665a': 'inverted slope', '3298': '2×3 slope', '3660': 'inverted 2×2 slope', '3068b': '2×2 tile', '87079': '2×4 tile', '3070b': '1×1 tile', '3941': '2×2 round brick', '3062b': '1×1 round brick', '4070': 'headlight brick', '3823': 'windscreen', '4600': 'wheel plate', '4624': 'rim', '3641': 'tyre', '3829c01': 'steering wheel', '2453b': 'column', '3185': 'fence', '4589': 'cone', '3455': 'arch', '60592': 'window', '60623': 'door' };
+const colName = c => NAMES[c] || ('colour ' + c);
+/** Read pieces (Build rows [id, part, col, x, y, z, rot] in LDU, y up) and props ({x, y, z, yaw, src}) back into a program. Lossy on purpose: roofs come back as slope parts. */
+function decompile(rows, props = [], opts = {}) {
+  const items = [];
+  for (const r of rows) { const part = String(r[1]), rot = (r[6] | 0) & 3, b = box(part, rot), f = foot(part, rot); if (!f) continue; items.push({ part, col: r[2] | 0, x: Math.round((r[3] + b[0]) / STUD), y: Math.round(r[4] / PLATE), z: Math.round((r[5] + b[2]) / STUD), rot, w: f[0], d: f[1], hp: Math.max(1, Math.round((DIMS[part] ? DIMS[part][4] : 24) / PLATE)) }); }
+  const ps = props.map(p => { const src = p.src && typeof p.src === 'object' ? p.src : null; const kind = src ? String(src.op || src.kind || 'mpd') : 'mpd'; const w = kind === 'minifig' ? 2 : kind === 'vehicle' ? (String(src.kind || 'car') === 'speeder' ? 2 : 4) : clamp(I(src && src.w, 4), 1, 64), d = kind === 'minifig' ? 2 : kind === 'vehicle' ? clamp(I(src.len, String(src.kind || 'car') === 'truck' ? 10 : 6), 4, 16) : clamp(I(src && src.d, 4), 1, 64); return { src, kind, w, d, x: Math.round(p.x / STUD - w / 2), z: Math.round(p.z / STUD - d / 2), y: Math.round(p.y / PLATE), yaw: (p.yaw | 0) & 3, mpd: p.mpd }; });
+  if (!items.length && !ps.length) return { name: opts.name || 'nothing', ops: [], anchor: { x: 0, y: 0, z: 0 } };
+  const ax = Math.min(...items.map(i => i.x), ...ps.map(p => p.x)), az = Math.min(...items.map(i => i.z), ...ps.map(p => p.z)), ay = Math.min(...items.map(i => i.y), ...ps.map(p => p.y));
+  for (const i of items) { i.x -= ax; i.z -= az; i.y -= ay; } for (const p of ps) { p.x -= ax; p.z -= az; p.y -= ay; }
+  const cells = new Map(), key = (x, y, z) => x + ',' + y + ',' + z, specials = [];
+  for (const i of items) { if (PLAIN.has(i.part)) { for (let yy = i.y; yy < i.y + i.hp; yy++) for (let xx = i.x; xx < i.x + i.w; xx++) for (let zz = i.z; zz < i.z + i.d; zz++) cells.set(key(xx, yy, zz), i.col); } else specials.push(i); }
+  const has = (x, y, z, col) => cells.get(key(x, y, z)) === col;
+  const used = new Set(), boxes = [];
+  const keys = [...cells.keys()].map(k => k.split(',').map(Number)).sort((a, b) => a[1] - b[1] || a[2] - b[2] || a[0] - b[0]);
+  for (const [x, y, z] of keys) {
+    if (used.has(key(x, y, z))) continue; const col = cells.get(key(x, y, z));
+    let w = 1; while (has(x + w, y, z, col) && !used.has(key(x + w, y, z))) w++;
+    let d = 1; for (; ; d++) { let ok = true; for (let xx = x; xx < x + w; xx++) if (!has(xx, y, z + d, col) || used.has(key(xx, y, z + d))) { ok = false; break; } if (!ok) break; }
+    let h = 1; for (; ; h++) { let ok = true; for (let xx = x; xx < x + w && ok; xx++) for (let zz = z; zz < z + d; zz++) if (!has(xx, y + h, zz, col) || used.has(key(xx, y + h, zz))) { ok = false; break; } if (!ok) break; }
+    for (let yy = y; yy < y + h; yy++) for (let xx = x; xx < x + w; xx++) for (let zz = z; zz < z + d; zz++) used.add(key(xx, yy, zz));
+    boxes.push({ x, y, z, w, d, h, col });
+  }
+  /* four one-stud walls around an empty middle become one hollow box (the greedy cut may give the side walls the corner cells or not) */
+  const ops = [], taken = new Set();
+  for (const T of boxes) {
+    if (taken.has(T) || T.d !== 1 || T.w < 3) continue;
+    const same = b => !taken.has(b) && b !== T && b.y === T.y && b.h === T.h && b.col === T.col;
+    const L = boxes.find(b => same(b) && b.w === 1 && b.x === T.x && b.z === T.z + 1), R = L && boxes.find(b => same(b) && b.w === 1 && b.x === T.x + T.w - 1 && b.z === T.z + 1 && b.d === L.d);
+    if (!L || !R) continue;
+    let B = boxes.find(b => same(b) && b.d === 1 && b.x === T.x && b.w === T.w && b.z === T.z + L.d + 1), D = L.d + 2;
+    if (!B) { B = boxes.find(b => same(b) && b.d === 1 && b.x === T.x + 1 && b.w === T.w - 2 && b.z === T.z + L.d); D = L.d + 1; }
+    if (!B || D < 3) continue;
+    taken.add(T); taken.add(B); taken.add(L); taken.add(R); const H = { x: T.x, y: T.y, z: T.z, w: T.w, d: D, h: T.h, col: T.col, hollow: true }; boxes.push(H); taken.add(H); ops.push(...boxOp(H));
+  }
+  for (const b of boxes) if (!taken.has(b)) ops.push(...boxOp(b));
+  ops.sort((a, b) => (a.y + (a.plateOffset || 0) / 3) - (b.y + (b.plateOffset || 0) / 3) || a.z - b.z || a.x - b.x);
+  const FACES = ['n', 'e', 's', 'w'];
+  for (const i of specials) {
+    const yb = Math.floor(i.y / 3), pl = i.y % 3;
+    if (i.part === '60623' && !pl) ops.push({ op: 'door', x: i.x, z: i.z, y: yb, facing: i.rot & 1 ? 'e' : 's', col: i.col });
+    else if (i.part === '60592' && !pl) ops.push({ op: 'window', x: i.x, z: i.z, y: yb, facing: i.rot & 1 ? 'e' : 's', col: i.col });
+    else if (i.part === '3455' && !pl && i.y >= 3) { let y0 = i.y; const ex = i.rot & 1 ? i.x : i.x + 5, ez = i.rot & 1 ? i.z + 5 : i.z; while (y0 > 0 && cells.has(key(i.x, y0 - 1, i.z)) && cells.has(key(ex, y0 - 1, ez))) y0--; if ((i.y - y0) % 3 === 0 && i.y > y0) ops.push({ op: 'arch', x: i.x, z: i.z, y: y0 / 3, h: (i.y - y0) / 3, facing: i.rot & 1 ? 'e' : 's', col: i.col }); else ops.push(partOp(i)); }
+    else ops.push(partOp(i));
+  }
+  for (const p of ps) {
+    const facing = FACES[(2 - p.yaw + 4) & 3];
+    if (p.src && p.kind !== 'mpd') ops.push({ ...p.src, op: p.kind, x: p.x, z: p.z, y: Math.round(p.y / 3), facing });
+    else ops.push({ op: 'mpd', name: (p.src && p.src.name) || 'model', x: p.x, z: p.z, y: Math.round(p.y / 3), facing, w: p.w, d: p.d, text: (p.src && p.src.text) || p.mpd || '' });
+  }
+  return { name: opts.name || 'what stands here', ops, anchor: { x: ax * STUD, y: ay * PLATE, z: az * STUD } };
+}
+/** A cell box as ops: whole bricks where the box is brick-aligned, plates for the rest (a slab holds at most 12 plates). */
+function boxOp(b) {
+  const out = []; let y = b.y; const end = b.y + b.h;
+  const slab = (x, z, w, d, y0, n) => out.push({ op: 'slab', x, z, w, d, y: Math.floor(y0 / 3), plateOffset: y0 % 3, plates: n, col: b.col });
+  while (y < end) {
+    if (y % 3 === 0 && end - y >= 3) { const h = Math.floor((end - y) / 3) * 3, o = { op: 'box', x: b.x, z: b.z, w: b.w, d: b.d, y: y / 3, h: h / 3, col: b.col }; if (b.hollow) o.hollow = true; out.push(o); y += h; continue; }
+    const n = Math.min(end - y, y % 3 ? 3 - y % 3 : end - y, 12);
+    if (b.hollow) { slab(b.x, b.z, b.w, 1, y, n); slab(b.x, b.z + b.d - 1, b.w, 1, y, n); slab(b.x, b.z + 1, 1, b.d - 2, y, n); slab(b.x + b.w - 1, b.z + 1, 1, b.d - 2, y, n); } else slab(b.x, b.z, b.w, b.d, y, n);
+    y += n;
+  }
+  return out;
+}
+function partOp(i) { const o = { op: 'part', part: i.part, col: i.col, x: i.x, z: i.z, y: Math.floor(i.y / 3), rot: i.rot }; if (i.y % 3) o.plate = i.y % 3; return o; }
+/** Deterministic words for a program: what a reader would say it is. */
+function caption(program) {
+  const ops = (program && program.ops) || [], said = new Map(), add = t => said.set(t, (said.get(t) || 0) + 1);
+  for (let o of ops) {
+    if (!o) continue; if (o.args || o.object || o.params) o = { ...o, ...(o.args || o.object || o.params) };
+    const op = String(o.op || o.type || '').toLowerCase(), c = colName(colOf(o.col, op === 'roof' ? 4 : op === 'door' ? 70 : op === 'window' ? 15 : 71));
+    switch (op) {
+      case 'box': add(`a ${c} ${o.hollow ? 'hollow ' : ''}box ${I(o.w, 4)}×${I(o.d, 4)} studs, ${I(o.h, 3)} brick${I(o.h, 3) === 1 ? '' : 's'} tall${I(o.y) ? ` at height ${I(o.y)}` : ''}`); break;
+      case 'wall': { const a = o.from || [I(o.x), I(o.z)], b = o.to || [I(o.x) + I(o.len, 4), I(o.z)]; add(`a ${c} wall ${Math.max(1, Math.round(Math.hypot(b[0] - a[0], b[1] - a[1])))} studs long, ${I(o.h, 3)} bricks tall`); break; }
+      case 'slab': case 'floor': add(`a ${c} floor of plates ${I(o.w, 4)}×${I(o.d, 4)}${I(o.y) ? ` at height ${I(o.y)}` : ''}`); break;
+      case 'roof': add(`a ${c} ${String(o.style || 'pyramid')} roof ${I(o.w, 4)}×${I(o.d, 4)}`); break;
+      case 'tower': case 'cylinder': add(`a ${c} ${o.round === false ? 'square ' : 'round '}tower, radius ${Number(o.r) || 2}, ${I(o.h, 6)} bricks tall${o.crenels === false ? '' : ' with crenels'}`); break;
+      case 'pillar': add(`a ${c} pillar ${I(o.h, 6)} bricks tall`); break;
+      case 'door': add(`a ${c} door facing ${String(o.facing || 's')[0]}`); break;
+      case 'window': add(`a window facing ${String(o.facing || 's')[0]}`); break;
+      case 'arch': add(`a ${c} arch ${I(o.h, 2)} bricks high`); break;
+      case 'stairs': add(`${c} stairs of ${I(o.steps, 4)} steps rising ${String(o.facing || 'e')[0]}`); break;
+      case 'cut': add(`an opening cut ${I(o.w, 1)}×${I(o.d, 1)}`); break;
+      case 'band': add(`a ${c} band`); break; case 'column': add(`a ${c} column ${I(o.h, 5)} bricks tall`); break; case 'fence': add(`a ${c} fence`); break; case 'tree': add(`a tree ${I(o.h, 3)} bricks tall`); break;
+      case 'part': add(`a ${c} ${PART_NAMES[String(o.part)] || 'part ' + String(o.part)}`); break;
+      case 'minifig': { const as = String(o.as || (o.look && o.look.as) || 'citizen'), L = o.look || {}; add(`a ${as}${L.tool ? ` with a ${L.tool}` : ''}${L.hat ? ` in a ${L.hat}` : ''} facing ${String(o.facing || 's')[0]}`); break; }
+      case 'vehicle': add(`a ${c} ${String(o.kind || 'car')} ${I(o.len, 6)} studs long facing ${String(o.facing || 'e')[0]}`); break;
+      case 'mpd': add(`a model called ${String(o.name || 'model')}`); break;
+      default: add(`something (${op || '?'})`);
+    }
+  }
+  const words = [...said].map(([t, n]) => n > 1 ? `${n} × ${t.replace(/^an? /, '')}` : t);
+  return `${(program && program.name) || 'build'}: ${words.join(' · ') || 'nothing yet'}`;
+}
+
 /* ───────────────────────── the spec the model reads ───────────────────────── */
-const SPEC = `You are a LEGO master builder. You answer ONLY with a JSON object {"name": string, "ops": [...]} — a build program that a compiler turns into real bricks. Units: x east and z south in studs (integers), y up in bricks (1 brick = 3 plates). The build's origin (0,0) is where the player is looking; keep x and z between 0 and 40, keep it grounded (start at y 0 unless stacking on your own ops), at most 60 ops.
+const SPEC = `You are a LEGO master builder. You answer ONLY with a JSON object {"name": string, "ops": [...]} — a build program that a compiler turns into real bricks. Units: x east and z south in studs (integers), y up in bricks (1 brick = 3 plates). The build's origin (0,0) is where the player is looking; keep x and z between 0 and 40, keep it grounded (start at y 0 unless stacking on your own ops), at most 80 ops.
 Ops (all coordinates are the min corner unless said otherwise):
 - {"op":"box","x","z","w","d","y","h","col","hollow":true|false,"thick":1} solid block or hollow shell (walls only, no floor or roof).
 - {"op":"wall","from":[x,z],"to":[x,z],"y","h","col","thick":1} a wall along a line (straight or slanted).
 - {"op":"slab","x","z","w","d","y","plates":1,"col"} a floor or ceiling of plates at brick height y.
-- {"op":"roof","x","z","w","d","y","col","style":"pyramid"|"hip"|"gable"|"flat"} stepped roof with 45° slope bricks, sitting at height y on top of walls.
+- {"op":"roof","x","z","w","d","y","col","style":"pyramid"|"hip"|"gable"|"flat"} stepped roof with 45° slope bricks, sitting at height y on top of walls; make it one stud wider than the walls on each side.
 - {"op":"tower","x","z","r","h","col","round":true,"crenels":true} a round or square tower centred at (x,z) with radius r studs; hollow when r ≥ 3.
 - {"op":"door","x","z","y","facing":"n|e|s|w","col"} a 1×4×6 door in a wall that runs east-west (facing n or s) or north-south (facing e or w); x,z is the door's west/north end cell on the wall line.
-- {"op":"window","x","z","y","facing"} a 1×2×2 window in a wall, same rules.
+- {"op":"window","x","z","y","facing"} a 1×2×2 window in a wall, same rules; y is normally 1 or 2.
 - {"op":"arch","x","z","y","facing","h":2,"col"} a 6-stud arch with piers.
 - {"op":"stairs","x","z","y","steps","facing","w":2,"col"} steps rising toward facing.
 - {"op":"cut","x","z","w","d","y","h"} remove a block (make gates, rooms, notches).
-- {"op":"part","part":"3039","col","x","y","z","rot":0-3} one part from: 3001 2x4 brick, 3003 2x2, 3010 1x4, 3004 1x2, 3005 1x1, 3020 2x4 plate, 3032 4x6 plate, 3039 2x2 slope, 3040b 1x2 slope, 3068b 2x2 tile, 87079 2x4 tile, 3941 2x2 round, 3062b 1x1 round, 3455 1x6 arch, 3823 windscreen, 60592 window, 60623 door.
+- {"op":"band","x","z","w","d","y","h":1,"col"} recolour whatever already stands in that block: stripes on a tower, a sill line, a trim course. Put it after the ops it colours.
+- {"op":"column","x","z","y","h":5,"col"} a slender 1×1 column (tall column bricks), for porches and colonnades.
+- {"op":"fence","from":[x,z],"to":[x,z],"y","col"} fence panels along a straight line, one every 4 studs.
+- {"op":"tree","x","z","h":3,"r":1,"col","trunk"} a tree: a round trunk h bricks tall and a stepped green crown of radius r with a cone on top.
+- {"op":"part","part":"3039","col","x","y","z","rot":0-3,"plate":0} one part from: 3001 2x4 brick, 3003 2x2, 3010 1x4, 3004 1x2, 3005 1x1, 3009 1x6, 3008 1x8, 3020 2x4 plate, 3032 4x6 plate, 3039 2x2 slope, 3040b 1x2 slope, 3068b 2x2 tile, 87079 2x4 tile, 3941 2x2 round, 3062b 1x1 round, 3455 1x6 arch, 3823 windscreen, 60592 window, 60623 door, 2453b 1x1x5 column, 3185 fence, 4589 cone.
 - {"op":"minifig","x","z","facing","as":"vader|stormtrooper|pilot|luke|citizen|knight|pirate|builder","look":{"hat":"hair|cap|helmet|cowboy|tophat|knight|space|trooper|pilot|vader|pirate|none","hatCol","torso":"plain|stripes|anchor|train|pirate|space|zipper","torsoCol","legs","head","tool":"saber|blaster|sword|shield|spear|axe|broom|cup|radio|none","toolCol"}} a standing figure (2×2 studs).
-- {"op":"vehicle","x","z","facing","kind":"car|truck|speeder|boat","len":6,"col"} a vehicle 4 studs wide, len studs long, with wheels.
-Colours (LDraw codes or names): 0 black, 1 blue, 2 green, 4 red, 14 yellow, 15 white, 19 tan, 25 orange, 28 dark tan, 70 brown, 71 grey, 72 dark grey, 322 azure, 47 trans-clear, 46 trans-yellow.
-Build like a LEGO designer: walls 1 stud thick, doors and windows in walls (place the wall op first, then the door/window on its line), roofs one brick above the wall top, towers at corners, a few colours per build, details with parts and slopes, figures beside things. Keep it compact and grounded. No prose, no markdown, JSON only.`;
+- {"op":"vehicle","x","z","facing","kind":"car|truck|speeder|boat","len":6,"col"} a vehicle (cars and trucks 4 studs wide with wheels, headlights and a windscreen; speeders 2 wide; boats 4 wide), len studs long; len ≥ 6, trucks 10.
+Colours (LDraw codes or names): 0 black, 1 blue, 2 green, 4 red, 14 yellow, 15 white, 19 tan, 25 orange, 28 dark tan, 70 brown, 71 grey, 72 dark grey, 322 azure, 47 trans-clear, 46 trans-yellow, 36 trans-red.
+Design rules a LEGO designer follows:
+- Proportions: a door is 6 bricks tall, so walls with a door are at least 6 bricks; windows sit at y 1 or 2; a roof begins at the wall top (y = wall y + h); a tower stands about twice the wall height; a house is at least 8×6 studs; a floor between storeys is a slab.
+- Colour discipline: two or three colours for the body plus one accent (roof, trims, door). Use band for stripes and sills instead of many small boxes.
+- Openings live on wall lines: place the wall or hollow box first, then doors and windows on that same line (same z for a south/north wall, same x for an east/west wall), evenly spaced every 3 studs.
+- Details that read as LEGO: crenels on towers, a slab awning over a shop door, a lamp (part 3062b col 46) on a post, fences around yards, trees beside houses, a slab step at a door, columns at a porch.
+- Always ground the build; nothing floats. Build bottom-up: base, walls, openings, floors, roofs, trims, then figures and vehicles beside things with facing set toward the viewer (s) when unsure.
+- Spend ops where they change the silhouette or meaning. A compact recognisable build beats a huge plain box. Never a prose answer, never markdown: JSON only.`;
 
 const EXAMPLES = [
-  { ask: 'a small stone hut with a red roof and a door', program: { name: 'hut', ops: [{ op: 'box', x: 0, z: 0, w: 8, d: 6, y: 0, h: 4, col: 71, hollow: true }, { op: 'door', x: 3, z: 5, y: 0, facing: 's', col: 70 }, { op: 'window', x: 1, z: 0, y: 1, facing: 'n' }, { op: 'window', x: 5, z: 0, y: 1, facing: 'n' }, { op: 'roof', x: -1, z: -1, w: 10, d: 8, y: 4, col: 4, style: 'gable' }] } },
+  { ask: 'a small stone hut with a red roof and a door', program: { name: 'hut', ops: [{ op: 'box', x: 0, z: 0, w: 8, d: 6, y: 0, h: 6, col: 71, hollow: true }, { op: 'door', x: 2, z: 5, y: 0, facing: 's', col: 70 }, { op: 'window', x: 1, z: 0, y: 2, facing: 'n' }, { op: 'window', x: 5, z: 0, y: 2, facing: 'n' }, { op: 'band', x: 0, z: 0, w: 8, d: 6, y: 5, h: 1, col: 72 }, { op: 'roof', x: -1, z: -1, w: 10, d: 8, y: 6, col: 4, style: 'gable' }, { op: 'tree', x: 11, z: 4, h: 3, r: 1 }] } },
   { ask: 'a castle gate with two towers', program: { name: 'gate', ops: [{ op: 'tower', x: 3, z: 3, r: 3, h: 9, col: 72, round: true, crenels: true }, { op: 'tower', x: 17, z: 3, r: 3, h: 9, col: 72, round: true, crenels: true }, { op: 'wall', from: [6, 3], to: [14, 3], y: 0, h: 6, col: 71 }, { op: 'arch', x: 7, z: 3, y: 0, facing: 's', h: 3, col: 71 }, { op: 'slab', x: 6, z: 2, w: 8, d: 3, y: 6, plates: 1, col: 72 }, { op: 'minifig', x: 9, z: 6, facing: 's', as: 'knight' }] } },
   { ask: 'a red race car with a driver', program: { name: 'racer', ops: [{ op: 'vehicle', x: 0, z: 0, facing: 'e', kind: 'car', len: 7, col: 4 }, { op: 'minifig', x: 8, z: 1, facing: 'w', as: 'pilot', look: { hat: 'helmet', hatCol: 15 } }] } },
+  { ask: 'a lighthouse with red bands and a lamp room', program: { name: 'lighthouse', ops: [{ op: 'box', x: 0, z: 0, w: 8, d: 8, y: 0, h: 1, col: 72 }, { op: 'tower', x: 4, z: 4, r: 3, h: 11, y: 1, col: 15, round: true, crenels: false }, { op: 'band', x: 0, z: 0, w: 8, d: 8, y: 3, h: 2, col: 4 }, { op: 'band', x: 0, z: 0, w: 8, d: 8, y: 8, h: 2, col: 4 }, { op: 'door', x: 2, z: 6, y: 1, facing: 's', col: 0 }, { op: 'slab', x: 0, z: 0, w: 8, d: 8, y: 12, plates: 3, col: 72 }, { op: 'column', x: 1, z: 1, y: 13, h: 2, col: 0 }, { op: 'column', x: 6, z: 1, y: 13, h: 2, col: 0 }, { op: 'column', x: 1, z: 6, y: 13, h: 2, col: 0 }, { op: 'column', x: 6, z: 6, y: 13, h: 2, col: 0 }, { op: 'part', part: '3941', col: 46, x: 3, z: 3, y: 13, rot: 0 }, { op: 'roof', x: 0, z: 0, w: 8, d: 8, y: 15, col: 4, style: 'pyramid' }, { op: 'fence', from: [-2, 10], to: [10, 10], y: 0, col: 15 }, { op: 'minifig', x: 3, z: 9, facing: 's', as: 'pirate' }] } },
+  { ask: 'a small shop with an awning and a sign', program: { name: 'shop', ops: [{ op: 'box', x: 0, z: 0, w: 10, d: 8, y: 0, h: 6, col: 19, hollow: true }, { op: 'door', x: 3, z: 7, y: 0, facing: 's', col: 1 }, { op: 'window', x: 0, z: 7, y: 1, facing: 's' }, { op: 'window', x: 8, z: 7, y: 1, facing: 's' }, { op: 'slab', x: -1, z: 8, w: 12, d: 2, y: 6, plates: 1, col: 4 }, { op: 'band', x: 0, z: 0, w: 10, d: 8, y: 5, h: 1, col: 1 }, { op: 'roof', x: 0, z: 0, w: 10, d: 8, y: 6, col: 72, style: 'flat' }, { op: 'column', x: -1, z: 9, y: 0, h: 6, col: 15 }, { op: 'column', x: 10, z: 9, y: 0, h: 6, col: 15 }, { op: 'vehicle', x: 12, z: 2, facing: 's', kind: 'truck', len: 10, col: 1 }, { op: 'minifig', x: 5, z: 10, facing: 's', as: 'citizen', look: { tool: 'cup' } }] } },
+  { ask: 'a stone bridge over a stream', program: { name: 'bridge', ops: [{ op: 'box', x: 0, z: 0, w: 4, d: 6, y: 0, h: 3, col: 72 }, { op: 'box', x: 12, z: 0, w: 4, d: 6, y: 0, h: 3, col: 72 }, { op: 'arch', x: 4, z: 0, y: 0, facing: 's', h: 2, col: 72 }, { op: 'arch', x: 4, z: 5, y: 0, facing: 's', h: 2, col: 72 }, { op: 'slab', x: 0, z: 0, w: 16, d: 6, y: 3, plates: 3, col: 71 }, { op: 'fence', from: [0, 0], to: [16, 0], y: 4, col: 72 }, { op: 'fence', from: [0, 5], to: [16, 5], y: 4, col: 72 }, { op: 'tree', x: 18, z: 3, h: 4, r: 2 }, { op: 'minifig', x: 7, z: 2, facing: 'e', as: 'luke' }] } },
 ];
-root.Dsl = { compile, tile, toRows, toMPD, withHeaders, propYaw, propPlace, box, foot, figureDef, figureMPD, vehicleMPD, DIMS, BRICKS, PLATES, COLOURS, HATS, TORSOS, TOOLS, FIGS, SPEC, EXAMPLES, STUD, PLATE, BRICK, colOf };
+root.Dsl = { compile, decompile, caption, tile, toRows, toMPD, withHeaders, propYaw, propPlace, box, foot, figureDef, figureMPD, vehicleMPD, DIMS, BRICKS, PLATES, COLOURS, HATS, TORSOS, TOOLS, FIGS, SPEC, EXAMPLES, STUD, PLATE, BRICK, colOf };
 })(typeof window !== 'undefined' ? window : globalThis);

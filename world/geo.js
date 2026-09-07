@@ -84,19 +84,32 @@ function buildingHeight(tags) {
   return GUESS_H[tags.building] || 5;
 }
 const overpassQuery = b => `[out:json][timeout:25];(way["building"](${b});relation["building"](${b});way["highway"](${b}););out geom;`;
-async function fetchOverpass(bbox) {
+/** Ask one mirror; 429/503/504 count as failures so the race moves on. */
+async function askMirror(url, query, ms, signal) {
+  const ctl = new AbortController(); const onAbort = () => ctl.abort(); if (signal) signal.addEventListener('abort', onAbort, { once: true });
+  const timer = setTimeout(() => ctl.abort(), ms);
+  try {
+    const r = await fetch(url, { method: 'POST', body: 'data=' + encodeURIComponent(query), headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, signal: ctl.signal });
+    if (r.status === 429 || r.status === 503 || r.status === 504) throw new Error('busy ' + r.status);
+    if (!r.ok) throw new Error('http ' + r.status);
+    const j = await r.json(); if (!j || !Array.isArray(j.elements)) throw new Error('bad answer');
+    return j;
+  } finally { clearTimeout(timer); if (signal) signal.removeEventListener('abort', onAbort); }
+}
+/** All mirrors are asked at once and the first good answer wins; the losers are aborted. A second round only if every mirror failed. */
+async function fetchOverpass(bbox, { signal, perMirrorMs = 40000, rounds = 2 } = {}) {
   const key = 'world-osm:' + bbox.map(v => v.toFixed(4)).join(',');
   try { const c = localStorage.getItem(key); if (c) return JSON.parse(c); } catch (e) {}
-  let lastErr = null;
-  for (let round = 0; round < 2; round++) for (const url of MIRRORS) {
+  const query = overpassQuery(bbox.join(',')); let lastErr = null;
+  for (let round = 0; round < rounds; round++) {
+    if (signal && signal.aborted) break;
+    const stop = new AbortController(); const onOuter = () => stop.abort(); if (signal) signal.addEventListener('abort', onOuter, { once: true });
     try {
-      const r = await withTimeout(fetch(url, { method: 'POST', body: 'data=' + encodeURIComponent(overpassQuery(bbox.join(','))), headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }), 25000, 'overpass');
-      if (r.status === 429 || r.status === 503 || r.status === 504) { lastErr = new Error('busy ' + r.status); continue; }
-      if (!r.ok) { lastErr = new Error('http ' + r.status); continue; }
-      const j = await r.json();
-      try { rememberOSM(key, j); } catch (e) {}
+      const j = await Promise.any(MIRRORS.map(u => askMirror(u, query, perMirrorMs, stop.signal)));
+      stop.abort(); try { rememberOSM(key, j); } catch (e) {}
       return j;
-    } catch (e) { lastErr = e; }
+    } catch (e) { lastErr = (e && e.errors && e.errors[0]) || e; }
+    finally { if (signal) signal.removeEventListener('abort', onOuter); }
   }
   throw lastErr || new Error('overpass failed');
 }
@@ -107,10 +120,10 @@ function rememberOSM(key, j) {                     // a small LRU in localStorag
   localStorage.setItem(key, JSON.stringify(j)); localStorage.setItem(idxKey, JSON.stringify(idx));
 }
 /** Buildings (rings in local metres, height in metres) and roads (polylines with a width) inside spanM of lat/lon. */
-async function fetchOSM({ lat, lon, spanM, P }) {
+async function fetchOSM({ lat, lon, spanM, P, signal }) {
   P = P || proj(lat, lon); const half = spanM / 2, nw = P.toWGS(-half, -half), se = P.toWGS(half, half);
   const bbox = [se.lat, nw.lon, nw.lat, se.lon];
-  let j; try { j = await fetchOverpass(bbox); NET.osm++; } catch (e) { fail('overpass', e); return { ok: false, buildings: [], roads: [] }; }
+  let j; try { j = await fetchOverpass(bbox, { signal }); NET.osm++; } catch (e) { fail('overpass', e); return { ok: false, buildings: [], roads: [] }; }
   const buildings = [], roads = [];
   const ring = geom => { const r = geom.map(g => P.toLocal(g.lat, g.lon)); if (r.length > 1 && Math.hypot(r[0].x - r[r.length - 1].x, r[0].z - r[r.length - 1].z) < 0.01) r.pop(); return r; };
   for (const el of j.elements || []) {
@@ -172,5 +185,5 @@ function locate(ms = 10000) {
   });
 }
 
-window.Geo = { NET, proj, lon2x, lat2y, pixelMetres, fetchElevation, fetchOSM, fetchImagery, geocode, parseCoordinates, locate, buildingHeight, ROAD_W };
+window.Geo = { NET, MIRRORS, proj, lon2x, lat2y, pixelMetres, fetchElevation, fetchOSM, fetchImagery, geocode, parseCoordinates, locate, buildingHeight, ROAD_W };
 })();

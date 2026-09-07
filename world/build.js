@@ -20,7 +20,7 @@ const PARTS = [
   ['3003', 'brick 2×2'], ['3005', 'brick 1×1'], ['3022', 'plate 2×2'], ['3040b', 'slope 1×2'], ['3455', 'arch 1×6'], ['3823', 'windscreen'],
 ];
 /** Parts the master builder may use that are not on the palette strip. */
-const HIDDEN = ['3023', '3024', '3665a', '4600', '4624', '3641', '3829c01'];
+const HIDDEN = ['3023', '3024', '3665a', '4600', '4624', '3641', '3829c01', '3009', '3008', '2453b', '3185', '4589'];
 const COLOURS = [4, 1, 14, 2, 15, 0, 71, 72, 19, 25, 70, 322];
 const ZERO = new THREE.Matrix4().makeScale(0, 0, 0), UP = new THREE.Vector3(0, 1, 0);
 const V1 = new THREE.Vector3(), V2 = new THREE.Vector3(), V3 = new THREE.Vector3(), Q1 = new THREE.Quaternion(), M1 = new THREE.Matrix4(), B1 = new THREE.Box3(), RAY = new THREE.Raycaster();

@@ -21,15 +21,16 @@
 @media (max-width:820px){#app{grid-template-columns:1fr;grid-template-rows:52vh 1fr}}
 #stage{position:relative;min-height:240px}#stage canvas{display:block;width:100%;height:100%}
 #side{padding:14px;overflow:auto;border-left:1px solid rgba(255,255,255,.08);display:flex;flex-direction:column;gap:10px}
-h1{margin:0;font-size:18px;letter-spacing:-.01em}h1 small{display:block;font:11px var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--dim);margin-top:2px}
-textarea,input{width:100%;padding:8px 10px;border:1px solid rgba(255,255,255,.18);border-radius:10px;background:rgba(255,255,255,.06);color:#e6eaf2;font:13px var(--sans)}
-textarea{resize:vertical}#prompt{height:64px}#program{height:220px;font:11px/1.4 var(--mono)}
+h1{margin:0;font-size:18px;letter-spacing:-.01em}h1 small{display:block;font:11px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-top:2px}
+textarea,input,select{width:100%;padding:8px 10px;border:1px solid rgba(255,255,255,.18);border-radius:10px;background:rgba(255,255,255,.06);color:#e6eaf2;font:13px var(--sans)}
+select{appearance:auto;color-scheme:dark}textarea{resize:vertical}#prompt{height:64px}#program{height:220px;font:11px/1.4 var(--mono)}
 .row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 button{height:34px;padding:0 12px;border:1px solid rgba(255,255,255,.18);border-radius:10px;background:rgba(255,255,255,.08);color:#e6eaf2;font:12px var(--sans);cursor:pointer}
 button.main{background:var(--red);border:none;font-weight:800;letter-spacing:.08em;text-transform:uppercase}button.go{background:#2fbf3f;border:none;font-weight:800}button:disabled{opacity:.5}
 .chips button{height:28px;font-size:11px;border-radius:999px}
 #stat{font:11px var(--mono);color:var(--dim);min-height:14px;white-space:pre-wrap}#stat.warn{color:#ff6b62}#stat.ok{color:#5fd36f}#stat.busy{color:var(--gold)}
-details{font-size:12px;color:var(--dim)}summary{cursor:pointer;font:11px var(--mono);letter-spacing:.14em;text-transform:uppercase}details input{margin-top:6px;font:12px var(--mono)}
+details{font-size:12px;color:var(--dim)}summary{cursor:pointer;font:11px var(--mono);letter-spacing:.14em;text-transform:uppercase}details input,details select{margin-top:6px;font:12px var(--mono)}
+.settinglabel{display:block;margin-top:7px;font:10px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:rgba(230,234,242,.45)}
 #bus{font-size:12px;color:var(--dim)}#bus .item{display:flex;gap:6px;align-items:center;margin-top:4px}#bus b{color:#e6eaf2;font-weight:600}
 #credit{font:10px var(--mono);color:rgba(230,234,242,.4);margin-top:auto}
 #status3d{position:absolute;left:10px;bottom:8px;font:11px var(--mono);color:rgba(230,234,242,.6);pointer-events:none}
@@ -39,15 +40,15 @@ details{font-size:12px;color:var(--dim)}summary{cursor:pointer;font:11px var(--m
 <div id="app">
   <div id="stage"><div id="status3d"></div></div>
   <div id="side">
-    <h1>Master builder<small>describe it · get real LEGO</small></h1>
+    <h1>Master builder<small>GPT-5.6 Sol · reason → compile → repair</small></h1>
     <textarea id="prompt" placeholder="a stone watchtower with a red roof and a knight at the door"></textarea>
     <div class="row"><button id="draft" class="main">Draft</button><span class="chips"><button data-ask="a small stone hut with a red roof and a door">hut</button><button data-ask="a castle gate with two round towers and a knight">gate</button><button data-ask="a red race car with a driver">racer</button><button data-ask="a lighthouse with a white tower, red bands and a lamp room">lighthouse</button></span></div>
     <div id="stat"></div>
     <textarea id="program" placeholder="the program appears here — edit it and re-render" spellcheck="false"></textarea>
     <div class="row"><button id="rerender">Re-render</button><button id="download">Download .mpd</button><button id="copy">Copy program</button><button id="send" class="go">Send to world</button></div>
-    <details id="settings"><summary>key and model</summary><input id="key" type="password" placeholder="OpenAI API key (stays in this browser)" autocomplete="off"><input id="model" placeholder="model, e.g. gpt-4o-mini" autocomplete="off"></details>
+    <details id="settings"><summary>OpenAI</summary><span class="settinglabel">API key</span><input id="key" type="password" placeholder="OpenAI API key (stays in this browser)" autocomplete="off"><span class="settinglabel">model</span><input id="model" placeholder="gpt-5.6-sol" autocomplete="off"><span class="settinglabel">reasoning effort</span><select id="effort"><option value="max">max — strongest</option><option value="xhigh">xhigh</option><option value="high">high</option><option value="medium">medium</option><option value="low">low</option><option value="none">none — fastest</option></select></details>
     <div id="bus"><b>From the -ators</b><div id="busList">nothing yet — export from the minifigurator, vehiculator or locationator and it shows up here</div></div>
-    <div id="credit">parts: the LDraw library · one call per draft · the world compiles the program into bricks</div>
+    <div id="credit">Responses API · key is not committed · max reasoning by default · deterministic LEGO compiler checks every draft</div>
   </div>
 </div>
 <script>
@@ -58,25 +59,35 @@ const S = { engine: null, result: null, program: null, busy: false, bus: [] };
 const status = (t, cls) => { const e = $('#stat'); e.textContent = t; e.className = cls || ''; };
 async function boot() {
   S.engine = await NabugoUI.makeViewer($('#stage'), { background: 0x0b0d10, base: '.' });
-  $('#key').value = Ai.key(); $('#model').value = Ai.model(); $('#settings').open = !Ai.key();
-  $('#key').onchange = () => Ai.setKey($('#key').value); $('#model').onchange = () => Ai.setModel($('#model').value);
+  $('#key').value = Ai.key(); $('#model').value = Ai.model(); $('#effort').value = Ai.effort(); $('#settings').open = !Ai.key();
+  $('#key').onchange = () => Ai.setKey($('#key').value);
+  $('#model').onchange = () => { Ai.setModel($('#model').value); $('#model').value = Ai.model(); };
+  $('#effort').onchange = () => Ai.setEffort($('#effort').value);
   $('#draft').onclick = () => draft($('#prompt').value); $('#prompt').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); draft($('#prompt').value); } });
   document.querySelectorAll('[data-ask]').forEach(b => b.onclick = () => { $('#prompt').value = b.dataset.ask; draft(b.dataset.ask); });
   $('#rerender').onclick = () => { try { show(JSON.parse($('#program').value)); } catch (e) { status('that is not JSON: ' + e.message, 'warn'); } };
   $('#download').onclick = () => { if (!S.result) return; NabugoUI.download(Dsl.toMPD(S.result, S.result.name), (S.result.name || 'build') + '.mpd'); };
   $('#copy').onclick = () => { if (!S.program) return; (navigator.clipboard ? navigator.clipboard.writeText(JSON.stringify(S.program)) : Promise.reject()).then(() => status('copied', 'ok'), () => status('copy failed', 'warn')); };
-  $('#send').onclick = () => { if (!S.program) return; try { localStorage.setItem('world.inbox', JSON.stringify({ program: S.program, t: Date.now() })); } catch (e) { status('could not hand over: ' + e.message, 'warn'); return; } location.href = 'world.html?inbox=1'; };
+  $('#send').onclick = () => { if (!S.program) return; try { localStorage.setItem('world.inbox', JSON.stringify({ program: S.program, t: Date.now() })); } catch (e) { status('could not hand over: ' + e.message, 'warn'); return; } location.href = 'word-to-world.html?inbox=1'; };
   try { const bc = new BroadcastChannel('wag-frank'); bc.onmessage = e => onBus(e.data); } catch (e) { }
   const q = new URLSearchParams(location.search); if (q.get('ask')) { $('#prompt').value = q.get('ask'); draft(q.get('ask')); } else show(Dsl.EXAMPLES[1].program, true);
 }
 async function draft(prompt) {
   prompt = (prompt || '').trim(); if (!prompt || S.busy) return;
   if (!Ai.key()) { $('#settings').open = true; status('paste an OpenAI key first', 'warn'); $('#key').focus(); return; }
-  S.busy = true; $('#draft').disabled = true; status('asking ' + Ai.model() + '…', 'busy');
+  S.busy = true; $('#draft').disabled = true; status(`${Ai.model()} · ${Ai.effort()} reasoning…`, 'busy');
   try {
     let r = await Ai.ask(prompt, {}); let res = Dsl.compile(r.program);
-    if (res.report.unknown.length || res.report.errors.length || res.report.floating > 5) { status('fixing the program…', 'busy'); try { const r2 = await Ai.repair(r, res.report); const res2 = Dsl.compile(r2.program); if (res2.report.pieces + res2.report.props >= (res.report.pieces + res.report.props) * 0.5) r = r2; } catch (e) { } }
-    show(r.program); const u = r.usage; if (u) status($('#stat').textContent + ` · ${u.total_tokens} tokens`, 'ok');
+    if (res.report.unknown.length || res.report.errors.length || res.report.floating > 5) {
+      status(`compiler found trouble · ${Ai.effort()} repair…`, 'busy');
+      try { const r2 = await Ai.repair(r, res.report); const res2 = Dsl.compile(r2.program); if (res2.report.pieces + res2.report.props >= (res.report.pieces + res.report.props) * 0.5) r = r2; } catch (e) { }
+    }
+    show(r.program);
+    const u = r.usage;
+    if (u) {
+      const reasoning = u.output_tokens_details && u.output_tokens_details.reasoning_tokens;
+      status(`${$('#stat').textContent} · ${u.total_tokens || 0} tokens${reasoning ? ` · ${reasoning} reasoning` : ''}`, 'ok');
+    }
   } catch (e) { status(e.message || String(e), 'warn'); }
   finally { S.busy = false; $('#draft').disabled = false; }
 }
@@ -98,7 +109,7 @@ function showMPD(item) {
   const text = item.lines.join('\n'); S.result = null; S.program = { name: item.name, ops: [{ op: 'mpd', name: item.name, text }] };
   $('#program').value = `# ${item.kind}: ${item.name} — ${item.lines.length} lines (an LDraw model from the -ators)`; status(`${item.name}: ${item.lines.filter(l => l.startsWith('1 ')).length} parts`, 'ok');
   NabugoUI.render(S.engine, Dsl.withHeaders(text.startsWith('0 FILE') ? text : `0 FILE ${item.name}.ldr\n${text}`), $('#status3d'), item.name);
-  $('#send').onclick = () => { try { localStorage.setItem('world.inbox', JSON.stringify({ mpd: text, name: item.name, t: Date.now() })); } catch (e) { return status('could not hand over', 'warn'); } location.href = 'world.html?inbox=1'; };
+  $('#send').onclick = () => { try { localStorage.setItem('world.inbox', JSON.stringify({ mpd: text, name: item.name, t: Date.now() })); } catch (e) { return status('could not hand over', 'warn'); } location.href = 'word-to-world.html?inbox=1'; };
   $('#download').onclick = () => NabugoUI.download(text, item.name.replace(/\W+/g, '_') + '.mpd');
 }
 function paintBus() { const el = $('#busList'); el.innerHTML = ''; for (const it of S.bus) { const d = document.createElement('div'); d.className = 'item'; d.innerHTML = `<b></b><span></span><button>show</button>`; d.querySelector('b').textContent = it.name; d.querySelector('span').textContent = `${it.kind} · ${it.lines.length} lines`; d.querySelector('button').onclick = () => showMPD(it); el.appendChild(d); } }
