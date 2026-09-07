@@ -59,13 +59,12 @@ function buildMenu() {
   const chars = Object.entries(Minifig.DEFS).map(([k, d]) => `<button data-as="${k}" class="${k === W.character ? 'on' : ''}">${d.name}</button>`).join('');
   const worlds = Object.entries(Worlds.PRESETS).map(([k, p]) => `<button data-world="${k}" class="${k === W.world ? 'on' : ''}">${p.name}</button>`).join('');
   $('#menu').innerHTML = `<div class="row"><span>play as</span>${chars}</div><div class="row"><span>world</span>${worlds}</div>
-    <div class="row ai"><span>builder</span><input id="aiKey" type="password" placeholder="OpenAI API key (stays here)" autocomplete="off"><input id="aiModel" placeholder="gpt-5.6-sol" autocomplete="off"><select id="aiEffort"><option value="max">max reasoning</option><option value="xhigh">xhigh</option><option value="high">high</option><option value="medium">medium</option><option value="low">low</option><option value="none">none · fastest</option></select></div>
+    <div class="row ai"><span>builder</span><input id="aiKey" type="password" placeholder="OpenAI API key (stays here)" autocomplete="off"><em>${Ai.model()} · ${Ai.effort()} reasoning · designs, checks, reviews</em></div>
     <div class="row net"><span>together</span><input id="nameIn" placeholder="your name" maxlength="14"><button id="hostBtn">Host a room</button><input id="codeIn" placeholder="CODE" maxlength="4" autocapitalize="characters"><button id="joinBtn">Join</button><button id="linkBtn" hidden>Copy link</button><button id="leaveBtn" hidden>Leave</button><button id="muteBtn" title="sound">🔊</button></div><div class="row"><em id="roomStat"></em></div>`;
   $('#menu').querySelectorAll('[data-as]').forEach(b => b.onclick = () => setCharacter(b.dataset.as));
   $('#menu').querySelectorAll('[data-world]').forEach(b => b.onclick = () => setWorld(b.dataset.world));
   $('#nameIn').value = W.name || ''; $('#nameIn').onchange = () => setName($('#nameIn').value);
-  $('#aiKey').value = Ai.key(); $('#aiModel').value = Ai.model(); $('#aiEffort').value = Ai.effort();
-  $('#aiKey').onchange = () => { Ai.setKey($('#aiKey').value); wbHint(); }; $('#aiModel').onchange = () => { Ai.setModel($('#aiModel').value); $('#aiModel').value = Ai.model(); }; $('#aiEffort').onchange = () => Ai.setEffort($('#aiEffort').value);
+  $('#aiKey').value = Ai.key(); $('#aiKey').onchange = () => { Ai.setKey($('#aiKey').value); wbHint(); };
   $('#hostBtn').onclick = () => hostRoom(); $('#joinBtn').onclick = () => joinRoom($('#codeIn').value); $('#leaveBtn').onclick = () => leaveRoom();
   $('#linkBtn').onclick = () => { const link = W.room.link(); (navigator.clipboard ? navigator.clipboard.writeText(link) : Promise.reject()).then(() => toast('link copied', 900), () => { prompt('Share this link', link); }); };
   $('#codeIn').addEventListener('keydown', e => { if (e.key === 'Enter') joinRoom($('#codeIn').value); });
@@ -620,12 +619,13 @@ function mbStatus(text, cls) {
   W.master.status = text; const e = $('#wbStat'); if (e) { $('#wbText').textContent = text; e.className = (text ? 'on ' : '') + (cls || ''); }
   const has = !!(W.master.result && (W.draft.pieces.size || W.master.ghosts.length)); document.body.classList.toggle('drafting', has); wbHint();
 }
-/** A live "asking…" line: model, effort and the seconds ticking. */
+/** A live "asking…" line: the brain's own stage when it reports one, the model, the effort and the seconds ticking. */
 function mbBusy(what) {
-  clearInterval(W.master.tick); if (!what) return; const t0 = performance.now();
-  const line = () => `${what} ${Ai.model()} · ${Ai.effort()} reasoning · ${((performance.now() - t0) / 1000) | 0} s`;
+  clearInterval(W.master.tick); if (!what) return; const t0 = performance.now(); W.master.stage = null;
+  const line = () => { const st = W.master.stage; return `${st ? st.stage.toLowerCase() + (st.detail ? ' · ' + st.detail : '') : what + ' ' + Ai.model()} · ${Ai.effort()} reasoning · ${((performance.now() - t0) / 1000) | 0} s`; };
   mbStatus(line(), 'busy'); W.master.tick = setInterval(() => { if (W.master.busy) mbStatus(line(), 'busy'); else clearInterval(W.master.tick); }, 500);
 }
+Ai.onStatus = (stage, detail, state) => { if (W.master.busy && state === 'working') W.master.stage = { stage, detail }; };
 /** Where a draft goes: the reticle's target if there is one, else three metres ahead of the player, on the stud grid. */
 function mbAnchor() {
   const f = W.build.frame; let x, z;
