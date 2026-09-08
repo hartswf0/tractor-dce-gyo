@@ -172,7 +172,9 @@
         engine.camera = new THREE.PerspectiveCamera(40, aspect, 0.1, 20000);
         engine.camera.position.set(200, 200, 200);
 
-        engine.renderer = new THREE.WebGLRenderer({ antialias: true });
+        // a phone that has just lost its GPU process, or has too many WebGL pages open, refuses a context: try again plainer before giving up
+        try { engine.renderer = new THREE.WebGLRenderer({ antialias: cfg.antialias !== false, powerPreference: 'default' }); }
+        catch (e) { console.warn('[engine] WebGL context refused, retrying without antialias', e.message || e); engine.renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'default' }); }
         engine.renderer.setPixelRatio(window.devicePixelRatio);
         engine.renderer.setSize(container.clientWidth, container.clientHeight);
         container.innerHTML = '';

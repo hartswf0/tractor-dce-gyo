@@ -21,7 +21,7 @@ async function makeViewer(host, opts = {}) {
   const engine = global.BetaPrimeEngine.create({
     canvas: host,
     loaderPath: base + '/ldraw/',
-    background: opts.background ?? 0x050505,
+    background: opts.background ?? 0x050505, antialias: opts.antialias !== false,
     grid: { size: N.CELL * N.GRID, divisions: N.GRID, color1: 0x2a2a33, color2: 0x17171c },
     axesSize: 100
   });

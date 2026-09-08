@@ -53,6 +53,20 @@ function veilPaint() {
   else if (!W.ready && since > 15 && !VEIL.failed && vm) vm.textContent = pending ? 'the slow parts pop in once you are walking' : '';
 }
 function veilTick(on) { clearInterval(VEIL.timer); if (on) { VEIL.t0 = performance.now(); VEIL.failed = false; VEIL.timer = setInterval(veilPaint, 250); } }
+/** The GPU can refuse a context for a moment (its process just restarted, or too many pages hold one): ask a few times before giving up, and say what helps. */
+async function makeViewerPatiently() {
+  let last = null;
+  for (let i = 0; i < 4; i++) {
+    try { return await NabugoUI.makeViewer($('#stage'), { background: 0xb8cbd8, base: '.', antialias: i < 2 }); }
+    catch (e) { last = e; if (!/WebGL/i.test(String(e && e.message || e))) throw e; console.warn(`[boot] no WebGL context (try ${i + 1})`, e.message || e); stage('place', 'now', 'waiting for the graphics chip'); await new Promise(r => setTimeout(r, 700 * (i + 1))); }
+  }
+  throw new Error((last && last.message || 'no WebGL context') + '. The browser would not give this page a graphics context: close other tabs of this page (each keeps one), then retry');
+}
+/** The context can also go away while playing; the browser usually gives it back, and three.js picks it up again. */
+function watchContext(canvas) {
+  canvas.addEventListener('webglcontextlost', e => { e.preventDefault(); toast('graphics lost, waiting for it back', 3000); W.ctxLostAt = performance.now(); setTimeout(() => { if (W.ctxLostAt) stall('The graphics context was lost and did not come back. Close other tabs of this page, then retry'); }, 8000); });
+  canvas.addEventListener('webglcontextrestored', () => { W.ctxLostAt = 0; toast('graphics back', 900); });
+}
 function stall(msg) { veilTick(false); $('#vm').innerHTML = msg + '<br><button onclick="location.reload()">Retry</button>'; }
 /** The Start now button: whatever is still on its way pops in later. */
 function startNow() { if (VEIL.hurry) VEIL.hurry(); }
@@ -606,9 +620,9 @@ async function boot() {
   buildMenu(); bindInput(); document.body.dataset.world = W.world;
   veilTick(true); const vs = $('#vStart'); if (vs) vs.onclick = startNow;
   try {
-    const viewerP = NabugoUI.makeViewer($('#stage'), { background: 0xb8cbd8, base: '.' }), placeP = resolvePlace();
+    const viewerP = makeViewerPatiently(), placeP = resolvePlace();
     const engine = await viewerP; W.engine = engine; W.scene = engine.scene; W.camera = engine.camera; W.renderer = engine.renderer; W.loader = engine.loader;
-    engine.setDiagnostics({ axes: false, grid: false });
+    engine.setDiagnostics({ axes: false, grid: false }); watchContext(engine.renderer.domElement);
     engine.camera.far = 90000; engine.camera.fov = innerHeight > innerWidth ? 55 : 50; engine.camera.updateProjectionMatrix();
     if ((navigator.maxTouchPoints || 0) > 0) engine.renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
     const place = await placeP; stage('place', 'done', place.name); $('#vTitle').textContent = place.name; $('#place').textContent = place.name;
