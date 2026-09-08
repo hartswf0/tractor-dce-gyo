@@ -173,8 +173,9 @@
         engine.camera.position.set(200, 200, 200);
 
         // a phone that has just lost its GPU process, or has too many WebGL pages open, refuses a context: try again plainer before giving up
-        try { engine.renderer = new THREE.WebGLRenderer({ antialias: cfg.antialias !== false, powerPreference: 'default' }); }
-        catch (e) { console.warn('[engine] WebGL context refused, retrying without antialias', e.message || e); engine.renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'default' }); }
+        const canvasOpt = cfg.canvasEl ? { canvas: cfg.canvasEl } : {};   // a caller's own canvas can listen for webglcontextcreationerror and learn why a context was refused
+        try { engine.renderer = new THREE.WebGLRenderer({ ...canvasOpt, antialias: cfg.antialias !== false, powerPreference: 'default' }); }
+        catch (e) { console.warn('[engine] WebGL context refused, retrying without antialias', e.message || e); engine.renderer = new THREE.WebGLRenderer({ ...canvasOpt, antialias: false, powerPreference: 'default' }); }
         engine.renderer.setPixelRatio(window.devicePixelRatio);
         engine.renderer.setSize(container.clientWidth, container.clientHeight);
         container.innerHTML = '';

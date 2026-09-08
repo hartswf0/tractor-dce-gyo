@@ -56,15 +56,32 @@ function veilTick(on) { clearInterval(VEIL.timer); if (on) { VEIL.t0 = performan
 /** The GPU can refuse a context for a moment (its process just restarted, or too many pages hold one): ask a few times before giving up, and say what helps. */
 async function makeViewerPatiently() {
   let last = null;
+  const canvasEl = document.createElement('canvas'); canvasEl.addEventListener('webglcontextcreationerror', e => { W.ctxWhy = e.statusMessage || 'no reason given'; console.warn('[boot] the browser refused a WebGL context:', W.ctxWhy); });
   for (let i = 0; i < 4; i++) {
-    try { return await NabugoUI.makeViewer($('#stage'), { background: 0xb8cbd8, base: '.', antialias: i < 2 }); }
-    catch (e) { last = e; if (!/WebGL/i.test(String(e && e.message || e))) throw e; console.warn(`[boot] no WebGL context (try ${i + 1})`, e.message || e); stage('place', 'now', 'waiting for the graphics chip'); await new Promise(r => setTimeout(r, 700 * (i + 1))); }
+    W.lease.claim(); if (i || !W.lease.share) await new Promise(r => setTimeout(r, i ? 700 * i : 250));   // the other tabs of this page let go of their contexts first
+    try { return await NabugoUI.makeViewer($('#stage'), { background: 0xb8cbd8, base: '.', antialias: i < 2, canvasEl }); }
+    catch (e) { last = e; if (!/WebGL/i.test(String(e && e.message || e))) throw e; console.warn(`[boot] no WebGL context (try ${i + 1})`, e.message || e); stage('place', 'now', 'waiting for the graphics chip'); }
   }
-  throw new Error((last && last.message || 'no WebGL context') + '. The browser would not give this page a graphics context: close other tabs of this page (each keeps one), then retry');
+  throw new Error(`the browser refused a graphics context${W.ctxWhy ? ` (it says: ${W.ctxWhy})` : ''}. Other tabs of this page were told to let go; close any that are still open, then retry`);
+}
+/** Another tab took the graphics, or this one was hidden a long while: drop the context and wait behind the veil. */
+function goDormant(why, who) {
+  if (W.dormant) return; W.dormant = why; W.ready = false; W.lease.release();
+  try { if (W.room && W.room.role) leaveRoom(); } catch (e) { }
+  try { W.engine.renderer.render = () => { }; W.renderer.forceContextLoss(); W.renderer.dispose(); W.renderer.domElement.style.display = 'none'; } catch (e) { }
+  veilTick(false); $('#veil').classList.remove('gone'); $('#vTitle').textContent = 'Paused';
+  $('#vm').innerHTML = (why === 'taken' ? 'Another tab of Word to World took the graphics.' : 'This tab was away a while, so it let go of the graphics.') + '<br><button onclick="location.reload()">Resume</button>';
+  console.info(`[lease] dormant: ${why}${who ? ' (tab ' + who + ')' : ''}`);
+}
+function watchVisibility() {
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { clearTimeout(W.hiddenTimer); W.hiddenTimer = setTimeout(() => { if (document.hidden && W.ready && !W.lease.share) goDormant('hidden'); }, W.hiddenAfter || 90000); }
+    else { clearTimeout(W.hiddenTimer); if (W.dormant === 'hidden') location.reload(); }
+  });
 }
 /** The context can also go away while playing; the browser usually gives it back, and three.js picks it up again. */
 function watchContext(canvas) {
-  canvas.addEventListener('webglcontextlost', e => { e.preventDefault(); toast('graphics lost, waiting for it back', 3000); W.ctxLostAt = performance.now(); setTimeout(() => { if (W.ctxLostAt) stall('The graphics context was lost and did not come back. Close other tabs of this page, then retry'); }, 8000); });
+  canvas.addEventListener('webglcontextlost', e => { e.preventDefault(); if (W.dormant) return; toast('graphics lost, waiting for it back', 3000); W.ctxLostAt = performance.now(); setTimeout(() => { if (W.ctxLostAt && !W.dormant) stall('The graphics context was lost and did not come back. Close other tabs of this page, then retry'); }, 8000); });
   canvas.addEventListener('webglcontextrestored', () => { W.ctxLostAt = 0; toast('graphics back', 900); });
 }
 function stall(msg) { veilTick(false); $('#vm').innerHTML = msg + '<br><button onclick="location.reload()">Retry</button>'; }
@@ -617,6 +634,7 @@ async function boot() {
   try { W.truce = localStorage.getItem('world.truce') === '1'; } catch (e) { W.truce = false; }
   try { Fx.Sfx.muted = Q.get('mute') === '1' || (Q.get('mute') !== '0' && localStorage.getItem('world.mute') === '1'); } catch (e) { }
   const unlock = () => { Fx.Sfx.unlock(); }; window.addEventListener('pointerdown', unlock, { passive: true }); window.addEventListener('keydown', unlock);
+  W.lease = Lease.create({ id: Build.Build.pid() + '-' + Math.random().toString(36).slice(2, 6), share: Q.get('lease') === 'share', onYield: who => goDormant('taken', who) }); watchVisibility();
   buildMenu(); bindInput(); document.body.dataset.world = W.world;
   veilTick(true); const vs = $('#vStart'); if (vs) vs.onclick = startNow;
   try {
@@ -665,6 +683,7 @@ async function boot() {
     W.bolts.onFire = (o, d, owner, speed) => { if (owner === 'player') Fx.Sfx.blaster(); if (W.room && W.room.role && (owner === 'player' || (owner === 'npc' && W.room.role === 'host'))) W.room.send({ t: 'bolt', o: o.toArray().map(Math.round), d: d.toArray().map(x => +x.toFixed(3)), s: speed, npc: owner === 'npc' }, { fast: true }); };
     { const orig = W.crowd.burst.bind(W.crowd); W.crowd.burst = (n, vel, debris) => { const was = n.alive; orig(n, vel, debris); if (was && W.room && W.room.role === 'guest' && n.ri != null) W.room.send({ t: 'npcHit', i: n.ri }); }; }
     paintPalette();
+    if (W.dormant) { const why = W.dormant; W.dormant = null; W.ready = true; goDormant(why); return; }   // another tab claimed the graphics while this one was still loading
     stage('bricks', 'done', ''); W.last = performance.now(); W.ready = true; VEIL.readyAt = performance.now() / 1000; veilTick(false); $('#veil').classList.add('gone'); $('#menu').classList.remove('open'); paint(); hintFor();
     if (Q.get('room')) joinRoom(Q.get('room'), true);
     bindMaster(); checkInbox();
@@ -1122,6 +1141,7 @@ Object.assign(W, {
   stick: (x, y) => { const t = W.mode === 'fly' ? W.input.fly : W.input.L; t.x = x; t.y = y; t.mag = Math.min(1, Math.hypot(x, y)); t.held = t.mag > 0; },
   look: (dx, dy) => { W.input.look.dx += dx; W.input.look.dy += dy; },
   saber: () => { W.input.saber = true; }, run: on => { W.input.runHook = on; }, boost: on => { W.input.boostHook = on; }, fire: () => { W.input.fireOnce = true; }, torpedo: () => { W.input.torpedo = true; }, push: () => { W.input.push = true; }, detonate: throwDetonator,
+  leaseStat: () => ({ ...W.lease.stats(), dormant: W.dormant || null, ctxLost: !!(W.renderer && W.renderer.getContext() && W.renderer.getContext().isContextLost()), ctxWhy: W.ctxWhy || null }), leaseTest: ms => { W.hiddenAfter = ms; },
   board, land, setCharacter, setWorld, setSky, setWeather, skyStat: () => W.sky && W.sky.stats(), teleport: (x, z) => { if (W.mode === 'walk') { W.rig.pos.set(x, W.G.h(x, z), z); W.rig.cam.set = false; } else { W.tie.pos.set(x, W.G.h(x, z) + 30 * M, z); W.tie.prevPos.copy(W.tie.pos); } },
   goAnywhere, blast: (x, y, z, r) => blast(new THREE.Vector3(x, y, z), r), hurt, M,
   buildStat: () => W.build.stats(), setBuild: toggleBuild, choose: (part, col, rot) => { if (part) W.build.part = part; if (col != null) W.build.col = col; if (rot != null) W.build.rot = rot; paintPalette(); }, placeBrick: buildAct, undo: () => W.build.undo(), setPick, lift: n => { W.build.lift = n; },
