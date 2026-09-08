@@ -16,23 +16,24 @@
 <script src="./toys/terrain-data.js"></script>
 <script src="./world/geo.js?v=0a96e33c"></script>
 <script src="./world/ground.js?v=1ade3f87"></script>
-<script src="./world/bricks.js?v=5b23a679"></script>
-<script src="./world/minifig.js?v=c937a939"></script>
+<script src="./world/bricks.js?v=9f6b3dd0"></script>
+<script src="./world/minifig.js?v=83ae8a84"></script>
 <script src="./world/debris.js"></script>
-<script src="./world/characters.js?v=0362e99e"></script>
-<script src="./world/worlds.js"></script>
+<script src="./world/characters.js?v=faedf48b"></script>
+<script src="./world/worlds.js?v=859f5476"></script>
+<script src="./world/sky.js?v=0ae30b5d"></script>
 <script src="./world/tie.js"></script>
 <script src="./world/drive.js?v=f8c2d6d2"></script>
 <script src="./world/fx.js?v=f16940a8"></script>
-<script src="./world/dsl.js?v=5a4795ae"></script>
+<script src="./world/dsl.js?v=f0f19b8b"></script>
 <script src="./world/ai.js?v=b43aa436"></script>
 <script src="./world/build.js?v=9a0d1ac4"></script>
 <script src="./world/props.js?v=2574a48d"></script>
 <script src="./world/net.js"></script>
 <style>
-:root{--wb:96px;--ink:#1a1f2a;--dim:#4b5566;--gold:#c8901c;--red:#d8382e;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;--sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
+:root{--wb:96px;--sky:#b8cbd8;--skyA:rgba(184,203,216,.9);--ink:#1a1f2a;--dim:#4b5566;--gold:#c8901c;--red:#d8382e;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;--sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;height:100%;background:#b8cbd8;color:var(--ink);overflow:hidden;font:15px/1.4 var(--sans);-webkit-user-select:none;user-select:none;overscroll-behavior:none}
+html,body{margin:0;height:100%;background:var(--sky);color:var(--ink);overflow:hidden;font:15px/1.4 var(--sans);-webkit-user-select:none;user-select:none;overscroll-behavior:none}
 #stage{position:fixed;inset:0}#stage canvas{display:block;width:100%;height:100%;touch-action:none}
 #top{position:fixed;left:0;right:0;top:0;padding:calc(10px + env(safe-area-inset-top)) 14px 8px;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none;z-index:4;gap:12px}
 #top>div:first-child{flex:1;min-width:0}
@@ -65,7 +66,7 @@ body.fly,body.ride{--wb:0px}
 #find button{height:34px;padding:0 12px;border:none;border-radius:10px;background:rgba(26,31,42,.12);font:11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink)}
 #hint{position:fixed;left:78px;right:78px;bottom:calc(var(--wb) + 14px + env(safe-area-inset-bottom));font-size:11px;line-height:1.3;color:var(--dim);text-align:center;pointer-events:none;z-index:4}
 #credit{font:9px var(--mono);color:rgba(26,31,42,.45);text-align:right;padding:0 4px;pointer-events:none!important}
-#veil{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(184,203,216,.92);z-index:9;text-align:center;padding:24px;transition:opacity .3s}
+#veil{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--skyA);z-index:9;text-align:center;padding:24px;transition:opacity .3s}
 #veil.gone{opacity:0;pointer-events:none}
 #veil .k{font:11px var(--mono);letter-spacing:.24em;text-transform:uppercase;color:var(--dim)}
 #veil h1{margin:8px 0 6px;font-size:30px;font-weight:900;letter-spacing:-.01em}
@@ -79,17 +80,17 @@ body.fly,body.ride{--wb:0px}
 @keyframes stack{0%{transform:translateY(0)}30%{transform:translateY(-14px)}60%{transform:translateY(0)}100%{transform:translateY(0)}}
 #veil ol li{display:flex;gap:8px;align-items:baseline;min-width:230px}#veil ol li .n{flex:0 0 auto}#veil ol li .d{flex:1;text-transform:none;letter-spacing:0;color:var(--dim);font-size:10px;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}#veil ol li .t{flex:0 0 auto;color:var(--gold);min-width:28px;text-align:right}#veil ol li.done .t{color:var(--dim)}
 #veil button{margin-top:18px;height:48px;padding:0 28px;font:inherit;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#fff;background:var(--red);border:none;border-radius:14px}
-body[data-world="deathstar"]{--ink:#e6eaf2;--dim:#9aa4b4;background:#0b0d12}
-body[data-world="deathstar"] #find button,body[data-world="deathstar"] #menuBtn{background:rgba(230,234,242,.16)}
-body[data-world="deathstar"] #find input{background:rgba(20,24,32,.85);border-color:rgba(230,234,242,.3)}
-body[data-world="deathstar"] #menu{background:rgba(20,24,32,.92);box-shadow:0 8px 24px rgba(0,0,0,.5)}
-body[data-world="deathstar"] #menu button{background:rgba(230,234,242,.1);border-color:rgba(230,234,242,.25)}
-body[data-world="deathstar"] #menu button.on{background:#e6eaf2;color:#0b0d12;border-color:#e6eaf2}
-body[data-world="deathstar"] #msg{text-shadow:0 1px 8px rgba(0,0,0,.7)}
-body[data-world="deathstar"] #stick{border-color:rgba(230,234,242,.5)}
-body[data-world="deathstar"] #shield{background:rgba(230,234,242,.18)}
-body[data-world="deathstar"] #credit{color:rgba(230,234,242,.45)}
-body[data-world="deathstar"] #veil{background:rgba(11,13,18,.94)}
+body[data-world="deathstar"],body.dark{--ink:#e6eaf2;--dim:#9aa4b4;background:#0b0d12}
+body[data-world="deathstar"] #find button,body[data-world="deathstar"] #menuBtn,body.dark #find button,body.dark #menuBtn{background:rgba(230,234,242,.16)}
+body[data-world="deathstar"] #find input,body.dark #find input{background:rgba(20,24,32,.85);border-color:rgba(230,234,242,.3)}
+body[data-world="deathstar"] #menu,body.dark #menu{background:rgba(20,24,32,.92);box-shadow:0 8px 24px rgba(0,0,0,.5)}
+body[data-world="deathstar"] #menu button,body.dark #menu button{background:rgba(230,234,242,.1);border-color:rgba(230,234,242,.25)}
+body[data-world="deathstar"] #menu button.on,body.dark #menu button.on{background:#e6eaf2;color:#0b0d12;border-color:#e6eaf2}
+body[data-world="deathstar"] #msg,body.dark #msg{text-shadow:0 1px 8px rgba(0,0,0,.7)}
+body[data-world="deathstar"] #stick,body.dark #stick{border-color:rgba(230,234,242,.5)}
+body[data-world="deathstar"] #shield,body.dark #shield{background:rgba(230,234,242,.18)}
+body[data-world="deathstar"] #credit,body.dark #credit{color:rgba(230,234,242,.45)}
+body[data-world="deathstar"] #veil,body.dark #veil{background:rgba(11,13,18,.94)}
 #build{position:fixed;right:14px;bottom:calc(var(--wb) + 14px + env(safe-area-inset-bottom));width:56px;height:56px;border:none;border-radius:999px;background:#2f3440;color:#fff;font:800 10px var(--mono);letter-spacing:.08em;text-transform:uppercase;box-shadow:0 8px 24px rgba(26,31,42,.3);z-index:5}
 #build.on{background:var(--gold)}
 body.fly #build{display:none}
@@ -118,9 +119,9 @@ body.build #reticle{display:block}
 #menu em{font:11px var(--mono);color:var(--dim);font-style:normal;letter-spacing:.08em}
 #savesList{max-height:34vh;overflow:auto;margin:2px 0 4px;padding-left:70px}#savesList .save{display:flex;flex-wrap:wrap;gap:4px 6px;align-items:center;padding:4px 0;border-top:1px solid rgba(26,31,42,.1)}#savesList .save b{font-size:13px;flex:1 0 100%}#savesList .save em{flex:1 0 100%;font-size:10px}#savesList .save button{height:26px;padding:0 8px;font-size:11px}#savesList>em{display:block;padding:2px 0 4px}
 @media (max-width:480px){#savesList{padding-left:0}}
-body[data-world="deathstar"] #palette .parts button,body[data-world="deathstar"] #palette .tools>button{background:rgba(20,24,32,.85);color:#e6eaf2;border-color:rgba(230,234,242,.3)}
-body[data-world="deathstar"] #menu input{background:rgba(20,24,32,.85);border-color:rgba(230,234,242,.3)}
-body[data-world="deathstar"] #room{background:rgba(230,234,242,.16)}
+body[data-world="deathstar"] #palette .parts button,body[data-world="deathstar"] #palette .tools>button,body.dark #palette .parts button,body.dark #palette .tools>button{background:rgba(20,24,32,.85);color:#e6eaf2;border-color:rgba(230,234,242,.3)}
+body[data-world="deathstar"] #menu input,body.dark #menu input{background:rgba(20,24,32,.85);border-color:rgba(230,234,242,.3)}
+body[data-world="deathstar"] #room,body.dark #room{background:rgba(230,234,242,.16)}
 #tally{position:fixed;left:50%;top:calc(96px + env(safe-area-inset-top));transform:translateX(-50%);font:800 13px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--red);text-shadow:0 1px 6px rgba(255,255,255,.7);pointer-events:none;z-index:4;white-space:nowrap}
 #tally.pulse{animation:pulse .35s ease-out}
 @keyframes pulse{0%{transform:translateX(-50%) scale(1.35)}100%{transform:translateX(-50%) scale(1)}}
@@ -133,8 +134,8 @@ body[data-world="deathstar"] #room{background:rgba(230,234,242,.16)}
 #floats .float{position:absolute;transform:translateX(-50%);font:800 18px var(--sans);color:var(--red);text-shadow:0 1px 6px rgba(255,255,255,.7);animation:floatUp .9s ease-out forwards}
 #floats .float.big{font-size:30px}
 @keyframes floatUp{0%{opacity:1;margin-top:0}100%{opacity:0;margin-top:-70px}}
-body[data-world="deathstar"] #tally,body[data-world="deathstar"] #floats .float{text-shadow:0 1px 6px rgba(0,0,0,.8)}
-#wb{position:fixed;left:0;right:0;bottom:0;padding:6px 10px calc(8px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:6px;background:linear-gradient(rgba(184,203,216,0),rgba(184,203,216,.9) 30%);z-index:6;pointer-events:none}
+body[data-world="deathstar"] #tally,body[data-world="deathstar"] #floats .float,body.dark #tally,body.dark #floats .float{text-shadow:0 1px 6px rgba(0,0,0,.8)}
+#wb{position:fixed;left:0;right:0;bottom:0;padding:6px 10px calc(8px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:6px;background:linear-gradient(transparent,var(--skyA) 30%);z-index:6;pointer-events:none}
 #wb>*{pointer-events:auto}
 #wbStat{display:none;align-items:center;gap:8px;font:11px var(--mono);letter-spacing:.06em;color:var(--dim);min-height:16px;padding:0 4px}
 #wbStat.on{display:flex}#wbStat.warn{color:var(--red)}#wbStat.ok{color:#1f7a2f}#wbStat.busy{color:var(--gold)}
@@ -148,7 +149,7 @@ body[data-world="deathstar"] #tally,body[data-world="deathstar"] #floats .float{
 #wbSheet button.go{background:#2fbf3f;color:#fff;border:none;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:0 14px}
 #wbSheet button.no{margin-left:auto}#wbSheet .ride{display:inline-flex;border:1px solid rgba(26,31,42,.25);border-radius:10px;overflow:hidden}#wbSheet .ride button{border:none;border-radius:0;min-width:44px;font-size:12px}#wbSheet .ride button.on{background:var(--ink);color:#fff}
 #bchip{position:fixed;left:14px;top:calc(100px + env(safe-area-inset-top));max-width:70vw;height:30px;line-height:30px;padding:0 10px;border:none;border-radius:9px;background:rgba(26,31,42,.12);font:11px var(--mono);letter-spacing:.06em;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:none;z-index:6}#bchip.on{display:block}#bchip.busy{background:rgba(200,144,28,.25)}#bchip.ok{background:rgba(47,191,63,.22)}#bchip.warn{background:rgba(216,56,46,.22)}body.fly #bchip{display:none}
-body[data-world="deathstar"] #bchip{background:rgba(230,234,242,.16)}
+body[data-world="deathstar"] #bchip,body.dark #bchip{background:rgba(230,234,242,.16)}
 #wbRow{display:flex;gap:6px;align-items:flex-end}
 #words{flex:1;min-width:0;height:52px;max-height:150px;padding:10px 12px;border:1px solid rgba(26,31,42,.25);border-radius:14px;font:16px/1.35 var(--sans);resize:none;background:rgba(255,255,255,.92);color:var(--ink);-webkit-user-select:text;user-select:text;box-shadow:0 4px 16px rgba(26,31,42,.12)}
 #words:focus{outline:2px solid var(--gold);border-color:transparent}
@@ -156,11 +157,11 @@ body[data-world="deathstar"] #bchip{background:rgba(230,234,242,.16)}
 #wbBuild:disabled{opacity:.55}
 #wbRead{height:52px;padding:0 12px;border:1px solid rgba(26,31,42,.25);border-radius:14px;background:rgba(255,255,255,.85);color:var(--ink);font:12px var(--mono);letter-spacing:.1em;text-transform:uppercase}
 body.drafting #wbBuild{background:var(--gold);box-shadow:0 6px 18px rgba(200,144,28,.35)}
-body[data-world="deathstar"] #wb{background:linear-gradient(rgba(11,13,18,0),rgba(11,13,18,.92) 30%)}
-body[data-world="deathstar"] #words,body[data-world="deathstar"] #wbRead,body[data-world="deathstar"] #wbSheet button{background:rgba(20,24,32,.9);color:#e6eaf2;border-color:rgba(230,234,242,.3)}
-body[data-world="deathstar"] #wbStat .bar{background:rgba(230,234,242,.18)}
+body[data-world="deathstar"] #wb,body.dark #wb{background:linear-gradient(rgba(11,13,18,0),rgba(11,13,18,.92) 30%)}
+body[data-world="deathstar"] #words,body[data-world="deathstar"] #wbRead,body[data-world="deathstar"] #wbSheet button,body.dark #words,body.dark #wbRead,body.dark #wbSheet button{background:rgba(20,24,32,.9);color:#e6eaf2;border-color:rgba(230,234,242,.3)}
+body[data-world="deathstar"] #wbStat .bar,body.dark #wbStat .bar{background:rgba(230,234,242,.18)}
 #menu .ai{display:flex;gap:6px;flex-wrap:wrap;align-items:center}#menu .ai input{width:150px}#menu .ai select{height:30px;border:1px solid rgba(26,31,42,.25);border-radius:9px;font:12px var(--sans);background:rgba(255,255,255,.7);color:var(--ink);padding:0 6px}
-body[data-world="deathstar"] #menu .ai select{background:rgba(20,24,32,.85);color:#e6eaf2;border-color:rgba(230,234,242,.3)}
+body[data-world="deathstar"] #menu .ai select,body.dark #menu .ai select{background:rgba(20,24,32,.85);color:#e6eaf2;border-color:rgba(230,234,242,.3)}
 #wbTop{display:flex;gap:6px;align-items:center;justify-content:flex-end}
 #wbTop #wbStat{flex:1;min-width:0}
 #wbTop button{height:30px;min-width:34px;padding:0 10px;border:1px solid rgba(26,31,42,.25);border-radius:9px;background:rgba(255,255,255,.85);font:12px var(--sans);color:var(--ink)}
@@ -169,10 +170,10 @@ body[data-world="deathstar"] #menu .ai select{background:rgba(20,24,32,.85);colo
 #wbOps{margin:0;padding:6px 8px;list-style:none;max-height:36vh;overflow:auto;border-radius:12px;background:rgba(255,255,255,.92);font:12px/1.4 var(--sans);color:var(--ink)}#wbOps[hidden]{display:none}#wbOps li{display:flex;gap:8px;align-items:baseline;padding:4px 4px;border-radius:8px;cursor:pointer}#wbOps li i{flex:0 0 auto;width:10px;height:10px;border-radius:3px;background:#999;margin-top:2px;align-self:center}#wbOps li b{flex:0 0 auto;font:11px var(--mono);color:var(--dim)}#wbOps li span{flex:1;min-width:0}#wbOps li em{flex:0 0 auto;font:10px var(--mono);color:var(--dim);font-style:normal}#wbOps li.lit{background:rgba(200,144,28,.25)}#wbOps li.new{animation:opIn .4s ease-out}#wbOps li.bad{color:var(--red)}
 @keyframes opIn{0%{background:rgba(47,191,63,.35)}100%{background:transparent}}
 #wbJson{margin:0;max-height:36vh;overflow:auto;padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.92);color:var(--ink);font:11px/1.45 var(--mono);white-space:pre-wrap;word-break:break-word;-webkit-user-select:text;user-select:text}#wbJson[hidden]{display:none}#wbJson .k{color:#1f5fa8}#wbJson .s{color:#1f7a2f}#wbJson .n{color:#b0512a}
-body[data-world="deathstar"] #wbOps,body[data-world="deathstar"] #wbJson,body[data-world="deathstar"] #wbCode .head button{background:rgba(20,24,32,.92);color:#e6eaf2;border-color:rgba(230,234,242,.3)}
+body[data-world="deathstar"] #wbOps,body[data-world="deathstar"] #wbJson,body[data-world="deathstar"] #wbCode .head button,body.dark #wbOps,body.dark #wbJson,body.dark #wbCode .head button{background:rgba(20,24,32,.92);color:#e6eaf2;border-color:rgba(230,234,242,.3)}
 #wbLog{display:flex;flex-direction:column;gap:6px;max-height:45vh}#wbLog[hidden]{display:none}#wbLog pre{margin:0;flex:1;min-height:80px;max-height:38vh;overflow:auto;padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.92);color:var(--ink);font:11px/1.45 var(--mono);white-space:pre-wrap;word-break:break-word;-webkit-user-select:text;user-select:text}
 #wbLog .row{display:flex;gap:6px;justify-content:flex-end}#wbLog .row button{height:28px;padding:0 10px;border:1px solid rgba(26,31,42,.25);border-radius:9px;background:rgba(255,255,255,.85);font:11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink)}
-body[data-world="deathstar"] #wbLog pre,body[data-world="deathstar"] #wbLog .row button{background:rgba(20,24,32,.92);color:#e6eaf2;border-color:rgba(230,234,242,.3)}
+body[data-world="deathstar"] #wbLog pre,body[data-world="deathstar"] #wbLog .row button,body.dark #wbLog pre,body.dark #wbLog .row button{background:rgba(20,24,32,.92);color:#e6eaf2;border-color:rgba(230,234,242,.3)}
 #wbKeyRow{display:none;gap:6px;align-items:center}#wbKeyRow.on{display:flex}
 #wbKeyRow input{flex:1;min-width:0;height:40px;padding:0 12px;border:1px solid rgba(26,31,42,.25);border-radius:12px;font:14px var(--mono);background:rgba(255,255,255,.92);color:var(--ink);-webkit-user-select:text;user-select:text}
 #wbKeyRow button{height:40px;padding:0 14px;border:none;border-radius:12px;background:#2fbf3f;color:#fff;font:800 12px var(--sans);letter-spacing:.08em;text-transform:uppercase}
@@ -181,8 +182,8 @@ body[data-world="deathstar"] #wbLog pre,body[data-world="deathstar"] #wbLog .row
 body.wb-off{--wb:0px}body.wb-off #wb{display:none}body.wb-off #wbSay{display:block}
 body.wb-off #hint{bottom:calc(78px + env(safe-area-inset-bottom));left:14px;right:14px}body.wb-off #keys{bottom:calc(78px + env(safe-area-inset-bottom))}
 body.build #wbSay,body.fly #wbSay{display:none}
-body[data-world="deathstar"] #wbTop button,body[data-world="deathstar"] #wbKeyRow input{background:rgba(20,24,32,.9);color:#e6eaf2;border-color:rgba(230,234,242,.3)}
-#flash{position:fixed;inset:0;background:rgba(216,56,46,.3);opacity:0;pointer-events:none;transition:opacity .1s;z-index:3}#flash.on{opacity:1}
+body[data-world="deathstar"] #wbTop button,body[data-world="deathstar"] #wbKeyRow input,body.dark #wbTop button,body.dark #wbKeyRow input{background:rgba(20,24,32,.9);color:#e6eaf2;border-color:rgba(230,234,242,.3)}
+#flash{position:fixed;inset:0;background:rgba(216,56,46,.3);opacity:0;pointer-events:none;transition:opacity .1s;z-index:3}#flash.on{opacity:1}#flash.white{background:rgba(255,255,255,.55);transition:none}
 #keys{display:none;position:fixed;left:50%;bottom:calc(var(--wb) + 4px + env(safe-area-inset-bottom));transform:translateX(-50%);font:11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--dim);white-space:nowrap;z-index:4;pointer-events:none}
 @media (hover:hover) and (pointer:fine){#keys{display:block}}
 </style>
@@ -217,6 +218,6 @@ body[data-world="deathstar"] #wbTop button,body[data-world="deathstar"] #wbKeyRo
 <div id="hint">say what to build, or walk: left thumb walks · right thumb looks · tap right swings the saber</div>
 <div id="keys">wasd walk · mouse drag look · space saber · f push · g detonator · b build · shift run · e board / land</div>
 <div id="veil"><div class="k">word to world</div><h1 id="vTitle">Finding a place</h1><div class="bricks"><i></i><i></i><i></i><i></i><i></i></div><div class="m" id="vm"></div><ol id="stages"><li data-s="place">place</li><li data-s="ground">ground</li><li data-s="imagery">imagery</li><li data-s="buildings">buildings</li><li data-s="ship">the ship and Vader</li><li data-s="bricks">bricks</li></ol><button id="vStart" hidden>Start now</button></div>
-<script src="./world/main.js?v=b3ed3e90"></script>
+<script src="./world/main.js?v=29d39c0c"></script>
 </body>
 </html>

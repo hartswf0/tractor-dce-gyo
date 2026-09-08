@@ -55,6 +55,8 @@ class Grid {
   reserve(x, y, z) { if (y < 0 || y > 300) return; this.cells.set(this.key(x, y, z), { col: -1, r: 1 }); if (y > this.maxY) this.maxY = y; }
   clear(x, y, z) { this.cells.delete(this.key(x, y, z)); }
   get(x, y, z) { return this.cells.get(this.key(x, y, z)); }
+  /** The highest plate anything occupies over a footprint, or null when the column is empty. */
+  topAt(x, z, w, d) { for (let yy = this.maxY; yy >= 0; yy--) for (let xx = x; xx < x + w; xx++) for (let zz = z; zz < z + d; zz++) if (this.cells.has(this.key(xx, yy, zz))) return yy; return null; }
   fillBox(x, z, w, d, y0, y1, col, kind) { for (let yy = y0; yy < y1; yy++) for (let xx = x; xx < x + w; xx++) for (let zz = z; zz < z + d; zz++) this.set(xx, yy, zz, col, kind); }
   clearBox(x, z, w, d, y0, y1, keepParts) { for (let yy = y0; yy < y1; yy++) for (let xx = x; xx < x + w; xx++) for (let zz = z; zz < z + d; zz++) { if (keepParts) { const c = this.get(xx, yy, zz); if (c && c.r) continue; } this.clear(xx, yy, zz); } }
   reserveBox(x, z, w, d, y0, y1) { for (let yy = y0; yy < y1; yy++) for (let xx = x; xx < x + w; xx++) for (let zz = z; zz < z + d; zz++) this.reserve(xx, yy, zz); }
@@ -107,8 +109,9 @@ const OPS = {
     } },
   door(g, o) { const f = FACE[String(o.facing || 's').toLowerCase()[0]] ?? 2, x = I(o.x), z = I(o.z), y = I(o.y) * BRICK, col = colOf(o.col, 70), along = f === 0 || f === 2;
     const w = along ? 4 : 1, d = along ? 1 : 4; g.clearBox(x, z, w, d, y, y + 6 * BRICK, true); g.part('60623', col, x, z, y, along ? 0 : 1, w, d, 6 * BRICK); },
-  window(g, o) { const f = FACE[String(o.facing || 's').toLowerCase()[0]] ?? 2, x = I(o.x), z = I(o.z), y = I(o.y, 1) * BRICK, col = colOf(o.col, 15), along = f === 0 || f === 2;
-    const w = along ? 2 : 1, d = along ? 1 : 2; g.clearBox(x, z, w, d, y, y + 2 * BRICK, true); g.part('60592', col, x, z, y, along ? 0 : 1, w, d, 2 * BRICK); },
+  window(g, o) { const f = FACE[String(o.facing || 's').toLowerCase()[0]] ?? 2, x = I(o.x), z = I(o.z), col = colOf(o.col, 15), along = f === 0 || f === 2; let y = I(o.y, 1) * BRICK;
+    const w = along ? 2 : 1, d = along ? 1 : 2, top = g.topAt(x, z, w, d); if (top != null && y + 2 * BRICK > top + 1) y = Math.max(0, top + 1 - 2 * BRICK);   // a window never rises past the wall it sits in
+    g.clearBox(x, z, w, d, y, y + 2 * BRICK, true); g.part('60592', col, x, z, y, along ? 0 : 1, w, d, 2 * BRICK); },
   arch(g, o) { const f = FACE[String(o.facing || 's').toLowerCase()[0]] ?? 2, x = I(o.x), z = I(o.z), y = I(o.y) * BRICK, col = colOf(o.col, 19), along = f === 0 || f === 2, hb = clamp(I(o.h, 2), 1, 6);
     const w = along ? 6 : 1, d = along ? 1 : 6;
     g.clearBox(x, z, w, d, y, y + hb * BRICK, true);
@@ -150,8 +153,16 @@ function figureDef(o) {
   if (L.tool !== undefined) { const t = TOOLS[String(L.tool).toLowerCase()]; d.tool = t ? [t[0], colOf(L.toolCol, t[1])] : String(L.tool) === 'none' ? null : [String(L.tool), colOf(L.toolCol, 0)]; }
   return d;
 }
-/* the kit's own figure offsets (LDraw frame, y down, soles at y = 72) — the same table world/minifig.js uses */
-const HAND_R = '-23.3 23.6 -9.3 0.985 -0.12019 0.12019 0.17 0.696395 -0.696395 0 0.707 0.707', HAND_L = '23.3 23.6 -9.3 0.985 0.12019 -0.12019 -0.17 0.696395 -0.696395 0 0.707 0.707';
+/* the kit's own figure offsets (LDraw frame, y down, soles at y = 72) — the same table world/minifig.js uses; a tool goes in the fist (3820's grip: 9.9 LDU ahead of the hand's origin, 14.5° tilt) */
+const HAND_R_M = [-23.8634, 26.5956, -10.321, 0.985, -0.12019, 0.12019, 0.17, 0.696395, -0.696395, 0, 0.707, 0.707], HAND_L_M = [23.8634, 26.5956, -10.321, 0.985, 0.12019, -0.12019, -0.17, 0.696395, -0.696395, 0, 0.707, 0.707];
+const rx3 = a => { const c = Math.cos(a), s = Math.sin(a); return [1, 0, 0, 0, c, -s, 0, s, c]; };
+const mul3 = (a, b) => [a[0] * b[0] + a[1] * b[3] + a[2] * b[6], a[0] * b[1] + a[1] * b[4] + a[2] * b[7], a[0] * b[2] + a[1] * b[5] + a[2] * b[8], a[3] * b[0] + a[4] * b[3] + a[5] * b[6], a[3] * b[1] + a[4] * b[4] + a[5] * b[7], a[3] * b[2] + a[4] * b[5] + a[5] * b[8], a[6] * b[0] + a[7] * b[3] + a[8] * b[6], a[6] * b[1] + a[7] * b[4] + a[8] * b[7], a[6] * b[2] + a[7] * b[5] + a[8] * b[8]];
+const ap3 = (a, v) => [a[0] * v[0] + a[1] * v[1] + a[2] * v[2], a[3] * v[0] + a[4] * v[1] + a[5] * v[2], a[6] * v[0] + a[7] * v[1] + a[8] * v[2]];
+const GRIP_ROT = rx3(14.5 * Math.PI / 180), FLIP3 = rx3(Math.PI);
+const toolMount = (hand, bar) => { const R = hand.slice(3), p = ap3(R, [0, -0.8229, -9.8948]), rot = mul3(mul3(R, GRIP_ROT), bar ? FLIP3 : [1, 0, 0, 0, 1, 0, 0, 0, 1]); return [hand[0] + p[0], hand[1] + p[1], hand[2] + p[2], ...rot]; };
+const mat = m => m.map(v => +(+v).toFixed(4)).join(' ');
+const HAND_R = mat(HAND_R_M), HAND_L = mat(HAND_L_M), TOOL_R = mat(toolMount(HAND_R_M, false)), TOOL_R_BAR = mat(toolMount(HAND_R_M, true));
+const BARS = new Set(['30374', '4497', '6124', '3836']);                       // parts whose origin is one end of a bar: turned over to rise from the fist
 const FIG_LINES = def => {
   const L = [];
   L.push(`1 ${def.legs} 0 44 0 1 0 0 0 1 0 0 0 1 parts/3816.dat`, `1 ${def.legs} 0 44 0 1 0 0 0 1 0 0 0 1 parts/3817.dat`, `1 ${def.hips} 0 32 0 1 0 0 0 1 0 0 0 1 parts/3815.dat`);
@@ -161,7 +172,7 @@ const FIG_LINES = def => {
   L.push(`1 ${def.head} 0 -24 0 1 0 0 0 1 0 0 0 1 parts/3626b.dat`);
   if (def.hat) L.push(`1 ${def.hat[1]} 0 -24 0 1 0 0 0 1 0 0 0 1 parts/${def.hat[0]}.dat`);
   if (def.cape) L.push(`1 ${def.cape[1]} 0 0 0 1 0 0 0 1 0 0 0 1 parts/${def.cape[0]}.dat`); if (def.collar) L.push(`1 ${def.collar[1]} 0 0 0 1 0 0 0 1 0 0 0 1 parts/${def.collar[0]}.dat`);
-  if (def.tool) L.push(`1 ${def.tool[1]} ${HAND_R} parts/${def.tool[0]}.dat`);
+  if (def.tool) L.push(`1 ${def.tool[1]} ${BARS.has(String(def.tool[0])) ? TOOL_R_BAR : TOOL_R} parts/${def.tool[0]}.dat`);
   return L;
 };
 /** A standing figure as an MPD with its soles on y = 0 of the prop frame. */
