@@ -25,6 +25,7 @@
 | crowd | `characters.js` | citizens and troopers; troopers shoot unless `peace` | `crowd.hitWithin / hitBy` |
 | debris | `debris.js` | everything that falls | spheres from the loop |
 | fx | `fx.js` | sounds, haptics, smoke, hit marks | |
+| lease | `lease.js` | one live instance per browser: booting claims the graphics over a BroadcastChannel, other tabs drop their WebGL context and wait behind a Resume veil, a tab hidden 90 s lets go on its own; `?lease=share` for a room guest in the same browser | |
 | sky | `sky.js` | a dome and sun on the camera, stars, cloud sprites, rain points; `worlds.js` gives the day colours, the clock at the place (or a pinned mode) turns them toward night, the weather greys and fogs them | |
 
 `allBoxes(x, z, r)` in main.js is the union the TIE and the debris use; `pushOut(pos, r)` is the walker's; `WALK.groundH` stacks bricks and props on the ground.
