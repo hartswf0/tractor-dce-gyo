@@ -83,7 +83,7 @@ function buildingHeight(tags) {
   const lv = parseFloat(tags['building:levels'] || tags.levels); if (Number.isFinite(lv) && lv > 0) return lv * 3.1;
   return GUESS_H[tags.building] || 5;
 }
-const overpassQuery = b => `[out:json][timeout:25];(way["building"](${b});relation["building"](${b});way["highway"](${b}););out geom;`;
+const overpassQuery = b => `[out:json][timeout:25];(way["building"](${b});relation["building"](${b});way["highway"](${b});way["amenity"="parking"](${b});relation["amenity"="parking"](${b}););out geom;`;
 /** Ask one mirror; 429/503/504 count as failures so the race moves on. */
 async function askMirror(url, query, ms, signal) {
   const ctl = new AbortController(); const onAbort = () => ctl.abort(); if (signal) signal.addEventListener('abort', onAbort, { once: true });
@@ -98,7 +98,7 @@ async function askMirror(url, query, ms, signal) {
 }
 /** All mirrors are asked at once and the first good answer wins; the losers are aborted. A second round only if every mirror failed. */
 async function fetchOverpass(bbox, { signal, perMirrorMs = 40000, rounds = 2 } = {}) {
-  const key = 'world-osm:' + bbox.map(v => v.toFixed(4)).join(',');
+  const key = 'world-osm:2:' + bbox.map(v => v.toFixed(4)).join(',');   // the 2 is the query's shape: parking lots came with it, and an older answer must not be reused
   try { const c = localStorage.getItem(key); if (c) return JSON.parse(c); } catch (e) {}
   const query = overpassQuery(bbox.join(',')); let lastErr = null;
   for (let round = 0; round < rounds; round++) {
@@ -123,8 +123,8 @@ function rememberOSM(key, j) {                     // a small LRU in localStorag
 async function fetchOSM({ lat, lon, spanM, P, signal }) {
   P = P || proj(lat, lon); const half = spanM / 2, nw = P.toWGS(-half, -half), se = P.toWGS(half, half);
   const bbox = [se.lat, nw.lon, nw.lat, se.lon];
-  let j; try { j = await fetchOverpass(bbox, { signal }); NET.osm++; } catch (e) { fail('overpass', e); return { ok: false, buildings: [], roads: [] }; }
-  const buildings = [], roads = [];
+  let j; try { j = await fetchOverpass(bbox, { signal }); NET.osm++; } catch (e) { fail('overpass', e); return { ok: false, buildings: [], roads: [], areas: [] }; }
+  const buildings = [], roads = [], areas = [];
   const ring = geom => { const r = geom.map(g => P.toLocal(g.lat, g.lon)); if (r.length > 1 && Math.hypot(r[0].x - r[r.length - 1].x, r[0].z - r[r.length - 1].z) < 0.01) r.pop(); return r; };
   for (const el of j.elements || []) {
     const tags = el.tags || {};
@@ -133,11 +133,15 @@ async function fetchOSM({ lat, lon, spanM, P, signal }) {
       const h = buildingHeight(tags);
       for (const m of el.members) if (m.role === 'outer' && m.geometry && m.geometry.length >= 4) buildings.push({ id: el.id * 100 + (m.ref % 100), ring: ring(m.geometry), h, kind: tags.building });
     } else if (el.type === 'way' && tags.highway && el.geometry && el.geometry.length >= 2) {
+      if (tags.highway === 'pedestrian' && tags.area === 'yes' && el.geometry.length >= 4) { areas.push({ id: el.id, kind: 'plaza', ring: ring(el.geometry) }); continue; }
       const w = ROAD_W[tags.highway] || (tags.highway.endsWith('_link') ? 5 : 3);
       roads.push({ id: el.id, pts: el.geometry.map(g => P.toLocal(g.lat, g.lon)), w, kind: tags.highway });
+    } else if (tags.amenity === 'parking' && !tags.building) {
+      if (el.type === 'way' && el.geometry && el.geometry.length >= 4) areas.push({ id: el.id, kind: 'parking', ring: ring(el.geometry) });
+      else if (el.type === 'relation' && el.members) for (const m of el.members) if (m.role === 'outer' && m.geometry && m.geometry.length >= 4) areas.push({ id: el.id * 100 + (m.ref % 100), kind: 'parking', ring: ring(m.geometry) });
     }
   }
-  return { ok: true, buildings, roads, bbox };
+  return { ok: true, buildings, roads, areas, bbox };
 }
 
 /* ───────────────────────── imagery ───────────────────────── */

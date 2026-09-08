@@ -129,6 +129,29 @@ function setSky(mode) { if (!(mode in Sky.MODES)) return; W.skyMode = mode; try 
 function setWeather(w) { if (!Sky.WEATHER[w]) return; W.weather = w; try { localStorage.setItem('world.weather', w); } catch (e) { } markMenu(); skyApply(); toast(w, 900); }
 /** The page's own chrome takes the horizon colour: the veil, the word bar's fade, the tab. */
 function skyColour(hex, dark, c) { const r = document.documentElement.style; r.setProperty('--sky', hex); r.setProperty('--skyA', `rgba(${Math.round(c.r * 255)},${Math.round(c.g * 255)},${Math.round(c.b * 255)},.9)`); document.body.classList.toggle('dark', !!dark); const m = document.querySelector('meta[name=theme-color]'); if (m) m.content = hex; }
+/** Night from the sky, handed to everything that glows: windows, lamps, headlights, the frame. */
+function nightFall(n) {
+  W.night = n; if (W.city) W.city.setNight(n); if (W.lamps) W.lamps.setNight(n);
+  document.documentElement.style.setProperty('--vig', (0.3 + 0.35 * n).toFixed(2)); setGlows();
+}
+const GLOW_TEX = { get: () => GLOW_TEX.t || (GLOW_TEX.t = Lamps.radial()) };
+function glowSprite(colour, size, opacity) { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: GLOW_TEX.get(), color: colour, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity, fog: false })); s.scale.set(size, size, 1); return s; }
+/** Headlights on a ride: two lamps at the front, a pool ahead on the ground; brighter at night. */
+function addHeadlights(V) {
+  const g = new THREE.Group(); g.name = 'headlights'; const r = V.r, h = 0.6 * M;
+  for (const sx of [-1, 1]) { const s = glowSprite(0xfff2c0, 1.4 * M, 0.9); s.position.set(sx * r * 0.35, h, r * 0.95); g.add(s); }
+  const pool = new THREE.Mesh(new THREE.PlaneGeometry(7 * M, 11 * M), new THREE.MeshBasicMaterial({ map: GLOW_TEX.get(), color: 0xffe0a0, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0.6, fog: false, side: THREE.DoubleSide }));
+  pool.rotation.x = -Math.PI / 2; pool.position.set(0, 0.2 * M - V.K.hover * M, r + 5.5 * M); pool.name = 'headPool'; g.add(pool);
+  V.group.add(g); V.lights = g; setGlows(); return g;
+}
+function dropHeadlights(V) { if (V && V.lights) { V.group.remove(V.lights); V.lights.traverse(o => { if (o.material) o.material.dispose(); if (o.geometry) o.geometry.dispose(); }); V.lights = null; } }
+/** The TIE's ion engines: two green glows at the back, brighter when it flies. */
+function tieGlow() { if (!W.ship || W.ship.getObjectByName('engineGlow')) return; const g = new THREE.Group(); g.name = 'engineGlow'; for (const sx of [-1, 1]) { const s = glowSprite(0x7fffb0, 44, 0.5); s.position.set(sx * 26, 4, -72); g.add(s); } W.ship.add(g); }
+function setGlows() {
+  const n = W.night || 0, k = 0.3 + 0.7 * n;
+  if (W.veh && W.veh.lights) W.veh.lights.traverse(o => { if (o.isSprite) o.material.opacity = 0.9 * k; else if (o.name === 'headPool') o.material.opacity = 0.65 * n + 0.08; });
+  const eg = W.ship && W.ship.getObjectByName('engineGlow'); if (eg) eg.traverse(o => { if (o.isSprite) o.material.opacity = (W.mode === 'fly' ? 0.85 : 0.25) * (0.5 + 0.5 * n); });
+}
 function lightning() { const f = $('#flash'); f.classList.add('white', 'on'); setTimeout(() => f.classList.remove('on'), 120); setTimeout(() => f.classList.remove('white'), 300); W.shake = Math.max(W.shake, 0.15); setTimeout(() => { Fx.Sfx.thud(0.9); Fx.haptic(20); }, 400 + Math.random() * 1500); }
 
 /* ───────────────────────── the place and its window ───────────────────────── */
@@ -165,14 +188,22 @@ async function loadWindow(place, wait = 15000) {
   return out;
 }
 function applyOSM(win, osm) {
-  if (osm.ok) { win.buildings = osm.buildings; win.roads = osm.roads; win.village = false; } else { const v = Bricks.village(); win.buildings = v.buildings; win.roads = v.roads; win.village = true; }
+  if (osm.ok) { win.buildings = osm.buildings; win.roads = osm.roads; win.areas = osm.areas || []; win.village = false; } else { const v = Bricks.village(); win.buildings = v.buildings; win.roads = v.roads; win.areas = v.areas || []; win.village = true; }
   W.net.osm = osm.ok; win.pending = null; stage('buildings', 'done', `${win.buildings.length} buildings, ${win.roads.length} roads`); try { console.info(`[place] ${win.place.name}: ${win.buildings.length} buildings · ${win.roads.length} roads${osm.ok ? ' from OpenStreetMap' : ' (village)'}`); } catch (e) { }
+}
+/** The street layers on a ground: roads, then sidewalks, paths, lots and crossings; the old ones go first. */
+function dropStreets(G) { for (const k of ['roads', 'streets']) if (G[k]) { W.scene.remove(G[k]); G[k].geometry.dispose(); G[k].material.dispose(); G[k] = null; } }
+function layStreets(G, win) {
+  dropStreets(G);
+  const roads = Ground.roads(G, win.roads || [], M); if (roads) W.scene.add(roads);
+  const streets = Ground.streets(G, win, M); if (streets) W.scene.add(streets);
+  if (W.lamps) { W.lamps.lay(G, win.roads || [], Ground.FOOT); W.lamps.setNight(W.night || 0); }
+  try { console.info(`[roads] ${(win.roads || []).length} roads · ${roads ? roads.geometry.attributes.position.count / 3 : 0} triangles · streets ${streets ? streets.geometry.attributes.position.count / 3 : 0} triangles · ${(win.areas || []).length} lots`); } catch (e) { }
 }
 /** Buildings that arrived after we started walking: the city, the roads, the crowd and the saved damage. */
 function installBuildings(win, osm) {
   applyOSM(win, osm); VEIL.buildingsAt = performance.now() / 1000; if (W.win !== win) return;
-  if (W.G.roads) { W.scene.remove(W.G.roads); W.G.roads.geometry.dispose(); W.G.roads = null; }
-  const roads = Ground.roads(W.G, win.roads, M); if (roads) W.scene.add(roads);
+  layStreets(W.G, win);
   W.city.set(win.buildings); loadDamage(); W.crowd.setRoads(win.roads);
   const pos = W.mode === 'walk' ? W.rig.pos : W.tie.pos; if (!W.crowd.remote) W.crowd.populate(pos);
   if (W.mode === 'walk' && W.city.near(pos.x, pos.z, 2 * M).some(b => Bricks.pointInRing(pos.x / M, pos.z / M, b.ring))) { const s = spawnPoint(win); W.rig.pos.set(s.x * M, W.G.h(s.x * M, s.z * M), s.z * M); }
@@ -181,10 +212,10 @@ function installBuildings(win, osm) {
 }
 function installWindow(win) {
   const scene = W.scene, preset = Worlds.PRESETS[W.world];
-  if (W.G) { scene.remove(W.G.mesh); W.G.mesh.geometry.dispose(); if (W.G.roads) { scene.remove(W.G.roads); W.G.roads.geometry.dispose(); } }
+  if (W.G) { scene.remove(W.G.mesh); W.G.mesh.geometry.dispose(); dropStreets(W.G); }
   const G = Ground.make(win.field, M, preset.paint); scene.add(G.mesh);
   if (win.imagery && preset.imagery) Ground.drape(G, win.imagery);
-  const roads = Ground.roads(G, win.roads, M); if (roads) scene.add(roads); try { console.info(`[roads] ${win.roads.length} roads · ${roads ? roads.geometry.attributes.position.count / 3 : 0} triangles`); } catch (e) { }
+  layStreets(G, win);
   W.G = G; W.P = win.P; W.place = win.place; W.win = win;
   $('#place').textContent = win.place.name + (win.village ? ' · village' : '');
   if (W.city) { W.city.groundM = G.hM; W.city.set(win.buildings); }
@@ -351,7 +382,7 @@ function readKeys() {
 
 /* ───────────────────────── collisions shared by everyone on foot ───────────────────────── */
 function pushOut(pos, r) {
-  for (const b of W.city.near(pos.x, pos.z, r + 2 * M)) pushRing(pos, r, b.ringL, b.y0, b.yTop);
+  for (const b of W.city.near(pos.x, pos.z, r + 2 * M)) { if (W.mode === 'walk' && !W.dead) pushWalls(pos, r, b); else pushRing(pos, r, b.ringL, b.y0, b.yTop); }
   if (W.build) W.build.pushOut(pos, r, 100);
   if (W.props) W.props.pushOut(pos, r, 100);
   if (W.mode === 'walk' && W.ship) { const s = W.ship.position; pushRing(pos, r, [{ x: s.x - 170, z: s.z - 85 }, { x: s.x + 170, z: s.z - 85 }, { x: s.x + 170, z: s.z + 85 }, { x: s.x - 170, z: s.z + 85 }], s.y - 200, s.y + 200); }
@@ -365,6 +396,17 @@ function pushRing(pos, r, ring, y0, y1) {
   if (inside) { const n = Math.hypot(pos.x - bx, pos.z - bz) || 1, ox = (pos.x - bx) / n, oz = (pos.z - bz) / n, cx = ring.reduce((s, p) => s + p.x, 0) / ring.length, cz = ring.reduce((s, p) => s + p.z, 0) / ring.length; const sgn = (ox * (bx - cx) + oz * (bz - cz)) >= 0 ? 1 : -1; pos.x = bx + ox * sgn * (r + 1); pos.z = bz + oz * sgn * (r + 1); }
   else if (bd < r) { const n = Math.hypot(pos.x - bx, pos.z - bz) || 1; pos.x = bx + (pos.x - bx) / n * r; pos.z = bz + (pos.z - bz) / n * r; }
 }
+/** On foot a building is its walls, brick by brick: a hole three courses tall, or an open door, lets you in; the roof is over your head. */
+function pushWalls(pos, r, b) {
+  if (pos.y + 20 < b.y0 || pos.y > b.yTop) return;
+  if (!b.bricks) b.bricks = Bricks.buildBricks(b, W.colours, M); const edges = b.edges; if (!edges || !edges.length) return pushRing(pos, r, b.ringL, b.y0, b.yTop);
+  for (let e = 0; e < edges.length; e++) {
+    const E = edges[e], rx = pos.x - E.A.x, rz = pos.z - E.A.z, s = rx * E.ux + rz * E.uz, d = rx * E.nx + rz * E.nz - 20;   // d: distance from the wall's centre plane (the bricks stand 20 LDU inside the ring), positive inside
+    if (s < -r || s > E.L + r || Math.abs(d) >= r + 10) continue;
+    if (W.city.gapAt(b, e, clamp(s, 0, E.L), pos.y, r * 0.8)) continue;
+    const sign = d >= 0 ? 1 : -1, push = r + 10 - Math.abs(d); pos.x += E.nx * sign * push; pos.z += E.nz * sign * push;
+  }
+}
 /** Line of sight between two points on foot: no building ring crosses the segment. */
 function los(a, b) {
   const mx = (a.x + b.x) / 2, mz = (a.z + b.z) / 2, half = Math.hypot(b.x - a.x, b.z - a.z) / 2;
@@ -374,7 +416,7 @@ function los(a, b) {
 function segCross(ax, az, bx, bz, cx, cz, dx, dz) { const d1 = (bx - ax) * (cz - az) - (bz - az) * (cx - ax), d2 = (bx - ax) * (dz - az) - (bz - az) * (dx - ax), d3 = (dx - cx) * (az - cz) - (dz - cz) * (ax - cx), d4 = (dx - cx) * (bz - cz) - (dz - cz) * (bx - cx); return d1 * d2 < 0 && d3 * d4 < 0; }
 const WORLD = { groundH: (x, z) => W.G.h(x, z), pushOut };
 /** What feet stand on: the ground, or a placed brick no higher than a step above them. */
-const WALK = { groundH: (x, z) => { const g = W.G.h(x, z); if (!W.build || !W.rig) return g; const f = Math.max(W.build.floorAt(x, z, W.rig.pos.y + 30), W.props ? W.props.floorAt(x, z, W.rig.pos.y + 30) : -Infinity); return f > g ? f : g; }, pushOut };
+const WALK = { groundH: (x, z) => { const g = W.G.h(x, z); if (!W.build || !W.rig) return g; const f = Math.max(W.build.floorAt(x, z, W.rig.pos.y + 30), W.props ? W.props.floorAt(x, z, W.rig.pos.y + 30) : -Infinity, W.debris ? W.debris.floorAt(x, z, W.rig.pos.y + 30) : -Infinity); return f > g ? f : g; }, pushOut };   // rubble is a floor too
 /** Boxes that stop ships, bolts and debris: buildings and builds. */
 function allBoxes(x, z, r) { let a = W.city.aabbs(x, z, r); if (W.build) a = a.concat(W.build.aabbs(x, z, r)); if (W.props) a = a.concat(W.props.aabbs(x, z, r)); return a; }
 
@@ -475,7 +517,7 @@ function boardVehicle(it) {
   if (W.mode !== 'walk' || W.dead || !it || !it.ready) return;
   const V = Drive.create({ prop: it, M, groundH: WORLD.groundH, aabbs: (x, z, r) => allBoxes(x, z, r).filter(b => b !== it.box) });
   W.veh = V; W.mode = 'ride'; document.body.classList.add('ride'); $('#mode').textContent = `${V.fly ? 'fly' : 'drive'} · ${V.kind}`; hintFor();
-  seatFigure(W.rig, V); primary = null; W.input.L.mag = 0; W.rideAcc = 0; W.fireAcc = 0; toast(`${vehicleVerb(it).toLowerCase()} the ${V.kind}`, 900); Fx.Sfx.thud(0.2);
+  seatFigure(W.rig, V); addHeadlights(V); primary = null; W.input.L.mag = 0; W.rideAcc = 0; W.fireAcc = 0; toast(`${vehicleVerb(it).toLowerCase()} the ${V.kind}`, 900); Fx.Sfx.thud(0.2);
   if (W.build && W.build.on) toggleBuild(false);
 }
 /** The driver in the seat: the figure rides inside the vehicle group, sitting, at the middle of its box just below the top. */
@@ -497,7 +539,7 @@ function rideFire(heavy) {
 }
 /** Out again: the figure steps out beside the vehicle, which stays where it was parked, for everyone. */
 function leaveVehicle() {
-  const V = W.veh; if (!V) return; unseatFigure(W.rig);
+  const V = W.veh; if (!V) return; unseatFigure(W.rig); dropHeadlights(V);
   Drive.park(V); W.props.moved(V.prop); W.veh = null;
   W.mode = 'walk'; document.body.classList.remove('ride'); $('#mode').textContent = 'walk · ' + Minifig.DEFS[W.character].name; hintFor();
   const side = V1.set(Math.cos(V.heading), 0, -Math.sin(V.heading)), off = V.r + 1.2 * M;
@@ -576,11 +618,12 @@ function simulate(dt) {
   if (W.room.role) { W.room.tick(dt); netTick(dt); stepRemotes(dt); }
   W.build.tick(dt); if (W.props) W.props.tick(dt); if ((W.dmgAcc += dt) > 2) { W.dmgAcc = 0; saveDamage(); }
   W.crowd.step(dt, { player: { pos: playerPos(), alive: W.mode === 'walk' && !W.dead, peace: peaceNow(), running: W.input.run && W.rig.speed > 3 * M, vel: W.rig.vel }, tie: { pos: W.mode === 'ride' ? W.veh.pos : W.tie.pos, flying: W.mode === 'fly' || (W.mode === 'ride' && Math.abs(W.veh.speed) > 2 * M) }, bolts: W.bolts, debris: W.debris, los, pushOut });
-  W.city.update(W.camera, playerPos());
+  W.city.update(W.camera, playerPos()); if (W.mode === 'walk') W.city.doors(W.rig.pos, dt);
   if ((W.hudAcc = (W.hudAcc || 0) + dt) > 0.1) { W.hudAcc = 0; paint(); }
   if ((W.landAcc = (W.landAcc || 0) + dt) > 1) { W.landAcc = 0; maybeReland(); }
 }
 function paint() {
+  setGlows();
   const st = W.city.stats(), cs = W.crowd.stats();
   { const t = $('#tally'), txt = W.tally.bricks ? `${W.tally.bricks.toLocaleString()} bricks · ${st.levelled} levelled` : ''; if (t.textContent !== txt) { t.textContent = txt; t.classList.remove('pulse'); void t.offsetWidth; t.classList.add('pulse'); } }
   if (W.mode === 'walk') { $('#stat').textContent = `${st.buildings} buildings · ${W.win ? W.win.roads.length : 0} roads · ${cs.alive} people${W.build.pieces.size ? ' · ' + W.build.pieces.size + ' built' : ''}\n${Math.round(W.rig.speed / M * 3.6)} km/h · ${W.dets} detonators`; $('#shieldFill').style.width = W.health + '%'; $('#shield').classList.toggle('low', W.health < 40); $('#det').classList.toggle('on', W.dets > 0 && !W.dead); }
@@ -641,18 +684,20 @@ async function boot() {
     const viewerP = makeViewerPatiently(), placeP = resolvePlace();
     const engine = await viewerP; W.engine = engine; W.scene = engine.scene; W.camera = engine.camera; W.renderer = engine.renderer; W.loader = engine.loader;
     engine.setDiagnostics({ axes: false, grid: false }); watchContext(engine.renderer.domElement);
-    engine.camera.far = 90000; engine.camera.fov = innerHeight > innerWidth ? 55 : 50; engine.camera.updateProjectionMatrix();
+    engine.camera.near = 4; engine.camera.far = 90000; engine.camera.fov = innerHeight > innerWidth ? 55 : 50; engine.camera.updateProjectionMatrix();
     if ((navigator.maxTouchPoints || 0) > 0) engine.renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
     const place = await placeP; stage('place', 'done', place.name); $('#vTitle').textContent = place.name; $('#place').textContent = place.name;
     const modelsP = (stage('ship', 'now'), loadModels(engine));
     const win = await loadWindow(place);
     const models = await modelsP; stage('ship', 'done');
     Ground.daylight(W.scene, W.renderer, W.loader, M);
-    W.sky = Sky.create({ scene: W.scene, M, lights: Ground.daylight.lights, onLightning: lightning, onColour: skyColour });
+    W.lamps = Lamps.create({ scene: W.scene, M });
+    W.sky = Sky.create({ scene: W.scene, M, lights: Ground.daylight.lights, onLightning: lightning, onColour: skyColour, onNight: nightFall });
     W.colours = code => { const m = W.loader.getMaterial(String(code)); return m ? m.color : new THREE.Color(0xff00ff); };
     W.geoms = Bricks.harvest(models.harvest); for (const g of models.harvest) models.root.remove(g);
     W.raw = harvestRaw(models.fig); for (const g of models.fig) models.root.remove(g);
     W.ship = engine.modelWrapper; W.ship.traverse(o => { if (o.isMesh && o.material) for (const m of Array.isArray(o.material) ? o.material : [o.material]) m.fog = true; });
+    tieGlow();
     engine.controls.enabled = false; engine.controls = null;
     W.city = new Bricks.City({ scene: W.scene, M, geoms: W.geoms, groundM: (x, z) => 0, colours: W.colours, palette: Worlds.PRESETS[W.world].palette });
     W.geomsO = Bricks.harvestOrigin(models.harvest);
@@ -1141,6 +1186,7 @@ Object.assign(W, {
   stick: (x, y) => { const t = W.mode === 'fly' ? W.input.fly : W.input.L; t.x = x; t.y = y; t.mag = Math.min(1, Math.hypot(x, y)); t.held = t.mag > 0; },
   look: (dx, dy) => { W.input.look.dx += dx; W.input.look.dy += dy; },
   saber: () => { W.input.saber = true; }, run: on => { W.input.runHook = on; }, boost: on => { W.input.boostHook = on; }, fire: () => { W.input.fireOnce = true; }, torpedo: () => { W.input.torpedo = true; }, push: () => { W.input.push = true; }, detonate: throwDetonator,
+  lampStat: () => W.lamps && W.lamps.stats(), doorStat: i => { const b = W.city.buildings[i]; return b && b.door ? { k: b.door.k, t: b.doorT || 0, e: b.door.e } : null; }, gapAt: (i, e, s, y, r) => W.city.gapAt(W.city.buildings[i], e, s, y, r), inside: i => { const b = W.city.buildings[i]; return Bricks.pointInRing(W.rig.pos.x, W.rig.pos.z, b.ringL); }, nightStat: () => ({ night: W.night || 0, pane: W.city.paneMat.emissiveIntensity, vig: getComputedStyle(document.documentElement).getPropertyValue('--vig').trim(), headlights: !!(W.veh && W.veh.lights), headOpacity: W.veh && W.veh.lights ? W.veh.lights.children[0].material.opacity : null, engine: (() => { const e = W.ship && W.ship.getObjectByName('engineGlow'); return e ? e.children[0].material.opacity : null; })() }),
   leaseStat: () => ({ ...W.lease.stats(), dormant: W.dormant || null, ctxLost: !!(W.renderer && W.renderer.getContext() && W.renderer.getContext().isContextLost()), ctxWhy: W.ctxWhy || null }), leaseTest: ms => { W.hiddenAfter = ms; },
   board, land, setCharacter, setWorld, setSky, setWeather, skyStat: () => W.sky && W.sky.stats(), teleport: (x, z) => { if (W.mode === 'walk') { W.rig.pos.set(x, W.G.h(x, z), z); W.rig.cam.set = false; } else { W.tie.pos.set(x, W.G.h(x, z) + 30 * M, z); W.tie.prevPos.copy(W.tie.pos); } },
   goAnywhere, blast: (x, y, z, r) => blast(new THREE.Vector3(x, y, z), r), hurt, M,
@@ -1148,7 +1194,7 @@ Object.assign(W, {
   aimAt: (x, y, z) => { if (x == null) { W.build.pin = null; return null; } const o = new THREE.Vector3(x, y + 4 * M, z + 3 * M), d = new THREE.Vector3(x, y, z).sub(o).normalize(); W.build.on = true; W.build.pin = { origin: o, dir: d }; W.build.aimRay(o, d); return W.build.stats().target; }, takeBrick: id => fall(W.build.remove(id)),
   pieces: () => W.build.rows(), pieceAt: id => { const p = W.build.pieces.get(id); return p ? { id, part: p.part, col: p.col, x: p.x, y: p.y, z: p.z, rot: p.rot } : null; }, saveNow: () => { W.build.save(); saveDamage(); }, resetPlace, damage: () => W.city.removedSets(), placeKey: () => placeKey(W.place),
   fx: () => ({ sfx: Fx.Sfx.stats(), haptics: Fx.haptic.count(), smoke: W.smoke.stats(), hits: Fx.Hits.n, tally: { ...W.tally }, craters: W.G.craters || 0, lastCrater: W.lastCrater || null, air: !!W.rig.air, vy: W.rig.vy || 0, assisted: W.tie.assisted, groundHits: W.tie.groundHits }), crater: (x, z, r, d) => crater(new THREE.Vector3(x, 0, z), r, d), groundAt: (x, z) => W.G.h(x, z), groundColour: (x, z) => { const G = W.G, f = G.field, i = Math.round(f.cx + x / M / G.res), j = Math.round(f.cy + z / M / G.res), c = G.mesh.geometry.attributes.color, k = j * G.n + i; return [c.getX(k), c.getY(k), c.getZ(k)]; },
-  mb: () => ({ busy: W.master.busy, streaming: !!W.master.streaming, status: W.master.status, rot: W.master.rot, anchor: W.master.anchor, draft: W.draft.pieces.size, ghosts: W.master.ghosts.length, report: W.master.result && W.master.result.report, usage: W.master.usage || null }), mbAsk: mbDraft, say, readBuild, mbEdit, startNow, wbOpen, stopBuild, nextCharacter, roadsMesh: () => { const r = W.scene.getObjectByName('roads'); return r ? { tris: r.geometry.attributes.position.count / 3, visible: r.visible } : null; }, saves: loadSaves, saveBuild, placeSave, deleteSave, wordsSave, setTruce, peace: peaceNow, wbCode, codeView, litOp, ops: () => [...document.querySelectorAll('#wbOps li')].map(li => ({ text: li.querySelector('span').textContent, n: li.querySelector('em').textContent, lit: li.classList.contains('lit') })), highlighted: () => (W.draft.pieces.size ? W.draft : W.build).highlighted(), laying: () => W.build.laying(), seated: () => ({ seated: !!W.rig.seated, parent: W.rig.figure.parent && W.rig.figure.parent.name, visible: W.rig.figure.visible, legs: W.rig.legRP.rotation.x, pos: W.rig.figure.getWorldPosition(new THREE.Vector3()).toArray() }), rideFire, liveBolts: () => W.bolts.live().map(b => ({ owner: b.owner, heavy: !!b.heavy })), setRide: r => { W.master.ride = r || ''; paintRide(); return W.master.ride; }, rideChoice: () => W.master.ride || '', chip: () => { const c = $('#bchip'); return { on: c.classList.contains('on'), text: c.textContent, cls: c.className }; }, boardVehicle: id => { const it = id ? W.props.items.get(id) : nearVehicle(); if (it) boardVehicle(it); return W.mode; }, leaveVehicle, ride: () => W.veh ? { mode: W.mode, kind: W.veh.kind, fly: W.veh.fly, pos: W.veh.pos.toArray(), heading: W.veh.heading, speed: W.veh.speed, airborne: W.veh.airborne, landing: W.veh.landing, id: W.veh.prop.id } : { mode: W.mode }, prompt: () => ({ on: $('#prompt').classList.contains('on'), text: $('#prompt').textContent }), promptAction, buildLog: () => (W.master.log || []).slice(), wbLog, wbState: () => ({ open: !document.body.classList.contains('wb-off'), key: !!Ai.key(), keyRow: $('#wbKeyRow').classList.contains('on'), wb: getComputedStyle(document.body).getPropertyValue('--wb').trim() }), veil: () => ({ stages: Object.fromEntries(Object.entries(VEIL.stages).map(([k, v]) => [k, v.state])), start: !!($('#vStart') && !$('#vStart').hidden), since: (performance.now() - VEIL.t0) / 1000, readyAt: VEIL.readyAt || 0, buildingsAt: VEIL.buildingsAt || 0 }), pending: () => !!(W.win && W.win.pending), mbLoad: program => { const res = Dsl.compile(program); mbShow(res, null); return res.report; }, mbCommit, mbDiscard, mbNudge, propStat: () => W.props.stats(), propRows: () => W.props.rows(), propBoxes: () => [...W.props.items.values()].map(it => ({ id: it.id, ready: it.ready, parts: it.meshes.length, box: it.box ? [it.box.min.toArray(), it.box.max.toArray()] : null })), aiStat: () => Ai.stats(),
+  mb: () => ({ busy: W.master.busy, streaming: !!W.master.streaming, status: W.master.status, rot: W.master.rot, anchor: W.master.anchor, draft: W.draft.pieces.size, ghosts: W.master.ghosts.length, report: W.master.result && W.master.result.report, usage: W.master.usage || null }), mbAsk: mbDraft, say, readBuild, mbEdit, startNow, wbOpen, stopBuild, nextCharacter, roadsMesh: () => { const r = W.scene.getObjectByName('roads'), s = W.scene.getObjectByName('streets'); return r ? { tris: r.geometry.attributes.position.count / 3, visible: r.visible, streets: s ? s.geometry.attributes.position.count / 3 : 0, near: W.camera.near, side: r.material.side } : null; }, saves: loadSaves, saveBuild, placeSave, deleteSave, wordsSave, setTruce, peace: peaceNow, wbCode, codeView, litOp, ops: () => [...document.querySelectorAll('#wbOps li')].map(li => ({ text: li.querySelector('span').textContent, n: li.querySelector('em').textContent, lit: li.classList.contains('lit') })), highlighted: () => (W.draft.pieces.size ? W.draft : W.build).highlighted(), laying: () => W.build.laying(), seated: () => ({ seated: !!W.rig.seated, parent: W.rig.figure.parent && W.rig.figure.parent.name, visible: W.rig.figure.visible, legs: W.rig.legRP.rotation.x, pos: W.rig.figure.getWorldPosition(new THREE.Vector3()).toArray() }), rideFire, liveBolts: () => W.bolts.live().map(b => ({ owner: b.owner, heavy: !!b.heavy })), setRide: r => { W.master.ride = r || ''; paintRide(); return W.master.ride; }, rideChoice: () => W.master.ride || '', chip: () => { const c = $('#bchip'); return { on: c.classList.contains('on'), text: c.textContent, cls: c.className }; }, boardVehicle: id => { const it = id ? W.props.items.get(id) : nearVehicle(); if (it) boardVehicle(it); return W.mode; }, leaveVehicle, ride: () => W.veh ? { mode: W.mode, kind: W.veh.kind, fly: W.veh.fly, pos: W.veh.pos.toArray(), heading: W.veh.heading, speed: W.veh.speed, airborne: W.veh.airborne, landing: W.veh.landing, id: W.veh.prop.id } : { mode: W.mode }, prompt: () => ({ on: $('#prompt').classList.contains('on'), text: $('#prompt').textContent }), promptAction, buildLog: () => (W.master.log || []).slice(), wbLog, wbState: () => ({ open: !document.body.classList.contains('wb-off'), key: !!Ai.key(), keyRow: $('#wbKeyRow').classList.contains('on'), wb: getComputedStyle(document.body).getPropertyValue('--wb').trim() }), veil: () => ({ stages: Object.fromEntries(Object.entries(VEIL.stages).map(([k, v]) => [k, v.state])), start: !!($('#vStart') && !$('#vStart').hidden), since: (performance.now() - VEIL.t0) / 1000, readyAt: VEIL.readyAt || 0, buildingsAt: VEIL.buildingsAt || 0 }), pending: () => !!(W.win && W.win.pending), mbLoad: program => { const res = Dsl.compile(program); mbShow(res, null); return res.report; }, mbCommit, mbDiscard, mbNudge, propStat: () => W.props.stats(), propRows: () => W.props.rows(), propBoxes: () => [...W.props.items.values()].map(it => ({ id: it.id, ready: it.ready, parts: it.meshes.length, box: it.box ? [it.box.min.toArray(), it.box.max.toArray()] : null })), aiStat: () => Ai.stats(),
   netStat: () => W.room.stats(), host: hostRoom, join: joinRoom, leave: leaveRoom, remoteList: () => [...W.remotes.values()].map(r => ({ id: r.id, ch: r.ch, mode: r.tgt && r.tgt.m, pos: r.pos.toArray(), visible: r.fig && r.fig.figure.visible, shipVisible: !!r.ship && r.ship.visible })), flushEdits, setName,
   debrisPieces: () => W.debris.pieces.map(p => { const c = W.debris.centre(p, V1); return { part: p.kind.name, y: c.y, x: c.x, z: c.z, rest: p.rest, floor: W.G.h(c.x, c.z) }; }),
   building: i => { const b = W.city.buildings[i]; if (!b.bricks) b.bricks = Bricks.buildBricks(b, W.colours, M); return { id: b.id, kind: b.kind, n: b.bricks.n, removed: b.removed.size, live: b.bricks.n - b.removed.size, cx: b.cx, cz: b.cz, y0: b.y0, yTop: b.yTop, courses: b.courses, ruined: b.ruined }; },

@@ -62,24 +62,25 @@ class Debris {
   /** ctx (optional): { spheres: [{ pos, r, vel, onHit(piece, relSpeed) }], onLand(piece, speed) } — things debris can hit, and a landing report. */
   step(dt, ctx) {
     const M = this.M, moving = new Map(), spheres = ctx && ctx.spheres || null, onLand = ctx && ctx.onLand || null;
-    if (spheres) for (const s of spheres) { if (!s.vel || s.vel.length() < 3 * M) continue; const rr = s.r + 30;   // a fast ship sweeps resting rubble aside
+    if (spheres) for (const s of spheres) { if (!s.vel || Math.hypot(s.vel.x, s.vel.z) < 3 * M) continue; const rr = s.r + 30;   // a fast ship sweeps resting rubble aside (a step up is not speed)
       for (let x = Math.floor((s.pos.x - rr) / CELL); x <= Math.floor((s.pos.x + rr) / CELL); x++) for (let z = Math.floor((s.pos.z - rr) / CELL); z <= Math.floor((s.pos.z + rr) / CELL); z++) { const a = this.rest.get(x + ':' + z); if (!a) continue;
         for (const q of a.slice()) { const qc = this.centre(q, V1); if (qc.distanceTo(s.pos) > rr) continue; this.unhash(q); q.rest = false; q.settling = 0; q.restAge = 0; q.age = 0; q.vel.copy(s.vel).multiplyScalar(0.4).add(V2.subVectors(qc, s.pos).normalize().multiplyScalar(3 * M)); q.vel.y += 2 * M; q.ang.set((Math.random() - .5) * 8, (Math.random() - .5) * 8, (Math.random() - .5) * 8); if (s.onHit) s.onHit(q, s.vel.length()); } } }
     for (let i = this.pieces.length - 1; i >= 0; i--) {
       const p = this.pieces[i]; p.age += dt;
-      if (p.rest) { p.restAge += dt; if (p.restAge > REST_LIFE) { p.scl.multiplyScalar(Math.max(0, 1 - dt * 2)); this.write(p); if (p.scl.x < 0.05) this.kill(p); } continue; }
+      if (p.rest) { p.restAge += dt; if (p.restAge > (p.kind.name && p.kind.name.startsWith('wall') ? 600 : REST_LIFE)) { /* a wall brick lies as rubble for ten minutes: something to climb */ p.scl.multiplyScalar(Math.max(0, 1 - dt * 2)); this.write(p); if (p.scl.x < 0.05) this.kill(p); } continue; }
       if (p.settling) { p.settling += dt; const u = clamp(p.settling / 0.3, 0, 1); p.quat.slerp(p.target, u); if (u >= 1) { p.quat.copy(p.target); this.land(p); } this.write(p); continue; }
       p.vel.y -= this.grav * dt; p.pos.addScaledVector(p.vel, dt);
       const w = p.ang.length(); if (w > 1e-4) { Q1.setFromAxisAngle(V3.copy(p.ang).divideScalar(w), w * dt); p.quat.premultiply(Q1); }
       // the lowest corner meets the floor
-      const c = this.centre(p, V1), h = p.kind.half; let low = Infinity, lx = 0, lz = 0;
-      for (const [sx, sy, sz] of CORNERS) { V2.set(sx * h.x * p.scl.x, sy * h.y * p.scl.y, sz * h.z * p.scl.z).applyQuaternion(p.quat).add(c); if (V2.y < low) { low = V2.y; lx = V2.x; lz = V2.z; } }
+      const c = this.centre(p, V1), h = p.kind.half; let low = Infinity, low2 = Infinity, lx = 0, lz = 0;
+      for (const [sx, sy, sz] of CORNERS) { V2.set(sx * h.x * p.scl.x, sy * h.y * p.scl.y, sz * h.z * p.scl.z).applyQuaternion(p.quat).add(c); if (V2.y < low) { low2 = low; low = V2.y; lx = V2.x; lz = V2.z; } else if (V2.y < low2) low2 = V2.y; }
+      const tilt = clamp((low2 - low) / 8, 0, 1);                                       // a piece down on a corner topples; one down on an edge or a face lies still
       const floor = this.floorAt(lx, lz, low, p);
       if (low < floor) {
         p.pos.y += floor - low;
         if (onLand && -p.vel.y > 1.5 * M) onLand(p, -p.vel.y);
         if (p.vel.y < 0) p.vel.y = -p.vel.y * 0.3; p.vel.x *= 0.6; p.vel.z *= 0.6; p.ang.multiplyScalar(0.5);
-        p.ang.x += (c.z - lz) * 0.02; p.ang.z -= (c.x - lx) * 0.02;                   // it topples toward the corner it landed on
+        p.ang.x += (c.z - lz) * 0.02 * tilt; p.ang.z -= (c.x - lx) * 0.02 * tilt;     // it topples toward the corner it landed on
         if (p.vel.length() < 0.4 * M && p.ang.length() < 1) { p.settling = 1e-3; p.target = this.squared(p.quat); p.vel.set(0, 0, 0); p.ang.set(0, 0, 0); }
       }
       // walls: push out of a building's box and bounce; fast pieces knock bricks out

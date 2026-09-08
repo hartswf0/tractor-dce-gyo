@@ -19,7 +19,7 @@ const WEATHER = {
   rain: { name: 'rain', clouds: 1, sun: 0.35, hemi: 0.8, nearM: 10, farM: 350, grey: 0.7, dark: 0.18, rain: 1 },
   storm: { name: 'storm', clouds: 1, sun: 0.2, hemi: 0.6, nearM: 8, farM: 250, grey: 0.85, dark: 0.38, rain: 1.5, lightning: true },
 };
-const NIGHT = { zenith: 0x060914, horizon: 0x141a2c, fog: 0x10141f, hemi: [0x2a3450, 0x0b0d12, 0.35], sun: [0x8fa8e0, 0.12] };
+const NIGHT = { zenith: 0x060914, horizon: 0x141a2c, fog: 0x10141f, hemi: [0x2e3a5c, 0x0e1118, 0.5], sun: [0x8fa8e0, 0.18] };   // enough moonlight to walk by; the lamps and windows do the rest
 const DUSK = 0xf2a25a;
 const C = (h) => new THREE.Color(h), C1 = new THREE.Color(), C2 = new THREE.Color(), C3 = new THREE.Color();
 const grey = (c, k, dark) => { const l = 0.3 * c.r + 0.59 * c.g + 0.11 * c.b; c.r = lerp(c.r, l, k) * (1 - dark); c.g = lerp(c.g, l, k) * (1 - dark); c.b = lerp(c.b, l, k) * (1 - dark); return c; };
@@ -47,7 +47,7 @@ function streakTexture() {
   const t = new THREE.CanvasTexture(c); t.minFilter = THREE.LinearFilter; return t;
 }
 
-function create({ scene, M, lights, onLightning, onColour }) {
+function create({ scene, M, lights, onLightning, onColour, onNight }) {
   const R = 40000, group = new THREE.Group(); group.name = 'sky'; group.frustumCulled = false;
   const uniforms = { zenith: { value: C(0x6f95c8) }, horizon: { value: C(0xb8cbd8) }, below: { value: C(0xc9d4d2) }, sunDir: { value: new THREE.Vector3(0, 1, 0) }, sunCol: { value: C(0xffffff) }, disc: { value: 1 }, glow: { value: 0.35 } };
   const dome = new THREE.Mesh(new THREE.SphereGeometry(R, 32, 16), new THREE.ShaderMaterial({ uniforms, side: THREE.BackSide, depthWrite: false, depthTest: false, fog: false,
@@ -72,7 +72,7 @@ function create({ scene, M, lights, onLightning, onColour }) {
   const rg = new THREE.BufferGeometry(); rg.setAttribute('position', new THREE.BufferAttribute(rp, 3));
   const rain = new THREE.Points(rg, new THREE.PointsMaterial({ size: 0.45 * M, map: streakTexture(), transparent: true, opacity: 0.5, depthWrite: false, color: 0xdfe6f0, fog: false })); rain.name = 'rain'; rain.frustumCulled = false; rain.visible = false; rain.renderOrder = 5; scene.add(rain);
   scene.add(group);
-  const S = { group, dome, stars, clouds, rain, uniforms, M, lights, preset: null, mode: 'auto', weather: 'clear', lat: 45, lon: 0, now: null, sun: { elev: 55, azim: 180, hour: 12 }, acc: 0, t: 0, bolt: 0, nextBolt: 8, cloudCover: 0, hemiBase: 0, fog: [0, 0], horizonHex: '#b8cbd8', dark: false, rainSpeed: 0, onLightning, onColour, stats: null, set: null, step: null };
+  const S = { group, dome, stars, clouds, rain, uniforms, M, lights, preset: null, mode: 'auto', weather: 'clear', lat: 45, lon: 0, now: null, sun: { elev: 55, azim: 180, hour: 12 }, acc: 0, t: 0, bolt: 0, nextBolt: 8, cloudCover: 0, hemiBase: 0, fog: [0, 0], horizonHex: '#b8cbd8', dark: false, night: 0, day: 1, rainSpeed: 0, onLightning, onColour, onNight, stats: null, set: null, step: null };
   const sunDir = new THREE.Vector3();
   function apply() {
     const p = S.preset || { sky: 0xb8cbd8, fog: [0xc9d4d2, 30, 900], hemi: [0xffffff, 0xd8d8d8, 1.35], sun: [0xffffff, 1.25, [2, 3, 2]] }, w = WEATHER[S.weather] || WEATHER.clear, space = !!p.space;
@@ -103,7 +103,9 @@ function create({ scene, M, lights, onLightning, onColour }) {
     clouds.forEach((s, i) => { s.visible = i < shown; s.material.color.copy(cloudC); s.material.opacity = (0.8 + 0.15 * weather.grey) * (1 - 0.55 * night); });   // at night the clouds fade into the dark
     S.rainSpeed = weather.rain ? (weather.rain > 1 ? 14 : 11) * M : 0; rain.visible = !!weather.rain && !space; rain.material.opacity = weather.rain > 1 ? 0.6 : 0.45; rain.material.color.set(night > 0.5 ? 0x9aa6b8 : 0xdfe6f0);
     S.lightning = !!weather.lightning && !space; S.horizonHex = '#' + horizon.getHexString(); S.dark = (0.3 * horizon.r + 0.59 * horizon.g + 0.11 * horizon.b) < 0.45;
+    S.night = p.litAlways || space ? 1 : clamp(night * 1.25 - 0.1, 0, 1); S.day = d;   // what the lamps and the windows go by
     if (S.onColour) S.onColour(S.horizonHex, S.dark, horizon);
+    if (S.onNight) S.onNight(S.night);
   }
   function refresh() { if (S.mode === 'auto') S.sun = sunAt(S.lat, S.lon, S.now || new Date()); else { const d = S.now || new Date(); const s = sunAt(S.lat, S.lon, d); S.sun = { elev: MODES[S.mode], azim: MODES[S.mode] > 0 ? 200 : 300, hour: s.hour }; } }
   S.set = ({ preset, mode, weather, lat, lon, now } = {}) => { if (preset) S.preset = preset; if (mode && mode in MODES) S.mode = mode; if (weather && WEATHER[weather]) S.weather = weather; if (Number.isFinite(lat)) S.lat = lat; if (Number.isFinite(lon)) S.lon = lon; if (now !== undefined) S.now = now; refresh(); apply(); return S.stats(); };
@@ -114,7 +116,7 @@ function create({ scene, M, lights, onLightning, onColour }) {
     if (rain.visible) { rain.position.copy(camera.position); rain.position.y -= 2 * M; const a = rg.attributes.position.array, dy = S.rainSpeed * dt; for (let i = 1; i < a.length; i += 3) { a[i] -= dy; if (a[i] < 0) a[i] += RH; } rg.attributes.position.needsUpdate = true; }
     if (S.lightning) { S.nextBolt -= dt; if (S.nextBolt <= 0) { S.nextBolt = 6 + Math.random() * 8; S.bolt = 0.12; S.bolts = (S.bolts || 0) + 1; if (S.onLightning) S.onLightning(); } if (S.bolt > 0) { S.bolt -= dt; S.lights.hemi.intensity = S.hemiBase * (S.bolt > 0 ? 4 : 1); } }
   };
-  S.stats = () => ({ mode: S.mode, weather: S.weather, hour: +S.sun.hour.toFixed(2), elev: +S.sun.elev.toFixed(1), azim: +S.sun.azim.toFixed(0), sun: sunDir.toArray().map(v => +v.toFixed(3)), stars: +stars.material.opacity.toFixed(2), clouds: clouds.filter(s => s.visible).length, rain: rain.visible, fog: S.fog.map(v => Math.round(v)), horizon: S.horizonHex, dark: S.dark, bolts: S.bolts || 0, lat: S.lat, lon: S.lon });
+  S.stats = () => ({ mode: S.mode, weather: S.weather, night: +S.night.toFixed(2), hour: +S.sun.hour.toFixed(2), elev: +S.sun.elev.toFixed(1), azim: +S.sun.azim.toFixed(0), sun: sunDir.toArray().map(v => +v.toFixed(3)), stars: +stars.material.opacity.toFixed(2), clouds: clouds.filter(s => s.visible).length, rain: rain.visible, fog: S.fog.map(v => Math.round(v)), horizon: S.horizonHex, dark: S.dark, bolts: S.bolts || 0, lat: S.lat, lon: S.lon });
   return S;
 }
 window.Sky = { create, sunAt, MODES, WEATHER };

@@ -18,12 +18,14 @@
 | thing | file | what it is | collisions |
 |---|---|---|---|
 | ground | `ground.js` | a heightfield from AWS terrain, draped in Esri imagery, cratered by blasts | `G.h(x, z)` is the floor for everyone |
-| city | `bricks.js` | OpenStreetMap buildings as brick instances, roads as strips | `city.near / aabbs / pushRing`; `city.blast` knocks bricks |
+| city | `bricks.js` | OpenStreetMap buildings as brick instances, built the way the world's preset says (`palette.style`: height, window pitch, slits, stilts, bands, stepped roofs); windows are `pane-1x2x2` or `pane-lit` | on foot a building is its walls: `city.gapAt` (a hole three courses tall, or an open door) lets you in, `pushWalls` in main.js; ships and rides use `aabbs / pushRing`; `city.blast` knocks bricks; `city.doors` swings doors for whoever comes |
+| streets | `ground.js` | roads for wheels (`roads`) and `streets`: sidewalks with curbs, footways, cycleways, parking lots with bays, plazas, zebra crossings, all strips on `hM`; OSM areas come as `win.areas` | none: they are paint on the ground |
+| lamps | `lamps.js` | street lamps every 28 m along the roads: posts, a glow, a pool of light; `setNight` from the sky | none |
 | bricks | `build.js` | pieces the players placed or the builder made (one InstancedMesh per part) | `build.pushOut / floorAt / aabbs` |
 | props | `props.js` | LDraw sub-models: figures, vehicles, whole rides | `props.pushOut / floorAt / aabbs`; a blast flings parts |
 | rides | `drive.js` | a prop with a controller while someone is in it | `vehPushOut` in main.js pushes out of city, bricks and other props |
 | crowd | `characters.js` | citizens and troopers; troopers shoot unless `peace` | `crowd.hitWithin / hitBy` |
-| debris | `debris.js` | everything that falls | spheres from the loop |
+| debris | `debris.js` | everything that falls; wall bricks lie as rubble for ten minutes and are a floor for the walker (`WALK.groundH`), a knee-high step is climbable | spheres from the loop |
 | fx | `fx.js` | sounds, haptics, smoke, hit marks | |
 | lease | `lease.js` | one live instance per browser: booting claims the graphics over a BroadcastChannel, other tabs drop their WebGL context and wait behind a Resume veil, a tab hidden 90 s lets go on its own; `?lease=share` for a room guest in the same browser | |
 | sky | `sky.js` | a dome and sun on the camera, stars, cloud sprites, rain points; `worlds.js` gives the day colours, the clock at the place (or a pinned mode) turns them toward night, the weather greys and fogs them | |
@@ -31,6 +33,8 @@
 `allBoxes(x, z, r)` in main.js is the union the TIE and the debris use; `pushOut(pos, r)` is the walker's; `WALK.groundH` stacks bricks and props on the ground.
 
 ## The sky
+
+Night is published as `S.night` and fanned out by `nightFall` in main.js: the city's lit panes (`paneMat` emissive), the lamps, a ride's headlights, the TIE's engine glow and the page's vignette (`--vig`). The Death Star is `litAlways`.
 
 `Ground.daylight` makes the two lights and the fog once; `Worlds.apply` paints a preset's day colours and palette; `W.sky.set` (in `setWorld`, `setSky`, `setWeather`) then blends them by the sun's height and the weather and moves the sun light. `auto` reads the device clock at the place's latitude and longitude; `day / dawn / dusk / night` pin the sun. Weather is `clear / cloudy / fog / rain / storm` (a storm has lightning). Both persist (`world.sky`, `world.weather`) and take `?sky=` / `?weather=`. The page's chrome follows the horizon colour (`--sky`, `--skyA`, `body.dark`). Minifig accessories: a hand's grip is 9.9 LDU ahead of its origin at 14.5° (3820.dat); `Minifig.toolMount` puts a tool there, bars turned to rise from the fist, and the aim pose levels the blaster.
 

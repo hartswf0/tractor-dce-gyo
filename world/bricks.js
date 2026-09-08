@@ -65,6 +65,7 @@ function harvest(groups) {
     g.setAttribute('color', new THREE.BufferAttribute(col, 3)); g.computeBoundingSphere();
     geoms.set(KEY(HARVEST[i]), { geom: g, size: sz, tris: p.count / 3 });
   });
+  geoms.set('pane-lit', geoms.get('pane-1x2x2'));   // the same pane, drawn with the lit material: a window with someone home
   return geoms;
 }
 
@@ -90,7 +91,7 @@ function harvestOrigin(groups) {
 const PALETTE = { walls: [19, 4, 15, 72, 379, 70, 28, 84], roofs: [320, 72, 308, 71], frame: 15, pane: 0, plinth: 72, door: 70 };
 const hash = s => { let h = 2166136261; for (const ch of String(s)) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; };
 const TMP = new THREE.Matrix4(), TQ = new THREE.Quaternion(), TP = new THREE.Vector3(), TS = new THREE.Vector3(1, 1, 1), UP = new THREE.Vector3(0, 1, 0);
-function place(out, part, x, y, z, theta, c, meta) { TQ.setFromAxisAngle(UP, theta); TP.set(x, y, z); out.push({ p: part, m: new THREE.Matrix4().compose(TP, TQ, TS), c, meta: meta || null }); }
+function place(out, part, x, y, z, theta, c, meta, sy) { TQ.setFromAxisAngle(UP, theta); TP.set(x, y, z); out.push({ p: part, m: new THREE.Matrix4().compose(TP, TQ, sy ? new THREE.Vector3(1, sy, 1) : TS), c, meta: meta || null }); }
 function pointInRing(x, z, ring) {
   let inside = false;
   for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
@@ -100,7 +101,7 @@ function pointInRing(x, z, ring) {
   return inside;
 }
 function buildBricks(b, colours, M) {
-  const pal = b.pal || PALETTE, out = [], ring = b.ringL, n = ring.length, wall = colours(b.wall), plinthC = colours(pal.plinth), frameC = colours(b.wall === pal.frame ? 0 : pal.frame), paneC = colours(pal.pane), doorC = colours(pal.door), roofC = colours(b.roof);
+  const pal = b.pal || PALETTE, st = pal.style || {}, out = [], ring = b.ringL, n = ring.length, wall = colours(b.wall), plinthC = colours(pal.plinth), frameC = colours(b.wall === pal.frame ? 0 : pal.frame), paneC = colours(pal.pane), doorC = colours(pal.door), roofC = colours(b.roof);
   const cx = ring.reduce((s, p) => s + p.x, 0) / n, cz = ring.reduce((s, p) => s + p.z, 0) / n;
   const edges = [];
   for (let i = 0; i < n; i++) {
@@ -111,21 +112,29 @@ function buildBricks(b, colours, M) {
   }
   if (!edges.length) return { list: out, n: 0 };
   const doorK = edges.reduce((k, e, i) => e.L > edges[k].L ? i : k, 0);
-  const plinth = Math.ceil(b.drop / COURSE), total = Math.max(2, Math.round(b.h * M / COURSE) + plinth), bigDoor = total - plinth >= 7;
+  b.door = null;
+  const plinth = Math.ceil(b.drop / COURSE), stilts = st.stilts || 0, total = Math.max(2 + stilts, Math.round(b.h * M * (st.hScale || 1) / COURSE) + plinth + stilts), bigDoor = total - plinth - stilts >= 7;
+  const pitch = st.pitch || 160, bandMod = st.bandMod || 3, slit = !!st.slit, bandC = st.bandCol != null ? colours(st.bandCol) : null, topBandC = st.topBand != null ? colours(st.topBand) : null;
   let course = 0, edgeI = 0;
-  const put = (e, part, s, len, y, c, rot90, inset = 20, extra) => place(out, part, e.A.x + e.ux * (s + len / 2) + e.nx * inset, y, e.A.z + e.uz * (s + len / 2) + e.nz * inset, e.theta + (rot90 ? Math.PI / 2 : 0), c, { e: edgeI, s0: s, s1: s + len, L: e.L, course, rows: 1, ...(extra || {}) });
+  const put = (e, part, s, len, y, c, rot90, inset = 20, extra, sy) => place(out, part, e.A.x + e.ux * (s + len / 2) + e.nx * inset, y, e.A.z + e.uz * (s + len / 2) + e.nz * inset, e.theta + (rot90 ? Math.PI / 2 : 0), c, { e: edgeI, s0: s, s1: s + len, L: e.L, course, rows: 1, ...(extra || {}) }, sy);
   for (let c = 0; c < total; c++) {
     course = c;
-    const y = b.y0 + c * COURSE, col = c < plinth ? plinthC : wall, k = c - plinth - 1, lower = k % 3 === 0, band = k >= 0 && k % 3 < 2 && !(lower && c + 1 >= total);   // a window is two courses tall: none starts on the top course
+    const y = b.y0 + c * COURSE, k = c - plinth - stilts - 1, lower = k % bandMod === 0, band = st.windows !== false && k >= 0 && (slit ? lower : k % bandMod < 2 && !(lower && c + 1 >= total));   // a window is two courses tall: none starts on the top course; a slit is one
+    const col = c < plinth ? plinthC : (bandC && st.bandEvery && c >= plinth + stilts && (c - plinth - stilts) % st.bandEvery === st.bandEvery - 1) ? bandC : (topBandC && c === total - 1) ? topBandC : wall;
+    if (c < plinth + stilts && c >= plinth) {                                    // stilts: a 1x1 column every three studs, an open floor under the house
+      edges.forEach((e, ei) => { edgeI = ei; for (let s = 0; s + 20 <= e.L; s += 60) put(e, '3005', s, 20, y, col, false, 20, { stilt: true }); });
+      continue;
+    }
     edges.forEach((e, ei) => {
       edgeI = ei;
-      const slots = [], doorHere = ei === doorK && c >= plinth && (bigDoor ? c < plinth + 6 : c < plinth + 2);
+      const slots = [], doorHere = ei === doorK && c >= plinth + stilts && (bigDoor ? c < plinth + stilts + 6 : c < plinth + stilts + 2);
       const dS = e.L / 2 - 20;
-      if (doorHere) { slots.push([dS, dS + 40]); if (c === plinth) { if (bigDoor) put(e, '60623', dS, 40, y, doorC, false, 14, { rows: 6, frame: true }); else { put(e, '60592', dS, 40, y, colours(0), false, 20, { rows: 2, frame: true }); put(e, 'pane-1x2x2', dS, 40, y, paneC, false, 26, { rows: 2, pane: true }); } } }
-      if (band && e.L >= 200) for (let s = 60; s + 40 <= e.L - 40; s += 160) {
+      if (doorHere) { slots.push([dS, dS + 40]); if (c === plinth + stilts) { if (bigDoor) { put(e, '60623', dS, 40, y, doorC, false, 14, { rows: 6, frame: true, door: true }); b.door = { e: ei, s0: dS, s1: dS + 40, k: out.length - 1, y }; } else { put(e, '60592', dS, 40, y, colours(0), false, 20, { rows: 2, frame: true }); put(e, 'pane-1x2x2', dS, 40, y, paneC, false, 26, { rows: 2, pane: true }); } } }
+      if (band && e.L >= 200) for (let s = 60; s + 40 <= e.L - 40; s += pitch) {
         if (doorHere && s < dS + 40 && s + 40 > dS) continue;
         slots.push([s, s + 40]);
-        if (lower) { put(e, '60592', s, 40, y, frameC, false, 20, { rows: 2, frame: true }); put(e, 'pane-1x2x2', s, 40, y, paneC, false, 26, { rows: 2, pane: true }); }
+        if (slit) put(e, st.allLit || hash(b.id * 31 + c * 7 + ei * 131 + s) % 100 < 55 ? 'pane-lit' : 'pane-1x2x2', s, 40, y, paneC, false, 20, { rows: 1, pane: true, slit: true }, 0.5);   // a slit: one course, the pane alone
+        else if (lower) { put(e, '60592', s, 40, y, frameC, false, 20, { rows: 2, frame: true }); put(e, st.allLit || hash(b.id * 31 + c * 7 + ei * 131 + s) % 100 < 55 ? 'pane-lit' : 'pane-1x2x2', s, 40, y, paneC, false, 26, { rows: 2, pane: true }); }
       }
       slots.sort((p, q) => p[0] - q[0]);
       let s = 0; const runs = [];
@@ -151,7 +160,12 @@ function buildBricks(b, colours, M) {
     if (!pointInRing(gx, gz, loc)) continue;
     place(out, 'roof-2x4', cx + gx * ux - gz * uz, yTop, cz + gx * uz + gz * ux, e0.theta, roofC, { roof: true, course: total });
   }
-  b.yTop = yTop; b.courses = total; b.edgeCount = edges.length;
+  if (st.roof === 'stepped' && !b.flatRoof) {                                  // a stepped dome: three courses of bricks, each drawn in from the edge
+    const dist = (x, z) => { let m = Infinity; for (let i = 0; i < loc.length; i++) { const a = loc[i], q = loc[(i + 1) % loc.length], dx = q.x - a.x, dz = q.z - a.z, L2 = dx * dx + dz * dz || 1, t = clamp(((x - a.x) * dx + (z - a.z) * dz) / L2, 0, 1); m = Math.min(m, Math.hypot(x - a.x - dx * t, z - a.z - dz * t)); } return m; };
+    for (let k = 1; k <= 3; k++) { const yk = yTop + 8 + (k - 1) * COURSE, inset = k * 45; course = total + k;
+      for (let gx = lx0 + 40; gx < lx1; gx += 80) for (let gz = lz0 + 20; gz < lz1; gz += 40) { if (!pointInRing(gx, gz, loc) || dist(gx, gz) < inset) continue; place(out, 'wall-2x4', cx + gx * ux - gz * uz, yk, cz + gx * uz + gz * ux, e0.theta, wall, { roof: true, step: k, course: total + k }); } }
+  }
+  b.yTop = yTop; b.courses = total; b.edgeCount = edges.length; b.edges = edges; b.spans = null; b.beam = stilts ? plinth + stilts : -1; if (!b.door) b.door = null;
   return { list: out, n: out.length };
 }
 
@@ -168,14 +182,15 @@ function unsupported(b) {
     const row = byCourse.get(c), below = byCourse.get(c - 1) || [];
     for (const it of row) {
       if (ok.has(it.k)) continue;
-      if (c === 0) { ok.add(it.k); continue; }
-      const m = it.m; let held = false;
+      if (c === 0 || c === b.beam) { ok.add(it.k); continue; }                 // the ground holds the first course; on stilts the first wall course is a ring beam
+      const m = it.m; let held = false, under = 0;                                  // what stands under it along its own edge adds up: two small bricks hold a long one
       for (const u of below) {
         if (!ok.has(u.k)) continue;
         const um = u.m;
-        if (um.e === m.e) { if (Math.min(um.s1, m.s1) - Math.max(um.s0, m.s0) >= Math.min(60, 0.45 * (m.s1 - m.s0))) { held = true; break; } }   // hanging by less than half a brick is not held
+        if (um.e === m.e) { const o = Math.min(um.s1, m.s1) - Math.max(um.s0, m.s0); if (o > 0) under += o; if (um.stilt && o >= 10) { held = true; break; } }
         else if (Math.abs(um.e - m.e) === 1 || Math.abs(um.e - m.e) === b.edgeCount - 1) { if ((m.s0 <= 20 || m.s1 >= m.L - 20) && (um.s0 <= 20 || um.s1 >= um.L - 20)) { held = true; break; } }
       }
+      if (!held && under >= Math.min(60, 0.45 * (m.s1 - m.s0))) held = true;         // hanging by less than half a brick is not held
       if (held) ok.add(it.k);
     }
   }
@@ -205,11 +220,15 @@ class City {
     this.scene = scene; this.M = M; this.geoms = geoms; this.groundM = groundM; this.colours = colours; this.palette = palette || PALETTE; this.source = [];
     this.mat = new THREE.MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness: .6, metalness: 0 });
     this.farMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .8, metalness: 0 });
+    this.paneMat = new THREE.MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness: .35, metalness: 0, emissive: 0xffd27a, emissiveIntensity: 0 });   // lit windows: emissive rises with the night
+    this.night = 0;
     this.root = new THREE.Group(); this.root.name = 'city'; scene.add(this.root);
     this.tiles = new Map(); this.buildings = []; this.live = 0; this.frustum = new THREE.Frustum(); this.pm = new THREE.Matrix4();
     this.knocked = 0; this.pending = []; this.t = 0;
   }
   setPalette(pal) { this.palette = pal; this.set(this.source); }
+  /** 0 by day, 1 at night: the lit panes glow warm. */
+  setNight(n) { this.night = n; this.paneMat.emissiveIntensity = 1.3 * n; }
   set(list) {
     this.clear(); this.source = list; const pal = this.palette;
     for (const src of list) {
@@ -242,7 +261,7 @@ class City {
     t.near = new Map(); t.map = new Map(); t.slot = new Map();
     for (const [part, arr] of per) {
       const G = this.geoms.get(part); if (!G) continue;
-      const im = new THREE.InstancedMesh(G.geom, this.mat, arr.length); im.frustumCulled = false; im.name = part;
+      const im = new THREE.InstancedMesh(G.geom, part === 'pane-lit' ? this.paneMat : this.mat, arr.length); im.frustumCulled = false; im.name = part;
       const tint = new THREE.Color();
       arr.forEach((e, i) => { im.setMatrixAt(i, e.br.m); const v = 0.86 + 0.16 * (hash(e.b.id * 7919 + e.k) % 1000) / 1000; tint.copy(e.br.c).multiplyScalar(v); im.setColorAt(i, tint); t.slot.set(e.b.id + ':' + e.k, { part, i }); });   // each brick its own shade, as moulded plastic is
       im.instanceMatrix.needsUpdate = true; if (im.instanceColor) im.instanceColor.needsUpdate = true;
@@ -276,9 +295,35 @@ class City {
   near(x, z, radius) { const out = []; for (const b of this.buildings) if (Math.hypot(b.cx * this.M - x, b.cz * this.M - z) < radius + b.r * this.M) out.push(b); return out; }
   aabbs(x, z, radius) { return this.near(x, z, radius).map(b => b.aabb); }
   tileOf(b) { return this.tiles.get(Math.floor(b.cx / TILE_M) + ':' + Math.floor(b.cz / TILE_M)); }
+  /** Surviving wall spans per edge and course: 'e:c' → [[s0, s1, k], …]. Built lazily, dropped when a brick goes. */
+  spans(b) {
+    if (b.spans) return b.spans; if (!b.bricks) b.bricks = buildBricks(b, this.colours, this.M); const m = new Map();
+    b.bricks.list.forEach((br, k) => { if (b.removed.has(k) || !br.meta || br.meta.roof || br.meta.e == null) return; const me = br.meta; for (let r = 0; r < (me.rows || 1); r++) { const key = me.e + ':' + (me.course + r); let a = m.get(key); if (!a) { a = []; m.set(key, a); } a.push([me.s0, me.s1, k]); } });
+    b.spans = m; return m;
+  }
+  /** A hole through edge e at arc position s (LDU), 2r wide and three courses tall from feet at yFeet: nothing left standing there, or the door open. */
+  gapAt(b, e, s, yFeet, r) {
+    const sp = this.spans(b), c0 = Math.max(0, Math.floor((yFeet + 30 - b.y0) / COURSE)), c1 = Math.floor((yFeet + 3 * COURSE - 1 - b.y0) / COURSE), a0 = s - r, a1 = s + r, doorK = b.door && b.doorT > 0.5 ? b.door.k : -1;   // from the knee (a sill is stepped over) to the top of the head
+    for (let c = c0; c <= c1; c++) { const arr = sp.get(e + ':' + c); if (!arr) continue; for (const [s0, s1, k] of arr) if (k !== doorK && s1 > a0 && s0 < a1) return false; }
+    return true;
+  }
+  /** Doors swing open for whoever comes near (within 2.5 m of the door), and swing shut behind them. */
+  doors(pos, dt) {
+    const M = this.M;
+    for (const b of this.near(pos.x, pos.z, 4 * M)) {
+      if (!b.bricks) b.bricks = buildBricks(b, this.colours, M); const d = b.door; if (!d || b.removed.has(d.k)) continue;
+      const E = b.edges[d.e], sx = E.A.x + E.ux * (d.s0 + 20) + E.nx * 14, sz = E.A.z + E.uz * (d.s0 + 20) + E.nz * 14, close = Math.hypot(pos.x - sx, pos.z - sz) < 2.5 * M && pos.y + 3 * COURSE > d.y && pos.y < d.y + 6 * COURSE;
+      const want = close ? 1 : 0, was = b.doorT || 0; if (was === want) continue;
+      b.doorT = clamp(was + (want - was > 0 ? 1 : -1) * dt / 0.3, 0, 1);
+      const t = this.tileOf(b), sl = t && t.slot && t.slot.get(b.id + ':' + d.k); if (!sl) continue;
+      const br = b.bricks.list[d.k], hx = E.A.x + E.ux * d.s0 + E.nx * 14, hz = E.A.z + E.uz * d.s0 + E.nz * 14, ang = b.doorT * 1.45;   // the hinge at the door's first stud; it swings inward
+      TMP.copy(br.m).premultiply(new THREE.Matrix4().makeTranslation(-hx, 0, -hz)).premultiply(new THREE.Matrix4().makeRotationY(-ang * Math.sign(E.nx * -E.uz + E.nz * E.ux || 1))).premultiply(new THREE.Matrix4().makeTranslation(hx, 0, hz));
+      const im = t.near.get(sl.part); im.setMatrixAt(sl.i, TMP); im.instanceMatrix.needsUpdate = true;
+    }
+  }
   /** Remove one brick of a building; returns what fell (part, world matrix, colour) or null if already gone. */
   removeBrick(b, k) {
-    if (b.removed.has(k)) return null; b.removed.add(k);
+    if (b.removed.has(k)) return null; b.removed.add(k); b.spans = null;
     const t = this.tileOf(b); if (t && t.slot) { const sl = t.slot.get(b.id + ':' + k); if (sl) { const im = t.near.get(sl.part); im.setMatrixAt(sl.i, TMP.makeScale(0, 0, 0)); im.instanceMatrix.needsUpdate = true; } }
     this.knocked++;
     if (!b.ruined && b.removed.size > 0.6 * b.bricks.n) { b.ruined = true; if (t) { t.far.geometry.dispose(); t.far.geometry = prisms(t.buildings, this.colours); } }

@@ -87,27 +87,67 @@ function crater(G, x, z, r, depth) {
   return touched;
 }
 
-/** Roads as dark tile strips following the ground, one merged mesh. Widths in metres. */
-function roads(G, list, M) {
-  const P = [], N = [], C = [], c = new THREE.Color(0x4a4e56).convertSRGBToLinear(), cl = new THREE.Color(0xd8d4c4).convertSRGBToLinear(), lift = 0.25;
-  const quad = (a, b, w, col, up) => {             // a,b: {x,z} metres; a strip of width w between them
+/* ───────────────────────── streets ───────────────────────── */
+const FOOT = new Set(['footway', 'path', 'steps', 'pedestrian', 'track', 'bridleway', 'corridor']);   // ways for feet: drawn tan by streets(), not as asphalt
+const lin = c => new THREE.Color(c).convertSRGBToLinear();
+/** A flat-strip mesh builder on the ground: quads follow the drawn triangles (hM), wound to face up. */
+function stripper(G, M) {
+  const P = [], N = [], C = [];
+  const push = (p, col) => { for (const k of [0, 2, 1, 0, 3, 2]) { P.push(...p[k]); N.push(0, 1, 0); C.push(col.r, col.g, col.b); } };
+  const quad = (a, b, w, col, lift, side = 0) => {     // a,b: {x,z} metres; a strip of width w between them, shifted sideways by `side` metres (left of travel is positive)
     const dx = b.x - a.x, dz = b.z - a.z, L = Math.hypot(dx, dz); if (L < 0.05) return;
-    const nx = -dz / L * w / 2, nz = dx / L * w / 2;
-    const p = [[a.x + nx, a.z + nz], [a.x - nx, a.z - nz], [b.x - nx, b.z - nz], [b.x + nx, b.z + nz]].map(([x, z]) => [x * M, (G.hM(x, z) + lift + (up || 0)) * M, z * M]);
-    for (const k of [0, 1, 2, 0, 2, 3]) { P.push(...p[k]); N.push(0, 1, 0); C.push(col.r, col.g, col.b); }
+    const nx = -dz / L, nz = dx / L, ox = nx * side, oz = nz * side, hx = nx * w / 2, hz = nz * w / 2;
+    push([[a.x + ox + hx, a.z + oz + hz], [a.x + ox - hx, a.z + oz - hz], [b.x + ox - hx, b.z + oz - hz], [b.x + ox + hx, b.z + oz + hz]].map(([x, z]) => [x * M, (G.hM(x, z) + lift) * M, z * M]), col);
   };
+  /** Along a polyline, in steps no longer than half a ground cell, so the strip hugs the relief. cb(a2, b2, stepIndex, steps). */
+  const along = (pts, cb) => { for (let i = 0; i < pts.length - 1; i++) { const a = pts[i], b = pts[i + 1], L = Math.hypot(b.x - a.x, b.z - a.z), steps = Math.max(1, Math.ceil(L / Math.min(6, G.res / 2))); for (let s = 0; s < steps; s++) cb({ x: lerp(a.x, b.x, s / steps), z: lerp(a.z, b.z, s / steps) }, { x: lerp(a.x, b.x, (s + 1) / steps), z: lerp(a.z, b.z, (s + 1) / steps) }, s, steps); } };
+  const polygon = (ring, col, lift) => {                 // a filled area on the ground
+    const tri = THREE.ShapeUtils.triangulateShape(ring.map(p => new THREE.Vector2(p.x, p.z)), []);
+    for (const [i, j, k] of tri) { const pts = [ring[i], ring[k], ring[j]].map(p => [p.x * M, (G.hM(p.x, p.z) + lift) * M, p.z * M]); for (const q of pts) { P.push(...q); N.push(0, 1, 0); C.push(col.r, col.g, col.b); } }
+  };
+  const mesh = name => {
+    if (!P.length) return null;
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(N, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(C, 3));
+    const m = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .95, metalness: 0, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 })); m.name = name; return m;
+  };
+  return { quad, along, polygon, mesh, tris: () => P.length / 9 };
+}
+/** Roads for wheels as dark plate strips following the ground, with a dashed centre line and edge lines on the wide ones. Widths in metres. */
+function roads(G, list, M) {
+  const S = stripper(G, M), c = lin(0x3d4148), cl = lin(0xd8d4c4), edge = lin(0xe8e4d8);
   for (const r of list) {
-    const pts = r.pts; if (!pts || pts.length < 2) continue;
-    for (let i = 0; i < pts.length - 1; i++) {
-      const a = pts[i], b = pts[i + 1], L = Math.hypot(b.x - a.x, b.z - a.z), steps = Math.max(1, Math.ceil(L / Math.min(6, G.res / 2)));
-      for (let s = 0; s < steps; s++) { const a2 = { x: lerp(a.x, b.x, s / steps), z: lerp(a.z, b.z, s / steps) }, b2 = { x: lerp(a.x, b.x, (s + 1) / steps), z: lerp(a.z, b.z, (s + 1) / steps) }; quad(a2, b2, r.w || 5, c); if ((r.w || 5) >= 5 && s % 2 === 0) quad(a2, b2, 0.3, cl, 0.02); }   // a pale dashed centre line on the wider roads
-    }
+    const pts = r.pts, w = r.w || 5; if (!pts || pts.length < 2 || FOOT.has(r.kind) || r.kind === 'cycleway') continue;
+    S.along(pts, (a, b, s) => { S.quad(a, b, w, c, 0.25); if (w >= 5 && s % 2 === 0) S.quad(a, b, 0.3, cl, 0.27); if (w >= 7) { S.quad(a, b, 0.15, edge, 0.27, w / 2 - 0.35); S.quad(a, b, 0.15, edge, 0.27, -(w / 2 - 0.35)); } });
   }
-  if (!P.length) return null;
-  const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(N, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(C, 3));
-  const mesh = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .95, metalness: 0, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 }));
-  mesh.name = 'roads'; G.roads = mesh; return mesh;
+  const mesh = S.mesh('roads'); G.roads = mesh; return mesh;
+}
+/** Everything else that makes a street: sidewalks with curbs beside the wider roads, tan footways and paths, cycleways, parking lots with bays, plazas, and zebra crossings where a footway meets a road. */
+function streets(G, win, M) {
+  const S = stripper(G, M), walk = lin(0x9a9c9e), curb = lin(0x6e7073), foot = lin(0xb9a884), cycle = lin(0x8a5a52), lot = lin(0x55585e), bay = lin(0xe8e4d8), plaza = lin(0xb8b2a4), zebra = lin(0xf2efe6);
+  const roads = win.roads || [], areas = win.areas || [], wide = roads.filter(r => (r.w || 5) >= 5 && !FOOT.has(r.kind) && r.kind !== 'cycleway' && r.pts && r.pts.length >= 2);
+  for (const r of wide) { const w = r.w || 5; S.along(r.pts, (a, b) => { for (const sg of [1, -1]) { S.quad(a, b, 1.6, walk, 0.32, sg * (w / 2 + 0.8)); S.quad(a, b, 0.16, curb, 0.34, sg * (w / 2 + 0.06)); } }); }
+  for (const r of roads) { if (!r.pts || r.pts.length < 2) continue; if (FOOT.has(r.kind)) S.along(r.pts, (a, b) => S.quad(a, b, Math.max(1.2, r.w || 2), foot, 0.3)); else if (r.kind === 'cycleway') S.along(r.pts, (a, b) => S.quad(a, b, r.w || 2, cycle, 0.3)); }
+  // zebra crossings: a footway's end within 3 m of a wide road gets stripes across that road
+  let crossings = 0;
+  const nearest = (p) => { let best = null; for (const r of wide) for (let i = 0; i < r.pts.length - 1; i++) { const a = r.pts[i], b = r.pts[i + 1], dx = b.x - a.x, dz = b.z - a.z, L2 = dx * dx + dz * dz || 1, t = clamp(((p.x - a.x) * dx + (p.z - a.z) * dz) / L2, 0, 1), cx = a.x + dx * t, cz = a.z + dz * t, d = Math.hypot(p.x - cx, p.z - cz); if (d < 3 && (!best || d < best.d)) best = { d, x: cx, z: cz, ux: dx / Math.sqrt(L2), uz: dz / Math.sqrt(L2), w: r.w || 5 }; } return best; };
+  for (const r of roads) { if (!FOOT.has(r.kind) || !r.pts || r.pts.length < 2 || crossings >= 200) continue;
+    for (const p of [r.pts[0], r.pts[r.pts.length - 1]]) { const n = nearest(p); if (!n) continue; crossings++;
+      for (let k = -2; k <= 2; k++) { const ox = n.ux * k * 1.0, oz = n.uz * k * 1.0, nx = -n.uz, nz = n.ux; S.quad({ x: n.x + ox - nx * n.w / 2, z: n.z + oz - nz * n.w / 2 }, { x: n.x + ox + nx * n.w / 2, z: n.z + oz + nz * n.w / 2 }, 0.5, zebra, 0.28); } } }
+  // parking lots and plazas: filled, lots with white bay lines along their longest edge
+  for (const a of areas) { const ring = a.ring; if (!ring || ring.length < 3) continue;
+    if (a.kind === 'plaza') { S.polygon(ring, plaza, 0.22); continue; }
+    S.polygon(ring, lot, 0.22);
+    let bi = 0, bl = 0; for (let i = 0; i < ring.length; i++) { const q = ring[(i + 1) % ring.length], L = Math.hypot(q.x - ring[i].x, q.z - ring[i].z); if (L > bl) { bl = L; bi = i; } }
+    const A = ring[bi], B = ring[(bi + 1) % ring.length], ux = (B.x - A.x) / bl, uz = (B.z - A.z) / bl, vx = -uz, vz = ux;
+    let u0 = Infinity, u1 = -Infinity, v0 = Infinity, v1 = -Infinity; for (const p of ring) { const u = (p.x - A.x) * ux + (p.z - A.z) * uz, v = (p.x - A.x) * vx + (p.z - A.z) * vz; u0 = Math.min(u0, u); u1 = Math.max(u1, u); v0 = Math.min(v0, v); v1 = Math.max(v1, v); }
+    const inside = (x, z) => { let ok = false; for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) { const p = ring[i], q = ring[j]; if ((p.z > z) !== (q.z > z) && x < (q.x - p.x) * (z - p.z) / (q.z - p.z) + p.x) ok = !ok; } return ok; };
+    let bays = 0;
+    for (let v = v0 + 1.5; v + 5 <= v1 && bays < 400; v += 7) for (let u = u0 + 1.5; u <= u1 - 1.5 && bays < 400; u += 2.5) {
+      const p0 = { x: A.x + ux * u + vx * v, z: A.z + uz * u + vz * v }, p1 = { x: A.x + ux * u + vx * (v + 5), z: A.z + uz * u + vz * (v + 5) };
+      if (inside(p0.x, p0.z) && inside(p1.x, p1.z) && inside((p0.x + p1.x) / 2, (p0.z + p1.z) / 2)) { S.quad(p0, p1, 0.12, bay, 0.24); bays++; } }
+  }
+  const mesh = S.mesh('streets'); G.streets = mesh; return mesh;
 }
 
 /** HLIÐARENDI's day preset, rebuilt for r128 (see toys/common.js for the reasoning). */
@@ -137,5 +177,5 @@ function bakedField() {
 /** Convert a fetched square field (origin at the centre) into the shared shape. */
 function centredField(f) { return { n: f.n, res: f.res, h: f.h, cx: (f.n - 1) / 2, cy: (f.n - 1) / 2, datum: f.datum }; }
 
-window.Ground = { make, drape, recolour, crater, roads, daylight, bakedField, centredField, MOSS };
+window.Ground = { streets, FOOT, make, drape, recolour, crater, roads, daylight, bakedField, centredField, MOSS };
 })();
