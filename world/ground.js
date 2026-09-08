@@ -89,7 +89,7 @@ function crater(G, x, z, r, depth) {
 
 /** Roads as dark tile strips following the ground, one merged mesh. Widths in metres. */
 function roads(G, list, M) {
-  const P = [], N = [], C = [], c = new THREE.Color(0x3f4247).convertSRGBToLinear(), lift = 0.12;
+  const P = [], N = [], C = [], c = new THREE.Color(0x3f4247).convertSRGBToLinear(), lift = 0.3;
   const quad = (a, b, w) => {                      // a,b: {x,z} metres; a strip of width w between them
     const dx = b.x - a.x, dz = b.z - a.z, L = Math.hypot(dx, dz); if (L < 0.05) return;
     const nx = -dz / L * w / 2, nz = dx / L * w / 2;

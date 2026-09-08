@@ -49,9 +49,9 @@ const colOf = (c, d = 71) => { if (c == null) return d; if (typeof c === 'number
 
 /* ───────────────────────── the grid ───────────────────────── */
 class Grid {
-  constructor() { this.cells = new Map(); this.parts = []; this.props = []; this.maxY = 0; this.min = [Infinity, Infinity]; this.max = [-Infinity, -Infinity]; }
+  constructor() { this.cells = new Map(); this.parts = []; this.props = []; this.maxY = 0; this.op = -1; this.min = [Infinity, Infinity]; this.max = [-Infinity, -Infinity]; }
   key(x, y, z) { return x + ',' + y + ',' + z; }
-  set(x, y, z, col, kind) { if (y < 0 || y > 300) return; const k = this.key(x, y, z), was = this.cells.get(k); if (was && was.r) return; /* a reserved cell (an opening, a part) is never painted over */ this.cells.set(k, { col, r: 0, k: kind }); if (y > this.maxY) this.maxY = y; if (x < this.min[0]) this.min[0] = x; if (z < this.min[1]) this.min[1] = z; if (x > this.max[0]) this.max[0] = x; if (z > this.max[1]) this.max[1] = z; }
+  set(x, y, z, col, kind) { if (y < 0 || y > 300) return; const k = this.key(x, y, z), was = this.cells.get(k); if (was && was.r) return; /* a reserved cell (an opening, a part) is never painted over */ this.cells.set(k, { col, r: 0, k: kind, op: this.op }); if (y > this.maxY) this.maxY = y; if (x < this.min[0]) this.min[0] = x; if (z < this.min[1]) this.min[1] = z; if (x > this.max[0]) this.max[0] = x; if (z > this.max[1]) this.max[1] = z; }
   reserve(x, y, z) { if (y < 0 || y > 300) return; this.cells.set(this.key(x, y, z), { col: -1, r: 1 }); if (y > this.maxY) this.maxY = y; }
   clear(x, y, z) { this.cells.delete(this.key(x, y, z)); }
   get(x, y, z) { return this.cells.get(this.key(x, y, z)); }
@@ -62,7 +62,7 @@ class Grid {
   /** Returns false (and counts it) when another part already holds any of the cells. */
   part(part, col, x, z, y, rot, w, d, hp) {
     for (let yy = y; yy < y + hp; yy++) for (let xx = x; xx < x + w; xx++) for (let zz = z; zz < z + d; zz++) { const c = this.get(xx, yy, zz); if (c && c.r) { this.blocked = (this.blocked || 0) + 1; return false; } }
-    this.reserveBox(x, z, w, d, y, y + hp); this.parts.push({ part, col, x, y, z, rot, w, d, plate: DIMS[part] ? DIMS[part][4] <= 8 : false }); return true;
+    this.reserveBox(x, z, w, d, y, y + hp); this.parts.push({ part, col, x, y, z, rot, w, d, plate: DIMS[part] ? DIMS[part][4] <= 8 : false, op: this.op }); return true;
   }
 }
 
@@ -235,10 +235,10 @@ function tile(g, opts = {}) {
   const fits = (x, y, z, w, d, hp, col, kind) => { for (let yy = y; yy < y + hp; yy++) for (let xx = x; xx < x + w; xx++) for (let zz = z; zz < z + d; zz++) if (!solid(xx, yy, zz, col, kind)) return false; return true; };
   const take = (x, y, z, w, d, hp) => { for (let yy = y; yy < y + hp; yy++) for (let xx = x; xx < x + w; xx++) for (let zz = z; zz < z + d; zz++) used.add(g.key(xx, yy, zz)); };
   for (const y of layers) {
-    const cells = []; for (const [k, c] of g.cells) { const [x, yy, z] = k.split(',').map(Number); if (yy === y && !c.r && !used.has(k)) cells.push([x, z, c.col, c.k]); }
+    const cells = []; for (const [k, c] of g.cells) { const [x, yy, z] = k.split(',').map(Number); if (yy === y && !c.r && !used.has(k)) cells.push([x, z, c.col, c.k, c.op]); }
     cells.sort((a, b) => a[1] - b[1] || a[0] - b[0]);
     const course = Math.floor(y / BRICK), shift = course & 1;                      // running bond: the long bricks start two studs over on every other course
-    for (const pass of [0, 1]) for (const [x, z, col, kind] of cells) {
+    for (const pass of [0, 1]) for (const [x, z, col, kind, op] of cells) {
       if (used.has(g.key(x, y, z)) || kind === 'p') continue;
       let done = false;
       for (const [part, nw, nd] of BRICKS) for (const rot of [0, 1]) {
@@ -246,13 +246,13 @@ function tile(g, opts = {}) {
         if (pass === 0 && opts.bond !== false && w >= 4 && ((x + shift * 2) % 4)) continue;   // first pass: only well-bonded long bricks
         if (pass === 0 && opts.bond !== false && d >= 4 && ((z + shift * 2) % 4)) continue;
         if (!fits(x, y, z, w, d, BRICK, col, kind)) continue;
-        take(x, y, z, w, d, BRICK); out.push({ part, col, x, y, z, rot, w, d, plate: false }); done = true; break;
+        take(x, y, z, w, d, BRICK); out.push({ part, col, x, y, z, rot, w, d, plate: false, op }); done = true; break;
       }
       if (done) continue;
     }
-    for (const [x, z, col, kind] of cells) {                                          // whatever is left on this layer becomes plates
+    for (const [x, z, col, kind, op] of cells) {                                      // whatever is left on this layer becomes plates
       if (used.has(g.key(x, y, z))) continue;
-      for (const [part, nw, nd] of PLATES) { let done = false; for (const rot of [0, 1]) { const w = rot ? nd : nw, d = rot ? nw : nd; if (!fits(x, y, z, w, d, 1, col, kind)) continue; take(x, y, z, w, d, 1); out.push({ part, col, x, y, z, rot, w, d, plate: true }); done = true; break; } if (done) break; }
+      for (const [part, nw, nd] of PLATES) { let done = false; for (const rot of [0, 1]) { const w = rot ? nd : nw, d = rot ? nw : nd; if (!fits(x, y, z, w, d, 1, col, kind)) continue; take(x, y, z, w, d, 1); out.push({ part, col, x, y, z, rot, w, d, plate: true, op }); done = true; break; } if (done) break; }
     }
   }
   return out;
@@ -282,7 +282,7 @@ function box(part, rot) { const b = DIMS[part] || [-10, 10, -10, 10, 24]; const 
 /** A piece as a world Build row [id, part, col, x, y, z, rot] in LDU (y up), given the anchor cell origin (LDU) and a prefix. */
 function toRows(result, { ax = 0, ay = 0, az = 0, prefix = 'mb' } = {}) {
   let n = 0; const rows = [];
-  for (const p of [...result.pieces, ...result.parts]) { const b = box(p.part, p.rot); rows.push([`${prefix}-${++n}`, p.part, p.col, ax + p.x * STUD - b[0], ay + p.y * PLATE, az + p.z * STUD - b[2], p.rot & 3]); }
+  for (const p of [...result.pieces, ...result.parts]) { const b = box(p.part, p.rot); rows.push([`${prefix}-${++n}`, p.part, p.col, ax + p.x * STUD - b[0], ay + p.y * PLATE, az + p.z * STUD - b[2], p.rot & 3, p.op == null ? -1 : p.op]); }
   return rows;
 }
 /** One LDraw line for a piece in a frame whose y points down (the LDraw frame): x, z as cells, origin at the part's top. */
@@ -308,9 +308,9 @@ function compile(program, opts = {}) {
     if (o && (o.args || o.object || o.params)) o = { ...o, ...(o.args || o.object || o.params) };   // models sometimes nest the fields; take them either way
     const name = o && String(o.op || o.type || o.kind || '').toLowerCase(); const fn = OPS[name];
     if (!fn) { report.unknown.push({ i, op: name || '?' }); return; }
-    const n0 = g.props.length;
+    const n0 = g.props.length; g.op = i;
     try { fn(g, o); report.ops++; } catch (e) { report.errors.push({ i, op: name, error: e.message }); }
-    for (let k = n0; k < g.props.length; k++) g.props[k].src = { ...o, op: name };   // a prop remembers the op that made it, so a read build can say it again
+    for (let k = n0; k < g.props.length; k++) { g.props[k].src = { ...o, op: name }; g.props[k].op = i; }   // a prop remembers the op that made it, so a read build can say it again
   });
   let pieces = tile(g, opts);
   const s = support(g, pieces); pieces = s.pieces; report.floating = s.dropped; report.dropped = s.droppedList;
@@ -388,6 +388,24 @@ function boxOp(b) {
   return out;
 }
 function partOp(i) { const o = { op: 'part', part: i.part, col: i.col, x: i.x, z: i.z, y: Math.floor(i.y / 3), rot: i.rot }; if (i.y % 3) o.plate = i.y % 3; return o; }
+/** The ops of a program that is still being written: the name if it is there, and every op object that is already complete. */
+function partialProgram(text) {
+  text = String(text || ''); const out = { name: '', ops: [], complete: false };
+  const nm = text.match(/"name"\s*:\s*"((?:[^"\\]|\\.)*)"/); if (nm) out.name = nm[1];
+  const at = text.search(/"ops"\s*:\s*\[/); if (at < 0) return out;
+  let i = text.indexOf('[', at) + 1, depth = 0, start = -1, inStr = false, esc = false;
+  for (; i < text.length; i++) {
+    const c = text[i];
+    if (inStr) { if (esc) esc = false; else if (c === '\\') esc = true; else if (c === '"') inStr = false; continue; }
+    if (c === '"') { inStr = true; continue; }
+    if (c === '{') { if (depth === 0) start = i; depth++; }
+    else if (c === '}') { depth--; if (depth === 0 && start >= 0) { try { out.ops.push(JSON.parse(text.slice(start, i + 1))); } catch (e) { } start = -1; } }
+    else if (c === ']' && depth === 0) { out.complete = true; break; }
+  }
+  return out;
+}
+/** One op in words. */
+function captionOp(o) { const c = caption({ name: 'x', ops: [o] }); return c.replace(/^x: /, ''); }
 /** Deterministic words for a program: what a reader would say it is. */
 function caption(program) {
   const ops = (program && program.ops) || [], said = new Map(), add = t => said.set(t, (said.get(t) || 0) + 1);
@@ -456,5 +474,5 @@ const EXAMPLES = [
   { ask: 'a stone bridge over a stream', program: { name: 'bridge', ops: [{ op: 'box', x: 0, z: 0, w: 4, d: 6, y: 0, h: 3, col: 72 }, { op: 'box', x: 12, z: 0, w: 4, d: 6, y: 0, h: 3, col: 72 }, { op: 'arch', x: 4, z: 0, y: 0, facing: 's', h: 2, col: 72 }, { op: 'arch', x: 4, z: 5, y: 0, facing: 's', h: 2, col: 72 }, { op: 'slab', x: 0, z: 0, w: 16, d: 6, y: 3, plates: 3, col: 71 }, { op: 'fence', from: [0, 0], to: [16, 0], y: 4, col: 72 }, { op: 'fence', from: [0, 5], to: [16, 5], y: 4, col: 72 }, { op: 'tree', x: 18, z: 3, h: 4, r: 2 }, { op: 'minifig', x: 7, z: 2, facing: 'e', as: 'luke' }] } },
   { ask: 'a small yellow plane to fly', program: { name: 'plane', ops: [{ op: 'vehicle', x: 4, z: 0, facing: 's', kind: 'plane', len: 8, col: 14 }, { op: 'minifig', x: 0, z: 2, facing: 'e', as: 'pilot' }, { op: 'fence', from: [-2, 10], to: [14, 10], y: 0, col: 15 }] } },
 ];
-root.Dsl = { compile, decompile, caption, tile, toRows, toMPD, withHeaders, propYaw, propPlace, box, foot, figureDef, figureMPD, vehicleMPD, DIMS, BRICKS, PLATES, COLOURS, HATS, TORSOS, TOOLS, FIGS, SPEC, EXAMPLES, STUD, PLATE, BRICK, colOf };
+root.Dsl = { compile, decompile, caption, captionOp, partialProgram, tile, toRows, toMPD, withHeaders, propYaw, propPlace, box, foot, figureDef, figureMPD, vehicleMPD, DIMS, BRICKS, PLATES, COLOURS, HATS, TORSOS, TOOLS, FIGS, SPEC, EXAMPLES, STUD, PLATE, BRICK, colOf };
 })(typeof window !== 'undefined' ? window : globalThis);

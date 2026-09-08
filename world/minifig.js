@@ -99,6 +99,7 @@ function pose(rig, st) {
     if (rig.def && rig.def.weapon && rig.def.weapon[0] === 'saber') twist = -twist;   // the saber hand leads
   }
   if (st.aim) armR = armR + (-80 * DEG - armR) * st.aim;
+  if (st.sit) { rig.legRP.rotation.x = -90 * DEG; rig.legLP.rotation.x = -90 * DEG; armL = -60 * DEG; armR = -60 * DEG; twist = 0; rig.hipsP.position.y = -(FEET - 32) + 20; rig.torsoP.rotation.z = 0; }   // in the seat: legs forward, hands on the wheel
   rig.armLP.rotation.x = armL; rig.armRP.rotation.x = armR; rig.torsoP.rotation.y = twist;
 }
 

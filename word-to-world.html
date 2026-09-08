@@ -15,19 +15,19 @@
 <script src="./nabugo-ui.js"></script>
 <script src="./toys/terrain-data.js"></script>
 <script src="./world/geo.js?v=0a96e33c"></script>
-<script src="./world/ground.js"></script>
+<script src="./world/ground.js?v=573a7349"></script>
 <script src="./world/bricks.js?v=844249b9"></script>
-<script src="./world/minifig.js"></script>
+<script src="./world/minifig.js?v=8fc5a16d"></script>
 <script src="./world/debris.js"></script>
 <script src="./world/characters.js?v=0362e99e"></script>
 <script src="./world/worlds.js"></script>
 <script src="./world/tie.js"></script>
 <script src="./world/drive.js?v=f8c2d6d2"></script>
-<script src="./world/fx.js?v=cf936655"></script>
-<script src="./world/dsl.js?v=4cc7d5b0"></script>
-<script src="./world/ai.js?v=380a33ba"></script>
-<script src="./world/build.js?v=db2be2c8"></script>
-<script src="./world/props.js?v=c5fd6e8f"></script>
+<script src="./world/fx.js?v=f16940a8"></script>
+<script src="./world/dsl.js?v=01ed5ce9"></script>
+<script src="./world/ai.js?v=b43aa436"></script>
+<script src="./world/build.js?v=9a0d1ac4"></script>
+<script src="./world/props.js?v=2574a48d"></script>
 <script src="./world/net.js"></script>
 <style>
 :root{--wb:96px;--ink:#1a1f2a;--dim:#4b5566;--gold:#c8901c;--red:#d8382e;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;--sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
@@ -165,6 +165,11 @@ body[data-world="deathstar"] #menu .ai select{background:rgba(20,24,32,.85);colo
 #wbTop #wbStat{flex:1;min-width:0}
 #wbTop button{height:30px;min-width:34px;padding:0 10px;border:1px solid rgba(26,31,42,.25);border-radius:9px;background:rgba(255,255,255,.85);font:12px var(--sans);color:var(--ink)}
 #wbTop button.on{background:var(--ink);color:#fff}#wbTop button.stop{background:var(--red);color:#fff;border:none;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+#wbCode{display:flex;flex-direction:column;gap:6px;max-height:45vh}#wbCode[hidden]{display:none}#wbCode .head{display:flex;gap:6px;align-items:center}#wbCode .head em{flex:1;font:10px var(--mono);color:var(--dim);font-style:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#wbCode .head button{height:28px;padding:0 10px;border:1px solid rgba(26,31,42,.25);border-radius:9px;background:rgba(255,255,255,.85);font:11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink)}#wbCode .seg{display:inline-flex;border:1px solid rgba(26,31,42,.25);border-radius:9px;overflow:hidden}#wbCode .seg button{border:none;border-radius:0}#wbCode .seg button.on{background:var(--ink);color:#fff}
+#wbOps{margin:0;padding:6px 8px;list-style:none;max-height:36vh;overflow:auto;border-radius:12px;background:rgba(255,255,255,.92);font:12px/1.4 var(--sans);color:var(--ink)}#wbOps[hidden]{display:none}#wbOps li{display:flex;gap:8px;align-items:baseline;padding:4px 4px;border-radius:8px;cursor:pointer}#wbOps li i{flex:0 0 auto;width:10px;height:10px;border-radius:3px;background:#999;margin-top:2px;align-self:center}#wbOps li b{flex:0 0 auto;font:11px var(--mono);color:var(--dim)}#wbOps li span{flex:1;min-width:0}#wbOps li em{flex:0 0 auto;font:10px var(--mono);color:var(--dim);font-style:normal}#wbOps li.lit{background:rgba(200,144,28,.25)}#wbOps li.new{animation:opIn .4s ease-out}#wbOps li.bad{color:var(--red)}
+@keyframes opIn{0%{background:rgba(47,191,63,.35)}100%{background:transparent}}
+#wbJson{margin:0;max-height:36vh;overflow:auto;padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.92);color:var(--ink);font:11px/1.45 var(--mono);white-space:pre-wrap;word-break:break-word;-webkit-user-select:text;user-select:text}#wbJson[hidden]{display:none}#wbJson .k{color:#1f5fa8}#wbJson .s{color:#1f7a2f}#wbJson .n{color:#b0512a}
+body[data-world="deathstar"] #wbOps,body[data-world="deathstar"] #wbJson,body[data-world="deathstar"] #wbCode .head button{background:rgba(20,24,32,.92);color:#e6eaf2;border-color:rgba(230,234,242,.3)}
 #wbLog{display:flex;flex-direction:column;gap:6px;max-height:45vh}#wbLog[hidden]{display:none}#wbLog pre{margin:0;flex:1;min-height:80px;max-height:38vh;overflow:auto;padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.92);color:var(--ink);font:11px/1.45 var(--mono);white-space:pre-wrap;word-break:break-word;-webkit-user-select:text;user-select:text}
 #wbLog .row{display:flex;gap:6px;justify-content:flex-end}#wbLog .row button{height:28px;padding:0 10px;border:1px solid rgba(26,31,42,.25);border-radius:9px;background:rgba(255,255,255,.85);font:11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink)}
 body[data-world="deathstar"] #wbLog pre,body[data-world="deathstar"] #wbLog .row button{background:rgba(20,24,32,.92);color:#e6eaf2;border-color:rgba(230,234,242,.3)}
@@ -198,7 +203,8 @@ body[data-world="deathstar"] #wbTop button,body[data-world="deathstar"] #wbKeyRo
 <button id="build">Build</button>
 <div id="palette"></div>
 <button id="wbSay" title="say what to build">say what to build</button>
-<div id="wb"><div id="wbTop"><div id="wbStat"><i class="bar"><i></i><i></i><i></i></i><span id="wbText"></span><b id="wbTime"></b></div><button id="wbStop" class="stop" hidden title="stop the model">stop</button><button id="wbLogBtn" title="the build log">log</button><button id="wbKeyBtn" title="OpenAI key">key</button><button id="wbHide" title="hide the word bar">hide</button></div>
+<div id="wb"><div id="wbTop"><div id="wbStat"><i class="bar"><i></i><i></i><i></i></i><span id="wbText"></span><b id="wbTime"></b></div><button id="wbStop" class="stop" hidden title="stop the model">stop</button><button id="wbCodeBtn" title="the program, op by op">code</button><button id="wbLogBtn" title="the build log">log</button><button id="wbKeyBtn" title="OpenAI key">key</button><button id="wbHide" title="hide the word bar">hide</button></div>
+<div id="wbCode" hidden><div class="row head"><span class="seg"><button data-view="words" class="on">words</button><button data-view="json">json</button></span><em id="wbCodeStat"></em><button id="wbCodeEdit" title="put the program in the bar to change by hand">edit</button><button id="wbCodeCopy">copy</button></div><ol id="wbOps"></ol><pre id="wbJson" hidden></pre></div>
 <div id="wbLog" hidden><pre id="wbLogText"></pre><div class="row"><button id="wbLogCopy">copy</button><button id="wbLogClear">clear</button></div></div>
 <div id="wbKeyRow"><input id="wbKey" type="password" placeholder="OpenAI API key · stays in this browser" autocomplete="off"><button id="wbKeyOk">Save</button></div>
 <div id="wbSheet"><button id="wbCommit" class="go">Commit</button><span class="ride"><button data-ride="" class="on" title="it stays bricks">bricks</button><button data-ride="drive" title="one thing you can drive">drive</button><button data-ride="fly" title="one thing you can fly">fly</button></span><button id="wbSave" title="keep it in your builds">save</button><button data-nudge="-1,0,0,0" title="left">◀</button><button data-nudge="1,0,0,0" title="right">▶</button><button data-nudge="0,-1,0,0" title="away">▲</button><button data-nudge="0,1,0,0" title="closer">▼</button><button data-nudge="0,0,1,0">up</button><button data-nudge="0,0,-1,0">down</button><button data-nudge="0,0,0,1" title="turn">⟳</button><button id="wbDiscard" class="no">Discard</button></div>
@@ -211,6 +217,6 @@ body[data-world="deathstar"] #wbTop button,body[data-world="deathstar"] #wbKeyRo
 <div id="hint">say what to build, or walk: left thumb walks · right thumb looks · tap right swings the saber</div>
 <div id="keys">wasd walk · mouse drag look · space saber · f push · g detonator · b build · shift run · e board / land</div>
 <div id="veil"><div class="k">word to world</div><h1 id="vTitle">Finding a place</h1><div class="bricks"><i></i><i></i><i></i><i></i><i></i></div><div class="m" id="vm"></div><ol id="stages"><li data-s="place">place</li><li data-s="ground">ground</li><li data-s="imagery">imagery</li><li data-s="buildings">buildings</li><li data-s="ship">the ship and Vader</li><li data-s="bricks">bricks</li></ol><button id="vStart" hidden>Start now</button></div>
-<script src="./world/main.js?v=064846d9"></script>
+<script src="./world/main.js?v=62872d7b"></script>
 </body>
 </html>
