@@ -83,7 +83,7 @@ function buildingHeight(tags) {
   const lv = parseFloat(tags['building:levels'] || tags.levels); if (Number.isFinite(lv) && lv > 0) return lv * 3.1;
   return GUESS_H[tags.building] || 5;
 }
-const overpassQuery = b => `[out:json][timeout:25];(way["building"](${b});relation["building"](${b});way["highway"](${b});way["amenity"="parking"](${b});relation["amenity"="parking"](${b}););out geom;`;
+const overpassQuery = b => `[out:json][timeout:25];(way["building"](${b});relation["building"](${b});way["highway"](${b});way["amenity"="parking"](${b});relation["amenity"="parking"](${b});way["leisure"~"^(stadium|park|pitch|garden|playground)$"](${b});relation["leisure"~"^(stadium|park)$"](${b});way["natural"~"^(water|wood)$"](${b});relation["natural"~"^(water|wood)$"](${b});way["landuse"~"^(grass|forest|meadow|cemetery)$"](${b});way["waterway"~"^(river|stream|canal)$"](${b});node["natural"="tree"](${b});node["man_made"~"^(tower|mast|water_tower)$"](${b}););out geom;`;
 /** Ask one mirror; 429/503/504 count as failures so the race moves on. */
 async function askMirror(url, query, ms, signal) {
   const ctl = new AbortController(); const onAbort = () => ctl.abort(); if (signal) signal.addEventListener('abort', onAbort, { once: true });
@@ -98,7 +98,7 @@ async function askMirror(url, query, ms, signal) {
 }
 /** All mirrors are asked at once and the first good answer wins; the losers are aborted. A second round only if every mirror failed. */
 async function fetchOverpass(bbox, { signal, perMirrorMs = 40000, rounds = 2 } = {}) {
-  const key = 'world-osm:2:' + bbox.map(v => v.toFixed(4)).join(',');   // the 2 is the query's shape: parking lots came with it, and an older answer must not be reused
+  const key = 'world-osm:3:' + bbox.map(v => v.toFixed(4)).join(',');   // the 3 is the query's shape (parks, water, trees, towers, names came with it): an older answer must not be reused
   try { const c = localStorage.getItem(key); if (c) return JSON.parse(c); } catch (e) {}
   const query = overpassQuery(bbox.join(',')); let lastErr = null;
   for (let round = 0; round < rounds; round++) {
@@ -123,25 +123,29 @@ function rememberOSM(key, j) {                     // a small LRU in localStorag
 async function fetchOSM({ lat, lon, spanM, P, signal }) {
   P = P || proj(lat, lon); const half = spanM / 2, nw = P.toWGS(-half, -half), se = P.toWGS(half, half);
   const bbox = [se.lat, nw.lon, nw.lat, se.lon];
-  let j; try { j = await fetchOverpass(bbox, { signal }); NET.osm++; } catch (e) { fail('overpass', e); return { ok: false, buildings: [], roads: [], areas: [] }; }
-  const buildings = [], roads = [], areas = [];
+  let j; try { j = await fetchOverpass(bbox, { signal }); NET.osm++; } catch (e) { fail('overpass', e); return { ok: false, buildings: [], roads: [], areas: [], points: [] }; }
+  const buildings = [], roads = [], areas = [], points = [];
   const ring = geom => { const r = geom.map(g => P.toLocal(g.lat, g.lon)); if (r.length > 1 && Math.hypot(r[0].x - r[r.length - 1].x, r[0].z - r[r.length - 1].z) < 0.01) r.pop(); return r; };
   for (const el of j.elements || []) {
     const tags = el.tags || {};
-    if (el.type === 'way' && tags.building && el.geometry && el.geometry.length >= 4) buildings.push({ id: el.id, ring: ring(el.geometry), h: buildingHeight(tags), kind: tags.building });
-    else if (el.type === 'relation' && tags.building && el.members) {
-      const h = buildingHeight(tags);
-      for (const m of el.members) if (m.role === 'outer' && m.geometry && m.geometry.length >= 4) buildings.push({ id: el.id * 100 + (m.ref % 100), ring: ring(m.geometry), h, kind: tags.building });
-    } else if (el.type === 'way' && tags.highway && el.geometry && el.geometry.length >= 2) {
-      if (tags.highway === 'pedestrian' && tags.area === 'yes' && el.geometry.length >= 4) { areas.push({ id: el.id, kind: 'plaza', ring: ring(el.geometry) }); continue; }
+    const extra = { name: tags.name || null, levels: parseFloat(tags['building:levels'] || tags.levels) || null, roof: tags['roof:shape'] || null, leisure: tags.leisure || null };
+    const outerRings = el => el.type === 'way' ? (el.geometry && el.geometry.length >= 4 ? [[el.id, ring(el.geometry)]] : []) : (el.members || []).filter(m => m.role === 'outer' && m.geometry && m.geometry.length >= 4).map(m => [el.id * 100 + (m.ref % 100), ring(m.geometry)]);
+    if (tags.building && (el.type === 'way' || el.type === 'relation')) { const h = buildingHeight(tags); for (const [id, rg] of outerRings(el)) { buildings.push({ id, ring: rg, h, kind: tags.leisure === 'stadium' || tags.building === 'stadium' ? 'stadium' : tags.building, ...extra }); if (tags.leisure === 'stadium' || tags.building === 'stadium') areas.push({ id, kind: 'stadium', ring: rg, name: extra.name }); } }
+    else if (el.type === 'way' && tags.highway && el.geometry && el.geometry.length >= 2) {
+      if (tags.highway === 'pedestrian' && tags.area === 'yes' && el.geometry.length >= 4) { areas.push({ id: el.id, kind: 'plaza', ring: ring(el.geometry), name: extra.name }); continue; }
       const w = ROAD_W[tags.highway] || (tags.highway.endsWith('_link') ? 5 : 3);
-      roads.push({ id: el.id, pts: el.geometry.map(g => P.toLocal(g.lat, g.lon)), w, kind: tags.highway });
-    } else if (tags.amenity === 'parking' && !tags.building) {
-      if (el.type === 'way' && el.geometry && el.geometry.length >= 4) areas.push({ id: el.id, kind: 'parking', ring: ring(el.geometry) });
-      else if (el.type === 'relation' && el.members) for (const m of el.members) if (m.role === 'outer' && m.geometry && m.geometry.length >= 4) areas.push({ id: el.id * 100 + (m.ref % 100), kind: 'parking', ring: ring(m.geometry) });
+      roads.push({ id: el.id, pts: el.geometry.map(g => P.toLocal(g.lat, g.lon)), w, kind: tags.highway, name: extra.name, bridge: !!(tags.bridge && tags.bridge !== 'no'), layer: parseInt(tags.layer) || 0, oneway: tags.oneway === 'yes' });
+    } else if (el.type === 'node' && el.lat != null) {
+      if (tags.natural === 'tree') points.push({ kind: 'tree', ...P.toLocal(el.lat, el.lon) });
+      else if (tags.man_made) points.push({ kind: 'tower', ...P.toLocal(el.lat, el.lon), h: parseFloat(tags.height) || 20, name: extra.name });
+    } else if (tags.waterway && el.type === 'way' && el.geometry && el.geometry.length >= 2) { roads.push({ id: el.id, pts: el.geometry.map(g => P.toLocal(g.lat, g.lon)), w: tags.waterway === 'river' ? 12 : 4, kind: 'river', name: extra.name }); }
+    else {
+      const kind = tags.amenity === 'parking' ? 'parking' : tags.leisure === 'stadium' ? 'stadium' : tags.leisure === 'pitch' ? 'pitch' : (tags.leisure === 'park' || tags.leisure === 'garden' || tags.leisure === 'playground' || tags.landuse === 'grass' || tags.landuse === 'meadow') ? 'park' : tags.natural === 'water' ? 'water' : (tags.natural === 'wood' || tags.landuse === 'forest') ? 'wood' : tags.landuse === 'cemetery' ? 'cemetery' : null;
+      if (kind) for (const [id, rg] of outerRings(el)) areas.push({ id, kind, ring: rg, name: extra.name });
     }
   }
-  return { ok: true, buildings, roads, areas, bbox };
+  if (points.filter(p => p.kind === 'tree').length > 400) { const trees = points.filter(p => p.kind === 'tree').sort((a, b) => (a.x * a.x + a.z * a.z) - (b.x * b.x + b.z * b.z)).slice(0, 400), others = points.filter(p => p.kind !== 'tree'); points.length = 0; points.push(...trees, ...others); }   // the nearest 400 trees
+  return { ok: true, buildings, roads, areas, points, bbox };
 }
 
 /* ───────────────────────── imagery ───────────────────────── */

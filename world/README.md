@@ -4,7 +4,7 @@
 
 ## The loop and the modes
 
-`simulate(dt)` runs every frame (and from the test hook `__world.step`). The player is in one **mode**:
+`tick()` measures the frame and runs `simulate(dt)` in fixed substeps (up to four of 1/60 s; a slower frame slows the world rather than jumping it), also from the test hook `__world.step`. `W.stats` carries `ms`, `fps`, `steps`; when the frame rate stays low the **quality** tier drops (pixel ratio, city radius, crowd cap) and comes back when it recovers; `?quality=auto|high|low` and the menu row pin it (`world.quality`). The player is in one **mode**:
 
 | mode | who moves | camera | input |
 |---|---|---|---|
@@ -18,9 +18,12 @@
 | thing | file | what it is | collisions |
 |---|---|---|---|
 | ground | `ground.js` | a heightfield from AWS terrain, draped in Esri imagery, cratered by blasts | `G.h(x, z)` is the floor for everyone |
-| city | `bricks.js` | OpenStreetMap buildings as brick instances, built the way the world's preset says (`palette.style`: height, window pitch, slits, stilts, bands, stepped roofs); windows are `pane-1x2x2` or `pane-lit` | on foot a building is its walls: `city.gapAt` (a hole three courses tall, or an open door) lets you in, `pushWalls` in main.js; ships and rides use `aabbs / pushRing`; `city.blast` knocks bricks; `city.doors` swings doors for whoever comes |
-| streets | `ground.js` | roads for wheels (`roads`) and `streets`: sidewalks with curbs, footways, cycleways, parking lots with bays, plazas, zebra crossings, all strips on `hM`; OSM areas come as `win.areas` | none: they are paint on the ground |
-| lamps | `lamps.js` | street lamps every 28 m along the roads: posts, a glow, a pool of light; `setNight` from the sky | none |
+| city | `bricks.js` | OpenStreetMap buildings as brick instances, built the way the world's preset says (`palette.style`: height, window pitch, slits, stilts, bands, stepped roofs) and the way the map's tags say (`KIND_STYLE`, `ROOF_SHAPE`: gabled and hipped slope roofs, a church's tower and spire, a stadium's tiered bowl and masts, sheds, warehouses, curtain walls); the plinth is capped at twelve courses, a door sits where the outside ground is highest and gets steps down to it (`b.stairs`, `City.floorAt`); windows are `pane-1x2x2` or `pane-lit` | on foot a building is its walls: `city.gapAt` (a hole three courses tall, or an open door) lets you in, `pushWalls` in main.js; ships and rides use `aabbs / pushRing`; `city.blast` knocks bricks; `city.doors` swings doors for whoever comes |
+| streets | `ground.js` | roads for wheels (`roads`) and `streets`: roads lifted by class (motorway highest, service lowest, so junctions read), markings by class (centre dashes, edge and lane lines on the wide ones), sidewalks with curbs, footways, cycleways, parking lots with bays (kept off the driven roads), plazas, zebra crossings where a footway meets a road, bridges as decks on piers with ramps (`G.decks`, `Ground.deckAt`), rivers, and the ground cover from the map: water, parks, woods, pitches, cemeteries, a stadium's pitch; OSM areas come as `win.areas` | the decks are a floor (`WALK.groundH`); the rest is paint |
+| lamps | `lamps.js` | street lamps along the roads, spaced and coloured by the world's `lights` preset (`worlds.js`: `lamp`, `pool`, `window`, `every`, `moon`, `suns`, `fireflies`); `setNight` from the sky | none |
+| flora | `flora.js` | trees (a round trunk and a brick crown, instanced) at the map's tree nodes, through its woods and along residential streets; towers and masts as columns with a red lamp | `flora.pushOut`; a ride fells a tree into debris |
+| traffic | `traffic.js` | cars, vans and buses from the DSL's `vehicle` op, one instanced mesh per model and colour: parked in the lot bays and at the kerbs, thirty driving the right-hand lane, turning at junctions, keeping their distance, stopping short of a walker or a ride in the lane; headlights at night | `traffic.pushOut`; a ride's ram flings a whole car into the debris (`traffic.hit`) |
+| map | `map.js` | the round minimap (north-up, 220 m), the full map (`#bigmap`: pan, pinch, names along the roads and at the big buildings, a tap sets a waypoint, a long press goes there), the nearest road's name in `#stat`, a building's name when you enter it, the compass in the top bar | none |
 | bricks | `build.js` | pieces the players placed or the builder made (one InstancedMesh per part) | `build.pushOut / floorAt / aabbs` |
 | props | `props.js` | LDraw sub-models: figures, vehicles, whole rides | `props.pushOut / floorAt / aabbs`; a blast flings parts |
 | rides | `drive.js` | a prop with a controller while someone is in it | `vehPushOut` in main.js pushes out of city, bricks and other props |
@@ -36,7 +39,7 @@
 
 Night is published as `S.night` and fanned out by `nightFall` in main.js: the city's lit panes (`paneMat` emissive), the lamps, a ride's headlights, the TIE's engine glow and the page's vignette (`--vig`). The Death Star is `litAlways`.
 
-`Ground.daylight` makes the two lights and the fog once; `Worlds.apply` paints a preset's day colours and palette; `W.sky.set` (in `setWorld`, `setSky`, `setWeather`) then blends them by the sun's height and the weather and moves the sun light. `auto` reads the device clock at the place's latitude and longitude; `day / dawn / dusk / night` pin the sun. Weather is `clear / cloudy / fog / rain / storm` (a storm has lightning). Both persist (`world.sky`, `world.weather`) and take `?sky=` / `?weather=`. The page's chrome follows the horizon colour (`--sky`, `--skyA`, `body.dark`). Minifig accessories: a hand's grip is 9.9 LDU ahead of its origin at 14.5° (3820.dat); `Minifig.toolMount` puts a tool there, bars turned to rise from the fist, and the aim pose levels the blaster.
+The stars sit on the dome with depth testing on, so the ship and the buildings occlude them. Each world's `lights` preset colours its lamps and windows: Hoth cold and sparse under a bright moon, Tatooine amber with two suns by day, Endor torches on the footways with fireflies at night, the Death Star white. `Ground.daylight` makes the two lights and the fog once; `Worlds.apply` paints a preset's day colours and palette; `W.sky.set` (in `setWorld`, `setSky`, `setWeather`) then blends them by the sun's height and the weather and moves the sun light. `auto` reads the device clock at the place's latitude and longitude; `day / dawn / dusk / night` pin the sun. Weather is `clear / cloudy / fog / rain / storm` (a storm has lightning). Both persist (`world.sky`, `world.weather`) and take `?sky=` / `?weather=`. The page's chrome follows the horizon colour (`--sky`, `--skyA`, `body.dark`). Minifig accessories: a hand's grip is 9.9 LDU ahead of its origin at 14.5° (3820.dat); `Minifig.toolMount` puts a tool there, bars turned to rise from the fist, and the aim pose levels the blaster.
 
 ## Words to bricks
 
@@ -68,7 +71,9 @@ words ──ai.js──▶ program {name, ops} ──dsl.compile──▶ pieces
 | a new mode | `simulate` branch, `promptAction`, `hintFor`, `paint`, `myState`/`stepRemotes` |
 | a new thing that blocks | its `pushOut / aabbs / floorAt`, then `allBoxes` and `pushOut` in main.js |
 | a new HUD element | `word-to-world.html` markup + CSS, `paint()` |
+| a new building kind or roof from the map | `geo.js` (keep the tag), `bricks.js` `KIND_STYLE` / `ROOF_SHAPE` and its branch in `buildBricks` |
+| a new kind of ground cover | `geo.js` query + `areas`, `ground.js` `COVER` |
 
 ## Tests
 
-Playwright with a mocked Earth (scratchpad `mocks.js`): `run.js` one page, `run2.js` host + guest, `run3.js` the studio. Suites: builder (`c-mb.js`), drive, peace, build, destruction, worlds, loader, rooms. Node: `t-dsl.js`, `t-dec.js`. Start the static server from the repo root.
+Playwright with a mocked Earth (scratchpad `mocks.js`): `run.js` one page, `run2.js` host + guest, `run3.js` the studio. Suites: builder (`c-mb.js`), drive, peace, build, destruction, worlds, loader, rooms, night, streets, map, real (the map's structures), smooth (substeps, quality, the TIE's turn), traffic, inside, lease. Node: `t-dsl.js`, `t-dec.js`. Start the static server from the repo root; the suites pin `?quality=high` because a headless sandbox runs slowly.

@@ -14,23 +14,26 @@
 <script src="./nabugo.js"></script>
 <script src="./nabugo-ui.js?v=17f477fd"></script>
 <script src="./toys/terrain-data.js"></script>
-<script src="./world/geo.js?v=090e1546"></script>
-<script src="./world/ground.js?v=c7f1740c"></script>
-<script src="./world/bricks.js?v=aa9e6889"></script>
+<script src="./world/geo.js?v=0ffaa074"></script>
+<script src="./world/ground.js?v=7141d1ec"></script>
+<script src="./world/bricks.js?v=8c4fc722"></script>
 <script src="./world/minifig.js?v=f208aa40"></script>
 <script src="./world/debris.js?v=b9587eca"></script>
-<script src="./world/characters.js?v=faedf48b"></script>
-<script src="./world/worlds.js?v=6e950acb"></script>
-<script src="./world/sky.js?v=5af9fcfb"></script>
-<script src="./world/lamps.js?v=de87e4a7"></script>
-<script src="./world/tie.js"></script>
-<script src="./world/drive.js?v=f8c2d6d2"></script>
+<script src="./world/characters.js?v=4b658de7"></script>
+<script src="./world/worlds.js?v=26fb9294"></script>
+<script src="./world/sky.js?v=65b6a5f9"></script>
+<script src="./world/lamps.js?v=f95ee9f6"></script>
+<script src="./world/map.js?v=edf454db"></script>
+<script src="./world/flora.js?v=e97ab2c0"></script>
+<script src="./world/traffic.js?v=b0128ce3"></script>
+<script src="./world/tie.js?v=95c2e366"></script>
+<script src="./world/drive.js?v=24e94d6b"></script>
 <script src="./world/fx.js?v=f16940a8"></script>
 <script src="./world/dsl.js?v=f0f19b8b"></script>
 <script src="./world/ai.js?v=b43aa436"></script>
 <script src="./world/build.js?v=9a0d1ac4"></script>
 <script src="./world/props.js?v=2574a48d"></script>
-<script src="./world/net.js"></script>
+<script src="./world/net.js?v=df154c6e"></script>
 <script src="./world/lease.js?v=3f5a5e59"></script>
 <style>
 :root{--wb:96px;--vig:.3;--sky:#b8cbd8;--skyA:rgba(184,203,216,.9);--ink:#1a1f2a;--dim:#4b5566;--gold:#c8901c;--red:#d8382e;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;--sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
@@ -185,6 +188,14 @@ body.wb-off{--wb:0px}body.wb-off #wb{display:none}body.wb-off #wbSay{display:blo
 body.wb-off #hint{bottom:calc(78px + env(safe-area-inset-bottom));left:14px;right:14px}body.wb-off #keys{bottom:calc(78px + env(safe-area-inset-bottom))}
 body.build #wbSay,body.fly #wbSay{display:none}
 body[data-world="deathstar"] #wbTop button,body[data-world="deathstar"] #wbKeyRow input,body.dark #wbTop button,body.dark #wbKeyRow input{background:rgba(20,24,32,.9);color:#e6eaf2;border-color:rgba(230,234,242,.3)}
+#minimap{position:fixed;left:14px;bottom:calc(var(--wb) + 82px + env(safe-area-inset-bottom));width:118px;height:118px;border-radius:999px;z-index:5;box-shadow:0 6px 18px rgba(26,31,42,.35);cursor:pointer}
+body.build #minimap{display:none}
+#bigmap{position:fixed;inset:0;z-index:8;display:none;background:#9dbb8c}#bigmap.open{display:block}#bigmap canvas{display:block;width:100%;height:100%;touch-action:none}
+#bigmap button{position:fixed;right:14px;top:calc(12px + env(safe-area-inset-top));height:40px;padding:0 16px;border:none;border-radius:12px;background:var(--red);color:#fff;font:800 12px var(--mono);letter-spacing:.12em;text-transform:uppercase}
+#bigmap .hint{position:fixed;left:0;right:0;bottom:calc(12px + env(safe-area-inset-bottom));text-align:center;font:11px var(--mono);letter-spacing:.08em;color:#1a1f2a;pointer-events:none}
+#top>div:first-child>div:first-child{display:flex;align-items:center;gap:8px;min-width:0}#top #mode{overflow:hidden;text-overflow:ellipsis;flex:0 1 auto;min-width:0}
+#compass{display:inline-block;flex:0 0 auto;width:16px;height:16px;border-radius:999px;border:1.5px solid var(--dim);position:relative;font:700 9px var(--mono);color:var(--red);text-align:center;line-height:13px;pointer-events:none}
+#way{font:11px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--red);white-space:nowrap}
 #vignette{position:fixed;inset:0;pointer-events:none;z-index:2;background:radial-gradient(ellipse at center,rgba(0,0,0,0) 45%,rgba(4,6,12,var(--vig)) 100%)}
 #flash{position:fixed;inset:0;background:rgba(216,56,46,.3);opacity:0;pointer-events:none;transition:opacity .1s;z-index:3}#flash.on{opacity:1}#flash.white{background:rgba(255,255,255,.55);transition:none}
 #keys{display:none;position:fixed;left:50%;bottom:calc(var(--wb) + 4px + env(safe-area-inset-bottom));transform:translateX(-50%);font:11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--dim);white-space:nowrap;z-index:4;pointer-events:none}
@@ -195,7 +206,9 @@ body[data-world="deathstar"] #wbTop button,body[data-world="deathstar"] #wbKeyRo
 <div id="stage"></div>
 <div id="vignette"></div>
 <div id="flash"></div>
-<div id="top"><div><div class="t" id="mode">walk · Vader</div><div class="n" id="place">…</div></div><div id="stat"></div></div>
+<div id="top"><div><div><span class="t" id="mode">walk · Vader</span><span id="compass">N</span></div><div class="n" id="place">…</div><div id="way"></div></div><div id="stat"></div></div>
+<canvas id="minimap" width="118" height="118"></canvas>
+<div id="bigmap"><canvas></canvas><button>close</button><div class="hint">tap sets a waypoint · hold goes there · drag and pinch</div></div>
 <div id="shield"><i id="shieldFill" style="width:100%"></i></div>
 <button id="menuBtn">Who · Where</button>
 <button id="bchip"></button>
@@ -222,6 +235,6 @@ body[data-world="deathstar"] #wbTop button,body[data-world="deathstar"] #wbKeyRo
 <div id="hint">say what to build, or walk: left thumb walks · right thumb looks · tap right swings the saber</div>
 <div id="keys">wasd walk · mouse drag look · space saber · f push · g detonator · b build · shift run · e board / land</div>
 <div id="veil"><div class="k">word to world</div><h1 id="vTitle">Finding a place</h1><div class="bricks"><i></i><i></i><i></i><i></i><i></i></div><div class="m" id="vm"></div><ol id="stages"><li data-s="place">place</li><li data-s="ground">ground</li><li data-s="imagery">imagery</li><li data-s="buildings">buildings</li><li data-s="ship">the ship and Vader</li><li data-s="bricks">bricks</li></ol><button id="vStart" hidden>Start now</button></div>
-<script src="./world/main.js?v=df2c8a0a"></script>
+<script src="./world/main.js?v=d306eeea"></script>
 </body>
 </html>

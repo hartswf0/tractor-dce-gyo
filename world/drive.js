@@ -50,7 +50,7 @@ function stepDrive(V, dt, ctx) {
   const M = V.M, K = V.K, i = V.input;
   const max = (i.boost ? K.boost : K.cruise) * M, want = i.y * (i.y >= 0 ? max : max * 0.5), accel = (i.y ? 6 : 4) * M;
   V.speed += clamp(want - V.speed, -accel * dt * 1.5, accel * dt);
-  if (Math.abs(V.speed) > 0.3 * M) V.heading -= i.x * K.turn * dt * Math.sign(V.speed) * clamp(Math.abs(V.speed) / (4 * M), 0.35, 1);
+  if (Math.abs(V.speed) > 0.1 * M) V.heading -= i.x * K.turn * dt * (i.y >= 0 ? 1 : -1) * clamp(Math.abs(V.speed) / (4 * M), 0.35, 1);   // steering follows the stick's intent, not a bump's momentary reverse
   forward(V, V1); V.pos.addScaledVector(V1, V.speed * dt); V.vel.copy(V1).multiplyScalar(V.speed);
   const gh = V.groundH(V.pos.x, V.pos.z); V.pos.y = gh + K.hover * M;
   V2.copy(V.pos);

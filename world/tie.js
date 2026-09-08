@@ -29,7 +29,8 @@ function create({ ship, M, groundH, aabbs, scene, onImpact, targets }) {
   for (let i = 0; i < 4; i++) { const m = new THREE.Mesh(tg, tm); m.visible = false; m.frustumCulled = false; scene.add(m); F.torps.push({ mesh: m, vel: new THREE.Vector3(), prev: new THREE.Vector3(), life: 0 }); }
   return F;
 }
-function fromVel(F) { const v = F.vel; if (v.lengthSq() < 1) return; F.travelYaw = Math.atan2(v.x, v.z); F.travelPitch = Math.atan2(v.y, Math.hypot(v.x, v.z)); }
+function fromVel(F) { const v = F.vel; if (v.lengthSq() < 1) return; const y = Math.atan2(v.x, v.z); F.travelYaw = y + Math.round((F.travelYaw - y) / (2 * Math.PI)) * 2 * Math.PI; F.travelPitch = Math.atan2(v.y, Math.hypot(v.x, v.z)); }   // the same heading, on the turn the ship has been integrating
+const AX = new THREE.Vector3();
 
 /** Lift off from where the ship stands, heading the way it faces. */
 function board(F, heading) {
@@ -53,7 +54,7 @@ function stepFlight(F, dt) {
   sp += (target - sp) * (1 - Math.exp(-dt * (F.landing ? 1.6 : 2.8)));
   V1.copy(F.vel).normalize();
   const ang = Math.acos(clamp(V1.dot(DESIRE), -1, 1)), maxTurn = (.42 + g * .88) * 2.05 * dt;
-  if (ang > 1e-5) { Q1.setFromUnitVectors(V1, DESIRE); Q2.identity().slerp(Q1, Math.min(1, maxTurn / ang)); V1.applyQuaternion(Q2).normalize(); }
+  if (ang > 1e-5) { AX.crossVectors(V1, DESIRE); if (AX.lengthSq() < 1e-8 || ang > 2.6) AX.copy(UP); AX.normalize(); Q2.setFromAxisAngle(AX, Math.min(ang, maxTurn)); V1.applyQuaternion(Q2).normalize(); }   // one continuous turn about the axis between where it goes and where it wants to; a full reversal turns about the ship's up
   F.vel.copy(V1).multiplyScalar(sp); F.speed = sp;
   F.wasBoost = i.boost;
   const slide = (i.boost && i.mag > .82 && Math.abs(i.x) > .55) ? 1 : 0;
@@ -64,7 +65,7 @@ function stepFlight(F, dt) {
   F.roll += (i.x * 1.02 - F.roll) * (1 - Math.exp(-dt * 7.5));
   F.quat.setFromEuler(E1.set(-F.pitch, F.yaw, F.roll, 'YXZ'));
   F.pos.addScaledVector(F.vel, dt);
-  if (F.pos.y - F.groundH(F.pos.x, F.pos.z) > CEIL_M * M) { F.pos.y = F.groundH(F.pos.x, F.pos.z) + CEIL_M * M; F.vel.y = Math.min(F.vel.y, -40); fromVel(F); }
+  if (F.pos.y - F.groundH(F.pos.x, F.pos.z) > CEIL_M * M) { F.pos.y = F.groundH(F.pos.x, F.pos.z) + CEIL_M * M; F.vel.y = Math.min(F.vel.y, -40); F.travelPitch = Math.min(F.travelPitch, -0.05); }
 }
 
 /* ───────────────────────── contacts (tie-3's sweeps) ───────────────────────── */
@@ -80,7 +81,7 @@ function ground(F) {
   F.pos.y = gh + clear + 1; F.vel.y = Math.abs(F.vel.y) * .18 + 38; F.vel.x *= .82; F.vel.z *= .82;
   const hit = Math.max(closing, F.speed * .18); F.lastClosing = hit;
   impact(F, hit > 360 ? 'GROUND IMPACT' : 'GROUND SCRAPE', clamp((hit - 65) * .105, 4, 68), V3.copy(F.pos).setY(gh), hit / 300);
-  fromVel(F);
+  F.travelPitch = Math.max(F.travelPitch, 0.06);                               // the stick's wish lifts a little; the camera keeps its line
 }
 const SW = { t: 0, n: new THREE.Vector3(), p: new THREE.Vector3() };
 function sweepBox(a, b, box, r, out) {              // segment a→b vs an AABB grown by r: slab method
@@ -107,7 +108,7 @@ function worldHit(F) {
   if (F.vel.length() < 145) F.vel.setLength(145);
   F.roll += (Math.random() - .5) * clamp(closing / 300, 0.3, 1.4);            // and spins from the blow
   impact(F, closing > 330 ? 'STRUCTURE HIT' : 'CLIP', clamp((closing - 45) * .1, 5, 45), best.p, closing / 300);
-  fromVel(F);
+  if (closing > 200) fromVel(F);                                                // only a real hit turns the camera with the bounce
 }
 
 /* ───────────────────────── bolts ───────────────────────── */
@@ -185,7 +186,7 @@ function camera(F, cam, dt, portrait) {
   c.side += (-F.input.x * (72 + 70 * F.slide) - c.side) * (1 - Math.exp(-dt * 2.8));
   Q1.setFromEuler(E1.set(-F.travelPitch, F.travelYaw, 0, 'YXZ')); TRAVEL.set(0, 0, 1).applyQuaternion(Q1); RIGHT.set(1, 0, 0).applyQuaternion(Q1);
   V1.copy(F.pos).addScaledVector(TRAVEL, -c.dist).addScaledVector(UP, c.high).addScaledVector(RIGHT, c.side);
-  const gy = F.groundH(V1.x, V1.z) + 0.8 * M; if (V1.y < gy) V1.y = gy;
+  const gy = F.groundH(V1.x, V1.z) + 0.8 * M; c.floor = c.floor == null ? gy : c.floor + (gy - c.floor) * (1 - Math.exp(-dt * 4)); if (V1.y < c.floor) V1.y = c.floor;   // the floor under the camera moves smoothly
   V2.copy(F.pos).addScaledVector(TRAVEL, 480 + spd * 170); V2.y += 18;
   if (!c.set) { cam.position.copy(V1); c.look.copy(V2); c.set = true; }
   cam.position.lerp(V1, 1 - Math.exp(-dt * 5)); c.look.lerp(V2, 1 - Math.exp(-dt * 7.4));
