@@ -116,7 +116,7 @@ function buildBricks(b, colours, M) {
   const put = (e, part, s, len, y, c, rot90, inset = 20, extra) => place(out, part, e.A.x + e.ux * (s + len / 2) + e.nx * inset, y, e.A.z + e.uz * (s + len / 2) + e.nz * inset, e.theta + (rot90 ? Math.PI / 2 : 0), c, { e: edgeI, s0: s, s1: s + len, L: e.L, course, rows: 1, ...(extra || {}) });
   for (let c = 0; c < total; c++) {
     course = c;
-    const y = b.y0 + c * COURSE, col = c < plinth ? plinthC : wall, k = c - plinth - 1, band = k >= 0 && k % 3 < 2, lower = k % 3 === 0;
+    const y = b.y0 + c * COURSE, col = c < plinth ? plinthC : wall, k = c - plinth - 1, lower = k % 3 === 0, band = k >= 0 && k % 3 < 2 && !(lower && c + 1 >= total);   // a window is two courses tall: none starts on the top course
     edges.forEach((e, ei) => {
       edgeI = ei;
       const slots = [], doorHere = ei === doorK && c >= plinth && (bigDoor ? c < plinth + 6 : c < plinth + 2);

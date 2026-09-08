@@ -12,12 +12,19 @@ const DEG = Math.PI / 180, clamp = (v, a, b) => Math.max(a, Math.min(b, v)), smo
 const WALK = 2.15, RUN = 4.10, TURN = 7, FEET = 72, HEAD_M = 1.7, ORBIT = 8.2 / 4.65;
 const UP = new THREE.Vector3(0, 1, 0), V1 = new THREE.Vector3(), V2 = new THREE.Vector3(), V3 = new THREE.Vector3(), Q1 = new THREE.Quaternion(), M1 = new THREE.Matrix4();
 
-/* the kit's own offsets (build-75421.py figure()), in the figure frame */
-const HAND_R = [-23.3, 23.6, -9.3, 0.985, -0.12019, 0.12019, 0.17, 0.696395, -0.696395, 0, 0.707, 0.707];   // the kit says y 26.6; 3 LDU higher keeps the stem inside the cuff
-const HAND_L = [23.3, 23.6, -9.3, 0.985, 0.12019, -0.12019, -0.17, 0.696395, -0.696395, 0, 0.707, 0.707];
+/* the kit's own offsets (build-75421.py figure()), in the figure frame: the hand's origin is the end of the forearm core, its stem inside */
+const HAND_R = [-23.8634, 26.5956, -10.321, 0.985, -0.12019, 0.12019, 0.17, 0.696395, -0.696395, 0, 0.707, 0.707];
+const HAND_L = [23.8634, 26.5956, -10.321, 0.985, 0.12019, -0.12019, -0.17, 0.696395, -0.696395, 0, 0.707, 0.707];
 const rx = a => { const c = Math.cos(a), s = Math.sin(a); return [1, 0, 0, 0, c, -s, 0, s, c]; };
-const SABER_TILT = rx(-130 * DEG);                          // the bar runs +y (down) from its hilt; tilted to leave the fist forward and 40° up
-const FIST_L = [23.8634, 32, -16], FIST_R = [-23.8634, 32, -16];
+const mul3 = (a, b) => [a[0] * b[0] + a[1] * b[3] + a[2] * b[6], a[0] * b[1] + a[1] * b[4] + a[2] * b[7], a[0] * b[2] + a[1] * b[5] + a[2] * b[8], a[3] * b[0] + a[4] * b[3] + a[5] * b[6], a[3] * b[1] + a[4] * b[4] + a[5] * b[7], a[3] * b[2] + a[4] * b[5] + a[5] * b[8], a[6] * b[0] + a[7] * b[3] + a[8] * b[6], a[6] * b[1] + a[7] * b[4] + a[8] * b[7], a[6] * b[2] + a[7] * b[5] + a[8] * b[8]];
+const ap3 = (a, v) => [a[0] * v[0] + a[1] * v[1] + a[2] * v[2], a[3] * v[0] + a[4] * v[1] + a[5] * v[2], a[6] * v[0] + a[7] * v[1] + a[8] * v[2]];
+/* 3820.dat: the grip's centre sits 9.9 LDU in front of the hand's origin and the fist is tilted 14.5°; a held part's handle runs along y through its origin.
+   A blaster, a sword or a pickaxe (body up, -y) mounts at the grip as is; a bar whose origin is one end (the saber blade, a spear) is turned over so it rises out of the fist. */
+const GRIP_AT = [0, -0.8229, -9.8948], GRIP_ROT = rx(14.5 * DEG), FLIP = rx(Math.PI), ID3 = [1, 0, 0, 0, 1, 0, 0, 0, 1];
+function toolMount(hand, bar) { const R = hand.slice(3), p = ap3(R, GRIP_AT), rot = mul3(mul3(R, GRIP_ROT), bar ? FLIP : ID3); return [hand[0] + p[0], hand[1] + p[1], hand[2] + p[2], ...rot]; }
+const TOOL_R = toolMount(HAND_R, false), TOOL_L_BAR = toolMount(HAND_L, true);
+const MUZZLE = [0, -22.4, -36];                             // 58247's front disc, in the blaster's own frame; the barrel runs -z
+const AIM = -60 * DEG;                                      // the arm angle that levels a blaster held in the 45° hand with its 14.5° grip
 /** Slot table: name → [pivot, x, y, z, 9 matrix entries] in the figure frame. */
 const SLOTS = {
   legR: ['legRP', 0, 44, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1], legL: ['legLP', 0, 44, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1], hips: ['hipsP', 0, 32, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1],
@@ -25,7 +32,7 @@ const SLOTS = {
   armR: ['armRP', -15.552, 9, 0, 0.985, -0.17, 0, 0.17, 0.985, 0, 0, 0, 1], armL: ['armLP', 15.552, 9, 0, 0.985, 0.17, 0, -0.17, 0.985, 0, 0, 0, 1],
   handR: ['armRP', ...HAND_R], handL: ['armLP', ...HAND_L],
   head: ['headP', 0, -24, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1], hat: ['headP', 0, -24, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1],
-  weaponL: ['armLP', ...FIST_L, ...SABER_TILT], weaponR: ['armRP', ...HAND_R],
+  weaponL: ['armLP', ...TOOL_L_BAR], weaponR: ['armRP', ...TOOL_R],
 };
 const PIVOTS = { hipsP: [null, 0, 32, 0], torsoP: ['hipsP', 0, -32, 0], legRP: ['hipsP', 0, 12, 0], legLP: ['hipsP', 0, 12, 0], armRP: ['torsoP', -15.552, 9, 0], armLP: ['torsoP', 15.552, 9, 0], headP: ['torsoP', 0, -24, 0] };
 const PIVOT_ABS = { hipsP: [0, 32, 0], torsoP: [0, 0, 0], legRP: [0, 44, 0], legLP: [0, 44, 0], armRP: [-15.552, 9, 0], armLP: [15.552, 9, 0], headP: [0, -24, 0] };
@@ -98,7 +105,7 @@ function pose(rig, st) {
     twist = 0.8 * (u < 0.15 ? -smooth(u / 0.15) : u < 0.7 ? -1 + 2 * smooth((u - 0.15) / 0.55) : 1 - smooth((u - 0.7) / 0.3));
     if (rig.def && rig.def.weapon && rig.def.weapon[0] === 'saber') twist = -twist;   // the saber hand leads
   }
-  if (st.aim) armR = armR + (-80 * DEG - armR) * st.aim;
+  if (st.aim) armR = armR + (AIM - armR) * st.aim;
   if (st.sit) { rig.legRP.rotation.x = -90 * DEG; rig.legLP.rotation.x = -90 * DEG; armL = -60 * DEG; armR = -60 * DEG; twist = 0; rig.hipsP.position.y = -(FEET - 32) + 20; rig.torsoP.rotation.z = 0; }   // in the seat: legs forward, hands on the wheel
   rig.armLP.rotation.x = armL; rig.armRP.rotation.x = armR; rig.torsoP.rotation.y = twist;
 }
@@ -127,7 +134,8 @@ function step(rig, dt, ctl, world) {
     if (u >= 0.42 && !rig.swing.struck) { rig.swing.struck = true; rig.hit = facing(rig, V3).multiplyScalar(1.6 * M).add(rig.pos); rig.hit.y += 1.1 * M; }
     if (u >= 1) { rig.swing = null; u = null; }
   }
-  rig.aim += ((ctl.aim ? 1 : 0) - rig.aim) * (1 - Math.exp(-dt * 8));
+  if (ctl.aim) { rig.aim = 1; rig.aimUntil = rig.t + 1.2; }                                   // a shot snaps the arm up and keeps it there a moment
+  else if (rig.t < (rig.aimUntil || 0)) rig.aim = 1; else rig.aim += (0 - rig.aim) * (1 - Math.exp(-dt * 6));
   pose(rig, { phase: rig.phase, gait: rig.gait, t: rig.t, swing: u, aim: rig.aim });
 }
 
@@ -164,12 +172,14 @@ function moveFromStick(rig, stick, out) {
 function saberTip(rig, out) { const s = rig.slots.weaponL; s.updateWorldMatrix(true, false); return out.set(0, 80, 0).applyMatrix4(s.matrixWorld); }
 function fist(rig, out) { const s = rig.slots.weaponL; s.updateWorldMatrix(true, false); return out.set(0, 0, 0).applyMatrix4(s.matrixWorld); }
 /** The muzzle of a held blaster, world space, and the direction it points. */
-function muzzle(rig, outPos, outDir) { const s = rig.slots.weaponR; s.updateWorldMatrix(true, false); outPos.set(0, -20, -30).applyMatrix4(s.matrixWorld); outDir.copy(facing(rig, V3)); return outPos; }
+function muzzle(rig, outPos, outDir) { const s = rig.slots.weaponR; s.updateWorldMatrix(true, false); muzzleAt(s.matrixWorld, outPos); if (outDir) outDir.set(0, 0, -1).transformDirection(s.matrixWorld); return outPos; }
+/** The muzzle for a blaster whose slot has this world matrix (the crowd's template). */
+function muzzleAt(matrix, out) { return out.set(MUZZLE[0], MUZZLE[1], MUZZLE[2]).applyMatrix4(matrix); }
 /** Every mounted part with its world matrix and colour: what falls when the figure comes apart. */
 function burst(rig) {
   rig.figure.updateMatrixWorld(true);
   return Object.entries(rig.mounted).map(([slot, m]) => ({ part: m.part, col: m.col, matrix: m.group.matrixWorld.clone() }));
 }
 
-window.Minifig = { DEFS, citizen, partsOf, lines, harvestLines, CROWD_PARTS, SLOTS, skeleton, mount, pose, step, throwRig, camera, moveFromStick, facing, saberTip, fist, muzzle, burst, FEET, WALK, RUN };
+window.Minifig = { DEFS, citizen, partsOf, lines, harvestLines, CROWD_PARTS, SLOTS, skeleton, mount, pose, step, throwRig, camera, moveFromStick, facing, saberTip, fist, muzzle, muzzleAt, toolMount, burst, FEET, WALK, RUN, HAND_R, HAND_L, MUZZLE, AIM };
 })();

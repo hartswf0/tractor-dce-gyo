@@ -25,8 +25,13 @@
 | crowd | `characters.js` | citizens and troopers; troopers shoot unless `peace` | `crowd.hitWithin / hitBy` |
 | debris | `debris.js` | everything that falls | spheres from the loop |
 | fx | `fx.js` | sounds, haptics, smoke, hit marks | |
+| sky | `sky.js` | a dome and sun on the camera, stars, cloud sprites, rain points; `worlds.js` gives the day colours, the clock at the place (or a pinned mode) turns them toward night, the weather greys and fogs them | |
 
 `allBoxes(x, z, r)` in main.js is the union the TIE and the debris use; `pushOut(pos, r)` is the walker's; `WALK.groundH` stacks bricks and props on the ground.
+
+## The sky
+
+`Ground.daylight` makes the two lights and the fog once; `Worlds.apply` paints a preset's day colours and palette; `W.sky.set` (in `setWorld`, `setSky`, `setWeather`) then blends them by the sun's height and the weather and moves the sun light. `auto` reads the device clock at the place's latitude and longitude; `day / dawn / dusk / night` pin the sun. Weather is `clear / cloudy / fog / rain / storm` (a storm has lightning). Both persist (`world.sky`, `world.weather`) and take `?sky=` / `?weather=`. The page's chrome follows the horizon colour (`--sky`, `--skyA`, `body.dark`). Minifig accessories: a hand's grip is 9.9 LDU ahead of its origin at 14.5° (3820.dat); `Minifig.toolMount` puts a tool there, bars turned to rise from the fist, and the aim pose levels the blaster.
 
 ## Words to bricks
 

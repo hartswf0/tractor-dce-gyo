@@ -10,10 +10,11 @@ const HLIDARENDI = { lat: 63.7422, lon: -20.108, name: 'Hlíðarendi, Iceland', 
 const GROUND_SPAN = 2700, DETAIL_SPAN = 900, RELAND_AT = 300, DETONATORS = 6;
 const UP = new THREE.Vector3(0, 1, 0), V1 = new THREE.Vector3(), V2 = new THREE.Vector3(), V3 = new THREE.Vector3(), E1 = new THREE.Euler(), Q1 = new THREE.Quaternion(), B2 = new THREE.Box3();
 
+const stored = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
 const W = {
   engine: null, scene: null, camera: null, renderer: null, loader: null,
   place: null, P: null, G: null, city: null, rig: null, tie: null, ship: null, geoms: null, raw: null, debris: null, crowd: null, bolts: null,
-  mode: 'walk', t: 0, last: 0, ready: false, colours: null, character: Q.get('as') || 'vader', world: Q.get('world') || 'earth',
+  mode: 'walk', t: 0, last: 0, ready: false, colours: null, character: Q.get('as') || 'vader', world: Q.get('world') || 'earth', sky: null, skyMode: Q.get('sky') || stored('world.sky') || 'auto', weather: Q.get('weather') || stored('world.weather') || 'clear',
   net: { elevation: null, imagery: null, osm: null }, relanding: false, health: 100, dead: 0, dets: DETONATORS, grenades: [], shake: 0,
   input: { L: { x: 0, y: 0, mag: 0 }, look: { dx: 0, dy: 0 }, run: false, saber: false, fly: { x: 0, y: 0, mag: 0 }, boost: false, fire: false, push: false, torpedo: false },
   stats: { calls: 0 },
@@ -22,6 +23,8 @@ const W = {
 window.__world = W;
 if (!Minifig.DEFS[W.character]) W.character = 'vader';
 if (!Worlds.PRESETS[W.world]) W.world = 'earth';
+if (!(W.skyMode in Sky.MODES)) W.skyMode = 'auto';
+if (!Sky.WEATHER[W.weather]) W.weather = 'clear';
 
 /* ───────────────────────── veil, menu, HUD ───────────────────────── */
 const VEIL = { t0: performance.now(), stages: {}, timer: 0, hurry: null };
@@ -58,12 +61,14 @@ function flash() { const f = $('#flash'); f.classList.add('on'); setTimeout(() =
 function buildMenu() {
   const chars = Object.entries(Minifig.DEFS).map(([k, d]) => `<button data-as="${k}" class="${k === W.character ? 'on' : ''}">${d.name}</button>`).join('');
   const worlds = Object.entries(Worlds.PRESETS).map(([k, p]) => `<button data-world="${k}" class="${k === W.world ? 'on' : ''}">${p.name}</button>`).join('');
-  $('#menu').innerHTML = `<div class="row"><span>play as</span>${chars}<em>or tap your name at the top</em></div><div class="row"><span>world</span>${worlds}</div>
+  const skies = Object.keys(Sky.MODES).map(k => `<button data-sky="${k}" class="${k === W.skyMode ? 'on' : ''}">${k}</button>`).join(''), weathers = Object.keys(Sky.WEATHER).map(k => `<button data-weather="${k}" class="${k === W.weather ? 'on' : ''}">${k}</button>`).join('');
+  $('#menu').innerHTML = `<div class="row"><span>play as</span>${chars}<em>or tap your name at the top</em></div><div class="row"><span>world</span>${worlds}</div><div class="row"><span>sky</span>${skies}<em>auto keeps the clock at this place</em></div><div class="row"><span>weather</span>${weathers}</div>
     <div class="row ai"><span>builder</span><input id="aiKey" type="password" placeholder="OpenAI API key (stays here)" autocomplete="off"><em>${Ai.model()} · ${Ai.effort()} reasoning · designs, checks, reviews</em></div>
     <div class="row net"><span>together</span><input id="nameIn" placeholder="your name" maxlength="14"><button id="hostBtn">Host a room</button><input id="codeIn" placeholder="CODE" maxlength="4" autocapitalize="characters"><button id="joinBtn">Join</button><button id="linkBtn" hidden>Copy link</button><button id="leaveBtn" hidden>Leave</button><button id="muteBtn" title="sound">sound on</button><button id="truceBtn" title="nobody shoots, ever">truce off</button></div>
     <div class="row saves"><span>builds</span><button id="saveLookBtn">save what I look at</button><button id="savesExport">export</button><button id="savesImport">import</button></div><div id="savesList"></div><div class="row"><em id="roomStat"></em></div>`;
   $('#menu').querySelectorAll('[data-as]').forEach(b => b.onclick = () => setCharacter(b.dataset.as));
   $('#menu').querySelectorAll('[data-world]').forEach(b => b.onclick = () => setWorld(b.dataset.world));
+  $('#menu').querySelectorAll('[data-sky]').forEach(b => b.onclick = () => setSky(b.dataset.sky)); $('#menu').querySelectorAll('[data-weather]').forEach(b => b.onclick = () => setWeather(b.dataset.weather));
   $('#nameIn').value = W.name || ''; $('#nameIn').onchange = () => setName($('#nameIn').value);
   $('#aiKey').value = Ai.key(); $('#aiKey').onchange = () => { Ai.setKey($('#aiKey').value); const k = $('#wbKey'); if (k) k.value = Ai.key(); if (Ai.key()) wbKeyRow(false); wbHint(); };
   $('#hostBtn').onclick = () => hostRoom(); $('#joinBtn').onclick = () => joinRoom($('#codeIn').value); $('#leaveBtn').onclick = () => leaveRoom();
@@ -85,7 +90,15 @@ function roomStat() {
   const n = Math.max(st.role === 'guest' ? 2 : 1, st.players.filter(id => id !== 'host').length + 1); chip.textContent = `${st.code} · ${n} player${n > 1 ? 's' : ''}`; chip.classList.add('on');
   $('#roomStat').textContent = `${st.role === 'host' ? 'hosting' : 'in'} room ${st.code} · share the code or the link`; $('#hostBtn').hidden = true; $('#joinBtn').hidden = true; $('#codeIn').hidden = true; $('#linkBtn').hidden = false; $('#leaveBtn').hidden = false;
 }
-function markMenu() { $('#menu').querySelectorAll('[data-as]').forEach(b => b.classList.toggle('on', b.dataset.as === W.character)); $('#menu').querySelectorAll('[data-world]').forEach(b => b.classList.toggle('on', b.dataset.world === W.world)); }
+function markMenu() { $('#menu').querySelectorAll('[data-as]').forEach(b => b.classList.toggle('on', b.dataset.as === W.character)); $('#menu').querySelectorAll('[data-world]').forEach(b => b.classList.toggle('on', b.dataset.world === W.world)); $('#menu').querySelectorAll('[data-sky]').forEach(b => b.classList.toggle('on', b.dataset.sky === W.skyMode)); $('#menu').querySelectorAll('[data-weather]').forEach(b => b.classList.toggle('on', b.dataset.weather === W.weather)); }
+/* ───────────────────────── the sky ───────────────────────── */
+/** The sky follows the world preset, the chosen sky mode and weather, and the place's clock. */
+function skyApply() { if (!W.sky) return null; return W.sky.set({ preset: Worlds.PRESETS[W.world], mode: W.skyMode, weather: W.weather, lat: W.place && W.place.lat, lon: W.place && W.place.lon }); }
+function setSky(mode) { if (!(mode in Sky.MODES)) return; W.skyMode = mode; try { localStorage.setItem('world.sky', mode); } catch (e) { } markMenu(); const st = skyApply(); toast(mode === 'auto' ? `sky: ${st ? Math.round(st.hour) + ':00 here' : 'auto'}` : mode, 900); }
+function setWeather(w) { if (!Sky.WEATHER[w]) return; W.weather = w; try { localStorage.setItem('world.weather', w); } catch (e) { } markMenu(); skyApply(); toast(w, 900); }
+/** The page's own chrome takes the horizon colour: the veil, the word bar's fade, the tab. */
+function skyColour(hex, dark, c) { const r = document.documentElement.style; r.setProperty('--sky', hex); r.setProperty('--skyA', `rgba(${Math.round(c.r * 255)},${Math.round(c.g * 255)},${Math.round(c.b * 255)},.9)`); document.body.classList.toggle('dark', !!dark); const m = document.querySelector('meta[name=theme-color]'); if (m) m.content = hex; }
+function lightning() { const f = $('#flash'); f.classList.add('white', 'on'); setTimeout(() => f.classList.remove('on'), 120); setTimeout(() => f.classList.remove('white'), 300); W.shake = Math.max(W.shake, 0.15); setTimeout(() => { Fx.Sfx.thud(0.9); Fx.haptic(20); }, 400 + Math.random() * 1500); }
 
 /* ───────────────────────── the place and its window ───────────────────────── */
 async function resolvePlace() {
@@ -232,7 +245,7 @@ function setWorld(name) {
   const p = Worlds.apply(name, { scene: W.scene, G: W.G, city: W.city, lights: Ground.daylight.lights });
   if (sets) for (const b of W.city.buildings) if (sets[b.id]) W.city.applyRemoved(b, sets[b.id]);   // a new palette keeps the old damage
   if (p.imagery && W.win && W.win.imagery) Ground.drape(W.G, W.win.imagery); else Ground.recolour(W.G, p.paint);
-  document.body.dataset.world = name; toast(p.name, 900);
+  skyApply(); document.body.dataset.world = name; toast(p.name, 900);
   if (p.imagery && W.win && !W.win.imagery && !W.win.baked && !W.win.imageryTried) lateImagery(W.win);
 }
 /** Earth chosen after starting on another planet: fetch the aerial imagery now and drape it if we are still on Earth. */
@@ -487,9 +500,10 @@ function simulate(dt) {
     if (W.dead) { W.dead -= dt; if (W.dead <= 0) respawn(); I.saber = false; I.push = false; }
     else {
       Minifig.moveFromStick(W.rig, I.L, MOVE);
-      const wantsShot = I.saber && !d.saber && d.weapon; I.aim = wantsShot || (I.aimHold && d.weapon);
-      Minifig.step(W.rig, dt, { move: MOVE, run: I.run, saber: I.saber && !(W.build && W.build.on), aim: I.aim }, WALK);
-      if (wantsShot) { const p = new THREE.Vector3(), dir = new THREE.Vector3(); Minifig.muzzle(W.rig, p, dir); dir.y = -0.05; W.bolts.fire(p, dir, 'player'); }
+      const building = !!(W.build && W.build.on), wantsShot = I.saber && !building && !d.saber && !!d.weapon, wantsShove = I.saber && !building && !d.saber && !d.weapon;
+      Minifig.step(W.rig, dt, { move: MOVE, run: I.run, saber: I.saber && !building, aim: wantsShot }, WALK);
+      if (wantsShot) { const p = new THREE.Vector3(), dir = new THREE.Vector3(); Minifig.muzzle(W.rig, p); Minifig.facing(W.rig, dir); dir.y = -0.02; W.bolts.fire(p, dir, 'player'); }   // the bolt leaves the barrel, level with the ground
+      if (wantsShove) forcePush();
       I.saber = false;
       if (W.rig.hit) { const h = W.rig.hit; W.rig.hit = null; const n = blast(h, 1.4 * M, Minifig.facing(W.rig, V2).clone().multiplyScalar(3 * M), true, false, 'saber'); Fx.Sfx.strike(); Fx.haptic(25); if (n) toast('bricks!', 500); }
       if (I.push) { I.push = false; forcePush(); }
@@ -526,7 +540,7 @@ function simulate(dt) {
     hitWorld: b => { const p = b.mesh.position; for (const box of W.city.aabbs(p.x, p.z, 60)) if (p.x > box.min.x - 6 && p.x < box.max.x + 6 && p.z > box.min.z - 6 && p.z < box.max.z + 6 && p.y > box.min.y && p.y < box.max.y) { if (b.owner === 'player') { blast(p, (b.heavy ? 2.5 : 1.6) * M, b.vel.clone().multiplyScalar(0.05), true, false, 'bolt'); if (b.heavy) { W.shake = Math.max(W.shake, 0.4); flash(); } } else if (b.owner === 'npc') fall(W.city.blast(p, 0.6 * M, null, 2)); return true; } return false; },
   });
   fall(W.city.tick(dt));
-  W.debris.step(dt, debrisCtx()); stepGrenades(dt); W.smoke.step(dt);
+  W.debris.step(dt, debrisCtx()); stepGrenades(dt); W.smoke.step(dt); if (W.sky) W.sky.step(dt, W.camera);
   { let checked = 0; for (const p of W.debris.pieces) { if (p.rest || p.settling || checked > 80) continue; if (p.vel.lengthSq() < 25 * M * M) continue; checked++; const c = W.debris.centre(p, V1); if (W.crowd.hitWithin(c, 0.9 * M, p.vel.clone().multiplyScalar(0.5), W.debris)) Fx.Sfx.clatter(1); } }
   if (W.room.role) { W.room.tick(dt); netTick(dt); stepRemotes(dt); }
   W.build.tick(dt); if (W.props) W.props.tick(dt); if ((W.dmgAcc += dt) > 2) { W.dmgAcc = 0; saveDamage(); }
@@ -602,6 +616,7 @@ async function boot() {
     const win = await loadWindow(place);
     const models = await modelsP; stage('ship', 'done');
     Ground.daylight(W.scene, W.renderer, W.loader, M);
+    W.sky = Sky.create({ scene: W.scene, M, lights: Ground.daylight.lights, onLightning: lightning, onColour: skyColour });
     W.colours = code => { const m = W.loader.getMaterial(String(code)); return m ? m.color : new THREE.Color(0xff00ff); };
     W.geoms = Bricks.harvest(models.harvest); for (const g of models.harvest) models.root.remove(g);
     W.raw = harvestRaw(models.fig); for (const g of models.fig) models.root.remove(g);
@@ -1085,7 +1100,7 @@ Object.assign(W, {
   state: () => ({
     ready: W.ready, mode: W.mode, character: W.character, world: W.world, place: W.place && W.place.name, baked: !!(W.win && W.win.baked), village: !!(W.win && W.win.village), net: { ...W.net }, geo: Geo.NET,
     groundN: W.G && W.G.n, roadTris: (() => { const r = W.scene && W.scene.getObjectByName('roads'); return r ? r.geometry.attributes.position.count / 3 : 0; })(), imagery: !!(W.G && W.G.imagery), sky: W.scene && '#' + W.scene.background.getHexString(), buildings: W.win ? W.win.buildings.length : 0, roads: W.win ? W.win.roads.length : 0, city: W.city && W.city.stats(),
-    vader: W.rig ? { pos: W.rig.pos.toArray(), heading: W.rig.heading, speed: W.rig.speed, phase: W.rig.phase, gait: W.rig.gait, legR: W.rig.legRP.rotation.x, legL: W.rig.legLP.rotation.x, ground: W.G.h(W.rig.pos.x, W.rig.pos.z), visible: W.rig.figure.visible, swing: !!W.rig.swing, tip: Minifig.saberTip(W.rig, V1).toArray(), fist: Minifig.fist(W.rig, V2).toArray(), parts: Object.keys(W.rig.mounted) } : null,
+    vader: W.rig ? { pos: W.rig.pos.toArray(), heading: W.rig.heading, speed: W.rig.speed, phase: W.rig.phase, gait: W.rig.gait, legR: W.rig.legRP.rotation.x, legL: W.rig.legLP.rotation.x, ground: W.G.h(W.rig.pos.x, W.rig.pos.z), visible: W.rig.figure.visible, swing: !!W.rig.swing, tip: Minifig.saberTip(W.rig, V1).toArray(), fist: Minifig.fist(W.rig, V2).toArray(), armR: W.rig.armRP.rotation.x, armL: W.rig.armLP.rotation.x, aim: W.rig.aim, muzzle: Minifig.muzzle(W.rig, new THREE.Vector3(), V3).toArray(), barrel: V3.toArray(), parts: Object.keys(W.rig.mounted) } : null,
     tie: W.tie ? { flying: W.tie.flying, pos: W.tie.pos.toArray(), vel: W.tie.vel.toArray(), speed: W.tie.speed, shields: W.tie.shields, impact: W.tie.impact.text, landing: W.tie.landing, ship: W.ship.position.toArray(), alt: (W.tie.pos.y - W.G.h(W.tie.pos.x, W.tie.pos.z)) / M, hits: W.tie.hits, torps: W.tie.torps.filter(t => t.life > 0).length } : null,
     debris: W.debris && W.debris.stats(), crowd: W.crowd && W.crowd.stats(), health: W.health, dead: W.dead, dets: W.dets, grenades: W.grenades.length, bolts: W.bolts ? W.bolts.live().length : 0,
     calls: W.stats.calls, cam: W.camera ? W.camera.position.toArray() : null, camFwd: W.camera ? W.camera.getWorldDirection(V3).toArray() : null, nearShip: nearShip(),
@@ -1093,7 +1108,7 @@ Object.assign(W, {
   stick: (x, y) => { const t = W.mode === 'fly' ? W.input.fly : W.input.L; t.x = x; t.y = y; t.mag = Math.min(1, Math.hypot(x, y)); t.held = t.mag > 0; },
   look: (dx, dy) => { W.input.look.dx += dx; W.input.look.dy += dy; },
   saber: () => { W.input.saber = true; }, run: on => { W.input.runHook = on; }, boost: on => { W.input.boostHook = on; }, fire: () => { W.input.fireOnce = true; }, torpedo: () => { W.input.torpedo = true; }, push: () => { W.input.push = true; }, detonate: throwDetonator,
-  board, land, setCharacter, setWorld, teleport: (x, z) => { if (W.mode === 'walk') { W.rig.pos.set(x, W.G.h(x, z), z); W.rig.cam.set = false; } else { W.tie.pos.set(x, W.G.h(x, z) + 30 * M, z); W.tie.prevPos.copy(W.tie.pos); } },
+  board, land, setCharacter, setWorld, setSky, setWeather, skyStat: () => W.sky && W.sky.stats(), teleport: (x, z) => { if (W.mode === 'walk') { W.rig.pos.set(x, W.G.h(x, z), z); W.rig.cam.set = false; } else { W.tie.pos.set(x, W.G.h(x, z) + 30 * M, z); W.tie.prevPos.copy(W.tie.pos); } },
   goAnywhere, blast: (x, y, z, r) => blast(new THREE.Vector3(x, y, z), r), hurt, M,
   buildStat: () => W.build.stats(), setBuild: toggleBuild, choose: (part, col, rot) => { if (part) W.build.part = part; if (col != null) W.build.col = col; if (rot != null) W.build.rot = rot; paintPalette(); }, placeBrick: buildAct, undo: () => W.build.undo(), setPick, lift: n => { W.build.lift = n; },
   aimAt: (x, y, z) => { if (x == null) { W.build.pin = null; return null; } const o = new THREE.Vector3(x, y + 4 * M, z + 3 * M), d = new THREE.Vector3(x, y, z).sub(o).normalize(); W.build.on = true; W.build.pin = { origin: o, dir: d }; W.build.aimRay(o, d); return W.build.stats().target; }, takeBrick: id => fall(W.build.remove(id)),
