@@ -15,16 +15,16 @@
 <script src="./nabugo-ui.js"></script>
 <script src="./toys/terrain-data.js"></script>
 <script src="./world/geo.js?v=0a96e33c"></script>
-<script src="./world/ground.js?v=573a7349"></script>
-<script src="./world/bricks.js?v=844249b9"></script>
-<script src="./world/minifig.js?v=8fc5a16d"></script>
+<script src="./world/ground.js?v=1ade3f87"></script>
+<script src="./world/bricks.js?v=5b23a679"></script>
+<script src="./world/minifig.js?v=c937a939"></script>
 <script src="./world/debris.js"></script>
 <script src="./world/characters.js?v=0362e99e"></script>
 <script src="./world/worlds.js"></script>
 <script src="./world/tie.js"></script>
 <script src="./world/drive.js?v=f8c2d6d2"></script>
 <script src="./world/fx.js?v=f16940a8"></script>
-<script src="./world/dsl.js?v=01ed5ce9"></script>
+<script src="./world/dsl.js?v=5a4795ae"></script>
 <script src="./world/ai.js?v=b43aa436"></script>
 <script src="./world/build.js?v=9a0d1ac4"></script>
 <script src="./world/props.js?v=2574a48d"></script>
@@ -36,7 +36,7 @@ html,body{margin:0;height:100%;background:#b8cbd8;color:var(--ink);overflow:hidd
 #stage{position:fixed;inset:0}#stage canvas{display:block;width:100%;height:100%;touch-action:none}
 #top{position:fixed;left:0;right:0;top:0;padding:calc(10px + env(safe-area-inset-top)) 14px 8px;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none;z-index:4;gap:12px}
 #top>div:first-child{flex:1;min-width:0}
-#top .t{font:11px var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#top .t{font:11px var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:auto;cursor:pointer}#top .t::after{content:' \25BE';color:var(--gold)}
 #top .n{font-size:17px;font-weight:700;margin-top:2px;max-width:56vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #stat{font:11px/1.5 var(--mono);color:var(--dim);text-align:right;white-space:pre;max-width:56vw;overflow:hidden;text-overflow:ellipsis;flex:0 0 auto}
 #shield{position:fixed;left:14px;right:14px;top:calc(50px + env(safe-area-inset-top));height:3px;background:rgba(26,31,42,.15);border-radius:2px;overflow:hidden;display:none;z-index:4}
@@ -95,7 +95,7 @@ body[data-world="deathstar"] #veil{background:rgba(11,13,18,.94)}
 body.fly #build{display:none}
 #palette{position:fixed;left:0;right:0;bottom:calc(var(--wb) + 76px + env(safe-area-inset-bottom));padding:6px 10px;display:none;flex-direction:column;gap:6px;z-index:5;pointer-events:auto}
 body.build #palette{display:flex}
-body.build #hint{bottom:calc(var(--wb) + 14px + env(safe-area-inset-bottom))}
+body.build #hint{bottom:calc(var(--wb) + 76px + env(safe-area-inset-bottom));left:14px;right:14px}body.build #palette{bottom:calc(var(--wb) + 98px + env(safe-area-inset-bottom))}
 #palette .parts{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
 #palette .parts::-webkit-scrollbar{display:none}
 #palette .parts button{flex:0 0 auto;height:34px;padding:0 12px;border:1px solid rgba(26,31,42,.25);border-radius:10px;background:rgba(255,255,255,.8);font:12px var(--sans);color:var(--ink);white-space:nowrap}
@@ -217,6 +217,6 @@ body[data-world="deathstar"] #wbTop button,body[data-world="deathstar"] #wbKeyRo
 <div id="hint">say what to build, or walk: left thumb walks · right thumb looks · tap right swings the saber</div>
 <div id="keys">wasd walk · mouse drag look · space saber · f push · g detonator · b build · shift run · e board / land</div>
 <div id="veil"><div class="k">word to world</div><h1 id="vTitle">Finding a place</h1><div class="bricks"><i></i><i></i><i></i><i></i><i></i></div><div class="m" id="vm"></div><ol id="stages"><li data-s="place">place</li><li data-s="ground">ground</li><li data-s="imagery">imagery</li><li data-s="buildings">buildings</li><li data-s="ship">the ship and Vader</li><li data-s="bricks">bricks</li></ol><button id="vStart" hidden>Start now</button></div>
-<script src="./world/main.js?v=62872d7b"></script>
+<script src="./world/main.js?v=b3ed3e90"></script>
 </body>
 </html>

@@ -89,18 +89,18 @@ function crater(G, x, z, r, depth) {
 
 /** Roads as dark tile strips following the ground, one merged mesh. Widths in metres. */
 function roads(G, list, M) {
-  const P = [], N = [], C = [], c = new THREE.Color(0x3f4247).convertSRGBToLinear(), lift = 0.3;
-  const quad = (a, b, w) => {                      // a,b: {x,z} metres; a strip of width w between them
+  const P = [], N = [], C = [], c = new THREE.Color(0x4a4e56).convertSRGBToLinear(), cl = new THREE.Color(0xd8d4c4).convertSRGBToLinear(), lift = 0.25;
+  const quad = (a, b, w, col, up) => {             // a,b: {x,z} metres; a strip of width w between them
     const dx = b.x - a.x, dz = b.z - a.z, L = Math.hypot(dx, dz); if (L < 0.05) return;
     const nx = -dz / L * w / 2, nz = dx / L * w / 2;
-    const p = [[a.x + nx, a.z + nz], [a.x - nx, a.z - nz], [b.x - nx, b.z - nz], [b.x + nx, b.z + nz]].map(([x, z]) => [x * M, (G.hM(x, z) + lift) * M, z * M]);
-    for (const k of [0, 1, 2, 0, 2, 3]) { P.push(...p[k]); N.push(0, 1, 0); C.push(c.r, c.g, c.b); }
+    const p = [[a.x + nx, a.z + nz], [a.x - nx, a.z - nz], [b.x - nx, b.z - nz], [b.x + nx, b.z + nz]].map(([x, z]) => [x * M, (G.hM(x, z) + lift + (up || 0)) * M, z * M]);
+    for (const k of [0, 1, 2, 0, 2, 3]) { P.push(...p[k]); N.push(0, 1, 0); C.push(col.r, col.g, col.b); }
   };
   for (const r of list) {
     const pts = r.pts; if (!pts || pts.length < 2) continue;
     for (let i = 0; i < pts.length - 1; i++) {
-      const a = pts[i], b = pts[i + 1], L = Math.hypot(b.x - a.x, b.z - a.z), steps = Math.max(1, Math.ceil(L / 8));
-      for (let s = 0; s < steps; s++) quad({ x: lerp(a.x, b.x, s / steps), z: lerp(a.z, b.z, s / steps) }, { x: lerp(a.x, b.x, (s + 1) / steps), z: lerp(a.z, b.z, (s + 1) / steps) }, r.w || 5);
+      const a = pts[i], b = pts[i + 1], L = Math.hypot(b.x - a.x, b.z - a.z), steps = Math.max(1, Math.ceil(L / Math.min(6, G.res / 2)));
+      for (let s = 0; s < steps; s++) { const a2 = { x: lerp(a.x, b.x, s / steps), z: lerp(a.z, b.z, s / steps) }, b2 = { x: lerp(a.x, b.x, (s + 1) / steps), z: lerp(a.z, b.z, (s + 1) / steps) }; quad(a2, b2, r.w || 5, c); if ((r.w || 5) >= 5 && s % 2 === 0) quad(a2, b2, 0.3, cl, 0.02); }   // a pale dashed centre line on the wider roads
     }
   }
   if (!P.length) return null;

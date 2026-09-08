@@ -13,8 +13,8 @@ const WALK = 2.15, RUN = 4.10, TURN = 7, FEET = 72, HEAD_M = 1.7, ORBIT = 8.2 / 
 const UP = new THREE.Vector3(0, 1, 0), V1 = new THREE.Vector3(), V2 = new THREE.Vector3(), V3 = new THREE.Vector3(), Q1 = new THREE.Quaternion(), M1 = new THREE.Matrix4();
 
 /* the kit's own offsets (build-75421.py figure()), in the figure frame */
-const HAND_R = [-23.8634, 26.5956, -10.321, 0.985, -0.12019, 0.12019, 0.17, 0.696395, -0.696395, 0, 0.707, 0.707];
-const HAND_L = [23.8634, 26.5956, -10.321, 0.985, 0.12019, -0.12019, -0.17, 0.696395, -0.696395, 0, 0.707, 0.707];
+const HAND_R = [-23.3, 23.6, -9.3, 0.985, -0.12019, 0.12019, 0.17, 0.696395, -0.696395, 0, 0.707, 0.707];   // the kit says y 26.6; 3 LDU higher keeps the stem inside the cuff
+const HAND_L = [23.3, 23.6, -9.3, 0.985, 0.12019, -0.12019, -0.17, 0.696395, -0.696395, 0, 0.707, 0.707];
 const rx = a => { const c = Math.cos(a), s = Math.sin(a); return [1, 0, 0, 0, c, -s, 0, s, c]; };
 const SABER_TILT = rx(-130 * DEG);                          // the bar runs +y (down) from its hilt; tilted to leave the fist forward and 40° up
 const FIST_L = [23.8634, 32, -16], FIST_R = [-23.8634, 32, -16];

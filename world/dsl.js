@@ -151,7 +151,7 @@ function figureDef(o) {
   return d;
 }
 /* the kit's own figure offsets (LDraw frame, y down, soles at y = 72) — the same table world/minifig.js uses */
-const HAND_R = '-23.8634 26.5956 -10.321 0.985 -0.12019 0.12019 0.17 0.696395 -0.696395 0 0.707 0.707', HAND_L = '23.8634 26.5956 -10.321 0.985 0.12019 -0.12019 -0.17 0.696395 -0.696395 0 0.707 0.707';
+const HAND_R = '-23.3 23.6 -9.3 0.985 -0.12019 0.12019 0.17 0.696395 -0.696395 0 0.707 0.707', HAND_L = '23.3 23.6 -9.3 0.985 0.12019 -0.12019 -0.17 0.696395 -0.696395 0 0.707 0.707';
 const FIG_LINES = def => {
   const L = [];
   L.push(`1 ${def.legs} 0 44 0 1 0 0 0 1 0 0 0 1 parts/3816.dat`, `1 ${def.legs} 0 44 0 1 0 0 0 1 0 0 0 1 parts/3817.dat`, `1 ${def.hips} 0 32 0 1 0 0 0 1 0 0 0 1 parts/3815.dat`);

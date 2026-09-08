@@ -37,12 +37,23 @@ const lines = () => HARVEST.map(f => `1 16 0 0 0 1 0 0 0 1 0 0 0 1 ${f}`).join('
 
 /* ───────────────────────── harvest: one geometry per part, origin at the bottom centre, Y up ───────────────────────── */
 const FLIP = new THREE.Matrix4().makeRotationX(Math.PI);
+/** One geometry for a whole part group: every mesh in it (sub-files like an arm's cuff included), in the group's own frame. */
+function mergeGroup(grp) {
+  grp.updateMatrixWorld(true); const inv = new THREE.Matrix4().copy(grp.matrixWorld).invert(), pos = [], nor = [];
+  grp.traverse(o => {
+    if (!o.isMesh) return; const g = o.geometry.index ? o.geometry.toNonIndexed() : o.geometry, m = new THREE.Matrix4().multiplyMatrices(inv, o.matrixWorld), nm = new THREE.Matrix3().getNormalMatrix(m);
+    const p = g.attributes.position, n = g.attributes.normal, v = new THREE.Vector3();
+    for (let i = 0; i < p.count; i++) { v.fromBufferAttribute(p, i).applyMatrix4(m); pos.push(v.x, v.y, v.z); if (n) { v.fromBufferAttribute(n, i).applyMatrix3(nm).normalize(); nor.push(v.x, v.y, v.z); } else nor.push(0, 1, 0); }
+  });
+  if (!pos.length) return null;
+  const out = new THREE.BufferGeometry(); out.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); out.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3)); return out;
+}
 function harvest(groups) {
   const geoms = new Map();
   groups.forEach((grp, i) => {
-    let mesh = null; grp.traverse(o => { if (!mesh && o.isMesh) mesh = o; });
-    if (!mesh) throw new Error('no mesh for ' + HARVEST[i]);
-    const g = mesh.geometry.clone(); g.clearGroups(); g.applyMatrix4(FLIP);
+    const g = mergeGroup(grp);
+    if (!g) throw new Error('no mesh for ' + HARVEST[i]);
+    g.applyMatrix4(FLIP);
     g.computeBoundingBox(); const bb = g.boundingBox;
     g.translate(-(bb.min.x + bb.max.x) / 2, -bb.min.y, -(bb.min.z + bb.max.z) / 2);
     g.computeBoundingBox(); const sz = new THREE.Vector3(); g.boundingBox.getSize(sz);
@@ -61,9 +72,9 @@ function harvest(groups) {
 function harvestOrigin(groups) {
   const geoms = new Map();
   groups.forEach((grp, i) => {
-    let mesh = null; grp.traverse(o => { if (!mesh && o.isMesh) mesh = o; });
-    if (!mesh) return;
-    const g = mesh.geometry.clone(); g.clearGroups(); g.applyMatrix4(FLIP);
+    const g = mergeGroup(grp);
+    if (!g) return;
+    g.applyMatrix4(FLIP);
     g.computeBoundingBox(); const bb0 = g.boundingBox; g.translate(0, -bb0.min.y, 0); g.computeBoundingBox();
     const bb = g.boundingBox, sz = new THREE.Vector3(); bb.getSize(sz);
     const p = g.attributes.position, col = new Float32Array(p.count * 3);
@@ -342,5 +353,5 @@ function village() {
   return { buildings, roads };
 }
 
-window.Bricks = { harvestOrigin, CUSTOM, HARVEST, lines, harvest, City, village, buildBricks, unsupported, pointInRing, COURSE, CAP };
+window.Bricks = { harvestOrigin, CUSTOM, HARVEST, lines, harvest, City, village, buildBricks, unsupported, pointInRing, COURSE, CAP , mergeGroup };
 })();
