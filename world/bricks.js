@@ -242,12 +242,14 @@ function unsupported(b) {
       if (held) ok.add(it.k);
     }
   }
-  const roofLive = new Map();                     // roof pieces by level, for the level above to stand on
-  L.forEach((br, k) => { if (b.removed.has(k) || !br.meta || !br.meta.roof) return; const lv = br.meta.step || br.meta.level || 0; let a = roofLive.get(lv); if (!a) { a = []; roofLive.set(lv, a); } a.push(k); });
-  L.forEach((br, k) => { if (b.removed.has(k) || !br.meta) return; if (br.meta.roof) { const el = br.m.elements, lv = br.meta.step || br.meta.level || 0; let held = !!br.meta.tower && lv === 0;
+  const roofByLv = new Map();                   // roof pieces by level: a level stands on the held pieces of the level below, so a lost wall takes the whole roof
+  L.forEach((br, k) => { if (b.removed.has(k) || !br.meta || !br.meta.roof) return; const lv = br.meta.step || br.meta.level || 0; let a = roofByLv.get(lv); if (!a) { a = []; roofByLv.set(lv, a); } a.push(k); });
+  const roofOk = new Set(), lvs = [...roofByLv.keys()].sort((a, c) => a - c);
+  for (const lv of lvs) for (const k of roofByLv.get(lv)) { const br = L[k], el = br.m.elements; let held = !!br.meta.tower && lv === 0;
       if (lv === 0 && !held) { const top = byCourse.get(b.courses - 1) || []; for (const u of top) { if (!ok.has(u.k)) continue; const ue = L[u.k].m.elements; if (Math.hypot(ue[12] - el[12], ue[14] - el[14]) < 60) { held = true; break; } } }
-      else if (lv > 0) for (const j of roofLive.get(lv - 1) || []) { const ue = L[j].m.elements; if (Math.hypot(ue[12] - el[12], ue[14] - el[14]) < 90) { held = true; break; } }
-      if (!held) out.push(k); } else if (!ok.has(k)) out.push(k); });
+      else if (lv > 0) for (const j of roofByLv.get(lv - 1) || []) { if (!roofOk.has(j)) continue; const ue = L[j].m.elements; if (Math.hypot(ue[12] - el[12], ue[14] - el[14]) < 90) { held = true; break; } }
+      if (held) roofOk.add(k); else out.push(k); }
+  L.forEach((br, k) => { if (b.removed.has(k) || !br.meta || br.meta.roof) return; if (!ok.has(k)) out.push(k); });
   return out;
 }
 
