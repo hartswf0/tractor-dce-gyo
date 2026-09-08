@@ -35,7 +35,7 @@ class Props {
     const it = { ...p, group: null, box: null, meshes: [], total: 0, ready: false }; this.items.set(p.id, it);
     let g; try { g = await this.parse(p.mpd, p.id + '.mpd'); } catch (e) { this.items.delete(p.id); console.warn('prop parse', e); return null; }
     if (!this.items.has(p.id)) return null;                                             // removed while parsing
-    const wrap = new THREE.Group(); wrap.name = 'prop:' + p.id; wrap.rotation.x = Math.PI; const yawG = new THREE.Group(); yawG.add(wrap); yawG.rotation.y = p.yaw * Math.PI / 2; yawG.position.set(p.x, p.y, p.z);
+    const wrap = new THREE.Group(); wrap.name = 'propwrap:' + p.id; wrap.rotation.x = Math.PI; const yawG = new THREE.Group(); yawG.name = 'prop:' + p.id; yawG.add(wrap); yawG.rotation.y = p.yaw * Math.PI / 2; yawG.position.set(p.x, p.y, p.z);
     g.traverse(o => { if (o.isMesh) { it.meshes.push(o); for (const m of Array.isArray(o.material) ? o.material : [o.material]) if (m) { m.fog = true; m.side = THREE.DoubleSide; } } });
     while (g.children.length) wrap.add(g.children[0]);
     this.scene.add(yawG); yawG.updateMatrixWorld(true); it.group = yawG; it.total = it.meshes.length; it.ready = true;

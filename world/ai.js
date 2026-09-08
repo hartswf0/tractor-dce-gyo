@@ -32,6 +32,27 @@ function outputText(j) {
   return chunks.join('\n');
 }
 
+/** The Responses API as server-sent events: every output_text delta goes to onDelta, and the completed (or incomplete) response object comes back whole. */
+async function readStream(res, onDelta) {
+  const reader = res.body.getReader(), dec = new TextDecoder(); let buf = '', text = '', final = null, errorMsg = null;
+  const handle = data => {
+    let ev; try { ev = JSON.parse(data); } catch (e) { return; }
+    const t = ev.type || '';
+    if (t === 'response.output_text.delta' && typeof ev.delta === 'string') { text += ev.delta; if (onDelta) { try { onDelta(text); } catch (e) { } } }
+    else if (t === 'response.completed' || t === 'response.incomplete' || t === 'response.failed') final = ev.response || null;
+    else if (t === 'error') errorMsg = (ev.error && ev.error.message) || ev.message || 'stream error';
+  };
+  for (;;) {
+    const { done, value } = await reader.read(); if (done) break;
+    buf += dec.decode(value, { stream: true });
+    let i; while ((i = buf.indexOf('\n\n')) >= 0) { const block = buf.slice(0, i); buf = buf.slice(i + 2); for (const line of block.split('\n')) if (line.startsWith('data:')) handle(line.slice(5).trim()); }
+  }
+  if (buf.trim()) for (const line of buf.split('\n')) if (line.startsWith('data:')) handle(line.slice(5).trim());
+  if (errorMsg) throw new Error('OpenAI said ' + errorMsg);
+  if (!final) { if (text) return { status: 'completed', output_text: text, usage: null, id: null }; throw new Error('the stream ended without an answer'); }
+  if (!final.output_text && text) final.output_text = text;
+  return final;
+}
 function parseProgram(raw) {
   let p = null;
   try { p = JSON.parse(raw); } catch (e) {
@@ -135,7 +156,7 @@ const Ai = {
     throw err;
   },
 
-  async request(text, { key, signal, stage = 'SOL REASONING', detail = 'designing', effort = EFFORT } = {}) {
+  async request(text, { key, signal, stage = 'SOL REASONING', detail = 'designing', effort = EFFORT, onDelta } = {}) {
     key = (key || this.key()).trim();
     if (!key) throw new Error('no key: enter an OpenAI API key');
     lsSet(MODEL_KEY, MODEL); lsSet(EFFORT_KEY, EFFORT);
@@ -146,7 +167,7 @@ const Ai = {
     this.calls++;
     let res;
     try {
-      res = await fetch(URL, {
+      res = await fetch(this.endpoint || (typeof window !== 'undefined' && window.__aiEndpoint) || URL, {   // the endpoint can be redirected by a test harness
         method: 'POST',
         headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -156,7 +177,8 @@ const Ai = {
           reasoning: { effort },
           text: { format: { type: 'json_object' }, verbosity: 'low' },
           max_output_tokens: 64000,
-          store: false
+          store: false,
+          stream: true
         }),
         signal
       });
@@ -173,7 +195,7 @@ const Ai = {
       this.emit('OPENAI ERROR', msg, 'error');
       throw new Error(res.status === 401 ? 'the key was rejected' : res.status === 429 ? 'rate limited or out of credit: ' + msg : 'OpenAI said ' + msg);
     }
-    const j = await res.json();
+    const j = /text\/event-stream/.test(res.headers.get('content-type') || '') ? await readStream(res, onDelta) : await res.json();
     this.lastUsage = j.usage || null;
     this.lastResponseId = j.id || null;
     if (j.status === 'incomplete') {
@@ -191,10 +213,10 @@ const Ai = {
     return { j, raw, program, ms: Date.now() - started };
   },
 
-  async ask(prompt, { key, context, signal, onFirst } = {}) {
+  async ask(prompt, { key, context, signal, onFirst, onDelta } = {}) {
     key = key || this.key();
     const first = await this.requestSafely(this.userMessage(prompt, context), {
-      key, signal, stage: '1 / 3 · SOL DESIGNING', detail: 'choosing scale, silhouette and construction'
+      key, signal, onDelta, stage: '1 / 3 · SOL DESIGNING', detail: 'choosing scale, silhouette and construction'
     });
 
     this.emit('2 / 3 · LOCAL CHECK', 'compiling the first design into actual LEGO geometry', 'working');
@@ -235,7 +257,7 @@ const Ai = {
 
   async edit(prev, words, opts = {}) {
     const text = `CURRENT FULL PROGRAM:\n${JSON.stringify(prev && prev.program || {})}\n\nCHANGE REQUEST:\n${words}\n\nReturn the corrected FULL program as JSON only. Keep everything not asked to change at the same coordinates and apply the requested change to the rest.`;
-    const out = await this.requestSafely(text, { key: opts.key || this.key(), signal: opts.signal, stage: 'SOL CHANGING', detail: String(words || '').slice(0, 80) });
+    const out = await this.requestSafely(text, { key: opts.key || this.key(), signal: opts.signal, onDelta: opts.onDelta, stage: 'SOL CHANGING', detail: String(words || '').slice(0, 80) });
     const result = compile(out.program), rr = result && result.report || {};
     this.emit('CHANGE READY', `${rr.pieces || 0} pieces · ${rr.props || 0} props · ${rr.floating || 0} floating`, 'ready');
     return { program: out.program, usage: out.j.usage || null, raw: out.raw, responseId: out.j.id || null, messages: [], brief: prev && prev.brief };

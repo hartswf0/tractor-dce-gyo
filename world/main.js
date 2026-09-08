@@ -120,7 +120,7 @@ async function loadWindow(place, wait = 15000) {
 }
 function applyOSM(win, osm) {
   if (osm.ok) { win.buildings = osm.buildings; win.roads = osm.roads; win.village = false; } else { const v = Bricks.village(); win.buildings = v.buildings; win.roads = v.roads; win.village = true; }
-  W.net.osm = osm.ok; win.pending = null; stage('buildings', 'done', `${win.buildings.length} buildings, ${win.roads.length} roads`);
+  W.net.osm = osm.ok; win.pending = null; stage('buildings', 'done', `${win.buildings.length} buildings, ${win.roads.length} roads`); try { console.info(`[place] ${win.place.name}: ${win.buildings.length} buildings · ${win.roads.length} roads${osm.ok ? ' from OpenStreetMap' : ' (village)'}`); } catch (e) { }
 }
 /** Buildings that arrived after we started walking: the city, the roads, the crowd and the saved damage. */
 function installBuildings(win, osm) {
@@ -269,7 +269,7 @@ function bindInput() {
     if (p === primary) { primary = null; ind.classList.remove('on'); const tgt = W.mode === 'fly' ? W.input.fly : W.input.L; tgt.x = tgt.y = tgt.mag = 0; const next = [...PT.values()].find(q => W.mode === 'fly' || q.left); if (next) { primary = next; next.x0 = next.x; next.y0 = next.y; showStick(next.x, next.y, 0, 0); } }
     if (p.id === lookId) lookId = null;
     if (p.multi && PT.size === 0 && p.moved < 20 && performance.now() - W.multiAt < 450 && W.mode === 'walk') W.input.push = true;   // two-finger tap: the Force
-    if (W.mode === 'fly') { if (!p.left && !p.multi && p.moved < 14) { if (hold) W.input.torpedo = true; else if (tap) W.input.fireOnce = true; } }
+    if (W.mode === 'fly' || W.mode === 'ride') { if (!p.left && !p.multi && p.moved < 14) { if (hold) W.input.torpedo = true; else if (tap) W.input.fireOnce = true; } }
     else if (W.build && W.build.on) { if (tap) buildAct(); }
     else if (tap && !p.left) W.input.saber = true;
     if (W.mode === 'walk' && !p.left) W.input.runTouch = false;
@@ -297,7 +297,7 @@ function readKeys() {
   const shift = k.has('ShiftLeft') || k.has('ShiftRight');
   W.input.boost = (W.mode === 'fly' || W.mode === 'ride') && (shift || PT.size >= 2 || !!W.input.boostHook);
   W.input.run = W.mode === 'walk' && (shift || !!W.input.runTouch || !!W.input.runHook);
-  W.input.fire = W.mode === 'fly' && k.has('Space');
+  W.input.fire = (W.mode === 'fly' || W.mode === 'ride') && k.has('Space');
 }
 
 /* ───────────────────────── collisions shared by everyone on foot ───────────────────────── */
@@ -397,6 +397,8 @@ function boltHit(p, kind, vel) {
   if (kind === 'ground') { crater(p, 1.5 * M, 0.4 * M); W.smoke.puff(p, 8, 1.5 * M); Fx.Sfx.thud(0.35); Fx.haptic(10); W.tally.craters = (W.tally.craters || 0) + 1; return; }
   blast(p, 3 * M, vel ? vel.clone().multiplyScalar(0.15) : null, true, false, 'bolt'); W.shake = Math.max(W.shake, 0.15);
 }
+/** Where the player is, whatever they are in. */
+function playerPos() { return W.mode === 'fly' ? W.tie.pos : W.mode === 'ride' && W.veh ? W.veh.pos : W.rig.pos; }
 /** Nobody shoots while you build: build mode, the word bar open, a draft standing, the model thinking, typing, a parked ride, or the truce switch. */
 function peaceNow() {
   if (W.truce) return true; if (W.build && W.build.on) return true; if (W.master && (W.master.busy || W.master.result)) return true;
@@ -424,17 +426,34 @@ function boardVehicle(it) {
   if (W.mode !== 'walk' || W.dead || !it || !it.ready) return;
   const V = Drive.create({ prop: it, M, groundH: WORLD.groundH, aabbs: (x, z, r) => allBoxes(x, z, r).filter(b => b !== it.box) });
   W.veh = V; W.mode = 'ride'; document.body.classList.add('ride'); $('#mode').textContent = `${V.fly ? 'fly' : 'drive'} · ${V.kind}`; hintFor();
-  W.rig.figure.visible = false; primary = null; W.input.L.mag = 0; W.rideAcc = 0; toast(`${vehicleVerb(it).toLowerCase()} the ${V.kind}`, 900); Fx.Sfx.thud(0.2);
+  seatFigure(W.rig, V); primary = null; W.input.L.mag = 0; W.rideAcc = 0; W.fireAcc = 0; toast(`${vehicleVerb(it).toLowerCase()} the ${V.kind}`, 900); Fx.Sfx.thud(0.2);
   if (W.build && W.build.on) toggleBuild(false);
+}
+/** The driver in the seat: the figure rides inside the vehicle group, sitting, at the middle of its box just below the top. */
+function seatFigure(rig, V) {
+  const b = V.prop.box, g = V.group; g.updateMatrixWorld(true);
+  const h = b.max.y - b.min.y, seatY = Math.max(0.35 * M, Math.min(h - 0.6 * M, h - 0.9 * M));
+  const f = rig.figure; if (f.parent) f.parent.remove(f); g.add(f); f.position.set(0, seatY, 0); f.rotation.set(0, 0, 0); f.visible = true; rig.seated = true;
+  Minifig.pose(rig, { phase: 0, gait: 0, t: rig.t || 0, swing: null, aim: 0, sit: true });
+}
+function unseatFigure(rig) { const f = rig.figure; if (f.parent && f.parent !== W.scene) { f.parent.remove(f); W.scene.add(f); } f.position.set(0, 0, 0); f.rotation.set(0, 0, 0); rig.seated = false; }
+/** Fire from a ride: two bolts from the front corners; a held tap sends one heavy bolt that blasts where it lands. */
+function rideFire(heavy) {
+  const V = W.veh; if (!V || W.fireAcc < (heavy ? 0.5 : 0.15)) return false; W.fireAcc = 0;
+  const f = Drive.forward(V, V1.clone()), side = V2.set(Math.cos(V.heading), 0, -Math.sin(V.heading)), dir = f.clone(); if (!V.fly) dir.y -= 0.03; dir.normalize();
+  const base = V.pos.clone().addScaledVector(f, V.r * 0.9); base.y = V.pos.y + (V.prop.box.max.y - V.prop.box.min.y) * 0.5;
+  if (heavy) { const b = W.bolts.fire(base, dir, 'player', 1000); if (b) { b.heavy = true; b.mesh.scale.set(2.2, 2.2, 1.4); } Fx.Sfx.torpedo(); Fx.haptic([30, 30, 60]); }
+  else { for (const k of [-1, 1]) { const o = base.clone().addScaledVector(side, k * V.r * 0.45); const b = W.bolts.fire(o, dir, 'player'); if (b) { b.heavy = false; b.mesh.scale.set(1, 1, 1); } } Fx.Sfx.blaster(); Fx.haptic(8); }
+  return true;
 }
 /** Out again: the figure steps out beside the vehicle, which stays where it was parked, for everyone. */
 function leaveVehicle() {
-  const V = W.veh; if (!V) return;
+  const V = W.veh; if (!V) return; unseatFigure(W.rig);
   Drive.park(V); W.props.moved(V.prop); W.veh = null;
   W.mode = 'walk'; document.body.classList.remove('ride'); $('#mode').textContent = 'walk · ' + Minifig.DEFS[W.character].name; hintFor();
   const side = V1.set(Math.cos(V.heading), 0, -Math.sin(V.heading)), off = V.r + 1.2 * M;
   W.rig.pos.set(V.pos.x + side.x * off, 0, V.pos.z + side.z * off); pushOut(W.rig.pos, W.rig.radius); W.rig.pos.y = W.G.h(W.rig.pos.x, W.rig.pos.z); W.rig.vel && W.rig.vel.set(0, 0, 0);
-  W.rig.heading = V.heading; W.rig.figure.rotation.y = V.heading; W.rig.figure.visible = true; W.rig.cam.set = false; W.rig.cam.yaw = V.heading + Math.PI; W.camera.fov = innerHeight > innerWidth ? 55 : 50; W.camera.updateProjectionMatrix();
+  W.rig.heading = V.heading; W.rig.figure.rotation.y = V.heading; W.rig.figure.visible = true; Minifig.pose(W.rig, { phase: 0, gait: 0, t: W.rig.t || 0, swing: null, aim: 0 }); W.rig.cam.set = false; W.rig.cam.yaw = V.heading + Math.PI; W.camera.fov = innerHeight > innerWidth ? 55 : 50; W.camera.updateProjectionMatrix();
   primary = null; W.input.L.mag = 0; Fx.Sfx.engine(false); toast('out', 700);
 }
 /** Push a vehicle's centre out of buildings, bricks and the other props; true when it moved. */
@@ -476,7 +495,9 @@ function simulate(dt) {
   } else if (W.mode === 'ride') {
     const V = W.veh; V.input.x = I.L.x; V.input.y = I.L.y; V.input.mag = I.L.mag; V.input.boost = I.boost;
     const alive = Drive.step(V, dt, { roofAt: (x, z, y) => { let top = -Infinity; for (const b of W.city.aabbs(x, z, 10)) if (x > b.min.x && x < b.max.x && z > b.min.z && z < b.max.z && b.max.y <= y + 0.5 * M && b.max.y > top) top = b.max.y; return top; }, pushOut: (pos, r) => vehPushOut(pos, r, V.prop.id), blast: (p, r, vel, kind) => { blast(p, r, vel, true, false, kind); W.shake = Math.max(W.shake, 0.3); flash(); Fx.Sfx.crunch(); Fx.haptic([30, 20, 40]); }, knock: (c, r, vel) => { const n = W.crowd.hitWithin(c, r, vel, W.debris); if (n) { Fx.Sfx.clatter(1); Fx.haptic(15); } }, sfx: { crunch: () => { Fx.Sfx.crunch(); Fx.haptic(20); }, thud: k => Fx.Sfx.thud(k) } });
-    W.rig.pos.set(V.pos.x, W.G.h(V.pos.x, V.pos.z), V.pos.z); W.rig.heading = V.heading;
+    W.rig.heading = V.heading;                                                  // rig.pos is the figure's own position: seated, it stays local to the vehicle
+    W.fireAcc = (W.fireAcc || 0) + dt; if (I.torpedo) { I.torpedo = false; rideFire(true); } else if (I.fireOnce || I.fire) { I.fireOnce = false; rideFire(false); }
+    if (W.rig.seated) { W.rig.t = (W.rig.t || 0) + dt; Minifig.pose(W.rig, { phase: 0, gait: 0, t: W.rig.t, swing: null, aim: 0, sit: true }); }
     Fx.Sfx.engine(true, clamp(Math.abs(V.speed) / (V.K.boost * M), 0, 1), !!I.boost);
     Drive.camera(V, W.camera, dt, portrait);
     if ((W.rideAcc += dt) > 0.25) { W.rideAcc = 0; V.prop.x = V.pos.x; V.prop.y = V.pos.y - V.K.hover * M; V.prop.z = V.pos.z; V.prop.yaw = V.heading / (Math.PI / 2); W.props.moved(V.prop); }
@@ -497,22 +518,22 @@ function simulate(dt) {
   W.bolts.step(dt, {
     hitPlayer: b => { if (W.mode === 'ride') { if (Characters.segHitsSphere(b.prev, b.mesh.position, W.veh.pos, W.veh.r)) { hurt(10); flash(); return true; } return false; } if (W.mode === 'walk') { if (W.dead) return false; V1.copy(W.rig.pos); V1.y += 1.3 * M; if (Characters.segHitsSphere(b.prev, b.mesh.position, V1, 0.8 * M)) { hurt(20); return true; } return false; } if (Characters.segHitsSphere(b.prev, b.mesh.position, W.tie.pos, Tie.PLAYER_R * 0.8)) { W.tie.shields = Math.max(0, W.tie.shields - 5); flash(); return true; } return false; },
     hitNpc: b => W.crowd.hitBy(b, W.debris),
-    hitWorld: b => { const p = b.mesh.position; for (const box of W.city.aabbs(p.x, p.z, 60)) if (p.x > box.min.x - 6 && p.x < box.max.x + 6 && p.z > box.min.z - 6 && p.z < box.max.z + 6 && p.y > box.min.y && p.y < box.max.y) { if (b.owner === 'player') blast(p, 1.6 * M, b.vel.clone().multiplyScalar(0.05), true, false, 'bolt'); else if (b.owner === 'npc') fall(W.city.blast(p, 0.6 * M, null, 2)); return true; } return false; },
+    hitWorld: b => { const p = b.mesh.position; for (const box of W.city.aabbs(p.x, p.z, 60)) if (p.x > box.min.x - 6 && p.x < box.max.x + 6 && p.z > box.min.z - 6 && p.z < box.max.z + 6 && p.y > box.min.y && p.y < box.max.y) { if (b.owner === 'player') { blast(p, (b.heavy ? 2.5 : 1.6) * M, b.vel.clone().multiplyScalar(0.05), true, false, 'bolt'); if (b.heavy) { W.shake = Math.max(W.shake, 0.4); flash(); } } else if (b.owner === 'npc') fall(W.city.blast(p, 0.6 * M, null, 2)); return true; } return false; },
   });
   fall(W.city.tick(dt));
   W.debris.step(dt, debrisCtx()); stepGrenades(dt); W.smoke.step(dt);
   { let checked = 0; for (const p of W.debris.pieces) { if (p.rest || p.settling || checked > 80) continue; if (p.vel.lengthSq() < 25 * M * M) continue; checked++; const c = W.debris.centre(p, V1); if (W.crowd.hitWithin(c, 0.9 * M, p.vel.clone().multiplyScalar(0.5), W.debris)) Fx.Sfx.clatter(1); } }
   if (W.room.role) { W.room.tick(dt); netTick(dt); stepRemotes(dt); }
   W.build.tick(dt); if (W.props) W.props.tick(dt); if ((W.dmgAcc += dt) > 2) { W.dmgAcc = 0; saveDamage(); }
-  W.crowd.step(dt, { player: { pos: W.rig.pos, alive: W.mode === 'walk' && !W.dead, peace: peaceNow(), running: W.input.run && W.rig.speed > 3 * M, vel: W.rig.vel }, tie: { pos: W.mode === 'ride' ? W.veh.pos : W.tie.pos, flying: W.mode === 'fly' || (W.mode === 'ride' && Math.abs(W.veh.speed) > 2 * M) }, bolts: W.bolts, debris: W.debris, los, pushOut });
-  W.city.update(W.camera, W.mode === 'fly' ? W.tie.pos : W.rig.pos);
+  W.crowd.step(dt, { player: { pos: playerPos(), alive: W.mode === 'walk' && !W.dead, peace: peaceNow(), running: W.input.run && W.rig.speed > 3 * M, vel: W.rig.vel }, tie: { pos: W.mode === 'ride' ? W.veh.pos : W.tie.pos, flying: W.mode === 'fly' || (W.mode === 'ride' && Math.abs(W.veh.speed) > 2 * M) }, bolts: W.bolts, debris: W.debris, los, pushOut });
+  W.city.update(W.camera, playerPos());
   if ((W.hudAcc = (W.hudAcc || 0) + dt) > 0.1) { W.hudAcc = 0; paint(); }
   if ((W.landAcc = (W.landAcc || 0) + dt) > 1) { W.landAcc = 0; maybeReland(); }
 }
 function paint() {
   const st = W.city.stats(), cs = W.crowd.stats();
   { const t = $('#tally'), txt = W.tally.bricks ? `${W.tally.bricks.toLocaleString()} bricks · ${st.levelled} levelled` : ''; if (t.textContent !== txt) { t.textContent = txt; t.classList.remove('pulse'); void t.offsetWidth; t.classList.add('pulse'); } }
-  if (W.mode === 'walk') { $('#stat').textContent = `${st.buildings} buildings · ${cs.alive} people${W.build.pieces.size ? ' · ' + W.build.pieces.size + ' built' : ''}\n${Math.round(W.rig.speed / M * 3.6)} km/h · ${W.dets} detonators`; $('#shieldFill').style.width = W.health + '%'; $('#shield').classList.toggle('low', W.health < 40); $('#det').classList.toggle('on', W.dets > 0 && !W.dead); }
+  if (W.mode === 'walk') { $('#stat').textContent = `${st.buildings} buildings · ${W.win ? W.win.roads.length : 0} roads · ${cs.alive} people${W.build.pieces.size ? ' · ' + W.build.pieces.size + ' built' : ''}\n${Math.round(W.rig.speed / M * 3.6)} km/h · ${W.dets} detonators`; $('#shieldFill').style.width = W.health + '%'; $('#shield').classList.toggle('low', W.health < 40); $('#det').classList.toggle('on', W.dets > 0 && !W.dead); }
   else if (W.mode === 'ride') { const V = W.veh, alt = Math.round((V.pos.y - W.G.h(V.pos.x, V.pos.z)) / M); $('#stat').textContent = `${V.kind} · ${Math.round(Math.abs(V.speed) / M * 3.6)} km/h${V.input.boost ? ' · boost' : ''}${V.fly ? ` · ${alt} m up` : ''}\n${V.fly && !V.airborne ? 'push up to take off' : ''}`; $('#shieldFill').style.width = W.health + '%'; }
   else { const F = W.tie, alt = Math.round((F.pos.y - W.G.h(F.pos.x, F.pos.z)) / M); $('#stat').textContent = `${alt} m up · ${Math.round(F.speed / M * 3.6)} km/h${F.input.boost ? ' · boost' : ''}\n${F.t < F.impact.until ? F.impact.text : F.slide > .35 ? 'VADER SLIDE' : ''}`; $('#shieldFill').style.width = F.shields + '%'; $('#shield').classList.toggle('low', F.shields < 40); $('#det').classList.remove('on'); if (F.t < F.impact.until && F.impact.text !== W.lastImpact) { W.lastImpact = F.impact.text; toast(F.impact.text.split(' · ')[0], 700); } }
   if (W.mode === 'fly' && W.tie.shields <= 0 && !W.tie.landing) { W.tie.shields = Tie.SHIELD_MAX; toast('shields gone: setting down'); Tie.land(W.tie); }
@@ -521,14 +542,14 @@ function paint() {
 /* ───────────────────────── play anywhere ───────────────────────── */
 async function maybeReland() {
   if (W.relanding || !W.win || W.win.baked || !W.net.elevation) return;
-  const p = W.mode === 'fly' ? W.tie.pos : W.rig.pos; if (Math.hypot(p.x, p.z) / M < RELAND_AT) return;
+  const p = playerPos(); if (Math.hypot(p.x, p.z) / M < RELAND_AT) return;
   const g = W.P.toWGS(p.x / M, p.z / M); await reland({ lat: g.lat, lon: g.lon, name: W.place.name.replace(/ · moved$/, '') + ' · moved' }, true);
 }
 async function reland(place, quiet) {
   if (W.relanding) return; W.relanding = true;
   try {
     if (!quiet) { $('#veil').classList.remove('gone'); $('#vTitle').textContent = 'Going to ' + place.name; for (const li of document.querySelectorAll('#stages li')) li.classList.remove('done', 'now'); VEIL.stages = {}; veilTick(true); stage('place', 'done'); stage('ship', 'done'); }
-    const win = await loadWindow(place), p = W.mode === 'fly' ? W.tie.pos : W.rig.pos, keep = quiet && W.P ? W.P.toWGS(p.x / M, p.z / M) : null;
+    const win = await loadWindow(place), p = playerPos(), keep = quiet && W.P ? W.P.toWGS(p.x / M, p.z / M) : null;
     installWindow(win); setWorld(W.world);
     let lx = 0, lz = 0;
     if (keep) { const l = win.P.toLocal(keep.lat, keep.lon); lx = l.x * M; lz = l.z * M; } else { const s = spawnPoint(win); lx = s.x * M; lz = s.z * M; }
@@ -689,7 +710,9 @@ function bindMaster() {
   const bar = $('#wb'), fit = () => document.documentElement.style.setProperty('--wb', (document.body.classList.contains('wb-off') ? 0 : bar.offsetHeight) + 'px');   // the buttons above the bar rise with it
   if (window.ResizeObserver) new ResizeObserver(fit).observe(bar); W.wbFit = fit;
   $('#wbSay').onclick = () => wbOpen(true); $('#wbHide').onclick = () => { if (document.body.classList.contains('drafting')) { toast('commit or discard the draft first', 1200); return; } wbOpen(false); };
-  $('#wbKeyBtn').onclick = () => wbKeyRow(); $('#wbLogBtn').onclick = () => wbLog(); $('#wbStop').onclick = () => { if (stopBuild()) toast('stopping', 700); }; $('#wbLogCopy').onclick = () => { const t = (W.master.log || []).map(l => `+${l.dt.toFixed(1)}s ${l.kind} ${l.text}`).join('\n'); (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(() => toast('log copied', 800), () => toast('could not copy', 800)); }; $('#wbLogClear').onclick = () => { W.master.log = []; wbLogPaint(); }; $('#wbKey').onchange = () => saveKey($('#wbKey').value); $('#wbKeyOk').onclick = () => saveKey($('#wbKey').value);
+  $('#wbKeyBtn').onclick = () => wbKeyRow(); $('#wbLogBtn').onclick = () => wbLog(); $('#wbCodeBtn').onclick = () => wbCode(); document.querySelectorAll('#wbCode [data-view]').forEach(b => b.onclick = () => { codeView(b.dataset.view); if (b.dataset.view === 'json') paintJson(W.master.conv && W.master.conv.program ? JSON.stringify(W.master.conv.program, null, 1) : ''); });
+  $('#wbCodeCopy').onclick = () => { const prog = W.master.conv && W.master.conv.program; if (!prog) return; (navigator.clipboard ? navigator.clipboard.writeText(JSON.stringify(prog)) : Promise.reject()).then(() => toast('program copied', 800), () => toast('could not copy', 800)); };
+  $('#wbCodeEdit').onclick = () => { const prog = W.master.conv && W.master.conv.program; if (!prog) return; const T = $('#words'); T.value = JSON.stringify(prog, null, 1); T.style.height = '150px'; T.focus(); mbStatus('edit the JSON, then press Build: it compiles here, no model', 'ok'); }; $('#wbStop').onclick = () => { if (stopBuild()) toast('stopping', 700); }; $('#wbLogCopy').onclick = () => { const t = (W.master.log || []).map(l => `+${l.dt.toFixed(1)}s ${l.kind} ${l.text}`).join('\n'); (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(() => toast('log copied', 800), () => toast('could not copy', 800)); }; $('#wbLogClear').onclick = () => { W.master.log = []; wbLogPaint(); }; $('#wbKey').onchange = () => saveKey($('#wbKey').value); $('#wbKeyOk').onclick = () => saveKey($('#wbKey').value);
   $('#wbKey').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); saveKey($('#wbKey').value); } });
   let wanted = false; try { wanted = localStorage.getItem('world.wb') === '1'; } catch (e) { } W.wbWanted = wanted;
   wbOpen(wanted, true); mbStatus(''); wbHint();
@@ -719,6 +742,8 @@ function wbHint() {
 /** Words go to the model: a fresh build, or a change to the draft that stands. */
 async function say(words) {
   words = (words || '').trim(); if (!words) return;
+  if (/^\s*\{[\s\S]*\}\s*$/.test(words)) { let prog = null; try { prog = JSON.parse(words); } catch (e) { mbStatus('that JSON does not parse: ' + e.message, 'warn'); return; } if (!prog || !Array.isArray(prog.ops)) { mbStatus('a program is {"name", "ops": [...]}', 'warn'); return; }
+    const keep = W.master.result && W.master.anchor ? { anchor: { ...W.master.anchor }, rot: W.master.rot, ids: W.master.replace } : null; const res = Dsl.compile(prog); W.master.conv = { program: prog, messages: [] }; W.master.words = W.master.words || prog.name || 'program'; mbLog('compile', compileLine('your program', res)); mbShow(res, null, keep); $('#words').value = ''; $('#words').style.height = ''; return res.report; }
   if (W.master.result && W.master.conv) return mbEdit(words);
   return mbDraft(words);
 }
@@ -765,6 +790,28 @@ function mbLog(kind, text) {
   if (kind === 'error') wbLog(true); else wbLogPaint();
 }
 function wbLogPaint() { const pre = $('#wbLogText'); if (!pre || $('#wbLog').hidden) return; pre.textContent = (W.master.log || []).map(l => `+${l.dt.toFixed(1).padStart(6)} s  ${l.kind.padEnd(7)} ${l.text}`).join('\n') || 'nothing yet: press Build'; pre.scrollTop = pre.scrollHeight; }
+/** The code panel: the program op by op in words (tap one to light its bricks) or as JSON. */
+function wbCode(on) { const box = $('#wbCode'); if (!box) return; on = on === undefined ? box.hidden : !!on; box.hidden = !on; $('#wbCodeBtn').classList.toggle('on', on); if (on) { wbOpen(true, true); const prog = W.master.conv && W.master.conv.program; if (prog && W.master.result) { paintOps(prog, W.master.result); paintJson(JSON.stringify(prog, null, 1)); } } if (W.wbFit) W.wbFit(); }
+function codeView(v) { W.codeMode = v; document.querySelectorAll('#wbCode [data-view]').forEach(b => b.classList.toggle('on', b.dataset.view === v)); $('#wbOps').hidden = v !== 'words'; $('#wbJson').hidden = v !== 'json'; if (v === 'json') paintJson(W.master.conv && W.master.conv.program ? JSON.stringify(W.master.conv.program, null, 1) : (W.master.streamText || '')); }
+function paintOps(program, res) {
+  const ol = $('#wbOps'); if (!ol || !program) return; const ops = program.ops || [], counts = new Map();
+  if (res) for (const p of [...res.pieces, ...res.parts]) counts.set(p.op, (counts.get(p.op) || 0) + 1);
+  const bad = new Map(); if (res) { for (const u of res.report.unknown) bad.set(u.i, 'unknown op'); for (const u of res.report.errors) bad.set(u.i, u.error); }
+  const had = ol.children.length;
+  while (ol.children.length > ops.length) ol.removeChild(ol.lastChild);
+  ops.forEach((o, i) => {
+    let li = ol.children[i]; if (!li) { li = document.createElement('li'); li.innerHTML = '<i></i><b></b><span></span><em></em>'; li.onclick = () => litOp(i); ol.appendChild(li); if (i >= had) li.classList.add('new'); }
+    const col = o && o.col != null ? Dsl.colOf(o.col) : 71; try { li.querySelector('i').style.background = W.colours(col).clone().convertLinearToSRGB().getStyle(); } catch (e) { }
+    li.querySelector('b').textContent = String(i + 1).padStart(2, ' '); li.querySelector('span').textContent = Dsl.captionOp(o); const n = counts.get(i) || 0, props = res ? res.props.filter(p => p.op === i).length : 0;
+    li.querySelector('em').textContent = bad.has(i) ? bad.get(i) : n ? `${n} bricks` : props ? `${props} prop${props > 1 ? 's' : ''}` : ''; li.classList.toggle('bad', bad.has(i)); li.dataset.i = i;
+  });
+  $('#wbCodeStat').textContent = `${ops.length} ops${res ? ` · ${res.report.pieces} bricks` : ''}${W.master.streaming ? ' · still writing' : ''}`;
+  if (W.master.streaming) ol.scrollTop = ol.scrollHeight;
+}
+function paintJson(text) { const pre = $('#wbJson'); if (!pre || pre.hidden) return; pre.innerHTML = tintJson(text || ''); pre.scrollTop = pre.scrollHeight; }
+function tintJson(t) { const esc = t.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])); return esc.replace(/("(?:[^"\\]|\\.)*")(\s*:)?|(-?\d+(?:\.\d+)?)/g, (m, str, colon, num) => str ? (colon ? `<span class="k">${str}</span>${colon}` : `<span class="s">${str}</span>`) : `<span class="n">${num}</span>`); }
+/** Light the bricks one op made, for two seconds. */
+function litOp(i) { const ol = $('#wbOps'); ol.querySelectorAll('li').forEach(li => li.classList.toggle('lit', +li.dataset.i === i)); const B = W.draft.pieces.size ? W.draft : W.build; const n = B.highlight(p => p.op === i); clearTimeout(W.litT); W.litT = setTimeout(() => { B.highlight(null); ol.querySelectorAll('li.lit').forEach(li => li.classList.remove('lit')); }, 2000); return n; }
 function wbLog(on) { const box = $('#wbLog'); if (!box) return; on = on === undefined ? box.hidden : !!on; box.hidden = !on; $('#wbLogBtn').classList.toggle('on', on); if (on) { wbOpen(true, true); wbLogPaint(); } if (W.wbFit) W.wbFit(); }
 Ai.onStatus = (stage, detail, state, started, extra) => {
   if (state === 'working') { if (W.master.busy) W.master.stage = { stage, detail }; mbLog('stage', `${stageName(stage)} · ${detail || ''}`); }
@@ -791,10 +838,10 @@ async function mbDraft(prompt) {
   prompt = (prompt || '').trim(); if (!prompt || W.master.busy || W.mode !== 'walk') { if (W.mode !== 'walk') toast('land first', 900); return; }
   if (!Ai.key()) { needKey(); return; }
   W.master.busy = true; W.master.abort = new AbortController(); const signal = W.master.abort.signal; mbBusy('asking'); $('#wbBuild').disabled = true;
-  let first = null;
-  const onFirst = program => { const res = Dsl.compile(program); mbLog('compile', compileLine('first design', res)); if (!res.report.pieces && !res.report.props) return; first = res; W.master.conv = { program, messages: [] }; W.master.words = prompt; mbShow(res, null, null, true); W.master.busy = true; W.master.first = true; W.master.stage = { stage: 'review', detail: 'the first design stands · the review may replace it' }; };
+  let first = null; const stream = streamer(prompt);
+  const onFirst = program => { stream.stop(); const res = Dsl.compile(program); mbLog('compile', compileLine('first design', res)); if (!res.report.pieces && !res.report.props) return; first = res; W.master.conv = { program, messages: [] }; W.master.words = prompt; mbShow(res, null, null, true); W.master.busy = true; W.master.first = true; W.master.stage = { stage: 'review', detail: 'the first design stands · the review may replace it' }; };
   try {
-    let r = await Ai.ask(prompt, { context: mbContext(), signal, onFirst }); let res = Dsl.compile(r.program); mbLog('compile', compileLine('chosen design', res));
+    let r = await Ai.ask(prompt, { context: mbContext(), signal, onFirst, onDelta: stream.onDelta }); stream.stop(); let res = Dsl.compile(r.program); mbLog('compile', compileLine('chosen design', res));
     if (res.report.unknown.length || res.report.errors.length || res.report.floating > 5) { W.master.stage = { stage: 'repair', detail: 'the compiler found trouble' }; mbLog('info', `repair: ${res.report.unknown.length} unknown ops · ${res.report.errors.length} errors · ${res.report.floating} floating`); try { const r2 = await Ai.repair(r, res.report, { signal }); const res2 = Dsl.compile(r2.program); mbLog('compile', compileLine('repaired', res2)); if (res2.report.pieces + res2.report.props >= (res.report.pieces + res.report.props) * 0.5) { r = r2; res = res2; } else mbLog('info', 'the repair lost too much: keeping the design before it'); } catch (e) { if (e.name === 'AbortError') throw e; mbLog('error', 'repair failed · ' + (e.message || e)); } }
     W.master.conv = r; W.master.words = prompt; mbShow(res, r.usage, first ? { anchor: { ...W.master.anchor }, rot: W.master.rot, ids: W.master.replace } : null);
     mbLog('info', `done in ${fmtSec((performance.now() - W.master.t0) / 1000)} · ${res.report.pieces} bricks${res.report.props ? ` · ${res.report.props} props` : ''} · commit or change it`);
@@ -802,7 +849,25 @@ async function mbDraft(prompt) {
     if (e.name === 'AbortError') { mbIdle(); mbStatus(first ? `stopped · the first design stands: commit or change it` : 'stopped', 'warn', fmtSec((performance.now() - W.master.t0) / 1000)); return; }
     mbLog('error', e.message || String(e)); mbIdle(); mbStatus(e.message || String(e), 'warn');
   }
-  finally { mbIdle(); }
+  finally { stream.stop(); mbIdle(); }
+}
+/** The model's answer as it streams: every complete op is compiled and laid at once, the code panel lists it in words, the strip counts ops. */
+function streamer(words, keep) {
+  const st = { n: 0, text: '', timer: 0, dirty: false, keep };
+  st.onDelta = text => { st.text = text; W.master.streamText = text; st.dirty = true; if (!st.timer) st.timer = setInterval(st.flush, 250); };
+  st.flush = () => {
+    if (!st.dirty) return; st.dirty = false; const pp = Dsl.partialProgram(st.text); paintJson(st.text);
+    if (pp.ops.length <= st.n) return;
+    for (let i = st.n; i < pp.ops.length; i++) mbLog('op', `op ${i + 1}: ${Dsl.captionOp(pp.ops[i])}`);
+    st.n = pp.ops.length; const program = { name: pp.name || 'draft', ops: pp.ops };
+    if (W.master.stage) W.master.stage = { ...W.master.stage, detail: `writing op ${st.n}${pp.name ? ' of ' + pp.name : ''}` };
+    const res = Dsl.compile(program); if (!res.report.pieces && !res.report.props) return;
+    if (!W.master.words) W.master.words = words; W.master.conv = W.master.conv || { program, messages: [] };
+    const keepNow = st.keep || (W.master.anchor ? { anchor: { ...W.master.anchor }, rot: W.master.rot, ids: W.master.replace } : null);
+    mbShow(res, null, keepNow, true); W.master.busy = true; W.master.streaming = true; paintOps(program, res);
+  };
+  st.stop = () => { clearInterval(st.timer); st.timer = 0; W.master.streaming = false; };
+  return st;
 }
 function compileLine(what, res) { const r = res.report; return `${what}: ${(res.name || 'build')} · ${r.pieces} bricks · ${r.props} props · ${r.floating} floating · ${r.blocked} blocked${r.unknown.length ? ` · unknown ops ${r.unknown.map(u => u.op).join(',')}` : ''}${r.errors.length ? ` · errors ${r.errors.map(u => u.error).join('; ')}` : ''}`; }
 function needKey() { wbOpen(true, true); wbKeyRow(true); mbStatus('paste an OpenAI key first: it stays in this browser', 'warn'); const k = $('#wbKey'); if (k) k.focus(); }
@@ -812,7 +877,7 @@ async function mbEdit(words) {
   const prev = W.master.conv || { program: W.master.program }, keep = { anchor: { ...W.master.anchor }, rot: W.master.rot, ids: W.master.replace };
   W.master.busy = true; W.master.abort = new AbortController(); const signal = W.master.abort.signal; mbBusy('changing with'); $('#wbBuild').disabled = true;
   try {
-    const r = await Ai.edit(prev, words, { context: mbContext(), signal }); const res = Dsl.compile(r.program); mbLog('compile', compileLine('changed', res));
+    const stream = streamer(words, keep); let r; try { r = await Ai.edit(prev, words, { context: mbContext(), signal, onDelta: stream.onDelta }); } finally { stream.stop(); } const res = Dsl.compile(r.program); mbLog('compile', compileLine('changed', res));
     if (!res.report.pieces && !res.report.props) throw new Error('the change left nothing to build');
     W.master.conv = r; W.master.words = (W.master.words ? W.master.words + ' · ' : '') + words;
     mbShow(res, r.usage, keep); $('#words').value = ''; $('#words').style.height = '';
@@ -827,8 +892,10 @@ function mbShow(res, usage, keep, provisional) {
   const rep = res.report, fixes = rep.floating + rep.blocked + rep.unknown.length + rep.errors.length;
   const reasoning = usage && usage.output_tokens_details && usage.output_tokens_details.reasoning_tokens;
   const tok = usage ? ` · ${usage.total_tokens} tokens${reasoning ? ` (${reasoning} reasoning)` : ''}` : '';
-  if (provisional) mbStatus(`first design standing: ${rep.pieces} bricks · the review is still thinking`, 'busy', fmtSec((performance.now() - W.master.t0) / 1000));
+  if (provisional && W.master.streaming) mbStatus(`writing · ${rep.pieces} bricks so far`, 'busy', fmtSec((performance.now() - W.master.t0) / 1000));
+  else if (provisional) mbStatus(`first design standing: ${rep.pieces} bricks · the review is still thinking`, 'busy', fmtSec((performance.now() - W.master.t0) / 1000));
   else mbStatus(`${res.name}: ${rep.pieces} bricks${rep.props ? ` · ${rep.props} props` : ''}${fixes ? ` · ${fixes} fixes` : ''}${tok}${replace ? ' · replaces what stood there' : ''}`, 'ok');
+  if (!provisional) { paintOps(conv && conv.program, res); paintJson(conv && conv.program ? JSON.stringify(conv.program, null, 1) : ''); }
   Fx.Sfx.respawn(); Fx.haptic(15);
 }
 /** Lay the draft's pieces and ghost boxes for the current anchor and turn. */
@@ -865,6 +932,11 @@ async function mbCommit() {
     mbLog('info', `committed as one ${ride === 'fly' ? 'flying' : 'driving'} thing: ${res.report.pieces} bricks in "${name}"`);
   } else {
     const rows = W.draft.rows(); added = W.build.addRows(rows);
+    if (added.length > 12) {                                                // what the eye sees: the same bricks land one by one, lowest first
+      for (const q of added) W.build.take(q.id, true);
+      const q = W.build.animate(added.map(q => [q.id, q.part, q.col, q.x, q.y, q.z, q.rot, q.op]), { perSecond: 40, maxSeconds: 12, local: true, quiet: true, onTick: (pc, i, n) => { if (i % 8 === 0) Fx.Sfx.click ? Fx.Sfx.click() : Fx.Sfx.thud(0.05); if (i === n) { W.build.dirty = true; Fx.Sfx.thud(0.4); } } });
+      q.done = () => { W.build.dirty = true; };
+    }
     const props = res.props.map(pr => mbPropPlace(pr));
     for (let i = 0; i < props.length; i++) { const pl = props[i]; const it = await W.props.place(res.props[i].mpd, pl.x, pl.y, pl.z, pl.yaw, false, res.props[i].src || null); if (it) placed++; }
   }
@@ -982,13 +1054,17 @@ function stepRemotes(dt) {
     const m = r.tgt; if (!m) continue;
     r.pos.lerp(V1.set(m.x, m.y, m.z), k);
     if (m.ship) { r.ship.position.set(m.ship[0], m.ship[1], m.ship[2]); if (m.m === 'walk') r.ship.quaternion.set(0, m.ship[3], 0, m.ship[4]).normalize(); }
+    if (m.m !== 'ride' && r.seatedIn) { const f = r.fig.figure; if (f.parent !== W.scene) { f.parent && f.parent.remove(f); W.scene.add(f); } f.position.set(0, 0, 0); r.seatedIn = null; }
     if (m.m === 'walk') {
       let d = m.h - r.heading; d = Math.atan2(Math.sin(d), Math.cos(d)); r.heading += d * k;
       const f = r.fig; f.figure.visible = !m.dead; f.pos.copy(r.pos); f.figure.rotation.y = r.heading; f.t += dt;
       const an = m.an || [0, 0, -1, 0]; Minifig.pose(f, { phase: an[0], gait: an[1], t: f.t, swing: an[2] >= 0 && an[2] <= 1 ? an[2] : null, aim: an[3] });
       r.label.position.set(r.pos.x, r.pos.y + 150, r.pos.z); r.label.visible = !m.dead;
     } else if (m.m === 'ride') {
-      r.fig.figure.visible = false; r.label.position.set(r.pos.x, r.pos.y + 90, r.pos.z); r.label.visible = true;   // the vehicle itself moves through the prop rows
+      const it = m.veh && W.props.items.get(m.veh); const f = r.fig.figure;
+      if (it && it.group && it.ready) { if (f.parent !== it.group) { if (f.parent) f.parent.remove(f); it.group.add(f); const h = it.box.max.y - it.box.min.y; f.position.set(0, Math.max(0.35 * M, h - 0.9 * M), 0); f.rotation.set(0, 0, 0); Minifig.pose(r.fig, { phase: 0, gait: 0, t: 0, swing: null, aim: 0, sit: true }); } f.visible = true; r.seatedIn = it; }
+      else f.visible = false;
+      r.label.position.set(r.pos.x, r.pos.y + 90, r.pos.z); r.label.visible = true;   // the vehicle itself moves through the prop rows
     } else {
       r.fig.figure.visible = false; r.quat.slerp(Q1.fromArray(m.q || [0, 0, 0, 1]), k); r.ship.position.copy(r.pos); r.ship.quaternion.copy(r.quat);
       r.label.position.set(r.pos.x, r.pos.y + 220, r.pos.z); r.label.visible = true;
@@ -1017,7 +1093,7 @@ Object.assign(W, {
   aimAt: (x, y, z) => { if (x == null) { W.build.pin = null; return null; } const o = new THREE.Vector3(x, y + 4 * M, z + 3 * M), d = new THREE.Vector3(x, y, z).sub(o).normalize(); W.build.on = true; W.build.pin = { origin: o, dir: d }; W.build.aimRay(o, d); return W.build.stats().target; }, takeBrick: id => fall(W.build.remove(id)),
   pieces: () => W.build.rows(), pieceAt: id => { const p = W.build.pieces.get(id); return p ? { id, part: p.part, col: p.col, x: p.x, y: p.y, z: p.z, rot: p.rot } : null; }, saveNow: () => { W.build.save(); saveDamage(); }, resetPlace, damage: () => W.city.removedSets(), placeKey: () => placeKey(W.place),
   fx: () => ({ sfx: Fx.Sfx.stats(), haptics: Fx.haptic.count(), smoke: W.smoke.stats(), hits: Fx.Hits.n, tally: { ...W.tally }, craters: W.G.craters || 0, lastCrater: W.lastCrater || null, air: !!W.rig.air, vy: W.rig.vy || 0, assisted: W.tie.assisted, groundHits: W.tie.groundHits }), crater: (x, z, r, d) => crater(new THREE.Vector3(x, 0, z), r, d), groundAt: (x, z) => W.G.h(x, z), groundColour: (x, z) => { const G = W.G, f = G.field, i = Math.round(f.cx + x / M / G.res), j = Math.round(f.cy + z / M / G.res), c = G.mesh.geometry.attributes.color, k = j * G.n + i; return [c.getX(k), c.getY(k), c.getZ(k)]; },
-  mb: () => ({ busy: W.master.busy, status: W.master.status, rot: W.master.rot, anchor: W.master.anchor, draft: W.draft.pieces.size, ghosts: W.master.ghosts.length, report: W.master.result && W.master.result.report, usage: W.master.usage || null }), mbAsk: mbDraft, say, readBuild, mbEdit, startNow, wbOpen, stopBuild, saves: loadSaves, saveBuild, placeSave, deleteSave, wordsSave, setTruce, peace: peaceNow, setRide: r => { W.master.ride = r || ''; paintRide(); return W.master.ride; }, rideChoice: () => W.master.ride || '', chip: () => { const c = $('#bchip'); return { on: c.classList.contains('on'), text: c.textContent, cls: c.className }; }, boardVehicle: id => { const it = id ? W.props.items.get(id) : nearVehicle(); if (it) boardVehicle(it); return W.mode; }, leaveVehicle, ride: () => W.veh ? { mode: W.mode, kind: W.veh.kind, fly: W.veh.fly, pos: W.veh.pos.toArray(), heading: W.veh.heading, speed: W.veh.speed, airborne: W.veh.airborne, landing: W.veh.landing, id: W.veh.prop.id } : { mode: W.mode }, prompt: () => ({ on: $('#prompt').classList.contains('on'), text: $('#prompt').textContent }), promptAction, buildLog: () => (W.master.log || []).slice(), wbLog, wbState: () => ({ open: !document.body.classList.contains('wb-off'), key: !!Ai.key(), keyRow: $('#wbKeyRow').classList.contains('on'), wb: getComputedStyle(document.body).getPropertyValue('--wb').trim() }), veil: () => ({ stages: Object.fromEntries(Object.entries(VEIL.stages).map(([k, v]) => [k, v.state])), start: !!($('#vStart') && !$('#vStart').hidden), since: (performance.now() - VEIL.t0) / 1000, readyAt: VEIL.readyAt || 0, buildingsAt: VEIL.buildingsAt || 0 }), pending: () => !!(W.win && W.win.pending), mbLoad: program => { const res = Dsl.compile(program); mbShow(res, null); return res.report; }, mbCommit, mbDiscard, mbNudge, propStat: () => W.props.stats(), propRows: () => W.props.rows(), propBoxes: () => [...W.props.items.values()].map(it => ({ id: it.id, ready: it.ready, parts: it.meshes.length, box: it.box ? [it.box.min.toArray(), it.box.max.toArray()] : null })), aiStat: () => Ai.stats(),
+  mb: () => ({ busy: W.master.busy, streaming: !!W.master.streaming, status: W.master.status, rot: W.master.rot, anchor: W.master.anchor, draft: W.draft.pieces.size, ghosts: W.master.ghosts.length, report: W.master.result && W.master.result.report, usage: W.master.usage || null }), mbAsk: mbDraft, say, readBuild, mbEdit, startNow, wbOpen, stopBuild, saves: loadSaves, saveBuild, placeSave, deleteSave, wordsSave, setTruce, peace: peaceNow, wbCode, codeView, litOp, ops: () => [...document.querySelectorAll('#wbOps li')].map(li => ({ text: li.querySelector('span').textContent, n: li.querySelector('em').textContent, lit: li.classList.contains('lit') })), highlighted: () => (W.draft.pieces.size ? W.draft : W.build).highlighted(), laying: () => W.build.laying(), seated: () => ({ seated: !!W.rig.seated, parent: W.rig.figure.parent && W.rig.figure.parent.name, visible: W.rig.figure.visible, legs: W.rig.legRP.rotation.x, pos: W.rig.figure.getWorldPosition(new THREE.Vector3()).toArray() }), rideFire, liveBolts: () => W.bolts.live().map(b => ({ owner: b.owner, heavy: !!b.heavy })), setRide: r => { W.master.ride = r || ''; paintRide(); return W.master.ride; }, rideChoice: () => W.master.ride || '', chip: () => { const c = $('#bchip'); return { on: c.classList.contains('on'), text: c.textContent, cls: c.className }; }, boardVehicle: id => { const it = id ? W.props.items.get(id) : nearVehicle(); if (it) boardVehicle(it); return W.mode; }, leaveVehicle, ride: () => W.veh ? { mode: W.mode, kind: W.veh.kind, fly: W.veh.fly, pos: W.veh.pos.toArray(), heading: W.veh.heading, speed: W.veh.speed, airborne: W.veh.airborne, landing: W.veh.landing, id: W.veh.prop.id } : { mode: W.mode }, prompt: () => ({ on: $('#prompt').classList.contains('on'), text: $('#prompt').textContent }), promptAction, buildLog: () => (W.master.log || []).slice(), wbLog, wbState: () => ({ open: !document.body.classList.contains('wb-off'), key: !!Ai.key(), keyRow: $('#wbKeyRow').classList.contains('on'), wb: getComputedStyle(document.body).getPropertyValue('--wb').trim() }), veil: () => ({ stages: Object.fromEntries(Object.entries(VEIL.stages).map(([k, v]) => [k, v.state])), start: !!($('#vStart') && !$('#vStart').hidden), since: (performance.now() - VEIL.t0) / 1000, readyAt: VEIL.readyAt || 0, buildingsAt: VEIL.buildingsAt || 0 }), pending: () => !!(W.win && W.win.pending), mbLoad: program => { const res = Dsl.compile(program); mbShow(res, null); return res.report; }, mbCommit, mbDiscard, mbNudge, propStat: () => W.props.stats(), propRows: () => W.props.rows(), propBoxes: () => [...W.props.items.values()].map(it => ({ id: it.id, ready: it.ready, parts: it.meshes.length, box: it.box ? [it.box.min.toArray(), it.box.max.toArray()] : null })), aiStat: () => Ai.stats(),
   netStat: () => W.room.stats(), host: hostRoom, join: joinRoom, leave: leaveRoom, remoteList: () => [...W.remotes.values()].map(r => ({ id: r.id, ch: r.ch, mode: r.tgt && r.tgt.m, pos: r.pos.toArray(), visible: r.fig && r.fig.figure.visible, shipVisible: !!r.ship && r.ship.visible })), flushEdits, setName,
   debrisPieces: () => W.debris.pieces.map(p => { const c = W.debris.centre(p, V1); return { part: p.kind.name, y: c.y, x: c.x, z: c.z, rest: p.rest, floor: W.G.h(c.x, c.z) }; }),
   building: i => { const b = W.city.buildings[i]; if (!b.bricks) b.bricks = Bricks.buildBricks(b, W.colours, M); return { id: b.id, kind: b.kind, n: b.bricks.n, removed: b.removed.size, live: b.bricks.n - b.removed.size, cx: b.cx, cz: b.cz, y0: b.y0, yTop: b.yTop, courses: b.courses, ruined: b.ruined }; },

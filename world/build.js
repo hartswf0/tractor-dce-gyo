@@ -58,7 +58,7 @@ class Build {
   /* ───── the frame: anchor and datum ───── */
   setFrame({ ax, az, datum }) { this.frame = { ax, az, datum }; }
   toRow(p) { const f = this.frame; return [p.id, p.part, p.col, Math.round(p.x - f.ax), Math.round(p.y + f.datum), Math.round(p.z - f.az), p.rot]; }
-  fromRow(r) { const f = this.frame; return { id: r[0], part: r[1], col: r[2], x: r[3] + f.ax, y: r[4] - f.datum, z: r[5] + f.az, rot: r[6] | 0 }; }
+  fromRow(r) { const f = this.frame; return { id: r[0], part: r[1], col: r[2], x: r[3] + f.ax, y: r[4] - f.datum, z: r[5] + f.az, rot: r[6] | 0, op: r[7] == null ? -1 : r[7] | 0 }; }
 
   /* ───── the store ───── */
   cellKey(x, z) { return Math.floor(x / CELL) + ':' + Math.floor(z / CELL); }
@@ -71,7 +71,7 @@ class Build {
   add(p, quiet) {
     if (this.pieces.has(p.id)) return null; const k = this.kinds.get(p.part); if (!k || !k.free.length) return null;
     if (this.pieces.size >= MAX_PIECES) return null;
-    p.slot = k.free.pop(); p.box = this.boxOf(p); p.cells = []; if (p.slot + 1 > k.im.count) k.im.count = p.slot + 1;
+    p.slot = k.free.pop(); p.box = this.boxOf(p); p.cells = []; if (p.op == null) p.op = -1; if (p.slot + 1 > k.im.count) k.im.count = p.slot + 1;
     Q1.setFromAxisAngle(UP, p.rot * Math.PI / 2); M1.compose(V1.set(p.x, p.y, p.z), Q1, V2.set(1, 1, 1));
     k.im.setMatrixAt(p.slot, M1); k.im.setColorAt(p.slot, this.colours(p.col)); k.im.instanceMatrix.needsUpdate = true; k.im.instanceColor.needsUpdate = true;
     this.pieces.set(p.id, p); this.hash(p); if (!quiet) this.dirty = true; return p;
@@ -97,7 +97,7 @@ class Build {
   /** Bulk placement of rows (anchor frame) with fresh ids of ours. Returns the pieces added. */
   addRows(rows, quiet, local) {
     const out = [];
-    for (const r of rows) { const p = local ? { part: r[1], col: r[2], x: r[3], y: r[4], z: r[5], rot: r[6] | 0 } : this.fromRow(r); p.id = this.pid + '-' + (++this.next); const q = this.add(p, quiet); if (q) out.push(q); }
+    for (const r of rows) { const p = local ? { part: r[1], col: r[2], x: r[3], y: r[4], z: r[5], rot: r[6] | 0, op: r[7] == null ? -1 : r[7] | 0 } : this.fromRow(r); p.id = this.pid + '-' + (++this.next); const q = this.add(p, quiet); if (q) out.push(q); }
     try { localStorage.setItem('world.build.n', String(this.next)); } catch (e) { }
     if (!quiet && out.length && this.onEdit) this.onEdit({ up: out.map(p => this.toRow(p)) });
     return out;
@@ -215,6 +215,25 @@ class Build {
     if (added || removed) this.dirty = true; return { added, removed };
   }
   rows() { return [...this.pieces.values()].map(p => this.toRow(p)); }
+  /** Light the pieces a predicate picks (their own colour) and dim the rest; null restores every colour. */
+  highlight(pred) {
+    let n = 0; const dim = new THREE.Color(0.35, 0.35, 0.38);
+    for (const p of this.pieces.values()) { const k = this.kinds.get(p.part); if (!k) continue; const on = !pred || pred(p); if (pred && on) n++; k.im.setColorAt(p.slot, on ? this.colours(p.col) : dim); k.im.instanceColor.needsUpdate = true; }
+    this.lit = pred ? n : 0; return n;
+  }
+  highlighted() { return this.lit || 0; }
+  /** Lay rows over time, lowest first: pieces per second, with onTick(piece, i, n) for a sound. Rooms get the rows at once through addRows; this is only what the eye sees. */
+  animate(rows, { perSecond = 40, maxSeconds = 15, onTick, quiet, local } = {}) {
+    const sorted = rows.slice().sort((a, b) => a[4] - b[4] || (a[7] | 0) - (b[7] | 0) || a[5] - b[5] || a[3] - b[3]);
+    const rate = Math.max(perSecond, sorted.length / maxSeconds); this.queue = { rows: sorted, i: 0, acc: 0, rate, onTick, quiet, local, out: [] };
+    return this.queue;
+  }
+  stepQueue(dt) {
+    const q = this.queue; if (!q) return; q.acc += dt * q.rate;
+    while (q.i < q.rows.length && q.acc >= 1) { const r = q.rows[q.i++]; q.acc -= 1; const p = q.local ? { part: r[1], col: r[2], x: r[3], y: r[4], z: r[5], rot: r[6] | 0, op: r[7] == null ? -1 : r[7] | 0 } : this.fromRow(r); p.id = r[0]; const added = this.add(p, true); if (added) { q.out.push(added); if (q.onTick) q.onTick(added, q.i, q.rows.length); } }
+    if (q.i >= q.rows.length) { this.queue = null; if (q.done) q.done(q.out); }
+  }
+  laying() { return this.queue ? { i: this.queue.i, n: this.queue.rows.length } : null; }
   storageKey() { return this.key ? 'world.build.' + this.key : null; }
   load(key) {
     this.key = key; this.clear(); this.dirty = false;
@@ -227,7 +246,7 @@ class Build {
   }
   forget() { const k = this.storageKey(); this.clear(); this.dirty = false; try { if (k) localStorage.removeItem(k); } catch (e) { } }
   /** Debounced save, from the loop. */
-  tick(dt) { if (this.dirty) { this.saveT += dt; if (this.saveT > 0.5) { this.saveT = 0; this.save(); } } else this.saveT = 0; }
+  tick(dt) { this.stepQueue(dt); if (this.dirty) { this.saveT += dt; if (this.saveT > 0.5) { this.saveT = 0; this.save(); } } else this.saveT = 0; }
   stats() { return { pieces: this.pieces.size, kinds: this.kinds.size, on: !!this.on, part: this.part, col: this.col, rot: this.rot, target: this.target && { x: this.target.x, y: this.target.y, z: this.target.z, blocked: this.target.blocked, kind: this.target.kind } }; }
 }
 function faceOf(p, b) {

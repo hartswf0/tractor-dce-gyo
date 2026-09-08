@@ -42,6 +42,7 @@ const Sfx = {
   gap(name, min) { const t = this.now(); if (t - (this.last[name] || -9) < min) return false; this.last[name] = t; return true; },
   laser() { this.count('laser'); if (!this.gap('laser', 0.03)) return; this.tone('sawtooth', 900, 280, 0.13, 0.18); this.burst(0.08, 4000, 800, 0.08, { type: 'bandpass', q: 2 }); },
   blaster() { this.count('blaster'); this.tone('square', 640, 190, 0.1, 0.16); },
+  click() { this.count('click'); if (!this.gap('click', 0.02)) return; this.tone('square', 1800, 1300, 0.025, 0.05); },   // a brick landing
   torpedo() { this.count('torpedo'); this.tone('sawtooth', 140, 60, 0.6, 0.25); this.burst(0.5, 600, 120, 0.2); },
   /** size 0..1: from a bolt's pop to a torpedo's thunder. */
   boom(size) {
