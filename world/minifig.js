@@ -120,7 +120,7 @@ function step(rig, dt, ctl, world) {
   facing(rig, V1); const before = V2.copy(rig.pos);
   rig.pos.addScaledVector(V1, rig.speed * dt);
   const g0 = world.groundH(before.x, before.z), g1 = world.groundH(rig.pos.x, rig.pos.z), run = Math.hypot(rig.pos.x - before.x, rig.pos.z - before.z);
-  if (run > 1e-3 && (g1 - g0) / run > 1.3) { rig.pos.copy(before); rig.speed *= 0.3; }
+  if (run > 1e-3 && g1 - g0 > 30 && (g1 - g0) / run > 1.3) { rig.pos.copy(before); rig.speed *= 0.3; }   // a knee-high step (a brick, rubble) is fine; a wall is not
   if (world.pushOut) world.pushOut(rig.pos, rig.radius);
   rig.pos.y = world.groundH(rig.pos.x, rig.pos.z);
   rig.vel.subVectors(rig.pos, before).divideScalar(Math.max(dt, 1e-3));
