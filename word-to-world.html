@@ -17,22 +17,23 @@
 <script src="./world/geo.js?v=0ffaa074"></script>
 <script src="./world/ground.js?v=7141d1ec"></script>
 <script src="./world/bricks.js?v=8f309d71"></script>
-<script src="./world/minifig.js?v=f208aa40"></script>
+<script src="./world/minifig.js?v=4cb3b0fd"></script>
 <script src="./world/debris.js?v=b9587eca"></script>
-<script src="./world/characters.js?v=4b658de7"></script>
-<script src="./world/worlds.js?v=26fb9294"></script>
+<script src="./world/characters.js?v=45cc0009"></script>
+<script src="./world/worlds.js?v=6d340423"></script>
 <script src="./world/sky.js?v=65b6a5f9"></script>
 <script src="./world/lamps.js?v=f95ee9f6"></script>
-<script src="./world/map.js?v=edf454db"></script>
+<script src="./world/map.js?v=2e492284"></script>
 <script src="./world/flora.js?v=e97ab2c0"></script>
-<script src="./world/traffic.js?v=b0128ce3"></script>
+<script src="./world/traffic.js?v=7c4ead0a"></script>
+<script src="./world/vehicles.js?v=40027885"></script>
 <script src="./world/tie.js?v=95c2e366"></script>
-<script src="./world/drive.js?v=24e94d6b"></script>
+<script src="./world/drive.js?v=196de23c"></script>
 <script src="./world/fx.js?v=f16940a8"></script>
-<script src="./world/dsl.js?v=f0f19b8b"></script>
-<script src="./world/ai.js?v=b43aa436"></script>
+<script src="./world/dsl.js?v=bb3ee801"></script>
+<script src="./world/ai.js?v=3a574edb"></script>
 <script src="./world/build.js?v=9a0d1ac4"></script>
-<script src="./world/props.js?v=2574a48d"></script>
+<script src="./world/props.js?v=d9920242"></script>
 <script src="./world/net.js?v=df154c6e"></script>
 <script src="./world/lease.js?v=3f5a5e59"></script>
 <style>
@@ -196,6 +197,8 @@ body.build #minimap{display:none}
 #top>div:first-child>div:first-child{display:flex;align-items:center;gap:8px;min-width:0}#top #mode{overflow:hidden;text-overflow:ellipsis;flex:0 1 auto;min-width:0}
 #compass{display:inline-block;flex:0 0 auto;width:16px;height:16px;border-radius:999px;border:1.5px solid var(--dim);position:relative;font:700 9px var(--mono);color:var(--red);text-align:center;line-height:13px;pointer-events:none}
 #way{font:11px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--red);white-space:nowrap}
+#chat{margin-top:4px;font:12px/1.3 -apple-system,Segoe UI,Helvetica,Arial,sans-serif;color:var(--ink);max-width:70vw}#chat div{background:rgba(255,255,255,.72);border-radius:8px;padding:2px 8px;margin:2px 0;display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#chat b{color:var(--red);margin-right:4px}
+#roomList{display:flex;flex-wrap:wrap;gap:6px;padding:0 0 6px 0}#roomList em{width:100%;font:11px var(--mono);opacity:.7}
 #vignette{position:fixed;inset:0;pointer-events:none;z-index:2;background:radial-gradient(ellipse at center,rgba(0,0,0,0) 45%,rgba(4,6,12,var(--vig)) 100%)}
 #flash{position:fixed;inset:0;background:rgba(216,56,46,.3);opacity:0;pointer-events:none;transition:opacity .1s;z-index:3}#flash.on{opacity:1}#flash.white{background:rgba(255,255,255,.55);transition:none}
 #keys{display:none;position:fixed;left:50%;bottom:calc(var(--wb) + 4px + env(safe-area-inset-bottom));transform:translateX(-50%);font:11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--dim);white-space:nowrap;z-index:4;pointer-events:none}
@@ -206,7 +209,7 @@ body.build #minimap{display:none}
 <div id="stage"></div>
 <div id="vignette"></div>
 <div id="flash"></div>
-<div id="top"><div><div><span class="t" id="mode">walk · Vader</span><span id="compass">N</span></div><div class="n" id="place">…</div><div id="way"></div></div><div id="stat"></div></div>
+<div id="top"><div><div><span class="t" id="mode">walk · Vader</span><span id="compass">N</span></div><div class="n" id="place">…</div><div id="way"></div><div id="chat" hidden></div></div><div id="stat"></div></div>
 <canvas id="minimap" width="118" height="118"></canvas>
 <div id="bigmap"><canvas></canvas><button>close</button><div class="hint">tap sets a waypoint · hold goes there · drag and pinch</div></div>
 <div id="shield"><i id="shieldFill" style="width:100%"></i></div>
@@ -235,6 +238,6 @@ body.build #minimap{display:none}
 <div id="hint">say what to build, or walk: left thumb walks · right thumb looks · tap right swings the saber</div>
 <div id="keys">wasd walk · mouse drag look · space saber · f push · g detonator · b build · shift run · e board / land</div>
 <div id="veil"><div class="k">word to world</div><h1 id="vTitle">Finding a place</h1><div class="bricks"><i></i><i></i><i></i><i></i><i></i></div><div class="m" id="vm"></div><ol id="stages"><li data-s="place">place</li><li data-s="ground">ground</li><li data-s="imagery">imagery</li><li data-s="buildings">buildings</li><li data-s="ship">the ship and Vader</li><li data-s="bricks">bricks</li></ol><button id="vStart" hidden>Start now</button></div>
-<script src="./world/main.js?v=d306eeea"></script>
+<script src="./world/main.js?v=c75752c4"></script>
 </body>
 </html>

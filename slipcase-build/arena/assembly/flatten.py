@@ -239,7 +239,10 @@ WORLD_EXTRA = ['parts/3816.dat', 'parts/3817.dat', 'parts/3815.dat', 'parts/973.
                'parts/30408.dat', 'parts/58247.dat', 'parts/3901.dat', 'parts/30370.dat', 'parts/3062b.dat',   # other characters, a detonator
                'parts/3003.dat', 'parts/3005.dat', 'parts/3022.dat', 'parts/3023.dat', 'parts/3024.dat', 'parts/3040b.dat', 'parts/3665a.dat',
                'parts/3455.dat', 'parts/3823.dat', 'parts/4600.dat', 'parts/4624.dat', 'parts/3641.dat', 'parts/3829c01.dat',
-               'parts/3009.dat', 'parts/3008.dat', 'parts/2453b.dat', 'parts/3185.dat', 'parts/4589.dat']   # the master builder's bricks
+               'parts/3009.dat', 'parts/3008.dat', 'parts/2453b.dat', 'parts/3185.dat', 'parts/4589.dat',   # the master builder's bricks
+               'parts/41880.dat', 'parts/30483.dat', 'parts/30480.dat', 'parts/30409.dat', 'parts/3625.dat', 'parts/12890.dat',   # Yoda, Chewbacca, C-3PO, Leia's buns, women's hair
+               'parts/20877.dat', 'parts/88286.dat', 'parts/93562.dat', 'parts/16709.dat', 'parts/2570.dat',                       # short legs, a crossbow
+               'parts/3788.dat', 'parts/6157.dat', 'parts/3854.dat', 'parts/3031.dat', 'parts/3958.dat', 'parts/3037.dat']        # mudguards, wheel pins, windows, big plates and slopes for the vehicles
 
 
 def write_world(out_dir):

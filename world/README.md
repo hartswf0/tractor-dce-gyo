@@ -22,12 +22,14 @@
 | streets | `ground.js` | roads for wheels (`roads`) and `streets`: roads lifted by class (motorway highest, service lowest, so junctions read), markings by class (centre dashes, edge and lane lines on the wide ones), sidewalks with curbs, footways, cycleways, parking lots with bays (kept off the driven roads), plazas, zebra crossings where a footway meets a road, bridges as decks on piers with ramps (`G.decks`, `Ground.deckAt`), rivers, and the ground cover from the map: water, parks, woods, pitches, cemeteries, a stadium's pitch; OSM areas come as `win.areas` | the decks are a floor (`WALK.groundH`); the rest is paint |
 | lamps | `lamps.js` | street lamps along the roads, spaced and coloured by the world's `lights` preset (`worlds.js`: `lamp`, `pool`, `window`, `every`, `moon`, `suns`, `fireflies`); `setNight` from the sky | none |
 | flora | `flora.js` | trees (a round trunk and a brick crown, instanced) at the map's tree nodes, through its woods and along residential streets; towers and masts as columns with a red lamp | `flora.pushOut`; a ride fells a tree into debris |
-| traffic | `traffic.js` | cars, vans and buses from the DSL's `vehicle` op, one instanced mesh per model and colour: parked in the lot bays and at the kerbs, thirty driving the right-hand lane, turning at junctions, keeping their distance, stopping short of a walker or a ride in the lane; headlights at night | `traffic.pushOut`; a ride's ram flings a whole car into the debris (`traffic.hit`) |
+| traffic | `traffic.js` | cars, vans and buses from the DSL's `vehicle` op, one instanced mesh per model and colour: parked in the lot bays and at the kerbs, thirty driving the right-hand lane, turning at junctions, keeping their distance, stopping short of a walker or a ride in the lane, every one pitched and rolled to the ground under its four wheels; headlights at night; in a room the host streams the moving cars and guests follow them | `traffic.pushOut`; a ride's ram flings a whole car into the debris (`traffic.hit`); walk up to any car and Get in: `traffic.take` turns it into a prop you drive |
+| vehicles | `vehicles.js` | each planet's own vehicles laid by the spawn from the preset's `vehicles` list (Hoth an AT-AT, an AT-ST and a snowspeeder; Endor an AT-ST and speeder bikes; Tatooine speeders; the Death Star a craft and a speeder), as props with fixed ids that are never saved | as props; a walker is boarded like a car |
 | map | `map.js` | the round minimap (north-up, 220 m), the full map (`#bigmap`: pan, pinch, names along the roads and at the big buildings, a tap sets a waypoint, a long press goes there), the nearest road's name in `#stat`, a building's name when you enter it, the compass in the top bar | none |
 | bricks | `build.js` | pieces the players placed or the builder made (one InstancedMesh per part) | `build.pushOut / floorAt / aabbs` |
 | props | `props.js` | LDraw sub-models: figures, vehicles, whole rides | `props.pushOut / floorAt / aabbs`; a blast flings parts |
-| rides | `drive.js` | a prop with a controller while someone is in it | `vehPushOut` in main.js pushes out of city, bricks and other props |
-| crowd | `characters.js` | citizens and troopers; troopers shoot unless `peace` | `crowd.hitWithin / hitBy` |
+| rides | `drive.js` | a prop with a controller while someone is in it; ground kinds settle on the ground under their four corners (`Drive.settle`: height, pitch, roll); walker kinds (`atat`, `atst`) swing their leg sub-models with their speed (`Drive.gait`), bob, stomp, and fire from the head | `vehPushOut` in main.js pushes out of city, bricks and other props |
+| crowd | `characters.js` | citizens (half of them women, with their own hair) and troopers; troopers shoot unless `peace` | `crowd.hitWithin / hitBy` |
+| people | `minifig.js` | the roster in `DEFS`: Vader, a stormtrooper, a rebel pilot, Luke, Leia, Han, Chewbacca, Yoda, C-3PO, Rey, a citizen; a `bare` def wears a whole-head mask seated at the neck, a `short` def stands on one-piece legs (16 LDU shorter); every part is in the world pack (`WORLD_EXTRA` in `slipcase-build/arena/assembly/flatten.py`, sculpted parts slimmed) | the rig's `radius`, `height` and `feet` |
 | debris | `debris.js` | everything that falls; wall bricks lie as rubble for ten minutes and are a floor for the walker (`WALK.groundH`), a knee-high step is climbable | spheres from the loop |
 | fx | `fx.js` | sounds, haptics, smoke, hit marks | |
 | lease | `lease.js` | one live instance per browser: booting claims the graphics over a BroadcastChannel, other tabs drop their WebGL context and wait behind a Resume veil, a tab hidden 90 s lets go on its own; `?lease=share` for a room guest in the same browser | |
@@ -60,14 +62,16 @@ words ──ai.js──▶ program {name, ops} ──dsl.compile──▶ pieces
 ## Memory and rooms
 
 - Per place (lat/lon rounded to 3 decimals): `world.build.<key>` (brick rows), `world.props.<key>` (prop rows with their source op), `world.damage.<key>` (knocked city bricks). The library of builds: `world.saves`.
-- Rooms (`net.js`, PeerJS): `p` player state 12 Hz, `bolt`, `blast`, `crater`, `edit` (brick and prop rows, per id, merged), `crowd` mirror from the host, `place` from the host. A driven prop moves through `edit` rows; a rider's figure is seated on the guest's copy when `p.veh` names a prop that is there.
+- Rooms (`net.js`, PeerJS): `p` player state 12 Hz with the spot on the globe (`ll`) and the height above the sender's own ground (`g`), so the other phone stands the figure on its own terrain (`geoRef` / `geoPoint` in main.js); `say` (a bubble over the speaker, the `#chat` line, `?me=` names the player); `bolt`, `blast`, `crater`, `edit` (brick and prop rows, per id, merged), `crowd` mirror and `cars` (the moving traffic, 4 Hz) from the host, `place` from the host. A driven prop moves through `edit` rows; a rider's figure is seated on the guest's copy when `p.veh` names a prop that is there. The map draws the other players; the room panel lists them with distance and bearing.
 
 ## Where to add X
 
 | you want | touch |
 |---|---|
 | a new build op | `dsl.js` OPS + SPEC + a caption line; the part in `bricks.js HARVEST`, `flatten.py WORLD_EXTRA`, `python3 flatten.py` |
-| a new vehicle kind | `dsl.js vehicleMPD` + `drive.js KINDS` |
+| a new vehicle kind | `dsl.js vehicleMPD` (or `walkerMPD` for something with legs) + `drive.js KINDS` |
+| a planet's vehicle | `worlds.js` preset `vehicles: [{ kind, dx, dz, len, col }]` |
+| a new character | `minifig.js DEFS` (+ the part in `WORLD_EXTRA`, then `write_world` and `packslim`) and `CROWD_PARTS`; a crowd hair also in `characters.js SLOT_PARTS` |
 | a new mode | `simulate` branch, `promptAction`, `hintFor`, `paint`, `myState`/`stepRemotes` |
 | a new thing that blocks | its `pushOut / aabbs / floorAt`, then `allBoxes` and `pushOut` in main.js |
 | a new HUD element | `word-to-world.html` markup + CSS, `paint()` |
@@ -76,4 +80,4 @@ words ──ai.js──▶ program {name, ops} ──dsl.compile──▶ pieces
 
 ## Tests
 
-Playwright with a mocked Earth (scratchpad `mocks.js`): `run.js` one page, `run2.js` host + guest, `run3.js` the studio. Suites: builder (`c-mb.js`), drive, peace, build, destruction, worlds, loader, rooms, night, streets, map, real (the map's structures), smooth (substeps, quality, the TIE's turn), traffic, inside, lease. Node: `t-dsl.js`, `t-dec.js`. Start the static server from the repo root; the suites pin `?quality=high` because a headless sandbox runs slowly.
+Playwright with a mocked Earth (scratchpad `mocks.js`): `run.js` one page, `run2.js` host + guest, `run3.js` the studio. Suites: builder (`c-mb.js`), drive, peace, build, destruction, worlds, loader, rooms (`run2.js`: also the same ground, say, the room list, the host's cars), night, streets, map, real (the map's structures), smooth (substeps, quality, the TIE's turn), traffic, inside, lease, people, wheels (a car on the hill), board (getting into a traffic car), walkers (`?world=hoth`). Node: `t-dsl.js`, `t-dec.js`. Start the static server from the repo root; the suites pin `?quality=high` because a headless sandbox runs slowly.

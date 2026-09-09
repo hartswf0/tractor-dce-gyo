@@ -10,7 +10,8 @@
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const V1 = new THREE.Vector3(), V2 = new THREE.Vector3(), V3 = new THREE.Vector3(), Q1 = new THREE.Quaternion(), Z1 = new THREE.Vector3(0, 0, 1);
 const ZERO = new THREE.Matrix4().makeScale(0, 0, 0);
-const SLOT_PARTS = { legR: '3816', legL: '3817', hips: '3815', torso: '973', armR: '3818', armL: '3819', handR: '3820', handL: '3820', head: '3626b', 'hat:30408': '30408', 'hat:3901': '3901', 'hat:30370': '30370', 'weaponR:58247': '58247' };
+const SLOT_PARTS = { legR: '3816', legL: '3817', hips: '3815', torso: '973', armR: '3818', armL: '3819', handR: '3820', handL: '3820', head: '3626b', 'hat:30408': '30408', 'hat:3901': '3901', 'hat:30370': '30370', 'weaponR:58247': '58247',
+  'hat:3625': '3625', 'hat:12890': '12890', 'hat:20877': '20877', 'hat:30409': '30409' };   // the women's hair
 
 /* ───────────────────────── bolts on foot ───────────────────────── */
 class Bolts {

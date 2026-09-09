@@ -23,6 +23,7 @@ const DIMS = {
   '3068b': [-20, 20, -20, 20, 8], '87079': [-40, 40, -20, 20, 8], '3941': [-20, 20, -20, 20, 24], '3062b': [-10, 10, -10, 10, 24], '4070': [-10, 10, -10, 10, 24], '3070b': [-10, 10, -10, 10, 8],
   '4600': [-34, 34, -20, 20, 10], '4624': [-10, 10, -8, 8, 20], '3641': [-18, 18, -8, 8, 36], '3829c01': [-20, 20, -10, 10, 8], '3822': [-10, 10, -30, 30, 72], '3821': [-10, 10, -30, 30, 72],
   '2453b': [-10, 10, -10, 10, 120], '3185': [-40, 40, -10, 10, 48], '4589': [-10, 10, -10, 10, 24], '3710': [-40, 40, -10, 10, 8],
+  '3788': [-40, 40, -20, 20, 16], '3854': [-20, 20, -10, 10, 72], '3031': [-40, 40, -40, 40, 8], '3037': [-40, 40, -30, 10, 24],
   '3626b': [-10, 10, -10, 10, 24], '973': [-20, 20, -10, 10, 32], '3815': [-10, 10, -10, 10, 12], '3816': [-10, 10, -10, 10, 32], '3817': [-10, 10, -10, 10, 32],
 };
 const BRICKS = [['3001', 4, 2], ['3008', 8, 1], ['3009', 6, 1], ['3003', 2, 2], ['3010', 4, 1], ['3004', 2, 1], ['3005', 1, 1]];                 // part, studs along x, along z (natural orientation)
@@ -125,6 +126,7 @@ const OPS = {
   /** Any LDraw text as a prop (the -ators' exports, a pasted model): its footprint is a guess unless w and d are given. */
   mpd(g, o) { const f = FACE[String(o.facing || 's').toLowerCase()[0]] ?? 2, text = String(o.text || ''); if (!text.trim()) throw new Error('empty mpd'); const lines = text.split('\n'); const body = withHeaders(text.startsWith('0 FILE') ? text : ['0 FILE ' + (o.name || 'model').replace(/\s+/g, '_') + '.ldr', ...lines].join('\n')); g.props.push({ kind: 'mpd', x: I(o.x), z: I(o.z), y: I(o.y) * BRICK, rot: f, mpd: body, w: clamp(I(o.w, 4), 1, 64), d: clamp(I(o.d, 4), 1, 64), hp: clamp(I(o.hp, 12), 1, 120) }); },
   vehicle(g, o) { const f = FACE[String(o.facing || 'e').toLowerCase()[0]] ?? 1; const v = vehicleMPD(o); g.props.push({ kind: 'vehicle', x: I(o.x), z: I(o.z), y: I(o.y) * BRICK, rot: f, mpd: v.mpd, w: v.w, d: v.d, hp: v.hp }); },
+  walker(g, o) { const f = FACE[String(o.facing || 's').toLowerCase()[0]] ?? 2; const v = walkerMPD(o); g.props.push({ kind: 'walker', x: I(o.x), z: I(o.z), y: I(o.y) * BRICK, rot: f, mpd: v.mpd, w: v.w, d: v.d, hp: v.hp }); },
 };
 OPS.band = (g, o) => { const x = I(o.x), z = I(o.z), w = clamp(I(o.w, 4), 1, 64), d = clamp(I(o.d, 4), 1, 64), y = I(o.y) * BRICK + I(o.plate), h = o.plates ? clamp(I(o.plates), 1, 12) : clamp(I(o.h, 1), 1, 40) * BRICK, col = colOf(o.col);
   for (let yy = y; yy < y + h; yy++) for (let xx = x; xx < x + w; xx++) for (let zz = z; zz < z + d; zz++) { const c = g.get(xx, yy, zz); if (c && !c.r) c.col = col; } };   // recolours what stands there: stripes, sills, trims
@@ -186,7 +188,7 @@ const line = (col, x, y, z, rot, part) => `1 ${col} ${r4(x)} ${r4(y)} ${r4(z)} $
 const r4 = v => (Math.round(v * 1000) / 1000).toString();
 /** A vehicle in the prop frame (LDraw: y down, ground at y = 0, forward = −z). Returns { mpd, w, d, hp } with the footprint in studs. */
 function vehicleMPD(o) {
-  const kind = String(o.kind || 'car').toLowerCase(), col = colOf(o.col, 4), len = clamp(I(o.len, kind === 'truck' ? 10 : kind === 'plane' ? 8 : 6), 4, 16), wide = kind === 'speeder' || kind === 'plane' ? 2 : 4, L = [];
+  const kind = String(o.kind || 'car').toLowerCase(), col = colOf(o.col, 4), len = clamp(I(o.len, kind === 'truck' ? 10 : kind === 'bus' ? 12 : kind === 'plane' ? 8 : 6), 4, 16), wide = kind === 'speeder' || kind === 'plane' ? 2 : 4, L = [];
   const zf = -len * STUD / 2, zb = len * STUD / 2;    // front and back edges
   const g = new Grid();                              // the body is bricks too: a local grid in prop cells (x across, z along)
   const bx = -wide / 2, bz = -len / 2, floorY = kind === 'speeder' ? 2 : 4;   // plates above the ground the floor plate sits at
@@ -212,29 +214,81 @@ function vehicleMPD(o) {
     for (let zz = bz + 4; zz < bz + len - 2; zz++) g.fillBox(bx, zz, wide, 1, floorY + 1, floorY + 1 + BRICK, col);   // the engine block
     g.part('3040b', col, bx, bz + len - 2, floorY + 1, 2, 1, 2, BRICK); g.part('3040b', col, bx + 1, bz + len - 2, floorY + 1, 2, 1, 2, BRICK);   // rear fins
     g.fillBox(bx, bz + 1, wide, len - 2, floorY - 2, floorY, 0);                                 // a dark skid underneath, so it hovers
-  } else {
-    g.fillBox(bx, bz - 1, wide, len + 1, floorY, floorY + 1, col);                               // floor, one stud further forward for the bumper
-    g.part('3062b', 46, bx, bz - 1, floorY + 1, 0, 1, 1, BRICK); g.part('3062b', 46, bx + wide - 1, bz - 1, floorY + 1, 0, 1, 1, BRICK);   // headlights
-    g.fillBox(bx + 1, bz - 1, wide - 2, 1, floorY + 1, floorY + 2, 0);                           // the bumper
-    for (let xx = bx; xx < bx + wide; xx++) g.part('3040b', col, xx, bz, floorY + 1, 0, 1, 2, BRICK);   // the bonnet slopes down to the front
-    g.part('3823', 47, bx, bz + 2, floorY + 1, 0, 4, 2, 2 * BRICK);                                // windscreen (2 × 4 × 2)
-    if (kind === 'truck') { g.fillBox(bx, bz + 4, 1, 2, floorY + 1, floorY + 1 + 2 * BRICK, col); g.fillBox(bx + wide - 1, bz + 4, 1, 2, floorY + 1, floorY + 1 + 2 * BRICK, col); g.fillBox(bx, bz + 4, wide, 2, floorY + 1 + 2 * BRICK, floorY + 2 + 2 * BRICK, col);
-      g.part('3829c01', 0, bx + 1, bz + 4, floorY + 1, 0, 2, 1, 1);
-      g.fillBox(bx, bz + 6, wide, len - 6, floorY + 1, floorY + 2, 71);                            // the bed
-      if (len - 6 >= 4) { g.part('3185', 71, bx, bz + 6, floorY + 2, 1, 1, 4, 2 * BRICK); g.part('3185', 71, bx + wide - 1, bz + 6, floorY + 2, 1, 1, 4, 2 * BRICK); }   // fence rails
-      if (len > 6) g.fillBox(bx, bz + len - 1, wide, 1, floorY + 2, floorY + 2 + BRICK, 71); }
-    else { g.fillBox(bx, bz + 4, 1, len - 4, floorY + 1, floorY + 1 + BRICK, col); g.fillBox(bx + wide - 1, bz + 4, 1, len - 4, floorY + 1, floorY + 1 + BRICK, col); g.fillBox(bx + 1, bz + len - 1, wide - 2, 1, floorY + 1, floorY + 1 + BRICK, col); g.part('3829c01', 0, bx + 1, bz + 4, floorY + 1, 0, 2, 1, 1);
-      g.fillBox(bx, bz + len - 1, wide, 1, floorY + 1 + BRICK, floorY + 2 + BRICK, 0);            // a rear spoiler plate
-      g.part('3062b', 36, bx, bz + len - 1, floorY + 1 + BRICK, 0, 1, 1, BRICK); g.part('3062b', 36, bx + wide - 1, bz + len - 1, floorY + 1 + BRICK, 0, 1, 1, BRICK); }   // tail lights
+  } else {   // car, truck and bus: a two-plate chassis on real wheels under mudguards, a bonnet, a windscreen, a cabin with a roof
+    const arches = [bz + 1, bz + len - 3], isArch = zz => arches.some(a => zz === a || zz === a + 1), body = floorY + 2;   // the axles sit two studs from each end
+    for (let zz = bz - 1; zz < bz + len; zz++) if (!isArch(zz)) g.fillBox(bx, zz, wide, 1, floorY, floorY + 2, col);      // the chassis, one stud further forward for the bumper
+    for (const a of arches) g.part('3788', col, bx, a, floorY, 0, wide, 2, 2);                                              // mudguards over the wheels
+    g.part('3062b', 46, bx, bz - 1, body, 0, 1, 1, BRICK); g.part('3062b', 46, bx + wide - 1, bz - 1, body, 0, 1, 1, BRICK);   // headlights
+    g.fillBox(bx + 1, bz - 1, wide - 2, 1, body, body + 1, 0);                                                              // the bumper
+    if (kind === 'bus') {
+      g.part('3823', 47, bx, bz, body, 0, 4, 2, 2 * BRICK); g.fillBox(bx, bz, wide, 2, body + 2 * BRICK, body + 3 * BRICK, col);   // a windscreen with a brow above it
+      for (let zz = bz + 2; zz < bz + len - 1; zz++) { const k = (zz - bz - 2) % 3, win = k === 1 && zz + 1 < bz + len - 1;   // a pillar, then a window two studs long
+        for (const xx of [bx, bx + wide - 1]) { if (win) g.part('3854', 47, xx, zz, body, 1, 1, 2, 3 * BRICK); else if (k === 0) g.fillBox(xx, zz, 1, 1, body, body + 3 * BRICK, col); } }
+      g.fillBox(bx, bz + len - 1, wide, 1, body, body + 3 * BRICK, col);                                                  // the back wall
+      g.fillBox(bx, bz, wide, len, body + 3 * BRICK, body + 3 * BRICK + 1, col);                                            // the roof
+      g.part('3829c01', 0, bx + 1, bz + 2, body, 0, 2, 1, 1);                                                               // the driver's wheel
+      for (let zz = bz + 4; zz < bz + len - 2; zz += 2) g.fillBox(bx + 1, zz, wide - 2, 1, body, body + 1, 71);          // seats
+    } else {
+      for (let xx = bx; xx < bx + wide; xx++) g.part('3040b', col, xx, bz, body, 0, 1, 2, BRICK);                            // the bonnet slopes down to the front
+      g.part('3823', 47, bx, bz + 2, body, 0, 4, 2, 2 * BRICK);                                                             // windscreen (2 × 4 × 2)
+      const cab = kind === 'truck' ? bz + 5 : bz + len - 1;                                                                 // where the cabin ends: a truck's bed, a car's boot
+      for (let zz = bz + 4; zz < cab; zz++) { g.fillBox(bx, zz, 1, 1, body, body + BRICK, col); g.fillBox(bx + wide - 1, zz, 1, 1, body, body + BRICK, col); }   // the cabin's sides, waist high
+      g.part('3829c01', 0, bx + 1, bz + 4, body, 0, 2, 1, 1);                                                               // the wheel
+      if (cab > bz + 5) g.fillBox(bx + 1, bz + 5, wide - 2, 1, body, body + 1, 0);                                          // a seat behind it
+      g.part('3005', col, bx, cab - 1, body + BRICK, 0, 1, 1, BRICK); g.part('3005', col, bx + wide - 1, cab - 1, body + BRICK, 0, 1, 1, BRICK);   // rear pillars
+      g.fillBox(bx, bz + 2, wide, cab - bz - 2, body + 2 * BRICK, body + 2 * BRICK + 1, col);                              // the roof, from the windscreen back to the pillars
+      if (kind === 'truck') {
+        g.fillBox(bx, cab, wide, len - 5, body, body + 1, 71);                                                              // the bed
+        if (len - 5 >= 4) { g.part('3185', 71, bx, cab, body + 1, 1, 1, 4, 2 * BRICK); g.part('3185', 71, bx + wide - 1, cab, body + 1, 1, 1, 4, 2 * BRICK); }   // fence rails
+        g.fillBox(bx, bz + len - 1, wide, 1, body + 1, body + 1 + BRICK, 71);                                               // the tailgate
+      } else {
+        g.fillBox(bx, bz + len - 1, wide, 1, body, body + BRICK, col);                                                      // the boot
+        g.part('3062b', 36, bx, bz + len - 1, body + BRICK, 0, 1, 1, BRICK); g.part('3062b', 36, bx + wide - 1, bz + len - 1, body + BRICK, 0, 1, 1, BRICK);   // tail lights
+      }
+    }
   }
   const pieces = tile(g, { bond: true }), report = { floating: 0 };
   for (const p of pieces) L.push(pieceLine(p, 0, 0, 0));
   for (const p of g.parts) L.push(pieceLine(p, 0, 0, 0));
-  if (kind === 'car' || kind === 'truck') {                                                  // wheels: a 2 × 2 plate with pins under each axle, a rim and a tyre on every pin
-    for (const az of [zf + 30, zb - 30]) { L.push(line(0, 0, -23, az, 0, '4600')); for (const sx of [-30, 30]) { L.push(line(71, sx, -18, az, 1, '4624')); L.push(line(0, sx, -18, az, 1, '3641')); } }
+  if (kind === 'car' || kind === 'truck' || kind === 'bus') {                                  // wheels: a 2 × 2 plate with pins under each axle, a rim and a tyre on every pin, in the arches
+    for (const az of [zf + 40, zb - 40]) { L.push(line(0, 0, -23, az, 0, '4600')); for (const sx of [-30, 30]) { L.push(line(71, sx, -18, az, 1, '4624')); L.push(line(0, sx, -18, az, 1, '3641')); } }
   }
   const mpd = ['0 FILE vehicle.ldr', '0 !LDRAW_ORG Unofficial_Model', ...L].join('\n');
   return { mpd, w: kind === 'plane' ? wide + 8 : wide, d: len, hp: 12 };
+}
+
+/** An Imperial walker as sub-models, so its legs can swing: body.ldr, head.ldr and leg-*.ldr, each with its origin at its joint.
+    atat: a body 8 × 20 studs on four 2 × 2 legs 22 bricks tall with plate feet, a neck and a head with chin guns (16 m).
+    atst: a 6 × 6 head with chin and cheek guns on two legs 12 bricks tall (8 m). Grey 71, joints and guns 72. */
+function walkerMPD(o) {
+  const kind = String(o.kind || 'atat').toLowerCase() === 'atst' ? 'atst' : 'atat', col = colOf(o.col, 71), dark = 72;
+  const legH = kind === 'atat' ? 22 * BRICK : 12 * BRICK, hip = legH + 1;                    // plates from the sole to the hip (a plate foot under the column)
+  const file = (name, lines) => [`0 FILE ${name}`, '0 !LDRAW_ORG Unofficial_Model', ...lines].join('\n');
+  const partLines = (g, ay) => { const out = []; for (const p of tile(g, { bond: true })) out.push(pieceLine(p, 0, ay, 0)); for (const p of g.parts) out.push(pieceLine(p, 0, ay, 0)); return out; };
+  const leg = new Grid(); leg.part('3031', dark, -2, -2, 0, 0, 4, 4, 1); leg.fillBox(-1, -1, 2, 2, 1, hip, col); leg.fillBox(-1, -1, 2, 2, hip - BRICK, hip, dark);   // a plate foot, a column, a dark hip
+  const legText = file('leg.ldr', partLines(leg, hip * PLATE));                                // origin at the hip: rotation.x swings it
+  const main = ['0 FILE walker.ldr', '0 !LDRAW_ORG Unofficial_Model'], subs = [];
+  const at = (name, x, yPlates, z) => `1 16 ${r4(x * STUD)} ${r4(-yPlates * PLATE)} ${r4(z * STUD)} 1 0 0 0 1 0 0 0 1 ${name}`;
+  let w, d, hp;
+  if (kind === 'atat') {
+    const body = new Grid(); body.fillBox(-4, -10, 8, 20, 0, 4 * BRICK, col); body.fillBox(-4, -10, 8, 20, 4 * BRICK, 4 * BRICK + 1, dark);   // the hull, a dark deck on top
+    body.fillBox(-1, -13, 2, 3, 2 * BRICK, 4 * BRICK, dark);                                     // the neck, forward from the hull's top
+    const head = new Grid(); head.fillBox(-2, -3, 4, 6, 0, 2 * BRICK, col); head.part('3037', col, -2, -4, BRICK, 0, 4, 2, BRICK);   // the head, a slope at its brow
+    head.part('3062b', dark, -2, -5, 0, 0, 1, 1, BRICK); head.part('3062b', dark, 1, -5, 0, 0, 1, 1, BRICK);   // chin guns
+    subs.push(file('body.ldr', partLines(body, 0)), file('head.ldr', partLines(head, 0)));
+    main.push(at('body.ldr', 0, hip, 0), at('head.ldr', 0, hip + 2 * BRICK, -16));
+    for (const [nm, x, z] of [['leg-fl.ldr', -2, -8], ['leg-fr.ldr', 2, -8], ['leg-rl.ldr', -2, 7], ['leg-rr.ldr', 2, 7]]) { main.push(at(nm, x, hip, z)); subs.push(legText.replace('0 FILE leg.ldr', '0 FILE ' + nm)); }
+    w = 8; d = 32; hp = hip + 4 * BRICK + 1;
+  } else {
+    const head = new Grid(); head.fillBox(-3, -3, 6, 6, 0, 3 * BRICK, col); head.fillBox(-3, -3, 6, 6, 3 * BRICK, 3 * BRICK + 1, dark);
+    head.part('3062b', dark, -2, -4, 0, 0, 1, 1, BRICK); head.part('3062b', dark, 1, -4, 0, 0, 1, 1, BRICK);      // chin guns
+    head.part('3062b', dark, -4, -1, BRICK, 0, 1, 1, BRICK); head.part('3062b', dark, 3, -1, BRICK, 0, 1, 1, BRICK);   // cheek guns
+    subs.push(file('head.ldr', partLines(head, 0)));
+    main.push(at('head.ldr', 0, hip, 0));
+    for (const [nm, x] of [['leg-l.ldr', -2], ['leg-r.ldr', 2]]) { main.push(at(nm, x, hip, 0)); subs.push(legText.replace('0 FILE leg.ldr', '0 FILE ' + nm)); }
+    w = 8; d = 10; hp = hip + 3 * BRICK + 1;
+  }
+  return { mpd: [main.join('\n'), ...subs].join('\n'), w, d, hp };
 }
 
 /* ───────────────────────── the tiler ───────────────────────── */
@@ -439,6 +493,7 @@ function caption(program) {
       case 'part': add(`a ${c} ${PART_NAMES[String(o.part)] || 'part ' + String(o.part)}`); break;
       case 'minifig': { const as = String(o.as || (o.look && o.look.as) || 'citizen'), L = o.look || {}; add(`a ${as}${L.tool ? ` with a ${L.tool}` : ''}${L.hat ? ` in a ${L.hat}` : ''} facing ${String(o.facing || 's')[0]}`); break; }
       case 'vehicle': add(`a ${c} ${String(o.kind || 'car')} ${I(o.len, 6)} studs long facing ${String(o.facing || 'e')[0]}`); break;
+      case 'walker': add(`an ${String(o.kind || 'atat').toUpperCase().replace('AT', 'AT-')} walker facing ${String(o.facing || 's')[0]}`); break;
       case 'mpd': add(`a model called ${String(o.name || 'model')}`); break;
       default: add(`something (${op || '?'})`);
     }
@@ -466,7 +521,8 @@ Ops (all coordinates are the min corner unless said otherwise):
 - {"op":"tree","x","z","h":3,"r":1,"col","trunk"} a tree: a round trunk h bricks tall and a stepped green crown of radius r with a cone on top.
 - {"op":"part","part":"3039","col","x","y","z","rot":0-3,"plate":0} one part from: 3001 2x4 brick, 3003 2x2, 3010 1x4, 3004 1x2, 3005 1x1, 3009 1x6, 3008 1x8, 3020 2x4 plate, 3032 4x6 plate, 3039 2x2 slope, 3040b 1x2 slope, 3068b 2x2 tile, 87079 2x4 tile, 3941 2x2 round, 3062b 1x1 round, 3455 1x6 arch, 3823 windscreen, 60592 window, 60623 door, 2453b 1x1x5 column, 3185 fence, 4589 cone.
 - {"op":"minifig","x","z","facing","as":"vader|stormtrooper|pilot|luke|citizen|knight|pirate|builder","look":{"hat":"hair|cap|helmet|cowboy|tophat|knight|space|trooper|pilot|vader|pirate|none","hatCol","torso":"plain|stripes|anchor|train|pirate|space|zipper","torsoCol","legs","head","tool":"saber|blaster|sword|shield|spear|axe|broom|cup|radio|none","toolCol"}} a standing figure (2×2 studs).
-- {"op":"vehicle","x","z","facing","kind":"car|truck|speeder|boat|plane","len":6,"col"} a vehicle the player can ride (use it whenever the brief asks for something to drive or fly and a kind fits; the player can also turn any build into a ride): cars, trucks and boats drive (4 studs wide, wheels, headlights, a windscreen); speeders (2 wide) and planes (2 wide with wings 10 across, a tail fin) fly. len ≥ 6, trucks 10, planes 8.
+- {"op":"vehicle","x","z","facing","kind":"car|truck|bus|speeder|boat|plane","len":6,"col"} a vehicle the player can ride (use it whenever the brief asks for something to drive or fly and a kind fits; the player can also turn any build into a ride): cars, trucks and buses drive (4 studs wide, real wheels under mudguards, headlights, a windscreen, a roof), boats float; speeders (2 wide) and planes (2 wide with wings 10 across, a tail fin) fly. len ≥ 6, trucks 10, buses 12, planes 8.
+- {"op":"walker","x","z","facing","kind":"atat|atst","col"} an Imperial walker the player can ride: the atat is 8 × 32 studs and 16 m tall on four legs, the atst 8 × 10 on two; legs swing, chin guns fire.
 Colours (LDraw codes or names): 0 black, 1 blue, 2 green, 4 red, 14 yellow, 15 white, 19 tan, 25 orange, 28 dark tan, 70 brown, 71 grey, 72 dark grey, 322 azure, 47 trans-clear, 46 trans-yellow, 36 trans-red.
 Design rules a LEGO designer follows:
 - Proportions: a door is 6 bricks tall, so walls with a door are at least 6 bricks; windows sit at y 1 or 2; a roof begins at the wall top (y = wall y + h); a tower stands about twice the wall height; a house is at least 8×6 studs; a floor between storeys is a slab.
@@ -485,5 +541,5 @@ const EXAMPLES = [
   { ask: 'a stone bridge over a stream', program: { name: 'bridge', ops: [{ op: 'box', x: 0, z: 0, w: 4, d: 6, y: 0, h: 3, col: 72 }, { op: 'box', x: 12, z: 0, w: 4, d: 6, y: 0, h: 3, col: 72 }, { op: 'arch', x: 4, z: 0, y: 0, facing: 's', h: 2, col: 72 }, { op: 'arch', x: 4, z: 5, y: 0, facing: 's', h: 2, col: 72 }, { op: 'slab', x: 0, z: 0, w: 16, d: 6, y: 3, plates: 3, col: 71 }, { op: 'fence', from: [0, 0], to: [16, 0], y: 4, col: 72 }, { op: 'fence', from: [0, 5], to: [16, 5], y: 4, col: 72 }, { op: 'tree', x: 18, z: 3, h: 4, r: 2 }, { op: 'minifig', x: 7, z: 2, facing: 'e', as: 'luke' }] } },
   { ask: 'a small yellow plane to fly', program: { name: 'plane', ops: [{ op: 'vehicle', x: 4, z: 0, facing: 's', kind: 'plane', len: 8, col: 14 }, { op: 'minifig', x: 0, z: 2, facing: 'e', as: 'pilot' }, { op: 'fence', from: [-2, 10], to: [14, 10], y: 0, col: 15 }] } },
 ];
-root.Dsl = { compile, decompile, caption, captionOp, partialProgram, tile, toRows, toMPD, withHeaders, propYaw, propPlace, box, foot, figureDef, figureMPD, vehicleMPD, DIMS, BRICKS, PLATES, COLOURS, HATS, TORSOS, TOOLS, FIGS, SPEC, EXAMPLES, STUD, PLATE, BRICK, colOf };
+root.Dsl = { compile, decompile, caption, captionOp, partialProgram, tile, toRows, toMPD, withHeaders, propYaw, propPlace, box, foot, figureDef, figureMPD, vehicleMPD, walkerMPD, DIMS, BRICKS, PLATES, COLOURS, HATS, TORSOS, TOOLS, FIGS, SPEC, EXAMPLES, STUD, PLATE, BRICK, colOf };
 })(typeof window !== 'undefined' ? window : globalThis);
