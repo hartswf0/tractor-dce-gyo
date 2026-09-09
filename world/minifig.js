@@ -94,7 +94,7 @@ function skeleton(M, def) {
 /** Hang parsed part groups (in partsOf order) on the skeleton's slots; the groups' own kit transforms are dropped. */
 function mount(rig, groups, def, scene) {
   rig.def = def; const parts = partsOf(def);
-  groups.forEach((g, i) => { const slot = parts[i][0]; g.position.set(0, slot === 'hat' && def.bare ? 24 : 0, 0); g.quaternion.identity(); g.scale.setScalar(1); g.name = slot; rig.slots[slot].add(g);   // a whole-head mask has its origin at the neck, a hat at the crown rig.mounted[slot] = { group: g, part: parts[i][1], col: parts[i][2] };
+  groups.forEach((g, i) => { const slot = parts[i][0]; g.position.set(0, slot === 'hat' && def.bare ? 24 : 0, 0); g.quaternion.identity(); g.scale.setScalar(1); g.name = slot; rig.slots[slot].add(g); /* a whole-head mask has its origin at the neck, a hat at the crown */ rig.mounted[slot] = { group: g, part: parts[i][1], col: parts[i][2] };
     g.traverse(o => { if (o.isMesh && o.material) for (const m of Array.isArray(o.material) ? o.material : [o.material]) m.fog = true; }); });
   if (scene) scene.add(rig.figure);
   return rig;
