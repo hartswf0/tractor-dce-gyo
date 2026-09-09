@@ -156,7 +156,7 @@ const Ai = {
     throw err;
   },
 
-  async request(text, { key, signal, stage = 'SOL REASONING', detail = 'designing', effort = EFFORT, onDelta } = {}) {
+  async request(text, { key, signal, stage = 'SOL REASONING', detail = 'designing', effort = EFFORT, onDelta, system, parse } = {}) {   // system: other instructions than the builder's (the film's shot list); parse: another reader of the answer than the build program's
     key = (key || this.key()).trim();
     if (!key) throw new Error('no key: enter an OpenAI API key');
     lsSet(MODEL_KEY, MODEL); lsSet(EFFORT_KEY, EFFORT);
@@ -172,7 +172,7 @@ const Ai = {
         headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: MODEL,
-          instructions: this.system(),
+          instructions: system || this.system(),
           input: [{ role: 'user', content: [{ type: 'input_text', text: String(text || '') }] }],
           reasoning: { effort },
           text: { format: { type: 'json_object' }, verbosity: 'low' },
@@ -207,9 +207,9 @@ const Ai = {
       this.lastError = why; this.emit('SOL FAILED', why, 'error'); throw new Error('OpenAI response failed: ' + why);
     }
     const raw = outputText(j);
-    const program = parseProgram(raw), u = j.usage || {}, reasoning = u.output_tokens_details && u.output_tokens_details.reasoning_tokens;
+    const program = parse ? parse(raw) : parseProgram(raw), u = j.usage || {}, reasoning = u.output_tokens_details && u.output_tokens_details.reasoning_tokens;
     this.lastEffort = effort;
-    this.emit('SOL ANSWERED', `at ${effort} · ${Math.round((Date.now() - started) / 1000)} s · ${u.total_tokens || 0} tokens${reasoning ? ` (${reasoning} reasoning)` : ''} · ${(program.ops || []).length} ops`, 'done', started, { usage: j.usage || null, calls: this.calls, ms: Date.now() - started, ops: (program.ops || []).length, effort });
+    this.emit('SOL ANSWERED', `at ${effort} · ${Math.round((Date.now() - started) / 1000)} s · ${u.total_tokens || 0} tokens${reasoning ? ` (${reasoning} reasoning)` : ''} · ${(program.ops || program.shots || []).length} ${program.shots ? 'shots' : 'ops'}`, 'done', started, { usage: j.usage || null, calls: this.calls, ms: Date.now() - started, ops: (program.ops || []).length, effort });
     return { j, raw, program, ms: Date.now() - started };
   },
 

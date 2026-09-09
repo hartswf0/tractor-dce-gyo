@@ -360,13 +360,15 @@ function bindInput() {
     if (PT.size >= 2) { for (const q of PT.values()) q.multi = true; W.multiAt = performance.now(); }
     if (W.mode === 'fly') { if (!primary && PT.size === 1) { primary = p; showStick(p.x, p.y, 0, 0); } }   // a second finger fires; it is never the stick
     else if (p.left && !primary) { primary = p; showStick(p.x, p.y, 0, 0); }
-    else if (!p.left && lookId == null) { lookId = p.id; p.holdTimer = setTimeout(() => { if (PT.has(p.id) && p.moved < 16) W.input.runTouch = true; }, 260); }
+    else if (!p.left && lookId == null) { lookId = p.id; p.holdTimer = setTimeout(() => { if (PT.has(p.id) && p.moved < 16 && !(W.film && W.film.holds())) W.input.runTouch = true; }, 260); }
   }, { passive: false });
   stage.addEventListener('pointermove', e => {
     const p = PT.get(e.pointerId); if (!p) return;
     const dx = e.clientX - p.x, dy = e.clientY - p.y; p.x = e.clientX; p.y = e.clientY; p.moved = Math.max(p.moved, Math.hypot(p.x - p.x0, p.y - p.y0));
     if (p === primary) { const s = stickFrom(p.x - p.x0, p.y - p.y0), tgt = W.mode === 'fly' ? W.input.fly : W.input.L; tgt.x = s.x; tgt.y = s.y; tgt.mag = s.mag; const L = Math.hypot(p.x - p.x0, p.y - p.y0), k = L > 58 ? 58 / L : 1; showStick(p.x0, p.y0, (p.x - p.x0) * k, (p.y - p.y0) * k); }
     else if (p.id === lookId && W.mode === 'walk') { W.input.look.dx += dx * 0.0045; W.input.look.dy += dy * 0.0035; }
+    else if (p.id === lookId && W.film && W.film.holds()) { W.input.look.dx += dx * 0.0045; W.input.look.dy += dy * 0.0035; }
+    if (W.film && W.film.holds() && PT.size === 2) { const [a, b] = [...PT.values()], dd = Math.hypot(a.x - b.x, a.y - b.y); if (W.pinch0) W.film.zoom(W.pinch0 / dd); W.pinch0 = dd; }   // two fingers apart change the lens
   });
   const end = e => {
     const p = PT.get(e.pointerId); if (!p) return; PT.delete(e.pointerId);
@@ -374,11 +376,12 @@ function bindInput() {
     W.lastTap = { tap, hold, age: Math.round(age), moved: Math.round(p.moved), multi: p.multi, left: p.left, mode: W.mode };
     if (p === primary) { primary = null; ind.classList.remove('on'); const tgt = W.mode === 'fly' ? W.input.fly : W.input.L; tgt.x = tgt.y = tgt.mag = 0; const next = W.mode === 'fly' ? null : [...PT.values()].find(q => q.left); if (next) { primary = next; next.x0 = next.x; next.y0 = next.y; showStick(next.x, next.y, 0, 0); } }
     if (p.id === lookId) lookId = null;
-    if (p.multi && PT.size === 0 && p.moved < 20 && performance.now() - W.multiAt < 450 && W.mode === 'walk') W.input.push = true;   // two-finger tap: the Force
+    if (PT.size < 2) W.pinch0 = 0;
+    if (p.multi && PT.size === 0 && p.moved < 20 && performance.now() - W.multiAt < 450 && W.mode === 'walk' && !(W.film && W.film.holds())) W.input.push = true;   // two-finger tap: the Force
     if (tap && W.map && !p.multi) { const r = $('#minimap').getBoundingClientRect(); if (r.width && Math.hypot(p.x - (r.left + r.width / 2), p.y - (r.top + r.height / 2)) < r.width / 2) W.map.setOpen(true); }   // a clean tap on the minimap opens the map; a drag there is still the stick
     if (W.mode === 'fly' || W.mode === 'ride') { if (!p.left && !p.multi && p.moved < 14) { if (hold) W.input.torpedo = true; else if (tap) W.input.fireOnce = true; } }
     else if (W.build && W.build.on) { if (tap) buildAct(); }
-    else if (tap && !p.left) W.input.saber = true;
+    else if (tap && !p.left && !(W.film && W.film.holds())) W.input.saber = true;
     if (W.mode === 'walk' && !p.left) W.input.runTouch = false;
   };
   stage.addEventListener('pointerup', end); stage.addEventListener('pointercancel', end); window.addEventListener('pointerup', end);
@@ -613,12 +616,14 @@ function tick() {
   W.stats.ms += (real * 1000 - W.stats.ms) * 0.1; W.stats.fps = 1000 / Math.max(1, W.stats.ms);
   const n = clamp(Math.ceil(real / STEP), 1, 4), dt = Math.min(real, 4 * STEP) / n; W.stats.steps = n; W.stats.stepDt = dt;
   for (let k = 0; k < n; k++) simulate(dt);
+  if (W.film && W.film.rec) W.film.steps += n;                                 // a take is a real-time recording of the reel: the world moves at its own pace, the frames come as fast as the phone draws them
   quality(real);
 }
 /* ───────────────────────── quality: the phone tells us how it is doing ───────────────────────── */
 const TIERS = { high: { pixel: 1.5, near: 230, out: 270, citizens: 12 }, low: { pixel: 1, near: 150, out: 190, citizens: 6 } };
 function quality(real) {
   const q = W.quality; if (q.pin !== 'auto') { if (q.tier !== q.pin) setTier(q.pin); return; }
+  if (W.film && (W.film.rec || W.film.play.on)) return;   // a take keeps its pixels
   q.low += W.stats.fps < 28 ? real : -q.low; q.high += W.stats.fps > 50 ? real : -q.high;
   if (q.tier === 'high' && q.low > 3) setTier('low'); else if (q.tier === 'low' && q.high > 10) setTier('high');
 }
@@ -632,14 +637,14 @@ function setTier(tier) {
 }
 const MOVE = { x: 0, z: 0, mag: 0 };
 function simulate(dt) {
-  W.t += dt; readKeys();
+  W.t += dt; readKeys(); if (W.film) W.film.step(dt);
   const portrait = innerHeight > innerWidth, I = W.input, d = Minifig.DEFS[W.character];
   if (W.mode === 'walk') {
     if (W.dead) { W.dead -= dt; if (W.dead <= 0) respawn(); I.saber = false; I.push = false; }
     else {
-      Minifig.moveFromStick(W.rig, I.L, MOVE);
+      if (W.film && W.film.holds()) { MOVE.x = MOVE.z = MOVE.mag = 0; I.saber = false; I.push = false; } else if (W.film && W.film.acting()) W.film.move(MOVE); else Minifig.moveFromStick(W.rig, I.L, MOVE);   // a free film camera takes the thumbs; a shot with an act walks the figure
       const building = !!(W.build && W.build.on), wantsShot = I.saber && !building && !d.saber && !!d.weapon, wantsShove = I.saber && !building && !d.saber && !d.weapon;
-      Minifig.step(W.rig, dt, { move: MOVE, run: I.run, saber: I.saber && !building, aim: wantsShot }, WALK);
+      Minifig.step(W.rig, dt, { move: MOVE, run: I.run || !!(W.film && W.film.running), saber: I.saber && !building, aim: wantsShot }, WALK);
       if (wantsShot) { const p = new THREE.Vector3(), dir = new THREE.Vector3(); Minifig.muzzle(W.rig, p); Minifig.facing(W.rig, dir); dir.y = -0.02; W.bolts.fire(p, dir, 'player'); }   // the bolt leaves the barrel, level with the ground
       if (wantsShove) forcePush();
       I.saber = false;
@@ -650,7 +655,7 @@ function simulate(dt) {
     if (W.build) W.build.aim(W.camera, portrait);
     const v = !W.dead && nearVehicle(), nearT = nearShip() < 6 && !W.dead, car = !v && !nearT && !W.dead && nearCar(); $('#prompt').classList.toggle('on', !!(nearT || v || car)); $('#prompt').textContent = nearT && (!v || nearShip() * M < v.box.distanceToPoint(W.rig.pos)) ? 'Board the TIE' : v ? `${vehicleVerb(v)} the ${Drive.kindOf(v)}` : car ? 'Get in' : 'Board the TIE';
   } else if (W.mode === 'ride') {
-    const V = W.veh; V.input.x = I.L.x; V.input.y = I.L.y; V.input.mag = I.L.mag; V.input.boost = I.boost;
+    const V = W.veh; V.input.x = I.L.x; V.input.y = I.L.y; V.input.mag = I.L.mag; V.input.boost = I.boost; if (W.film && W.film.holds()) { V.input.x = V.input.y = V.input.mag = 0; } else if (W.film && W.film.acting()) W.film.steer(V);
     const alive = Drive.step(V, dt, { roofAt: (x, z, y) => { let top = -Infinity; for (const b of W.city.aabbs(x, z, 10)) if (x > b.min.x && x < b.max.x && z > b.min.z && z < b.max.z && b.max.y <= y + 0.5 * M && b.max.y > top) top = b.max.y; return top; }, pushOut: (pos, r) => vehPushOut(pos, r, V.prop.id), blast: (p, r, vel, kind) => { blast(p, r, vel, true, false, kind); W.shake = Math.max(W.shake, 0.3); flash(); Fx.Sfx.crunch(); Fx.haptic([30, 20, 40]); }, knock: (c, r, vel) => { const n = W.crowd.hitWithin(c, r, vel, W.debris); if (n) { Fx.Sfx.clatter(1); Fx.haptic(15); } }, sfx: { crunch: () => { Fx.Sfx.crunch(); Fx.haptic(20); }, thud: k => Fx.Sfx.thud(k) }, skid: V => { Fx.Sfx.skid(); Fx.haptic(8); if (W.smoke) { const b = Drive.forward(V, V1.clone()); W.smoke.puff(V2.copy(V.pos).addScaledVector(b, -V.hz * 0.8), 3, 0.6 * M); } }, stomp: V => { Fx.Sfx.thud(V.K.legs === 4 ? 0.7 : 0.45); Fx.haptic(V.K.legs === 4 ? 30 : 15); W.shake = Math.max(W.shake, V.K.legs === 4 ? 0.22 : 0.12); } });
     W.rig.heading = V.heading;                                                  // rig.pos is the figure's own position: seated, it stays local to the vehicle
     W.fireAcc = (W.fireAcc || 0) + dt; if (I.torpedo) { I.torpedo = false; rideFire(true); } else if (I.fireOnce || I.fire) { I.fireOnce = false; rideFire(false); }
@@ -671,6 +676,7 @@ function simulate(dt) {
   }
   if (W.mode !== 'fly' && W.mode !== 'ride') Fx.Sfx.engine(false);
   { const wantHum = W.mode === 'walk' && !W.dead && d.saber && !(W.build && W.build.on); Fx.Sfx.saber(wantHum); if (W.mode === 'walk' && W.rig.swing && !W.swingWas) Fx.Sfx.swing(); W.swingWas = W.mode === 'walk' && !!W.rig.swing; if (W.rig.landed) { const v = W.rig.landed; W.rig.landed = 0; Fx.Sfx.thud(clamp(v / (10 * M), 0.2, 1)); Fx.haptic(15); if (v > 9 * M) hurt(Math.round((v / M - 9) * 3)); } }
+  if (W.film && W.film.owns()) W.film.camera(W.camera, dt);                   // the film's camera stands where the shot says, whatever the player does
   if (W.shake > 0) { W.shake -= dt; W.camera.position.x += (Math.random() - .5) * W.shake * 12; W.camera.position.y += (Math.random() - .5) * W.shake * 12; }
   W.bolts.step(dt, {
     hitPlayer: b => { if (W.mode === 'ride') { if (Characters.segHitsSphere(b.prev, b.mesh.position, W.veh.pos, W.veh.r)) { hurt(10); flash(); return true; } return false; } if (W.mode === 'walk') { if (W.dead) return false; V1.copy(W.rig.pos); V1.y += 1.3 * M; if (Characters.segHitsSphere(b.prev, b.mesh.position, V1, 0.8 * M)) { hurt(20); return true; } return false; } if (Characters.segHitsSphere(b.prev, b.mesh.position, W.tie.pos, Tie.PLAYER_R * 0.8)) { W.tie.shields = Math.max(0, W.tie.shields - 5); flash(); return true; } return false; },
@@ -695,6 +701,7 @@ function paint() {
   const st = W.city.stats(), cs = W.crowd.stats();
   { const t = $('#tally'), txt = W.tally.bricks ? `${W.tally.bricks.toLocaleString()} bricks · ${st.levelled} levelled` : ''; if (t.textContent !== txt) { t.textContent = txt; t.classList.remove('pulse'); void t.offsetWidth; t.classList.add('pulse'); } }
   const road = W.map ? W.map.nearestRoad(playerPos().x / M, playerPos().z / M) : null, on = road && road.name ? `on ${road.name} · ` : '';
+  if (W.film) { const fl = W.film.line(); if (fl) { $('#stat').textContent = fl; if (W.film.paint) W.film.paint(); return; } }
   if (W.mode === 'walk') { $('#stat').textContent = `${st.buildings} buildings · ${W.win ? W.win.roads.length : 0} roads · ${cs.alive} people${W.build.pieces.size ? ' · ' + W.build.pieces.size + ' built' : ''}\n${on}${Math.round(W.rig.speed / M * 3.6)} km/h · ${W.dets} detonators`; $('#shieldFill').style.width = W.health + '%'; $('#shield').classList.toggle('low', W.health < 40); $('#det').classList.toggle('on', W.dets > 0 && !W.dead); }
   else if (W.mode === 'ride') { const V = W.veh, alt = Math.round((V.pos.y - W.G.h(V.pos.x, V.pos.z)) / M); $('#stat').textContent = `${V.kind} · ${Math.round(Math.abs(V.speed) / M * 3.6)} km/h${V.input.boost ? ' · boost' : ''}${V.fly ? ` · ${alt} m up` : ''}\n${V.fly && !V.airborne ? 'push up to take off' : ''}`; $('#shieldFill').style.width = W.health + '%'; }
   else { const F = W.tie, alt = Math.round((F.pos.y - W.G.h(F.pos.x, F.pos.z)) / M); $('#stat').textContent = `${alt} m up · ${Math.round(F.speed / M * 3.6)} km/h${F.input.boost ? ' · boost' : ''}\n${F.t < F.impact.until ? F.impact.text : F.slide > .35 ? 'VADER SLIDE' : ''}`; $('#shieldFill').style.width = F.shields + '%'; $('#shield').classList.toggle('low', F.shields < 40); $('#det').classList.remove('on'); if (F.t < F.impact.until && F.impact.text !== W.lastImpact) { W.lastImpact = F.impact.text; toast(F.impact.text.split(' · ')[0], 700); } }
@@ -802,7 +809,7 @@ async function boot() {
     W.crowd.populate(W.rig.pos);
     for (let k = 0; k < 20; k++) W.city.update(W.camera, W.rig.pos);
     const r = engine.renderer, real = r.render.bind(r);
-    r.render = (sc, c) => { tick(); real(sc, c); W.stats.calls = r.info.render.calls; };
+    W.renderReal = real; r.render = (sc, c) => { tick(); real(sc, c); W.stats.calls = r.info.render.calls; if (W.film) W.film.afterRender(); };
     W.tie.onFire = (o, d, v) => { Fx.Sfx.laser(); if (W.room && W.room.role) W.room.send({ t: 'bolt', o: o.toArray().map(Math.round), d: d.toArray().map(x => +x.toFixed(3)), s: Math.round(v.length()) }, { fast: true }); };
     W.bolts.onFire = (o, d, owner, speed) => { if (owner === 'player') Fx.Sfx.blaster(); if (W.room && W.room.role && (owner === 'player' || (owner === 'npc' && W.room.role === 'host'))) W.room.send({ t: 'bolt', o: o.toArray().map(Math.round), d: d.toArray().map(x => +x.toFixed(3)), s: speed, npc: owner === 'npc' }, { fast: true }); };
     { const orig = W.crowd.burst.bind(W.crowd); W.crowd.burst = (n, vel, debris) => { const was = n.alive; orig(n, vel, debris); if (was && W.room && W.room.role === 'guest' && n.ri != null) W.room.send({ t: 'npcHit', i: n.ri }); }; }
@@ -811,7 +818,7 @@ async function boot() {
     stage('bricks', 'done', ''); W.last = performance.now(); W.ready = true; VEIL.readyAt = performance.now() / 1000; veilTick(false); if (W.vehicles) W.vehicles.lay(); $('#veil').classList.add('gone'); $('#menu').classList.remove('open'); paint(); hintFor();
     W.traffic.prepare().then(() => { if (W.win && W.G) { W.traffic.setRoads(W.win.roads || []); W.traffic.lay(W.G, W.win); } }).catch(e => console.warn('traffic', e));   // the cars come once the world is up
     if (Q.get('room')) joinRoom(Q.get('room'), true);
-    bindMaster(); checkInbox();
+    bindMaster(); checkInbox(); if (window.__momento && window.Film) bindFilm();
   } catch (e) { console.error(e); stall('Could not build the world: ' + (e.message || e)); }
 }
 
@@ -896,6 +903,49 @@ function bindMaster() {
   let wanted = false; try { wanted = localStorage.getItem('world.wb') === '1'; } catch (e) { } W.wbWanted = wanted;
   wbOpen(wanted, true); mbStatus(''); wbHint();
 }
+/* ───────────────────────── the film page: shots, the reel, the take ───────────────────────── */
+/** word-to-momento.html: the same world with a film camera. Words are shots (the switch in the bar can make them builds), the reel is the strip above the bar, Rec takes it. */
+function bindFilm() {
+  const F = W.film = Film.create({ W, M }); W.wordsFilm = true; W.setSky = setSky; W.setWeather = setWeather; W.placeKey = () => placeKey(W.place);
+  W.filmGround = () => { if (W.mode === 'ride') leaveVehicle(); else if (W.mode === 'fly') { const T = W.tie; T.flying = false; T.landing = 0; W.ship.position.set(T.pos.x, W.G.h(T.pos.x, T.pos.z) + 122, T.pos.z); landed(); } };   // an act that needs the ground: out of the ride, or the TIE set down where it is
+  const reel = $('#reel'), bar = $('#fb'); if (!reel || !bar) return;
+  F.onStatus = (text, cls) => { mbStatus(text, cls === 'busy' ? 'busy' : cls === 'warn' ? 'warn' : 'ok'); if (text) mbLog('info', text); };
+  const cards = new Map();
+  const card = i => {
+    const s = F.shots[i]; let c = cards.get(s); if (!c) { c = document.createElement('button'); c.className = 'card'; c.innerHTML = '<canvas width="128" height="72"></canvas><b></b><span></span><em></em>'; c.onclick = () => { if (F.sel === F.shots.indexOf(s) && F.mode === 'shot' && !F.play.on) F.playShot(F.sel); else F.view(F.shots.indexOf(s)); }; cards.set(s, c); c.dataset.thumb = ''; }
+    c.querySelector('b').textContent = i + 1; c.querySelector('span').textContent = s.name; c.querySelector('em').textContent = `${s.sec} s${s.keys.length > 1 ? ' · move' : ''}${s.act ? ' · act' : ''}`; c.classList.toggle('on', i === F.sel);
+    const sig = s.title != null ? 'title:' + s.title + s.style : s.keys.map(k => k.pos.x | 0).join(',') + '/' + (s.keys[0] ? s.keys[0].fov : 0); if (c.dataset.thumb !== sig) { c.dataset.thumb = sig; F.thumb(i, c.querySelector('canvas')); }
+    return c;
+  };
+  const paintReel = () => {
+    for (const s of [...cards.keys()]) if (!F.shots.includes(s)) { cards.get(s).remove(); cards.delete(s); }
+    F.shots.forEach((s, i) => { const c = card(i); if (reel.children[i] !== c) reel.insertBefore(c, reel.children[i] || null); });
+    reel.classList.toggle('empty', !F.shots.length); $('#fbPlay').textContent = F.play.on ? 'Stop' : 'Play'; $('#fbRec').textContent = F.rec ? 'Stop' : 'Rec'; $('#fbRec').classList.toggle('on', !!F.rec); $('#fbSave').disabled = !F.url;
+    bar.querySelectorAll('[data-fmode]').forEach(b => b.classList.toggle('on', b.dataset.fmode === F.mode)); document.body.classList.toggle('framed', F.mode !== 'view' || F.play.on || !!F.rec);
+    const s = F.shots[F.sel]; $('#fbSec').value = s ? s.sec : F.sec; $('#fbLens').value = Math.round(F.mode === 'free' || !s || !s.keys[0] ? F.free.fov : s.keys[0].fov); $('#fbAspect').value = F.aspect; $('#fbFps').value = String(F.fps); $('#fbSize').value = F.size; $('#fbDel').disabled = !s; $('#fbKey').disabled = !s;
+    if (!$('#fbText').hidden) $('#fbTextIn').value = F.text(); fitFrame();
+  };
+  F.paint = paintReel; F.onChange = what => { if (what === 'take') mbLog('info', `take: ${F.take.frames} frames · ${F.take.sec} s · ${(F.take.size / 1024).toFixed(0)} KB`); paintReel(); if (W.wbFit) W.wbFit(); };
+  const fitFrame = () => { const f = $('#frame'); if (!f) return; const A = Film.ASPECTS[F.aspect], vw = innerWidth, vh = innerHeight; let w = vw, h = vw / A; if (h > vh) { h = vh; w = vh * A; } f.style.width = w + 'px'; f.style.height = h + 'px'; f.style.left = (vw - w) / 2 + 'px'; f.style.top = (vh - h) / 2 + 'px'; };
+  window.addEventListener('resize', fitFrame);
+  bar.querySelectorAll('[data-fmode]').forEach(b => b.onclick = () => { F.stop(); F.setMode(b.dataset.fmode); toast(F.mode === 'free' ? 'free camera: left thumb dollies, right looks, pinch zooms' : F.mode === 'shot' ? 'through the shot' : 'the game camera', 1100); });
+  $('#fbHere').onclick = () => { const r = F.here(false); toast(`shot ${r.shot + 1} from here`, 900); F.setMode('shot'); };
+  $('#fbKey').onclick = () => { const r = F.here(true); if (r) toast(`key ${r.keys} of shot ${r.shot + 1}: a move`, 900); };
+  $('#fbPlay').onclick = () => { if (F.play.on) F.stop(); else F.playAll(); paintReel(); };
+  $('#fbRec').onclick = () => { F.record(); paintReel(); };
+  $('#fbSave').onclick = () => { if (!F.download()) toast('no take yet: Rec first', 900); };
+  $('#fbDel').onclick = () => { F.remove(); };
+  $('#fbSec').onchange = () => F.setSec($('#fbSec').value); $('#fbLens').onchange = () => F.setLens($('#fbLens').value); $('#fbAspect').onchange = () => F.setAspect($('#fbAspect').value); $('#fbFps').onchange = () => F.setFps($('#fbFps').value); $('#fbSize').onchange = () => F.setSize($('#fbSize').value);
+  $('#fbMento').onclick = () => { const t = $('#fbText'); t.hidden = !t.hidden; $('#fbMento').classList.toggle('on', !t.hidden); if (!t.hidden) $('#fbTextIn').value = F.text(); if (W.wbFit) W.wbFit(); };
+  $('#fbImport').onclick = () => { const r = F.parse($('#fbTextIn').value); toast(`${r.shots} shots · ${r.lights} lights`, 1000); F.setMode(r.shots ? 'shot' : F.mode); };
+  $('#fbCopy').onclick = () => { (navigator.clipboard ? navigator.clipboard.writeText(F.text()) : Promise.reject()).then(() => toast('film copied', 800), () => toast('could not copy', 800)); };
+  $('#fbClear').onclick = () => { F.parse(''); toast('the reel is empty', 800); };
+  document.querySelectorAll('#wbFilm button').forEach(b => b.onclick = () => { W.wordsFilm = b.dataset.w === 'film'; document.querySelectorAll('#wbFilm button').forEach(x => x.classList.toggle('on', x === b)); wbHint(); });
+  $('#fbTrailer').onclick = () => { if (F.shots.length && !confirm('replace the reel with the trailer of A New Hope?')) return; F.trailer('a-new-hope'); F.setMode('shot'); };
+  const n = F.load(); if (n) mbLog('info', `the film of this place: ${n} shots`);
+  if (Q.get('film') && Film.TRAILERS[Q.get('film')]) { F.trailer(Q.get('film')); if (Q.get('play') != null) setTimeout(() => F.playAll(), 1500); }
+  paintReel(); wbHint();
+}
 /** Open or tuck away the word bar. quiet: a mode change, not the player's choice (which is remembered). */
 function wbOpen(on, quiet) {
   on = !!on; document.body.classList.toggle('wb-off', !on);
@@ -915,6 +965,7 @@ function saveKey(v) { Ai.setKey(v); const k = $('#aiKey'); if (k) k.value = Ai.k
 /** The word bar's placeholder says what words do right now. */
 function wbHint() {
   const T = $('#words'); if (!T) return;
+  if (W.film && W.wordsFilm) { T.placeholder = 'say what to shoot: a wide shot of the AT-AT from the north, then push in, 5 seconds'; $('#wbBuild').textContent = 'Shoot'; return; }
   T.placeholder = !Ai.key() ? 'paste an OpenAI key above (key), then say what to build' : W.master.result ? 'change it: taller, a red roof, add a knight at the door…' : 'say what to build here: a lighthouse with red bands and a keeper at the door';
   $('#wbBuild').textContent = W.master.result ? 'Change' : 'Build';
 }
@@ -924,6 +975,7 @@ async function say(words) {
   if (W.room.role && /^(["\u201c]|say\s)/i.test(words)) { sayToRoom(words.replace(/^(["\u201c]|say\s+)/i, '').replace(/["\u201d]$/, '')); $('#words').value = ''; return; }
   if (/^\s*\{[\s\S]*\}\s*$/.test(words)) { let prog = null; try { prog = JSON.parse(words); } catch (e) { mbStatus('that JSON does not parse: ' + e.message, 'warn'); return; } if (!prog || !Array.isArray(prog.ops)) { mbStatus('a program is {"name", "ops": [...]}', 'warn'); return; }
     const keep = W.master.result && W.master.anchor ? { anchor: { ...W.master.anchor }, rot: W.master.rot, ids: W.master.replace } : null; const res = Dsl.compile(prog); W.master.conv = { program: prog, messages: [] }; W.master.words = W.master.words || prog.name || 'program'; mbLog('compile', compileLine('your program', res)); mbShow(res, null, keep); $('#words').value = ''; $('#words').style.height = ''; return res.report; }
+  if (W.film && W.wordsFilm) { $('#words').value = ''; $('#words').style.height = ''; return W.film.words(words); }   // the film page: words are shots unless the switch says build
   if (W.master.result && W.master.conv) return mbEdit(words);
   return mbDraft(words);
 }
@@ -1324,6 +1376,8 @@ Object.assign(W, {
   pieces: () => W.build.rows(), pieceAt: id => { const p = W.build.pieces.get(id); return p ? { id, part: p.part, col: p.col, x: p.x, y: p.y, z: p.z, rot: p.rot } : null; }, saveNow: () => { W.build.save(); saveDamage(); }, resetPlace, damage: () => W.city.removedSets(), placeKey: () => placeKey(W.place),
   fx: () => ({ sfx: Fx.Sfx.stats(), haptics: Fx.haptic.count(), smoke: W.smoke.stats(), hits: Fx.Hits.n, tally: { ...W.tally }, craters: W.G.craters || 0, lastCrater: W.lastCrater || null, air: !!W.rig.air, vy: W.rig.vy || 0, assisted: W.tie.assisted, groundHits: W.tie.groundHits }), crater: (x, z, r, d) => crater(new THREE.Vector3(x, 0, z), r, d), groundAt: (x, z) => W.G.h(x, z), groundColour: (x, z) => { const G = W.G, f = G.field, i = Math.round(f.cx + x / M / G.res), j = Math.round(f.cy + z / M / G.res), c = G.mesh.geometry.attributes.color, k = j * G.n + i; return [c.getX(k), c.getY(k), c.getZ(k)]; },
   mb: () => ({ busy: W.master.busy, streaming: !!W.master.streaming, status: W.master.status, rot: W.master.rot, anchor: W.master.anchor, draft: W.draft.pieces.size, ghosts: W.master.ghosts.length, report: W.master.result && W.master.result.report, usage: W.master.usage || null }), mbAsk: mbDraft, say, readBuild, mbEdit, startNow, wbOpen, stopBuild, nextCharacter, roadsMesh: () => { const r = W.scene.getObjectByName('roads'), s = W.scene.getObjectByName('streets'); return r ? { tris: r.geometry.attributes.position.count / 3, visible: r.visible, streets: s ? s.geometry.attributes.position.count / 3 : 0, near: W.camera.near, side: r.material.side } : null; }, saves: loadSaves, saveBuild, placeSave, deleteSave, wordsSave, setTruce, peace: peaceNow, wbCode, codeView, litOp, ops: () => [...document.querySelectorAll('#wbOps li')].map(li => ({ text: li.querySelector('span').textContent, n: li.querySelector('em').textContent, lit: li.classList.contains('lit') })), highlighted: () => (W.draft.pieces.size ? W.draft : W.build).highlighted(), laying: () => W.build.laying(), seated: () => ({ seated: !!W.rig.seated, parent: W.rig.figure.parent && W.rig.figure.parent.name, visible: W.rig.figure.visible, legs: W.rig.legRP.rotation.x, pos: W.rig.figure.getWorldPosition(new THREE.Vector3()).toArray() }), rideFire, liveBolts: () => W.bolts.live().map(b => ({ owner: b.owner, heavy: !!b.heavy })), setRide: r => { W.master.ride = r || ''; paintRide(); return W.master.ride; }, rideChoice: () => W.master.ride || '', chip: () => { const c = $('#bchip'); return { on: c.classList.contains('on'), text: c.textContent, cls: c.className }; }, boardVehicle: id => { const it = id ? W.props.items.get(id) : nearVehicle(); if (it) boardVehicle(it); return W.mode; }, leaveVehicle, ride: () => W.veh ? { mode: W.mode, kind: W.veh.kind, fly: W.veh.fly, pos: W.veh.pos.toArray(), heading: W.veh.heading, speed: W.veh.speed, airborne: W.veh.airborne, landing: W.veh.landing, id: W.veh.prop.id } : { mode: W.mode }, prompt: () => ({ on: $('#prompt').classList.contains('on'), text: $('#prompt').textContent }), promptAction, buildLog: () => (W.master.log || []).slice(), wbLog, wbState: () => ({ open: !document.body.classList.contains('wb-off'), key: !!Ai.key(), keyRow: $('#wbKeyRow').classList.contains('on'), wb: getComputedStyle(document.body).getPropertyValue('--wb').trim() }), veil: () => ({ stages: Object.fromEntries(Object.entries(VEIL.stages).map(([k, v]) => [k, v.state])), start: !!VEIL.startShown || !!($('#vStart') && !$('#vStart').hidden), since: (performance.now() - VEIL.t0) / 1000, readyAt: VEIL.readyAt || 0, buildingsAt: VEIL.buildingsAt || 0 }), pending: () => !!(W.win && W.win.pending), mbLoad: program => { const res = Dsl.compile(program); mbShow(res, null); return res.report; }, mbCommit, mbDiscard, mbNudge, propStat: () => W.props.stats(), propRows: () => W.props.rows(), propBoxes: () => [...W.props.items.values()].filter(it => !(it.src && it.src.landmark)).map(it => ({ id: it.id, ready: it.ready, parts: it.meshes.length, box: it.box ? [it.box.min.toArray(), it.box.max.toArray()] : null })), aiStat: () => Ai.stats(),
+  filmState: () => W.film ? W.film.state() : null, filmText: () => W.film && W.film.text(), filmParse: (t, keep) => W.film && W.film.parse(t, keep), filmWords: (t, o) => W.film && W.film.words(t, o), filmStage: sh => { if (!W.film) return null; const s = W.film.stage(sh); return { ...s, keys: s.keys.map(k => ({ pos: k.pos.toArray(), tgt: k.tgt.toArray(), fov: k.fov })) }; }, filmParseWords: t => W.film && W.film.parseWords(t),
+  filmView: i => W.film && W.film.view(i), filmPlay: i => W.film && (i === 'all' || i == null ? W.film.playAll() : W.film.playShot(i)), filmStop: () => W.film && W.film.stop(), filmHere: k => W.film && W.film.here(!!k), filmMode: m => W.film && W.film.setMode(m), filmRec: sec => W.film && W.film.record(sec), filmBlob: () => W.film && W.film.take, filmSetAspect: a => W.film && W.film.setAspect(a), filmSetFps: f => W.film && W.film.setFps(f), filmSubject: on => { if (!W.film) return null; const s = W.film.subject(on); return { ...s }; }, filmSet: (i, o) => { const s = W.film && W.film.shots[i]; if (!s) return null; Object.assign(s, o); s.curve = null; W.film.save(); if (W.film.paint) W.film.paint(); return true; },
   setGround, groundStat: () => { const G = W.G; if (!G) return null; let lo = Infinity, hi = -Infinity; for (let i = 0; i < G.H.length; i += 7) { lo = Math.min(lo, G.H[i]); hi = Math.max(hi, G.H[i]); } return { mode: G.mode, relief: +(hi - lo).toFixed(1) }; },
   kitStat: () => Kits.stats(), takeCar, nearCar: () => { const c = nearCar(); return c ? { x: c.x, z: c.z, yaw: c.yaw, kind: c.model.kind, parked: !!c.parked } : null; }, landmarks: () => W.vehicles ? W.vehicles.list() : [], layVehicles: () => W.vehicles.lay(),
   walker: () => { const V = W.veh; if (!V || !V.K.walker) return null; return { kind: V.kind, legs: (V.legs || []).map(g => ({ name: g.name, rx: +g.rotation.x.toFixed(3), y: +g.position.y.toFixed(1) })), phase: +V.phase.toFixed(2), stomps: V.stomps, bob: +V.bob.toFixed(1), pitch: +V.pitch.toFixed(3), roll: +V.roll.toFixed(3), speed: +(V.speed / M).toFixed(2) }; },
