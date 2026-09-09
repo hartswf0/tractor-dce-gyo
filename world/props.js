@@ -32,12 +32,12 @@ class Props {
   async add(p, quiet) {
     if (this.items.has(p.id)) return this.items.get(p.id);
     if (this.items.size >= CAP || !p.mpd || p.mpd.length > 60000) return null;
-    const it = { ...p, group: null, box: null, meshes: [], total: 0, ready: false }; this.items.set(p.id, it);
-    let g; try { g = await this.parse(p.mpd, p.id + '.mpd'); } catch (e) { this.items.delete(p.id); console.warn('prop parse', e); return null; }
+    const kit = /^0 KIT (\w+)/.exec(p.mpd), it = { ...p, group: null, box: null, meshes: [], total: 0, ready: false, kit: kit ? kit[1] : null }; this.items.set(p.id, it);
+    let g; try { g = kit ? await Kits.build(kit[1]) : await this.parse(p.mpd, p.id + '.mpd'); } catch (e) { this.items.delete(p.id); console.warn('prop parse', e); return null; }
     if (!this.items.has(p.id)) return null;                                             // removed while parsing
-    const wrap = new THREE.Group(); wrap.name = 'propwrap:' + p.id; wrap.rotation.x = Math.PI; const yawG = new THREE.Group(); yawG.name = 'prop:' + p.id; yawG.add(wrap); yawG.rotation.y = p.yaw * Math.PI / 2; yawG.position.set(p.x, p.y, p.z);
+    const wrap = new THREE.Group(); wrap.name = 'propwrap:' + p.id; if (!kit) wrap.rotation.x = Math.PI; const yawG = new THREE.Group(); yawG.name = 'prop:' + p.id; yawG.add(wrap); yawG.rotation.y = p.yaw * Math.PI / 2; yawG.position.set(p.x, p.y, p.z);
     g.traverse(o => { if (o.isMesh) { it.meshes.push(o); for (const m of Array.isArray(o.material) ? o.material : [o.material]) if (m) { m.fog = true; m.side = THREE.DoubleSide; } } });
-    while (g.children.length) wrap.add(g.children[0]);
+    if (kit) wrap.add(g); else while (g.children.length) wrap.add(g.children[0]);   // a kit comes already turned to the world
     this.scene.add(yawG); yawG.updateMatrixWorld(true); it.group = yawG; it.total = it.meshes.length; it.ready = true;
     it.box = new THREE.Box3().setFromObject(yawG); if (it.box.isEmpty()) it.box = new THREE.Box3(new THREE.Vector3(p.x - 20, p.y, p.z - 20), new THREE.Vector3(p.x + 20, p.y + 40, p.z + 20));
     if (!quiet) { this.dirty = true; if (this.onEdit) this.onEdit({ up: [this.toRow(it)] }); }
@@ -61,10 +61,10 @@ class Props {
   }
   floorAt(x, z, yMax) { let f = -Infinity; for (const it of this.near(x, z, 0)) { const b = it.box; if (x > b.min.x && x < b.max.x && z > b.min.z && z < b.max.z && b.max.y <= yMax && b.max.y > f) f = b.max.y; } return f; }
   /** A blast: every part of a prop within r becomes debris; a prop that lost most of itself lets the rest go. Returns how many parts flew. */
-  blast(pt, r, vel) {
+  blast(pt, r, vel) {   // a kit (a real set) stays whole
     let n = 0; const M = this.M;
     for (const it of this.near(pt.x, pt.z, r)) {
-      if (!it.ready || it.box.distanceToPoint(pt) > r) continue;
+      if (!it.ready || it.kit || it.box.distanceToPoint(pt) > r) continue;
       const gone = [];
       for (const m of it.meshes) { m.getWorldPosition(V1); if (V1.distanceTo(pt) < r) gone.push(m); }
       if (!gone.length) continue;
@@ -94,13 +94,13 @@ class Props {
   moveTo(it, x, y, z, yaw, quiet) { it.x = x; it.y = y; it.z = z; it.yaw = yawOf(yaw); if (it.group) { it.group.position.set(x, y, z); it.group.rotation.set(0, it.yaw * Math.PI / 2, 0, 'YXZ'); it.group.updateMatrixWorld(true); it.box = new THREE.Box3().setFromObject(it.group); } if (!quiet) { this.dirty = true; if (this.onEdit) this.onEdit({ up: [this.toRow(it)] }); } }
   /** Our prop moved on its own (it was driven): save and tell the room. */
   moved(it) { this.dirty = true; if (this.onEdit) this.onEdit({ up: [this.toRow(it)] }); }
-  rows() { return [...this.items.values()].map(it => this.toRow(it)); }
+  rows() { return [...this.items.values()].filter(it => !(it.src && it.src.landmark)).map(it => this.toRow(it)); }   // a world's own vehicles are laid, not saved
   storageKey() { return this.key ? 'world.props.' + this.key : null; }
   load(key) { this.key = key; this.clear(); this.dirty = false; let n = 0; try { const s = localStorage.getItem(this.storageKey()); if (s) { const d = JSON.parse(s); if (d && d.props) for (const r of d.props) { this.add(this.fromRow(r), true); n++; } } } catch (e) { console.warn('props load', e); } return n; }
   save() { const k = this.storageKey(); if (!k) return false; this.dirty = false; try { const s = JSON.stringify({ v: 1, t: Date.now(), props: this.rows() }); if (s.length > MAX_TEXT) return false; localStorage.setItem(k, s); return true; } catch (e) { return false; } }
   forget() { const k = this.storageKey(); this.clear(); this.dirty = false; try { if (k) localStorage.removeItem(k); } catch (e) { } }
   tick(dt) { if (this.dirty) { this.saveT += dt; if (this.saveT > 0.5) { this.saveT = 0; this.save(); } } else this.saveT = 0; }
-  stats() { let parts = 0; for (const it of this.items.values()) parts += it.meshes.length; return { props: this.items.size, parts, parsed: this.parsed, kinds: this.kinds }; }
+  stats() { let parts = 0, props = 0, landmarks = 0; for (const it of this.items.values()) { parts += it.meshes.length; if (it.src && it.src.landmark) landmarks++; else props++; } return { props, landmarks, parts, parsed: this.parsed, kinds: this.kinds }; }   // a world's own vehicles are counted apart
 }
 window.Props = { Props };
 })();

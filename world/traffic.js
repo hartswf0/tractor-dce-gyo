@@ -11,7 +11,7 @@
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v)), lerp = (a, b, t) => a + (b - a) * t;
 const hash = s => { let h = 2166136261; for (const ch of String(s)) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; };
 const SCHEMES = [4, 1, 14, 2, 15, 0, 25, 72];                                   // red, blue, yellow, green, white, black, orange, grey
-const MODELS = { car: { kind: 'car', len: 6, cap: 36 }, van: { kind: 'truck', len: 8, cap: 12 }, bus: { kind: 'truck', len: 12, cap: 8 } };
+const MODELS = { car: { kind: 'car', len: 6, cap: 36 }, van: { kind: 'truck', len: 8, cap: 12 }, bus: { kind: 'bus', len: 12, cap: 8 } };
 const SPEED = { motorway: 22, trunk: 20, primary: 14, secondary: 13, tertiary: 11, residential: 8, unclassified: 8, living_street: 4, service: 5 };
 const CAP_PARKED = 160, N_MOVING = 30, FLIP = new THREE.Matrix4().makeRotationX(Math.PI);
 /** One geometry with vertex colours from a parsed LDraw group (its own frame, y down → y up). */
@@ -39,24 +39,29 @@ function create({ scene, M, props, G, debris, roads: roadsOf }) {
         const g = await props.parse(prop.mpd, 'traffic-' + key + '.mpd'), geom = merge(g); if (!geom) continue;
         const im = new THREE.InstancedMesh(geom, mat, mdl.cap); im.count = 0; im.frustumCulled = false; im.name = 'traffic:' + key; group.add(im);
         const half = new THREE.Vector3(); geom.boundingBox.getSize(half).multiplyScalar(0.5);
-        T.models.set(key, { key, name, col, im, geom, half, n: 0, free: [] }); if (debris) debris.register('traffic:' + key, geom, 6);
+        T.models.set(key, { key, name, col, im, geom, half, n: 0, free: [], mpd: prop.mpd, kind: mdl.kind, len: mdl.len }); if (debris) debris.register('traffic:' + key, geom, 6);
       } catch (e) { console.warn('traffic model', key, e && e.message); }
     }
     const lg = new THREE.BufferGeometry(); lg.setAttribute('position', new THREE.BufferAttribute(new Float32Array(N_MOVING * 2 * 3), 3));
     T.lights = new THREE.Points(lg, new THREE.PointsMaterial({ map: Lamps.radial(), size: 1.2 * M, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, color: 0xfff2c0, opacity: 0.3, fog: false })); T.lights.name = 'carLights'; T.lights.frustumCulled = false; group.add(T.lights);
     T.ready = true; if (T.pending) { const w = T.pending; T.pending = null; T.lay(w.G, w.win); }
   };
+  const groundAt = (x, z) => Math.max(T.G.h(x, z) + Ground.layerAt(T.G, x, z), Ground.deckAt(T.G, x, z));   // on the road's own top, or a bridge deck
   const model = (name, seed) => { const keys = [...T.models.keys()].filter(k => k.startsWith(name + ':')); if (!keys.length) return null; return T.models.get(keys[hash(seed) % keys.length]); };
   const M4 = new THREE.Matrix4(), Q = new THREE.Quaternion(), P3 = new THREE.Vector3(), ONE = new THREE.Vector3(1, 1, 1), UP = new THREE.Vector3(0, 1, 0);
-  const write = c => { const m = c.model; Q.setFromAxisAngle(UP, c.yaw); P3.set(c.x, c.y, c.z); M4.compose(P3, Q, ONE); m.im.setMatrixAt(c.slot, M4); m.im.instanceMatrix.needsUpdate = true; };
+  const E = new THREE.Euler();
+  /** Where a car sits: on the ground under its four corners, pitched and rolled with it. Sets c.y. */
+  const settle = c => { const s = Math.sin(c.yaw), k = Math.cos(c.yaw), hz = c.model.half.z, hx = c.model.half.x, g = groundAt;
+    const f = g(c.x + s * hz, c.z + k * hz), b = g(c.x - s * hz, c.z - k * hz), l = g(c.x + k * hx, c.z - s * hx), r = g(c.x - k * hx, c.z + s * hx);
+    c.pitch = Math.atan2(f - b, 2 * hz); c.roll = Math.atan2(l - r, 2 * hx); c.y = (f + b + l + r) / 4 + 2; };
+  const write = c => { const m = c.model; settle(c); Q.setFromEuler(E.set(-c.pitch, c.yaw, c.roll, 'YXZ')); P3.set(c.x, c.y, c.z); M4.compose(P3, Q, ONE); m.im.setMatrixAt(c.slot, M4); m.im.instanceMatrix.needsUpdate = true; };
   const hide = c => { const m = c.model; m.im.setMatrixAt(c.slot, new THREE.Matrix4().makeScale(0, 0, 0)); m.im.instanceMatrix.needsUpdate = true; };
   const spawn = (name, seed, x, z, yaw, extra) => { const m = model(name, seed); if (!m) return null; let slot = m.free.pop(); if (slot == null) { if (m.n >= m.im.count && m.im.count >= MODELS[name].cap) return null; slot = m.n++; m.im.count = Math.max(m.im.count, slot + 1); }
-    const c = { model: m, slot, x, z, y: T.G.h(x, z), yaw, r: m.half.z * 0.8, alive: true, ...(extra || {}) }; write(c); T.cars.push(c); return c; };
-  const groundAt = (x, z) => Math.max(T.G.h(x, z), Ground.deckAt(T.G, x, z));
+    const c = { model: m, slot, x, z, y: T.G.h(x, z), yaw, r: m.half.z * 0.8, alive: true, pitch: 0, roll: 0, ...(extra || {}) }; write(c); T.cars.push(c); return c; };
   /** Everything for a window: parked cars in the lots and along the residential kerbs, moving cars on the roads. Coordinates in metres. */
   T.lay = (G, win) => {
     T.G = G; if (!T.ready) { T.pending = { G, win }; return; }
-    for (const c of T.cars) hide(c); T.cars = []; T.moving = []; for (const m of T.models.values()) { m.n = 0; m.free = []; m.im.count = 0; }
+    for (const c of T.cars) hide(c); T.cars = []; T.moving = []; T.byK = []; for (const m of T.models.values()) { m.n = 0; m.free = []; m.im.count = 0; }
     const roads = (win.roads || []).filter(Ground.wheels), driven = roads;
     const nearRoad = (x, z) => { for (const r of driven) { const half = (r.w || 5) / 2 + 1.2; for (let i = 0; i < r.pts.length - 1; i++) { const a = r.pts[i], b = r.pts[i + 1], dx = b.x - a.x, dz = b.z - a.z, L2 = dx * dx + dz * dz || 1, t = clamp(((x - a.x) * dx + (z - a.z) * dz) / L2, 0, 1); if (Math.hypot(x - a.x - dx * t, z - a.z - dz * t) < half) return true; } } return false; };
     let parked = 0;
@@ -72,17 +77,19 @@ function create({ scene, M, props, G, debris, roads: roadsOf }) {
     // moving cars: on the roads, in the right-hand lane
     const drivable = roads.filter(r => !r.bridge || true); let seed = 5;
     for (let k = 0; k < N_MOVING && drivable.length; k++) { const r = drivable[hash(seed++ * 97) % drivable.length]; if (r.pts.length < 2) continue; const i = hash(seed++ * 13) % (r.pts.length - 1), t = (hash(seed++ * 7) % 100) / 100, dir = hash(seed++ * 3) % 2 ? 1 : -1;
-      const name = k % 9 === 8 ? 'bus' : k % 4 === 3 ? 'van' : 'car'; const c = spawn(name, k * 101, 0, 0, 0, { road: r, i, t, dir, speed: 0, want: SPEED[r.kind] || 8, moving: true }); if (!c) continue; T.moving.push(c); T.place(c); }
+      const name = k % 9 === 8 ? 'bus' : k % 4 === 3 ? 'van' : 'car'; const c = spawn(name, k * 101, 0, 0, 0, { road: r, i, t, dir, speed: 0, want: SPEED[r.kind] || 8, moving: true }); if (!c) continue; c.k = T.moving.length; T.moving.push(c); T.byK[c.k] = c; T.place(c); }
     return T.stats();
   };
   /** Put a moving car where its road, segment and t say, in its lane, on the ground or the deck. */
   T.place = c => { const r = c.road, a = r.pts[c.i], b = r.pts[c.i + 1], x = lerp(a.x, b.x, c.t), z = lerp(a.z, b.z, c.t), dx = b.x - a.x, dz = b.z - a.z, L = Math.hypot(dx, dz) || 1, tx = dx / L * c.dir, tz = dz / L * c.dir, rx = -tz, rz = tx, lane = Math.max(1.2, (r.w || 5) / 4);
-    c.x = (x + rx * lane) * M; c.z = (z + rz * lane) * M; c.y = groundAt(c.x, c.z) + 2; c.yaw = Math.atan2(tx, tz); c.tx = tx; c.tz = tz; write(c); };
+    c.x = (x + rx * lane) * M; c.z = (z + rz * lane) * M; c.yaw = Math.atan2(tx, tz); c.tx = tx; c.tz = tz; write(c); };
   const junction = (r, end) => { const p = end > 0 ? r.pts[r.pts.length - 1] : r.pts[0], out = []; for (const q of T.roadsNow || []) { if (q === r || q.pts.length < 2) continue; if (Math.hypot(q.pts[0].x - p.x, q.pts[0].z - p.z) < 6) out.push({ r: q, i: 0, t: 0, dir: 1 }); if (Math.hypot(q.pts[q.pts.length - 1].x - p.x, q.pts[q.pts.length - 1].z - p.z) < 6) out.push({ r: q, i: q.pts.length - 2, t: 1, dir: -1 }); } return out; };
   /** ctx: { blockers: [{ x, z, r }] in LDU (the walker, a ride, the ship), night } */
   T.step = (dt, ctx) => {
     if (!T.ready) return; T.t += dt; const blockers = ctx && ctx.blockers || []; T.night = ctx && ctx.night != null ? ctx.night : T.night;
-    for (const c of T.moving) { if (!c.alive) continue; const r = c.road; let want = c.want;
+    if (T.remote) { const k = 1 - Math.exp(-dt * 4); for (const c of T.moving) { if (!c.alive || !c.tgt) continue; const g = c.tgt, adv = g.speed * M * dt; g.x += Math.sin(g.yaw) * adv; g.z += Math.cos(g.yaw) * adv;   // the host's car keeps rolling between snapshots
+        c.x += Math.sin(c.yaw) * adv + (g.x - c.x) * k; c.z += Math.cos(c.yaw) * adv + (g.z - c.z) * k; let d = g.yaw - c.yaw; d = Math.atan2(Math.sin(d), Math.cos(d)); c.yaw += d * k; c.speed = g.speed; c.tx = Math.sin(c.yaw); c.tz = Math.cos(c.yaw); write(c); } }
+    else for (const c of T.moving) { if (!c.alive) continue; const r = c.road; let want = c.want;
       for (const b of blockers) { const dx = b.x - c.x, dz = b.z - c.z, ahead = dx * c.tx + dz * c.tz, side = Math.abs(-dx * c.tz + dz * c.tx); if (ahead > -b.r && ahead < 12 * M + b.r && side < 2 * M + b.r) { want = 0; if (!c.stopped) { c.stopped = true; T.stops++; } } }
       if (want > 0) c.stopped = false;
       for (const o of T.moving) { if (o === c || !o.alive || o.road !== r || o.dir !== c.dir) continue; const dx = o.x - c.x, dz = o.z - c.z, ahead = dx * c.tx + dz * c.tz; if (ahead > 0 && ahead < 12 * M && Math.abs(-dx * c.tz + dz * c.tx) < 2 * M) want = Math.min(want, o.speed * 0.9); }
@@ -103,9 +110,18 @@ function create({ scene, M, props, G, debris, roads: roadsOf }) {
       if (T.debris) { const m = new THREE.Matrix4().compose(new THREE.Vector3(c.x, c.y, c.z), new THREE.Quaternion().setFromAxisAngle(UP, c.yaw), ONE), v = vel ? vel.clone().multiplyScalar(0.6) : new THREE.Vector3(); v.y += 3 * M; T.debris.spawn({ part: 'traffic:' + c.model.key, matrix: m, colour: new THREE.Color(1, 1, 1), vel: v }); } }
     if (n) T.moving = T.moving.filter(c => c.alive); return n; };
   T.setNight = n => { T.night = n; };
+  /** The nearest car within r of its edge, for getting in. */
+  T.nearest = (x, z, r) => { let best = null, bd = r; for (const c of T.cars) { if (!c.alive) continue; const d = Math.hypot(x - c.x, z - c.z) - c.r; if (d < bd) { bd = d; best = c; } } return best; };
+  /** Take a car out of the traffic: its instance goes, the caller gets the model text and the pose to make a prop of it. */
+  T.take = c => { if (!c.alive) return null; c.alive = false; hide(c); T.taken = (T.taken || 0) + 1; const m = c.model; return { mpd: m.mpd, kind: m.kind, len: m.len, col: m.col, x: c.x, y: c.y - 2, z: c.z, yaw: c.yaw }; };
+  /** The host's moving cars, for the room: [k, x, z, yaw, speed] in LDU; a guest follows them instead of driving its own. */
+  T.snapshot = () => T.moving.filter(c => c.alive).map(c => [c.k, Math.round(c.x), Math.round(c.z), +c.yaw.toFixed(2), +c.speed.toFixed(1)]);
+  T.applyRemote = rows => { T.remote = true; T.got = (T.got || 0) + 1; for (const row of rows || []) { const c = (T.byK || [])[row[0]]; if (!c || !c.alive) continue; if (!c.tgt) { c.x = row[1]; c.z = row[2]; c.yaw = row[3]; } c.tgt = { x: row[1], z: row[2], yaw: row[3], speed: row[4] }; } };
+  T.setRemote = on => { T.remote = !!on; if (!on) for (const c of T.moving) c.tgt = null; };
   T.setRoads = roads => { T.roadsNow = (roads || []).filter(Ground.wheels); };
-  T.stats = () => ({ ready: T.ready, models: T.models.size, cars: T.cars.filter(c => c.alive).length, parked: T.cars.filter(c => c.alive && c.parked).length, moving: T.moving.filter(c => c.alive).length, flung: T.flung, stops: T.stops, kinds: [...T.models.values()].filter(m => m.n).map(m => m.name).reduce((o, k) => { o[k] = (o[k] || 0) + 1; return o; }, {}) });
-  T.list = () => T.moving.filter(c => c.alive).map(c => ({ x: c.x / M, z: c.z / M, yaw: +c.yaw.toFixed(2), speed: +c.speed.toFixed(1), road: c.road.name || c.road.kind, stopped: !!c.stopped }));
+  T.stats = () => ({ ready: T.ready, remote: !!T.remote, got: T.got || 0, taken: T.taken || 0, models: T.models.size, cars: T.cars.filter(c => c.alive).length, parked: T.cars.filter(c => c.alive && c.parked).length, moving: T.moving.filter(c => c.alive).length, flung: T.flung, stops: T.stops, kinds: [...T.models.values()].filter(m => m.n).map(m => m.name).reduce((o, k) => { o[k] = (o[k] || 0) + 1; return o; }, {}) });
+  T.list = () => T.moving.filter(c => c.alive).map(c => ({ x: c.x / M, z: c.z / M, yaw: +c.yaw.toFixed(2), pitch: +c.pitch.toFixed(3), roll: +c.roll.toFixed(3), speed: +c.speed.toFixed(1), road: c.road.name || c.road.kind, stopped: !!c.stopped }));
+  T.parkedList = () => T.cars.filter(c => c.alive && c.parked).map(c => ({ x: c.x / M, z: c.z / M, y: c.y / M, yaw: +c.yaw.toFixed(2), pitch: +c.pitch.toFixed(3), roll: +c.roll.toFixed(3), kind: c.model.kind }));
   return T;
 }
 window.Traffic = { create, MODELS, SCHEMES, SPEED, N_MOVING };

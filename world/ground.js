@@ -10,9 +10,17 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const lerp = (a, b, t) => a + (b - a) * t;
 
 /** field: { n, res (m), h Float32Array(n*n) absolute metres, cx, cy (grid coords of the origin), datum } */
-function make(field, M, paint) {
+/** The ground's shape: flat (a level plane at the datum, the standard ground), gentle (the relief blurred and kept at 35 %), real (the terrain as fetched). */
+const MODES = ['flat', 'gentle', 'real'];
+function shape(H, n, mode) {
+  if (mode === 'flat') { H.fill(0); return H; }
+  if (mode !== 'gentle') return H;
+  for (let pass = 0; pass < 2; pass++) { const S = new Float32Array(n * n); for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) { let sum = 0, k = 0; for (let dj = -1; dj <= 1; dj++) for (let di = -1; di <= 1; di++) { const ii = i + di, jj = j + dj; if (ii < 0 || jj < 0 || ii >= n || jj >= n) continue; sum += H[jj * n + ii]; k++; } S[j * n + i] = sum / k; } H.set(S); }
+  for (let i = 0; i < n * n; i++) H[i] *= 0.35; return H;
+}
+function make(field, M, paint, mode = 'flat') {
   const { n, res, cx, cy } = field, datum = field.datum;
-  const H = new Float32Array(n * n); for (let i = 0; i < n * n; i++) H[i] = field.h[i] - datum;
+  const H = new Float32Array(n * n); for (let i = 0; i < n * n; i++) H[i] = field.h[i] - datum; shape(H, n, MODES.includes(mode) ? mode : 'flat');
   const at = (i, j) => H[clamp(j, 0, n - 1) * n + clamp(i, 0, n - 1)];
   function hM(x, z) {                              // metres in, metres out; same diagonal split as PlaneGeometry
     const gi = clamp(cx + x / res, 0, n - 1.0001), gj = clamp(cy + z / res, 0, n - 1.0001);
@@ -21,7 +29,7 @@ function make(field, M, paint) {
     return fx + fz <= 1 ? h00 + fx * (h10 - h00) + fz * (h01 - h00) : h11 + (1 - fx) * (h01 - h11) + (1 - fz) * (h10 - h11);
   }
   const G = {
-    M, n, res, H, field, datum,
+    M, n, res, H, field, datum, mode: MODES.includes(mode) ? mode : 'flat',
     hM, h: (x, z) => hM(x / M, z / M) * M,        // LDU in, LDU out
     extentM: (n - 1) * res, halfM: (n - 1) * res / 2,
     xMinM: -cx * res, zMinM: -cy * res, xMaxM: (n - 1 - cx) * res, zMaxM: (n - 1 - cy) * res,
@@ -150,13 +158,30 @@ function roads(G, list, M) {
   const mesh = S.mesh('roads'); G.roads = mesh; return mesh;
 }
 /** Everything else that makes a street: sidewalks with curbs beside the wider roads, tan footways and paths, cycleways, parking lots with bays, plazas, and zebra crossings where a footway meets a road. */
+/** What lies on the ground: strips (a segment, a half width, a sideways shift, a lift) and polygons (a ring, a lift), in metres, bucketed by 25 m cells. */
+function layers(G) { const L = { cell: 25, cells: new Map(), n: 0 }; G.layers = L;
+  const key = (x, z) => Math.floor(x / L.cell) + ':' + Math.floor(z / L.cell);
+  L.strip = (a, b, w, lift, side = 0) => { const dx = b.x - a.x, dz = b.z - a.z, len = Math.hypot(dx, dz); if (len < 0.05) return; const nx = -dz / len, nz = dx / len; const it = { ax: a.x + nx * side, az: a.z + nz * side, bx: b.x + nx * side, bz: b.z + nz * side, half: w / 2, lift }; L.n++;
+    const x0 = Math.min(it.ax, it.bx) - w, x1 = Math.max(it.ax, it.bx) + w, z0 = Math.min(it.az, it.bz) - w, z1 = Math.max(it.az, it.bz) + w;
+    for (let cx = Math.floor(x0 / L.cell); cx <= Math.floor(x1 / L.cell); cx++) for (let cz = Math.floor(z0 / L.cell); cz <= Math.floor(z1 / L.cell); cz++) { const k = cx + ':' + cz; let a2 = L.cells.get(k); if (!a2) { a2 = []; L.cells.set(k, a2); } a2.push(it); } };
+  L.polygon = (ring, lift) => { let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity; for (const p of ring) { x0 = Math.min(x0, p.x); x1 = Math.max(x1, p.x); z0 = Math.min(z0, p.z); z1 = Math.max(z1, p.z); } const it = { ring, lift }; L.n++;
+    for (let cx = Math.floor(x0 / L.cell); cx <= Math.floor(x1 / L.cell); cx++) for (let cz = Math.floor(z0 / L.cell); cz <= Math.floor(z1 / L.cell); cz++) { const k = cx + ':' + cz; let a2 = L.cells.get(k); if (!a2) { a2 = []; L.cells.set(k, a2); } a2.push(it); } };
+  L.at = (x, z) => { const a2 = L.cells.get(key(x, z)); if (!a2) return 0; let lift = 0;
+    for (const it of a2) { if (it.lift <= lift) continue;
+      if (it.ring) { let ok = false; const r = it.ring; for (let i = 0, j = r.length - 1; i < r.length; j = i++) { const p = r[i], q = r[j]; if ((p.z > z) !== (q.z > z) && x < (q.x - p.x) * (z - p.z) / (q.z - p.z) + p.x) ok = !ok; } if (ok) lift = it.lift; }
+      else { const dx = it.bx - it.ax, dz = it.bz - it.az, L2 = dx * dx + dz * dz || 1, t = Math.max(0, Math.min(1, ((x - it.ax) * dx + (z - it.az) * dz) / L2)); if (Math.hypot(x - it.ax - dx * t, z - it.az - dz * t) <= it.half) lift = it.lift; } }
+    return lift; };
+  return L; }
+/** The top of whatever is laid on the ground under a point (LDU in, LDU up from the terrain): a road, a sidewalk, a path, a lot, a lawn; 0 on bare ground. */
+function layerAt(G, x, z) { return G.layers ? G.layers.at(x / G.M, z / G.M) * G.M : 0; }
 function streets(G, win, M) {
-  const S = stripper(G, M), walk = lin(0x9a9c9e), curb = lin(0x6e7073), foot = lin(0xb9a884), cycle = lin(0x8a5a52), lot = lin(0x55585e), bay = lin(0xe8e4d8), plaza = lin(0xb8b2a4), zebra = lin(0xf2efe6);
+  const S = stripper(G, M), L = layers(G), walk = lin(0x9a9c9e), curb = lin(0x6e7073), foot = lin(0xb9a884), cycle = lin(0x8a5a52), lot = lin(0x55585e), bay = lin(0xe8e4d8), plaza = lin(0xb8b2a4), zebra = lin(0xf2efe6);
   const roads = win.roads || [], areas = win.areas || [], wide = roads.filter(r => (r.w || 5) >= 5 && wheels(r) && !r.bridge), driven = roads.filter(wheels);
-  for (const r of wide) { const w = r.w || 5, lift = (LIFT[r.kind] || 0.23); S.along(r.pts, (a, b) => { for (const sg of [1, -1]) { S.quad(a, b, 1.6, walk, lift + 0.07, sg * (w / 2 + 0.8)); S.quad(a, b, 0.16, curb, lift + 0.09, sg * (w / 2 + 0.06)); } }); }
-  for (const r of roads) { if (!r.pts || r.pts.length < 2) continue; if (FOOT.has(r.kind)) S.along(r.pts, (a, b) => S.quad(a, b, Math.max(1.2, r.w || 2), foot, 0.3)); else if (r.kind === 'cycleway') S.along(r.pts, (a, b) => S.quad(a, b, r.w || 2, cycle, 0.3)); else if (r.kind === 'river') S.along(r.pts, (a, b) => S.quad(a, b, r.w || 6, lin(COVER.water[0]), 0.08)); }
+  for (const r of driven) { if (!r.pts || r.pts.length < 2 || r.bridge) continue; const lift = LIFT[r.kind] || 0.23; S.along(r.pts, (a, b) => L.strip(a, b, r.w || 5, lift)); }   // the roads themselves, for feet and wheels
+  for (const r of wide) { const w = r.w || 5, lift = (LIFT[r.kind] || 0.23); S.along(r.pts, (a, b) => { for (const sg of [1, -1]) { S.quad(a, b, 1.6, walk, lift + 0.07, sg * (w / 2 + 0.8)); S.quad(a, b, 0.16, curb, lift + 0.09, sg * (w / 2 + 0.06)); L.strip(a, b, 1.6, lift + 0.09, sg * (w / 2 + 0.8)); } }); }
+  for (const r of roads) { if (!r.pts || r.pts.length < 2) continue; if (FOOT.has(r.kind)) S.along(r.pts, (a, b) => { S.quad(a, b, Math.max(1.2, r.w || 2), foot, 0.3); L.strip(a, b, Math.max(1.2, r.w || 2), 0.3); }); else if (r.kind === 'cycleway') S.along(r.pts, (a, b) => { S.quad(a, b, r.w || 2, cycle, 0.3); L.strip(a, b, r.w || 2, 0.3); }); else if (r.kind === 'river') S.along(r.pts, (a, b) => S.quad(a, b, r.w || 6, lin(COVER.water[0]), 0.08)); }
   // ground cover: water, parks, pitches, woods, cemeteries, the green inside a stadium
-  for (const a of areas) { const ring = a.ring, cv = COVER[a.kind]; if (!ring || ring.length < 3 || !cv) continue; S.polygon(ring, lin(cv[0]), cv[1]); if (a.kind === 'pitch') { const n = ring.length; for (let i = 0; i < n; i++) S.quad(ring[i], ring[(i + 1) % n], 0.15, zebra, 0.12); } }
+  for (const a of areas) { const ring = a.ring, cv = COVER[a.kind]; if (!ring || ring.length < 3 || !cv) continue; S.polygon(ring, lin(cv[0]), cv[1]); if (a.kind !== 'water') L.polygon(ring, cv[1]); if (a.kind === 'pitch') { const n = ring.length; for (let i = 0; i < n; i++) S.quad(ring[i], ring[(i + 1) % n], 0.15, zebra, 0.12); } }
   // zebra crossings: a footway of 8 m or more ending within 3 m of a real road gets stripes across it, one per 15 m of that road
   let crossings = 0; const placed = new Map();
   const nearest = (p) => { let best = null; for (const r of wide) { if (r.kind === 'service') continue; for (let i = 0; i < r.pts.length - 1; i++) { const a = r.pts[i], b = r.pts[i + 1], dx = b.x - a.x, dz = b.z - a.z, L2 = dx * dx + dz * dz || 1, t = clamp(((p.x - a.x) * dx + (p.z - a.z) * dz) / L2, 0, 1), cx = a.x + dx * t, cz = a.z + dz * t, d = Math.hypot(p.x - cx, p.z - cz); if (d < 3 && (!best || d < best.d)) best = { d, x: cx, z: cz, ux: dx / Math.sqrt(L2), uz: dz / Math.sqrt(L2), w: r.w || 5, r, lift: LIFT[r.kind] || 0.23 }; } } return best; };
@@ -167,9 +192,9 @@ function streets(G, win, M) {
   // parking lots and plazas: filled under the roads, lots with white bay lines along their longest edge, kept clear of any road's lane
   const nearRoad = (x, z) => { for (const r of driven) { const half = (r.w || 5) / 2 + 1.5; for (let i = 0; i < r.pts.length - 1; i++) { const a = r.pts[i], b = r.pts[i + 1], dx = b.x - a.x, dz = b.z - a.z, L2 = dx * dx + dz * dz || 1, t = clamp(((x - a.x) * dx + (z - a.z) * dz) / L2, 0, 1); if (Math.hypot(x - a.x - dx * t, z - a.z - dz * t) < half) return true; } } return false; };
   for (const a of areas) { const ring = a.ring; if (!ring || ring.length < 3) continue;
-    if (a.kind === 'plaza') { S.polygon(ring, plaza, 0.2); continue; }
+    if (a.kind === 'plaza') { S.polygon(ring, plaza, 0.2); L.polygon(ring, 0.2); continue; }
     if (a.kind !== 'parking') continue;
-    S.polygon(ring, lot, 0.18);
+    S.polygon(ring, lot, 0.18); L.polygon(ring, 0.18);
     let bi = 0, bl = 0; for (let i = 0; i < ring.length; i++) { const q = ring[(i + 1) % ring.length], L = Math.hypot(q.x - ring[i].x, q.z - ring[i].z); if (L > bl) { bl = L; bi = i; } }
     const A = ring[bi], B = ring[(bi + 1) % ring.length], ux = (B.x - A.x) / bl, uz = (B.z - A.z) / bl, vx = -uz, vz = ux;
     let u0 = Infinity, u1 = -Infinity, v0 = Infinity, v1 = -Infinity; for (const p of ring) { const u = (p.x - A.x) * ux + (p.z - A.z) * uz, v = (p.x - A.x) * vx + (p.z - A.z) * vz; u0 = Math.min(u0, u); u1 = Math.max(u1, u); v0 = Math.min(v0, v); v1 = Math.max(v1, v); }
@@ -215,5 +240,5 @@ function bakedField() {
 /** Convert a fetched square field (origin at the centre) into the shared shape. */
 function centredField(f) { return { n: f.n, res: f.res, h: f.h, cx: (f.n - 1) / 2, cy: (f.n - 1) / 2, datum: f.datum }; }
 
-window.Ground = { streets, FOOT, LIFT, COVER, deckAt, wheels, make, drape, recolour, crater, roads, daylight, bakedField, centredField, MOSS };
+window.Ground = { MODES, streets, FOOT, LIFT, COVER, deckAt, layerAt, wheels, make, drape, recolour, crater, roads, daylight, bakedField, centredField, MOSS };
 })();

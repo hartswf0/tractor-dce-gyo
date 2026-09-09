@@ -40,18 +40,27 @@ const PIVOT_ABS = { hipsP: [0, 32, 0], torsoP: [0, 0, 0], legRP: [0, 44, 0], leg
 /* ───────────────────────── definitions ───────────────────────── */
 const DEFS = {
   vader: { name: 'Vader', legs: 0, hips: 0, torso: 0, arms: 0, hands: 0, head: 0, hat: ['30368', 0], weapon: ['saber', '30374', 36], cape: ['522', 0], collar: ['20551c01', 0], saber: true },
-  trooper: { name: 'Stormtrooper', legs: 15, hips: 15, torso: 15, arms: 15, hands: 0, head: 0, hat: ['30408', 15], weapon: ['blaster', '58247', 0] },
-  pilot: { name: 'Rebel pilot', legs: 71, hips: 71, torso: 25, arms: 25, hands: 14, head: 14, hat: ['30370', 71], weapon: ['blaster', '58247', 0] },
-  luke: { name: 'Luke', legs: 19, hips: 19, torso: 19, arms: 19, hands: 14, head: 14, hat: ['3901', 14], weapon: ['saber', '30374', 33], saber: true },
-  citizen: { name: 'Citizen', legs: 1, hips: 1, torso: 4, arms: 4, hands: 14, head: 14, hat: ['3901', 0], weapon: null },
+  trooper: { name: 'Stormtrooper', legs: 15, hips: 15, torso: 15, arms: 15, hands: 0, head: 0, hat: ['30408', 15], weapon: ['blaster', '58247', 0], ride: { kit: 'atst' } },
+  pilot: { name: 'Rebel pilot', legs: 71, hips: 71, torso: 25, arms: 25, hands: 14, head: 14, hat: ['30370', 71], weapon: ['blaster', '58247', 0], ride: { kit: 'xwing' } },
+  luke: { name: 'Luke', legs: 19, hips: 19, torso: 19, arms: 19, hands: 14, head: 14, hat: ['3901', 14], weapon: ['saber', '30374', 33], saber: true, ride: { kit: 'xwing' } },
+  leia: { name: 'Leia', legs: 15, hips: 15, torso: 15, arms: 15, hands: 14, head: 14, hat: ['30409', 308], weapon: ['blaster', '58247', 0], ride: { kind: 'speeder', len: 6, col: 15 } },
+  han: { name: 'Han', legs: 272, hips: 0, torso: 15, arms: 15, hands: 14, head: 14, hat: ['3901', 308], weapon: ['blaster', '58247', 0], ride: { kind: 'plane', len: 10, col: 71 } },
+  chewbacca: { name: 'Chewbacca', legs: 70, hips: 70, torso: 70, arms: 70, hands: 70, head: 70, hat: ['30483', 70], weapon: ['blaster', '2570', 70], bare: true, ride: { kind: 'truck', len: 8, col: 70 } },
+  yoda: { name: 'Yoda', legs: 19, hips: 19, torso: 19, arms: 19, hands: 378, head: 378, hat: ['41880', 378], weapon: ['saber', '30374', 34], saber: true, short: true, bare: true, ride: { kind: 'speeder', len: 5, col: 2 } },
+  c3po: { name: 'C-3PO', legs: 297, hips: 297, torso: 297, arms: 297, hands: 297, head: 297, hat: ['30480', 297], weapon: null, bare: true, ride: { kind: 'car', len: 6, col: 297 } },
+  rey: { name: 'Rey', legs: 28, hips: 28, torso: 19, arms: 19, hands: 14, head: 14, hat: ['20877', 308], weapon: ['blaster', '58247', 0], ride: { kind: 'speeder', len: 7, col: 28 } },
+  citizen: { name: 'Citizen', legs: 1, hips: 1, torso: 4, arms: 4, hands: 14, head: 14, hat: ['3901', 0], weapon: null, ride: { kind: 'car', len: 6, col: 4 } },
 };
-const CITIZEN_TORSOS = [4, 1, 2, 14, 15, 19, 25, 70], CITIZEN_HAIR = [0, 70, 4, 6, 15];
-function citizen(seed) { const d = { ...DEFS.citizen }; d.torso = d.arms = CITIZEN_TORSOS[seed % CITIZEN_TORSOS.length]; d.hat = ['3901', CITIZEN_HAIR[(seed >> 3) % CITIZEN_HAIR.length]]; d.legs = d.hips = [1, 0, 72, 28][(seed >> 6) % 4]; return d; }
+/* ride: the vehicle that stands by the spawn for this character (Vader has the TIE); vehicles.js lays it as lm-me */
+/* a bare head is the character's own (a mask over the plain head is the whole face), a short figure stands on one-piece legs */
+const CITIZEN_TORSOS = [4, 1, 2, 14, 15, 19, 25, 70, 5, 27, 72], CITIZEN_HAIR = [0, 70, 4, 6, 15, 308, 28], WOMEN_HAIR = ['3625', '12890', '20877', '30409'];
+function citizen(seed) { const d = { ...DEFS.citizen }; d.torso = d.arms = CITIZEN_TORSOS[seed % CITIZEN_TORSOS.length]; const woman = (seed >> 1) % 2 === 1; d.hat = [woman ? WOMEN_HAIR[(seed >> 3) % WOMEN_HAIR.length] : '3901', CITIZEN_HAIR[(seed >> 3) % CITIZEN_HAIR.length]]; d.legs = d.hips = [1, 0, 72, 28][(seed >> 6) % 4]; d.woman = woman; return d; }
 
 /** The parts a definition needs, in order: [slot, partFile, colour]. */
 function partsOf(def) {
-  const out = [['legR', '3816', def.legs], ['legL', '3817', def.legs], ['hips', '3815', def.hips], ['torso', '973', def.torso], ['armR', '3818', def.arms], ['armL', '3819', def.arms],
-    ['handR', '3820', def.hands], ['handL', '3820', def.hands], ['head', '3626b', def.head]];
+  const out = def.short ? [['hips', '16709', def.hips]] : [['legR', '3816', def.legs], ['legL', '3817', def.legs], ['hips', '3815', def.hips]];
+  out.push(['torso', '973', def.torso], ['armR', '3818', def.arms], ['armL', '3819', def.arms], ['handR', '3820', def.hands], ['handL', '3820', def.hands]);
+  if (!def.bare) out.push(['head', '3626b', def.head]);
   if (def.hat) out.push(['hat', def.hat[0], def.hat[1]]);
   if (def.weapon) out.push([def.weapon[0] === 'saber' ? 'weaponL' : 'weaponR', def.weapon[1], def.weapon[2]]);
   if (def.cape) out.push(['cape', def.cape[0], def.cape[1]]);
@@ -62,15 +71,17 @@ const fmt = v => (Math.round(v * 1e4) / 1e4).toString();
 /** LDraw lines for the parse, one per part, placed in the figure frame. */
 function lines(def) { return partsOf(def).map(([slot, part, col]) => { const s = SLOTS[slot]; return `1 ${col} ${s.slice(1, 13).map(fmt).join(' ')} parts/${part}.dat`; }); }
 /** One identity line per part file the crowd may need, for harvesting raw geometry. */
-const CROWD_PARTS = ['3816', '3817', '3815', '973', '3818', '3819', '3820', '3626b', '30408', '3901', '30370', '58247', '30374', '3062b', '30368', '522', '20551c01'];
+const CROWD_PARTS = ['3816', '3817', '3815', '973', '3818', '3819', '3820', '3626b', '30408', '3901', '30370', '58247', '30374', '3062b', '30368', '522', '20551c01', '41880', '30483', '30480', '30409', '3625', '12890', '20877', '16709', '2570'];
+const SHORT = 16;                                             // one-piece short legs end 16 LDU higher than the hinged pair
 const harvestLines = () => CROWD_PARTS.map(p => `1 16 0 0 0 1 0 0 0 1 0 0 0 1 parts/${p}.dat`);
 
 /* ───────────────────────── the skeleton ───────────────────────── */
-function skeleton(M) {
+function skeleton(M, def) {
+  const feet = def && def.short ? FEET - SHORT : FEET;
   const figure = new THREE.Group(); figure.name = 'minifig'; const flip = new THREE.Group(); flip.rotation.x = Math.PI; figure.add(flip);
   const P = {};
   for (const [name, [parent, x, y, z]] of Object.entries(PIVOTS)) { const g = new THREE.Group(); g.name = name; g.position.set(x, y, z); (parent ? P[parent] : flip).add(g); P[name] = g; }
-  P.hipsP.position.set(0, -(FEET - 32), 0);
+  P.hipsP.position.set(0, -(feet - 32), 0);
   const S = {};
   for (const [name, def] of Object.entries(SLOTS)) {
     const g = new THREE.Group(); g.name = 'slot:' + name; const pa = PIVOT_ABS[def[0]];
@@ -79,12 +90,12 @@ function skeleton(M) {
     P[def[0]].add(g); S[name] = g;
   }
   return { figure, flip, ...P, slots: S, M, pos: figure.position, heading: 0, speed: 0, phase: 0, gait: 0, t: 0, swing: null, aim: 0, hit: null, vel: new THREE.Vector3(), radius: 0.5 * M,
-    cam: { yaw: 0, pitch: 0.18, pos: new THREE.Vector3(), look: new THREE.Vector3(), set: false }, height: FEET + 28, health: 100, def: null, mounted: {} };
+    cam: { yaw: 0, pitch: 0.18, pos: new THREE.Vector3(), look: new THREE.Vector3(), set: false }, height: feet + 28, feet, health: 100, def: null, mounted: {} };
 }
 /** Hang parsed part groups (in partsOf order) on the skeleton's slots; the groups' own kit transforms are dropped. */
 function mount(rig, groups, def, scene) {
   rig.def = def; const parts = partsOf(def);
-  groups.forEach((g, i) => { const slot = parts[i][0]; g.position.set(0, 0, 0); g.quaternion.identity(); g.scale.setScalar(1); g.name = slot; rig.slots[slot].add(g); rig.mounted[slot] = { group: g, part: parts[i][1], col: parts[i][2] };
+  groups.forEach((g, i) => { const slot = parts[i][0]; g.position.set(0, slot === 'hat' && def.bare ? 24 : 0, 0); g.quaternion.identity(); g.scale.setScalar(1); g.name = slot; rig.slots[slot].add(g); /* a whole-head mask has its origin at the neck, a hat at the crown */ rig.mounted[slot] = { group: g, part: parts[i][1], col: parts[i][2] };
     g.traverse(o => { if (o.isMesh && o.material) for (const m of Array.isArray(o.material) ? o.material : [o.material]) m.fog = true; }); });
   if (scene) scene.add(rig.figure);
   return rig;
@@ -95,7 +106,7 @@ function facing(rig, out) { return out.set(Math.sin(rig.heading), 0, Math.cos(ri
 function pose(rig, st) {
   const s = Math.sin(st.phase), g = st.gait;
   rig.legRP.rotation.x = g * -35 * DEG * s; rig.legLP.rotation.x = -rig.legRP.rotation.x;
-  rig.hipsP.position.y = -(FEET - 32) - g * 1.5 * Math.abs(Math.cos(st.phase));
+  const feet = rig.feet || FEET; rig.hipsP.position.y = -(feet - 32) - g * 1.5 * Math.abs(Math.cos(st.phase));
   rig.torsoP.rotation.z = g * 0.03 * s; rig.torsoP.position.y = -32 - 0.4 * Math.sin(2 * Math.PI * 0.35 * st.t) * (1 - g);
   rig.headP.rotation.y = 0.35 * Math.sin(0.3 * st.t) * (1 - g);
   let armL = g * -25 * DEG * s, armR = g * 25 * DEG * s, twist = g * 0.06 * s;
@@ -106,7 +117,7 @@ function pose(rig, st) {
     if (rig.def && rig.def.weapon && rig.def.weapon[0] === 'saber') twist = -twist;   // the saber hand leads
   }
   if (st.aim) armR = armR + (AIM - armR) * st.aim;
-  if (st.sit) { rig.legRP.rotation.x = -90 * DEG; rig.legLP.rotation.x = -90 * DEG; armL = -60 * DEG; armR = -60 * DEG; twist = 0; rig.hipsP.position.y = -(FEET - 32) + 20; rig.torsoP.rotation.z = 0; }   // in the seat: legs forward, hands on the wheel
+  if (st.sit) { rig.legRP.rotation.x = -90 * DEG; rig.legLP.rotation.x = -90 * DEG; armL = -60 * DEG; armR = -60 * DEG; twist = 0; rig.hipsP.position.y = -(feet - 32) + 20; rig.torsoP.rotation.z = 0; }   // in the seat: legs forward, hands on the wheel
   rig.armLP.rotation.x = armL; rig.armRP.rotation.x = armR; rig.torsoP.rotation.y = twist;
 }
 
@@ -157,7 +168,9 @@ function camera(rig, camera, dt, look, world, portrait, build) {
   V1.copy(rig.pos); V1.y += HEAD_M * M;
   if (build) { V1.x -= Math.sin(c.yaw) * 3 * M; V1.z -= Math.cos(c.yaw) * 3 * M; V1.y -= 0.9 * M; }   // building: from above, looking past the figure at the ground ahead
   V2.set(V1.x + Math.sin(c.yaw) * Math.cos(c.pitch) * r, V1.y + Math.sin(c.pitch) * r + 0.28 * M, V1.z + Math.cos(c.yaw) * Math.cos(c.pitch) * r);
-  const gy = world.groundH(V2.x, V2.z) + 0.6 * M; if (V2.y < gy) V2.y = gy;
+  // the camera comes in along its line rather than climbing over the head: it stops short of a hillside or a wall behind the figure
+  { const n = 12, minF = 0.12; let f = 1; for (let i = 1; i <= n; i++) { const t = i / n, x = V1.x + (V2.x - V1.x) * t, y = V1.y + (V2.y - V1.y) * t, z = V1.z + (V2.z - V1.z) * t; if (y < world.groundH(x, z) + 0.6 * M || (world.solid && world.solid(x, y, z))) { f = Math.max(minF, (i - 1.5) / n); break; } }
+    if (f < 1) V2.lerpVectors(V1, V2, f); const gy = world.groundH(V2.x, V2.z) + 0.6 * M; if (V2.y < gy) V2.y = gy; }
   if (!c.set) { c.pos.copy(V2); c.look.copy(V1); c.set = true; }
   const k = 1 - Math.exp(-dt * 6); c.pos.lerp(V2, k); c.look.lerp(V1, k);
   camera.position.copy(c.pos); camera.up.copy(UP); camera.lookAt(c.look);

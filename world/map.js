@@ -42,6 +42,9 @@ function create({ W, M, onWaypoint, onGo }) {
     if (W.crowd) for (const n of W.crowd.npcs) { if (!n.alive || n.kind !== 'trooper') continue; const x = n.pos.x / M, z = n.pos.z / M; if (Math.hypot(x - me.x, z - me.z) > 60) continue; g.fillStyle = '#e03a2e'; g.beginPath(); g.arc(x, z, 2 / ppm, 0, Math.PI * 2); g.fill(); S.drawn.marks++; }
     if (W.ship && W.mode !== 'fly') { g.fillStyle = '#e6eaf2'; g.strokeStyle = '#1a1f2a'; g.lineWidth = 1 / ppm; g.beginPath(); g.arc(W.ship.position.x / M, W.ship.position.z / M, 3 / ppm, 0, Math.PI * 2); g.fill(); g.stroke(); }
     if (W.props) for (const it of W.props.items.values()) { if (!it.src || !it.src.kind && !it.src.ride) continue; g.fillStyle = '#c8901c'; g.beginPath(); g.arc(it.x / M, it.z / M, 2.5 / ppm, 0, Math.PI * 2); g.fill(); }
+    if (W.remotes) for (const r of W.remotes.values()) { const x = r.pos.x / M, z = r.pos.z / M, rh = r.tgt && r.tgt.m === 'fly' ? Math.atan2(r.tgt.v ? r.tgt.v[0] : 0, r.tgt.v ? r.tgt.v[2] : 1) : r.heading || 0;
+      g.save(); g.translate(x, z); g.rotate(Math.PI - rh); g.fillStyle = '#2f7fe0'; g.strokeStyle = '#0b1a3a'; g.lineWidth = 1.2 / ppm; const s = (mini ? 6 : 8) / ppm; g.beginPath(); g.moveTo(0, -s); g.lineTo(s * 0.7, s * 0.8); g.lineTo(0, s * 0.35); g.lineTo(-s * 0.7, s * 0.8); g.closePath(); g.fill(); g.stroke(); g.restore();
+      { g.fillStyle = '#0b1a3a'; g.font = `700 ${(mini ? 9 : 11) / ppm}px -apple-system, Segoe UI, Helvetica, Arial, sans-serif`; g.textAlign = 'center'; g.textBaseline = 'bottom'; g.fillText(r.name || r.id.slice(0, 6), x, z - 9 / ppm); } S.drawn.marks++; }
     g.save(); g.translate(me.x, me.z); g.rotate(Math.PI - h); g.fillStyle = '#2fbf3f'; g.strokeStyle = '#0b2a10'; g.lineWidth = 1.2 / ppm; const s = (mini ? 7 : 9) / ppm; g.beginPath(); g.moveTo(0, -s); g.lineTo(s * 0.7, s * 0.8); g.lineTo(0, s * 0.35); g.lineTo(-s * 0.7, s * 0.8); g.closePath(); g.fill(); g.stroke(); g.restore();
   }
   S.drawMini = () => {

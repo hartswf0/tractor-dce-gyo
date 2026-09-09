@@ -17,8 +17,8 @@ const W = {
   mode: 'walk', t: 0, last: 0, ready: false, colours: null, character: Q.get('as') || 'vader', world: Q.get('world') || 'earth', sky: null, skyMode: Q.get('sky') || stored('world.sky') || 'auto', weather: Q.get('weather') || stored('world.weather') || 'clear',
   net: { elevation: null, imagery: null, osm: null }, relanding: false, health: 100, dead: 0, dets: DETONATORS, grenades: [], shake: 0,
   input: { L: { x: 0, y: 0, mag: 0 }, look: { dx: 0, dy: 0 }, run: false, saber: false, fly: { x: 0, y: 0, mag: 0 }, boost: false, fire: false, push: false, torpedo: false },
-  stats: { calls: 0, ms: 16.7, fps: 60, steps: 1, stepDt: 1 / 60 }, quality: { tier: 'high', low: 0, high: 0, changes: 0, pin: Q.get('quality') || stored('world.quality') || 'auto' },
-  build: null, draft: null, props: null, geomsO: null, master: { busy: false, result: null, anchor: null, rot: 0, ghosts: [], conv: null, status: '' }, room: null, name: null, smoke: null, tally: { bricks: 0, levelled: 0 }, dentAt: 0, remotes: new Map(), editQ: { up: [], rm: [] }, editAcc: 0, netAcc: 0, crowdAcc: 0, dmgAcc: 0, dmgSaved: 0, dmgKey: null,
+  stats: { calls: 0, ms: 16.7, fps: 60, steps: 1, stepDt: 1 / 60 }, quality: { tier: 'high', low: 0, high: 0, changes: 0, pin: Q.get('quality') || stored('world.quality') || 'auto' }, groundMode: Ground.MODES.includes(Q.get('ground')) ? Q.get('ground') : (Ground.MODES.includes(stored('world.ground')) ? stored('world.ground') : 'flat'),
+  said: [], build: null, draft: null, props: null, geomsO: null, master: { busy: false, result: null, anchor: null, rot: 0, ghosts: [], conv: null, status: '' }, room: null, name: null, smoke: null, tally: { bricks: 0, levelled: 0 }, dentAt: 0, remotes: new Map(), editQ: { up: [], rm: [] }, editAcc: 0, netAcc: 0, crowdAcc: 0, dmgAcc: 0, dmgSaved: 0, dmgKey: null,
 };
 window.__world = W;
 if (!Minifig.DEFS[W.character]) W.character = 'vader';
@@ -48,7 +48,7 @@ function veilPaint() {
     if (st.state === 'now') pending++;
   }
   ship = VEIL.stages.ship && VEIL.stages.ship.state === 'done';
-  const start = $('#vStart'); if (start) start.hidden = !(since > 15 && !W.ready && VEIL.hurry && pending > 0);
+  const start = $('#vStart'); if (start) { start.hidden = !(since > 15 && !W.ready && VEIL.hurry && pending > 0); if (!start.hidden) VEIL.startShown = true; }
   const vm = $('#vm');
   if (!W.ready && since > 90 && !ship && !VEIL.failed) { VEIL.failed = true; vm.innerHTML = 'The ship has not arrived after 90 s. It comes from this site, so the connection is the problem.<br><button onclick="location.reload()">Retry</button>'; }
   else if (!W.ready && since > 15 && !VEIL.failed && vm) vm.textContent = pending ? 'the slow parts pop in once you are walking' : '';
@@ -96,13 +96,16 @@ function buildMenu() {
   const skies = Object.keys(Sky.MODES).map(k => `<button data-sky="${k}" class="${k === W.skyMode ? 'on' : ''}">${k}</button>`).join(''), weathers = Object.keys(Sky.WEATHER).map(k => `<button data-weather="${k}" class="${k === W.weather ? 'on' : ''}">${k}</button>`).join('');
   $('#menu').innerHTML = `<div class="row"><span>play as</span>${chars}<em>or tap your name at the top</em></div><div class="row"><span>world</span>${worlds}</div><div class="row"><span>sky</span>${skies}<em>auto keeps the clock at this place</em></div><div class="row"><span>weather</span>${weathers}</div>
     <div class="row ai"><span>builder</span><input id="aiKey" type="password" placeholder="OpenAI API key (stays here)" autocomplete="off"><em>${Ai.model()} · ${Ai.effort()} reasoning · designs, checks, reviews</em></div>
-    <div class="row net"><span>together</span><input id="nameIn" placeholder="your name" maxlength="14"><button id="hostBtn">Host a room</button><input id="codeIn" placeholder="CODE" maxlength="4" autocapitalize="characters"><button id="joinBtn">Join</button><button id="linkBtn" hidden>Copy link</button><button id="leaveBtn" hidden>Leave</button><button id="muteBtn" title="sound">sound on</button><button id="truceBtn" title="nobody shoots, ever">truce off</button></div>
-    <div class="row"><span>quality</span><button data-quality="auto">auto</button><button data-quality="high">high</button><button data-quality="low">low</button><em id="qualityStat">high</em></div><div class="row saves"><span>builds</span><button id="saveLookBtn">save what I look at</button><button id="savesExport">export</button><button id="savesImport">import</button></div><div id="savesList"></div><div class="row"><em id="roomStat"></em></div>`;
+    <div class="row net"><span>together</span><input id="nameIn" placeholder="your name" maxlength="14"><button id="hostBtn">Host a room</button><input id="codeIn" placeholder="CODE" maxlength="4" autocapitalize="characters"><button id="joinBtn">Join</button><button id="linkBtn" hidden>Copy link</button><button id="leaveBtn" hidden>Leave</button><input id="sayIn" placeholder="say something to the room" maxlength="140" hidden><button id="muteBtn" title="sound">sound on</button><button id="truceBtn" title="nobody shoots, ever">truce off</button></div>
+    <div class="row"><span>ground</span><button data-ground="flat">flat</button><button data-ground="gentle">gentle</button><button data-ground="real">real</button><em>flat is the standard ground; real is the terrain as it is</em></div>
+    <div class="row"><span>quality</span><button data-quality="auto">auto</button><button data-quality="high">high</button><button data-quality="low">low</button><em id="qualityStat">high</em></div><div class="row saves"><span>builds</span><button id="saveLookBtn">save what I look at</button><button id="savesExport">export</button><button id="savesImport">import</button></div><div id="savesList"></div><div class="row"><em id="roomStat"></em></div><div id="roomList"></div>`;
   $('#menu').querySelectorAll('[data-as]').forEach(b => b.onclick = () => setCharacter(b.dataset.as));
   $('#menu').querySelectorAll('[data-world]').forEach(b => b.onclick = () => setWorld(b.dataset.world));
   $('#menu').querySelectorAll('[data-quality]').forEach(b => b.onclick = () => setQuality(b.dataset.quality));
+  $('#menu').querySelectorAll('[data-ground]').forEach(b => b.onclick = () => setGround(b.dataset.ground));
   $('#menu').querySelectorAll('[data-sky]').forEach(b => b.onclick = () => setSky(b.dataset.sky)); $('#menu').querySelectorAll('[data-weather]').forEach(b => b.onclick = () => setWeather(b.dataset.weather));
   $('#nameIn').value = W.name || ''; $('#nameIn').onchange = () => setName($('#nameIn').value);
+  $('#sayIn').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); if (sayToRoom($('#sayIn').value)) $('#sayIn').value = ''; } });
   $('#aiKey').value = Ai.key(); $('#aiKey').onchange = () => { Ai.setKey($('#aiKey').value); const k = $('#wbKey'); if (k) k.value = Ai.key(); if (Ai.key()) wbKeyRow(false); wbHint(); };
   $('#hostBtn').onclick = () => hostRoom(); $('#joinBtn').onclick = () => joinRoom($('#codeIn').value); $('#leaveBtn').onclick = () => leaveRoom();
   $('#linkBtn').onclick = () => { const link = W.room.link(); (navigator.clipboard ? navigator.clipboard.writeText(link) : Promise.reject()).then(() => toast('link copied', 900), () => { prompt('Share this link', link); }); };
@@ -119,12 +122,17 @@ function nextCharacter() { const keys = Object.keys(Minifig.DEFS), i = keys.inde
 function setName(n) { W.name = (n || '').trim().slice(0, 14) || W.name; try { localStorage.setItem('world.name', W.name); } catch (e) { } }
 function roomStat() {
   const N = W.room, st = N ? N.stats() : null, chip = $('#room');
-  if (!st || !st.role) { chip.textContent = ''; chip.classList.remove('on'); $('#roomStat').textContent = st && st.error ? 'could not connect: ' + st.error : ''; $('#hostBtn').hidden = false; $('#joinBtn').hidden = false; $('#codeIn').hidden = false; $('#linkBtn').hidden = true; $('#leaveBtn').hidden = true; return; }
+  if (!st || !st.role) { chip.textContent = ''; chip.classList.remove('on'); $('#roomStat').textContent = st && st.error ? 'could not connect: ' + st.error : ''; $('#hostBtn').hidden = false; $('#joinBtn').hidden = false; $('#codeIn').hidden = false; $('#linkBtn').hidden = true; $('#leaveBtn').hidden = true; $('#sayIn').hidden = true; $('#roomList').innerHTML = ''; return; }
+  $('#sayIn').hidden = false;
+  const list = roomList(); $('#roomList').innerHTML = list.map(r => `<button data-player="${esc(r.id)}">${esc(r.name)} · ${r.d} m ${r.dir}${r.mode === 'fly' ? ' · flying' : r.mode === 'ride' ? ' · driving' : ''}</button>`).join('') + (list.length ? '<em>tap a player to mark them on the map</em>' : '');
+  $('#roomList').querySelectorAll('[data-player]').forEach(b => b.onclick = () => { const r = list.find(q => q.id === b.dataset.player); if (r && W.map) { W.map.setWaypoint(r.x, r.z); toast('waypoint: ' + r.name, 900); } });
   const n = Math.max(st.role === 'guest' ? 2 : 1, st.players.filter(id => id !== 'host').length + 1); chip.textContent = `${st.code} · ${n} player${n > 1 ? 's' : ''}`; chip.classList.add('on');
   $('#roomStat').textContent = `${st.role === 'host' ? 'hosting' : 'in'} room ${st.code} · share the code or the link`; $('#hostBtn').hidden = true; $('#joinBtn').hidden = true; $('#codeIn').hidden = true; $('#linkBtn').hidden = false; $('#leaveBtn').hidden = false;
 }
+/** The ground's shape: flat, gentle or real; the window is laid again on it, the player where they stood. */
+function setGround(mode) { if (!Ground.MODES.includes(mode) || mode === W.groundMode) return; W.groundMode = mode; try { localStorage.setItem('world.ground', mode); } catch (e) { } markMenu(); toast('ground: ' + mode, 900); if (W.ready && W.place) reland(W.place, true); }
 function setQuality(pin) { if (!/^(auto|high|low)$/.test(pin)) return; W.quality.pin = pin; try { localStorage.setItem('world.quality', pin); } catch (e) { } if (pin !== 'auto') setTier(pin); markMenu(); toast(pin === 'auto' ? 'quality: auto' : 'quality: ' + pin, 800); }
-function markMenu() { $('#menu').querySelectorAll('[data-quality]').forEach(b => b.classList.toggle('on', b.dataset.quality === W.quality.pin)); $('#menu').querySelectorAll('[data-as]').forEach(b => b.classList.toggle('on', b.dataset.as === W.character)); $('#menu').querySelectorAll('[data-world]').forEach(b => b.classList.toggle('on', b.dataset.world === W.world)); $('#menu').querySelectorAll('[data-sky]').forEach(b => b.classList.toggle('on', b.dataset.sky === W.skyMode)); $('#menu').querySelectorAll('[data-weather]').forEach(b => b.classList.toggle('on', b.dataset.weather === W.weather)); }
+function markMenu() { $('#menu').querySelectorAll('[data-quality]').forEach(b => b.classList.toggle('on', b.dataset.quality === W.quality.pin)); $('#menu').querySelectorAll('[data-ground]').forEach(b => b.classList.toggle('on', b.dataset.ground === W.groundMode)); $('#menu').querySelectorAll('[data-as]').forEach(b => b.classList.toggle('on', b.dataset.as === W.character)); $('#menu').querySelectorAll('[data-world]').forEach(b => b.classList.toggle('on', b.dataset.world === W.world)); $('#menu').querySelectorAll('[data-sky]').forEach(b => b.classList.toggle('on', b.dataset.sky === W.skyMode)); $('#menu').querySelectorAll('[data-weather]').forEach(b => b.classList.toggle('on', b.dataset.weather === W.weather)); }
 /* ───────────────────────── the sky ───────────────────────── */
 /** The sky follows the world preset, the chosen sky mode and weather, and the place's clock. */
 function skyApply() { if (!W.sky) return null; return W.sky.set({ preset: Worlds.PRESETS[W.world], mode: W.skyMode, weather: W.weather, lat: W.place && W.place.lat, lon: W.place && W.place.lon }); }
@@ -217,6 +225,7 @@ function layStreets(G, win) {
   if (W.lamps) { W.lamps.lay(G, win.roads || [], Ground.FOOT, Worlds.PRESETS[W.world].lights); W.lamps.setNight(W.night || 0); }
   if (W.flora) { W.flora.lay(G, win, Ground.FOOT); W.flora.setNight(W.night || 0); }
   if (W.traffic) { W.traffic.setRoads(win.roads || []); W.traffic.lay(G, win); }
+  if (W.vehicles && W.ready) W.vehicles.lay();
   try { console.info(`[roads] ${(win.roads || []).length} roads · ${roads ? roads.geometry.attributes.position.count / 3 : 0} triangles · streets ${streets ? streets.geometry.attributes.position.count / 3 : 0} triangles · ${(win.areas || []).length} lots`); } catch (e) { }
 }
 /** Buildings that arrived after we started walking: the city, the roads, the crowd and the saved damage. */
@@ -232,7 +241,7 @@ function installBuildings(win, osm) {
 function installWindow(win) {
   const scene = W.scene, preset = Worlds.PRESETS[W.world];
   if (W.G) { scene.remove(W.G.mesh); W.G.mesh.geometry.dispose(); dropStreets(W.G); }
-  const G = Ground.make(win.field, M, preset.paint); scene.add(G.mesh);
+  const G = Ground.make(win.field, M, preset.paint, W.groundMode); scene.add(G.mesh);
   if (win.imagery && preset.imagery) Ground.drape(G, win.imagery);
   layStreets(G, win);
   W.G = G; W.P = win.P; W.place = win.place; W.win = win;
@@ -295,7 +304,7 @@ function harvestRaw(groups) {
 }
 /** The player's figure: meshes from raw geometry in the definition's colours, hung on a fresh skeleton. */
 function makePlayer(name) {
-  const def = Minifig.DEFS[name], rig = Minifig.skeleton(M), parts = Minifig.partsOf(def);
+  const def = Minifig.DEFS[name], rig = Minifig.skeleton(M, def), parts = Minifig.partsOf(def);
   const groups = parts.map(([slot, part, col]) => {
     const g = new THREE.Group(), geom = W.raw.get(part); if (!geom) return g;
     const c = W.colours(col), trans = col === 36 || col === 33;
@@ -307,14 +316,14 @@ function makePlayer(name) {
 }
 function setCharacter(name) {
   if (!Minifig.DEFS[name]) return; W.character = name; markMenu();
-  if (!W.raw) return;
+  if (!W.raw) return; if (W.vehicles && W.ready && W.mode === 'walk') { W.spawn = W.rig.pos.clone(); W.vehicles.lay(); }
   const old = W.rig; const rig = makePlayer(name);
   if (old) { rig.pos.copy(old.pos); rig.heading = old.heading; rig.cam = old.cam; rig.figure.rotation.y = old.heading; rig.figure.visible = old.figure.visible; W.scene.remove(old.figure); }
   W.rig = rig; $('#mode').textContent = (W.mode === 'walk' ? 'walk · ' : 'fly · ') + (W.mode === 'walk' ? Minifig.DEFS[name].name : 'TIE'); hintFor();
 }
 function hintFor() {
   const d = Minifig.DEFS[W.character];
-  $('#hint').textContent = W.mode === 'ride' ? (W.veh && W.veh.fly ? 'left thumb: push up to climb, let go to level off, sideways to turn · second finger boosts · Land brings it down anywhere' : 'left thumb: up drives, sideways steers, down reverses · second finger boosts')
+  $('#hint').textContent = W.mode === 'ride' ? (W.veh && W.veh.fly ? (W.veh.K.stall === 0 ? 'left thumb: push up to climb, pull back to sink, sideways to turn · second finger boosts · Land sets it down' : 'left thumb: push up to climb, let go to level off, sideways to turn · second finger boosts · Land brings it down anywhere') : 'left thumb: up drives, sideways steers, down reverses · second finger boosts')
     : W.mode === 'fly' ? 'drag anywhere to carve · second finger boosts · tap right fires · hold right for a torpedo'
     : W.build && W.build.on ? (W.build.pick ? 'aim at a brick of yours and tap to pick it up' : 'aim with the reticle · tap to place · walk up to stack')
     : `left thumb walks · right thumb looks · tap right ${d.saber ? 'swings the saber' : d.weapon ? 'fires' : 'shoves'}${document.body.classList.contains('wb-off') ? ' · say what to build below' : ''}`;
@@ -327,6 +336,7 @@ function setWorld(name) {
   if (sets) for (const b of W.city.buildings) if (sets[b.id]) W.city.applyRemoved(b, sets[b.id]);   // a new palette keeps the old damage
   if (p.imagery && W.win && W.win.imagery) Ground.drape(W.G, W.win.imagery); else Ground.recolour(W.G, p.paint);
   if (W.lamps) W.lamps.setLights(p.lights); if (W.city) W.city.setLights(p.lights); skyApply(); document.body.dataset.world = name; toast(p.name, 900);
+  if (W.vehicles && W.ready) W.vehicles.lay();
   if (p.imagery && W.win && !W.win.imagery && !W.win.baked && !W.win.imageryTried) lateImagery(W.win);
 }
 /** Earth chosen after starting on another planet: fetch the aerial imagery now and drape it if we are still on Earth. */
@@ -365,6 +375,7 @@ function bindInput() {
     if (p === primary) { primary = null; ind.classList.remove('on'); const tgt = W.mode === 'fly' ? W.input.fly : W.input.L; tgt.x = tgt.y = tgt.mag = 0; const next = W.mode === 'fly' ? null : [...PT.values()].find(q => q.left); if (next) { primary = next; next.x0 = next.x; next.y0 = next.y; showStick(next.x, next.y, 0, 0); } }
     if (p.id === lookId) lookId = null;
     if (p.multi && PT.size === 0 && p.moved < 20 && performance.now() - W.multiAt < 450 && W.mode === 'walk') W.input.push = true;   // two-finger tap: the Force
+    if (tap && W.map && !p.multi) { const r = $('#minimap').getBoundingClientRect(); if (r.width && Math.hypot(p.x - (r.left + r.width / 2), p.y - (r.top + r.height / 2)) < r.width / 2) W.map.setOpen(true); }   // a clean tap on the minimap opens the map; a drag there is still the stick
     if (W.mode === 'fly' || W.mode === 'ride') { if (!p.left && !p.multi && p.moved < 14) { if (hold) W.input.torpedo = true; else if (tap) W.input.fireOnce = true; } }
     else if (W.build && W.build.on) { if (tap) buildAct(); }
     else if (tap && !p.left) W.input.saber = true;
@@ -435,9 +446,9 @@ function los(a, b) {
   return true;
 }
 function segCross(ax, az, bx, bz, cx, cz, dx, dz) { const d1 = (bx - ax) * (cz - az) - (bz - az) * (cx - ax), d2 = (bx - ax) * (dz - az) - (bz - az) * (dx - ax), d3 = (dx - cx) * (az - cz) - (dz - cz) * (ax - cx), d4 = (dx - cx) * (bz - cz) - (dz - cz) * (bx - cx); return d1 * d2 < 0 && d3 * d4 < 0; }
-const WORLD = { groundH: (x, z) => W.G.h(x, z), pushOut };
+const WORLD = { groundH: (x, z) => W.G.h(x, z) + Ground.layerAt(W.G, x, z), pushOut };   // the terrain, plus the road, the sidewalk or the lawn laid on it
 /** What feet stand on: the ground, or a placed brick no higher than a step above them. */
-const WALK = { groundH: (x, z) => { const g = W.G.h(x, z); if (!W.build || !W.rig) return g; const f = Math.max(Ground.deckAt(W.G, x, z) <= W.rig.pos.y + 30 ? Ground.deckAt(W.G, x, z) : -Infinity, W.city ? W.city.floorAt(x, z, W.rig.pos.y + 30) : -Infinity, W.build.floorAt(x, z, W.rig.pos.y + 30), W.props ? W.props.floorAt(x, z, W.rig.pos.y + 30) : -Infinity, W.debris ? W.debris.floorAt(x, z, W.rig.pos.y + 30) : -Infinity); return f > g ? f : g; }, pushOut };   // rubble is a floor too
+const WALK = { groundH: (x, z) => { const g = W.G.h(x, z) + Ground.layerAt(W.G, x, z); if (!W.build || !W.rig) return g; const f = Math.max(Ground.deckAt(W.G, x, z) <= W.rig.pos.y + 30 ? Ground.deckAt(W.G, x, z) : -Infinity, W.city ? W.city.floorAt(x, z, W.rig.pos.y + 30) : -Infinity, W.build.floorAt(x, z, W.rig.pos.y + 30), W.props ? W.props.floorAt(x, z, W.rig.pos.y + 30) : -Infinity, W.debris ? W.debris.floorAt(x, z, W.rig.pos.y + 30) : -Infinity); return f > g ? f : g; }, pushOut, solid: (x, y, z) => { for (const b of W.city.aabbs(x, z, 1)) if (x > b.min.x && x < b.max.x && z > b.min.z && z < b.max.z && y > b.min.y && y < b.max.y) return true; return false; } };   // rubble is a floor too; a wall stops the camera
 /** Boxes that stop ships, bolts and debris: buildings and builds. */
 function allBoxes(x, z, r) { let a = W.city.aabbs(x, z, r); if (W.build) a = a.concat(W.build.aabbs(x, z, r)); if (W.props) a = a.concat(W.props.aabbs(x, z, r)); return a; }
 
@@ -523,13 +534,22 @@ function nearShip() { if (!W.ship || !W.rig) return Infinity; return Math.hypot(
 /** The nearest vehicle prop (one the builder made with a `vehicle` op) within 4 m, or null. */
 function nearVehicle() {
   if (!W.props || !W.rig) return null; let best = null, bd = 4 * M;
-  for (const it of W.props.near(W.rig.pos.x, W.rig.pos.z, 4 * M)) { if (!it.ready || !it.src || (String(it.src.op) !== 'vehicle' && !it.src.ride)) continue; const d = it.box.distanceToPoint(V1.set(W.rig.pos.x, W.rig.pos.y + M, W.rig.pos.z)); if (d < bd) { bd = d; best = it; } }
+  for (const it of W.props.near(W.rig.pos.x, W.rig.pos.z, 4 * M)) { if (!it.ready || !it.src || (String(it.src.op) !== 'vehicle' && String(it.src.op) !== 'walker' && String(it.src.op) !== 'kit' && !it.src.ride)) continue; const d = it.box.distanceToPoint(V1.set(W.rig.pos.x, W.rig.pos.y + M, W.rig.pos.z)); if (d < bd) { bd = d; best = it; } }
   return best;
 }
-function vehicleVerb(it) { return Drive.KINDS[Drive.kindOf(it)].fly ? 'Fly' : 'Drive'; }
+function vehicleVerb(it) { const k = Drive.KINDS[Drive.kindOf(it)]; return k.fly ? 'Fly' : k.walker ? 'Board' : 'Drive'; }
+/** The nearest parked or passing car of the traffic within reach, for getting in. */
+function nearCar() { if (!W.traffic || !W.rig || W.mode !== 'walk') return null; return W.traffic.nearest(W.rig.pos.x, W.rig.pos.z, 2.5 * M); }
+/** Take a car out of the traffic and drive it: it becomes a prop like any built car, so it syncs, persists and can be blasted. */
+async function takeCar(c) {
+  c = c || nearCar(); if (!c || W.mode !== 'walk' || W.dead || W.taking) return null;
+  const t = W.traffic.take(c); if (!t) return null; W.taking = true;
+  try { const it = await W.props.place(t.mpd, t.x, t.y, t.z, t.yaw / (Math.PI / 2), false, { op: 'vehicle', kind: t.kind, len: t.len, col: t.col, taken: true }); if (it) boardVehicle(it); return it; }
+  finally { W.taking = false; }
+}
 function promptAction() {
   if (!W.ready) return;
-  if (W.mode === 'walk') { const v = nearVehicle(), ds = nearShip(); if (ds < 6 && (!v || ds * M < v.box.distanceToPoint(W.rig.pos))) board(); else if (v) boardVehicle(v); }
+  if (W.mode === 'walk') { const v = nearVehicle(), ds = nearShip(); if (ds < 6 && (!v || ds * M < v.box.distanceToPoint(W.rig.pos))) board(); else if (v) boardVehicle(v); else if (nearCar()) takeCar(); }
   else if (W.mode === 'fly' && !W.tie.landing) land();
   else if (W.mode === 'ride') { const V = W.veh; if (V.fly && V.airborne) { if (!V.landing) { Drive.land(V); toast('landing'); } } else leaveVehicle(); }
 }
@@ -537,7 +557,7 @@ function promptAction() {
 function boardVehicle(it) {
   if (W.mode !== 'walk' || W.dead || !it || !it.ready) return;
   const V = Drive.create({ prop: it, M, groundH: WORLD.groundH, aabbs: (x, z, r) => allBoxes(x, z, r).filter(b => b !== it.box) });
-  W.veh = V; W.mode = 'ride'; document.body.classList.add('ride'); $('#mode').textContent = `${V.fly ? 'fly' : 'drive'} · ${V.kind}`; hintFor();
+  W.veh = V; W.mode = 'ride'; document.body.classList.add('ride'); $('#mode').textContent = `${V.fly ? 'fly' : V.K.walker ? 'walk' : 'drive'} · ${V.K.walker ? V.kind.toUpperCase().replace('AT', 'AT-') : V.kind}`; hintFor();
   seatFigure(W.rig, V); addHeadlights(V); primary = null; W.input.L.mag = 0; W.rideAcc = 0; W.fireAcc = 0; toast(`${vehicleVerb(it).toLowerCase()} the ${V.kind}`, 900); Fx.Sfx.thud(0.2);
   if (W.build && W.build.on) toggleBuild(false);
 }
@@ -552,8 +572,8 @@ function unseatFigure(rig) { const f = rig.figure; if (f.parent && f.parent !== 
 /** Fire from a ride: two bolts from the front corners; a held tap sends one heavy bolt that blasts where it lands. */
 function rideFire(heavy) {
   const V = W.veh; if (!V || W.fireAcc < (heavy ? 0.5 : 0.15)) return false; W.fireAcc = 0;
-  const f = Drive.forward(V, V1.clone()), side = V2.set(Math.cos(V.heading), 0, -Math.sin(V.heading)), dir = f.clone(); if (!V.fly) dir.y -= 0.03; dir.normalize();
-  const base = V.pos.clone().addScaledVector(f, V.r * 0.9); base.y = V.pos.y + (V.prop.box.max.y - V.prop.box.min.y) * 0.5;
+  const f = Drive.forward(V, V1.clone()), side = V2.set(Math.cos(V.heading), 0, -Math.sin(V.heading)), dir = f.clone(); if (!V.fly) dir.y -= V.K.gunDown || 0.03; dir.normalize();   // a walker's guns look down from its head
+  const base = V.pos.clone().addScaledVector(f, V.K.gunAhead ? V.K.gunAhead * M : V.r * 0.9); base.y = V.pos.y + (V.prop.kit && V.K.walker ? (V.prop.box.max.y - V.prop.box.min.y) * 0.82 : V.K.gunY ? V.K.gunY * M : (V.prop.box.max.y - V.prop.box.min.y) * 0.5);
   if (heavy) { const b = W.bolts.fire(base, dir, 'player', 1000); if (b) { b.heavy = true; b.mesh.scale.set(2.2, 2.2, 1.4); } Fx.Sfx.torpedo(); Fx.haptic([30, 30, 60]); }
   else { for (const k of [-1, 1]) { const o = base.clone().addScaledVector(side, k * V.r * 0.45); const b = W.bolts.fire(o, dir, 'player'); if (b) { b.heavy = false; b.mesh.scale.set(1, 1, 1); } } Fx.Sfx.blaster(); Fx.haptic(8); }
   return true;
@@ -628,10 +648,10 @@ function simulate(dt) {
     }
     Minifig.camera(W.rig, W.camera, dt, I.look, WALK, portrait, W.build && W.build.on); I.look.dx = I.look.dy = 0;
     if (W.build) W.build.aim(W.camera, portrait);
-    const v = !W.dead && nearVehicle(), nearT = nearShip() < 6 && !W.dead; $('#prompt').classList.toggle('on', !!(nearT || v)); $('#prompt').textContent = nearT && (!v || nearShip() * M < v.box.distanceToPoint(W.rig.pos)) ? 'Board the TIE' : v ? `${vehicleVerb(v)} the ${Drive.kindOf(v)}` : 'Board the TIE';
+    const v = !W.dead && nearVehicle(), nearT = nearShip() < 6 && !W.dead, car = !v && !nearT && !W.dead && nearCar(); $('#prompt').classList.toggle('on', !!(nearT || v || car)); $('#prompt').textContent = nearT && (!v || nearShip() * M < v.box.distanceToPoint(W.rig.pos)) ? 'Board the TIE' : v ? `${vehicleVerb(v)} the ${Drive.kindOf(v)}` : car ? 'Get in' : 'Board the TIE';
   } else if (W.mode === 'ride') {
     const V = W.veh; V.input.x = I.L.x; V.input.y = I.L.y; V.input.mag = I.L.mag; V.input.boost = I.boost;
-    const alive = Drive.step(V, dt, { roofAt: (x, z, y) => { let top = -Infinity; for (const b of W.city.aabbs(x, z, 10)) if (x > b.min.x && x < b.max.x && z > b.min.z && z < b.max.z && b.max.y <= y + 0.5 * M && b.max.y > top) top = b.max.y; return top; }, pushOut: (pos, r) => vehPushOut(pos, r, V.prop.id), blast: (p, r, vel, kind) => { blast(p, r, vel, true, false, kind); W.shake = Math.max(W.shake, 0.3); flash(); Fx.Sfx.crunch(); Fx.haptic([30, 20, 40]); }, knock: (c, r, vel) => { const n = W.crowd.hitWithin(c, r, vel, W.debris); if (n) { Fx.Sfx.clatter(1); Fx.haptic(15); } }, sfx: { crunch: () => { Fx.Sfx.crunch(); Fx.haptic(20); }, thud: k => Fx.Sfx.thud(k) } });
+    const alive = Drive.step(V, dt, { roofAt: (x, z, y) => { let top = -Infinity; for (const b of W.city.aabbs(x, z, 10)) if (x > b.min.x && x < b.max.x && z > b.min.z && z < b.max.z && b.max.y <= y + 0.5 * M && b.max.y > top) top = b.max.y; return top; }, pushOut: (pos, r) => vehPushOut(pos, r, V.prop.id), blast: (p, r, vel, kind) => { blast(p, r, vel, true, false, kind); W.shake = Math.max(W.shake, 0.3); flash(); Fx.Sfx.crunch(); Fx.haptic([30, 20, 40]); }, knock: (c, r, vel) => { const n = W.crowd.hitWithin(c, r, vel, W.debris); if (n) { Fx.Sfx.clatter(1); Fx.haptic(15); } }, sfx: { crunch: () => { Fx.Sfx.crunch(); Fx.haptic(20); }, thud: k => Fx.Sfx.thud(k) }, skid: V => { Fx.Sfx.skid(); Fx.haptic(8); if (W.smoke) { const b = Drive.forward(V, V1.clone()); W.smoke.puff(V2.copy(V.pos).addScaledVector(b, -V.hz * 0.8), 3, 0.6 * M); } }, stomp: V => { Fx.Sfx.thud(V.K.legs === 4 ? 0.7 : 0.45); Fx.haptic(V.K.legs === 4 ? 30 : 15); W.shake = Math.max(W.shake, V.K.legs === 4 ? 0.22 : 0.12); } });
     W.rig.heading = V.heading;                                                  // rig.pos is the figure's own position: seated, it stays local to the vehicle
     W.fireAcc = (W.fireAcc || 0) + dt; if (I.torpedo) { I.torpedo = false; rideFire(true); } else if (I.fireOnce || I.fire) { I.fireOnce = false; rideFire(false); }
     if (W.rig.seated) { W.rig.t = (W.rig.t || 0) + dt; Minifig.pose(W.rig, { phase: 0, gait: 0, t: W.rig.t, swing: null, aim: 0, sit: true }); }
@@ -662,6 +682,8 @@ function simulate(dt) {
   if (W.traffic) { const bl = []; if (W.mode === 'walk' && !W.dead) bl.push({ x: W.rig.pos.x, z: W.rig.pos.z, r: 0.6 * M }); else if (W.mode === 'ride' && W.veh) bl.push({ x: W.veh.pos.x, z: W.veh.pos.z, r: W.veh.r }); W.traffic.step(dt, { blockers: bl, night: W.night || 0 }); }
   { let checked = 0; for (const p of W.debris.pieces) { if (p.rest || p.settling || checked > 80) continue; if (p.vel.lengthSq() < 25 * M * M) continue; checked++; const c = W.debris.centre(p, V1); if (W.crowd.hitWithin(c, 0.9 * M, p.vel.clone().multiplyScalar(0.5), W.debris)) Fx.Sfx.clatter(1); } }
   if (W.room.role) { W.room.tick(dt); netTick(dt); stepRemotes(dt); }
+  if (W.bubble) { const p = playerPos(); W.bubble.position.set(p.x, p.y + (W.mode === 'walk' ? 215 : W.mode === 'ride' ? 150 : 290), p.z); if (W.t > W.bubbleUntil) { W.scene.remove(W.bubble); W.bubble = null; } }
+  if (W.said.length && (W.chatAcc = (W.chatAcc || 0) + dt) > 0.5) { W.chatAcc = 0; chatPaint(); }
   W.build.tick(dt); if (W.props) W.props.tick(dt); if ((W.dmgAcc += dt) > 2) { W.dmgAcc = 0; saveDamage(); }
   W.crowd.step(dt, { player: { pos: playerPos(), alive: W.mode === 'walk' && !W.dead, peace: peaceNow(), running: W.input.run && W.rig.speed > 3 * M, vel: W.rig.vel }, tie: { pos: W.mode === 'ride' ? W.veh.pos : W.tie.pos, flying: W.mode === 'fly' || (W.mode === 'ride' && Math.abs(W.veh.speed) > 2 * M) }, bolts: W.bolts, debris: W.debris, los, pushOut });
   W.city.update(W.camera, playerPos()); if (W.mode === 'walk') W.city.doors(W.rig.pos, dt);
@@ -696,11 +718,15 @@ async function reland(place, quiet) {
     let lx = 0, lz = 0;
     if (keep) { const l = win.P.toLocal(keep.lat, keep.lon); lx = l.x * M; lz = l.z * M; } else { const s = spawnPoint(win); lx = s.x * M; lz = s.z * M; }
     if (W.mode === 'walk') {
-      W.rig.pos.set(lx, W.G.h(lx, lz), lz); W.rig.cam.set = false;
+      W.rig.pos.set(lx, W.G.h(lx, lz), lz); W.rig.cam.set = false; W.spawn = W.rig.pos.clone();
       if (!quiet) { W.rig.heading = Math.PI; W.rig.cam.yaw = W.rig.heading + Math.PI; parkShip(lx, lz); }
       else { const sp = W.ship.position, sw = W.prevP.toWGS(sp.x / M, sp.z / M), sl = win.P.toLocal(sw.lat, sw.lon); W.ship.position.set(sl.x * M, W.G.h(sl.x * M, sl.z * M) + 122, sl.z * M); }
+    } else if (W.mode === 'ride' && W.veh) {                                     // a ride crosses into the new window with its prop: the prop rows of the old place are gone, so it is added again here
+      const V = W.veh, it = V.prop, y = WORLD.groundH(lx, lz) + V.K.hover * M; V.pos.set(lx, y, lz); V.airborne = V.airborne && V.fly; V.cam.set = false;
+      if (!W.props.items.has(it.id)) { const re = { id: it.id, mpd: it.mpd, x: lx, y: y - V.K.hover * M, z: lz, yaw: V.heading / (Math.PI / 2), src: it.src }; W.props.items.set(it.id, it); it.x = re.x; it.y = re.y; it.z = re.z; it.yaw = re.yaw; if (it.group && !it.group.parent) W.scene.add(it.group); W.props.moved(it); }
+      Drive.park && V.group.position.set(lx, y, lz); W.spawn = V.pos.clone(); W.ship.position.set(lx + 9 * M, W.G.h(lx + 9 * M, lz) + 122, lz);
     } else { W.tie.pos.set(lx, W.tie.pos.y, lz); W.tie.prevPos.copy(W.tie.pos); }
-    W.prevP = win.P; if (!W.crowd.remote) W.crowd.populate(W.mode === 'walk' ? W.rig.pos : W.tie.pos);
+    W.prevP = win.P; if (!W.crowd.remote) W.crowd.populate(playerPos());
     if (!quiet) { stage('bricks', 'done'); veilTick(false); $('#veil').classList.add('gone'); }
     if (W.room.role === 'host' && !quiet) W.room.send({ t: 'place', place: wirePlace(), world: W.world });
   } catch (e) { console.error(e); if (!quiet) stall('Could not go there: ' + (e.message || e)); }
@@ -720,7 +746,7 @@ async function goAnywhere(q) {
 
 /* ───────────────────────── boot ───────────────────────── */
 async function boot() {
-  try { W.name = Q.get('name') || localStorage.getItem('world.name') || ''; } catch (e) { W.name = Q.get('name') || ''; }
+  try { W.name = Q.get('me') || localStorage.getItem('world.name') || ''; } catch (e) { W.name = Q.get('me') || ''; }   // ?me= names the player; ?name= is the place
   if (!W.name) W.name = 'pilot-' + Build.Build.pid().slice(0, 4);
   W.room = Net.create({ transport: Q.get('net') === 'bc' ? 'bc' : undefined, onMessage: netHandle, onJoin: id => { roomStat(); if (id !== 'host') toast('someone joined', 900); }, onLeave: id => { dropRemote(id); roomStat(); if (id === 'host') leaveRoom(false); else toast('a player left', 900); }, onStatus: roomStat });
   try { W.truce = localStorage.getItem('world.truce') === '1'; } catch (e) { W.truce = false; }
@@ -760,7 +786,7 @@ async function boot() {
     for (const [name, g] of W.geoms) W.debris.register(name, g.geom, name.startsWith('wall') ? 600 : 200);
     for (const [name, g] of W.raw) W.debris.register(name, g, 120);
     for (const [part, k] of W.build.kinds) W.debris.register('b:' + part, k.geom, 200); W.build.onKind = (part, geom) => W.debris.register('b:' + part, geom, 200);
-    W.props = new Props.Props({ scene: W.scene, loader: W.loader, M, debris: W.debris }); W.props.onEdit = ops => queueEdit(ops, 'prop');
+    W.props = new Props.Props({ scene: W.scene, loader: W.loader, M, debris: W.debris }); W.props.onEdit = ops => queueEdit(ops, 'prop'); W.kits = Kits.create({ props: W.props, fetchText: url => fetchText(url) }); W.vehicles = Vehicles.create({ W, M });
     W.traffic = Traffic.create({ scene: W.scene, M, props: W.props, G: null, debris: W.debris });
     W.bolts = new Characters.Bolts({ scene: W.scene, M, groundH: WORLD.groundH });
     W.crowd = new Characters.Crowd({ scene: W.scene, M, geoms: W.raw, colours: W.colours, groundH: WORLD.groundH });
@@ -772,7 +798,7 @@ async function boot() {
         if (/GROUND/.test(label)) { if (sev > 0.5) { crater(p, 2 * M, 0.5 * M); W.smoke.puff(p, 10, 2 * M); } Fx.Sfx.thud(clamp(sev, 0.3, 1)); Fx.haptic(30); }
         else { blast(p, (3 + clamp(closing / 300, 0, 3)) * M, W.tie.vel.clone().multiplyScalar(.25), false, false, 'ram'); Fx.Sfx.crunch(); Fx.haptic([40, 30, 60]); } } });
     setCharacter(W.character);
-    const s = spawnPoint(win); W.rig.pos.set(s.x * M, W.G.h(s.x * M, s.z * M), s.z * M); W.rig.heading = Math.PI; W.rig.figure.rotation.y = Math.PI; W.rig.cam.yaw = W.rig.heading + Math.PI; parkShip(W.rig.pos.x, W.rig.pos.z);
+    const s = spawnPoint(win); W.rig.pos.set(s.x * M, W.G.h(s.x * M, s.z * M), s.z * M); W.spawn = W.rig.pos.clone(); W.rig.heading = Math.PI; W.rig.figure.rotation.y = Math.PI; W.rig.cam.yaw = W.rig.heading + Math.PI; parkShip(W.rig.pos.x, W.rig.pos.z);
     W.crowd.populate(W.rig.pos);
     for (let k = 0; k < 20; k++) W.city.update(W.camera, W.rig.pos);
     const r = engine.renderer, real = r.render.bind(r);
@@ -782,7 +808,7 @@ async function boot() {
     { const orig = W.crowd.burst.bind(W.crowd); W.crowd.burst = (n, vel, debris) => { const was = n.alive; orig(n, vel, debris); if (was && W.room && W.room.role === 'guest' && n.ri != null) W.room.send({ t: 'npcHit', i: n.ri }); }; }
     paintPalette();
     if (W.dormant) { const why = W.dormant; W.dormant = null; W.ready = true; goDormant(why); return; }   // another tab claimed the graphics while this one was still loading
-    stage('bricks', 'done', ''); W.last = performance.now(); W.ready = true; VEIL.readyAt = performance.now() / 1000; veilTick(false); $('#veil').classList.add('gone'); $('#menu').classList.remove('open'); paint(); hintFor();
+    stage('bricks', 'done', ''); W.last = performance.now(); W.ready = true; VEIL.readyAt = performance.now() / 1000; veilTick(false); if (W.vehicles) W.vehicles.lay(); $('#veil').classList.add('gone'); $('#menu').classList.remove('open'); paint(); hintFor();
     W.traffic.prepare().then(() => { if (W.win && W.G) { W.traffic.setRoads(W.win.roads || []); W.traffic.lay(W.G, W.win); } }).catch(e => console.warn('traffic', e));   // the cars come once the world is up
     if (Q.get('room')) joinRoom(Q.get('room'), true);
     bindMaster(); checkInbox();
@@ -895,6 +921,7 @@ function wbHint() {
 /** Words go to the model: a fresh build, or a change to the draft that stands. */
 async function say(words) {
   words = (words || '').trim(); if (!words) return;
+  if (W.room.role && /^(["\u201c]|say\s)/i.test(words)) { sayToRoom(words.replace(/^(["\u201c]|say\s+)/i, '').replace(/["\u201d]$/, '')); $('#words').value = ''; return; }
   if (/^\s*\{[\s\S]*\}\s*$/.test(words)) { let prog = null; try { prog = JSON.parse(words); } catch (e) { mbStatus('that JSON does not parse: ' + e.message, 'warn'); return; } if (!prog || !Array.isArray(prog.ops)) { mbStatus('a program is {"name", "ops": [...]}', 'warn'); return; }
     const keep = W.master.result && W.master.anchor ? { anchor: { ...W.master.anchor }, rot: W.master.rot, ids: W.master.replace } : null; const res = Dsl.compile(prog); W.master.conv = { program: prog, messages: [] }; W.master.words = W.master.words || prog.name || 'program'; mbLog('compile', compileLine('your program', res)); mbShow(res, null, keep); $('#words').value = ''; $('#words').style.height = ''; return res.report; }
   if (W.master.result && W.master.conv) return mbEdit(words);
@@ -1145,6 +1172,7 @@ async function joinRoom(code, orHost) {
 function leaveRoom(tell = true) {
   for (const id of [...W.remotes.keys()]) dropRemote(id);
   if (W.room.role) W.room.leave(tell);
+  if (W.traffic) W.traffic.setRemote(false);
   if (W.crowd.remote) { W.crowd.remote = false; for (const n of W.crowd.npcs.slice()) W.crowd.remove(n); W.crowd.mirror = null; W.crowd.populate(W.mode === 'walk' ? W.rig.pos : W.tie.pos); }
   roomStat(); toast('on your own again', 900);
 }
@@ -1153,15 +1181,28 @@ function flushEdits() { for (const [q, k] of [[W.editQ, null], [W.propQ, 'prop']
 function myState() {
   const r = W.rig, s = W.ship.position;
   const m = { t: 'p', m: W.mode, ch: W.character, hp: W.health, dead: !!W.dead, name: W.name, ship: [Math.round(s.x), Math.round(s.y), Math.round(s.z), +W.ship.quaternion.y.toFixed(3), +W.ship.quaternion.w.toFixed(3)] };
+  const pos = playerPos(); geoRef(m, 'll', 'g', pos); geoRef(m, 'sll', 'sg', s);   // the other phone puts us on its own ground at this spot of the globe
   if (W.mode === 'walk') { m.x = Math.round(r.pos.x); m.y = Math.round(r.pos.y); m.z = Math.round(r.pos.z); m.h = +r.heading.toFixed(3); m.an = [+r.phase.toFixed(2), +r.gait.toFixed(2), r.swing ? +((r.t - r.swing.t0) / 0.42).toFixed(2) : -1, +r.aim.toFixed(2)]; }
   else if (W.mode === 'ride') { const V = W.veh; m.x = Math.round(V.pos.x); m.y = Math.round(V.pos.y); m.z = Math.round(V.pos.z); m.h = +V.heading.toFixed(3); m.veh = V.prop.id; }
   else { const F = W.tie; m.x = Math.round(F.pos.x); m.y = Math.round(F.pos.y); m.z = Math.round(F.pos.z); m.q = F.quat.toArray().map(v => +v.toFixed(4)); m.v = F.vel.toArray().map(Math.round); }
   return m;
 }
+/** Where a point is on the globe and how high above our own ground: the receiver rebuilds it in its frame, on its terrain. */
+function geoRef(m, kll, kg, pos) {
+  if (W.P) { const w = W.P.toWGS(pos.x / M, pos.z / M); m[kll] = [+w.lat.toFixed(6), +w.lon.toFixed(6)]; }
+  if (W.G) m[kg] = Math.round(pos.y - W.G.h(pos.x, pos.z));
+}
+function geoPoint(ll, g, x, y, z, out) {
+  let tx = x, ty = y, tz = z;
+  if (ll && W.P) { const l = W.P.toLocal(ll[0], ll[1]); tx = l.x * M; tz = l.z * M; }
+  if (g != null && W.G) ty = W.G.h(tx, tz) + g;
+  return out.set(tx, ty, tz);
+}
 function netTick(dt) {
   if ((W.netAcc += dt) >= 1 / 12) { W.netAcc = 0; W.room.send(myState(), { fast: true }); }
   if ((W.editAcc += dt) >= 0.25) { W.editAcc = 0; flushEdits(); }
   if (W.room.role === 'host' && (W.crowdAcc += dt) >= 0.2) { W.crowdAcc = 0; W.room.send({ t: 'crowd', n: W.crowd.serialize() }, { fast: true }); }
+  if (W.room.role === 'host' && W.traffic && (W.carsAcc = (W.carsAcc || 0) + dt) >= 0.25) { W.carsAcc = 0; const c = W.traffic.snapshot(); if (c.length) W.room.send({ t: 'cars', c }, { fast: true }); }
 }
 function snapFor(id) { W.room.send({ t: 'snap', build: W.build.rows(), props: W.props.rows(), damage: W.city.removedSets(), crowd: W.crowd.serialize(), world: W.world }, { to: id }); }
 async function followHost(place, world) {
@@ -1173,7 +1214,7 @@ function netHandle(m, from) {
   if (!W.ready) return; const R = W.room;
   switch (m.t) {
     case 'hi': if (R.role === 'host') { R.seen(from, { name: m.name, ch: m.ch }); R.send({ t: 'hello', place: wirePlace(), world: W.world, name: W.name, ch: W.character }, { to: from }); } break;
-    case 'hello': if (R.role === 'guest') { R.seen('host', { name: m.name, ch: m.ch }); W.crowd.remote = true; for (const n of W.crowd.npcs.slice()) W.crowd.remove(n); W.crowd.mirror = new Map(); followHost(m.place, m.world); } break;
+    case 'hello': if (R.role === 'guest') { R.seen('host', { name: m.name, ch: m.ch }); W.crowd.remote = true; if (W.traffic) W.traffic.setRemote(true); for (const n of W.crowd.npcs.slice()) W.crowd.remove(n); W.crowd.mirror = new Map(); followHost(m.place, m.world); } break;
     case 'place': if (R.role === 'guest') followHost(m.place, m.world); break;
     case 'ready': if (R.role === 'host') snapFor(from); break;
     case 'snap': { if (R.role !== 'guest') break; const mine = W.build.rows(); W.build.applyOps({ up: m.build || [] }); if (m.props) { const mineP = W.props.rows(); W.props.applyOps({ up: m.props }); if (mineP.length) R.send({ t: 'edit', up: mineP, rm: [], k: 'prop' }); } for (const b of W.city.buildings) if (m.damage && m.damage[b.id]) W.city.applyRemoved(b, m.damage[b.id]); if (m.crowd) W.crowd.applyRemote(m.crowd); if (mine.length && mine.length <= 2000) R.send({ t: 'edit', up: mine, rm: [] }); toast(`${(m.build || []).length} bricks in this room`, 1200); break; }
@@ -1183,6 +1224,8 @@ function netHandle(m, from) {
     case 'crater': crater(new THREE.Vector3().fromArray(m.p), m.r, m.d, true); break;
     case 'edit': { const r = m.k === 'prop' ? W.props.applyOps({ up: m.up, rm: m.rm }) : W.build.applyOps({ up: m.up, rm: m.rm }); if (r.added) toast(`${R.players.get(from) ? R.players.get(from).name : 'someone'} built`, 500); break; }
     case 'crowd': if (R.role === 'guest') W.crowd.applyRemote(m.n); break;
+    case 'cars': if (R.role === 'guest' && W.traffic) W.traffic.applyRemote(m.c); break;
+    case 'say': showSay(from, m.text); break;
     case 'npcHit': if (R.role === 'host') { const n = W.crowd.npcs.find(n => n.i === m.i && n.alive); if (n) W.crowd.burst(n, null, W.debris); } break;
     case 'reset': W.build.clear(); W.props.clear(); W.city.set(W.win.buildings); W.debris.clear(); toast('the place was reset', 1000); break;
     case 'bye': dropRemote(from); break;
@@ -1205,8 +1248,9 @@ function stepRemotes(dt) {
   const k = 1 - Math.exp(-dt * 10);
   for (const r of W.remotes.values()) {
     const m = r.tgt; if (!m) continue;
-    r.pos.lerp(V1.set(m.x, m.y, m.z), k);
-    if (m.ship) { r.ship.position.set(m.ship[0], m.ship[1], m.ship[2]); if (m.m === 'walk') r.ship.quaternion.set(0, m.ship[3], 0, m.ship[4]).normalize(); }
+    r.pos.lerp(geoPoint(m.ll, m.g, m.x, m.y, m.z, V1), k);
+    if (m.ship) { geoPoint(m.sll, m.sg, m.ship[0], m.ship[1], m.ship[2], r.ship.position); if (m.m === 'walk') r.ship.quaternion.set(0, m.ship[3], 0, m.ship[4]).normalize(); }
+    if (r.bubble) { r.bubble.position.set(r.pos.x, r.pos.y + (m.m === 'walk' ? 215 : m.m === 'ride' ? 150 : 290), r.pos.z); if (W.t > r.bubbleUntil) { W.scene.remove(r.bubble); r.bubble = null; } }
     if (m.m !== 'ride' && r.seatedIn) { const f = r.fig.figure; if (f.parent !== W.scene) { f.parent && f.parent.remove(f); W.scene.add(f); } f.position.set(0, 0, 0); r.seatedIn = null; }
     if (m.m === 'walk') {
       let d = m.h - r.heading; d = Math.atan2(Math.sin(d), Math.cos(d)); r.heading += d * k;
@@ -1224,7 +1268,38 @@ function stepRemotes(dt) {
     }
   }
 }
-function dropRemote(id) { const r = W.remotes.get(id); if (!r) return; if (r.fig) W.scene.remove(r.fig.figure); if (r.ship) W.scene.remove(r.ship); W.scene.remove(r.label); W.remotes.delete(id); }
+/** Something said to the room: a bubble over the speaker for 8 s, a line in the chat, the log. */
+function sayToRoom(text) {
+  text = String(text || '').trim().slice(0, 140); if (!text || !W.room.role) return false;
+  W.room.send({ t: 'say', text }); showSay(null, text); return true;
+}
+function showSay(from, text) {
+  text = String(text || '').slice(0, 140); if (!text) return;
+  const r = from ? W.remotes.get(from) : null, name = from ? (r && r.name) || (W.room.players.get(from) || {}).name || from.slice(0, 6) : W.name;
+  const b = makeBubble(text); if (r) { if (r.bubble) W.scene.remove(r.bubble); r.bubble = b; r.bubbleUntil = W.t + 8; } else { if (W.bubble) W.scene.remove(W.bubble); W.bubble = b; W.bubbleUntil = W.t + 8; }
+  W.scene.add(b); W.said.push({ t: W.t, name, text }); if (W.said.length > 40) W.said.shift(); chatPaint();
+  try { console.info(`[room] ${name}: ${text}`); } catch (e) { }
+}
+function makeBubble(text) {
+  const c = document.createElement('canvas'); c.width = 512; c.height = 120; const g = c.getContext('2d'); g.font = '600 30px -apple-system, Segoe UI, Helvetica, Arial, sans-serif';
+  const words = text.split(/\s+/), lines = []; let cur = ''; for (const w of words) { const t = cur ? cur + ' ' + w : w; if (g.measureText(t).width > 470 && cur) { lines.push(cur); cur = w; } else cur = t; } if (cur) lines.push(cur); if (lines.length > 2) { lines.length = 2; lines[1] = lines[1].slice(0, 26) + '…'; }
+  const h = 20 + lines.length * 38; g.fillStyle = 'rgba(255,255,255,.94)'; g.beginPath(); g.moveTo(16, 4); g.lineTo(496, 4); g.quadraticCurveTo(508, 4, 508, 16); g.lineTo(508, h - 12); g.quadraticCurveTo(508, h, 496, h); g.lineTo(276, h); g.lineTo(256, h + 14); g.lineTo(236, h); g.lineTo(16, h); g.quadraticCurveTo(4, h, 4, h - 12); g.lineTo(4, 16); g.quadraticCurveTo(4, 4, 16, 4); g.closePath(); g.fill();
+  g.fillStyle = '#1a1f2a'; g.textAlign = 'center'; g.textBaseline = 'middle'; lines.forEach((l, i) => g.fillText(l, 256, 24 + i * 38));
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthTest: false, fog: false })); sp.scale.set(240, 56, 1); sp.renderOrder = 6; sp.name = 'bubble'; return sp;
+}
+function chatPaint() {
+  const el = $('#chat'); if (!el) return; const live = W.said.filter(c => W.t - c.t < 8);
+  el.innerHTML = live.slice(-3).map(c => `<div><b>${esc(c.name)}</b> ${esc(c.text)}</div>`).join(''); el.hidden = !live.length;
+}
+function esc(t) { return String(t).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch])); }
+/** The players in the room: name, distance and bearing from us, where they are. */
+function roomList() {
+  const me = playerPos(), out = [];
+  for (const r of W.remotes.values()) { const dx = r.pos.x - me.x, dz = r.pos.z - me.z, d = Math.hypot(dx, dz) / M; out.push({ id: r.id, name: r.name || r.id.slice(0, 6), d: Math.round(d), dir: bearingName(dx, dz), x: r.pos.x / M, z: r.pos.z / M, mode: r.tgt && r.tgt.m }); }
+  return out;
+}
+function bearingName(dx, dz) { const a = Math.atan2(dx, -dz); return ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'][((Math.round(a / (Math.PI / 4)) % 8) + 8) % 8]; }
+function dropRemote(id) { const r = W.remotes.get(id); if (r && r.bubble) W.scene.remove(r.bubble); if (!r) return; if (r.fig) W.scene.remove(r.fig.figure); if (r.ship) W.scene.remove(r.ship); W.scene.remove(r.label); W.remotes.delete(id); }
 
 /* ───────────────────────── test hooks ───────────────────────── */
 Object.assign(W, {
@@ -1232,7 +1307,7 @@ Object.assign(W, {
   state: () => ({
     ready: W.ready, mode: W.mode, character: W.character, world: W.world, place: W.place && W.place.name, baked: !!(W.win && W.win.baked), village: !!(W.win && W.win.village), net: { ...W.net }, geo: Geo.NET,
     groundN: W.G && W.G.n, roadTris: (() => { const r = W.scene && W.scene.getObjectByName('roads'); return r ? r.geometry.attributes.position.count / 3 : 0; })(), imagery: !!(W.G && W.G.imagery), sky: W.scene && '#' + W.scene.background.getHexString(), buildings: W.win ? W.win.buildings.length : 0, roads: W.win ? W.win.roads.length : 0, city: W.city && W.city.stats(),
-    vader: W.rig ? { pos: W.rig.pos.toArray(), heading: W.rig.heading, speed: W.rig.speed, phase: W.rig.phase, gait: W.rig.gait, legR: W.rig.legRP.rotation.x, legL: W.rig.legLP.rotation.x, ground: W.G.h(W.rig.pos.x, W.rig.pos.z), visible: W.rig.figure.visible, swing: !!W.rig.swing, tip: Minifig.saberTip(W.rig, V1).toArray(), fist: Minifig.fist(W.rig, V2).toArray(), armR: W.rig.armRP.rotation.x, armL: W.rig.armLP.rotation.x, aim: W.rig.aim, muzzle: Minifig.muzzle(W.rig, new THREE.Vector3(), V3).toArray(), barrel: V3.toArray(), parts: Object.keys(W.rig.mounted) } : null,
+    vader: W.rig ? { pos: W.rig.pos.toArray(), heading: W.rig.heading, speed: W.rig.speed, phase: W.rig.phase, gait: W.rig.gait, legR: W.rig.legRP.rotation.x, legL: W.rig.legLP.rotation.x, ground: WORLD.groundH(W.rig.pos.x, W.rig.pos.z), visible: W.rig.figure.visible, swing: !!W.rig.swing, tip: Minifig.saberTip(W.rig, V1).toArray(), fist: Minifig.fist(W.rig, V2).toArray(), armR: W.rig.armRP.rotation.x, armL: W.rig.armLP.rotation.x, aim: W.rig.aim, muzzle: Minifig.muzzle(W.rig, new THREE.Vector3(), V3).toArray(), barrel: V3.toArray(), parts: Object.keys(W.rig.mounted) } : null,
     tie: W.tie ? { flying: W.tie.flying, pos: W.tie.pos.toArray(), vel: W.tie.vel.toArray(), speed: W.tie.speed, shields: W.tie.shields, impact: W.tie.impact.text, landing: W.tie.landing, ship: W.ship.position.toArray(), alt: (W.tie.pos.y - W.G.h(W.tie.pos.x, W.tie.pos.z)) / M, hits: W.tie.hits, torps: W.tie.torps.filter(t => t.life > 0).length } : null,
     debris: W.debris && W.debris.stats(), crowd: W.crowd && W.crowd.stats(), health: W.health, dead: W.dead, dets: W.dets, grenades: W.grenades.length, bolts: W.bolts ? W.bolts.live().length : 0,
     calls: W.stats.calls, fps: Math.round(W.stats.fps), steps: W.stats.steps, stepDt: W.stats.stepDt, quality: W.quality.tier, cam: W.camera ? W.camera.position.toArray() : null, camFwd: W.camera ? W.camera.getWorldDirection(V3).toArray() : null, nearShip: nearShip(),
@@ -1248,8 +1323,12 @@ Object.assign(W, {
   aimAt: (x, y, z) => { if (x == null) { W.build.pin = null; return null; } const o = new THREE.Vector3(x, y + 4 * M, z + 3 * M), d = new THREE.Vector3(x, y, z).sub(o).normalize(); W.build.on = true; W.build.pin = { origin: o, dir: d }; W.build.aimRay(o, d); return W.build.stats().target; }, takeBrick: id => fall(W.build.remove(id)),
   pieces: () => W.build.rows(), pieceAt: id => { const p = W.build.pieces.get(id); return p ? { id, part: p.part, col: p.col, x: p.x, y: p.y, z: p.z, rot: p.rot } : null; }, saveNow: () => { W.build.save(); saveDamage(); }, resetPlace, damage: () => W.city.removedSets(), placeKey: () => placeKey(W.place),
   fx: () => ({ sfx: Fx.Sfx.stats(), haptics: Fx.haptic.count(), smoke: W.smoke.stats(), hits: Fx.Hits.n, tally: { ...W.tally }, craters: W.G.craters || 0, lastCrater: W.lastCrater || null, air: !!W.rig.air, vy: W.rig.vy || 0, assisted: W.tie.assisted, groundHits: W.tie.groundHits }), crater: (x, z, r, d) => crater(new THREE.Vector3(x, 0, z), r, d), groundAt: (x, z) => W.G.h(x, z), groundColour: (x, z) => { const G = W.G, f = G.field, i = Math.round(f.cx + x / M / G.res), j = Math.round(f.cy + z / M / G.res), c = G.mesh.geometry.attributes.color, k = j * G.n + i; return [c.getX(k), c.getY(k), c.getZ(k)]; },
-  mb: () => ({ busy: W.master.busy, streaming: !!W.master.streaming, status: W.master.status, rot: W.master.rot, anchor: W.master.anchor, draft: W.draft.pieces.size, ghosts: W.master.ghosts.length, report: W.master.result && W.master.result.report, usage: W.master.usage || null }), mbAsk: mbDraft, say, readBuild, mbEdit, startNow, wbOpen, stopBuild, nextCharacter, roadsMesh: () => { const r = W.scene.getObjectByName('roads'), s = W.scene.getObjectByName('streets'); return r ? { tris: r.geometry.attributes.position.count / 3, visible: r.visible, streets: s ? s.geometry.attributes.position.count / 3 : 0, near: W.camera.near, side: r.material.side } : null; }, saves: loadSaves, saveBuild, placeSave, deleteSave, wordsSave, setTruce, peace: peaceNow, wbCode, codeView, litOp, ops: () => [...document.querySelectorAll('#wbOps li')].map(li => ({ text: li.querySelector('span').textContent, n: li.querySelector('em').textContent, lit: li.classList.contains('lit') })), highlighted: () => (W.draft.pieces.size ? W.draft : W.build).highlighted(), laying: () => W.build.laying(), seated: () => ({ seated: !!W.rig.seated, parent: W.rig.figure.parent && W.rig.figure.parent.name, visible: W.rig.figure.visible, legs: W.rig.legRP.rotation.x, pos: W.rig.figure.getWorldPosition(new THREE.Vector3()).toArray() }), rideFire, liveBolts: () => W.bolts.live().map(b => ({ owner: b.owner, heavy: !!b.heavy })), setRide: r => { W.master.ride = r || ''; paintRide(); return W.master.ride; }, rideChoice: () => W.master.ride || '', chip: () => { const c = $('#bchip'); return { on: c.classList.contains('on'), text: c.textContent, cls: c.className }; }, boardVehicle: id => { const it = id ? W.props.items.get(id) : nearVehicle(); if (it) boardVehicle(it); return W.mode; }, leaveVehicle, ride: () => W.veh ? { mode: W.mode, kind: W.veh.kind, fly: W.veh.fly, pos: W.veh.pos.toArray(), heading: W.veh.heading, speed: W.veh.speed, airborne: W.veh.airborne, landing: W.veh.landing, id: W.veh.prop.id } : { mode: W.mode }, prompt: () => ({ on: $('#prompt').classList.contains('on'), text: $('#prompt').textContent }), promptAction, buildLog: () => (W.master.log || []).slice(), wbLog, wbState: () => ({ open: !document.body.classList.contains('wb-off'), key: !!Ai.key(), keyRow: $('#wbKeyRow').classList.contains('on'), wb: getComputedStyle(document.body).getPropertyValue('--wb').trim() }), veil: () => ({ stages: Object.fromEntries(Object.entries(VEIL.stages).map(([k, v]) => [k, v.state])), start: !!($('#vStart') && !$('#vStart').hidden), since: (performance.now() - VEIL.t0) / 1000, readyAt: VEIL.readyAt || 0, buildingsAt: VEIL.buildingsAt || 0 }), pending: () => !!(W.win && W.win.pending), mbLoad: program => { const res = Dsl.compile(program); mbShow(res, null); return res.report; }, mbCommit, mbDiscard, mbNudge, propStat: () => W.props.stats(), propRows: () => W.props.rows(), propBoxes: () => [...W.props.items.values()].map(it => ({ id: it.id, ready: it.ready, parts: it.meshes.length, box: it.box ? [it.box.min.toArray(), it.box.max.toArray()] : null })), aiStat: () => Ai.stats(),
-  netStat: () => W.room.stats(), host: hostRoom, join: joinRoom, leave: leaveRoom, remoteList: () => [...W.remotes.values()].map(r => ({ id: r.id, ch: r.ch, mode: r.tgt && r.tgt.m, pos: r.pos.toArray(), visible: r.fig && r.fig.figure.visible, shipVisible: !!r.ship && r.ship.visible })), flushEdits, setName,
+  mb: () => ({ busy: W.master.busy, streaming: !!W.master.streaming, status: W.master.status, rot: W.master.rot, anchor: W.master.anchor, draft: W.draft.pieces.size, ghosts: W.master.ghosts.length, report: W.master.result && W.master.result.report, usage: W.master.usage || null }), mbAsk: mbDraft, say, readBuild, mbEdit, startNow, wbOpen, stopBuild, nextCharacter, roadsMesh: () => { const r = W.scene.getObjectByName('roads'), s = W.scene.getObjectByName('streets'); return r ? { tris: r.geometry.attributes.position.count / 3, visible: r.visible, streets: s ? s.geometry.attributes.position.count / 3 : 0, near: W.camera.near, side: r.material.side } : null; }, saves: loadSaves, saveBuild, placeSave, deleteSave, wordsSave, setTruce, peace: peaceNow, wbCode, codeView, litOp, ops: () => [...document.querySelectorAll('#wbOps li')].map(li => ({ text: li.querySelector('span').textContent, n: li.querySelector('em').textContent, lit: li.classList.contains('lit') })), highlighted: () => (W.draft.pieces.size ? W.draft : W.build).highlighted(), laying: () => W.build.laying(), seated: () => ({ seated: !!W.rig.seated, parent: W.rig.figure.parent && W.rig.figure.parent.name, visible: W.rig.figure.visible, legs: W.rig.legRP.rotation.x, pos: W.rig.figure.getWorldPosition(new THREE.Vector3()).toArray() }), rideFire, liveBolts: () => W.bolts.live().map(b => ({ owner: b.owner, heavy: !!b.heavy })), setRide: r => { W.master.ride = r || ''; paintRide(); return W.master.ride; }, rideChoice: () => W.master.ride || '', chip: () => { const c = $('#bchip'); return { on: c.classList.contains('on'), text: c.textContent, cls: c.className }; }, boardVehicle: id => { const it = id ? W.props.items.get(id) : nearVehicle(); if (it) boardVehicle(it); return W.mode; }, leaveVehicle, ride: () => W.veh ? { mode: W.mode, kind: W.veh.kind, fly: W.veh.fly, pos: W.veh.pos.toArray(), heading: W.veh.heading, speed: W.veh.speed, airborne: W.veh.airborne, landing: W.veh.landing, id: W.veh.prop.id } : { mode: W.mode }, prompt: () => ({ on: $('#prompt').classList.contains('on'), text: $('#prompt').textContent }), promptAction, buildLog: () => (W.master.log || []).slice(), wbLog, wbState: () => ({ open: !document.body.classList.contains('wb-off'), key: !!Ai.key(), keyRow: $('#wbKeyRow').classList.contains('on'), wb: getComputedStyle(document.body).getPropertyValue('--wb').trim() }), veil: () => ({ stages: Object.fromEntries(Object.entries(VEIL.stages).map(([k, v]) => [k, v.state])), start: !!VEIL.startShown || !!($('#vStart') && !$('#vStart').hidden), since: (performance.now() - VEIL.t0) / 1000, readyAt: VEIL.readyAt || 0, buildingsAt: VEIL.buildingsAt || 0 }), pending: () => !!(W.win && W.win.pending), mbLoad: program => { const res = Dsl.compile(program); mbShow(res, null); return res.report; }, mbCommit, mbDiscard, mbNudge, propStat: () => W.props.stats(), propRows: () => W.props.rows(), propBoxes: () => [...W.props.items.values()].filter(it => !(it.src && it.src.landmark)).map(it => ({ id: it.id, ready: it.ready, parts: it.meshes.length, box: it.box ? [it.box.min.toArray(), it.box.max.toArray()] : null })), aiStat: () => Ai.stats(),
+  setGround, groundStat: () => { const G = W.G; if (!G) return null; let lo = Infinity, hi = -Infinity; for (let i = 0; i < G.H.length; i += 7) { lo = Math.min(lo, G.H[i]); hi = Math.max(hi, G.H[i]); } return { mode: G.mode, relief: +(hi - lo).toFixed(1) }; },
+  kitStat: () => Kits.stats(), takeCar, nearCar: () => { const c = nearCar(); return c ? { x: c.x, z: c.z, yaw: c.yaw, kind: c.model.kind, parked: !!c.parked } : null; }, landmarks: () => W.vehicles ? W.vehicles.list() : [], layVehicles: () => W.vehicles.lay(),
+  walker: () => { const V = W.veh; if (!V || !V.K.walker) return null; return { kind: V.kind, legs: (V.legs || []).map(g => ({ name: g.name, rx: +g.rotation.x.toFixed(3), y: +g.position.y.toFixed(1) })), phase: +V.phase.toFixed(2), stomps: V.stomps, bob: +V.bob.toFixed(1), pitch: +V.pitch.toFixed(3), roll: +V.roll.toFixed(3), speed: +(V.speed / M).toFixed(2) }; },
+  netStat: () => W.room.stats(), host: hostRoom, join: joinRoom, leave: leaveRoom, chat: sayToRoom, chatLog: () => W.said.slice(), roomList, bubbles: () => [...W.remotes.values()].filter(r => r.bubble).map(r => ({ id: r.id, name: r.name, until: r.bubbleUntil })).concat(W.bubble ? [{ id: 'me', name: W.name, until: W.bubbleUntil }] : []),
+  shiftGround: dy => { const G = W.G, h0 = G.__h0 || (G.__h0 = G.h.bind(G)); G.h = (x, z) => h0(x, z) + dy; if (W.rig) W.rig.pos.y = G.h(W.rig.pos.x, W.rig.pos.z); return dy; }, remoteList: () => [...W.remotes.values()].map(r => ({ id: r.id, ch: r.ch, mode: r.tgt && r.tgt.m, pos: r.pos.toArray(), visible: r.fig && r.fig.figure.visible, shipVisible: !!r.ship && r.ship.visible })), flushEdits, setName,
   debrisPieces: () => W.debris.pieces.map(p => { const c = W.debris.centre(p, V1); return { part: p.kind.name, y: c.y, x: c.x, z: c.z, rest: p.rest, floor: W.G.h(c.x, c.z) }; }),
   building: i => { const b = W.city.buildings[i]; if (!b.bricks) b.bricks = Bricks.buildBricks(b, W.colours, M); return { id: b.id, kind: b.kind, name: b.name, roofShape: b.roofShape, parts: b.bricks.list.reduce((o, it) => { o[it.p] = (o[it.p] || 0) + 1; return o; }, {}), roofLevels: b.bricks.list.reduce((m, it) => Math.max(m, it.meta && it.meta.roof ? (it.meta.level || it.meta.step || 0) : -1), -1), tower: b.bricks.list.filter(it => it.meta && it.meta.tower).length, towerTop: b.towerTop || null, stadium: !!b.stadium, n: b.bricks.n, removed: b.removed.size, live: b.bricks.n - b.removed.size, cx: b.cx, cz: b.cz, y0: b.y0, yTop: b.yTop, courses: b.courses, ruined: b.ruined }; },
 });

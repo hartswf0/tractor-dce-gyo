@@ -57,6 +57,7 @@ const Sfx = {
     this.count('clatter'); this.burst(0.04 + size * 0.03, 3200 - size * 1400, 900, 0.12 + size * 0.1, { type: 'bandpass', q: 1.5, attack: 0.001 });
   },
   thud(size = 0.5) { this.count('thud'); if (!this.gap('thud', 0.08)) return; this.burst(0.18 + size * 0.2, 500, 60, 0.3 + size * 0.3); this.tone('sine', 70, 35, 0.2, 0.35); },
+  skid() { this.count('skid'); if (!this.gap('skid', 0.35)) return; this.burst(0.32, 2600, 900, 0.22, { type: 'bandpass', q: 3, attack: 0.02 }); },   // tyres over the limit: a short squeal
   crunch() { this.count('crunch'); this.burst(0.45, 1800, 200, 0.5, { attack: 0.002 }); this.burst(0.3, 6000, 1500, 0.2, { type: 'bandpass', q: 1 }); this.tone('sine', 60, 30, 0.35, 0.5); },
   hurt() { this.count('hurt'); this.tone('triangle', 520, 160, 0.25, 0.25); },
   respawn() { this.count('respawn'); this.tone('sine', 220, 660, 0.4, 0.15); },

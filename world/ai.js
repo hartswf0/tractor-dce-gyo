@@ -81,7 +81,7 @@ function quality(program, result) {
   if (!program || !result) return -1e9;
   const r = result.report || {}, c = opProfile(program);
   const varieties = Object.keys(c).filter(k => k !== '?').length;
-  const semantic = ['roof','tower','door','window','arch','stairs','cut','part','minifig','vehicle'].reduce((n, k) => n + (c[k] || 0), 0);
+  const semantic = ['roof','tower','door','window','arch','stairs','cut','part','minifig','vehicle','walker'].reduce((n, k) => n + (c[k] || 0), 0);
   const extent = result.extent || { x0:0, z0:0, x1:0, z1:0 };
   const w = Math.max(0, extent.x1 - extent.x0), d = Math.max(0, extent.z1 - extent.z0);
   let s = 0;

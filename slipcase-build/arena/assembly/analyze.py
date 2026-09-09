@@ -203,6 +203,7 @@ TARGETS = [
     ('kits/5935-island-hopper.mpd', 'ISLAND-HOPPER'),
     ('kits/1621-lunar-mpv.mpd', 'LUNAR-MPV'),
     ('kits/4489-atat-mini.mpd', 'AT-AT-MINI'),
+    ('kits/4494-imperial-shuttle-mini.mpd', 'SHUTTLE-MINI'),
     ('kits/889-radar-truck.mpd', 'RADAR-TRUCK'),
     ('kits/30023-lighthouse.mpd', 'LIGHTHOUSE'),
     ('builds/card-castle.mpd', 'CASTLE-CARD'),
