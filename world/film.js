@@ -47,22 +47,22 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
   /** The trailer of the first film, as words the world stages where it stands: the droids in the desert, the twin suns, a landspeeder, the smuggler and the Wookiee, the princess, the troopers, the Dark Lord, a TIE, the run on the station. */
   const TRAILERS = {
     'a-new-hope': { name: 'A New Hope', shots: [
-      { title: 'A long time ago in a galaxy far,\nfar away....', style: 'card', sec: 4, world: 'tatooine', as: 'c3po', time: 'day' },
-      { title: 'STAR WARS', style: 'logo', sec: 3 },
-      { name: 'The droid in the desert', on: 'me', frame: 'wide', from: 'e', move: 'push', sec: 5, act: { ahead: 24 } },
-      { name: 'A farm boy', as: 'luke', time: 'dusk', on: 'me', frame: 'shoulder', from: 's', move: 'hold', sec: 4, act: { ahead: 6 } },
+      { score: 'dread', title: 'A long time ago in a galaxy far,\nfar away....', style: 'card', sec: 4, world: 'tatooine', as: 'c3po', time: 'day', events: [{ what: 'LINE', who: 'narrator', text: 'A long time ago, in a galaxy far, far away.', at: 0.3 }] },
+      { score: 'fanfare', title: 'STAR WARS', style: 'logo', sec: 3 },
+      { name: 'The droid in the desert', score: 'hero', on: 'me', frame: 'wide', from: 'e', move: 'push', sec: 5, act: { ahead: 24 }, events: [{ what: 'LINE', who: 'narrator', text: 'A droid carries a message across the sand.', at: 0.6 }, { what: 'SOUND', who: 'ping', at: 3.5 }] },
+      { name: 'A farm boy', as: 'luke', time: 'dusk', on: 'me', frame: 'shoulder', from: 's', move: 'hold', sec: 4, act: { ahead: 6 }, events: [{ what: 'LINE', who: 'narrator', text: 'A farm boy looks to the horizon.', at: 0.5 }] },
       { name: 'The twin suns', on: 'me', frame: 'low', from: 'w', move: 'crane', sec: 4 },
-      { name: 'The landspeeder', time: 'day', on: 'me', frame: 'medium', from: 'e', move: 'track', sec: 5, follow: true, act: { ride: 'speeder', ahead: 80, fly: true } },
-      { name: 'The smuggler', as: 'han', on: 'me', frame: 'close', from: 'sw', move: 'push', sec: 3, act: { leave: true, ahead: 3 } },
-      { name: 'The Wookiee', as: 'chewbacca', on: 'me', frame: 'medium', from: 's', move: 'orbit', sec: 3 },
-      { name: 'The princess', as: 'leia', on: 'me', frame: 'close', from: 'n', move: 'pull', sec: 3 },
-      { name: 'Stormtroopers', as: 'stormtrooper', on: 'me', frame: 'wide', from: 'n', move: 'push', sec: 4, act: { ahead: 10, fire: true } },
-      { title: 'The Empire', style: 'card', sec: 2, world: 'deathstar', as: 'vader', time: 'night' },
-      { name: 'The Dark Lord', on: 'me', frame: 'medium', from: 's', move: 'push', sec: 4, act: { saber: true, ahead: 4 } },
-      { name: 'The TIE', on: 'tie', frame: 'wide', from: 'sw', move: 'hold', sec: 6, follow: true, act: { tie: true, fly: true, fire: true } },
-      { name: 'The run', as: 'luke', on: 'me', frame: 'wide', from: 's', move: 'hold', sec: 6, follow: true, act: { leave: true, ride: 'xwing', ahead: 120, fly: true, fire: true } },
+      { name: 'The landspeeder', score: 'chase', time: 'day', on: 'me', frame: 'medium', from: 'e', move: 'track', sec: 5, follow: true, act: { ride: 'speeder', ahead: 80, fly: true } },
+      { name: 'The smuggler', score: 'hero', as: 'han', on: 'me', frame: 'close', from: 'sw', move: 'push', sec: 3, act: { leave: true, ahead: 3 }, events: [{ what: 'LINE', who: 'han', text: 'You need a ship? I have a ship.', at: 0.4 }] },
+      { name: 'The Wookiee', as: 'chewbacca', on: 'me', frame: 'medium', from: 's', move: 'orbit', sec: 3, events: [{ what: 'LINE', who: 'chewbacca', text: 'Rrraaarrgh.', at: 0.3 }] },
+      { name: 'The princess', as: 'leia', on: 'me', frame: 'close', from: 'n', move: 'pull', sec: 3, events: [{ what: 'LINE', who: 'leia', text: 'Help us. You are our only hope.', at: 0.3 }] },
+      { name: 'Stormtroopers', score: 'march', as: 'stormtrooper', on: 'me', frame: 'wide', from: 'n', move: 'push', sec: 4, act: { ahead: 10, fire: true }, events: [{ what: 'LINE', who: 'trooper', text: 'Halt. Search every ship.', at: 0.5 }] },
+      { score: 'dread', title: 'The Empire', style: 'card', sec: 2, world: 'deathstar', as: 'vader', time: 'night', events: [{ what: 'LINE', who: 'narrator', text: 'And an empire that rules by fear.', at: 0.3 }] },
+      { name: 'The Dark Lord', on: 'me', frame: 'medium', from: 's', move: 'push', sec: 4, act: { saber: true, ahead: 4 }, events: [{ what: 'SOUND', who: 'breath', at: 0.2 }, { what: 'LINE', who: 'vader', text: 'I find your lack of faith disturbing.', at: 1.6 }] },
+      { name: 'The TIE', score: 'chase', on: 'tie', frame: 'wide', from: 'sw', move: 'hold', sec: 6, follow: true, act: { tie: true, fly: true, fire: true } },
+      { name: 'The run', as: 'luke', on: 'me', frame: 'wide', from: 's', move: 'hold', sec: 6, follow: true, act: { leave: true, ride: 'xwing', ahead: 120, fly: true, fire: true }, events: [{ what: 'LINE', who: 'luke', text: 'Stay on target.', at: 1.0 }] },
       { title: 'STAR WARS', style: 'logo', sec: 2 },
-      { title: 'A New Hope\nmade with word to momento', style: 'card', sec: 3 },
+      { score: 'end', title: 'A New Hope\nmade with word to momento', style: 'card', sec: 3, events: [{ what: 'LINE', who: 'narrator', text: 'A new hope.', at: 0.4 }] },
     ] },
   };
 
@@ -78,26 +78,26 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
       builds: [{ name: 'bunker-1', x: -48, z: -66, program: { name: 'bunker', ops: [{ op: 'tower', x: 0, z: 0, r: 4, h: 3, col: 15, round: true, crenels: false }, { op: 'slab', x: 0, z: 0, w: 9, d: 9, y: 3, plates: 1, col: 15 }, { op: 'box', x: 0, z: -5, w: 3, d: 2, h: 2, col: 72 }] } }, { name: 'bunker-2', x: 58, z: -70, program: { name: 'bunker', ops: [{ op: 'tower', x: 0, z: 0, r: 4, h: 3, col: 15, round: true, crenels: false }, { op: 'slab', x: 0, z: 0, w: 9, d: 9, y: 3, plates: 1, col: 15 }, { op: 'box', x: 0, z: -5, w: 3, d: 2, h: 2, col: 72 }] } },
         { name: 'trench', x: -12, z: -75, program: { name: 'trench', ops: [{ op: 'wall', from: [0, 0], to: [60, 0], y: 0, h: 3, col: 15, thick: 2 }, { op: 'wall', from: [0, 5], to: [60, 5], y: 0, h: 2, col: 15 }, { op: 'tower', x: 30, z: -7, r: 2, h: 5, col: 71, round: true, crenels: false }, { op: 'slab', x: 27, z: -10, w: 6, d: 6, y: 5, plates: 1, col: 72 }, { op: 'box', x: 8, z: -4, w: 1, d: 1, y: 0, h: 8, col: 72 }, { op: 'box', x: 52, z: -4, w: 1, d: 1, y: 0, h: 8, col: 72 }] } }],
       shots: [
-        { name: 'P001 Target sensor to horizon phalanx', title: 'Target sensor to horizon phalanx', style: 'hud', on: 'atat-2', frame: 'wide', from: 's', lens: 40, sec: 4, acts: [{ who: 'atat-1', march: 180, speed: 0.6 }, { who: 'atat-2', march: 180, speed: 0.6 }, { who: 'atat-3', march: 180, speed: 0.6 }, { who: 'atat-4', march: 180, speed: 0.6 }] },
-        { name: 'P001 The phalanx on the ridge', on: 'atat-2', frame: 'wide', from: 'sw', lens: 40, sec: 6 },
-        { name: 'P002 Speeder windshield', on: 'me', frame: 'pov', sec: 4, act: { ride: 'speeder-1', ahead: 140, fly: true }, acts: [{ who: 'atat-1', march: 180, speed: 0.6, fire: true, heavy: true, every: 1.2, aim: 'trench' }] },
-        { name: 'P002 Heavy volley', on: 'atat-1', frame: 'low', from: 'n', sec: 5 },
-        { name: 'P003 Head traverse', on: 'atat-1', frame: 'under', sec: 4 },
-        { name: 'P003 Aerial survey', on: 'atat-1', frame: 'aerial', from: 'n', sec: 5, acts: [{ who: 'speeder-2', pass: 'atat-1', alt: 12, speed: 1 }] },
-        { name: 'P004 Speed harpoon', on: 'speeder-2', frame: 'wide', from: 'e', sec: 4, follow: true, acts: [{ who: 'speeder-2', orbit: 'atat-1', r: 22, alt: 6, speed: 0.9 }] },
-        { name: 'P004 Leg binding', on: 'atat-1:leg-rl', frame: 'close', from: 'e', sec: 5, events: [{ what: 'CABLE', who: 'speeder-2', who2: 'atat-1', at: 0, turns: 3, over: 4 }] },
-        { name: 'P005 Joint entanglement to catastrophic crash', on: 'atat-1', frame: 'wide', from: 'e', sec: 12, follow: true, events: [{ what: 'TRIP', who: 'atat-1', at: 2, over: 1.6 }, { what: 'CRASH', who: 'speeder-1', at: 0 }], acts: [{ who: 'speeder-2', pass: 'atat-1', alt: 10, speed: 1 }] },
-        { name: 'P006 Advancing battery', on: 'atat-2', frame: 'wide', from: 'sw', sec: 4 },
-        { name: 'P006 Chin cannon barrage', on: 'atat-2', frame: 'low', from: 'front', sec: 5, acts: [{ who: 'atat-2', march: 180, speed: 0.6, fire: true, heavy: true, every: 0.8, aim: 'trench' }] },
-        { name: 'P007 Wreckage stomp', on: 'speeder-1', frame: 'low', from: 'w', sec: 4 },
-        { name: 'P007 Pilot cable egress', on: 'atat-2', frame: 'under', sec: 5, events: [{ what: 'HANG', who: 'me', who2: 'atat-2', at: 0, over: 0.3 }, { what: 'DROP', who: 'me', at: 1.5 }] },
-        { name: 'P008 Phalanx advance to infantry rout', on: 'atat-3', frame: 'wide', from: 's', lens: 24, sec: 5, events: [{ what: 'ROUT', who: 'rebels', who2: 'atat-3', at: 0 }] },
+        { name: 'P001 Target sensor to horizon phalanx', score: 'dread', title: 'Target sensor to horizon phalanx', style: 'hud', on: 'atat-2', frame: 'wide', from: 's', lens: 40, sec: 4, acts: [{ who: 'atat-1', march: 180, speed: 0.6 }, { who: 'atat-2', march: 180, speed: 0.6 }, { who: 'atat-3', march: 180, speed: 0.6 }, { who: 'atat-4', march: 180, speed: 0.6 }], events: [{ what: 'LINE', who: 'rogue', text: 'Echo Station Five Seven. Walkers on the north ridge. Four of them.', at: 0.6 }] },
+        { name: 'P001 The phalanx on the ridge', score: 'march', on: 'atat-2', frame: 'wide', from: 'sw', lens: 40, sec: 6, events: [{ what: 'LINE', who: 'comms', text: 'Copy, Rogue Leader. Hold them off the shield generator as long as you can.', at: 0.5 }] },
+        { name: 'P002 Speeder windshield', score: 'chase', on: 'me', frame: 'pov', sec: 4, act: { ride: 'speeder-1', ahead: 140, fly: true }, acts: [{ who: 'atat-1', march: 180, speed: 0.6, fire: true, heavy: true, every: 1.2, aim: 'trench' }], events: [{ what: 'LINE', who: 'rogue', text: 'Rogue Group, form up on me. Attack pattern delta. Go now.', at: 0.3 }] },
+        { name: 'P002 Heavy volley', score: 'march', on: 'atat-1', frame: 'low', from: 'n', sec: 5 },
+        { name: 'P003 Head traverse', on: 'atat-1', frame: 'under', sec: 4, events: [{ what: 'LINE', who: 'rogue', text: 'That armour is too strong for blasters. Go for the legs.', at: 0.4 }] },
+        { name: 'P003 Aerial survey', score: 'tension', on: 'atat-1', frame: 'aerial', from: 'n', sec: 5, acts: [{ who: 'speeder-2', pass: 'atat-1', alt: 12, speed: 1 }], events: [{ what: 'LINE', who: 'rogue', text: 'Rogue Three, set your harpoon. I will cover you.', at: 0.5 }] },
+        { name: 'P004 Speed harpoon', on: 'speeder-2', frame: 'wide', from: 'e', sec: 4, follow: true, acts: [{ who: 'speeder-2', orbit: 'atat-1', r: 22, alt: 6, speed: 0.9 }], events: [{ what: 'LINE', who: 'rogue', text: 'Coming round. Cable out.', at: 0.6 }] },
+        { name: 'P004 Leg binding', on: 'atat-1:leg-rl', frame: 'close', from: 'e', sec: 5, events: [{ what: 'LINE', who: 'rogue', text: 'The cable is holding. Once more round.', at: 1.0 }, { what: 'CABLE', who: 'speeder-2', who2: 'atat-1', at: 0, turns: 3, over: 4 }] },
+        { name: 'P005 Joint entanglement to catastrophic crash', score: 'march', on: 'atat-1', frame: 'wide', from: 'e', sec: 12, follow: true, events: [{ what: 'LINE', who: 'rogue', text: 'Pull up. Pull up now.', at: 0.5 }, { what: 'LINE', who: 'comms', text: 'One walker down.', at: 6.5 }, { what: 'TRIP', who: 'atat-1', at: 2, over: 1.6 }, { what: 'CRASH', who: 'speeder-1', at: 0 }], acts: [{ who: 'speeder-2', pass: 'atat-1', alt: 10, speed: 1 }] },
+        { name: 'P006 Advancing battery', score: 'dread', on: 'atat-2', frame: 'wide', from: 'sw', sec: 4 },
+        { name: 'P006 Chin cannon barrage', on: 'atat-2', frame: 'low', from: 'front', sec: 5, acts: [{ who: 'atat-2', march: 180, speed: 0.6, fire: true, heavy: true, every: 0.8, aim: 'trench' }], events: [{ what: 'LINE', who: 'rogue', text: 'Rogue Two, I am hit. I am going in.', at: 1.2 }] },
+        { name: 'P007 Wreckage stomp', score: 'tension', on: 'speeder-1', frame: 'low', from: 'w', sec: 4 },
+        { name: 'P007 Pilot cable egress', on: 'atat-2', frame: 'under', sec: 5, events: [{ what: 'LINE', who: 'luke', text: 'Grab the line. I am going under it.', at: 0.4 }, { what: 'HANG', who: 'me', who2: 'atat-2', at: 0, over: 0.3 }, { what: 'DROP', who: 'me', at: 1.5 }] },
+        { name: 'P008 Phalanx advance to infantry rout', score: 'march', on: 'atat-3', frame: 'wide', from: 's', lens: 24, sec: 5, events: [{ what: 'LINE', who: 'comms', text: 'The trench is lost. Fall back to the transports.', at: 0.8 }, { what: 'ROUT', who: 'rebels', who2: 'atat-3', at: 0 }] },
         { name: 'P008 Luke sprints', on: 'me', frame: 'low', from: 'e', sec: 4, follow: true, act: { ahead: 15 } },
-        { name: 'P009 Ventral ascension', on: 'me', frame: 'wide', from: 'e', sec: 4, follow: true, events: [{ what: 'HANG', who: 'me', who2: 'atat-3', at: 0, over: 3 }] },
-        { name: 'P009 Thermal detonation', on: 'atat-3', frame: 'under', sec: 5, events: [{ what: 'DROP', who: 'me', at: 2.5 }, { what: 'BLAST', who: 'atat-3', part: 'belly', at: 3, scale: 1.5 }] },
-        { name: 'P010 Neck combustion to flank topple', on: 'atat-3', frame: 'wide', from: 'e', sec: 9, follow: true, events: [{ what: 'BLAST', who: 'atat-3', part: 'neck', at: 2 }, { what: 'TOPPLE', who: 'atat-3', at: 3, over: 2 }] },
-        { name: 'P011 Trench bombardment', on: 'trench', frame: 'medium', from: 's', lens: 40, sec: 4, weather: 'blizzard', events: [{ what: 'STRIKE', who: 'trench', at: 0, every: 0.7 }] },
-        { name: 'P011 Base overrun', on: 'atat-4', frame: 'low', from: 'front', move: 'push', sec: 4, acts: [{ who: 'atat-4', march: 180, speed: 0.6, fire: true, heavy: true, every: 1, aim: 'trench' }] },
+        { name: 'P009 Ventral ascension', score: 'tension', on: 'me', frame: 'wide', from: 'e', sec: 4, follow: true, events: [{ what: 'HANG', who: 'me', who2: 'atat-3', at: 0, over: 3 }] },
+        { name: 'P009 Thermal detonation', on: 'atat-3', frame: 'under', sec: 5, events: [{ what: 'SOUND', who: 'zip', at: 0.2 }, { what: 'DROP', who: 'me', at: 2.5 }, { what: 'BLAST', who: 'atat-3', part: 'belly', at: 3, scale: 1.5 }] },
+        { name: 'P010 Neck combustion to flank topple', score: 'march', on: 'atat-3', frame: 'wide', from: 'e', sec: 9, follow: true, events: [{ what: 'BLAST', who: 'atat-3', part: 'neck', at: 2 }, { what: 'TOPPLE', who: 'atat-3', at: 3, over: 2 }] },
+        { name: 'P011 Trench bombardment', score: 'dread', on: 'trench', frame: 'medium', from: 's', lens: 40, sec: 4, weather: 'blizzard', events: [{ what: 'LINE', who: 'comms', text: 'Echo Base, they have broken through. Begin the evacuation.', at: 0.5 }, { what: 'STRIKE', who: 'trench', at: 0, every: 0.7 }] },
+        { name: 'P011 Base overrun', score: 'march', on: 'atat-4', frame: 'low', from: 'front', move: 'push', sec: 4, acts: [{ who: 'atat-4', march: 180, speed: 0.6, fire: true, heavy: true, every: 1, aim: 'trench' }] },
       ] },
     'endor-bikes': { name: 'Endor: the speeder chase', world: 'endor', as: 'leia', ground: 'flat', time: 'day',
       set: { kind: 'forest', r: 200, seed: 11, corridor: [[0, 0], [6, -40], [-4, -85], [8, -130], [-6, -175], [4, -215], [30, -250], [70, -240], [86, -200], [76, -150], [86, -100], [70, -50], [40, -16], [0, 0]] },
@@ -117,32 +117,32 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
       ],
       builds: [{ name: 'r2', x: -21, z: -29, program: { name: 'r2', ops: [{ op: 'tower', x: 0, z: 0, r: 1, h: 2, col: 15, round: true, crenels: false }, { op: 'slab', x: 0, z: 0, w: 2, d: 2, y: 2, plates: 1, col: 1 }] } }],
       shots: [
-        { name: 'P001 Over there', on: 'me', frame: 'medium', from: 'n', lens: 40, sec: 4, shift: 'sighting', events: [{ what: 'CAPTION', text: 'Over there. Two more of them.', at: 0.6, for: 3 }] },
-        { name: 'P001 Two scouts go', on: 'scout-1', frame: 'wide', from: 's', lens: 45, sec: 4, follow: true, shift: 'sighting', acts: [{ who: 'scout-1', route: 'corridor', speed: 0.55 }, { who: 'scout-2', route: 'corridor', speed: 0.55 }], events: [{ what: 'CAPTION', text: 'I see them. Wait, Leia.', at: 0.5, for: 3 }] },
+        { name: 'P001 Over there', score: 'tension', on: 'me', frame: 'medium', from: 'n', lens: 40, sec: 4, shift: 'sighting', events: [{ what: 'LINE', who: 'leia', text: 'Over there. Two more of them.', at: 0.6, for: 3 }] },
+        { name: 'P001 Two scouts go', score: 'chase', on: 'scout-1', frame: 'wide', from: 's', lens: 45, sec: 4, follow: true, shift: 'sighting', acts: [{ who: 'scout-1', route: 'corridor', speed: 0.55 }, { who: 'scout-2', route: 'corridor', speed: 0.55 }], events: [{ what: 'LINE', who: 'luke', text: 'I see them. Wait, Leia.', at: 0.5, for: 3 }] },
         { name: 'P001 Leia mounts', on: 'bike-1', frame: 'medium', from: 'e', lens: 40, sec: 3, shift: 'pursuit', act: { ride: 'bike-1' }, acts: [{ who: 'luke', ride: 'bike-1' }] },
         { name: 'P002 Into the trees', on: 'me', frame: 'wide', from: 's', lens: 50, sec: 5, follow: true, shift: 'pursuit', act: { route: 'corridor', speed: 0.6 }, acts: [{ who: 'han', to: [13, -5], run: true }] },
-        { name: 'P002 Han tackles the scout', on: 'scout-g', frame: 'medium', from: 'w', lens: 40, sec: 4, shift: 'pursuit', acts: [{ who: 'han', to: [14, -6], run: true }], events: [{ what: 'TACKLE', who: 'han', who2: 'scout-g', at: 1.3 }] },
-        { name: 'P003 Hang on', on: 'me', frame: 'close', from: 'front', lens: 35, sec: 4, follow: true, shift: 'pursuit', act: { route: 'corridor', speed: 0.6 }, events: [{ what: 'CAPTION', text: 'Hang on.', at: 0.4, for: 2 }] },
+        { name: 'P002 Han tackles the scout', on: 'scout-g', frame: 'medium', from: 'w', lens: 40, sec: 4, shift: 'pursuit', acts: [{ who: 'han', to: [14, -6], run: true }], events: [{ what: 'LINE', who: 'han', text: 'Hey. Over here.', at: 0.3 }, { what: 'TACKLE', who: 'han', who2: 'scout-g', at: 1.3 }] },
+        { name: 'P003 Hang on', on: 'me', frame: 'close', from: 'front', lens: 35, sec: 4, follow: true, shift: 'pursuit', act: { route: 'corridor', speed: 0.6 }, events: [{ what: 'LINE', who: 'leia', text: 'Hang on.', at: 0.4, for: 2 }] },
         { name: 'P003 Through the trunks', on: 'me', frame: 'pov', sec: 5, follow: true, shift: 'pursuit', act: { route: 'corridor', speed: 0.9 } },
         { name: 'P003 Frontal tracking', on: 'me', frame: 'medium', from: 'front', lens: 40, sec: 4, follow: true, shift: 'pursuit', act: { route: 'corridor', speed: 0.7 } },
         { name: 'P004 Over the log', on: 'me', frame: 'pov', sec: 4, follow: true, shift: 'pursuit', act: { route: 'corridor', speed: 0.9 } },
         { name: 'P004 Lateral', on: 'me', frame: 'wide', from: 'e', lens: 45, sec: 4, follow: true, shift: 'pursuit', act: { route: 'corridor', speed: 0.7 } },
         { name: 'P004 On the scout', on: 'scout-1', frame: 'medium', from: 'behind', lens: 40, sec: 4, follow: true, shift: 'pursuit', act: { chase: 'scout-1', behind: 10 } },
-        { name: 'P005 Keep on that one', on: 'me', frame: 'medium', from: 'ne', lens: 40, sec: 4, follow: true, shift: 'pursuit', act: { chase: 'scout-1', behind: 8 }, events: [{ what: 'CAPTION', text: 'Keep on that one. I will take these two.', at: 0.5, for: 3 }] },
+        { name: 'P005 Keep on that one', on: 'me', frame: 'medium', from: 'ne', lens: 40, sec: 4, follow: true, shift: 'pursuit', act: { chase: 'scout-1', behind: 8 }, events: [{ what: 'LINE', who: 'luke', text: 'Keep on that one. I will take these two.', at: 0.5, for: 3 }] },
         { name: 'P005 Weaving', on: 'me', frame: 'wide', from: 'nw', lens: 50, sec: 4, follow: true, shift: 'pursuit', act: { alongside: 'scout-2', side: 3 } },
         { name: 'P005 The vanes', on: 'bike-1', frame: 'close', from: 'e', lens: 35, sec: 3, follow: true, shift: 'pursuit', act: { alongside: 'scout-1', side: 3 } },
         { name: 'P006 Side by side', on: 'scout-1', frame: 'medium', from: 'front', lens: 40, sec: 4, follow: true, shift: 'first-kill', act: { alongside: 'scout-1', side: 2.5 }, events: [{ what: 'SHOVE', who: 'scout-1', at: 2.2 }] },
-        { name: 'P007 Into the tree', on: 'scout-1', frame: 'wide', from: 'e', lens: 45, sec: 5, follow: true, shift: 'first-kill', act: { route: 'corridor', speed: 0.6 }, events: [{ what: 'CRASH', who: 'scout-1', into: 'tree', at: 0.3 }, { what: 'EXPLODE', who: 'scout-1', at: 3.2 }] },
+        { name: 'P007 Into the tree', on: 'scout-1', frame: 'wide', from: 'e', lens: 45, sec: 5, follow: true, shift: 'first-kill', act: { route: 'corridor', speed: 0.6 }, events: [{ what: 'SOUND', who: 'whoosh', at: 0.2, k: 1.2 }, { what: 'CRASH', who: 'scout-1', into: 'tree', at: 0.3 }, { what: 'EXPLODE', who: 'scout-1', at: 3.2 }] },
         { name: 'P007 Luke looks back', on: 'luke', frame: 'close', from: 'w', lens: 35, sec: 3, follow: true, shift: 'first-kill', act: { route: 'corridor', speed: 0.6 } },
         { name: 'P007 Under the log', on: 'me', frame: 'pov', sec: 4, follow: true, shift: 'first-kill', act: { route: 'corridor', speed: 0.9 } },
         { name: 'P008 Two more', on: 'me', frame: 'wide', from: 's', lens: 50, sec: 4, follow: true, shift: 'split', act: { route: 'corridor', speed: 0.6 }, acts: [{ who: 'scout-3', route: 'corridor', speed: 0.5 }, { who: 'scout-4', route: 'corridor', speed: 0.5 }, { who: 'han', to: [-26, -31], run: true }] },
         { name: 'P008 The split', on: 'bike-2', frame: 'medium', from: 'e', lens: 40, sec: 5, follow: true, shift: 'split', act: { route: 'corridor', speed: 0.6 }, acts: [{ who: 'luke', leave: true, ride: 'bike-2' }, { who: 'bike-2', route: 'corridor', speed: 0.6 }] },
-        { name: 'P009 Luke banks right', on: 'luke', frame: 'medium', from: 'w', lens: 40, sec: 4, follow: true, shift: 'cannon', acts: [{ who: 'bike-2', chase: 'scout-3', behind: 9 }], events: [{ what: 'CAPTION', text: 'Take the one on the left.', at: 0.4, for: 2.5 }] },
+        { name: 'P009 Luke banks right', on: 'luke', frame: 'medium', from: 'w', lens: 40, sec: 4, follow: true, shift: 'cannon', acts: [{ who: 'bike-2', chase: 'scout-3', behind: 9 }], events: [{ what: 'LINE', who: 'luke', text: 'Take the one on the left.', at: 0.4, for: 2.5 }] },
         { name: 'P010 The cannon', on: 'bike-2', frame: 'close', from: 'behind', lens: 35, sec: 3, follow: true, shift: 'cannon', acts: [{ who: 'bike-2', chase: 'scout-3', behind: 8, fire: true, aim: 'scout-3', every: 0.5 }] },
         { name: 'P010 Fireball', on: 'scout-3', frame: 'wide', from: 'behind', lens: 45, sec: 5, follow: true, shift: 'cannon', acts: [{ who: 'bike-2', chase: 'scout-3', behind: 8, fire: true, aim: 'scout-3', every: 0.5 }], events: [{ what: 'EXPLODE', who: 'scout-3', at: 1.6 }] },
         { name: 'P011 Under the raised log', on: 'bike-2', frame: 'low', from: 'front', lens: 50, sec: 4, follow: true, shift: 'cannon', acts: [{ who: 'bike-2', route: 'corridor', speed: 0.6 }] },
-        { name: 'P011 Leia alone', on: 'me', frame: 'medium', from: 'ne', lens: 40, sec: 4, follow: true, shift: 'leia-down', act: { route: 'corridor', speed: 0.6 } },
-        { name: 'P012 A scout behind her', on: 'me', frame: 'wide', from: 'e', lens: 45, sec: 4, follow: true, shift: 'leia-down', act: { route: 'corridor', speed: 0.55 }, acts: [{ who: 'scout-4', chase: 'me', behind: 7 }] },
+        { name: 'P011 Leia alone', score: 'tension', on: 'me', frame: 'medium', from: 'ne', lens: 40, sec: 4, follow: true, shift: 'leia-down', act: { route: 'corridor', speed: 0.6 } },
+        { name: 'P012 A scout behind her', score: 'chase', on: 'me', frame: 'wide', from: 'e', lens: 45, sec: 4, follow: true, shift: 'leia-down', act: { route: 'corridor', speed: 0.55 }, acts: [{ who: 'scout-4', chase: 'me', behind: 7 }] },
         { name: 'P012 The scout closes', on: 'scout-4', frame: 'close', from: 'w', lens: 35, sec: 3, follow: true, shift: 'leia-down', act: { route: 'corridor', speed: 0.55 } },
         { name: 'P013 From above', on: 'scout-4', frame: 'aerial', lens: 50, sec: 4, follow: true, shift: 'leia-down', act: { route: 'corridor', speed: 0.55 } },
         { name: 'P013 The visor', on: 'scout-4', frame: 'close', from: 'front', lens: 35, sec: 3, follow: true, shift: 'leia-down', act: { route: 'corridor', speed: 0.55 } },
@@ -150,26 +150,26 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
         { name: 'P015 Shots', on: 'me', frame: 'close', from: 'e', lens: 35, sec: 3, follow: true, shift: 'leia-down', act: { route: 'corridor', speed: 0.55 } },
         { name: 'P015 The brake', on: 'me', frame: 'wide', from: 'w', lens: 45, sec: 4, follow: true, shift: 'leia-down', act: { brake: true }, acts: [{ who: 'scout-4', route: 'corridor', speed: 0.8 }] },
         { name: 'P016 The log', on: 'scout-4', frame: 'wide', from: 'e', lens: 45, sec: 5, follow: true, shift: 'leia-down', act: { brake: true }, events: [{ what: 'CRASH', who: 'scout-4', into: 'log', at: 0.2 }, { what: 'EXPLODE', who: 'scout-4', at: 3.5 }] },
-        { name: 'P016 Into the ferns', on: 'me', frame: 'medium', from: 'n', lens: 40, sec: 4, follow: true, shift: 'leia-down', events: [{ what: 'EJECT', who: 'me', at: 0.4 }] },
-        { name: 'P017 Two bikes from above', on: 'bike-2', frame: 'aerial', lens: 55, sec: 4, follow: true, shift: 'brawl', act: { walk: [-24, -28] }, acts: [{ who: 'bike-2', route: 'corridor', speed: 0.55 }, { who: 'scout-2', alongside: 'bike-2', side: 3 }] },
+        { name: 'P016 Into the ferns', score: 'dread', on: 'me', frame: 'medium', from: 'n', lens: 40, sec: 4, follow: true, shift: 'leia-down', events: [{ what: 'EJECT', who: 'me', at: 0.4 }] },
+        { name: 'P017 Two bikes from above', score: 'chase', on: 'bike-2', frame: 'aerial', lens: 55, sec: 4, follow: true, shift: 'brawl', act: { walk: [-24, -28] }, acts: [{ who: 'bike-2', route: 'corridor', speed: 0.55 }, { who: 'scout-2', alongside: 'bike-2', side: 3 }] },
         { name: 'P017 Shoving', on: 'bike-2', frame: 'medium', from: 'front', lens: 40, sec: 4, follow: true, shift: 'brawl', act: { walk: [-24, -28] }, events: [{ what: 'SHOVE', who: 'scout-2', who2: 'bike-2', at: 1.2 }, { what: 'SHOVE', who: 'scout-2', at: 2.8 }] },
         { name: 'P018 Between the trunks', on: 'luke', frame: 'pov', sec: 4, follow: true, shift: 'brawl', act: { walk: [-24, -28] }, acts: [{ who: 'bike-2', route: 'corridor', speed: 0.7 }, { who: 'scout-2', alongside: 'bike-2', side: 2.5 }] },
         { name: 'P019 The hands', on: 'bike-2', frame: 'close', from: 'e', lens: 35, sec: 3, follow: true, shift: 'brawl', act: { walk: [-24, -28] } },
         { name: 'P019 The trunk ahead', on: 'luke', frame: 'pov', sec: 3, follow: true, shift: 'somersault', act: { walk: [-24, -28] }, acts: [{ who: 'bike-2', route: 'corridor', speed: 0.7 }] },
-        { name: 'P020 The somersault', on: 'luke', frame: 'wide', from: 'e', lens: 45, sec: 6, follow: true, shift: 'somersault', act: { walk: [-24, -28] }, events: [{ what: 'EJECT', who: 'luke', at: 0.6 }, { what: 'CRASH', who: 'bike-2', into: 'tree', at: 0.7 }, { what: 'EXPLODE', who: 'bike-2', at: 3.4 }] },
-        { name: 'P021 Turnabout', on: 'scout-2', frame: 'wide', from: 'n', lens: 50, sec: 5, follow: true, shift: 'saber', act: { walk: [-24, -28] }, acts: [{ who: 'scout-2', turnabout: true, charge: 'luke', fire: true, aim: 'luke', every: 0.6 }, { who: 'luke', pose: 'stand', look: 'scout-2' }] },
+        { name: 'P020 The somersault', score: 'dread', on: 'luke', frame: 'wide', from: 'e', lens: 45, sec: 6, follow: true, shift: 'somersault', act: { walk: [-24, -28] }, events: [{ what: 'EJECT', who: 'luke', at: 0.6 }, { what: 'CRASH', who: 'bike-2', into: 'tree', at: 0.7 }, { what: 'EXPLODE', who: 'bike-2', at: 3.4 }] },
+        { name: 'P021 Turnabout', score: 'chase', on: 'scout-2', frame: 'wide', from: 'n', lens: 50, sec: 5, follow: true, shift: 'saber', act: { walk: [-24, -28] }, acts: [{ who: 'scout-2', turnabout: true, charge: 'luke', fire: true, aim: 'luke', every: 0.6 }, { who: 'luke', pose: 'stand', look: 'scout-2' }] },
         { name: 'P021 The saber', on: 'luke', frame: 'medium', from: 'front', lens: 40, sec: 3, shift: 'saber', act: { walk: [-24, -28] }, acts: [{ who: 'luke', saber: true, look: 'scout-2' }] },
         { name: 'P022 Deflected', on: 'luke', frame: 'medium', from: 'front', lens: 40, sec: 4, shift: 'saber', act: { walk: [-24, -28] }, acts: [{ who: 'luke', saber: true, look: 'scout-2' }, { who: 'scout-2', charge: 'luke', fire: true, aim: 'luke', every: 0.5 }], events: [{ what: 'DEFLECT', who: 'luke', at: 0, for: 4 }] },
         { name: 'P022 Severed', on: 'scout-2', frame: 'wide', from: 'e', lens: 45, sec: 5, follow: true, shift: 'saber', act: { walk: [-24, -28] }, acts: [{ who: 'luke', saber: true }], events: [{ what: 'SEVER', who: 'scout-2', at: 0.8 }, { what: 'EXPLODE', who: 'scout-2', at: 3.6 }] },
-        { name: 'P023 The wreck', on: 'luke', frame: 'medium', from: 'w', lens: 40, sec: 4, shift: 'camp', act: { walk: [-24, -28] }, acts: [{ who: 'luke', look: 'scout-2' }] },
+        { name: 'P023 The wreck', score: null, on: 'luke', frame: 'medium', from: 'w', lens: 40, sec: 4, shift: 'camp', act: { walk: [-24, -28] }, acts: [{ who: 'luke', look: 'scout-2' }] },
         { name: 'P023 Back down the corridor', on: 'luke', frame: 'wide', from: 'n', lens: 50, sec: 5, follow: true, shift: 'camp', act: { walk: [-24, -28] }, acts: [{ who: 'luke', to: [-22, -26], run: true }] },
-        { name: 'P024 The staging trunk', on: 'chewbacca', frame: 'wide', from: 'se', lens: 50, sec: 4, shift: 'camp', act: { walk: [-24, -28] }, acts: [{ who: 'chewbacca', pose: 'crouch' }, { who: 'han', to: [-27, -33], pose: 'aim' }] },
-        { name: 'P024 The droids', on: 'c3po', frame: 'close', from: 'e', lens: 35, sec: 4, shift: 'camp', act: { walk: [-24, -28] }, events: [{ what: 'CAPTION', text: 'Oh dear. They have been gone a long time.', at: 0.5, for: 3 }] },
+        { name: 'P024 The staging trunk', score: 'camp', on: 'chewbacca', frame: 'wide', from: 'se', lens: 50, sec: 4, shift: 'camp', act: { walk: [-24, -28] }, acts: [{ who: 'chewbacca', pose: 'crouch' }, { who: 'han', to: [-27, -33], pose: 'aim' }], events: [{ what: 'LINE', who: 'chewbacca', text: 'Rrraaawwrr.', at: 1.5 }] },
+        { name: 'P024 The droids', on: 'c3po', frame: 'close', from: 'e', lens: 35, sec: 4, shift: 'camp', act: { walk: [-24, -28] }, events: [{ what: 'LINE', who: 'c3po', text: 'Oh dear. They have been gone a long time.', at: 0.5, for: 3 }] },
         { name: 'P024 Han behind the root', on: 'han', frame: 'medium', from: 'e', lens: 40, sec: 3, shift: 'camp', act: { walk: [-24, -28] }, acts: [{ who: 'han', pose: 'aim', look: 'luke' }] },
-        { name: 'P025 Luke arrives', on: 'luke', frame: 'wide', from: 's', lens: 50, sec: 4, follow: true, shift: 'camp', act: { walk: [-24, -28] }, acts: [{ who: 'luke', to: [-24, -30], run: true }, { who: 'han', pose: 'stand', look: 'luke' }] },
-        { name: 'P025 Where is Leia', on: 'han', frame: 'medium', from: 'n', lens: 40, sec: 4, shift: 'camp', act: { walk: [-24, -28] }, acts: [{ who: 'luke', look: 'han' }, { who: 'han', look: 'luke' }], events: [{ what: 'CAPTION', text: 'Where is Leia?', at: 0.4, for: 2 }, { what: 'CAPTION', text: 'She did not come back?', at: 2.4, for: 1.5 }] },
-        { name: 'P026 The plan', on: 'luke', frame: 'medium', from: 'e', lens: 40, sec: 4, shift: 'camp', act: { walk: [-24, -28] }, acts: [{ who: 'han', pose: 'point', look: 'luke' }], events: [{ what: 'CAPTION', text: 'We have to find her.', at: 0.5, for: 3 }] },
-        { name: 'P027 Into the trees', on: 'han', frame: 'wide', from: 'e', lens: 50, sec: 6, follow: true, shift: 'camp', act: { walk: [-40, -50] }, acts: [{ who: 'han', to: [-62, -66], pose: 'stand' }, { who: 'chewbacca', to: [-58, -70], pose: 'stand' }, { who: 'c3po', to: [-55, -62] }, { who: 'luke', to: [-60, -63], run: true }], events: [{ what: 'CAPTION', text: 'Let us go.', at: 0.5, for: 2 }] },
+        { name: 'P025 Luke arrives', on: 'luke', frame: 'wide', from: 's', lens: 50, sec: 4, follow: true, shift: 'camp', act: { walk: [-24, -28] }, acts: [{ who: 'luke', to: [-24, -30], run: true }, { who: 'han', pose: 'stand', look: 'luke' }], events: [{ what: 'LINE', who: 'chewbacca', text: 'Rrraawr.', at: 2.5 }] },
+        { name: 'P025 Where is Leia', on: 'han', frame: 'medium', from: 'n', lens: 40, sec: 4, shift: 'camp', act: { walk: [-24, -28] }, acts: [{ who: 'luke', look: 'han' }, { who: 'han', look: 'luke' }], events: [{ what: 'LINE', who: 'han', text: 'Where is Leia?', at: 0.4, for: 2 }, { what: 'LINE', who: 'luke', text: 'She did not come back?', at: 2.4, for: 1.5 }] },
+        { name: 'P026 The plan', on: 'luke', frame: 'medium', from: 'e', lens: 40, sec: 4, shift: 'camp', act: { walk: [-24, -28] }, acts: [{ who: 'han', pose: 'point', look: 'luke' }], events: [{ what: 'LINE', who: 'han', text: 'We have to find her.', at: 0.5, for: 3 }] },
+        { name: 'P027 Into the trees', score: 'hero', on: 'han', frame: 'wide', from: 'e', lens: 50, sec: 6, follow: true, shift: 'camp', act: { walk: [-40, -50] }, acts: [{ who: 'han', to: [-62, -66], pose: 'stand' }, { who: 'chewbacca', to: [-58, -70], pose: 'stand' }, { who: 'c3po', to: [-55, -62] }, { who: 'luke', to: [-60, -63], run: true }], events: [{ what: 'LINE', who: 'han', text: 'Let us go.', at: 0.5, for: 2 }] },
       ] },
   };
 
@@ -190,14 +190,17 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
     /* ── the grammar ── */
     const keyOf = m => ({ pos: new THREE.Vector3(+m[1], -m[2], -m[3]), tgt: new THREE.Vector3(+m[4], -m[5], -m[6]), fov: clamp(+m[7] || 50, 5, 150) });
     const KEY_RE = /POS\s+(-?[\d.]+)\s+(-?[\d.]+)\s+(-?[\d.]+)\s+TGT\s+(-?[\d.]+)\s+(-?[\d.]+)\s+(-?[\d.]+)\s+LENS\s+([\d.]+)/;
+    /** SCORE "cue" on a SHOT or TITLE line names the music from there on; SCORE none ends it. */
+    const scoreOf = (line, cur) => { const m = line.match(/\bSCORE\s+(?:"([^"]*)"|(none))/); if (m) cur.score = m[2] ? null : m[1]; };
+    const scoreText = s => s.score === undefined ? '' : s.score === null ? ' SCORE none' : ` SCORE "${s.score}"`;
     F.parse = (text, keepOld) => {
       const shots = keepOld ? F.shots.slice() : [], lights = keepOld ? F.lights.slice() : [], actors = [], builds = []; let cur = null, n = 0, pendingSet = null, stage = null, story = null;
       for (const raw of String(text || '').split(/\r?\n/)) {
         const line = raw.trim(); if (!/!MENTO/.test(line)) continue;
         const name = (line.match(/"([^"]*)"/) || [])[1];
-        if (/!MENTO\s+SHOT/.test(line)) { const m = line.match(KEY_RE); if (!m) continue; const sec = line.match(/\bSEC\s+([\d.]+)/); cur = { name: name || `Shot ${shots.length + 1}`, keys: [keyOf(m)], sec: sec ? clamp(num(sec[1]), 0.5, 120) : F.sec, act: null, set: pendingSet, follow: /\bFOLLOW\b/.test(line) }; const shf = line.match(/\bSHIFT\s+"([^"]*)"/); if (shf) cur.shift = shf[1]; pendingSet = null; shots.push(cur); n++; }
+        if (/!MENTO\s+SHOT/.test(line)) { const m = line.match(KEY_RE); if (!m) continue; const sec = line.match(/\bSEC\s+([\d.]+)/); cur = { name: name || `Shot ${shots.length + 1}`, keys: [keyOf(m)], sec: sec ? clamp(num(sec[1]), 0.5, 120) : F.sec, act: null, set: pendingSet, follow: /\bFOLLOW\b/.test(line) }; const shf = line.match(/\bSHIFT\s+"([^"]*)"/); if (shf) cur.shift = shf[1]; scoreOf(line, cur); pendingSet = null; shots.push(cur); n++; }
         else if (/!MENTO\s+STORY\b/.test(line)) { const m = line.match(/STORY\s+(\{[\s\S]*\})\s*$/); if (m) { try { story = JSON.parse(m[1]); } catch (e) { } } }
-        else if (/!MENTO\s+TITLE/.test(line)) { const sec = line.match(/\bSEC\s+([\d.]+)/), st = line.match(/\bSTYLE\s+(\w+)/), words = (name || '').replace(/\\n/g, '\n'); cur = { name: words.split('\n')[0] || 'Title', title: words, style: st ? st[1].toLowerCase() : 'card', keys: [], sec: sec ? clamp(num(sec[1]), 0.5, 120) : 3, act: null, set: pendingSet }; pendingSet = null; shots.push(cur); n++; }
+        else if (/!MENTO\s+TITLE/.test(line)) { const sec = line.match(/\bSEC\s+([\d.]+)/), st = line.match(/\bSTYLE\s+(\w+)/), words = (name || '').replace(/\\n/g, '\n'); cur = { name: words.split('\n')[0] || 'Title', title: words, style: st ? st[1].toLowerCase() : 'card', keys: [], sec: sec ? clamp(num(sec[1]), 0.5, 120) : 3, act: null, set: pendingSet }; scoreOf(line, cur); pendingSet = null; shots.push(cur); n++; }
         else if (/!MENTO\s+SET\b/.test(line)) { const w = line.match(/\bWORLD\s+(\w+)/), a = line.match(/\bAS\s+(\w+)/), t = line.match(/\bTIME\s+(\w+)/), we = line.match(/\bWEATHER\s+(\w+)/); pendingSet = { world: w ? w[1].toLowerCase() : null, as: a ? a[1].toLowerCase() : null, time: t ? t[1].toLowerCase() : null, weather: we ? we[1].toLowerCase() : null }; }
         else if (/!MENTO\s+PLAN\b/.test(line)) { const m = line.match(/PLAN\s+(\{[\s\S]*\})\s*$/); if (m && cur) { try { cur.plan = JSON.parse(m[1]); } catch (e) { } } }
         else if (/!MENTO\s+KEY/.test(line)) { const m = line.match(KEY_RE); if (m && cur) cur.keys.push(keyOf(m)); }
@@ -231,10 +234,11 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
       const part = tt.match(/\b(belly|neck|head)\b/i); if (part) ev.part = part[1].toLowerCase();
       const into = tt.match(/\bINTO\s+(tree|log)\b/i); if (into) ev.into = into[1].toLowerCase();
       if (ev.what === 'CAPTION') { ev.text = q[0] || ''; ev.who = null; ev.who2 = null; }
+      if (ev.what === 'LINE') { ev.who = q[0] || 'narrator'; ev.text = q[1] || ''; ev.who2 = null; }
       const xz = tt.replace(/^\w+\s*/, '').replace(/\b(AT|OVER|TURNS|SCALE|EVERY|R|K)\s+[\d.]+/g, '').match(/(-?[\d.]+)\s+(-?[\d.]+)/); if (xz && ev.what === 'STRIKE') { ev.x = +xz[1]; ev.z = -xz[2]; }
       return ev;
     }
-    const eventText = ev => { const t = [`${ev.what}`]; if (ev.what === 'CAPTION') t.push(`"${String(ev.text || '').replace(/"/g, "'")}"`); if (ev.who) t.push(`"${ev.who}"`); if (ev.who2) t.push(`"${ev.who2}"`); if (ev.into) t.push('INTO ' + ev.into); if (ev.what === 'STRIKE' && ev.x != null) t.push(`${fmt(ev.x)} ${fmt(-ev.z)}`); if (ev.part) t.push(ev.part); t.push(`AT ${fmt(ev.at || 0)}`); if (ev.turns != null) t.push(`TURNS ${fmt(ev.turns)}`); if (ev.over != null) t.push(`OVER ${fmt(ev.over)}`); if (ev.scale != null) t.push(`SCALE ${fmt(ev.scale)}`); if (ev.every != null) t.push(`EVERY ${fmt(ev.every)}`); if (ev.r != null) t.push(`R ${fmt(ev.r)}`); if (ev.k != null) t.push(`K ${fmt(ev.k)}`); if (ev.for != null) t.push(`FOR ${fmt(ev.for)}`); return t.join(' '); };
+    const eventText = ev => { const t = [`${ev.what}`]; if (ev.what === 'CAPTION') t.push(`"${String(ev.text || '').replace(/"/g, "'")}"`); if (ev.who) t.push(`"${ev.who}"`); if (ev.what === 'LINE') t.push(`"${String(ev.text || '').replace(/"/g, "'")}"`); if (ev.who2) t.push(`"${ev.who2}"`); if (ev.into) t.push('INTO ' + ev.into); if (ev.what === 'STRIKE' && ev.x != null) t.push(`${fmt(ev.x)} ${fmt(-ev.z)}`); if (ev.part) t.push(ev.part); t.push(`AT ${fmt(ev.at || 0)}`); if (ev.turns != null) t.push(`TURNS ${fmt(ev.turns)}`); if (ev.over != null) t.push(`OVER ${fmt(ev.over)}`); if (ev.scale != null) t.push(`SCALE ${fmt(ev.scale)}`); if (ev.every != null) t.push(`EVERY ${fmt(ev.every)}`); if (ev.r != null) t.push(`R ${fmt(ev.r)}`); if (ev.k != null) t.push(`K ${fmt(ev.k)}`); if (ev.for != null) t.push(`FOR ${fmt(ev.for)}`); return t.join(' '); };
     const actorText = a => a.crowd ? `0 !MENTO ACTOR "${a.name}" CROWD ${a.kind} N ${a.n} AT ${fmt(a.x)} ${fmt(-a.z)} R ${fmt(a.r / M)}` : `0 !MENTO ACTOR "${a.name}" ${a.figure ? 'FIGURE ' + a.figure : a.kit ? 'KIT ' + a.kit : 'KIND ' + a.kind + (a.len ? ' LEN ' + a.len : '') + (a.col != null ? ' COL ' + a.col : '')} AT ${fmt(a.x)} ${fmt(-a.z)} HEADING ${fmt(a.heading || 0)}${a.rider ? ' RIDER ' + a.rider : ''}${a.pose ? ' POSE ' + a.pose : ''}`;
     /** The act tokens: WALK x z, DRIVE x z, AHEAD m, RIDE word, TIE, FLY, FIRE, SABER, LEAVE, LOOK x z; for an actor also MARCH deg speed, TO x z, ORBIT "who" R m, PASS "who", HEAVY, EVERY s, AIM "who"|x z, HALT, LAND, ALT m. */
     function parseAct(text, who) {
@@ -282,9 +286,9 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
       F.shots.forEach((s, i) => {
         out.push(`0 // SHOT ${i + 1}: ${s.name.toUpperCase()}`);
         if (s.set && (s.set.world || s.set.as || s.set.time || s.set.weather)) out.push(`0 !MENTO SET${s.set.world ? ' WORLD ' + s.set.world : ''}${s.set.as ? ' AS ' + s.set.as : ''}${s.set.time ? ' TIME ' + s.set.time : ''}${s.set.weather ? ' WEATHER ' + s.set.weather : ''}`);
-        if (s.title != null) { out.push(`0 !MENTO TITLE "${s.title.replace(/"/g, "'").replace(/\n/g, '\\n')}" STYLE ${s.style || 'card'} SEC ${fmt(s.sec)}`); return; }
+        if (s.title != null) { out.push(`0 !MENTO TITLE "${s.title.replace(/"/g, "'").replace(/\n/g, '\\n')}" STYLE ${s.style || 'card'} SEC ${fmt(s.sec)}${scoreText(s)}`); for (const ev of s.events || []) out.push(`0 !MENTO EVENT ${eventText(ev)}`); return; }
         const k0 = s.keys[0] || { pos: new THREE.Vector3(), tgt: new THREE.Vector3(0, 0, -1), fov: 50 };
-        out.push(`0 !MENTO SHOT "${s.name.replace(/"/g, "'")}" ${keyLine(k0)} SEC ${fmt(s.sec)}${s.follow ? ' FOLLOW' : ''}${s.shift ? ` SHIFT "${String(s.shift).replace(/"/g, "'")}"` : ''}`);
+        out.push(`0 !MENTO SHOT "${s.name.replace(/"/g, "'")}" ${keyLine(k0)} SEC ${fmt(s.sec)}${s.follow ? ' FOLLOW' : ''}${s.shift ? ` SHIFT "${String(s.shift).replace(/"/g, "'")}"` : ''}${scoreText(s)}`);
         if (s.plan) out.push(`0 !MENTO PLAN ${JSON.stringify(s.plan)}`);
         for (const k of s.keys.slice(1)) out.push(`0 !MENTO KEY ${keyLine(k)}`);
         if (s.act) { const t = actText(s.act); if (t) out.push(`0 !MENTO ACT "${s.act.who || 'me'}" ${t}`); }
@@ -361,9 +365,11 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
     F.moveShot = (i, dir) => { const j = i + dir; if (!F.shots[i] || !F.shots[j]) return; const t = F.shots[i]; F.shots[i] = F.shots[j]; F.shots[j] = t; if (F.sel === i) F.sel = j; changed('order'); };
     F.rename = (i, name) => { const s = F.shots[i]; if (!s) return; s.name = String(name || '').trim() || s.name; changed('name'); };
     const truce = on => { if (on) { if (F.truceWas == null) F.truceWas = !!W.truce; W.truce = true; } else if (F.truceWas != null) { W.truce = F.truceWas; F.truceWas = null; } };   // nobody shoots the actors while the film plays
-    F.playShot = i => { if (!F.shots[i]) return false; F.play = { on: true, i, t: 0, all: false }; F.sel = i; truce(true); enter(i); if (F.onChange) F.onChange('play'); return true; };
-    F.playAll = () => { if (!F.shots.length) return false; F.play = { on: true, i: 0, t: 0, all: true }; F.sel = 0; truce(true); enter(0); if (F.onChange) F.onChange('play'); return true; };
-    F.stop = () => { const was = F.play.on; truce(false); F.play = { on: false, i: F.play.i, t: 0, all: false }; F.running = false; F.hold = null; F.actState = null; showTitle(null); if (was && F.onChange) F.onChange('stop'); if (F.mode === 'view' && W.rig) { W.camera.fov = gameFov(); W.camera.updateProjectionMatrix(); W.rig.cam.set = false; } return was; };
+    F.reelOffset = i => { let t = 0; for (let k = 0; k < i && k < F.shots.length; k++) t += F.shots[k].sec; return t; };
+    const soundOn = () => { if (window.Sound) Sound.arm(true, () => F.reelOffset(F.play.i) + F.play.t); };
+    F.playShot = i => { if (!F.shots[i]) return false; F.play = { on: true, i, t: 0, all: false }; F.sel = i; truce(true); soundOn(); enter(i); if (F.onChange) F.onChange('play'); return true; };
+    F.playAll = () => { if (!F.shots.length) return false; F.play = { on: true, i: 0, t: 0, all: true }; F.sel = 0; truce(true); soundOn(); enter(0); if (F.onChange) F.onChange('play'); return true; };
+    F.stop = () => { const was = F.play.on; truce(false); if (window.Sound && was) { closeFoley(); Sound.arm(false); } F.play = { on: false, i: F.play.i, t: 0, all: false }; F.running = false; F.hold = null; F.actState = null; showTitle(null); if (was && F.onChange) F.onChange('stop'); if (F.mode === 'view' && W.rig) { W.camera.fov = gameFov(); W.camera.updateProjectionMatrix(); W.rig.cam.set = false; } return was; };
     F.total = () => F.shots.reduce((s, x) => s + x.sec, 0);
     /** A shot starts: its SET lines change the planet, the character or the sky; the clock holds until the world has laid what it lays; a planned shot is staged again; its act begins. */
     function enter(i) {
@@ -378,7 +384,12 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
       if (changed) F.hold = { until: performance.now() + 8000, least: performance.now() + 400, why: 'the world is laying' };
       if (!F.hold) settle(s);
       showTitle(s.title != null ? s : null);
+      if (window.Sound && F.play.on) { const cue = scoreFor(i); if (cue !== undefined) Sound.cue(cue, s.fade); Sound.setBed(bedFor(s)); }
     }
+    /** The cue a shot plays: its own `score`, or the last one named before it (null ends the music). */
+    function scoreFor(i) { for (let k = i; k >= 0; k--) { const s = F.shots[k]; if (s && s.score !== undefined) return s.score; } return undefined; }
+    /** The bed under a shot: the set's kind, the weather, the planet. */
+    function bedFor(s) { const kind = F.scene && F.scene.set && F.scene.set.kind, we = (s && s.set && s.set.weather) || W.weather, world = W.world; if (kind === 'forest') return 'forest'; if (kind === 'snowfield' || we === 'snow' || we === 'blizzard' || world === 'hoth') return we === 'blizzard' ? 'blizzard' : 'snow'; if (kind === 'desert' || world === 'tatooine') return 'desert'; if (world === 'deathstar') return 'space'; return 'city'; }
     /** The hold is over: a planned shot is staged where things now stand, the act's first moves happen. */
     function settle(s) {
       if (s.plan) { try { s.bearKeep = null; const st = F.stage(s.plan); s.keys = st.keys; s.curve = null; s.name = s.name || st.name; s.readout = st.readout; if (s.follow) s.bearKeep = st.bearKeep; } catch (e) { F.log.push('stage: ' + (e.message || e)); } }
@@ -427,7 +438,8 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
 
     /* ── the step: the reel's clock, the free camera's dolly, the sun ── */
     F.step = dt => {
-      if (F.hold) { const s = F.shots[F.play.i], now = performance.now(); if (now > F.hold.until || (now > F.hold.least && laidAll())) { F.hold = null; if (s) settle(s); } else return; }   // the clock waits for the planet's things
+      if (F.hold) { const s = F.shots[F.play.i], now = performance.now(); if (window.Sound) Sound.held = true; if (now > F.hold.until || (now > F.hold.least && laidAll())) { F.hold = null; if (s) settle(s); } else return; }   // the clock waits for the planet's things
+      if (window.Sound) { Sound.held = false; if (F.play.on) Sound.tick(); }
       if (F.rec) F.rec.t += dt; if (F.caption && F.play.on && F.play.t >= F.caption.until) { F.caption = null; showCaption(null); }
       if (F.play.on && F.actState) stepAct(dt);
       if (F.play.on) {
@@ -622,7 +634,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
     /** A bike goes up: a fireball, a burst of light, its bricks fly, the rider is thrown, a column of smoke marks the tree. */
     function explode(A, ev) {
       if (!A || !A.V || A.down) return; const V = A.V, p = V.pos.clone(), k = (ev && ev.scale) || 1; p.y += 0.5 * M; A.last = { x: p.x, z: p.z, y: p.y - 0.5 * M, heading: V.heading }; A.wreck = true;
-      W.filmFx.blast(p, 3 * M * k, new THREE.Vector3(0, 3 * M, 0), 'torp'); W.filmFx.flash(); W.filmFx.shake(0.45 * k); const sm = W.filmFx.smoke(); sm.puff(p, 28, 2.8 * M * k, 0.1); sm.puff(p, 14, 1.8 * M * k, 0.85); sm.column(p, 30, 10); Fx.Sfx.torpedo(); Fx.Sfx.crunch();
+      W.filmFx.blast(p, 3 * M * k, new THREE.Vector3(0, 3 * M, 0), 'torp'); W.filmFx.flash(); W.filmFx.shake(0.45 * k); const sm = W.filmFx.smoke(); sm.puff(p, 28, 2.8 * M * k, 0.1); sm.puff(p, 14, 1.8 * M * k, 0.85); sm.column(p, 30, 10); const sp = F.spatial(p); Fx.Sfx.torpedo(sp); Fx.Sfx.crunch(sp); Fx.Sfx.boom(1.25 * k, sp); for (let q = 0; q < 6; q++) Fx.Sfx.clatter(0.6, { ...sp, dt: 0.12 + q * 0.09 });
       const L = new THREE.PointLight(0xff8a2a, 5 * k, 45 * M * k, 2); L.position.copy(p); L.position.y += M; W.scene.add(L); F.lights2.push({ L, t: 0, over: 0.45, i0: 5 * k });
       if (W.props.fling && !A.it.kit && A.it.meshes) { const V = new THREE.Vector3(); for (const m of A.it.meshes.slice()) { const away = m.getWorldPosition(V).clone().sub(p); away.y += 10; if (away.lengthSq() < 1) away.set(Math.random() - 0.5, 1, Math.random() - 0.5); away.normalize().multiplyScalar((2 + Math.random() * 5) * M); away.y += 5 * M; W.props.fling(m, away); } A.it.meshes = []; }   // its own bricks fly; nothing else near it comes apart
       if (A.riderRig) { const rr = A.riderRig; if (W.filmUnseat) W.filmUnseat(rr); throwFigure(rr, V, 1); F.loose.push({ rig: rr, t0: rr.t }); A.riderRig = null; }
@@ -646,7 +658,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
     /** Film bolts that come at a figure with a saber go back the way they came. */
     function stepDeflect() {
       const d = F.deflect; if (!d) return; const A = d.who !== 'me' && F.actors.get(d.who), rig = A ? A.rig : W.mode === 'walk' ? W.rig : null; if (!rig) return; const bolts = W.filmFx.bolts && W.filmFx.bolts(); if (!bolts) return; const c = rig.pos.clone(); c.y += 1.2 * M;
-      for (const b of bolts.live()) { if (b.owner !== 'film' && b.owner !== 'npc') continue; if (b.mesh.position.distanceTo(c) > 2.2 * M) continue; b.vel.multiplyScalar(-1); b.prev.copy(b.mesh.position); b.owner = 'player'; if (bolts.mats && bolts.mats.green) b.mesh.material = bolts.mats.green; d.n++; if (A) { if (!rig.swing) rig.swing = { t0: rig.t, struck: false }; } else if (W.input) W.input.saber = true; Fx.Sfx.strike(); W.filmFx.flash(); }
+      for (const b of bolts.live()) { if (b.owner !== 'film' && b.owner !== 'npc') continue; if (b.mesh.position.distanceTo(c) > 2.2 * M) continue; b.vel.multiplyScalar(-1); b.prev.copy(b.mesh.position); b.owner = 'player'; if (bolts.mats && bolts.mats.green) b.mesh.material = bolts.mats.green; d.n++; if (A) { if (!rig.swing) rig.swing = { t0: rig.t, struck: false }; } else if (W.input) W.input.saber = true; Fx.Sfx.clash(F.spatial(c)); W.filmFx.flash(); }
     }
     /** A walker comes down: nose first about its front feet (trip), or onto its flank after a stumble (topple). */
     function startFall(a, kind, over) { if (!a.V || a.fall || a.down) return; a.fall = { kind, t: 0, over: over || (kind === 'topple' ? 2 : 1.6), pitch: 0, roll: 0, base: a.V.pos.clone(), heading: a.V.heading, done: false }; a.V.speed = 0; a.V.input.mag = 0; a.V.input.y = 0; }
@@ -660,7 +672,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
         f.done = true; a.down = true; const smoke = W.filmFx.smoke(), b = a.it.box, len = hz * 2, H = b.max.y - b.min.y;
         const head = f.kind === 'trip' ? f.base.clone().addScaledVector(fwd, hz + H * 0.6) : f.base.clone().addScaledVector(side, hx + H * 0.5); head.y = groundH(head.x, head.z) + 0.6 * M;
         for (let k = 0; k < 3; k++) { const p = f.base.clone().lerp(head, k / 2); p.y = groundH(p.x, p.z) + 0.4 * M; smoke.puff(p, 18, 3 * M, 0.92); }
-        W.filmFx.crater(head, 2.5 * M, 0.6 * M); W.filmFx.shake(0.9); Fx.Sfx.crunch(); Fx.Sfx.thud(1); if (f.kind === 'topple') { W.filmFx.blast(head, 4 * M, new THREE.Vector3(0, 3 * M, 0), 'torp'); W.filmFx.flash(); smoke.column(head, 40, 10); }
+        W.filmFx.crater(head, 2.5 * M, 0.6 * M); W.filmFx.shake(0.9); { const sp = F.spatial(head); Fx.Sfx.crunch(sp); Fx.Sfx.thud(1, sp); Fx.Sfx.boom(1, sp); Fx.Sfx.stomp(1.4, sp); } if (f.kind === 'topple') { W.filmFx.blast(head, 4 * M, new THREE.Vector3(0, 3 * M, 0), 'torp'); W.filmFx.flash(); smoke.column(head, 40, 10); }
         if (W.props.moved) W.props.moved(a.it);
       }
     }
@@ -684,56 +696,88 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
     }
     function stepStrikes(dt) {
       const st = F.strikes; if (!st) return; st.acc += dt; if (st.acc < st.every) return; st.acc = 0;
-      const p = st.point(); W.filmFx.blast(p, 2.2 * M, new THREE.Vector3((Math.random() - 0.5) * 3 * M, 4 * M, (Math.random() - 0.5) * 3 * M), 'bolt'); W.filmFx.crater(p, 1.3 * M, 0.4 * M); W.filmFx.smoke().puff(p, 16, 2.5 * M, 0.9); W.filmFx.shake(0.2); Fx.Sfx.crunch();
+      const p = st.point(); W.filmFx.blast(p, 2.2 * M, new THREE.Vector3((Math.random() - 0.5) * 3 * M, 4 * M, (Math.random() - 0.5) * 3 * M), 'bolt'); W.filmFx.crater(p, 1.3 * M, 0.4 * M); W.filmFx.smoke().puff(p, 16, 2.5 * M, 0.9); W.filmFx.shake(0.2); { const sp = F.spatial(p); Fx.Sfx.crunch(sp); Fx.Sfx.boom(0.6, sp); }
     }
     function stepRout() { const r = F.rout; if (!r) return; const a = F.actors.get(r.crowd), from = F.actors.get(r.from); if (!a || !a.npcs) return; const p = from && from.V ? from.V.pos : null; for (const n of a.npcs) if (n.alive) { n.flee = 2; n.fleeFrom = p; } }
     function fireEvent(ev, s) {
       F.fired++; const who = ev.who, A = F.actors.get(who);
       switch (ev.what) {
-        case 'CABLE': F.cable = { from: who, to: ev.who2, turns: ev.turns || 3, over: ev.over || 4, t: 0, leg: 'leg-rl', frozen: false }; Fx.Sfx.skid && Fx.Sfx.skid(); break;
+        case 'CABLE': F.cable = { from: who, to: ev.who2, turns: ev.turns || 3, over: ev.over || 4, t: 0, leg: 'leg-rl', frozen: false }; Fx.Sfx.zip(); break;
         case 'TRIP': if (A) { startFall(A, 'trip', ev.over); if (F.cable && F.cable.to === who) F.cable.frozen = true; } break;
         case 'TOPPLE': if (A) startFall(A, 'topple', ev.over); break;
         case 'BLAST': if (A && A.V) { const V = A.V, b = A.it.box, H = b.max.y - b.min.y, fwd = new THREE.Vector3(Math.sin(V.heading), 0, Math.cos(V.heading)), p = V.pos.clone(); if (ev.part === 'neck') { p.addScaledVector(fwd, V.hz * 0.45); p.y = b.min.y + H * 0.85; } else if (ev.part === 'head') { p.addScaledVector(fwd, V.hz * 0.8); p.y = b.min.y + H * 0.9; } else { p.y = b.min.y + H * 0.42; }
-          W.filmFx.blast(p, 3 * M * (ev.scale || 1), new THREE.Vector3(0, 2 * M, 0), 'torp'); W.filmFx.flash(); W.filmFx.shake(0.5 * (ev.scale || 1)); W.filmFx.smoke().puff(p, 30, 3 * M * (ev.scale || 1), 0.15); W.filmFx.smoke().column(p, 30, 12); Fx.Sfx.torpedo(); Fx.Sfx.crunch(); } break;
+          W.filmFx.blast(p, 3 * M * (ev.scale || 1), new THREE.Vector3(0, 2 * M, 0), 'torp'); W.filmFx.flash(); W.filmFx.shake(0.5 * (ev.scale || 1)); W.filmFx.smoke().puff(p, 30, 3 * M * (ev.scale || 1), 0.15); W.filmFx.smoke().column(p, 30, 12); Fx.Sfx.torpedo(); Fx.Sfx.crunch(); Fx.Sfx.boom(1.1 * (ev.scale || 1), F.spatial(p)); } break;
         case 'HANG': if (F.actors.get(ev.who2)) { F.prone = false; if (W.rig) W.rig.figure.rotation.x = 0; F.hang = { actor: ev.who2, t: 0, over: ev.over || 3 }; } break;
-        case 'DROP': if (F.hang) { if (F.hang.mesh) { W.scene.remove(F.hang.mesh); } F.hang = null; } if (W.rig) { if (!W.rig.airVel) W.rig.airVel = new THREE.Vector3(); W.rig.airVel.set(0, 0, 0); W.rig.air = true; W.rig.vy = -1 * M; F.prone = true; } break;
+        case 'DROP': Fx.Sfx.whoosh({ size: 0.6 }); if (F.hang) { if (F.hang.mesh) { W.scene.remove(F.hang.mesh); } F.hang = null; } if (W.rig) { if (!W.rig.airVel) W.rig.airVel = new THREE.Vector3(); W.rig.airVel.set(0, 0, 0); W.rig.air = true; W.rig.vy = -1 * M; F.prone = true; } break;
         case 'STRIKE': { const b = F.builds.get(who), every = ev.every; const point = b ? () => new THREE.Vector3(b.x + (Math.random() - 0.5) * b.w, groundH(b.x, b.z), b.z + (Math.random() - 0.5) * b.d) : () => new THREE.Vector3(ev.x + (Math.random() - 0.5) * (ev.r || 4) * M, groundH(ev.x, ev.z), ev.z + (Math.random() - 0.5) * (ev.r || 4) * M);
           if (every) F.strikes = { every, acc: every, point }; else { F.strikes = { every: 9e9, acc: 0, point }; stepStrikes(9e9); F.strikes = null; } break; }
         case 'ROUT': F.rout = { crowd: who, from: ev.who2 }; break;
         case 'CRASH': if (ev.into && A && A.V) { aimAtObstacle(A, ev.into); break; } if (A && A.V) { A.down = true; A.fall = null; const g = A.it.group, p = A.V.pos; p.y = groundH(p.x, p.z) + 0.3 * M; g.position.copy(p); g.rotation.set(0, A.V.heading, 0, 'YXZ'); g.rotateZ(0.35); g.rotateX(0.12); W.filmFx.smoke().column(p.clone().addScaledVector(UP, M), 60, 8); W.filmFx.smoke().puff(p, 20, 3 * M, 0.9); if (W.props.moved) W.props.moved(A.it); if (W.mode === 'ride' && W.veh && W.veh.prop === A.it) { F.ground(); F.prone = true; } } break;
         case 'CAPTION': F.caption = { text: ev.text || '', until: F.play.t + (ev.for || 3) }; showCaption(F.caption.text); break;
+        case 'LINE': { const key = window.Sound ? Sound.lineKey(who, ev.text) : null, sec = window.Sound ? Sound.lineSec(key, ev.text) : 2; F.caption = { text: ev.text || '', until: F.play.t + (ev.for || sec + 0.5) }; showCaption(F.caption.text); if (window.Sound) Sound.fire('line', { key, who, text: ev.text, sec }); break; }
+        case 'SCORE': if (window.Sound) Sound.cue(who && who !== 'none' ? who : null, ev.over); break;
+        case 'SOUND': if (window.Sound && who) Sound.fire(who, { size: ev.k != null ? ev.k : undefined }); break;
         case 'SHOVE': if (A && A.V) A.shove = { t: 0, over: ev.over || 0.9, side: ev.k != null ? ev.k : 1 }; if (ev.who2) { const B = F.actors.get(ev.who2); if (B && B.V) B.shove = { t: 0, over: ev.over || 0.9, side: -1 }; } break;
         case 'EJECT': if (/^(me|myself)$/i.test(who || '')) { if (W.mode === 'ride' && W.veh) ejectMe(W.veh); }
           else if (A && A.rig) { if (A.riding) { const B = F.actors.get(A.riding); dismount(A); if (B && B.V) throwFigure(A.rig, B.V, 0.8); else Minifig.throwRig(A.rig, new THREE.Vector3(0, 5 * M, 0)); A.flip = A.rig.t; } }
           else if (A && A.riderRig) { const rr = A.riderRig; if (W.filmUnseat) W.filmUnseat(rr); throwFigure(rr, A.V, 0.8); F.loose.push({ rig: rr, t0: rr.t }); A.riderRig = null; } break;
         case 'EXPLODE': explode(A, ev); break;
-        case 'SEVER': if (A && A.V) { aimAtObstacle(A, 'tree'); A.shove = { t: 0, over: 0.4, side: 1.2 }; W.filmFx.flash(); Fx.Sfx.strike(); if (W.input) W.input.saber = true; } break;
+        case 'SEVER': if (A && A.V) { aimAtObstacle(A, 'tree'); A.shove = { t: 0, over: 0.4, side: 1.2 }; W.filmFx.flash(); Fx.Sfx.clash(F.spatial(A.V.pos)); if (W.input) W.input.saber = true; } break;
         case 'DEFLECT': F.deflect = { who: A && A.rig ? who : 'me', until: F.play.t + (ev.for || 3), n: 0 }; break;
-        case 'TACKLE': { const B = F.actors.get(ev.who2); if (A && A.rig) { A.poseNow = 'prone'; A.poseUntil = A.rig.t + (ev.for || 1.8); W.filmFx.smoke().puff(A.rig.pos.clone().addScaledVector(UP, 0.3 * M), 8, 1.2 * M, 0.85); if (B && B.rig) B.rig.pos.copy(A.rig.pos).addScaledVector(fwdOf(A.rig.heading), 0.9 * M); }
+        case 'TACKLE': { const B = F.actors.get(ev.who2); if (A && A.rig) { Fx.Sfx.thud(0.7, F.spatial(A.rig.pos)); A.poseNow = 'prone'; A.poseUntil = A.rig.t + (ev.for || 1.8); W.filmFx.smoke().puff(A.rig.pos.clone().addScaledVector(UP, 0.3 * M), 8, 1.2 * M, 0.85); if (B && B.rig) B.rig.pos.copy(A.rig.pos).addScaledVector(fwdOf(A.rig.heading), 0.9 * M); }
           if (B && B.rig) { B.poseNow = 'prone'; B.poseUntil = 0; B.down = true; } break; }
         case 'SHAKE': W.filmFx.shake(ev.k || 0.5); break;
         case 'FLASH': W.filmFx.flash(); break;
       }
     }
+    /* ── foley: where a sound stands relative to the camera, and the continuous sources sampled every step ── */
+    const SP = { right: new THREE.Vector3(), dir: new THREE.Vector3(), dist: {}, camPrev: null, whooshed: null, phase: {} };
+    /** A point's gain, its place in the stereo field and its doppler, seen from the film camera. */
+    F.spatial = (pos, id, dt) => {
+      const cam = W.camera; if (!cam || !pos) return { gain: 1, pan: 0 }; const d = cam.position.distanceTo(pos), gain = clamp(1 / (1 + d / (18 * M)), 0.03, 1);
+      SP.right.set(1, 0, 0).applyQuaternion(cam.quaternion); SP.dir.copy(pos).sub(cam.position); const L = SP.dir.length() || 1; const pan = clamp(SP.dir.dot(SP.right) / L, -1, 1);
+      let dop = 1; if (id && dt) { const prev = SP.dist[id]; if (prev != null) { const v = (prev - d) / dt / M; dop = clamp(1 + v / 340 * 4, 0.75, 1.35); } SP.dist[id] = d; }
+      return { gain: +gain.toFixed(3), pan: +pan.toFixed(2), dop };
+    };
+    function stepFoley(dt) {
+      const S = window.Sound; if (!S || !F.actors) return;
+      for (const a of F.actors.values()) {
+        if (a.V && !a.crowd) {
+          const V = a.V, sp = F.spatial(V.pos, a.name, dt), s01 = clamp(Math.abs(V.speed) / (V.K.cruise * M), 0, 1.4);
+          if (V.fly && V.K.stall === 0) { if (a.down || a.wreck) S.loop('hover:' + a.name, 'hover', null); else S.loop('hover:' + a.name, 'hover', { gain: +(sp.gain * (0.12 + 0.3 * Math.min(1, s01))).toFixed(3), pitch: +((110 + 150 * Math.min(1.2, s01)) * sp.dop).toFixed(1), cutoff: +(500 + 1600 * Math.min(1, s01)).toFixed(0), pan: sp.pan }); }
+          else if (V.K.walker) { const on = !a.down && !a.fall && Math.abs(V.speed) > 0.3 * M; S.loop('servo:' + a.name, 'servo', on ? { gain: +(sp.gain * 0.1).toFixed(3), pitch: +(140 + 60 * Math.min(1, s01)).toFixed(1), cutoff: 600, pan: sp.pan } : null); }
+        }
+        if (a.rig && !a.riding) {
+          const rig = a.rig, sp = F.spatial(rig.pos, a.name, dt), ph = SP.phase[a.name] == null ? rig.phase : SP.phase[a.name];
+          if (rig.gait > 0.5 && !rig.air && Math.floor(rig.phase / Math.PI) !== Math.floor(ph / Math.PI)) Fx.Sfx.footstep({ size: rig.speed > 5 * M ? 0.7 : 0.4, gain: sp.gain, pan: sp.pan }); SP.phase[a.name] = rig.phase;
+          const hum = !!(rig.def && rig.def.saber) && ((a.act && a.act.saber) || (F.deflect && F.deflect.who === a.name) || a.saberOn); Fx.Sfx.saber(hum, 'saber:' + a.name);
+          if (rig.swing && !a.swingWas) Fx.Sfx.swing({ id: 'saber:' + a.name, gain: sp.gain, pan: sp.pan }); a.swingWas = !!rig.swing;
+        }
+      }
+      const cam = W.camera; if (cam && W.sets && W.sets.nearestTrunk) { if (SP.camPrev) { const v = cam.position.distanceTo(SP.camPrev) / dt / M; if (v > 6) { const t = W.sets.nearestTrunk(cam.position.x, cam.position.z, 4.5 * M); if (t && t !== SP.whooshed) { SP.whooshed = t; const sp = F.spatial(new THREE.Vector3(t.x, cam.position.y, t.z)); Fx.Sfx.whoosh({ size: +Math.min(1.5, v / 12).toFixed(2), pan: sp.pan }); } } } SP.camPrev = SP.camPrev || new THREE.Vector3(); SP.camPrev.copy(cam.position); }
+      S.setBed(bedFor(F.shots[F.play.i]));
+    }
+    function closeFoley() { const S = window.Sound; if (!S) return; for (const id of Object.keys(S.open)) if (/^(hover|servo|saber):/.test(id) || id === 'bed') S.loop(id, null, null); S.bed = null; SP.dist = {}; SP.camPrev = null; SP.whooshed = null; }
     /** After the world has moved: the actors, the cable, the line, a prone figure, the strikes, the rout. */
     F.late = dt => {
       if (!F.scene) return;
-      stepActors(dt); stepCable(dt); stepHang(dt); stepLoose(dt); stepLights(dt); if (F.play.on) { stepStrikes(dt); stepRout(); if (F.deflect) { if (F.play.t < F.deflect.until) stepDeflect(); else { F.deflectN = F.deflect.n; F.deflect = null; } } }
+      stepActors(dt); stepCable(dt); stepHang(dt); stepLoose(dt); stepLights(dt); if (F.play.on && window.Sound) stepFoley(dt); if (F.play.on) { stepStrikes(dt); stepRout(); if (F.deflect) { if (F.play.t < F.deflect.until) stepDeflect(); else { F.deflectN = F.deflect.n; F.deflect = null; } } }
       if (F.flip && W.rig) { if (W.rig.air) W.rig.figure.rotation.x = -((W.rig.t - F.flip) / 0.9) * Math.PI * 2; else { F.flip = 0; F.prone = true; F.proneUntil = F.play.t + 1.2; } }
       if (F.proneUntil && F.play.t > F.proneUntil) { F.proneUntil = 0; F.prone = false; if (W.rig) W.rig.figure.rotation.x = 0; }
       if (F.prone && W.rig && W.mode === 'walk' && !W.rig.air) { W.rig.figure.rotation.x = -Math.PI / 2; W.rig.pos.y = groundH(W.rig.pos.x, W.rig.pos.z) + 0.15 * M; }
     };
-    F.sceneState = () => ({ name: F.scene ? F.scene.name : null, up: !!(F.scene && F.scene.up), ready: !!(F.scene && F.scene.ready), actors: [...F.actors.keys()], builds: [...F.builds.values()].map(b => ({ name: b.name, pieces: b.ids.length, x: +(b.x / M).toFixed(1), z: +(b.z / M).toFixed(1), w: +(b.w / M).toFixed(1), h: +(b.h / M).toFixed(1) })), cable: F.cable ? { t: +F.cable.t.toFixed(2), turns: +(F.cable.turns * clamp(F.cable.t / F.cable.over, 0, 1)).toFixed(2), frozen: F.cable.frozen, points: F.cable.mesh ? F.cable.mesh.geometry.parameters.path.points.length : 0 } : null, hang: F.hang ? { t: +F.hang.t.toFixed(2), actor: F.hang.actor } : null, prone: F.prone, rout: F.rout, strikes: !!F.strikes, pending: F.pending.map(e => ({ what: e.what, at: e.at, done: e.done })), fired: F.fired, caption: F.caption ? F.caption.text : null, deflected: F.deflect ? F.deflect.n : (F.deflectN || 0), loose: F.loose.length, flip: !!F.flip, weather: W.weather, ground: W.G && W.G.mode, snow: !!(W.sky && W.sky.stats && W.sky.stats().snow) });
+    F.sceneState = () => ({ name: F.scene ? F.scene.name : null, up: !!(F.scene && F.scene.up), ready: !!(F.scene && F.scene.ready), actors: [...F.actors.keys()], builds: [...F.builds.values()].map(b => ({ name: b.name, pieces: b.ids.length, x: +(b.x / M).toFixed(1), z: +(b.z / M).toFixed(1), w: +(b.w / M).toFixed(1), h: +(b.h / M).toFixed(1) })), cable: F.cable ? { t: +F.cable.t.toFixed(2), turns: +(F.cable.turns * clamp(F.cable.t / F.cable.over, 0, 1)).toFixed(2), frozen: F.cable.frozen, points: F.cable.mesh ? F.cable.mesh.geometry.parameters.path.points.length : 0 } : null, hang: F.hang ? { t: +F.hang.t.toFixed(2), actor: F.hang.actor } : null, prone: F.prone, rout: F.rout, strikes: !!F.strikes, pending: F.pending.map(e => ({ what: e.what, at: e.at, done: e.done })), fired: F.fired, sound: window.Sound ? Sound.stats() : null, caption: F.caption ? F.caption.text : null, deflected: F.deflect ? F.deflect.n : (F.deflectN || 0), loose: F.loose.length, flip: !!F.flip, weather: W.weather, ground: W.G && W.G.mode, snow: !!(W.sky && W.sky.stats && W.sky.stats().snow) });
 
     /* ── the band: the film frame is the render frame while the film owns the camera ── */
     const SZ = new THREE.Vector2();
-    F.band = () => { const r = W.renderer; r.getSize(SZ); const A = ASPECTS[F.aspect]; let w = SZ.x, h = SZ.x / A; if (h > SZ.y) { h = SZ.y; w = SZ.y * A; } return { x: (SZ.x - w) / 2, y: (SZ.y - h) / 2, w, h, W: SZ.x, H: SZ.y, A }; };
+    /** The band: the film's aspect fitted into what the page leaves free (`F.avail`: below the panel, above the word bar; the whole canvas in the theatre); y from the top. */
+    F.band = () => { const r = W.renderer; r.getSize(SZ); const A = ASPECTS[F.aspect], av = (F.avail && F.avail(SZ.x, SZ.y)) || { x: 0, y: 0, w: SZ.x, h: SZ.y }; let w = av.w, h = av.w / A; if (h > av.h) { h = av.h; w = av.h * A; } return { x: av.x + (av.w - w) / 2, y: av.y + (av.h - h) / 2, w, h, W: SZ.x, H: SZ.y, A }; };
     F.bandOn = false;
     /** One frame through the band: black outside it, the camera's aspect the film's, the scene drawn inside the scissor. */
     F.renderBand = (scene, cam, real) => {
       const r = W.renderer, b = F.band();
       r.setScissorTest(false); r.setViewport(0, 0, b.W, b.H); r.setClearColor(0x000000, 1); r.clear();
-      r.setViewport(b.x, b.y, b.w, b.h); r.setScissor(b.x, b.y, b.w, b.h); r.setScissorTest(true);
+      const gy = b.H - b.y - b.h; r.setViewport(b.x, gy, b.w, b.h); r.setScissor(b.x, gy, b.w, b.h); r.setScissorTest(true);   // GL counts from the bottom
       if (Math.abs(cam.aspect - b.A) > 1e-4) { cam.aspect = b.A; cam.updateProjectionMatrix(); }
       real(scene, cam); F.bandOn = true; F.lastBand = b;
     };
@@ -746,7 +790,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
     }
 
     /* ── the take ── */
-    const MIMES = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm', 'video/mp4'];
+    const MIMES = ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm', 'video/mp4'];
     F.canRecord = () => typeof MediaRecorder !== 'undefined' && !!document.createElement('canvas').captureStream;
     F.record = sec => {
       if (F.rec) return F.stopRec();
@@ -755,21 +799,22 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
       const cap = document.createElement('canvas'); cap.width = w; cap.height = h; const ctx = cap.getContext('2d');
       const mime = MIMES.find(m => { try { return MediaRecorder.isTypeSupported(m); } catch (e) { return false; } });
       if (!mime) { say('no video format to record with', 'warn'); return false; }
-      const stream = cap.captureStream(F.fps); let rec;
+      const video = cap.captureStream(F.fps), audio = window.Sound && Sound.stream(); const stream = audio && audio.getAudioTracks().length ? new MediaStream([...video.getVideoTracks(), ...audio.getAudioTracks()]) : video; let rec;
       try { rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: H >= 1080 ? 12e6 : 6e6 }); } catch (e) { say('could not start the recorder: ' + (e.message || e), 'warn'); return false; }
       const chunks = []; rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
       const R = { rec, cap, ctx, src, frames: 0, t: 0, until: sec ? +sec : null, done: false, mime, started: performance.now() };
-      rec.onstop = () => { F.blob = new Blob(chunks, { type: mime.split(';')[0] }); if (F.url) { try { URL.revokeObjectURL(F.url); } catch (e) { } } F.url = URL.createObjectURL(F.blob); F.take = { size: F.blob.size, type: F.blob.type, frames: R.frames, sec: +R.t.toFixed(3), fps: F.fps, w, h, ms: Math.round(performance.now() - R.started) }; if (F.rec === R) F.rec = null; say(`take done · ${R.frames} frames · ${(F.blob.size / 1024).toFixed(0)} KB · save it`, 'ok'); if (F.onChange) F.onChange('take'); };
+      rec.onstop = () => { F.blob = new Blob(chunks, { type: mime.split(';')[0] }); if (F.url) { try { URL.revokeObjectURL(F.url); } catch (e) { } } F.url = URL.createObjectURL(F.blob); F.take = { size: F.blob.size, type: F.blob.type, frames: R.frames, sec: +R.t.toFixed(3), fps: F.fps, w, h, ms: Math.round(performance.now() - R.started), audio: stream !== video, mime }; if (F.rec === R) F.rec = null; say(`take done · ${R.frames} frames · ${(F.blob.size / 1024).toFixed(0)} KB · save it`, 'ok'); if (F.onChange) F.onChange('take'); };
       F.rec = R; F.blob = null; F.steps = 0;
       if (R.until == null) { if (!F.shots.length) { R.until = F.sec; } else if (F.mode === 'shot' && F.shots[F.sel] && !F.playAllWanted) F.playShot(F.sel); else F.playAll(); }
       rec.start(); say(R.until != null ? `recording ${R.until} s of the live view` : `recording the reel · ${F.total().toFixed(1)} s`, 'busy'); if (F.onChange) F.onChange('rec'); return true;
     };
     F.stopRec = () => { const R = F.rec; if (!R) return false; if (F.play.on) F.stop(); try { R.rec.state !== 'inactive' && R.rec.stop(); } catch (e) { F.rec = null; } return true; };
+    /** The band as it stands, with the playing shot's title and caption over it: the take's frame, and the export's. */
+    F.drawFrame = (ctx, w, h) => { drawBand(W.renderer.domElement, ctx, w, h); const s = F.play.on && F.shots[F.play.i]; if (s && s.title != null) drawTitle(ctx, w, h, s, F.play.t); if (F.caption && F.play.on) drawCaption(ctx, w, h, F.caption.text); };
     F.afterRender = () => {
       const R = F.rec; if (!R) return;
       if (F.hold) return;                                                          // the world is still laying a planet: no frame goes into the take
-      drawBand(R.src, R.ctx, R.cap.width, R.cap.height); R.frames++;
-      const s = F.play.on && F.shots[F.play.i]; if (s && s.title != null) drawTitle(R.ctx, R.cap.width, R.cap.height, s, F.play.t); if (F.caption && F.play.on) drawCaption(R.ctx, R.cap.width, R.cap.height, F.caption.text);
+      F.drawFrame(R.ctx, R.cap.width, R.cap.height); R.frames++;
       if (R.done || (R.until != null && R.t >= R.until - 1e-6)) F.stopRec();
     };
     /** The targeting overlay: cobalt scanlines, a reticle, a range that counts down, the words at the foot. Drawn over the frame, never black. */
@@ -975,12 +1020,12 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
       const eventsOf = list => (list || []).map(e => { const o = { ...e, what: String(e.what).toUpperCase() }; if (Array.isArray(o.at)) o.at = o.at[0]; if (o.xz) { o.x = o.xz[0]; o.z = o.xz[1]; o.rel = true; delete o.xz; } return o; });
       for (const sh of (prog && prog.shots) || []) {
         const set = (sh.world || sh.as || sh.time || sh.weather) ? { world: sh.world || null, as: sh.as || null, time: sh.time || null, weather: sh.weather || null } : null;
-        if (sh.title != null && !sh.on) { shots.push({ name: sh.name || sh.title.slice(0, 32), title: sh.title, style: sh.style || 'card', keys: [], sec: clamp(+sh.sec || 3, 0.5, 120), act: null, set, acts: actsOf(sh.acts), events: eventsOf(sh.events), shift: sh.shift || undefined }); continue; }
+        if (sh.title != null && !sh.on) { shots.push({ name: sh.name || sh.title.slice(0, 32), title: sh.title, style: sh.style || 'card', keys: [], sec: clamp(+sh.sec || 3, 0.5, 120), act: null, set, acts: actsOf(sh.acts), events: eventsOf(sh.events), shift: sh.shift || undefined, score: sh.score }); continue; }
         const plan = { on: sh.on || 'me', frame: sh.frame || 'medium', from: sh.from || 's', lens: sh.lens || 0, sec: sh.sec || F.sec, move: sh.move || 'hold', name: sh.name };
         let act = null; if (sh.act) { act = { who: 'me', ...sh.act }; if (Array.isArray(act.walk)) { act.kind = 'walk'; act.x = act.walk[0] * M; act.z = act.walk[1] * M; act.rel = true; } if (Array.isArray(act.drive)) { act.kind = 'drive'; act.x = act.drive[0] * M; act.z = act.drive[1] * M; act.rel = true; } delete act.walk; delete act.drive; }
         const shot = { name: sh.name || `${plan.frame} on ${plan.on}`, keys: [{ pos: new THREE.Vector3(0, 4 * M, 0), tgt: new THREE.Vector3(0, 2 * M, -10 * M), fov: 50 }], sec: clamp(+sh.sec || F.sec, 0.5, 120), act, set, plan, follow: !!sh.follow, acts: actsOf(sh.acts), events: eventsOf(sh.events) };
         if (sh.title != null) { shot.title = sh.title; shot.style = sh.style || 'hud'; }
-        if (sh.shift) shot.shift = sh.shift; shots.push(shot);
+        if (sh.shift) shot.shift = sh.shift; if (sh.score !== undefined) shot.score = sh.score; shots.push(shot);
       }
       if (!append) { F.teardown(!!(prog && prog.set)); F.shots = []; } F.shots.push(...shots); F.sel = F.shots.length ? (append ? F.shots.length - shots.length : 0) : -1; F.name = prog && prog.name || F.name; if (prog && prog.story) F.story = prog.story; else if (!append) F.story = null;
       if (prog && (prog.actors || prog.builds || prog.set)) { F.scene = { name: prog.name, actors: (prog.actors || []).map(a => ({ ...a, r: a.r ? a.r * M : undefined })), builds: (prog.builds || []).map(b => ({ ...b })), set: prog.set ? { ...prog.set, corridor: prog.set.corridor ? prog.set.corridor.map(p => p.slice()) : null, abs: false } : null, routes: prog.routes ? Object.fromEntries(Object.entries(prog.routes).map(([k, v]) => [k, v.map(p => p.slice())])) : null, world: prog.world || null, as: prog.as || null, ground: prog.ground || null, weather: prog.weather || null, time: prog.time || null, abs: false }; F.setup(); }
@@ -999,7 +1044,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
     };
     F.state = () => ({ mode: F.mode, sel: F.sel, n: F.shots.length, play: { ...F.play }, hold: !!F.hold, name: F.name || null, world: W.world, character: W.character, playerMode: W.mode, scene: F.scene ? F.scene.name : null, actors: F.actors.size, rec: F.rec ? { t: +F.rec.t.toFixed(3), frames: F.rec.frames, until: F.rec.until } : null, aspect: F.aspect, fps: F.fps, size: F.size, time: F.time, lights: F.lights.length, sun: F.sun ? { color: '#' + F.sun.color.getHexString(), intensity: F.sun.intensity } : null, steps: F.steps, take: F.take, busy: F.busy, status: F.status, free: { pos: F.free.pos.toArray().map(v => +v.toFixed(1)), yaw: +F.free.yaw.toFixed(3), pitch: +F.free.pitch.toFixed(3), fov: +F.free.fov.toFixed(1) },
       band: F.bandOn ? F.lastBand : null,
-      story: F.story || null, shots: F.shots.map(s => ({ name: s.name, sec: s.sec, shift: s.shift || null, title: s.title != null ? s.title : undefined, style: s.style, set: s.set || null, plan: s.plan || null, follow: !!s.follow, readout: s.readout || null, frame: s.keys[0] && s.keys[0].frame || null, acts: s.acts || [], events: (s.events || []).map(e => ({ what: e.what, who: e.who, at: e.at })), act: s.act ? { ...s.act } : null, keys: s.keys.map(k => ({ pos: k.pos.toArray().map(v => +v.toFixed(1)), tgt: k.tgt.toArray().map(v => +v.toFixed(1)), fov: +k.fov.toFixed(1) })) })) });
+      story: F.story || null, sound: window.Sound ? Sound.stats() : null, shots: F.shots.map(s => ({ name: s.name, sec: s.sec, shift: s.shift || null, score: s.score, title: s.title != null ? s.title : undefined, style: s.style, set: s.set || null, plan: s.plan || null, follow: !!s.follow, readout: s.readout || null, frame: s.keys[0] && s.keys[0].frame || null, acts: s.acts || [], events: (s.events || []).map(e => ({ what: e.what, who: e.who, at: e.at })), act: s.act ? { ...s.act } : null, keys: s.keys.map(k => ({ pos: k.pos.toArray().map(v => +v.toFixed(1)), tgt: k.tgt.toArray().map(v => +v.toFixed(1)), fov: +k.fov.toFixed(1) })) })) });
     F.ASPECTS = ASPECTS; F.SIZES = SIZES; F.FRAMES = FRAMES; F.SPEC = FILM_SPEC;
     return F;
   }

@@ -10,77 +10,48 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
 /* ───────────────────────── sound ───────────────────────── */
 const Sfx = {
-  ctx: null, master: null, muted: false, noiseBuf: null, counts: {}, last: {}, engineN: null, saberN: null, clatterAt: 0, clatterN: 0,
+  ctx: null, master: null, muted: false, counts: {}, last: {},
   init() {
     if (this.ctx) return true;
     try {
       const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return false;
-      this.ctx = new AC(); this.master = this.ctx.createGain(); this.master.gain.value = this.muted ? 0 : 0.7; this.master.connect(this.ctx.destination);
-      const n = this.ctx.sampleRate; this.noiseBuf = this.ctx.createBuffer(1, n, n); const d = this.noiseBuf.getChannelData(0); for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+      this.ctx = new AC(); const m = Sound.attach(this.ctx); this.master = m.master; this.master.gain.value = this.muted ? 0 : 0.7; Sound.muted = this.muted;
       return true;
     } catch (e) { return false; }
   },
   /** Call from the first touch or key: browsers only let audio start from a gesture. */
   unlock() { if (!this.init()) return; if (this.ctx.state === 'suspended') this.ctx.resume().catch(() => { }); },
-  setMute(m) { this.muted = !!m; if (this.master) this.master.gain.value = m ? 0 : 0.7; try { localStorage.setItem('world.mute', m ? '1' : '0'); } catch (e) { } },
+  setMute(m) { this.muted = !!m; Sound.muted = this.muted; if (this.master) this.master.gain.value = m ? 0 : 0.7; try { localStorage.setItem('world.mute', m ? '1' : '0'); } catch (e) { } },
   count(name) { this.counts[name] = (this.counts[name] || 0) + 1; },
-  now() { return this.ctx ? this.ctx.currentTime : 0; },
-  /** A tone sweeping f0→f1 over dur seconds. */
-  tone(type, f0, f1, dur, gain, { attack = 0.005, detune = 0 } = {}) {
-    if (!this.ctx || this.muted) return; const c = this.ctx, t = c.currentTime, o = c.createOscillator(), g = c.createGain();
-    o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t + dur); if (detune) o.detune.value = detune;
-    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(gain, t + attack); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
-    o.connect(g); g.connect(this.master); o.start(t); o.stop(t + dur + 0.05);
-  },
-  /** A burst of noise through a sweeping filter. */
-  burst(dur, fFrom, fTo, gain, { type = 'lowpass', q = 0.7, attack = 0.005 } = {}) {
-    if (!this.ctx || this.muted) return; const c = this.ctx, t = c.currentTime, s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
-    s.buffer = this.noiseBuf; s.loop = true; f.type = type; f.Q.value = q; f.frequency.setValueAtTime(fFrom, t); f.frequency.exponentialRampToValueAtTime(Math.max(30, fTo), t + dur);
-    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(gain, t + attack); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
-    s.connect(f); f.connect(g); g.connect(this.master); s.start(t); s.stop(t + dur + 0.05);
-  },
+  now() { return Sound.armed ? Sound.clock() : this.ctx ? this.ctx.currentTime : performance.now() / 1000; },
   gap(name, min) { const t = this.now(); if (t - (this.last[name] || -9) < min) return false; this.last[name] = t; return true; },
-  laser() { this.count('laser'); if (!this.gap('laser', 0.03)) return; this.tone('sawtooth', 900, 280, 0.13, 0.18); this.burst(0.08, 4000, 800, 0.08, { type: 'bandpass', q: 2 }); },
-  blaster() { this.count('blaster'); this.tone('square', 640, 190, 0.1, 0.16); },
-  click() { this.count('click'); if (!this.gap('click', 0.02)) return; this.tone('square', 1800, 1300, 0.025, 0.05); },   // a brick landing
-  torpedo() { this.count('torpedo'); this.tone('sawtooth', 140, 60, 0.6, 0.25); this.burst(0.5, 600, 120, 0.2); },
+  /* every sound is an event on the film's log and a one-shot on the page's context; the names are what the tests count */
+  laser() { this.count('laser'); if (!this.gap('laser', 0.03)) return; Sound.fire('laser'); },
+  blaster(p) { this.count('blaster'); Sound.fire('blaster', p); },
+  click() { this.count('click'); if (!this.gap('click', 0.02)) return; Sound.fire('click'); },   // a brick landing
+  torpedo(p) { this.count('torpedo'); Sound.fire('torpedo', p); },
   /** size 0..1: from a bolt's pop to a torpedo's thunder. */
-  boom(size) {
-    this.count('boom'); if (!this.gap('boom', 0.04)) return; size = clamp(size, 0, 1);
-    const dur = 0.35 + size * 1.1; this.burst(dur, 2500 + size * 1500, 120, 0.35 + size * 0.45, { attack: 0.003 });
-    this.tone('sine', 55 + size * 20, 30, 0.25 + size * 0.5, 0.4 + size * 0.4, { attack: 0.002 });
-    if (size > 0.5) this.burst(dur * 1.4, 400, 60, 0.3, { attack: 0.05 });
-  },
+  boom(size, p) { this.count('boom'); if (!this.gap('boom', 0.04)) return; Sound.fire('boom', { size: clamp(size == null ? 0.5 : size, 0, 1.4), ...(p || {}) }); },
   /** Bricks landing: short clicks, at most eight per fifth of a second. */
-  clatter(size = 0.5) {
-    const t = this.now(); if (t - this.clatterAt > 0.2) { this.clatterAt = t; this.clatterN = 0; } if (this.clatterN++ >= 8) return;
-    this.count('clatter'); this.burst(0.04 + size * 0.03, 3200 - size * 1400, 900, 0.12 + size * 0.1, { type: 'bandpass', q: 1.5, attack: 0.001 });
-  },
-  thud(size = 0.5) { this.count('thud'); if (!this.gap('thud', 0.08)) return; this.burst(0.18 + size * 0.2, 500, 60, 0.3 + size * 0.3); this.tone('sine', 70, 35, 0.2, 0.35); },
-  skid() { this.count('skid'); if (!this.gap('skid', 0.35)) return; this.burst(0.32, 2600, 900, 0.22, { type: 'bandpass', q: 3, attack: 0.02 }); },   // tyres over the limit: a short squeal
-  crunch() { this.count('crunch'); this.burst(0.45, 1800, 200, 0.5, { attack: 0.002 }); this.burst(0.3, 6000, 1500, 0.2, { type: 'bandpass', q: 1 }); this.tone('sine', 60, 30, 0.35, 0.5); },
-  hurt() { this.count('hurt'); this.tone('triangle', 520, 160, 0.25, 0.25); },
-  respawn() { this.count('respawn'); this.tone('sine', 220, 660, 0.4, 0.15); },
-  swing() { this.count('swing'); this.burst(0.28, 300, 2200, 0.22, { type: 'bandpass', q: 1.2, attack: 0.04 }); if (this.saberN) { const o = this.saberN.o1, t = this.now(); o.frequency.cancelScheduledValues(t); o.frequency.setValueAtTime(90, t); o.frequency.linearRampToValueAtTime(150, t + 0.12); o.frequency.linearRampToValueAtTime(90, t + 0.35); } },
-  strike() { this.count('strike'); this.burst(0.2, 5000, 1200, 0.3, { type: 'bandpass', q: 3, attack: 0.001 }); this.tone('square', 1200, 300, 0.12, 0.1); },
+  clatter(size = 0.5, p) { const t = this.now(); if (t - (this.clatterAt || 0) > 0.2) { this.clatterAt = t; this.clatterN = 0; } if ((this.clatterN = (this.clatterN || 0) + 1) > 8) return; this.count('clatter'); Sound.fire('clatter', { size, ...(p || {}) }); },
+  thud(size = 0.5, p) { this.count('thud'); if (!this.gap('thud', 0.08)) return; Sound.fire('thud', { size, ...(p || {}) }); },
+  stomp(size = 1, p) { this.count('stomp'); Sound.fire('stomp', { size, ...(p || {}) }); },
+  skid() { this.count('skid'); if (!this.gap('skid', 0.35)) return; Sound.fire('skid'); },   // tyres over the limit: a short squeal
+  crunch(p) { this.count('crunch'); Sound.fire('crunch', p); },
+  hurt() { this.count('hurt'); Sound.fire('hurt'); },
+  respawn() { this.count('respawn'); Sound.fire('respawn'); },
+  swing(p) { this.count('swing'); Sound.fire('swing', p); Sound.bump((p && p.id) || 'saber', 'pitch', [[0, 90], [0.12, 150], [0.35, 90]]); },
+  strike(p) { this.count('strike'); Sound.fire('strike', p); },
+  clash(p) { this.count('clash'); Sound.fire('clash', p); },
+  whoosh(p) { this.count('whoosh'); Sound.fire('whoosh', p); },
+  zip() { this.count('zip'); Sound.fire('zip'); },
+  footstep(p) { this.count('footstep'); Sound.fire('footstep', p); },
+  breath() { this.count('breath'); Sound.fire('breath'); },
   /** The saber's hum: two detuned saws, on while the blade is out. */
-  saber(on) {
-    if (!this.ctx) return; if (on && !this.saberN) {
-      const c = this.ctx, o1 = c.createOscillator(), o2 = c.createOscillator(), f = c.createBiquadFilter(), g = c.createGain();
-      o1.type = 'sawtooth'; o2.type = 'sawtooth'; o1.frequency.value = 90; o2.frequency.value = 91.5; f.type = 'lowpass'; f.frequency.value = 500; g.gain.value = 0; g.gain.linearRampToValueAtTime(0.08, c.currentTime + 0.4);
-      o1.connect(f); o2.connect(f); f.connect(g); g.connect(this.master); o1.start(); o2.start(); this.saberN = { o1, o2, g }; this.count('saberOn');
-    } else if (!on && this.saberN) { const n = this.saberN, t = this.now(); n.g.gain.linearRampToValueAtTime(0, t + 0.2); n.o1.stop(t + 0.3); n.o2.stop(t + 0.3); this.saberN = null; }
-  },
-  /** The TIE's engine: pitch and grit follow speed and boost. */
-  engine(on, speed01 = 0, boost = false) {
-    if (!this.ctx) return; if (on && !this.engineN) {
-      const c = this.ctx, o = c.createOscillator(), s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
-      o.type = 'sawtooth'; o.frequency.value = 55; s.buffer = this.noiseBuf; s.loop = true; f.type = 'lowpass'; f.frequency.value = 300; g.gain.value = 0;
-      o.connect(f); s.connect(f); f.connect(g); g.connect(this.master); o.start(); s.start(); this.engineN = { o, s, f, g }; this.count('engineOn');
-    }
-    if (this.engineN) { const n = this.engineN, t = this.now(), tgtG = on ? (this.muted ? 0 : 0.05 + speed01 * 0.08 + (boost ? 0.06 : 0)) : 0; n.g.gain.setTargetAtTime(tgtG, t, 0.15); n.o.frequency.setTargetAtTime(50 + speed01 * 70 + (boost ? 40 : 0), t, 0.2); n.f.frequency.setTargetAtTime(250 + speed01 * 900 + (boost ? 800 : 0), t, 0.2); if (!on) { n.o.stop(t + 0.6); n.s.stop(t + 0.6); this.engineN = null; } }
-  },
-  stats() { return { ready: !!this.ctx, state: this.ctx ? this.ctx.state : 'none', muted: this.muted, counts: { ...this.counts } }; },
+  saber(on, id) { const key = id || 'saber'; if (on) { if (!Sound.open[key]) this.count('saberOn'); Sound.loop(key, 'saber', { gain: this.muted ? 0 : 0.08 }); } else Sound.loop(key, 'saber', null); },
+  /** The ride's engine: pitch and grit follow speed and boost. */
+  engine(on, speed01 = 0, boost = false) { if (on) { if (!Sound.open.engine) this.count('engineOn'); Sound.loop('engine', 'engine', { gain: this.muted ? 0 : 0.05 + speed01 * 0.08 + (boost ? 0.06 : 0), pitch: 50 + speed01 * 70 + (boost ? 40 : 0), cutoff: 250 + speed01 * 900 + (boost ? 800 : 0) }); } else Sound.loop('engine', 'engine', null); },
+  stats() { return { ready: !!this.ctx, state: this.ctx ? this.ctx.state : 'none', muted: this.muted, counts: { ...this.counts }, sound: window.Sound ? Sound.stats() : null }; },
 };
 
 /* ───────────────────────── haptics ───────────────────────── */

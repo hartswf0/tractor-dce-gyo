@@ -11,8 +11,8 @@ function create({ W, M }) {
   V.lay = async () => {
     const props = W.props, preset = Worlds.PRESETS[W.world]; if (!props || !W.G || !W.rig) return 0;
     for (const it of [...props.items.values()]) if (it.src && it.src.landmark) props.remove(it.id, true);
-    const list = ((preset && preset.vehicles) || []).slice(); V.laid = W.world; V.n = 0;
-    const mine = W.character && Minifig.DEFS[W.character] && Minifig.DEFS[W.character].ride; if (mine) list.unshift({ ...mine, dx: 7, dz: 5, me: true });   // the character's own ride, first
+    const list = W.setUp ? [] : ((preset && preset.vehicles) || []).slice(); V.laid = W.world; V.n = 0;   // under a film's set the planet's parked kits stay away
+    const mine = W.character && Minifig.DEFS[W.character] && Minifig.DEFS[W.character].ride; if (mine && !W.setUp) list.unshift({ ...mine, dx: 7, dz: 5, me: true });   // the character's own ride, first
     const base = W.spawn || W.rig.pos; let k = 0;
     for (const v of list) {
       let op, mpd;
@@ -24,6 +24,7 @@ function create({ W, M }) {
       for (let i = 0; i < 8; i++) { const b = W.city && W.city.near(x, z, 6 * M).find(b => Bricks.pointInRing(x / M, z / M, b.ring)); if (!b) break; x += 6 * M; z += 4 * M; }   // not inside a building
       const y = Math.max(W.G.h(x, z), Ground.deckAt ? Ground.deckAt(W.G, x, z) : -Infinity);
       let it = null; try { it = await props.add({ id: v.me ? 'lm-me-' + props.pid : `lm-${W.world}-${++k}`, mpd, x, y, z, yaw: v.yaw || 0, src: { ...op, landmark: true, me: !!v.me } }, true); } catch (e) { console.warn('vehicle', v.kit || v.kind, e && e.message); }
+      if (it && W.setUp) { props.remove(it.id, true); it = null; }   // a set went up while this kit loaded
       if (it) V.n++;
     }
     return V.n;
