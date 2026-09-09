@@ -23,7 +23,7 @@ function create({ W, M }) {
       let x = base.x + v.dx * M, z = base.z + v.dz * M;
       for (let i = 0; i < 8; i++) { const b = W.city && W.city.near(x, z, 6 * M).find(b => Bricks.pointInRing(x / M, z / M, b.ring)); if (!b) break; x += 6 * M; z += 4 * M; }   // not inside a building
       const y = Math.max(W.G.h(x, z), Ground.deckAt ? Ground.deckAt(W.G, x, z) : -Infinity);
-      let it = null; try { it = await props.add({ id: v.me ? 'lm-me' : `lm-${W.world}-${++k}`, mpd, x, y, z, yaw: v.yaw || 0, src: { ...op, landmark: true, me: !!v.me } }, true); } catch (e) { console.warn('vehicle', v.kit || v.kind, e && e.message); }
+      let it = null; try { it = await props.add({ id: v.me ? 'lm-me-' + props.pid : `lm-${W.world}-${++k}`, mpd, x, y, z, yaw: v.yaw || 0, src: { ...op, landmark: true, me: !!v.me } }, true); } catch (e) { console.warn('vehicle', v.kit || v.kind, e && e.message); }
       if (it) V.n++;
     }
     return V.n;
