@@ -94,7 +94,7 @@ class Props {
   moveTo(it, x, y, z, yaw, quiet) { it.x = x; it.y = y; it.z = z; it.yaw = yawOf(yaw); if (it.group) { it.group.position.set(x, y, z); it.group.rotation.set(0, it.yaw * Math.PI / 2, 0, 'YXZ'); it.group.updateMatrixWorld(true); it.box = new THREE.Box3().setFromObject(it.group); } if (!quiet) { this.dirty = true; if (this.onEdit) this.onEdit({ up: [this.toRow(it)] }); } }
   /** Our prop moved on its own (it was driven): save and tell the room. */
   moved(it) { this.dirty = true; if (this.onEdit) this.onEdit({ up: [this.toRow(it)] }); }
-  rows() { return [...this.items.values()].filter(it => !(it.src && it.src.landmark)).map(it => this.toRow(it)); }   // a world's own vehicles are laid, not saved
+  rows() { return [...this.items.values()].filter(it => !(it.src && (it.src.landmark || it.src.film))).map(it => this.toRow(it)); }   // a world's own vehicles and a film's actors are laid, not saved
   storageKey() { return this.key ? 'world.props.' + this.key : null; }
   load(key) { this.key = key; this.clear(); this.dirty = false; let n = 0; try { const s = localStorage.getItem(this.storageKey()); if (s) { const d = JSON.parse(s); if (d && d.props) for (const r of d.props) { this.add(this.fromRow(r), true); n++; } } } catch (e) { console.warn('props load', e); } return n; }
   save() { const k = this.storageKey(); if (!k) return false; this.dirty = false; try { const s = JSON.stringify({ v: 1, t: Date.now(), props: this.rows() }); if (s.length > MAX_TEXT) return false; localStorage.setItem(k, s); return true; } catch (e) { return false; } }

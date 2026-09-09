@@ -63,7 +63,7 @@ class Crowd {
   colourOf(def, slot) { const k = slot.split(':')[0]; return { legR: def.legs, legL: def.legs, hips: def.hips, torso: def.torso, armR: def.arms, armL: def.arms, handR: def.hands, handL: def.hands, head: def.head, hat: def.hat && def.hat[1], weaponR: def.weapon && def.weapon[2] }[k]; }
   spawn(kind, x, z, seed) {
     if (!this.free.length) return null;
-    const def = kind === 'trooper' ? Minifig.DEFS.trooper : Minifig.citizen(seed), i = this.free.pop();
+    const def = kind === 'trooper' ? Minifig.DEFS.trooper : kind === 'rebel' ? Minifig.DEFS.rebel : Minifig.citizen(seed), i = this.free.pop();
     const n = { i, kind, def, seed, pos: new THREE.Vector3(x, this.groundH(x, z), z), heading: Math.random() * Math.PI * 2, speed: 0, phase: Math.random() * 6, gait: 0, t: Math.random() * 10, health: kind === 'trooper' ? 40 : 20, alive: true, state: 'patrol', aim: 0, cd: 1 + Math.random(), flee: 0, road: null, seg: 0, dir: 1, pause: 0, slots: this.slotsOf(def) };
     for (const slot of n.slots) { const im = this.meshes.get(slot); if (im) { im.setColorAt(i, this.colours(this.colourOf(def, slot))); im.instanceColor.needsUpdate = true; } }
     this.pickRoad(n); this.npcs.push(n); return n;
@@ -142,7 +142,8 @@ class Crowd {
         const boltNear = ctx.bolts.live().some(b => Math.hypot(b.mesh.position.x - n.pos.x, b.mesh.position.z - n.pos.z) < 15 * M);
         const rushing = ctx.player.running && dP < 8 && toP.dot(ctx.player.vel) < 0;
         if (tieNear || boltNear || rushing) n.flee = 3;
-        if (n.flee > 0) { n.flee -= dt; n.state = 'flee'; const from = tieNear ? V2.set(ctx.tie.pos.x - n.pos.x, 0, ctx.tie.pos.z - n.pos.z) : toP; goalHeading = Math.atan2(-from.x, -from.z); want = 3; }
+        if (n.flee > 0) { n.flee -= dt; n.state = 'flee'; const from = n.fleeFrom ? V2.set(n.fleeFrom.x - n.pos.x, 0, n.fleeFrom.z - n.pos.z) : tieNear ? V2.set(ctx.tie.pos.x - n.pos.x, 0, ctx.tie.pos.z - n.pos.z) : toP; goalHeading = Math.atan2(-from.x, -from.z); want = 3; if (n.flee <= 0) n.fleeFrom = null; }   // a film can name what they run from
+        else if (n.film) { n.state = 'hold'; want = 0; }   // a film's extras keep their marks until they are routed
         else { n.state = 'wander'; if (n.pause > 0) { n.pause -= dt; } else { const r = this.patrol(n, dt, 1.2); if (r) { goalHeading = r.heading; want = 1.2; } if (Math.random() < dt * 0.05) n.pause = 1 + Math.random() * 3; } }
       }
       // move
