@@ -312,7 +312,7 @@ function makePlayer(name) {
 }
 function setCharacter(name) {
   if (!Minifig.DEFS[name]) return; W.character = name; markMenu();
-  if (!W.raw) return;
+  if (!W.raw) return; if (W.vehicles && W.ready && W.mode === 'walk') { W.spawn = W.rig.pos.clone(); W.vehicles.lay(); }
   const old = W.rig; const rig = makePlayer(name);
   if (old) { rig.pos.copy(old.pos); rig.heading = old.heading; rig.cam = old.cam; rig.figure.rotation.y = old.heading; rig.figure.visible = old.figure.visible; W.scene.remove(old.figure); }
   W.rig = rig; $('#mode').textContent = (W.mode === 'walk' ? 'walk · ' : 'fly · ') + (W.mode === 'walk' ? Minifig.DEFS[name].name : 'TIE'); hintFor();
@@ -441,9 +441,9 @@ function los(a, b) {
   return true;
 }
 function segCross(ax, az, bx, bz, cx, cz, dx, dz) { const d1 = (bx - ax) * (cz - az) - (bz - az) * (cx - ax), d2 = (bx - ax) * (dz - az) - (bz - az) * (dx - ax), d3 = (dx - cx) * (az - cz) - (dz - cz) * (ax - cx), d4 = (dx - cx) * (bz - cz) - (dz - cz) * (bx - cx); return d1 * d2 < 0 && d3 * d4 < 0; }
-const WORLD = { groundH: (x, z) => W.G.h(x, z), pushOut };
+const WORLD = { groundH: (x, z) => W.G.h(x, z) + Ground.layerAt(W.G, x, z), pushOut };   // the terrain, plus the road, the sidewalk or the lawn laid on it
 /** What feet stand on: the ground, or a placed brick no higher than a step above them. */
-const WALK = { groundH: (x, z) => { const g = W.G.h(x, z); if (!W.build || !W.rig) return g; const f = Math.max(Ground.deckAt(W.G, x, z) <= W.rig.pos.y + 30 ? Ground.deckAt(W.G, x, z) : -Infinity, W.city ? W.city.floorAt(x, z, W.rig.pos.y + 30) : -Infinity, W.build.floorAt(x, z, W.rig.pos.y + 30), W.props ? W.props.floorAt(x, z, W.rig.pos.y + 30) : -Infinity, W.debris ? W.debris.floorAt(x, z, W.rig.pos.y + 30) : -Infinity); return f > g ? f : g; }, pushOut };   // rubble is a floor too
+const WALK = { groundH: (x, z) => { const g = W.G.h(x, z) + Ground.layerAt(W.G, x, z); if (!W.build || !W.rig) return g; const f = Math.max(Ground.deckAt(W.G, x, z) <= W.rig.pos.y + 30 ? Ground.deckAt(W.G, x, z) : -Infinity, W.city ? W.city.floorAt(x, z, W.rig.pos.y + 30) : -Infinity, W.build.floorAt(x, z, W.rig.pos.y + 30), W.props ? W.props.floorAt(x, z, W.rig.pos.y + 30) : -Infinity, W.debris ? W.debris.floorAt(x, z, W.rig.pos.y + 30) : -Infinity); return f > g ? f : g; }, pushOut, solid: (x, y, z) => { for (const b of W.city.aabbs(x, z, 1)) if (x > b.min.x && x < b.max.x && z > b.min.z && z < b.max.z && y > b.min.y && y < b.max.y) return true; return false; } };   // rubble is a floor too; a wall stops the camera
 /** Boxes that stop ships, bolts and debris: buildings and builds. */
 function allBoxes(x, z, r) { let a = W.city.aabbs(x, z, r); if (W.build) a = a.concat(W.build.aabbs(x, z, r)); if (W.props) a = a.concat(W.props.aabbs(x, z, r)); return a; }
 
@@ -713,7 +713,7 @@ async function reland(place, quiet) {
     let lx = 0, lz = 0;
     if (keep) { const l = win.P.toLocal(keep.lat, keep.lon); lx = l.x * M; lz = l.z * M; } else { const s = spawnPoint(win); lx = s.x * M; lz = s.z * M; }
     if (W.mode === 'walk') {
-      W.rig.pos.set(lx, W.G.h(lx, lz), lz); W.rig.cam.set = false;
+      W.rig.pos.set(lx, W.G.h(lx, lz), lz); W.rig.cam.set = false; W.spawn = W.rig.pos.clone();
       if (!quiet) { W.rig.heading = Math.PI; W.rig.cam.yaw = W.rig.heading + Math.PI; parkShip(lx, lz); }
       else { const sp = W.ship.position, sw = W.prevP.toWGS(sp.x / M, sp.z / M), sl = win.P.toLocal(sw.lat, sw.lon); W.ship.position.set(sl.x * M, W.G.h(sl.x * M, sl.z * M) + 122, sl.z * M); }
     } else { W.tie.pos.set(lx, W.tie.pos.y, lz); W.tie.prevPos.copy(W.tie.pos); }
@@ -789,7 +789,7 @@ async function boot() {
         if (/GROUND/.test(label)) { if (sev > 0.5) { crater(p, 2 * M, 0.5 * M); W.smoke.puff(p, 10, 2 * M); } Fx.Sfx.thud(clamp(sev, 0.3, 1)); Fx.haptic(30); }
         else { blast(p, (3 + clamp(closing / 300, 0, 3)) * M, W.tie.vel.clone().multiplyScalar(.25), false, false, 'ram'); Fx.Sfx.crunch(); Fx.haptic([40, 30, 60]); } } });
     setCharacter(W.character);
-    const s = spawnPoint(win); W.rig.pos.set(s.x * M, W.G.h(s.x * M, s.z * M), s.z * M); W.rig.heading = Math.PI; W.rig.figure.rotation.y = Math.PI; W.rig.cam.yaw = W.rig.heading + Math.PI; parkShip(W.rig.pos.x, W.rig.pos.z);
+    const s = spawnPoint(win); W.rig.pos.set(s.x * M, W.G.h(s.x * M, s.z * M), s.z * M); W.spawn = W.rig.pos.clone(); W.rig.heading = Math.PI; W.rig.figure.rotation.y = Math.PI; W.rig.cam.yaw = W.rig.heading + Math.PI; parkShip(W.rig.pos.x, W.rig.pos.z);
     W.crowd.populate(W.rig.pos);
     for (let k = 0; k < 20; k++) W.city.update(W.camera, W.rig.pos);
     const r = engine.renderer, real = r.render.bind(r);

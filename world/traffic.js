@@ -46,7 +46,7 @@ function create({ scene, M, props, G, debris, roads: roadsOf }) {
     T.lights = new THREE.Points(lg, new THREE.PointsMaterial({ map: Lamps.radial(), size: 1.2 * M, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, color: 0xfff2c0, opacity: 0.3, fog: false })); T.lights.name = 'carLights'; T.lights.frustumCulled = false; group.add(T.lights);
     T.ready = true; if (T.pending) { const w = T.pending; T.pending = null; T.lay(w.G, w.win); }
   };
-  const groundAt = (x, z) => Math.max(T.G.h(x, z), Ground.deckAt(T.G, x, z));
+  const groundAt = (x, z) => Math.max(T.G.h(x, z) + Ground.layerAt(T.G, x, z), Ground.deckAt(T.G, x, z));   // on the road's own top, or a bridge deck
   const model = (name, seed) => { const keys = [...T.models.keys()].filter(k => k.startsWith(name + ':')); if (!keys.length) return null; return T.models.get(keys[hash(seed) % keys.length]); };
   const M4 = new THREE.Matrix4(), Q = new THREE.Quaternion(), P3 = new THREE.Vector3(), ONE = new THREE.Vector3(1, 1, 1), UP = new THREE.Vector3(0, 1, 0);
   const E = new THREE.Euler();

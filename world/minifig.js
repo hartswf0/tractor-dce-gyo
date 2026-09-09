@@ -40,17 +40,18 @@ const PIVOT_ABS = { hipsP: [0, 32, 0], torsoP: [0, 0, 0], legRP: [0, 44, 0], leg
 /* ───────────────────────── definitions ───────────────────────── */
 const DEFS = {
   vader: { name: 'Vader', legs: 0, hips: 0, torso: 0, arms: 0, hands: 0, head: 0, hat: ['30368', 0], weapon: ['saber', '30374', 36], cape: ['522', 0], collar: ['20551c01', 0], saber: true },
-  trooper: { name: 'Stormtrooper', legs: 15, hips: 15, torso: 15, arms: 15, hands: 0, head: 0, hat: ['30408', 15], weapon: ['blaster', '58247', 0] },
-  pilot: { name: 'Rebel pilot', legs: 71, hips: 71, torso: 25, arms: 25, hands: 14, head: 14, hat: ['30370', 71], weapon: ['blaster', '58247', 0] },
-  luke: { name: 'Luke', legs: 19, hips: 19, torso: 19, arms: 19, hands: 14, head: 14, hat: ['3901', 14], weapon: ['saber', '30374', 33], saber: true },
-  leia: { name: 'Leia', legs: 15, hips: 15, torso: 15, arms: 15, hands: 14, head: 14, hat: ['30409', 308], weapon: ['blaster', '58247', 0] },
-  han: { name: 'Han', legs: 272, hips: 0, torso: 15, arms: 15, hands: 14, head: 14, hat: ['3901', 308], weapon: ['blaster', '58247', 0] },
-  chewbacca: { name: 'Chewbacca', legs: 70, hips: 70, torso: 70, arms: 70, hands: 70, head: 70, hat: ['30483', 70], weapon: ['blaster', '2570', 70], bare: true },
-  yoda: { name: 'Yoda', legs: 19, hips: 19, torso: 19, arms: 19, hands: 378, head: 378, hat: ['41880', 378], weapon: ['saber', '30374', 34], saber: true, short: true, bare: true },
-  c3po: { name: 'C-3PO', legs: 297, hips: 297, torso: 297, arms: 297, hands: 297, head: 297, hat: ['30480', 297], weapon: null, bare: true },
-  rey: { name: 'Rey', legs: 28, hips: 28, torso: 19, arms: 19, hands: 14, head: 14, hat: ['20877', 308], weapon: ['blaster', '58247', 0] },
-  citizen: { name: 'Citizen', legs: 1, hips: 1, torso: 4, arms: 4, hands: 14, head: 14, hat: ['3901', 0], weapon: null },
+  trooper: { name: 'Stormtrooper', legs: 15, hips: 15, torso: 15, arms: 15, hands: 0, head: 0, hat: ['30408', 15], weapon: ['blaster', '58247', 0], ride: { kind: 'atst' } },
+  pilot: { name: 'Rebel pilot', legs: 71, hips: 71, torso: 25, arms: 25, hands: 14, head: 14, hat: ['30370', 71], weapon: ['blaster', '58247', 0], ride: { kind: 'plane', len: 8, col: 15 } },
+  luke: { name: 'Luke', legs: 19, hips: 19, torso: 19, arms: 19, hands: 14, head: 14, hat: ['3901', 14], weapon: ['saber', '30374', 33], saber: true, ride: { kind: 'plane', len: 8, col: 15 } },
+  leia: { name: 'Leia', legs: 15, hips: 15, torso: 15, arms: 15, hands: 14, head: 14, hat: ['30409', 308], weapon: ['blaster', '58247', 0], ride: { kind: 'speeder', len: 6, col: 15 } },
+  han: { name: 'Han', legs: 272, hips: 0, torso: 15, arms: 15, hands: 14, head: 14, hat: ['3901', 308], weapon: ['blaster', '58247', 0], ride: { kind: 'plane', len: 10, col: 71 } },
+  chewbacca: { name: 'Chewbacca', legs: 70, hips: 70, torso: 70, arms: 70, hands: 70, head: 70, hat: ['30483', 70], weapon: ['blaster', '2570', 70], bare: true, ride: { kind: 'truck', len: 8, col: 70 } },
+  yoda: { name: 'Yoda', legs: 19, hips: 19, torso: 19, arms: 19, hands: 378, head: 378, hat: ['41880', 378], weapon: ['saber', '30374', 34], saber: true, short: true, bare: true, ride: { kind: 'speeder', len: 5, col: 2 } },
+  c3po: { name: 'C-3PO', legs: 297, hips: 297, torso: 297, arms: 297, hands: 297, head: 297, hat: ['30480', 297], weapon: null, bare: true, ride: { kind: 'car', len: 6, col: 297 } },
+  rey: { name: 'Rey', legs: 28, hips: 28, torso: 19, arms: 19, hands: 14, head: 14, hat: ['20877', 308], weapon: ['blaster', '58247', 0], ride: { kind: 'speeder', len: 7, col: 28 } },
+  citizen: { name: 'Citizen', legs: 1, hips: 1, torso: 4, arms: 4, hands: 14, head: 14, hat: ['3901', 0], weapon: null, ride: { kind: 'car', len: 6, col: 4 } },
 };
+/* ride: the vehicle that stands by the spawn for this character (Vader has the TIE); vehicles.js lays it as lm-me */
 /* a bare head is the character's own (a mask over the plain head is the whole face), a short figure stands on one-piece legs */
 const CITIZEN_TORSOS = [4, 1, 2, 14, 15, 19, 25, 70, 5, 27, 72], CITIZEN_HAIR = [0, 70, 4, 6, 15, 308, 28], WOMEN_HAIR = ['3625', '12890', '20877', '30409'];
 function citizen(seed) { const d = { ...DEFS.citizen }; d.torso = d.arms = CITIZEN_TORSOS[seed % CITIZEN_TORSOS.length]; const woman = (seed >> 1) % 2 === 1; d.hat = [woman ? WOMEN_HAIR[(seed >> 3) % WOMEN_HAIR.length] : '3901', CITIZEN_HAIR[(seed >> 3) % CITIZEN_HAIR.length]]; d.legs = d.hips = [1, 0, 72, 28][(seed >> 6) % 4]; d.woman = woman; return d; }
@@ -167,7 +168,9 @@ function camera(rig, camera, dt, look, world, portrait, build) {
   V1.copy(rig.pos); V1.y += HEAD_M * M;
   if (build) { V1.x -= Math.sin(c.yaw) * 3 * M; V1.z -= Math.cos(c.yaw) * 3 * M; V1.y -= 0.9 * M; }   // building: from above, looking past the figure at the ground ahead
   V2.set(V1.x + Math.sin(c.yaw) * Math.cos(c.pitch) * r, V1.y + Math.sin(c.pitch) * r + 0.28 * M, V1.z + Math.cos(c.yaw) * Math.cos(c.pitch) * r);
-  const gy = world.groundH(V2.x, V2.z) + 0.6 * M; if (V2.y < gy) V2.y = gy;
+  // the camera comes in along its line rather than climbing over the head: it stops short of a hillside or a wall behind the figure
+  { const n = 12, minF = 0.12; let f = 1; for (let i = 1; i <= n; i++) { const t = i / n, x = V1.x + (V2.x - V1.x) * t, y = V1.y + (V2.y - V1.y) * t, z = V1.z + (V2.z - V1.z) * t; if (y < world.groundH(x, z) + 0.6 * M || (world.solid && world.solid(x, y, z))) { f = Math.max(minF, (i - 1.5) / n); break; } }
+    if (f < 1) V2.lerpVectors(V1, V2, f); const gy = world.groundH(V2.x, V2.z) + 0.6 * M; if (V2.y < gy) V2.y = gy; }
   if (!c.set) { c.pos.copy(V2); c.look.copy(V1); c.set = true; }
   const k = 1 - Math.exp(-dt * 6); c.pos.lerp(V2, k); c.look.lerp(V1, k);
   camera.position.copy(c.pos); camera.up.copy(UP); camera.lookAt(c.look);
