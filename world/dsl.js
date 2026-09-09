@@ -250,10 +250,11 @@ function vehicleMPD(o) {
   const pieces = tile(g, { bond: true }), report = { floating: 0 };
   for (const p of pieces) L.push(pieceLine(p, 0, 0, 0));
   for (const p of g.parts) L.push(pieceLine(p, 0, 0, 0));
-  if (kind === 'car' || kind === 'truck' || kind === 'bus') {                                  // wheels: a 2 × 2 plate with pins under each axle, a rim and a tyre on every pin, in the arches
-    for (const az of [zf + 40, zb - 40]) { L.push(line(0, 0, -23, az, 0, '4600')); for (const sx of [-30, 30]) { L.push(line(71, sx, -18, az, 1, '4624')); L.push(line(0, sx, -18, az, 1, '3641')); } }
+  const subs = [];
+  if (kind === 'car' || kind === 'truck' || kind === 'bus') {                                  // wheels: a 2 × 2 plate with pins under each axle; each rim and tyre a sub-model on its pin, so it can spin and steer
+    for (const [az, fr] of [[zf + 40, 'f'], [zb - 40, 'r']]) { L.push(line(0, 0, -23, az, 0, '4600')); for (const [sx, lr] of [[-30, 'l'], [30, 'r']]) { const nm = `wheel-${fr}${lr}.ldr`; L.push(`1 16 ${sx} -18 ${r4(az)} 1 0 0 0 1 0 0 0 1 ${nm}`); subs.push([`0 FILE ${nm}`, '0 !LDRAW_ORG Unofficial_Model', line(71, 0, 0, 0, 1, '4624'), line(0, 0, 0, 0, 1, '3641')].join('\n')); } }
   }
-  const mpd = ['0 FILE vehicle.ldr', '0 !LDRAW_ORG Unofficial_Model', ...L].join('\n');
+  const mpd = [['0 FILE vehicle.ldr', '0 !LDRAW_ORG Unofficial_Model', ...L].join('\n'), ...subs].join('\n');
   return { mpd, w: kind === 'plane' ? wide + 8 : wide, d: len, hp: 12 };
 }
 

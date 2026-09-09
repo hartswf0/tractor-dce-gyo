@@ -100,7 +100,7 @@ class Props {
   save() { const k = this.storageKey(); if (!k) return false; this.dirty = false; try { const s = JSON.stringify({ v: 1, t: Date.now(), props: this.rows() }); if (s.length > MAX_TEXT) return false; localStorage.setItem(k, s); return true; } catch (e) { return false; } }
   forget() { const k = this.storageKey(); this.clear(); this.dirty = false; try { if (k) localStorage.removeItem(k); } catch (e) { } }
   tick(dt) { if (this.dirty) { this.saveT += dt; if (this.saveT > 0.5) { this.saveT = 0; this.save(); } } else this.saveT = 0; }
-  stats() { let parts = 0; for (const it of this.items.values()) parts += it.meshes.length; return { props: this.items.size, parts, parsed: this.parsed, kinds: this.kinds }; }
+  stats() { let parts = 0, props = 0, landmarks = 0; for (const it of this.items.values()) { parts += it.meshes.length; if (it.src && it.src.landmark) landmarks++; else props++; } return { props, landmarks, parts, parsed: this.parsed, kinds: this.kinds }; }   // a world's own vehicles are counted apart
 }
 window.Props = { Props };
 })();

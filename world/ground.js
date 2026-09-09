@@ -10,9 +10,17 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const lerp = (a, b, t) => a + (b - a) * t;
 
 /** field: { n, res (m), h Float32Array(n*n) absolute metres, cx, cy (grid coords of the origin), datum } */
-function make(field, M, paint) {
+/** The ground's shape: flat (a level plane at the datum, the standard ground), gentle (the relief blurred and kept at 35 %), real (the terrain as fetched). */
+const MODES = ['flat', 'gentle', 'real'];
+function shape(H, n, mode) {
+  if (mode === 'flat') { H.fill(0); return H; }
+  if (mode !== 'gentle') return H;
+  for (let pass = 0; pass < 2; pass++) { const S = new Float32Array(n * n); for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) { let sum = 0, k = 0; for (let dj = -1; dj <= 1; dj++) for (let di = -1; di <= 1; di++) { const ii = i + di, jj = j + dj; if (ii < 0 || jj < 0 || ii >= n || jj >= n) continue; sum += H[jj * n + ii]; k++; } S[j * n + i] = sum / k; } H.set(S); }
+  for (let i = 0; i < n * n; i++) H[i] *= 0.35; return H;
+}
+function make(field, M, paint, mode = 'flat') {
   const { n, res, cx, cy } = field, datum = field.datum;
-  const H = new Float32Array(n * n); for (let i = 0; i < n * n; i++) H[i] = field.h[i] - datum;
+  const H = new Float32Array(n * n); for (let i = 0; i < n * n; i++) H[i] = field.h[i] - datum; shape(H, n, MODES.includes(mode) ? mode : 'flat');
   const at = (i, j) => H[clamp(j, 0, n - 1) * n + clamp(i, 0, n - 1)];
   function hM(x, z) {                              // metres in, metres out; same diagonal split as PlaneGeometry
     const gi = clamp(cx + x / res, 0, n - 1.0001), gj = clamp(cy + z / res, 0, n - 1.0001);
@@ -21,7 +29,7 @@ function make(field, M, paint) {
     return fx + fz <= 1 ? h00 + fx * (h10 - h00) + fz * (h01 - h00) : h11 + (1 - fx) * (h01 - h11) + (1 - fz) * (h10 - h11);
   }
   const G = {
-    M, n, res, H, field, datum,
+    M, n, res, H, field, datum, mode: MODES.includes(mode) ? mode : 'flat',
     hM, h: (x, z) => hM(x / M, z / M) * M,        // LDU in, LDU out
     extentM: (n - 1) * res, halfM: (n - 1) * res / 2,
     xMinM: -cx * res, zMinM: -cy * res, xMaxM: (n - 1 - cx) * res, zMaxM: (n - 1 - cy) * res,
@@ -232,5 +240,5 @@ function bakedField() {
 /** Convert a fetched square field (origin at the centre) into the shared shape. */
 function centredField(f) { return { n: f.n, res: f.res, h: f.h, cx: (f.n - 1) / 2, cy: (f.n - 1) / 2, datum: f.datum }; }
 
-window.Ground = { streets, FOOT, LIFT, COVER, deckAt, layerAt, wheels, make, drape, recolour, crater, roads, daylight, bakedField, centredField, MOSS };
+window.Ground = { MODES, streets, FOOT, LIFT, COVER, deckAt, layerAt, wheels, make, drape, recolour, crater, roads, daylight, bakedField, centredField, MOSS };
 })();
