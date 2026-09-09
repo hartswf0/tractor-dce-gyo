@@ -7,7 +7,8 @@
    Units: metres in, LDU (M per metre) out. A course is 24 LDU. */
 (function () {
 'use strict';
-const COURSE = 24, TILE_M = 100, CAP = 120000, NEAR_IN = 230, NEAR_OUT = 270, FRAME_LOD = 120;
+const COURSE = 24, TILE_M = 100, CAP = 120000; let NEAR_IN = 230, NEAR_OUT = 270;
+const setLOD = (near, out) => { NEAR_IN = near; NEAR_OUT = out; }, LOD = () => ({ nearIn: NEAR_IN, nearOut: NEAR_OUT });
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
 /* Wall bricks without studs (every stud in a wall is covered), each with a face plate standing 0.6 LDU
@@ -66,6 +67,7 @@ function harvest(groups) {
     geoms.set(KEY(HARVEST[i]), { geom: g, size: sz, tris: p.count / 3 });
   });
   geoms.set('pane-lit', geoms.get('pane-1x2x2'));   // the same pane, drawn with the lit material: a window with someone home
+  { const sg = geoms.get('3039'); if (sg) { const p = sg.geom.attributes.position; let zs = 0, n = 0; for (let i = 0; i < p.count; i++) if (p.getY(i) > sg.size.y - 2) { zs += p.getZ(i); n++; } SLOPE_HI = n && zs / n > 0 ? 1 : -1; } }   // which way a slope brick's high side faces in its own frame
   return geoms;
 }
 
@@ -89,6 +91,11 @@ function harvestOrigin(groups) {
 
 /* ───────────────────────── footprint → bricks ───────────────────────── */
 const PALETTE = { walls: [19, 4, 15, 72, 379, 70, 28, 84], roofs: [320, 72, 308, 71], frame: 15, pane: 0, plinth: 72, door: 70 };
+let SLOPE_HI = -1;
+/* what a kind of building is, over the world's style: a stadium is a bowl, a church has a tower and a gable, a shed has a door and no windows, a factory has slit windows, a tall block is a curtain wall */
+const KIND_STYLE = { stadium: { windows: false, stadium: true }, church: { roof: 'gable', tower: true, pitch: 120 }, cathedral: { roof: 'gable', tower: true, pitch: 120 }, chapel: { roof: 'gable', tower: true, pitch: 120 },
+  garage: { windows: false, door: 5 }, shed: { windows: false, door: 5 }, hut: { windows: false, door: 5 }, industrial: { slit: true, pitch: 80, roof: 'plates' }, warehouse: { slit: true, pitch: 80, roof: 'plates' }, office: { curtain: true }, hotel: { curtain: true }, apartments: { curtain: true }, commercial: { curtain: true } };
+const ROOF_SHAPE = { gabled: 'gable', hipped: 'hip', half_hipped: 'hip', pyramidal: 'hip', gambrel: 'gable', mansard: 'hip', dome: 'stepped', onion: 'stepped', flat: 'plates', skillion: 'plates' };
 const hash = s => { let h = 2166136261; for (const ch of String(s)) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; };
 const TMP = new THREE.Matrix4(), TQ = new THREE.Quaternion(), TP = new THREE.Vector3(), TS = new THREE.Vector3(1, 1, 1), UP = new THREE.Vector3(0, 1, 0);
 function place(out, part, x, y, z, theta, c, meta, sy) { TQ.setFromAxisAngle(UP, theta); TP.set(x, y, z); out.push({ p: part, m: new THREE.Matrix4().compose(TP, TQ, sy ? new THREE.Vector3(1, sy, 1) : TS), c, meta: meta || null }); }
@@ -101,7 +108,7 @@ function pointInRing(x, z, ring) {
   return inside;
 }
 function buildBricks(b, colours, M) {
-  const pal = b.pal || PALETTE, st = pal.style || {}, out = [], ring = b.ringL, n = ring.length, wall = colours(b.wall), plinthC = colours(pal.plinth), frameC = colours(b.wall === pal.frame ? 0 : pal.frame), paneC = colours(pal.pane), doorC = colours(pal.door), roofC = colours(b.roof);
+  const pal = b.pal || PALETTE, ks = KIND_STYLE[b.kind] || {}, st = { ...(pal.style || {}), ...ks, ...(ks.curtain && ((b.levels || 0) >= 5 || b.h >= 16) ? { slit: true, pitch: 80, bandMod: 1, lit: 0.7 } : {}) }, out = [], ring = b.ringL, n = ring.length, wall = colours(b.wall), plinthC = colours(pal.plinth), frameC = colours(b.wall === pal.frame ? 0 : pal.frame), paneC = colours(pal.pane), doorC = colours(pal.door), roofC = colours(b.roof);
   const cx = ring.reduce((s, p) => s + p.x, 0) / n, cz = ring.reduce((s, p) => s + p.z, 0) / n;
   const edges = [];
   for (let i = 0; i < n; i++) {
@@ -112,8 +119,10 @@ function buildBricks(b, colours, M) {
   }
   if (!edges.length) return { list: out, n: 0 };
   const doorK = edges.reduce((k, e, i) => e.L > edges[k].L ? i : k, 0);
-  b.door = null;
-  const plinth = Math.ceil(b.drop / COURSE), stilts = st.stilts || 0, total = Math.max(2 + stilts, Math.round(b.h * M * (st.hScale || 1) / COURSE) + plinth + stilts), bigDoor = total - plinth - stilts >= 7;
+  b.door = null; b.stairs = [];
+  const doorS = (() => { const e = edges[doorK]; let best = e.L / 2 - 20, bg = -Infinity; if (!b.gAt || e.L < 200) return best;   // where the ground outside is highest, nearest the middle on a tie
+    for (let s = 60; s + 40 <= e.L - 60; s += 40) { const g = b.gAt(e.A.x + e.ux * (s + 20) - e.nx * 60, e.A.z + e.uz * (s + 20) - e.nz * 60) - Math.abs(s + 20 - e.L / 2) * 0.02; if (g > bg) { bg = g; best = s; } } return best; })();
+  const plinth = Math.min(12, Math.ceil(b.drop / COURSE)), stilts = st.stilts || 0, total = Math.max(2 + stilts, Math.round(b.h * M * (st.hScale || 1) / COURSE) + plinth + stilts), bigDoor = total - plinth - stilts >= (st.door || 7);
   const pitch = st.pitch || 160, bandMod = st.bandMod || 3, slit = !!st.slit, bandC = st.bandCol != null ? colours(st.bandCol) : null, topBandC = st.topBand != null ? colours(st.topBand) : null;
   let course = 0, edgeI = 0;
   const put = (e, part, s, len, y, c, rot90, inset = 20, extra, sy) => place(out, part, e.A.x + e.ux * (s + len / 2) + e.nx * inset, y, e.A.z + e.uz * (s + len / 2) + e.nz * inset, e.theta + (rot90 ? Math.PI / 2 : 0), c, { e: edgeI, s0: s, s1: s + len, L: e.L, course, rows: 1, ...(extra || {}) }, sy);
@@ -128,13 +137,15 @@ function buildBricks(b, colours, M) {
     edges.forEach((e, ei) => {
       edgeI = ei;
       const slots = [], doorHere = ei === doorK && c >= plinth + stilts && (bigDoor ? c < plinth + stilts + 6 : c < plinth + stilts + 2);
-      const dS = e.L / 2 - 20;
-      if (doorHere) { slots.push([dS, dS + 40]); if (c === plinth + stilts) { if (bigDoor) { put(e, '60623', dS, 40, y, doorC, false, 14, { rows: 6, frame: true, door: true }); b.door = { e: ei, s0: dS, s1: dS + 40, k: out.length - 1, y }; } else { put(e, '60592', dS, 40, y, colours(0), false, 20, { rows: 2, frame: true }); put(e, 'pane-1x2x2', dS, 40, y, paneC, false, 26, { rows: 2, pane: true }); } } }
+      const dS = ei === doorK ? doorS : e.L / 2 - 20;
+      if (doorHere) { slots.push([dS, dS + 40]); if (c === plinth + stilts) { if (bigDoor) { put(e, '60623', dS, 40, y, doorC, false, 14, { rows: 6, frame: true, door: true }); b.door = { e: ei, s0: dS, s1: dS + 40, k: out.length - 1, y };
+          if (b.gAt) { const g = b.gAt(e.A.x + e.ux * (dS + 20) - e.nx * 60, e.A.z + e.uz * (dS + 20) - e.nz * 60); for (let k = 1; k <= 18 && y - 8 * k > g - 4; k++) {   // steps: a plate every 8 LDU down, 13 out, to the ground
+            const sx = e.A.x + e.ux * (dS + 20) - e.nx * (k * 13), sz = e.A.z + e.uz * (dS + 20) - e.nz * (k * 13), sy = y - 8 * k; place(out, 'roof-2x4', sx, sy, sz, e.theta, plinthC, { stair: true, course: c, e: ei, s0: dS, s1: dS + 40 }); b.stairs.push({ x: sx, z: sz, top: sy + 8, theta: e.theta, k }); } } } else { put(e, '60592', dS, 40, y, colours(0), false, 20, { rows: 2, frame: true }); put(e, 'pane-1x2x2', dS, 40, y, paneC, false, 26, { rows: 2, pane: true }); } } }
       if (band && e.L >= 200) for (let s = 60; s + 40 <= e.L - 40; s += pitch) {
         if (doorHere && s < dS + 40 && s + 40 > dS) continue;
         slots.push([s, s + 40]);
-        if (slit) put(e, st.allLit || hash(b.id * 31 + c * 7 + ei * 131 + s) % 100 < 55 ? 'pane-lit' : 'pane-1x2x2', s, 40, y, paneC, false, 20, { rows: 1, pane: true, slit: true }, 0.5);   // a slit: one course, the pane alone
-        else if (lower) { put(e, '60592', s, 40, y, frameC, false, 20, { rows: 2, frame: true }); put(e, st.allLit || hash(b.id * 31 + c * 7 + ei * 131 + s) % 100 < 55 ? 'pane-lit' : 'pane-1x2x2', s, 40, y, paneC, false, 26, { rows: 2, pane: true }); }
+        if (slit) put(e, st.allLit || hash(b.id * 31 + c * 7 + ei * 131 + s) % 100 < 100 * (st.lit || 0.55) ? 'pane-lit' : 'pane-1x2x2', s, 40, y, paneC, false, 20, { rows: 1, pane: true, slit: true }, 0.5);   // a slit: one course, the pane alone
+        else if (lower) { put(e, '60592', s, 40, y, frameC, false, 20, { rows: 2, frame: true }); put(e, st.allLit || hash(b.id * 31 + c * 7 + ei * 131 + s) % 100 < 100 * (st.lit || 0.55) ? 'pane-lit' : 'pane-1x2x2', s, 40, y, paneC, false, 26, { rows: 2, pane: true }); }
       }
       slots.sort((p, q) => p[0] - q[0]);
       let s = 0; const runs = [];
@@ -155,17 +166,54 @@ function buildBricks(b, colours, M) {
   const loc = ring.map(p => ({ x: (p.x - cx) * ux + (p.z - cz) * uz, z: -(p.x - cx) * uz + (p.z - cz) * ux }));
   let lx0 = Infinity, lx1 = -Infinity, lz0 = Infinity, lz1 = -Infinity; for (const p of loc) { lx0 = Math.min(lx0, p.x); lx1 = Math.max(lx1, p.x); lz0 = Math.min(lz0, p.z); lz1 = Math.max(lz1, p.z); }
   const cells = Math.ceil((lx1 - lx0) / 80) * Math.ceil((lz1 - lz0) / 40);
-  b.flatRoof = cells > 160;
-  if (!b.flatRoof) for (let gx = lx0 + 40; gx < lx1; gx += 80) for (let gz = lz0 + 20; gz < lz1; gz += 40) {
-    if (!pointInRing(gx, gz, loc)) continue;
-    place(out, 'roof-2x4', cx + gx * ux - gz * uz, yTop, cz + gx * uz + gz * ux, e0.theta, roofC, { roof: true, course: total });
-  }
-  if (st.roof === 'stepped' && !b.flatRoof) {                                  // a stepped dome: three courses of bricks, each drawn in from the edge
-    const dist = (x, z) => { let m = Infinity; for (let i = 0; i < loc.length; i++) { const a = loc[i], q = loc[(i + 1) % loc.length], dx = q.x - a.x, dz = q.z - a.z, L2 = dx * dx + dz * dz || 1, t = clamp(((x - a.x) * dx + (z - a.z) * dz) / L2, 0, 1); m = Math.min(m, Math.hypot(x - a.x - dx * t, z - a.z - dz * t)); } return m; };
+  let ringArea = 0; for (let i = 0; i < n; i++) { const p = ring[i], q = ring[(i + 1) % n]; ringArea += p.x * q.z - q.x * p.z; } ringArea = Math.abs(ringArea) / 2;
+  const boxy = ringArea / Math.max(1, (lx1 - lx0) * (lz1 - lz0)) > 0.7;
+  const roofKind = st.stadium ? 'none' : ROOF_SHAPE[b.roofShape] || st.roof || (boxy && b.h < 10 && /^(house|residential|detached|semidetached_house|terrace|bungalow|farm)$/.test(b.kind || '') ? 'gable' : 'plates');
+  const pitchedOk = (roofKind === 'gable' || roofKind === 'hip') && boxy && cells <= 800 && lz1 - lz0 <= 24 * M;   // a pitched roof is its own cover: no plates, no flat cap
+  b.flatRoof = cells > 160 && !pitchedOk;
+  const distIn = (x, z) => { let m = Infinity; for (let i = 0; i < loc.length; i++) { const a = loc[i], q = loc[(i + 1) % loc.length], dx = q.x - a.x, dz = q.z - a.z, L2 = dx * dx + dz * dz || 1, t = clamp(((x - a.x) * dx + (z - a.z) * dz) / L2, 0, 1); m = Math.min(m, Math.hypot(x - a.x - dx * t, z - a.z - dz * t)); } return m; };
+  const at = (gx, gz) => [cx + gx * ux - gz * uz, cz + gx * uz + gz * ux];
+  /** Plates on a grid aligned to the longest edge, kept where the cell centre is inside. */
+  const plates = (yy, insetD, extra) => { for (let gx = lx0 + 40; gx < lx1; gx += 80) for (let gz = lz0 + 20; gz < lz1; gz += 40) { if (!pointInRing(gx, gz, loc) || (insetD && distIn(gx, gz) < insetD)) continue; const [px, pz] = at(gx, gz); place(out, 'roof-2x4', px, yy, pz, e0.theta, roofC, { roof: true, course: total, ...(extra || {}) }); } };
+  /** A pitched roof over a box [x0,x1]×[z0,z1] in the local frame from height y: slope bricks climbing in from the long sides (and the ends when hipped), bricks filling under them, tiles on the ridge. */
+  const pitched = (x0, x1, z0, z1, y, hip, col, tag) => {
+    const rot = SLOPE_HI > 0 ? 0 : Math.PI;                                          // the slope's high side toward +z local
+    for (let k = 0; k < 8; k++) {
+      const iz = k * 40, ix = hip ? k * 40 : 0, d = (z1 - z0) - 2 * iz, w = (x1 - x0) - 2 * ix, yy = y + k * COURSE, meta = { roof: true, level: k, course: total + k, ...(tag || {}) };
+      if (d < 40 || w < 40) break;
+      const cz0 = z0 + iz + 20, cz1 = z1 - iz - 20, ridge = d < 80;
+      for (let gx = x0 + ix + 20; gx <= x1 - ix - 20 + 1; gx += 40) { let [px, pz] = at(gx, ridge ? (cz0 + cz1) / 2 : cz0); place(out, ridge ? '3068b' : '3039', px, yy, pz, e0.theta + rot, col, meta); if (!ridge) { [px, pz] = at(gx, cz1); place(out, '3039', px, yy, pz, e0.theta + rot + Math.PI, col, meta); } }
+      if (hip && !ridge) for (let gz = cz0 + 40; gz <= cz1 - 40 + 1; gz += 40) { let [px, pz] = at(x0 + ix + 20, gz); place(out, '3039', px, yy, pz, e0.theta + rot + Math.PI / 2, col, meta); [px, pz] = at(x1 - ix - 20, gz); place(out, '3039', px, yy, pz, e0.theta + rot - Math.PI / 2, col, meta); }
+      if (!ridge) for (let gz = cz0 + 40; gz <= cz1 - 40 + 1; gz += 40) for (let gx = x0 + ix + 20 + (hip ? 40 : 0) + 20; gx <= x1 - ix - 20 - (hip ? 40 : 0); gx += 80) { const [px, pz] = at(gx, gz); place(out, 'wall-2x4', px, yy, pz, e0.theta, wall, { ...meta, fill: true }); }
+      if (ridge) break;
+    }
+  };
+  if (roofKind === 'stepped' && !b.flatRoof) {                                    // a stepped dome: three courses of bricks, each drawn in from the edge
     for (let k = 1; k <= 3; k++) { const yk = yTop + 8 + (k - 1) * COURSE, inset = k * 45; course = total + k;
-      for (let gx = lx0 + 40; gx < lx1; gx += 80) for (let gz = lz0 + 20; gz < lz1; gz += 40) { if (!pointInRing(gx, gz, loc) || dist(gx, gz) < inset) continue; place(out, 'wall-2x4', cx + gx * ux - gz * uz, yk, cz + gx * uz + gz * ux, e0.theta, wall, { roof: true, step: k, course: total + k }); } }
+      for (let gx = lx0 + 40; gx < lx1; gx += 80) for (let gz = lz0 + 20; gz < lz1; gz += 40) { if (!pointInRing(gx, gz, loc) || distIn(gx, gz) < inset) continue; const [px, pz] = at(gx, gz); place(out, 'wall-2x4', px, yk, pz, e0.theta, wall, { roof: true, step: k, level: k, course: total + k }); } }
+    plates(yTop, 0);
+  } else if (pitchedOk) pitched(lx0, lx1, lz0, lz1, yTop, roofKind === 'hip', roofC);
+  else if (roofKind !== 'none' && !b.flatRoof) plates(yTop, 0);
+  if (st.tower && cells <= 1200) {                                                    // a church's tower: a square of bricks by the shortest edge, twice the height, a pyramid and a spire on top
+    const short = edges.reduce((k, e, i) => e.L < edges[k].L ? i : k, 0), E = edges[short], side = 240, mx = E.A.x + E.ux * E.L / 2 + E.nx * (side / 2 + 20), mz = E.A.z + E.uz * E.L / 2 + E.nz * (side / 2 + 20);
+    const tx = (mx - cx) * ux + (mz - cz) * uz, tz = -(mx - cx) * uz + (mz - cz) * ux, tCourses = total * 2, tTop = b.y0 + tCourses * COURSE;
+    for (let c = 0; c < tCourses; c++) { const yy = b.y0 + c * COURSE, odd = c & 1; course = c;
+      for (let k = 0; k < 3; k++) { const o = -side / 2 + 40 + k * 80, o2 = odd ? o + 40 : o;
+        let [px, pz] = at(tx + o2, tz - side / 2 + 20); place(out, 'wall-2x4', px, yy, pz, e0.theta, wall, { tower: true, course: c }); [px, pz] = at(tx + o2, tz + side / 2 - 20); place(out, 'wall-2x4', px, yy, pz, e0.theta, wall, { tower: true, course: c });
+        [px, pz] = at(tx - side / 2 + 20, tz + o2); place(out, 'wall-2x4', px, yy, pz, e0.theta + Math.PI / 2, wall, { tower: true, course: c }); [px, pz] = at(tx + side / 2 - 20, tz + o2); place(out, 'wall-2x4', px, yy, pz, e0.theta + Math.PI / 2, wall, { tower: true, course: c }); } }
+    pitched(tx - side / 2, tx + side / 2, tz - side / 2, tz + side / 2, tTop, true, roofC, { tower: true });
+    const [sx, sz] = at(tx, tz); place(out, '4589', sx, tTop + 3 * COURSE, sz, 0, roofC, { roof: true, level: 3, course: total + 3, tower: true }); b.towerTop = tTop + 3 * COURSE;
   }
-  b.yTop = yTop; b.courses = total; b.edgeCount = edges.length; b.edges = edges; b.spans = null; b.beam = stilts ? plinth + stilts : -1; if (!b.door) b.door = null;
+  if (st.stadium) {                                                                 // a bowl: three tiers of stepped seating climbing from the pitch to the outer wall, floodlights at the corners
+    let rmin = Infinity; for (let i = 0; i < n; i++) { const a = ring[i], q = ring[(i + 1) % n], dx = q.x - a.x, dz = q.z - a.z, L2 = dx * dx + dz * dz || 1, t = clamp(((cx - a.x) * dx + (cz - a.z) * dz) / L2, 0, 1); rmin = Math.min(rmin, Math.hypot(cx - a.x - dx * t, cz - a.z - dz * t)); }
+    const seatC = colours(pal.plinth);
+    for (let tier = 1; tier <= 3; tier++) { const k = 1 - tier * 3 * M / Math.max(rmin, 12 * M), inner = ring.map(p => ({ x: cx + (p.x - cx) * k, z: cz + (p.z - cz) * k })), hC = Math.max(1, Math.round((total - plinth) * (1 - tier / 4)) + plinth);
+      const tEdges = []; for (let i = 0; i < n; i++) { const A = inner[i], B = inner[(i + 1) % n], dx = B.x - A.x, dz = B.z - A.z, L0 = Math.hypot(dx, dz); if (L0 < 40) continue; const ux2 = dx / L0, uz2 = dz / L0; let nx = -uz2, nz = ux2; if ((cx - (A.x + B.x) / 2) * nx + (cz - (A.z + B.z) / 2) * nz < 0) { nx = -nx; nz = -nz; } tEdges.push({ A, ux: ux2, uz: uz2, nx, nz, L: Math.floor(L0 / 20) * 20, theta: Math.atan2(-uz2, ux2) }); }
+      for (let c = 0; c < hC; c++) { course = c; const yy = b.y0 + c * COURSE; tEdges.forEach((e, ei) => { edgeI = edges.length + tier * 8 + ei; let p = (c & 1) ? 40 : 0; if (p) put(e, 'wall-2x2', 0, 40, yy, seatC); while (e.L - p >= 160) { put(e, 'wall-2x8', p, 160, yy, seatC); p += 160; } while (e.L - p >= 80) { put(e, 'wall-2x4', p, 80, yy, seatC); p += 80; } while (e.L - p >= 40) { put(e, 'wall-2x2', p, 40, yy, seatC); p += 40; } }); } }
+    for (const [gx, gz] of [[lx0 + 60, lz0 + 60], [lx1 - 60, lz0 + 60], [lx1 - 60, lz1 - 60], [lx0 + 60, lz1 - 60]]) { if (!pointInRing(gx, gz, loc)) continue; const [px, pz] = at(gx, gz); const mast = Math.round(25 * M / COURSE); for (let c = 0; c < mast; c++) place(out, '3005', px, b.y0 + c * COURSE, pz, 0, colours(72), { mast: true, course: c }); place(out, 'pane-lit', px, b.y0 + mast * COURSE, pz, 0, paneC, { mast: true, course: mast, pane: true, lamp: true }); }
+    b.stadium = true;
+  }
+  b.plinth = plinth; b.yTop = yTop; b.courses = total; b.edgeCount = edges.length; b.edges = edges; b.spans = null; b.beam = stilts ? plinth + stilts : -1; if (!b.door) b.door = null;
   return { list: out, n: out.length };
 }
 
@@ -194,7 +242,14 @@ function unsupported(b) {
       if (held) ok.add(it.k);
     }
   }
-  L.forEach((br, k) => { if (b.removed.has(k) || !br.meta) return; if (br.meta.roof) { const el = br.m.elements, top = byCourse.get(b.courses - 1) || []; let held = false; for (const u of top) { if (!ok.has(u.k)) continue; const ue = L[u.k].m.elements; if (Math.hypot(ue[12] - el[12], ue[14] - el[14]) < 60) { held = true; break; } } if (!held) out.push(k); } else if (!ok.has(k)) out.push(k); });
+  const roofByLv = new Map();                   // roof pieces by level: a level stands on the held pieces of the level below, so a lost wall takes the whole roof
+  L.forEach((br, k) => { if (b.removed.has(k) || !br.meta || !br.meta.roof) return; const lv = br.meta.step || br.meta.level || 0; let a = roofByLv.get(lv); if (!a) { a = []; roofByLv.set(lv, a); } a.push(k); });
+  const roofOk = new Set(), lvs = [...roofByLv.keys()].sort((a, c) => a - c);
+  for (const lv of lvs) for (const k of roofByLv.get(lv)) { const br = L[k], el = br.m.elements; let held = !!br.meta.tower && lv === 0;
+      if (lv === 0 && !held) { const top = byCourse.get(b.courses - 1) || []; for (const u of top) { if (!ok.has(u.k)) continue; const ue = L[u.k].m.elements; if (Math.hypot(ue[12] - el[12], ue[14] - el[14]) < 60) { held = true; break; } } }
+      else if (lv > 0) for (const j of roofByLv.get(lv - 1) || []) { if (!roofOk.has(j)) continue; const ue = L[j].m.elements; if (Math.hypot(ue[12] - el[12], ue[14] - el[14]) < 90) { held = true; break; } }
+      if (held) roofOk.add(k); else out.push(k); }
+  L.forEach((br, k) => { if (b.removed.has(k) || !br.meta || br.meta.roof) return; if (!ok.has(k)) out.push(k); });
   return out;
 }
 
@@ -229,6 +284,8 @@ class City {
   setPalette(pal) { this.palette = pal; this.set(this.source); }
   /** 0 by day, 1 at night: the lit panes glow warm. */
   setNight(n) { this.night = n; this.paneMat.emissiveIntensity = 1.3 * n; }
+  /** The world's window light. */
+  setLights(l) { if (l && l.window != null) this.paneMat.emissive.set(l.window); }
   set(list) {
     this.clear(); this.source = list; const pal = this.palette;
     for (const src of list) {
@@ -238,8 +295,9 @@ class City {
       const cx = ring.reduce((s, p) => s + p.x, 0) / ring.length, cz = ring.reduce((s, p) => s + p.z, 0) / ring.length;
       let gmin = Infinity, gmax = -Infinity; for (const p of ring) { const g = this.groundM(p.x, p.z); gmin = Math.min(gmin, g); gmax = Math.max(gmax, g); }
       const hsh = hash(src.id), M = this.M, h = clamp(src.h || 5, 2.5, 120);
-      const b = { id: src.id, kind: src.kind, ring, ringL: ring.map(p => ({ x: p.x * M, z: p.z * M })), h, cx, cz, r: Math.max(...ring.map(p => Math.hypot(p.x - cx, p.z - cz))),
-        y0: gmin * M, drop: (gmax - gmin) * M, wall: pal.walls[hsh % pal.walls.length], roof: pal.roofs[(hsh >>> 8) % pal.roofs.length], pal, bricks: null, removed: new Set(), flatRoof: false, ruined: false };
+      const gAt = (x, z) => this.groundM(x / M, z / M) * M;
+      const b = { id: src.id, kind: src.kind, name: src.name || null, roofShape: src.roof || null, levels: src.levels || null, gAt, ring, ringL: ring.map(p => ({ x: p.x * M, z: p.z * M })), h, cx, cz, r: Math.max(...ring.map(p => Math.hypot(p.x - cx, p.z - cz))),
+        y0: Math.max(gmin * M, gmax * M - 12 * COURSE), drop: Math.min((gmax - gmin) * M, 12 * COURSE), wall: pal.walls[hsh % pal.walls.length], roof: pal.roofs[(hsh >>> 8) % pal.roofs.length], pal, bricks: null, removed: new Set(), flatRoof: false, ruined: false };
       b.yTop = b.y0 + Math.max(2, Math.round(h * M / COURSE) + Math.ceil(b.drop / COURSE)) * COURSE;
       const xs = b.ringL.map(p => p.x), zs = b.ringL.map(p => p.z);
       b.aabb = { min: new THREE.Vector3(Math.min(...xs), b.y0, Math.min(...zs)), max: new THREE.Vector3(Math.max(...xs), b.yTop, Math.max(...zs)) };
@@ -306,6 +364,13 @@ class City {
     const sp = this.spans(b), c0 = Math.max(0, Math.floor((yFeet + 30 - b.y0) / COURSE)), c1 = Math.floor((yFeet + 3 * COURSE - 1 - b.y0) / COURSE), a0 = s - r, a1 = s + r, doorK = b.door && b.doorT > 0.5 ? b.door.k : -1;   // from the knee (a sill is stepped over) to the top of the head
     for (let c = c0; c <= c1; c++) { const arr = sp.get(e + ':' + c); if (!arr) continue; for (const [s0, s1, k] of arr) if (k !== doorK && s1 > a0 && s0 < a1) return false; }
     return true;
+  }
+  /** The top of a stair plate under a point (LDU), for feet no more than a step below it; -Infinity when there is none. */
+  floorAt(x, z, y) {
+    let best = -Infinity, M = this.M;
+    for (const b of this.near(x, z, 3 * M)) { if (b.bricks && b.plinth > 0 && !b.stadium) { const top = b.y0 + b.plinth * COURSE; if (top <= y && top > best && pointInRing(x, z, b.ringL)) best = top; }   // a building on a plinth has its floor at the plinth's top
+      if (!b.stairs || !b.stairs.length) continue; for (const st of b.stairs) { if (st.top > y || st.top <= best) continue; const dx = x - st.x, dz = z - st.z, c = Math.cos(st.theta), s = Math.sin(st.theta), lx = dx * c - dz * s, lz = dx * s + dz * c; if (Math.abs(lx) <= 40 && Math.abs(lz) <= 20) best = st.top; } }
+    return best;
   }
   /** Doors swing open for whoever comes near (within 2.5 m of the door), and swing shut behind them. */
   doors(pos, dt) {
@@ -398,5 +463,5 @@ function village() {
   return { buildings, roads };
 }
 
-window.Bricks = { harvestOrigin, CUSTOM, HARVEST, lines, harvest, City, village, buildBricks, unsupported, pointInRing, COURSE, CAP , mergeGroup };
+window.Bricks = { setLOD, LOD, harvestOrigin, CUSTOM, HARVEST, lines, harvest, City, village, buildBricks, unsupported, pointInRing, COURSE, CAP , mergeGroup };
 })();

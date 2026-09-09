@@ -57,7 +57,7 @@ class Crowd {
     }
     this.npcs = []; this.free = Array.from({ length: cap }, (_, i) => cap - 1 - i); this.roads = []; this.rings = () => []; this.t = 0; this.kills = 0;
   }
-  setRoads(roads) { this.roads = roads.filter(r => r.pts.length >= 2); }
+  setRoads(roads) { this.roads = roads.filter(r => r.pts.length >= 2 && !r.bridge && r.kind !== 'river'); }
   slotsOf(def) { const s = ['legR', 'legL', 'hips', 'torso', 'armR', 'armL', 'handR', 'handL', 'head']; if (def.hat) s.push('hat:' + def.hat[0]); if (def.weapon && def.weapon[0] === 'blaster') s.push('weaponR:' + def.weapon[1]); return s; }
   colourOf(def, slot) { const k = slot.split(':')[0]; return { legR: def.legs, legL: def.legs, hips: def.hips, torso: def.torso, armR: def.arms, armL: def.arms, handR: def.hands, handL: def.hands, head: def.head, hat: def.hat && def.hat[1], weaponR: def.weapon && def.weapon[2] }[k]; }
   spawn(kind, x, z, seed) {

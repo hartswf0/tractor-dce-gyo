@@ -49,18 +49,19 @@ function streakTexture() {
 
 function create({ scene, M, lights, onLightning, onColour, onNight }) {
   const R = 40000, group = new THREE.Group(); group.name = 'sky'; group.frustumCulled = false;
-  const uniforms = { zenith: { value: C(0x6f95c8) }, horizon: { value: C(0xb8cbd8) }, below: { value: C(0xc9d4d2) }, sunDir: { value: new THREE.Vector3(0, 1, 0) }, sunCol: { value: C(0xffffff) }, disc: { value: 1 }, glow: { value: 0.35 } };
+  const uniforms = { zenith: { value: C(0x6f95c8) }, horizon: { value: C(0xb8cbd8) }, below: { value: C(0xc9d4d2) }, sunDir: { value: new THREE.Vector3(0, 1, 0) }, sunCol: { value: C(0xffffff) }, disc: { value: 1 }, glow: { value: 0.35 }, sun2Dir: { value: new THREE.Vector3(0, 1, 0) }, disc2: { value: 0 } };
   const dome = new THREE.Mesh(new THREE.SphereGeometry(R, 32, 16), new THREE.ShaderMaterial({ uniforms, side: THREE.BackSide, depthWrite: false, depthTest: false, fog: false,
     vertexShader: 'varying vec3 vDir; void main() { vDir = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
-    fragmentShader: `uniform vec3 zenith, horizon, below, sunDir, sunCol; uniform float disc, glow; varying vec3 vDir;
+    fragmentShader: `uniform vec3 zenith, horizon, below, sunDir, sunCol, sun2Dir; uniform float disc, glow, disc2; varying vec3 vDir;
       void main() { vec3 d = normalize(vDir); float t = d.y; vec3 col = mix(horizon, zenith, pow(max(t, 0.0), 0.55)); col = mix(col, below, smoothstep(0.0, -0.06, t));
         float c = dot(d, sunDir); col += sunCol * glow * pow(max(c, 0.0), 40.0) * smoothstep(-0.1, 0.05, sunDir.y + 0.02); col += sunCol * disc * smoothstep(0.99935, 0.99975, c);
+        float c2 = dot(d, sun2Dir); col += sunCol * disc2 * (smoothstep(0.9997, 0.99985, c2) + 0.25 * pow(max(c2, 0.0), 60.0));
         gl_FragColor = vec4(col, 1.0); }` }));
   dome.name = 'skydome'; dome.renderOrder = -10; dome.frustumCulled = false; group.add(dome);
   // stars: points on the dome, a little smaller than a pixel pair, additive
   const N_STARS = 1600, sp = new Float32Array(N_STARS * 3); for (let i = 0; i < N_STARS; i++) { const u = Math.random(), v = Math.random(), th = 2 * Math.PI * u, y = Math.pow(v, 0.7); const r = Math.sqrt(1 - y * y) * (R * 0.97); sp[3 * i] = Math.cos(th) * r; sp[3 * i + 1] = y * R * 0.97 - 0.02 * R; sp[3 * i + 2] = Math.sin(th) * r; }
   const sg = new THREE.BufferGeometry(); sg.setAttribute('position', new THREE.BufferAttribute(sp, 3));
-  const stars = new THREE.Points(sg, new THREE.PointsMaterial({ size: 2.4, sizeAttenuation: false, color: 0xffffff, transparent: true, opacity: 0, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending, fog: false }));
+  const stars = new THREE.Points(sg, new THREE.PointsMaterial({ size: 2.4, sizeAttenuation: false, color: 0xffffff, transparent: true, opacity: 0, depthWrite: false, depthTest: true, blending: THREE.AdditiveBlending, fog: false }));
   stars.name = 'stars'; stars.renderOrder = -9; stars.frustumCulled = false; stars.visible = false; group.add(stars);
   // clouds: sprites in a ring about the camera, drifting east
   const N_CLOUDS = 18, cloudTex = puffTexture(), clouds = [];
@@ -71,6 +72,10 @@ function create({ scene, M, lights, onLightning, onColour, onNight }) {
   const N_RAIN = 1400, RB = 20 * M, RH = 30 * M, rp = new Float32Array(N_RAIN * 3); for (let i = 0; i < N_RAIN; i++) { rp[3 * i] = (Math.random() * 2 - 1) * RB; rp[3 * i + 1] = Math.random() * RH; rp[3 * i + 2] = (Math.random() * 2 - 1) * RB; }
   const rg = new THREE.BufferGeometry(); rg.setAttribute('position', new THREE.BufferAttribute(rp, 3));
   const rain = new THREE.Points(rg, new THREE.PointsMaterial({ size: 0.45 * M, map: streakTexture(), transparent: true, opacity: 0.5, depthWrite: false, color: 0xdfe6f0, fog: false })); rain.name = 'rain'; rain.frustumCulled = false; rain.visible = false; rain.renderOrder = 5; scene.add(rain);
+  // fireflies: a few hundred slow points near the camera, for worlds that have them, at night
+  const N_FF = 260, fp = new Float32Array(N_FF * 3), fseed = new Float32Array(N_FF); for (let i = 0; i < N_FF; i++) { fp[3 * i] = (Math.random() * 2 - 1) * 30 * M; fp[3 * i + 1] = (0.5 + Math.random() * 3) * M; fp[3 * i + 2] = (Math.random() * 2 - 1) * 30 * M; fseed[i] = Math.random() * 100; }
+  const fg = new THREE.BufferGeometry(); fg.setAttribute('position', new THREE.BufferAttribute(fp, 3));
+  const fireflies = new THREE.Points(fg, new THREE.PointsMaterial({ map: puffTexture(), size: 0.5 * M, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, color: 0xd8ff6a, opacity: 0, fog: false })); fireflies.name = 'fireflies'; fireflies.frustumCulled = false; fireflies.visible = false; scene.add(fireflies);
   scene.add(group);
   const S = { group, dome, stars, clouds, rain, uniforms, M, lights, preset: null, mode: 'auto', weather: 'clear', lat: 45, lon: 0, now: null, sun: { elev: 55, azim: 180, hour: 12 }, acc: 0, t: 0, bolt: 0, nextBolt: 8, cloudCover: 0, hemiBase: 0, fog: [0, 0], horizonHex: '#b8cbd8', dark: false, night: 0, day: 1, rainSpeed: 0, onLightning, onColour, onNight, stats: null, set: null, step: null };
   const sunDir = new THREE.Vector3();
@@ -85,13 +90,14 @@ function create({ scene, M, lights, onLightning, onColour, onNight }) {
     uniforms.zenith.value.copy(zenith); uniforms.horizon.value.copy(horizon); uniforms.below.value.copy(fogC);
     // the sun: its place, its colour, and the light it casts
     if (space) dirOf(25, 60, sunDir); else dirOf(elev, S.sun.azim, sunDir);
-    uniforms.sunDir.value.copy(sunDir);
+    uniforms.sunDir.value.copy(sunDir); const LI = p.lights || {};
+    uniforms.disc2.value = (LI.suns || 1) > 1 ? (space ? 0 : 0.8 * smooth(-3, 1, elev)) : 0; dirOf(elev + 6, S.sun.azim + 9, uniforms.sun2Dir.value);   // a second sun, a little higher and to one side
     const sunC = new THREE.Color(p.sun[0]).lerp(new THREE.Color(0xffb070), space ? 0 : warm * 0.8);
     uniforms.sunCol.value.copy(sunC); uniforms.disc.value = space ? 0.8 : (1 - weather.grey) * smooth(-3, 1, elev); uniforms.glow.value = space ? 0.1 : 0.35 * (1 - weather.grey) * smooth(-6, 2, elev);
     const lights = S.lights, lin = c => c.clone().convertSRGBToLinear();
     const night = 1 - d, hemiSky = new THREE.Color(p.hemi[0]).lerp(new THREE.Color(NIGHT.hemi[0]), night), hemiGround = new THREE.Color(p.hemi[1]).lerp(new THREE.Color(NIGHT.hemi[1]), night);
     lights.hemi.color.copy(lin(hemiSky)); lights.hemi.groundColor.copy(lin(hemiGround)); S.hemiBase = lerp(NIGHT.hemi[2], p.hemi[2], d) * weather.hemi / Math.PI; lights.hemi.intensity = S.hemiBase;
-    const sunI = lerp(NIGHT.sun[1], p.sun[1] * smooth(-2, 15, elev), d) * weather.sun; lights.sun.color.copy(lin(d > 0.5 ? sunC : new THREE.Color(NIGHT.sun[0]))); lights.sun.intensity = Math.max(0.05, sunI) / Math.PI;
+    const moon = LI.moon != null ? LI.moon : 1, sunI = lerp(NIGHT.sun[1] * moon, p.sun[1] * smooth(-2, 15, elev), d) * weather.sun; if (d < 0.5) lights.hemi.intensity = S.hemiBase = S.hemiBase * (0.7 + 0.3 * moon); lights.sun.color.copy(lin(d > 0.5 ? sunC : new THREE.Color(NIGHT.sun[0]))); lights.sun.intensity = Math.max(0.05, sunI) / Math.PI;
     if (elev > 2 || space) lights.sun.position.copy(sunDir).multiplyScalar(1000); else lights.sun.position.set(-sunDir.x, Math.max(0.35, -sunDir.y), -sunDir.z).multiplyScalar(1000);   // the moon stands opposite
     // fog and background meet the dome at the horizon
     const near = weather.nearM != null ? weather.nearM : p.fog[1] * (weather.near || 1) * (0.6 + 0.4 * d), far = weather.farM != null ? weather.farM : p.fog[2] * (weather.far || 1) * (0.5 + 0.5 * d);
@@ -104,6 +110,7 @@ function create({ scene, M, lights, onLightning, onColour, onNight }) {
     S.rainSpeed = weather.rain ? (weather.rain > 1 ? 14 : 11) * M : 0; rain.visible = !!weather.rain && !space; rain.material.opacity = weather.rain > 1 ? 0.6 : 0.45; rain.material.color.set(night > 0.5 ? 0x9aa6b8 : 0xdfe6f0);
     S.lightning = !!weather.lightning && !space; S.horizonHex = '#' + horizon.getHexString(); S.dark = (0.3 * horizon.r + 0.59 * horizon.g + 0.11 * horizon.b) < 0.45;
     S.night = p.litAlways || space ? 1 : clamp(night * 1.25 - 0.1, 0, 1); S.day = d;   // what the lamps and the windows go by
+    S.fireflies = !!LI.fireflies && !space; fireflies.material.opacity = S.fireflies ? S.night * (1 - weather.rain) : 0; fireflies.visible = fireflies.material.opacity > 0.02;
     if (S.onColour) S.onColour(S.horizonHex, S.dark, horizon);
     if (S.onNight) S.onNight(S.night);
   }
@@ -113,10 +120,11 @@ function create({ scene, M, lights, onLightning, onColour, onNight }) {
     S.t += dt; group.position.copy(camera.position);
     if (S.mode === 'auto' && (S.acc += dt) > 30) { S.acc = 0; refresh(); apply(); }
     for (const s of clouds) { if (!s.visible) continue; const u = s.userData; u.ox += 3 * M * dt; if (u.ox > 1500 * M) u.ox -= 3000 * M; s.position.set(camera.position.x + u.ox, camera.position.y + u.h, camera.position.z + u.oz); }
+    if (fireflies.visible) { fireflies.position.set(camera.position.x, 0, camera.position.z); const a = fg.attributes.position.array, base = S.fireBase || (S.fireBase = Float32Array.from(a)); for (let i = 0; i < N_FF; i++) { const t = S.t + fseed[i]; a[3 * i] = base[3 * i] + Math.sin(t * 0.7) * 1.5 * M; a[3 * i + 1] = base[3 * i + 1] + Math.sin(t * 1.3) * 0.6 * M; a[3 * i + 2] = base[3 * i + 2] + Math.cos(t * 0.5) * 1.5 * M; } fg.attributes.position.needsUpdate = true; fireflies.position.y = S.groundAt ? S.groundAt(camera.position.x, camera.position.z) : camera.position.y - 2 * M; }
     if (rain.visible) { rain.position.copy(camera.position); rain.position.y -= 2 * M; const a = rg.attributes.position.array, dy = S.rainSpeed * dt; for (let i = 1; i < a.length; i += 3) { a[i] -= dy; if (a[i] < 0) a[i] += RH; } rg.attributes.position.needsUpdate = true; }
     if (S.lightning) { S.nextBolt -= dt; if (S.nextBolt <= 0) { S.nextBolt = 6 + Math.random() * 8; S.bolt = 0.12; S.bolts = (S.bolts || 0) + 1; if (S.onLightning) S.onLightning(); } if (S.bolt > 0) { S.bolt -= dt; S.lights.hemi.intensity = S.hemiBase * (S.bolt > 0 ? 4 : 1); } }
   };
-  S.stats = () => ({ mode: S.mode, weather: S.weather, night: +S.night.toFixed(2), hour: +S.sun.hour.toFixed(2), elev: +S.sun.elev.toFixed(1), azim: +S.sun.azim.toFixed(0), sun: sunDir.toArray().map(v => +v.toFixed(3)), stars: +stars.material.opacity.toFixed(2), clouds: clouds.filter(s => s.visible).length, rain: rain.visible, fog: S.fog.map(v => Math.round(v)), horizon: S.horizonHex, dark: S.dark, bolts: S.bolts || 0, lat: S.lat, lon: S.lon });
+  S.stats = () => ({ mode: S.mode, weather: S.weather, night: +S.night.toFixed(2), suns: uniforms.disc2.value > 0 ? 2 : 1, fireflies: fireflies.visible ? +fireflies.material.opacity.toFixed(2) : 0, hour: +S.sun.hour.toFixed(2), elev: +S.sun.elev.toFixed(1), azim: +S.sun.azim.toFixed(0), sun: sunDir.toArray().map(v => +v.toFixed(3)), stars: +stars.material.opacity.toFixed(2), clouds: clouds.filter(s => s.visible).length, rain: rain.visible, fog: S.fog.map(v => Math.round(v)), horizon: S.horizonHex, dark: S.dark, bolts: S.bolts || 0, lat: S.lat, lon: S.lon });
   return S;
 }
 window.Sky = { create, sunAt, MODES, WEATHER };
