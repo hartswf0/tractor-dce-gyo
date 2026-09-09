@@ -24,7 +24,7 @@ const KINDS = {
   atat: { cruise: 4, boost: 7, turn: 0.5, fly: false, hover: 0, ram: 2.5, walker: true, legs: 4, stride: 7, amp: 0.3, camD: 30, camH: 22, lookY: 14, gunY: 15.2, gunAhead: 8, gunDown: 0.3 },    // an Imperial walker: slow, tall, guns in the head
   atst: { cruise: 7, boost: 11, turn: 1.1, fly: false, hover: 0, ram: 1.6, walker: true, legs: 2, stride: 4, amp: 0.45, camD: 18, camH: 12, lookY: 8, gunY: 8.3, gunAhead: 4, gunDown: 0.2 },
 };
-const kindOf = it => { const src = it && it.src; if (!src) return 'car'; if (src.ride) return src.ride === 'fly' ? 'craft' : 'rover'; if (String(src.op) === 'walker') return String(src.kind || 'atat').toLowerCase() === 'atst' ? 'atst' : 'atat'; const k = String(src.kind || 'car').toLowerCase(); return KINDS[k] ? k : 'car'; };
+const kindOf = it => { const src = it && it.src; if (!src) return 'car'; if (src.ride) return src.ride === 'fly' ? 'craft' : 'rover'; if (String(src.op) === 'kit') return KINDS[src.kind] ? src.kind : 'rover'; if (String(src.op) === 'walker') return String(src.kind || 'atat').toLowerCase() === 'atst' ? 'atst' : 'atat'; const k = String(src.kind || 'car').toLowerCase(); return KINDS[k] ? k : 'car'; };
 
 /** Board a prop. prop: the Props item (group, box, yaw). */
 function create({ prop, M, groundH, aabbs }) {
@@ -62,7 +62,7 @@ function stepDrive(V, dt, ctx) {
   const M = V.M, K = V.K, i = V.input;
   const max = (i.boost ? K.boost : K.cruise) * M, want = i.y * (i.y >= 0 ? max : max * 0.5);
   // throttle, brakes, drag: the stick against the motion brakes hard, an idle stick coasts
-  const sp0 = V.speed, braking = i.y !== 0 && Math.sign(want) !== Math.sign(V.speed) && Math.abs(V.speed) > 0.05 * M, a = (braking ? 12 : i.y ? (K.accel || 6) : 2) * M;
+  const sp0 = V.speed, braking = i.y !== 0 && Math.sign(want) !== Math.sign(V.speed) && Math.abs(V.speed) > 0.05 * M, a = (braking ? 12 : i.y ? (K.accel || 6) : 8) * M;   // an idle stick coasts to a stop in a couple of seconds
   if (braking || !i.y) V.speed += clamp(-V.speed, -a * dt, a * dt); else V.speed += clamp(want - V.speed, -a * dt, a * dt);
   V.nose += ((V.speed - sp0) / dt / (10 * M) * 0.05 - V.nose) * (1 - Math.exp(-dt * 4));                        // the nose lifts under throttle, dips under the brakes
   // steering by the front wheels: a bicycle model, tighter when slow, wider when fast; over the grip the rest is a slide
@@ -128,14 +128,15 @@ function wheels(V, dt) {
 /** A walker's legs swing with its speed: opposite legs together, the body bobs, a stomp on every footfall. */
 function gait(V, dt, ctx) {
   const K = V.K, M = V.M;
-  if (!V.legs) {   // the sub-models sit under the prop's wrap; the loader keeps them as groups but not their names, so a leg is the one set off sideways from the spine
-    V.legs = []; const wrap = V.group.children[0] || V.group;
-    for (const o of wrap.children) { if (!o.isGroup || Math.abs(o.position.x) < 1) continue; const fl = o.position.z < -1, rl = o.position.z > 1, left = o.position.x < 0; o.name = K.legs === 4 ? (fl ? (left ? 'leg-fl.ldr' : 'leg-fr.ldr') : (left ? 'leg-rl.ldr' : 'leg-rr.ldr')) : (left ? 'leg-l.ldr' : 'leg-r.ldr'); V.legs.push(o); }
+  if (!V.legs) {   // a kit names its legs; the DSL's sub-models sit under the prop's wrap without names, so there a leg is the one set off sideways from the spine
+    V.legs = []; V.group.traverse(o => { if (o.isGroup && /^leg-/i.test(o.name)) V.legs.push(o); });
+    const wrap = V.group.children[0] || V.group;
+    if (!V.legs.length) for (const o of wrap.children) { if (!o.isGroup || Math.abs(o.position.x) < 1) continue; const fl = o.position.z < -1, rl = o.position.z > 1, left = o.position.x < 0; o.name = K.legs === 4 ? (fl ? (left ? 'leg-fl.ldr' : 'leg-fr.ldr') : (left ? 'leg-rl.ldr' : 'leg-rr.ldr')) : (left ? 'leg-l.ldr' : 'leg-r.ldr'); V.legs.push(o); }
     V.legs.sort((a, b) => a.name < b.name ? -1 : 1);
   }
   const sp = Math.abs(V.speed) / M, stride = K.stride || 4, before = V.phase; V.phase += (V.speed / M) / stride * 2 * Math.PI * dt;
   const amp = (K.amp || 0.35) * clamp(sp / 1.5, 0, 1), off = K.legs === 4 ? { 'leg-fl.ldr': 0, 'leg-fr.ldr': Math.PI, 'leg-rl.ldr': Math.PI, 'leg-rr.ldr': 0 } : { 'leg-l.ldr': 0, 'leg-r.ldr': Math.PI };
-  for (const g of V.legs) g.rotation.x = amp * Math.sin(V.phase + (off[g.name.toLowerCase()] || 0));
+  for (const g of V.legs) g.rotation.x = amp * Math.sin(V.phase + (off[g.name.toLowerCase().replace(/\.ldr$/, '') + '.ldr'] || 0));
   V.bob = Math.abs(Math.sin(V.phase)) * 0.12 * M * clamp(sp / 1.5, 0, 1);
   if (sp > 0.5 && Math.floor(V.phase / Math.PI) !== Math.floor(before / Math.PI)) { V.stomps++; if (ctx && ctx.stomp) ctx.stomp(V); }
 }

@@ -164,7 +164,7 @@ def write_inline(path, label, out_dir):
 
 # ───────────────────────────── the full pack: every file the loader would fetch
 RESOLVE = json.load(open(os.path.join(ROOT, 'ldraw-resolve-map.json')))
-FULL = {'VADER-TIE', 'XWING-MINI'}      # the objects tie-game.html loads in one fetch
+FULL = {'VADER-TIE', 'XWING-MINI', 'AT-ST', 'AT-AT-MINI', 'SHUTTLE-MINI'}      # the objects the games load in one fetch: the TIE, and the kits the world stands by the spawn
 
 
 def resolve(ref):

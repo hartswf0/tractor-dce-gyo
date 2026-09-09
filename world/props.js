@@ -32,12 +32,12 @@ class Props {
   async add(p, quiet) {
     if (this.items.has(p.id)) return this.items.get(p.id);
     if (this.items.size >= CAP || !p.mpd || p.mpd.length > 60000) return null;
-    const it = { ...p, group: null, box: null, meshes: [], total: 0, ready: false }; this.items.set(p.id, it);
-    let g; try { g = await this.parse(p.mpd, p.id + '.mpd'); } catch (e) { this.items.delete(p.id); console.warn('prop parse', e); return null; }
+    const kit = /^0 KIT (\w+)/.exec(p.mpd), it = { ...p, group: null, box: null, meshes: [], total: 0, ready: false, kit: kit ? kit[1] : null }; this.items.set(p.id, it);
+    let g; try { g = kit ? await Kits.build(kit[1]) : await this.parse(p.mpd, p.id + '.mpd'); } catch (e) { this.items.delete(p.id); console.warn('prop parse', e); return null; }
     if (!this.items.has(p.id)) return null;                                             // removed while parsing
-    const wrap = new THREE.Group(); wrap.name = 'propwrap:' + p.id; wrap.rotation.x = Math.PI; const yawG = new THREE.Group(); yawG.name = 'prop:' + p.id; yawG.add(wrap); yawG.rotation.y = p.yaw * Math.PI / 2; yawG.position.set(p.x, p.y, p.z);
+    const wrap = new THREE.Group(); wrap.name = 'propwrap:' + p.id; if (!kit) wrap.rotation.x = Math.PI; const yawG = new THREE.Group(); yawG.name = 'prop:' + p.id; yawG.add(wrap); yawG.rotation.y = p.yaw * Math.PI / 2; yawG.position.set(p.x, p.y, p.z);
     g.traverse(o => { if (o.isMesh) { it.meshes.push(o); for (const m of Array.isArray(o.material) ? o.material : [o.material]) if (m) { m.fog = true; m.side = THREE.DoubleSide; } } });
-    while (g.children.length) wrap.add(g.children[0]);
+    if (kit) wrap.add(g); else while (g.children.length) wrap.add(g.children[0]);   // a kit comes already turned to the world
     this.scene.add(yawG); yawG.updateMatrixWorld(true); it.group = yawG; it.total = it.meshes.length; it.ready = true;
     it.box = new THREE.Box3().setFromObject(yawG); if (it.box.isEmpty()) it.box = new THREE.Box3(new THREE.Vector3(p.x - 20, p.y, p.z - 20), new THREE.Vector3(p.x + 20, p.y + 40, p.z + 20));
     if (!quiet) { this.dirty = true; if (this.onEdit) this.onEdit({ up: [this.toRow(it)] }); }
@@ -61,10 +61,10 @@ class Props {
   }
   floorAt(x, z, yMax) { let f = -Infinity; for (const it of this.near(x, z, 0)) { const b = it.box; if (x > b.min.x && x < b.max.x && z > b.min.z && z < b.max.z && b.max.y <= yMax && b.max.y > f) f = b.max.y; } return f; }
   /** A blast: every part of a prop within r becomes debris; a prop that lost most of itself lets the rest go. Returns how many parts flew. */
-  blast(pt, r, vel) {
+  blast(pt, r, vel) {   // a kit (a real set) stays whole
     let n = 0; const M = this.M;
     for (const it of this.near(pt.x, pt.z, r)) {
-      if (!it.ready || it.box.distanceToPoint(pt) > r) continue;
+      if (!it.ready || it.kit || it.box.distanceToPoint(pt) > r) continue;
       const gone = [];
       for (const m of it.meshes) { m.getWorldPosition(V1); if (V1.distanceTo(pt) < r) gone.push(m); }
       if (!gone.length) continue;

@@ -40,9 +40,9 @@ const PIVOT_ABS = { hipsP: [0, 32, 0], torsoP: [0, 0, 0], legRP: [0, 44, 0], leg
 /* ───────────────────────── definitions ───────────────────────── */
 const DEFS = {
   vader: { name: 'Vader', legs: 0, hips: 0, torso: 0, arms: 0, hands: 0, head: 0, hat: ['30368', 0], weapon: ['saber', '30374', 36], cape: ['522', 0], collar: ['20551c01', 0], saber: true },
-  trooper: { name: 'Stormtrooper', legs: 15, hips: 15, torso: 15, arms: 15, hands: 0, head: 0, hat: ['30408', 15], weapon: ['blaster', '58247', 0], ride: { kind: 'atst' } },
-  pilot: { name: 'Rebel pilot', legs: 71, hips: 71, torso: 25, arms: 25, hands: 14, head: 14, hat: ['30370', 71], weapon: ['blaster', '58247', 0], ride: { kind: 'plane', len: 8, col: 15 } },
-  luke: { name: 'Luke', legs: 19, hips: 19, torso: 19, arms: 19, hands: 14, head: 14, hat: ['3901', 14], weapon: ['saber', '30374', 33], saber: true, ride: { kind: 'plane', len: 8, col: 15 } },
+  trooper: { name: 'Stormtrooper', legs: 15, hips: 15, torso: 15, arms: 15, hands: 0, head: 0, hat: ['30408', 15], weapon: ['blaster', '58247', 0], ride: { kit: 'atst' } },
+  pilot: { name: 'Rebel pilot', legs: 71, hips: 71, torso: 25, arms: 25, hands: 14, head: 14, hat: ['30370', 71], weapon: ['blaster', '58247', 0], ride: { kit: 'xwing' } },
+  luke: { name: 'Luke', legs: 19, hips: 19, torso: 19, arms: 19, hands: 14, head: 14, hat: ['3901', 14], weapon: ['saber', '30374', 33], saber: true, ride: { kit: 'xwing' } },
   leia: { name: 'Leia', legs: 15, hips: 15, torso: 15, arms: 15, hands: 14, head: 14, hat: ['30409', 308], weapon: ['blaster', '58247', 0], ride: { kind: 'speeder', len: 6, col: 15 } },
   han: { name: 'Han', legs: 272, hips: 0, torso: 15, arms: 15, hands: 14, head: 14, hat: ['3901', 308], weapon: ['blaster', '58247', 0], ride: { kind: 'plane', len: 10, col: 71 } },
   chewbacca: { name: 'Chewbacca', legs: 70, hips: 70, torso: 70, arms: 70, hands: 70, head: 70, hat: ['30483', 70], weapon: ['blaster', '2570', 70], bare: true, ride: { kind: 'truck', len: 8, col: 70 } },
