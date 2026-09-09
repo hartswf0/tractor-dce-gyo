@@ -50,6 +50,7 @@ const DEFS = {
   c3po: { name: 'C-3PO', legs: 297, hips: 297, torso: 297, arms: 297, hands: 297, head: 297, hat: ['30480', 297], weapon: null, bare: true, ride: { kind: 'car', len: 6, col: 297 } },
   rey: { name: 'Rey', legs: 28, hips: 28, torso: 19, arms: 19, hands: 14, head: 14, hat: ['20877', 308], weapon: ['blaster', '58247', 0], ride: { kind: 'speeder', len: 7, col: 28 } },
   citizen: { name: 'Citizen', legs: 1, hips: 1, torso: 4, arms: 4, hands: 14, head: 14, hat: ['3901', 0], weapon: null, ride: { kind: 'car', len: 6, col: 4 } },
+  rebel: { name: 'Rebel trooper', legs: 15, hips: 15, torso: 15, arms: 15, hands: 14, head: 14, hat: ['30370', 15], weapon: ['blaster', '58247', 0], crowd: true },   // the Hoth trench: white parka, white cap, a blaster
 };
 /* ride: the vehicle that stands by the spawn for this character (Vader has the TIE); vehicles.js lays it as lm-me */
 /* a bare head is the character's own (a mask over the plain head is the whole face), a short figure stands on one-piece legs */

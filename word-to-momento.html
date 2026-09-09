@@ -17,11 +17,11 @@
 <script src="./world/geo.js?v=0ffaa074"></script>
 <script src="./world/ground.js?v=50af2b6a"></script>
 <script src="./world/bricks.js?v=8f309d71"></script>
-<script src="./world/minifig.js?v=1c6cf225"></script>
+<script src="./world/minifig.js?v=750bdd06"></script>
 <script src="./world/debris.js?v=b9587eca"></script>
-<script src="./world/characters.js?v=45cc0009"></script>
+<script src="./world/characters.js?v=a6fd8187"></script>
 <script src="./world/worlds.js?v=d4abdd96"></script>
-<script src="./world/sky.js?v=65b6a5f9"></script>
+<script src="./world/sky.js?v=e6e14867"></script>
 <script src="./world/lamps.js?v=f95ee9f6"></script>
 <script src="./world/map.js?v=2e492284"></script>
 <script src="./world/flora.js?v=e97ab2c0"></script>
@@ -29,13 +29,13 @@
 <script src="./world/vehicles.js?v=bd578d48"></script>
 <script src="./world/tie.js?v=95c2e366"></script>
 <script src="./world/drive.js?v=4a7c8aeb"></script>
-<script src="./world/fx.js?v=b2a7fe13"></script>
+<script src="./world/fx.js?v=2a45251f"></script>
 <script src="./world/dsl.js?v=31abefe7"></script>
 <script src="./world/ai.js?v=94e95458"></script>
 <script src="./world/build.js?v=9a0d1ac4"></script>
-<script src="./world/props.js?v=df89d3c6"></script>
+<script src="./world/props.js?v=fea513d8"></script>
 <script>window.__momento = true;</script>
-<script src="./world/film.js?v=bfb2be75"></script>
+<script src="./world/film.js?v=7cf41933"></script>
 <script src="./world/kits.js?v=c13f6ce3"></script>
 <script src="./world/net.js?v=df154c6e"></script>
 <script src="./world/lease.js?v=3f5a5e59"></script>
@@ -230,6 +230,7 @@ body.framed #frame{display:block}
 @keyframes recblink{0%{opacity:1}100%{opacity:.6}}
 #fb #fbPlay{font-weight:800;letter-spacing:.08em;text-transform:uppercase}
 #fb label{font:10px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--dim);display:inline-flex;align-items:center;gap:4px}
+#fbFrame{font:10px var(--mono);letter-spacing:.06em;color:var(--ink);padding:3px 8px;border-radius:8px;background:rgba(255,255,255,.7);align-self:flex-start}#fbFrame[hidden]{display:none}body.dark #fbFrame,body[data-world="deathstar"] #fbFrame{background:rgba(20,24,32,.8);color:#c9cfdb}
 #fbText{display:flex;flex-direction:column;gap:6px}#fbText[hidden]{display:none}
 #fbTextIn{width:100%;height:26vh;padding:8px 10px;border:1px solid rgba(26,31,42,.25);border-radius:12px;background:rgba(255,255,255,.92);color:var(--ink);font:11px/1.4 var(--mono);resize:none;-webkit-user-select:text;user-select:text}
 #fbText .row{display:flex;gap:6px;justify-content:flex-end}#fbText .row button{height:28px;padding:0 10px;border:1px solid rgba(26,31,42,.25);border-radius:9px;background:rgba(255,255,255,.85);font:11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink)}
@@ -240,6 +241,7 @@ body[data-world="deathstar"] #reel.empty::before,body.dark #reel.empty::before{b
 @media (orientation:landscape){#film{top:calc(52px + env(safe-area-inset-top));left:180px;right:120px}#reel .card{width:96px}#reel .card canvas{width:96px;height:54px}}
 #title{position:fixed;inset:0;z-index:7;background:#000;display:flex;align-items:center;justify-content:center;text-align:center;padding:8vh 8vw;pointer-events:none}#title[hidden]{display:none}
 #title span{white-space:pre-line;color:#4bd5ee;font:400 clamp(16px,3.6vmin,34px)/1.4 Helvetica,Arial,sans-serif}
+#title[data-style="hud"]{background:transparent;padding:0}#title[data-style="hud"] span{display:none}#title canvas{position:absolute;inset:0;width:100%;height:100%}
 #title[data-style="logo"] span{color:#ffe81f;font:900 clamp(40px,14vmin,150px)/1.05 Impact,"Arial Black",Helvetica,sans-serif;letter-spacing:.02em}
 </style>
 </head>
@@ -251,7 +253,7 @@ body[data-world="deathstar"] #reel.empty::before,body.dark #reel.empty::before{b
 <div id="top"><div><div><span class="t" id="mode">walk · Vader</span><span id="compass">N</span></div><div class="n" id="place">…</div><div id="way"></div><div id="chat" hidden></div></div><div id="stat"></div></div>
 <canvas id="minimap" width="118" height="118"></canvas>
 <div id="bigmap"><canvas></canvas><button>close</button><div class="hint">tap sets a waypoint · hold goes there · drag and pinch</div></div>
-<div id="film"><div id="reel" class="empty"></div><div id="fb"><span class="seg"><button data-fmode="view" class="on" title="the game camera">View</button><button data-fmode="shot" title="see through the selected shot">Shot</button><button data-fmode="free" title="a free camera: left thumb dollies, right looks, pinch zooms">Free</button></span><button id="fbHere" title="a new shot from where the camera is">Here</button><button id="fbKey" title="another key for the selected shot: a move">+Key</button><button id="fbPlay">Play</button><button id="fbRec" title="record the reel">Rec</button><button id="fbSave" disabled title="download the last take">Save</button><label>lens <input id="fbLens" type="number" min="12" max="110" value="50"></label><label>sec <input id="fbSec" type="number" min="0.5" max="120" step="0.5" value="4"></label><select id="fbAspect" title="aspect"><option>16:9</option><option>2.39</option><option>4:3</option><option>9:16</option></select><select id="fbFps" title="frames per second"><option>24</option><option>30</option><option>12</option></select><select id="fbSize" title="size"><option>720p</option><option>1080p</option></select><button id="fbDel" title="drop the selected shot">Drop</button><button id="fbMento" title="the film as MENTO lines">Mento</button><button id="fbTrailer" title="the trailer of A New Hope, staged where you stand">Trailer</button></div><div id="fbText" hidden><textarea id="fbTextIn" spellcheck="false" placeholder="0 !MENTO SHOT &quot;The Rider&quot; POS 280 -80 180 TGT 0 -40 20 LENS 50 SEC 4"></textarea><div class="row"><button id="fbClear">clear</button><button id="fbCopy">copy</button><button id="fbImport">import</button></div></div></div>
+<div id="film"><div id="reel" class="empty"></div><div id="fb"><span class="seg"><button data-fmode="view" class="on" title="the game camera">View</button><button data-fmode="shot" title="see through the selected shot">Shot</button><button data-fmode="free" title="a free camera: left thumb dollies, right looks, pinch zooms">Free</button></span><button id="fbHere" title="a new shot from where the camera is">Here</button><button id="fbKey" title="another key for the selected shot: a move">+Key</button><button id="fbPlay">Play</button><button id="fbRec" title="record the reel">Rec</button><button id="fbSave" disabled title="download the last take">Save</button><label>lens <input id="fbLens" type="number" min="12" max="110" value="50"></label><label>sec <input id="fbSec" type="number" min="0.5" max="120" step="0.5" value="4"></label><select id="fbAspect" title="aspect"><option>16:9</option><option>2.39</option><option>4:3</option><option>9:16</option></select><select id="fbFps" title="frames per second"><option>24</option><option>30</option><option>12</option></select><select id="fbSize" title="size"><option>720p</option><option>1080p</option></select><button id="fbDel" title="drop the selected shot">Drop</button><button id="fbMento" title="the film as MENTO lines">Mento</button><select id="fbScene" title="a trailer or a scene, staged where you stand"><option value="">Scenes</option></select></div><div id="fbFrame" hidden></div><div id="fbText" hidden><textarea id="fbTextIn" spellcheck="false" placeholder="0 !MENTO SHOT &quot;The Rider&quot; POS 280 -80 180 TGT 0 -40 20 LENS 50 SEC 4"></textarea><div class="row"><button id="fbClear">clear</button><button id="fbCopy">copy</button><button id="fbImport">import</button></div></div></div>
 <div id="shield"><i id="shieldFill" style="width:100%"></i></div>
 <button id="menuBtn">Who · Where</button>
 <button id="bchip"></button>
@@ -278,6 +280,6 @@ body[data-world="deathstar"] #reel.empty::before,body.dark #reel.empty::before{b
 <div id="hint">say what to shoot, set the camera and press Here, Rec takes the reel; or walk: left thumb walks · right thumb looks · tap right swings the saber</div>
 <div id="keys">wasd walk · mouse drag look · space saber · f push · g detonator · b build · shift run · e board / land</div>
 <div id="veil"><div class="k">word to momento</div><h1 id="vTitle">Finding a place</h1><div class="bricks"><i></i><i></i><i></i><i></i><i></i></div><div class="m" id="vm"></div><ol id="stages"><li data-s="place">place</li><li data-s="ground">ground</li><li data-s="imagery">imagery</li><li data-s="buildings">buildings</li><li data-s="ship">the ship and Vader</li><li data-s="bricks">bricks</li></ol><button id="vStart" hidden>Start now</button></div>
-<script src="./world/main.js?v=b3df87f8"></script>
+<script src="./world/main.js?v=84cdc899"></script>
 </body>
 </html>

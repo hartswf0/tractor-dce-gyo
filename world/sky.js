@@ -18,6 +18,8 @@ const WEATHER = {
   fog: { name: 'fog', clouds: 0, sun: 0.4, hemi: 0.85, nearM: 3, farM: 90, grey: 0.7, dark: 0.05, rain: 0 },
   rain: { name: 'rain', clouds: 1, sun: 0.35, hemi: 0.8, nearM: 10, farM: 350, grey: 0.7, dark: 0.18, rain: 1 },
   storm: { name: 'storm', clouds: 1, sun: 0.2, hemi: 0.6, nearM: 8, farM: 250, grey: 0.85, dark: 0.38, rain: 1.5, lightning: true },
+  snow: { name: 'snow', clouds: 1, sun: 0.5, hemi: 0.9, nearM: 30, farM: 520, grey: 0.55, dark: 0.05, rain: 0.6, snow: true },          // slow white flakes that drift
+  blizzard: { name: 'blizzard', clouds: 1, sun: 0.35, hemi: 0.8, nearM: 8, farM: 140, grey: 0.8, dark: 0.1, rain: 1.2, snow: true },
 };
 const NIGHT = { zenith: 0x060914, horizon: 0x141a2c, fog: 0x10141f, hemi: [0x2e3a5c, 0x0e1118, 0.5], sun: [0x8fa8e0, 0.18] };   // enough moonlight to walk by; the lamps and windows do the rest
 const DUSK = 0xf2a25a;
@@ -40,6 +42,12 @@ function puffTexture() {
   const blobs = [[128, 76, 60], [80, 84, 44], [176, 82, 46], [110, 60, 40], [150, 58, 38], [50, 90, 30], [206, 90, 30]];
   for (const [x, y, r] of blobs) { const gr = g.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, 'rgba(255,255,255,0.95)'); gr.addColorStop(0.55, 'rgba(255,255,255,0.55)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(x - r, y - r, 2 * r, 2 * r); }
   const t = new THREE.CanvasTexture(c); t.minFilter = THREE.LinearFilter; return t;
+}
+let FLAKE = null;
+function flakeTexture() {
+  if (FLAKE) return FLAKE; const c = document.createElement('canvas'); c.width = c.height = 32; const g = c.getContext('2d'), grd = g.createRadialGradient(16, 16, 2, 16, 16, 14);
+  grd.addColorStop(0, 'rgba(255,255,255,1)'); grd.addColorStop(0.6, 'rgba(255,255,255,0.7)'); grd.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = grd; g.fillRect(0, 0, 32, 32);
+  FLAKE = new THREE.CanvasTexture(c); return FLAKE;
 }
 function streakTexture() {
   const c = document.createElement('canvas'); c.width = 8; c.height = 32; const g = c.getContext('2d');
@@ -107,7 +115,9 @@ function create({ scene, M, lights, onLightning, onColour, onNight }) {
     S.cloudCover = weather.clouds; const starA = space ? 1 : clamp(night * 1.3 - 0.2, 0, 1) * (1 - weather.clouds * 0.9); stars.material.opacity = starA; stars.visible = starA > 0.01;
     const shown = space ? 0 : Math.round(N_CLOUDS * weather.clouds), cloudC = new THREE.Color(1, 1, 1).lerp(new THREE.Color(0x30343c), weather.grey * 0.7 + weather.dark).lerp(horizon.clone().multiplyScalar(1.25), night * 0.9);
     clouds.forEach((s, i) => { s.visible = i < shown; s.material.color.copy(cloudC); s.material.opacity = (0.8 + 0.15 * weather.grey) * (1 - 0.55 * night); });   // at night the clouds fade into the dark
-    S.rainSpeed = weather.rain ? (weather.rain > 1 ? 14 : 11) * M : 0; rain.visible = !!weather.rain && !space; rain.material.opacity = weather.rain > 1 ? 0.6 : 0.45; rain.material.color.set(night > 0.5 ? 0x9aa6b8 : 0xdfe6f0);
+    S.snow = !!weather.snow; S.rainSpeed = weather.rain ? (weather.snow ? (weather.rain > 1 ? 9 : 3) : weather.rain > 1 ? 14 : 11) * M : 0; rain.visible = !!weather.rain && !space;
+    if (S.snow !== S.snowWas) { S.snowWas = S.snow; rain.material.map = S.snow ? flakeTexture() : streakTexture(); rain.material.size = (S.snow ? 0.11 : 0.45) * M; rain.material.needsUpdate = true; }
+    rain.material.opacity = S.snow ? 0.6 : weather.rain > 1 ? 0.6 : 0.45; rain.material.color.set(S.snow ? 0xffffff : night > 0.5 ? 0x9aa6b8 : 0xdfe6f0);
     S.lightning = !!weather.lightning && !space; S.horizonHex = '#' + horizon.getHexString(); S.dark = (0.3 * horizon.r + 0.59 * horizon.g + 0.11 * horizon.b) < 0.45;
     S.night = p.litAlways || space ? 1 : clamp(night * 1.25 - 0.1, 0, 1); S.day = d;   // what the lamps and the windows go by
     S.fireflies = !!LI.fireflies && !space; fireflies.material.opacity = S.fireflies ? S.night * (1 - weather.rain) : 0; fireflies.visible = fireflies.material.opacity > 0.02;
@@ -121,10 +131,10 @@ function create({ scene, M, lights, onLightning, onColour, onNight }) {
     if (S.mode === 'auto' && (S.acc += dt) > 30) { S.acc = 0; refresh(); apply(); }
     for (const s of clouds) { if (!s.visible) continue; const u = s.userData; u.ox += 3 * M * dt; if (u.ox > 1500 * M) u.ox -= 3000 * M; s.position.set(camera.position.x + u.ox, camera.position.y + u.h, camera.position.z + u.oz); }
     if (fireflies.visible) { fireflies.position.set(camera.position.x, 0, camera.position.z); const a = fg.attributes.position.array, base = S.fireBase || (S.fireBase = Float32Array.from(a)); for (let i = 0; i < N_FF; i++) { const t = S.t + fseed[i]; a[3 * i] = base[3 * i] + Math.sin(t * 0.7) * 1.5 * M; a[3 * i + 1] = base[3 * i + 1] + Math.sin(t * 1.3) * 0.6 * M; a[3 * i + 2] = base[3 * i + 2] + Math.cos(t * 0.5) * 1.5 * M; } fg.attributes.position.needsUpdate = true; fireflies.position.y = S.groundAt ? S.groundAt(camera.position.x, camera.position.z) : camera.position.y - 2 * M; }
-    if (rain.visible) { rain.position.copy(camera.position); rain.position.y -= 2 * M; const a = rg.attributes.position.array, dy = S.rainSpeed * dt; for (let i = 1; i < a.length; i += 3) { a[i] -= dy; if (a[i] < 0) a[i] += RH; } rg.attributes.position.needsUpdate = true; }
+    if (rain.visible) { rain.position.copy(camera.position); rain.position.y -= 2 * M; const a = rg.attributes.position.array, dy = S.rainSpeed * dt, drift = S.snow ? Math.sin(S.t * 0.7) * 1.2 * M * dt : 0; for (let i = 1; i < a.length; i += 3) { a[i] -= dy; if (drift) a[i - 1] += drift * (0.5 + ((i * 7) % 10) / 10); if (a[i] < 0) a[i] += RH; } rg.attributes.position.needsUpdate = true; }
     if (S.lightning) { S.nextBolt -= dt; if (S.nextBolt <= 0) { S.nextBolt = 6 + Math.random() * 8; S.bolt = 0.12; S.bolts = (S.bolts || 0) + 1; if (S.onLightning) S.onLightning(); } if (S.bolt > 0) { S.bolt -= dt; S.lights.hemi.intensity = S.hemiBase * (S.bolt > 0 ? 4 : 1); } }
   };
-  S.stats = () => ({ mode: S.mode, weather: S.weather, night: +S.night.toFixed(2), suns: uniforms.disc2.value > 0 ? 2 : 1, fireflies: fireflies.visible ? +fireflies.material.opacity.toFixed(2) : 0, hour: +S.sun.hour.toFixed(2), elev: +S.sun.elev.toFixed(1), azim: +S.sun.azim.toFixed(0), sun: sunDir.toArray().map(v => +v.toFixed(3)), stars: +stars.material.opacity.toFixed(2), clouds: clouds.filter(s => s.visible).length, rain: rain.visible, fog: S.fog.map(v => Math.round(v)), horizon: S.horizonHex, dark: S.dark, bolts: S.bolts || 0, lat: S.lat, lon: S.lon });
+  S.stats = () => ({ mode: S.mode, weather: S.weather, snow: !!S.snow, night: +S.night.toFixed(2), suns: uniforms.disc2.value > 0 ? 2 : 1, fireflies: fireflies.visible ? +fireflies.material.opacity.toFixed(2) : 0, hour: +S.sun.hour.toFixed(2), elev: +S.sun.elev.toFixed(1), azim: +S.sun.azim.toFixed(0), sun: sunDir.toArray().map(v => +v.toFixed(3)), stars: +stars.material.opacity.toFixed(2), clouds: clouds.filter(s => s.visible).length, rain: rain.visible, fog: S.fog.map(v => Math.round(v)), horizon: S.horizonHex, dark: S.dark, bolts: S.bolts || 0, lat: S.lat, lon: S.lon });
   return S;
 }
 window.Sky = { create, sunAt, MODES, WEATHER };

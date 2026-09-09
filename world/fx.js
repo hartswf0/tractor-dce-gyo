@@ -115,9 +115,9 @@ class Smoke {
     this.life[i] = life; this.age[i] = 0; this.size[i] = size; this.grow[i] = grow; this.rise[i] = rise; this.alpha[i] = 0.8; this.col[i * 3] = r; this.col[i * 3 + 1] = g; this.col[i * 3 + 2] = b; this.emitted++;
   }
   /** A blast's dust: n grey puffs flung outward, plus a few sparks. */
-  puff(p, n, r) {
+  puff(p, n, r, grey) {
     const M = this.M, spd = (2 + r / (3 * M)) * M;
-    for (let k = 0; k < n; k++) { const a = Math.random() * Math.PI * 2, u = Math.random(), s = spd * (0.3 + Math.random()); const tint = 0.22 + Math.random() * 0.15; this.one(p.x, p.y, p.z, Math.cos(a) * s * u, s * (0.4 + Math.random() * 0.8), Math.sin(a) * s * u, 1.2 + Math.random() * 1.5, 0.5 * M + Math.random() * M, 1.6 * M, 0.6 * M, tint, tint * 0.95, tint * 0.85); }
+    for (let k = 0; k < n; k++) { const a = Math.random() * Math.PI * 2, u = Math.random(), s = spd * (0.3 + Math.random()); const tint = grey != null ? grey - 0.05 + Math.random() * 0.1 : 0.22 + Math.random() * 0.15; this.one(p.x, p.y, p.z, Math.cos(a) * s * u, s * (0.4 + Math.random() * 0.8), Math.sin(a) * s * u, 1.2 + Math.random() * 1.5, 0.5 * M + Math.random() * M, 1.6 * M, 0.6 * M, tint, tint * 0.95, tint * 0.85); }
     const sparks = Math.min(12, Math.round(n / 3)); for (let k = 0; k < sparks; k++) { const a = Math.random() * Math.PI * 2, s = spd * 1.8 * Math.random(); this.one(p.x, p.y, p.z, Math.cos(a) * s, s * Math.random(), Math.sin(a) * s, 0.3 + Math.random() * 0.3, 0.25 * M, 0, -6 * M, 1, 0.7, 0.25); }
   }
   /** Slow smoke rising from a point for a while. */
