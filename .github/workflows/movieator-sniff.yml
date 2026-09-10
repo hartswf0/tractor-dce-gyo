@@ -1,0 +1,70 @@
+name: Movieator Sniff Test
+on:
+  push:
+    branches: ["claude/platos-cave-ldraw-wzcr71"]
+    paths:
+      - "screen-piece-index.html"
+      - "tests/movieator-sniff.mjs"
+      - ".github/workflows/movieator-sniff.yml"
+permissions:
+  contents: read
+jobs:
+  sniff:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-save playwright@1.55.0
+      - run: npx playwright install --with-deps chromium
+      - name: Serve repository
+        run: |
+          python3 -m http.server 4173 >/tmp/movieator-http.log 2>&1 &
+          sleep 2
+      - name: Render every figure and take pictures
+        run: node tests/movieator-sniff.mjs
+      - name: Build compact contact sheet
+        if: always()
+        run: |
+          python3 -m pip install --quiet pillow
+          python3 - <<'PY'
+          from PIL import Image,ImageDraw
+          import glob, os, math
+          files=glob.glob('sniff-shots/*.png')
+          thumbs=[]
+          for f in files:
+              im=Image.open(f).convert('RGB')
+              im.thumbnail((240,520))
+              card=Image.new('RGB',(250,550),'white')
+              card.paste(im,((250-im.width)//2,20))
+              ImageDraw.Draw(card).text((8,528),os.path.basename(f),(0,0,0))
+              thumbs.append(card)
+          cols=3; rows=math.ceil(len(thumbs)/cols)
+          sheet=Image.new('RGB',(cols*250,rows*550),(230,230,230))
+          for i,im in enumerate(thumbs):sheet.paste(im,((i%cols)*250,(i//cols)*550))
+          sheet.save('movieator-contact.jpg',quality=55,optimize=True)
+          PY
+          echo 'CONTACT_SHEET_BASE64_BEGIN'
+          base64 -w0 movieator-contact.jpg
+          echo
+          echo 'CONTACT_SHEET_BASE64_END'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: movieator-sniff-shots
+          path: |
+            sniff-shots/
+            sniff-results.json
+            movieator-contact.jpg
+      - name: Gate
+        if: always()
+        run: |
+          node - <<'NODE'
+          const fs=require('fs');
+          const r=JSON.parse(fs.readFileSync('sniff-results.json','utf8'));
+          const bad=r.filter(x=>!x.pass);
+          if(bad.length){console.error(JSON.stringify(bad,null,2));process.exit(1)}
+          console.log(`SNIFF PASS ${r.length}/${r.length}`)
+          NODE
