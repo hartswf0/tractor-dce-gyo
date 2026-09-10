@@ -66,14 +66,19 @@ try{
   await page.waitForTimeout(500);
   const grip=await page.evaluate(async()=>{
     const s=window.__MOVIEATOR_STATE.look.rightProp,rig=await import('./movieator-rig-v3.js');
-    const p=s.pose,seg=p.segment,f=p.fraction;
-    const local=seg.origin.map((v,i)=>v+seg.axis[i]*seg.length*f),m=p.matrix,t=p.t;
+    const p=s.pose,seg=p.segment,f=p.fraction,m=p.matrix,t=p.t;
+    const local=seg.origin.map((v,i)=>v+seg.axis[i]*seg.length*f);
     const world=[m[0]*local[0]+m[1]*local[1]+m[2]*local[2]+t[0],m[3]*local[0]+m[4]*local[1]+m[5]*local[2]+t[1],m[6]*local[0]+m[7]*local[1]+m[8]*local[2]+t[2]];
-    const center=rig.handFrame('right').center;
+    const worldAxis=[m[0]*seg.axis[0]+m[1]*seg.axis[1]+m[2]*seg.axis[2],m[3]*seg.axis[0]+m[4]*seg.axis[1]+m[5]*seg.axis[2],m[6]*seg.axis[0]+m[7]*seg.axis[1]+m[8]*seg.axis[2]];
+    const frame=rig.handFrame('right'),center=frame.center;
     const distance=Math.hypot(...world.map((v,i)=>v-center[i]));
-    return{distance,overlap:p.overlap,clear:p.clear,headDist:p.headDist,clock:p.clock,fraction:p.fraction,radius:seg.radius};
+    const an=Math.hypot(...worldAxis)||1,bn=Math.hypot(...frame.gripAxis)||1;
+    const axisDot=Math.abs(worldAxis.reduce((sum,v,i)=>sum+v*frame.gripAxis[i],0)/(an*bn));
+    return{distance,axisDot,worldAxis,gripAxis:frame.gripAxis,overlap:p.overlap,clear:p.clear,headDist:p.headDist,clock:p.clock,fraction:p.fraction,radius:seg.radius,primitiveAxis:seg.primitiveAxis};
   });
   assert(grip.distance<0.05,`Axe shaft missed claw grip center by ${grip.distance}`);
+  assert(grip.axisDot>0.999,`Axe shaft did not align to claw axis: dot=${grip.axisDot}`);
+  assert(grip.primitiveAxis==='Y','Grip probe did not honor LDraw cylinder local-Y axis');
   assert(grip.overlap>=6,'Axe does not overlap enough of the claw depth');
   assert(grip.radius>=3.2&&grip.radius<=4.8,'Axe shaft radius is outside minifig grip scale');
   assert(grip.clear===true,'Axe pose still intersects head clearance envelope');
