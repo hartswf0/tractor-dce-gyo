@@ -15,21 +15,19 @@ const select=async(id,value)=>{await page.selectOption(id,value);await page.wait
 const tab=async label=>{await page.getByRole('button',{name:label,exact:true}).click();await page.waitForTimeout(160)};
 
 try{
-  await page.goto('http://127.0.0.1:4173/movieator-production-v3.html',{waitUntil:'domcontentloaded',timeout:90000});
+  await page.goto('http://127.0.0.1:4173/movieator-production.html',{waitUntil:'domcontentloaded',timeout:90000});
   await page.waitForFunction(()=>window.__MOVIEATOR_READY===true,{timeout:30000});
   await page.waitForFunction(()=>document.querySelector('#rigReady')?.textContent.includes('6/6'),{timeout:30000});
   await page.waitForFunction(()=>document.querySelector('#ldrawReady')?.textContent.includes('READY'),{timeout:30000});
   await page.waitForFunction(()=>document.querySelector('#catalogReady')?.textContent.includes('READY'),{timeout:60000});
   await page.waitForTimeout(500);await shot('00-homer');
 
-  // Prosthetic head: proven absence of crown port remains BLOCKED.
   await page.getByRole('button',{name:'HMU',exact:true}).click();await tab('HAIR / HAT');
   let txt=await page.locator('#trayBody').innerText();
   assert(/BLOCKED/.test(txt)&&/NO CROWN PORT/.test(txt),'Homer prosthetic did not block arbitrary crown headwear');
   assert((await page.locator('#view').boundingBox())?.height>=200,'HMU tray hid the actor');
   await shot('01-homer-no-crown');
 
-  // Standard head: unresolved headwear must be TRY and selectable, not falsely BLOCKED.
   await page.getByRole('button',{name:'CLOSE',exact:true}).click();
   await select('#world','scooby-doo');await select('#figure','fred');
   await page.getByRole('button',{name:'HMU',exact:true}).click();await tab('HAIR / HAT');
@@ -42,7 +40,6 @@ try{
   }
   await shot('02-fred-headwear-try');
 
-  // Printed facial hair is a first-class face search, separate from physical beards.
   await tab('FACIAL HAIR');
   const fh=await page.locator('#trayBody').innerText();
   assert(/PRINTED FACIAL HAIR/.test(fh),'Printed facial-hair mode missing');
@@ -50,7 +47,6 @@ try{
   assert(beardRows>1,'No bearded/stubbled standard heads surfaced');
   await shot('03-facial-hair-heads');
 
-  // Actor changes must reset prosthetic/makeup state rather than leak looks.
   await tab('PROSTHETIC');
   const yoda=page.locator('[data-pro="13195p01.dat"]');
   await yoda.click();await page.waitForTimeout(300);
@@ -60,7 +56,6 @@ try{
   assert(await page.evaluate(()=>window.__MOVIEATOR_STATE.look.prosthetic===null),'Actor switch leaked prior prosthetic');
   await select('#figure','fred');
 
-  // Whole axe must be solved magnetically into the actual right-hand grip frame.
   await page.getByRole('button',{name:'PROPS',exact:true}).click();await tab('RIGHT HAND');
   await page.locator('#q').fill('Axe with Pick End and Long Handle');
   const axe=page.locator('[data-probe="39802.dat"]');
@@ -85,7 +80,6 @@ try{
   assert(!(await page.locator('#portBadge').innerText()).includes('LOAD ERROR'),'Magnetic axe pose failed to render');
   await shot('04-fred-axe-magnetic-click');
 
-  // Only committed geometry enters PIECES.
   await page.getByRole('button',{name:'PIECES',exact:true}).click();await page.waitForTimeout(200);
   const pieces=await page.locator('#trayBody').innerText();
   assert(/39802\.dat/.test(pieces),'Held axe missing from PIECES');
