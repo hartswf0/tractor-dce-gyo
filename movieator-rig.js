@@ -55,15 +55,17 @@ export async function probeCrownSocket(part,{base='./ldraw/parts/',cache=new Map
   const file=part.filename||part.file;if(!file)return {ok:false,status:'BLOCKED',reason:'NO FILE'};
   try{
     let text=cache.get(file);if(text===undefined){const r=await fetch(joinPath(base,file),{cache:'force-cache'});if(!r.ok)throw new Error();text=await r.text();cache.set(file,text)}
-    // Official headwear commonly exposes the anti-stud through stud4o or a
-    // closely related hollow-stud primitive. Do not accept a name alone.
     if(/\b(?:stud4o|stud2a|stud2)\.dat\b/i.test(text))return {ok:true,status:'CLICK',reason:'ANTI-STUD FOUND'};
     return {ok:false,status:'BLOCKED',reason:'NO ANTI-STUD FOUND'};
   }catch{return {ok:false,status:'BLOCKED',reason:'SOCKET PROBE ERROR'}}
 }
 
 // Probe a .dat recursively for a cylindrical shaft at minifig grip scale.
-// Returned point and axis are in the root part's local coordinate system.
+// The raw cylinder gives a continuum of mechanically legal grip points.
+// For long shafts we bias the effective grip point toward one end so the
+// business end does not default across the actor's face. CLOCK then resolves
+// rotation around that still-verified shaft. sourcePoint preserves the raw
+// primitive origin for later collision/ergonomic solvers.
 export async function probeGrip(part,{base='./ldraw/parts/',maxDepth=3,cache=new Map()}={}){
   const start=part.filename||part.file;
   if(!start)return {ok:false,status:'BLOCKED',reason:'NO FILE'};
@@ -78,7 +80,15 @@ export async function probeGrip(part,{base='./ldraw/parts/',maxDepth=3,cache=new
       if(/(?:cyli|cylc)\.dat$/.test(low)){
         const cols=matrixColumns(m),lens=cols.map(mag),order=[0,1,2].sort((i,j)=>lens[j]-lens[i]);
         const axisI=order[0],r1=lens[order[1]],r2=lens[order[2]],ax=lens[axisI];
-        if(ax>=8 && r1>=3.35&&r1<=4.65 && r2>=3.35&&r2<=4.65){const axis=cols[axisI],axisLen=mag(axis)||1;return {ok:true,status:'CLICK',reason:'GRIP SHAFT',localPoint:p,axis:axis.map(x=>x/axisLen),radius:(r1+r2)/2,length:ax,source:child}}
+        if(ax>=8 && r1>=3.35&&r1<=4.65 && r2>=3.35&&r2<=4.65){
+          const rawAxis=cols[axisI],axisLen=mag(rawAxis)||1,axis=rawAxis.map(x=>x/axisLen);
+          const gripFraction=ax>=30?0.82:0.50;
+          // Existing renderers place the grip at localPoint + axis*(length/2).
+          // Shift localPoint so that expression lands at gripFraction instead.
+          const shift=(gripFraction-0.5)*ax;
+          const localPoint=add(p,axis.map(x=>x*shift));
+          return {ok:true,status:'CLICK',reason:ax>=30?'GRIP SHAFT · SLIDE 82%':'GRIP SHAFT',localPoint,sourcePoint:p,axis,radius:(r1+r2)/2,length:ax,gripFraction,source:child};
+        }
       }
       const primitive=/\b(?:stud|edge|disc|ring|cyli|cylc|con|torus|box|rect|tri|quad)\b/i.test(low);
       if(depth<maxDepth && (!primitive||/^s\//i.test(low))){const hit=await walk(child,{p,m},depth+1);if(hit)return hit}
