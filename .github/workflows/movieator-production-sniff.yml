@@ -1,0 +1,42 @@
+name: Movieator Production Sniff
+
+on:
+  push:
+    branches:
+      - claude/platos-cave-ldraw-wzcr71
+    paths:
+      - 'movieator-production.html'
+      - 'movieator-rig.js'
+      - 'tests/movieator-production-sniff.mjs'
+      - '.github/workflows/movieator-production-sniff.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sniff:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Serve repository
+        run: |
+          python3 -m http.server 4173 > /tmp/movieator-http.log 2>&1 &
+          sleep 2
+      - name: Run production sniff
+        run: node tests/movieator-production-sniff.mjs
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: movieator-production-sniff
+          path: movieator-sniff/
+          if-no-files-found: warn
