@@ -1,0 +1,48 @@
+{
+ "name": "a planned part whose group built nothing",
+ "brief": "a gate with a drawbridge",
+ "program": {
+  "name": "gate",
+  "ops": [
+   {
+    "op": "group",
+    "name": "tower",
+    "x": 0,
+    "z": 0,
+    "ops": [
+     {
+      "op": "tower",
+      "x": 3,
+      "z": 3,
+      "r": 3,
+      "h": 9,
+      "col": 72,
+      "round": true,
+      "crenels": true
+     }
+    ]
+   },
+   {
+    "op": "group",
+    "name": "drawbridge",
+    "x": 7,
+    "z": 6,
+    "ops": [
+     {
+      "op": "cut",
+      "x": 0,
+      "z": 0,
+      "w": 6,
+      "d": 4,
+      "y": 0,
+      "h": 1
+     }
+    ]
+   }
+  ]
+ },
+ "expect": {
+  "class": "residual",
+  "route": null
+ }
+}

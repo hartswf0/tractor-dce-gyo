@@ -1,0 +1,73 @@
+{
+ "name": "the hut example: its windows collide with its walls (a source example with residual)",
+ "brief": "a small stone hut with a red roof and a door",
+ "program": {
+  "name": "hut",
+  "ops": [
+   {
+    "op": "box",
+    "x": 0,
+    "z": 0,
+    "w": 8,
+    "d": 6,
+    "y": 0,
+    "h": 6,
+    "col": 71,
+    "hollow": true
+   },
+   {
+    "op": "door",
+    "x": 2,
+    "z": 5,
+    "y": 0,
+    "facing": "s",
+    "col": 70
+   },
+   {
+    "op": "window",
+    "x": 1,
+    "z": 0,
+    "y": 2,
+    "facing": "n"
+   },
+   {
+    "op": "window",
+    "x": 5,
+    "z": 0,
+    "y": 2,
+    "facing": "n"
+   },
+   {
+    "op": "band",
+    "x": 0,
+    "z": 0,
+    "w": 8,
+    "d": 6,
+    "y": 5,
+    "h": 1,
+    "col": 72
+   },
+   {
+    "op": "roof",
+    "x": -1,
+    "z": -1,
+    "w": 10,
+    "d": 8,
+    "y": 6,
+    "col": 4,
+    "style": "gable"
+   },
+   {
+    "op": "tree",
+    "x": 11,
+    "z": 4,
+    "h": 3,
+    "r": 1
+   }
+  ]
+ },
+ "expect": {
+  "class": "residual",
+  "route": null
+ }
+}

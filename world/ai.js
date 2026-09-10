@@ -63,6 +63,49 @@ function parseProgram(raw) {
   return p;
 }
 
+/* The prompt's genes: what an experiment may vary. The kernel (the DSL spec, the compiler, the evaluators) stays in code; the genes come from world/manifest.json when it loads and from these defaults until then. */
+const RULES = [
+  'Return exactly one JSON object {"name": string, "ops": array}; no markdown or prose.',
+  'Use only the DSL and treat the compiler as physical reality.',
+  'For an ordinary single object, prefer about 6–20 studs across and 3–12 bricks tall unless the subject truly requires more.',
+  'A box is only massing. Never make one large cuboid and call it the requested object. Articulate silhouette with roofs, towers, walls, cuts, arches, openings, slopes/parts, vehicles or figures when appropriate.',
+  'Establish 3–7 primary/secondary masses before small details. Spend complexity on recognition.',
+  'Buildings need a readable entrance, openings on wall lines, and roof logic. Vehicles need front/back, cabin and wheel logic. Towers need base, shaft and top.',
+  'Build bottom-up; avoid floating decoration and accidental overlap.',
+  'Use 2–4 main colours unless the brief requires more.',
+  'Preserve characteristic asymmetry.',
+  'Encode canonical landmark features explicitly.',
+  'Prefer 8–35 meaningful ops over either 2 giant ops or 60 tiny decorative ops.',
+  'Put each named part of the build (a tower, a wing, the porch) in its own group so it can be changed alone.'
+];
+const GENE_KEYS = ['rules', 'demos', 'plan', 'router', 'selector'];
+function defaultGenes() {
+  const ex = (window.Dsl && window.Dsl.EXAMPLES) || [];
+  return { rules: RULES.slice(), demos: ex.map(e => ({ ask: e.ask, program: e.program })), plan: { words: 7, names: 2 },
+    router: { review: { skipSlowMs: 150000, skipEased: true, keepSecondMargin: 1 }, repair: { unknown: true, errors: true, floating: 5, blocked: 0 } },
+    selector: { pieces: 28, piecesPer: 18, variety: 3, semantic: 1.8, semanticMax: 20, floating: 2.8, blocked: 2.2, broken: 20, boxes: 4, footprint: 10, fewOps: 14, vanished: 12 } };
+}
+function fnv(str) { let h = 0x811c9dc5; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; } return h.toString(16).padStart(8, '0'); }
+const MANIFEST = { genes: null, source: 'built-in', url: '' };
+function genes() { if (!MANIFEST.genes) MANIFEST.genes = defaultGenes(); return MANIFEST.genes; }
+/** Merge a manifest's genes over the defaults: only known genes, only the fields they carry. */
+function setGenes(g, source) {
+  const base = defaultGenes(), out = { ...base };
+  for (const k of GENE_KEYS) { if (!g || g[k] == null) continue; if (Array.isArray(base[k])) out[k] = Array.isArray(g[k]) && g[k].length ? g[k] : base[k]; else out[k] = { ...base[k], ...(typeof g[k] === 'object' ? g[k] : {}) }; for (const sub of Object.keys(base[k])) if (!Array.isArray(base[k]) && typeof base[k][sub] === 'object' && base[k][sub] && g[k] && g[k][sub]) out[k][sub] = { ...base[k][sub], ...g[k][sub] }; }
+  MANIFEST.genes = out; MANIFEST.source = source || 'manifest'; return out;
+}
+/** A brief that names several things, or says a lot, gets a plan first. */
+function needsPlan(prompt) {
+  const g = genes().plan || {}, words = String(prompt || '').trim().split(/\s+/).filter(Boolean), names = (String(prompt || '').match(/\b(with|and|plus|beside|next to|behind|in front of)\b/gi) || []).length;
+  return words.length >= (g.words || 7) || names >= (g.names || 2);
+}
+function parsePlan(raw) {
+  let p = null; try { p = JSON.parse(raw); } catch (e) { const m = String(raw || '').match(/\{[\s\S]*\}/); if (m) try { p = JSON.parse(m[0]); } catch (x) { } }
+  if (!p || !Array.isArray(p.parts)) throw new Error('Sol did not return a plan');
+  p.parts = p.parts.slice(0, 12).map(pt => ({ name: String(pt.name || 'part').slice(0, 40), role: String(pt.role || '').slice(0, 80), at: Array.isArray(pt.at) ? pt.at.slice(0, 2).map(n => Math.round(Number(n) || 0)) : [0, 0], size: Array.isArray(pt.size) ? pt.size.slice(0, 3).map(n => Math.max(1, Math.round(Number(n) || 1))) : [4, 4, 3], col: pt.col }));
+  return p;
+}
+
 function compile(program) {
   if (!window.Dsl || typeof window.Dsl.compile !== 'function') return null;
   try { return window.Dsl.compile(program); } catch (e) { return null; }
@@ -70,7 +113,8 @@ function compile(program) {
 
 function opProfile(program) {
   const out = {};
-  for (const o of (program && Array.isArray(program.ops) ? program.ops : [])) {
+  const ops = program && Array.isArray(program.ops) ? (window.Dsl && window.Dsl.flatOps ? window.Dsl.flatOps(program.ops) : program.ops) : [];
+  for (const o of ops) {
     const k = String(o && (o.op || o.type || o.kind) || '?').toLowerCase();
     out[k] = (out[k] || 0) + 1;
   }
@@ -84,16 +128,17 @@ function quality(program, result) {
   const semantic = ['roof','tower','door','window','arch','stairs','cut','part','minifig','vehicle','walker'].reduce((n, k) => n + (c[k] || 0), 0);
   const extent = result.extent || { x0:0, z0:0, x1:0, z1:0 };
   const w = Math.max(0, extent.x1 - extent.x0), d = Math.max(0, extent.z1 - extent.z0);
-  let s = 0;
-  s += Math.min(28, (r.pieces || 0) / 18);
-  s += varieties * 3;
-  s += Math.min(20, semantic * 1.8);
-  s -= (r.floating || 0) * 2.8;
-  s -= (r.blocked || 0) * 2.2;
-  s -= ((r.unknown || []).length + (r.errors || []).length) * 20;
-  if ((c.box || 0) >= 3 && varieties < 4) s -= (c.box || 0) * 4;
-  if (w * d > 500) s -= 10;
-  if ((program.ops || []).length < 4) s -= 14;
+  const S = genes().selector; let s = 0;
+  s += Math.min(S.pieces, (r.pieces || 0) / S.piecesPer);
+  s += varieties * S.variety;
+  s += Math.min(S.semanticMax, semantic * S.semantic);
+  s -= (r.floating || 0) * S.floating;
+  s -= (r.blocked || 0) * S.blocked;
+  s -= ((r.unknown || []).length + (r.errors || []).length) * S.broken;
+  s -= ((r.vanished || []).length) * S.vanished;
+  if ((c.box || 0) >= 3 && varieties < 4) s -= (c.box || 0) * S.boxes;
+  if (w * d > 500) s -= S.footprint;
+  if ((program.ops || []).length < 4) s -= S.fewOps;
   return s;
 }
 
@@ -108,6 +153,7 @@ function audit(program, result) {
   if (r.blocked) notes.push(`${r.blocked} explicit parts collide`);
   if ((r.unknown || []).length) notes.push('unknown operations are present');
   if ((r.errors || []).length) notes.push('compiler errors are present');
+  if ((r.vanished || []).length) notes.push(`groups that built nothing: ${r.vanished.join(', ')}`);
   if (!notes.length) notes.push('physically valid; improve recognition and proportion rather than adding volume');
   return `Compiler: ${r.pieces || 0} pieces, ${r.props || 0} props, ${r.floating || 0} floating, ${r.blocked || 0} blocked. Footprint ${w}×${d} studs. Ops ${JSON.stringify(c)}. Audit: ${notes.join('; ')}.`;
 }
@@ -132,8 +178,25 @@ const Ai = {
   },
 
   system() {
-    const ex = window.Dsl.EXAMPLES.map(e => `Request: ${e.ask}\nAnswer: ${JSON.stringify(e.program)}`).join('\n\n');
-    return `${window.Dsl.SPEC}\n\nMASTER BUILDER STANDARD:\nYou are designing a small physical LEGO model, not naming a pile of boxes. It must be recognizable from silhouette and proportion before the user reads its name.\n\nReason privately through: identifying features, sensible LEGO scale, primary masses, support, landmark openings/details, colour placement, and bottom-up construction.\n\nRules:\n- Return exactly one JSON object {"name": string, "ops": array}; no markdown or prose.\n- Use only the DSL and treat the compiler as physical reality.\n- For an ordinary single object, prefer about 6–20 studs across and 3–12 bricks tall unless the subject truly requires more.\n- A box is only massing. Never make one large cuboid and call it the requested object. Articulate silhouette with roofs, towers, walls, cuts, arches, openings, slopes/parts, vehicles or figures when appropriate.\n- Establish 3–7 primary/secondary masses before small details. Spend complexity on recognition.\n- Buildings need a readable entrance, openings on wall lines, and roof logic. Vehicles need front/back, cabin and wheel logic. Towers need base, shaft and top.\n- Build bottom-up; avoid floating decoration and accidental overlap.\n- Use 2–4 main colours unless the brief requires more.\n- Preserve characteristic asymmetry.\n- Encode canonical landmark features explicitly.\n- Prefer 8–35 meaningful ops over either 2 giant ops or 60 tiny decorative ops.\n\nExamples:\n${ex}`;
+    const G = genes(), ex = G.demos.map(e => `Request: ${e.ask}\nAnswer: ${JSON.stringify(e.program)}`).join('\n\n');
+    return `${window.Dsl.SPEC}\n\nMASTER BUILDER STANDARD:\nYou are designing a small physical LEGO model, not naming a pile of boxes. It must be recognizable from silhouette and proportion before the user reads its name.\n\nReason privately through: identifying features, sensible LEGO scale, primary masses, support, landmark openings/details, colour placement, and bottom-up construction.\n\nRules:\n${G.rules.map(r => '- ' + r).join('\n')}\n\nExamples:\n${ex}`;
+  },
+  genes, manifest: () => ({ source: MANIFEST.source, url: MANIFEST.url, hash: fnv(JSON.stringify(genes())), kernel: fnv((window.Dsl && window.Dsl.SPEC || '') + (window.Dsl && window.Dsl.compile ? window.Dsl.compile.toString() : '')) }),
+  manifestHash: () => fnv(JSON.stringify(genes())),
+  setGenes, needsPlan,
+  /** world/manifest.json, when it is there: its genes over the defaults. Resolves with the manifest's report either way. */
+  async loadManifest(url) {
+    url = url || 'world/manifest.json'; MANIFEST.url = url;
+    try { const r = await fetch(url, { cache: 'no-cache' }); if (!r.ok) throw new Error(String(r.status)); const j = await r.json(); setGenes(j.genes || j, `${url.replace(/^\.\//, '')} (${j.name || 'manifest'})`); } catch (e) { MANIFEST.source = 'built-in'; }
+    return this.manifest();
+  },
+  /** The route after a compile: what the router genes say is worth another call. */
+  route(report) {
+    const R = genes().router.repair, r = report || {};
+    if (R.unknown && (r.unknown || []).length) return 'repair'; if (R.errors && (r.errors || []).length) return 'repair';
+    if (R.floating != null && R.floating >= 0 && (r.floating || 0) > R.floating) return 'repair'; if (R.blocked && (r.blocked || 0) >= R.blocked) return 'repair';
+    if (R.vanished && (r.vanished || []).length) return 'repair';
+    return null;
   },
 
   userMessage(prompt, context = {}) {
@@ -142,6 +205,8 @@ const Ai = {
     if (context.world && context.world !== 'earth') bits.push(`Planet: ${context.world}`);
     if (context.ground) bits.push(`Ground: ${context.ground}`);
     if (context.standing) bits.push(`Nearby: ${context.standing}`);
+    if (context.room) bits.push(`Free room from the origin: ${context.room}`);
+    if (context.image) bits.push('The picture is the view where the build will stand, from where the player looks');
     return `${bits.length ? bits.join('. ') + '.\n' : ''}BUILD BRIEF: ${prompt}\nChoose the scale yourself. Make it read correctly at first glance; do not fill the 40×40 workspace just because it exists.`;
   },
 
@@ -150,13 +215,13 @@ const Ai = {
     const ladder = ['max', 'high', 'medium']; let err = null;
     for (let i = 0; i < ladder.length; i++) {
       const effort = ladder[i], t = i ? `${text}\nYou ran out of output room last time: keep private reasoning short and answer with the JSON program.` : text;
-      try { const out = await this.request(t, { ...opts, effort, detail: i ? `${opts.detail || ''} · again at ${effort} reasoning` : opts.detail }); out.effort = effort; return out; }
+      try { const out = await this.request(t, { ...opts, effort, detail: i ? `${opts.detail || ''} · again at ${effort} reasoning` : opts.detail }); out.effort = effort; out.images = (opts.images || []).filter(Boolean).length; return out; }
       catch (e) { err = e; if (e && e.reason === 'max_output_tokens' && i < ladder.length - 1) { this.emit('SOL RAN OUT OF ROOM', `after ${e.secs || '?'} s at ${effort} reasoning · trying again at ${ladder[i + 1]}`, 'working'); continue; } throw e; }
     }
     throw err;
   },
 
-  async request(text, { key, signal, stage = 'SOL REASONING', detail = 'designing', effort = EFFORT, onDelta, system, parse } = {}) {   // system: other instructions than the builder's (the film's shot list); parse: another reader of the answer than the build program's
+  async request(text, { key, signal, stage = 'SOL REASONING', detail = 'designing', effort = EFFORT, onDelta, system, parse, images } = {}) {   // system: other instructions than the builder's (the film's shot list); parse: another reader of the answer than the build program's
     key = (key || this.key()).trim();
     if (!key) throw new Error('no key: enter an OpenAI API key');
     lsSet(MODEL_KEY, MODEL); lsSet(EFFORT_KEY, EFFORT);
@@ -173,7 +238,7 @@ const Ai = {
         body: JSON.stringify({
           model: MODEL,
           instructions: system || this.system(),
-          input: [{ role: 'user', content: [{ type: 'input_text', text: String(text || '') }] }],
+          input: [{ role: 'user', content: [{ type: 'input_text', text: String(text || '') }, ...(images || []).filter(Boolean).map(u => ({ type: 'input_image', image_url: u, detail: 'low' }))] }],
           reasoning: { effort },
           text: { format: { type: 'json_object' }, verbosity: 'low' },
           max_output_tokens: 64000,
@@ -213,33 +278,46 @@ const Ai = {
     return { j, raw, program, ms: Date.now() - started };
   },
 
-  async ask(prompt, { key, context, signal, onFirst, onDelta } = {}) {
-    key = key || this.key();
-    const first = await this.requestSafely(this.userMessage(prompt, context), {
-      key, signal, onDelta, stage: '1 / 3 · SOL DESIGNING', detail: 'choosing scale, silhouette and construction'
+  /** A big brief gets a plan first: the parts, where they stand and the box each should fill; the design then builds one group per part. */
+  async plan(prompt, { key, context, signal, onPlan } = {}) {
+    const text = `${this.userMessage(prompt, context)}\n\nPLAN ONLY, no bricks yet: answer {"name": string, "scale": {"w","d","h"}, "parts": [{"name","role","at":[x,z],"size":[w,d,h],"col"}]} as one JSON object: the subassemblies this build needs (3 to 8, each with a name of its own), where each stands in studs from the origin, the box each should fill in studs and bricks, and its main colour. Read the picture for the ground, the room and the neighbours.`;
+    const out = await this.requestSafely(text, { key, signal, images: [context && context.image], stage: '1 / 4 · SOL PLANNING', detail: 'naming the parts and where they stand', parse: parsePlan });
+    const plan = out.program; this.emit('PLAN READY', `${plan.parts.length} parts: ${plan.parts.map(p => p.name).join(', ')}`, 'done', 0, { usage: out.j.usage || null, ms: out.ms });
+    if (typeof onPlan === 'function') { try { onPlan(plan, { usage: out.j.usage || null }); } catch (e) { } }
+    return { plan, usage: out.j.usage || null, raw: out.raw, ms: out.ms };
+  },
+
+  async ask(prompt, { key, context, signal, onFirst, onDelta, onPlan, picture } = {}) {
+    key = key || this.key(); context = context || {};
+    const planned = needsPlan(prompt) ? await this.plan(prompt, { key, context, signal, onPlan }) : null, n = planned ? 4 : 3;
+    const brief = this.userMessage(prompt, context) + (planned ? `\n\nPLAN (yours, keep to it): ${JSON.stringify(planned.plan)}\nBuild one group per planned part, named as planned, standing at its planned position and filling about its planned size.` : '');
+    const first = await this.requestSafely(brief, {
+      key, signal, onDelta, images: [context.image], stage: `${planned ? 2 : 1} / ${n} · SOL DESIGNING`, detail: 'choosing scale, silhouette and construction'
     });
 
-    this.emit('2 / 3 · LOCAL CHECK', 'compiling the first design into actual LEGO geometry', 'working');
-    const r1 = compile(first.program), q1 = quality(first.program, r1), a1 = audit(first.program, r1);
-    if (typeof onFirst === 'function') { try { onFirst(first.program, r1, { usage: first.j.usage || null }); } catch (e) { } }   // the page can stand the first design while the review runs
+    this.emit(`${planned ? 3 : 2} / ${n} · LOCAL CHECK`, 'compiling the first design into actual LEGO geometry', 'working');
+    const r1 = compile(first.program), q1 = quality(first.program, r1), planNotes = planned && r1 && window.Dsl.checkPlan ? window.Dsl.checkPlan(planned.plan, r1) : [], a1 = audit(first.program, r1) + (planNotes.length ? ` Plan: ${planNotes.join('; ')}.` : '');
+    if (typeof onFirst === 'function') { try { onFirst(first.program, r1, { usage: first.j.usage || null, planNotes }); } catch (e) { } }   // the page can stand the first design while the review runs
+    const extra = { plan: planned ? planned.plan : null, planNotes, planUsage: planned ? planned.usage : null, pictures: (first.images || 0) + (planned ? 1 : 0) };
 
-    const slow = first.ms > 150000, eased = first.effort && first.effort !== 'max';
+    const R = genes().router.review, slow = first.ms > (R.skipSlowMs || 150000), eased = R.skipEased !== false && first.effort && first.effort !== 'max';
     if (slow || eased) {                                                       // one long call is enough: the review would double it
       this.emit('REVIEW SKIPPED', slow ? `the design took ${Math.round(first.ms / 60000)} min · change it with words if you like` : `the design needed ${first.effort} reasoning · change it with words if you like`, 'ready');
-      return { program: first.program, usage: first.j.usage || null, raw: first.raw, responseId: first.j.id || null, messages: [], brief: prompt, effort: first.effort };
+      return { program: first.program, usage: first.j.usage || null, raw: first.raw, responseId: first.j.id || null, messages: [], brief: prompt, effort: first.effort, ...extra };
     }
-    const review = `ORIGINAL BRIEF:\n${this.userMessage(prompt, context)}\n\nFIRST PROGRAM:\n${JSON.stringify(first.program)}\n\nLOCAL AUDIT:\n${a1}\n\nYou are the senior LEGO designer reviewing this first draft. Rebuild the FULL program, not a patch. Preserve what works, but improve first-glance recognition, scale, silhouette, proportion, landmark features and support. Fix compiler failures. Do not merely make it larger or add generic bricks. JSON only.`;
-    let second; try { second = await this.requestSafely(review, { key, signal, stage: '3 / 3 · SOL REVIEWING', detail: 'critiquing the first build and rebuilding weak geometry' }); }
-    catch (e) { if (e && e.name === 'AbortError') throw e; this.emit('REVIEW FAILED', `${e.message || e} · keeping the first design`, 'ready'); return { program: first.program, usage: first.j.usage || null, raw: first.raw, responseId: first.j.id || null, messages: [], brief: prompt, effort: first.effort }; }
-    const r2 = compile(second.program), q2 = quality(second.program, r2);
+    let draftPic = null; if (typeof picture === 'function') { try { draftPic = await picture(first.program, r1); } catch (e) { draftPic = null; } }   // the reviewer sees the first design as built
+    const review = `ORIGINAL BRIEF:\n${brief}\n\nFIRST PROGRAM:\n${JSON.stringify(first.program)}\n\nLOCAL AUDIT:\n${a1}\n${draftPic ? '\nThe second picture is the first design as it stands, built.\n' : ''}\nYou are the senior LEGO designer reviewing this first draft. Rebuild the FULL program, not a patch. Preserve what works, but improve first-glance recognition, scale, silhouette, proportion, landmark features and support. Keep the groups and their names. Fix compiler failures. Do not merely make it larger or add generic bricks. JSON only.`;
+    let second; try { second = await this.requestSafely(review, { key, signal, images: [context.image, draftPic], stage: `${n} / ${n} · SOL REVIEWING`, detail: 'critiquing the first build and rebuilding weak geometry' }); }
+    catch (e) { if (e && e.name === 'AbortError') throw e; this.emit('REVIEW FAILED', `${e.message || e} · keeping the first design`, 'ready'); return { program: first.program, usage: first.j.usage || null, raw: first.raw, responseId: first.j.id || null, messages: [], brief: prompt, effort: first.effort, ...extra }; }
+    const r2 = compile(second.program), q2 = quality(second.program, r2); extra.pictures += second.images || 0;
 
-    const useSecond = q2 >= q1 - 1;
+    const useSecond = q2 >= q1 - (R.keepSecondMargin == null ? 1 : R.keepSecondMargin);
     const chosen = useSecond ? second : first;
     const chosenResult = useSecond ? r2 : r1;
     const chosenScore = useSecond ? q2 : q1;
     const rr = chosenResult && chosenResult.report || {};
-    this.emit('READY TO PREVIEW', `${rr.pieces || 0} pieces · ${(chosen.program.ops || []).length} ops · ${rr.floating || 0} floating · ${rr.blocked || 0} blocked · quality ${Math.round(chosenScore)}`, 'ready');
-    return { program: chosen.program, usage: chosen.j.usage || null, raw: chosen.raw, responseId: chosen.j.id || null, messages: [], brief: prompt };
+    this.emit('READY TO PREVIEW', `${rr.pieces || 0} pieces · ${(chosen.program.ops || []).length} ops · ${rr.floating || 0} floating · ${rr.blocked || 0} blocked · quality ${Math.round(chosenScore)}${useSecond ? '' : ' · the first design kept'}`, 'ready');
+    return { program: chosen.program, usage: chosen.j.usage || null, raw: chosen.raw, responseId: chosen.j.id || null, messages: [], brief: prompt, chose: useSecond ? 'review' : 'first', scores: [Math.round(q1), Math.round(q2)], ...extra };
   },
 
   async repair(prev, report, opts = {}) {
@@ -255,15 +333,25 @@ const Ai = {
     return { program: out.program, usage: out.j.usage || null, raw: out.raw, responseId: out.j.id || null, messages: [], brief: prev && prev.brief };
   },
 
+  /** The group the words name, if the program has groups: the longest group name found in the words. */
+  groupIn(program, words) {
+    const w = ' ' + String(words || '').toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ') + ' '; let best = null;
+    for (const o of (program && program.ops) || []) if (o && String(o.op).toLowerCase() === 'group' && o.name) { const nm = ' ' + String(o.name).toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').trim() + ' '; if (nm.trim() && w.includes(nm) && (!best || nm.length > best.length)) best = String(o.name); }
+    return best;
+  },
   async edit(prev, words, opts = {}) {
-    const text = `CURRENT FULL PROGRAM:\n${JSON.stringify(prev && prev.program || {})}\n\nCHANGE REQUEST:\n${words}\n\nReturn the corrected FULL program as JSON only. Keep everything not asked to change at the same coordinates and apply the requested change to the rest.`;
-    const out = await this.requestSafely(text, { key: opts.key || this.key(), signal: opts.signal, onDelta: opts.onDelta, stage: 'SOL CHANGING', detail: String(words || '').slice(0, 80) });
+    const group = this.groupIn(prev && prev.program, words);
+    const text = `CURRENT FULL PROGRAM:\n${JSON.stringify(prev && prev.program || {})}\n\nCHANGE REQUEST:\n${words}\n\n${group ? `The request names the group "${group}": change that group and return every other group exactly as it is, op for op. ` : ''}Return the corrected FULL program as JSON only. Keep everything not asked to change at the same coordinates and apply the requested change to the rest.`;
+    const out = await this.requestSafely(text, { key: opts.key || this.key(), signal: opts.signal, onDelta: opts.onDelta, images: [opts.context && opts.context.image], stage: 'SOL CHANGING', detail: String(words || '').slice(0, 80) });
     const result = compile(out.program), rr = result && result.report || {};
-    this.emit('CHANGE READY', `${rr.pieces || 0} pieces · ${rr.props || 0} props · ${rr.floating || 0} floating`, 'ready');
-    return { program: out.program, usage: out.j.usage || null, raw: out.raw, responseId: out.j.id || null, messages: [], brief: prev && prev.brief };
+    const before = new Map(((prev && prev.program && prev.program.ops) || []).filter(o => o && String(o.op).toLowerCase() === 'group').map(o => [String(o.name), JSON.stringify(o.ops)]));
+    const after = ((out.program && out.program.ops) || []).filter(o => o && String(o.op).toLowerCase() === 'group'), kept = after.filter(o => before.get(String(o.name)) === JSON.stringify(o.ops)).map(o => String(o.name)), changed = after.filter(o => before.has(String(o.name)) && before.get(String(o.name)) !== JSON.stringify(o.ops)).map(o => String(o.name));
+    this.emit('CHANGE READY', `${rr.pieces || 0} pieces · ${rr.props || 0} props · ${rr.floating || 0} floating${after.length ? ` · groups changed ${changed.join(', ') || 'none'} · kept ${kept.length}` : ''}`, 'ready');
+    return { program: out.program, usage: out.j.usage || null, raw: out.raw, responseId: out.j.id || null, messages: [], brief: prev && prev.brief, group, groupsChanged: changed, groupsKept: kept, pictures: out.images || 0 };
   },
 
-  stats() { return { calls: this.calls, usage: this.lastUsage, error: this.lastError, model: MODEL, effort: EFFORT, lastEffort: this.lastEffort || null, hasKey: !!this.key(), responseId: this.lastResponseId }; }
+  quality: (program, result) => quality(program, result), audit: (program, result) => audit(program, result),
+  stats() { return { calls: this.calls, usage: this.lastUsage, error: this.lastError, model: MODEL, effort: EFFORT, lastEffort: this.lastEffort || null, hasKey: !!this.key(), responseId: this.lastResponseId, manifest: this.manifest() }; }
 };
 
 window.Ai = Ai;
