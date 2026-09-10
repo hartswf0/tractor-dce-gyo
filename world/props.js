@@ -34,7 +34,7 @@ class Props {
     if (this.items.size >= CAP || !p.mpd || p.mpd.length > 60000) return null;
     const kit = /^0 KIT (\w+)/.exec(p.mpd), it = { ...p, group: null, box: null, meshes: [], total: 0, ready: false, kit: kit ? kit[1] : null }; this.items.set(p.id, it);
     let g; try { g = kit ? await Kits.build(kit[1]) : await this.parse(p.mpd, p.id + '.mpd'); } catch (e) { this.items.delete(p.id); console.warn('prop parse', e); return null; }
-    if (!this.items.has(p.id)) return null;                                             // removed while parsing
+    if (this.items.get(p.id) !== it) return null;                                       // removed, or laid again under the same id, while parsing
     const wrap = new THREE.Group(); wrap.name = 'propwrap:' + p.id; if (!kit) wrap.rotation.x = Math.PI; const yawG = new THREE.Group(); yawG.name = 'prop:' + p.id; yawG.add(wrap); yawG.rotation.y = p.yaw * Math.PI / 2; yawG.position.set(p.x, p.y, p.z);
     g.traverse(o => { if (o.isMesh) { it.meshes.push(o); for (const m of Array.isArray(o.material) ? o.material : [o.material]) if (m) { m.fog = true; m.side = THREE.DoubleSide; } } });
     if (kit) wrap.add(g); else while (g.children.length) wrap.add(g.children[0]);   // a kit comes already turned to the world

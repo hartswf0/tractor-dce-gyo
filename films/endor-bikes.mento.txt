@@ -1,0 +1,293 @@
+0 // MENTO film · Mock City · word to momento
+0 !MENTO ASPECT 16:9 FPS 24
+0 !MENTO STORY {"title":"The speeder chase","description":"Two scouts spot the strike team. Leia and Luke take a bike after them so the outpost is not warned; the chase splits, the forest wins.","location":"Endor: a redwood corridor from the outpost basin to the staging trunk","entities":[{"id":"leia","type":"figure","name":"Leia","traits":["rider","calm"]},{"id":"luke","type":"figure","name":"Luke","traits":["rider","saber"]},{"id":"han","type":"figure","name":"Han","traits":["tackle"]},{"id":"scouts","type":"crowd","name":"Scout troopers","traits":["74-Z bikes","blasters"]},{"id":"forest","type":"location","name":"Redwood corridor","traits":["trunks","logs","ferns"]},{"id":"camp","type":"location","name":"Staging trunk","traits":["Chewbacca","C-3PO","R2-D2","commandos"]}],"goals":[{"id":"g1","name":"stop the scouts warning the outpost","owner":"leia"},{"id":"g2","name":"stay on the bike","owner":"luke"},{"id":"g3","name":"reach the outpost","owner":"scouts"}],"obstacles":[{"id":"o1","name":"trunks and logs at speed","affects":["leia","luke","scouts"]},{"id":"o2","name":"blaster fire from behind","affects":["leia"]},{"id":"o3","name":"a scout on the handlebars","affects":["luke"]}],"shifts":[{"id":"sighting","name":"The sighting","causes":"two scouts see the team","results_in":"the pursuit"},{"id":"pursuit","name":"Into the trees","causes":"Leia takes a bike","results_in":"the chase"},{"id":"first-kill","name":"The first scout goes down","causes":"a shove","results_in":"a tree"},{"id":"split","name":"The split","causes":"two more scouts","results_in":"Luke takes the second bike"},{"id":"cannon","name":"The cannon","causes":"Luke closes on a scout","results_in":"a fireball"},{"id":"leia-down","name":"Leia goes down","causes":"a scout at her side","results_in":"the log"},{"id":"brawl","name":"The handlebar brawl","causes":"a scout alongside Luke","results_in":"the trunk ahead"},{"id":"somersault","name":"The somersault","causes":"a trunk dead ahead","results_in":"Luke on foot"},{"id":"saber","name":"The saber","causes":"a turnabout and a charge","results_in":"a severed bike"},{"id":"camp","name":"The camp","causes":"the corridor walked back","results_in":"the plan"}],"relations":["[pursues] leia -> scouts","[rides with] luke -> leia","[tackles] han -> scout","[splits from] luke -> leia","[shoves] luke -> scouts","[fires at] scouts -> leia","[deflects] luke -> scouts","[gathers] camp -> luke"],"timeline":[{"id":"t1","description":"the basin: sighting, mount, tackle","scenes":[{"id":"P001","description":"two scouts in the ferns","entities":["leia","luke","scouts"]},{"id":"P002","description":"Han tackles the third scout","entities":["han","scouts"]}]},{"id":"t2","description":"the corridor: the chase and the split","scenes":[{"id":"P003-P007","description":"the first scout shoved into a tree","entities":["leia","luke","scouts"]},{"id":"P008-P011","description":"Luke takes the second bike and the cannon","entities":["luke","scouts"]}]},{"id":"t3","description":"the log and the trunk","scenes":[{"id":"P012-P016","description":"Leia and the scout at the log","entities":["leia","scouts"]},{"id":"P017-P022","description":"the brawl, the somersault, the saber","entities":["luke","scouts"]}]},{"id":"t4","description":"the camp","scenes":[{"id":"P023-P027","description":"the staging trunk and the plan","entities":["luke","leia","han","camp"]}]}]}
+0 !MENTO STAGE forest R 200 SEED 11 AT 0 0 CORRIDOR 0 0 6 40 -4 85 8 130 -6 175 4 215 30 250 70 240 86 200 76 150 86 100 70 50 40 16 0 0
+0 !MENTO ACTOR "bike-1" KIND speeder LEN 7 COL 71 AT -240 -200 HEADING 0
+0 !MENTO ACTOR "bike-2" KIND speeder LEN 7 COL 71 AT 320 -280 HEADING 0
+0 !MENTO ACTOR "scout-1" KIND speeder LEN 7 COL 15 AT 160 880 HEADING 0 RIDER trooper
+0 !MENTO ACTOR "scout-2" KIND speeder LEN 7 COL 15 AT -120 1200 HEADING 0 RIDER trooper
+0 !MENTO ACTOR "scout-3" KIND speeder LEN 7 COL 15 AT 120 4800 HEADING 0 RIDER trooper
+0 !MENTO ACTOR "scout-4" KIND speeder LEN 7 COL 15 AT -200 6400 HEADING 0 RIDER trooper
+0 !MENTO ACTOR "scout-g" FIGURE trooper AT 600 280 HEADING 200
+0 !MENTO ACTOR "luke" FIGURE luke AT -120 -120 HEADING 0
+0 !MENTO ACTOR "han" FIGURE han AT 360 -40 HEADING 20
+0 !MENTO ACTOR "chewbacca" FIGURE chewbacca AT -1200 1360 HEADING 120 POSE crouch
+0 !MENTO ACTOR "c3po" FIGURE c3po AT -960 1080 HEADING 150
+0 !MENTO ACTOR "commandos" CROWD rebel N 6 AT -1200 1200 R 5
+0 !MENTO BUILD "r2" AT -840 1160 {"name":"r2","ops":[{"op":"tower","x":0,"z":0,"r":1,"h":2,"col":15,"round":true,"crenels":false},{"op":"slab","x":0,"z":0,"w":2,"d":2,"y":2,"plates":1,"col":1}]}
+0 // SHOT 1: P001 OVER THERE
+0 !MENTO SHOT "P001 Over there" POS 0 -50 228.96 TGT 0 -50 0 LENS 40 SEC 4 SHIFT "sighting" SCORE "tension"
+0 !MENTO PLAN {"on":"me","frame":"medium","from":"n","lens":40,"sec":4,"move":"hold","name":"P001 Over there"}
+0 !MENTO EVENT LINE "leia" "Over there. Two more of them." AT 0.6 FOR 3
+0 // SHOT 2: P001 TWO SCOUTS GO
+0 !MENTO SHOT "P001 Two scouts go" POS -9.58 -181.44 2120.21 TGT -9.58 -169.14 2510.89 LENS 45 SEC 4 FOLLOW SHIFT "sighting" SCORE "chase"
+0 !MENTO PLAN {"on":"scout-1","frame":"wide","from":"s","lens":45,"sec":4,"move":"hold","name":"P001 Two scouts go"}
+0 !MENTO ACT "scout-1" SPEED 0.55 ROUTE "corridor"
+0 !MENTO ACT "scout-2" SPEED 0.55 ROUTE "corridor"
+0 !MENTO EVENT LINE "luke" "I see them. Wait, Leia." AT 0.5 FOR 3
+0 // SHOT 3: P001 LEIA MOUNTS
+0 !MENTO SHOT "P001 Leia mounts" POS -59.7 -159.36 -200 TGT -240 -159.36 -200 LENS 40 SEC 3 SHIFT "pursuit"
+0 !MENTO PLAN {"on":"bike-1","frame":"medium","from":"e","lens":40,"sec":3,"move":"hold","name":"P001 Leia mounts"}
+0 !MENTO ACT "me" RIDE bike-1
+0 !MENTO ACT "luke" RIDE bike-1
+0 // SHOT 4: P002 INTO THE TREES
+0 !MENTO SHOT "P002 Into the trees" POS 62.87 -199.09 1159.94 TGT 62.87 -174.96 2050.3 LENS 50 SEC 5 FOLLOW SHIFT "pursuit"
+0 !MENTO PLAN {"on":"me","frame":"wide","from":"s","lens":50,"sec":5,"move":"hold","name":"P002 Into the trees"}
+0 !MENTO ACT "me" SPEED 0.6 ROUTE "corridor"
+0 !MENTO ACT "han" TO 520 200 RUN
+0 // SHOT 5: P002 HAN TACKLES THE SCOUT
+0 !MENTO SHOT "P002 Han tackles the scout" POS 361.89 -52 280 TGT 600 -52 280 LENS 40 SEC 4 SHIFT "pursuit"
+0 !MENTO PLAN {"on":"scout-g","frame":"medium","from":"w","lens":40,"sec":4,"move":"hold","name":"P002 Han tackles the scout"}
+0 !MENTO ACT "han" TO 560 240 RUN
+0 !MENTO EVENT LINE "han" "Hey. Over here." AT 0.3
+0 !MENTO EVENT TACKLE "han" "scout-g" AT 1.3
+0 // SHOT 6: P003 HANG ON
+0 !MENTO SHOT "P003 Hang on" POS 407.74 -283.54 1762.95 TGT 496.34 -271.47 1835.93 LENS 35 SEC 4 FOLLOW SHIFT "pursuit"
+0 !MENTO PLAN {"on":"me","frame":"close","from":"front","lens":35,"sec":4,"move":"hold","name":"P003 Hang on"}
+0 !MENTO ACT "me" SPEED 0.6 ROUTE "corridor"
+0 !MENTO EVENT LINE "leia" "Hang on." AT 0.4 FOR 2
+0 // SHOT 7: P003 THROUGH THE TRUNKS
+0 !MENTO SHOT "P003 Through the trunks" POS 133.03 -174.96 4366.96 TGT 637.94 65.04 6627.11 LENS 70 SEC 5 FOLLOW SHIFT "pursuit"
+0 !MENTO PLAN {"on":"me","frame":"pov","from":"s","lens":0,"sec":5,"move":"hold","name":"P003 Through the trunks"}
+0 !MENTO ACT "me" SPEED 0.9 ROUTE "corridor"
+0 // SHOT 8: P003 FRONTAL TRACKING
+0 !MENTO SHOT "P003 Frontal tracking" POS -236.02 -187.03 3489 TGT -502.3 -187.03 4160.58 LENS 40 SEC 4 FOLLOW SHIFT "pursuit"
+0 !MENTO PLAN {"on":"me","frame":"medium","from":"front","lens":40,"sec":4,"move":"hold","name":"P003 Frontal tracking"}
+0 !MENTO ACT "me" SPEED 0.7 ROUTE "corridor"
+0 // SHOT 9: P004 OVER THE LOG
+0 !MENTO SHOT "P004 Over the log" POS 482.97 -174.96 3688.29 TGT -1362.14 65.04 2288.74 LENS 70 SEC 4 FOLLOW SHIFT "pursuit"
+0 !MENTO PLAN {"on":"me","frame":"pov","from":"s","lens":0,"sec":4,"move":"hold","name":"P004 Over the log"}
+0 !MENTO ACT "me" SPEED 0.9 ROUTE "corridor"
+0 // SHOT 10: P004 LATERAL
+0 !MENTO SHOT "P004 Lateral" POS -1272.05 -199.09 3713.19 TGT -563.28 -174.96 4421.95 LENS 45 SEC 4 FOLLOW SHIFT "pursuit"
+0 !MENTO PLAN {"on":"me","frame":"wide","from":"e","lens":45,"sec":4,"move":"hold","name":"P004 Lateral"}
+0 !MENTO ACT "me" SPEED 0.7 ROUTE "corridor"
+0 // SHOT 11: P004 ON THE SCOUT
+0 !MENTO SHOT "P004 On the scout" POS 2768.49 -175.14 2159.95 TGT 2605.55 -175.14 1924.15 LENS 40 SEC 4 FOLLOW SHIFT "pursuit"
+0 !MENTO PLAN {"on":"scout-1","frame":"medium","from":"behind","lens":40,"sec":4,"move":"hold","name":"P004 On the scout"}
+0 !MENTO ACT "me" CHASE "scout-1" BEHIND 10
+0 // SHOT 12: P005 KEEP ON THAT ONE
+0 !MENTO SHOT "P005 Keep on that one" POS 2557.11 -187.03 2036.1 TGT 2046.26 -187.03 1525.25 LENS 40 SEC 4 FOLLOW SHIFT "pursuit"
+0 !MENTO PLAN {"on":"me","frame":"medium","from":"ne","lens":40,"sec":4,"move":"hold","name":"P005 Keep on that one"}
+0 !MENTO ACT "me" CHASE "scout-1" BEHIND 8
+0 !MENTO EVENT LINE "luke" "Keep on that one. I will take these two." AT 0.5 FOR 3
+0 // SHOT 13: P005 WEAVING
+0 !MENTO SHOT "P005 Weaving" POS 2822.08 -199.09 2505.89 TGT 2192.49 -174.96 1876.31 LENS 50 SEC 4 FOLLOW SHIFT "pursuit"
+0 !MENTO PLAN {"on":"me","frame":"wide","from":"nw","lens":50,"sec":4,"move":"hold","name":"P005 Weaving"}
+0 !MENTO ACT "me" ALONGSIDE "scout-2" SIDE 3
+0 // SHOT 14: P005 THE VANES
+0 !MENTO SHOT "P005 The vanes" POS -155.66 -267.55 10.48 TGT -240 -258.69 10.48 LENS 35 SEC 3 FOLLOW SHIFT "pursuit"
+0 !MENTO PLAN {"on":"bike-1","frame":"close","from":"e","lens":35,"sec":3,"move":"hold","name":"P005 The vanes"}
+0 !MENTO ACT "me" ALONGSIDE "scout-1" SIDE 3
+0 // SHOT 15: P006 SIDE BY SIDE
+0 !MENTO SHOT "P006 Side by side" POS 206.59 -415.29 -119.48 TGT -57.72 -175.29 -24.14 LENS 40 SEC 4 FOLLOW SHIFT "first-kill"
+0 !MENTO PLAN {"on":"scout-1","frame":"medium","from":"front","lens":40,"sec":4,"move":"hold","name":"P006 Side by side"}
+0 !MENTO ACT "me" ALONGSIDE "scout-1" SIDE 2.5
+0 !MENTO EVENT SHOVE "scout-1" AT 2.2
+0 // SHOT 16: P007 INTO THE TREE
+0 !MENTO SHOT "P007 Into the tree" POS 195.98 -168.93 -552.83 TGT -56.72 -158.93 -300.14 LENS 45 SEC 5 FOLLOW SHIFT "first-kill"
+0 !MENTO PLAN {"on":"scout-1","frame":"wide","from":"e","lens":45,"sec":5,"move":"hold","name":"P007 Into the tree"}
+0 !MENTO ACT "me" SPEED 0.6 ROUTE "corridor"
+0 !MENTO EVENT SOUND "whoosh" AT 0.2 K 1.2
+0 !MENTO EVENT CRASH "scout-1" INTO tree AT 0.3
+0 !MENTO EVENT EXPLODE "scout-1" AT 3.2
+0 // SHOT 17: P007 LUKE LOOKS BACK
+0 !MENTO SHOT "P007 Luke looks back" POS -320 -396.32 -200 TGT -240 -231.12 -200 LENS 35 SEC 3 FOLLOW SHIFT "first-kill"
+0 !MENTO PLAN {"on":"luke","frame":"close","from":"w","lens":35,"sec":3,"move":"hold","name":"P007 Luke looks back"}
+0 !MENTO ACT "me" SPEED 0.6 ROUTE "corridor"
+0 // SHOT 18: P007 UNDER THE LOG
+0 !MENTO SHOT "P007 Under the log" POS 21.04 -174.96 2044.88 TGT -237.3 65.04 4346.28 LENS 70 SEC 4 FOLLOW SHIFT "first-kill"
+0 !MENTO PLAN {"on":"me","frame":"pov","from":"s","lens":0,"sec":4,"move":"hold","name":"P007 Under the log"}
+0 !MENTO ACT "me" SPEED 0.9 ROUTE "corridor"
+0 // SHOT 19: P008 TWO MORE
+0 !MENTO SHOT "P008 Two more" POS 796.22 -199.09 1210.13 TGT 796.22 -174.96 2100.5 LENS 50 SEC 4 FOLLOW SHIFT "split"
+0 !MENTO PLAN {"on":"me","frame":"wide","from":"s","lens":50,"sec":4,"move":"hold","name":"P008 Two more"}
+0 !MENTO ACT "me" SPEED 0.6 ROUTE "corridor"
+0 !MENTO ACT "scout-3" SPEED 0.5 ROUTE "corridor"
+0 !MENTO ACT "scout-4" SPEED 0.5 ROUTE "corridor"
+0 !MENTO ACT "han" TO -1040 1240 RUN
+0 // SHOT 20: P008 THE SPLIT
+0 !MENTO SHOT "P008 The split" POS 106.34 -123.78 1771.51 TGT 106.34 -123.78 2000.46 LENS 40 SEC 5 FOLLOW SHIFT "split"
+0 !MENTO PLAN {"on":"bike-2","frame":"medium","from":"e","lens":40,"sec":5,"move":"hold","name":"P008 The split"}
+0 !MENTO ACT "me" SPEED 0.6 ROUTE "corridor"
+0 !MENTO ACT "luke" LEAVE RIDE bike-2
+0 !MENTO ACT "bike-2" SPEED 0.6 ROUTE "corridor"
+0 // SHOT 21: P009 LUKE BANKS RIGHT
+0 !MENTO SHOT "P009 Luke banks right" POS 767.83 -52893.36 6380.19 TGT 1005.94 -52733.36 6380.19 LENS 40 SEC 4 FOLLOW SHIFT "cannon"
+0 !MENTO PLAN {"on":"luke","frame":"medium","from":"w","lens":40,"sec":4,"move":"hold","name":"P009 Luke banks right"}
+0 !MENTO ACT "bike-2" CHASE "scout-3" BEHIND 9
+0 !MENTO EVENT LINE "luke" "Take the one on the left." AT 0.4 FOR 2.5
+0 // SHOT 22: P010 THE CANNON
+0 !MENTO SHOT "P010 The cannon" POS 1467.42 -163.78 9563.43 TGT 1546.71 -158.78 9552.81 LENS 35 SEC 3 FOLLOW SHIFT "cannon"
+0 !MENTO PLAN {"on":"bike-2","frame":"close","from":"behind","lens":35,"sec":3,"move":"hold","name":"P010 The cannon"}
+0 !MENTO ACT "bike-2" FIRE EVERY 0.5 AIM "scout-3" CHASE "scout-3" BEHIND 8
+0 // SHOT 23: P010 FIREBALL
+0 !MENTO SHOT "P010 Fireball" POS 2354.15 -169.09 9739.79 TGT 2593.87 -159.09 9474.75 LENS 45 SEC 5 FOLLOW SHIFT "cannon"
+0 !MENTO PLAN {"on":"scout-3","frame":"wide","from":"behind","lens":45,"sec":5,"move":"hold","name":"P010 Fireball"}
+0 !MENTO ACT "bike-2" FIRE EVERY 0.5 AIM "scout-3" CHASE "scout-3" BEHIND 8
+0 !MENTO EVENT EXPLODE "scout-3" AT 1.6
+0 // SHOT 24: P011 UNDER THE RAISED LOG
+0 !MENTO SHOT "P011 Under the raised log" POS 3319.29 -96 7787.16 TGT 3329.46 -123.78 7940 LENS 50 SEC 4 FOLLOW SHIFT "cannon"
+0 !MENTO PLAN {"on":"bike-2","frame":"low","from":"front","lens":50,"sec":4,"move":"hold","name":"P011 Under the raised log"}
+0 !MENTO ACT "bike-2" SPEED 0.6 ROUTE "corridor"
+0 // SHOT 25: P011 LEIA ALONE
+0 !MENTO SHOT "P011 Leia alone" POS 675.19 -166.77 2773.78 TGT 164.34 -166.77 2262.93 LENS 40 SEC 4 FOLLOW SHIFT "leia-down" SCORE "tension"
+0 !MENTO PLAN {"on":"me","frame":"medium","from":"ne","lens":40,"sec":4,"move":"hold","name":"P011 Leia alone"}
+0 !MENTO ACT "me" SPEED 0.6 ROUTE "corridor"
+0 // SHOT 26: P012 A SCOUT BEHIND HER
+0 !MENTO SHOT "P012 A scout behind her" POS 1381.27 -176.68 2734.12 TGT 672.5 -156.63 2025.35 LENS 45 SEC 4 FOLLOW SHIFT "leia-down" SCORE "chase"
+0 !MENTO PLAN {"on":"me","frame":"wide","from":"e","lens":45,"sec":4,"move":"hold","name":"P012 A scout behind her"}
+0 !MENTO ACT "me" SPEED 0.55 ROUTE "corridor"
+0 !MENTO ACT "scout-4" CHASE "me" BEHIND 7
+0 // SHOT 27: P012 THE SCOUT CLOSES
+0 !MENTO SHOT "P012 The scout closes" POS 148.28 -225.63 1659.68 TGT 204.85 -219.25 1716.25 LENS 35 SEC 3 FOLLOW SHIFT "leia-down"
+0 !MENTO PLAN {"on":"scout-4","frame":"close","from":"w","lens":35,"sec":3,"move":"hold","name":"P012 The scout closes"}
+0 !MENTO ACT "me" SPEED 0.55 ROUTE "corridor"
+0 // SHOT 28: P013 FROM ABOVE
+0 !MENTO SHOT "P013 From above" POS -128.83 -457.42 3104.01 TGT -128.83 -175.43 3340.63 LENS 50 SEC 4 FOLLOW SHIFT "leia-down"
+0 !MENTO PLAN {"on":"scout-4","frame":"aerial","from":"s","lens":50,"sec":4,"move":"hold","name":"P013 From above"}
+0 !MENTO ACT "me" SPEED 0.55 ROUTE "corridor"
+0 // SHOT 29: P013 THE VISOR
+0 !MENTO SHOT "P013 The visor" POS 171.35 -225.19 5006.16 TGT 169.48 -218.96 4926.18 LENS 35 SEC 3 FOLLOW SHIFT "leia-down"
+0 !MENTO PLAN {"on":"scout-4","frame":"close","from":"front","lens":35,"sec":3,"move":"hold","name":"P013 The visor"}
+0 !MENTO ACT "me" SPEED 0.55 ROUTE "corridor"
+0 // SHOT 30: P014 ALONGSIDE
+0 !MENTO SHOT "P014 Alongside" POS 514.4 -166.55 5095.74 TGT 747.94 -166.55 5779.4 LENS 40 SEC 4 FOLLOW SHIFT "leia-down"
+0 !MENTO PLAN {"on":"me","frame":"medium","from":"front","lens":40,"sec":4,"move":"hold","name":"P014 Alongside"}
+0 !MENTO ACT "me" SPEED 0.55 ROUTE "corridor"
+0 !MENTO ACT "scout-4" FIRE EVERY 0.8 AIM "me" ALONGSIDE "me" SIDE 3
+0 // SHOT 31: P015 SHOTS
+0 !MENTO SHOT "P015 Shots" POS -49.57 -246.72 5808.67 TGT -49.57 -236.7 5903.99 LENS 35 SEC 3 FOLLOW SHIFT "leia-down"
+0 !MENTO PLAN {"on":"me","frame":"close","from":"e","lens":35,"sec":3,"move":"hold","name":"P015 Shots"}
+0 !MENTO ACT "me" SPEED 0.55 ROUTE "corridor"
+0 // SHOT 32: P015 THE BRAKE
+0 !MENTO SHOT "P015 The brake" POS 663.03 -177 5289.27 TGT -45.73 -156.89 5998.03 LENS 45 SEC 4 FOLLOW SHIFT "leia-down"
+0 !MENTO PLAN {"on":"me","frame":"wide","from":"w","lens":45,"sec":4,"move":"hold","name":"P015 The brake"}
+0 !MENTO ACT "me" BRAKE
+0 !MENTO ACT "scout-4" SPEED 0.8 ROUTE "corridor"
+0 // SHOT 33: P016 THE LOG
+0 !MENTO SHOT "P016 The log" POS 160.2 -169.09 6365.24 TGT -197.16 -159.09 6365.24 LENS 45 SEC 5 FOLLOW SHIFT "leia-down"
+0 !MENTO PLAN {"on":"scout-4","frame":"wide","from":"e","lens":45,"sec":5,"move":"hold","name":"P016 The log"}
+0 !MENTO ACT "me" BRAKE
+0 !MENTO EVENT CRASH "scout-4" INTO log AT 0.2
+0 !MENTO EVENT EXPLODE "scout-4" AT 3.5
+0 // SHOT 34: P016 INTO THE FERNS
+0 !MENTO SHOT "P016 Into the ferns" POS 235.13 -50 6224.61 TGT 6.18 -50 6224.61 LENS 40 SEC 4 FOLLOW SHIFT "leia-down" SCORE "dread"
+0 !MENTO PLAN {"on":"me","frame":"medium","from":"n","lens":40,"sec":4,"move":"hold","name":"P016 Into the ferns"}
+0 !MENTO EVENT EJECT "me" AT 0.4
+0 // SHOT 35: P017 TWO BIKES FROM ABOVE
+0 !MENTO SHOT "P017 Two bikes from above" POS -171.73 -328.17 1042.39 TGT -171.73 -123.78 1213.89 LENS 55 SEC 4 FOLLOW SHIFT "brawl" SCORE "chase"
+0 !MENTO PLAN {"on":"bike-2","frame":"aerial","from":"s","lens":55,"sec":4,"move":"hold","name":"P017 Two bikes from above"}
+0 !MENTO ACT "me" WALK -960 1120
+0 !MENTO ACT "bike-2" SPEED 0.55 ROUTE "corridor"
+0 !MENTO ACT "scout-2" ALONGSIDE "bike-2" SIDE 3
+0 // SHOT 36: P017 SHOVING
+0 !MENTO SHOT "P017 Shoving" POS 209.64 -123.78 3180.4 TGT 73.63 -123.78 2996.22 LENS 40 SEC 4 FOLLOW SHIFT "brawl"
+0 !MENTO PLAN {"on":"bike-2","frame":"medium","from":"front","lens":40,"sec":4,"move":"hold","name":"P017 Shoving"}
+0 !MENTO ACT "me" WALK -960 1120
+0 !MENTO EVENT SHOVE "scout-2" "bike-2" AT 1.2
+0 !MENTO EVENT SHOVE "scout-2" AT 2.8
+0 // SHOT 37: P018 BETWEEN THE TRUNKS
+0 !MENTO SHOT "P018 Between the trunks" POS -1676.23 -22158.4 4986.77 TGT -2053.59 -21918.4 7350.23 LENS 70 SEC 4 FOLLOW SHIFT "brawl"
+0 !MENTO PLAN {"on":"luke","frame":"pov","from":"s","lens":0,"sec":4,"move":"hold","name":"P018 Between the trunks"}
+0 !MENTO ACT "me" WALK -960 1120
+0 !MENTO ACT "bike-2" SPEED 0.7 ROUTE "corridor"
+0 !MENTO ACT "scout-2" ALONGSIDE "bike-2" SIDE 2.5
+0 // SHOT 38: P019 THE HANDS
+0 !MENTO SHOT "P019 The hands" POS -34.59 -163.78 7008.37 TGT -114.59 -158.78 7008.37 LENS 35 SEC 3 FOLLOW SHIFT "brawl"
+0 !MENTO PLAN {"on":"bike-2","frame":"close","from":"e","lens":35,"sec":3,"move":"hold","name":"P019 The hands"}
+0 !MENTO ACT "me" WALK -960 1120
+0 // SHOT 39: P019 THE TRUNK AHEAD
+0 !MENTO SHOT "P019 The trunk ahead" POS 2334.46 -32863.55 7547.97 TGT 3533.42 -32623.55 9619.41 LENS 70 SEC 3 FOLLOW SHIFT "somersault"
+0 !MENTO PLAN {"on":"luke","frame":"pov","from":"s","lens":0,"sec":3,"move":"hold","name":"P019 The trunk ahead"}
+0 !MENTO ACT "me" WALK -960 1120
+0 !MENTO ACT "bike-2" SPEED 0.7 ROUTE "corridor"
+0 // SHOT 40: P020 THE SOMERSAULT
+0 !MENTO SHOT "P020 The somersault" POS 941.69 -137.2 9277.41 TGT 941.69 -46.8 9607.78 LENS 45 SEC 6 FOLLOW SHIFT "somersault" SCORE "dread"
+0 !MENTO PLAN {"on":"luke","frame":"wide","from":"e","lens":45,"sec":6,"move":"hold","name":"P020 The somersault"}
+0 !MENTO ACT "me" WALK -960 1120
+0 !MENTO EVENT EJECT "luke" AT 0.6
+0 !MENTO EVENT CRASH "bike-2" INTO tree AT 0.7
+0 !MENTO EVENT EXPLODE "bike-2" AT 3.4
+0 // SHOT 41: P021 TURNABOUT
+0 !MENTO SHOT "P021 Turnabout" POS 194.68 -176.01 9723.88 TGT 194.68 -163.2 9362.39 LENS 50 SEC 5 FOLLOW SHIFT "saber" SCORE "chase"
+0 !MENTO PLAN {"on":"scout-2","frame":"wide","from":"n","lens":50,"sec":5,"move":"hold","name":"P021 Turnabout"}
+0 !MENTO ACT "me" WALK -960 1120
+0 !MENTO ACT "scout-2" FIRE EVERY 0.6 AIM "luke" CHARGE "luke" TURNABOUT
+0 !MENTO ACT "luke" LOOK "scout-2" POSE stand
+0 // SHOT 42: P021 THE SABER
+0 !MENTO SHOT "P021 The saber" POS 715.47 -52 9533.47 TGT 941.69 -52 9607.78 LENS 40 SEC 3 SHIFT "saber"
+0 !MENTO PLAN {"on":"luke","frame":"medium","from":"front","lens":40,"sec":3,"move":"hold","name":"P021 The saber"}
+0 !MENTO ACT "me" WALK -960 1120
+0 !MENTO ACT "luke" LOOK "scout-2" SABER
+0 // SHOT 43: P022 DEFLECTED
+0 !MENTO SHOT "P022 Deflected" POS 705.45 -52 9637.58 TGT 941.69 -52 9607.78 LENS 40 SEC 4 SHIFT "saber"
+0 !MENTO PLAN {"on":"luke","frame":"medium","from":"front","lens":40,"sec":4,"move":"hold","name":"P022 Deflected"}
+0 !MENTO ACT "me" WALK -960 1120
+0 !MENTO ACT "luke" LOOK "scout-2" SABER
+0 !MENTO ACT "scout-2" FIRE EVERY 0.5 AIM "luke" CHARGE "luke"
+0 !MENTO EVENT DEFLECT "luke" AT 0 FOR 4
+0 // SHOT 44: P022 SEVERED
+0 !MENTO SHOT "P022 Severed" POS 1187.98 -168.93 10763.28 TGT 830.62 -158.93 10763.28 LENS 45 SEC 5 FOLLOW SHIFT "saber"
+0 !MENTO PLAN {"on":"scout-2","frame":"wide","from":"e","lens":45,"sec":5,"move":"hold","name":"P022 Severed"}
+0 !MENTO ACT "me" WALK -960 1120
+0 !MENTO ACT "luke" SABER
+0 !MENTO EVENT SEVER "scout-2" AT 0.8
+0 !MENTO EVENT EXPLODE "scout-2" AT 3.6
+0 // SHOT 45: P023 THE WRECK
+0 !MENTO SHOT "P023 The wreck" POS 703.58 -52 9607.78 TGT 941.69 -52 9607.78 LENS 40 SEC 4 SHIFT "camp" SCORE none
+0 !MENTO PLAN {"on":"luke","frame":"medium","from":"w","lens":40,"sec":4,"move":"hold","name":"P023 The wreck"}
+0 !MENTO ACT "me" WALK -960 1120
+0 !MENTO ACT "luke" LOOK "scout-2"
+0 // SHOT 46: P023 BACK DOWN THE CORRIDOR
+0 !MENTO SHOT "P023 Back down the corridor" POS 1001.27 -57.2 9622.93 TGT 1001.27 -46.8 9329.47 LENS 50 SEC 5 FOLLOW SHIFT "camp"
+0 !MENTO PLAN {"on":"luke","frame":"wide","from":"n","lens":50,"sec":5,"move":"hold","name":"P023 Back down the corridor"}
+0 !MENTO ACT "me" WALK -960 1120
+0 !MENTO ACT "luke" TO -880 1040 RUN
+0 // SHOT 47: P024 THE STAGING TRUNK
+0 !MENTO SHOT "P024 The staging trunk" POS -1048.36 -41.8 1208.36 TGT -1200 -34.2 1360 LENS 50 SEC 4 SHIFT "camp" SCORE "camp"
+0 !MENTO PLAN {"on":"chewbacca","frame":"wide","from":"se","lens":50,"sec":4,"move":"hold","name":"P024 The staging trunk"}
+0 !MENTO ACT "me" WALK -960 1120
+0 !MENTO ACT "chewbacca" POSE crouch
+0 !MENTO ACT "han" TO -1080 1320 POSE aim
+0 !MENTO EVENT LINE "chewbacca" "Rrraaawwrr." AT 1.5
+0 // SHOT 48: P024 THE DROIDS
+0 !MENTO SHOT "P024 The droids" POS -1077.88 -93.6 1171.44 TGT -1021.31 -88.4 1114.87 LENS 35 SEC 4 SHIFT "camp"
+0 !MENTO PLAN {"on":"c3po","frame":"close","from":"e","lens":35,"sec":4,"move":"hold","name":"P024 The droids"}
+0 !MENTO ACT "me" WALK -960 1120
+0 !MENTO EVENT LINE "c3po" "Oh dear. They have been gone a long time." AT 0.5 FOR 3
+0 // SHOT 49: P024 HAN BEHIND THE ROOT
+0 !MENTO SHOT "P024 Han behind the root" POS -826.3 -52 1297.31 TGT -1064.41 -52 1297.31 LENS 40 SEC 3 SHIFT "camp"
+0 !MENTO PLAN {"on":"han","frame":"medium","from":"e","lens":40,"sec":3,"move":"hold","name":"P024 Han behind the root"}
+0 !MENTO ACT "me" WALK -960 1120
+0 !MENTO ACT "han" LOOK "luke" POSE aim
+0 // SHOT 50: P025 LUKE ARRIVES
+0 !MENTO SHOT "P025 Luke arrives" POS 607.71 -57.2 7329.02 TGT 815.22 -46.8 7536.53 LENS 50 SEC 4 FOLLOW SHIFT "camp"
+0 !MENTO PLAN {"on":"luke","frame":"wide","from":"s","lens":50,"sec":4,"move":"hold","name":"P025 Luke arrives"}
+0 !MENTO ACT "me" WALK -960 1120
+0 !MENTO ACT "luke" TO -960 1200 RUN
+0 !MENTO ACT "han" LOOK "luke" POSE stand
+0 !MENTO EVENT LINE "chewbacca" "Rrraawr." AT 2.5
+0 // SHOT 51: P025 WHERE IS LEIA
+0 !MENTO SHOT "P025 Where is Leia" POS -1232.79 -52 1465.68 TGT -1064.41 -52 1297.31 LENS 40 SEC 4 SHIFT "camp"
+0 !MENTO PLAN {"on":"han","frame":"medium","from":"n","lens":40,"sec":4,"move":"hold","name":"P025 Where is Leia"}
+0 !MENTO ACT "me" WALK -960 1120
+0 !MENTO ACT "luke" LOOK "han"
+0 !MENTO ACT "han" LOOK "luke"
+0 !MENTO EVENT LINE "han" "Where is Leia?" AT 0.4 FOR 2
+0 !MENTO EVENT LINE "luke" "She did not come back?" AT 2.4 FOR 1.5
+0 // SHOT 52: P026 THE PLAN
+0 !MENTO SHOT "P026 The plan" POS 979.24 -52 7353.73 TGT 810.87 -52 7522.1 LENS 40 SEC 4 SHIFT "camp"
+0 !MENTO PLAN {"on":"luke","frame":"medium","from":"e","lens":40,"sec":4,"move":"hold","name":"P026 The plan"}
+0 !MENTO ACT "me" WALK -960 1120
+0 !MENTO ACT "han" LOOK "luke" POSE point
+0 !MENTO EVENT LINE "han" "We have to find her." AT 0.5 FOR 3
+0 // SHOT 53: P027 INTO THE TREES
+0 !MENTO SHOT "P027 Into the trees" POS -1472.9 -57.2 1966.53 TGT -1766.36 -46.8 1966.53 LENS 50 SEC 6 FOLLOW SHIFT "camp" SCORE "hero"
+0 !MENTO PLAN {"on":"han","frame":"wide","from":"e","lens":50,"sec":6,"move":"hold","name":"P027 Into the trees"}
+0 !MENTO ACT "me" WALK -1600 2000
+0 !MENTO ACT "han" TO -2480 2640 POSE stand
+0 !MENTO ACT "chewbacca" TO -2320 2800 POSE stand
+0 !MENTO ACT "c3po" TO -2200 2480
+0 !MENTO ACT "luke" TO -2400 2520 RUN
+0 !MENTO EVENT LINE "han" "Let us go." AT 0.5 FOR 2

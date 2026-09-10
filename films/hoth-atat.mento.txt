@@ -1,0 +1,108 @@
+0 // MENTO film · Mock City · word to momento
+0 !MENTO ASPECT 16:9 FPS 24
+0 !MENTO STAGE snowfield R 320 SEED 3 AT 0 0
+0 !MENTO ACTOR "atat-1" KIT atat AT -1800 11600 HEADING 180
+0 !MENTO ACTOR "atat-2" KIT atat AT 400 13400 HEADING 180
+0 !MENTO ACTOR "atat-3" KIT atat AT 2800 11600 HEADING 180
+0 !MENTO ACTOR "atat-4" KIT atat AT 5200 14000 HEADING 180
+0 !MENTO ACTOR "speeder-1" KIND speeder LEN 7 COL 71 AT -1800 6800 HEADING 0
+0 !MENTO ACTOR "speeder-2" KIND speeder LEN 7 COL 71 AT 3600 9600 HEADING 270
+0 !MENTO ACTOR "rebels" CROWD rebel N 20 AT 0 2480 R 25
+0 !MENTO BUILD "bunker-1" AT -1920 2640 {"name":"bunker","ops":[{"op":"tower","x":0,"z":0,"r":4,"h":3,"col":15,"round":true,"crenels":false},{"op":"slab","x":0,"z":0,"w":9,"d":9,"y":3,"plates":1,"col":15},{"op":"box","x":0,"z":-5,"w":3,"d":2,"h":2,"col":72}]}
+0 !MENTO BUILD "bunker-2" AT 2320 2800 {"name":"bunker","ops":[{"op":"tower","x":0,"z":0,"r":4,"h":3,"col":15,"round":true,"crenels":false},{"op":"slab","x":0,"z":0,"w":9,"d":9,"y":3,"plates":1,"col":15},{"op":"box","x":0,"z":-5,"w":3,"d":2,"h":2,"col":72}]}
+0 !MENTO BUILD "trench" AT -480 3000 {"name":"trench","ops":[{"op":"wall","from":[0,0],"to":[60,0],"y":0,"h":3,"col":15,"thick":2},{"op":"wall","from":[0,5],"to":[60,5],"y":0,"h":2,"col":15},{"op":"tower","x":30,"z":-7,"r":2,"h":5,"col":71,"round":true,"crenels":false},{"op":"slab","x":27,"z":-10,"w":6,"d":6,"y":5,"plates":1,"col":72},{"op":"box","x":8,"z":-4,"w":1,"d":1,"y":0,"h":8,"col":72},{"op":"box","x":52,"z":-4,"w":1,"d":1,"y":0,"h":8,"col":72}]}
+0 // SHOT 1: P001 TARGET SENSOR TO HORIZON PHALANX
+0 !MENTO TITLE "Target sensor to horizon phalanx" STYLE hud SEC 4 SCORE "dread"
+0 !MENTO EVENT LINE "rogue" "Echo Station Five Seven. Walkers on the north ridge. Four of them." AT 0.6
+0 // SHOT 2: P001 THE PHALANX ON THE RIDGE
+0 !MENTO SHOT "P001 The phalanx on the ridge" POS -2640.15 -449.38 13090.69 TGT 400 -365.29 13090.69 LENS 40 SEC 6 SCORE "march"
+0 !MENTO PLAN {"on":"atat-2","frame":"wide","from":"sw","lens":40,"sec":6,"move":"hold","name":"P001 The phalanx on the ridge"}
+0 !MENTO EVENT LINE "comms" "Copy, Rogue Leader. Hold them off the shield generator as long as you can." AT 0.5
+0 // SHOT 3: P002 SPEEDER WINDSHIELD
+0 !MENTO SHOT "P002 Speeder windshield" POS 0 -45 6 TGT 0 195 2400 LENS 70 SEC 4 SCORE "chase"
+0 !MENTO PLAN {"on":"me","frame":"pov","from":"s","lens":0,"sec":4,"move":"hold","name":"P002 Speeder windshield"}
+0 !MENTO ACT "me" RIDE speeder-1 DRIVE -5759.8 10759.8 AHEAD 140 FLY
+0 !MENTO ACT "atat-1" MARCH 180 0.6 FIRE HEAVY EVERY 1.2 AIM "trench"
+0 !MENTO EVENT LINE "rogue" "Rogue Group, form up on me. Attack pattern delta. Go now." AT 0.3
+0 // SHOT 4: P002 HEAVY VOLLEY
+0 !MENTO SHOT "P002 Heavy volley" POS -1800 -226.13 11486.3 TGT -1800 -407.75 10332.99 LENS 55 SEC 5 SCORE "march"
+0 !MENTO PLAN {"on":"atat-1","frame":"low","from":"n","lens":0,"sec":5,"move":"hold","name":"P002 Heavy volley"}
+0 // SHOT 5: P003 HEAD TRAVERSE
+0 !MENTO SHOT "P003 Head traverse" POS -1800 -20 9919.21 TGT -1800 -757.75 9550.54 LENS 80 SEC 4
+0 !MENTO PLAN {"on":"atat-1","frame":"under","from":"s","lens":0,"sec":4,"move":"hold","name":"P003 Head traverse"}
+0 !MENTO EVENT LINE "rogue" "That armour is too strong for blasters. Go for the legs." AT 0.4
+0 // SHOT 6: P003 AERIAL SURVEY
+0 !MENTO SHOT "P003 Aerial survey" POS -1800 -2326.5 11075.34 TGT -1800 -407.03 9464.72 LENS 50 SEC 5 SCORE "tension"
+0 !MENTO PLAN {"on":"atat-1","frame":"aerial","from":"n","lens":0,"sec":5,"move":"hold","name":"P003 Aerial survey"}
+0 !MENTO ACT "speeder-2" PASS "atat-1" ALT 12 SPEED 1 ALT 12
+0 !MENTO EVENT LINE "rogue" "Rogue Three, set your harpoon. I will cover you." AT 0.5
+0 // SHOT 7: P004 SPEED HARPOON
+0 !MENTO SHOT "P004 Speed harpoon" POS -384.65 -284.4 9456.89 TGT -567.11 -277.32 9456.89 LENS 60 SEC 4 FOLLOW
+0 !MENTO PLAN {"on":"speeder-2","frame":"wide","from":"e","lens":0,"sec":4,"move":"hold","name":"P004 Speed harpoon"}
+0 !MENTO ACT "speeder-2" ORBIT "atat-1" R 22 ALT 6 SPEED 0.9 ALT 6
+0 !MENTO EVENT LINE "rogue" "Coming round. Cable out." AT 0.6
+0 // SHOT 8: P004 LEG BINDING
+0 !MENTO SHOT "P004 Leg binding" POS -1485.24 -385.48 8954.89 TGT -1689 -364.07 8954.89 LENS 35 SEC 5
+0 !MENTO PLAN {"on":"atat-1:leg-rl","frame":"close","from":"e","lens":0,"sec":5,"move":"hold","name":"P004 Leg binding"}
+0 !MENTO EVENT LINE "rogue" "The cable is holding. Once more round." AT 1
+0 !MENTO EVENT CABLE "speeder-2" "atat-1" AT 0 TURNS 3 OVER 4
+0 // SHOT 9: P005 JOINT ENTANGLEMENT TO CATASTROPHIC CRASH
+0 !MENTO SHOT "P005 Joint entanglement to catastrophic crash" POS -1572.1 -104 7875.87 TGT -1800 -5 7875.87 LENS 60 SEC 12 FOLLOW SCORE "march"
+0 !MENTO PLAN {"on":"atat-1","frame":"wide","from":"e","lens":0,"sec":12,"move":"hold","name":"P005 Joint entanglement to catastrophic crash"}
+0 !MENTO ACT "speeder-2" PASS "atat-1" ALT 10 SPEED 1 ALT 10
+0 !MENTO EVENT LINE "rogue" "Pull up. Pull up now." AT 0.5
+0 !MENTO EVENT LINE "comms" "One walker down." AT 6.5
+0 !MENTO EVENT TRIP "atat-1" AT 2 OVER 1.6
+0 !MENTO EVENT CRASH "speeder-1" AT 0
+0 // SHOT 10: P006 ADVANCING BATTERY
+0 !MENTO SHOT "P006 Advancing battery" POS -954.5 -449.78 7418.28 TGT 400 -365.73 8772.77 LENS 60 SEC 4 SCORE "dread"
+0 !MENTO PLAN {"on":"atat-2","frame":"wide","from":"sw","lens":0,"sec":4,"move":"hold","name":"P006 Advancing battery"}
+0 // SHOT 11: P006 CHIN CANNON BARRAGE
+0 !MENTO SHOT "P006 Chin cannon barrage" POS 400 -226.5 7209.48 TGT 400 -405.09 8364.83 LENS 55 SEC 5
+0 !MENTO PLAN {"on":"atat-2","frame":"low","from":"front","lens":0,"sec":5,"move":"hold","name":"P006 Chin cannon barrage"}
+0 !MENTO ACT "atat-2" MARCH 180 0.6 FIRE HEAVY EVERY 0.8 AIM "trench"
+0 !MENTO EVENT LINE "rogue" "Rogue Two, I am hit. I am going in." AT 1.2
+0 // SHOT 12: P007 WRECKAGE STOMP
+0 !MENTO SHOT "P007 Wreckage stomp" POS -3555.04 -96 8510.9 TGT -3456.16 -147.49 8510.9 LENS 55 SEC 4 SCORE "tension"
+0 !MENTO PLAN {"on":"speeder-1","frame":"low","from":"w","lens":0,"sec":4,"move":"hold","name":"P007 Wreckage stomp"}
+0 // SHOT 13: P007 PILOT CABLE EGRESS
+0 !MENTO SHOT "P007 Pilot cable egress" POS 400 -20 7633.04 TGT 400 -760.38 7239.82 LENS 80 SEC 5
+0 !MENTO PLAN {"on":"atat-2","frame":"under","from":"s","lens":0,"sec":5,"move":"hold","name":"P007 Pilot cable egress"}
+0 !MENTO EVENT LINE "luke" "Grab the line. I am going under it." AT 0.4
+0 !MENTO EVENT HANG "me" "atat-2" AT 0 OVER 0.3
+0 !MENTO EVENT DROP "me" AT 1.5
+0 // SHOT 14: P008 PHALANX ADVANCE TO INFANTRY ROUT
+0 !MENTO SHOT "P008 Phalanx advance to infantry rout" POS 2800 -447.16 8.17 TGT 2800 -362.97 5220.16 LENS 24 SEC 5 SCORE "march"
+0 !MENTO PLAN {"on":"atat-3","frame":"wide","from":"s","lens":24,"sec":5,"move":"hold","name":"P008 Phalanx advance to infantry rout"}
+0 !MENTO EVENT LINE "comms" "The trench is lost. Fall back to the transports." AT 0.8
+0 !MENTO EVENT ROUT "rebels" "atat-3" AT 0
+0 // SHOT 15: P008 LUKE SPRINTS
+0 !MENTO SHOT "P008 Luke sprints" POS 438.24 -96 7654.97 TGT 301.03 -50 7654.97 LENS 55 SEC 4 FOLLOW
+0 !MENTO PLAN {"on":"me","frame":"low","from":"e","lens":0,"sec":4,"move":"hold","name":"P008 Luke sprints"}
+0 !MENTO ACT "me" WALK 212.67 7741.24 AHEAD 15
+0 // SHOT 16: P009 VENTRAL ASCENSION
+0 !MENTO SHOT "P009 Ventral ascension" POS 3027.9 -55 3939.67 TGT 2800 -45 3939.67 LENS 60 SEC 4 FOLLOW SCORE "tension"
+0 !MENTO PLAN {"on":"me","frame":"wide","from":"e","lens":0,"sec":4,"move":"hold","name":"P009 Ventral ascension"}
+0 !MENTO EVENT HANG "me" "atat-3" AT 0 OVER 3
+0 // SHOT 17: P009 THERMAL DETONATION
+0 !MENTO SHOT "P009 Thermal detonation" POS 2800 -20 4094.65 TGT 2800 -759.61 3707.47 LENS 80 SEC 5
+0 !MENTO PLAN {"on":"atat-3","frame":"under","from":"s","lens":0,"sec":5,"move":"hold","name":"P009 Thermal detonation"}
+0 !MENTO EVENT SOUND "zip" AT 0.2
+0 !MENTO EVENT DROP "me" AT 2.5
+0 !MENTO EVENT BLAST "atat-3" belly AT 3 SCALE 1.5
+0 // SHOT 18: P010 NECK COMBUSTION TO FLANK TOPPLE
+0 !MENTO SHOT "P010 Neck combustion to flank topple" POS 3995.39 -85.01 3196.41 TGT 2509.49 -19.81 3196.41 LENS 60 SEC 9 FOLLOW SCORE "march"
+0 !MENTO PLAN {"on":"atat-3","frame":"wide","from":"e","lens":0,"sec":9,"move":"hold","name":"P010 Neck combustion to flank topple"}
+0 !MENTO EVENT BLAST "atat-3" neck AT 2
+0 !MENTO EVENT TOPPLE "atat-3" AT 3 OVER 2
+0 // SHOT 19: P011 TRENCH BOMBARDMENT
+0 !MENTO SET WEATHER blizzard
+0 !MENTO SHOT "P011 Trench bombardment" POS 120 -96 1428.03 TGT 120 -96 3025 LENS 40 SEC 4 SCORE "dread"
+0 !MENTO PLAN {"on":"trench","frame":"medium","from":"s","lens":40,"sec":4,"move":"hold","name":"P011 Trench bombardment"}
+0 !MENTO EVENT LINE "comms" "Echo Base, they have broken through. Begin the evacuation." AT 0.5
+0 !MENTO EVENT STRIKE "trench" AT 0 EVERY 0.7
+0 // SHOT 20: P011 BASE OVERRUN
+0 !MENTO SHOT "P011 Base overrun" POS 5200 -225.28 3470.59 TGT 5200 -405.62 4619.2 LENS 55 SEC 4 SCORE "march"
+0 !MENTO PLAN {"on":"atat-4","frame":"low","from":"front","lens":0,"sec":4,"move":"push","name":"P011 Base overrun"}
+0 !MENTO KEY POS 5200 -225.28 4044.89 TGT 5200 -405.62 4619.2 LENS 55
+0 !MENTO ACT "atat-4" MARCH 180 0.6 FIRE HEAVY EVERY 1 AIM "trench"

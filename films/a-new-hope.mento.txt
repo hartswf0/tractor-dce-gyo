@@ -1,0 +1,85 @@
+0 // MENTO film · Mock City · word to momento
+0 !MENTO ASPECT 16:9 FPS 24
+0 // SHOT 1: A LONG TIME AGO IN A GALAXY FAR,
+0 !MENTO SET WORLD tatooine AS c3po TIME day
+0 !MENTO TITLE "A long time ago in a galaxy far,\nfar away...." STYLE card SEC 4 SCORE "dread"
+0 !MENTO EVENT LINE "narrator" "A long time ago, in a galaxy far, far away." AT 0.3
+0 // SHOT 2: STAR WARS
+0 !MENTO TITLE "STAR WARS" STYLE logo SEC 3 SCORE "fanfare"
+0 // SHOT 3: THE DROID IN THE DESERT
+0 !MENTO SHOT "The droid in the desert" POS 0 -65.8 -227.9 TGT 0 -55.8 0 LENS 60 SEC 5 SCORE "hero"
+0 !MENTO PLAN {"on":"me","frame":"wide","from":"e","lens":0,"sec":5,"move":"push","name":"The droid in the desert"}
+0 !MENTO KEY POS 0 -65.8 -113.95 TGT 0 -55.8 0 LENS 60
+0 !MENTO ACT "me" WALK -678.82 678.82 AHEAD 24
+0 !MENTO EVENT LINE "narrator" "A droid carries a message across the sand." AT 0.6
+0 !MENTO EVENT SOUND "ping" AT 3.5
+0 // SHOT 4: A FARM BOY
+0 !MENTO SET AS luke TIME dusk
+0 !MENTO SHOT "A farm boy" POS -592.65 -387.09 445.57 TGT -349.4 -362.09 688.81 LENS 50 SEC 4
+0 !MENTO PLAN {"on":"me","frame":"shoulder","from":"s","lens":0,"sec":4,"move":"hold","name":"A farm boy"}
+0 !MENTO ACT "me" WALK -759.11 519.11 AHEAD 6
+0 !MENTO EVENT LINE "narrator" "A farm boy looks to the horizon." AT 0.5
+0 // SHOT 5: THE TWIN SUNS
+0 !MENTO SHOT "The twin suns" POS -865.08 -598.64 519.11 TGT -727.87 -478.08 519.11 LENS 55 SEC 4
+0 !MENTO PLAN {"on":"me","frame":"low","from":"w","lens":0,"sec":4,"move":"crane","name":"The twin suns"}
+0 !MENTO KEY POS -816.07 -583.19 519.11 TGT -727.87 -478.08 519.11 LENS 55
+0 // SHOT 6: THE LANDSPEEDER
+0 !MENTO SET TIME day
+0 !MENTO SHOT "The landspeeder" POS -648.07 -321.91 -2676.06 TGT -919.11 -321.91 -2676.06 LENS 45 SEC 5 FOLLOW SCORE "chase"
+0 !MENTO PLAN {"on":"me","frame":"medium","from":"e","lens":0,"sec":5,"move":"track","name":"The landspeeder"}
+0 !MENTO KEY POS -648.07 -321.91 -2838.68 TGT -919.11 -321.91 -2676.06 LENS 45
+0 !MENTO ACT "me" RIDE speeder DRIVE -919.11 -3160.89 AHEAD 80 FLY
+0 // SHOT 7: THE SMUGGLER
+0 !MENTO SET AS han
+0 !MENTO SHOT "The smuggler" POS -876.72 -131.72 -2732.62 TGT -820.15 -126.72 -2676.06 LENS 35 SEC 3 SCORE "hero"
+0 !MENTO PLAN {"on":"me","frame":"close","from":"sw","lens":0,"sec":3,"move":"push","name":"The smuggler"}
+0 !MENTO KEY POS -848.43 -131.72 -2704.34 TGT -820.15 -126.72 -2676.06 LENS 35
+0 !MENTO ACT "me" LEAVE WALK -820.15 -2796.06 AHEAD 3
+0 !MENTO EVENT LINE "han" "You need a ship? I have a ship." AT 0.4
+0 // SHOT 8: THE WOOKIEE
+0 !MENTO SET AS chewbacca
+0 !MENTO SHOT "The Wookiee" POS -820.15 -62.94 -2966.12 TGT -820.15 -62.94 -2764.93 LENS 45 SEC 3
+0 !MENTO PLAN {"on":"me","frame":"medium","from":"s","lens":0,"sec":3,"move":"orbit","name":"The Wookiee"}
+0 !MENTO KEY POS -962.41 -62.94 -2907.19 TGT -820.15 -62.94 -2764.93 LENS 45
+0 !MENTO KEY POS -1021.33 -62.94 -2764.93 TGT -820.15 -62.94 -2764.93 LENS 45
+0 !MENTO EVENT LINE "chewbacca" "Rrraaarrgh." AT 0.3
+0 // SHOT 9: THE PRINCESS
+0 !MENTO SET AS leia
+0 !MENTO SHOT "The princess" POS -820.15 -102.94 -2684.93 TGT -820.15 -97.94 -2764.93 LENS 35 SEC 3
+0 !MENTO PLAN {"on":"me","frame":"close","from":"n","lens":0,"sec":3,"move":"pull","name":"The princess"}
+0 !MENTO KEY POS -820.15 -102.94 -2604.93 TGT -820.15 -97.94 -2764.93 LENS 35
+0 !MENTO EVENT LINE "leia" "Help us. You are our only hope." AT 0.3
+0 // SHOT 10: STORMTROOPERS
+0 !MENTO SET AS stormtrooper
+0 !MENTO SHOT "Stormtroopers" POS -820.15 -110.73 -2537.03 TGT -820.15 -57.94 -2764.93 LENS 60 SEC 4 SCORE "march"
+0 !MENTO PLAN {"on":"me","frame":"wide","from":"n","lens":0,"sec":4,"move":"push","name":"Stormtroopers"}
+0 !MENTO KEY POS -820.15 -73.84 -2650.98 TGT -820.15 -57.94 -2764.93 LENS 60
+0 !MENTO ACT "me" WALK -820.15 -3164.93 AHEAD 10 FIRE
+0 !MENTO EVENT LINE "trooper" "Halt. Search every ship." AT 0.5
+0 // SHOT 11: THE EMPIRE
+0 !MENTO SET WORLD deathstar AS vader TIME night
+0 !MENTO TITLE "The Empire" STYLE card SEC 2 SCORE "dread"
+0 !MENTO EVENT LINE "narrator" "And an empire that rules by fear." AT 0.3
+0 // SHOT 12: THE DARK LORD
+0 !MENTO SHOT "The Dark Lord" POS -820.15 59.79 -3333.36 TGT -820.15 59.79 -3132.17 LENS 45 SEC 4
+0 !MENTO PLAN {"on":"me","frame":"medium","from":"s","lens":0,"sec":4,"move":"push","name":"The Dark Lord"}
+0 !MENTO KEY POS -820.15 59.79 -3232.77 TGT -820.15 59.79 -3132.17 LENS 45
+0 !MENTO ACT "me" WALK -820.15 -3292.17 AHEAD 4 SABER
+0 !MENTO EVENT SOUND "breath" AT 0.2
+0 !MENTO EVENT LINE "vader" "I find your lack of faith disturbing." AT 1.6
+0 // SHOT 13: THE TIE
+0 !MENTO SHOT "The TIE" POS 69.93 -2143.14 -2145.72 TGT 360 -2127.14 -1855.65 LENS 60 SEC 6 FOLLOW SCORE "chase"
+0 !MENTO PLAN {"on":"tie","frame":"wide","from":"sw","lens":0,"sec":6,"move":"hold","name":"The TIE"}
+0 !MENTO ACT "me" TIE FLY FIRE
+0 // SHOT 14: THE RUN
+0 !MENTO SET AS luke
+0 !MENTO SHOT "The run" POS 880 -534.45 -7117.31 TGT 880 -500.45 -6342.45 LENS 60 SEC 6 FOLLOW
+0 !MENTO PLAN {"on":"me","frame":"wide","from":"s","lens":0,"sec":6,"move":"hold","name":"The run"}
+0 !MENTO ACT "me" LEAVE RIDE xwing DRIVE 880 -6855.65 AHEAD 120 FLY FIRE
+0 !MENTO EVENT LINE "luke" "Stay on target." AT 1
+0 // SHOT 15: STAR WARS
+0 !MENTO TITLE "STAR WARS" STYLE logo SEC 2
+0 // SHOT 16: A NEW HOPE
+MADE WITH WORD TO MOM
+0 !MENTO TITLE "A New Hope\nmade with word to momento" STYLE card SEC 3 SCORE "end"
+0 !MENTO EVENT LINE "narrator" "A new hope." AT 0.4
