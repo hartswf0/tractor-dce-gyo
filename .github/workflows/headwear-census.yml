@@ -1,0 +1,21 @@
+name: Headwear Census
+on:
+  push:
+    branches: ["claude/platos-cave-ldraw-wzcr71"]
+    paths:
+      - "tools/build-headwear-index.mjs"
+      - ".github/workflows/headwear-census.yml"
+permissions:
+  contents: read
+jobs:
+  census:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build census
+        run: node tools/build-headwear-index.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: headwear-census
+          path: audit-output/

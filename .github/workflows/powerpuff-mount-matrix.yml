@@ -1,0 +1,49 @@
+name: Powerpuff Mount Matrix
+on:
+  push:
+    branches: ["claude/platos-cave-ldraw-wzcr71"]
+    paths:
+      - "movieator/**"
+      - "screen-piece-index.html"
+      - "tests/powerpuff-mount-matrix.mjs"
+      - ".github/workflows/powerpuff-mount-matrix.yml"
+permissions:
+  contents: read
+jobs:
+  matrix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: 22}
+      - run: npm install --no-save playwright@1.55.0
+      - run: npx playwright install --with-deps chromium
+      - name: Serve
+        run: |
+          python3 -m http.server 4173 >/tmp/http.log 2>&1 &
+          sleep 2
+      - name: Render matrix
+        run: node tests/powerpuff-mount-matrix.mjs
+      - name: Contact sheet
+        run: |
+          python3 -m pip install --quiet pillow
+          python3 - <<'PY'
+          from PIL import Image,ImageDraw,ImageFont
+          import os
+          figs=['blossom','bubbles','buttercup']; ys=[-88,-84,-80,-76,-72,-68,-64,-60]
+          W,H=220,500; label=24
+          out=Image.new('RGB',(len(ys)*W,len(figs)*(H+label)+32),'white'); d=ImageDraw.Draw(out)
+          for j,y in enumerate(ys): d.text((j*W+6,6),f'y={y}',fill='black')
+          for i,f in enumerate(figs):
+            for j,y in enumerate(ys):
+              p=f'powerpuff-matrix/{f}_m{abs(y)}.png'; im=Image.open(p).convert('RGB'); im.thumbnail((W,H)); x=j*W+(W-im.width)//2; yy=32+i*(H+label); out.paste(im,(x,yy))
+              if j==0:d.text((6,yy+H+4),f,fill='black')
+          out.save('powerpuff-mount-contact.jpg',quality=72,optimize=True)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: powerpuff-mount-matrix
+          path: |
+            powerpuff-matrix/
+            powerpuff-mount-contact.jpg
