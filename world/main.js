@@ -1142,10 +1142,11 @@ async function mbDraft(prompt) {
 }
 /** The model's answer as it streams: every complete op is compiled and laid at once, the code panel lists it in words, the strip counts ops. */
 function streamer(words, keep) {
-  const st = { n: 0, text: '', timer: 0, dirty: false, keep };
-  st.onDelta = text => { st.text = text; W.master.streamText = text; st.dirty = true; if (!st.timer) st.timer = setInterval(st.flush, 250); };
+  const st = { n: 0, text: '', timer: 0, dirty: false, keep, last: 0 };
+  // a delta that arrives more than a quarter second after the last flush is laid at once (a slow frame may have held several back), the rest wait for the timer
+  st.onDelta = text => { st.text = text; W.master.streamText = text; st.dirty = true; if (performance.now() - st.last >= 250) st.flush(); else if (!st.timer) st.timer = setInterval(st.flush, 250); };
   st.flush = () => {
-    if (!st.dirty) return; st.dirty = false; const pp = Dsl.partialProgram(st.text); paintJson(st.text);
+    if (!st.dirty) return; st.dirty = false; st.last = performance.now(); const pp = Dsl.partialProgram(st.text); paintJson(st.text);
     if (pp.ops.length <= st.n) return;
     for (let i = st.n; i < pp.ops.length; i++) mbLog('op', `op ${i + 1}: ${Dsl.captionOp(pp.ops[i])}`);
     st.n = pp.ops.length; const program = { name: pp.name || 'draft', ops: pp.ops };

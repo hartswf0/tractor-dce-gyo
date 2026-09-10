@@ -23,9 +23,10 @@ const mixes = new WeakMap();
 function mix(ctx) {
   let m = mixes.get(ctx); if (m) return m;
   const g = v => { const n = ctx.createGain(); n.gain.value = v; return n; };
-  const master = g(0.7), comp = ctx.createDynamicsCompressor(); comp.threshold.value = -18; comp.ratio.value = 3; comp.attack.value = 0.005; comp.release.value = 0.25;
-  m = { master, comp, score: g(0.55), foley: g(1), voice: g(1.1), ambience: g(0.7) };
-  for (const k of ['score', 'foley', 'voice', 'ambience']) m[k].connect(comp); comp.connect(master); master.connect(ctx.destination);
+  const master = g(0.7), comp = ctx.createDynamicsCompressor(); comp.threshold.value = -22; comp.ratio.value = 6; comp.knee.value = 12; comp.attack.value = 0.003; comp.release.value = 0.2;
+  const soft = ctx.createWaveShaper(), curve = new Float32Array(1024); for (let i = 0; i < 1024; i++) { const x = (i / 511.5) - 1; curve[i] = Math.tanh(x * 1.6) / Math.tanh(1.6); } soft.curve = curve; soft.oversample = '2x';   // the last word: nothing clips
+  m = { master, comp, score: g(0.5), foley: g(0.85), voice: g(1.1), ambience: g(0.6) };
+  for (const k of ['score', 'foley', 'voice', 'ambience']) m[k].connect(comp); comp.connect(soft); soft.connect(master); master.connect(ctx.destination);
   mixes.set(ctx, m); return m;
 }
 /** A one-shot's outlet: its gain and its place in the stereo field. */
