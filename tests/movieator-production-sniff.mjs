@@ -25,6 +25,7 @@ try{
   await page.waitForTimeout(700);
   await shot('01-initial-homer');
 
+  // Prosthetic sculpt owns its crown envelope. Arbitrary hats are impossible.
   await page.getByRole('button',{name:'HMU',exact:true}).click();
   await tab('HAIR / HAT');
   const homerBlocked=await page.locator('#trayBody').innerText();
@@ -33,13 +34,14 @@ try{
   assert(viewBox1&&viewBox1.height>=200,'Actor viewport collapsed under HMU tray');
   await shot('02-homer-hair-blocked');
 
+  // Standard 3626 head + an actual anti-stud hair part can CLICK.
   await page.getByRole('button',{name:'CLOSE',exact:true}).click();
   await select('#world','scooby-doo');
   await select('#figure','fred');
   await page.getByRole('button',{name:'HMU',exact:true}).click();
   await tab('HAIR / HAT');
   const hq=page.locator('#q');
-  await hq.fill('Shaggy Rogers');
+  await hq.fill('Short Quiff');
   const hair=page.locator('[data-probe="21787.dat"]');
   await hair.waitFor({state:'visible',timeout:10000});
   await page.waitForFunction(()=>{const b=document.querySelector('[data-probe="21787.dat"]');return b&&!b.disabled&&b.textContent.includes('CLICK')},{timeout:20000});
@@ -48,9 +50,17 @@ try{
   assert(!(await page.locator('#portBadge').innerText()).includes('LOAD ERROR'),'Compatible headwear produced LDraw load error');
   await shot('03-fred-shaggy-hair-click');
 
+  // A named prop is not enough. An axe head must remain BLOCKED without a grip shaft.
   await page.getByRole('button',{name:'PROPS',exact:true}).click();
   await tab('RIGHT HAND');
   const pq=page.locator('#q');
+  await pq.fill('Axe Head');
+  await page.waitForTimeout(1500);
+  const enabledAxeHeads=await page.locator('#rows [data-probe]:not([disabled])').count();
+  assert(enabledAxeHeads===0,'Axe head without grip shaft became hand-mountable');
+  await shot('04-axe-heads-blocked');
+
+  // Whole axe proves a ~8 LDU grip shaft and snaps to the right hand.
   await pq.fill('Axe with Pick End and Long Handle');
   const axe=page.locator('[data-probe="39802.dat"]');
   await axe.waitFor({state:'visible',timeout:10000});
@@ -58,20 +68,22 @@ try{
   await axe.click();
   await page.waitForTimeout(700);
   assert(!(await page.locator('#portBadge').innerText()).includes('LOAD ERROR'),'Mechanically verified axe failed to render');
-  await shot('04-fred-axe-right-hand');
+  await shot('05-fred-axe-right-hand');
 
+  // Clocking changes orientation without losing the hand connection.
   await tab('CLOCK');
   const rightSection=page.locator('.section').filter({hasText:'RIGHT HAND'});
   const clock90=rightSection.getByRole('button',{name:'90°',exact:true});
   if(await clock90.isEnabled()){await clock90.click();await page.waitForTimeout(500)}
-  await shot('05-fred-axe-clock-90');
+  await shot('06-fred-axe-clock-90');
 
+  // PIECES shows committed geometry only.
   await page.getByRole('button',{name:'PIECES',exact:true}).click();
   await page.waitForTimeout(150);
   const pieces=await page.locator('#trayBody').innerText();
   assert(/39802\.dat/.test(pieces),'Committed hand prop missing from PIECES');
   assert(!/PROBE/.test(pieces),'Uncommitted probe candidates leaked into PIECES');
-  await shot('06-pieces-committed');
+  await shot('07-pieces-committed');
 }catch(e){failures.push(`TEST EXCEPTION ${e.message}`);try{await shot('99-failure')}catch{}}
 
 const state={failures,rig:await page.locator('#rigReady').innerText().catch(()=>''),ldraw:await page.locator('#ldrawReady').innerText().catch(()=>''),catalog:await page.locator('#catalogReady').innerText().catch(()=>''),console:consoleLines.slice(-120)};
