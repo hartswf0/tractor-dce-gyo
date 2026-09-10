@@ -4,6 +4,7 @@ on:
     branches: ["claude/platos-cave-ldraw-wzcr71"]
     paths:
       - "screen-piece-index-test.html"
+      - "movieator/**"
       - "tests/movieator-sniff.mjs"
       - ".github/workflows/movieator-sniff.yml"
 permissions:
@@ -31,18 +32,18 @@ jobs:
           python3 - <<'PY'
           from PIL import Image,ImageDraw
           import glob,os,math
-          fs=glob.glob('sniff-v2/*.png'); cards=[]
+          fs=glob.glob('sniff-v3/*.png'); cards=[]
           for f in fs:
             im=Image.open(f).convert('RGB'); im.thumbnail((240,520)); c=Image.new('RGB',(250,550),'white'); c.paste(im,((250-im.width)//2,15)); ImageDraw.Draw(c).text((8,530),os.path.basename(f),(0,0,0)); cards.append(c)
           cols=3; rows=max(1,math.ceil(len(cards)/cols)); out=Image.new('RGB',(cols*250,rows*550),(230,230,230))
           for i,c in enumerate(cards):out.paste(c,((i%cols)*250,(i//cols)*550))
-          out.save('movieator-contact-v2.jpg',quality=60,optimize=True)
+          out.save('movieator-contact-v3.jpg',quality=60,optimize=True)
           PY
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: movieator-sniff-v2
+          name: movieator-sniff-v3
           path: |
-            sniff-v2/
-            sniff-v2-results.json
-            movieator-contact-v2.jpg
+            sniff-v3/
+            sniff-v3-results.json
+            movieator-contact-v3.jpg
