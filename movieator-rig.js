@@ -13,8 +13,6 @@ export function headFamily(part){
   if(!part)return 'none';
   const f=(part.file||part.filename||'').toLowerCase();
   const d=(part.description||'').toLowerCase();
-  // 3626 is the canonical cylindrical minifig head family. Keep the first
-  // production pass deliberately strict; unusual sculpts are prosthetics.
   if(/^3626/.test(f))return 'standard';
   if(/simpsons|yoda|gremlin|mogwai|powerpuff|alien e\. ?t\.|wookiee|chewbacca|muppet|mickey|scooby/.test(d))return 'prosthetic';
   return 'prosthetic';
@@ -44,11 +42,20 @@ export function isNeckLayerCandidate(r){
   return /^Minifig\b/i.test(r.description||'') && /\b(?:beard|moustache|mustache|neck|collar|scarf|breathing apparatus|respirator|shoulder armor|neckwear)\b/i.test(r.description||'');
 }
 
-const mag=(x,y,z)=>Math.hypot(x,y,z);
-function matrixColumns(a){
-  // LDraw matrix a b c / d e f / g h i. Return transformed primitive axes.
-  return [[a[0],a[3],a[6]],[a[1],a[4],a[7]],[a[2],a[5],a[8]]];
-}
+const ID=[1,0,0,0,1,0,0,0,1];
+const mag=v=>Math.hypot(v[0],v[1],v[2]);
+const mv=(m,v)=>[
+  m[0]*v[0]+m[1]*v[1]+m[2]*v[2],
+  m[3]*v[0]+m[4]*v[1]+m[5]*v[2],
+  m[6]*v[0]+m[7]*v[1]+m[8]*v[2]
+];
+const add=(a,b)=>a.map((x,i)=>x+b[i]);
+const mm=(a,b)=>[
+  a[0]*b[0]+a[1]*b[3]+a[2]*b[6],a[0]*b[1]+a[1]*b[4]+a[2]*b[7],a[0]*b[2]+a[1]*b[5]+a[2]*b[8],
+  a[3]*b[0]+a[4]*b[3]+a[5]*b[6],a[3]*b[1]+a[4]*b[4]+a[5]*b[7],a[3]*b[2]+a[4]*b[5]+a[5]*b[8],
+  a[6]*b[0]+a[7]*b[3]+a[8]*b[6],a[6]*b[1]+a[7]*b[4]+a[8]*b[7],a[6]*b[2]+a[7]*b[5]+a[8]*b[8]
+];
+function matrixColumns(a){return [[a[0],a[3],a[6]],[a[1],a[4],a[7]],[a[2],a[5],a[8]]]}
 function joinPath(base,file){
   if(/^https?:/i.test(file))return file;
   file=file.replace(/\\/g,'/').replace(/^parts\//,'');
@@ -57,34 +64,32 @@ function joinPath(base,file){
 }
 
 // Probe a .dat recursively for a cylindrical shaft at minifig grip scale.
-// A minifig hand grips ~3.18mm diameter, approximately 8 LDU, so we seek a
-// cylinder with two transverse radii around 4 LDU and a useful axial length.
-export async function probeGrip(part,{base='./ldraw/parts/',maxDepth=2,cache=new Map()}={}){
+// Returned point and axis are in the root part's local coordinate system.
+export async function probeGrip(part,{base='./ldraw/parts/',maxDepth=3,cache=new Map()}={}){
   const start=part.filename||part.file;
   if(!start)return {ok:false,status:'BLOCKED',reason:'NO FILE'};
   const seen=new Set();
-  async function walk(file,T={p:[0,0,0],m:[1,0,0,0,1,0,0,0,1]},depth=0){
-    const key=file;
+  async function walk(file,T={p:[0,0,0],m:ID},depth=0){
+    const key=`${depth}|${file}`;
     if(depth>maxDepth||seen.has(key))return null;seen.add(key);
-    let text=cache.get(key);
+    let text=cache.get(file);
     if(text===undefined){
-      const r=await fetch(joinPath(base,file),{cache:'force-cache'});if(!r.ok)return null;text=await r.text();cache.set(key,text);
+      const r=await fetch(joinPath(base,file),{cache:'force-cache'});if(!r.ok)return null;text=await r.text();cache.set(file,text);
     }
     for(const raw of text.split(/\r?\n/)){
       const a=raw.trim().split(/\s+/);if(a[0]!=='1'||a.length<15)continue;
-      const p=[+a[2],+a[3],+a[4]],m=a.slice(5,14).map(Number),child=a.slice(14).join(' ').replace(/\\/g,'/');
-      const low=child.toLowerCase();
+      const lp=[+a[2],+a[3],+a[4]],lm=a.slice(5,14).map(Number),child=a.slice(14).join(' ').replace(/\\/g,'/');
+      const p=add(T.p,mv(T.m,lp)),m=mm(T.m,lm),low=child.toLowerCase();
       if(/(?:cyli|cylc)\.dat$/.test(low)){
-        const cols=matrixColumns(m),lens=cols.map(v=>mag(...v));
-        const order=[0,1,2].sort((i,j)=>lens[j]-lens[i]);
+        const cols=matrixColumns(m),lens=cols.map(mag),order=[0,1,2].sort((i,j)=>lens[j]-lens[i]);
         const axisI=order[0],r1=lens[order[1]],r2=lens[order[2]],ax=lens[axisI];
-        if(ax>=8 && r1>=3.4&&r1<=4.6 && r2>=3.4&&r2<=4.6){
-          return {ok:true,status:'CLICK',reason:'GRIP SHAFT',localPoint:p,axis:cols[axisI],radius:(r1+r2)/2,length:ax,source:child};
+        if(ax>=8 && r1>=3.35&&r1<=4.65 && r2>=3.35&&r2<=4.65){
+          const axis=cols[axisI],axisLen=mag(axis)||1;
+          return {ok:true,status:'CLICK',reason:'GRIP SHAFT',localPoint:p,axis:axis.map(x=>x/axisLen),radius:(r1+r2)/2,length:ax,source:child};
         }
       }
-      if(depth<maxDepth && (/^s\//i.test(low)||!/\b(?:stud|edge|disc|ring|cyli|cylc|con|torus|box|rect|tri)\b/i.test(low))){
-        const hit=await walk(child,{p,m},depth+1);if(hit)return hit;
-      }
+      const primitive=/\b(?:stud|edge|disc|ring|cyli|cylc|con|torus|box|rect|tri|quad)\b/i.test(low);
+      if(depth<maxDepth && (!primitive||/^s\//i.test(low))){const hit=await walk(child,{p,m},depth+1);if(hit)return hit}
     }
     return null;
   }
