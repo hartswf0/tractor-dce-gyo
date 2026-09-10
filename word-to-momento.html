@@ -31,8 +31,9 @@
 <script src="./world/drive.js?v=4a7c8aeb"></script>
 <script src="./world/sound.js?v=1f6ff44e"></script>
 <script src="./world/fx.js?v=b677d929"></script>
-<script src="./world/dsl.js?v=31abefe7"></script>
-<script src="./world/ai.js?v=94e95458"></script>
+<script src="./world/dsl.js?v=93ec2446"></script>
+<script src="./world/ai.js?v=ed65a087"></script>
+<script src="./world/receipts.js?v=a38f2d5d"></script>
 <script src="./world/build.js?v=9a0d1ac4"></script>
 <script src="./world/props.js?v=1ac3bafd"></script>
 <script>window.__momento = true;</script>
@@ -178,7 +179,7 @@ body[data-world="deathstar"] #menu .ai select,body.dark #menu .ai select{backgro
 #wbTop button{height:30px;min-width:34px;padding:0 10px;border:1px solid rgba(26,31,42,.25);border-radius:9px;background:rgba(255,255,255,.85);font:12px var(--sans);color:var(--ink)}
 #wbTop button.on{background:var(--ink);color:#fff}#wbTop button.stop{background:var(--red);color:#fff;border:none;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
 #wbCode{display:flex;flex-direction:column;gap:6px;max-height:45vh}#wbCode[hidden]{display:none}#wbCode .head{display:flex;gap:6px;align-items:center}#wbCode .head em{flex:1;font:10px var(--mono);color:var(--dim);font-style:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#wbCode .head button{height:28px;padding:0 10px;border:1px solid rgba(26,31,42,.25);border-radius:9px;background:rgba(255,255,255,.85);font:11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink)}#wbCode .seg{display:inline-flex;border:1px solid rgba(26,31,42,.25);border-radius:9px;overflow:hidden}#wbCode .seg button{border:none;border-radius:0}#wbCode .seg button.on{background:var(--ink);color:#fff}
-#wbOps{margin:0;padding:6px 8px;list-style:none;max-height:36vh;overflow:auto;border-radius:12px;background:rgba(255,255,255,.92);font:12px/1.4 var(--sans);color:var(--ink)}#wbOps[hidden]{display:none}#wbOps li{display:flex;gap:8px;align-items:baseline;padding:4px 4px;border-radius:8px;cursor:pointer}#wbOps li i{flex:0 0 auto;width:10px;height:10px;border-radius:3px;background:#999;margin-top:2px;align-self:center}#wbOps li b{flex:0 0 auto;font:11px var(--mono);color:var(--dim)}#wbOps li span{flex:1;min-width:0}#wbOps li em{flex:0 0 auto;font:10px var(--mono);color:var(--dim);font-style:normal}#wbOps li.lit{background:rgba(200,144,28,.25)}#wbOps li.new{animation:opIn .4s ease-out}#wbOps li.bad{color:var(--red)}
+#wbOps{margin:0;padding:6px 8px;list-style:none;max-height:36vh;overflow:auto;border-radius:12px;background:rgba(255,255,255,.92);font:12px/1.4 var(--sans);color:var(--ink)}#wbOps[hidden]{display:none}#wbOps li.grp{flex-wrap:wrap}#wbOps li.grp>b{min-width:14px;text-align:center;font-weight:800;color:var(--ink)}#wbOps li.grp>span{font-weight:600}#wbOps li ol{flex:1 0 100%;margin:2px 0 0;padding:0 0 0 24px;list-style:none;font-size:11px;color:var(--dim)}#wbOps li ol[hidden]{display:none}#wbOps li ol li{display:block;padding:1px 0;cursor:default}#wbOps li{display:flex;gap:8px;align-items:baseline;padding:4px 4px;border-radius:8px;cursor:pointer}#wbOps li i{flex:0 0 auto;width:10px;height:10px;border-radius:3px;background:#999;margin-top:2px;align-self:center}#wbOps li b{flex:0 0 auto;font:11px var(--mono);color:var(--dim)}#wbOps li span{flex:1;min-width:0}#wbOps li em{flex:0 0 auto;font:10px var(--mono);color:var(--dim);font-style:normal}#wbOps li.lit{background:rgba(200,144,28,.25)}#wbOps li.new{animation:opIn .4s ease-out}#wbOps li.bad{color:var(--red)}
 @keyframes opIn{0%{background:rgba(47,191,63,.35)}100%{background:transparent}}
 #wbJson{margin:0;max-height:36vh;overflow:auto;padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.92);color:var(--ink);font:11px/1.45 var(--mono);white-space:pre-wrap;word-break:break-word;-webkit-user-select:text;user-select:text}#wbJson[hidden]{display:none}#wbJson .k{color:#1f5fa8}#wbJson .s{color:#1f7a2f}#wbJson .n{color:#b0512a}
 body[data-world="deathstar"] #wbOps,body[data-world="deathstar"] #wbJson,body[data-world="deathstar"] #wbCode .head button,body.dark #wbOps,body.dark #wbJson,body.dark #wbCode .head button{background:rgba(20,24,32,.92);color:#e6eaf2;border-color:rgba(230,234,242,.3)}
@@ -277,7 +278,7 @@ body[data-world="deathstar"] #reel.empty::before,body.dark #reel.empty::before{b
 <button id="build">Build</button>
 <div id="palette"></div>
 <button id="wbSay" title="say what to shoot">say what to shoot</button>
-<div id="wb"><div id="wbTop"><span class="seg" id="wbFilm"><button data-w="film" class="on" title="words become shots">film</button><button data-w="build" title="words become bricks">build</button></span><div id="wbStat"><i class="bar"><i></i><i></i><i></i></i><span id="wbText"></span><b id="wbTime"></b></div><button id="wbStop" class="stop" hidden title="stop the model">stop</button><button id="wbCodeBtn" title="the program, op by op">code</button><button id="wbLogBtn" title="the build log">log</button><button id="wbKeyBtn" title="OpenAI key">key</button><button id="wbHide" title="hide the word bar">hide</button></div>
+<div id="wb"><div id="wbTop"><span class="seg" id="wbFilm"><button data-w="film" class="on" title="words become shots">film</button><button data-w="build" title="words become bricks">build</button></span><div id="wbStat"><i class="bar"><i></i><i></i><i></i></i><span id="wbText"></span><b id="wbTime"></b></div><button id="wbStop" class="stop" hidden title="stop the model">stop</button><button id="wbCodeBtn" title="the program, op by op">code</button><button id="wbLogBtn" title="the build log">log</button><button id="wbKeyBtn" title="OpenAI key">key</button><button id="wbLookBtn" class="on" title="a picture of the view goes with the words">look</button><button id="wbHide" title="hide the word bar">hide</button></div>
 <div id="wbCode" hidden><div class="row head"><span class="seg"><button data-view="words" class="on">words</button><button data-view="json">json</button></span><em id="wbCodeStat"></em><button id="wbCodeEdit" title="put the program in the bar to change by hand">edit</button><button id="wbCodeCopy">copy</button></div><ol id="wbOps"></ol><pre id="wbJson" hidden></pre></div>
 <div id="wbLog" hidden><pre id="wbLogText"></pre><div class="row"><button id="wbLogCopy">copy</button><button id="wbLogClear">clear</button></div></div>
 <div id="wbKeyRow"><input id="wbKey" type="password" placeholder="OpenAI API key · stays in this browser" autocomplete="off"><button id="wbKeyOk">Save</button></div>
@@ -291,6 +292,6 @@ body[data-world="deathstar"] #reel.empty::before,body.dark #reel.empty::before{b
 <div id="hint">say what to shoot, set the camera and press Here, Rec takes the reel; or walk: left thumb walks · right thumb looks · tap right swings the saber</div>
 <div id="keys">wasd walk · mouse drag look · space saber · f push · g detonator · b build · shift run · e board / land</div>
 <div id="veil"><div class="k">word to momento</div><h1 id="vTitle">Finding a place</h1><div class="bricks"><i></i><i></i><i></i><i></i><i></i></div><div class="m" id="vm"></div><ol id="stages"><li data-s="place">place</li><li data-s="ground">ground</li><li data-s="imagery">imagery</li><li data-s="buildings">buildings</li><li data-s="ship">the ship and Vader</li><li data-s="bricks">bricks</li></ol><button id="vStart" hidden>Start now</button></div>
-<script src="./world/main.js?v=ca464d86"></script>
+<script src="./world/main.js?v=5a9d2442"></script>
 </body>
 </html>

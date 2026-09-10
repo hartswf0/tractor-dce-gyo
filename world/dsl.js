@@ -367,17 +367,65 @@ function propYaw(rot) { return (2 - (rot & 3) + 4) & 3; }
 function propPlace(pr, { ax = 0, ay = 0, az = 0 } = {}) { return { x: ax + pr.x * STUD + pr.w * STUD / 2, y: ay + pr.y * PLATE, z: az + pr.z * STUD + pr.d * STUD / 2, yaw: propYaw(pr.rot), w: pr.w * STUD, d: pr.d * STUD, h: (pr.hp || 1) * PLATE }; }
 
 /* ───────────────────────── compile ───────────────────────── */
+/* An op moved into a group's frame: shifted by the group's origin and turned k quarter turns about it ((x, z) → (z, −x) per turn, the draft's own turn). Rect ops turn as rects, cell ops as cells, facings and part rotations turn with them. */
+const RECT = new Set(['box', 'slab', 'floor', 'cut', 'band', 'roof']), CELL = new Set(['door', 'window', 'arch', 'stairs', 'column', 'minifig', 'vehicle', 'walker', 'part', 'mpd', 'pillar']), CENTRE = new Set(['tower', 'cylinder', 'tree']);
+const turnRect = (x, z, w, d, k) => { for (let j = 0; j < k; j++) { const nx = z, nz = -x - w; x = nx; z = nz; const t = w; w = d; d = t; } return [x, z, w, d]; };
+const turnPoint = (x, z, k) => { for (let j = 0; j < k; j++) { const nx = z; z = -x; x = nx; } return [x, z]; };
+const FACES = 'nesw';
+function placeIn(o, gx, gz, gy, k) {
+  if (!o || typeof o !== 'object') return o; if (o.args || o.object || o.params) o = { ...o, ...(o.args || o.object || o.params) };
+  const name = String(o.op || o.type || o.kind || '').toLowerCase(), out = { ...o }; k &= 3;
+  if (name === 'group') { const [x, z] = turnPoint(I(o.x), I(o.z), k); out.x = x + gx; out.z = z + gz; out.y = I(o.y) + gy; out.turn = (I(o.turn) + k) & 3; return out; }
+  if (name === 'wall' || name === 'fence') {
+    const a = o.from || [I(o.x), I(o.z)], b = o.to || [I(o.x) + I(o.len, 4), I(o.z)];
+    const pa = turnPoint(I(a[0]), I(a[1]), k), pb = turnPoint(I(b[0]), I(b[1]), k); out.from = [pa[0] + gx, pa[1] + gz]; out.to = [pb[0] + gx, pb[1] + gz]; delete out.x; delete out.z; delete out.len;
+  } else if (RECT.has(name)) { const [x, z, w, d] = turnRect(I(o.x), I(o.z), Math.max(1, I(o.w, 4)), Math.max(1, I(o.d, 4)), k); out.x = x + gx; out.z = z + gz; out.w = w; out.d = d; }
+  else if (CENTRE.has(name)) { const [x, z] = turnPoint(Number(o.x) || 0, Number(o.z) || 0, k); out.x = x + gx; out.z = z + gz; }
+  else if (CELL.has(name)) { const [x, z] = turnRect(I(o.x), I(o.z), 1, 1, k); out.x = x + gx; out.z = z + gz; if (o.facing != null) { const f = FACE[String(o.facing).toLowerCase()[0]]; if (f != null) out.facing = FACES[(f - k + 4) & 3]; } if (name === 'part') out.rot = (I(o.rot) - k + 4) & 3; }
+  else { out.x = I(o.x) + gx; out.z = I(o.z) + gz; }
+  if (name !== 'stairs' || o.y != null) out.y = I(o.y, name === 'window' ? 1 : 0) + gy; else out.y = gy;
+  return out;
+}
+/** Every op with the groups opened, for words and counts. */
+function flatOps(ops, depth = 0) { const out = []; for (const o of ops || []) { if (!o) continue; const name = String(o.op || o.type || '').toLowerCase(); if (name === 'group' && depth < 4) out.push(...flatOps(Array.isArray(o.ops) ? o.ops : [], depth + 1)); else out.push(o); } return out; }
+/** The plan against the build: each planned part should stand as a group of about its planned size; a part that left no pieces vanished. */
+function checkPlan(plan, res) {
+  const notes = []; const parts = plan && Array.isArray(plan.parts) ? plan.parts : []; if (!parts.length || !res) return notes;
+  const groups = res.report.groups || [], all = [...res.pieces, ...res.parts];
+  for (const pt of parts) {
+    const nm = String(pt.name || '').trim().toLowerCase(); if (!nm) continue;
+    const grp = groups.find(g => g.name.toLowerCase() === nm); if (!grp) { notes.push(`part "${pt.name}" has no group`); continue; }
+    const mine = all.filter(p => p.op === grp.i), props = res.props.filter(p => p.op === grp.i);
+    if (!mine.length && !props.length) { notes.push(`part "${pt.name}" vanished: its group built nothing`); continue; }
+    const size = Array.isArray(pt.size) ? pt.size.map(n => I(n)) : null; if (!size || !mine.length) continue;
+    const w = Math.max(...mine.map(p => p.x + p.w)) - Math.min(...mine.map(p => p.x)), d = Math.max(...mine.map(p => p.z + p.d)) - Math.min(...mine.map(p => p.z)), h = Math.ceil((Math.max(...mine.map(p => p.y + (p.plate ? 1 : 3))) - Math.min(...mine.map(p => p.y))) / 3);
+    const off = (a, b) => b > 0 && Math.abs(a - b) > Math.max(2, 0.4 * b);
+    if (off(w, size[0]) || off(d, size[1]) || off(h, size[2])) notes.push(`part "${pt.name}" planned ${size[0]}×${size[1]}×${size[2]}, built ${w}×${d}×${h}`);
+  }
+  return notes;
+}
 function compile(program, opts = {}) {
-  const g = new Grid(), report = { ops: 0, unknown: [], errors: [], floating: 0, bricks: 0, plates: 0, parts: 0, props: 0 };
+  const g = new Grid(), report = { ops: 0, unknown: [], errors: [], floating: 0, bricks: 0, plates: 0, parts: 0, props: 0, groups: [], vanished: [] };
   const ops = Array.isArray(program) ? program : (program && Array.isArray(program.ops)) ? program.ops : [];
-  ops.slice(0, opts.maxOps || 600).forEach((o, i) => {
+  /* one op: a group runs its children at its offset and turn with the group's own index on every piece, so the code panel folds it and a tap lights the whole subassembly */
+  const run = (o, i, depth) => {
     if (o && (o.args || o.object || o.params)) o = { ...o, ...(o.args || o.object || o.params) };   // models sometimes nest the fields; take them either way
-    const name = o && String(o.op || o.type || o.kind || '').toLowerCase(); const fn = OPS[name];
+    const name = o && String(o.op || o.type || o.kind || '').toLowerCase();
+    if (name === 'group') {
+      if (depth > 3) { report.errors.push({ i, op: name, error: 'groups nest too deep' }); return; }
+      const kids = Array.isArray(o.ops) ? o.ops : [], gx = I(o.x), gz = I(o.z), gy = I(o.y), k = I(o.turn) & 3, c0 = g.cells.size, p0 = g.parts.length, q0 = g.props.length;
+      g.op = i; for (const c of kids.slice(0, 200)) run(placeIn(c, gx, gz, gy, k), i, depth + 1);
+      const grp = { i, name: String(o.name || `group ${i + 1}`).slice(0, 40), ops: kids.length, planned: Array.isArray(o.size) ? o.size.slice(0, 3).map(n => I(n)) : null, cells: g.cells.size - c0, parts: g.parts.length - p0, props: g.props.length - q0 };
+      if (!depth) { report.groups.push(grp); if (!grp.cells && !grp.parts && !grp.props) report.vanished.push(grp.name); } report.ops++;   // the panel folds the top groups; an inner one is part of its outer
+      return;
+    }
+    const fn = OPS[name];
     if (!fn) { report.unknown.push({ i, op: name || '?' }); return; }
-    const n0 = g.props.length; g.op = i;
+    const n0 = g.props.length; if (!depth) g.op = i;
     try { fn(g, o); report.ops++; } catch (e) { report.errors.push({ i, op: name, error: e.message }); }
     for (let k = n0; k < g.props.length; k++) { g.props[k].src = { ...o, op: name }; g.props[k].op = i; }   // a prop remembers the op that made it, so a read build can say it again
-  });
+  };
+  ops.slice(0, opts.maxOps || 600).forEach((o, i) => run(o, i, 0));
   let pieces = tile(g, opts);
   const s = support(g, pieces); pieces = s.pieces; report.floating = s.dropped; report.dropped = s.droppedList;
   for (const p of pieces) if (p.plate) report.plates++; else report.bricks++;
@@ -471,10 +519,10 @@ function partialProgram(text) {
   return out;
 }
 /** One op in words. */
-function captionOp(o) { const c = caption({ name: 'x', ops: [o] }); return c.replace(/^x: /, ''); }
+function captionOp(o) { if (o && String(o.op || o.type || '').toLowerCase() === 'group') { const n = flatOps(Array.isArray(o.ops) ? o.ops : []).length; return `${String(o.name || 'a group')}: ${n} op${n === 1 ? '' : 's'}`; } const c = caption({ name: 'x', ops: [o] }); return c.replace(/^x: /, ''); }
 /** Deterministic words for a program: what a reader would say it is. */
 function caption(program) {
-  const ops = (program && program.ops) || [], said = new Map(), add = t => said.set(t, (said.get(t) || 0) + 1);
+  const ops = flatOps((program && program.ops) || []), said = new Map(), add = t => said.set(t, (said.get(t) || 0) + 1);
   for (let o of ops) {
     if (!o) continue; if (o.args || o.object || o.params) o = { ...o, ...(o.args || o.object || o.params) };
     const op = String(o.op || o.type || '').toLowerCase(), c = colName(colOf(o.col, op === 'roof' ? 4 : op === 'door' ? 70 : op === 'window' ? 15 : 71));
@@ -524,6 +572,7 @@ Ops (all coordinates are the min corner unless said otherwise):
 - {"op":"minifig","x","z","facing","as":"vader|stormtrooper|pilot|luke|citizen|knight|pirate|builder","look":{"hat":"hair|cap|helmet|cowboy|tophat|knight|space|trooper|pilot|vader|pirate|none","hatCol","torso":"plain|stripes|anchor|train|pirate|space|zipper","torsoCol","legs","head","tool":"saber|blaster|sword|shield|spear|axe|broom|cup|radio|none","toolCol"}} a standing figure (2×2 studs).
 - {"op":"vehicle","x","z","facing","kind":"car|truck|bus|speeder|boat|plane","len":6,"col"} a vehicle the player can ride (use it whenever the brief asks for something to drive or fly and a kind fits; the player can also turn any build into a ride): cars, trucks and buses drive (4 studs wide, real wheels under mudguards, headlights, a windscreen, a roof), boats float; speeders (2 wide) and planes (2 wide with wings 10 across, a tail fin) fly. len ≥ 6, trucks 10, buses 12, planes 8.
 - {"op":"walker","x","z","facing","kind":"atat|atst","col"} an Imperial walker the player can ride: the atat is 8 × 32 studs and 16 m tall on four legs, the atst 8 × 10 on two; legs swing, chin guns fire.
+- {"op":"group","name":"left tower","x","z","y":0,"turn":0-3,"size":[w,d,h],"ops":[...]} a named subassembly: its ops are written in the group's own frame (origin 0,0 at the group's x,z; turn is quarter turns clockwise seen from above) and count as one op of the 80. Name every part of a build that has a name of its own (a tower, a wing, the porch) so it can be changed alone; size is the box you mean it to fill, in studs and bricks.
 Colours (LDraw codes or names): 0 black, 1 blue, 2 green, 4 red, 14 yellow, 15 white, 19 tan, 25 orange, 28 dark tan, 70 brown, 71 grey, 72 dark grey, 322 azure, 47 trans-clear, 46 trans-yellow, 36 trans-red.
 Design rules a LEGO designer follows:
 - Proportions: a door is 6 bricks tall, so walls with a door are at least 6 bricks; windows sit at y 1 or 2; a roof begins at the wall top (y = wall y + h); a tower stands about twice the wall height; a house is at least 8×6 studs; a floor between storeys is a slab.
@@ -542,5 +591,5 @@ const EXAMPLES = [
   { ask: 'a stone bridge over a stream', program: { name: 'bridge', ops: [{ op: 'box', x: 0, z: 0, w: 4, d: 6, y: 0, h: 3, col: 72 }, { op: 'box', x: 12, z: 0, w: 4, d: 6, y: 0, h: 3, col: 72 }, { op: 'arch', x: 4, z: 0, y: 0, facing: 's', h: 2, col: 72 }, { op: 'arch', x: 4, z: 5, y: 0, facing: 's', h: 2, col: 72 }, { op: 'slab', x: 0, z: 0, w: 16, d: 6, y: 3, plates: 3, col: 71 }, { op: 'fence', from: [0, 0], to: [16, 0], y: 4, col: 72 }, { op: 'fence', from: [0, 5], to: [16, 5], y: 4, col: 72 }, { op: 'tree', x: 18, z: 3, h: 4, r: 2 }, { op: 'minifig', x: 7, z: 2, facing: 'e', as: 'luke' }] } },
   { ask: 'a small yellow plane to fly', program: { name: 'plane', ops: [{ op: 'vehicle', x: 4, z: 0, facing: 's', kind: 'plane', len: 8, col: 14 }, { op: 'minifig', x: 0, z: 2, facing: 'e', as: 'pilot' }, { op: 'fence', from: [-2, 10], to: [14, 10], y: 0, col: 15 }] } },
 ];
-root.Dsl = { compile, decompile, caption, captionOp, partialProgram, tile, toRows, toMPD, withHeaders, propYaw, propPlace, box, foot, figureDef, figureMPD, vehicleMPD, walkerMPD, DIMS, BRICKS, PLATES, COLOURS, HATS, TORSOS, TOOLS, FIGS, SPEC, EXAMPLES, STUD, PLATE, BRICK, colOf };
+root.Dsl = { compile, decompile, caption, captionOp, partialProgram, placeIn, flatOps, checkPlan, tile, toRows, toMPD, withHeaders, propYaw, propPlace, box, foot, figureDef, figureMPD, vehicleMPD, walkerMPD, DIMS, BRICKS, PLATES, COLOURS, HATS, TORSOS, TOOLS, FIGS, SPEC, EXAMPLES, STUD, PLATE, BRICK, colOf };
 })(typeof window !== 'undefined' ? window : globalThis);
