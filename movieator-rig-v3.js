@@ -86,7 +86,10 @@ export const HAND_GRIP_LOCAL=[0,-0.8229,-9.8948];
 export const HAND_GRIP_AXIS_LOCAL=norm([0,-10.64966,-2.75422]);
 export function handFrame(side){
  const h=HANDS[side],center=add(h.p,mv(h.m,HAND_GRIP_LOCAL)),gripAxis=norm(mv(h.m,HAND_GRIP_AXIS_LOCAL));
- return{side,center,gripAxis,clawNormal:norm(mv(h.m,[1,0,0])),captureRadius:18,minOverlap:6,radius:[3.2,4.8],axes:{grip:gripAxis,localX:norm(mv(h.m,[1,0,0])),localY:norm(mv(h.m,[0,1,0])),localZ:norm(mv(h.m,[0,0,1]))}};
+ const rawLocalY=norm(mv(h.m,[0,1,0])),rawLocalZ=norm(mv(h.m,[0,0,1])),clawNormal=norm(mv(h.m,[1,0,0]));
+ // Legacy controller keys are intentionally collapsed onto the one proven
+ // grip axis. This removes fake orientation choices while old callers migrate.
+ return{side,center,gripAxis,clawNormal,captureRadius:18,minOverlap:6,radius:[3.2,4.8],axes:{vertical:gripAxis,grip:gripAxis,localX:clawNormal,localY:gripAxis,localZ:gripAxis,rawLocalY,rawLocalZ}};
 }
 
 export function magnetStatus({distance=Infinity,axisError=Infinity,overlap=0,clear=false}={}){
