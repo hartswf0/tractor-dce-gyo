@@ -56,12 +56,18 @@ export function neckCompatibility({actorHead,candidate}){
  return{ok:true,status:'TRY',reason:'NECK-LAYER FAMILY; CLEARANCE REQUIRED'};
 }
 
-// Return every bar-like segment rather than stopping at the first lexical hit.
+// LDraw cylinder primitives 4-4cyli / 4-4cylc run from y=0 to y=1.
+// Therefore the transformed LOCAL Y column is the cylinder axis. X and Z are
+// its two radial directions. Do not infer axis from whichever matrix column is
+// longest: that is only accidentally correct for long handles.
 export async function probeGripSegments(part,{base='./ldraw/parts/',maxDepth=4,cache=new Map()}={}){
  const start=part.filename||part.file;if(!start)return{ok:false,status:'BLOCKED',reason:'NO FILE',segments:[]};const seen=new Set(),segments=[];
  async function walk(file,T={p:[0,0,0],m:ID},depth=0){if(depth>maxDepth)return;const key=`${depth}|${file}`;if(seen.has(key))return;seen.add(key);let text;try{text=await readPart(file,{base,cache})}catch{return}
   for(const raw of text.split(/\r?\n/)){const a=raw.trim().split(/\s+/);if(a[0]!=='1'||a.length<15)continue;const lp=[+a[2],+a[3],+a[4]],lm=a.slice(5,14).map(Number),child=a.slice(14).join(' ').replace(/\\/g,'/'),p=add(T.p,mv(T.m,lp)),m=mm(T.m,lm),low=child.toLowerCase();
-   if(/(?:cyli|cylc)\.dat$/.test(low)){const cols=matrixColumns(m),lens=cols.map(mag),order=[0,1,2].sort((i,j)=>lens[j]-lens[i]),axisI=order[0],r1=lens[order[1]],r2=lens[order[2]],length=lens[axisI];if(length>=6&&r1>=3.2&&r1<=4.8&&r2>=3.2&&r2<=4.8){segments.push({origin:p,axis:norm(cols[axisI]),radius:(r1+r2)/2,length,source:child})}}
+   if(/(?:cyli|cylc)\.dat$/.test(low)){
+    const cols=matrixColumns(m),length=mag(cols[1]),r1=mag(cols[0]),r2=mag(cols[2]);
+    if(length>=6&&r1>=3.2&&r1<=4.8&&r2>=3.2&&r2<=4.8){segments.push({origin:p,axis:norm(cols[1]),radius:(r1+r2)/2,length,source:child,primitiveAxis:'Y'})}
+   }
    const primitive=/\b(?:stud|edge|disc|ring|cyli|cylc|con|torus|box|rect|tri|quad)\b/i.test(low);if(depth<maxDepth&&(!primitive||/^s\//i.test(low)))await walk(child,{p,m},depth+1)
   }}
  try{await walk(start);segments.sort((a,b)=>b.length-a.length);if(!segments.length)return{ok:false,status:'BLOCKED',reason:'NO HAND-SCALE GRIP SEGMENT',segments};return{ok:true,status:isAttachmentOnlyProp(part)?'TRY':'HEAR',reason:`${segments.length} GRIP SEGMENT${segments.length===1?'':'S'} HEARD`,segments}}catch{return{ok:false,status:'BLOCKED',reason:'GRIP PROBE ERROR',segments:[]}}
@@ -74,8 +80,15 @@ export const HANDS={
  right:{p:[23.6904,-33.226,-9.8982],m:[0.985,0.1202,-0.1202,-0.17,0.6964,-0.6964,0,0.707,0.707]}
 };
 export const HAND_GRIP_LOCAL=[0,-0.8229,-9.8948];
-export function handFrame(side){const h=HANDS[side],center=add(h.p,mv(h.m,HAND_GRIP_LOCAL));return{side,center,axes:{vertical:[0,-1,0],localX:norm(mv(h.m,[1,0,0])),localY:norm(mv(h.m,[0,1,0])),localZ:norm(mv(h.m,[0,0,1]))},captureRadius:18,minOverlap:6,radius:[3.2,4.8]}}
+// 3820.dat's own half-cylinder starts at (0,4.502,-8.518) and its LOCAL Y
+// transform column is (0,-10.64966,-2.75422). Its midpoint is the documented
+// grip centre. This normalized vector is therefore the actual claw/bar axis.
+export const HAND_GRIP_AXIS_LOCAL=norm([0,-10.64966,-2.75422]);
+export function handFrame(side){
+ const h=HANDS[side],center=add(h.p,mv(h.m,HAND_GRIP_LOCAL)),gripAxis=norm(mv(h.m,HAND_GRIP_AXIS_LOCAL));
+ return{side,center,gripAxis,clawNormal:norm(mv(h.m,[1,0,0])),captureRadius:18,minOverlap:6,radius:[3.2,4.8],axes:{grip:gripAxis,localX:norm(mv(h.m,[1,0,0])),localY:norm(mv(h.m,[0,1,0])),localZ:norm(mv(h.m,[0,0,1]))}};
+}
 
 export function magnetStatus({distance=Infinity,axisError=Infinity,overlap=0,clear=false}={}){
- if(!Number.isFinite(distance))return'DEAF';if(distance>18)return'DEAF';if(distance>8)return'HEAR';if(axisError>.25)return'PULL';if(overlap<6)return'ALIGN';if(!clear)return'CLOCK';return'CLICK';
+ if(!Number.isFinite(distance))return'DEAF';if(distance>18)return'DEAF';if(distance>8)return'HEAR';if(axisError>.02)return'PULL';if(overlap<6)return'ALIGN';if(!clear)return'CLOCK';return'CLICK';
 }
