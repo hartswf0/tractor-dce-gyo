@@ -1,5 +1,5 @@
-import * as FACEM from '/odyssey-halfworld/assets/character/_close/face.mjs';
-import * as DIR from '/odyssey-halfworld/scenes/_direction.mjs';
+import * as FACEM from 'https://hartswf0.github.io/odyssey-halfworld/assets/character/_close/face.mjs';
+import * as DIR from 'https://hartswf0.github.io/odyssey-halfworld/scenes/_direction.mjs';
 
 export const SOURCE_CAST=Object.freeze(Object.keys(FACEM.FACES));
 export const EXTENSION_CAST=Object.freeze(['poseidon','calypso','tiresias','laertes','antinous','menelaus','arete','hermes','zeus','argos','phemius','melanthius']);
@@ -71,7 +71,6 @@ export function renderSourceFace(character,performance='neutral',size=512){
 export function renderDecal(character,performance='neutral',w=384,h=220){
  const src=renderSourceFace(character,performance,640);if(!src)return null;
  const out=document.createElement('canvas');out.width=w;out.height=h;const g=out.getContext('2d',{willReadFrequently:true});
- // The Odyssey close-up remains the source. Crop only the face-print zone so LEGO hair stays physical.
  const sx=src.width*.265,sy=src.height*.285,sw=src.width*.47,sh=src.height*.47;
  g.drawImage(src,sx,sy,sw,sh,0,0,w,h);
  const im=g.getImageData(0,0,w,h),d=im.data;
@@ -89,10 +88,8 @@ export function makeDecalMesh(THREE,character,performance='neutral'){
  const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;tex.needsUpdate=true;
  const mat=new THREE.MeshBasicMaterial({map:tex,transparent:true,alphaTest:.08,side:THREE.DoubleSide,depthWrite:false});
  const geo=new THREE.PlaneGeometry(18.6,10.8);const mesh=new THREE.Mesh(geo,mat);
- // 3626b is radius 13 LDU, y=4..17. Mounted at -84, the printable front is centred ~-73.5.
- // Word-to-Theatre flips the complete LDraw group around X, so front is local -Z.
  mesh.position.set(0,-73.5,-13.18);mesh.renderOrder=20;mesh.name=`ODYSSEY_DECAL:${character}:${performance}`;
  mesh.userData={character,performance,source:'odyssey-halfworld/odyssey-performances'};return mesh;
 }
 
-export function selection(character,performance){return {schema:'word-to-theatre/odyssey-decal-v1',character:String(character).toLowerCase(),performance:String(performance).toLowerCase(),source:'/odyssey-halfworld/odyssey-performances.html'};}
+export function selection(character,performance){return {schema:'word-to-theatre/odyssey-decal-v1',character:String(character).toLowerCase(),performance:String(performance).toLowerCase(),source:'https://hartswf0.github.io/odyssey-halfworld/odyssey-performances.html'};}
