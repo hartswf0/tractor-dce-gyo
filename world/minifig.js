@@ -60,9 +60,9 @@ const DEFS = {
   flanders: { name: 'Ned Flanders', legs: 71, hips: 71, torso: 2, arms: 2, hands: 14, head: 14, hat: null, weapon: null, sculpt: true, parts: [['legR', '3816', 71], ['legL', '3817', 71], ['hips', '3815', 71], ['torso', '973', 2], ['armR', '3818', 2], ['armL', '3819', 2], ['handR', '3820', 14], ['handL', '3820', 14], ['head', '15529p01', 14]] },
   /* Ithaca: plain heads that take a drawn face, hair in the halfworld's colours */
   penelope: { name: 'Penelope', legs: 15, hips: 15, torso: 15, arms: 15, hands: 78, head: 78, hat: ['3625', 0], weapon: null, woman: true, face: 'halfworld:penelope' },
-  odysseus: { name: 'Odysseus', legs: 308, hips: 308, torso: 320, arms: 320, hands: 78, head: 78, hat: ['21787', 70], weapon: ['spear', '4497', 308], cape: ['522', 320], face: 'halfworld:odysseus' },
-  eurycleia: { name: 'Eurycleia', legs: 308, hips: 308, torso: 19, arms: 19, hands: 78, head: 78, hat: ['3625', 15], weapon: ['cup', '3899', 15], woman: true, face: 'halfworld:eurycleia' },
-  telemachus: { name: 'Telemachus', legs: 308, hips: 308, torso: 272, arms: 272, hands: 78, head: 78, hat: ['21787', 0], weapon: ['goblet', '2343', 297], cape: ['522', 272], face: 'halfworld:telemachus' },
+  odysseus: { name: 'Odysseus', legs: 308, hips: 308, torso: 320, arms: 320, hands: 84, head: 84, hat: ['21787', 0], weapon: ['spear', '4497', 308], cape: ['522', 320], face: 'halfworld:odysseus' },
+  eurycleia: { name: 'Eurycleia', legs: 308, hips: 308, torso: 19, arms: 19, hands: 92, head: 92, hat: ['3625', 15], weapon: ['cup', '3899', 15], woman: true, face: 'halfworld:eurycleia' },
+  telemachus: { name: 'Telemachus', legs: 308, hips: 308, torso: 272, arms: 272, hands: 18, head: 18, hat: ['21787', 0], weapon: ['goblet', '2343', 297], cape: ['522', 272], face: 'halfworld:telemachus' },
   phemius: { name: 'Phemius', legs: 4, hips: 4, torso: 4, arms: 4, hands: 78, head: 78, hat: ['3901', 70], weapon: null, face: 'halfworld:eumaeus' },
   athena: { name: 'Athena', legs: 15, hips: 15, torso: 15, arms: 15, hands: 78, head: 78, hat: ['30409', 297], weapon: ['spear', '4497', 297], cape: ['522', 272], woman: true, face: 'halfworld:athena' },
   suitor: { name: 'Suitor', legs: 70, hips: 70, torso: 70, arms: 70, hands: 78, head: 78, hat: ['3901', 0], weapon: null, crowd: true, face: 'halfworld:alcinous' },

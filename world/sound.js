@@ -83,7 +83,7 @@ const LOOPS = {
   canopy: { release: 1.5, make(c, o) { const s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain(), lfo = c.createOscillator(), lg = c.createGain(); s.buffer = noise(c); s.loop = true; f.type = 'bandpass'; f.frequency.value = 1400; f.Q.value = 0.5; g.gain.value = 0; lfo.frequency.value = 0.09; lg.gain.value = 500; lfo.connect(lg); lg.connect(f.frequency); s.connect(f); f.connect(g); g.connect(o); return { params: { gain: g.gain, cutoff: f.frequency }, start: t => { s.start(t); lfo.start(t); }, stop: t => { s.stop(t); lfo.stop(t); } }; } },
   hum: { release: 1, make(c, o) { const o1 = c.createOscillator(), s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain(); o1.type = 'sine'; o1.frequency.value = 60; s.buffer = noise(c); s.loop = true; f.type = 'lowpass'; f.frequency.value = 220; g.gain.value = 0; const sg = c.createGain(); sg.gain.value = 0.5; o1.connect(g); s.connect(f); f.connect(sg); sg.connect(g); g.connect(o); return { params: { gain: g.gain, cutoff: f.frequency }, start: t => { o1.start(t); s.start(t); }, stop: t => { o1.stop(t); s.stop(t); } }; } },
 };
-const TRACK_GAIN = 0.42;   /* a recorded track sits under the voice at this share of the score bus */
+const TRACK_GAIN = 0.2, FILE_VOICE_GAIN = 2.4;   /* the halfworld's takes sit twelve decibels under its albums: the track comes down and a recorded line comes up */   /* a recorded track sits under the voice at this share of the score bus */
 const BEDS = { blizzard: { src: 'wind', gain: 0.5, cutoff: 380 }, snow: { src: 'wind', gain: 0.22, cutoff: 260 }, forest: { src: 'canopy', gain: 0.16, cutoff: 1400 }, desert: { src: 'wind', gain: 0.18, cutoff: 700 }, city: { src: 'hum', gain: 0.08 }, space: { src: 'hum', gain: 0.14, cutoff: 120 } };
 
 /* ── the instruments: (ctx, out, at, {hz, len, vel}) ── */
@@ -197,7 +197,7 @@ function sayBuffer(ctx, out, at, buf, voice, from, dur) {
   if (voice === 'radio') { const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 1500; f.Q.value = 1.2; const g = ctx.createGain(); g.gain.value = 1.8; const sh = ctx.createWaveShaper(); const c = new Float32Array(256); for (let i = 0; i < 256; i++) { const x = i / 128 - 1; c[i] = Math.tanh(x * 2.2); } sh.curve = c; head.connect(f); f.connect(sh); sh.connect(g); head = g; ONE.static(ctx, out, at - 0.06); ONE.static(ctx, out, at + buf.duration + 0.03); }
   else if (voice === 'droid') { const f = ctx.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 400; const d = ctx.createDelay(0.05); d.delayTime.value = 0.011; const g = ctx.createGain(); g.gain.value = 0.9, dg = ctx.createGain(); dg.gain.value = 0.5; head.connect(f); f.connect(g); f.connect(d); d.connect(dg); dg.connect(g); head = g; }
   else if (voice === 'vader') { const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 1100; const d = ctx.createDelay(0.1); d.delayTime.value = 0.02; const g = ctx.createGain(); g.gain.value = 1.2; const dg = ctx.createGain(); dg.gain.value = 0.6; head.connect(f); f.connect(g); f.connect(d); d.connect(dg); dg.connect(g); head = g; }
-  head.connect(out); if (dur) s.start(at, from || 0, dur); else s.start(at, from || 0);
+  const lift = ctx.createGain(); lift.gain.value = FILE_VOICE_GAIN; head.connect(lift); lift.connect(out); if (dur) s.start(at, from || 0, dur); else s.start(at, from || 0);
 }
 /** No file: syllables of two sines, a rough voice so the line is at least heard. */
 function babble(ctx, out, at, text, voice) { const n = Math.max(2, Math.round(String(text || '').replace(/[^a-z]/gi, '').length / 2.6)), f0 = voice === 'f' ? 240 : voice === 'droid' ? 300 : 150, dur = 0.12; for (let i = 0; i < n; i++) { const t = at + i * 0.15, k = ((i * 7919) % 11) / 11; tone(ctx, out, t, voice === 'droid' ? 'square' : 'sawtooth', f0 * (0.92 + k * 0.2), f0 * (0.85 + k * 0.25), dur, 0.09, { attack: 0.02 }); tone(ctx, out, t, 'sine', f0 * (2.1 + k), f0 * (2.4 + k * 0.6), dur, 0.05, { attack: 0.02 }); } }
@@ -227,7 +227,7 @@ const S = {
   /** A line: the file through its voice, or a babble; the score ducks under it. */
   playLine(ctx, m, at, p) {
     const voice = p.voice || voiceOf(p.who), sec = p.sec || lineSec(p.key, p.text);
-    m.score.gain.setTargetAtTime(0.16, at, 0.05); m.score.gain.setTargetAtTime(0.55, at + sec, 0.2);
+    m.score.gain.setTargetAtTime(0.09, at, 0.05); m.score.gain.setTargetAtTime(0.55, at + sec, 0.2);
     if (voice === 'roar') { ONE.roar(ctx, m.voice, at, { sec }); return; }
     if (p.file) { loadFile(ctx, p.file).then(buf => { if (buf) sayBuffer(ctx, m.voice, at, buf, voice, p.from || 0, sec); else babble(ctx, m.voice, at, p.text, voice); }); return; }
     if (!p.key) { babble(ctx, m.voice, at, p.text, voice); return; }

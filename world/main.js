@@ -705,7 +705,7 @@ function simulate(dt) {
     else { const alt = (F.pos.y - W.G.h(F.pos.x, F.pos.z)) / M; $('#prompt').classList.toggle('on', !F.landing && alt < 14); $('#prompt').textContent = 'Land'; }
   }
   if (W.mode !== 'fly' && W.mode !== 'ride') Fx.Sfx.engine(false);
-  { const wantHum = W.mode === 'walk' && !W.dead && d.saber && !(W.build && W.build.on); Fx.Sfx.saber(wantHum); if (W.mode === 'walk' && W.rig.swing && !W.swingWas) Fx.Sfx.swing(); W.swingWas = W.mode === 'walk' && !!W.rig.swing; if (W.rig.landed) { const v = W.rig.landed; W.rig.landed = 0; Fx.Sfx.thud(clamp(v / (10 * M), 0.2, 1)); Fx.haptic(15); if (v > 9 * M) hurt(Math.round((v / M - 9) * 3)); } }
+  { const wantHum = W.mode === 'walk' && !W.dead && d.saber && !(W.build && W.build.on) && !(W.film && W.film.scene && W.film.scene.me === 'off');   /* a scene with no part for the player has no saber humming under it */ Fx.Sfx.saber(wantHum); if (W.mode === 'walk' && W.rig.swing && !W.swingWas) Fx.Sfx.swing(); W.swingWas = W.mode === 'walk' && !!W.rig.swing; if (W.rig.landed) { const v = W.rig.landed; W.rig.landed = 0; Fx.Sfx.thud(clamp(v / (10 * M), 0.2, 1)); Fx.haptic(15); if (v > 9 * M) hurt(Math.round((v / M - 9) * 3)); } }
   if (W.film) W.film.late(dt);                                                 // the film's actors, cables and falls move after the world has
   if (W.film && W.film.owns()) W.film.camera(W.camera, dt);                   // the film's camera stands where the shot says, whatever the player does
   if (W.shake > 0) { W.shake -= dt; W.camera.position.x += (Math.random() - .5) * W.shake * 12; W.camera.position.y += (Math.random() - .5) * W.shake * 12; }
