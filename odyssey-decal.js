@@ -86,10 +86,15 @@ export function renderDecal(character,performance='neutral',w=384,h=220){
 export function makeDecalMesh(THREE,character,performance='neutral'){
  const c=renderDecal(character,performance);if(!c)return null;
  const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;tex.needsUpdate=true;
+ // The print is a skin on the actual 13-LDU 3626b cylinder, not a billboard in front of it.
+ // Reverse U because CylinderGeometry walks the front arc from actor-right to actor-left.
+ tex.wrapS=THREE.RepeatWrapping;tex.repeat.x=-1;tex.offset.x=1;
  const mat=new THREE.MeshBasicMaterial({map:tex,transparent:true,alphaTest:.08,side:THREE.DoubleSide,depthWrite:false});
- const geo=new THREE.PlaneGeometry(18.6,10.8);const mesh=new THREE.Mesh(geo,mat);
- mesh.position.set(0,-73.5,-13.18);mesh.renderOrder=20;mesh.name=`ODYSSEY_DECAL:${character}:${performance}`;
- mesh.userData={character,performance,source:'odyssey-halfworld/odyssey-performances'};return mesh;
+ const arc=1.44,geo=new THREE.CylinderGeometry(13.16,13.16,10.8,48,1,true,Math.PI-arc/2,arc);
+ const mesh=new THREE.Mesh(geo,mat);mesh.position.set(0,-73.5,0);
+ // The LDraw actor group is flipped around X to stand upright. Counter-flip the decal's image plane vertically.
+ mesh.scale.y=-1;mesh.renderOrder=20;mesh.name=`ODYSSEY_DECAL:${character}:${performance}`;
+ mesh.userData={character,performance,source:'odyssey-halfworld/odyssey-performances',mount:'3626b-cylinder',radius:13.16};return mesh;
 }
 
 export function selection(character,performance){return {schema:'word-to-theatre/odyssey-decal-v1',character:String(character).toLowerCase(),performance:String(performance).toLowerCase(),source:'https://hartswf0.github.io/odyssey-halfworld/odyssey-performances.html'};}
