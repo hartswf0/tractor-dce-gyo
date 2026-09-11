@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#f3efe5"><title>MECAFACE THEATRE</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23f3efe5'/%3E%3Ccircle cx='32' cy='31' r='22' fill='%23ffdf2b' stroke='%23111' stroke-width='3'/%3E%3Ccircle cx='24' cy='27' r='3'/%3E%3Ccircle cx='40' cy='27' r='3'/%3E%3Cpath d='M22 41 Q32 47 42 41' fill='none' stroke='%23111' stroke-width='3'/%3E%3C/svg%3E">
+<style>
+:root{--ink:#111;--paper:#f8f5ec;--field:#eee9dc;--yellow:#ffdf2b;--red:#ffb5aa;--blue:#b7dcff;--green:#21b873;--muted:#77736a}*{box-sizing:border-box}html,body{margin:0;height:100%;overflow:hidden;background:var(--paper);color:var(--ink);font-family:ui-monospace,SFMono-Regular,Menlo,monospace}button,input,select{font:inherit;border:1.5px solid var(--ink);border-radius:0;background:var(--paper);color:var(--ink)}button{min-height:42px;font-weight:900}#app{height:100dvh;display:grid;grid-template-rows:42px minmax(0,1fr) 58px min(34dvh,320px)}header{display:flex;align-items:center;gap:8px;padding:5px 8px;border-bottom:2px solid var(--ink)}header strong{font-size:11px;margin-right:auto}.tag{border:1px solid var(--ink);padding:5px 6px;font-size:7px}.stage{position:relative;min-height:0;background:var(--field);display:grid;place-items:center;overflow:hidden}.actor{position:absolute;left:9px;top:9px;border:2px solid var(--ink);background:#fffdf6e8;padding:7px 9px;z-index:4}.actor small{display:block;color:var(--muted);font-size:7px;letter-spacing:.12em}.actor strong{display:block;font-size:17px}.actor span{font-size:8px;color:var(--muted)}svg{height:min(66vh,520px);width:min(94vw,540px);overflow:visible}.dock{display:flex;gap:6px;padding:6px;border-top:2px solid var(--ink);border-bottom:2px solid var(--ink)}.dock button{flex:1;font-size:8px}.dock button.on{background:var(--yellow)}.tray{min-height:0;overflow:auto;background:var(--paper)}.row{display:flex;gap:6px;padding:7px;border-bottom:1px solid #bbb;align-items:center}.row label{font-size:7px;font-weight:900;min-width:58px}.row button{min-height:36px;padding:6px 8px;font-size:7px}.row button.on{background:var(--yellow)}.row input[type=range]{flex:1}.row input[type=text]{flex:1;min-width:0;height:38px;padding:7px}.section{padding:8px;border-bottom:1px solid #bbb}.title{font-size:7px;letter-spacing:.12em;font-weight:950;margin-bottom:7px}.choices{display:flex;gap:5px;overflow-x:auto}.choices button{white-space:nowrap}.status{position:absolute;right:9px;top:9px;border:1px solid var(--ink);background:#fffdf6;padding:6px 8px;font-size:7px}.contract{font-size:7px;white-space:pre-wrap;padding:9px;line-height:1.45}.eye,.pupil,.brow,.mouth,.lid{transition:transform .06s steps(1),d .06s steps(1),opacity .06s steps(1)}.blink .lid{opacity:1}.lid{opacity:0}.beat{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);padding:5px 8px;border:1px solid var(--ink);background:var(--blue);font-size:8px;font-weight:900;opacity:0}.beat.on{opacity:1}.legal{position:absolute;bottom:8px;right:8px;font-size:6px;color:var(--muted);max-width:42%;text-align:right}
+</style></head>
+<body><div id="app">
+<header><strong>MECAFACE THEATRE</strong><span class="tag">WORD-TO-THEATRE</span><span class="tag">12 FPS</span></header>
+<main class="stage"><div class="actor"><small>ACTOR / FACE REHEARSAL</small><strong id="actorName">PENELOPE</strong><span id="intentRead">recognition + restraint</span></div><div class="status" id="status">REST</div><div class="beat" id="beat">HOLD</div>
+<svg id="face" viewBox="0 0 500 500" aria-label="face performance stage">
+<defs><linearGradient id="headg" x1="0" x2="1"><stop offset="0" stop-color="#d7aa00"/><stop offset=".22" stop-color="#ffdf2b"/><stop offset=".78" stop-color="#ffdf2b"/><stop offset="1" stop-color="#c99b00"/></linearGradient></defs>
+<ellipse cx="250" cy="254" rx="150" ry="174" fill="url(#headg)" stroke="#111" stroke-width="8"/>
+<path d="M125 146 Q250 72 375 146" fill="none" stroke="#111" stroke-width="10" opacity=".18"/>
+<g id="brows"><path id="browL" class="brow" d="M152 198 Q192 176 226 194" fill="none" stroke="#111" stroke-width="11" stroke-linecap="round"/><path id="browR" class="brow" d="M274 194 Q310 176 349 198" fill="none" stroke="#111" stroke-width="11" stroke-linecap="round"/></g>
+<g id="eyes"><ellipse class="eye" cx="190" cy="235" rx="42" ry="34" fill="#fff" stroke="#111" stroke-width="7"/><ellipse class="eye" cx="310" cy="235" rx="42" ry="34" fill="#fff" stroke="#111" stroke-width="7"/><circle id="pupilL" class="pupil" cx="194" cy="238" r="11" fill="#111"/><circle id="pupilR" class="pupil" cx="314" cy="238" r="11" fill="#111"/><rect class="lid" x="145" y="211" width="90" height="47" rx="20" fill="#ffdf2b" stroke="#111" stroke-width="5"/><rect class="lid" x="265" y="211" width="90" height="47" rx="20" fill="#ffdf2b" stroke="#111" stroke-width="5"/></g>
+<path id="mouth" class="mouth" d="M180 328 Q250 360 320 328" fill="none" stroke="#111" stroke-width="9" stroke-linecap="round"/>
+<path id="lineL" d="M149 301 Q134 323 145 344" fill="none" stroke="#111" stroke-width="4" opacity="0"/><path id="lineR" d="M351 301 Q366 323 355 344" fill="none" stroke="#111" stroke-width="4" opacity="0"/>
+</svg><div class="legal">adapter theatre · no proprietary MecaFace meshes bundled</div></main>
+<nav class="dock"><button data-tab="intent" class="on">INTENT</button><button data-tab="eyes">EYES</button><button data-tab="mouth">MOUTH</button><button data-tab="voice">VOICE</button><button data-tab="contract">CONTRACT</button></nav>
+<section class="tray" id="tray"></section>
+</div>
+<script type="module">
+import {compileFromSources} from './word-to-theatre-face-contract.js';
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const state={tab:'intent',actor:'PENELOPE',intent:'recognition',intensity:.35,gaze:0,blink:false,browL:.25,browR:-.05,viseme:'REST',mouthOpen:0,asymmetry:.08,enter:.35,release:.5,text:'I know you.',playing:false};
+const actors=['PENELOPE','ODYSSEUS','ATHENA','TELEMACHUS','ACTOR'];
+const intentMap={recognition:{browL:.28,browR:-.08,mouthOpen:.05,asymmetry:.12,gaze:0},restraint:{browL:.05,browR:.02,mouthOpen:0,asymmetry:0,gaze:0},suspicion:{browL:.42,browR:-.32,mouthOpen:0,asymmetry:-.18,gaze:.25},grief:{browL:-.35,browR:-.35,mouthOpen:.14,asymmetry:0,gaze:-.1},anger:{browL:-.5,browR:-.5,mouthOpen:.25,asymmetry:0,gaze:0},joy:{browL:.18,browR:.18,mouthOpen:.22,asymmetry:.1,gaze:0}};
+const visemes={REST:'M180 328 Q250 360 320 328',MM:'M192 338 Q250 343 308 338',EE:'M180 333 Q250 350 320 333',OH:'M220 322 Q250 295 280 322 Q250 380 220 322',AA:'M198 315 Q250 286 302 315 Q250 390 198 315',TH:'M195 326 Q250 300 305 326 Q250 370 195 326'};
+function contract(){return compileFromSources({actorId:state.actor,halfworldCast:{face:{style:'HALFWORLD',tone:'ink'},look:{}},odysseyBeat:{intent:state.intent,face:{apply:state.intent,intensity:state.intensity,enter:state.enter,release:state.release}},mecaFacePose:{gaze:state.gaze,browLeft:state.browL,browRight:state.browR,viseme:state.viseme,mouthOpen:state.mouthOpen,asymmetry:state.asymmetry,blink:state.blink}})}
+function applyFace(){
+ $('#actorName').textContent=state.actor;$('#intentRead').textContent=`${state.intent} · ${state.intensity.toFixed(2)}`;$('#status').textContent=state.viseme;
+ const py=state.gaze*18;$('#pupilL').setAttribute('transform',`translate(${py} 0)`);$('#pupilR').setAttribute('transform',`translate(${py} 0)`);
+ $('#browL').setAttribute('transform',`translate(0 ${-state.browL*22}) rotate(${-state.browL*18} 190 194)`);$('#browR').setAttribute('transform',`translate(0 ${-state.browR*22}) rotate(${state.browR*18} 310 194)`);
+ $('#mouth').setAttribute('d',visemes[state.viseme]||visemes.REST);$('#mouth').setAttribute('transform',`translate(${state.asymmetry*12} ${state.mouthOpen*12}) scale(1 ${1+state.mouthOpen*.5})`);
+ $('#face').classList.toggle('blink',state.blink);$('#lineL').style.opacity=state.intensity>.65?'.55':'0';$('#lineR').style.opacity=state.intensity>.65?'.55':'0';
+}
+function button(txt,fn,on=false){const b=document.createElement('button');b.textContent=txt;if(on)b.className='on';b.onclick=fn;return b}
+function row(label){const d=document.createElement('div');d.className='row';const l=document.createElement('label');l.textContent=label;d.append(l);return d}
+function slider(label,key,min,max,step){const r=row(label),i=document.createElement('input');i.type='range';i.min=min;i.max=max;i.step=step;i.value=state[key];i.oninput=()=>{state[key]=+i.value;applyFace()};r.append(i);return r}
+function render(){const t=$('#tray');t.innerHTML='';if(state.tab==='intent'){
+ let r=row('ACTOR');actors.forEach(a=>r.append(button(a,()=>{state.actor=a;render();applyFace()},state.actor===a)));t.append(r);
+ r=row('WHY');Object.keys(intentMap).forEach(x=>r.append(button(x.toUpperCase(),()=>{state.intent=x;Object.assign(state,intentMap[x]);render();applyFace()},state.intent===x)));t.append(r);t.append(slider('INTENSITY','intensity',0,1,.01),slider('ENTER','enter',0,1,.05),slider('RELEASE','release',0,1,.05));
+ }else if(state.tab==='eyes'){
+ let r=row('GAZE');[-1,-.5,0,.5,1].forEach(v=>r.append(button(v<0?'LEFT':v>0?'RIGHT':'CENTER',()=>{state.gaze=v;applyFace()},state.gaze===v)));t.append(r);r=row('BLINK');r.append(button(state.blink?'OPEN':'BLINK',()=>{state.blink=!state.blink;render();applyFace()},state.blink));t.append(r,slider('BROW L','browL',-.7,.7,.01),slider('BROW R','browR',-.7,.7,.01));
+ }else if(state.tab==='mouth'){
+ let r=row('VISEME');Object.keys(visemes).forEach(v=>r.append(button(v,()=>{state.viseme=v;render();applyFace()},state.viseme===v)));t.append(r,slider('OPEN','mouthOpen',0,1,.01),slider('ASYM','asymmetry',-.7,.7,.01));
+ }else if(state.tab==='voice'){
+ let r=row('LINE'),i=document.createElement('input');i.type='text';i.value=state.text;i.placeholder='type a line';i.oninput=()=>state.text=i.value;r.append(i,button('PLAY',playLine));t.append(r);const n=document.createElement('div');n.className='section';n.innerHTML='<div class="title">STEPPED FACE PASS</div><div style="font-size:8px;line-height:1.55">Text becomes a 12 fps viseme rehearsal. The body can stay locked while mouth, eyes and brows perform separately.</div>';t.append(n);
+ }else{const pre=document.createElement('pre');pre.className='contract';pre.textContent=JSON.stringify(contract(),null,2);t.append(pre)}
+}
+function roughVisemes(text){return [...text.toUpperCase()].filter(c=>/[A-Z ]/.test(c)).map(c=>c===' '?'REST':/[BMP]/.test(c)?'MM':/[OQUW]/.test(c)?'OH':/[AE]/.test(c)?'AA':/[IEY]/.test(c)?'EE':/[TH]/.test(c)?'TH':'REST')}
+async function playLine(){if(state.playing)return;state.playing=true;const seq=roughVisemes(state.text);const beat=$('#beat');for(const v of seq){state.viseme=v;beat.textContent=v;beat.classList.add('on');applyFace();await new Promise(r=>setTimeout(r,83));beat.classList.remove('on')}state.viseme='REST';state.playing=false;applyFace();render()}
+$$('.dock button').forEach(b=>b.onclick=()=>{$$('.dock button').forEach(x=>x.classList.remove('on'));b.classList.add('on');state.tab=b.dataset.tab;render()});
+applyFace();render();window.MECAFACE_THEATRE={state,contract,playLine};
+</script></body></html>
