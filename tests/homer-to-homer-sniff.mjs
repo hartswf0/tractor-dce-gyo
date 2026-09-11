@@ -1,4 +1,4 @@
-// actual repertory visual gate
+// actual repertory visual gate · retry
 import {chromium} from 'playwright';
 import fs from 'node:fs';
 const browser=await chromium.launch({headless:true,args:['--use-gl=swiftshader','--enable-webgl']});
