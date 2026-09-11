@@ -59,13 +59,13 @@ const DEFS = {
   maggie: { name: 'Maggie', legs: 1, hips: 1, torso: 1, arms: 1, hands: 14, head: 14, hat: null, weapon: null, sculpt: true, short: true, baby: true, faces: { wide: '15525p01', worried: '15525p02' }, parts: [['hips', '15526', 1], ['head', '15525p02', 14]] },
   flanders: { name: 'Ned Flanders', legs: 71, hips: 71, torso: 2, arms: 2, hands: 14, head: 14, hat: null, weapon: null, sculpt: true, parts: [['legR', '3816', 71], ['legL', '3817', 71], ['hips', '3815', 71], ['torso', '973', 2], ['armR', '3818', 2], ['armL', '3819', 2], ['handR', '3820', 14], ['handL', '3820', 14], ['head', '15529p01', 14]] },
   /* Ithaca: plain heads that take a drawn face, hair in the halfworld's colours */
-  penelope: { name: 'Penelope', legs: 19, hips: 19, torso: 19, arms: 19, hands: 14, head: 14, hat: ['3625', 0], weapon: null, woman: true, face: 'odyssey' },
-  odysseus: { name: 'Odysseus', legs: 28, hips: 28, torso: 28, arms: 28, hands: 14, head: 14, hat: ['3901', 70], weapon: null, face: 'odyssey' },
-  eurycleia: { name: 'Eurycleia', legs: 72, hips: 72, torso: 72, arms: 72, hands: 14, head: 14, hat: ['3625', 15], weapon: null, woman: true, face: 'odyssey' },
-  telemachus: { name: 'Telemachus', legs: 19, hips: 19, torso: 15, arms: 15, hands: 14, head: 14, hat: ['3901', 0], weapon: null, face: 'odyssey' },
-  phemius: { name: 'Phemius', legs: 4, hips: 4, torso: 4, arms: 4, hands: 14, head: 14, hat: ['3901', 70], weapon: null, face: 'odyssey' },
-  athena: { name: 'Athena', legs: 15, hips: 15, torso: 15, arms: 15, hands: 14, head: 14, hat: ['30409', 14], weapon: null, woman: true, face: 'odyssey' },
-  suitor: { name: 'Suitor', legs: 70, hips: 70, torso: 70, arms: 70, hands: 14, head: 14, hat: ['3901', 0], weapon: null, crowd: true, face: 'odyssey' },
+  penelope: { name: 'Penelope', legs: 15, hips: 15, torso: 15, arms: 15, hands: 78, head: 78, hat: ['3625', 0], weapon: null, woman: true, face: 'halfworld:penelope' },
+  odysseus: { name: 'Odysseus', legs: 308, hips: 308, torso: 320, arms: 320, hands: 78, head: 78, hat: ['3901', 70], weapon: null, cape: ['522', 320], face: 'halfworld:odysseus' },
+  eurycleia: { name: 'Eurycleia', legs: 308, hips: 308, torso: 19, arms: 19, hands: 78, head: 78, hat: ['3625', 15], weapon: null, woman: true, face: 'halfworld:eurycleia' },
+  telemachus: { name: 'Telemachus', legs: 308, hips: 308, torso: 272, arms: 272, hands: 78, head: 78, hat: ['3901', 0], weapon: null, cape: ['522', 272], face: 'halfworld:telemachus' },
+  phemius: { name: 'Phemius', legs: 4, hips: 4, torso: 4, arms: 4, hands: 78, head: 78, hat: ['3901', 70], weapon: null, face: 'halfworld:eumaeus' },
+  athena: { name: 'Athena', legs: 15, hips: 15, torso: 15, arms: 15, hands: 78, head: 78, hat: ['30409', 297], weapon: null, cape: ['522', 272], woman: true, face: 'halfworld:athena' },
+  suitor: { name: 'Suitor', legs: 70, hips: 70, torso: 70, arms: 70, hands: 78, head: 78, hat: ['3901', 0], weapon: null, crowd: true, face: 'halfworld:alcinous' },
 };
 /* ride: the vehicle that stands by the spawn for this character (Vader has the TIE); vehicles.js lays it as lm-me */
 /* a bare head is the character's own (a mask over the plain head is the whole face), a short figure stands on one-piece legs */

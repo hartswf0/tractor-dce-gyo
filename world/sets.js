@@ -17,6 +17,7 @@ const KINDS = {
   snowfield: { name: 'a snowfield', fog: [0xe6edf5, 20, 600], sky: 0xdfe8f2, paint: (h, sl, x, z) => { const j = hash(x | 0, z | 0, 5) * 0.03; return [0.93 + j, 0.95 + j, 0.98]; } },
   desert: { name: 'a desert', fog: [0xe8d9b5, 30, 700], sky: 0xe9d9b6, paint: (h, sl, x, z) => { const j = hash(x | 0, z | 0, 7) * 0.05; return [0.80 + j, 0.68 + j, 0.45]; } },
   hall: { name: 'a hall', paint: (h, sl, x, z) => [0.47, 0.41, 0.31], fog: [0x1a1410, 60, 220], sky: 0x0d0a08 },
+  stage: { name: 'a bare stage', paint: (h, sl, x, z) => [0.86, 0.84, 0.79], fog: [0xe8e5dd, 120, 400], sky: 0xe4e1d9 },   // the casting stage: pale floor, pale sky, nothing on it
 };
 /** Distance from a point to a polyline (metres in, metres out). */
 function distToPath(x, z, path) {

@@ -3,6 +3,7 @@ import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {LDrawLoader} from 'three/addons/loaders/LDrawLoader.js';
 import {LDrawConditionalLineMaterial} from 'three/addons/materials/LDrawConditionalLineMaterial.js';
 import {P,SKINS,PAINTS,WORLDS,FIGURES,PROSTHETICS} from './movieator-production-data.js';
+import {listDecals,paintDecal,clearDecal} from './odyssey-decals.js';   // the halfworld's Odyssey faces as head decals
 import {
   MAGNET_PHASES,CLOCKS,GRIP_FRACTIONS,HANDS,HAND_GRIP_LOCAL,
   headFamily,actorPorts,isFaceCandidate,hasPrintedFacialHair,isHeadwearCandidate,isNeckLayerCandidate,
@@ -249,7 +250,7 @@ async function renderFigure(){
   $('portBadge').textContent='BUILDING';
   const text=await buildAssembly();
   return new Promise(resolve=>loader.parse(text,group=>{
-    clearScene();state.root=new THREE.Group();state.root.rotation.x=Math.PI;state.root.add(group);scene.add(state.root);fit(state.root);updatePortBadge();resolve();
+    clearScene();state.root=new THREE.Group();state.root.rotation.x=Math.PI;state.root.add(group);scene.add(state.root);if(state.look.decal)paintDecal(THREE,group,state.look.decal.who,state.look.decal.emotion,{y:currentHead()?.mountY??-84});fit(state.root);updatePortBadge();resolve();
   },error=>{$('portBadge').textContent='LOAD ERROR';$('portBadge').className='portBadge bad';console.error(error);resolve()}));
 }
 function updatePortBadge(){
@@ -260,7 +261,7 @@ function updatePortBadge(){
 
 function worldFigures(){return FIGURES.filter(f=>f.world===state.world)}
 function resetLook(render=true){
-  const f=state.fig;state.look={skin:f?.skin??14,face:null,prosthetic:null,hair:undefined,hairStatus:null,neck:null,top:null,bottom:null,topColor:15,bottomColor:1,hairColor:70,propColor:70,leftProp:null,rightProp:null,setProp:null,leftClock:0,rightClock:0};
+  const f=state.fig;state.look={skin:f?.skin??14,face:null,decal:null,prosthetic:null,hair:undefined,hairStatus:null,neck:null,top:null,bottom:null,topColor:15,bottomColor:1,hairColor:70,propColor:70,leftProp:null,rightProp:null,setProp:null,leftClock:0,rightClock:0};
   if(render)renderFigure();
 }
 function renderSelectors(){
@@ -306,6 +307,20 @@ function renderFaces(beardsOnly=false){
     document.querySelector('[data-original]').onclick=()=>{state.look.face=null;state.look.prosthetic=null;state.look.hair=undefined;state.look.neck=null;renderFigure();renderTray()};
     document.querySelectorAll('[data-file]').forEach(b=>b.onclick=()=>{state.look.face=rows.find(r=>r.filename===b.dataset.file);state.look.prosthetic=null;state.look.neck=null;renderFigure();renderTray()});
   };$('q').oninput=draw;draw();
+  if(!beardsOnly)renderDecals();
+}
+/* ODYSSEY DOT FACES: the halfworld's twelve drawn faces (world/faces/odyssey) painted over the current head as a decal, one direction at a time. */
+async function renderDecals(){
+  const box=document.createElement('div');box.className='decals';box.innerHTML=rigLine('CLICK','ODYSSEY DOT FACES · HALFWORLD DECALS')+'<div class="hint">The halfworld\'s drawn faces, dotted and masked to the print area, over whatever head is on. Pick a face, then a direction.</div><div id="decalRows"></div>';
+  $('trayBody').appendChild(box);
+  let index;try{index=await listDecals()}catch{box.querySelector('#decalRows').innerHTML='<div class="hint">no decals here: run tools/decals.js</div>';return}
+  const d=state.look.decal||{who:null,emotion:'neutral'};
+  const draw=()=>{
+    const faces=Object.keys(index.faces),emos=index.emotions;
+    $('decalRows').innerHTML=`<div class="rows">${faces.map(w=>`<button class="choice${d.who===w?' active':''}" data-decal="${w}"><b>${w.toUpperCase()}</b><span>${Object.keys(index.faces[w]).length} directions</span><span class="state click">CLICK</span></button>`).join('')}<button class="choice original" data-decal=""><b>NO DECAL</b><span>the head\'s own print</span><span class="state click">CLICK</span></button></div>`+(d.who?`<div class="rows">${emos.map(e=>`<button class="choice${d.emotion===e?' active':''}" data-emotion="${e}"><b>${e.toUpperCase()}</b><span>${index.faces[d.who][e]?index.faces[d.who][e].ink+' dots':''}</span></button>`).join('')}</div>`:'');
+    $('decalRows').querySelectorAll('[data-decal]').forEach(b=>b.onclick=()=>{const w=b.dataset.decal;state.look.decal=w?{who:w,emotion:d.emotion||'neutral'}:null;if(!w&&state.root)clearDecal(state.root.children[0]);renderFigure();renderTray()});
+    $('decalRows').querySelectorAll('[data-emotion]').forEach(b=>b.onclick=()=>{state.look.decal={who:d.who,emotion:b.dataset.emotion};renderFigure();renderTray()});
+  };draw();
 }
 function renderProsthetics(){
   $('trayBody').innerHTML=rigLine('CLICK','CALIBRATED COMPLETE HEAD REPLACEMENTS')+'<div class="hint">A prosthetic owns the complete head volume and closes crown / beard ports unless separately calibrated.</div>'+PROSTHETICS.map(r=>`<button class="choice" data-pro="${r.filename}"><b>${r.filename}</b><span>${r.description}</span><span class="state click">CLICK</span></button>`).join('');
