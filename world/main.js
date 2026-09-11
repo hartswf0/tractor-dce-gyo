@@ -321,7 +321,7 @@ function makePlayer(name) {
 function loadPrinted(g, part, col, slot) {
   if (!W.props || !W.props.parse) return; g.userData.part = part;
   W.props.parse(`0 FILE p-${part}.ldr\n0 !LDRAW_ORG Unofficial_Model\n1 ${col == null ? 16 : col} 0 0 0 1 0 0 0 1 0 0 0 1 parts/${part}.dat`, `p-${part}.ldr`).then(grp => {
-    if (g.userData.part !== part) return; while (g.children.length) g.remove(g.children[0]); grp.traverse(o => { if (o.isMesh && o.material) for (const m of Array.isArray(o.material) ? o.material : [o.material]) m.fog = true; });
+    if (g.userData.part !== part) return; while (g.children.length) g.remove(g.children[0]); const lines = []; grp.traverse(o => { if (o.isLine || o.isLineSegments) lines.push(o); else if (o.isMesh && o.material) for (const m of Array.isArray(o.material) ? o.material : [o.material]) m.fog = true; }); for (const l of lines) l.parent.remove(l);   /* the loader's edge lines would draw white seams on a hair or a head */
     if (slot === 'head') { const box = new THREE.Box3().setFromObject(grp); if (isFinite(box.max.y)) grp.position.y = 24 - box.max.y; g.userData.neck = +box.max.y.toFixed(1); }   // the head slot sits at the crown and the neck is 24 LDU below it (LDraw y down); a sculpted head whose origin is its neck is moved down to meet the torso
     g.add(grp); g.userData.printed = true;
   }).catch(e => console.warn('printed part', part, e));

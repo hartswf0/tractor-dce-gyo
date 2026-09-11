@@ -4,19 +4,22 @@ on:
     branches: [claude/platos-cave-ldraw-wzcr71]
     paths:
       - 'from-homer-to-homer.html'
-      - 'odyssey-decal.js'
+      - 'from-homer-to-homer-v3.js'
+      - 'odyssey-decal-v3.js'
+      - 'odyssey-actor-kit.js'
       - 'tests/homer-to-homer-sniff.mjs'
       - '.github/workflows/homer-to-homer-sniff.yml'
   workflow_dispatch:
 jobs:
   sniff:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: {node-version: '22'}
       - run: npm install --no-save playwright@1.55.0
-      - run: npx playwright install --with-deps chromium
+      - run: google-chrome --version
       - run: python3 -m http.server 4173 >/tmp/homer-server.log 2>&1 &
       - run: node tests/homer-to-homer-sniff.mjs
       - uses: actions/upload-artifact@v4
