@@ -38,5 +38,6 @@ function renderTray(){tray.innerHTML='';if(repertory==='springfield'){tray.inner
 for(const b of document.querySelectorAll('.dock [data-mode]'))b.onclick=()=>{mode=b.dataset.mode;document.querySelectorAll('.dock [data-mode]').forEach(x=>x.classList.toggle('on',x===b));renderTray()};
 $('#odyssey').onclick=()=>{repertory='odyssey';$('#odyssey').classList.add('on');$('#springfield').classList.remove('on');update()};$('#springfield').onclick=()=>{repertory='springfield';$('#springfield').classList.add('on');$('#odyssey').classList.remove('on');renderTray()};
 $('#send').onclick=()=>{if(repertory!=='odyssey'||!hasSourceFace(character))return;const s=selection(character,performance);localStorage.setItem('word-to-theatre.odysseyFace',JSON.stringify(s));location.href=`./word-to-theatre.html?odyssey=${encodeURIComponent(character)}&performance=${encodeURIComponent(performance)}`};
+await loader.preloadMaterials('./ldraw/LDConfig.ldr');
 window.__HOMER_TO_HOMER={get selection(){return selection(character,performance)},SOURCE_CAST,CAST24,PERFORMANCE_NAMES};update();
 </script></body></html>
