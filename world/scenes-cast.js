@@ -26,7 +26,7 @@
     const L = lineOf(c.name), at = +(0.4 + c.runs.length * HOLD).toFixed(2);
     events.push({ what: 'SPEAK', who: c.name, text: L.text, at, sec: L.sec, file: L.file, from: L.from, for: L.for }); events.push({ what: 'ASSERT', who: c.name, reads: 'speaking', at: +(at + Math.min(2.5, L.sec * 0.4)).toFixed(2) });
     events.push({ what: 'PHRASE', who: c.name, name: 'open arms', at: +(at - 0.2).toFixed(2), enter: 0.5, hold: L.sec + 0.5, release: 0.6 });   // the line is spoken with the hands free: the gestures ride on top
-    shots.push({ name: c.name, on: c.name, frame: 'medium', from: 's', lens: 50, sec: +(c.runs.length * HOLD + L.sec + 1.2).toFixed(1), shift: c.name, events });
+    shots.push({ name: c.name, on: c.name, frame: 'waist', from: 's', lens: 50, sec: +(c.runs.length * HOLD + L.sec + 1.2).toFixed(1), shift: c.name, events });
   }
   shots.push({ name: 'the line-up again', on: 'eurycleia', frame: 'medium', from: 'se', lens: 40, sec: 4, shift: 'cast', events: CAST.map(c => ({ what: 'PHRASE', who: c.name, name: c.runs[0], at: 0.3, enter: 0.3, hold: 3 })) });
   Film.SCENES['odyssey-cast'] = {
