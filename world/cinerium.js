@@ -182,7 +182,26 @@ function phrase(P, name, t, o) {
   P.phrases.push({ name, vals, t0: +t || 0, enter: o.enter == null ? 0.35 : +o.enter, t1: o.hold != null ? (+t || 0) + (o.enter == null ? 0.35 : +o.enter) + +o.hold : null, release: o.release == null ? 0.5 : +o.release, k: o.k }); P.last = null; return true;
 }
 /** Say a line: the text as visemes over its seconds, the voice's envelope gating the jaw, the head carried by it. */
-function speak(P, o) { const Face = root.Face; if (!Face) return false; P.speech = { t0: +o.t || 0, sec: Math.max(0.3, +o.sec || 1), track: Face.visemeTrack(o.text, Math.max(0.3, +o.sec || 1)), env: o.env || null, hz: o.hz || 50, text: o.text }; P.last = null; return true; }
+function speak(P, o) { const Face = root.Face; if (!Face) return false; P.speech = { t0: +o.t || 0, sec: Math.max(0.3, +o.sec || 1), track: Face.visemeTrack(o.text, Math.max(0.3, +o.sec || 1)), env: o.env || null, hz: o.hz || 50, text: o.text }; P.last = null; if (o.gesture !== false) gestures(P, P.speech); return true; }
+/* ── the hands on the voice: a speaker's arms move on the stresses of the line ──────────────────────────────────────────
+   The envelope's peaks are the stresses. Each strong one raises the forward hand a little, the wrist turning out, and every
+   fourth or so the other hand joins; the head dips a hair on the strongest. Between stresses the hand settles back toward
+   where the phrase left it. Small, one-axis, and keyed, so a phrase (open arms, arms crossed) sits under it. */
+function gestures(P, sp) {
+  const env = sp.env; if (!env || env.length < 10) return 0; const hz = sp.hz || 50, n = env.length;
+  const sm = new Float32Array(n); const w = Math.max(1, Math.round(hz * 0.08)); for (let i = 0; i < n; i++) { let a = 0, c = 0; for (let k = -w; k <= w; k++) { const j = i + k; if (j >= 0 && j < n) { a += env[j]; c++; } } sm[i] = a / c; }
+  let mx = 0; for (let i = 0; i < n; i++) if (sm[i] > mx) mx = sm[i]; if (mx <= 0) return 0;
+  const peaks = []; let last = -1e9; for (let i = 1; i < n - 1; i++) { if (sm[i] >= sm[i - 1] && sm[i] > sm[i + 1] && sm[i] > 0.45 * mx && (i - last) / hz >= 0.55) { peaks.push({ t: i / hz, k: sm[i] / mx }); last = i; } }
+  const base = P.base || {}; let count = 0;
+  peaks.forEach((pk, i) => {
+    const t = sp.t0 + pk.t, side = i % 4 === 3 ? 'L' : 'R', rest = base[`arm.${side}.pitch`] || 0, lift = rest - (0.35 + 0.45 * pk.k), roll = (side === 'R' ? -1 : 1) * 0.6 * pk.k;
+    key(P, `arm.${side}.pitch`, lift, t - 0.10, 0.18, 'ease'); key(P, `arm.${side}.pitch`, rest - 0.12 * pk.k, t + 0.45, 0.35, 'ease');
+    key(P, `hand.${side}.roll`, roll, t - 0.08, 0.2, 'ease'); key(P, `hand.${side}.roll`, 0, t + 0.6, 0.4, 'ease');
+    if (pk.k > 0.85) { key(P, 'torso.lean', 0.05, t - 0.05, 0.15, 'ease'); key(P, 'torso.lean', 0, t + 0.5, 0.4, 'ease'); }
+    count++; });
+  key(P, 'arm.R.pitch', base['arm.R.pitch'] || 0, sp.t0 + sp.sec + 0.3, 0.6, 'ease'); key(P, 'arm.L.pitch', base['arm.L.pitch'] || 0, sp.t0 + sp.sec + 0.3, 0.6, 'ease');
+  P.gestures = count; return count;
+}
 
 /* ── actions: a director's verbs, resolved when they fire, written as keys with lead and follow ── */
 function act(P, ev, ctx) {
@@ -260,6 +279,7 @@ const PERF_EVENTS = new Set(['BEAT', 'SET', 'PHRASE', 'PERFORM', 'SPEAK', 'FACE'
 const hooks = { face: null, snapshot: null, line: null, env: null, log: null };
 function fire(ev, ctx) {
   if (!PERF_EVENTS.has(ev.what)) return false; const P = ctx.perf(ev.who); const t = ctx.t;
+  if (!P && ev.what === 'SPEAK') { const sec = ev.for != null ? +ev.for : (hooks.line ? hooks.line.sec(ev) : 2); if (hooks.line) hooks.line.play({ ...ev, narration: true }, sec); return true; }   // a voice with no body (the narrator) is heard and read, and moves no mouth
   if (!P && ev.what !== 'BEAT') { if (hooks.log) hooks.log(`${ev.what}: no performer "${ev.who}"`); return true; }
   switch (ev.what) {
     case 'BEAT': { const b = { id: ev.id, who: ev.who, t0: t, t1: ev.to != null ? t + (ev.to - ev.at) : null, why: ev.why || '', direct: ev.direct || null }; ctx.beat(b); if (P) { P.beats.push(b); if (b.direct && PHRASES[b.direct]) phrase(P, b.direct, t, { enter: 0.35, hold: b.t1 != null ? Math.max(0.2, b.t1 - t - 0.35) : undefined, release: 0.5 }); } return true; }
@@ -281,5 +301,5 @@ function fire(ev, ctx) {
 function stats(P) { return P ? { name: P.name, step: P.step, life: P.life, active: [...P.active], tracks: Object.fromEntries(Object.entries(P.tracks).map(([k, v]) => [k, v.length])), phrases: P.phrases.map(p => p.name), speech: P.speech ? { text: P.speech.text, sec: P.speech.sec, t0: P.speech.t0, hasEnv: !!P.speech.env } : null, speaking: P.speaking || 0, beats: P.beats.length, asserts: P.asserts.length, vec: P.last ? { ...P.last } : null, faceDraws: P.face ? P.face.draws : 0 } : null; }
 function reset(P) { P.base = {}; P.phrases = []; P.tracks = {}; P.speech = null; P.last = null; P.lastQ = null; }
 
-root.Perform = { CHANNELS, NAMES, PHRASES, ALIAS, STEPS, PERF_EVENTS, hooks, attach, sample, apply, quantize, trackAt, lookAt, reach, key, phrase, speak, act, parseLine, eventText, fire, stats, reset, asChannels, clampCh };
+root.Perform = { gestures, CHANNELS, NAMES, PHRASES, ALIAS, STEPS, PERF_EVENTS, hooks, attach, sample, apply, quantize, trackAt, lookAt, reach, key, phrase, speak, act, parseLine, eventText, fire, stats, reset, asChannels, clampCh };
 })(typeof window !== 'undefined' ? window : globalThis);

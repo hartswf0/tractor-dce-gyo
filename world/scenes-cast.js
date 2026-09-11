@@ -11,7 +11,9 @@
     { name: 'telemachus', x: 3, runs: ['tenderness', 'resolve', 'hurt', 'wonder', 'confrontation', 'desperation'] },
     { name: 'athena', x: 6, runs: ['appeal', 'irony', 'command', 'wonder', 'contempt', 'joy'] },
   ];
-  const HOLD = 1.6, CAP = 14;
+  const HOLD = 2.0, CAP = 40;
+  /** The body that goes with a direction: the register's phrases, one per emotion, so the arms carry it as well as the face. */
+  const BODY = { recognition: 'hands near face', contempt: 'arms crossed', irony: 'shrug', appeal: 'open arms', weariness: 'look down', resolve: 'hands on hips', command: 'pointing', tenderness: 'open arms', grief: 'hands near face', anguish: 'hands near face', hurt: 'arms crossed', concern: 'listen', fear: 'panic', wonder: 'open arms', joy: 'cheer', guarded: 'arms crossed', skepticism: 'shrug', confrontation: 'pointing', desperation: 'open arms' };
   /** Each one's own recorded line: the longest SPEAK with a voice file among the compiled Odyssey scenes (world/scenes-odyssey.js), cut to CAP seconds with its words in proportion. */
   const lineOf = who => { let best = null; for (const [k, sc] of Object.entries(Film.SCENES)) { if (!/^odyssey-od-/.test(k)) continue; for (const sh of sc.shots) for (const e of sh.events || []) if (e.what === 'SPEAK' && e.who === who && e.file && (!best || e.for > best.for)) best = e; }
     if (!best) return { text: 'I know you.', sec: 0.9 }; const sec = Math.min(CAP, best.for), words = best.text.split(/\s+/), n = Math.max(3, Math.round(words.length * sec / best.for));
@@ -20,10 +22,11 @@
     { name: 'the line-up', on: 'eurycleia', frame: 'wide', from: 's', lens: 40, sec: 6, shift: 'cast', events: [{ what: 'CAPTION', text: 'Penelope, Odysseus, Eurycleia, Telemachus, Athena: the halfworld\'s faces on LEGO heads', at: 0.4, sec: 5 }] }];
   for (const c of CAST) {
     const events = [{ what: 'BEAT', id: c.name + ' reads', who: c.name, at: 0, to: c.runs.length * HOLD + 1, why: 'a face is cast when its directions read at 2 m', direct: c.runs[0] }];
-    c.runs.forEach((r, i) => { const at = +(0.4 + i * HOLD).toFixed(2); events.push({ what: 'PHRASE', who: c.name, name: r, at, enter: 0.25, hold: HOLD - 0.5, release: 0.25 }); events.push({ what: 'CAPTION', text: `${c.name}: ${r}`, at, sec: HOLD - 0.1 }); events.push({ what: 'ASSERT', who: c.name, reads: r, at: +(at + 0.8).toFixed(2) }); });
+    c.runs.forEach((r, i) => { const at = +(0.4 + i * HOLD).toFixed(2); events.push({ what: 'PHRASE', who: c.name, name: r, at, enter: 0.25, hold: HOLD - 0.5, release: 0.25 }); if (BODY[r]) events.push({ what: 'PHRASE', who: c.name, name: BODY[r], at: +(at + 0.05).toFixed(2), enter: 0.35, hold: HOLD - 0.7, release: 0.35 }); events.push({ what: 'CAPTION', text: `${c.name}: ${r}`, at, sec: HOLD - 0.1 }); events.push({ what: 'ASSERT', who: c.name, reads: r, at: +(at + 0.8).toFixed(2) }); });
     const L = lineOf(c.name), at = +(0.4 + c.runs.length * HOLD).toFixed(2);
     events.push({ what: 'SPEAK', who: c.name, text: L.text, at, sec: L.sec, file: L.file, from: L.from, for: L.for }); events.push({ what: 'ASSERT', who: c.name, reads: 'speaking', at: +(at + Math.min(2.5, L.sec * 0.4)).toFixed(2) });
-    shots.push({ name: c.name, on: c.name, frame: 'close', from: 's', lens: 50, sec: +(c.runs.length * HOLD + L.sec + 1.2).toFixed(1), shift: c.name, events });
+    events.push({ what: 'PHRASE', who: c.name, name: 'open arms', at: +(at - 0.2).toFixed(2), enter: 0.5, hold: L.sec + 0.5, release: 0.6 });   // the line is spoken with the hands free: the gestures ride on top
+    shots.push({ name: c.name, on: c.name, frame: 'waist', from: 's', lens: 50, sec: +(c.runs.length * HOLD + L.sec + 1.2).toFixed(1), shift: c.name, events });
   }
   shots.push({ name: 'the line-up again', on: 'eurycleia', frame: 'medium', from: 'se', lens: 40, sec: 4, shift: 'cast', events: CAST.map(c => ({ what: 'PHRASE', who: c.name, name: c.runs[0], at: 0.3, enter: 0.3, hold: 3 })) });
   Film.SCENES['odyssey-cast'] = {

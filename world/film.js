@@ -23,14 +23,14 @@
      0 !MENTO ACT "atat-1" MARCH deg speed FIRE HEAVY EVERY s AIM "trench"   an actor's act for the shot (also TO x z, ORBIT "who" R m, PASS "who", HALT, LAND, ALT m)
      0 !MENTO EVENT TRIP "atat-1" AT sec OVER s                        what happens at a second of the shot: CABLE, TRIP, BLAST, TOPPLE, HANG, DROP, STRIKE, ROUT, CRASH, SHAKE, FLASH
    A SHOT line can end with FOLLOW: its keys are re-staged around the subject every step, so a flying TIE stays in the frame.
-   Frames: wide, medium, close, low, aerial, shoulder, pov (from the subject's seat, looking ahead), under (beneath a walker, looking up at its head).
+   Frames: wide, medium, waist (head and hands), close, low, aerial, shoulder, pov (from the subject's seat, looking ahead), under (beneath a walker, looking up at its head).
    LENS is the vertical field of view in degrees, as mento-373 reads it. */
 (function () {
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const ASPECTS = { '16:9': 16 / 9, '2.39': 2.39, '4:3': 4 / 3, '9:16': 9 / 16 };
   const SIZES = { '720p': 720, '1080p': 1080 };
   const BEAR = { n: 0, ne: 45, e: 90, se: 135, s: 180, sw: 225, w: 270, nw: 315 };            // where the camera stands, seen from the subject: north is -z, east is +x
-  const FRAMES = { wide: 3, medium: 1.5, close: 0.8, aerial: 2.2, low: 1.6, shoulder: 0 };      // the camera's distance as a multiple of the subject's size
+  const FRAMES = { wide: 3, medium: 1.5, waist: 1.1, close: 0.8, aerial: 2.2, low: 1.6, shoulder: 0 };      // the camera's distance as a multiple of the subject's size
   const LENS = { wide: 60, medium: 45, close: 35, aerial: 50, low: 55, shoulder: 50 };
   const MOVES = ['hold', 'push', 'pull', 'orbit', 'crane', 'track'];
   const num = s => { const v = parseFloat(s); return Number.isFinite(v) ? v : 0; };
@@ -662,7 +662,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
       A.crashAt = best || { x: V.pos.x + Math.sin(V.heading) * 15 * M, z: V.pos.z + Math.cos(V.heading) * 15 * M }; A.act = { who: A.name, charge: A.crashAt }; A.crashInto = into;
     }
     /** A line of dialogue at the foot of the band, on the page and in the take. */
-    function showCaption(text) { const el = document.getElementById('caption'); if (!el) return; el.hidden = !text; if (text) el.querySelector('span').textContent = text; }
+    function showCaption(text, who) { const el = document.getElementById('caption'); if (!el) return; el.hidden = !text; el.dataset.who = who || ''; if (text) { const sp = el.querySelector('span'); sp.textContent = text; sp.dataset.name = who && who !== 'narrator' ? who : ''; } }   // who: 'narrator' sets the words apart from a character's
     function drawCaption(ctx, w, h, text) { ctx.save(); const fs = Math.round(h * 0.052); ctx.font = `${fs}px Helvetica, Arial, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.lineWidth = Math.max(2, fs / 8); ctx.strokeStyle = 'rgba(0,0,0,0.85)'; ctx.fillStyle = '#f4f4f0'; ctx.strokeText(text, w / 2, h * 0.94, w * 0.9); ctx.fillText(text, w / 2, h * 0.94, w * 0.9); ctx.restore(); }
     /** Film bolts that come at a figure with a saber go back the way they came. */
     function stepDeflect() {
@@ -783,7 +783,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
     F.prepareEnvs = () => { const want = new Set(); for (const s of F.shots) for (const ev of s.events || []) if (ev.what === 'SPEAK' && ev.file) want.add(ev.file); for (const f of want) if (!F.envs[f]) { F.envs[f] = { hz: 50, env: null }; fetch('./world/lines/' + f.replace(/\.[^.]+$/, '') + '.env.json').then(r => r.ok ? r.json() : null).then(j => { if (j && j.env) F.envs[f] = { hz: j.hz || 50, env: j.env }; }).catch(() => { }); } if (window.Sound && Sound.loadManifest) Sound.loadManifest(); };
     if (window.Perform) {
       Perform.hooks.log = m => F.log.push(m);
-      Perform.hooks.line = { sec: ev => (window.Sound ? Sound.lineSec(Sound.lineKey(ev.who, ev.text), ev.text) : 0.3 + String(ev.text || '').split(/\s+/).length * 0.36), play: (ev, sec) => { F.caption = { text: ev.text || '', until: F.play.t + sec + 0.4 }; showCaption(F.caption.text); if (window.Sound) Sound.fire('line', { key: ev.file ? null : Sound.lineKey(ev.who, ev.text), who: ev.who, text: ev.text, sec, file: ev.file || null, from: ev.from || 0, voice: ev.voice || null }); } };
+      Perform.hooks.line = { sec: ev => (window.Sound ? Sound.lineSec(Sound.lineKey(ev.who, ev.text), ev.text) : 0.3 + String(ev.text || '').split(/\s+/).length * 0.36), play: (ev, sec) => { const narr = ev.narration || /^narrator$/i.test(ev.who || ''); F.caption = { text: ev.text || '', until: F.play.t + sec + 0.4, who: narr ? 'narrator' : ev.who }; showCaption(F.caption.text, F.caption.who); if (window.Sound) Sound.fire('line', { key: ev.file ? null : Sound.lineKey(ev.who, ev.text), who: ev.who, text: ev.text, sec, file: ev.file || null, from: ev.from || 0, voice: ev.voice || null }); } };
       Perform.hooks.env = ev => { if (ev.file) { const e = F.envs[ev.file]; if (!e || !e.env) return null; const hz = e.hz || 50, a = Math.floor((ev.from || 0) * hz), b = ev.for != null ? Math.ceil((ev.from + ev.for) * hz) : e.env.length; return { hz, env: e.env.slice(a, b) }; } if (window.Sound && Sound.lineEnv) { const env = Sound.lineEnv(Sound.lineKey(ev.who, ev.text)); return env ? { hz: 50, env } : null; } return null; };
       Perform.hooks.face = (P, name) => (W.filmFace ? W.filmFace(P.rig, name) : false);
       Perform.hooks.snapshot = P => (W.filmCloseup ? W.filmCloseup(P.rig) : null);
@@ -930,7 +930,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
       for (let i = 1; i <= 12; i++) { const t = 0.04 + 0.86 * (i / 12); P.lerpVectors(cam, tgt, t); if (S && Math.hypot(P.x - S.x, P.z - S.z) < S.r * 1.15 + 0.5 * M) break; const hit = F.inside(P, S && S.id); if (hit) return hit; }
       return null;
     };
-    const FILL = { wide: 0.38, medium: 0.6, close: 1, low: 0.7, aerial: 0.36, shoulder: 0 };
+    const FILL = { wide: 0.38, medium: 0.6, waist: 0.5, close: 1, low: 0.7, aerial: 0.36, shoulder: 0 };   // waist: head and hands, the frame a performance is read in
     F.stage = sh => {
       const S = F.subject(sh.on), frame = FRAMES[sh.frame] != null || sh.frame === 'pov' || sh.frame === 'under' ? sh.frame : 'medium';
       if (frame === 'pov' || frame === 'under') {                                        // from the seat, or from beneath: no bearing, no clear check but the ground
@@ -942,13 +942,13 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
       }
       const fov = clamp(+sh.lens || LENS[frame], 12, 110), sec = clamp(+sh.sec || F.sec, 0.5, 120), A = ASPECTS[F.aspect];
       const fovV = fov * Math.PI / 180, fovH = 2 * Math.atan(Math.tan(fovV / 2) * A), fill = FILL[frame] || 0.6;
-      const hh = frame === 'close' ? Math.max(S.h * 0.15, 0.25 * M) : Math.max(S.h / 2, 0.4 * M), hw = frame === 'close' ? Math.min(S.r, 0.4 * M) : Math.max(S.r, 0.4 * M);   // half height and half width to fit; a close-up frames the head
+      const hh = frame === 'close' ? Math.max(S.h * 0.15, 0.25 * M) : frame === 'waist' ? Math.max(S.h * 0.3, 0.4 * M) : Math.max(S.h / 2, 0.4 * M), hw = frame === 'close' ? Math.min(S.r, 0.4 * M) : Math.max(S.r, 0.4 * M);   // half height and half width to fit; a close-up frames the head
       let d = Math.max(2 * M, hh / (fill * Math.tan(fovV / 2)), hw / (fill * Math.tan(fovH / 2)));   // far enough that the taller of the two spans fills its share of the frame
       let bear = (BEAR[String(sh.from || '').toLowerCase()] != null ? BEAR[String(sh.from).toLowerCase()] : 180) * Math.PI / 180;
       if (String(sh.from || '').toLowerCase() === 'front' && S.heading != null) bear = -S.heading + Math.PI; else if (String(sh.from || '').toLowerCase() === 'behind' && S.heading != null) bear = -S.heading;
       if (frame === 'shoulder' && W.rig) { bear = -W.rig.heading; if (String(sh.on || 'me') === 'me') d = 2.6 * M; }
       const rel = /^(front|behind)$/i.test(String(sh.from || '')) && S.heading != null; if (sh.bearKeep != null) bear = rel ? sh.bearKeep - S.heading : sh.bearKeep;   // a follow shot keeps the bearing it found, turning with the subject when it was asked for the front or the back   // a heading h looks along (sin h, cos h); the bearing b stands the camera at (sin b, -cos b): behind the figure is b = -h
-      const tgtY = S.y0 + S.h * (frame === 'wide' ? 0.45 : frame === 'close' ? 0.85 : frame === 'shoulder' ? 0.9 : 0.5);
+      const tgtY = S.y0 + S.h * (frame === 'wide' ? 0.45 : frame === 'close' ? 0.85 : frame === 'waist' ? 0.64 : frame === 'shoulder' ? 0.9 : 0.5);
       const pose = (dist, b, kind, raise) => {
         const k = kind || frame; let cx = S.x + Math.sin(b) * dist, cz = S.z - Math.cos(b) * dist, cy;
         if (k === 'aerial') { const el = 50 * Math.PI / 180; cx = S.x + Math.sin(b) * dist * Math.cos(el); cz = S.z - Math.cos(b) * dist * Math.cos(el); cy = S.y0 + S.h / 2 + dist * Math.sin(el); }

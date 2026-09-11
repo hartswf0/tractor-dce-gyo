@@ -157,7 +157,7 @@ function drawHalfworld(face, v) {
   for (let y = cell / 2; y < h; y += cell) for (let x = ox + cell / 2; x < ox + px; x += cell) {
     const X = c.x0 + (x - ox) * sx, Y = c.y0 + y * sy; const dx = (X - HW.cx) / c.ex, dy = (Y - c.ecy) / c.ey; if (dx * dx + dy * dy > 1) continue;   // inside the head's oval
     const i = ((Y | 0) * S + (X | 0)) * 4, lum = (src[i] * .299 + src[i + 1] * .587 + src[i + 2] * .114) / 255; let d = 1 - lum;
-    if (lum > 0.955) { ctx.fillStyle = '#fbfaf6'; ctx.fillRect(w - x - cell / 2, y - cell / 2, cell + 0.5, cell + 0.5); ctx.fillStyle = '#0a0a0a'; continue; }   // paper inside the face is the whites of the eyes and the teeth: printed white
+    if (lum > 0.72 && Math.abs(src[i] - src[i + 2]) < 12 && Math.abs(src[i] - src[i + 1]) < 12) { /* paper is neutral and light; the skin is warm, so the whole white of the eye prints, not just its lit half */ ctx.fillStyle = '#fbfaf6'; ctx.fillRect(w - x - cell / 2, y - cell / 2, cell + 0.5, cell + 0.5); ctx.fillStyle = '#0a0a0a'; continue; }   // paper inside the face is the whites of the eyes and the teeth: printed white
     if (d < HW.floor) continue; d = law.grade(d);
     ctx.globalAlpha = y > fade ? Math.max(0, (h - y) / (h - fade)) : 1; ctx.beginPath(); ctx.arc(w - x, y, Math.pow(d, .9) * cell * .62 * HW.gain, 0, 7); ctx.fill(); ctx.globalAlpha = 1; ink++;   // mirrored: the cylinder's u runs against x on the −z side
   }
