@@ -1,0 +1,44 @@
+name: Movieator Magnet Sniff
+
+on:
+  push:
+    branches:
+      - claude/platos-cave-ldraw-wzcr71
+    paths:
+      - 'movieator-production-v3.html'
+      - 'movieator-production-v3.js'
+      - 'movieator-production-data.js'
+      - 'movieator-rig-v3.js'
+      - 'tests/movieator-magnet-sniff.mjs'
+      - '.github/workflows/movieator-magnet-sniff.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sniff:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Serve repository
+        run: |
+          python3 -m http.server 4173 > /tmp/movieator-magnet-http.log 2>&1 &
+          sleep 2
+      - name: Run magnetic sniff
+        run: node tests/movieator-magnet-sniff.mjs
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: movieator-magnet-sniff
+          path: movieator-magnet-sniff/
+          if-no-files-found: warn

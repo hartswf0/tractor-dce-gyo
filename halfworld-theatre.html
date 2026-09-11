@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#f2f1ec"><title>HALFWORLD THEATRE</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23f2f1ec'/%3E%3Cg fill='%23141414'%3E%3Ccircle cx='18' cy='18' r='4'/%3E%3Ccircle cx='32' cy='18' r='4'/%3E%3Ccircle cx='46' cy='18' r='4'/%3E%3Ccircle cx='18' cy='32' r='4'/%3E%3Ccircle cx='32' cy='32' r='4'/%3E%3Ccircle cx='46' cy='32' r='4'/%3E%3Ccircle cx='18' cy='46' r='4'/%3E%3Ccircle cx='32' cy='46' r='4'/%3E%3Ccircle cx='46' cy='46' r='4'/%3E%3C/g%3E%3C/svg%3E">
+<style>
+:root{--ink:#141414;--paper:#f2f1ec;--card:#f7f6f2;--red:#e01b1b;--dim:#8a8a86}*{box-sizing:border-box}html,body{margin:0;height:100%;overflow:hidden;background:var(--paper);color:var(--ink);font-family:ui-monospace,SFMono-Regular,Menlo,monospace}button,input,select{font:inherit;color:var(--ink);border:1px solid var(--ink);background:var(--paper);border-radius:0}button{min-height:40px;padding:6px 9px;font-size:8px;font-weight:900}#app{height:100dvh;display:grid;grid-template-rows:44px minmax(0,1fr) 48px 52px}header{display:flex;align-items:center;gap:6px;padding:5px 8px;border-bottom:1px solid var(--ink)}header strong{font-size:11px;letter-spacing:.08em;margin-right:auto}.tag{font-size:7px;border:1px solid var(--ink);padding:5px 6px}.stage{position:relative;min-height:0}.stage iframe{width:100%;height:100%;border:0;background:var(--paper)}.status{position:absolute;right:8px;top:8px;background:rgba(242,241,236,.94);border:1px solid var(--ink);font-size:7px;padding:5px 7px;z-index:4}.status i{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--red);margin-right:5px}.actors,.line{display:flex;align-items:center;gap:5px;padding:5px 7px;border-top:1px solid var(--ink);min-width:0}.actors label{font-size:7px;font-weight:900}.actors select{height:36px;min-width:0;padding:4px 6px;font-size:8px}.actors #actor{flex:1}.actors #pose{flex:1}.actors button{min-height:36px}.line input{height:40px;flex:1;min-width:0;padding:7px 9px;font-size:10px}.line button{min-width:64px}.studio{color:var(--red);border-color:var(--red)}
+</style></head>
+<body><div id="app">
+<header><strong>HALFWORLD THEATRE</strong><span class="tag">WORD-TO-THEATRE</span><span class="tag">LIVE CONTRACT</span></header>
+<main class="stage"><iframe id="hw" src="https://hartswf0.github.io/halfworld/halfworld-studio.html?embed=1" title="Halfworld stage"></iframe><div class="status" id="status"><i></i>LOADING</div></main>
+<div class="actors"><label>ACTOR</label><select id="actor"></select><label>POSE</label><select id="pose"><option>neutral</option><option>look left</option><option>look right</option><option>look up</option><option>look down</option><option>3/4 left</option><option>3/4 right</option><option>profile left</option><option>profile right</option></select><button id="full" class="studio">STUDIO</button></div>
+<div class="line"><input id="line" placeholder="give the actor a line"><button id="say">SAY</button></div>
+</div>
+<script>
+const frame=document.getElementById('hw'),status=document.getElementById('status'),actor=document.getElementById('actor'),pose=document.getElementById('pose'),line=document.getElementById('line');let HW=null,full=false;
+function populate(){try{const p=HW.project(),ids=Object.keys(p.cast||{});actor.innerHTML=ids.map(id=>`<option value="${id}">${id}</option>`).join('');status.innerHTML='<i></i>HALFWORLD READY';}catch(e){status.textContent='HOST API ERROR'}}
+frame.addEventListener('load',()=>{try{HW=frame.contentWindow.HALFWORLD;if(HW)populate();else status.textContent='NO HOST API'}catch{status.textContent='FRAME ERROR'}});
+pose.onchange=()=>{if(HW&&actor.value)status.textContent=HW.op({op:'pose',id:actor.value,pose:pose.value})||'POSE'};
+document.getElementById('say').onclick=()=>{if(!HW||!actor.value||!line.value.trim())return;status.textContent=HW.op({op:'say',id:actor.value,text:line.value.trim()})||'SAY';line.select()};line.addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('say').click()});
+document.getElementById('full').onclick=()=>{full=!full;try{frame.contentDocument.documentElement.classList.toggle('embed',!full)}catch{};document.getElementById('full').textContent=full?'STAGE':'STUDIO'};
+window.HALFWORLD_THEATRE={get api(){return HW},actor:()=>actor.value,pose:p=>HW?.op({op:'pose',id:actor.value,pose:p}),say:t=>HW?.op({op:'say',id:actor.value,text:t})};
+</script></body></html>

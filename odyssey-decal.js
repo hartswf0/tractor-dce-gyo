@@ -1,0 +1,116 @@
+import * as FACEM from 'https://hartswf0.github.io/odyssey-halfworld/assets/character/_close/face.mjs';
+import * as DIR from 'https://hartswf0.github.io/odyssey-halfworld/scenes/_direction.mjs';
+
+export const SOURCE_CAST=Object.freeze(Object.keys(FACEM.FACES));
+export const EXTENSION_CAST=Object.freeze(['poseidon','calypso','tiresias','laertes','antinous','menelaus','arete','hermes','zeus','argos','phemius','melanthius']);
+export const CAST24=Object.freeze([...SOURCE_CAST,...EXTENSION_CAST]);
+const S=FACEM.SURFACE;
+
+// The original twelve are untouched. These eleven human additions are authored with
+// the exact same six-proportion close-up grammar as the Odyssey source. Argos stays a
+// dog-rig slot rather than being falsely squeezed onto a human 3626 head.
+export const EXTENSION_FACES=Object.freeze({
+ poseidon:{hairDrop:-.06,recede:.25,skin:S.skinOld,hair:'short',beard:'wild',hairColor:S.hairWhite,hairMass:1.12,faceW:1.10,jawW:1.14,chin:1.10,brow:1.30,eyeGap:.96,nose:1.14,lip:.90,age:58,lines:.64,glasses:false,collar:'coat'},
+ calypso:{hairDrop:.01,part:-1,skin:S.skinYoung,hair:'long',beard:false,hairColor:S.hairDark,hairMass:1.12,faceW:.93,jawW:.80,chin:.95,brow:1.00,eyeGap:1.07,nose:.94,lip:.98,age:32,lines:.02,glasses:false,collar:'coat'},
+ tiresias:{hairDrop:-.10,recede:.55,skin:S.skinOld,hair:'short',beard:'long',hairColor:S.hairWhite,hairMass:.90,faceW:.92,jawW:.84,chin:1.10,brow:.90,eyeGap:1.02,nose:1.12,lip:.84,age:78,lines:.96,glasses:false,collar:'lab'},
+ laertes:{hairDrop:-.06,recede:.46,skin:S.skinOld,hair:'short',beard:'long',hairColor:S.hairWhite,hairMass:.94,faceW:.98,jawW:.96,chin:1.14,brow:1.06,eyeGap:.98,nose:1.08,lip:.88,age:72,lines:.90,glasses:false,collar:'lab'},
+ antinous:{hairDrop:.05,skin:S.skinYoung,hair:'short',beard:false,hairColor:S.hairDark,hairMass:1.09,faceW:1.02,jawW:1.08,chin:1.03,brow:1.16,eyeGap:.96,nose:1.00,lip:1.00,age:28,lines:.04,glasses:false,collar:'coat'},
+ menelaus:{hairDrop:-.02,recede:.16,skin:S.skin,hair:'short',beard:'groomed',hairColor:S.hairMid,hairMass:1.00,faceW:1.03,jawW:1.05,chin:1.08,brow:1.08,eyeGap:1.00,nose:1.08,lip:.92,age:49,lines:.48,glasses:false,collar:'coat'},
+ arete:{hairDrop:.00,part:1,skin:S.skin,hair:'long',beard:false,hairColor:S.hairDark,hairMass:1.04,faceW:.95,jawW:.86,chin:.99,brow:1.13,eyeGap:1.02,nose:.98,lip:.90,age:46,lines:.34,glasses:false,collar:'coat'},
+ hermes:{hairDrop:.05,skin:S.skinYoung,hair:'short',beard:false,hairColor:S.hairMid,hairMass:1.04,faceW:.94,jawW:.88,chin:.95,brow:.94,eyeGap:1.08,nose:.94,lip:1.00,age:27,lines:.00,glasses:false,collar:'lab'},
+ zeus:{hairDrop:-.10,recede:.32,skin:S.skinOld,hair:'short',beard:'long',hairColor:S.hairWhite,hairMass:1.04,faceW:1.08,jawW:1.12,chin:1.12,brow:1.24,eyeGap:1.00,nose:1.16,lip:.90,age:65,lines:.72,glasses:false,collar:'coat'},
+ phemius:{hairDrop:.03,skin:S.skin,hair:'short',beard:'short',hairColor:S.hairDark,hairMass:1.02,faceW:.95,jawW:.92,chin:1.01,brow:1.00,eyeGap:1.03,nose:.98,lip:1.02,age:37,lines:.22,glasses:false,collar:'lab'},
+ melanthius:{hairDrop:.06,skin:S.skin,hair:'short',beard:false,hairColor:S.hairDark,hairMass:1.06,faceW:.99,jawW:1.00,chin:1.02,brow:1.20,eyeGap:.94,nose:1.02,lip:.94,age:34,lines:.20,glasses:false,collar:'lab'}
+});
+export const LIVE_FACE_CAST=Object.freeze(CAST24.filter(c=>c!=='argos'));
+export function faceOrigin(character){const k=String(character||'').toLowerCase();if(FACEM.FACES[k])return 'ODYSSEY SOURCE';if(EXTENSION_FACES[k])return 'SOURCE GRAMMAR';if(k==='argos')return 'DOG RIG';return 'UNRESOLVED';}
+function faceSpec(character){const k=String(character||'').toLowerCase();return FACEM.FACES[k]||EXTENSION_FACES[k]||null;}
+
+const EXTRA={
+ neutral:{}, listening:{eyeNarrow:.10,headYaw:.04}, uncertainty:{browUp:.28,browKnit:.18,headRoll:.08},
+ concealment:{eyeNarrow:.26,mouthAsym:.28,headYaw:.18}, challenge:{browKnit:.56,eyeNarrow:.22,headPitch:-.08},
+ concentration:{browKnit:.30,eyeNarrow:.16,headPitch:.08}, affection:{browUp:.28,smile:.42,eyeNarrow:.16,headRoll:.05},
+ relief:{browUp:.36,smile:.36,headPitch:.10}, surprise:{browUp:.86,eyeWide:.72,jaw:.20},
+ anger:{browKnit:.62,eyeNarrow:.28,frown:.38}, fury:{browKnit:.90,eyeNarrow:.42,frown:.64,jaw:.18},
+ shame:{browUp:.30,browKnit:.25,eyeNarrow:.35,headPitch:.30},
+};
+export const PERFORMANCES=Object.freeze({...EXTRA,...DIR.EMOTIONS});
+export const PERFORMANCE_NAMES=Object.freeze([
+ 'neutral','listening','recognition','uncertainty','skepticism','guarded','concealment','irony','contempt','challenge','command','resolve','concentration','appeal','tenderness','affection','relief','joy','wonder','surprise','concern','weariness','grief','hurt','anguish','fear','desperation','anger','fury','shame'
+]);
+
+export const SIGNATURES=Object.freeze({
+ odysseus:['calculating','disguised','homesick','testing','recognized','restrained fury'],
+ penelope:['waiting','withholding','testing','private grief','recognition','controlled joy'],
+ telemachus:['uncertainty','embarrassment','awakening confidence','defiance','filial recognition'],
+ athena:['appraisal','amusement','disguised counsel','impatience','command','approval'],
+ eurycleia:['suspicion','recognition','shock suppressed','maternal tenderness'],
+ eumaeus:['hospitality','loyalty','suspicion','grief','astonished recognition'],
+ nestor:['recollection','instruction','ceremonial grief','certainty'],
+ helen:['remembrance','guilt','irony','fascination','melancholy'],
+ menelaus:['hospitality','pride','grief','recollection','indignation'],
+ nausicaa:['surprise','composure','curiosity','attraction','embarrassment'],
+ alcinous:['welcome','judgment','curiosity','authority'],
+ arete:['scrutiny','suspicion','recognition','approval'],
+ circe:['threat','surprise','seduction','respect','warning'],
+ calypso:['possession','tenderness','resentment','grief','release'],
+ poseidon:['offense','brooding','contempt','wrath','satisfaction'],
+ zeus:['deliberation','detachment','decree','warning'],
+ hermes:['amusement','message-bearing neutrality','warning','departure'],
+ tiresias:['vacancy','recognition','prophecy','warning'],
+ laertes:['exhaustion','disbelief','testing','recognition','overwhelming joy'],
+ antinous:['entitlement','mockery','suspicion','intimidation','panic'],
+ melanthius:['contempt','ingratiation','cruelty','fear'],
+ phemius:['performance','caution','terror','pleading'],
+ polyphemus:['curiosity','appetite','rage','pain','curse'],
+ argos:['waiting','noticing','recognition','effort','rest']
+});
+
+const ALIAS={
+ calculating:'skepticism',disguised:'guarded',homesick:'weariness',testing:'skepticism',recognized:'recognition','restrained fury':'anger',
+ waiting:'listening',withholding:'guarded','private grief':'grief','controlled joy':'relief',embarrassment:'shame','awakening confidence':'resolve',defiance:'challenge','filial recognition':'recognition',
+ appraisal:'skepticism',amusement:'irony','disguised counsel':'irony',impatience:'command',approval:'relief',suspicion:'skepticism','shock suppressed':'surprise','maternal tenderness':'tenderness',
+ hospitality:'appeal',loyalty:'resolve','astonished recognition':'recognition',recollection:'weariness',instruction:'command','ceremonial grief':'grief',certainty:'resolve',remembrance:'weariness',guilt:'shame',fascination:'wonder',melancholy:'weariness',
+ pride:'resolve',indignation:'anger',composure:'guarded',curiosity:'wonder',attraction:'affection',welcome:'tenderness',judgment:'skepticism',authority:'command',scrutiny:'skepticism',threat:'challenge',seduction:'affection',respect:'guarded',warning:'command',
+ possession:'guarded',resentment:'anger',release:'relief',offense:'contempt',brooding:'anger',wrath:'fury',satisfaction:'relief',deliberation:'concentration',detachment:'guarded',decree:'command','message-bearing neutrality':'neutral',departure:'guarded',vacancy:'neutral',prophecy:'command',
+ exhaustion:'weariness',disbelief:'skepticism','overwhelming joy':'joy',entitlement:'contempt',mockery:'irony',intimidation:'challenge',panic:'fear',ingratiation:'appeal',cruelty:'contempt',performance:'joy',caution:'guarded',terror:'fear',pleading:'appeal',appetite:'concentration',rage:'fury',pain:'anguish',curse:'fury',noticing:'recognition',effort:'resolve',rest:'relief'
+};
+export function resolvePerformance(name){const key=String(name||'neutral').toLowerCase();return {name:key,base:ALIAS[key]||key,state:{...(PERFORMANCES[ALIAS[key]||key]||{})}};}
+export function hasSourceFace(character){return !!faceSpec(character);}
+export function titleCase(s){return String(s||'').replace(/\b\w/g,m=>m.toUpperCase());}
+
+export function renderSourceFace(character,performance='neutral',size=512){
+ const spec=faceSpec(character);if(!spec)return null;
+ const canvas=document.createElement('canvas');canvas.width=canvas.height=size;const g=canvas.getContext('2d',{willReadFrequently:true});
+ g.fillStyle='#FBFAF4';g.fillRect(0,0,size,size);
+ const perf=resolvePerformance(performance).state;
+ const st={jaw:0,wide:0,press:0,teeth:0,tongue:0,blink:0,gazeX:0,gazeY:0,browUp:0,browKnit:0,headYaw:0,headPitch:0,headRoll:0,chest:0,smile:0,frown:0,eyeWide:0,eyeNarrow:0,mouthAsym:0,cheek:0,...perf};
+ FACEM.drawCloseup(g,spec,st,{cx:size*.5,cy:size*.46,R:size*.36});
+ return canvas;
+}
+
+export function renderDecal(character,performance='neutral',w=384,h=220){
+ const src=renderSourceFace(character,performance,640);if(!src)return null;
+ const out=document.createElement('canvas');out.width=w;out.height=h;const g=out.getContext('2d',{willReadFrequently:true});
+ const sx=src.width*.265,sy=src.height*.285,sw=src.width*.47,sh=src.height*.47;
+ g.drawImage(src,sx,sy,sw,sh,0,0,w,h);
+ const im=g.getImageData(0,0,w,h),d=im.data;
+ for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+   const i=(y*w+x)*4,r=d[i],gg=d[i+1],b=d[i+2],lum=.2126*r+.7152*gg+.0722*b;
+   const nx=(x-w/2)/(w*.49),ny=(y-h*.50)/(h*.54);const inside=nx*nx+ny*ny<1;
+   if(!inside||lum>188){d[i+3]=0;continue}
+   const a=Math.max(0,Math.min(255,(205-lum)*2.6));d[i]=15;d[i+1]=14;d[i+2]=12;d[i+3]=a;
+ }
+ g.putImageData(im,0,0);return out;
+}
+
+export function makeDecalMesh(THREE,character,performance='neutral'){
+ const c=renderDecal(character,performance);if(!c)return null;
+ const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;tex.needsUpdate=true;tex.wrapS=THREE.RepeatWrapping;tex.repeat.x=-1;tex.offset.x=1;
+ const mat=new THREE.MeshBasicMaterial({map:tex,transparent:true,alphaTest:.08,side:THREE.DoubleSide,depthWrite:false});
+ const arc=1.44,geo=new THREE.CylinderGeometry(13.16,13.16,10.8,48,1,true,Math.PI-arc/2,arc);
+ const mesh=new THREE.Mesh(geo,mat);mesh.position.set(0,-73.5,0);mesh.scale.y=-1;mesh.renderOrder=20;mesh.name=`ODYSSEY_DECAL:${character}:${performance}`;
+ mesh.userData={character,performance,origin:faceOrigin(character),source:'odyssey-halfworld/odyssey-performances',mount:'3626b-cylinder',radius:13.16};return mesh;
+}
+
+export function selection(character,performance){return {schema:'word-to-theatre/odyssey-decal-v1',character:String(character).toLowerCase(),performance:String(performance).toLowerCase(),origin:faceOrigin(character),source:'https://hartswf0.github.io/odyssey-halfworld/odyssey-performances.html'};}
