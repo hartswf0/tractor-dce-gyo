@@ -80,7 +80,7 @@ const FACE_CHANNELS = ['brow.up', 'brow.knit', 'brow.asym', 'eye.wide', 'eye.nar
 /** Draw the face vector v onto a 2d context of w×h (the head's front, x across the face, y down). */
 function draw(ctx, w, h, v, style) {
   const S = STYLES[style] || STYLES.lego, g = v || {}; const c = k => +g[k] || 0;
-  ctx.clearRect(0, 0, w, h); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, w, h); ctx.setTransform(-1, 0, 0, 1, w, 0); ctx.lineCap = 'round'; ctx.lineJoin = 'round';   // mirrored: the cylinder's u runs against x on the −z side, so a raised right brow is the figure's right
   const cx = w / 2, R = w / 2, ey = h * 0.42, ex = R * 0.42, lw = Math.max(2, R * 0.075 * S.lw);
   const wide = clamp01(c('eye.wide')), narrow = clamp01(c('eye.narrow')), blink = clamp01(c('blink')), gx = clamp(c('gaze.x'), -1, 1), gy = clamp(c('gaze.y'), -1, 1);
   const eyeR = R * 0.19 * S.eye * (1 + 0.35 * wide), asym = clamp(c('brow.asym'), -1, 1);
@@ -121,9 +121,10 @@ function attach(rig, style, THREE) {
   const size = 256, canvas = document.createElement('canvas'); canvas.width = size; canvas.height = size; const ctx = canvas.getContext('2d');
   const tex = new THREE.CanvasTexture(canvas); tex.anisotropy = 4; if ('colorSpace' in tex) tex.colorSpace = THREE.SRGBColorSpace; else if ('encoding' in tex && THREE.sRGBEncoding) tex.encoding = THREE.sRGBEncoding;
   // the head is a cylinder of radius 10 LDU, 24 tall from its neck (y 0) to its crown (y −24 in the figure's y-down frame); the face plane hugs the front 110 degrees
-  const geo = new THREE.CylinderGeometry(10.35, 10.35, 19, 24, 1, true, -Math.PI * 0.306, Math.PI * 0.612);
+  const geo = new THREE.CylinderGeometry(10.35, 10.35, 19, 24, 1, true, Math.PI - Math.PI * 0.306, Math.PI * 0.612);   // the front of the head is its −z side in the figure's frame
   const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2, side: THREE.FrontSide });
-  const mesh = new THREE.Mesh(geo, mat); mesh.name = 'face'; mesh.position.set(0, 12, 0); mesh.rotation.set(Math.PI, Math.PI, 0);   // the LDraw frame is y-down: turned so the drawing reads upright, facing −z
+  tex.flipY = false;   // the LDraw frame is y-down: the image's top lands at the crown
+  const mesh = new THREE.Mesh(geo, mat); mesh.name = 'face'; mesh.position.set(0, 12, 0);
   rig.slots.head.add(mesh);
   const face = { rig, mesh, canvas, ctx, tex, style: style || 'lego', last: '', draws: 0 };
   paint(face, {}); return face;

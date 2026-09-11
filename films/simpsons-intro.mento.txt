@@ -1,12 +1,154 @@
-0 // MENTO film · The Simpsons intro · cut from the reference by tools/cuts.js
+0 // MENTO film · Mock City → offline, so Hlíðarendi, Iceland · word to momento
 0 !MENTO ASPECT 16:9 FPS 24
-0 !MENTO SHOT "shot 1" POS 0 4 12 TGT 0 2 0 LENS 50 SEC 4.54   // 0–4.54 s
-0 !MENTO SHOT "shot 2" POS 0 4 12 TGT 0 2 0 LENS 50 SEC 5.21   // 4.54–9.75 s
-0 !MENTO SHOT "shot 3" POS 0 4 12 TGT 0 2 0 LENS 50 SEC 14.13   // 9.75–23.88 s
-0 !MENTO SHOT "shot 4" POS 0 4 12 TGT 0 2 0 LENS 50 SEC 13   // 23.88–36.88 s
-0 !MENTO SHOT "shot 5" POS 0 4 12 TGT 0 2 0 LENS 50 SEC 6.21   // 36.88–43.08 s
-0 !MENTO SHOT "shot 6" POS 0 4 12 TGT 0 2 0 LENS 50 SEC 7.92   // 43.08–51 s
-0 !MENTO SHOT "shot 7" POS 0 4 12 TGT 0 2 0 LENS 50 SEC 9.58   // 51–60.58 s
-0 !MENTO SHOT "shot 8" POS 0 4 12 TGT 0 2 0 LENS 50 SEC 2.13   // 60.58–62.71 s
-0 !MENTO SHOT "shot 9" POS 0 4 12 TGT 0 2 0 LENS 50 SEC 15.46   // 62.71–78.17 s
-0 !MENTO SHOT "shot 10" POS 0 4 12 TGT 0 2 0 LENS 50 SEC 5.05   // 78.17–83.22 s
+0 !MENTO STORY {"title":"The Simpsons","description":"The family comes home from the day: Bart from school on his board, Homer from the plant with a rod he should not have, Marge and Maggie from the store, Lisa from band practice, all of them to the couch. Shot for shot from the reference intro, bodies on twos, the sculpted heads swapping their two faces.","location":"Springfield: the place as it stands","entities":["Homer","Marge","Bart","Lisa","Maggie"],"goals":["everyone on the couch before the title"],"obstacles":["the rod","the road","the door"],"shifts":[{"id":"town","text":"the town from above"},{"id":"school","text":"Bart at the board, then gone"},{"id":"plant","text":"Homer and the rod"},{"id":"store","text":"Marge and Maggie at the checkout"},{"id":"sax","text":"Lisa plays"},{"id":"roads","text":"everyone drives"},{"id":"couch","text":"the couch"}],"pipeline":["REFERENCE","CUTS","CAMERAS","CAST","BLOCK","BODY","STEP","MUSIC"]}
+0 !MENTO ACTOR "homer" FIGURE homer AT -560 240 HEADING 180
+0 !MENTO ACTOR "marge" FIGURE marge AT 880 -160 HEADING 180
+0 !MENTO ACTOR "bart" FIGURE bart AT 80 -120 HEADING 0
+0 !MENTO ACTOR "lisa" FIGURE lisa AT 1200 400 HEADING 180
+0 !MENTO ACTOR "maggie" FIGURE maggie AT 940 -184 HEADING 180
+0 !MENTO ACTOR "skateboard" KIND board LEN 4 COL 4 AT 160 -240 HEADING 90
+0 !MENTO ACTOR "homercar" KIND car LEN 7 COL 322 AT -1200 -640 HEADING 90
+0 !MENTO ACTOR "margecar" KIND car LEN 7 COL 25 AT 1360 -640 HEADING -90
+0 !MENTO BUILD "classroom" AT -40 0 {"name":"classroom","ops":[{"op":"group","name":"wall","x":0,"z":0,"size":[12,1,6],"ops":[{"op":"wall","from":[0,0],"to":[12,0],"y":0,"h":6,"col":19}]},{"op":"group","name":"board","x":1,"z":0,"size":[10,1,3],"ops":[{"op":"band","x":0,"z":0,"w":10,"d":1,"y":2,"h":3,"col":2},{"op":"band","x":0,"z":0,"w":10,"d":1,"y":1,"h":1,"col":70}]},{"op":"group","name":"desk","x":4,"z":4,"size":[4,2,2],"ops":[{"op":"box","x":0,"z":0,"w":4,"d":2,"y":0,"h":2,"col":70}]}]}
+0 !MENTO BUILD "control desk" AT -640 320 {"name":"control desk","ops":[{"op":"group","name":"console","x":0,"z":0,"size":[8,3,3],"ops":[{"op":"box","x":0,"z":0,"w":8,"d":3,"y":0,"h":2,"col":72},{"op":"slab","x":0,"z":0,"w":8,"d":3,"y":2,"plates":1,"col":71},{"op":"part","part":"3062b","col":46,"x":1,"y":2,"z":1,"plate":1},{"op":"part","part":"3062b","col":36,"x":3,"y":2,"z":1,"plate":1},{"op":"part","part":"3062b","col":46,"x":5,"y":2,"z":1,"plate":1},{"op":"part","part":"3062b","col":34,"x":6,"y":2,"z":0,"plate":1}]},{"op":"group","name":"wall of dials","x":-2,"z":-3,"size":[12,1,7],"ops":[{"op":"wall","from":[0,0],"to":[12,0],"y":0,"h":7,"col":71},{"op":"band","x":0,"z":0,"w":12,"d":1,"y":3,"h":1,"col":0},{"op":"band","x":0,"z":0,"w":12,"d":1,"y":5,"h":1,"col":0}]}]}
+0 !MENTO BUILD "checkout" AT 800 -80 {"name":"checkout","ops":[{"op":"group","name":"counter","x":0,"z":0,"size":[8,2,3],"ops":[{"op":"box","x":0,"z":0,"w":8,"d":2,"y":0,"h":3,"col":71},{"op":"slab","x":0,"z":0,"w":8,"d":2,"y":3,"plates":1,"col":0},{"op":"part","part":"3005","col":4,"x":2,"y":3,"z":0,"plate":1},{"op":"part","part":"3005","col":2,"x":3,"y":3,"z":0,"plate":1},{"op":"part","part":"3005","col":14,"x":5,"y":3,"z":1,"plate":1}]},{"op":"group","name":"shelves","x":-4,"z":-4,"size":[16,1,6],"ops":[{"op":"wall","from":[0,0],"to":[16,0],"y":0,"h":6,"col":15},{"op":"band","x":0,"z":0,"w":16,"d":1,"y":2,"h":1,"col":4},{"op":"band","x":0,"z":0,"w":16,"d":1,"y":4,"h":1,"col":2}]}]}
+0 !MENTO BUILD "living room" AT -160 -1040 {"name":"living room","ops":[{"op":"group","name":"couch","x":0,"z":0,"size":[10,3,3],"ops":[{"op":"box","x":0,"z":1,"w":10,"d":2,"y":0,"h":1,"col":25},{"op":"box","x":0,"z":0,"w":10,"d":1,"y":0,"h":3,"col":25},{"op":"box","x":0,"z":1,"w":1,"d":2,"y":1,"h":1,"col":25},{"op":"box","x":9,"z":1,"w":1,"d":2,"y":1,"h":1,"col":25}]},{"op":"group","name":"wall","x":-3,"z":-2,"size":[16,1,8],"ops":[{"op":"wall","from":[0,0],"to":[16,0],"y":0,"h":8,"col":19},{"op":"band","x":5,"z":0,"w":4,"d":1,"y":4,"h":3,"col":70}]},{"op":"group","name":"television","x":12,"z":8,"size":[4,3,2],"ops":[{"op":"box","x":0,"z":0,"w":4,"d":2,"y":0,"h":1,"col":70},{"op":"box","x":0,"z":0,"w":4,"d":2,"y":1,"h":3,"col":72},{"op":"band","x":0,"z":1,"w":4,"d":1,"y":2,"h":2,"col":1}]},{"op":"group","name":"rug","x":-1,"z":3,"size":[12,6,1],"ops":[{"op":"slab","x":0,"z":0,"w":12,"d":6,"y":0,"plates":1,"col":28}]}]}
+0 // SHOT 1: TITLE
+0 !MENTO TITLE "THE\nSIMPSONS" STYLE card SEC 4.5 SCORE "springfield"
+0 // SHOT 2: THE TOWN
+0 !MENTO SHOT "the town" POS 80 -402.94 -434.47 TGT 80 -52 -140 LENS 35 SEC 5.3 SHIFT "town"
+0 !MENTO PLAN {"on":"bart","frame":"aerial","from":"s","lens":35,"sec":5.3,"move":"push","name":"the town"}
+0 !MENTO KEY POS 80 -227.47 -287.24 TGT 80 -52 -140 LENS 35
+0 !MENTO STEP "bart" TWOS AT 0
+0 !MENTO STEP "homer" TWOS AT 0
+0 !MENTO STEP "marge" TWOS AT 0
+0 !MENTO STEP "lisa" TWOS AT 0
+0 !MENTO STEP "maggie" TWOS AT 0
+0 // SHOT 3: THE CHALKBOARD
+0 !MENTO SHOT "the chalkboard" POS 80 -52 -349.23 TGT 80 -52 -140 LENS 45 SEC 7.2 SHIFT "school"
+0 !MENTO PLAN {"on":"bart","frame":"medium","from":"e","lens":45,"sec":7.2,"move":"hold","name":"the chalkboard"}
+0 !MENTO BEAT "lines" "bart" FROM 0 TO 7 WHY "the punishment he has written a thousand times" DIRECT writing
+0 !MENTO PHRASE "bart" writing AT 0 ENTER 0.2
+0 !MENTO SET "bart" arm.R.pitch -1.2 AT 0.8 OVER 0.3
+0 !MENTO SET "bart" arm.R.pitch -1.8 AT 1.6 OVER 0.3
+0 !MENTO SET "bart" arm.R.pitch -1.2 AT 2.4 OVER 0.3
+0 !MENTO SET "bart" arm.R.pitch -1.8 AT 3.2 OVER 0.3
+0 !MENTO SET "bart" arm.R.pitch -1.2 AT 4 OVER 0.3
+0 !MENTO PERFORM "bart" GLANCE "homer" AT 4.8 FOR 0.9
+0 !MENTO FACE "bart" left AT 4.8
+0 !MENTO FACE "bart" calm AT 6.2
+0 !MENTO EVENT SOUND "click" AT 0.8
+0 !MENTO EVENT SOUND "click" AT 1.6
+0 !MENTO EVENT SOUND "click" AT 2.4
+0 !MENTO EVENT SOUND "click" AT 3.2
+0 // SHOT 4: OUT OF THE DOOR
+0 !MENTO SHOT "out of the door" POS 3320.53 -471.9 -788.16 TGT 3320.53 -71.9 -550.04 LENS 40 SEC 6.9 FOLLOW SHIFT "school"
+0 !MENTO PLAN {"on":"bart","frame":"medium","from":"e","lens":40,"sec":6.9,"move":"hold","name":"out of the door"}
+0 !MENTO ACT "bart" RIDE skateboard
+0 !MENTO ACT "skateboard" TO 960 -240 SPEED 9
+0 !MENTO PHRASE "bart" swagger AT 0.5 ENTER 0.3
+0 !MENTO PERFORM "bart" RAISE L AT 2.5 OVER 0.2
+0 !MENTO EVENT SOUND "skid" AT 1.2
+0 !MENTO EVENT SOUND "whoosh" AT 3.5 K 0.6
+0 // SHOT 5: THE PLANT
+0 !MENTO SHOT "the plant" POS -560 -52 30.77 TGT -560 -52 240 LENS 45 SEC 6.1 SHIFT "plant"
+0 !MENTO PLAN {"on":"homer","frame":"medium","from":"s","lens":45,"sec":6.1,"move":"hold","name":"the plant"}
+0 !MENTO BEAT "the rod" "homer" FROM 0 TO 6 WHY "a glowing rod where no rod should be" DIRECT hold
+0 !MENTO PHRASE "homer" hold AT 0 ENTER 0.2
+0 !MENTO SET "homer" torso.lean 0.2 AT 0.4 OVER 0.4
+0 !MENTO SET "homer" head.yaw -0.5 AT 1.6 OVER 0.3
+0 !MENTO FACE "homer" wide AT 3
+0 !MENTO PERFORM "homer" RECOIL AT 3.1
+0 !MENTO PHRASE "homer" panic AT 3.6 ENTER 0.2 HOLD 1.4 RELEASE 0.5
+0 !MENTO PERFORM "homer" HOP AT 4.2
+0 !MENTO EVENT SOUND "ping" AT 0.8
+0 !MENTO EVENT SOUND "clatter" AT 3.1 K 1.2
+0 !MENTO EVENT SOUND "boom" AT 3.2 K 0.5
+0 // SHOT 6: THE CHECKOUT
+0 !MENTO SHOT "the checkout" POS 880 -52 -369.23 TGT 880 -52 -160 LENS 45 SEC 6.9 SHIFT "store"
+0 !MENTO PLAN {"on":"marge","frame":"medium","from":"s","lens":45,"sec":6.9,"move":"hold","name":"the checkout"}
+0 !MENTO BEAT "the belt" "marge" FROM 0 TO 6.9 WHY "the shopping goes through and so does the baby" DIRECT carry
+0 !MENTO PHRASE "marge" carry AT 0 ENTER 0.2
+0 !MENTO PERFORM "marge" LOOK "maggie" AT 1.2 FOLLOW head 0.12 KEEP gaze
+0 !MENTO FACE "marge" right AT 1.3
+0 !MENTO FACE "marge" wide AT 3.4
+0 !MENTO PERFORM "marge" RECOIL AT 3.4
+0 !MENTO FACE "maggie" wide AT 3.6
+0 !MENTO PERFORM "maggie" HOP AT 3.8
+0 !MENTO PERFORM "marge" REACH "maggie" R AT 4.4 OVER 0.3
+0 !MENTO EVENT SOUND "ping" AT 0.6
+0 !MENTO EVENT SOUND "ping" AT 1.4
+0 !MENTO EVENT SOUND "ping" AT 2.2
+0 !MENTO EVENT SOUND "chirp" AT 3.6
+0 // SHOT 7: HOMER DRIVES
+0 !MENTO SHOT "Homer drives" POS -10.3 -85.83 -922.31 TGT -292.61 -85.83 -640 LENS 40 SEC 6.2 FOLLOW SHIFT "roads"
+0 !MENTO PLAN {"on":"homercar","frame":"medium","from":"se","lens":40,"sec":6.2,"move":"hold","name":"Homer drives"}
+0 !MENTO ACT "homer" RIDE homercar
+0 !MENTO ACT "homercar" TO 400 -640 SPEED 11
+0 !MENTO FACE "homer" calm AT 0.5
+0 !MENTO PERFORM "homer" SHAKE AT 2.4
+0 !MENTO EVENT SOUND "thud" AT 3.9 K 0.7
+0 // SHOT 8: THE SAX
+0 !MENTO SHOT "the sax" POS 1143.43 -93.6 343.43 TGT 1200 -88.4 400 LENS 55 SEC 7.9 SHIFT "sax" SCORE "camp"
+0 !MENTO PLAN {"on":"lisa","frame":"close","from":"sw","lens":55,"sec":7.9,"move":"hold","name":"the sax"}
+0 !MENTO BEAT "the solo" "lisa" FROM 0 TO 7.9 WHY "the one who plays what the band will not" DIRECT play
+0 !MENTO PHRASE "lisa" play AT 0 ENTER 0.3
+0 !MENTO SET "lisa" torso.roll -0.12 AT 1 OVER 0.6
+0 !MENTO SET "lisa" torso.roll 0.1 AT 2.6 OVER 0.7
+0 !MENTO SET "lisa" torso.roll -0.1 AT 4.2 OVER 0.7
+0 !MENTO SET "lisa" torso.lean -0.15 AT 5.2 OVER 0.5
+0 !MENTO FACE "lisa" calm AT 0
+0 !MENTO FACE "lisa" worried AT 5.6
+0 !MENTO ASSERT "lisa" READS_AS play AT 3
+0 // SHOT 9: ACROSS THE SQUARE
+0 !MENTO SHOT "across the square" POS -15405.98 -74.84 46736.62 TGT -14761.55 -60.8 46736.62 LENS 32 SEC 9.6 FOLLOW SHIFT "roads" SCORE "springfield"
+0 !MENTO PLAN {"on":"skateboard","frame":"wide","from":"w","lens":32,"sec":9.6,"move":"hold","name":"across the square"}
+0 !MENTO ACT "skateboard" TO 480 -1200 SPEED 10
+0 !MENTO ACT "lisa" TO 480 -800 RUN
+0 !MENTO PHRASE "bart" swagger AT 0 ENTER 0.2
+0 !MENTO PERFORM "bart" RAISE R AT 3 OVER 0.2
+0 !MENTO PERFORM "bart" LOWER R AT 4.5 OVER 0.3
+0 !MENTO EVENT SOUND "skid" AT 4.8
+0 !MENTO EVENT SOUND "whoosh" AT 7 K 0.7
+0 // SHOT 10: MARGE DRIVES
+0 !MENTO SHOT "Marge drives" POS 727.65 -191.08 -560 TGT 727.65 -180.44 -640 LENS 50 SEC 2.1 FOLLOW SHIFT "roads"
+0 !MENTO PLAN {"on":"margecar","frame":"close","from":"n","lens":50,"sec":2.1,"move":"hold","name":"Marge drives"}
+0 !MENTO ACT "marge" RIDE margecar
+0 !MENTO ACT "maggie" RIDE margecar
+0 !MENTO ACT "margecar" TO 160 -640 SPEED 10
+0 !MENTO FACE "marge" wide AT 0
+0 !MENTO PERFORM "marge" LOOK "maggie" AT 0.6 KEEP gaze
+0 // SHOT 11: THE DRIVEWAY
+0 !MENTO SHOT "the driveway" POS -292.61 -93.31 -1379.18 TGT -292.61 -75.6 -640 LENS 35 SEC 9.5 SHIFT "roads"
+0 !MENTO PLAN {"on":"homercar","frame":"wide","from":"s","lens":35,"sec":9.5,"move":"hold","name":"the driveway"}
+0 !MENTO ACT "homercar" TO -640 -880 SPEED 8
+0 !MENTO ACT "lisa" TO 200 -1240 RUN
+0 !MENTO ACT "bart" LEAVE TO 240 -1180 RUN
+0 !MENTO ACT "marge" LEAVE TO 280 -1240 RUN
+0 !MENTO ACT "maggie" LEAVE TO 240 -1300 RUN
+0 !MENTO EVENT SOUND "skid" AT 3.5
+0 !MENTO PERFORM "lisa" RAISE R AT 6 OVER 0.2
+0 !MENTO EVENT SOUND "thud" AT 5 K 0.6
+0 // SHOT 12: THE COUCH
+0 !MENTO SHOT "the couch" POS -30 -96 -1660.91 TGT -30 -96 -1120 LENS 40 SEC 10.8 SHIFT "couch" SCORE "end"
+0 !MENTO PLAN {"on":"living room","frame":"medium","from":"s","lens":40,"sec":10.8,"move":"hold","name":"the couch"}
+0 !MENTO ACT "homer" LEAVE LOOK -132 -1600 TO -132 -1128 RUN
+0 !MENTO ACT "marge" LOOK -92 -1600 TO -92 -1128 RUN
+0 !MENTO ACT "bart" LOOK -52 -1600 TO -52 -1128 RUN
+0 !MENTO ACT "lisa" LOOK -12 -1600 TO -12 -1128 RUN
+0 !MENTO ACT "maggie" LOOK 24 -1600 TO 24 -1128 RUN
+0 !MENTO BEAT "the gag" "homer" FROM 0 TO 10.8 WHY "everyone home, everyone down, the same couch every time" DIRECT sit
+0 !MENTO PHRASE "marge" sit AT 3.2 ENTER 0.2
+0 !MENTO PHRASE "bart" sit AT 3.4 ENTER 0.2
+0 !MENTO PHRASE "lisa" sit AT 3.6 ENTER 0.2
+0 !MENTO PHRASE "maggie" sit AT 3.8 ENTER 0.2
+0 !MENTO PHRASE "homer" sit AT 7.2 ENTER 0.2
+0 !MENTO FACE "homer" wide AT 7.4
+0 !MENTO FACE "bart" calm AT 3.6
+0 !MENTO FACE "lisa" calm AT 3.8
+0 !MENTO EVENT SOUND "thud" AT 3.3 K 0.5
+0 !MENTO EVENT SOUND "thud" AT 3.6 K 0.5
+0 !MENTO EVENT SOUND "thud" AT 7.3 K 0.6
+0 !MENTO ASSERT "homer" READS_AS sit AT 8.5
+0 // SHOT 13: END CARD
+0 !MENTO TITLE "WORDS\nASSEMBLE" STYLE card SEC 4.5

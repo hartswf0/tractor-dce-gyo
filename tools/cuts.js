@@ -6,7 +6,7 @@
    look at, and a film text with one SHOT line per cut, names blank. The video itself stays out of the repository.
 
    node tools/cuts.js <video> [--out films/<name>] [--threshold 0.18] [--min 0.8] [--name "The Simpsons intro"]
-   → <out>.cuts.json { duration, cuts, shots: [{ i, from, to, sec, frame }], sheet }, <out>.sheet.jpg, <out>.mento.txt */
+   → <out>.cuts.json { duration, cuts, shots: [{ i, from, to, sec, frame }], sheet }, <out>.sheet.jpg, <out>.skeleton.txt (a MENTO skeleton: one SHOT per cut; the film's own text is what the export writes as <name>.mento.txt) */
 'use strict';
 const fs = require('fs'), path = require('path'), { execFileSync, spawnSync } = require('child_process');
 const args = process.argv.slice(2), video = args.find(a => !a.startsWith('--') && !(args[args.indexOf(a) - 1] || '').startsWith('--')), opt = (k, d) => { const i = args.indexOf('--' + k); return i >= 0 ? args[i + 1] : d; };
@@ -27,5 +27,5 @@ const cols = Math.min(4, shots.length), rows = Math.ceil(shots.length / cols), s
 try { execFileSync(FF, ['-hide_banner', '-loglevel', 'error', '-y', '-i', video, '-vf', `select='${sel}',scale=320:-1,tile=${cols}x${rows}`, '-frames:v', '1', out + '.sheet.jpg'], { stdio: 'pipe' }); } catch (e) { console.warn('sheet: ' + String(e.stderr || e.message).slice(0, 200)); }
 const mento = [`0 // MENTO film · ${name} · cut from the reference by tools/cuts.js`, '0 !MENTO ASPECT 16:9 FPS 24', ...shots.map(s => `0 !MENTO SHOT "shot ${s.i}" POS 0 4 12 TGT 0 2 0 LENS 50 SEC ${s.sec}   // ${s.from}–${s.to} s`)].join('\n') + '\n';
 fs.writeFileSync(out + '.cuts.json', JSON.stringify({ name, video: path.basename(video), duration: +dur.toFixed(2), threshold: thr, cuts: cuts.map(t => +t.toFixed(2)), shots, sheet: path.basename(out) + '.sheet.jpg' }, null, 1) + '\n');
-fs.writeFileSync(out + '.mento.txt', mento);
-console.log(`${name}: ${dur.toFixed(1)} s, ${shots.length} shots at threshold ${thr}: ${shots.map(s => s.sec).join(' ')}\n${out}.cuts.json · ${out}.sheet.jpg · ${out}.mento.txt`);
+fs.writeFileSync(out + '.skeleton.txt', mento);
+console.log(`${name}: ${dur.toFixed(1)} s, ${shots.length} shots at threshold ${thr}: ${shots.map(s => s.sec).join(' ')}\n${out}.cuts.json · ${out}.sheet.jpg · ${out}.skeleton.txt`);
