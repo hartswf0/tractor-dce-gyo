@@ -124,13 +124,15 @@ function attach(rig, style, THREE) {
   // the head (3626b) is a cylinder of radius 13 LDU between y 4 and 17 below its origin at the crown, rounded above and below; the face plane hugs the front 110 degrees just outside it
   const span = who ? 0.5 : 0.612;   // a printed face covers about 90 degrees of the head; the drawn faces hug 110
   // the plane follows the head: a lathe of 3626b's own profile (r 13 between y 4 and 17 below the crown, rounded above and below by a 5 LDU torus about r 8) 0.4 out, from y 3 to y 20, so no part of the print floats off the curve at the chin
-  const prof = []; for (let i = 0; i <= 16; i++) { const y = 3 + 17 * i / 16, r = 13 + (y < 4 ? Math.sqrt(Math.max(0, 25 - (4 - y) * (4 - y))) - 5 : y > 17 ? Math.sqrt(Math.max(0, 25 - (y - 17) * (y - 17))) - 5 : 0); prof.push(new THREE.Vector2(r + 0.4, y - 11.5)); }
+  const spec = who && root.HalfFace && root.HalfFace.FACES[who], planeH = spec && spec.beard ? 19 : 18;   // a beard's print runs to the head's bottom edge
+  const prof = []; for (let i = 0; i <= 16; i++) { const y = 3 + (planeH - 1) * i / 16, r = 13 + (y < 4 ? Math.sqrt(Math.max(0, 25 - (4 - y) * (4 - y))) - 5 : y > 17 ? Math.sqrt(Math.max(0, 25 - (y - 17) * (y - 17))) - 5 : 0); prof.push(new THREE.Vector2(r + 0.4, y - 11.5)); }
   const geo = who ? new THREE.LatheGeometry(prof, 24, Math.PI - Math.PI * span / 2, Math.PI * span) : new THREE.CylinderGeometry(13.4, 13.4, 18, 24, 1, true, Math.PI - Math.PI * span / 2, Math.PI * span);   // the front of the head is its −z side in the figure's frame
   const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2, side: who ? THREE.DoubleSide : THREE.FrontSide });
   tex.flipY = false;   // the LDraw frame is y-down: the image's top lands at the crown
-  const mesh = new THREE.Mesh(geo, mat); mesh.name = 'face'; mesh.position.set(0, who ? 11.5 : 11, 0);
+  const mesh = new THREE.Mesh(geo, mat); mesh.name = 'face'; mesh.position.set(0, who ? 11.5 : 11, 0);   /* the profile is measured from y 11.5; a taller lathe simply runs lower */
   rig.slots.head.add(mesh);
-  const face = { rig, mesh, canvas, ctx, tex, style: who ? 'halfworld' : (style || 'lego'), who, last: '', draws: 0, ink: 0 };
+  const hat = rig.def && rig.def.hat, W = root.__world; let hair = '#0a0a0a'; if (hat && W && W.colours) { try { hair = '#' + W.colours(hat[1]).getHexString(); } catch (e) { } }   // the beard prints in the hair piece's colour: one head of hair
+  const face = { rig, mesh, canvas, ctx, tex, style: who ? 'halfworld' : (style || 'lego'), who, last: '', draws: 0, ink: 0, hair, planeH };
   if (who) { face.src = document.createElement('canvas'); face.src.width = face.src.height = HW.size; face.sctx = face.src.getContext('2d', { willReadFrequently: true }); }
   paint(face, {}); return face;
 }
@@ -144,22 +146,34 @@ const HW = { size: 480, R: 176, cx: 240, cy: 206, cell: 3, gain: 1.4, floor: 0.1
 const HW_MAP = [['browUp', 'brow.up'], ['browKnit', 'brow.knit'], ['eyeWide', 'eye.wide'], ['eyeNarrow', 'eye.narrow'], ['blink', 'blink'], ['gazeX', 'gaze.x'], ['gazeY', 'gaze.y'], ['jaw', 'mouth.jaw'], ['wide', 'mouth.wide'], ['press', 'mouth.press'], ['smile', 'smile'], ['frown', 'frown'], ['mouthAsym', 'mouth.asym'], ['cheek', 'cheek'], ['teeth', 'teeth'], ['tongue', 'tongue']];
 function halfworldState(v) { const st = {}; for (const [k, ch] of HW_MAP) if (v[ch]) st[k] = +v[ch]; return st; }
 /** The crop of the halfworld drawing that is print: x across the face, y from under the hairline to the chin, in the source's pixels. */
-function halfworldCrop(spec) { const R = HW.R, fw = spec.faceW || 1; const bd = !!spec.beard; return { x0: HW.cx - 0.70 * R * fw, x1: HW.cx + 0.70 * R * fw, y0: HW.cy - 0.44 * R, y1: HW.cy + (bd ? 1.12 : 0.94) * R, ex: (bd ? 0.72 : 0.66) * R * fw, ey: (bd ? 0.82 : 0.64) * R, ecy: HW.cy + 0.30 * R, beard: bd }; }   /* a beard is print down to the head's bottom edge, as LEGO prints them; a bare chin stops above the jaw */   /* the oval stops short of the silhouette: the jaw and chin are the brick's, not the print's */
+function halfworldCrop(spec) {
+  const R = HW.R, fw = spec.faceW || 1, bd = !!spec.beard;
+  /* the print is the face from the brows to just under the mouth (the chin is the brick's, as LEGO prints a face), 1.16 R tall over the plane's
+     18 LDU: the features print at LEGO size, not at a portrait's; the width follows at the same scale, so the plane's whole chord is print and
+     the temples fall off its edges. A beard runs on below the mouth: the plane is a LDU taller and the print goes to the head's bottom edge */
+  const sc = 18 / (1.16 * R), planeH = bd ? 19 : 18, halfW = (21 / 2) / sc;
+  return { x0: HW.cx - halfW, x1: HW.cx + halfW, y0: HW.cy - 0.30 * R, y1: HW.cy - 0.30 * R + planeH / sc, planeH, ex: 0.62 * R * fw, ey: 0.60 * R, ecy: HW.cy + 0.28 * R, beard: bd, beardY: HW.cy + 0.80 * R, jawX: 0.46 * R * fw, jawY: HW.cy + 0.34 * R };
+}   /* the oval keeps the print off the silhouette: the jaw and the cheeks are the brick's; a beard is print wherever the halfworld drew hair below the mouth or down the jaw, out to the plane's edges */
 function drawHalfworld(face, v) {
   const H = root.HalfFace; if (!H) return false; const spec = H.FACES[face.who]; if (!spec) return false;
   const g = face.sctx, S = HW.size; g.setTransform(1, 0, 0, 1, 0, 0); g.fillStyle = '#ffffff'; g.fillRect(0, 0, S, S);
   try { H.drawCloseup(g, spec, halfworldState(v), { cx: HW.cx, cy: HW.cy, R: HW.R }); } catch (e) { return false; }
   const src = g.getImageData(0, 0, S, S).data, c = halfworldCrop(spec), ctx = face.ctx, w = face.canvas.width, h = face.canvas.height;
-  // the crop lands on the print area so that it keeps its proportions on the head: the plane is 21 LDU across and 18 tall
-  const cw = c.x1 - c.x0, ch = c.y1 - c.y0, px = h * (18 / 21) * (cw / ch), ox = (w - px) / 2, sx = cw / px, sy = ch / h;
-  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, w, h); ctx.fillStyle = '#0a0a0a'; let ink = 0; const fade = c.beard ? h * 2 : h * 0.86;   // the print thins out over its last stretch below the mouth: nothing runs off the chin
-  const cell = HW.cell, law = H.INKLAW;
+  const cw = c.x1 - c.x0, ch = c.y1 - c.y0, px = w, ox = 0, sx = cw / px, sy = ch / h;   /* the crop is the plane: 21 LDU across, planeH tall, at one scale */
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, w, h); ctx.fillStyle = '#0a0a0a'; let ink = 0; const fade = c.beard ? h * 2 : h * 0.9;   // a bare print thins out under the mouth: nothing runs off the chin
+  const cell = HW.cell, law = H.INKLAW, hair = face.hair || '#0a0a0a';
   for (let y = cell / 2; y < h; y += cell) for (let x = ox + cell / 2; x < ox + px; x += cell) {
-    const X = c.x0 + (x - ox) * sx, Y = c.y0 + y * sy; const dx = (X - HW.cx) / c.ex, dy = (Y - c.ecy) / c.ey; if (dx * dx + dy * dy > 1) continue;   // inside the head's oval
+    const X = c.x0 + (x - ox) * sx, Y = c.y0 + y * sy; if (X < 0 || X >= S || Y < 0 || Y >= S) continue; const dx = (X - HW.cx) / c.ex, dy = (Y - c.ecy) / c.ey, inOval = dx * dx + dy * dy <= 1;
     const i = ((Y | 0) * S + (X | 0)) * 4, lum = (src[i] * .299 + src[i + 1] * .587 + src[i + 2] * .114) / 255; let d = 1 - lum;
+    if (c.beard && (Y > c.beardY || (Math.abs(X - HW.cx) > c.jawX && Y > c.jawY))) {   /* the beard's ground: where the halfworld drew hair below the mouth or down the jaw, one solid mass in the hair piece's colour, as LEGO prints a beard; the paper outside the silhouette stays bare */
+      const paper = lum > 0.72 && Math.abs(src[i] - src[i + 2]) < 12 && Math.abs(src[i] - src[i + 1]) < 12, side = Math.abs(X - HW.cx) > c.jawX;
+      if (paper && !side) { ctx.fillStyle = '#fbfaf6'; ctx.fillRect(w - x - cell / 2, y - cell / 2, cell + 0.5, cell + 0.5); ctx.fillStyle = '#0a0a0a'; }   // the teeth, when the mouth opens into the beard
+      else { ctx.fillStyle = hair; ctx.fillRect(w - x - cell / 2 - 0.3, y - cell / 2 - 0.3, cell + 0.6, cell + 0.6); ctx.fillStyle = '#0a0a0a'; ink++; }   /* everything else under the lip and down the jaw is beard, out to the print's edges and its bottom, as a LEGO beard is printed: one mass, the lip's own stroke inside it */
+      continue; }
+    if (!inOval) continue;   // inside the head's oval only: the brick's own edge is the face's edge
     if (lum > 0.72 && Math.abs(src[i] - src[i + 2]) < 12 && Math.abs(src[i] - src[i + 1]) < 12) { /* paper is neutral and light; the skin is warm, so the whole white of the eye prints, not just its lit half */ ctx.fillStyle = '#fbfaf6'; ctx.fillRect(w - x - cell / 2, y - cell / 2, cell + 0.5, cell + 0.5); ctx.fillStyle = '#0a0a0a'; continue; }   // paper inside the face is the whites of the eyes and the teeth: printed white
     if (d < HW.floor) continue; d = law.grade(d);
-    ctx.globalAlpha = y > fade ? Math.max(0, (h - y) / (h - fade)) : 1; if (d > 0.78) ctx.fillRect(w - x - cell / 2 - 0.25, y - cell / 2 - 0.25, cell + 0.5, cell + 0.5); else { ctx.beginPath(); ctx.arc(w - x, y, Math.pow(d, .9) * cell * .62 * HW.gain, 0, 7); ctx.fill(); } ctx.globalAlpha = 1; ink++;   /* solid where the ink is solid (a brow, a pupil, a beard), a dot where it is a tone: the print, not the halftone */   // mirrored: the cylinder's u runs against x on the −z side
+    ctx.globalAlpha = y > fade ? Math.max(0, (h - y) / (h - fade)) : 1; if (d > 0.78) ctx.fillRect(w - x - cell / 2 - 0.25, y - cell / 2 - 0.25, cell + 0.5, cell + 0.5); else { ctx.beginPath(); ctx.arc(w - x, y, Math.pow(d, .9) * cell * .62 * HW.gain, 0, 7); ctx.fill(); } ctx.globalAlpha = 1; ink++;   /* solid where the ink is solid (a brow, a pupil), a dot where it is a tone: the print, not the halftone */   // mirrored: the cylinder's u runs against x on the −z side
   }
   face.ink = ink; return true;
 }

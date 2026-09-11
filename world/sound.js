@@ -23,7 +23,7 @@ const mixes = new WeakMap();
 function mix(ctx) {
   let m = mixes.get(ctx); if (m) return m;
   const g = v => { const n = ctx.createGain(); n.gain.value = v; return n; };
-  const master = g(0.7), comp = ctx.createDynamicsCompressor(); comp.threshold.value = -22; comp.ratio.value = 6; comp.knee.value = 12; comp.attack.value = 0.003; comp.release.value = 0.2;
+  const master = g(0.7), comp = ctx.createDynamicsCompressor(); comp.threshold.value = -12; comp.ratio.value = 3; comp.knee.value = 8; comp.attack.value = 0.003; comp.release.value = 0.2;
   const soft = ctx.createWaveShaper(), curve = new Float32Array(1024); for (let i = 0; i < 1024; i++) { const x = (i / 511.5) - 1; curve[i] = Math.tanh(x * 1.6) / Math.tanh(1.6); } soft.curve = curve; soft.oversample = '2x';   // the last word: nothing clips
   m = { master, comp, score: g(0.5), foley: g(0.85), voice: g(1.1), ambience: g(0.6) };
   for (const k of ['score', 'foley', 'voice', 'ambience']) m[k].connect(comp); comp.connect(soft); soft.connect(master); master.connect(ctx.destination);
@@ -83,7 +83,9 @@ const LOOPS = {
   canopy: { release: 1.5, make(c, o) { const s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain(), lfo = c.createOscillator(), lg = c.createGain(); s.buffer = noise(c); s.loop = true; f.type = 'bandpass'; f.frequency.value = 1400; f.Q.value = 0.5; g.gain.value = 0; lfo.frequency.value = 0.09; lg.gain.value = 500; lfo.connect(lg); lg.connect(f.frequency); s.connect(f); f.connect(g); g.connect(o); return { params: { gain: g.gain, cutoff: f.frequency }, start: t => { s.start(t); lfo.start(t); }, stop: t => { s.stop(t); lfo.stop(t); } }; } },
   hum: { release: 1, make(c, o) { const o1 = c.createOscillator(), s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain(); o1.type = 'sine'; o1.frequency.value = 60; s.buffer = noise(c); s.loop = true; f.type = 'lowpass'; f.frequency.value = 220; g.gain.value = 0; const sg = c.createGain(); sg.gain.value = 0.5; o1.connect(g); s.connect(f); f.connect(sg); sg.connect(g); g.connect(o); return { params: { gain: g.gain, cutoff: f.frequency }, start: t => { o1.start(t); s.start(t); }, stop: t => { o1.stop(t); s.stop(t); } }; } },
 };
-const TRACK_GAIN = 0.42;   /* a recorded track sits under the voice at this share of the score bus */
+const TRACK_RMS = 0.03, VOICE_RMS = 0.12;   /* a recorded track is levelled to this RMS before the score bus, a recorded line to this before the voice bus: whatever the album or the take was mastered at, the words sit sixteen decibels over the music */
+function rmsOf(buf, from, dur) { const d = buf.getChannelData(0), r = buf.sampleRate, a = Math.max(0, Math.floor((from || 0) * r)), b = Math.min(d.length, dur ? Math.ceil((from + dur) * r) : d.length); let sum = 0, n = 0; for (let i = a; i < b; i += 4) { sum += d[i] * d[i]; n++; } return n ? Math.sqrt(sum / n) : 0; }
+const levelGain = (buf, from, dur, target) => { const v = rmsOf(buf, from, dur); return v > 1e-4 ? Math.min(16, Math.max(0.05, target / v)) : 1; };   /* the halfworld's takes sit twelve decibels under its albums: the track comes down and a recorded line comes up */   /* a recorded track sits under the voice at this share of the score bus */
 const BEDS = { blizzard: { src: 'wind', gain: 0.5, cutoff: 380 }, snow: { src: 'wind', gain: 0.22, cutoff: 260 }, forest: { src: 'canopy', gain: 0.16, cutoff: 1400 }, desert: { src: 'wind', gain: 0.18, cutoff: 700 }, city: { src: 'hum', gain: 0.08 }, space: { src: 'hum', gain: 0.14, cutoff: 120 } };
 
 /* ── the instruments: (ctx, out, at, {hz, len, vel}) ── */
@@ -174,18 +176,18 @@ const lineKey = (who, text) => fnv(String(who || '').toLowerCase() + '|' + Strin
 const VOICES = { leia: 'f', luke: 'm', han: 'm', c3po: 'droid', scout: 'radio', trooper: 'radio', pilot: 'radio', rogue: 'radio', comms: 'radio', narrator: 'm', chewbacca: 'roar', vader: 'vader', rebel: 'radio' };
 const voiceOf = who => VOICES[String(who || '').toLowerCase().split(/[-\s]/)[0]] || 'm';
 const lineBufs = new WeakMap(); let manifest = null, manifestP = null;
+const fileBufs = new WeakMap(), fileReady = new WeakMap();   /* per context: the decode promises, and the decoded buffers for the synchronous scheduler */
 function base() { const s = document.currentScript && document.currentScript.src; return (window.__soundBase || (s ? s.replace(/\/[^/]*$/, '/') : './world/')); }
 const BASE = typeof document !== 'undefined' ? base() : './world/';
 function loadManifest() { if (manifest) return Promise.resolve(manifest); if (!manifestP) manifestP = fetch(BASE + 'lines/index.json').then(r => r.ok ? r.json() : {}).catch(() => ({})).then(m => (manifest = m)); return manifestP; }
 function loadLine(ctx, key) {
   let m = lineBufs.get(ctx); if (!m) { m = new Map(); lineBufs.set(ctx, m); } if (m.has(key)) return m.get(key);
-  const p = fetch(BASE + 'lines/' + key + '.ogg').then(r => { if (!r.ok) throw new Error('no line'); return r.arrayBuffer(); }).then(ab => new Promise((ok, no) => { const r = ctx.decodeAudioData(ab, ok, no); if (r && r.then) r.then(ok, no); })).catch(() => null);
+  const p = fetch(BASE + 'lines/' + key + '.ogg').then(r => { if (!r.ok) throw new Error('no line'); return r.arrayBuffer(); }).then(ab => new Promise((ok, no) => { const r = ctx.decodeAudioData(ab, ok, no); if (r && r.then) r.then(ok, no); })).then(buf => { let rm = fileReady.get(ctx); if (!rm) { rm = new Map(); fileReady.set(ctx, rm); } rm.set('line:' + key, buf); return buf; }).catch(() => null);
   m.set(key, p); return p;
 }
 const lineEnv = key => (manifest && manifest[key] && Array.isArray(manifest[key].env) ? manifest[key].env : null);
 const lineSec = (key, text) => manifest && manifest[key] && manifest[key].sec ? manifest[key].sec : 0.3 + String(text || '').split(/\s+/).length * 0.36;
 /** A line through its character's colour: a radio's band and squelch, a droid's ring, a clean voice. */
-const fileBufs = new WeakMap(), fileReady = new WeakMap();   /* per context: the decode promises, and the decoded buffers for the synchronous scheduler */
 /** A recorded voice file (a scene's whole take, sliced by FROM and FOR), decoded once per context. */
 function loadFile(ctx, file) {
   let m = fileBufs.get(ctx); if (!m) { m = new Map(); fileBufs.set(ctx, m); } if (m.has(file)) return m.get(file);
@@ -197,7 +199,12 @@ function sayBuffer(ctx, out, at, buf, voice, from, dur) {
   if (voice === 'radio') { const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 1500; f.Q.value = 1.2; const g = ctx.createGain(); g.gain.value = 1.8; const sh = ctx.createWaveShaper(); const c = new Float32Array(256); for (let i = 0; i < 256; i++) { const x = i / 128 - 1; c[i] = Math.tanh(x * 2.2); } sh.curve = c; head.connect(f); f.connect(sh); sh.connect(g); head = g; ONE.static(ctx, out, at - 0.06); ONE.static(ctx, out, at + buf.duration + 0.03); }
   else if (voice === 'droid') { const f = ctx.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 400; const d = ctx.createDelay(0.05); d.delayTime.value = 0.011; const g = ctx.createGain(); g.gain.value = 0.9, dg = ctx.createGain(); dg.gain.value = 0.5; head.connect(f); f.connect(g); f.connect(d); d.connect(dg); dg.connect(g); head = g; }
   else if (voice === 'vader') { const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 1100; const d = ctx.createDelay(0.1); d.delayTime.value = 0.02; const g = ctx.createGain(); g.gain.value = 1.2; const dg = ctx.createGain(); dg.gain.value = 0.6; head.connect(f); f.connect(g); f.connect(d); d.connect(dg); dg.connect(g); head = g; }
-  head.connect(out); if (dur) s.start(at, from || 0, dur); else s.start(at, from || 0);
+  const lift = ctx.createGain(); lift.gain.value = levelGain(buf, from || 0, dur, VOICE_RMS); head.connect(lift); lift.connect(out); if (dur) s.start(at, from || 0, dur); else s.start(at, from || 0);
+}
+/** No file, live: the browser reads the line aloud (speechSynthesis), a voice per character's kind; returns false where there is none. */
+function speak(text, voice, delay) {
+  const SS = typeof window !== 'undefined' && window.speechSynthesis; if (!SS || !text || voice === 'roar') return false;
+  try { const u = new SpeechSynthesisUtterance(String(text)); u.rate = voice === 'droid' ? 1.15 : voice === 'vader' ? 0.85 : 1; u.pitch = voice === 'f' ? 1.3 : voice === 'droid' ? 1.6 : voice === 'vader' ? 0.5 : 0.9; u.volume = 1; const vs = SS.getVoices(), want = voice === 'f' ? /female|woman|samantha|victoria|zira|karen|moira|tessa/i : /male|man|daniel|alex|david|fred|george/i, v = vs.find(x => /^en/i.test(x.lang) && want.test(x.name)) || vs.find(x => /^en/i.test(x.lang)); if (v) u.voice = v; setTimeout(() => SS.speak(u), Math.max(0, (delay || 0) * 1000)); return true; } catch (e) { return false; }
 }
 /** No file: syllables of two sines, a rough voice so the line is at least heard. */
 function babble(ctx, out, at, text, voice) { const n = Math.max(2, Math.round(String(text || '').replace(/[^a-z]/gi, '').length / 2.6)), f0 = voice === 'f' ? 240 : voice === 'droid' ? 300 : 150, dur = 0.12; for (let i = 0; i < n; i++) { const t = at + i * 0.15, k = ((i * 7919) % 11) / 11; tone(ctx, out, t, voice === 'droid' ? 'square' : 'sawtooth', f0 * (0.92 + k * 0.2), f0 * (0.85 + k * 0.25), dur, 0.09, { attack: 0.02 }); tone(ctx, out, t, 'sine', f0 * (2.1 + k), f0 * (2.4 + k * 0.6), dur, 0.05, { attack: 0.02 }); } }
@@ -227,10 +234,12 @@ const S = {
   /** A line: the file through its voice, or a babble; the score ducks under it. */
   playLine(ctx, m, at, p) {
     const voice = p.voice || voiceOf(p.who), sec = p.sec || lineSec(p.key, p.text);
-    m.score.gain.setTargetAtTime(0.16, at, 0.05); m.score.gain.setTargetAtTime(0.55, at + sec, 0.2);
+    m.score.gain.setTargetAtTime(0.09, at, 0.05); m.score.gain.setTargetAtTime(0.55, at + sec, 0.2);
     if (voice === 'roar') { ONE.roar(ctx, m.voice, at, { sec }); return; }
+    const rm = fileReady.get(ctx), ready = rm && rm.get(p.file || ('line:' + p.key));   /* decoded already (the offline render preloads): scheduled now, in this tick, so the render has it; a promise's then would land after startRendering and the words would be lost */
+    if (ready) { sayBuffer(ctx, m.voice, at, ready, voice, p.file ? p.from || 0 : 0, p.file ? sec : 0); return; }
     if (p.file) { loadFile(ctx, p.file).then(buf => { if (buf) sayBuffer(ctx, m.voice, at, buf, voice, p.from || 0, sec); else babble(ctx, m.voice, at, p.text, voice); }); return; }
-    if (!p.key) { babble(ctx, m.voice, at, p.text, voice); return; }
+    if (!p.key) { if (S.live && ctx === S.live.ctx && speak(p.text, voice, at - ctx.currentTime)) return; babble(ctx, m.voice, at, p.text, voice); return; }   /* a line with no take and no synthesized file: live, the browser's own voice reads it (a prompted film is heard as words, not syllables); an export has no such voice, so it babbles until tools/lines.js writes the line */
     loadLine(ctx, p.key).then(buf => { if (buf) sayBuffer(ctx, m.voice, at, buf, voice); else babble(ctx, m.voice, at, p.text, voice); });
   },
   /** A continuous source: the first call with values opens it, each call samples it, null closes it. */
@@ -253,8 +262,8 @@ const S = {
     if (S.armed && !S.held) S.log.cues.push({ t, name, fade }); S.cueNow = name; S.cueAt = t;
     const L = S.live; if (!L || !S.armed) return; if (L.cueSpan) S.liveFadeSpan(L.cueSpan, L.at(t), fade); L.cueSpan = null;
     const file = name && name.startsWith('file:') ? name.slice(5) : null;   /* SCORE "file:odyssey/music/x.ogg": a recorded track, looped under the film, instead of a written cue */
-    if (name && (CUES[name] || file)) { const g = L.ctx.createGain(); g.gain.setValueAtTime(0.0001, L.at(t)); g.gain.linearRampToValueAtTime(file ? TRACK_GAIN : 1, L.at(t) + fade * 0.6); g.connect(L.mix.score); const span = { name, start: t, g, schedTo: t, file }; L.cueSpan = span;
-      if (file) loadFile(L.ctx, file).then(buf => { if (!buf || L.cueSpan !== span) return; const src = L.ctx.createBufferSource(); src.buffer = buf; src.loop = true; src.connect(g); const now = S.clock(), late = Math.max(0, now - t); src.start(L.at(now), late % buf.duration); span.src = src; }); }
+    if (name && (CUES[name] || file)) { const g = L.ctx.createGain(); g.gain.setValueAtTime(0.0001, L.at(t)); g.gain.linearRampToValueAtTime(1, L.at(t) + fade * 0.6); g.connect(L.mix.score); const span = { name, start: t, g, schedTo: t, file }; L.cueSpan = span;
+      if (file) loadFile(L.ctx, file).then(buf => { if (!buf || L.cueSpan !== span) return; const src = L.ctx.createBufferSource(); src.buffer = buf; src.loop = true; const lv = L.ctx.createGain(); lv.gain.value = levelGain(buf, 0, 0, TRACK_RMS); src.connect(lv); lv.connect(g); const now = S.clock(), late = Math.max(0, now - t); src.start(L.at(now), late % buf.duration); span.src = src; }); }
   },
   liveFadeSpan(span, at, fade) { fade = fade || 1; span.g.gain.setValueAtTime(span.g.gain.value, at); span.g.gain.linearRampToValueAtTime(0.0001, at + fade); span.ended = span.schedTo; if (span.src) { try { span.src.stop(at + fade + 0.1); } catch (e) { } } setTimeout(() => { try { span.g.disconnect(); } catch (e) { } }, (fade + 3) * 1000); },
   /** Each step while armed: the running cue's notes are scheduled a quarter second ahead. */
@@ -265,8 +274,8 @@ const S = {
   schedule(ctx, m, log, t0, from, to) {
     for (const e of log.events) { if (e.t < from || e.t >= to) continue; const at = t0 + e.t; if (e.name === 'line') S.playLine(ctx, m, at, e.p); else if (e.name === 'bump') { /* applied with the curves */ } else if (ONE[e.name]) ONE[e.name](ctx, m[S.busFor(e.name)], at, e.p); }
     const cues = log.cues.slice().sort((a, b) => a.t - b.t);
-    cues.forEach((c, i) => { const file = c.name && c.name.startsWith('file:') ? c.name.slice(5) : null; if (!c.name || (!CUES[c.name] && !file)) return; const next = cues[i + 1], end = next ? next.t + (next.fade || 1.5) : (log.t || to), top = file ? TRACK_GAIN : 1; if (!(c._g)) { const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t0 + c.t); g.gain.linearRampToValueAtTime(top, t0 + c.t + (c.fade || 1.5) * 0.6); if (next) { g.gain.setValueAtTime(top, t0 + next.t); g.gain.linearRampToValueAtTime(0.0001, t0 + end); } g.connect(m.score); c._g = g; }
-      if (file) { const rm = fileReady.get(ctx), buf = rm && rm.get(file); if (buf && !c._src) { const src = ctx.createBufferSource(); src.buffer = buf; src.loop = true; src.connect(c._g); src.start(t0 + c.t); src.stop(t0 + end + 0.5); c._src = src; } return; }
+    cues.forEach((c, i) => { const file = c.name && c.name.startsWith('file:') ? c.name.slice(5) : null; if (!c.name || (!CUES[c.name] && !file)) return; const next = cues[i + 1], end = next ? next.t + (next.fade || 1.5) : (log.t || to), top = 1; if (!(c._g)) { const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t0 + c.t); g.gain.linearRampToValueAtTime(top, t0 + c.t + (c.fade || 1.5) * 0.6); if (next) { g.gain.setValueAtTime(top, t0 + next.t); g.gain.linearRampToValueAtTime(0.0001, t0 + end); } g.connect(m.score); c._g = g; }
+      if (file) { const rm = fileReady.get(ctx), buf = rm && rm.get(file); if (buf && !c._src) { const src = ctx.createBufferSource(); src.buffer = buf; src.loop = true; const lv = ctx.createGain(); lv.gain.value = levelGain(buf, 0, 0, TRACK_RMS); src.connect(lv); lv.connect(c._g); src.start(t0 + c.t); src.stop(t0 + end + 0.5); c._src = src; } return; }
       for (const n of expand(c.name, c.t, Math.max(from, c.t), Math.min(to, end))) { const I = INST[n.inst]; if (I) I(ctx, c._g, t0 + n.t, n); } });
   },
   scheduleCurves(ctx, m, log, t0, until) {
