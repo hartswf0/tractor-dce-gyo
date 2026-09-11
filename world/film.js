@@ -247,7 +247,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
     function parseAct(text, who) {
       const a = { who: who || 'me' }, t = String(text || '').trim(); if (!t) return null;
       const march = t.match(/\bMARCH\s+(-?[\d.]+)(?:\s+([\d.]+))?/); if (march) { a.march = +march[1]; if (march[2]) a.speed = +march[2]; }
-      const to = t.match(/\bTO\s+(-?[\d.]+)\s+(-?[\d.]+)/); if (to) a.to = { x: +to[1], z: -to[2] };
+      const to = t.match(/\bTO\s+(-?[\d.]+)\s+(-?[\d.]+)/); if (to) a.to = { x: +to[1], z: -to[2] }; const atm = t.match(/\bAT\s+(-?[\d.]+)/); if (atm) a.at = +atm[1];
       const orbit = t.match(/\bORBIT\s+"([^"]*)"(?:\s+R\s+([\d.]+))?/); if (orbit) { a.orbit = orbit[1]; if (orbit[2]) a.r = +orbit[2]; }
       const pass = t.match(/\bPASS\s+"([^"]*)"/); if (pass) a.pass = pass[1];
       const aimQ = t.match(/\bAIM\s+"([^"]*)"/), aimXZ = t.match(/\bAIM\s+(-?[\d.]+)\s+(-?[\d.]+)/); if (aimQ) a.aim = aimQ[1]; else if (aimXZ) a.aim = { x: +aimXZ[1], z: -aimXZ[2] };
@@ -269,7 +269,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
       return Object.keys(a).length > 1 ? a : null;
     }
     const actText = a => { const t = []; if (a.leave) t.push('LEAVE'); if (a.ride) t.push('RIDE ' + a.ride); if (a.tie) t.push('TIE'); if (a.kind === 'walk') t.push(`WALK ${fmt(a.x)} ${fmt(-a.z)}`); if (a.kind === 'drive' && a.x != null) t.push(`DRIVE ${fmt(a.x)} ${fmt(-a.z)}`); if (a.ahead) t.push('AHEAD ' + fmt(a.ahead)); if (a.look) t.push(typeof a.look === 'string' ? `LOOK "${a.look}"` : `LOOK ${fmt(a.look.x)} ${fmt(-a.look.z)}`);
-      if (a.march != null) t.push(`MARCH ${fmt(a.march)}${a.speed != null ? ' ' + fmt(a.speed) : ''}`); if (a.to) t.push(`TO ${fmt(a.to.x)} ${fmt(-a.to.z)}`); if (a.orbit) t.push(`ORBIT "${a.orbit}"${a.r ? ' R ' + fmt(a.r) : ''}`); if (a.pass) t.push(`PASS "${a.pass}"`); if (a.alt) t.push('ALT ' + fmt(a.alt)); if (a.halt) t.push('HALT'); if (a.land) t.push('LAND');
+      if (a.march != null) t.push(`MARCH ${fmt(a.march)}${a.speed != null ? ' ' + fmt(a.speed) : ''}`); if (a.to) t.push(`TO ${fmt(a.to.x)} ${fmt(-a.to.z)}`); if (a.at != null) t.push(`AT ${fmt(a.at)}`); if (a.orbit) t.push(`ORBIT "${a.orbit}"${a.r ? ' R ' + fmt(a.r) : ''}`); if (a.pass) t.push(`PASS "${a.pass}"`); if (a.alt) t.push('ALT ' + fmt(a.alt)); if (a.halt) t.push('HALT'); if (a.land) t.push('LAND');
       if (a.fly) t.push('FLY'); if (a.fire) t.push('FIRE'); if (a.heavy) t.push('HEAVY'); if (a.every) t.push('EVERY ' + fmt(a.every)); if (a.speed != null && a.march == null) t.push('SPEED ' + fmt(a.speed)); if (a.alt != null) t.push('ALT ' + fmt(a.alt)); if (a.aim) t.push(typeof a.aim === 'string' ? `AIM "${a.aim}"` : `AIM ${fmt(a.aim.x)} ${fmt(-a.aim.z)}`); if (a.saber) t.push('SABER'); if (a.route) t.push(`ROUTE "${a.route}"`); if (a.chase) t.push(`CHASE "${a.chase}"` + (a.behind != null ? ' BEHIND ' + fmt(a.behind) : '')); if (a.alongside) t.push(`ALONGSIDE "${a.alongside}"` + (a.side != null ? ' SIDE ' + fmt(a.side) : '')); if (a.charge) t.push(`CHARGE "${a.charge}"`); if (a.follow) t.push(`FOLLOW "${a.follow}"`); if (a.pose) t.push('POSE ' + a.pose); if (a.brake) t.push('BRAKE'); if (a.turnabout) t.push('TURNABOUT'); if (a.run) t.push('RUN'); return t.join(' '); };
     function parseLight(line) {
       const name = (line.match(/"([^"]*)"/) || [])[1] || 'light', type = (line.match(/TYPE\s+(\w+)/) || [])[1] || 'POINT', p = line.match(/POS\s+(-?[\d.]+)\s+(-?[\d.]+)\s+(-?[\d.]+)/); if (!p) return null;
@@ -395,7 +395,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
     /** The cue a shot plays: its own `score`, or the last one named before it (null ends the music). */
     function scoreFor(i) { for (let k = i; k >= 0; k--) { const s = F.shots[k]; if (s && s.score !== undefined) return s.score; } return undefined; }
     /** The bed under a shot: the set's kind, the weather, the planet. */
-    function bedFor(s) { const kind = F.scene && F.scene.set && F.scene.set.kind, we = (s && s.set && s.set.weather) || W.weather, world = W.world; if (kind === 'forest') return 'forest'; if (kind === 'snowfield' || we === 'snow' || we === 'blizzard' || world === 'hoth') return we === 'blizzard' ? 'blizzard' : 'snow'; if (kind === 'desert' || world === 'tatooine') return 'desert'; if (world === 'deathstar') return 'space'; return 'city'; }
+    function bedFor(s) { const kind = F.scene && F.scene.set && F.scene.set.kind, we = (s && s.set && s.set.weather) || W.weather, world = W.world; if (kind === 'stage' || kind === 'hall') return null; if (kind === 'forest') return 'forest'; if (kind === 'snowfield' || we === 'snow' || we === 'blizzard' || world === 'hoth') return we === 'blizzard' ? 'blizzard' : 'snow'; if (kind === 'desert' || world === 'tatooine') return 'desert'; if (world === 'deathstar') return 'space'; return 'city'; }
     /** The hold is over: a planned shot is staged where things now stand, the act's first moves happen. */
     function settle(s) {
       if (s.plan) { try { s.bearKeep = null; const st = F.stage(s.plan); s.keys = st.keys; s.curve = null; s.name = s.name || st.name; s.readout = st.readout; if (s.follow) s.bearKeep = st.bearKeep; } catch (e) { F.log.push('stage: ' + (e.message || e)); } }
@@ -615,7 +615,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
     function dismount(a) { const B = F.actors.get(a.riding); if (W.filmUnseat) W.filmUnseat(a.rig); if (B && B.V) { a.rig.pos.copy(B.V.pos); a.rig.heading = B.V.heading; } a.rig.pos.y = groundH(a.rig.pos.x, a.rig.pos.z); a.rig.figure.rotation.y = a.rig.heading; a.riding = null; }
     /** A figure actor's frame: the act's target (a point, a distance ahead, another actor to follow), its pose, its trigger; then the minifig walks. */
     function stepFigure(a, dt) {
-      const rig = a.rig, act = a.act; if (!rig) return;
+      const rig = a.rig; let act = a.act; if (!rig) return; if (act && act.at != null && F.play.on && F.play.t < act.at) act = null;   /* an act with AT waits for its second of the shot */
       if (a.riding) { const B = F.actors.get(a.riding); if (!B || !B.V || B.down) { if (B && B.down) dismount(a); else a.riding = null; } else { if (act && act.leave && F.play.on) dismount(a); else return; } }
       const ctl = { move: { x: 0, z: 0, mag: 0 }, run: false, saber: false, aim: false }; let target = null;
       if (act && F.play.on && !a.down) {
