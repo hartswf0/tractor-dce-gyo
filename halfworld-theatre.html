@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#f2f1ec"><title>HALFWORLD THEATRE</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23f2f1ec'/%3E%3Cg fill='%23141414'%3E%3Ccircle cx='18' cy='18' r='4'/%3E%3Ccircle cx='32' cy='18' r='4'/%3E%3Ccircle cx='46' cy='18' r='4'/%3E%3Ccircle cx='18' cy='32' r='4'/%3E%3Ccircle cx='32' cy='32' r='4'/%3E%3Ccircle cx='46' cy='32' r='4'/%3E%3Ccircle cx='18' cy='46' r='4'/%3E%3Ccircle cx='32' cy='46' r='4'/%3E%3Ccircle cx='46' cy='46' r='4'/%3E%3C/g%3E%3C/svg%3E">
+<style>
+:root{--ink:#141414;--paper:#f2f1ec;--red:#e01b1b;--dim:#8a8a86}*{box-sizing:border-box}html,body{margin:0;height:100%;overflow:hidden;background:var(--paper);color:var(--ink);font-family:ui-monospace,SFMono-Regular,Menlo,monospace}button{font:inherit;border:1px solid var(--ink);background:var(--paper);min-height:38px;padding:6px 9px;font-size:8px;font-weight:900}button.on{background:var(--ink);color:var(--paper)}#app{height:100dvh;display:grid;grid-template-rows:44px 42px minmax(0,1fr)}header{display:flex;align-items:center;gap:7px;padding:5px 8px;border-bottom:1px solid var(--ink)}header strong{font-size:11px;letter-spacing:.1em;margin-right:auto}.tag{font-size:7px;border:1px solid var(--ink);padding:5px 7px}.bar{display:flex;align-items:center;gap:5px;padding:4px 7px;border-bottom:1px solid var(--ink);overflow-x:auto}.bar button{white-space:nowrap}.bar .spacer{flex:1}.stage{position:relative;min-height:0}.stage iframe{width:100%;height:100%;border:0;background:var(--paper)}.label{position:absolute;left:8px;bottom:8px;z-index:4;background:rgba(242,241,236,.94);border:1px solid var(--ink);padding:6px 8px;font-size:7px;pointer-events:none}.label b{color:var(--red)}.status{position:absolute;right:8px;bottom:8px;z-index:4;background:rgba(242,241,236,.94);border:1px solid var(--ink);padding:6px 8px;font-size:7px;pointer-events:none}.dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--red);margin-right:5px}
+</style></head>
+<body><div id="app">
+<header><strong>HALFWORLD THEATRE</strong><span class="tag">WORD-TO-THEATRE</span><span class="tag">ACTOR ⊂ SCENE ⊂ WORLD</span></header>
+<nav class="bar"><button id="studio" class="on">STUDIO</button><button id="stageOnly">STAGE ONLY</button><button id="reload">RESET VIEW</button><span class="spacer"></span><button id="source">SOURCE</button></nav>
+<main class="stage"><iframe id="hw" src="https://hartswf0.github.io/halfworld/halfworld-studio.html" title="Halfworld Studio"></iframe><div class="label"><b>CAST</b> · STAGE · SCORE · MIND · MEMORY · FACE · SAY</div><div class="status" id="status"><span class="dot"></span>LOADING HALFWORLD</div></main>
+</div>
+<script>
+const frame=document.getElementById('hw'),status=document.getElementById('status'),studio=document.getElementById('studio'),stageOnly=document.getElementById('stageOnly');
+function mode(embed){
+  try{frame.contentDocument.documentElement.classList.toggle('embed',embed);status.innerHTML='<span class="dot"></span>'+(embed?'STAGE / CONTRACT HOST':'FULL HALFWORLD STUDIO');}catch{status.innerHTML='<span class="dot"></span>HALFWORLD LOADED';}
+  studio.classList.toggle('on',!embed);stageOnly.classList.toggle('on',embed);
+}
+frame.addEventListener('load',()=>{status.innerHTML='<span class="dot"></span>HALFWORLD READY';mode(false);try{window.HALFWORLD_THEATRE=frame.contentWindow.HALFWORLD||null}catch{}});
+studio.onclick=()=>mode(false);stageOnly.onclick=()=>mode(true);document.getElementById('reload').onclick=()=>frame.contentWindow.location.reload();document.getElementById('source').onclick=()=>window.open('https://hartswf0.github.io/halfworld/halfworld-studio.html','_blank');
+window.addEventListener('message',e=>{if(e.origin===location.origin)status.innerHTML='<span class="dot"></span>HALFWORLD BUS ACTIVE'});
+</script></body></html>
