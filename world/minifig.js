@@ -51,6 +51,21 @@ const DEFS = {
   rey: { name: 'Rey', legs: 28, hips: 28, torso: 19, arms: 19, hands: 14, head: 14, hat: ['20877', 308], weapon: ['blaster', '58247', 0], ride: { kind: 'speeder', len: 7, col: 28 } },
   citizen: { name: 'Citizen', legs: 1, hips: 1, torso: 4, arms: 4, hands: 14, head: 14, hat: ['3901', 0], weapon: null, ride: { kind: 'car', len: 6, col: 4 } },
   rebel: { name: 'Rebel trooper', legs: 15, hips: 15, torso: 15, arms: 15, hands: 14, head: 14, hat: ['30370', 15], weapon: ['blaster', '58247', 0], crowd: true },   // the Hoth trench: white parka, white cap, a blaster
+  /* Springfield: the sculpted heads carry the face (two expressions each on disk, swapped like replacement heads), the bodies are plain parts in the show's colours */
+  homer: { name: 'Homer', legs: 1, hips: 1, torso: 15, arms: 15, hands: 14, head: 14, hat: null, weapon: null, sculpt: true, faces: { calm: '15527p01', wide: '15527p02' }, parts: [['legR', '3816', 1], ['legL', '3817', 1], ['hips', '3815', 1], ['torso', '973', 15], ['armR', '3818', 15], ['armL', '3819', 15], ['handR', '3820', 14], ['handL', '3820', 14], ['head', '15527p02', 14]], ride: { kind: 'car', len: 7, col: 322 } },
+  marge: { name: 'Marge', legs: 2, hips: 2, torso: 2, arms: 2, hands: 14, head: 14, hat: null, weapon: null, sculpt: true, woman: true, faces: { right: '15522p01', wide: '15522p02' }, parts: [['legR', '3816', 2], ['legL', '3817', 2], ['hips', '3815', 2], ['torso', '973', 2], ['armR', '3818', 2], ['armL', '3819', 2], ['handR', '3820', 14], ['handL', '3820', 14], ['head', '15522p02', 14]], ride: { kind: 'car', len: 7, col: 25 } },
+  bart: { name: 'Bart', legs: 1, hips: 1, torso: 25, arms: 25, hands: 14, head: 14, hat: null, weapon: null, sculpt: true, short: true, faces: { left: '15523p01', calm: '15523p02' }, parts: [['hips', '16709', 1], ['torso', '973pd12', 25], ['armR', '3818', 25], ['armL', '3819', 25], ['handR', '3820', 14], ['handL', '3820', 14], ['head', '15523p02', 14]], ride: { kind: 'board', len: 4, col: 4 } },
+  lisa: { name: 'Lisa', legs: 4, hips: 4, torso: 4, arms: 4, hands: 14, head: 14, hat: null, weapon: null, sculpt: true, short: true, woman: true, faces: { worried: '15524p01', calm: '15524p02' }, parts: [['hips', '16709', 4], ['torso', '973', 4], ['armR', '3818', 4], ['armL', '3819', 4], ['handR', '3820', 14], ['handL', '3820', 14], ['head', '15524p02', 14]] },
+  maggie: { name: 'Maggie', legs: 1, hips: 1, torso: 1, arms: 1, hands: 14, head: 14, hat: null, weapon: null, sculpt: true, short: true, baby: true, faces: { wide: '15525p01', worried: '15525p02' }, parts: [['hips', '15526', 1], ['head', '15525p02', 14]] },
+  flanders: { name: 'Ned Flanders', legs: 71, hips: 71, torso: 2, arms: 2, hands: 14, head: 14, hat: null, weapon: null, sculpt: true, parts: [['legR', '3816', 71], ['legL', '3817', 71], ['hips', '3815', 71], ['torso', '973', 2], ['armR', '3818', 2], ['armL', '3819', 2], ['handR', '3820', 14], ['handL', '3820', 14], ['head', '15529p01', 14]] },
+  /* Ithaca: plain heads that take a drawn face, hair in the halfworld's colours */
+  penelope: { name: 'Penelope', legs: 19, hips: 19, torso: 19, arms: 19, hands: 14, head: 14, hat: ['3625', 0], weapon: null, woman: true, face: 'odyssey' },
+  odysseus: { name: 'Odysseus', legs: 28, hips: 28, torso: 28, arms: 28, hands: 14, head: 14, hat: ['3901', 70], weapon: null, face: 'odyssey' },
+  eurycleia: { name: 'Eurycleia', legs: 72, hips: 72, torso: 72, arms: 72, hands: 14, head: 14, hat: ['3625', 15], weapon: null, woman: true, face: 'odyssey' },
+  telemachus: { name: 'Telemachus', legs: 19, hips: 19, torso: 15, arms: 15, hands: 14, head: 14, hat: ['3901', 0], weapon: null, face: 'odyssey' },
+  phemius: { name: 'Phemius', legs: 4, hips: 4, torso: 4, arms: 4, hands: 14, head: 14, hat: ['3901', 70], weapon: null, face: 'odyssey' },
+  athena: { name: 'Athena', legs: 15, hips: 15, torso: 15, arms: 15, hands: 14, head: 14, hat: ['30409', 14], weapon: null, woman: true, face: 'odyssey' },
+  suitor: { name: 'Suitor', legs: 70, hips: 70, torso: 70, arms: 70, hands: 14, head: 14, hat: ['3901', 0], weapon: null, crowd: true, face: 'odyssey' },
 };
 /* ride: the vehicle that stands by the spawn for this character (Vader has the TIE); vehicles.js lays it as lm-me */
 /* a bare head is the character's own (a mask over the plain head is the whole face), a short figure stands on one-piece legs */
@@ -59,6 +74,7 @@ function citizen(seed) { const d = { ...DEFS.citizen }; d.torso = d.arms = CITIZ
 
 /** The parts a definition needs, in order: [slot, partFile, colour]. */
 function partsOf(def) {
+  if (def.parts) return def.parts.map(p => p.slice());   // a cast member lists its own parts (sculpted heads, printed torsos, a baby's body); any part the harvest does not carry loads through the shared loader with its print
   const out = def.short ? [['hips', '16709', def.hips]] : [['legR', '3816', def.legs], ['legL', '3817', def.legs], ['hips', '3815', def.hips]];
   out.push(['torso', '973', def.torso], ['armR', '3818', def.arms], ['armL', '3819', def.arms], ['handR', '3820', def.hands], ['handL', '3820', def.hands]);
   if (!def.bare) out.push(['head', '3626b', def.head]);

@@ -198,9 +198,10 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
       for (const raw of String(text || '').split(/\r?\n/)) {
         const line = raw.trim(); if (!/!MENTO/.test(line)) continue;
         const name = (line.match(/"([^"]*)"/) || [])[1];
-        if (/!MENTO\s+SHOT/.test(line)) { const m = line.match(KEY_RE); if (!m) continue; const sec = line.match(/\bSEC\s+([\d.]+)/); cur = { name: name || `Shot ${shots.length + 1}`, keys: [keyOf(m)], sec: sec ? clamp(num(sec[1]), 0.5, 120) : F.sec, act: null, set: pendingSet, follow: /\bFOLLOW\b/.test(line), lamp: /\bLAMP\b/.test(line) }; const shf = line.match(/\bSHIFT\s+"([^"]*)"/); if (shf) cur.shift = shf[1]; scoreOf(line, cur); pendingSet = null; shots.push(cur); n++; }
+        if (/!MENTO\s+SHOT/.test(line)) { const m = line.match(KEY_RE); if (!m) continue; const sec = line.match(/\bSEC\s+([\d.]+)/); cur = { name: name || `Shot ${shots.length + 1}`, keys: [keyOf(m)], sec: sec ? clamp(num(sec[1]), 0.5, 120) : F.sec, act: null, set: pendingSet, follow: /\bFOLLOW\b/.test(line), lamp: /\bLAMP\b/.test(line) }; const spd = line.match(/\bSPEED\s+([\d.]+)/); if (spd) cur.speed = clamp(+spd[1], 0.05, 4); const shf = line.match(/\bSHIFT\s+"([^"]*)"/); if (shf) cur.shift = shf[1]; scoreOf(line, cur); pendingSet = null; shots.push(cur); n++; }
         else if (/!MENTO\s+STORY\b/.test(line)) { const m = line.match(/STORY\s+(\{[\s\S]*\})\s*$/); if (m) { try { story = JSON.parse(m[1]); } catch (e) { } } }
         else if (/!MENTO\s+TITLE/.test(line)) { const sec = line.match(/\bSEC\s+([\d.]+)/), st = line.match(/\bSTYLE\s+(\w+)/), words = (name || '').replace(/\\n/g, '\n'); cur = { name: words.split('\n')[0] || 'Title', title: words, style: st ? st[1].toLowerCase() : 'card', keys: [], sec: sec ? clamp(num(sec[1]), 0.5, 120) : 3, act: null, set: pendingSet }; scoreOf(line, cur); pendingSet = null; shots.push(cur); n++; }
+        else if (window.Perform && /!MENTO\s+(BEAT|SET\s+"|PHRASE|PERFORM|SPEAK|FACE|ASSERT|STEP|LIFE|INCREASE|REDUCE|EARLIER|LATER|KEEP)\b/.test(line)) { const ev = Perform.parseLine(line); if (ev && cur) (cur.events = cur.events || []).push(ev); }
         else if (/!MENTO\s+SET\b/.test(line)) { const w = line.match(/\bWORLD\s+(\w+)/), a = line.match(/\bAS\s+(\w+)/), t = line.match(/\bTIME\s+(\w+)/), we = line.match(/\bWEATHER\s+(\w+)/); pendingSet = { world: w ? w[1].toLowerCase() : null, as: a ? a[1].toLowerCase() : null, time: t ? t[1].toLowerCase() : null, weather: we ? we[1].toLowerCase() : null }; }
         else if (/!MENTO\s+PLAN\b/.test(line)) { const m = line.match(/PLAN\s+(\{[\s\S]*\})\s*$/); if (m && cur) { try { cur.plan = JSON.parse(m[1]); } catch (e) { } } }
         else if (/!MENTO\s+KEY/.test(line)) { const m = line.match(KEY_RE); if (m && cur) cur.keys.push(keyOf(m)); }
@@ -215,7 +216,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
       }
       F.shots = shots; F.lights = lights; if (F.sel >= shots.length) F.sel = shots.length - 1; if (F.sel < 0 && shots.length) F.sel = 0; if (story || !keepOld) F.story = story;
       if (actors.length || builds.length || stage) { if (!keepOld) F.teardown(!!stage); F.scene = { name: F.name || 'scene', actors, builds, set: stage, abs: true }; F.setup(); } else if (!keepOld && F.scene) F.teardown();
-      applyLights(); if (F.time && W.setSky) W.setSky(F.time); changed('parse'); return { shots: n, lights: lights.length, actors: actors.length, builds: builds.length };
+      if (F.prepareEnvs) F.prepareEnvs(); applyLights(); if (F.time && W.setSky) W.setSky(F.time); changed('parse'); return { shots: n, lights: lights.length, actors: actors.length, builds: builds.length };
     };
     const quoted = t => [...String(t).matchAll(/"([^"]*)"/g)].map(m => m[1]);
     function parseActor(line) {
@@ -239,6 +240,8 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
       return ev;
     }
     const eventText = ev => { const t = [`${ev.what}`]; if (ev.what === 'CAPTION') t.push(`"${String(ev.text || '').replace(/"/g, "'")}"`); if (ev.who) t.push(`"${ev.who}"`); if (ev.what === 'LINE') t.push(`"${String(ev.text || '').replace(/"/g, "'")}"`); if (ev.who2) t.push(`"${ev.who2}"`); if (ev.into) t.push('INTO ' + ev.into); if (ev.what === 'STRIKE' && ev.x != null) t.push(`${fmt(ev.x)} ${fmt(-ev.z)}`); if (ev.part) t.push(ev.part); t.push(`AT ${fmt(ev.at || 0)}`); if (ev.turns != null) t.push(`TURNS ${fmt(ev.turns)}`); if (ev.over != null) t.push(`OVER ${fmt(ev.over)}`); if (ev.scale != null) t.push(`SCALE ${fmt(ev.scale)}`); if (ev.every != null) t.push(`EVERY ${fmt(ev.every)}`); if (ev.r != null) t.push(`R ${fmt(ev.r)}`); if (ev.k != null) t.push(`K ${fmt(ev.k)}`); if (ev.for != null) t.push(`FOR ${fmt(ev.for)}`); return t.join(' '); };
+    /** An event's line: a performance directive stands on its own, the rest are EVENTs. */
+    const evLine = ev => { if (window.Perform && Perform.PERF_EVENTS.has(ev.what)) { const t = Perform.eventText(ev); if (t) return `0 !MENTO ${t}`; } return `0 !MENTO EVENT ${eventText(ev)}`; };
     const actorText = a => a.crowd ? `0 !MENTO ACTOR "${a.name}" CROWD ${a.kind} N ${a.n} AT ${fmt(a.x)} ${fmt(-a.z)} R ${fmt(a.r / M)}` : `0 !MENTO ACTOR "${a.name}" ${a.figure ? 'FIGURE ' + a.figure : a.kit ? 'KIT ' + a.kit : 'KIND ' + a.kind + (a.len ? ' LEN ' + a.len : '') + (a.col != null ? ' COL ' + a.col : '')} AT ${fmt(a.x)} ${fmt(-a.z)} HEADING ${fmt(a.heading || 0)}${a.rider ? ' RIDER ' + a.rider : ''}${a.pose ? ' POSE ' + a.pose : ''}`;
     /** The act tokens: WALK x z, DRIVE x z, AHEAD m, RIDE word, TIE, FLY, FIRE, SABER, LEAVE, LOOK x z; for an actor also MARCH deg speed, TO x z, ORBIT "who" R m, PASS "who", HEAVY, EVERY s, AIM "who"|x z, HALT, LAND, ALT m. */
     function parseAct(text, who) {
@@ -286,14 +289,14 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
       F.shots.forEach((s, i) => {
         out.push(`0 // SHOT ${i + 1}: ${s.name.toUpperCase()}`);
         if (s.set && (s.set.world || s.set.as || s.set.time || s.set.weather)) out.push(`0 !MENTO SET${s.set.world ? ' WORLD ' + s.set.world : ''}${s.set.as ? ' AS ' + s.set.as : ''}${s.set.time ? ' TIME ' + s.set.time : ''}${s.set.weather ? ' WEATHER ' + s.set.weather : ''}`);
-        if (s.title != null) { out.push(`0 !MENTO TITLE "${s.title.replace(/"/g, "'").replace(/\n/g, '\\n')}" STYLE ${s.style || 'card'} SEC ${fmt(s.sec)}${scoreText(s)}`); for (const ev of s.events || []) out.push(`0 !MENTO EVENT ${eventText(ev)}`); return; }
+        if (s.title != null) { out.push(`0 !MENTO TITLE "${s.title.replace(/"/g, "'").replace(/\n/g, '\\n')}" STYLE ${s.style || 'card'} SEC ${fmt(s.sec)}${scoreText(s)}`); for (const ev of s.events || []) out.push(evLine(ev)); return; }
         const k0 = s.keys[0] || { pos: new THREE.Vector3(), tgt: new THREE.Vector3(0, 0, -1), fov: 50 };
-        out.push(`0 !MENTO SHOT "${s.name.replace(/"/g, "'")}" ${keyLine(k0)} SEC ${fmt(s.sec)}${s.follow ? ' FOLLOW' : ''}${s.lamp ? ' LAMP' : ''}${s.shift ? ` SHIFT "${String(s.shift).replace(/"/g, "'")}"` : ''}${scoreText(s)}`);
+        out.push(`0 !MENTO SHOT "${s.name.replace(/"/g, "'")}" ${keyLine(k0)} SEC ${fmt(s.sec)}${s.follow ? ' FOLLOW' : ''}${s.lamp ? ' LAMP' : ''}${s.speed != null ? ' SPEED ' + fmt(s.speed) : ''}${s.shift ? ` SHIFT "${String(s.shift).replace(/"/g, "'")}"` : ''}${scoreText(s)}`);
         if (s.plan) out.push(`0 !MENTO PLAN ${JSON.stringify(s.plan)}`);
         for (const k of s.keys.slice(1)) out.push(`0 !MENTO KEY ${keyLine(k)}`);
         if (s.act) { const t = actText(s.act); if (t) out.push(`0 !MENTO ACT "${s.act.who || 'me'}" ${t}`); }
         for (const a of s.acts || []) { const t = actText(a); if (t) out.push(`0 !MENTO ACT "${a.who}" ${t}`); }
-        for (const ev of s.events || []) out.push(`0 !MENTO EVENT ${eventText(ev)}`);
+        for (const ev of s.events || []) out.push(evLine(ev));
       });
       return out.join('\n') + '\n';
     };
@@ -503,6 +506,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
       if (!W.filmRig) return; const rig = W.filmRig(a.figure); if (!rig) return;
       rig.pos.set(a.x, groundH(a.x, a.z), a.z); rig.heading = headingOf(a.heading || 0); rig.figure.rotation.y = rig.heading; rig.figure.visible = true; rig.def = rig.def || Minifig.DEFS[a.figure];
       a.rig = rig; a.poseNow = a.pose || 'stand'; a.ready = true; applyPose(a);
+      if (window.Perform) { a.perf = Perform.attach(a, rig); const def = rig.def || {}; if (window.Face && !def.bare && !def.sculpt) a.perf.face = Face.attach(rig, def.face || 'lego'); if (a.pose && Perform.PHRASES[a.pose]) Perform.phrase(a.perf, a.pose, 0, { enter: 0.01 }); }
     }
     function seatRider(a) {
       if (!a.rider || !W.filmRig || !W.filmSeat || !a.V || !a.it || !a.it.box) return; const rr = W.filmRig(a.rider); if (!rr) return;
@@ -543,7 +547,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
     };
     F.teardown = keepSet => {
       const sc = F.scene; if (W.mode === 'ride' && W.veh && W.veh.prop && W.veh.prop.src && W.veh.prop.src.film) F.ground();   // off a ride the film laid before it goes
-      if (sc && sc.set && keepSet) F.kept = { groundWas: sc.groundWas }; for (const a of F.actors.values()) { if (a.it) W.props.remove(a.it.id, true); if (a.npcs && W.crowd) for (const n of a.npcs) W.crowd.remove(n); if (a.rig) dropRig(a.rig); if (a.riderRig) dropRig(a.riderRig); }
+      if (sc && sc.set && keepSet) F.kept = { groundWas: sc.groundWas }; for (const a of F.actors.values()) { if (a.it) W.props.remove(a.it.id, true); if (a.npcs && W.crowd) for (const n of a.npcs) W.crowd.remove(n); if (a.perf && a.perf.face && window.Face) Face.detach(a.perf.face); if (a.rig) dropRig(a.rig); if (a.riderRig) dropRig(a.riderRig); }
       for (const L of F.loose) dropRig(L.rig); F.loose = []; for (const L of F.lights2) W.scene.remove(L.L); F.lights2 = []; F.caption = null; showCaption(null); F.deflect = null; F.flip = 0; F.proneUntil = 0;
       for (const b of F.builds.values()) for (const id of b.ids) W.build.take(id, true);
       if (W.props) for (const it of [...W.props.items.values()]) if (it.src && it.src.film) W.props.remove(it.id, true);   // whatever a film laid and lost track of
@@ -629,6 +633,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
       if (a.flip) { if (rig.air) rig.figure.rotation.x = -((rig.t - a.flip) / 0.9) * Math.PI * 2; else { a.flip = 0; a.poseNow = 'prone'; a.poseUntil = rig.t + 1.2; } }
       if (a.poseUntil && rig.t > a.poseUntil && !a.down) { a.poseUntil = 0; a.poseNow = 'stand'; }
       applyPose(a);
+      if (a.perf && window.Perform) Perform.apply(a.perf, F.reelOffset(F.play.i) + F.play.t, { speed: (F.shots[F.play.i] || {}).speed });
     }
     /** Figures the film threw clear (a rider off an exploding bike): they fly, land, and lie there. */
     function stepLoose(dt) { for (const L of F.loose) { const rig = L.rig; if (!rig.air && L.landed) continue; Minifig.step(rig, dt, { move: { x: 0, z: 0, mag: 0 } }, figWorld); if (rig.air) rig.figure.rotation.x = -((rig.t - L.t0) / 0.9) * Math.PI * 2; else { L.landed = true; rig.figure.rotation.x = -Math.PI / 2; rig.pos.y = groundH(rig.pos.x, rig.pos.z) + 0.15 * M; } } }
@@ -703,6 +708,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
     }
     function stepRout() { const r = F.rout; if (!r) return; const a = F.actors.get(r.crowd), from = F.actors.get(r.from); if (!a || !a.npcs) return; const p = from && from.V ? from.V.pos : null; for (const n of a.npcs) if (n.alive) { n.flee = 2; n.fleeFrom = p; } }
     function fireEvent(ev, s) {
+      if (window.Perform && Perform.PERF_EVENTS.has(ev.what)) { Perform.fire(ev, perfCtx()); return; }
       F.fired++; const who = ev.who, A = F.actors.get(who);
       switch (ev.what) {
         case 'CABLE': F.cable = { from: who, to: ev.who2, turns: ev.turns || 3, over: ev.over || 4, t: 0, leg: 'leg-rl', frozen: false }; Fx.Sfx.zip(); break;
@@ -769,7 +775,19 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
       if (F.proneUntil && F.play.t > F.proneUntil) { F.proneUntil = 0; F.prone = false; if (W.rig) W.rig.figure.rotation.x = 0; }
       if (F.prone && W.rig && W.mode === 'walk' && !W.rig.air) { W.rig.figure.rotation.x = -Math.PI / 2; W.rig.pos.y = groundH(W.rig.pos.x, W.rig.pos.z) + 0.15 * M; }
     };
-    F.sceneState = () => ({ name: F.scene ? F.scene.name : null, up: !!(F.scene && F.scene.up), ready: !!(F.scene && F.scene.ready), actors: [...F.actors.keys()], builds: [...F.builds.values()].map(b => ({ name: b.name, pieces: b.ids.length, x: +(b.x / M).toFixed(1), z: +(b.z / M).toFixed(1), w: +(b.w / M).toFixed(1), h: +(b.h / M).toFixed(1) })), cable: F.cable ? { t: +F.cable.t.toFixed(2), turns: +(F.cable.turns * clamp(F.cable.t / F.cable.over, 0, 1)).toFixed(2), frozen: F.cable.frozen, points: F.cable.mesh ? F.cable.mesh.geometry.parameters.path.points.length : 0 } : null, hang: F.hang ? { t: +F.hang.t.toFixed(2), actor: F.hang.actor } : null, prone: F.prone, rout: F.rout, strikes: !!F.strikes, pending: F.pending.map(e => ({ what: e.what, at: e.at, done: e.done })), fired: F.fired, sound: window.Sound ? Sound.stats() : null, caption: F.caption ? F.caption.text : null, deflected: F.deflect ? F.deflect.n : (F.deflectN || 0), loose: F.loose.length, flip: !!F.flip, weather: W.weather, ground: W.G && W.G.mode, snow: !!(W.sky && W.sky.stats && W.sky.stats().snow) });
+    /* ── the performance register: beats, envelopes, the close-ups kept for the word they should read as ── */
+    F.beats = []; F.asserts = []; F.beat = null; F.envs = {};
+    const perfCtx = () => ({ t: F.reelOffset(F.play.i) + F.play.t, perf: who => { const a = F.actors.get(who); return a && a.perf || null; }, subject: who => { try { const S = F.subject(who); return S && (S.x != null) ? { x: S.x, y: S.y, z: S.z } : null; } catch (e) { return null; } }, beat: b => { F.beat = b; F.beats.push(b); if (F.onChange) F.onChange('beat'); }, assert: rec => { F.asserts.push(rec); if (F.onChange) F.onChange('assert'); } });
+    /** The envelopes SPEAK lines need, fetched once per program: a file's sidecar (<file>.env.json) or a synthesized line's entry in the manifest. */
+    F.prepareEnvs = () => { const want = new Set(); for (const s of F.shots) for (const ev of s.events || []) if (ev.what === 'SPEAK' && ev.file) want.add(ev.file); for (const f of want) if (!F.envs[f]) { F.envs[f] = { hz: 50, env: null }; fetch('./world/lines/' + f.replace(/\.[^.]+$/, '') + '.env.json').then(r => r.ok ? r.json() : null).then(j => { if (j && j.env) F.envs[f] = { hz: j.hz || 50, env: j.env }; }).catch(() => { }); } if (window.Sound && Sound.loadManifest) Sound.loadManifest(); };
+    if (window.Perform) {
+      Perform.hooks.log = m => F.log.push(m);
+      Perform.hooks.line = { sec: ev => (window.Sound ? Sound.lineSec(Sound.lineKey(ev.who, ev.text), ev.text) : 0.3 + String(ev.text || '').split(/\s+/).length * 0.36), play: (ev, sec) => { F.caption = { text: ev.text || '', until: F.play.t + sec + 0.4 }; showCaption(F.caption.text); if (window.Sound) Sound.fire('line', { key: ev.file ? null : Sound.lineKey(ev.who, ev.text), who: ev.who, text: ev.text, sec, file: ev.file || null, from: ev.from || 0, voice: ev.voice || null }); } };
+      Perform.hooks.env = ev => { if (ev.file) { const e = F.envs[ev.file]; if (!e || !e.env) return null; const hz = e.hz || 50, a = Math.floor((ev.from || 0) * hz), b = ev.for != null ? Math.ceil((ev.from + ev.for) * hz) : e.env.length; return { hz, env: e.env.slice(a, b) }; } if (window.Sound && Sound.lineEnv) { const env = Sound.lineEnv(Sound.lineKey(ev.who, ev.text)); return env ? { hz: 50, env } : null; } return null; };
+      Perform.hooks.face = (P, name) => (W.filmFace ? W.filmFace(P.rig, name) : false);
+      Perform.hooks.snapshot = P => (W.filmCloseup ? W.filmCloseup(P.rig) : null);
+    }
+    F.sceneState = () => ({ perform: [...F.actors.values()].filter(a => a.perf).map(a => (window.Perform ? Perform.stats(a.perf) : null)), beat: F.beat, beats: F.beats.length, asserts: F.asserts.length, name: F.scene ? F.scene.name : null, up: !!(F.scene && F.scene.up), ready: !!(F.scene && F.scene.ready), actors: [...F.actors.keys()], builds: [...F.builds.values()].map(b => ({ name: b.name, pieces: b.ids.length, x: +(b.x / M).toFixed(1), z: +(b.z / M).toFixed(1), w: +(b.w / M).toFixed(1), h: +(b.h / M).toFixed(1) })), cable: F.cable ? { t: +F.cable.t.toFixed(2), turns: +(F.cable.turns * clamp(F.cable.t / F.cable.over, 0, 1)).toFixed(2), frozen: F.cable.frozen, points: F.cable.mesh ? F.cable.mesh.geometry.parameters.path.points.length : 0 } : null, hang: F.hang ? { t: +F.hang.t.toFixed(2), actor: F.hang.actor } : null, prone: F.prone, rout: F.rout, strikes: !!F.strikes, pending: F.pending.map(e => ({ what: e.what, at: e.at, done: e.done })), fired: F.fired, sound: window.Sound ? Sound.stats() : null, caption: F.caption ? F.caption.text : null, deflected: F.deflect ? F.deflect.n : (F.deflectN || 0), loose: F.loose.length, flip: !!F.flip, weather: W.weather, ground: W.G && W.G.mode, snow: !!(W.sky && W.sky.stats && W.sky.stats().snow) });
 
     /* ── the band: the film frame is the render frame while the film owns the camera ── */
     const SZ = new THREE.Vector2();
@@ -1029,11 +1047,11 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
         let act = null; if (sh.act) { act = { who: 'me', ...sh.act }; if (Array.isArray(act.walk)) { act.kind = 'walk'; act.x = act.walk[0] * M; act.z = act.walk[1] * M; act.rel = true; } if (Array.isArray(act.drive)) { act.kind = 'drive'; act.x = act.drive[0] * M; act.z = act.drive[1] * M; act.rel = true; } delete act.walk; delete act.drive; }
         const shot = { name: sh.name || `${plan.frame} on ${plan.on}`, keys: [{ pos: new THREE.Vector3(0, 4 * M, 0), tgt: new THREE.Vector3(0, 2 * M, -10 * M), fov: 50 }], sec: clamp(+sh.sec || F.sec, 0.5, 120), act, set, plan, follow: !!sh.follow, acts: actsOf(sh.acts), events: eventsOf(sh.events) };
         if (sh.title != null) { shot.title = sh.title; shot.style = sh.style || 'hud'; }
-        if (sh.shift) shot.shift = sh.shift; if (sh.score !== undefined) shot.score = sh.score; if (sh.lamp) shot.lamp = true; shots.push(shot);
+        if (sh.shift) shot.shift = sh.shift; if (sh.score !== undefined) shot.score = sh.score; if (sh.lamp) shot.lamp = true; if (sh.speed != null) shot.speed = clamp(+sh.speed, 0.05, 4); shots.push(shot);
       }
       if (!append) { F.teardown(!!(prog && prog.set)); F.shots = []; } F.shots.push(...shots); F.sel = F.shots.length ? (append ? F.shots.length - shots.length : 0) : -1; F.name = prog && prog.name || F.name; if (prog && prog.story) F.story = prog.story; else if (!append) F.story = null;
       if (prog && (prog.actors || prog.builds || prog.set)) { F.scene = { name: prog.name, actors: (prog.actors || []).map(a => ({ ...a, r: a.r ? a.r * M : undefined })), builds: (prog.builds || []).map(b => ({ ...b })), set: prog.set ? { ...prog.set, corridor: prog.set.corridor ? prog.set.corridor.map(p => p.slice()) : null, abs: false } : null, routes: prog.routes ? Object.fromEntries(Object.entries(prog.routes).map(([k, v]) => [k, v.map(p => p.slice())])) : null, world: prog.world || null, as: prog.as || null, ground: prog.ground || null, weather: prog.weather || null, time: prog.time || null, abs: false }; F.setup(); }
-      changed('program'); return shots.length;
+      if (F.prepareEnvs) F.prepareEnvs(); changed('program'); return shots.length;
     };
     F.trailer = name => { const t = TRAILERS[name || 'a-new-hope'] || SCENES[name]; if (!t) return 0; const n = F.loadProgram(t); say(`${t.name}: ${n} shots${F.scene ? ' · ' + F.scene.actors.length + ' actors' : ''} · Play previews it, Rec takes it`, 'ok'); return n; };
 

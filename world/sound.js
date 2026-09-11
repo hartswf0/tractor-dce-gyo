@@ -115,6 +115,13 @@ const CUES = {
     { inst: 'snare', notes: [[1, 60, 0.2, 0.6], [3, 60, 0.2, 0.7], [5, 60, 0.2, 0.6], [7, 60, 0.2, 0.7], [7.5, 60, 0.2, 0.5], [9, 60, 0.2, 0.6], [11, 60, 0.2, 0.7], [13, 60, 0.2, 0.6], [15, 60, 0.2, 0.8], [15.5, 60, 0.2, 0.6]] },
     { inst: 'timpani', notes: [[0, 38, 1, 0.9], [4, 36, 1, 0.8], [8, 38, 1, 0.9], [12, 33, 1, 0.9]] },
   ]),
+  springfield: cue(132, 12, [   // a bouncy major fanfare in the intro's spirit, swung: brass on the tune, horns on the chords, a walking bass, brushes
+    { inst: 'brass', notes: [[0, 60, 0.45, 0.9], [0.66, 64, 0.3, 0.8], [1, 67, 0.9, 1], [2, 69, 0.45, 0.9], [2.66, 67, 0.3, 0.8], [3, 64, 0.9, 0.9], [4, 65, 0.45, 0.9], [4.66, 69, 0.3, 0.8], [5, 72, 0.9, 1], [6, 71, 0.45, 0.9], [6.66, 69, 0.3, 0.8], [7, 67, 0.9, 0.9], [8, 60, 0.45, 0.9], [8.66, 64, 0.3, 0.8], [9, 67, 0.45, 0.9], [9.66, 72, 0.3, 0.9], [10, 71, 0.9, 1], [11, 67, 0.9, 0.9]] },
+    { inst: 'horn', notes: [...chord(0, [52, 55, 60], 2, 0.5), ...chord(2, [52, 57, 60], 2, 0.5), ...chord(4, [53, 57, 60], 2, 0.5), ...chord(6, [55, 59, 62], 2, 0.5), ...chord(8, [52, 55, 60], 2, 0.5), ...chord(10, [55, 59, 62], 2, 0.55)] },
+    { inst: 'bass', notes: [[0, 36, 0.45, 1], [1, 43, 0.45, 0.8], [2, 45, 0.45, 0.9], [3, 43, 0.45, 0.8], [4, 41, 0.45, 1], [5, 45, 0.45, 0.8], [6, 43, 0.45, 0.9], [7, 38, 0.45, 0.8], [8, 36, 0.45, 1], [9, 40, 0.45, 0.8], [10, 43, 0.45, 0.9], [11, 47, 0.45, 0.8]] },
+    { inst: 'snare', notes: [1, 1.66, 3, 3.66, 5, 5.66, 7, 7.66, 9, 9.66, 11, 11.33, 11.66].map((b, i) => [b, 60, 0.15, i % 2 === 0 ? 0.45 : 0.25]) },
+    { inst: 'flute', notes: [[9.66, 76, 0.3, 0.5], [10, 79, 0.9, 0.6], [11, 76, 0.9, 0.5]] },
+  ]),
   march: cue(104, 12, [
     { inst: 'bass', notes: [[0, 43, 0.9, 1], [1, 43, 0.9, 0.9], [2, 43, 0.9, 1], [3, 39, 0.7, 0.9], [3.75, 46, 0.25, 0.8], [4, 43, 0.9, 1], [5, 39, 0.7, 0.9], [5.75, 46, 0.25, 0.8], [6, 43, 1.8, 1], [8, 50, 0.9, 1], [9, 50, 0.9, 0.9], [10, 50, 0.9, 1], [11, 51, 0.7, 0.9], [11.75, 46, 0.25, 0.8]] },
     { inst: 'brass', notes: [[0, 55, 0.9, 0.9], [1, 55, 0.9, 0.8], [2, 55, 0.9, 0.9], [3, 51, 0.7, 0.8], [3.75, 58, 0.25, 0.7], [4, 55, 0.9, 0.9], [5, 51, 0.7, 0.8], [5.75, 58, 0.25, 0.7], [6, 55, 1.8, 1], [8, 62, 0.9, 0.9], [9, 62, 0.9, 0.8], [10, 62, 0.9, 0.9], [11, 63, 0.7, 0.9], [11.75, 58, 0.25, 0.8]] },
@@ -174,14 +181,22 @@ function loadLine(ctx, key) {
   const p = fetch(BASE + 'lines/' + key + '.ogg').then(r => { if (!r.ok) throw new Error('no line'); return r.arrayBuffer(); }).then(ab => new Promise((ok, no) => { const r = ctx.decodeAudioData(ab, ok, no); if (r && r.then) r.then(ok, no); })).catch(() => null);
   m.set(key, p); return p;
 }
+const lineEnv = key => (manifest && manifest[key] && Array.isArray(manifest[key].env) ? manifest[key].env : null);
 const lineSec = (key, text) => manifest && manifest[key] && manifest[key].sec ? manifest[key].sec : 0.3 + String(text || '').split(/\s+/).length * 0.36;
 /** A line through its character's colour: a radio's band and squelch, a droid's ring, a clean voice. */
-function sayBuffer(ctx, out, at, buf, voice) {
+const fileBufs = new WeakMap();
+/** A recorded voice file (a scene's whole take, sliced by FROM and FOR), decoded once per context. */
+function loadFile(ctx, file) {
+  let m = fileBufs.get(ctx); if (!m) { m = new Map(); fileBufs.set(ctx, m); } if (m.has(file)) return m.get(file);
+  const p = fetch(BASE + 'lines/' + file).then(r => { if (!r.ok) throw new Error('no file'); return r.arrayBuffer(); }).then(ab => new Promise((ok, no) => { const r = ctx.decodeAudioData(ab, ok, no); if (r && r.then) r.then(ok, no); })).catch(() => null);
+  m.set(file, p); return p;
+}
+function sayBuffer(ctx, out, at, buf, voice, from, dur) {
   const s = ctx.createBufferSource(); s.buffer = buf; let head = s;
   if (voice === 'radio') { const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 1500; f.Q.value = 1.2; const g = ctx.createGain(); g.gain.value = 1.8; const sh = ctx.createWaveShaper(); const c = new Float32Array(256); for (let i = 0; i < 256; i++) { const x = i / 128 - 1; c[i] = Math.tanh(x * 2.2); } sh.curve = c; head.connect(f); f.connect(sh); sh.connect(g); head = g; ONE.static(ctx, out, at - 0.06); ONE.static(ctx, out, at + buf.duration + 0.03); }
   else if (voice === 'droid') { const f = ctx.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 400; const d = ctx.createDelay(0.05); d.delayTime.value = 0.011; const g = ctx.createGain(); g.gain.value = 0.9, dg = ctx.createGain(); dg.gain.value = 0.5; head.connect(f); f.connect(g); f.connect(d); d.connect(dg); dg.connect(g); head = g; }
   else if (voice === 'vader') { const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 1100; const d = ctx.createDelay(0.1); d.delayTime.value = 0.02; const g = ctx.createGain(); g.gain.value = 1.2; const dg = ctx.createGain(); dg.gain.value = 0.6; head.connect(f); f.connect(g); f.connect(d); d.connect(dg); dg.connect(g); head = g; }
-  head.connect(out); s.start(at);
+  head.connect(out); if (dur) s.start(at, from || 0, dur); else s.start(at, from || 0);
 }
 /** No file: syllables of two sines, a rough voice so the line is at least heard. */
 function babble(ctx, out, at, text, voice) { const n = Math.max(2, Math.round(String(text || '').replace(/[^a-z]/gi, '').length / 2.6)), f0 = voice === 'f' ? 240 : voice === 'droid' ? 300 : 150, dur = 0.12; for (let i = 0; i < n; i++) { const t = at + i * 0.15, k = ((i * 7919) % 11) / 11; tone(ctx, out, t, voice === 'droid' ? 'square' : 'sawtooth', f0 * (0.92 + k * 0.2), f0 * (0.85 + k * 0.25), dur, 0.09, { attack: 0.02 }); tone(ctx, out, t, 'sine', f0 * (2.1 + k), f0 * (2.4 + k * 0.6), dur, 0.05, { attack: 0.02 }); } }
@@ -189,7 +204,7 @@ function babble(ctx, out, at, text, voice) { const n = Math.max(2, Math.round(St
 /* ── the log and the two clocks ── */
 const S = {
   armed: false, clock: () => 0, log: null, open: {}, live: null, LEAD: 0.06, cueNow: null, cueAt: 0, muted: false, bed: null,
-  ONE, LOOPS, INST, CUES, BEDS, VOICES, expand, lineKey, voiceOf, mix, noise, tone, burst, midiHz, lineSec, loadManifest,
+  ONE, LOOPS, INST, CUES, BEDS, VOICES, expand, lineKey, lineEnv, loadFile, loadManifest, voiceOf, mix, noise, tone, burst, midiHz, lineSec, loadManifest,
   reset() { S.log = { events: [], curves: [], cues: [], t: 0 }; S.open = {}; S.cueNow = null; S.cueAt = 0; },
   /** The film arms the log when it plays (with its reel clock) and disarms it when it stops: open curves close, the cue ends. */
   arm(on, clock) {
@@ -213,6 +228,7 @@ const S = {
     const voice = p.voice || voiceOf(p.who), sec = p.sec || lineSec(p.key, p.text);
     m.score.gain.setTargetAtTime(0.16, at, 0.05); m.score.gain.setTargetAtTime(0.55, at + sec, 0.2);
     if (voice === 'roar') { ONE.roar(ctx, m.voice, at, { sec }); return; }
+    if (p.file) { loadFile(ctx, p.file).then(buf => { if (buf) sayBuffer(ctx, m.voice, at, buf, voice, p.from || 0, sec); else babble(ctx, m.voice, at, p.text, voice); }); return; }
     if (!p.key) { babble(ctx, m.voice, at, p.text, voice); return; }
     loadLine(ctx, p.key).then(buf => { if (buf) sayBuffer(ctx, m.voice, at, buf, voice); else babble(ctx, m.voice, at, p.text, voice); });
   },
@@ -258,7 +274,7 @@ const S = {
   /** The log rendered whole into a WAV: an OfflineAudioContext of the film's length, scheduled in ten-second windows. */
   async renderOffline(log, seconds, rate) {
     rate = rate || 48000; const n = Math.ceil(Math.max(0.5, seconds) * rate), ctx = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(2, n, rate), m = mix(ctx);
-    await loadManifest(); await Promise.all(log.events.filter(e => e.name === 'line' && e.p && e.p.key).map(e => loadLine(ctx, e.p.key)));
+    await loadManifest(); await Promise.all(log.events.filter(e => e.name === 'line' && e.p && e.p.key).map(e => loadLine(ctx, e.p.key))); await Promise.all([...new Set(log.events.filter(e => e.name === 'line' && e.p && e.p.file).map(e => e.p.file))].map(f => loadFile(ctx, f)));
     const WIN = 10, q = 128 / rate, windows = Math.ceil(seconds / WIN); S.scheduleCurves(ctx, m, log, 0, seconds);
     for (const c of log.cues) delete c._g; S.schedule(ctx, m, log, 0, 0, WIN);
     for (let k = 1; k < windows; k++) { const at = Math.round(k * WIN / q) * q; ctx.suspend(at).then(() => { S.schedule(ctx, m, log, 0, k * WIN, (k + 1) * WIN); ctx.resume(); }); }

@@ -188,10 +188,10 @@ const line = (col, x, y, z, rot, part) => `1 ${col} ${r4(x)} ${r4(y)} ${r4(z)} $
 const r4 = v => (Math.round(v * 1000) / 1000).toString();
 /** A vehicle in the prop frame (LDraw: y down, ground at y = 0, forward = −z). Returns { mpd, w, d, hp } with the footprint in studs. */
 function vehicleMPD(o) {
-  const kind = String(o.kind || 'car').toLowerCase(), col = colOf(o.col, 4), len = clamp(I(o.len, kind === 'truck' ? 10 : kind === 'bus' ? 12 : kind === 'plane' ? 8 : 6), 4, 16), wide = kind === 'speeder' || kind === 'plane' ? 2 : 4, L = [];
+  const kind = String(o.kind || 'car').toLowerCase(), col = colOf(o.col, 4), len = clamp(I(o.len, kind === 'truck' ? 10 : kind === 'bus' ? 12 : kind === 'plane' ? 8 : kind === 'board' ? 4 : 6), 4, 16), wide = kind === 'speeder' || kind === 'plane' || kind === 'board' ? 2 : 4, L = [];
   const zf = -len * STUD / 2, zb = len * STUD / 2;    // front and back edges
   const g = new Grid();                              // the body is bricks too: a local grid in prop cells (x across, z along)
-  const bx = -wide / 2, bz = -len / 2, floorY = kind === 'speeder' ? 2 : 4;   // plates above the ground the floor plate sits at
+  const bx = -wide / 2, bz = -len / 2, floorY = kind === 'speeder' || kind === 'board' ? 2 : 4;   // plates above the ground the floor plate sits at
   if (kind === 'boat') { g.fillBox(bx, bz + 1, wide, len - 2, 0, 1, col); g.fillBox(bx, bz + 1, 1, len - 2, 1, 4, col); g.fillBox(bx + wide - 1, bz + 1, 1, len - 2, 1, 4, col); g.fillBox(bx + 1, bz + len - 2, wide - 2, 1, 1, 4, col);
     g.part('3039', col, bx + 1, bz, 1, 0, 2, 2, BRICK); g.part('3040b', col, bx, bz, 1, 0, 1, 2, BRICK); g.part('3040b', col, bx + wide - 1, bz, 1, 0, 1, 2, BRICK);   // the bow: a slope in the middle, a slope each side
     g.fillBox(bx + 1, bz + 2, 1, 1, 4, 5, 71); g.part('3829c01', 0, bx + 1, bz + 3, 4, 0, 2, 1, 1); g.fillBox(bx + 1, bz + len - 3, wide - 2, 1, 4, 4 + BRICK, 15); }   // a helm and a cabin block at the stern
@@ -214,7 +214,8 @@ function vehicleMPD(o) {
     for (let zz = bz + 4; zz < bz + len - 2; zz++) g.fillBox(bx, zz, wide, 1, floorY + 1, floorY + 1 + BRICK, col);   // the engine block
     g.part('3040b', col, bx, bz + len - 2, floorY + 1, 2, 1, 2, BRICK); g.part('3040b', col, bx + 1, bz + len - 2, floorY + 1, 2, 1, 2, BRICK);   // rear fins
     g.fillBox(bx, bz + 1, wide, len - 2, floorY - 2, floorY, 0);                                 // a dark skid underneath, so it hovers
-  } else {   // car, truck and bus: a two-plate chassis on real wheels under mudguards, a bonnet, a windscreen, a cabin with a roof
+  } else if (kind === 'board') { g.fillBox(bx, bz, wide, len, floorY, floorY + 1, col); g.fillBox(bx, bz, wide, 1, floorY + 1, floorY + 2, col); }   // a skateboard: a plate deck on small wheels, a kick at the tail
+  else {   // car, truck and bus: a two-plate chassis on real wheels under mudguards, a bonnet, a windscreen, a cabin with a roof
     const arches = [bz + 1, bz + len - 3], isArch = zz => arches.some(a => zz === a || zz === a + 1), body = floorY + 2;   // the axles sit two studs from each end
     for (let zz = bz - 1; zz < bz + len; zz++) if (!isArch(zz)) g.fillBox(bx, zz, wide, 1, floorY, floorY + 2, col);      // the chassis, one stud further forward for the bumper
     for (const a of arches) g.part('3788', col, bx, a, floorY, 0, wide, 2, 2);                                              // mudguards over the wheels
@@ -251,8 +252,9 @@ function vehicleMPD(o) {
   for (const p of pieces) L.push(pieceLine(p, 0, 0, 0));
   for (const p of g.parts) L.push(pieceLine(p, 0, 0, 0));
   const subs = [];
-  if (kind === 'car' || kind === 'truck' || kind === 'bus') {                                  // wheels: a 2 × 2 plate with pins under each axle; each rim and tyre a sub-model on its pin, so it can spin and steer
-    for (const [az, fr] of [[zf + 40, 'f'], [zb - 40, 'r']]) { L.push(line(0, 0, -23, az, 0, '4600')); for (const [sx, lr] of [[-30, 'l'], [30, 'r']]) { const nm = `wheel-${fr}${lr}.ldr`; L.push(`1 16 ${sx} -18 ${r4(az)} 1 0 0 0 1 0 0 0 1 ${nm}`); subs.push([`0 FILE ${nm}`, '0 !LDRAW_ORG Unofficial_Model', line(71, 0, 0, 0, 1, '4624'), line(0, 0, 0, 0, 1, '3641')].join('\n')); } }
+  if (kind === 'car' || kind === 'truck' || kind === 'bus' || kind === 'board') {              // wheels: a 2 × 2 plate with pins under each axle; each rim and tyre a sub-model on its pin, so it can spin and steer (a board: bare rims, close in)
+    const B = kind === 'board', ax = B ? 20 : 40, wx = B ? 22 : 30, wy = B ? -10 : -18, py = B ? -14 : -23;
+    for (const [az, fr] of [[zf + ax, 'f'], [zb - ax, 'r']]) { L.push(line(0, 0, py, az, 0, '4600')); for (const [sx, lr] of [[-wx, 'l'], [wx, 'r']]) { const nm = `wheel-${fr}${lr}.ldr`; L.push(`1 16 ${sx} ${wy} ${r4(az)} 1 0 0 0 1 0 0 0 1 ${nm}`); subs.push([`0 FILE ${nm}`, '0 !LDRAW_ORG Unofficial_Model', line(B ? 0 : 71, 0, 0, 0, 1, '4624'), ...(B ? [] : [line(0, 0, 0, 0, 1, '3641')])].join('\n')); } }
   }
   const mpd = [['0 FILE vehicle.ldr', '0 !LDRAW_ORG Unofficial_Model', ...L].join('\n'), ...subs].join('\n');
   return { mpd, w: kind === 'plane' ? wide + 8 : wide, d: len, hp: 12 };

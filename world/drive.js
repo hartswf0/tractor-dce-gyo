@@ -21,6 +21,7 @@ const KINDS = {
   craft: { cruise: 18, boost: 32, turn: 1.8, fly: true, hover: 0.5, ram: 1, stall: 0 },  // any build the player chose to fly: it hovers like a speeder
   bus: { cruise: 11, boost: 16, turn: 1.1, fly: false, hover: 0, ram: 1.8, accel: 3.5, grip: 5, wheels: true },
   rover: { cruise: 13, boost: 20, turn: 1.7, fly: false, hover: 0, ram: 1.2, accel: 6, grip: 8 },
+  board: { cruise: 9, boost: 14, turn: 2.4, fly: false, hover: 0, ram: 0.6, accel: 7, grip: 7, wheels: true, stand: true },   // a skateboard: the rider stands on it
   atat: { cruise: 4, boost: 7, turn: 0.5, fly: false, hover: 0, ram: 2.5, walker: true, legs: 4, stride: 7, amp: 0.3, camD: 30, camH: 22, lookY: 14, gunY: 15.2, gunAhead: 8, gunDown: 0.3 },    // an Imperial walker: slow, tall, guns in the head
   atst: { cruise: 7, boost: 11, turn: 1.1, fly: false, hover: 0, ram: 1.6, walker: true, legs: 2, stride: 4, amp: 0.45, camD: 18, camH: 12, lookY: 8, gunY: 8.3, gunAhead: 4, gunDown: 0.2 },
 };
