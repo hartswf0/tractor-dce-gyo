@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 
-const INK=0x171512;
 const C={
   ivory:'#eee8d7', white:'#f4efe4', black:'#211d19', brown:'#5b3923', darkBrown:'#34231b', red:'#7b241e', rust:'#9a4f31',
   blue:'#314a69', deepBlue:'#203b61', sea:'#456b78', teal:'#4f756f', olive:'#6c6a45', sand:'#b39a72', tan:'#937653',
@@ -37,33 +36,29 @@ export function actorKit(character){return ACTOR_KIT[String(character||'').toLow
 
 function textureCanvas(spec,which='torso'){
   const c=document.createElement('canvas');c.width=512;c.height=which==='torso'?360:300;const g=c.getContext('2d');
-  g.clearRect(0,0,c.width,c.height);g.fillStyle=spec.base;g.fillRect(0,0,c.width,c.height);
+  g.clearRect(0,0,c.width,c.height);
+  // Transparent print only. The LDraw torso/legs remain the actual colored plastic.
   const ink='#2a241e',trim=spec.trim||C.gold,accent=spec.accent||C.brown;
   g.strokeStyle=ink;g.lineWidth=8;g.lineCap='round';g.lineJoin='round';
   if(which==='torso'){
-    // neck opening
     g.beginPath();g.arc(256,24,72,.12*Math.PI,.88*Math.PI);g.stroke();
     if(spec.pattern==='drape'||spec.pattern==='divine'||spec.pattern==='court'){
-      g.fillStyle=accent;g.beginPath();g.moveTo(0,10);g.lineTo(150,0);g.lineTo(360,360);g.lineTo(250,360);g.closePath();g.fill();
-      g.strokeStyle=trim;g.lineWidth=13;g.beginPath();g.moveTo(38,0);g.lineTo(290,360);g.stroke();
+      g.fillStyle=accent;g.globalAlpha=.72;g.beginPath();g.moveTo(8,10);g.lineTo(130,0);g.lineTo(330,355);g.lineTo(250,355);g.closePath();g.fill();g.globalAlpha=1;
+      g.strokeStyle=trim;g.lineWidth=13;g.beginPath();g.moveTo(44,0);g.lineTo(288,355);g.stroke();
     }else if(spec.pattern==='traveler'||spec.pattern==='worker'||spec.pattern==='elder'){
-      g.fillStyle=accent;g.fillRect(0,250,512,72);g.strokeStyle=trim;g.lineWidth=10;g.strokeRect(0,244,512,84);
-      g.strokeStyle=ink;g.lineWidth=6;for(let x=80;x<500;x+=90){g.beginPath();g.moveTo(x,80);g.lineTo(x-35,235);g.stroke()}
+      g.fillStyle=accent;g.globalAlpha=.72;g.fillRect(12,252,488,58);g.globalAlpha=1;g.strokeStyle=trim;g.lineWidth=9;g.strokeRect(12,247,488,70);
+      g.strokeStyle=ink;g.lineWidth=6;for(let x=82;x<470;x+=92){g.beginPath();g.moveTo(x,92);g.lineTo(x-28,230);g.stroke()}
     }else if(spec.pattern==='messenger'||spec.pattern==='young'){
-      g.fillStyle=accent;g.beginPath();g.moveTo(0,70);g.lineTo(210,15);g.lineTo(315,360);g.lineTo(185,360);g.closePath();g.fill();
-      g.strokeStyle=trim;g.lineWidth=10;g.beginPath();g.moveTo(30,80);g.lineTo(210,35);g.stroke();
+      g.fillStyle=accent;g.globalAlpha=.7;g.beginPath();g.moveTo(8,70);g.lineTo(205,18);g.lineTo(312,355);g.lineTo(200,355);g.closePath();g.fill();g.globalAlpha=1;
+      g.strokeStyle=trim;g.lineWidth=10;g.beginPath();g.moveTo(35,82);g.lineTo(205,36);g.stroke();
     }else if(spec.pattern==='poet'){
-      g.fillStyle=accent;g.fillRect(0,235,512,75);g.strokeStyle=trim;g.lineWidth=9;g.beginPath();g.moveTo(75,75);g.quadraticCurveTo(250,170,430,78);g.stroke();
+      g.fillStyle=accent;g.globalAlpha=.68;g.fillRect(18,238,476,62);g.globalAlpha=1;g.strokeStyle=trim;g.lineWidth=9;g.beginPath();g.moveTo(78,78);g.quadraticCurveTo(250,168,428,82);g.stroke();
     }else if(spec.pattern==='giant'){
-      g.fillStyle=accent;g.globalAlpha=.65;for(let i=0;i<16;i++){g.beginPath();g.arc((i*91)%512,(i*61)%360,25+(i%3)*13,0,Math.PI*2);g.fill()}g.globalAlpha=1;
+      g.fillStyle=accent;g.globalAlpha=.36;for(let i=0;i<13;i++){g.beginPath();g.arc((i*91)%512,(i*61)%340,22+(i%3)*10,0,Math.PI*2);g.fill()}g.globalAlpha=1;
     }
-    g.strokeStyle=ink;g.lineWidth=9;g.strokeRect(4,4,504,352);
   }else{
-    g.fillStyle=accent;g.fillRect(0,0,512,62);g.fillStyle=spec.base;g.fillRect(0,62,512,238);
-    g.strokeStyle=trim;g.lineWidth=10;g.beginPath();g.moveTo(0,60);g.lineTo(512,60);g.stroke();
-    if(spec.skirt){g.strokeStyle=ink;g.lineWidth=5;for(let x=70;x<512;x+=95){g.beginPath();g.moveTo(x,75);g.lineTo(x-24,290);g.stroke()}}
-    else{g.strokeStyle=ink;g.lineWidth=6;g.beginPath();g.moveTo(256,70);g.lineTo(256,300);g.stroke()}
-    g.strokeStyle=ink;g.lineWidth=9;g.strokeRect(4,4,504,292);
+    g.fillStyle=accent;g.globalAlpha=.7;g.fillRect(10,8,492,48);g.globalAlpha=1;g.strokeStyle=trim;g.lineWidth=9;g.beginPath();g.moveTo(12,58);g.lineTo(500,58);g.stroke();
+    g.strokeStyle=ink;if(spec.skirt){g.lineWidth=5;for(let x=70;x<500;x+=95){g.beginPath();g.moveTo(x,72);g.lineTo(x-22,286);g.stroke()}}else{g.lineWidth=6;g.beginPath();g.moveTo(256,72);g.lineTo(256,296);g.stroke()}
   }
   return c;
 }
@@ -72,20 +67,22 @@ function planeTexture(canvas){const t=new THREE.CanvasTexture(canvas);t.colorSpa
 
 export function makeCostumeMeshes(character){
   const kit=actorKit(character),spec=kit.costume,group=new THREE.Group();group.name=`ODYSSEY_COSTUME:${character}`;
-  const torsoMat=new THREE.MeshBasicMaterial({map:planeTexture(textureCanvas(spec,'torso')),transparent:true,side:THREE.DoubleSide,depthWrite:false});
-  const torso=new THREE.Mesh(new THREE.PlaneGeometry(35.2,24.2),torsoMat);torso.position.set(0,-48.6,-10.22);torso.renderOrder=15;group.add(torso);
-  const lowerMat=new THREE.MeshBasicMaterial({map:planeTexture(textureCanvas(spec,'lower')),transparent:true,side:THREE.DoubleSide,depthWrite:false});
-  const lower=new THREE.Mesh(new THREE.PlaneGeometry(31.5,19.4),lowerMat);lower.position.set(0,-18.2,-10.28);lower.renderOrder=15;group.add(lower);
-  if(spec.cape){const mat=new THREE.MeshBasicMaterial({color:new THREE.Color(spec.cape),side:THREE.DoubleSide,transparent:true,opacity:.96});const sh=new THREE.Shape();sh.moveTo(-18,10);sh.lineTo(18,10);sh.lineTo(22,-30);sh.lineTo(0,-36);sh.lineTo(-22,-30);sh.closePath();const cape=new THREE.Mesh(new THREE.ShapeGeometry(sh),mat);cape.position.set(0,-45,11.6);cape.renderOrder=1;group.add(cape)}
+  const torsoMat=new THREE.MeshBasicMaterial({map:planeTexture(textureCanvas(spec,'torso')),transparent:true,alphaTest:.02,side:THREE.DoubleSide,depthWrite:false});
+  const torso=new THREE.Mesh(new THREE.PlaneGeometry(31.2,20.2),torsoMat);torso.position.set(0,-48.9,-10.05);torso.renderOrder=15;group.add(torso);
+  const lowerMat=new THREE.MeshBasicMaterial({map:planeTexture(textureCanvas(spec,'lower')),transparent:true,alphaTest:.02,side:THREE.DoubleSide,depthWrite:false});
+  const lower=new THREE.Mesh(new THREE.PlaneGeometry(27.4,16.3),lowerMat);lower.position.set(0,-18.5,-10.06);lower.renderOrder=15;group.add(lower);
+  if(spec.cape){const mat=new THREE.MeshBasicMaterial({color:new THREE.Color(spec.cape),side:THREE.DoubleSide,transparent:true,opacity:.9});const sh=new THREE.Shape();sh.moveTo(-15,8);sh.lineTo(15,8);sh.lineTo(18,-29);sh.lineTo(0,-34);sh.lineTo(-18,-29);sh.closePath();const cape=new THREE.Mesh(new THREE.ShapeGeometry(sh),mat);cape.position.set(0,-45,11.8);cape.renderOrder=1;group.add(cape)}
   return group;
 }
 
 export function makeBeardMesh(character){
   const kit=actorKit(character),kind=kit.beard;if(!kind)return null;
-  const cfg={short:{h:4.4,r:13.5,drop:-67.2},groomed:{h:5.7,r:13.65,drop:-66.6},full:{h:7.5,r:13.9,drop:-65.8},long:{h:10.8,r:14.2,drop:-64.2},wild:{h:12.2,r:14.8,drop:-63.6}}[kind]||{h:6,r:13.8,drop:-66};
-  const geo=new THREE.CylinderGeometry(cfg.r+.5,cfg.r,cfg.h,40,1,true,Math.PI-.82,1.64);
+  // Beard geometry belongs below the mouth. The performance drawing still carries the
+  // beard ink; this shell only changes silhouette at chin/neck for beard-heavy actors.
+  const cfg={short:{h:3.4,r:13.35,drop:-63.3},groomed:{h:4.3,r:13.45,drop:-62.9},full:{h:5.7,r:13.6,drop:-62.0},long:{h:8.4,r:13.9,drop:-60.5},wild:{h:9.8,r:14.25,drop:-59.6}}[kind]||{h:4.5,r:13.5,drop:-62.5};
+  const geo=new THREE.CylinderGeometry(cfg.r+.35,cfg.r,cfg.h,48,1,true,Math.PI-.78,1.56);
   const color=(kit.hairColor===15||kit.hairColor===71)?0xbdb9ae:0x2b211a;
-  const mat=new THREE.MeshStandardMaterial({color,roughness:.84,metalness:0,side:THREE.DoubleSide});
+  const mat=new THREE.MeshStandardMaterial({color,roughness:.9,metalness:0,side:THREE.DoubleSide});
   const mesh=new THREE.Mesh(geo,mat);mesh.position.set(0,cfg.drop,0);mesh.name=`ODYSSEY_BEARD:${character}:${kind}`;mesh.renderOrder=10;return mesh;
 }
 
