@@ -1,4 +1,4 @@
-0 // MENTO film · Mock City → offline, so Hlíðarendi, Iceland · word to momento
+0 // MENTO film · Mock City · word to momento
 0 !MENTO ASPECT 16:9 FPS 24
 0 !MENTO STORY {"title":"The cast","description":"Five of the twelve faces the halfworld drew for the Odyssey, printed on LEGO heads and run through the directions the poem asks of each: a casting sheet before any scene.","location":"a bare stage","entities":["penelope","odysseus","eurycleia","telemachus","athena"],"goals":["every direction reads at 2 m"],"obstacles":["a head is a cylinder","a print does not move"],"shifts":[{"id":"cast","text":"the line-up"},{"id":"penelope","text":"penelope reads"},{"id":"odysseus","text":"odysseus reads"},{"id":"eurycleia","text":"eurycleia reads"},{"id":"telemachus","text":"telemachus reads"},{"id":"athena","text":"athena reads"}],"pipeline":["HALFWORLD FACES","DECAL","HEAD","CAST","DIRECTIONS","SHEET"]}
 0 !MENTO STAGE stage R 60 SEED 1 AT 0 0
@@ -83,7 +83,7 @@
 0 !MENTO ASSERT "eurycleia" READS_AS grief AT 9.2
 0 !MENTO SPEAK "eurycleia" "I know you." AT 10
 0 // SHOT 6: TELEMACHUS
-0 !MENTO SHOT "telemachus" POS 63.43 -93.6 103.43 TGT 120 -88.4 160 LENS 50 SEC 11.2 SHIFT "telemachus"
+0 !MENTO SHOT "telemachus" POS 120 -93.6 80 TGT 120 -88.4 160 LENS 50 SEC 11.2 SHIFT "telemachus"
 0 !MENTO PLAN {"on":"telemachus","frame":"close","from":"s","lens":50,"sec":11.2,"move":"hold","name":"telemachus"}
 0 !MENTO BEAT "telemachus reads" "telemachus" FROM 0 TO 10.6 WHY "a face is cast when its directions read at 2 m" DIRECT tenderness
 0 !MENTO PHRASE "telemachus" tenderness AT 0.4 ENTER 0.25 HOLD 1.1 RELEASE 0.25
@@ -106,7 +106,7 @@
 0 !MENTO ASSERT "telemachus" READS_AS desperation AT 9.2
 0 !MENTO SPEAK "telemachus" "I know you." AT 10
 0 // SHOT 7: ATHENA
-0 !MENTO SHOT "athena" POS 240 -493.6 80 TGT 240 -88.4 160 LENS 50 SEC 11.2 SHIFT "athena"
+0 !MENTO SHOT "athena" POS 240 -93.6 80 TGT 240 -88.4 160 LENS 50 SEC 11.2 SHIFT "athena"
 0 !MENTO PLAN {"on":"athena","frame":"close","from":"s","lens":50,"sec":11.2,"move":"hold","name":"athena"}
 0 !MENTO BEAT "athena reads" "athena" FROM 0 TO 10.6 WHY "a face is cast when its directions read at 2 m" DIRECT appeal
 0 !MENTO PHRASE "athena" appeal AT 0.4 ENTER 0.25 HOLD 1.1 RELEASE 0.25
@@ -129,7 +129,7 @@
 0 !MENTO ASSERT "athena" READS_AS joy AT 9.2
 0 !MENTO SPEAK "athena" "I know you." AT 10
 0 // SHOT 8: THE LINE-UP AGAIN
-0 !MENTO SHOT "the line-up again" POS 0 -52 -78.11 TGT 0 -52 160 LENS 40 SEC 4 SHIFT "cast"
+0 !MENTO SHOT "the line-up again" POS 168.37 -52 -8.37 TGT 0 -52 160 LENS 40 SEC 4 SHIFT "cast"
 0 !MENTO PLAN {"on":"eurycleia","frame":"medium","from":"se","lens":40,"sec":4,"move":"hold","name":"the line-up again"}
 0 !MENTO PHRASE "penelope" recognition AT 0.3 ENTER 0.3 HOLD 3
 0 !MENTO PHRASE "odysseus" irony AT 0.3 ENTER 0.3 HOLD 3
