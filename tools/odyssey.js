@@ -35,6 +35,7 @@ const SX = 1.2, SZ = 16, toX = x => +(x * SX).toFixed(1), toZ = z => +((z - 1) *
 const CAST_DEFS = new Set(['penelope', 'odysseus', 'eurycleia', 'telemachus', 'phemius', 'athena']);
 const speakerOf = seg => norm(seg.speakerId || '').replace(/^character\s*/, '').trim() || norm(seg.speakerName);
 /** The whole take's envelope at 50 Hz, from ffmpeg's decode, written beside the copied file. */
+function transcode(src, dst) { execFileSync(ffmpeg(), ['-y', '-loglevel', 'error', '-i', src, '-ac', '1', '-ar', '32000', '-codec:a', 'libmp3lame', '-q:a', '4', dst]); }   // one channel at 32 kHz, VBR around 165 kbps: a voice take, a fifth the size of the film it goes under
 function envelope(src, dst) {
   if (!FF) return null; const r = spawnSync(FF, ['-hide_banner', '-loglevel', 'error', '-i', src, '-f', 'f32le', '-ac', '1', '-ar', '16000', '-'], { maxBuffer: 1 << 28 }); if (r.status !== 0 || !r.stdout) return null;
   const buf = r.stdout, n = Math.floor(buf.length / 4), samples = new Float32Array(n); for (let i = 0; i < n; i++) samples[i] = buf.readFloatLE(i * 4);
@@ -65,7 +66,7 @@ function compile(id) {
   const scene = mem.scenes[sceneKey], title = sceneKey.replace(/^OD-B\d\d-S\d\d\s*·\s*/, ''), cast = Array.isArray(scene.cast) ? scene.cast : Object.keys(scene.cast || {});
   const rows = (scene.score && scene.score.rows) || [], vm = voiceScenes[id], ds = driveScenes.find(s => s.id === id), beat = BEATS[id] || null;
   // the recorded voice: copied beside the lines, its envelope computed once
-  let file = null; if (vm && vm.file && fs.existsSync(path.join(HW, vm.file))) { fs.mkdirSync(LINES, { recursive: true }); file = `odyssey/${id}.m4a`; const dst = path.join(LINES, id + '.m4a'); if (!fs.existsSync(dst)) fs.copyFileSync(path.join(HW, vm.file), dst); if (!fs.existsSync(path.join(LINES, id + '.env.json'))) envelope(dst, path.join(LINES, id + '.env.json')); }
+  let file = null; if (vm && vm.file && fs.existsSync(path.join(HW, vm.file))) { fs.mkdirSync(LINES, { recursive: true }); file = `odyssey/${id}.mp3`; const dst = path.join(LINES, id + '.mp3'); if (!fs.existsSync(dst)) transcode(path.join(HW, vm.file), dst);   /* the halfworld's takes are AAC (.m4a), which a stock Chromium (the export's, Playwright's) cannot decode: the render would have music and no words. MP3 decodes everywhere */ if (!fs.existsSync(path.join(LINES, id + '.env.json'))) envelope(dst, path.join(LINES, id + '.env.json')); }
   // the voice segments by their text, so a score row's line finds its slice of the take
   const segs = []; if (vm && ds) (ds.segments || []).forEach((seg, gi) => { const v = (vm.segments || []).find(x => x.gi === gi) || vm.segments[gi]; if (v) segs.push({ gi, kind: seg.kind, who: speakerOf(seg), text: seg.text || '', turn: seg.sourceTurnId || null, start: v.start, dur: v.dur }); });
   const findSeg = (who, text) => { const nt = norm(text).slice(0, 40); if (!nt) return null; const w = norm(who); if (w === 'narrator') return segs.find(s => s.kind !== 'DIALOGUE' && norm(s.text).startsWith(nt)) || null; return segs.find(s => s.kind === 'DIALOGUE' && norm(s.who) === w && norm(s.text).startsWith(nt)) || (nt.length >= 16 ? segs.find(s => s.kind === 'DIALOGUE' && norm(s.text).startsWith(nt)) : null) || null; };

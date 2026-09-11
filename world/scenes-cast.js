@@ -17,8 +17,8 @@
   /** Each one's own recorded line: the longest SPEAK with a voice file among the compiled Odyssey scenes (world/scenes-odyssey.js), cut to CAP seconds with its words in proportion. */
   const lineOf = who => { let best = null; for (const [k, sc] of Object.entries(Film.SCENES)) { if (!/^odyssey-od-/.test(k)) continue; for (const sh of sc.shots) for (const e of sh.events || []) if (e.what === 'SPEAK' && e.who === who && e.file && (!best || e.for > best.for)) best = e; }
     if (!best) return { text: 'I know you.', sec: 0.9 }; const sec = Math.min(CAP, best.for), words = best.text.split(/\s+/), n = Math.max(3, Math.round(words.length * sec / best.for));
-    return { text: sec < best.for ? words.slice(0, n).join(' ') : best.text, sec: +sec.toFixed(2), file: best.file, from: best.from, for: +sec.toFixed(2), scene: best.file.replace(/^odyssey\/|\.m4a$/g, '') }; };
-  const shots = [{ title: 'THE ODYSSEY\nTHE CAST', style: 'card', sec: 3, name: 'the card', shift: 'cast', score: 'file:odyssey/music/loom-assembly-night-sail.ogg', fade: 3 },
+    return { text: sec < best.for ? words.slice(0, n).join(' ') : best.text, sec: +sec.toFixed(2), file: best.file, from: best.from, for: +sec.toFixed(2), scene: best.file.replace(/^odyssey\/|\.mp3$/g, '') }; };
+  const shots = [{ title: 'THE ODYSSEY\nTHE CAST', style: 'card', sec: 3, name: 'the card', shift: 'cast', score: null   /* a casting sheet: the faces and the takes, no album under them; the halfworld's tracks were heard as a drone under the lines */, fade: 3 },
     { name: 'the line-up', on: 'eurycleia', frame: 'wide', from: 's', lens: 40, sec: 6, shift: 'cast', events: [{ what: 'CAPTION', text: 'Penelope, Odysseus, Eurycleia, Telemachus, Athena: the halfworld\'s faces on LEGO heads', at: 0.4, sec: 5 }] }];
   for (const c of CAST) {
     const events = [{ what: 'BEAT', id: c.name + ' reads', who: c.name, at: 0, to: c.runs.length * HOLD + 1, why: 'a face is cast when its directions read at 2 m', direct: c.runs[0] }];

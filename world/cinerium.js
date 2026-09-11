@@ -19,7 +19,7 @@ const M = 40;
 
 /* ── the channels: name → [min, max, kind]. Body channels are radians (drop in LDU), face channels 0..1 (asymmetries −1..1). ── */
 const CHANNELS = {
-  'root.yaw': [-7, 7, 'body'], 'hips.pitch': [-0.25, 0.25, 'body'], 'torso.lean': [-0.35, 0.35, 'body'], 'torso.roll': [-0.2, 0.2, 'body'], 'torso.twist': [-0.6, 0.6, 'body'], 'head.yaw': [-1.57, 1.57, 'body'],
+  'root.yaw': [-3.2, 3.2, 'body'], 'hips.pitch': [-0.25, 0.25, 'body'], 'torso.lean': [-0.35, 0.35, 'body'], 'torso.roll': [-0.2, 0.2, 'body'], 'torso.twist': [-0.6, 0.6, 'body'], 'head.yaw': [-1.57, 1.57, 'body'],
   'arm.L.pitch': [-3.14, 3.14, 'body'], 'arm.R.pitch': [-3.14, 3.14, 'body'], 'arm.L.out': [0, 0.35, 'body'], 'arm.R.out': [0, 0.35, 'body'], 'hand.L.roll': [-1.57, 1.57, 'body'], 'hand.R.roll': [-1.57, 1.57, 'body'],
   'leg.L.pitch': [-1.57, 1.05, 'body'], 'leg.R.pitch': [-1.57, 1.05, 'body'], 'hips.drop': [-20, 0, 'body'],
   'brow.up': [0, 1, 'face'], 'brow.knit': [0, 1, 'face'], 'brow.asym': [-1, 1, 'face'], 'eye.wide': [0, 1, 'face'], 'eye.narrow': [0, 1, 'face'], 'blink': [0, 1, 'face'], 'gaze.x': [-1, 1, 'face'], 'gaze.y': [-1, 1, 'face'],
@@ -56,19 +56,19 @@ const PHRASES = {
   desperation:  asChannels({ browUp: .95, browKnit: .22, eyeWide: .65, frown: .40 }),
   /* body phrases: what the toy does with its one-axis joints; arm pitch negative is forward and up */
   neutral: {}, stand: {},
-  'arms crossed': { 'arm.L.pitch': -70 * A, 'arm.R.pitch': -70 * A, 'hand.L.roll': 0.5, 'hand.R.roll': -0.5, 'torso.lean': -0.04 },
+  'arms crossed': { 'arm.L.pitch': -70 * A, 'arm.R.pitch': -70 * A, 'hand.L.roll': 0.3, 'hand.R.roll': -0.3, 'torso.lean': -0.04 },
   'open arms': { 'arm.L.pitch': -85 * A, 'arm.R.pitch': -85 * A, 'arm.L.out': 0.35, 'arm.R.out': 0.35, 'brow.up': .4, 'eye.wide': .3 },
-  'hands near face': { 'arm.L.pitch': -125 * A, 'arm.R.pitch': -125 * A, 'arm.L.out': 0.12, 'arm.R.out': 0.12, 'hand.L.roll': 0.35, 'hand.R.roll': -0.35, 'eye.wide': .5, 'brow.up': .6, 'mouth.jaw': .25 },
+  'hands near face': { 'arm.L.pitch': -125 * A, 'arm.R.pitch': -125 * A, 'arm.L.out': 0.12, 'arm.R.out': 0.12, 'hand.L.roll': 0.2, 'hand.R.roll': -0.2, 'eye.wide': .5, 'brow.up': .6, 'mouth.jaw': .25 },
   angry: { 'arm.L.pitch': -35 * A, 'arm.R.pitch': -35 * A, 'hips.pitch': 0.08, 'brow.knit': .75, 'frown': .5, 'eye.narrow': .3 },
   pointing: { 'arm.R.pitch': -90 * A, 'brow.knit': .3 },
-  stop: { 'arm.R.pitch': -85 * A, 'hand.R.roll': -0.5, 'brow.knit': .35 },
+  stop: { 'arm.R.pitch': -85 * A, 'hand.R.roll': -0.3, 'brow.knit': .35 },
   sad: { 'torso.lean': 0.16, 'arm.L.pitch': 12 * A, 'arm.R.pitch': 12 * A, 'brow.up': .5, 'brow.knit': .5, 'frown': .5, 'eye.narrow': .3, 'gaze.y': .4 },
   'look down': { 'torso.lean': 0.22, 'gaze.y': .7, 'eye.narrow': .2 },
   '3/4 left': { 'head.yaw': -0.65, 'torso.twist': -0.3 }, '3/4 right': { 'head.yaw': 0.65, 'torso.twist': 0.3 },
   'profile left': { 'head.yaw': -1.3, 'torso.twist': -0.6 }, 'profile right': { 'head.yaw': 1.3, 'torso.twist': 0.6 },
-  shrug: { 'arm.L.pitch': -60 * A, 'arm.R.pitch': -60 * A, 'arm.L.out': 0.35, 'arm.R.out': 0.35, 'hand.L.roll': -0.5, 'hand.R.roll': 0.5, 'hips.drop': -3, 'brow.up': .6, 'frown': .25, 'torso.roll': 0.08 },
+  shrug: { 'arm.L.pitch': -60 * A, 'arm.R.pitch': -60 * A, 'arm.L.out': 0.35, 'arm.R.out': 0.35, 'hand.L.roll': -0.3, 'hand.R.roll': 0.3, 'hips.drop': -3, 'brow.up': .6, 'frown': .25, 'torso.roll': 0.08 },
   wave: { 'arm.R.pitch': -160 * A, 'smile': .5 },
-  'hands on hips': { 'arm.L.pitch': 25 * A, 'arm.R.pitch': 25 * A, 'arm.L.out': 0.3, 'arm.R.out': 0.3, 'hand.L.roll': 0.5, 'hand.R.roll': -0.5 },
+  'hands on hips': { 'arm.L.pitch': 25 * A, 'arm.R.pitch': 25 * A, 'arm.L.out': 0.3, 'arm.R.out': 0.3, 'hand.L.roll': 0.35, 'hand.R.roll': -0.35 },
   swagger: { 'hips.pitch': -0.14, 'arm.L.pitch': 30 * A, 'arm.R.pitch': 30 * A, 'arm.L.out': 0.2, 'arm.R.out': 0.2, 'smile': .3, 'eye.narrow': .25 },
   panic: { 'arm.L.pitch': -140 * A, 'arm.R.pitch': -120 * A, 'leg.R.pitch': -85 * A, 'hips.pitch': -0.1, 'eye.wide': .9, 'brow.up': .8, 'mouth.jaw': .6 },
   deadpan: { 'torso.roll': 0.12, 'head.yaw': -0.35, 'eye.narrow': .45, 'brow.asym': .5, 'mouth.press': .4 },
@@ -79,7 +79,7 @@ const PHRASES = {
   writing: { 'arm.R.pitch': -95 * A, 'hand.R.roll': -0.3, 'gaze.y': -.2, 'eye.narrow': .2, 'mouth.press': .3 },
   carry: { 'arm.L.pitch': -70 * A, 'arm.R.pitch': -70 * A },
   hold: { 'arm.L.pitch': -55 * A, 'arm.R.pitch': -55 * A, 'hand.L.roll': 0.4, 'hand.R.roll': -0.4 },
-  play: { 'arm.L.pitch': -70 * A, 'arm.R.pitch': -80 * A, 'hand.L.roll': 0.5, 'hand.R.roll': -0.5, 'eye.narrow': .55, 'smile': .2, 'torso.roll': -0.06 },
+  play: { 'arm.L.pitch': -70 * A, 'arm.R.pitch': -80 * A, 'hand.L.roll': 0.35, 'hand.R.roll': -0.35, 'eye.narrow': .55, 'smile': .2, 'torso.roll': -0.06 },
   drive: { 'arm.L.pitch': -60 * A, 'arm.R.pitch': -60 * A, 'leg.L.pitch': -90 * A, 'leg.R.pitch': -90 * A },
 };
 
@@ -138,7 +138,8 @@ function apply(P, t, opts) {
   if (P.last && P.lastQ === q) v = P.last; else { v = sample(P, q, gait); P.last = v; P.lastQ = q; }
   const on = ch => P.active.has(ch);
   if (!rig.seated && !rig.air && !(P.a && P.a.poseNow === 'prone')) {
-    if (on('root.yaw')) { rig.heading = v['root.yaw']; rig.figure.rotation.y = rig.heading; }
+    if (gait > 0.3 && P.tracks['root.yaw'] && P.tracks['root.yaw'].length) { P.tracks['root.yaw'] = []; P.last = null; v['root.yaw'] = 0; }   /* a walk owns the heading: a look's turn is released the moment the actor steps off, so the walk is not fought or undone at its end */
+    rig.figure.rotation.y = rig.heading + (on('root.yaw') ? v['root.yaw'] : 0);   /* root.yaw is a turn from the walk's own heading, never the heading itself: a look that runs past the neck and the torso turns the feet by the excess, and a phrase's three-quarter turn is a turn from wherever the actor stands */
     if (on('hips.pitch')) rig.figure.rotation.x = v['hips.pitch'];
     if (on('torso.lean')) rig.torsoP.rotation.x += v['torso.lean']; if (on('torso.roll')) rig.torsoP.rotation.z -= v['torso.roll']; if (on('torso.twist')) rig.torsoP.rotation.y -= v['torso.twist'];
     if (on('head.yaw')) rig.headP.rotation.y = -v['head.yaw'];   /* the pivots hang under the figure's flip (y down), so a yaw or a roll about their own axes turns the world's other way: negated here so a positive yaw turns the head the way a positive root yaw turns the figure */
@@ -163,7 +164,7 @@ function lookAt(P, target, t, opts) {
   key(P, 'gaze.x', clamp(rel / (80 * DEG), -1, 1) * 0.8, T + (lead.eyes || 0), o.over != null ? o.over * 0.5 : 0.12);
   key(P, 'head.yaw', head, T + (lead.head || 0.08), o.over != null ? o.over : 0.25);
   if (Math.abs(twist) > 0.01 || o.torso) key(P, 'torso.twist', twist, T + (lead.torso || 0.16), o.over != null ? o.over * 1.2 : 0.3);
-  if (Math.abs(rest) > 0.05) key(P, 'root.yaw', rig.heading + rest, T + (lead.root || 0.25), o.over != null ? o.over * 1.6 : 0.5);
+  if (Math.abs(rest) > 0.05) key(P, 'root.yaw', rest, T + (lead.root || 0.25), o.over != null ? o.over * 1.6 : 0.5);   // the excess as a turn from the heading
   if (Math.abs(lean) > 0.03) key(P, 'torso.lean', lean, T + (lead.torso || 0.16), o.over != null ? o.over : 0.3);
   if (!o.keepGaze) key(P, 'gaze.x', 0, T + (lead.head || 0.08) + 0.35, 0.2);
   return out;
