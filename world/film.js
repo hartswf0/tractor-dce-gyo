@@ -535,6 +535,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
       if (sc.ground && W.setGround && W.G && W.G.mode !== sc.ground) { sc.groundWas = W.G.mode; W.setGround(sc.ground); for (let i = 0; i < 150 && !(W.G && W.G.mode === sc.ground && W.ready && !W.relanding); i++) await new Promise(r => setTimeout(r, 100)); }   // the ground is laid again first, on its own: a character's kits would block the page while its tiles load
       if (sc.as && W.setCharacter && W.character !== sc.as) { F.ground(); W.setCharacter(sc.as); }
       if (sc.weather && W.setWeather) W.setWeather(sc.weather); if (sc.time && W.setSky) W.setSky(sc.time);
+      if (sc.me === 'off' && W.rig) { sc.meWas = W.rig.figure.visible; W.rig.figure.visible = false; }   // a scene with no part for the player keeps them out of the frame
       const sp = W.spawn || (W.rig && W.rig.pos) || new THREE.Vector3();
       if (sc.set && W.filmSet) { const st = sc.set; if (!st.abs) { st.centre = st.centre ? { x: sp.x + st.centre.x * M, z: sp.z + st.centre.z * M } : { x: sp.x, z: sp.z }; if (st.corridor) st.corridor = st.corridor.map(p => [sp.x / M + p[0], sp.z / M + p[1]]); st.abs = true; }
         if (sc.routes && !sc.routesAbs) { for (const k of Object.keys(sc.routes)) sc.routes[k] = sc.routes[k].map(p => [sp.x / M + p[0], sp.z / M + p[1]]); sc.routesAbs = true; }
@@ -553,7 +554,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
       if (W.props) for (const it of [...W.props.items.values()]) if (it.src && it.src.film) W.props.remove(it.id, true);   // whatever a film laid and lost track of
       if (W.crowd) for (const n of W.crowd.npcs.slice()) if (n.film) W.crowd.remove(n);
       for (const m of F.meshes) { W.scene.remove(m); if (m.geometry) m.geometry.dispose(); } F.meshes = []; F.actors.clear(); F.builds.clear(); F.cable = null; F.hang = null; F.prone = false; F.rout = null; F.strikes = null; F.pending = [];
-      if (W.rig) W.rig.figure.rotation.x = 0; if (sc && sc.set && W.filmSet) { if (!keepSet) W.filmSet(null, { ground: sc.groundWas || null }); } else if (sc && sc.groundWas && W.setGround) W.setGround(sc.groundWas); F.scene = null; return true;
+      if (W.rig) W.rig.figure.rotation.x = 0; if (sc && sc.me === 'off' && W.rig && sc.meWas != null) W.rig.figure.visible = sc.meWas; if (sc && sc.set && W.filmSet) { if (!keepSet) W.filmSet(null, { ground: sc.groundWas || null }); } else if (sc && sc.groundWas && W.setGround) W.setGround(sc.groundWas); F.scene = null; return true;
     };
     const aimPoint = aim => { if (!aim) return null; if (typeof aim === 'object') return new THREE.Vector3(aim.x, groundH(aim.x, aim.z) + 0.5 * M, aim.z); const S = F.subject(aim); return new THREE.Vector3(S.x, S.y0 + S.h * 0.4, S.z); };
     /** The scene's routes: a named polyline (the set's corridor by default), in LDU. */
@@ -1050,7 +1051,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
         if (sh.shift) shot.shift = sh.shift; if (sh.score !== undefined) shot.score = sh.score; if (sh.lamp) shot.lamp = true; if (sh.speed != null) shot.speed = clamp(+sh.speed, 0.05, 4); shots.push(shot);
       }
       if (!append) { F.teardown(!!(prog && prog.set)); F.shots = []; } F.shots.push(...shots); F.sel = F.shots.length ? (append ? F.shots.length - shots.length : 0) : -1; F.name = prog && prog.name || F.name; if (prog && prog.story) F.story = prog.story; else if (!append) F.story = null;
-      if (prog && (prog.actors || prog.builds || prog.set)) { F.scene = { name: prog.name, actors: (prog.actors || []).map(a => ({ ...a, r: a.r ? a.r * M : undefined })), builds: (prog.builds || []).map(b => ({ ...b })), set: prog.set ? { ...prog.set, corridor: prog.set.corridor ? prog.set.corridor.map(p => p.slice()) : null, abs: false } : null, routes: prog.routes ? Object.fromEntries(Object.entries(prog.routes).map(([k, v]) => [k, v.map(p => p.slice())])) : null, world: prog.world || null, as: prog.as || null, ground: prog.ground || null, weather: prog.weather || null, time: prog.time || null, abs: false }; F.setup(); }
+      if (prog && (prog.actors || prog.builds || prog.set)) { F.scene = { name: prog.name, actors: (prog.actors || []).map(a => ({ ...a, r: a.r ? a.r * M : undefined })), builds: (prog.builds || []).map(b => ({ ...b })), set: prog.set ? { ...prog.set, corridor: prog.set.corridor ? prog.set.corridor.map(p => p.slice()) : null, abs: false } : null, routes: prog.routes ? Object.fromEntries(Object.entries(prog.routes).map(([k, v]) => [k, v.map(p => p.slice())])) : null, world: prog.world || null, as: prog.as || null, ground: prog.ground || null, weather: prog.weather || null, time: prog.time || null, me: prog.me || null, abs: false }; F.setup(); }
       if (F.prepareEnvs) F.prepareEnvs(); changed('program'); return shots.length;
     };
     F.trailer = name => { const t = TRAILERS[name || 'a-new-hope'] || SCENES[name]; if (!t) return 0; const n = F.loadProgram(t); say(`${t.name}: ${n} shots${F.scene ? ' · ' + F.scene.actors.length + ' actors' : ''} · Play previews it, Rec takes it`, 'ok'); return n; };

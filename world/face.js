@@ -120,11 +120,11 @@ function attach(rig, style, THREE) {
   THREE = THREE || root.THREE; if (!THREE || !rig || !rig.slots || !rig.slots.head || typeof document === 'undefined') return null;
   const size = 256, canvas = document.createElement('canvas'); canvas.width = size; canvas.height = size; const ctx = canvas.getContext('2d');
   const tex = new THREE.CanvasTexture(canvas); tex.anisotropy = 4; if ('colorSpace' in tex) tex.colorSpace = THREE.SRGBColorSpace; else if ('encoding' in tex && THREE.sRGBEncoding) tex.encoding = THREE.sRGBEncoding;
-  // the head is a cylinder of radius 10 LDU, 24 tall from its neck (y 0) to its crown (y −24 in the figure's y-down frame); the face plane hugs the front 110 degrees
-  const geo = new THREE.CylinderGeometry(10.35, 10.35, 19, 24, 1, true, Math.PI - Math.PI * 0.306, Math.PI * 0.612);   // the front of the head is its −z side in the figure's frame
+  // the head (3626b) is a cylinder of radius 13 LDU between y 4 and 17 below its origin at the crown, rounded above and below; the face plane hugs the front 110 degrees just outside it
+  const geo = new THREE.CylinderGeometry(13.4, 13.4, 18, 24, 1, true, Math.PI - Math.PI * 0.306, Math.PI * 0.612);   // the front of the head is its −z side in the figure's frame
   const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2, side: THREE.FrontSide });
   tex.flipY = false;   // the LDraw frame is y-down: the image's top lands at the crown
-  const mesh = new THREE.Mesh(geo, mat); mesh.name = 'face'; mesh.position.set(0, 12, 0);
+  const mesh = new THREE.Mesh(geo, mat); mesh.name = 'face'; mesh.position.set(0, 11, 0);
   rig.slots.head.add(mesh);
   const face = { rig, mesh, canvas, ctx, tex, style: style || 'lego', last: '', draws: 0 };
   paint(face, {}); return face;

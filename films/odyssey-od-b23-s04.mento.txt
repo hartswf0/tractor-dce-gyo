@@ -1,0 +1,93 @@
+0 // MENTO film · Mock City · word to momento
+0 !MENTO ASPECT 16:9 FPS 24
+0 !MENTO STORY {"title":"Odyssey 23: The Bed Test","description":"The Bed Test, from the halfworld's score: 5 lines, 21 poses, 4 crossings, 53 s of recorded voice.","location":"the megaron of Ithaca","entities":["phemius","penelope","odysseus","eurycleia","telemachus"],"goals":["the summit: she knows him, and says why she could not"],"obstacles":[],"shifts":[{"id":"OD-B23-S04","text":"The Bed Test"}],"why":"the summit: she knows him, and says why she could not","direction":"recognition","pipeline":["REFERENCE","CAMERA","FRAME","REQUIRE","FORAGE","RESOLVE","ASSEMBLE","STAGE","BIND","PERFORM","WATCH","REPAIR","COMMIT"],"source":{"halfworld":"OD-B23-S04 · The Bed Test","voice":"drive/voice/OD-B23-S04.m4a","direction":["recognition","the summit: she knows him, and says why she could not"],"lines":[{"who":"penelope","turn":null,"direction":null},{"who":"odysseus","turn":null,"direction":null},{"who":"narrator","turn":null,"direction":null},{"who":"penelope","turn":null,"direction":null},{"who":"penelope","turn":null,"direction":null}]}}
+0 !MENTO STAGE hall R 40 SEED 1 AT 0 0
+0 !MENTO ACTOR "phemius" FIGURE phemius AT 404 216 HEADING 180
+0 !MENTO ACTOR "penelope" FIGURE penelope AT 232 360 HEADING 180
+0 !MENTO ACTOR "odysseus" FIGURE odysseus AT -232 360 HEADING 180
+0 !MENTO ACTOR "eurycleia" FIGURE eurycleia AT 424 384 HEADING 180
+0 !MENTO ACTOR "telemachus" FIGURE telemachus AT -384 64 HEADING 180
+0 !MENTO BUILD "megaron" AT 0 0 {"name":"megaron","ops":[{"op":"group","name":"floor","x":-24,"z":-32,"size":[48,34,1],"ops":[{"op":"slab","x":0,"z":0,"w":48,"d":34,"y":0,"plates":1,"col":19}]},{"op":"group","name":"far wall","x":-24,"z":-33,"size":[48,1,9],"ops":[{"op":"wall","from":[0,0],"to":[48,0],"y":0,"h":9,"col":28},{"op":"band","x":0,"z":0,"w":48,"d":1,"y":7,"h":1,"col":4}]},{"op":"group","name":"great doors","x":-4,"z":-33,"size":[8,1,7],"ops":[{"op":"cut","x":0,"z":0,"w":8,"d":1,"y":0,"h":7},{"op":"door","x":0,"z":0,"y":0,"facing":"s","col":70},{"op":"door","x":4,"z":0,"y":0,"facing":"s","col":70}]},{"op":"group","name":"left pillar","x":-10,"z":-26,"size":[2,2,9],"ops":[{"op":"column","x":0,"z":0,"y":0,"h":9,"col":15},{"op":"column","x":1,"z":0,"y":0,"h":9,"col":15},{"op":"column","x":0,"z":1,"y":0,"h":9,"col":15},{"op":"column","x":1,"z":1,"y":0,"h":9,"col":15}]},{"op":"group","name":"right pillar","x":8,"z":-26,"size":[2,2,9],"ops":[{"op":"column","x":0,"z":0,"y":0,"h":9,"col":15},{"op":"column","x":1,"z":0,"y":0,"h":9,"col":15},{"op":"column","x":0,"z":1,"y":0,"h":9,"col":15},{"op":"column","x":1,"z":1,"y":0,"h":9,"col":15}]},{"op":"group","name":"the fire","x":-2,"z":-22,"size":[4,4,2],"ops":[{"op":"box","x":0,"z":0,"w":4,"d":4,"y":0,"h":1,"col":72},{"op":"part","part":"3062b","col":25,"x":1,"y":1,"z":1},{"op":"part","part":"3062b","col":46,"x":2,"y":1,"z":2},{"op":"part","part":"4589","col":25,"x":1,"y":2,"z":2}]},{"op":"group","name":"the bed","x":19,"z":-6,"size":[6,4,3],"ops":[{"op":"box","x":0,"z":0,"w":6,"d":4,"y":0,"h":2,"col":70},{"op":"slab","x":0,"z":0,"w":6,"d":4,"y":2,"plates":2,"col":19},{"op":"tree","x":5,"z":0,"h":5,"r":1,"col":2,"trunk":70}]}]}
+0 // SHOT 1: THE HALL
+0 !MENTO SHOT "the hall" POS -232 -57.2 -117.23 TGT -232 -46.8 360 LENS 32 SEC 3 LAMP SHIFT "OD-B23-S04"
+0 !MENTO PLAN {"on":"odysseus","frame":"wide","from":"s","lens":32,"sec":3,"move":"hold","name":"the hall"}
+0 !MENTO LIFE "phemius" 0.08 AT 0
+0 !MENTO LIFE "penelope" 0.08 AT 0
+0 !MENTO LIFE "odysseus" 0.08 AT 0
+0 !MENTO LIFE "eurycleia" 0.08 AT 0
+0 !MENTO LIFE "telemachus" 0.08 AT 0
+0 !MENTO PHRASE "eurycleia" neutral AT 0 ENTER 0.3
+0 !MENTO PHRASE "odysseus" "arms crossed" AT 0 ENTER 0.3
+0 !MENTO PHRASE "penelope" "arms crossed" AT 0 ENTER 0.3
+0 !MENTO PHRASE "phemius" "3/4 left" AT 0 ENTER 0.3
+0 !MENTO PHRASE "telemachus" "3/4 right" AT 0 ENTER 0.3
+0 !MENTO SPEAK "narrator" "Scene four. The Bed Test." AT 0 FILE odyssey/OD-B23-S04.m4a FROM 0 FOR 4.68
+0 // SHOT 2: PHEMIUS CROSSES
+0 !MENTO SHOT "phemius crosses" POS -232 -57.2 -117.23 TGT -232 -46.8 360 LENS 32 SEC 2.38 LAMP SHIFT "OD-B23-S04"
+0 !MENTO PLAN {"on":"odysseus","frame":"wide","from":"s","lens":32,"sec":2.38,"move":"hold","name":"phemius crosses"}
+0 !MENTO ACT "phemius" TO 424 384
+0 // SHOT 3: PENELOPE: EURYCLEIA, CARRY THE GREAT BED OUT OF TH
+0 !MENTO SHOT "penelope: Eurycleia, carry the great bed out of th" POS 288.57 -93.6 303.43 TGT 232 -88.4 360 LENS 50 SEC 4.62 LAMP SHIFT "OD-B23-S04"
+0 !MENTO PLAN {"on":"penelope","frame":"close","from":"se","lens":50,"sec":4.62,"move":"hold","name":"penelope: Eurycleia, carry the great bed out of th"}
+0 !MENTO SPEAK "penelope" "Eurycleia, carry the great bed out of the bridal chamber and set it up in the hall. Spread the fleeces and the bright blankets on it for him there." AT 0 FILE odyssey/OD-B23-S04.m4a FROM 5.38 FOR 6.12
+0 !MENTO PERFORM "phemius" LOOK "penelope" AT 0.2 FOLLOW head 0.12 KEEP gaze
+0 !MENTO PERFORM "odysseus" LOOK "penelope" AT 0.2 FOLLOW head 0.12 KEEP gaze
+0 !MENTO PERFORM "eurycleia" LOOK "penelope" AT 0.2 FOLLOW head 0.12 KEEP gaze
+0 !MENTO PERFORM "telemachus" LOOK "penelope" AT 0.2 FOLLOW head 0.12 KEEP gaze
+0 // SHOT 4: EURYCLEIA CROSSES
+0 !MENTO SHOT "eurycleia crosses" POS -232 -57.2 -117.23 TGT -232 -46.8 360 LENS 32 SEC 1.86 LAMP SHIFT "OD-B23-S04"
+0 !MENTO PLAN {"on":"odysseus","frame":"wide","from":"s","lens":32,"sec":1.86,"move":"hold","name":"eurycleia crosses"}
+0 !MENTO ACT "eurycleia" TO 424 384
+0 // SHOT 5: ODYSSEUS: WOMAN, WHO HAS MOVED MY BED? I BUILT IT 
+0 !MENTO SHOT "odysseus: Woman, who has moved my bed? I built it " POS -175.43 -93.6 303.43 TGT -232 -88.4 360 LENS 50 SEC 4.14 LAMP SHIFT "OD-B23-S04"
+0 !MENTO PLAN {"on":"odysseus","frame":"close","from":"se","lens":50,"sec":4.14,"move":"hold","name":"odysseus: Woman, who has moved my bed? I built it "}
+0 !MENTO PHRASE "penelope" "open arms" AT 1.14 ENTER 0.3
+0 !MENTO PHRASE "telemachus" "open arms" AT 1.14 ENTER 0.3
+0 !MENTO SPEAK "odysseus" "Woman, who has moved my bed? I built it myself around a living olive trunk still rooted in the ground, and I roofed the chamber over it. No man alive could shift that bed without taking an axe to the tree." AT 0 FILE odyssey/OD-B23-S04.m4a FROM 11.86 FOR 12.76
+0 !MENTO PERFORM "phemius" LOOK "odysseus" AT 0.2 FOLLOW head 0.12 KEEP gaze
+0 !MENTO PERFORM "penelope" LOOK "odysseus" AT 0.2 FOLLOW head 0.12 KEEP gaze
+0 !MENTO PERFORM "eurycleia" LOOK "odysseus" AT 0.2 FOLLOW head 0.12 KEEP gaze
+0 !MENTO PERFORM "telemachus" LOOK "odysseus" AT 0.2 FOLLOW head 0.12 KEEP gaze
+0 !MENTO BEAT "OD-B23-S04 recognition" "odysseus" FROM 0 TO 12.76 WHY "the summit: she knows him, and says why she could not" DIRECT recognition
+0 !MENTO ASSERT "odysseus" READS_AS recognition AT 1.2
+0 // SHOT 6: EURYCLEIA CROSSES
+0 !MENTO SHOT "eurycleia crosses" POS -232 -57.2 -117.23 TGT -232 -46.8 360 LENS 32 SEC 8.92 LAMP SHIFT "OD-B23-S04"
+0 !MENTO PLAN {"on":"odysseus","frame":"wide","from":"s","lens":32,"sec":8.92,"move":"hold","name":"eurycleia crosses"}
+0 !MENTO ACT "eurycleia" TO 404 216
+0 !MENTO PHRASE "odysseus" angry AT 6 ENTER 0.3
+0 !MENTO PHRASE "penelope" "hands near face" AT 6 ENTER 0.3
+0 !MENTO PHRASE "telemachus" neutral AT 6 ENTER 0.3
+0 // SHOT 7: NARRATOR: THE SIGN IS GIVEN, AND IT IS HIS ALONE: 
+0 !MENTO SHOT "narrator: The sign is given, and it is his alone: " POS -175.43 -93.6 303.43 TGT -232 -88.4 360 LENS 50 SEC 5.58 LAMP SHIFT "OD-B23-S04"
+0 !MENTO PLAN {"on":"odysseus","frame":"close","from":"se","lens":50,"sec":5.58,"move":"hold","name":"narrator: The sign is given, and it is his alone: "}
+0 !MENTO PHRASE "odysseus" pointing AT 3.08 ENTER 0.3
+0 !MENTO SPEAK "narrator" "The sign is given, and it is his alone: the bed that cannot be carried, the secret two people kept. See how her knees go slack beneath her." AT 0 FILE odyssey/OD-B23-S04.m4a FROM 24.92 FOR 5.16
+0 !MENTO PERFORM "phemius" LOOK "narrator" AT 0.2 FOLLOW head 0.12 KEEP gaze
+0 !MENTO PERFORM "penelope" LOOK "narrator" AT 0.2 FOLLOW head 0.12 KEEP gaze
+0 !MENTO PERFORM "odysseus" LOOK "narrator" AT 0.2 FOLLOW head 0.12 KEEP gaze
+0 !MENTO PERFORM "eurycleia" LOOK "narrator" AT 0.2 FOLLOW head 0.12 KEEP gaze
+0 !MENTO PERFORM "telemachus" LOOK "narrator" AT 0.2 FOLLOW head 0.12 KEEP gaze
+0 // SHOT 8: PENELOPE: ODYSSEUS.
+0 !MENTO SHOT "penelope: Odysseus." POS 288.57 -93.6 303.43 TGT 232 -88.4 360 LENS 50 SEC 5.58 LAMP SHIFT "OD-B23-S04"
+0 !MENTO PLAN {"on":"penelope","frame":"close","from":"se","lens":50,"sec":5.58,"move":"hold","name":"penelope: Odysseus."}
+0 !MENTO PHRASE "odysseus" stop AT 1.5 ENTER 0.3
+0 !MENTO PHRASE "penelope" neutral AT 1.5 ENTER 0.3
+0 !MENTO SPEAK "penelope" "Odysseus." AT 0 FILE odyssey/OD-B23-S04.m4a FROM 30.5 FOR 5.28
+0 !MENTO PERFORM "phemius" LOOK "penelope" AT 0.2 FOLLOW head 0.12 KEEP gaze
+0 !MENTO PERFORM "odysseus" LOOK "penelope" AT 0.2 FOLLOW head 0.12 KEEP gaze
+0 !MENTO PERFORM "eurycleia" LOOK "penelope" AT 0.2 FOLLOW head 0.12 KEEP gaze
+0 !MENTO PERFORM "telemachus" LOOK "penelope" AT 0.2 FOLLOW head 0.12 KEEP gaze
+0 // SHOT 9: PENELOPE: DO NOT BE ANGRY WITH ME; OF ALL MEN YOU 
+0 !MENTO SHOT "penelope: Do not be angry with me; of all men you " POS 288.57 -93.6 303.43 TGT 232 -88.4 360 LENS 50 SEC 16.62 LAMP SHIFT "OD-B23-S04"
+0 !MENTO PLAN {"on":"penelope","frame":"close","from":"se","lens":50,"sec":16.62,"move":"hold","name":"penelope: Do not be angry with me; of all men you "}
+0 !MENTO PHRASE "odysseus" "open arms" AT 1.92 ENTER 0.3
+0 !MENTO PHRASE "telemachus" "open arms" AT 5.92 ENTER 0.3
+0 !MENTO PHRASE "odysseus" sad AT 13.92 ENTER 0.3
+0 !MENTO PHRASE "penelope" stop AT 13.92 ENTER 0.3
+0 !MENTO PHRASE "telemachus" "arms crossed" AT 13.92 ENTER 0.3
+0 !MENTO SPEAK "penelope" "Do not be angry with me; of all men you were always the shrewdest. I was afraid some stranger would come with a smooth story and take me with it. Now the sign has come and my heart gives way, and you are as welcome to me as dry land to swimmers." AT 0 FILE odyssey/OD-B23-S04.m4a FROM 36.08 FOR 6.2
+0 !MENTO PERFORM "phemius" LOOK "penelope" AT 0.2 FOLLOW head 0.12 KEEP gaze
+0 !MENTO PERFORM "odysseus" LOOK "penelope" AT 0.2 FOLLOW head 0.12 KEEP gaze
+0 !MENTO PERFORM "eurycleia" LOOK "penelope" AT 0.2 FOLLOW head 0.12 KEEP gaze
+0 !MENTO PERFORM "telemachus" LOOK "penelope" AT 0.2 FOLLOW head 0.12 KEEP gaze
+0 !MENTO SPEAK "narrator" "Athena holds back dawn while husband and wife weep and reunite." AT 6.56 FILE odyssey/OD-B23-S04.m4a FROM 42.64 FOR 9.76
