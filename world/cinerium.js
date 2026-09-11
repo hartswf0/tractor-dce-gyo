@@ -58,7 +58,7 @@ const PHRASES = {
   neutral: {}, stand: {},
   'arms crossed': { 'arm.L.pitch': -70 * A, 'arm.R.pitch': -70 * A, 'hand.L.roll': 1.2, 'hand.R.roll': -1.2, 'torso.lean': -0.04 },
   'open arms': { 'arm.L.pitch': -85 * A, 'arm.R.pitch': -85 * A, 'arm.L.out': 0.35, 'arm.R.out': 0.35, 'brow.up': .4, 'eye.wide': .3 },
-  'hands near face': { 'arm.L.pitch': -150 * A, 'arm.R.pitch': -150 * A, 'hand.L.roll': 0.9, 'hand.R.roll': -0.9, 'eye.wide': .5, 'brow.up': .6, 'mouth.jaw': .25 },
+  'hands near face': { 'arm.L.pitch': -125 * A, 'arm.R.pitch': -125 * A, 'arm.L.out': 0.12, 'arm.R.out': 0.12, 'hand.L.roll': 0.35, 'hand.R.roll': -0.35, 'eye.wide': .5, 'brow.up': .6, 'mouth.jaw': .25 },
   angry: { 'arm.L.pitch': -35 * A, 'arm.R.pitch': -35 * A, 'hips.pitch': 0.08, 'brow.knit': .75, 'frown': .5, 'eye.narrow': .3 },
   pointing: { 'arm.R.pitch': -90 * A, 'brow.knit': .3 },
   stop: { 'arm.R.pitch': -85 * A, 'hand.R.roll': -1.4, 'brow.knit': .35 },
@@ -75,7 +75,7 @@ const PHRASES = {
   listen: { 'head.yaw': 0.3, 'torso.twist': 0.1, 'brow.up': .2, 'eye.narrow': .1 },
   thinking: { 'arm.R.pitch': -145 * A, 'hand.R.roll': -0.8, 'torso.roll': 0.06, 'gaze.y': -.4, 'gaze.x': .4, 'brow.asym': .4, 'mouth.press': .3 },
   sit: { 'leg.L.pitch': -90 * A, 'leg.R.pitch': -90 * A, 'arm.L.pitch': -60 * A, 'arm.R.pitch': -60 * A, 'hips.drop': -12 },
-  cheer: { 'arm.L.pitch': -170 * A, 'arm.R.pitch': -170 * A, 'smile': .9, 'eye.wide': .4, 'mouth.jaw': .5, 'brow.up': .6 },
+  cheer: { 'arm.L.pitch': -150 * A, 'arm.R.pitch': -150 * A, 'smile': .9, 'eye.wide': .4, 'mouth.jaw': .5, 'brow.up': .6 },
   writing: { 'arm.R.pitch': -95 * A, 'hand.R.roll': -0.3, 'gaze.y': -.2, 'eye.narrow': .2, 'mouth.press': .3 },
   carry: { 'arm.L.pitch': -70 * A, 'arm.R.pitch': -70 * A },
   hold: { 'arm.L.pitch': -55 * A, 'arm.R.pitch': -55 * A, 'hand.L.roll': 0.6, 'hand.R.roll': -0.6 },
@@ -140,8 +140,8 @@ function apply(P, t, opts) {
   if (!rig.seated && !rig.air && !(P.a && P.a.poseNow === 'prone')) {
     if (on('root.yaw')) { rig.heading = v['root.yaw']; rig.figure.rotation.y = rig.heading; }
     if (on('hips.pitch')) rig.figure.rotation.x = v['hips.pitch'];
-    if (on('torso.lean')) rig.torsoP.rotation.x += v['torso.lean']; if (on('torso.roll')) rig.torsoP.rotation.z += v['torso.roll']; if (on('torso.twist')) rig.torsoP.rotation.y += v['torso.twist'];
-    if (on('head.yaw')) rig.headP.rotation.y = v['head.yaw'];
+    if (on('torso.lean')) rig.torsoP.rotation.x += v['torso.lean']; if (on('torso.roll')) rig.torsoP.rotation.z -= v['torso.roll']; if (on('torso.twist')) rig.torsoP.rotation.y -= v['torso.twist'];
+    if (on('head.yaw')) rig.headP.rotation.y = -v['head.yaw'];   /* the pivots hang under the figure's flip (y down), so a yaw or a roll about their own axes turns the world's other way: negated here so a positive yaw turns the head the way a positive root yaw turns the figure */
     if (on('arm.L.pitch') && !rig.swing) rig.armLP.rotation.x = v['arm.L.pitch']; if (on('arm.R.pitch') && !rig.swing && !rig.aim) rig.armRP.rotation.x = v['arm.R.pitch'];
     rig.armLP.rotation.z = on('arm.L.out') ? v['arm.L.out'] : 0; rig.armRP.rotation.z = on('arm.R.out') ? -v['arm.R.out'] : 0;
     const hL = rig.mounted && rig.mounted.handL, hR = rig.mounted && rig.mounted.handR; if (hL) hL.group.rotation.y = on('hand.L.roll') ? v['hand.L.roll'] : 0; if (hR) hR.group.rotation.y = on('hand.R.roll') ? v['hand.R.roll'] : 0;
@@ -194,9 +194,8 @@ function gestures(P, sp) {
   const peaks = []; let last = -1e9; for (let i = 1; i < n - 1; i++) { if (sm[i] >= sm[i - 1] && sm[i] > sm[i + 1] && sm[i] > 0.45 * mx && (i - last) / hz >= 0.55) { peaks.push({ t: i / hz, k: sm[i] / mx }); last = i; } }
   const base = P.base || {}; let count = 0;
   peaks.forEach((pk, i) => {
-    const t = sp.t0 + pk.t, side = i % 4 === 3 ? 'L' : 'R', rest = base[`arm.${side}.pitch`] || 0, lift = rest - (0.35 + 0.45 * pk.k), roll = (side === 'R' ? -1 : 1) * 0.6 * pk.k;
-    key(P, `arm.${side}.pitch`, lift, t - 0.10, 0.18, 'ease'); key(P, `arm.${side}.pitch`, rest - 0.12 * pk.k, t + 0.45, 0.35, 'ease');
-    key(P, `hand.${side}.roll`, roll, t - 0.08, 0.2, 'ease'); key(P, `hand.${side}.roll`, 0, t + 0.6, 0.4, 'ease');
+    const t = sp.t0 + pk.t, side = i % 4 === 3 ? 'L' : 'R', rest = base[`arm.${side}.pitch`] || 0, lift = rest - (0.25 + 0.35 * pk.k);
+    key(P, `arm.${side}.pitch`, lift, t - 0.10, 0.18, 'ease'); key(P, `arm.${side}.pitch`, rest - 0.10 * pk.k, t + 0.45, 0.35, 'ease');   /* the arm only: a LEGO wrist turned mid-gesture reads as a broken hand */
     if (pk.k > 0.85) { key(P, 'torso.lean', 0.05, t - 0.05, 0.15, 'ease'); key(P, 'torso.lean', 0, t + 0.5, 0.4, 'ease'); }
     count++; });
   key(P, 'arm.R.pitch', base['arm.R.pitch'] || 0, sp.t0 + sp.sec + 0.3, 0.6, 'ease'); key(P, 'arm.L.pitch', base['arm.L.pitch'] || 0, sp.t0 + sp.sec + 0.3, 0.6, 'ease');
