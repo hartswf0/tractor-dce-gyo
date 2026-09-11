@@ -535,7 +535,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
       if (sc.ground && W.setGround && W.G && W.G.mode !== sc.ground) { sc.groundWas = W.G.mode; W.setGround(sc.ground); for (let i = 0; i < 150 && !(W.G && W.G.mode === sc.ground && W.ready && !W.relanding); i++) await new Promise(r => setTimeout(r, 100)); }   // the ground is laid again first, on its own: a character's kits would block the page while its tiles load
       if (sc.as && W.setCharacter && W.character !== sc.as) { F.ground(); W.setCharacter(sc.as); }
       if (sc.weather && W.setWeather) W.setWeather(sc.weather); if (sc.time && W.setSky) W.setSky(sc.time);
-      if (sc.me === 'off' && W.rig) { sc.meWas = W.rig.figure.visible; W.rig.figure.visible = false; }   // a scene with no part for the player keeps them out of the frame
+      if (sc.me === 'off' && W.rig) { sc.meWas = W.rig.figure.visible; W.rig.figure.visible = false; sc.hid = []; if (W.ship && W.ship.visible) { W.ship.visible = false; sc.hid.push(W.ship); } if (W.props) for (const it of W.props.items.values()) if (it.src && it.src.me && it.group && it.group.visible) { it.group.visible = false; sc.hid.push(it.group); } }   // a scene with no part for the player keeps them, and their ride, out of the frame
       const sp = W.spawn || (W.rig && W.rig.pos) || new THREE.Vector3();
       if (sc.set && W.filmSet) { const st = sc.set; if (!st.abs) { st.centre = st.centre ? { x: sp.x + st.centre.x * M, z: sp.z + st.centre.z * M } : { x: sp.x, z: sp.z }; if (st.corridor) st.corridor = st.corridor.map(p => [sp.x / M + p[0], sp.z / M + p[1]]); st.abs = true; }
         if (sc.routes && !sc.routesAbs) { for (const k of Object.keys(sc.routes)) sc.routes[k] = sc.routes[k].map(p => [sp.x / M + p[0], sp.z / M + p[1]]); sc.routesAbs = true; }
@@ -554,7 +554,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
       if (W.props) for (const it of [...W.props.items.values()]) if (it.src && it.src.film) W.props.remove(it.id, true);   // whatever a film laid and lost track of
       if (W.crowd) for (const n of W.crowd.npcs.slice()) if (n.film) W.crowd.remove(n);
       for (const m of F.meshes) { W.scene.remove(m); if (m.geometry) m.geometry.dispose(); } F.meshes = []; F.actors.clear(); F.builds.clear(); F.cable = null; F.hang = null; F.prone = false; F.rout = null; F.strikes = null; F.pending = [];
-      if (W.rig) W.rig.figure.rotation.x = 0; if (sc && sc.me === 'off' && W.rig && sc.meWas != null) W.rig.figure.visible = sc.meWas; if (sc && sc.set && W.filmSet) { if (!keepSet) W.filmSet(null, { ground: sc.groundWas || null }); } else if (sc && sc.groundWas && W.setGround) W.setGround(sc.groundWas); F.scene = null; return true;
+      if (W.rig) W.rig.figure.rotation.x = 0; if (sc && sc.me === 'off' && W.rig && sc.meWas != null) { W.rig.figure.visible = sc.meWas; for (const o of sc.hid || []) o.visible = true; } if (sc && sc.set && W.filmSet) { if (!keepSet) W.filmSet(null, { ground: sc.groundWas || null }); } else if (sc && sc.groundWas && W.setGround) W.setGround(sc.groundWas); F.scene = null; return true;
     };
     const aimPoint = aim => { if (!aim) return null; if (typeof aim === 'object') return new THREE.Vector3(aim.x, groundH(aim.x, aim.z) + 0.5 * M, aim.z); const S = F.subject(aim); return new THREE.Vector3(S.x, S.y0 + S.h * 0.4, S.z); };
     /** The scene's routes: a named polyline (the set's corridor by default), in LDU. */
@@ -920,8 +920,8 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
       if (W.crowd) for (const n of W.crowd.npcs) if (n.alive && Math.hypot(p.x - n.pos.x, p.z - n.pos.z) < 0.7 * M && p.y > n.pos.y - 0.2 * M && p.y < n.pos.y + 2.2 * M) return 'a figure';
       for (const a of F.actors.values()) if (a.rig && a.name !== skipId && !a.riding && Math.hypot(p.x - a.rig.pos.x, p.z - a.rig.pos.z) < 0.7 * M && p.y > a.rig.pos.y - 0.2 * M && p.y < a.rig.pos.y + 2.2 * M) return a.name;
       if (W.city && window.Bricks) for (const b of W.city.near(p.x, p.z, 1.5 * M)) if (b.id !== skipId && p.y < b.yTop + 0.5 * M && Bricks.pointInRing(p.x / M, p.z / M, b.ring)) return 'building';
-      if (W.props) for (const it of W.props.near(p.x, p.z, 1.5 * M)) { const b = it.box; if (it.id !== skipId && b && p.x > b.min.x - 0.5 * M && p.x < b.max.x + 0.5 * M && p.z > b.min.z - 0.5 * M && p.z < b.max.z + 0.5 * M && p.y > b.min.y - 0.5 * M && p.y < b.max.y + 0.5 * M) return 'prop'; }
-      if (W.ship && W.mode !== 'fly') { const sp = W.ship.position; if (Math.hypot(sp.x - p.x, sp.z - p.z) < 6.5 * M && p.y < sp.y + 5 * M) return 'ship'; }
+      if (W.props) for (const it of W.props.near(p.x, p.z, 1.5 * M)) { const b = it.box; if (it.group && !it.group.visible) continue; if (it.id !== skipId && b && p.x > b.min.x - 0.5 * M && p.x < b.max.x + 0.5 * M && p.z > b.min.z - 0.5 * M && p.z < b.max.z + 0.5 * M && p.y > b.min.y - 0.5 * M && p.y < b.max.y + 0.5 * M) return 'prop'; }
+      if (W.ship && W.ship.visible && W.mode !== 'fly') { /* a ride a scene has put away blocks no camera */ const sp = W.ship.position; if (Math.hypot(sp.x - p.x, sp.z - p.z) < 6.5 * M && p.y < sp.y + 5 * M) return 'ship'; }
       return null;
     };
     /** Can the camera see the subject: twelve samples along the line, none inside anything but the subject itself. */
