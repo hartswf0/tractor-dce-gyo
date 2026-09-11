@@ -142,7 +142,7 @@ const HW = { size: 480, R: 176, cx: 240, cy: 206, cell: 3, gain: 1.4, floor: 0.1
 const HW_MAP = [['browUp', 'brow.up'], ['browKnit', 'brow.knit'], ['eyeWide', 'eye.wide'], ['eyeNarrow', 'eye.narrow'], ['blink', 'blink'], ['gazeX', 'gaze.x'], ['gazeY', 'gaze.y'], ['jaw', 'mouth.jaw'], ['wide', 'mouth.wide'], ['press', 'mouth.press'], ['smile', 'smile'], ['frown', 'frown'], ['mouthAsym', 'mouth.asym'], ['cheek', 'cheek'], ['teeth', 'teeth'], ['tongue', 'tongue']];
 function halfworldState(v) { const st = {}; for (const [k, ch] of HW_MAP) if (v[ch]) st[k] = +v[ch]; return st; }
 /** The crop of the halfworld drawing that is print: x across the face, y from under the hairline to the chin, in the source's pixels. */
-function halfworldCrop(spec) { const R = HW.R, fw = spec.faceW || 1; return { x0: HW.cx - 0.74 * R * fw, x1: HW.cx + 0.74 * R * fw, y0: HW.cy - 0.44 * R, y1: HW.cy + 1.06 * R, ex: 0.80 * R * fw, ey: 0.92 * R, ecy: HW.cy + 0.30 * R }; }
+function halfworldCrop(spec) { const R = HW.R, fw = spec.faceW || 1; return { x0: HW.cx - 0.74 * R * fw, x1: HW.cx + 0.74 * R * fw, y0: HW.cy - 0.44 * R, y1: HW.cy + 1.06 * R, ex: 0.66 * R * fw, ey: 0.78 * R, ecy: HW.cy + 0.30 * R }; }   /* the oval stops short of the silhouette: the jaw and chin are the brick's, not the print's */
 function drawHalfworld(face, v) {
   const H = root.HalfFace; if (!H) return false; const spec = H.FACES[face.who]; if (!spec) return false;
   const g = face.sctx, S = HW.size; g.setTransform(1, 0, 0, 1, 0, 0); g.fillStyle = '#ffffff'; g.fillRect(0, 0, S, S);
@@ -154,7 +154,9 @@ function drawHalfworld(face, v) {
   const cell = HW.cell, law = H.INKLAW;
   for (let y = cell / 2; y < h; y += cell) for (let x = ox + cell / 2; x < ox + px; x += cell) {
     const X = c.x0 + (x - ox) * sx, Y = c.y0 + y * sy; const dx = (X - HW.cx) / c.ex, dy = (Y - c.ecy) / c.ey; if (dx * dx + dy * dy > 1) continue;   // inside the head's oval
-    const i = ((Y | 0) * S + (X | 0)) * 4, lum = (src[i] * .299 + src[i + 1] * .587 + src[i + 2] * .114) / 255; let d = 1 - lum; if (d < HW.floor) continue; d = law.grade(d);
+    const i = ((Y | 0) * S + (X | 0)) * 4, lum = (src[i] * .299 + src[i + 1] * .587 + src[i + 2] * .114) / 255; let d = 1 - lum;
+    if (lum > 0.955) { ctx.fillStyle = '#fbfaf6'; ctx.fillRect(w - x - cell / 2, y - cell / 2, cell + 0.5, cell + 0.5); ctx.fillStyle = '#0a0a0a'; continue; }   // paper inside the face is the whites of the eyes and the teeth: printed white
+    if (d < HW.floor) continue; d = law.grade(d);
     ctx.beginPath(); ctx.arc(w - x, y, Math.pow(d, .9) * cell * .62 * HW.gain, 0, 7); ctx.fill(); ink++;   // mirrored: the cylinder's u runs against x on the −z side
   }
   face.ink = ink; return true;
