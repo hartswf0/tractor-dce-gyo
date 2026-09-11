@@ -2,7 +2,7 @@ import {chromium} from 'playwright';
 import fs from 'node:fs';
 const browser=await chromium.launch({headless:true,args:['--use-gl=swiftshader','--enable-webgl']});
 const page=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:1});
-const errs=[];page.on('pageerror',e=>errs.push('PAGE '+e.message));page.on('console',m=>{if(m.type()==='error'&&!/GL_INVALID_OPERATION|Failed to load resource.*404/.test(m.text()))errs.push('CONSOLE '+m.text())});
+const errs=[];page.on('pageerror',e=>{if(errs.length<8)errs.push('PAGE '+(e.stack||e.message))});page.on('console',m=>{if(m.type()==='error'&&!/GL_INVALID_OPERATION|Failed to load resource.*404/.test(m.text())&&errs.length<8)errs.push('CONSOLE '+m.text())});
 await page.goto('http://127.0.0.1:4173/from-homer-to-homer.html',{waitUntil:'domcontentloaded',timeout:60000});
 await page.waitForFunction(()=>window.__HOMER_TO_HOMER?.SOURCE_CAST?.length>=12,{timeout:60000});
 await page.waitForTimeout(3500);
