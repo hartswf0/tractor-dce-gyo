@@ -1,0 +1,185 @@
+0 // MENTO film · Mock City → offline, so Hlíðarendi, Iceland · word to momento
+0 !MENTO ASPECT 16:9 FPS 24
+0 !MENTO STORY {"title":"The Odyssey: a trailer in bricks","description":"Thirteen patches of the trailer, each on its own ground: the graves in the dunes, the beachhead, the ridge, the citadel, the galleys at dusk, the tow, the cavern, the ashen shore, the tempest, the deck, the chamber, the cards.","location":"Troy, the Aegean, Ithaca","entities":[{"id":"odysseus","type":"character","name":"Odysseus","traits":["bronze","bearded","commander"],"location":"everywhere"},{"id":"penelope","type":"character","name":"Penelope","traits":["dark peplos","braided"],"location":"Ithaca"},{"id":"telemachus","type":"character","name":"Telemachus","traits":["grey tunic"],"location":"Ithaca"},{"id":"hoplites","type":"crowd","name":"the phalanx","traits":["bronze","spears"],"location":"Troy"},{"id":"polyphemus","type":"shadow","name":"Polyphemus","traits":["colossal"],"location":"the cavern"}],"goals":[{"id":"g1","name":"home","owner":"odysseus"}],"obstacles":[{"id":"o1","name":"the sea","affects":["odysseus"]},{"id":"o2","name":"the Cyclops","affects":["odysseus","hoplites"]},{"id":"o3","name":"the dead","affects":["odysseus"]}],"shifts":[{"id":"muster","name":"Aftermath and beachhead","causes":"the war is over","results_in":"the fleet musters"},{"id":"ridge","name":"Inland and the overlook","causes":"the march inland","results_in":"Ithaca waits"},{"id":"launch","name":"Launch and salvage","causes":"the fleet sails","results_in":"the siege engine is dragged"},{"id":"cavern","name":"The cavern and the shore of the dead","causes":"a hostile coast","results_in":"a standoff with shades"},{"id":"tempest","name":"Tempest, covenant, billing","causes":"Poseidon strikes","results_in":"a promise"}],"relations":["[commands] odysseus -> hoplites","[waits for] penelope -> odysseus","[looms over] polyphemus -> hoplites","[promises] odysseus -> penelope"],"timeline":[{"id":"SQ1","description":"Aftermath and Beachhead Assembly","scenes":[{"id":"P002","description":"the dune graves","entities":["odysseus"]},{"id":"P003","description":"the beachhead","entities":["odysseus","hoplites"]}]},{"id":"SQ2","description":"Inland Ridge and Domestic Counter-Overlook","scenes":[{"id":"P004","description":"the pine ridge","entities":["odysseus","hoplites"]},{"id":"P005","description":"the citadel","entities":["telemachus","penelope"]}]},{"id":"SQ3","description":"Maritime Launch and Shoreline Salvage","scenes":[{"id":"P006","description":"the galleys at dusk","entities":[]},{"id":"P007","description":"the tow","entities":["hoplites"]}]},{"id":"SQ4","description":"Subterranean Ambush and Netherworld Shore","scenes":[{"id":"P008","description":"the cavern","entities":["odysseus","polyphemus"]},{"id":"P009","description":"the ashen shore","entities":["odysseus"]}]},{"id":"SQ5","description":"Ocean Tempest, Covenant, and Theatrical Billing","scenes":[{"id":"P010","description":"the tempest","entities":["odysseus"]},{"id":"P011","description":"the deck","entities":["odysseus"]},{"id":"P012","description":"the chamber vow","entities":["odysseus","penelope"]}]}]}
+0 !MENTO STAGE dunes R 90 SEED 1 AT -4800 0
+0 !MENTO ACTOR "odysseus-dunes" FIGURE odysseus-bronze AT -4400 -120 HEADING 290
+0 !MENTO ACTOR "odysseus-beach" FIGURE odysseus-bronze AT -32 -80 HEADING 90
+0 !MENTO ACTOR "commander" FIGURE commander AT 40 -80 HEADING 270
+0 !MENTO ACTOR "phalanx" CROWD hoplite N 14 AT 0 180 R 3.5
+0 !MENTO ACTOR "odysseus-ridge" FIGURE odysseus-bronze AT 4400 -320 HEADING 0
+0 !MENTO ACTOR "ridge-1" FIGURE hoplite AT 4320 -400 HEADING 0
+0 !MENTO ACTOR "ridge-2" FIGURE hoplite AT 4480 -420 HEADING 0
+0 !MENTO ACTOR "ridge-3" FIGURE hoplite AT 4380 -480 HEADING 0
+0 !MENTO ACTOR "ridge-4" FIGURE hoplite AT 4440 -520 HEADING 0
+0 !MENTO ACTOR "telemachus" FIGURE telemachus-ithaca AT 8360 40 HEADING 180
+0 !MENTO ACTOR "penelope-crag" FIGURE penelope-ithaca AT 8520 60 HEADING 180
+0 !MENTO ACTOR "galley-1" KIND boat LEN 10 COL 0 AT -1040 -8880 HEADING 90
+0 !MENTO ACTOR "galley-2" KIND boat LEN 10 COL 0 AT -1280 -9160 HEADING 90
+0 !MENTO ACTOR "rider" FIGURE commander AT 1900 260 HEADING 180
+0 !MENTO ACTOR "odysseus-cave" FIGURE odysseus-sword AT -8040 7740 HEADING 0
+0 !MENTO ACTOR "cave-1" FIGURE hoplite AT -8160 7880 HEADING 0
+0 !MENTO ACTOR "cave-2" FIGURE hoplite AT -7940 7860 HEADING 0
+0 !MENTO ACTOR "cave-3" FIGURE hoplite AT -8220 7800 HEADING 0
+0 !MENTO ACTOR "cave-4" FIGURE hoplite AT -7880 7780 HEADING 0
+0 !MENTO ACTOR "odysseus-ash" FIGURE odysseus-sword AT -8000 -8000 HEADING 0
+0 !MENTO ACTOR "odysseus-deck" FIGURE odysseus-wet AT -120 -12180 HEADING 0
+0 !MENTO ACTOR "odysseus" FIGURE odysseus AT 7972 -8040 HEADING 90
+0 !MENTO ACTOR "penelope" FIGURE penelope-ithaca AT 8028 -8040 HEADING 270
+0 !MENTO ACTOR "shade-1" FIGURE shade AT -8000 -7760 HEADING 180
+0 !MENTO ACTOR "shade-2" FIGURE shade AT -7858.8 -7806 HEADING 216
+0 !MENTO ACTOR "shade-3" FIGURE shade AT -7771.6 -7926 HEADING 252
+0 !MENTO ACTOR "shade-4" FIGURE shade AT -7771.6 -8074 HEADING 288
+0 !MENTO ACTOR "shade-5" FIGURE shade AT -7858.8 -8194 HEADING 324
+0 !MENTO ACTOR "shade-6" FIGURE shade AT -8000 -8240 HEADING 0
+0 !MENTO ACTOR "shade-7" FIGURE shade AT -8141.2 -8194 HEADING 36
+0 !MENTO ACTOR "shade-8" FIGURE shade AT -8228.4 -8074 HEADING 72
+0 !MENTO ACTOR "shade-9" FIGURE shade AT -8228.4 -7926 HEADING 108
+0 !MENTO ACTOR "shade-10" FIGURE shade AT -8141.2 -7806 HEADING 144
+0 !MENTO ACTOR "hauler-1" FIGURE sailor AT 1700 -160 HEADING 0
+0 !MENTO ACTOR "hauler-2" FIGURE sailor AT 1820 -160 HEADING 0
+0 !MENTO ACTOR "hauler-3" FIGURE sailor AT 1700 -224 HEADING 0
+0 !MENTO ACTOR "hauler-4" FIGURE sailor AT 1820 -224 HEADING 0
+0 !MENTO ACTOR "hauler-5" FIGURE sailor AT 1700 -288 HEADING 0
+0 !MENTO ACTOR "hauler-6" FIGURE sailor AT 1820 -288 HEADING 0
+0 !MENTO ACTOR "hauler-7" FIGURE sailor AT 1700 -352 HEADING 0
+0 !MENTO ACTOR "hauler-8" FIGURE sailor AT 1820 -352 HEADING 0
+0 !MENTO ACTOR "hauler-9" FIGURE sailor AT 1700 -416 HEADING 0
+0 !MENTO ACTOR "hauler-10" FIGURE sailor AT 1820 -416 HEADING 0
+0 !MENTO ACTOR "hauler-11" FIGURE sailor AT 1700 -480 HEADING 0
+0 !MENTO ACTOR "hauler-12" FIGURE sailor AT 1820 -480 HEADING 0
+0 !MENTO ACTOR "rower-1" FIGURE sailor AT -184 -11768 HEADING 180
+0 !MENTO ACTOR "rower-2" FIGURE sailor AT -184 -11868 HEADING 180
+0 !MENTO ACTOR "rower-3" FIGURE sailor AT -184 -11968 HEADING 180
+0 !MENTO ACTOR "rower-4" FIGURE sailor AT -184 -12068 HEADING 180
+0 !MENTO ACTOR "rower-5" FIGURE sailor AT -96 -11768 HEADING 180
+0 !MENTO ACTOR "rower-6" FIGURE sailor AT -96 -11868 HEADING 180
+0 !MENTO ACTOR "rower-7" FIGURE sailor AT -96 -11968 HEADING 180
+0 !MENTO ACTOR "rower-8" FIGURE sailor AT -96 -12068 HEADING 180
+0 !MENTO BUILD "graves" AT -5200 400 {"name":"the dune graves","ops":[{"op":"column","x":0,"z":0,"y":0,"h":2,"col":70},{"op":"part","part":"3062b","col":297,"x":0,"y":2,"z":0},{"op":"column","x":12,"z":7,"y":0,"h":3,"col":70},{"op":"part","part":"3062b","col":297,"x":12,"y":3,"z":7},{"op":"column","x":24,"z":14,"y":0,"h":2,"col":70},{"op":"part","part":"3062b","col":297,"x":24,"y":2,"z":14},{"op":"column","x":33,"z":21,"y":0,"h":3,"col":70},{"op":"part","part":"3062b","col":297,"x":33,"y":3,"z":21},{"op":"column","x":5,"z":4,"y":0,"h":2,"col":70},{"op":"part","part":"3062b","col":297,"x":5,"y":2,"z":4},{"op":"column","x":17,"z":11,"y":0,"h":3,"col":70},{"op":"part","part":"3062b","col":297,"x":17,"y":3,"z":11},{"op":"column","x":26,"z":18,"y":0,"h":2,"col":70},{"op":"part","part":"3062b","col":297,"x":26,"y":2,"z":18},{"op":"column","x":38,"z":1,"y":0,"h":3,"col":70},{"op":"part","part":"3062b","col":297,"x":38,"y":3,"z":1},{"op":"column","x":10,"z":8,"y":0,"h":2,"col":70},{"op":"part","part":"3062b","col":297,"x":10,"y":2,"z":8},{"op":"column","x":19,"z":15,"y":0,"h":3,"col":70},{"op":"part","part":"3062b","col":297,"x":19,"y":3,"z":15},{"op":"column","x":31,"z":22,"y":0,"h":2,"col":70},{"op":"part","part":"3062b","col":297,"x":31,"y":2,"z":22},{"op":"column","x":3,"z":5,"y":0,"h":3,"col":70},{"op":"part","part":"3062b","col":297,"x":3,"y":3,"z":5},{"op":"column","x":12,"z":12,"y":0,"h":2,"col":70},{"op":"part","part":"3062b","col":297,"x":12,"y":2,"z":12},{"op":"column","x":24,"z":19,"y":0,"h":3,"col":70},{"op":"part","part":"3062b","col":297,"x":24,"y":3,"z":19},{"op":"column","x":36,"z":2,"y":0,"h":2,"col":70},{"op":"part","part":"3062b","col":297,"x":36,"y":2,"z":2},{"op":"column","x":5,"z":9,"y":0,"h":3,"col":70},{"op":"part","part":"3062b","col":297,"x":5,"y":3,"z":9},{"op":"column","x":17,"z":16,"y":0,"h":2,"col":70},{"op":"part","part":"3062b","col":297,"x":17,"y":2,"z":16},{"op":"column","x":29,"z":23,"y":0,"h":3,"col":70},{"op":"part","part":"3062b","col":297,"x":29,"y":3,"z":23},{"op":"column","x":38,"z":6,"y":0,"h":2,"col":70},{"op":"part","part":"3062b","col":297,"x":38,"y":2,"z":6},{"op":"column","x":10,"z":13,"y":0,"h":3,"col":70},{"op":"part","part":"3062b","col":297,"x":10,"y":3,"z":13},{"op":"column","x":22,"z":20,"y":0,"h":2,"col":70},{"op":"part","part":"3062b","col":297,"x":22,"y":2,"z":20},{"op":"column","x":31,"z":3,"y":0,"h":3,"col":70},{"op":"part","part":"3062b","col":297,"x":31,"y":3,"z":3},{"op":"part","part":"3941","col":297,"x":3,"y":0,"z":2},{"op":"part","part":"3941","col":297,"x":16,"y":0,"z":7},{"op":"part","part":"3941","col":297,"x":29,"y":0,"z":12},{"op":"part","part":"3941","col":297,"x":2,"y":0,"z":17},{"op":"part","part":"3941","col":297,"x":15,"y":0,"z":22},{"op":"part","part":"3941","col":297,"x":28,"y":0,"z":3},{"op":"part","part":"3941","col":297,"x":1,"y":0,"z":8},{"op":"part","part":"3941","col":297,"x":14,"y":0,"z":13},{"op":"part","part":"3941","col":297,"x":27,"y":0,"z":18},{"op":"part","part":"3941","col":297,"x":0,"y":0,"z":23},{"op":"part","part":"3941","col":297,"x":13,"y":0,"z":4},{"op":"part","part":"3941","col":297,"x":26,"y":0,"z":9}]}
+0 !MENTO BUILD "galley a" AT -480 640 {"name":"galley a","ops":[{"op":"group","name":"hull","x":0,"z":0,"size":[4,16,3],"ops":[{"op":"box","x":0,"z":0,"w":4,"d":16,"y":0,"h":2,"col":308},{"op":"band","x":0,"z":0,"w":4,"d":16,"y":1,"h":1,"col":0},{"op":"roof","x":0,"z":0,"w":4,"d":3,"y":2,"col":308,"style":"gable"},{"op":"column","x":2,"z":8,"y":2,"h":9,"col":70},{"op":"slab","x":0,"z":6,"w":4,"d":5,"y":8,"plates":1,"col":15}]}]}
+0 !MENTO BUILD "galley b" AT 240 560 {"name":"galley b","ops":[{"op":"group","name":"hull","x":0,"z":0,"size":[4,16,3],"ops":[{"op":"box","x":0,"z":0,"w":4,"d":16,"y":0,"h":2,"col":308},{"op":"band","x":0,"z":0,"w":4,"d":16,"y":1,"h":1,"col":0},{"op":"roof","x":0,"z":0,"w":4,"d":3,"y":2,"col":308,"style":"gable"},{"op":"column","x":2,"z":8,"y":2,"h":9,"col":70},{"op":"slab","x":0,"z":6,"w":4,"d":5,"y":8,"plates":1,"col":15}]}]}
+0 !MENTO BUILD "citadel" AT 8000 480 {"name":"the citadel","ops":[{"op":"group","name":"crag","x":0,"z":0,"size":[24,12,3],"ops":[{"op":"box","x":0,"z":0,"w":24,"d":12,"y":0,"h":3,"col":72}]},{"op":"group","name":"walls","x":0,"z":0,"size":[24,12,12],"ops":[{"op":"wall","from":[2,10],"to":[22,10],"y":3,"h":5,"col":71},{"op":"wall","from":[2,2],"to":[22,2],"y":3,"h":4,"col":71},{"op":"tower","x":3,"z":6,"r":2,"h":9,"y":3,"col":72,"round":false,"crenels":true},{"op":"tower","x":21,"z":6,"r":2,"h":9,"y":3,"col":72,"round":false,"crenels":true},{"op":"tower","x":12,"z":4,"r":3,"h":12,"y":3,"col":72,"round":false,"crenels":true},{"op":"arch","x":9,"z":10,"y":3,"facing":"s","h":2,"col":72}]}]}
+0 !MENTO BUILD "wreck" AT 1600 1200 {"name":"the siege wreck","ops":[{"op":"group","name":"tower","x":0,"z":0,"size":[8,8,10],"ops":[{"op":"tower","x":4,"z":4,"r":3,"h":9,"col":70,"round":false,"crenels":false},{"op":"box","x":0,"z":8,"w":12,"d":1,"y":0,"h":1,"col":70},{"op":"box","x":8,"z":3,"w":6,"d":1,"y":0,"h":1,"col":70}]},{"op":"group","name":"ropes","x":3,"z":9,"size":[10,30,1],"ops":[{"op":"wall","from":[0,0],"to":[-4,28],"y":0,"h":1,"col":70},{"op":"wall","from":[2,0],"to":[2,30],"y":0,"h":1,"col":70},{"op":"wall","from":[4,0],"to":[9,27],"y":0,"h":1,"col":70}]}]}
+0 !MENTO BUILD "cavern" AT -8560 8240 {"name":"the cavern","ops":[{"op":"group","name":"rock","x":0,"z":0,"size":[30,22,15],"ops":[{"op":"box","x":0,"z":0,"w":30,"d":3,"y":0,"h":15,"col":72},{"op":"box","x":0,"z":3,"w":3,"d":18,"y":0,"h":12,"col":72},{"op":"box","x":27,"z":3,"w":3,"d":18,"y":0,"h":12,"col":72},{"op":"box","x":3,"z":3,"w":8,"d":3,"y":0,"h":7,"col":71},{"op":"box","x":19,"z":3,"w":8,"d":4,"y":0,"h":5,"col":71},{"op":"box","x":3,"z":6,"w":6,"d":14,"y":0,"h":2,"col":71},{"op":"arch","x":12,"z":20,"y":0,"facing":"s","h":4,"col":72},{"op":"slab","x":0,"z":0,"w":30,"d":21,"y":15,"plates":3,"col":72},{"op":"slab","x":3,"z":3,"w":24,"d":4,"y":12,"plates":3,"col":72}]},{"op":"group","name":"fire","x":14,"z":12,"size":[3,3,3],"ops":[{"op":"part","part":"3062b","col":0,"x":0,"y":0,"z":0},{"op":"part","part":"3062b","col":0,"x":1,"y":0,"z":1},{"op":"part","part":"85959","col":57,"x":0,"y":1,"z":0},{"op":"part","part":"85959","col":57,"x":1,"y":1,"z":1},{"op":"part","part":"85959","col":57,"x":1,"y":1,"z":0}]},{"op":"group","name":"bones","x":9,"z":8,"size":[12,12,1],"ops":[{"op":"part","part":"92691","col":15,"x":0,"y":0,"z":0,"rot":1},{"op":"part","part":"92691","col":15,"x":5,"y":0,"z":3,"rot":2},{"op":"part","part":"92691","col":15,"x":9,"y":0,"z":9,"rot":0},{"op":"part","part":"93160","col":15,"x":2,"y":0,"z":10},{"op":"part","part":"93160","col":15,"x":11,"y":0,"z":2,"rot":1}]},{"op":"group","name":"polyphemus","x":14,"z":3,"size":[9,3,16],"ops":[{"op":"box","x":1,"z":0,"w":2,"d":3,"y":0,"h":6,"col":0},{"op":"box","x":5,"z":0,"w":2,"d":3,"y":0,"h":6,"col":0},{"op":"box","x":0,"z":0,"w":8,"d":3,"y":6,"h":6,"col":0},{"op":"box","x":-2,"z":0,"w":2,"d":3,"y":7,"h":6,"col":0},{"op":"box","x":8,"z":0,"w":2,"d":3,"y":5,"h":7,"col":0},{"op":"box","x":2,"z":0,"w":4,"d":3,"y":12,"h":4,"col":0}]}]}
+0 !MENTO BUILD "braziers" AT -8160 -7800 {"name":"the braziers","ops":[{"op":"group","name":"brazier","x":0,"z":0,"size":[1,1,2],"ops":[{"op":"part","part":"3062b","col":0,"x":0,"y":0,"z":0},{"op":"part","part":"85959","col":57,"x":0,"y":1,"z":0}]},{"op":"group","name":"brazier","x":9,"z":6,"size":[1,1,2],"ops":[{"op":"part","part":"3062b","col":0,"x":0,"y":0,"z":0},{"op":"part","part":"85959","col":57,"x":0,"y":1,"z":0}]},{"op":"group","name":"brazier","x":17,"z":-2,"size":[1,1,2],"ops":[{"op":"part","part":"3062b","col":0,"x":0,"y":0,"z":0},{"op":"part","part":"85959","col":57,"x":0,"y":1,"z":0}]}]}
+0 !MENTO BUILD "galley deck" AT -240 -11680 {"name":"the galley","ops":[{"op":"group","name":"deck","x":0,"z":0,"size":[12,26,12],"ops":[{"op":"slab","x":0,"z":0,"w":12,"d":26,"y":0,"plates":1,"col":308},{"op":"wall","from":[0,0],"to":[0,26],"y":0,"h":1,"col":70},{"op":"wall","from":[11,0],"to":[11,26],"y":0,"h":1,"col":70},{"op":"roof","x":0,"z":-3,"w":12,"d":3,"y":0,"col":70,"style":"gable"},{"op":"box","x":1,"z":4,"w":2,"d":1,"y":0,"h":1,"col":70},{"op":"box","x":1,"z":9,"w":2,"d":1,"y":0,"h":1,"col":70},{"op":"box","x":1,"z":14,"w":2,"d":1,"y":0,"h":1,"col":70},{"op":"box","x":1,"z":19,"w":2,"d":1,"y":0,"h":1,"col":70},{"op":"box","x":9,"z":4,"w":2,"d":1,"y":0,"h":1,"col":70},{"op":"box","x":9,"z":9,"w":2,"d":1,"y":0,"h":1,"col":70},{"op":"box","x":9,"z":14,"w":2,"d":1,"y":0,"h":1,"col":70},{"op":"box","x":9,"z":19,"w":2,"d":1,"y":0,"h":1,"col":70},{"op":"column","x":6,"z":12,"y":0,"h":11,"col":70}]}]}
+0 !MENTO BUILD "bed" AT 7880 -7880 {"name":"the bed","ops":[{"op":"group","name":"bed","x":0,"z":0,"size":[6,8,2],"ops":[{"op":"box","x":0,"z":0,"w":6,"d":8,"y":0,"h":1,"col":70},{"op":"slab","x":0,"z":0,"w":6,"d":8,"y":1,"plates":1,"col":15},{"op":"column","x":0,"z":0,"y":1,"h":3,"col":70},{"op":"column","x":5,"z":0,"y":1,"h":3,"col":70}]},{"op":"group","name":"candle","x":8,"z":3,"size":[1,1,2],"ops":[{"op":"part","part":"3062b","col":19,"x":0,"y":0,"z":0},{"op":"part","part":"37775","col":57,"x":0,"y":1,"z":0}]}]}
+0 !MENTO BUILD "room" AT 7840 -7800 {"name":"the chamber","ops":[{"op":"group","name":"walls","x":0,"z":0,"size":[16,12,7],"ops":[{"op":"wall","from":[0,0],"to":[16,0],"y":0,"h":7,"col":70},{"op":"wall","from":[0,0],"to":[0,12],"y":0,"h":7,"col":70},{"op":"wall","from":[16,0],"to":[16,12],"y":0,"h":7,"col":70},{"op":"column","x":4,"z":1,"y":0,"h":7,"col":19},{"op":"column","x":12,"z":1,"y":0,"h":7,"col":19},{"op":"slab","x":0,"z":0,"w":16,"d":12,"y":7,"plates":1,"col":70}]}]}
+0 // SHOT 1: P001 THE STUDIO CARD
+0 !MENTO TITLE "THE ODYSSEY\nA TRAILER IN BRICKS" STYLE card SEC 6 SCORE "file:odyssey/music/bronze-armor-clash.ogg"
+0 // SHOT 2: P002 THE DUNE GRAVES
+0 !MENTO SET TIME day WEATHER cloudy
+0 !MENTO SHOT "P002 the dune graves" POS -4840 -88 -240 TGT -4520 -36 120 LENS 50 SEC 10 SHIFT "muster"
+0 !MENTO ACT "odysseus-dunes" TO -4680 0
+0 !MENTO PHRASE "odysseus-dunes" "look down" AT 5.5 ENTER 0.6
+0 // SHOT 3: P003 THE BEACHHEAD
+0 !MENTO SET TIME day WEATHER clear
+0 !MENTO SHOT "P003 the beachhead" POS -32 -52 -289.23 TGT -32 -52 -80 LENS 45 SEC 8 SHIFT "muster"
+0 !MENTO PLAN {"on":"odysseus-beach","frame":"medium","from":"s","lens":45,"sec":8,"move":"hold","name":"P003 the beachhead"}
+0 !MENTO PHRASE "commander" listen AT 0 ENTER 0.3
+0 !MENTO PHRASE "odysseus-beach" command AT 1.2 ENTER 0.4
+0 !MENTO PERFORM "commander" LOOK "odysseus-beach" AT 0.3 KEEP gaze
+0 !MENTO PERFORM "odysseus-beach" LOOK "commander" AT 0.2 KEEP gaze
+0 !MENTO SPEAK "narrator" "Odysseus begins the account of the disasters that followed Troy." AT 0.8 FILE odyssey/OD-B09-S01.mp3 FROM 65.44 FOR 6.24
+0 // SHOT 4: P004 THE PINE RIDGE
+0 !MENTO SET TIME day WEATHER clear
+0 !MENTO SHOT "P004 the pine ridge" POS 4440.07 -212 244.29 TGT 4464.03 -52 7.38 LENS 40 SEC 9 FOLLOW SHIFT "ridge"
+0 !MENTO PLAN {"on":"odysseus-ridge","frame":"medium","from":"front","lens":40,"sec":9,"move":"hold","name":"P004 the pine ridge"}
+0 !MENTO ACT "odysseus-ridge" TO 4400 640
+0 !MENTO ACT "ridge-1" TO 4320 560
+0 !MENTO ACT "ridge-2" TO 4480 540
+0 !MENTO ACT "ridge-3" TO 4380 480
+0 !MENTO ACT "ridge-4" TO 4440 440
+0 !MENTO SPEAK "narrator" "Odysseus describes Ithaca’s rugged beauty and his longing to return." AT 0.5 FILE odyssey/OD-B09-S01.mp3 FROM 57.1 FOR 8.04
+0 !MENTO PHRASE "odysseus-ridge" resolve AT 2 ENTER 0.5
+0 // SHOT 5: P005 THE CITADEL
+0 !MENTO SET TIME day WEATHER fog
+0 !MENTO SHOT "P005 the citadel" POS 8560 -360 -1040 TGT 8240 -120 320 LENS 32 SEC 3 SHIFT "ridge"
+0 // SHOT 6: P005 TELEMACHUS ON THE PARAPET
+0 !MENTO SHOT "P005 Telemachus on the parapet" POS 8360 -52 -169.23 TGT 8360 -52 40 LENS 45 SEC 2.5 SHIFT "ridge"
+0 !MENTO PLAN {"on":"telemachus","frame":"medium","from":"s","lens":45,"sec":2.5,"move":"hold","name":"P005 Telemachus on the parapet"}
+0 !MENTO PHRASE "telemachus" resolve AT 0 ENTER 0.3
+0 !MENTO PERFORM "telemachus" LOOK "206,40" AT 0.2 KEEP gaze
+0 // SHOT 7: P005 PENELOPE TURNS
+0 !MENTO SHOT "P005 Penelope turns" POS 8576.57 -93.6 3.43 TGT 8520 -88.4 60 LENS 45 SEC 3 SHIFT "ridge"
+0 !MENTO PLAN {"on":"penelope-crag","frame":"close","from":"se","lens":45,"sec":3,"move":"hold","name":"P005 Penelope turns"}
+0 !MENTO PHRASE "penelope-crag" guarded AT 0 ENTER 0.3
+0 !MENTO SET "penelope-crag" head.yaw 1.1 AT 0.7 OVER 0.25
+0 !MENTO SET "penelope-crag" torso.twist 0.4 AT 0.8 OVER 0.3
+0 !MENTO SPEAK "penelope-crag" "Odysseus." AT 1.1 FILE odyssey/OD-B23-S04.mp3 FROM 30.5 FOR 2.2
+0 // SHOT 8: P006 THE GALLEYS AT DUSK
+0 !MENTO SET TIME dusk WEATHER clear
+0 !MENTO SHOT "P006 the galleys at dusk" POS -160 -48 -9840 TGT 160 -60 -8960 LENS 26 SEC 8 SHIFT "launch"
+0 !MENTO ACT "galley-1" TO 1200 -8880 SPEED 4
+0 !MENTO ACT "galley-2" TO 960 -9160 SPEED 4
+0 !MENTO SPEAK "narrator" "My child, how could I forget godlike Odysseus?" AT 1.5 FILE odyssey/OD-B01-S01.mp3 FROM 83.24 FOR 4
+0 // SHOT 9: P007 THE CARD
+0 !MENTO TITLE "FROM THE HALFWORLD" STYLE card SEC 2
+0 // SHOT 10: P007 THE TOW
+0 !MENTO SET TIME day WEATHER clear
+0 !MENTO SHOT "P007 the tow" POS 2080 -104 -640 TGT 1760 -32 480 LENS 40 SEC 8 SHIFT "launch"
+0 !MENTO PHRASE "rider" pointing AT 1.5 ENTER 0.5
+0 !MENTO PHRASE "hauler-1" hold AT 0.2 ENTER 0.4
+0 !MENTO PHRASE "hauler-2" hold AT 0.25 ENTER 0.4
+0 !MENTO PHRASE "hauler-3" hold AT 0.3 ENTER 0.4
+0 !MENTO PHRASE "hauler-4" hold AT 0.35 ENTER 0.4
+0 !MENTO PHRASE "hauler-5" hold AT 0.4 ENTER 0.4
+0 !MENTO PHRASE "hauler-6" hold AT 0.45 ENTER 0.4
+0 !MENTO PHRASE "hauler-7" hold AT 0.5 ENTER 0.4
+0 !MENTO PHRASE "hauler-8" hold AT 0.55 ENTER 0.4
+0 !MENTO PHRASE "hauler-9" hold AT 0.6 ENTER 0.4
+0 !MENTO PHRASE "hauler-10" hold AT 0.65 ENTER 0.4
+0 !MENTO PHRASE "hauler-11" hold AT 0.7 ENTER 0.4
+0 !MENTO PHRASE "hauler-12" hold AT 0.75 ENTER 0.4
+0 // SHOT 11: P008 THE CAVERN
+0 !MENTO SET TIME night WEATHER clear
+0 !MENTO SHOT "P008 the cavern" POS -8020 -36 7540 TGT -8160 -64 7960 LENS 52 SEC 10 LAMP SHIFT "cavern" SCORE "file:odyssey/music/cyclopean-pulse.ogg"
+0 !MENTO ACT "odysseus-cave" TO -8040 7940
+0 !MENTO ACT "cave-1" TO -8160 7360 AT 5.2 RUN
+0 !MENTO ACT "cave-2" TO -7920 7320 AT 5.4 RUN
+0 !MENTO ACT "cave-3" TO -8240 7400 AT 5.6 RUN
+0 !MENTO ACT "cave-4" TO -7840 7360 AT 5.3 RUN
+0 !MENTO SPEAK "narrator" "The Cyclops seizes two men, smashes them on the floor, and devours them raw." AT 0.6 FILE odyssey/OD-B09-S07.mp3 FROM 73.04 FOR 8.76
+0 !MENTO EVENT SHAKE AT 5.2
+0 !MENTO PHRASE "odysseus-cave" fear AT 5.4 ENTER 0.3
+0 // SHOT 12: P009 THE ASHEN SHORE
+0 !MENTO SET TIME day WEATHER fog
+0 !MENTO SHOT "P009 the ashen shore" POS -7734.15 -57.2 -8265.85 TGT -8000 -46.8 -8000 LENS 40 SEC 10 SHIFT "cavern" SCORE "file:odyssey/music/underworld-descent.ogg"
+0 !MENTO PLAN {"on":"odysseus-ash","frame":"wide","from":"se","lens":40,"sec":10,"move":"track","name":"P009 the ashen shore"}
+0 !MENTO KEY POS -7893.66 -57.2 -8425.36 TGT -8000 -46.8 -8000 LENS 40
+0 !MENTO PHRASE "odysseus-ash" "look down" AT 0 ENTER 0.3
+0 !MENTO SPEAK "narrator" "The dead gather in multitudes, crying around the blood." AT 0.5 FILE odyssey/OD-B11-S01.mp3 FROM 34.22 FOR 8.24
+0 !MENTO PHRASE "odysseus-ash" stop AT 4.5 ENTER 0.4
+0 // SHOT 13: P010 THE CARD
+0 !MENTO TITLE "THIS SUMMER" STYLE card SEC 1.5 SCORE "file:odyssey/music/hammer-and-lightning.ogg"
+0 // SHOT 14: P010 THE TEMPEST
+0 !MENTO SET TIME day WEATHER storm
+0 !MENTO SHOT "P010 the tempest" POS -353.6 -57.2 -12413.6 TGT -120 -46.8 -12180 LENS 45 SEC 7.5 SHIFT "tempest"
+0 !MENTO PLAN {"on":"odysseus-deck","frame":"wide","from":"sw","lens":45,"sec":7.5,"move":"hold","name":"P010 the tempest"}
+0 !MENTO EVENT SHAKE AT 0.5
+0 !MENTO EVENT SHAKE AT 2.6
+0 !MENTO EVENT SHAKE AT 4.7
+0 !MENTO EVENT SHAKE AT 6.4
+0 !MENTO SPEAK "narrator" "Poseidon sees him, gathers clouds, and strikes the sea with a four-wind storm." AT 0.3 FILE odyssey/OD-B05-S05.mp3 FROM 18.12 FOR 7
+0 // SHOT 15: P011 THE DECK COMMAND
+0 !MENTO SHOT "P011 the deck command" POS -119.37 -93.6 -12100 TGT -120 -88.4 -12180 LENS 40 SEC 7 SHIFT "tempest"
+0 !MENTO PLAN {"on":"odysseus-deck","frame":"close","from":"front","lens":40,"sec":7,"move":"hold","name":"P011 the deck command"}
+0 !MENTO PHRASE "odysseus-deck" command AT 0.3 ENTER 0.4
+0 !MENTO EVENT SHAKE AT 1
+0 !MENTO SPEAK "odysseus-deck" "Hear me now, Polyphemus:" AT 1.2 FILE odyssey/OD-B09-S11.mp3 FROM 9.22 FOR 4.5
+0 !MENTO PHRASE "odysseus-deck" pointing AT 3.8 ENTER 0.3
+0 !MENTO EVENT SHAKE AT 4.6
+0 // SHOT 16: P012 THE CHAMBER VOW
+0 !MENTO SET TIME night WEATHER clear
+0 !MENTO SHOT "P012 the chamber vow" POS 8000 -54 -8168 TGT 8000 -50 -8040 LENS 42 SEC 13 LAMP SHIFT "tempest" SCORE "file:odyssey/music/lament-of-penelope.ogg"
+0 !MENTO PHRASE "penelope" tenderness AT 0 ENTER 0.3
+0 !MENTO PHRASE "odysseus" tenderness AT 0 ENTER 0.3
+0 !MENTO PHRASE "penelope" "hands near face" AT 0.5 ENTER 0.6
+0 !MENTO PERFORM "penelope" LOOK "odysseus" AT 0.2 KEEP gaze
+0 !MENTO PERFORM "odysseus" LOOK "penelope" AT 0.2 KEEP gaze
+0 !MENTO SPEAK "penelope" "Do not be angry with me; of all men you were always the shrewdest. I was afraid some stranger would come with a smooth story and take me with it." AT 0.8 FILE odyssey/OD-B23-S04.mp3 FROM 36.08 FOR 6.2
+0 !MENTO SPEAK "narrator" "Athena holds back dawn while husband and wife weep and reunite." AT 7.4 FILE odyssey/OD-B23-S04.mp3 FROM 42.64 FOR 5.4
+0 // SHOT 17: P012 THE TITLE
+0 !MENTO TITLE "THE ODYSSEY" STYLE card SEC 2.5
+0 // SHOT 18: P013 THE RELEASE CARD
+0 !MENTO TITLE "07 . 17 . 26\nSHOT ENTIRELY WITH LEGO BRICKS" STYLE card SEC 5
