@@ -65,6 +65,16 @@ const DEFS = {
   telemachus: { name: 'Telemachus', legs: 308, hips: 308, torso: 272, arms: 272, hands: 18, head: 18, hat: ['21787', 0], weapon: ['goblet', '2343', 297], cape: ['522', 272], face: 'halfworld:telemachus' },
   phemius: { name: 'Phemius', legs: 4, hips: 4, torso: 4, arms: 4, hands: 78, head: 78, hat: ['3901', 70], weapon: null, face: 'halfworld:eumaeus' },
   athena: { name: 'Athena', legs: 15, hips: 15, torso: 15, arms: 15, hands: 78, head: 78, hat: ['30409', 297], weapon: ['spear', '4497', 297], cape: ['522', 272], woman: true, face: 'halfworld:athena' },
+  /* the trailer's Ithaca: bronze over dark cloth, black crests, the shades in black hoods */
+  'odysseus-bronze': { name: 'Odysseus in bronze', legs: 297, hips: 308, torso: 308, arms: 308, hands: 84, head: 84, hat: ['10054', 0], weapon: ['spear', '4497', 308], cape: ['522', 320], collar: ['2587', 297], face: 'halfworld:odysseus' },
+  'odysseus-sword': { name: 'Odysseus with the sword', legs: 297, hips: 308, torso: 308, arms: 308, hands: 84, head: 84, hat: ['10054', 0], weapon: ['sword', '3847', 72], cape: ['522', 320], collar: ['2587', 297], face: 'halfworld:odysseus' },
+  'odysseus-wet': { name: 'Odysseus at the tiller', legs: 308, hips: 308, torso: 308, arms: 308, hands: 84, head: 84, hat: ['21787', 0], weapon: null, face: 'halfworld:odysseus' },
+  commander: { name: 'A Mycenaean commander', legs: 297, hips: 308, torso: 308, arms: 308, hands: 78, head: 78, hat: ['98366', 297], weapon: ['spear', '4497', 308], cape: ['522', 4], collar: ['2587', 297], face: 'halfworld:eumaeus' },
+  hoplite: { name: 'Hoplite', legs: 308, hips: 308, torso: 297, arms: 308, hands: 78, head: 78, hat: ['48493', 297], weapon: ['spear', '4497', 308], crowd: true },
+  sailor: { name: 'Sailor', legs: 308, hips: 308, torso: 71, arms: 71, hands: 78, head: 78, hat: ['3901', 0], weapon: ['spear', '4497', 70], crowd: true },
+  shade: { name: 'A shade', legs: 0, hips: 0, torso: 0, arms: 0, hands: 0, head: 0, hat: ['30381', 0], weapon: null, cape: ['522', 0], bare: true, crowd: true },
+  'penelope-ithaca': { name: 'Penelope of Ithaca', legs: 272, hips: 272, torso: 272, arms: 272, hands: 78, head: 78, hat: ['13750', 0], weapon: null, woman: true, face: 'halfworld:penelope' },
+  'telemachus-ithaca': { name: 'Telemachus of Ithaca', legs: 72, hips: 72, torso: 71, arms: 71, hands: 18, head: 18, hat: ['21787', 0], weapon: null, face: 'halfworld:telemachus' },
   suitor: { name: 'Suitor', legs: 70, hips: 70, torso: 70, arms: 70, hands: 78, head: 78, hat: ['3901', 0], weapon: null, crowd: true, face: 'halfworld:alcinous' },
 };
 /* ride: the vehicle that stands by the spawn for this character (Vader has the TIE); vehicles.js lays it as lm-me */

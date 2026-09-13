@@ -109,8 +109,10 @@ function create({ scene, M, lights, onLightning, onColour, onNight }) {
     if (elev > 2 || space) lights.sun.position.copy(sunDir).multiplyScalar(1000); else lights.sun.position.set(-sunDir.x, Math.max(0.35, -sunDir.y), -sunDir.z).multiplyScalar(1000);   // the moon stands opposite
     // fog and background meet the dome at the horizon
     const near = weather.nearM != null ? weather.nearM : p.fog[1] * (weather.near || 1) * (0.6 + 0.4 * d), far = weather.farM != null ? weather.farM : p.fog[2] * (weather.far || 1) * (0.5 + 0.5 * d);
-    scene.fog.color.copy(lin(fogC)); scene.fog.near = near * M; scene.fog.far = far * M; S.fog = [near, far];
-    scene.background.copy(horizon);
+    const ov = S.override;   /* a laid set's own fog and sky (a cavern's black, a shoreline's haze) win over the world's: the weather can only bring the fog nearer */
+    if (ov && ov.fog) { scene.fog.color.copy(lin(new THREE.Color(ov.fog[0]))); scene.fog.near = Math.min(near, ov.fog[1]) * M; scene.fog.far = Math.min(far, ov.fog[2]) * M; S.fog = [Math.min(near, ov.fog[1]), Math.min(far, ov.fog[2])]; }
+    else { scene.fog.color.copy(lin(fogC)); scene.fog.near = near * M; scene.fog.far = far * M; S.fog = [near, far]; }
+    if (ov && ov.sky != null) scene.background.set(ov.sky); else scene.background.copy(horizon);
     // stars, clouds, rain
     S.cloudCover = weather.clouds; const starA = space ? 1 : clamp(night * 1.3 - 0.2, 0, 1) * (1 - weather.clouds * 0.9); stars.material.opacity = starA; stars.visible = starA > 0.01;
     const shown = space ? 0 : Math.round(N_CLOUDS * weather.clouds), cloudC = new THREE.Color(1, 1, 1).lerp(new THREE.Color(0x30343c), weather.grey * 0.7 + weather.dark).lerp(horizon.clone().multiplyScalar(1.25), night * 0.9);
