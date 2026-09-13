@@ -939,8 +939,8 @@ function bindMaster() {
 }
 /** A film's set: the place's city, roads, lamps, flora, traffic and crowd step aside and the set is laid round a centre; with no kind the set comes down and the place is relanded. */
 function filmSet(kind, opts = {}) {
-  if (!kind) { if (!W.setUp) return false; W.setUp = null; if (W.sets) { W.sets.drop(); W.sets = null; } if (opts.ground && Ground.MODES.includes(opts.ground) && opts.ground !== W.groundMode) { W.groundMode = opts.ground; try { localStorage.setItem('world.ground', opts.ground); } catch (e) { } markMenu(); } reland(W.place, true); return true; }   // the place comes back, on the ground the scene found
-  if (W.setUp) { if (W.sets) { W.sets.drop(); W.sets = null; } } else {
+  if (!kind) { if (!W.setUp) return false; W.setUp = null; if (W.sets) { W.sets.drop(); W.sets = null; if (W.sky) W.sky.override = null; } if (opts.ground && Ground.MODES.includes(opts.ground) && opts.ground !== W.groundMode) { W.groundMode = opts.ground; try { localStorage.setItem('world.ground', opts.ground); } catch (e) { } markMenu(); } reland(W.place, true); return true; }   // the place comes back, on the ground the scene found
+  if (W.setUp) { if (W.sets) { W.sets.drop(); W.sets = null; if (W.sky) W.sky.override = null; } } else {
     const st = { layers: W.G.layers, decks: W.G.decks }; W.setUp = st;
     W.city.set([]); for (const nm of ['roads', 'streets']) { const m = W.scene.getObjectByName(nm); if (m) m.visible = false; } W.G.layers = null; W.G.decks = null;
     const sweep = () => { if (!W.props) return; for (const it of [...W.props.items.values()]) if (it.src && it.src.landmark && !(W.mode === 'ride' && W.veh && W.veh.prop === it)) W.props.remove(it.id, true); };
@@ -950,8 +950,9 @@ function filmSet(kind, opts = {}) {
     if (W.lamps) W.lamps.drop(); if (W.flora) W.flora.drop(); if (W.crowd) for (const n of W.crowd.npcs.slice()) W.crowd.remove(n);
   }
   const centre = opts.centre || (W.spawn ? { x: W.spawn.x, z: W.spawn.z } : { x: W.rig.pos.x, z: W.rig.pos.z });
+  if (W.sets && W.sets.drop) { try { W.sets.drop(); } catch (e) { } }   // the set before this one goes (a film that changes ground between shots)
   W.sets = Sets.lay(kind, { scene: W.scene, G: W.G, M, centre, r: (opts.r || 180) * M, seed: opts.seed || 1, corridor: opts.corridor || null });
-  Ground.recolour(W.G, W.sets.paint); if (W.sets.fog) { W.scene.fog.color.copy(new THREE.Color(W.sets.fog[0]).convertSRGBToLinear()); W.scene.fog.near = W.sets.fog[1] * M; W.scene.fog.far = W.sets.fog[2] * M; } if (W.sets.sky) W.scene.background = new THREE.Color(W.sets.sky);
+  Ground.recolour(W.G, W.sets.paint); if (W.sky) W.sky.override = W.sets.fog ? { fog: W.sets.fog, sky: W.sets.sky } : null; if (W.sets.fog) { W.scene.fog.color.copy(new THREE.Color(W.sets.fog[0]).convertSRGBToLinear()); W.scene.fog.near = W.sets.fog[1] * M; W.scene.fog.far = W.sets.fog[2] * M; } if (W.sets.sky) W.scene.background = new THREE.Color(W.sets.sky);
   for (let k = 0; k < 4; k++) W.city.update(W.camera, playerPos());
   return true;
 }

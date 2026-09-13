@@ -17,6 +17,14 @@ const KINDS = {
   snowfield: { name: 'a snowfield', fog: [0xe6edf5, 20, 600], sky: 0xdfe8f2, paint: (h, sl, x, z) => { const j = hash(x | 0, z | 0, 5) * 0.03; return [0.93 + j, 0.95 + j, 0.98]; } },
   desert: { name: 'a desert', fog: [0xe8d9b5, 30, 700], sky: 0xe9d9b6, paint: (h, sl, x, z) => { const j = hash(x | 0, z | 0, 7) * 0.05; return [0.80 + j, 0.68 + j, 0.45]; } },
   hall: { name: 'a hall', paint: (h, sl, x, z) => [0.47, 0.41, 0.31], fog: [0x1a1410, 60, 220], sky: 0x0d0a08 },
+  /* the trailer's grounds: paint, fog and sky only; what stands on them is built by the scene */
+  dunes: { name: 'sand dunes', fog: [0xd9cdb0, 40, 520], sky: 0xd8d2c4, paint: (h, sl, x, z) => { const j = hash(x | 0, z | 0, 7) * 0.05, w = 0.03 * Math.sin(x * 0.009 + z * 0.003); return [0.78 + j + w, 0.66 + j + w, 0.44 + w]; }, rel: true },
+  shore: { name: 'a shoreline', fog: [0xcfd6d8, 60, 700], sky: 0xc9d6de, paint: (h, sl, x, z) => { const j = hash(x | 0, z | 0, 7) * 0.04; if (z < -240) { const d = Math.min(1, (-240 - z) / 480); return [0.30 - d * 0.14, 0.42 - d * 0.10, 0.50 - d * 0.06]; } if (z < -120) return [0.62 + j, 0.58 + j, 0.46]; return [0.80 + j, 0.70 + j, 0.48]; }, rel: true },   // the sea lies north of the line: a camera on the sand looks past the figures to the water   
+  sea: { name: 'the open sea', fog: [0x6c7b86, 40, 420], sky: 0x8797a3, paint: (h, sl, x, z) => { const w = 0.04 * Math.sin(x * 0.012 + z * 0.008) + 0.03 * Math.sin(z * 0.022 - x * 0.005); return [0.16 + w, 0.24 + w, 0.32 + w]; }, rel: true },
+  crag: { name: 'a mountain crag', fog: [0xd6dbe0, 30, 300], sky: 0xdfe4e9, paint: (h, sl, x, z) => { const j = hash(x | 0, z | 0, 11) * 0.06; return [0.42 + j, 0.42 + j, 0.40 + j]; } },
+  ash: { name: 'a black sand plain', fog: [0x5a5c5e, 8, 120], sky: 0x66686a, paint: (h, sl, x, z) => { const j = hash(x | 0, z | 0, 13) * 0.04; return [0.08 + j, 0.08 + j, 0.09 + j]; } },
+  cave: { name: 'a cavern', fog: [0x060402, 10, 90], sky: 0x030201, paint: (h, sl, x, z) => { const j = hash(x | 0, z | 0, 17) * 0.05; return [0.20 + j, 0.17 + j, 0.14 + j]; } },
+  chamber: { name: 'a bedchamber', fog: [0x080604, 6, 60], sky: 0x040302, paint: (h, sl, x, z) => [0.30, 0.25, 0.19] },
   stage: { name: 'a bare stage', paint: (h, sl, x, z) => [0.86, 0.84, 0.79], fog: [0xe8e5dd, 120, 400], sky: 0xe4e1d9 },   // the casting stage: pale floor, pale sky, nothing on it
 };
 /** Distance from a point to a polyline (metres in, metres out). */
@@ -26,7 +34,7 @@ function distToPath(x, z, path) {
   return best;
 }
 function lay(kind, { scene, G, M, centre, r = 180, seed = 1, corridor = null }) {
-  const K = KINDS[kind] || KINDS.forest, S = { kind, name: K.name, paint: K.paint, fog: K.fog, sky: K.sky, group: new THREE.Group(), trunks: [], logs: [], drifts: 0, ferns: 0, cells: new Map(), M, centre: { x: centre.x, z: centre.z }, r };
+  const K = KINDS[kind] || KINDS.forest, S = { kind, name: K.name, paint: K.rel ? (h, sl, x, z, lo, hi) => K.paint(h, sl, x - centre.x, z - centre.z, lo, hi) : K.paint,   /* a ground drawn about its own centre (a shoreline, a swell) */ fog: K.fog, sky: K.sky, group: new THREE.Group(), trunks: [], logs: [], drifts: 0, ferns: 0, cells: new Map(), M, centre: { x: centre.x, z: centre.z }, r };
   S.group.name = 'set:' + kind; const cx = centre.x / M, cz = centre.z / M, gh = (x, z) => G.hM(x, z) * M;
   const key = (x, z) => Math.floor(x / (CELL * M)) + ':' + Math.floor(z / (CELL * M));
   const mat = new THREE.MeshStandardMaterial({ color: 0xffffff, vertexColors: false, roughness: 0.85, metalness: 0 });
