@@ -46,7 +46,7 @@ class Build {
   register(part, geom, bb, name) {
     if (this.kinds.has(part)) return this.kinds.get(part);
     if (!bb) { geom.computeBoundingBox(); const b = geom.boundingBox; bb = [b.min.x, b.max.x, b.min.z, b.max.z, b.max.y]; }
-    const cap = this.cap, im = new THREE.InstancedMesh(geom, this.mat, cap); im.frustumCulled = false; im.name = (this.isGhost ? 'draft:' : 'build:') + part; im.count = 0;   // count grows with the high-water slot: empty slots cost nothing
+    const cap = this.cap, im = new THREE.InstancedMesh(geom, this.mat, cap); im.frustumCulled = false; im.castShadow = true; im.receiveShadow = true; im.name = (this.isGhost ? 'draft:' : 'build:') + part; im.count = 0;   // count grows with the high-water slot: empty slots cost nothing
     for (let i = 0; i < cap; i++) im.setMatrixAt(i, ZERO); im.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(cap * 3).fill(1), 3); im.instanceMatrix.needsUpdate = true;   // r128 sizes the colour buffer from count, so make it ourselves
     this.scene.add(im); const k = { part, name: name || part, geom, bb, im, free: Array.from({ length: cap }, (_, i) => cap - 1 - i) }; this.kinds.set(part, k);
     if (this.onKind) this.onKind(part, geom); return k;

@@ -259,7 +259,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
       const charge = t.match(/\bCHARGE\s+"([^"]*)"/); if (charge) a.charge = charge[1];
       const follow = t.match(/\bFOLLOW\s+"([^"]*)"/); if (follow) a.follow = follow[1];
       const pose = t.match(/\bPOSE\s+(\w+)/); if (pose) a.pose = pose[1].toLowerCase();
-      if (/\bBRAKE\b/.test(t)) a.brake = true; if (/\bTURNABOUT\b/.test(t)) a.turnabout = true; if (/\bRUN\b/.test(t)) a.run = true;
+      if (/\bBRAKE\b/.test(t)) a.brake = true; if (/\bTURNABOUT\b/.test(t)) a.turnabout = true; if (/\bRUN\b/.test(t)) a.run = true; if (/\bWALK\b/.test(t)) a.walk = true;
       const xy = (re) => { const m = t.match(re); return m ? { x: +m[1], z: -m[2] } : null; };
       const walk = xy(/\bWALK\s+(-?[\d.]+)\s+(-?[\d.]+)/), drive = xy(/\bDRIVE\s+(-?[\d.]+)\s+(-?[\d.]+)/), look = xy(/\bLOOK\s+(-?[\d.]+)\s+(-?[\d.]+)/);
       if (walk) { a.kind = 'walk'; a.x = walk.x; a.z = walk.z; } else if (drive) { a.kind = 'drive'; a.x = drive.x; a.z = drive.z; }
@@ -270,7 +270,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
     }
     const actText = a => { const t = []; if (a.leave) t.push('LEAVE'); if (a.ride) t.push('RIDE ' + a.ride); if (a.tie) t.push('TIE'); if (a.kind === 'walk') t.push(`WALK ${fmt(a.x)} ${fmt(-a.z)}`); if (a.kind === 'drive' && a.x != null) t.push(`DRIVE ${fmt(a.x)} ${fmt(-a.z)}`); if (a.ahead) t.push('AHEAD ' + fmt(a.ahead)); if (a.look) t.push(typeof a.look === 'string' ? `LOOK "${a.look}"` : `LOOK ${fmt(a.look.x)} ${fmt(-a.look.z)}`);
       if (a.march != null) t.push(`MARCH ${fmt(a.march)}${a.speed != null ? ' ' + fmt(a.speed) : ''}`); if (a.to) t.push(`TO ${fmt(a.to.x)} ${fmt(-a.to.z)}`); if (a.at != null) t.push(`AT ${fmt(a.at)}`); if (a.orbit) t.push(`ORBIT "${a.orbit}"${a.r ? ' R ' + fmt(a.r) : ''}`); if (a.pass) t.push(`PASS "${a.pass}"`); if (a.alt) t.push('ALT ' + fmt(a.alt)); if (a.halt) t.push('HALT'); if (a.land) t.push('LAND');
-      if (a.fly) t.push('FLY'); if (a.fire) t.push('FIRE'); if (a.heavy) t.push('HEAVY'); if (a.every) t.push('EVERY ' + fmt(a.every)); if (a.speed != null && a.march == null) t.push('SPEED ' + fmt(a.speed)); if (a.alt != null) t.push('ALT ' + fmt(a.alt)); if (a.aim) t.push(typeof a.aim === 'string' ? `AIM "${a.aim}"` : `AIM ${fmt(a.aim.x)} ${fmt(-a.aim.z)}`); if (a.saber) t.push('SABER'); if (a.route) t.push(`ROUTE "${a.route}"`); if (a.chase) t.push(`CHASE "${a.chase}"` + (a.behind != null ? ' BEHIND ' + fmt(a.behind) : '')); if (a.alongside) t.push(`ALONGSIDE "${a.alongside}"` + (a.side != null ? ' SIDE ' + fmt(a.side) : '')); if (a.charge) t.push(`CHARGE "${a.charge}"`); if (a.follow) t.push(`FOLLOW "${a.follow}"`); if (a.pose) t.push('POSE ' + a.pose); if (a.brake) t.push('BRAKE'); if (a.turnabout) t.push('TURNABOUT'); if (a.run) t.push('RUN'); return t.join(' '); };
+      if (a.fly) t.push('FLY'); if (a.fire) t.push('FIRE'); if (a.heavy) t.push('HEAVY'); if (a.every) t.push('EVERY ' + fmt(a.every)); if (a.speed != null && a.march == null) t.push('SPEED ' + fmt(a.speed)); if (a.alt != null) t.push('ALT ' + fmt(a.alt)); if (a.aim) t.push(typeof a.aim === 'string' ? `AIM "${a.aim}"` : `AIM ${fmt(a.aim.x)} ${fmt(-a.aim.z)}`); if (a.saber) t.push('SABER'); if (a.route) t.push(`ROUTE "${a.route}"`); if (a.chase) t.push(`CHASE "${a.chase}"` + (a.behind != null ? ' BEHIND ' + fmt(a.behind) : '')); if (a.alongside) t.push(`ALONGSIDE "${a.alongside}"` + (a.side != null ? ' SIDE ' + fmt(a.side) : '')); if (a.charge) t.push(`CHARGE "${a.charge}"`); if (a.follow) t.push(`FOLLOW "${a.follow}"`); if (a.pose) t.push('POSE ' + a.pose); if (a.brake) t.push('BRAKE'); if (a.turnabout) t.push('TURNABOUT'); if (a.run) t.push('RUN'); if (a.walk) t.push('WALK'); return t.join(' '); };
     function parseLight(line) {
       const name = (line.match(/"([^"]*)"/) || [])[1] || 'light', type = (line.match(/TYPE\s+(\w+)/) || [])[1] || 'POINT', p = line.match(/POS\s+(-?[\d.]+)\s+(-?[\d.]+)\s+(-?[\d.]+)/); if (!p) return null;
       const t = line.match(/TGT\s+(-?[\d.]+)\s+(-?[\d.]+)\s+(-?[\d.]+)/), c = line.match(/COLOR\s+(#[0-9a-fA-F]{6})/), i = line.match(/INTENSITY\s+([\d.]+)/), d = line.match(/DECAY\s+([\d.]+)/);
@@ -329,6 +329,9 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
         tgt = V1.lerpVectors(s.keys[i].tgt, s.keys[i + 1].tgt, a); fov = s.keys[i].fov + (s.keys[i + 1].fov - s.keys[i].fov) * a;
       }
       cam.position.copy(pos); cam.up.set(0, 1, 0); cam.lookAt(tgt); if (Math.abs(cam.fov - fov) > 1e-3) { cam.fov = fov; cam.updateProjectionMatrix(); }
+      if (s.roll) cam.rotateZ(s.roll * Math.PI / 180);   // a Dutch angle: the deck's list, a broaching hull
+      if (s.handheld) { const k = s.handheld, tt = t * 1.7; cam.rotateX(k * 0.012 * (Math.sin(tt * 3.1) + 0.5 * Math.sin(tt * 7.3))); cam.rotateY(k * 0.010 * (Math.sin(tt * 2.3 + 1) + 0.5 * Math.sin(tt * 5.9))); cam.rotateZ(k * 0.006 * Math.sin(tt * 1.9 + 2)); }   // handheld: a slow sway with a faster tremor on it
+      F.sunTo(tgt);
     }
     function poseFree(cam) {
       const f = F.free; cam.position.copy(f.pos); V1.set(-Math.sin(f.yaw) * Math.cos(f.pitch), Math.sin(f.pitch), -Math.cos(f.yaw) * Math.cos(f.pitch)).add(f.pos);
@@ -382,6 +385,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
         if (set.as && W.setCharacter && W.character !== set.as) { F.ground(); W.setCharacter(set.as); changed = true; }
         if (set.world && W.setWorld && W.world !== set.world) { F.ground(); W.setWorld(set.world); changed = true; }
       }
+      if (W.sky) { W.sky.mood = s.look ? { hemi: s.look.hemi, sun: s.look.sun, elev: s.look.elev, azim: s.look.azim } : null; if (W.renderer) W.renderer.toneMappingExposure = s.look && s.look.exposure != null ? s.look.exposure : 1; if (!(s.set && (s.set.time || s.set.weather)) && W.skyApply) W.skyApply(); }   /* look: {hemi, sun, exposure}: a shot's own light over the world's */
       if (s.set) { if (s.set.time && W.setSky) W.setSky(s.set.time); if (s.set.weather && W.setWeather) W.setWeather(s.set.weather);
         if (s.set.kind && W.filmSet && !(W.sets && W.sets.kind === s.set.kind)) W.filmSet(s.set.kind, { r: s.set.r || 90, seed: s.set.seed || 1, centre: s.set.centre && F.sceneSpawn ? { x: F.sceneSpawn.x + s.set.centre[0] * M, z: F.sceneSpawn.z + s.set.centre[1] * M } : null, corridor: s.set.corridor && F.sceneSpawn ? s.set.corridor.map(p => [F.sceneSpawn.x / M + p[0], F.sceneSpawn.z / M + p[1]]) : null }); }   /* a shot may stand on its own ground (the trailer's dunes, shore, sea, crag, ash, cave and chamber, one scene): laid after the light, so its fog and sky are the ones seen */
       if (s.act && s.act.leave) F.ground();
@@ -392,7 +396,10 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
       setLamp(s.lamp || (s.title == null && !!(window.Worlds && Worlds.PRESETS[W.world] && Worlds.PRESETS[W.world].space)));
     }
     /** A lamp at the camera: a station's halls are dark by design, so a shot there carries its own light. */
-    function setLamp(on) { if (on && !F.lampLight) { F.lampLight = new THREE.PointLight(0xdfe8ff, 1.6, 45 * M, 1.4); F.lampLight.name = 'film-lamp'; W.scene.add(F.lampLight); } if (F.lampLight) { F.lampLight.visible = !!on; F.lampOn = !!on; F.lampLight.color.setHex(on === 'warm' ? 0xffb066 : 0xdfe8ff); F.lampLight.intensity = on === 'warm' ? 2.2 : 1.6; } }   // LAMP warm: firelight, a candle
+    /** The sun's shadow camera walks with the shot: it looks at what the camera looks at, from the sky's own direction. */
+    F.sunTo = tgt => { const L = window.Ground && Ground.daylight && Ground.daylight.lights, sun = L && L.sun; if (!sun || !sun.castShadow) return; const dir = (W.sky && W.sky.sunDir) || sun.position.clone().normalize(); if (dir.y < 0.05) dir.y = 0.05; sun.position.copy(dir).normalize().multiplyScalar(300 * M).add(tgt); sun.target.position.copy(tgt); sun.target.updateMatrixWorld(); };
+    function setLamp(on) { if (on && !F.lampLight) { F.lampLight = new THREE.PointLight(0xdfe8ff, 1.6, 45 * M, 1.4); F.lampLight.name = 'film-lamp'; W.scene.add(F.lampLight); } if (F.lampLight) { F.lampLight.visible = !!on; F.lampOn = !!on; const o = on && typeof on === 'object' ? on : null; F.lampLight.color.setHex(o && o.color != null ? o.color : on === 'warm' || (o && o.warm) ? 0xffb066 : 0xdfe8ff); F.lampLight.intensity = o && o.intensity != null ? o.intensity : on === 'warm' ? 2.2 : 1.6; F.lampLight.distance = o && o.distance != null ? o.distance * M : 45 * M; F.lampLight.castShadow = true; F.lampLight.shadow.mapSize.set(1024, 1024); F.lampLight.shadow.bias = -0.002; F.lampLight.shadow.camera.near = 2; F.lampLight.shadow.camera.far = (o && o.distance != null ? o.distance : 45) * M;
+      F.lampAt = o && Array.isArray(o.at) && F.sceneSpawn ? new THREE.Vector3(F.sceneSpawn.x + o.at[0] * M, o.at[1] * M + groundH(F.sceneSpawn.x + o.at[0] * M, F.sceneSpawn.z + o.at[2] * M), F.sceneSpawn.z + o.at[2] * M) : null; if (F.lampAt) F.lampLight.position.copy(F.lampAt); } }   // LAMP warm: firelight, a candle; lamp: {at: [x, y, z], color, intensity, distance} is a fire that stands somewhere and casts
     /** The cue a shot plays: its own `score`, or the last one named before it (null ends the music). */
     function scoreFor(i) { for (let k = i; k >= 0; k--) { const s = F.shots[k]; if (s && s.score !== undefined) return s.score; } return undefined; }
     /** The bed under a shot: the set's kind, the weather, the planet. */
@@ -526,6 +533,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
     function layBuild(b) {
       if (!window.Dsl || !W.build) return; const res = Dsl.compile(b.program); const ay = groundH(b.x, b.z); const rows = Dsl.toRows(res, { ax: b.x, ay, az: b.z, prefix: 'film-' + b.name });
       const pieces = W.build.addRows(rows, true, true); let lo = [Infinity, Infinity], hi = [-Infinity, -Infinity], top = ay;
+      if (W.props && W.props.place) for (const pr of res.props || []) if (pr.kind === 'mpd' && pr.mpd) { const pl = Dsl.propPlace(pr, { ax: b.x, ay, az: b.z }); W.props.place(pr.mpd, pl.x, pl.y, pl.z, pl.yaw, true, { film: true, name: 'film-' + b.name }); }   /* a part the brick library does not carry (a helmet, a spear, a sail, a horse) comes through the loader as a prop */
       for (const r of rows) { lo[0] = Math.min(lo[0], r[3]); hi[0] = Math.max(hi[0], r[3]); lo[1] = Math.min(lo[1], r[5]); hi[1] = Math.max(hi[1], r[5]); top = Math.max(top, r[4] + 24); }
       F.builds.set(b.name, { name: b.name, program: b.program, ax: b.x, az: b.z, ids: pieces.map(p => p.id), x: (lo[0] + hi[0]) / 2, z: (lo[1] + hi[1]) / 2, y0: ay, h: Math.max(top - ay, M), r: Math.max(hi[0] - lo[0], hi[1] - lo[1]) / 2 + M, w: hi[0] - lo[0], d: hi[1] - lo[1] });
     }
@@ -541,10 +549,13 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
       if (sc.set && W.filmSet) { const st = sc.set; if (!st.abs) { st.centre = st.centre ? { x: sp.x + st.centre.x * M, z: sp.z + st.centre.z * M } : { x: sp.x, z: sp.z }; if (st.corridor) st.corridor = st.corridor.map(p => [sp.x / M + p[0], sp.z / M + p[1]]); st.abs = true; }
         if (sc.routes && !sc.routesAbs) { for (const k of Object.keys(sc.routes)) sc.routes[k] = sc.routes[k].map(p => [sp.x / M + p[0], sp.z / M + p[1]]); sc.routesAbs = true; }
         W.filmSet(st.kind, { centre: st.centre, r: st.r, seed: st.seed, corridor: st.corridor ? st.corridor.map(p => [p[0], p[1]]) : null }); }   // the corridor is in metres, absolute
+      if (W.G && window.Ground && Ground.reshape && window.Sets) { const seen = new Set(); const sets = F.shots.map(s => s.set).filter(st => st && st.kind); if (sc.set && sc.set.kind) sets.unshift({ kind: sc.set.kind, centre: sc.set.centre ? [sc.set.centre.x, sc.set.centre.z] : null, r: sc.set.r, relief: sc.set.relief });
+        for (const st of sets) { const key = st.kind + ':' + (st.centre || ''); if (seen.has(key)) continue; seen.add(key); const rf = st.relief === null ? null : Sets.RELIEF[st.relief || ({ dunes: 'dunes', crag: 'hill', sea: 'swell', shore: 'shore', ash: 'ash' })[st.kind]] || null; if (!rf) continue; const cx = st.centre ? sp.x / M + st.centre[0] : sp.x / M, cz = st.centre ? sp.z / M + st.centre[1] : sp.z / M; Ground.reshape(W.G, rf, cx, cz, st.r || 90); } }   /* the ground takes its shape before anything stands on it: dunes, a hill under the citadel, a slope, a swell, a shore */
       if (!sc.abs) { for (const a of sc.actors) { a.x = sp.x + a.x * M; a.z = sp.z + a.z * M; if (a.r) a.r *= 1; } for (const b of sc.builds) { b.x = sp.x + b.x * M; b.z = sp.z + b.z * M; } for (const s of F.shots) { if (s.keysRel) { for (const k of s.keys) { k.pos.y += groundH(sp.x + k.pos.x, sp.z + k.pos.z); k.pos.x += sp.x; k.pos.z += sp.z; k.tgt.y += groundH(sp.x + k.tgt.x, sp.z + k.tgt.z); k.tgt.x += sp.x; k.tgt.z += sp.z; } s.keysRel = false; } if (s.act && s.act.rel) { s.act.x += sp.x; s.act.z += sp.z; delete s.act.rel; } for (const a of s.acts || []) { if (a.to && a.rel) { a.to.x = sp.x + a.to.x * M; a.to.z = sp.z + a.to.z * M; delete a.rel; } if (a.aim && typeof a.aim === 'object' && a.rel !== false) { a.aim.x = sp.x + a.aim.x * M; a.aim.z = sp.z + a.aim.z * M; } if (a.look && typeof a.look === 'object' && a.look.rel) { a.look.x = sp.x + a.look.x * M; a.look.z = sp.z + a.look.z * M; delete a.look.rel; } } for (const ev of s.events || []) if (ev.x != null && ev.rel) { ev.x = sp.x + ev.x * M; ev.z = sp.z + ev.z * M; delete ev.rel; } } sc.abs = true; }
       if (sc.actors.some(a => a.crowd) && W.crowd) for (const n of W.crowd.npcs.slice()) W.crowd.remove(n);   // the place's own crowd makes room for the scene's
       for (const a of sc.actors) F.actors.set(a.name, a); for (const b of sc.builds) layBuild(b);
       await Promise.all(sc.actors.map(a => layActor(a).catch(e => F.log.push('actor ' + a.name + ': ' + (e.message || e)))));
+      if (W.props && W.props.queue) { let q; do { q = W.props.queue; await q; } while (q !== W.props.queue); }   /* the loader parses one prop at a time: helmets, sails and the printed parts of the cast arrive before the scene is ready */
       sc.ready = true; if (F.onChange) F.onChange('scene');
     };
     F.teardown = keepSet => {
@@ -628,7 +639,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
         if (act.saber && (a.saberT = (a.saberT || 0) + dt) > 1.1) { a.saberT = 0; ctl.saber = true; }
         if (act.fire && (a.fireT = (a.fireT || 0) + dt) > (act.every || 1.2)) { a.fireT = 0; fireFrom(a, act); ctl.aim = true; if (act.aim) { const at = aimPoint(act.aim); rig.heading = Math.atan2(at.x - rig.pos.x, at.z - rig.pos.z); } }
       }
-      if (target && !a.down && a.poseNow !== 'prone') { const dx = target.x - rig.pos.x, dz = target.z - rig.pos.z, d = Math.hypot(dx, dz); if (d > 0.9 * M) { ctl.move.x = dx / d; ctl.move.z = dz / d; ctl.move.mag = 1; ctl.run = d > 6 * M || !!(act && act.run); } }
+      if (target && !a.down && a.poseNow !== 'prone') { const dx = target.x - rig.pos.x, dz = target.z - rig.pos.z, d = Math.hypot(dx, dz); if (d > 0.9 * M) { ctl.move.x = dx / d; ctl.move.z = dz / d; ctl.move.mag = 1; ctl.run = !(act && act.walk) && (d > 6 * M || !!(act && act.run)); } }   /* a long way is run unless the act says WALK */
       if (a.poseNow === 'aim' || a.poseNow === 'point') ctl.aim = true;
       if (a.poseNow === 'prone' || a.poseNow === 'crouch') ctl.move.mag = 0;
       Minifig.step(rig, dt, ctl, figWorld);
@@ -802,7 +813,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
       r.setScissorTest(false); r.setViewport(0, 0, b.W, b.H); r.setClearColor(0x000000, 1); r.clear();
       const gy = b.H - b.y - b.h; r.setViewport(b.x, gy, b.w, b.h); r.setScissor(b.x, gy, b.w, b.h); r.setScissorTest(true);   // GL counts from the bottom
       if (Math.abs(cam.aspect - b.A) > 1e-4) { cam.aspect = b.A; cam.updateProjectionMatrix(); }
-      if (F.lampLight && F.lampOn) { F.lampLight.position.copy(cam.position); F.lampLight.position.y += 0.6 * M; }
+      if (F.lampLight && F.lampOn && !F.lampAt) { F.lampLight.position.copy(cam.position); F.lampLight.position.y += 0.6 * M; }
       real(scene, cam); F.bandOn = true; F.lastBand = b;
     };
     F.bandOff = () => { const r = W.renderer; r.getSize(SZ); r.setScissorTest(false); r.setViewport(0, 0, SZ.x, SZ.y); const cam = W.camera; if (cam && Math.abs(cam.aspect - SZ.x / SZ.y) > 1e-4) { cam.aspect = SZ.x / SZ.y; cam.updateProjectionMatrix(); } F.bandOn = false; };
@@ -1051,7 +1062,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
         const shot = { name: sh.name || `${plan.frame} on ${plan.on}`, keys: [{ pos: new THREE.Vector3(0, 4 * M, 0), tgt: new THREE.Vector3(0, 2 * M, -10 * M), fov: 50 }], sec: clamp(+sh.sec || F.sec, 0.5, 120), act, set, plan, follow: !!sh.follow, acts: actsOf(sh.acts), events: eventsOf(sh.events) };
         if (sh.title != null) { shot.title = sh.title; shot.style = sh.style || 'hud'; }
         if (Array.isArray(sh.pos) && Array.isArray(sh.tgt) && sh.pos.length === 3 && sh.tgt.length === 3) { shot.keys = [{ pos: new THREE.Vector3(sh.pos[0] * M, sh.pos[1] * M, sh.pos[2] * M), tgt: new THREE.Vector3(sh.tgt[0] * M, sh.tgt[1] * M, sh.tgt[2] * M), fov: clamp(+sh.lens || 45, 5, 120) }]; shot.plan = null; shot.keysRel = true; shot.readout = `camera at ${sh.pos.join(' ')} on ${sh.tgt.join(' ')}`; }   /* a camera placed by hand, as word-to-world places one: no plan, the keys as given */
-        if (sh.shift) shot.shift = sh.shift; if (sh.score !== undefined) shot.score = sh.score; if (sh.fade != null) shot.fade = +sh.fade; if (sh.lamp) shot.lamp = sh.lamp === 'warm' ? 'warm' : true; if (sh.speed != null) shot.speed = clamp(+sh.speed, 0.05, 4); shots.push(shot);
+        if (sh.shift) shot.shift = sh.shift; if (sh.score !== undefined) shot.score = sh.score; if (sh.fade != null) shot.fade = +sh.fade; if (sh.lamp) shot.lamp = (sh.lamp && typeof sh.lamp === 'object') ? sh.lamp : sh.lamp === 'warm' ? 'warm' : true; if (sh.look) shot.look = sh.look; if (sh.roll != null) shot.roll = +sh.roll; if (sh.handheld != null) shot.handheld = +sh.handheld; if (sh.speed != null) shot.speed = clamp(+sh.speed, 0.05, 4); shots.push(shot);
       }
       if (!append) { F.teardown(!!(prog && prog.set)); F.shots = []; } F.shots.push(...shots); F.sel = F.shots.length ? (append ? F.shots.length - shots.length : 0) : -1; F.name = prog && prog.name || F.name; if (prog && prog.story) F.story = prog.story; else if (!append) F.story = null;
       if (prog && (prog.actors || prog.builds || prog.set)) { F.scene = { name: prog.name, actors: (prog.actors || []).map(a => ({ ...a, r: a.r ? a.r * M : undefined })), builds: (prog.builds || []).map(b => ({ ...b })), set: prog.set ? { ...prog.set, corridor: prog.set.corridor ? prog.set.corridor.map(p => p.slice()) : null, abs: false } : null, routes: prog.routes ? Object.fromEntries(Object.entries(prog.routes).map(([k, v]) => [k, v.map(p => p.slice())])) : null, world: prog.world || null, as: prog.as || null, ground: prog.ground || null, weather: prog.weather || null, time: prog.time || null, me: prog.me || null, abs: false }; F.setup(); }
