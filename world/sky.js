@@ -90,23 +90,23 @@ function create({ scene, M, lights, onLightning, onColour, onNight }) {
   function apply() {
     const p = S.preset || { sky: 0xb8cbd8, fog: [0xc9d4d2, 30, 900], hemi: [0xffffff, 0xd8d8d8, 1.35], sun: [0xffffff, 1.25, [2, 3, 2]] }, w = WEATHER[S.weather] || WEATHER.clear, space = !!p.space;
     const weather = space ? WEATHER.clear : w;
-    const elev = space ? 25 : S.sun.elev, d = space ? 1 : smooth(-8, 12, elev), warm = space ? 0 : (1 - clamp(Math.abs(elev) / 12, 0, 1)) * 0.65 * (1 - weather.grey * 0.7);
+    const elev = space ? 25 : (S.mood && S.mood.elev != null ? S.mood.elev : S.sun.elev), azim = (S.mood && S.mood.azim != null) ? S.mood.azim : S.sun.azim, d = space ? 1 : smooth(-8, 12, elev), warm = space ? 0 : (1 - clamp(Math.abs(elev) / 12, 0, 1)) * 0.65 * (1 - weather.grey * 0.7);
     // colours: the preset's day blended toward night, warmed at the horizon, greyed by the weather
     const zenith = C1.set(p.zenith != null ? p.zenith : p.sky).lerp(C2.set(NIGHT.zenith), 1 - d); if (!space) grey(zenith, weather.grey * 0.6, weather.dark);
     const horizon = C2.set(p.sky).lerp(C3.set(NIGHT.horizon), 1 - d); horizon.lerp(C3.set(DUSK), warm * 0.7); grey(horizon, weather.grey, weather.dark);
     const fogC = C3.set(p.fog[0]).lerp(new THREE.Color(NIGHT.fog), 1 - d); grey(fogC, weather.grey, weather.dark); if (weather.farM) fogC.copy(horizon);
     uniforms.zenith.value.copy(zenith); uniforms.horizon.value.copy(horizon); uniforms.below.value.copy(fogC);
     // the sun: its place, its colour, and the light it casts
-    if (space) dirOf(25, 60, sunDir); else dirOf(elev, S.sun.azim, sunDir);
+    if (space) dirOf(25, 60, sunDir); else dirOf(elev, azim, sunDir);
     uniforms.sunDir.value.copy(sunDir); const LI = p.lights || {};
-    uniforms.disc2.value = (LI.suns || 1) > 1 ? (space ? 0 : 0.8 * smooth(-3, 1, elev)) : 0; dirOf(elev + 6, S.sun.azim + 9, uniforms.sun2Dir.value);   // a second sun, a little higher and to one side
+    uniforms.disc2.value = (LI.suns || 1) > 1 ? (space ? 0 : 0.8 * smooth(-3, 1, elev)) : 0; dirOf(elev + 6, azim + 9, uniforms.sun2Dir.value);   // a second sun, a little higher and to one side
     const sunC = new THREE.Color(p.sun[0]).lerp(new THREE.Color(0xffb070), space ? 0 : warm * 0.8);
     uniforms.sunCol.value.copy(sunC); uniforms.disc.value = space ? 0.8 : (1 - weather.grey) * smooth(-3, 1, elev); uniforms.glow.value = space ? 0.1 : 0.35 * (1 - weather.grey) * smooth(-6, 2, elev);
     const lights = S.lights, lin = c => c.clone().convertSRGBToLinear();
     const night = 1 - d, hemiSky = new THREE.Color(p.hemi[0]).lerp(new THREE.Color(NIGHT.hemi[0]), night), hemiGround = new THREE.Color(p.hemi[1]).lerp(new THREE.Color(NIGHT.hemi[1]), night);
-    lights.hemi.color.copy(lin(hemiSky)); lights.hemi.groundColor.copy(lin(hemiGround)); S.hemiBase = lerp(NIGHT.hemi[2], p.hemi[2], d) * weather.hemi / Math.PI; lights.hemi.intensity = S.hemiBase;
-    const moon = LI.moon != null ? LI.moon : 1, sunI = lerp(NIGHT.sun[1] * moon, p.sun[1] * smooth(-2, 15, elev), d) * weather.sun; if (d < 0.5) lights.hemi.intensity = S.hemiBase = S.hemiBase * (0.7 + 0.3 * moon); lights.sun.color.copy(lin(d > 0.5 ? sunC : new THREE.Color(NIGHT.sun[0]))); lights.sun.intensity = Math.max(0.05, sunI) / Math.PI;
-    if (elev > 2 || space) lights.sun.position.copy(sunDir).multiplyScalar(1000); else lights.sun.position.set(-sunDir.x, Math.max(0.35, -sunDir.y), -sunDir.z).multiplyScalar(1000);   // the moon stands opposite
+    lights.hemi.color.copy(lin(hemiSky)); lights.hemi.groundColor.copy(lin(hemiGround)); S.hemiBase = lerp(NIGHT.hemi[2], p.hemi[2], d) * weather.hemi / Math.PI * ((S.mood && S.mood.hemi != null) ? S.mood.hemi : 1); lights.hemi.intensity = S.hemiBase;   /* mood: a shot's own key and fill, over the world's */
+    const moon = LI.moon != null ? LI.moon : 1, sunI = lerp(NIGHT.sun[1] * moon, p.sun[1] * smooth(-2, 15, elev), d) * weather.sun; if (d < 0.5) lights.hemi.intensity = S.hemiBase = S.hemiBase * (0.7 + 0.3 * moon); lights.sun.color.copy(lin(d > 0.5 ? sunC : new THREE.Color(NIGHT.sun[0]))); lights.sun.intensity = Math.max(0.05, sunI) / Math.PI * ((S.mood && S.mood.sun != null) ? S.mood.sun : 1);
+    if (elev > 2 || space) lights.sun.position.copy(sunDir).multiplyScalar(1000); else lights.sun.position.set(-sunDir.x, Math.max(0.35, -sunDir.y), -sunDir.z).multiplyScalar(1000); S.sunDir = lights.sun.position.clone().normalize();   // where the light comes from, for a shadow camera that follows the shot   // the moon stands opposite
     // fog and background meet the dome at the horizon
     const near = weather.nearM != null ? weather.nearM : p.fog[1] * (weather.near || 1) * (0.6 + 0.4 * d), far = weather.farM != null ? weather.farM : p.fog[2] * (weather.far || 1) * (0.5 + 0.5 * d);
     const ov = S.override;   /* a laid set's own fog and sky (a cavern's black, a shoreline's haze) win over the world's: the weather can only bring the fog nearer */

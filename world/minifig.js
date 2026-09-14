@@ -69,8 +69,10 @@ const DEFS = {
   'odysseus-bronze': { name: 'Odysseus in bronze', legs: 297, hips: 308, torso: 308, arms: 308, hands: 84, head: 84, hat: ['10054', 0], weapon: ['spear', '4497', 308], cape: ['522', 320], collar: ['2587', 297], face: 'halfworld:odysseus' },
   'odysseus-sword': { name: 'Odysseus with the sword', legs: 297, hips: 308, torso: 308, arms: 308, hands: 84, head: 84, hat: ['10054', 0], weapon: ['sword', '3847', 72], cape: ['522', 320], collar: ['2587', 297], face: 'halfworld:odysseus' },
   'odysseus-wet': { name: 'Odysseus at the tiller', legs: 308, hips: 308, torso: 308, arms: 308, hands: 84, head: 84, hat: ['21787', 0], weapon: null, face: 'halfworld:odysseus' },
-  commander: { name: 'A Mycenaean commander', legs: 297, hips: 308, torso: 308, arms: 308, hands: 78, head: 78, hat: ['98366', 297], weapon: ['spear', '4497', 308], cape: ['522', 4], collar: ['2587', 297], face: 'halfworld:eumaeus' },
+  commander: { name: 'A Mycenaean commander', legs: 297, hips: 308, torso: 308, arms: 308, hands: 78, head: 78, hat: ['3896', 0], weapon: ['spear', '4497', 308], collar: ['2587', 297], face: 'halfworld:eumaeus' },
+  rider: { name: 'A mounted officer', legs: 297, hips: 308, torso: 308, arms: 308, hands: 78, head: 78, hat: ['98366', 297], weapon: null, cape: ['522', 4], collar: ['2587', 297], face: 'halfworld:eumaeus' },
   hoplite: { name: 'Hoplite', legs: 308, hips: 308, torso: 297, arms: 308, hands: 78, head: 78, hat: ['48493', 297], weapon: ['spear', '4497', 308], crowd: true },
+  hauler: { name: 'Hauler', legs: 308, hips: 308, torso: 71, arms: 71, hands: 78, head: 78, hat: ['3901', 0], weapon: null, crowd: true },
   sailor: { name: 'Sailor', legs: 308, hips: 308, torso: 71, arms: 71, hands: 78, head: 78, hat: ['3901', 0], weapon: ['spear', '4497', 70], crowd: true },
   shade: { name: 'A shade', legs: 0, hips: 0, torso: 0, arms: 0, hands: 0, head: 0, hat: ['30381', 0], weapon: null, cape: ['522', 0], bare: true, crowd: true },
   'penelope-ithaca': { name: 'Penelope of Ithaca', legs: 272, hips: 272, torso: 272, arms: 272, hands: 78, head: 78, hat: ['13750', 0], weapon: null, woman: true, face: 'halfworld:penelope' },
@@ -123,7 +125,7 @@ function skeleton(M, def) {
 function mount(rig, groups, def, scene) {
   rig.def = def; const parts = partsOf(def);
   groups.forEach((g, i) => { const slot = parts[i][0]; g.position.set(0, slot === 'hat' && def.bare ? 24 : 0, 0); g.quaternion.identity(); g.scale.setScalar(1); g.name = slot; rig.slots[slot].add(g); /* a whole-head mask has its origin at the neck, a hat at the crown */ rig.mounted[slot] = { group: g, part: parts[i][1], col: parts[i][2] };
-    g.traverse(o => { if (o.isMesh && o.material) for (const m of Array.isArray(o.material) ? o.material : [o.material]) m.fog = true; }); });
+    g.traverse(o => { if (o.isMesh && o.material) { o.castShadow = true; o.receiveShadow = true; for (const m of Array.isArray(o.material) ? o.material : [o.material]) m.fog = true; } }); });
   if (scene) scene.add(rig.figure);
   return rig;
 }

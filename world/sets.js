@@ -18,9 +18,10 @@ const KINDS = {
   desert: { name: 'a desert', fog: [0xe8d9b5, 30, 700], sky: 0xe9d9b6, paint: (h, sl, x, z) => { const j = hash(x | 0, z | 0, 7) * 0.05; return [0.80 + j, 0.68 + j, 0.45]; } },
   hall: { name: 'a hall', paint: (h, sl, x, z) => [0.47, 0.41, 0.31], fog: [0x1a1410, 60, 220], sky: 0x0d0a08 },
   /* the trailer's grounds: paint, fog and sky only; what stands on them is built by the scene */
-  dunes: { name: 'sand dunes', fog: [0xd9cdb0, 40, 520], sky: 0xd8d2c4, paint: (h, sl, x, z) => { const j = hash(x | 0, z | 0, 7) * 0.05, w = 0.03 * Math.sin(x * 0.009 + z * 0.003); return [0.78 + j + w, 0.66 + j + w, 0.44 + w]; }, rel: true },
-  shore: { name: 'a shoreline', fog: [0xcfd6d8, 60, 700], sky: 0xc9d6de, paint: (h, sl, x, z) => { const j = hash(x | 0, z | 0, 7) * 0.04; if (z < -240) { const d = Math.min(1, (-240 - z) / 480); return [0.30 - d * 0.14, 0.42 - d * 0.10, 0.50 - d * 0.06]; } if (z < -120) return [0.62 + j, 0.58 + j, 0.46]; return [0.80 + j, 0.70 + j, 0.48]; }, rel: true },   // the sea lies north of the line: a camera on the sand looks past the figures to the water   
-  sea: { name: 'the open sea', fog: [0x6c7b86, 40, 420], sky: 0x8797a3, paint: (h, sl, x, z) => { const w = 0.04 * Math.sin(x * 0.012 + z * 0.008) + 0.03 * Math.sin(z * 0.022 - x * 0.005); return [0.16 + w, 0.24 + w, 0.32 + w]; }, rel: true },
+  dunes: { name: 'sand dunes', fog: [0x9a8c72, 20, 260], sky: 0xa8a49a, paint: (h, sl, x, z) => { const j = hash(x | 0, z | 0, 7) * 0.05, w = 0.03 * Math.sin(x * 0.36 + z * 0.12); return [0.56 + j + w, 0.44 + j + w, 0.27 + w]; }, rel: true },
+  shore: { name: 'a shoreline', fog: [0xcfd6d8, 60, 700], sky: 0xc9d6de, paint: (h, sl, x, z) => { const j = hash(x | 0, z | 0, 7) * 0.04; if (z < -6) { const d = Math.min(1, (-6 - z) / 12); return [0.22 - d * 0.10, 0.30 - d * 0.08, 0.36 - d * 0.05]; } if (z < -3) return [0.62 + j, 0.58 + j, 0.46]; return [0.80 + j, 0.70 + j, 0.48]; }, rel: true },   // the sea lies six metres north of the line, wet sand before it: a camera on the sand looks past the figures to the water   
+  sea: { name: 'the open sea', fog: [0x6c7b86, 40, 420], sky: 0x8797a3, paint: (h, sl, x, z) => { const w = 0.04 * Math.sin(x * 0.48 + z * 0.32) + 0.03 * Math.sin(z * 0.88 - x * 0.2); return [0.16 + w, 0.24 + w, 0.32 + w]; }, rel: true },
+  ridge: { name: 'a pine ridge over the sea', fog: [0xc4cdd0, 30, 320], sky: 0xd8dfe3, paint: (h, sl, x, z) => { const j = hash(x | 0, z | 0, 5) * 0.06; if (z > 26) { const w = 0.03 * Math.sin(x * 0.5 + z * 0.3); return [0.24 + w, 0.34 + w, 0.42 + w]; } if (z > 15) return [0.70 + j, 0.62 + j, 0.46]; return [0.16 + j, 0.14 + j, 0.09 + j * 0.5]; }, rel: true },   // the slope's floor, then a beach at 15 m, then the sea from 26 m south
   crag: { name: 'a mountain crag', fog: [0xd6dbe0, 30, 300], sky: 0xdfe4e9, paint: (h, sl, x, z) => { const j = hash(x | 0, z | 0, 11) * 0.06; return [0.42 + j, 0.42 + j, 0.40 + j]; } },
   ash: { name: 'a black sand plain', fog: [0x5a5c5e, 8, 120], sky: 0x66686a, paint: (h, sl, x, z) => { const j = hash(x | 0, z | 0, 13) * 0.04; return [0.08 + j, 0.08 + j, 0.09 + j]; } },
   cave: { name: 'a cavern', fog: [0x060402, 10, 90], sky: 0x030201, paint: (h, sl, x, z) => { const j = hash(x | 0, z | 0, 17) * 0.05; return [0.20 + j, 0.17 + j, 0.14 + j]; } },
@@ -34,7 +35,7 @@ function distToPath(x, z, path) {
   return best;
 }
 function lay(kind, { scene, G, M, centre, r = 180, seed = 1, corridor = null }) {
-  const K = KINDS[kind] || KINDS.forest, S = { kind, name: K.name, paint: K.rel ? (h, sl, x, z, lo, hi) => K.paint(h, sl, x - centre.x, z - centre.z, lo, hi) : K.paint,   /* a ground drawn about its own centre (a shoreline, a swell) */ fog: K.fog, sky: K.sky, group: new THREE.Group(), trunks: [], logs: [], drifts: 0, ferns: 0, cells: new Map(), M, centre: { x: centre.x, z: centre.z }, r };
+  const K = KINDS[kind] || KINDS.forest, S = { kind, name: K.name, paint: K.rel ? (h, sl, x, z, lo, hi) => K.paint(h, sl, x - centre.x / M, z - centre.z / M, lo, hi) : K.paint,   /* a ground drawn about its own centre (a shoreline, a swell): the ground paints in metres, the centre is kept in LDU */ fog: K.fog, sky: K.sky, group: new THREE.Group(), trunks: [], logs: [], drifts: 0, ferns: 0, cells: new Map(), M, centre: { x: centre.x, z: centre.z }, r };
   S.group.name = 'set:' + kind; const cx = centre.x / M, cz = centre.z / M, gh = (x, z) => G.hM(x, z) * M;
   const key = (x, z) => Math.floor(x / (CELL * M)) + ':' + Math.floor(z / (CELL * M));
   const mat = new THREE.MeshStandardMaterial({ color: 0xffffff, vertexColors: false, roughness: 0.85, metalness: 0 });
@@ -93,8 +94,19 @@ function lay(kind, { scene, G, M, centre, r = 180, seed = 1, corridor = null }) 
   S.aabbs = (x, z, rr) => near(x, z).filter(t => Math.hypot(t.x - x, t.z - z) < rr + t.r).map(t => new THREE.Box3(new THREE.Vector3(t.x - t.r, t.y, t.z - t.r), new THREE.Vector3(t.x + t.r, t.top, t.z + t.r)));
   S.nearestTrunk = (x, z, within) => { let best = null, bd = within || Infinity; for (const t of S.trunks) { const d = Math.hypot(t.x - x, t.z - z); if (d < bd) { bd = d; best = t; } } return best; };
   S.stats = () => ({ kind, trunks: S.trunks.length, logs: S.logs.length, raised: S.logs.filter(l => l.raised).length, ferns: S.ferns, drifts: S.drifts, centre: { x: +(S.centre.x / M).toFixed(0), z: +(S.centre.z / M).toFixed(0) }, r: +(r / M).toFixed(0) });
+  S.group.traverse(o => { if (o.isMesh || o.isInstancedMesh) { o.castShadow = true; o.receiveShadow = true; } });
   S.drop = () => { scene.remove(S.group); S.group.traverse(o => { if (o.isInstancedMesh) { o.geometry.dispose(); o.material.dispose(); } }); S.trunks = []; S.logs = []; S.cells.clear(); };
   return S;
 }
-window.Sets = { lay, KINDS, distToPath };
+/* the ground's shape under a set, in metres about the set's centre: a dune field, a hill with a plateau, a slope, a swell, a shore that runs down into the sea */
+const hash2 = (x, z) => { const v = Math.sin(x * 127.1 + z * 311.7) * 43758.5453; return v - Math.floor(v); };
+const RELIEF = {
+  dunes: (x, z) => 2.6 * Math.sin(x * 0.085 + 1.2 * Math.sin(z * 0.04)) + 1.6 * Math.sin(z * 0.11 + x * 0.03) + 0.6 * Math.sin(x * 0.3 + z * 0.23) + 2.4,
+  hill: (x, z) => { const d = Math.hypot(x, z); return d < 14 ? 16 : d < 22 ? 16 - (d - 14) / 8 * 12 : Math.max(0, 4 - (d - 22) * 0.35); },
+  slope: (x, z) => Math.max(0, -z * 0.22) + 0.3 * Math.sin(x * 0.4) * Math.sin(z * 0.3),
+  swell: (x, z) => 0.9 * Math.sin(x * 0.24 + z * 0.1) + 0.5 * Math.sin(z * 0.41 - x * 0.07) + 0.25 * Math.sin(x * 0.9 + z * 0.6),
+  shore: (x, z) => z < -6 ? -0.8 - Math.min(1.2, (-6 - z) * 0.05) + 0.25 * Math.sin(x * 0.3 + z * 0.5) : Math.min(3, (z + 6) * 0.09) + 0.4 * Math.sin(x * 0.12) * Math.sin(z * 0.2),
+  ash: (x, z) => 0.5 * Math.sin(x * 0.15) * Math.sin(z * 0.11) + 0.15 * hash2(Math.round(x / 2), Math.round(z / 2)),
+};
+window.Sets = { lay, KINDS, RELIEF, distToPath };
 })();

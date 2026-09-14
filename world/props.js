@@ -37,8 +37,9 @@ class Props {
     if (this.items.get(p.id) !== it) return null;                                       // removed, or laid again under the same id, while parsing
     const wrap = new THREE.Group(); wrap.name = 'propwrap:' + p.id; if (!kit) wrap.rotation.x = Math.PI; const yawG = new THREE.Group(); yawG.name = 'prop:' + p.id; yawG.add(wrap); yawG.rotation.y = p.yaw * Math.PI / 2; yawG.position.set(p.x, p.y, p.z);
     g.traverse(o => { if (o.isMesh) { it.meshes.push(o); for (const m of Array.isArray(o.material) ? o.material : [o.material]) if (m) { m.fog = true; m.side = THREE.DoubleSide; } } });
+    if (p.src && p.src.film) { const lines = []; g.traverse(o => { if (o.isLine || o.isLineSegments) lines.push(o); }); for (const l of lines) l.parent.remove(l); }   /* a film's prop is a thing in a shot, not a drawing: no edge lines on a helmet or a sail */
     if (kit) wrap.add(g); else while (g.children.length) wrap.add(g.children[0]);   // a kit comes already turned to the world
-    this.scene.add(yawG); yawG.updateMatrixWorld(true); it.group = yawG; it.total = it.meshes.length; it.ready = true;
+    yawG.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } }); this.scene.add(yawG); yawG.updateMatrixWorld(true); it.group = yawG; it.total = it.meshes.length; it.ready = true;
     it.box = new THREE.Box3().setFromObject(yawG); if (it.box.isEmpty()) it.box = new THREE.Box3(new THREE.Vector3(p.x - 20, p.y, p.z - 20), new THREE.Vector3(p.x + 20, p.y + 40, p.z + 20));
     if (!quiet) { this.dirty = true; if (this.onEdit) this.onEdit({ up: [this.toRow(it)] }); }
     return it;

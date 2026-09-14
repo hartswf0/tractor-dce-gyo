@@ -318,10 +318,12 @@ function makePlayer(name) {
   return rig;
 }
 /** A part the harvest does not carry (a sculpted head, a printed torso): parsed through the shared loader with its print, into the slot's group when it arrives. */
+const printedCache = new Map();   // part:colour → the parse, shared by every figure that wears it (eighteen hoplites parse one helmet)
 function loadPrinted(g, part, col, slot) {
-  if (!W.props || !W.props.parse) return; g.userData.part = part;
-  W.props.parse(`0 FILE p-${part}.ldr\n0 !LDRAW_ORG Unofficial_Model\n1 ${col == null ? 16 : col} 0 0 0 1 0 0 0 1 0 0 0 1 parts/${part}.dat`, `p-${part}.ldr`).then(grp => {
-    if (g.userData.part !== part) return; while (g.children.length) g.remove(g.children[0]); const lines = []; grp.traverse(o => { if (o.isLine || o.isLineSegments) lines.push(o); else if (o.isMesh && o.material) for (const m of Array.isArray(o.material) ? o.material : [o.material]) m.fog = true; }); for (const l of lines) l.parent.remove(l);   /* the loader's edge lines would draw white seams on a hair or a head */
+  if (!W.props || !W.props.parse) return; g.userData.part = part; const key = part + ':' + (col == null ? 16 : col);
+  if (!printedCache.has(key)) printedCache.set(key, W.props.parse(`0 FILE p-${part}.ldr\n0 !LDRAW_ORG Unofficial_Model\n1 ${col == null ? 16 : col} 0 0 0 1 0 0 0 1 0 0 0 1 parts/${part}.dat`, `p-${part}.ldr`).then(src => { const lines = []; src.traverse(o => { if (o.isLine || o.isLineSegments) lines.push(o); else if (o.isMesh && o.material) for (const m of Array.isArray(o.material) ? o.material : [o.material]) m.fog = true; }); for (const l of lines) l.parent.remove(l); return src; }));   /* the loader's edge lines would draw white seams on a hair or a head */
+  printedCache.get(key).then(src => {
+    if (g.userData.part !== part) return; while (g.children.length) g.remove(g.children[0]); const grp = src.clone(); if (slot === 'head') grp.traverse(o => { if (o.isMesh && o.material) o.material = Array.isArray(o.material) ? o.material.map(m => m.clone()) : o.material.clone(); });   /* a head keeps its own materials: a face is drawn on one head, not on every head of that part */
     if (slot === 'head') { const box = new THREE.Box3().setFromObject(grp); if (isFinite(box.max.y)) grp.position.y = 24 - box.max.y; g.userData.neck = +box.max.y.toFixed(1); }   // the head slot sits at the crown and the neck is 24 LDU below it (LDraw y down); a sculpted head whose origin is its neck is moved down to meet the torso
     g.add(grp); g.userData.printed = true;
   }).catch(e => console.warn('printed part', part, e));
@@ -804,9 +806,11 @@ async function boot() {
     const win = await loadWindow(place);
     const models = await modelsP; stage('ship', 'done');
     Ground.daylight(W.scene, W.renderer, W.loader, M);
+    { const r = W.renderer, sun = Ground.daylight.lights.sun; r.shadowMap.enabled = true; r.shadowMap.type = THREE.PCFSoftShadowMap; r.toneMapping = THREE.LinearToneMapping; r.toneMappingExposure = 1;
+      sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); const sc = sun.shadow.camera; sc.left = -36 * M; sc.right = 36 * M; sc.top = 36 * M; sc.bottom = -36 * M; sc.near = 2 * M; sc.far = 700 * M; sun.shadow.bias = -0.0006; sun.shadow.normalBias = 0.6; W.scene.add(sun.target); }   /* the sun casts: a brim, a trunk, a rope has a lit side and a dark side; the shadow camera is walked to the shot by the film */
     W.lamps = Lamps.create({ scene: W.scene, M });
     W.map = Map2D.create({ W, M, onWaypoint: wp => setBeam(wp), onGo: w => { W.map.setOpen(false); const x = w.x * M, z = w.z * M; if (W.mode === 'fly') { W.tie.pos.set(x, W.G.h(x, z) + 30 * M, z); W.tie.prevPos.copy(W.tie.pos); } else { if (W.mode === 'ride') leaveVehicle(); W.rig.pos.set(x, W.G.h(x, z), z); W.rig.cam.set = false; } W.map.setWaypoint(null); toast('there', 700); } });
-    W.sky = Sky.create({ scene: W.scene, M, lights: Ground.daylight.lights, onLightning: lightning, onColour: skyColour, onNight: nightFall });
+    W.sky = Sky.create({ scene: W.scene, M, lights: Ground.daylight.lights, onLightning: lightning, onColour: skyColour, onNight: nightFall }); W.skyApply = skyApply;
     W.sky.groundAt = (x, z) => W.G ? W.G.h(x, z) : 0;
     W.colours = code => { const m = W.loader.getMaterial(String(code)); return m ? m.color : new THREE.Color(0xff00ff); };
     W.geoms = Bricks.harvest(models.harvest); for (const g of models.harvest) models.root.remove(g);

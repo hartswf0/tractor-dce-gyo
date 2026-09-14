@@ -34,7 +34,7 @@ const t0 = Date.now(), say = (...a) => console.log(((Date.now() - t0) / 1000).to
   await page.waitForFunction(() => window.__world && window.__world.ready);
   say('world ready; the film', film);
   await page.evaluate(() => { try { localStorage.removeItem('openai_api_key'); } catch (e) { } });
-  for (let i = 0; i < 400; i++) { const st = await page.evaluate(() => { const W = window.__world, F = W.film; return { n: F ? F.shots.length : 0, scene: !F || !F.scene ? null : F.scene.ready, actors: F ? [...F.actors.values()].every(a => !!(a.it && a.it.ready) || !!a.crowd || !!a.rig) : true, relanding: W.relanding }; }); if (st.n && (st.scene === null || st.scene) && st.actors && !st.relanding) break; await new Promise(r => setTimeout(r, 250)); }
+  for (let i = 0; i < 1200; i++) { const st = await page.evaluate(() => { const W = window.__world, F = W.film; return { n: F ? F.shots.length : 0, scene: !F || !F.scene ? null : F.scene.ready, actors: F ? [...F.actors.values()].every(a => !!(a.it && a.it.ready) || !!a.crowd || !!a.rig) : true, relanding: W.relanding }; }); if (st.n && (st.scene === null || st.scene) && st.actors && !st.relanding) break; await new Promise(r => setTimeout(r, 250)); }
   await page.evaluate(() => new Promise(r => setTimeout(r, 1500)));
   const info = await page.evaluate(() => window.__world.exportStart({ fps: +document.body.dataset.fps || undefined, w: innerWidth, h: innerHeight }));
   say('shots', info.shots, 'seconds', info.total.toFixed(1), 'at', fps, 'fps');

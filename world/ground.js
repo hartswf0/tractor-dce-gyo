@@ -43,7 +43,7 @@ function make(field, M, paint, mode = 'flat') {
   for (let i = 0; i < pos.count; i++) { const ix = i % n, iy = (i / n) | 0; pos.setY(i, at(ix, iy)); }
   g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(pos.count * 3), 3)); g.computeVertexNormals(); g.computeBoundingSphere();
   G.mesh = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1, metalness: 0 }));
-  G.mesh.scale.setScalar(M); G.mesh.name = 'ground';
+  G.mesh.scale.setScalar(M); G.mesh.name = 'ground'; G.mesh.receiveShadow = true;
   G.lo = lo; G.hi = hi; G.at = at;
   recolour(G, paint);
   return G;
@@ -240,5 +240,20 @@ function bakedField() {
 /** Convert a fetched square field (origin at the centre) into the shared shape. */
 function centredField(f) { return { n: f.n, res: f.res, h: f.h, cx: (f.n - 1) / 2, cy: (f.n - 1) / 2, datum: f.datum }; }
 
-window.Ground = { MODES, streets, FOOT, LIFT, COVER, deckAt, layerAt, wheels, make, drape, recolour, crater, roads, daylight, bakedField, centredField, MOSS };
+/** Shape the ground about a point: fn(x, z) in metres (centre-relative) gives the height in metres inside radius r, blended to the plate at the edge; null flattens. */
+function reshape(G, fn, cxM, czM, rM) {
+  const { n, res, H, field } = G, cx = field.cx, cy = field.cy, pos = G.mesh.geometry.attributes.position, nor = G.mesh.geometry.attributes.normal;
+  const gi = cx + cxM / res, gj = cy + czM / res, gr = rM / res, i0 = Math.max(0, Math.floor(gi - gr)), i1 = Math.min(n - 1, Math.ceil(gi + gr)), j0 = Math.max(0, Math.floor(gj - gr)), j1 = Math.min(n - 1, Math.ceil(gj + gr));
+  let touched = 0;
+  for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
+    const x = (i - gi) * res, z = (j - gj) * res, d = Math.hypot(x, z) / rM; if (d > 1) continue;
+    const k = j * n + i, edge = d < 0.8 ? 1 : (1 - d) / 0.2, h = fn ? fn(x, z) * edge : 0; H[k] = h; pos.setY(k, h); touched++;
+  }
+  const at = G.at;
+  for (let j = Math.max(0, j0 - 1); j <= Math.min(n - 1, j1 + 1); j++) for (let i = Math.max(0, i0 - 1); i <= Math.min(n - 1, i1 + 1); i++) {
+    const k = j * n + i, dx = (at(i - 1, j) - at(i + 1, j)) / (2 * res), dz = (at(i, j - 1) - at(i, j + 1)) / (2 * res), L = Math.hypot(dx, 1, dz); nor.setXYZ(k, dx / L, 1 / L, dz / L);
+  }
+  pos.needsUpdate = true; nor.needsUpdate = true; G.mesh.geometry.computeBoundingSphere(); return touched;
+}
+window.Ground = { MODES, reshape, streets, FOOT, LIFT, COVER, deckAt, layerAt, wheels, make, drape, recolour, crater, roads, daylight, bakedField, centredField, MOSS };
 })();
