@@ -68,7 +68,7 @@ function pointIntoWorld(nx, ny, assist = true) {
     for(const h of selectable()){
       const c=new THREE.Box3().copy(h.box).getCenter(V()),p=c.clone().project(W.camera);
       if(p.z < -1 || p.z > 1)continue;
-      const dx=((p.x+1)/2-nx)*innerWidth,dy=((1-p.y)/2-ny)*innerHeight,d=Math.hypot(dx,dy);
+      const bounds=W.renderer.domElement.getBoundingClientRect();const dx=((p.x+1)/2-nx)*bounds.width,dy=((1-p.y)/2-ny)*bounds.height,d=Math.hypot(dx,dy);
       if(d<28&&d<score){const check=pointIntoWorld((p.x+1)/2,(1-p.y)/2,false);
         if(check&&check.kind===h.kind&&String(check.id)===String(h.id)){nearby=check;score=d;}}
     }
@@ -496,7 +496,7 @@ function selectable(){
 function centreOf(hit){return new THREE.Box3().copy(hit.box).getCenter(V());}
 function aim(x,y){
   state.hover=pointIntoWorld(x,y);
-  const el=$('#pttCursor');el.style.left=x*innerWidth+'px';el.style.top=y*innerHeight+'px';
+  const r=W.renderer.domElement.getBoundingClientRect();const el=$('#pttCursor');el.style.left=(r.left+x*r.width)+'px';el.style.top=(r.top+y*r.height)+'px';
   el.className='on '+(state.hover&&state.hover.kind!=='ground'?'object':'ground');
   if(!state.that&&!state.grab)showSelection(state.hover&&state.hover.box||null);
 }
