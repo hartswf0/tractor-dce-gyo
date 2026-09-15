@@ -237,14 +237,14 @@ function micStatus(text){$('#pttMic').textContent='VOICE: '+text;debug('voice.st
 function stopMeter(){clearInterval(state.meterTimer);if(state.audioContext)state.audioContext.close().catch(()=>{});state.audioContext=null;}
 async function recordStart(e) {
   if(e)e.preventDefault();
-  if((!state.on&&!state.edit)||state.recorder||state.transcribing||state.recordOpening)return;
+  if(state.recorder||state.transcribing||state.recordOpening)return;
   if(!window.MediaRecorder){sayLine('MediaRecorder unavailable. Use Browser voice or type.','');return;}
-  state.recordOpening=true;state.voiceOff=true;clearTimeout(state.speechRestart);
+  const request=state.recordRequest=(state.recordRequest||0)+1;state.recordOpening=true;state.voiceOff=true;clearTimeout(state.speechRestart);
   if(state.recognition)try{state.recognition.abort();}catch(e){}
   if(window.speechSynthesis)speechSynthesis.cancel();
   try{
     let tracks=state.micStream&&state.micStream.getAudioTracks().filter(t=>t.readyState==='live');
-    if(!tracks||!tracks.length){micStatus('requesting microphone');const audio=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}});if(!state.on&&!state.edit){audio.getTracks().forEach(t=>t.stop());return;}state.micStream=audio;tracks=audio.getAudioTracks();}
+    if(!tracks||!tracks.length){micStatus('requesting microphone');const audio=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}});if(request!==state.recordRequest){audio.getTracks().forEach(t=>t.stop());return;}state.micStream=audio;tracks=audio.getAudioTracks();}
     tracks.forEach(t=>t.enabled=true);
     const stream=new MediaStream(tracks),mime=['audio/webm;codecs=opus','audio/mp4','audio/webm','audio/ogg;codecs=opus'].find(t=>MediaRecorder.isTypeSupported(t));
     state.chunks=[];state.recordBytes=0;state.recordStarted=performance.now();state.recordPacket=tracePacket('');
@@ -395,6 +395,7 @@ async function start() {
   finally { b.disabled=false; if(!state.on)b.textContent='Use hand'; }
 }
 function stop() {
+  state.recordRequest=(state.recordRequest||0)+1;
   endDrag(false);state.on=false;stopMeter();state.pinched=false;state.pointer=null;state.recentHit=null;state.walkTarget=null;state.grab=null;clearTimeout(state.recordTimer);stopWalk();resetPose();clearTimeout(state.speechRestart);if(state.recorder)try{state.recorder.onstop=null;state.recorder.stop();}catch(e){}state.recorder=null;if(state.recognition)try{state.recognition.abort();}catch(e){}state.recognition=null;if(state.stream)state.stream.getTracks().forEach(t=>t.stop());state.stream=null;if(state.micStream)state.micStream.getTracks().forEach(t=>t.stop());state.micStream=null;
   if(state.hand)state.hand.close();if(state.pose)state.pose.close();state.hand=state.pose=null;resetBindings();document.body.classList.remove('ptt-on');if(!state.edit)$('#ptt').classList.remove('on');$('#pttCursor').className='';const b=$('#pttStart');b.classList.remove('on','listening');b.setAttribute('aria-pressed','false');b.textContent='Point + speak';
 }
