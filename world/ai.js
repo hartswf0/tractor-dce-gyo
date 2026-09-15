@@ -223,9 +223,9 @@ const Ai = {
 The utterance is not sufficient by itself. Resolve THIS/THAT/THESE/IT from object hits and pinches near the corresponding part of the trace. Resolve HERE/THERE/BEHIND/BESIDE/TOWARD from ground hits, motion and the final stable point. Prefer a visible bound selection over guessing. An id is a capability: use only candidate ids and coordinates supplied in the packet.
 
 Return exactly one JSON object:
-{"act":"move|copy|remove|turn|taller|walk|build|change|clarify|stop|undo","referent_id":string|null,"destination":[x,y,z]|null,"relation":string|null,"count":number,"words":string,"program":object|null,"clarification":string|null,"say":string,"confidence":number}
+{"act":"move|copy|remove|turn|taller|walk|build|change|answer|clarify|stop|undo","referent_id":string|null,"destination":[x,y,z]|null,"relation":string|null,"count":number,"words":string,"program":object|null,"clarification":string|null,"say":string,"confidence":number}
 
-Use clarify when the evidence does not identify a unique referent or destination. Never invent an id. Simple spatial acts do not need a program. For BUILD, infer the requested object and return a complete executable program {"name":string,"ops":array} using the DSL below; use destination as its anchor. CHANGE may use words for a later model edit. Keep say under twelve words.
+Use answer for questions or conversation about the scene; put the answer in say and do not mutate anything. Use clarify when the evidence does not identify a unique referent or destination. Never invent an id. Simple spatial acts do not need a program. For BUILD, infer the requested object and return a complete executable program {"name":string,"ops":array} using the DSL below; use destination as its anchor. CHANGE may use words for a later model edit. Keep say under twelve words.
 
 ${window.Dsl && window.Dsl.SPEC || ''}`;
     const text = `SYNCHRONIZED SPEECH ACT PACKET (JSON):\n${JSON.stringify(packet)}\n\nInfer the intended embodied operation. JSON only.`;

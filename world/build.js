@@ -109,7 +109,7 @@ class Build {
   /** Is anything of this build inside another piece, a building or the ground? For drafts. */
   blockedCount(other) { let n = 0; for (const p of this.pieces.values()) { const b = p.box; if (other) for (const q of other.around(b)) if (q.box.intersectsBox(b)) { n++; break; } } return n; }
   /** Undo the last placement of this session (if it still stands). */
-  undo() { while (this.history.length) { const id = this.history.pop(); if (this.pieces.has(id)) { this.remove(id); return id; } } return null; }
+  undo() { while (this.history.length) { const id = this.history.pop(); if (typeof id === 'object' && id.before) { const p = this.pieces.get(id.before.id); if (!p) continue; this.take(p.id, true); const restored = this.add({...id.before}); if (restored && this.onEdit) this.onEdit({up:[this.toRow(restored)]}); return restored && restored.id; } if (this.pieces.has(id)) { this.remove(id); return id; } } return null; }
   /** Pick a piece up (no debris): removes it and whatever it held up falls. Returns the fallen pieces. */
   remove(id) { const f = this.take(id); if (!f) return []; if (this.onEdit) this.onEdit({ rm: [id] }); return this.settle(f); }
   /** Whatever rested on a removed piece and has nothing else under it now falls: returns fallen pieces (part, matrix, colour, vel). */
@@ -153,39 +153,48 @@ class Build {
   /* ───── the reticle: what you are looking at, and where the ghost goes ───── */
   aim(camera, portrait) {
     if (!this.on) { this.ghost.visible = false; this.target = null; this.aimed = null; return; }
+    if (this.pointerTracking && !this.pointerAim) { this.ghost.visible=false;this.target=null;return; }
+    if (this.pointerAim) return this.aimRay(this.pointerAim.origin, this.pointerAim.dir, this.pointerAim.options);
     if (this.pin) return this.aimRay(this.pin.origin, this.pin.dir);          // a test's fixed ray
-    RAY.setFromCamera({ x: 0, y: portrait ? -0.12 : -0.05 }, camera); this.aimRay(RAY.ray.origin, RAY.ray.direction);
+    RAY.setFromCamera({ x: 0, y: portrait ? -0.12 : -0.05 }, camera); this.aimRay(RAY.ray.origin, RAY.ray.direction, {distance:this.depthDistance});
   }
   /** Where the ghost goes for a ray (the reticle's, or a test's). */
-  aimRay(origin, dir) {
+  aimRay(origin, dir, options = {}) {
     const ray = new THREE.Ray(origin, dir), reach = REACH * this.M;
     let best = null;
     const tryBox = (box, kind, piece) => { const hit = ray.intersectBox(box, V3); if (!hit) return; const t = hit.distanceTo(ray.origin); if (t > reach || (best && t >= best.t)) return; best = { t, p: hit.clone(), box, kind, piece, face: faceOf(hit, box) }; };
     B1.min.set(ray.origin.x - reach, -1e9, ray.origin.z - reach); B1.max.set(ray.origin.x + reach, 1e9, ray.origin.z + reach);
-    for (const p of this.around(B1)) tryBox(p.box, 'piece', p);
+    for (const p of this.around(B1)) if (p.id !== options.ignore) tryBox(p.box, 'piece', p);
     for (const box of this.buildings(ray.origin.x, ray.origin.z, reach)) tryBox(box, 'building', null);
     // the ground: march, then bisect
     let t0 = 0, t1 = null; for (let t = 0.4 * this.M; t <= reach; t += 0.4 * this.M) { V1.copy(ray.origin).addScaledVector(ray.direction, t); if (V1.y < this.groundH(V1.x, V1.z)) { t1 = t; break; } t0 = t; }
     if (t1 !== null && (!best || t1 < best.t)) { for (let i = 0; i < 6; i++) { const tm = (t0 + t1) / 2; V1.copy(ray.origin).addScaledVector(ray.direction, tm); if (V1.y < this.groundH(V1.x, V1.z)) t1 = tm; else t0 = tm; } V1.copy(ray.origin).addScaledVector(ray.direction, t1); best = { t: t1, p: V1.clone(), kind: 'ground', face: 'top' }; }
     this.aimed = best;
-    if (!best) { this.ghost.visible = false; this.target = null; return; }
-    const e = this.ext(this.part, this.rot), f = this.frame, hx = (e[1] - e[0]) / 2, hz = (e[3] - e[2]) / 2;   // the part's box; its origin may sit off-centre
+    if (Number.isFinite(options.distance)) best = {p: ray.at(options.distance, new THREE.Vector3()), kind: 'depth', face: 'top'};
+    return this.resolvePlacement(best, options);
+  }
+  /** Shared stud snapping and collision checks for reticle, hand and touch placement. */
+  resolvePlacement(best, options = {}) {
+    if (!best) { this.target = null; this.ghost.visible = false; return null; }
+    const part = options.part || this.part, rot = options.rot == null ? this.rot : options.rot;
+    const e = this.ext(part, rot), f = this.frame, hx = (e[1] - e[0]) / 2, hz = (e[3] - e[2]) / 2;   // the part's box; its origin may sit off-centre
     let cx = best.p.x, cz = best.p.z, y;                                                                          // where the box's centre wants to be
-    if (best.face === 'top') y = best.kind === 'ground' ? best.p.y : best.box.max.y;
+    if (best.face === 'top') y = (best.kind === 'ground' || best.kind === 'depth') ? best.p.y : best.box.max.y;
     else if (best.face === 'bottom') y = best.box.min.y - e[4];
     else { y = best.box.min.y; if (best.face === 'x-') cx = best.box.min.x - hx; else if (best.face === 'x+') cx = best.box.max.x + hx; else if (best.face === 'z-') cz = best.box.min.z - hz; else cz = best.box.max.z + hz; }
     const x = snap(cx - hx - f.ax, STUD) + f.ax - e[0], z = snap(cz - hz - f.az, STUD) + f.az - e[2];             // snap the box's corner to the studs, then place the origin
     y = snap(y + f.datum, PLATE) - f.datum + this.lift * PLATE;
     if (best.kind === 'ground' && y < best.p.y - 4) y += PLATE;
     const box = new THREE.Box3(new THREE.Vector3(x + e[0] + 1, y + 1, z + e[2] + 1), new THREE.Vector3(x + e[1] - 1, y + e[4] - 1, z + e[3] - 1));
-    let blocked = false;
-    for (const q of this.around(box)) if (q.box.intersectsBox(box)) { blocked = true; break; }
+    let blocked = y < this.groundH(x,z) - 1;
+    for (const q of this.around(box)) if (q.id !== options.ignore && q.box.intersectsBox(box)) { blocked = true; break; }
     if (!blocked) for (const bb of this.buildings(x, z, 40)) if (box.intersectsBox(bb)) { blocked = true; break; }
     if (!blocked && this.rings) for (const b of this.rings(x, z)) if (y < b.yTop - 4 && Bricks.pointInRing(x, z, b.ringL)) { blocked = true; break; }
     this.target = { x, y, z, blocked, kind: best.kind };
-    const g = this.ghost, k = this.kinds.get(this.part);
+    const g = this.ghost, k = this.kinds.get(part);
     if (g.geometry !== k.geom) g.geometry = k.geom;
-    g.position.set(x, y, z); g.rotation.set(0, this.rot * Math.PI / 2, 0); g.material.color.set(blocked ? 0xd8382e : 0x2fbf3f); g.visible = !this.pick;
+    g.position.set(x, y, z); g.rotation.set(0, rot * Math.PI / 2, 0); g.material.color.set(blocked ? 0xd8382e : 0x2fbf3f); g.visible = !this.pick;
+    return this.target;
   }
   /** The piece under the reticle (for picking up). */
   aimedPiece() { return this.aimed && this.aimed.kind === 'piece' ? this.aimed.piece : null; }

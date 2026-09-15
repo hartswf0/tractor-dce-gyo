@@ -861,10 +861,10 @@ async function boot() {
 
 /* ───────────────────────── building ───────────────────────── */
 function toggleBuild(on) {
-  const B = W.build; if (!B) return; on = on === undefined ? !B.on : !!on; if (on && W.mode !== 'walk') return; B.on = on; if (!B.on) { B.pick = false; B.lift = 0; }
-  document.body.classList.toggle('build', B.on); $('#build').classList.toggle('on', B.on); $('#build').textContent = B.on ? 'Done' : 'Build'; paintPalette(); hintFor();
+  const B = W.build; if (!B) return; on = on === undefined ? !B.on : !!on; if (on && W.mode !== 'walk') return; B.on = on; if (!B.on) { B.pick = false; B.lift = 0; B.depthDistance = null; B.pointerAim = null; }
+  document.body.classList.toggle('build', B.on); $('#build').classList.toggle('on', B.on); $('#build').textContent = B.on ? 'Done' : 'Bricks'; paintPalette(); hintFor();
   if (B.on && !W.buildState) { W.buildState = true; try { history.pushState({ build: 1 }, ''); } catch (e) { } } else if (!B.on && W.buildState) { W.buildState = false; try { if (history.state && history.state.build) history.back(); } catch (e) { } }
-  if (B.on) wbOpen(false, true); else if (W.wbWanted) wbOpen(true, true);
+  if (B.on || W.wbWanted) wbOpen(true, true);
   W.rig.figure.traverse(o => { if (!o.isMesh) return; const m = o.material; if (m.userData.op == null) { m.userData.op = m.opacity; m.userData.tr = m.transparent; } m.transparent = B.on ? true : m.userData.tr; m.opacity = B.on ? Math.min(0.35, m.userData.op) : m.userData.op; m.needsUpdate = true; });   // see through yourself while building
 }
 function setPick(on) { W.build.pick = !!on; paintPalette(); }
@@ -879,10 +879,10 @@ function bindPalette() {
   const P = $('#palette');
   P.innerHTML = `<div class="parts">${Build.PARTS.map(([part, name]) => `<button data-part="${part}">${name}</button>`).join('')}</div>
     <div class="tools"><span class="cols">${Build.COLOURS.map(c => `<button data-col="${c}" title="${c}"></button>`).join('')}</span>
-    <button data-tool="rot" title="rotate (R)">⟳</button><button data-tool="up" title="lift (])">▲</button><button data-tool="down" title="lower ([)">▼</button><button data-tool="undo" title="undo (⌫)">⌫</button><button data-tool="pick" title="pick up (X)">pick</button><button data-tool="reset" title="reset this place">reset</button><button data-tool="say" title="say what to build">say</button><button data-tool="done" title="leave build mode">done</button><button data-tool="place" class="place">PLACE</button></div>`;
+    <button data-tool="near" title="Bring closer">Near</button><button data-tool="far" title="Push farther">Far</button><button data-tool="surface" title="Snap onto surfaces">Snap</button><button data-tool="rot" title="rotate (R)">⟳</button><button data-tool="up" title="lift (])">▲</button><button data-tool="down" title="lower ([)">▼</button><button data-tool="undo" title="undo (⌫)">⌫</button><button data-tool="pick" title="pick up (X)">pick</button><button data-tool="reset" title="reset this place">reset</button><button data-tool="say" title="say what to build">say</button><button data-tool="done" title="leave build mode">done</button><button data-tool="place" class="place">PLACE</button></div>`;
   P.querySelectorAll('[data-part]').forEach(b => b.onclick = () => { W.build.part = b.dataset.part; W.build.pick = false; paintPalette(); });
   P.querySelectorAll('[data-col]').forEach(b => b.onclick = () => { W.build.col = +b.dataset.col; paintPalette(); });
-  P.querySelectorAll('[data-tool]').forEach(b => b.onclick = () => { const B = W.build; switch (b.dataset.tool) { case 'rot': rotateBuild(); break; case 'up': B.lift = Math.min(B.lift + 1, 60); break; case 'down': B.lift = Math.max(B.lift - 1, -60); break; case 'undo': B.undo(); break; case 'pick': setPick(!B.pick); break; case 'reset': if (confirm('Forget every brick built and every wall broken here?')) resetPlace(); break; case 'say': toggleBuild(false); wbOpen(true); break; case 'done': toggleBuild(false); break; case 'place': buildAct(); break; } paintPalette(); });
+  P.querySelectorAll('[data-tool]').forEach(b => b.onclick = () => { const B = W.build; switch (b.dataset.tool) { case 'near': window.PutThatThere?.adjustDepth(-20); break; case 'far': window.PutThatThere?.adjustDepth(20); break; case 'surface': window.PutThatThere?.adjustDepth(null); break; case 'rot': rotateBuild(); break; case 'up': B.lift = Math.min(B.lift + 1, 60); break; case 'down': B.lift = Math.max(B.lift - 1, -60); break; case 'undo': B.undo(); break; case 'pick': setPick(!B.pick); break; case 'reset': if (confirm('Forget every brick built and every wall broken here?')) resetPlace(); break; case 'say': wbOpen(true); break; case 'done': toggleBuild(false); break; case 'place': buildAct(); break; } paintPalette(); });
 }
 function paintPalette() {
   const B = W.build, P = $('#palette'); if (!B) return;
@@ -1143,9 +1143,9 @@ Ai.onStatus = (stage, detail, state, started, extra) => {
 /** Where a draft goes: the reticle's target if there is one, else three metres ahead of the player, on the stud grid. */
 function mbAnchor() {
   const f = W.build.frame; let x, z;
-  if (W.build.on && W.build.target) { x = W.build.target.x; z = W.build.target.z; } else { const d = Minifig.facing(W.rig, V1); x = W.rig.pos.x + d.x * 3 * M; z = W.rig.pos.z + d.z * 3 * M; }
+  if (W.build.wordAnchor) { x=W.build.wordAnchor.x;z=W.build.wordAnchor.z; } else if (W.build.on && W.build.target) { x = W.build.target.x; z = W.build.target.z; } else { const d = Minifig.facing(W.rig, V1); x = W.rig.pos.x + d.x * 3 * M; z = W.rig.pos.z + d.z * 3 * M; }
   x = Math.round((x - f.ax) / 20) * 20 + f.ax; z = Math.round((z - f.az) / 20) * 20 + f.az;
-  const gh = W.G.h(x, z), y = Math.round((gh + f.datum) / 8) * 8 - f.datum;
+  const gh = W.build.wordAnchor?.y ?? (W.build.on && W.build.target && !W.build.target.blocked ? W.build.target.y : W.G.h(x, z)), y = Math.round((gh + f.datum) / 8) * 8 - f.datum;
   return { x, y, z };
 }
 /** What the model is told about the place where the build will stand: the ground, the nearest things by name and distance, the free room in each direction, and a picture of the view when look is on. */
