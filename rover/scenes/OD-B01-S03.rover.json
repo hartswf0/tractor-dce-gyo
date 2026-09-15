@@ -1,0 +1,200 @@
+{
+  "schema": "ldraw-rover.camera-first-scene/v0.1",
+  "sceneId": "OD-B01-S03",
+  "title": "The Stranger at the Threshold",
+  "operatorOrder": [
+    "REFERENCE",
+    "CAMERA",
+    "FRAME",
+    "REQUIRE",
+    "FORAGE",
+    "RESOLVE",
+    "ASSEMBLE",
+    "STAGE",
+    "BIND",
+    "PERFORM",
+    "WATCH",
+    "REPAIR",
+    "COMMIT"
+  ],
+  "REFERENCE": {
+    "sources": [
+      {
+        "kind": "odyssey-scene",
+        "repo": "hartswf0/odyssey-halfworld",
+        "path": "scenes/OD-B01-S03.mjs",
+        "role": ["ACTION", "COMPOSITION", "CONTINUITY"]
+      },
+      {
+        "kind": "odyssey-jobs",
+        "repo": "hartswf0/odyssey-halfworld",
+        "path": "book01/jobs.json",
+        "role": ["IDENTITY", "FUNCTION", "AFFORDANCE"]
+      }
+    ],
+    "sceneEvidence": {
+      "beats": [
+        "Athena arrives disguised as Mentes and waits at the outer gate.",
+        "The suitors gamble and feast while servants prepare wine, tables, and meat.",
+        "Telemachus notices the unattended stranger and crosses the hall in shame.",
+        "He greets her, takes her spear, and leads her away from the suitors' noise."
+      ],
+      "compositionBackToFront": [
+        "location.odysseuss-palace-threshold-and-hall",
+        "ensemble.palace-servants",
+        "ensemble.the-suitors",
+        "character.athena-as-mentes",
+        "character.telemachus"
+      ]
+    }
+  },
+  "CAMERA": {
+    "id": "reference-full-stage",
+    "mode": "reference-frame",
+    "referenceSource": "scenes/OD-B01-S03.mjs",
+    "framingIntent": "See the palace threshold and hall as one readable field: Athena waits at the left threshold while Telemachus crosses from the occupied hall toward her; suitors and servants establish the corrupted household without overtaking the encounter.",
+    "position": null,
+    "target": null,
+    "lens": null,
+    "unresolved": [
+      "3D camera position",
+      "3D focal length",
+      "camera height"
+    ]
+  },
+  "FRAME": {
+    "subjects": [
+      "character.athena-as-mentes",
+      "character.telemachus"
+    ],
+    "visible": [
+      "location.odysseuss-palace-threshold-and-hall",
+      "ensemble.palace-servants",
+      "ensemble.the-suitors",
+      "character.athena-as-mentes",
+      "character.telemachus"
+    ],
+    "foreground": [
+      "character.athena-as-mentes",
+      "character.telemachus"
+    ],
+    "middle": [
+      "ensemble.palace-servants",
+      "ensemble.the-suitors"
+    ],
+    "background": [
+      "location.odysseuss-palace-threshold-and-hall"
+    ],
+    "requiredSilhouettes": [
+      "character.athena-as-mentes",
+      "character.telemachus"
+    ],
+    "attention": [
+      {
+        "target": "character.athena-as-mentes",
+        "priority": 1,
+        "phase": "arrival"
+      },
+      {
+        "target": "character.telemachus",
+        "priority": 1,
+        "phase": "crossing"
+      },
+      {
+        "target": "ensemble.the-suitors",
+        "priority": 0.35,
+        "phase": "context"
+      }
+    ],
+    "entrances": [
+      "palace.outer-gate"
+    ],
+    "exits": [
+      "palace.private-seat-route"
+    ]
+  },
+  "REQUIRE": {
+    "performance": [
+      {
+        "actor": "character.athena-as-mentes",
+        "action": "WAIT_AT_THRESHOLD",
+        "supports": ["palace.outer-gate"]
+      },
+      {
+        "actor": "character.telemachus",
+        "action": "CROSS_HALL",
+        "target": "character.athena-as-mentes",
+        "traverses": ["palace.hall-path"]
+      },
+      {
+        "actor": "character.telemachus",
+        "action": "TAKE_SPEAR",
+        "prop": "prop.athenas-bronze-spear",
+        "supports": ["palace.spear-rack"]
+      },
+      {
+        "actor": "character.telemachus",
+        "action": "LEAD_TO_PRIVATE_SEAT",
+        "target": "character.athena-as-mentes",
+        "traverses": ["palace.private-seat-route"],
+        "supports": ["palace.private-seat"]
+      }
+    ],
+    "continuity": []
+  },
+  "FORAGE": {
+    "library": "tractor-dce-gyo/LDraw",
+    "policy": ["REUSE", "ADAPT", "ASSEMBLE", "CUSTOM"],
+    "unresolved": true
+  },
+  "RESOLVE": {
+    "status": "pending"
+  },
+  "ASSEMBLE": {
+    "status": "pending",
+    "rule": "Build only the camera/performance frontier. Do not complete the palace beyond what this frame, movement, occlusion, and continuity require."
+  },
+  "STAGE": {
+    "status": "pending",
+    "sourceAnchors": {
+      "athena_mentes": {"x": 0.14, "y": 0.90},
+      "telemachus": {"x": 0.47, "y": 0.93},
+      "suitors": {"x": 0.66, "y": 0.99},
+      "servants": {"x": 0.55, "y": 0.62}
+    },
+    "rule": "Treat Halfworld anchors as composition evidence, not literal 3D coordinates."
+  },
+  "BIND": {
+    "status": "pending"
+  },
+  "PERFORM": {
+    "sourceTimeline": [
+      {"at": 0.0, "op": "actor.gaze", "target": "athena_mentes", "intent": "watch the hall"},
+      {"at": 3.0, "op": "actor.pose", "target": "telemachus", "intent": "lift from grief / notice stranger"},
+      {"at": 3.0, "op": "actor.gaze", "target": "telemachus", "intent": "look toward Athena"},
+      {"at": 5.0, "op": "actor.move", "target": "telemachus", "intent": "cross hall"},
+      {"at": 12.0, "op": "actor.pose", "target": "telemachus", "intent": "offer hospitality"},
+      {"at": 12.0, "op": "actor.pose", "target": "athena_mentes", "intent": "composed guest"},
+      {"at": 18.0, "op": "actor.move", "target": "telemachus", "intent": "lead away from benches"},
+      {"at": 18.0, "op": "actor.move", "target": "athena_mentes", "intent": "follow toward private seat"}
+    ],
+    "status": "blocked-until-bind"
+  },
+  "WATCH": {
+    "status": "pending",
+    "assertions": [
+      "Athena reads at the threshold.",
+      "Telemachus can visibly cross the hall to her.",
+      "The suitors read as occupied background, not the primary subject.",
+      "The spear can transfer from Athena/threshold storage to Telemachus.",
+      "A route toward a private seat is legible from the camera.",
+      "No constructed geometry exists without camera, performance, occlusion, lighting, or continuity justification."
+    ]
+  },
+  "REPAIR": {
+    "status": "pending"
+  },
+  "COMMIT": {
+    "status": "pending"
+  }
+}
