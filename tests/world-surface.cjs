@@ -18,7 +18,7 @@ function run(source){
  handlers.down(event(60,60));handlers.up(event(60,60));assert(selected===object&&!calls.includes('begin'),'tap selects without moving');
  calls=[];handlers.down(event(60,60));handlers.motion(event(90,75));handlers.up(event(90,75));assert(calls.join(',')==='begin,move,place','selected drag commits on release');
  calls=[];handlers.down(event(60,60));handlers.motion(event(90,75));handlers.up(event(90,75,'pointercancel'));assert(calls.at(-1)==='cancel','pointer interruption cancels drag');
- calls=[];selected=null;handlers.down(event(60,60));handlers.motion(event(90,75));handlers.up(event(90,75));assert(!calls.includes('begin')&&W.input.look.dx===30,'unselected drag looks without moving object');
+ calls=[];selected=null;handlers.down(event(60,60));handlers.motion(event(90,75));handlers.up(event(90,75));assert(!calls.includes('begin')&&Math.abs(W.input.look.dx-.135)<.000001,'unselected drag looks without moving object');
  currentHit={kind:'ground',point:{}};selected=object;handlers.down(event(60,60));handlers.up(event(60,60));assert(calls.includes('clear'),'empty tap clears selection');
  movePointer=2;handlers.steer(event(100,0,'pointermove',2));assert(W.input.L.mag<=1&&W.input.L.held,'joystick clamps magnitude');
  const x=W.input.L.x;handlers.steer(event(0,0,'pointermove',3));assert(W.input.L.x===x,'second pointer cannot steal joystick');

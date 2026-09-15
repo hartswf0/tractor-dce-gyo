@@ -17,6 +17,17 @@ $('#wbCommit').textContent='Apply';
 $('#pttDiagnostics summary').textContent='Developer diagnostics';
 $('#pttArrange').hidden=true;$('#pttState').hidden=true;$('#pttForm').hidden=true;$('#pttKey').hidden=true;
 $('#wbHide').hidden=true;
+
+const access=document.createElement('nav');access.id='vAccess';access.setAttribute('aria-label','World operator controls');
+const builder=document.createElement('button');builder.textContent='Builder';builder.onclick=()=>panel('builder');access.appendChild(builder);
+const world=$('#menuBtn');world.textContent='Who · Where';access.appendChild(world);
+const hand=$('#pttStart');access.appendChild(hand);
+root.appendChild(access);
+const locationLabel=document.createElement('button');locationLabel.id='vLocation';locationLabel.onclick=()=>panel('world');root.appendChild(locationLabel);
+move('#shield','#voidUI');
+move('#pttView','#voidUI');move('#pttState','#voidUI');$('#pttState').hidden=false;
+move('#minimap','#voidUI');move('#det','#voidUI');
+
 let phase='REST',lastInstruction='',traceUntil=0,fault=false,tab='builder',pointer=null,movePointer=null,lookPointer=null,lookAxis={x:0,y:0},pageOffset=0,hold=null,submitAudio=false,lastTime=0,previousSignature='';
 function trace(text,duration=4500){$('#vTrace').textContent=text;traceUntil=performance.now()+duration;}
 function panel(name){stopMovement();stopLook();pageOffset=0;tab=name||tab;$('#vPanel').hidden=false;root.querySelectorAll('[data-vtab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.vtab===tab)));for(const n of ['builder','inputs','world'])$('#v-'+n).hidden=n!==tab;layout();}
@@ -60,7 +71,7 @@ function motion(e){
  if(t.canDrag){
   if(!t.drag){const r=W.renderer.domElement.getBoundingClientRect();t.drag=P.beginDrag(t.hit,(t.x0-r.left)/r.width,(t.y0-r.top)/r.height,'pointer');}
   if(t.drag)P.dragTo(...coords(e));
- }else{W.input.look.dx+=dx;W.input.look.dy+=dy;}
+ }else{W.input.look.dx+=dx*.0045;W.input.look.dy+=dy*.0035;}
 }
 function up(e){
  if(!pointer||pointer.id!==e.pointerId)return;
@@ -68,7 +79,7 @@ function up(e){
  if(t.drag)P.endDrag(e.type==='pointerup');
  else if(!t.moved&&e.type==='pointerup'){
   if(t.hit&&t.hit.kind!=='ground'){P.capture(t.hit);trace('Selected '+(t.hit.name||t.hit.kind));}
-  else{P.resetBindings();if(t.hit)P.capture(t.hit);traceUntil=0;}
+  else{if(!P.surfaceState().pending)P.resetBindings();if(t.hit)P.capture(t.hit);traceUntil=0;}
  }
 }
 function intercept(e){
@@ -103,7 +114,7 @@ $('#vLook').onpointermove=lookSteer;
 for(const name of ['pointerup','pointercancel','lostpointercapture'])$('#vLook').addEventListener(name,e=>{if(e.pointerId===lookPointer)stopLook();});
 function cameraStep(dt){
  if(!W.ready||lookPointer===null||W.film&&W.film.owns())return;
- W.input.look.dx+=lookAxis.x*240*dt;W.input.look.dy+=lookAxis.y*180*dt;
+ W.input.look.dx+=lookAxis.x*1.08*dt;W.input.look.dy+=lookAxis.y*.63*dt;
 }
 function pages(){
  const body=$('#vPanelBody'),content=$('#vPages'),height=body.clientHeight;
@@ -171,8 +182,11 @@ function frame(now){
  const s=P.surfaceState(),preview=!!W.master?.result,working=!!W.master?.busy||s.inferring||s.transcribing,recording=s.recording||s.opening;
  phase=s.dragging?'DRAGGING':recording?'LISTENING':working?'WORKING':preview?'PREVIEWING':fault?'FAULT':now<traceUntil?'CHANGED':s.selected?'SELECTED':'REST';
  root.dataset.state=phase;
+ $('#pttView').hidden=!s.hand;$('#pttState').hidden=!s.hand&&!s.selected&&!recording;
+ if(!s.hand&&!hand.disabled)hand.textContent='Hand';
  $('#vUndo').hidden=!s.canUndo;
- $('#vMic').hidden=working||recording;
+ $('#vMic').hidden=working&&!recording;
+ $('#vMic').textContent=recording?'Release':'Mic';
  $('#vAction').hidden=!['DRAGGING','LISTENING','WORKING','FAULT'].includes(phase);
  $('#vStop').hidden=!working&&!recording;$('#vStop').textContent=recording?'Cancel recording':'Stop';
  $('#vRetry').hidden=!fault;$('#vType').hidden=!fault;
@@ -185,7 +199,7 @@ function frame(now){
   if(!marker){marker=new THREE.Mesh(new THREE.RingGeometry(9,13,32),new THREE.MeshBasicMaterial({color:0x5fe4c2,side:THREE.DoubleSide,depthTest:false}));marker.rotation.x=-Math.PI/2;marker.renderOrder=999;W.scene.add(marker);}
   marker.visible=!!s.there;if(s.there)marker.position.copy(s.there.point).add(new THREE.Vector3(0,2,0));
  }
- if(now-lastTime>500){lastTime=now;layout();pages();}
+ if(now-lastTime>500){lastTime=now;locationLabel.textContent=($('#mode').textContent||'')+' · '+($('#place').textContent||'');layout();pages();}
  requestAnimationFrame(frame);
 }
 function topOffset(){return window.visualViewport?visualViewport.offsetTop:0;}
