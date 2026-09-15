@@ -14,7 +14,8 @@ class Node {
 }
 const $=id=>{if(!nodes.has(id))nodes.set(id,new Node(id));return nodes.get(id)};
 const document={querySelector:$,querySelectorAll:()=>[],createElement:t=>new Node(t),head:new Node('head'),body:new Node('body')};
-const window={addEventListener(){},__world:null};
+const window={addEventListener(){},dispatchEvent(){},__world:null};
+class CustomEvent{constructor(type,options){this.type=type;this.detail=options.detail;}}
 const localStorage={getItem:()=>null,setItem(){}},navigator={};
 const innerWidth=1000,innerHeight=700,performance={now:()=>1000},Minifig={facing:(r,v)=>v.set(0,0,-1)};
 const console={info(){},warn(){},error(){}};

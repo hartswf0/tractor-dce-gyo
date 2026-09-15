@@ -23,7 +23,7 @@ function debug(event,data={}) {
   const el=$('#pttLog');if(el)el.textContent=events.slice(-12).map(x=>JSON.stringify(x)).join('\n');
 }
 const sayLine = (text, kind) => {
-  const el = $('#pttLine'); if (!el) return; el.textContent = text; el.dataset.kind = kind || '';
+  const el = $('#pttLine'); if (!el) return; el.textContent = text; el.dataset.kind = kind || ''; window.dispatchEvent(new CustomEvent('world-chat-status',{detail:{text,kind:kind||''}}));
   if (kind === 'speak' && 'speechSynthesis' in window) {
     try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.rate = 1.06; speechSynthesis.speak(u); } catch (e) { }
   }
@@ -215,7 +215,7 @@ function execute(cmd) {
   return ok;
 }
 function heard(text, explicit = false, capturedPacket) {
-  text = String(text || '').trim(); if (!text) return; $('#pttMic').textContent = 'VOICE: “' + text.slice(0, 34) + '”'; $('#pttMic').classList.add('set'); sayLine('“' + text + '”', '');
+  text = String(text || '').trim(); if (!text) return; window.dispatchEvent(new CustomEvent('world-chat-message',{detail:{role:'user',text}})); $('#pttMic').textContent = 'VOICE: “' + text.slice(0, 34) + '”'; $('#pttMic').classList.add('set'); sayLine('“' + text + '”', '');
   const awake=explicit||/^\s*(world|lego|builder)\b/i.test(text)||/^\s*put that\b/i.test(text);
   if(!awake){sayLine('Say “World” before the request, or begin “Put that…”.','');return;}
   return infer(text.replace(/^\s*(world|lego|builder)[,:]?\s*/i,''), capturedPacket);
@@ -477,7 +477,7 @@ function beforeStep(dt){
 }
 function addTestBrick(){
   if(!W.ready||!W.build)return;
-  const B=W.build,part=B.kinds.has('3001')?'3001':B.part;
+  const B=W.build,part=B.kinds.has(B.part)?B.part:'3001';
   let p=state.there&&state.there.point;
   if(!p&&state.edit&&state.orbit)p=state.orbit.centre.clone();
   if(!p){const f=V();Minifig.facing(W.rig,f);p=W.rig.pos.clone().addScaledVector(f,4*M);}
