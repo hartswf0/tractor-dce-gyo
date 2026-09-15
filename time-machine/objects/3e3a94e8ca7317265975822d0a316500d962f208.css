@@ -1,0 +1,67 @@
+/* The scene is the resting surface. Tools have a bounded, explicit exit. */
+body.void-world{--wb:0px!important;--v-floor:0px}
+body.void-world #stage{position:fixed;inset:0 0 auto;height:100dvh}
+body.void-world>#top,body.void-world>#shield,body.void-world>#menuBtn,body.void-world>#find,body.void-world>#minimap,body.void-world>#det,body.void-world>#build,body.void-world>#wbSay,body.void-world>#hint,body.void-world>#keys,body.void-world>#pttArrange,body.void-world>#bchip,body.void-world>#stick,body.void-world>#reticle{display:none!important}
+#voidUI{position:fixed;inset:0;z-index:8;pointer-events:none;color:#eef3f5;font:14px/1.35 system-ui;--v-panel:#151c22;--v-edge:#46515b}
+#voidUI button,#voidUI input,#voidUI textarea,#voidUI select{font:inherit;color:inherit}
+#voidUI button{min-height:44px;min-width:44px;border:1px solid var(--v-edge);border-radius:12px;padding:8px 12px;background:var(--v-panel);cursor:pointer;pointer-events:auto;touch-action:manipulation}
+#voidUI button:focus-visible,#voidUI textarea:focus-visible{outline:3px solid #71e1c7;outline-offset:3px}
+#voidUI [hidden]{display:none!important}
+#vSettings{position:absolute;right:12px;top:calc(10px + env(safe-area-inset-top));font-size:20px!important}
+#vMove{position:absolute;left:18px;bottom:calc(var(--v-floor) + 22px + env(safe-area-inset-bottom));width:94px;height:94px;border-radius:50%!important;background:#151c2280!important;border:1px solid #e3ebef99!important;touch-action:none!important;padding:0!important}
+#vMove i{position:absolute;left:31px;top:31px;width:30px;height:30px;border-radius:50%;background:#dfe8e955;pointer-events:none}
+#vMove span{position:absolute;left:0;right:0;bottom:9px;font:10px monospace;letter-spacing:.12em;pointer-events:none}
+#vMic{position:absolute;bottom:calc(var(--v-floor) + 22px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:64px;height:64px;border-radius:50%!important;background:#ae3e3d!important;touch-action:none!important;user-select:none}
+#vUndo{position:absolute;bottom:calc(var(--v-floor) + 24px + env(safe-area-inset-bottom));right:18px;font-size:24px!important}
+#vObject{position:absolute;transform:translate(-50%,-50%);max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-color:#71e1c7!important;touch-action:none!important}
+#vTrace{position:absolute;bottom:calc(var(--v-floor) + 132px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);max-width:min(440px,90%);max-height:92px;overflow:auto;padding:7px 11px;border-radius:10px;background:#151c22e8;pointer-events:auto;font-size:13px}
+#vAction,#vPreview{position:absolute;bottom:calc(var(--v-floor) + 84px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);display:flex;gap:6px;max-width:96%;pointer-events:auto}
+#vPreview{bottom:calc(var(--v-floor) + 100px + env(safe-area-inset-bottom))}
+#vAction button,#vPreview button{white-space:nowrap}
+#voidUI #wbCommit{background:#71e1c7;color:#10231e}
+#vPanel{position:absolute;bottom:0;left:0;right:0;height:min(320px,calc(var(--vh-world,100dvh)*.33));display:flex;flex-direction:column;background:var(--v-panel);border-top:1px solid var(--v-edge);pointer-events:auto;padding-bottom:env(safe-area-inset-bottom)}
+#vPanel header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 8px;flex-shrink:0;border-bottom:1px solid var(--v-edge)}
+#vPanel header nav{display:flex;gap:4px}
+#vPanel [aria-pressed=true]{background:#344944;border-color:#71e1c7}
+#vPanelBody{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding:8px}
+#vPanelBody>*{min-width:0}
+#vPanel #wb,#vPanel #menu,#vPanel #find,#vPanel #palette,#vPanel #ptt,#vPanel #pttStart,#vPanel #bchip,#vPanel #build{position:static!important;inset:auto!important;transform:none!important;width:auto!important;max-width:100%;max-height:none!important;background:transparent!important;box-shadow:none!important;color:inherit!important;pointer-events:auto}
+#vPanel #wb,#vPanel #menu,#vPanel #ptt{display:block!important}
+#vPanel #wbTop{display:flex;flex-wrap:wrap;justify-content:flex-start;gap:6px}
+#vPanel #wbTop button{height:auto}
+#vPanel #wbRow{display:flex;flex-wrap:wrap}
+#vPanel #words{flex:1 0 100%;width:100%;height:64px;min-width:0;background:#090e12;color:#eef3f5;font-size:16px;padding:10px;user-select:text}
+#vPanel #wbCode,#vPanel #wbLog,#vPanel #wbJson,#vPanel #wbOps{max-height:160px;overflow:auto}
+#vPanel #wbSheet{flex-wrap:wrap}
+#vPanel #wbKeyRow input,#vPanel #find input{font-size:16px;min-width:0}
+#vPanel #ptt{overflow:visible}
+#vPanel #pttView{position:relative!important;inset:auto!important;width:128px;min-height:96px;aspect-ratio:4/3}
+#vPanel #pttMode{display:flex}
+#vPanel #pttActions{color:#eef3f5}
+#vPanel #pttActions button{background:#151c22;color:#eef3f5}
+#vPanel #pttLine{color:#151c22;box-shadow:none}
+#vPanel #pttLog{max-height:110px;overflow-wrap:anywhere}
+#vPanel #credit{color:#a8b2bc;margin-top:10px;font-size:9px}
+#vPanel #menu .row{flex-wrap:wrap}
+#vText{position:absolute;bottom:0;left:0;right:0;pointer-events:auto;background:var(--v-panel);padding:8px 10px calc(8px + env(safe-area-inset-bottom));border-top:1px solid var(--v-edge)}
+#vWords{display:block;width:100%;resize:none;min-height:58px;max-height:90px;padding:10px;background:#090e12;border:1px solid var(--v-edge);border-radius:10px;font-size:16px!important;user-select:text}
+#vText>div{display:flex;justify-content:flex-end;gap:6px;margin-top:6px}
+body.void-world #prompt{bottom:calc(var(--v-floor) + 190px);height:40px;padding:0 12px;font-size:10px;max-width:80vw;z-index:8}
+@media(min-width:760px){#vPanel{left:auto;width:400px;height:min(360px,calc(var(--vh-world,100dvh)*.4))}#vText{left:50%;right:auto;transform:translateX(-50%);width:480px}#vMove{width:100px;height:100px}}
+@media(max-height:460px){#vMove{width:70px;height:70px;bottom:calc(var(--v-floor) + 10px)}#vMove i{left:20px;top:20px}#vMic{width:50px;height:50px;bottom:calc(var(--v-floor) + 10px)}#vTrace{bottom:calc(var(--v-floor) + 94px);max-height:46px}#vAction{bottom:calc(var(--v-floor) + 50px)}}
+
+/* Twin sticks remain visible and independently captured. */
+#vLook{position:absolute;right:18px;bottom:calc(var(--v-floor) + 22px + env(safe-area-inset-bottom));width:94px;height:94px;border-radius:50%!important;background:#151c2280!important;border:1px solid #e3ebef99!important;touch-action:none!important;padding:0!important}
+#vLook i{position:absolute;left:31px;top:31px;width:30px;height:30px;border-radius:50%;background:#dfe8e955;pointer-events:none}
+#vLook span{position:absolute;left:0;right:0;bottom:9px;font:10px monospace;letter-spacing:.12em;pointer-events:none}
+#vUndo{right:24px;bottom:calc(var(--v-floor) + 126px + env(safe-area-inset-bottom))}
+#vPanelBody{overflow:hidden!important;touch-action:none}
+#vPages{transform:translateY(0);will-change:transform}
+#vPager{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:5px 8px;flex-shrink:0;border-top:1px solid var(--v-edge)}
+#vPager button:disabled{opacity:.35;cursor:default}
+#vPanel #wbCode,#vPanel #wbLog,#vPanel #wbJson,#vPanel #wbOps,#vPanel #wbLogText,#vPanel #pttLog,#vPanel #pttObjects,#vPanel .parts,#vPanel .tools{max-height:none!important;overflow:visible!important;white-space:normal;overflow-wrap:anywhere}
+#vPanel .parts,#vPanel .tools{flex-wrap:wrap!important}
+#vPanel pre{white-space:pre-wrap!important;word-break:break-word}
+#vTrace{overflow:hidden;text-overflow:ellipsis}
+@media(min-width:760px){#vLook{width:100px;height:100px}}
+@media(max-height:460px){#vLook{width:70px;height:70px;bottom:calc(var(--v-floor) + 10px)}#vLook i{left:20px;top:20px}#vPanel{height:55%}}
