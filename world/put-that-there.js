@@ -41,10 +41,10 @@ function intersectBox(ray, box, max, out, hit) {
 function pointIntoWorld(nx, ny) {
   const ray = worldRay(nx, ny); if (!ray) return null;
   const max = 45 * M, out = { best: null };
-  if (W.build) for (const p of W.build.pieces.values()) intersectBox(ray, p.box, max, out, { kind: 'piece', id: p.id, item: p, name: (W.build.kinds.get(p.part) || {}).name || 'brick' });
-  if (W.props) for (const p of W.props.items.values()) if (p.box && !(p.src && p.src.landmark)) intersectBox(ray, p.box, max, out, { kind: 'prop', id: p.id, item: p, name: p.src && (p.src.kind || p.src.as || p.src.kit || p.src.op) || 'model' });
+  if (W.build) for (const p of W.build.pieces.values()) if(!(state.grab && state.grab.hit.kind==='piece' && state.grab.hit.id===p.id)) intersectBox(ray, p.box, max, out, { kind: 'piece', id: p.id, item: p, name: (W.build.kinds.get(p.part) || {}).name || 'brick' });
+  if (W.props) for (const p of W.props.items.values()) if (p.box && !(p.src && p.src.landmark) && !(state.grab && state.grab.hit.kind==='prop' && state.grab.hit.id===p.id)) intersectBox(ray, p.box, max, out, { kind: 'prop', id: p.id, item: p, name: p.src && (p.src.kind || p.src.as || p.src.kit || p.src.op) || 'model' });
   if (W.city) for (const b of W.city.near(ray.origin.x, ray.origin.z, max)) {
-    const box = b.aabb || b.box || null; if (box) intersectBox(ray, box, max, out, { kind: 'building', id: b.id, item: b, name: b.name || 'building' });
+    const box = b.aabb || b.box || null; if (state.grab && state.grab.hit.kind==='building' && state.grab.hit.id===b.id) continue; if (box) intersectBox(ray, box, max, out, { kind: 'building', id: b.id, item: b, name: b.name || 'building' });
   }
   // Terrain intersection: short march followed by a binary search, matching the build reticle.
   if (W.G) {
@@ -61,7 +61,7 @@ function pointIntoWorld(nx, ny) {
 function capture(hit) {
   if (!hit) { sayLine('I cannot see what you mean. Point at a brick, model, or the ground.', 'speak'); return; }
   const now = performance.now(); if (now - state.lastBind < 500) return; state.lastBind = now;
-  if (hit.kind === 'ground' || (state.that && hit.kind !== 'piece' && hit.kind !== 'prop')) {
+  if (hit.kind === 'ground') {
     state.there = { kind: 'ground', point: hit.point.clone() }; sayLine('THERE is bound. Say the operation.', '');
   } else {
     state.that = { ...hit, point: hit.point.clone() }; state.there = null; sayLine('THAT is ' + label(hit) + '. Now point where.', '');
@@ -86,7 +86,7 @@ function movePiece(hit, dst, copy) {
 }
 function moveProp(hit, dst, copy) {
   const P = W.props, it = hit.item; if (!P || !it || !P.items.has(it.id)) return false; const g = groundPoint(dst);
-  if (copy) { P.place(it.mpd, g.x, g.y, g.z, it.yaw, false, it.src); return true; }
+  if (copy) return P.place(it.mpd, g.x, g.y, g.z, it.yaw, false, it.src).then(Boolean);
   P.moveTo(it, g.x, g.y, g.z, it.yaw, false); return true;
 }
 function turn(hit) {
@@ -104,7 +104,8 @@ function remove(hit) {
 function parse(text) {
   text = String(text || '').toLowerCase().replace(/[^a-z0-9\s'-]/g, ' ').replace(/\s+/g, ' ').trim();
   let verb = 'unknown';
-  if (/\b(undo|go back)\b/.test(text)) verb = 'undo';
+  if (/\b(commit|confirm|keep it)\b/.test(text)) verb = 'commit';
+  else if (/\b(undo|go back)\b/.test(text)) verb = 'undo';
   else if (/\b(stop|halt|freeze)\b/.test(text)) verb = 'stop';
   else if (/\b(walk|go|come)\b/.test(text)) verb = 'walk';
   else if (/\b(remove|delete|destroy|pick up)\b/.test(text)) verb = 'remove';
@@ -127,35 +128,45 @@ function tracePacket(words) {
 }
 
 function findReferent(id) {
-  if(!id)return state.that;
+  if(id==null)return state.that;
+  const building=W.city&&W.city.buildings.find(b=>String(b.id)===String(id));
+  if(building)return {kind:'building',id:building.id,item:building,box:building.aabb,name:building.name||'building'};
   if(W.build&&W.build.pieces.has(id)){const p=W.build.pieces.get(id);return{kind:'piece',id,item:p,name:(W.build.kinds.get(p.part)||{}).name||'brick',box:p.box};}
   if(W.props&&W.props.items.has(id)){const p=W.props.items.get(id);return{kind:'prop',id,item:p,name:p.src&&(p.src.kind||p.src.as||p.src.kit||p.src.op)||'model',box:p.box};}
   return null;
 }
 async function infer(words, capturedPacket) {
-  if(state.inferring)return; if(!window.Ai||!Ai.key()){execute(parse(words));return;}
+  if(state.inferring){sayLine('Finish the current request first.','');return;}
+  if(!W.ready){sayLine('Wait for the world to load.','');return;}
+  const local=parse(words);
+  if(/^(stop|undo|commit)$/.test(local.verb)){execute(local);return;}
+  if(!window.Ai||!Ai.key()){
+    if(local.verb==='build'||local.verb==='unknown'){sayLine('Add an OpenAI key for new creations, or use + Brick to test placement.','');W.wbOpen&&W.wbOpen(true);return;}
+    execute(local);return;
+  }
   state.inferring=true;$('#pttMic').textContent='LLM: inferring';sayLine('Resolving words and gesture…','');
   try {
     const packet=capturedPacket ? {...capturedPacket,utterance:words} : tracePacket(words),a=await Ai.inferAct(packet);
     if(a.act==='clarify'||a.clarification||Number(a.confidence)<.58){sayLine(a.clarification||a.say||'Show me which one.','speak');return;}
-    const allowed=new Set([...(packet.candidates||[]),...(packet.nearby||[])].map(x=>x.id).filter(Boolean));
-    if(a.referent_id&&!allowed.has(a.referent_id)){sayLine('The model named something outside the visible world. Point again.','speak');return;}
+    const allowed=new Set([...(packet.candidates||[]),...(packet.nearby||[])].map(x=>String(x.id)));
+    if(a.referent_id&&!allowed.has(String(a.referent_id))){sayLine('The model named something outside the visible world. Point again.','speak');return;}
     const ref=findReferent(a.referent_id);if(a.referent_id&&!ref){sayLine('That reference is no longer in the world. Point again.','speak');return;}
     if(ref){state.that=ref;showSelection(ref.box);}if(Array.isArray(a.destination)&&a.destination.length===3&&a.destination.every(Number.isFinite)){const p=new THREE.Vector3(...a.destination),origin=W.rig&&W.rig.pos;if(origin&&Math.hypot(p.x-origin.x,p.z-origin.z)>60*M){sayLine('That destination is outside the reachable scene. Point closer.','speak');return;}p.y=W.G.h(p.x,p.z);state.there={kind:'ground',point:p};}paintBindings();
     if(a.act==='build'&&a.program&&Array.isArray(a.program.ops)&&W.mbLoad){pinDestination();W.mbLoad(a.program);sayLine(a.say||'The build is ready to preview.','speak');resetBindings();return;}
     if(a.act==='build'&&a.words&&W.say){pinDestination();await W.say(a.words);sayLine(a.say||'The build is ready to preview.','speak');return;}
     if(a.act==='change'&&a.words&&W.say){await W.say(a.words);sayLine(a.say||'The change is ready to preview.','speak');return;}
     const cmd={verb:a.act,text:a.words||words,needsThat:/^(move|copy|remove|turn|taller)$/.test(a.act),needsThere:/^(move|copy|walk)$/.test(a.act),thisWord:false,thereWord:false};
-    const ok=execute(cmd);if(ok&&a.say)sayLine(a.say,'speak');
-  } catch(e){console.warn('[put-that-there] inference',e);sayLine('The model could not resolve that. Using the local language game.','');execute(parse(words));}
-  finally{state.inferring=false;$('#pttMic').textContent='VOICE: listening';}
+    const ok=await execute(cmd);if(ok&&a.say)sayLine(a.say,'speak');
+  } catch(e){console.warn('[put-that-there] inference',e);sayLine('Model error: '+(e.message||e)+'. Your world was not changed.','');}
+  finally{state.inferring=false;$('#pttMic').textContent=state.voiceError?'VOICE: '+state.voiceError:state.voiceOff?'VOICE: tap Talk':'VOICE: browser listening';}
 }
 
 function resetBindings() { state.that = state.there = state.pending = null; paintBindings(); if (state.helper && W.scene) W.scene.remove(state.helper); state.helper = null; }
 function execute(cmd) {
   state.pending = null;
-  if (cmd.verb === 'stop') { stopWalk(); sayLine('Stopped.', ''); return true; }
-  if (cmd.verb === 'undo') { if (W.build) W.build.undo(); sayLine('Undone.', ''); return true; }
+  if (cmd.verb === 'commit') { if(W.master&&W.master.result&&W.mbCommit){W.mbCommit();sayLine('Committing the preview.','');return true;}sayLine('There is no preview to commit.','');return false; }
+  if (cmd.verb === 'stop') { state.walkTarget=null;state.grab=null;setMode('point');stopWalk(); sayLine('Stopped.', ''); return true; }
+  if (cmd.verb === 'undo') { if(state.cityUndo){restoreCity(state.cityUndo);state.cityUndo=null;sayLine('Building move undone.','');}else if(W.build&&W.build.undo())sayLine('Last placed brick removed.','');else sayLine('Nothing to undo in the placement history.',''); return true; }
   if (cmd.thisWord && !state.that && state.hover && state.hover.kind !== 'ground') state.that = { ...state.hover, point: state.hover.point.clone() };
   if (cmd.thereWord && !state.there && state.hover && state.hover.kind === 'ground') state.there = { kind: 'ground', point: state.hover.point.clone() };
   if (cmd.needsThat && !state.that) { state.pending = cmd; sayLine('Which thing? Point at it and pinch.', 'speak'); paintBindings(); return false; }
@@ -164,16 +175,18 @@ function execute(cmd) {
   if (cmd.verb === 'move' || cmd.verb === 'copy') {
     if (state.that.kind === 'piece') ok = movePiece(state.that, state.there.point, cmd.verb === 'copy');
     else if (state.that.kind === 'prop') ok = moveProp(state.that, state.there.point, cmd.verb === 'copy');
+    else if (state.that.kind === 'building') ok = moveBuilding(state.that, state.there.point, cmd.verb === 'copy');
   } else if (cmd.verb === 'remove') ok = remove(state.that);
   else if (cmd.verb === 'turn') ok = turn(state.that);
   else if (cmd.verb === 'taller' && state.that.kind === 'piece') {
     const p=state.that.item,B=W.build,h=B.ext(p.part,p.rot)[4]; ok=!!B.addRows([[p.id,p.part,p.col,p.x,p.y+h,p.z,p.rot]],false,true).length;
   }
-  else if (cmd.verb === 'walk') { const p = state.there.point; if (W.map && W.map.setWaypoint) W.map.setWaypoint(p.x / M, p.z / M); else if (W.teleport) W.teleport(p.x, p.z); ok = true; }
+  else if (cmd.verb === 'walk') { state.walkTarget=state.there.point.clone();state.walkStarted=performance.now();state.walkLast=W.rig.pos.clone();state.walkStuck=0;sayLine('Walking toward THERE. Say stop to stop.','');resetBindings();return true; }
   else if (cmd.verb === 'build') {
     pinDestination();
-    if (W.say) { W.say(cmd.text.replace(/\b(here|there)\b/g, '').trim()); ok = true; }
+    if (W.say) { W.wbOpen&&W.wbOpen(true);W.say(cmd.text.replace(/\b(here|there)\b/g, '').trim());sayLine('Building a preview. Use Commit to place it.','');return true; }
   }
+  if(ok&&typeof ok.then==='function')return ok.then(done=>{sayLine(done?'Copy placed.':'Could not load the copied model.','');if(done)resetBindings();return done;}).catch(e=>{sayLine('Copy failed: '+e.message,'');return false;});
   if (ok) { sayLine(cmd.verb.toUpperCase() + ' complete.', ''); resetBindings(); }
   else if (state.that && state.that.kind === 'building') sayLine('That building belongs to the place. Point at your LEGO bricks or a built model.', 'speak');
   else sayLine('I could not perform that move.', 'speak');
@@ -183,26 +196,31 @@ function heard(text, explicit = false, capturedPacket) {
   text = String(text || '').trim(); if (!text) return; $('#pttMic').textContent = 'VOICE: “' + text.slice(0, 34) + '”'; $('#pttMic').classList.add('set'); sayLine('“' + text + '”', '');
   const awake=explicit||/^\s*(world|lego|builder)\b/i.test(text)||/^\s*put that\b/i.test(text);
   if(!awake){sayLine('Say “World” before the request, or begin “Put that…”.','');return;}
-  infer(text.replace(/^\s*(world|lego|builder)[,:]?\s*/i,''), capturedPacket);
+  return infer(text.replace(/^\s*(world|lego|builder)[,:]?\s*/i,''), capturedPacket);
 }
 
 function startSpeech() {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) { $('#pttMic').textContent = 'VOICE: type below'; sayLine('Voice recognition is unavailable here. Type the same command in the word bar.', ''); return; }
   const r = new SR(); state.recognition = r; r.continuous = true; r.interimResults = true; r.lang = document.documentElement.lang || 'en-US';
-  r.onstart = () => { $('#pttMic').textContent = 'VOICE: listening'; $('#pttMic').classList.add('set'); $('#pttStart').classList.add('listening'); };
-  r.onresult = e => { if(state.recorder || state.transcribing)return; let interim = ''; for (let i = e.resultIndex; i < e.results.length; i++) { const t = e.results[i][0].transcript; if (e.results[i].isFinal) heard(t); else interim += t; } if (interim) sayLine(interim + '…', ''); };
-  r.onerror = e => { if (e.error !== 'aborted' && e.error !== 'no-speech') sayLine('Voice: ' + e.error + '. You can still point and type.', ''); };
-  r.onend = () => { $('#pttStart').classList.remove('listening'); if (state.on) { clearTimeout(state.speechRestart); state.speechRestart = setTimeout(() => { try { r.start(); } catch (e) { } }, 450); } };
+  r.onstart = () => { state.voiceError=null;$('#pttMic').textContent = 'VOICE: browser listening'; $('#pttMic').classList.add('set'); $('#pttStart').classList.add('listening'); };
+  r.onresult = e => { if(state.recorder || state.transcribing || window.speechSynthesis&&speechSynthesis.speaking)return; let interim = ''; for (let i = e.resultIndex; i < e.results.length; i++) { const t = e.results[i][0].transcript; if (e.results[i].isFinal) {state.lastHeard=Date.now();heard(t,true);} else interim += t; } if (interim) sayLine(interim + '…', ''); };
+  r.onerror = e => { state.voiceError=e.error;$('#pttMic').textContent='VOICE: '+e.error;if(e.error!=='aborted')sayLine('Browser voice: '+e.error+'. Use Talk with your OpenAI key, or type below.','');if(/not-allowed|service-not-allowed/.test(e.error))state.voiceOff=true; };
+  r.onend = () => { $('#pttStart').classList.remove('listening'); if (state.on && !state.recorder && !state.transcribing && !state.voiceOff) { clearTimeout(state.speechRestart); state.speechRestart = setTimeout(() => { try { r.start(); } catch (e) { } }, 450); } };
   try { r.start(); } catch (e) { }
 }
 
 function recordStart(e) {
-  if(e){e.preventDefault();e.currentTarget.setPointerCapture(e.pointerId);}if(!state.on||state.recorder||state.transcribing||!window.MediaRecorder)return;
+  if(e)e.preventDefault();
+  if(!state.on||state.recorder||state.transcribing)return;
+  if(!window.MediaRecorder){sayLine('Recording is not supported here. Use browser voice or type below.','');return;}
+  if(!window.Ai||!Ai.key()){sayLine('Talk uses OpenAI transcription. Add your API key first.','');W.wbOpen&&W.wbOpen(true);$('#wbKeyBtn')&&$('#wbKeyBtn').click();return;}
+  state.voiceOff=true;clearTimeout(state.speechRestart);if(state.recognition)try{state.recognition.abort();}catch(e){}
+  if(window.speechSynthesis)speechSynthesis.cancel();
   const tracks=state.stream&&state.stream.getAudioTracks();if(!tracks||!tracks.length){sayLine('No microphone track. Restart and allow microphone access.','');return;}
-  try{state.chunks=[];state.recorder=new MediaRecorder(new MediaStream(tracks),{mimeType:MediaRecorder.isTypeSupported('audio/webm')?'audio/webm':undefined});state.recorder.ondataavailable=x=>{if(x.data&&x.data.size)state.chunks.push(x.data);};state.recorder.onstop=transcribeRecording;state.recorder.start(200);$('#pttAsk').classList.add('on');$('#pttAsk').textContent='Release';sayLine('Listening for the whole speech act…','');}catch(x){state.recorder=null;sayLine('Could not start the microphone recording.','');}
+  try{state.chunks=[];state.recorder=new MediaRecorder(new MediaStream(tracks),{mimeType:MediaRecorder.isTypeSupported('audio/webm')?'audio/webm':undefined});state.recorder.ondataavailable=x=>{if(x.data&&x.data.size)state.chunks.push(x.data);};state.recorder.onstop=transcribeRecording;state.recorder.start(200);state.recordTimer=setTimeout(recordStop,30000);$('#pttAsk').classList.add('on');$('#pttAsk').textContent='Send voice';sayLine('Listening for the whole speech act…','');}catch(x){state.recorder=null;sayLine('Could not start the microphone recording.','');}
 }
-function recordStop(e){if(e)e.preventDefault();if(state.recorder&&state.recorder.state==='recording')state.recorder.stop();}
+function recordStop(e){if(e)e.preventDefault();clearTimeout(state.recordTimer);if(state.recorder&&state.recorder.state==='recording')state.recorder.stop();}
 async function transcribeRecording(){
   const r=state.recorder, packet=tracePacket('');
   state.recorder=null; state.transcribing=true;
@@ -215,9 +233,9 @@ async function transcribeRecording(){
     const f=new FormData();f.append('file',blob,/mp4/.test(mime)?'speech.mp4':'speech.webm');f.append('model','gpt-4o-transcribe');
     const res=await fetch('https://api.openai.com/v1/audio/transcriptions',{method:'POST',headers:{Authorization:'Bearer '+Ai.key()},body:f});
     const j=await res.json();if(!res.ok)throw new Error(j.error&&j.error.message||res.status);
-    if(state.on)heard(j.text||'',true,packet);
+    if(state.on){$('#pttMic').textContent='HEARD: '+(j.text||'');await heard(j.text||'',true,packet);}
   }catch(e){sayLine('Transcription: '+e.message,'');}
-  finally{state.transcribing=false;$('#pttAsk').textContent='Hold ask';}
+  finally{state.transcribing=false;$('#pttAsk').textContent='Talk';$('#pttMic').textContent='VOICE: tap Talk';}
 }
 
 function drawHand(hand, pose) {
@@ -230,7 +248,7 @@ function drawHand(hand, pose) {
 }
 function poseWalk(marks) {
   if (!marks || state.mode !== 'walk' || !W || !W.ready || W.mode !== 'walk') { stopWalk(); return; }
-  const ls=marks[11],rs=marks[12],lw=marks[15],rw=marks[16],lh=marks[23],rh=marks[24]; if (![ls,rs,lw,rw,lh,rh].every(Boolean)) { stopWalk(); return; }
+  const ls=marks[11],rs=marks[12],lw=marks[15],rw=marks[16],lh=marks[23],rh=marks[24]; if (![ls,rs,lw,rw,lh,rh].every(p=>p&&(p.visibility==null||p.visibility>.6))) { stopWalk(); return; }
   const up = lw.y < ls.y && rw.y < rs.y, back = lw.y > lh.y && rw.y > rh.y;
   const steer = Math.max(-1,Math.min(1,((1-(ls.x+rs.x)/2)-.5)*4)); const speed = up ? .72 : back ? -.38 : 0;
   W.input.L.x = steer*.72; W.input.L.y = speed; W.input.L.mag = Math.min(1,Math.hypot(W.input.L.x,speed)); W.input.L.held = W.input.L.mag > .03; state.walking = W.input.L.held;
@@ -245,6 +263,7 @@ async function visionLoop() {
     try {
       const hr = state.hand.detectForVideo(v, now), hand = hr.landmarks && hr.landmarks[0] || null; state.landmarks = hand;
       let pose = state.poseMarks; if (state.frame % 3 === 0) { const pr = state.pose.detectForVideo(v, now); pose = state.poseMarks = pr.landmarks && pr.landmarks[0] || null; }
+      if(state.frame%3===0)state.poseAt=now;state.handAt=hand?now:0;
       drawHand(hand, pose);
       if (state.mode === 'walk') poseWalk(pose);
       else {
@@ -253,9 +272,19 @@ async function visionLoop() {
           const nx=1-tip.x, ny=tip.y, pinch=Math.hypot(tip.x-thumb.x,tip.y-thumb.y) < span*.42;
           state.hover=pointIntoWorld(nx,ny); const cur=$('#pttCursor'); cur.style.left=(nx*innerWidth)+'px';cur.style.top=(ny*innerHeight)+'px';cur.className='on '+(state.hover ? state.hover.kind==='ground'?'ground':'object':'');
           if(!state.trace.length||now-state.trace[state.trace.length-1].t>90){const h=state.hover;state.trace.push({t:now,pointer:[+nx.toFixed(3),+ny.toFixed(3)],pinch,hit:h?{kind:h.kind,id:h.id||null,name:label(h),point:h.point.toArray().map(v=>Math.round(v))}:null});while(state.trace.length&&now-state.trace[0].t>6500)state.trace.shift();}
-          if (pinch && !state.pinched) capture(state.hover); state.pinched=pinch;
+          if(pinch&&!state.pinched){
+            capture(state.hover);
+            if(state.hover&&state.hover.kind!=='ground')state.grab={hit:state.hover,start:[nx,ny],destination:null};
+          }
+          if(pinch&&state.grab&&state.hover&&state.hover.kind==='ground'&&Math.hypot(nx-state.grab.start[0],ny-state.grab.start[1])>.04){
+            state.grab.destination=state.hover.point.clone();
+            if(state.helper){const box=state.grab.hit.box,centre=new THREE.Box3().copy(box).getCenter(V());centre.y=box.min.y;state.helper.position.copy(state.grab.destination).sub(centre);}
+            sayLine('Release to move '+label(state.grab.hit)+'.','');
+          }
+          if(!pinch&&state.pinched&&state.grab){const grab=state.grab;state.grab=null;if(grab.destination){state.that=grab.hit;state.there={kind:'ground',point:grab.destination};execute({verb:'move',needsThat:true,needsThere:true});}}
+          state.pinched=pinch;
           if (!pinch && palm && Math.hypot(tip.x-thumb.x,tip.y-thumb.y)>span*.65) state.pinched=false;
-        } else { state.hover=null; $('#pttCursor').className=''; state.pinched=false; }
+        } else { state.hover=null;state.grab=null;if(state.helper)state.helper.position.set(0,0,0); $('#pttCursor').className=''; state.pinched=false; }
       }
     } catch (e) { console.warn('[put-that-there] vision frame',e); }
   }
@@ -265,6 +294,7 @@ async function visionLoop() {
 async function start() {
   if (state.on) { stop(); return; }
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { sayLine('This browser cannot open a camera. Use HTTPS on a current phone or computer.', ''); return; }
+  state.voiceOff=false;
   const b=$('#pttStart'); b.disabled=true; b.textContent='Opening…'; $('#ptt').classList.add('on'); sayLine('Allow camera and microphone access. Tracking models will load next.','');
   try {
     state.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:640},height:{ideal:480}},audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
@@ -273,20 +303,103 @@ async function start() {
     const make=async(K,options)=>{try{return await K.createFromOptions(files,{...options,baseOptions:{...options.baseOptions,delegate:'GPU'}});}catch(e){console.info('[put-that-there] GPU delegate unavailable; using CPU');return K.createFromOptions(files,{...options,baseOptions:{...options.baseOptions,delegate:'CPU'}});}};
     state.hand=await make(mod.HandLandmarker,{baseOptions:{modelAssetPath:'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task'},runningMode:'VIDEO',numHands:1,minHandDetectionConfidence:.45,minTrackingConfidence:.45});
     state.pose=await make(mod.PoseLandmarker,{baseOptions:{modelAssetPath:'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task'},runningMode:'VIDEO',numPoses:1,minPoseDetectionConfidence:.4,minTrackingConfidence:.4});
-    const v=$('#pttVideo');v.srcObject=state.stream;await v.play();state.on=true;document.body.classList.add('ptt-on');$('#ptt').classList.add('on');b.classList.add('on');b.setAttribute('aria-pressed','true');b.textContent='Stop pointing';sayLine('Point. Pinch to bind THAT, then pinch the ground to bind THERE.','');startSpeech();visionLoop();
+    const v=$('#pttVideo');v.srcObject=state.stream;await v.play();state.on=true;document.body.classList.add('ptt-on');$('#ptt').classList.add('on');b.classList.add('on');b.setAttribute('aria-pressed','true');b.textContent='Stop pointing';sayLine('Pinch and drag to move. Arms mirror your pose. Talk or type to create.','');startSpeech();visionLoop();
   } catch(e) { console.error('[put-that-there] start',e); if(state.stream)state.stream.getTracks().forEach(t=>t.stop());state.stream=null;sayLine(/denied|permission/i.test(String(e))?'Camera permission was denied. Enable it in the browser, then try again.':'Could not start hand tracking. The typed builder still works.',''); }
   finally { b.disabled=false; if(!state.on)b.textContent='Point + speak'; }
 }
 function stop() {
-  state.on=false;stopWalk();clearTimeout(state.speechRestart);if(state.recorder)try{state.recorder.onstop=null;state.recorder.stop();}catch(e){}state.recorder=null;if(state.recognition)try{state.recognition.abort();}catch(e){}state.recognition=null;if(state.stream)state.stream.getTracks().forEach(t=>t.stop());state.stream=null;
+  state.on=false;state.walkTarget=null;state.grab=null;clearTimeout(state.recordTimer);stopWalk();resetPose();clearTimeout(state.speechRestart);if(state.recorder)try{state.recorder.onstop=null;state.recorder.stop();}catch(e){}state.recorder=null;if(state.recognition)try{state.recognition.abort();}catch(e){}state.recognition=null;if(state.stream)state.stream.getTracks().forEach(t=>t.stop());state.stream=null;
   if(state.hand)state.hand.close();if(state.pose)state.pose.close();state.hand=state.pose=null;resetBindings();document.body.classList.remove('ptt-on');$('#ptt').classList.remove('on');$('#pttCursor').className='';const b=$('#pttStart');b.classList.remove('on','listening');b.setAttribute('aria-pressed','false');b.textContent='Point + speak';
 }
 function setMode(mode){state.mode=mode==='walk'?'walk':'point';document.querySelectorAll('[data-ptt-mode]').forEach(b=>b.classList.toggle('on',b.dataset.pttMode===state.mode));if(state.mode==='walk'){resetBindings();sayLine('Raise both hands to walk. Lean left or right to steer.','');$('#pttCursor').className='';}else{stopWalk();sayLine('Point and pinch to bind THAT and THERE.','');}}
 
 $('#pttStart').addEventListener('click',start);document.querySelectorAll('[data-ptt-mode]').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.pttMode)));window.addEventListener('pagehide',stop);
-$('#pttAsk').addEventListener('pointerdown',recordStart);$('#pttAsk').addEventListener('pointerup',recordStop);$('#pttAsk').addEventListener('pointercancel',recordStop);$('#pttAsk').addEventListener('contextmenu',e=>e.preventDefault());
+$('#pttAsk').textContent='Talk';$('#pttAsk').addEventListener('click',e=>state.recorder?recordStop(e):recordStart(e));$('#pttAsk').addEventListener('contextmenu',e=>e.preventDefault());
 // In browsers without speech recognition, the same small language works through the existing text field.
-$('#wbBuild').addEventListener('click',e=>{if(!state.on)return;const t=$('#words').value,cmd=parse(t);if(cmd.verb==='unknown')return;e.preventDefault();e.stopImmediatePropagation();$('#words').value='';heard(t);},true);
-$('#words').addEventListener('keydown',e=>{if(!state.on||e.key!=='Enter'||e.shiftKey)return;const cmd=parse(e.target.value);if(cmd.verb==='unknown')return;e.preventDefault();e.stopImmediatePropagation();const t=e.target.value;e.target.value='';heard(t);},true);
-window.PutThatThere={parse,heard,infer,tracePacket,execute,capture,pointIntoWorld,setMode,start,stop,state:()=>({on:state.on,mode:state.mode,that:label(state.that),there:!!state.there,pending:state.pending&&state.pending.verb,walking:state.walking,inferring:state.inferring,trace:state.trace.length})};
+$('#wbBuild').addEventListener('click',e=>{if(!state.on)return;const t=$('#words').value,cmd=parse(t);e.preventDefault();e.stopImmediatePropagation();$('#words').value='';heard(t,true);},true);
+$('#words').addEventListener('keydown',e=>{if(!state.on||e.key!=='Enter'||e.shiftKey)return;const cmd=parse(e.target.value);e.preventDefault();e.stopImmediatePropagation();const t=e.target.value;e.target.value='';heard(t,true);},true);
+
+function snapshotCity(){
+  return {source:W.city.source.map(s=>({...s,ring:s.ring.map(p=>({...p}))})),damage:W.city.buildings.map(b=>[b.id,[...b.removed]])};
+}
+function restoreCity(snapshot){
+  W.city.set(snapshot.source.map(s=>({...s,ring:s.ring.map(p=>({...p}))})));
+  for(const [id,ks] of snapshot.damage){const b=W.city.buildings.find(x=>x.id===id);if(b&&ks.length)W.city.applyRemoved(b,ks);}
+}
+function moveBuilding(hit,dst,copy){
+  if(!W.city||!dst)return false;
+  if(W.room&&W.room.role){sayLine('Map-building moves are local only. Leave the shared room first.','');return false;}
+  const b=W.city.buildings.find(x=>String(x.id)===String(hit.id)),src=b&&W.city.source.find(x=>x.id===b.id);if(!src)return false;
+  const saved=snapshotCity(),dx=dst.x/M-b.cx,dz=dst.z/M-b.cz;
+  const moved={...src,ring:src.ring.map(p=>({...p,x:p.x+dx,z:p.z+dz}))};
+  if(copy)moved.id=-Date.now();
+  const next=copy?[...saved.source,moved]:saved.source.map(x=>x.id===src.id?moved:x);
+  try{restoreCity({source:next,damage:saved.damage});state.cityUndo=saved;return true;}
+  catch(e){restoreCity(saved);sayLine('Building move failed: '+e.message,'');return false;}
+}
+function poseAngles(m){
+  if(!m)return null;
+  const good=p=>p&&(p.visibility==null||p.visibility>.55);
+  if(!good(m[11])||!good(m[12]))return null;
+  const arm=(s,e,w)=>{
+    const end=good(m[w])?m[w]:good(m[e])?m[e]:null;if(!end)return null;
+    const dx=end.x-m[s].x,dy=end.y-m[s].y,dz=(end.z||0)-(m[s].z||0);
+    return {x:-Math.min(2.5,Math.max(0,-dz)*4),z:Math.max(-2.8,Math.min(2.8,Math.atan2(-dx,dy)))};
+  };
+  return {left:arm(11,13,15),right:arm(12,14,16),lean:Math.max(-.35,Math.min(.35,(m[12].y-m[11].y)*2))};
+}
+function resetPose(){
+  if(!W.rig)return;
+  for(const p of [W.rig.armLP,W.rig.armRP])if(p)p.rotation.z=0;
+  if(W.rig.torsoP)W.rig.torsoP.rotation.z=0;
+}
+function afterPose(dt){
+  if(!state.on||W.mode!=='walk'||W.dead||W.rig.air||W.film&&W.film.owns()){resetPose();return;}
+  const pose=performance.now()-(state.poseAt||0)<450?poseAngles(state.poseMarks):null;
+  if(!pose){resetPose();return;}
+  const k=1-Math.exp(-dt*16);
+  state.armSmooth=state.armSmooth||{left:{x:0,z:0},right:{x:0,z:0}};
+  for(const [key,joint] of [['left',W.rig.armLP],['right',W.rig.armRP]]){
+    if(!joint)continue;const t=pose[key];if(!t){joint.rotation.z=0;continue;}
+    const a=state.armSmooth[key];a.x+=(t.x-a.x)*k;a.z+=(t.z-a.z)*k;
+    joint.rotation.x=a.x;joint.rotation.z=a.z;
+  }
+  W.rig.torsoP.rotation.z=pose.lean;
+}
+function beforeStep(dt){
+  if(!state.on)return;
+  if(state.mode==='walk'&&performance.now()-(state.poseAt||0)>450)stopWalk();
+  if(!state.walkTarget)return;
+  if(W.mode!=='walk'||W.dead||W.film&&W.film.owns()){state.walkTarget=null;stopWalk();return;}
+  const p=W.rig.pos,dx=state.walkTarget.x-p.x,dz=state.walkTarget.z-p.z,d=Math.hypot(dx,dz);
+  state.walkStuck=p.distanceTo(state.walkLast)<.05?state.walkStuck+dt:0;state.walkLast.copy(p);
+  if(d<.8*M||state.walkStuck>2||performance.now()-state.walkStarted>30000){
+    sayLine(d<.8*M?'Arrived.':'Path blocked. Point at a reachable place.','');state.walkTarget=null;stopWalk();return;
+  }
+  const y=W.rig.cam.yaw;W.input.L.x=(-Math.sin(y)*dz+Math.cos(y)*dx)/d*.65;
+  W.input.L.y=(-Math.sin(y)*dx-Math.cos(y)*dz)/d*.65;W.input.L.mag=.65;W.input.L.held=true;state.walking=true;
+}
+function addTestBrick(){
+  if(!W.ready||!W.build)return;
+  const B=W.build,part=B.kinds.has('3001')?'3001':B.part;
+  let p=state.there&&state.there.point;
+  if(!p){const f=V();Minifig.facing(W.rig,f);p=W.rig.pos.clone().addScaledVector(f,4*M);}
+  const g=groundPoint(p),rows=B.addRows([[null,part,4,g.x,g.y,g.z,0]],false,true);
+  if(rows.length){B.history.push(rows[0].id);sayLine('Brick placed. Pinch it, drag to ground, then release.','');}
+  else sayLine('Could not place that brick.','');
+}
+const controls=document.createElement('div');controls.id='pttActions';
+controls.innerHTML='<div><button id="pttBrick">+ Brick</button><button id="pttMove">Move there</button><button id="pttCopy">Copy there</button><button id="pttUndo">Undo</button><button id="pttKey">API key</button></div><form id="pttForm"><input id="pttWords" aria-label="World instruction" placeholder="Make a house here" autocomplete="off"><button>Send</button></form>';
+$('#ptt').appendChild(controls);
+const css=document.createElement('style');css.textContent='#pttActions{pointer-events:auto}#pttActions>div{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0}#pttActions button{padding:8px;border:1px solid #526071;border-radius:7px;background:#fff;color:#172230;font:12px system-ui;cursor:pointer}#pttForm{display:flex;gap:4px}#pttWords{min-width:0;flex:1;padding:10px;font:16px system-ui;border-radius:7px;border:1px solid #526071;user-select:text}#ptt{max-height:80vh;overflow:auto}body.ptt-on #hint,body.ptt-on #keys{display:none}';
+document.head.appendChild(css);
+$('#pttBrick').onclick=addTestBrick;
+$('#pttMove').onclick=()=>execute({verb:'move',needsThat:true,needsThere:true});
+$('#pttCopy').onclick=()=>execute({verb:'copy',needsThat:true,needsThere:true});
+$('#pttUndo').onclick=()=>execute({verb:'undo'});
+$('#pttKey').onclick=()=>{W.wbOpen&&W.wbOpen(true);$('#wbKeyBtn').click();};
+$('#pttForm').onsubmit=e=>{e.preventDefault();const input=$('#pttWords');const t=input.value.trim();if(t){heard(t,true);input.value='';}};
+for(const name of ['pointerdown','pointerup','pointermove','keydown'])controls.addEventListener(name,e=>e.stopPropagation());
+
+window.PutThatThere={beforeStep,afterPose,poseAngles,addTestBrick,parse,heard,infer,tracePacket,execute,capture,pointIntoWorld,setMode,start,stop,state:()=>({on:state.on,mode:state.mode,that:label(state.that),there:!!state.there,pending:state.pending&&state.pending.verb,walking:state.walking,inferring:state.inferring,trace:state.trace.length})};
 })();

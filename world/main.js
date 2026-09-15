@@ -670,6 +670,7 @@ function setTier(tier) {
 const MOVE = { x: 0, z: 0, mag: 0 };
 function simulate(dt) {
   W.t += dt; readKeys(); if (W.film) W.film.step(dt);
+  if(window.PutThatThere)window.PutThatThere.beforeStep(dt);
   const portrait = innerHeight > innerWidth, I = W.input, d = Minifig.DEFS[W.character];
   if (W.mode === 'walk') {
     if (W.dead) { W.dead -= dt; if (W.dead <= 0) respawn(); I.saber = false; I.push = false; }
@@ -677,6 +678,7 @@ function simulate(dt) {
       if (W.film && W.film.holds()) { MOVE.x = MOVE.z = MOVE.mag = 0; I.saber = false; I.push = false; } else if (W.film && W.film.acting()) W.film.move(MOVE); else Minifig.moveFromStick(W.rig, I.L, MOVE);   // a free film camera takes the thumbs; a shot with an act walks the figure
       const building = !!(W.build && W.build.on), wantsShot = I.saber && !building && !d.saber && !!d.weapon, wantsShove = I.saber && !building && !d.saber && !d.weapon;
       Minifig.step(W.rig, dt, { move: MOVE, run: I.run || !!(W.film && W.film.running), saber: I.saber && !building, aim: wantsShot }, WALK);
+      if(window.PutThatThere)window.PutThatThere.afterPose(dt);
       if (wantsShot) { const p = new THREE.Vector3(), dir = new THREE.Vector3(); Minifig.muzzle(W.rig, p); Minifig.facing(W.rig, dir); dir.y = -0.02; W.bolts.fire(p, dir, 'player'); }   // the bolt leaves the barrel, level with the ground
       if (wantsShove) forcePush();
       I.saber = false;
