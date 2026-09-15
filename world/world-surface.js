@@ -28,15 +28,40 @@ move('#shield','#voidUI');
 move('#pttView','#voidUI');move('#pttState','#voidUI');$('#pttState').hidden=false;
 move('#minimap','#voidUI');move('#det','#voidUI');
 
+
+/* Restore the screenshot's actual controls, retaining their existing handlers. */
+document.body.classList.add('reference-controls');
+const buildDock=document.createElement('section');buildDock.id='refBuild';buildDock.setAttribute('aria-label','Builder controls');root.appendChild(buildDock);
+const handDock=document.createElement('section');handDock.id='refHand';handDock.setAttribute('aria-label','Pointing controls');root.appendChild(handDock);
+for(const id of ['#wbCode','#wbLog','#wbKeyRow'])move(id,'#v-builder');
+move('#wb','#refBuild');move('#wbSay','#refBuild');
+move('#ptt','#refHand');move('#pttView','#ptt');$('#ptt').prepend($('#pttView'));
+move('#pttState','#ptt');$('#pttView').after($('#pttState'));
+$('#pttState').hidden=false;$('#pttForm').hidden=false;$('#pttKey').hidden=false;$('#wbHide').hidden=false;
+move('#pttAsk','#pttMode');
+for(const node of Array.from($('#pttActions').children)){
+ if(node.id==='pttForm'||node=== $('#pttActions').firstElementChild)continue;
+ $('#v-inputs').appendChild(node);
+}
+document.body.classList.remove('wb-off');
+builder.onclick=()=>{document.body.classList.remove('wb-off');$('#words').focus();layout();};
+$('#pttKey').onclick=()=>{panel('builder');$('#wbKeyRow').classList.add('on');$('#wbKey').value=window.Ai?Ai.key():'';$('#wbKey').focus();};
+for(const id of ['#wbCodeBtn','#wbLogBtn','#wbKeyBtn'])$(id).addEventListener('click',()=>{panel('builder');});
+$('#wbSay').onclick=()=>{document.body.classList.remove('wb-off');layout();};
+const handToggle=document.createElement('button');handToggle.id='refHandToggle';handToggle.textContent='Pointing';handToggle.onclick=()=>{$('#vPanel').hidden=true;$('#vText').hidden=true;document.body.classList.toggle('ref-hand-open');layout();};access.appendChild(handToggle);
+const handClose=document.createElement('button');handClose.id='refHandClose';handClose.textContent='Close';handClose.onclick=()=>{document.body.classList.remove('ref-hand-open');layout();};handDock.prepend(handClose);
+new ResizeObserver(()=>layout()).observe(buildDock);
+new ResizeObserver(()=>layout()).observe(handDock);
+
 let phase='REST',lastInstruction='',traceUntil=0,fault=false,tab='builder',pointer=null,movePointer=null,lookPointer=null,lookAxis={x:0,y:0},pageOffset=0,hold=null,submitAudio=false,lastTime=0,previousSignature='';
 function trace(text,duration=4500){$('#vTrace').textContent=text;traceUntil=performance.now()+duration;}
-function panel(name){stopMovement();stopLook();pageOffset=0;tab=name||tab;$('#vPanel').hidden=false;root.querySelectorAll('[data-vtab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.vtab===tab)));for(const n of ['builder','inputs','world'])$('#v-'+n).hidden=n!==tab;layout();}
+function panel(name){document.body.classList.remove('ref-hand-open');stopMovement();stopLook();pageOffset=0;tab=name||tab;$('#vPanel').hidden=false;root.querySelectorAll('[data-vtab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.vtab===tab)));for(const n of ['builder','inputs','world'])$('#v-'+n).hidden=n!==tab;layout();}
 function closePanel(){stopLook();$('#vPanel').hidden=true;layout();$('#vSettings').focus();}
 $('#vSettings').onclick=()=>$('#vPanel').hidden?panel(tab):closePanel();
 $('#vClose').onclick=closePanel;
 root.querySelectorAll('[data-vtab]').forEach(b=>b.onclick=()=>panel(b.dataset.vtab));
 $('#menuBtn').onclick=()=>panel('world');
-$('#pttKey').onclick=()=>{panel('builder');$('#wbKeyRow').classList.add('on');$('#wbKey').focus();};
+$('#pttKey').onclick=()=>{panel('builder');$('#wbKeyRow').classList.add('on');$('#wbKey').value=window.Ai?Ai.key():'';$('#wbKey').focus();};
 function textInput(){$('#vPanel').hidden=true;$('#vText').hidden=false;$('#vWords').value=lastInstruction;$('#vWords').focus();layout();}
 $('#vTextClose').onclick=()=>{$('#vText').hidden=true;$('#vWords').blur();layout();};
 $('#vType').onclick=textInput;
@@ -167,7 +192,11 @@ function layout(){
  document.documentElement.style.setProperty('--vh-world',h+'px');
  const panelHeight=$('#vPanel').hidden?0:$('#vPanel').getBoundingClientRect().height;
  const textHeight=$('#vText').hidden?0:$('#vText').getBoundingClientRect().height;
- const floor=Math.max(panelHeight,textHeight),stage=$('#stage');document.documentElement.style.setProperty('--v-floor',floor+'px');
+ const buildHeight=buildDock.getBoundingClientRect().height;
+ const narrow=innerWidth<1000,handHeight=narrow&&document.body.classList.contains('ref-hand-open')?handDock.getBoundingClientRect().height:0;
+ const floor=buildHeight+Math.max(panelHeight,textHeight,handHeight),stage=$('#stage');
+ root.style.setProperty('--ref-build-height',buildHeight+'px');
+ const side=narrow?0:336;root.style.setProperty('--ref-side',side+'px');stage.style.right=side+'px';document.documentElement.style.setProperty('--v-floor',floor+'px');
  stage.style.top=top+'px';stage.style.height=Math.max(1,h-floor)+'px';pages();
  const signature=stage.clientWidth+':'+stage.clientHeight;
  if(W.renderer&&W.camera&&signature!==previousSignature){previousSignature=signature;W.renderer.setSize(stage.clientWidth,stage.clientHeight);W.camera.aspect=stage.clientWidth/stage.clientHeight;W.camera.updateProjectionMatrix();}
@@ -182,7 +211,9 @@ function frame(now){
  const s=P.surfaceState(),preview=!!W.master?.result,working=!!W.master?.busy||s.inferring||s.transcribing,recording=s.recording||s.opening;
  phase=s.dragging?'DRAGGING':recording?'LISTENING':working?'WORKING':preview?'PREVIEWING':fault?'FAULT':now<traceUntil?'CHANGED':s.selected?'SELECTED':'REST';
  root.dataset.state=phase;
- $('#pttView').hidden=!s.hand;$('#pttState').hidden=!s.hand&&!s.selected&&!recording;
+ $('#pttView').hidden=!s.hand;$('#pttState').hidden=false;
+ const recordParent=s.hand?$('#pttMode'):$('#pttActions').firstElementChild;if($('#pttAsk').parentElement!==recordParent)recordParent.appendChild($('#pttAsk'));
+ for(const id of ['#pttMove','#pttCopy']){$(id).hidden=false;$(id).disabled=!s.selected||!s.there;}
  if(!s.hand&&!hand.disabled)hand.textContent='Hand';
  $('#vUndo').hidden=!s.canUndo;
  $('#vMic').hidden=working&&!recording;
