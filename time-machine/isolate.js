@@ -3,6 +3,12 @@
   const sha=document.currentScript.dataset.version;
   const pane=new URLSearchParams(location.search).get('pane')||'solo';
   const prefix='ww-time-machine:'+sha+':'+pane+':';
+  window.__soundBase=new URL('world/',document.baseURI).href;
+  if(window.indexedDB){
+    const native=window.indexedDB;
+    const scoped=new Proxy(native,{get:(t,k)=>k==='open'?(name,...args)=>t.open(prefix+name,...args):k==='deleteDatabase'?name=>t.deleteDatabase(prefix+name):k==='databases'?async()=>((await t.databases()).filter(d=>d.name?.startsWith(prefix)).map(d=>({...d,name:d.name.slice(prefix.length)}))):typeof t[k]==='function'?t[k].bind(t):t[k]});
+    Object.defineProperty(window,'indexedDB',{configurable:true,get:()=>scoped});
+  }
   for(const name of ['localStorage','sessionStorage']){
     try{
       const native=window[name];
