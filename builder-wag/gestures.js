@@ -413,7 +413,7 @@ async function start() {
   finally { b.disabled=false; if(!state.on)b.textContent='Point + speak'; }
 }
 function stop() {
-  if(window.BuilderWag)BuilderWag.cancel();
+  if(window.BuilderWag){BuilderWag.cancel();for(const h of BuilderWag.state.hands.values())h.visible=false;BuilderWag.notify();}
   state.on=false;stopMeter();state.pinched=false;state.pointer=null;state.recentHit=null;state.walkTarget=null;state.grab=null;clearTimeout(state.recordTimer);stopWalk();resetPose();clearTimeout(state.speechRestart);if(state.recorder)try{state.recorder.onstop=null;state.recorder.stop();}catch(e){}state.recorder=null;if(state.recognition)try{state.recognition.abort();}catch(e){}state.recognition=null;if(state.stream)state.stream.getTracks().forEach(t=>t.stop());state.stream=null;
   if(state.hand)state.hand.close();if(state.pose)state.pose.close();state.hand=state.pose=null;resetBindings();document.body.classList.remove('ptt-on');$('#ptt').classList.remove('on');$('#pttCursor').className='';const b=$('#pttStart');b.classList.remove('on','listening');b.setAttribute('aria-pressed','false');b.textContent='Point + speak';
 }

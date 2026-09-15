@@ -42,13 +42,13 @@ function hands(bySide,now){if(!W.ready)return;install();
   if(!h){if(s.grab&&now-s.seen>300){s.grab=null;notify(side+' hand lost. Preview held; Place or Cancel.');}s.visible=false;s.closed=false;s.candidate=false;s.recent=null;continue;}
   s.seen=now;s.visible=true;const p=palm(h),g=window.PutThatThere.handGesture(h,s.closed);s.palm=p;if(!g.closed)s.awaitOpen=false;if(s.awaitOpen)continue;s.pointer={x:1-h[8].x,y:h[8].y};
   if(S.panel||S.calibration){s.grab=null;s.closed=false;s.candidate=false;continue;}
-  if(!g.closed){const aimed=hit(s.pointer.x,s.pointer.y);if(aimed)s.recent={hit:aimed,t:now};}
+  if(!g.closed){const aimed=hit(s.pointer.x,s.pointer.y);s.hover=aimed&&aimed.id;if(aimed)s.recent={hit:aimed,t:now};}
   if(g.closed!==s.candidate){s.candidate=g.closed;s.since=now;}
   if(now-s.since>140&&s.closed!==g.closed){s.closed=g.closed;if(s.closed){const aimed=s.recent&&now-s.recent.t<700?s.recent.hit:hit(s.pointer.x,s.pointer.y);const selected=W.build.pieces.get(S.selected);s.grab=begin(aimed||(selected?{id:selected.id,item:selected}:null),p.x,p.y,p.span);if(s.grab)notify(side+' hand holding. Release freezes the preview.');}else if(s.grab){s.grab=null;notify('Preview held. Place commits; Cancel returns.');}}
 
  }
  const a=S.hands.get('Left'),b=S.hands.get('Right');
- if(a?.grab&&b?.grab&&a.grab.id===b.grab.id){const x=(a.palm.x+b.palm.x)/2,y=(a.palm.y+b.palm.y)/2,span=Math.hypot(a.palm.x-b.palm.x,a.palm.y-b.palm.y);if(!pair){const p=W.build.pieces.get(a.grab.id);pair=begin({id:p.id,item:p},x,y,Math.max(.03,span));}move(pair,x,y,Math.max(.03,span));}
+ if(a?.grab&&b?.grab&&a.grab.id===b.grab.id){const x=(a.palm.x+b.palm.x)/2,y=(a.palm.y+b.palm.y)/2,span=Math.hypot(a.palm.x-b.palm.x,a.palm.y-b.palm.y);if(!pair){const p=W.build.pieces.get(a.grab.id);pair=begin({id:p.id,item:p},x,y,Math.max(.03,span));notify('Both hands holding: move together; spread for nearer, narrow for farther.');}move(pair,x,y,Math.max(.03,span));}
  else {if(pair){for(const h of S.hands.values())if(h.grab){const p=W.build.pieces.get(h.grab.id);h.grab=begin({id:p.id,item:p},h.palm.x,h.palm.y,h.palm.span);}pair=null;}for(const h of S.hands.values())if(h.grab&&h.visible)move(h.grab,h.palm.x,h.palm.y,h.palm.span);}notify();
 }
 function practice(){if(!W.ready)return notify('Wait for the world to load.');cancel();panel(false);install();const B=W.build;
