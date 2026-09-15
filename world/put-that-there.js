@@ -16,6 +16,12 @@ const state = {
   helper: null, trace: [], inferring: false, recorder: null, chunks: [],
 };
 
+const events=[];
+function debug(event,data={}) {
+  const row={time:new Date().toISOString(),event,...data};events.push(row);if(events.length>200)events.shift();
+  console.info('[PTT]',event,data);
+  const el=$('#pttLog');if(el)el.textContent=events.slice(-12).map(x=>JSON.stringify(x)).join('\n');
+}
 const sayLine = (text, kind) => {
   const el = $('#pttLine'); if (!el) return; el.textContent = text; el.dataset.kind = kind || '';
   if (kind === 'speak' && 'speechSynthesis' in window) {
@@ -31,11 +37,12 @@ function paintBindings() {
 
 function worldRay(nx, ny) {
   if (!W || !W.ready || !W.camera) return null;
+  W.camera.updateMatrixWorld();
   raycaster.setFromCamera({ x: nx * 2 - 1, y: 1 - ny * 2 }, W.camera);
   return raycaster.ray.clone();
 }
 function intersectBox(ray, box, max, out, hit) {
-  const p = ray.intersectBox(box, V()); if (!p) return;
+  if(!box)return; const p = ray.intersectBox(box, V()); if (!p) return;
   const d = p.distanceTo(ray.origin); if (d <= max && (!out.best || d < out.best.distance)) out.best = { ...hit, point: p.clone(), distance: d, box };
 }
 function pointIntoWorld(nx, ny) {
@@ -60,7 +67,7 @@ function pointIntoWorld(nx, ny) {
 
 function capture(hit) {
   if (!hit) { sayLine('I cannot see what you mean. Point at a brick, model, or the ground.', 'speak'); return; }
-  const now = performance.now(); if (now - state.lastBind < 500) return; state.lastBind = now;
+  state.lastBind = performance.now(); debug('bind',{kind:hit.kind,id:hit.id});
   if (hit.kind === 'ground') {
     state.there = { kind: 'ground', point: hit.point.clone() }; sayLine('THERE is bound. Say the operation.', '');
   } else {
@@ -71,8 +78,9 @@ function capture(hit) {
 }
 
 function showSelection(box) {
-  if (state.helper && W.scene) W.scene.remove(state.helper); state.helper = null;
-  if (box && W.scene) { state.helper = new THREE.Box3Helper(new THREE.Box3().copy(box), 0x58a7ff); state.helper.name = 'THAT'; state.helper.renderOrder = 9; W.scene.add(state.helper); }
+  if(box&&state.helper){state.helper.box.copy(box);state.helper.position.set(0,0,0);return;}
+  if(state.helper){if(W.scene)W.scene.remove(state.helper);state.helper.geometry.dispose();state.helper.material.dispose();} state.helper=null;
+  if (box && W.scene) { state.helper = new THREE.Box3Helper(new THREE.Box3().copy(box), 0x58a7ff); state.helper.name = 'THAT'; state.helper.renderOrder = 999; state.helper.material.depthTest=false; state.helper.material.depthWrite=false; W.scene.add(state.helper); }
 }
 
 function groundPoint(p) { return { x: Math.round(p.x / 20) * 20, y: W.G.h(p.x, p.z), z: Math.round(p.z / 20) * 20 }; }
@@ -136,6 +144,7 @@ function findReferent(id) {
   return null;
 }
 async function infer(words, capturedPacket) {
+  debug('inference.request',{characters:String(words).length,keyAvailable:!!(window.Ai&&Ai.key())});
   if(state.inferring){sayLine('Finish the current request first.','');return;}
   if(!W.ready){sayLine('Wait for the world to load.','');return;}
   const local=parse(words);
@@ -157,20 +166,21 @@ async function infer(words, capturedPacket) {
     if(a.act==='change'&&a.words&&W.say){await W.say(a.words);sayLine(a.say||'The change is ready to preview.','speak');return;}
     const cmd={verb:a.act,text:a.words||words,needsThat:/^(move|copy|remove|turn|taller)$/.test(a.act),needsThere:/^(move|copy|walk)$/.test(a.act),thisWord:false,thereWord:false};
     const ok=await execute(cmd);if(ok&&a.say)sayLine(a.say,'speak');
-  } catch(e){console.warn('[put-that-there] inference',e);sayLine('Model error: '+(e.message||e)+'. Your world was not changed.','');}
+  } catch(e){debug('inference.error',{message:e.message||String(e)});sayLine('Model error: '+(e.message||e)+'. Your world was not changed.','');}
   finally{state.inferring=false;$('#pttMic').textContent=state.voiceError?'VOICE: '+state.voiceError:state.voiceOff?'VOICE: tap Talk':'VOICE: browser listening';}
 }
 
-function resetBindings() { state.that = state.there = state.pending = null; paintBindings(); if (state.helper && W.scene) W.scene.remove(state.helper); state.helper = null; }
+function resetBindings() { state.that = state.there = state.pending = null; paintBindings();showSelection(null); }
 function execute(cmd) {
+  debug('action',{verb:cmd.verb,selected:state.that&&state.that.id,destination:!!state.there});
   state.pending = null;
   if (cmd.verb === 'commit') { if(W.master&&W.master.result&&W.mbCommit){W.mbCommit();sayLine('Committing the preview.','');return true;}sayLine('There is no preview to commit.','');return false; }
   if (cmd.verb === 'stop') { state.walkTarget=null;state.grab=null;setMode('point');stopWalk(); sayLine('Stopped.', ''); return true; }
   if (cmd.verb === 'undo') { if(state.cityUndo){restoreCity(state.cityUndo);state.cityUndo=null;sayLine('Building move undone.','');}else if(W.build&&W.build.undo())sayLine('Last placed brick removed.','');else sayLine('Nothing to undo in the placement history.',''); return true; }
   if (cmd.thisWord && !state.that && state.hover && state.hover.kind !== 'ground') state.that = { ...state.hover, point: state.hover.point.clone() };
   if (cmd.thereWord && !state.there && state.hover && state.hover.kind === 'ground') state.there = { kind: 'ground', point: state.hover.point.clone() };
-  if (cmd.needsThat && !state.that) { state.pending = cmd; sayLine('Which thing? Point at it and pinch.', 'speak'); paintBindings(); return false; }
-  if (cmd.needsThere && !state.there) { state.pending = cmd; sayLine('Where? Point at the ground and pinch.', 'speak'); paintBindings(); return false; }
+  if (cmd.needsThat && !state.that) { state.pending = cmd; sayLine('Which thing? Point at it and close your fist.', 'speak'); paintBindings(); return false; }
+  if (cmd.needsThere && !state.there) { state.pending = cmd; sayLine('Where? Point at the ground and close your fist.', 'speak'); paintBindings(); return false; }
   let ok = false;
   if (cmd.verb === 'move' || cmd.verb === 'copy') {
     if (state.that.kind === 'piece') ok = movePiece(state.that, state.there.point, cmd.verb === 'copy');
@@ -202,40 +212,76 @@ function heard(text, explicit = false, capturedPacket) {
 function startSpeech() {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) { $('#pttMic').textContent = 'VOICE: type below'; sayLine('Voice recognition is unavailable here. Type the same command in the word bar.', ''); return; }
+  if(state.recognition)try{state.recognition.onend=null;state.recognition.abort();}catch(e){}
   const r = new SR(); state.recognition = r; r.continuous = true; r.interimResults = true; r.lang = document.documentElement.lang || 'en-US';
   r.onstart = () => { state.voiceError=null;$('#pttMic').textContent = 'VOICE: browser listening'; $('#pttMic').classList.add('set'); $('#pttStart').classList.add('listening'); };
   r.onresult = e => { if(state.recorder || state.transcribing || window.speechSynthesis&&speechSynthesis.speaking)return; let interim = ''; for (let i = e.resultIndex; i < e.results.length; i++) { const t = e.results[i][0].transcript; if (e.results[i].isFinal) {state.lastHeard=Date.now();heard(t,true);} else interim += t; } if (interim) sayLine(interim + '…', ''); };
-  r.onerror = e => { state.voiceError=e.error;$('#pttMic').textContent='VOICE: '+e.error;if(e.error!=='aborted')sayLine('Browser voice: '+e.error+'. Use Talk with your OpenAI key, or type below.','');if(/not-allowed|service-not-allowed/.test(e.error))state.voiceOff=true; };
-  r.onend = () => { $('#pttStart').classList.remove('listening'); if (state.on && !state.recorder && !state.transcribing && !state.voiceOff) { clearTimeout(state.speechRestart); state.speechRestart = setTimeout(() => { try { r.start(); } catch (e) { } }, 450); } };
-  try { r.start(); } catch (e) { }
+  r.onerror = e => { debug('browser.voice.error',{error:e.error});state.voiceError=e.error;$('#pttMic').textContent='VOICE: '+e.error;if(e.error!=='aborted')sayLine('Browser voice: '+e.error+'. Use Talk with your OpenAI key, or type below.','');if(/not-allowed|service-not-allowed/.test(e.error))state.voiceOff=true; };
+  r.onend = () => { $('#pttStart').classList.remove('listening'); if (state.on && !state.recorder && !state.transcribing && !state.voiceOff) { clearTimeout(state.speechRestart); state.speechRestart = setTimeout(() => { try { r.start(); } catch (e) {debug('browser.voice.restart.error',{message:e.message});} }, 450); } };
+  try { r.start(); } catch (e) {debug('browser.voice.start.error',{message:e.message});sayLine('Browser voice: '+e.message,'');}
 }
 
-function recordStart(e) {
+function micStatus(text){$('#pttMic').textContent='VOICE: '+text;debug('voice.state',{status:text});}
+function stopMeter(){clearInterval(state.meterTimer);if(state.audioContext)state.audioContext.close().catch(()=>{});state.audioContext=null;}
+async function recordStart(e) {
   if(e)e.preventDefault();
-  if(!state.on||state.recorder||state.transcribing)return;
-  if(!window.MediaRecorder){sayLine('Recording is not supported here. Use browser voice or type below.','');return;}
-  if(!window.Ai||!Ai.key()){sayLine('Talk uses OpenAI transcription. Add your API key first.','');W.wbOpen&&W.wbOpen(true);$('#wbKeyBtn')&&$('#wbKeyBtn').click();return;}
-  state.voiceOff=true;clearTimeout(state.speechRestart);if(state.recognition)try{state.recognition.abort();}catch(e){}
+  if(!state.on||state.recorder||state.transcribing||state.recordOpening)return;
+  if(!window.MediaRecorder){sayLine('MediaRecorder unavailable. Use Browser voice or type.','');return;}
+  state.recordOpening=true;state.voiceOff=true;clearTimeout(state.speechRestart);
+  if(state.recognition)try{state.recognition.abort();}catch(e){}
   if(window.speechSynthesis)speechSynthesis.cancel();
-  const tracks=state.stream&&state.stream.getAudioTracks();if(!tracks||!tracks.length){sayLine('No microphone track. Restart and allow microphone access.','');return;}
-  try{state.chunks=[];state.recorder=new MediaRecorder(new MediaStream(tracks),{mimeType:MediaRecorder.isTypeSupported('audio/webm')?'audio/webm':undefined});state.recorder.ondataavailable=x=>{if(x.data&&x.data.size)state.chunks.push(x.data);};state.recorder.onstop=transcribeRecording;state.recorder.start(200);state.recordTimer=setTimeout(recordStop,30000);$('#pttAsk').classList.add('on');$('#pttAsk').textContent='Send voice';sayLine('Listening for the whole speech act…','');}catch(x){state.recorder=null;sayLine('Could not start the microphone recording.','');}
+  try{
+    let tracks=state.stream&&state.stream.getAudioTracks().filter(t=>t.readyState==='live');
+    if(!tracks||!tracks.length){micStatus('requesting microphone');const audio=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}});if(!state.on){audio.getTracks().forEach(t=>t.stop());return;}audio.getAudioTracks().forEach(t=>state.stream.addTrack(t));tracks=audio.getAudioTracks();}
+    tracks.forEach(t=>t.enabled=true);
+    const stream=new MediaStream(tracks),mime=['audio/webm;codecs=opus','audio/mp4','audio/webm','audio/ogg;codecs=opus'].find(t=>MediaRecorder.isTypeSupported(t));
+    state.chunks=[];state.recordBytes=0;state.recordStarted=performance.now();state.recordPacket=tracePacket('');
+    const r=new MediaRecorder(stream,mime?{mimeType:mime}:{});state.recorder=r;
+    r.ondataavailable=x=>{if(x.data&&x.data.size){state.chunks.push(x.data);state.recordBytes+=x.data.size;}};
+    r.onerror=x=>{debug('record.error',{message:x.error&&x.error.message});sayLine('Recorder failed. Check the diagnostic log.','');};
+    r.onstop=finishRecording;r.start(250);state.recordTimer=setTimeout(recordStop,30000);
+    $('#pttAsk').classList.add('on');$('#pttAsk').textContent='Stop recording';micStatus('recording');
+    sayLine('Recording locally. Stop, play it back, then Send audio to run the instruction.','');
+    debug('record.start',{mime:r.mimeType,tracks:tracks.map(t=>({enabled:t.enabled,muted:t.muted,state:t.readyState}))});
+    const AC=window.AudioContext||window.webkitAudioContext;
+    let analyser,data;
+    if(AC)try{const ac=state.audioContext=new AC();await ac.resume();analyser=ac.createAnalyser();analyser.fftSize=256;ac.createMediaStreamSource(stream).connect(analyser);data=new Uint8Array(analyser.fftSize);}catch(e){debug('meter.error',{message:e.message});}
+    if(!state.recorder||state.recorder.state!=='recording'){stopMeter();return;}
+    state.meterTimer=setInterval(()=>{
+      let rms=0;if(analyser){analyser.getByteTimeDomainData(data);rms=Math.sqrt(data.reduce((n,v)=>n+((v-128)/128)**2,0)/data.length);}
+      $('#pttLevel').value=Math.min(1,rms*5);
+      $('#pttMic').textContent='REC '+((performance.now()-state.recordStarted)/1000).toFixed(1)+'s · '+Math.round(state.recordBytes/1024)+' KB'+(analyser&&rms<.005?' · quiet':'');
+    },100);
+  }catch(x){state.recorder=null;micStatus(x.name||'record failed');debug('record.error',{message:x.message});sayLine('Microphone: '+x.message,'');}
+  finally{state.recordOpening=false;}
 }
-function recordStop(e){if(e)e.preventDefault();clearTimeout(state.recordTimer);if(state.recorder&&state.recorder.state==='recording')state.recorder.stop();}
+function recordStop(e){if(e)e.preventDefault();clearTimeout(state.recordTimer);stopMeter();if(state.recorder&&state.recorder.state==='recording')state.recorder.stop();}
+function finishRecording(){
+  const r=state.recorder;state.recorder=null;stopMeter();state.recordPacket=tracePacket('');
+  const blob=new Blob(state.chunks,{type:r&&r.mimeType||'audio/webm'});state.chunks=[];state.audioBlob=blob;
+  if(state.audioURL)URL.revokeObjectURL(state.audioURL);state.audioURL=URL.createObjectURL(blob);
+  $('#pttPlayback').src=state.audioURL;$('#pttPlayback').hidden=false;$('#pttSendAudio').disabled=!blob.size;
+  $('#pttAsk').classList.remove('on');$('#pttAsk').textContent='Record';
+  micStatus(blob.size?'recorded '+Math.round(blob.size/1024)+' KB':'empty recording');
+  debug('record.stop',{bytes:blob.size,mime:blob.type});
+  sayLine(blob.size?'Play back to check the microphone. Send audio uses your API key.':'No audio captured. Try microphone permission again.','');
+}
 async function transcribeRecording(){
-  const r=state.recorder, packet=tracePacket('');
-  state.recorder=null; state.transcribing=true;
-  $('#pttAsk').classList.remove('on'); $('#pttAsk').textContent='Transcribing…';
-  const mime=r&&r.mimeType||'audio/webm', blob=new Blob(state.chunks,{type:mime});state.chunks=[];
-  try {
-    if(blob.size<500) return;
-    if(!window.Ai||!Ai.key()) throw new Error('Add an OpenAI key in the word bar first.');
-    sayLine('Transcribing the speech act…','');
-    const f=new FormData();f.append('file',blob,/mp4/.test(mime)?'speech.mp4':'speech.webm');f.append('model','gpt-4o-transcribe');
-    const res=await fetch('https://api.openai.com/v1/audio/transcriptions',{method:'POST',headers:{Authorization:'Bearer '+Ai.key()},body:f});
+  if(state.transcribing||!state.audioBlob)return;
+  if(!window.Ai||!Ai.key()){sayLine('Recording is ready. Add an API key, then Send audio.','');$('#pttKey').click();return;}
+  state.transcribing=true;$('#pttSendAudio').disabled=true;micStatus('transcribing');
+  const blob=state.audioBlob,packet=state.recordPacket||tracePacket(''),abort=new AbortController(),timer=setTimeout(()=>abort.abort(),45000);
+  try{
+    const f=new FormData();f.append('file',blob,/mp4/.test(blob.type)?'speech.mp4':/ogg/.test(blob.type)?'speech.ogg':'speech.webm');f.append('model','gpt-4o-transcribe');
+    debug('transcription.start',{bytes:blob.size});
+    const res=await fetch('https://api.openai.com/v1/audio/transcriptions',{method:'POST',headers:{Authorization:'Bearer '+Ai.key()},body:f,signal:abort.signal});
+    debug('transcription.response',{status:res.status,requestId:res.headers.get('x-request-id')});
     const j=await res.json();if(!res.ok)throw new Error(j.error&&j.error.message||res.status);
-    if(state.on){$('#pttMic').textContent='HEARD: '+(j.text||'');await heard(j.text||'',true,packet);}
-  }catch(e){sayLine('Transcription: '+e.message,'');}
-  finally{state.transcribing=false;$('#pttAsk').textContent='Talk';$('#pttMic').textContent='VOICE: tap Talk';}
+    if(!j.text||!j.text.trim())throw new Error('No speech recognised. Check playback.');
+    $('#pttWords').value=j.text;micStatus('transcribed');debug('transcription.done',{characters:j.text.length});
+    if(state.on)await heard(j.text,true,packet);
+  }catch(e){micStatus('transcription failed');debug('transcription.error',{message:e.message});sayLine('Transcription: '+e.message+'. Recording retained; you can retry.','');}
+  finally{clearTimeout(timer);state.transcribing=false;$('#pttSendAudio').disabled=false;}
 }
 
 function drawHand(hand, pose) {
@@ -256,37 +302,80 @@ function poseWalk(marks) {
 }
 function stopWalk() { if (!state.walking || !W || !W.input) return; W.input.L.x=W.input.L.y=W.input.L.mag=0; W.input.L.held=false; state.walking=false; }
 
+
+function handGesture(h,held=false) {
+  const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y,(a.z||0)-(b.z||0));
+  const span=Math.max(.025,dist(h[5],h[17]));
+  let curled=0;
+  for(const [m,p,t] of [[5,6,8],[9,10,12],[13,14,16],[17,18,20]]) {
+    const a={x:h[p].x-h[m].x,y:h[p].y-h[m].y,z:(h[p].z||0)-(h[m].z||0)};
+    const b={x:h[t].x-h[p].x,y:h[t].y-h[p].y,z:(h[t].z||0)-(h[p].z||0)};
+    const cos=(a.x*b.x+a.y*b.y+a.z*b.z)/(Math.hypot(a.x,a.y,a.z)*Math.hypot(b.x,b.y,b.z)||1);
+    if(cos<.35||dist(h[t],h[0])<dist(h[p],h[0])*1.12)curled++;
+  }
+  const pinch=dist(h[8],h[4])/span;
+  return {closed:curled>=(held?2:3)||pinch<(held?.62:.38),name:curled>=3?'FIST':pinch<.62?'PINCH':'OPEN',curled,pinch};
+}
+function updateHand(hand,now) {
+  const g=handGesture(hand,state.pinched),palm={x:1-(hand[0].x+hand[5].x+hand[9].x+hand[17].x)/4,y:(hand[0].y+hand[5].y+hand[9].y+hand[17].y)/4};
+  let nx=1-hand[8].x,ny=hand[8].y;
+  if(state.grab){nx=state.grab.start[0]+palm.x-state.grab.palm.x;ny=state.grab.start[1]+palm.y-state.grab.palm.y;}
+  const prev=state.pointer||{x:nx,y:ny};
+  state.pointer={x:prev.x+(nx-prev.x)*.45,y:prev.y+(ny-prev.y)*.45};nx=state.pointer.x;ny=state.pointer.y;
+  state.hover=pointIntoWorld(nx,ny);
+  // Keep the last aimed object through finger closure, not indefinitely.
+  if(!g.closed&&!state.grab&&state.hover&&state.hover.kind!=='ground')state.recentHit={hit:state.hover,t:now,pointer:[nx,ny]};
+  const recent=state.recentHit&&now-state.recentHit.t<650?state.recentHit.hit:null;
+  const target=g.closed&&recent?recent:state.hover&&state.hover.kind!=='ground'?state.hover:recent;
+  if(!state.that&&!state.grab){if(target)showSelection(target.box);else if(state.helper)showSelection(null);}
+  const cur=$('#pttCursor');cur.style.left=nx*innerWidth+'px';cur.style.top=ny*innerHeight+'px';cur.className='on '+(state.grab?'object':state.hover?state.hover.kind==='ground'?'ground':'object':'');
+  $('#pttGesture').textContent=g.name+(state.grab?' · HELD':target?' · '+label(target):' · aim at an object');
+  if(g.closed!==state.gestureCandidate){state.gestureCandidate=g.closed;state.gestureSince=now;}
+  if(now-state.gestureSince>100&&g.closed!==state.pinched){
+    state.pinched=g.closed;
+    if(g.closed){
+      const hit=target||state.hover;capture(hit);
+      if(hit&&hit.kind!=='ground'){
+        const start=state.recentHit&&state.recentHit.hit.id===hit.id?state.recentHit.pointer:[nx,ny];
+        state.grab={hit,start,palm,destination:null};state.pointer={x:start[0],y:start[1]};debug('grab.begin',{gesture:g.name,kind:hit.kind,id:hit.id});sayLine('Held '+label(hit)+'. Move your hand; open it to place.','');
+      }
+    }else if(state.grab){
+      const grab=state.grab;state.grab=null;debug('grab.release',{moved:!!grab.destination});
+      if(grab.destination){state.that=grab.hit;state.there={kind:'ground',point:grab.destination};execute({verb:'move',needsThat:true,needsThere:true});}
+    }
+  }
+  if(state.pinched&&state.grab){
+    const grab=state.grab,ray=worldRay(nx,ny);
+    if(ray&&Math.hypot(palm.x-grab.palm.x,palm.y-grab.palm.y)>.025){
+      const box=grab.hit.box,centre=new THREE.Box3().copy(box).getCenter(V());centre.y=box.min.y;
+      // Camera-facing drag plane works even when the cursor is not over terrain.
+      const normal=W.camera.getWorldDirection(V()),plane=new THREE.Plane().setFromNormalAndCoplanarPoint(normal,grab.hit.point),p=ray.intersectPlane(plane,V());
+      if(p){const delta=p.sub(grab.hit.point);const dst=centre.clone().add(delta);dst.y=W.G.h(dst.x,dst.z);grab.destination=dst;
+        if(state.helper)state.helper.box.copy(box).translate(dst.clone().sub(centre));
+      }
+    }
+  }
+  if(!state.trace.length||now-state.trace[state.trace.length-1].t>90){const h=state.hover;state.trace.push({t:now,pointer:[nx,ny],pinch:state.pinched,gesture:g.name,hit:h?{kind:h.kind,id:h.id||null,name:label(h),point:h.point.toArray().map(Math.round)}:null});while(state.trace.length&&now-state.trace[0].t>6500)state.trace.shift();}
+  if(now-(state.lastDiagnostic||0)>1000){state.lastDiagnostic=now;debug('tracking',{gesture:g.name,curled:g.curled,pinch:+g.pinch.toFixed(2),hit:state.hover&&state.hover.kind,selected:state.that&&state.that.id,held:!!state.grab});}
+}
+
 async function visionLoop() {
   if (!state.on) return; const v = $('#pttVideo');
   if (v.readyState >= 2 && v.currentTime !== state.lastVideoTime) {
     state.lastVideoTime = v.currentTime; const now = performance.now(); state.frame++;
     try {
       const hr = state.hand.detectForVideo(v, now), hand = hr.landmarks && hr.landmarks[0] || null; state.landmarks = hand;
-      let pose = state.poseMarks; if (state.frame % 3 === 0) { const pr = state.pose.detectForVideo(v, now); pose = state.poseMarks = pr.landmarks && pr.landmarks[0] || null; }
+      let pose = state.poseMarks; if (state.frame % 3 === 0) { const pr = state.pose.detectForVideo(v, now); pose = state.poseMarks = pr.landmarks && pr.landmarks[0] || null; state.poseWorld=pr.worldLandmarks&&pr.worldLandmarks[0]||null; }
       if(state.frame%3===0)state.poseAt=now;state.handAt=hand?now:0;
       drawHand(hand, pose);
       if (state.mode === 'walk') poseWalk(pose);
       else {
         stopWalk(); if (hand) {
-          const tip=hand[8], thumb=hand[4], palm=hand[0], span=Math.hypot(hand[5].x-hand[17].x,hand[5].y-hand[17].y)||.1;
-          const nx=1-tip.x, ny=tip.y, pinch=Math.hypot(tip.x-thumb.x,tip.y-thumb.y) < span*.42;
-          state.hover=pointIntoWorld(nx,ny); const cur=$('#pttCursor'); cur.style.left=(nx*innerWidth)+'px';cur.style.top=(ny*innerHeight)+'px';cur.className='on '+(state.hover ? state.hover.kind==='ground'?'ground':'object':'');
-          if(!state.trace.length||now-state.trace[state.trace.length-1].t>90){const h=state.hover;state.trace.push({t:now,pointer:[+nx.toFixed(3),+ny.toFixed(3)],pinch,hit:h?{kind:h.kind,id:h.id||null,name:label(h),point:h.point.toArray().map(v=>Math.round(v))}:null});while(state.trace.length&&now-state.trace[0].t>6500)state.trace.shift();}
-          if(pinch&&!state.pinched){
-            capture(state.hover);
-            if(state.hover&&state.hover.kind!=='ground')state.grab={hit:state.hover,start:[nx,ny],destination:null};
-          }
-          if(pinch&&state.grab&&state.hover&&state.hover.kind==='ground'&&Math.hypot(nx-state.grab.start[0],ny-state.grab.start[1])>.04){
-            state.grab.destination=state.hover.point.clone();
-            if(state.helper){const box=state.grab.hit.box,centre=new THREE.Box3().copy(box).getCenter(V());centre.y=box.min.y;state.helper.position.copy(state.grab.destination).sub(centre);}
-            sayLine('Release to move '+label(state.grab.hit)+'.','');
-          }
-          if(!pinch&&state.pinched&&state.grab){const grab=state.grab;state.grab=null;if(grab.destination){state.that=grab.hit;state.there={kind:'ground',point:grab.destination};execute({verb:'move',needsThat:true,needsThere:true});}}
-          state.pinched=pinch;
-          if (!pinch && palm && Math.hypot(tip.x-thumb.x,tip.y-thumb.y)>span*.65) state.pinched=false;
-        } else { state.hover=null;state.grab=null;if(state.helper)state.helper.position.set(0,0,0); $('#pttCursor').className=''; state.pinched=false; }
+          updateHand(hand,now);
+
+        } else { state.hover=null;if(state.grab)debug('grab.cancel',{reason:'tracking lost'});state.grab=null;state.pointer=null;state.recentHit=null;state.gestureSince=0;if(state.helper&&state.that)state.helper.box.copy(state.that.box); $('#pttCursor').className=''; state.pinched=false; }
       }
-    } catch (e) { console.warn('[put-that-there] vision frame',e); }
+    } catch (e) { if(now-(state.lastVisionError||0)>2000){state.lastVisionError=now;debug('vision.error',{message:e.message});sayLine('Tracking error: '+e.message,'');} }
   }
   requestAnimationFrame(visionLoop);
 }
@@ -295,26 +384,26 @@ async function start() {
   if (state.on) { stop(); return; }
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { sayLine('This browser cannot open a camera. Use HTTPS on a current phone or computer.', ''); return; }
   state.voiceOff=false;
-  const b=$('#pttStart'); b.disabled=true; b.textContent='Opening…'; $('#ptt').classList.add('on'); sayLine('Allow camera and microphone access. Tracking models will load next.','');
+  const b=$('#pttStart'); b.disabled=true; b.textContent='Opening…'; $('#ptt').classList.add('on'); sayLine('Allow camera access. Microphone is requested separately when you tap Record.','');
   try {
-    state.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:640},height:{ideal:480}},audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
+    state.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:640},height:{ideal:480}},audio:false});
     const mod=await import('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.21/+esm');
     const files=await mod.FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.21/wasm');
     const make=async(K,options)=>{try{return await K.createFromOptions(files,{...options,baseOptions:{...options.baseOptions,delegate:'GPU'}});}catch(e){console.info('[put-that-there] GPU delegate unavailable; using CPU');return K.createFromOptions(files,{...options,baseOptions:{...options.baseOptions,delegate:'CPU'}});}};
     state.hand=await make(mod.HandLandmarker,{baseOptions:{modelAssetPath:'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task'},runningMode:'VIDEO',numHands:1,minHandDetectionConfidence:.45,minTrackingConfidence:.45});
     state.pose=await make(mod.PoseLandmarker,{baseOptions:{modelAssetPath:'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task'},runningMode:'VIDEO',numPoses:1,minPoseDetectionConfidence:.4,minTrackingConfidence:.4});
-    const v=$('#pttVideo');v.srcObject=state.stream;await v.play();state.on=true;document.body.classList.add('ptt-on');$('#ptt').classList.add('on');b.classList.add('on');b.setAttribute('aria-pressed','true');b.textContent='Stop pointing';sayLine('Pinch and drag to move. Arms mirror your pose. Talk or type to create.','');startSpeech();visionLoop();
+    const v=$('#pttVideo');v.srcObject=state.stream;await v.play();state.on=true;document.body.classList.add('ptt-on');$('#ptt').classList.add('on');b.classList.add('on');b.setAttribute('aria-pressed','true');b.textContent='Stop pointing';sayLine('Aim at an object, close your fist, move, then open to place. Record or type to create.','');micStatus('tap Record');visionLoop();
   } catch(e) { console.error('[put-that-there] start',e); if(state.stream)state.stream.getTracks().forEach(t=>t.stop());state.stream=null;sayLine(/denied|permission/i.test(String(e))?'Camera permission was denied. Enable it in the browser, then try again.':'Could not start hand tracking. The typed builder still works.',''); }
   finally { b.disabled=false; if(!state.on)b.textContent='Point + speak'; }
 }
 function stop() {
-  state.on=false;state.walkTarget=null;state.grab=null;clearTimeout(state.recordTimer);stopWalk();resetPose();clearTimeout(state.speechRestart);if(state.recorder)try{state.recorder.onstop=null;state.recorder.stop();}catch(e){}state.recorder=null;if(state.recognition)try{state.recognition.abort();}catch(e){}state.recognition=null;if(state.stream)state.stream.getTracks().forEach(t=>t.stop());state.stream=null;
+  state.on=false;stopMeter();state.pinched=false;state.pointer=null;state.recentHit=null;state.walkTarget=null;state.grab=null;clearTimeout(state.recordTimer);stopWalk();resetPose();clearTimeout(state.speechRestart);if(state.recorder)try{state.recorder.onstop=null;state.recorder.stop();}catch(e){}state.recorder=null;if(state.recognition)try{state.recognition.abort();}catch(e){}state.recognition=null;if(state.stream)state.stream.getTracks().forEach(t=>t.stop());state.stream=null;
   if(state.hand)state.hand.close();if(state.pose)state.pose.close();state.hand=state.pose=null;resetBindings();document.body.classList.remove('ptt-on');$('#ptt').classList.remove('on');$('#pttCursor').className='';const b=$('#pttStart');b.classList.remove('on','listening');b.setAttribute('aria-pressed','false');b.textContent='Point + speak';
 }
-function setMode(mode){state.mode=mode==='walk'?'walk':'point';document.querySelectorAll('[data-ptt-mode]').forEach(b=>b.classList.toggle('on',b.dataset.pttMode===state.mode));if(state.mode==='walk'){resetBindings();sayLine('Raise both hands to walk. Lean left or right to steer.','');$('#pttCursor').className='';}else{stopWalk();sayLine('Point and pinch to bind THAT and THERE.','');}}
+function setMode(mode){state.grab=null;state.pinched=false;state.pointer=null;state.recentHit=null;state.mode=mode==='walk'?'walk':'point';document.querySelectorAll('[data-ptt-mode]').forEach(b=>b.classList.toggle('on',b.dataset.pttMode===state.mode));if(state.mode==='walk'){resetBindings();sayLine('Raise both hands to walk. Lean left or right to steer.','');$('#pttCursor').className='';}else{stopWalk();sayLine('Point, close your fist to grab, move, then open to place.','');}}
 
 $('#pttStart').addEventListener('click',start);document.querySelectorAll('[data-ptt-mode]').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.pttMode)));window.addEventListener('pagehide',stop);
-$('#pttAsk').textContent='Talk';$('#pttAsk').addEventListener('click',e=>state.recorder?recordStop(e):recordStart(e));$('#pttAsk').addEventListener('contextmenu',e=>e.preventDefault());
+$('#pttAsk').textContent='Record';$('#pttAsk').addEventListener('click',e=>state.recorder?recordStop(e):recordStart(e));$('#pttAsk').addEventListener('contextmenu',e=>e.preventDefault());
 // In browsers without speech recognition, the same small language works through the existing text field.
 $('#wbBuild').addEventListener('click',e=>{if(!state.on)return;const t=$('#words').value,cmd=parse(t);e.preventDefault();e.stopImmediatePropagation();$('#words').value='';heard(t,true);},true);
 $('#words').addEventListener('keydown',e=>{if(!state.on||e.key!=='Enter'||e.shiftKey)return;const cmd=parse(e.target.value);e.preventDefault();e.stopImmediatePropagation();const t=e.target.value;e.target.value='';heard(t,true);},true);
@@ -337,35 +426,43 @@ function moveBuilding(hit,dst,copy){
   try{restoreCity({source:next,damage:saved.damage});state.cityUndo=saved;return true;}
   catch(e){restoreCity(saved);sayLine('Building move failed: '+e.message,'');return false;}
 }
+// One rigid LEGO arm: solve the actual shoulder-to-grip vector, not independent Euler guesses.
+// No elbow pivot exists in this mesh; a two-bone solve would detach the hand.
 function poseAngles(m){
   if(!m)return null;
   const good=p=>p&&(p.visibility==null||p.visibility>.55);
   if(!good(m[11])||!good(m[12]))return null;
   const arm=(s,e,w)=>{
     const end=good(m[w])?m[w]:good(m[e])?m[e]:null;if(!end)return null;
-    const dx=end.x-m[s].x,dy=end.y-m[s].y,dz=(end.z||0)-(m[s].z||0);
-    return {x:-Math.min(2.5,Math.max(0,-dz)*4),z:Math.max(-2.8,Math.min(2.8,Math.atan2(-dx,dy)))};
+    const dir=new THREE.Vector3(end.x-m[s].x,end.y-m[s].y,(end.z||0)-(m[s].z||0));
+    return dir.lengthSq()>.0001?dir.normalize():null;
   };
-  return {left:arm(11,13,15),right:arm(12,14,16),lean:Math.max(-.35,Math.min(.35,(m[12].y-m[11].y)*2))};
+  return {left:arm(11,13,15),right:arm(12,14,16),lean:Math.max(-.25,Math.min(.25,Math.atan2(m[12].y-m[11].y,Math.abs(m[12].x-m[11].x))))};
 }
 function resetPose(){
   if(!W.rig)return;
-  for(const p of [W.rig.armLP,W.rig.armRP])if(p)p.rotation.z=0;
+  for(const p of [W.rig.armLP,W.rig.armRP])if(p){p.rotation.y=0;p.rotation.z=0;}
+  state.armSmooth=null;
   if(W.rig.torsoP)W.rig.torsoP.rotation.z=0;
 }
 function afterPose(dt){
+  if(!W.rig)return;
   if(!state.on||W.mode!=='walk'||W.dead||W.rig.air||W.film&&W.film.owns()){resetPose();return;}
-  const pose=performance.now()-(state.poseAt||0)<450?poseAngles(state.poseMarks):null;
+  const pose=performance.now()-(state.poseAt||0)<450?poseAngles(state.poseWorld||state.poseMarks):null;
   if(!pose){resetPose();return;}
-  const k=1-Math.exp(-dt*16);
-  state.armSmooth=state.armSmooth||{left:{x:0,z:0},right:{x:0,z:0}};
-  for(const [key,joint] of [['left',W.rig.armLP],['right',W.rig.armRP]]){
-    if(!joint)continue;const t=pose[key];if(!t){joint.rotation.z=0;continue;}
-    const a=state.armSmooth[key];a.x+=(t.x-a.x)*k;a.z+=(t.z-a.z)*k;
-    joint.rotation.x=a.x;joint.rotation.z=a.z;
+  const k=1-Math.exp(-Math.min(dt,.05)*12);
+  state.armSmooth=state.armSmooth||{};
+  for(const [key,joint,rest] of [['left',W.rig.armLP,[8.3114,17.5956,-10.321]],['right',W.rig.armRP,[-8.3114,17.5956,-10.321]]]){
+    if(!joint)continue;
+    let dir=pose[key];
+    if(!dir){joint.rotation.y=joint.rotation.z=0;delete state.armSmooth[key];continue;}
+    const q=new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(...rest).normalize(),dir);
+    const smooth=state.armSmooth[key]||(state.armSmooth[key]=joint.quaternion.clone());
+    smooth.slerp(q,k);joint.quaternion.copy(smooth);
   }
-  W.rig.torsoP.rotation.z=pose.lean;
+  W.rig.torsoP.rotation.z=pose.lean*.3;
 }
+
 function beforeStep(dt){
   if(!state.on)return;
   if(state.mode==='walk'&&performance.now()-(state.poseAt||0)>450)stopWalk();
@@ -389,10 +486,14 @@ function addTestBrick(){
   else sayLine('Could not place that brick.','');
 }
 const controls=document.createElement('div');controls.id='pttActions';
-controls.innerHTML='<div><button id="pttBrick">+ Brick</button><button id="pttMove">Move there</button><button id="pttCopy">Copy there</button><button id="pttUndo">Undo</button><button id="pttKey">API key</button></div><form id="pttForm"><input id="pttWords" aria-label="World instruction" placeholder="Make a house here" autocomplete="off"><button>Send</button></form>';
+controls.innerHTML='<div><button id="pttSelect">Select aimed</button><button id="pttBrick">+ Brick</button><button id="pttMove">Move there</button><button id="pttCopy">Copy there</button><button id="pttUndo">Undo</button><button id="pttKey">API key</button></div><form id="pttForm"><input id="pttWords" aria-label="World instruction" placeholder="Make a house here" autocomplete="off"><button>Send</button></form><div id="pttGesture">OPEN · aim at an object</div><div><meter id="pttLevel" min="0" max="1" value="0" aria-label="Microphone level"></meter><button id="pttSendAudio" disabled>Send audio</button><button id="pttBrowserVoice">Browser voice</button></div><audio id="pttPlayback" controls hidden></audio><details id="pttDiagnostics"><summary>Diagnostics · v5</summary><button id="pttCopyLog">Copy log</button><pre id="pttLog"></pre></details>';
 $('#ptt').appendChild(controls);
-const css=document.createElement('style');css.textContent='#pttActions{pointer-events:auto}#pttActions>div{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0}#pttActions button{padding:8px;border:1px solid #526071;border-radius:7px;background:#fff;color:#172230;font:12px system-ui;cursor:pointer}#pttForm{display:flex;gap:4px}#pttWords{min-width:0;flex:1;padding:10px;font:16px system-ui;border-radius:7px;border:1px solid #526071;user-select:text}#ptt{max-height:80vh;overflow:auto}body.ptt-on #hint,body.ptt-on #keys{display:none}';
+const css=document.createElement('style');css.textContent='#pttActions{pointer-events:auto}#pttActions>div{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0}#pttActions button{padding:8px;border:1px solid #526071;border-radius:7px;background:#fff;color:#172230;font:12px system-ui;cursor:pointer}#pttForm{display:flex;gap:4px}#pttWords{min-width:0;flex:1;padding:10px;font:16px system-ui;border-radius:7px;border:1px solid #526071;user-select:text}#ptt{max-height:80vh;overflow:auto}body.ptt-on #hint,body.ptt-on #keys{display:none}#pttDiagnostics{pointer-events:auto;background:#fff;color:#172230;padding:6px;font:11px monospace}#pttLog{max-height:150px;overflow:auto;white-space:pre-wrap;user-select:text}#pttPlayback{width:100%;height:32px}#pttGesture{background:#172230;color:white;padding:6px;font:12px monospace}#pttLevel{width:65px}#pttCursor.object{box-shadow:0 0 0 4px #ffcd32,0 0 20px #ffcd32}';
 document.head.appendChild(css);
+$('#pttSelect').onclick=()=>capture(state.hover||state.recentHit&&state.recentHit.hit);
+$('#pttSendAudio').onclick=transcribeRecording;
+$('#pttBrowserVoice').onclick=()=>{if(state.recorder||state.transcribing)return;state.voiceOff=false;startSpeech();};
+$('#pttCopyLog').onclick=async()=>{try{await navigator.clipboard.writeText(JSON.stringify(events,null,2));sayLine('Diagnostic log copied. It excludes audio, transcripts and API keys.','');}catch(e){sayLine('Clipboard unavailable. Select the log text below.','');}};
 $('#pttBrick').onclick=addTestBrick;
 $('#pttMove').onclick=()=>execute({verb:'move',needsThat:true,needsThere:true});
 $('#pttCopy').onclick=()=>execute({verb:'copy',needsThat:true,needsThere:true});
@@ -401,5 +502,5 @@ $('#pttKey').onclick=()=>{W.wbOpen&&W.wbOpen(true);$('#wbKeyBtn').click();};
 $('#pttForm').onsubmit=e=>{e.preventDefault();const input=$('#pttWords');const t=input.value.trim();if(t){heard(t,true);input.value='';}};
 for(const name of ['pointerdown','pointerup','pointermove','keydown'])controls.addEventListener(name,e=>e.stopPropagation());
 
-window.PutThatThere={beforeStep,afterPose,poseAngles,addTestBrick,parse,heard,infer,tracePacket,execute,capture,pointIntoWorld,setMode,start,stop,state:()=>({on:state.on,mode:state.mode,that:label(state.that),there:!!state.there,pending:state.pending&&state.pending.verb,walking:state.walking,inferring:state.inferring,trace:state.trace.length})};
+window.PutThatThere={handGesture,updateHand,recordStart,recordStop,transcribeRecording,diagnostics:()=>events.slice(),beforeStep,afterPose,poseAngles,addTestBrick,parse,heard,infer,tracePacket,execute,capture,pointIntoWorld,setMode,start,stop,state:()=>({on:state.on,mode:state.mode,that:label(state.that),there:!!state.there,pending:state.pending&&state.pending.verb,walking:state.walking,inferring:state.inferring,trace:state.trace.length})};
 })();
