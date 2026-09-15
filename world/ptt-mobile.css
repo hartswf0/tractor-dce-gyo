@@ -1,0 +1,53 @@
+
+/* Mobile owns one tray. The world remains visible above its bounded scroll area. */
+@media (max-width: 620px), (max-height: 500px) and (pointer: coarse) {
+  html,body{max-width:100%;overflow:hidden;overscroll-behavior:none}
+  body.ptt-edit,body.ptt-on{--wb:0px!important}
+  body.ptt-edit #wb,body.ptt-on #wb,body.ptt-edit #wbSay,body.ptt-on #wbSay{display:none!important}
+  body #ptt,body #ptt *{box-sizing:border-box;min-width:0}
+  body #ptt{
+    inset:auto 8px calc(var(--ptt-vbottom,0px) + env(safe-area-inset-bottom,0px) + 8px) 8px;
+    width:auto;max-width:none;max-height:min(360px,calc(var(--ptt-vh,100dvh) * .42));
+    padding:8px;gap:5px;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;
+    border-radius:14px;background:#fffffff5;box-shadow:0 4px 20px #0003;
+  }
+  body #ptt>*{flex-shrink:0}
+  body #pttTop{display:flex;align-items:center;justify-content:space-between;gap:8px;font:600 12px system-ui;color:#172230}
+  body #pttTrayToggle{min-height:36px;padding:4px 12px;border:1px solid #526071;border-radius:8px;background:white;color:#172230}
+  body #pttState{display:flex;flex-wrap:nowrap;gap:4px}
+  body #pttState span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px;padding:5px}
+  body #pttLine{font-size:12px;line-height:1.3;padding:4px 2px;box-shadow:none;background:none;overflow-wrap:anywhere}
+  body #pttActions{display:flex;flex-direction:column;gap:5px}
+  body #pttActions>div{margin:0;gap:4px}
+  body #pttActions button{font:12px system-ui;min-height:40px;padding:6px 10px;max-width:100%;white-space:normal}
+  body #pttPrimary{display:flex;flex-wrap:wrap;gap:4px}
+  body #pttForm{display:flex;gap:4px;margin:0}
+  body #pttWords{width:0;min-width:0;flex:1;height:42px;padding:8px;font-size:16px}
+  body #pttForm button{flex:0 0 auto}
+  body #pttGesture{display:none}
+  body #pttTools{border-top:1px solid #ccd2d8;border-radius:0;background:transparent;padding:0}
+  body #pttTools>summary{min-height:36px;padding:8px 2px;font:600 12px system-ui;cursor:pointer}
+  body #pttToolsBody{display:flex;flex-direction:column;gap:8px;padding-top:4px}
+  body #pttSecondary{display:flex;flex-wrap:wrap;gap:4px}
+  body #pttLog{max-height:120px;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;overflow:auto}
+  body #pttObjects{max-height:120px;overflow:auto}
+  body #pttPlayback{max-width:100%;height:36px}
+  body #pttView{position:fixed;top:calc(var(--ptt-vtop,0px) + 108px);right:8px;left:auto;width:96px;height:72px;aspect-ratio:auto;border-radius:10px;pointer-events:none}
+  body #pttMode{display:none}
+  body #pttArrange,body #pttStart{position:fixed;top:calc(var(--ptt-vtop,0px) + 62px)!important;bottom:auto!important;height:38px;min-height:38px;font:700 11px system-ui;padding:0 14px;z-index:8}
+  body #pttArrange{left:8px;right:auto}
+  body #pttStart{left:auto;right:8px;max-width:46vw}
+  body.ptt-edit #menuBtn,body.ptt-on #menuBtn{top:calc(var(--ptt-vtop,0px) + 62px);left:50%;transform:translateX(-50%);max-width:35vw;font-size:9px;padding:0 7px}
+  body.ptt-edit #minimap,body.ptt-on #minimap{display:none}
+  body #menu{box-sizing:border-box;inset:calc(var(--ptt-vtop,0px) + 106px) 8px calc(var(--ptt-vbottom,0px) + 8px);max-height:none;overflow:auto;overscroll-behavior:contain;width:auto;background:#fff;z-index:10}
+  body #menu .row{min-width:0}
+  body #menu button{max-width:100%;height:auto;min-height:36px;white-space:normal}
+  body.ptt-menu-open #ptt,body.ptt-menu-open #pttView,body.ptt-menu-open #pttStart,body.ptt-menu-open #pttArrange{display:none!important}
+  #pttMenuClose{position:fixed;top:calc(var(--ptt-vtop,0px) + 62px);right:8px;z-index:11;height:36px;padding:0 14px;border:1px solid #172230;border-radius:9px;background:#fff;color:#172230}
+  body #ptt.ptt-collapsed #pttActions,body #ptt.ptt-collapsed #pttLine{display:none}
+  body.ptt-keyboard #ptt{max-height:calc(var(--ptt-vh,100dvh) * .42)}
+  body.ptt-keyboard #pttState,body.ptt-keyboard #pttLine,body.ptt-keyboard #pttPrimary,body.ptt-keyboard #pttView{display:none}
+  body #pttKeyForm{display:flex;gap:4px}
+  body #pttKeyInput{flex:1;width:0;min-width:0;height:42px;border:1px solid #526071;border-radius:8px;padding:8px;font-size:16px}
+}
+#pttMenuClose[hidden],#pttKeyForm[hidden]{display:none!important}
