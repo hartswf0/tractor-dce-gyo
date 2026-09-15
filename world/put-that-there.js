@@ -165,9 +165,10 @@ async function infer(words, capturedPacket) {
     if(local.verb==='build'||local.verb==='unknown'){sayLine('Add an OpenAI key for new creations, or use + Brick to test placement.','');W.wbOpen&&W.wbOpen(true);return;}
     execute(local);return;
   }
-  state.inferring=true;$('#pttMic').textContent='LLM: inferring';sayLine('Resolving words and gesture…','');
+  const request=state.inferRequest=(state.inferRequest||0)+1;state.inferring=true;$('#pttMic').textContent='LLM: inferring';sayLine('Resolving words and gesture…','');
   try {
     const packet=capturedPacket ? {...capturedPacket,utterance:words} : tracePacket(words),a=await Ai.inferAct(packet);
+    if(request!==state.inferRequest)return;
     if(a.act==='clarify'||a.clarification||Number(a.confidence)<.58){sayLine(a.clarification||a.say||'Show me which one.','speak');return;}
     const allowed=new Set([...(packet.candidates||[]),...(packet.nearby||[])].map(x=>String(x.id)));
     if(a.referent_id&&!allowed.has(String(a.referent_id))){sayLine('The model named something outside the visible world. Point again.','speak');return;}
@@ -179,7 +180,7 @@ async function infer(words, capturedPacket) {
     const cmd={verb:a.act,text:a.words||words,needsThat:/^(move|copy|remove|turn|taller)$/.test(a.act),needsThere:/^(move|copy|walk)$/.test(a.act),thisWord:false,thereWord:false};
     const ok=await execute(cmd);if(ok&&a.say)sayLine(a.say,'speak');
   } catch(e){debug('inference.error',{message:e.message||String(e)});sayLine('Model error: '+(e.message||e)+'. Your world was not changed.','');}
-  finally{state.inferring=false;$('#pttMic').textContent=state.voiceError?'VOICE: '+state.voiceError:state.voiceOff?'VOICE: tap Talk':'VOICE: browser listening';}
+  finally{if(request===state.inferRequest)state.inferring=false;$('#pttMic').textContent=state.voiceError?'VOICE: '+state.voiceError:state.voiceOff?'VOICE: tap Talk':'VOICE: browser listening';}
 }
 
 function resetBindings() { state.that = state.there = state.pending = null; paintBindings();showSelection(null);refreshActions(); }
@@ -269,20 +270,21 @@ async function recordStart(e) {
 }
 function recordStop(e){if(e)e.preventDefault();clearTimeout(state.recordTimer);stopMeter();if(state.recorder&&state.recorder.state==='recording')state.recorder.stop();}
 function finishRecording(){
-  const r=state.recorder;state.recorder=null;stopMeter();state.recordPacket=tracePacket('');
+  const r=state.recorder;state.recorder=null;stopMeter();if(state.micStream){state.micStream.getTracks().forEach(t=>t.stop());state.micStream=null;}state.recordPacket=tracePacket('');
   const blob=new Blob(state.chunks,{type:r&&r.mimeType||'audio/webm'});state.chunks=[];state.audioBlob=blob;
   if(state.audioURL)URL.revokeObjectURL(state.audioURL);state.audioURL=URL.createObjectURL(blob);
   $('#pttPlayback').src=state.audioURL;$('#pttPlayback').hidden=false;$('#pttSendAudio').disabled=!blob.size;
   $('#pttAsk').classList.remove('on');$('#pttAsk').textContent='Record';
   micStatus(blob.size?'recorded '+Math.round(blob.size/1024)+' KB':'empty recording');
   debug('record.stop',{bytes:blob.size,mime:blob.type});
+  window.dispatchEvent(new CustomEvent('world-recording-ready',{detail:{bytes:blob.size}}));
   sayLine(blob.size?'Play back to check the microphone. Send audio uses your API key.':'No audio captured. Try microphone permission again.','');
 }
 async function transcribeRecording(){
   if(state.transcribing||!state.audioBlob)return;
   if(!window.Ai||!Ai.key()){sayLine('Recording is ready. Add an API key, then Send audio.','');$('#pttKey').click();return;}
   state.transcribing=true;$('#pttSendAudio').disabled=true;micStatus('transcribing');
-  const blob=state.audioBlob,packet=state.recordPacket||tracePacket(''),abort=new AbortController(),timer=setTimeout(()=>abort.abort(),45000);
+  const blob=state.audioBlob,packet=state.recordPacket||tracePacket(''),abort=new AbortController(),timer=setTimeout(()=>abort.abort(),45000);state.transcribeAbort=abort;
   try{
     const f=new FormData();f.append('file',blob,/mp4/.test(blob.type)?'speech.mp4':/ogg/.test(blob.type)?'speech.ogg':'speech.webm');f.append('model','gpt-4o-transcribe');
     debug('transcription.start',{bytes:blob.size});
@@ -291,9 +293,9 @@ async function transcribeRecording(){
     const j=await res.json();if(!res.ok)throw new Error(j.error&&j.error.message||res.status);
     if(!j.text||!j.text.trim())throw new Error('No speech recognised. Check playback.');
     $('#pttWords').value=j.text;micStatus('transcribed');debug('transcription.done',{characters:j.text.length});
-    if(state.on||state.edit)await heard(j.text,true,packet);
-  }catch(e){micStatus('transcription failed');debug('transcription.error',{message:e.message});sayLine('Transcription: '+e.message+'. Recording retained; you can retry.','');}
-  finally{clearTimeout(timer);state.transcribing=false;$('#pttSendAudio').disabled=false;}
+    if(!abort.signal.aborted)await heard(j.text,true,packet);
+  }catch(e){if(abort.signal.aborted){sayLine('Stopped. Recording retained.','');return;}micStatus('transcription failed');debug('transcription.error',{message:e.message});sayLine('Transcription: '+e.message+'. Recording retained; you can retry.','');}
+  finally{clearTimeout(timer);state.transcribeAbort=null;state.transcribing=false;$('#pttSendAudio').disabled=false;}
 }
 
 function drawHand(hand, pose) {
@@ -329,7 +331,7 @@ function handGesture(h,held=false) {
   return {closed:curled>=(held?2:3)||pinch<(held?.62:.38),name:curled>=3?'FIST':pinch<.62?'PINCH':'OPEN',curled,pinch};
 }
 function updateHand(hand,now) {
-  if(!state.edit||state.pointerDrag)return;
+  if((!state.edit&&!state.worldSurface)||state.pointerDrag)return;
   const palm={x:1-(hand[0].x+hand[5].x+hand[9].x+hand[17].x)/4,y:(hand[0].y+hand[5].y+hand[9].y+hand[17].y)/4};
   const g=handGesture(hand,state.pinched);
   if(!state.handOrigin){state.handOrigin={...palm};state.handAim={x:.5,y:.5};}
@@ -368,7 +370,7 @@ async function visionLoop() {
       drawHand(hand, pose);
       if (state.mode === 'walk') poseWalk(pose);
       else {
-        stopWalk(); if (hand) {
+        if(state.walking)stopWalk(); if (hand) {
           updateHand(hand,now);
 
         } else { state.hover=null;if(state.grab)debug('grab.cancel',{reason:'tracking lost'});endDrag(false);state.pointer=null;state.handOrigin=null;state.recentHit=null;state.gestureSince=0;if(state.helper&&state.that)state.helper.box.copy(state.that.box); $('#pttCursor').className=''; state.pinched=false; }
@@ -399,7 +401,7 @@ function stop() {
   endDrag(false);state.on=false;stopMeter();state.pinched=false;state.pointer=null;state.recentHit=null;state.walkTarget=null;state.grab=null;clearTimeout(state.recordTimer);stopWalk();resetPose();clearTimeout(state.speechRestart);if(state.recorder)try{state.recorder.onstop=null;state.recorder.stop();}catch(e){}state.recorder=null;if(state.recognition)try{state.recognition.abort();}catch(e){}state.recognition=null;if(state.stream)state.stream.getTracks().forEach(t=>t.stop());state.stream=null;if(state.micStream)state.micStream.getTracks().forEach(t=>t.stop());state.micStream=null;
   if(state.hand)state.hand.close();if(state.pose)state.pose.close();state.hand=state.pose=null;resetBindings();document.body.classList.remove('ptt-on');if(!state.edit)$('#ptt').classList.remove('on');$('#pttCursor').className='';const b=$('#pttStart');b.classList.remove('on','listening');b.setAttribute('aria-pressed','false');b.textContent='Point + speak';
 }
-function setMode(mode){if(mode==='walk')setArrange(false);else setArrange(true);state.grab=null;state.pinched=false;state.pointer=null;state.recentHit=null;state.mode=mode==='walk'?'walk':'point';document.querySelectorAll('[data-ptt-mode]').forEach(b=>b.classList.toggle('on',b.dataset.pttMode===state.mode));if(state.mode==='walk'){resetBindings();sayLine('Raise both hands to walk. Lean left or right to steer.','');$('#pttCursor').className='';}else{stopWalk();sayLine('Point, close your fist to grab, move, then open to place.','');}}
+function setMode(mode){if(state.worldSurface){state.mode=mode==='walk'?'walk':'point';endDrag(false);state.pinched=false;state.pointer=null;stopWalk();document.querySelectorAll('[data-ptt-mode]').forEach(b=>b.classList.toggle('on',b.dataset.pttMode===state.mode));return;}if(mode==='walk')setArrange(false);else setArrange(true);state.grab=null;state.pinched=false;state.pointer=null;state.recentHit=null;state.mode=mode==='walk'?'walk':'point';document.querySelectorAll('[data-ptt-mode]').forEach(b=>b.classList.toggle('on',b.dataset.pttMode===state.mode));if(state.mode==='walk'){resetBindings();sayLine('Raise both hands to walk. Lean left or right to steer.','');$('#pttCursor').className='';}else{stopWalk();sayLine('Point, close your fist to grab, move, then open to place.','');}}
 
 $('#pttStart').addEventListener('click',start);document.querySelectorAll('[data-ptt-mode]').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.pttMode)));window.addEventListener('pagehide',stop);
 $('#pttAsk').textContent='Record';$('#pttAsk').addEventListener('click',e=>state.recorder?recordStop(e):recordStart(e));$('#pttAsk').addEventListener('contextmenu',e=>e.preventDefault());
@@ -463,7 +465,7 @@ function afterPose(dt){
 }
 
 function beforeStep(dt){
-  if(state.edit&&W.input){W.input.L.x=W.input.L.y=W.input.L.mag=0;W.input.L.held=false;W.input.saber=W.input.push=W.input.fireOnce=false;return;}
+  if(state.edit&&!state.worldSurface&&W.input){W.input.L.x=W.input.L.y=W.input.L.mag=0;W.input.L.held=false;W.input.saber=W.input.push=W.input.fireOnce=false;return;}
   if(!state.on)return;
   if(state.mode==='walk'&&performance.now()-(state.poseAt||0)>450)stopWalk();
   if(!state.walkTarget)return;
@@ -644,6 +646,23 @@ $('#pttKey').onclick=()=>{W.wbOpen&&W.wbOpen(true);$('#wbKeyBtn').click();};
 $('#pttForm').onsubmit=e=>{e.preventDefault();const input=$('#pttWords');const t=input.value.trim();if(t){heard(t,true);input.value='';}};
 for(const name of ['pointerdown','pointerup','pointermove','keydown'])controls.addEventListener(name,e=>e.stopPropagation());
 
+
+function surfaceState(){
+ return {selected:state.that,there:state.there,dragging:!!state.grab,recording:!!state.recorder,opening:!!state.recordOpening,
+ transcribing:!!state.transcribing,inferring:!!state.inferring,hand:state.on,handSeen:!!state.pointer,
+ canUndo:!!(state.lastMove||state.cityUndo||W.build&&W.build.history&&W.build.history.length),
+ hasAudio:!!(state.audioBlob&&state.audioBlob.size),pending:state.pending,level:$('#pttLevel').value||0};
+}
+function cancelSurface(){
+ state.inferRequest=(state.inferRequest||0)+1;state.inferring=false;
+ state.recordRequest=(state.recordRequest||0)+1;
+ if(state.transcribeAbort)state.transcribeAbort.abort();
+ clearTimeout(state.recordTimer);
+ if(state.recorder){state.recorder.onstop=null;try{state.recorder.stop();}catch(e){}state.recorder=null;stopMeter();$('#pttAsk').textContent='Record';}
+ if(state.micStream){state.micStream.getTracks().forEach(t=>t.stop());state.micStream=null;}
+ endDrag(false);state.pointerDrag=null;state.walkTarget=null;stopWalk();
+}
+
 setArrange(true);
-window.PutThatThere={afterCamera,setArrange,selectable,beginDrag,dragTo,endDrag,directDown,directMove,directUp,handGesture,updateHand,recordStart,recordStop,transcribeRecording,diagnostics:()=>events.slice(),beforeStep,afterPose,poseAngles,addTestBrick,parse,heard,infer,tracePacket,execute,capture,pointIntoWorld,setMode,start,stop,state:()=>({on:state.on,mode:state.mode,that:label(state.that),there:!!state.there,pending:state.pending&&state.pending.verb,walking:state.walking,inferring:state.inferring,trace:state.trace.length})};
+window.PutThatThere={surfaceState,cancelSurface,resetBindings,worldSurface:()=>{setArrange(false);state.worldSurface=true;},afterCamera,setArrange,selectable,beginDrag,dragTo,endDrag,directDown,directMove,directUp,handGesture,updateHand,recordStart,recordStop,transcribeRecording,diagnostics:()=>events.slice(),beforeStep,afterPose,poseAngles,addTestBrick,parse,heard,infer,tracePacket,execute,capture,pointIntoWorld,setMode,start,stop,state:()=>({on:state.on,mode:state.mode,that:label(state.that),there:!!state.there,pending:state.pending&&state.pending.verb,walking:state.walking,inferring:state.inferring,trace:state.trace.length})};
 })();
