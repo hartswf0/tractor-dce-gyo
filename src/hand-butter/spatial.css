@@ -1,0 +1,16 @@
+/* One snap gizmo. The registered desk uses the same cover/mirror as landmarks. */
+body[data-spatial-face=desk][data-room=room] #video{opacity:1!important}
+body[data-spatial-face=desk][data-room=ghost] #video{opacity:.3!important}
+body[data-spatial-face=desk] #stage{background:#172022}
+#faceGizmo{position:absolute;right:8px;top:44%;transform:translateY(-50%);z-index:7;width:94px;padding:5px;background:#101b20ef;border:1px solid #617574;border-radius:10px;display:flex;flex-direction:column;gap:5px;align-items:stretch}
+#faceName{text-align:center;font:11px ui-monospace,monospace;color:#d8ff9e;letter-spacing:1px;padding:3px}
+.view-cube{display:grid;grid-template-columns:1fr 1fr;gap:3px;perspective:200px}.view-cube button{min-width:0;min-height:43px;padding:2px;font-size:10px;border-radius:3px;background:#2a393e}
+.view-cube button:first-child{grid-column:1/-1;min-height:36px;background:#3c4d50}.view-cube button:nth-child(3){background:#1c3037}
+#faceGizmo button[aria-pressed=true],#faceGizmo .hand-hover{background:#c4f46a!important;color:#15210e;border-color:#efffcf;box-shadow:0 0 0 2px #c4f46a35}
+#faceGizmo>button{font-size:11px;min-height:35px;padding:3px}.face-turn{display:flex;gap:4px}.face-turn button{min-width:0;flex:1;font-size:21px;padding:2px;min-height:34px}#faceGizmo small{text-align:center;font:9px ui-monospace,monospace;color:#b6c7c1;padding:2px 0}
+#viewInstruction{position:absolute;top:12px;left:110px;right:12px;text-align:right;font:10px ui-monospace,monospace;color:#dbebe4;text-shadow:0 1px 3px #000;z-index:4;pointer-events:none}
+#spatialReadout{position:absolute;max-width:208px;padding:6px 8px;background:#0c191edf;border-left:2px solid #c4f46a;border-radius:3px;z-index:5;pointer-events:none;font:10px/1.5 ui-monospace,monospace;color:#edffe7}#spatialReadout b,#spatialReadout span{display:block}#spatialReadout span{color:#c4d7d4}#spatialReadout[hidden]{display:none}
+body[data-spatial-face=desk] .hand-label{opacity:.7;font-size:9px}.stage-label b{background:#10202090;padding:3px;border-radius:3px}
+#selectionTools>#moreTools{display:block!important;order:0}#selectionActions{flex-shrink:0}#selectionActions #seat{background:#2d443a;border-color:#718772}
+@media(max-width:600px){#faceGizmo{width:82px;right:4px;padding:4px;top:42%}.view-cube button{min-height:42px;font-size:9px}.view-cube button:first-child{min-height:36px}#faceGizmo small{font-size:8px}#viewInstruction{left:92px;right:8px;font-size:8px;top:14px;max-height:28px;overflow:hidden}#spatialReadout{max-width:178px;font-size:9px}#selectionTools>#moreTools{grid-column:4;grid-row:2}#selectionActions{grid-column:1/4;grid-row:2}#selectionHint{font-size:10px}#stageCue{max-width:85%;font-size:9px}}
+@media(max-height:560px){#faceGizmo{top:50%;width:80px}.view-cube button{min-height:30px}.view-cube button:first-child{min-height:28px}#faceGizmo>button{min-height:28px}.face-turn button{min-height:25px}#faceGizmo small{display:none}#spatialReadout{font-size:9px}}
