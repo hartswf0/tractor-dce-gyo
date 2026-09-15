@@ -1,0 +1,16 @@
+/* Visible action hand is an overlay, like its skeleton. Real scene occlusion is not reconstructed. */
+renderSoftHands=function(now){
+ for(const [id,v] of B.visuals){if(!v.soft){const c=document.createElement('canvas');c.width=256;c.height=256;const tex=new THREE.CanvasTexture(c);tex.encoding=THREE.sRGBEncoding;const mesh=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false,depthTest:false,side:THREE.DoubleSide}));mesh.renderOrder=39;scene.add(mesh);v.soft={c,tex,mesh};}
+ const t=B.ghosts.get(id),soft=v.soft;soft.mesh.visible=!!t&&v.group.visible&&(soft.hasFrame||$('#video').readyState>=2)&&B.mode!=='model';if(!soft.mesh.visible)continue;
+ // Keep the last real cutout during tracking loss; never sample today's video with yesterday's landmarks.
+ if(now-t.last>350||$('#video').readyState<2){soft.mesh.visible=!!soft.hasFrame;soft.mesh.material.opacity=Math.max(.18,.68-(now-t.last-350)/2200);continue;}
+ const marks=t.marks,xs=marks.map(m=>m.x),ys=marks.map(m=>m.y),x0=Math.max(0,Math.min(...xs)-.035),x1=Math.min(1,Math.max(...xs)+.035),y0=Math.max(0,Math.min(...ys)-.035),y1=Math.min(1,Math.max(...ys)+.035),ctx=soft.c.getContext('2d'),video=$('#video');
+ ctx.clearRect(0,0,256,256);ctx.save();ctx.translate(256,0);ctx.scale(-1,1);ctx.drawImage(video,x0*video.videoWidth,y0*video.videoHeight,(x1-x0)*video.videoWidth,(y1-y0)*video.videoHeight,0,0,256,256);ctx.restore();
+ const mask=soft.mask||(soft.mask=document.createElement('canvas'));if(mask.width!==256)mask.width=mask.height=256;const mc=mask.getContext('2d');mc.clearRect(0,0,256,256);const xy=m=>[(1-(m.x-x0)/(x1-x0))*256,(m.y-y0)/(y1-y0)*256];mc.strokeStyle=mc.fillStyle='#fff';mc.lineCap='round';mc.lineJoin='round';mc.filter='blur(3px)';mc.lineWidth=22;
+ for(const chain of [[0,1,2,3,4],[0,5,6,7,8],[0,9,10,11,12],[0,13,14,15,16],[0,17,18,19,20]]){mc.beginPath();chain.forEach((i,j)=>mc[j?'lineTo':'moveTo'](...xy(marks[i])));mc.stroke();}
+ mc.beginPath();[0,1,5,9,13,17].forEach((i,j)=>mc[j?'lineTo':'moveTo'](...xy(marks[i])));mc.closePath();mc.fill();ctx.globalCompositeOperation='destination-in';ctx.drawImage(mask,0,0);ctx.globalCompositeOperation='source-over';// Feather the crop boundary too, including where the camera cannot supply pixels.
+ for(const vertical of [false,true]){const g=ctx.createLinearGradient(0,0,vertical?0:256,vertical?256:0);g.addColorStop(0,'transparent');g.addColorStop(.06,'white');g.addColorStop(.94,'white');g.addColorStop(1,'transparent');ctx.globalCompositeOperation='destination-in';ctx.fillStyle=g;ctx.fillRect(0,0,256,256);}ctx.globalCompositeOperation='source-over';soft.tex.needsUpdate=true;soft.hasFrame=true;
+ const depth=S.tx&&id===H.owner?camera.position.distanceTo(window.ButterSpatialRuntime?ButterSpatialRuntime.plate.localToWorld(anchor().add(V(0,15,0))):anchor().add(V(0,15,0))):camera.position.distanceTo(V(0,45,0));const a=worldPoint({x:x0,y:y0},depth),b=worldPoint({x:x1,y:y0},depth),d=worldPoint({x:x0,y:y1},depth);
+ soft.mesh.position.copy(worldPoint({x:(x0+x1)/2,y:(y0+y1)/2},depth));soft.mesh.quaternion.copy(camera.quaternion);soft.mesh.scale.set(a.distanceTo(b),a.distanceTo(d),1);soft.mesh.material.opacity=now-t.last>350?.18:.68;
+ }
+};

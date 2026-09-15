@@ -7,7 +7,7 @@ text = page.read_text()
 start = '<!-- BUTTER SPATIAL MODULES START -->'
 end = '<!-- BUTTER SPATIAL MODULES END -->'
 blocks = [start, '<style>', (root/'src/hand-butter/spatial.css').read_text(), '</style>']
-for name in ['spatial-core.js', 'calibration-core.js', 'spatial-runtime.js', 'input-runtime.js']:
+for name in ['spatial-core.js', 'calibration-core.js', 'spatial-runtime.js', 'input-runtime.js', 'soft-hand-runtime.js']:
     source = (root/'src/hand-butter'/name).read_text()
     if '</script' in source.lower():
         raise ValueError('Script source must not contain a closing script tag')

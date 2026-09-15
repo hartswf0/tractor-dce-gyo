@@ -1,4 +1,4 @@
-# Hand Butter 04: fixed room and calibrated input roles
+# Hand Butter 05: fixed room and calibrated input roles
 
 The room, camera, back-wall video, lights, and hand image stay fixed. Only the construction frame turns, in 90-degree steps. The previous orthographic camera-switch model is superseded.
 
@@ -12,7 +12,7 @@ The room, camera, back-wall video, lights, and hand image stay fixed. Only the c
 
 ## Calibration
 
-On first camera entry, or through Calibrate, choose the input pairing. Teach eight comfortable control-volume corners. The first tracked hand is the grip; the other is the tool. The UI labels both. Point left/right and high/low with the grip input, and move the tool down/near or up/away. Hold steady, then Capture or Space. Mouse positions are retained when clicking the Capture button.
+On first camera entry, or through Calibrate, choose the input pairing. Teach eight comfortable control-volume corners. The first tracked hand is the grip; the other is the tool. The UI labels both. Point left/right and high/low with the grip input, and move the tool down/near or up/away. Hold steady. After stable observations and an 800 ms dwell, the pose captures automatically. A progress bar reports the dwell. The next pose cannot capture until the required input axes move toward the next corner. Missing inputs or unstable samples reset the timer. No capture click is required, and successful verification returns to building automatically.
 
 The pure calibration module fits separate, signed ranges for the three input channels. It rejects insufficient reach, inconsistent corners, and non-finite samples. A separate verification pass requires all eight corners to stay within 8% of each normalized axis range for 600 ms. Losing an input resets the dwell. The report stores the worst error across each successful hold. Fitting samples alone never counts as passing verification.
 
@@ -25,12 +25,15 @@ Palm-scale ratios are reported as an experimental relative-distance cue during t
 - `spatial-core.js`: existing image mapping and compatibility frame definitions.
 - `spatial-runtime.js`: fixed room, plate transform, projection/picking, landing previews, contact cues.
 - `calibration-core.js`: fit, mapping, stability, error, and palm-scale diagnostics, without renderer dependencies.
+- `soft-hand-runtime.js`: video hand overlay, feathered crop edges, and retained pixels during tracking loss. The overlay deliberately stays visible over virtual geometry, matching the skeleton; it does not claim physical occlusion.
 - `input-runtime.js`: grip/tool adapters, calibration lifecycle, mixed input ownership, and profile persistence.
 - `spatial.css`: plate tab and temporary calibration UI.
 
 Run `python scripts/build-hand-butter-spatial.py` to embed the modules into the standalone `WAG-HAND-BUTTER.HTML`. Do not edit the generated block. A future camera or wrist sensor should contribute observations through an input adapter and should not write part positions directly.
 
 ## Verification
+
+- `node tests/wag-butter-05.cjs`: no-click eight-corner teaching, automatic completion, preserved hybrid controls, and hand overlay/retained-texture checks.
 
 - `node tests/wag-butter-04.cjs`: fixed camera/video/walls, plate projection, held ownership, mouse/hand in both directions, fit rejection, independent corner verification, and mobile layout.
 - `node tests/wag-butter-02.cjs`: retained group, clipboard, joint, audio-signal, and layout behavior.
