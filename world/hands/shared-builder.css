@@ -1,0 +1,44 @@
+/* Keep the existing world controls; the composer owns the space it occupies. */
+body.build #wbSay { display:block; }
+body.build #palette { position:static; padding:0; margin:0; width:100%; }
+#palette .parts, #palette .tools { flex-wrap:nowrap; overflow-x:auto; scrollbar-width:thin; }
+#palette button { min-height:44px; flex-shrink:0; }
+#palette .cols { flex-shrink:0; }
+#palette .place { position:static; }
+
+body.ptt-on #palette [data-tool="near"], body.ptt-on #palette [data-tool="far"], body.ptt-on #palette [data-tool="surface"] { display:block; }
+#wb { background:var(--skyA); max-height:52dvh; overflow:auto; pointer-events:auto; }
+#wb #ptt { position:static; width:100%; max-height:none; overflow:visible; grid-template-columns:112px minmax(0,1fr); gap:5px 8px; }
+#wb #ptt.on { display:grid; }
+#pttView { grid-row:1 / 4; align-self:start; }
+#pttMode { position:static; display:flex; margin-top:0; }
+#pttView { overflow:visible; padding-bottom:32px; }
+#pttVideo, #pttDraw { height:84px; border-radius:10px; }
+#pttMode { position:absolute; bottom:0; left:0; right:0; }
+#pttMode button { min-height:32px; letter-spacing:0; }
+#pttState { align-self:start; }
+#pttState span { padding:3px 5px; font-size:9px; }
+#pttLine { margin:0; box-shadow:none; padding:0; background:none; }
+#pttActions { min-width:0; pointer-events:auto; font:11px/1.3 var(--sans); }
+#pttGesture { color:var(--dim); }
+#pttDiagnostics { margin-top:3px; }
+#pttDiagnostics button { min-height:44px; }
+#pttPlayback { width:100%; }
+#pttLog { max-height:100px; overflow:auto; white-space:pre-wrap; }
+#pttAsk { display:none; min-width:48px; min-height:44px; }
+body.ptt-on #pttAsk { display:block; }
+body.ptt-on #hint, body.ptt-on #keys { display:none; }
+body.ptt-on #wbSay { display:none; }
+body.ptt-on #find { display:flex; }
+#words { font-size:16px; }
+@media(max-width:620px) {
+  #wb { padding-left:6px; padding-right:6px; }
+  #wbRow { display:grid; grid-template-columns:minmax(0,1fr) auto auto; gap:4px; }
+  body.ptt-on #words { grid-column:1 / -1; }
+  #wbRow button { min-height:44px; }
+  #wbTop { gap:4px; overflow-x:auto; }
+  #wbTop button { min-height:36px; flex-shrink:0; }
+}
+
+#wbRow { position:sticky; bottom:0; background:var(--skyA); z-index:2; }
+#wbTop { position:sticky; top:0; background:var(--skyA); z-index:3; }
