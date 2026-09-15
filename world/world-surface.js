@@ -196,7 +196,7 @@ function layout(){
  const narrow=innerWidth<1000,handHeight=narrow&&document.body.classList.contains('ref-hand-open')?handDock.getBoundingClientRect().height:0;
  const floor=buildHeight+Math.max(panelHeight,textHeight,handHeight),stage=$('#stage');
  root.style.setProperty('--ref-build-height',buildHeight+'px');
- const side=narrow?0:336;root.style.setProperty('--ref-side',side+'px');stage.style.right=side+'px';document.documentElement.style.setProperty('--v-floor',floor+'px');
+ const side=narrow?0:336;root.style.setProperty('--ref-side',side+'px');stage.style.right=side+'px';root.style.setProperty('--v-floor',floor+'px');
  stage.style.top=top+'px';stage.style.height=Math.max(1,h-floor)+'px';pages();
  const signature=stage.clientWidth+':'+stage.clientHeight;
  if(W.renderer&&W.camera&&signature!==previousSignature){previousSignature=signature;W.renderer.setSize(stage.clientWidth,stage.clientHeight);W.camera.aspect=stage.clientWidth/stage.clientHeight;W.camera.updateProjectionMatrix();}
