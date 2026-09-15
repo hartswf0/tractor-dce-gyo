@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#101216">
+<title>Builders Game</title>
+<style>
+:root{--ink:#f6f3eb;--muted:#a9adb7;--panel:rgba(16,18,22,.78);--line:rgba(255,255,255,.16);--accent:#f04b3e;--ok:#5bd17b;--warn:#ffca55;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;--sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#101216;color:var(--ink);font-family:var(--sans);touch-action:none}button,input{font:inherit}.world{position:fixed;inset:0;width:100%;height:100%;border:0;background:#b8cbd8}.hud{position:fixed;inset:0;pointer-events:none;z-index:10}.top{position:absolute;left:0;right:0;top:0;padding:calc(10px + env(safe-area-inset-top)) 12px 0;display:flex;gap:8px;align-items:flex-start;justify-content:space-between}.chip,.goal,.mic,.fault input,.fault button{pointer-events:auto}.chip{min-width:44px;height:44px;border:1px solid var(--line);border-radius:999px;background:var(--panel);color:var(--ink);backdrop-filter:blur(14px);font:700 11px var(--mono);letter-spacing:.08em;text-transform:uppercase}.goal{max-width:min(68vw,440px);min-height:44px;padding:7px 12px;border:1px solid var(--line);border-radius:14px;background:var(--panel);color:var(--ink);backdrop-filter:blur(14px);text-align:left}.goal .k{display:block;font:700 9px var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}.goal .g{display:flex;align-items:baseline;gap:8px;margin-top:1px}.goal strong{font-size:15px}.goal em{font:11px var(--mono);font-style:normal;color:var(--muted)}.goal.done{border-color:rgba(91,209,123,.55)}.goal.done .k{color:var(--ok)}
+.center{position:absolute;left:12px;right:12px;bottom:calc(94px + env(safe-area-inset-bottom));display:flex;justify-content:center;align-items:flex-end}.truth{max-width:min(92vw,520px);padding:7px 10px;border-radius:10px;background:rgba(16,18,22,.70);backdrop-filter:blur(10px);font:11px/1.35 var(--mono);color:var(--muted);text-align:center;opacity:0;transition:opacity .12s}.truth.on{opacity:1}.truth b{color:var(--ink);font-weight:700}
+.bottom{position:absolute;left:0;right:0;bottom:0;padding:0 12px calc(10px + env(safe-area-inset-bottom));display:grid;grid-template-columns:52px 1fr 52px;align-items:end;gap:10px}.mic{justify-self:center;width:74px;height:74px;border-radius:999px;border:2px solid rgba(255,255,255,.34);background:rgba(16,18,22,.90);color:#fff;box-shadow:0 10px 26px rgba(0,0,0,.32);font:900 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;transition:transform .08s,background .12s,border-color .12s}.mic.ready{background:#20242b}.mic.live{background:var(--accent);border-color:#fff;transform:scale(1.06)}.mic.busy{background:#443c22;border-color:var(--warn)}.mic:disabled{opacity:.55}.undo{align-self:center}.gear{align-self:center}.voiceState{position:absolute;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));transform:translateX(-50%);font:9px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.82);text-shadow:0 1px 6px #000;white-space:nowrap}.fault{position:absolute;left:12px;right:12px;bottom:calc(92px + env(safe-area-inset-bottom));margin:auto;max-width:520px;padding:10px;border:1px solid var(--line);border-radius:14px;background:rgba(16,18,22,.94);backdrop-filter:blur(14px);pointer-events:auto;display:none}.fault.on{display:block}.fault .frow{display:flex;gap:7px;margin-top:7px}.fault input{min-width:0;flex:1;height:44px;border:1px solid var(--line);border-radius:10px;background:#0c0e12;color:#fff;padding:0 10px;font-size:16px}.fault button{height:44px;border:1px solid var(--line);border-radius:10px;background:#2a2e36;color:#fff;padding:0 12px}.fault p{margin:0;color:var(--muted);font-size:12px}.fault p b{color:#fff}.sheet{position:absolute;inset:0;background:rgba(0,0,0,.42);display:none;align-items:flex-end;pointer-events:auto}.sheet.on{display:flex}.sheetCard{width:100%;background:#14171d;border-top:1px solid var(--line);padding:14px 14px calc(14px + env(safe-area-inset-bottom));border-radius:18px 18px 0 0;max-height:72%;overflow:auto}.sheetCard h2{font-size:16px;margin:0 0 10px}.sheetCard p{margin:7px 0;color:var(--muted);font-size:13px}.sheetCard code{font:11px var(--mono);color:#fff}.sheetCard label{display:block;font:10px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:12px}.sheetCard input{width:100%;height:46px;margin-top:5px;padding:0 10px;border-radius:10px;border:1px solid var(--line);background:#0d0f13;color:#fff;font-size:16px}.sheetActions{display:flex;gap:8px;margin-top:12px}.sheetActions button{flex:1;height:46px;border:1px solid var(--line);border-radius:10px;background:#242831;color:#fff}.sheetActions .primary{background:#fff;color:#111;font-weight:800}.stones{display:flex;gap:5px;margin-top:6px}.stone{height:5px;border-radius:9px;background:rgba(255,255,255,.18);flex:1}.stone.have{background:var(--ok)}
+@media (min-width:800px){.bottom{padding-left:24px;padding-right:24px}.mic{width:80px;height:80px}.top{padding-left:20px;padding-right:20px}}
+</style>
+</head>
+<body>
+<iframe id="world" class="world" src="./word-to-world.html?as=homer" allow="microphone; camera"></iframe>
+<div class="hud" id="hud">
+  <div class="top">
+    <button class="chip" id="reset" title="restart the game">RESET</button>
+    <button class="goal" id="goal" title="current building problem">
+      <span class="k" id="goalK">BUILDERS GAME · A → B</span>
+      <span class="g"><strong id="goalName">THE THRESHOLD</strong><em id="goalNeed">2 pillars + 1 slab</em></span>
+      <span class="stones" id="stones" aria-hidden="true"></span>
+    </button>
+    <button class="chip gear" id="settings" aria-label="settings">•••</button>
+  </div>
+  <div class="center"><div class="truth" id="truth"></div></div>
+  <div class="voiceState" id="voiceState">world loading</div>
+  <div class="bottom">
+    <button class="chip undo" id="undo">UNDO</button>
+    <button class="mic" id="mic" disabled>HOLD<br>TO CALL</button>
+    <button class="chip gear" id="clearSel">CLEAR</button>
+  </div>
+  <div class="fault" id="fault">
+    <p id="faultText"><b>Voice is not connected.</b> Type a call, or open settings to connect OpenAI Realtime.</p>
+    <div class="frow"><input id="typeCall" autocomplete="off" autocapitalize="sentences" enterkeyhint="go" placeholder="slab"><button id="sendType">CALL</button></div>
+  </div>
+  <div class="sheet" id="sheet">
+    <div class="sheetCard">
+      <h2>Builders Game</h2>
+      <p>You are builder A. Call <code>block</code>, <code>pillar</code>, <code>slab</code>, or <code>beam</code>. Builder B brings the stone into the world.</p>
+      <p>Tap a stone to bind <b>THAT</b>. Tap the ground to bind <b>THERE</b>. Then say “put that there.” Drag the world normally to look; use the left side to walk.</p>
+      <label>Realtime session broker (recommended)</label>
+      <input id="broker" inputmode="url" autocomplete="off" placeholder="https://…/realtime-session">
+      <p>The broker keeps your OpenAI key off the public page. If this is blank, the demo can use the existing local OpenAI key as a development fallback.</p>
+      <label>Development API key fallback</label>
+      <input id="devKey" type="password" autocomplete="off" placeholder="sk-…">
+      <div class="sheetActions"><button id="closeSettings">Close</button><button class="primary" id="reconnect">Connect voice</button></div>
+    </div>
+  </div>
+</div>
+<audio id="remoteAudio" autoplay playsinline></audio>
+<script>
+(() => {
+'use strict';
+const $=s=>document.querySelector(s), frame=$('#world'), mic=$('#mic'), voiceState=$('#voiceState'), truth=$('#truth'), fault=$('#fault');
+const challenge={name:'THE THRESHOLD',need:{pillar:2,slab:1},have:{block:0,pillar:0,slab:0,beam:0}};
+const stoneOrder=['pillar','pillar','slab'];
+let W=null,PTT=null,pc=null,dc=null,micStream=null,micTrack=null,rtcReady=false,busy=false,localRec=null,deliveryN=0,actions=[],tap=null;
+const safeLS={get:k=>{try{return localStorage.getItem(k)||''}catch(e){return''}},set:(k,v)=>{try{v?localStorage.setItem(k,v):localStorage.removeItem(k)}catch(e){}}};
+function setTruth(html,ms=1700){truth.innerHTML=html;truth.classList.add('on');clearTimeout(setTruth.t);if(ms)setTruth.t=setTimeout(()=>truth.classList.remove('on'),ms)}
+function setVoice(s){voiceState.textContent=s}
+function updateGoal(){
+  const need=challenge.need,have=challenge.have;let done=true,segments=[];
+  for(const name of Object.keys(need)){const n=Math.min(have[name]||0,need[name]);segments.push(`${name} ${n}/${need[name]}`);if(n<need[name])done=false;}
+  $('#goalNeed').textContent=done?'complete':segments.join(' · ');$('#goal').classList.toggle('done',done);$('#goalK').textContent=done?'COMPLETE':'BUILDERS GAME · A → B';
+  const strip=$('#stones');strip.innerHTML='';for(const s of stoneOrder){const el=document.createElement('i');el.className='stone'+((have[s]||0)>stoneOrder.slice(0,stoneOrder.indexOf(s)+1).filter(x=>x===s).length-1?' have':'');strip.appendChild(el)}
+  return done;
+}
+function resetGame(){
+  for(const a of actions.splice(0)) for(const id of [...a.ids].reverse()) try{if(W&&W.build&&W.build.pieces.has(id))W.build.remove(id)}catch(e){}
+  for(const k of Object.keys(challenge.have))challenge.have[k]=0;deliveryN=0;updateGoal();clearBinding();setTruth('<b>Call the stones.</b> Hold the red button and say “pillar.”',2600);
+}
+function clearBinding(){if(!PTT)return;try{const s=PTT.state();const raw=frame.contentWindow; if(raw.__world&&raw.__world.scene){for(const o of [...raw.__world.scene.children])if(o&&o.name==='THAT')raw.__world.scene.remove(o)} }catch(e){}; try{const st=PTT.state();}catch(e){}; setTruth('Selection cleared.',700);}
+function worldReady(){return W&&W.ready&&W.build&&W.camera&&W.rig&&W.G}
+function deliveryPoint(){
+  const THREE=frame.contentWindow.THREE,dir=new THREE.Vector3();W.camera.getWorldDirection(dir);dir.y=0;if(dir.lengthSq()<.001)dir.set(0,0,-1);dir.normalize();
+  const right=new THREE.Vector3(dir.z,0,-dir.x),lane=(deliveryN%4)-1.5,p=W.rig.pos.clone().addScaledVector(dir,150).addScaledVector(right,lane*55);p.x=Math.round(p.x/20)*20;p.z=Math.round(p.z/20)*20;p.y=W.G.h(p.x,p.z);return p;
+}
+function part(name){if(!W||!W.build)return null;const pref={block:'3001',slab:'3032',beam:'3009',pillar:'3003'}[name];if(W.build.kinds.has(pref))return pref;if(name==='beam'&&W.build.kinds.has('3010'))return'3010';if(name==='pillar'&&W.build.kinds.has('3003'))return'3003';return W.build.kinds.has('3001')?'3001':null}
+function deliver(name){
+  name=String(name||'').toLowerCase();if(!['block','pillar','slab','beam'].includes(name))return{ok:false,say:'Which stone?'};if(!worldReady())return{ok:false,say:'The world is still loading.'};
+  const p=deliveryPoint(),B=W.build,rows=[],col={block:4,pillar:1,slab:14,beam:15}[name],pt=part(name);if(!pt)return{ok:false,say:'That stone is unavailable.'};
+  if(name==='pillar'){for(let i=0;i<3;i++)rows.push(['',pt,col,p.x,p.y+i*24,p.z,0]);}else rows.push(['',pt,col,p.x,p.y,p.z,name==='beam'?1:0]);
+  const made=B.addRows(rows,false,true);if(!made.length)return{ok:false,say:'No room there.'};actions.push({kind:'deliver',stone:name,ids:made.map(x=>x.id)});deliveryN++;challenge.have[name]=(challenge.have[name]||0)+1;const done=updateGoal();
+  setTruth(`<b>${name.toUpperCase()}</b> delivered${done?' · threshold complete':''}`,done?2600:1200);return{ok:true,say:done?'Complete.':name[0].toUpperCase()+name.slice(1)+'.'};
+}
+function undo(){
+  const a=actions.pop();if(a&&W&&W.build){for(const id of [...a.ids].reverse())try{if(W.build.pieces.has(id))W.build.remove(id)}catch(e){};if(a.stone)challenge.have[a.stone]=Math.max(0,(challenge.have[a.stone]||0)-1);updateGoal();setTruth('Undone.',700);return{ok:true,say:'Undone.'}}
+  try{const id=W&&W.build&&W.build.undo();setTruth(id?'Undone.':'Nothing to undo.',700);return{ok:!!id,say:id?'Undone.':'Nothing to undo.'}}catch(e){return{ok:false,say:'Nothing to undo.'}}
+}
+function localCommand(text){
+  const t=String(text||'').toLowerCase().trim();setTruth(`“${t.replace(/[<>]/g,'')}”`,650);
+  for(const s of ['pillar','slab','beam','block'])if(new RegExp('\\b'+s+'s?\\b').test(t))return deliver(s);
+  if(/\b(undo|go back)\b/.test(t))return undo();
+  if(/\b(put|move|place)\b/.test(t)&&/\b(that|it|this)\b/.test(t)){try{const ok=PTT&&PTT.execute({verb:'move',text:t,needsThat:true,needsThere:true,thisWord:true,thereWord:true});refreshBinding();return{ok:!!ok,say:ok?'There.':'Point to the thing, then the place.'}}catch(e){return{ok:false,say:'Point again.'}}}
+  if(/\b(turn|rotate)\b/.test(t)){try{const ok=PTT&&PTT.execute({verb:'turn',text:t,needsThat:true,needsThere:false,thisWord:true,thereWord:false});refreshBinding();return{ok:!!ok,say:ok?'Turned.':'Which thing?'}}catch(e){}}
+  if(/\b(remove|delete)\b/.test(t)){try{const ok=PTT&&PTT.execute({verb:'remove',text:t,needsThat:true,needsThere:false,thisWord:true,thereWord:false});refreshBinding();return{ok:!!ok,say:ok?'Removed.':'Which thing?'}}catch(e){}}
+  return{ok:false,say:'Block, pillar, slab, or beam.'};
+}
+function executeTool(args){
+  const act=args&&args.act||'clarify';if(act==='call')return deliver(args.stone);if(act==='undo')return undo();if(act==='move'||act==='turn'||act==='remove'||act==='copy'){
+    const map={move:{verb:'move',needsThat:true,needsThere:true},turn:{verb:'turn',needsThat:true,needsThere:false},remove:{verb:'remove',needsThat:true,needsThere:false},copy:{verb:'copy',needsThat:true,needsThere:true}},c=map[act];
+    try{const ok=PTT&&PTT.execute({...c,text:args.words||act,thisWord:true,thereWord:true});refreshBinding();return{ok:!!ok,say:ok?(act==='move'?'There.':'Done.'):'Point to what you mean.'}}catch(e){return{ok:false,say:'Point again.'}}
+  }
+  if(act==='stop'){if(micTrack)micTrack.enabled=false;return{ok:true,say:'Stopped.'}}return{ok:false,say:'Say a stone, or point and place.'};
+}
+function send(obj){if(dc&&dc.readyState==='open')dc.send(JSON.stringify(obj))}
+function onRealtimeEvent(ev){
+  if(!ev||!ev.type)return;
+  if(ev.type==='session.created'||ev.type==='session.updated'){rtcReady=true;mic.disabled=false;mic.classList.add('ready');setVoice('OPENAI REALTIME · READY');fault.classList.remove('on');return}
+  if(ev.type==='input_audio_buffer.speech_started'){setVoice('LISTENING');return}
+  if(ev.type==='response.created'){busy=true;mic.classList.add('busy');return}
+  if(ev.type==='response.done'){busy=false;mic.classList.remove('busy');return}
+  if(ev.type==='response.function_call_arguments.done'&&ev.name==='builder_act'){
+    let args={};try{args=JSON.parse(ev.arguments||'{}')}catch(e){};const result=executeTool(args);
+    send({type:'conversation.item.create',item:{type:'function_call_output',call_id:ev.call_id,output:JSON.stringify(result)}});
+    send({type:'response.create',response:{tool_choice:'none',instructions:`A tool just returned ${JSON.stringify(result)}. Speak only this acknowledgement, naturally and quickly: ${result.say||'Done.'}`}});
+  }
+  if(ev.type==='error'){console.warn('[builders realtime]',ev);setVoice('VOICE ERROR');fault.classList.add('on')}
+}
+function sessionConfig(){return{
+  type:'realtime',model:'gpt-realtime-2.1',output_modalities:['audio'],reasoning:{effort:'low'},parallel_tool_calls:false,tool_choice:'required',
+  instructions:'You are builder B in Wittgenstein’s builders language-game. The human is builder A. This is an action game, not a conversation. Interpret each spoken turn as one concrete operation and call builder_act exactly once. Canonical building stones are BLOCK, PILLAR, SLAB, BEAM. “Slab!” means call/slab. “Put that there” means move. “Turn that” means turn. “Undo” means undo. If unclear use clarify. Never invent extra actions. Do not give explanations before acting.',
+  audio:{input:{turn_detection:{type:'server_vad',threshold:.45,prefix_padding_ms:250,silence_duration_ms:320,create_response:true,interrupt_response:true}},output:{voice:'cedar',speed:1.08}},
+  tools:[{type:'function',name:'builder_act',description:'Perform exactly one embodied Builders Game operation in the visible LEGO world.',parameters:{type:'object',properties:{act:{type:'string',enum:['call','move','turn','remove','copy','undo','stop','clarify']},stone:{type:'string',enum:['block','pillar','slab','beam']},words:{type:'string'}},required:['act'],additionalProperties:false}}]
+}}
+async function createRealtime(){
+  closeRealtime();setVoice('CONNECTING OPENAI…');mic.disabled=true;fault.classList.remove('on');
+  try{
+    pc=new RTCPeerConnection();dc=pc.createDataChannel('oai-events');dc.addEventListener('open',()=>setVoice('OPENAI REALTIME · READY'));dc.addEventListener('message',e=>{try{onRealtimeEvent(JSON.parse(e.data))}catch(x){}});dc.addEventListener('close',()=>{rtcReady=false;setVoice('VOICE DISCONNECTED')});
+    pc.ontrack=e=>{const a=$('#remoteAudio');a.srcObject=e.streams[0];a.play().catch(()=>{})};
+    micStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});micTrack=micStream.getAudioTracks()[0];micTrack.enabled=false;pc.addTrack(micTrack,micStream);
+    const offer=await pc.createOffer();await pc.setLocalDescription(offer);const config=sessionConfig();
+    const broker=(safeLS.get('builders.voice.broker')||'').trim();let answer='';
+    if(broker){
+      const r=await fetch(broker,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sdp:offer.sdp,session:config})});if(!r.ok)throw new Error('broker '+r.status);const ct=r.headers.get('content-type')||'';if(ct.includes('json')){const j=await r.json();answer=j.sdp||j.answer||''}else answer=await r.text();
+    }else{
+      const key=(safeLS.get('openai_api_key')||'').trim();if(!key)throw new Error('no broker or local key');
+      const fd=new FormData();fd.append('sdp',new Blob([offer.sdp],{type:'application/sdp'}),'offer.sdp');fd.append('session',new Blob([JSON.stringify(config)],{type:'application/json'}),'session.json');
+      const r=await fetch('https://api.openai.com/v1/realtime/calls',{method:'POST',headers:{Authorization:'Bearer '+key},body:fd});answer=await r.text();if(!r.ok)throw new Error(answer||('OpenAI '+r.status));
+    }
+    if(!answer||!answer.includes('v=0'))throw new Error('no SDP answer');await pc.setRemoteDescription({type:'answer',sdp:answer});
+    setTimeout(()=>{if(dc&&dc.readyState==='open'){rtcReady=true;mic.disabled=false;mic.classList.add('ready');setVoice('OPENAI REALTIME · READY')}},300);
+  }catch(e){console.warn('[builders voice]',e);closeRealtime();setVoice('TYPE OR BROWSER VOICE');fault.classList.add('on');mic.disabled=false;mic.classList.remove('ready');}
+}
+function closeRealtime(){rtcReady=false;if(micTrack)micTrack.enabled=false;if(micStream)for(const t of micStream.getTracks())t.stop();micStream=null;micTrack=null;if(dc)try{dc.close()}catch(e){}dc=null;if(pc)try{pc.close()}catch(e){}pc=null;mic.classList.remove('ready','live','busy')}
+function beginMic(e){if(e)e.preventDefault();if(rtcReady&&micTrack){micTrack.enabled=true;mic.classList.add('live');mic.textContent='SPEAK';setVoice('LISTENING');return}beginLocalRecognition()}
+function endMic(e){if(e)e.preventDefault();if(micTrack){micTrack.enabled=false;mic.classList.remove('live');mic.innerHTML='HOLD<br>TO CALL';setVoice(rtcReady?'OPENAI REALTIME · THINKING':'VOICE');}if(localRec)try{localRec.stop()}catch(x){}}
+function beginLocalRecognition(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){fault.classList.add('on');$('#typeCall').focus();return}try{localRec=new SR();localRec.continuous=false;localRec.interimResults=true;localRec.lang='en-US';localRec.onstart=()=>{mic.classList.add('live');mic.textContent='SPEAK';setVoice('BROWSER VOICE · LISTENING')};localRec.onresult=e=>{let final='';for(let i=e.resultIndex;i<e.results.length;i++)if(e.results[i].isFinal)final+=e.results[i][0].transcript;if(final){const r=localCommand(final);speakFallback(r.say)}};localRec.onend=()=>{mic.classList.remove('live');mic.innerHTML='HOLD<br>TO CALL';setVoice('BROWSER VOICE · READY');localRec=null};localRec.start()}catch(e){fault.classList.add('on')}
+}
+function speakFallback(t){if(!t||!('speechSynthesis'in window))return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.rate=1.12;speechSynthesis.speak(u)}catch(e){}}
+function refreshBinding(){
+  if(!PTT)return;const s=PTT.state();if(s.that&&s.that!=='—'&&s.there)setTruth(`<b>THAT</b> ${s.that} → <b>THERE</b> · say “put that there”`,0);else if(s.that&&s.that!=='—')setTruth(`<b>THAT</b> ${s.that} · tap the destination`,0);else if(s.there)setTruth('<b>THERE</b> bound · tap a stone',0);else truth.classList.remove('on');
+}
+function bindTouch(doc,win){
+  doc.addEventListener('pointerdown',e=>{if(!e.target||e.target.tagName!=='CANVAS')return;tap={id:e.pointerId,x:e.clientX,y:e.clientY,t:performance.now()}},true);
+  doc.addEventListener('pointerup',e=>{if(!tap||tap.id!==e.pointerId)return;const d=Math.hypot(e.clientX-tap.x,e.clientY-tap.y),dt=performance.now()-tap.t;tap=null;if(d>12||dt>330||!PTT)return;const hit=PTT.pointIntoWorld(e.clientX/win.innerWidth,e.clientY/win.innerHeight);if(!hit||hit.kind==='building')return;if(hit.kind!=='ground'&&hit.kind!=='piece'&&hit.kind!=='prop')return;e.stopPropagation();try{PTT.capture(hit);refreshBinding()}catch(x){}},true);
+}
+function tameIframe(doc){
+  const st=doc.createElement('style');st.textContent='#wb,#wbSay,#pttStart,#ptt,#menuBtn,#menu,#find,#build,#palette,#keys,#credit,#det,#minimap,#bigmap,#shield,#prompt{display:none!important}#hint{display:none!important}#top{opacity:.16;pointer-events:none!important}#reticle{opacity:.35!important}';doc.head.appendChild(st);
+}
+function attachWorld(){
+  try{const win=frame.contentWindow,doc=frame.contentDocument;W=win.__world;PTT=win.PutThatThere;if(!W||!PTT){setTimeout(attachWorld,350);return}tameIframe(doc);bindTouch(doc,win);const wait=()=>{if(worldReady()){mic.disabled=false;setVoice('READY · CONNECTING VOICE');updateGoal();setTruth('<b>Builders Game.</b> Call “pillar.” Tap a stone, then tap the ground.',2600);createRealtime()}else setTimeout(wait,400)};wait()}catch(e){setTimeout(attachWorld,500)}
+}
+function sendTyped(){const t=$('#typeCall').value.trim();if(!t)return;$('#typeCall').value='';const r=localCommand(t);speakFallback(r.say)}
+mic.addEventListener('pointerdown',beginMic);mic.addEventListener('pointerup',endMic);mic.addEventListener('pointercancel',endMic);mic.addEventListener('contextmenu',e=>e.preventDefault());
+$('#undo').addEventListener('click',()=>{const r=undo();speakFallback(r.say)});$('#reset').addEventListener('click',resetGame);$('#clearSel').addEventListener('click',()=>{try{if(PTT){PTT.execute({verb:'stop',text:'stop',needsThat:false,needsThere:false});const win=frame.contentWindow;if(win.location){};setTruth('Tap a stone to bind THAT.',1000)}}catch(e){}});
+$('#settings').addEventListener('click',()=>{$('#broker').value=safeLS.get('builders.voice.broker');$('#devKey').value=safeLS.get('openai_api_key');$('#sheet').classList.add('on')});$('#closeSettings').addEventListener('click',()=>$('#sheet').classList.remove('on'));$('#sheet').addEventListener('click',e=>{if(e.target===$('#sheet'))$('#sheet').classList.remove('on')});
+$('#reconnect').addEventListener('click',()=>{safeLS.set('builders.voice.broker',$('#broker').value.trim());safeLS.set('openai_api_key',$('#devKey').value.trim());$('#sheet').classList.remove('on');createRealtime()});$('#sendType').addEventListener('click',sendTyped);$('#typeCall').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();sendTyped()}});
+frame.addEventListener('load',()=>setTimeout(attachWorld,250));window.addEventListener('pagehide',closeRealtime);updateGoal();
+})();
+</script>
+</body>
+</html>
