@@ -14706,6 +14706,8 @@ body[data-spatial-face=desk] .hand-label{opacity:.7;font-size:9px}.stage-label b
 #setTable{display:inline-block!important}
 @media(max-width:600px){.brand>span{display:none}.header-tools button{padding:4px 6px;font-size:10px}.header-tools{flex-wrap:nowrap}.brand strong{font-size:16px}}
 
+#reachProgress{display:block;width:100%;height:6px;margin:8px 0;accent-color:#c4f46a}#reachCapture{display:none!important}
+
 </style>
 <script>
 /* WAG spatial contracts. No renderer, DOM, physics, or hand-tracker dependency.
@@ -14899,7 +14901,7 @@ body[data-spatial-face=desk] .hand-label{opacity:.7;font-size:9px}.stage-label b
  }
  function frame(now){if(S.tx?.viewRebased&&['hand','pointer'].includes(S.tx.source)&&S.tx.samples.length>=3&&S.tx.samples.at(-1).time-S.tx.samples[0].time>=100){S.tx.noThrow=false;S.tx.viewRebased=false;}applyVisualFrame();if(now-state.lastFrame<55)return;state.lastFrame=now;drawSpatialCue(now);}
  function prepareUI(){
-  document.title='WAG / HAND BUTTER 04';$('.stage-label').innerHTML='<b>BUTTER 04</b>';$('.left-rail').remove();$('.right-rail').remove();
+  document.title='WAG / HAND BUTTER 05';$('.stage-label').innerHTML='<b>BUTTER 05</b>';$('.left-rail').remove();$('.right-rail').remove();
   $('#stage').insertAdjacentHTML('beforeend','<nav id="faceGizmo" aria-label="Rotate build plate"><output id="faceName">0°</output><div class="face-turn"><button data-step="-1" aria-label="Turn plate left 90 degrees">↶</button><button data-step="1" aria-label="Turn plate right 90 degrees">↷</button></div><button data-spatial-face="front" aria-label="Reset plate orientation">PLATE</button><small>point + pinch</small></nav><div id="viewInstruction"></div><div id="spatialReadout" hidden><b></b><span></span></div>');
   $$('#faceGizmo [data-spatial-face]').forEach(b=>b.onclick=()=>setFace(b.dataset.spatialFace));$$('#faceGizmo [data-step]').forEach(b=>b.onclick=()=>rotatePlate(+b.dataset.step));
   $('#roomMode').textContent='ROOM';$('#roomMode').onclick=()=>{setRoomMode(['room','ghost','model'][(['room','ghost','model'].indexOf(B.mode)+1)%3]);};
@@ -14938,31 +14940,31 @@ body[data-spatial-face=desk] .hand-label{opacity:.7;font-size:9px}.stage-label b
  function toolDelta(base,current){const gain=I.profile?360/(I.profile.axes[2].b-I.profile.axes[2].a):-650*S.gain;return (current.y-base.y)*gain;}
  function gripDelta(owner,r){const current=point(owner);if(S.tx.inputOrigin?.id!==owner.id)S.tx.inputOrigin={id:owner.id,p:{...current},offset:S.tx.rawDelta.clone().addScaledVector(depthDirection(),-H.depthOffset)};
   const o=S.tx.inputOrigin;return o.offset.clone().add(screenDelta((current.x-o.p.x)*r.width,(current.y-o.p.y)*r.height));}
- function start(){if(S.tx)return note('Release the piece before calibration.','HELD');I.phase='teach';I.index=0;I.samples=[];I.results=[];I.window=[];I.profileBefore=I.profile;I.profile=null;I.primary=I.tool=null;I.signature=signature();I.verifyAt=0;I.armed=true;I.palmReference=null;$('#reachPanel').hidden=false;closeDrawers();paint();}
+ function start(){if(S.tx)return note('Release the piece before calibration.','HELD');I.phase='teach';I.index=0;I.samples=[];I.results=[];I.window=[];I.profileBefore=I.profile;I.profile=null;I.primary=I.tool=null;I.signature=signature();I.verifyAt=0;I.captureAt=0;I.doneAt=0;I.armed=true;I.palmReference=null;$('#reachPanel').hidden=false;closeDrawers();paint();}
  function cancel(){I.profile=I.profileBefore||null;I.phase='idle';I.window=[];$('#reachPanel').hidden=true;$('#reachCanvas').hidden=true;H.mustOpen=true;save();}
  function save(){try{localStorage.setItem(key,JSON.stringify({mode:I.mode,profile:I.profile,signature:I.signature,results:I.results,palmReference:I.palmReference}));}catch{}}
  function capture(){
   if(I.phase!=='teach')return;
   if(!C.stable(I.window))return note('Show both assigned inputs and hold steady before capturing.','CALIBRATE');
-  const raw=[0,1,2].map(k=>C.median(I.window.map(p=>p[k])));I.samples.push({raw,target:C.CORNERS[I.index]});I.lastCaptured=raw;I.window=[];I.armed=false;
+  const raw=[0,1,2].map(k=>C.median(I.window.map(p=>p[k])));I.samples.push({raw,target:C.CORNERS[I.index]});I.lastCaptured=raw;I.window=[];I.captureAt=0;I.armed=false;
   if(++I.index===8){try{I.profile=C.fit(I.samples);I.phase='verify';I.index=0;I.results=[];I.verifyAt=0;I.armed=true;}catch(e){I.phase='failed';$('#reachText').textContent=e.message;}}
   feedback('tick',.3,1.2);paint();
  }
  function paint(){const c=C.CORNERS[I.index]||C.CORNERS[0];$('#reachTitle').textContent=I.phase==='teach'?'TEACH REACH · '+(I.index+1)+' / 8':I.phase==='verify'?'CHECK REACH · '+(I.index+1)+' / 8':I.phase==='done'?'REACH CHECK COMPLETE':'REPEAT CALIBRATION';
-  if(['teach','verify'].includes(I.phase))$('#reachText').textContent=(I.phase==='teach'?'Put the grip input comfortably ':'Reach the highlighted corner: ')+(c.x?'right':'left')+', '+(c.y?'low':'high')+'. Tool input '+(c.z?'up / away':'down / near')+'. '+(I.phase==='teach'?'Hold steady, then Capture or press Space.':'Hold the cursor inside the target for 0.6 seconds.');
-  $('#reachCapture').hidden=I.phase!=='teach';$('#reachRetry').hidden=!['failed','done'].includes(I.phase);$('#reachMode').disabled=['verify'].includes(I.phase);$('#reachCanvas').hidden=!['teach','verify'].includes(I.phase);
+  if(['teach','verify'].includes(I.phase))$('#reachText').textContent=(I.phase==='teach'?'Put the grip input comfortably ':'Reach the highlighted corner: ')+(c.x?'right':'left')+', '+(c.y?'low':'high')+'. Tool input '+(c.z?'up / away':'down / near')+'. '+(I.phase==='teach'?'Hold steady: capture and the next corner are automatic.':'Hold the cursor inside the target for 0.6 seconds.');
+  $('#reachCapture').hidden=true;$('#reachRetry').hidden=!['failed','done'].includes(I.phase);$('#reachMode').disabled=['verify'].includes(I.phase);$('#reachCanvas').hidden=!['teach','verify'].includes(I.phase);
  }
  function handleHands(tracks,now){
   if(I.profile&&signature()!==I.signature){I.profile=null;R.rebaseHeld();note('Camera or stage changed. Calibrate this setup again.','CALIBRATE');}
   const obs=observation(tracks);I.observation=obs;I.lastNow=now;
   if(obs?.primary){const scales=C.palmScale(obs.primary.marks);if(!I.palmReference&&I.phase==='teach')I.palmReference=scales;I.palmCue=I.palmReference?C.relativePalm(I.palmReference,scales):null;}
   if(['teach','verify','failed','done'].includes(I.phase)){
-   if(obs){if(!I.armed&&I.lastCaptured&&Math.hypot(...obs.raw.map((v,i)=>v-I.lastCaptured[i]))>.09)I.armed=true;
-    if(I.phase==='teach'&&I.armed){I.window.push(obs.raw);if(I.window.length>24)I.window.shift();}else I.window=[];
+   if(obs){if(!I.armed&&I.lastCaptured&&I.phase==='teach'){const previous=C.CORNERS[I.index-1],next=C.CORNERS[I.index];I.armed=['x','y','z'].every((k,i)=>next[k]===previous[k]||(obs.raw[i]-I.lastCaptured[i])*(next[k]-previous[k])*(i===2?-1:1)>.06);}
+    if(I.phase==='teach'&&I.armed){I.window.push(obs.raw);if(I.window.length>24)I.window.shift();if(C.stable(I.window)){if(!I.captureAt)I.captureAt=now;if(now-I.captureAt>=800){capture();return true;}}else I.captureAt=0;}else{I.window=[];I.captureAt=0;}
     if(I.phase==='verify'){const mapped=C.map(I.profile,obs.raw),error=C.error(mapped,C.CORNERS[I.index]);I.liveError=error;I.mapped=mapped;
-     if(error<.08){if(!I.verifyAt){I.verifyAt=now;I.verifyErrors=[];}I.verifyErrors.push(error);if(now-I.verifyAt>=600){I.results.push({corner:I.index,error:Math.max(...I.verifyErrors),holdMs:now-I.verifyAt});I.verifyAt=0;feedback('click',.4);if(++I.index===8){I.phase='done';I.signature=signature();save();$('#reachText').textContent='8 / 8 reached within 8% axis tolerance. Worst held error '+Math.round(Math.max(...I.results.map(r=>r.error))*100)+'% of axis range. This checks control reach, not physical distance.';}paint();}}else I.verifyAt=0;
+     if(error<.08){if(!I.verifyAt){I.verifyAt=now;I.verifyErrors=[];}I.verifyErrors.push(error);if(now-I.verifyAt>=600){I.results.push({corner:I.index,error:Math.max(...I.verifyErrors),holdMs:now-I.verifyAt});I.verifyAt=0;feedback('click',.4);if(++I.index===8){I.phase='done';I.doneAt=now;I.signature=signature();save();$('#reachText').textContent='8 / 8 reached within 8% axis tolerance. Worst held error '+Math.round(Math.max(...I.results.map(r=>r.error))*100)+'% of axis range. This checks control reach, not physical distance.';}paint();}}else I.verifyAt=0;
     }
-   }else{I.window=[];I.verifyAt=0;}return true;
+   }else{I.window=[];I.captureAt=0;I.verifyAt=0;}return true;
   }
   // The pointer transaction retains ownership while a tracked palm supplies depth.
   if(S.tx?.source==='pointer'){
@@ -14993,18 +14995,37 @@ body[data-spatial-face=desk] .hand-label{opacity:.7;font-size:9px}.stage-label b
   points.forEach((p,i)=>{ctx.fillStyle=i===I.index?'#c4f46a':'#365455';ctx.beginPath();ctx.arc(p.x*r.width,p.y*r.height,i===I.index?15:5,0,Math.PI*2);ctx.fill();if(i===I.index){ctx.fillStyle='#13221c';ctx.font='bold 12px monospace';ctx.fillText(String(i+1),p.x*r.width-4,p.y*r.height+4);}});
   if(I.phase==='verify'&&I.mapped){const [x,y,z]=I.mapped,c={x:0,y:0,z:0};const nx=.20+x*.60,ny=.49+y*.41,fx=.28+x*.44,fy=.40+y*.32;ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.beginPath();ctx.arc((nx+(fx-nx)*z)*r.width,(ny+(fy-ny)*z)*r.height,9,0,Math.PI*2);ctx.stroke();}
  }
- function frame(now){if(H.active&&!I.offered){I.offered=true;if(!I.profile&&!S.tx)start();}for(const [id,v] of B.visuals){if(!v.tag.hidden&&I.phase!=='idle')v.tag.textContent=id===I.primary?'GRIP · reach the corner':id===I.tool?'TOOL · near / away':v.tag.textContent;}if(I.phase==='teach'){$('#reachCapture').disabled=!C.stable(I.window);$('#reachStatus').textContent=!I.observation?'Show the assigned inputs':!I.armed?'Move to the next corner':C.stable(I.window)?'Steady · ready to capture':'Hold steady';if(I.palmCue)$('#reachStatus').textContent+=' · Palm '+(I.palmCue.valid?I.palmCue.relativeDistance.toFixed(2)+'× relative distance cue':'shape changed; size cue ignored');}
-  if(I.phase==='verify')$('#reachStatus').textContent=I.observation?'Error '+Math.round((I.liveError||0)*100)+'% · hold '+Math.min(100,Math.round((I.verifyAt?(now-I.verifyAt):0)/6))+'%':'Input lost · waiting';
+ function frame(now){if(I.phase==='done'&&now-I.doneAt>1800){I.phase='idle';$('#reachPanel').hidden=true;$('#reachCanvas').hidden=true;H.mustOpen=true;note('Reach calibrated · open hands, then pinch to build.','READY');}if(H.active&&!I.offered){I.offered=true;if(!I.profile&&!S.tx)start();}for(const [id,v] of B.visuals){if(!v.tag.hidden&&I.phase!=='idle')v.tag.textContent=id===I.primary?'GRIP · reach the corner':id===I.tool?'TOOL · near / away':v.tag.textContent;}if(I.phase==='teach'){$('#reachCapture').disabled=!C.stable(I.window);$('#reachStatus').textContent=!I.observation?'Show the assigned inputs':!I.armed?'Move to the next corner':I.captureAt?'Capturing '+Math.min(100,Math.round((now-I.captureAt)/8))+'% · keep still':'Hold steady · automatic capture';$('#reachProgress').value=I.captureAt?Math.min(1,(now-I.captureAt)/800):0;if(I.palmCue)$('#reachStatus').textContent+=' · Palm '+(I.palmCue.valid?I.palmCue.relativeDistance.toFixed(2)+'× relative distance cue':'shape changed; size cue ignored');}
+  if(I.phase==='verify'){$('#reachProgress').value=I.verifyAt?Math.min(1,(now-I.verifyAt)/600):0;}if(I.phase==='verify')$('#reachStatus').textContent=I.observation?'Error '+Math.round((I.liveError||0)*100)+'% · hold '+Math.min(100,Math.round((I.verifyAt?(now-I.verifyAt):0)/6))+'%':'Input lost · waiting';
   if(['teach','verify'].includes(I.phase))draw();
   if(S.tx&&!H.owner&&I.mode==='mouse-hand')$('#selectionHint').textContent='Mouse holds · open palm up / down moves in / out';
  }
- $('#stage').insertAdjacentHTML('beforeend','<canvas id="reachCanvas" hidden></canvas><section id="reachPanel" hidden aria-label="Reach calibration"><b id="reachTitle"></b><select id="reachMode" aria-label="Input roles"><option value="hands">Two hands</option><option value="mouse-hand">Mouse holds · hand depth</option><option value="hand-mouse">Hand holds · mouse depth</option></select><p id="reachText"></p><output id="reachStatus"></output><div><button id="reachCapture">Capture</button><button id="reachRetry" hidden>Repeat</button><button id="reachClose">Close</button></div></section>');
+ $('#stage').insertAdjacentHTML('beforeend','<canvas id="reachCanvas" hidden></canvas><section id="reachPanel" hidden aria-label="Reach calibration"><b id="reachTitle"></b><select id="reachMode" aria-label="Input roles"><option value="hands">Two hands</option><option value="mouse-hand">Mouse holds · hand depth</option><option value="hand-mouse">Hand holds · mouse depth</option></select><p id="reachText"></p><output id="reachStatus"></output><progress id="reachProgress" max="1" value="0" aria-label="Steady pose capture progress"></progress><div><button id="reachCapture">Capture</button><button id="reachRetry" hidden>Repeat</button><button id="reachClose">Close</button></div></section>');
  $('#reachMode').onchange=e=>{I.mode=e.target.value;I.profile=null;I.palmReference=null;start();};$('#reachCapture').onclick=capture;$('#reachRetry').onclick=start;$('#reachClose').onclick=()=>{if(I.phase==='done'){I.phase='idle';$('#reachPanel').hidden=true;$('#reachCanvas').hidden=true;H.mustOpen=true;}else cancel();};
  $('#setTable').onclick=start;$('#setTable').hidden=false;$('.header-tools').appendChild($('#setTable'));
  try{const saved=JSON.parse(localStorage.getItem(key));if(saved?.profile?.version===1&&saved.profile.axes?.length===3&&saved.profile.axes.every(a=>Number.isFinite(a.a)&&Number.isFinite(a.b)&&Math.abs(a.b-a.a)>.06)&&saved.results?.length===8&&['hands','mouse-hand','hand-mouse'].includes(saved.mode)){Object.assign(I,{mode:saved.mode,profile:saved.profile,signature:saved.signature,results:saved.results,palmReference:saved.palmReference});$('#reachMode').value=I.mode;}}catch{}
  const oldRebase=R.rebaseHeld;R.rebaseHeld=function(){oldRebase();if(S.tx)delete S.tx.inputOrigin;};
  window.ButterInput={start,cancel,capture,handleHands,frame,toolDelta,gripDelta,point,rebase:()=>{I.pointerTool=null;if(I.mouseTool){I.mouseTool.y=I.pointer.y;I.mouseTool.offset=0;}},state:()=>I};
 })();
+
+</script>
+<script>
+/* Visible action hand is an overlay, like its skeleton. Real scene occlusion is not reconstructed. */
+renderSoftHands=function(now){
+ for(const [id,v] of B.visuals){if(!v.soft){const c=document.createElement('canvas');c.width=256;c.height=256;const tex=new THREE.CanvasTexture(c);tex.encoding=THREE.sRGBEncoding;const mesh=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false,depthTest:false,side:THREE.DoubleSide}));mesh.renderOrder=39;scene.add(mesh);v.soft={c,tex,mesh};}
+ const t=B.ghosts.get(id),soft=v.soft;soft.mesh.visible=!!t&&v.group.visible&&(soft.hasFrame||$('#video').readyState>=2)&&B.mode!=='model';if(!soft.mesh.visible)continue;
+ // Keep the last real cutout during tracking loss; never sample today's video with yesterday's landmarks.
+ if(now-t.last>350||$('#video').readyState<2){soft.mesh.visible=!!soft.hasFrame;soft.mesh.material.opacity=Math.max(.18,.68-(now-t.last-350)/2200);continue;}
+ const marks=t.marks,xs=marks.map(m=>m.x),ys=marks.map(m=>m.y),x0=Math.max(0,Math.min(...xs)-.035),x1=Math.min(1,Math.max(...xs)+.035),y0=Math.max(0,Math.min(...ys)-.035),y1=Math.min(1,Math.max(...ys)+.035),ctx=soft.c.getContext('2d'),video=$('#video');
+ ctx.clearRect(0,0,256,256);ctx.save();ctx.translate(256,0);ctx.scale(-1,1);ctx.drawImage(video,x0*video.videoWidth,y0*video.videoHeight,(x1-x0)*video.videoWidth,(y1-y0)*video.videoHeight,0,0,256,256);ctx.restore();
+ const mask=soft.mask||(soft.mask=document.createElement('canvas'));if(mask.width!==256)mask.width=mask.height=256;const mc=mask.getContext('2d');mc.clearRect(0,0,256,256);const xy=m=>[(1-(m.x-x0)/(x1-x0))*256,(m.y-y0)/(y1-y0)*256];mc.strokeStyle=mc.fillStyle='#fff';mc.lineCap='round';mc.lineJoin='round';mc.filter='blur(3px)';mc.lineWidth=22;
+ for(const chain of [[0,1,2,3,4],[0,5,6,7,8],[0,9,10,11,12],[0,13,14,15,16],[0,17,18,19,20]]){mc.beginPath();chain.forEach((i,j)=>mc[j?'lineTo':'moveTo'](...xy(marks[i])));mc.stroke();}
+ mc.beginPath();[0,1,5,9,13,17].forEach((i,j)=>mc[j?'lineTo':'moveTo'](...xy(marks[i])));mc.closePath();mc.fill();ctx.globalCompositeOperation='destination-in';ctx.drawImage(mask,0,0);ctx.globalCompositeOperation='source-over';// Feather the crop boundary too, including where the camera cannot supply pixels.
+ for(const vertical of [false,true]){const g=ctx.createLinearGradient(0,0,vertical?0:256,vertical?256:0);g.addColorStop(0,'transparent');g.addColorStop(.06,'white');g.addColorStop(.94,'white');g.addColorStop(1,'transparent');ctx.globalCompositeOperation='destination-in';ctx.fillStyle=g;ctx.fillRect(0,0,256,256);}ctx.globalCompositeOperation='source-over';soft.tex.needsUpdate=true;soft.hasFrame=true;
+ const depth=S.tx&&id===H.owner?camera.position.distanceTo(window.ButterSpatialRuntime?ButterSpatialRuntime.plate.localToWorld(anchor().add(V(0,15,0))):anchor().add(V(0,15,0))):camera.position.distanceTo(V(0,45,0));const a=worldPoint({x:x0,y:y0},depth),b=worldPoint({x:x1,y:y0},depth),d=worldPoint({x:x0,y:y1},depth);
+ soft.mesh.position.copy(worldPoint({x:(x0+x1)/2,y:(y0+y1)/2},depth));soft.mesh.quaternion.copy(camera.quaternion);soft.mesh.scale.set(a.distanceTo(b),a.distanceTo(d),1);soft.mesh.material.opacity=now-t.last>350?.18:.68;
+ }
+};
 
 </script>
 <!-- BUTTER SPATIAL MODULES END -->
