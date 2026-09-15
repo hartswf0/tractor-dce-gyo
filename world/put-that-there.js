@@ -72,7 +72,7 @@ function capture(hit) {
 
 function showSelection(box) {
   if (state.helper && W.scene) W.scene.remove(state.helper); state.helper = null;
-  if (box && W.scene) { state.helper = new THREE.Box3Helper(box.clone(), 0x58a7ff); state.helper.name = 'THAT'; state.helper.renderOrder = 9; W.scene.add(state.helper); }
+  if (box && W.scene) { state.helper = new THREE.Box3Helper(new THREE.Box3().copy(box), 0x58a7ff); state.helper.name = 'THAT'; state.helper.renderOrder = 9; W.scene.add(state.helper); }
 }
 
 function groundPoint(p) { return { x: Math.round(p.x / 20) * 20, y: W.G.h(p.x, p.z), z: Math.round(p.z / 20) * 20 }; }
@@ -132,11 +132,11 @@ function findReferent(id) {
   if(W.props&&W.props.items.has(id)){const p=W.props.items.get(id);return{kind:'prop',id,item:p,name:p.src&&(p.src.kind||p.src.as||p.src.kit||p.src.op)||'model',box:p.box};}
   return null;
 }
-async function infer(words) {
+async function infer(words, capturedPacket) {
   if(state.inferring)return; if(!window.Ai||!Ai.key()){execute(parse(words));return;}
   state.inferring=true;$('#pttMic').textContent='LLM: inferring';sayLine('Resolving words and gesture…','');
   try {
-    const packet=tracePacket(words),a=await Ai.inferAct(packet);
+    const packet=capturedPacket ? {...capturedPacket,utterance:words} : tracePacket(words),a=await Ai.inferAct(packet);
     if(a.act==='clarify'||a.clarification||Number(a.confidence)<.58){sayLine(a.clarification||a.say||'Show me which one.','speak');return;}
     const allowed=new Set([...(packet.candidates||[]),...(packet.nearby||[])].map(x=>x.id).filter(Boolean));
     if(a.referent_id&&!allowed.has(a.referent_id)){sayLine('The model named something outside the visible world. Point again.','speak');return;}
@@ -179,11 +179,11 @@ function execute(cmd) {
   else sayLine('I could not perform that move.', 'speak');
   return ok;
 }
-function heard(text) {
+function heard(text, explicit = false, capturedPacket) {
   text = String(text || '').trim(); if (!text) return; $('#pttMic').textContent = 'VOICE: “' + text.slice(0, 34) + '”'; $('#pttMic').classList.add('set'); sayLine('“' + text + '”', '');
-  const awake=/^\s*(world|lego|builder)\b/i.test(text)||/^\s*put that\b/i.test(text);
+  const awake=explicit||/^\s*(world|lego|builder)\b/i.test(text)||/^\s*put that\b/i.test(text);
   if(!awake){sayLine('Say “World” before the request, or begin “Put that…”.','');return;}
-  infer(text.replace(/^\s*(world|lego|builder)[,:]?\s*/i,''));
+  infer(text.replace(/^\s*(world|lego|builder)[,:]?\s*/i,''), capturedPacket);
 }
 
 function startSpeech() {
@@ -191,19 +191,34 @@ function startSpeech() {
   if (!SR) { $('#pttMic').textContent = 'VOICE: type below'; sayLine('Voice recognition is unavailable here. Type the same command in the word bar.', ''); return; }
   const r = new SR(); state.recognition = r; r.continuous = true; r.interimResults = true; r.lang = document.documentElement.lang || 'en-US';
   r.onstart = () => { $('#pttMic').textContent = 'VOICE: listening'; $('#pttMic').classList.add('set'); $('#pttStart').classList.add('listening'); };
-  r.onresult = e => { let interim = ''; for (let i = e.resultIndex; i < e.results.length; i++) { const t = e.results[i][0].transcript; if (e.results[i].isFinal) heard(t); else interim += t; } if (interim) sayLine(interim + '…', ''); };
+  r.onresult = e => { if(state.recorder || state.transcribing)return; let interim = ''; for (let i = e.resultIndex; i < e.results.length; i++) { const t = e.results[i][0].transcript; if (e.results[i].isFinal) heard(t); else interim += t; } if (interim) sayLine(interim + '…', ''); };
   r.onerror = e => { if (e.error !== 'aborted' && e.error !== 'no-speech') sayLine('Voice: ' + e.error + '. You can still point and type.', ''); };
   r.onend = () => { $('#pttStart').classList.remove('listening'); if (state.on) { clearTimeout(state.speechRestart); state.speechRestart = setTimeout(() => { try { r.start(); } catch (e) { } }, 450); } };
   try { r.start(); } catch (e) { }
 }
 
 function recordStart(e) {
-  if(e)e.preventDefault();if(!state.on||state.recorder||!window.MediaRecorder)return;
+  if(e){e.preventDefault();e.currentTarget.setPointerCapture(e.pointerId);}if(!state.on||state.recorder||state.transcribing||!window.MediaRecorder)return;
   const tracks=state.stream&&state.stream.getAudioTracks();if(!tracks||!tracks.length){sayLine('No microphone track. Restart and allow microphone access.','');return;}
   try{state.chunks=[];state.recorder=new MediaRecorder(new MediaStream(tracks),{mimeType:MediaRecorder.isTypeSupported('audio/webm')?'audio/webm':undefined});state.recorder.ondataavailable=x=>{if(x.data&&x.data.size)state.chunks.push(x.data);};state.recorder.onstop=transcribeRecording;state.recorder.start(200);$('#pttAsk').classList.add('on');$('#pttAsk').textContent='Release';sayLine('Listening for the whole speech act…','');}catch(x){state.recorder=null;sayLine('Could not start the microphone recording.','');}
 }
 function recordStop(e){if(e)e.preventDefault();if(state.recorder&&state.recorder.state==='recording')state.recorder.stop();}
-async function transcribeRecording(){const r=state.recorder;state.recorder=null;$('#pttAsk').classList.remove('on');$('#pttAsk').textContent='Hold ask';const blob=new Blob(state.chunks,{type:r&&r.mimeType||'audio/webm'});state.chunks=[];if(blob.size<500)return;if(!Ai||!Ai.key()){sayLine('Add an OpenAI key to use voice transcription.','');return;}sayLine('Transcribing the speech act…','');try{const f=new FormData();f.append('file',blob,'speech.webm');f.append('model','gpt-4o-transcribe');const res=await fetch('https://api.openai.com/v1/audio/transcriptions',{method:'POST',headers:{Authorization:'Bearer '+Ai.key()},body:f});if(!res.ok){let m=res.status;try{const j=await res.json();m=j.error&&j.error.message||m;}catch(x){}throw new Error(m);}const j=await res.json();heard(j.text||'');}catch(e){console.warn('[put-that-there] transcription',e);sayLine('OpenAI transcription failed. Browser voice remains available.','');}}
+async function transcribeRecording(){
+  const r=state.recorder, packet=tracePacket('');
+  state.recorder=null; state.transcribing=true;
+  $('#pttAsk').classList.remove('on'); $('#pttAsk').textContent='Transcribing…';
+  const mime=r&&r.mimeType||'audio/webm', blob=new Blob(state.chunks,{type:mime});state.chunks=[];
+  try {
+    if(blob.size<500) return;
+    if(!window.Ai||!Ai.key()) throw new Error('Add an OpenAI key in the word bar first.');
+    sayLine('Transcribing the speech act…','');
+    const f=new FormData();f.append('file',blob,/mp4/.test(mime)?'speech.mp4':'speech.webm');f.append('model','gpt-4o-transcribe');
+    const res=await fetch('https://api.openai.com/v1/audio/transcriptions',{method:'POST',headers:{Authorization:'Bearer '+Ai.key()},body:f});
+    const j=await res.json();if(!res.ok)throw new Error(j.error&&j.error.message||res.status);
+    if(state.on)heard(j.text||'',true,packet);
+  }catch(e){sayLine('Transcription: '+e.message,'');}
+  finally{state.transcribing=false;$('#pttAsk').textContent='Hold ask';}
+}
 
 function drawHand(hand, pose) {
   const c = $('#pttDraw'), r = c.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio || 1); if (c.width !== Math.round(r.width * dpr) || c.height !== Math.round(r.height * dpr)) { c.width = Math.round(r.width * dpr); c.height = Math.round(r.height * dpr); }
@@ -250,7 +265,7 @@ async function visionLoop() {
 async function start() {
   if (state.on) { stop(); return; }
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { sayLine('This browser cannot open a camera. Use HTTPS on a current phone or computer.', ''); return; }
-  const b=$('#pttStart'); b.disabled=true; b.textContent='Opening…';
+  const b=$('#pttStart'); b.disabled=true; b.textContent='Opening…'; $('#ptt').classList.add('on'); sayLine('Allow camera and microphone access. Tracking models will load next.','');
   try {
     state.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:640},height:{ideal:480}},audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
     const mod=await import('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.21/+esm');
