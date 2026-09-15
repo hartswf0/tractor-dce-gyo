@@ -32,7 +32,7 @@
 <script src="./world/sound.js?v=4457fbaa"></script>
 <script src="./world/fx.js?v=b677d929"></script>
 <script src="./world/dsl.js?v=355dca40"></script>
-<script src="./world/ai.js?v=ed65a087"></script>
+<script src="./world/ai.js?v=ptt2"></script>
 <script src="./world/receipts.js?v=a38f2d5d"></script>
 <script src="./world/build.js?v=f1d2e183"></script>
 <script src="./world/props.js?v=fcb5add2"></script>
@@ -207,6 +207,16 @@ body.build #minimap{display:none}
 #flash{position:fixed;inset:0;background:rgba(216,56,46,.3);opacity:0;pointer-events:none;transition:opacity .1s;z-index:3}#flash.on{opacity:1}#flash.white{background:rgba(255,255,255,.55);transition:none}
 #keys{display:none;position:fixed;left:50%;bottom:calc(var(--wb) + 4px + env(safe-area-inset-bottom));transform:translateX(-50%);font:11px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--dim);white-space:nowrap;z-index:4;pointer-events:none}
 @media (hover:hover) and (pointer:fine){#keys{display:block}}
+/* PUT THAT THERE: one consent button, then visible bindings. Camera pixels stay in this device. */
+#pttStart{position:fixed;right:14px;bottom:calc(var(--wb) + 78px + env(safe-area-inset-bottom));z-index:7;height:48px;padding:0 18px;border:0;border-radius:999px;background:var(--red);color:#fff;font:800 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;box-shadow:0 8px 24px rgba(216,56,46,.35)}
+#pttStart.on{background:#1769aa}#pttStart.listening{box-shadow:0 0 0 5px rgba(216,56,46,.24),0 8px 24px rgba(216,56,46,.35)}
+#ptt{position:fixed;right:14px;top:calc(58px + env(safe-area-inset-top));z-index:7;width:min(238px,42vw);display:none;flex-direction:column;gap:6px;pointer-events:none}#ptt.on{display:flex}
+#pttView{position:relative;aspect-ratio:4/3;overflow:hidden;border-radius:14px;background:#111;box-shadow:0 8px 24px rgba(26,31,42,.28)}#pttVideo,#pttDraw{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}#pttDraw{transform:none}
+#pttMode{position:absolute;left:7px;right:7px;bottom:7px;display:flex;gap:5px;pointer-events:auto}#pttMode button{flex:1;height:30px;border:1px solid rgba(255,255,255,.55);border-radius:9px;background:rgba(20,24,32,.72);color:#fff;font:800 9px var(--mono);letter-spacing:.1em;text-transform:uppercase}#pttMode button.on{background:#1769aa}
+#pttState{display:flex;gap:5px;flex-wrap:wrap}#pttState span{padding:5px 8px;border-radius:8px;background:rgba(20,24,32,.78);color:#fff;font:10px var(--mono);letter-spacing:.07em;text-transform:uppercase}#pttState .set{background:#1769aa}#pttState .go{background:#258544}
+#pttLine{padding:7px 9px;border-radius:9px;background:rgba(255,255,255,.88);color:var(--ink);font:11px/1.3 var(--sans);box-shadow:0 3px 12px rgba(26,31,42,.15)}
+#pttCursor{position:fixed;left:50%;top:50%;z-index:7;width:24px;height:24px;margin:-12px 0 0 -12px;border:3px solid #fff;border-radius:999px;box-shadow:0 0 0 2px #1769aa,0 2px 10px #111;pointer-events:none;display:none}#pttCursor.on{display:block}#pttCursor.object{border-radius:5px;border-color:#ffd342}#pttCursor.ground{border-color:#55e57b}#pttCursor::after{content:'';position:absolute;left:7px;top:7px;width:4px;height:4px;border-radius:50%;background:#fff}
+@media(max-width:620px){#ptt{top:calc(96px + env(safe-area-inset-top));width:138px}#pttView{border-radius:11px}#pttLine{font-size:10px}#pttStart{right:10px;bottom:calc(var(--wb) + 76px + env(safe-area-inset-bottom));height:46px;padding:0 14px}body.ptt-on #find{display:none}}
 </style>
 </head>
 <body>
@@ -241,7 +251,15 @@ body.build #minimap{display:none}
 <div id="floats"></div>
 <div id="hint">say what to build, or walk: left thumb walks · right thumb looks · tap right swings the saber</div>
 <div id="keys">wasd walk · mouse drag look · space saber · f push · g detonator · b build · shift run · e board / land</div>
+<button id="pttStart" aria-pressed="false">Point + speak</button>
+<section id="ptt" aria-live="polite">
+  <div id="pttView"><video id="pttVideo" muted playsinline></video><canvas id="pttDraw"></canvas><div id="pttMode"><button data-ptt-mode="point" class="on">Point</button><button data-ptt-mode="walk">Body walk</button><button id="pttAsk">Hold ask</button></div></div>
+  <div id="pttState"><span id="pttThat">THAT: —</span><span id="pttThere">THERE: —</span><span id="pttMic">VOICE: —</span></div>
+  <div id="pttLine">Point, pinch to bind, then say “put that there.”</div>
+</section>
+<div id="pttCursor"></div>
 <div id="veil"><div class="k">word to world</div><h1 id="vTitle">Finding a place</h1><div class="bricks"><i></i><i></i><i></i><i></i><i></i></div><div class="m" id="vm"></div><ol id="stages"><li data-s="place">place</li><li data-s="ground">ground</li><li data-s="imagery">imagery</li><li data-s="buildings">buildings</li><li data-s="ship">the ship and Vader</li><li data-s="bricks">bricks</li></ol><button id="vStart" hidden>Start now</button></div>
 <script src="./world/main.js?v=5e938c51"></script>
+<script src="./world/put-that-there.js?v=2"></script>
 </body>
 </html>
