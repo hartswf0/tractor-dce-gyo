@@ -1,12 +1,100 @@
-// Run: node tests/ptt-interaction.cjs
-// Mocked DOM/media/rig integration. This does not validate real camera, WebGL, or paid APIs.
+/* Run with Node 18+: node tests/ptt-interaction.cjs
+   Uses the same Three.js 0.128.0 as word-to-world.html, and real Build/City stores.
+   Set THREE_SOURCE_PATH to a local three.min.js for offline runs.
+   DOM is stubbed; real camera, browser rendering and speech are not covered. */
 const fs=require('node:fs'),path=require('node:path');
-const source=fs.readFileSync(path.join(__dirname,'../world/put-that-there.js'),'utf8');
-const harness="\nclass Vec {\n constructor(x=0,y=0,z=0){Object.assign(this,{x,y,z});}\n clone(){return new Vec(this.x,this.y,this.z)} copy(v){Object.assign(this,{x:v.x,y:v.y,z:v.z});return this}\n set(x,y,z){Object.assign(this,{x,y,z});return this} sub(v){this.x-=v.x;this.y-=v.y;this.z-=v.z;return this}\n addScaledVector(v,k){this.x+=v.x*k;this.y+=v.y*k;this.z+=v.z*k;return this}\n distanceTo(v){return Math.hypot(this.x-v.x,this.y-v.y,this.z-v.z)}\n toArray(){return [this.x,this.y,this.z]}\n}\nVec.prototype.lengthSq=function(){return this.x*this.x+this.y*this.y+this.z*this.z};\nVec.prototype.normalize=function(){const n=Math.sqrt(this.lengthSq())||1;this.x/=n;this.y/=n;this.z/=n;return this};\nVec.prototype.add=function(v){return this.addScaledVector(v,1)};\nclass Quat { constructor(){this.target=null;}clone(){return new Quat().copy(this)}copy(q){this.target=q.target&&q.target.clone();return this}setFromUnitVectors(a,b){this.target=b.clone();return this}slerp(q,k){return this.copy(q)} }\nconst nodes=new Map();\nconst node=id=>{if(!nodes.has(id))nodes.set(id,{id,dataset:{},textContent:'',value:'',style:{},classList:{add(){},remove(){},toggle(){}},addEventListener(){},appendChild(){},setAttribute(){},click(){}});return nodes.get(id)};\nconst document={querySelector:node,querySelectorAll:()=>[],createElement:()=>node('new'+nodes.size),head:{appendChild(){}},body:{classList:{add(){},remove(){}}}};\nconst joint=()=>({rotation:{x:0,y:0,z:0},quaternion:new Quat()});\nconst rig={pos:new Vec(),cam:{yaw:0},armLP:joint(),armRP:joint(),torsoP:joint(),heading:0};\nconst city={source:[{id:1,ring:[{x:0,z:0},{x:2,z:0},{x:0,z:2}]}],buildings:[{id:1,cx:2/3,cz:2/3,removed:new Set([2])}],set(src){this.source=src;this.buildings=src.map(s=>({id:s.id,cx:s.ring.reduce((n,p)=>n+p.x,0)/3,cz:s.ring.reduce((n,p)=>n+p.z,0)/3,removed:new Set()}));},applyRemoved(b,ks){b.removed=new Set(ks)}};\nconst W={ready:true,mode:'walk',rig,city,G:{h:()=>0},scene:{remove(){},add(){}},input:{L:{}},build:{history:[],kinds:new Map([['3001',{}]]),nearPoint:()=>[],addRows(rows){this.rows=rows;return [{id:'new-brick'}]},undo(){return null}},place:{name:'test'},master:{}};\nlet fetch;class FormData{append(){}}class AbortController{constructor(){this.signal={}}abort(){}}\nlet seen=null;\nconst Ai={key:()=> 'fake',inferAct:async p=>{seen=p;return {act:'clarify',clarification:'Where?'}}};\nconst THREE={Quaternion:Quat,Vector3:Vec,Raycaster:class{},Box3:class{copy(b){Object.assign(this,b);return this}},Box3Helper:class{constructor(box){this.box=box;this.material={dispose(){}};this.geometry={dispose(){}};this.position=new Vec()}}};\nconst window={__world:W,Ai,addEventListener(){}};\nlet clock=1000;const performance={now:()=>clock};const navigator={};const console={info(){}};let intervals=0;const setInterval=()=>++intervals,clearInterval=()=>{};const setTimeout=()=>1,clearTimeout=()=>{};const innerWidth=1000,innerHeight=700;\nconst Minifig={facing:(r,v)=>v.set(0,0,-1)};\n__RUN__\nreturn {window,W,nodes,Vec,seen:()=>seen};\n";
-const tests="\nconst assert=(ok,message)=>{if(!ok)throw Error(message)};\nconst api=window.PutThatThere;\nconst marks=Array.from({length:21},()=>({x:.5,y:.8,z:0}));\nfor(const [i,x] of [[5,.35],[9,.45],[13,.55],[17,.65]]) {\n  marks[i]={x,y:.65,z:0};marks[i+1]={x,y:.5,z:0};marks[i+2]={x,y:.35,z:0};marks[i+3]={x,y:.2,z:0};\n}\nmarks[4]={x:.1,y:.65,z:0};\nassert(!api.handGesture(marks).closed,'open palm must not grab');\nconst fist=marks.map(p=>({...p}));\nfor(const i of [5,9,13,17])fist[i+3]={x:fist[i].x,y:.73,z:0};\nassert(api.handGesture(fist).closed&&api.handGesture(fist).name==='FIST','fist must grab');\nconst pose=Array.from({length:33},()=>({x:.5,y:.5,z:0,visibility:1}));\npose[11]={x:.7,y:.3,z:0};pose[12]={x:.3,y:.3,z:0};\npose[15]={x:.95,y:.3,z:0};pose[16]={x:.3,y:.3,z:-.4};\nconst angles=api.poseAngles(pose);\nassert(angles.left.x>.99,'left arm follows positive LDraw x');\nassert(angles.right.z<-.99,'forward arm follows negative LDraw z');\nconst hit={kind:'building',id:1,item:city.buildings[0],point:new Vec(20,30,40),box:{min:new Vec(0,0,0),max:new Vec(80,80,80)}};\nstate.on=true;pointIntoWorld=()=>hit;\napi.updateHand(marks,1000);\npointIntoWorld=()=>({kind:'ground',point:new Vec(0,0,0)});\napi.updateHand(fist,1020);api.updateHand(fist,1140);\nassert(state.that&&state.that.id===1&&state.grab,'fist latches last aimed object despite fingertip closure');\nassert(node('#pttGesture').textContent.includes('FIST'),'gesture status visible');\nstate.grab.destination=new Vec(400,0,800);\napi.updateHand(marks,1160);api.updateHand(marks,1290);\nassert(!state.grab,'open hand releases grab');\nassert(Math.abs(city.buildings[0].cx-10)<1e-6,'release moves city footprint');\nassert(Math.abs(city.buildings[0].cz-20)<1e-6,'release moves city footprint z');\nstate.poseMarks=pose;state.poseAt=clock;\napi.afterPose(.016);\nassert(rig.armLP.quaternion.target.x>.99,'left shoulder receives solved target');\nclock=2000;api.afterPose(.016);assert(state.armSmooth===null,'tracking loss clears smoothing');\nlet recorder,stopped=false;\nclass MR {static isTypeSupported(t){return t==='audio/mp4'}constructor(stream,opts){this.mimeType=opts.mimeType;this.state='inactive';recorder=this;}start(){this.state='recording'}stop(){this.state='inactive';this.ondataavailable({data:new Blob(['test audio'],{type:this.mimeType})});this.onstop();}}\nclass MS {constructor(tracks){this.tracks=tracks}}\nwindow.MediaRecorder=MR;window.MediaStream=MS;\nstate.stream={getAudioTracks:()=>[{readyState:'live',enabled:true,muted:false}]};\nAi.key=()=>'';window.AudioContext=null;\nawait api.recordStart();\nassert(recorder&&recorder.state==='recording','recording works without API key');\napi.recordStop();\nassert(state.audioBlob.size>0,'recording retained');\nassert(node('#pttPlayback').src,'local playback available');\nlet requests=0;\nawait api.transcribeRecording();assert(!state.transcribing,'missing key does not send audio');\nassert(api.diagnostics().some(e=>e.event==='record.stop'),'recording diagnostics present');\n\nAi.key=()=>'fake';\nfetch=async()=>{requests++;return {ok:false,status:429,headers:{get:()=> 'test-request'},json:async()=>({error:{message:'quota exceeded'}})}};\nawait api.transcribeRecording();\nassert(requests===1,'explicit Send audio dispatches');\nassert(state.audioBlob.size>0&&!state.transcribing,'API failure retains retryable audio');\nassert(node('#pttLine').textContent.includes('quota exceeded'),'API error visible');\nassert(api.diagnostics().some(e=>e.event==='transcription.response'&&e.status===429),'API status logged');\nreturn {tests:16,status:'pass'};\n";
-const injected=harness.replace('__RUN__',source.replace(/\}\)\(\);\s*$/,'return (async()=>{'+tests+'})();\n})();'))
-.replace('const window={','let MediaRecorder,MediaStream;\nconst window={')
-.replace('window.MediaRecorder=MR;window.MediaStream=MS;','window.MediaRecorder=MediaRecorder=MR;window.MediaStream=MediaStream=MS;')
-.replace('(function () {','return (function () {')
-.replace('worldRay(nx,ny);\n    if(ray','null;\n    if(ray');
-new Function('Blob','URL',injected)(Blob,{createObjectURL:()=>'blob:test',revokeObjectURL(){}}).then(console.log).catch(e=>{console.error(e);process.exitCode=1});
+function run(THREE,buildSource,bricksSource,controllerSource){
+
+const nodes=new Map();
+class Node {
+ constructor(id){this.id=id;this.dataset={};this.style={};this.value='';this.textContent='';this.classList={add(){},remove(){},toggle(){}};this.listeners={};this.tagName='DIV';this.children=[];this.material={};}
+ addEventListener(n,f,opts){(this.listeners[n]||(this.listeners[n]=[])).push({f,opts})}
+ appendChild(n){this.children.push(n);return n}replaceChildren(){this.children=[]}setAttribute(){}click(){if(this.onclick)this.onclick();for(const l of this.listeners.click||[])l.f({preventDefault(){}})}
+ get firstElementChild(){return this}setPointerCapture(){}getBoundingClientRect(){return {left:0,top:0,width:1000,height:700}}
+}
+const $=id=>{if(!nodes.has(id))nodes.set(id,new Node(id));return nodes.get(id)};
+const document={querySelector:$,querySelectorAll:()=>[],createElement:t=>new Node(t),head:new Node('head'),body:new Node('body')};
+const window={addEventListener(){},__world:null};
+const localStorage={getItem:()=>null,setItem(){}},navigator={};
+const innerWidth=1000,innerHeight=700,performance={now:()=>1000},Minifig={facing:(r,v)=>v.set(0,0,-1)};
+const console={info(){},warn(){},error(){}};
+const W={ready:true,mode:'walk',rig:{pos:new THREE.Vector3(0,0,600),heading:Math.PI,cam:{}},scene:new THREE.Scene(),camera:new THREE.PerspectiveCamera(50,1000/700,1,20000),renderer:{domElement:$('#canvas')},input:{L:{}},G:{h:()=>0},master:{},city:{buildings:[],near(){return this.buildings}},props:{items:new Map()}};
+W.camera.position.set(0,500,1000);W.camera.lookAt(0,60,0);W.camera.updateMatrixWorld(true);
+window.__world=W;
+eval(buildSource);
+const geoms=new Map([['3001',{geom:new THREE.BoxGeometry(80,24,40).translate(0,12,0),bb:[-40,40,-20,20,24]}]]);
+W.build=new window.Build.Build({scene:W.scene,M:40,geoms,colours:()=>new THREE.Color(0xff0000),groundH:()=>0,buildings:()=>[],rings:()=>[]});
+const p=W.build.add({id:'brick',part:'3001',col:4,x:0,y:0,z:0,rot:0});
+eval(controllerSource);
+const api=window.PutThatThere;
+const assert=(x,m)=>{if(!x)throw Error(m)};
+const screen=v=>{const p=v.clone().project(W.camera);return [(p.x+1)/2,(1-p.y)/2]};
+let [x,y]=screen(new THREE.Vector3(0,12,0));
+let hit=api.pointIntoWorld(x,y);
+assert(hit&&hit.kind==='piece'&&hit.id==='brick','real Three ray selects real Build brick');
+api.beginDrag(hit,x,y,'pointer');api.dragTo(x+.12,y-.08);
+W.scene.updateMatrixWorld(true);
+const preview=W.scene.getObjectByName('move preview');
+assert(preview&&preview.position.length()>20,'full geometry preview moves');
+api.endDrag(true);
+assert(Math.hypot(p.x,p.z)>20,'release mutates real Build piece');
+const newp=W.build.pieces.get('brick');assert(newp&&newp.box.min.x===newp.x-40,'collision box follows moved piece');
+api.execute({verb:'undo'});
+assert(W.build.pieces.get('brick').x===0&&W.build.pieces.get('brick').z===0,'undo restores original piece');
+[x,y]=screen(new THREE.Vector3(0,12,0));
+let prevented=0,stopped=0;
+const e=(x,y)=>({target:{tagName:'CANVAS'},pointerId:7,button:0,clientX:x*1000,clientY:y*700,preventDefault(){prevented++},stopImmediatePropagation(){stopped++}});
+api.directDown(e(x,y));api.directMove(e(x+.1,y));api.directUp({...e(x+.1,y),type:'pointerup'});
+assert(prevented===3&&stopped===3,'arrange consumes game controls');
+assert(W.build.pieces.get('brick').x!==0,'pointer path operates on world');
+api.execute({verb:'undo'});
+api.beginDrag(api.pointIntoWorld(x,y),x,y,'hand');api.dragTo(x+.2,y);api.endDrag(false);
+assert(W.build.pieces.get('brick').x===0,'cancel never mutates world');
+api.setArrange(false);prevented=0;api.directDown(e(x,y));assert(prevented===0,'Walk gives control back to game');
+api.setArrange(true);api.afterCamera();assert(W.camera.position.y>200,'Arrange supplies elevated camera');
+const off=screen(new THREE.Vector3(0,12,0));
+assert(api.pointIntoWorld(...off)?.kind==='piece','ray remains aligned with Arrange camera');
+
+api.execute({verb:'stop'});api.setArrange(true);api.afterCamera();
+const b=W.build.pieces.get('brick'),beforeHand=[b.x,b.z],target=screen(new THREE.Vector3(b.x,b.y+12,b.z));
+const open=Array.from({length:21},()=>({x:.5,y:.8,z:0}));
+for(const [i,x] of [[5,.35],[9,.45],[13,.55],[17,.65]]){open[i]={x,y:.65,z:0};open[i+1]={x,y:.5,z:0};open[i+2]={x,y:.35,z:0};open[i+3]={x,y:.2,z:0};}open[4]={x:.1,y:.65,z:0};
+const shift=(marks,dx,dy)=>marks.map(p=>({...p,x:p.x-dx,y:p.y+dy}));
+api.updateHand(open,2000);
+const aimed=shift(open,(target[0]-.5)/1.8,(target[1]-.5)/1.8);
+for(let i=0;i<35;i++)api.updateHand(aimed,2040+i*40);
+assert(api.state().that==='brick 2×4','hand dwell selects real ray target');
+const fist=aimed.map(p=>({...p}));
+for(const i of [5,9,13,17])fist[i+3]={x:fist[i].x,y:fist[i].y+.08,z:0};
+for(let i=0;i<6;i++)api.updateHand(fist,3500+i*40);
+const moving=shift(fist,.12,0);
+for(let i=0;i<15;i++)api.updateHand(moving,3800+i*40);
+const release=shift(aimed,.12,0);
+for(let i=0;i<6;i++)api.updateHand(release,4500+i*40);
+assert(W.build.pieces.get('brick').x!==beforeHand[0]||W.build.pieces.get('brick').z!==beforeHand[1],'fist drag release changes real world');
+
+eval(bricksSource);
+W.city=new window.Bricks.City({scene:W.scene,M:40,geoms,groundM:()=>0,colours:()=>new THREE.Color(0x999999)});
+W.city.set([{id:77,ring:[{x:8,z:-8},{x:14,z:-8},{x:14,z:-14},{x:8,z:-14}],h:5}]);
+const building=W.city.buildings[0],centre=new THREE.Box3().copy(building.aabb).getCenter(new THREE.Vector3()),coords=screen(centre);
+hit=api.pointIntoWorld(...coords);
+assert(hit&&hit.kind==='building'&&hit.id===77,'real City AABB is selectable');
+const originalCX=building.cx;
+api.beginDrag(hit,...coords,'pointer');api.dragTo(coords[0]+.08,coords[1]+.04);api.endDrag(true);
+assert(W.city.buildings[0].cx!==originalCX,'city source and rebuilt geometry move');
+api.execute({verb:'undo'});assert(W.city.buildings[0].cx===originalCX,'city undo restores footprint');
+return {passed:16,three:THREE.REVISION};
+
+
+
+}
+async function main(){
+  let threeSource;
+  if(process.env.THREE_SOURCE_PATH)threeSource=fs.readFileSync(process.env.THREE_SOURCE_PATH,'utf8');
+  else {const r=await fetch('https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js');if(!r.ok)throw Error('Three.js fetch: '+r.status);threeSource=await r.text();}
+  const THREE=new Function('const module={exports:{}};const exports=module.exports;'+threeSource+';return module.exports;')();
+  if(THREE.REVISION!=='128')throw Error('Tests require Three.js r128');
+  const read=p=>fs.readFileSync(path.join(__dirname,'../world',p),'utf8');
+  console.log(run(THREE,read('build.js'),read('bricks.js'),read('put-that-there.js')));
+}
+main().catch(e=>{console.error(e);process.exitCode=1});

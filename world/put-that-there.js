@@ -10,7 +10,7 @@ const M = 40;
 const V = () => new THREE.Vector3();
 const raycaster = new THREE.Raycaster();
 const state = {
-  on: false, mode: 'point', stream: null, hand: null, pose: null, recognition: null,
+  on: false, edit: true, mode: 'point', stream: null, hand: null, pose: null, recognition: null,
   lastVideoTime: -1, frame: 0, hover: null, that: null, there: null, pending: null,
   pinched: false, lastBind: 0, walking: false, speechRestart: 0, landmarks: null, poseMarks: null,
   helper: null, trace: [], inferring: false, recorder: null, chunks: [],
@@ -18,8 +18,8 @@ const state = {
 
 const events=[];
 function debug(event,data={}) {
-  const row={time:new Date().toISOString(),event,...data};events.push(row);if(events.length>200)events.shift();
-  console.info('[PTT]',event,data);
+  const safe=JSON.parse(JSON.stringify(data).replace(/sk-[A-Za-z0-9_.-]+/g,'[redacted]'));const row={time:new Date().toISOString(),event,...safe};events.push(row);if(events.length>200)events.shift();
+  console.info('[PTT]',event,safe);
   const el=$('#pttLog');if(el)el.textContent=events.slice(-12).map(x=>JSON.stringify(x)).join('\n');
 }
 const sayLine = (text, kind) => {
@@ -45,11 +45,11 @@ function intersectBox(ray, box, max, out, hit) {
   if(!box)return; const p = ray.intersectBox(box, V()); if (!p) return;
   const d = p.distanceTo(ray.origin); if (d <= max && (!out.best || d < out.best.distance)) out.best = { ...hit, point: p.clone(), distance: d, box };
 }
-function pointIntoWorld(nx, ny) {
+function pointIntoWorld(nx, ny, assist = true) {
   const ray = worldRay(nx, ny); if (!ray) return null;
-  const max = 45 * M, out = { best: null };
+  const max = 200 * M, out = { best: null };
   if (W.build) for (const p of W.build.pieces.values()) if(!(state.grab && state.grab.hit.kind==='piece' && state.grab.hit.id===p.id)) intersectBox(ray, p.box, max, out, { kind: 'piece', id: p.id, item: p, name: (W.build.kinds.get(p.part) || {}).name || 'brick' });
-  if (W.props) for (const p of W.props.items.values()) if (p.box && !(p.src && p.src.landmark) && !(state.grab && state.grab.hit.kind==='prop' && state.grab.hit.id===p.id)) intersectBox(ray, p.box, max, out, { kind: 'prop', id: p.id, item: p, name: p.src && (p.src.kind || p.src.as || p.src.kit || p.src.op) || 'model' });
+  if (W.props) for (const p of W.props.items.values()) if (p.box && !(state.grab && state.grab.hit.kind==='prop' && state.grab.hit.id===p.id)) intersectBox(ray, p.box, max, out, { kind: 'prop', id: p.id, item: p, name: p.src && (p.src.kind || p.src.as || p.src.kit || p.src.op) || 'model' });
   if (W.city) for (const b of W.city.near(ray.origin.x, ray.origin.z, max)) {
     const box = b.aabb || b.box || null; if (state.grab && state.grab.hit.kind==='building' && state.grab.hit.id===b.id) continue; if (box) intersectBox(ray, box, max, out, { kind: 'building', id: b.id, item: b, name: b.name || 'building' });
   }
@@ -62,6 +62,18 @@ function pointIntoWorld(nx, ny) {
       const p = ray.at(hi, V()); p.y = W.G.h(p.x, p.z); out.best = { kind: 'ground', point: p, distance: hi, name: 'ground' };
     }
   }
+  if(assist&&(!out.best||out.best.kind==='ground')){
+    // A small screen-space acquisition halo helps fingers hit a single brick.
+    let nearby=null,score=Infinity;
+    for(const h of selectable()){
+      const c=new THREE.Box3().copy(h.box).getCenter(V()),p=c.clone().project(W.camera);
+      if(p.z < -1 || p.z > 1)continue;
+      const dx=((p.x+1)/2-nx)*innerWidth,dy=((1-p.y)/2-ny)*innerHeight,d=Math.hypot(dx,dy);
+      if(d<28&&d<score){const check=pointIntoWorld((p.x+1)/2,(1-p.y)/2,false);
+        if(check&&check.kind===h.kind&&String(check.id)===String(h.id)){nearby=check;score=d;}}
+    }
+    if(nearby)return nearby;
+  }
   return out.best;
 }
 
@@ -71,10 +83,10 @@ function capture(hit) {
   if (hit.kind === 'ground') {
     state.there = { kind: 'ground', point: hit.point.clone() }; sayLine('THERE is bound. Say the operation.', '');
   } else {
-    state.that = { ...hit, point: hit.point.clone() }; state.there = null; sayLine('THAT is ' + label(hit) + '. Now point where.', '');
+    state.that = { ...hit, point: hit.point.clone() }; state.there = null; sayLine('Selected ' + label(hit) + '. Drag to move.', '');
     showSelection(hit.box);
   }
-  paintBindings(); if (state.pending) execute(state.pending);
+  paintBindings();refreshActions(); if (state.pending) execute(state.pending);
 }
 
 function showSelection(box) {
@@ -89,13 +101,13 @@ function movePiece(hit, dst, copy) {
   const B = W.build, old = hit.item; if (!B || !old || !B.pieces.has(old.id)) return false;
   const e = B.ext(old.part, old.rot), g = groundPoint(dst), x = g.x, z = g.z, y = g.y;
   if (copy) return !!B.addRows([[old.id, old.part, old.col, x, y, z, old.rot]], false, true).length;
-  B.take(old.id, true); old.x = x; old.y = y; old.z = z; old.box = null; const p = B.add(old, false);
+  state.lastMove={kind:'piece',id:old.id,item:{...old}};B.take(old.id, true); old.x = x; old.y = y; old.z = z; old.box = null; const p = B.add(old, false);
   if (p && B.onEdit) B.onEdit({ up: [B.toRow(p)] }); return !!p;
 }
 function moveProp(hit, dst, copy) {
   const P = W.props, it = hit.item; if (!P || !it || !P.items.has(it.id)) return false; const g = groundPoint(dst);
   if (copy) return P.place(it.mpd, g.x, g.y, g.z, it.yaw, false, it.src).then(Boolean);
-  P.moveTo(it, g.x, g.y, g.z, it.yaw, false); return true;
+  state.lastMove={kind:'prop',id:it.id,at:[it.x,it.y,it.z,it.yaw]};P.moveTo(it, g.x, g.y, g.z, it.yaw, false); return true;
 }
 function turn(hit) {
   if (hit.kind === 'piece') {
@@ -170,13 +182,13 @@ async function infer(words, capturedPacket) {
   finally{state.inferring=false;$('#pttMic').textContent=state.voiceError?'VOICE: '+state.voiceError:state.voiceOff?'VOICE: tap Talk':'VOICE: browser listening';}
 }
 
-function resetBindings() { state.that = state.there = state.pending = null; paintBindings();showSelection(null); }
+function resetBindings() { state.that = state.there = state.pending = null; paintBindings();showSelection(null);refreshActions(); }
 function execute(cmd) {
   debug('action',{verb:cmd.verb,selected:state.that&&state.that.id,destination:!!state.there});
   state.pending = null;
   if (cmd.verb === 'commit') { if(W.master&&W.master.result&&W.mbCommit){W.mbCommit();sayLine('Committing the preview.','');return true;}sayLine('There is no preview to commit.','');return false; }
-  if (cmd.verb === 'stop') { state.walkTarget=null;state.grab=null;setMode('point');stopWalk(); sayLine('Stopped.', ''); return true; }
-  if (cmd.verb === 'undo') { if(state.cityUndo){restoreCity(state.cityUndo);state.cityUndo=null;sayLine('Building move undone.','');}else if(W.build&&W.build.undo())sayLine('Last placed brick removed.','');else sayLine('Nothing to undo in the placement history.',''); return true; }
+  if (cmd.verb === 'stop') { endDrag(false);state.walkTarget=null;state.grab=null;setMode('point');stopWalk(); sayLine('Stopped.', ''); return true; }
+  if (cmd.verb === 'undo') { if(state.lastMove){undoMove();sayLine('Move undone.','');}else if(state.cityUndo){restoreCity(state.cityUndo);state.cityUndo=null;sayLine('Building move undone.','');}else if(W.build&&W.build.undo())sayLine('Last placed brick removed.','');else sayLine('Nothing to undo in the placement history.',''); return true; }
   if (cmd.thisWord && !state.that && state.hover && state.hover.kind !== 'ground') state.that = { ...state.hover, point: state.hover.point.clone() };
   if (cmd.thereWord && !state.there && state.hover && state.hover.kind === 'ground') state.there = { kind: 'ground', point: state.hover.point.clone() };
   if (cmd.needsThat && !state.that) { state.pending = cmd; sayLine('Which thing? Point at it and close your fist.', 'speak'); paintBindings(); return false; }
@@ -217,7 +229,7 @@ function startSpeech() {
   r.onstart = () => { state.voiceError=null;$('#pttMic').textContent = 'VOICE: browser listening'; $('#pttMic').classList.add('set'); $('#pttStart').classList.add('listening'); };
   r.onresult = e => { if(state.recorder || state.transcribing || window.speechSynthesis&&speechSynthesis.speaking)return; let interim = ''; for (let i = e.resultIndex; i < e.results.length; i++) { const t = e.results[i][0].transcript; if (e.results[i].isFinal) {state.lastHeard=Date.now();heard(t,true);} else interim += t; } if (interim) sayLine(interim + '…', ''); };
   r.onerror = e => { debug('browser.voice.error',{error:e.error});state.voiceError=e.error;$('#pttMic').textContent='VOICE: '+e.error;if(e.error!=='aborted')sayLine('Browser voice: '+e.error+'. Use Talk with your OpenAI key, or type below.','');if(/not-allowed|service-not-allowed/.test(e.error))state.voiceOff=true; };
-  r.onend = () => { $('#pttStart').classList.remove('listening'); if (state.on && !state.recorder && !state.transcribing && !state.voiceOff) { clearTimeout(state.speechRestart); state.speechRestart = setTimeout(() => { try { r.start(); } catch (e) {debug('browser.voice.restart.error',{message:e.message});} }, 450); } };
+  r.onend = () => { $('#pttStart').classList.remove('listening'); if ((state.on||state.edit) && !state.recorder && !state.transcribing && !state.voiceOff) { clearTimeout(state.speechRestart); state.speechRestart = setTimeout(() => { try { r.start(); } catch (e) {debug('browser.voice.restart.error',{message:e.message});} }, 450); } };
   try { r.start(); } catch (e) {debug('browser.voice.start.error',{message:e.message});sayLine('Browser voice: '+e.message,'');}
 }
 
@@ -225,14 +237,14 @@ function micStatus(text){$('#pttMic').textContent='VOICE: '+text;debug('voice.st
 function stopMeter(){clearInterval(state.meterTimer);if(state.audioContext)state.audioContext.close().catch(()=>{});state.audioContext=null;}
 async function recordStart(e) {
   if(e)e.preventDefault();
-  if(!state.on||state.recorder||state.transcribing||state.recordOpening)return;
+  if((!state.on&&!state.edit)||state.recorder||state.transcribing||state.recordOpening)return;
   if(!window.MediaRecorder){sayLine('MediaRecorder unavailable. Use Browser voice or type.','');return;}
   state.recordOpening=true;state.voiceOff=true;clearTimeout(state.speechRestart);
   if(state.recognition)try{state.recognition.abort();}catch(e){}
   if(window.speechSynthesis)speechSynthesis.cancel();
   try{
-    let tracks=state.stream&&state.stream.getAudioTracks().filter(t=>t.readyState==='live');
-    if(!tracks||!tracks.length){micStatus('requesting microphone');const audio=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}});if(!state.on){audio.getTracks().forEach(t=>t.stop());return;}audio.getAudioTracks().forEach(t=>state.stream.addTrack(t));tracks=audio.getAudioTracks();}
+    let tracks=state.micStream&&state.micStream.getAudioTracks().filter(t=>t.readyState==='live');
+    if(!tracks||!tracks.length){micStatus('requesting microphone');const audio=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}});if(!state.on&&!state.edit){audio.getTracks().forEach(t=>t.stop());return;}state.micStream=audio;tracks=audio.getAudioTracks();}
     tracks.forEach(t=>t.enabled=true);
     const stream=new MediaStream(tracks),mime=['audio/webm;codecs=opus','audio/mp4','audio/webm','audio/ogg;codecs=opus'].find(t=>MediaRecorder.isTypeSupported(t));
     state.chunks=[];state.recordBytes=0;state.recordStarted=performance.now();state.recordPacket=tracePacket('');
@@ -279,7 +291,7 @@ async function transcribeRecording(){
     const j=await res.json();if(!res.ok)throw new Error(j.error&&j.error.message||res.status);
     if(!j.text||!j.text.trim())throw new Error('No speech recognised. Check playback.');
     $('#pttWords').value=j.text;micStatus('transcribed');debug('transcription.done',{characters:j.text.length});
-    if(state.on)await heard(j.text,true,packet);
+    if(state.on||state.edit)await heard(j.text,true,packet);
   }catch(e){micStatus('transcription failed');debug('transcription.error',{message:e.message});sayLine('Transcription: '+e.message+'. Recording retained; you can retry.','');}
   finally{clearTimeout(timer);state.transcribing=false;$('#pttSendAudio').disabled=false;}
 }
@@ -317,46 +329,32 @@ function handGesture(h,held=false) {
   return {closed:curled>=(held?2:3)||pinch<(held?.62:.38),name:curled>=3?'FIST':pinch<.62?'PINCH':'OPEN',curled,pinch};
 }
 function updateHand(hand,now) {
-  const g=handGesture(hand,state.pinched),palm={x:1-(hand[0].x+hand[5].x+hand[9].x+hand[17].x)/4,y:(hand[0].y+hand[5].y+hand[9].y+hand[17].y)/4};
-  let nx=1-hand[8].x,ny=hand[8].y;
-  if(state.grab){nx=state.grab.start[0]+palm.x-state.grab.palm.x;ny=state.grab.start[1]+palm.y-state.grab.palm.y;}
-  const prev=state.pointer||{x:nx,y:ny};
-  state.pointer={x:prev.x+(nx-prev.x)*.45,y:prev.y+(ny-prev.y)*.45};nx=state.pointer.x;ny=state.pointer.y;
-  state.hover=pointIntoWorld(nx,ny);
-  // Keep the last aimed object through finger closure, not indefinitely.
-  if(!g.closed&&!state.grab&&state.hover&&state.hover.kind!=='ground')state.recentHit={hit:state.hover,t:now,pointer:[nx,ny]};
-  const recent=state.recentHit&&now-state.recentHit.t<650?state.recentHit.hit:null;
-  const target=g.closed&&recent?recent:state.hover&&state.hover.kind!=='ground'?state.hover:recent;
-  if(!state.that&&!state.grab){if(target)showSelection(target.box);else if(state.helper)showSelection(null);}
-  const cur=$('#pttCursor');cur.style.left=nx*innerWidth+'px';cur.style.top=ny*innerHeight+'px';cur.className='on '+(state.grab?'object':state.hover?state.hover.kind==='ground'?'ground':'object':'');
-  $('#pttGesture').textContent=g.name+(state.grab?' · HELD':target?' · '+label(target):' · aim at an object');
+  if(!state.edit||state.pointerDrag)return;
+  const palm={x:1-(hand[0].x+hand[5].x+hand[9].x+hand[17].x)/4,y:(hand[0].y+hand[5].y+hand[9].y+hand[17].y)/4};
+  const g=handGesture(hand,state.pinched);
+  if(!state.handOrigin){state.handOrigin={...palm};state.handAim={x:.5,y:.5};}
+  const nx=Math.max(.02,Math.min(.98,state.handAim.x+(palm.x-state.handOrigin.x)*1.8)),ny=Math.max(.02,Math.min(.98,state.handAim.y+(palm.y-state.handOrigin.y)*1.8));
+  const prev=state.pointer||{x:nx,y:ny};state.pointer={x:prev.x+(nx-prev.x)*.35,y:prev.y+(ny-prev.y)*.35};
+  const x=state.pointer.x,y=state.pointer.y;
+  aim(x,y);
+  const h=state.hover;
+  if(!state.grab&&!g.closed&&h&&h.kind!=='ground'){
+    const key=h.kind+':'+h.id;
+    if(state.dwellKey!==key){state.dwellKey=key;state.dwellAt=now;}
+    if(now-state.dwellAt>450&&(!state.that||state.that.id!==h.id)){capture(h);sayLine('Selected '+label(h)+'. Close your fist to hold it.','');}
+  }else if(!state.grab)state.dwellKey=null;
   if(g.closed!==state.gestureCandidate){state.gestureCandidate=g.closed;state.gestureSince=now;}
-  if(now-state.gestureSince>100&&g.closed!==state.pinched){
+  if(now-state.gestureSince>120&&g.closed!==state.pinched){
     state.pinched=g.closed;
-    if(g.closed){
-      const hit=target||state.hover;capture(hit);
-      if(hit&&hit.kind!=='ground'){
-        const start=state.recentHit&&state.recentHit.hit.id===hit.id?state.recentHit.pointer:[nx,ny];
-        state.grab={hit,start,palm,destination:null};state.pointer={x:start[0],y:start[1]};debug('grab.begin',{gesture:g.name,kind:hit.kind,id:hit.id});sayLine('Held '+label(hit)+'. Move your hand; open it to place.','');
-      }
-    }else if(state.grab){
-      const grab=state.grab;state.grab=null;debug('grab.release',{moved:!!grab.destination});
-      if(grab.destination){state.that=grab.hit;state.there={kind:'ground',point:grab.destination};execute({verb:'move',needsThat:true,needsThere:true});}
-    }
+    if(g.closed&&!state.grab){const target=state.that||(h&&h.kind!=='ground'?h:null);if(target)beginDrag(target,x,y,'hand');else sayLine('Hold the cursor over an object until it is selected.','');}
+    else if(!g.closed&&state.grab)endDrag(true);
   }
-  if(state.pinched&&state.grab){
-    const grab=state.grab,ray=worldRay(nx,ny);
-    if(ray&&Math.hypot(palm.x-grab.palm.x,palm.y-grab.palm.y)>.025){
-      const box=grab.hit.box,centre=new THREE.Box3().copy(box).getCenter(V());centre.y=box.min.y;
-      // Camera-facing drag plane works even when the cursor is not over terrain.
-      const normal=W.camera.getWorldDirection(V()),plane=new THREE.Plane().setFromNormalAndCoplanarPoint(normal,grab.hit.point),p=ray.intersectPlane(plane,V());
-      if(p){const delta=p.sub(grab.hit.point);const dst=centre.clone().add(delta);dst.y=W.G.h(dst.x,dst.z);grab.destination=dst;
-        if(state.helper)state.helper.box.copy(box).translate(dst.clone().sub(centre));
-      }
-    }
+  if(state.grab)dragTo(x,y);
+  $('#pttGesture').textContent=state.grab?'HOLDING · open hand to place':state.that?'SELECTED · close fist to move':'AIM · hold over an object';
+  if(!state.trace.length||now-state.trace[state.trace.length-1].t>90){
+    state.trace.push({t:now,pointer:[x,y],pinch:state.pinched,hit:h?{kind:h.kind,id:h.id,name:label(h),point:h.point.toArray().map(Math.round)}:null});
+    while(state.trace.length&&now-state.trace[0].t>6500)state.trace.shift();
   }
-  if(!state.trace.length||now-state.trace[state.trace.length-1].t>90){const h=state.hover;state.trace.push({t:now,pointer:[nx,ny],pinch:state.pinched,gesture:g.name,hit:h?{kind:h.kind,id:h.id||null,name:label(h),point:h.point.toArray().map(Math.round)}:null});while(state.trace.length&&now-state.trace[0].t>6500)state.trace.shift();}
-  if(now-(state.lastDiagnostic||0)>1000){state.lastDiagnostic=now;debug('tracking',{gesture:g.name,curled:g.curled,pinch:+g.pinch.toFixed(2),hit:state.hover&&state.hover.kind,selected:state.that&&state.that.id,held:!!state.grab});}
 }
 
 async function visionLoop() {
@@ -373,7 +371,7 @@ async function visionLoop() {
         stopWalk(); if (hand) {
           updateHand(hand,now);
 
-        } else { state.hover=null;if(state.grab)debug('grab.cancel',{reason:'tracking lost'});state.grab=null;state.pointer=null;state.recentHit=null;state.gestureSince=0;if(state.helper&&state.that)state.helper.box.copy(state.that.box); $('#pttCursor').className=''; state.pinched=false; }
+        } else { state.hover=null;if(state.grab)debug('grab.cancel',{reason:'tracking lost'});endDrag(false);state.pointer=null;state.handOrigin=null;state.recentHit=null;state.gestureSince=0;if(state.helper&&state.that)state.helper.box.copy(state.that.box); $('#pttCursor').className=''; state.pinched=false; }
       }
     } catch (e) { if(now-(state.lastVisionError||0)>2000){state.lastVisionError=now;debug('vision.error',{message:e.message});sayLine('Tracking error: '+e.message,'');} }
   }
@@ -392,15 +390,15 @@ async function start() {
     const make=async(K,options)=>{try{return await K.createFromOptions(files,{...options,baseOptions:{...options.baseOptions,delegate:'GPU'}});}catch(e){console.info('[put-that-there] GPU delegate unavailable; using CPU');return K.createFromOptions(files,{...options,baseOptions:{...options.baseOptions,delegate:'CPU'}});}};
     state.hand=await make(mod.HandLandmarker,{baseOptions:{modelAssetPath:'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task'},runningMode:'VIDEO',numHands:1,minHandDetectionConfidence:.45,minTrackingConfidence:.45});
     state.pose=await make(mod.PoseLandmarker,{baseOptions:{modelAssetPath:'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task'},runningMode:'VIDEO',numPoses:1,minPoseDetectionConfidence:.4,minTrackingConfidence:.4});
-    const v=$('#pttVideo');v.srcObject=state.stream;await v.play();state.on=true;document.body.classList.add('ptt-on');$('#ptt').classList.add('on');b.classList.add('on');b.setAttribute('aria-pressed','true');b.textContent='Stop pointing';sayLine('Aim at an object, close your fist, move, then open to place. Record or type to create.','');micStatus('tap Record');visionLoop();
+    const v=$('#pttVideo');v.srcObject=state.stream;await v.play();state.on=true;document.body.classList.add('ptt-on');$('#ptt').classList.add('on');b.classList.add('on');b.setAttribute('aria-pressed','true');b.textContent='Camera off';state.handOrigin=null;sayLine('Move your palm to aim. Hold over an object to select; close your fist to move it.','');micStatus('tap Record');visionLoop();
   } catch(e) { console.error('[put-that-there] start',e); if(state.stream)state.stream.getTracks().forEach(t=>t.stop());state.stream=null;sayLine(/denied|permission/i.test(String(e))?'Camera permission was denied. Enable it in the browser, then try again.':'Could not start hand tracking. The typed builder still works.',''); }
-  finally { b.disabled=false; if(!state.on)b.textContent='Point + speak'; }
+  finally { b.disabled=false; if(!state.on)b.textContent='Use hand'; }
 }
 function stop() {
-  state.on=false;stopMeter();state.pinched=false;state.pointer=null;state.recentHit=null;state.walkTarget=null;state.grab=null;clearTimeout(state.recordTimer);stopWalk();resetPose();clearTimeout(state.speechRestart);if(state.recorder)try{state.recorder.onstop=null;state.recorder.stop();}catch(e){}state.recorder=null;if(state.recognition)try{state.recognition.abort();}catch(e){}state.recognition=null;if(state.stream)state.stream.getTracks().forEach(t=>t.stop());state.stream=null;
-  if(state.hand)state.hand.close();if(state.pose)state.pose.close();state.hand=state.pose=null;resetBindings();document.body.classList.remove('ptt-on');$('#ptt').classList.remove('on');$('#pttCursor').className='';const b=$('#pttStart');b.classList.remove('on','listening');b.setAttribute('aria-pressed','false');b.textContent='Point + speak';
+  endDrag(false);state.on=false;stopMeter();state.pinched=false;state.pointer=null;state.recentHit=null;state.walkTarget=null;state.grab=null;clearTimeout(state.recordTimer);stopWalk();resetPose();clearTimeout(state.speechRestart);if(state.recorder)try{state.recorder.onstop=null;state.recorder.stop();}catch(e){}state.recorder=null;if(state.recognition)try{state.recognition.abort();}catch(e){}state.recognition=null;if(state.stream)state.stream.getTracks().forEach(t=>t.stop());state.stream=null;if(state.micStream)state.micStream.getTracks().forEach(t=>t.stop());state.micStream=null;
+  if(state.hand)state.hand.close();if(state.pose)state.pose.close();state.hand=state.pose=null;resetBindings();document.body.classList.remove('ptt-on');if(!state.edit)$('#ptt').classList.remove('on');$('#pttCursor').className='';const b=$('#pttStart');b.classList.remove('on','listening');b.setAttribute('aria-pressed','false');b.textContent='Point + speak';
 }
-function setMode(mode){state.grab=null;state.pinched=false;state.pointer=null;state.recentHit=null;state.mode=mode==='walk'?'walk':'point';document.querySelectorAll('[data-ptt-mode]').forEach(b=>b.classList.toggle('on',b.dataset.pttMode===state.mode));if(state.mode==='walk'){resetBindings();sayLine('Raise both hands to walk. Lean left or right to steer.','');$('#pttCursor').className='';}else{stopWalk();sayLine('Point, close your fist to grab, move, then open to place.','');}}
+function setMode(mode){if(mode==='walk')setArrange(false);else setArrange(true);state.grab=null;state.pinched=false;state.pointer=null;state.recentHit=null;state.mode=mode==='walk'?'walk':'point';document.querySelectorAll('[data-ptt-mode]').forEach(b=>b.classList.toggle('on',b.dataset.pttMode===state.mode));if(state.mode==='walk'){resetBindings();sayLine('Raise both hands to walk. Lean left or right to steer.','');$('#pttCursor').className='';}else{stopWalk();sayLine('Point, close your fist to grab, move, then open to place.','');}}
 
 $('#pttStart').addEventListener('click',start);document.querySelectorAll('[data-ptt-mode]').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.pttMode)));window.addEventListener('pagehide',stop);
 $('#pttAsk').textContent='Record';$('#pttAsk').addEventListener('click',e=>state.recorder?recordStop(e):recordStart(e));$('#pttAsk').addEventListener('contextmenu',e=>e.preventDefault());
@@ -423,7 +421,7 @@ function moveBuilding(hit,dst,copy){
   const moved={...src,ring:src.ring.map(p=>({...p,x:p.x+dx,z:p.z+dz}))};
   if(copy)moved.id=-Date.now();
   const next=copy?[...saved.source,moved]:saved.source.map(x=>x.id===src.id?moved:x);
-  try{restoreCity({source:next,damage:saved.damage});state.cityUndo=saved;return true;}
+  try{restoreCity({source:next,damage:saved.damage});state.cityUndo=saved;state.lastMove={kind:'building',snapshot:saved};return true;}
   catch(e){restoreCity(saved);sayLine('Building move failed: '+e.message,'');return false;}
 }
 // One rigid LEGO arm: solve the actual shoulder-to-grip vector, not independent Euler guesses.
@@ -464,6 +462,7 @@ function afterPose(dt){
 }
 
 function beforeStep(dt){
+  if(state.edit&&W.input){W.input.L.x=W.input.L.y=W.input.L.mag=0;W.input.L.held=false;W.input.saber=W.input.push=W.input.fireOnce=false;return;}
   if(!state.on)return;
   if(state.mode==='walk'&&performance.now()-(state.poseAt||0)>450)stopWalk();
   if(!state.walkTarget)return;
@@ -480,17 +479,159 @@ function addTestBrick(){
   if(!W.ready||!W.build)return;
   const B=W.build,part=B.kinds.has('3001')?'3001':B.part;
   let p=state.there&&state.there.point;
+  if(!p&&state.edit&&state.orbit)p=state.orbit.centre.clone();
   if(!p){const f=V();Minifig.facing(W.rig,f);p=W.rig.pos.clone().addScaledVector(f,4*M);}
   const g=groundPoint(p),rows=B.addRows([[null,part,4,g.x,g.y,g.z,0]],false,true);
-  if(rows.length){B.history.push(rows[0].id);sayLine('Brick placed. Pinch it, drag to ground, then release.','');}
+  if(rows.length){B.history.push(rows[0].id);const p=rows[0];capture({kind:'piece',id:p.id,item:p,box:p.box,point:new THREE.Vector3(p.x,p.y,p.z),name:'brick'});sayLine('Brick selected. Drag it with a finger or mouse; close your fist to hold it.','');refreshObjects();}
   else sayLine('Could not place that brick.','');
 }
+
+function selectable(){
+  const list=[];
+  if(W.build)for(const p of W.build.pieces.values())if(p.box)list.push({kind:'piece',id:p.id,item:p,box:p.box,name:(W.build.kinds.get(p.part)||{}).name||'brick'});
+  if(W.props)for(const p of W.props.items.values())if(p.box&&p.ready)list.push({kind:'prop',id:p.id,item:p,box:p.box,name:p.src&&(p.src.as||p.src.kind||p.src.kit)||'model'});
+  if(W.city)for(const b of W.city.buildings)if(b.aabb)list.push({kind:'building',id:b.id,item:b,box:b.aabb,name:b.name||b.kind||'building'});
+  return list;
+}
+function centreOf(hit){return new THREE.Box3().copy(hit.box).getCenter(V());}
+function aim(x,y){
+  state.hover=pointIntoWorld(x,y);
+  const el=$('#pttCursor');el.style.left=x*innerWidth+'px';el.style.top=y*innerHeight+'px';
+  el.className='on '+(state.hover&&state.hover.kind!=='ground'?'object':'ground');
+  if(!state.that&&!state.grab)showSelection(state.hover&&state.hover.box||null);
+}
+function previewFor(hit){
+  const root=new THREE.Group();root.name='move preview';
+  const mat=new THREE.MeshBasicMaterial({color:0x48d6ff,transparent:true,opacity:.65,depthWrite:false});
+  const add=(geom,matrix)=>{const mesh=new THREE.Mesh(geom,mat);mesh.applyMatrix4(matrix);root.add(mesh);};
+  if(hit.kind==='prop'&&hit.item.group){
+    const copy=hit.item.group.clone(true);copy.traverse(o=>{if(o.isMesh){o.material=mat;o.castShadow=false;}if(o.isLine)o.visible=false;});root.add(copy);
+  }else if(hit.kind==='piece'){
+    const p=hit.item,k=W.build.kinds.get(p.part),m=new THREE.Matrix4();k.im.getMatrixAt(p.slot,m);add(k.geom,m);
+  }else if(hit.kind==='building'&&hit.item.bricks){
+    const b=hit.item,groups=new Map();
+    b.bricks.list.forEach((br,k)=>{if(b.removed.has(k))return;const g=W.city.geoms.get(br.p);if(!g)return;let arr=groups.get(br.p);if(!arr){arr={geom:g.geom,matrices:[]};groups.set(br.p,arr);}arr.matrices.push(br.m);});
+    for(const {geom,matrices} of groups.values()){const im=new THREE.InstancedMesh(geom,mat,matrices.length);matrices.forEach((m,i)=>im.setMatrixAt(i,m));im.instanceMatrix.needsUpdate=true;im.frustumCulled=false;root.add(im);}
+  }
+  if(!root.children.length){const box=new THREE.Box3().copy(hit.box),size=box.getSize(V()),geom=new THREE.BoxGeometry(size.x,size.y,size.z);root.userData.ownedGeometry=geom;const m=new THREE.Mesh(geom,mat);m.position.copy(box.getCenter(V()));root.add(m);}
+  root.userData.previewMaterial=mat;W.scene.add(root);return root;
+}
+function beginDrag(hit,x,y,input){
+  if(!hit||hit.kind==='ground'||state.inferring)return false;
+  if(W.room&&W.room.role&&hit.kind==='building'){sayLine('Leave the shared room to rearrange map buildings.','');return false;}
+  endDrag(false);capture({...hit,point:hit.point||centreOf(hit)});
+  const centre=centreOf(hit);centre.y=hit.box.min.y;
+  const forward=W.camera.getWorldDirection(V());forward.y=0;if(forward.lengthSq()<.01)forward.set(0,0,-1);forward.normalize();
+  const right=V().crossVectors(forward,new THREE.Vector3(0,1,0)).normalize();
+  const reach=Math.max(6*M,Math.min(50*M,W.camera.position.distanceTo(centre)));
+  state.grab={hit,start:[x,y],centre,forward,right,reach,input,destination:null,preview:previewFor(hit)};
+  debug('drag.begin',{input,kind:hit.kind,id:hit.id});sayLine('Move left/right or toward/away. Release to place.','');refreshActions();return true;
+}
+function dragTo(x,y){
+  const g=state.grab;if(!g)return;
+  const dx=x-g.start[0],dy=y-g.start[1];if(Math.hypot(dx,dy)<.006&&!g.destination)return;
+  const dst=g.centre.clone().addScaledVector(g.right,dx*g.reach*1.6).addScaledVector(g.forward,-dy*g.reach*1.6);
+  dst.x=Math.round(dst.x/20)*20;dst.z=Math.round(dst.z/20)*20;dst.y=W.G.h(dst.x,dst.z);
+  g.destination=dst;const delta=dst.clone().sub(g.centre);
+  g.preview.position.copy(delta);
+  if(state.helper)state.helper.box.copy(g.hit.box).translate(delta);
+}
+function endDrag(commit){
+  const g=state.grab;if(!g)return;state.grab=null;
+  if(g.preview){W.scene.remove(g.preview);g.preview.traverse(o=>{if(o.isInstancedMesh&&o.dispose)o.dispose();});g.preview.userData.previewMaterial.dispose();if(g.preview.userData.ownedGeometry)g.preview.userData.ownedGeometry.dispose();}
+  if(commit&&g.destination){
+    state.that=g.hit;state.there={kind:'ground',point:g.destination};
+    execute({verb:'move',needsThat:true,needsThere:true});
+  }else {if(state.that)showSelection(state.that.box);sayLine(commit?'Selected '+label(state.that)+'. Drag it to move.':'Move cancelled.','');}
+  debug('drag.end',{commit:!!(commit&&g.destination)});refreshActions();
+}
+function undoMove(){
+  endDrag(false);const u=state.lastMove;if(!u)return;
+  if(u.kind==='building'){restoreCity(u.snapshot);state.cityUndo=null;}
+  if(u.kind==='prop'){const p=W.props.items.get(u.id);if(p)W.props.moveTo(p,...u.at,false);}
+  if(u.kind==='piece'){const B=W.build;if(B.pieces.has(u.id))B.take(u.id,true);const p=B.add({...u.item},false);if(p&&B.onEdit)B.onEdit({up:[B.toRow(p)]});}
+  state.lastMove=null;resetBindings();
+}
+function setArrange(on){
+  endDrag(false);state.edit=!!on;state.orbit=null;state.pointerDrag=null;state.handOrigin=null;state.pinched=false;
+  document.body.classList.toggle('ptt-edit',state.edit);
+  $('#pttArrange').textContent=state.edit?'Walk':'Arrange';
+  $('#ptt').classList.toggle('on',state.edit||state.on);
+  if(!state.edit){resetBindings();if(W.rig)W.rig.cam.set=false;$('#pttCursor').className='';}
+  else {if(W.wbOpen)W.wbOpen(false,true);state.mode='point';stopWalk();state.walkTarget=null;sayLine('Tap an object, then drag it. Drag empty space to look around.','');}
+  refreshActions();
+}
+function afterCamera(){
+  if(!state.edit||!W.ready||!W.rig||W.film&&W.film.owns())return;
+  if(!state.orbit){
+    const f=V();Minifig.facing(W.rig,f);
+    state.orbit={centre:W.rig.pos.clone().addScaledVector(f,5*M),yaw:W.rig.heading+Math.PI,pitch:.72,distance:22*M};
+  }
+  const o=state.orbit,d=o.distance,c=Math.cos(o.pitch);
+  W.camera.position.copy(o.centre).add(new THREE.Vector3(Math.sin(o.yaw)*c*d,Math.sin(o.pitch)*d,Math.cos(o.yaw)*c*d));
+  W.camera.up.set(0,1,0);W.camera.lookAt(o.centre);W.camera.updateMatrixWorld(true);
+  if(performance.now()-(state.listAt||0)>1500){state.listAt=performance.now();refreshObjects();refreshActions();}
+}
+function refreshObjects(){
+  const el=$('#pttObjects');if(!el||!W.ready||state.pointerDrag)return;
+  const origin=state.orbit?state.orbit.centre:W.rig.pos;
+  const items=selectable().map(h=>({h,d:centreOf(h).distanceTo(origin)})).filter(x=>x.d<100*M).sort((a,b)=>a.d-b.d).slice(0,12);
+  el.replaceChildren();
+  for(const {h,d} of items){const b=document.createElement('button');b.type='button';b.textContent=label(h)+' · '+Math.round(d/M)+'m';b.onclick=()=>{capture({...h,point:centreOf(h)});if(state.orbit){state.orbit.centre.copy(centreOf(h));state.orbit.distance=Math.max(8*M,Math.min(45*M,new THREE.Box3().copy(h.box).getSize(V()).length()*1.5));}sayLine('Selected '+label(h)+'. Drag it, or tap ground then Move.','');};el.appendChild(b);}
+}
+function refreshActions(){
+  const selected=!!state.that;
+  for(const id of ['#pttMove','#pttCopy']){const el=$(id);if(el)el.hidden=!selected;}
+  if($('#pttCancel'))$('#pttCancel').hidden=!selected&&!state.grab;
+  if($('#pttCommit'))$('#pttCommit').hidden=!(W.master&&W.master.result);
+}
+function canvasPoint(e){const r=W.renderer&&W.renderer.domElement.getBoundingClientRect();return r?[(e.clientX-r.left)/r.width,(e.clientY-r.top)/r.height]:[e.clientX/innerWidth,e.clientY/innerHeight];}
+function directDown(e){
+  if(!state.edit||!W.ready||e.target.tagName!=='CANVAS')return;
+  if(e.button!=null&&e.button!==0&&e.button!==2)return;
+  e.preventDefault();e.stopImmediatePropagation();
+  const [x,y]=canvasPoint(e);aim(x,y);const h=state.hover;
+  state.pointerDrag={id:e.pointerId,x,y,orbit:e.button===2||!h||h.kind==='ground'};
+  const stage=$('#stage');if(stage.setPointerCapture)stage.setPointerCapture(e.pointerId);
+  if(!state.pointerDrag.orbit&&h)beginDrag(h,x,y,'pointer');
+  else if(h&&h.kind==='ground')capture(h);
+}
+function directMove(e){
+  if(!state.edit||!W.ready)return;
+  const p=state.pointerDrag;
+  if(!p){if(e.target.tagName==='CANVAS'&&e.pointerType!=='touch'){const [x,y]=canvasPoint(e);aim(x,y);}return;}
+  if(p.id!==e.pointerId)return;
+  e.preventDefault();e.stopImmediatePropagation();const [x,y]=canvasPoint(e);
+  if(p.orbit&&state.orbit){state.orbit.yaw-=(x-p.x)*3;state.orbit.pitch=Math.max(.2,Math.min(1.35,state.orbit.pitch+(y-p.y)*2));p.x=x;p.y=y;}
+  else dragTo(x,y);
+}
+function directUp(e){
+  if(!state.pointerDrag||state.pointerDrag.id!==e.pointerId)return;
+  e.preventDefault();e.stopImmediatePropagation();endDrag(e.type!=='pointercancel');state.pointerDrag=null;
+}
+const directStage=$('#stage');
+directStage.addEventListener('pointerdown',directDown,{capture:true,passive:false});
+directStage.addEventListener('pointermove',directMove,{capture:true,passive:false});
+directStage.addEventListener('pointerup',directUp,{capture:true,passive:false});
+directStage.addEventListener('pointercancel',directUp,{capture:true,passive:false});
+directStage.addEventListener('contextmenu',e=>{if(state.edit)e.preventDefault();});
+directStage.addEventListener('wheel',e=>{if(!state.edit||!state.orbit)return;e.preventDefault();e.stopImmediatePropagation();state.orbit.distance=Math.max(5*M,Math.min(90*M,state.orbit.distance*Math.exp(e.deltaY*.001)));},{capture:true,passive:false});
+window.addEventListener('blur',()=>{endDrag(false);state.pointerDrag=null;});
+window.addEventListener('keydown',e=>{if(!state.edit||/INPUT|TEXTAREA/.test(e.target.tagName))return;if(e.key==='Escape'){e.preventDefault();e.stopImmediatePropagation();endDrag(false);resetBindings();}},{capture:true});
+
 const controls=document.createElement('div');controls.id='pttActions';
-controls.innerHTML='<div><button id="pttSelect">Select aimed</button><button id="pttBrick">+ Brick</button><button id="pttMove">Move there</button><button id="pttCopy">Copy there</button><button id="pttUndo">Undo</button><button id="pttKey">API key</button></div><form id="pttForm"><input id="pttWords" aria-label="World instruction" placeholder="Make a house here" autocomplete="off"><button>Send</button></form><div id="pttGesture">OPEN · aim at an object</div><div><meter id="pttLevel" min="0" max="1" value="0" aria-label="Microphone level"></meter><button id="pttSendAudio" disabled>Send audio</button><button id="pttBrowserVoice">Browser voice</button></div><audio id="pttPlayback" controls hidden></audio><details id="pttDiagnostics"><summary>Diagnostics · v5</summary><button id="pttCopyLog">Copy log</button><pre id="pttLog"></pre></details>';
+controls.innerHTML='<div><button id="pttArrange">Walk</button><button id="pttCenter">Center hand</button><button id="pttCancel" hidden>Cancel</button><button id="pttCommit" hidden>Place build</button><button id="pttBrick">+ Brick</button><button id="pttMove">Move there</button><button id="pttCopy">Copy there</button><button id="pttUndo">Undo</button><button id="pttKey">API key</button></div><form id="pttForm"><input id="pttWords" aria-label="World instruction" placeholder="Make a house here" autocomplete="off"><button>Send</button></form><div id="pttGesture">Tap an object and drag</div><details><summary>Objects nearby</summary><div id="pttObjects"></div></details><div><meter id="pttLevel" min="0" max="1" value="0" aria-label="Microphone level"></meter><button id="pttSendAudio" disabled>Send audio</button><button id="pttBrowserVoice">Browser voice</button></div><audio id="pttPlayback" controls hidden></audio><details id="pttDiagnostics"><summary>Diagnostics · v6</summary><button id="pttCopyLog">Copy log</button><pre id="pttLog"></pre></details>';
 $('#ptt').appendChild(controls);
+controls.firstElementChild.appendChild($('#pttAsk'));
+document.body.appendChild($('#pttArrange'));
 const css=document.createElement('style');css.textContent='#pttActions{pointer-events:auto}#pttActions>div{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0}#pttActions button{padding:8px;border:1px solid #526071;border-radius:7px;background:#fff;color:#172230;font:12px system-ui;cursor:pointer}#pttForm{display:flex;gap:4px}#pttWords{min-width:0;flex:1;padding:10px;font:16px system-ui;border-radius:7px;border:1px solid #526071;user-select:text}#ptt{max-height:80vh;overflow:auto}body.ptt-on #hint,body.ptt-on #keys{display:none}#pttDiagnostics{pointer-events:auto;background:#fff;color:#172230;padding:6px;font:11px monospace}#pttLog{max-height:150px;overflow:auto;white-space:pre-wrap;user-select:text}#pttPlayback{width:100%;height:32px}#pttGesture{background:#172230;color:white;padding:6px;font:12px monospace}#pttLevel{width:65px}#pttCursor.object{box-shadow:0 0 0 4px #ffcd32,0 0 20px #ffcd32}';
+css.textContent+='#pttArrange{position:fixed;left:14px;bottom:calc(var(--wb) + 140px);z-index:9;border:2px solid #172230;border-radius:999px;padding:12px 20px;background:#fff;color:#172230;font:700 14px system-ui;cursor:pointer}body.ptt-edit #pttArrange{background:#172230;color:#fff}';
+css.textContent+="\n#ptt{width:min(300px,calc(100vw - 28px));max-height:72vh;pointer-events:auto}\n#ptt:not(.on){display:none}\nbody:not(.ptt-on) #pttView,body:not(.ptt-on) #pttCenter{display:none}\n#pttActions details{background:#fff;padding:6px;border-radius:6px;color:#172230;font:12px system-ui}\n#pttObjects{display:flex;flex-wrap:wrap;max-height:150px;overflow:auto}\n#pttActions button[hidden]{display:none}\nbody.ptt-edit #prompt,body.ptt-edit #det,body.ptt-edit #build,body.ptt-edit #hint,body.ptt-edit #keys,body.ptt-edit #reticle,body.ptt-edit #stick{display:none!important}\nbody.ptt-edit #pttStart{bottom:calc(var(--wb) + 16px)}\n#pttActions button{min-height:40px}\n@media(max-width:620px){#ptt{top:auto;bottom:calc(var(--wb) + 8px);right:8px;width:calc(100vw - 16px);max-height:43vh;background:#fffffff0;padding:8px;border-radius:12px}#pttView{position:fixed;top:110px;right:8px;width:120px;aspect-ratio:4/3}#pttMode{display:none}#pttState,#pttLine{font-size:11px}#pttActions>div{margin:2px 0}#pttActions button{padding:6px;font-size:12px}body.ptt-edit #pttStart{bottom:auto;top:65px;right:8px}}\n";
 document.head.appendChild(css);
-$('#pttSelect').onclick=()=>capture(state.hover||state.recentHit&&state.recentHit.hit);
+$('#pttArrange').onclick=()=>setArrange(!state.edit);
+$('#pttCenter').onclick=()=>{state.handOrigin=null;state.pointer=null;sayLine('Hold your hand comfortably. Its current position becomes the centre.','');};
+$('#pttCancel').onclick=()=>{endDrag(false);resetBindings();};
+$('#pttCommit').onclick=()=>execute({verb:'commit'});
 $('#pttSendAudio').onclick=transcribeRecording;
 $('#pttBrowserVoice').onclick=()=>{if(state.recorder||state.transcribing)return;state.voiceOff=false;startSpeech();};
 $('#pttCopyLog').onclick=async()=>{try{await navigator.clipboard.writeText(JSON.stringify(events,null,2));sayLine('Diagnostic log copied. It excludes audio, transcripts and API keys.','');}catch(e){sayLine('Clipboard unavailable. Select the log text below.','');}};
@@ -502,5 +643,6 @@ $('#pttKey').onclick=()=>{W.wbOpen&&W.wbOpen(true);$('#wbKeyBtn').click();};
 $('#pttForm').onsubmit=e=>{e.preventDefault();const input=$('#pttWords');const t=input.value.trim();if(t){heard(t,true);input.value='';}};
 for(const name of ['pointerdown','pointerup','pointermove','keydown'])controls.addEventListener(name,e=>e.stopPropagation());
 
-window.PutThatThere={handGesture,updateHand,recordStart,recordStop,transcribeRecording,diagnostics:()=>events.slice(),beforeStep,afterPose,poseAngles,addTestBrick,parse,heard,infer,tracePacket,execute,capture,pointIntoWorld,setMode,start,stop,state:()=>({on:state.on,mode:state.mode,that:label(state.that),there:!!state.there,pending:state.pending&&state.pending.verb,walking:state.walking,inferring:state.inferring,trace:state.trace.length})};
+setArrange(true);
+window.PutThatThere={afterCamera,setArrange,selectable,beginDrag,dragTo,endDrag,directDown,directMove,directUp,handGesture,updateHand,recordStart,recordStop,transcribeRecording,diagnostics:()=>events.slice(),beforeStep,afterPose,poseAngles,addTestBrick,parse,heard,infer,tracePacket,execute,capture,pointIntoWorld,setMode,start,stop,state:()=>({on:state.on,mode:state.mode,that:label(state.that),there:!!state.there,pending:state.pending&&state.pending.verb,walking:state.walking,inferring:state.inferring,trace:state.trace.length})};
 })();

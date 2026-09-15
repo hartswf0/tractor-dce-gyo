@@ -711,7 +711,8 @@ function simulate(dt) {
   if (W.mode !== 'fly' && W.mode !== 'ride') Fx.Sfx.engine(false);
   { const wantHum = W.mode === 'walk' && !W.dead && d.saber && !(W.build && W.build.on) && !(W.film && W.film.scene && W.film.scene.me === 'off');   /* a scene with no part for the player has no saber humming under it */ Fx.Sfx.saber(wantHum); if (W.mode === 'walk' && W.rig.swing && !W.swingWas) Fx.Sfx.swing(); W.swingWas = W.mode === 'walk' && !!W.rig.swing; if (W.rig.landed) { const v = W.rig.landed; W.rig.landed = 0; Fx.Sfx.thud(clamp(v / (10 * M), 0.2, 1)); Fx.haptic(15); if (v > 9 * M) hurt(Math.round((v / M - 9) * 3)); } }
   if (W.film) W.film.late(dt);                                                 // the film's actors, cables and falls move after the world has
-  if (W.film && W.film.owns()) W.film.camera(W.camera, dt);                   // the film's camera stands where the shot says, whatever the player does
+  if (W.film && W.film.owns()) W.film.camera(W.camera, dt);
+  if(window.PutThatThere&&window.PutThatThere.afterCamera)window.PutThatThere.afterCamera();                   // the film's camera stands where the shot says, whatever the player does
   if (W.shake > 0) { W.shake -= dt; W.camera.position.x += (Math.random() - .5) * W.shake * 12; W.camera.position.y += (Math.random() - .5) * W.shake * 12; }
   W.bolts.step(dt, {
     hitPlayer: b => { if (b.owner === 'film') return false; if (W.mode === 'ride') { if (Characters.segHitsSphere(b.prev, b.mesh.position, W.veh.pos, W.veh.r)) { hurt(10); flash(); return true; } return false; } if (W.mode === 'walk') { if (W.dead) return false; V1.copy(W.rig.pos); V1.y += 1.3 * M; if (Characters.segHitsSphere(b.prev, b.mesh.position, V1, 0.8 * M)) { hurt(20); return true; } return false; } if (Characters.segHitsSphere(b.prev, b.mesh.position, W.tie.pos, Tie.PLAYER_R * 0.8)) { W.tie.shields = Math.max(0, W.tie.shields - 5); flash(); return true; } return false; },
