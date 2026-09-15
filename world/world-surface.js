@@ -5,7 +5,7 @@ const $=s=>document.querySelector(s),W=window.__world,P=window.PutThatThere;
 if(!W||!P)return;
 P.worldSurface();document.body.classList.add('void-world');
 const root=document.createElement('div');root.id='voidUI';
-root.innerHTML='<button id="vSettings" aria-label="Settings" title="Settings">⚙</button><button id="vMove" aria-label="Move: drag to walk; arrow keys also work"><i></i><span>MOVE</span></button><button id="vMic" aria-label="Hold to speak; tap to type" title="Hold to speak; tap to type">Mic</button><button id="vUndo" aria-label="Undo last available change" hidden>↶</button><div id="vTrace" role="status" aria-live="polite" hidden></div><button id="vObject" hidden></button><div id="vAction" hidden><button id="vStop">Stop</button><button id="vRetry" hidden>Retry</button><button id="vType" hidden>Type</button><button id="vCancel">Cancel</button></div><div id="vPreview" hidden></div><form id="vText" hidden><textarea id="vWords" rows="2" aria-label="World instruction" placeholder="Say what to change…" enterkeyhint="send"></textarea><div><button type="submit">Send</button><button type="button" id="vTextClose">Close</button></div></form><section id="vPanel" hidden aria-label="Settings"><header><nav><button data-vtab="builder">Builder</button><button data-vtab="inputs">Inputs</button><button data-vtab="world">World</button></nav><button id="vClose" aria-label="Close settings">×</button></header><div id="vPanelBody"><div id="v-builder"></div><div id="v-inputs" hidden></div><div id="v-world" hidden></div></div></section>';
+root.innerHTML='<button id="vSettings" aria-label="Settings" title="Settings">⚙</button><button id="vMove" aria-label="Move: drag to walk; arrow keys also work"><i></i><span>MOVE</span></button><button id="vLook" aria-label="Look: drag to turn camera"><i></i><span>LOOK</span></button><button id="vMic" aria-label="Hold to speak; tap to type" title="Hold to speak; tap to type">Mic</button><button id="vUndo" aria-label="Undo last available change" hidden>↶</button><div id="vTrace" role="status" aria-live="polite" hidden></div><button id="vObject" hidden></button><div id="vAction" hidden><button id="vStop">Stop</button><button id="vRetry" hidden>Retry</button><button id="vType" hidden>Type</button><button id="vCancel">Cancel</button></div><div id="vPreview" hidden></div><form id="vText" hidden><textarea id="vWords" rows="2" aria-label="World instruction" placeholder="Say what to change…" enterkeyhint="send"></textarea><div><button type="submit">Send</button><button type="button" id="vTextClose">Close</button></div></form><section id="vPanel" hidden aria-label="Settings"><header><nav><button data-vtab="builder">Builder</button><button data-vtab="inputs">Inputs</button><button data-vtab="world">World</button></nav><button id="vClose" aria-label="Close settings">×</button></header><div id="vPanelBody"><div id="vPages"><div id="v-builder"></div><div id="v-inputs" hidden></div><div id="v-world" hidden></div></div></div><footer id="vPager"><button id="vPrev">Previous</button><span id="vPageCount"></span><button id="vNext">Next</button></footer></section>';
 document.body.appendChild(root);
 function move(id,to){const n=$(id);if(n)$(to).appendChild(n);}
 move('#wb','#v-builder');move('#palette','#v-builder');move('#bchip','#v-builder');move('#build','#v-builder');
@@ -17,10 +17,10 @@ $('#wbCommit').textContent='Apply';
 $('#pttDiagnostics summary').textContent='Developer diagnostics';
 $('#pttArrange').hidden=true;$('#pttState').hidden=true;$('#pttForm').hidden=true;$('#pttKey').hidden=true;
 $('#wbHide').hidden=true;
-let phase='REST',lastInstruction='',traceUntil=0,fault=false,tab='builder',pointer=null,movePointer=null,hold=null,submitAudio=false,lastTime=0,previousSignature='';
+let phase='REST',lastInstruction='',traceUntil=0,fault=false,tab='builder',pointer=null,movePointer=null,lookPointer=null,lookAxis={x:0,y:0},pageOffset=0,hold=null,submitAudio=false,lastTime=0,previousSignature='';
 function trace(text,duration=4500){$('#vTrace').textContent=text;traceUntil=performance.now()+duration;}
-function panel(name){tab=name||tab;$('#vPanel').hidden=false;root.querySelectorAll('[data-vtab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.vtab===tab)));for(const n of ['builder','inputs','world'])$('#v-'+n).hidden=n!==tab;layout();}
-function closePanel(){$('#vPanel').hidden=true;layout();$('#vSettings').focus();}
+function panel(name){stopMovement();stopLook();pageOffset=0;tab=name||tab;$('#vPanel').hidden=false;root.querySelectorAll('[data-vtab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.vtab===tab)));for(const n of ['builder','inputs','world'])$('#v-'+n).hidden=n!==tab;layout();}
+function closePanel(){stopLook();$('#vPanel').hidden=true;layout();$('#vSettings').focus();}
 $('#vSettings').onclick=()=>$('#vPanel').hidden?panel(tab):closePanel();
 $('#vClose').onclick=closePanel;
 root.querySelectorAll('[data-vtab]').forEach(b=>b.onclick=()=>panel(b.dataset.vtab));
@@ -35,7 +35,7 @@ $('#vWords').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();s
 $('#vUndo').onclick=()=>{P.execute({verb:'undo'});fault=false;};
 function stopMovement(){for(const t of [W.input.L,W.input.fly])if(t){t.x=t.y=t.mag=0;t.held=false;}movePointer=null;$('#vMove i').style.transform='translate(0,0)';}
 function cancel(){
- if(hold){clearTimeout(hold.timer);hold.cancelled=true;hold=null;}submitAudio=false;P.cancelSurface();stopMovement();pointer=null;
+ if(hold){clearTimeout(hold.timer);hold.cancelled=true;hold=null;}submitAudio=false;P.cancelSurface();stopMovement();stopLook();pointer=null;
  if(W.master&&W.master.busy)$('#wbStop').click();
  if(W.master&&W.master.result)$('#wbDiscard').click();
  fault=false;trace('Stopped.');layout();
@@ -89,6 +89,40 @@ function steer(e){
 $('#vMove').onpointerdown=e=>{e.preventDefault();if(movePointer!==null)return;movePointer=e.pointerId;e.currentTarget.setPointerCapture(e.pointerId);steer(e);};
 $('#vMove').onpointermove=steer;
 for(const name of ['pointerup','pointercancel','lostpointercapture'])$('#vMove').addEventListener(name,e=>{if(movePointer===e.pointerId)stopMovement();});
+
+function stopLook(){lookPointer=null;lookAxis.x=lookAxis.y=0;if(W.input.look)W.input.look.dx=W.input.look.dy=0;$('#vLook i').style.transform='translate(0,0)';}
+function lookSteer(e){
+ if(e.pointerId!==lookPointer)return;
+ const r=$('#vLook').getBoundingClientRect(),radius=r.width*.35;
+ let x=(e.clientX-r.left-r.width/2)/radius,y=(e.clientY-r.top-r.height/2)/radius;
+ const mag=Math.hypot(x,y);if(mag<.12)x=y=0;else {const strength=Math.min(1,(mag-.12)/.88);x=x/mag*strength;y=y/mag*strength;}
+ lookAxis={x,y};$('#vLook i').style.transform='translate('+(x*radius)+'px,'+(y*radius)+'px)';
+}
+$('#vLook').onpointerdown=e=>{e.preventDefault();if(lookPointer!==null||!W.ready)return;lookPointer=e.pointerId;e.currentTarget.setPointerCapture(e.pointerId);lookSteer(e);};
+$('#vLook').onpointermove=lookSteer;
+for(const name of ['pointerup','pointercancel','lostpointercapture'])$('#vLook').addEventListener(name,e=>{if(e.pointerId===lookPointer)stopLook();});
+function cameraStep(dt){
+ if(!W.ready||lookPointer===null||W.film&&W.film.owns())return;
+ W.input.look.dx+=lookAxis.x*240*dt;W.input.look.dy+=lookAxis.y*180*dt;
+}
+function pages(){
+ const body=$('#vPanelBody'),content=$('#vPages'),height=body.clientHeight;
+ if(!height)return;
+ const step=Math.max(44,height-48),max=Math.max(0,content.scrollHeight-height);
+ pageOffset=Math.max(0,Math.min(pageOffset,max));
+ content.style.transform='translateY('+(-pageOffset)+'px)';
+ $('#vPrev').disabled=pageOffset===0;$('#vNext').disabled=pageOffset>=max;
+ $('#vPageCount').textContent=(Math.floor(pageOffset/step)+1)+' / '+(Math.ceil(max/step)+1);
+}
+$('#vPrev').onclick=()=>{pageOffset-=Math.max(44,$('#vPanelBody').clientHeight-48);pages();};
+$('#vNext').onclick=()=>{pageOffset+=Math.max(44,$('#vPanelBody').clientHeight-48);pages();};
+$('#vPanelBody').addEventListener('wheel',e=>e.preventDefault(),{passive:false});
+$('#vPanelBody').addEventListener('touchmove',e=>{if(!/TEXTAREA|INPUT/.test(e.target.tagName))e.preventDefault();},{passive:false});
+$('#vPanelBody').addEventListener('focusin',e=>{
+ const body=$('#vPanelBody').getBoundingClientRect(),r=e.target.getBoundingClientRect();
+ if(r.top<body.top||r.bottom>body.bottom){pageOffset+=r.top-body.top;pages();}
+});
+
 $('#vMic').onpointerdown=e=>{
  if(e.button>0||hold)return;e.preventDefault();e.currentTarget.setPointerCapture(e.pointerId);
  const h=hold={id:e.pointerId,released:false,cancelled:false,started:false};
@@ -111,7 +145,7 @@ window.addEventListener('world-chat-status',e=>{
  if(/Play back to check/.test(text)&&submitAudio)return;
  trace(text,fault?60000:5000);
 });
-function releaseAll(){if(P.surfaceState().opening||P.surfaceState().recording){submitAudio=false;P.cancelSurface();}stopMovement();if(pointer){P.endDrag(false);pointer=null;}if(hold){clearTimeout(hold.timer);hold.cancelled=true;hold=null;submitAudio=false;P.cancelSurface();}}
+function releaseAll(){stopLook();if(P.surfaceState().opening||P.surfaceState().recording){submitAudio=false;P.cancelSurface();}stopMovement();if(pointer){P.endDrag(false);pointer=null;}if(hold){clearTimeout(hold.timer);hold.cancelled=true;hold=null;submitAudio=false;P.cancelSurface();}}
 window.addEventListener('blur',releaseAll);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)releaseAll();});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){cancel();P.resetBindings();$('#vPanel').hidden=true;$('#vText').hidden=true;layout();}});
@@ -123,7 +157,7 @@ function layout(){
  const panelHeight=$('#vPanel').hidden?0:$('#vPanel').getBoundingClientRect().height;
  const textHeight=$('#vText').hidden?0:$('#vText').getBoundingClientRect().height;
  const floor=Math.max(panelHeight,textHeight),stage=$('#stage');document.documentElement.style.setProperty('--v-floor',floor+'px');
- stage.style.top=top+'px';stage.style.height=Math.max(1,h-floor)+'px';
+ stage.style.top=top+'px';stage.style.height=Math.max(1,h-floor)+'px';pages();
  const signature=stage.clientWidth+':'+stage.clientHeight;
  if(W.renderer&&W.camera&&signature!==previousSignature){previousSignature=signature;W.renderer.setSize(stage.clientWidth,stage.clientHeight);W.camera.aspect=stage.clientWidth/stage.clientHeight;W.camera.updateProjectionMatrix();}
 }
@@ -131,7 +165,9 @@ window.addEventListener('resize',layout);
 if(window.visualViewport){visualViewport.addEventListener('resize',()=>{if(document.activeElement===$('#vWords'))$('#vPanel').hidden=true;layout();});visualViewport.addEventListener('scroll',layout);}
 new ResizeObserver(layout).observe($('#vPanel'));new ResizeObserver(layout).observe($('#vText'));
 let marker=null;
+let cameraTime=0;
 function frame(now){
+ const dt=cameraTime?Math.min(.05,(now-cameraTime)/1000):0;cameraTime=now;cameraStep(dt);
  const s=P.surfaceState(),preview=!!W.master?.result,working=!!W.master?.busy||s.inferring||s.transcribing,recording=s.recording||s.opening;
  phase=s.dragging?'DRAGGING':recording?'LISTENING':working?'WORKING':preview?'PREVIEWING':fault?'FAULT':now<traceUntil?'CHANGED':s.selected?'SELECTED':'REST';
  root.dataset.state=phase;
@@ -149,7 +185,7 @@ function frame(now){
   if(!marker){marker=new THREE.Mesh(new THREE.RingGeometry(9,13,32),new THREE.MeshBasicMaterial({color:0x5fe4c2,side:THREE.DoubleSide,depthTest:false}));marker.rotation.x=-Math.PI/2;marker.renderOrder=999;W.scene.add(marker);}
   marker.visible=!!s.there;if(s.there)marker.position.copy(s.there.point).add(new THREE.Vector3(0,2,0));
  }
- if(now-lastTime>500){lastTime=now;layout();}
+ if(now-lastTime>500){lastTime=now;layout();pages();}
  requestAnimationFrame(frame);
 }
 function topOffset(){return window.visualViewport?visualViewport.offsetTop:0;}

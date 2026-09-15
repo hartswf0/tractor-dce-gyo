@@ -49,3 +49,19 @@ body.void-world>#top,body.void-world>#shield,body.void-world>#menuBtn,body.void-
 body.void-world #prompt{bottom:calc(var(--v-floor) + 190px);height:40px;padding:0 12px;font-size:10px;max-width:80vw;z-index:8}
 @media(min-width:760px){#vPanel{left:auto;width:400px;height:min(360px,calc(var(--vh-world,100dvh)*.4))}#vText{left:50%;right:auto;transform:translateX(-50%);width:480px}#vMove{width:100px;height:100px}}
 @media(max-height:460px){#vMove{width:70px;height:70px;bottom:calc(var(--v-floor) + 10px)}#vMove i{left:20px;top:20px}#vMic{width:50px;height:50px;bottom:calc(var(--v-floor) + 10px)}#vTrace{bottom:calc(var(--v-floor) + 94px);max-height:46px}#vAction{bottom:calc(var(--v-floor) + 50px)}}
+
+/* Twin sticks remain visible and independently captured. */
+#vLook{position:absolute;right:18px;bottom:calc(var(--v-floor) + 22px + env(safe-area-inset-bottom));width:94px;height:94px;border-radius:50%!important;background:#151c2280!important;border:1px solid #e3ebef99!important;touch-action:none!important;padding:0!important}
+#vLook i{position:absolute;left:31px;top:31px;width:30px;height:30px;border-radius:50%;background:#dfe8e955;pointer-events:none}
+#vLook span{position:absolute;left:0;right:0;bottom:9px;font:10px monospace;letter-spacing:.12em;pointer-events:none}
+#vUndo{right:24px;bottom:calc(var(--v-floor) + 126px + env(safe-area-inset-bottom))}
+#vPanelBody{overflow:hidden!important;touch-action:none}
+#vPages{transform:translateY(0);will-change:transform}
+#vPager{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:5px 8px;flex-shrink:0;border-top:1px solid var(--v-edge)}
+#vPager button:disabled{opacity:.35;cursor:default}
+#vPanel #wbCode,#vPanel #wbLog,#vPanel #wbJson,#vPanel #wbOps,#vPanel #wbLogText,#vPanel #pttLog,#vPanel #pttObjects,#vPanel .parts,#vPanel .tools{max-height:none!important;overflow:visible!important;white-space:normal;overflow-wrap:anywhere}
+#vPanel .parts,#vPanel .tools{flex-wrap:wrap!important}
+#vPanel pre{white-space:pre-wrap!important;word-break:break-word}
+#vTrace{overflow:hidden;text-overflow:ellipsis}
+@media(min-width:760px){#vLook{width:100px;height:100px}}
+@media(max-height:460px){#vLook{width:70px;height:70px;bottom:calc(var(--v-floor) + 10px)}#vLook i{left:20px;top:20px}#vPanel{height:55%}}
