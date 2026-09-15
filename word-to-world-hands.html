@@ -4,42 +4,42 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
 <meta name="theme-color" content="#b8cbd8" />
-<title>Word to World</title>
+<title>Word to World · Hands</title>
 <link rel="icon" type="image/svg+xml" href="ball-jar-favicon.svg" />
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-<script src="./examples/js/loaders/LDrawLoader.js?v=restore-139b860"></script>
+<script src="./examples/js/loaders/LDrawLoader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
-<script src="./beta-prime-engine.js?v=restore-139b860"></script>
-<script src="./nabugo.js?v=restore-139b860"></script>
-<script src="./nabugo-ui.js?v=restore-139b860"></script>
-<script src="./toys/terrain-data.js?v=restore-139b860"></script>
-<script src="./world/geo.js?v=restore-139b860"></script>
-<script src="./world/ground.js?v=restore-139b860"></script>
-<script src="./world/bricks.js?v=restore-139b860"></script>
-<script src="./world/minifig.js?v=restore-139b860"></script>
-<script src="./world/debris.js?v=restore-139b860"></script>
-<script src="./world/characters.js?v=restore-139b860"></script>
-<script src="./world/worlds.js?v=restore-139b860"></script>
-<script src="./world/sky.js?v=restore-139b860"></script>
-<script src="./world/lamps.js?v=restore-139b860"></script>
-<script src="./world/map.js?v=restore-139b860"></script>
-<script src="./world/flora.js?v=restore-139b860"></script>
-<script src="./world/traffic.js?v=restore-139b860"></script>
-<script src="./world/vehicles.js?v=restore-139b860"></script>
-<script src="./world/tie.js?v=restore-139b860"></script>
-<script src="./world/drive.js?v=restore-139b860"></script>
-<script src="./world/sound.js?v=restore-139b860"></script>
-<script src="./world/fx.js?v=restore-139b860"></script>
-<script src="./world/dsl.js?v=restore-139b860"></script>
-<script src="./world/ai.js?v=restore-139b860"></script>
-<script src="./world/receipts.js?v=restore-139b860"></script>
-<script src="./world/build.js?v=restore-139b860"></script>
-<script src="./world/props.js?v=restore-139b860"></script>
-<script src="./world/sets.js?v=restore-139b860"></script>
-<script src="./world/kits.js?v=restore-139b860"></script>
-<script src="./world/net.js?v=restore-139b860"></script>
-<script src="./world/lease.js?v=restore-139b860"></script>
+<script src="./beta-prime-engine.js?v=f5969f4b"></script>
+<script src="./nabugo.js"></script>
+<script src="./nabugo-ui.js?v=17f477fd"></script>
+<script src="./toys/terrain-data.js"></script>
+<script src="./world/geo.js?v=0ffaa074"></script>
+<script src="./world/ground.js?v=48d0ea56"></script>
+<script src="./world/bricks.js?v=8f309d71"></script>
+<script src="./world/minifig.js?v=5510b4b6"></script>
+<script src="./world/debris.js?v=b9587eca"></script>
+<script src="./world/characters.js?v=a6fd8187"></script>
+<script src="./world/worlds.js?v=d4abdd96"></script>
+<script src="./world/sky.js?v=8e4eab09"></script>
+<script src="./world/lamps.js?v=f95ee9f6"></script>
+<script src="./world/map.js?v=2e492284"></script>
+<script src="./world/flora.js?v=e97ab2c0"></script>
+<script src="./world/traffic.js?v=c72f38d0"></script>
+<script src="./world/vehicles.js?v=00a9f5ba"></script>
+<script src="./world/tie.js?v=95c2e366"></script>
+<script src="./world/drive.js?v=a79c3d4e"></script>
+<script src="./world/sound.js?v=4457fbaa"></script>
+<script src="./world/fx.js?v=b677d929"></script>
+<script src="./world/dsl.js?v=355dca40"></script>
+<script src="./world/hands/ai.js?v=ptt2"></script>
+<script src="./world/receipts.js?v=a38f2d5d"></script>
+<script src="./world/hands/build.js?v=f1d2e183"></script>
+<script src="./world/props.js?v=fcb5add2"></script>
+<script src="./world/sets.js?v=3dc75883"></script>
+<script src="./world/kits.js?v=c13f6ce3"></script>
+<script src="./world/net.js?v=df154c6e"></script>
+<script src="./world/lease.js?v=3f5a5e59"></script>
 <style>
 :root{--wb:96px;--vig:.3;--sky:#b8cbd8;--skyA:rgba(184,203,216,.9);--ink:#1a1f2a;--dim:#4b5566;--gold:#c8901c;--red:#d8382e;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;--sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -218,6 +218,7 @@ body.build #minimap{display:none}
 #pttCursor{position:fixed;left:50%;top:50%;z-index:7;width:24px;height:24px;margin:-12px 0 0 -12px;border:3px solid #fff;border-radius:999px;box-shadow:0 0 0 2px #1769aa,0 2px 10px #111;pointer-events:none;display:none}#pttCursor.on{display:block}#pttCursor.object{border-radius:5px;border-color:#ffd342}#pttCursor.ground{border-color:#55e57b}#pttCursor::after{content:'';position:absolute;left:7px;top:7px;width:4px;height:4px;border-radius:50%;background:#fff}
 @media(max-width:620px){#ptt{top:calc(96px + env(safe-area-inset-top));width:138px}#pttView{border-radius:11px}#pttLine{font-size:10px}#pttStart{right:10px;bottom:calc(var(--wb) + 76px + env(safe-area-inset-bottom));height:46px;padding:0 14px}body.ptt-on #find{display:none}}
 </style>
+<link rel="stylesheet" href="./world/hands/shared-builder.css">
 <style>.world-version{display:inline-flex;align-items:center;justify-content:center;min-height:30px;padding:0 10px;border:1px solid currentColor;border-radius:9px;font:12px var(--sans);color:inherit;text-decoration:none;white-space:nowrap;flex-shrink:0}</style>
 </head>
 <body>
@@ -236,10 +237,10 @@ body.build #minimap{display:none}
 <div id="stick"><i></i></div>
 <button id="prompt">Board the TIE</button>
 <button id="det">Det</button>
-<button id="build">Build</button>
+<button id="build">Bricks</button>
 <div id="palette"></div>
 <button id="wbSay" title="say what to build">say what to build</button>
-<div id="wb"><div id="wbTop"><div id="wbStat"><i class="bar"><i></i><i></i><i></i></i><span id="wbText"></span><b id="wbTime"></b></div><button id="wbStop" class="stop" hidden title="stop the model">stop</button><a class="world-version" href="./word-to-world-hands.html?lease=share" title="Open Word to World · Hands">Hands</a><button id="wbCodeBtn" title="the program, op by op">code</button><button id="wbLogBtn" title="the build log">log</button><button id="wbKeyBtn" title="OpenAI key">key</button><button id="wbLookBtn" class="on" title="a picture of the view goes with the words">look</button><button id="wbHide" title="hide the word bar">hide</button></div>
+<div id="wb"><div id="wbTop"><div id="wbStat"><i class="bar"><i></i><i></i><i></i></i><span id="wbText"></span><b id="wbTime"></b></div><button id="wbStop" class="stop" hidden title="stop the model">stop</button><a class="world-version" href="./word-to-world.html?lease=share" title="Open the original Word to World">Original</a><button id="wbCodeBtn" title="the program, op by op">code</button><button id="wbLogBtn" title="the build log">log</button><button id="wbKeyBtn" title="OpenAI key">key</button><button id="wbLookBtn" class="on" title="a picture of the view goes with the words">look</button><button id="wbHide" title="hide the word bar">hide</button></div>
 <div id="wbCode" hidden><div class="row head"><span class="seg"><button data-view="words" class="on">words</button><button data-view="json">json</button></span><em id="wbCodeStat"></em><button id="wbCodeEdit" title="put the program in the bar to change by hand">edit</button><button id="wbCodeCopy">copy</button></div><ol id="wbOps"></ol><pre id="wbJson" hidden></pre></div>
 <div id="wbLog" hidden><pre id="wbLogText"></pre><div class="row"><button id="wbLogCopy">copy</button><button id="wbLogClear">clear</button></div></div>
 <div id="wbKeyRow"><input id="wbKey" type="password" placeholder="OpenAI API key · stays in this browser" autocomplete="off"><button id="wbKeyOk">Save</button></div>
@@ -259,8 +260,8 @@ body.build #minimap{display:none}
   <div id="pttLine">Aim, close your fist to grab, move, then open to place.</div>
 </section>
 <div id="pttCursor"></div>
-<div id="veil"><div class="k">word to world</div><h1 id="vTitle">Finding a place</h1><div class="bricks"><i></i><i></i><i></i><i></i><i></i></div><div class="m" id="vm"></div><ol id="stages"><li data-s="place">place</li><li data-s="ground">ground</li><li data-s="imagery">imagery</li><li data-s="buildings">buildings</li><li data-s="ship">the ship and Vader</li><li data-s="bricks">bricks</li></ol><button id="vStart" hidden>Start now</button></div>
-<script src="./world/main.js?v=restore-139b860"></script>
-<script src="./world/put-that-there.js?v=restore-139b860"></script>
+<div id="veil"><div class="k">word to world · hands</div><h1 id="vTitle">Finding a place</h1><div class="bricks"><i></i><i></i><i></i><i></i><i></i></div><div class="m" id="vm"></div><ol id="stages"><li data-s="place">place</li><li data-s="ground">ground</li><li data-s="imagery">imagery</li><li data-s="buildings">buildings</li><li data-s="ship">the ship and Vader</li><li data-s="bricks">bricks</li></ol><button id="vStart" hidden>Start now</button></div>
+<script src="./world/hands/main.js?v=ptt-operate-4"></script>
+<script src="./world/hands/put-that-there.js?v=shared-builder"></script>
 </body>
 </html>
