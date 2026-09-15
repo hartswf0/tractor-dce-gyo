@@ -14289,7 +14289,7 @@ function anchor(){const a=selected();if(!a.length)return V();const b=union(a),c=
 function material(color){return new THREE.MeshStandardMaterial({color:new THREE.Color((COLORS.find(c=>c.code===color)||COLORS[0]).hex).convertSRGBToLinear(),roughness:.32,metalness:0,side:THREE.DoubleSide});}
 function create(row){const d=catalog.get(row.part);if(!d)throw Error('Unknown part '+row.part);const p={...row};p.mesh=new THREE.Mesh(d.geometry,material(p.color));p.mesh.castShadow=true;p.mesh.receiveShadow=true;p.mesh.userData.partId=p.id;scene.add(p.mesh);S.parts.push(p);sync(p);return p;}
 function partQuaternion(p){return p.q?new THREE.Quaternion(...p.q):new THREE.Quaternion().setFromAxisAngle(V(0,1,0),p.r*Math.PI/2);}
-function sync(p){p.mesh.position.set(p.x,p.y,p.z);p.mesh.quaternion.copy(partQuaternion(p));p.mesh.updateMatrixWorld();}
+function sync(p){p.mesh.position.set(p.x,p.y,p.z);p.mesh.quaternion.copy(partQuaternion(p));p.mesh.updateWorldMatrix(true,false);}
 function restore(data){markPhysics();resetPhysics();S.parts.forEach(p=>{scene.remove(p.mesh);p.mesh.material.dispose();});S.parts=[];data.forEach(create);S.selected=new Set([...S.selected].filter(id=>S.parts.some(p=>p.id===id)));refresh();}
 function validate(){const moving=selected(),others=S.parts.filter(p=>!S.selected.has(p.id));for(const p of moving){const b=bounds(p);if(b.min.y<-.1)return 'Below the workbench';if(b.min.x<-400||b.max.x>400||b.min.z<-400||b.max.z>400||b.max.y>600)return 'Outside the workbench';const inner=b.clone().expandByScalar(-.12);for(const other of others){if(inner.intersectsBox(bounds(other).clone().expandByScalar(-.12)))return 'Overlaps '+catalog.get(other.part).name;}}return '';}
 function supported(){return selected().every(p=>{const a=bounds(p);if(Math.abs(a.min.y)<.2)return true;return S.parts.some(q=>{if(S.selected.has(q.id))return false;const b=bounds(q);return Math.abs(a.min.y-b.max.y)<.2&&overlapXZ(a,b);});});}
@@ -14377,16 +14377,16 @@ function handCommand(t,now,held=false){const g=gestureOf(t);if(g==='open'){H.com
 }
 function rotateHeld(step){if(!S.tx||!step)return;const c=S.tx.origin,a=step*Math.PI/2,cs=Math.round(Math.cos(a)),sn=Math.round(Math.sin(a));S.tx.base.forEach(b=>{const x=b.x-c.x,z=b.z-c.z;b.x=c.x+cs*x+sn*z;b.z=c.z-sn*x+cs*z;b.q=new THREE.Quaternion().setFromAxisAngle(V(0,1,0),a).multiply(partQuaternion(b)).toArray();b.r=((b.r+step)%4+4)%4;const p=S.parts.find(p=>p.id===b.id);p.r=b.r;p.q=b.q.slice();});feedback('tick');}
 function processHands(marks,now){
- const tracks=trackHands(marks,now),r=$('#stage').getBoundingClientRect();if(B.setting)return;if(B.suspended&&dockHand(tracks,now))return;if(window.ButterSpatialRuntime?.handleHands(tracks,now))return;
+ const tracks=trackHands(marks,now),r=$('#stage').getBoundingClientRect();if(window.ButterInput?.handleHands(tracks,now))return;if(B.setting)return;if(B.suspended&&dockHand(tracks,now))return;if(window.ButterSpatialRuntime?.handleHands(tracks,now))return;
  ['#cursorA','#cursorB'].forEach((id,i)=>{const el=$(id),t=tracks[i];el.style.display=t?'block':'none';if(t){el.style.left=t.point.x*r.width+'px';el.style.top=t.point.y*r.height+'px';el.classList.toggle('held',t.closed);}});
  $('#handStatus').textContent=H.owner?'GRIP holds the brick · TOOL controls depth':tracks.length?'Point the hand cutout at a piece, then pinch':'Show two open hands · hand cutouts reach across the stage';
  if(H.mustOpen){if(tracks.some(t=>(!tracks.some(q=>q.id===H.primaryId)||t.id===H.primaryId)&&!t.closed&&pinchRatio(t.marks)>.58)){H.mustOpen=false;}else{toolReadout('Open both hands to start again');return;}}
  if(H.owner){const owner=tracks.find(t=>t.id===H.owner);if(!owner){H.lostSince??=now;suspendHeld();return;}H.lostSince=null;
  if(B.awaitPinch){if(!owner.closed)return;B.awaitPinch=false;H.origin={...owner.palm};S.tx.samples=[];S.tx.velocity=V();return;}if(!owner.closed){releaseHand('Released');return;}
  if(!S.tx){H.owner=null;H.mustOpen=true;return;}
- const delta=screenDelta((owner.palm.x-H.origin.x)*r.width*S.gain,(owner.palm.y-H.origin.y)*r.height*S.gain,S.tx.plane),other=tracks.find(t=>t.id!==H.owner);
+ const delta=window.ButterInput?ButterInput.gripDelta(owner,r):screenDelta((owner.palm.x-H.origin.x)*r.width*S.gain,(owner.palm.y-H.origin.y)*r.height*S.gain,S.tx.plane),other=tracks.find(t=>t.id!==H.owner);
  if(other){H.toolId=other.id;const gesture=gestureOf(other);if(handCommand(other,now,true))return;const mode=gesture==='open'?'depth':gesture==='pinch'?'turn':'pause';if(H.secondary!==other.id||H.secondaryMode!==mode){H.secondary=other.id;H.secondaryMode=mode;H.secondaryBase={...other.palm};H.secondaryOffset=H.depthOffset;H.turnStep=0;}
- if(mode==='depth'){H.depthOffset=H.secondaryOffset+(H.secondaryBase.y-other.palm.y)*650*S.gain;toolReadout((window.ButterSpatialRuntime?ButterSpatial.FACES[ButterSpatialRuntime.state().face].instruction:'Open palm ↑ away · ↓ toward you')+' · '+Math.round(H.depthOffset)+' LDU');}
+ if(mode==='depth'){H.depthOffset=H.secondaryOffset+(window.ButterInput?ButterInput.toolDelta(H.secondaryBase,other.palm):(H.secondaryBase.y-other.palm.y)*650*S.gain);toolReadout((window.ButterSpatialRuntime?ButterSpatial.FACES[ButterSpatialRuntime.state().face].instruction:'Open palm ↑ away · ↓ toward you')+' · '+Math.round(H.depthOffset)+' LDU');}
  else if(mode==='turn'){const step=Math.round((other.palm.x-H.secondaryBase.x)/.13);rotateHeld(step-H.turnStep);H.turnStep=step;toolReadout('TOOL PINCH · move sideways to turn · '+(step*90)+'°');}
  else toolReadout('Depth held · open tool palm to push / pull');
  }else{H.secondary=null;H.secondaryMode=null;toolReadout('Show other OPEN palm for depth · or use the depth slider');}
@@ -14406,7 +14406,7 @@ async function startHands(){if(H.active||H.starting)return;startSound();H.starti
 function stopHands(){H.token++;H.active=false;H.starting=false;if(S.tx?.source==='hand')releaseHand('Camera stopped · released');H.stream?.getTracks().forEach(t=>t.stop());H.stream=null;$('#video').srcObject=null;H.tracker?.close();H.tracker=null;H.owner=null;H.secondary=null;H.tracks=[];document.body.classList.remove('camera-on');$('#cursorA').style.display=$('#cursorB').style.display='none';$('#hands').disabled=false;$('#hands').textContent='Enter room';$('#hands').classList.remove('on');note('Camera stopped. Touch and axis controls are ready.');}
 $('#hands').onclick=()=>H.active?stopHands():startHands();$('#cameraStop').onclick=stopHands;document.addEventListener('visibilitychange',()=>{if(document.hidden&&H.active)suspendHeld();});
 function resize(){const r=$('#stage').getBoundingClientRect();renderer.setSize(r.width,r.height,false);camera.aspect=r.width/r.height;camera.updateProjectionMatrix();}new ResizeObserver(resize).observe($('#stage'));
-let frame=0;function animate(now){requestAnimationFrame(animate);if(!window.ButterSpatialRuntime)controls.update();pumpHands(now);if(H.active&&H.owner&&now-H.lastResult>900)suspendHeld();stepPhysics(now);renderEmbodied(now);renderRoom(now);window.ButterSpatialRuntime?.frame(now);renderer.render(scene,camera);frame++;}requestAnimationFrame(animate);
+let frame=0;function animate(now){requestAnimationFrame(animate);if(!window.ButterSpatialRuntime)controls.update();pumpHands(now);if(H.active&&H.owner&&now-H.lastResult>900)suspendHeld();stepPhysics(now);renderEmbodied(now);renderRoom(now);window.ButterSpatialRuntime?.frame(now);window.ButterInput?.frame(now);renderer.render(scene,camera);frame++;}requestAnimationFrame(animate);
 function thumbnails(){const tr=new THREE.WebGLRenderer({alpha:true,antialias:true});tr.setSize(116,80);tr.setPixelRatio(1);tr.outputEncoding=THREE.sRGBEncoding;const ts=new THREE.Scene();ts.add(new THREE.HemisphereLight(0xffffff,0x65706a,1));const light=new THREE.DirectionalLight(0xffffff,.8);light.position.set(-60,100,80);ts.add(light);const tc=new THREE.PerspectiveCamera(35,116/80,.1,2000);for(const d of catalog.values()){const m=new THREE.Mesh(d.geometry,material(S.color));ts.add(m);const bb=new THREE.Box3().setFromObject(m),c=bb.getCenter(V()),size=bb.getSize(V()).length();tc.position.copy(c).addScaledVector(V(.8,.7,1).normalize(),size*1.8);tc.lookAt(c);tr.render(ts,tc);const b=document.createElement('button');b.className='part';b.title='Add '+d.name+' · '+d.id+'.dat';b.innerHTML='<img alt=""><span></span>';b.querySelector('img').src=tr.domElement.toDataURL();b.querySelector('span').textContent=d.name;b.onclick=()=>addPart(d.id);$('#parts').appendChild(b);ts.remove(m);m.material.dispose();}tr.dispose();}
 async function init(){try{for(const d of JSON.parse($('#geometry').textContent)){const raw=atob(d.vertices),bytes=new Uint8Array(raw.length);for(let i=0;i<raw.length;i++)bytes[i]=raw.charCodeAt(i);const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.BufferAttribute(new Float32Array(bytes.buffer),3));geometry.computeVertexNormals();geometry.computeBoundingSphere();catalog.set(d.id,{...d,geometry});}$('#credits').textContent='Part authors: '+JSON.parse($('#authors').textContent).join('; ')+'.';COLORS.forEach(c=>{const b=document.createElement('button');b.className='swatch'+(c.code===S.color?' on':'');b.style.background='#'+c.hex.toString(16).padStart(6,'0');b.title='LDraw color '+c.code;b.setAttribute('aria-label','Use LDraw color '+c.code);b.onclick=()=>{S.color=c.code;$$('.swatch').forEach(e=>e.classList.remove('on'));b.classList.add('on');if(selected().length)mutate(()=>selected().forEach(p=>{p.color=c.code;p.mesh.material.color.setHex(c.hex).convertSRGBToLinear();}), 'Color changed');};$('#swatches').appendChild(b);});let saved=null;try{saved=JSON.parse(localStorage.getItem(STORE)||'null');}catch(e){}if(saved){try{restore(validateRows(saved));S.next=Math.max(1,...S.parts.map(p=>+(p.id.match(/^p(\d+)$/)?.[1]||0)+1));if(saved.calibration){S.gain=Math.min(2,Math.max(.3,+saved.calibration.gain||1));$('#gain').value=S.gain;S.snap=saved.calibration.snap!==false;if(['xyz','xy','xz','yz','x','y','z'].includes(saved.calibration.plane))S.plane=saved.calibration.plane==='xy'&&saved.calibration.modeVersion!==2?'xyz':saved.calibration.plane;}}catch(e){saved=null;}}
 if(!saved){[{part:'3001',color:4,x:-80,y:0,z:0},{part:'3003',color:1,x:60,y:0,z:-40},{part:'3005',color:2,x:-10,y:0,z:-75},{part:'3020',color:14,x:-20,y:0,z:100},{part:'3004',color:15,x:120,y:0,z:80}].forEach(p=>create({...p,id:'p'+S.next++,r:0}));}thumbnails();S.ready=true;refresh();resize();$('#loading').remove();persist();}catch(e){$('#loading').innerHTML='<strong>Could not start the workshop</strong><span></span>';$('#loading span').textContent=e.message;console.error(e);}}
@@ -14493,7 +14493,7 @@ function dockHand(tracks,now){if(!B.suspended)return false;const reference=B.las
 function worldPoint(m,distanceFromCamera){const p=imagePoint(m),direction=V(p.x*2-1,1-p.y*2,.5).unproject(camera).sub(camera.position).normalize();return camera.position.clone().addScaledVector(direction,distanceFromCamera);}
 function makeControlHand(id){const group=new THREE.Group(),lineMat=new THREE.LineDashedMaterial({color:0xd5dfda,transparent:true,opacity:.7,dashSize:5,gapSize:0,depthTest:false}),bones=new THREE.LineSegments(new THREE.BufferGeometry(),lineMat);group.add(bones);const dots=[0,4,8,9].map(i=>{const m=new THREE.Mesh(new THREE.SphereGeometry(i===8?3:2,8,6),new THREE.MeshBasicMaterial({color:i===8?0xc4f46a:0xc9d3ce,depthTest:false,transparent:true}));group.add(m);return {i,m};});const shadow=new THREE.Mesh(new THREE.RingGeometry(5,7,24),new THREE.MeshBasicMaterial({color:0xc4f46a,transparent:true,opacity:.45,side:THREE.DoubleSide}));shadow.rotation.x=-Math.PI/2;group.add(shadow);const tether=new THREE.Line(new THREE.BufferGeometry(),new THREE.LineDashedMaterial({color:0xc4f46a,transparent:true,opacity:.35,dashSize:4,gapSize:5,depthTest:false}));group.add(tether);const tag=document.createElement('span');tag.className='hand-label';$('#stage').appendChild(tag);group.renderOrder=40;scene.add(group);const v={group,bones,dots,shadow,tether,tag};B.visuals.set(id,v);return v;}
 function renderEmbodied(now){if(now-B.lastDraw<30)return;B.lastDraw=now;const r=$('#stage').getBoundingClientRect(),fresh=H.tracks.filter(t=>now-t.seen<350),active=new Set(fresh.map(t=>t.id));for(const t of fresh){B.ghosts.set(t.id,{...t,palm:{...t.palm},point:{...t.point},marks:t.marks.map(m=>({...m})),last:now});if(t.id===H.owner)B.lastOwner={...t,palm:{...t.palm}};}
- for(const [id,t] of B.ghosts){const lost=!active.has(id),retained=id===H.owner||B.suspended&&id===B.lastOwner?.id,v=B.visuals.get(id)||makeControlHand(id);if(!H.active||lost&&!retained&&now-t.last>3500){v.group.visible=false;v.tag.hidden=true;continue;}v.group.visible=true;v.tag.hidden=false;const depth=S.tx&&id===H.owner?camera.position.distanceTo(anchor().add(V(0,15,0))):camera.position.distanceTo(V(0,45,0));const pts=t.marks.map(m=>worldPoint(m,depth+(m.z||0)*180)),dense=id===H.owner||t.closed,edges=dense?[[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,13],[13,17],[17,0]]:[[0,5],[5,9],[9,17],[17,0],[5,8],[1,4],[0,1]];v.bones.geometry.setFromPoints(edges.flatMap(([a,b])=>[pts[a],pts[b]]));v.bones.material.gapSize=lost?5:0;v.bones.material.opacity=lost?.2:.36;v.bones.computeLineDistances();for(const {i,m} of v.dots){m.position.copy(pts[i]);m.material.opacity=lost?.25:1;}
+ for(const [id,t] of B.ghosts){const lost=!active.has(id),retained=id===H.owner||B.suspended&&id===B.lastOwner?.id,v=B.visuals.get(id)||makeControlHand(id);if(!H.active||lost&&!retained&&now-t.last>3500){v.group.visible=false;v.tag.hidden=true;continue;}v.group.visible=true;v.tag.hidden=false;const depth=S.tx&&id===H.owner?camera.position.distanceTo(window.ButterSpatialRuntime?ButterSpatialRuntime.plate.localToWorld(anchor().add(V(0,15,0))):anchor().add(V(0,15,0))):camera.position.distanceTo(V(0,45,0));const pts=t.marks.map(m=>worldPoint(m,depth+(m.z||0)*180)),dense=id===H.owner||t.closed,edges=dense?[[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,13],[13,17],[17,0]]:[[0,5],[5,9],[9,17],[17,0],[5,8],[1,4],[0,1]];v.bones.geometry.setFromPoints(edges.flatMap(([a,b])=>[pts[a],pts[b]]));v.bones.material.gapSize=lost?5:0;v.bones.material.opacity=lost?.2:.36;v.bones.computeLineDistances();for(const {i,m} of v.dots){m.position.copy(pts[i]);m.material.opacity=lost?.25:1;}
  const tip=pts[8],foot=V(tip.x,.7,tip.z);v.shadow.position.copy(foot);v.tether.geometry.setFromPoints([tip,foot]);v.tether.computeLineDistances();v.shadow.visible=v.tether.visible=tip.y>0;v.tag.style.left=Math.max(8,Math.min(r.width-155,t.point.x*r.width+16))+'px';v.tag.style.top=Math.max(40,Math.min(r.height-45,t.point.y*r.height+20))+'px';v.tag.textContent=lost?'LAST HAND · DOCK HERE':id===H.owner?(B.awaitPinch?'PINCH TO RESUME':'HOLD · OPEN TO RELEASE'):S.tx?'PALM ↑↓ DEPTH · V COPY':'POINT · PINCH';
  }
  const owner=H.tracks.find(t=>t.id===H.owner);if(S.tx&&owner){const a=project(anchor().add(V(0,12,0))),tip=owner.point;$('#actionDot').hidden=false;$('#actionDot').style.left=a.x+'px';$('#actionDot').style.top=a.y+'px';const c=$('#relation').getContext('2d');$('#relation').width=r.width;$('#relation').height=r.height;c.strokeStyle='#c4f46a';c.setLineDash([3,5]);c.beginPath();c.moveTo(tip.x*r.width,tip.y*r.height);c.lineTo(a.x,a.y);c.stroke();}else{$('#actionDot').hidden=true;$('#relation').getContext('2d').clearRect(0,0,r.width,r.height);}
@@ -14609,7 +14609,7 @@ function renderSoftHands(now){
  const mask=soft.mask||(soft.mask=document.createElement('canvas'));if(mask.width!==256)mask.width=mask.height=256;const mc=mask.getContext('2d');mc.clearRect(0,0,256,256);const xy=m=>[(1-(m.x-x0)/(x1-x0))*256,(m.y-y0)/(y1-y0)*256];mc.strokeStyle=mc.fillStyle='#fff';mc.lineCap='round';mc.lineJoin='round';mc.filter='blur(3px)';mc.lineWidth=22;
  for(const chain of [[0,1,2,3,4],[0,5,6,7,8],[0,9,10,11,12],[0,13,14,15,16],[0,17,18,19,20]]){mc.beginPath();chain.forEach((i,j)=>mc[j?'lineTo':'moveTo'](...xy(marks[i])));mc.stroke();}
  mc.beginPath();[0,1,5,9,13,17].forEach((i,j)=>mc[j?'lineTo':'moveTo'](...xy(marks[i])));mc.closePath();mc.fill();ctx.globalCompositeOperation='destination-in';ctx.drawImage(mask,0,0);ctx.globalCompositeOperation='source-over';soft.tex.needsUpdate=true;
- const depth=S.tx&&id===H.owner?camera.position.distanceTo(anchor().add(V(0,15,0))):camera.position.distanceTo(V(0,45,0));const a=worldPoint({x:x0,y:y0},depth),b=worldPoint({x:x1,y:y0},depth),d=worldPoint({x:x0,y:y1},depth);
+ const depth=S.tx&&id===H.owner?camera.position.distanceTo(window.ButterSpatialRuntime?ButterSpatialRuntime.plate.localToWorld(anchor().add(V(0,15,0))):anchor().add(V(0,15,0))):camera.position.distanceTo(V(0,45,0));const a=worldPoint({x:x0,y:y0},depth),b=worldPoint({x:x1,y:y0},depth),d=worldPoint({x:x0,y:y1},depth);
  soft.mesh.position.copy(worldPoint({x:(x0+x1)/2,y:(y0+y1)/2},depth));soft.mesh.quaternion.copy(camera.quaternion);soft.mesh.scale.set(a.distanceTo(b),a.distanceTo(d),1);soft.mesh.material.opacity=now-t.last>350?.18:.68;
  }
 }
@@ -14698,6 +14698,13 @@ body[data-spatial-face=desk] .hand-label{opacity:.7;font-size:9px}.stage-label b
 #selectionTools>#moreTools{display:block!important;order:0}#selectionActions{flex-shrink:0}#selectionActions #seat{background:#2d443a;border-color:#718772}
 @media(max-width:600px){#faceGizmo{width:82px;right:4px;padding:4px;top:42%}.view-cube button{min-height:42px;font-size:9px}.view-cube button:first-child{min-height:36px}#faceGizmo small{font-size:8px}#viewInstruction{left:92px;right:8px;font-size:8px;top:14px;max-height:28px;overflow:hidden}#spatialReadout{max-width:178px;font-size:9px}#selectionTools>#moreTools{grid-column:4;grid-row:2}#selectionActions{grid-column:1/4;grid-row:2}#selectionHint{font-size:10px}#stageCue{max-width:85%;font-size:9px}}
 @media(max-height:560px){#faceGizmo{top:50%;width:80px}.view-cube button{min-height:30px}.view-cube button:first-child{min-height:28px}#faceGizmo>button{min-height:28px}.face-turn button{min-height:25px}#faceGizmo small{display:none}#spatialReadout{font-size:9px}}
+/* Butter 04: fixed room, compact plate tab, one temporary calibration surface. */
+#faceGizmo{top:auto;bottom:12px;right:8px;transform:none;width:86px}#faceName{font-size:10px}#faceGizmo>button{min-height:30px}
+#reachCanvas{position:absolute;inset:0;z-index:10;width:100%;height:100%;pointer-events:none;background:#10202165}#reachCanvas[hidden]{display:none}
+#reachPanel{position:absolute;top:38px;left:50%;transform:translateX(-50%);width:min(520px,calc(100% - 20px));padding:10px 12px;background:#122126f5;border:1px solid #718a80;border-radius:8px;z-index:11;color:#e7f6ee;font:12px/1.45 ui-monospace,monospace}#reachPanel[hidden]{display:none}#reachPanel>b{color:#c4f46a}#reachPanel select{float:right;max-width:52%;font-size:11px}#reachPanel p{clear:both;margin:8px 0}#reachPanel output{display:block;color:#b7d4cb;margin:5px 0}#reachPanel>div{display:flex;gap:8px}#reachCapture{background:#c4f46a;color:#122012}#reachPanel button{min-height:36px}
+@media(max-width:600px){#faceGizmo{top:auto;bottom:8px;width:78px}#reachPanel{font-size:10px;top:34px}#reachPanel select{font-size:10px}#viewInstruction{right:8px;font-size:8px} .header-tools{gap:3px}#setTable{padding:4px 6px!important;font-size:10px!important}}
+#setTable{display:inline-block!important}
+@media(max-width:600px){.brand>span{display:none}.header-tools button{padding:4px 6px;font-size:10px}.header-tools{flex-wrap:nowrap}.brand strong{font-size:16px}}
 
 </style>
 <script>
@@ -14736,69 +14743,106 @@ body[data-spatial-face=desk] .hand-label{opacity:.7;font-size:9px}.stage-label b
 
 </script>
 <script>
+/* Personalized control mapping, not a metric hand-pose estimator. */
+(function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.ButterCalibration=api;})(globalThis,function(){
+ 'use strict';
+ const median=a=>{const s=a.slice().sort((a,b)=>a-b);return s[Math.floor(s.length/2)];};
+ const CORNERS=Array.from({length:8},(_,i)=>({x:i&1?1:0,y:i&2?1:0,z:i&4?1:0}));
+ function fit(samples){
+  if(samples.length!==8||samples.some(s=>s.raw.length!==3||s.raw.some(v=>!Number.isFinite(v))))throw Error('Capture all eight corners with both inputs visible.');
+  const axes=[0,1,2].map(k=>{const name=['x','y','z'][k],lo=samples.filter(s=>s.target[name]===0).map(s=>s.raw[k]),hi=samples.filter(s=>s.target[name]===1).map(s=>s.raw[k]),a=lo.reduce((a,b)=>a+b)/4,b=hi.reduce((a,b)=>a+b)/4;if(Math.abs(b-a)<(k===2?.07:.12))throw Error('Reach range too small on '+name.toUpperCase()+'. Repeat with more separation.');return {a,b};});
+  const profile={version:1,axes};const errors=samples.map(s=>Math.max(...map(profile,s.raw).map((v,i)=>Math.abs(v-s.target[['x','y','z'][i]]))));
+  profile.fitError=Math.max(...errors);if(profile.fitError>.22)throw Error('Corners disagree. Keep each input in its assigned role and repeat.');return profile;
+ }
+ function map(profile,raw){return raw.map((v,k)=>(v-profile.axes[k].a)/(profile.axes[k].b-profile.axes[k].a));}
+ function error(point,target){return Math.max(...point.map((v,i)=>Math.abs(v-target[['x','y','z'][i]])));}
+ function palmScale(m,aspect=4/3){const pairs=[[5,17],[0,9],[0,5],[0,17]];return pairs.map(([a,b])=>Math.hypot((m[a].x-m[b].x)*aspect,m[a].y-m[b].y));}
+ function relativePalm(reference,current){const ratios=current.map((v,i)=>v/reference[i]);if(ratios.some(v=>!Number.isFinite(v)||v<=0))return {valid:false};const scale=median(ratios),spread=Math.max(...ratios)-Math.min(...ratios);return {valid:spread/scale<.18,relativeDistance:1/scale,disagreement:spread/scale};}
+ function stable(samples){if(samples.length<12)return false;return [0,1,2].every(k=>Math.max(...samples.map(s=>s[k]))-Math.min(...samples.map(s=>s[k]))<.035);}
+ return {CORNERS,fit,map,error,palmScale,relativePalm,stable,median};
+});
+
+</script>
+<script>
 /* Renderer/interaction adapter for spatial-core. Keeps existing part, physics,
  * clipboard, and transaction ownership services. Embedded by the build script.
  */
 (function(){
  const Core=ButterSpatial;
- const state={face:'desk',viewHand:null,hoverFace:null,picks:new Map(),lastTarget:null,lastFrame:0,lastLandingKey:'',lastCue:0,landing:null,focusId:null};
- const perspective=camera,ortho=new THREE.OrthographicCamera(-500,500,350,-350,1,5000);
+ const state={face:'room',quarter:0,viewHand:null,hoverFace:null,picks:new Map(),lastTarget:null,lastFrame:0,lastLandingKey:'',lastCue:0,landing:null,focusId:null};
+ const perspective=camera;
+ const plate=new THREE.Group();plate.name='construction-frame';scene.add(plate);
+ const originalAdd=scene.add.bind(scene),originalRemove=scene.remove.bind(scene);
+ scene.add=function(...objects){for(const o of objects)(o.userData.partId?plate:{add:originalAdd}).add(o);return scene;};
+ scene.remove=function(...objects){for(const o of objects){if(o.parent===plate)plate.remove(o);else originalRemove(o);}return scene;};
+ for(const o of [floor,grid,outlines,selectedBox,hoverBox,snapGhost,contactMarker,...shadows,...guides,...S.parts.map(p=>p.mesh)])plate.add(o);
+ const rawProject=project;project=function(p){plate.updateMatrixWorld(true);return rawProject(plate.localToWorld(p.clone()));};
+ rearImagePoint=function(m){const p=ROOM.video.localToWorld(V((.5-m.x)*600,(.5-m.y)*360,0)),v=rawProject(p),r=$('#stage').getBoundingClientRect();return {x:v.x/r.width,y:v.y/r.height};};
+ for(const o of [...guides,shadows[1],shadows[2]])originalAdd(o);
+ roomGuides=function(){
+  const a=selected();selectedBox.visible=!!a.length;shadows.forEach(o=>o.visible=!!a.length);guides.forEach(o=>o.visible=!!a.length);if(!a.length)return;
+  const b=union(),local=b.getCenter(V()),c=plate.localToWorld(local.clone()),size=b.getSize(V());
+  selectedBox.box.copy(b);selectedBox.material.color.setHex(S.tx&&validate()?0xff8580:0xc4f46a);selectedBox.updateMatrixWorld(true);
+  shadows[0].rotation.set(-Math.PI/2,0,0);shadows[0].position.set(local.x,.6,local.z);shadows[0].scale.set(size.x,size.z,1);
+  const ends=[V(-399,c.y,c.z),V(c.x,.6,c.z),V(399,c.y,c.z)];
+  for(const i of [1,2]){shadows[i].position.copy(ends[i===1?0:2]);shadows[i].rotation.set(0,Math.PI/2,0);shadows[i].scale.set(Math.max(size.x,size.z),size.y,1);}
+  guides.forEach((g,i)=>g.geometry.setFromPoints([c,ends[i]]));
+  if(ROOM.heightLine){ROOM.heightLine.visible=true;ROOM.heightLine.geometry.setFromPoints([V(-399,c.y,-400),V(-399,c.y,400)]);}
+ };
+ wallTap=function(hit){if(!selected().length)return note('Select a piece first.','GRID');if(S.tx&&!['wall','paste'].includes(S.tx.source))return note('Use the other input for depth while holding.','HELD');if(!S.tx&&!begin('wall'))return;
+  const current=plate.localToWorld(anchor()),height=hit.object.userData.axis==='height',delta=height?V(0,snapValue(Math.max(0,hit.point.y),8)-current.y,0):V(0,0,snapValue(hit.point.z,20)-current.z);
+  delta.applyQuaternion(plate.quaternion.clone().invert());S.tx.noThrow=true;propose(S.tx.rawDelta.clone().add(delta));
+ };
  const oldScreenDelta=screenDelta,oldPick=pick,oldRefresh=refresh;
- const landingGroup=new THREE.Group();landingGroup.renderOrder=9;scene.add(landingGroup);
- const positionGuide=new THREE.LineSegments(new THREE.BufferGeometry(),new THREE.LineDashedMaterial({color:0xbce994,transparent:true,opacity:.8,dashSize:5,gapSize:4,depthTest:false}));positionGuide.renderOrder=12;scene.add(positionGuide);
- const floorFoot=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({color:0xbce994,transparent:true,opacity:.18,depthWrite:false,side:THREE.DoubleSide}));floorFoot.rotation.x=-Math.PI/2;scene.add(floorFoot);
+ const landingGroup=new THREE.Group();landingGroup.renderOrder=9;plate.add(landingGroup);
+ const positionGuide=new THREE.LineSegments(new THREE.BufferGeometry(),new THREE.LineDashedMaterial({color:0xbce994,transparent:true,opacity:.8,dashSize:5,gapSize:4,depthTest:false}));positionGuide.renderOrder=12;plate.add(positionGuide);
+ const floorFoot=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({color:0xbce994,transparent:true,opacity:.18,depthWrite:false,side:THREE.DoubleSide}));floorFoot.rotation.x=-Math.PI/2;plate.add(floorFoot);
  const topReference=new THREE.Mesh(new THREE.PlaneGeometry(360,202.5),ROOM.video.material.clone());topReference.rotation.x=-Math.PI/2;topReference.position.set(0,1,-530);scene.add(topReference);topReference.visible=false;
- function config(){return Core.FACES[state.face];}
+ function config(){return {...Core.FACES.room,plane:'xyz',instruction:'Grip moves across screen · other input moves in / out'};}
  function normalizedLandmark(m){const r=$('#stage').getBoundingClientRect(),v=$('#video');return state.face==='desk'?Core.coverPoint(m,{width:v.videoWidth||640,height:v.videoHeight||480},r):Core.inspectionPoint(m);}
  imagePoint=normalizedLandmark;
  worldPoint=function(m,depth){const p=imagePoint(m),ray=new THREE.Raycaster();ray.setFromCamera({x:p.x*2-1,y:1-p.y*2},camera);return ray.ray.at(depth,V());};
- screenDelta=function(dx,dy,plane=S.plane){
-  if(['xy','xz','yz'].includes(plane)){const origin=S.tx?S.tx.origin:anchor(),q=project(origin),r=$('#stage').getBoundingClientRect(),normal=V(...({xy:[0,0,1],xz:[0,1,0],yz:[1,0,0]}[plane])),ray=new THREE.Raycaster();ray.setFromCamera({x:2*(q.x+dx)/r.width-1,y:1-2*(q.y+dy)/r.height},camera);const hit=ray.ray.intersectPlane(new THREE.Plane(normal,-normal.dot(origin)),V());return hit?hit.sub(origin).clampScalar(-800,800):V();}
-
-  if(camera.isOrthographicCamera&&plane==='xyz'){const r=$('#stage').getBoundingClientRect(),scale=(camera.top-camera.bottom)/camera.zoom/r.height;return V().setFromMatrixColumn(camera.matrixWorld,0).multiplyScalar(dx*scale).addScaledVector(V().setFromMatrixColumn(camera.matrixWorld,1),-dy*scale);}
-  return oldScreenDelta(dx,dy,plane);
+ screenDelta=function(dx,dy){
+  const origin=plate.localToWorld((S.tx?S.tx.origin:anchor()).clone()),q=rawProject(origin),r=$('#stage').getBoundingClientRect(),normal=camera.getWorldDirection(V()),ray=new THREE.Raycaster();
+  ray.setFromCamera({x:2*(q.x+dx)/r.width-1,y:1-2*(q.y+dy)/r.height},camera);
+  const hit=ray.ray.intersectPlane(new THREE.Plane(normal,-normal.dot(origin)),V());
+  return hit?hit.sub(origin).applyQuaternion(plate.quaternion.clone().invert()).clampScalar(-800,800):V();
  };
- depthDirection=function(){return V(...config().hidden);};
+ depthDirection=function(){return camera.getWorldDirection(V()).applyQuaternion(plate.quaternion.clone().invert());};
  function refreshImageTracks(){
   for(const list of [H.tracks,H.memory||[],[...B.ghosts.values()]])for(const t of list){t.recent=null;t.point=imagePoint(t.marks[8]);t.palm=imagePoint({x:(t.marks[0].x+t.marks[5].x+t.marks[9].x+t.marks[17].x)/4,y:(t.marks[0].y+t.marks[5].y+t.marks[9].y+t.marks[17].y)/4});}
   B.lastDraw=0;
  }
  function rebaseHeld(){
   if(!S.tx)return;
+  delete S.tx.inputOrigin;
   S.tx.base=rows().filter(p=>S.selected.has(p.id));S.tx.origin=anchor();S.tx.rawDelta=V();S.tx.depthOffset=0;S.tx.samples=[];S.tx.velocity=V();S.tx.magnet=null;S.tx.noThrow=true;S.tx.viewRebased=true;S.tx.plane=config().plane;
-  const owner=H.tracks.find(t=>t.id===H.owner);if(owner)H.origin={...owner.palm};H.secondary=null;H.secondaryMode=null;H.depthOffset=0;pointerDown=null;$('#depth').value=0;showSnapGhost();
+  const owner=H.tracks.find(t=>t.id===H.owner);if(owner)H.origin={...owner.palm};H.secondary=null;H.secondaryMode=null;H.depthOffset=0;if(pointerDown&&S.tx.source==='pointer'){pointerDown.x=pointerDown.lastX??pointerDown.x;pointerDown.y=pointerDown.lastY??pointerDown.y;}else pointerDown=null;window.ButterInput?.rebase();$('#depth').value=0;showSnapGhost();
  }
  function applyCamera(rebase=false){
-  const r=$('#stage').getBoundingClientRect(),aspect=r.width/Math.max(1,r.height),cfg=config();
-  camera=cfg.projection==='perspective'?perspective:ortho;controls.object=camera;controls.enableDamping=false;
-  const sceneBox=union(S.parts),extent=sceneBox.isEmpty()?V(240,120,240):sceneBox.getSize(V());const center=cfg.projection==='orthographic'&&!sceneBox.isEmpty()?sceneBox.getCenter(V()):state.face==='desk'?V(0,0,0):V(0,115,0);if(state.face==='top')center.y=0;
-  controls.target.copy(center);camera.up.set(...(cfg.up||[0,1,0]));
-  if(camera.isPerspectiveCamera){camera.aspect=aspect;camera.fov=38;const d=ROOM.distance*Math.max(1,(state.face==='room'?1.25:1.05)/aspect);camera.position.copy(center).addScaledVector(V(...cfg.eye).normalize(),d);camera.clearViewOffset();if(B.table&&state.face==='desk')camera.setViewOffset(r.width,r.height,(.5-B.table.x)*r.width,(.5-B.table.y)*r.height,r.width,r.height);}
-  else{const horizontal=['left','right'].includes(state.face)?extent.z:extent.x,vertical=state.face==='top'?extent.z:extent.y,half=Math.max(130,vertical/2+100,(horizontal/2+100)/aspect);camera.clearViewOffset();camera.left=-half*aspect;camera.right=half*aspect;camera.top=half;camera.bottom=-half;camera.zoom=1;camera.setViewOffset(r.width,r.height,r.width<600?32:0,0,r.width,r.height);camera.position.copy(center).addScaledVector(V(...cfg.eye),1600);}
-  camera.lookAt(center);camera.updateProjectionMatrix();camera.updateMatrixWorld(true);
-  ROOM.yaw=cfg.yaw;ROOM.group.rotation.y=cfg.yaw;ROOM.group.updateMatrixWorld(true);
-  if(camera.isOrthographicCamera){const height=camera.top-camera.bottom,width=camera.right-camera.left,ratio=$('#video').videoWidth/$('#video').videoHeight||4/3,vh=Math.min(height*.34,width*.65/ratio),vw=vh*ratio;ROOM.video.scale.set(vw/600,vh/360,1);ROOM.video.position.set(roomLocal(center).x,center.y+height*.30,-399);
-   const ray=new THREE.Raycaster();ray.setFromCamera({x:0,y:.70},camera);const pos=ray.ray.intersectPlane(new THREE.Plane(V(0,1,0),-1),V());if(pos)topReference.position.copy(pos);const th=height*.23,tw=Math.min(width*.65,th*ratio);topReference.scale.set(tw/360,th/202.5,1);
-  }else{ROOM.video.scale.set(1,1,1);ROOM.video.position.set(0,230,-399);}
-
-  S.plane=cfg.plane;controls.enableRotate=false;controls.enablePan=false;controls.enableZoom=false;controls.enabled=!S.tx;
+  const r=$('#stage').getBoundingClientRect(),aspect=r.width/Math.max(1,r.height);
+  camera=perspective;controls.object=camera;controls.enableDamping=false;
+  camera.aspect=aspect;camera.fov=38;camera.clearViewOffset();controls.target.set(0,115,0);
+  camera.up.set(0,1,0);camera.position.copy(controls.target).addScaledVector(V(0,.4,.9165).normalize(),1000*Math.max(1,1.25/aspect));
+  camera.lookAt(controls.target);camera.updateProjectionMatrix();camera.updateMatrixWorld(true);
+  ROOM.yaw=0;ROOM.group.rotation.set(0,0,0);ROOM.group.updateMatrixWorld(true);
+  ROOM.video.scale.set(1,1,1);ROOM.video.position.set(0,230,-399);
+  S.plane='xyz';controls.enableRotate=controls.enablePan=controls.enableZoom=false;controls.enabled=false;
   refreshImageTracks();if(rebase)rebaseHeld();feedbackGeometry();refresh();
  }
  function setFace(face){
-  if(!Core.FACES[face])return false;
-  const before=checkpoint();state.face=face;state.picks.clear();state.lastTarget=null;hover(null);document.body.dataset.spatialFace=face;applyCamera(true);
-  $('#faceName').textContent=config().name;$$('[data-spatial-face]').filter(e=>e.tagName==='BUTTON').forEach(b=>b.setAttribute('aria-pressed',b.dataset.spatialFace===face));
-  $('#viewInstruction').textContent=face==='desk'?'Camera registered · estimated desk plane':'Inspect '+config().name.toLowerCase()+' · pinch a cube face to switch';
-  const spans=$('footer>.depth-row').querySelectorAll(':scope > span');spans[0].textContent=config().low;spans[1].textContent=config().high;
-  $('#depth').setAttribute('aria-label',config().axis+' of selection');$('#depthReadout').textContent=config().instruction;
-  if(checkpoint()!==before)throw Error('View transition moved world objects');
-  feedback('tick',.2,.85);note(config().name+' · '+config().instruction+(S.tx?' · held pieces stay in place':''),'VIEW');return true;
+  const turns={front:0,right:1,back:2,left:3,room:state.quarter,desk:0,top:state.quarter};
+  if(!(face in turns))return false;
+  state.face='room';state.quarter=turns[face];state.picks.clear();state.lastTarget=null;hover(null);
+  plate.rotation.y=state.quarter*Math.PI/2;plate.updateMatrixWorld(true);rebaseHeld();
+  document.body.dataset.spatialFace='room';$('#faceName').textContent=state.quarter*90+'°';
+  feedbackGeometry();refresh();feedback('tick',.2,.85);note('Plate '+state.quarter*90+'° · room and camera stay fixed','PLATE');return true;
  }
+ function rotatePlate(step){return setFace(['front','right','back','left'][(state.quarter+step+4)%4]);}
  updateRoomCamera=function(){applyCamera(true);};applyRegistration=function(){applyCamera(true);};
- orbitRoom=function(degrees,tilt=0){return setFace(tilt?tilt>0?'top':'front':Core.nextFace(state.face,degrees<0?-1:1));};
- resetRoom=function(){return setFace('desk');};
- view=function(name){return setFace(({iso:'desk',front:'front',top:'top',side:'right'})[name]||'desk');};
- $('#fit').onclick=()=>setFace('desk');$$('[data-view]').forEach(b=>b.onclick=()=>view(b.dataset.view));
+ orbitRoom=function(degrees){return rotatePlate(degrees<0?-1:1);};resetRoom=function(){return setFace('front');};
+ view=function(name){return setFace(({iso:'front',front:'front',top:'room',side:'right'})[name]||'front');};
+ $('#fit').onclick=()=>setFace('front');$$('[data-view]').forEach(b=>{b.onclick=()=>view(b.dataset.view);b.hidden=true;});
  // The event router treats gizmo faces as named actions shared by touch and hands.
  function faceUnderPoint(point){const r=$('#stage').getBoundingClientRect(),x=r.left+point.x*r.width,y=r.top+point.y*r.height;for(const b of $$('#faceGizmo button')){const q=b.getBoundingClientRect();if(x>=q.left&&x<=q.right&&y>=q.top&&y<=q.bottom)return b;}return null;}
  function handleHands(tracks,now){
@@ -14848,37 +14892,118 @@ body[data-spatial-face=desk] .hand-label{opacity:.7;font-size:9px}.stage-label b
  // No per-pixel or grid-crossing chatter. Acquisition, approach, fit, and contact differ.
  surfaceCue=function(){};
  function applyVisualFrame(){
-  const desk=state.face==='desk',model=B.mode==='model';ROOM.group.visible=!desk||model;
-  ROOM.video.visible=!desk&&state.face!=='top'&&H.active&&!model;
-  topReference.visible=state.face==='top'&&H.active&&!model;
-  if(state.face==='top')ROOM.group.visible=false;
-  floor.material.opacity=desk&&!model?.08:1;floor.material.depthWrite=!desk||model;grid.material.opacity=desk&&!model?.24:.42;
-  scene.background=null;
-  // The registered view uses the actual mirrored camera pixels. The projected
-  // cutout is reserved for virtual inspection, where it represents an action.
-  for(const v of B.visuals.values())if(v.soft)v.soft.mesh.visible=!desk&&v.soft.mesh.visible;
-  $('#viewInstruction').textContent=desk?'Camera registered · estimated desk plane':config().name+' · '+config().plane.toUpperCase()+' visible · '+config().axis+' on other hand';
-  if(S.tx)$('#selectionHint').textContent=state.viewHand!=null?'Open the view hand to resume moving':config().instruction+' · free hand can pinch a cube face';
+  ROOM.group.visible=true;ROOM.video.visible=H.active&&B.mode!=='model';topReference.visible=false;
+  floor.material.opacity=1;floor.material.depthWrite=true;grid.material.opacity=.42;scene.background=new THREE.Color(0x111c20);
+  $('#viewInstruction').textContent='Fixed room · turn the plate · two inputs, three directions';
+  if(S.tx)$('#selectionHint').textContent='Grip moves across screen · other palm or mouse drag moves in / out';
  }
  function frame(now){if(S.tx?.viewRebased&&['hand','pointer'].includes(S.tx.source)&&S.tx.samples.length>=3&&S.tx.samples.at(-1).time-S.tx.samples[0].time>=100){S.tx.noThrow=false;S.tx.viewRebased=false;}applyVisualFrame();if(now-state.lastFrame<55)return;state.lastFrame=now;drawSpatialCue(now);}
  function prepareUI(){
-  document.title='WAG / HAND BUTTER 03';$('.stage-label').innerHTML='<b>BUTTER 03</b>';$('.left-rail').remove();$('.right-rail').remove();
-  $('#stage').insertAdjacentHTML('beforeend','<nav id="faceGizmo" aria-label="Snap view to a face"><output id="faceName">DESK</output><div class="view-cube"><button data-spatial-face="top" aria-label="Snap to top view">TOP</button><button data-spatial-face="front" aria-label="Snap to front view">FRONT</button><button data-spatial-face="right" aria-label="Snap to right view">SIDE</button></div><div class="face-turn"><button data-step="-1" aria-label="Previous side, 90 degrees">↶</button><button data-step="1" aria-label="Next side, 90 degrees">↷</button></div><button data-spatial-face="desk" aria-label="Return to registered desk view">DESK</button><small>point + pinch</small></nav><div id="viewInstruction"></div><div id="spatialReadout" hidden><b></b><span></span></div>');
-  $$('#faceGizmo [data-spatial-face]').forEach(b=>b.onclick=()=>setFace(b.dataset.spatialFace));$$('#faceGizmo [data-step]').forEach(b=>b.onclick=()=>setFace(Core.nextFace(state.face,+b.dataset.step)));
-  $('#roomMode').textContent='3D ROOM';$('#roomMode').onclick=()=>setFace('room');const displayMode=document.createElement('button');displayMode.id='displayMode';displayMode.textContent='Camera: room';displayMode.onclick=()=>{setRoomMode(['room','ghost','model'][(['room','ghost','model'].indexOf(B.mode)+1)%3]);displayMode.textContent='Camera: '+B.mode;$('#roomMode').textContent='3D ROOM';};$('.advanced-buttons').appendChild(displayMode);
-  $('#setTable').textContent='Set desk';$('#setTable').onclick=()=>{if(S.tx)return note('Release before setting the desk.','HELD');setFace('desk');B.setting=!B.setting;$('#setTable').textContent=B.setting?'Cancel desk':'Set desk';closeDrawers();note(B.setting?'Tap where the center of your desk should meet the virtual grid.':'Desk registration cancelled.','DESK');};
-  setTableAt=function(p){if(S.tx)return;B.table={x:Math.max(.1,Math.min(.9,p.x)),y:Math.max(.2,Math.min(.9,p.y))};B.setting=false;applyCamera();$('#setTable').textContent='Set desk';note('Desk position registered visually · keep the camera still.','DESK');};
+  document.title='WAG / HAND BUTTER 04';$('.stage-label').innerHTML='<b>BUTTER 04</b>';$('.left-rail').remove();$('.right-rail').remove();
+  $('#stage').insertAdjacentHTML('beforeend','<nav id="faceGizmo" aria-label="Rotate build plate"><output id="faceName">0°</output><div class="face-turn"><button data-step="-1" aria-label="Turn plate left 90 degrees">↶</button><button data-step="1" aria-label="Turn plate right 90 degrees">↷</button></div><button data-spatial-face="front" aria-label="Reset plate orientation">PLATE</button><small>point + pinch</small></nav><div id="viewInstruction"></div><div id="spatialReadout" hidden><b></b><span></span></div>');
+  $$('#faceGizmo [data-spatial-face]').forEach(b=>b.onclick=()=>setFace(b.dataset.spatialFace));$$('#faceGizmo [data-step]').forEach(b=>b.onclick=()=>rotatePlate(+b.dataset.step));
+  $('#roomMode').textContent='ROOM';$('#roomMode').onclick=()=>{setRoomMode(['room','ghost','model'][(['room','ghost','model'].indexOf(B.mode)+1)%3]);};
+  $('#setTable').textContent='Calibrate';$('#setTable').onclick=()=>window.ButterInput?.start();
   // Keep essential actions in one row. Extra group edits remain in a drawer.
   const edit=document.createElement('button');edit.id='selectionEdit';edit.textContent='Edit';edit.setAttribute('aria-expanded','false');$('#selectionTools').insertBefore(edit,$('#selectionActions'));
   for(const id of ['boxSelect','allSelect','copy','rotate','assembly','clear','remove'])$('.advanced-buttons').appendChild($('#'+id));
   $('#seat').textContent='Land';$('#seat').title='Lower to the visible landing ghost';$('#seat').onclick=()=>{if(S.tx){const result=landing();if(!result?.valid)return note('Move to a clear landing position first.','BLOCKED');const t=S.tx;t.noThrow=true;t.magnet=null;selected().forEach(p=>{p.x+=result.delta.x;p.y+=result.delta.y;p.z+=result.delta.z;sync(p);});releaseHand('Landed');}else seat();};
   edit.remove();$('#selectionTools').insertBefore($('#moreTools'),$('#selectionActions'));$('#moreTools').textContent='Edit';$('#group').addEventListener('click',()=>{if(S.multi)note('Tap pieces to add them. Done selecting lets the group move together.','SELECT');});
-  $('#help').insertAdjacentHTML('afterbegin','<p><b>SPATIAL VIEWS:</b> DESK registers camera pixels and hand pointing. TOP separates near/far; FRONT separates high/low; SIDE shows height and depth. Pinch a labeled cube face with your free hand to snap the view while holding. Open palm up pushes away in DESK/FRONT; in TOP it lifts. Height and depth never share the same movement vector. Set desk is visual registration, not a measured digital twin.</p>');
+  $('#help').insertAdjacentHTML('afterbegin','<p><b>FIXED ROOM:</b> The plate turns by 90° while the camera and back wall stay fixed. One input holds; the other moves through the screen. Use two hands, or a hand and mouse. Calibrate teaches comfortable reach; a separate eight-corner check measures control.</p>');
  }
  prepareUI();
- window.ButterSpatialRuntime={state:()=>({face:state.face,projection:camera.type,axis:config().axis,viewHand:state.viewHand,landing:state.landing?{gap:state.landing.gap,valid:state.landing.valid,connected:state.landing.connected}:null}),setFace,handleHands,frame,candidates,normalizedLandmark,hiddenDelta:amount=>Core.hiddenDelta(state.face,amount),landing,rebaseHeld};
- ButterStage.orbit=orbitRoom;ButterStage.home=resetRoom;Butter.setTableAt=setTableAt;Butter.imagePoint=imagePoint;Butter.projectHand=(m,d)=>project(worldPoint(m,d));
- setFace('desk');
+ window.ButterSpatialRuntime={state:()=>({face:state.face,projection:camera.type,axis:config().axis,viewHand:state.viewHand,landing:state.landing?{gap:state.landing.gap,valid:state.landing.valid,connected:state.landing.connected}:null}),setFace,rotatePlate,plate,rawProject,handleHands,frame,candidates,normalizedLandmark,hiddenDelta:amount=>depthDirection().multiplyScalar(amount).toArray(),landing,rebaseHeld};
+ ButterStage.orbit=orbitRoom;ButterStage.home=resetRoom;Butter.setTableAt=setTableAt;Butter.imagePoint=imagePoint;Butter.projectHand=(m,d)=>rawProject(worldPoint(m,d));
+ applyCamera();setFace('front');
+})();
+
+</script>
+<script>
+/* One grip role and one tool role, independent of input hardware. */
+(function(){
+ const C=ButterCalibration,R=ButterSpatialRuntime;
+ const I={mode:'hands',profile:null,phase:'idle',index:0,samples:[],window:[],results:[],primary:null,tool:null,pointer:{x:.5,y:.5},mouseTool:null,pointerTool:null,lastNow:0,signature:null,verifyAt:0,armed:true,palmReference:null,palmCue:null};
+ const key='wag-butter-reach-v1';
+ const rawPoint=m=>ButterSpatial.inspectionPoint(m);
+ const signature=()=>{const v=$('#video'),r=$('#stage').getBoundingClientRect(),track=H.stream?.getVideoTracks?.()[0];return [v.videoWidth||640,v.videoHeight||480,Math.round(r.width/r.height*10),track?.getSettings?.().deviceId||'default',I.mode].join('|');};
+ function normalizedInput(t){return rawPoint(t.marks[8]);}
+ function rawTool(t){const h=t.marks;return rawPoint({x:(h[0].x+h[5].x+h[9].x+h[17].x)/4,y:(h[0].y+h[5].y+h[9].y+h[17].y)/4});}
+ function roles(tracks){
+  if(I.mode==='mouse-hand'){const tool=tracks.find(t=>t.id===I.tool)||tracks[0];if(tool)I.tool=tool.id;return {primary:null,tool};}
+  const primary=tracks.find(t=>t.id===(H.owner??I.primary))||tracks[0];if(primary)I.primary=primary.id;
+  const tool=I.mode==='hands'?(tracks.find(t=>t.id===I.tool&&t.id!==primary?.id)||tracks.find(t=>t.id!==primary?.id)):null;if(tool)I.tool=tool.id;return {primary,tool};
+ }
+ function observation(tracks){const {primary,tool}=roles(tracks);if(I.mode!=='mouse-hand'&&!primary||I.mode!=='hand-mouse'&&!tool)return null;const p=primary?normalizedInput(primary):I.pointer;return {raw:[p.x,p.y,tool?rawTool(tool).y:I.pointer.y],primary,tool};}
+ function point(t){const p=normalizedInput(t);if(!I.profile||I.mode==='mouse-hand')return p;return {x:.15+.70*(p.x-I.profile.axes[0].a)/(I.profile.axes[0].b-I.profile.axes[0].a),y:.18+.64*(p.y-I.profile.axes[1].a)/(I.profile.axes[1].b-I.profile.axes[1].a)};}
+ function toolDelta(base,current){const gain=I.profile?360/(I.profile.axes[2].b-I.profile.axes[2].a):-650*S.gain;return (current.y-base.y)*gain;}
+ function gripDelta(owner,r){const current=point(owner);if(S.tx.inputOrigin?.id!==owner.id)S.tx.inputOrigin={id:owner.id,p:{...current},offset:S.tx.rawDelta.clone().addScaledVector(depthDirection(),-H.depthOffset)};
+  const o=S.tx.inputOrigin;return o.offset.clone().add(screenDelta((current.x-o.p.x)*r.width,(current.y-o.p.y)*r.height));}
+ function start(){if(S.tx)return note('Release the piece before calibration.','HELD');I.phase='teach';I.index=0;I.samples=[];I.results=[];I.window=[];I.profileBefore=I.profile;I.profile=null;I.primary=I.tool=null;I.signature=signature();I.verifyAt=0;I.armed=true;I.palmReference=null;$('#reachPanel').hidden=false;closeDrawers();paint();}
+ function cancel(){I.profile=I.profileBefore||null;I.phase='idle';I.window=[];$('#reachPanel').hidden=true;$('#reachCanvas').hidden=true;H.mustOpen=true;save();}
+ function save(){try{localStorage.setItem(key,JSON.stringify({mode:I.mode,profile:I.profile,signature:I.signature,results:I.results,palmReference:I.palmReference}));}catch{}}
+ function capture(){
+  if(I.phase!=='teach')return;
+  if(!C.stable(I.window))return note('Show both assigned inputs and hold steady before capturing.','CALIBRATE');
+  const raw=[0,1,2].map(k=>C.median(I.window.map(p=>p[k])));I.samples.push({raw,target:C.CORNERS[I.index]});I.lastCaptured=raw;I.window=[];I.armed=false;
+  if(++I.index===8){try{I.profile=C.fit(I.samples);I.phase='verify';I.index=0;I.results=[];I.verifyAt=0;I.armed=true;}catch(e){I.phase='failed';$('#reachText').textContent=e.message;}}
+  feedback('tick',.3,1.2);paint();
+ }
+ function paint(){const c=C.CORNERS[I.index]||C.CORNERS[0];$('#reachTitle').textContent=I.phase==='teach'?'TEACH REACH · '+(I.index+1)+' / 8':I.phase==='verify'?'CHECK REACH · '+(I.index+1)+' / 8':I.phase==='done'?'REACH CHECK COMPLETE':'REPEAT CALIBRATION';
+  if(['teach','verify'].includes(I.phase))$('#reachText').textContent=(I.phase==='teach'?'Put the grip input comfortably ':'Reach the highlighted corner: ')+(c.x?'right':'left')+', '+(c.y?'low':'high')+'. Tool input '+(c.z?'up / away':'down / near')+'. '+(I.phase==='teach'?'Hold steady, then Capture or press Space.':'Hold the cursor inside the target for 0.6 seconds.');
+  $('#reachCapture').hidden=I.phase!=='teach';$('#reachRetry').hidden=!['failed','done'].includes(I.phase);$('#reachMode').disabled=['verify'].includes(I.phase);$('#reachCanvas').hidden=!['teach','verify'].includes(I.phase);
+ }
+ function handleHands(tracks,now){
+  if(I.profile&&signature()!==I.signature){I.profile=null;R.rebaseHeld();note('Camera or stage changed. Calibrate this setup again.','CALIBRATE');}
+  const obs=observation(tracks);I.observation=obs;I.lastNow=now;
+  if(obs?.primary){const scales=C.palmScale(obs.primary.marks);if(!I.palmReference&&I.phase==='teach')I.palmReference=scales;I.palmCue=I.palmReference?C.relativePalm(I.palmReference,scales):null;}
+  if(['teach','verify','failed','done'].includes(I.phase)){
+   if(obs){if(!I.armed&&I.lastCaptured&&Math.hypot(...obs.raw.map((v,i)=>v-I.lastCaptured[i]))>.09)I.armed=true;
+    if(I.phase==='teach'&&I.armed){I.window.push(obs.raw);if(I.window.length>24)I.window.shift();}else I.window=[];
+    if(I.phase==='verify'){const mapped=C.map(I.profile,obs.raw),error=C.error(mapped,C.CORNERS[I.index]);I.liveError=error;I.mapped=mapped;
+     if(error<.08){if(!I.verifyAt){I.verifyAt=now;I.verifyErrors=[];}I.verifyErrors.push(error);if(now-I.verifyAt>=600){I.results.push({corner:I.index,error:Math.max(...I.verifyErrors),holdMs:now-I.verifyAt});I.verifyAt=0;feedback('click',.4);if(++I.index===8){I.phase='done';I.signature=signature();save();$('#reachText').textContent='8 / 8 reached within 8% axis tolerance. Worst held error '+Math.round(Math.max(...I.results.map(r=>r.error))*100)+'% of axis range. This checks control reach, not physical distance.';}paint();}}else I.verifyAt=0;
+    }
+   }else{I.window=[];I.verifyAt=0;}return true;
+  }
+  // The pointer transaction retains ownership while a tracked palm supplies depth.
+  if(S.tx?.source==='pointer'){
+   const tool=tracks.find(t=>t.id===I.tool)||tracks[0];if(tool&&gestureOf(tool)==='open'){
+    const p=rawTool(tool);if(I.pointerTool?.id!==tool.id)I.pointerTool={id:tool.id,base:p,offset:S.tx.depthOffset||0};
+    S.tx.depthOffset=I.pointerTool.offset+toolDelta(I.pointerTool.base,p);propose(S.tx.rawDelta.clone(),now);
+   }else I.pointerTool=null;
+   return true;
+  }I.pointerTool=null;
+  // Mouse-as-grip mode never lets a tool hand silently acquire a second owner.
+  if(I.mode==='mouse-hand'&&!S.tx)return true;
+  for(const t of tracks)t.point=point(t);
+  return false;
+ }
+ function pixel(event){const r=$('#stage').getBoundingClientRect();return {x:(event.clientX-r.left)/r.width,y:(event.clientY-r.top)/r.height};}
+ document.addEventListener('pointermove',e=>{if(e.target!==canvas&&!I.mouseTool)return;I.pointer=pixel(e);if(!I.mouseTool||e.pointerId!==I.mouseTool.id||!S.tx)return;const dy=I.pointer.y-I.mouseTool.y;S.tx.depthOffset=I.mouseTool.offset+dy*(I.profile?360/(I.profile.axes[2].b-I.profile.axes[2].a):-650);propose(S.tx.rawDelta.clone());e.stopImmediatePropagation();},true);
+ document.addEventListener('pointerdown',e=>{
+  if(e.target!==canvas)return;
+  if(I.phase!=='idle'){e.stopImmediatePropagation();return;}
+  if(S.tx?.source==='hand'){I.pointer=pixel(e);I.mouseTool={id:e.pointerId,y:I.pointer.y,offset:S.tx.depthOffset||0};canvas.setPointerCapture(e.pointerId);e.preventDefault();e.stopImmediatePropagation();}
+ },true);
+ function endMouse(e){if(I.mouseTool?.id!==e.pointerId)return;I.mouseTool=null;e.stopImmediatePropagation();}
+ document.addEventListener('pointerup',endMouse,true);document.addEventListener('pointercancel',endMouse,true);
+ window.addEventListener('keydown',e=>{if(I.phase==='idle')return;if(e.code==='Space'&&!/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)){e.preventDefault();capture();}if(e.key==='Escape'){e.stopImmediatePropagation();cancel();}},true);
+ function draw(){const el=$('#reachCanvas'),r=$('#stage').getBoundingClientRect();el.width=r.width;el.height=r.height;const ctx=el.getContext('2d');
+  const pos=c=>({x:(c.z?.28:.20)+(c.x?(c.z?.44:.60):0),y:(c.z?.40:.49)+(c.y?(c.z?.32:.41):0)});
+  const points=C.CORNERS.map(c=>pos(c));ctx.strokeStyle='#b4d2ce80';ctx.lineWidth=1;for(let i=0;i<8;i++)for(const bit of [1,2,4])if((i^bit)>i){const a=points[i],b=points[i^bit];ctx.beginPath();ctx.moveTo(a.x*r.width,a.y*r.height);ctx.lineTo(b.x*r.width,b.y*r.height);ctx.stroke();}
+  points.forEach((p,i)=>{ctx.fillStyle=i===I.index?'#c4f46a':'#365455';ctx.beginPath();ctx.arc(p.x*r.width,p.y*r.height,i===I.index?15:5,0,Math.PI*2);ctx.fill();if(i===I.index){ctx.fillStyle='#13221c';ctx.font='bold 12px monospace';ctx.fillText(String(i+1),p.x*r.width-4,p.y*r.height+4);}});
+  if(I.phase==='verify'&&I.mapped){const [x,y,z]=I.mapped,c={x:0,y:0,z:0};const nx=.20+x*.60,ny=.49+y*.41,fx=.28+x*.44,fy=.40+y*.32;ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.beginPath();ctx.arc((nx+(fx-nx)*z)*r.width,(ny+(fy-ny)*z)*r.height,9,0,Math.PI*2);ctx.stroke();}
+ }
+ function frame(now){if(H.active&&!I.offered){I.offered=true;if(!I.profile&&!S.tx)start();}for(const [id,v] of B.visuals){if(!v.tag.hidden&&I.phase!=='idle')v.tag.textContent=id===I.primary?'GRIP · reach the corner':id===I.tool?'TOOL · near / away':v.tag.textContent;}if(I.phase==='teach'){$('#reachCapture').disabled=!C.stable(I.window);$('#reachStatus').textContent=!I.observation?'Show the assigned inputs':!I.armed?'Move to the next corner':C.stable(I.window)?'Steady · ready to capture':'Hold steady';if(I.palmCue)$('#reachStatus').textContent+=' · Palm '+(I.palmCue.valid?I.palmCue.relativeDistance.toFixed(2)+'× relative distance cue':'shape changed; size cue ignored');}
+  if(I.phase==='verify')$('#reachStatus').textContent=I.observation?'Error '+Math.round((I.liveError||0)*100)+'% · hold '+Math.min(100,Math.round((I.verifyAt?(now-I.verifyAt):0)/6))+'%':'Input lost · waiting';
+  if(['teach','verify'].includes(I.phase))draw();
+  if(S.tx&&!H.owner&&I.mode==='mouse-hand')$('#selectionHint').textContent='Mouse holds · open palm up / down moves in / out';
+ }
+ $('#stage').insertAdjacentHTML('beforeend','<canvas id="reachCanvas" hidden></canvas><section id="reachPanel" hidden aria-label="Reach calibration"><b id="reachTitle"></b><select id="reachMode" aria-label="Input roles"><option value="hands">Two hands</option><option value="mouse-hand">Mouse holds · hand depth</option><option value="hand-mouse">Hand holds · mouse depth</option></select><p id="reachText"></p><output id="reachStatus"></output><div><button id="reachCapture">Capture</button><button id="reachRetry" hidden>Repeat</button><button id="reachClose">Close</button></div></section>');
+ $('#reachMode').onchange=e=>{I.mode=e.target.value;I.profile=null;I.palmReference=null;start();};$('#reachCapture').onclick=capture;$('#reachRetry').onclick=start;$('#reachClose').onclick=()=>{if(I.phase==='done'){I.phase='idle';$('#reachPanel').hidden=true;$('#reachCanvas').hidden=true;H.mustOpen=true;}else cancel();};
+ $('#setTable').onclick=start;$('#setTable').hidden=false;$('.header-tools').appendChild($('#setTable'));
+ try{const saved=JSON.parse(localStorage.getItem(key));if(saved?.profile?.version===1&&saved.profile.axes?.length===3&&saved.profile.axes.every(a=>Number.isFinite(a.a)&&Number.isFinite(a.b)&&Math.abs(a.b-a.a)>.06)&&saved.results?.length===8&&['hands','mouse-hand','hand-mouse'].includes(saved.mode)){Object.assign(I,{mode:saved.mode,profile:saved.profile,signature:saved.signature,results:saved.results,palmReference:saved.palmReference});$('#reachMode').value=I.mode;}}catch{}
+ const oldRebase=R.rebaseHeld;R.rebaseHeld=function(){oldRebase();if(S.tx)delete S.tx.inputOrigin;};
+ window.ButterInput={start,cancel,capture,handleHands,frame,toolDelta,gripDelta,point,rebase:()=>{I.pointerTool=null;if(I.mouseTool){I.mouseTool.y=I.pointer.y;I.mouseTool.offset=0;}},state:()=>I};
 })();
 
 </script>

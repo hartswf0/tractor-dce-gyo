@@ -3,64 +3,80 @@
  */
 (function(){
  const Core=ButterSpatial;
- const state={face:'desk',viewHand:null,hoverFace:null,picks:new Map(),lastTarget:null,lastFrame:0,lastLandingKey:'',lastCue:0,landing:null,focusId:null};
- const perspective=camera,ortho=new THREE.OrthographicCamera(-500,500,350,-350,1,5000);
+ const state={face:'room',quarter:0,viewHand:null,hoverFace:null,picks:new Map(),lastTarget:null,lastFrame:0,lastLandingKey:'',lastCue:0,landing:null,focusId:null};
+ const perspective=camera;
+ const plate=new THREE.Group();plate.name='construction-frame';scene.add(plate);
+ const originalAdd=scene.add.bind(scene),originalRemove=scene.remove.bind(scene);
+ scene.add=function(...objects){for(const o of objects)(o.userData.partId?plate:{add:originalAdd}).add(o);return scene;};
+ scene.remove=function(...objects){for(const o of objects){if(o.parent===plate)plate.remove(o);else originalRemove(o);}return scene;};
+ for(const o of [floor,grid,outlines,selectedBox,hoverBox,snapGhost,contactMarker,...shadows,...guides,...S.parts.map(p=>p.mesh)])plate.add(o);
+ const rawProject=project;project=function(p){plate.updateMatrixWorld(true);return rawProject(plate.localToWorld(p.clone()));};
+ rearImagePoint=function(m){const p=ROOM.video.localToWorld(V((.5-m.x)*600,(.5-m.y)*360,0)),v=rawProject(p),r=$('#stage').getBoundingClientRect();return {x:v.x/r.width,y:v.y/r.height};};
+ for(const o of [...guides,shadows[1],shadows[2]])originalAdd(o);
+ roomGuides=function(){
+  const a=selected();selectedBox.visible=!!a.length;shadows.forEach(o=>o.visible=!!a.length);guides.forEach(o=>o.visible=!!a.length);if(!a.length)return;
+  const b=union(),local=b.getCenter(V()),c=plate.localToWorld(local.clone()),size=b.getSize(V());
+  selectedBox.box.copy(b);selectedBox.material.color.setHex(S.tx&&validate()?0xff8580:0xc4f46a);selectedBox.updateMatrixWorld(true);
+  shadows[0].rotation.set(-Math.PI/2,0,0);shadows[0].position.set(local.x,.6,local.z);shadows[0].scale.set(size.x,size.z,1);
+  const ends=[V(-399,c.y,c.z),V(c.x,.6,c.z),V(399,c.y,c.z)];
+  for(const i of [1,2]){shadows[i].position.copy(ends[i===1?0:2]);shadows[i].rotation.set(0,Math.PI/2,0);shadows[i].scale.set(Math.max(size.x,size.z),size.y,1);}
+  guides.forEach((g,i)=>g.geometry.setFromPoints([c,ends[i]]));
+  if(ROOM.heightLine){ROOM.heightLine.visible=true;ROOM.heightLine.geometry.setFromPoints([V(-399,c.y,-400),V(-399,c.y,400)]);}
+ };
+ wallTap=function(hit){if(!selected().length)return note('Select a piece first.','GRID');if(S.tx&&!['wall','paste'].includes(S.tx.source))return note('Use the other input for depth while holding.','HELD');if(!S.tx&&!begin('wall'))return;
+  const current=plate.localToWorld(anchor()),height=hit.object.userData.axis==='height',delta=height?V(0,snapValue(Math.max(0,hit.point.y),8)-current.y,0):V(0,0,snapValue(hit.point.z,20)-current.z);
+  delta.applyQuaternion(plate.quaternion.clone().invert());S.tx.noThrow=true;propose(S.tx.rawDelta.clone().add(delta));
+ };
  const oldScreenDelta=screenDelta,oldPick=pick,oldRefresh=refresh;
- const landingGroup=new THREE.Group();landingGroup.renderOrder=9;scene.add(landingGroup);
- const positionGuide=new THREE.LineSegments(new THREE.BufferGeometry(),new THREE.LineDashedMaterial({color:0xbce994,transparent:true,opacity:.8,dashSize:5,gapSize:4,depthTest:false}));positionGuide.renderOrder=12;scene.add(positionGuide);
- const floorFoot=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({color:0xbce994,transparent:true,opacity:.18,depthWrite:false,side:THREE.DoubleSide}));floorFoot.rotation.x=-Math.PI/2;scene.add(floorFoot);
+ const landingGroup=new THREE.Group();landingGroup.renderOrder=9;plate.add(landingGroup);
+ const positionGuide=new THREE.LineSegments(new THREE.BufferGeometry(),new THREE.LineDashedMaterial({color:0xbce994,transparent:true,opacity:.8,dashSize:5,gapSize:4,depthTest:false}));positionGuide.renderOrder=12;plate.add(positionGuide);
+ const floorFoot=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({color:0xbce994,transparent:true,opacity:.18,depthWrite:false,side:THREE.DoubleSide}));floorFoot.rotation.x=-Math.PI/2;plate.add(floorFoot);
  const topReference=new THREE.Mesh(new THREE.PlaneGeometry(360,202.5),ROOM.video.material.clone());topReference.rotation.x=-Math.PI/2;topReference.position.set(0,1,-530);scene.add(topReference);topReference.visible=false;
- function config(){return Core.FACES[state.face];}
+ function config(){return {...Core.FACES.room,plane:'xyz',instruction:'Grip moves across screen · other input moves in / out'};}
  function normalizedLandmark(m){const r=$('#stage').getBoundingClientRect(),v=$('#video');return state.face==='desk'?Core.coverPoint(m,{width:v.videoWidth||640,height:v.videoHeight||480},r):Core.inspectionPoint(m);}
  imagePoint=normalizedLandmark;
  worldPoint=function(m,depth){const p=imagePoint(m),ray=new THREE.Raycaster();ray.setFromCamera({x:p.x*2-1,y:1-p.y*2},camera);return ray.ray.at(depth,V());};
- screenDelta=function(dx,dy,plane=S.plane){
-  if(['xy','xz','yz'].includes(plane)){const origin=S.tx?S.tx.origin:anchor(),q=project(origin),r=$('#stage').getBoundingClientRect(),normal=V(...({xy:[0,0,1],xz:[0,1,0],yz:[1,0,0]}[plane])),ray=new THREE.Raycaster();ray.setFromCamera({x:2*(q.x+dx)/r.width-1,y:1-2*(q.y+dy)/r.height},camera);const hit=ray.ray.intersectPlane(new THREE.Plane(normal,-normal.dot(origin)),V());return hit?hit.sub(origin).clampScalar(-800,800):V();}
-
-  if(camera.isOrthographicCamera&&plane==='xyz'){const r=$('#stage').getBoundingClientRect(),scale=(camera.top-camera.bottom)/camera.zoom/r.height;return V().setFromMatrixColumn(camera.matrixWorld,0).multiplyScalar(dx*scale).addScaledVector(V().setFromMatrixColumn(camera.matrixWorld,1),-dy*scale);}
-  return oldScreenDelta(dx,dy,plane);
+ screenDelta=function(dx,dy){
+  const origin=plate.localToWorld((S.tx?S.tx.origin:anchor()).clone()),q=rawProject(origin),r=$('#stage').getBoundingClientRect(),normal=camera.getWorldDirection(V()),ray=new THREE.Raycaster();
+  ray.setFromCamera({x:2*(q.x+dx)/r.width-1,y:1-2*(q.y+dy)/r.height},camera);
+  const hit=ray.ray.intersectPlane(new THREE.Plane(normal,-normal.dot(origin)),V());
+  return hit?hit.sub(origin).applyQuaternion(plate.quaternion.clone().invert()).clampScalar(-800,800):V();
  };
- depthDirection=function(){return V(...config().hidden);};
+ depthDirection=function(){return camera.getWorldDirection(V()).applyQuaternion(plate.quaternion.clone().invert());};
  function refreshImageTracks(){
   for(const list of [H.tracks,H.memory||[],[...B.ghosts.values()]])for(const t of list){t.recent=null;t.point=imagePoint(t.marks[8]);t.palm=imagePoint({x:(t.marks[0].x+t.marks[5].x+t.marks[9].x+t.marks[17].x)/4,y:(t.marks[0].y+t.marks[5].y+t.marks[9].y+t.marks[17].y)/4});}
   B.lastDraw=0;
  }
  function rebaseHeld(){
   if(!S.tx)return;
+  delete S.tx.inputOrigin;
   S.tx.base=rows().filter(p=>S.selected.has(p.id));S.tx.origin=anchor();S.tx.rawDelta=V();S.tx.depthOffset=0;S.tx.samples=[];S.tx.velocity=V();S.tx.magnet=null;S.tx.noThrow=true;S.tx.viewRebased=true;S.tx.plane=config().plane;
-  const owner=H.tracks.find(t=>t.id===H.owner);if(owner)H.origin={...owner.palm};H.secondary=null;H.secondaryMode=null;H.depthOffset=0;pointerDown=null;$('#depth').value=0;showSnapGhost();
+  const owner=H.tracks.find(t=>t.id===H.owner);if(owner)H.origin={...owner.palm};H.secondary=null;H.secondaryMode=null;H.depthOffset=0;if(pointerDown&&S.tx.source==='pointer'){pointerDown.x=pointerDown.lastX??pointerDown.x;pointerDown.y=pointerDown.lastY??pointerDown.y;}else pointerDown=null;window.ButterInput?.rebase();$('#depth').value=0;showSnapGhost();
  }
  function applyCamera(rebase=false){
-  const r=$('#stage').getBoundingClientRect(),aspect=r.width/Math.max(1,r.height),cfg=config();
-  camera=cfg.projection==='perspective'?perspective:ortho;controls.object=camera;controls.enableDamping=false;
-  const sceneBox=union(S.parts),extent=sceneBox.isEmpty()?V(240,120,240):sceneBox.getSize(V());const center=cfg.projection==='orthographic'&&!sceneBox.isEmpty()?sceneBox.getCenter(V()):state.face==='desk'?V(0,0,0):V(0,115,0);if(state.face==='top')center.y=0;
-  controls.target.copy(center);camera.up.set(...(cfg.up||[0,1,0]));
-  if(camera.isPerspectiveCamera){camera.aspect=aspect;camera.fov=38;const d=ROOM.distance*Math.max(1,(state.face==='room'?1.25:1.05)/aspect);camera.position.copy(center).addScaledVector(V(...cfg.eye).normalize(),d);camera.clearViewOffset();if(B.table&&state.face==='desk')camera.setViewOffset(r.width,r.height,(.5-B.table.x)*r.width,(.5-B.table.y)*r.height,r.width,r.height);}
-  else{const horizontal=['left','right'].includes(state.face)?extent.z:extent.x,vertical=state.face==='top'?extent.z:extent.y,half=Math.max(130,vertical/2+100,(horizontal/2+100)/aspect);camera.clearViewOffset();camera.left=-half*aspect;camera.right=half*aspect;camera.top=half;camera.bottom=-half;camera.zoom=1;camera.setViewOffset(r.width,r.height,r.width<600?32:0,0,r.width,r.height);camera.position.copy(center).addScaledVector(V(...cfg.eye),1600);}
-  camera.lookAt(center);camera.updateProjectionMatrix();camera.updateMatrixWorld(true);
-  ROOM.yaw=cfg.yaw;ROOM.group.rotation.y=cfg.yaw;ROOM.group.updateMatrixWorld(true);
-  if(camera.isOrthographicCamera){const height=camera.top-camera.bottom,width=camera.right-camera.left,ratio=$('#video').videoWidth/$('#video').videoHeight||4/3,vh=Math.min(height*.34,width*.65/ratio),vw=vh*ratio;ROOM.video.scale.set(vw/600,vh/360,1);ROOM.video.position.set(roomLocal(center).x,center.y+height*.30,-399);
-   const ray=new THREE.Raycaster();ray.setFromCamera({x:0,y:.70},camera);const pos=ray.ray.intersectPlane(new THREE.Plane(V(0,1,0),-1),V());if(pos)topReference.position.copy(pos);const th=height*.23,tw=Math.min(width*.65,th*ratio);topReference.scale.set(tw/360,th/202.5,1);
-  }else{ROOM.video.scale.set(1,1,1);ROOM.video.position.set(0,230,-399);}
-
-  S.plane=cfg.plane;controls.enableRotate=false;controls.enablePan=false;controls.enableZoom=false;controls.enabled=!S.tx;
+  const r=$('#stage').getBoundingClientRect(),aspect=r.width/Math.max(1,r.height);
+  camera=perspective;controls.object=camera;controls.enableDamping=false;
+  camera.aspect=aspect;camera.fov=38;camera.clearViewOffset();controls.target.set(0,115,0);
+  camera.up.set(0,1,0);camera.position.copy(controls.target).addScaledVector(V(0,.4,.9165).normalize(),1000*Math.max(1,1.25/aspect));
+  camera.lookAt(controls.target);camera.updateProjectionMatrix();camera.updateMatrixWorld(true);
+  ROOM.yaw=0;ROOM.group.rotation.set(0,0,0);ROOM.group.updateMatrixWorld(true);
+  ROOM.video.scale.set(1,1,1);ROOM.video.position.set(0,230,-399);
+  S.plane='xyz';controls.enableRotate=controls.enablePan=controls.enableZoom=false;controls.enabled=false;
   refreshImageTracks();if(rebase)rebaseHeld();feedbackGeometry();refresh();
  }
  function setFace(face){
-  if(!Core.FACES[face])return false;
-  const before=checkpoint();state.face=face;state.picks.clear();state.lastTarget=null;hover(null);document.body.dataset.spatialFace=face;applyCamera(true);
-  $('#faceName').textContent=config().name;$$('[data-spatial-face]').filter(e=>e.tagName==='BUTTON').forEach(b=>b.setAttribute('aria-pressed',b.dataset.spatialFace===face));
-  $('#viewInstruction').textContent=face==='desk'?'Camera registered · estimated desk plane':'Inspect '+config().name.toLowerCase()+' · pinch a cube face to switch';
-  const spans=$('footer>.depth-row').querySelectorAll(':scope > span');spans[0].textContent=config().low;spans[1].textContent=config().high;
-  $('#depth').setAttribute('aria-label',config().axis+' of selection');$('#depthReadout').textContent=config().instruction;
-  if(checkpoint()!==before)throw Error('View transition moved world objects');
-  feedback('tick',.2,.85);note(config().name+' · '+config().instruction+(S.tx?' · held pieces stay in place':''),'VIEW');return true;
+  const turns={front:0,right:1,back:2,left:3,room:state.quarter,desk:0,top:state.quarter};
+  if(!(face in turns))return false;
+  state.face='room';state.quarter=turns[face];state.picks.clear();state.lastTarget=null;hover(null);
+  plate.rotation.y=state.quarter*Math.PI/2;plate.updateMatrixWorld(true);rebaseHeld();
+  document.body.dataset.spatialFace='room';$('#faceName').textContent=state.quarter*90+'°';
+  feedbackGeometry();refresh();feedback('tick',.2,.85);note('Plate '+state.quarter*90+'° · room and camera stay fixed','PLATE');return true;
  }
+ function rotatePlate(step){return setFace(['front','right','back','left'][(state.quarter+step+4)%4]);}
  updateRoomCamera=function(){applyCamera(true);};applyRegistration=function(){applyCamera(true);};
- orbitRoom=function(degrees,tilt=0){return setFace(tilt?tilt>0?'top':'front':Core.nextFace(state.face,degrees<0?-1:1));};
- resetRoom=function(){return setFace('desk');};
- view=function(name){return setFace(({iso:'desk',front:'front',top:'top',side:'right'})[name]||'desk');};
- $('#fit').onclick=()=>setFace('desk');$$('[data-view]').forEach(b=>b.onclick=()=>view(b.dataset.view));
+ orbitRoom=function(degrees){return rotatePlate(degrees<0?-1:1);};resetRoom=function(){return setFace('front');};
+ view=function(name){return setFace(({iso:'front',front:'front',top:'room',side:'right'})[name]||'front');};
+ $('#fit').onclick=()=>setFace('front');$$('[data-view]').forEach(b=>{b.onclick=()=>view(b.dataset.view);b.hidden=true;});
  // The event router treats gizmo faces as named actions shared by touch and hands.
  function faceUnderPoint(point){const r=$('#stage').getBoundingClientRect(),x=r.left+point.x*r.width,y=r.top+point.y*r.height;for(const b of $$('#faceGizmo button')){const q=b.getBoundingClientRect();if(x>=q.left&&x<=q.right&&y>=q.top&&y<=q.bottom)return b;}return null;}
  function handleHands(tracks,now){
@@ -110,35 +126,27 @@
  // No per-pixel or grid-crossing chatter. Acquisition, approach, fit, and contact differ.
  surfaceCue=function(){};
  function applyVisualFrame(){
-  const desk=state.face==='desk',model=B.mode==='model';ROOM.group.visible=!desk||model;
-  ROOM.video.visible=!desk&&state.face!=='top'&&H.active&&!model;
-  topReference.visible=state.face==='top'&&H.active&&!model;
-  if(state.face==='top')ROOM.group.visible=false;
-  floor.material.opacity=desk&&!model?.08:1;floor.material.depthWrite=!desk||model;grid.material.opacity=desk&&!model?.24:.42;
-  scene.background=null;
-  // The registered view uses the actual mirrored camera pixels. The projected
-  // cutout is reserved for virtual inspection, where it represents an action.
-  for(const v of B.visuals.values())if(v.soft)v.soft.mesh.visible=!desk&&v.soft.mesh.visible;
-  $('#viewInstruction').textContent=desk?'Camera registered · estimated desk plane':config().name+' · '+config().plane.toUpperCase()+' visible · '+config().axis+' on other hand';
-  if(S.tx)$('#selectionHint').textContent=state.viewHand!=null?'Open the view hand to resume moving':config().instruction+' · free hand can pinch a cube face';
+  ROOM.group.visible=true;ROOM.video.visible=H.active&&B.mode!=='model';topReference.visible=false;
+  floor.material.opacity=1;floor.material.depthWrite=true;grid.material.opacity=.42;scene.background=new THREE.Color(0x111c20);
+  $('#viewInstruction').textContent='Fixed room · turn the plate · two inputs, three directions';
+  if(S.tx)$('#selectionHint').textContent='Grip moves across screen · other palm or mouse drag moves in / out';
  }
  function frame(now){if(S.tx?.viewRebased&&['hand','pointer'].includes(S.tx.source)&&S.tx.samples.length>=3&&S.tx.samples.at(-1).time-S.tx.samples[0].time>=100){S.tx.noThrow=false;S.tx.viewRebased=false;}applyVisualFrame();if(now-state.lastFrame<55)return;state.lastFrame=now;drawSpatialCue(now);}
  function prepareUI(){
-  document.title='WAG / HAND BUTTER 03';$('.stage-label').innerHTML='<b>BUTTER 03</b>';$('.left-rail').remove();$('.right-rail').remove();
-  $('#stage').insertAdjacentHTML('beforeend','<nav id="faceGizmo" aria-label="Snap view to a face"><output id="faceName">DESK</output><div class="view-cube"><button data-spatial-face="top" aria-label="Snap to top view">TOP</button><button data-spatial-face="front" aria-label="Snap to front view">FRONT</button><button data-spatial-face="right" aria-label="Snap to right view">SIDE</button></div><div class="face-turn"><button data-step="-1" aria-label="Previous side, 90 degrees">↶</button><button data-step="1" aria-label="Next side, 90 degrees">↷</button></div><button data-spatial-face="desk" aria-label="Return to registered desk view">DESK</button><small>point + pinch</small></nav><div id="viewInstruction"></div><div id="spatialReadout" hidden><b></b><span></span></div>');
-  $$('#faceGizmo [data-spatial-face]').forEach(b=>b.onclick=()=>setFace(b.dataset.spatialFace));$$('#faceGizmo [data-step]').forEach(b=>b.onclick=()=>setFace(Core.nextFace(state.face,+b.dataset.step)));
-  $('#roomMode').textContent='3D ROOM';$('#roomMode').onclick=()=>setFace('room');const displayMode=document.createElement('button');displayMode.id='displayMode';displayMode.textContent='Camera: room';displayMode.onclick=()=>{setRoomMode(['room','ghost','model'][(['room','ghost','model'].indexOf(B.mode)+1)%3]);displayMode.textContent='Camera: '+B.mode;$('#roomMode').textContent='3D ROOM';};$('.advanced-buttons').appendChild(displayMode);
-  $('#setTable').textContent='Set desk';$('#setTable').onclick=()=>{if(S.tx)return note('Release before setting the desk.','HELD');setFace('desk');B.setting=!B.setting;$('#setTable').textContent=B.setting?'Cancel desk':'Set desk';closeDrawers();note(B.setting?'Tap where the center of your desk should meet the virtual grid.':'Desk registration cancelled.','DESK');};
-  setTableAt=function(p){if(S.tx)return;B.table={x:Math.max(.1,Math.min(.9,p.x)),y:Math.max(.2,Math.min(.9,p.y))};B.setting=false;applyCamera();$('#setTable').textContent='Set desk';note('Desk position registered visually · keep the camera still.','DESK');};
+  document.title='WAG / HAND BUTTER 04';$('.stage-label').innerHTML='<b>BUTTER 04</b>';$('.left-rail').remove();$('.right-rail').remove();
+  $('#stage').insertAdjacentHTML('beforeend','<nav id="faceGizmo" aria-label="Rotate build plate"><output id="faceName">0°</output><div class="face-turn"><button data-step="-1" aria-label="Turn plate left 90 degrees">↶</button><button data-step="1" aria-label="Turn plate right 90 degrees">↷</button></div><button data-spatial-face="front" aria-label="Reset plate orientation">PLATE</button><small>point + pinch</small></nav><div id="viewInstruction"></div><div id="spatialReadout" hidden><b></b><span></span></div>');
+  $$('#faceGizmo [data-spatial-face]').forEach(b=>b.onclick=()=>setFace(b.dataset.spatialFace));$$('#faceGizmo [data-step]').forEach(b=>b.onclick=()=>rotatePlate(+b.dataset.step));
+  $('#roomMode').textContent='ROOM';$('#roomMode').onclick=()=>{setRoomMode(['room','ghost','model'][(['room','ghost','model'].indexOf(B.mode)+1)%3]);};
+  $('#setTable').textContent='Calibrate';$('#setTable').onclick=()=>window.ButterInput?.start();
   // Keep essential actions in one row. Extra group edits remain in a drawer.
   const edit=document.createElement('button');edit.id='selectionEdit';edit.textContent='Edit';edit.setAttribute('aria-expanded','false');$('#selectionTools').insertBefore(edit,$('#selectionActions'));
   for(const id of ['boxSelect','allSelect','copy','rotate','assembly','clear','remove'])$('.advanced-buttons').appendChild($('#'+id));
   $('#seat').textContent='Land';$('#seat').title='Lower to the visible landing ghost';$('#seat').onclick=()=>{if(S.tx){const result=landing();if(!result?.valid)return note('Move to a clear landing position first.','BLOCKED');const t=S.tx;t.noThrow=true;t.magnet=null;selected().forEach(p=>{p.x+=result.delta.x;p.y+=result.delta.y;p.z+=result.delta.z;sync(p);});releaseHand('Landed');}else seat();};
   edit.remove();$('#selectionTools').insertBefore($('#moreTools'),$('#selectionActions'));$('#moreTools').textContent='Edit';$('#group').addEventListener('click',()=>{if(S.multi)note('Tap pieces to add them. Done selecting lets the group move together.','SELECT');});
-  $('#help').insertAdjacentHTML('afterbegin','<p><b>SPATIAL VIEWS:</b> DESK registers camera pixels and hand pointing. TOP separates near/far; FRONT separates high/low; SIDE shows height and depth. Pinch a labeled cube face with your free hand to snap the view while holding. Open palm up pushes away in DESK/FRONT; in TOP it lifts. Height and depth never share the same movement vector. Set desk is visual registration, not a measured digital twin.</p>');
+  $('#help').insertAdjacentHTML('afterbegin','<p><b>FIXED ROOM:</b> The plate turns by 90° while the camera and back wall stay fixed. One input holds; the other moves through the screen. Use two hands, or a hand and mouse. Calibrate teaches comfortable reach; a separate eight-corner check measures control.</p>');
  }
  prepareUI();
- window.ButterSpatialRuntime={state:()=>({face:state.face,projection:camera.type,axis:config().axis,viewHand:state.viewHand,landing:state.landing?{gap:state.landing.gap,valid:state.landing.valid,connected:state.landing.connected}:null}),setFace,handleHands,frame,candidates,normalizedLandmark,hiddenDelta:amount=>Core.hiddenDelta(state.face,amount),landing,rebaseHeld};
- ButterStage.orbit=orbitRoom;ButterStage.home=resetRoom;Butter.setTableAt=setTableAt;Butter.imagePoint=imagePoint;Butter.projectHand=(m,d)=>project(worldPoint(m,d));
- setFace('desk');
+ window.ButterSpatialRuntime={state:()=>({face:state.face,projection:camera.type,axis:config().axis,viewHand:state.viewHand,landing:state.landing?{gap:state.landing.gap,valid:state.landing.valid,connected:state.landing.connected}:null}),setFace,rotatePlate,plate,rawProject,handleHands,frame,candidates,normalizedLandmark,hiddenDelta:amount=>depthDirection().multiplyScalar(amount).toArray(),landing,rebaseHeld};
+ ButterStage.orbit=orbitRoom;ButterStage.home=resetRoom;Butter.setTableAt=setTableAt;Butter.imagePoint=imagePoint;Butter.projectHand=(m,d)=>rawProject(worldPoint(m,d));
+ applyCamera();setFace('front');
 })();
