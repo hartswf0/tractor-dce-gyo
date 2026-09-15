@@ -57,7 +57,7 @@
   const r=$('#stage').getBoundingClientRect(),aspect=r.width/Math.max(1,r.height);
   camera=perspective;controls.object=camera;controls.enableDamping=false;
   camera.aspect=aspect;camera.fov=38;camera.clearViewOffset();controls.target.set(0,115,0);
-  camera.up.set(0,1,0);camera.position.copy(controls.target).addScaledVector(V(0,.4,.9165).normalize(),1000*Math.max(1,1.25/aspect));
+  camera.up.set(0,1,0);camera.position.copy(controls.target).addScaledVector(V(0,.4,.9165).normalize(),1200*Math.max(1,1.25/aspect));
   camera.lookAt(controls.target);camera.updateProjectionMatrix();camera.updateMatrixWorld(true);
   ROOM.yaw=0;ROOM.group.rotation.set(0,0,0);ROOM.group.updateMatrixWorld(true);
   ROOM.video.scale.set(1,1,1);ROOM.video.position.set(0,230,-399);
@@ -89,7 +89,7 @@
   }
   return false;
  }
- function candidates(x,y){const r=$('#stage').getBoundingClientRect();raycaster.setFromCamera({x:x/r.width*2-1,y:1-y/r.height*2},camera);const unique=new Map();for(const h of raycaster.intersectObjects(S.parts.map(p=>p.mesh),false)){const id=h.object.userData.partId;if(!unique.has(id))unique.set(id,{id,distance:h.distance});}return [...unique.values()];}
+ function candidates(x,y){const r=$('#stage').getBoundingClientRect();raycaster.setFromCamera({x:x/r.width*2-1,y:1-y/r.height*2},camera);const unique=new Map();for(const h of raycaster.intersectObjects([...S.parts.map(p=>p.mesh),...(window.ButterInput?.targets()||[])],false)){const id=h.object.userData.partId;if(!unique.has(id))unique.set(id,{id,distance:h.distance});}return [...unique.values()];}
  pick=function(x,y,source='pointer'){const hits=candidates(x,y),channel=source,prev=state.picks.get(channel),id=Core.chooseTarget(hits,prev,{x,y});if(id){state.picks.set(channel,{id,x:prev?.id===id?prev.x:x,y:prev?.id===id?prev.y:y});state.lastTarget={id,channel,count:hits.length,time:performance.now()};}else{state.picks.delete(channel);if(state.lastTarget?.channel===channel)state.lastTarget=null;}return id;};
  function targetPart(){return S.tx?selected()[0]:state.lastTarget&&performance.now()-state.lastTarget.time<250?S.parts.find(p=>p.id===state.lastTarget.id):selected()[0];}
  function landing(){
@@ -133,7 +133,7 @@
  }
  function frame(now){if(S.tx?.viewRebased&&['hand','pointer'].includes(S.tx.source)&&S.tx.samples.length>=3&&S.tx.samples.at(-1).time-S.tx.samples[0].time>=100){S.tx.noThrow=false;S.tx.viewRebased=false;}applyVisualFrame();if(now-state.lastFrame<55)return;state.lastFrame=now;drawSpatialCue(now);}
  function prepareUI(){
-  document.title='WAG / HAND BUTTER 05';$('.stage-label').innerHTML='<b>BUTTER 05</b>';$('.left-rail').remove();$('.right-rail').remove();
+  document.title='WAG / HAND BUTTER 06';$('.stage-label').innerHTML='<b>BUTTER 06</b>';$('.left-rail').remove();$('.right-rail').remove();
   $('#stage').insertAdjacentHTML('beforeend','<nav id="faceGizmo" aria-label="Rotate build plate"><output id="faceName">0°</output><div class="face-turn"><button data-step="-1" aria-label="Turn plate left 90 degrees">↶</button><button data-step="1" aria-label="Turn plate right 90 degrees">↷</button></div><button data-spatial-face="front" aria-label="Reset plate orientation">PLATE</button><small>point + pinch</small></nav><div id="viewInstruction"></div><div id="spatialReadout" hidden><b></b><span></span></div>');
   $$('#faceGizmo [data-spatial-face]').forEach(b=>b.onclick=()=>setFace(b.dataset.spatialFace));$$('#faceGizmo [data-step]').forEach(b=>b.onclick=()=>rotatePlate(+b.dataset.step));
   $('#roomMode').textContent='ROOM';$('#roomMode').onclick=()=>{setRoomMode(['room','ghost','model'][(['room','ghost','model'].indexOf(B.mode)+1)%3]);};
