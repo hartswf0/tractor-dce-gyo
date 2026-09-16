@@ -29,5 +29,7 @@ async function addNativePart(entry){
  const a=selected(),target=a.length?bounds(a[0]):null,before=checkpoint();const p=create({id:'p'+S.next++,part:id,color:S.color,x:target?(target.min.x+target.max.x)/2:0,y:target?target.max.y:12,z:target?(target.min.z+target.max.z)/2:0,r:0});S.selected=new Set([p.id]);record(before);refresh();const option=document.createElement('option');option.value=p.id;option.textContent=entry.name;$('#sceneAssembly').append(option);$('#sceneAssembly').value=p.id;if(!active)active={format:'odyssey-butter-scene',version:1,name:'Hand Butter assembly',objects:[]};stat(entry.name+' added above selection. Move or turn to place.');
 }
 if(new URLSearchParams(location.search).has('monkeyWorkshop')){bar.querySelector('strong').textContent='MONKEY BUSINESS · ASSEMBLIES';for(const id of ['sceneRecent','sceneLoadFile','sceneSaveFile'])$('#'+id).hidden=true;bar.querySelector('a').hidden=true;}
-window.ButterSceneLoader={load,fit,addNativePart,snapshot,get ready(){return !!S.ready;}};
+function viewState(){return {position:camera.position.toArray(),target:controls.target.toArray(),fov:camera.fov};}
+async function addAssembly(item){const doc=snapshot(),obj=new THREE.ObjectLoader().parse(item.object),box=new THREE.Box3().setFromObject(obj),size=box.getSize(V()),center=box.getCenter(V());const g=new THREE.Group();g.add(obj);obj.position.sub(center);obj.position.y+=size.y/2;g.scale.setScalar(Math.min(1,80/Math.max(size.y,1)));g.position.set(100,0,80);doc.objects.push({name:item.name,kind:'assembly',object:g.toJSON()});await load(doc);}
+window.ButterSceneLoader={load,fit,addNativePart,snapshot,viewState,addAssembly,get ready(){return !!S.ready;}};
 })();
