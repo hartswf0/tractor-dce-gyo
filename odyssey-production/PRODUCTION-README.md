@@ -4,6 +4,8 @@ Start with **[Scene & test library](scene-library.html)**. Search, filter by typ
 
 ## New: Monkey Business and separate Hand Butter
 
+**[Monkey-only shot workshop](monkey-butter.html)** — scrub all 13 shots, edit any moment in Hand Butter, keep named variations, and export/import a project. [Guide and limitations](MONKEY-WORKSHOP.md).
+
 **[Watch Monkey Business](films/NIGHT-SHIFT.mp4)** — finished 83-second short with voices, music, effects, animated workstations and 13 directed shots. **[Rehearse / edit a snapshot](monkey-film.html)**. See [cut and source notes](MONKEY-CUT.md).
 
 **[Hand Butter workshop](native/hand-butter-scenes.html)** is a separate app. Transfer a current scene moment from the film, Cinerium or Word to World, then move/copy assemblies, search the large LDraw library, and save an adapted JSON scene. Mobile uses a scrolling parts drawer while retaining the scene view. Assembly snapshots do not retain animation rigs or return edits to the film automatically.

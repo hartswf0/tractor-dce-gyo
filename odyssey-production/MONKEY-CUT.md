@@ -20,6 +20,8 @@ The cast uses native LDraw 2550 monkey bodies, articulated 3818/3819 arms and 38
 
 ## Hand Butter
 
+The dedicated [Monkey Business workshop](monkey-butter.html) provides all 13 shots, a film scrubber, named editable states and portable project files. See [the workshop guide](MONKEY-WORKSHOP.md).
+
 **Open in Hand Butter** transfers the current moment into the independent `native/hand-butter-scenes.html` app via same-origin IndexedDB. It transfers geometry as named assemblies. Save an adapted scene there to keep the geometry. This is a staging snapshot: it does not transfer the film's animation curves, score, voice tracks or live actor rigs. Editing individual limbs through a semantic rig and returning changes to the film remain unimplemented.
 
 ## Final export and verification
