@@ -6,13 +6,13 @@ from pathlib import Path
 from urllib.parse import urlsplit, unquote
 
 ROOT = Path(__file__).resolve().parent
-WORK = ROOT.parent.parent / 'work'
+WORK = ROOT / 'captures'
 parser = argparse.ArgumentParser()
 parser.add_argument('--halfworld', default=str(ROOT / 'halfworld'))
 parser.add_argument('--native', default=str(ROOT / 'native'))
 parser.add_argument('--port', type=int, default=8917)
 args = parser.parse_args()
-MOUNTS = {'/films/': ROOT / 'films', '/native/': Path(args.native), '/halfworld/': Path(args.halfworld), '/': ROOT}
+MOUNTS = {'/ldraw/': ROOT.parent / 'ldraw', '/films/': ROOT / 'films', '/native/': Path(args.native), '/halfworld/': Path(args.halfworld), '/': ROOT}
 class Handler(SimpleHTTPRequestHandler):
     def translate_path(self, path):
         p = unquote(urlsplit(path).path)
