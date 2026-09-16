@@ -445,7 +445,7 @@
 
 		if ( numGroupVerts > 0 ) {
 
-			bufferGeometry.addGroup( index0, Infinity, materials.length - 1 );
+			bufferGeometry.addGroup( index0, numGroupVerts, materials.length - 1 );
 
 		}
 
