@@ -828,7 +828,7 @@ async function boot() {
     for (const [name, g] of W.geoms) W.debris.register(name, g.geom, name.startsWith('wall') ? 600 : 200);
     for (const [name, g] of W.raw) W.debris.register(name, g, 120);
     for (const [part, k] of W.build.kinds) W.debris.register('b:' + part, k.geom, 200); W.build.onKind = (part, geom) => W.debris.register('b:' + part, geom, 200);
-    W.props = new Props.Props({ scene: W.scene, loader: W.loader, M, debris: W.debris }); W.props.onEdit = ops => queueEdit(ops, 'prop'); W.kits = Kits.create({ props: W.props, fetchText: url => fetchText(url) }); W.vehicles = Vehicles.create({ W, M });
+    W.props = new Props.Props({ scene: W.scene, loader: W.loader, M, debris: W.debris }); W.props.onEdit = ops => queueEdit(ops, 'prop'); W.kits = Kits.create({ props: W.props, fetchText: url => fetchText(url) }); if (window.Donors) W.donors = Donors.create({ props: W.props, scene: W.scene, fetchText: u => fetch(u).then(r => { if (!r.ok) throw new Error(r.status + ' ' + u); return r.text(); }) }); W.vehicles = Vehicles.create({ W, M });
     W.traffic = Traffic.create({ scene: W.scene, M, props: W.props, G: null, debris: W.debris });
     W.bolts = new Characters.Bolts({ scene: W.scene, M, groundH: WORLD.groundH });
     W.crowd = new Characters.Crowd({ scene: W.scene, M, geoms: W.raw, colours: W.colours, groundH: WORLD.groundH });
@@ -1027,7 +1027,7 @@ function bindFilm() {
     window.addEventListener('keydown', e => { if (e.key === 'Escape' && document.body.classList.contains('theatre')) theatre(false); });
   } }
   if ($('#fbTheatre')) $('#fbTheatre').onclick = () => theatre(!document.body.classList.contains('theatre'));
-  if (Q.get('film') && (Film.TRAILERS[Q.get('film')] || Film.SCENES[Q.get('film')])) { F.trailer(Q.get('film')); if (Q.get('theatre') != null) theatre(true); if (Q.get('play') != null) setTimeout(() => F.playAll(), 1500); }
+  if (Q.get('film') && (Film.TRAILERS[Q.get('film')] || Film.SCENES[Q.get('film')])) { if (Q.get('rehearse') != null) { F.rehearse.on = true; F.rehearse.want = Q.get('part') || 'scene'; } F.trailer(Q.get('film')); if (Q.get('theatre') != null) theatre(true); if (Q.get('play') != null) setTimeout(() => F.playAll(), 1500); if (Q.get('rehearse') != null) setTimeout(() => { const b = document.getElementById('fbPerform'), p = document.getElementById('perform'); if (b && p && p.hidden) b.click(); }, 800); }
   else if (Q.get('theatre') != null) theatre(true);
   paintReel(); wbHint();
 }

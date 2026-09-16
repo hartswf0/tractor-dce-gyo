@@ -24,8 +24,8 @@ class Props {
   toRow(p) { const f = this.frame, r = [p.id, p.mpd, Math.round(p.x - f.ax), Math.round(p.y + f.datum), Math.round(p.z - f.az), yawOf(p.yaw)]; if (p.src) r.push(p.src); return r; }   // src: the build op that made it, so a read build can say it again
   fromRow(r) { const f = this.frame; return { id: r[0], mpd: String(r[1] || ''), x: r[2] + f.ax, y: r[3] - f.datum, z: r[4] + f.az, yaw: yawOf(r[5]), src: r[6] && typeof r[6] === 'object' ? r[6] : null }; }
   /** Parse LDraw text through the shared loader, one at a time. Resolves to a Group in LDraw's frame. */
-  parse(text, name) {
-    const run = () => new Promise((res, rej) => { try { const t = setTimeout(() => rej(new Error('parse timed out')), 30000); this.loader.parse(text, name || 'prop.mpd', g => { clearTimeout(t); this.parsed++; res(g); }); } catch (e) { rej(e); } });
+  parse(text, name, opts) {
+    const ms = (opts && opts.timeout) || 30000; const run = () => new Promise((res, rej) => { try { const t = setTimeout(() => rej(new Error('parse timed out')), ms); this.loader.parse(text, name || 'prop.mpd', g => { clearTimeout(t); this.parsed++; res(g); }); } catch (e) { rej(e); } });
     const p = this.queue.then(run, run); this.queue = p.catch(() => { }); return p;
   }
   /** Add a prop (window frame: x, z its centre, y its ground, yaw quarter turns). Resolves to the item once it is in the scene. */
