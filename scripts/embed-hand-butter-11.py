@@ -5,8 +5,9 @@ import re
 root=Path(__file__).resolve().parents[1]
 page=root/'WAG-HAND-BUTTER-11.HTML'
 text=page.read_text()
-for name in ['eye-scenes','cast-controls','catalog','scenes-data','scenes']:
-    source=(root/'src/hand-butter-11'/('scenes.json' if name=='scenes-data' else f'{name}.{"json" if name=="catalog" else "js"}')).read_text()
+for name in ['eye-scenes','cast-controls','catalog','scenes-data','scenes','movieator','movieator-index','movieator-props','operator-picker']:
+    source=(root/'src/hand-butter-11'/('scenes.json' if name=='scenes-data' else f'{name}.{"json" if name in ["catalog","movieator-index"] else "js"}')).read_text()
+    if name=='movieator-index':source='window.ButterMovieatorIndex='+source+';'
     if name=='catalog':source='window.ButterAssetCatalog='+source+';'
     if name=='scenes-data':source='window.ButterScenePresets='+source+';'
     if '</script' in source.lower():raise ValueError('Unexpected closing script tag')
