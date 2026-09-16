@@ -210,29 +210,6 @@ const Ai = {
     return `${bits.length ? bits.join('. ') + '.\n' : ''}BUILD BRIEF: ${prompt}\nChoose the scale yourself. Make it read correctly at first glance; do not fill the 40×40 workspace just because it exists.`;
   },
 
-  /** Infer one embodied speech act from words plus the synchronized gesture/world trace.
-      The model chooses the operation; the world still validates every referenced id and coordinate. */
-  async inferAct(packet, opts = {}) {
-    const parseAct = raw => {
-      let p = null; try { p = JSON.parse(raw); } catch (e) { const m = String(raw || '').match(/\{[\s\S]*\}/); if (m) try { p = JSON.parse(m[0]); } catch (x) { } }
-      if (!p || typeof p !== 'object' || !p.act) throw new Error('the model did not return a speech act');
-      return p;
-    };
-    const system = `You are the deictic interpreter inside an inhabitable LEGO world. Infer what the person is doing from one synchronized speech-and-gesture packet.
-
-The utterance is not sufficient by itself. Resolve THIS/THAT/THESE/IT from object hits and pinches near the corresponding part of the trace. Resolve HERE/THERE/BEHIND/BESIDE/TOWARD from ground hits, motion and the final stable point. Prefer a visible bound selection over guessing. An id is a capability: use only candidate ids and coordinates supplied in the packet.
-
-Return exactly one JSON object:
-{"act":"move|copy|remove|turn|taller|walk|build|change|clarify|stop|undo","referent_id":string|null,"destination":[x,y,z]|null,"relation":string|null,"count":number,"words":string,"program":object|null,"clarification":string|null,"say":string,"confidence":number}
-
-Use clarify when the evidence does not identify a unique referent or destination. Never invent an id. Simple spatial acts do not need a program. For BUILD, infer the requested object and return a complete executable program {"name":string,"ops":array} using the DSL below; use destination as its anchor. CHANGE may use words for a later model edit. Keep say under twelve words.
-
-${window.Dsl && window.Dsl.SPEC || ''}`;
-    const text = `SYNCHRONIZED SPEECH ACT PACKET (JSON):\n${JSON.stringify(packet)}\n\nInfer the intended embodied operation. JSON only.`;
-    const out = await this.request(text, { key: opts.key || this.key(), signal: opts.signal, stage: 'GESTURE + VOICE', detail: 'resolving reference and operation', effort: 'medium', system, parse: parseAct });
-    return out.program;
-  },
-
   /* The ladder when the model spends all its output room on private reasoning: the same text again with less reasoning, twice at most. */
   async requestSafely(text, opts = {}) {
     const ladder = ['max', 'high', 'medium']; let err = null;

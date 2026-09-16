@@ -1,0 +1,41 @@
+/* Original controls, bounded below a separately sized scene. */
+body.operator-surface{--operator-floor:130px}
+body.operator-surface #stage{inset:0 0 auto;bottom:auto}
+#operatorDock{position:fixed;left:0;right:0;bottom:0;z-index:7;max-height:42vh;max-height:calc(var(--operator-height,100dvh)*.42);display:flex;flex-direction:column;background:var(--sky);border-top:1px solid rgba(80,90,100,.3);overflow:hidden;padding-bottom:env(safe-area-inset-bottom)}
+#operatorTools{overflow:auto;min-height:0;overscroll-behavior:contain}
+#operatorBar{min-height:0;overflow:auto;flex-shrink:0;max-height:calc(var(--operator-height,100dvh)*.36)}
+body.operator-surface #wb{position:static;padding:5px 8px;gap:5px;background:var(--sky);pointer-events:auto}
+body.operator-surface #wbTop{flex-wrap:nowrap;overflow-x:auto;justify-content:flex-start;padding-bottom:2px}
+#operatorDock #wbTop button{flex-shrink:0;min-height:36px;box-shadow:none}
+#operatorDock #wbStat{min-width:70px}
+#operatorDock #words{min-width:0;height:48px;font-size:16px}
+#operatorDock #wbBuild,#operatorDock #wbRead{height:48px;box-shadow:none}
+#operatorDock #wbSheet{flex-wrap:nowrap;overflow-x:auto;flex-shrink:0}
+#operatorDock #wbSheet>*{flex-shrink:0}
+#operatorDock #wbCode,#operatorDock #wbLog{max-height:130px}
+#operatorDock #wbOps,#operatorDock #wbJson,#operatorDock #wbLogText{max-height:100px;min-height:0}
+#operatorDock #wbSay{position:static;transform:none;margin:5px auto;height:42px;box-shadow:none}
+#operatorDock #pttStart,#operatorDock #pttArrange,#operatorDock #pttAsk{position:static!important;transform:none;border-radius:9px;padding:0 10px;font:12px var(--sans);height:36px;min-height:36px;letter-spacing:0;box-shadow:none}
+#operatorDock #ptt{display:flex!important;position:static!important;width:auto!important;max-height:none!important;overflow:visible;background:transparent;padding:6px;pointer-events:auto}
+#operatorDock #pttView{position:relative!important;inset:auto!important;width:128px;min-height:96px;flex-shrink:0;aspect-ratio:4/3}
+#operatorDock #pttMode{display:flex}
+#operatorDock #pttLine{box-shadow:none}
+#operatorDock #pttState{padding:4px 8px}
+#operatorDock #pttActions>div{gap:5px}
+#operatorDock #pttActions button{min-height:36px}
+#operatorDock #pttForm[hidden],#operatorDock [hidden]{display:none!important}
+#operatorDock #pttLog{max-height:90px;overflow-wrap:anywhere}
+#operatorDock #menu,#operatorDock #find,#operatorDock #palette{position:static!important;width:auto;max-width:100%;box-shadow:none;margin:0;padding:6px 8px}
+#operatorDock #find{display:none}#operatorDock #menu.open+#find{display:flex}
+#operatorDock #menu .row{flex-wrap:wrap}
+#operatorDock #menu button{min-height:36px}
+#operatorDock #palette .tools{flex-wrap:nowrap;overflow:auto}
+body.operator-surface #minimap{bottom:calc(var(--operator-floor) + 76px);width:88px;height:88px}
+body.operator-surface #det,body.operator-surface #build{bottom:calc(var(--operator-floor) + 10px);width:46px;height:46px}
+body.operator-surface #prompt{bottom:calc(var(--operator-floor) + 62px);height:42px;max-width:70vw;font-size:11px;padding:0 14px}
+body.operator-surface #hint,body.operator-surface #keys{bottom:calc(var(--operator-floor) + 8px);font-size:9px;white-space:normal}
+body.operator-surface #top{padding:6px 10px;gap:8px}
+body.operator-surface #top .n{font-size:13px}body.operator-surface #stat{font-size:9px;max-width:44vw}
+body.operator-surface #shield{top:42px}
+body.operator-surface #menuBtn{top:50px;height:32px}
+@media(max-width:620px){#operatorDock #wbTop{gap:4px}#operatorDock #wbTop button{padding:0 8px}#operatorDock #credit{font-size:8px}body.operator-surface #hint,body.operator-surface #keys{display:none}}

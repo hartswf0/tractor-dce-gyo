@@ -670,7 +670,6 @@ function setTier(tier) {
 const MOVE = { x: 0, z: 0, mag: 0 };
 function simulate(dt) {
   W.t += dt; readKeys(); if (W.film) W.film.step(dt);
-  if(window.PutThatThere)window.PutThatThere.beforeStep(dt);
   const portrait = innerHeight > innerWidth, I = W.input, d = Minifig.DEFS[W.character];
   if (W.mode === 'walk') {
     if (W.dead) { W.dead -= dt; if (W.dead <= 0) respawn(); I.saber = false; I.push = false; }
@@ -678,7 +677,6 @@ function simulate(dt) {
       if (W.film && W.film.holds()) { MOVE.x = MOVE.z = MOVE.mag = 0; I.saber = false; I.push = false; } else if (W.film && W.film.acting()) W.film.move(MOVE); else Minifig.moveFromStick(W.rig, I.L, MOVE);   // a free film camera takes the thumbs; a shot with an act walks the figure
       const building = !!(W.build && W.build.on), wantsShot = I.saber && !building && !d.saber && !!d.weapon, wantsShove = I.saber && !building && !d.saber && !d.weapon;
       Minifig.step(W.rig, dt, { move: MOVE, run: I.run || !!(W.film && W.film.running), saber: I.saber && !building, aim: wantsShot }, WALK);
-      if(window.PutThatThere)window.PutThatThere.afterPose(dt);
       if (wantsShot) { const p = new THREE.Vector3(), dir = new THREE.Vector3(); Minifig.muzzle(W.rig, p); Minifig.facing(W.rig, dir); dir.y = -0.02; W.bolts.fire(p, dir, 'player'); }   // the bolt leaves the barrel, level with the ground
       if (wantsShove) forcePush();
       I.saber = false;
@@ -830,7 +828,7 @@ async function boot() {
     for (const [name, g] of W.geoms) W.debris.register(name, g.geom, name.startsWith('wall') ? 600 : 200);
     for (const [name, g] of W.raw) W.debris.register(name, g, 120);
     for (const [part, k] of W.build.kinds) W.debris.register('b:' + part, k.geom, 200); W.build.onKind = (part, geom) => W.debris.register('b:' + part, geom, 200);
-    W.props = new Props.Props({ scene: W.scene, loader: W.loader, M, debris: W.debris }); W.props.onEdit = ops => queueEdit(ops, 'prop'); W.kits = Kits.create({ props: W.props, fetchText: url => fetchText(url) }); if (window.Donors) W.donors = Donors.create({ props: W.props, scene: W.scene, fetchText: u => fetch(u).then(r => { if (!r.ok) throw new Error(r.status + ' ' + u); return r.text(); }) }); W.vehicles = Vehicles.create({ W, M });
+    W.props = new Props.Props({ scene: W.scene, loader: W.loader, M, debris: W.debris }); W.props.onEdit = ops => queueEdit(ops, 'prop'); W.kits = Kits.create({ props: W.props, fetchText: url => fetchText(url) }); W.vehicles = Vehicles.create({ W, M });
     W.traffic = Traffic.create({ scene: W.scene, M, props: W.props, G: null, debris: W.debris });
     W.bolts = new Characters.Bolts({ scene: W.scene, M, groundH: WORLD.groundH });
     W.crowd = new Characters.Crowd({ scene: W.scene, M, geoms: W.raw, colours: W.colours, groundH: WORLD.groundH });
@@ -1029,7 +1027,7 @@ function bindFilm() {
     window.addEventListener('keydown', e => { if (e.key === 'Escape' && document.body.classList.contains('theatre')) theatre(false); });
   } }
   if ($('#fbTheatre')) $('#fbTheatre').onclick = () => theatre(!document.body.classList.contains('theatre'));
-  if (Q.get('film') && (Film.TRAILERS[Q.get('film')] || Film.SCENES[Q.get('film')])) { if (Q.get('rehearse') != null) { F.rehearse.on = true; F.rehearse.want = Q.get('part') || 'scene'; } F.trailer(Q.get('film')); if (Q.get('theatre') != null) theatre(true); if (Q.get('play') != null) setTimeout(() => F.playAll(), 1500); if (Q.get('rehearse') != null) setTimeout(() => { const b = document.getElementById('fbPerform'), p = document.getElementById('perform'); if (b && p && p.hidden) b.click(); }, 800); }
+  if (Q.get('film') && (Film.TRAILERS[Q.get('film')] || Film.SCENES[Q.get('film')])) { F.trailer(Q.get('film')); if (Q.get('theatre') != null) theatre(true); if (Q.get('play') != null) setTimeout(() => F.playAll(), 1500); }
   else if (Q.get('theatre') != null) theatre(true);
   paintReel(); wbHint();
 }

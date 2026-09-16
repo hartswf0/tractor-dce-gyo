@@ -1,0 +1,49 @@
+
+body.world-chat{--wb:0px!important}
+body.world-chat #ptt,body.world-chat #wb,body.world-chat #wbSay,body.world-chat #menuBtn,body.world-chat #top,body.world-chat #shield,body.world-chat #minimap,body.world-chat #det,body.world-chat #build,body.world-chat #prompt,body.world-chat #bchip,body.world-chat #palette,body.world-chat #hint,body.world-chat #keys{display:none!important}
+#worldChat,#worldChat *{box-sizing:border-box;min-width:0}
+#worldChat{position:fixed;z-index:12;right:12px;bottom:calc(var(--wc-bottom,0px) + env(safe-area-inset-bottom,0px) + 8px);width:min(440px,calc(100vw - 24px));max-height:calc(var(--wc-height,100dvh) * .58);display:flex;flex-direction:column;gap:6px;padding:10px;border:1px solid #d9deda;border-radius:16px;background:#fafaf8f5;color:#202925;box-shadow:0 4px 24px #0002;font:13px/1.4 system-ui;overflow:hidden;pointer-events:auto}
+#worldChat header{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-shrink:0}
+#wcPlace{font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#worldChat button,#worldChat select{position:static!important;inset:auto!important;transform:none!important;float:none;min-height:36px;height:auto!important;max-width:100%;margin:0;padding:6px 10px!important;border:1px solid #ccd3cd!important;border-radius:9px;background:#fff!important;color:#202925!important;box-shadow:none!important;font:500 12px system-ui!important;letter-spacing:normal!important;text-transform:none!important;white-space:normal;cursor:pointer}
+#worldChat button.on,#worldChat nav button.on{background:#263a31!important;color:white!important}
+#worldChat button:disabled{opacity:.45;cursor:default}
+#wcHistory{flex:0 1 auto;max-height:120px;min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin}
+#wcHistory p{max-width:95%;margin:4px 0;padding:7px 9px;border-radius:10px;overflow-wrap:anywhere}
+#wcHistory .assistant{background:#eef1ec}#wcHistory .user{background:#dcebe1;margin-left:auto}
+#wcContext{display:flex;gap:5px;flex-wrap:wrap}
+#wcContext span{font-size:10px;color:#43564a;background:#edf2eb;padding:3px 7px;border-radius:12px;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+#wcStatus{font-size:11px;color:#526158;line-height:1.3;max-height:2.6em;overflow:auto;overflow-wrap:anywhere}
+#wcStatus:empty{display:none}
+#wcComposer{display:flex;align-items:stretch;gap:5px;flex-shrink:0}
+#worldChat #pttForm{flex:1;display:flex;gap:4px;margin:0}
+#worldChat #pttWords{flex:1;width:0;min-width:0;height:42px;border:1px solid #b8c6bd;border-radius:10px;padding:8px;font:16px system-ui;color:#202925;background:#fff}
+#worldChat #pttForm button{background:#263a31!important;color:#fff!important}
+#worldChat #pttAsk{max-width:94px;font-size:11px!important}
+#worldChat nav{display:flex;gap:4px;flex-shrink:0}
+#worldChat nav button{flex:1;border-color:transparent!important;background:transparent!important;min-height:32px}
+#wcTools{flex:1 1 auto;min-height:0;overflow:auto;overscroll-behavior:contain;border-top:1px solid #d9deda;padding-top:8px}
+.wcTool>div,#wcBuildButtons,#wcPointButtons,#wcSelection,#wcPreview #wbSheet,#wcExamples{display:flex;gap:5px;flex-wrap:wrap}
+#worldChat #wcPreview{max-height:100px;flex-shrink:0;overflow:auto;border-top:1px solid #ccd3cd;padding-top:5px}
+#worldChat #wbSheet{display:flex!important}
+#worldChat #wbCommit{background:#263a31!important;color:#fff!important}
+#worldChat #wcAudio{display:flex;align-items:center;gap:5px;flex-shrink:0}
+#worldChat #pttPlayback{width:100%;height:32px}
+#worldChat #pttLevel{width:40px}
+#worldChat #pttView{position:relative!important;inset:auto!important;max-width:160px;width:160px;height:120px;border-radius:10px;margin-top:8px}
+#worldChat #pttMode{display:flex}
+#worldChat #pttMode button{font-size:10px!important;min-height:28px}
+#worldChat #pttGesture{font:11px system-ui;background:none;color:#526158;padding:4px}
+#worldChat #menu,#worldChat #find{position:static!important;inset:auto!important;display:block!important;width:auto;max-height:none;margin:0;padding:0;border:0;transform:none;background:none!important;box-shadow:none}
+#worldChat #menu .row{display:flex;flex-wrap:wrap;gap:5px}
+#worldChat #menu .row span{width:auto;flex-basis:100%;font-size:10px}
+#worldChat #menu input,#worldChat #menu select{max-width:100%}
+#worldChat #wbKeyRow{display:flex;gap:4px}
+#worldChat #wbKey{flex:1;width:0;min-width:0;font-size:16px;height:42px}
+#worldChat #wbCode,#worldChat #wbLog{max-height:none}
+#worldChat #wbOps,#worldChat #wbJson,#worldChat #wbLogText,#worldChat #pttLog{max-height:160px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word}
+#worldChat [hidden]{display:none!important}
+@media(max-width:620px){#worldChat{left:6px;right:6px;width:auto;max-height:calc(var(--wc-height,100dvh) * .5);padding:8px;border-radius:14px;gap:4px}#wcHistory{max-height:82px}#worldChat button{min-height:38px}#worldChat nav button{min-height:32px}#worldChat #pttAsk{max-width:78px}#worldChat #wcContext{flex-wrap:nowrap}#worldChat #wcContext span{flex:1;white-space:nowrap}}
+
+body.wc-keyboard #worldChat{max-height:calc(var(--wc-height,100dvh) * .85)}body.wc-keyboard #wcHistory,body.wc-keyboard #wcContext,body.wc-keyboard #wcStatus{display:none}
+@media(max-height:500px){#worldChat{max-height:calc(var(--wc-height,100dvh) * .8)}#wcHistory{max-height:40px}}
