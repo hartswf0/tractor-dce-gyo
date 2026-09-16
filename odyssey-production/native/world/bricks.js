@@ -1,0 +1,467 @@
+/* world/bricks.js — a city rebuilt from LEGO bricks, GPU-instanced.
+
+   Real building footprints become running-bond courses of bricks with window
+   bands, a door and a plate roof, one InstancedMesh per part per 100 m tile.
+   Tiles near the player are bricks; tiles far away are one merged prism mesh.
+   A hard cap on live instances keeps a dense city inside a phone's budget.
+   Units: metres in, LDU (M per metre) out. A course is 24 LDU. */
+(function () {
+'use strict';
+const COURSE = 24, TILE_M = 100, CAP = 120000; let NEAR_IN = 230, NEAR_OUT = 270;
+const setLOD = (near, out) => { NEAR_IN = near; NEAR_OUT = out; }, LOD = () => ({ nearIn: NEAR_IN, nearOut: NEAR_OUT });
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+/* Wall bricks without studs (every stud in a wall is covered), each with a face plate standing 0.6 LDU
+   proud of the body and inset 1.5 LDU from the edges: the body around it is baked darker, so every
+   brick shows its mortar line at no draw cost. Plus a window pane and a roof plate with cheap studs. */
+function wallBrick(name, desc, a, b) {              // a: half length (x), b: half depth (z); LDraw y runs 0 (top) to 24
+  const X = a - 1.5, zf = -(b + 0.6), zb = b + 0.6;
+  return [name, desc, [`1 16 0 12 0 ${a} 0 0 0 12 0 0 0 ${b} box.dat`,
+    `4 16 ${X} 1.5 ${zf} ${-X} 1.5 ${zf} ${-X} 22.5 ${zf} ${X} 22.5 ${zf}`,
+    `4 16 ${-X} 1.5 ${zb} ${X} 1.5 ${zb} ${X} 22.5 ${zb} ${-X} 22.5 ${zb}`]];
+}
+const CUSTOM = [
+  wallBrick('wall-2x8.dat', 'Wall Brick 2 x 8 (no studs)', 80, 20),
+  wallBrick('wall-2x4.dat', 'Wall Brick 2 x 4 (no studs)', 40, 20),
+  wallBrick('wall-2x2.dat', 'Wall Brick 2 x 2 (no studs)', 20, 20),
+  wallBrick('wall-1x2.dat', 'Wall Brick 1 x 2 (no studs)', 20, 10),
+  ['pane-1x2x2.dat', 'Window Pane 1 x 2 x 2', ['1 16 0 24 0 20 0 0 0 24 0 0 0 5 box.dat']],
+  ['roof-2x4.dat', 'Roof Plate 2 x 4', ['1 16 0 4 0 40 0 0 0 4 0 0 0 20 box.dat',
+    ...[-30, -10, 10, 30].flatMap(x => [-10, 10].map(z => `1 16 ${x} 0 ${z} 1 0 0 0 1 0 0 0 1 8\\stud.dat`))]],
+].map(([name, desc, lines]) => `0 FILE ${name}\n0 ${desc}\n0 Name: ${name}\n0 !LDRAW_ORG Unofficial_Part\n0 BFC CERTIFY CCW\n${lines.join('\n')}\n`).join('');
+const HARVEST = ['wall-2x8.dat', 'wall-2x4.dat', 'wall-2x2.dat', 'wall-1x2.dat', 'pane-1x2x2.dat', 'roof-2x4.dat', 'parts/3068b.dat', 'parts/60592.dat', 'parts/60623.dat', 'parts/3001.dat', 'parts/3020.dat',
+  'parts/3010.dat', 'parts/3004.dat', 'parts/3032.dat', 'parts/3039.dat', 'parts/87079.dat', 'parts/3941.dat', 'parts/3062b.dat',   // the builder's palette
+  'parts/3003.dat', 'parts/3005.dat', 'parts/3022.dat', 'parts/3023.dat', 'parts/3024.dat', 'parts/3040b.dat', 'parts/3665a.dat', 'parts/3455.dat', 'parts/3823.dat', 'parts/4600.dat', 'parts/4624.dat', 'parts/3641.dat', 'parts/3829c01.dat',
+  'parts/3009.dat', 'parts/3008.dat', 'parts/2453b.dat', 'parts/3185.dat', 'parts/4589.dat'];   // and the master builder's
+const KEY = f => f.replace(/^parts\//, '').replace(/\.dat$/, '');
+const lines = () => HARVEST.map(f => `1 16 0 0 0 1 0 0 0 1 0 0 0 1 ${f}`).join('\n');
+
+/* ───────────────────────── harvest: one geometry per part, origin at the bottom centre, Y up ───────────────────────── */
+const FLIP = new THREE.Matrix4().makeRotationX(Math.PI);
+/** One geometry for a whole part group: every mesh in it (sub-files like an arm's cuff included), in the group's own frame. */
+function mergeGroup(grp) {
+  grp.updateMatrixWorld(true); const inv = new THREE.Matrix4().copy(grp.matrixWorld).invert(), pos = [], nor = [];
+  grp.traverse(o => {
+    if (!o.isMesh) return; const g = o.geometry.index ? o.geometry.toNonIndexed() : o.geometry, m = new THREE.Matrix4().multiplyMatrices(inv, o.matrixWorld), nm = new THREE.Matrix3().getNormalMatrix(m);
+    const p = g.attributes.position, n = g.attributes.normal, v = new THREE.Vector3();
+    for (let i = 0; i < p.count; i++) { v.fromBufferAttribute(p, i).applyMatrix4(m); pos.push(v.x, v.y, v.z); if (n) { v.fromBufferAttribute(n, i).applyMatrix3(nm).normalize(); nor.push(v.x, v.y, v.z); } else nor.push(0, 1, 0); }
+  });
+  if (!pos.length) return null;
+  const out = new THREE.BufferGeometry(); out.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); out.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3)); return out;
+}
+function harvest(groups) {
+  const geoms = new Map();
+  groups.forEach((grp, i) => {
+    const g = mergeGroup(grp);
+    if (!g) throw new Error('no mesh for ' + HARVEST[i]);
+    g.applyMatrix4(FLIP);
+    g.computeBoundingBox(); const bb = g.boundingBox;
+    g.translate(-(bb.min.x + bb.max.x) / 2, -bb.min.y, -(bb.min.z + bb.max.z) / 2);
+    g.computeBoundingBox(); const sz = new THREE.Vector3(); g.boundingBox.getSize(sz);
+    const p = g.attributes.position, col = new Float32Array(p.count * 3), hx = sz.x / 2 - 0.5, wall = HARVEST[i].startsWith('wall-'), plateZ = sz.z / 2 - 0.3;
+    for (let k = 0; k < p.count; k++) {           // the mortar: a wall brick's body is dark, its face plates bright; other parts darken only at the foot
+      const v = wall ? (Math.abs(p.getZ(k)) >= plateZ ? 1 : p.getY(k) > sz.y - 0.5 ? 0.9 : 0.7) : (p.getY(k) < 2 ? 0.78 : Math.abs(p.getX(k)) > hx ? 0.92 : 1);
+      col[k * 3] = col[k * 3 + 1] = col[k * 3 + 2] = v;
+    }
+    g.setAttribute('color', new THREE.BufferAttribute(col, 3)); g.computeBoundingSphere();
+    geoms.set(KEY(HARVEST[i]), { geom: g, size: sz, tris: p.count / 3 });
+  });
+  geoms.set('pane-lit', geoms.get('pane-1x2x2'));   // the same pane, drawn with the lit material: a window with someone home
+  { const sg = geoms.get('3039'); if (sg) { const p = sg.geom.attributes.position; let zs = 0, n = 0; for (let i = 0; i < p.count; i++) if (p.getY(i) > sg.size.y - 2) { zs += p.getZ(i); n++; } SLOPE_HI = n && zs / n > 0 ? 1 : -1; } }   // which way a slope brick's high side faces in its own frame
+  return geoms;
+}
+
+/** Like harvest, but the part keeps its own x/z origin (LDraw's stud grid), so asymmetric parts — slopes, doors, windscreens — land on the studs. Adds bb: [x0, x1, z0, z1, h]. */
+function harvestOrigin(groups) {
+  const geoms = new Map();
+  groups.forEach((grp, i) => {
+    const g = mergeGroup(grp);
+    if (!g) return;
+    g.applyMatrix4(FLIP);
+    g.computeBoundingBox(); const bb0 = g.boundingBox; g.translate(0, -bb0.min.y, 0); g.computeBoundingBox();
+    const bb = g.boundingBox, sz = new THREE.Vector3(); bb.getSize(sz);
+    const p = g.attributes.position, col = new Float32Array(p.count * 3);
+    for (let k = 0; k < p.count; k++) { const v = p.getY(k) < 2 ? 0.8 : 1; col[k * 3] = col[k * 3 + 1] = col[k * 3 + 2] = v; }
+    g.setAttribute('color', new THREE.BufferAttribute(col, 3)); g.computeBoundingSphere();
+    const snapE = v => Math.round(v / 10) * 10;   // studs and mould lips: to the nearest half stud
+    geoms.set(KEY(HARVEST[i]), { geom: g, size: sz, bb: [snapE(bb.min.x), snapE(bb.max.x), snapE(bb.min.z), snapE(bb.max.z), Math.max(8, Math.floor((sz.y + 0.5) / 8) * 8)] });   // height to the plate below the studs
+  });
+  return geoms;
+}
+
+/* ───────────────────────── footprint → bricks ───────────────────────── */
+const PALETTE = { walls: [19, 4, 15, 72, 379, 70, 28, 84], roofs: [320, 72, 308, 71], frame: 15, pane: 0, plinth: 72, door: 70 };
+let SLOPE_HI = -1;
+/* what a kind of building is, over the world's style: a stadium is a bowl, a church has a tower and a gable, a shed has a door and no windows, a factory has slit windows, a tall block is a curtain wall */
+const KIND_STYLE = { stadium: { windows: false, stadium: true }, church: { roof: 'gable', tower: true, pitch: 120 }, cathedral: { roof: 'gable', tower: true, pitch: 120 }, chapel: { roof: 'gable', tower: true, pitch: 120 },
+  garage: { windows: false, door: 5 }, shed: { windows: false, door: 5 }, hut: { windows: false, door: 5 }, industrial: { slit: true, pitch: 80, roof: 'plates' }, warehouse: { slit: true, pitch: 80, roof: 'plates' }, office: { curtain: true }, hotel: { curtain: true }, apartments: { curtain: true }, commercial: { curtain: true } };
+const ROOF_SHAPE = { gabled: 'gable', hipped: 'hip', half_hipped: 'hip', pyramidal: 'hip', gambrel: 'gable', mansard: 'hip', dome: 'stepped', onion: 'stepped', flat: 'plates', skillion: 'plates' };
+const hash = s => { let h = 2166136261; for (const ch of String(s)) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; };
+const TMP = new THREE.Matrix4(), TQ = new THREE.Quaternion(), TP = new THREE.Vector3(), TS = new THREE.Vector3(1, 1, 1), UP = new THREE.Vector3(0, 1, 0);
+function place(out, part, x, y, z, theta, c, meta, sy) { TQ.setFromAxisAngle(UP, theta); TP.set(x, y, z); out.push({ p: part, m: new THREE.Matrix4().compose(TP, TQ, sy ? new THREE.Vector3(1, sy, 1) : TS), c, meta: meta || null }); }
+function pointInRing(x, z, ring) {
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const a = ring[i], b = ring[j];
+    if ((a.z > z) !== (b.z > z) && x < (b.x - a.x) * (z - a.z) / (b.z - a.z) + a.x) inside = !inside;
+  }
+  return inside;
+}
+function buildBricks(b, colours, M) {
+  const pal = b.pal || PALETTE, ks = pal.style?.ancient ? {} : KIND_STYLE[b.kind] || {}, st = { ...(pal.style || {}), ...ks, ...(ks.curtain && ((b.levels || 0) >= 5 || b.h >= 16) ? { slit: true, pitch: 80, bandMod: 1, lit: 0.7 } : {}) }, out = [], ring = b.ringL, n = ring.length, wall = colours(b.wall), plinthC = colours(pal.plinth), frameC = colours(b.wall === pal.frame ? 0 : pal.frame), paneC = colours(pal.pane), doorC = colours(pal.door), roofC = colours(b.roof);
+  const cx = ring.reduce((s, p) => s + p.x, 0) / n, cz = ring.reduce((s, p) => s + p.z, 0) / n;
+  const edges = [];
+  for (let i = 0; i < n; i++) {
+    const A = ring[i], B = ring[(i + 1) % n], dx = B.x - A.x, dz = B.z - A.z, L0 = Math.hypot(dx, dz); if (L0 < 20) continue;
+    const ux = dx / L0, uz = dz / L0; let nx = -uz, nz = ux;
+    if ((cx - (A.x + B.x) / 2) * nx + (cz - (A.z + B.z) / 2) * nz < 0) { nx = -nx; nz = -nz; }   // inward
+    edges.push({ A, ux, uz, nx, nz, L: Math.floor(L0 / 20) * 20, theta: Math.atan2(-uz, ux) });
+  }
+  if (!edges.length) return { list: out, n: 0 };
+  const doorK = edges.reduce((k, e, i) => e.L > edges[k].L ? i : k, 0);
+  b.door = null; b.stairs = [];
+  const doorS = (() => { const e = edges[doorK]; let best = e.L / 2 - 20, bg = -Infinity; if (!b.gAt || e.L < 200) return best;   // where the ground outside is highest, nearest the middle on a tie
+    for (let s = 60; s + 40 <= e.L - 60; s += 40) { const g = b.gAt(e.A.x + e.ux * (s + 20) - e.nx * 60, e.A.z + e.uz * (s + 20) - e.nz * 60) - Math.abs(s + 20 - e.L / 2) * 0.02; if (g > bg) { bg = g; best = s; } } return best; })();
+  const plinth = Math.min(12, Math.ceil(b.drop / COURSE)), stilts = st.stilts || 0, total = Math.max(2 + stilts, Math.round(b.h * M * (st.hScale || 1) / COURSE) + plinth + stilts), bigDoor = total - plinth - stilts >= (st.door || 7);
+  const pitch = st.pitch || 160, bandMod = st.bandMod || 3, slit = !!st.slit, bandC = st.bandCol != null ? colours(st.bandCol) : null, topBandC = st.topBand != null ? colours(st.topBand) : null;
+  let course = 0, edgeI = 0;
+  const put = (e, part, s, len, y, c, rot90, inset = 20, extra, sy) => place(out, part, e.A.x + e.ux * (s + len / 2) + e.nx * inset, y, e.A.z + e.uz * (s + len / 2) + e.nz * inset, e.theta + (rot90 ? Math.PI / 2 : 0), c, { e: edgeI, s0: s, s1: s + len, L: e.L, course, rows: 1, ...(extra || {}) }, sy);
+  for (let c = 0; c < total; c++) {
+    course = c;
+    const y = b.y0 + c * COURSE, k = c - plinth - stilts - 1, lower = k % bandMod === 0, band = st.windows !== false && k >= 0 && (slit ? lower : k % bandMod < 2 && !(lower && c + 1 >= total));   // a window is two courses tall: none starts on the top course; a slit is one
+    const col = c < plinth ? plinthC : (bandC && st.bandEvery && c >= plinth + stilts && (c - plinth - stilts) % st.bandEvery === st.bandEvery - 1) ? bandC : (topBandC && c === total - 1) ? topBandC : wall;
+    if (c < plinth + stilts && c >= plinth) {                                    // stilts: a 1x1 column every three studs, an open floor under the house
+      edges.forEach((e, ei) => { edgeI = ei; for (let s = 0; s + 20 <= e.L; s += 60) put(e, '3005', s, 20, y, col, false, 20, { stilt: true }); });
+      continue;
+    }
+    edges.forEach((e, ei) => {
+      edgeI = ei;
+      const slots = [], doorHere = ei === doorK && c >= plinth + stilts && (bigDoor ? c < plinth + stilts + 6 : c < plinth + stilts + 2);
+      const dS = ei === doorK ? doorS : e.L / 2 - 20;
+      if (doorHere) { slots.push([dS, dS + 40]); if (c === plinth + stilts) { if (bigDoor) { put(e, '60623', dS, 40, y, doorC, false, 14, { rows: 6, frame: true, door: true }); b.door = { e: ei, s0: dS, s1: dS + 40, k: out.length - 1, y };
+          if (b.gAt) { const g = b.gAt(e.A.x + e.ux * (dS + 20) - e.nx * 60, e.A.z + e.uz * (dS + 20) - e.nz * 60); for (let k = 1; k <= 18 && y - 8 * k > g - 4; k++) {   // steps: a plate every 8 LDU down, 13 out, to the ground
+            const sx = e.A.x + e.ux * (dS + 20) - e.nx * (k * 13), sz = e.A.z + e.uz * (dS + 20) - e.nz * (k * 13), sy = y - 8 * k; place(out, 'roof-2x4', sx, sy, sz, e.theta, plinthC, { stair: true, course: c, e: ei, s0: dS, s1: dS + 40 }); b.stairs.push({ x: sx, z: sz, top: sy + 8, theta: e.theta, k }); } } } else { put(e, '60592', dS, 40, y, colours(0), false, 20, { rows: 2, frame: true }); put(e, 'pane-1x2x2', dS, 40, y, paneC, false, 26, { rows: 2, pane: true }); } } }
+      if (band && e.L >= 200) for (let s = 60; s + 40 <= e.L - 40; s += pitch) {
+        if (doorHere && s < dS + 40 && s + 40 > dS) continue;
+        slots.push([s, s + 40]);
+        if (slit) put(e, st.allLit || hash(b.id * 31 + c * 7 + ei * 131 + s) % 100 < 100 * (st.lit || 0.55) ? 'pane-lit' : 'pane-1x2x2', s, 40, y, paneC, false, 20, { rows: 1, pane: true, slit: true }, 0.5);   // a slit: one course, the pane alone
+        else if (lower) { put(e, '60592', s, 40, y, frameC, false, 20, { rows: 2, frame: true }); put(e, st.allLit || hash(b.id * 31 + c * 7 + ei * 131 + s) % 100 < 100 * (st.lit || 0.55) ? 'pane-lit' : 'pane-1x2x2', s, 40, y, paneC, false, 26, { rows: 2, pane: true }); }
+      }
+      slots.sort((p, q) => p[0] - q[0]);
+      let s = 0; const runs = [];
+      for (const [a0, a1] of slots) { if (a0 > s) runs.push([s, a0]); s = Math.max(s, a1); }
+      if (s < e.L) runs.push([s, e.L]);
+      for (const [g0, g1] of runs) {
+        let p = g0;
+        if ((c & 1) && g0 === 0 && g1 - g0 >= 40) { put(e, 'wall-2x2', p, 40, y, col); p += 40; }
+        while (g1 - p >= 160) { put(e, 'wall-2x8', p, 160, y, col); p += 160; }
+        while (g1 - p >= 80) { put(e, 'wall-2x4', p, 80, y, col); p += 80; }
+        while (g1 - p >= 40) { put(e, 'wall-2x2', p, 40, y, col); p += 40; }
+        if (g1 - p >= 20) { put(e, 'wall-1x2', p, 20, y, col, true); p += 20; }
+      }
+    });
+  }
+  // the roof: plates on a grid aligned to the longest edge, kept where the cell centre is inside
+  const yTop = b.y0 + total * COURSE, e0 = edges[doorK], ux = e0.ux, uz = e0.uz;
+  const loc = ring.map(p => ({ x: (p.x - cx) * ux + (p.z - cz) * uz, z: -(p.x - cx) * uz + (p.z - cz) * ux }));
+  let lx0 = Infinity, lx1 = -Infinity, lz0 = Infinity, lz1 = -Infinity; for (const p of loc) { lx0 = Math.min(lx0, p.x); lx1 = Math.max(lx1, p.x); lz0 = Math.min(lz0, p.z); lz1 = Math.max(lz1, p.z); }
+  const cells = Math.ceil((lx1 - lx0) / 80) * Math.ceil((lz1 - lz0) / 40);
+  let ringArea = 0; for (let i = 0; i < n; i++) { const p = ring[i], q = ring[(i + 1) % n]; ringArea += p.x * q.z - q.x * p.z; } ringArea = Math.abs(ringArea) / 2;
+  const boxy = ringArea / Math.max(1, (lx1 - lx0) * (lz1 - lz0)) > 0.7;
+  const roofKind = st.stadium ? 'none' : ROOF_SHAPE[b.roofShape] || st.roof || (boxy && b.h < 10 && /^(house|residential|detached|semidetached_house|terrace|bungalow|farm)$/.test(b.kind || '') ? 'gable' : 'plates');
+  const pitchedOk = (roofKind === 'gable' || roofKind === 'hip') && boxy && cells <= 800 && lz1 - lz0 <= 24 * M;   // a pitched roof is its own cover: no plates, no flat cap
+  b.flatRoof = cells > 160 && !pitchedOk;
+  const distIn = (x, z) => { let m = Infinity; for (let i = 0; i < loc.length; i++) { const a = loc[i], q = loc[(i + 1) % loc.length], dx = q.x - a.x, dz = q.z - a.z, L2 = dx * dx + dz * dz || 1, t = clamp(((x - a.x) * dx + (z - a.z) * dz) / L2, 0, 1); m = Math.min(m, Math.hypot(x - a.x - dx * t, z - a.z - dz * t)); } return m; };
+  const at = (gx, gz) => [cx + gx * ux - gz * uz, cz + gx * uz + gz * ux];
+  /** Plates on a grid aligned to the longest edge, kept where the cell centre is inside. */
+  const plates = (yy, insetD, extra) => { for (let gx = lx0 + 40; gx < lx1; gx += 80) for (let gz = lz0 + 20; gz < lz1; gz += 40) { if (!pointInRing(gx, gz, loc) || (insetD && distIn(gx, gz) < insetD)) continue; const [px, pz] = at(gx, gz); place(out, 'roof-2x4', px, yy, pz, e0.theta, roofC, { roof: true, course: total, ...(extra || {}) }); } };
+  /** A pitched roof over a box [x0,x1]×[z0,z1] in the local frame from height y: slope bricks climbing in from the long sides (and the ends when hipped), bricks filling under them, tiles on the ridge. */
+  const pitched = (x0, x1, z0, z1, y, hip, col, tag) => {
+    const rot = SLOPE_HI > 0 ? 0 : Math.PI;                                          // the slope's high side toward +z local
+    for (let k = 0; k < 8; k++) {
+      const iz = k * 40, ix = hip ? k * 40 : 0, d = (z1 - z0) - 2 * iz, w = (x1 - x0) - 2 * ix, yy = y + k * COURSE, meta = { roof: true, level: k, course: total + k, ...(tag || {}) };
+      if (d < 40 || w < 40) break;
+      const cz0 = z0 + iz + 20, cz1 = z1 - iz - 20, ridge = d < 80;
+      for (let gx = x0 + ix + 20; gx <= x1 - ix - 20 + 1; gx += 40) { let [px, pz] = at(gx, ridge ? (cz0 + cz1) / 2 : cz0); place(out, ridge ? '3068b' : '3039', px, yy, pz, e0.theta + rot, col, meta); if (!ridge) { [px, pz] = at(gx, cz1); place(out, '3039', px, yy, pz, e0.theta + rot + Math.PI, col, meta); } }
+      if (hip && !ridge) for (let gz = cz0 + 40; gz <= cz1 - 40 + 1; gz += 40) { let [px, pz] = at(x0 + ix + 20, gz); place(out, '3039', px, yy, pz, e0.theta + rot + Math.PI / 2, col, meta); [px, pz] = at(x1 - ix - 20, gz); place(out, '3039', px, yy, pz, e0.theta + rot - Math.PI / 2, col, meta); }
+      if (!ridge) for (let gz = cz0 + 40; gz <= cz1 - 40 + 1; gz += 40) for (let gx = x0 + ix + 20 + (hip ? 40 : 0) + 20; gx <= x1 - ix - 20 - (hip ? 40 : 0); gx += 80) { const [px, pz] = at(gx, gz); place(out, 'wall-2x4', px, yy, pz, e0.theta, wall, { ...meta, fill: true }); }
+      if (ridge) break;
+    }
+  };
+  if (roofKind === 'stepped' && !b.flatRoof) {                                    // a stepped dome: three courses of bricks, each drawn in from the edge
+    for (let k = 1; k <= 3; k++) { const yk = yTop + 8 + (k - 1) * COURSE, inset = k * 45; course = total + k;
+      for (let gx = lx0 + 40; gx < lx1; gx += 80) for (let gz = lz0 + 20; gz < lz1; gz += 40) { if (!pointInRing(gx, gz, loc) || distIn(gx, gz) < inset) continue; const [px, pz] = at(gx, gz); place(out, 'wall-2x4', px, yk, pz, e0.theta, wall, { roof: true, step: k, level: k, course: total + k }); } }
+    plates(yTop, 0);
+  } else if (pitchedOk) pitched(lx0, lx1, lz0, lz1, yTop, roofKind === 'hip', roofC);
+  else if (roofKind !== 'none' && !b.flatRoof) plates(yTop, 0);
+  if (st.tower && cells <= 1200) {                                                    // a church's tower: a square of bricks by the shortest edge, twice the height, a pyramid and a spire on top
+    const short = edges.reduce((k, e, i) => e.L < edges[k].L ? i : k, 0), E = edges[short], side = 240, mx = E.A.x + E.ux * E.L / 2 + E.nx * (side / 2 + 20), mz = E.A.z + E.uz * E.L / 2 + E.nz * (side / 2 + 20);
+    const tx = (mx - cx) * ux + (mz - cz) * uz, tz = -(mx - cx) * uz + (mz - cz) * ux, tCourses = total * 2, tTop = b.y0 + tCourses * COURSE;
+    for (let c = 0; c < tCourses; c++) { const yy = b.y0 + c * COURSE, odd = c & 1; course = c;
+      for (let k = 0; k < 3; k++) { const o = -side / 2 + 40 + k * 80, o2 = odd ? o + 40 : o;
+        let [px, pz] = at(tx + o2, tz - side / 2 + 20); place(out, 'wall-2x4', px, yy, pz, e0.theta, wall, { tower: true, course: c }); [px, pz] = at(tx + o2, tz + side / 2 - 20); place(out, 'wall-2x4', px, yy, pz, e0.theta, wall, { tower: true, course: c });
+        [px, pz] = at(tx - side / 2 + 20, tz + o2); place(out, 'wall-2x4', px, yy, pz, e0.theta + Math.PI / 2, wall, { tower: true, course: c }); [px, pz] = at(tx + side / 2 - 20, tz + o2); place(out, 'wall-2x4', px, yy, pz, e0.theta + Math.PI / 2, wall, { tower: true, course: c }); } }
+    pitched(tx - side / 2, tx + side / 2, tz - side / 2, tz + side / 2, tTop, true, roofC, { tower: true });
+    const [sx, sz] = at(tx, tz); place(out, '4589', sx, tTop + 3 * COURSE, sz, 0, roofC, { roof: true, level: 3, course: total + 3, tower: true }); b.towerTop = tTop + 3 * COURSE;
+  }
+  if (st.stadium) {                                                                 // a bowl: three tiers of stepped seating climbing from the pitch to the outer wall, floodlights at the corners
+    let rmin = Infinity; for (let i = 0; i < n; i++) { const a = ring[i], q = ring[(i + 1) % n], dx = q.x - a.x, dz = q.z - a.z, L2 = dx * dx + dz * dz || 1, t = clamp(((cx - a.x) * dx + (cz - a.z) * dz) / L2, 0, 1); rmin = Math.min(rmin, Math.hypot(cx - a.x - dx * t, cz - a.z - dz * t)); }
+    const seatC = colours(pal.plinth);
+    for (let tier = 1; tier <= 3; tier++) { const k = 1 - tier * 3 * M / Math.max(rmin, 12 * M), inner = ring.map(p => ({ x: cx + (p.x - cx) * k, z: cz + (p.z - cz) * k })), hC = Math.max(1, Math.round((total - plinth) * (1 - tier / 4)) + plinth);
+      const tEdges = []; for (let i = 0; i < n; i++) { const A = inner[i], B = inner[(i + 1) % n], dx = B.x - A.x, dz = B.z - A.z, L0 = Math.hypot(dx, dz); if (L0 < 40) continue; const ux2 = dx / L0, uz2 = dz / L0; let nx = -uz2, nz = ux2; if ((cx - (A.x + B.x) / 2) * nx + (cz - (A.z + B.z) / 2) * nz < 0) { nx = -nx; nz = -nz; } tEdges.push({ A, ux: ux2, uz: uz2, nx, nz, L: Math.floor(L0 / 20) * 20, theta: Math.atan2(-uz2, ux2) }); }
+      for (let c = 0; c < hC; c++) { course = c; const yy = b.y0 + c * COURSE; tEdges.forEach((e, ei) => { edgeI = edges.length + tier * 8 + ei; let p = (c & 1) ? 40 : 0; if (p) put(e, 'wall-2x2', 0, 40, yy, seatC); while (e.L - p >= 160) { put(e, 'wall-2x8', p, 160, yy, seatC); p += 160; } while (e.L - p >= 80) { put(e, 'wall-2x4', p, 80, yy, seatC); p += 80; } while (e.L - p >= 40) { put(e, 'wall-2x2', p, 40, yy, seatC); p += 40; } }); } }
+    for (const [gx, gz] of [[lx0 + 60, lz0 + 60], [lx1 - 60, lz0 + 60], [lx1 - 60, lz1 - 60], [lx0 + 60, lz1 - 60]]) { if (!pointInRing(gx, gz, loc)) continue; const [px, pz] = at(gx, gz); const mast = Math.round(25 * M / COURSE); for (let c = 0; c < mast; c++) place(out, '3005', px, b.y0 + c * COURSE, pz, 0, colours(72), { mast: true, course: c }); place(out, 'pane-lit', px, b.y0 + mast * COURSE, pz, 0, paneC, { mast: true, course: mast, pane: true, lamp: true }); }
+    b.stadium = true;
+  }
+  b.plinth = plinth; b.yTop = yTop; b.courses = total; b.edgeCount = edges.length; b.edges = edges; b.spans = null; b.beam = stilts ? plinth + stilts : -1; if (!b.door) b.door = null;
+  return { list: out, n: out.length };
+}
+
+/* ───────────────────────── support: what holds what up ───────────────────────── */
+/** Indices of live bricks nothing holds up. A wall brick stands on a live, supported brick of the
+    course below on its own edge (overlap ≥ 20 LDU) or on a corner neighbour; window frames and doors
+    carry the courses they span; roof plates need a supported brick of the top course within 60 LDU. */
+function unsupported(b) {
+  const L = b.bricks.list, byCourse = new Map(), out = [];
+  L.forEach((br, k) => { if (b.removed.has(k) || !br.meta) return; const m = br.meta; if (m.roof) return; for (let r = 0; r < (m.rows || 1); r++) { const c = m.course + r; let a = byCourse.get(c); if (!a) { a = []; byCourse.set(c, a); } a.push({ k, m, top: r === (m.rows || 1) - 1 }); } });
+  const ok = new Set();                         // brick indices that are supported
+  const courses = [...byCourse.keys()].sort((a, c) => a - c);
+  for (const c of courses) {
+    const row = byCourse.get(c), below = byCourse.get(c - 1) || [];
+    for (const it of row) {
+      if (ok.has(it.k)) continue;
+      if (c === 0 || c === b.beam) { ok.add(it.k); continue; }                 // the ground holds the first course; on stilts the first wall course is a ring beam
+      const m = it.m; let held = false, under = 0;                                  // what stands under it along its own edge adds up: two small bricks hold a long one
+      for (const u of below) {
+        if (!ok.has(u.k)) continue;
+        const um = u.m;
+        if (um.e === m.e) { const o = Math.min(um.s1, m.s1) - Math.max(um.s0, m.s0); if (o > 0) under += o; if (um.stilt && o >= 10) { held = true; break; } }
+        else if (Math.abs(um.e - m.e) === 1 || Math.abs(um.e - m.e) === b.edgeCount - 1) { if ((m.s0 <= 20 || m.s1 >= m.L - 20) && (um.s0 <= 20 || um.s1 >= um.L - 20)) { held = true; break; } }
+      }
+      if (!held && under >= Math.min(60, 0.45 * (m.s1 - m.s0))) held = true;         // hanging by less than half a brick is not held
+      if (held) ok.add(it.k);
+    }
+  }
+  const roofByLv = new Map();                   // roof pieces by level: a level stands on the held pieces of the level below, so a lost wall takes the whole roof
+  L.forEach((br, k) => { if (b.removed.has(k) || !br.meta || !br.meta.roof) return; const lv = br.meta.step || br.meta.level || 0; let a = roofByLv.get(lv); if (!a) { a = []; roofByLv.set(lv, a); } a.push(k); });
+  const roofOk = new Set(), lvs = [...roofByLv.keys()].sort((a, c) => a - c);
+  for (const lv of lvs) for (const k of roofByLv.get(lv)) { const br = L[k], el = br.m.elements; let held = !!br.meta.tower && lv === 0;
+      if (lv === 0 && !held) { const top = byCourse.get(b.courses - 1) || []; for (const u of top) { if (!ok.has(u.k)) continue; const ue = L[u.k].m.elements; if (Math.hypot(ue[12] - el[12], ue[14] - el[14]) < 60) { held = true; break; } } }
+      else if (lv > 0) for (const j of roofByLv.get(lv - 1) || []) { if (!roofOk.has(j)) continue; const ue = L[j].m.elements; if (Math.hypot(ue[12] - el[12], ue[14] - el[14]) < 90) { held = true; break; } }
+      if (held) roofOk.add(k); else out.push(k); }
+  L.forEach((br, k) => { if (b.removed.has(k) || !br.meta || br.meta.roof) return; if (!ok.has(k)) out.push(k); });
+  return out;
+}
+
+/* ───────────────────────── the far look: merged prisms ───────────────────────── */
+function prisms(buildings, colours) {
+  const P = [], N = [], C = [], v = new THREE.Vector3();
+  for (const b of buildings) {
+    const shape = new THREE.Shape(b.ringL.map(p => new THREE.Vector2(p.x, -p.z)));
+    let g = new THREE.ExtrudeGeometry(shape, { depth: (b.ruined ? Math.min(b.yTop - b.y0, 48) : b.yTop - b.y0), bevelEnabled: false }); if (g.index) g = g.toNonIndexed();
+    g.rotateX(-Math.PI / 2); g.translate(0, b.y0, 0); g.computeVertexNormals();
+    const p = g.attributes.position, nn = g.attributes.normal, wc = colours(b.wall), rc = colours(b.roof);
+    for (let i = 0; i < p.count; i++) { P.push(p.getX(i), p.getY(i), p.getZ(i)); N.push(nn.getX(i), nn.getY(i), nn.getZ(i)); const c = nn.getY(i) > 0.5 ? rc : wc; C.push(c.r, c.g, c.b); }
+    g.dispose();
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(N, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(C, 3));
+  return g;
+}
+
+/* ───────────────────────── the city: tiles, budget, LOD ───────────────────────── */
+class City {
+  constructor({ scene, M, geoms, groundM, colours, palette }) {
+    this.scene = scene; this.M = M; this.geoms = geoms; this.groundM = groundM; this.colours = colours; this.palette = palette || PALETTE; this.source = [];
+    this.mat = new THREE.MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness: .6, metalness: 0 });
+    this.farMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .8, metalness: 0 });
+    this.paneMat = new THREE.MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness: .35, metalness: 0, emissive: 0xffd27a, emissiveIntensity: 0 });   // lit windows: emissive rises with the night
+    this.night = 0;
+    this.root = new THREE.Group(); this.root.name = 'city'; scene.add(this.root);
+    this.tiles = new Map(); this.buildings = []; this.live = 0; this.frustum = new THREE.Frustum(); this.pm = new THREE.Matrix4();
+    this.knocked = 0; this.pending = []; this.t = 0;
+  }
+  setPalette(pal) { this.palette = pal; this.set(this.source); }
+  /** 0 by day, 1 at night: the lit panes glow warm. */
+  setNight(n) { this.night = n; this.paneMat.emissiveIntensity = 1.3 * n; }
+  /** The world's window light. */
+  setLights(l) { if (l && l.window != null) this.paneMat.emissive.set(l.window); }
+  set(list) {
+    this.clear(); this.source = list; const pal = this.palette;
+    for (const src of list) {
+      const ring = src.ring.filter((p, i, a) => i === 0 || Math.hypot(p.x - a[i - 1].x, p.z - a[i - 1].z) > 0.3); if (ring.length < 3) continue;
+      let area = 0; for (let i = 0; i < ring.length; i++) { const a = ring[i], b = ring[(i + 1) % ring.length]; area += a.x * b.z - b.x * a.z; }
+      if (Math.abs(area) < 4) continue;
+      const cx = ring.reduce((s, p) => s + p.x, 0) / ring.length, cz = ring.reduce((s, p) => s + p.z, 0) / ring.length;
+      let gmin = Infinity, gmax = -Infinity; for (const p of ring) { const g = this.groundM(p.x, p.z); gmin = Math.min(gmin, g); gmax = Math.max(gmax, g); }
+      const hsh = hash(src.id), M = this.M, h = clamp(src.h || 5, 2.5, 120);
+      const gAt = (x, z) => this.groundM(x / M, z / M) * M;
+      const b = { id: src.id, kind: src.kind, name: src.name || null, roofShape: src.roof || null, levels: src.levels || null, gAt, ring, ringL: ring.map(p => ({ x: p.x * M, z: p.z * M })), h, cx, cz, r: Math.max(...ring.map(p => Math.hypot(p.x - cx, p.z - cz))),
+        y0: Math.max(gmin * M, gmax * M - 12 * COURSE), drop: Math.min((gmax - gmin) * M, 12 * COURSE), wall: pal.walls[hsh % pal.walls.length], roof: pal.roofs[(hsh >>> 8) % pal.roofs.length], pal, bricks: null, removed: new Set(), flatRoof: false, ruined: false };
+      b.yTop = b.y0 + Math.max(2, Math.round(h * M / COURSE) + Math.ceil(b.drop / COURSE)) * COURSE;
+      const xs = b.ringL.map(p => p.x), zs = b.ringL.map(p => p.z);
+      b.aabb = { min: new THREE.Vector3(Math.min(...xs), b.y0, Math.min(...zs)), max: new THREE.Vector3(Math.max(...xs), b.yTop, Math.max(...zs)) };
+      this.buildings.push(b);
+      const key = Math.floor(cx / TILE_M) + ':' + Math.floor(cz / TILE_M);
+      let t = this.tiles.get(key);
+      if (!t) { t = { key, buildings: [], box: new THREE.Box3(), state: 'far', far: null, near: null, n: -1, group: new THREE.Group(), map: null, roofs: [] }; t.group.name = 'tile ' + key; this.root.add(t.group); this.tiles.set(key, t); }
+      t.buildings.push(b); t.box.expandByPoint(b.aabb.min); t.box.expandByPoint(b.aabb.max);
+    }
+    for (const t of this.tiles.values()) { t.far = new THREE.Mesh(prisms(t.buildings, this.colours), this.farMat); t.far.frustumCulled = false; t.group.add(t.far); t.centre = t.box.getCenter(new THREE.Vector3()); }
+    return this.buildings.length;
+  }
+  clear() { for (const t of this.tiles.values()) this.drop(t); this.root.clear(); this.tiles.clear(); this.buildings.length = 0; this.live = 0; this.pending = []; }
+  drop(t) { if (t.near) { for (const m of t.near.values()) m.dispose(); t.near = null; } for (const r of t.roofs) r.geometry.dispose(); t.roofs = []; if (t.far) t.far.geometry.dispose(); }
+  count(t) { if (t.n >= 0) return t.n; t.n = 0; for (const b of t.buildings) { if (!b.bricks) b.bricks = buildBricks(b, this.colours, this.M); t.n += b.bricks.n; } return t.n; }
+  goNear(t) {
+    this.count(t); const per = new Map();
+    for (const b of t.buildings) b.bricks.list.forEach((br, k) => { if (b.removed.has(k)) return; let a = per.get(br.p); if (!a) { a = []; per.set(br.p, a); } a.push({ br, b, k }); });
+    t.near = new Map(); t.map = new Map(); t.slot = new Map();
+    for (const [part, arr] of per) {
+      const G = this.geoms.get(part); if (!G) continue;
+      const im = new THREE.InstancedMesh(G.geom, part === 'pane-lit' ? this.paneMat : this.mat, arr.length); im.frustumCulled = false; im.name = part;
+      const tint = new THREE.Color();
+      arr.forEach((e, i) => { im.setMatrixAt(i, e.br.m); const v = 0.86 + 0.16 * (hash(e.b.id * 7919 + e.k) % 1000) / 1000; tint.copy(e.br.c).multiplyScalar(v); im.setColorAt(i, tint); t.slot.set(e.b.id + ':' + e.k, { part, i }); });   // each brick its own shade, as moulded plastic is
+      im.instanceMatrix.needsUpdate = true; if (im.instanceColor) im.instanceColor.needsUpdate = true;
+      t.near.set(part, im); t.map.set(part, arr); t.group.add(im);
+    }
+    for (const b of t.buildings) if (b.flatRoof) {                       // too big for plates: one flat roof
+      const shape = new THREE.Shape(b.ringL.map(p => new THREE.Vector2(p.x, -p.z))), g = new THREE.ShapeGeometry(shape); g.rotateX(-Math.PI / 2); g.translate(0, b.yTop + 8, 0);
+      const c = this.colours(b.roof), col = new Float32Array(g.attributes.position.count * 3); for (let i = 0; i < col.length; i += 3) { col[i] = c.r; col[i + 1] = c.g; col[i + 2] = c.b; }
+      g.setAttribute('color', new THREE.BufferAttribute(col, 3)); const m = new THREE.Mesh(g, this.farMat); m.frustumCulled = false; t.roofs.push(m); t.group.add(m);
+    }
+    t.far.visible = false; t.state = 'near'; this.live += t.n;
+  }
+  goFar(t) { if (t.near) { for (const m of t.near.values()) { t.group.remove(m); m.dispose(); } t.near = null; t.map = null; t.slot = null; } for (const r of t.roofs) { t.group.remove(r); r.geometry.dispose(); } t.roofs = []; t.far.visible = true; t.state = 'far'; this.live -= t.n; }
+  /** Called every frame with the camera; flips at most one tile. */
+  update(camera, focus) {
+    const M = this.M, p = focus || camera.position;
+    this.pm.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse); this.frustum.setFromProjectionMatrix(this.pm);
+    const order = [];
+    for (const t of this.tiles.values()) { t.dist = t.box.distanceToPoint(p) / M; t.group.visible = this.frustum.intersectsBox(t.box) || t.dist < 60; order.push(t); }
+    order.sort((a, b) => a.dist - b.dist);
+    let total = 0, flip = null;
+    for (const t of order) {
+      const wantNear = t.state === 'near' ? t.dist < NEAR_OUT : t.dist < NEAR_IN;
+      if (!wantNear) { if (t.state === 'near' && !flip) flip = () => this.goFar(t); continue; }
+      const n = this.count(t);
+      if (total + n > CAP) { if (t.state === 'near' && !flip) flip = () => this.goFar(t); continue; }
+      total += n; if (t.state === 'far' && !flip) flip = () => this.goNear(t);
+    }
+    if (flip) flip();
+  }
+  near(x, z, radius) { const out = []; for (const b of this.buildings) if (Math.hypot(b.cx * this.M - x, b.cz * this.M - z) < radius + b.r * this.M) out.push(b); return out; }
+  aabbs(x, z, radius) { return this.near(x, z, radius).map(b => b.aabb); }
+  tileOf(b) { return this.tiles.get(Math.floor(b.cx / TILE_M) + ':' + Math.floor(b.cz / TILE_M)); }
+  /** Surviving wall spans per edge and course: 'e:c' → [[s0, s1, k], …]. Built lazily, dropped when a brick goes. */
+  spans(b) {
+    if (b.spans) return b.spans; if (!b.bricks) b.bricks = buildBricks(b, this.colours, this.M); const m = new Map();
+    b.bricks.list.forEach((br, k) => { if (b.removed.has(k) || !br.meta || br.meta.roof || br.meta.e == null) return; const me = br.meta; for (let r = 0; r < (me.rows || 1); r++) { const key = me.e + ':' + (me.course + r); let a = m.get(key); if (!a) { a = []; m.set(key, a); } a.push([me.s0, me.s1, k]); } });
+    b.spans = m; return m;
+  }
+  /** A hole through edge e at arc position s (LDU), 2r wide and three courses tall from feet at yFeet: nothing left standing there, or the door open. */
+  gapAt(b, e, s, yFeet, r) {
+    const sp = this.spans(b), c0 = Math.max(0, Math.floor((yFeet + 30 - b.y0) / COURSE)), c1 = Math.floor((yFeet + 3 * COURSE - 1 - b.y0) / COURSE), a0 = s - r, a1 = s + r, doorK = b.door && b.doorT > 0.5 ? b.door.k : -1;   // from the knee (a sill is stepped over) to the top of the head
+    for (let c = c0; c <= c1; c++) { const arr = sp.get(e + ':' + c); if (!arr) continue; for (const [s0, s1, k] of arr) if (k !== doorK && s1 > a0 && s0 < a1) return false; }
+    return true;
+  }
+  /** The top of a stair plate under a point (LDU), for feet no more than a step below it; -Infinity when there is none. */
+  floorAt(x, z, y) {
+    let best = -Infinity, M = this.M;
+    for (const b of this.near(x, z, 3 * M)) { if (b.bricks && b.plinth > 0 && !b.stadium) { const top = b.y0 + b.plinth * COURSE; if (top <= y && top > best && pointInRing(x, z, b.ringL)) best = top; }   // a building on a plinth has its floor at the plinth's top
+      if (!b.stairs || !b.stairs.length) continue; for (const st of b.stairs) { if (st.top > y || st.top <= best) continue; const dx = x - st.x, dz = z - st.z, c = Math.cos(st.theta), s = Math.sin(st.theta), lx = dx * c - dz * s, lz = dx * s + dz * c; if (Math.abs(lx) <= 40 && Math.abs(lz) <= 20) best = st.top; } }
+    return best;
+  }
+  /** Doors swing open for whoever comes near (within 2.5 m of the door), and swing shut behind them. */
+  doors(pos, dt) {
+    const M = this.M;
+    for (const b of this.near(pos.x, pos.z, 4 * M)) {
+      if (!b.bricks) b.bricks = buildBricks(b, this.colours, M); const d = b.door; if (!d || b.removed.has(d.k)) continue;
+      const E = b.edges[d.e], sx = E.A.x + E.ux * (d.s0 + 20) + E.nx * 14, sz = E.A.z + E.uz * (d.s0 + 20) + E.nz * 14, close = Math.hypot(pos.x - sx, pos.z - sz) < 2.5 * M && pos.y + 3 * COURSE > d.y && pos.y < d.y + 6 * COURSE;
+      const want = close ? 1 : 0, was = b.doorT || 0; if (was === want) continue;
+      b.doorT = clamp(was + (want - was > 0 ? 1 : -1) * dt / 0.3, 0, 1);
+      const t = this.tileOf(b), sl = t && t.slot && t.slot.get(b.id + ':' + d.k); if (!sl) continue;
+      const br = b.bricks.list[d.k], hx = E.A.x + E.ux * d.s0 + E.nx * 14, hz = E.A.z + E.uz * d.s0 + E.nz * 14, ang = b.doorT * 1.45;   // the hinge at the door's first stud; it swings inward
+      TMP.copy(br.m).premultiply(new THREE.Matrix4().makeTranslation(-hx, 0, -hz)).premultiply(new THREE.Matrix4().makeRotationY(-ang * Math.sign(E.nx * -E.uz + E.nz * E.ux || 1))).premultiply(new THREE.Matrix4().makeTranslation(hx, 0, hz));
+      const im = t.near.get(sl.part); im.setMatrixAt(sl.i, TMP); im.instanceMatrix.needsUpdate = true;
+    }
+  }
+  /** Remove one brick of a building; returns what fell (part, world matrix, colour) or null if already gone. */
+  removeBrick(b, k) {
+    if (b.removed.has(k)) return null; b.removed.add(k); b.spans = null;
+    const t = this.tileOf(b); if (t && t.slot) { const sl = t.slot.get(b.id + ':' + k); if (sl) { const im = t.near.get(sl.part); im.setMatrixAt(sl.i, TMP.makeScale(0, 0, 0)); im.instanceMatrix.needsUpdate = true; } }
+    this.knocked++;
+    if (!b.ruined && b.removed.size > 0.6 * b.bricks.n) { b.ruined = true; if (t) { t.far.geometry.dispose(); t.far.geometry = prisms(t.buildings, this.colours); } }
+    const br = b.bricks.list[k]; return { part: br.p, matrix: br.m, colour: br.c, b, k };
+  }
+  /** Restore damage: mark bricks removed with no debris (a saved or replicated set). Returns how many. */
+  applyRemoved(b, ks) { if (!b.bricks) b.bricks = buildBricks(b, this.colours, this.M); let n = 0; for (const k of ks) if (k >= 0 && k < b.bricks.n && this.removeBrick(b, k)) n++; return n; }
+  /** { osmId: [k, …] } for every damaged building, for saving and for late joiners. */
+  removedSets() { const out = {}; for (const b of this.buildings) if (b.removed && b.removed.size) out[b.id] = [...b.removed]; return out; }
+  /** Knock the brick nearest to a point out of a near building; returns what fell, or null. */
+  knock(pt, r) { const f = this.blast(pt, r, null, 1); return f[0] || null; }
+  /** Every live brick within r of a point falls out, flung away from it; the buildings then collapse where support is lost.
+      Returns the fallen pieces with velocities (LDU/s). */
+  blast(pt, r, vel, limit = 1e9) {
+    const out = [], M = this.M, r2 = r * r;
+    this.lastTouched = [];
+    for (const b of this.near(pt.x, pt.z, r)) {
+      if (!b.bricks) b.bricks = buildBricks(b, this.colours, M);
+      if (pt.y < b.y0 - r || pt.y > b.yTop + r) continue;
+      this.lastTouched.push(b);
+      const cand = [];
+      b.bricks.list.forEach((br, k) => { if (b.removed.has(k)) return; const el = br.m.elements, d2 = (el[12] - pt.x) ** 2 + (el[13] + 12 - pt.y) ** 2 + (el[14] - pt.z) ** 2; if (d2 < r2) cand.push([d2, k]); });
+      cand.sort((a, c) => a[0] - c[0]);
+      for (const [d2, k] of cand) {
+        if (out.length >= limit) break;
+        const f = this.removeBrick(b, k); if (!f) continue;
+        const el = f.matrix.elements, away = new THREE.Vector3(el[12] - pt.x, el[13] + 12 - pt.y + 10, el[14] - pt.z); if (away.lengthSq() < 1) away.set(Math.random() - .5, 1, Math.random() - .5);
+        away.normalize().multiplyScalar((2 + Math.random() * 6) * M * (1 - Math.sqrt(d2) / r * 0.6)); if (vel) away.add(vel); away.y += 1.5 * M;
+        f.vel = away; out.push(f);
+      }
+      if (cand.length) this.queueCollapse(b);
+    }
+    return out;
+  }
+  /** Bricks left without support fall in waves, lowest course first. */
+  /** Damage keeps spreading: n smaller blasts on the rim of a hole, staggered, run from tick(). */
+  aftershock(pt, r, n, delay = 0.3, vel = null) {
+    if (!this.shocks) this.shocks = [];
+    for (let k = 0; k < n; k++) { const a = Math.random() * Math.PI * 2, up = (Math.random() - .3) * 0.8; const p = new THREE.Vector3(pt.x + Math.cos(a) * r * 0.9, pt.y + up * r, pt.z + Math.sin(a) * r * 0.9); this.shocks.push({ p, r: r * 0.6, due: this.t + delay + k * 0.35, vel }); }
+    if (this.shocks.length > 40) this.shocks.splice(0, this.shocks.length - 40);
+  }
+  queueCollapse(b) {
+    const gone = unsupported(b); if (!gone.length) return;
+    let cmin = Infinity; for (const k of gone) cmin = Math.min(cmin, b.bricks.list[k].meta.course);
+    for (const k of gone) { const c = b.bricks.list[k].meta.course; this.pending.push({ b, k, due: this.t + 0.06 + (c - cmin) * 0.08 + Math.random() * 0.04 }); }
+  }
+  /** Release due bricks; returns them for the debris. Bounded per frame. */
+  tick(dt) {
+    this.t += dt; const out = [];
+    if (this.shocks && this.shocks.length) { const keep = []; for (const q of this.shocks) { if (q.due > this.t) { keep.push(q); continue; } out.push(...this.blast(q.p, q.r, q.vel)); } this.shocks = keep; }
+    if (!this.pending.length) return out;
+    const keep = []; let n = 0;
+    for (const q of this.pending) {
+      if (q.due > this.t || n >= 300) { keep.push(q); continue; }
+      const f = this.removeBrick(q.b, q.k); if (!f) continue; n++;
+      f.vel = new THREE.Vector3((Math.random() - .5) * 1.2 * this.M, -0.5 * this.M, (Math.random() - .5) * 1.2 * this.M); out.push(f);
+    }
+    this.pending = keep;
+    return out;
+  }
+  stats() { let near = 0, levelled = 0; for (const t of this.tiles.values()) if (t.state === 'near') near++; for (const b of this.buildings) if (b.ruined) levelled++; return { buildings: this.buildings.length, tiles: this.tiles.size, near, live: this.live, knocked: this.knocked, levelled, shocks: this.shocks ? this.shocks.length : 0 }; }
+}
+
+/** The offline village: houses along two roads of the farm, so the world is never empty. */
+function village() {
+  const buildings = [], roads = [];
+  const house = (id, x, z, w, d, h, kind) => buildings.push({ id, kind, h, ring: [{ x: x - w / 2, z: z - d / 2 }, { x: x + w / 2, z: z - d / 2 }, { x: x + w / 2, z: z + d / 2 }, { x: x - w / 2, z: z + d / 2 }] });
+  roads.push({ id: 'a', w: 6, pts: [{ x: -220, z: 34 }, { x: 220, z: 34 }] }, { id: 'b', w: 5, pts: [{ x: 40, z: -180 }, { x: 40, z: 220 }] });
+  let id = 1;
+  for (let x = -180; x <= 180; x += 45) { if (Math.abs(x - 40) < 20) continue; house(id++, x, 14, 12, 8, 4 + (id % 3) * 1.5, 'house'); house(id++, x + 10, 56, 10, 9, 5 + (id % 2) * 2, 'house'); }
+  house(id++, 62, -60, 12, 20, 12, 'church'); house(id++, 18, -110, 30, 18, 9, 'warehouse'); house(id++, -60, 110, 24, 16, 14, 'apartments');
+  return { buildings, roads };
+}
+
+window.Bricks = { setLOD, LOD, harvestOrigin, CUSTOM, HARVEST, lines, harvest, City, village, buildBricks, unsupported, pointInRing, COURSE, CAP , mergeGroup };
+})();

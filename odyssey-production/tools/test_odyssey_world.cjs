@@ -1,0 +1,5 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert');global.THREE=require('../native/vendor/three.min.js');global.window=global;global.__world={world:'earth'};vm.runInThisContext(fs.readFileSync('native/world/ground.js','utf8'));
+const road={id:1,kind:'residential',w:10,pts:[{x:0,z:0},{x:100,z:0}]};const G={M:40,res:10,hM:()=>0};
+const modern=Ground.roads(G,[road],40),modernVertices=modern.geometry.attributes.position.count;
+__world.world='odyssey';const old=Ground.roads(G,[road],40),periodVertices=old.geometry.attributes.position.count;assert(periodVertices<modernVertices,'painted lane geometry must disappear');
+const st=Ground.streets(G,{roads:[road],areas:[{kind:'parking',ring:[{x:0,z:0},{x:20,z:0},{x:20,z:20}]}]},40);assert(!st||st.geometry.attributes.position.count===0,'no extra asphalt/parking/sidewalks');assert(Ground.layerAt(G,2000,0)>0,'ground support remains');console.log(JSON.stringify({modernVertices,periodVertices,roadSupport:Ground.layerAt(G,2000,0),pass:true}));
