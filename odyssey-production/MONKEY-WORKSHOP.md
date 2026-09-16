@@ -25,3 +25,13 @@ Imported set assemblies have open space inside their bounding boxes, so the work
 - Saved a named state, switched to another shot, and reopened the state with X −213.5 preserved.
 - Confirmed saved states persisted across a page reload.
 - Existing eight production checks and JavaScript syntax checks pass.
+
+## Compact filmmaker controls
+
+The shot selector, preview/edit icons and scrubber occupy a fixed compact header. Every icon has an accessible label and tooltip. The takes icon opens a small backup card with Save take, Restore take, Export and Import. Named takes are browser-local; Export backup makes a portable file.
+
+The shared parts library uses six real LDraw thumbnail cards per page, text/ID search, category filters and previous/next buttons. Cast controls have their own Cast toggle. The page and library do not scroll; the scene remains above the fixed library.
+
+Select an assembly, then use the in-scene rotation strip: X/Y/Z axis, 15/45/90 degree steps, backward/forward, and undo. Rotations preserve each selected object's center and lift it above the floor when necessary. Undo restores the complete previous placement. Save a named take before exploring larger changes.
+
+Validated at 390×844: no document overflow, cards visible, native card insertion, rotation/undo and named take save.
