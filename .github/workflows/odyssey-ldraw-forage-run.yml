@@ -16,23 +16,24 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-
       - name: Acquire verified GitHub-backed LDraw corpus
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p "$OUT/models" "$OUT/parts" "$OUT/metadata"
-          git clone --depth 1 https://github.com/gkjohnson/ldraw-parts-library.git /tmp/ldraw-parts-library
+          git clone --depth 1 --filter=blob:none --no-checkout https://github.com/gkjohnson/ldraw-parts-library.git /tmp/ldraw-parts-library
+          git -C /tmp/ldraw-parts-library sparse-checkout init --cone
+          git -C /tmp/ldraw-parts-library sparse-checkout set models complete/ldraw/parts
+          git -C /tmp/ldraw-parts-library checkout
           python3 - <<'PY'
           from pathlib import Path
-          import shutil, json, hashlib
+          import shutil, json
 
           src = Path('/tmp/ldraw-parts-library')
           out = Path('odyssey-ldraw-corpus')
           model_files = [
             '6285 - Black Seas Barracuda.mpd',
-            "6286 - Skulls Eye Schooner.mpd",
+            '6286 - Skulls Eye Schooner.mpd',
             '6279-1 - Skull Island.mpd',
             '6278 6292 - Enchanted Island.mpd',
             '6264 - Forbidden Cove.mpd',
@@ -76,7 +77,7 @@ jobs:
           set +e
           python3 - <<'PY'
           from pathlib import Path
-          import subprocess, json
+          import subprocess, json, re
           out=Path('odyssey-ldraw-corpus/models')
           sources=[
             ('6257 - Castaways Raft.mpd','https://forums.ldraw.org/attachment.php?aid=7607'),
@@ -86,7 +87,7 @@ jobs:
             ('6276 - Eldorado Fortress.mpd','https://forums.ldraw.org/attachment.php?aid=7641'),
             ('6273 - Rock Island Refuge.mpd','https://forums.ldraw.org/attachment.php?aid=8029'),
             ('6247 - Bounty Boat.mpd','https://forums.ldraw.org/attachment.php?aid=8303'),
-            ("6258 - Smugglers Shanty.mpd",'https://forums.ldraw.org/attachment.php?aid=8305'),
+            ('6258 - Smugglers Shanty.mpd','https://forums.ldraw.org/attachment.php?aid=8305'),
             ('6261 - Raft Raiders.mpd','https://forums.ldraw.org/attachment.php?aid=8332'),
             ('6271 - Imperial Flagship.mpd','https://forums.ldraw.org/attachment.php?aid=8519'),
             ('6277 - Imperial Trading Post.mpd','https://forums.ldraw.org/attachment.php?aid=8815'),
@@ -96,10 +97,14 @@ jobs:
           report=[]
           for name,url in sources:
             dest=out/name
-            cmd=['curl','-fL','--retry','2','--connect-timeout','15','-A','Mozilla/5.0 Odyssey-LDraw-Forage/0.1','-o',str(dest),url]
-            p=subprocess.run(cmd)
+            p=subprocess.run(['curl','-fL','--retry','2','--connect-timeout','15','-A','Mozilla/5.0 Odyssey-LDraw-Forage/0.2','-o',str(dest),url])
             ok=p.returncode==0 and dest.exists() and dest.stat().st_size>0
-            report.append({'file':name,'url':url,'ok':ok,'bytes':dest.stat().st_size if ok else 0})
+            reason='download_failed'
+            if ok:
+              head=dest.read_text(errors='replace')[:4096]
+              ok=bool(re.search(r'(?m)^(?:0\s+(?:FILE|Name:|!LDRAW_ORG)|1\s+\S+\s+)',head)) and '<html' not in head.lower()
+              reason='ok' if ok else 'not_ldraw_text'
+            report.append({'file':name,'url':url,'ok':ok,'reason':reason,'bytes':dest.stat().st_size if ok else 0})
             if not ok and dest.exists(): dest.unlink()
           Path('odyssey-ldraw-corpus/metadata/external-fetch.json').write_text(json.dumps(report,indent=2))
           print('external ok',sum(r['ok'] for r in report),'/',len(report))
@@ -114,6 +119,7 @@ jobs:
           import json,re,hashlib
           root=Path('odyssey-ldraw-corpus/models')
           rows=[]
+          all_parts=set()
           for p in sorted(root.glob('*')):
             if p.suffix.lower() not in {'.mpd','.ldr'}: continue
             text=p.read_text(errors='replace').replace('\r\n','\n')
@@ -121,7 +127,7 @@ jobs:
             chunks=[]; cur={'name':'__ROOT__','start':1,'refs':[],'partRefs':[]}
             def close(end):
               if cur['start']<=end:
-                x=dict(cur); x['end']=end; x['uniquePartRefs']=sorted(set(x['partRefs'])); chunks.append(x)
+                x=dict(cur); x['end']=end; x['uniquePartRefs']=sorted(set(x['partRefs'])); chunks.append(x); all_parts.update(x['uniquePartRefs'])
             for i,line in enumerate(lines, start=1):
               m=re.match(r'^0\s+FILE\s+(.+)$',line,re.I)
               if m:
@@ -138,8 +144,9 @@ jobs:
           summary={
             'modelFiles':len(rows),
             'submodels':sum(len(r['submodels']) for r in rows),
-            'uniquePartRefs':len({x for r in rows for s in r['submodels'] for x in s['uniquePartRefs']}),
+            'uniquePartRefs':len(all_parts),
             'datReadymades':len(list(Path('odyssey-ldraw-corpus/parts').glob('*.dat'))),
+            'missingManualModels':['7637 - Farm.mpd'],
           }
           Path('odyssey-ldraw-corpus/run-summary.json').write_text(json.dumps(summary,indent=2))
           print(json.dumps(summary,indent=2))
