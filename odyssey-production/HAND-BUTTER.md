@@ -1,13 +1,17 @@
-# Hand Butter in Cinerium
+# Independent Hand Butter scene loader
 
-Open **Direct → Hand Butter** after the scene finishes loading. The scene is already loaded: actors, props, light and cameras stay in Cinerium.
+Open `native/hand-butter-scenes.html`. This is a separate app based on the supplied WAG-HAND-BUTTER-11 (15).HTML; the Downloads original is untouched.
 
-1. Select a shot, then an actor.
-2. At time 0, pose the actor and press **Keep pose**.
-3. Move Time forward. Drag the floor pad to move the actor, adjust the joints or select a starting pose.
-4. Press **Keep pose** again, then **Play shot**.
-5. Use **Save motion file** for a portable backup. Keys also save in this browser, per scene. **Load motion file** requires the same scene and shot names.
+Cinerium and Word to World offer **Open in Hand Butter**. Night Shift does too. The loader has a transferred-scene picker, named assembly selection, file loading, saving and Fit scene. Existing Hand Butter movement, rotation, copying and part-shelf tools operate on imported assembly snapshots. Physics pauses for imported scenes to prevent accidental throwing.
 
-**Walk between keys** adds a leg cycle during translation. Slide / hold pose is useful for seated rowing or held gestures. Keep multiple poses to create anticipation, action and recovery; presets alone are static poses. Delete nearest key and Undo key edit are available.
+Scene files contain geometry and materials, not just links to donors. Cast imports are static geometry. Live animation rigs, location terrain, weather, film score and animation curves do not transfer. Edited scenes save to JSON and can be reopened in this loader; returning changes to Cinerium is not implemented. Legacy labs without a handoff button are not yet importable through this interface.
 
-This is a native adaptation of the attached WAG Hand Butter workflow, not an importer for its workshop JSON. That file stores catalogued brick rows and a separate performer, while Cinerium has named actors, shots and recorded performances. Its webcam hand tracker, physics constraints and brick assembly controls have not been ported. The native tool uses mouse/touch floor dragging and joint sliders. It does not solve hand-to-prop contact or collision constraints. Motion is a separate local layer and JSON backup; it is not embedded in MENTO script export.
+Cinerium's earlier pose-key panel is now labeled **Actor keys** to distinguish it from the full Hand Butter app. Webcam tracking is retained from the supplied app but has not been tested in this integration.
+
+## Mobile parts library (September 16)
+
+**Parts** opens a scrollable lower drawer and reframes the scene above it. Close returns the full work area. The search accepts an LDraw number or description; shortest matching descriptions rank first, exact IDs take priority. The local development corpus exposes 19,186 parts. Only 60 matches render at once to keep the drawer responsive. A result loads real geometry, selects the new assembly and adds it to the assembly picker. New geometry starts above the selected assembly, or near the origin when nothing is selected. Use the existing movement/rotation tools to place it; Save adapted scene preserves it.
+
+**Upright**, **Front** and **Top** reset the plate orientation and camera. Imported scenes remain physics-paused. The assembly limit is 200.
+
+Verified in the browser at 390 × 844: drawer scrolling, visible scene framing, search by banana and 33085, actual banana insertion, and assembly selection. Full catalog search requires the complete LDraw corpus. In the repository release, the workshop uses the existing root `ldraw/` directory; keep `odyssey-production/` alongside it. The local development server uses its full native corpus. Webcam tracking was not enabled during these checks.

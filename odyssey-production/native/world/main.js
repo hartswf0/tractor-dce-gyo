@@ -976,6 +976,7 @@ function filmSet(kind, opts = {}) {
 }
 /* ───────────────────────── the film page: shots, the reel, the take ───────────────────────── */
 /** word-to-momento.html: the same world with a film camera. Words are shots (the switch in the bar can make them builds), the reel is the strip above the bar, Rec takes it. */
+W.enableSceneFilm = () => { if(!W.film) bindFilm(); W.wordsFilm=false; return W.film; };
 function bindFilm() {
   const F = W.film = Film.create({ W, M }); W.wordsFilm = true; W.setSky = setSky; W.setWeather = setWeather; W.placeKey = () => placeKey(W.place);
   W.filmCtx = V => { const c = driveCtx(V); c.blast = (p, r, vel, kind) => { blast(p, r, vel, true, false, kind); W.shake = Math.max(W.shake, 0.15); Fx.Sfx.crunch(); }; c.sfx = { crunch: () => Fx.Sfx.crunch(W.film.spatial(V.pos)), thud: k => Fx.Sfx.thud(k, W.film.spatial(V.pos)) }; c.skid = () => { }; c.stomp = v => Fx.Sfx.stomp(v.K.legs === 4 ? 1.2 : 0.7, W.film.spatial(v.pos)); return c; };   // an actor's ram shakes the ground a little and never flashes the player's screen

@@ -31,3 +31,9 @@ Run `python3 work/run_production_tests.py` from the development workspace. The r
 3. Watch: play/stop, sound state, scene picker. Direct/Stage/Export: controls accessible without overlapping the film.
 4. Hand Butter: keep two poses, preview transition, reload and verify persistence; export/import in the same scene.
 5. Review actual rendered frames for clipping, contact, composition and readable action. Full-film QC remains open.
+
+## Monkey Business final cut
+
+`tools/test_monkey_cut.cjs` checks the 83-second continuous timeline, 13 finite camera/action cues and recorded voice assets. The final MP4 was probed at 1280 × 720, 996 frames, 83.000 seconds, H.264/AAC. All 11 dialogue clips fit their shot durations. Workstations, inspector and ending were visually reviewed. This does not assert physically constrained hand contact or lip sync.
+
+Mobile Hand Butter was checked at 390 × 844: independent drawer scrolling, retained scene framing, search, native banana insertion and assembly selection.

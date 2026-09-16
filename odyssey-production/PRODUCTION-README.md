@@ -2,12 +2,18 @@
 
 Start with **[Scene & test library](scene-library.html)**. Search, filter by type, select a card to preview a saved frame or rendered test, then open its editable scene or separate laboratory.
 
+## New: Monkey Business and separate Hand Butter
+
+**[Watch Monkey Business](films/NIGHT-SHIFT.mp4)** — finished 83-second short with voices, music, effects, animated workstations and 13 directed shots. **[Rehearse / edit a snapshot](monkey-film.html)**. See [cut and source notes](MONKEY-CUT.md).
+
+**[Hand Butter workshop](native/hand-butter-scenes.html)** is a separate app. Transfer a current scene moment from the film, Cinerium or Word to World, then move/copy assemblies, search the large LDraw library, and save an adapted JSON scene. Mobile uses a scrolling parts drawer while retaining the scene view. Assembly snapshots do not retain animation rigs or return edits to the film automatically.
+
 ## What is actually here
 
 - **8 native book rehearsals:** journey-home assembly, boat, stake, cave, Circe, Argos, axes and rooted bed.
 - **10 earlier registered native programs:** Odyssey trailer, cast, four Halfworld scene adaptations, three Star Wars tests and Simpsons intro.
 - **Separate laboratories and exported films:** sheep escape, hero props, Circe/Argos, location studies, earlier bed revisions and test assemblies.
-- **40 catalog entries total.** Entries are views/artifacts, not 40 unique finished scenes. `scene-catalog.json` is the inventory; automated checks verify every registered native program appears and every listed local target exists.
+- **41 catalog entries total.** Entries are views/artifacts, not 40 unique finished scenes. `scene-catalog.json` is the inventory; automated checks verify every registered native program appears and every listed local target exists.
 
 ## Sheep escape: found, but not integrated
 
@@ -16,9 +22,9 @@ Start with **[Scene & test library](scene-library.html)**. Search, filter by typ
 ## Operate
 
 - **Watch:** Play film, sound and scene selection.
-- **Direct:** editable shots/cameras and **Hand Butter** actor poses. Keep a pose at one time, advance time, keep another; play the shot. Frame actor lets you inspect the puppet without replacing the authored shot camera.
+- **Direct:** editable shots/cameras and **Actor keys** poses. Keep a pose at one time, advance time, keep another; play the shot. Frame actor lets you inspect the puppet without replacing the authored shot camera.
 - **Stage:** geography, weather, light and assembly controls.
-- **Export:** record and download a take. Hand Butter motion has a separate JSON export; it is not included in MENTO export.
+- **Export:** record and download a take. Actor-key motion has a separate JSON export; it is not included in MENTO export.
 
 See [Hand Butter instructions](HAND-BUTTER.md) and [tests](TESTS.md).
 
@@ -39,5 +45,5 @@ The older `production-handoff.md` is a chronological work log; some early status
 - Integrate sheep escape into on-location native actors/props and editable motion.
 - Finish Cyclops, stake grip, bow release/arrow, embrace and animal contact rigs.
 - Replace prototype environments with grounded architecture/flora; combined film still shares one coastal stage.
-- Connect webcam hand tracking if desired; current Hand Butter uses mouse/touch controls.
-- Complete a full rendered-film visual/audio QC pass. Unit tests and browser spot-checks do not establish final film quality.
+- Validate webcam tracking in the separate Hand Butter loader; mouse/touch assembly editing is verified.
+- Continue quality review of the Odyssey film assemblies; their status is separate from the finalized Monkey Business short.
