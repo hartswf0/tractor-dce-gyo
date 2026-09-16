@@ -14,61 +14,30 @@ env:
 jobs:
   forage:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - name: Acquire verified GitHub-backed LDraw corpus
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p "$OUT/models" "$OUT/parts" "$OUT/metadata"
+          mkdir -p "$OUT/models" "$OUT/parts" "$OUT/metadata" "$OUT/ldraw/parts" "$OUT/ldraw/p"
           git clone --depth 1 --filter=blob:none --no-checkout https://github.com/gkjohnson/ldraw-parts-library.git /tmp/ldraw-parts-library
           git -C /tmp/ldraw-parts-library sparse-checkout init --cone
-          git -C /tmp/ldraw-parts-library sparse-checkout set models complete/ldraw/parts
+          git -C /tmp/ldraw-parts-library sparse-checkout set models complete/ldraw/parts complete/ldraw/p
           git -C /tmp/ldraw-parts-library checkout
           python3 - <<'PY'
           from pathlib import Path
           import shutil, json
-
-          src = Path('/tmp/ldraw-parts-library')
-          out = Path('odyssey-ldraw-corpus')
-          model_files = [
-            '6285 - Black Seas Barracuda.mpd',
-            '6286 - Skulls Eye Schooner.mpd',
-            '6279-1 - Skull Island.mpd',
-            '6278 6292 - Enchanted Island.mpd',
-            '6264 - Forbidden Cove.mpd',
-            '6256 - Island Catamaran.mpd',
-            '6245 - Harbor Sentry.mpd',
-            '6235 - Buried Treasure.mpd',
-            '1788 - Treasure Chest.mpd',
-            '21318 - Tree House.mpd',
-            '21325 - Medieval Blacksmith.mpd',
-            '6071 - Forestmens Crossing.mpd',
-            '6066 - Camouflaged Outpost.mpd',
-            '7410-1 - Jungle River.mpd',
-            '6080 - Kings Castle.mpd',
-            '9476-1 - The Orc Forge.mpd',
-            '10228 - HAUNTED HOUSE.mpd',
-            '10214-1 - Tower Bridge.mpd',
-            '21022-1 - Lincoln Memorial.mpd',
-            '21041-1 - Great Wall of China.mpd',
-            '7327-1 - Scorpion Pyramid.mpd',
-            '7326-1 - Rise of the Sphinx.mpd',
-            '6716-1 - Covered Wagon.mpd',
-            '6799-1 - Showdown Canyon - Carriage.mpd',
-          ]
-          part_files = ['27256.dat','3847.dat','10169.dat','10509.dat','87621.dat','64452.dat','4429.dat']
+          src=Path('/tmp/ldraw-parts-library'); out=Path('odyssey-ldraw-corpus')
+          models=['6285 - Black Seas Barracuda.mpd','6286 - Skulls Eye Schooner.mpd','6279-1 - Skull Island.mpd','6278 6292 - Enchanted Island.mpd','6264 - Forbidden Cove.mpd','6256 - Island Catamaran.mpd','6245 - Harbor Sentry.mpd','6235 - Buried Treasure.mpd','1788 - Treasure Chest.mpd','21318 - Tree House.mpd','21325 - Medieval Blacksmith.mpd','6071 - Forestmens Crossing.mpd','6066 - Camouflaged Outpost.mpd','7410-1 - Jungle River.mpd','6080 - Kings Castle.mpd','9476-1 - The Orc Forge.mpd','10228 - HAUNTED HOUSE.mpd','10214-1 - Tower Bridge.mpd','21022-1 - Lincoln Memorial.mpd','21041-1 - Great Wall of China.mpd','7327-1 - Scorpion Pyramid.mpd','7326-1 - Rise of the Sphinx.mpd','6716-1 - Covered Wagon.mpd','6799-1 - Showdown Canyon - Carriage.mpd']
+          parts=['27256.dat','3847.dat','10169.dat','10509.dat','87621.dat','64452.dat','4429.dat']
           rows=[]
-          for name in model_files:
-            s=src/'models'/name; d=out/'models'/name
-            shutil.copy2(s,d)
-            rows.append({'kind':'mpd','file':name,'bytes':d.stat().st_size})
-          for name in part_files:
-            s=src/'complete'/'ldraw'/'parts'/name; d=out/'parts'/name
-            shutil.copy2(s,d)
-            rows.append({'kind':'dat','file':name,'bytes':d.stat().st_size})
-          (out/'metadata'/'github-backed.json').write_text(json.dumps(rows,indent=2))
-          print(f'Copied {len(model_files)} MPDs + {len(part_files)} DATs')
+          for n in models:
+            s=src/'models'/n; d=out/'models'/n; shutil.copy2(s,d); rows.append({'kind':'mpd','file':n,'bytes':d.stat().st_size})
+          for n in parts:
+            s=src/'complete/ldraw/parts'/n; d=out/'parts'/n; shutil.copy2(s,d); rows.append({'kind':'dat','file':n,'bytes':d.stat().st_size})
+          (out/'metadata/github-backed.json').write_text(json.dumps(rows,indent=2))
+          print('copied',len(models),'MPDs +',len(parts),'DAT readymades')
           PY
 
       - name: Acquire external MPD donors
@@ -77,37 +46,77 @@ jobs:
           set +e
           python3 - <<'PY'
           from pathlib import Path
-          import subprocess, json, re
+          import subprocess,json,re
           out=Path('odyssey-ldraw-corpus/models')
           sources=[
-            ('6257 - Castaways Raft.mpd','https://forums.ldraw.org/attachment.php?aid=7607'),
-            ('6260 - Shipwreck Island.mpd','https://forums.ldraw.org/attachment.php?aid=7613'),
-            ('6265 - Sabre Island.mpd','https://forums.ldraw.org/attachment.php?aid=7617'),
-            ('6270 - Forbidden Island.mpd','https://forums.ldraw.org/attachment.php?aid=7621'),
-            ('6276 - Eldorado Fortress.mpd','https://forums.ldraw.org/attachment.php?aid=7641'),
-            ('6273 - Rock Island Refuge.mpd','https://forums.ldraw.org/attachment.php?aid=8029'),
-            ('6247 - Bounty Boat.mpd','https://forums.ldraw.org/attachment.php?aid=8303'),
-            ('6258 - Smugglers Shanty.mpd','https://forums.ldraw.org/attachment.php?aid=8305'),
-            ('6261 - Raft Raiders.mpd','https://forums.ldraw.org/attachment.php?aid=8332'),
-            ('6271 - Imperial Flagship.mpd','https://forums.ldraw.org/attachment.php?aid=8519'),
-            ('6277 - Imperial Trading Post.mpd','https://forums.ldraw.org/attachment.php?aid=8815'),
-            ('21020 - Trevi Fountain.mpd','https://forums.ldraw.org/attachment.php?aid=2059'),
-            ('21343_-_viking_village.mpd','https://brickshelf.com/gallery/Philo/SetModels/Set21343/21343_-_viking_village.mpd'),
-          ]
+            ('6257 - Castaways Raft.mpd','https://forums.ldraw.org/attachment.php?aid=7607'),('6260 - Shipwreck Island.mpd','https://forums.ldraw.org/attachment.php?aid=7613'),('6265 - Sabre Island.mpd','https://forums.ldraw.org/attachment.php?aid=7617'),('6270 - Forbidden Island.mpd','https://forums.ldraw.org/attachment.php?aid=7621'),('6276 - Eldorado Fortress.mpd','https://forums.ldraw.org/attachment.php?aid=7641'),('6273 - Rock Island Refuge.mpd','https://forums.ldraw.org/attachment.php?aid=8029'),('6247 - Bounty Boat.mpd','https://forums.ldraw.org/attachment.php?aid=8303'),('6258 - Smugglers Shanty.mpd','https://forums.ldraw.org/attachment.php?aid=8305'),('6261 - Raft Raiders.mpd','https://forums.ldraw.org/attachment.php?aid=8332'),('6271 - Imperial Flagship.mpd','https://forums.ldraw.org/attachment.php?aid=8519'),('6277 - Imperial Trading Post.mpd','https://forums.ldraw.org/attachment.php?aid=8815'),('21020 - Trevi Fountain.mpd','https://forums.ldraw.org/attachment.php?aid=2059'),('21343_-_viking_village.mpd','https://brickshelf.com/gallery/Philo/SetModels/Set21343/21343_-_viking_village.mpd')]
           report=[]
           for name,url in sources:
             dest=out/name
-            p=subprocess.run(['curl','-fL','--retry','2','--connect-timeout','15','-A','Mozilla/5.0 Odyssey-LDraw-Forage/0.2','-o',str(dest),url])
-            ok=p.returncode==0 and dest.exists() and dest.stat().st_size>0
-            reason='download_failed'
+            p=subprocess.run(['curl','-fL','--retry','2','--connect-timeout','15','-A','Mozilla/5.0 Odyssey-LDraw-Forage/0.3','-o',str(dest),url])
+            ok=p.returncode==0 and dest.exists() and dest.stat().st_size>0; reason='download_failed'
             if ok:
               head=dest.read_text(errors='replace')[:4096]
-              ok=bool(re.search(r'(?m)^(?:0\s+(?:FILE|Name:|!LDRAW_ORG)|1\s+\S+\s+)',head)) and '<html' not in head.lower()
-              reason='ok' if ok else 'not_ldraw_text'
+              ok=bool(re.search(r'(?m)^(?:0\s+(?:FILE|Name:|!LDRAW_ORG)|1\s+\S+\s+)',head)) and '<html' not in head.lower(); reason='ok' if ok else 'not_ldraw_text'
             report.append({'file':name,'url':url,'ok':ok,'reason':reason,'bytes':dest.stat().st_size if ok else 0})
             if not ok and dest.exists(): dest.unlink()
           Path('odyssey-ldraw-corpus/metadata/external-fetch.json').write_text(json.dumps(report,indent=2))
           print('external ok',sum(r['ok'] for r in report),'/',len(report))
+          PY
+
+      - name: Resolve recursive official-part and primitive dependency closure
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import re,shutil,json,collections
+          repo=Path('/tmp/ldraw-parts-library/complete/ldraw')
+          out=Path('odyssey-ldraw-corpus'); parts_out=out/'ldraw/parts'; p_out=out/'ldraw/p'
+          def norm(s): return s.replace('\\','/').lower().lstrip('./')
+          index={}
+          for base_name in ['parts','p']:
+            base=repo/base_name
+            for f in base.rglob('*'):
+              if f.is_file():
+                rel=f.relative_to(base).as_posix(); index[(base_name,norm(rel))]=f
+          ref_re=re.compile(r'^1\s+\S+\s+(?:-?\d+(?:\.\d+)?\s+){12}(.+)$')
+          internal=set(); roots=[]
+          for mpd in (out/'models').glob('*'):
+            txt=mpd.read_text(errors='replace').replace('\r\n','\n')
+            internal_names={norm(m.group(1).strip()) for m in re.finditer(r'(?mi)^0\s+FILE\s+(.+)$',txt)}
+            for line in txt.split('\n'):
+              m=ref_re.match(line)
+              if m:
+                t=norm(m.group(1).strip())
+                if t not in internal_names: roots.append(t)
+          for dat in (out/'parts').glob('*.dat'): roots.append(norm(dat.name))
+          q=collections.deque(roots); seen=set(); copied=[]; missing=[]
+          def resolve(t):
+            # LDraw subparts commonly use s/name.dat; primitives use p refs or bare names.
+            candidates=[]
+            if t.startswith('s/'): candidates=[('parts',t),('p',t)]
+            elif t.startswith('48/') or t.startswith('8/') or t.startswith('p/'):
+              tt=t[2:] if t.startswith('p/') else t; candidates=[('p',tt),('parts',tt)]
+            else: candidates=[('parts',t),('p',t)]
+            for k in candidates:
+              if k in index: return k,index[k]
+            return None,None
+          while q:
+            t=q.popleft()
+            if t in seen: continue
+            seen.add(t)
+            key,src=resolve(t)
+            if not src:
+              missing.append(t); continue
+            base,rel=key; dest=(parts_out if base=='parts' else p_out)/rel
+            dest.parent.mkdir(parents=True,exist_ok=True); shutil.copy2(src,dest); copied.append((base,rel))
+            for line in src.read_text(errors='replace').replace('\r\n','\n').split('\n'):
+              m=ref_re.match(line)
+              if m: q.append(norm(m.group(1).strip()))
+          report={'seedRefs':len(roots),'visitedRefs':len(seen),'resolvedFiles':len(copied),'missingRefs':sorted(set(missing)),'missingCount':len(set(missing))}
+          (out/'metadata/dependency-closure.json').write_text(json.dumps(report,indent=2))
+          print(json.dumps({k:v for k,v in report.items() if k!='missingRefs'},indent=2))
           PY
 
       - name: Index every MPD FILE block as a forageable subassembly
@@ -117,39 +126,27 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           import json,re,hashlib
-          root=Path('odyssey-ldraw-corpus/models')
-          rows=[]
-          all_parts=set()
+          root=Path('odyssey-ldraw-corpus/models'); rows=[]; all_parts=set()
           for p in sorted(root.glob('*')):
             if p.suffix.lower() not in {'.mpd','.ldr'}: continue
-            text=p.read_text(errors='replace').replace('\r\n','\n')
-            lines=text.split('\n')
-            chunks=[]; cur={'name':'__ROOT__','start':1,'refs':[],'partRefs':[]}
+            lines=p.read_text(errors='replace').replace('\r\n','\n').split('\n'); chunks=[]; cur={'name':'__ROOT__','start':1,'refs':[],'partRefs':[]}
             def close(end):
               if cur['start']<=end:
                 x=dict(cur); x['end']=end; x['uniquePartRefs']=sorted(set(x['partRefs'])); chunks.append(x); all_parts.update(x['uniquePartRefs'])
-            for i,line in enumerate(lines, start=1):
+            for i,line in enumerate(lines,start=1):
               m=re.match(r'^0\s+FILE\s+(.+)$',line,re.I)
               if m:
                 if i>1: close(i-1)
-                cur={'name':m.group(1).strip(),'start':i,'refs':[],'partRefs':[]}
-                continue
+                cur={'name':m.group(1).strip(),'start':i,'refs':[],'partRefs':[]}; continue
               m=re.match(r'^1\s+\S+\s+(?:-?\d+(?:\.\d+)?\s+){12}(.+)$',line)
               if m:
-                target=m.group(1).strip(); cur['refs'].append(target)
-                if target.lower().endswith('.dat'): cur['partRefs'].append(target)
-            close(len(lines))
-            rows.append({'sourceFile':p.name,'bytes':p.stat().st_size,'sha256':hashlib.sha256(p.read_bytes()).hexdigest(),'submodels':chunks})
+                t=m.group(1).strip(); cur['refs'].append(t)
+                if t.lower().endswith('.dat'): cur['partRefs'].append(t)
+            close(len(lines)); rows.append({'sourceFile':p.name,'bytes':p.stat().st_size,'sha256':hashlib.sha256(p.read_bytes()).hexdigest(),'submodels':chunks})
           Path('odyssey-ldraw-corpus/submodels-index.json').write_text(json.dumps(rows,indent=2))
-          summary={
-            'modelFiles':len(rows),
-            'submodels':sum(len(r['submodels']) for r in rows),
-            'uniquePartRefs':len(all_parts),
-            'datReadymades':len(list(Path('odyssey-ldraw-corpus/parts').glob('*.dat'))),
-            'missingManualModels':['7637 - Farm.mpd'],
-          }
-          Path('odyssey-ldraw-corpus/run-summary.json').write_text(json.dumps(summary,indent=2))
-          print(json.dumps(summary,indent=2))
+          dep=json.loads(Path('odyssey-ldraw-corpus/metadata/dependency-closure.json').read_text())
+          summary={'modelFiles':len(rows),'submodels':sum(len(r['submodels']) for r in rows),'uniquePartRefs':len(all_parts),'datReadymades':len(list(Path('odyssey-ldraw-corpus/parts').glob('*.dat'))),'resolvedDependencyFiles':dep['resolvedFiles'],'missingDependencyRefs':dep['missingCount'],'missingManualModels':['7637 - Farm.mpd']}
+          Path('odyssey-ldraw-corpus/run-summary.json').write_text(json.dumps(summary,indent=2)); print(json.dumps(summary,indent=2))
           PY
 
       - name: Package corpus
