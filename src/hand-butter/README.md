@@ -40,3 +40,18 @@ Run `python scripts/build-hand-butter-spatial.py` to embed source modules into t
 - `node tests/wag-butter-spatial-core.cjs`: pure coordinate helpers.
 
 Browser tests require Playwright and optionally `BROWSER_EXECUTABLE`. Synthetic replay verifies the program's contract, not reliability with a person's camera and hands. Earlier 03–05 test entry points run the current interaction contract.
+
+### Butter 07: pinch acquisition repair
+
+`trackHands` owns calibrated fingertip smoothing. The input adapter no longer
+replaces that filtered point with raw landmarks; held movement uses it too.
+`ButterSpatial.pinchTarget` remembers open-hand aim and freezes it when the pinch
+ratio crosses 0.5, before the existing 100 ms close debounce. The visible hover
+stays on that brick through closure. The lock expires after 500 ms, a tracking gap
+over 180 ms, substantial palm displacement, or excessive fingertip displacement.
+Plate rotations clear aim. Mouse raycasts and pointing verification stay exact.
+
+`tests/wag-butter-07.cjs` replays actual `processHands` acquisition and release
+against rendered brick geometry. This replay misses on 06 and succeeds on 07;
+it also checks stale aim, empty-space closure and adjacent-target intent.
+This is synthetic regression evidence, not a measured live-hand success rate.

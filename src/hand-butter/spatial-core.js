@@ -28,5 +28,22 @@
   if(previous&&Math.hypot(point.x-previous.x,point.y-previous.y)<8&&hits.some(h=>h.id===previous.id))return previous.id;
   return hits[0].id;
  }
- return Object.freeze({FACES,SIDES,nextFace,coverPoint,inspectionPoint,hiddenOffset,hiddenDelta,describePosition,chooseTarget});
+ // Freeze aim at the beginning of finger closure, before the debounce completes.
+ // Palm motion bounds intent independently of the index moving toward the thumb.
+ function pinchTarget(t,hit,ratio,now){
+  const near=(a,b,r)=>a&&b&&Math.hypot(a.x-b.x,a.y-b.y)<=r;
+  if(t.aimSeen!=null&&now-t.aimSeen>180){t.aim=null;t.pinchAim=null;}
+  t.aimSeen=now;
+  if(ratio>.5&&!t.closed){
+   t.pinchAim=null;
+   if(hit)t.aim={id:hit,time:now,point:{...t.point},palm:{...t.palm}};
+   else if(t.aim&&(now-t.aim.time>160||!near(t.point,t.aim.point,.045)))t.aim=null;
+   return hit;
+  }
+  if(!t.pinchAim&&t.aim&&now-t.aim.time<200&&near(t.point,t.aim.point,.08))t.pinchAim={...t.aim,started:now};
+  const lock=t.pinchAim;
+  if(lock&&(now-lock.started>500||!near(t.palm,lock.palm,.07)||!near(t.point,lock.point,.14))){t.pinchAim=null;t.aim=null;return null;}
+  return lock?.id||hit;
+ }
+ return Object.freeze({FACES,SIDES,nextFace,coverPoint,inspectionPoint,hiddenOffset,hiddenDelta,describePosition,chooseTarget,pinchTarget});
 });

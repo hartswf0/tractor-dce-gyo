@@ -44,7 +44,7 @@
  };
  depthDirection=function(){return camera.getWorldDirection(V()).applyQuaternion(plate.quaternion.clone().invert());};
  function refreshImageTracks(){
-  for(const list of [H.tracks,H.memory||[],[...B.ghosts.values()]])for(const t of list){t.recent=null;t.point=imagePoint(t.marks[8]);t.palm=imagePoint({x:(t.marks[0].x+t.marks[5].x+t.marks[9].x+t.marks[17].x)/4,y:(t.marks[0].y+t.marks[5].y+t.marks[9].y+t.marks[17].y)/4});}
+  for(const list of [H.tracks,H.memory||[],[...B.ghosts.values()]])for(const t of list){t.recent=null;t.aim=null;t.pinchAim=null;t.point=imagePoint(t.marks[8]);t.palm=imagePoint({x:(t.marks[0].x+t.marks[5].x+t.marks[9].x+t.marks[17].x)/4,y:(t.marks[0].y+t.marks[5].y+t.marks[9].y+t.marks[17].y)/4});}
   B.lastDraw=0;
  }
  function rebaseHeld(){
@@ -133,7 +133,7 @@
  }
  function frame(now){if(S.tx?.viewRebased&&['hand','pointer'].includes(S.tx.source)&&S.tx.samples.length>=3&&S.tx.samples.at(-1).time-S.tx.samples[0].time>=100){S.tx.noThrow=false;S.tx.viewRebased=false;}applyVisualFrame();if(now-state.lastFrame<55)return;state.lastFrame=now;drawSpatialCue(now);}
  function prepareUI(){
-  document.title='WAG / HAND BUTTER 06';$('.stage-label').innerHTML='<b>BUTTER 06</b>';$('.left-rail').remove();$('.right-rail').remove();
+  document.title='WAG / HAND BUTTER 07';$('.stage-label').innerHTML='<b>BUTTER 07</b>';$('.left-rail').remove();$('.right-rail').remove();
   $('#stage').insertAdjacentHTML('beforeend','<nav id="faceGizmo" aria-label="Rotate build plate"><output id="faceName">0°</output><div class="face-turn"><button data-step="-1" aria-label="Turn plate left 90 degrees">↶</button><button data-step="1" aria-label="Turn plate right 90 degrees">↷</button></div><button data-spatial-face="front" aria-label="Reset plate orientation">PLATE</button><small>point + pinch</small></nav><div id="viewInstruction"></div><div id="spatialReadout" hidden><b></b><span></span></div>');
   $$('#faceGizmo [data-spatial-face]').forEach(b=>b.onclick=()=>setFace(b.dataset.spatialFace));$$('#faceGizmo [data-step]').forEach(b=>b.onclick=()=>rotatePlate(+b.dataset.step));
   $('#roomMode').textContent='ROOM';$('#roomMode').onclick=()=>{setRoomMode(['room','ghost','model'][(['room','ghost','model'].indexOf(B.mode)+1)%3]);};

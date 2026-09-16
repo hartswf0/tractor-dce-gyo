@@ -10,7 +10,7 @@
  function point(t){const p=normalizedInput(t);return p&&I.profile?C.pointMap(I.profile,p):p;}
  function rawTool(t){return t.palm;}
  function toolDelta(base,current){return (base.y-current.y)*650*S.gain;}
- function gripDelta(owner,r){const current=point(owner);if(!current)return S.tx.rawDelta.clone();if(S.tx.inputOrigin?.id!==owner.id)S.tx.inputOrigin={id:owner.id,p:{...current},offset:S.tx.rawDelta.clone().addScaledVector(depthDirection(),-H.depthOffset)};const o=S.tx.inputOrigin;return o.offset.clone().add(screenDelta((current.x-o.p.x)*r.width,(current.y-o.p.y)*r.height));}
+ function gripDelta(owner,r){const current=owner.point;if(!current)return S.tx.rawDelta.clone();if(S.tx.inputOrigin?.id!==owner.id)S.tx.inputOrigin={id:owner.id,p:{...current},offset:S.tx.rawDelta.clone().addScaledVector(depthDirection(),-H.depthOffset)};const o=S.tx.inputOrigin;return o.offset.clone().add(screenDelta((current.x-o.p.x)*r.width,(current.y-o.p.y)*r.height));}
  function clearTargets(){for(const t of I.targets)if(t.mesh){t.mesh.parent?.remove(t.mesh);t.mesh.material.dispose();}I.targets=[];}
  function start(){if(S.tx)return note('Release the piece before pointing setup.','HELD');if(!S.ready)return;I.footerHeight=$('footer').getBoundingClientRect().height;clearTargets();I.phase='teach';I.index=0;I.samples=[];I.results=[];I.window=[];I.profileBefore=I.profile;I.profile=null;I.primary=null;I.signature=signature();I.verifyAt=I.captureAt=0;I.armed=true;I.livePoint=null;
   // These are plate-local points at the real workbench extents, with actual brick geometry.
@@ -50,7 +50,8 @@
    }return true;
   }
   if(S.tx?.source==='pointer'){const tool=usable.find(t=>t.id===I.tool)||usable[0];if(tool&&gestureOf(tool)==='open'){I.tool=tool.id;const p=rawTool(tool);if(I.pointerTool?.id!==tool.id)I.pointerTool={id:tool.id,base:p,offset:S.tx.depthOffset||0};S.tx.depthOffset=I.pointerTool.offset+toolDelta(I.pointerTool.base,p);propose(S.tx.rawDelta.clone(),now);}else I.pointerTool=null;return true;}I.pointerTool=null;
-  for(const t of usable)t.point=point(t);return false;
+  // trackHands already maps and smooths imagePoint. Do not replace it with raw landmarks.
+  return false;
  }
  function pixel(event){const r=$('#stage').getBoundingClientRect();return {x:(event.clientX-r.left)/r.width,y:(event.clientY-r.top)/r.height};}
  document.addEventListener('pointermove',e=>{if(e.target!==canvas&&!I.mouseTool)return;I.pointer=pixel(e);if(!I.mouseTool||e.pointerId!==I.mouseTool.id||!S.tx)return;const dy=I.pointer.y-I.mouseTool.y;S.tx.depthOffset=I.mouseTool.offset+dy*-650;propose(S.tx.rawDelta.clone());e.stopImmediatePropagation();},true);
