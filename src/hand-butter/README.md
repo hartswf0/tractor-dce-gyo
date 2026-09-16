@@ -1,3 +1,5 @@
+Current downloadable arena and cast work: [Hand Butter 11](../hand-butter-11/README.md). The following documents the preserved 06/07 pipeline.
+
 # Hand Butter 06: pointing calibrated on construction targets
 
 The room, camera orientation, rear video, and hand frame stay fixed. The build plate turns in 90-degree steps. Framing includes all four actual plate corners.
