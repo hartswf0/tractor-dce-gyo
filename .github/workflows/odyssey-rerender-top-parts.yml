@@ -1,0 +1,96 @@
+name: Odyssey rerender visual-search finalists
+
+on:
+  push:
+    branches: [odyssey-ldraw-forage-run]
+    paths: [odyssey-top-parts-for-rerender.json]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Fetch search request and complete LDraw vocabulary
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fL -o request.json https://raw.githubusercontent.com/hartswf0/tractor-dce-gyo/odyssey-ldraw-forage-run/odyssey-top-parts-for-rerender.json
+          git clone --depth 1 --filter=blob:none --no-checkout https://github.com/gkjohnson/ldraw-parts-library.git /tmp/ldraw
+          git -C /tmp/ldraw sparse-checkout init --cone
+          git -C /tmp/ldraw sparse-checkout set complete/ldraw/parts complete/ldraw/p
+          git -C /tmp/ldraw checkout
+          python3 -m pip install -q numpy opencv-python-headless pillow
+
+      - name: Render exact finalist geometry
+        shell: bash
+        run: |
+          cat > /tmp/render.py <<'PY'
+          from pathlib import Path
+          from functools import lru_cache
+          import json,re,math,hashlib
+          import numpy as np
+          import cv2
+          from PIL import Image,ImageDraw
+          ROOT=Path('/tmp/ldraw/complete/ldraw'); PARTS=ROOT/'parts'; PRIMS=ROOT/'p'; OUT=Path('odyssey-top-part-renders'); OUT.mkdir(exist_ok=True)
+          req=json.loads(Path('request.json').read_text()); wanted=req['parts']
+          def norm(s): return s.replace('\\','/').lower().lstrip('./')
+          idx={}
+          for bn,b in [('parts',PARTS),('p',PRIMS)]:
+            for f in b.rglob('*'):
+              if f.is_file(): idx[(bn,norm(f.relative_to(b).as_posix()))]=f
+          def resolve(t):
+            t=norm(t); cand=[('parts',t),('p',t)]
+            if t.startswith('s/'): cand=[('parts',t),('p',t)]
+            if t.startswith('p/'): cand=[('p',t[2:]),('parts',t)]
+            if t.startswith('48/') or t.startswith('8/'): cand=[('p',t),('parts',t)]
+            for k in cand:
+              if k in idx:return idx[k]
+          @lru_cache(maxsize=5000)
+          def geom(ps):
+            p=Path(ps); vs=[];fs=[]
+            try: lines=p.read_text(errors='replace').replace('\r\n','\n').split('\n')
+            except:return np.empty((0,3),np.float32),np.empty((0,3),np.int32)
+            for line in lines:
+              sp=line.strip().split()
+              try:
+                if sp and sp[0]=='1' and len(sp)>=15:
+                  cp=resolve(' '.join(sp[14:]));
+                  if cp:
+                    v,f=geom(str(cp)); m=np.array(list(map(float,sp[5:14])),np.float32).reshape(3,3); t=np.array(list(map(float,sp[2:5])),np.float32); tv=v@m.T+t; b=len(vs);vs.extend(tv.tolist());fs.extend((f+b).tolist())
+                elif sp and sp[0]=='3' and len(sp)>=11:
+                  a=list(map(float,sp[2:11]));b=len(vs);vs.extend([a[:3],a[3:6],a[6:9]]);fs.append((b,b+1,b+2))
+                elif sp and sp[0]=='4' and len(sp)>=14:
+                  a=list(map(float,sp[2:14]));b=len(vs);vs.extend([a[:3],a[3:6],a[6:9],a[9:12]]);fs.extend([(b,b+1,b+2),(b,b+2,b+3)])
+              except:pass
+            return (np.asarray(vs,np.float32).reshape((-1,3)) if vs else np.empty((0,3),np.float32),np.asarray(fs,np.int32).reshape((-1,3)) if fs else np.empty((0,3),np.int32))
+          views={'front':(0,0,1),'left':(1,0,0),'top':(0,-1,0),'iso_ne':(1.25,-.85,1.15),'iso_nw':(-1.25,-.85,1.15),'iso_se':(1.25,.85,1.15)}
+          def render(v,f,d,S=320):
+            d=np.array(d,np.float32);d/=np.linalg.norm(d);up=np.array([0.,-1.,0.],np.float32);u=np.cross(up,d)
+            if np.linalg.norm(u)<1e-5:up=np.array([0.,0.,1.],np.float32);u=np.cross(up,d)
+            u/=np.linalg.norm(u);vv=np.cross(d,u);vv/=np.linalg.norm(vv);c=(v.min(0)+v.max(0))/2;vc=v-c;x=vc@u;y=vc@vv;span=max(float(x.max()-x.min()),float(y.max()-y.min()),1e-6);sc=(S-24)/span
+            pts=np.column_stack([(x-(x.min()+x.max())/2)*sc+S/2,-(y-(y.min()+y.max())/2)*sc+S/2]).astype(np.int32);polys=[pts[z].reshape((-1,1,2)) for z in f];im=np.full((S,S),255,np.uint8);cv2.fillPoly(im,polys,10);return Image.fromarray(im),float((im<128).mean())
+          metas=[]
+          for part in wanted:
+            p=PARTS/part
+            if not p.exists():continue
+            v,f=geom(str(p));
+            if not len(f):continue
+            pid=re.sub(r'[^A-Za-z0-9._-]+','-',part); d=OUT/pid;d.mkdir(exist_ok=True);occ={}
+            for n,vec in views.items(): im,o=render(v,f,vec);im.save(d/(n+'.png'),optimize=True);occ[n]=o
+            best=max(occ,key=occ.get);(d/'thumb.png').write_bytes((d/(best+'.png')).read_bytes());desc=p.read_text(errors='replace').splitlines()[0][2:].strip() if p.read_text(errors='replace').startswith('0 ') else part
+            m={'part':part,'description':desc,'faces':int(len(f)),'extents':[round(float(z),3) for z in (v.max(0)-v.min(0))],'bestView':best,'occupancy':occ,'imageDir':pid};(d/'meta.json').write_text(json.dumps(m,indent=2));metas.append(m)
+          (OUT/'manifest.json').write_text(json.dumps({'count':len(metas),'queries':req.get('queries',{}),'items':metas},indent=2));print('rendered',len(metas))
+          PY
+          python3 /tmp/render.py
+          zip -qr ODYSSEY-TOP-PART-RENDERS-v0.1.zip odyssey-top-part-renders
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: odyssey-top-part-renders
+          path: ODYSSEY-TOP-PART-RENDERS-v0.1.zip
+          if-no-files-found: error
+          retention-days: 14
