@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "generated": "2026-09-16",
+  "appliesAfter": "gap-matrix-v0.5.json",
+  "updates": [
+    {
+      "family": "caves / cavern interiors",
+      "oldStatus": "GOOD_PROXY",
+      "newStatus": "STRONG_PROXY",
+      "geometry": ["8089", "21113-1", "9470-lair", "6273", "6761-1"],
+      "reason": "The corpus now has distinct actual LDraw cave grammars: enclosed Wampa cave, a separate multi-level The Cave submodel, a narrow rocky Shelob lair, coastal rock-island cavities, and a rough hideout threshold.",
+      "next": "Run local dependency resolution and extract aperture/chamber/shelf/blocked-threshold metrics. Assign different cave ancestors to Cyclops, Ogygia, Nymph Cave and Cimmerian scenes rather than reusing one cave."
+    },
+    {
+      "family": "monumental masonry / large arch systems",
+      "oldStatus": "STRONG_PROXY",
+      "newStatus": "STRONG_PROXY_PLUS_CUSTOM_VALIDATED",
+      "geometry": ["10276", "21022", "21024", "7326", "7327", "ayasofya"],
+      "reason": "A public custom Hagia Sophia LDraw corpus provides a 3,951-placement tested construction with official-part geometry, large arches, buttresses, narthex and dome-support systems. It is not Bronze-Age Greek and remains an architectural morphology donor only.",
+      "next": "Review source license before derived-geometry redistribution; extract arches/columned entry/masonry shell only where they solve a Halfworld spatial requirement."
+    }
+  ]
+}

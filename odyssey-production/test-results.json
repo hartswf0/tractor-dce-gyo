@@ -1,0 +1,61 @@
+{
+  "runAt": "2026-09-16T09:55:59.837145+00:00",
+  "tests": [
+    {
+      "id": "motion-interpolation",
+      "command": "node tools/test_butter_motion.cjs",
+      "status": "PASS",
+      "scope": "Numeric key-pose interpolation; not webcam tracking or contact physics.",
+      "output": "Motion interpolation: endpoints, midpoint, shortest heading turn and walking interval passed"
+    },
+    {
+      "id": "spoken-coverage",
+      "command": "node tools/test_halfworld_assembly.cjs",
+      "status": "PASS",
+      "scope": "Audio offsets and durations, files and chapter coverage; not full-film visual review.",
+      "output": "{\"shots\":75,\"spokenSegments\":73,\"duration\":526.1898000000002,\"chapters\":7}"
+    },
+    {
+      "id": "grounding",
+      "command": "node tools/test_prop_grounding.cjs",
+      "status": "PASS",
+      "scope": "Ground-base placement regression.",
+      "output": "Grounding regression passed: top-origin part seats at 75 rather than -69."
+    },
+    {
+      "id": "horse-gaits",
+      "command": "node tools/test_horse_motion.cjs",
+      "status": "PASS",
+      "scope": "Synthetic leg segmentation, gait and flight controller; not donor-art acceptance.",
+      "output": "{\"walk\":[0.07092023795405442,-0.07092023795405437,-0.07092023795405437,0.07092023795405442],\"gallop\":[0.5926259386126964,0.6450641207016649,-0.5926259386126963,-0.6450641207016649],\"flightAltitude\":1064.090250561922,\"landed\":true,\"segmentation\":[12,12,12,12]}"
+    },
+    {
+      "id": "playable-controls",
+      "command": "node tools/test_playable.cjs",
+      "status": "PASS",
+      "scope": "Horse/boat controller and swept arrow hit logic.",
+      "output": "{\n  \"horse\": {\n    \"travel\": 428.36608187103263,\n    \"turn\": -0.5250000000000002,\n    \"stopped\": true\n  },\n  \"boat\": {\n    \"pos\": [\n      0,\n      140,\n      168.66666666666663\n    ],\n    \"inside\": true\n  },\n  \"sweptArrow\": \"hit across 100 LDU segment; near miss rejected\"\n}"
+    },
+    {
+      "id": "period-roads",
+      "command": "node tools/test_odyssey_world.cjs",
+      "status": "PASS",
+      "scope": "Road rendering and support geometry.",
+      "output": "{\"modernVertices\":540,\"periodVertices\":120,\"roadSupport\":10,\"pass\":true}"
+    },
+    {
+      "id": "scene-inventory",
+      "command": "node tools/test_scene_catalog.cjs",
+      "status": "PASS",
+      "scope": "Every registered native scene and catalog target, sheep still/source/video.",
+      "output": "41 catalog entries checked; all 10 registered native programs covered; sheep escape source, still and film present."
+    },
+    {
+      "id": "monkey-film",
+      "command": "node tools/test_monkey_cut.cjs",
+      "status": "PASS",
+      "scope": "Continuous 83-second cut, 13 camera/action cues and recorded voice assets.",
+      "output": "PASS Night Shift: continuous 83s timeline, 13 camera/action cues, recorded dialogue assets"
+    }
+  ]
+}

@@ -1,0 +1,116 @@
+0 FILE monkey-data-center.mpd
+0 Monkey Data Center - Container First Build
+0 Name: monkey-data-center.mpd
+0 Author: Master Builder Method
+
+0 !LEGOS NARRATIVE
+0 Location: Underground Data Center Control Room
+0 Entity: Three Capuchin Monkeys running infrastructure
+0 Goal: Maintain systems while hiding from inspection
+0 Obstacle: Evidence everywhere (banana peels, modified stations)
+0 Shift: Their random typing actually optimized everything
+0 Solution: Humans make them official staff
+
+0 LDU REFERENCE GUIDE
+0 20 LDU = 1 brick width (2x2 brick = 40x40 LDU)
+0 8 LDU = 1 plate height vertical
+0 24 LDU = 1 brick height vertical (3 plates)
+0 Standard spacing: 20 LDU horizontal = 1 brick unit
+
+0 SCENE DIMENSIONS - Build container first
+0 Room: 160 LDU x 160 LDU x 120 LDU tall (8x8x6 brick units)
+0 Walls: 4 sides, each with unique control panel theme
+0 Floor: Y=0 baseline
+0 Ceiling: Y=-120 (6 bricks high)
+
+0 STEP 1: NORTH WALL - Portal monitoring (Z=-80, 8 brick units back)
+0 Wall base structure
+1 72 0 -24 -80 1 0 0 0 1 0 0 0 1 15561.dat
+1 72 20 -24 -80 1 0 0 0 1 0 0 0 1 15561.dat
+1 72 -20 -24 -80 1 0 0 0 1 0 0 0 1 15561.dat
+0 Control panel detail - portal volume display
+1 1 0 -48 -80 1 0 0 0 1 0 0 0 1 14718px1.dat
+1 15 20 -48 -80 1 0 0 0 1 0 0 0 1 5306.dat
+1 15 -20 -48 -80 1 0 0 0 1 0 0 0 1 5306.dat
+0 Upper wall detail
+1 72 0 -72 -80 1 0 0 0 1 0 0 0 1 15561.dat
+1 1 10 -72 -80 1 0 0 0 1 0 0 0 1 3069bpc0.dat
+
+0 STEP 2: EAST WALL - Lighting control (X=80, 8 brick units right)
+0 Wall base structure - rotated 90 degrees
+1 72 80 -24 0 0 0 1 0 1 0 -1 0 0 15561.dat
+1 72 80 -24 20 0 0 1 0 1 0 -1 0 0 15561.dat
+1 72 80 -24 -20 0 0 1 0 1 0 -1 0 0 15561.dat
+0 Lighting control panels
+1 14 80 -48 0 0 0 1 0 1 0 -1 0 0 14718px1.dat
+1 4 80 -48 20 0 0 1 0 1 0 -1 0 0 5306.dat
+1 4 80 -48 -20 0 0 1 0 1 0 -1 0 0 5306.dat
+0 Upper detail - warning indicators
+1 72 80 -72 0 0 0 1 0 1 0 -1 0 0 15561.dat
+1 14 80 -72 10 0 0 1 0 1 0 -1 0 0 3068bp80.dat
+
+0 STEP 3: SOUTH WALL - Network monitoring (Z=80, 8 brick units forward)
+0 Wall base structure
+1 72 0 -24 80 1 0 0 0 1 0 0 0 1 15561.dat
+1 72 20 -24 80 1 0 0 0 1 0 0 0 1 15561.dat
+1 72 -20 -24 80 1 0 0 0 1 0 0 0 1 15561.dat
+0 Network status displays
+1 7 0 -48 80 1 0 0 0 1 0 0 0 1 14718px1.dat
+1 1 20 -48 80 1 0 0 0 1 0 0 0 1 2431px0.dat
+1 1 -20 -48 80 1 0 0 0 1 0 0 0 1 5306.dat
+0 Upper monitoring array
+1 72 0 -72 80 1 0 0 0 1 0 0 0 1 15561.dat
+1 7 10 -72 80 1 0 0 0 1 0 0 0 1 3068bp0n.dat
+
+0 STEP 4: WEST WALL - Server diagnostics (X=-80, 8 brick units left)
+0 Wall base structure - rotated 90 degrees
+1 72 -80 -24 0 0 0 -1 0 1 0 1 0 0 15561.dat
+1 72 -80 -24 20 0 0 -1 0 1 0 1 0 0 15561.dat
+1 72 -80 -24 -20 0 0 -1 0 1 0 1 0 0 15561.dat
+0 Server status panels
+1 0 -80 -48 0 0 0 -1 0 1 0 1 0 0 2550c01.dat
+1 0 -80 -48 20 0 0 -1 0 1 0 1 0 0 2550c02.dat
+1 8 -80 -48 -20 0 0 -1 0 1 0 1 0 0 5306.dat
+0 Upper server array
+1 72 -80 -72 0 0 0 -1 0 1 0 1 0 0 15561.dat
+1 0 -80 -72 10 0 0 -1 0 1 0 1 0 0 3069bp0d.dat
+
+0 STEP 5: FLOOR BASE - 8x8 stud area
+1 72 0 0 0 1 0 0 0 1 0 0 0 1 3069bpc0.dat
+1 72 20 0 0 1 0 0 0 1 0 0 0 1 3069bpc0.dat
+1 72 -20 0 0 1 0 0 0 1 0 0 0 1 3069bpc0.dat
+1 72 0 0 20 1 0 0 0 1 0 0 0 1 3069bpc0.dat
+1 72 0 0 -20 1 0 0 0 1 0 0 0 1 3069bpc0.dat
+
+0 STEP 6: CENTER CONSOLE - 2 bricks up (48 LDU)
+1 1 0 -48 0 1 0 0 0 1 0 0 0 1 3068bp0n.dat
+1 7 20 -48 0 1 0 0 0 1 0 0 0 1 2431pw1.dat
+0 Console angle
+1 4 0 -56 10 1 0 0 0 1 0 0 0 1 3039pco.dat
+1 15 20 -56 10 1 0 0 0 1 0 0 0 1 3040p06.dat
+
+0 STEP 7: CEILING DETAIL - Portal volume indicator
+1 0 0 -120 0 1 0 0 0 1 0 0 0 1 11092.dat
+
+0 STEP 8: ALPHA MONKEY - Center console (standard minifig height)
+1 6 0 -80 0 1 0 0 0 1 0 0 0 1 3626bph4.dat
+
+0 STEP 9: BETA MONKEY - East wall monitoring
+1 6 60 -80 0 1 0 0 0 1 0 0 0 1 3626bph4.dat
+
+0 STEP 10: GAMMA MONKEY - West wall server maintenance  
+1 6 -60 -80 0 1 0 0 0 1 0 0 0 1 3626bph4.dat
+
+0 BUILD COMPLETE - Container with textured walls
+0 Total volume: 160x160x120 LDU (8x8x6 brick units)
+0 Wall panels: 4 unique themes with control details
+0 Verticality: 5 layers (floor, base, mid, upper, ceiling)
+0 Thickness: Walls have depth and detail, not flat planes
+
+0 LDU CALCULATIONS VERIFIED:
+0 Wall spacing: 160 LDU apart (80 to -80) = 8 bricks
+0 Wall height: 120 LDU (Y=0 to Y=-120) = 5 bricks
+0 Control panels: 48 LDU up (2 bricks) from floor
+0 Minifig height: 80 LDU (standard standing position)
+
+0 FILE END

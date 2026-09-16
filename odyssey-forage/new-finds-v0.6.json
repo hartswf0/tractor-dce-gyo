@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "generated": "2026-09-16",
+  "relationship": "Incremental additions after new-finds-v0.5.json",
+  "statusRule": "Public LDraw model files are AMBER until local dependency resolution or OMR status is verified. Custom validated LDraw remains AMBER when reuse/license scope is not yet reviewed.",
+  "finds": [
+    {
+      "key": "mpd:21113-1",
+      "id": "21113-1",
+      "name": "The Cave",
+      "kind": "mpd",
+      "geometryStatus": "AMBER",
+      "sourceUrl": "https://github.com/anteloc/ldraw-lib/blob/master/models/21113-1.mpd",
+      "downloadUrl": "https://raw.githubusercontent.com/anteloc/ldraw-lib/master/models/21113-1.mpd",
+      "headerStatus": "Real multipart LDraw model; CCAL header on master/submodels",
+      "namedSubmodels": ["Cave", "Stone Block", "Gold Ore", "Redstone Ore", "Spider", "Steve", "Zombie"],
+      "extractTags": ["cave", "multi-level-cave", "rock-shelf", "chamber", "stone-block", "vertical-interior"],
+      "halfworldTargets": ["cyclops-cave", "ogygia-cavern", "nymph-cave", "cimmerian-shore"],
+      "notes": "High-value cave morphology donor because the cave is already a separate named submodel. Strip Minecraft semantics/ores; preserve stepped chamber and shelf topology."
+    },
+    {
+      "key": "submodel:9470-lair",
+      "id": "9470-lair",
+      "name": "Shelob Attacks - Lair submodel",
+      "kind": "submodel",
+      "geometryStatus": "AMBER",
+      "parent": "9470",
+      "sourceUrl": "https://github.com/anteloc/ldraw-lib/blob/master/models-annotated/9470-1.mpd",
+      "extractTags": ["rocky-cliff", "cave-like-lair", "narrow-threshold", "dark-rock", "creature-space"],
+      "halfworldTargets": ["cyclops-cave-mouth", "scylla-cliff", "cimmerian-rock-shelter"],
+      "notes": "Same parent donor already tracked for creature articulation; promote its lair submodel as an independent site-level readymade."
+    },
+    {
+      "key": "ldr:ayasofya",
+      "id": "ayasofya",
+      "name": "Hagia Sophia custom LDraw model",
+      "kind": "ldr",
+      "geometryStatus": "AMBER_VALIDATED_CUSTOM",
+      "sourceUrl": "https://github.com/saidsurucu/lego-hagia-sophia",
+      "downloadUrl": "https://raw.githubusercontent.com/saidsurucu/lego-hagia-sophia/main/dist/ayasofya.ldr",
+      "evidence": "Repository publishes the LDraw model, 64 build steps, official LDraw geometry cache/manifest, collision/connectivity checks, and model/part-list consistency tests.",
+      "extractTags": ["monumental-arch", "arcade", "buttress", "narthex", "columned-entry", "dome-support", "large-masonry-shell"],
+      "halfworldTargets": ["monumental-city", "palace-arch", "scheria", "troy-masonry-proxy"],
+      "notes": "Not ancient Greek and not an OMR model. Use only as a morphologically useful tested construction corpus; review project license before redistributing derived geometry."
+    }
+  ]
+}
