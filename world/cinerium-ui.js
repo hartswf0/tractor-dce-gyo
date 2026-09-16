@@ -37,7 +37,7 @@ function paintSheet() {
   const f = F(), el = $('#pfSheetBox'); if (!f || el.hidden) return;
   el.innerHTML = f.asserts.map(r => `<figure>${r.picture ? `<img src="${r.picture}" alt="">` : '<div style="width:120px;height:120px;background:#ccc;border-radius:8px"></div>'}<figcaption>${r.who} · reads as <b>${r.reads}</b>${r.not ? ' not ' + r.not : ''}${r.beat ? ' · ' + r.beat : ''} · ${fmt(r.t)} s</figcaption></figure>`).join('') || '<em>no close-ups yet: an ASSERT line keeps one with the word it should read as</em>';
 }
-function paint() { if (box.hidden) return; paintActors(); paintBeats(); paintChannels(); paintSheet(); }
+let paint = function () { if (box.hidden) return; paintActors(); paintBeats(); paintChannels(); paintSheet(); };
 $('#pfStep').querySelectorAll('[data-step]').forEach(b => b.onclick = () => { const a = actors().find(x => x.name === sel); if (a) { a.perf.step = +b.dataset.step; a.perf.last = null; } paint(); });
 $('#pfTake').onclick = () => { const f = F(); if (!f) return; if (take) { take = null; $('#pfTake').textContent = 'Take'; $('#pfKeep').disabled = $('#pfDrop').disabled = true; $('#pfTakeStat').textContent = ''; return; } take = { who: sel, shot: f.play.i >= 0 ? f.play.i : f.sel, from: f.play.t, keys: [] }; $('#pfTake').textContent = 'Stop'; $('#pfKeep').disabled = $('#pfDrop').disabled = false; $('#pfTakeStat').textContent = `taking ${sel} from ${fmt(take.from)} s`; };
 $('#pfKeep').onclick = () => { const f = F(); if (!f || !take) return; const s = f.shots[take.shot]; if (s) { s.events = s.events || []; let n = 0; const lastBy = {}; for (const k of take.keys) { lastBy[k.ch + '@' + Math.round(k.at * 12)] = k; } for (const k of Object.values(lastBy)) { s.events.push({ what: 'SET', who: take.who, ch: k.ch, v: +k.v.toFixed(3), at: +k.at.toFixed(2), over: 0.1 }); n++; } $('#pfTakeStat').textContent = `kept: ${n} SET lines in shot ${take.shot + 1}`; if (f.onChange) f.onChange('take'); } take = null; $('#pfTake').textContent = 'Take'; $('#pfKeep').disabled = $('#pfDrop').disabled = true; };
@@ -46,5 +46,13 @@ $('#pfCloseup').onclick = () => { const f = F(), a = actors().find(x => x.name =
 $('#pfSheet').onclick = () => { $('#pfSheetBox').hidden = !$('#pfSheetBox').hidden; paintSheet(); if (W.wbFit) W.wbFit(); };
 let wrapped = null; const wrap = () => { const f = W.film; if (!f || wrapped === f.onChange) return; const prev = f.onChange; const mine = why => { if (prev) prev(why); if (why === 'scene' || why === 'beat' || why === 'assert' || why === 'cut' || why === 'program' || why === 'parse' || why === 'take') paint(); }; f.onChange = mine; wrapped = mine; };
 setInterval(() => { wrap(); if (!box.hidden) paintChannels(); }, 250); setInterval(() => { if (!box.hidden) paint(); }, 1500);
+/* the rehearsal row: loop the playing shot from its marks, put every figure back, take a part */
+function paintRehearse() { const f = F(); if (!f) return; const sel = $('#pfPart'); if (!sel) return; const cur = sel.value; sel.innerHTML = '<option value="">Take a part</option>' + [...f.actors.values()].filter(a => a.rig || a.hidden).map(a => `<option value="${a.name}"${f.rehearse.part === a.name ? ' selected' : ''}>${a.label || a.name}</option>`).join(''); if (!f.rehearse.part) sel.value = cur && [...f.actors.keys()].includes(cur) ? cur : '';
+  $('#pfLoop').classList.toggle('on', !!f.rehearse.on); $('#pfGive').disabled = !f.rehearse.part; $('#pfRehearseStat').textContent = (f.rehearse.on ? 'looping shot ' + (f.play.i + 1) : '') + (f.rehearse.part ? (f.rehearse.on ? ' · ' : '') + 'you are ' + f.rehearse.part : ''); }
+$('#pfLoop').onclick = () => { const f = F(); if (!f) return; f.rehearse.on = !f.rehearse.on; if (f.rehearse.on && !f.play.on) f.playShot(f.sel || 0); paintRehearse(); };
+$('#pfReset').onclick = () => { const f = F(); if (!f) return; const n = f.resetMarks(); $('#pfRehearseStat').textContent = n + ' on their marks'; if (f.play.on) f.playShot(f.play.i); };
+$('#pfPart').onchange = e => { const f = F(); if (!f) return; if (e.target.value) f.takePart(e.target.value); paintRehearse(); };
+$('#pfGive').onclick = () => { const f = F(); if (!f) return; f.givePart(); paintRehearse(); };
+const paint0 = paint; paint = function () { paint0(); paintRehearse(); };
 W.performPanel = { paint, select: name => { sel = name; paint(); }, take: () => take };
 })();

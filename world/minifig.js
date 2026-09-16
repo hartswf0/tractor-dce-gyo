@@ -77,6 +77,14 @@ const DEFS = {
   shade: { name: 'A shade', legs: 0, hips: 0, torso: 0, arms: 0, hands: 0, head: 0, hat: ['30381', 0], weapon: null, cape: ['522', 0], bare: true, crowd: true },
   'penelope-ithaca': { name: 'Penelope of Ithaca', legs: 272, hips: 272, torso: 272, arms: 272, hands: 78, head: 78, hat: ['13750', 0], weapon: null, woman: true, face: 'halfworld:penelope' },
   'telemachus-ithaca': { name: 'Telemachus of Ithaca', legs: 72, hips: 72, torso: 71, arms: 71, hands: 18, head: 18, hat: ['21787', 0], weapon: null, face: 'halfworld:telemachus' },
+  /* the play scenes: Circe in her wood, Calypso on her island, Hermes on the errand, the swineherd */
+  circe: { name: 'Circe', legs: 15, hips: 15, torso: 26, arms: 26, hands: 78, head: 78, hat: ['13750', 4], weapon: null, cape: null, woman: true, face: 'halfworld:athena' },
+  calypso: { name: 'Calypso', legs: 15, hips: 15, torso: 1, arms: 1, hands: 78, head: 78, hat: ['13750', 15], weapon: null, cape: ['522', 1], woman: true, face: 'halfworld:penelope' },
+  hermes: { name: 'Hermes', legs: 15, hips: 15, torso: 15, arms: 15, hands: 78, head: 78, hat: ['30409', 297], weapon: ['spear', '4497', 297], cape: ['522', 15], face: 'halfworld:telemachus' },
+  eumaeus: { name: 'Eumaeus', legs: 308, hips: 308, torso: 308, arms: 308, hands: 78, head: 78, hat: ['3901', 8], weapon: null, cape: null, face: 'halfworld:eumaeus' },
+  monkey: { name: 'A capuchin monkey', legs: 0, hips: 0, torso: 0, arms: 0, hands: 6, head: 6, hat: null, weapon: null, cape: null },   /* the data centre's monkeys: black, a brown head with the drawn face */
+  'monkey-banana': { name: 'A capuchin monkey with a banana', legs: 0, hips: 0, torso: 0, arms: 0, hands: 6, head: 6, hat: null, weapon: ['sword', '33085', 14], cape: null },
+  polyphemus: { name: 'Polyphemus', legs: 0, hips: 0, torso: 0, arms: 0, hands: 0, head: 0, hat: ['30381', 0], weapon: null, cape: ['522', 0], bare: true },
   suitor: { name: 'Suitor', legs: 70, hips: 70, torso: 70, arms: 70, hands: 78, head: 78, hat: ['3901', 0], weapon: null, crowd: true, face: 'halfworld:alcinous' },
 };
 /* ride: the vehicle that stands by the spawn for this character (Vader has the TIE); vehicles.js lays it as lm-me */
