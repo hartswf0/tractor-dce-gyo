@@ -1,0 +1,148 @@
+name: Odyssey all-parts visual index
+
+on:
+  push:
+    branches: [odyssey-ldraw-forage-run]
+    paths: [.github/workflows/odyssey-all-parts-visual-index.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  index:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Acquire complete LDraw parts vocabulary
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 --filter=blob:none --no-checkout https://github.com/gkjohnson/ldraw-parts-library.git /tmp/ldraw
+          git -C /tmp/ldraw sparse-checkout init --cone
+          git -C /tmp/ldraw sparse-checkout set complete/ldraw/parts complete/ldraw/p
+          git -C /tmp/ldraw checkout
+          echo "top-level DAT parts: $(find /tmp/ldraw/complete/ldraw/parts -maxdepth 1 -type f -iname '*.dat' | wc -l)"
+          echo "all DAT files incl subparts: $(find /tmp/ldraw/complete/ldraw/parts -type f -iname '*.dat' | wc -l)"
+
+      - name: Install raster dependencies
+        run: python3 -m pip install -q numpy opencv-python-headless
+
+      - name: Build projection index over every top-level part
+        shell: bash
+        run: |
+          cat > /tmp/index_parts.py <<'PY'
+          from pathlib import Path
+          from functools import lru_cache
+          import re,json,math,time,base64,zlib,struct,sys
+          import numpy as np
+          import cv2
+
+          ROOT=Path('/tmp/ldraw/complete/ldraw')
+          PARTS=ROOT/'parts'; PRIMS=ROOT/'p'; OUT=Path('odyssey-all-parts-index'); OUT.mkdir(exist_ok=True)
+          N=32
+          # 16 orbital views: 8 around at 0deg elevation, 8 around at 30deg elevation, plus top/bottom.
+          views=[]
+          for elev_deg in (0,30):
+            el=math.radians(elev_deg)
+            for az_deg in range(0,360,45):
+              az=math.radians(az_deg); views.append((f'a{az_deg}_e{elev_deg}',(math.cos(el)*math.cos(az),-math.sin(el),math.cos(el)*math.sin(az))))
+          views += [('top',(0,-1,0)),('bottom',(0,1,0))]
+
+          def norm(s): return s.replace('\\','/').lower().lstrip('./')
+          pindex={}
+          for base_name,base in [('parts',PARTS),('p',PRIMS)]:
+            for f in base.rglob('*'):
+              if f.is_file(): pindex[(base_name,norm(f.relative_to(base).as_posix()))]=f
+          def resolve(ref):
+            t=norm(ref)
+            if t.startswith('s/'): c=[('parts',t),('p',t)]
+            elif t.startswith('p/'): c=[('p',t[2:]),('parts',t)]
+            elif t.startswith('48/') or t.startswith('8/'): c=[('p',t),('parts',t)]
+            else: c=[('parts',t),('p',t)]
+            for k in c:
+              if k in pindex: return pindex[k]
+            return None
+
+          ref_re=re.compile(r'^1\s+\S+\s+(?:-?\d+(?:\.\d+)?\s+){12}(.+)$')
+          @lru_cache(maxsize=5000)
+          def geom(path_s):
+            path=Path(path_s); verts=[]; faces=[]
+            try: lines=path.read_text(errors='replace').replace('\r\n','\n').split('\n')
+            except: return np.empty((0,3),np.float32),np.empty((0,3),np.int32)
+            for line in lines:
+              sp=line.strip().split()
+              if not sp: continue
+              try:
+                if sp[0]=='1' and len(sp)>=15:
+                  tx,ty,tz=map(float,sp[2:5]); m=np.array(list(map(float,sp[5:14])),np.float32).reshape(3,3); child=' '.join(sp[14:]); cp=resolve(child)
+                  if cp:
+                    cv,cf=geom(str(cp))
+                    if len(cv):
+                      tv=cv@m.T+np.array([tx,ty,tz],np.float32); b=len(verts); verts.extend(tv.tolist()); faces.extend((cf+b).tolist())
+                elif sp[0]=='3' and len(sp)>=11:
+                  nums=list(map(float,sp[2:11])); b=len(verts); verts.extend([nums[0:3],nums[3:6],nums[6:9]]); faces.append((b,b+1,b+2))
+                elif sp[0]=='4' and len(sp)>=14:
+                  nums=list(map(float,sp[2:14])); b=len(verts); verts.extend([nums[0:3],nums[3:6],nums[6:9],nums[9:12]]); faces.extend([(b,b+1,b+2),(b,b+2,b+3)])
+              except Exception: pass
+            v=np.asarray(verts,np.float32).reshape((-1,3)) if verts else np.empty((0,3),np.float32); f=np.asarray(faces,np.int32).reshape((-1,3)) if faces else np.empty((0,3),np.int32)
+            return v,f
+
+          def render_bits(v,f,d):
+            d=np.array(d,np.float32); d/=np.linalg.norm(d); up=np.array([0.,-1.,0.],np.float32); u=np.cross(up,d)
+            if np.linalg.norm(u)<1e-5: up=np.array([0.,0.,1.],np.float32); u=np.cross(up,d)
+            u/=np.linalg.norm(u); vv=np.cross(d,u); vv/=np.linalg.norm(vv); c=(v.min(0)+v.max(0))/2; vc=v-c
+            x=vc@u; y=vc@vv; span=max(float(x.max()-x.min()),float(y.max()-y.min()),1e-6); sc=(N-4)/span
+            pts=np.column_stack([(x-(x.min()+x.max())/2)*sc+N/2,-(y-(y.min()+y.max())/2)*sc+N/2]).astype(np.int32)
+            polys=[pts[idx].reshape((-1,1,2)) for idx in f]
+            im=np.zeros((N,N),np.uint8)
+            if polys: cv2.fillPoly(im,polys,1)
+            # bit-pack row-major; 1024 bits -> 128 bytes/view
+            return np.packbits(im.reshape(-1),bitorder='little').tobytes(), float(im.mean())
+
+          roots=sorted(PARTS.glob('*.dat'),key=lambda p:p.name.lower())
+          recs=[]; t0=time.time(); skipped=0
+          for idx,p in enumerate(roots,1):
+            first=''; desc=''
+            try:
+              for line in p.read_text(errors='replace').splitlines()[:12]:
+                if not first and line.startswith('0 '): first=line[2:].strip()
+                if line.lower().startswith('0 name:'): pass
+              desc=first
+            except: pass
+            v,f=geom(str(p))
+            if not len(f): skipped+=1; continue
+            ext=(v.max(0)-v.min(0)).tolist(); packed=[]; occ=[]
+            for vn,vd in views:
+              b,o=render_bits(v,f,vd); packed.append(base64.b64encode(b).decode()); occ.append(round(o,5))
+            recs.append({'part':p.name,'description':desc,'faces':int(len(f)),'extents':[round(float(z),3) for z in ext],'views':packed,'occupancy':occ})
+            # bound cache and report progress
+            if idx%500==0:
+              print(idx,'/',len(roots),'indexed',len(recs),'cache',geom.cache_info(),'elapsed',round(time.time()-t0,1),flush=True)
+              if geom.cache_info().currsize>4500: geom.cache_clear()
+          payload={'version':'0.1','grid':N,'viewNames':[x[0] for x in views],'viewVectors':[x[1] for x in views],'partCount':len(recs),'rootDatCount':len(roots),'skipped':skipped,'records':recs}
+          raw=json.dumps(payload,separators=(',',':')).encode(); (OUT/'all-parts-projection-index.json').write_bytes(raw)
+          (OUT/'all-parts-projection-index.json.zlib').write_bytes(zlib.compress(raw,9))
+          summary={'rootDatCount':len(roots),'indexed':len(recs),'skipped':skipped,'viewsPerPart':len(views),'grid':N,'jsonBytes':len(raw),'zlibBytes':(OUT/'all-parts-projection-index.json.zlib').stat().st_size,'seconds':round(time.time()-t0,1)}
+          (OUT/'summary.json').write_text(json.dumps(summary,indent=2)); print(json.dumps(summary,indent=2))
+          PY
+          python3 /tmp/index_parts.py
+
+      - name: Package and upload index
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd odyssey-all-parts-index
+          zip -9q ../ODYSSEY-ALL-PARTS-PROJECTION-INDEX-v0.1.zip all-parts-projection-index.json.zlib summary.json
+          cd ..
+          ls -lh ODYSSEY-ALL-PARTS-PROJECTION-INDEX-v0.1.zip odyssey-all-parts-index/*
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: odyssey-all-parts-projection-index
+          path: |
+            ODYSSEY-ALL-PARTS-PROJECTION-INDEX-v0.1.zip
+            odyssey-all-parts-index/summary.json
+            odyssey-all-parts-index/all-parts-projection-index.json.zlib
+          if-no-files-found: error
+          retention-days: 14
