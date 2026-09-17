@@ -15,6 +15,6 @@ for(const [pathname,opts,expected] of [
  assert.equal(config.loaderPath,expected+'/ldraw/');assert.equal(url,expected+'/ldraw-resolve-map.json');assert.ok(map);
 }
 const map=JSON.parse(fs.readFileSync(path.join(root,'ldraw-resolve-map.json')));
-for(const name of ['stud.dat','4-4edge.dat','4-4cyli.dat','box4-7a.dat','4493c01.dat'])assert.ok(fs.existsSync(path.join(root,'ldraw',map[name]||name)),name);
+for(const name of ['stud.dat','4-4edge.dat','4-4cyli.dat','box4-7a.dat','4493c01.dat'])assert.ok(fs.existsSync(path.join(root,'ldraw',map[name]||'parts/'+name)),name);
 console.log('PASS: GitHub project path, local paths, explicit bases, resolver and required geometry');
 })().catch(e=>{console.error(e);process.exit(1)});
