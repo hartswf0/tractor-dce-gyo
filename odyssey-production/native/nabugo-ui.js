@@ -17,7 +17,8 @@ async function makeViewer(host, opts = {}) {
   if (!global.THREE || !global.THREE.LDrawLoader || !global.BetaPrimeEngine) {
     throw new Error('three.js / LDrawLoader / BetaPrimeEngine not loaded');
   }
-  const base = (opts.base || '.').replace(/\/$/, '');     // where ldraw/ and the resolve map live, for pages in a subfolder
+  const requestedBase = opts.base || '.';
+  const base = (requestedBase === '.' && location.pathname.includes('/odyssey-production/native/') ? '../..' : requestedBase).replace(/\/$/, '');     // where ldraw/ and the resolve map live, for pages in a subfolder
   const engine = global.BetaPrimeEngine.create({
     canvas: host,
     loaderPath: base + '/ldraw/',
