@@ -133,7 +133,7 @@ function findReferent(id) {
   return null;
 }
 async function infer(words) {
-  if(window.OdysseyPerformance && /^(walk forward|turn left|turn right|stop)$/i.test(words.trim())){OdysseyPerformance.command(words);return;}
+  if(window.OdysseyPerformance && /^(walk forward|ride forward|reverse|turn left|turn right|stop)$/i.test(words.trim())){OdysseyPerformance.command(words);return;}
   if(state.inferring)return; if(!window.Ai||!Ai.key()){execute(parse(words));return;}
   state.inferring=true;$('#pttMic').textContent='LLM: inferring';sayLine('Resolving words and gesture…','');
   try {
@@ -155,7 +155,7 @@ async function infer(words) {
 function resetBindings() { state.that = state.there = state.pending = null; paintBindings(); if (state.helper && W.scene) W.scene.remove(state.helper); state.helper = null; }
 function execute(cmd) {
   state.pending = null;
-  if (cmd.verb === 'stop') { W.performanceTarget=null;stopWalk(); sayLine('Stopped.', ''); return true; }
+  if (cmd.verb === 'stop') { window.OdysseyPerformance?.command('stop');W.performanceTarget=null;stopWalk(); sayLine('Stopped.', ''); return true; }
   if (cmd.verb === 'undo') { if (W.build) W.build.undo(); sayLine('Undone.', ''); return true; }
   if (cmd.thisWord && !state.that && state.hover && state.hover.kind !== 'ground') state.that = { ...state.hover, point: state.hover.point.clone() };
   if (cmd.thereWord && !state.there && state.hover && state.hover.kind === 'ground') state.there = { kind: 'ground', point: state.hover.point.clone() };
@@ -274,5 +274,5 @@ $('#pttAsk').addEventListener('pointerdown',recordStart);$('#pttAsk').addEventLi
 // In browsers without speech recognition, the same small language works through the existing text field.
 $('#wbBuild').addEventListener('click',e=>{if(!state.on)return;const t=$('#words').value,cmd=parse(t);if(cmd.verb==='unknown')return;e.preventDefault();e.stopImmediatePropagation();$('#words').value='';heard(t);},true);
 $('#words').addEventListener('keydown',e=>{if(!state.on||e.key!=='Enter'||e.shiftKey)return;const cmd=parse(e.target.value);if(cmd.verb==='unknown')return;e.preventDefault();e.stopImmediatePropagation();const t=e.target.value;e.target.value='';heard(t);},true);
-window.PutThatThere={parse,heard,infer,tracePacket,execute,capture,pointIntoWorld,setMode,start,stop,state:()=>({on:state.on,mode:state.mode,that:label(state.that),there:!!state.there,pending:state.pending&&state.pending.verb,walking:state.walking,inferring:state.inferring,trace:state.trace.length})};
+window.PutThatThere={pauseSpeech(){clearTimeout(state.speechRestart);if(state.recognition){state.recognition.onend=null;try{state.recognition.abort();}catch{}state.recognition=null;}},parse,heard,infer,tracePacket,execute,capture,pointIntoWorld,setMode,start,stop,state:()=>({on:state.on,mode:state.mode,that:label(state.that),there:!!state.there,pending:state.pending&&state.pending.verb,walking:state.walking,inferring:state.inferring,trace:state.trace.length})};
 })();

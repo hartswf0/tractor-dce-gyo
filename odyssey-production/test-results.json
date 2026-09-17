@@ -1,5 +1,5 @@
 {
-  "runAt": "2026-09-17T22:25:16.180525+00:00",
+  "runAt": "2026-09-17T23:28:55.538732+00:00",
   "tests": [
     {
       "id": "motion-interpolation",
@@ -70,6 +70,13 @@
       "status": "PASS",
       "scope": "Geometry paths on static hosting and localhost.",
       "output": "PASS: GitHub project path, local paths, explicit bases, resolver and required geometry"
+    },
+    {
+      "id": "voice-channel",
+      "command": "node tools/../tests/voice-channel.cjs",
+      "status": "PASS",
+      "scope": "Mocked audio-only recording, transcription review, cancellation, commands and read-only discussion; not a real microphone/API test.",
+      "output": "PASS: audio-only permission, late-permission cleanup, Whisper MIME/model, transcript review, commands, read-only discussion, stale response cancellation, missing key"
     }
   ]
 }

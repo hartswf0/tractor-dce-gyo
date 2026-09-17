@@ -244,7 +244,7 @@ ${window.Dsl && window.Dsl.SPEC || ''}`;
     throw err;
   },
 
-  async request(text, { key, signal, stage = 'SOL REASONING', detail = 'designing', effort = EFFORT, onDelta, system, parse, images } = {}) {   // system: other instructions than the builder's (the film's shot list); parse: another reader of the answer than the build program's
+  async request(text, { key, signal, stage = 'SOL REASONING', detail = 'designing', effort = EFFORT, onDelta, system, parse, images, maxOutput = 64000 } = {}) {   // system: other instructions than the builder's (the film's shot list); parse: another reader of the answer than the build program's
     key = (key || this.key()).trim();
     if (!key) throw new Error('no key: enter an OpenAI API key');
     lsSet(MODEL_KEY, MODEL); lsSet(EFFORT_KEY, EFFORT);
@@ -264,7 +264,7 @@ ${window.Dsl && window.Dsl.SPEC || ''}`;
           input: [{ role: 'user', content: [{ type: 'input_text', text: String(text || '') }, ...(images || []).filter(Boolean).map(u => ({ type: 'input_image', image_url: u, detail: 'low' }))] }],
           reasoning: { effort },
           text: { format: { type: 'json_object' }, verbosity: 'low' },
-          max_output_tokens: 64000,
+          max_output_tokens: maxOutput,
           store: false,
           stream: true
         }),
