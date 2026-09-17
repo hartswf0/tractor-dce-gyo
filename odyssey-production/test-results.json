@@ -1,5 +1,5 @@
 {
-  "runAt": "2026-09-16T09:55:59.837145+00:00",
+  "runAt": "2026-09-17T22:25:16.180525+00:00",
   "tests": [
     {
       "id": "motion-interpolation",
@@ -56,6 +56,20 @@
       "status": "PASS",
       "scope": "Continuous 83-second cut, 13 camera/action cues and recorded voice assets.",
       "output": "PASS Night Shift: continuous 83s timeline, 13 camera/action cues, recorded dialogue assets"
+    },
+    {
+      "id": "horse-performance",
+      "command": "node tools/../tests/horse-performance.cjs",
+      "status": "PASS",
+      "scope": "Mounted cues, manual override, expiry and Stop.",
+      "output": "PASS: mounted forward/turn/reverse, immediate stop, blur stop, walking, manual override and cue expiry"
+    },
+    {
+      "id": "published-ldraw-paths",
+      "command": "node tools/../tests/published-ldraw-paths.cjs",
+      "status": "PASS",
+      "scope": "Geometry paths on static hosting and localhost.",
+      "output": "PASS: GitHub project path, local paths, explicit bases, resolver and required geometry"
     }
   ]
 }
