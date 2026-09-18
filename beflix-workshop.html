@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BEFLIX → Bricks</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#111418;color:#f2eee4;font:16px system-ui}header,main{max-width:1300px;margin:auto;padding:20px}header{display:flex;align-items:center;justify-content:space-between;gap:16px}h1{font-size:24px;margin:0}a{color:#e3bc6c}button,select,input,textarea{font:inherit}button,select,.upload{background:#252b33;color:inherit;border:1px solid #58616c;border-radius:5px;padding:10px;min-height:44px}button{cursor:pointer}button:disabled{opacity:.45;cursor:default}button.primary{background:#e3bc6c;color:#171717;border-color:#e3bc6c}.controls{display:flex;flex-wrap:wrap;gap:12px;align-items:end}.controls label{display:grid;gap:5px}.panes{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:20px 0}figure{margin:0;min-width:0}figcaption{padding:8px 0;color:#c9cbd0}#source{width:100%;image-rendering:pixelated;background:#faf7ef;cursor:crosshair}#viewport{height:420px;background:#202832;position:relative;border:1px solid #46505c}#viewport canvas{display:block;width:100%;height:100%;touch-action:none}textarea{width:100%;min-height:220px;background:#0c0f13;color:#efe6cc;border:1px solid #58616c;padding:12px;resize:vertical;font:14px ui-monospace,monospace}#status{min-height:24px}#error{color:#ffb0a6}#parts{white-space:pre-wrap;color:#c9cbd0}.note{color:#b8c0c9;font-size:14px;max-width:850px}input[type=range]{width:140px}input[type=file]{max-width:230px}#frame{width:100%}details{margin-top:14px}summary{cursor:pointer;padding:10px 0}button:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #e3bc6c;outline-offset:3px}@media(max-width:700px){header,main{padding:14px}.panes{grid-template-columns:1fr}#viewport{height:340px}h1{font-size:21px}}
+</style>
+<header><h1>BEFLIX → Bricks</h1><a href="cinerium.html">Cinerium</a></header>
+<main><p class="note">Silhouette workshop. Choose the depth; inspect what survives brick assembly. A cell maps to one stud across and one brick course up. Full object and depth inference are not implemented.</p>
+<div class="controls">
+<label>Grid<select id="grid"><option value="16,10">16 × 10</option><option value="32,24">32 × 24</option><option value="64,48">64 × 48</option><option value="128,96">128 × 96</option></select></label>
+<label>Depth <output id="depthValue">2 studs</output><input id="depth" type="range" min="1" max="8" value="2"></label>
+<label>Ink threshold <output id="thresholdValue">1</output><input id="threshold" type="range" min="1" max="7" value="1"></label>
+<button class="primary" id="build">Build bricks</button>
+<label>Import image<input id="image" type="file" accept="image/png,image/jpeg,image/webp"></label>
+</div>
+<div class="panes">
+<figure><canvas id="source" width="480" height="360" aria-label="Source grid; click a cell to select its drawing command"></canvas><figcaption id="sourceCaption">Source · select a cell to trace its command</figcaption><label><input type="checkbox" id="difference" checked> Mark cells omitted by assembly in red</label></figure>
+<figure><div id="viewport" aria-label="Orbitable LDraw model"></div><figcaption id="modelCaption">LDraw model</figcaption><div class="controls"><button id="front">Front</button><button id="orbit">Oblique</button><button id="mpd" disabled>Export MPD</button><button id="json" disabled>Export build JSON</button></div></figure>
+</div>
+<label for="frame" id="frameLabel">Recorded state 1</label><input id="frame" type="range" min="0" max="0" value="0" step="1">
+<p id="status" role="status" aria-live="polite"></p><p id="error" role="alert"></p>
+<label for="code">Drawing program</label><textarea id="code" spellcheck="false">CLR 0
+PNT 0 0 16 10 7
+PNT 6 4 4 6 0
+REC 24</textarea>
+<p class="note">CLR ink · PNT x y width height ink · LIN x1 y1 x2 y2 ink · REC frames. Ink is 0–7. REC stores states; this workshop does not infer joints or animate brick transitions. Changes apply when you build.</p>
+<details><summary>Parts and construction checks</summary><pre id="parts"></pre><p class="note">The compiler may remove unsupported cells. Red marks expose that loss. A zero mismatch means grid occupancy agrees; it is not a certificate of physical strength.</p></details>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="examples/js/loaders/LDrawLoader.js"></script>
+<script src="world/dsl.js"></script><script src="world/beflix-bricks.js"></script><script src="world/beflix-workshop.js"></script>
+</html>
