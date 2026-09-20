@@ -52,7 +52,9 @@ jobs:
 
       - name: Install full assembly integration
         run: |
-          python tools/patch-behavior-bearing-assemblies-v2.py
+          if ! grep -q 'WorldAssemblies.registerCommit' odyssey-production/native/world/main.js; then
+            python tools/patch-behavior-bearing-assemblies-v2.py
+          fi
           python tools/patch-behavior-bearing-assemblies-v2-hardening.py
 
       - name: Syntax, runtime, integration, and patch checks
