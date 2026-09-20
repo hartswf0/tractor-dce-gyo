@@ -36,7 +36,7 @@ const target = {
   item: { id: 'test-target-1', x: 0, y: 0, z: 0, yaw: 0, src: { kind: 'model' } }
 };
 
-assert.deepEqual(WorldBehavior.verbsFor(target), ['inspect']);
+assert.deepEqual(WorldBehavior.verbsFor(target), ['inspect'], 'opaque ids must not create semantic traits');
 
 const taught = WorldBehavior.teachFromText(target, 'make that a target');
 assert.equal(taught.ok, true);
@@ -69,5 +69,39 @@ const switchTarget = {
 assert.ok(WorldBehavior.verbsFor(switchTarget).includes('activate'));
 assert.equal(WorldBehavior.perform('activate', switchTarget).active, true);
 assert.equal(WorldBehavior.perform('activate', switchTarget).active, false);
+
+const looseBrick = {
+  kind: 'piece',
+  id: 'brick-1',
+  name: 'brick 2×4',
+  item: { id: 'brick-1', part: '3001', col: 4, x: 0, y: 0, z: 0, rot: 0 }
+};
+assert.equal(WorldBehavior.teachFromText(looseBrick, 'make that rideable').ok, false, 'a loose brick cannot enter the vehicle system');
+
+const rideItem = { id: 'model-ride-1', x: 0, y: 0, z: 0, yaw: 0, src: { kind: 'raft' } };
+let moveCalls = 0;
+let removedId = null;
+globalThis.__world.props = {
+  items: new Map([[rideItem.id, rideItem]]),
+  moveTo(item, x, y, z, yaw, quiet) {
+    moveCalls++;
+    assert.equal(item, rideItem);
+    assert.equal(quiet, false);
+  },
+  remove(id) { removedId = id; return true; }
+};
+const rideTarget = { kind: 'prop', id: rideItem.id, name: 'wooden raft', item: rideItem };
+assert.equal(WorldBehavior.teachFromText(rideTarget, 'make that rideable').ok, true);
+assert.equal(rideItem.src.ride, true, 'teaching rideable should enter the existing nearVehicle path');
+assert.equal(moveCalls, 1, 'the changed prop row should be persisted and broadcast');
+assert.equal(WorldBehavior.perform('mount', rideTarget).ok, true);
+
+const breakItem = { id: 'crate-1', x: 0, y: 0, z: 0, yaw: 0, src: { kind: 'crate' } };
+globalThis.__world.props.items.set(breakItem.id, breakItem);
+const breakTarget = { kind: 'prop', id: breakItem.id, name: 'wooden crate', item: breakItem };
+assert.equal(WorldBehavior.teachFromText(breakTarget, 'make that breakable').ok, true);
+const broken = WorldBehavior.perform('hit', breakTarget, { damage: 100, kind: 'test' });
+assert.equal(broken.destroyed, true);
+assert.equal(removedId, breakItem.id);
 
 console.log('behavior-bearing assemblies runtime: ok');
