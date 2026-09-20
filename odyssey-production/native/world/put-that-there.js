@@ -140,6 +140,7 @@ function tracePacket(words) {
 
 function findReferent(id) {
   if(!id)return state.that;
+  if(window.WorldAssemblies){const a=WorldAssemblies.resolve({kind:'assembly',id});if(a)return a;}
   if(W.build&&W.build.pieces.has(id)){const p=W.build.pieces.get(id);return{kind:'piece',id,item:p,name:(W.build.kinds.get(p.part)||{}).name||'brick',box:p.box};}
   if(W.props&&W.props.items.has(id)){const p=W.props.items.get(id);return{kind:'prop',id,item:p,name:p.src&&(p.src.kind||p.src.as||p.src.kit||p.src.op)||'model',box:p.box};}
   return null;
@@ -170,7 +171,7 @@ function execute(cmd) {
   state.pending = null;
   if (cmd.verb === 'stop') { window.OdysseyPerformance?.command('stop');W.performanceTarget=null;stopWalk(); sayLine('Stopped.', ''); return true; }
   if (cmd.verb === 'undo') { if (W.build) W.build.undo(); sayLine('Undone.', ''); return true; }
-  if (cmd.thisWord && !state.that && state.hover && state.hover.kind !== 'ground') state.that = { ...state.hover, point: state.hover.point.clone() };
+  if (cmd.thisWord && !state.that && state.hover && state.hover.kind !== 'ground') { const raw = { ...state.hover, point: state.hover.point.clone() }; state.that = window.WorldAssemblies ? (WorldAssemblies.resolve(raw) || raw) : raw; }
   if (cmd.thereWord && !state.there && state.hover && state.hover.kind === 'ground') state.there = { kind: 'ground', point: state.hover.point.clone() };
   if (cmd.needsThat && !state.that) { state.pending = cmd; sayLine('Which thing? Point at it and pinch.', 'speak'); paintBindings(); return false; }
   if (cmd.needsThere && !state.there) { state.pending = cmd; sayLine('Where? Point at the ground and pinch.', 'speak'); paintBindings(); return false; }

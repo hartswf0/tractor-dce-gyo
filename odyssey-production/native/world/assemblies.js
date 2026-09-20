@@ -178,7 +178,7 @@ function assemblyTarget(rec, original) {
 }
 function resolve(target, opts) {
   ensureStore(); if (!target) return null;
-  if (target.kind === 'assembly') { const rec = store.assemblies[target.id] || target.item; return rec ? assemblyTarget(rec, target.memberTarget) : null; }
+  if (target.kind === 'assembly') { let rec = store.assemblies[target.id] || target.item; if (opts?.whole && rec?.rootId) rec = store.assemblies[rec.rootId] || rec; return rec ? assemblyTarget(rec, target.memberTarget) : null; }
   const id = targetId(target), ids = memberIndex.get(id) || []; const rec = chooseRecord(ids, opts || {});
   return rec ? assemblyTarget(rec, target) : null;
 }
@@ -305,9 +305,17 @@ function transformSnapshot(snapshot, fn) {
   return out;
 }
 function applyTransforms(rec, snapshot) {
-  const w = W(); if (!w) return false; const rows = [];
+  const w = W(); if (!w) return false;
+  const original = snapshotTransforms(rec), objects = new Map(), inserted = [], rows = [];
+  for (const id of Object.keys(snapshot?.pieces || {})) { const p = w.build?.pieces?.get?.(id); if (p) { objects.set(id, p); w.build.take(id, true); } }
+  const restore = () => {
+    for (const id of inserted) w.build.take(id, true);
+    for (const [id, t] of Object.entries(original.pieces || {})) { const p = objects.get(id); if (!p) continue; p.x = +t.x; p.y = +t.y; p.z = +t.z; p.rot = +t.rot & 3; p.box = null; w.build.add(p, true); }
+  };
   for (const [id, t] of Object.entries(snapshot?.pieces || {})) {
-    const p = w.build?.pieces?.get?.(id); if (!p) continue; w.build.take(id, true); p.x = +t.x; p.y = +t.y; p.z = +t.z; p.rot = +t.rot & 3; p.box = null; const q = w.build.add(p, true); if (q) rows.push(w.build.toRow(q));
+    const p = objects.get(id); if (!p) continue; p.x = +t.x; p.y = +t.y; p.z = +t.z; p.rot = +t.rot & 3; p.box = null; const q = w.build.add(p, true);
+    if (!q) { restore(); return false; }
+    inserted.push(q.id); rows.push(w.build.toRow(q));
   }
   if (rows.length) { w.build.dirty = true; if (w.build.onEdit) w.build.onEdit({ up: rows }); }
   for (const [id, t] of Object.entries(snapshot?.props || {})) { const p = w.props?.items?.get?.(id); if (p) w.props.moveTo(p, +t.x, +t.y, +t.z, +t.yaw, false); }
@@ -329,7 +337,7 @@ function setOpen(target, desired, context) {
   if (!rec.state.closed) rec.state.closed = snapshotTransforms(rec);
   const spec = p.traits.openable, hinge = hingePoint(rec, spec, rec.state.closed), steps = finite(+spec.steps) ? +spec.steps : 1;
   const next = desired ? rotateSnapshot(rec.state.closed, hinge.x, hinge.z, steps) : clone(rec.state.closed); if (!applyTransforms(rec, next)) return { ok: false, message: `${rec.label} has no live members to move.` };
-  rec.state.open = desired; saveRecord(rec, desired ? 'opened' : 'closed'); event(desired ? 'opened' : 'closed', { assembly: rec.id, label: rec.label }); fire(rec.id, desired ? 'opened' : 'closed', new Set());
+  rec.state.open = desired; saveRecord(rec, desired ? 'opened' : 'closed'); event(desired ? 'opened' : 'closed', { assembly: rec.id, label: rec.label }); fire(rec.id, desired ? 'opened' : 'closed', context?.visited || new Set());
   return { ok: true, message: `${rec.label} ${desired ? 'opened' : 'closed'}.` };
 }
 function teachFromText(target, text) {
@@ -360,12 +368,12 @@ function applyDamage(target, amount, kind, context) {
   const a = resolve(target, { trait: 'damageable' }), rec = a && store.assemblies[a.id], p = a && profile(a); if (!rec || !p?.traits.damageable) return { ok: false, message: `${a?.name || 'That assembly'} is not a target.` };
   const spec = p.traits.damageable, hit = finite(+amount) ? Math.max(0, +amount) : +spec.damage || 35, hp = clamp((finite(+rec.state.hp) ? +rec.state.hp : +rec.state.maxHp) - hit, 0, +rec.state.maxHp);
   rec.state.hp = hp; saveRecord(rec, 'damaged'); event('damaged', { assembly: rec.id, label: rec.label, kind: kind || 'hit', damage: hit, hp, maxHp: rec.state.maxHp });
-  if (hp <= 0) { fire(rec.id, 'depleted', new Set()); if (spec.destroyOnZero) { const r = removeAssembly(a, context || {}); return { ...r, hp, maxHp: rec.state.maxHp, destroyed: r.ok, message: r.ok ? `${rec.label} broke apart.` : r.message }; } event('depleted', { assembly: rec.id, label: rec.label }); return { ok: true, message: `${rec.label} is down.`, hp, maxHp: rec.state.maxHp, destroyed: false }; }
+  if (hp <= 0) { fire(rec.id, 'depleted', context?.visited || new Set()); if (spec.destroyOnZero) { const r = removeAssembly(a, context || {}); return { ...r, hp, maxHp: rec.state.maxHp, destroyed: r.ok, message: r.ok ? `${rec.label} broke apart.` : r.message }; } event('depleted', { assembly: rec.id, label: rec.label }); return { ok: true, message: `${rec.label} is down.`, hp, maxHp: rec.state.maxHp, destroyed: false }; }
   return { ok: true, message: `${rec.label}: ${Math.round(hp)} / ${Math.round(rec.state.maxHp)}.`, hp, maxHp: rec.state.maxHp };
 }
-function activate(target) {
+function activate(target, context) {
   const a = resolve(target, { trait: 'activatable' }), rec = a && store.assemblies[a.id], p = a && profile(a); if (!rec || !p?.traits.activatable) return { ok: false, message: `${a?.name || 'That assembly'} is not activatable.` };
-  rec.state.active = !rec.state.active; saveRecord(rec, rec.state.active ? 'activated' : 'deactivated'); const type = rec.state.active ? 'activated' : 'deactivated'; event(type, { assembly: rec.id, label: rec.label, active: rec.state.active }); fire(rec.id, type, new Set()); return { ok: true, message: `${rec.label} ${type}.`, active: rec.state.active };
+  rec.state.active = !rec.state.active; saveRecord(rec, rec.state.active ? 'activated' : 'deactivated'); const type = rec.state.active ? 'activated' : 'deactivated'; event(type, { assembly: rec.id, label: rec.label, active: rec.state.active }); fire(rec.id, type, context?.visited || new Set()); return { ok: true, message: `${rec.label} ${type}.`, active: rec.state.active };
 }
 function mount(target) {
   const a = resolve(target, { trait: 'rideable' }), rec = a && store.assemblies[a.id], p = a && profile(a); if (!rec || !p?.traits.rideable) return { ok: false, message: `${a?.name || 'That assembly'} is not rideable.` };
@@ -391,7 +399,7 @@ async function copyAssembly(target, destination) {
   initializeState(copy); store.assemblies[rootId] = copy; recordBounds(copy); reindex(); saveRecord(copy, 'copied'); tagProps(copy); event('copied', { source: rec.id, assembly: copy.id, label: copy.label }); return { ok: true, message: `${rec.label} copied.`, assembly: copy.id };
 }
 function manipulate(verb, target, context) {
-  verb = String(verb || '').toLowerCase(); if (verb === 'move') return moveAssembly(target, context?.destination); if (verb === 'copy') return copyAssembly(target, context?.destination); if (verb === 'remove') return removeAssembly(target, context || {}); if (verb === 'turn') return turnAssembly(target); return { ok: false, message: `No assembly operation for ${verb}.` };
+  verb = String(verb || '').toLowerCase(); if (/\b(whole|entire|all|build)\b/i.test(context?.text || '')) target = resolve(target, { whole: true }) || target; if (verb === 'move') return moveAssembly(target, context?.destination); if (verb === 'copy') return copyAssembly(target, context?.destination); if (verb === 'remove') return removeAssembly(target, context || {}); if (verb === 'turn') return turnAssembly(target); return { ok: false, message: `No assembly operation for ${verb}.` };
 }
 function armLink(target, text) {
   const a = resolve(target), rec = a && store.assemblies[a.id]; if (!rec) return { ok: false, message: 'Bind the source assembly first.' };
@@ -408,7 +416,7 @@ function fire(sourceId, eventName, visited) {
   ensureStore(); visited = visited || new Set(); const token = `${sourceId}:${eventName}`; if (visited.has(token) || visited.size > 12) return 0; visited.add(token); let n = 0;
   for (const link of Object.values(store.links)) {
     if (!link || link.enabled === false || link.source !== sourceId || link.event !== eventName) continue; const key = `${link.id}:${link.action}`; if (visited.has(key)) continue; visited.add(key); const target = assemblyTarget(store.assemblies[link.target]); if (!target) continue;
-    const result = link.action === 'open' ? setOpen(target, true, { fromLink: true }) : link.action === 'close' ? setOpen(target, false, { fromLink: true }) : link.action === 'activate' ? activate(target) : removeAssembly(target, { fromLink: true });
+    const result = link.action === 'open' ? setOpen(target, true, { fromLink: true, visited }) : link.action === 'close' ? setOpen(target, false, { fromLink: true, visited }) : link.action === 'activate' ? activate(target, { fromLink: true, visited }) : removeAssembly(target, { fromLink: true, visited });
     if (result?.ok) { n++; link.fired = (link.fired || 0) + 1; link.lastFiredAt = nowISO(); if (link.once) link.enabled = false; store.links[link.id] = link; }
   }
   if (n) { persist(); broadcast({ type: 'links-fired', source: sourceId, event: eventName, links: clone(store.links) }); }
@@ -422,7 +430,7 @@ function perform(verb, target, context) {
   if (verb === 'teach') return teachFromText(target, context?.text || '');
   const a = resolve(target, { trait: traitForVerb(verb), whole: /\b(whole|entire|all|build)\b/i.test(context?.text || '') }); if (!a) return null;
   if (verb === 'inspect') return { ok: true, message: `${describe(a)} · verbs: ${verbsFor(a).join(', ')}.` };
-  if (verb === 'open') return setOpen(a, true, context || {}); if (verb === 'close') return setOpen(a, false, context || {}); if (verb === 'activate') return activate(a); if (verb === 'hit') return applyDamage(a, context?.damage, context?.kind || 'command', context); if (verb === 'mount') return mount(a);
+  if (verb === 'open') return setOpen(a, true, context || {}); if (verb === 'close') return setOpen(a, false, context || {}); if (verb === 'activate') return activate(a, context || {}); if (verb === 'hit') return applyDamage(a, context?.damage, context?.kind || 'command', context); if (verb === 'mount') return mount(a);
   return { ok: false, message: `No assembly behavior for ${verb}.` };
 }
 function candidateCenter(item) { if (item?.box?.getCenter) return item.box.getCenter(new THREE.Vector3()); if (finite(+item?.x) && finite(+item?.y) && finite(+item?.z)) return new THREE.Vector3(+item.x, +item.y, +item.z); return null; }
@@ -480,7 +488,7 @@ function paintMenu() {
   const row = document.querySelector?.('.assemblies-row'); if (!row) return; ensureStore(); const stat = row.querySelector('[data-assembly-stat]'); if (stat) stat.textContent = `${Object.keys(store.assemblies).length} assemblies · ${Object.keys(store.links).length} links`;
 }
 function installMenu() {
-  const menu = document.getElementById?.('menu'); if (!menu || menu.querySelector('.assemblies-row')) { paintMenu(); return false; }
+  const menu = document.getElementById?.('menu'); if (menu) { const legacy = menu.querySelector('.behavior-row'); if (legacy) legacy.hidden = true; } if (!menu || menu.querySelector('.assemblies-row')) { paintMenu(); return false; }
   const row = document.createElement('div'); row.className = 'row assemblies-row'; row.innerHTML = '<span>assemblies</span><button type="button" data-assembly-export>export</button><button type="button" data-assembly-check>check</button><button type="button" data-assembly-clear>clear</button><em data-assembly-stat></em>';
   row.querySelector('[data-assembly-export]').onclick = downloadData; row.querySelector('[data-assembly-check]').onclick = () => { const r = reconcile(); alert(r.ok ? `Assembly graph is coherent: ${r.assemblies} assemblies, ${r.links} links.` : JSON.stringify(r, null, 2)); };
   row.querySelector('[data-assembly-clear]').onclick = () => { if (confirm('Clear assembly identities, behaviors, state, and links for this place? The LEGO geometry remains.')) clearPlace(false); };
