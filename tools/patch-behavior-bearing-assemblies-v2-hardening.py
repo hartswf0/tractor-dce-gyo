@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """Harden the V2 assembly integration after the complete vertical slice is installed.
 
-The changes here close four boundary failures that only appear when the new system is
-used through the actual page rather than the isolated runtime test:
+The changes here close failures that only appear when the new system is used through
+actual page boundaries rather than the isolated runtime:
 - read/decompile must keep behavior and links in the active builder program;
 - stale replaced assembly records must be reconciled at commit time;
 - model and hover referents must resolve stable assembly ids, not fall back to members;
+- "whole build" must resolve the root identity even when a named subassembly was bound;
+- multi-piece transforms must be atomic and roll back when one placement is blocked;
 - cyclic event graphs must share one visited set through nested transitions.
 """
 from __future__ import annotations
@@ -73,6 +75,42 @@ def patch_ptt() -> bool:
 def patch_assemblies() -> bool:
     text = ASSEMBLIES.read_text(encoding="utf-8")
     before = text
+
+    text = replace_once(
+        text,
+        "  if (target.kind === 'assembly') { const rec = store.assemblies[target.id] || target.item; return rec ? assemblyTarget(rec, target.memberTarget) : null; }",
+        "  if (target.kind === 'assembly') { let rec = store.assemblies[target.id] || target.item; if (opts?.whole && rec?.rootId) rec = store.assemblies[rec.rootId] || rec; return rec ? assemblyTarget(rec, target.memberTarget) : null; }",
+        label="whole commands resolve root assembly",
+    )
+
+    old_apply = """function applyTransforms(rec, snapshot) {
+  const w = W(); if (!w) return false; const rows = [];
+  for (const [id, t] of Object.entries(snapshot?.pieces || {})) {
+    const p = w.build?.pieces?.get?.(id); if (!p) continue; w.build.take(id, true); p.x = +t.x; p.y = +t.y; p.z = +t.z; p.rot = +t.rot & 3; p.box = null; const q = w.build.add(p, true); if (q) rows.push(w.build.toRow(q));
+  }
+  if (rows.length) { w.build.dirty = true; if (w.build.onEdit) w.build.onEdit({ up: rows }); }
+  for (const [id, t] of Object.entries(snapshot?.props || {})) { const p = w.props?.items?.get?.(id); if (p) w.props.moveTo(p, +t.x, +t.y, +t.z, +t.yaw, false); }
+  recordBounds(rec); return !!(rows.length || Object.keys(snapshot?.props || {}).length);
+}"""
+    new_apply = """function applyTransforms(rec, snapshot) {
+  const w = W(); if (!w) return false;
+  const original = snapshotTransforms(rec), objects = new Map(), inserted = [], rows = [];
+  for (const id of Object.keys(snapshot?.pieces || {})) { const p = w.build?.pieces?.get?.(id); if (p) { objects.set(id, p); w.build.take(id, true); } }
+  const restore = () => {
+    for (const id of inserted) w.build.take(id, true);
+    for (const [id, t] of Object.entries(original.pieces || {})) { const p = objects.get(id); if (!p) continue; p.x = +t.x; p.y = +t.y; p.z = +t.z; p.rot = +t.rot & 3; p.box = null; w.build.add(p, true); }
+  };
+  for (const [id, t] of Object.entries(snapshot?.pieces || {})) {
+    const p = objects.get(id); if (!p) continue; p.x = +t.x; p.y = +t.y; p.z = +t.z; p.rot = +t.rot & 3; p.box = null; const q = w.build.add(p, true);
+    if (!q) { restore(); return false; }
+    inserted.push(q.id); rows.push(w.build.toRow(q));
+  }
+  if (rows.length) { w.build.dirty = true; if (w.build.onEdit) w.build.onEdit({ up: rows }); }
+  for (const [id, t] of Object.entries(snapshot?.props || {})) { const p = w.props?.items?.get?.(id); if (p) w.props.moveTo(p, +t.x, +t.y, +t.z, +t.yaw, false); }
+  recordBounds(rec); return !!(rows.length || Object.keys(snapshot?.props || {}).length);
+}"""
+    text = replace_once(text, old_apply, new_apply, label="atomic multi-piece transform")
+
     text = replace_once(
         text,
         "fire(rec.id, desired ? 'opened' : 'closed', new Set());",
@@ -111,6 +149,12 @@ def patch_assemblies() -> bool:
     )
     text = replace_once(
         text,
+        "function manipulate(verb, target, context) {\n  verb = String(verb || '').toLowerCase(); if (verb === 'move') return moveAssembly(target, context?.destination); if (verb === 'copy') return copyAssembly(target, context?.destination); if (verb === 'remove') return removeAssembly(target, context || {}); if (verb === 'turn') return turnAssembly(target); return { ok: false, message: `No assembly operation for ${verb}.` };\n}",
+        "function manipulate(verb, target, context) {\n  verb = String(verb || '').toLowerCase(); if (/\\b(whole|entire|all|build)\\b/i.test(context?.text || '')) target = resolve(target, { whole: true }) || target; if (verb === 'move') return moveAssembly(target, context?.destination); if (verb === 'copy') return copyAssembly(target, context?.destination); if (verb === 'remove') return removeAssembly(target, context || {}); if (verb === 'turn') return turnAssembly(target); return { ok: false, message: `No assembly operation for ${verb}.` };\n}",
+        label="whole manipulation uses root assembly",
+    )
+    text = replace_once(
+        text,
         "function installMenu() {\n  const menu = document.getElementById?.('menu'); if (!menu || menu.querySelector('.assemblies-row')) { paintMenu(); return false; }",
         "function installMenu() {\n  const menu = document.getElementById?.('menu'); if (menu) { const legacy = menu.querySelector('.behavior-row'); if (legacy) legacy.hidden = true; } if (!menu || menu.querySelector('.assemblies-row')) { paintMenu(); return false; }",
         label="hide legacy single-object menu",
@@ -129,6 +173,9 @@ def verify() -> None:
     assert "WorldAssemblies.reconcile()" in main
     assert "resolve({kind:'assembly',id})" in ptt
     assert "WorldAssemblies.resolve(raw) || raw" in ptt
+    assert "opts?.whole && rec?.rootId" in asm
+    assert "const original = snapshotTransforms(rec)" in asm
+    assert "restore(); return false" in asm
     assert "context?.visited || new Set()" in asm
     assert "activate(target, { fromLink: true, visited })" in asm
     assert "legacy.hidden = true" in asm
