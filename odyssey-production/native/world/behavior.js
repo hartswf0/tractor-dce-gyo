@@ -207,11 +207,22 @@ function saveState(target, patch) {
   rec.state = { ...(rec.state || {}), ...clone(patch) };
   rec.updatedAt = nowISO(); persist(); return rec;
 }
+function connectRideable(target) {
+  const item = unwrap(target), w = W();
+  if (kindOf(target) !== 'prop' || !item) return false;
+  const src = item.src && typeof item.src === 'object' ? item.src : {};
+  const changed = !src.ride; item.src = { ...src, ride: true };
+  if (changed && w?.props?.items?.has?.(item.id) && w.props.moveTo) w.props.moveTo(item, item.x, item.y, item.z, item.yaw, false);
+  return true;
+}
 function saveTrait(target, trait, options) {
+  const normalized = TRAIT_ALIASES[String(trait || '').toLowerCase()] || String(trait || '').toLowerCase();
+  if (normalized === 'rideable' && kindOf(target) !== 'prop') return null;
   const rec = explicitRecord(target, true); if (!rec) return null;
-  mergeTrait(rec.traits, trait, options == null ? true : options);
+  mergeTrait(rec.traits, normalized, options == null ? true : options);
+  if (normalized === 'rideable') connectRideable(target);
   rec.updatedAt = nowISO(); persist();
-  emit('trait-taught', { id: rec.id, label: rec.label, trait: TRAIT_ALIASES[trait] || trait, options: clone(options) });
+  emit('trait-taught', { id: rec.id, label: rec.label, trait: normalized, options: clone(options) });
   return rec;
 }
 function forget(target, trait) {
@@ -227,13 +238,15 @@ function teachFromText(target, text) {
   }
   let trait = null, options = true;
   if (/\b(openable|door|gate|hatch)\b/.test(text)) trait = 'openable', options = { angle: Math.PI / 2 };
-  else if (/\b(target|damageable|breakable|destructible)\b/.test(text)) trait = 'damageable', options = { maxHp: 100, damage: 35, destroyOnZero: false };
+  else if (/\b(breakable|destructible)\b/.test(text)) trait = 'damageable', options = { maxHp: 100, damage: 35, destroyOnZero: true };
+  else if (/\b(target|damageable)\b/.test(text)) trait = 'damageable', options = { maxHp: 100, damage: 35, destroyOnZero: false };
   else if (/\b(rideable|vehicle|mount)\b/.test(text)) trait = 'rideable';
   else if (/\b(activatable|switch|trigger|usable)\b/.test(text)) trait = 'activatable';
   else if (/\b(moveable|movable)\b/.test(text)) trait = 'moveable';
   else if (/\b(rotatable|turnable)\b/.test(text)) trait = 'rotatable';
   if (!trait) return { ok: false, message: 'Name a behavior: openable, target, activatable, rideable, moveable, or rotatable.' };
-  saveTrait(target, trait, options);
+  const rec = saveTrait(target, trait, options);
+  if (!rec) return { ok: false, message: trait === 'rideable' ? 'A rideable must be a complete prop model, not one loose brick.' : 'That behavior could not be attached.' };
   if (trait === 'damageable') saveState(target, { hp: 100, maxHp: 100 });
   return { ok: true, message: `${labelOf(target)} is now ${trait}.` };
 }
@@ -304,6 +317,7 @@ function activate(target) {
 }
 function mount(target) {
   const p = profile(target); if (!p.traits.rideable) return { ok: false, message: `${p.label} is not rideable.` };
+  if (!connectRideable(target)) return { ok: false, message: 'Only a complete prop model can enter the vehicle system.' };
   const item = unwrap(target), w = W();
   emit('mount-requested', { id: p.id, label: p.label, kind: kindOf(target) });
   if (w?.rig?.pos && item?.box) {
