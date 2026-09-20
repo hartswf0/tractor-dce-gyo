@@ -9,6 +9,7 @@ on:
       - tools/patch-behavior-bearing-assemblies-v2.py
       - tools/patch-behavior-bearing-assemblies-v2-hardening.py
       - tools/test-assembly-runtime-v2.mjs
+      - tools/test-assembly-boundaries-v2.mjs
       - tools/test-assembly-integration-v2.mjs
       - tools/test-behavior-runtime.mjs
       - odyssey-production/native/world/assemblies.js
@@ -25,6 +26,7 @@ on:
       - tools/patch-behavior-bearing-assemblies-v2.py
       - tools/patch-behavior-bearing-assemblies-v2-hardening.py
       - tools/test-assembly-runtime-v2.mjs
+      - tools/test-assembly-boundaries-v2.mjs
       - tools/test-assembly-integration-v2.mjs
       - tools/test-behavior-runtime.mjs
       - odyssey-production/native/world/assemblies.js
@@ -62,6 +64,7 @@ jobs:
           node --check odyssey-production/native/world/main.js
           node tools/test-behavior-runtime.mjs
           node tools/test-assembly-runtime-v2.mjs
+          node tools/test-assembly-boundaries-v2.mjs
           node tools/test-assembly-integration-v2.mjs
           python tools/patch-behavior-bearing-assemblies-v2.py
           python tools/patch-behavior-bearing-assemblies-v2-hardening.py
