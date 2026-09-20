@@ -23,6 +23,7 @@ function segmentBox(a,b,box){let lo=0,hi=1;for(const k of ['x','y','z']){const d
 function slash(W){const p=feet(W),f=new THREE.Vector3(Math.sin(W.rig.heading),0,Math.cos(W.rig.heading));let n=0;
  for(const t of st?.targets||[]){const c=t.it.box.getCenter(new THREE.Vector3()),d=c.clone().sub(p);d.y=0;if(t.hp>0&&d.length()<110&&d.normalize().dot(f)>.45&&Math.abs(c.y-p.y)<100){hitTarget(t,35,'sword');n++;}}
  for(const npc of W.crowd?.npcs||[]){const d=npc.pos.clone().sub(p);if(npc.alive&&d.length()<90&&d.normalize().dot(f)>.45){W.crowd.burst(npc,f.clone().multiplyScalar(80),W.debris);n++;}}
+ if(window.WorldBehavior)n+=WorldBehavior.attackCone({world:W,origin:p,facing:f,range:110,vertical:100,damage:35,kind:'sword'});
  return n;
 }
 async function prepare(W){if(projectile)return;const g=await W.props.parse(mpd('projectile',[line('18041',70,0,0,0)]),'od-arrow.mpd');g.traverse(o=>{if(o.isLine||o.isLineSegments)o.visible=false;});projectile=g;}
