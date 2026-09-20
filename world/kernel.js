@@ -191,7 +191,7 @@ const Events = (() => {
   }
   function step() {
     const F = W.film;   // a playing scene is an event of the same lifecycle
-    if (F && F.play && F.play.on && F.scene) { const key = 'film:' + (F.name || F.scene.name || 'scene'); const cur = E.get(key); if (!cur || cur.state !== 'active') start(key, { name: F.name || F.scene.name || 'scene', text: 'a scene plays', skippable: false, objectives: [{ id: 'played', text: 'the scene plays through', done: () => !(F.play && F.play.on) }] }); }
+    if (F && F.play && F.play.on) { const name = F.name || (F.scene && F.scene.name) || 'scene', key = 'film:' + name; const cur = E.get(key); if (!cur || cur.state !== 'active') start(key, { name, text: 'a scene plays', skippable: false, objectives: [{ id: 'played', text: 'the scene plays through', done: () => !(F.play && F.play.on) }] }); }
     for (const ev of E.values()) { if (ev.state !== 'active') continue; const p = progress(ev); if (ev.def.objectives.every(o => o.done(p, ev))) finish(ev, 'completed'); }
   }
   function paint() { let q = $('#quest'); if (!q) { q = document.createElement('div'); q.id = 'quest'; q.style.cssText = 'position:fixed;left:14px;top:calc(96px + env(safe-area-inset-top));z-index:6;max-width:min(300px,60vw);padding:8px 10px;border-radius:9px;background:rgba(20,24,32,.82);color:#fff;font:11px/1.35 var(--mono,monospace);pointer-events:none;white-space:pre-line'; document.body.appendChild(q); }
