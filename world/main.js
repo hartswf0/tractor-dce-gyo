@@ -413,7 +413,7 @@ function bindInput() {
     if (W.build && W.build.on && W.mode === 'walk') { if (e.code === 'Space') { buildAct(); e.preventDefault(); return; } if (e.code === 'KeyR') { rotateBuild(); return; } if (e.code === 'BracketLeft') { W.build.lift--; return; } if (e.code === 'BracketRight') { W.build.lift++; return; } if (e.code === 'Backspace') { W.build.undo(); paintPalette(); return; } if (e.code === 'KeyX') { setPick(!W.build.pick); return; } }
     if (e.code === 'KeyB') { toggleBuild(); return; }
     if (e.code === 'Escape') { if (W.build && W.build.on) toggleBuild(false); else if (W.master.result) mbDiscard(); else if (!document.body.classList.contains('wb-off')) wbOpen(false); return; }
-    if (e.code === 'Space') { if (W.mode === 'walk') W.input.saber = true; e.preventDefault(); } if (e.code === 'KeyE') promptAction(); if (e.code === 'KeyF') W.input.push = true; if (e.code === 'KeyG') throwDetonator(); if (e.code === 'KeyT' && W.mode === 'fly') W.input.torpedo = true; });
+    if (e.code === 'Space') { if (W.mode === 'walk') W.input.saber = true; e.preventDefault(); } if (e.code === 'KeyE') promptAction(); if (e.code === 'KeyF') W.input.push = true; if (e.code === 'KeyG') { if (window.Kernel) { const r = Kernel.attempt('detonate'); if (!r.ok) toast(Kernel.describe(r), 900); } else throwDetonator(); } if (e.code === 'KeyT' && W.mode === 'fly') W.input.torpedo = true; });
   window.addEventListener('keyup', e => W.keys.delete(e.code));
   window.addEventListener('blur', () => W.keys.clear());
   $('#prompt').addEventListener('click', promptAction);
@@ -577,6 +577,7 @@ async function takeCar(c) {
 }
 function promptAction() {
   if (!W.ready) return;
+  if (window.Kernel) { const r = Kernel.attempt(W.mode === 'walk' ? 'board' : 'leave'); if (!r.ok) toast(Kernel.describe(r), 900); return; }   // the guard names the refusal; the kernel performs the effect through W.ops
   if (W.mode === 'walk') { const v = nearVehicle(), ds = nearShip(); if (ds < 6 && (!v || ds * M < v.box.distanceToPoint(W.rig.pos))) board(); else if (v) boardVehicle(v); else if (nearCar()) takeCar(); }
   else if (W.mode === 'fly' && !W.tie.landing) land();
   else if (W.mode === 'ride') { const V = W.veh; if (V.fly && V.airborne) { if (!V.landing) { Drive.land(V); toast('landing'); } } else leaveVehicle(); }
@@ -671,6 +672,7 @@ const MOVE = { x: 0, z: 0, mag: 0 };
 function simulate(dt) {
   W.t += dt; readKeys(); if (W.film) W.film.step(dt);
   if(window.PutThatThere)window.PutThatThere.beforeStep(dt);
+  if (window.Kernel) Kernel.step(dt);   // flags from any device pass the one guard; the runtime counts; events advance
   const portrait = innerHeight > innerWidth, I = W.input, d = Minifig.DEFS[W.character];
   if (W.mode === 'walk') {
     if (W.dead) { W.dead -= dt; if (W.dead <= 0) respawn(); I.saber = false; I.push = false; }
@@ -1491,6 +1493,7 @@ function dropRemote(id) { const r = W.remotes.get(id); if (r && r.bubble) W.scen
 
 /* ───────────────────────── test hooks ───────────────────────── */
 Object.assign(W, {
+  ops: { nearVehicle, nearShip, nearCar, board, land, boardVehicle, takeCar, leaveVehicle, throwDetonator, toggleBuild, buildAct, nextCharacter, vehicleVerb },   // the operations the kernel performs as effects
   step: sec => { for (let t = 0; t < sec; t += 1 / 60) simulate(1 / 60); W.last = performance.now(); },
   state: () => ({
     ready: W.ready, mode: W.mode, character: W.character, world: W.world, place: W.place && W.place.name, baked: !!(W.win && W.win.baked), village: !!(W.win && W.win.village), net: { ...W.net }, geo: Geo.NET,
