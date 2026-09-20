@@ -89,7 +89,7 @@ function enabled(command, target) {
   let via = null;
   if (rule.target) { const aff = affordancesOf(target); via = rule.target.find(a => aff.has(a)) || null; if (!via) return { ok: false, command, reason: 'target', detail: rule.target.join(' or '), target: target ? target.kind : null }; }
   for (const g of rule.gates) if (!GATES[g][0]()) return { ok: false, command, reason: 'gate', detail: g, text: GATES[g][1] };
-  return { ok: true, command, cap, target: target ? { kind: target.kind, dist: target.dist } : null, via, item: target ? target.item : null };
+  return { ok: true, command, cap, target: target ? { kind: target.kind, dist: +(target.dist || 0).toFixed(2) } : null, via };   // plain values only: the answer travels to the HUD, the hands, the log and the tests
 }
 /** A refusal in words. */
 function describe(r) {
@@ -103,7 +103,7 @@ function describe(r) {
 }
 /* ───────────── effects: the world's own operations, named ───────────── */
 const EFFECTS = {
-  board: r => { const ops = W.effects; if (r.target.kind === 'ship') { ops.board(); return 'board-ship'; } if (r.target.kind === 'prop') { ops.boardVehicle(r.item); return 'board-' + (r.via === 'boardable' && window.Drive ? Drive.kindOf(r.item) : 'prop'); } ops.takeCar(r.item); return 'take-car'; },
+  board: (r, t) => { const ops = W.effects; if (t.kind === 'ship') { ops.board(); return 'board-ship'; } if (t.kind === 'prop') { ops.boardVehicle(t.item); return 'board-' + (window.Drive ? Drive.kindOf(t.item) : 'prop'); } ops.takeCar(t.item); return 'take-car'; },
   leave: () => { const ops = W.effects; if (W.mode === 'fly') { ops.land(); return 'land-tie'; } const V = W.veh; if (V.fly && V.airborne) { Drive.land(V); return 'land'; } ops.leaveVehicle(); return 'leave'; },
   saber: r => { W.input.saber = true; return r.cap; },
   push: () => { W.input.push = true; return 'push'; },
@@ -118,9 +118,10 @@ const K = { log: [], last: null, listeners: new Set() };
 function emit(ev) { ev.t = Math.round(now()); K.log.push(ev); if (K.log.length > 200) K.log.shift(); for (const f of K.listeners) { try { f(ev); } catch (e) { console.warn('[kernel] listener', e); } } return ev; }
 /** Try a command: the guard, then the effect, then the event. Returns the guard's answer with the effect's name when it happened. */
 function attempt(command, target) {
+  if (target === undefined) target = acquire(command);
   const r = enabled(command, target); K.last = r;
   if (!r.ok) { emit({ kind: 'refused', command, reason: r.reason, detail: r.detail }); return r; }
-  r.effect = EFFECTS[command](r); emit({ kind: 'did', command, effect: r.effect, cap: r.cap, target: r.target ? r.target.kind : null, via: r.via, mode: W.mode }); return r;
+  r.effect = EFFECTS[command](r, target); emit({ kind: 'did', command, effect: r.effect, cap: r.cap, target: r.target ? r.target.kind : null, via: r.via, mode: W.mode }); return r;
 }
 /* ───────────── the frame: flags from any device pass the guard; the runtime counts; events advance ───────────── */
 const R = { driven: 0, walked: 0, flown: 0, boarded: 0, fired: 0, swings: 0, broken: 0 };   // since the last commit
