@@ -102,9 +102,10 @@ function labelOf(target) {
 }
 function textOf(target) {
   const item = unwrap(target), src = item?.src || {}, op = item?.op || src.op || {};
-  const values = [target?.name, target?.kind, item?.id, item?.name, item?.kind, item?.kit, item?.part,
+  // Stable ids are persistence keys, not words. They must never manufacture a behavior.
+  const values = [target?.name, target?.kind, item?.name, item?.kind, item?.kit, item?.part,
     src.name, src.kind, src.as, src.kit, src.op,
-    typeof op === 'string' ? op : op?.op, op?.kind, op?.name, op?.id, op?.label];
+    typeof op === 'string' ? op : op?.op, op?.kind, op?.name, op?.label];
   return values.filter(Boolean).join(' ').toLowerCase();
 }
 function clone(value) {
