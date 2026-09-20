@@ -699,7 +699,8 @@ function simulate(dt) {
     if (W.build) W.build.aim(W.camera, portrait);
     const v = !W.dead && nearVehicle(), nearT = nearShip() < 6 && !W.dead, car = !v && !nearT && !W.dead && nearCar(); $('#prompt').classList.toggle('on', !!(nearT || v || car)); $('#prompt').textContent = nearT && (!v || nearShip() * M < v.box.distanceToPoint(W.rig.pos)) ? 'Board the TIE' : v ? `${vehicleVerb(v)} the ${Drive.kindOf(v)}` : car ? 'Get in' : 'Board the TIE';
   } else if (W.mode === 'ride') {
-    const V = W.veh; V.input.x = I.L.x; V.input.y = I.L.y; V.input.mag = I.L.mag; V.input.boost = I.boost; if (W.film && W.film.holds()) { V.input.x = V.input.y = V.input.mag = 0; } else if (W.film && W.film.acting()) W.film.steer(V);
+    const V = W.veh; V.input.x = I.L.x; V.input.y = I.L.y; V.input.mag = I.L.mag; V.input.boost = I.boost;
+    const cue=W.performanceRide; if(cue){ if(W.t>=cue.until || I.L.mag>.05 || V.landing){W.performanceRide=null;} else {V.input.x=cue.x;V.input.y=cue.y;V.input.mag=Math.min(1,Math.hypot(cue.x,cue.y));} } if (W.film && W.film.holds()) { V.input.x = V.input.y = V.input.mag = 0; } else if (W.film && W.film.acting()) W.film.steer(V);
     const alive = Drive.step(V, dt, driveCtx(V));
     W.rig.heading = V.heading;                                                  // rig.pos is the figure's own position: seated, it stays local to the vehicle
     W.fireAcc = (W.fireAcc || 0) + dt; if (I.torpedo) { I.torpedo = false; rideFire(true); } else if (I.fireOnce || I.fire) { I.fireOnce = false; rideFire(false); }

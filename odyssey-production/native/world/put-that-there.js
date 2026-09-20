@@ -64,7 +64,7 @@ function capture(hit) {
   if (hit.kind === 'ground' || (state.that && hit.kind !== 'piece' && hit.kind !== 'prop')) {
     state.there = { kind: 'ground', point: hit.point.clone() }; sayLine('THERE is bound. Say the operation.', '');
   } else {
-    state.that = { ...hit, point: hit.point.clone() }; state.there = null; sayLine('THAT is ' + label(hit) + '. Now point where.', '');
+    state.that = { ...hit, point: hit.point.clone() }; state.there = null; const verbs = window.WorldBehavior ? WorldBehavior.describeShort(state.that) : ''; sayLine('THAT is ' + label(hit) + (verbs ? ' · ' + verbs : '') + '. Say an operation or point where.', '');
     showSelection(hit.box);
   }
   paintBindings(); if (state.pending) execute(state.pending);
@@ -106,6 +106,13 @@ function parse(text) {
   let verb = 'unknown';
   if (/\b(undo|go back)\b/.test(text)) verb = 'undo';
   else if (/\b(stop|halt|freeze)\b/.test(text)) verb = 'stop';
+  else if (/\b(make|teach|mark|turn)\b.*\b(openable|door|gate|hatch|target|damageable|breakable|rideable|vehicle|mount|activatable|switch|trigger|moveable|movable|rotatable|turnable)\b/.test(text)) verb = 'teach';
+  else if (/\b(inspect|describe|read|what is|what can)\b/.test(text)) verb = 'inspect';
+  else if (/\b(open)\b/.test(text)) verb = 'open';
+  else if (/\b(close|shut)\b/.test(text)) verb = 'close';
+  else if (/\b(activate|use|trigger|switch)\b/.test(text)) verb = 'activate';
+  else if (/\b(hit|strike|cut|slash|attack|damage)\b/.test(text)) verb = 'hit';
+  else if (/\b(mount|ride|board)\b/.test(text)) verb = 'mount';
   else if (/\b(walk|go|come)\b/.test(text)) verb = 'walk';
   else if (/\b(remove|delete|destroy|pick up)\b/.test(text)) verb = 'remove';
   else if (/\b(turn|rotate|spin)\b/.test(text)) verb = 'turn';
@@ -113,7 +120,7 @@ function parse(text) {
   else if (/\b(copy|duplicate|another)\b/.test(text)) verb = 'copy';
   else if (/\b(put|move|place)\b/.test(text)) verb = 'move';
   else if (/\b(make|build|create|add)\b/.test(text)) verb = 'build';
-  return { verb, text, needsThat: /^(move|copy|remove|turn|taller)$/.test(verb), needsThere: /^(move|copy|walk)$/.test(verb), thisWord: /\b(this|that|these|those|it)\b/.test(text), thereWord: /\b(here|there)\b/.test(text) };
+  return { verb, text, needsThat: /^(move|copy|remove|turn|taller|teach|inspect|open|close|activate|hit|mount)$/.test(verb), needsThere: /^(move|copy|walk)$/.test(verb), thisWord: /\b(this|that|these|those|it)\b/.test(text), thereWord: /\b(here|there)\b/.test(text) };
 }
 
 function tracePacket(words) {
@@ -133,7 +140,8 @@ function findReferent(id) {
   return null;
 }
 async function infer(words) {
-  if(window.OdysseyPerformance && /^(walk forward|turn left|turn right|stop)$/i.test(words.trim())){OdysseyPerformance.command(words);return;}
+  if(window.OdysseyPerformance && /^(walk forward|ride forward|reverse|turn left|turn right|stop)$/i.test(words.trim())){OdysseyPerformance.command(words);return;}
+  const local=parse(words);if(window.WorldBehavior&&/^(teach|inspect|open|close|activate|hit|mount)$/.test(local.verb)){execute(local);return;}
   if(state.inferring)return; if(!window.Ai||!Ai.key()){execute(parse(words));return;}
   state.inferring=true;$('#pttMic').textContent='LLM: inferring';sayLine('Resolving words and gesture…','');
   try {
@@ -146,7 +154,7 @@ async function infer(words) {
     if(a.act==='build'&&a.program&&Array.isArray(a.program.ops)&&W.mbLoad){pinDestination();W.mbLoad(a.program);sayLine(a.say||'The build is ready to preview.','speak');resetBindings();return;}
     if(a.act==='build'&&a.words&&W.say){pinDestination();await W.say(a.words);sayLine(a.say||'The build is ready to preview.','speak');return;}
     if(a.act==='change'&&a.words&&W.say){await W.say(a.words);sayLine(a.say||'The change is ready to preview.','speak');return;}
-    const cmd={verb:a.act,text:a.words||words,needsThat:/^(move|copy|remove|turn|taller)$/.test(a.act),needsThere:/^(move|copy|walk)$/.test(a.act),thisWord:false,thereWord:false};
+    const cmd={verb:a.act,text:a.words||words,needsThat:/^(move|copy|remove|turn|taller|teach|inspect|open|close|activate|hit|mount)$/.test(a.act),needsThere:/^(move|copy|walk)$/.test(a.act),thisWord:false,thereWord:false};
     const ok=execute(cmd);if(ok&&a.say)sayLine(a.say,'speak');
   } catch(e){console.warn('[put-that-there] inference',e);sayLine('The model could not resolve that. Using the local language game.','');execute(parse(words));}
   finally{state.inferring=false;$('#pttMic').textContent='VOICE: listening';}
@@ -155,12 +163,18 @@ async function infer(words) {
 function resetBindings() { state.that = state.there = state.pending = null; paintBindings(); if (state.helper && W.scene) W.scene.remove(state.helper); state.helper = null; }
 function execute(cmd) {
   state.pending = null;
-  if (cmd.verb === 'stop') { W.performanceTarget=null;stopWalk(); sayLine('Stopped.', ''); return true; }
+  if (cmd.verb === 'stop') { window.OdysseyPerformance?.command('stop');W.performanceTarget=null;stopWalk(); sayLine('Stopped.', ''); return true; }
   if (cmd.verb === 'undo') { if (W.build) W.build.undo(); sayLine('Undone.', ''); return true; }
   if (cmd.thisWord && !state.that && state.hover && state.hover.kind !== 'ground') state.that = { ...state.hover, point: state.hover.point.clone() };
   if (cmd.thereWord && !state.there && state.hover && state.hover.kind === 'ground') state.there = { kind: 'ground', point: state.hover.point.clone() };
   if (cmd.needsThat && !state.that) { state.pending = cmd; sayLine('Which thing? Point at it and pinch.', 'speak'); paintBindings(); return false; }
   if (cmd.needsThere && !state.there) { state.pending = cmd; sayLine('Where? Point at the ground and pinch.', 'speak'); paintBindings(); return false; }
+  if (window.WorldBehavior && /^(teach|inspect|open|close|activate|hit|mount)$/.test(cmd.verb)) {
+    const result = WorldBehavior.perform(cmd.verb, state.that, { text: cmd.text, world: W, kind: 'voice' });
+    sayLine(result.message || (result.ok ? 'Complete.' : 'That operation is not available.'), result.ok ? '' : 'speak');
+    if (result.ok && cmd.verb !== 'inspect') resetBindings();
+    return !!result.ok;
+  }
   let ok = false;
   if (cmd.verb === 'move' || cmd.verb === 'copy') {
     if (state.that.kind === 'piece') ok = movePiece(state.that, state.there.point, cmd.verb === 'copy');
@@ -274,5 +288,5 @@ $('#pttAsk').addEventListener('pointerdown',recordStart);$('#pttAsk').addEventLi
 // In browsers without speech recognition, the same small language works through the existing text field.
 $('#wbBuild').addEventListener('click',e=>{if(!state.on)return;const t=$('#words').value,cmd=parse(t);if(cmd.verb==='unknown')return;e.preventDefault();e.stopImmediatePropagation();$('#words').value='';heard(t);},true);
 $('#words').addEventListener('keydown',e=>{if(!state.on||e.key!=='Enter'||e.shiftKey)return;const cmd=parse(e.target.value);if(cmd.verb==='unknown')return;e.preventDefault();e.stopImmediatePropagation();const t=e.target.value;e.target.value='';heard(t);},true);
-window.PutThatThere={parse,heard,infer,tracePacket,execute,capture,pointIntoWorld,setMode,start,stop,state:()=>({on:state.on,mode:state.mode,that:label(state.that),there:!!state.there,pending:state.pending&&state.pending.verb,walking:state.walking,inferring:state.inferring,trace:state.trace.length})};
+window.PutThatThere={pauseSpeech(){clearTimeout(state.speechRestart);if(state.recognition){state.recognition.onend=null;try{state.recognition.abort();}catch{}state.recognition=null;}},parse,heard,infer,tracePacket,execute,capture,pointIntoWorld,setMode,start,stop,state:()=>({on:state.on,mode:state.mode,that:label(state.that),there:!!state.there,pending:state.pending&&state.pending.verb,walking:state.walking,inferring:state.inferring,trace:state.trace.length})};
 })();

@@ -218,6 +218,7 @@ body.build #minimap{display:none}
 #pttCursor{position:fixed;left:50%;top:50%;z-index:7;width:24px;height:24px;margin:-12px 0 0 -12px;border:3px solid #fff;border-radius:999px;box-shadow:0 0 0 2px #1769aa,0 2px 10px #111;pointer-events:none;display:none}#pttCursor.on{display:block}#pttCursor.object{border-radius:5px;border-color:#ffd342}#pttCursor.ground{border-color:#55e57b}#pttCursor::after{content:'';position:absolute;left:7px;top:7px;width:4px;height:4px;border-radius:50%;background:#fff}
 @media(max-width:620px){#ptt{top:calc(96px + env(safe-area-inset-top));width:138px}#pttView{border-radius:11px}#pttLine{font-size:10px}#pttStart{right:10px;bottom:calc(var(--wb) + 76px + env(safe-area-inset-bottom));height:46px;padding:0 14px}body.ptt-on #find{display:none}}
 </style>
+<style>.world-version{display:inline-flex;align-items:center;justify-content:center;min-height:30px;padding:0 10px;border:1px solid currentColor;border-radius:9px;font:12px var(--sans);color:inherit;text-decoration:none;white-space:nowrap;flex-shrink:0}</style>
 </head>
 <body>
 <div id="stage"></div>
@@ -238,7 +239,7 @@ body.build #minimap{display:none}
 <button id="build">Build</button>
 <div id="palette"></div>
 <button id="wbSay" title="say what to build">say what to build</button>
-<div id="wb"><div id="wbTop"><div id="wbStat"><i class="bar"><i></i><i></i><i></i></i><span id="wbText"></span><b id="wbTime"></b></div><button id="wbStop" class="stop" hidden title="stop the model">stop</button><button id="wbCodeBtn" title="the program, op by op">code</button><button id="wbLogBtn" title="the build log">log</button><button id="wbKeyBtn" title="OpenAI key">key</button><button id="wbLookBtn" class="on" title="a picture of the view goes with the words">look</button><button id="wbHide" title="hide the word bar">hide</button></div>
+<div id="wb"><div id="wbTop"><div id="wbStat"><i class="bar"><i></i><i></i><i></i></i><span id="wbText"></span><b id="wbTime"></b></div><button id="wbStop" class="stop" hidden title="stop the model">stop</button><a class="world-version" href="./word-to-world-hands.html?lease=share" title="Open Word to World · Hands">Hands</a><button id="wbCodeBtn" title="the program, op by op">code</button><button id="wbLogBtn" title="the build log">log</button><button id="wbKeyBtn" title="OpenAI key">key</button><button id="wbLookBtn" class="on" title="a picture of the view goes with the words">look</button><button id="wbHide" title="hide the word bar">hide</button></div>
 <div id="wbCode" hidden><div class="row head"><span class="seg"><button data-view="words" class="on">words</button><button data-view="json">json</button></span><em id="wbCodeStat"></em><button id="wbCodeEdit" title="put the program in the bar to change by hand">edit</button><button id="wbCodeCopy">copy</button></div><ol id="wbOps"></ol><pre id="wbJson" hidden></pre></div>
 <div id="wbLog" hidden><pre id="wbLogText"></pre><div class="row"><button id="wbLogCopy">copy</button><button id="wbLogClear">clear</button></div></div>
 <div id="wbKeyRow"><input id="wbKey" type="password" placeholder="OpenAI API key · stays in this browser" autocomplete="off"><button id="wbKeyOk">Save</button></div>
@@ -260,6 +261,7 @@ body.build #minimap{display:none}
 <div id="pttCursor"></div>
 <div id="veil"><div class="k">word to world</div><h1 id="vTitle">Finding a place</h1><div class="bricks"><i></i><i></i><i></i><i></i><i></i></div><div class="m" id="vm"></div><ol id="stages"><li data-s="place">place</li><li data-s="ground">ground</li><li data-s="imagery">imagery</li><li data-s="buildings">buildings</li><li data-s="ship">the ship and Vader</li><li data-s="bricks">bricks</li></ol><button id="vStart" hidden>Start now</button></div>
 <script src="./world/main.js?v=5e938c51"></script>
-<script src="./world/put-that-there.js?v=2"></script>
+<script src="./world/kernel.js?v=42d4fd98"></script>
+<script src="./world/put-that-there.js?v=3"></script>
 </body>
 </html>
