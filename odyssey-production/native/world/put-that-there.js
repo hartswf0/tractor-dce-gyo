@@ -22,7 +22,7 @@ const sayLine = (text, kind) => {
     try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.rate = 1.06; speechSynthesis.speak(u); } catch (e) { }
   }
 };
-const label = hit => !hit ? '—' : hit.kind === 'piece' ? (hit.name || 'brick') : hit.kind === 'prop' ? (hit.name || 'model') : hit.kind === 'building' ? (hit.name || 'building') : 'ground';
+const label = hit => !hit ? '—' : hit.kind === 'assembly' ? (hit.name || 'assembly') : hit.kind === 'piece' ? (hit.name || 'brick') : hit.kind === 'prop' ? (hit.name || 'model') : hit.kind === 'building' ? (hit.name || 'building') : 'ground';
 function paintBindings() {
   const a = $('#pttThat'), b = $('#pttThere');
   a.textContent = 'THAT: ' + label(state.that); a.classList.toggle('set', !!state.that);
@@ -64,8 +64,8 @@ function capture(hit) {
   if (hit.kind === 'ground' || (state.that && hit.kind !== 'piece' && hit.kind !== 'prop')) {
     state.there = { kind: 'ground', point: hit.point.clone() }; sayLine('THERE is bound. Say the operation.', '');
   } else {
-    state.that = { ...hit, point: hit.point.clone() }; state.there = null; const verbs = window.WorldBehavior ? WorldBehavior.describeShort(state.that) : ''; sayLine('THAT is ' + label(hit) + (verbs ? ' · ' + verbs : '') + '. Say an operation or point where.', '');
-    showSelection(hit.box);
+    const raw = { ...hit, point: hit.point.clone() }, assembly = window.WorldAssemblies && WorldAssemblies.resolve(raw); state.that = assembly || raw; state.there = null; const verbs = window.WorldBehavior ? WorldBehavior.describeShort(state.that) : ''; sayLine('THAT is ' + label(state.that) + (verbs ? ' · ' + verbs : '') + '. Say an operation or point where.', '');
+    showSelection(window.WorldAssemblies ? (WorldAssemblies.box(state.that) || hit.box) : hit.box);
   }
   paintBindings(); if (state.pending) execute(state.pending);
 }
@@ -106,6 +106,11 @@ function parse(text) {
   let verb = 'unknown';
   if (/\b(undo|go back)\b/.test(text)) verb = 'undo';
   else if (/\b(stop|halt|freeze)\b/.test(text)) verb = 'stop';
+  else if (/\bwhen\b.*\b(that|this|it)\b.*\b(activates?|opens?|closes?|breaks?|depletes?|is destroyed)\b/.test(text)) verb = 'arm';
+  else if (/\bopen\b.*\bwhen\b.*\b(triggered|activated|ready)\b/.test(text)) verb = 'link-open';
+  else if (/\bclose\b.*\bwhen\b.*\b(triggered|activated|ready)\b/.test(text)) verb = 'link-close';
+  else if (/\bactivate\b.*\bwhen\b.*\b(triggered|activated|ready)\b/.test(text)) verb = 'link-activate';
+  else if (/\b(remove|delete|destroy)\b.*\bwhen\b.*\b(triggered|activated|ready)\b/.test(text)) verb = 'link-remove';
   else if (/\b(make|teach|mark|turn)\b.*\b(openable|door|gate|hatch|target|damageable|breakable|rideable|vehicle|mount|activatable|switch|trigger|moveable|movable|rotatable|turnable)\b/.test(text)) verb = 'teach';
   else if (/\b(inspect|describe|read|what is|what can)\b/.test(text)) verb = 'inspect';
   else if (/\b(open)\b/.test(text)) verb = 'open';
@@ -120,7 +125,7 @@ function parse(text) {
   else if (/\b(copy|duplicate|another)\b/.test(text)) verb = 'copy';
   else if (/\b(put|move|place)\b/.test(text)) verb = 'move';
   else if (/\b(make|build|create|add)\b/.test(text)) verb = 'build';
-  return { verb, text, needsThat: /^(move|copy|remove|turn|taller|teach|inspect|open|close|activate|hit|mount)$/.test(verb), needsThere: /^(move|copy|walk)$/.test(verb), thisWord: /\b(this|that|these|those|it)\b/.test(text), thereWord: /\b(here|there)\b/.test(text) };
+  return { verb, text, needsThat: /^(move|copy|remove|turn|taller|teach|inspect|open|close|activate|hit|mount|arm|link-open|link-close|link-activate|link-remove)$/.test(verb), needsThere: /^(move|copy|walk)$/.test(verb), thisWord: /\b(this|that|these|those|it)\b/.test(text), thereWord: /\b(here|there)\b/.test(text) };
 }
 
 function tracePacket(words) {
@@ -141,7 +146,7 @@ function findReferent(id) {
 }
 async function infer(words) {
   if(window.OdysseyPerformance && /^(walk forward|ride forward|reverse|turn left|turn right|stop)$/i.test(words.trim())){OdysseyPerformance.command(words);return;}
-  const local=parse(words);if(window.WorldBehavior&&/^(teach|inspect|open|close|activate|hit|mount)$/.test(local.verb)){execute(local);return;}
+  const local=parse(words);if((window.WorldBehavior&&/^(teach|inspect|open|close|activate|hit|mount)$/.test(local.verb))||(window.WorldAssemblies&&/^(arm|link-open|link-close|link-activate|link-remove)$/.test(local.verb))){execute(local);return;}
   if(state.inferring)return; if(!window.Ai||!Ai.key()){execute(parse(words));return;}
   state.inferring=true;$('#pttMic').textContent='LLM: inferring';sayLine('Resolving words and gesture…','');
   try {
@@ -150,11 +155,11 @@ async function infer(words) {
     const allowed=new Set([...(packet.candidates||[]),...(packet.nearby||[])].map(x=>x.id).filter(Boolean));
     if(a.referent_id&&!allowed.has(a.referent_id)){sayLine('The model named something outside the visible world. Point again.','speak');return;}
     const ref=findReferent(a.referent_id);if(a.referent_id&&!ref){sayLine('That reference is no longer in the world. Point again.','speak');return;}
-    if(ref){state.that=ref;showSelection(ref.box);}if(Array.isArray(a.destination)&&a.destination.length===3&&a.destination.every(Number.isFinite)){const p=new THREE.Vector3(...a.destination),origin=W.rig&&W.rig.pos;if(origin&&Math.hypot(p.x-origin.x,p.z-origin.z)>60*M){sayLine('That destination is outside the reachable scene. Point closer.','speak');return;}p.y=W.G.h(p.x,p.z);state.there={kind:'ground',point:p};}paintBindings();
+    if(ref){const assembly=window.WorldAssemblies&&WorldAssemblies.resolve(ref);state.that=assembly||ref;showSelection(window.WorldAssemblies?(WorldAssemblies.box(state.that)||ref.box):ref.box);}if(Array.isArray(a.destination)&&a.destination.length===3&&a.destination.every(Number.isFinite)){const p=new THREE.Vector3(...a.destination),origin=W.rig&&W.rig.pos;if(origin&&Math.hypot(p.x-origin.x,p.z-origin.z)>60*M){sayLine('That destination is outside the reachable scene. Point closer.','speak');return;}p.y=W.G.h(p.x,p.z);state.there={kind:'ground',point:p};}paintBindings();
     if(a.act==='build'&&a.program&&Array.isArray(a.program.ops)&&W.mbLoad){pinDestination();W.mbLoad(a.program);sayLine(a.say||'The build is ready to preview.','speak');resetBindings();return;}
     if(a.act==='build'&&a.words&&W.say){pinDestination();await W.say(a.words);sayLine(a.say||'The build is ready to preview.','speak');return;}
     if(a.act==='change'&&a.words&&W.say){await W.say(a.words);sayLine(a.say||'The change is ready to preview.','speak');return;}
-    const cmd={verb:a.act,text:a.words||words,needsThat:/^(move|copy|remove|turn|taller|teach|inspect|open|close|activate|hit|mount)$/.test(a.act),needsThere:/^(move|copy|walk)$/.test(a.act),thisWord:false,thereWord:false};
+    const cmd={verb:a.act,text:a.words||words,needsThat:/^(move|copy|remove|turn|taller|teach|inspect|open|close|activate|hit|mount|arm|link-open|link-close|link-activate|link-remove)$/.test(a.act),needsThere:/^(move|copy|walk)$/.test(a.act),thisWord:false,thereWord:false};
     const ok=execute(cmd);if(ok&&a.say)sayLine(a.say,'speak');
   } catch(e){console.warn('[put-that-there] inference',e);sayLine('The model could not resolve that. Using the local language game.','');execute(parse(words));}
   finally{state.inferring=false;$('#pttMic').textContent='VOICE: listening';}
@@ -169,6 +174,15 @@ function execute(cmd) {
   if (cmd.thereWord && !state.there && state.hover && state.hover.kind === 'ground') state.there = { kind: 'ground', point: state.hover.point.clone() };
   if (cmd.needsThat && !state.that) { state.pending = cmd; sayLine('Which thing? Point at it and pinch.', 'speak'); paintBindings(); return false; }
   if (cmd.needsThere && !state.there) { state.pending = cmd; sayLine('Where? Point at the ground and pinch.', 'speak'); paintBindings(); return false; }
+  if (window.WorldAssemblies && /^(arm|link-open|link-close|link-activate|link-remove)$/.test(cmd.verb)) {
+    const result = WorldAssemblies.perform(cmd.verb, state.that, { text: cmd.text, world: W, kind: 'voice' });
+    sayLine(result.message || (result.ok ? 'Complete.' : 'That link is not available.'), result.ok ? '' : 'speak'); if (result.ok) resetBindings(); return !!result.ok;
+  }
+  if (window.WorldAssemblies && WorldAssemblies.isAssembly(state.that) && /^(move|copy|remove|turn)$/.test(cmd.verb)) {
+    const result = WorldAssemblies.manipulate(cmd.verb, state.that, { destination: state.there && state.there.point, text: cmd.text, world: W });
+    const finish = r => { sayLine((r && r.message) || (r && r.ok ? cmd.verb.toUpperCase() + ' complete.' : 'That assembly operation failed.'), r && r.ok ? '' : 'speak'); if (r && r.ok) resetBindings(); };
+    if (result && typeof result.then === 'function') { result.then(finish).catch(e => sayLine(e.message || 'That assembly operation failed.', 'speak')); return true; } finish(result); return !!(result && result.ok);
+  }
   if (window.WorldBehavior && /^(teach|inspect|open|close|activate|hit|mount)$/.test(cmd.verb)) {
     const result = WorldBehavior.perform(cmd.verb, state.that, { text: cmd.text, world: W, kind: 'voice' });
     sayLine(result.message || (result.ok ? 'Complete.' : 'That operation is not available.'), result.ok ? '' : 'speak');
