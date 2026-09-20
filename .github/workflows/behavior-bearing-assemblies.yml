@@ -66,7 +66,6 @@ jobs:
           node tools/test-assembly-runtime-v2.mjs
           node tools/test-assembly-boundaries-v2.mjs
           node tools/test-assembly-integration-v2.mjs
-          python tools/patch-behavior-bearing-assemblies-v2.py
           python tools/patch-behavior-bearing-assemblies-v2-hardening.py
           git diff --check
           grep -q 'world/assemblies.js?v=2' odyssey-production/native/word-to-world.html
