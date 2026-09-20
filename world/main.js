@@ -1493,7 +1493,7 @@ function dropRemote(id) { const r = W.remotes.get(id); if (r && r.bubble) W.scen
 
 /* ───────────────────────── test hooks ───────────────────────── */
 Object.assign(W, {
-  ops: { nearVehicle, nearShip, nearCar, board, land, boardVehicle, takeCar, leaveVehicle, throwDetonator, toggleBuild, buildAct, nextCharacter, vehicleVerb },   // the operations the kernel performs as effects
+  effects: { nearVehicle, nearShip, nearCar, board, land, boardVehicle, takeCar, leaveVehicle, throwDetonator, toggleBuild, buildAct, nextCharacter, vehicleVerb },   // the operations the kernel performs as effects (`ops` is the word builder's list)
   step: sec => { for (let t = 0; t < sec; t += 1 / 60) simulate(1 / 60); W.last = performance.now(); },
   state: () => ({
     ready: W.ready, mode: W.mode, character: W.character, world: W.world, place: W.place && W.place.name, baked: !!(W.win && W.win.baked), village: !!(W.win && W.win.village), net: { ...W.net }, geo: Geo.NET,

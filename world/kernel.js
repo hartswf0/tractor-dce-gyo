@@ -14,7 +14,7 @@
    flyable, ground is buildable); gates are named predicates on the world (ready, alive, not held by a film, not building).
    `Kernel.enabled(command)` answers with the first reason that blocks, in the order mode, capability, target, gate, so the
    hands and the keys can say why nothing happened. `Kernel.attempt(command)` performs the effect through main.js's own
-   operations (`W.ops`): the kernel moves nothing itself.
+   operations (`W.effects`): the kernel moves nothing itself.
 
    Events (`Kernel.Events`) are free play's objects with a lifecycle: available, active, completed, skipped, and a
    completion contract separate from the performance that reaches it. Skipping applies the event's canonical
@@ -50,7 +50,7 @@ function affordancesOf(t) {
 }
 /** The target a command reaches for: the nearest thing that could take it, with its kind. */
 function acquire(command) {
-  const ops = W.ops; if (!ops) return null;
+  const ops = W.effects; if (!ops) return null;
   if (command === 'board') { const v = ops.nearVehicle(), ds = ops.nearShip(); if (W.ship && ds < 6 && (!v || ds * M < v.box.distanceToPoint(W.rig.pos))) return { kind: 'ship', item: W.ship, dist: ds }; if (v) return { kind: 'prop', item: v, dist: v.box.distanceToPoint(W.rig.pos) / M }; const c = ops.nearCar(); if (c) return { kind: 'car', item: c, dist: Math.hypot(c.x - W.rig.pos.x, c.z - W.rig.pos.z) / M }; return null; }
   if (command === 'place') return W.build && W.build.target ? { kind: 'ground', item: W.build.target } : null;
   return undefined;   // the command takes no target
@@ -103,16 +103,16 @@ function describe(r) {
 }
 /* ───────────── effects: the world's own operations, named ───────────── */
 const EFFECTS = {
-  board: r => { const ops = W.ops; if (r.target.kind === 'ship') { ops.board(); return 'board-ship'; } if (r.target.kind === 'prop') { ops.boardVehicle(r.item); return 'board-' + (r.via === 'boardable' && window.Drive ? Drive.kindOf(r.item) : 'prop'); } ops.takeCar(r.item); return 'take-car'; },
-  leave: () => { const ops = W.ops; if (W.mode === 'fly') { ops.land(); return 'land-tie'; } const V = W.veh; if (V.fly && V.airborne) { Drive.land(V); return 'land'; } ops.leaveVehicle(); return 'leave'; },
+  board: r => { const ops = W.effects; if (r.target.kind === 'ship') { ops.board(); return 'board-ship'; } if (r.target.kind === 'prop') { ops.boardVehicle(r.item); return 'board-' + (r.via === 'boardable' && window.Drive ? Drive.kindOf(r.item) : 'prop'); } ops.takeCar(r.item); return 'take-car'; },
+  leave: () => { const ops = W.effects; if (W.mode === 'fly') { ops.land(); return 'land-tie'; } const V = W.veh; if (V.fly && V.airborne) { Drive.land(V); return 'land'; } ops.leaveVehicle(); return 'leave'; },
   saber: r => { W.input.saber = true; return r.cap; },
   push: () => { W.input.push = true; return 'push'; },
   fire: () => { W.input.fireOnce = true; return 'fire'; },
   torpedo: () => { W.input.torpedo = true; return 'torpedo'; },
-  detonate: () => { W.ops.throwDetonator(); return 'detonate'; },
-  build: () => { W.ops.toggleBuild(); return W.build.on ? 'build-on' : 'build-off'; },
-  place: () => { W.ops.buildAct(); return 'place'; },
-  switch: () => { W.ops.nextCharacter(); return 'switch:' + W.character; },
+  detonate: () => { W.effects.throwDetonator(); return 'detonate'; },
+  build: () => { W.effects.toggleBuild(); return W.build.on ? 'build-on' : 'build-off'; },
+  place: () => { W.effects.buildAct(); return 'place'; },
+  switch: () => { W.effects.nextCharacter(); return 'switch:' + W.character; },
 };
 const K = { log: [], last: null, listeners: new Set() };
 function emit(ev) { ev.t = Math.round(now()); K.log.push(ev); if (K.log.length > 200) K.log.shift(); for (const f of K.listeners) { try { f(ev); } catch (e) { console.warn('[kernel] listener', e); } } return ev; }
