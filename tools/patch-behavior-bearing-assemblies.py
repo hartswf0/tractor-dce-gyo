@@ -4,7 +4,8 @@
 The patch is intentionally narrow and idempotent:
 - load world/behavior.js in Word to World;
 - route a small behavior vocabulary through Put That There;
-- let Odysseus' sword damage behavior-bearing world objects.
+- let Odysseus' sword damage behavior-bearing world objects;
+- keep opaque database ids out of semantic trait inference.
 """
 from __future__ import annotations
 
@@ -15,6 +16,7 @@ NATIVE = ROOT / "odyssey-production" / "native"
 HTML = NATIVE / "word-to-world.html"
 PTT = NATIVE / "world" / "put-that-there.js"
 ODYSSEY = NATIVE / "world" / "odyssey-play.js"
+BEHAVIOR = NATIVE / "world" / "behavior.js"
 
 
 def replace_once(text: str, old: str, new: str, *, label: str) -> str:
@@ -43,6 +45,26 @@ def patch_html() -> bool:
     )
     if text != before:
         HTML.write_text(text, encoding="utf-8")
+        return True
+    return False
+
+
+def patch_behavior() -> bool:
+    text = BEHAVIOR.read_text(encoding="utf-8")
+    before = text
+    text = replace_once(
+        text,
+        "  const values = [target?.name, target?.kind, item?.id, item?.name, item?.kind, item?.kit, item?.part,\n"
+        "    src.name, src.kind, src.as, src.kit, src.op,\n"
+        "    typeof op === 'string' ? op : op?.op, op?.kind, op?.name, op?.id, op?.label];\n",
+        "  // Stable ids are persistence keys, not words. They must never manufacture a behavior.\n"
+        "  const values = [target?.name, target?.kind, item?.name, item?.kind, item?.kit, item?.part,\n"
+        "    src.name, src.kind, src.as, src.kit, src.op,\n"
+        "    typeof op === 'string' ? op : op?.op, op?.kind, op?.name, op?.label];\n",
+        label="behavior semantic text excludes ids",
+    )
+    if text != before:
+        BEHAVIOR.write_text(text, encoding="utf-8")
         return True
     return False
 
@@ -123,17 +145,18 @@ def verify() -> None:
     html = HTML.read_text(encoding="utf-8")
     ptt = PTT.read_text(encoding="utf-8")
     odyssey = ODYSSEY.read_text(encoding="utf-8")
-    behavior = NATIVE / "world" / "behavior.js"
-    assert behavior.exists(), "behavior.js missing"
+    behavior = BEHAVIOR.read_text(encoding="utf-8")
     assert './world/behavior.js?v=1' in html, "behavior.js is not loaded"
     assert 'WorldBehavior.perform' in ptt, "Put That There behavior dispatch missing"
     assert 'make|teach|mark|turn' in ptt, "behavior teaching vocabulary missing"
     assert 'WorldBehavior.attackCone' in odyssey, "Odysseus sword bridge missing"
+    assert 'target?.kind, item?.id' not in behavior, "opaque ids still influence semantic traits"
 
 
 def main() -> None:
     changed = {
         "word-to-world.html": patch_html(),
+        "behavior.js": patch_behavior(),
         "put-that-there.js": patch_ptt(),
         "odyssey-play.js": patch_odyssey(),
     }
