@@ -1,3 +1,4 @@
+// Acceptance tests for the behavior-bearing assembly primitive and its bridges into existing world systems.
 import assert from 'node:assert/strict';
 import { pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
