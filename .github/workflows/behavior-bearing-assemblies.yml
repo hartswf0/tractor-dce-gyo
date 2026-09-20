@@ -7,7 +7,22 @@ on:
     paths:
       - .github/workflows/behavior-bearing-assemblies.yml
       - tools/patch-behavior-bearing-assemblies.py
+      - tools/test-behavior-runtime.mjs
       - odyssey-production/native/world/behavior.js
+      - odyssey-production/native/world/put-that-there.js
+      - odyssey-production/native/world/odyssey-play.js
+      - odyssey-production/native/word-to-world.html
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/behavior-bearing-assemblies.yml
+      - tools/patch-behavior-bearing-assemblies.py
+      - tools/test-behavior-runtime.mjs
+      - odyssey-production/native/world/behavior.js
+      - odyssey-production/native/world/put-that-there.js
+      - odyssey-production/native/world/odyssey-play.js
+      - odyssey-production/native/word-to-world.html
   workflow_dispatch:
 
 permissions:
@@ -15,28 +30,30 @@ permissions:
 
 jobs:
   install-and-check:
-    if: ${{ !contains(github.event.head_commit.message || '', '[behavior-patched]') }}
+    if: ${{ github.event_name != 'push' || !contains(github.event.head_commit.message || '', '[behavior-patched]') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: feature/behavior-bearing-assemblies-v1
+          ref: ${{ github.head_ref || github.ref_name }}
           fetch-depth: 0
 
       - name: Install vertical slice
         run: python tools/patch-behavior-bearing-assemblies.py
 
-      - name: Syntax and patch checks
+      - name: Syntax, runtime, and patch checks
         run: |
           node --check odyssey-production/native/world/behavior.js
           node --check odyssey-production/native/world/put-that-there.js
           node --check odyssey-production/native/world/odyssey-play.js
+          node tools/test-behavior-runtime.mjs
           git diff --check
           grep -q 'world/behavior.js?v=1' odyssey-production/native/word-to-world.html
           grep -q 'WorldBehavior.perform' odyssey-production/native/world/put-that-there.js
           grep -q 'WorldBehavior.attackCone' odyssey-production/native/world/odyssey-play.js
 
       - name: Commit installed patch
+        if: ${{ github.event_name == 'push' }}
         run: |
           if git diff --quiet; then
             echo 'Already installed.'
@@ -48,4 +65,4 @@ jobs:
                   odyssey-production/native/world/put-that-there.js \
                   odyssey-production/native/world/odyssey-play.js
           git commit -m 'Install behavior-bearing assemblies v1 [behavior-patched]'
-          git push origin HEAD:feature/behavior-bearing-assemblies-v1
+          git push origin HEAD:${GITHUB_REF_NAME}
