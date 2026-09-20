@@ -5,7 +5,8 @@ The patch is intentionally narrow and idempotent:
 - load world/behavior.js in Word to World;
 - route a small behavior vocabulary through Put That There;
 - let Odysseus' sword damage behavior-bearing world objects;
-- keep opaque database ids out of semantic trait inference.
+- keep opaque database ids out of semantic trait inference;
+- connect taught rideable props to the world's existing vehicle boarding path.
 """
 from __future__ import annotations
 
@@ -62,6 +63,68 @@ def patch_behavior() -> bool:
         "    src.name, src.kind, src.as, src.kit, src.op,\n"
         "    typeof op === 'string' ? op : op?.op, op?.kind, op?.name, op?.label];\n",
         label="behavior semantic text excludes ids",
+    )
+    text = replace_once(
+        text,
+        "function saveTrait(target, trait, options) {\n"
+        "  const rec = explicitRecord(target, true); if (!rec) return null;\n"
+        "  mergeTrait(rec.traits, trait, options == null ? true : options);\n"
+        "  rec.updatedAt = nowISO(); persist();\n"
+        "  emit('trait-taught', { id: rec.id, label: rec.label, trait: TRAIT_ALIASES[trait] || trait, options: clone(options) });\n"
+        "  return rec;\n"
+        "}\n",
+        "function connectRideable(target) {\n"
+        "  const item = unwrap(target), w = W();\n"
+        "  if (kindOf(target) !== 'prop' || !item) return false;\n"
+        "  const src = item.src && typeof item.src === 'object' ? item.src : {};\n"
+        "  const changed = !src.ride; item.src = { ...src, ride: true };\n"
+        "  if (changed && w?.props?.items?.has?.(item.id) && w.props.moveTo) w.props.moveTo(item, item.x, item.y, item.z, item.yaw, false);\n"
+        "  return true;\n"
+        "}\n"
+        "function saveTrait(target, trait, options) {\n"
+        "  const normalized = TRAIT_ALIASES[String(trait || '').toLowerCase()] || String(trait || '').toLowerCase();\n"
+        "  if (normalized === 'rideable' && kindOf(target) !== 'prop') return null;\n"
+        "  const rec = explicitRecord(target, true); if (!rec) return null;\n"
+        "  mergeTrait(rec.traits, normalized, options == null ? true : options);\n"
+        "  if (normalized === 'rideable') connectRideable(target);\n"
+        "  rec.updatedAt = nowISO(); persist();\n"
+        "  emit('trait-taught', { id: rec.id, label: rec.label, trait: normalized, options: clone(options) });\n"
+        "  return rec;\n"
+        "}\n",
+        label="behavior rideable adapter",
+    )
+    text = replace_once(
+        text,
+        "  if (/\\b(openable|door|gate|hatch)\\b/.test(text)) trait = 'openable', options = { angle: Math.PI / 2 };\n"
+        "  else if (/\\b(target|damageable|breakable|destructible)\\b/.test(text)) trait = 'damageable', options = { maxHp: 100, damage: 35, destroyOnZero: false };\n"
+        "  else if (/\\b(rideable|vehicle|mount)\\b/.test(text)) trait = 'rideable';\n",
+        "  if (/\\b(openable|door|gate|hatch)\\b/.test(text)) trait = 'openable', options = { angle: Math.PI / 2 };\n"
+        "  else if (/\\b(breakable|destructible)\\b/.test(text)) trait = 'damageable', options = { maxHp: 100, damage: 35, destroyOnZero: true };\n"
+        "  else if (/\\b(target|damageable)\\b/.test(text)) trait = 'damageable', options = { maxHp: 100, damage: 35, destroyOnZero: false };\n"
+        "  else if (/\\b(rideable|vehicle|mount)\\b/.test(text)) trait = 'rideable';\n",
+        label="behavior target versus breakable",
+    )
+    text = replace_once(
+        text,
+        "  saveTrait(target, trait, options);\n"
+        "  if (trait === 'damageable') saveState(target, { hp: 100, maxHp: 100 });\n"
+        "  return { ok: true, message: `${labelOf(target)} is now ${trait}.` };\n",
+        "  const rec = saveTrait(target, trait, options);\n"
+        "  if (!rec) return { ok: false, message: trait === 'rideable' ? 'A rideable must be a complete prop model, not one loose brick.' : 'That behavior could not be attached.' };\n"
+        "  if (trait === 'damageable') saveState(target, { hp: 100, maxHp: 100 });\n"
+        "  return { ok: true, message: `${labelOf(target)} is now ${trait}.` };\n",
+        label="behavior rejected teaching response",
+    )
+    text = replace_once(
+        text,
+        "function mount(target) {\n"
+        "  const p = profile(target); if (!p.traits.rideable) return { ok: false, message: `${p.label} is not rideable.` };\n"
+        "  const item = unwrap(target), w = W();\n",
+        "function mount(target) {\n"
+        "  const p = profile(target); if (!p.traits.rideable) return { ok: false, message: `${p.label} is not rideable.` };\n"
+        "  if (!connectRideable(target)) return { ok: false, message: 'Only a complete prop model can enter the vehicle system.' };\n"
+        "  const item = unwrap(target), w = W();\n",
+        label="behavior mount uses vehicle path",
     )
     if text != before:
         BEHAVIOR.write_text(text, encoding="utf-8")
@@ -151,6 +214,7 @@ def verify() -> None:
     assert 'make|teach|mark|turn' in ptt, "behavior teaching vocabulary missing"
     assert 'WorldBehavior.attackCone' in odyssey, "Odysseus sword bridge missing"
     assert 'target?.kind, item?.id' not in behavior, "opaque ids still influence semantic traits"
+    assert 'connectRideable(target)' in behavior, "rideable props are not connected to boarding"
 
 
 def main() -> None:
