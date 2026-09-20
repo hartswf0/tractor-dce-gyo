@@ -62,7 +62,7 @@ jobs:
           grep -q 'WorldAssemblies.registerCommit' odyssey-production/native/world/main.js
           grep -q 'WorldAssemblies.decorateProgram' odyssey-production/native/world/main.js
           grep -q 'WorldAssemblies.manipulate' odyssey-production/native/world/put-that-there.js
-          grep -q 'WorldAssemblies.attackCone' odyssey-production/native/world/odyssey-play.js
+          grep -q 'WorldBehavior.attackCone' odyssey-production/native/world/odyssey-play.js
 
       - name: Commit installed integration
         if: ${{ github.event_name == 'push' }}
