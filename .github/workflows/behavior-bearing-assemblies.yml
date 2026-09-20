@@ -1,14 +1,17 @@
-name: Behavior-bearing assemblies patch
+name: Behavior-bearing assemblies
 
 on:
   push:
     branches:
-      - feature/behavior-bearing-assemblies-v1
+      - feature/behavior-bearing-assemblies-v2
     paths:
       - .github/workflows/behavior-bearing-assemblies.yml
-      - tools/patch-behavior-bearing-assemblies.py
+      - tools/patch-behavior-bearing-assemblies-v2.py
+      - tools/test-assembly-runtime-v2.mjs
       - tools/test-behavior-runtime.mjs
+      - odyssey-production/native/world/assemblies.js
       - odyssey-production/native/world/behavior.js
+      - odyssey-production/native/world/main.js
       - odyssey-production/native/world/put-that-there.js
       - odyssey-production/native/world/odyssey-play.js
       - odyssey-production/native/word-to-world.html
@@ -17,9 +20,12 @@ on:
       - main
     paths:
       - .github/workflows/behavior-bearing-assemblies.yml
-      - tools/patch-behavior-bearing-assemblies.py
+      - tools/patch-behavior-bearing-assemblies-v2.py
+      - tools/test-assembly-runtime-v2.mjs
       - tools/test-behavior-runtime.mjs
+      - odyssey-production/native/world/assemblies.js
       - odyssey-production/native/world/behavior.js
+      - odyssey-production/native/world/main.js
       - odyssey-production/native/world/put-that-there.js
       - odyssey-production/native/world/odyssey-play.js
       - odyssey-production/native/word-to-world.html
@@ -30,7 +36,7 @@ permissions:
 
 jobs:
   install-and-check:
-    if: ${{ github.event_name != 'push' || !contains(github.event.head_commit.message || '', '[behavior-patched]') }}
+    if: ${{ github.event_name != 'push' || !contains(github.event.head_commit.message || '', '[assemblies-v2-patched]') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -38,21 +44,27 @@ jobs:
           ref: ${{ github.head_ref || github.ref_name }}
           fetch-depth: 0
 
-      - name: Install vertical slice
-        run: python tools/patch-behavior-bearing-assemblies.py
+      - name: Install full assembly integration
+        run: python tools/patch-behavior-bearing-assemblies-v2.py
 
-      - name: Syntax, runtime, and patch checks
+      - name: Syntax, runtime, integration, and patch checks
         run: |
           node --check odyssey-production/native/world/behavior.js
+          node --check odyssey-production/native/world/assemblies.js
           node --check odyssey-production/native/world/put-that-there.js
           node --check odyssey-production/native/world/odyssey-play.js
+          node --check odyssey-production/native/world/main.js
           node tools/test-behavior-runtime.mjs
+          node tools/test-assembly-runtime-v2.mjs
+          python tools/patch-behavior-bearing-assemblies-v2.py
           git diff --check
-          grep -q 'world/behavior.js?v=1' odyssey-production/native/word-to-world.html
-          grep -q 'WorldBehavior.perform' odyssey-production/native/world/put-that-there.js
-          grep -q 'WorldBehavior.attackCone' odyssey-production/native/world/odyssey-play.js
+          grep -q 'world/assemblies.js?v=2' odyssey-production/native/word-to-world.html
+          grep -q 'WorldAssemblies.registerCommit' odyssey-production/native/world/main.js
+          grep -q 'WorldAssemblies.decorateProgram' odyssey-production/native/world/main.js
+          grep -q 'WorldAssemblies.manipulate' odyssey-production/native/world/put-that-there.js
+          grep -q 'WorldAssemblies.attackCone' odyssey-production/native/world/odyssey-play.js
 
-      - name: Commit installed patch
+      - name: Commit installed integration
         if: ${{ github.event_name == 'push' }}
         run: |
           if git diff --quiet; then
@@ -62,8 +74,7 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add odyssey-production/native/word-to-world.html \
-                  odyssey-production/native/world/behavior.js \
-                  odyssey-production/native/world/put-that-there.js \
-                  odyssey-production/native/world/odyssey-play.js
-          git commit -m 'Install behavior-bearing assemblies v1 [behavior-patched]'
+                  odyssey-production/native/world/main.js \
+                  odyssey-production/native/world/put-that-there.js
+          git commit -m 'Install full behavior-bearing assemblies [assemblies-v2-patched]'
           git push origin HEAD:${GITHUB_REF_NAME}
