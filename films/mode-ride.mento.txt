@@ -1,0 +1,47 @@
+0 // MENTO film · Mock City · word to momento
+0 !MENTO ASPECT 16:9 FPS 24
+0 !MENTO STORY {"title":"At the wheel","description":"The second mode: get into a car, drive, fire from it, brake, get out.","location":"the road by the player","entities":[{"id":"han","type":"figure","name":"Han","traits":["driver"]},{"id":"car-1","type":"vehicle","name":"A red car","traits":["six studs","wheels"]}],"goals":[{"id":"g1","name":"take the car down the road and back on foot","owner":"han"}]}
+0 !MENTO ACTOR "car-1" KIND car LEN 6 COL 4 AT 200 160 HEADING 180
+0 // SHOT 1: AT THE WHEEL
+0 !MENTO TITLE "At the wheel" STYLE card SEC 2 SCORE "hero"
+0 !MENTO EVENT LINE "narrator" "At the wheel. The second mode: a car, a road." AT 0.3
+0 // SHOT 2: THE CAR
+0 !MENTO SHOT "The car" POS -37.96 -50.82 151.82 TGT 233.82 70.07 151.82 LENS 45 SEC 4
+0 !MENTO PLAN {"on":"car-1","frame":"medium","from":"se","lens":0,"sec":4,"move":"orbit","name":"The car"}
+0 !MENTO KEY POS -37.96 -50.82 151.82 TGT 233.82 70.07 151.82 LENS 45
+0 !MENTO KEY POS -37.96 -50.82 151.82 TGT 233.82 70.07 151.82 LENS 45
+0 // SHOT 3: GET IN
+0 !MENTO SHOT "Get in" POS 0 -105.8 -104 TGT 0 -80.8 240 LENS 50 SEC 3
+0 !MENTO PLAN {"on":"me","frame":"shoulder","from":"s","lens":0,"sec":3,"move":"hold","name":"Get in"}
+0 !MENTO ACT "me" RIDE car-1
+0 !MENTO EVENT SOUND "thud" AT 1
+0 !MENTO EVENT LINE "narrator" "Thumb up by the door, or E." AT 0.3
+0 // SHOT 4: THE ROAD
+0 !MENTO SHOT "The road" POS -419.81 -759.09 184.55 TGT -1068.55 -759.09 184.55 LENS 45 SEC 6 FOLLOW SCORE "chase"
+0 !MENTO PLAN {"on":"me","frame":"medium","from":"se","lens":0,"sec":6,"move":"hold","name":"The road"}
+0 !MENTO ACT "me" DRIVE -1000 160 AHEAD 30
+0 !MENTO EVENT LINE "narrator" "Up drives, sideways steers, two fingers boost." AT 0.6
+0 // SHOT 5: BEHIND THE WHEEL
+0 !MENTO SHOT "Behind the wheel" POS -2197.74 -1135.21 -121.72 TGT -4297.76 -895.21 -1093.6 LENS 70 SEC 4 FOLLOW
+0 !MENTO PLAN {"on":"me","frame":"pov","from":"s","lens":0,"sec":4,"move":"hold","name":"Behind the wheel"}
+0 !MENTO ACT "me" DRIVE -2039.19 -55.99 AHEAD 25
+0 // SHOT 6: THE SHOT
+0 !MENTO SHOT "The shot" POS -2763.95 -1586.44 283.02 TGT -3222.68 -1266.44 -175.71 LENS 45 SEC 4 FOLLOW
+0 !MENTO PLAN {"on":"me","frame":"medium","from":"ne","lens":0,"sec":4,"move":"hold","name":"The shot"}
+0 !MENTO ACT "me" DRIVE -2845.72 -421.61 AHEAD 20 FIRE
+0 !MENTO EVENT SOUND "blaster" AT 0.8
+0 !MENTO EVENT SOUND "blaster" AT 1.6
+0 // SHOT 7: THE BRAKE
+0 !MENTO SHOT "The brake" POS -4020.87 -1179.92 -407.66 TGT -3372.23 -1179.92 -407.66 LENS 45 SEC 3 FOLLOW
+0 !MENTO PLAN {"on":"me","frame":"medium","from":"w","lens":0,"sec":3,"move":"hold","name":"The brake"}
+0 !MENTO ACT "me" BRAKE
+0 !MENTO EVENT SOUND "skid" AT 0.3
+0 // SHOT 8: GET OUT
+0 !MENTO SHOT "Get out" POS -3611.53 -1103.96 -487.75 TGT -3469.27 -1103.96 -345.49 LENS 45 SEC 4
+0 !MENTO PLAN {"on":"me","frame":"medium","from":"sw","lens":0,"sec":4,"move":"pull","name":"Get out"}
+0 !MENTO KEY POS -3753.79 -1103.96 -630.01 TGT -3469.27 -1103.96 -345.49 LENS 45
+0 !MENTO ACT "me" LEAVE WALK -3586.49 -371.17 AHEAD 3
+0 !MENTO EVENT LINE "narrator" "Thumb down gets out." AT 0.5
+0 // SHOT 9: AT THE WHEEL
+WORD TO WORLD: RIDE
+0 !MENTO TITLE "At the wheel\nword to world: ride" STYLE card SEC 2 SCORE "end"
