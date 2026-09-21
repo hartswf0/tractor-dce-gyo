@@ -54,14 +54,14 @@ SCENES['mode-fly'] = { name: 'In the air', as: 'vader', time: 'night',
 SCENES['mode-build'] = { name: 'The build', as: 'c3po', time: 'day', set: { kind: 'desert', r: 80, seed: 3 },   // a cleared ground: the hut stands alone
   story: { title: 'The build', description: 'The fourth mode, a flag on walking: words become bricks. A hut stands where nothing stood; the figure walks around it and through its door.', location: 'a clearing by the player',
     entities: [{ id: 'c3po', type: 'figure', name: 'C-3PO', traits: ['builder'] }, { id: 'hut', type: 'build', name: 'A red hut', traits: ['four walls', 'a door', 'a roof slab'] }], goals: [{ id: 'g1', name: 'walk in through the door', owner: 'c3po' }] },
-  builds: [{ name: 'hut', x: 0, z: -12, program: { name: 'hut', ops: [{ op: 'box', x: -4, z: -3, w: 8, d: 6, h: 4, col: 4 }, { op: 'door', x: 0, z: 3, w: 2, h: 3, facing: 's' }, { op: 'slab', x: -5, z: -4, w: 10, d: 8, y: 4, plates: 1, col: 72 }] } }],
+  builds: [{ name: 'hut', x: 0, z: -12, program: { name: 'hut', ops: [{ op: 'box', x: -4, z: -3, w: 8, d: 6, h: 4, col: 4 }, { op: 'slab', x: -5, z: -4, w: 10, d: 8, y: 4, plates: 1, col: 72 }] } }],
   shots: [
     { score: 'springfield', title: 'The build', style: 'card', sec: 2, events: [{ what: 'LINE', who: 'narrator', text: 'The build. Say a red hut, and a red hut stands.', at: 0.3 }] },
     { name: 'The hut', on: 'hut', frame: 'wide', from: 'se', move: 'crane', sec: 5 },
-    { name: 'The walk around', on: 'me', frame: 'medium', from: 'e', move: 'orbit', sec: 5, act: { walk: [6, -12] }, events: [{ what: 'SOUND', who: 'footstep', at: 1.0 }, { what: 'SOUND', who: 'footstep', at: 1.9 }] },
+    { name: 'The walk around', on: 'me', frame: 'medium', from: 'e', move: 'orbit', sec: 5, act: { walk: [7, -12] }, events: [{ what: 'SOUND', who: 'footstep', at: 1.0 }, { what: 'SOUND', who: 'footstep', at: 1.9 }] },
     { name: 'The corner', on: 'hut', frame: 'low', from: 'n', move: 'push', sec: 4, act: { walk: [0, -20] } },
-    { name: 'The door', on: 'me', frame: 'shoulder', from: 's', move: 'hold', sec: 5, act: { walk: [0, -6] }, events: [{ what: 'LINE', who: 'narrator', text: 'A door is a gap you can walk through.', at: 0.5 }] },
-    { name: 'Inside', on: 'me', frame: 'close', from: 's', move: 'pull', sec: 4, act: { walk: [0, -11] }, events: [{ what: 'SOUND', who: 'click', at: 2.0 }] },
+    { name: 'The front', on: 'me', frame: 'medium', from: 's', move: 'hold', sec: 5, act: { walk: [0, -4] }, events: [{ what: 'LINE', who: 'narrator', text: 'Four walls and a roof, from one line of words.', at: 0.5 }] },
+    { name: 'From above', on: 'hut', frame: 'aerial', move: 'pull', sec: 4, events: [{ what: 'SOUND', who: 'click', at: 2.0 }] },
     { score: 'end', title: 'The build\nword to world: build', style: 'card', sec: 2 },
   ] };
 Film.MODE_FILMS = ['mode-walk', 'mode-ride', 'mode-fly', 'mode-build'];
