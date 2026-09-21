@@ -51,7 +51,7 @@ SCENES['mode-fly'] = { name: 'In the air', as: 'vader', time: 'night',
     { name: 'The landing', on: 'tie', frame: 'wide', from: 's', move: 'pull', sec: 6, follow: true, act: { leave: true }, events: [{ what: 'LINE', who: 'narrator', text: 'Land brings it down anywhere.', at: 0.5 }, { what: 'SOUND', who: 'thud', at: 4.5 }] },
     { score: 'end', title: 'In the air\nword to world: fly', style: 'card', sec: 2 },
   ] };
-SCENES['mode-build'] = { name: 'The build', as: 'c3po', time: 'day',
+SCENES['mode-build'] = { name: 'The build', as: 'c3po', time: 'day', set: { kind: 'desert', r: 80, seed: 3 },   // a cleared ground: the hut stands alone
   story: { title: 'The build', description: 'The fourth mode, a flag on walking: words become bricks. A hut stands where nothing stood; the figure walks around it and through its door.', location: 'a clearing by the player',
     entities: [{ id: 'c3po', type: 'figure', name: 'C-3PO', traits: ['builder'] }, { id: 'hut', type: 'build', name: 'A red hut', traits: ['four walls', 'a door', 'a roof slab'] }], goals: [{ id: 'g1', name: 'walk in through the door', owner: 'c3po' }] },
   builds: [{ name: 'hut', x: 0, z: -12, program: { name: 'hut', ops: [{ op: 'box', x: -4, z: -3, w: 8, d: 6, h: 4, col: 4 }, { op: 'door', x: 0, z: 3, w: 2, h: 3, facing: 's' }, { op: 'slab', x: -5, z: -4, w: 10, d: 8, y: 4, plates: 1, col: 72 }] } }],
