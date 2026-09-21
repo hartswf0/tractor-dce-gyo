@@ -1,0 +1,45 @@
+0 // MENTO film · Mock City · word to momento
+0 !MENTO ASPECT 16:9 FPS 24
+0 !MENTO STORY {"title":"In the air","description":"The third mode: board the TIE, climb, strafe, turn, and land.","location":"above the place","entities":[{"id":"vader","type":"figure","name":"Vader","traits":["pilot"]},{"id":"tie","type":"vehicle","name":"The TIE","traits":["climbs","fires","lands"]}],"goals":[{"id":"g1","name":"a circuit of the place and back on the ground","owner":"vader"}]}
+0 // SHOT 1: IN THE AIR
+0 !MENTO TITLE "In the air" STYLE card SEC 2 SCORE "dread"
+0 !MENTO EVENT LINE "narrator" "In the air. The third mode: the ship." AT 0.3
+0 // SHOT 2: THE SHIP
+0 !MENTO SHOT "The ship" POS 69.93 -243.39 -290.07 TGT 360 19.5 0 LENS 60 SEC 4
+0 !MENTO PLAN {"on":"tie","frame":"wide","from":"sw","lens":0,"sec":4,"move":"orbit","name":"The ship"}
+0 !MENTO KEY POS -50.22 -224.85 0 TGT 360 19.5 0 LENS 60
+0 !MENTO KEY POS 69.93 -236.5 290.07 TGT 360 19.5 0 LENS 60
+0 !MENTO EVENT SOUND "breath" AT 0.5
+0 // SHOT 3: BOARD
+0 !MENTO SHOT "Board" POS 0 -60.8 -201.18 TGT 0 -60.8 0 LENS 45 SEC 3
+0 !MENTO PLAN {"on":"me","frame":"medium","from":"s","lens":0,"sec":3,"move":"hold","name":"Board"}
+0 !MENTO ACT "me" TIE
+0 !MENTO EVENT SOUND "servo" AT 1.2
+0 // SHOT 4: THE CLIMB
+0 !MENTO SHOT "The climb" POS 650.07 -2164.79 -3392.81 TGT 360 -2148.79 -3102.74 LENS 60 SEC 6 FOLLOW SCORE "chase"
+0 !MENTO PLAN {"on":"tie","frame":"wide","from":"se","lens":0,"sec":6,"move":"crane","name":"The climb"}
+0 !MENTO KEY POS 546.45 -2471.04 -3289.19 TGT 360 -2148.79 -3102.74 LENS 60
+0 !MENTO ACT "me" TIE FLY
+0 !MENTO EVENT LINE "narrator" "Push up to climb, sideways to turn." AT 0.5
+0 // SHOT 5: THE STRAFE
+0 !MENTO SHOT "The strafe" POS 360 -4287.23 -4049.12 TGT 360 -4287.23 -4411.26 LENS 45 SEC 5 FOLLOW
+0 !MENTO PLAN {"on":"tie","frame":"medium","from":"n","lens":0,"sec":5,"move":"track","name":"The strafe"}
+0 !MENTO KEY POS 577.28 -4287.23 -4049.12 TGT 360 -4287.23 -4411.26 LENS 45
+0 !MENTO ACT "me" TIE FLY FIRE
+0 !MENTO EVENT SOUND "laser" AT 0.6
+0 !MENTO EVENT SOUND "laser" AT 1.1
+0 !MENTO EVENT SOUND "laser" AT 1.6
+0 // SHOT 6: THE TURN
+0 !MENTO SHOT "The turn" POS 360 -6828.33 -6064.37 TGT 360 -6417.63 -5719.75 LENS 50 SEC 5 FOLLOW
+0 !MENTO PLAN {"on":"tie","frame":"aerial","from":"s","lens":0,"sec":5,"move":"hold","name":"The turn"}
+0 !MENTO ACT "me" TIE FLY
+0 // SHOT 7: THE LANDING
+0 !MENTO SHOT "The landing" POS 360 547.37 -6129.97 TGT 360 803.37 -5719.75 LENS 60 SEC 6 FOLLOW
+0 !MENTO PLAN {"on":"tie","frame":"wide","from":"s","lens":0,"sec":6,"move":"pull","name":"The landing"}
+0 !MENTO KEY POS 360 387.37 -6540.2 TGT 360 803.37 -5719.75 LENS 60
+0 !MENTO ACT "me" LEAVE
+0 !MENTO EVENT LINE "narrator" "Land brings it down anywhere." AT 0.5
+0 !MENTO EVENT SOUND "thud" AT 4.5
+0 // SHOT 8: IN THE AIR
+WORD TO WORLD: FLY
+0 !MENTO TITLE "In the air\nword to world: fly" STYLE card SEC 2 SCORE "end"

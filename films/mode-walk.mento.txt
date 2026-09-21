@@ -1,0 +1,48 @@
+0 // MENTO film · Mock City · word to momento
+0 !MENTO ASPECT 16:9 FPS 24
+0 !MENTO STORY {"title":"On foot","description":"The first mode: a figure in a street. It walks, it runs, it turns to look, it swings, it pushes a crowd back.","location":"wherever the player stands","entities":[{"id":"luke","type":"figure","name":"Luke","traits":["saber","runs"]},{"id":"crowd","type":"crowd","name":"People in the street","traits":["scatter"]}],"goals":[{"id":"g1","name":"cross the street on foot","owner":"luke"}]}
+0 !MENTO ACTOR "crowd" CROWD rebel N 8 AT 80 640 R 5
+0 // SHOT 1: ON FOOT
+0 !MENTO TITLE "On foot" STYLE card SEC 2 SCORE "hero"
+0 !MENTO EVENT LINE "narrator" "On foot. The first mode: a figure, a street, a saber." AT 0.3
+0 // SHOT 2: THE STREET
+0 !MENTO SHOT "The street" POS -165.15 -138.42 -161.15 TGT -4 -58.19 0 LENS 60 SEC 5
+0 !MENTO PLAN {"on":"me","frame":"wide","from":"s","lens":0,"sec":5,"move":"push","name":"The street"}
+0 !MENTO KEY POS -84.58 -86.01 -80.58 TGT -4 -58.19 0 LENS 60
+0 !MENTO ACT "me" WALK -230.27 226.27 AHEAD 8
+0 !MENTO EVENT SOUND "footstep" AT 0.8
+0 !MENTO EVENT SOUND "footstep" AT 1.6
+0 // SHOT 3: THE RUN
+0 !MENTO SHOT "The run" POS -576.21 -491.52 773.39 TGT -777.39 -491.52 773.39 LENS 45 SEC 5 FOLLOW
+0 !MENTO PLAN {"on":"me","frame":"medium","from":"e","lens":0,"sec":5,"move":"track","name":"The run"}
+0 !MENTO KEY POS -576.21 -491.52 652.68 TGT -777.39 -491.52 773.39 LENS 45
+0 !MENTO ACT "me" WALK -1056.85 1052.85 AHEAD 30 RUN
+0 !MENTO EVENT LINE "narrator" "Push the stick further and it runs." AT 0.4
+0 // SHOT 4: THE LOOK
+0 !MENTO SHOT "The look" POS -703.85 -536.52 699.85 TGT -947.1 -511.52 943.1 LENS 50 SEC 3
+0 !MENTO PLAN {"on":"me","frame":"shoulder","from":"s","lens":0,"sec":3,"move":"hold","name":"The look"}
+0 !MENTO ACT "me" LOOK 2 16
+0 // SHOT 5: THE CROWD
+0 !MENTO SHOT "The crowd" POS -766.43 -525.55 899.95 TGT -766.43 -485.01 762.74 LENS 55 SEC 4
+0 !MENTO PLAN {"on":"me","frame":"low","from":"n","lens":0,"sec":4,"move":"pull","name":"The crowd"}
+0 !MENTO KEY POS -766.43 -518.51 1037.16 TGT -766.43 -485.01 762.74 LENS 55
+0 !MENTO ACT "me" WALK 80 520
+0 !MENTO EVENT LINE "narrator" "People in the street step out of the way." AT 0.5
+0 // SHOT 6: THE SABER
+0 !MENTO SHOT "The saber" POS -236.67 -188.02 537.85 TGT -180.1 -183.02 594.42 LENS 35 SEC 4 SCORE "tension"
+0 !MENTO PLAN {"on":"me","frame":"close","from":"sw","lens":0,"sec":4,"move":"push","name":"The saber"}
+0 !MENTO KEY POS -208.38 -188.02 566.13 TGT -180.1 -183.02 594.42 LENS 35
+0 !MENTO ACT "me" WALK -64.73 561.41 AHEAD 3 SABER
+0 !MENTO EVENT SOUND "swing" AT 1
+0 !MENTO EVENT SOUND "clash" AT 1.9
+0 !MENTO EVENT SOUND "swing" AT 2.7
+0 // SHOT 7: THE ROUT
+0 !MENTO SHOT "The rout" POS -95.39 -98.98 342.28 TGT -95.39 -88.98 570.18 LENS 60 SEC 4
+0 !MENTO PLAN {"on":"me","frame":"wide","from":"se","lens":0,"sec":4,"move":"crane","name":"The rout"}
+0 !MENTO KEY POS -95.39 -268.56 423.69 TGT -95.39 -88.98 570.18 LENS 60
+0 !MENTO ACT "me" WALK 44.5 647.83 AHEAD 4
+0 !MENTO EVENT ROUT "crowd" AT 0.8
+0 !MENTO EVENT SOUND "clatter" AT 1
+0 // SHOT 8: ON FOOT
+WORD TO WORLD: WALK
+0 !MENTO TITLE "On foot\nword to world: walk" STYLE card SEC 2 SCORE "end"
