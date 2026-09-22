@@ -2,8 +2,8 @@
    A dark stone floor inside a ring of grey rock (blocks with sloped shoulders, overlapping, five to eight bricks
    high); the smooth pale wall of shadows at the north end; the captives' bench before it; behind the bench the
    raised parapet with its low front wall and three carried shapes on poles; behind that the fire in its ring of
-   stones; a flight of stairs up the east wall to a gap in the rock, and outside it a tan ledge under the sun on
-   its column. */
+   stones; a flight of stairs up to a lookout in the east gap, the floor passing out on either side of it to a tan ledge
+   under the sun on its column. */
 'use strict';
 const K = require('./kit.js');
 const { G, box, slab, cut, part } = K;
@@ -37,11 +37,11 @@ function program() {
   // stalagmites on the floor
   for (const [x, z, h] of [[8, 24, 3], [50, 14, 2], [12, 36, 4], [46, 38, 3], [20, 40, 2]]) ops.push(G('stalagmite', x, z, [box(0, 0, 2, 2, h, 71), part('3942', 71, 0, 0, h)]));
   // the way out: stairs up the east side to the gap in the rock, a landing, the ledge outside under the sun
-  ops.push(G('stairs', 46, 24, [K.stairs(0, 0, 'e', 6, 4, 72)]));
-  ops.push(G('landing', 52, 22, [box(0, 0, 6, 8, 6, 72), slab(0, 0, 6, 8, 19, { y: 6 })]));
-  ops.push(G('ledge', 58, 20, [box(0, 0, 6, 10, 6, 72), slab(0, 0, 6, 10, 19, { y: 6 })]));
-  ops.push(G('sun', 60, 22, [part('3941', 47, 0, 0, 6), part('3941', 47, 0, 0, 7), part('3941', 47, 0, 0, 8), part('3941', 47, 0, 0, 9), part('3941', 47, 0, 0, 10), part('3941', 47, 0, 0, 11),
-    box(-1, -1, 4, 4, 2, 14, { y: 12 }), ...[[-1, -1], [2, -1], [-1, 2], [2, 2]].map(([x, z]) => part('4589', 25, x, z, 14)), part('3941', 14, 0, 0, 14), part('3942', 25, 0, 0, 15)]));
+  ops.push(G('stairs', 46, 24, [K.stairs(0, 0, 'e', 6, 4, 72)]));   /* the stairs climb east to a lookout over the gap; the floor passes them on either side */
+  ops.push(G('lookout', 52, 24, [box(0, 0, 4, 4, 6, 72), slab(0, 0, 4, 4, 19, { y: 6 })]));
+  ops.push(G('ledge', 58, 18, [slab(0, 0, 6, 13, 19, { plateOffset: 1 })]));
+  const column = []; for (let i = 0; i < 14; i++) column.push(part('3941', 47, 0, 0, i));
+  ops.push(G('sun', 60, 23, [...column, part('3031', 14, -1, -1, 14), slab(-1, -1, 4, 4, 14, { y: 14, plateOffset: 1, plates: 3 }), ...[[-1, -1], [2, -1], [-1, 2], [2, 2]].map(([x, z]) => part('4589', 25, x, z, 15, { plate: 1 })), part('3941', 14, 0, 0, 15, { plate: 1 }), part('3942', 25, 0, 0, 16, { plate: 1 })]));   /* a 4×4 plate carries the sun's head on the column, so every brick of it is tied through the plate */
   return { name: 'cave-of-shadows', ops };
 }
-module.exports = { name: 'cave-of-shadows', title: 'The Cave of Shadows', description: "Plato's cave for The Cave: a dark stone floor inside a ring of grey rock, the smooth pale wall of shadows at the north, the captives' bench before it, the raised parapet with three carried shapes on poles, the fire in its ring of stones behind, stalagmites, and a flight of stairs up the east wall to a gap in the rock with a tan ledge outside under the sun on its column.", program, scale: 1 };
+module.exports = { name: 'cave-of-shadows', title: 'The Cave of Shadows', description: "Plato's cave for The Cave: a dark stone floor inside a ring of grey rock, the smooth pale wall of shadows at the north, the captives' bench before it, the raised parapet with three carried shapes on poles, the fire in its ring of stones behind, stalagmites, a flight of stairs to a lookout in the east gap, and the way out past it to a tan ledge under the sun on its column.", program, scale: 1 };
