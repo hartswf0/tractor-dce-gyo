@@ -1,0 +1,74 @@
+0 // MENTO film · Mock City → offline, so Hlíðarendi, Iceland · word to momento
+0 !MENTO ASPECT 16:9 FPS 24
+0 !MENTO STORY {"title":"The Cave","description":"Captives face a wall of shadows; behind them on the parapet the puppeteers carry shapes before a fire. One captive is loosed, turns, and sees who makes the shadows; the climb to the light; the return to people who prefer the wall.","location":"Plato's cave: the pit, the screen, the parapet, the fire, the ascent","entities":[{"id":"captives","type":"crowd","name":"the captives","traits":["bound","facing the wall"]},{"id":"freed","type":"character","name":"the freed one","traits":["turns","climbs"]},{"id":"puppeteers","type":"crowd","name":"the puppeteers","traits":["the parapet","the shapes"]},{"id":"fire","type":"location","name":"the fire","traits":["the false light"]},{"id":"sun","type":"location","name":"the ascent","traits":["the true light"]}],"goals":["see what makes the shadows"],"obstacles":["the bonds","the climb","the people who will not turn"],"shifts":[{"id":"shadows","name":"The shadows"},{"id":"puppeteers","name":"The puppeteers"},{"id":"turn","name":"The turn"},{"id":"climb","name":"The climb"},{"id":"sun","name":"The sun"},{"id":"return","name":"The return"}],"why":"the one who turns around","direction":"wonder"}
+0 !MENTO STAGE hall R 60 SEED 1 AT 37641952.14 -83456246.41
+0 !MENTO ACTOR "captive-1" FIGURE shade AT 37641292.14 -83456766.41 HEADING 180
+0 !MENTO ACTOR "captive-2" FIGURE shade AT 37641492.14 -83456766.41 HEADING 180
+0 !MENTO ACTOR "freed" FIGURE citizen AT 37641392.14 -83456766.41 HEADING 180
+0 !MENTO ACTOR "puppeteer-1" FIGURE hauler AT 37641072.14 -83456806.41 HEADING 0
+0 !MENTO ACTOR "puppeteer-2" FIGURE hauler AT 37641632.14 -83456846.41 HEADING 0
+0 !MENTO DONOR "the cave" SET platos-cave AT 941048.8 -2086406.16 HEADING 0 SCALE 2.5 LIFT -7
+0 !MENTO MARK "row" AT 941034.8 -2086419.16 COL 4
+0 !MENTO MARK "screen" AT 941034.8 -2086424.66 COL 14
+0 !MENTO MARK "parapet" AT 941034.8 -2086402.16 COL 1
+0 !MENTO MARK "fire" AT 941034.8 -2086402.16 COL 2
+0 !MENTO MARK "slope" AT 941025.8 -2086415.16 COL 25
+0 !MENTO MARK "out" AT 941012.8 -2086411.16 COL 26
+0 !MENTO MARK "side" AT 941031.8 -2086420.16 COL 5
+0 // SHOT 1: THE CAVE
+0 !MENTO TITLE "THE CAVE" STYLE card SEC 2 SCORE "dread"
+0 !MENTO EVENT LINE "narrator" "The cave. Republic, book seven." AT 0.3 FOR 2
+0 // SHOT 2: THE SHADOWS
+0 !MENTO SHOT "The shadows" POS 37641252.14 -104 -83456698.41 TGT 37641432.14 -80 -83456986.41 LENS 40 SEC 7 LAMP SHIFT "shadows"
+0 !MENTO BEAT "shadows" "freed" FROM 0 TO 7 WHY "shapes cross the wall; the captives name them" DIRECT wonder
+0 !MENTO EVENT SOUND "static" AT 0.5
+0 !MENTO EVENT LINE "narrator" "They have been here since childhood, and see only the shadows." AT 1.2 FOR 4.2
+0 !MENTO PHRASE "captive-1" listen AT 0.4 ENTER 0.4
+0 !MENTO PHRASE "captive-2" listen AT 0.6 ENTER 0.4
+0 !MENTO PHRASE "freed" wonder AT 2 ENTER 0.4
+0 // SHOT 3: THE PUPPETEERS
+0 !MENTO SHOT "The puppeteers" POS 37641552.14 -64 -83456806.41 TGT 37641392.14 -280 -83456486.41 LENS 45 SEC 6 LAMP SHIFT "puppeteers"
+0 !MENTO BEAT "puppeteers" "puppeteer-1" FROM 0 TO 6 WHY "behind the wall, the people who carry the shapes" DIRECT deadpan
+0 !MENTO SET "puppeteer-1" arm.R.pitch -2.8 AT 0.6 OVER 0.8
+0 !MENTO SET "puppeteer-2" arm.L.pitch -2.8 AT 1 OVER 0.8
+0 !MENTO EVENT SOUND "servo" AT 1.2
+0 !MENTO EVENT SOUND "servo" AT 3.6
+0 !MENTO EVENT LINE "narrator" "Behind them a fire, and between the fire and the captives a wall, along which men carry figures." AT 0.8 FOR 4.6
+0 // SHOT 4: THE TURN
+0 !MENTO SHOT "The turn" POS 37641512.14 -76 -83456866.41 TGT 37641392.14 -64 -83456766.41 LENS 32 SEC 7 LAMP SHIFT "turn"
+0 !MENTO BEAT "turn" "freed" FROM 0 TO 7 WHY "loosed, he turns his head and sees the fire" DIRECT recognition
+0 !MENTO SET "freed" head.yaw 2.4 AT 1 OVER 1.4
+0 !MENTO SET "freed" torso.twist 0.6 AT 1.4 OVER 1.2
+0 !MENTO PHRASE "freed" wonder AT 2.4 ENTER 0.4
+0 !MENTO PERFORM "freed" LOOK "fire" AT 2.6 KEEP gaze
+0 !MENTO EVENT SOUND "breath" AT 3
+0 !MENTO EVENT LINE "narrator" "Suppose one were freed, and made to turn his head." AT 1.4 FOR 3
+0 // SHOT 5: THE CLIMB
+0 !MENTO SHOT "The climb" POS 37640672.14 -120 -83456806.41 TGT 37641072.14 -64 -83456566.41 LENS 40 SEC 8 LAMP SHIFT "climb"
+0 !MENTO ACT "freed" TO 37641032.14 -83456606.41 WALK
+0 !MENTO BEAT "climb" "freed" FROM 0 TO 8 WHY "the rough ascent toward a light that hurts" DIRECT resolve
+0 !MENTO PHRASE "freed" resolve AT 0.4 ENTER 0.4
+0 !MENTO EVENT SOUND "footstep" AT 1
+0 !MENTO EVENT SOUND "footstep" AT 2
+0 !MENTO EVENT SOUND "footstep" AT 3
+0 !MENTO EVENT SOUND "breath" AT 5
+0 !MENTO EVENT LINE "narrator" "Dragged up the steep way, he would be pained and dazzled." AT 1 FOR 3.6
+0 // SHOT 6: THE SUN
+0 !MENTO SET TIME dawn
+0 !MENTO SHOT "The sun" POS 37640032.14 -48 -83456966.41 TGT 37640752.14 -320 -83456166.41 LENS 45 SEC 6 SHIFT "sun"
+0 !MENTO ACT "freed" TO 37640512.14 -83456446.41 WALK
+0 !MENTO BEAT "sun" "freed" FROM 0 TO 6 WHY "the thing itself, not its shadow" DIRECT wonder
+0 !MENTO PHRASE "freed" wonder AT 1 ENTER 0.4
+0 !MENTO EVENT FLASH AT 0.4
+0 !MENTO EVENT LINE "narrator" "Last of all he would see the sun, not in the water, but itself, in its own place." AT 1 FOR 4.4
+0 // SHOT 7: THE RETURN
+0 !MENTO SET TIME night
+0 !MENTO SHOT "The return" POS 37641592.14 -80 -83456906.41 TGT 37641392.14 -60 -83456786.41 LENS 36 SEC 7 LAMP SHIFT "return"
+0 !MENTO ACT "freed" TO 37641272.14 -83456806.41 WALK
+0 !MENTO BEAT "return" "freed" FROM 0 TO 7 WHY "he comes back down to tell them, and they laugh at his ruined eyes" DIRECT hurt
+0 !MENTO PHRASE "freed" appeal AT 1 ENTER 0.4
+0 !MENTO PHRASE "captive-1" contempt AT 3 ENTER 0.4
+0 !MENTO PHRASE "captive-2" skepticism AT 3.4 ENTER 0.4
+0 !MENTO EVENT LINE "narrator" "Would they not say his eyes were ruined by the climb, and that it was not worth even trying?" AT 1 FOR 4.6
+0 // SHOT 8: THE CARD
+0 !MENTO TITLE "THE CAVE\nA CASE TO REHEARSE" STYLE card SEC 3 SCORE "end"
