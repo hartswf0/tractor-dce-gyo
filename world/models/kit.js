@@ -1,0 +1,58 @@
+/* world/models/kit.js — the vocabulary the film-set models are written in: short functions that return ops for
+   world/dsl.js (studs on x east and z south, y in bricks, a brick three plates), so a model reads as what it is:
+   a floor, walls with windows, a shelf with goods on it, a tree, a rock, a fire. Everything here becomes real parts
+   laid by the DSL's tiler; tools/model.js then counts the stud joints and cuts the steps. */
+'use strict';
+const G = (name, x, z, ops, o = {}) => ({ op: 'group', name, x, z, y: o.y || 0, turn: o.turn || 0, ops });
+const box = (x, z, w, d, h, col, o = {}) => ({ op: 'box', x, z, w, d, h, col, ...o });
+const slab = (x, z, w, d, col, o = {}) => ({ op: 'slab', x, z, w, d, col, plates: 1, ...o });   // y in bricks, plateOffset in plates
+const cut = (x, z, w, d, y, h) => ({ op: 'cut', x, z, w, d, y, h });   // y and h in bricks
+const part = (id, col, x, z, y, o = {}) => ({ op: 'part', part: id, col, x, z, y, ...o });   // y in bricks, plate: extra plates, rot 0..3
+const window = (x, z, facing, y, col) => ({ op: 'window', x, z, facing, y, col });
+const door = (x, z, facing, y, col) => ({ op: 'door', x, z, facing, y: y || 0, col });
+const roof = (x, z, w, d, y, style, col) => ({ op: 'roof', x, z, w, d, y, style, col });
+const stairs = (x, z, facing, steps, w, col, y) => ({ op: 'stairs', x, z, facing, steps, w, col, y: y || 0 });
+const arch = (x, z, facing, y, h, col) => ({ op: 'arch', x, z, facing, y, h, col });
+const seeded = seed => { let s = seed >>> 0 || 1; return () => { s ^= s << 13; s >>>= 0; s ^= s >>> 17; s ^= s << 5; s >>>= 0; return s / 4294967296; }; };
+
+/** A window 1×4×3 (60594) set into a wall along x at (x, z) with its sill y bricks up: the wall is cut first. */
+function bigWindow(x, z, y, col = 15, alongZ = false) { return alongZ ? [cut(x, z, 1, 4, y, 3), part('60594', col, x, z, y, { rot: 1 })] : [cut(x, z, 4, 1, y, 3), part('60594', col, x, z, y)]; }
+/** A checkered floor of 2×2 plates. */
+function checker(x, z, w, d, a = 71, b = 15) { const out = []; for (let i = 0; i < w; i += 2) for (let j = 0; j < d; j += 2) out.push(slab(x + i, z + j, Math.min(2, w - i), Math.min(2, d - j), ((i + j) / 2) % 2 ? a : b)); return out; }
+/** A gondola shelf along x: a base course, goods on it, a plate shelf, goods again, a plate top; goods are 1×1 bricks in the colours given, both faces. */
+function shelf(x, z, len, col, goods, rnd, o = {}) {
+  const ops = [box(0, 0, len, 2, 1, col)]; const tiers = o.tiers || 2;
+  for (let t = 0; t < tiers; t++) { const y = 1 + t * 2;
+    for (let i = 0; i < len; i++) for (const zz of [0, 1]) { if (rnd() < (o.gap || 0.12)) continue; ops.push(part('3005', goods[Math.floor(rnd() * goods.length)], i, zz, y)); }
+    ops.push(slab(0, 0, len, 2, col, { y: y + 1 }));   // the plate over the goods: the next tier's shelf
+    if (t < tiers - 1) ops.push(slab(0, 0, len, 2, col, { y: y + 1, plateOffset: 1 }), slab(0, 0, len, 2, col, { y: y + 1, plateOffset: 2 }));   // two more plates: a brick's worth, so the tiers stay on the brick grid
+  }
+  return G(o.name || 'shelf', x, z, ops);
+}
+/** A tree: a round-brick trunk h bricks tall, a crown of stepped courses, each course a plate layer under a brick layer, so every
+    brick of the crown is tied through the plates to the course over the trunk. */
+function tree(x, z, h, o = {}) {
+  const trunk = o.trunk == null ? 70 : o.trunk, leaf = o.leaf == null ? 2 : o.leaf, leaf2 = o.leaf2 == null ? leaf : o.leaf2, ops = [];
+  for (let i = 0; i < h; i++) ops.push(part('3941', trunk, 0, 0, i));
+  const r = o.r || 3;   // crown half-width in studs
+  const course = (half, y, off, colA, colB) => { const w = 2 * half; ops.push(slab(1 - half, 1 - half, w, w, colA, { y, plateOffset: off }), slab(1 - half, 1 - half, w, w, colB, { y, plateOffset: off + 1, plates: 3 })); };
+  course(r, h, 0, leaf2, leaf);                       // a plate layer on the trunk, then the widest brick course
+  course(r - 1, h + 1, 1, leaf, leaf2);                // a plate layer tying the course below, then the next course, one stud in
+  if (r > 2) course(r - 2, h + 2, 2, leaf2, leaf);
+  const top = r > 2 ? h + 4 : h + 3;
+  ops.push(slab(0, 0, 2, 2, leaf2, { y: top }), part('3942', leaf2, 0, 0, top, { plate: 1 }));   // a plate and a cone finial
+  return G(o.name || 'tree', x, z, ops);
+}
+/** A bush: a low mound of green with slopes round the edge (the DSL's hip roof does the slopes). */
+function bush(x, z, w, d, col = 2) { return G('bush', x, z, [box(0, 0, w, d, 1, col), roof(0, 0, w, d, 1, 'hip', col)]); }
+/** A rock: a grey block with sloped shoulders. */
+function rock(x, z, w, d, h, col = 72) { return G('rock', x, z, [box(0, 0, w, d, h, col), roof(0, 0, w, d, h, 'hip', col)]); }
+/** A fallen log along x: a two-wide course with a gabled top so it reads as round. */
+function log(x, z, len, col = 70) { return G('log', x, z, [box(0, 0, len, 2, 1, col), roof(0, 0, len, 2, 1, 'gable', col)]); }
+/** A campfire: a ring of stones, kindling and a flame. */
+function fire(x, z) { return G('fire', x, z, [box(0, 0, 4, 4, 1, 72, { hollow: true }), part('3062b', 70, 1, 1, 0), part('3062b', 70, 2, 2, 0), part('3062b', 4, 1, 2, 0), part('3062b', 25, 2, 1, 0), part('3062b', 25, 1, 1, 1), part('3062b', 14, 2, 2, 1), part('85959', 25, 1, 1, 2), part('85959', 14, 2, 2, 2)]); }
+/** A lamp post: a round column with a lit head. */
+function lamp(x, z, h = 6, col = 0) { const ops = []; for (let i = 0; i < h; i++) ops.push(part('3062b', col, 0, 0, i)); ops.push(part('3005', 46, 0, 0, h), part('3024', col, 0, 0, h + 1)); return G('lamp', x, z, ops); }
+/** A shopping cart: four wheels, a plate, a basket, a handle. */
+function cart(x, z, col = 4, turn = 0) { return G('cart', x, z, [part('4073', 0, 0, 0, 0), part('4073', 0, 3, 0, 0), part('4073', 0, 0, 1, 0), part('4073', 0, 3, 1, 0), slab(0, 0, 4, 2, 71, { plateOffset: 1 }), slab(0, 0, 4, 2, col, { plateOffset: 2, plates: 3 }), part('3062b', 0, 3, 0, 1, { plate: 2 }), part('3062b', 0, 3, 1, 1, { plate: 2 })], { turn }); }
+module.exports = { G, box, slab, cut, part, window, door, roof, stairs, arch, seeded, bigWindow, checker, shelf, tree, bush, rock, log, fire, lamp, cart };
