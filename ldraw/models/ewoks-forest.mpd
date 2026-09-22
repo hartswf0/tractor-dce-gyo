@@ -1,0 +1,196 @@
+0 FILE forest_skirmish.mpd
+0 Name: Moonlit Forest Skirmish (Ewoks vs Robots) — Expanded Forest + Ground Fix
+0 Author: LEGOS Cognitive Architect v8.0 (Compiled)
+0 !LDRAW_ORG Model
+0 !LICENSE Redistributable under CCAL version 2.0
+0 BFC CERTIFY CCW
+0 //
+0 // NOTE: In this scene's convention, MORE NEGATIVE Y = HIGHER.
+0 // Plane moved to a larger-negative Y to put it in the sky.
+0 //
+
+0 // - minifig_family.mpd (selected: 17,18,22,23 vs 19,20,24,25)
+0 // - production_scene.mpd (trees/bushes/crates/panels/door)
+0 // - vehicle_fleet.mpd (Vehicle 1 train, Vehicle 9 plane)
+0 //
+
+0 // ============================================================
+0 // MENTO CAMERA TRACK (Shot List)
+0 // ============================================================
+
+0 !MENTO SHOT "Skirmish Wide" POS   0 -200 480  TGT   0 -40   0  LENS 35
+0 !MENTO SHOT "Ewok Line"     POS -260 -160 120  TGT -260 -64  10  LENS 50
+0 !MENTO SHOT "Robot Line"    POS  260 -160  40  TGT  220 -64   0  LENS 50
+0 !MENTO SHOT "No Man's Land" POS   0 -180 -80  TGT   0 -40   0  LENS 45
+0 !MENTO SHOT "Train Vector"  POS 520 -140  40  TGT 220  -40  40  LENS 55
+0 !MENTO SHOT "Aerial Map"    POS   0 -620   0  TGT   0   0   0  LENS 55
+
+0 STEP
+0 // ===== EXPANDED GROUND (2x2 BASEPLATE FIELD) =====
+0 // (455.dat baseplate 16 x 24 with rounded corners; tiled to enlarge stage)
+1 16 -300 0 -80 1 0 0 0 1 0 0 0 1 455.dat
+1 16 180 0 -80 1 0 0 0 1 0 0 0 1 455.dat
+1 16 640 0 -80 1 0 0 0 1 0 0 0 1 455.dat
+1 16 640 0 -400 1 0 0 0 1 0 0 0 1 455.dat
+1 16 180 0 -400 1 0 0 0 1 0 0 0 1 455.dat
+1 16 -280 0 -400 1 0 0 0 1 0 0 0 1 455.dat
+1 16 -260 0 240 1 0 0 0 1 0 0 0 1 455.dat
+1 16 220 0 240 1 0 0 0 1 0 0 0 1 455.dat
+1 16 600 0 240 1 0 0 0 1 0 0 0 1 455.dat
+
+0 // Stage crease (fallen log / track-as-divider)
+1 16 0 0 -10  1 0 0  0 1 0  0 0 1  2865as10.dat
+
+0 STEP
+0 // ===== FOREST VOLUME (MORE TREES + UNDERBRUSH) =====
+0 // Cardinal canopy (north)
+1 16 0 0 280 1 0 0 0 1 0 0 0 1 2518c01.dat
+0 // Additional canopy rhythm
+1 16 -220 0 260 1 0 0 0 1 0 0 0 1 2518c01.dat
+1 16 220 0 260 1 0 0 0 1 0 0 0 1 2518c01.dat
+
+0 // Rim stumps (4 corners)
+1 16 -380 0 -420 1 0 0 0 1 0 0 0 1 30131.dat
+1 16 340 0 -420 1 0 0 0 1 0 0 0 1 30131.dat
+1 16 -360 0 200 1 0 0 0 1 0 0 0 1 30131.dat
+1 16 360 0 200 1 0 0 0 1 0 0 0 1 30131.dat
+
+0 // Trunk rails (east/west depth)
+1 16 -460 0  40  1 0 0  0 1 0  0 0 1  3778s01.dat
+1 16  460 0  40  1 0 0  0 1 0  0 0 1  3778s01.dat
+1 16 -460 0 -200  1 0 0  0 1 0  0 0 1  3778s01.dat
+1 16  460 0 -200  1 0 0  0 1 0  0 0 1  3778s01.dat
+
+0 // Midground pyramids (breakers)
+1 16 -240 0 220 1 0 0 0 1 0 0 0 1 3471s01.dat
+1 16 160 0 -240 1 0 0 0 1 0 0 0 1 3471s01.dat
+1 16 -200 0 -460  1 0 0  0 1 0  0 0 1  3471s01.dat
+1 16  200 0 -460  1 0 0  0 1 0  0 0 1  3471s01.dat
+
+0 // Underbrush ring (keep center clear)
+1 16 -260 0  120  1 0 0  0 1 0  0 0 1  6065s01.dat
+1 16 -320 0   20  1 0 0  0 1 0  0 0 1  6065s01.dat
+1 16 -300 0  -80  1 0 0  0 1 0  0 0 1  6065s01.dat
+1 16 -220 0 -160  1 0 0  0 1 0  0 0 1  6065s01.dat
+1 16  220 0 -160  1 0 0  0 1 0  0 0 1  6065s01.dat
+1 16  300 0  -80  1 0 0  0 1 0  0 0 1  6065s01.dat
+1 16  320 0   40  1 0 0  0 1 0  0 0 1  6065s01.dat
+1 16  260 0  140  1 0 0  0 1 0  0 0 1  6065s01.dat
+
+0 STEP
+0 // ===== EWOK “STUMP THRONE” (WEST) =====
+1 16 -260 0  10  1 0 0  0 1 0  0 0 1  30131.dat
+1 16 -240 0 -140  1 0 0  0 1 0  0 0 1  30131.dat
+1 16 -220 0  180  1 0 0  0 1 0  0 0 1  30131.dat
+
+0 STEP
+0 // ===== ROBOT COVER (HARD GEOMETRY) =====
+1 16  180 0   60  1 0 0  0 1 0  0 0 1  4237.dat
+1 16  240 0  -60  1 0 0  0 1 0  0 0 1  956.dat
+1 16  300 0  120  1 0 0  0 1 0  0 0 1  61780.dat
+1 16  220 0    0  1 0 0  0 1 0  0 0 1  35700.dat
+
+0 STEP
+0 // ===== SET-RIM (SOUNDSTAGE HORIZON / THRESHOLD) =====
+1 16 -140 -504 -240 1 0 0 0 1 0 0 0 1 64681d02.dat
+1 16 140 -504 -240 1 0 0 0 1 0 0 0 1 64681d03.dat
+1 16 0 -648 -139 1 0 0 0 1 0 0 0 1 4181c01.dat
+
+0 STEP
+0 // ===== INTRUSION VECTOR (TRAIN) =====
+1 16 660 -80 40 1 0 0 0 1 0 0 0 1 736c02.dat
+1 16 660 -40 0 1 0 0 0 1 0 0 0 1 4866d01.dat
+1 16 660 -100 40 1 0 0 0 1 0 0 0 1 32085.dat
+1 16 660 -60 100 1 0 0 0 1 0 0 0 1 4229.dat
+
+0 STEP
+0 // ===== AERIAL EYE (PLANE OVERHEAD) =====
+0 // FIX: move to MORE NEGATIVE Y to raise it (your convention)
+1 16   0 -520 -200  1 0 0  0 1 0  0 0 1  93541.dat
+1 16 0 -592 -240 1 0 0 0 1 0 0 0 1 46103.dat
+1 16   0 -500 -200  1 0 0  0 1 0  0 0 1  11778.dat
+1 16   0 -510 -280  1 0 0  0 1 0  0 0 1  3001.dat
+1 16   0 -470 -120  1 0 0  0 1 0  0 0 1  3001.dat
+1 16   0 -500 -140  1 0 0  0 1 0  0 0 1  4868b.dat
+
+0 STEP
+0 // =================================================================
+0 // EWOK WARBAND (WEST) :: from minifig_family members 17,18,22,23
+0 // =================================================================
+
+0 // [E17] Captain (near stump)
+1 5 -260 -64 0  1 0 0  0 1 0  0 0 1  parts/15524.dat
+1 5 -260 -84 0  1 0 0  0 1 0  0 0 1  parts/20695p01.dat
+1 5 -260 -60 0  1 0 0  0 1 0  0 0 1  parts/16360pdeb.dat
+1 5 -260 -28 0  1 0 0  0 1 0  0 0 1  parts/19859.dat
+1 5 -280 -16 0  1 0 0  0 1 0  0 0 1  parts/20460bp0g.dat
+1 5 -260 -16 0  1 0 0  0 1 0  0 0 1  parts/20461bp0g.dat
+
+0 // [E18] Hunter (rear-left)
+1 7 -320 -64 80  1 0 0  0 1 0  0 0 1  parts/15524p01.dat
+1 7 -320 -84 80  1 0 0  0 1 0  0 0 1  parts/24073.dat
+1 7 -320 -60 80  1 0 0  0 1 0  0 0 1  parts/16360pdg6.dat
+1 7 -320 -28 80  1 0 0  0 1 0  0 0 1  parts/19859p01.dat
+1 7 -340 -16 80  1 0 0  0 1 0  0 0 1  parts/20460bp0h.dat
+1 7 -320 -16 80  1 0 0  0 1 0  0 0 1  parts/20461bp0h.dat
+
+0 // [E22] Younger warrior (southwest)
+1 2 -300 -64 -140  1 0 0  0 1 0  0 0 1  parts/15525p02.dat
+1 2 -300 -84 -140  1 0 0  0 1 0  0 0 1  parts/24088.dat
+1 2 -300 -60 -140  1 0 0  0 1 0  0 0 1  parts/17.dat
+1 2 -315.552 -51 -140  1 0 0  0 1 0  0 0 1  parts/16000pxi.dat
+1 2 -284.44800000000001 -51 -140  1 0 0  0 1 0  0 0 1  parts/16000pxi.dat
+1 2 -300 -28 -140  1 0 0  0 1 0  0 0 1  parts/19859p05.dat
+1 2 -320 -16 -140  1 0 0  0 1 0  0 0 1  parts/20460bpde1.dat
+1 2 -300 -16 -140  1 0 0  0 1 0  0 0 1  parts/20461bpde1.dat
+
+0 // [E23] Trap operator (deep cover)
+1 1 -200 -64 -220  1 0 0  0 1 0  0 0 1  parts/15527.dat
+1 1 -200 -84 -220  1 0 0  0 1 0  0 0 1  parts/24636.dat
+1 1 -200 -60 -220  1 0 0  0 1 0  0 0 1  parts/19734.dat
+1 1 -215.552 -51 -220  1 0 0  0 1 0  0 0 1  parts/16001p00.dat
+1 1 -184.448 -51 -220  1 0 0  0 1 0  0 0 1  parts/16001p00.dat
+1 1 -200 -28 -220  1 0 0  0 1 0  0 0 1  parts/19859p06.dat
+1 1 -220 -16 -220  1 0 0  0 1 0  0 0 1  parts/20460bpde6.dat
+1 1 -200 -16 -220  1 0 0  0 1 0  0 0 1  parts/20461bpde6.dat
+
+0 STEP
+0 // =================================================================
+0 // ROBOT PHALANX (EAST) :: from minifig_family members 19,20,24,25
+0 // =================================================================
+
+0 // [R20] Captain (spearhead)
+1 10 200 -64 0  1 0 0  0 1 0  0 0 1  parts/15525.dat
+1 10 200 -84 0  1 0 0  0 1 0  0 0 1  parts/24076p01.dat
+1 10 200 -60 0  1 0 0  0 1 0  0 0 1  parts/16360pxh.dat
+1 10 200 -28 0  1 0 0  0 1 0  0 0 1  parts/19859p03.dat
+1 10 180 -16 0  1 0 0  0 1 0  0 0 1  parts/20460bpd87.dat
+1 10 200 -16 0  1 0 0  0 1 0  0 0 1  parts/20461bpd87.dat
+
+0 // [R19] Lieutenant (north)
+1 9 240 -64 80  1 0 0  0 1 0  0 0 1  parts/15524p02.dat
+1 9 240 -84 80  1 0 0  0 1 0  0 0 1  parts/24076.dat
+1 9 240 -60 80  1 0 0  0 1 0  0 0 1  parts/16360pdg8.dat
+1 9 240 -28 80  1 0 0  0 1 0  0 0 1  parts/19859p02.dat
+1 9 220 -16 80  1 0 0  0 1 0  0 0 1  parts/20460bpckc.dat
+1 9 240 -16 80  1 0 0  0 1 0  0 0 1  parts/20461bpckc.dat
+
+0 // [R24] Drone (south flank)
+1 14 260 -64 -80  1 0 0  0 1 0  0 0 1  parts/15527p02.dat
+1 14 260 -84 -80  1 0 0  0 1 0  0 0 1  parts/25264.dat
+1 14 260 -60 -80  1 0 0  0 1 0  0 0 1  parts/24078.dat
+1 14 244.44800000000001 -51 -80  1 0 0  0 1 0  0 0 1  parts/16001p01.dat
+1 14 275.552 -51 -80  1 0 0  0 1 0  0 0 1  parts/16001p01.dat
+1 14 260 -28 -80  1 0 0  0 1 0  0 0 1  parts/19859p07.dat
+1 14 240 -16 -80  1 0 0  0 1 0  0 0 1  parts/20460bpde7.dat
+1 14 260 -16 -80  1 0 0  0 1 0  0 0 1  parts/20461bpde7.dat
+
+0 // [R25] Drone (rear guard)
+1 6 320 -64 140  1 0 0  0 1 0  0 0 1  parts/15529.dat
+1 6 320 -84 140  1 0 0  0 1 0  0 0 1  parts/25971.dat
+1 6 320 -60 140  1 0 0  0 1 0  0 0 1  parts/24319.dat
+1 6 304.448 -51 140  1 0 0  0 1 0  0 0 1  parts/16001p02.dat
+1 6 335.552 -51 140  1 0 0  0 1 0  0 0 1  parts/16001p02.dat
+1 6 320 -28 140  1 0 0  0 1 0  0 0 1  parts/19859p08.dat
+1 6 300 -16 140  1 0 0  0 1 0  0 0 1  parts/20460bpdg3.dat
+1 6 320 -16 140  1 0 0  0 1 0  0 0 1  parts/20461bpdg3.dat

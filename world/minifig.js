@@ -74,6 +74,8 @@ const DEFS = {
   hoplite: { name: 'Hoplite', legs: 308, hips: 308, torso: 297, arms: 308, hands: 78, head: 78, hat: ['48493', 297], weapon: ['spear', '4497', 308], crowd: true },
   hauler: { name: 'Hauler', legs: 308, hips: 308, torso: 71, arms: 71, hands: 78, head: 78, hat: ['3901', 0], weapon: null, crowd: true },
   sailor: { name: 'Sailor', legs: 308, hips: 308, torso: 71, arms: 71, hands: 78, head: 78, hat: ['3901', 0], weapon: ['spear', '4497', 70], crowd: true },
+  ewok: { name: 'Ewok', legs: 308, hips: 308, torso: 308, arms: 308, hands: 84, head: 84, hat: ['30381', 84], weapon: ['spear', '4497', 308], short: true, crowd: true },
+  robot: { name: 'Robot', legs: 72, hips: 72, torso: 72, arms: 72, hands: 71, head: 71, hat: ['30409', 72], weapon: ['blaster', '58247', 0], crowd: true },
   shade: { name: 'A shade', legs: 0, hips: 0, torso: 0, arms: 0, hands: 0, head: 0, hat: ['30381', 0], weapon: null, cape: ['522', 0], bare: true, crowd: true },
   'penelope-ithaca': { name: 'Penelope of Ithaca', legs: 272, hips: 272, torso: 272, arms: 272, hands: 78, head: 78, hat: ['13750', 0], weapon: null, woman: true, face: 'halfworld:penelope' },
   'telemachus-ithaca': { name: 'Telemachus of Ithaca', legs: 72, hips: 72, torso: 71, arms: 71, hands: 18, head: 18, hat: ['21787', 0], weapon: null, face: 'halfworld:telemachus' },

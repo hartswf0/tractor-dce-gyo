@@ -13,10 +13,10 @@ const fs = require('fs'), path = require('path'), { execFileSync } = require('ch
 const root = path.resolve(__dirname, '..');
 global.window = {}; global.document = {}; require(path.join(root, 'world/film.js')); require(path.join(root, 'world/sound.js'));
 const Film = window.Film, Sound = window.Sound; global.Film = Film;
-for (const f of ['world/scenes-modes.js']) require(path.join(root, f));   // scene files that carry lines of their own
+for (const f of ['world/scenes-modes.js', 'world/scenes-cases.js']) require(path.join(root, f));   // scene files that carry lines of their own
 const VOICES = {
   leia: ['en-us+f3', 165, 45], luke: ['en-us+m7', 170, 55], han: ['en-us+m3', 150, 38], narrator: ['en-gb-x-rp+m2', 140, 30], vader: ['en-gb+m1', 125, 12],
-  c3po: ['en-gb-x-rp+m4', 190, 70], trooper: ['en-us+m2', 165, 50], scout: ['en-us+m2', 170, 52], rogue: ['en-us+m6', 170, 48], comms: ['en-us+f2', 165, 50], pilot: ['en-us+m6', 170, 48], rebel: ['en-us+m5', 165, 45],
+  c3po: ['en-gb-x-rp+m4', 190, 70], marge: ['en-us+f4', 150, 60], homer: ['en-us+m4', 145, 30], clerk: ['en-us+f2', 165, 48], ewok: ['en-us+f5', 210, 90], trooper: ['en-us+m2', 165, 50], scout: ['en-us+m2', 170, 52], rogue: ['en-us+m6', 170, 48], comms: ['en-us+f2', 165, 50], pilot: ['en-us+m6', 170, 48], rebel: ['en-us+m5', 165, 45],
 };
 const voiceFor = who => VOICES[String(who || '').toLowerCase().split(/[-\s]/)[0]] || VOICES.narrator;
 function ffmpeg() { if (process.env.FFMPEG) return process.env.FFMPEG; try { return execFileSync('python3', ['-c', 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())']).toString().trim(); } catch (e) { return 'ffmpeg'; } }
