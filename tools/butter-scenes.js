@@ -26,7 +26,14 @@ function quatOf(m) { const [a, b, c, d, e, f, g, h, i] = m; const M = [a, -b, -c
   else if (M[4] > M[8]) { const s = Math.sqrt(1 + M[4] - M[0] - M[8]) * 2; q = [(M[1] + M[3]) / s, 0.25 * s, (M[5] + M[7]) / s, (M[2] - M[6]) / s]; }
   else { const s = Math.sqrt(1 + M[8] - M[0] - M[4]) * 2; q = [(M[2] + M[6]) / s, (M[5] + M[7]) / s, 0.25 * s, (M[3] - M[1]) / s]; }
   return q.map(v => +v.toFixed(5)); }
-function readSet(file) { const rows = []; for (const l of fs.readFileSync(path.join(root, 'ldraw/models', file), 'utf8').split(/\r?\n/)) { const m = l.match(/^1\s+(\d+)\s+(-?[\d.eE+-]+)\s+(-?[\d.eE+-]+)\s+(-?[\d.eE+-]+)\s+((?:-?[\d.eE+-]+\s+){9})(.+?)\s*$/); if (!m) continue; const id = m[6].replace(/^parts\//i, '').replace(/\.dat$/i, '').toLowerCase(); if (/[\/\\]/.test(id)) continue; rows.push({ part: id, color: +m[1], x: +m[2], y: +m[3], z: +m[4], m: m[5].trim().split(/\s+/).map(Number) }); } return rows; }
+/* a part the app can load: every reference in its tree answered by the library (the app fetches parts and their subfiles itself and refuses a part with a hole) */
+const okCache = new Map(), dropped = new Set();
+function loadable(id, depth = 0) { if (okCache.has(id)) return okCache.get(id); if (depth > 8) return true; let ok = false;
+  const dirs = id.startsWith('s/') ? ['parts/s'] : id.startsWith('48/') ? ['p/48'] : id.startsWith('8/') ? ['p/8'] : ['parts', 'p'];   // as the app resolves a reference: a bare name in parts or p, a folder only where it is written
+  for (const dir of dirs) { const f = path.join(root, 'ldraw', dir, id.replace(/^(s|48|8)\//, '') + '.dat'); if (!fs.existsSync(f)) continue; ok = true;
+    for (const l of fs.readFileSync(f, 'utf8').split(/\r?\n/)) { const m = l.match(/^1\s+\S+(?:\s+-?[\d.eE+-]+){12}\s+(.+?)\s*$/); if (!m) continue; const ref = m[1].replace(/\\/g, '/').replace(/\.dat$/i, '').toLowerCase(); if (!loadable(ref, depth + 1)) { ok = false; break; } } break; }
+  okCache.set(id, ok); return ok; }
+function readSet(file) { const rows = []; for (const l of fs.readFileSync(path.join(root, 'ldraw/models', file), 'utf8').split(/\r?\n/)) { const m = l.match(/^1\s+(\d+)\s+(-?[\d.eE+-]+)\s+(-?[\d.eE+-]+)\s+(-?[\d.eE+-]+)\s+((?:-?[\d.eE+-]+\s+){9})(.+?)\s*$/); if (!m) continue; const id = m[6].replace(/^parts\//i, '').replace(/\.dat$/i, '').toLowerCase(); if (/[\/\\]/.test(id)) continue; if (!loadable(id)) { dropped.add(id); continue; } rows.push({ part: id, color: +m[1], x: +m[2], y: +m[3], z: +m[4], m: m[5].trim().split(/\s+/).map(Number) }); } return rows; }
 function toPlate(rows, cx, cz, floor) { return rows.map((r, i) => { const q = quatOf(r.m), ident = q[3] > 0.99999; return { id: 's' + i, part: r.part, color: r.color, x: Math.round(r.x - cx), y: Math.round(floor - r.y), z: Math.round(-(r.z - cz)), r: 0, ...(ident ? {} : { q }) }; }); }
 const HALF = 400;
 function presetsOf(c) {
@@ -58,4 +65,4 @@ html = html.slice(0, preEnd) + ',\n' + presets.map(p => JSON.stringify(p)).join(
 need(/\$\('#scenePreset'\)\.onchange=describe;describe\(\);/, 'scene picker'); html = html.replace(/\$\('#scenePreset'\)\.onchange=describe;describe\(\);/, "$('#scenePreset').onchange=describe;describe();{const want=new URLSearchParams(location.search).get('scene');if(want&&ButterScenePresets.some(s=>s.id===want)){$('#scenePreset').value=want;describe();setTimeout(()=>$('#sceneLoad').click(),1200);}}");
 html = html.replace(/<title>[^<]*<\/title>/, '<title>The scenes in Hand Butter</title>');
 fs.mkdirSync(path.dirname(path.join(root, out)), { recursive: true }); fs.writeFileSync(path.join(root, out), html);
-console.log(`${out}: ${presets.length} presets from ${CASES.length} cases (${presets.map(p => p.id + ':' + p.parts.length).join(' ')}), ${used.size} parts added to the index, ${Object.keys(LDC).length - have.size} colours added, ${(html.length / 1e6).toFixed(1)} MB (was ${(bytes0 / 1e6).toFixed(1)})`);
+console.log(`parts the library cannot answer, left out: ${[...dropped].join(' ') || 'none'}`); console.log(`${out}: ${presets.length} presets from ${CASES.length} cases (${presets.map(p => p.id + ':' + p.parts.length).join(' ')}), ${used.size} parts added to the index, ${Object.keys(LDC).length - have.size} colours added, ${(html.length / 1e6).toFixed(1)} MB (was ${(bytes0 / 1e6).toFixed(1)})`);
