@@ -1,0 +1,72 @@
+0 // MENTO film · Mock City → offline, so Hlíðarendi, Iceland · word to momento
+0 !MENTO ASPECT 16:9 FPS 24
+0 !MENTO STORY {"title":"The Checkout","description":"A small workplace, an ordinary procedure, one thing processed wrongly, and the reactions that follow: Marge unloads the cart, the belt carries Maggie to the scanner, the register names a price, and the bag is the wrong place for a baby.","location":"the checkout lane of the Springfield grocery store","entities":[{"id":"marge","type":"character","name":"Marge","traits":["the cart","the wide face"]},{"id":"maggie","type":"character","name":"Maggie","traits":["on the belt","the worried face"]},{"id":"clerk","type":"character","name":"the checkout clerk","traits":["the scanner","the procedure"]},{"id":"homer","type":"character","name":"Homer","traits":["next in line","the magazine"]},{"id":"lane","type":"location","name":"the lane","traits":["the belt","the register","the bag stand"]}],"goals":["get through the lane"],"obstacles":["the procedure does not know a baby from the groceries"],"shifts":[{"id":"queue","name":"The queue"},{"id":"belt","name":"The belt"},{"id":"scan","name":"The scan"},{"id":"price","name":"The price"},{"id":"bag","name":"The bag"},{"id":"fix","name":"The fix"}],"why":"a procedure done exactly right on the wrong thing","direction":"deadpan"}
+0 !MENTO ACTOR "marge" FIGURE marge AT 37641892.14 -83456350.41 HEADING 0
+0 !MENTO ACTOR "maggie" FIGURE maggie AT 37641952.14 -83456334.41 HEADING 0
+0 !MENTO ACTOR "clerk" FIGURE citizen AT 37642052.14 -83456214.41 HEADING 180
+0 !MENTO ACTOR "homer" FIGURE homer AT 37641772.14 -83456374.41 HEADING 60
+0 !MENTO DONOR "the lane" SET simpsons-grocery AT 941048.8 -2086406.16 HEADING 0 SCALE 2.5
+0 !MENTO MARK "cart" AT 941047.3 -2086408.76 COL 4
+0 !MENTO MARK "belt" AT 941048.8 -2086408.36 COL 14
+0 !MENTO MARK "register" AT 941051.3 -2086405.36 COL 1
+0 !MENTO MARK "bags" AT 941053 -2086405.56 COL 2
+0 !MENTO MARK "queue" AT 941044.3 -2086409.36 COL 25
+0 !MENTO MARK "door" AT 941055.8 -2086410.16 COL 15
+0 // SHOT 1: THE CHECKOUT
+0 !MENTO TITLE "THE CHECKOUT" STYLE card SEC 2 SCORE "springfield"
+0 !MENTO EVENT LINE "narrator" "The checkout." AT 0.3 FOR 1.2
+0 // SHOT 2: THE QUEUE
+0 !MENTO SHOT "The queue" POS 37641592.14 -128 -83456606.41 TGT 37641972.14 -56 -83456278.41 LENS 40 SEC 6 SHIFT "queue"
+0 !MENTO BEAT "queue" "marge" FROM 0 TO 6 WHY "an ordinary lane on an ordinary day" DIRECT neutral
+0 !MENTO EVENT SOUND "click" AT 0.8
+0 !MENTO EVENT LINE "clerk" "Next, please." AT 1 FOR 1.4
+0 !MENTO PERFORM "marge" LOOK "clerk" AT 1.2
+0 !MENTO PHRASE "homer" listen AT 0.5 ENTER 0.4
+0 !MENTO EVENT LINE "homer" "Mom Monthly. Huh." AT 3.6 FOR 1.6
+0 // SHOT 3: THE BELT
+0 !MENTO SHOT "The belt" POS 37641772.14 -88 -83456502.41 TGT 37641960.14 -52 -83456318.41 LENS 34 SEC 6 SHIFT "belt"
+0 !MENTO ACT "marge" TO 37641952.14 -83456334.41 WALK
+0 !MENTO BEAT "belt" "marge" FROM 0 TO 6 WHY "the groceries go on the belt, and the baby goes on the belt" DIRECT neutral
+0 !MENTO EVENT SOUND "servo" AT 0.6
+0 !MENTO EVENT SOUND "servo" AT 2.2
+0 !MENTO EVENT SOUND "servo" AT 3.8
+0 !MENTO FACE "maggie" wide AT 2
+0 !MENTO EVENT LINE "marge" "Hold still, Maggie." AT 2.4 FOR 1.6
+0 // SHOT 4: THE SCAN
+0 !MENTO SHOT "The scan" POS 37642176.14 -104 -83456438.41 TGT 37642024.14 -60 -83456254.41 LENS 36 SEC 6 SHIFT "scan"
+0 !MENTO BEAT "scan" "clerk" FROM 0 TO 6 WHY "the procedure: everything on the belt gets scanned" DIRECT deadpan
+0 !MENTO PERFORM "clerk" LOOK "maggie" AT 0.4
+0 !MENTO SET "clerk" arm.R.pitch -1.6 AT 1.2 OVER 0.5
+0 !MENTO EVENT SOUND "ping" AT 2.2
+0 !MENTO EVENT SOUND "ping" AT 3
+0 !MENTO EVENT SOUND "ping" AT 3.9
+0 !MENTO PHRASE "clerk" deadpan AT 0.3 ENTER 0.4
+0 !MENTO FACE "maggie" worried AT 3
+0 // SHOT 5: THE PRICE
+0 !MENTO SHOT "The price" POS 37641976.14 -96 -83456546.41 TGT 37642040.14 -64 -83456234.41 LENS 30 SEC 5 SHIFT "price"
+0 !MENTO BEAT "price" "clerk" FROM 0 TO 5 WHY "the register knows a number for everything" DIRECT deadpan
+0 !MENTO EVENT SOUND "ping" AT 0.6
+0 !MENTO EVENT LINE "clerk" "That will be eight hundred and forty seven dollars and sixty three cents." AT 1 FOR 3.6
+0 !MENTO PHRASE "marge" skepticism AT 1.4 ENTER 0.4
+0 // SHOT 6: THE BAG
+0 !MENTO SHOT "The bag" POS 37641768.14 -80 -83456462.41 TGT 37641904.14 -68 -83456334.41 LENS 30 SEC 5 SHIFT "bag"
+0 !MENTO BEAT "bag" "marge" FROM 0 TO 5 WHY "she sees where the baby is going" DIRECT concern
+0 !MENTO FACE "marge" wide AT 0.4
+0 !MENTO PHRASE "marge" concern AT 0.4 ENTER 0.4
+0 !MENTO PERFORM "marge" LOOK "bags" AT 0.3 KEEP gaze
+0 !MENTO EVENT SOUND "clatter" AT 2
+0 !MENTO EVENT LINE "marge" "That one does not go in the bag." AT 2.4 FOR 2.2
+0 !MENTO SET "marge" arm.L.pitch -2.2 AT 2.2 OVER 0.5
+0 // SHOT 7: THE FIX
+0 !MENTO SHOT "The fix" POS 37641632.14 -120 -83456586.41 TGT 37641984.14 -56 -83456270.41 LENS 38 SEC 7 SHIFT "fix"
+0 !MENTO ACT "marge" TO 37642120.14 -83456222.41 WALK
+0 !MENTO ACT "homer" TO 37641892.14 -83456350.41 WALK
+0 !MENTO BEAT "fix" "marge" FROM 0 TO 7 WHY "the baby comes out of the bag; the procedure shrugs" DIRECT resolve
+0 !MENTO PHRASE "marge" resolve AT 0.3 ENTER 0.4
+0 !MENTO PHRASE "clerk" shrug AT 3 ENTER 0.4
+0 !MENTO EVENT LINE "clerk" "It scanned." AT 3.4 FOR 1.2
+0 !MENTO FACE "maggie" wide AT 4
+0 !MENTO EVENT LINE "homer" "Do we still get the stamps?" AT 5 FOR 1.8
+0 !MENTO PHRASE "homer" irony AT 4.8 ENTER 0.4
+0 // SHOT 8: THE CARD
+0 !MENTO TITLE "THE CHECKOUT\nA CASE TO REHEARSE" STYLE card SEC 3 SCORE "end"
