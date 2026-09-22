@@ -24,26 +24,26 @@ Film.SCENES['case-grocery'] = { name: 'The Checkout', time: 'day', weather: 'cle
     entities: [{ id: 'marge', type: 'character', name: 'Marge', traits: ['the cart', 'the wide face'] }, { id: 'maggie', type: 'character', name: 'Maggie', traits: ['on the belt', 'the worried face'] }, { id: 'clerk', type: 'character', name: 'the checkout clerk', traits: ['the scanner', 'the procedure'] }, { id: 'homer', type: 'character', name: 'Homer', traits: ['next in line', 'the magazine'] }, { id: 'lane', type: 'location', name: 'the lane', traits: ['the belt', 'the register', 'the bag stand'] }],
     goals: ['get through the lane'], obstacles: ['the procedure does not know a baby from the groceries'], shifts: [{ id: 'queue', name: 'The queue' }, { id: 'belt', name: 'The belt' }, { id: 'scan', name: 'The scan' }, { id: 'price', name: 'The price' }, { id: 'bag', name: 'The bag' }, { id: 'fix', name: 'The fix' }], why: 'a procedure done exactly right on the wrong thing', direction: 'deadpan' },
   donors: [{ name: 'the lane', set: 'grocery-store', x: 0, z: 0, heading: 180, scale: 1 }],   /* the counter runs along x; the customers stand on the south side (z > 0), the clerk behind it (z < 0.6) */
-  marks: { cart: [-5, -4], belt: [6, -1.75], register: [8, -1.75], bags: [5.5, -0.25], queue: [3, -2], door: [-0.75, -5], aisle: [-2, -1] },   /* stud (x, z) of the model halved and centred, heading 180 so stud x runs east and stud z south: the belt is at studs 34..39 × 10..11, the register at 40..41, the bagging shelf at 34..36 × 13..14, the carts by the door at 12..20 × 6..7 */
+  marks: { cart: [1, -4], belt: [6, -1.75], register: [8, -1.75], bags: [5.5, -0.25], queue: [3, -2], door: [-0.75, -5], aisle: [-2, -1] },   /* stud (x, z) of the model halved and centred, heading 180 so stud x runs east and stud z south: the belt is at studs 34..39 × 10..11, the register at 40..41, the bagging shelf at 34..36 × 13..14, the carts by the door at 12..20 × 6..7 */
   actors: [
     { name: 'marge', figure: 'marge', label: 'Marge', x: 6, z: -1.5, heading: 0 },
     { name: 'maggie', figure: 'maggie', label: 'Maggie', x: 6.75, z: -1.25, heading: 0 },
     { name: 'clerk', figure: 'citizen', label: 'the clerk', x: 7, z: -3.5, heading: 180 },
-    { name: 'homer', figure: 'homer', label: 'Homer', x: -5, z: -3.5, heading: 90 }],
+    { name: 'homer', figure: 'homer', label: 'Homer', x: 1, z: -3.5, heading: 90 }],
   shots: [
     { score: 'springfield', title: 'THE CHECKOUT', style: 'card', sec: 2, events: [SAY('narrator', 'The checkout.', 0.3, 1.2)] },
-    { name: 'The queue', on: 'the lane', pos: [0, 1.8, -4.5], tgt: [6.5, 1.2, -2.5], lens: 35, sec: 6, shift: 'queue', handheld: 0.2,
+    { name: 'The queue', on: 'the lane', pos: [-5, 2.2, -4], tgt: [6.5, 1.2, -2.5], lens: 35, sec: 6, shift: 'queue', handheld: 0.2,
       events: [BEAT('queue', 'marge', 0, 6, 'an ordinary lane on an ordinary day', 'neutral'), SND('click', 0.8), SAY('clerk', 'Next, please.', 1.0, 1.4), LOOK('marge', 'clerk', 1.2), P('homer', 'listen', 0.5), SAY('homer', 'Mom Monthly. Huh.', 3.6, 1.6)] },
-    { name: 'The belt', on: 'maggie', pos: [4.5, 1.5, -1], tgt: [6.5, 1, -2.5], lens: 40, sec: 6, shift: 'belt',
+    { name: 'The belt', on: 'maggie', pos: [7, 2, 1], tgt: [6.25, 1, -2.5], lens: 40, sec: 6, shift: 'belt',
       acts: [{ who: 'marge', to: 'belt', walk: true }],
       events: [BEAT('belt', 'marge', 0, 6, 'the groceries go on the belt, and the baby goes on the belt', 'neutral'), SND('servo', 0.6), SND('servo', 2.2), SND('servo', 3.8), FACE('maggie', 'wide', 2.0), SAY('marge', 'Hold still, Maggie.', 2.4, 1.6)] },
-    { name: 'The scan', on: 'clerk', pos: [9.5, 1.6, -1.5], tgt: [8, 1.1, -2.75], lens: 35, sec: 6, shift: 'scan', handheld: 0.3,
+    { name: 'The scan', on: 'clerk', pos: [9.25, 2.2, -0.5], tgt: [8, 0.9, -2.75], lens: 40, sec: 6, shift: 'scan', handheld: 0.3,
       events: [BEAT('scan', 'clerk', 0, 6, 'the procedure: everything on the belt gets scanned', 'deadpan'), LOOK('clerk', 'maggie', 0.4), SET('clerk', 'arm.R.pitch', -1.6, 1.2, 0.5), SND('ping', 2.2), SND('ping', 3.0), SND('ping', 3.9), P('clerk', 'deadpan', 0.3), FACE('maggie', 'worried', 3.0)] },
     { name: 'The price', on: 'the lane', pos: [7, 1.6, 0], tgt: [6, 1.5, -1.5], lens: 32, sec: 5, shift: 'price',
       events: [BEAT('price', 'clerk', 0, 5, 'the register knows a number for everything', 'deadpan'), SND('ping', 0.6), SAY('clerk', 'That will be eight hundred and forty seven dollars and sixty three cents.', 1.0, 3.6), P('marge', 'skepticism', 1.4)] },
     { name: 'The bag', on: 'marge', pos: [4, 1.5, 0.5], tgt: [5.5, 1, -1], lens: 34, sec: 5, shift: 'bag', handheld: 0.4,
       events: [BEAT('bag', 'marge', 0, 5, 'she sees where the baby is going', 'concern'), FACE('marge', 'wide', 0.4), P('marge', 'concern', 0.4), LOOK('marge', 'bags', 0.3, true), SND('clatter', 2.0), SAY('marge', 'That one does not go in the bag.', 2.4, 2.2), SET('marge', 'arm.L.pitch', -2.2, 2.2, 0.5)] },
-    { name: 'The fix', on: 'the lane', pos: [2, 2.6, 2], tgt: [6.5, 1.2, -2.5], lens: 38, sec: 7, shift: 'fix',
+    { name: 'The fix', on: 'the lane', pos: [1, 3.6, 4], tgt: [6.5, 1, -2.5], lens: 38, sec: 7, shift: 'fix',
       acts: [{ who: 'marge', to: 'bags', walk: true }, { who: 'homer', to: 'cart', walk: true }],
       events: [BEAT('fix', 'marge', 0, 7, 'the baby comes out of the bag; the procedure shrugs', 'resolve'), P('marge', 'resolve', 0.3), P('clerk', 'shrug', 3.0), SAY('clerk', 'It scanned.', 3.4, 1.2), FACE('maggie', 'wide', 4.0), SAY('homer', 'Do we still get the stamps?', 5.0, 1.8), P('homer', 'irony', 4.8)] },
     { score: 'end', title: 'THE CHECKOUT\nA CASE TO REHEARSE', style: 'card', sec: 3, name: 'the card' }] };
@@ -62,12 +62,12 @@ Film.SCENES['case-ewoks'] = { name: 'The Forest Skirmish', time: 'day', weather:
   shots: [
     { score: 'march', title: 'THE FOREST SKIRMISH', style: 'card', sec: 2, events: [SAY('narrator', 'The forest skirmish.', 0.3, 1.4)] },
     { name: 'Skirmish wide', on: 'the clearing', pos: [-6, 7, 14], tgt: [0, 1, -1], lens: 36, sec: 6, shift: 'lines', events: [BEAT('lines', 'ewok-1', 0, 6, 'two lines, a log between them, nobody moving first', 'guarded'), SND('chirp', 1.0), SND('chirp', 2.8), SAY('narrator', 'Two lines. Ewoks by the train to the west, robots by the stumps to the east.', 0.8, 3.6)] },
-    { name: 'Ewok line', on: 'ewok-1', pos: [-7, 1.6, -3], tgt: [-11, 1.2, -2], lens: 40, sec: 4, shift: 'lines', events: [P('ewok-1', 'guarded', 0.3), P('ewok-2', 'listen', 0.5), LOOK('ewok-1', 'robot-1', 0.4, true), SAY('ewok-1', 'Yub nub.', 1.6, 1.0), SND('chirp', 2.6)] },
+    { name: 'Ewok line', on: 'ewok-1', pos: [-4, 1.6, -4.5], tgt: [-10.5, 1, -2], lens: 36, sec: 4, shift: 'lines', events: [P('ewok-1', 'guarded', 0.3), P('ewok-2', 'listen', 0.5), LOOK('ewok-1', 'robot-1', 0.4, true), SAY('ewok-1', 'Yub nub.', 1.6, 1.0), SND('chirp', 2.6)] },
     { name: 'Robot line', on: 'robot-1', pos: [1, 1.6, 3], tgt: [5, 1.2, 3.5], lens: 40, sec: 4, shift: 'intrusion', acts: [{ who: 'robot-1', to: 'robot-rush', walk: true }], events: [BEAT('intrusion', 'robot-1', 0, 4, 'one robot steps over the line', 'resolve'), P('robot-1', 'resolve', 0.3), SND('servo', 0.6), SND('servo', 1.8), SAY('robot-1', 'Advancing.', 1.0, 1.2)] },
-    { name: "No man's land", on: 'middle', pos: [-1, 1.5, 2], tgt: [-1, 1, -1.5], lens: 35, sec: 6, shift: 'ambush', handheld: 0.5,
+    { name: "No man's land", on: 'middle', pos: [-1, 2.4, 2.5], tgt: [-1, 1, -2], lens: 35, sec: 6, shift: 'ambush', handheld: 0.5,
       acts: [{ who: 'ewok-1', to: 'ewok-rush' }, { who: 'ewok-2', to: 'middle' }, { who: 'ewok-3', to: 'ewok-rush' }],
       events: [BEAT('ambush', 'ewok-1', 0, 6, 'the Ewoks rush the one who crossed', 'confrontation'), SND('roar', 0.5), SND('swing', 2.4), SND('clash', 2.9), SND('thud', 3.4), { what: 'SHAKE', at: 3.0 }, P('robot-1', 'panic', 3.2), P('ewok-2', 'angry', 2.8)] },
-    { name: 'Train vector', on: 'track', pos: [8, 2.5, -6], tgt: [14.5, 1.5, -1.5], lens: 40, sec: 5, shift: 'train', events: [BEAT('train', 'robot-2', 0, 5, 'the train comes down the crease and both sides take it for the enemy', 'fear'), SND('static', 0.4), SND('clatter', 1.6), SND('clatter', 2.8), P('robot-2', 'fear', 1.2), P('robot-3', 'fear', 1.6), LOOK('robot-2', 'track', 0.6, true), SAY('narrator', 'A train on the west rim. Both lines take it for the enemy.', 1.0, 3.0)] },
+    { name: 'Train vector', on: 'track', pos: [8, 2.5, -4], tgt: [14.75, 1.2, -2], lens: 40, sec: 5, shift: 'train', events: [BEAT('train', 'robot-2', 0, 5, 'the train comes down the crease and both sides take it for the enemy', 'fear'), SND('static', 0.4), SND('clatter', 1.6), SND('clatter', 2.8), P('robot-2', 'fear', 1.2), P('robot-3', 'fear', 1.6), LOOK('robot-2', 'track', 0.6, true), SAY('narrator', 'A train on the west rim. Both lines take it for the enemy.', 1.0, 3.0)] },
     { name: 'The reversal', on: 'the clearing', pos: [0, 6, -12], tgt: [0, 1, 0], lens: 40, sec: 6, shift: 'reversal',
       acts: [{ who: 'robot-1', to: 'robot-cover', walk: true }, { who: 'robot-2', to: 'robot-cover', walk: true }, { who: 'robot-3', to: 'robot-cover', walk: true }, { who: 'ewok-1', to: 'ewok-cover', walk: true }, { who: 'ewok-2', to: 'ewok-cover', walk: true }, { who: 'ewok-3', to: 'ewok-cover', walk: true }],
       events: [BEAT('reversal', 'ewok-1', 0, 6, 'both lines pull back; the log keeps the peace', 'weariness'), P('robot-3', 'panic', 0.3), SND('clatter', 1.0), SAY('narrator', 'Both sides withdrew. The train did not notice.', 2.0, 3.2)] },
@@ -76,7 +76,7 @@ Film.SCENES['case-ewoks'] = { name: 'The Forest Skirmish', time: 'day', weather:
 
 /* ── 3. The cave: Plato's Republic VII on the four-zone construct (platos-cave.mpd) ── */
 const CAVE = { hemi: 4, sun: 0, exposure: 1.2 };   /* the cave shots at night: the look's hemi is a multiplier on the night's ambient (four times it reads), no sun, the exposure up; the fire is a lamp close to what it lights */
-const FIRE = { at: [-0.25, 1.2, 1.75], color: 0xff7a2a, intensity: 12, distance: 40 };
+const FIRE = { at: [-0.25, 2.4, 1.75], color: 0xff7a2a, intensity: 20, distance: 30 };
 Film.SCENES['case-plato'] = { name: "The Cave", time: 'night', weather: 'clear', ground: 'flat', me: 'off', part: 'freed', set: { kind: 'hall', r: 60, seed: 1 },   /* a dark hall round the construct: nothing of the valley shows past the cave walls */
   story: { title: 'The Cave', description: 'Captives face a wall of shadows; behind them on the parapet the puppeteers carry shapes before a fire. One captive is loosed, turns, and sees who makes the shadows; the climb to the light; the return to people who prefer the wall.', location: "Plato's cave: the pit, the screen, the parapet, the fire, the ascent",
     entities: [{ id: 'captives', type: 'crowd', name: 'the captives', traits: ['bound', 'facing the wall'] }, { id: 'freed', type: 'character', name: 'the freed one', traits: ['turns', 'climbs'] }, { id: 'puppeteers', type: 'crowd', name: 'the puppeteers', traits: ['the parapet', 'the shapes'] }, { id: 'fire', type: 'location', name: 'the fire', traits: ['the false light'] }, { id: 'sun', type: 'location', name: 'the ascent', traits: ['the true light'] }],
@@ -90,9 +90,9 @@ Film.SCENES['case-plato'] = { name: "The Cave", time: 'night', weather: 'clear',
     { name: 'puppeteer-1', figure: 'hauler', label: 'a puppeteer', x: -6, z: -0.5, heading: 0 }, { name: 'puppeteer-2', figure: 'hauler', label: 'a puppeteer', x: 5, z: -0.5, heading: 0 }],   /* the captives stand before the bench facing the wall; the puppeteers stand behind the parapet by the fire, out of the captives' sight */
   shots: [
     { score: 'dread', title: 'THE CAVE', style: 'card', sec: 2, events: [SAY('narrator', 'The cave. Republic, book seven.', 0.3, 2.0)] },
-    { name: 'The shadows', on: 'screen', pos: [-0.25, 2.2, -5], tgt: [-0.25, 2, -11.5], lens: 45, sec: 7, shift: 'shadows', look: CAVE, lamp: { at: [-0.25, 3, -6.5], color: 0xff7a2a, intensity: 8, distance: 30 },
+    { name: 'The shadows', on: 'screen', pos: [-0.25, 2.6, -4], tgt: [-0.25, 2.2, -11.5], lens: 40, sec: 7, shift: 'shadows', look: CAVE, lamp: { at: [-0.25, 3, -6.5], color: 0xff7a2a, intensity: 8, distance: 30 },
       events: [BEAT('shadows', 'freed', 0, 7, 'shapes cross the wall; the captives name them', 'wonder'), SND('static', 0.5), SAY('narrator', 'They have been here since childhood, and see only the shadows.', 1.2, 4.2), P('captive-1', 'listen', 0.4), P('captive-2', 'listen', 0.6), P('freed', 'wonder', 2.0)] },
-    { name: 'The puppeteers', on: 'parapet', pos: [9, 1.7, 1], tgt: [-0.5, 1.6, -1.5], lens: 38, sec: 6, shift: 'puppeteers', look: CAVE, lamp: FIRE,
+    { name: 'The puppeteers', on: 'parapet', pos: [6, 1.8, 3.5], tgt: [-0.25, 1.4, -1.5], lens: 38, sec: 6, shift: 'puppeteers', look: CAVE, lamp: FIRE,
       events: [BEAT('puppeteers', 'puppeteer-1', 0, 6, 'behind the wall, the people who carry the shapes', 'deadpan'), SET('puppeteer-1', 'arm.R.pitch', -2.8, 0.6, 0.8), SET('puppeteer-2', 'arm.L.pitch', -2.8, 1.0, 0.8), SND('servo', 1.2), SND('servo', 3.6), SAY('narrator', 'Behind them a fire, and between the fire and the captives a wall, along which men carry figures.', 0.8, 4.6)] },
     { name: 'The turn', on: 'freed', pos: [2, 1.7, -7], tgt: [-0.25, 1.5, -8], lens: 32, sec: 7, shift: 'turn', look: CAVE, lamp: { at: [1, 2.5, -6.5], color: 0xff7a2a, intensity: 6, distance: 30 },
       events: [BEAT('turn', 'freed', 0, 7, 'loosed, he turns his head and sees the fire', 'recognition'), SET('freed', 'head.yaw', 2.4, 1.0, 1.4), SET('freed', 'torso.twist', 0.6, 1.4, 1.2), P('freed', 'wonder', 2.4), LOOK('freed', 'fire', 2.6, true), SND('breath', 3.0), SAY('narrator', 'Suppose one were freed, and made to turn his head.', 1.4, 3.0)] },
@@ -102,7 +102,7 @@ Film.SCENES['case-plato'] = { name: "The Cave", time: 'night', weather: 'clear',
     { name: 'The sun', on: 'out', pos: [20, 1.4, 7], tgt: [14, 5.5, 0], lens: 44, sec: 6, shift: 'sun', set: { kind: 'desert', r: 40, seed: 5, time: 'dawn' }, look: { hemi: 0.5, sun: 1.2, elev: 12, azim: 180, exposure: 1.0 },
       acts: [{ who: 'freed', to: 'out', walk: true }],
       events: [BEAT('sun', 'freed', 0, 6, 'the thing itself, not its shadow', 'wonder'), P('freed', 'wonder', 1.0), { what: 'FLASH', at: 0.4 }, SAY('narrator', 'Last of all he would see the sun, not in the water, but itself, in its own place.', 1.0, 4.4)] },
-    { name: 'The return', on: 'row', pos: [-2.5, 1.8, -5.5], tgt: [-0.25, 1.4, -8], lens: 36, sec: 7, shift: 'return', set: { kind: 'hall', r: 60, seed: 1, time: 'night' }, look: CAVE, lamp: { at: [1, 2.5, -6.5], color: 0xff7a2a, intensity: 6, distance: 30 },
+    { name: 'The return', on: 'row', pos: [-3.5, 2.4, -4.5], tgt: [-0.25, 1.4, -8], lens: 40, sec: 7, shift: 'return', set: { kind: 'hall', r: 60, seed: 1, time: 'night' }, look: CAVE, lamp: { at: [1, 2.5, -6.5], color: 0xff7a2a, intensity: 6, distance: 30 },
       acts: [{ who: 'freed', to: 'side', walk: true }],
       events: [BEAT('return', 'freed', 0, 7, 'he comes back down to tell them, and they laugh at his ruined eyes', 'hurt'), P('freed', 'appeal', 1.0), P('captive-1', 'contempt', 3.0), P('captive-2', 'skepticism', 3.4), SAY('narrator', 'Would they not say his eyes were ruined by the climb, and that it was not worth even trying?', 1.0, 4.6)] },
     { score: 'end', title: 'THE CAVE\nA CASE TO REHEARSE', style: 'card', sec: 3, name: 'the card' }] };
