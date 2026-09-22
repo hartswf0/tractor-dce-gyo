@@ -75,8 +75,8 @@ Film.SCENES['case-ewoks'] = { name: 'The Forest Skirmish', time: 'day', weather:
     { score: 'end', title: 'THE FOREST SKIRMISH\nA CASE TO REHEARSE', style: 'card', sec: 3, name: 'the card' }] };
 
 /* ── 3. The cave: Plato's Republic VII on the four-zone construct (platos-cave.mpd) ── */
-const CAVE = { hemi: 0.7, sun: 0.35, elev: 35, azim: 160, exposure: 1.3 };   /* the cave shots: a moon's worth of fill so the construct reads, the exposure up; the fire is a lamp */
-const FIRE = { at: [-14, 9, -4], color: 0xff7a2a, intensity: 25, distance: 70 };
+const CAVE = { hemi: 4, sun: 0, exposure: 1.2 };   /* the cave shots at night: the look's hemi is a multiplier on the night's ambient (four times it reads), no sun, the exposure up; the fire is a lamp close to what it lights */
+const FIRE = { at: [-14, 9, 2], color: 0xff7a2a, intensity: 20, distance: 40 };
 Film.SCENES['case-plato'] = { name: "The Cave", time: 'night', weather: 'clear', ground: 'flat', me: 'off', part: 'freed', set: { kind: 'hall', r: 60, seed: 1 },   /* a dark hall round the construct: nothing of the valley shows past the cave walls */
   story: { title: 'The Cave', description: 'Captives face a wall of shadows; behind them on the parapet the puppeteers carry shapes before a fire. One captive is loosed, turns, and sees who makes the shadows; the climb to the light; the return to people who prefer the wall.', location: "Plato's cave: the pit, the screen, the parapet, the fire, the ascent",
     entities: [{ id: 'captives', type: 'crowd', name: 'the captives', traits: ['bound', 'facing the wall'] }, { id: 'freed', type: 'character', name: 'the freed one', traits: ['turns', 'climbs'] }, { id: 'puppeteers', type: 'crowd', name: 'the puppeteers', traits: ['the parapet', 'the shapes'] }, { id: 'fire', type: 'location', name: 'the fire', traits: ['the false light'] }, { id: 'sun', type: 'location', name: 'the ascent', traits: ['the true light'] }],
@@ -92,19 +92,19 @@ Film.SCENES['case-plato'] = { name: "The Cave", time: 'night', weather: 'clear',
     { name: 'puppeteer-1', figure: 'hauler', label: 'a puppeteer', x: -22, z: 14, heading: 0 }, { name: 'puppeteer-2', figure: 'hauler', label: 'a puppeteer', x: -8, z: 15, heading: 0 }],   /* the figures stand on the floor between the pillars and the screen; the set's own hooded torsos are on the parapet above */
   shots: [
     { score: 'dread', title: 'THE CAVE', style: 'card', sec: 2, events: [SAY('narrator', 'The cave. Republic, book seven.', 0.3, 2.0)] },
-    { name: 'The shadows', on: 'screen', pos: [-15.2, 2.2, 11.5], tgt: [-14, 2.5, 18.5], lens: 50, sec: 7, shift: 'shadows', look: CAVE, lamp: { at: [-14, 4, 16], color: 0xff7a2a, intensity: 14, distance: 50 },
+    { name: 'The shadows', on: 'screen', pos: [-17.5, 2.6, 11.3], tgt: [-13, 2.0, 18.5], lens: 40, sec: 7, shift: 'shadows', look: CAVE, lamp: { at: [-14, 3, 15.5], color: 0xff7a2a, intensity: 8, distance: 30 },
       events: [BEAT('shadows', 'freed', 0, 7, 'shapes cross the wall; the captives name them', 'wonder'), SND('static', 0.5), SAY('narrator', 'They have been here since childhood, and see only the shadows.', 1.2, 4.2), P('captive-1', 'listen', 0.4), P('captive-2', 'listen', 0.6), P('freed', 'wonder', 2.0)] },
-    { name: 'The puppeteers', on: 'parapet', pos: [-24, 2.5, 11], tgt: [-14, 8, -3], lens: 40, sec: 6, shift: 'puppeteers', look: CAVE, lamp: FIRE,
+    { name: 'The puppeteers', on: 'parapet', pos: [-10, 1.6, 14], tgt: [-14, 7, 6], lens: 45, sec: 6, shift: 'puppeteers', look: CAVE, lamp: { at: [-14, 6, 11], color: 0xff7a2a, intensity: 8, distance: 30 },
       events: [BEAT('puppeteers', 'puppeteer-1', 0, 6, 'behind the wall, the people who carry the shapes', 'deadpan'), SET('puppeteer-1', 'arm.R.pitch', -2.8, 0.6, 0.8), SET('puppeteer-2', 'arm.L.pitch', -2.8, 1.0, 0.8), SND('servo', 1.2), SND('servo', 3.6), SAY('narrator', 'Behind them a fire, and between the fire and the captives a wall, along which men carry figures.', 0.8, 4.6)] },
-    { name: 'The turn', on: 'freed', pos: [-11, 1.9, 15.5], tgt: [-14, 1.6, 13], lens: 32, sec: 7, shift: 'turn', look: CAVE, lamp: { at: [-12, 3, 16], color: 0xff7a2a, intensity: 8, distance: 50 },
+    { name: 'The turn', on: 'freed', pos: [-11, 1.9, 15.5], tgt: [-14, 1.6, 13], lens: 32, sec: 7, shift: 'turn', look: CAVE, lamp: { at: [-12, 2.5, 15.5], color: 0xff7a2a, intensity: 6, distance: 30 },
       events: [BEAT('turn', 'freed', 0, 7, 'loosed, he turns his head and sees the fire', 'recognition'), SET('freed', 'head.yaw', 2.4, 1.0, 1.4), SET('freed', 'torso.twist', 0.6, 1.4, 1.2), P('freed', 'wonder', 2.4), LOOK('freed', 'fire', 2.6, true), SND('breath', 3.0), SAY('narrator', 'Suppose one were freed, and made to turn his head.', 1.4, 3.0)] },
-    { name: 'The climb', on: 'freed', pos: [-32, 3, 14], tgt: [-22, 1.6, 8], lens: 40, sec: 8, shift: 'climb', look: CAVE, lamp: { at: [-22, 4, 10], color: 0xff7a2a, intensity: 6, distance: 50 },
+    { name: 'The climb', on: 'freed', pos: [-32, 3, 14], tgt: [-22, 1.6, 8], lens: 40, sec: 8, shift: 'climb', look: CAVE, lamp: { at: [-22, 3, 10], color: 0xff7a2a, intensity: 6, distance: 30 },
       acts: [{ who: 'freed', to: 'slope', walk: true }],
       events: [BEAT('climb', 'freed', 0, 8, 'the rough ascent toward a light that hurts', 'resolve'), P('freed', 'resolve', 0.4), SND('footstep', 1.0), SND('footstep', 2.0), SND('footstep', 3.0), SND('breath', 5.0), SAY('narrator', 'Dragged up the steep way, he would be pained and dazzled.', 1.0, 3.6)] },
-    { name: 'The sun', on: 'out', pos: [-50, 1.2, 20], tgt: [-32, 6.5, 0.5], lens: 40, sec: 6, shift: 'sun', set: { kind: 'desert', r: 40, seed: 5, time: 'dawn' }, look: { hemi: 0.5, sun: 1.2, elev: 12, azim: 180, exposure: 1.0 },
+    { name: 'The sun', on: 'out', pos: [-48, 1.2, 18], tgt: [-30, 8, -2], lens: 45, sec: 6, shift: 'sun', set: { kind: 'desert', r: 40, seed: 5, time: 'dawn' }, look: { hemi: 0.5, sun: 1.2, elev: 12, azim: 180, exposure: 1.0 },
       acts: [{ who: 'freed', to: 'out', walk: true }],
       events: [BEAT('sun', 'freed', 0, 6, 'the thing itself, not its shadow', 'wonder'), P('freed', 'wonder', 1.0), { what: 'FLASH', at: 0.4 }, SAY('narrator', 'Last of all he would see the sun, not in the water, but itself, in its own place.', 1.0, 4.4)] },
-    { name: 'The return', on: 'row', pos: [-9, 2.0, 16.5], tgt: [-14, 1.5, 13.5], lens: 36, sec: 7, shift: 'return', set: { kind: 'hall', r: 60, seed: 1, time: 'night' }, look: CAVE, lamp: { at: [-12, 3, 16], color: 0xff7a2a, intensity: 8, distance: 50 },
+    { name: 'The return', on: 'row', pos: [-9, 2.0, 16.5], tgt: [-14, 1.5, 13.5], lens: 36, sec: 7, shift: 'return', set: { kind: 'hall', r: 60, seed: 1, time: 'night' }, look: CAVE, lamp: { at: [-12, 2.5, 15.5], color: 0xff7a2a, intensity: 6, distance: 30 },
       acts: [{ who: 'freed', to: 'side', walk: true }],
       events: [BEAT('return', 'freed', 0, 7, 'he comes back down to tell them, and they laugh at his ruined eyes', 'hurt'), P('freed', 'appeal', 1.0), P('captive-1', 'contempt', 3.0), P('captive-2', 'skepticism', 3.4), SAY('narrator', 'Would they not say his eyes were ruined by the climb, and that it was not worth even trying?', 1.0, 4.6)] },
     { score: 'end', title: 'THE CAVE\nA CASE TO REHEARSE', style: 'card', sec: 3, name: 'the card' }] };
