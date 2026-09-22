@@ -29,6 +29,16 @@ const DONORS = {
   '7410': { file: '7410-1 - Jungle River.mpd', name: 'the Jungle River', target: 'the washing pools', scale: 2.5 },
   '1788': { file: '1788 - Treasure Chest.mpd', name: 'the Treasure Chest', target: 'the storeroom', scale: 2.5 },
   monkey: { file: 'monkey-data-center-modular.mpd', name: 'the monkey data centre', target: 'the control room', scale: 2.5 },   /* the repository's own build, at 4X: four textured walls, the floor, three monkeys */
+  /* the cases (world/scenes-cases.js): the repository's own scene builds, packed by tools/donor-pack.js */
+  'simpsons-grocery': { file: 'simpsons-grocery.mpd', name: 'the grocery checkout', target: 'The Checkout', scale: 2.5 },
+  'simpsons-band': { file: 'simpsons-band.mpd', name: 'the band classroom', target: 'Band Class', scale: 2.5 },
+  'ewoks-forest': { file: 'ewoks-forest.mpd', name: 'the forest clearing', target: 'The Forest Skirmish', scale: 2.5 },
+  'platos-cave': { file: 'platos-cave.mpd', name: "Plato's cave", target: 'The Cave', scale: 2.5 },
+  searchers: { file: 'searchers.mpd', name: 'the homestead', target: 'The Searchers', scale: 2.5 },
+  'rocket-launch': { file: 'rocket-launch.mpd', name: 'the launch pad', target: 'The Launch', scale: 2.5 },
+  'ogygia-grove': { file: 'ogygia-grove.mpd', name: 'Ogygia grove', target: 'Ogygia', scale: 2.5 },
+  'ithaca-cove': { file: 'ithaca-cove.mpd', name: 'Ithaca cove', target: 'Ithaca Cove', scale: 2.5 },
+  'undaunted-fort-mandan': { file: 'undaunted-fort-mandan.mpd', name: 'Fort Mandan', target: 'Fort Mandan', scale: 2.5 },
 };
 let K = null;
 function create({ props, fetchText, scene }) { K = { props, scene, fetchText: fetchText || (u => fetch(u).then(r => { if (!r.ok) throw new Error(r.status + ' ' + u); return r.text(); })), templates: new Map(), fetched: 0, parsed: 0 }; return K; }

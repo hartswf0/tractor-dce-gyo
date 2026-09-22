@@ -14,7 +14,7 @@ const args = process.argv.slice(2); let out = 'play'; const keys = [];
 for (let i = 0; i < args.length; i++) { if (args[i] === '--out') out = args[++i]; else keys.push(args[i]); }
 /* the scene files are browser scripts: give them a window with a Film and read what they register */
 const ctx = { window: null, console }; ctx.window = { Film: { SCENES: {} } }; ctx.Film = ctx.window.Film; vm.createContext(ctx);
-for (const f of ['world/scenes-odyssey-play.js', 'world/scenes-monkey.js']) vm.runInContext(fs.readFileSync(path.join(root, f), 'utf8'), ctx, { filename: f });
+for (const f of ['world/scenes-odyssey-play.js', 'world/scenes-monkey.js', 'world/scenes-cases.js']) vm.runInContext(fs.readFileSync(path.join(root, f), 'utf8'), ctx, { filename: f });
 const SCENES = ctx.window.Film.SCENES, PLAY = ctx.window.Film.PLAY_SCENES || Object.keys(SCENES);
 /* the donors' footprints, in LDU at scale 1, measured off the models' own lines (a bounding box of the part placements) */
 function footprint(file) {
@@ -26,7 +26,7 @@ function footprint(file) {
   walk(first, [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0], 0); return isFinite(lo[0]) ? { w: hi[0] - lo[0], d: hi[1] - lo[1] } : null;
 }
 const DONOR_FILES = (() => { const t = fs.readFileSync(path.join(root, 'world', 'donors.js'), 'utf8'), m = {}; for (const r of t.matchAll(/'?([\w]+)'?: \{ file: '([^']+)'/g)) m[r[1]] = r[2]; return m; })();
-const TORSO = { monkey: 0, 'monkey-banana': 0, citizen: 4, 'odysseus': 320, 'odysseus-sword': 308, 'odysseus-wet': 308, 'odysseus-bronze': 308, hoplite: 297, hauler: 71, sailor: 71, commander: 308, circe: 26, calypso: 1, hermes: 15, eumaeus: 308, polyphemus: 0, 'penelope-ithaca': 272, 'telemachus-ithaca': 71, suitor: 70 };
+const TORSO = { monkey: 0, 'monkey-banana': 0, citizen: 4, 'odysseus': 320, 'odysseus-sword': 308, 'odysseus-wet': 308, 'odysseus-bronze': 308, hoplite: 297, hauler: 71, sailor: 71, commander: 308, circe: 26, calypso: 1, hermes: 15, eumaeus: 308, polyphemus: 0, 'penelope-ithaca': 272, 'telemachus-ithaca': 71, suitor: 70, marge: 2, maggie: 1, homer: 15, lisa: 4, bart: 4, ewok: 308, robot: 72, shade: 0, rider: 8, pilot: 1, c3po: 14, commander: 308, athena: 15, calypso: 1, hermes: 15 };
 const S = 20;   // one stud (20 LDU) to the metre
 const line = (col, x, y, z, part, rot) => `1 ${col} ${Math.round(x)} ${y} ${Math.round(z)} ${rot || '1 0 0 0 1 0 0 0 1'} ${part}.dat`;
 function plan(key) {
