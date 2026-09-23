@@ -1,0 +1,94 @@
+# The Odyssey as LDraw: the forage
+
+Generated 2026-09-23 by `tools/odyssey-forage.js` from the atlas in odyssey-halfworld (`viewer/odyssey-manifest.json`). Browse it in [odyssey-forage.html](../odyssey-forage.html); load any card in [Hand Butter](../play/hand-butter-odyssey.html?scene=OD-B01-S01).
+
+**582 cards** (430 assets, 152 scenes) · **67,991 pieces** · **3,875 sub-builds** · **152,147 stud joints** · 21 donor sets · 568 green, 14 yellow, 0 red.
+
+## How a card is foraged
+
+The trailer builds a city as a tree: the whole model, its builds, their sub-builds, down to parts, every joint counted. The forage does the same for the atlas.
+
+1. **Forage.** Each card type has its way of being got (`tools/forage/table.js`). Locations and vehicles take a sub-build from a real set: a FILE block of a community LDraw model, flattened, minifigures stripped. Characters are minifigures assembled from real parts on the standard skeleton, dressed by role, with accessories held in a hand grip measured from the donors. Creatures, props and effects are readymade parts (horse, pig, goblet, bow, lightning bolt, transparent columns). The pieces a scene needs beside a set (colonnades, hearths, seats, trees, rocks, roads, water) are procedural kits laid by `world/dsl.js`.
+2. **Assemble.** The components are settled (the lowest underside on the ground, the stud lattice in phase) and laid side by side on a plate. A scene card is its location's set, cut to a window, with its cast of asset cards on an apron in front: the scene's assets are its sub-builds.
+3. **Verify.** `tools/forage/ldraw.js` resolves every part in `ldraw/`, finds every stud on every piece, and tests it against the undersides above it (a stud joint). It then traces each piece to the plate through joints, or through contact for clips, hands and hinges. Pieces that touch nothing are reported as detached. Rope and hose segments carry contact but are counted apart. A card is green when every part resolves, every donor is found and almost nothing is detached.
+4. **Look.** `tools/forage/look.js` renders cards through the viewer; the thumbnails in `odyssey/thumbs/` are those frames.
+5. **Play.** `tools/butter-odyssey.js` writes Hand Butter with a scene per card; each scene file (`odyssey/butter/<id>.json`) is fetched when loaded, and a foraged build stands pinned until a piece is picked up.
+
+## By type
+
+| type | cards | pieces | sub-builds | stud joints | yellow |
+|---|---|---|---|---|---|
+| character | 87 | 1,332 | 174 | 380 | 0 |
+| creature | 27 | 420 | 133 | 891 | 1 |
+| location | 68 | 20,145 | 348 | 70,590 | 10 |
+| prop | 73 | 662 | 248 | 840 | 0 |
+| ensemble | 67 | 5,064 | 480 | 2,877 | 0 |
+| divine fx | 59 | 2,354 | 264 | 2,154 | 0 |
+| set piece | 18 | 594 | 79 | 928 | 1 |
+| environment | 12 | 555 | 52 | 1,154 | 0 |
+| vehicle | 11 | 4,848 | 46 | 8,245 | 0 |
+| sound source | 6 | 242 | 31 | 72 | 0 |
+| wearable | 2 | 43 | 12 | 12 | 0 |
+| scene | 152 | 31,732 | 2,008 | 64,004 | 2 |
+
+## Donors
+
+Community LDraw models, redistributed under CCAL 2.0; each foraged FILE keeps its author in its header.
+
+| model | author | cards |
+|---|---|---|
+| 6285 - Black Seas Barracuda.mpd | Philippe Hurbain [Philo] | 11 |
+| 21022-1 - Lincoln Memorial.mpd | Damien Roux [Darats] | 9 |
+| 6279-1 - Skull Island.mpd | Stan Isachenko [angmarec] | 7 |
+| ithaca-cove.mpd |  | 5 |
+| 6080 - Kings Castle.mpd | Stefan Frenz [smf] | 5 |
+| 6799-1 - Showdown Canyon - Carriage.mpd | Willy Tschager [Holly Wood] | 5 |
+| 6716-1 - Covered Wagon.mpd | Willy Tschager [Holly-Wood] | 4 |
+| 6286 - Skulls Eye Schooner.mpd | Philippe Hurbain [Philo] | 4 |
+| 6264 - Forbidden Cove.mpd | MLCad | 3 |
+| cave-of-shadows.mpd | word to world, tools/model.js | 3 |
+| 6278 6292 - Enchanted Island.mpd | MLCad | 3 |
+| 21041-1 - Great Wall of China.mpd | Orion Pobursky [OrionP] | 3 |
+| 7327-1 - Scorpion Pyramid.mpd | Christian Neumann [Wesley] | 3 |
+| ogygia-grove.mpd |  | 3 |
+| 6066 - Camouflaged Outpost.mpd | Takeshi Takahashi [RainbowDolphin] | 2 |
+| forest-clearing.mpd | word to world, tools/model.js | 2 |
+| 7410-1 - Jungle River.mpd | Philippe Hurbain [Philo] | 2 |
+| 6071 - Forestmens Crossing.mpd | Takeshi Takahashi [RainbowDolphin] | 1 |
+| 21325 - Medieval Blacksmith.mpd | Vincent Messenet [Cheenzo] | 1 |
+| 6245 - Harbor Sentry.mpd | Stefan Frenz [smf] | 1 |
+| 7326-1 - Rise of the Sphinx.mpd | Christian Neumann [Wesley] | 1 |
+
+## Not green, and why
+
+- **creature.scylla** SCYLLA: 3 pieces touch nothing (a donor's loose detail or ropes' ends)
+- **location.aeolia-floating-island** AEOLIA FLOATING ISLAND: 1 parts the library lacks were left out (6029b)
+- **location.goat-island-harbor** GOAT ISLAND HARBOR: 1 parts the library lacks were left out (6029b)
+- **location.laertess-orchard** LAERTES'S ORCHARD: 4 pieces touch nothing (a donor's loose detail or ropes' ends)
+- **location.lotus-shore-and-meadow** LOTUS SHORE AND MEADOW: 1 parts the library lacks were left out (6029b)
+- **location.phaeacian-orchard-and-garden** PHAEACIAN ORCHARD AND GARDEN: 4 pieces touch nothing (a donor's loose detail or ropes' ends)
+- **location.river-washing-pools** RIVER WASHING POOLS: 52 pieces touch nothing (a donor's loose detail or ropes' ends)
+- **location.road-to-laertess-farm** ROAD TO LAERTES'S FARM: 3 pieces touch nothing (a donor's loose detail or ropes' ends)
+- **location.scherian-coast-and-river-mouth** SCHERIAN COAST AND RIVER MOUTH: 54 pieces touch nothing (a donor's loose detail or ropes' ends)
+- **location.sirens-island** SIRENS' ISLAND: 1 parts the library lacks were left out (6029b)
+- **location.thrinacia** THRINACIA: 1 parts the library lacks were left out (6029b)
+- **set-piece.orchard-inventory** ORCHARD INVENTORY: 3 pieces touch nothing (a donor's loose detail or ropes' ends)
+- **OD-B24-S03** ODYSSEUS TESTS LAERTES: 4 pieces touch nothing (a donor's loose detail or ropes' ends)
+- **OD-B24-S04** THE SCAR AND THE ORCHARD TREES: 3 pieces touch nothing (a donor's loose detail or ropes' ends)
+
+## Rebuilding
+
+```
+git clone https://github.com/hartswf0/odyssey-halfworld ../odyssey-halfworld
+cd films/forage && node fetch-odyssey-ldraw.mjs && cd ../..   # the donor corpus (not kept in the repository)
+node tools/odyssey-forage.js --halfworld ../odyssey-halfworld
+node tools/butter-odyssey.js WAG-HAND-BUTTER-26.HTML
+NODE_PATH=<playwright@1.56, three@0.128> node tools/forage/look.js --all --jpeg --out <dir>   # then convert to webp in odyssey/thumbs
+```
+
+## What comes next
+
+- **Sub-build kits by function.** The trailer shows 113 builds grouped into repeatable kits: tower, tree, arcade, canopy, lamp. The next forage should cut donors into connected chunks (a mast, a gate, a stair, a palm) and index them by what they do, so one Ithacan hall can be assembled from a castle gate, a Lincoln Memorial colonnade and a blacksmith's hearth rather than taken whole.
+- **More donors.** The 14 models the fetcher could not reach (Eldorado Fortress, Imperial Trading Post, Viking Village, Trevi Fountain and others) would each replace a stand-in; the part 6029b (the islands' palm base) is missing from the library.
+- **Staging.** Scenes stand their cast on an apron. The halfworld plans (`scenes/_plans`, the MOVES tables `tools/odyssey.js` already reads) give each figure a mark on the set; laying the cast on those marks turns a scene card into a set for the film.
+- **The joint graph.** The audit knows every joint; drawing it over the model, as the trailer does in blue and orange, would show where a set is weak before it is shot.

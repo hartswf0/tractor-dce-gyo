@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Odyssey LDraw forage</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23f2f1ec'/%3E%3Crect x='6' y='12' width='20' height='12' fill='%23141414'/%3E%3Crect x='9' y='8' width='5' height='4' fill='%23141414'/%3E%3Crect x='18' y='8' width='5' height='4' fill='%23141414'/%3E%3C/svg%3E">
+<style>
+  :root{
+    --paper:#f2f1ec; --card:#f7f6f2; --ink:#141414; --dim:#77766f; --faint:#d8d6cf; --red:#e01b1b; --blue:#0033cc;
+    --green:#2f7f5a; --yellow:#c99a00; --mono:ui-monospace,'SF Mono','IBM Plex Mono',Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --paper:#151514; --card:#1d1d1b; --ink:#ecebe6; --dim:#9a9990; --faint:#3a3935; --blue:#7f9dff; --green:#5fbf8f; --yellow:#e0b93a; } }
+  :root[data-theme="dark"]{ --paper:#151514; --card:#1d1d1b; --ink:#ecebe6; --dim:#9a9990; --faint:#3a3935; --blue:#7f9dff; --green:#5fbf8f; --yellow:#e0b93a; }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--paper);color:var(--ink);font-family:var(--mono)}
+  a{color:var(--blue)}
+  #top{position:sticky;top:0;z-index:20;background:var(--paper);border-bottom:1px solid var(--ink);padding:10px 16px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  #brand{font-size:11px;font-weight:700;letter-spacing:.36em;text-transform:uppercase;margin-right:6px}
+  #brand em{font-style:normal;color:var(--dim);font-weight:400}
+  .chip{border:1px solid var(--faint);background:var(--card);cursor:pointer;font:inherit;font-size:9px;letter-spacing:.18em;text-transform:uppercase;padding:7px 10px;color:var(--dim);white-space:nowrap;min-height:32px}
+  .chip:hover,.chip.on{border-color:var(--ink);color:var(--ink)}
+  .chip.on{box-shadow:inset 0 -2px 0 var(--red)}
+  #q{border:1px solid var(--faint);background:var(--card);color:var(--ink);padding:7px 10px;font:inherit;font-size:11px;width:160px;min-height:32px}
+  #totals{width:100%;display:flex;flex-wrap:wrap;gap:6px 22px;font-size:10px;letter-spacing:.12em;color:var(--dim);text-transform:uppercase}
+  #totals b{color:var(--ink);font-size:15px;letter-spacing:0;margin-right:5px}
+  #table{padding:16px}
+  .section{margin-bottom:26px}
+  .secHead{display:flex;align-items:baseline;gap:12px;border-bottom:2px solid var(--ink);padding-bottom:5px;margin-bottom:10px}
+  .secHead .rn{font-size:17px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+  .secHead .sc{margin-left:auto;font-size:9px;color:var(--dim);letter-spacing:.14em}
+  .cells{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:6px}
+  .cell{position:relative;border:1.5px solid var(--faint);background:var(--card);cursor:pointer;padding:6px 7px 5px 9px;min-height:118px;display:flex;flex-direction:column;text-align:left;font:inherit;color:inherit}
+  .cell:hover,.cell:focus-visible{border-color:var(--ink);outline:none}
+  .cell .bar{position:absolute;left:0;top:0;bottom:0;width:4px}
+  .GREEN .bar{background:var(--green)} .YELLOW .bar{background:var(--yellow)} .RED .bar{background:var(--red)}
+  .cell .num{font-size:8px;color:var(--dim);display:flex;justify-content:space-between;letter-spacing:.06em}
+  .cell .num b{color:var(--blue)}
+  .cell img{width:100%;height:58px;object-fit:contain;margin:3px 0}
+  .cell .sym{font-size:24px;font-weight:900;line-height:58px;height:58px;margin:3px 0;text-align:center}
+  .cell .nm{font-size:8px;letter-spacing:.08em;text-transform:uppercase;line-height:1.35;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  /* the detail sheet */
+  #sheet{position:fixed;inset:0 0 0 auto;width:min(620px,100%);background:var(--paper);border-left:1px solid var(--ink);z-index:40;display:flex;flex-direction:column;transform:translateX(102%);transition:transform .18s}
+  #sheet.on{transform:none}
+  #sheetHead{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--faint)}
+  #sheetHead h2{font-size:13px;letter-spacing:.14em;text-transform:uppercase;flex:1}
+  #close{min-width:44px}
+  #stage{position:relative;height:min(46vh,380px);background:#efece4;border-bottom:1px solid var(--faint)}
+  #stage canvas{width:100%;height:100%;display:block}
+  #veil{position:absolute;inset:0;display:grid;place-items:center;font-size:11px;color:#77766f;letter-spacing:.14em;text-transform:uppercase;pointer-events:none}
+  #body{overflow:auto;padding:14px;flex:1}
+  .big{display:flex;flex-wrap:wrap;gap:14px 26px;margin-bottom:12px}
+  .big div{display:flex;flex-direction:column}
+  .big b{font-size:30px;font-weight:900;letter-spacing:-.01em;line-height:1}
+  .big span{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);margin-top:4px}
+  .dims{font-size:20px;font-weight:900;margin:4px 0 2px}
+  .dims small{font-size:11px;font-weight:400;color:var(--dim)}
+  .sub{font-size:11px;color:var(--dim);margin-bottom:12px;line-height:1.6}
+  .actions{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 16px}
+  .actions a{font-size:10px;letter-spacing:.14em;text-transform:uppercase;border:1px solid var(--ink);padding:10px 12px;text-decoration:none;color:var(--ink);min-height:40px;display:inline-flex;align-items:center}
+  .actions a.primary{background:var(--ink);color:var(--paper)}
+  h3{font-size:9px;letter-spacing:.26em;text-transform:uppercase;color:var(--red);margin:16px 0 8px}
+  .why{font-size:11px;line-height:1.6;color:var(--ink)}
+  .why li{margin-left:16px}
+  /* the tree: sub-builds as the trailer draws them, a rail and branches */
+  .tree ul{list-style:none;margin-left:14px;border-left:1px solid var(--faint);padding-left:10px}
+  .tree>ul{margin-left:0;border:0;padding:0}
+  .tree li{margin:5px 0;font-size:11px;line-height:1.45}
+  .tree .node{display:inline-flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+  .tree .how{font-size:8px;letter-spacing:.16em;text-transform:uppercase;border:1px solid var(--faint);padding:1px 5px;color:var(--dim)}
+  .tree .how.donor{border-color:var(--blue);color:var(--blue)}
+  .tree .n{color:var(--dim)}
+  .tree .src{display:block;font-size:9px;color:var(--dim)}
+  .credits{font-size:10px;line-height:1.6;color:var(--dim)}
+  body.render #top,body.render #table{display:none}
+  body.render #sheet{inset:0;width:100%;transform:none;border:0}
+  body.render #sheetHead,body.render #body{display:none}
+  body.render #stage{height:100vh;background:#f2f1ec;border:0}
+  @media (max-width:560px){ #q{width:100%} .cells{grid-template-columns:repeat(auto-fill,minmax(96px,1fr))} #stage{height:38vh} .big b{font-size:24px} }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="examples/js/loaders/LDrawLoader.js"></script>
+</head>
+<body>
+<div id="top">
+  <div id="brand">Odyssey <em>/ LDraw forage</em></div>
+  <input id="q" type="search" placeholder="Search cards" aria-label="Search cards">
+  <div id="types" style="display:contents"></div>
+  <div id="totals"></div>
+</div>
+<div id="table"></div>
+<aside id="sheet" aria-label="Card build">
+  <div id="sheetHead"><h2 id="sTitle"></h2><button class="chip" id="close">Close</button></div>
+  <div id="stage"><canvas id="c"></canvas><div id="veil"></div></div>
+  <div id="body"></div>
+</aside>
+<script>
+(async function () {
+  const $ = s => document.querySelector(s), esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+  const q = new URLSearchParams(location.search), RENDER = q.get('render');
+  const TYPES = [['scene', 'Scenes'], ['location', 'Locations'], ['character', 'Characters'], ['ensemble', 'Ensembles'], ['creature', 'Creatures'], ['vehicle', 'Vehicles'], ['prop', 'Props'], ['set_piece', 'Set pieces'], ['environment', 'Environments'], ['divine_fx', 'Divine effects'], ['sound_source', 'Sound sources'], ['wearable', 'Wearables']];
+  const ATLAS = 'https://hartswf0.github.io/odyssey-halfworld/viewer/cards.html';
+  let INDEX; try { INDEX = await (await fetch('odyssey/forage.json')).json(); } catch (e) { $('#table').textContent = 'The forage index (odyssey/forage.json) could not be read.'; return; }
+  const byId = new Map(INDEX.cards.map(c => [c.id, c]));
+
+  /* ── the 3D stage ── */
+  const canvas = $('#c'), renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: !!RENDER }); renderer.setPixelRatio(Math.min(2, devicePixelRatio)); renderer.outputEncoding = THREE.sRGBEncoding;
+  const scene = new THREE.Scene(); scene.background = new THREE.Color('#efece4');
+  const camera = new THREE.PerspectiveCamera(30, 1, 1, 200000), controls = new THREE.OrbitControls(camera, canvas); controls.enableDamping = true;
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x8a8778, 0.95)); const sun = new THREE.DirectionalLight(0xffffff, 0.75); sun.position.set(-1, 2.2, 1.4); scene.add(sun);
+  const resize = () => { const r = canvas.getBoundingClientRect(); if (!r.width) return; renderer.setSize(r.width, r.height, false); camera.aspect = r.width / r.height; camera.updateProjectionMatrix(); };
+  addEventListener('resize', resize);
+  const loader = new THREE.LDrawLoader(); loader.setPath('ldraw/'); loader.setFileMap({}); loader.smoothNormals = true;
+  const colours = fetch('ldraw/LDConfig.ldr').then(r => r.text()).then(t => new Promise(res => { try { loader.parse(t, '', res); } catch (e) { res(); } })).catch(() => {});   // the loader learns its colours by reading LDConfig as a model
+  let current = null, token = 0;
+  async function show3d(id) {
+    const my = ++token; $('#veil').textContent = 'Loading parts'; if (current) { scene.remove(current); current = null; }
+    await colours; let text; try { text = await (await fetch('odyssey/cards/' + id + '.mpd')).text(); } catch (e) { $('#veil').textContent = 'No build file'; return; }
+    const model = await new Promise(res => { const t = setTimeout(() => res(null), 90000); try { loader.parse(text, '', m => { clearTimeout(t); res(m); }); } catch (e) { console.error('parse', e); res(null); } });
+    if (my !== token) return; if (!model) { $('#veil').textContent = 'The build could not be parsed'; return; }
+    model.rotation.x = Math.PI; scene.add(model); current = model; resize();
+    const box = new THREE.Box3().setFromObject(model), size = box.getSize(new THREE.Vector3()), c = box.getCenter(new THREE.Vector3()), r = Math.max(size.x, size.y, size.z, 60);
+    controls.target.copy(c); const dir = new THREE.Vector3(-0.9, 0.85, 1.05).normalize(); const fit = r / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))) * 1.15;
+    camera.position.copy(c).addScaledVector(dir, fit + r * 0.35); camera.near = Math.max(1, fit / 50); camera.far = fit * 40; camera.updateProjectionMatrix();
+    $('#veil').textContent = ''; window.__ready = id;
+  }
+  (function loop() { controls.update(); renderer.render(scene, camera); requestAnimationFrame(loop); })();
+  if (RENDER) { document.body.classList.add('render'); $('#sheet').classList.add('on'); resize(); show3d(RENDER); return; }
+
+  /* ── the table ── */
+  const T = INDEX.cards, sum = k => T.reduce((s, c) => s + (c[k] || 0), 0), n = x => x.toLocaleString('en');
+  const st = T.reduce((m, c) => (m[c.status] = (m[c.status] || 0) + 1, m), {});
+  $('#totals').innerHTML = [[T.length, 'cards'], [sum('pieces'), 'pieces'], [sum('subBuilds'), 'sub-builds'], [sum('joints'), 'stud joints'], [Object.keys(INDEX.donors).length, 'donor sets'], [st.GREEN || 0, 'green'], [st.YELLOW || 0, 'yellow'], [st.RED || 0, 'red']].map(([v, k]) => `<span><b>${n(v)}</b>${k}</span>`).join('');
+  let filter = q.get('type') || 'all', search = '';
+  $('#types').innerHTML = [['all', 'All'], ...TYPES].map(([k, l]) => `<button class="chip${k === filter ? ' on' : ''}" data-t="${k}">${l}</button>`).join('');
+  $('#types').onclick = e => { const b = e.target.closest('[data-t]'); if (!b) return; filter = b.dataset.t; for (const x of $('#types').children) x.classList.toggle('on', x === b); draw(); };
+  $('#q').oninput = e => { search = e.target.value.trim().toLowerCase(); draw(); };
+  const sym = name => { const w = name.replace(/[^A-Za-z ]/g, '').split(/\s+/).filter(x => x.length > 2 && !/^(the|and|with|from|for)$/i.test(x)); return ((w[0] || name)[0] + ((w[1] || w[0] || name)[w[1] ? 0 : 1] || '')).toUpperCase().replace(/^(.)(.)$/, (m, a, b) => a + b.toLowerCase()); };
+  function draw() {
+    const show = T.filter(c => (filter === 'all' || c.type === filter) && (!search || (c.name + ' ' + c.id).toLowerCase().includes(search)));
+    $('#table').innerHTML = TYPES.filter(([k]) => show.some(c => c.type === k)).map(([k, l]) => { const list = show.filter(c => c.type === k); return `<section class="section"><div class="secHead"><span class="rn">${l}</span><span class="sc">${list.length} cards · ${n(list.reduce((s, c) => s + c.pieces, 0))} pieces</span></div><div class="cells">${list.map(c => `<button class="cell ${c.status}" data-id="${esc(c.id)}" title="${esc(c.name)}"><span class="bar"></span><span class="num"><span>${esc(c.type === 'scene' ? c.id.replace('OD-', '') : (c.books || []).join('·'))}</span><b>${c.pieces}</b></span>${c.thumb ? `<img loading="lazy" alt="" src="odyssey/thumbs/${esc(c.id)}.webp">` : `<span class="sym">${esc(sym(c.name))}</span>`}<span class="nm">${esc(c.name)}</span></button>`).join('')}</div></section>`; }).join('') || '<p class="sub">No card matches.</p>';
+  }
+  $('#table').onclick = e => { const b = e.target.closest('.cell'); if (b) open(b.dataset.id); };
+  $('#close').onclick = () => { $('#sheet').classList.remove('on'); history.replaceState(null, '', location.pathname + (filter !== 'all' ? '?type=' + filter : '')); };
+  addEventListener('keydown', e => { if (e.key === 'Escape') $('#close').click(); });
+
+  const treeHTML = t => `<li><span class="node"><b>${esc(t.name)}</b><span class="how ${t.how}">${esc(t.how)}</span><span class="n">${t.pieces} pieces</span></span>${t.source ? `<span class="src">${esc(t.source)}</span>` : ''}${t.children.length ? `<ul>${t.children.map(treeHTML).join('')}</ul>` : ''}</li>`;
+  function open(id) {
+    const c = byId.get(id); if (!c) return;
+    $('#sTitle').textContent = c.name; $('#sheet').classList.add('on'); history.replaceState(null, '', '#' + id);
+    const cast = c.assets ? c.assets.map(a => byId.get(a)).filter(Boolean) : [];
+    $('#body').innerHTML = `
+      <div class="big"><div><b>${n(c.pieces)}</b><span>pieces</span></div><div><b>${c.subBuilds}</b><span>sub-builds</span></div><div><b>${n(c.joints)}</b><span>stud joints</span></div><div><b>${c.depth}</b><span>levels</span></div></div>
+      <div class="dims">${c.cm[0]} × ${c.cm[1]} × ${c.cm[2]} <small>cm</small></div>
+      <div class="sub">${c.studs[0]} × ${c.studs[1]} studs · ${c.height.plates} plates high · ${c.anchored} pieces held to the plate by studs, ${c.held} by contact (clips, hands, hinges), ${c.detached} detached${c.flex ? `, ${c.flex} rope segments` : ''} · status <b>${c.status}</b></div>
+      <div class="actions"><a class="primary" href="play/hand-butter-odyssey.html?scene=${encodeURIComponent(c.id)}">Open in Hand Butter</a><a href="${esc(c.files.mpd)}" download>LDraw MPD</a><a href="${esc(c.files.butter)}" download>Butter scene</a><a href="${ATLAS}#${c.type === 'scene' ? 'scene' : 'asset'}/${encodeURIComponent(c.id)}">Atlas card</a></div>
+      ${c.why.length ? `<h3>Notes</h3><ul class="why">${c.why.map(w => `<li>${esc(w)}</li>`).join('')}</ul>` : ''}
+      ${cast.length ? `<h3>Cast and set</h3><div class="cells">${cast.map(a => `<button class="cell ${a.status}" data-open="${esc(a.id)}"><span class="bar"></span><span class="num"><span>${esc(a.type.replace('_', ' '))}</span><b>${a.pieces}</b></span>${a.thumb ? `<img loading="lazy" alt="" src="odyssey/thumbs/${esc(a.id)}.webp">` : `<span class="sym">${esc(sym(a.name))}</span>`}<span class="nm">${esc(a.name)}</span></button>`).join('')}</div>` : ''}
+      <h3>Sub-builds</h3><div class="tree"><ul>${treeHTML(c.tree)}</ul></div>
+      ${c.sources.length ? `<h3>Foraged from</h3><div class="credits">${c.sources.map(s => `${esc(s.file || s.donor)}${s.sub ? ' : ' + esc(s.sub) : ''}${s.author ? ', by ' + esc(s.author) : ''}`).join('<br>')}<br>LDraw models redistributed under CCAL 2.0; the authors keep their credit in each FILE header.</div>` : ''}`;
+    $('#body').querySelectorAll('[data-open]').forEach(b => b.onclick = () => open(b.dataset.open));
+    $('#body').scrollTop = 0; show3d(id);
+  }
+  draw();
+  if (location.hash.length > 1 && byId.has(decodeURIComponent(location.hash.slice(1)))) open(decodeURIComponent(location.hash.slice(1)));
+})();
+</script>
+</body>
+</html>
