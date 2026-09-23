@@ -53,7 +53,7 @@ class Props {
   /** Push a body out of props too tall to step onto. */
   pushOut(pos, r, hgt, step = 30, skipId = null) {
     for (const it of this.near(pos.x, pos.z, r)) {
-      if (skipId && it.id === skipId) continue; const b = it.box; if (b.max.y <= pos.y + step || b.min.y >= pos.y + hgt) continue;
+      if (skipId && it.id === skipId) continue; if (it.src && it.src.nopush) continue; const b = it.box;   // a pushed cart does not stop the one pushing it if (b.max.y <= pos.y + step || b.min.y >= pos.y + hgt) continue;
       const cx = Math.max(b.min.x, Math.min(pos.x, b.max.x)), cz = Math.max(b.min.z, Math.min(pos.z, b.max.z)), dx = pos.x - cx, dz = pos.z - cz, d = Math.hypot(dx, dz);
       if (d >= r) continue;
       if (d < 1e-3) { const ex = Math.min(pos.x - b.min.x, b.max.x - pos.x), ez = Math.min(pos.z - b.min.z, b.max.z - pos.z); if (ex < ez) pos.x = pos.x - b.min.x < b.max.x - pos.x ? b.min.x - r : b.max.x + r; else pos.z = pos.z - b.min.z < b.max.z - pos.z ? b.min.z - r : b.max.z + r; }
