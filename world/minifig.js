@@ -94,7 +94,7 @@ const DEFS = {
   aaron: { name: 'Aaron', legs: 308, hips: 308, torso: 71, arms: 71, hands: 78, head: 78, headPart: '3626bp3q', hat: ['3901', 70], weapon: null },
   mose: { name: 'Mose Harper', legs: 28, hips: 28, torso: 70, arms: 70, hands: 78, head: 78, headPart: '3626bp8m', hat: ['3629', 70], weapon: null },   /* the old man in the rocking chair: white beard and sideburns under a brown hat */
   lucy: { name: 'Lucy', legs: 272, hips: 272, torso: 26, arms: 26, hands: 78, head: 78, headPart: '3626bp08', hat: ['3625', 70], weapon: null, woman: true },
-  debbie: { name: 'Debbie', legs: 19, hips: 19, torso: 19, arms: 19, hands: 78, head: 78, headPart: '3626bp8a', hat: ['3625', 0], weapon: null, woman: true },
+  debbie: { name: 'Debbie', legs: 308, hips: 308, torso: 28, arms: 28, hands: 78, head: 78, headPart: '3626bp8a', torsoPart: '973pc11', hat: ['3625', 0], weapon: null, woman: true },   /* the Comanche dress she comes home in: buckskin with fringe and a necklace, dark leggings */
 };
 /* ride: the vehicle that stands by the spawn for this character (Vader has the TIE); vehicles.js lays it as lm-me */
 /* a bare head is the character's own (a mask over the plain head is the whole face), a short figure stands on one-piece legs */
@@ -105,7 +105,7 @@ function citizen(seed) { const d = { ...DEFS.citizen }; d.torso = d.arms = CITIZ
 function partsOf(def) {
   if (def.parts) return def.parts.map(p => p.slice());   // a cast member lists its own parts (sculpted heads, printed torsos, a baby's body); any part the harvest does not carry loads through the shared loader with its print
   const out = def.short ? [['hips', '16709', def.hips]] : [['legR', '3816', def.legs], ['legL', '3817', def.legs], ['hips', '3815', def.hips]];
-  out.push(['torso', '973', def.torso], ['armR', '3818', def.arms], ['armL', '3819', def.arms], ['handR', '3820', def.hands], ['handL', '3820', def.hands]);
+  out.push(['torso', def.torsoPart || '973', def.torso],   /* a printed torso (torsoPart) carries its own clothes */ ['armR', '3818', def.arms], ['armL', '3819', def.arms], ['handR', '3820', def.hands], ['handL', '3820', def.hands]);
   if (!def.bare) out.push(['head', def.headPart || '3626b', def.head]);   // a printed head (headPart) carries its own face
   if (def.hat) out.push(['hat', def.hat[0], def.hat[1]]);
   if (def.weapon) out.push([def.weapon[0] === 'saber' ? 'weaponL' : 'weaponR', def.weapon[1], def.weapon[2]]);

@@ -14,3 +14,12 @@ starts and ends, loudness every two seconds, and every beat time. Cut on it.
 | m3a Swim Against the Current | 66.6 s | 144 bpm | driving from 3.7 s to 61.5 s | the forest skirmish, when it is re-cut |
 | m2 Lost & Found Under the Courthouse Eddy | 99.9 s | 108 bpm | a quiet head, the bass in at 10.7, a turn at 66 | the cave, when it is re-cut |
 | m0 Blue Ridge Over the Wire | 150.8 s | 123 bpm | a long steady ride, sections at 17, 42, 64, 95, 142 | a longer cut, or the reel |
+
+## searchers-score.ogg (original)
+
+An original score for The Searchers case, written note by note in `tools/score-searchers.py` and rendered by it (strings,
+horn, finger-picked guitar, a trotting woodblock, male voices on "oo", harmonica, timpani, a stereo hall). It is in the manner of
+a 1950s Western studio score, timed to the cut: the card and the door 0-10.5 s (D minor, low strings, a horn out of the dark),
+the sighting and the approach 10.5-25.7 (the guitar, the horn call when Martha knows him, the trot), home and inside 25.7-42.75
+(the theme on strings and voices in D major), the stop at 42.75 (one low blow), the leaving to 51.8 (the harmonica alone).
+It is not Max Steiner's score nor the title song "What Makes a Man to Wander?", both still in copyright.

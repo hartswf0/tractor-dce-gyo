@@ -35,7 +35,8 @@ function distToPath(x, z, path) {
   for (let i = 0; i < path.length - 1; i++) { const a = path[i], b = path[i + 1], dx = b[0] - a[0], dz = b[1] - a[1], L2 = dx * dx + dz * dz || 1, t = Math.max(0, Math.min(1, ((x - a[0]) * dx + (z - a[1]) * dz) / L2)); best = Math.min(best, Math.hypot(x - a[0] - dx * t, z - a[1] - dz * t)); }
   return best;
 }
-function lay(kind, { scene, G, M, centre, r = 180, seed = 1, corridor = null }) {
+function lay(kind, opts) {
+  const { scene, G, M, centre, r = 180, seed = 1, corridor = null } = opts;
   const K = KINDS[kind] || KINDS.forest, S = { kind, name: K.name, paint: K.rel ? (h, sl, x, z, lo, hi) => K.paint(h, sl, x - centre.x / M, z - centre.z / M, lo, hi) : K.paint,   /* a ground drawn about its own centre (a shoreline, a swell): the ground paints in metres, the centre is kept in LDU */ fog: K.fog, sky: K.sky, group: new THREE.Group(), trunks: [], logs: [], drifts: 0, ferns: 0, cells: new Map(), M, centre: { x: centre.x, z: centre.z }, r };
   S.group.name = 'set:' + kind; const cx = centre.x / M, cz = centre.z / M, gh = (x, z) => G.hM(x, z) * M;
   const key = (x, z) => Math.floor(x / (CELL * M)) + ':' + Math.floor(z / (CELL * M));
@@ -77,19 +78,54 @@ function lay(kind, { scene, G, M, centre, r = 180, seed = 1, corridor = null }) 
     for (let i = 0; i < n; i++) { const a = hash(i, 1, seed) * 6.283, d = Math.sqrt(hash(i, 2, seed)) * rm, x = cx + Math.cos(a) * d, z = cz + Math.sin(a) * d; if (corridor && distToPath(x, z, corridor) < 10) continue; if (Math.hypot(x - cx, z - cz) < 18) continue; put(drifts, x * M, gh(x, z) + 0.2 * M, z * M, (8 + hash(i, 3, seed) * 10) * M, (0.9 + hash(i, 4, seed) * 0.8) * M, (5 + hash(i, 5, seed) * 6) * M, hash(i, 6, seed) * 6.28, 0, hash(i, 7, seed) > 0.5 ? snow : snow2); S.drifts++; }
     for (let i = 0; i < 8; i++) { const a = hash(i, 11, seed) * 6.283, d = (0.35 + hash(i, 12, seed) * 0.6) * rm, x = cx + Math.cos(a) * d, z = cz + Math.sin(a) * d; if (corridor && distToPath(x, z, corridor) < 24) continue; put(ridges, x * M, gh(x, z) + 0.6 * M, z * M, (30 + hash(i, 13, seed) * 30) * M, (1.2 + hash(i, 14, seed) * 1.2) * M, (3 + hash(i, 15, seed) * 3) * M, hash(i, 16, seed) * 6.28, 0, snow2); S.drifts++; }
   } else if (kind === 'monument') {
-    // the horizon: mesas in a ring from 170 to 420 m, each a column on a talus, in the reds of the buttes; then rocks and sage on the flat, off the corridor
-    const rm = r / M, nM = 26, mesas = inst(box, nM, 'mesas'), talus = inst(flare, nM, 'talus'), caps = inst(box, nM, 'caps'), reds = [0x8a3f1c, 0x9c4a22, 0x7a3518, 0xa5562c].map(lin), cap = lin(0xb77a52);
+    /* a LEGO monument valley: the desert floor a baseplate (a studded overlay on the painted ground), the horizon mesas in brick courses on
+       a talus, and the flat strewn with LEGO: outcrops of stacked studded bricks, sage of stacked round green plates, and grit, thousands of
+       loose plates, tiles and round pieces in the earth's colours. Nothing is laid in the keep-out boxes (the homestead, the pool, the buttes). */
+    const rm = r / M, keep = (x, z, pad = 0) => (opts.keepOut || []).some(b => x > b[0] - pad && x < b[2] + pad && z > b[1] - pad && z < b[3] + pad);
+    const legoMat = (map, extra = {}) => new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.42, metalness: 0, map: map || null, ...extra });
+    /** A brick w × d studs, h plates, base at y 0, in LDU: its body and its studs, one geometry. */
+    const brickGeom = (w, d, h, studs = true, round = false) => {
+      const parts = [], body = round ? new THREE.CylinderGeometry(w * 10, w * 10, h * 8, 16) : new THREE.BoxGeometry(w * 20, h * 8, d * 20); body.translate(0, h * 4, 0); parts.push(body.toNonIndexed());
+      if (studs) for (let i = 0; i < w; i++) for (let j = 0; j < d; j++) { if (round && (w > 1)) { if (i || j) continue; } const st = new THREE.CylinderGeometry(6, 6, 3.4, 12); st.translate(round ? 0 : (i - (w - 1) / 2) * 20, h * 8 + 1.7, round ? 0 : (j - (d - 1) / 2) * 20); parts.push(st.toNonIndexed()); }
+      const n = parts.reduce((t, g) => t + g.attributes.position.count, 0), pos = new Float32Array(n * 3), nor = new Float32Array(n * 3); let o = 0;
+      for (const g of parts) { pos.set(g.attributes.position.array, o * 3); nor.set(g.attributes.normal.array, o * 3); o += g.attributes.position.count; }
+      const out = new THREE.BufferGeometry(); out.setAttribute('position', new THREE.BufferAttribute(pos, 3)); out.setAttribute('normal', new THREE.BufferAttribute(nor, 3)); return out;
+    };
+    const instL = (geom, n, name, map) => { const im = inst(geom, n, name); im.material = legoMat(map); im.castShadow = true; im.receiveShadow = true; return im; };
+    // the baseplate: a studded overlay a hair over the painted ground, two metres of texture holding four studs a side
+    { const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d'); g.clearRect(0, 0, 256, 256);
+      for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) { const x = 32 + i * 64, y = 32 + j * 64; g.fillStyle = 'rgba(0,0,0,0.30)'; g.beginPath(); g.arc(x + 4, y + 5, 20, 0, 7); g.fill(); g.fillStyle = 'rgba(255,235,210,0.16)'; g.beginPath(); g.arc(x, y, 19, 0, 7); g.fill(); g.strokeStyle = 'rgba(255,255,255,0.35)'; g.lineWidth = 3; g.beginPath(); g.arc(x, y, 17, Math.PI * 0.95, Math.PI * 1.6); g.stroke(); g.strokeStyle = 'rgba(0,0,0,0.25)'; g.lineWidth = 2; g.beginPath(); g.arc(x, y, 19, 0, 7); g.stroke(); }
+      const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; const size = 2 * rm; t.repeat.set(size / 2, size / 2); t.anisotropy = 8;
+      const plane = new THREE.Mesh(new THREE.PlaneGeometry(size * M, size * M), new THREE.MeshBasicMaterial({ map: t, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 })); plane.rotation.x = -Math.PI / 2; plane.position.set(cx * M, gh(cx, cz) + 0.2, cz * M); plane.name = 'set:baseplate'; plane.renderOrder = 1; S.group.add(plane); }
+    // the horizon: mesas in brick courses on a talus, from 170 to 420 m, long across the line of sight, a rare spire
+    const courses = (() => { const c = document.createElement('canvas'); c.width = 128; c.height = 256; const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, 128, 256);
+      for (let y = 0; y < 256; y += 16) { const band = 0.86 + 0.14 * Math.sin(y * 0.09); g.fillStyle = `rgba(${Math.round(255 * band)},${Math.round(250 * band)},${Math.round(245 * band)},1)`; g.fillRect(0, y, 128, 15); g.fillStyle = 'rgba(0,0,0,0.28)'; g.fillRect(0, y + 15, 128, 1); for (let x = (y / 16) % 2 ? 0 : 16; x < 128; x += 32) g.fillRect(x, y, 1, 15); }
+      const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(10, 6); return t; })();
+    const nM = 26, mesas = instL(box, nM, 'mesas', courses), talus = inst(flare, nM, 'talus'), caps = instL(box, nM, 'caps', courses), reds = [0x8a3f1c, 0x9c4a22, 0x7a3518, 0xa5562c].map(lin), cap = lin(0xb77a52);
     for (let i = 0; i < nM; i++) {
       const a = (i / nM) * 6.283 + (hash(i, 21, seed) - 0.5) * 0.12, d = 170 + hash(i, 22, seed) * 250, x = cx + Math.cos(a) * d, z = cz + Math.sin(a) * d, y = gh(x, z);
-      const w = (50 + hash(i, 23, seed) * 130) * M, dd = (18 + hash(i, 24, seed) * 30) * M, h = (9 + hash(i, 25, seed) * 18) * M, yaw = a + Math.PI / 2 + (hash(i, 26, seed) - 0.5) * 0.5, spire = hash(i, 27, seed) > 0.9;   /* long low tablelands, their length across the line of sight, a rare spire: the valley's horizon as the film has it */
+      const w = (50 + hash(i, 23, seed) * 130) * M, dd = (18 + hash(i, 24, seed) * 30) * M, h = (9 + hash(i, 25, seed) * 18) * M, yaw = a + Math.PI / 2 + (hash(i, 26, seed) - 0.5) * 0.5, spire = hash(i, 27, seed) > 0.9;
       const sw = spire ? w * 0.12 : w, sd = spire ? dd * 0.35 : dd, hh = spire ? h * 2.2 : h;
       put(talus, x * M, y + hh * 0.16, z * M, sw * 0.95, hh * 0.32, sd * 0.95, yaw, 0, reds[(i + 1) % 4]);
       put(mesas, x * M, y + hh / 2, z * M, sw * 0.7, hh, sd * 0.7, yaw, 0, reds[i % 4]);
       put(caps, x * M, y + hh + 0.5 * M, z * M, sw * 0.72, 1.0 * M, sd * 0.72, yaw, 0, cap);
     }
-    const nR = Math.round(rm / 4), rocks = inst(ball, nR, 'rocks'), rock = lin(0x7c3c1e), nS = Math.round(rm * 1.6), sage = inst(bush, nS, 'sage'), sageC = lin(0x7d8a62), sageC2 = lin(0x6b7a58);
-    for (let i = 0; i < nR; i++) { const a = hash(i, 1, seed) * 6.283, d = 14 + Math.sqrt(hash(i, 2, seed)) * rm, x = cx + Math.cos(a) * d, z = cz + Math.sin(a) * d; if (corridor && distToPath(x, z, corridor) < 12) continue; const sz = (0.8 + hash(i, 3, seed) * 2.4) * M; put(rocks, x * M, gh(x, z) + sz * 0.25, z * M, sz * 1.4, sz * 0.7, sz, hash(i, 4, seed) * 6.28, 0, rock); }
-    for (let i = 0; i < nS; i++) { const a = hash(i, 11, seed) * 6.283, d = 10 + Math.sqrt(hash(i, 12, seed)) * rm, x = cx + Math.cos(a) * d, z = cz + Math.sin(a) * d; if (corridor && distToPath(x, z, corridor) < 5) continue; const sz = (0.35 + hash(i, 13, seed) * 0.5) * M; put(sage, x * M, gh(x, z) + sz * 0.4, z * M, sz * 1.3, sz * 0.9, sz * 1.3, hash(i, 14, seed) * 6.28, 0, hash(i, 15, seed) > 0.5 ? sageC : sageC2); }
+    // outcrops: clusters of stacked studded bricks, stepped in, in the rock reds and greys
+    const b24 = brickGeom(2, 4, 3), b22 = brickGeom(2, 2, 3), s12 = brickGeom(1, 2, 3), rockCols = [0x7c3c1e, 0x8a4a28, 0x6b3a22, 0x9c5a34, 0x6e6a62, 0x585650].map(lin);
+    const nR = Math.round(rm / 3), ob24 = instL(b24, nR * 6, 'outcrop 2x4'), ob22 = instL(b22, nR * 6, 'outcrop 2x2'), ob12 = instL(s12, nR * 4, 'outcrop 1x2');
+    for (let i = 0; i < nR; i++) { const a = hash(i, 1, seed) * 6.283, d = 14 + Math.sqrt(hash(i, 2, seed)) * rm, x = cx + Math.cos(a) * d, z = cz + Math.sin(a) * d; if (corridor && distToPath(x, z, corridor) < 10) continue; if (keep(x, z, 3)) continue;
+      const sc = 1 + hash(i, 3, seed) * 2.2, layers = 1 + Math.floor(hash(i, 4, seed) * 3), yaw = hash(i, 5, seed) * 6.283, col = rockCols[Math.floor(hash(i, 6, seed) * rockCols.length)], y0 = gh(x, z);
+      for (let L = 0; L < layers; L++) { const k = 3 - L; for (let n = 0; n < k; n++) { const ox = (hash(i, 10 + L * 5 + n, seed) - 0.5) * (k * 30) * sc, oz = (hash(i, 40 + L * 5 + n, seed) - 0.5) * (k * 30) * sc, im = n % 3 === 0 ? ob24 : n % 3 === 1 ? ob22 : ob12;
+        put(im, x * M + ox, y0 + L * 24 * sc, z * M + oz, sc, sc, sc, yaw + n * 1.57, 0, col); } } }
+    // sage: stacked round plates, a darker green below and a sage green above
+    const rp4 = brickGeom(2, 2, 1, true, true), rp2 = brickGeom(1, 1, 1, true, true), nS = Math.round(rm * 1.6), sageLo = instL(rp4, nS * 2, 'sage'), sageHi = instL(rp2, nS * 2, 'sage top'), sageC = lin(0x5f6f48), sageC2 = lin(0x7d8a62), sageC3 = lin(0x8a9870);
+    for (let i = 0; i < nS; i++) { const a = hash(i, 11, seed) * 6.283, d = 10 + Math.sqrt(hash(i, 12, seed)) * rm, x = cx + Math.cos(a) * d, z = cz + Math.sin(a) * d; if (corridor && distToPath(x, z, corridor) < 4) continue; if (keep(x, z, 1)) continue;
+      const sc = 1.2 + hash(i, 13, seed) * 1.6, y0 = gh(x, z), yaw = hash(i, 14, seed) * 6.28; put(sageLo, x * M, y0, z * M, sc * 1.3, sc, sc * 1.3, yaw, 0, sageC); put(sageLo, x * M + 6 * sc, y0 + 8 * sc, z * M - 4 * sc, sc, sc, sc, yaw, 0, sageC2); put(sageHi, x * M - 3 * sc, y0 + 16 * sc, z * M + 2 * sc, sc * 1.4, sc, sc * 1.4, yaw, 0, sageC3); put(sageHi, x * M + 10 * sc, y0 + 8 * sc, z * M + 9 * sc, sc, sc, sc, yaw, 0, sageC); }
+    // grit: loose LEGO in the earth's colours, thickest near the house and the riders' line, thinning out to 90 m
+    const g11 = brickGeom(1, 1, 1, true, true), p12 = brickGeom(1, 2, 1), t11 = brickGeom(1, 1, 1, false), p22 = brickGeom(2, 2, 1), gritCols = [0xa98452, 0x8a6d3e, 0x7c3c1e, 0x9c5a34, 0xb77a52, 0x6e6a62, 0xc9a97a, 0x5a3a24].map(lin);
+    const nG = 2600, gi = [instL(g11, nG, 'grit round'), instL(p12, nG, 'grit 1x2'), instL(t11, nG, 'grit tile'), instL(p22, nG, 'grit 2x2')];
+    for (let i = 0; i < nG * 4; i++) { const a = hash(i, 61, seed) * 6.283, d = 6 + Math.pow(hash(i, 62, seed), 1.7) * Math.min(90, rm), x = cx + Math.cos(a) * d, z = cz + Math.sin(a) * d; if (keep(x, z, 0.5)) continue;
+      put(gi[i % 4], x * M, gh(x, z), z * M, 1, 1, 1, hash(i, 63, seed) * 6.283, 0, gritCols[Math.floor(hash(i, 64, seed) * gritCols.length)]); }
   } else if (kind === 'desert') {
     const rm = r / M, n = Math.round(rm / 5), rocks = inst(ball, n, 'rocks'), rock = lin(0x8a6a48);
     for (let i = 0; i < n; i++) { const a = hash(i, 1, seed) * 6.283, d = Math.sqrt(hash(i, 2, seed)) * rm, x = cx + Math.cos(a) * d, z = cz + Math.sin(a) * d; if (corridor && distToPath(x, z, corridor) < 8) continue; const sz = (1 + hash(i, 3, seed) * 3) * M; put(rocks, x * M, gh(x, z) + sz * 0.3, z * M, sz * 1.4, sz * 0.8, sz, hash(i, 4, seed) * 6.28, 0, rock); const t = { x: x * M, z: z * M, r: sz * 1.2, h: sz, top: gh(x, z) + sz, y: gh(x, z) }; S.trunks.push(t); const k = key(t.x, t.z); let cell = S.cells.get(k); if (!cell) { cell = []; S.cells.set(k, cell); } cell.push(t); }

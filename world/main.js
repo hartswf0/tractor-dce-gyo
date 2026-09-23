@@ -958,7 +958,7 @@ function filmSet(kind, opts = {}) {
   }
   const centre = opts.centre || (W.spawn ? { x: W.spawn.x, z: W.spawn.z } : { x: W.rig.pos.x, z: W.rig.pos.z });
   if (W.sets && W.sets.drop) { try { W.sets.drop(); } catch (e) { } }   // the set before this one goes (a film that changes ground between shots)
-  W.sets = Sets.lay(kind, { scene: W.scene, G: W.G, M, centre, r: (opts.r || 180) * M, seed: opts.seed || 1, corridor: opts.corridor || null });
+  W.sets = Sets.lay(kind, { scene: W.scene, G: W.G, M, centre, r: (opts.r || 180) * M, seed: opts.seed || 1, corridor: opts.corridor || null, keepOut: opts.keepOut || null });
   Ground.recolour(W.G, W.sets.paint); if (W.sky) W.sky.override = W.sets.fog ? { fog: W.sets.fog, sky: W.sets.sky } : null; if (W.sets.fog) { W.scene.fog.color.copy(new THREE.Color(W.sets.fog[0]).convertSRGBToLinear()); W.scene.fog.near = W.sets.fog[1] * M; W.scene.fog.far = W.sets.fog[2] * M; } if (W.sets.sky) W.scene.background = new THREE.Color(W.sets.sky);
   for (let k = 0; k < 4; k++) W.city.update(W.camera, playerPos());
   return true;
