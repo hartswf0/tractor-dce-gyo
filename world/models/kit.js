@@ -55,4 +55,19 @@ function fire(x, z) { return G('fire', x, z, [box(0, 0, 4, 4, 1, 72, { hollow: t
 function lamp(x, z, h = 6, col = 0) { const ops = []; for (let i = 0; i < h; i++) ops.push(part('3062b', col, 0, 0, i)); ops.push(part('3005', 46, 0, 0, h), part('3024', col, 0, 0, h + 1)); return G('lamp', x, z, ops); }
 /** A shopping cart: four wheels, a plate, a basket, a handle. */
 function cart(x, z, col = 4, turn = 0) { return G('cart', x, z, [part('4073', 0, 0, 0, 0), part('4073', 0, 3, 0, 0), part('4073', 0, 0, 1, 0), part('4073', 0, 3, 1, 0), slab(0, 0, 4, 2, 71, { plateOffset: 1 }), slab(0, 0, 4, 2, col, { plateOffset: 2, plates: 3 }), part('3062b', 0, 3, 0, 1, { plate: 2 }), part('3062b', 0, 3, 1, 1, { plate: 2 })], { turn }); }
-module.exports = { G, box, slab, cut, part, window, door, roof, stairs, arch, seeded, bigWindow, checker, shelf, tree, bush, rock, log, fire, lamp, cart };
+/** A deck: three plate layers laid as explicit plates in a bond no tiler undoes — 4×2 plates, the second layer offset
+    two studs and one, the third turned 2×4 and offset one and two — so every seam of one layer is bridged by the next and
+    a ceiling or a porch roof over open air hangs together from whatever holds its edges. y in bricks. */
+function deck(x, z, w, d, col, y = 0, o = {}) {
+  const SIZE = { '1x1': '3024', '1x2': '3023', '1x3': '3623', '1x4': '3710', '2x2': '3022', '2x3': '3021', '2x4': '3020' }, ops = [];
+  const layers = o.layers || [[4, 2, 0, 0], [4, 2, 2, 1], [2, 4, 1, 2]];
+  layers.forEach(([bw, bd, ox, oz], L) => {
+    for (let gx = -ox; gx < w; gx += bw) for (let gz = -oz; gz < d; gz += bd) {
+      const x0 = Math.max(0, gx), z0 = Math.max(0, gz), x1 = Math.min(w, gx + bw), z1 = Math.min(d, gz + bd), a = x1 - x0, b = z1 - z0; if (a <= 0 || b <= 0) continue;
+      const lo = Math.min(a, b), hi = Math.max(a, b), id = SIZE[lo + 'x' + hi]; if (!id) continue;
+      ops.push(part(id, col, x + x0, z + z0, y, { plate: L, rot: a >= b ? 0 : 1 }));
+    }
+  });
+  return ops;
+}
+module.exports = { G, deck, box, slab, cut, part, window, door, roof, stairs, arch, seeded, bigWindow, checker, shelf, tree, bush, rock, log, fire, lamp, cart };

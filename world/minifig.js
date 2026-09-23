@@ -88,6 +88,11 @@ const DEFS = {
   'monkey-banana': { name: 'A capuchin monkey with a banana', legs: 0, hips: 0, torso: 0, arms: 0, hands: 6, head: 6, hat: null, weapon: ['sword', '33085', 14], cape: null },
   polyphemus: { name: 'Polyphemus', legs: 0, hips: 0, torso: 0, arms: 0, hands: 0, head: 0, hat: ['30381', 0], weapon: null, cape: ['522', 0], bare: true },
   suitor: { name: 'Suitor', legs: 70, hips: 70, torso: 70, arms: 70, hands: 78, head: 78, hat: ['3901', 0], weapon: null, crowd: true, face: 'halfworld:alcinous' },
+  /* The Searchers: the man in the hat, the family on the porch, the girl brought home */
+  ethan: { name: 'Ethan', legs: 28, hips: 308, torso: 272, arms: 272, hands: 78, head: 78, hat: ['3629', 28], weapon: null, face: 'halfworld:odysseus' },
+  martha: { name: 'Martha', legs: 272, hips: 272, torso: 15, arms: 15, hands: 78, head: 78, hat: ['3625', 70], weapon: null, woman: true, face: 'halfworld:penelope' },
+  aaron: { name: 'Aaron', legs: 308, hips: 308, torso: 71, arms: 71, hands: 78, head: 78, hat: ['3901', 70], weapon: null, face: 'halfworld:eumaeus' },
+  debbie: { name: 'Debbie', legs: 19, hips: 19, torso: 19, arms: 19, hands: 78, head: 78, hat: ['3625', 0], weapon: null, woman: true, face: 'halfworld:athena' },
 };
 /* ride: the vehicle that stands by the spawn for this character (Vader has the TIE); vehicles.js lays it as lm-me */
 /* a bare head is the character's own (a mask over the plain head is the whole face), a short figure stands on one-piece legs */

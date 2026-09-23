@@ -107,6 +107,55 @@ Film.SCENES['case-plato'] = { name: "The Cave", time: 'night', weather: 'clear',
       events: [BEAT('return', 'freed', 0, 7, 'he comes back down to tell them, and they laugh at his ruined eyes', 'hurt'), P('freed', 'appeal', 1.0), P('captive-1', 'contempt', 3.0), P('captive-2', 'skepticism', 3.4), SAY('narrator', 'Would they not say his eyes were ruined by the climb, and that it was not worth even trying?', 1.0, 4.6)] },
     { score: 'end', title: 'THE CAVE\nA CASE TO REHEARSE', style: 'card', sec: 3, name: 'the card' }] };
 
+/* ── 4. The Searchers: the homecoming, on The Homestead (world/models/homestead.js) under The Buttes (world/models/buttes.js) ── */
+/* Studs to metres: the homestead is 48 × 48 studs laid at heading 180, so world metres = (stud − 24) / 2 on both axes; it is laid a plate down
+   (y −0.18) so its floors, porch and path are the ground the figures stand on. The door frame is at studs x 22..25 on the wall line z 19
+   (x −1..1, z −2.5..−2); the room x 13..34 × z 5..18 (x −5.5..5.5, z −9.5..−2.5); the porch boards z 20..24 (z −2..0.5), its posts at
+   x 12, 18, 28, 34 on z 23 (the gap before the door x −2..2); the table x 15..20 × z 11..14 (x −4.5..−1.5, z −6.5..−4.5); the bed x 29..33 × z 5..7
+   (x 2.5..5, z −9.5..−8); the path x 21..26 south from z 25 (x −1.5..1.5, z 0.5..12); the hitching rail and horse at x 4..8, z 3..4.5.
+   The buttes (studs 2..87 × 2..29, centre 44.5, 15.5) are laid at x 16.5, z 62: the mitten at (0.25, 61.5), dead south of the door; the spire at (16.25, 57.25); the east butte at (32, 65).
+   Every walk into the room starts on the porch and passes the door plane (z −2.25) within half a metre of x 0, and ends out of the inside camera's frame (east of it).
+   The sun stands east-south-east at 26 degrees (look.azim 115), so the yard and the buttes are lit and the room under its ceiling is not. */
+const SUN = { hemi: 0.75, sun: 1.25, elev: 26, azim: 115, exposure: 1.0 };
+const ROOM = { hemi: 0.2, sun: 1.25, elev: 26, azim: 115, exposure: 0.95 };   /* the room: the ceiling keeps the sun off it, and the fill is cut to a fifth, so the door is the one bright thing */
+const INSIDE = [0.6, 1.9, -9.0], DOOR = [0.1, 1.6, -2.25];   /* the camera by the back wall, and the middle of the door it looks at */
+Film.SCENES['case-searchers'] = { name: 'The Searchers', time: 'day', weather: 'clear', ground: 'flat', me: 'off', part: 'ethan',
+  set: { kind: 'desert', r: 160, seed: 3, corridor: [[-1, -14], [1, 12], [3, 40], [3, 70]] },   /* the desert's rocks are kept eight metres off the line from the house to the mitten */
+  story: { title: 'The Searchers', description: 'A woman comes out of a dark house into the light and sees two figures walking in from the buttes: the man who went after the girl the Comanche took, and the girl. He brings her home. The family goes in. He stays on the porch, and walks back into the desert.', location: 'a homestead under the buttes',
+    entities: [{ id: 'ethan', type: 'character', name: 'Ethan', traits: ['the hat', 'five years searching', 'the door he does not go through'] }, { id: 'debbie', type: 'character', name: 'Debbie', traits: ['taken', 'brought home'] }, { id: 'martha', type: 'character', name: 'Martha', traits: ['the porch', 'the one who waited'] }, { id: 'aaron', type: 'character', name: 'Aaron', traits: ['the house'] }, { id: 'door', type: 'location', name: 'the door', traits: ['the dark room', 'the bright desert'] }],
+    goals: ['bring Debbie home'], obstacles: ['the man who brings her is not a man for houses'], shifts: [{ id: 'door', name: 'The door' }, { id: 'sighting', name: 'Two figures' }, { id: 'recognition', name: 'Martha' }, { id: 'approach', name: 'The approach' }, { id: 'home', name: 'Home' }, { id: 'inside', name: 'Inside' }, { id: 'leaving', name: 'The leaving' }], why: 'the one who brings them home cannot come in', direction: 'restraint' },
+  donors: [{ name: 'the homestead', set: 'homestead', x: 0, z: 0, heading: 180, scale: 1, y: -0.18 }, { name: 'the buttes', set: 'buttes', x: 16.5, z: 62, heading: 180, scale: 1 }],
+  marks: { inside: [0.4, -5.8], step: [-0.5, 1.3], 'porch-a': [-0.9, -1.0], 'yard-e': [1.0, 8.0], 'yard-d': [2.2, 8.4], 'porch-d': [-0.4, -1.3], 'porch-m': [-0.1, -1.4], 'door-out': [0.1, -1.1], 'room-d': [3.4, -6.4], 'room-m': [3.6, -7.5], 'room-a': [2.4, -7.6], desert: [1.6, 26] },
+  actors: [
+    { name: 'martha', figure: 'martha', label: 'Martha', x: 0.4, z: -5.8, heading: 180 },
+    { name: 'aaron', figure: 'aaron', label: 'Aaron', x: 4.0, z: -6.0, heading: 180 },
+    { name: 'ethan', figure: 'ethan', label: 'Ethan', x: 4.6, z: 36, heading: 0 },
+    { name: 'debbie', figure: 'debbie', label: 'Debbie', x: 5.8, z: 36.6, heading: 0 }],
+  shots: [
+    { score: 'searchers', title: 'THE SEARCHERS', style: 'card', sec: 3, events: [SAY('narrator', 'Five years, he looked for her.', 0.6, 2.0)] },
+    { name: 'The door', on: 'martha', pos: INSIDE, tgt: DOOR, lens: 50, sec: 7, shift: 'door', look: ROOM,
+      acts: [{ who: 'martha', to: 'step', walk: true, at: 1.0 }],
+      events: [BEAT('door', 'martha', 0, 7, 'out of the dark room into the light', 'restraint'), SND('whoosh', 0.4), SND('footstep', 1.3), SND('footstep', 1.8), SND('footstep', 2.3), SND('footstep', 2.8), SND('footstep', 3.3)] },
+    { name: 'Two figures', on: 'ethan', pos: [0.6, 2.2, -1.85], tgt: [1.0, 1.5, 20], lens: 42, sec: 6, shift: 'sighting', look: SUN,
+      acts: [{ who: 'ethan', to: 'yard-e', walk: true }, { who: 'debbie', to: 'yard-d', walk: true }, { who: 'aaron', to: 'porch-a', walk: true, at: 2.0 }, { who: 'martha', look: 'ethan' }],
+      events: [BEAT('sighting', 'martha', 0, 6, 'two figures walking in out of the buttes', 'wonder'), LOOK('martha', 'ethan', 0.3, true), P('martha', 'wonder', 1.0), SND('whoosh', 1.5)] },
+    { name: 'Martha', on: 'martha', pos: [0.3, 2.1, 5.9], tgt: [-0.5, 2.05, 1.3], lens: 30, sec: 3.5, shift: 'recognition', look: SUN,
+      acts: [{ who: 'ethan', to: 'yard-e', walk: true }, { who: 'debbie', to: 'yard-d', walk: true }, { who: 'martha', look: 'ethan' }],
+      events: [BEAT('recognition', 'martha', 0, 3.5, 'she knows who it is, and who is with him', 'recognition'), P('martha', 'recognition', 0.4), SET('martha', 'arm.R.pitch', -2.0, 0.8, 0.6), SND('breath', 1.6)] },
+    { name: 'The approach', on: 'ethan', pos: [-0.9, 1.15, 3.6], tgt: [2.0, 1.8, 20], lens: 36, sec: 7, shift: 'approach', look: SUN,
+      acts: [{ who: 'ethan', to: 'yard-e', walk: true }, { who: 'debbie', to: 'yard-d', walk: true }],
+      events: [BEAT('approach', 'ethan', 0, 7, 'he brings her the last of the way', 'weariness'), P('ethan', 'weariness', 0.5), SND('footstep', 0.6), SND('footstep', 1.3), SND('footstep', 2.0), SND('footstep', 2.7), LOOK('ethan', 'debbie', 4.2), P('debbie', 'guarded', 4.4), SAY('ethan', "Let's go home, Debbie.", 4.6, 1.8)] },
+    { name: 'Home', on: 'debbie', pos: [3.6, 2.0, 12.6], tgt: [-0.2, 1.8, -1], lens: 36, sec: 6, shift: 'home', look: SUN,
+      acts: [{ who: 'debbie', to: 'porch-d', walk: true, at: 0.4 }, { who: 'martha', to: 'porch-m', walk: true, at: 3.4 }, { who: 'aaron', look: 'debbie' }, { who: 'ethan', look: 'martha' }],
+      events: [BEAT('home', 'debbie', 0, 6, 'the girl goes up to the porch; the woman who waited turns and takes her in', 'tenderness'), SET('martha', 'arm.R.pitch', 0, 0.2, 0.6), LOOK('ethan', 'martha', 0.1), LOOK('martha', 'debbie', 0.6, true), P('martha', 'tenderness', 1.0), SAY('martha', 'Debbie.', 2.6, 1.0), P('aaron', 'joy', 3.0), P('ethan', 'guarded', 1.0)] },
+    { name: 'Inside', on: 'ethan', pos: INSIDE, pos2: [0.35, 1.9, -6.6], tgt: DOOR, lens: 50, lens2: 44, sec: 9, shift: 'inside', look: ROOM,
+      acts: [{ who: 'debbie', to: 'room-d', walk: true, at: 0.3 }, { who: 'martha', to: 'room-m', walk: true, at: 0.9 }, { who: 'aaron', to: 'room-a', walk: true, at: 2.2 }, { who: 'ethan', to: 'door-out', walk: true, at: 1.5 }],
+      events: [BEAT('inside', 'ethan', 0, 9, 'they all go in past him; he comes to the door and stops', 'restraint'), SND('footstep', 0.8), SND('footstep', 1.4), SND('footstep', 2.6), SND('footstep', 3.2), LOOK('ethan', 'martha', 6.2), P('ethan', 'weariness', 6.0), SET('ethan', 'arm.R.pitch', -1.1, 6.8, 0.8)] },
+    { name: 'The leaving', on: 'ethan', pos: INSIDE, tgt: DOOR, lens: 50, sec: 7, shift: 'leaving', look: ROOM,
+      acts: [{ who: 'ethan', to: 'desert', walk: true, at: 1.4 }],
+      events: [BEAT('leaving', 'ethan', 0, 7, 'he turns and walks back into the desert', 'restraint'), SET('ethan', 'head.yaw', 0, 0.7, 0.5), SET('ethan', 'torso.twist', 0, 0.8, 0.5), SET('ethan', 'root.yaw', 0, 0.9, 0.5), SET('ethan', 'arm.R.pitch', 0, 1.0, 0.6), SND('footstep', 1.6), SND('footstep', 2.2), SND('footstep', 2.8), SND('whoosh', 3.2)] },
+    { score: 'end', title: 'THE SEARCHERS', style: 'card', sec: 3, name: 'the card' }] };
+
 /* ── The sheet of nine: every candidate registered with its set, so it can be laid, planned and inspected now. The three with programs stand on real models
    (world/models/*.js, built and audited by tools/model.js: every piece stud-connected, a manual at play/manual.html?model=<model>); the other six still stand on the scene files they came from. ── */
 Film.CASES = [
@@ -114,11 +163,11 @@ Film.CASES = [
   { key: 'case-ewoks', name: 'The Forest Skirmish', source: 'world/models/forest-clearing.js', set: 'forest-clearing', model: 'forest-clearing', size: '32 x 32 m', cast: ['ewok', 'robot'], status: 'program', beats: ['the lines', 'the intrusion', 'the ambush', 'the train', 'the reversal', 'from above'] },
   { key: 'case-plato', name: 'The Cave', source: 'world/models/cave-of-shadows.js', set: 'cave-of-shadows', model: 'cave-of-shadows', size: '32 x 24 m', cast: ['shade', 'citizen', 'hauler'], status: 'program', beats: ['the shadows', 'the puppeteers', 'the turn', 'the climb', 'the sun', 'the return'] },
   { key: 'case-band', name: 'Band Class', source: 'simpsons_scene_06_band.mpd', set: 'simpsons-band', size: '10 x 5 m', cast: ['lisa', 'bart', 'citizen'], status: 'planned', beats: ['the count-in', 'the wrong tempo', 'the interruption', 'the solo', 'the reaction', 'the downbeat'] },
-  { key: 'case-searchers', name: 'The Searchers', source: 'searchers.mpd', set: 'searchers', size: '17 x 23 m', cast: ['rider', 'citizen', 'homer', 'marge'], status: 'planned', beats: ['the rider outside', 'the family at the television', 'the door', 'nobody turns', 'the long shadow', 'the leaving'], note: 'the set carries five cameras and nine lights of its own; one collapsed transformation to repair' },
+  { key: 'case-searchers', name: 'The Searchers', source: 'world/models/homestead.js', set: 'homestead', model: 'homestead', models: ['homestead', 'buttes'], size: '24 x 24 m', cast: ['ethan', 'martha', 'aaron', 'debbie'], status: 'program', beats: ['the door', 'two figures', 'Martha', 'the approach', 'home', 'inside', 'the leaving'] },
   { key: 'case-undaunted', name: 'Fort Mandan', source: 'Brickfilm_Studio_Kit/undaunted_scene_2_ohio_fort_mandan.mpd', set: 'undaunted-fort-mandan', size: '13 x 16 m', cast: ['hauler', 'commander', 'rider'], status: 'planned', beats: ['the boats', 'the palisade', 'the winter', 'the guide', 'the map', 'the river again'], note: 'one of seven Undaunted files; the others are the title, Jefferson, Great Falls, the Bitterroot, the Pacific and the credits' },
   { key: 'case-ithaca-cove', name: 'Ithaca Cove', source: 'odyssey-production/locations/ithaca-cove.mpd', set: 'ithaca-cove', size: '70 x 60 m', cast: ['odysseus-wet', 'athena', 'sailor'], status: 'planned', beats: ['the arrival asleep', 'the Phaeacians gone', 'the mist', 'the goddess', 'the concealment of the goods', 'the road up'] },
   { key: 'case-ogygia', name: 'Ogygia Grove', source: 'odyssey-production/locations/ogygia-grove.mpd', set: 'ogygia-grove', size: '70 x 60 m', cast: ['odysseus', 'calypso', 'hermes'], status: 'planned', beats: ['the shore', 'the messenger', 'the order', 'the axe', 'the raft', 'the leaving'], note: 'the raft scene in the play set covers the same beats on the Enchanted Island; this is the authored grove' },
   { key: 'case-rocket', name: 'The Launch', source: 'rocket_launch_scene.ldr', set: 'rocket-launch', size: '13 x 9 m', cast: ['citizen', 'pilot', 'c3po'], status: 'planned', beats: ['the countdown', 'the hold', 'the small problem', 'the fix', 'the launch', 'the unexpectedly small departure'] },
 ];
-Film.PLAY_SCENES = (Film.PLAY_SCENES || []).concat(['case-grocery', 'case-ewoks', 'case-plato']);
+Film.PLAY_SCENES = (Film.PLAY_SCENES || []).concat(['case-grocery', 'case-ewoks', 'case-plato', 'case-searchers']);
 })();
