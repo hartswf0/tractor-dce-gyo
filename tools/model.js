@@ -145,11 +145,16 @@ function toMPD(model, P, S, sheet, inv) {
 
 function build(model, opts = {}) {
   const program = typeof model.program === 'function' ? model.program() : model.program;
-  const kept = Dsl.BRICKS.slice(); if (model.bricks) { Dsl.BRICKS.length = 0; Dsl.BRICKS.push(...kept.filter(b => model.bricks.includes(b[0]))); }   /* a model may narrow the tiler's bricks (a log wall has no 1×8 log) */
-  let result; try { result = Dsl.compile(program, { maxOps: 4000 }); } finally { Dsl.BRICKS.length = 0; Dsl.BRICKS.push(...kept); }
+  const kept = Dsl.BRICKS.slice(), keptP = Dsl.PLATES.slice(); if (model.bricks) { Dsl.BRICKS.length = 0; Dsl.BRICKS.push(...kept.filter(b => model.bricks.includes(b[0]))); }   /* a model may narrow the tiler's bricks (a log wall has no 1×8 log) */
+  if (model.groundTiles) { Dsl.PLATES.length = 0; Dsl.PLATES.push(...keptP.filter(q => q[0] !== '3032')); }   /* ground that becomes tiles is laid in plates that have a tile of their size */
+  let result; try { result = Dsl.compile(program, { maxOps: 4000 }); } finally { Dsl.BRICKS.length = 0; Dsl.BRICKS.push(...kept); Dsl.PLATES.length = 0; Dsl.PLATES.push(...keptP); }
   const P = pieces(result);
   if (model.swap) for (const p of P) { const to = model.swap.from[p.part]; if (to && (!model.swap.col || model.swap.col.includes(p.col))) p.part = to; }   /* a like-for-like swap after the tiler: same footprint and height, another face (a 1×4 brick laid as a 1×4 log) */
   if (model.mirror) for (const p of P) { p.x = model.mirror - p.x - p.w; p.rot = (4 - p.rot) & 3; }   /* a model written one way round and built the other (x mirrored across its width): each piece keeps its own shape, its facing turned */
+  if (model.groundTiles) {   /* smooth ground: a plate at the ground in the named colours that nothing stands on becomes the tile of its size (packed earth, not studs) */
+    const TILE = { '3020': '87079', '3022': '3068b', '3023': '3069b', '3024': '3070b' }, J0 = joints(P), up = new Set(J0.map(j => j.a)), cols = model.groundTiles.cols;
+    for (const p of P) if (p.y === 0 && TILE[p.part] && !up.has(p.i) && (!cols || cols.includes(p.col))) p.part = TILE[p.part];
+  }
   const J = joints(P), A = audit(P, J, { ground: model.ground }), S = steps(P, program, opts), inv = inventory(P);
   const pages = 1 + S.length + Math.ceil(inv.length / 40);
   const sheet = { pieces: P.length, steps: S.length, pages, joints: A.total, weak: A.weak.length, unsupported: A.unsupported.length, floating: result.report.floating, blocked: result.report.blocked, errors: result.report.errors.length, unknown: result.report.unknown.length };

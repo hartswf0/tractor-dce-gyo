@@ -311,7 +311,7 @@ function makePlayer(name) {
   const groups = parts.map(([slot, part, col]) => {
     const g = new THREE.Group(), geom = W.raw.get(part); if (!geom) { loadPrinted(g, part, col, slot); return g; }
     const c = W.colours(col), trans = col === 36 || col === 33;
-    const mat = new THREE.MeshStandardMaterial({ color: c, roughness: .45, metalness: 0, transparent: trans, opacity: trans ? .75 : 1, emissive: trans ? c : 0x000000, emissiveIntensity: trans ? .8 : 0 });
+    const mat = new THREE.MeshStandardMaterial({ color: c, roughness: .45, metalness: 0, transparent: trans, opacity: trans ? .75 : 1, emissive: trans ? c : 0x000000, emissiveIntensity: trans ? .8 : 0, side: THREE.DoubleSide });   // two-sided: an arm is open at the shoulder, and seen into it must not show the sky through its back faces
     g.add(new THREE.Mesh(geom, mat)); return g;
   });
   Minifig.mount(rig, groups, def, W.scene);
@@ -321,7 +321,7 @@ function makePlayer(name) {
 const printedCache = new Map();   // part:colour → the parse, shared by every figure that wears it (eighteen hoplites parse one helmet)
 function loadPrinted(g, part, col, slot) {
   if (!W.props || !W.props.parse) return; g.userData.part = part; const key = part + ':' + (col == null ? 16 : col);
-  if (!printedCache.has(key)) printedCache.set(key, W.props.parse(`0 FILE p-${part}.ldr\n0 !LDRAW_ORG Unofficial_Model\n1 ${col == null ? 16 : col} 0 0 0 1 0 0 0 1 0 0 0 1 parts/${part}.dat`, `p-${part}.ldr`).then(src => { const lines = []; src.traverse(o => { if (o.isLine || o.isLineSegments) lines.push(o); else if (o.isMesh && o.material) for (const m of Array.isArray(o.material) ? o.material : [o.material]) m.fog = true; }); for (const l of lines) l.parent.remove(l); return src; }));   /* the loader's edge lines would draw white seams on a hair or a head */
+  if (!printedCache.has(key)) printedCache.set(key, W.props.parse(`0 FILE p-${part}.ldr\n0 !LDRAW_ORG Unofficial_Model\n1 ${col == null ? 16 : col} 0 0 0 1 0 0 0 1 0 0 0 1 parts/${part}.dat`, `p-${part}.ldr`).then(src => { const lines = []; src.traverse(o => { if (o.isLine || o.isLineSegments) lines.push(o); else if (o.isMesh && o.material) for (const m of Array.isArray(o.material) ? o.material : [o.material]) { m.fog = true; m.side = THREE.DoubleSide; } }); for (const l of lines) l.parent.remove(l); return src; }));   /* the loader's edge lines would draw white seams on a hair or a head */
   printedCache.get(key).then(src => {
     if (g.userData.part !== part) return; while (g.children.length) g.remove(g.children[0]); const grp = src.clone(); if (slot === 'head') grp.traverse(o => { if (o.isMesh && o.material) o.material = Array.isArray(o.material) ? o.material.map(m => m.clone()) : o.material.clone(); });   /* a head keeps its own materials: a face is drawn on one head, not on every head of that part */
     if (slot === 'head') { const box = new THREE.Box3().setFromObject(grp); if (isFinite(box.max.y)) grp.position.y = 24 - box.max.y; g.userData.neck = +box.max.y.toFixed(1); }   // the head slot sits at the crown and the neck is 24 LDU below it (LDraw y down); a sculpted head whose origin is its neck is moved down to meet the torso

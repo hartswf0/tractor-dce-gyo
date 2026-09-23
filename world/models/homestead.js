@@ -64,4 +64,5 @@ function program() {
   return { name: 'homestead', ops };
 }
 module.exports = { name: 'homestead', title: 'The Homestead', description: 'A frontier homestead for The Searchers: a log cabin with an open door frame between two windows, a plank floor, a stone hearth and chimney, a table, benches, a bed and a dresser inside, a plate ceiling so the room is dark, a gabled red roof, a plank porch on four posts with two rocking chairs, and in the yard a corral with two horses, a hitching rail with a horse, a trough, a woodpile, a fence line and a water barrel.', program, scale: 1,
+  groundTiles: { cols: [84, 28] },   /* the yard and the path as smooth packed earth: tiles where nothing stands */
   bricks: ['3001', '3003', '3010', '3004', '3005'], swap: { from: { '3010': '30137', '3004': '30136' }, col: [70] } };

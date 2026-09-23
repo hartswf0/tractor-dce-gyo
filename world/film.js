@@ -399,7 +399,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
         if (set.as && W.setCharacter && W.character !== set.as) { F.ground(); W.setCharacter(set.as); changed = true; }
         if (set.world && W.setWorld && W.world !== set.world) { F.ground(); W.setWorld(set.world); changed = true; }
       }
-      if (W.sky) { W.sky.mood = s.look ? { hemi: s.look.hemi, sun: s.look.sun, elev: s.look.elev, azim: s.look.azim } : null; if (W.renderer) W.renderer.toneMappingExposure = s.look && s.look.exposure != null ? s.look.exposure : 1; if (!(s.set && (s.set.time || s.set.weather)) && W.skyApply) W.skyApply(); }   /* look: {hemi, sun, exposure}: a shot's own light over the world's */
+      if (W.sky) { W.sky.mood = s.look ? { hemi: s.look.hemi, sun: s.look.sun, elev: s.look.elev, azim: s.look.azim } : null; if (W.renderer) { W.renderer.toneMappingExposure = s.look && s.look.exposure != null ? s.look.exposure : 1; W.renderer.toneMapping = s.look && s.look.tone === 'aces' ? THREE.ACESFilmicToneMapping : THREE.LinearToneMapping; } if (!(s.set && (s.set.time || s.set.weather)) && W.skyApply) W.skyApply(); }   /* look: {hemi, sun, exposure}: a shot's own light over the world's */
       if (s.set) { if (s.set.time && W.setSky) W.setSky(s.set.time); if (s.set.weather && W.setWeather) W.setWeather(s.set.weather);
         if (s.set.kind && W.filmSet && !(W.sets && W.sets.kind === s.set.kind)) W.filmSet(s.set.kind, { r: s.set.r || 90, seed: s.set.seed || 1, centre: s.set.centre && F.sceneSpawn ? { x: F.sceneSpawn.x + s.set.centre[0] * M, z: F.sceneSpawn.z + s.set.centre[1] * M } : null, corridor: s.set.corridor && F.sceneSpawn ? s.set.corridor.map(p => [F.sceneSpawn.x / M + p[0], F.sceneSpawn.z / M + p[1]]) : null }); }   /* a shot may stand on its own ground (the trailer's dunes, shore, sea, crag, ash, cave and chamber, one scene): laid after the light, so its fog and sky are the ones seen */
       if (s.act && s.act.leave) F.ground();
@@ -530,13 +530,13 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
       const x = V.pos.x + sx * V.hz * 0.6 * back + cx * V.hx * 0.6 * left, z = V.pos.z + cx * V.hz * 0.6 * back - sx * V.hx * 0.6 * left, b = a.it.box; return { x, z, top: b.min.y + (b.max.y - b.min.y) * 0.45, bottom: groundH(x, z) };
     }
     /** A minifig the film owns: built by the page's rig maker, walked by Minifig.step against the world's floor and walls. */
-    const figWorld = { groundH, pushOut: (pos, r) => { if (W.filmPush) W.filmPush(pos, r); } };
+    const figWorld = { groundH, pushOut: (pos, r) => { if (W.filmPush) W.filmPush(pos, r); } }, seatWorld = { groundH, pushOut: () => false };
     const fwdOf = h => new THREE.Vector3(Math.sin(h), 0, Math.cos(h));
     function layFigure(a) {
       if (!W.filmRig) return; const rig = W.filmRig(a.figure); if (!rig) return;
       rig.pos.set(a.x, groundH(a.x, a.z), a.z); rig.heading = headingOf(a.heading || 0); rig.figure.rotation.y = rig.heading; rig.figure.visible = true; rig.def = rig.def || Minifig.DEFS[a.figure];
       a.rig = rig; a.poseNow = a.pose || 'stand'; a.ready = true; applyPose(a);
-      if (window.Perform) { a.perf = Perform.attach(a, rig); const def = rig.def || {}; if (window.Face && !def.bare && !def.sculpt) a.perf.face = Face.attach(rig, def.face || 'lego'); if (a.pose && Perform.PHRASES[a.pose]) Perform.phrase(a.perf, a.pose, 0, { enter: 0.01 }); }
+      if (window.Perform) { a.perf = Perform.attach(a, rig); const def = rig.def || {}; if (window.Face && !def.bare && !def.sculpt && !def.headPart) a.perf.face = Face.attach(rig, def.face || 'lego'); if (a.pose && Perform.PHRASES[a.pose]) Perform.phrase(a.perf, a.pose, 0, { enter: 0.01 }); }
     }
     function seatRider(a) {
       if (!a.rider || !W.filmRig || !W.filmSeat || !a.V || !a.it || !a.it.box) return; const rr = W.filmRig(a.rider); if (!rr) return;
@@ -638,7 +638,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
     }
     /** Figures keep their room: two standing figures closer than a body's width are pushed apart along the line between them, half each, so a walk goes round a figure instead of through it. */
     function separate() {
-      const L = [...F.actors.values()].filter(a => a.rig && !a.hidden && !a.riding && !a.rig.seated && !a.down && !a.rig.air), R = 0.95 * M;
+      const L = [...F.actors.values()].filter(a => a.rig && !a.hidden && !a.riding && !a.rig.seated && a.poseNow !== 'sit' && !a.down && !a.rig.air), R = 0.95 * M;
       for (let i = 0; i < L.length; i++) for (let j = i + 1; j < L.length; j++) {
         const p = L[i].rig.pos, q = L[j].rig.pos, dx = q.x - p.x, dz = q.z - p.z, d = Math.hypot(dx, dz); if (d >= R) continue;
         const ux = d > 1e-3 ? dx / d : 1, uz = d > 1e-3 ? dz / d : 0, k = (R - d) / 2; p.x -= ux * k; p.z -= uz * k; q.x += ux * k; q.z += uz * k;
@@ -672,6 +672,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
       if (p === 'prone') { rig.figure.rotation.x = -Math.PI / 2; rig.torsoP.rotation.x = 0; if (!rig.air) rig.pos.y = groundH(rig.pos.x, rig.pos.z) + 0.15 * M; return; }
       if (!rig.air) rig.figure.rotation.x = 0;
       if (p === 'crouch') { rig.hipsP.position.y -= 14; rig.legRP.rotation.x = -75 * DEG; rig.legLP.rotation.x = -30 * DEG; rig.torsoP.rotation.x = 0.3; } else rig.torsoP.rotation.x = 0;
+      if (p === 'sit') { rig.hipsP.position.y += a.sitLift != null ? a.sitLift : 10; rig.legRP.rotation.x = -88 * DEG; rig.legLP.rotation.x = -88 * DEG; rig.torsoP.rotation.x = -0.06; }   /* sitting: on a chair's seat, the legs out in front, the back upright */
     }
     function fireFrom(a, act) {
       const rig = a.rig, bolts = W.filmFx.bolts && W.filmFx.bolts(); if (!bolts) return; const at = aimPoint(act.aim), o = rig.pos.clone(); o.y += 1.3 * M; o.addScaledVector(fwdOf(rig.heading), 0.7 * M);
@@ -698,7 +699,8 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
       if (a.poseNow === 'aim' || a.poseNow === 'point') ctl.aim = true;
       if (a.poseNow === 'prone' || a.poseNow === 'crouch') ctl.move.mag = 0;
       if (a.drive) a.drive(ctl, rig, dt);   /* a game drives this figure itself: it fills the controls */
-      Minifig.step(rig, dt, ctl, figWorld);
+      if (a.poseNow === 'sit') ctl.move.mag = 0;
+      Minifig.step(rig, dt, ctl, a.poseNow === 'sit' ? seatWorld : figWorld);   /* a figure sitting in a chair is not pushed out of the chair's solid */
       if (a.flip) { if (rig.air) rig.figure.rotation.x = -((rig.t - a.flip) / 0.9) * Math.PI * 2; else { a.flip = 0; a.poseNow = 'prone'; a.poseUntil = rig.t + 1.2; } }
       if (a.poseUntil && rig.t > a.poseUntil && !a.down) { a.poseUntil = 0; a.poseNow = 'stand'; }
       applyPose(a);
@@ -901,7 +903,21 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
     };
     F.stopRec = () => { const R = F.rec; if (!R) return false; if (F.play.on) F.stop(); try { R.rec.state !== 'inactive' && R.rec.stop(); } catch (e) { F.rec = null; } return true; };
     /** The band as it stands, with the playing shot's title and caption over it: the take's frame, and the export's. */
-    F.drawFrame = (ctx, w, h) => { drawBand(W.renderer.domElement, ctx, w, h); const s = F.play.on && F.shots[F.play.i]; if (s && s.title != null) drawTitle(ctx, w, h, s, F.play.t); if (F.caption && F.play.on) drawCaption(ctx, w, h, F.caption.text); };
+    /** The scene's grade (a scene's GRADE, a shot's own over it): the frame as a film print. A warm, contrasty, saturated grade; halation,
+        the glow that bleeds round the bright parts of a print; the sky's graduated filter; a vignette; fine grain that moves every frame. */
+    let grainTex = null;
+    function grade(ctx, w, h, g) {
+      const c = ctx.canvas, t = document.createElement('canvas'); t.width = w; t.height = h; const tc = t.getContext('2d'); tc.drawImage(c, 0, 0, w, h);
+      ctx.save(); ctx.clearRect(0, 0, w, h); ctx.filter = `contrast(${g.contrast || 1}) saturate(${g.sat || 1}) sepia(${g.sepia || 0}) brightness(${g.bright || 1})`; ctx.drawImage(t, 0, 0); ctx.filter = 'none';
+      if (g.halation) { tc.clearRect(0, 0, w, h); tc.filter = `blur(${Math.round(w / 90)}px) brightness(${g.halBright || 1.1})`; tc.drawImage(c, 0, 0); tc.filter = 'none'; ctx.globalCompositeOperation = 'screen'; ctx.globalAlpha = g.halation; ctx.drawImage(t, 0, 0); ctx.globalAlpha = 1; }
+      if (g.warm) { ctx.globalCompositeOperation = 'soft-light'; ctx.fillStyle = `rgba(255,150,70,${g.warm})`; ctx.fillRect(0, 0, w, h); }
+      if (g.skyGrad) { ctx.globalCompositeOperation = 'multiply'; const s = ctx.createLinearGradient(0, 0, 0, h * 0.5); s.addColorStop(0, `rgba(120,90,70,${g.skyGrad})`); s.addColorStop(1, 'rgba(255,255,255,0)'); ctx.fillStyle = s; ctx.fillRect(0, 0, w, h * 0.5); }
+      if (g.vignette) { ctx.globalCompositeOperation = 'multiply'; const v = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.35, w / 2, h / 2, Math.hypot(w, h) * 0.55); v.addColorStop(0, 'rgba(255,255,255,1)'); v.addColorStop(1, `rgba(${Math.round(255 * (1 - g.vignette))},${Math.round(240 * (1 - g.vignette))},${Math.round(225 * (1 - g.vignette))},1)`); ctx.fillStyle = v; ctx.fillRect(0, 0, w, h); }
+      if (g.grain) { if (!grainTex) { grainTex = document.createElement('canvas'); grainTex.width = grainTex.height = 256; const gc = grainTex.getContext('2d'), id = gc.createImageData(256, 256); for (let i = 0; i < id.data.length; i += 4) { const v = 128 + (Math.random() - 0.5) * 255; id.data[i] = id.data[i + 1] = id.data[i + 2] = v; id.data[i + 3] = 255; } gc.putImageData(id, 0, 0); }
+        ctx.globalCompositeOperation = 'overlay'; ctx.globalAlpha = g.grain; const pat = ctx.createPattern(grainTex, 'repeat'), ox = Math.random() * 256, oy = Math.random() * 256; ctx.translate(-ox, -oy); ctx.fillStyle = pat; ctx.fillRect(ox, oy, w, h); }
+      ctx.restore();
+    }
+    F.drawFrame = (ctx, w, h) => { drawBand(W.renderer.domElement, ctx, w, h); { const s0 = F.play.on && F.shots[F.play.i], g = (s0 && s0.grade) || (F.scene && F.scene.grade); if (g && !(s0 && s0.title != null && s0.style !== 'hud' && s0.style !== 'list')) grade(ctx, w, h, g); } const s = F.play.on && F.shots[F.play.i]; if (s && s.title != null) drawTitle(ctx, w, h, s, F.play.t); if (F.caption && F.play.on) drawCaption(ctx, w, h, F.caption.text); };
     F.afterRender = () => {
       const R = F.rec; if (!R) return;
       if (F.hold) return;                                                          // the world is still laying a planet: no frame goes into the take
@@ -1159,10 +1175,10 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
         const shot = { name: sh.name || `${plan.frame} on ${plan.on}`, keys: [{ pos: new THREE.Vector3(0, 4 * M, 0), tgt: new THREE.Vector3(0, 2 * M, -10 * M), fov: 50 }], sec: clamp(+sh.sec || F.sec, 0.5, 120), act, set, plan, follow: !!sh.follow, acts: actsOf(sh.acts), events: eventsOf(sh.events) };
         if (sh.title != null) { shot.title = sh.title; shot.style = sh.style || 'hud'; }
         if (Array.isArray(sh.pos) && Array.isArray(sh.tgt) && sh.pos.length === 3 && sh.tgt.length === 3) { shot.keys = [{ pos: new THREE.Vector3(sh.pos[0] * M, sh.pos[1] * M, sh.pos[2] * M), tgt: new THREE.Vector3(sh.tgt[0] * M, sh.tgt[1] * M, sh.tgt[2] * M), fov: clamp(+sh.lens || 45, 5, 120) }]; shot.plan = null; shot.keysRel = true; shot.readout = `camera at ${sh.pos.join(' ')} on ${sh.tgt.join(' ')}`; if (Array.isArray(sh.pos2) && sh.pos2.length === 3) shot.keys.push({ pos: new THREE.Vector3(sh.pos2[0] * M, sh.pos2[1] * M, sh.pos2[2] * M), tgt: new THREE.Vector3(...(Array.isArray(sh.tgt2) && sh.tgt2.length === 3 ? sh.tgt2 : sh.tgt).map(v => v * M)), fov: clamp(+(sh.lens2 || sh.lens) || 45, 5, 120) }); }   /* pos2 / tgt2 / lens2: a second key, so a hand camera moves over the shot */   /* a camera placed by hand, as word-to-world places one: no plan, the keys as given */
-        if (sh.record) shot.record = sh.record.slice(); if (sh.fit) shot.fit = sh.fit.map(f => ({ ...f })); if (sh.shift) shot.shift = sh.shift; if (sh.score !== undefined) shot.score = sh.score; if (sh.fade != null) shot.fade = +sh.fade; if (sh.lamp) shot.lamp = (sh.lamp && typeof sh.lamp === 'object') ? sh.lamp : sh.lamp === 'warm' ? 'warm' : true; if (sh.look) shot.look = sh.look; if (sh.roll != null) shot.roll = +sh.roll; if (sh.handheld != null) shot.handheld = +sh.handheld; if (sh.speed != null) shot.speed = clamp(+sh.speed, 0.05, 4); shots.push(shot);
+        if (sh.grade) shot.grade = sh.grade; if (sh.record) shot.record = sh.record.slice(); if (sh.fit) shot.fit = sh.fit.map(f => ({ ...f })); if (sh.shift) shot.shift = sh.shift; if (sh.score !== undefined) shot.score = sh.score; if (sh.fade != null) shot.fade = +sh.fade; if (sh.lamp) shot.lamp = (sh.lamp && typeof sh.lamp === 'object') ? sh.lamp : sh.lamp === 'warm' ? 'warm' : true; if (sh.look) shot.look = sh.look; if (sh.roll != null) shot.roll = +sh.roll; if (sh.handheld != null) shot.handheld = +sh.handheld; if (sh.speed != null) shot.speed = clamp(+sh.speed, 0.05, 4); shots.push(shot);
       }
       if (!append) { F.teardown(!!(prog && prog.set)); F.shots = []; } F.shots.push(...shots); F.sel = F.shots.length ? (append ? F.shots.length - shots.length : 0) : -1; F.name = prog && prog.name || F.name; if (prog && prog.story) F.story = prog.story; else if (!append) F.story = null;
-      if (prog && (prog.actors || prog.builds || prog.set)) { F.scene = { name: prog.name, donors: (prog.donors || []).map(d => ({ ...d })), marks: prog.marks || null, marksHidden: !!prog.marksHidden, part: prog.part || null, actors: (prog.actors || []).map(a => ({ ...a, r: a.r ? a.r * M : undefined })), builds: (prog.builds || []).map(b => ({ ...b })), set: prog.set ? { ...prog.set, corridor: prog.set.corridor ? prog.set.corridor.map(p => p.slice()) : null, abs: false } : null, routes: prog.routes ? Object.fromEntries(Object.entries(prog.routes).map(([k, v]) => [k, v.map(p => p.slice())])) : null, world: prog.world || null, as: prog.as || null, ground: prog.ground || null, weather: prog.weather || null, time: prog.time || null, me: prog.me || null, abs: false }; F.setup(); }
+      if (prog && (prog.actors || prog.builds || prog.set)) { F.scene = { name: prog.name, grade: prog.grade || null, donors: (prog.donors || []).map(d => ({ ...d })), marks: prog.marks || null, marksHidden: !!prog.marksHidden, part: prog.part || null, actors: (prog.actors || []).map(a => ({ ...a, r: a.r ? a.r * M : undefined })), builds: (prog.builds || []).map(b => ({ ...b })), set: prog.set ? { ...prog.set, corridor: prog.set.corridor ? prog.set.corridor.map(p => p.slice()) : null, abs: false } : null, routes: prog.routes ? Object.fromEntries(Object.entries(prog.routes).map(([k, v]) => [k, v.map(p => p.slice())])) : null, world: prog.world || null, as: prog.as || null, ground: prog.ground || null, weather: prog.weather || null, time: prog.time || null, me: prog.me || null, abs: false }; F.setup(); }
       if (F.prepareEnvs) F.prepareEnvs(); changed('program'); return shots.length;
     };
     F.trailer = name => { const t = TRAILERS[name || 'a-new-hope'] || SCENES[name]; if (!t) return 0; const n = F.loadProgram(t); say(`${t.name}: ${n} shots${F.scene ? ' · ' + F.scene.actors.length + ' actors' : ''} · Play previews it, Rec takes it`, 'ok'); return n; };

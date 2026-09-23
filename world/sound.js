@@ -45,8 +45,21 @@ function burst(ctx, out, at, dur, fFrom, fTo, gain, { type = 'lowpass', q = 0.7,
   s.connect(f); f.connect(g); g.connect(out); s.start(at, (at * 7.31) % 1.5); s.stop(at + dur + 0.05);
 }
 
+/** A horse's whinny: a nasal buzz rising, a fast trill of the voice, falling away (three detuned saws through the horse's formants). */
+function whinny(ctx, out, at, k) {
+  const dur = 1.35 * k, g = ctx.createGain(), f1 = ctx.createBiquadFilter(), f2 = ctx.createBiquadFilter(), mix = ctx.createGain(); f1.type = 'bandpass'; f1.frequency.value = 1150; f1.Q.value = 2.2; f2.type = 'bandpass'; f2.frequency.value = 2600; f2.Q.value = 3; mix.gain.value = 0.6;
+  g.gain.setValueAtTime(0, at); g.gain.linearRampToValueAtTime(0.22 * k, at + 0.08); g.gain.setValueAtTime(0.2 * k, at + dur * 0.55); g.gain.exponentialRampToValueAtTime(0.001, at + dur);
+  const lfo = ctx.createOscillator(), lg = ctx.createGain(); lfo.frequency.setValueAtTime(9, at); lfo.frequency.linearRampToValueAtTime(15, at + dur); lg.gain.setValueAtTime(20, at); lg.gain.linearRampToValueAtTime(110, at + dur * 0.4); lg.gain.linearRampToValueAtTime(60, at + dur); lfo.connect(lg);
+  for (const d of [-9, 0, 11]) { const o = ctx.createOscillator(); o.type = 'sawtooth'; o.detune.value = d; o.frequency.setValueAtTime(420, at); o.frequency.exponentialRampToValueAtTime(980, at + dur * 0.22); o.frequency.exponentialRampToValueAtTime(760, at + dur * 0.55); o.frequency.exponentialRampToValueAtTime(330, at + dur); lg.connect(o.frequency); o.connect(f1); o.connect(f2); o.start(at); o.stop(at + dur + 0.05); }
+  f1.connect(g); f2.connect(mix); mix.connect(g); g.connect(out); lfo.start(at); lfo.stop(at + dur + 0.05);
+  burst(ctx, out, at + dur * 0.8, 0.35, 900, 250, 0.05 * k, { type: 'bandpass', q: 1.2, attack: 0.02 });   // the breath out at the end
+}
 /* ── the one-shots: (ctx, out, at, p) ── */
 const ONE = {
+  whinny: (c, o, t, p) => whinny(c, o, t, p && p.size != null ? p.size : 1),
+  snort: (c, o, t, p) => { const k = p && p.size != null ? p.size : 1; burst(c, o, t, 0.18, 1400, 500, 0.13 * k, { type: 'bandpass', q: 1.4, attack: 0.01 }); burst(c, o, t + 0.2, 0.32, 1100, 260, 0.16 * k, { type: 'bandpass', q: 1.1, attack: 0.02 }); tone(c, o, t + 0.22, 'sawtooth', 95, 70, 0.25, 0.05 * k); },
+  /* hooves: a walk's four beats (clip, clop), hard ground: short knocks of a hollow body with a scuff of grit, a pair of them unless size says more */
+  hooves: (c, o, t, p) => { const n = p && p.size != null ? Math.max(1, Math.round(p.size * 4)) : 4; for (let i = 0; i < n; i++) { const at = t + i * 0.19 + (i % 2) * 0.05, hi = i % 2 ? 480 : 620; tone(c, o, at, 'triangle', hi, hi * 0.55, 0.07, 0.11, { attack: 0.001 }); burst(c, o, at, 0.05, 2600, 700, 0.05, { type: 'bandpass', q: 1.3, attack: 0.001 }); } },
   laser: (c, o, t) => { tone(c, o, t, 'sawtooth', 900, 280, 0.13, 0.18); burst(c, o, t, 0.08, 4000, 800, 0.08, { type: 'bandpass', q: 2 }); },
   blaster: (c, o, t) => { tone(c, o, t, 'square', 640, 190, 0.1, 0.16); },
   click: (c, o, t) => { tone(c, o, t, 'square', 1800, 1300, 0.025, 0.05); },
