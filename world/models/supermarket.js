@@ -7,7 +7,7 @@
      - ten aisles of gondolas running north to south (x 8..71, z 26..55), goods both faces, an end cap and a sign post at the north end of each;
      - the bakery along the east wall (x 84..91, z 22..38): bread racks and a counter;
      - the deli along the east wall (x 80..91, z 42..56): a glass case of meats and cheese;
-     - the dairy cooler along the south wall (x 4..63, z 65..67): white, glass doors, milk and eggs behind them;
+     - the dairy cooler along the south wall (x 4..63, z 64..66): a dark bank, white-framed glass doors, rows of milk, juice, eggs and cheese behind them, a blue band;
      - the chest freezers (x 66..89, z 60..62): white, trans-blue lids.
    The aisles are two studs apart (a metre, a figure and a cart pass); the main aisle across the front (z 18..25) and the
    back aisle (z 56..63) join them. */
@@ -69,8 +69,10 @@ function program() {
   deli.push(box(1, 0, 1, 14, 1, WHITE, { y: 2 }));
   ops.push(G('deli case', 82, 42, deli), G('deli counter', 90, 42, [box(0, 0, 2, 14, 3, WHITE), slab(0, 0, 2, 14, DARK, { y: 3 })]));
   // the dairy cooler along the south wall: a white bank, glass doors, milk and eggs showing through
-  const dairy = [box(0, 0, 60, 3, 4, WHITE)]; for (let x = 1; x < 59; x += 3) { dairy.push(cut(x, 0, 2, 1, 0, 3), part('60592', WHITE, x, 0, 0), part('60592', WHITE, x, 0, 2)); dairy.push(part('3004', x % 6 === 1 ? WHITE : 19, x, 1, 0), part('3004', WHITE, x, 1, 2)); }
-  dairy.push(slab(0, 0, 60, 3, 1, { y: 4 }));
+  // (a dark bank so the glass reads: each bay cut two deep, two glass doors in white frames, four rows of goods behind them, a dark mullion between bays)
+  const DAIRY = [[15, 15, 15, 15], [25, 25, 15, 25], [19, 19, 19, 19], [14, 15, 14, 15], [5, 15, 5, 26], [15, 1, 15, 1]];
+  const dairy = [box(0, 0, 60, 3, 4, DARK)]; for (let x = 1, b = 0; x < 59; x += 3, b++) { dairy.push(cut(x, 0, 2, 2, 0, 4), part('60592', WHITE, x, 0, 0), part('60592', WHITE, x, 0, 2)); DAIRY[b % DAIRY.length].forEach((col, y) => dairy.push(part('3004', col, x, 1, y))); }
+  dairy.push(slab(0, 0, 60, 3, 1, { y: 4 }), ...[4, 14, 24, 34, 44, 54].map(x => part('3710', WHITE, x, 0, 4, { plate: 1 })));   // the blue band over the doors, white labels on it
   ops.push(...chunks('dairy cooler', dairy.map(o => ({ ...o, x: (o.x || 0) + 4, z: (o.z || 0) + 64 })), 140));
   // the chest freezers: white, trans-blue lids
   ops.push(G('freezers', 66, 60, [box(0, 0, 24, 3, 1, WHITE), slab(0, 0, 24, 3, ICE, { y: 1 }), box(0, 0, 24, 1, 1, WHITE, { y: 1, plateOffset: 1 })]));

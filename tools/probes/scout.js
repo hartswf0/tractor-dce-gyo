@@ -5,7 +5,7 @@ exports.opts = { name: 'scout', page: 'cinerium.html', routes: ctx => mocks.rout
 exports.checks = async ({ p, STEP, A, log, shot }) => {
   for (const key of KEYS) {
     const t0 = Date.now();
-    const n = await p.evaluate(k => { const W = window.__world, F = W.film; F.stop(); const n = F.trailer(k); return { n, shots: F.shots.map(s => ({ name: s.name, sec: s.sec, title: s.title != null })), actors: F.scene ? F.scene.actors.length : 0 }; }, key);
+    const n = await p.evaluate(k => { const W = window.__world, F = W.film; F.stop(); const n = F.trailer(k); return { n, shots: F.shots.map(s => ({ name: s.name, sec: s.sec, title: s.title != null && s.style !== 'hud' && s.style !== 'list' })), actors: F.scene ? F.scene.actors.length : 0 }; }, key);
     log(key, 'loaded', n.n, 'shots', n.actors, 'actors');
     let ready = false; for (let i = 0; i < 800 && !ready; i++) { await STEP(0.25); ready = await p.evaluate(a => { const F = window.__world.film; return F.donors.size >= 1 && [...F.donors.values()].every(d => d.group && d.group.userData.tris > 100) && F.actors.size >= a; }, n.actors); }
     log(key, 'laid', ready, ((Date.now() - t0) / 1000).toFixed(0) + 's');

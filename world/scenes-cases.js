@@ -37,34 +37,37 @@ Film.SCENES['case-grocery'] = { name: 'The List', time: 'day', weather: 'clear',
     goals: ['make the list true'], obstacles: ['no eggs', 'a procedure that acquires everything on the belt'], shifts: [{ id: 'door', name: 'The list' }, { id: 'produce', name: 'Produce' }, { id: 'aisle', name: 'Aisle five' }, { id: 'dairy', name: 'No eggs' }, { id: 'belt', name: 'The belt' }, { id: 'scan', name: 'It scanned' }], why: 'the list says what should be true; the belt does not know what the list meant', direction: 'deadpan' },
   donors: [{ name: 'the store', set: 'supermarket', x: 0, z: 0, heading: 180, scale: 1, y: -0.18 }],
   marks: { street: [-2.4, -19], in: [-0.5, -12], 'maggie-in': [0.6, -12.6], 'aisle-n': [-0.5, -5.8], 'maggie-n': [0.4, -6.6], 'aisle-s': [-0.5, 7.6], 'maggie-s': [0.3, 6.8], dairy: [-0.5, 12.4], 'maggie-d': [0.7, 11.8],
-    lane: [4.6, -11.2], belt: [5.4, -12.9], clerk: [8.4, -11.8], queue: [3.4, -8.6], produce: [-15.2, -9.2], ned: [0.5, 2.6] },
+    lane: [4.6, -11.2], belt: [6.3, -9.3],   /* Maggie at the south end of the belt, by the scanner */ clerk: [8.4, -11.8], queue: [3.4, -8.6], produce: [-15.2, -9.2], ned: [0.5, 2.6] },
   actors: [
     { name: 'marge', figure: 'marge', label: 'Marge', x: -2.4, z: -19, heading: 180 },
     { name: 'maggie', figure: 'maggie', label: 'Maggie', x: -1.4, z: -19.6, heading: 180 },
     { name: 'homer', figure: 'homer', label: 'Homer', x: -15.2, z: -9.2, heading: 0 },
     { name: 'clerk', figure: 'citizen', label: 'the clerk', x: 8.4, z: -11.8, heading: 270 },
     { name: 'flanders', figure: 'flanders', label: 'Ned Flanders', x: 0.5, z: 2.6, heading: 90 }],
+  /* Cut to 'Trouttown Working Day' (Silt Wire & Mountain Current, m1; world/music/cues.json): its bars fall at 0.21 s + 1.973 s k, and every cut is on
+     one (bars 2, 6, 8, 12, 15, 19, 23, 25); the section turns at bar 8 (produce to aisle five) and bar 23 (the end card, where the track fades);
+     the scanner pings on the beat. */
   shots: [
-    { score: 'springfield', title: 'THE LIST', style: 'card', sec: 2.5, events: [SAY('narrator', 'Milk. Bread. Eggs.', 0.4, 1.8)] },
-    { name: 'The list', on: 'marge', title: LIST('milk', 'bread', 'eggs'), style: 'list', pos: [5.5, 2.3, -26], pos2: [3.5, 2.0, -22.5], tgt: [-0.5, 2.6, -14], lens: 40, sec: 6, shift: 'door', look: STORE,
+    { score: 'file:../music/m1-trouttown-working-day.ogg', title: 'THE LIST', style: 'card', sec: 4.16, events: [SAY('narrator', 'Milk. Bread. Eggs.', 0.4, 1.8)] },
+    { name: 'The list', on: 'marge', title: LIST('milk', 'bread', 'eggs'), style: 'list', pos: [5.5, 2.3, -26], pos2: [3.5, 2.0, -22.5], tgt: [-0.5, 2.6, -14], lens: 40, sec: 7.84, shift: 'door', look: STORE,
       acts: [{ who: 'marge', to: 'in', walk: true, at: 0.6 }, { who: 'maggie', to: 'maggie-in', walk: true, at: 1.0 }],
-      events: [BEAT('door', 'marge', 0, 6, 'three words go into a store the size of a field', 'neutral'), SND('footstep', 1.0), SND('footstep', 1.5), SND('footstep', 2.0), SND('whoosh', 3.2), P('marge', 'resolve', 0.5)] },
-    { name: 'Produce', on: 'homer', title: LIST('milk', 'bread', 'eggs'), style: 'list', pos: [-10.6, 2.0, -5.8], tgt: [-15, 1.5, -10.4], lens: 40, sec: 5, shift: 'produce', look: STORE,
+      events: [BEAT('door', 'marge', 0, 7.84, 'three words go into a store the size of a field', 'neutral'), SND('footstep', 1.0), SND('footstep', 1.5), SND('footstep', 2.0), SND('whoosh', 3.2), P('marge', 'resolve', 0.5)] },
+    { name: 'Produce', on: 'homer', title: LIST('milk', 'bread', 'eggs'), style: 'list', pos: [-10.6, 2.0, -5.8], tgt: [-15, 1.5, -10.4], lens: 40, sec: 3.95, shift: 'produce', look: STORE,
       acts: [{ who: 'marge', to: 'aisle-n', walk: true, at: 0.2 }, { who: 'maggie', to: 'maggie-n', walk: true, at: 0.5 }, { who: 'homer', look: 'marge' }],
-      events: [BEAT('produce', 'homer', 0, 5, 'the store offers what the list did not ask for', 'irony'), LOOK('homer', 'marge', 0.4, true), P('homer', 'irony', 0.8), SAY('homer', 'Marge, are donuts a fruit?', 1.0, 2.0), SAY('marge', 'No.', 3.4, 0.6)] },
-    { name: 'Aisle five', on: 'marge', title: LIST('milk', 'bread', 'eggs'), style: 'list', pos: [-0.3, 2.3, 12.8], tgt: [-0.5, 1.5, -5], lens: 36, sec: 7, shift: 'aisle', look: STORE,
+      events: [BEAT('produce', 'homer', 0, 3.95, 'the store offers what the list did not ask for', 'irony'), LOOK('homer', 'marge', 0.2, true), P('homer', 'irony', 0.4), SAY('homer', 'Marge, are donuts a fruit?', 0.5, 2.0), SAY('marge', 'No.', 2.9, 0.6)] },
+    { name: 'Aisle five', on: 'marge', title: LIST('milk', 'bread', 'eggs'), style: 'list', pos: [-0.3, 2.3, 12.8], tgt: [-0.5, 1.5, -5], lens: 36, sec: 7.89, shift: 'aisle', look: STORE,
       acts: [{ who: 'marge', to: 'aisle-s', walk: true }, { who: 'maggie', to: 'maggie-s', walk: true, at: 0.3 }, { who: 'flanders', look: 'marge' }],
-      events: [BEAT('aisle', 'marge', 0, 7, 'the route is the store\'s, not the list\'s', 'neutral'), SND('footstep', 0.4), SND('footstep', 1.0), SND('footstep', 1.6), SND('footstep', 2.2), SND('footstep', 2.8), LOOK('flanders', 'marge', 2.0, true), P('flanders', 'joy', 2.2), SAY('flanders', 'Hi diddly ho, Marge!', 2.6, 1.8), LOOK('marge', 'flanders', 3.2)] },
-    { name: 'No eggs', on: 'marge', title: LIST('~milk', 'bread', '?eggs'), style: 'list', pos: [-4.6, 2.1, 9.2], tgt: [-0.4, 1.5, 14], lens: 38, sec: 6, shift: 'dairy', look: STORE,
+      events: [BEAT('aisle', 'marge', 0, 7.89, 'the route is the store\'s, not the list\'s', 'neutral'), SND('footstep', 0.4), SND('footstep', 1.0), SND('footstep', 1.6), SND('footstep', 2.2), SND('footstep', 2.8), LOOK('flanders', 'marge', 2.0, true), P('flanders', 'joy', 2.2), SAY('flanders', 'Hi diddly ho, Marge!', 2.6, 1.8), LOOK('marge', 'flanders', 3.2)] },
+    { name: 'No eggs', on: 'marge', title: LIST('~milk', 'bread', '?eggs'), style: 'list', pos: [-4.0, 2.0, 8.2], tgt: [-0.2, 1.6, 14.4], lens: 34, sec: 5.91, shift: 'dairy', look: STORE,
       acts: [{ who: 'marge', to: 'dairy', walk: true }, { who: 'maggie', to: 'maggie-d', walk: true, at: 0.4 }],
-      events: [BEAT('dairy', 'marge', 0, 6, 'the world resists: the list is corrected, not the world', 'concern'), P('marge', 'skepticism', 2.2), SND('click', 2.6), SAY('marge', 'Milk. No eggs.', 3.0, 1.6), FACE('marge', 'wide', 3.2)] },
-    { name: 'The belt', on: 'maggie', title: LIST('~milk', '~bread', '?eggs', '+donuts'), style: 'list', pos: [2.4, 2.1, -6.6], tgt: [6.4, 1.3, -11.8], lens: 40, sec: 7, shift: 'belt', look: STORE,
+      events: [BEAT('dairy', 'marge', 0, 5.91, 'the world resists: the list is corrected, not the world', 'concern'), P('marge', 'skepticism', 2.2), SND('click', 2.6), SAY('marge', 'Milk. No eggs.', 3.0, 1.6), FACE('marge', 'wide', 3.2)] },
+    { name: 'The belt', on: 'maggie', title: LIST('~milk', '~bread', '?eggs', '+donuts'), style: 'list', pos: [2.6, 2.0, -5.8], tgt: [6.8, 1.1, -10.4], lens: 40, sec: 7.89, shift: 'belt', look: STORE,
       acts: [{ who: 'marge', to: 'lane' }, { who: 'maggie', to: 'belt' }, { who: 'homer', to: 'queue', walk: true, at: 0.5 }, { who: 'clerk', look: 'maggie' }],
-      events: [BEAT('belt', 'clerk', 0, 7, 'the procedure acquires whatever is on the belt', 'deadpan'), SND('servo', 0.3), SND('servo', 1.6), SND('ping', 2.4), SAY('clerk', 'Milk.', 2.5, 0.6), SND('ping', 3.3), SAY('clerk', 'Bread.', 3.4, 0.6), SND('ping', 4.3), SAY('clerk', 'Baby.', 4.4, 0.6), P('clerk', 'neutral', 0.2), FACE('maggie', 'wide', 4.5), P('marge', 'concern', 4.8)] },
-    { name: 'It scanned', on: 'marge', title: LIST('~milk', '~bread', '?eggs', '+donuts', '+Maggie'), style: 'list', pos: [2.0, 2.2, -8.6], tgt: [4.8, 2.0, -11.2], lens: 34, sec: 6, shift: 'scan', look: STORE,
+      events: [BEAT('belt', 'clerk', 0, 7.89, 'the procedure acquires whatever is on the belt', 'deadpan'), SND('servo', 0.3), SND('servo', 1.5), SND('ping', 2.47), SAY('clerk', 'Milk.', 2.55, 0.6), SND('ping', 3.45), SAY('clerk', 'Bread.', 3.53, 0.6), SND('ping', 4.44), SAY('clerk', 'Baby.', 4.52, 0.6), P('clerk', 'neutral', 0.2), FACE('maggie', 'wide', 4.5), P('marge', 'concern', 4.8)] },
+    { name: 'It scanned', on: 'marge', title: LIST('~milk', '~bread', '?eggs', '+donuts', '+Maggie'), style: 'list', pos: [2.0, 2.2, -8.6], tgt: [4.8, 2.0, -11.2], lens: 34, sec: 7.89, shift: 'scan', look: STORE,
       acts: [{ who: 'homer', to: 'queue', walk: true }, { who: 'marge', look: 'clerk' }],
-      events: [BEAT('scan', 'marge', 0, 6, 'the list did not say: not the baby', 'deadpan'), SAY('marge', 'She is not on the list.', 0.5, 1.8), P('clerk', 'shrug', 2.4), SAY('clerk', 'It scanned.', 2.6, 1.0), P('homer', 'irony', 3.6), SAY('homer', 'Do we still get the stamps?', 3.8, 1.8)] },
-    { score: 'end', title: 'THE LIST', style: 'card', sec: 3, name: 'the card' }] };
+      events: [BEAT('scan', 'marge', 0, 7.89, 'the list did not say: not the baby', 'deadpan'), SAY('marge', 'She is not on the list.', 0.5, 1.8), P('clerk', 'shrug', 2.4), SAY('clerk', 'It scanned.', 2.6, 1.0), P('homer', 'irony', 3.6), SAY('homer', 'Do we still get the stamps?', 3.8, 1.8)] },
+    { score: null, fade: 3.6, title: 'THE LIST', style: 'card', sec: 3.95, name: 'the card' }] };   /* the track fades over the card, from the bar where its section turns */
 
 /* ── 2. The forest skirmish: Ewoks against robots (ewoks.mpd), the middle of the stage kept clear ── */
 Film.SCENES['case-ewoks'] = { name: 'The Forest Skirmish', time: 'day', weather: 'clear', ground: 'flat', me: 'off', part: 'ewok-1', set: { kind: 'stage', r: 120, seed: 1 },   /* a bare stage under the set: the author calls its rim a soundstage horizon; the valley's houses and trees go */
@@ -151,30 +154,33 @@ Film.SCENES['case-searchers'] = { name: 'The Searchers', time: 'day', weather: '
     { name: 'ethan', figure: 'ethan', label: 'Ethan', x: 4.6, z: 36, heading: 0 },
     { name: 'debbie', figure: 'debbie', label: 'Debbie', x: 5.8, z: 36.6, heading: 0 },
     { name: 'ethan-horse', kind: 'horse', len: 7, col: 70, label: "Ethan's horse", x: 4.6, z: 38, heading: 0 }],   /* the horse is a ride: Ethan in the saddle, Debbie behind him, walked in by the film */
+  /* Cut to 'Weather Ahead for Finley' (Silt Wire & Mountain Current, m0; world/music/cues.json): the dark low chords 0..10.5 s are the card and the
+     door; the plucked build 10.5..25.7 the sighting, Martha and the approach; the band comes in at 25.7 on Home; the hit and break at 42.75 is the
+     cut to Ethan turning away; the tail to 51.8 is his walk and the card. The shots sum to 51.8 s. */
   shots: [
-    { score: 'searchers', title: 'THE SEARCHERS', style: 'card', sec: 3, events: [SAY('narrator', 'Five years, he looked for her.', 0.6, 2.0)] },
-    { name: 'The door', on: 'martha', pos: INSIDE, tgt: DOOR, lens: 50, sec: 7, shift: 'door', look: ROOM,
+    { score: 'file:../music/m0-weather-ahead-for-finley.ogg', title: 'THE SEARCHERS', style: 'card', sec: 3, events: [SAY('narrator', 'Five years, he looked for her.', 0.6, 2.0)] },
+    { name: 'The door', on: 'martha', pos: INSIDE, tgt: DOOR, lens: 50, sec: 7.5, shift: 'door', look: ROOM,
       acts: [{ who: 'martha', to: 'step', walk: true, at: 1.0 }, { who: 'ethan', ride: 'ethan-horse' }, { who: 'debbie', ride: 'ethan-horse' }],
       events: [BEAT('door', 'martha', 0, 7, 'out of the dark room into the light', 'restraint'), SND('whoosh', 0.4), SND('footstep', 1.3), SND('footstep', 1.8), SND('footstep', 2.3), SND('footstep', 2.8), SND('footstep', 3.3)] },
     { name: 'Two figures', on: 'ethan', pos: [0.6, 2.2, -1.85], tgt: [1.0, 1.5, 20], lens: 42, sec: 6, shift: 'sighting', look: SUN,
-      acts: [{ who: 'ethan', ride: 'ethan-horse' }, { who: 'debbie', ride: 'ethan-horse' }, { who: 'ethan-horse', to: 'ride-in', speed: 0.7 }, { who: 'aaron', to: 'porch-a', walk: true, at: 2.0 }, { who: 'martha', look: 'ethan' }],
+      acts: [{ who: 'ethan', ride: 'ethan-horse' }, { who: 'debbie', ride: 'ethan-horse' }, { who: 'ethan-horse', to: 'ride-in', speed: 0.8 }, { who: 'aaron', to: 'porch-a', walk: true, at: 2.0 }, { who: 'martha', look: 'ethan' }],
       events: [BEAT('sighting', 'martha', 0, 6, 'a horse with two riders coming in out of the buttes', 'wonder'), LOOK('martha', 'ethan', 0.3, true), P('martha', 'wonder', 1.0), SND('whoosh', 1.5)] },
-    { name: 'Martha', on: 'martha', pos: [0.3, 2.1, 5.9], tgt: [-0.5, 2.05, 1.3], lens: 30, sec: 3.5, shift: 'recognition', look: SUN,
-      acts: [{ who: 'ethan-horse', to: 'ride-in', speed: 0.7 }, { who: 'martha', look: 'ethan' }],
+    { name: 'Martha', on: 'martha', pos: [0.3, 2.1, 5.9], tgt: [-0.5, 2.05, 1.3], lens: 30, sec: 4, shift: 'recognition', look: SUN,
+      acts: [{ who: 'ethan-horse', to: 'ride-in', speed: 0.8 }, { who: 'martha', look: 'ethan' }],
       events: [BEAT('recognition', 'martha', 0, 3.5, 'she knows who it is, and who is with him', 'recognition'), P('martha', 'recognition', 0.4), LOOK('martha', 'ethan', 0.3, true), SND('breath', 1.6)] },
-    { name: 'The approach', on: 'ethan', pos: [-0.9, 1.15, 3.2], tgt: [1.8, 2.1, 20], lens: 40, sec: 7, shift: 'approach', look: SUN,
-      acts: [{ who: 'ethan-horse', to: 'ride-in', speed: 0.7 }],
-      events: [BEAT('approach', 'ethan', 0, 7, 'he brings her the last of the way', 'weariness'), P('ethan', 'weariness', 0.5), SND('clatter', 0.6), SND('clatter', 1.5), SND('clatter', 2.4), SND('clatter', 3.3), SND('breath', 4.0), P('debbie', 'guarded', 4.4), SAY('ethan', "Let's go home, Debbie.", 4.6, 1.8)] },
-    { name: 'Home', on: 'debbie', pos: [3.6, 2.0, 12.6], tgt: [-0.2, 1.8, -1], lens: 36, sec: 6, shift: 'home', look: SUN,
+    { name: 'The approach', on: 'ethan', pos: [-3.4, 1.5, 3.4], tgt: [1.6, 2.4, 10.5], lens: 40, sec: 5.2, shift: 'approach', look: SUN,
+      acts: [{ who: 'ethan-horse', to: 'ride-in', speed: 0.8 }],
+      events: [BEAT('approach', 'ethan', 0, 5.2, 'he brings her the last of the way', 'weariness'), P('ethan', 'weariness', 0.5), SND('clatter', 0.4), SND('clatter', 1.3), SND('clatter', 2.2), P('debbie', 'guarded', 2.4), SAY('ethan', "Let's go home, Debbie.", 2.6, 1.8), SND('clatter', 3.1)] },
+    { name: 'Home', on: 'debbie', pos: [3.6, 2.0, 12.6], tgt: [-0.2, 1.8, -1], lens: 36, sec: 7.3, shift: 'home', look: SUN,
       acts: [{ who: 'ethan', leave: true, look: 'martha' }, { who: 'debbie', leave: true, to: 'porch-d', walk: true, at: 0.6 }, { who: 'martha', to: 'porch-m', walk: true, at: 3.4 }, { who: 'aaron', look: 'debbie' }, { who: 'ethan-horse', to: 'pasture', speed: 0.35, at: 2.4 }],
-      events: [BEAT('home', 'debbie', 0, 6, 'the girl goes up to the porch; the woman who waited turns and takes her in', 'tenderness'), LOOK('ethan', 'martha', 0.3), LOOK('martha', 'debbie', 0.6, true), P('martha', 'tenderness', 1.0), SAY('martha', 'Debbie.', 2.6, 1.0), P('aaron', 'joy', 3.0), P('ethan', 'guarded', 1.0)] },
-    { name: 'Inside', on: 'ethan', pos: INSIDE, pos2: [0.35, 1.9, -6.6], tgt: DOOR, lens: 50, lens2: 44, sec: 9, shift: 'inside', look: ROOM,
+      events: [BEAT('home', 'debbie', 0, 7.3, 'the girl goes up to the porch; the woman who waited turns and takes her in', 'tenderness'), LOOK('ethan', 'martha', 0.3), LOOK('martha', 'debbie', 0.6, true), P('martha', 'tenderness', 1.0), SAY('martha', 'Debbie.', 2.6, 1.0), P('aaron', 'joy', 3.0), P('ethan', 'guarded', 1.0)] },
+    { name: 'Inside', on: 'ethan', pos: INSIDE, pos2: [0.35, 1.9, -6.6], tgt: DOOR, lens: 50, lens2: 44, sec: 9.75, shift: 'inside', look: ROOM,
       acts: [{ who: 'debbie', to: 'room-d', walk: true, at: 0.3 }, { who: 'martha', to: 'room-m', walk: true, at: 1.3 }, { who: 'aaron', to: 'room-a', walk: true, at: 2.6 }, { who: 'ethan', to: 'door-out', walk: true, at: 1.5 }],
-      events: [BEAT('inside', 'ethan', 0, 9, 'they all go in past him; he comes to the door and stops', 'restraint'), SND('footstep', 0.8), SND('footstep', 1.4), SND('footstep', 2.6), SND('footstep', 3.2), LOOK('ethan', 'martha', 6.2), P('ethan', 'weariness', 6.0)] },
-    { name: 'The leaving', on: 'ethan', pos: INSIDE, tgt: DOOR, lens: 50, sec: 7, shift: 'leaving', look: ROOM,
-      acts: [{ who: 'ethan', to: 'desert', walk: true, at: 1.4 }],
-      events: [BEAT('leaving', 'ethan', 0, 7, 'he turns and walks back into the desert', 'restraint'), SET('ethan', 'head.yaw', 0, 0.7, 0.5), SET('ethan', 'torso.twist', 0, 0.8, 0.5), SET('ethan', 'root.yaw', 0, 0.9, 0.5), SND('footstep', 1.6), SND('footstep', 2.2), SND('footstep', 2.8), SND('whoosh', 3.2)] },
-    { score: 'searchers-end', title: 'THE SEARCHERS', style: 'card', sec: 5, name: 'the card' }] };
+      events: [BEAT('inside', 'ethan', 0, 9.75, 'they all go in past him; he comes to the door and stops', 'restraint'), SND('footstep', 0.8), SND('footstep', 1.4), SND('footstep', 2.6), SND('footstep', 3.2), LOOK('ethan', 'martha', 6.2), P('ethan', 'weariness', 6.0)] },
+    { name: 'The leaving', on: 'ethan', pos: INSIDE, tgt: DOOR, lens: 50, sec: 7.05, shift: 'leaving', look: ROOM,
+      acts: [{ who: 'ethan', to: 'desert', walk: true, at: 0.6 }],
+      events: [BEAT('leaving', 'ethan', 0, 7.05, 'on the music\'s break he turns, and walks back into the desert', 'restraint'), SET('ethan', 'head.yaw', 0, 0.1, 0.4), SET('ethan', 'torso.twist', 0, 0.15, 0.4), SET('ethan', 'root.yaw', 0, 0.2, 0.4), SND('footstep', 1.0), SND('footstep', 1.5), SND('footstep', 2.0), SND('whoosh', 2.6)] },
+    { title: 'THE SEARCHERS', style: 'card', sec: 2.0, name: 'the card' }] };   /* the cue's tail plays out over the card */
 
 /* ── The sheet of nine: every candidate registered with its set, so it can be laid, planned and inspected now. The three with programs stand on real models
    (world/models/*.js, built and audited by tools/model.js: every piece stud-connected, a manual at play/manual.html?model=<model>); the other six still stand on the scene files they came from. ── */
