@@ -152,7 +152,7 @@ for (const sc of manifest.scenes) {
   if (loc) prevLoc = { book: sc.book, id: loc.a.id };
   const stage = stageOf(loc, sc.title.toLowerCase());
   const order = ['character', 'ensemble', 'creature', 'wearable', 'prop', 'sound_source', 'set_piece', 'divine_fx', 'environment', 'vehicle'];
-  const cast = parts.filter(p => p !== loc).sort((a, b) => order.indexOf(a.a.type) - order.indexOf(b.a.type)).map(p => ({ id: p.a.id, name: p.a.name, type: p.a.type, comp: crop(p.top, 24, 16, p.a.name) })).filter(c => rowsOf(c.comp).length);
+  const cast = parts.filter(p => p !== loc).sort((a, b) => order.indexOf(a.a.type) - order.indexOf(b.a.type)).map(p => ({ id: p.a.id, name: p.a.name, type: p.a.type, comp: /character|ensemble|creature/.test(p.a.type) ? p.top : crop(p.top, 24, 16, p.a.name) }   /* people and animals are never cut by a window */)).filter(c => rowsOf(c.comp).length);
   const { list, blocking } = Stage.block(stage, cast);
   const top = B.at(sc.title.toLowerCase(), [[stage.comp, 0, 0], ...list]);
   const { card } = onPlate(sc.title, [top], loc ? loc.rec.base : 19, {});

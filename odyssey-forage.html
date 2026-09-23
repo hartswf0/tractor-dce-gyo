@@ -139,7 +139,7 @@
     if (my !== token) return; if (!model) { $('#veil').textContent = 'The build could not be parsed'; return; }
     model.rotation.x = Math.PI; scene.add(model); current = model; resize();
     const box = new THREE.Box3().setFromObject(model), size = box.getSize(new THREE.Vector3()), c = box.getCenter(new THREE.Vector3()), r = Math.max(size.x, size.y, size.z, 60);
-    controls.target.copy(c); const dir = new THREE.Vector3(-0.9, 0.85, 1.05).normalize(); const fit = r / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))) * 1.15;
+    controls.target.copy(c); const dir = (q.get('view') === 'front' ? new THREE.Vector3(-0.25, 0.18, 1) : new THREE.Vector3(-0.9, 0.85, 1.05)).normalize();   /* ?view=front: eye level, the way a film camera meets a figure */ const fit = r / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))) * 1.15;
     camera.position.copy(c).addScaledVector(dir, fit + r * 0.35); camera.near = Math.max(1, fit / 50); camera.far = fit * 40; camera.updateProjectionMatrix();
     $('#veil').textContent = ''; window.__ready = id;
   }

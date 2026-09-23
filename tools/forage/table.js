@@ -98,7 +98,7 @@ function giant(name, o = {}) {
   ops.push(K.slab(2, 0, 4, 3, hair, { y: 15, plateOffset: 1 }), K.box(2, 0, 4, 1, 2, hair, { y: 13, plateOffset: 1 }));   // hair over the crown and down the back
   return kit(name, ops);
 }
-function character(a) { if (/^polyphemus/.test(a.name.toLowerCase())) return { comps: [giant('polyphemus', { cyclops: true })], role: 'giant', base: C.dbg }; if (/^antiphates/.test(a.name.toLowerCase())) return { comps: [giant('antiphates', { cloth: C.dred }), giant('queen', { cloth: C.purple, hair: C.black })], role: 'giant', base: C.dbg };
+function character(a) { if (/^polyphemus/.test(a.name.toLowerCase())) return { comps: [require('./cyclops.js').oneEyedTroll('polyphemus')], role: 'giant', base: C.dbg };   // option E of tools/forage/cyclops.js: the troll big figure with one eye if (/^antiphates/.test(a.name.toLowerCase())) return { comps: [giant('antiphates', { cloth: C.dred }), giant('queen', { cloth: C.purple, hair: C.black })], role: 'giant', base: C.dbg };
   const r = rng(a.id), role = roleOf(a.name.toLowerCase()), base = ROLES[role](r), spec = (EXTRA[a.id] || (s => s))(base); return { comps: [fig(spec, a.name.toLowerCase())], role, base: C.tan }; }
 
 /* ── ensembles: the role, counted ── */
@@ -111,7 +111,7 @@ function ensemble(a) {
   if (/^telemachus, eumaeus, and philoetius|^eumaeus and philoetius|^tityus/.test(n0)) n = n0.split(/,| and /).filter(s => s.trim()).length;
   let role = 'servant'; for (const [re, ro] of ENSEMBLE_ROLE) if (re.test(n0)) { role = ro; break; }
   const mixed = role !== 'god' && /people|assembly|families|listeners|reaction|uproar|wave|dispersing|feast/.test(n0);
-  if (role === 'giant' || role === 'cyclops') { const g = []; for (let i = 0; i < Math.min(n, 4); i++) g.push(giant((role === 'cyclops' ? 'cyclops ' : 'giant ') + (i + 1), { cyclops: role === 'cyclops', cloth: choose(r, [C.dtan, C.rbrown, C.sgreen]), skin: choose(r, [C.nougat, C.tan, C.dtan]) })); return { comps: [group(n0, g, { gap: 2 })], role, base: C.dbg }; }
+  if (role === 'giant' || role === 'cyclops') { const Cy = require('./cyclops.js'), g = []; for (let i = 0; i < Math.min(n, 4); i++) g.push(role === 'cyclops' ? Cy.oneEyedTroll('cyclops ' + (i + 1)) : Cy.troll({ club: true, skin: choose(r, [C.nougat, C.tan, C.sgreen]) })); return { comps: [group(n0, g, { gap: 2 })], role, base: C.dbg }; }   // the troll big figure: one-eyed for the Cyclopes
   const figs = []; for (let i = 0; i < n; i++) { const ro = mixed ? choose(r, ['woman', 'servant', 'suitor', 'herdsman']) : role === 'god' ? choose(r, ['god', 'goddess', 'god', 'hermes']) : role; figs.push(fig(ROLES[ro](r), ro + ' ' + (i + 1))); }
   if (/oars|rowing/.test(n0)) figs.forEach(f => f);
   return { comps: [group(n0, figs, { gap: 1, maxW: Math.min(20, 3 * Math.ceil(Math.sqrt(n)) + 2) })], role, base: C.tan };
