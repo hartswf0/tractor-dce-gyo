@@ -30,6 +30,9 @@ const DONORS = {
   '1788': { file: '1788 - Treasure Chest.mpd', name: 'the Treasure Chest', target: 'the storeroom', scale: 2.5 },
   monkey: { file: 'monkey-data-center-modular.mpd', name: 'the monkey data centre', target: 'the control room', scale: 2.5 },   /* the repository's own build, at 4X: four textured walls, the floor, three monkeys */
   /* the cases (world/scenes-cases.js): the repository's own scene builds, packed by tools/donor-pack.js */
+  'grocery-store': { file: 'grocery-store.mpd', name: 'the corner grocery', target: 'The Checkout', scale: 1 },   /* built by tools/model.js from world/models/grocery-store.js: a real model at minifig scale, so scale 1 */
+  'forest-clearing': { file: 'forest-clearing.mpd', name: 'the forest clearing', target: 'The Forest Skirmish', scale: 1 },
+  'cave-of-shadows': { file: 'cave-of-shadows.mpd', name: 'the cave of shadows', target: 'The Cave', scale: 1 },
   'simpsons-grocery': { file: 'simpsons-grocery.mpd', name: 'the grocery checkout', target: 'The Checkout', scale: 2.5 },
   'simpsons-band': { file: 'simpsons-band.mpd', name: 'the band classroom', target: 'Band Class', scale: 2.5 },
   'ewoks-forest': { file: 'ewoks-forest.mpd', name: 'the forest clearing', target: 'The Forest Skirmish', scale: 2.5 },

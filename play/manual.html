@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Building manual</title>
+<meta name="description" content="A step-by-step building manual for a film set built as a real brick model: every piece, every step, every stud joint counted.">
+<style>
+  :root { --bg: #f4f1ea; --ink: #1d1b16; --muted: #6b6659; --card: #ffffff; --line: #d9d3c5; --accent: #c8102e; --ok: #1f7a3a; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #16150f; --ink: #ece7d8; --muted: #a39d8c; --card: #201f18; --line: #3a382d; --accent: #ff4d63; --ok: #52c47a; } }
+  :root[data-theme="dark"] { --bg: #16150f; --ink: #ece7d8; --muted: #a39d8c; --card: #201f18; --line: #3a382d; --accent: #ff4d63; --ok: #52c47a; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  body { display: grid; grid-template-rows: auto 1fr auto; height: 100vh; }
+  header { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; padding: 10px 16px; border-bottom: 1px solid var(--line); background: var(--card); }
+  header h1 { font-size: 18px; margin: 0; font-weight: 650; }
+  header .sheet { color: var(--muted); font-size: 13px; }
+  header .sheet b { color: var(--ink); font-weight: 600; }
+  main { position: relative; min-height: 0; }
+  canvas { display: block; width: 100%; height: 100%; }
+  #page { position: absolute; left: 16px; top: 12px; max-width: min(360px, calc(100% - 32px)); background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; box-shadow: 0 6px 24px rgba(0,0,0,.12); }
+  #page h2 { margin: 0 0 4px; font-size: 15px; }
+  #page .note { color: var(--muted); font-size: 13px; margin-bottom: 6px; }
+  #page ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 3px; font-size: 13px; }
+  #page li { display: flex; align-items: center; gap: 8px; }
+  .sw { width: 14px; height: 14px; border-radius: 3px; border: 1px solid rgba(0,0,0,.25); flex: none; }
+  #contents { position: absolute; inset: 0; overflow: auto; padding: 16px; background: var(--bg); display: none; }
+  #contents.on { display: block; }
+  #contents .wrap { max-width: 860px; margin: 0 auto; display: grid; gap: 14px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+  .card h2 { margin: 0 0 8px; font-size: 16px; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+  .stat { border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
+  .stat b { display: block; font-size: 22px; font-weight: 650; }
+  .stat span { color: var(--muted); font-size: 12px; }
+  .stat.ok b { color: var(--ok); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  td, th { text-align: left; padding: 4px 6px; border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-weight: 600; }
+  footer { display: flex; gap: 8px; align-items: center; padding: 10px 16px; border-top: 1px solid var(--line); background: var(--card); flex-wrap: wrap; }
+  button { font: inherit; padding: 7px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); cursor: pointer; }
+  button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  input[type=range] { flex: 1; min-width: 120px; }
+  #where { color: var(--muted); font-size: 13px; min-width: 120px; }
+  #veil { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); background: var(--bg); }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="../examples/js/loaders/LDrawLoader.js"></script>
+</head>
+<body>
+<header><h1 id="title">Building manual</h1><span class="sheet" id="sheet"></span></header>
+<main>
+  <canvas id="c"></canvas>
+  <div id="page" hidden><h2 id="stepTitle"></h2><div class="note" id="stepNote"></div><ul id="stepParts"></ul></div>
+  <div id="contents" class="on"><div class="wrap">
+    <div class="card"><h2 id="cTitle">Loading</h2><p id="cDesc"></p><div class="stats" id="cStats"></div></div>
+    <div class="card"><h2>What the audit checks</h2><p>A stud joint is one stud of a piece seated in the piece above it. Tiles have no studs; a slope has studs only on its stud row; a window, a door frame and an arch have studs on top and open bottoms. Side-by-side contact holds nothing and counts for nothing. Every piece must reach the ground through a chain of joints; a piece two studs or larger hanging by one joint is weak.</p></div>
+    <div class="card"><h2>Parts</h2><table id="cParts"><thead><tr><th>Count</th><th>Part</th><th>Colour</th></tr></thead><tbody></tbody></table></div>
+  </div></div>
+  <div id="veil">Loading the model</div>
+</main>
+<footer>
+  <button id="toc">Contents</button>
+  <button id="prev">Previous</button>
+  <input type="range" id="slider" min="0" max="1" value="0">
+  <button id="next" class="primary">Next page</button>
+  <span id="where"></span>
+</footer>
+<script>
+(async function () {
+  const q = new URLSearchParams(location.search), name = (q.get('model') || 'grocery-store').replace(/[^a-z0-9-]/g, '');
+  const $ = s => document.querySelector(s);
+  const HEX = {}; try { const cfg = await (await fetch('../ldraw/LDConfig.ldr')).text(); for (const l of cfg.split(/\r?\n/)) { const m = l.match(/^0 !COLOUR\s+\S+\s+CODE\s+(\d+)\s+VALUE\s+#([0-9A-Fa-f]{6})/); if (m) HEX[+m[1]] = '#' + m[2]; } } catch (e) { }
+  let M; try { M = await (await fetch('./models/' + name + '.json')).json(); } catch (e) { $('#veil').textContent = 'No manual for ' + name; return; }
+  document.title = M.title + ' manual'; $('#title').textContent = M.title; $('#cTitle').textContent = M.title; $('#cDesc').textContent = M.description;
+  const S = M.sheet; $('#sheet').innerHTML = `<b>${S.pieces}</b> pieces · <b>${S.steps}</b> steps · <b>${S.pages}</b> pages · <b>${S.joints}</b> stud joints · <b>${S.weak}</b> weak · <b>${S.unsupported}</b> unsupported`;
+  $('#cStats').innerHTML = [['pieces', S.pieces], ['steps', S.steps], ['pages', S.pages], ['stud joints', S.joints], ['weak joints', S.weak, S.weak === 0], ['unsupported', S.unsupported, S.unsupported === 0]].map(([k, v, ok]) => `<div class="stat${ok ? ' ok' : ''}"><b>${v}</b><span>${k}</span></div>`).join('');
+  $('#cParts tbody').innerHTML = M.inventory.map(i => `<tr><td>${i.n}</td><td>${i.name} <small style="color:var(--muted)">${i.part}</small></td><td><span class="sw" style="display:inline-block;vertical-align:middle;background:${HEX[i.col] || '#888'}"></span> ${i.colour}</td></tr>`).join('');
+  // the scene
+  const canvas = $('#c'), renderer = new THREE.WebGLRenderer({ canvas, antialias: true }); renderer.setPixelRatio(Math.min(2, devicePixelRatio)); renderer.outputEncoding = THREE.sRGBEncoding;
+  const scene = new THREE.Scene(); scene.background = new THREE.Color(getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() || '#f4f1ea');
+  const camera = new THREE.PerspectiveCamera(40, 1, 1, 100000); const controls = new THREE.OrbitControls(camera, canvas); controls.enableDamping = true;
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x777766, 0.9)); const sun = new THREE.DirectionalLight(0xffffff, 0.8); sun.position.set(1, 2, 1.2); scene.add(sun);
+  const resize = () => { const r = canvas.getBoundingClientRect(); renderer.setSize(r.width, r.height, false); camera.aspect = r.width / r.height; camera.updateProjectionMatrix(); }; addEventListener('resize', resize); resize();
+  const loader = new THREE.LDrawLoader(); loader.setPath('../ldraw/'); loader.separateObjects = true; loader.smoothNormals = true;
+  const text = await (await fetch('../ldraw/models/' + name + '-full.mpd.txt')).text();
+  await new Promise(res => loader.load('../ldraw/LDConfig.ldr', res, undefined, res));   // this loader learns its colours by loading LDConfig as a model
+  const model = await new Promise((res, rej) => { try { loader.parse(text, '', res); } catch (e) { rej(e); } }).catch(e => { $('#veil').textContent = 'The model could not be parsed: ' + e.message; return null; });
+  if (!model) return;
+  model.rotation.x = Math.PI; scene.add(model);
+  const box = new THREE.Box3().setFromObject(model), size = box.getSize(new THREE.Vector3()), centre = box.getCenter(new THREE.Vector3());
+  controls.target.copy(centre); camera.position.copy(centre).add(new THREE.Vector3(size.x * 0.9, size.y * 1.4 + size.x * 0.5, size.z * 1.1)); camera.near = 1; camera.far = size.length() * 20; camera.updateProjectionMatrix();
+  // the steps: each piece is a child with userData.constructionStep; the manual's pages are 0 (contents), 1..steps, then the parts pages
+  const pieces = []; model.traverse(o => { if (o.userData && o.userData.constructionStep != null && o.parent === model) pieces.push(o); });
+  const nSteps = model.userData.numConstructionSteps || (M.steps.length + 1);
+  const steps = M.steps; let page = Math.max(0, Math.min(steps.length, +(q.get('page') || 0)));
+  // the file lists the pieces step by step, and the loader keeps their order: piece k of the file belongs to the step that lists it
+  const stepOfPiece = []; steps.forEach((s, i) => { for (let k = 0; k < s.pieces.length; k++) stepOfPiece.push(i); }); pieces.forEach((o, k) => { o.userData.step = stepOfPiece[k] == null ? steps.length - 1 : stepOfPiece[k]; });
+  const glow = new Map();
+  function show(p) {
+    page = p; const onContents = p === 0; $('#contents').classList.toggle('on', onContents); $('#page').hidden = onContents;
+    for (const o of pieces) { const s = o.userData.step; o.visible = s < p; o.traverse(m => { if (m.isMesh && m.material) { if (!glow.has(m)) glow.set(m, m.material); m.material = s === p - 1 ? glowOf(glow.get(m)) : glow.get(m); } }); }
+    $('#slider').value = p; $('#slider').max = steps.length; $('#where').textContent = onContents ? 'Contents' : `Page ${p + 1} of ${S.pages} · step ${p} of ${steps.length}`;
+    if (!onContents) { const st = steps[p - 1]; $('#stepTitle').textContent = `Step ${st.n}: ${st.group}`; $('#stepNote').textContent = st.note;
+      const counts = new Map(); for (const i of st.pieces) { const pc = M.pieces[i], k = pc.part + ':' + pc.col; counts.set(k, (counts.get(k) || 0) + 1); }
+      const inv = new Map(M.inventory.map(i => [i.part + ':' + i.col, i]));
+      $('#stepParts').innerHTML = [...counts.entries()].map(([k, n]) => { const i = inv.get(k) || { name: k, colour: '' }; const col = +k.split(':')[1]; return `<li><span class="sw" style="background:${HEX[col] || '#888'}"></span>${n} × ${i.name}, ${i.colour}</li>`; }).join(''); }
+    history.replaceState(null, '', '?model=' + name + (p ? '&page=' + p : ''));
+  }
+  const glows = new Map(); function glowOf(mat) { if (Array.isArray(mat)) return mat.map(glowOf); let g = glows.get(mat); if (!g) { g = mat.clone(); if (g.emissive) g.emissive.setHex(0x554400); glows.set(mat, g); } return g; }
+  $('#next').onclick = () => show(Math.min(steps.length, page + 1)); $('#prev').onclick = () => show(Math.max(0, page - 1)); $('#toc').onclick = () => show(0);
+  $('#slider').oninput = e => show(+e.target.value);
+  addEventListener('keydown', e => { if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); $('#next').click(); } if (e.key === 'ArrowLeft') $('#prev').click(); if (e.key === 'Home') show(0); if (e.key === 'End') show(steps.length); });
+  $('#veil').remove(); show(page);
+  window.__manual = { model, pieces, steps, show, get page() { return page; }, nSteps };
+  (function loop() { controls.update(); renderer.render(scene, camera); requestAnimationFrame(loop); })();
+})();
+</script>
+</body>
+</html>

@@ -2,49 +2,49 @@
 0 !MENTO ASPECT 16:9 FPS 24
 0 !MENTO STORY {"title":"The Forest Skirmish","description":"Two lines in a forest with a fallen log between them: an intrusion, an ambush, a train that both sides take for the enemy, and the reversal when the plane comes over.","location":"a redwood clearing with a track through it","entities":[{"id":"ewoks","type":"crowd","name":"the Ewoks","traits":["cover","spears"]},{"id":"robots","type":"crowd","name":"the robots","traits":["the line","blasters"]},{"id":"train","type":"vehicle","name":"the train","traits":["the crease","the horn"]},{"id":"plane","type":"vehicle","name":"the plane","traits":["overhead"]},{"id":"clearing","type":"location","name":"the clearing","traits":["the log","the crates"]}],"goals":["hold the clearing"],"obstacles":["the wrong enemy"],"shifts":[{"id":"lines","name":"The lines"},{"id":"intrusion","name":"The intrusion"},{"id":"ambush","name":"The ambush"},{"id":"train","name":"The train"},{"id":"reversal","name":"The reversal"},{"id":"aerial","name":"From above"}],"why":"a mistaken enemy ends a fight nobody could win","direction":"confrontation"}
 0 !MENTO STAGE stage R 120 SEED 1 AT 37641952.14 -83456246.41
-0 !MENTO ACTOR "ewok-1" FIGURE ewok AT 37641152.14 -83456206.41 HEADING 90
-0 !MENTO ACTOR "ewok-2" FIGURE ewok AT 37641072.14 -83456326.41 HEADING 90
-0 !MENTO ACTOR "ewok-3" FIGURE ewok AT 37641192.14 -83456406.41 HEADING 90
-0 !MENTO ACTOR "robot-1" FIGURE robot AT 37642432.14 -83456166.41 HEADING 270
-0 !MENTO ACTOR "robot-2" FIGURE robot AT 37642512.14 -83456286.41 HEADING 270
-0 !MENTO ACTOR "robot-3" FIGURE robot AT 37642392.14 -83456366.41 HEADING 270
-0 !MENTO DONOR "the clearing" SET ewoks-forest AT 941048.8 -2086406.16 HEADING 0 SCALE 2.5 LIFT -1.72
-0 !MENTO MARK "ewok-cover" AT 941027.8 -2086408.16 COL 4
-0 !MENTO MARK "robot-cover" AT 941060.8 -2086406.16 COL 14
-0 !MENTO MARK "middle" AT 941038.8 -2086410.16 COL 1
-0 !MENTO MARK "ewok-rush" AT 941036.8 -2086409.16 COL 2
-0 !MENTO MARK "robot-rush" AT 941042.8 -2086411.16 COL 25
-0 !MENTO MARK "track" AT 941020.8 -2086410.16 COL 26
-0 !MENTO MARK "back" AT 941048.8 -2086430.16 COL 5
+0 !MENTO ACTOR "ewok-1" FIGURE ewok AT 37641512.14 -83456126.41 HEADING 90
+0 !MENTO ACTOR "ewok-2" FIGURE ewok AT 37641572.14 -83456186.41 HEADING 90
+0 !MENTO ACTOR "ewok-3" FIGURE ewok AT 37641492.14 -83456226.41 HEADING 90
+0 !MENTO ACTOR "robot-1" FIGURE robot AT 37642152.14 -83456366.41 HEADING 270
+0 !MENTO ACTOR "robot-2" FIGURE robot AT 37642172.14 -83456426.41 HEADING 270
+0 !MENTO ACTOR "robot-3" FIGURE robot AT 37642112.14 -83456306.41 HEADING 270
+0 !MENTO DONOR "the clearing" SET forest-clearing AT 941048.8 -2086406.16 HEADING 180 SCALE 1
+0 !MENTO MARK "ewok-cover" AT 941038.8 -2086403.16 COL 4
+0 !MENTO MARK "robot-cover" AT 941053.8 -2086410.16 COL 14
+0 !MENTO MARK "middle" AT 941047.8 -2086404.16 COL 1
+0 !MENTO MARK "ewok-rush" AT 941043.8 -2086404.66 COL 2
+0 !MENTO MARK "robot-rush" AT 941051.8 -2086404.66 COL 25
+0 !MENTO MARK "track" AT 941061.8 -2086405.16 COL 26
+0 !MENTO MARK "back" AT 941036.8 -2086405.16 COL 5
 0 // SHOT 1: THE FOREST SKIRMISH
 0 !MENTO TITLE "THE FOREST SKIRMISH" STYLE card SEC 2 SCORE "march"
 0 !MENTO EVENT LINE "narrator" "The forest skirmish." AT 0.3 FOR 1.4
 0 // SHOT 2: SKIRMISH WIDE
-0 !MENTO SHOT "Skirmish wide" POS 37640912.14 -360 -83455286.41 TGT 37641872.14 -40 -83456326.41 LENS 35 SEC 6 SHIFT "lines"
+0 !MENTO SHOT "Skirmish wide" POS 37641712.14 -280 -83456806.41 TGT 37641952.14 -40 -83456206.41 LENS 36 SEC 6 SHIFT "lines"
 0 !MENTO BEAT "lines" "ewok-1" FROM 0 TO 6 WHY "two lines, a log between them, nobody moving first" DIRECT guarded
 0 !MENTO EVENT SOUND "chirp" AT 1
 0 !MENTO EVENT SOUND "chirp" AT 2.8
 0 !MENTO EVENT LINE "narrator" "Two lines. Ewoks by the train to the west, robots by the stumps to the east." AT 0.8 FOR 3.6
 0 // SHOT 3: EWOK LINE
-0 !MENTO SHOT "Ewok line" POS 37641472.14 -64 -83456406.41 TGT 37641152.14 -48 -83456246.41 LENS 40 SEC 4 SHIFT "lines"
+0 !MENTO SHOT "Ewok line" POS 37641832.14 -64 -83456126.41 TGT 37641532.14 -40 -83456166.41 LENS 36 SEC 4 SHIFT "lines"
 0 !MENTO PHRASE "ewok-1" guarded AT 0.3 ENTER 0.4
 0 !MENTO PHRASE "ewok-2" listen AT 0.5 ENTER 0.4
 0 !MENTO PERFORM "ewok-1" LOOK "robot-1" AT 0.4 KEEP gaze
 0 !MENTO EVENT LINE "ewok-1" "Yub nub." AT 1.6 FOR 1
 0 !MENTO EVENT SOUND "chirp" AT 2.6
 0 // SHOT 4: ROBOT LINE
-0 !MENTO SHOT "Robot line" POS 37642112.14 -64 -83456046.41 TGT 37642432.14 -48 -83456246.41 LENS 40 SEC 4 SHIFT "intrusion"
-0 !MENTO ACT "robot-1" TO 37641712.14 -83456446.41 WALK
+0 !MENTO SHOT "Robot line" POS 37641992.14 -64 -83456366.41 TGT 37642152.14 -48 -83456386.41 LENS 40 SEC 4 SHIFT "intrusion"
+0 !MENTO ACT "robot-1" TO 37642072.14 -83456186.41 WALK
 0 !MENTO BEAT "intrusion" "robot-1" FROM 0 TO 4 WHY "one robot steps over the line" DIRECT resolve
 0 !MENTO PHRASE "robot-1" resolve AT 0.3 ENTER 0.4
 0 !MENTO EVENT SOUND "servo" AT 0.6
 0 !MENTO EVENT SOUND "servo" AT 1.8
 0 !MENTO EVENT LINE "robot-1" "Advancing." AT 1 FOR 1.2
 0 // SHOT 5: NO MAN'S LAND
-0 !MENTO SHOT "No man's land" POS 37641592.14 -60 -83456566.41 TGT 37641592.14 -40 -83456326.41 LENS 35 SEC 6 SHIFT "ambush"
-0 !MENTO ACT "ewok-1" TO 37641472.14 -83456366.41
-0 !MENTO ACT "ewok-2" TO 37641552.14 -83456406.41
-0 !MENTO ACT "ewok-3" TO 37641472.14 -83456366.41
+0 !MENTO SHOT "No man's land" POS 37641912.14 -96 -83456346.41 TGT 37641912.14 -40 -83456166.41 LENS 35 SEC 6 SHIFT "ambush"
+0 !MENTO ACT "ewok-1" TO 37641752.14 -83456186.41
+0 !MENTO ACT "ewok-2" TO 37641912.14 -83456166.41
+0 !MENTO ACT "ewok-3" TO 37641752.14 -83456186.41
 0 !MENTO BEAT "ambush" "ewok-1" FROM 0 TO 6 WHY "the Ewoks rush the one who crossed" DIRECT confrontation
 0 !MENTO EVENT SOUND "roar" AT 0.5
 0 !MENTO EVENT SOUND "swing" AT 2.4
@@ -54,7 +54,7 @@
 0 !MENTO PHRASE "robot-1" panic AT 3.2 ENTER 0.4
 0 !MENTO PHRASE "ewok-2" angry AT 2.8 ENTER 0.4
 0 // SHOT 6: TRAIN VECTOR
-0 !MENTO SHOT "Train vector" POS 37641632.14 -120 -83456646.41 TGT 37640712.14 -200 -83456406.41 LENS 40 SEC 5 SHIFT "train"
+0 !MENTO SHOT "Train vector" POS 37642232.14 -112 -83455966.41 TGT 37642542.14 -48 -83456146.41 LENS 40 SEC 5 SHIFT "train"
 0 !MENTO BEAT "train" "robot-2" FROM 0 TO 5 WHY "the train comes down the crease and both sides take it for the enemy" DIRECT fear
 0 !MENTO EVENT SOUND "static" AT 0.4
 0 !MENTO EVENT SOUND "clatter" AT 1.6
@@ -64,19 +64,19 @@
 0 !MENTO PERFORM "robot-2" LOOK "track" AT 0.6 KEEP gaze
 0 !MENTO EVENT LINE "narrator" "A train on the west rim. Both lines take it for the enemy." AT 1 FOR 3
 0 // SHOT 7: THE REVERSAL
-0 !MENTO SHOT "The reversal" POS 37642512.14 -280 -83455606.41 TGT 37641792.14 -40 -83456246.41 LENS 40 SEC 6 SHIFT "reversal"
-0 !MENTO ACT "robot-1" TO 37642432.14 -83456246.41 WALK
-0 !MENTO ACT "robot-2" TO 37642432.14 -83456246.41 WALK
-0 !MENTO ACT "robot-3" TO 37642432.14 -83456246.41 WALK
-0 !MENTO ACT "ewok-1" TO 37641112.14 -83456326.41 WALK
-0 !MENTO ACT "ewok-2" TO 37641112.14 -83456326.41 WALK
-0 !MENTO ACT "ewok-3" TO 37641112.14 -83456326.41 WALK
+0 !MENTO SHOT "The reversal" POS 37641952.14 -240 -83455766.41 TGT 37641952.14 -40 -83456246.41 LENS 40 SEC 6 SHIFT "reversal"
+0 !MENTO ACT "robot-1" TO 37642152.14 -83456406.41 WALK
+0 !MENTO ACT "robot-2" TO 37642152.14 -83456406.41 WALK
+0 !MENTO ACT "robot-3" TO 37642152.14 -83456406.41 WALK
+0 !MENTO ACT "ewok-1" TO 37641552.14 -83456126.41 WALK
+0 !MENTO ACT "ewok-2" TO 37641552.14 -83456126.41 WALK
+0 !MENTO ACT "ewok-3" TO 37641552.14 -83456126.41 WALK
 0 !MENTO BEAT "reversal" "ewok-1" FROM 0 TO 6 WHY "both lines pull back; the log keeps the peace" DIRECT weariness
 0 !MENTO PHRASE "robot-3" panic AT 0.3 ENTER 0.4
 0 !MENTO EVENT SOUND "clatter" AT 1
 0 !MENTO EVENT LINE "narrator" "Both sides withdrew. The train did not notice." AT 2 FOR 3.2
 0 // SHOT 8: AERIAL MAP
-0 !MENTO SHOT "Aerial map" POS 37640752.14 -800 -83455206.41 TGT 37641872.14 0 -83456246.41 LENS 40 SEC 5 SHIFT "aerial"
+0 !MENTO SHOT "Aerial map" POS 37641392.14 -640 -83456806.41 TGT 37641992.14 0 -83456206.41 LENS 42 SEC 5 SHIFT "aerial"
 0 !MENTO EVENT SOUND "whoosh" AT 0.8
 0 !MENTO EVENT SOUND "whoosh" AT 2.6
 0 !MENTO EVENT LINE "narrator" "From above: the whole stage, the train, the stumps, the palms." AT 0.8 FOR 2.6

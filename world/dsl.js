@@ -312,8 +312,8 @@ function tile(g, opts = {}) {
       let done = false;
       for (const [part, nw, nd] of BRICKS) for (const rot of [0, 1]) {
         const w = rot ? nd : nw, d = rot ? nw : nd;
-        if (pass === 0 && opts.bond !== false && w >= 4 && ((x + shift * 2) % 4)) continue;   // first pass: only well-bonded long bricks
-        if (pass === 0 && opts.bond !== false && d >= 4 && ((z + shift * 2) % 4)) continue;
+        if (pass === 0 && opts.bond !== false && w >= 2 && ((x + shift * (w >= 4 ? 2 : 1)) % (w >= 4 ? 4 : 2))) continue;   // first pass: only well-bonded bricks: long ones start two studs over on every other course, short ones one stud over
+        if (pass === 0 && opts.bond !== false && d >= 2 && ((z + shift * (d >= 4 ? 2 : 1)) % (d >= 4 ? 4 : 2))) continue;
         if (!fits(x, y, z, w, d, BRICK, col, kind)) continue;
         take(x, y, z, w, d, BRICK); out.push({ part, col, x, y, z, rot, w, d, plate: false, op }); done = true; break;
       }
