@@ -444,6 +444,7 @@ function pushOut(pos, r) {
   if (W.props) W.props.pushOut(pos, r, 100);
   if (W.flora) W.flora.pushOut(pos, r);
   if (W.sets) W.sets.pushOut(pos, r);
+  if (W.solids) for (const q of W.solids) q.push(pos, r);   // a laid model's walls and shelves (world/solids.js)
   if (W.traffic) W.traffic.pushOut(pos, r);
   if (W.mode === 'walk' && W.ship) { const s = W.ship.position; pushRing(pos, r, [{ x: s.x - 170, z: s.z - 85 }, { x: s.x + 170, z: s.z - 85 }, { x: s.x + 170, z: s.z + 85 }, { x: s.x - 170, z: s.z + 85 }], s.y - 200, s.y + 200); }
 }
@@ -625,7 +626,7 @@ function leaveVehicle() {
   primary = null; W.input.L.mag = 0; Fx.Sfx.engine(false); toast('out', 700);
 }
 /** Push a vehicle's centre out of buildings, bricks and the other props; true when it moved. */
-function vehPushOut(pos, r, skipId) { const x = pos.x, z = pos.z; for (const b of W.city.near(pos.x, pos.z, r + 2 * M)) pushRing(pos, r, b.ringL, b.y0, b.yTop); W.build.pushOut(pos, r, 100); W.props.pushOut(pos, r, 100, 30, skipId); if (W.sets) W.sets.pushOut(pos, r);
+function vehPushOut(pos, r, skipId) { const x = pos.x, z = pos.z; for (const b of W.city.near(pos.x, pos.z, r + 2 * M)) pushRing(pos, r, b.ringL, b.y0, b.yTop); W.build.pushOut(pos, r, 100); W.props.pushOut(pos, r, 100, 30, skipId); if (W.sets) W.sets.pushOut(pos, r); if (W.solids) for (const q of W.solids) q.push(pos, r);
   if (W.traffic) { if (W.veh && Math.abs(W.veh.speed) > 8 * M && W.traffic.hit(pos, r + 0.5 * M, W.veh.vel)) { Fx.Sfx.crunch(); Fx.haptic(30); W.shake = Math.max(W.shake, 0.3); } W.traffic.pushOut(pos, r); } return Math.abs(pos.x - x) > 1e-3 || Math.abs(pos.z - z) > 1e-3; }
 function board() {
   if (W.mode !== 'walk' || W.dead) return;

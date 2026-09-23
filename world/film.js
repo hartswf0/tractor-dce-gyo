@@ -562,6 +562,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
       const g = await Donors.build(d.set, { yaw: headingOf(d.heading || 0), scale: d.scale }); if (!F.scene || F.scene.donorsDropped) { g.traverse(o => { if (o.isMesh) o.geometry.dispose(); }); return null; }
       g.position.set(x, groundH(x, z) + (d.y || 0) * M, z); W.scene.add(g); g.updateMatrixWorld(true); const box = new THREE.Box3().setFromObject(g);
       const rec = { name: d.name || d.set, set: d.set, group: g, box, x, z, y0: g.position.y, h: box.max.y - g.position.y, r: Math.max(box.max.x - box.min.x, box.max.z - box.min.z) / 2, heading: d.heading || 0, scale: d.scale || (Donors.DONORS[d.set] || {}).scale || 2.5, lift: d.y || 0 };
+      if (window.Solids && (rec.scale === 1) && !d.ghost) { try { const j = await (await fetch('./play/models/' + encodeURIComponent(d.set) + '.json')).json(); rec.solid = Solids.fromModel(j, { x, z, heading: d.heading || 0, M }); (W.solids = W.solids || []).push(rec.solid); } catch (e) { F.log.push('solid ' + d.set + ': ' + (e.message || e)); } }   /* a model laid whole is solid: its walls, shelves and counters stop a figure, the player and a cart */
       F.donors.set(rec.name, rec); return rec;
     }
     /** The scene's actors and builds stand; the planet, the character and the ground it asked for are set first. */
@@ -593,7 +594,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
       if (sc && sc.set && keepSet) F.kept = { groundWas: sc.groundWas }; for (const a of F.actors.values()) { if (a.it) W.props.remove(a.it.id, true); if (a.npcs && W.crowd) for (const n of a.npcs) W.crowd.remove(n); if (a.perf && a.perf.face && window.Face) Face.detach(a.perf.face); if (a.rig) dropRig(a.rig); if (a.riderRig) dropRig(a.riderRig); }
       for (const L of F.loose) dropRig(L.rig); F.loose = []; for (const L of F.lights2) W.scene.remove(L.L); F.lights2 = []; F.caption = null; showCaption(null); F.deflect = null; F.flip = 0; F.proneUntil = 0;
       for (const b of F.builds.values()) for (const id of b.ids) W.build.take(id, true);
-      if (F.rehearse.part) F.givePart(); F.rehearse.on = false; if (sc) sc.donorsDropped = true; for (const d of F.donors.values()) { W.scene.remove(d.group); } F.donors.clear(); F.marks.clear();
+      if (F.rehearse.part) F.givePart(); F.rehearse.on = false; if (sc) sc.donorsDropped = true; for (const d of F.donors.values()) { W.scene.remove(d.group); if (d.solid && W.solids) W.solids = W.solids.filter(q => q !== d.solid); } F.donors.clear(); F.marks.clear();
       if (W.props) for (const it of [...W.props.items.values()]) if (it.src && it.src.film) W.props.remove(it.id, true);   // whatever a film laid and lost track of
       if (W.crowd) for (const n of W.crowd.npcs.slice()) if (n.film) W.crowd.remove(n);
       for (const m of F.meshes) { W.scene.remove(m); if (m.geometry) m.geometry.dispose(); } F.meshes = []; F.actors.clear(); F.builds.clear(); F.cable = null; F.hang = null; F.prone = false; F.rout = null; F.strikes = null; F.pending = [];
