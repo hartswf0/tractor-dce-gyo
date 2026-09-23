@@ -47,7 +47,7 @@ const pick = a => a[Math.floor(rnd() * a.length)];
 /* ── goods: what stands on a shelf, one stud deep; h in plates, n studs along the shelf ── */
 const GOODS = {
   can: { id: '3062b', h: 3, n: 1 }, cube: { id: '3005', h: 3, n: 1 }, box: { id: '3004', h: 3, n: 2 }, pack: { id: '3010', h: 3, n: 4 },
-  tall: { id: '3245c', h: 6, n: 2 }, bottle: { id: '95228', h: 6, n: 1 },
+  tall: { id: '3245c', h: 6, n: 2 }, bottle: { id: '95228', h: 6, n: 1 }, buzz: { id: '3062bp02', h: 3, n: 1 },   // Buzz Cola: the printed can
 };
 /** The categories a face is stocked with: the kinds of goods and their colours. */
 const CAT = {
@@ -63,7 +63,8 @@ const CAT = {
   pasta: [['box', [1, 4, 14, 2, 15]], ['tall', [1, 4, 14, 25]]],
   intl: [['can', [4, 2, 14, 15, 0]], ['box', [4, 15, 288, 25]]],
   snacks: [['box', [4, 14, 25, 1, 2, 5, 26]], ['tall', [4, 14, 25, 1]]],
-  drinks: [['bottle', [4, 36, 33, 34, 46, 47, 1, 2, 0]], ['tall', [4, 1, 2, 14]], ['can', [4, 1, 2, 14, 0, 15]]],
+  drinks: [['buzz', [4]], ['buzz', [4]], ['bottle', [4, 36, 33, 34, 46, 47, 1, 2, 0]], ['tall', [4, 1, 2, 14]], ['can', [0, 1, 2, 14]]],
+  buzzcap: [['buzz', [4]]],
   household: [['tall', [15, 1, 322, 14, 2, 5]], ['box', [15, 1, 5, 85]]],
   paper: [['pack', [15, 1, 15]], ['tall', [15, 1]]],
   baby: [['box', [15, 5, 322, 14]], ['can', [15, 5, 322]], ['tall', [15, 322, 5]]],
@@ -159,7 +160,49 @@ const ITEMS = [
   { n: 3, name: 'extra virgin olive oil', where: 'Aisle 3, oils, the tall shelf', shelf: [GX(3) + 4, 47], at: [GX(3) + 6, 47] },
   { n: 4, name: 'organic flour', where: 'Aisle 4, baking, the tall shelf', shelf: [GX(4) + 4, 62], at: [GX(4) + 6, 62] },
   { n: 5, name: 'southwest style hash browns', where: 'Frozen, the east wall doors', shelf: [119, 43], at: [115, 43] },
+  { n: 6, name: 'five red apples', where: 'Produce, the apple crates', shelf: [10, 27], at: [10, 24], count: 5, colour: 'red' },   // Wittgenstein's slip: the crate marked APPLES, the sample RED, the count to five
 ];
+/* What each fixture holds, for a shopper who takes from it (x0..x1, z0..z1 in cells, program frame): the exact thing, or the
+   thing beside the thing on the list (the light olive oil next to the extra virgin, the plain flour next to the organic). */
+const FIX = [
+  ['green bananas', 8, 15, 15, 20], ['yellow bananas', 15, 15, 22, 20], ['red apples', 8, 26, 13, 30], ['green apples', 17, 26, 22, 30], ['oranges', 8, 34, 13, 38], ['lemons', 17, 34, 22, 38],
+  ['corn', 8, 42, 13, 46], ['pears', 17, 42, 22, 46], ['potatoes', 8, 50, 13, 54], ['onions', 17, 50, 22, 54], ['avocados', 8, 58, 13, 62], ['plums', 17, 58, 22, 62],
+  ['black berries', 8, 66, 12, 70], ['blueberries', 12, 66, 16, 70], ['raspberries', 16, 66, 20, 70], ['black berries', 20, 66, 22, 70],
+  ['French bread', 28, 17, 36, 21], ['a cake', 37, 17, 41, 21], ['a pie', 41, 17, 45, 19], ['doughnuts', 41, 19, 45, 21], ['flowers', 46, 16, 54, 19],
+  ['a turkey', 3, 84, 7, 87], ['drumsticks', 7, 84, 11, 87], ['sausages', 11, 84, 14, 87], ['fish', 14, 84, 17, 87], ['a turkey', 17, 84, 21, 87],
+  ['a frozen pizza', 96, 82, 104, 86], ['ice cream', 104, 82, 112, 86],
+  ['light olive oil', 54, 33, 56, 44], ['extra virgin olive oil', 54, 44, 56, 51], ['vinegar', 54, 51, 56, 60], ['vegetable oil', 54, 60, 56, 77],
+  ['plain flour', 65, 33, 67, 59], ['organic flour', 65, 59, 67, 66], ['sugar', 65, 66, 67, 77],
+  ['frozen peas', 117, 30, 123, 40], ['southwest style hash browns', 117, 40, 123, 46], ['regular hash browns', 117, 46, 123, 52], ['ice cream', 117, 52, 123, 62], ['frozen pizza', 117, 62, 123, 72], ['fish sticks', 117, 72, 123, 88],
+];
+/* The signs: the words a store puts up so a shopper can find things, and the story can be read. Each on a face of the build
+   (n, s, e, w: the way it looks), its centre at (x, z) in studs and y in bricks, w studs wide and h bricks tall. They are not
+   bricks: world/signs.js draws them as printed boards where they stand. */
+const BRANDS = { snacks: ['LARD LAD', 'DONUTS', 'lardlad'], buzzcap: ['BUZZ', 'COLA', 'buzz'], cereal: ["KRUSTY-O'S", 'CEREAL', 'krusty'], canned: ["UNCLE JIM'S", 'COUNTRY FILLIN\'', 'jim'],
+  baking: ['GRANDMA', 'BAKES', 'grandma'], pasta: ["LUIGI'S", 'PASTA', 'luigi'], household: ['MR. SPARKLE', 'DISHWASHER DETERGENT', 'sparkle'], duff: ['DUFF', 'BEER', 'duff'] };
+function signs() {
+  const out = [], S = (text, x, z, y, w, h, face, style, sub) => out.push({ text, sub: sub || null, x, z, y, w, h, face, style });
+  for (const a of AISLES) { const c = GX(a.n) + 8; S(a.n + '  ' + a.name.toUpperCase(), c, GZ - 0.02, 8, 10, 2, 'n', 'gantry'); S(a.n + '  ' + a.name.toUpperCase(), c, GZ + 2.02, 8, 10, 2, 's', 'gantry'); }
+  S('PRODUCE', 1.02, 45, 11, 34, 3, 'e', 'header', 'fresh every morning'); S('FRESH BAKERY', 37, 9.02, 9.5, 20, 2.5, 's', 'header', 'baked here today');
+  S('DAIRY', 50, 93.98, 9, 26, 3, 'n', 'header'); S('DAIRY', 96, 93.98, 9, 26, 3, 'n', 'header'); S('MEAT & SEAFOOD', 13, 93.98, 9, 22, 2.5, 'n', 'header');
+  S('FROZEN FOODS', 122.98, 58, 9, 34, 3, 'w', 'header'); S('CHECKOUT', 96, 9.02, 10, 34, 2.5, 's', 'header', 'have your list ready');
+  S('ICE CREAM', 104, 81.98, 3.2, 8, 1.2, 'n', 'card'); S('ICE CREAM', 104, 86.02, 3.2, 8, 1.2, 's', 'card');
+  for (let i = 0; i < 5; i++) S(String(i + 1), 78 + i * 8 + 3.5, 15.02, 6.5, 1.4, 1.2, 's', 'lane');
+  const ENDS = ['snacks', 'buzzcap', 'cereal', 'canned', 'baking', 'pasta', 'household', 'duff'];
+  for (let k = 1; k <= 8; k++) { const f = BRANDS[ENDS[k - 1]], b = BRANDS[ENDS[(k + 3) % 8]]; S(f[0], GX(k) + 2.5, GZ - 2.02, 5.75, 5, 1.5, 'n', 'brand:' + f[2], f[1]); S(b[0], GX(k) + 2.5, GZ + GLEN + 2.02, 5.75, 5, 1.5, 's', 'brand:' + b[2], b[1]); }
+  // the shelf tags: the list's things and the things beside them, on the shelf edge under them
+  S('EXTRA VIRGIN OLIVE OIL', 55.02, 47.5, 2.45, 6, 0.55, 'e', 'tag', '$8.99'); S('LIGHT OLIVE OIL', 55.02, 39, 2.45, 5, 0.55, 'e', 'tag', '$4.49'); S('VINEGAR', 55.02, 56, 2.45, 4, 0.55, 'e', 'tag', '$2.29'); S('VEGETABLE OIL', 55.02, 66, 2.45, 5, 0.55, 'e', 'tag', '$3.19');
+  S('ORGANIC FLOUR', 66.02, 62.5, 2.45, 5, 0.55, 'e', 'tag', '$5.29'); S('PLAIN FLOUR', 66.02, 50, 2.45, 5, 0.55, 'e', 'tag', '$2.19'); S('SUGAR', 66.02, 71, 2.45, 4, 0.55, 'e', 'tag', '$1.99');
+  S('SOUTHWEST STYLE HASH BROWNS', 117.98, 43, 3.6, 6, 0.7, 'w', 'tag', '$3.49'); S('REGULAR HASH BROWNS', 117.98, 49, 3.6, 5, 0.7, 'w', 'tag', '$2.99'); S('FROZEN PEAS', 117.98, 35, 3.6, 5, 0.7, 'w', 'tag');
+  S('ICE CREAM', 117.98, 57, 3.6, 5, 0.7, 'w', 'tag'); S('FROZEN PIZZA', 117.98, 67, 3.6, 5, 0.7, 'w', 'tag'); S('FISH STICKS', 117.98, 78, 3.6, 5, 0.7, 'w', 'tag');
+  S('GREEN BANANAS', 11.5, 20.02, 0.55, 6, 0.8, 's', 'tag', '39¢ lb'); S('YELLOW BANANAS', 18.5, 20.02, 0.55, 6, 0.8, 's', 'tag', '49¢ lb');
+  S('APPLES', 10.5, 25.98, 0.55, 4.6, 0.85, 'n', 'swatch:#c4281c', 'RED'); S('APPLES', 19.5, 25.98, 0.55, 4.6, 0.85, 'n', 'swatch:#4b9f4a', 'GREEN');
+  [['ORANGES', 10.5, 34], ['LEMONS', 19.5, 34], ['CORN', 10.5, 42], ['PEARS', 19.5, 42], ['POTATOES', 10.5, 50], ['ONIONS', 19.5, 50], ['AVOCADOS', 10.5, 58], ['PLUMS', 19.5, 58]].forEach(([t, x, z]) => S(t, x, z - 0.02, 0.55, 4.6, 0.85, 'n', 'card'));
+  S('BLACK BERRIES', 10, 65.98, 0.55, 4, 0.8, 'n', 'tag', '$3.99'); S('BLUEBERRIES', 14, 65.98, 0.55, 4, 0.8, 'n', 'tag', '$3.49'); S('RASPBERRIES', 18, 65.98, 0.55, 4, 0.8, 'n', 'tag', '$4.29');
+  S('BREAD · BUNS · CROISSANTS', 32, 21.02, 0.55, 8, 0.8, 's', 'card'); S('CAKES · PIES · DONUTS', 41, 21.02, 0.55, 8, 0.8, 's', 'card');
+  S('TURKEY · DRUMSTICKS · SAUSAGE · FISH', 13, 83.98, 0.55, 18, 0.8, 'n', 'card');
+  return out;
+}
 
 function program() {
   occ.clear();
@@ -188,7 +231,7 @@ function program() {
     const x = 78 + i * 8;
     ops.push(G('checkout ' + (i + 1), x, 13, [
       box(0, 0, 2, 9, 2, DARK), slab(0, 0, 2, 9, 0, { y: 2 }), ...[1, 3, 5].map(z => part('3068b', 0, 0, z, 2, { plate: 1 })),
-      box(2, 6, 2, 3, 2, GREY), part('3039', DARK, 2, 6, 2, { rot: 1 }), part('3024', 36, 2, 8, 2), part('3024', 46, 3, 8, 2),
+      box(2, 6, 2, 3, 2, GREY), part('3622p01', GREY, 3, 6, 2, { rot: 1 }), part('3024', 36, 2, 8, 2),
       box(-3, 0, 3, 2, 1, WHITE), part('3005', BROWN, -3, 0, 1), part('3005', TAN, -2, 1, 1),
       ...[0, 1, 2, 3, 4, 5].map(y => part('3062b', GREY, 3, 1, y)), part('3005', i === 0 ? 46 : 14, 3, 1, 6), part('3024', RED, 3, 1, 7),
       box(-1, 7, 1, 2, 2, RED), ...[0, 1].map(z => part('3024', pick([14, 4, 1, 25, 5]), -1, 7 + z, 2))]));   // sweets at the lane's mouth
@@ -197,11 +240,19 @@ function program() {
   // ── the service desk and flowers, west of the entrance ──
   ops.push(G('service desk', 32, 11, [box(0, 0, 14, 3, 2, WHITE), slab(0, 0, 14, 3, BLUE, { y: 2 }), part('3004', GREY, 10, 0, 2, { plate: 1 }), part('3024', 46, 10, 0, 3, { plate: 1 })])); mark(32, 11, 14, 3);
   const flowers = [box(0, 0, 8, 3, 1, DKGREEN)]; for (let i = 0; i < 8; i++) for (let j = 0; j < 3; j++) flowers.push(part('3062b', 2, i, j, 1), part('4073', pick([4, 14, 5, 26, 15, 25, 85]), i, j, 2));
-  ops.push(G('flowers', 38, 16, flowers)); mark(38, 16, 8, 3);
+  ops.push(G('flowers', 46, 16, flowers)); mark(46, 16, 8, 3);
+  // the bakery, by the door: a table of bread (French loaves, buns) and a table of sweets (a cake, pies, cupcakes, doughnuts)
+  const bread = [box(0, 0, 8, 4, 1, TAN)];
+  for (const j of [0, 2]) bread.push(part('4342', 84, 0, j, 1), part('4342', 19, 4, j, 1));
+  for (const j of [1, 3]) for (const i of [0, 2, 4, 6]) bread.push(part(j === 1 ? '25386' : '33125', j === 1 ? 84 : 19, i, j, 1, { rot: 0 }));
+  ops.push(G('bread table', 28, 17, bread)); mark(28, 17, 8, 4);
+  const sweets = [box(0, 0, 8, 4, 1, TAN), part('35860', 15, 0, 0, 1), part('93568p01', 70, 4, 0, 1), part('93568p02', 84, 6, 0, 1)];
+  for (let i = 4; i < 8; i++) sweets.push(part('79743', pick([5, 26, 15, 14]), i, 2, 1), part(i % 2 ? '98138p2w' : '98138p80', 84, i, 3, 1));
+  ops.push(G('sweets table', 37, 17, sweets)); mark(37, 17, 8, 4);
   // ── produce: the stepped misted rack down the west wall: three steps of produce, a dark green back panel, a canopy ──
   const SECT = [[['3062b', [2, 10]]], [['3062b', [27, 326]]], [['3062b', [DKGREEN]], ['4073', [DKGREEN, 2]]], [['3062b', [25]], ['4073', [2, 10]]],
-    [['3062b', [4, 14, 2, 25]]], [['6141', [4, 320]], ['6141', [4]]], [['3062b', [DKGREEN, 2]]], [['3062b', [85, 26]]],
-    [['4073', [15, 19]], ['4073', [19, 84]]], [['3062b', [19, 15, 320]]], [['3062b', [28, 84]]]];   // lettuce, celery, broccoli, carrots, peppers, tomatoes, cucumbers, eggplant, mushrooms, onions, potatoes
+    [['3062b', [4, 14, 2, 25]]], [['6141', [4, 320]], ['6141', [4]]], [['1411p01', [14]]], [['3062b', [85, 26]]],
+    [['4073', [15, 19]], ['4073', [19, 84]]], [['3062b', [19, 15, 320]]], [['3062b', [28, 84]]]];   // lettuce, celery, broccoli, carrots, peppers, tomatoes, corn, eggplant, mushrooms, onions, potatoes
   const rack = [], rackShell = [];
   SECT.forEach((spec, s) => { for (let z = 13 + s * 6; z < 19 + s * 6; z++) for (let j = 0; j < 3; j++) { let p = 3 + j * 3; for (const [id, cols] of spec) { rack.push(at(id, pick(cols), 4 - j, z, p)); p += id === '3062b' ? 3 : 1; } } });
   for (let j = 0; j < 3; j++) rackShell.push(...fill(4 - j, 13, 1, 66, 0, 3 + j * 3, j % 2 ? DKTAN : BROWN));
@@ -211,25 +262,28 @@ function program() {
   const ban = [box(0, 0, 14, 5, 1, BROWN), slab(0, 0, 14, 5, TAN, { y: 1 })];
   for (let i = 0; i < 14; i++) for (let j = 0; j < 5; j++) if ((i + j) % 2 === 0 || rnd() < 0.3) ban.push(part('33085', i < 7 ? 10 : 14, i, j, 1, { plate: 1, rot: Math.floor(rnd() * 4) }));
   ops.push(G('banana stand', 8, 15, ban)); mark(8, 15, 14, 5);
-  // ten fruit tables: crates heaped with round fruit, two layers
-  const FRUIT = [[4, 320], [10, 2], [25, 25], [14, 14], [10, 27], [25, 4], [28, 84], [19, 15], [DKGREEN, 2], [85, 320]];   // apples red, apples green, oranges, lemons, limes, peaches, potatoes, onions, avocados, plums
-  FRUIT.forEach(([a, b], t) => {
+  // ten fruit tables: crates of real minifig fruit. The first two are the five-red-apples tables: red apples, and green ones beside them.
+  const FRUIT = [['red apples', '33051', 4, '5234', 4], ['green apples', '33051', 10, '5234', 10], ['oranges', '5234', 25], ['lemons', '5234', 14], ['corn', '1411p01', 14],
+    ['pears', '5822', 27, '5234', 27], ['potatoes', '6141', 28, '6141', 84], ['onions', '6141', 19, '6141', 15], ['avocados', '5822', DKGREEN, '5234', DKGREEN], ['plums', '5234', 85, '5234', 320]];
+  FRUIT.forEach(([name, big, c1, small, c2], t) => {
     const x = t % 2 ? 17 : 8, z = 26 + Math.floor(t / 2) * 8, heap = [box(0, 0, 5, 4, 1, BROWN)];
-    for (let i = 0; i < 5; i++) for (let j = 0; j < 4; j++) heap.push(part('6141', rnd() > 0.5 ? a : b, i, j, 1));
-    for (let i = 1; i < 4; i++) for (let j = 1; j < 3; j++) heap.push(part('6141', rnd() > 0.5 ? a : b, i, j, 1, { plate: 1 }));
-    ops.push(G('fruit table ' + (t + 1), x, z, heap)); mark(x, z, 5, 4);
+    if (big === '6141') { for (let i = 0; i < 5; i++) for (let j = 0; j < 4; j++) heap.push(part('6141', rnd() > 0.5 ? c1 : c2, i, j, 1)); for (let i = 1; i < 4; i++) for (let j = 1; j < 3; j++) heap.push(part('6141', rnd() > 0.5 ? c1 : c2, i, j, 1, { plate: 1 })); }
+    else if (big === '33051' || big === '5822') for (let j = 0; j < 4; j++) { heap.push(part(big, c1, 0, j, 1, { rot: rnd() > 0.5 ? 0 : 2 }), part(big, c1, 2, j, 1, { rot: rnd() > 0.5 ? 0 : 2 }), part(small, c2, 4, j, 1)); }
+    else for (let i = 0; i < 5; i++) for (let j = 0; j < 4; j++) heap.push(part(big, c1, i, j, 1));
+    ops.push(G(name + ' table', x, z, heap)); mark(x, z, 5, 4);
   });
   // the berry case: a low white refrigerated case, punnets of clear plates heaped with round tiles: blackberries west, blueberries, raspberries
   const berries = [box(0, 0, 14, 4, 1, WHITE)], BERRY = [0, 0, 272, 272, 4, 4, 0];
   for (let i = 0; i < 7; i++) for (const j of [0, 2]) { berries.push(part('3022', GLASS, i * 2, j, 1)); for (const [a, b] of [[0, 0], [1, 0], [0, 1], [1, 1]]) berries.push(part('98138', BERRY[i], i * 2 + a, j + b, 1, { plate: 1 })); }
   ops.push(G('berry case', 8, 66, berries)); mark(8, 66, 14, 4);
   // ── the meat counter in the back west corner: a glass-fronted case, meats behind, the butcher's back counter ──
-  const meat = [box(0, 0, 20, 2, 1, WHITE)]; for (let i = 0; i < 10; i++) meat.push(part('3004', GLASS, i * 2, 0, 1), part('3004', pick([4, 320, 5, 4, 26]), i * 2, 1, 1));
-  meat.push(slab(0, 0, 20, 2, GLASS, { y: 2 }));
+  const meat = [box(0, 0, 20, 3, 1, WHITE)]; for (let i = 0; i < 10; i++) meat.push(part('3004', GLASS, i * 2, 0, 1));   // the glass front, then the meat behind it: turkeys, drumsticks, sausages, fish
+  meat.push(part('33048c01', 84, 0, 1, 1, { rot: 1 }), ...[4, 5, 6, 7].map(x => part('33057', 84, x, 1, 1)), part('33078', 70, 8, 1, 1), part('33078', 320, 8, 2, 1), part('64648', 71, 11, 1, 1, { rot: 1 }), part('64648', 15, 11, 2, 1, { rot: 1 }),
+    part('33048c01', 84, 14, 1, 1, { rot: 1 }), part('33057', 84, 18, 1, 1), part('33057', 84, 19, 1, 1));
   ops.push(G('meat case', 3, 84, meat), G('butcher counter', 3, 91, [box(0, 0, 20, 2, 2, WHITE), slab(0, 0, 20, 2, DARK, { y: 2 }), part('3024', GREY, 4, 0, 2, { plate: 1 }), part('3024', GREY, 12, 1, 2, { plate: 1 })]));
-  mark(3, 84, 20, 2); mark(3, 91, 20, 2);
+  mark(3, 84, 20, 3); mark(3, 91, 20, 2);
   // ── the gondolas, their end caps, the aisle signs ──
-  const ENDS = ['snacks', 'drinks', 'cereal', 'canned', 'baking', 'pasta', 'household', 'snacks'];
+  const ENDS = ['snacks', 'buzzcap', 'cereal', 'canned', 'baking', 'pasta', 'household', 'buzzcap'];
   for (let k = 1; k <= 8; k++) {
     const [west, east] = FACES(k), over = {};
     if (k === 3) over.east = [{ from: 44, to: 51, row: 1, kind: 'bottle', cols: [330] }];            // (3) extra virgin olive oil: olive green bottles, the tall shelf, aisle 3
@@ -241,6 +295,10 @@ function program() {
   // ── dairy along the back wall, frozen along the east wall ──
   ops.push(...cooler('dairy', 28, 89, 44, true, 'dairy'), ...cooler('dairy east', 74, 89, 44, true, 'dairy'));
   ops.push(...cooler('frozen', 118, 30, 58, false, 'frozen', [{ from: 10, to: 16, row: 1, kind: 'box', cols: [25] }]));   // (5) southwest style hash browns: orange bags behind the sixth door, the middle shelf
+  // the ice cream chest: an open freezer in the back aisle by frozen, pizzas in their boxes, cones, scoops and lollies on top
+  const chest = [box(0, 0, 16, 4, 2, WHITE)]; for (let i = 0; i < 8; i += 2) for (const j of [0, 2]) chest.push(part('14769p07', 15, i, j, 2));
+  for (let i = 8; i < 16; i++) chest.push(part(i % 2 ? '33120' : '30222', pick([5, 26, 15, 14, 4, 322]), i, 0, 2), part(i % 2 ? '6254' : '30222', pick([5, 15, 14, 70]), i, 2, 2));
+  ops.push(G('ice cream chest', 96, 82, chest)); mark(96, 82, 16, 4);
   // ── outside: the pavement's lamps, the pylon, a cart corral ──
   ops.push(K.lamp(30, 3), K.lamp(94, 3)); mark(30, 3, 1, 1); mark(94, 3, 1, 1);
   ops.push(G('pylon', 104, 1, [box(0, 0, 2, 2, 10, GREY), box(8, 0, 2, 2, 10, GREY), box(0, 0, 10, 2, 3, RED, { y: 10 }), ...[2, 4, 6].map(x => [cut(x, 0, 1, 1, 11, 1), part('3005', YELLOW, x, 0, 11)]).flat()])); mark(104, 1, 2, 2); mark(112, 1, 2, 2);
@@ -276,9 +334,9 @@ function floor() {
 const plan = {
   size: [W, D], entrance: [62, 1], door: [62, 9],
   aisles: AISLES.map(a => ({ n: a.n, name: a.name, x0: GX(a.n) + 5, x1: GX(a.n + 1), z0: GZ, z1: GZ + GLEN, sign: [GX(a.n) + 8, GZ + 1], west: a.west, east: a.east })),
-  zones: [{ name: 'Produce', x0: 1, x1: 27, z0: 9, z1: 80 }, { name: 'Meat & Seafood', x0: 1, x1: 27, z0: 80, z1: 94 }, { name: 'Dairy', x0: 28, x1: 118, z0: 78, z1: 94 }, { name: 'Frozen', x0: 110, x1: 123, z0: 24, z1: 78 },
+  zones: [{ name: 'Bakery', x0: 28, x1: 46, z0: 14, z1: 24 }, { name: 'Ice Cream', x0: 94, x1: 114, z0: 80, z1: 88 }, { name: 'Produce', x0: 1, x1: 27, z0: 9, z1: 80 }, { name: 'Meat & Seafood', x0: 1, x1: 27, z0: 80, z1: 94 }, { name: 'Dairy', x0: 28, x1: 118, z0: 78, z1: 94 }, { name: 'Frozen', x0: 110, x1: 123, z0: 24, z1: 78 },
     { name: 'Checkouts', x0: 72, x1: 123, z0: 9, z1: 24 }, { name: 'Entrance', x0: 52, x1: 72, z0: 0, z1: 14 }, { name: 'Service Desk', x0: 28, x1: 52, z0: 9, z1: 24 }, { name: 'Bread', x0: 22, x1: 28, z0: 30, z1: 78 }, { name: 'Front of Store', x0: 28, x1: 110, z0: 24, z1: 32 }],
-  items: ITEMS, lanes: [0, 1, 2, 3, 4].map(i => ({ n: i + 1, belt: [78 + i * 8 + 1, 17], customer: [78 + i * 8 - 2, 18], clerk: [78 + i * 8 + 5, 17] })),
+  items: ITEMS, fixtures: FIX.map(([name, x0, z0, x1, z1]) => ({ name, x0, z0, x1, z1 })), signs: signs(), lanes: [0, 1, 2, 3, 4].map(i => ({ n: i + 1, belt: [78 + i * 8 + 1, 17], customer: [78 + i * 8 - 2, 18], clerk: [78 + i * 8 + 5, 17] })),
 };
 /** The plan in the built frame: the build is mirrored across its width (x to W - x), so the plan is too; an aisle's west and east
     faces trade places. Cells (items, the door) go to W - 1 - x, points and ranges to W - x. */
@@ -287,5 +345,6 @@ const mx = x => W - x, mc = x => W - 1 - x, mirrorPlan = P => ({
   aisles: P.aisles.map(a => ({ ...a, x0: mx(a.x1), x1: mx(a.x0), sign: [mx(a.sign[0]), a.sign[1]], west: a.east, east: a.west })),
   zones: P.zones.map(z => ({ ...z, x0: mx(z.x1), x1: mx(z.x0) })),
   items: P.items.map(it => ({ ...it, shelf: [mc(it.shelf[0]), it.shelf[1]], at: [mc(it.at[0]), it.at[1]] })),
+  fixtures: P.fixtures.map(f => ({ ...f, x0: mx(f.x1), x1: mx(f.x0) })), signs: P.signs.map(g => ({ ...g, x: mx(g.x), face: ({ e: 'w', w: 'e' })[g.face] || g.face })),
   lanes: P.lanes.map(L => ({ ...L, belt: [mx(L.belt[0]), L.belt[1]], customer: [mx(L.customer[0]), L.customer[1]], clerk: [mx(L.clerk[0]), L.clerk[1]] })) });
 module.exports = { name: 'supermarket', mirror: W, title: 'The Supermarket', description: 'The Springfield supermarket for The List, a store to shop in: a vestibule with carts, five checkout lanes, a service desk and flowers; produce down the left wall as you walk in (a stepped misted rack, a banana stand, ten fruit tables, a berry case); seven numbered aisles of stocked double-faced gondolas with end caps and number gantries; dairy along the back wall and frozen down the right wall behind glass doors; a meat counter; a tiled floor; the name over the door.', program, scale: 1, plan: mirrorPlan(plan) };

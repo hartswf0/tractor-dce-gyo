@@ -20,6 +20,22 @@ require(path.join(root, 'world/dsl.js')); const Dsl = global.Dsl || (global.wind
 const { DIMS, STUD, PLATE, BRICK } = Dsl;
 
 /* ── parts the models use beyond the DSL's own table: [x0, x1, z0, z1, height] in the part's LDraw frame ── */
+/* The minifig food and the printed parts the store is stocked with (foraged from the library): footprint and height in LDU, and
+   YOFF, where the part's origin stands over its base (a brick hangs from its top, so YOFF is its height; most food stands on its
+   origin, YOFF 0; a banana, a sausage lie across theirs). */
+const FOOD = {
+  '33125': [[-20, 10, -25, 25, 18], 0], '67338': [[-18, 10, -28, 28, 18], 0], '4342': [[-41, 41, -10, 10, 14], 0], '25386': [[-19, 19, -10, 10, 22], 0],
+  '33051': [[-24, 13, -13, 13, 43], 0], '5822': [[-19, 18, -13, 13, 46], 0], '5234': [[-12, 12, -12, 12, 34], 0], '22667': [[-17, 6, -23, 4, 11], 11],
+  '1411p01': [[-8, 8, -8, 8, 48], 0], '33078': [[-25, 25, -11, 9, 8], 4], '33048c01': [[-24, 24, -42, 44, 42], 0], '33057': [[-12, 12, -15, 34, 19], 0],
+  '93568p01': [[-20, 20, -20, 20, 23], 0], '93568p02': [[-20, 20, -20, 20, 23], 0], '35860': [[-39, 39, -39, 39, 51], 8], '79743': [[-14, 14, -14, 14, 20], 16], '33120': [[-11, 11, -11, 11, 52], 7],
+  '6254': [[-11, 11, -12, 10, 32], 8], '10170': [[-20, 20, -10, 10, 35], 19], '30222': [[-10, 10, -10, 10, 48], 8], '64648': [[-8, 8, -4, 57, 25], 11],
+  '3062bp02': [[-10, 10, -10, 10, 24]], '3622p01': [[-30, 30, -10, 10, 24]], '3005pf1': [[-10, 10, -10, 10, 24]], '3004p07': [[-20, 20, -10, 10, 24]],
+  '3068bpgc': [[-20, 20, -20, 20, 8]], '3068bpgb': [[-20, 20, -20, 20, 8]], '3068bpg5': [[-20, 20, -20, 20, 8]], '3068bpg6': [[-20, 20, -20, 20, 8]], '3068bpg8': [[-20, 20, -20, 20, 8]], '3068bpgd': [[-20, 20, -20, 20, 8]],
+  '3068bp8a': [[-20, 20, -20, 20, 8]], '3068bp86': [[-20, 20, -20, 20, 8]], '3068bpx7': [[-20, 20, -20, 20, 8]], '3068bp8f': [[-20, 20, -20, 20, 8]], '15535p04': [[-20, 20, -20, 20, 8]], '14769p07': [[-20, 20, -20, 20, 8]],
+  '3069bph1': [[-20, 20, -10, 10, 8]], '98138p2w': [[-10, 10, -10, 10, 8]], '98138p80': [[-10, 10, -10, 10, 8]], '98138p0a': [[-10, 10, -10, 10, 8]], '98138p0h': [[-10, 10, -10, 10, 8]],
+};
+const YOFF = { '33085': 7 };
+for (const [id, [d, y]] of Object.entries(FOOD)) { DIMS[id] = d; if (y != null) YOFF[id] = y; }
 Object.assign(DIMS, {
   '3069b': [-20, 20, -10, 10, 8], '87079': [-40, 40, -20, 20, 8], '3070b': [-10, 10, -10, 10, 8], '3068b': [-20, 20, -20, 20, 8],
   '3036': [-60, 60, -80, 80, 8], '3035': [-40, 40, -60, 60, 8], '3034': [-80, 80, -20, 20, 8], '3795': [-60, 60, -20, 20, 8], '3021': [-30, 30, -20, 20, 8], '3811': [-160, 160, -160, 160, 8], '3030': [-100, 100, -40, 40, 8],
@@ -36,11 +52,11 @@ Object.assign(DIMS, {
   '6541': [-10, 10, -10, 10, 24], '3005': [-10, 10, -10, 10, 24], '3004': [-20, 20, -10, 10, 24], '3003': [-20, 20, -20, 20, 24], '3001': [-40, 40, -20, 20, 24], '3002': [-30, 30, -20, 20, 24],
   '3008': [-80, 80, -10, 10, 24], '3009': [-60, 60, -10, 10, 24], '3020': [-40, 40, -20, 20, 8], '3022': [-20, 20, -20, 20, 8], '3023': [-20, 20, -10, 10, 8], '3024': [-10, 10, -10, 10, 8],
   '3455': [-60, 60, -10, 10, 24], '60592': [-20, 20, -10, 10, 48], '60623': [-4, 67, -7, 7, 137], '3823': [-40, 40, -30, 20, 48], '3626b': [-10, 10, -10, 10, 24],
-  '48288': [-160, 160, -80, 80, 8], '1751': [-40, 40, -40, 40, 8], '95228': [-10, 10, -10, 10, 48], '33085': [-10, 10, -10, 10, 7], '98138': [-10, 10, -10, 10, 8], '6141': [-10, 10, -10, 10, 8],   /* the store: big floor tiles, a bottle, a banana (its footprint one cell: a bunch lies across its neighbours), round tiles and plates for fruit */
+  '48288': [-160, 160, -80, 80, 8], '1751': [-40, 40, -40, 40, 8], '95228': [-10, 10, -10, 10, 48], '33085': [-10, 10, -10, 10, 14], '98138': [-10, 10, -10, 10, 8], '6141': [-10, 10, -10, 10, 8],   /* the store: big floor tiles, a bottle, a banana (its footprint one cell: a bunch lies across its neighbours), round tiles and plates for fruit */
   '3009': [-60, 60, -10, 10, 24], '3010': [-40, 40, -10, 10, 24], '3245c': [-20, 20, -10, 10, 48], '4070': [-10, 10, -10, 10, 24], '3899': [-8, 8, -8, 8, 24], '3957': [-10, 10, -10, 10, 24],
 });
 /** What a part offers on top and accepts underneath, in cells of its footprint at rotation 0: 'all', 'none', or 'back' (the stud row of a slope: the max-z row at rotation 0, the way the DSL's roof lays them). */
-const TOP = { '48288': 'none', '1751': 'none', '33085': 'none', '98138': 'none', '3068b': 'none', '3069b': 'none', '3070b': 'none', '87079': 'none', '2412b': 'none', '3039': 'back', '3040b': 'back', '3298': 'back', '3747b': 'back', '3037': 'none', '3045': 'corner', '3044': 'corner', '4589': 'none', '3942': 'none', '85959': 'none', '4085': 'none', '2921': 'none', '3676': 'back', '3823': 'none' };
+const TOP = { ...Object.fromEntries(Object.keys(FOOD).filter(k => !/^(3062bp|3622p|3005p|3004p)/.test(k)).map(k => [k, 'none'])), '48288': 'none', '1751': 'none', '33085': 'none', '98138': 'none', '3068b': 'none', '3069b': 'none', '3070b': 'none', '87079': 'none', '2412b': 'none', '3039': 'back', '3040b': 'back', '3298': 'back', '3747b': 'back', '3037': 'none', '3045': 'corner', '3044': 'corner', '4589': 'none', '3942': 'none', '85959': 'none', '4085': 'none', '2921': 'none', '3676': 'back', '3823': 'none' };
 const BOTTOM = { '24201': 'back', '3665': 'back', '3660': 'back', '3676': 'back' };
 const NAMES = { '3001': 'brick 2×4', '3002': 'brick 2×3', '3003': 'brick 2×2', '3004': 'brick 1×2', '3005': 'brick 1×1', '3008': 'brick 1×8', '3009': 'brick 1×6', '3010': 'brick 1×4', '3006': 'brick 2×10', '3007': 'brick 2×8',
   '3020': 'plate 2×4', '3021': 'plate 2×3', '3022': 'plate 2×2', '3023': 'plate 1×2', '3024': 'plate 1×1', '3031': 'plate 4×4', '3032': 'plate 4×6', '3034': 'plate 2×8', '3035': 'plate 4×8', '3036': 'plate 6×8', '3710': 'plate 1×4', '3795': 'plate 2×6', '3958': 'plate 6×6', '3811': 'baseplate 32×32', '3030': 'plate 4×10',
@@ -118,7 +134,7 @@ function inventory(P) {
 const r4 = v => (Math.round(v * 1000) / 1000).toString();
 const ROT = [[1, 0, 0, 0, 1, 0, 0, 0, 1], [0, 0, 1, 0, 1, 0, -1, 0, 0], [-1, 0, 0, 0, 1, 0, 0, 0, -1], [0, 0, -1, 0, 1, 0, 1, 0, 0]];
 /* the DSL's own frame: the world rotated about x by π, (x, y, z) → (x, −y, −z), a turn about y flipping its sense (world/dsl.js toMPD) */
-function pieceLine(p) { const b = Dsl.box(p.part, p.rot), h = DIMS[p.part] ? DIMS[p.part][4] : 24; return `1 ${p.col} ${r4(p.x * STUD - b[0])} ${r4(-(p.y * PLATE + h))} ${r4(-(p.z * STUD - b[2]))} ${ROT[(4 - (p.rot & 3)) & 3].join(' ')} parts/${p.part}.dat`; }
+function pieceLine(p) { const b = Dsl.box(p.part, p.rot), h = YOFF[p.part] != null ? YOFF[p.part] : DIMS[p.part] ? DIMS[p.part][4] : 24; return `1 ${p.col} ${r4(p.x * STUD - b[0])} ${r4(-(p.y * PLATE + h))} ${r4(-(p.z * STUD - b[2]))} ${ROT[(4 - (p.rot & 3)) & 3].join(' ')} parts/${p.part}.dat`; }
 function toMPD(model, P, S, sheet, inv) {
   const L = [`0 FILE ${model.name}.mpd`, `0 ${model.title}`, '0 Name: ' + model.name + '.mpd', '0 Author: word to world, tools/model.js', '0 !LDRAW_ORG Unofficial_Model', '0 !LICENSE Redistributable under CCAL version 2.0 : see CAreadme.txt', '',
     `0 // ${model.description}`, `0 // ${sheet.pieces} pieces, ${sheet.steps} steps, ${sheet.pages} pages, ${sheet.joints} stud joints, ${sheet.weak} weak, ${sheet.unsupported} unsupported`,

@@ -569,7 +569,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
       const g = await Donors.build(d.set, { yaw: headingOf(d.heading || 0), scale: d.scale }); if (!F.scene || F.scene.donorsDropped) { g.traverse(o => { if (o.isMesh) o.geometry.dispose(); }); return null; }
       g.position.set(x, groundH(x, z) + (d.y || 0) * M, z); W.scene.add(g); g.updateMatrixWorld(true); const box = new THREE.Box3().setFromObject(g);
       const rec = { name: d.name || d.set, set: d.set, group: g, box, x, z, y0: g.position.y, h: box.max.y - g.position.y, r: Math.max(box.max.x - box.min.x, box.max.z - box.min.z) / 2, heading: d.heading || 0, scale: d.scale || (Donors.DONORS[d.set] || {}).scale || 2.5, lift: d.y || 0 };
-      if (window.Solids && (rec.scale === 1) && !d.ghost) { try { const j = await (await fetch('./play/models/' + encodeURIComponent(d.set) + '.json')).json(); rec.solid = Solids.fromModel(j, { x, z, heading: d.heading || 0, M }); rec.plan = j.plan || null; (W.solids = W.solids || []).push(rec.solid); } catch (e) { F.log.push('solid ' + d.set + ': ' + (e.message || e)); } }   /* a model laid whole is solid: its walls, shelves and counters stop a figure, the player and a cart */
+      if (window.Solids && (rec.scale === 1) && !d.ghost) { try { const j = await (await fetch('./play/models/' + encodeURIComponent(d.set) + '.json')).json(); rec.solid = Solids.fromModel(j, { x, z, heading: d.heading || 0, M }); rec.plan = j.plan || null; (W.solids = W.solids || []).push(rec.solid); if (window.Signs && rec.plan && rec.plan.signs) rec.signs = Signs.lay(W.scene, rec, M); } catch (e) { F.log.push('solid ' + d.set + ': ' + (e.message || e)); } }   /* a model laid whole is solid: its walls, shelves and counters stop a figure, the player and a cart */
       F.donors.set(rec.name, rec); return rec;
     }
     /** The scene's actors and builds stand; the planet, the character and the ground it asked for are set first. */
@@ -601,7 +601,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
       if (sc && sc.set && keepSet) F.kept = { groundWas: sc.groundWas }; for (const a of F.actors.values()) { if (a.it) W.props.remove(a.it.id, true); if (a.npcs && W.crowd) for (const n of a.npcs) W.crowd.remove(n); if (a.perf && a.perf.face && window.Face) Face.detach(a.perf.face); if (a.rig) dropRig(a.rig); if (a.riderRig) dropRig(a.riderRig); }
       for (const L of F.loose) dropRig(L.rig); F.loose = []; for (const L of F.lights2) W.scene.remove(L.L); F.lights2 = []; F.caption = null; showCaption(null); F.deflect = null; F.flip = 0; F.proneUntil = 0;
       for (const b of F.builds.values()) for (const id of b.ids) W.build.take(id, true);
-      if (F.rehearse.part) F.givePart(); F.rehearse.on = false; if (sc) sc.donorsDropped = true; for (const d of F.donors.values()) { W.scene.remove(d.group); if (d.solid && W.solids) W.solids = W.solids.filter(q => q !== d.solid); } F.donors.clear(); F.marks.clear();
+      if (F.rehearse.part) F.givePart(); F.rehearse.on = false; if (sc) sc.donorsDropped = true; for (const d of F.donors.values()) { W.scene.remove(d.group); if (d.solid && W.solids) W.solids = W.solids.filter(q => q !== d.solid); if (d.signs && window.Signs) Signs.drop(d.signs); } F.donors.clear(); F.marks.clear();
       if (W.props) for (const it of [...W.props.items.values()]) if (it.src && it.src.film) W.props.remove(it.id, true);   // whatever a film laid and lost track of
       if (W.crowd) for (const n of W.crowd.npcs.slice()) if (n.film) W.crowd.remove(n);
       for (const m of F.meshes) { W.scene.remove(m); if (m.geometry) m.geometry.dispose(); } F.meshes = []; F.actors.clear(); F.builds.clear(); F.cable = null; F.hang = null; F.prone = false; F.rout = null; F.strikes = null; F.pending = [];
@@ -920,37 +920,41 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
       ctx.textAlign = 'right'; ctx.fillText(`${(t * 24 | 0).toString().padStart(4, '0')}  SCAN`, w * 0.96, h * 0.05);
       ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.font = `${Math.round(h * 0.055)}px Helvetica, Arial, sans-serif`; ctx.fillStyle = '#dff6ff'; ctx.fillText(String(s.title).split('\n')[0], w / 2, h * 0.93, w * 0.9); ctx.restore();
     }
-    /** A shopping list in the corner of a live shot: a paper note, the first line its heading, then the items; an item written
+    /** A shopping list in the corner of a live shot: a small paper note, the first line its heading, then the items; an item written
         '~milk' is struck through (got), '+donuts' is added in another hand, '?eggs' is written and then marked with a query (the world
-        resisted). It comes in over a third of a second. */
-    function drawList(ctx, w, h, s, t) {
-      const lines = String(s.title).split('\n'), fs = Math.round(h * 0.042), lh = fs * 1.35, pad = fs * 0.7, nw = w * 0.2, nh = pad * 2 + lh * lines.length, x0 = w * 0.035, y0 = h * 0.06, a = Math.min(1, (t || 0) / 0.35);
-      ctx.save(); ctx.globalAlpha = a; ctx.translate(x0 + nw / 2, y0 + nh / 2); ctx.rotate(-0.035); ctx.translate(-nw / 2, -nh / 2);
-      ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(fs * 0.18, fs * 0.22, nw, nh); ctx.fillStyle = '#fbf5df'; ctx.fillRect(0, 0, nw, nh);
-      ctx.strokeStyle = 'rgba(200,70,70,0.55)'; ctx.lineWidth = Math.max(1, h / 540); ctx.beginPath(); ctx.moveTo(pad * 0.9, 0); ctx.lineTo(pad * 0.9, nh); ctx.stroke();
-      ctx.strokeStyle = 'rgba(90,130,190,0.35)'; for (let i = 1; i <= lines.length; i++) { const y = pad + lh * i - fs * 0.15; ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(nw, y); ctx.stroke(); }
+        resisted). It comes in over a third of a second. The note is kept small (a sixth of the frame) so the shot stays the shot. */
+    function note(ctx, w, h, lines, t, o) {
+      const fs = Math.round(h * 0.026), lh = fs * 1.32, pad = fs * 0.6, nw = w * 0.165, nh = pad * 2 + lh * lines.length, x0 = o.right ? w * (1 - 0.025) - nw : w * 0.025, y0 = h * 0.04, a = Math.min(1, (t || 0) / 0.35);
+      ctx.save(); ctx.globalAlpha = a * 0.96; ctx.translate(x0 + nw / 2, y0 + nh / 2); ctx.rotate(o.right ? 0.025 : -0.03); ctx.translate(-nw / 2, -nh / 2);
+      ctx.fillStyle = 'rgba(0,0,0,0.22)'; ctx.fillRect(fs * 0.15, fs * 0.18, nw, nh); ctx.fillStyle = o.paper; ctx.fillRect(0, 0, nw, nh);
+      if (o.right) { ctx.fillStyle = '#2a7a2a'; ctx.fillRect(0, 0, nw, fs * 0.22); } else { ctx.strokeStyle = 'rgba(200,70,70,0.55)'; ctx.lineWidth = Math.max(1, h / 700); ctx.beginPath(); ctx.moveTo(pad * 0.8, 0); ctx.lineTo(pad * 0.8, nh); ctx.stroke(); }
       ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left';
       lines.forEach((raw, i) => {
-        const mark = raw[0], text = /^[~+?]/.test(raw) ? raw.slice(1) : raw, x = pad * 1.4, y = pad + lh * (i + 1) - fs * 0.3;
-        ctx.font = `${i === 0 ? '700 ' : 'italic '}${fs}px Georgia, "Times New Roman", serif`; ctx.fillStyle = mark === '+' ? '#b0341e' : '#1d2a57'; ctx.fillText(text, x, y, nw - x - pad * 0.4);
-        const tw = Math.min(ctx.measureText(text).width, nw - x - pad * 0.4);
-        if (mark === '~') { ctx.strokeStyle = '#1d2a57'; ctx.lineWidth = Math.max(1.5, h / 300); ctx.beginPath(); ctx.moveTo(x - fs * 0.15, y - fs * 0.32); ctx.lineTo(x + tw + fs * 0.15, y - fs * 0.38); ctx.stroke(); }
-        if (mark === '?') { ctx.fillStyle = '#b0341e'; ctx.font = `700 ${fs}px Georgia, serif`; ctx.fillText('?', x + tw + fs * 0.35, y); }
+        const mark = /^[~+?]/.test(raw) ? raw[0] : '', text = mark ? raw.slice(1) : raw, x = pad * (o.right ? 1 : 1.3), y = pad + lh * (i + 1) - fs * 0.28, room = nw - x - pad * 0.9;
+        ctx.font = i === 0 ? `700 ${fs}px ${o.head}` : `${o.body} ${fs}px ${o.family}`; ctx.fillStyle = mark === '+' || mark === '?' && o.right ? '#b0341e' : o.ink; ctx.fillText(text, x, y, room);
+        const tw = Math.min(ctx.measureText(text).width, room);
+        if (mark === '~') { ctx.strokeStyle = o.ink; ctx.lineWidth = Math.max(1.2, h / 420); ctx.beginPath(); ctx.moveTo(x - fs * 0.1, y - fs * 0.3); ctx.lineTo(x + tw + fs * 0.1, y - fs * 0.36); ctx.stroke(); }
+        if (mark === '?') { ctx.fillStyle = '#b0341e'; ctx.font = `700 ${fs}px Georgia, serif`; ctx.fillText('?', x + tw + fs * 0.25, y); }
       });
       ctx.restore();
-      if (s.record) drawRecord(ctx, w, h, s, t);
     }
-    /** The detective's record in the other corner (a shot's RECORD, a list of lines): a typed card, what he saw put in the cart;
-        a line written '?plain flour' is his guess where a shelf hid the taking, queried in red. */
-    function drawRecord(ctx, w, h, s, t) {
-      const lines = ["NED'S RECORD", ...(s.record.length ? s.record : ['(nothing yet)'])], fs = Math.round(h * 0.034), lh = fs * 1.4, pad = fs * 0.8, nw = w * 0.21, nh = pad * 2 + lh * lines.length, x0 = w * (1 - 0.035) - nw, y0 = h * 0.06, a = Math.min(1, (t || 0) / 0.35);
-      ctx.save(); ctx.globalAlpha = a; ctx.translate(x0 + nw / 2, y0 + nh / 2); ctx.rotate(0.03); ctx.translate(-nw / 2, -nh / 2);
-      ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(fs * 0.18, fs * 0.22, nw, nh); ctx.fillStyle = '#f1eee4'; ctx.fillRect(0, 0, nw, nh);
-      ctx.fillStyle = '#2a7a2a'; ctx.fillRect(0, 0, nw, fs * 0.28);
-      ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left';
-      lines.forEach((raw, i) => { const q = raw[0] === '?', text = q ? raw.slice(1) : raw, x = pad, y = pad + lh * (i + 1) - fs * 0.3;
-        ctx.font = `${i === 0 ? '700 ' : ''}${fs}px "Courier New", ui-monospace, monospace`; ctx.fillStyle = q ? '#b0341e' : '#22303a'; ctx.fillText(text, x, y, nw - pad * 2.2);
-        if (q) { const tw = Math.min(ctx.measureText(text).width, nw - pad * 2.2); ctx.font = `700 ${fs}px "Courier New", monospace`; ctx.fillText('?', x + tw + fs * 0.3, y); } });
+    function drawList(ctx, w, h, s, t) {
+      note(ctx, w, h, String(s.title).split('\n'), t, { paper: '#fbf5df', ink: '#1d2a57', head: 'Georgia, "Times New Roman", serif', family: 'Georgia, "Times New Roman", serif', body: 'italic' });
+      if (s.record) note(ctx, w, h, ["NED'S RECORD", ...(s.record.length ? s.record : ['(nothing yet)'])], t, { right: true, paper: '#f1eee4', ink: '#22303a', head: '"Courier New", ui-monospace, monospace', family: '"Courier New", ui-monospace, monospace', body: '' });
+      for (const f of s.fit || []) if (t >= f.at && t < f.at + f.for) drawFit(ctx, w, h, f, t - f.at);
+    }
+    /** Direction of fit, drawn at the beat it happens (Anscombe, Intention §32): the list stays and the basket is changed to fit it
+        (dir 'list': words to world), or the basket stays and the record is changed to fit it (dir 'record': world to words). */
+    function drawFit(ctx, w, h, f, tt) {
+      const a = Math.min(1, tt / 0.3, (f.for - tt) / 0.3), list = f.dir === 'list', fs = Math.round(h * 0.03), bw = w * 0.15, bh = fs * 2.1, gap = w * 0.09, cx = w / 2, y = h * 0.12;
+      const left = list ? ['THE LIST', f.a || 'stays as written'] : ['THE BASKET', f.a || 'what was bought'], right = list ? ['THE BASKET', f.b || 'is changed'] : ['THE RECORD', f.b || 'is changed'];
+      ctx.save(); ctx.globalAlpha = Math.max(0, a); ctx.fillStyle = 'rgba(12,16,34,0.78)'; const W2 = bw * 2 + gap + fs * 2, H2 = bh + fs * 3.6; ctx.fillRect(cx - W2 / 2, y - fs * 0.8, W2, H2);
+      const box = (x, lab, col) => { ctx.fillStyle = col; ctx.fillRect(x, y, bw, bh); ctx.fillStyle = '#111'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.font = `800 ${fs}px Helvetica, Arial, sans-serif`; ctx.fillText(lab[0], x + bw / 2, y + bh * 0.36, bw * 0.92); ctx.font = `italic ${Math.round(fs * 0.72)}px Georgia, serif`; ctx.fillText(lab[1], x + bw / 2, y + bh * 0.74, bw * 0.92); };
+      const lx = cx - gap / 2 - bw, rx = cx + gap / 2; box(lx, left, list ? '#fbf5df' : '#e8e2cf'); box(rx, right, list ? '#ffe23d' : '#bfe3b9');
+      const p = Math.min(1, tt / 0.8), ax0 = lx + bw + fs * 0.4, ax1 = ax0 + (rx - fs * 0.4 - ax0) * p, ay = y + bh / 2; ctx.strokeStyle = '#ffd21f'; ctx.lineWidth = fs * 0.22; ctx.beginPath(); ctx.moveTo(ax0, ay); ctx.lineTo(ax1, ay); ctx.stroke();
+      if (p >= 1) { ctx.fillStyle = '#ffd21f'; ctx.beginPath(); ctx.moveTo(ax1 + fs * 0.35, ay); ctx.lineTo(ax1 - fs * 0.35, ay - fs * 0.4); ctx.lineTo(ax1 - fs * 0.35, ay + fs * 0.4); ctx.fill(); }
+      ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.font = `600 ${Math.round(fs * 0.85)}px Helvetica, Arial, sans-serif`; ctx.fillText(f.say || (list ? 'the mistake is in the performance: change the basket' : 'the mistake is in the record: change the record'), cx, y + bh + fs * 0.95, W2 * 0.94);
+      ctx.fillStyle = '#9fb3ff'; ctx.font = `italic ${Math.round(fs * 0.7)}px Georgia, serif`; ctx.fillText(list ? 'world-to-word fit: the words say how the world should be' : 'word-to-world fit: the words say how the world is', cx, y + bh + fs * 2.1, W2 * 0.94);
       ctx.restore();
     }
     function drawTitle(ctx, w, h, s, t) {
@@ -1155,7 +1159,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
         const shot = { name: sh.name || `${plan.frame} on ${plan.on}`, keys: [{ pos: new THREE.Vector3(0, 4 * M, 0), tgt: new THREE.Vector3(0, 2 * M, -10 * M), fov: 50 }], sec: clamp(+sh.sec || F.sec, 0.5, 120), act, set, plan, follow: !!sh.follow, acts: actsOf(sh.acts), events: eventsOf(sh.events) };
         if (sh.title != null) { shot.title = sh.title; shot.style = sh.style || 'hud'; }
         if (Array.isArray(sh.pos) && Array.isArray(sh.tgt) && sh.pos.length === 3 && sh.tgt.length === 3) { shot.keys = [{ pos: new THREE.Vector3(sh.pos[0] * M, sh.pos[1] * M, sh.pos[2] * M), tgt: new THREE.Vector3(sh.tgt[0] * M, sh.tgt[1] * M, sh.tgt[2] * M), fov: clamp(+sh.lens || 45, 5, 120) }]; shot.plan = null; shot.keysRel = true; shot.readout = `camera at ${sh.pos.join(' ')} on ${sh.tgt.join(' ')}`; if (Array.isArray(sh.pos2) && sh.pos2.length === 3) shot.keys.push({ pos: new THREE.Vector3(sh.pos2[0] * M, sh.pos2[1] * M, sh.pos2[2] * M), tgt: new THREE.Vector3(...(Array.isArray(sh.tgt2) && sh.tgt2.length === 3 ? sh.tgt2 : sh.tgt).map(v => v * M)), fov: clamp(+(sh.lens2 || sh.lens) || 45, 5, 120) }); }   /* pos2 / tgt2 / lens2: a second key, so a hand camera moves over the shot */   /* a camera placed by hand, as word-to-world places one: no plan, the keys as given */
-        if (sh.record) shot.record = sh.record.slice(); if (sh.shift) shot.shift = sh.shift; if (sh.score !== undefined) shot.score = sh.score; if (sh.fade != null) shot.fade = +sh.fade; if (sh.lamp) shot.lamp = (sh.lamp && typeof sh.lamp === 'object') ? sh.lamp : sh.lamp === 'warm' ? 'warm' : true; if (sh.look) shot.look = sh.look; if (sh.roll != null) shot.roll = +sh.roll; if (sh.handheld != null) shot.handheld = +sh.handheld; if (sh.speed != null) shot.speed = clamp(+sh.speed, 0.05, 4); shots.push(shot);
+        if (sh.record) shot.record = sh.record.slice(); if (sh.fit) shot.fit = sh.fit.map(f => ({ ...f })); if (sh.shift) shot.shift = sh.shift; if (sh.score !== undefined) shot.score = sh.score; if (sh.fade != null) shot.fade = +sh.fade; if (sh.lamp) shot.lamp = (sh.lamp && typeof sh.lamp === 'object') ? sh.lamp : sh.lamp === 'warm' ? 'warm' : true; if (sh.look) shot.look = sh.look; if (sh.roll != null) shot.roll = +sh.roll; if (sh.handheld != null) shot.handheld = +sh.handheld; if (sh.speed != null) shot.speed = clamp(+sh.speed, 0.05, 4); shots.push(shot);
       }
       if (!append) { F.teardown(!!(prog && prog.set)); F.shots = []; } F.shots.push(...shots); F.sel = F.shots.length ? (append ? F.shots.length - shots.length : 0) : -1; F.name = prog && prog.name || F.name; if (prog && prog.story) F.story = prog.story; else if (!append) F.story = null;
       if (prog && (prog.actors || prog.builds || prog.set)) { F.scene = { name: prog.name, donors: (prog.donors || []).map(d => ({ ...d })), marks: prog.marks || null, marksHidden: !!prog.marksHidden, part: prog.part || null, actors: (prog.actors || []).map(a => ({ ...a, r: a.r ? a.r * M : undefined })), builds: (prog.builds || []).map(b => ({ ...b })), set: prog.set ? { ...prog.set, corridor: prog.set.corridor ? prog.set.corridor.map(p => p.slice()) : null, abs: false } : null, routes: prog.routes ? Object.fromEntries(Object.entries(prog.routes).map(([k, v]) => [k, v.map(p => p.slice())])) : null, world: prog.world || null, as: prog.as || null, ground: prog.ground || null, weather: prog.weather || null, time: prog.time || null, me: prog.me || null, abs: false }; F.setup(); }
