@@ -123,10 +123,18 @@
   addEventListener('resize', resize);
   const loader = new THREE.LDrawLoader(); loader.setPath('ldraw/'); loader.setFileMap({}); loader.smoothNormals = true;
   const colours = fetch('ldraw/LDConfig.ldr').then(r => r.text()).then(t => new Promise(res => { try { loader.parse(t, '', res); } catch (e) { res(); } })).catch(() => {});   // the loader learns its colours by reading LDConfig as a model
+  /* part packs: each part with all its sub-files, one request a part, straight into the loaders' caches (the loader looks there
+     before it guesses folder after folder over the network) */
+  const packed = new Set();
+  async function withPacks(text) {
+    const need = new Set(); for (const l of text.split('\n')) { const t = l.trim().split(/\s+/); if (t[0] === '1' && t.length >= 15) { const r = t.slice(14).join(' ').toLowerCase(); if (r.endsWith('.dat') && !packed.has(r)) need.add(r.replace(/\.dat$/, '')); } }
+    await Promise.all([...need].map(async id => { try { const pk = await (await fetch('odyssey/packs/' + id.replace(/\//g, '_') + '.json')).json(); Object.assign(loader.subobjectCache, pk); try { Object.assign(ploader.subobjectCache, pk); } catch (e) { } packed.add(id + '.dat'); } catch (e) { } }));
+  }
   let current = null, token = 0;
   async function show3d(id) {
     const my = ++token; $('#veil').textContent = 'Loading parts'; if (current) { scene.remove(current); if (current.userData.baked) scene.remove(current.userData.baked); current = null; }
     await colours; let text; try { text = await (await fetch('odyssey/cards/' + id + '.mpd')).text(); } catch (e) { $('#veil').textContent = 'No build file'; return; }
+    await withPacks(text);
     const model = await new Promise(res => { const t = setTimeout(() => res(null), 90000); try { loader.parse(text, '', m => { clearTimeout(t); res(m); }); } catch (e) { console.error('parse', e); res(null); } });
     if (my !== token) return; if (!model) { $('#veil').textContent = 'The build could not be parsed'; return; }
     model.rotation.x = Math.PI; scene.add(model); current = model; resize();
@@ -144,6 +152,7 @@
     const my = ++token; $('#veil').textContent = 'Loading the set and cast'; if (current) { scene.remove(current); if (current.userData.baked) scene.remove(current.userData.baked); current = null; } PV = null;
     await pcolours; let data, text;
     try { data = await (await fetch('odyssey/previs/' + id + '.json')).json(); text = await (await fetch('odyssey/cards/' + id + '.mpd')).text(); } catch (e) { $('#veil').textContent = 'No previs for this card'; return null; }
+    await withPacks(text);
     const model = await new Promise(res => { const t = setTimeout(() => res(null), 120000); try { ploader.parse(text, '', m => { clearTimeout(t); res(m); }); } catch (e) { console.error('parse', e); res(null); } });
     if (my !== token || !model) { if (!model) $('#veil').textContent = 'The build could not be parsed'; return null; }
     model.rotation.x = Math.PI; scene.add(model); current = model; model.updateMatrixWorld(true); resize();
