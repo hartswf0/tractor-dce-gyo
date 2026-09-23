@@ -105,20 +105,74 @@ function fig(spec, name = 'figure') {
   if (spec.ghost != null) { put('2588', spec.ghost, L.T(0, -32, 0)); put(spec.face || '3626bp01', spec.ghostHead ?? 15, S.head); }
   else {
     put(pick('3815b', '3815'), spec.hips ?? legs, S.hips); put(pick('3816c', '3816b', '3816'), legs, S.legR); put(pick('3817c', '3817b', '3817'), legs, S.legL);
-    put(spec.torso || '973', top, S.torso); put('3819', spec.arms ?? top, S.armL); put('3818', spec.arms ?? top, S.armR);
-    put('3820', spec.hands ?? skin, S.handR); put('3820', spec.hands ?? skin, S.handL);
+    put(spec.torso || '973', top, S.torso);
+    for (const side of ['R', 'L']) { const ps = poseFor(side, spec[side]); put(side === 'R' ? '3818' : '3819', spec.arms ?? top, ps.arm); put('3820', spec.hands ?? skin, ps.hand); if (spec[side]) put(spec[side][0], spec[side][1], ps.item); }
     put(spec.face || '3626bp01', skin, S.head);
   }
   if (spec.hat) put(spec.hat[0], spec.hat[1], S.head);
   if (spec.beard) put(spec.beard[0], spec.beard[1], S.torso);   // a beard is neckwear: it hangs from the neck, the torso's origin
   if (spec.cape != null) put('4524', spec.cape, S.cape);
   if (spec.back) put(spec.back[0], spec.back[1], L.mul(S.torso, L.T(0, 8, 12)));
-  /* a pole (a staff, a spear, an oar: long along its own y, its origin at the grip) stands upright in the fist; anything else takes the foraged grip */
-  const hold = (item, hand) => { const b = L.info(item[0]).box, pole = b && (b[4] - b[1]) > 3 * Math.max(b[3] - b[0], b[5] - b[2]);
-    put(item[0], item[1], pole ? L.T(hand[0], Math.min(hand[1], 40 - b[4]), hand[2]) : L.mul(hand, gripFor(item[0]))); };   // a pole's foot rests at the figure's feet (y 40), never below
-  if (spec.R) hold(spec.R, S.handR);
-  if (spec.L) hold(spec.L, S.handL);
-  return make(name, 'figure', { figure: [spec.torso || '973', spec.face || '3626bp01', spec.hat && spec.hat[0], spec.R && spec.R[0], spec.L && spec.L[0]].filter(Boolean).join(' ') }, rows);
+
+  /* clipping: a held item's box against the body's parts (the holding hand and arm aside), a stud's fifth of slack */
+  let clip = 0; const body = rows.filter(r => /^(3815|3816|3817|973|3626|2588)/.test(r.part)).map(r => L.worldBox(r)), held = rows.filter(r => spec.R && r.part === spec.R[0] || spec.L && r.part === spec.L[0]);
+  for (const h of held) { const a = L.worldBox(h); if (!a || L.info(h.part).box && SHIELD.test(h.part)) continue; for (const b of body) if (b && a[0] < b[3] - 4 && b[0] < a[3] - 4 && a[1] < b[4] - 4 && b[1] < a[4] - 4 && a[2] < b[5] - 4 && b[2] < a[5] - 4) { clip++; break; } }
+  return make(name, 'figure', { clip, figure: [spec.torso || '973', spec.face || '3626bp01', spec.hat && spec.hat[0], spec.R && spec.R[0], spec.L && spec.L[0]].filter(Boolean).join(' ') }, rows);
+}
+
+/* ── holding: the grip, measured ──
+   The hand's grip is a C whose centre is (0, -0.8229, -9.8948) in the hand's frame (the part's own note) and whose axis is the
+   hand's y tipped 14.5 degrees toward z: (0, 0.97, 0.25). Every donor figure that holds a sword, a whip, a bow or a spear has
+   its item there, the item's y along that axis (tools/forage/build.js grips() measures it). An item is mounted on that axis,
+   slid along it only as far as it still passes through the fist. A long pole is held upright: the arm swings up at the
+   shoulder and the hand turns on its wrist peg (the hand's z) until the grip axis is vertical, and the pole slides down to
+   rest a stud above the ground. A shield takes the grip a donor's figure shows for a shield. */
+const GRIP = L.mul(L.T(0, -0.8229, -9.8948), [0, 0, 0, 1, 0, 0, 0, 0.9684, -0.2493, 0, 0.2493, 0.9684]);
+const RX = a => { const c = Math.cos(a), s = Math.sin(a); return [0, 0, 0, 1, 0, 0, 0, c, -s, 0, s, c]; };
+const RZ = a => { const c = Math.cos(a), s = Math.sin(a); return [0, 0, 0, c, -s, 0, s, c, 0, 0, 0, 1]; };
+const axisOf = M => [M[4], M[7], M[10]];   // where a frame's y points
+const poseCache = {};
+function uprightPose(side, spread = 0) {
+  const key = side + spread; if (poseCache[key]) return poseCache[key];
+  const arm0 = side === 'R' ? SKELETON.armR : SKELETON.armL, hand0 = side === 'R' ? SKELETON.handR : SKELETON.handL, rel = L.mul(L.inv(arm0), hand0);
+  const out = RZ((side === 'R' ? 1 : -1) * spread);   // the arm swung out from the body at the shoulder
+  let best = null;
+  for (let a = 0; a >= -1.75; a -= 0.035) for (let f = -Math.PI; f < Math.PI; f += 0.035) {
+    const arm = L.mul(L.mul(arm0, out), RX(a)), hand = L.mul(L.mul(arm, rel), RZ(f)), g = axisOf(L.mul(hand, GRIP));
+    const err = Math.acos(Math.max(-1, Math.min(1, g[1]))) + 0.15 * Math.abs(a);   // grip axis straight down the LDraw y (upright), the arm raised no more than it must be
+    if (!best || err < best.err) best = { err, arm, hand };
+  }
+  return (poseCache[key] = best);
+}
+/* the body a held thing must not pass through: hips, legs, torso, head at the skeleton */
+let BODY = null;
+const bodyBoxes = () => BODY || (BODY = [['3815b', SKELETON.hips], ['3816c', SKELETON.legR], ['3817c', SKELETON.legL], ['973', SKELETON.torso], ['3626b', SKELETON.head]].filter(([id]) => has(id)).map(([id, m]) => L.worldBox({ part: id, m }))
+  .concat([(() => { const h = L.worldBox({ part: '3626b', m: SKELETON.head }); return [h[0] - 2, h[1] - 6, h[2] - 40, h[3] + 2, h[4], h[5]]; })()]));   // and the air before the face, where a held cup would hide it
+const touches = (part, M) => { const a = L.worldBox({ part, m: M }); return !!a && bodyBoxes().some(b => a[0] < b[3] - 4 && b[0] < a[3] - 4 && a[1] < b[4] - 4 && b[1] < a[4] - 4 && a[2] < b[5] - 4 && b[2] < a[5] - 4); };
+const SHIELD = /^(3846|3876|2586|92747|91884|75902|59231|2586p\w+|3846p\w+)$/;
+/* items held upright, and where on them the fist closes (the item's own frame): a goblet by its stem, a cup by its handle, a bolt or a wand by its end */
+const HOLD = { '2343': { at: [0, 30, 0] }, '6269': { at: [0, 30, 0] }, '3899': { at: [0, 12, 17] }, '27256': { at: [0, -6, 0] }, '36752a': { at: [0, 0, 0] }, '19119c01': { at: [0, 4, 0] }, '95049': {}, '95050': {}, '3847': { at: [0, 0, 0] }, '98370': { at: [0, 0, 0] }, '43887': { at: [0, 0, 0] }, '2530': { at: [0, 0, 0] }, '4499': { at: [0, 0, 0] } };   // a sword held raised, blade up
+function poseFor(side, item) {
+  const arm0 = side === 'R' ? SKELETON.armR : SKELETON.armL, hand0 = side === 'R' ? SKELETON.handR : SKELETON.handL;
+  if (!item || !has(item[0])) return { arm: arm0, hand: hand0 };
+  const id = item[0], b = L.info(id).box, len = b ? b[4] - b[1] : 0, pole = b && len > 64 && len > 3 * Math.max(b[3] - b[0], b[5] - b[2]);
+  if (SHIELD.test(id) || !/^Minifig (Sword|Spear|Lance|Staff|Tool|Torch|Harpoon|Whip|Bow|Oar|Weapon|Crossbow|Pitchfork|Broom|Shovel|Axe|Scythe)|^Antenna|^Bar |^Plant Flower Stem|^Minifig Lightning|^Minifig Goblet|^Minifig Cup/i.test(L.describe(id) || '')) {
+    const g = grips()[id] || grips()['2586p30'] || { rel: GRIP }; return { arm: arm0, hand: hand0, item: L.mul(hand0, SHIELD.test(id) ? g.rel : GRIP) };   // a shield on the wrist as a donor wears it; a readymade without a bar where the grip is
+  }
+  const hold = HOLD[id];
+  if (hold && hold.at) {   // an upright item held at a point: swing the arm out until it clears the body
+    const turns = [0, Math.PI / 2, -Math.PI / 2, Math.PI, Math.PI / 4, -Math.PI / 4, 3 * Math.PI / 4, -3 * Math.PI / 4];   // a bar turns freely in the fist: try the item round its own axis first
+    for (let spread = 0; spread <= 1.31; spread += 0.13) { const P = uprightPose(side, spread); if (P.err - 0.15 * 1.75 > 0.12 && P.err > 0.4) continue;   // only a pose that still holds it upright
+      for (const psi of turns) { const M = L.mul(L.mul(L.mul(P.hand, GRIP), L.RYa(psi)), L.T(-hold.at[0], -hold.at[1], -hold.at[2])); if (!touches(id, M)) return { arm: P.arm, hand: P.hand, item: M }; } }
+    const P = uprightPose(side, 0.6); return { arm: P.arm, hand: P.hand, item: L.mul(L.mul(P.hand, GRIP), L.T(-hold.at[0], -hold.at[1], -hold.at[2])) }; }
+  const P = pole || hold ? uprightPose(side) : { arm: arm0, hand: hand0 };
+  let M = L.mul(P.hand, GRIP);
+  /* slide along the axis: a pole down to a stud above the ground (the feet are at y 40), never so far the fist leaves it */
+  let slide = 0;
+  if (pole) { const ax = axisOf(M), wb = L.worldBox({ part: id, m: M }), want = 38 - wb[4]; slide = want / (ax[1] || 1); }
+  slide = Math.max(-(b[4] - 6), Math.min(-(b[1] + 6), slide));   // the grip point stays at least 6 LDU inside the item's ends
+  M = L.mul(M, L.T(0, slide, 0));
+  return { arm: P.arm, hand: P.hand, item: M };
 }
 
 /* ── readymades ── */

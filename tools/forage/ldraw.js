@@ -22,6 +22,7 @@ function mul(A, B) {   // A·B: B's frame placed in A's
 const apply = (M, x, y, z) => [M[0] + M[3] * x + M[4] * y + M[5] * z, M[1] + M[6] * x + M[7] * y + M[8] * z, M[2] + M[9] * x + M[10] * y + M[11] * z];
 const T = (x, y, z) => [x, y, z, 1, 0, 0, 0, 1, 0, 0, 0, 1];
 const RY = q => { const c = [1, 0, -1, 0][q & 3], s = [0, 1, 0, -1][q & 3]; return [0, 0, 0, c, 0, s, 0, 1, 0, -s, 0, c]; };   // a quarter turn about y
+const RYa = a => { const c = Math.cos(a), s = Math.sin(a); return [0, 0, 0, c, 0, s, 0, 1, 0, -s, 0, c]; };   // any turn about y
 function inv(M) {   // rigid inverse (rotation transposed); LDraw part matrices here are rotations, mirrors at most
   const [x, y, z, a, b, c, d, e, f, g, h, i] = M, R = [a, d, g, b, e, h, c, f, i];
   return [-(R[0] * x + R[1] * y + R[2] * z), -(R[3] * x + R[4] * y + R[5] * z), -(R[6] * x + R[7] * y + R[8] * z), ...R];
@@ -146,4 +147,4 @@ function audit(rows) {
   return { pieces: P.filter(p => !p.flex).length, joints, anchored: [...byStud].filter(k => !P[k].flex).length, held: held.length, floating, heldIdx: held, floor: mainFloor, flex };
 }
 
-module.exports = { ROOT, LIB, I12, mul, apply, T, RY, inv, fmt, lineOf, norm, fileFor, exists, isPrimitive, describe, info, readMPD, flatten, worldBox, bounds, audit };
+module.exports = { ROOT, LIB, I12, mul, apply, T, RY, RYa, inv, fmt, lineOf, norm, fileFor, exists, isPrimitive, describe, info, readMPD, flatten, worldBox, bounds, audit };

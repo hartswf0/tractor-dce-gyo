@@ -2,7 +2,7 @@
 
 Generated 2026-09-23 by `tools/odyssey-forage.js` from the atlas in odyssey-halfworld (`viewer/odyssey-manifest.json`). Browse it in [odyssey-forage.html](../odyssey-forage.html); load any card in [Hand Butter](../play/hand-butter-odyssey.html?scene=OD-B01-S01).
 
-**582 cards** (430 assets, 152 scenes) · **119,469 pieces** · **5,295 sub-builds** · **436,516 stud joints** · 22 donor sets · 567 green, 15 yellow, 0 red.
+**582 cards** (430 assets, 152 scenes) · **119,640 pieces** · **5,307 sub-builds** · **436,436 stud joints** · 22 donor sets · 567 green, 15 yellow, 0 red.
 
 ## How a card is foraged
 
@@ -21,18 +21,18 @@ The trailer builds a city as a tree: the whole model, its builds, their sub-buil
 
 | type | cards | pieces | sub-builds | stud joints | yellow |
 |---|---|---|---|---|---|
-| character | 87 | 1,304 | 174 | 259 | 0 |
-| creature | 27 | 420 | 133 | 861 | 1 |
-| location | 68 | 25,169 | 596 | 88,377 | 10 |
+| character | 87 | 1,363 | 174 | 242 | 0 |
+| creature | 27 | 408 | 133 | 861 | 1 |
+| location | 68 | 25,154 | 596 | 88,383 | 10 |
 | prop | 73 | 662 | 248 | 840 | 0 |
-| ensemble | 67 | 4,655 | 480 | 1,081 | 0 |
-| divine fx | 59 | 2,147 | 264 | 1,928 | 0 |
-| set piece | 18 | 572 | 79 | 916 | 1 |
-| environment | 12 | 543 | 52 | 1,154 | 0 |
-| vehicle | 11 | 4,848 | 46 | 8,245 | 0 |
-| sound source | 6 | 218 | 31 | 68 | 0 |
-| wearable | 2 | 45 | 12 | 12 | 0 |
-| scene | 152 | 78,886 | 3,180 | 332,775 | 3 |
+| ensemble | 67 | 4,617 | 480 | 1,041 | 0 |
+| divine fx | 59 | 2,180 | 264 | 1,914 | 0 |
+| set piece | 18 | 576 | 79 | 916 | 1 |
+| environment | 12 | 540 | 52 | 1,154 | 0 |
+| vehicle | 11 | 4,838 | 46 | 8,245 | 0 |
+| sound source | 6 | 215 | 31 | 68 | 0 |
+| wearable | 2 | 42 | 12 | 12 | 0 |
+| scene | 152 | 79,045 | 3,192 | 332,760 | 3 |
 
 ## Donors
 

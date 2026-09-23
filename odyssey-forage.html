@@ -168,7 +168,7 @@
     let best = null;
     for (const da of [0, 0.5, -0.5, 1, -1, 1.5, -1.5, 2.2, -2.2, Math.PI]) for (const el of [0.15, 0.45, 0.8]) {
       const d = V3(Math.sin(base + da), el, Math.cos(base + da)).normalize(), side = V3(d.z, 0, -d.x).normalize(); ray.far = 330;
-      if ([-22, 0, 22].every(o => { ray.set(S.clone().addScaledVector(side, o), d); return !ray.intersectObjects(meshes, false).length; })) {   // three rays, a head's width apart: a neighbour's shoulder blocks too best = V3(d.x, 0, d.z).normalize(); best.el = el; break; } if (best) break; }
+      if ([-22, 0, 22].every(o => { ray.set(S.clone().addScaledVector(side, o), d); return !ray.intersectObjects(meshes, false).length; })) {   /* three rays, a head's width apart: a neighbour's shoulder blocks too */ best = V3(d.x, 0, d.z).normalize(); best.el = el; break; } if (best) break; }
     PV.dirs[key] = best || V3(-0.35, 0, 1).normalize(); return PV.dirs[key];
   }
   function setTime(t) {
