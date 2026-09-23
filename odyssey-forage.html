@@ -78,6 +78,10 @@
   #pvbar .row{display:flex;gap:8px;align-items:center}
   #pvbar input{flex:1;min-width:80px}
   #pvbar .chip{background:rgba(255,255,255,.92);color:#141414;border-color:#fff}
+  body.film #pvbar .row{display:none}
+  body.film #pvbar{padding:14px 5% 18px;font-size:15px;background:linear-gradient(transparent,rgba(10,10,10,.8))}
+  body.film #pvbar #cap{max-height:none;text-align:center}
+  body.film #pvbar #cap b{display:block;font-size:11px;margin:0 0 4px}
   body.render #top,body.render #table{display:none}
   body.render #sheet{inset:0;width:100%;transform:none;border:0}
   body.render #sheetHead,body.render #body{display:none}
@@ -121,7 +125,7 @@
   const colours = fetch('ldraw/LDConfig.ldr').then(r => r.text()).then(t => new Promise(res => { try { loader.parse(t, '', res); } catch (e) { res(); } })).catch(() => {});   // the loader learns its colours by reading LDConfig as a model
   let current = null, token = 0;
   async function show3d(id) {
-    const my = ++token; $('#veil').textContent = 'Loading parts'; if (current) { scene.remove(current); current = null; }
+    const my = ++token; $('#veil').textContent = 'Loading parts'; if (current) { scene.remove(current); if (current.userData.baked) scene.remove(current.userData.baked); current = null; }
     await colours; let text; try { text = await (await fetch('odyssey/cards/' + id + '.mpd')).text(); } catch (e) { $('#veil').textContent = 'No build file'; return; }
     const model = await new Promise(res => { const t = setTimeout(() => res(null), 90000); try { loader.parse(text, '', m => { clearTimeout(t); res(m); }); } catch (e) { console.error('parse', e); res(null); } });
     if (my !== token) return; if (!model) { $('#veil').textContent = 'The build could not be parsed'; return; }
@@ -137,7 +141,7 @@
   let PV = null;   // { data, model, figs: [{ g, base, baseQ, legs, arms, cast }], t, playing, centre, radius }
   const V3 = (x, y, z) => new THREE.Vector3(x, y, z), ease = k => k < 0 ? 0 : k > 1 ? 1 : k * k * (3 - 2 * k);
   async function loadPrevis(id) {
-    const my = ++token; $('#veil').textContent = 'Loading the set and cast'; if (current) { scene.remove(current); current = null; } PV = null;
+    const my = ++token; $('#veil').textContent = 'Loading the set and cast'; if (current) { scene.remove(current); if (current.userData.baked) scene.remove(current.userData.baked); current = null; } PV = null;
     await pcolours; let data, text;
     try { data = await (await fetch('odyssey/previs/' + id + '.json')).json(); text = await (await fetch('odyssey/cards/' + id + '.mpd')).text(); } catch (e) { $('#veil').textContent = 'No previs for this card'; return null; }
     const model = await new Promise(res => { const t = setTimeout(() => res(null), 120000); try { ploader.parse(text, '', m => { clearTimeout(t); res(m); }); } catch (e) { console.error('parse', e); res(null); } });
@@ -150,6 +154,27 @@
       const near = (o, p) => Math.abs(o.position.x - p[0]) < 0.6 && Math.abs(o.position.y - p[1]) < 0.6 && Math.abs(o.position.z - p[2]) < 0.6;
       for (const o of g.children) { if (!o.isGroup) continue; if ((c.legs || []).some(p => near(o, p))) legs.push(o); else if ((c.arms || []).some(p => near(o, p))) arms.push(o); }
       return { g, cast: c, base: g.position.clone(), baseQ: g.quaternion.clone(), legs: legs.map(o => [o, o.rotation.x]), arms: arms.map(o => [o, o.rotation.x]), yaw: null }; });
+    /* the set is still: its parts baked into three meshes (opaque, transparent, edges) so a frame is a few draw calls, not
+       thousands; the parts stay in the scene hidden, for the camera's sight lines; the cast stays loose to move */
+    const active = new Set(); for (const sh of data.shots) { for (const k of [sh.camera.subject, sh.camera.object, sh.speaker, sh.action]) if (k >= 0) active.add(k); for (const m of sh.moves) active.add(m.fig); }
+    figs.forEach((f, i) => { if (f && !active.has(i)) figs[i] = null; });   // a figure that never walks, speaks, acts or is framed is part of the set: baked with it
+    const moving = new Set(); for (const f of figs) if (f) f.g.traverse(o => moving.add(o));
+    model.traverse(o => { if (o.isConditionalLine) o.visible = false; });   // the conditional edges are the dearest thing to draw; the plain edges keep the look
+    model.updateMatrixWorld(true); const bake = { solid: [[], [], []], clear: [[], [], []], edge: [] };
+    model.traverse(o => { if (moving.has(o) || !o.visible) return;
+      if (o.isConditionalLine) { o.visible = false; return; }
+      if (o.isLineSegments) { const g = o.geometry.index ? o.geometry.toNonIndexed() : o.geometry, p = g.attributes.position, v = V3(); for (let i = 0; i < p.count; i++) { v.fromBufferAttribute(p, i).applyMatrix4(o.matrixWorld); bake.edge.push(v.x, v.y, v.z); } o.visible = false; return; }
+      if (!o.isMesh) return;
+      const g = o.geometry.index ? o.geometry.toNonIndexed() : o.geometry, p = g.attributes.position, nrm = g.attributes.normal, nm = new THREE.Matrix3().getNormalMatrix(o.matrixWorld), v = V3(), n = V3();
+      const groups = g.groups.length ? g.groups : [{ start: 0, count: p.count, materialIndex: 0 }];
+      for (const gr of groups) { const mat = Array.isArray(o.material) ? o.material[gr.materialIndex] : o.material, c = mat.color || new THREE.Color(0x888888), dst = mat.transparent || mat.opacity < 1 ? bake.clear : bake.solid;
+        for (let i = gr.start; i < gr.start + gr.count && i < p.count; i++) { v.fromBufferAttribute(p, i).applyMatrix4(o.matrixWorld); dst[0].push(v.x, v.y, v.z); if (nrm) { n.fromBufferAttribute(nrm, i).applyMatrix3(nm).normalize(); dst[1].push(n.x, n.y, n.z); } else dst[1].push(0, 1, 0); dst[2].push(c.r, c.g, c.b); } }
+      o.visible = false; });
+    const baked = new THREE.Group(); baked.name = 'baked set';
+    for (const [k, arr] of [['solid', bake.solid], ['clear', bake.clear]]) { if (!arr[0].length) continue; const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(arr[0], 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(arr[1], 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(arr[2], 3));
+      const m = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.55, metalness: 0, transparent: k === 'clear', opacity: k === 'clear' ? 0.55 : 1, depthWrite: k !== 'clear', polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 })); m.userData.baked = true; baked.add(m); }
+    if (bake.edge.length) { const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(bake.edge, 3)); const l = new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: 0x333333, transparent: true, opacity: 0.55 })); l.userData.baked = true; baked.add(l); }
+    scene.add(baked); model.userData.baked = baked;
     const box = new THREE.Box3().setFromObject(model), centre = box.getCenter(V3()), size = box.getSize(V3());
     PV = { data, model, figs, t: 0, playing: false, centre, radius: Math.max(size.x, size.z) / 2, last: performance.now() };
     controls.enabled = false; $('#veil').textContent = ''; drawPrevisUI(); setTime(0); return PV;
@@ -158,17 +183,22 @@
   function figState(i, t) { const c = PV.data.cast[i]; let x = c.x, z = c.z, walking = false, dir = null;
     for (const s of PV.data.shots) for (const m of s.moves) { if (m.fig !== i || t < m.t0) continue; const k = ease((t - m.t0) / Math.max(0.1, m.t1 - m.t0)); x = m.from[0] + (m.to[0] - m.from[0]) * k; z = m.from[1] + (m.to[1] - m.from[1]) * k; if (t < m.t1) { walking = true; dir = [m.to[0] - m.from[0], m.to[1] - m.from[1]]; } }
     return { x, z, walking, dir }; }
-  const headOf = f => { const v = V3(); f.g.getWorldPosition(v); v.y += 60; return v; };
+  const headOf = f => { const v = V3(); f.g.getWorldPosition(v); if (f.h == null) { const b = new THREE.Box3().setFromObject(f.g); f.h = Math.max(40, b.max.y - v.y); } v.y += f.h - Math.max(16, f.h * 0.12); return v; };   // the face: a stud below the top of the figure, a minifigure's or a giant's
   /* a line of sight: from the subject's head toward candidate camera bearings, the first that nothing in the set blocks (cached per shot) */
   const ray = new THREE.Raycaster();
   function clearDir(shot, S, keep) {
     PV.dirs = PV.dirs || {}; const key = shot.n + (shot.moves.length ? ':' + Math.floor(PV.t * 2) : ''); if (PV.dirs[key]) return PV.dirs[key];   // a shot with a walk looks again twice a second
     const mine = new Set(); for (const f of keep) if (f) f.g.traverse(o => mine.add(o));
-    const base = Math.atan2(-0.35, 1), meshes = []; PV.model.traverse(o => { if (o.isMesh && !mine.has(o)) meshes.push(o); });
-    let best = null;
-    for (const da of [0, 0.5, -0.5, 1, -1, 1.5, -1.5, 2.2, -2.2, Math.PI]) for (const el of [0.15, 0.45, 0.8]) {
-      const d = V3(Math.sin(base + da), el, Math.cos(base + da)).normalize(), side = V3(d.z, 0, -d.x).normalize(); ray.far = 330;
-      if ([-22, 0, 22].every(o => { ray.set(S.clone().addScaledVector(side, o), d); return !ray.intersectObjects(meshes, false).length; })) {   /* three rays, a head's width apart: a neighbour's shoulder blocks too */ best = V3(d.x, 0, d.z).normalize(); best.el = el; break; } if (best) break; }
+    let base = Math.atan2(-0.35, 1); const meshes = [];
+    if (keep[0]) { const q = new THREE.Quaternion(); keep[0].g.getWorldQuaternion(q); const fw = V3(0, 0, -1).applyQuaternion(q); fw.y = 0; if (fw.lengthSq() > 0.01) { fw.normalize(); base = Math.atan2(fw.x, fw.z) - 0.35; } }   // start from where the subject faces, a little off-axis: faces, not backs PV.model.traverse(o => { if (o.isMesh && !mine.has(o) && !o.userData.baked) meshes.push(o); });
+    const fw = V3(Math.sin(base + 0.35), 0, Math.cos(base + 0.35));   // the way the subject faces
+    let best = null, bestScore = -1e9;
+    for (let da = -Math.PI; da < Math.PI; da += Math.PI / 8) for (const el of [0.12, 0.3, 0.55]) {
+      const d = V3(Math.sin(base + 0.35 + da), el, Math.cos(base + 0.35 + da)).normalize(), side = V3(d.z, 0, -d.x).normalize(); ray.far = 330;
+      const clear = [-22, 0, 22].every(o => { ray.set(S.clone().addScaledVector(side, o), d); return !ray.intersectObjects(meshes, false).length; });   /* three rays, a head's width apart: a neighbour's shoulder blocks too */
+      const h = V3(d.x, 0, d.z).normalize(), score = (clear ? 10 : 0) + h.dot(fw) * 2 + Math.cos(da - 0.35) * 0.3 - el;   // clear first, then the face, then a little off-axis, then low
+      if (score > bestScore) { bestScore = score; best = h; best.el = el; }
+    }
     PV.dirs[key] = best || V3(-0.35, 0, 1).normalize(); return PV.dirs[key];
   }
   function setTime(t) {
@@ -188,17 +218,21 @@
     const k = shot ? ease((t - shot.t0) / (shot.t1 - shot.t0)) : 0, C = PV.centre, R = PV.radius;
     const subj = shot && PV.figs[shot.camera.subject], obj = shot && PV.figs[shot.camera.object];
     const S = subj ? headOf(subj) : C.clone(), O = obj ? headOf(obj) : null; let pos, look;
-    const front = shot ? clearDir(shot, S, [subj, obj]) : V3(-0.35, 0, 1).normalize();   // the side of the subject the camera can see from
+    const front = shot ? clearDir(shot, S, [subj, obj]) : V3(-0.35, 0, 1).normalize(), G = subj && subj.h ? Math.max(1, Math.sqrt(subj.h / 80)) : 1;   // a giant is framed from further off   // the side of the subject the camera can see from
     switch (shot ? shot.camera.kind : 'establish') {
       case 'establish': pos = C.clone().addScaledVector(front, R * (2.6 - 1.0 * k)).add(V3(0, R * (1.6 - 0.9 * k), 0)); look = C.clone().lerp(S, 0.3 * k); break;
       case 'pullback': pos = S.clone().addScaledVector(front, 160 + R * 2.2 * k).add(V3(0, 40 + R * 1.2 * k, 0)); look = S.clone().lerp(C, k); break;
       case 'two': { const mid = O ? S.clone().lerp(O, 0.5) : S; const d = O ? S.distanceTo(O) : 0; pos = mid.clone().addScaledVector(front, 220 + d * 1.1).add(V3(0, (front.el || 0.15) * (220 + d) + 10 * k, 0)); look = mid; break; }
       case 'ots': { if (!O) { pos = S.clone().addScaledVector(front, 170); look = S; break; } const back = O.clone().sub(S).setY(0).normalize(); const side = V3(back.z, 0, -back.x); pos = O.clone().addScaledVector(back, 70).addScaledVector(side, 30).add(V3(0, 12, 0)); look = S; break; }
-      case 'push': pos = S.clone().addScaledVector(front, 330 - 150 * k).add(V3(0, (front.el || 0.15) * (330 - 150 * k) - 20, 0)); look = S.clone().add(V3(0, -10, 0)); break;
-      case 'track': pos = S.clone().addScaledVector(front, 300).add(V3(0, (front.el || 0.2) * 300, 0)); look = S; break;
+      case 'push': pos = S.clone().addScaledVector(front, G * (330 - 150 * k)).add(V3(0, (front.el || 0.15) * G * (330 - 150 * k) - 20, 0)); look = S.clone().add(V3(0, -10, 0)); break;
+      case 'track': pos = S.clone().addScaledVector(front, G * 300).add(V3(0, (front.el || 0.2) * G * 300, 0)); look = S; break;
       case 'orbit': { const a = -0.8 + 1.4 * k; pos = S.clone().add(V3(Math.sin(a) * 240, 90, Math.cos(a) * 240)); look = S; break; }
-      default: pos = S.clone().addScaledVector(front, 280 - 30 * k).add(V3(0, (front.el || 0.15) * 280, 0)); look = S.clone().add(V3(0, -15, 0));
+      default: pos = S.clone().addScaledVector(front, G * (280 - 30 * k)).add(V3(0, (front.el || 0.15) * G * 280, 0)); look = S.clone().add(V3(0, -15, 0));
     }
+    /* a spring arm: whatever stands between the look point and the lens pulls the lens in, in front of it */
+    if (!PV.meshes) { PV.meshes = []; PV.model.traverse(o => { if (o.isMesh) PV.meshes.push(o); }); }
+    { const own = new Set(); for (const f of [subj]) if (f) f.g.traverse(o => own.add(o)); const d = pos.clone().sub(look), len = d.length(); d.normalize(); ray.set(look, d); ray.far = len;
+      const hit = ray.intersectObjects(PV.meshes, false).find(h => !own.has(h.object) && h.distance > 25); if (hit) pos = look.clone().addScaledVector(d, Math.max(45, hit.distance - 18)); }
     camera.position.copy(pos); camera.lookAt(look); camera.near = 2; camera.far = R * 40; camera.updateProjectionMatrix(); controls.target.copy(look);
     const cap = $('#cap'); if (cap && shot) cap.innerHTML = `<b>${shot.n}/${PV.data.shots.length} · ${shot.camera.kind}</b> ${esc(shot.beat)}`;
     const sc = $('#scrub'); if (sc) sc.value = t;
@@ -211,10 +245,10 @@
     $('#pvfree').onclick = () => { PV.playing = false; $('#pvplay').textContent = 'Play'; controls.enabled = true; };
   }
   const endPrevis = () => { PV = null; controls.enabled = true; const b = $('#pvbar'); if (b) b.remove(); };
-  (function loop(now) { if (PV && PV.playing) { PV.t += Math.min(0.1, ((now || 0) - PV.last) / 1000); PV.last = now || 0; if (PV.t >= PV.data.duration) { PV.playing = false; const b = $('#pvplay'); if (b) b.textContent = 'Play'; } setTime(PV.t); } else if (PV) PV.last = now || 0;
+  (function loop(now) { if (window.__manual) { requestAnimationFrame(loop); return; } if (PV && PV.playing) { PV.t += Math.min(0.1, ((now || 0) - PV.last) / 1000); PV.last = now || 0; if (PV.t >= PV.data.duration) { PV.playing = false; const b = $('#pvplay'); if (b) b.textContent = 'Play'; } setTime(PV.t); } else if (PV) PV.last = now || 0;
     controls.update(); renderer.render(scene, camera); requestAnimationFrame(loop); })();
   if (RENDER) { document.body.classList.add('render'); $('#sheet').classList.add('on'); resize();
-    if (q.get('t') != null) { loadPrevis(RENDER).then(p => { if (!p) return; setTime(+q.get('t')); requestAnimationFrame(() => { window.__ready = RENDER; }); }); window.__pv = () => PV; } else show3d(RENDER); return; }
+    if (q.get('t') != null) { loadPrevis(RENDER).then(p => { if (!p) return; setTime(+q.get('t')); requestAnimationFrame(() => { window.__ready = RENDER; }); }); window.__pv = () => PV; window.__seek = t => { window.__manual = true; setTime(t); controls.update(); renderer.render(scene, camera); return true; }; if (q.get('film')) document.body.classList.add("film"); }   /* film: one render a frame, on demand */ else show3d(RENDER); return; }
 
   /* ── the table ── */
   const T = INDEX.cards, sum = k => T.reduce((s, c) => s + (c[k] || 0), 0), n = x => x.toLocaleString('en');
