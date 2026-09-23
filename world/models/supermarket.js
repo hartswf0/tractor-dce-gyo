@@ -37,7 +37,7 @@ function program() {
     ...[20, 24, 28, 67, 71, 75].flatMap(x => [cut(x, 6, 1, 1, 13, 1), part('3005', YELLOW, x, 6, 13)])]));
   // the store's name over the entrance: FOOD in red bricks let into the white wall, a 3×5 letter each, fifteen studs wide over the doors
   const FONT = { F: ['111', '100', '110', '100', '100'], O: ['111', '101', '101', '101', '111'], D: ['110', '101', '101', '101', '110'] }, sign = [];
-  [...'FOOD'].forEach((ch, k) => FONT[ch].forEach((row, r) => [...row].forEach((c, i) => { if (c === '1') { const x = 41 + k * 4 + i, y = 11 - r; sign.push(cut(x, 6, 1, 1, y, 1), part('3005', RED, x, 6, y)); } })));
+  [...'FOOD'].forEach((ch, k) => FONT[ch].forEach((row, r) => [...row].forEach((c, i) => { if (c === '1') { const x = 55 - (k * 4 + i), y = 11 - r;   /* read from the street, looking south: the model's x runs right to left there */ sign.push(cut(x, 6, 1, 1, y, 1), part('3005', RED, x, 6, y)); } })));
   ops.push(G('sign', 0, 0, sign));
   ops.push(G('parapet', 0, 0, [...wallRun(2, 6, 92, true, 1, DARK, { y: 14 }), ...wallRun(2, 69, 92, true, 1, DARK, { y: 14 }), ...wallRun(2, 7, 62, false, 1, DARK, { y: 14 }), ...wallRun(93, 7, 62, false, 1, DARK, { y: 14 })]));
   // the checkout lanes: four, counter and belt running north to south, the customer on the west side, the clerk on the east
