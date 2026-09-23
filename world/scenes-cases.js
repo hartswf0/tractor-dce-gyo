@@ -18,35 +18,53 @@ const LOOK = (who, target, at, keepGaze) => ({ what: 'PERFORM', who, verb: 'LOOK
 const SET = (who, ch, v, at, over) => ({ what: 'SET', who, ch, v, at, over: over || 0.5 });
 const SND = (who, at) => ({ what: 'SOUND', who, at });
 
-/* ── 1. The checkout: the Simpsons grocery store (simpsons_scene_05_grocery.mpd) ── */
-Film.SCENES['case-grocery'] = { name: 'The Checkout', time: 'day', weather: 'clear', ground: 'flat', me: 'off', part: 'marge',
-  story: { title: 'The Checkout', description: 'A small workplace, an ordinary procedure, one thing processed wrongly, and the reactions that follow: Marge unloads the cart, the belt carries Maggie to the scanner, the register names a price, and the bag is the wrong place for a baby.', location: 'the checkout lane of the Springfield grocery store',
-    entities: [{ id: 'marge', type: 'character', name: 'Marge', traits: ['the cart', 'the wide face'] }, { id: 'maggie', type: 'character', name: 'Maggie', traits: ['on the belt', 'the worried face'] }, { id: 'clerk', type: 'character', name: 'the checkout clerk', traits: ['the scanner', 'the procedure'] }, { id: 'homer', type: 'character', name: 'Homer', traits: ['next in line', 'the magazine'] }, { id: 'lane', type: 'location', name: 'the lane', traits: ['the belt', 'the register', 'the bag stand'] }],
-    goals: ['get through the lane'], obstacles: ['the procedure does not know a baby from the groceries'], shifts: [{ id: 'queue', name: 'The queue' }, { id: 'belt', name: 'The belt' }, { id: 'scan', name: 'The scan' }, { id: 'price', name: 'The price' }, { id: 'bag', name: 'The bag' }, { id: 'fix', name: 'The fix' }], why: 'a procedure done exactly right on the wrong thing', direction: 'deadpan' },
-  donors: [{ name: 'the lane', set: 'grocery-store', x: 0, z: 0, heading: 180, scale: 1 }],   /* the counter runs along x; the customers stand on the south side (z > 0), the clerk behind it (z < 0.6) */
-  marks: { cart: [1, -4], belt: [6, -1.75], register: [8, -1.75], bags: [5.5, -0.25], queue: [3, -2], door: [-0.75, -5], aisle: [-2, -1] },   /* stud (x, z) of the model halved and centred, heading 180 so stud x runs east and stud z south: the belt is at studs 34..39 × 10..11, the register at 40..41, the bagging shelf at 34..36 × 13..14, the carts by the door at 12..20 × 6..7 */
+/* ── 1. The List: the Simpsons shopping scene, on The Supermarket (world/models/supermarket.js) ──
+   A shopping list is a partial future-state language (Hartsoe, 'The Shopping List', working paper, 2026): milk, bread, eggs say what
+   should become true, not how; the store's layout, the shopper and the world supply the rest, the list is corrected when the world
+   resists (no eggs), grows when a goal turns up on the way (donuts), and at the checkout meets a procedure that acquires whatever is on
+   the belt. The list rides the corner of the frame as a paper note (style 'list': '~' struck through, '+' added, '?' queried).
+   Studs to metres: the supermarket is 96 × 72 studs laid at heading 180, so world metres = ((stud x − 48) / 2, (stud z − 36) / 2); laid a
+   plate down so its floor is the ground. The entrance x 44..51 on the front wall z 6 (x −2..2, z −15); produce tables at z 12..15
+   (z −12..−10.5), table 2 at x 15..20 (x −16.5..−14); aisle five between the gondolas at x 43..44 and 50..51 (x −2.5..−2 and 1..1.5), its
+   floor x −2..1, from z 28 to 55 (z −4..9.5); the back aisle z 56..63 (z 10..13.5); the dairy cooler's glass at z 64 (z 14); checkout lane
+   one's belt at x 60..61, z 9..16 (x 6..6.5, z −13.5..−10), its register at x 62..63 × z 14..16 (x 7..7.5, z −11..−10), the bagging shelf at
+   x 57..59, z 17..18 (x 4.5..6, z −9.5..−9). */
+const LIST = (...items) => ['the list', ...items].join('\n');
+const STORE = { hemi: 1.05, sun: 1.0, elev: 62, azim: 150, exposure: 1.05 };   /* no ceiling on a film set: the sun stands high so the walls' shadows are short, the fill up so the aisles read like a lit store */
+Film.SCENES['case-grocery'] = { name: 'The List', time: 'day', weather: 'clear', ground: 'flat', me: 'off', part: 'marge', set: { kind: 'stage', r: 120, seed: 2 }, marksHidden: true,
+  story: { title: 'The List', description: 'Marge walks into the supermarket with three words: milk, bread, eggs. The store supplies the rest: the aisle, the cooler, a neighbour. There are no eggs. Homer adds donuts. At the checkout the procedure scans whatever is on the belt, and the baby is on the belt.', location: 'the Springfield supermarket',
+    entities: [{ id: 'marge', type: 'character', name: 'Marge', traits: ['the list', 'the route'] }, { id: 'maggie', type: 'character', name: 'Maggie', traits: ['not on the list'] }, { id: 'homer', type: 'character', name: 'Homer', traits: ['the goal found on the way'] }, { id: 'clerk', type: 'character', name: 'the clerk', traits: ['the scanner', 'the procedure'] }, { id: 'flanders', type: 'character', name: 'Ned Flanders', traits: ['aisle five'] }, { id: 'list', type: 'object', name: 'the list', traits: ['milk', 'bread', 'eggs'] }],
+    goals: ['make the list true'], obstacles: ['no eggs', 'a procedure that acquires everything on the belt'], shifts: [{ id: 'door', name: 'The list' }, { id: 'produce', name: 'Produce' }, { id: 'aisle', name: 'Aisle five' }, { id: 'dairy', name: 'No eggs' }, { id: 'belt', name: 'The belt' }, { id: 'scan', name: 'It scanned' }], why: 'the list says what should be true; the belt does not know what the list meant', direction: 'deadpan' },
+  donors: [{ name: 'the store', set: 'supermarket', x: 0, z: 0, heading: 180, scale: 1, y: -0.18 }],
+  marks: { street: [-2.4, -19], in: [-0.5, -12], 'maggie-in': [0.6, -12.6], 'aisle-n': [-0.5, -5.8], 'maggie-n': [0.4, -6.6], 'aisle-s': [-0.5, 7.6], 'maggie-s': [0.3, 6.8], dairy: [-0.5, 12.4], 'maggie-d': [0.7, 11.8],
+    lane: [4.6, -11.2], belt: [5.4, -12.9], clerk: [8.4, -11.8], queue: [3.4, -8.6], produce: [-15.2, -9.2], ned: [0.5, 2.6] },
   actors: [
-    { name: 'marge', figure: 'marge', label: 'Marge', x: 6, z: -1.5, heading: 0 },
-    { name: 'maggie', figure: 'maggie', label: 'Maggie', x: 6.75, z: -1.25, heading: 0 },
-    { name: 'clerk', figure: 'citizen', label: 'the clerk', x: 7, z: -3.5, heading: 180 },
-    { name: 'homer', figure: 'homer', label: 'Homer', x: 1, z: -3.5, heading: 90 }],
+    { name: 'marge', figure: 'marge', label: 'Marge', x: -2.4, z: -19, heading: 180 },
+    { name: 'maggie', figure: 'maggie', label: 'Maggie', x: -1.4, z: -19.6, heading: 180 },
+    { name: 'homer', figure: 'homer', label: 'Homer', x: -15.2, z: -9.2, heading: 0 },
+    { name: 'clerk', figure: 'citizen', label: 'the clerk', x: 8.4, z: -11.8, heading: 270 },
+    { name: 'flanders', figure: 'flanders', label: 'Ned Flanders', x: 0.5, z: 2.6, heading: 90 }],
   shots: [
-    { score: 'springfield', title: 'THE CHECKOUT', style: 'card', sec: 2, events: [SAY('narrator', 'The checkout.', 0.3, 1.2)] },
-    { name: 'The queue', on: 'the lane', pos: [-5, 2.2, -4], tgt: [6.5, 1.2, -2.5], lens: 35, sec: 6, shift: 'queue', handheld: 0.2,
-      events: [BEAT('queue', 'marge', 0, 6, 'an ordinary lane on an ordinary day', 'neutral'), SND('click', 0.8), SAY('clerk', 'Next, please.', 1.0, 1.4), LOOK('marge', 'clerk', 1.2), P('homer', 'listen', 0.5), SAY('homer', 'Mom Monthly. Huh.', 3.6, 1.6)] },
-    { name: 'The belt', on: 'maggie', pos: [7, 2, 1], tgt: [6.25, 1, -2.5], lens: 40, sec: 6, shift: 'belt',
-      acts: [{ who: 'marge', to: 'belt', walk: true }],
-      events: [BEAT('belt', 'marge', 0, 6, 'the groceries go on the belt, and the baby goes on the belt', 'neutral'), SND('servo', 0.6), SND('servo', 2.2), SND('servo', 3.8), FACE('maggie', 'wide', 2.0), SAY('marge', 'Hold still, Maggie.', 2.4, 1.6)] },
-    { name: 'The scan', on: 'clerk', pos: [9.25, 2.2, -0.5], tgt: [8, 0.9, -2.75], lens: 40, sec: 6, shift: 'scan', handheld: 0.3,
-      events: [BEAT('scan', 'clerk', 0, 6, 'the procedure: everything on the belt gets scanned', 'deadpan'), LOOK('clerk', 'maggie', 0.4), SET('clerk', 'arm.R.pitch', -1.6, 1.2, 0.5), SND('ping', 2.2), SND('ping', 3.0), SND('ping', 3.9), P('clerk', 'deadpan', 0.3), FACE('maggie', 'worried', 3.0)] },
-    { name: 'The price', on: 'the lane', pos: [7, 1.6, 0], tgt: [6, 1.5, -1.5], lens: 32, sec: 5, shift: 'price',
-      events: [BEAT('price', 'clerk', 0, 5, 'the register knows a number for everything', 'deadpan'), SND('ping', 0.6), SAY('clerk', 'That will be eight hundred and forty seven dollars and sixty three cents.', 1.0, 3.6), P('marge', 'skepticism', 1.4)] },
-    { name: 'The bag', on: 'marge', pos: [4, 1.5, 0.5], tgt: [5.5, 1, -1], lens: 34, sec: 5, shift: 'bag', handheld: 0.4,
-      events: [BEAT('bag', 'marge', 0, 5, 'she sees where the baby is going', 'concern'), FACE('marge', 'wide', 0.4), P('marge', 'concern', 0.4), LOOK('marge', 'bags', 0.3, true), SND('clatter', 2.0), SAY('marge', 'That one does not go in the bag.', 2.4, 2.2), SET('marge', 'arm.L.pitch', -2.2, 2.2, 0.5)] },
-    { name: 'The fix', on: 'the lane', pos: [1, 3.6, 4], tgt: [6.5, 1, -2.5], lens: 38, sec: 7, shift: 'fix',
-      acts: [{ who: 'marge', to: 'bags', walk: true }, { who: 'homer', to: 'cart', walk: true }],
-      events: [BEAT('fix', 'marge', 0, 7, 'the baby comes out of the bag; the procedure shrugs', 'resolve'), P('marge', 'resolve', 0.3), P('clerk', 'shrug', 3.0), SAY('clerk', 'It scanned.', 3.4, 1.2), FACE('maggie', 'wide', 4.0), SAY('homer', 'Do we still get the stamps?', 5.0, 1.8), P('homer', 'irony', 4.8)] },
-    { score: 'end', title: 'THE CHECKOUT\nA CASE TO REHEARSE', style: 'card', sec: 3, name: 'the card' }] };
+    { score: 'springfield', title: 'THE LIST', style: 'card', sec: 2.5, events: [SAY('narrator', 'Milk. Bread. Eggs.', 0.4, 1.8)] },
+    { name: 'The list', on: 'marge', title: LIST('milk', 'bread', 'eggs'), style: 'list', pos: [5.5, 2.3, -26], pos2: [3.5, 2.0, -22.5], tgt: [-0.5, 2.6, -14], lens: 40, sec: 6, shift: 'door', look: STORE,
+      acts: [{ who: 'marge', to: 'in', walk: true, at: 0.6 }, { who: 'maggie', to: 'maggie-in', walk: true, at: 1.0 }],
+      events: [BEAT('door', 'marge', 0, 6, 'three words go into a store the size of a field', 'neutral'), SND('footstep', 1.0), SND('footstep', 1.5), SND('footstep', 2.0), SND('whoosh', 3.2), P('marge', 'resolve', 0.5)] },
+    { name: 'Produce', on: 'homer', title: LIST('milk', 'bread', 'eggs'), style: 'list', pos: [-10.6, 2.0, -5.8], tgt: [-15, 1.5, -10.4], lens: 40, sec: 5, shift: 'produce', look: STORE,
+      acts: [{ who: 'marge', to: 'aisle-n', walk: true, at: 0.2 }, { who: 'maggie', to: 'maggie-n', walk: true, at: 0.5 }, { who: 'homer', look: 'marge' }],
+      events: [BEAT('produce', 'homer', 0, 5, 'the store offers what the list did not ask for', 'irony'), LOOK('homer', 'marge', 0.4, true), P('homer', 'irony', 0.8), SAY('homer', 'Marge, are donuts a fruit?', 1.0, 2.0), SAY('marge', 'No.', 3.4, 0.6)] },
+    { name: 'Aisle five', on: 'marge', title: LIST('milk', 'bread', 'eggs'), style: 'list', pos: [-0.3, 2.3, 12.8], tgt: [-0.5, 1.5, -5], lens: 36, sec: 7, shift: 'aisle', look: STORE,
+      acts: [{ who: 'marge', to: 'aisle-s', walk: true }, { who: 'maggie', to: 'maggie-s', walk: true, at: 0.3 }, { who: 'flanders', look: 'marge' }],
+      events: [BEAT('aisle', 'marge', 0, 7, 'the route is the store\'s, not the list\'s', 'neutral'), SND('footstep', 0.4), SND('footstep', 1.0), SND('footstep', 1.6), SND('footstep', 2.2), SND('footstep', 2.8), LOOK('flanders', 'marge', 2.0, true), P('flanders', 'joy', 2.2), SAY('flanders', 'Hi diddly ho, Marge!', 2.6, 1.8), LOOK('marge', 'flanders', 3.2)] },
+    { name: 'No eggs', on: 'marge', title: LIST('~milk', 'bread', '?eggs'), style: 'list', pos: [-4.6, 2.1, 9.2], tgt: [-0.4, 1.5, 14], lens: 38, sec: 6, shift: 'dairy', look: STORE,
+      acts: [{ who: 'marge', to: 'dairy', walk: true }, { who: 'maggie', to: 'maggie-d', walk: true, at: 0.4 }],
+      events: [BEAT('dairy', 'marge', 0, 6, 'the world resists: the list is corrected, not the world', 'concern'), P('marge', 'skepticism', 2.2), SND('click', 2.6), SAY('marge', 'Milk. No eggs.', 3.0, 1.6), FACE('marge', 'wide', 3.2)] },
+    { name: 'The belt', on: 'maggie', title: LIST('~milk', '~bread', '?eggs', '+donuts'), style: 'list', pos: [2.4, 2.1, -6.6], tgt: [6.4, 1.3, -11.8], lens: 40, sec: 7, shift: 'belt', look: STORE,
+      acts: [{ who: 'marge', to: 'lane' }, { who: 'maggie', to: 'belt' }, { who: 'homer', to: 'queue', walk: true, at: 0.5 }, { who: 'clerk', look: 'maggie' }],
+      events: [BEAT('belt', 'clerk', 0, 7, 'the procedure acquires whatever is on the belt', 'deadpan'), SND('servo', 0.3), SND('servo', 1.6), SND('ping', 2.4), SAY('clerk', 'Milk.', 2.5, 0.6), SND('ping', 3.3), SAY('clerk', 'Bread.', 3.4, 0.6), SND('ping', 4.3), SAY('clerk', 'Baby.', 4.4, 0.6), P('clerk', 'neutral', 0.2), FACE('maggie', 'wide', 4.5), P('marge', 'concern', 4.8)] },
+    { name: 'It scanned', on: 'marge', title: LIST('~milk', '~bread', '?eggs', '+donuts', '+Maggie'), style: 'list', pos: [2.0, 2.2, -8.6], tgt: [4.8, 2.0, -11.2], lens: 34, sec: 6, shift: 'scan', look: STORE,
+      acts: [{ who: 'homer', to: 'queue', walk: true }, { who: 'marge', look: 'clerk' }],
+      events: [BEAT('scan', 'marge', 0, 6, 'the list did not say: not the baby', 'deadpan'), SAY('marge', 'She is not on the list.', 0.5, 1.8), P('clerk', 'shrug', 2.4), SAY('clerk', 'It scanned.', 2.6, 1.0), P('homer', 'irony', 3.6), SAY('homer', 'Do we still get the stamps?', 3.8, 1.8)] },
+    { score: 'end', title: 'THE LIST', style: 'card', sec: 3, name: 'the card' }] };
 
 /* ── 2. The forest skirmish: Ewoks against robots (ewoks.mpd), the middle of the stage kept clear ── */
 Film.SCENES['case-ewoks'] = { name: 'The Forest Skirmish', time: 'day', weather: 'clear', ground: 'flat', me: 'off', part: 'ewok-1', set: { kind: 'stage', r: 120, seed: 1 },   /* a bare stage under the set: the author calls its rim a soundstage horizon; the valley's houses and trees go */
@@ -161,7 +179,7 @@ Film.SCENES['case-searchers'] = { name: 'The Searchers', time: 'day', weather: '
 /* ── The sheet of nine: every candidate registered with its set, so it can be laid, planned and inspected now. The three with programs stand on real models
    (world/models/*.js, built and audited by tools/model.js: every piece stud-connected, a manual at play/manual.html?model=<model>); the other six still stand on the scene files they came from. ── */
 Film.CASES = [
-  { key: 'case-grocery', name: 'The Checkout', source: 'world/models/grocery-store.js', set: 'grocery-store', model: 'grocery-store', size: '24 x 16 m', cast: ['marge', 'maggie', 'citizen', 'homer'], status: 'program', beats: ['the queue', 'the belt', 'the scan', 'the price', 'the bag', 'the fix'] },
+  { key: 'case-grocery', name: 'The List', source: 'world/models/supermarket.js', set: 'supermarket', model: 'supermarket', size: '48 x 36 m', cast: ['marge', 'maggie', 'homer', 'citizen', 'flanders'], status: 'program', beats: ['the list', 'produce', 'aisle five', 'no eggs', 'the belt', 'it scanned'] },
   { key: 'case-ewoks', name: 'The Forest Skirmish', source: 'world/models/forest-clearing.js', set: 'forest-clearing', model: 'forest-clearing', size: '32 x 32 m', cast: ['ewok', 'robot'], status: 'program', beats: ['the lines', 'the intrusion', 'the ambush', 'the train', 'the reversal', 'from above'] },
   { key: 'case-plato', name: 'The Cave', source: 'world/models/cave-of-shadows.js', set: 'cave-of-shadows', model: 'cave-of-shadows', size: '32 x 24 m', cast: ['shade', 'citizen', 'hauler'], status: 'program', beats: ['the shadows', 'the puppeteers', 'the turn', 'the climb', 'the sun', 'the return'] },
   { key: 'case-band', name: 'Band Class', source: 'simpsons_scene_06_band.mpd', set: 'simpsons-band', size: '10 x 5 m', cast: ['lisa', 'bart', 'citizen'], status: 'planned', beats: ['the count-in', 'the wrong tempo', 'the interruption', 'the solo', 'the reaction', 'the downbeat'] },

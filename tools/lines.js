@@ -15,7 +15,7 @@ global.window = {}; global.document = {}; require(path.join(root, 'world/film.js
 const Film = window.Film, Sound = window.Sound; global.Film = Film;
 for (const f of ['world/scenes-modes.js', 'world/scenes-cases.js']) require(path.join(root, f));   // scene files that carry lines of their own
 const VOICES = {
-  leia: ['en-us+f3', 165, 45], ethan: ['en-us+m1', 118, 18], martha: ['en-us+f2', 145, 55], aaron: ['en-us+m3', 145, 40], debbie: ['en-us+f5', 160, 60], luke: ['en-us+m7', 170, 55], han: ['en-us+m3', 150, 38], narrator: ['en-gb-x-rp+m2', 140, 30], vader: ['en-gb+m1', 125, 12],
+  leia: ['en-us+f3', 165, 45], ethan: ['en-us+m1', 118, 18], flanders: ['en-us+m5', 175, 70], martha: ['en-us+f2', 145, 55], aaron: ['en-us+m3', 145, 40], debbie: ['en-us+f5', 160, 60], luke: ['en-us+m7', 170, 55], han: ['en-us+m3', 150, 38], narrator: ['en-gb-x-rp+m2', 140, 30], vader: ['en-gb+m1', 125, 12],
   c3po: ['en-gb-x-rp+m4', 190, 70], marge: ['en-us+f4', 150, 60], homer: ['en-us+m4', 145, 30], clerk: ['en-us+f2', 165, 48], ewok: ['en-us+f5', 210, 90], trooper: ['en-us+m2', 165, 50], scout: ['en-us+m2', 170, 52], rogue: ['en-us+m6', 170, 48], comms: ['en-us+f2', 165, 50], pilot: ['en-us+m6', 170, 48], rebel: ['en-us+m5', 165, 45],
 };
 const voiceFor = who => VOICES[String(who || '').toLowerCase().split(/[-\s]/)[0]] || VOICES.narrator;

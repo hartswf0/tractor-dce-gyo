@@ -320,7 +320,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
     F.owns = () => F.play.on || !!F.rec || F.mode !== 'view';
     F.holds = () => F.mode === 'free' && !F.play.on;
     function poseAt(cam, s, t) {
-      if (s.title != null && s.style !== 'hud') return;                               // a title card: the camera stays where it is, the card covers the frame
+      if (s.title != null && s.style !== 'hud' && s.style !== 'list') return;                               // a title card: the camera stays where it is, the card covers the frame
       if (s.title != null && !s.keys.length) return;                                  // a hud title over the live camera
       if (s.follow && s.plan) { const st = F.stage(s.bearKeep != null ? { ...s.plan, bearKeep: s.bearKeep } : s.plan); s.keys = st.keys; s.curve = null; s.readout = st.readout; if (s.bearKeep == null) s.bearKeep = st.bearKeep; }   // the subject moves: the keys move with it, on the bearing the first frame found
       const n = s.keys.length; let pos, tgt, fov;
@@ -455,13 +455,13 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
     /** The title card on the page while a title shot plays (the take draws its own). */
     function showTitle(s) {
       let el = document.getElementById('title'); if (!el) { el = document.createElement('div'); el.id = 'title'; el.innerHTML = '<span></span>'; document.body.appendChild(el); }
-      el.hidden = !s; if (s) { el.dataset.style = s.style || 'card'; el.querySelector('span').textContent = s.title; if (s.style === 'hud') paintHud(s, 0); }
+      el.hidden = !s; if (s) { el.dataset.style = s.style || 'card'; el.querySelector('span').textContent = s.title; if (s.style === 'hud' || s.style === 'list') paintHud(s, 0); }
     }
     /** The hud overlay on the page, drawn over the band. */
     function paintHud(s, t) {
       const el = document.getElementById('title'); if (!el) return; let c = el.querySelector('canvas'); if (!c) { c = document.createElement('canvas'); el.appendChild(c); }
       const pr = Math.min(devicePixelRatio || 1, 2), b = F.band(); if (c.width !== Math.round(b.W * pr) || c.height !== Math.round(b.H * pr)) { c.width = Math.round(b.W * pr); c.height = Math.round(b.H * pr); }
-      const ctx = c.getContext('2d'); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, c.width, c.height); ctx.setTransform(pr, 0, 0, pr, 0, 0); ctx.translate(b.x, b.H - b.y - b.h); drawHud(ctx, b.w, b.h, s, t);
+      const ctx = c.getContext('2d'); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, c.width, c.height); ctx.setTransform(pr, 0, 0, pr, 0, 0); ctx.translate(b.x, b.H - b.y - b.h); if (s.style === 'list') drawList(ctx, b.w, b.h, s, t); else drawHud(ctx, b.w, b.h, s, t);
     }
 
     /* ── the step: the reel's clock, the free camera's dolly, the sun ── */
@@ -472,7 +472,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
       if (F.play.on && F.actState) stepAct(dt);
       if (F.play.on) {
         F.play.t += dt; const s = F.shots[F.play.i];
-        if (s) { for (const ev of F.pending) if (!ev.done && F.play.t >= ev.at) { ev.done = true; fireEvent(ev, s); } if (s.title != null && s.style === 'hud' && (F.hudAcc = (F.hudAcc || 0) + dt) > 0.08) { F.hudAcc = 0; paintHud(s, F.play.t); } }
+        if (s) { for (const ev of F.pending) if (!ev.done && F.play.t >= ev.at) { ev.done = true; fireEvent(ev, s); } if (s.title != null && (s.style === 'hud' || s.style === 'list') && (F.hudAcc = (F.hudAcc || 0) + dt) > 0.08) { F.hudAcc = 0; paintHud(s, F.play.t); } }
         if (!s || F.play.t >= s.sec - 1e-9) {
           if (s && F.rehearse.on && !F.play.all) { F.resetMarks(); F.play.t = 0; F.pending = []; enter(F.play.i); if (F.onChange) F.onChange('cut'); }   /* rehearsing: the shot runs again from its marks until the rehearsal is stopped */
           else if (F.play.all && F.play.i + 1 < F.shots.length) { F.play.i++; F.play.t = 0; F.sel = F.play.i; enter(F.play.i); if (F.onChange) F.onChange('cut'); }
@@ -541,6 +541,10 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
       const mpd = a.kit ? `0 KIT ${a.kit}` : Dsl.vehicleMPD({ kind: a.kind, len: a.len || (a.kind === 'speeder' ? 7 : 8), col: a.col == null ? 71 : a.col }).mpd;
       const it = await W.props.place(mpd, a.x, groundH(a.x, a.z), a.z, 0, true, { op: a.kit ? 'kit' : 'vehicle', kit: a.kit || undefined, kind: a.kit || a.kind, len: a.len, col: a.col, film: a.name });
       if (!it || !F.actors.has(a.name)) { if (it) W.props.remove(it.id, true); return; }
+      if (a.kind === 'horse') {   /* as the Odyssey build lays its horse: the part as it comes, lifted by the gap under its lowest hoof, then its legs rigged */
+        const lift = groundH(a.x, a.z) - it.box.min.y; it.group.children[0].position.y += lift; it.group.updateMatrixWorld(true); it.box.translate(new THREE.Vector3(0, lift, 0));
+        it.localBox = it.box.clone().translate(new THREE.Vector3(-it.x, -it.y, -it.z)); if (window.HorseMotion) { try { await HorseMotion.rig(it); } catch (e) { F.log.push('horse: ' + (e.message || e)); } }
+      }
       a.it = it; a.V = Drive.create({ prop: it, M, groundH, aabbs: (x, z, r) => (W.props ? W.props.aabbs(x, z, r).filter(b => b !== it.box) : []) }); a.V.heading = headingOf(a.heading || 0);
       if (a.V.fly && a.alt) { a.V.pos.y += a.alt * M; a.V.airborne = true; }
       Drive.step(a.V, 0, W.filmCtx(a.V)); if (W.props.moved) W.props.moved(it); syncProp(a); seatRider(a);
@@ -641,8 +645,8 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
         if (act && F.play.on) { driveActor(a, act, dt); if (act.fire && (a.fireT = (a.fireT || 0) + dt) > (act.every || 1.5)) { a.fireT = 0; W.filmFx.fire(V, !!act.heavy, 'film', aimPoint(act.aim)); if (a.riderRig) { a.riderRig.aim = 1; a.riderRig.aimUntil = a.riderRig.t + 1; Minifig.pose(a.riderRig, { phase: 0, gait: 0, t: 0, swing: null, aim: 1, sit: true }); } } }
         if (a.shove) { const sh = a.shove; sh.t += dt; const u = clamp(sh.t / sh.over, 0, 1); if (a.riderRig) a.riderRig.torsoP.rotation.x = -0.75 * Math.sin(u * Math.PI); V.heading += sh.side * 0.9 * dt; if (u >= 1) { a.shove = null; if (a.riderRig) a.riderRig.torsoP.rotation.x = 0; } }   // the rider tips back, the bike veers
         if (a.crashInto && W.sets) { const hit = W.sets.hitTrunk(V.pos, Math.max(V.hx || M, 0.8 * M)), ok = hit && (a.crashInto === 'log' ? !!hit.log : !hit.log), T = a.crashAt, near = T && Math.hypot(T.x - V.pos.x, T.z - V.pos.z) < 2.6 * M; if (ok || near) { explode(a, { scale: 1 }); continue; } }
+        if (V.K.horse && window.HorseMotion) HorseMotion.step(V, dt);   // the legs swing with the speed, the body bobs
         Drive.step(V, dt, W.filmCtx(V));
-        if (V.K.horse && V.group.children[0]) { const w = V.group.children[0]; a.gaitT = (a.gaitT || 0) + dt * Math.abs(V.speed) / M * 1.6; w.position.y = Math.abs(Math.sin(a.gaitT * Math.PI)) * 0.07 * M; w.rotation.x = Math.sin(a.gaitT * Math.PI * 2) * 0.025; }   /* a horse at a walk: no legs to swing, so the body rises and dips with the stride */
         if ((a.syncAcc = (a.syncAcc || 0) + dt) > 0.2 || Math.abs(V.speed) > 0.5 * M) { a.syncAcc = 0; syncProp(a); }   // a moving actor's box follows it every step, so a follow shot stays on it   // the prop's place and box follow the drive, so subjects and the clear line see where it is
       }
     }
@@ -901,8 +905,28 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
       ctx.textAlign = 'right'; ctx.fillText(`${(t * 24 | 0).toString().padStart(4, '0')}  SCAN`, w * 0.96, h * 0.05);
       ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.font = `${Math.round(h * 0.055)}px Helvetica, Arial, sans-serif`; ctx.fillStyle = '#dff6ff'; ctx.fillText(String(s.title).split('\n')[0], w / 2, h * 0.93, w * 0.9); ctx.restore();
     }
+    /** A shopping list in the corner of a live shot: a paper note, the first line its heading, then the items; an item written
+        '~milk' is struck through (got), '+donuts' is added in another hand, '?eggs' is written and then marked with a query (the world
+        resisted). It comes in over a third of a second. */
+    function drawList(ctx, w, h, s, t) {
+      const lines = String(s.title).split('\n'), fs = Math.round(h * 0.042), lh = fs * 1.35, pad = fs * 0.7, nw = w * 0.2, nh = pad * 2 + lh * lines.length, x0 = w * 0.035, y0 = h * 0.06, a = Math.min(1, (t || 0) / 0.35);
+      ctx.save(); ctx.globalAlpha = a; ctx.translate(x0 + nw / 2, y0 + nh / 2); ctx.rotate(-0.035); ctx.translate(-nw / 2, -nh / 2);
+      ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(fs * 0.18, fs * 0.22, nw, nh); ctx.fillStyle = '#fbf5df'; ctx.fillRect(0, 0, nw, nh);
+      ctx.strokeStyle = 'rgba(200,70,70,0.55)'; ctx.lineWidth = Math.max(1, h / 540); ctx.beginPath(); ctx.moveTo(pad * 0.9, 0); ctx.lineTo(pad * 0.9, nh); ctx.stroke();
+      ctx.strokeStyle = 'rgba(90,130,190,0.35)'; for (let i = 1; i <= lines.length; i++) { const y = pad + lh * i - fs * 0.15; ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(nw, y); ctx.stroke(); }
+      ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left';
+      lines.forEach((raw, i) => {
+        const mark = raw[0], text = /^[~+?]/.test(raw) ? raw.slice(1) : raw, x = pad * 1.4, y = pad + lh * (i + 1) - fs * 0.3;
+        ctx.font = `${i === 0 ? '700 ' : 'italic '}${fs}px Georgia, "Times New Roman", serif`; ctx.fillStyle = mark === '+' ? '#b0341e' : '#1d2a57'; ctx.fillText(text, x, y, nw - x - pad * 0.4);
+        const tw = Math.min(ctx.measureText(text).width, nw - x - pad * 0.4);
+        if (mark === '~') { ctx.strokeStyle = '#1d2a57'; ctx.lineWidth = Math.max(1.5, h / 300); ctx.beginPath(); ctx.moveTo(x - fs * 0.15, y - fs * 0.32); ctx.lineTo(x + tw + fs * 0.15, y - fs * 0.38); ctx.stroke(); }
+        if (mark === '?') { ctx.fillStyle = '#b0341e'; ctx.font = `700 ${fs}px Georgia, serif`; ctx.fillText('?', x + tw + fs * 0.35, y); }
+      });
+      ctx.restore();
+    }
     function drawTitle(ctx, w, h, s, t) {
       if (s.style === 'hud') return drawHud(ctx, w, h, s, t || 0);
+      if (s.style === 'list') return drawList(ctx, w, h, s, t || 0);
       ctx.fillStyle = '#000'; ctx.fillRect(0, 0, w, h); const logo = s.style === 'logo';
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = logo ? '#ffe81f' : '#4bd5ee';
       const lines = String(s.title).split('\n'), size = logo ? Math.round(h * 0.17) : Math.round(h * 0.06); ctx.font = `${logo ? '900' : '400'} ${size}px ${logo ? 'Impact, "Arial Black", Helvetica, sans-serif' : 'Helvetica, Arial, sans-serif'}`;

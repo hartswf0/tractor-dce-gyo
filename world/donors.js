@@ -33,6 +33,7 @@ const DONORS = {
   'grocery-store': { file: 'grocery-store.mpd', name: 'the corner grocery', target: 'The Checkout', scale: 1 },   /* built by tools/model.js from world/models/grocery-store.js: a real model at minifig scale, so scale 1 */
   'forest-clearing': { file: 'forest-clearing.mpd', name: 'the forest clearing', target: 'The Forest Skirmish', scale: 1 },
   'cave-of-shadows': { file: 'cave-of-shadows.mpd', name: 'the cave of shadows', target: 'The Cave', scale: 1 },
+  supermarket: { file: 'supermarket.mpd', name: 'the supermarket', target: 'The List', scale: 1 },   /* world/models/supermarket.js: the whole store */
   homestead: { file: 'homestead.mpd', name: 'the homestead', target: 'The Searchers', scale: 1 },   /* world/models/homestead.js: the log cabin, its porch and yard */
   buttes: { file: 'buttes.mpd', name: 'the buttes', target: 'The Searchers', scale: 1 },            /* world/models/buttes.js: the country the door frames */
   'simpsons-grocery': { file: 'simpsons-grocery.mpd', name: 'the grocery checkout', target: 'The Checkout', scale: 2.5 },

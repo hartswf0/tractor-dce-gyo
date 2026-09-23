@@ -193,7 +193,7 @@ function vehicleMPD(o) {
   const zf = -len * STUD / 2, zb = len * STUD / 2;    // front and back edges
   const g = new Grid();                              // the body is bricks too: a local grid in prop cells (x across, z along)
   const bx = -wide / 2, bz = -len / 2, floorY = kind === 'speeder' || kind === 'board' ? 2 : 4;   // plates above the ground the floor plate sits at
-  if (kind === 'horse') { L.push(line(col, 0, -57, 5, 0, '4493c01')); }   // a horse: the one-piece horse, its origin at the saddle 57 LDU over the hooves, centred nose to tail; ridden like a slow car
+  if (kind === 'horse') { L.push(line(col, 0, 0, 0, 0, '4493c01')); }   // a horse: the one-piece horse as it comes; the film lifts it onto its hooves and rigs its legs (world/horse-motion.js, as the Odyssey build does)
   else if (kind === 'boat') { g.fillBox(bx, bz + 1, wide, len - 2, 0, 1, col); g.fillBox(bx, bz + 1, 1, len - 2, 1, 4, col); g.fillBox(bx + wide - 1, bz + 1, 1, len - 2, 1, 4, col); g.fillBox(bx + 1, bz + len - 2, wide - 2, 1, 1, 4, col);
     g.part('3039', col, bx + 1, bz, 1, 0, 2, 2, BRICK); g.part('3040b', col, bx, bz, 1, 0, 1, 2, BRICK); g.part('3040b', col, bx + wide - 1, bz, 1, 0, 1, 2, BRICK);   // the bow: a slope in the middle, a slope each side
     g.fillBox(bx + 1, bz + 2, 1, 1, 4, 5, 71); g.part('3829c01', 0, bx + 1, bz + 3, 4, 0, 2, 1, 1); g.fillBox(bx + 1, bz + len - 3, wide - 2, 1, 4, 4 + BRICK, 15); }   // a helm and a cabin block at the stern

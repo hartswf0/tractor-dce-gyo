@@ -16,7 +16,7 @@ const KINDS = {
   forest: { name: 'a redwood forest', fog: [0x9fb389, 25, 380], sky: 0xb9c9b0, paint: (h, sl, x, z) => { const j = hash(x | 0, z | 0, 3) * 0.06; return [0.14 + j, 0.29 + j * 1.2, 0.11 + j * 0.5]; } },
   snowfield: { name: 'a snowfield', fog: [0xe6edf5, 20, 600], sky: 0xdfe8f2, paint: (h, sl, x, z) => { const j = hash(x | 0, z | 0, 5) * 0.03; return [0.93 + j, 0.95 + j, 0.98]; } },
   desert: { name: 'a desert', fog: [0xe8d9b5, 30, 700], sky: 0xe9d9b6, paint: (h, sl, x, z) => { const j = hash(x | 0, z | 0, 7) * 0.05; return [0.80 + j, 0.68 + j, 0.45]; } },
-  monument: { name: 'a monument valley', fog: [0xcf9a72, 90, 1100], sky: 0xd8a47c, paint: (h, sl, x, z) => { const j = hash(x | 0, z | 0, 7) * 0.05, w = 0.025 * Math.sin(x * 0.07 + z * 0.05); return [0.64 + j + w, 0.43 + j * 0.8 + w, 0.28 + j * 0.5]; } },   // red earth, a dusty haze, mesas standing round the horizon
+  monument: { name: 'a monument valley', fog: [0xd9aa88, 60, 760], sky: 0xdcae8c, paint: (h, sl, x, z) => { const j = hash(x | 0, z | 0, 7) * 0.05, w = 0.025 * Math.sin(x * 0.07 + z * 0.05); return [0.64 + j + w, 0.43 + j * 0.8 + w, 0.28 + j * 0.5]; } },   // red earth, a dusty haze, mesas standing round the horizon
   hall: { name: 'a hall', paint: (h, sl, x, z) => [0.47, 0.41, 0.31], fog: [0x1a1410, 60, 220], sky: 0x0d0a08 },
   /* the trailer's grounds: paint, fog and sky only; what stands on them is built by the scene */
   dunes: { name: 'sand dunes', fog: [0x9a8c72, 20, 260], sky: 0xa8a49a, paint: (h, sl, x, z) => { const j = hash(x | 0, z | 0, 7) * 0.05, w = 0.03 * Math.sin(x * 0.36 + z * 0.12); return [0.56 + j + w, 0.44 + j + w, 0.27 + w]; }, rel: true },
