@@ -1,0 +1,101 @@
+{
+  "errors": [],
+  "outOfReachRejected": true,
+  "incompleteCheckoutRejected": true,
+  "duplicatesRejected": true,
+  "receipt": {
+    "id": "grocer-3",
+    "lines": [
+      {
+        "id": "carrot",
+        "name": "Carrots",
+        "cents": 80
+      },
+      {
+        "id": "bread",
+        "name": "Bread · croissant",
+        "cents": 200
+      },
+      {
+        "id": "banana",
+        "name": "Bananas",
+        "cents": 120
+      }
+    ],
+    "total": 400
+  },
+  "replayMatches": true,
+  "events": [
+    {
+      "time": 4.75,
+      "type": "collect",
+      "item": "banana"
+    },
+    {
+      "time": 7.8,
+      "type": "collect",
+      "item": "bread"
+    },
+    {
+      "time": 11.75,
+      "type": "collect",
+      "item": "carrot"
+    },
+    {
+      "time": 17.2,
+      "type": "checkout",
+      "item": null
+    }
+  ],
+  "duration": 21.20000000000006,
+  "evidence": [
+    {
+      "t": 5.55,
+      "position": [
+        52,
+        8.64,
+        -16
+      ],
+      "yaw": 0.6323879395067724,
+      "pitch": 0.40707111888312936,
+      "collected": [
+        "banana"
+      ],
+      "paid": false,
+      "receipt": null
+    },
+    {
+      "t": 8.6,
+      "position": [
+        52,
+        8.64,
+        4
+      ],
+      "yaw": 0.9121736185003191,
+      "pitch": 0.5263095163866283,
+      "collected": [
+        "banana",
+        "bread"
+      ],
+      "paid": false,
+      "receipt": null
+    },
+    {
+      "t": 12.55,
+      "position": [
+        56,
+        8.64,
+        44
+      ],
+      "yaw": 0.9127630178397442,
+      "pitch": 0.3821123798427453,
+      "collected": [
+        "banana",
+        "bread",
+        "carrot"
+      ],
+      "paid": false,
+      "receipt": null
+    }
+  ]
+}
