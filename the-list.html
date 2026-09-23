@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="theme-color" content="#fbf5df" />
+<title>The List</title>
+<link rel="icon" type="image/svg+xml" href="ball-jar-favicon.svg" />
+<style>
+:root{--paper:#fbf5df;--ink:#1d2a57;--red:#b0341e;--blue:#1d3b8b;--gold:#ffd21f;--green:#2a7a2a;--dim:#5b5f6e}
+html,body{margin:0;background:#e9e4d2;color:var(--ink);font:16px/1.5 Georgia,"Times New Roman",serif}
+main{max-width:980px;margin:0 auto;padding:calc(18px + env(safe-area-inset-top)) 16px calc(28px + env(safe-area-inset-bottom))}
+h1{margin:0;font:700 44px/1.05 Georgia,serif}h1 small{display:block;font:italic 17px Georgia,serif;color:var(--dim);margin-top:6px}
+h2{margin:26px 0 8px;font:700 13px Helvetica,Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--blue)}
+.play{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0 6px}
+.play a{display:inline-flex;align-items:center;height:46px;padding:0 20px;border-radius:24px;background:var(--gold);color:#1b1b1b;font:700 16px Helvetica,Arial,sans-serif;text-decoration:none;box-shadow:0 3px 10px rgba(0,0,0,.25)}
+.play a.b{background:#fff;color:var(--blue)}.play a.c{background:var(--blue);color:#fff}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:10px}
+.note{padding:12px 14px 14px 26px;box-shadow:2px 3px 8px rgba(0,0,0,.2)}
+.note.list{background:var(--paper) linear-gradient(90deg,transparent 14px,rgba(200,70,70,.5) 14px,rgba(200,70,70,.5) 15px,transparent 15px);transform:rotate(-.8deg)}
+.note.rec{background:#f1eee4;border-top:5px solid var(--green);font-family:"Courier New",monospace;padding-left:16px;transform:rotate(.6deg)}
+.note h3{margin:0 0 4px;font:700 17px Georgia,serif}.note.rec h3{font:700 14px "Courier New",monospace;text-transform:uppercase}
+.note .fit{margin-top:8px;font:italic 14px Georgia,serif;color:var(--dim)}
+.arrow{display:flex;align-items:center;gap:10px;margin-top:10px;font:700 13px Helvetica,Arial,sans-serif}.arrow span{padding:4px 9px;border-radius:3px;background:#fff}.arrow b{color:var(--gold);font-size:20px;text-shadow:0 1px 0 #000}
+ol{margin:6px 0;padding-left:22px}li{margin:2px 0}
+.keys{font:14px Helvetica,Arial,sans-serif}kbd{padding:1px 6px;border:1px solid #333;border-radius:3px;background:#fff;font:700 12px ui-monospace,monospace}
+video{display:block;width:100%;max-width:960px;aspect-ratio:16/9;background:#000;border-radius:8px;margin-top:8px}
+.plan{font:14px Helvetica,Arial,sans-serif;color:#333}.plan td{padding:3px 10px 3px 0;vertical-align:top}.plan td:first-child{font-weight:700;color:var(--blue);white-space:nowrap}
+footer{margin-top:28px;font:13px Helvetica,Arial,sans-serif;color:var(--dim)}footer a{color:var(--ink)}
+@media (max-width:560px){h1{font-size:34px}.play a{height:42px;padding:0 16px;font-size:15px}}
+</style>
+</head>
+<body>
+<main>
+<h1>The List<small>A shopping game, and a film, about a shopping list and a detective's record</small></h1>
+<div class="play">
+  <a href="./cinerium.html?film=case-grocery&amp;shop&amp;noloc&amp;sky=day">Play it</a>
+  <a class="b" href="./word-to-world.html?film=case-grocery&amp;shop&amp;noloc&amp;sky=day">Play it in word to world</a>
+  <a class="c" href="#film">Watch the film</a>
+</div>
+<p class="keys">Walk with <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> (or the stick on a phone), <kbd>E</kbd> takes what is in front of you, <kbd>R</kbd> puts a thing back, <kbd>N</kbd> hides the notes. Pay at a checkout lane with <kbd>E</kbd>. The store is big; the first load takes a minute.</p>
+
+<h2>Two pieces of paper</h2>
+<div class="notes">
+  <div class="note list"><h3>Marge's list</h3>
+    <ol><li>five red apples</li><li>green bananas</li><li>black berries</li><li>extra virgin olive oil</li><li>organic flour</li><li>southwest style hash browns</li></ol>
+    <div class="fit">An order. It says how the cart <i>should</i> be. If the cart and the list disagree, the cart is wrong: put the thing back. You never rewrite the list.</div>
+    <div class="arrow"><span>THE LIST</span><b>&#10142;</b><span>THE CART</span> world-to-word</div>
+  </div>
+  <div class="note rec"><h3>Ned's record</h3>
+    <div>five red apples</div><div>green bananas</div><div style="color:#b0341e">plain flour ?</div>
+    <div class="fit">A description. Ned Flanders follows you and writes down what goes in the cart. If his record and the cart disagree, his record is wrong, and he fixes it. When a shelf hides what you take, he guesses.</div>
+    <div class="arrow"><span>THE CART</span><b>&#10142;</b><span>THE RECORD</span> word-to-world</div>
+  </div>
+</div>
+<p>This is Elizabeth Anscombe's example in <i>Intention</i> (1957, §32): a man shopping with a list, and a detective behind him writing down what he buys. The two lists can carry the same words and still work in opposite directions. If the list and the basket don't agree, the mistake is in what the man did. If the record and the basket don't agree, the mistake is in the record. Later philosophers called this <i>direction of fit</i>.</p>
+<p><i>Five red apples</i> is Wittgenstein's slip (<i>Philosophical Investigations</i>, §1). The shopkeeper finds the drawer marked APPLES, looks up RED against a colour sample, and counts to five as he takes them out. The words mean nothing without those three routines. In the store you do all three: the crate is marked APPLES, a red sample card sits beside it, and you take the apples one at a time.</p>
+
+<h2>The store</h2>
+<table class="plan">
+  <tr><td>In front</td><td>The vestibule with the carts, the five checkout lanes, the service desk, the bakery (French bread, buns, croissants, a cake, pies, cupcakes, doughnuts) and the flowers.</td></tr>
+  <tr><td>Left wall</td><td>Produce: the misted rack, the banana stand (green bananas on one half, yellow on the other), the fruit crates (the red and green APPLES crates first), the berry case.</td></tr>
+  <tr><td>Aisles 1 to 7</td><td>Numbered boards over each aisle. Aisle 3 is oils: the extra virgin sits next to the light, and the tag tells them apart. Aisle 4 is baking: the organic flour sits next to the plain. End caps carry Buzz Cola, Duff, Krusty-O's, Lard Lad and Mr. Sparkle.</td></tr>
+  <tr><td>Right wall</td><td>Frozen, behind glass doors: the southwest style hash browns next to the regular.</td></tr>
+  <tr><td>Back</td><td>Dairy along the wall, the meat and seafood counter in the corner, the ice cream chest.</td></tr>
+</table>
+<p>The store is a real LEGO model of 11,122 pieces, every one supported (<code>world/models/supermarket.js</code>): the manual is in <a href="./play/models/supermarket.json">play/models/supermarket.json</a>, and it opens in Hand Butter as thirteen zones (<a href="./play/hand-butter-scenes.html?scene=case-grocery">Hand Butter</a>).</p>
+
+<h2 id="film">The film</h2>
+<video controls playsinline preload="metadata" poster="films/case-grocery.jpg"><source src="films/case-grocery.mp4" type="video/mp4"></video>
+<p>Rehearse it as Homer in the <a href="./cinerium.html?film=case-grocery&amp;rehearse&amp;noloc">cinerium</a>, or see it with the other films on <a href="./films.html">the films page</a>.</p>
+<footer>Built in word to world. The notes, the store and the cast come from Watson Hartsoe's working paper <i>The Shopping List as a Partial Future-State Language</i> (2026).</footer>
+</main>
+</body>
+</html>

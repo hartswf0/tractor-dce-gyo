@@ -277,7 +277,7 @@ function program() {
   for (let i = 0; i < 7; i++) for (const j of [0, 2]) { berries.push(part('3022', GLASS, i * 2, j, 1)); for (const [a, b] of [[0, 0], [1, 0], [0, 1], [1, 1]]) berries.push(part('98138', BERRY[i], i * 2 + a, j + b, 1, { plate: 1 })); }
   ops.push(G('berry case', 8, 66, berries)); mark(8, 66, 14, 4);
   // ── the meat counter in the back west corner: a glass-fronted case, meats behind, the butcher's back counter ──
-  const meat = [box(0, 0, 20, 3, 1, WHITE)]; for (let i = 0; i < 10; i++) meat.push(part('3004', GLASS, i * 2, 0, 1));   // the glass front, then the meat behind it: turkeys, drumsticks, sausages, fish
+  const meat = [box(0, 0, 20, 3, 1, WHITE)]; for (let i = 0; i < 10; i++) meat.push(part('3023', GLASS, i * 2, 0, 1));   // a low glass lip, then the meat behind it: turkeys, drumsticks, sausages, fish
   meat.push(part('33048c01', 84, 0, 1, 1, { rot: 1 }), ...[4, 5, 6, 7].map(x => part('33057', 84, x, 1, 1)), part('33078', 70, 8, 1, 1), part('33078', 320, 8, 2, 1), part('64648', 71, 11, 1, 1, { rot: 1 }), part('64648', 15, 11, 2, 1, { rot: 1 }),
     part('33048c01', 84, 14, 1, 1, { rot: 1 }), part('33057', 84, 18, 1, 1), part('33057', 84, 19, 1, 1));
   ops.push(G('meat case', 3, 84, meat), G('butcher counter', 3, 91, [box(0, 0, 20, 2, 2, WHITE), slab(0, 0, 20, 2, DARK, { y: 2 }), part('3024', GREY, 4, 0, 2, { plate: 1 }), part('3024', GREY, 12, 1, 2, { plate: 1 })]));
