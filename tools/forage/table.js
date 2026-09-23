@@ -82,7 +82,24 @@ const EXTRA = {   // the thing a character is known by, in hand
   'character.eumaeus': s => ({ ...s, R: ['3957a', C.rbrown], back: null }), 'character.proteus': s => ({ ...s, top: C.sblue, face: FACE.white, beard: ['60750', C.white] }),
   'character.two-seized-sailors': s => s, 'character.elpenor': s => ({ ...s, R: ['2542', C.rbrown] }),
 };
-function character(a) { const r = rng(a.id), role = roleOf(a.name.toLowerCase()), base = ROLES[role](r), spec = (EXTRA[a.id] || (s => s))(base); return { comps: [fig(spec, a.name.toLowerCase())], role, base: C.tan }; }
+/* a giant is built, not worn: a brick figure three minifigures tall, legs bonded into a tunic, arms bonded into the chest,
+   a head with one great eye for the Cyclops; the stud grid holds it (the DSL bonds the courses) */
+function giant(name, o = {}) {
+  const skin = o.skin ?? C.nougat, cloth = o.cloth ?? C.dtan, hair = o.hair ?? C.dbrown, eye = o.eye ?? C.white, ops = [];
+  ops.push(K.box(1, 0, 2, 3, 1, C.rbrown), K.box(5, 0, 2, 3, 1, C.rbrown));                         // sandals
+  ops.push(K.box(1, 1, 2, 2, 4, skin, { y: 1 }), K.box(5, 1, 2, 2, 4, skin, { y: 1 }));             // legs
+  ops.push(K.box(0, 0, 8, 3, 3, cloth, { y: 5 }), K.slab(0, 0, 8, 3, C.rbrown, { y: 8 }));          // the tunic over the hips, a belt
+  ops.push(K.box(0, 0, 8, 3, 3, skin, { y: 8, plateOffset: 1 }));                                   // chest and arms, bonded
+  ops.push(K.box(1, 0, 6, 3, 1, cloth, { y: 11, plateOffset: 1 }));                                 // the tunic's shoulder
+  ops.push(K.box(2, 0, 4, 3, 3, skin, { y: 12, plateOffset: 1 }));                                  // the head
+  /* the face is the DSL's z = 2 row (LDraw −z, the way a minifigure faces); the hair falls down the back row, z = 0 */
+  if (o.cyclops) ops.push(K.cut(3, 2, 2, 1, 13, 1), K.part('3023', eye, 3, 2, 13, { plate: 1 }), K.part('3023', C.black, 3, 2, 13, { plate: 2 }), K.part('3023', eye, 3, 2, 13, { plate: 3 }));  // one eye, a brick wide: white, a black pupil band, white
+  else ops.push(K.cut(2, 2, 1, 1, 13, 1), K.cut(5, 2, 1, 1, 13, 1), K.part('3005', eye, 2, 2, 13, { plate: 1 }), K.part('3005', eye, 5, 2, 13, { plate: 1 }));
+  ops.push(K.slab(2, 0, 4, 3, hair, { y: 15, plateOffset: 1 }), K.box(2, 0, 4, 1, 2, hair, { y: 13, plateOffset: 1 }));   // hair over the crown and down the back
+  return kit(name, ops);
+}
+function character(a) { if (/^polyphemus/.test(a.name.toLowerCase())) return { comps: [giant('polyphemus', { cyclops: true })], role: 'giant', base: C.dbg }; if (/^antiphates/.test(a.name.toLowerCase())) return { comps: [giant('antiphates', { cloth: C.dred }), giant('queen', { cloth: C.purple, hair: C.black })], role: 'giant', base: C.dbg };
+  const r = rng(a.id), role = roleOf(a.name.toLowerCase()), base = ROLES[role](r), spec = (EXTRA[a.id] || (s => s))(base); return { comps: [fig(spec, a.name.toLowerCase())], role, base: C.tan }; }
 
 /* ── ensembles: the role, counted ── */
 const NUM = { two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12, twenty: 12 };
@@ -94,6 +111,7 @@ function ensemble(a) {
   if (/^telemachus, eumaeus, and philoetius|^eumaeus and philoetius|^tityus/.test(n0)) n = n0.split(/,| and /).filter(s => s.trim()).length;
   let role = 'servant'; for (const [re, ro] of ENSEMBLE_ROLE) if (re.test(n0)) { role = ro; break; }
   const mixed = role !== 'god' && /people|assembly|families|listeners|reaction|uproar|wave|dispersing|feast/.test(n0);
+  if (role === 'giant' || role === 'cyclops') { const g = []; for (let i = 0; i < Math.min(n, 4); i++) g.push(giant((role === 'cyclops' ? 'cyclops ' : 'giant ') + (i + 1), { cyclops: role === 'cyclops', cloth: choose(r, [C.dtan, C.rbrown, C.sgreen]), skin: choose(r, [C.nougat, C.tan, C.dtan]) })); return { comps: [group(n0, g, { gap: 2 })], role, base: C.dbg }; }
   const figs = []; for (let i = 0; i < n; i++) { const ro = mixed ? choose(r, ['woman', 'servant', 'suitor', 'herdsman']) : role === 'god' ? choose(r, ['god', 'goddess', 'god', 'hermes']) : role; figs.push(fig(ROLES[ro](r), ro + ' ' + (i + 1))); }
   if (/oars|rowing/.test(n0)) figs.forEach(f => f);
   return { comps: [group(n0, figs, { gap: 1, maxW: Math.min(20, 3 * Math.ceil(Math.sqrt(n)) + 2) })], role, base: C.tan };
@@ -101,7 +119,7 @@ function ensemble(a) {
 
 /* ── creatures ── */
 const ANIMALS = [
-  [/horse|team/, ['10509', C.dbrown], 2], [/pig|swine|boar/, ['87621', C.nougat], 5], [/cattle|heifer|bulls|cow/, ['64452', C.rbrown], 3], [/goat|ram|ewe|flock/, ['95341', C.white], 5],
+  [/ram\b|rams\b|ewe/, ['95341', C.white], 3], [/horse|team/, ['10509', C.dbrown], 2], [/pig|swine|boar/, ['87621', C.nougat], 5], [/cattle|heifer|bulls|cow/, ['64452', C.rbrown], 3], [/goat|ram|ewe|flock/, ['95341', C.white], 5],
   [/dog|hound|argos/, ['92586', C.rbrown], 2], [/wolves|lions/, ['48812', C.dbg], 3], [/eagle|hawk/, ['11467', C.rbrown], 2], [/geese|goose|dove/, ['12891', C.white], 6], [/stag/, ['10509', C.rbrown], 1],
 ];
 function creature(a) {
