@@ -172,7 +172,7 @@ Film.SCENES['case-searchers'] = { name: 'The Searchers', time: 'day', weather: '
     { name: 'The approach', on: 'ethan', pos: [-3.4, 1.5, 3.4], tgt: [1.6, 2.4, 10.5], lens: 40, sec: 5.2, shift: 'approach', look: SUN,
       acts: [{ who: 'ethan-horse', to: 'ride-in', speed: 0.8 }],
       events: [BEAT('approach', 'ethan', 0, 5.2, 'he brings her the last of the way', 'weariness'), P('ethan', 'weariness', 0.5), SND('clatter', 0.4), SND('clatter', 1.3), SND('clatter', 2.2), P('debbie', 'guarded', 2.4), SAY('ethan', "Let's go home, Debbie.", 2.6, 1.8), SND('clatter', 3.1)] },
-    { name: 'Home', on: 'debbie', pos: [4.6, 1.9, -1.5], tgt: [-1.2, 1.6, 4.5], lens: 40, sec: 7.3, shift: 'home', look: PORCH,
+    { name: 'Home', on: 'debbie', pos: [4.3, 1.9, -1.3], tgt: [-2.5, 1.6, 5.5], lens: 40, sec: 7.3, shift: 'home', look: PORCH,
       acts: [{ who: 'ethan', leave: true, look: 'martha' }, { who: 'debbie', leave: true, to: 'porch-d', walk: true, at: 0.6 }, { who: 'martha', to: 'porch-m', walk: true, at: 3.4 }, { who: 'aaron', look: 'debbie' }, { who: 'ethan-horse', to: 'pasture', speed: 0.35, at: 2.4 }],
       events: [BEAT('home', 'debbie', 0, 7.3, 'the girl goes up to the porch; the woman who waited turns and takes her in', 'tenderness'), LOOK('ethan', 'martha', 0.3), LOOK('martha', 'debbie', 0.6, true), P('martha', 'tenderness', 1.0), SAY('martha', 'Debbie.', 2.6, 1.0), P('aaron', 'joy', 3.0), P('ethan', 'guarded', 1.0)] },
     { name: 'Inside', on: 'ethan', pos: INSIDE, pos2: [0.35, 1.9, -6.6], tgt: DOOR, lens: 50, lens2: 44, sec: 9.75, shift: 'inside', look: ROOM,

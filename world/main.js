@@ -227,7 +227,7 @@ function layStreets(G, win) {
   const streets = Ground.streets(G, win, M); if (streets) W.scene.add(streets);
   if (W.lamps) { W.lamps.lay(G, win.roads || [], Ground.FOOT, Worlds.PRESETS[W.world].lights); W.lamps.setNight(W.night || 0); }
   if (W.flora) { W.flora.lay(G, win, Ground.FOOT); W.flora.setNight(W.night || 0); }
-  if (W.traffic) { W.traffic.setRoads(win.roads || []); W.traffic.lay(G, win); }
+  if (W.traffic && !W.setUp) { W.traffic.setRoads(win.roads || []); W.traffic.lay(G, win); }
   if (W.vehicles && W.ready) W.vehicles.lay();
   try { console.info(`[roads] ${(win.roads || []).length} roads · ${roads ? roads.geometry.attributes.position.count / 3 : 0} triangles · streets ${streets ? streets.geometry.attributes.position.count / 3 : 0} triangles · ${(win.areas || []).length} lots`); } catch (e) { }
 }
@@ -853,7 +853,7 @@ async function boot() {
     paintPalette();
     if (W.dormant) { const why = W.dormant; W.dormant = null; W.ready = true; goDormant(why); return; }   // another tab claimed the graphics while this one was still loading
     stage('bricks', 'done', ''); W.last = performance.now(); W.ready = true; VEIL.readyAt = performance.now() / 1000; veilTick(false); if (W.vehicles) W.vehicles.lay(); $('#veil').classList.add('gone'); $('#menu').classList.remove('open'); paint(); hintFor();
-    W.traffic.prepare().then(() => { if (W.win && W.G) { W.traffic.setRoads(W.win.roads || []); W.traffic.lay(W.G, W.win); } }).catch(e => console.warn('traffic', e));   // the cars come once the world is up
+    W.traffic.prepare().then(() => { if (W.win && W.G) { const off = !!W.setUp; W.traffic.setRoads(off ? [] : (W.win.roads || [])); W.traffic.lay(W.G, off ? { roads: [], areas: [] } : W.win); } })   /* a film set that went up while the cars were still loading keeps its ground clear of them */.catch(e => console.warn('traffic', e));   // the cars come once the world is up
     if (Q.get('room')) joinRoom(Q.get('room'), true);
     bindMaster(); checkInbox(); if (window.__momento && window.Film) bindFilm();
   } catch (e) { console.error(e); stall('Could not build the world: ' + (e.message || e)); }
