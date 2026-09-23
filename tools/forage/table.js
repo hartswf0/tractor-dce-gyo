@@ -31,29 +31,29 @@ function rng(seed) { let h = 2166136261; for (const ch of String(seed)) { h ^= c
 const choose = (r, a) => a[Math.floor(r() * a.length)];
 
 /* ── the wardrobe: roles as figure specs ── */
-const FACE = { man: '3626bp01', brows: '3626bp05', beard: '3626bp39', grey: '3626bp0a', old: '3626bp0e', stern: '3626bp0f', woman: '3626bp02', lady: '3626bp09', lips: '3626bp08', rough: '3626bp35', droop: '3626bp3n', angry: '3626bp3r', moustache: '3626bp03' };
-const HAIR = { male: '3901', long: '11255', female: '12890', bun: '13251', wavy: '20595', braid: '13766', short: '11256', swept: '32602' };
+const FACE = { man: '3626bp01', brows: '3626bp05', beard: '3626bp39', grey: '3626bp0a', white: '3626bp8m', sad: '3626bp4g', black: '3626bpq5', brown: '3626bp88', trim: '3626bpsg', greyb: '3626bps4', old: '3626bp0e', stern: '3626bp0f', woman: '3626bp02', lady: '3626bp09', lips: '3626bp08', rough: '3626bp35', droop: '3626bp3n', angry: '3626bp3r', moustache: '3626bp03' };
+const HAIR = { male: '3901', long: '3901', female: '12890', bun: '13251', wavy: '11256', braid: '13766', short: '11256', swept: '32602' };
 const ROLES = {
-  zeus: r => ({ torso: '973p0w', top: C.white, legs: C.white, face: FACE.grey, hat: ['18165', C.gold], beard: ['10052', C.white], R: ['27256', C.tYellow], cape: C.dblue }),
-  poseidon: r => ({ torso: '973p2q', top: C.dturq, legs: C.dblue, face: FACE.beard, hat: ['18165', C.cgold], beard: ['10052', C.lbg], R: ['43899', C.gold] }),
+  zeus: r => ({ torso: '973p0w', top: C.white, legs: C.white, face: FACE.white, hat: ['39262', C.gold], beard: ['60750', C.white], R: ['27256', C.tYellow], cape: C.dblue }),
+  poseidon: r => ({ torso: '973p2q', top: C.dturq, legs: C.dblue, face: FACE.greyb, hat: ['39262', C.gold], beard: ['93069', C.lbg], R: ['43899', C.gold] }),
   athena: r => ({ torso: '973p2z', top: C.silver, legs: C.white, face: FACE.lady, hat: ['98366', C.gold], R: ['4497', C.gold], L: ['3876', C.gold], cape: C.dblue }),
-  hermes: r => ({ torso: '973p0w', top: C.white, legs: C.tan, face: FACE.man, hat: ['95676', C.gold], R: ['36752a', C.gold], cape: C.red }),
+  hermes: r => ({ torso: '973p0w', top: C.white, legs: C.tan, face: FACE.man, hat: ['98366', C.gold], R: ['36752a', C.gold], cape: C.red }),
   goddess: r => ({ torso: '973p0w', top: choose(r, [C.white, C.dturq, C.lilac, C.azure]), legs: C.white, face: FACE.lips, hat: [choose(r, [HAIR.female, HAIR.bun, HAIR.braid]), choose(r, [C.black, C.dbrown, C.yellow])], R: ['36752a', C.gold] }),
-  god: r => ({ torso: '973p0w', top: C.white, legs: C.white, face: FACE.beard, hat: ['39262', C.gold], beard: ['10052', C.lbg], cape: choose(r, [C.dred, C.dblue]) }),
-  hero: r => ({ torso: '973p45', top: C.dred, legs: C.dtan, face: FACE.beard, hat: [HAIR.male, C.dbrown], R: ['3847', C.lbg], cape: C.dred }),
-  warrior: r => ({ torso: choose(r, ['973p45', '973p41', '973p2z']), top: choose(r, [C.dred, C.rbrown, C.dtan]), legs: choose(r, [C.dtan, C.rbrown, C.dbrown]), face: choose(r, [FACE.beard, FACE.stern, FACE.rough]), hat: [choose(r, ['98366', '95676', '3844']), choose(r, [C.gold, C.lbg, C.dbg])], R: [choose(r, ['4497', '3847', '43899']), C.lbg], L: [choose(r, ['3876', '92747', '2586']), choose(r, [C.gold, C.dred, C.tan])] }),
-  king: r => ({ torso: '973p1p', top: choose(r, [C.dred, C.purple, C.dblue]), legs: C.dtan, face: choose(r, [FACE.beard, FACE.grey]), hat: ['18165', C.gold], beard: r() < 0.5 ? ['10052', C.lbg] : null, R: ['95049', C.gold], cape: choose(r, [C.dred, C.purple]) }),
+  god: r => ({ torso: '973p0w', top: C.white, legs: C.white, face: FACE.greyb, hat: ['39262', C.gold], beard: ['93223', C.lbg], cape: choose(r, [C.dred, C.dblue]) }),
+  hero: r => ({ torso: '973p45', top: C.dred, legs: C.dtan, face: FACE.brown, hat: [HAIR.male, C.dbrown], R: ['3847', C.lbg], cape: C.dred }),
+  warrior: r => ({ torso: choose(r, ['973p45', '973p41', '973p2z']), top: choose(r, [C.dred, C.rbrown, C.dtan]), legs: choose(r, [C.dtan, C.rbrown, C.dbrown]), face: choose(r, [FACE.brown, FACE.black, FACE.trim, FACE.stern]), hat: [choose(r, ['98366', '95676', '3844']), choose(r, [C.gold, C.lbg, C.dbg])], R: [choose(r, ['4497', '3847', '43899']), C.lbg], L: [choose(r, ['3876', '92747', '2586']), choose(r, [C.gold, C.dred, C.tan])] }),
+  king: r => ({ torso: '973p1p', top: choose(r, [C.dred, C.purple, C.dblue]), legs: C.dtan, face: choose(r, [FACE.greyb, FACE.trim, FACE.black]), hat: ['39262', C.gold], beard: r() < 0.5 ? ['93223', C.lbg] : null, R: ['95049', C.gold], cape: choose(r, [C.dred, C.purple]) }),
   queen: r => ({ torso: '973p0w', top: choose(r, [C.dred, C.purple, C.dblue, C.white]), legs: C.white, face: FACE.lady, hat: [HAIR.bun, choose(r, [C.dbrown, C.black])], L: ['33322', C.gold] }),
   woman: r => ({ torso: choose(r, ['973p0w', '973p3y', '973']), top: choose(r, [C.white, C.tan, C.dtan, C.sblue, C.sgreen, C.lilac]), legs: choose(r, [C.white, C.tan, C.dtan]), face: choose(r, [FACE.woman, FACE.lady, FACE.lips]), hat: [choose(r, [HAIR.female, HAIR.bun, HAIR.braid, HAIR.wavy]), choose(r, [C.black, C.dbrown, C.rbrown, C.yellow, C.dtan])] }),
   maid: r => ({ torso: choose(r, ['973p3y', '973']), top: choose(r, [C.tan, C.dtan, C.white]), legs: C.tan, face: FACE.woman, hat: [choose(r, [HAIR.bun, HAIR.female]), choose(r, [C.black, C.dbrown, C.rbrown])], R: [choose(r, ['3899', '2343', '4332']), choose(r, [C.white, C.gold, C.rbrown])] }),
   suitor: r => ({ torso: choose(r, ['973p1p', '973p0d', '973p3l']), top: choose(r, [C.dred, C.purple, C.dblue, C.dgreen, C.red]), legs: choose(r, [C.black, C.dtan, C.white]), face: choose(r, [FACE.brows, FACE.moustache, FACE.angry, FACE.droop]), hat: [choose(r, [HAIR.male, HAIR.short, HAIR.swept, HAIR.wavy]), choose(r, [C.black, C.dbrown, C.rbrown, C.yellow])], R: [choose(r, ['2343', '3899', '2343']), choose(r, [C.gold, C.silver])] }),
   servant: r => ({ torso: choose(r, ['973p3y', '973p3a', '973']), top: choose(r, [C.tan, C.dtan, C.rbrown]), legs: choose(r, [C.rbrown, C.dtan, C.tan]), face: choose(r, [FACE.man, FACE.rough, FACE.droop]), hat: [choose(r, [HAIR.male, HAIR.short]), choose(r, [C.dbrown, C.black, C.lbg])], R: [choose(r, ['4496', '3899', '4332']), C.rbrown] }),
-  herdsman: r => ({ torso: '973p3y', top: choose(r, [C.rbrown, C.dtan, C.olive]), legs: C.rbrown, face: choose(r, [FACE.old, FACE.rough, FACE.droop]), hat: [HAIR.male, choose(r, [C.lbg, C.dbrown])], R: ['4496', C.rbrown], cape: C.rbrown }),
-  beggar: r => ({ torso: '973p3a', top: C.dtan, legs: C.rbrown, face: FACE.old, hat: [HAIR.long, C.lbg], beard: ['10052', C.lbg], R: ['3957a', C.rbrown], back: ['10169', C.tan] }),
-  seer: r => ({ torso: '973p0w', top: choose(r, [C.white, C.dtan, C.lbg]), legs: C.white, face: FACE.old, hat: [HAIR.long, C.white], beard: ['10052', C.white], R: ['95049', C.gold] }),
-  bard: r => ({ torso: '973p1p', top: choose(r, [C.dblue, C.dred, C.white]), legs: C.white, face: FACE.old, hat: [HAIR.long, C.lbg], beard: ['15501', C.lbg], R: ['95050', C.gold] }),
+  herdsman: r => ({ torso: '973p3y', top: choose(r, [C.rbrown, C.dtan, C.olive]), legs: C.rbrown, face: choose(r, [FACE.sad, FACE.rough, FACE.brown]), hat: [HAIR.male, choose(r, [C.lbg, C.dbrown])], R: ['4496', C.rbrown], cape: C.rbrown }),
+  beggar: r => ({ torso: '973p3a', top: C.dtan, legs: C.rbrown, face: FACE.sad, hat: [HAIR.long, C.lbg], beard: ['93223', C.lbg], R: ['3957a', C.rbrown], back: ['10169', C.tan] }),
+  seer: r => ({ torso: '973p0w', top: choose(r, [C.white, C.dtan, C.lbg]), legs: C.white, face: FACE.white, hat: [HAIR.long, C.white], beard: ['60749', C.white], R: ['95049', C.gold] }),
+  bard: r => ({ torso: '973p1p', top: choose(r, [C.dblue, C.dred, C.white]), legs: C.white, face: FACE.sad, hat: [HAIR.long, C.lbg], beard: ['93223', C.lbg], R: ['95050', C.gold] }),
   prince: r => ({ torso: '973p1p', top: C.dblue, legs: C.dtan, face: FACE.brows, hat: [HAIR.swept, C.dbrown], R: ['4497', C.lbg], cape: C.dblue }),
-  sailor: r => ({ torso: choose(r, ['973p3y', '973p3a', '973p32']), top: choose(r, [C.white, C.tan, C.dtan, C.sblue]), legs: choose(r, [C.rbrown, C.dtan, C.dblue]), face: choose(r, [FACE.rough, FACE.beard, FACE.droop, FACE.man]), hat: [choose(r, [HAIR.male, HAIR.short, HAIR.long]), choose(r, [C.black, C.dbrown, C.rbrown])], R: ['2542', C.rbrown] }),
+  sailor: r => ({ torso: choose(r, ['973p3y', '973p3a', '973p32']), top: choose(r, [C.white, C.tan, C.dtan, C.sblue]), legs: choose(r, [C.rbrown, C.dtan, C.dblue]), face: choose(r, [FACE.rough, FACE.brown, FACE.black, FACE.man]), hat: [choose(r, [HAIR.male, HAIR.short, HAIR.long]), choose(r, [C.black, C.dbrown, C.rbrown])], R: ['2542', C.rbrown] }),
   shade: r => ({ ghost: C.tClear, ghostHead: C.white, face: FACE.stern }),
   giant: r => ({ troll: choose(r, [C.dtan, C.sgreen, C.dbg]), R: ['3957a', C.rbrown] }),
   cyclops: r => ({ troll: C.nougat, R: ['3957a', C.rbrown] }),
@@ -77,9 +77,9 @@ const EXTRA = {   // the thing a character is known by, in hand
   'character.odysseus': s => ({ ...s, L: ['4499', C.rbrown] }), 'character.odysseus-restored': s => ({ ...s, torso: '973p2z', top: C.silver, cape: C.dred, L: ['4499', C.rbrown] }),
   'character.odysseus-revealed': s => ({ ...s, L: ['4499', C.rbrown], back: ['4498', C.rbrown] }), 'character.penelope-at-the-loom': s => ({ ...s, R: ['4332', C.rbrown] }),
   'character.circe': s => ({ ...s, top: C.purple, R: ['36752a', C.gold], L: ['2343', C.gold] }), 'character.calypso': s => ({ ...s, top: C.dturq, R: ['19119c01', C.green] }),
-  'character.eurycleia': s => ({ ...s, hat: [HAIR.bun, C.white], face: FACE.old, R: ['2654a', C.lbg] }), 'character.argos': s => s,
+  'character.eurycleia': s => ({ ...s, hat: [HAIR.bun, C.white], face: FACE.woman, R: ['2654a', C.lbg] }), 'character.argos': s => s,
   'character.helen-at-the-horse': s => ({ ...s, R: ['95050', C.gold] }), 'character.nausicaa': s => ({ ...s, top: C.white, R: ['4332', C.tan] }),
-  'character.eumaeus': s => ({ ...s, R: ['3957a', C.rbrown], back: null }), 'character.proteus': s => ({ ...s, top: C.sblue, face: FACE.old, beard: ['10052', C.white] }),
+  'character.eumaeus': s => ({ ...s, R: ['3957a', C.rbrown], back: null }), 'character.proteus': s => ({ ...s, top: C.sblue, face: FACE.white, beard: ['60750', C.white] }),
   'character.two-seized-sailors': s => s, 'character.elpenor': s => ({ ...s, R: ['2542', C.rbrown] }),
 };
 function character(a) { const r = rng(a.id), role = roleOf(a.name.toLowerCase()), base = ROLES[role](r), spec = (EXTRA[a.id] || (s => s))(base); return { comps: [fig(spec, a.name.toLowerCase())], role, base: C.tan }; }
@@ -93,8 +93,8 @@ function ensemble(a) {
   const n0 = a.name.toLowerCase(), r = rng(a.id); let n = 5; for (const [w, v] of Object.entries(NUM)) if (new RegExp('\\b' + w + '\\b').test(n0)) n = v;
   if (/^telemachus, eumaeus, and philoetius|^eumaeus and philoetius|^tityus/.test(n0)) n = n0.split(/,| and /).filter(s => s.trim()).length;
   let role = 'servant'; for (const [re, ro] of ENSEMBLE_ROLE) if (re.test(n0)) { role = ro; break; }
-  const mixed = /people|assembly|families|listeners|reaction|uproar|wave|dispersing|feast/.test(n0);
-  const figs = []; for (let i = 0; i < n; i++) { const ro = mixed ? choose(r, ['woman', 'servant', 'suitor', 'herdsman']) : role; figs.push(fig(ROLES[ro](r), ro + ' ' + (i + 1))); }
+  const mixed = role !== 'god' && /people|assembly|families|listeners|reaction|uproar|wave|dispersing|feast/.test(n0);
+  const figs = []; for (let i = 0; i < n; i++) { const ro = mixed ? choose(r, ['woman', 'servant', 'suitor', 'herdsman']) : role === 'god' ? choose(r, ['god', 'goddess', 'god', 'hermes']) : role; figs.push(fig(ROLES[ro](r), ro + ' ' + (i + 1))); }
   if (/oars|rowing/.test(n0)) figs.forEach(f => f);
   return { comps: [group(n0, figs, { gap: 1, maxW: Math.min(20, 3 * Math.ceil(Math.sqrt(n)) + 2) })], role, base: C.tan };
 }
@@ -233,6 +233,8 @@ const hall = (name, w, d, col, floor = C.tan) => kit(name, [K.slab(0, 0, w, d, f
 const hut = (name, col = C.rbrown) => kit(name, [K.box(0, 0, 8, 6, 3, col, { hollow: true }), K.door(3, 5, 's', 0, C.rbrown), K.roof(0, 0, 8, 6, 3, 'gable', C.dtan)]);
 const seats = (n = 3, col = C.lbg) => kit('stone seats', [K.stairs(0, 0, 's', n, 10, col)]);
 const altar = () => kit('altar', [K.box(0, 0, 3, 2, 1, C.white), K.part('3062b', C.orange, 1, 0, 1), K.part('3062b', C.yellow, 1, 1, 1)]);
+const FURN = () => require('./sets.js').FURN;
+const furnished = (name, w, d, wall, items) => { const S2 = require('./sets.js'); return S2.room(name, w, d, S2.floor(w, d, C.dtan, C.tan), [[S2.walls(w, d, 5, wall, { band: C.dred }), 0, 0, 2, -8], ...items], {}).comp; };
 /* each location: its components (the first the donor set, if any) */
 const LOC = {
   'location.aeaea-coast-and-forest': r => [donor('6071', null, { name: "forestmen's crossing" }), ...trees(3, r)],
@@ -247,26 +249,26 @@ const LOC = {
   'location.eumaeuss-pig-farm': r => [hut('swineherd hut'), kit('sties', [K.box(0, 0, 12, 8, 1, C.rbrown, { hollow: true })]), part('87621', C.nougat, { n: 4, name: 'pigs' }), part('92586', C.rbrown, { name: 'dog' })],
   'location.farm-battlefield-at-peace': r => [hut('laertes farm'), ...trees(2, r, C.olive), kit('field wall', [K.box(0, 0, 16, 1, 1, C.dbg)])],
   'location.farm-to-palace-route': r => [kit('road', [K.slab(0, 0, 6, 24, C.dtan)]), ...trees(3, r, C.olive), ...rocks(2, r)],
-  'location.farmhouse-feast': r => [hut('farmhouse'), PROP_KITS.table('feast')],
+  'location.farmhouse-feast': r => [hut('farmhouse'), FURN().table(), FURN().bench(), FURN().bench(), FURN().fire(), FURN().pithos()],
   'location.feast-hall-at-attentive-silence': r => [hall('feast hall', 24, 16, C.tan), PROP_KITS.table('feast'), PROP_KITS.table('feast')],
   'location.fight-threshold': r => [donor('6080', '6080 - Front.ldr', { name: 'threshold' }), PROP_KITS.axes('')],
   'location.forest-meeting-path': r => [donor('forest-clearing', null, { name: 'forest path', crop: [-20, -8, 20, 8] })],
   'location.goat-island-harbor': r => [donor('6278', null, { name: 'goat island', crop: [-20, -16, 20, 16] }), part('95341', C.white, { n: 4, name: 'goats' })],
-  'location.hand-mills-and-grain-room': r => [hall('grain room', 16, 12, C.tan), PROP_KITS.mill(''), PROP_KITS.mill(''), part('10169', C.tan, { n: 3, step: 40, name: 'grain sacks' })],
+  'location.hand-mills-and-grain-room': r => [furnished('the grain room', 22, 18, C.tan, [...[-7, -1, 5].map(x => [PROP_KITS.mill(''), x, -5]), [FURN().pithos(), -8, 3], [FURN().pithos(), -5, 4], [part('10169', C.tan, { n: 3, step: 40, name: 'grain sacks' }), 5, 4]])],
   'location.island-of-syria-memory': r => [donor('6245', '6245 - Harbor Sentry.ldr', { name: 'harbour' }), hut('syrian house', C.white)],
   'location.ismarus-coast-and-town': r => [donor('21041', null, { name: 'town wall' }), hut('ciconian house', C.white), water(10, 6)],
   'location.ithaca-town-road-and-fountain': r => [kit('road', [K.slab(0, 0, 6, 20, C.dtan)]), kit('fountain', [K.box(0, 0, 6, 6, 1, C.white, { hollow: true }), K.slab(1, 1, 4, 4, C.tDBlue), ...column(C.white, 3, 2, 2)]), ...trees(2, r, C.olive)],
   'location.ithacan-assembly-ground': r => [seats(3), seats(3), kit('speaker stone', [K.box(0, 0, 2, 2, 1, C.white)])],
   'location.ithacan-meeting-and-funeral-ground': r => [seats(2), altar(), ...trees(2, r, C.olive)],
   'location.ithacan-shore': r => [donor('ithaca-cove', null, { name: 'ithacan shore', crop: [-20, -16, 20, 16] })],
-  'location.laertess-orchard': r => [...trees(6, r, C.olive), kit('terrace wall', [K.box(0, 0, 16, 1, 1, C.dbg)])],
+  'location.laertess-orchard': r => [...trees(6, r, C.olive), kit('terrace wall', [K.box(0, 0, 16, 1, 1, C.dbg)]), FURN().pithos(), FURN().bench()],
   'location.lotus-shore-and-meadow': r => [donor('6278', null, { name: 'lotus shore', crop: [-20, -16, 20, 16] }), part('19119c01', C.green, { n: 3, step: 40, name: 'lotus' })],
-  'location.marriage-chamber': r => [hall('chamber', 16, 12, C.tan), PROP_KITS.bed('')],
+  'location.marriage-chamber': r => [furnished('the marriage chamber', 22, 18, C.tan, [[FURN().bed(), -4, -4], [kit('olive trunk', [K.part('3941', C.rbrown, 0, 0, 0), K.part('3941', C.rbrown, 0, 0, 1), K.part('3941', C.rbrown, 0, 0, 2), K.part('3941', C.rbrown, 0, 0, 3)]), -4, -9], [FURN().loom(), 6, -6], [FURN().chest(), 6, 2], [FURN().chair(), 0, 3], [FURN().urn(), -8, 6], [FURN().brazier(), 8, 6]])],
   'location.megaron-hall': r => [hall('megaron', 28, 20, C.tan, C.dtan), colonnade(4, C.white)],
-  'location.menelauss-palace': r => [donor('21022', null, { name: "menelaus's colonnade" }), PROP_KITS.chest('gold')],
+  'location.menelauss-palace': r => [furnished("menelaus's hall", 30, 22, C.white, [[FURN().throne(C.gold, C.dred), -3, -8], [FURN().throne(C.gold, C.purple), 3, -8], [FURN().column(7), -9, -3], [FURN().column(7), 9, -3], [FURN().hearth(), 0, -2], [FURN().bath(), -9, 5], [FURN().table(), 6, 4], [FURN().chest(), 11, 7], [FURN().urn(), -12, 8]])],
   'location.mount-parnassus-hunt': r => [...rocks(4, r), ...trees(3, r, C.dgreen), part('87621', C.dbrown, { name: 'boar' })],
   'location.narrow-monster-strait': r => [donor('6279', '6279 - Island.ldr', { name: 'scylla rock' }), environment({ id: 'charybdis', name: 'charybdis' }).comps[0], water(12, 8)],
-  'location.nestors-palace-and-courtyard': r => [donor('21022', null, { name: "nestor's palace" }), seats(2)],
+  'location.nestors-palace-and-courtyard': r => [donor('21022', null, { name: "nestor's palace" }), FURN().altar(), FURN().couch(), FURN().table(), FURN().bath()],
   'location.nymph-cave': r => [donor('7327', '7327 - Stairway.ldr', { name: 'cave mouth' }), ...rocks(3, r), part('4429', C.tan, { n: 2, name: 'mixing bowls' })],
   'location.odysseuss-palace-threshold-and-hall': r => [donor('6080', '6080 - Front.ldr', { name: 'palace front' }), hall('hall', 20, 14, C.tan, C.dtan)],
   'location.ogygia-cavern-and-grove': r => [donor('ogygia-grove', null, { name: 'ogygia grove', crop: [-20, -16, 20, 16] })],
@@ -276,7 +278,7 @@ const LOC = {
   'location.olympian-decision-space': r => [colonnade(4, C.white), cloud(C.white, 10, 6), cloud(C.tClear, 6, 4)],
   'location.palace-dung-heap-and-gate': r => [donor('6080', '6080 - Drawbridge.ldr', { name: 'gate' }), kit('dung heap', [K.rock(0, 0, 6, 4, 1, C.dbrown)])],
   'location.palace-outer-yard': r => [donor('6080', '6080 - Back Left.ldr', { name: 'outer wall' }), kit('yard', [K.slab(0, 0, 16, 12, C.dtan)]), altar()],
-  'location.palace-storeroom': r => [hall('storeroom', 16, 12, C.tan), part('4429', C.tan, { n: 4, name: 'wine jars' }), PROP_KITS.chest('')],
+  'location.palace-storeroom': r => [furnished('the storeroom', 22, 18, C.tan, [[FURN().shelf(), -6, -7], [FURN().shelf(), 3, -7], [FURN().pithos(), -8, 0], [FURN().pithos(), -5, 1], [FURN().pithos(), -2, 0], [FURN().barrel(), 5, 1], [FURN().barrel(), 8, 0], [FURN().chest(), 6, 5], [FURN().rack(), -5, 5]])],
   'location.phaeacian-assembly-ground': r => [seats(3, C.white), seats(3, C.white)],
   'location.phaeacian-athletic-field': r => [kit('field', [K.slab(0, 0, 24, 16, C.green)]), part('4032', C.lbg, { name: 'discus' }), seats(2, C.white)],
   'location.phaeacian-feast-hall': r => [hall('phaeacian hall', 24, 16, C.white, C.tan), PROP_KITS.table('feast')],
@@ -300,11 +302,14 @@ const LOC = {
   'location.telepylus-harbor': r => [donor('6279', '6279 - Island.ldr', { name: 'harbour cliffs' }), donor('6279', '6279 - Boat 1.ldr', { name: 'trapped boat' })],
   'location.thrinacia': r => [donor('6264', null, { name: 'thrinacia', crop: [-20, -14, 20, 14] }), part('64452', C.white, { n: 3, step: 100, name: "helios's cattle" })],
   'location.troy-interior-memory-set': r => [donor('21041', null, { name: 'walls of troy' }), donor('7327', '7327 - Column with Arch.ldr', { name: 'gate arch' })],
-  'location.upper-chamber-and-stair': r => [hall('upper chamber', 16, 12, C.tan), kit('stair', [K.stairs(0, 0, 'e', 6, 3, C.lbg)])],
-  'location.weapon-storeroom': r => [hall('weapon room', 14, 10, C.tan), PROP_KITS.rack('')],
+  'location.upper-chamber-and-stair': r => [furnished('the upper chamber', 22, 18, C.tan, [[FURN().stair(), 7, -5], [FURN().bed(), -6, -4], [FURN().loom(), -1, -6], [FURN().couch(), -3, 4], [FURN().chest(), 5, 5], [FURN().brazier(), 8, 6]])],
+  'location.weapon-storeroom': r => [furnished('the weapon room', 20, 16, C.tan, [[FURN().rack(), -4, -5], [FURN().rack(), 4, -5], [PROP_KITS.rack(''), 0, 1], [FURN().chest(), -6, 4], [FURN().stair(), 6, 3]])],
   'location.wooden-horse-interior': r => [kit('horse belly', [K.box(0, 0, 16, 8, 3, C.rbrown, { hollow: true }), K.roof(0, 0, 16, 8, 3, 'gable', C.rbrown)]), group('hidden', [0, 1, 2].map(i => fig(ROLES.warrior(rng('h' + i)), 'hidden warrior')))],
 };
-function location(a) { const r = rng(a.id); const f = LOC[a.id]; if (f) return { comps: f(r).flat(), base: C.green, set: true }; return { comps: [...trees(2, r), ...rocks(2, r)], base: C.green, set: true, fallback: true }; }
+const SETS = require('./sets.js'), setCache = new Map();
+const heroSet = k => { if (!setCache.has(k)) setCache.set(k, SETS.SETS[k]()); return setCache.get(k); };
+function location(a) { const r = rng(a.id); const hk = SETS.LOCATION_SET[a.id]; if (hk) { const st = heroSet(hk); return { comps: [st.comp], base: C.dtan, set: true, stage: st, hero: hk }; }
+  const f = LOC[a.id]; if (f) return { comps: f(r).flat(), base: C.green, set: true }; return { comps: [...trees(2, r), ...rocks(2, r)], base: C.green, set: true, fallback: true }; }
 
 const BY_TYPE = { character, ensemble, creature, prop, divine_fx: fx, environment, sound_source: sound, set_piece: setPiece, wearable, vehicle, location };
 function recipe(a) { const f = BY_TYPE[a.type]; if (!f) throw new Error('no recipe for type ' + a.type); return f(a); }

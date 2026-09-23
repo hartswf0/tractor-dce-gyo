@@ -72,6 +72,12 @@
   .tree .n{color:var(--dim)}
   .tree .src{display:block;font-size:9px;color:var(--dim)}
   .credits{font-size:10px;line-height:1.6;color:var(--dim)}
+  #pvbar{position:absolute;left:0;right:0;bottom:0;padding:8px 10px;background:linear-gradient(transparent,rgba(20,20,20,.72));color:#fff;font-size:11px;line-height:1.45}
+  #pvbar #cap{margin-bottom:6px;text-shadow:0 1px 2px #000;max-height:4.4em;overflow:hidden}
+  #pvbar #cap b{letter-spacing:.14em;text-transform:uppercase;color:#ffd84a;margin-right:6px}
+  #pvbar .row{display:flex;gap:8px;align-items:center}
+  #pvbar input{flex:1;min-width:80px}
+  #pvbar .chip{background:rgba(255,255,255,.92);color:#141414;border-color:#fff}
   body.render #top,body.render #table{display:none}
   body.render #sheet{inset:0;width:100%;transform:none;border:0}
   body.render #sheetHead,body.render #body{display:none}
@@ -125,8 +131,90 @@
     camera.position.copy(c).addScaledVector(dir, fit + r * 0.35); camera.near = Math.max(1, fit / 50); camera.far = fit * 40; camera.updateProjectionMatrix();
     $('#veil').textContent = ''; window.__ready = id;
   }
-  (function loop() { controls.update(); renderer.render(scene, camera); requestAnimationFrame(loop); })();
-  if (RENDER) { document.body.classList.add('render'); $('#sheet').classList.add('on'); resize(); show3d(RENDER); return; }
+  /* ── previs: the scene's cast blocked on the set, the beats as shots; figures walk between marks, speakers gesture, the camera cuts ── */
+  const ploader = new THREE.LDrawLoader(); ploader.setPath('ldraw/'); ploader.setFileMap({}); ploader.smoothNormals = true; ploader.separateObjects = true;
+  const pcolours = fetch('ldraw/LDConfig.ldr').then(r => r.text()).then(t => new Promise(res => { try { ploader.parse(t, '', res); } catch (e) { res(); } })).catch(() => {});
+  let PV = null;   // { data, model, figs: [{ g, base, baseQ, legs, arms, cast }], t, playing, centre, radius }
+  const V3 = (x, y, z) => new THREE.Vector3(x, y, z), ease = k => k < 0 ? 0 : k > 1 ? 1 : k * k * (3 - 2 * k);
+  async function loadPrevis(id) {
+    const my = ++token; $('#veil').textContent = 'Loading the set and cast'; if (current) { scene.remove(current); current = null; } PV = null;
+    await pcolours; let data, text;
+    try { data = await (await fetch('odyssey/previs/' + id + '.json')).json(); text = await (await fetch('odyssey/cards/' + id + '.mpd')).text(); } catch (e) { $('#veil').textContent = 'No previs for this card'; return null; }
+    const model = await new Promise(res => { const t = setTimeout(() => res(null), 120000); try { ploader.parse(text, '', m => { clearTimeout(t); res(m); }); } catch (e) { console.error('parse', e); res(null); } });
+    if (my !== token || !model) { if (!model) $('#veil').textContent = 'The build could not be parsed'; return null; }
+    model.rotation.x = Math.PI; scene.add(model); current = model; model.updateMatrixWorld(true); resize();
+    /* the loader leaves embedded files unnamed: the scene's group is the one with as many sub-builds as the scene has; each figure is the child standing where the file put it */
+    let sceneGroup = null; model.traverse(o => { if (!sceneGroup && o.isGroup && data.cast[0] && o.children.filter(k => k.isGroup).length === data.cast[0].n) sceneGroup = o; });
+    const kids = sceneGroup ? sceneGroup.children.filter(k => k.isGroup) : [];
+    const figs = data.cast.map(c => { const g = c.at && kids.find(k => Math.abs(k.position.x - c.at[0]) < 0.6 && Math.abs(k.position.y - c.at[1]) < 0.6 && Math.abs(k.position.z - c.at[2]) < 0.6); if (!g) return null; const legs = [], arms = [];
+      const near = (o, p) => Math.abs(o.position.x - p[0]) < 0.6 && Math.abs(o.position.y - p[1]) < 0.6 && Math.abs(o.position.z - p[2]) < 0.6;
+      for (const o of g.children) { if (!o.isGroup) continue; if ((c.legs || []).some(p => near(o, p))) legs.push(o); else if ((c.arms || []).some(p => near(o, p))) arms.push(o); }
+      return { g, cast: c, base: g.position.clone(), baseQ: g.quaternion.clone(), legs: legs.map(o => [o, o.rotation.x]), arms: arms.map(o => [o, o.rotation.x]), yaw: null }; });
+    const box = new THREE.Box3().setFromObject(model), centre = box.getCenter(V3()), size = box.getSize(V3());
+    PV = { data, model, figs, t: 0, playing: false, centre, radius: Math.max(size.x, size.z) / 2, last: performance.now() };
+    controls.enabled = false; $('#veil').textContent = ''; drawPrevisUI(); setTime(0); return PV;
+  }
+  /* where each figure stands at time t, in studs, and whether it is walking */
+  function figState(i, t) { const c = PV.data.cast[i]; let x = c.x, z = c.z, walking = false, dir = null;
+    for (const s of PV.data.shots) for (const m of s.moves) { if (m.fig !== i || t < m.t0) continue; const k = ease((t - m.t0) / Math.max(0.1, m.t1 - m.t0)); x = m.from[0] + (m.to[0] - m.from[0]) * k; z = m.from[1] + (m.to[1] - m.from[1]) * k; if (t < m.t1) { walking = true; dir = [m.to[0] - m.from[0], m.to[1] - m.from[1]]; } }
+    return { x, z, walking, dir }; }
+  const headOf = f => { const v = V3(); f.g.getWorldPosition(v); v.y += 60; return v; };
+  /* a line of sight: from the subject's head toward candidate camera bearings, the first that nothing in the set blocks (cached per shot) */
+  const ray = new THREE.Raycaster();
+  function clearDir(shot, S, keep) {
+    PV.dirs = PV.dirs || {}; const key = shot.n + (shot.moves.length ? ':' + Math.floor(PV.t * 2) : ''); if (PV.dirs[key]) return PV.dirs[key];   // a shot with a walk looks again twice a second
+    const mine = new Set(); for (const f of keep) if (f) f.g.traverse(o => mine.add(o));
+    const base = Math.atan2(-0.35, 1), meshes = []; PV.model.traverse(o => { if (o.isMesh && !mine.has(o)) meshes.push(o); });
+    let best = null;
+    for (const da of [0, 0.5, -0.5, 1, -1, 1.5, -1.5, 2.2, -2.2, Math.PI]) for (const el of [0.15, 0.45, 0.8]) {
+      const d = V3(Math.sin(base + da), el, Math.cos(base + da)).normalize(), side = V3(d.z, 0, -d.x).normalize(); ray.far = 330;
+      if ([-22, 0, 22].every(o => { ray.set(S.clone().addScaledVector(side, o), d); return !ray.intersectObjects(meshes, false).length; })) {   // three rays, a head's width apart: a neighbour's shoulder blocks too best = V3(d.x, 0, d.z).normalize(); best.el = el; break; } if (best) break; }
+    PV.dirs[key] = best || V3(-0.35, 0, 1).normalize(); return PV.dirs[key];
+  }
+  function setTime(t) {
+    if (!PV) return; PV.t = Math.max(0, Math.min(PV.data.duration, t)); t = PV.t;
+    const shot = PV.data.shots.find(s => t >= s.t0 && t < s.t1) || PV.data.shots[PV.data.shots.length - 1];
+    PV.figs.forEach((f, i) => { if (!f) return; const st = figState(i, t), c = f.cast;
+      f.g.position.set(f.base.x + (st.x - c.x) * 20, f.base.y, f.base.z + (st.z - c.z) * 20);   // LDraw units, the figure's parent frame (a pure translation of the set's)
+      let yaw = st.dir ? Math.atan2(-st.dir[0], -st.dir[1]) : f.yaw;
+      if (shot && (shot.speaker === i || shot.action === i) && shot.camera.object >= 0 && PV.figs[shot.camera.object] && !st.walking) { const o = figState(shot.camera.object, t); yaw = Math.atan2(-(o.x - st.x), -(o.z - st.z)); }
+      if (yaw != null) { f.yaw = yaw; f.g.quaternion.setFromAxisAngle(V3(0, 1, 0), yaw); } else f.g.quaternion.copy(f.baseQ);
+      const ph = t * 9, swing = st.walking ? Math.sin(ph) * 0.6 : 0; f.legs.forEach(([o, r0], k) => { o.rotation.x = r0 + (k % 2 ? swing : -swing); });
+      const talk = shot && shot.speaker === i ? Math.max(0, Math.sin(t * 5)) * 0.7 : 0, hit = shot && shot.action === i ? Math.max(0, Math.sin(t * 3)) * 1.4 : 0;
+      f.arms.forEach(([o, r0], k) => { o.rotation.x = r0 - (k === 0 ? talk + hit : st.walking ? -swing * 0.6 : 0) - (k === 1 && st.walking ? swing * 0.6 : 0); });
+    });
+    PV.model.updateMatrixWorld(true);
+    /* the camera: each shot a move over its length */
+    const k = shot ? ease((t - shot.t0) / (shot.t1 - shot.t0)) : 0, C = PV.centre, R = PV.radius;
+    const subj = shot && PV.figs[shot.camera.subject], obj = shot && PV.figs[shot.camera.object];
+    const S = subj ? headOf(subj) : C.clone(), O = obj ? headOf(obj) : null; let pos, look;
+    const front = shot ? clearDir(shot, S, [subj, obj]) : V3(-0.35, 0, 1).normalize();   // the side of the subject the camera can see from
+    switch (shot ? shot.camera.kind : 'establish') {
+      case 'establish': pos = C.clone().addScaledVector(front, R * (2.6 - 1.0 * k)).add(V3(0, R * (1.6 - 0.9 * k), 0)); look = C.clone().lerp(S, 0.3 * k); break;
+      case 'pullback': pos = S.clone().addScaledVector(front, 160 + R * 2.2 * k).add(V3(0, 40 + R * 1.2 * k, 0)); look = S.clone().lerp(C, k); break;
+      case 'two': { const mid = O ? S.clone().lerp(O, 0.5) : S; const d = O ? S.distanceTo(O) : 0; pos = mid.clone().addScaledVector(front, 220 + d * 1.1).add(V3(0, (front.el || 0.15) * (220 + d) + 10 * k, 0)); look = mid; break; }
+      case 'ots': { if (!O) { pos = S.clone().addScaledVector(front, 170); look = S; break; } const back = O.clone().sub(S).setY(0).normalize(); const side = V3(back.z, 0, -back.x); pos = O.clone().addScaledVector(back, 70).addScaledVector(side, 30).add(V3(0, 12, 0)); look = S; break; }
+      case 'push': pos = S.clone().addScaledVector(front, 330 - 150 * k).add(V3(0, (front.el || 0.15) * (330 - 150 * k) - 20, 0)); look = S.clone().add(V3(0, -10, 0)); break;
+      case 'track': pos = S.clone().addScaledVector(front, 300).add(V3(0, (front.el || 0.2) * 300, 0)); look = S; break;
+      case 'orbit': { const a = -0.8 + 1.4 * k; pos = S.clone().add(V3(Math.sin(a) * 240, 90, Math.cos(a) * 240)); look = S; break; }
+      default: pos = S.clone().addScaledVector(front, 280 - 30 * k).add(V3(0, (front.el || 0.15) * 280, 0)); look = S.clone().add(V3(0, -15, 0));
+    }
+    camera.position.copy(pos); camera.lookAt(look); camera.near = 2; camera.far = R * 40; camera.updateProjectionMatrix(); controls.target.copy(look);
+    const cap = $('#cap'); if (cap && shot) cap.innerHTML = `<b>${shot.n}/${PV.data.shots.length} · ${shot.camera.kind}</b> ${esc(shot.beat)}`;
+    const sc = $('#scrub'); if (sc) sc.value = t;
+  }
+  function drawPrevisUI() {
+    let bar = $('#pvbar'); if (!bar) { bar = document.createElement('div'); bar.id = 'pvbar'; $('#stage').appendChild(bar); }
+    bar.innerHTML = `<div id="cap"></div><div class="row"><button class="chip" id="pvplay">Play</button><input type="range" id="scrub" min="0" max="${PV.data.duration}" step="0.05" value="0" aria-label="Time"><button class="chip" id="pvfree">Free camera</button></div>`;
+    $('#pvplay').onclick = () => { PV.playing = !PV.playing; if (PV.t >= PV.data.duration) PV.t = 0; PV.last = performance.now(); $('#pvplay').textContent = PV.playing ? 'Pause' : 'Play'; };
+    $('#scrub').oninput = e => { PV.playing = false; $('#pvplay').textContent = 'Play'; setTime(+e.target.value); };
+    $('#pvfree').onclick = () => { PV.playing = false; $('#pvplay').textContent = 'Play'; controls.enabled = true; };
+  }
+  const endPrevis = () => { PV = null; controls.enabled = true; const b = $('#pvbar'); if (b) b.remove(); };
+  (function loop(now) { if (PV && PV.playing) { PV.t += Math.min(0.1, ((now || 0) - PV.last) / 1000); PV.last = now || 0; if (PV.t >= PV.data.duration) { PV.playing = false; const b = $('#pvplay'); if (b) b.textContent = 'Play'; } setTime(PV.t); } else if (PV) PV.last = now || 0;
+    controls.update(); renderer.render(scene, camera); requestAnimationFrame(loop); })();
+  if (RENDER) { document.body.classList.add('render'); $('#sheet').classList.add('on'); resize();
+    if (q.get('t') != null) { loadPrevis(RENDER).then(p => { if (!p) return; setTime(+q.get('t')); requestAnimationFrame(() => { window.__ready = RENDER; }); }); window.__pv = () => PV; } else show3d(RENDER); return; }
 
   /* ── the table ── */
   const T = INDEX.cards, sum = k => T.reduce((s, c) => s + (c[k] || 0), 0), n = x => x.toLocaleString('en');
@@ -154,13 +242,14 @@
       <div class="big"><div><b>${n(c.pieces)}</b><span>pieces</span></div><div><b>${c.subBuilds}</b><span>sub-builds</span></div><div><b>${n(c.joints)}</b><span>stud joints</span></div><div><b>${c.depth}</b><span>levels</span></div></div>
       <div class="dims">${c.cm[0]} × ${c.cm[1]} × ${c.cm[2]} <small>cm</small></div>
       <div class="sub">${c.studs[0]} × ${c.studs[1]} studs · ${c.height.plates} plates high · ${c.anchored} pieces held to the plate by studs, ${c.held} by contact (clips, hands, hinges), ${c.detached} detached${c.flex ? `, ${c.flex} rope segments` : ''} · status <b>${c.status}</b></div>
-      <div class="actions"><a class="primary" href="play/hand-butter-odyssey.html?scene=${encodeURIComponent(c.id)}">Open in Hand Butter</a><a href="${esc(c.files.mpd)}" download>LDraw MPD</a><a href="${esc(c.files.butter)}" download>Butter scene</a><a href="${ATLAS}#${c.type === 'scene' ? 'scene' : 'asset'}/${encodeURIComponent(c.id)}">Atlas card</a></div>
+      <div class="actions">${c.previs ? `<a class="primary" href="#" id="pvgo">Play previs · ${Math.round(c.previs.duration)} s, ${c.previs.shots} shots</a>` : ''}<a class="${c.previs ? '' : 'primary'}" href="play/hand-butter-odyssey.html?scene=${encodeURIComponent(c.id)}">Open in Hand Butter</a><a href="${esc(c.files.mpd)}" download>LDraw MPD</a><a href="${esc(c.files.butter)}" download>Butter scene</a><a href="${ATLAS}#${c.type === 'scene' ? 'scene' : 'asset'}/${encodeURIComponent(c.id)}">Atlas card</a></div>
       ${c.why.length ? `<h3>Notes</h3><ul class="why">${c.why.map(w => `<li>${esc(w)}</li>`).join('')}</ul>` : ''}
       ${cast.length ? `<h3>Cast and set</h3><div class="cells">${cast.map(a => `<button class="cell ${a.status}" data-open="${esc(a.id)}"><span class="bar"></span><span class="num"><span>${esc(a.type.replace('_', ' '))}</span><b>${a.pieces}</b></span>${a.thumb ? `<img loading="lazy" alt="" src="odyssey/thumbs/${esc(a.id)}.webp">` : `<span class="sym">${esc(sym(a.name))}</span>`}<span class="nm">${esc(a.name)}</span></button>`).join('')}</div>` : ''}
       <h3>Sub-builds</h3><div class="tree"><ul>${treeHTML(c.tree)}</ul></div>
       ${c.sources.length ? `<h3>Foraged from</h3><div class="credits">${c.sources.map(s => `${esc(s.file || s.donor)}${s.sub ? ' : ' + esc(s.sub) : ''}${s.author ? ', by ' + esc(s.author) : ''}`).join('<br>')}<br>LDraw models redistributed under CCAL 2.0; the authors keep their credit in each FILE header.</div>` : ''}`;
     $('#body').querySelectorAll('[data-open]').forEach(b => b.onclick = () => open(b.dataset.open));
-    $('#body').scrollTop = 0; show3d(id);
+    $('#body').scrollTop = 0; endPrevis(); show3d(id);
+    const go = $('#pvgo'); if (go) go.onclick = e => { e.preventDefault(); loadPrevis(id).then(p => { if (p) { p.playing = true; p.last = performance.now(); $('#pvplay').textContent = 'Pause'; } }); };
   }
   draw();
   if (location.hash.length > 1 && byId.has(decodeURIComponent(location.hash.slice(1)))) open(decodeURIComponent(location.hash.slice(1)));

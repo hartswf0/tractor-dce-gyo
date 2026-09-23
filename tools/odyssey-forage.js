@@ -52,7 +52,7 @@ function toMPD(id, title, card, sheet, notes) {
   const files = [], names = new Map(), used = new Set();
   const nameOf = c => { if (names.has(c)) return names.get(c); let n = `${id} - ${slug(c.name)}`, k = 2; while (used.has(n)) n = `${id} - ${slug(c.name)}-${k++}`; used.add(n); names.set(c, n + '.ldr'); return n + '.ldr'; };
   const emit = (c, main) => {
-    const fname = main ? id + '.ldr' : nameOf(c), lines = [`0 FILE ${fname}`, `0 ${main ? title : c.name}`, `0 Name: ${fname}`];
+    const fname = main ? id + '.ldr' : nameOf(c); c.__file = fname; const lines = [`0 FILE ${fname}`, `0 ${main ? title : c.name}`, `0 Name: ${fname}`];
     const src = c.source || {};
     lines.push(`0 Author: ${src.author ? src.author + '; foraged by word to world, tools/odyssey-forage.js' : 'word to world, tools/odyssey-forage.js'}`, '0 !LDRAW_ORG Unofficial_Model', `0 !LICENSE ${src.license || 'Redistributable under CCAL version 2.0 : see CAreadme.txt'}`, '');
     if (main) { lines.push(...notes.map(n => '0 // ' + n), `0 !FORAGE ${JSON.stringify(sheet)}`, ''); }
@@ -128,18 +128,40 @@ for (const a of manifest.assets) {
   const s = finish(a.id, a.type, a, card, top, rec);
   if (++n % 50 === 0 || ONLY) console.log(`${n} ${a.id}: ${s.status} ${s.pieces} pieces ${s.subBuilds} subs ${s.joints} joints ${s.studs.join('x')} (${((Date.now() - t0) / 1000).toFixed(0)} s)`);
 }
-/* scenes: the location's set at the back (cut to the plate), the cast on an apron in front */
+/* scenes: the location's set as a stage (a hero set with its marks, or the set at the back of a floor with marks laid on it),
+   the cast blocked onto the marks, the beats read into a previs timeline */
+const Stage = require('./forage/stage.js'), Sets = require('./forage/sets.js');
+fs.mkdirSync(path.join(OUT, 'previs'), { recursive: true });
+function stageOf(loc, title) {
+  if (loc && loc.rec.stage) return loc.rec.stage;
+  const back = loc ? crop(loc.top, 38, 22, loc.a.name) : null, W = 38, D = back ? 36 : 28;
+  const items = back ? [[back, 0, -(D / 2) + Math.ceil(foot(back).d / 2) + 1]] : [];
+  const M = (x, z, face = 0, note = '') => ({ x, z, face, note });
+  return Sets.room(title + ' stage', W, D, Sets.floor(W, D, loc ? loc.rec.base : 28), items, { centre: M(0, D / 2 - 7), left: M(-9, D / 2 - 6), right: M(9, D / 2 - 6), front: M(0, D / 2 - 3), back: M(0, back ? 0 : -6), door: M(-15, D / 2 - 3, 1, 'the way in') });
+}
+const LOC_ALIAS = { 'location.aftermath-hall': 'location.megaron-hall', 'location.cleaned-palace-hall': 'location.megaron-hall', 'location.night-palace-hall': 'location.megaron-hall', 'location.palace-night-interior': 'location.megaron-hall', 'location.festival-ready-hall': 'location.megaron-hall', 'location.recognition-seating': 'location.megaron-hall', 'location.night-hearth-interview': 'location.megaron-hall', 'location.bow-storeroom': 'location.weapon-storeroom', 'location.palace-family-chamber': 'location.upper-chamber-and-stair' };
+let prevLoc = {}; const bookLoc = {};   // the first place each book names (through the aliases): where a book's unplaced opening scenes stand
+for (const sc of manifest.scenes) { if (bookLoc[sc.book]) continue; const l = sc.assets.find(a => a.startsWith('location.')); const id = l && (built.has(l) ? l : LOC_ALIAS[l]); if (id) bookLoc[sc.book] = id; }
 for (const sc of manifest.scenes) {
   if (ONLY && !ONLY.has(sc.id)) continue;
   const parts = sc.assets.map(id => built.get(id) || (() => { const a = manifest.assets.find(x => x.id === id); if (!a) return null; const rec = T.recipe(a); const r = onPlate(a.name, rec.comps, rec.base, { maxW: rec.set ? 44 : 24 }); const v = { top: r.top, rec, a }; built.set(id, v); return v; })()).filter(Boolean);
-  const loc = parts.find(p => p.a.type === 'location'), cast = parts.filter(p => p !== loc).map(p => crop(p.top, 36, 26, p.a.name)).filter(c => rowsOf(c).length);   // a ship on the apron is framed like a set
-  const castGroup = cast.length ? B.group('cast', cast, { gap: 2, maxW: 38 }) : null, cf = castGroup ? foot(castGroup) : { w: 0, d: 0 };
-  const set = loc ? crop(loc.top, 38, Math.max(12, 38 - cf.d - 2), loc.a.name) : null, sf = set ? foot(set) : { w: 0, d: 0 };
-  const list = []; if (set) list.push([set, 0, -Math.ceil((cf.d + 2) / 2)]); if (castGroup) list.push([castGroup, 0, Math.ceil((sf.d + 2) / 2)]);
-  const top = B.at(sc.title.toLowerCase(), list);
+  let loc = parts.find(p => p.a.type === 'location');
+  if (!loc) { const want = sc.assets.find(a => a.startsWith('location.')), alias = want && LOC_ALIAS[want];   // a place the atlas names but has not built, or none: the place it stands for, or the book's last place
+    const id = alias || (prevLoc.book === sc.book ? prevLoc.id : null) || bookLoc[sc.book]; loc = id ? built.get(id) : null; }
+  if (loc) prevLoc = { book: sc.book, id: loc.a.id };
+  const stage = stageOf(loc, sc.title.toLowerCase());
+  const order = ['character', 'ensemble', 'creature', 'wearable', 'prop', 'sound_source', 'set_piece', 'divine_fx', 'environment', 'vehicle'];
+  const cast = parts.filter(p => p !== loc).sort((a, b) => order.indexOf(a.a.type) - order.indexOf(b.a.type)).map(p => ({ id: p.a.id, name: p.a.name, type: p.a.type, comp: crop(p.top, 24, 16, p.a.name) })).filter(c => rowsOf(c.comp).length);
+  const { list, blocking } = Stage.block(stage, cast);
+  const top = B.at(sc.title.toLowerCase(), [[stage.comp, 0, 0], ...list]);
   const { card } = onPlate(sc.title, [top], loc ? loc.rec.base : 19, {});
   const s = finish(sc.id, 'scene', { name: sc.title, book: sc.book, assets: sc.assets }, card, top, {});
-  if (++n % 50 === 0 || ONLY) console.log(`${n} ${sc.id}: ${s.status} ${s.pieces} pieces ${s.subBuilds} subs ${s.joints} joints ${s.studs.join('x')}`);
+  const pv = Stage.previs(sc, blocking, stage.marks);
+  fs.writeFileSync(path.join(OUT, 'previs', sc.id + '.json'), JSON.stringify({ id: sc.id, title: sc.title, book: sc.book, set: loc ? (loc.rec.hero || loc.a.name) : null, size: stage.size, marks: stage.marks, duration: pv.duration,
+    cast: blocking.map(b => { const sub = top.subs.find(x => x.c === b.comp), at = sub ? L.mul(top.m, sub.M).slice(0, 3).map(v => +v.toFixed(2)) : null; const limb = re => b.comp.local.filter(r => re.test(r.part)).map(r => L.mul(b.comp.m, r.m).slice(0, 3).map(v => +v.toFixed(2)));   // where the file puts the legs and arms, to find them again in the loaded model
+      return { who: b.who, name: b.name, type: b.type, file: b.comp.__file || null, at, n: top.subs.length, legs: limb(/^381[67]/), arms: limb(/^381[89]$/), x: b.x, z: b.z, face: b.face, mark: b.mark }; }), shots: pv.shots }));
+  index.cards[index.cards.length - 1].previs = { file: 'odyssey/previs/' + sc.id + '.json', duration: pv.duration, shots: pv.shots.length, moves: pv.shots.reduce((k, x) => k + x.moves.length, 0), set: loc ? (loc.rec.hero || null) : null };
+  if (++n % 50 === 0 || ONLY) console.log(`${n} ${sc.id}: ${s.status} ${s.pieces} pieces ${s.subBuilds} subs ${s.joints} joints ${s.studs.join('x')} previs ${pv.duration}s`);
 }
 if (!ONLY) {
   fs.writeFileSync(path.join(OUT, 'forage.json'), JSON.stringify(index));
@@ -159,8 +181,11 @@ function report(ix) {
     '1. **Forage.** Each card type has its way of being got (`tools/forage/table.js`). Locations and vehicles take a sub-build from a real set: a FILE block of a community LDraw model, flattened, minifigures stripped. Characters are minifigures assembled from real parts on the standard skeleton, dressed by role, with accessories held in a hand grip measured from the donors. Creatures, props and effects are readymade parts (horse, pig, goblet, bow, lightning bolt, transparent columns). The pieces a scene needs beside a set (colonnades, hearths, seats, trees, rocks, roads, water) are procedural kits laid by `world/dsl.js`.',
     '2. **Assemble.** The components are settled (the lowest underside on the ground, the stud lattice in phase) and laid side by side on a plate. A scene card is its location\'s set, cut to a window, with its cast of asset cards on an apron in front: the scene\'s assets are its sub-builds.',
     '3. **Verify.** `tools/forage/ldraw.js` resolves every part in `ldraw/`, finds every stud on every piece, and tests it against the undersides above it (a stud joint). It then traces each piece to the plate through joints, or through contact for clips, hands and hinges. Pieces that touch nothing are reported as detached. Rope and hose segments carry contact but are counted apart. A card is green when every part resolves, every donor is found and almost nothing is detached.',
-    '4. **Look.** `tools/forage/look.js` renders cards through the viewer; the thumbnails in `odyssey/thumbs/` are those frames.',
-    '5. **Play.** `tools/butter-odyssey.js` writes Hand Butter with a scene per card; each scene file (`odyssey/butter/<id>.json`) is fetched when loaded, and a foraged build stands pinned until a piece is picked up.', '',
+    '4. **Stage.** Locations the story returns to stand on hero sets (`tools/forage/sets.js`): the megaron at Ithaca, Olympus, the Cyclops\'s cave, Circe\'s hall, Eumaeus\'s farm, the hall of Alcinous, Calypso\'s grove. Each is a room of furniture, foraged or stud-built, with named marks (the threshold, the hearth, the throne, the loom). Any other place becomes a stage: its set at the back, a floor in front, marks laid on the floor. A scene with no place named stands where the book last stood (or, before that, where the book first stands); places the atlas names but has not built stand on the set they belong to (the aftermath hall is the megaron).',
+    '5. **Block.** `tools/forage/stage.js` stands the cast on the marks: a card named like a mark goes to it (Zeus to his throne), the rest in turn; a crowd is split into its figures; each takes the free spot nearest its mark, never inside furniture (an occupancy grid of the set).',
+    '6. **Previs.** The beats become shots (`odyssey/previs/<id>.json`): who each beat is about (the cast its words name; a beat opening on a pronoun keeps the last subject), who walks where (a verb of going sends the subject toward the other one named or to a named mark), and the camera: an establishing crane, a two-shot or an over-the-shoulder for talk, a push-in for violence, an orbit for the gods, a track for a walk, a pull-back to end. The viewer plays it: figures walk with their legs swinging, speakers gesture, the camera finds a line of sight past the furniture.',
+    '7. **Look.** `tools/forage/look.js` (`--t 2,7,11` for previs frames) renders cards through the viewer; the thumbnails in `odyssey/thumbs/` are those frames.',
+    '8. **Play.** `tools/butter-odyssey.js` writes Hand Butter with a scene per card; each scene file (`odyssey/butter/<id>.json`) is fetched when loaded, and a foraged build stands pinned until a piece is picked up.', '',
     '## By type', '', '| type | cards | pieces | sub-builds | stud joints | yellow |', '|---|---|---|---|---|---|',
     ...types.map(t => { const l = C.filter(c => c.type === t); return `| ${t.replace('_', ' ')} | ${l.length} | ${n(tot(l, 'pieces'))} | ${n(tot(l, 'subBuilds'))} | ${n(tot(l, 'joints'))} | ${l.filter(c => c.status !== 'GREEN').length} |`; }), '',
     '## Donors', '', 'Community LDraw models, redistributed under CCAL 2.0; each foraged FILE keeps its author in its header.', '', '| model | author | cards |', '|---|---|---|',
@@ -170,7 +195,10 @@ function report(ix) {
     '## What comes next', '',
     '- **Sub-build kits by function.** The trailer shows 113 builds grouped into repeatable kits: tower, tree, arcade, canopy, lamp. The next forage should cut donors into connected chunks (a mast, a gate, a stair, a palm) and index them by what they do, so one Ithacan hall can be assembled from a castle gate, a Lincoln Memorial colonnade and a blacksmith\'s hearth rather than taken whole.',
     '- **More donors.** The 14 models the fetcher could not reach (Eldorado Fortress, Imperial Trading Post, Viking Village, Trevi Fountain and others) would each replace a stand-in; the part 6029b (the islands\' palm base) is missing from the library.',
-    '- **Staging.** Scenes stand their cast on an apron. The halfworld plans (`scenes/_plans`, the MOVES tables `tools/odyssey.js` already reads) give each figure a mark on the set; laying the cast on those marks turns a scene card into a set for the film.',
+    '- **More hero sets.** Seven places have rooms; the ship at sea, the underworld pit, the Phaeacian games, the Sirens\' rock and Laertes\'s farm are next, each with its marks.',
+    '- **Blocking from the halfworld.** Books XVI to XXIV already have blocking in plan space (`scenes/_plans`, the MOVES tables `tools/odyssey.js` reads); where a plan exists its stations should become the set\'s marks and its moves the previs moves.',
+    '- **Shots from the direction table.** The halfworld\'s direction table gives each beat a direction and a reason; the shot grammar here guesses from verbs, and should take the direction where it exists.',
+    '- **Export.** The previs plays in the browser; `tools/export-film.js` records the case films, and the same recorder could render a previs to video with its lines.',
     '- **The joint graph.** The audit knows every joint; drawing it over the model, as the trailer does in blue and orange, would show where a set is weak before it is shot.', ''];
   return L.join('\n');
 }

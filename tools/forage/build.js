@@ -110,11 +110,14 @@ function fig(spec, name = 'figure') {
     put(spec.face || '3626bp01', skin, S.head);
   }
   if (spec.hat) put(spec.hat[0], spec.hat[1], S.head);
-  if (spec.beard) put(spec.beard[0], spec.beard[1], S.head);
+  if (spec.beard) put(spec.beard[0], spec.beard[1], S.torso);   // a beard is neckwear: it hangs from the neck, the torso's origin
   if (spec.cape != null) put('4524', spec.cape, S.cape);
   if (spec.back) put(spec.back[0], spec.back[1], L.mul(S.torso, L.T(0, 8, 12)));
-  if (spec.R) put(spec.R[0], spec.R[1], L.mul(S.handR, gripFor(spec.R[0])));
-  if (spec.L) put(spec.L[0], spec.L[1], L.mul(S.handL, gripFor(spec.L[0])));
+  /* a pole (a staff, a spear, an oar: long along its own y, its origin at the grip) stands upright in the fist; anything else takes the foraged grip */
+  const hold = (item, hand) => { const b = L.info(item[0]).box, pole = b && (b[4] - b[1]) > 3 * Math.max(b[3] - b[0], b[5] - b[2]);
+    put(item[0], item[1], pole ? L.T(hand[0], Math.min(hand[1], 40 - b[4]), hand[2]) : L.mul(hand, gripFor(item[0]))); };   // a pole's foot rests at the figure's feet (y 40), never below
+  if (spec.R) hold(spec.R, S.handR);
+  if (spec.L) hold(spec.L, S.handL);
   return make(name, 'figure', { figure: [spec.torso || '973', spec.face || '3626bp01', spec.hat && spec.hat[0], spec.R && spec.R[0], spec.L && spec.L[0]].filter(Boolean).join(' ') }, rows);
 }
 
@@ -159,6 +162,6 @@ function group(name, comps, o = {}) {
   return make(name, 'group', { group: comps.length }, [], placed.map(p => ({ c: p.c, M: L.T(p.dx, 0, p.dz) })));
 }
 /** Components at given stud offsets (x, z, turn) on one footing. */
-function at(name, list) { return make(name, 'group', { group: list.length }, [], list.filter(([c]) => rowsOf(c).length).map(([c, x, z, q = 0]) => ({ c, M: L.mul(L.T(x * 20, 0, z * 20), L.RY(q)) }))); }
+function at(name, list, extra = {}) { return make(name, 'group', { group: list.length }, [], list.filter(([c]) => rowsOf(c).length).map(([c, x, z, q = 0, y = 0]) => ({ c, M: L.mul(L.T(x * 20, y, z * 20), L.RY(q)) })), extra); }   // x, z in studs; q quarter turns; y in LDU (negative is up)
 
 module.exports = { setDonorDirs, donorFile, donor, fig, part, parts, kit, group, at, pack, move, foot, settle, make, rowsOf, grips, gripFor, has, pick, K, Dsl, Model, SKELETON };

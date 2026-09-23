@@ -10,7 +10,8 @@ const { chromium } = require('playwright');
 const ROOT = path.resolve(__dirname, '..', '..'), args = process.argv.slice(2), opt = (k, d) => { const i = args.indexOf('--' + k); return i >= 0 ? args[i + 1] : d; };
 const OUT = opt('out', path.join(ROOT, 'odyssey/thumbs')), SIZE = +opt('size', 480), BASE = opt('base', 'http://localhost:8899/');
 const THREE_DIR = path.dirname(require.resolve('three/package.json'));
-let ids = args.filter((a, i) => !a.startsWith('--') && !['--out', '--size', '--base', '--type'].includes(args[i - 1]));
+let ids = args.filter((a, i) => !a.startsWith('--') && !['--out', '--size', '--base', '--type', '--t'].includes(args[i - 1]));
+const TIMES = opt('t', '') ? opt('t').split(',').map(Number) : [null];   // --t 0,5,12: previs frames at those seconds
 if (args.includes('--all')) { const idx = JSON.parse(fs.readFileSync(path.join(ROOT, 'odyssey/forage.json'), 'utf8')); ids = idx.cards.filter(c => !opt('type') || c.type === opt('type')).map(c => c.id); }
 (async () => {
   fs.mkdirSync(OUT, { recursive: true });
@@ -20,15 +21,17 @@ if (args.includes('--all')) { const idx = JSON.parse(fs.readFileSync(path.join(R
   page.on('pageerror', e => console.error('page error:', e.message));
   let done = 0;
   for (const id of ids) {
+   for (const tt of TIMES) {
     const t = Date.now();
     try {
-      await page.goto(BASE + 'odyssey-forage.html?render=' + encodeURIComponent(id), { waitUntil: 'domcontentloaded' });
+      await page.goto(BASE + 'odyssey-forage.html?render=' + encodeURIComponent(id) + (tt != null ? '&t=' + tt : ''), { waitUntil: 'domcontentloaded' });
       await page.waitForFunction(i => window.__ready === i, id, { timeout: 120000 });
       await page.waitForTimeout(250);
-      const file = path.join(OUT, id + (args.includes('--jpeg') ? '.jpg' : '.png'));
+      const file = path.join(OUT, id + (tt != null ? '@' + String(tt).padStart(5, '0') : '') + (args.includes('--jpeg') ? '.jpg' : '.png'));
       await page.screenshot({ path: file, type: args.includes('--jpeg') ? 'jpeg' : 'png', quality: args.includes('--jpeg') ? 82 : undefined });
       console.log(`${++done}/${ids.length} ${id} ${((Date.now() - t) / 1000).toFixed(1)} s`);
     } catch (e) { console.log(`${++done}/${ids.length} ${id} FAILED ${e.message.split('\n')[0]}`); }
+   }
   }
   await browser.close();
 })();
