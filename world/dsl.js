@@ -20,7 +20,7 @@ const DIMS = {
   '3032': [-60, 60, -40, 40, 8], '3020': [-40, 40, -20, 20, 8], '3022': [-20, 20, -20, 20, 8], '3023': [-20, 20, -10, 10, 8], '3024': [-10, 10, -10, 10, 8], '3958': [-60, 60, -60, 60, 8], '3034': [-80, 80, -20, 20, 8], '3795': [-60, 60, -20, 20, 8], '3021': [-30, 30, -20, 20, 8],
   '3039': [-20, 20, -30, 10, 24], '3040b': [-10, 10, -30, 10, 24], '3665a': [-10, 10, -30, 10, 24], '3298': [-30, 30, -30, 10, 24], '3660': [-20, 20, -30, 10, 24],
   '3455': [-60, 60, -10, 10, 24], '3823': [-40, 40, -30, 20, 48], '60592': [-20, 20, -10, 10, 48], '60623': [-4, 67, -7, 7, 137],
-  '3896': [-10, 10, -10, 10, 20], '3876': [-20, 20, -8, 8, 40], '4497': [-4, 4, -4, 4, 100], '85959': [-6, 6, -6, 6, 56], '92691': [-50, 50, -6, 6, 8], '93160': [-20, 20, -6, 6, 8], '37775': [-4, 4, -4, 4, 12], '4493c01': [-20, 20, -70, 70, 80], '3847': [-4, 4, -4, 4, 60],   /* the trailer's set dressing: a helmet, a round shield, a spear, a flame, bones, a candle flame, a horse, a sword */
+  '3896': [-10, 10, -10, 10, 20], '3876': [-20, 20, -8, 8, 40], '4497': [-4, 4, -4, 4, 100], '85959': [-6, 6, -6, 6, 56], '92691': [-50, 50, -6, 6, 8], '93160': [-20, 20, -6, 6, 8], '37775': [-4, 4, -4, 4, 12], '4493c01': [-20, 20, -96, 86, 57], '3847': [-4, 4, -4, 4, 60],   /* the trailer's set dressing: a helmet, a round shield, a spear, a flame, bones, a candle flame, a horse, a sword */
   '3068b': [-20, 20, -20, 20, 8], '87079': [-40, 40, -20, 20, 8], '3941': [-20, 20, -20, 20, 24], '3062b': [-10, 10, -10, 10, 24], '4070': [-10, 10, -10, 10, 24], '3070b': [-10, 10, -10, 10, 8],
   '4600': [-34, 34, -20, 20, 10], '4624': [-10, 10, -8, 8, 20], '3641': [-18, 18, -8, 8, 36], '3829c01': [-20, 20, -10, 10, 8], '3822': [-10, 10, -30, 30, 72], '3821': [-10, 10, -30, 30, 72],
   '2453b': [-10, 10, -10, 10, 120], '3185': [-40, 40, -10, 10, 48], '4589': [-10, 10, -10, 10, 24], '3710': [-40, 40, -10, 10, 8],
@@ -189,11 +189,12 @@ const line = (col, x, y, z, rot, part) => `1 ${col} ${r4(x)} ${r4(y)} ${r4(z)} $
 const r4 = v => (Math.round(v * 1000) / 1000).toString();
 /** A vehicle in the prop frame (LDraw: y down, ground at y = 0, forward = −z). Returns { mpd, w, d, hp } with the footprint in studs. */
 function vehicleMPD(o) {
-  const kind = String(o.kind || 'car').toLowerCase(), col = colOf(o.col, 4), len = clamp(I(o.len, kind === 'truck' ? 10 : kind === 'bus' ? 12 : kind === 'plane' ? 8 : kind === 'board' ? 4 : 6), 4, 16), wide = kind === 'speeder' || kind === 'plane' || kind === 'board' ? 2 : 4, L = [];
+  const kind = String(o.kind || 'car').toLowerCase(), col = colOf(o.col, 4), len = clamp(I(o.len, kind === 'truck' ? 10 : kind === 'bus' ? 12 : kind === 'plane' ? 8 : kind === 'board' ? 4 : kind === 'horse' ? 9 : 6), 4, 16), wide = kind === 'speeder' || kind === 'plane' || kind === 'board' || kind === 'horse' ? 2 : 4, L = [];
   const zf = -len * STUD / 2, zb = len * STUD / 2;    // front and back edges
   const g = new Grid();                              // the body is bricks too: a local grid in prop cells (x across, z along)
   const bx = -wide / 2, bz = -len / 2, floorY = kind === 'speeder' || kind === 'board' ? 2 : 4;   // plates above the ground the floor plate sits at
-  if (kind === 'boat') { g.fillBox(bx, bz + 1, wide, len - 2, 0, 1, col); g.fillBox(bx, bz + 1, 1, len - 2, 1, 4, col); g.fillBox(bx + wide - 1, bz + 1, 1, len - 2, 1, 4, col); g.fillBox(bx + 1, bz + len - 2, wide - 2, 1, 1, 4, col);
+  if (kind === 'horse') { L.push(line(col, 0, -57, 5, 0, '4493c01')); }   // a horse: the one-piece horse, its origin at the saddle 57 LDU over the hooves, centred nose to tail; ridden like a slow car
+  else if (kind === 'boat') { g.fillBox(bx, bz + 1, wide, len - 2, 0, 1, col); g.fillBox(bx, bz + 1, 1, len - 2, 1, 4, col); g.fillBox(bx + wide - 1, bz + 1, 1, len - 2, 1, 4, col); g.fillBox(bx + 1, bz + len - 2, wide - 2, 1, 1, 4, col);
     g.part('3039', col, bx + 1, bz, 1, 0, 2, 2, BRICK); g.part('3040b', col, bx, bz, 1, 0, 1, 2, BRICK); g.part('3040b', col, bx + wide - 1, bz, 1, 0, 1, 2, BRICK);   // the bow: a slope in the middle, a slope each side
     g.fillBox(bx + 1, bz + 2, 1, 1, 4, 5, 71); g.part('3829c01', 0, bx + 1, bz + 3, 4, 0, 2, 1, 1); g.fillBox(bx + 1, bz + len - 3, wide - 2, 1, 4, 4 + BRICK, 15); }   // a helm and a cabin block at the stern
   else if (kind === 'plane') {

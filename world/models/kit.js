@@ -59,15 +59,32 @@ function cart(x, z, col = 4, turn = 0) { return G('cart', x, z, [part('4073', 0,
     two studs and one, the third turned 2×4 and offset one and two — so every seam of one layer is bridged by the next and
     a ceiling or a porch roof over open air hangs together from whatever holds its edges. y in bricks. */
 function deck(x, z, w, d, col, y = 0, o = {}) {
-  const SIZE = { '1x1': '3024', '1x2': '3023', '1x3': '3623', '1x4': '3710', '2x2': '3022', '2x3': '3021', '2x4': '3020' }, ops = [];
+  const SIZE = { '1x1': '3024', '1x2': '3023', '1x3': '3623', '1x4': '3710', '2x2': '3022', '2x3': '3021', '2x4': '3020' }, out = [];
   const layers = o.layers || [[4, 2, 0, 0], [4, 2, 2, 1], [2, 4, 1, 2]];
-  layers.forEach(([bw, bd, ox, oz], L) => {
+  layers.forEach(([bw, bd, ox, oz], L) => { const ops = []; out.push(G('deck layer ' + (L + 1), 0, 0, ops));   // a group per layer: the DSL runs at most 200 children of a group
     for (let gx = -ox; gx < w; gx += bw) for (let gz = -oz; gz < d; gz += bd) {
       const x0 = Math.max(0, gx), z0 = Math.max(0, gz), x1 = Math.min(w, gx + bw), z1 = Math.min(d, gz + bd), a = x1 - x0, b = z1 - z0; if (a <= 0 || b <= 0) continue;
       const lo = Math.min(a, b), hi = Math.max(a, b), id = SIZE[lo + 'x' + hi]; if (!id) continue;
       ops.push(part(id, col, x + x0, z + z0, y, { plate: L, rot: a >= b ? 0 : 1 }));
     }
   });
+  return out;
+}
+/** A rail fence of len studs from (x, z), along x or along z: 1×1 round posts every three studs, two bricks high, and
+    1×4 plate rails in two runs, the second a plate up over the gaps and seated on the ends of the first. */
+function fence(x, z, len, alongX, col = 308) {
+  const ops = [], at = k => alongX ? [x + k, z] : [x, z + k], rot = alongX ? 0 : 1, last = Math.floor((len - 1) / 3) * 3;
+  for (let k = 0; k <= last; k += 3) { const [px, pz] = at(k); ops.push(part('3062b', col, px, pz, 0), part('3062b', col, px, pz, 1)); }
+  for (let k = 0; k + 3 <= last; k += 6) { const [px, pz] = at(k); ops.push(part('3710', col, px, pz, 2, { rot })); }
+  for (let k = 3; k + 3 <= last; k += 6) { const [px, pz] = at(k); ops.push(part('3710', col, px, pz, 2, { rot, plate: 1 })); }
+  if (last > 0 && last % 6 === 0) { const [px, pz] = at(last); ops.push(part('3024', col, px, pz, 2)); }   // a last post only the second run reaches: a cap under its end
   return ops;
 }
-module.exports = { G, deck, box, slab, cut, part, window, door, roof, stairs, arch, seeded, bigWindow, checker, shelf, tree, bush, rock, log, fire, lamp, cart };
+/** A rocking chair on a floor plate, facing south: two rockers, each a pair of inverted curved slopes back to back, a 2×4 plate
+    across them, a minifig seat on the plate. Four studs deep along z, two wide. y in bricks; plate: the floor's plates under it. */
+function rocker(x, z, col = 308, y = 0, plate = 1) {
+  const ops = []; for (const dx of [0, 1]) ops.push(part('24201', col, x + dx, z, y, { plate, rot: 0 }), part('24201', col, x + dx, z + 2, y, { plate, rot: 2 }));
+  ops.push(part('3020', col, x, z, y + 1, { plate, rot: 1 }), part('4079', col, x, z + 1, y + 1, { plate: plate + 1 }));
+  return G('rocking chair', 0, 0, ops);
+}
+module.exports = { G, deck, fence, rocker, box, slab, cut, part, window, door, roof, stairs, arch, seeded, bigWindow, checker, shelf, tree, bush, rock, log, fire, lamp, cart };

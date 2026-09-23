@@ -99,6 +99,8 @@ const INST = {
   bass: (c, o, t, n) => { const e = env(c, o, t, n.len, n.vel * 0.35, { attack: 0.01, decay: 0.25, sustain: 0.5, release: 0.12 }); const s = c.createOscillator(), sub = c.createOscillator(), g2 = c.createGain(); s.type = 'triangle'; s.frequency.value = n.hz; sub.type = 'sine'; sub.frequency.value = n.hz / 2; g2.gain.value = 0.7; s.connect(e.g); sub.connect(g2); g2.connect(e.g); s.start(t); sub.start(t); s.stop(e.end); sub.stop(e.end); },
   timpani: (c, o, t, n) => { const g = c.createGain(); g.gain.setValueAtTime(n.vel * 0.7, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.9); g.connect(o); const s = c.createOscillator(); s.type = 'sine'; s.frequency.setValueAtTime(n.hz * 2, t); s.frequency.exponentialRampToValueAtTime(n.hz, t + 0.4); s.connect(g); s.start(t); s.stop(t + 1); burst(c, o, t, 0.08, 400, 100, n.vel * 0.3, { attack: 0.002 }); },
   snare: (c, o, t, n) => { burst(c, o, t, 0.12, 1800, 900, n.vel * 0.35, { type: 'bandpass', q: 0.9, attack: 0.001 }); tone(c, o, t, 'sine', 180, 120, 0.06, n.vel * 0.25, { attack: 0.001 }); },
+  guitar: (c, o, t, n) => { const e = env(c, o, t, Math.min(n.len, 0.6), n.vel * 0.2, { attack: 0.004, decay: 0.3, sustain: 0.18, release: 0.35 }), f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.setValueAtTime(3800, t); f.frequency.exponentialRampToValueAtTime(900, t + 0.35); f.Q.value = 1.4; f.connect(e.g); const s = c.createOscillator(), s2 = c.createOscillator(), g2 = c.createGain(); s.type = 'triangle'; s2.type = 'sawtooth'; s.frequency.value = n.hz; s2.frequency.value = n.hz * 2.003; g2.gain.value = 0.18; s.connect(f); s2.connect(g2); g2.connect(f); s.start(t); s2.start(t); s.stop(e.end); s2.stop(e.end); },   // a plucked string: bright on the attack, dark in the ring
+  harmonica: (c, o, t, n) => { const e = env(c, o, t, n.len, n.vel * 0.075, { attack: 0.06, decay: 0.12, sustain: 0.85, release: 0.18 }), f = c.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = Math.min(2400, n.hz * 2.2); f.Q.value = 0.9; f.connect(e.g); const lfo = c.createOscillator(), lg = c.createGain(); lfo.frequency.value = 5.2; lg.gain.setValueAtTime(0, t); lg.gain.linearRampToValueAtTime(16, t + Math.min(0.5, n.len * 0.6)); lfo.connect(lg); for (const [type, d, v] of [['square', -4, 0.7], ['sawtooth', 5, 0.5]]) { const s = c.createOscillator(), g = c.createGain(); s.type = type; s.frequency.value = n.hz; s.detune.value = d; lg.connect(s.detune); g.gain.value = v; s.connect(g); g.connect(f); s.start(t); s.stop(e.end); } lfo.start(t); lfo.stop(e.end); },   // a reed: square and saw through a mouth-shaped band, the vibrato coming in as the note holds
   flute: (c, o, t, n) => { const e = env(c, o, t, n.len, n.vel * 0.18, { attack: 0.06, decay: 0.1, sustain: 0.85, release: 0.2 }); const s = c.createOscillator(), s2 = c.createOscillator(), g2 = c.createGain(); s.type = 'sine'; s2.type = 'triangle'; s.frequency.value = n.hz; s2.frequency.value = n.hz; g2.gain.value = 0.12; lfo(c).connect(s.detune); s.connect(e.g); s2.connect(g2); g2.connect(e.g); s.start(t); s2.start(t); s.stop(e.end); s2.stop(e.end); },
 };
 /* ── the cues: original motifs in the films' spirit; beats, midi notes, lengths in beats, velocity ── */
@@ -154,12 +156,24 @@ const CUES = {
     { inst: 'strings', notes: [...chord(0, [45, 52, 57, 60], 8, 0.7), ...chord(8, [41, 48, 53, 57], 4, 0.7), ...chord(12, [43, 50, 55, 59], 4, 0.7)] },
     { inst: 'horn', notes: [[4, 52, 4, 0.5], [12, 50, 4, 0.5]] },
   ]),
-  searchers: cue(72, 16, [   // an open-country theme: a horn tune over open fifths, strings holding the chords, a soft drum on the ones
-    { inst: 'horn', notes: [[0, 62, 1.5, 0.8], [1.5, 66, 0.5, 0.7], [2, 69, 2, 0.9], [4, 71, 1, 0.8], [5, 69, 1, 0.7], [6, 66, 2, 0.8], [8, 64, 1.5, 0.8], [9.5, 66, 0.5, 0.7], [10, 67, 1, 0.8], [11, 64, 1, 0.7], [12, 62, 4, 0.9]] },
-    { inst: 'strings', notes: [...chord(0, [50, 57, 62], 4, 0.6), ...chord(4, [43, 50, 55, 59], 4, 0.6), ...chord(8, [45, 52, 57, 61], 4, 0.6), ...chord(12, [50, 57, 62, 66], 4, 0.7)] },
-    { inst: 'bass', notes: [[0, 38, 3.5, 0.8], [4, 43, 3.5, 0.7], [8, 45, 3.5, 0.8], [12, 38, 3.5, 0.8]] },
-    { inst: 'timpani', notes: [[0, 38, 1, 0.4], [8, 33, 1, 0.4]] },
-  ]),
+  searchers: cue(66, 32, (() => {   // open country: a harmonica over a picked guitar, strings holding the chords, a walking bass; D, D, G, D, B minor, G, A, D
+    const CH = [[50, 57, 62, 66], [50, 57, 62, 66], [43, 50, 55, 59], [50, 57, 62, 66], [47, 54, 59, 62], [43, 50, 55, 59], [45, 52, 57, 61], [50, 57, 62, 66]], PICK = [0, 1, 2, 3, 2, 1, 2, 3];
+    const guitar = [], strings = [], bass = []; CH.forEach((c, b) => { PICK.forEach((k, i) => guitar.push([b * 4 + i * 0.5, c[k] + 12, 0.5, i === 0 ? 0.9 : 0.6])); strings.push(...chord(b * 4, c.slice(1), 4, 0.35)); bass.push([b * 4, c[0] - 12, 1.8, 0.8], [b * 4 + 2, c[1] - 12, 1.8, 0.6]); });
+    return [
+      { inst: 'harmonica', notes: [[0, 69, 1.5, 0.9], [1.5, 71, 0.5, 0.7], [2, 74, 2, 0.9], [4, 73, 1, 0.8], [5, 71, 1, 0.7], [6, 69, 2, 0.8], [8, 71, 1.5, 0.8], [9.5, 69, 0.5, 0.7], [10, 67, 1, 0.8], [11, 71, 1, 0.8], [12, 69, 3.5, 0.9],
+        [16, 66, 1.5, 0.8], [17.5, 69, 0.5, 0.7], [18, 71, 2, 0.9], [20, 74, 1.5, 0.9], [21.5, 71, 0.5, 0.7], [22, 69, 2, 0.8], [24, 67, 1, 0.8], [25, 66, 1, 0.7], [26, 64, 2, 0.8], [28, 62, 3.5, 0.9]] },
+      { inst: 'guitar', notes: guitar }, { inst: 'strings', notes: strings }, { inst: 'bass', notes: bass },
+      { inst: 'timpani', notes: [[0, 38, 1, 0.35], [16, 35, 1, 0.35]] },
+    ];
+  })()),
+  'searchers-end': cue(60, 10, [   // the door closes: the tune's last phrase on the horn, the guitar's one strum, the strings holding D
+    { inst: 'horn', notes: [[0, 67, 1, 0.8], [1, 66, 1, 0.7], [2, 64, 2, 0.8], [4, 62, 5, 0.9]] },
+    { inst: 'harmonica', notes: [[4, 69, 4.5, 0.6]] },
+    { inst: 'guitar', notes: [[0, 55, 1, 0.7], [0.06, 59, 1, 0.6], [0.12, 62, 1, 0.6], [4, 50, 3, 0.9], [4.06, 57, 3, 0.7], [4.12, 62, 3, 0.7], [4.18, 66, 3, 0.7]] },
+    { inst: 'strings', notes: [...chord(0, [43, 55, 59, 62], 4, 0.5), ...chord(4, [38, 50, 57, 62, 66], 6, 0.6)] },
+    { inst: 'bass', notes: [[0, 31, 3.5, 0.8], [4, 26, 5.5, 0.9]] },
+    { inst: 'timpani', notes: [[4, 38, 1, 0.5]] },
+  ], true),
   end: cue(100, 8, [
     { inst: 'brass', notes: [[0, 67, 1, 1], [1, 65, 1, 0.9], [2, 64, 1, 0.9], [3, 62, 1, 0.9], [4, 60, 4, 1]] },
     { inst: 'horn', notes: [[0, 55, 2, 0.8], [2, 53, 2, 0.8], [4, 48, 4, 0.9]] },

@@ -120,42 +120,43 @@ const SUN = { hemi: 0.75, sun: 1.25, elev: 26, azim: 115, exposure: 1.0 };
 const ROOM = { hemi: 0.2, sun: 1.25, elev: 26, azim: 115, exposure: 0.95 };   /* the room: the ceiling keeps the sun off it, and the fill is cut to a fifth, so the door is the one bright thing */
 const INSIDE = [0.6, 1.9, -9.0], DOOR = [0.1, 1.6, -2.25];   /* the camera by the back wall, and the middle of the door it looks at */
 Film.SCENES['case-searchers'] = { name: 'The Searchers', time: 'day', weather: 'clear', ground: 'flat', me: 'off', part: 'ethan',
-  set: { kind: 'desert', r: 160, seed: 3, corridor: [[-1, -14], [1, 12], [3, 40], [3, 70]] },   /* the desert's rocks are kept eight metres off the line from the house to the mitten */
-  story: { title: 'The Searchers', description: 'A woman comes out of a dark house into the light and sees two figures walking in from the buttes: the man who went after the girl the Comanche took, and the girl. He brings her home. The family goes in. He stays on the porch, and walks back into the desert.', location: 'a homestead under the buttes',
+  set: { kind: 'monument', r: 200, seed: 3, corridor: [[-1, -14], [1, 12], [3, 40], [3, 70]] },   /* red earth, sage and rocks kept off the line from the house to the mitten, mesas round the horizon */
+  story: { title: 'The Searchers', description: 'A woman comes out of a dark house into the light and sees a horse coming in from the buttes with two riders: the man who went after the girl the Comanche took, and the girl behind him. He brings her home. The family goes in. He stays on the porch, and walks back into the desert.', location: 'a homestead under the buttes',
     entities: [{ id: 'ethan', type: 'character', name: 'Ethan', traits: ['the hat', 'five years searching', 'the door he does not go through'] }, { id: 'debbie', type: 'character', name: 'Debbie', traits: ['taken', 'brought home'] }, { id: 'martha', type: 'character', name: 'Martha', traits: ['the porch', 'the one who waited'] }, { id: 'aaron', type: 'character', name: 'Aaron', traits: ['the house'] }, { id: 'door', type: 'location', name: 'the door', traits: ['the dark room', 'the bright desert'] }],
     goals: ['bring Debbie home'], obstacles: ['the man who brings her is not a man for houses'], shifts: [{ id: 'door', name: 'The door' }, { id: 'sighting', name: 'Two figures' }, { id: 'recognition', name: 'Martha' }, { id: 'approach', name: 'The approach' }, { id: 'home', name: 'Home' }, { id: 'inside', name: 'Inside' }, { id: 'leaving', name: 'The leaving' }], why: 'the one who brings them home cannot come in', direction: 'restraint' },
   donors: [{ name: 'the homestead', set: 'homestead', x: 0, z: 0, heading: 180, scale: 1, y: -0.18 }, { name: 'the buttes', set: 'buttes', x: 16.5, z: 62, heading: 180, scale: 1 }],
   marksHidden: true,   /* the path, the porch and the room's floor are in almost every frame: the marks stay places to walk to, not plates on the floor */
-  marks: { inside: [0.4, -5.8], step: [-0.5, 1.3], 'porch-a': [-0.9, -1.0], 'yard-e': [1.0, 8.0], 'yard-d': [2.2, 8.4], 'porch-d': [-0.4, -1.3], 'porch-m': [-0.1, -1.4], 'door-out': [0.1, -1.1], 'room-d': [3.4, -6.4], 'room-m': [3.6, -7.5], 'room-a': [4.8, -7.4], desert: [1.6, 26] },
+  marks: { inside: [0.4, -5.8], step: [-0.5, 1.3], 'porch-a': [-1.9, -1.1], 'yard-e': [1.0, 8.0], 'yard-d': [2.2, 8.4], 'porch-d': [-0.9, -1.3], 'porch-m': [0.3, -1.5], 'pasture': [-3.8, 6.5], 'ride-in': [1.3, 5.0], 'door-out': [0.1, -1.1], 'room-d': [3.4, -6.4], 'room-m': [1.8, -8.6], 'room-a': [4.8, -7.4], desert: [1.6, 26] },
   actors: [
     { name: 'martha', figure: 'martha', label: 'Martha', x: 0.4, z: -5.8, heading: 180 },
     { name: 'aaron', figure: 'aaron', label: 'Aaron', x: 4.0, z: -6.0, heading: 180 },
     { name: 'ethan', figure: 'ethan', label: 'Ethan', x: 4.6, z: 36, heading: 0 },
-    { name: 'debbie', figure: 'debbie', label: 'Debbie', x: 5.8, z: 36.6, heading: 0 }],
+    { name: 'debbie', figure: 'debbie', label: 'Debbie', x: 5.8, z: 36.6, heading: 0 },
+    { name: 'ethan-horse', kind: 'horse', len: 7, col: 70, label: "Ethan's horse", x: 4.6, z: 38, heading: 0 }],   /* the horse is a ride: Ethan in the saddle, Debbie behind him, walked in by the film */
   shots: [
     { score: 'searchers', title: 'THE SEARCHERS', style: 'card', sec: 3, events: [SAY('narrator', 'Five years, he looked for her.', 0.6, 2.0)] },
     { name: 'The door', on: 'martha', pos: INSIDE, tgt: DOOR, lens: 50, sec: 7, shift: 'door', look: ROOM,
-      acts: [{ who: 'martha', to: 'step', walk: true, at: 1.0 }],
+      acts: [{ who: 'martha', to: 'step', walk: true, at: 1.0 }, { who: 'ethan', ride: 'ethan-horse' }, { who: 'debbie', ride: 'ethan-horse' }],
       events: [BEAT('door', 'martha', 0, 7, 'out of the dark room into the light', 'restraint'), SND('whoosh', 0.4), SND('footstep', 1.3), SND('footstep', 1.8), SND('footstep', 2.3), SND('footstep', 2.8), SND('footstep', 3.3)] },
     { name: 'Two figures', on: 'ethan', pos: [0.6, 2.2, -1.85], tgt: [1.0, 1.5, 20], lens: 42, sec: 6, shift: 'sighting', look: SUN,
-      acts: [{ who: 'ethan', to: 'yard-e', walk: true }, { who: 'debbie', to: 'yard-d', walk: true }, { who: 'aaron', to: 'porch-a', walk: true, at: 2.0 }, { who: 'martha', look: 'ethan' }],
-      events: [BEAT('sighting', 'martha', 0, 6, 'two figures walking in out of the buttes', 'wonder'), LOOK('martha', 'ethan', 0.3, true), P('martha', 'wonder', 1.0), SND('whoosh', 1.5)] },
+      acts: [{ who: 'ethan', ride: 'ethan-horse' }, { who: 'debbie', ride: 'ethan-horse' }, { who: 'ethan-horse', to: 'ride-in', speed: 0.7 }, { who: 'aaron', to: 'porch-a', walk: true, at: 2.0 }, { who: 'martha', look: 'ethan' }],
+      events: [BEAT('sighting', 'martha', 0, 6, 'a horse with two riders coming in out of the buttes', 'wonder'), LOOK('martha', 'ethan', 0.3, true), P('martha', 'wonder', 1.0), SND('whoosh', 1.5)] },
     { name: 'Martha', on: 'martha', pos: [0.3, 2.1, 5.9], tgt: [-0.5, 2.05, 1.3], lens: 30, sec: 3.5, shift: 'recognition', look: SUN,
-      acts: [{ who: 'ethan', to: 'yard-e', walk: true }, { who: 'debbie', to: 'yard-d', walk: true }, { who: 'martha', look: 'ethan' }],
-      events: [BEAT('recognition', 'martha', 0, 3.5, 'she knows who it is, and who is with him', 'recognition'), P('martha', 'recognition', 0.4), SET('martha', 'arm.R.pitch', -2.0, 0.8, 0.6), SND('breath', 1.6)] },
-    { name: 'The approach', on: 'ethan', pos: [-0.9, 1.15, 3.6], tgt: [2.0, 1.8, 20], lens: 36, sec: 7, shift: 'approach', look: SUN,
-      acts: [{ who: 'ethan', to: 'yard-e', walk: true }, { who: 'debbie', to: 'yard-d', walk: true }],
-      events: [BEAT('approach', 'ethan', 0, 7, 'he brings her the last of the way', 'weariness'), P('ethan', 'weariness', 0.5), SND('footstep', 0.6), SND('footstep', 1.3), SND('footstep', 2.0), SND('footstep', 2.7), LOOK('ethan', 'debbie', 4.2), P('debbie', 'guarded', 4.4), SAY('ethan', "Let's go home, Debbie.", 4.6, 1.8)] },
+      acts: [{ who: 'ethan-horse', to: 'ride-in', speed: 0.7 }, { who: 'martha', look: 'ethan' }],
+      events: [BEAT('recognition', 'martha', 0, 3.5, 'she knows who it is, and who is with him', 'recognition'), P('martha', 'recognition', 0.4), LOOK('martha', 'ethan', 0.3, true), SND('breath', 1.6)] },
+    { name: 'The approach', on: 'ethan', pos: [-0.9, 1.15, 3.2], tgt: [1.8, 2.1, 20], lens: 40, sec: 7, shift: 'approach', look: SUN,
+      acts: [{ who: 'ethan-horse', to: 'ride-in', speed: 0.7 }],
+      events: [BEAT('approach', 'ethan', 0, 7, 'he brings her the last of the way', 'weariness'), P('ethan', 'weariness', 0.5), SND('clatter', 0.6), SND('clatter', 1.5), SND('clatter', 2.4), SND('clatter', 3.3), SND('breath', 4.0), P('debbie', 'guarded', 4.4), SAY('ethan', "Let's go home, Debbie.", 4.6, 1.8)] },
     { name: 'Home', on: 'debbie', pos: [3.6, 2.0, 12.6], tgt: [-0.2, 1.8, -1], lens: 36, sec: 6, shift: 'home', look: SUN,
-      acts: [{ who: 'debbie', to: 'porch-d', walk: true, at: 0.4 }, { who: 'martha', to: 'porch-m', walk: true, at: 3.4 }, { who: 'aaron', look: 'debbie' }, { who: 'ethan', look: 'martha' }],
-      events: [BEAT('home', 'debbie', 0, 6, 'the girl goes up to the porch; the woman who waited turns and takes her in', 'tenderness'), SET('martha', 'arm.R.pitch', 0, 0.2, 0.6), LOOK('ethan', 'martha', 0.1), LOOK('martha', 'debbie', 0.6, true), P('martha', 'tenderness', 1.0), SAY('martha', 'Debbie.', 2.6, 1.0), P('aaron', 'joy', 3.0), P('ethan', 'guarded', 1.0)] },
+      acts: [{ who: 'ethan', leave: true, look: 'martha' }, { who: 'debbie', leave: true, to: 'porch-d', walk: true, at: 0.6 }, { who: 'martha', to: 'porch-m', walk: true, at: 3.4 }, { who: 'aaron', look: 'debbie' }, { who: 'ethan-horse', to: 'pasture', speed: 0.35, at: 2.4 }],
+      events: [BEAT('home', 'debbie', 0, 6, 'the girl goes up to the porch; the woman who waited turns and takes her in', 'tenderness'), LOOK('ethan', 'martha', 0.3), LOOK('martha', 'debbie', 0.6, true), P('martha', 'tenderness', 1.0), SAY('martha', 'Debbie.', 2.6, 1.0), P('aaron', 'joy', 3.0), P('ethan', 'guarded', 1.0)] },
     { name: 'Inside', on: 'ethan', pos: INSIDE, pos2: [0.35, 1.9, -6.6], tgt: DOOR, lens: 50, lens2: 44, sec: 9, shift: 'inside', look: ROOM,
-      acts: [{ who: 'debbie', to: 'room-d', walk: true, at: 0.3 }, { who: 'martha', to: 'room-m', walk: true, at: 0.9 }, { who: 'aaron', to: 'room-a', walk: true, at: 2.2 }, { who: 'ethan', to: 'door-out', walk: true, at: 1.5 }],
-      events: [BEAT('inside', 'ethan', 0, 9, 'they all go in past him; he comes to the door and stops', 'restraint'), SND('footstep', 0.8), SND('footstep', 1.4), SND('footstep', 2.6), SND('footstep', 3.2), LOOK('ethan', 'martha', 6.2), P('ethan', 'weariness', 6.0), SET('ethan', 'arm.R.pitch', -1.1, 6.8, 0.8)] },
+      acts: [{ who: 'debbie', to: 'room-d', walk: true, at: 0.3 }, { who: 'martha', to: 'room-m', walk: true, at: 1.3 }, { who: 'aaron', to: 'room-a', walk: true, at: 2.6 }, { who: 'ethan', to: 'door-out', walk: true, at: 1.5 }],
+      events: [BEAT('inside', 'ethan', 0, 9, 'they all go in past him; he comes to the door and stops', 'restraint'), SND('footstep', 0.8), SND('footstep', 1.4), SND('footstep', 2.6), SND('footstep', 3.2), LOOK('ethan', 'martha', 6.2), P('ethan', 'weariness', 6.0)] },
     { name: 'The leaving', on: 'ethan', pos: INSIDE, tgt: DOOR, lens: 50, sec: 7, shift: 'leaving', look: ROOM,
       acts: [{ who: 'ethan', to: 'desert', walk: true, at: 1.4 }],
-      events: [BEAT('leaving', 'ethan', 0, 7, 'he turns and walks back into the desert', 'restraint'), SET('ethan', 'head.yaw', 0, 0.7, 0.5), SET('ethan', 'torso.twist', 0, 0.8, 0.5), SET('ethan', 'root.yaw', 0, 0.9, 0.5), SET('ethan', 'arm.R.pitch', 0, 1.0, 0.6), SND('footstep', 1.6), SND('footstep', 2.2), SND('footstep', 2.8), SND('whoosh', 3.2)] },
-    { score: 'end', title: 'THE SEARCHERS', style: 'card', sec: 3, name: 'the card' }] };
+      events: [BEAT('leaving', 'ethan', 0, 7, 'he turns and walks back into the desert', 'restraint'), SET('ethan', 'head.yaw', 0, 0.7, 0.5), SET('ethan', 'torso.twist', 0, 0.8, 0.5), SET('ethan', 'root.yaw', 0, 0.9, 0.5), SND('footstep', 1.6), SND('footstep', 2.2), SND('footstep', 2.8), SND('whoosh', 3.2)] },
+    { score: 'searchers-end', title: 'THE SEARCHERS', style: 'card', sec: 5, name: 'the card' }] };
 
 /* ── The sheet of nine: every candidate registered with its set, so it can be laid, planned and inspected now. The three with programs stand on real models
    (world/models/*.js, built and audited by tools/model.js: every piece stud-connected, a manual at play/manual.html?model=<model>); the other six still stand on the scene files they came from. ── */

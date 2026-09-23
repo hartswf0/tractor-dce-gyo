@@ -417,7 +417,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
     /** The cue a shot plays: its own `score`, or the last one named before it (null ends the music). */
     function scoreFor(i) { for (let k = i; k >= 0; k--) { const s = F.shots[k]; if (s && s.score !== undefined) return s.score; } return undefined; }
     /** The bed under a shot: the set's kind, the weather, the planet. */
-    function bedFor(s) { const kind = F.scene && F.scene.set && F.scene.set.kind, we = (s && s.set && s.set.weather) || W.weather, world = W.world; if (kind === 'stage' || kind === 'hall') return null; if (kind === 'forest') return 'forest'; if (kind === 'snowfield' || we === 'snow' || we === 'blizzard' || world === 'hoth') return we === 'blizzard' ? 'blizzard' : 'snow'; if (kind === 'desert' || world === 'tatooine') return 'desert'; if (world === 'deathstar') return 'space'; return 'city'; }
+    function bedFor(s) { const kind = F.scene && F.scene.set && F.scene.set.kind, we = (s && s.set && s.set.weather) || W.weather, world = W.world; if (kind === 'stage' || kind === 'hall') return null; if (kind === 'forest') return 'forest'; if (kind === 'snowfield' || we === 'snow' || we === 'blizzard' || world === 'hoth') return we === 'blizzard' ? 'blizzard' : 'snow'; if (kind === 'desert' || kind === 'monument' || world === 'tatooine') return 'desert'; if (world === 'deathstar') return 'space'; return 'city'; }
     /** The hold is over: a planned shot is staged where things now stand, the act's first moves happen. */
     function settle(s) {
       if (s.plan) { try { s.bearKeep = null; const st = F.stage(s.plan); s.keys = st.keys; s.curve = null; s.name = s.name || st.name; s.readout = st.readout; if (s.follow) s.bearKeep = st.bearKeep; } catch (e) { F.log.push('stage: ' + (e.message || e)); } }
@@ -623,7 +623,16 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
       if (V.fly) { const alt = V.pos.y - groundH(V.pos.x, V.pos.z), wantAlt = (act.alt || (V.K.stall === 0 ? 2.5 : 8)) * M, tol = V.K.stall === 0 ? 0.4 * M : M; V.input.y = act.land ? -0.5 : alt < wantAlt - tol ? 0.6 : alt > wantAlt + tol ? -0.35 : 0; V.input.mag = speed === 0 ? 0 : Math.max(Math.min(speed, 1), 0.3); }
       else if (act.brake) V.input.y = -0.5;
     }
+    /** Figures keep their room: two standing figures closer than a body's width are pushed apart along the line between them, half each, so a walk goes round a figure instead of through it. */
+    function separate() {
+      const L = [...F.actors.values()].filter(a => a.rig && !a.hidden && !a.riding && !a.rig.seated && !a.down && !a.rig.air), R = 0.95 * M;
+      for (let i = 0; i < L.length; i++) for (let j = i + 1; j < L.length; j++) {
+        const p = L[i].rig.pos, q = L[j].rig.pos, dx = q.x - p.x, dz = q.z - p.z, d = Math.hypot(dx, dz); if (d >= R) continue;
+        const ux = d > 1e-3 ? dx / d : 1, uz = d > 1e-3 ? dz / d : 0, k = (R - d) / 2; p.x -= ux * k; p.z -= uz * k; q.x += ux * k; q.z += uz * k;
+      }
+    }
     function stepActors(dt) {
+      if (F.scene && !F.scene.overlap) separate();
       for (const a of F.actors.values()) {
         if (a.rig) { if (!a.hidden) stepFigure(a, dt); continue; }
         if (!a.V || a.crowd) continue;
@@ -633,6 +642,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
         if (a.shove) { const sh = a.shove; sh.t += dt; const u = clamp(sh.t / sh.over, 0, 1); if (a.riderRig) a.riderRig.torsoP.rotation.x = -0.75 * Math.sin(u * Math.PI); V.heading += sh.side * 0.9 * dt; if (u >= 1) { a.shove = null; if (a.riderRig) a.riderRig.torsoP.rotation.x = 0; } }   // the rider tips back, the bike veers
         if (a.crashInto && W.sets) { const hit = W.sets.hitTrunk(V.pos, Math.max(V.hx || M, 0.8 * M)), ok = hit && (a.crashInto === 'log' ? !!hit.log : !hit.log), T = a.crashAt, near = T && Math.hypot(T.x - V.pos.x, T.z - V.pos.z) < 2.6 * M; if (ok || near) { explode(a, { scale: 1 }); continue; } }
         Drive.step(V, dt, W.filmCtx(V));
+        if (V.K.horse && V.group.children[0]) { const w = V.group.children[0]; a.gaitT = (a.gaitT || 0) + dt * Math.abs(V.speed) / M * 1.6; w.position.y = Math.abs(Math.sin(a.gaitT * Math.PI)) * 0.07 * M; w.rotation.x = Math.sin(a.gaitT * Math.PI * 2) * 0.025; }   /* a horse at a walk: no legs to swing, so the body rises and dips with the stride */
         if ((a.syncAcc = (a.syncAcc || 0) + dt) > 0.2 || Math.abs(V.speed) > 0.5 * M) { a.syncAcc = 0; syncProp(a); }   // a moving actor's box follows it every step, so a follow shot stays on it   // the prop's place and box follow the drive, so subjects and the clear line see where it is
       }
     }
