@@ -35,15 +35,18 @@ const words = s => s.toLowerCase().replace(/[^a-z ]+/g, ' ').split(/\s+/).filter
 /** cast: [{ id, name, type, comp }]. Returns { list: [[comp, x, z, q, y]], blocking: [{ who, name, comp, x, z, face, mark }] }. */
 function block(set, cast) {
   const cells = occupancy(set.comp, set.floorY), marks = Object.entries(set.marks), used = new Map(), list = [], blocking = [];
-  const markFor = (c, i) => { const w = words(c.name); const named = marks.find(([k, m]) => w.includes(k) || w.some(x => (m.note || '').toLowerCase().includes(x) && x.length > 4)); if (named) return named;
+  const markFor = (c, i) => { const w = words(c.name); if (w.includes('polyphemus')) w.push('cyclops');   /* the Cyclops of the notes is Polyphemus */ const named = marks.find(([k, m]) => w.includes(k) || w.some(x => (m.note || '').toLowerCase().includes(x) && x.length > 4)); if (named) return named;
     const free = marks.filter(([k]) => !used.has(k) && k !== 'door'); return free.length ? free[i % free.length] : marks[i % marks.length]; };
   cast.forEach((c, i) => {
-    const [mk, m] = markFor(c, i); used.set(mk, (used.get(mk) || 0) + 1);
+    const outside = c.type === 'ensemble' && /\boutside\b/i.test(c.name), door = (set.marks.entrance || set.marks.door);
+    const [mk, m] = outside ? ['outside', { x: door ? door.x : 0, z: -set.size[1] / 2, face: 0 }] : markFor(c, i); if (!outside) used.set(mk, (used.get(mk) || 0) + 1);
     const figs = c.type === 'ensemble' && c.comp.subs.length > 1 ? c.comp.subs.map(s => s.c) : [c.comp];
     figs.forEach((f, k) => {
       const ft = B.foot(f), w = Math.max(2, ft.w), d = Math.max(2, ft.d);
-      const tx = m.x + (figs.length > 1 ? ((k % 4) - 1.5) * 3 : 0), tz = m.z + (figs.length > 1 ? Math.floor(k / 4) * 3 : 0);
-      const spot = freeSpot(cells, tx, tz, w, d, set.size) || [tx, tz]; claim(cells, spot[0], spot[1], w, d);
+      const step = Math.max(3, w + 1), tx = m.x + (figs.length > 1 ? ((k % 4) - 1.5) * step : 0), tz = m.z + (figs.length > 1 ? Math.floor(k / 4) * Math.max(3, d + 1) : 0);
+      /* a crowd named as outside stands in a row past the set's front edge, by the door, not among the furniture */
+      const spot = outside ? [((k % 4) - (Math.min(figs.length, 4) - 1) / 2) * step + (door ? door.x : 0), -set.size[1] / 2 - d / 2 - 1 - Math.floor(k / 4) * (d + 1)]
+        : freeSpot(cells, tx, tz, w, d, set.size) || [tx, tz]; claim(cells, spot[0], spot[1], w, d);
       /* place so the footprint's centre sits on the spot: the component is settled with its footprint about its centre, to a stud */
       list.push([f, spot[0], spot[1], m.face || 0, set.floorY]);
       blocking.push({ who: c.id, name: figs.length > 1 ? c.name + ' ' + (k + 1) : c.name, type: c.type, comp: f, x: spot[0], z: spot[1], face: m.face || 0, mark: mk });
