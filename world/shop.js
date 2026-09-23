@@ -99,7 +99,7 @@ function paint() {
   L.innerHTML = '<h4>Marge\'s list <small>an order</small></h4>' + S.items.map(it => `<div class="${it.have >= (it.count || 1) ? 'got' : ''}">${itemLine(it)}</div>`).join('');
   const bad = S.basket.filter(b => !b.item);
   C.innerHTML = `<b>In the cart</b> ${S.basket.length ? S.basket.length + ' thing' + (S.basket.length > 1 ? 's' : '') : 'nothing yet'}` + (bad.length ? '<br>' + bad.map(b => `<span class="bad">${esc(b.name)}: not on the list</span>`).join('<br>') : '');
-  R.innerHTML = '<h4>Ned\'s record <small>a description</small></h4>' + (S.record.length ? S.record.map(r => `<div class="${r.struck ? 'x' : r.sure ? '' : 'q'}">${esc(r.text)}${!r.sure && !r.struck ? ' ?' : ''}</div>`).join('') : '<div class="dim">(nothing yet, neighbor)</div>');
+  R.innerHTML = '<h4>Ned\'s record <small>a description</small></h4>' + (S.record.length ? grouped(S.record, r => r.text + '|' + !!r.struck + '|' + !!r.sure, (r, n) => `<div class="${r.struck ? 'x' : r.sure ? '' : 'q'}">${esc(r.text)}${n > 1 ? ' x' + n : ''}${!r.sure && !r.struck ? ' ?' : ''}</div>`).join('') : '<div class="dim">(nothing yet, neighbor)</div>');
   document.documentElement.style.setProperty('--listH', L.offsetHeight + 'px'); document.documentElement.style.setProperty('--recH', R.offsetHeight + 'px');
 }
 let sayT = 0, fitT = 0;
@@ -183,6 +183,7 @@ function nedCatchUp() {
 /** Ned looks into the cart when he is close to it: a guess that the cart does not bear out is corrected; a thing put back is struck. */
 function nedInspect() {
   const ned = nedPos(), cart = cartPos(); if (!ned || !cart || Math.hypot(ned.x - cart.x, ned.z - cart.z) > 3.2 * M || !clear(ned, cart)) return;
+  const unseen = S.basket.filter(b => !S.record.some(r => r.of === b && !r.struck)); if (unseen.length) { for (const b of unseen) S.record.push({ text: b.name, sure: true, of: b }); S.unseen = S.unseen.filter(b => !unseen.includes(b)); say('A peek in the cart: ' + [...new Set(unseen.map(b => b.name))].join(', ') + '. Into the book!'); paint(); return; }
   for (const r of S.record) {
     if (r.struck) continue; const inCart = S.basket.includes(r.of);
     if (!inCart) { r.struck = true; say(NED.back); paint(); return; }
@@ -246,11 +247,14 @@ S.step = dt => {
   if (fitT > 0 && (fitT -= dt) <= 0) { $('#shopFit').style.opacity = 0; setTimeout(() => { if (fitT <= 0) $('#shopFit').hidden = true; }, 400); }
   if (S.wittT > 0 && (S.wittT -= dt) <= 0) $('#shopWitt').hidden = true;
 };
+/** Rows of like things counted: 'red apples x5'. */
+const grouped = (rows, key, html) => { const out = [], seen = new Map(); for (const r of rows) { const k = key(r); if (seen.has(k)) { seen.get(k).n++; continue; } const g = { r, n: 1 }; seen.set(k, g); out.push(g); } return out.map(g => html(g.r, g.n)); };
+const times = n => n > 1 ? ` <b>x${n}</b>` : '';
 function finish(lane) {
   S.done = true; $('#shopActs').innerHTML = ''; $('#shopActs').dataset.html = ''; nedCatchUp();
   // at the belt Ned reads the receipt, and his record is put right to fit it
   const fixes = []; for (const r of [...S.record]) { if (r.struck) continue; if (!S.basket.includes(r.of)) { r.struck = true; fixes.push(`${r.text} (put back)`); } else if (r.text !== r.of.name) { r.struck = true; S.record.splice(S.record.indexOf(r) + 1, 0, { text: r.of.name, sure: true, of: r.of, fixed: true }); fixes.push(`${r.text} to ${r.of.name}`); } }
-  const missed = S.basket.filter(b => !S.record.some(r => r.of === b && !r.struck)); for (const b of missed) { S.record.push({ text: b.name, sure: true, of: b, fixed: true }); fixes.push(`added ${b.name}`); }
+  const missed = S.basket.filter(b => !S.record.some(r => r.of === b && !r.struck)); for (const b of missed) S.record.push({ text: b.name, sure: true, of: b, fixed: true }); if (missed.length) fixes.push('added what he never saw: ' + grouped(missed, b => b.name, (b, n) => b.name + (n > 1 ? ' x' + n : '')).join(', '));
   const short = S.items.filter(it => it.have < (it.count || 1)), extras = S.basket.filter(b => !b.item);
   const col = (title, sub, rows) => `<div class="col"><h4>${title}<small>${sub}</small></h4>${rows.join('') || '<div>(nothing)</div>'}</div>`;
   const v = [];
@@ -261,8 +265,8 @@ function finish(lane) {
   if (!short.length && !extras.length && !fixes.length) v.push('The list, the cart and the record agree: the shopping made the list true, and the record says truly what was done.');
   $('#shopEnd').innerHTML = `<div class="shopCard"><h3>Lane ${lane.n}: the receipt</h3><div>${clock()} in the store, ${S.basket.length} thing${S.basket.length === 1 ? '' : 's'} on the belt.</div>
     <div class="cols">${col("Marge's list", 'an order: the cart must fit it', S.items.map(it => `<div style="${it.have >= (it.count || 1) ? 'text-decoration:line-through' : 'color:#b0341e'}">${itemLine(it)}</div>`))}
-    ${col('The receipt', 'what was bought', S.basket.map(b => `<div style="${b.item ? '' : 'color:#b0341e'}">${esc(b.name)} <span style="opacity:.6">(${esc(b.where)})</span></div>`))}
-    ${col("Ned's record", 'a description: it must fit the cart', S.record.map(r => `<div style="${r.struck ? 'text-decoration:line-through;color:#b0341e;opacity:.7' : r.fixed ? 'color:#2a7a2a' : ''}">${esc(r.text)}${r.fixed ? ' (fixed)' : ''}</div>`))}</div>
+    ${col('The receipt', 'what was bought', grouped(S.basket, b => b.name + '|' + !!b.item, (b, n) => `<div style="${b.item ? '' : 'color:#b0341e'}">${esc(b.name)}${times(n)} <span style="opacity:.6">(${esc(b.where)})</span></div>`))}
+    ${col("Ned's record", 'a description: it must fit the cart', grouped(S.record, r => r.text + '|' + !!r.struck + '|' + !!r.fixed, (r, n) => `<div style="${r.struck ? 'text-decoration:line-through;color:#b0341e;opacity:.7' : r.fixed ? 'color:#2a7a2a' : ''}">${esc(r.text)}${times(n)}${r.fixed ? ' (fixed)' : ''}</div>`))}</div>
     ${v.map(x => `<div class="verdict">${x}</div>`).join('')}<button id="shopAgain">Shop again</button></div>`;
   $('#shopEnd').hidden = false; $('#shopAgain').onclick = () => location.reload(); paint();
   say(short.length ? 'Well, that list isn\'t true yet, neighbor!' : fixes.length ? 'My record needed fixing, but it\'s right now-diddly-ow!' : 'Hi-diddly-done! And it\'s all in my book.', 'Ned', 6);
