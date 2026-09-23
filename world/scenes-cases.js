@@ -43,7 +43,8 @@ Film.SCENES['case-grocery'] = { name: 'The List', time: 'day', weather: 'clear',
     { name: 'cart', kind: 'cart', len: 4, col: 4, rider: 'maggie', label: 'the cart', x: -1.2, z: -20.3, heading: 180 },   /* Maggie rides in the basket; the cart is kept a step ahead of Homer */
     { name: 'lisa', figure: 'lisa', label: 'Lisa', x: 0.2, z: -23, heading: 180 },
     { name: 'bart', figure: 'bart', label: 'Bart', x: 2.2, z: 11.2, heading: 0 },
-    { name: 'clerk', figure: 'citizen', label: 'the clerk', x: 8.4, z: -11.8, heading: 270 }],
+    { name: 'clerk', figure: 'citizen', label: 'the clerk', x: 8.4, z: -11.8, heading: 270 },
+    { name: 'flanders', figure: 'flanders', label: 'Ned', x: -11, z: -13, heading: 90 }],
   /* Cut to 'Trouttown Working Day' (Silt Wire & Mountain Current, m1; world/music/cues.json): its bars fall at 0.21 s + 1.973 s k, and every cut is on
      one (bars 2, 6, 8, 12, 15, 19, 23, 25); the section turns at bar 8 (the list to the aisle) and bar 23 (the end card, where the track fades);
      the scanner pings on the beat. After the Simpsons' own warehouse-store scene: the tall orange racks, Homer with the list and the cart, the children adding. */

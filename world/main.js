@@ -671,7 +671,7 @@ function setTier(tier) {
 }
 const MOVE = { x: 0, z: 0, mag: 0 };
 function simulate(dt) {
-  W.t += dt; readKeys(); if (W.film) W.film.step(dt);
+  W.t += dt; readKeys(); if (W.film) W.film.step(dt); if (window.Shop && Shop.on) Shop.step(dt);   // the list as a game (world/shop.js)
   if (window.Kernel) Kernel.step(dt);   // flags from any device pass the one guard; the runtime counts; events advance
   const portrait = innerHeight > innerWidth, I = W.input, d = Minifig.DEFS[W.character];
   if (W.mode === 'walk') {

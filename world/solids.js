@@ -53,7 +53,7 @@ function fromModel(json, o) {
     }
     return out;
   }
-  return { push, boxes, blocked, cells: cells.size, centre: [cx, cz] };
+  return { push, boxes, blocked, toStud, toWorld, cellL, cells: cells.size, centre: [cx, cz] };
 }
 window.Solids = { fromModel };
 })();

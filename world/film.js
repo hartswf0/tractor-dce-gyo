@@ -562,7 +562,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
       const g = await Donors.build(d.set, { yaw: headingOf(d.heading || 0), scale: d.scale }); if (!F.scene || F.scene.donorsDropped) { g.traverse(o => { if (o.isMesh) o.geometry.dispose(); }); return null; }
       g.position.set(x, groundH(x, z) + (d.y || 0) * M, z); W.scene.add(g); g.updateMatrixWorld(true); const box = new THREE.Box3().setFromObject(g);
       const rec = { name: d.name || d.set, set: d.set, group: g, box, x, z, y0: g.position.y, h: box.max.y - g.position.y, r: Math.max(box.max.x - box.min.x, box.max.z - box.min.z) / 2, heading: d.heading || 0, scale: d.scale || (Donors.DONORS[d.set] || {}).scale || 2.5, lift: d.y || 0 };
-      if (window.Solids && (rec.scale === 1) && !d.ghost) { try { const j = await (await fetch('./play/models/' + encodeURIComponent(d.set) + '.json')).json(); rec.solid = Solids.fromModel(j, { x, z, heading: d.heading || 0, M }); (W.solids = W.solids || []).push(rec.solid); } catch (e) { F.log.push('solid ' + d.set + ': ' + (e.message || e)); } }   /* a model laid whole is solid: its walls, shelves and counters stop a figure, the player and a cart */
+      if (window.Solids && (rec.scale === 1) && !d.ghost) { try { const j = await (await fetch('./play/models/' + encodeURIComponent(d.set) + '.json')).json(); rec.solid = Solids.fromModel(j, { x, z, heading: d.heading || 0, M }); rec.plan = j.plan || null; (W.solids = W.solids || []).push(rec.solid); } catch (e) { F.log.push('solid ' + d.set + ': ' + (e.message || e)); } }   /* a model laid whole is solid: its walls, shelves and counters stop a figure, the player and a cart */
       F.donors.set(rec.name, rec); return rec;
     }
     /** The scene's actors and builds stand; the planet, the character and the ground it asked for are set first. */
@@ -648,7 +648,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
         if (!a.V || a.crowd) continue;
         if (a.fall) { stepFall(a, dt); continue; } if (a.down) continue;
         const V = a.V, act = a.act; V.input.x = 0; V.input.y = 0; V.input.mag = 0; V.input.boost = false;
-        if (act && F.play.on) { driveActor(a, act, dt); if (act.fire && (a.fireT = (a.fireT || 0) + dt) > (act.every || 1.5)) { a.fireT = 0; W.filmFx.fire(V, !!act.heavy, 'film', aimPoint(act.aim)); if (a.riderRig) { a.riderRig.aim = 1; a.riderRig.aimUntil = a.riderRig.t + 1; Minifig.pose(a.riderRig, { phase: 0, gait: 0, t: 0, swing: null, aim: 1, sit: true }); } } }
+        if (act && (F.play.on || a.free)) { driveActor(a, act, dt); if (act.fire && (a.fireT = (a.fireT || 0) + dt) > (act.every || 1.5)) { a.fireT = 0; W.filmFx.fire(V, !!act.heavy, 'film', aimPoint(act.aim)); if (a.riderRig) { a.riderRig.aim = 1; a.riderRig.aimUntil = a.riderRig.t + 1; Minifig.pose(a.riderRig, { phase: 0, gait: 0, t: 0, swing: null, aim: 1, sit: true }); } } }
         if (a.shove) { const sh = a.shove; sh.t += dt; const u = clamp(sh.t / sh.over, 0, 1); if (a.riderRig) a.riderRig.torsoP.rotation.x = -0.75 * Math.sin(u * Math.PI); V.heading += sh.side * 0.9 * dt; if (u >= 1) { a.shove = null; if (a.riderRig) a.riderRig.torsoP.rotation.x = 0; } }   // the rider tips back, the bike veers
         if (a.crashInto && W.sets) { const hit = W.sets.hitTrunk(V.pos, Math.max(V.hx || M, 0.8 * M)), ok = hit && (a.crashInto === 'log' ? !!hit.log : !hit.log), T = a.crashAt, near = T && Math.hypot(T.x - V.pos.x, T.z - V.pos.z) < 2.6 * M; if (ok || near) { explode(a, { scale: 1 }); continue; } }
         if (V.K.horse && window.HorseMotion) HorseMotion.step(V, dt);   // the legs swing with the speed, the body bobs
@@ -677,7 +677,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
       const rig = a.rig; let act = a.act; if (!rig) return; if (act && act.at != null && F.play.on && F.play.t < act.at) act = null;   /* an act with AT waits for its second of the shot */
       if (a.riding) { const B = F.actors.get(a.riding); if (!B || !B.V || B.down) { if (B && B.down) dismount(a); else a.riding = null; } else { if (act && act.leave && F.play.on) dismount(a); else return; } }
       const ctl = { move: { x: 0, z: 0, mag: 0 }, run: false, saber: false, aim: false }; let target = null;
-      if (act && F.play.on && !a.down) {
+      if (act && (F.play.on || a.free) && !a.down) {   /* a free actor keeps its act without the film playing: a game's cast (world/shop.js) */
         if (act.ride) { const B = F.actors.get(act.ride); if (B && B.V && B.it && B.it.ready && !B.down) { mount(a, B); return; } }
         if (act.via && (act._vi || 0) < act.via.length) { let v = act.via[act._vi || 0]; if (Math.hypot(v.x - rig.pos.x, v.z - rig.pos.z) < 0.9 * M) { act._vi = (act._vi || 0) + 1; v = act.via[act._vi]; } target = v || act.to || null; }
         else if (act.to) target = act.to; else if (act.ahead) { if (!act._pt) act._pt = { x: rig.pos.x + Math.sin(rig.heading) * act.ahead * M, z: rig.pos.z + Math.cos(rig.heading) * act.ahead * M }; target = act._pt; }
@@ -690,6 +690,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
       if (target && !a.down && a.poseNow !== 'prone') { const dx = target.x - rig.pos.x, dz = target.z - rig.pos.z, d = Math.hypot(dx, dz); if (d > 0.9 * M) { ctl.move.x = dx / d; ctl.move.z = dz / d; ctl.move.mag = 1; ctl.run = !(act && act.walk) && (d > 6 * M || !!(act && act.run)); } }   /* a long way is run unless the act says WALK */
       if (a.poseNow === 'aim' || a.poseNow === 'point') ctl.aim = true;
       if (a.poseNow === 'prone' || a.poseNow === 'crouch') ctl.move.mag = 0;
+      if (a.drive) a.drive(ctl, rig, dt);   /* a game drives this figure itself: it fills the controls */
       Minifig.step(rig, dt, ctl, figWorld);
       if (a.flip) { if (rig.air) rig.figure.rotation.x = -((rig.t - a.flip) / 0.9) * Math.PI * 2; else { a.flip = 0; a.poseNow = 'prone'; a.poseUntil = rig.t + 1.2; } }
       if (a.poseUntil && rig.t > a.poseUntil && !a.down) { a.poseUntil = 0; a.poseNow = 'stand'; }
