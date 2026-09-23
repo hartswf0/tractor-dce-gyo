@@ -96,7 +96,7 @@ function categoryAt(cx, cz, zone) {
   const a = zone.aisle; if (a) { const face = cx < (a.x0 + a.x1) / 2 ? 'west' : 'east'; return a[face] || 'canned'; }
   if (cz >= 28 && cz < 32 || cz >= 78 && cz < 80) return 'endcap';
   const n = zone.name; if (/Produce/.test(n)) return 'produce'; if (/Frozen/.test(n)) return 'frozen'; if (/Dairy/.test(n)) return 'dairy'; if (/Meat/.test(n)) return 'meat';
-  if (/Bread/.test(n)) return 'bread'; if (/Service/.test(n)) return 'flowers'; if (cx >= 118) return 'frozen'; if (cz >= 88) return 'dairy'; return null;
+  if (/Bread/.test(n)) return 'bread'; if (/Service/.test(n)) return 'flowers'; if (cz >= 88) return 'dairy'; return null;
 }
 /** What is in reach: a thing on the list, a shelf's goods, or the belt. */
 function reach() {
@@ -193,7 +193,8 @@ function finish(lane) {
   if (missing.length) v.push(`The list and the receipt disagree: <b>${missing.map(i => esc(i.name)).join(', ')}</b> ${missing.length > 1 ? 'were' : 'was'} on the list and not bought. The mistake is in the performance: the list stands, the shopping should be put right.`);
   if (extras.length) v.push(`<b>${extras.map(b => esc(b.name)).join(', ')}</b> went in the cart and on the receipt, never on the list. The list did not ask for ${extras.length > 1 ? 'them' : 'it'}; the shopping went past it.`);
   if (wrong.length) v.push(`Ned's record and the receipt disagree: he wrote <b>${wrong.map(r => esc(r.text)).join(', ')}</b> where the receipt has <b>${wrong.map(r => esc(r.of.name)).join(', ')}</b>. The mistake is in the record: it is the record that should be put right.`);
-  if (!missing.length && !extras.length && !wrong.length) v.push('The list, the record and the receipt agree. The shopping made the list true, and the record describes what was done.');
+  if (unrecorded.length) v.push(`Ned's record is short by ${unrecorded.length}: ${unrecorded.length > 1 ? 'things' : 'a thing'} went in the cart where he could not see. A record can be wrong by leaving out as well as by getting wrong; the receipt is what it answers to.`);
+  if (!missing.length && !extras.length && !wrong.length && !unrecorded.length) v.push('The list, the record and the receipt agree. The shopping made the list true, and the record describes what was done.');
   $('#shopEnd').innerHTML = `<div class="card"><h3>Lane ${lane.n}: the receipt</h3><div>${clock()} in the store, ${S.bought.length} thing${S.bought.length === 1 ? '' : 's'} on the belt.</div>
     <div class="cols">${col("Homer's list", [...listed.map(i => `<div style="${i.got ? 'text-decoration:line-through' : ''}">${i.n}. ${esc(i.name)}</div>`), ...extras.map(b => `<div style="color:#b0341e">+ ${esc(b.name)}</div>`)])}
     ${col("Ned's record", S.record.map(r => `<div style="${r.text !== r.of.name ? 'color:#b0341e' : ''}">${esc(r.clock)} ${esc(r.text)}${r.sure ? '' : ' ?'}</div>`).concat(unrecorded.map(b => `<div style="opacity:.6">(missed one)</div>`)))}

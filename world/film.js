@@ -421,12 +421,19 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
     /** The hold is over: a planned shot is staged where things now stand, the act's first moves happen. */
     function settle(s) {
       if (s.plan) { try { s.bearKeep = null; const st = F.stage(s.plan); s.keys = st.keys; s.curve = null; s.name = s.name || st.name; s.readout = st.readout; if (s.follow) s.bearKeep = st.bearKeep; } catch (e) { F.log.push('stage: ' + (e.message || e)); } }
-      for (const ac of s.acts || []) { const A = F.actors.get(ac.who); if (A) { A.act = { ...ac }; A.fireT = 0; delete A.act._end; } }
+      for (const ac of s.acts || []) { const A = F.actors.get(ac.who); if (A) { A.act = { ...ac }; A.fireT = 0; delete A.act._end; if (ac.from) placeOn(A, ac.from); } }
       F.pending = (s.events || []).map(ev => ({ ...ev, done: false })); F.rout = null; F.strikes = null;
       const a = s.act; if (!a) return; const st = F.actState = { fireT: 0, saberT: 0, started: true, boarded: false, aimed: false };
       if (a.kind === 'walk' || a.ahead || a.ride || a.tie) F.prone = false;
       if (a.look && W.rig) { W.rig.heading = Math.atan2(a.look.x - W.rig.pos.x, a.look.z - W.rig.pos.z); W.rig.figure.rotation.y = W.rig.heading; }
       if (!a.ride && !a.tie) { board(a, st); aimAhead(a, st); }
+    }
+    /** A cut: the actor starts the shot on a mark (FROM), facing the mark's heading; a cart takes its rider with it. */
+    function placeOn(A, mark) {
+      const m = F.marks.get(mark); if (!m) return; const h = m.heading != null ? m.heading : null;
+      if (A.rig && !A.hidden) { A.rig.pos.set(m.x, groundH(m.x, m.z), m.z); if (h != null) { A.rig.heading = h; A.rig.figure.rotation.y = h; } A.rig.speed = 0; }
+      else if (A.hidden && W.rig) { W.rig.pos.set(m.x, groundH(m.x, m.z), m.z); if (h != null) { W.rig.heading = h; W.rig.figure.rotation.y = h; } }
+      else if (A.V) { A.V.pos.x = m.x; A.V.pos.z = m.z; if (h != null) A.V.heading = h; A.V.speed = 0; if (A.V.vel) A.V.vel.set(0, 0, 0); syncProp(A); }
     }
     /** Into the named ride or the TIE; tried every step until it works, since a planet's vehicles come a moment after the planet. */
     function board(a, st) {
@@ -931,6 +938,20 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
         if (mark === '?') { ctx.fillStyle = '#b0341e'; ctx.font = `700 ${fs}px Georgia, serif`; ctx.fillText('?', x + tw + fs * 0.35, y); }
       });
       ctx.restore();
+      if (s.record) drawRecord(ctx, w, h, s, t);
+    }
+    /** The detective's record in the other corner (a shot's RECORD, a list of lines): a typed card, what he saw put in the cart;
+        a line written '?plain flour' is his guess where a shelf hid the taking, queried in red. */
+    function drawRecord(ctx, w, h, s, t) {
+      const lines = ["NED'S RECORD", ...(s.record.length ? s.record : ['(nothing yet)'])], fs = Math.round(h * 0.034), lh = fs * 1.4, pad = fs * 0.8, nw = w * 0.21, nh = pad * 2 + lh * lines.length, x0 = w * (1 - 0.035) - nw, y0 = h * 0.06, a = Math.min(1, (t || 0) / 0.35);
+      ctx.save(); ctx.globalAlpha = a; ctx.translate(x0 + nw / 2, y0 + nh / 2); ctx.rotate(0.03); ctx.translate(-nw / 2, -nh / 2);
+      ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(fs * 0.18, fs * 0.22, nw, nh); ctx.fillStyle = '#f1eee4'; ctx.fillRect(0, 0, nw, nh);
+      ctx.fillStyle = '#2a7a2a'; ctx.fillRect(0, 0, nw, fs * 0.28);
+      ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left';
+      lines.forEach((raw, i) => { const q = raw[0] === '?', text = q ? raw.slice(1) : raw, x = pad, y = pad + lh * (i + 1) - fs * 0.3;
+        ctx.font = `${i === 0 ? '700 ' : ''}${fs}px "Courier New", ui-monospace, monospace`; ctx.fillStyle = q ? '#b0341e' : '#22303a'; ctx.fillText(text, x, y, nw - pad * 2.2);
+        if (q) { const tw = Math.min(ctx.measureText(text).width, nw - pad * 2.2); ctx.font = `700 ${fs}px "Courier New", monospace`; ctx.fillText('?', x + tw + fs * 0.3, y); } });
+      ctx.restore();
     }
     function drawTitle(ctx, w, h, s, t) {
       if (s.style === 'hud') return drawHud(ctx, w, h, s, t || 0);
@@ -1134,7 +1155,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
         const shot = { name: sh.name || `${plan.frame} on ${plan.on}`, keys: [{ pos: new THREE.Vector3(0, 4 * M, 0), tgt: new THREE.Vector3(0, 2 * M, -10 * M), fov: 50 }], sec: clamp(+sh.sec || F.sec, 0.5, 120), act, set, plan, follow: !!sh.follow, acts: actsOf(sh.acts), events: eventsOf(sh.events) };
         if (sh.title != null) { shot.title = sh.title; shot.style = sh.style || 'hud'; }
         if (Array.isArray(sh.pos) && Array.isArray(sh.tgt) && sh.pos.length === 3 && sh.tgt.length === 3) { shot.keys = [{ pos: new THREE.Vector3(sh.pos[0] * M, sh.pos[1] * M, sh.pos[2] * M), tgt: new THREE.Vector3(sh.tgt[0] * M, sh.tgt[1] * M, sh.tgt[2] * M), fov: clamp(+sh.lens || 45, 5, 120) }]; shot.plan = null; shot.keysRel = true; shot.readout = `camera at ${sh.pos.join(' ')} on ${sh.tgt.join(' ')}`; if (Array.isArray(sh.pos2) && sh.pos2.length === 3) shot.keys.push({ pos: new THREE.Vector3(sh.pos2[0] * M, sh.pos2[1] * M, sh.pos2[2] * M), tgt: new THREE.Vector3(...(Array.isArray(sh.tgt2) && sh.tgt2.length === 3 ? sh.tgt2 : sh.tgt).map(v => v * M)), fov: clamp(+(sh.lens2 || sh.lens) || 45, 5, 120) }); }   /* pos2 / tgt2 / lens2: a second key, so a hand camera moves over the shot */   /* a camera placed by hand, as word-to-world places one: no plan, the keys as given */
-        if (sh.shift) shot.shift = sh.shift; if (sh.score !== undefined) shot.score = sh.score; if (sh.fade != null) shot.fade = +sh.fade; if (sh.lamp) shot.lamp = (sh.lamp && typeof sh.lamp === 'object') ? sh.lamp : sh.lamp === 'warm' ? 'warm' : true; if (sh.look) shot.look = sh.look; if (sh.roll != null) shot.roll = +sh.roll; if (sh.handheld != null) shot.handheld = +sh.handheld; if (sh.speed != null) shot.speed = clamp(+sh.speed, 0.05, 4); shots.push(shot);
+        if (sh.record) shot.record = sh.record.slice(); if (sh.shift) shot.shift = sh.shift; if (sh.score !== undefined) shot.score = sh.score; if (sh.fade != null) shot.fade = +sh.fade; if (sh.lamp) shot.lamp = (sh.lamp && typeof sh.lamp === 'object') ? sh.lamp : sh.lamp === 'warm' ? 'warm' : true; if (sh.look) shot.look = sh.look; if (sh.roll != null) shot.roll = +sh.roll; if (sh.handheld != null) shot.handheld = +sh.handheld; if (sh.speed != null) shot.speed = clamp(+sh.speed, 0.05, 4); shots.push(shot);
       }
       if (!append) { F.teardown(!!(prog && prog.set)); F.shots = []; } F.shots.push(...shots); F.sel = F.shots.length ? (append ? F.shots.length - shots.length : 0) : -1; F.name = prog && prog.name || F.name; if (prog && prog.story) F.story = prog.story; else if (!append) F.story = null;
       if (prog && (prog.actors || prog.builds || prog.set)) { F.scene = { name: prog.name, donors: (prog.donors || []).map(d => ({ ...d })), marks: prog.marks || null, marksHidden: !!prog.marksHidden, part: prog.part || null, actors: (prog.actors || []).map(a => ({ ...a, r: a.r ? a.r * M : undefined })), builds: (prog.builds || []).map(b => ({ ...b })), set: prog.set ? { ...prog.set, corridor: prog.set.corridor ? prog.set.corridor.map(p => p.slice()) : null, abs: false } : null, routes: prog.routes ? Object.fromEntries(Object.entries(prog.routes).map(([k, v]) => [k, v.map(p => p.slice())])) : null, world: prog.world || null, as: prog.as || null, ground: prog.ground || null, weather: prog.weather || null, time: prog.time || null, me: prog.me || null, abs: false }; F.setup(); }

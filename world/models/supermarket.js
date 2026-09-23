@@ -20,7 +20,10 @@
 
    The five things on the list are in the store where a shopper would look for them: (1) green bananas on the banana stand,
    (2) blackberries in the berry case, (3) extra virgin olive oil in aisle 3, (4) organic flour in aisle 4, (5) southwest style
-   hash browns behind the frozen doors. `plan` carries their places, the aisles and the zones in studs for the game (world/shop.js). */
+   hash browns behind the frozen doors.
+
+   Written with produce at x low, the model is built mirrored across its width (mirror: tools/model.js), so that walking in from the
+   street, as on the paper's plan, produce is the left wall and frozen the right; every x above is the program's, the plan's are built. `plan` carries their places, the aisles and the zones in studs for the game (world/shop.js). */
 'use strict';
 const K = require('./kit.js');
 const { G, box, slab, cut, part } = K;
@@ -131,7 +134,7 @@ function gantry(n, a, z) {
   ops.push(at('3007', DARK, a, z, 21), at('3003', DARK, a + 8, z, 21), at('3003', DARK, a, z, 24), at('3007', DARK, a + 2, z, 24));
   ops.push(box(a, z, 10, 2, 7, BLUE, { y: 9 }));
   DIGITS[n].forEach((row, r) => [...row].forEach((c, i) => { if (c !== '1') return; const y = 14 - r;
-    ops.push(cut(a + 5 - i, z, 1, 1, y, 1), part('3005', WHITE, a + 5 - i, z, y), cut(a + 3 + i, z + 1, 1, 1, y, 1), part('3005', WHITE, a + 3 + i, z + 1, y)); }));
+    ops.push(cut(a + 3 + i, z, 1, 1, y, 1), part('3005', WHITE, a + 3 + i, z, y), cut(a + 5 - i, z + 1, 1, 1, y, 1), part('3005', WHITE, a + 5 - i, z + 1, y)); }));   // (the build is mirrored: the front face is written left to right, the back face reversed)
   return G('aisle ' + n + ' sign', 0, 0, ops);
 }
 
@@ -172,7 +175,7 @@ function program() {
   const ring = (y, h, col) => [...wallRun(0, 8, 124, true, h, col, { y }), ...wallRun(0, 94, 124, true, h, col, { y }), ...wallRun(0, 9, 85, false, h, col, { y }), ...wallRun(123, 9, 85, false, h, col, { y })];
   ops.push(G('band', 0, 0, ring(14, 2, RED)), G('parapet', 0, 0, ring(16, 1, DARK)));
   const FONT = { F: ['111', '100', '110', '100', '100'], O: ['111', '101', '101', '101', '111'], D: ['110', '101', '101', '101', '110'] }, sign = [];
-  [...'FOOD'].forEach((ch, k) => FONT[ch].forEach((row, r) => [...row].forEach((c, i) => { if (c === '1') { const x = 69 - (k * 4 + i), y = 13 - r;   /* read from the street, looking south: the model's x runs right to left there */ sign.push(cut(x, 8, 1, 1, y, 1), part('3005', RED, x, 8, y)); } })));
+  [...'FOOD'].forEach((ch, k) => FONT[ch].forEach((row, r) => [...row].forEach((c, i) => { if (c === '1') { const x = 54 + k * 4 + i, y = 13 - r;   /* written left to right here: the build is mirrored (see mirror), and read from the street, looking south, the built x runs right to left */ sign.push(cut(x, 8, 1, 1, y, 1), part('3005', RED, x, 8, y)); } })));
   ops.push(G('the name', 0, 0, sign));
   // ── the vestibule: out from the front wall, two door frames, windows either side, a plate roof; carts parked along its sides ──
   const vest = [...wallRun(52, 2, 20, true, 8, WHITE), box(52, 3, 1, 5, 8, WHITE), box(71, 3, 1, 5, 8, WHITE)];
@@ -206,7 +209,7 @@ function program() {
   ops.push(...chunks('produce rack goods', rack), ...chunks('produce rack', rackShell)); mark(1, 13, 4, 66);
   // the banana stand at the front of produce: green bananas west, yellow east, a bunch to a cell, lying every way
   const ban = [box(0, 0, 14, 5, 1, BROWN), slab(0, 0, 14, 5, TAN, { y: 1 })];
-  for (let i = 0; i < 14; i++) for (let j = 0; j < 5; j++) ban.push(part('33085', i < 7 ? 10 : 14, i, j, 1, { plate: 1, rot: Math.floor(rnd() * 4) }));
+  for (let i = 0; i < 14; i++) for (let j = 0; j < 5; j++) if ((i + j) % 2 === 0 || rnd() < 0.3) ban.push(part('33085', i < 7 ? 10 : 14, i, j, 1, { plate: 1, rot: Math.floor(rnd() * 4) }));
   ops.push(G('banana stand', 8, 15, ban)); mark(8, 15, 14, 5);
   // ten fruit tables: crates heaped with round fruit, two layers
   const FRUIT = [[4, 320], [10, 2], [25, 25], [14, 14], [10, 27], [25, 4], [28, 84], [19, 15], [DKGREEN, 2], [85, 320]];   // apples red, apples green, oranges, lemons, limes, peaches, potatoes, onions, avocados, plums
@@ -277,4 +280,12 @@ const plan = {
     { name: 'Checkouts', x0: 72, x1: 123, z0: 9, z1: 24 }, { name: 'Entrance', x0: 52, x1: 72, z0: 0, z1: 14 }, { name: 'Service Desk', x0: 28, x1: 52, z0: 9, z1: 24 }, { name: 'Bread', x0: 22, x1: 28, z0: 30, z1: 78 }, { name: 'Front of Store', x0: 28, x1: 110, z0: 24, z1: 32 }],
   items: ITEMS, lanes: [0, 1, 2, 3, 4].map(i => ({ n: i + 1, belt: [78 + i * 8 + 1, 17], customer: [78 + i * 8 - 2, 18], clerk: [78 + i * 8 + 5, 17] })),
 };
-module.exports = { name: 'supermarket', title: 'The Supermarket', description: 'The Springfield supermarket for The List, a store to shop in: a vestibule with carts, five checkout lanes, a service desk and flowers; produce down the west wall (a stepped misted rack, a banana stand, ten fruit tables, a berry case); seven numbered aisles of stocked double-faced gondolas with end caps and number gantries; dairy along the back wall and frozen along the east wall behind glass doors; a meat counter; a tiled floor; the name over the door.', program, scale: 1, plan };
+/** The plan in the built frame: the build is mirrored across its width (x to W - x), so the plan is too; an aisle's west and east
+    faces trade places. Cells (items, the door) go to W - 1 - x, points and ranges to W - x. */
+const mx = x => W - x, mc = x => W - 1 - x, mirrorPlan = P => ({
+  ...P, entrance: [mc(P.entrance[0]), P.entrance[1]], door: [mc(P.door[0]), P.door[1]],
+  aisles: P.aisles.map(a => ({ ...a, x0: mx(a.x1), x1: mx(a.x0), sign: [mx(a.sign[0]), a.sign[1]], west: a.east, east: a.west })),
+  zones: P.zones.map(z => ({ ...z, x0: mx(z.x1), x1: mx(z.x0) })),
+  items: P.items.map(it => ({ ...it, shelf: [mc(it.shelf[0]), it.shelf[1]], at: [mc(it.at[0]), it.at[1]] })),
+  lanes: P.lanes.map(L => ({ ...L, belt: [mx(L.belt[0]), L.belt[1]], customer: [mx(L.customer[0]), L.customer[1]], clerk: [mx(L.clerk[0]), L.clerk[1]] })) });
+module.exports = { name: 'supermarket', mirror: W, title: 'The Supermarket', description: 'The Springfield supermarket for The List, a store to shop in: a vestibule with carts, five checkout lanes, a service desk and flowers; produce down the left wall as you walk in (a stepped misted rack, a banana stand, ten fruit tables, a berry case); seven numbered aisles of stocked double-faced gondolas with end caps and number gantries; dairy along the back wall and frozen down the right wall behind glass doors; a meat counter; a tiled floor; the name over the door.', program, scale: 1, plan: mirrorPlan(plan) };

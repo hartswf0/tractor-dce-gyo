@@ -133,6 +133,7 @@ function build(model, opts = {}) {
   let result; try { result = Dsl.compile(program, { maxOps: 4000 }); } finally { Dsl.BRICKS.length = 0; Dsl.BRICKS.push(...kept); }
   const P = pieces(result);
   if (model.swap) for (const p of P) { const to = model.swap.from[p.part]; if (to && (!model.swap.col || model.swap.col.includes(p.col))) p.part = to; }   /* a like-for-like swap after the tiler: same footprint and height, another face (a 1×4 brick laid as a 1×4 log) */
+  if (model.mirror) for (const p of P) { p.x = model.mirror - p.x - p.w; p.rot = (4 - p.rot) & 3; }   /* a model written one way round and built the other (x mirrored across its width): each piece keeps its own shape, its facing turned */
   const J = joints(P), A = audit(P, J, { ground: model.ground }), S = steps(P, program, opts), inv = inventory(P);
   const pages = 1 + S.length + Math.ceil(inv.length / 40);
   const sheet = { pieces: P.length, steps: S.length, pages, joints: A.total, weak: A.weak.length, unsupported: A.unsupported.length, floating: result.report.floating, blocked: result.report.blocked, errors: result.report.errors.length, unknown: result.report.unknown.length };
