@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Odyssey LDraw forage</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23f2f1ec'/%3E%3Crect x='6' y='12' width='20' height='12' fill='%23141414'/%3E%3Crect x='9' y='8' width='5' height='4' fill='%23141414'/%3E%3Crect x='18' y='8' width='5' height='4' fill='%23141414'/%3E%3C/svg%3E">
+<style>
+  :root{
+    --paper:#f2f1ec; --card:#f7f6f2; --ink:#141414; --dim:#77766f; --faint:#d8d6cf; --red:#e01b1b; --blue:#0033cc;
+    --green:#2f7f5a; --yellow:#c99a00; --mono:ui-monospace,'SF Mono','IBM Plex Mono',Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --paper:#151514; --card:#1d1d1b; --ink:#ecebe6; --dim:#9a9990; --faint:#3a3935; --blue:#7f9dff; --green:#5fbf8f; --yellow:#e0b93a; } }
+  :root[data-theme="dark"]{ --paper:#151514; --card:#1d1d1b; --ink:#ecebe6; --dim:#9a9990; --faint:#3a3935; --blue:#7f9dff; --green:#5fbf8f; --yellow:#e0b93a; }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--paper);color:var(--ink);font-family:var(--mono)}
+  a{color:var(--blue)}
+  #top{position:sticky;top:0;z-index:20;background:var(--paper);border-bottom:1px solid var(--ink);padding:10px 16px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  #brand{font-size:11px;font-weight:700;letter-spacing:.36em;text-transform:uppercase;margin-right:6px}
+  #brand em{font-style:normal;color:var(--dim);font-weight:400}
+  .chip{border:1px solid var(--faint);background:var(--card);cursor:pointer;font:inherit;font-size:9px;letter-spacing:.18em;text-transform:uppercase;padding:7px 10px;color:var(--dim);white-space:nowrap;min-height:32px}
+  .chip:hover,.chip.on{border-color:var(--ink);color:var(--ink)}
+  .chip.on{box-shadow:inset 0 -2px 0 var(--red)}
+  #q{border:1px solid var(--faint);background:var(--card);color:var(--ink);padding:7px 10px;font:inherit;font-size:11px;width:160px;min-height:32px}
+  #totals{width:100%;display:flex;flex-wrap:wrap;gap:6px 22px;font-size:10px;letter-spacing:.12em;color:var(--dim);text-transform:uppercase}
+  #totals b{color:var(--ink);font-size:15px;letter-spacing:0;margin-right:5px}
+  #table{padding:16px}
+  .section{margin-bottom:26px}
+  .secHead{display:flex;align-items:baseline;gap:12px;border-bottom:2px solid var(--ink);padding-bottom:5px;margin-bottom:10px}
+  .secHead .rn{font-size:17px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+  .secHead .sc{margin-left:auto;font-size:9px;color:var(--dim);letter-spacing:.14em}
+  .cells{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:6px}
+  .cell{position:relative;border:1.5px solid var(--faint);background:var(--card);cursor:pointer;padding:6px 7px 5px 9px;min-height:118px;display:flex;flex-direction:column;text-align:left;font:inherit;color:inherit}
+  .cell:hover,.cell:focus-visible{border-color:var(--ink);outline:none}
+  .cell .bar{position:absolute;left:0;top:0;bottom:0;width:4px}
+  .GREEN .bar{background:var(--green)} .YELLOW .bar{background:var(--yellow)} .RED .bar{background:var(--red)}
+  .cell .num{font-size:8px;color:var(--dim);display:flex;justify-content:space-between;letter-spacing:.06em}
+  .cell .num b{color:var(--blue)}
+  .cell img{width:100%;height:58px;object-fit:contain;margin:3px 0}
+  .cell .sym{font-size:24px;font-weight:900;line-height:58px;height:58px;margin:3px 0;text-align:center}
+  .cell .nm{font-size:8px;letter-spacing:.08em;text-transform:uppercase;line-height:1.35;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  /* the detail sheet */
+  #sheet{position:fixed;inset:0 0 0 auto;width:min(620px,100%);background:var(--paper);border-left:1px solid var(--ink);z-index:40;display:flex;flex-direction:column;transform:translateX(102%);transition:transform .18s}
+  #sheet.on{transform:none}
+  #sheetHead{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--faint)}
+  #sheetHead h2{font-size:13px;letter-spacing:.14em;text-transform:uppercase;flex:1}
+  #close{min-width:44px}
+  #stage{position:relative;height:min(46vh,380px);background:#efece4;border-bottom:1px solid var(--faint)}
+  #stage canvas{width:100%;height:100%;display:block}
+  #veil{position:absolute;inset:0;display:grid;place-items:center;font-size:11px;color:#77766f;letter-spacing:.14em;text-transform:uppercase;pointer-events:none}
+  #body{overflow:auto;padding:14px;flex:1}
+  .big{display:flex;flex-wrap:wrap;gap:14px 26px;margin-bottom:12px}
+  .big div{display:flex;flex-direction:column}
+  .big b{font-size:30px;font-weight:900;letter-spacing:-.01em;line-height:1}
+  .big span{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);margin-top:4px}
+  .dims{font-size:20px;font-weight:900;margin:4px 0 2px}
+  .dims small{font-size:11px;font-weight:400;color:var(--dim)}
+  .sub{font-size:11px;color:var(--dim);margin-bottom:12px;line-height:1.6}
+  .actions{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 16px}
+  .actions a{font-size:10px;letter-spacing:.14em;text-transform:uppercase;border:1px solid var(--ink);padding:10px 12px;text-decoration:none;color:var(--ink);min-height:40px;display:inline-flex;align-items:center}
+  .actions a.primary{background:var(--ink);color:var(--paper)}
+  h3{font-size:9px;letter-spacing:.26em;text-transform:uppercase;color:var(--red);margin:16px 0 8px}
+  .why{font-size:11px;line-height:1.6;color:var(--ink)}
+  .why li{margin-left:16px}
+  /* the tree: sub-builds as the trailer draws them, a rail and branches */
+  .tree ul{list-style:none;margin-left:14px;border-left:1px solid var(--faint);padding-left:10px}
+  .tree>ul{margin-left:0;border:0;padding:0}
+  .tree li{margin:5px 0;font-size:11px;line-height:1.45}
+  .tree .node{display:inline-flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+  .tree .how{font-size:8px;letter-spacing:.16em;text-transform:uppercase;border:1px solid var(--faint);padding:1px 5px;color:var(--dim)}
+  .tree .how.donor{border-color:var(--blue);color:var(--blue)}
+  .tree .n{color:var(--dim)}
+  .tree .src{display:block;font-size:9px;color:var(--dim)}
+  .credits{font-size:10px;line-height:1.6;color:var(--dim)}
+  #pvbar{position:absolute;left:0;right:0;bottom:0;padding:8px 10px;background:linear-gradient(transparent,rgba(20,20,20,.72));color:#fff;font-size:11px;line-height:1.45}
+  #pvbar #cap{margin-bottom:6px;text-shadow:0 1px 2px #000;max-height:4.4em;overflow:hidden}
+  #pvbar #cap b{letter-spacing:.14em;text-transform:uppercase;color:#ffd84a;margin-right:6px}
+  #pvbar .row{display:flex;gap:8px;align-items:center}
+  #pvbar input{flex:1;min-width:80px}
+  #pvbar .chip{background:rgba(255,255,255,.92);color:#141414;border-color:#fff}
+  body.render #top,body.render #table{display:none}
+  body.render #sheet{inset:0;width:100%;transform:none;border:0}
+  body.render #sheetHead,body.render #body{display:none}
+  body.render #stage{height:100vh;background:#f2f1ec;border:0}
+  @media (max-width:560px){ #q{width:100%} .cells{grid-template-columns:repeat(auto-fill,minmax(96px,1fr))} #stage{height:38vh} .big b{font-size:24px} }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="examples/js/loaders/LDrawLoader.js"></script>
+</head>
+<body>
+<div id="top">
+  <div id="brand">Odyssey <em>/ LDraw forage</em></div>
+  <input id="q" type="search" placeholder="Search cards" aria-label="Search cards">
+  <div id="types" style="display:contents"></div>
+  <div id="totals"></div>
+</div>
+<div id="table"></div>
+<aside id="sheet" aria-label="Card build">
+  <div id="sheetHead"><h2 id="sTitle"></h2><button class="chip" id="close">Close</button></div>
+  <div id="stage"><canvas id="c"></canvas><div id="veil"></div></div>
+  <div id="body"></div>
+</aside>
+<script>
+(async function () {
+  const $ = s => document.querySelector(s), esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+  const q = new URLSearchParams(location.search), RENDER = q.get('render');
+  const TYPES = [['scene', 'Scenes'], ['location', 'Locations'], ['character', 'Characters'], ['ensemble', 'Ensembles'], ['creature', 'Creatures'], ['vehicle', 'Vehicles'], ['prop', 'Props'], ['set_piece', 'Set pieces'], ['environment', 'Environments'], ['divine_fx', 'Divine effects'], ['sound_source', 'Sound sources'], ['wearable', 'Wearables']];
+  const ATLAS = 'https://hartswf0.github.io/odyssey-halfworld/viewer/cards.html';
+  let INDEX; try { INDEX = await (await fetch('odyssey/forage.json')).json(); } catch (e) { $('#table').textContent = 'The forage index (odyssey/forage.json) could not be read.'; return; }
+  const byId = new Map(INDEX.cards.map(c => [c.id, c]));
+
+  /* ── the 3D stage ── */
+  const canvas = $('#c'), renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: !!RENDER }); renderer.setPixelRatio(Math.min(2, devicePixelRatio)); renderer.outputEncoding = THREE.sRGBEncoding;
+  const scene = new THREE.Scene(); scene.background = new THREE.Color('#efece4');
+  const camera = new THREE.PerspectiveCamera(30, 1, 1, 200000), controls = new THREE.OrbitControls(camera, canvas); controls.enableDamping = true;
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x8a8778, 0.95)); const sun = new THREE.DirectionalLight(0xffffff, 0.75); sun.position.set(-1, 2.2, 1.4); scene.add(sun);
+  const resize = () => { const r = canvas.getBoundingClientRect(); if (!r.width) return; renderer.setSize(r.width, r.height, false); camera.aspect = r.width / r.height; camera.updateProjectionMatrix(); };
+  addEventListener('resize', resize);
+  const loader = new THREE.LDrawLoader(); loader.setPath('ldraw/'); loader.setFileMap({}); loader.smoothNormals = true;
+  const colours = fetch('ldraw/LDConfig.ldr').then(r => r.text()).then(t => new Promise(res => { try { loader.parse(t, '', res); } catch (e) { res(); } })).catch(() => {});   // the loader learns its colours by reading LDConfig as a model
+  let current = null, token = 0;
+  async function show3d(id) {
+    const my = ++token; $('#veil').textContent = 'Loading parts'; if (current) { scene.remove(current); current = null; }
+    await colours; let text; try { text = await (await fetch('odyssey/cards/' + id + '.mpd')).text(); } catch (e) { $('#veil').textContent = 'No build file'; return; }
+    const model = await new Promise(res => { const t = setTimeout(() => res(null), 90000); try { loader.parse(text, '', m => { clearTimeout(t); res(m); }); } catch (e) { console.error('parse', e); res(null); } });
+    if (my !== token) return; if (!model) { $('#veil').textContent = 'The build could not be parsed'; return; }
+    model.rotation.x = Math.PI; scene.add(model); current = model; resize();
+    const box = new THREE.Box3().setFromObject(model), size = box.getSize(new THREE.Vector3()), c = box.getCenter(new THREE.Vector3()), r = Math.max(size.x, size.y, size.z, 60);
+    controls.target.copy(c); const dir = new THREE.Vector3(-0.9, 0.85, 1.05).normalize(); const fit = r / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))) * 1.15;
+    camera.position.copy(c).addScaledVector(dir, fit + r * 0.35); camera.near = Math.max(1, fit / 50); camera.far = fit * 40; camera.updateProjectionMatrix();
+    $('#veil').textContent = ''; window.__ready = id;
+  }
+  /* ── previs: the scene's cast blocked on the set, the beats as shots; figures walk between marks, speakers gesture, the camera cuts ── */
+  const ploader = new THREE.LDrawLoader(); ploader.setPath('ldraw/'); ploader.setFileMap({}); ploader.smoothNormals = true; ploader.separateObjects = true;
+  const pcolours = fetch('ldraw/LDConfig.ldr').then(r => r.text()).then(t => new Promise(res => { try { ploader.parse(t, '', res); } catch (e) { res(); } })).catch(() => {});
+  let PV = null;   // { data, model, figs: [{ g, base, baseQ, legs, arms, cast }], t, playing, centre, radius }
+  const V3 = (x, y, z) => new THREE.Vector3(x, y, z), ease = k => k < 0 ? 0 : k > 1 ? 1 : k * k * (3 - 2 * k);
+  async function loadPrevis(id) {
+    const my = ++token; $('#veil').textContent = 'Loading the set and cast'; if (current) { scene.remove(current); current = null; } PV = null;
+    await pcolours; let data, text;
+    try { data = await (await fetch('odyssey/previs/' + id + '.json')).json(); text = await (await fetch('odyssey/cards/' + id + '.mpd')).text(); } catch (e) { $('#veil').textContent = 'No previs for this card'; return null; }
+    const model = await new Promise(res => { const t = setTimeout(() => res(null), 120000); try { ploader.parse(text, '', m => { clearTimeout(t); res(m); }); } catch (e) { console.error('parse', e); res(null); } });
+    if (my !== token || !model) { if (!model) $('#veil').textContent = 'The build could not be parsed'; return null; }
+    model.rotation.x = Math.PI; scene.add(model); current = model; model.updateMatrixWorld(true); resize();
+    /* the loader leaves embedded files unnamed: the scene's group is the one with as many sub-builds as the scene has; each figure is the child standing where the file put it */
+    let sceneGroup = null; model.traverse(o => { if (!sceneGroup && o.isGroup && data.cast[0] && o.children.filter(k => k.isGroup).length === data.cast[0].n) sceneGroup = o; });
+    const kids = sceneGroup ? sceneGroup.children.filter(k => k.isGroup) : [];
+    const figs = data.cast.map(c => { const g = c.at && kids.find(k => Math.abs(k.position.x - c.at[0]) < 0.6 && Math.abs(k.position.y - c.at[1]) < 0.6 && Math.abs(k.position.z - c.at[2]) < 0.6); if (!g) return null; const legs = [], arms = [];
+      const near = (o, p) => Math.abs(o.position.x - p[0]) < 0.6 && Math.abs(o.position.y - p[1]) < 0.6 && Math.abs(o.position.z - p[2]) < 0.6;
+      for (const o of g.children) { if (!o.isGroup) continue; if ((c.legs || []).some(p => near(o, p))) legs.push(o); else if ((c.arms || []).some(p => near(o, p))) arms.push(o); }
+      return { g, cast: c, base: g.position.clone(), baseQ: g.quaternion.clone(), legs: legs.map(o => [o, o.rotation.x]), arms: arms.map(o => [o, o.rotation.x]), yaw: null }; });
+    const box = new THREE.Box3().setFromObject(model), centre = box.getCenter(V3()), size = box.getSize(V3());
+    PV = { data, model, figs, t: 0, playing: false, centre, radius: Math.max(size.x, size.z) / 2, last: performance.now() };
+    controls.enabled = false; $('#veil').textContent = ''; drawPrevisUI(); setTime(0); return PV;
+  }
+  /* where each figure stands at time t, in studs, and whether it is walking */
+  function figState(i, t) { const c = PV.data.cast[i]; let x = c.x, z = c.z, walking = false, dir = null;
+    for (const s of PV.data.shots) for (const m of s.moves) { if (m.fig !== i || t < m.t0) continue; const k = ease((t - m.t0) / Math.max(0.1, m.t1 - m.t0)); x = m.from[0] + (m.to[0] - m.from[0]) * k; z = m.from[1] + (m.to[1] - m.from[1]) * k; if (t < m.t1) { walking = true; dir = [m.to[0] - m.from[0], m.to[1] - m.from[1]]; } }
+    return { x, z, walking, dir }; }
+  const headOf = f => { const v = V3(); f.g.getWorldPosition(v); v.y += 60; return v; };
+  /* a line of sight: from the subject's head toward candidate camera bearings, the first that nothing in the set blocks (cached per shot) */
+  const ray = new THREE.Raycaster();
+  function clearDir(shot, S, keep) {
+    PV.dirs = PV.dirs || {}; const key = shot.n + (shot.moves.length ? ':' + Math.floor(PV.t * 2) : ''); if (PV.dirs[key]) return PV.dirs[key];   // a shot with a walk looks again twice a second
+    const mine = new Set(); for (const f of keep) if (f) f.g.traverse(o => mine.add(o));
+    const base = Math.atan2(-0.35, 1), meshes = []; PV.model.traverse(o => { if (o.isMesh && !mine.has(o)) meshes.push(o); });
+    let best = null;
+    for (const da of [0, 0.5, -0.5, 1, -1, 1.5, -1.5, 2.2, -2.2, Math.PI]) for (const el of [0.15, 0.45, 0.8]) {
+      const d = V3(Math.sin(base + da), el, Math.cos(base + da)).normalize(), side = V3(d.z, 0, -d.x).normalize(); ray.far = 330;
+      if ([-22, 0, 22].every(o => { ray.set(S.clone().addScaledVector(side, o), d); return !ray.intersectObjects(meshes, false).length; })) {   /* three rays, a head's width apart: a neighbour's shoulder blocks too */ best = V3(d.x, 0, d.z).normalize(); best.el = el; break; } if (best) break; }
+    PV.dirs[key] = best || V3(-0.35, 0, 1).normalize(); return PV.dirs[key];
+  }
+  function setTime(t) {
+    if (!PV) return; PV.t = Math.max(0, Math.min(PV.data.duration, t)); t = PV.t;
+    const shot = PV.data.shots.find(s => t >= s.t0 && t < s.t1) || PV.data.shots[PV.data.shots.length - 1];
+    PV.figs.forEach((f, i) => { if (!f) return; const st = figState(i, t), c = f.cast;
+      f.g.position.set(f.base.x + (st.x - c.x) * 20, f.base.y, f.base.z + (st.z - c.z) * 20);   // LDraw units, the figure's parent frame (a pure translation of the set's)
+      let yaw = st.dir ? Math.atan2(-st.dir[0], -st.dir[1]) : f.yaw;
+      if (shot && (shot.speaker === i || shot.action === i) && shot.camera.object >= 0 && PV.figs[shot.camera.object] && !st.walking) { const o = figState(shot.camera.object, t); yaw = Math.atan2(-(o.x - st.x), -(o.z - st.z)); }
+      if (yaw != null) { f.yaw = yaw; f.g.quaternion.setFromAxisAngle(V3(0, 1, 0), yaw); } else f.g.quaternion.copy(f.baseQ);
+      const ph = t * 9, swing = st.walking ? Math.sin(ph) * 0.6 : 0; f.legs.forEach(([o, r0], k) => { o.rotation.x = r0 + (k % 2 ? swing : -swing); });
+      const talk = shot && shot.speaker === i ? Math.max(0, Math.sin(t * 5)) * 0.7 : 0, hit = shot && shot.action === i ? Math.max(0, Math.sin(t * 3)) * 1.4 : 0;
+      f.arms.forEach(([o, r0], k) => { o.rotation.x = r0 - (k === 0 ? talk + hit : st.walking ? -swing * 0.6 : 0) - (k === 1 && st.walking ? swing * 0.6 : 0); });
+    });
+    PV.model.updateMatrixWorld(true);
+    /* the camera: each shot a move over its length */
+    const k = shot ? ease((t - shot.t0) / (shot.t1 - shot.t0)) : 0, C = PV.centre, R = PV.radius;
+    const subj = shot && PV.figs[shot.camera.subject], obj = shot && PV.figs[shot.camera.object];
+    const S = subj ? headOf(subj) : C.clone(), O = obj ? headOf(obj) : null; let pos, look;
+    const front = shot ? clearDir(shot, S, [subj, obj]) : V3(-0.35, 0, 1).normalize();   // the side of the subject the camera can see from
+    switch (shot ? shot.camera.kind : 'establish') {
+      case 'establish': pos = C.clone().addScaledVector(front, R * (2.6 - 1.0 * k)).add(V3(0, R * (1.6 - 0.9 * k), 0)); look = C.clone().lerp(S, 0.3 * k); break;
+      case 'pullback': pos = S.clone().addScaledVector(front, 160 + R * 2.2 * k).add(V3(0, 40 + R * 1.2 * k, 0)); look = S.clone().lerp(C, k); break;
+      case 'two': { const mid = O ? S.clone().lerp(O, 0.5) : S; const d = O ? S.distanceTo(O) : 0; pos = mid.clone().addScaledVector(front, 220 + d * 1.1).add(V3(0, (front.el || 0.15) * (220 + d) + 10 * k, 0)); look = mid; break; }
+      case 'ots': { if (!O) { pos = S.clone().addScaledVector(front, 170); look = S; break; } const back = O.clone().sub(S).setY(0).normalize(); const side = V3(back.z, 0, -back.x); pos = O.clone().addScaledVector(back, 70).addScaledVector(side, 30).add(V3(0, 12, 0)); look = S; break; }
+      case 'push': pos = S.clone().addScaledVector(front, 330 - 150 * k).add(V3(0, (front.el || 0.15) * (330 - 150 * k) - 20, 0)); look = S.clone().add(V3(0, -10, 0)); break;
+      case 'track': pos = S.clone().addScaledVector(front, 300).add(V3(0, (front.el || 0.2) * 300, 0)); look = S; break;
+      case 'orbit': { const a = -0.8 + 1.4 * k; pos = S.clone().add(V3(Math.sin(a) * 240, 90, Math.cos(a) * 240)); look = S; break; }
+      default: pos = S.clone().addScaledVector(front, 280 - 30 * k).add(V3(0, (front.el || 0.15) * 280, 0)); look = S.clone().add(V3(0, -15, 0));
+    }
+    camera.position.copy(pos); camera.lookAt(look); camera.near = 2; camera.far = R * 40; camera.updateProjectionMatrix(); controls.target.copy(look);
+    const cap = $('#cap'); if (cap && shot) cap.innerHTML = `<b>${shot.n}/${PV.data.shots.length} · ${shot.camera.kind}</b> ${esc(shot.beat)}`;
+    const sc = $('#scrub'); if (sc) sc.value = t;
+  }
+  function drawPrevisUI() {
+    let bar = $('#pvbar'); if (!bar) { bar = document.createElement('div'); bar.id = 'pvbar'; $('#stage').appendChild(bar); }
+    bar.innerHTML = `<div id="cap"></div><div class="row"><button class="chip" id="pvplay">Play</button><input type="range" id="scrub" min="0" max="${PV.data.duration}" step="0.05" value="0" aria-label="Time"><button class="chip" id="pvfree">Free camera</button></div>`;
+    $('#pvplay').onclick = () => { PV.playing = !PV.playing; if (PV.t >= PV.data.duration) PV.t = 0; PV.last = performance.now(); $('#pvplay').textContent = PV.playing ? 'Pause' : 'Play'; };
+    $('#scrub').oninput = e => { PV.playing = false; $('#pvplay').textContent = 'Play'; setTime(+e.target.value); };
+    $('#pvfree').onclick = () => { PV.playing = false; $('#pvplay').textContent = 'Play'; controls.enabled = true; };
+  }
+  const endPrevis = () => { PV = null; controls.enabled = true; const b = $('#pvbar'); if (b) b.remove(); };
+  (function loop(now) { if (PV && PV.playing) { PV.t += Math.min(0.1, ((now || 0) - PV.last) / 1000); PV.last = now || 0; if (PV.t >= PV.data.duration) { PV.playing = false; const b = $('#pvplay'); if (b) b.textContent = 'Play'; } setTime(PV.t); } else if (PV) PV.last = now || 0;
+    controls.update(); renderer.render(scene, camera); requestAnimationFrame(loop); })();
+  if (RENDER) { document.body.classList.add('render'); $('#sheet').classList.add('on'); resize();
+    if (q.get('t') != null) { loadPrevis(RENDER).then(p => { if (!p) return; setTime(+q.get('t')); requestAnimationFrame(() => { window.__ready = RENDER; }); }); window.__pv = () => PV; } else show3d(RENDER); return; }
+
+  /* ── the table ── */
+  const T = INDEX.cards, sum = k => T.reduce((s, c) => s + (c[k] || 0), 0), n = x => x.toLocaleString('en');
+  const st = T.reduce((m, c) => (m[c.status] = (m[c.status] || 0) + 1, m), {});
+  $('#totals').innerHTML = [[T.length, 'cards'], [sum('pieces'), 'pieces'], [sum('subBuilds'), 'sub-builds'], [sum('joints'), 'stud joints'], [Object.keys(INDEX.donors).length, 'donor sets'], [st.GREEN || 0, 'green'], [st.YELLOW || 0, 'yellow'], [st.RED || 0, 'red']].map(([v, k]) => `<span><b>${n(v)}</b>${k}</span>`).join('');
+  let filter = q.get('type') || 'all', search = '';
+  $('#types').innerHTML = [['all', 'All'], ...TYPES].map(([k, l]) => `<button class="chip${k === filter ? ' on' : ''}" data-t="${k}">${l}</button>`).join('');
+  $('#types').onclick = e => { const b = e.target.closest('[data-t]'); if (!b) return; filter = b.dataset.t; for (const x of $('#types').children) x.classList.toggle('on', x === b); draw(); };
+  $('#q').oninput = e => { search = e.target.value.trim().toLowerCase(); draw(); };
+  const sym = name => { const w = name.replace(/[^A-Za-z ]/g, '').split(/\s+/).filter(x => x.length > 2 && !/^(the|and|with|from|for)$/i.test(x)); return ((w[0] || name)[0] + ((w[1] || w[0] || name)[w[1] ? 0 : 1] || '')).toUpperCase().replace(/^(.)(.)$/, (m, a, b) => a + b.toLowerCase()); };
+  function draw() {
+    const show = T.filter(c => (filter === 'all' || c.type === filter) && (!search || (c.name + ' ' + c.id).toLowerCase().includes(search)));
+    $('#table').innerHTML = TYPES.filter(([k]) => show.some(c => c.type === k)).map(([k, l]) => { const list = show.filter(c => c.type === k); return `<section class="section"><div class="secHead"><span class="rn">${l}</span><span class="sc">${list.length} cards · ${n(list.reduce((s, c) => s + c.pieces, 0))} pieces</span></div><div class="cells">${list.map(c => `<button class="cell ${c.status}" data-id="${esc(c.id)}" title="${esc(c.name)}"><span class="bar"></span><span class="num"><span>${esc(c.type === 'scene' ? c.id.replace('OD-', '') : (c.books || []).join('·'))}</span><b>${c.pieces}</b></span>${c.thumb ? `<img loading="lazy" alt="" src="odyssey/thumbs/${esc(c.id)}.webp">` : `<span class="sym">${esc(sym(c.name))}</span>`}<span class="nm">${esc(c.name)}</span></button>`).join('')}</div></section>`; }).join('') || '<p class="sub">No card matches.</p>';
+  }
+  $('#table').onclick = e => { const b = e.target.closest('.cell'); if (b) open(b.dataset.id); };
+  $('#close').onclick = () => { $('#sheet').classList.remove('on'); history.replaceState(null, '', location.pathname + (filter !== 'all' ? '?type=' + filter : '')); };
+  addEventListener('keydown', e => { if (e.key === 'Escape') $('#close').click(); });
+
+  const treeHTML = t => `<li><span class="node"><b>${esc(t.name)}</b><span class="how ${t.how}">${esc(t.how)}</span><span class="n">${t.pieces} pieces</span></span>${t.source ? `<span class="src">${esc(t.source)}</span>` : ''}${t.children.length ? `<ul>${t.children.map(treeHTML).join('')}</ul>` : ''}</li>`;
+  function open(id) {
+    const c = byId.get(id); if (!c) return;
+    $('#sTitle').textContent = c.name; $('#sheet').classList.add('on'); history.replaceState(null, '', '#' + id);
+    const cast = c.assets ? c.assets.map(a => byId.get(a)).filter(Boolean) : [];
+    $('#body').innerHTML = `
+      <div class="big"><div><b>${n(c.pieces)}</b><span>pieces</span></div><div><b>${c.subBuilds}</b><span>sub-builds</span></div><div><b>${n(c.joints)}</b><span>stud joints</span></div><div><b>${c.depth}</b><span>levels</span></div></div>
+      <div class="dims">${c.cm[0]} × ${c.cm[1]} × ${c.cm[2]} <small>cm</small></div>
+      <div class="sub">${c.studs[0]} × ${c.studs[1]} studs · ${c.height.plates} plates high · ${c.anchored} pieces held to the plate by studs, ${c.held} by contact (clips, hands, hinges), ${c.detached} detached${c.flex ? `, ${c.flex} rope segments` : ''} · status <b>${c.status}</b></div>
+      <div class="actions">${c.previs ? `<a class="primary" href="#" id="pvgo">Play previs · ${Math.round(c.previs.duration)} s, ${c.previs.shots} shots</a>` : ''}<a class="${c.previs ? '' : 'primary'}" href="play/hand-butter-odyssey.html?scene=${encodeURIComponent(c.id)}">Open in Hand Butter</a><a href="${esc(c.files.mpd)}" download>LDraw MPD</a><a href="${esc(c.files.butter)}" download>Butter scene</a><a href="${ATLAS}#${c.type === 'scene' ? 'scene' : 'asset'}/${encodeURIComponent(c.id)}">Atlas card</a></div>
+      ${c.why.length ? `<h3>Notes</h3><ul class="why">${c.why.map(w => `<li>${esc(w)}</li>`).join('')}</ul>` : ''}
+      ${cast.length ? `<h3>Cast and set</h3><div class="cells">${cast.map(a => `<button class="cell ${a.status}" data-open="${esc(a.id)}"><span class="bar"></span><span class="num"><span>${esc(a.type.replace('_', ' '))}</span><b>${a.pieces}</b></span>${a.thumb ? `<img loading="lazy" alt="" src="odyssey/thumbs/${esc(a.id)}.webp">` : `<span class="sym">${esc(sym(a.name))}</span>`}<span class="nm">${esc(a.name)}</span></button>`).join('')}</div>` : ''}
+      <h3>Sub-builds</h3><div class="tree"><ul>${treeHTML(c.tree)}</ul></div>
+      ${c.sources.length ? `<h3>Foraged from</h3><div class="credits">${c.sources.map(s => `${esc(s.file || s.donor)}${s.sub ? ' : ' + esc(s.sub) : ''}${s.author ? ', by ' + esc(s.author) : ''}`).join('<br>')}<br>LDraw models redistributed under CCAL 2.0; the authors keep their credit in each FILE header.</div>` : ''}`;
+    $('#body').querySelectorAll('[data-open]').forEach(b => b.onclick = () => open(b.dataset.open));
+    $('#body').scrollTop = 0; endPrevis(); show3d(id);
+    const go = $('#pvgo'); if (go) go.onclick = e => { e.preventDefault(); loadPrevis(id).then(p => { if (p) { p.playing = true; p.last = performance.now(); $('#pvplay').textContent = 'Pause'; } }); };
+  }
+  draw();
+  if (location.hash.length > 1 && byId.has(decodeURIComponent(location.hash.slice(1)))) open(decodeURIComponent(location.hash.slice(1)));
+})();
+</script>
+</body>
+</html>
