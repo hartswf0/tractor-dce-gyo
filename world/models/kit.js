@@ -87,4 +87,20 @@ function rocker(x, z, col = 308, y = 0, plate = 1) {
   ops.push(part('3020', col, x, z, y + 1, { plate, rot: 1 }), part('4079', col, x, z + 1, y + 1, { plate: plate + 1 }));
   return G('rocking chair', 0, 0, ops);
 }
-module.exports = { G, deck, fence, rocker, box, slab, cut, part, window, door, roof, stairs, arch, seeded, bigWindow, checker, shelf, tree, bush, rock, log, fire, lamp, cart };
+/** A warehouse pallet rack along x, len studs long and two deep: orange uprights (1×1 round columns) at the ends and every
+    six studs; a beam deck at every `step` bricks (the kit's deck: three bonded plate layers, a brick's worth, over the uprights,
+    which go on through it); cardboard cases (2×2 bricks) on the floor and on every deck, one or two high, with gaps. */
+function rack(x, z, len, rnd, o = {}) {
+  const ORANGE = o.col == null ? 25 : o.col, step = o.step || 3, levels = o.levels || 3, CASES = o.cases || [19, 28, 84, 19, 28, 15, 1, 4, 19], ops = [];
+  const ups = []; for (let i = 0; i < len; i += 6) ups.push(i); if (ups[ups.length - 1] !== len - 1) ups.push(len - 1);
+  const top = levels * step, Z = !!o.alongZ, at = (i, j) => Z ? [j, i] : [i, j];   // alongZ: the rack laid north to south (its own axes swapped, not a group turn: a turn misplaces multi-stud plates)
+  for (const i of ups) for (const j of [0, 1]) for (let y = 0; y <= top; y++) if (y % step !== 0 || y === 0) { const [px, pz] = at(i, j); ops.push(part('3062b', ORANGE, px, pz, y)); }   // the uprights, through every level but the decks' own bricks
+  for (let lv = 1; lv <= levels; lv++) ops.push(...(Z ? deck(0, 0, 2, len, ORANGE, lv * step) : deck(0, 0, len, 2, ORANGE, lv * step)));
+  for (let lv = 0; lv <= levels; lv++) {
+    const y0 = lv ? lv * step + 1 : 0, room = lv < levels ? step - (lv ? 1 : 0) : 2;
+    for (let i = 0; i + 1 < len; i += 2) { if (ups.some(u => u === i || u === i + 1)) continue; if (rnd() < 0.2) continue; const col = CASES[Math.floor(rnd() * CASES.length)], hh = Math.min(room, rnd() > 0.45 ? 2 : 1);
+      const [px, pz] = at(i, 0); for (let k = 0; k < hh; k++) ops.push(part('3003', col, px, pz, y0 + k)); }
+  }
+  return G(o.name || 'rack', x, z, ops, o.turn ? { turn: o.turn } : {});
+}
+module.exports = { G, deck, fence, rocker, rack, box, slab, cut, part, window, door, roof, stairs, arch, seeded, bigWindow, checker, shelf, tree, bush, rock, log, fire, lamp, cart };

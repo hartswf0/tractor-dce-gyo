@@ -35,6 +35,7 @@ const DONORS = {
   'cave-of-shadows': { file: 'cave-of-shadows.mpd', name: 'the cave of shadows', target: 'The Cave', scale: 1 },
   supermarket: { file: 'supermarket.mpd', name: 'the supermarket', target: 'The List', scale: 1 },   /* world/models/supermarket.js: the whole store */
   homestead: { file: 'homestead.mpd', name: 'the homestead', target: 'The Searchers', scale: 1 },   /* world/models/homestead.js: the log cabin, its porch and yard */
+  waterhole: { file: 'waterhole.mpd', name: 'the waterhole', target: 'The Searchers', scale: 1 },   /* world/models/waterhole.js: the pool and the horses in the middle distance */
   buttes: { file: 'buttes.mpd', name: 'the buttes', target: 'The Searchers', scale: 1 },            /* world/models/buttes.js: the country the door frames */
   'simpsons-grocery': { file: 'simpsons-grocery.mpd', name: 'the grocery checkout', target: 'The Checkout', scale: 2.5 },
   'simpsons-band': { file: 'simpsons-band.mpd', name: 'the band classroom', target: 'Band Class', scale: 2.5 },

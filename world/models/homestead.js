@@ -34,8 +34,8 @@ function program() {
   ops.push(G('bed', 29, 5, [box(0, 0, 5, 3, 1, DARK), slab(0, 0, 5, 3, 15, { y: 1 }), slab(0, 0, 2, 3, 1, { y: 1, plateOffset: 1 }), box(4, 0, 1, 3, 2, DARK, { y: 1 })]));
   ops.push(G('dresser', 13, 5, [box(0, 0, 3, 2, 3, DARK), part('3024', 14, 1, 0, 3)]));
   // the porch posts: round bricks from the ground to the ceiling line
-  const posts = []; for (const x of [12, 18, 28, 34]) { posts.push(cut(x, 23, 2, 2, 0, 1)); for (let y = 0; y < 6; y++) posts.push(part('3941', DARK, x, 23, y)); }
-  posts.push(box(12, 23, 24, 2, 1, DARK, { y: 6 }));   // the header beam over the posts, under the front of the ceiling
+  const posts = []; for (const x of [12, 18, 28, 34]) { posts.push(cut(x, 23, 2, 2, 0, 1)); for (let y = 0; y < 6; y++) posts.push(part('3941', 15, x, 23, y)); }   // white posts, as the Jorgensens' porch has them
+  posts.push(box(12, 23, 24, 2, 1, 15, { y: 6 }));   // the header beam over the posts, under the front of the ceiling
   ops.push(G('porch posts', 0, 0, posts));
   // the ceiling: three plate layers over the walls, the room and the porch, so the room is shut from the sky and the porch is roofed
   // (the kit's deck: explicit plates in three bonded layers, so no seam runs through all three)

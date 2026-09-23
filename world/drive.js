@@ -21,6 +21,7 @@ const KINDS = {
   craft: { cruise: 18, boost: 32, turn: 1.8, fly: true, hover: 0.5, ram: 1, stall: 0 },  // any build the player chose to fly: it hovers like a speeder
   bus: { cruise: 11, boost: 16, turn: 1.1, fly: false, hover: 0, ram: 1.8, accel: 3.5, grip: 5, wheels: true },
   rover: { cruise: 13, boost: 20, turn: 1.7, fly: false, hover: 0, ram: 1.2, accel: 6, grip: 8 },
+  cart: { cruise: 3.2, boost: 4.4, turn: 3.2, fly: false, hover: 0, ram: 0.2, accel: 4, grip: 12, seat: 0.28 },   // a shopping cart: pushed at a walk, a baby in the basket
   horse: { cruise: 2.6, boost: 6, turn: 1.4, fly: false, hover: 0, ram: 0.4, accel: 2.5, grip: 9, horse: true, seat: 1.2 },   // seat: where the rider's figure stands in the horse's frame, in metres (the Odyssey build's 48 LDU)   // a horse at a walk: the film drives it at a fraction of its cruise
   board: { cruise: 9, boost: 14, turn: 2.4, fly: false, hover: 0, ram: 0.6, accel: 7, grip: 7, wheels: true, stand: true },   // a skateboard: the rider stands on it
   atat: { cruise: 4, boost: 7, turn: 0.5, fly: false, hover: 0, ram: 2.5, walker: true, legs: 4, stride: 7, amp: 0.3, camD: 30, camH: 22, lookY: 14, gunY: 15.2, gunAhead: 8, gunDown: 0.3 },    // an Imperial walker: slow, tall, guns in the head

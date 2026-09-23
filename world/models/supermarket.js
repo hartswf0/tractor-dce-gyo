@@ -1,10 +1,10 @@
 /* world/models/supermarket.js — the whole Springfield supermarket for The List, 96 × 72 studs (48 × 36 m).
    The street is north (z 0..5): a pavement, a cart corral, lamp posts, the store's pylon. The store is a white box
-   eight bricks high (x 2..93, z 6..69) with a red band and a dark parapet, shop windows along the front and a wide
+   twelve bricks high (a warehouse club, as the show's store is) (x 2..93, z 6..69) with a red band and a dark parapet, shop windows along the front and a wide
    entrance of two open door frames in the middle (x 44..51). Inside, on a checkered floor of 4×4 plates:
      - the four checkout lanes at the front east (x 58..89, z 9..17): counter, belt, register, bagging shelf, a lane light;
      - produce at the front west (x 5..40, z 10..22): four tables heaped with fruit and greens, a banana stand;
-     - ten aisles of gondolas running north to south (x 8..71, z 26..55), goods both faces, an end cap and a sign post at the north end of each;
+     - ten orange pallet racks running north to south (x 8..71, z 26..55), four levels of cardboard cases, an end cap and a sign post at the north end of each;
      - the bakery along the east wall (x 84..91, z 22..38): bread racks and a counter;
      - the deli along the east wall (x 80..91, z 42..56): a glass case of meats and cheese;
      - the dairy cooler along the south wall (x 4..63, z 64..66): a dark bank, white-framed glass doors, rows of milk, juice, eggs and cheese behind them, a blue band;
@@ -28,14 +28,18 @@ function program() {
   const floor = []; for (let x = 3; x < 93; x += 4) for (let z = 7; z < 69; z += 4) floor.push(slab(x, z, Math.min(4, 93 - x), Math.min(4, 69 - z), ((x - 3) / 4 + (z - 7) / 4) % 2 ? GREY : WHITE));
   ops.push(...chunks('floor', floor));
   // the walls: white, eight bricks; the front (z 6) with its windows and the entrance, the sides and back plain
-  ops.push(G('walls', 0, 0, [...wallRun(2, 6, 92, true, 8, WHITE), ...wallRun(2, 69, 92, true, 8, WHITE), ...wallRun(2, 7, 62, false, 8, WHITE), ...wallRun(93, 7, 62, false, 8, WHITE)]));
+  ops.push(G('walls', 0, 0, [...wallRun(2, 6, 92, true, 12, WHITE), ...wallRun(2, 69, 92, true, 12, WHITE), ...wallRun(2, 7, 62, false, 12, WHITE), ...wallRun(93, 7, 62, false, 12, WHITE)]));   // twelve bricks: a warehouse, the racks inside it
   const front = []; for (const x of [5, 11, 17, 23, 29, 35, 56, 62, 68, 74, 80, 86]) front.push(...K.bigWindow(x, 6, 1));
   front.push(cut(44, 6, 8, 1, 0, 6), part('60596', DARK, 44, 6, 0), part('60596', DARK, 48, 6, 0));   // the entrance: two open door frames side by side
   ops.push(G('front', 0, 0, front));
   // the red band and the parapet: two courses of red, yellow bricks let into the front, a dark course on top, a plate cap on the band's edge
-  ops.push(G('band', 0, 0, [...wallRun(2, 6, 92, true, 2, RED, { y: 8 }), ...wallRun(2, 69, 92, true, 2, RED, { y: 8 }), ...wallRun(2, 7, 62, false, 2, RED, { y: 8 }), ...wallRun(93, 7, 62, false, 2, RED, { y: 8 }),
-    ...[38, 40, 42, 53, 55, 57].flatMap(x => [cut(x, 6, 1, 1, 9, 1), part('3005', YELLOW, x, 6, 9)])]));
-  ops.push(G('parapet', 0, 0, [...wallRun(2, 6, 92, true, 1, DARK, { y: 10 }), ...wallRun(2, 69, 92, true, 1, DARK, { y: 10 }), ...wallRun(2, 7, 62, false, 1, DARK, { y: 10 }), ...wallRun(93, 7, 62, false, 1, DARK, { y: 10 })]));
+  ops.push(G('band', 0, 0, [...wallRun(2, 6, 92, true, 2, RED, { y: 12 }), ...wallRun(2, 69, 92, true, 2, RED, { y: 12 }), ...wallRun(2, 7, 62, false, 2, RED, { y: 12 }), ...wallRun(93, 7, 62, false, 2, RED, { y: 12 }),
+    ...[20, 24, 28, 67, 71, 75].flatMap(x => [cut(x, 6, 1, 1, 13, 1), part('3005', YELLOW, x, 6, 13)])]));
+  // the store's name over the entrance: FOOD in red bricks let into the white wall, a 3×5 letter each, fifteen studs wide over the doors
+  const FONT = { F: ['111', '100', '110', '100', '100'], O: ['111', '101', '101', '101', '111'], D: ['110', '101', '101', '101', '110'] }, sign = [];
+  [...'FOOD'].forEach((ch, k) => FONT[ch].forEach((row, r) => [...row].forEach((c, i) => { if (c === '1') { const x = 41 + k * 4 + i, y = 11 - r; sign.push(cut(x, 6, 1, 1, y, 1), part('3005', RED, x, 6, y)); } })));
+  ops.push(G('sign', 0, 0, sign));
+  ops.push(G('parapet', 0, 0, [...wallRun(2, 6, 92, true, 1, DARK, { y: 14 }), ...wallRun(2, 69, 92, true, 1, DARK, { y: 14 }), ...wallRun(2, 7, 62, false, 1, DARK, { y: 14 }), ...wallRun(93, 7, 62, false, 1, DARK, { y: 14 })]));
   // the checkout lanes: four, counter and belt running north to south, the customer on the west side, the clerk on the east
   for (let i = 0; i < 4; i++) {
     const x = 60 + i * 8;
@@ -56,7 +60,7 @@ function program() {
   // the aisles: ten gondolas north to south, goods both faces, an end cap and a sign post at the north end
   for (let a = 0; a < 10; a++) {
     const x = 8 + a * 7;
-    ops.push(G('aisle ' + (a + 1), x, 55, [K.shelf(0, 0, 28, WHITE, GOODS, rnd, { name: 'gondola ' + (a + 1) })], { turn: 1 }));   // turned a quarter: the gondola runs from z 55 north to z 28
+    ops.push(K.rack(x, 28, 28, rnd, { name: 'rack ' + (a + 1), alongZ: true }));   // the pallet rack from z 28 to 55, four levels of cases, as tall as a warehouse's
     ops.push(G('end cap ' + (a + 1), x, 26, [box(0, 0, 2, 2, 2, RED), part('3005', GOODS[a % GOODS.length], 0, 0, 2), part('3005', GOODS[(a + 3) % GOODS.length], 1, 1, 2),
       ...[0, 1, 2, 3, 4].map(y => part('3062b', GREY, 0, -1, y)), part('3710', BLUE, -1, -1, 5, { plate: 0 }), part('3710', BLUE, -1, -1, 5, { plate: 1 }), part('3024', YELLOW, 0, -1, 5, { plate: 2 })]));   // the sign: a blue board with a yellow mark over a grey post
   }
@@ -77,7 +81,7 @@ function program() {
   // the chest freezers: white, trans-blue lids
   ops.push(G('freezers', 66, 60, [box(0, 0, 24, 3, 1, WHITE), slab(0, 0, 24, 3, ICE, { y: 1 }), box(0, 0, 24, 1, 1, WHITE, { y: 1, plateOffset: 1 })]));
   // carts by the entrance and in the store, the cart corral outside
-  ops.push(G('carts', 0, 0, [K.cart(40, 10, RED), K.cart(40, 13, BLUE), K.cart(52, 22, RED, 1), K.cart(30, 58, RED)]));
+  ops.push(G('carts', 0, 0, [K.cart(40, 10, RED), K.cart(40, 13, BLUE), K.cart(30, 58, RED)]));
   ops.push(G('cart corral', 4, 1, [...K.fence(0, 0, 10, true, GREY), K.cart(1, 2, RED), K.cart(5, 2, RED)]));
   // outside: lamp posts and the store's pylon
   ops.push(K.lamp(30, 2), K.lamp(66, 2));

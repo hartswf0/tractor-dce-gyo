@@ -609,11 +609,12 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
       if (act.route) { const path = routeOf(act.route); if (path) { if (st._wp == null) { let bi = 0, bd = Infinity; path.forEach((p, i) => { const d = Math.hypot(p.x - pos.x, p.z - pos.z); if (d < bd) { bd = d; bi = i; } }); st._wp = bi; } let wp = path[Math.min(st._wp, path.length - 1)]; while (st._wp < path.length - 1 && Math.hypot(wp.x - pos.x, wp.z - pos.z) < 7 * M) { st._wp++; wp = path[st._wp]; } const dx = wp.x - pos.x, dz = wp.z - pos.z, d = Math.hypot(dx, dz); if (st._wp >= path.length - 1 && d < 3 * M) speed = 0; else { const nx = path[Math.min(st._wp + 1, path.length - 1)], bias = d < 18 * M ? 0.35 : 0; want = Math.atan2(dx + (nx.x - wp.x) * bias, dz + (nx.z - wp.z) * bias); } } }
       else if (act.chase) { const T = F.subject(act.chase), back = (act.behind || 8) * M, hT = T.heading || 0, tx = T.x - Math.sin(hT) * back, tz = T.z - Math.cos(hT) * back, dx = tx - pos.x, dz = tz - pos.z, d = Math.hypot(dx, dz); want = d > 2 * M ? Math.atan2(dx, dz) : hT; if (act.speed == null) speed = d > back * 3 ? 1.2 : d > back * 0.6 ? 1 : 0.7; }   // far behind: the boost
       else if (act.alongside) { const T = F.subject(act.alongside), side = (act.side || 3) * M, hT = T.heading || 0, tx = T.x + Math.cos(hT) * side, tz = T.z - Math.sin(hT) * side, dx = tx - pos.x, dz = tz - pos.z, d = Math.hypot(dx, dz); want = d > 3 * M ? Math.atan2(dx, dz) : hT; if (act.speed == null) speed = d > 8 * M ? 1 : 0.75; }
+      else if (act.lead) { const T = F.subject(act.lead), ah = (act.ahead || 1.5) * M, hT = T.heading || 0, tx = T.x + Math.sin(hT) * ah, tz = T.z + Math.cos(hT) * ah, dx = tx - pos.x, dz = tz - pos.z, d = Math.hypot(dx, dz); want = d > 0.5 * M ? Math.atan2(dx, dz) : hT; if (act.speed == null) speed = d > 3 * M ? 1.3 : d > 0.5 * M ? Math.min(1, d / (1.2 * M)) : 0; }   // lead: kept a step ahead of a figure, the way a pushed cart goes
       else if (act.charge) { const T = typeof act.charge === 'object' ? act.charge : F.subject(act.charge), dx = T.x - pos.x, dz = T.z - pos.z; want = Math.atan2(dx, dz); speed = 1.2; }
       if (act.brake) speed = 0;
       return { want, speed, alt };
     }
-    const guided = act => !!(act.route || act.chase || act.alongside || act.charge || act.brake || act.turnabout);
+    const guided = act => !!(act.route || act.chase || act.alongside || act.lead || act.charge || act.brake || act.turnabout);
     function driveActor(a, act, dt) {
       const V = a.V; let want = null, speed = act.speed != null ? act.speed : 0.6;
       if (guided(act)) { const g = guide(act, act, V.pos, V.heading); want = g.want; speed = g.speed; if (g.alt) act.alt = g.alt; V.input.boost = speed > 1; }

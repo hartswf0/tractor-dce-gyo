@@ -78,14 +78,14 @@ function lay(kind, { scene, G, M, centre, r = 180, seed = 1, corridor = null }) 
     for (let i = 0; i < 8; i++) { const a = hash(i, 11, seed) * 6.283, d = (0.35 + hash(i, 12, seed) * 0.6) * rm, x = cx + Math.cos(a) * d, z = cz + Math.sin(a) * d; if (corridor && distToPath(x, z, corridor) < 24) continue; put(ridges, x * M, gh(x, z) + 0.6 * M, z * M, (30 + hash(i, 13, seed) * 30) * M, (1.2 + hash(i, 14, seed) * 1.2) * M, (3 + hash(i, 15, seed) * 3) * M, hash(i, 16, seed) * 6.28, 0, snow2); S.drifts++; }
   } else if (kind === 'monument') {
     // the horizon: mesas in a ring from 170 to 420 m, each a column on a talus, in the reds of the buttes; then rocks and sage on the flat, off the corridor
-    const rm = r / M, nM = 44, mesas = inst(box, nM, 'mesas'), talus = inst(flare, nM, 'talus'), caps = inst(box, nM, 'caps'), reds = [0x8a3f1c, 0x9c4a22, 0x7a3518, 0xa5562c].map(lin), cap = lin(0xb77a52);
+    const rm = r / M, nM = 26, mesas = inst(box, nM, 'mesas'), talus = inst(flare, nM, 'talus'), caps = inst(box, nM, 'caps'), reds = [0x8a3f1c, 0x9c4a22, 0x7a3518, 0xa5562c].map(lin), cap = lin(0xb77a52);
     for (let i = 0; i < nM; i++) {
       const a = (i / nM) * 6.283 + (hash(i, 21, seed) - 0.5) * 0.12, d = 170 + hash(i, 22, seed) * 250, x = cx + Math.cos(a) * d, z = cz + Math.sin(a) * d, y = gh(x, z);
-      const w = (14 + hash(i, 23, seed) * 40) * M, dd = (10 + hash(i, 24, seed) * 22) * M, h = (22 + hash(i, 25, seed) * 55) * M, yaw = hash(i, 26, seed) * 6.28, spire = hash(i, 27, seed) > 0.8;
-      const sw = spire ? w * 0.25 : w, sd = spire ? dd * 0.35 : dd;
-      put(talus, x * M, y + h * 0.14, z * M, sw * 0.9, h * 0.28, sd * 0.9, yaw, 0, reds[(i + 1) % 4]);
-      put(mesas, x * M, y + h / 2, z * M, sw * 0.62, h, sd * 0.62, yaw, 0, reds[i % 4]);
-      put(caps, x * M, y + h + 0.6 * M, z * M, sw * 0.66, 1.2 * M, sd * 0.66, yaw, 0, cap);
+      const w = (50 + hash(i, 23, seed) * 130) * M, dd = (18 + hash(i, 24, seed) * 30) * M, h = (9 + hash(i, 25, seed) * 18) * M, yaw = a + Math.PI / 2 + (hash(i, 26, seed) - 0.5) * 0.5, spire = hash(i, 27, seed) > 0.9;   /* long low tablelands, their length across the line of sight, a rare spire: the valley's horizon as the film has it */
+      const sw = spire ? w * 0.12 : w, sd = spire ? dd * 0.35 : dd, hh = spire ? h * 2.2 : h;
+      put(talus, x * M, y + hh * 0.16, z * M, sw * 0.95, hh * 0.32, sd * 0.95, yaw, 0, reds[(i + 1) % 4]);
+      put(mesas, x * M, y + hh / 2, z * M, sw * 0.7, hh, sd * 0.7, yaw, 0, reds[i % 4]);
+      put(caps, x * M, y + hh + 0.5 * M, z * M, sw * 0.72, 1.0 * M, sd * 0.72, yaw, 0, cap);
     }
     const nR = Math.round(rm / 4), rocks = inst(ball, nR, 'rocks'), rock = lin(0x7c3c1e), nS = Math.round(rm * 1.6), sage = inst(bush, nS, 'sage'), sageC = lin(0x7d8a62), sageC2 = lin(0x6b7a58);
     for (let i = 0; i < nR; i++) { const a = hash(i, 1, seed) * 6.283, d = 14 + Math.sqrt(hash(i, 2, seed)) * rm, x = cx + Math.cos(a) * d, z = cz + Math.sin(a) * d; if (corridor && distToPath(x, z, corridor) < 12) continue; const sz = (0.8 + hash(i, 3, seed) * 2.4) * M; put(rocks, x * M, gh(x, z) + sz * 0.25, z * M, sz * 1.4, sz * 0.7, sz, hash(i, 4, seed) * 6.28, 0, rock); }
