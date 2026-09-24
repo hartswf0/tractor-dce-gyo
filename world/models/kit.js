@@ -82,9 +82,14 @@ function fence(x, z, len, alongX, col = 308) {
 }
 /** A rocking chair on a floor plate, facing south: two rockers, each a pair of inverted curved slopes back to back, a 2×4 plate
     across them, a minifig seat on the plate. Four studs deep along z, two wide. y in bricks; plate: the floor's plates under it. */
-function rocker(x, z, col = 308, y = 0, plate = 1) {
+function rocker(x, z, col = 308, y = 0, plate = 1, cushion = 320) {
+  /* a porch rocker, facing +z: curved runners (inverted curved slopes, front and back), a 2×4 plate tying them, a smooth cushion on the
+     front of the seat, and a spindle back: two columns of round 1×1 bricks three high at the back row, a 1×2 rail across the top */
   const ops = []; for (const dx of [0, 1]) ops.push(part('24201', col, x + dx, z, y, { plate, rot: 0 }), part('24201', col, x + dx, z + 2, y, { plate, rot: 2 }));
-  ops.push(part('3020', col, x, z, y + 1, { plate, rot: 1 }), part('4079', col, x, z + 1, y + 1, { plate: plate + 1 }));
+  ops.push(part('3020', col, x, z, y + 1, { plate, rot: 1 }));
+  ops.push(part('3068b', cushion, x, z + 2, y + 1, { plate: plate + 1 }));
+  for (const dx of [0, 1]) for (let k = 0; k < 3; k++) ops.push(part('3062b', col, x + dx, z, y + 1 + k, { plate: plate + 1 }));
+  ops.push(part('3023', col, x, z, y + 4, { plate: plate + 1 }));
   return G('rocking chair', 0, 0, ops);
 }
 /** A warehouse pallet rack along x, len studs long and two deep: orange uprights (1×1 round columns) at the ends and every

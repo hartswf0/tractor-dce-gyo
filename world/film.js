@@ -555,12 +555,12 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
     async function layActor(a) {
       if (a.figure) { layFigure(a); return; }
       if (a.crowd) { a.npcs = []; if (!W.crowd) return; for (let i = 0; i < a.n; i++) { const ang = Math.random() * Math.PI * 2, rr = Math.sqrt(Math.random()) * a.r, n = W.crowd.spawn(a.kind === 'rebels' ? 'rebel' : a.kind, a.x + Math.cos(ang) * rr, a.z + Math.sin(ang) * rr, i); if (n) { n.film = a.name; a.npcs.push(n); } } return; }
-      const mpd = a.kit ? `0 KIT ${a.kit}` : Dsl.vehicleMPD({ kind: a.kind, len: a.len || (a.kind === 'speeder' ? 7 : 8), col: a.col == null ? 71 : a.col }).mpd;
+      const mpd = a.kit ? `0 KIT ${a.kit}` : Dsl.vehicleMPD({ kind: a.kind, len: a.len || (a.kind === 'speeder' ? 7 : 8), col: a.col == null ? 71 : a.col, saddle: a.saddle }).mpd;
       const it = await W.props.place(mpd, a.x, groundH(a.x, a.z), a.z, 0, true, { op: a.kit ? 'kit' : 'vehicle', kit: a.kit || undefined, kind: a.kit || a.kind, len: a.len, col: a.col, film: a.name });
       if (!it || !F.actors.has(a.name)) { if (it) W.props.remove(it.id, true); return; }
       if (a.kind === 'horse') {   /* as the Odyssey build lays its horse: the part as it comes, lifted by the gap under its lowest hoof, then its legs rigged */
         const lift = groundH(a.x, a.z) - it.box.min.y; it.group.children[0].position.y += lift; it.group.updateMatrixWorld(true); it.box.translate(new THREE.Vector3(0, lift, 0));
-        it.localBox = it.box.clone().translate(new THREE.Vector3(-it.x, -it.y, -it.z)); if (window.HorseMotion) { try { await HorseMotion.rig(it); } catch (e) { F.log.push('horse: ' + (e.message || e)); } }
+        it.localBox = it.box.clone().translate(new THREE.Vector3(-it.x, -it.y, -it.z)); if (window.HorseMotion) { try { await HorseMotion.rig(it); } catch (e) { F.log.push('horse: ' + (e.message || e)); } } if (a.saddle != null) saddleOn(it, a);
       }
       a.it = it; a.V = Drive.create({ prop: it, M, groundH, aabbs: (x, z, r) => (W.props ? W.props.aabbs(x, z, r).filter(b => b !== it.box) : []) }); a.V.heading = headingOf(a.heading || 0);
       if (a.V.fly && a.alt) { a.V.pos.y += a.alt * M; a.V.airborne = true; }
@@ -675,6 +675,19 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
     }
     /** The prop record catches up with its group: position, yaw, box. */
     function syncProp(a) { const it = a.it, V = a.V; if (!it || !V || !it.group) return; it.x = V.pos.x; it.y = V.pos.y - (V.K.hover || 0) * M; it.z = V.pos.z; it.yaw = V.heading / (Math.PI / 2); it.group.updateMatrixWorld(true); it.box.setFromObject(it.group); }
+    /** A saddle on a horse, laid after its legs are rigged (the rig rebuilds the horse from its own meshes, so it goes on after): a red
+        blanket over the back, the seat plate with its two studs, a round horn at the front, LEGO-shaped and in LEGO colours. */
+    function saddleOn(it, a) {
+      const g = it.group, b = it.localBox, top = b.min.y + 97, cx = (b.min.x + b.max.x) / 2, cz = (b.min.z + b.max.z) / 2, C = n => (window.Dsl && Dsl.COLOURS && Dsl.COLOURS[n]) || null;
+      const mat = hex => new THREE.MeshStandardMaterial({ color: new THREE.Color(hex), roughness: 0.45, metalness: 0 }), S = new THREE.Group(); S.name = 'saddle';
+      const seatHex = a.saddle === 70 ? 0x582a12 : a.saddle === 308 ? 0x352100 : 0x1b1b1b, blanketHex = a.blanket === 1 ? 0x0055bf : 0x720e0f;
+      const blanket = new THREE.Mesh(new THREE.BoxGeometry(46, 6, 64), mat(blanketHex)); blanket.position.set(cx, top + 1, cz); S.add(blanket);
+      for (const s of [-1, 1]) { const flap = new THREE.Mesh(new THREE.BoxGeometry(3, 26, 44), mat(blanketHex)); flap.position.set(cx + s * 22, top - 11, cz); S.add(flap); }   // the blanket's sides hanging down the horse's flanks
+      const seat = new THREE.Mesh(new THREE.BoxGeometry(38, 8, 44), mat(seatHex)); seat.position.set(cx, top + 8, cz); S.add(seat);
+      for (const s of [-1, 1]) { const stud = new THREE.Mesh(new THREE.CylinderGeometry(6, 6, 4, 16), mat(seatHex)); stud.position.set(cx + s * 10, top + 14, cz + 12); S.add(stud); }
+      const horn = new THREE.Mesh(new THREE.CylinderGeometry(4, 5, 12, 12), mat(seatHex)); horn.position.set(cx, top + 16, cz - 20); S.add(horn);
+      S.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } }); g.add(S);
+    }
     const dropRig = rig => { const f = rig.figure; if (f && f.parent) f.parent.remove(f); };
     /** A figure's pose after its step: stand, crouch (knees bent, low), prone (flat on the floor), aim and point (the arm up), sit (on a ride). */
     function applyPose(a) {
