@@ -1,12 +1,12 @@
 /* world/models/waterhole.js — the shallow water in the middle distance of The Searchers, 32 × 20 studs.
-   A pool of trans-light-blue tiles in an uneven outline, a rim of dark tan and reddish brown mud tiles round it, three
+   A pool of bright light blue tiles (opaque, so it reads as the sky in the water from a low camera) in an uneven outline, a rim of dark tan and reddish brown mud tiles round it, three
    horses at the water (bay, black, white), a few stones. Everything lies on the ground: tiles and plates at plate 0,
    the horses standing on the ground by their own geometry. Laid a plate down, the water is level with the desert. */
 'use strict';
 const K = require('./kit.js');
 const { G, part } = K;
 const rnd = K.seeded(31);
-const WATER = 43, MUD = 28, MUD2 = 70, STONE = 72;
+const WATER = 212, MUD = 28, MUD2 = 70, STONE = 72;
 function program() {
   const ops = [], water = [], rim = [];
   // the pool: an ellipse 26 × 12 studs, in 2×2 tiles where they fit and 1×1 tiles at the edge; the rim one to two studs round it

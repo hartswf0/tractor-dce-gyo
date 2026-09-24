@@ -45,7 +45,9 @@ const t0 = Date.now(), say = (...a) => console.log(((Date.now() - t0) / 1000).to
     while (k < stills.length) {
       const near = frames / fps >= stills[k] - 0.5 / fps;
       const r = await page.evaluate(s => window.__world.exportFrame(s ? { skip: true } : undefined), !near); if (!r) break; if (r.held) { await page.evaluate(() => new Promise(r => setTimeout(r, 120))); continue; }
-      frames++; if (near && r.jpeg) { const f = path.join(out, `${film}-${tag}-${stills[k].toFixed(1)}.jpg`); fs.writeFileSync(f, Buffer.from(r.jpeg, 'base64')); say('still', stills[k], 'shot', r.shot + 1, f); k++; }
+      frames++; if (near && r.jpeg) { const f = path.join(out, `${film}-${tag}-${stills[k].toFixed(1)}.jpg`); fs.writeFileSync(f, Buffer.from(r.jpeg, 'base64')); say('still', stills[k], 'shot', r.shot + 1, f);
+        if (args.includes('--dump')) { const d = await page.evaluate(() => { const W = window.__world, M = W.M || 40, sp = (W.film && W.film.sceneSpawn) || { x: 0, z: 0 }, rel = v => v ? [+((v[0] - sp.x) / M).toFixed(1), +(v[1] / M).toFixed(1), +((v[2] - sp.z) / M).toFixed(1)] : null, c = W.camera.position.toArray(); return { cam: rel(c), actors: W.filmActors().map(a => a.name + ' ' + JSON.stringify(rel(a.figPos || a.pos)) + (a.riding ? ' on ' + a.riding : '')) }; }); say('  camera', JSON.stringify(d.cam)); for (const a of d.actors) say('   ', a); }   /* --dump: where the camera and the cast stand at the still, in scene metres */
+        k++; }
       if (r.done) break;
     }
     say('stills done in', ((Date.now() - t0) / 1000 / 60).toFixed(1), 'min'); await browser.close(); return;

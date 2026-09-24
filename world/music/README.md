@@ -18,8 +18,11 @@ starts and ends, loudness every two seconds, and every beat time. Cut on it.
 ## searchers-score.ogg (original)
 
 An original score for The Searchers case, written note by note in `tools/score-searchers.py` and rendered by it (strings,
-horn, finger-picked guitar, a trotting woodblock, male voices on "oo", harmonica, timpani, a stereo hall). It is in the manner of
-a 1950s Western studio score, timed to the cut: the card and the door 0-10.5 s (D minor, low strings, a horn out of the dark),
-the sighting and the approach 10.5-25.7 (the guitar, the horn call when Martha knows him, the trot), home and inside 25.7-42.75
-(the theme on strings and voices in D major), the stop at 42.75 (one low blow), the leaving to 51.8 (the harmonica alone).
-It is not Max Steiner's score nor the title song "What Makes a Man to Wander?", both still in copyright.
+horn, finger-picked guitar, flute, a fiddle, a trotting woodblock, male voices on "oo", harmonica, timpani, a stereo hall), in
+the manner of a 1950s Western studio score. The case is cut shot for shot to the film's ending (111.5 s with the card), so the
+score follows the ending's music as a map, not as notes: the same key areas at the same seconds (E major on the porch, a lift
+through A-flat at the pool, a bright D major as Lucy runs, D minor on Martha, E major dying away under the lift from the saddle,
+A major for Mose, C-sharp minor and D on the homecoming, a low A in the room, E major on the man alone, the choir as he turns,
+a rising A major into the door), and the same loudness half second by half second (a table of levels measured from a reference
+copy, which the mix is ridden to). No audio of the original is used or kept; every note is written in the script. It is not
+Max Steiner's score nor the songs "What Makes a Man to Wander?" and "Ride Away", all still in copyright.

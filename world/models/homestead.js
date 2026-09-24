@@ -6,7 +6,7 @@
    on the ceiling; a plank porch across the front under the flat end of the ceiling, four posts; in the yard a
    hitching rail with a horse, a corral with two more, a water trough, a fence line, a woodpile, a water barrel; two rocking chairs on the porch.
    The door is at studs x 22..25 on the wall line z 19; the room inside is x 13..34 × z 5..18 (seven metres deep, so a
-   camera by the back wall sees the door as a bright frame in the dark); the porch z 20..24, its posts at z 23. */
+   camera by the back wall sees the door as a bright frame in the dark); the porch z 20..28 (four metres deep, room for a rocker by the wall and people standing at the edge, as the Jorgensens' porch has), its posts at z 27. */
 'use strict';
 const K = require('./kit.js');
 const { G, box, slab, cut, part } = K;
@@ -16,12 +16,12 @@ function program() {
   const ops = [];
   // the yard: packed earth round the house, a lighter path from the porch steps south
   const yard = []; for (let x = 0; x < 48; x += 8) for (let z = 0; z < 48; z += 8) yard.push(slab(x, z, 8, 8, EARTH));
-  yard.push(cut(12, 4, 24, 21, 0, 1), cut(21, 25, 6, 23, 0, 1));   // the house, the porch and the path are cut out of the earth: every floor a figure walks is one plate, and the case lays the set a plate down so that plate is the ground
+  yard.push(cut(12, 4, 24, 25, 0, 1), cut(21, 29, 6, 19, 0, 1));   // the house, the porch and the path are cut out of the earth: every floor a figure walks is one plate, and the case lays the set a plate down so that plate is the ground
   ops.push(G('yard', 0, 0, yard));
-  ops.push(G('path', 0, 0, [slab(21, 25, 6, 23, TRACK)]));
+  ops.push(G('path', 0, 0, [slab(21, 29, 6, 19, TRACK)]));
   // the floor inside and the porch boards
   ops.push(G('floor', 0, 0, [slab(13, 5, 22, 14, PLANK)]));
-  ops.push(G('porch', 0, 0, [slab(12, 20, 24, 5, PLANK)]));
+  ops.push(G('porch', 0, 0, [slab(12, 20, 24, 9, PLANK)]));
   // the walls: a hollow box of logs seven bricks high; the door frame in the south wall, a window either side, one in each end wall
   ops.push(G('walls', 0, 0, [box(12, 4, 24, 16, 7, LOG, { hollow: true })]));
   ops.push(G('door', 0, 0, [cut(22, 19, 4, 1, 0, 6), part('60596', DARK, 22, 19, 0)]));
@@ -34,12 +34,12 @@ function program() {
   ops.push(G('bed', 29, 5, [box(0, 0, 5, 3, 1, DARK), slab(0, 0, 5, 3, 15, { y: 1 }), slab(0, 0, 2, 3, 1, { y: 1, plateOffset: 1 }), box(4, 0, 1, 3, 2, DARK, { y: 1 })]));
   ops.push(G('dresser', 13, 5, [box(0, 0, 3, 2, 3, DARK), part('3024', 14, 1, 0, 3)]));
   // the porch posts: round bricks from the ground to the ceiling line
-  const posts = []; for (const x of [12, 18, 28, 34]) { posts.push(cut(x, 23, 2, 2, 0, 1)); for (let y = 0; y < 6; y++) posts.push(part('3941', 15, x, 23, y)); }   // white posts, as the Jorgensens' porch has them
-  posts.push(box(12, 23, 24, 2, 1, 15, { y: 6 }));   // the header beam over the posts, under the front of the ceiling
+  const posts = []; for (const x of [12, 18, 28, 34]) { posts.push(cut(x, 27, 2, 2, 0, 1)); for (let y = 0; y < 6; y++) posts.push(part('3941', 15, x, 27, y)); }   // white posts, as the Jorgensens' porch has them
+  posts.push(box(12, 27, 24, 2, 1, 15, { y: 6 }));   // the header beam over the posts, under the front of the ceiling
   ops.push(G('porch posts', 0, 0, posts));
   // the ceiling: three plate layers over the walls, the room and the porch, so the room is shut from the sky and the porch is roofed
   // (the kit's deck: explicit plates in three bonded layers, so no seam runs through all three)
-  const ceil = K.deck(12, 4, 24, 21, DARK, 7);
+  const ceil = K.deck(12, 4, 24, 25, DARK, 7);
   ops.push(G('ceiling', 0, 0, ceil));
   // the gabled roof over the cabin, the ridge east to west
   ops.push(G('roof', 0, 0, [K.roof(12, 4, 24, 17, 8, 'gable', 320)]));
