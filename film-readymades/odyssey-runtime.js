@@ -32,7 +32,8 @@
 const kfShort=k=>k.replace(/^odyssey-od-b\d\d-s\d\d-/,'');
 const kfActor=id=>ButterCast.cast.find(a=>kfShort(a.kind)===id);
 const kfWorld=o=>o.getWorldPosition(new THREE.Vector3());
-const kfSolid=o=>o.isMesh&&o.visible&&!(o.geometry&&o.geometry.type==='PlaneGeometry')&&!(o.userData&&o.userData.axis)&&!(o.material&&o.material.transparent&&o.material.opacity<0.3);   /* the set and the cast, not the workspace's helper planes */
+const kfShown=o=>{for(;o;o=o.parent)if(o.visible===false)return false;return true;};
+const kfSolid=o=>o.isMesh&&kfShown(o)&&!(o.geometry&&o.geometry.type==='PlaneGeometry')&&!(o.userData&&o.userData.axis)&&!(o.material&&o.material.transparent&&o.material.opacity<0.3);   /* the set and the cast, not the workspace's helper planes */
 function kfCast(){return ButterCast.cast.map(a=>{const b=new THREE.Box3().setFromObject(a.rig.figure);return {id:kfShort(a.kind),x:+a.rig.pos.x.toFixed(1),y:+a.rig.pos.y.toFixed(1),z:+a.rig.pos.z.toFixed(1),heading:+a.rig.heading.toFixed(2),height:+(b.max.y-b.min.y).toFixed(1)};});}
 function kfPieces(){const A=filmAsset();return (A.pages||[]).map((pg,i)=>({label:pg.label,x:+A.rows[i].x.toFixed(1),z:+A.rows[i].z.toFixed(1),box:pg.box||null}));}
 /* the floor under a figure: the first surface below its knee (a deck, a crag, the plate), not a yard or a roof above it */
@@ -43,9 +44,13 @@ function kfSpread(min,ids){const acts=ButterCast.cast.filter(a=>!ids||ids.includ
   for(let it=0;it<60;it++){let moved=false;for(let i=0;i<acts.length;i++)for(let j=i+1;j<acts.length;j++){const p=acts[i].rig.pos,q=acts[j].rig.pos,dx=q.x-p.x,dz=q.z-p.z,d=Math.hypot(dx,dz);
     if(d<min){const push=(min-d)/2+0.5,ux=d>1e-3?dx/d:Math.cos(i+j),uz=d>1e-3?dz/d:Math.sin(i+j);p.x-=ux*push;p.z-=uz*push;q.x+=ux*push;q.z+=uz*push;moved=true;}}if(!moved)break;}
   for(const a of acts){a.rig.pos.y=kfFloor(a);a.rig.figure.position.copy(a.rig.pos);}}
+const kfInside=(o,r)=>{for(;o;o=o.parent)if(o===r)return true;return false;};
 function kfBlock(list){for(const e of list){const a=kfActor(e.id);if(!a){console.warn('[keyframe] no actor',e.id);continue;}const r=a.rig;
-  if(e.x!=null)r.pos.x=e.x;if(e.z!=null)r.pos.z=e.z;if(e.y==='ground')r.pos.y=kfGround(r.pos.x,r.pos.z);else if(e.y==='floor')r.pos.y=kfFloor(a);else if(e.y!=null)r.pos.y=e.y;
-  const f=typeof e.face==='string'?kfActor(e.face)?.rig.pos:Array.isArray(e.face)?{x:e.face[0],z:e.face[1]}:null;
+  if(typeof e.at==='string'){const p=kfPoint(e.at).add(new THREE.Vector3(...(e.off||[0,0,0])));r.pos.x=p.x;r.pos.z=p.z;}
+  if(e.x!=null)r.pos.x=e.x;if(e.z!=null)r.pos.z=e.z;if(e.y==='ground')r.pos.y=kfGround(r.pos.x,r.pos.z);else if(e.y==='floor')r.pos.y=kfFloor(a);
+  else if(e.y==='surface'){const from=(typeof e.at==='string'?kfPoint(e.at).y:r.pos.y+200)-(e.reach??25);const figs=new Set();ButterCast.cast.forEach(b=>b.rig.figure.traverse(o=>figs.add(o)));const ms=[];scene.traverse(o=>{if(kfSolid(o)&&!figs.has(o)&&!(o.parent&&kfPropObjs.get('stake')&&kfInside(o,kfPropObjs.get('stake'))))ms.push(o);});
+    const h=new THREE.Raycaster(new THREE.Vector3(r.pos.x,from,r.pos.z),new THREE.Vector3(0,-1,0)).intersectObjects(ms,true)[0];r.pos.y=h?h.point.y:r.pos.y;}   /* stood on the highest body under a grip: a man on the giant's chest */else if(e.y!=null)r.pos.y=e.y;
+  const f=typeof e.face==='string'?(e.face.startsWith('@')?kfAnchor(e.face.slice(1)):kfActor(e.face)?.rig.pos):Array.isArray(e.face)?{x:e.face[0],z:e.face[1]}:null;
   if(f)r.heading=Math.atan2(f.x-r.pos.x,f.z-r.pos.z);else if(e.heading!=null)r.heading=e.heading;
   r.figure.position.copy(r.pos);r.figure.rotation.y=r.heading;r.hold=e.pose||r.hold||{};
   for(const k of ['armRP','armLP','headP','torsoP','legRP','legLP']){const v=r.hold[k]||[0,0,0];r[k].rotation.set(v[0],v[1],v[2]);}
@@ -64,7 +69,7 @@ function kfScorePiece(label,meshes,ray,cam,scr){const b=kfPiece(label);if(!b)ret
 function kfScore(subs){scene.updateMatrixWorld(true);camera.updateMatrixWorld();const meshes=[];scene.traverse(o=>{if(kfSolid(o))meshes.push(o);});
   const ray=new THREE.Raycaster(),cam=camera.position.clone(),scr=v=>{const q=v.clone().project(camera);return [(q.x+1)/2,(1-q.y)/2,q.z];};
   const inside=(o,root)=>{for(;o;o=o.parent)if(o===root)return true;return false;};
-  const out={};for(const s of subs){if(s.id.startsWith('piece:')){out[s.id]=kfScorePiece(s.id.slice(6),meshes,ray,cam,scr);continue;}const a=kfActor(s.id);if(!a){out[s.id]={missing:true};continue;}const fig=a.rig.figure;
+  const out={};for(const s of subs){if(s.id.startsWith('piece:')||s.id.startsWith('prop:')){out[s.id]=kfScorePiece(s.id.startsWith('prop:')?s.id:s.id.slice(6),meshes,ray,cam,scr);continue;}const a=kfActor(s.id);if(!a){out[s.id]={missing:true};continue;}const fig=a.rig.figure;
    const head=kfHead(s.id),torso=kfWorld(a.rig.torsoP),hips=kfWorld(a.rig.hipsP),tall=head.y-a.rig.pos.y;
    /* the body, not its props: crown, feet, both shoulders */
    const body=[head.clone().add(new THREE.Vector3(0,tall*0.12,0)),a.rig.pos.clone(),kfWorld(a.rig.armRP),kfWorld(a.rig.armLP)].map(scr);
@@ -81,9 +86,9 @@ function kfGround(x,z){const meshes=[],figs=new Set();ButterCast.cast.forEach(a=
 /* camera rigs, from the blocking: two (a two-shot across the line between a and b, biased to a's face), hero (in front of a's
    face, low or high), ots (over a's shoulder at b), wide (a free position looking at a point); place puts the subject's head on a
    thirds line (L, R) or the centre, by turning the camera about its own axis */
-function kfPiece(label){const A=filmAsset(),i=(A.pages||[]).findIndex(pg=>pg.label===label)>=0?(A.pages||[]).findIndex(pg=>pg.label===label):(A.pages||[]).findIndex(pg=>pg.label.includes(label));return i>=0&&A.pages[i].box?A.pages[i].box:null;}
+function kfPiece(label){if(label.startsWith('prop:')){const h=kfPropObjs.get(label.slice(5));if(!h)return null;const b=new THREE.Box3().setFromObject(h);return [b.min.x,b.min.y,b.min.z,b.max.x,b.max.y,b.max.z];}const A=filmAsset(),i=(A.pages||[]).findIndex(pg=>pg.label===label)>=0?(A.pages||[]).findIndex(pg=>pg.label===label):(A.pages||[]).findIndex(pg=>pg.label.includes(label));return i>=0&&A.pages[i].box?A.pages[i].box:null;}
 function kfPieceHead(label){const b=kfPiece(label);return b?new THREE.Vector3((b[0]+b[3])/2,b[1]+(b[4]-b[1])*0.8,(b[2]+b[5])/2):null;}
-function kfHead(id){if(typeof id==='string'&&id.startsWith('piece:'))return kfPieceHead(id.slice(6));const a=kfActor(id),k=a.rig.headP.getWorldScale(new THREE.Vector3()).y;return kfWorld(a.rig.headP).add(new THREE.Vector3(0,-12*k*(a.rig.headP.position.y<0?1:-1),0));}   /* the middle of the head, 12 LDU above the neck (the rig's y runs down) */
+function kfHead(id){if(typeof id==='string'&&id.startsWith('@'))return kfAnchor(id.slice(1));if(typeof id==='string'&&id.startsWith('piece:'))return kfPieceHead(id.slice(6));if(typeof id==='string'&&id.startsWith('prop:')){const b=kfPiece(id);return b?new THREE.Vector3((b[0]+b[3])/2,b[1]+(b[4]-b[1])*0.8,(b[2]+b[5])/2):null;}const a=kfActor(id),k=a.rig.headP.getWorldScale(new THREE.Vector3()).y;return kfWorld(a.rig.headP).add(new THREE.Vector3(0,-12*k*(a.rig.headP.position.y<0?1:-1),0));}   /* the middle of the head, 12 LDU above the neck (the rig's y runs down) */
 function kfRig(c){const V=THREE.Vector3;let pos,target;
   if(c.type==='two'){const A=kfHead(c.a),Bh=kfHead(c.b),mid=A.clone().lerp(Bh,0.5),ab=Bh.clone().sub(A).setY(0),span=ab.length(),n=new V(-ab.z,0,ab.x).normalize().multiplyScalar(c.side||1);
     const fa=kfActor(c.a)?.rig||{heading:0},face=new V(Math.sin(fa.heading),0,Math.cos(fa.heading));pos=mid.clone().add(n.clone().multiplyScalar(c.dist||span*1.6)).add(face.multiplyScalar((c.bias??0.35)*(c.dist||span*1.6))).add(new V(0,c.height||0,0));target=mid;}
@@ -139,4 +144,31 @@ function kfRope(r){for(const m of kfRopes.splice(0))m.parent&&m.parent.remove(m)
   for(const f of b.at||[0.72,0.5,0.22]){const pts=[];for(let i=0;i<=48;i++){const t=i/48*Math.PI*2*1.9,y=feet.y+tall*f+(i/48-0.5)*3*k;pts.push(c.clone().add(u.clone().multiplyScalar(Math.cos(t)*A)).add(n.clone().multiplyScalar(Math.sin(t)*Bn)).setY(y));}
     const tube=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),160,(b.thick||1.6)*k,8,false),mat);tube.userData.rope=true;scene.add(tube);kfRopes.push(tube);}
   const knot=c.clone().add(u.clone().multiplyScalar(A)).setY(feet.y+tall*0.5),tail=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([knot,knot.clone().add(new THREE.Vector3(0,-14*k,2*k)),knot.clone().add(new THREE.Vector3(3*k,-26*k,5*k))]),24,(b.thick||1.6)*k,8,false),mat);scene.add(tail);kfRopes.push(tail);}}
-window.OdysseyFilm={spread:kfSpread,floor:kfFloor,physics:kfPhysics,rope:kfRope,clutter:kfClutter,look:kfLook,ground:kfGround,rig:kfRig,lens:kfLens,asset:()=>filmAsset(),setCamera:c=>filmSetCamera(c),fit:()=>filmFit(),get cameras(){return filmAsset()?.cameras||[];},cast:kfCast,pieces:kfPieces,block:kfBlock,shoot:kfShoot,score:kfScore};
+/* ── props: what a still stages beyond the set (odyssey/keyframes/props.json), parsed from the part packs, placed in the location's
+   frame (LDraw y down, scaled and flipped as the set's pieces are), with anchors a still can aim at, stand on, look at or light ── */
+let kfPropLib=null;const kfPropObjs=new Map(),kfLights=[];const KV=THREE.Vector3;
+async function kfLoadProps(){if(kfPropLib)return;const root=new URL('../../',location.href).href;kfPropLib=await (await fetch(root+'odyssey/keyframes/props.json')).json();
+  const ids=new Set();for(const p of Object.values(kfPropLib))for(const r of p.parts)ids.add(r.part.replace(/\.dat$/,''));
+  for(const id of ids){if(ButterLDraw.parts['parts/'+id+'.dat'])continue;try{const pk=await (await fetch(root+'odyssey/packs/'+id.replace('/','_')+'.json')).json();
+    for(const [k,v] of Object.entries(pk)){ButterLDraw.parts[k]=v;ButterLDraw.parts[(k.startsWith('parts/')||k.startsWith('p/'))?k:'parts/'+k]=v;if(k.startsWith('p/'))ButterLDraw.parts[k.slice(2)]=v;}}catch(e){console.warn('[props] no pack',id);}}
+  for(const p of Object.values(kfPropLib))p.template=await new Promise((res,rej)=>{const l=new THREE.LDrawLoader();l.setFileMap({});Object.assign(l.subobjectCache,ButterLDraw.parts);
+    l.parse(ButterLDraw.colors+'\n'+p.parts.map(r=>'1 '+r.color+' '+r.m.join(' ')+' parts/'+r.part).join('\n'),'prop.ldr',res,rej);});}
+function kfAnchor(n){let o=null;scene.traverse(q=>{if(!o&&q.name==='@'+n)o=q;});return o?o.getWorldPosition(new KV()):null;}
+function kfPoint(p){if(Array.isArray(p))return new KV(...p);if(typeof p==='string'&&p.startsWith('@'))return kfAnchor(p.slice(1));return kfHead(p);}
+function kfProps(list){for(const o of kfPropObjs.values())scene.remove(o);kfPropObjs.clear();const sc=filmAsset().scale;
+  for(const e of list||[]){const P=kfPropLib[e.name];if(!P){console.warn('[props] unknown',e.name);continue;}const id=e.id||e.name,g=P.template.clone(true),m=e.scale||1;g.scale.set(sc*m,-sc*m,-sc*m);
+    for(const [an,v] of Object.entries(P.anchors||{})){const o=new THREE.Object3D();o.position.set(...v);o.name='@'+id+'.'+an;g.add(o);}
+    const h=new THREE.Group();h.add(g);h.name='prop:'+id;
+    const at=e.at?kfPoint(e.at).add(new KV(...(e.off||[0,0,0]))):new KV();for(const o of kfPropObjs.values())o.visible=false;const ground=e.floor?kfGround(at.x,at.z):null;for(const o of kfPropObjs.values())o.visible=true;   /* a prop rests on the set, not on another prop */
+    if(e.rot)h.rotation.set(e.rot[0],e.rot[1],e.rot[2],'YXZ');scene.add(h);kfPropObjs.set(id,h);h.updateMatrixWorld(true);
+    if(e.aim){const to=kfPoint(e.aim.to).add(new KV(...(e.aim.off||[0,0,0]))),dir=(e.aim.from?to.clone().sub(kfPoint(e.aim.from)):new KV(...e.aim.dir)).normalize();
+      h.quaternion.setFromUnitVectors(new KV(0,-1,0),dir);if(e.aim.spin)h.rotateOnWorldAxis(dir,e.aim.spin);h.updateMatrixWorld(true);
+      const tip=kfAnchor(id+'.'+e.aim.anchor);h.position.add(to.clone().sub(tip)).add(dir.clone().multiplyScalar(e.aim.sink||0));}
+    else{h.position.copy(at);if(e.floor){h.updateMatrixWorld(true);const b=new THREE.Box3().setFromObject(h);h.position.y+=ground-b.min.y-(e.sink||0);}}
+    h.updateMatrixWorld(true);}}
+function kfHide(labels){const A=filmAsset(),hide=new Set((labels||[]).map(l=>l.toLowerCase()));(A.pages||[]).forEach((pg,i)=>{const p=S.parts.find(q=>q.id===A.rows[i].id);if(p&&p.mesh)p.mesh.visible=!hide.has(pg.label.toLowerCase());});}
+/* light: dim the day (the location's own lights) and add point lights, firelight, at points or anchors */
+function kfLight(l={}){for(const x of kfLights.splice(0))scene.remove(x);scene.traverse(o=>{if(o.isLight&&!o.userData.kf){if(o.userData.kfI0==null)o.userData.kfI0=o.intensity;o.intensity=o.userData.kfI0*(l.dim??1);}});
+  for(const L of l.lights||[]){const pl=new THREE.PointLight(L.color||'#ff9a40',L.intensity??2.2,L.distance??600,L.decay??1.4);pl.userData.kf=true;pl.position.copy(kfPoint(L.at).add(new KV(...(L.off||[0,0,0]))));scene.add(pl);kfLights.push(pl);}}
+function kfAnchors(){const out={};scene.traverse(q=>{if(q.name&&q.name.startsWith('@')){const v=q.getWorldPosition(new KV());out[q.name]=[+v.x.toFixed(0),+v.y.toFixed(0),+v.z.toFixed(0)];}});return out;}
+window.OdysseyFilm={anchors:kfAnchors,loadProps:kfLoadProps,props:kfProps,hide:kfHide,light:kfLight,anchor:kfAnchor,spread:kfSpread,floor:kfFloor,physics:kfPhysics,rope:kfRope,clutter:kfClutter,look:kfLook,ground:kfGround,rig:kfRig,lens:kfLens,asset:()=>filmAsset(),setCamera:c=>filmSetCamera(c),fit:()=>filmFit(),get cameras(){return filmAsset()?.cameras||[];},cast:kfCast,pieces:kfPieces,block:kfBlock,shoot:kfShoot,score:kfScore};
