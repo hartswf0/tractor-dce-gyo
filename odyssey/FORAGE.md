@@ -1,8 +1,8 @@
 # The Odyssey as LDraw: the forage
 
-Generated 2026-09-23 by `tools/odyssey-forage.js` from the atlas in odyssey-halfworld (`viewer/odyssey-manifest.json`). Browse it in [odyssey-forage.html](../odyssey-forage.html); load any card in [Hand Butter](../play/hand-butter-odyssey.html?scene=OD-B01-S01).
+Generated 2026-09-24 by `tools/odyssey-forage.js` from the atlas in odyssey-halfworld (`viewer/odyssey-manifest.json`). Browse it in [odyssey-forage.html](../odyssey-forage.html); load any card in [Hand Butter](../play/hand-butter-odyssey.html?scene=OD-B01-S01).
 
-**582 cards** (430 assets, 152 scenes) · **110,726 pieces** · **5,212 sub-builds** · **411,931 stud joints** · 14 donor sets · 566 green, 16 yellow, 0 red.
+**582 cards** (430 assets, 152 scenes) · **111,882 pieces** · **5,245 sub-builds** · **413,451 stud joints** · 14 donor sets · 567 green, 15 yellow, 0 red.
 
 ## How a card is foraged
 
@@ -23,7 +23,7 @@ The trailer builds a city as a tree: the whole model, its builds, their sub-buil
 |---|---|---|---|---|---|
 | character | 87 | 1,379 | 178 | 247 | 0 |
 | creature | 27 | 386 | 132 | 829 | 1 |
-| location | 68 | 21,414 | 554 | 78,349 | 10 |
+| location | 68 | 21,883 | 564 | 79,560 | 9 |
 | prop | 73 | 662 | 248 | 840 | 0 |
 | ensemble | 67 | 4,717 | 502 | 1,025 | 0 |
 | divine fx | 59 | 2,180 | 264 | 1,914 | 0 |
@@ -32,7 +32,7 @@ The trailer builds a city as a tree: the whole model, its builds, their sub-buil
 | vehicle | 11 | 3,512 | 43 | 6,125 | 0 |
 | sound source | 6 | 215 | 31 | 68 | 0 |
 | wearable | 2 | 42 | 12 | 12 | 0 |
-| scene | 152 | 75,103 | 3,117 | 320,452 | 4 |
+| scene | 152 | 75,790 | 3,140 | 320,761 | 4 |
 
 ## Donors
 
@@ -40,16 +40,16 @@ Community LDraw models, redistributed under CCAL 2.0; each foraged FILE keeps it
 
 | model | author | cards |
 |---|---|---|
-| 6285 - Black Seas Barracuda.mpd | Philippe Hurbain [Philo] | 79 |
-| 6279-1 - Skull Island.mpd | Stan Isachenko [angmarec] | 15 |
+| 6285 - Black Seas Barracuda.mpd | Philippe Hurbain [Philo] | 78 |
+| 6279-1 - Skull Island.mpd | Stan Isachenko [angmarec] | 14 |
 | 6080 - Kings Castle.mpd | Stefan Frenz [smf] | 6 |
 | ithaca-cove.mpd |  | 5 |
 | forest-clearing.mpd | word to world, tools/model.js | 5 |
 | cave-of-shadows.mpd | word to world, tools/model.js | 4 |
 | 7410-1 - Jungle River.mpd | Philippe Hurbain [Philo] | 4 |
-| 6264 - Forbidden Cove.mpd | MLCad | 3 |
-| 6278 6292 - Enchanted Island.mpd | MLCad | 3 |
 | 6716-1 - Covered Wagon.mpd | Willy Tschager [Holly-Wood] | 3 |
+| 6264 - Forbidden Cove.mpd | MLCad | 2 |
+| 6278 6292 - Enchanted Island.mpd | MLCad | 2 |
 | 6245 - Harbor Sentry.mpd | Stefan Frenz [smf] | 2 |
 | 6071 - Forestmens Crossing.mpd | Takeshi Takahashi [RainbowDolphin] | 1 |
 | ogygia-grove.mpd |  | 1 |
@@ -66,7 +66,6 @@ Community LDraw models, redistributed under CCAL 2.0; each foraged FILE keeps it
 - **location.river-washing-pools** RIVER WASHING POOLS: 52 pieces touch nothing (a donor's loose detail or ropes' ends)
 - **location.road-to-laertess-farm** ROAD TO LAERTES'S FARM: 3 pieces touch nothing (a donor's loose detail or ropes' ends)
 - **location.scherian-coast-and-river-mouth** SCHERIAN COAST AND RIVER MOUTH: 54 pieces touch nothing (a donor's loose detail or ropes' ends)
-- **location.sirens-island** SIRENS' ISLAND: 1 parts the library lacks were left out (6029b)
 - **location.thrinacia** THRINACIA: 1 parts the library lacks were left out (6029b)
 - **set-piece.orchard-inventory** ORCHARD INVENTORY: 3 pieces touch nothing (a donor's loose detail or ropes' ends)
 - **OD-B06-S02** LAUNDRY AND BALL AT THE RIVER: 22 pieces touch nothing (a donor's loose detail or ropes' ends)

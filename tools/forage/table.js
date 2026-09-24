@@ -119,13 +119,13 @@ function ensemble(a) {
 
 /* ── creatures ── */
 const ANIMALS = [
-  [/ram\b|rams\b|ewe/, ['95341', C.white], 3], [/horse|team/, ['10509', C.dbrown], 2], [/pig|swine|boar/, ['87621', C.nougat], 5], [/cattle|heifer|bulls|cow/, ['64452', C.rbrown], 3], [/goat|ram|ewe|flock/, ['95341', C.white], 5],
+  [/ram\b|rams\b|ewe/, ['95341', C.white], 3], [/horse|team/, ['10509', C.dbrown], 2], [/boar/, ['87621', C.dbrown], 1], [/pig|swine/, ['87621p01', 29], 5], [/cattle|heifer|bulls|cow/, ['64452', C.rbrown], 3], [/goat|ram|ewe|flock/, ['95341', C.white], 5],
   [/dog|hound|argos/, ['92586', C.rbrown], 2], [/wolves|lions/, ['48812', C.dbg], 3], [/eagle|hawk/, ['11467', C.rbrown], 2], [/geese|goose|dove/, ['12891', C.white], 6], [/stag/, ['10509', C.rbrown], 1],
 ];
 function creature(a) {
   const n0 = a.name.toLowerCase(), r = rng(a.id);
   if (/scylla/.test(n0)) return { comps: [parts('scylla', [['6086', C.dgreen, 0, 0, 0], ['6027', C.dgreen, -24, -40, 0], ['6027', C.dgreen, 24, -40, 0], ['6027', C.dgreen, 0, -48, 16]]), fig(ROLES.sailor(r), 'seized sailor')], base: C.dbg };
-  if (/crew-to-swine/.test(n0)) return { comps: [fig(ROLES.sailor(r), 'sailor'), part('87621', C.nougat, { n: 3, name: 'swine' })], base: C.tan };
+  if (/crew-to-swine/.test(n0)) return { comps: [fig(ROLES.sailor(r), 'sailor'), part('87621p01', 29, { n: 3, name: 'swine' })], base: C.tan };
   if (/black bulls and altar/.test(n0)) return { comps: [part('64452', C.black, { n: 2, step: 100, name: 'black bulls' }), kit('altar fire', [K.box(0, 0, 2, 2, 1, C.lbg), K.part('3062b', C.orange, 0, 0, 1), K.part('3062b', C.yellow, 1, 1, 1)])], base: C.dtan };
   for (const [re, [id, col], n] of ANIMALS) if (re.test(n0)) {
     let count = n; for (const [w, v] of Object.entries(NUM)) if (new RegExp('\\b' + w + '\\b').test(n0)) count = Math.min(v, 8);
@@ -135,7 +135,7 @@ function creature(a) {
     const extra = /stag/.test(n0) ? [part('1613', C.tan, { name: 'antlers' })] : /escape ram/.test(n0) ? [fig(ROLES.sailor(r), 'crewman under the ram')] : /festival|gilded heifer/.test(n0) ? [kit('altar', [K.box(0, 0, 2, 2, 1, C.white), K.part('3062b', C.orange, 0, 0, 1)])] : [];
     return { comps: [group(n0, herd, { gap: 1 }), ...extra], base: /eagle|hawk|geese|dove/.test(n0) ? C.lbg : C.green };
   }
-  return { comps: [part('87621', C.nougat)], base: C.green };
+  return { comps: [part('87621p01', 29)], base: C.green };
 }
 
 /* ── props: the readymade a thing is ── */
@@ -263,8 +263,8 @@ const LOC = {
   'location.circes-forest-palace': r => [donor('21325', null, { name: "circe's hall" }), ...trees(2, r)],
   'location.cyclops-beach-and-waiting-ship': r => [donor('6285', '6285 - jollyboat.ldr', { name: 'waiting ship', noFlex: true }), ...rocks(3, r), water(12, 8)],
   'location.cyclops-coast': r => [donor('6279', '6279 - Island.ldr', { name: 'cyclops coast' }), part('95341', C.white, { n: 3, name: 'goats' })],
-  'location.eumaeus-hut-interior': r => [donor('6066', '6066 - Building rock side.ldr', { name: 'hut' }), kit('hearth', [K.fire(0, 0)]), part('87621', C.nougat, { n: 2 })],
-  'location.eumaeuss-pig-farm': r => [hut('swineherd hut'), kit('sties', [K.box(0, 0, 12, 8, 1, C.rbrown, { hollow: true })]), part('87621', C.nougat, { n: 4, name: 'pigs' }), part('92586', C.rbrown, { name: 'dog' })],
+  'location.eumaeus-hut-interior': r => [donor('6066', '6066 - Building rock side.ldr', { name: 'hut' }), kit('hearth', [K.fire(0, 0)]), part('87621p01', 29, { n: 2 })],
+  'location.eumaeuss-pig-farm': r => [hut('swineherd hut'), kit('sties', [K.box(0, 0, 12, 8, 1, C.rbrown, { hollow: true })]), part('87621p01', 29, { n: 4, name: 'pigs' }), part('92586', C.rbrown, { name: 'dog' })],
   'location.farm-battlefield-at-peace': r => [hut('laertes farm'), ...trees(2, r, C.olive), kit('field wall', [K.box(0, 0, 16, 1, 1, C.dbg)])],
   'location.farm-to-palace-route': r => [kit('road', [K.slab(0, 0, 6, 24, C.dtan)]), ...trees(3, r, C.olive), ...rocks(2, r)],
   'location.farmhouse-feast': r => [hut('farmhouse'), FURN().table(), FURN().bench(), FURN().bench(), FURN().fire(), FURN().pithos()],

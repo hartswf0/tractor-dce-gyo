@@ -12,7 +12,7 @@ move, walls you cannot walk through, cast who walk and turn, camera marks you fr
            the props stand as pieces
   shots    the previs shots become the location's camera marks, one a beat, named for the beat and framed on its subject
 
-python build_odyssey.py OD-B09-S09 [OD-B09-S06 ...]   writes production/Film-Butter-Odyssey.html and production/odyssey-*.json
+python build_odyssey.py [OD-B09-S09 ...] [--with-readymades]   (no ids: SCENES) writes production/Film-Butter-Odyssey.html and production/odyssey-*.json
 """
 from pathlib import Path
 import json, gzip, base64, hashlib, re, sys, math
@@ -98,6 +98,7 @@ def scene(sid):
         if is_fig and len(actors) < 12:
             kind, prod = production(sec, k, info['name'] if info else k, sid, scale)
             p = B_(a); heading = math.atan2(A[0, 2], A[2, 2])   # the figure's turn about y, as placed
+            solid.append([p + np.array([-12, 0, -12]) * scale, p + np.array([12, 76, 12]) * scale])   # an actor blocks a camera's sight as a minifigure-sized box
             actors.append(dict(kind=kind, x=float(p[0]), y=float(p[1]) + 8 * scale, z=float(p[2]), heading=float(heading))); kinds.append(prod)
         else: piece((info['name'].lower() if info else k), [(k, c, A, a)], 'shop', collide=True, bulk=True)
     # the shots: a camera mark a beat, framed on its subject from the front
@@ -143,13 +144,17 @@ def clear_mark(target, dist, rise, want, boxes, subj):
     the ring pulls in, then climbs, before it gives up and takes the wanted bearing high."""
     k_ = dist / 250
     eyes = [target + np.array(o) * k_ for o in ([0, 0, 0], [0, -25, 0], [0, 20, 0], [-30, -10, 0], [30, -10, 0], [0, -10, -30], [0, -10, 30])]   # head, chest, above, and the frame's sides
-    for d_, up in [(dist, rise), (dist * 0.75, rise), (dist, rise * 2.2), (dist * 0.6, rise * 3)]:
-        for k in sorted(range(-18, 18), key=abs):
+    rings = [(dist, rise), (dist * 0.75, rise), (dist, rise * 2.2), (dist * 0.6, rise * 3), (dist * 1.3, rise * 2.2)]
+    for arc, d_, up in [(9, d, u) for d, u in rings] + [(18, d, u) for d, u in rings]:   # the front half at every range first, then all round
+        for k in sorted(range(-arc, arc), key=abs):
             ang = want + k * math.pi / 18
             pos = target + np.array([math.sin(ang) * d_, up, math.cos(ang) * d_])
+            if any(all(lo[i] - 30 * k_ <= pos[i] <= hi[i] + 30 * k_ for i in range(3)) for lo, hi in boxes): continue   # not in anyone's hair
             if not any(blocked(pos, e, boxes, subj) for e in eyes): return pos
     return target + np.array([math.sin(want) * dist, rise * 3, math.cos(want) * dist])
 
+# the scenes the Odyssey player carries: the Cyclops's cave, then the sea
+SCENES = ['OD-B09-S09', 'OD-B09-S11', 'OD-B10-S01', 'OD-B10-S04', 'OD-B12-S03', 'OD-B12-S04', 'OD-B12-S07', 'OD-B05-S05', 'OD-B13-S01']
 HAND = {'R': [-23.688, -5.24, -9.884, 0.985, -0.12, 0.12, 0.17, 0.697, -0.697, 0, 0.707, 0.707], 'L': [23.688, -5.24, -9.884, 0.985, -0.12, -0.12, 0.002, 0.717, -0.697, 0.17, 0.686, 0.707]}
 def inv12(M):
     R_ = np.array(M[3:]).reshape(3, 3); t = np.array(M[:3]); return (-R_.T @ t).tolist() + R_.T.reshape(-1).tolist()
@@ -193,7 +198,8 @@ def pack_texts(files):
     return out
 
 if __name__ == '__main__':
-    ids = [a for a in sys.argv[1:]] or ['OD-B09-S09']
+    KEEP_BASE = '--with-readymades' in sys.argv
+    ids = [a for a in sys.argv[1:] if not a.startswith('--')] or SCENES
     entries, kinds = [], {}
     for sid in ids:
         e, ks = scene(sid); entries.append(e)
@@ -211,7 +217,7 @@ if __name__ == '__main__':
     more = [dict(id=pid, name=(desc(pid + '.dat') or pid).lstrip('~'), category='Odyssey') for pid in idx if pid not in known]
     s = s.replace('window.ButterMovieatorIndex=[', 'window.ButterMovieatorIndex=[' + ','.join(json.dumps(m) for m in more) + (',' if more else ''), 1)
     payload = s.split('window.ButterFilmData=', 1)[1].split(';window.ButterAssemblyPlans=', 1)[0]
-    films = json.loads(payload); films[:0] = entries
+    films = json.loads(payload); films = entries + (films if KEEP_BASE else [])   # the Odyssey's locations only, unless --with-readymades
     start = s.index('window.ButterFilmData='); end = s.index(';window.ButterAssemblyPlans=', start)
     s = s[:start] + 'window.ButterFilmData=' + json.dumps(films, separators=(',', ':')).replace('</', '<\\/') + s[end:]
     # the Odyssey cast in the character catalogue, their parts in the loader's cache
