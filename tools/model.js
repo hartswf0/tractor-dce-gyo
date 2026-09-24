@@ -152,7 +152,7 @@ function build(model, opts = {}) {
   if (model.swap) for (const p of P) { const to = model.swap.from[p.part]; if (to && (!model.swap.col || model.swap.col.includes(p.col))) p.part = to; }   /* a like-for-like swap after the tiler: same footprint and height, another face (a 1×4 brick laid as a 1×4 log) */
   if (model.mirror) for (const p of P) { p.x = model.mirror - p.x - p.w; p.rot = (4 - p.rot) & 3; }   /* a model written one way round and built the other (x mirrored across its width): each piece keeps its own shape, its facing turned */
   if (model.groundTiles) {   /* smooth ground: a plate at the ground in the named colours that nothing stands on becomes the tile of its size (packed earth, not studs) */
-    const TILE = { '3020': '87079', '3022': '3068b', '3023': '3069b', '3024': '3070b' }, J0 = joints(P), up = new Set(J0.map(j => j.a)), cols = model.groundTiles.cols;
+    const TILE = { '3020': '87079', '3022': '3068b', '3023': '3069b', '3024': '3070b', '3710': '2431', '3666': '6636', '3460': '4162' }, J0 = joints(P), up = new Set(J0.map(j => j.a)), cols = model.groundTiles.cols;
     for (const p of P) if (p.y === 0 && TILE[p.part] && !up.has(p.i) && (!cols || cols.includes(p.col))) p.part = TILE[p.part];
   }
   const J = joints(P), A = audit(P, J, { ground: model.ground }), S = steps(P, program, opts), inv = inventory(P);

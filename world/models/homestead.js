@@ -21,7 +21,11 @@ function program() {
   ops.push(G('path', 0, 0, [slab(21, 29, 6, 19, TRACK)]));
   // the floor inside and the porch boards
   ops.push(G('floor', 0, 0, [slab(13, 5, 22, 14, PLANK)]));
-  ops.push(G('porch', 0, 0, [slab(12, 20, 24, 9, BOARDS)]));
+  // the porch in boards: rows of long plates along its length, the joints staggered row to row, in two weathered tans (the ground tiling
+  // turns each into the tile of its size, so the porch reads as planks, not studs)
+  { const boards = []; for (let r = 0; r < 9; r++) { const z = 20 + r; let x = 12; const run = r % 3 === 0 ? [8, 8, 8] : r % 3 === 1 ? [4, 8, 8, 4] : [6, 8, 6, 4];
+      for (const n of run) { boards.push(part(n === 8 ? '3460' : n === 6 ? '3666' : '3710', rnd() > 0.72 ? 19 : BOARDS, x, z, 0)); x += n; } }
+    ops.push(G('porch', 0, 0, boards)); }
   // the walls: a hollow box of logs seven bricks high; the door frame in the south wall, a window either side, one in each end wall
   ops.push(G('walls', 0, 0, [box(12, 4, 24, 16, 7, LOG, { hollow: true })]));
   ops.push(G('door', 0, 0, [cut(22, 19, 4, 1, 0, 6), part('60596', DARK, 22, 19, 0)]));

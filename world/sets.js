@@ -106,10 +106,10 @@ function lay(kind, opts) {
     const courses = (() => { const c = document.createElement('canvas'); c.width = 64; c.height = 512; const g = c.getContext('2d'); let y = 0, k = 0;
       while (y < 512) { const hgt = 6 + Math.floor(hash(k, 91, seed) * 22), v = 0.8 + hash(k, 92, seed) * 0.2, warm = hash(k, 93, seed) * 0.06; g.fillStyle = `rgb(${Math.round(255 * v)},${Math.round(255 * (v - warm))},${Math.round(255 * (v - warm * 1.6))})`; g.fillRect(0, y, 64, hgt); g.fillStyle = 'rgba(40,10,0,0.18)'; g.fillRect(0, y + hgt - 1, 64, 1); y += hgt; k++; }
       const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(1, 3); return t; })();
-    const nM = 30, mesas = instL(box, nM, 'mesas', courses), tiers = instL(box, nM, 'mesa tiers', courses), talus = inst(flare, nM, 'talus'), caps = instL(box, nM * 2, 'caps', courses), reds = [0x8a3f1c, 0x9c4a22, 0x7a3518, 0xa5562c, 0xb0602e].map(lin), cap = lin(0xb77a52);
+    const nM = 30, mesas = instL(box, nM, 'mesas', courses), tiers = instL(box, nM, 'mesa tiers', courses), talus = inst(flare, nM, 'talus'), caps = instL(box, nM * 2, 'caps', courses), reds = [0xc08556, 0xb87a4c, 0xc98f5e, 0xb07448, 0xc4895a].map(lin), cap = lin(0xd6ad80);   /* sandstone the colour of the flat, a shade darker: the horizon stays light, so a figure in the door is a dark shape against it */
     for (let i = 0; i < nM; i++) {
       const a = (i / nM) * 6.283 + (hash(i, 21, seed) - 0.5) * 0.14, d = 190 + hash(i, 22, seed) * 370, x = cx + Math.cos(a) * d, z = cz + Math.sin(a) * d, y = gh(x, z);
-      const w = (40 + hash(i, 23, seed) * 150) * M, dd = (20 + hash(i, 24, seed) * 40) * M, h = (22 + hash(i, 25, seed) * 34) * M, yaw = a + Math.PI / 2 + (hash(i, 26, seed) - 0.5) * 0.5, spire = hash(i, 27, seed) > 0.82;
+      const w = (40 + hash(i, 23, seed) * 150) * M, dd = (20 + hash(i, 24, seed) * 40) * M, h = (12 + hash(i, 25, seed) * 20) * M, yaw = a + Math.PI / 2 + (hash(i, 26, seed) - 0.5) * 0.5, spire = hash(i, 27, seed) > 0.82;
       const sw = spire ? w * 0.12 : w, sd = spire ? dd * 0.35 : dd, hh = spire ? h * 1.8 : h, col = reds[i % 5];
       put(talus, x * M, y + hh * 0.2, z * M, sw * 1.05, hh * 0.4, sd * 1.05, yaw, 0, reds[(i + 2) % 5]);
       put(mesas, x * M, y + hh * 0.36, z * M, sw * 0.72, hh * 0.72, sd * 0.72, yaw, 0, col);
