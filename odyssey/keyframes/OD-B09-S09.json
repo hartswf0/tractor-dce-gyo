@@ -6,14 +6,20 @@
  "note": "Hand-staged from the text. Film Butter units: the cave floor at y 9, the back wall at z -240, the fire at (-57, -28), the great stone across the mouth at z 93-154. The baked Polyphemus and the Cyclopes outside are hidden and restaged as props: the giant asleep on his back, then rising, then at the stone.",
  "look": {
   "sky": [
-   "#05070c",
-   "#140d08"
+   "#070a12",
+   "#1a1712"
   ],
   "fog": [
-   450,
-   1300
+   520,
+   1500
   ],
-  "dim": 0.18,
+  "dim": 0.22,
+  "fill": {
+   "sky": "#5b6f99",
+   "ground": "#1f1a15",
+   "intensity": 0.32
+  },
+  "exposure": 0.92,
   "lights": [
    {
     "at": [
@@ -21,20 +27,11 @@
      70,
      -28
     ],
-    "color": "#ff7a1e",
-    "intensity": 3.4,
-    "distance": 520,
-    "decay": 1.2
-   },
-   {
-    "at": [
-     -57,
-     30,
-     -28
-    ],
-    "color": "#ffb060",
-    "intensity": 1.2,
-    "distance": 260
+    "color": "#ff8a3a",
+    "intensity": 2.4,
+    "distance": 560,
+    "decay": 1.2,
+    "shadow": true
    }
   ]
  },
@@ -410,10 +407,11 @@
        70,
        -28
       ],
-      "color": "#ff7a1e",
-      "intensity": 3.4,
+      "color": "#ff8a3a",
+      "intensity": 2.2,
       "distance": 520,
-      "decay": 1.2
+      "decay": 1.2,
+      "shadow": true
      },
      {
       "at": "@stake.tip",
@@ -592,7 +590,7 @@
      "id": "four-stake-bearers-1",
      "at": "@stake.g3",
      "off": [
-      -21,
+      -33,
       0,
       0
      ],
@@ -617,7 +615,7 @@
      "id": "four-stake-bearers-2",
      "at": "@stake.g3",
      "off": [
-      21,
+      33,
       0,
       0
      ],
@@ -640,9 +638,9 @@
     },
     {
      "id": "four-stake-bearers-3",
-     "at": "@stake.g4",
+     "at": "@stake.g5",
      "off": [
-      -21,
+      -33,
       0,
       0
      ],
@@ -652,12 +650,12 @@
      "props": false,
      "pose": {
       "armRP": [
-       -0.8,
+       -0.5,
        0,
        0
       ],
       "armLP": [
-       -0.8,
+       -0.5,
        0,
        0
       ]
@@ -665,9 +663,9 @@
     },
     {
      "id": "four-stake-bearers-4",
-     "at": "@stake.g4",
+     "at": "@stake.g5",
      "off": [
-      21,
+      33,
       0,
       0
      ],
@@ -677,12 +675,12 @@
      "props": false,
      "pose": {
       "armRP": [
-       -0.8,
+       -0.5,
        0,
        0
       ],
       "armLP": [
-       -0.8,
+       -0.5,
        0,
        0
       ]
@@ -697,10 +695,11 @@
        70,
        -28
       ],
-      "color": "#ff7a1e",
-      "intensity": 3.0,
+      "color": "#ff8a3a",
+      "intensity": 2.2,
       "distance": 520,
-      "decay": 1.2
+      "decay": 1.2,
+      "shadow": true
      },
      {
       "at": "@polyphemus.eye",
@@ -1023,10 +1022,11 @@
        70,
        -28
       ],
-      "color": "#ff6a14",
-      "intensity": 3.6,
+      "color": "#ff8a3a",
+      "intensity": 2.2,
       "distance": 560,
-      "decay": 1.2
+      "decay": 1.2,
+      "shadow": true
      },
      {
       "at": "@polyphemus.eye",
@@ -1383,7 +1383,7 @@
      380,
      1400
     ],
-    "dim": 0.5,
+    "dim": 0.35,
     "lights": [
      {
       "at": [
@@ -1404,9 +1404,16 @@
       "color": "#ffc9a0",
       "intensity": 2.8,
       "distance": 1400,
-      "decay": 1.0
+      "decay": 1.0,
+      "shadow": true
      }
-    ]
+    ],
+    "fill": {
+     "sky": "#b9c6de",
+     "ground": "#3a2d24",
+     "intensity": 0.45
+    },
+    "exposure": 0.78
    },
    "camera": {
     "type": "wide",
