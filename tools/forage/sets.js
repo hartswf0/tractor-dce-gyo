@@ -212,4 +212,4 @@ const LOCATION_SET = {
   'location.alcinouss-palace': 'phaeacia', 'location.phaeacian-feast-hall': 'phaeacia', 'location.phaeacian-royal-chamber': 'phaeacia',
   'location.ogygia-cavern-and-grove': 'grove', 'location.nymph-cave': 'grove',
 };
-module.exports = { FURN, SETS, LOCATION_SET, room, walls, floor };
+module.exports = { FURN, SETS, LOCATION_SET, KIT, REAL, room, walls, floor };
