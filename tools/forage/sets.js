@@ -89,9 +89,15 @@ const DECK = -42;   // the galley's deck, its underside on the plate: the hull 5
 const KIT = {
   /* the black ship: 22 x 8 hull (black over its red keel: Homer's red-cheeked ships), a boat mast and its topmast, a formed white
      sail turned across the beam on a yard of two 1 x 10 plates. The bow is the hull's +z end. */
-  galley: (sail = C.white) => { const SAIL = [0, 0, 0, 0, -1, 0, 1, 0, 0, 0, 0, 1];   // a quarter turn about z: the tall sheet laid broad
-    return REAL('black ship', [R('71958c01', C.black, 0, 0), { id: '2537', col: C.rbrown, x: 0, z: 1, y: -8 - 58 + 24 - 342 }, { id: '4289', col: C.rbrown, x: 0, z: 1, y: -8 - 58 + 24 - 342 - 8 },
-      { id: '61898ec01', col: sail, x: 0, z: 2, y: -250, m: SAIL }, { id: '4477', col: C.rbrown, x: -5, z: 1.5, y: -370 }, { id: '4477', col: C.rbrown, x: 5, z: 1.5, y: -370 }]); },
+  /* furled: the wind has died and the sail is bundled under the yard (the crew row); otherwise the square sail is set */
+  galley: (o = {}) => REAL('black ship', [R('71958c01', C.black, 0, 0),
+    { id: '2537', col: C.rbrown, x: 0, z: 1, y: -8 - 58 + 24 - 342 }, { id: '4289', col: C.rbrown, x: 0, z: 1, y: -8 - 58 + 24 - 342 - 8 },
+    { id: '3666', col: C.rbrown, x: -3, z: 1.5, y: -338 }, { id: '3666', col: C.rbrown, x: 3, z: 1.5, y: -338 },
+    /* the oars: four a side (the minifigure oar), their looms across the gunwale, blades dipped in the sea at 55 degrees */
+    ...[-7, -4, 4, 7].flatMap(z => [1, -1].map(sd => { const a = 55 * Math.PI / 180, c = Math.cos(a), sn = Math.sin(a) * sd;
+      return { id: '2542', col: C.rbrown, x: sd * (80 - 45 * Math.sin(a)) / 20, z, y: -8 - 58 + 24 - 22 - 45 * c, m: [0, 0, 0, c, sn, 0, -sn, c, 0, 0, 0, 1] }; })),
+    ...(o.furled ? [-5, -4, -3, -2, 2, 3, 4, 5].map(x => ({ id: '3062b', col: o.sail || C.white, x, z: 1.5, y: -330 }))   /* the bundle, pressed up under the yard's tubes */
+      : [{ id: 'u767c02', col: o.sail || C.white, x: 0, z: 2, y: -298 }])]),   /* the square sail, the pirate sets' 12 x 10 cloth, its head on the yard */
   /* a crag of rock panels: the corner panel, the rectangular panel beside it, the triangular panel stacked on, a boulder */
   crag: (col = C.dbg, tall = true) => REAL('crag', [R('23996', col, -3, 0), R('6082', col, 4, 1), ...(tall ? [R('6083', col, 4, 1, -8 - 144)] : []), R('2417', C.green, -1, 2, -8 - 144), R('2417', C.dgreen, 6, 0, -8 - 144)]),
   rocks: (col = C.dbg) => REAL('rocks', [R('53934p01c01', col, 0, 0), R('42291', col, 4, 2), R('42284', col, 4, 2, -8 - 32)]),
@@ -178,11 +184,11 @@ const SETS = {
   /* the sea sets, in real kits: the blue baseplate sea, the galley bow-on to the camera (its crew two abreast on the deck, the mast
      amidships), the places it passes built of rock panels, baseplates and plants. Marks with a y stand on the deck or a crag. */
   sirens: () => room("the sirens' sea", 32, 48, seaFloor('beach'), [
-    [KIT.galley(), 0, 8], [KIT.crag(C.dtan, false), -9, -18], [KIT.rocks(C.dtan), 10, -19], [KIT.cypress(), -13, -21], [KIT.olive(), 13, -12],
+    [KIT.galley({ furled: true }), 0, 8], [KIT.crag(C.dtan, false), -9, -18], [KIT.rocks(C.dtan), 10, -19], [KIT.cypress(), -13, -21], [KIT.olive(), 13, -12],
     [KIT.flowers(6), -3, -14], [KIT.flowers(3), 6, -20], [KIT.bones(), 2, -11], [KIT.bones(), -7, -12], [KIT.splash(), 11, 10],
   ], { odysseus: M(0, 7, 0, 'Odysseus bound to the mast', null, DECK), crew: M(0, 4, 0, 'the crew at the oars, wax in their ears', 'zz', DECK), sirens: M(1, -16, 0, 'the Sirens in their meadow of bones', 'x'), centre: M(-10, 6, 0) }),
   strait: () => room('between scylla and charybdis', 32, 48, seaFloor(), [
-    [KIT.galley(), 2, 9], [KIT.crag(C.dbg), -9, -16], [KIT.rocks(), -12, -8], [KIT.crag(C.dbg, false), 10, -19], [KIT.olive(), 13, -16], [KIT.splash(), 9, -6], [KIT.splash(), -6, 2],
+    [KIT.galley({ furled: true }), 2, 9], [KIT.crag(C.dbg), -9, -16], [KIT.rocks(), -12, -8], [KIT.crag(C.dbg, false), 10, -19], [KIT.olive(), 13, -16], [KIT.splash(), 9, -6], [KIT.splash(), -6, 2],
   ], { odysseus: M(2, 16, 0, 'Odysseus armed at the prow', null, DECK), crew: M(2, 5, 0, 'the sailors rowing hard', 'zz', DECK), scylla: M(-7, -16, 0, 'Scylla on her crag', null, 'top'), charybdis: M(9, -8, 0, 'Charybdis sucks down the sea'), centre: M(-10, 12, 0) }),
   storm: () => room('the storm at sea', 32, 48, seaFloor(), [
     [KIT.raft(), 0, 4], [KIT.splash(), -6, -2], [KIT.splash(), 7, 1], [KIT.splash(), -3, 10], [KIT.splash(), 9, -12], [KIT.rocks(), -12, -18], [KIT.boulder(), 12, -20],
