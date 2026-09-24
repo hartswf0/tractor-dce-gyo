@@ -45,6 +45,17 @@ props.ember = { parts: [row('3062b', 57, L.T(0, 0, 0)), row('4589', 46, L.T(6, -
 props.ram = { parts: [row('95341', 15, L.I12)], anchors: { back: [0, -30, 0] } };
 props.boulder = { parts: [row('53934p01c01', 71, L.I12), row('53934p01c01', 71, L.T(50, 0, 20)), row('42291', 71, L.T(20, -72, 10)), row('42284', 71, L.T(20, -104, 10))], anchors: { top: [20, -110, 10] } };
 props.perch = { parts: [row('53934p01c01', 72, L.I12)], anchors: { top: [0, -4, 0] } };
+/* Circe's hall (Homer X): the men as swine, the beasts she tamed, the acorns she threw them */
+const RY = a => [0, 0, 0, Math.cos(a), 0, Math.sin(a), 0, 1, 0, -Math.sin(a), 0, Math.cos(a)];
+props.pig = { parts: [row('87621p01', 29, L.I12)], anchors: { back: [0, -20, 0], snout: [0, -12, -30] } };
+props.pigMask = { parts: [row('17351p01', 29, L.I12)], anchors: {} };
+props.wolf = { parts: [row('48812', 72, L.I12)], anchors: { back: [0, -30, 0] } };
+props.wolfGrey = { parts: [row('48812', 71, L.I12)], anchors: { back: [0, -30, 0] } };
+props.lion = { parts: [row('14734', 191, L.I12)], anchors: { back: [0, -24, 0] } };
+props.acorns = { parts: [[0, 0, 0], [9, -14, 5], [-8, -26, -3], [4, -40, 8], [-5, -52, 2], [12, -6, -9]].map(([x, y, z], i) => row('98138p86', 19, L.mul(L.T(x, y, z), L.mul(RX(0.5 + i * 0.9), RY(i * 1.3))))), anchors: { base: [0, 0, 0] } };
+props.acornPile = { parts: [[0, 0], [10, 3], [-9, 5], [4, -8], [-4, 10], [14, -6], [-13, -4]].map(([x, z], i) => row('98138p86', 19, L.mul(L.T(x, 0, z), RY(i)))), anchors: { centre: [0, 0, 0] } };
+props.basket = { parts: [row('4523', 70, L.I12), row('98138p86', 19, L.T(-3, -2, 0)), row('98138p86', 19, L.T(4, -3, 2))], anchors: { rim: [0, -4, 0] } };
+props.cup = { parts: [row('2343', 297, L.I12)], anchors: { rim: [0, -12, 0] } };
 const out = path.join(L.ROOT, 'odyssey/keyframes/props.json');
 fs.writeFileSync(out, JSON.stringify(props));
 console.log('props:', Object.entries(props).map(([k, p]) => `${k} (${p.parts.length} parts)`).join(', '), '->', path.relative(L.ROOT, out));
