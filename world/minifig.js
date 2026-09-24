@@ -92,7 +92,7 @@ const DEFS = {
   ethan: { name: 'Ethan', legs: 28, hips: 308, torso: 272, arms: 272, hands: 78, head: 78, headPart: '3626bp81', hat: ['3629', 28], weapon: null },   /* printed LEGO heads for The Searchers: stubble and a crooked mouth */
   martha: { name: 'Martha', legs: 272, hips: 272, torso: 15, arms: 15, hands: 78, head: 78, headPart: '3626bp09', hat: ['3625', 70], weapon: null, woman: true },
   aaron: { name: 'Aaron', legs: 308, hips: 308, torso: 71, arms: 71, hands: 78, head: 78, headPart: '3626bp3q', hat: ['3901', 70], weapon: null },
-  mose: { name: 'Mose Harper', legs: 28, hips: 28, torso: 70, arms: 70, hands: 78, head: 78, headPart: '3626bp8m', hat: ['3629', 70], weapon: null },   /* the old man in the rocking chair: white beard and sideburns under a brown hat */
+  mose: { name: 'Mose Harper', legs: 28, hips: 28, torso: 19, arms: 19, hands: 78, head: 78, headPart: '3626bp8m', hat: ['3629', 70], weapon: null },   /* the old man in the rocking chair: white beard and sideburns under a brown hat, the pale duster the film gives him, light against the dark rocker and the log wall */
   lucy: { name: 'Lucy', legs: 272, hips: 272, torso: 26, arms: 26, hands: 78, head: 78, headPart: '3626bp08', hat: ['3625', 70], weapon: null, woman: true },
   martin: { name: 'Martin', legs: 70, hips: 70, torso: 19, arms: 19, hands: 78, head: 78, headPart: '3626bp0d', hat: ['3629', 0], weapon: null },   /* the young man who rode with him: dark hair, a buckskin shirt */
   debbie: { name: 'Debbie', legs: 308, hips: 308, torso: 28, arms: 28, hands: 78, head: 78, headPart: '3626bp8a', torsoPart: '973pc11', hat: ['3625', 0], weapon: null, woman: true },   /* the Comanche dress she comes home in: buckskin with fringe and a necklace, dark leggings */

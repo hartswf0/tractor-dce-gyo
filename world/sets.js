@@ -101,32 +101,36 @@ function lay(kind, opts) {
         m.onBeforeCompile = sh => { sh.uniforms.holes = { value: holes }; sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vWorldP;').replace('#include <begin_vertex>', '#include <begin_vertex>\nvWorldP = (modelMatrix * vec4(position, 1.0)).xyz;');
           sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec3 vWorldP;\nuniform vec4 holes[6];').replace('void main() {', 'void main() {\n  for (int i = 0; i < 6; i++) { vec4 hb = holes[i]; if (vWorldP.x > hb.x && vWorldP.x < hb.z && vWorldP.z > hb.y && vWorldP.z < hb.w) discard; }'); };
         return m; })()); plane.rotation.x = -Math.PI / 2; plane.position.set(cx * M, gh(cx, cz) + 0.2, cz * M); plane.name = 'set:baseplate'; plane.renderOrder = 1; S.group.add(plane); }
-    // the horizon: mesas in brick courses on a talus, from 170 to 420 m, long across the line of sight, a rare spire
-    const courses = (() => { const c = document.createElement('canvas'); c.width = 128; c.height = 256; const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, 128, 256);
-      for (let y = 0; y < 256; y += 16) { const band = 0.86 + 0.14 * Math.sin(y * 0.09); g.fillStyle = `rgba(${Math.round(255 * band)},${Math.round(250 * band)},${Math.round(245 * band)},1)`; g.fillRect(0, y, 128, 15); g.fillStyle = 'rgba(0,0,0,0.28)'; g.fillRect(0, y + 15, 128, 1); for (let x = (y / 16) % 2 ? 0 : 16; x < 128; x += 32) g.fillRect(x, y, 1, 15); }
-      const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(10, 6); return t; })();
-    const nM = 26, mesas = instL(box, nM, 'mesas', courses), talus = inst(flare, nM, 'talus'), caps = instL(box, nM, 'caps', courses), reds = [0x8a3f1c, 0x9c4a22, 0x7a3518, 0xa5562c].map(lin), cap = lin(0xb77a52);
+    // the horizon: mesas and buttes as the painters stand them, from 190 to 560 m: a talus, a sheer body, a narrower upper tier set off its
+    // centre, a cap rock; the faces in horizontal sandstone strata (no vertical joints: those read as windows), the haze laying each range back
+    const courses = (() => { const c = document.createElement('canvas'); c.width = 64; c.height = 512; const g = c.getContext('2d'); let y = 0, k = 0;
+      while (y < 512) { const hgt = 6 + Math.floor(hash(k, 91, seed) * 22), v = 0.8 + hash(k, 92, seed) * 0.2, warm = hash(k, 93, seed) * 0.06; g.fillStyle = `rgb(${Math.round(255 * v)},${Math.round(255 * (v - warm))},${Math.round(255 * (v - warm * 1.6))})`; g.fillRect(0, y, 64, hgt); g.fillStyle = 'rgba(40,10,0,0.18)'; g.fillRect(0, y + hgt - 1, 64, 1); y += hgt; k++; }
+      const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(1, 3); return t; })();
+    const nM = 30, mesas = instL(box, nM, 'mesas', courses), tiers = instL(box, nM, 'mesa tiers', courses), talus = inst(flare, nM, 'talus'), caps = instL(box, nM * 2, 'caps', courses), reds = [0x8a3f1c, 0x9c4a22, 0x7a3518, 0xa5562c, 0xb0602e].map(lin), cap = lin(0xb77a52);
     for (let i = 0; i < nM; i++) {
-      const a = (i / nM) * 6.283 + (hash(i, 21, seed) - 0.5) * 0.12, d = 170 + hash(i, 22, seed) * 250, x = cx + Math.cos(a) * d, z = cz + Math.sin(a) * d, y = gh(x, z);
-      const w = (50 + hash(i, 23, seed) * 130) * M, dd = (18 + hash(i, 24, seed) * 30) * M, h = (9 + hash(i, 25, seed) * 18) * M, yaw = a + Math.PI / 2 + (hash(i, 26, seed) - 0.5) * 0.5, spire = hash(i, 27, seed) > 0.9;
-      const sw = spire ? w * 0.12 : w, sd = spire ? dd * 0.35 : dd, hh = spire ? h * 2.2 : h;
-      put(talus, x * M, y + hh * 0.16, z * M, sw * 0.95, hh * 0.32, sd * 0.95, yaw, 0, reds[(i + 1) % 4]);
-      put(mesas, x * M, y + hh / 2, z * M, sw * 0.7, hh, sd * 0.7, yaw, 0, reds[i % 4]);
-      put(caps, x * M, y + hh + 0.5 * M, z * M, sw * 0.72, 1.0 * M, sd * 0.72, yaw, 0, cap);
+      const a = (i / nM) * 6.283 + (hash(i, 21, seed) - 0.5) * 0.14, d = 190 + hash(i, 22, seed) * 370, x = cx + Math.cos(a) * d, z = cz + Math.sin(a) * d, y = gh(x, z);
+      const w = (40 + hash(i, 23, seed) * 150) * M, dd = (20 + hash(i, 24, seed) * 40) * M, h = (22 + hash(i, 25, seed) * 34) * M, yaw = a + Math.PI / 2 + (hash(i, 26, seed) - 0.5) * 0.5, spire = hash(i, 27, seed) > 0.82;
+      const sw = spire ? w * 0.12 : w, sd = spire ? dd * 0.35 : dd, hh = spire ? h * 1.8 : h, col = reds[i % 5];
+      put(talus, x * M, y + hh * 0.2, z * M, sw * 1.05, hh * 0.4, sd * 1.05, yaw, 0, reds[(i + 2) % 5]);
+      put(mesas, x * M, y + hh * 0.36, z * M, sw * 0.72, hh * 0.72, sd * 0.72, yaw, 0, col);
+      const off = (hash(i, 28, seed) - 0.5) * sw * 0.3, tw = sw * (0.35 + hash(i, 29, seed) * 0.3), th = hh * (spire ? 0.5 : 0.28 + hash(i, 30, seed) * 0.3), ox = Math.cos(yaw) * off, oz = -Math.sin(yaw) * off;
+      put(tiers, x * M + ox, y + hh * 0.72 + th / 2, z * M + oz, tw, th, sd * 0.55, yaw, 0, col);
+      put(caps, x * M, y + hh * 0.72 + 0.4 * M, z * M, sw * 0.74, 0.8 * M, sd * 0.74, yaw, 0, cap);
+      put(caps, x * M + ox, y + hh * 0.72 + th + 0.4 * M, z * M + oz, tw * 1.03, 0.8 * M, sd * 0.57, yaw, 0, cap);
     }
-    // outcrops: clusters of stacked studded bricks, stepped in, in the rock reds and greys
-    const b24 = brickGeom(2, 4, 3), b22 = brickGeom(2, 2, 3), s12 = brickGeom(1, 2, 3), rockCols = [0x7c3c1e, 0x8a4a28, 0x6b3a22, 0x9c5a34, 0x6e6a62, 0x585650].map(lin);
+    // outcrops: clusters of stacked studded bricks, stepped in, in the rock's reds and ochres (no greys: the Western painters' rock is warm in the light and violet in the shade, never grey)
+    const b24 = brickGeom(2, 4, 3), b22 = brickGeom(2, 2, 3), s12 = brickGeom(1, 2, 3), rockCols = [0x7c3c1e, 0x8a4a28, 0x6b3a22, 0x9c5a34, 0xa4552a, 0x5e2e18].map(lin);
     const nR = Math.round(rm / 3), ob24 = instL(b24, nR * 6, 'outcrop 2x4'), ob22 = instL(b22, nR * 6, 'outcrop 2x2'), ob12 = instL(s12, nR * 4, 'outcrop 1x2');
     for (let i = 0; i < nR; i++) { const a = hash(i, 1, seed) * 6.283, d = 14 + Math.sqrt(hash(i, 2, seed)) * rm, x = cx + Math.cos(a) * d, z = cz + Math.sin(a) * d; if (corridor && distToPath(x, z, corridor) < 10) continue; if (keep(x, z, 3)) continue;
       const sc = 1 + hash(i, 3, seed) * 2.2, layers = 1 + Math.floor(hash(i, 4, seed) * 3), yaw = hash(i, 5, seed) * 6.283, col = rockCols[Math.floor(hash(i, 6, seed) * rockCols.length)], y0 = gh(x, z);
       for (let L = 0; L < layers; L++) { const k = 3 - L; for (let n = 0; n < k; n++) { const ox = (hash(i, 10 + L * 5 + n, seed) - 0.5) * (k * 30) * sc, oz = (hash(i, 40 + L * 5 + n, seed) - 0.5) * (k * 30) * sc, im = n % 3 === 0 ? ob24 : n % 3 === 1 ? ob22 : ob12;
         put(im, x * M + ox, y0 + L * 24 * sc, z * M + oz, sc, sc, sc, yaw + n * 1.57, 0, col); } } }
     // sage: stacked round plates, a darker green below and a sage green above
-    const rp4 = brickGeom(2, 2, 1, true, true), rp2 = brickGeom(1, 1, 1, true, true), nS = Math.round(rm * 1.6), sageLo = instL(rp4, nS * 2, 'sage'), sageHi = instL(rp2, nS * 2, 'sage top'), sageC = lin(0x5f6f48), sageC2 = lin(0x7d8a62), sageC3 = lin(0x8a9870);
+    const rp4 = brickGeom(2, 2, 1, true, true), rp2 = brickGeom(1, 1, 1, true, true), nS = Math.round(rm * 3.2), sageLo = instL(rp4, nS * 2, 'sage'), sageHi = instL(rp2, nS * 2, 'sage top'), sageC = lin(0x5f6f48), sageC2 = lin(0x7d8a62), sageC3 = lin(0x8a9870);
     for (let i = 0; i < nS; i++) { const a = hash(i, 11, seed) * 6.283, d = 10 + Math.sqrt(hash(i, 12, seed)) * rm, x = cx + Math.cos(a) * d, z = cz + Math.sin(a) * d; if (corridor && distToPath(x, z, corridor) < 4) continue; if (keep(x, z, 1)) continue;
       const sc = 1.2 + hash(i, 13, seed) * 1.6, y0 = gh(x, z), yaw = hash(i, 14, seed) * 6.28; put(sageLo, x * M, y0, z * M, sc * 1.3, sc, sc * 1.3, yaw, 0, sageC); put(sageLo, x * M + 6 * sc, y0 + 8 * sc, z * M - 4 * sc, sc, sc, sc, yaw, 0, sageC2); put(sageHi, x * M - 3 * sc, y0 + 16 * sc, z * M + 2 * sc, sc * 1.4, sc, sc * 1.4, yaw, 0, sageC3); put(sageHi, x * M + 10 * sc, y0 + 8 * sc, z * M + 9 * sc, sc, sc, sc, yaw, 0, sageC); }
     // grit: loose LEGO in the earth's colours, thickest near the house and the riders' line, thinning out to 90 m
-    const g11 = brickGeom(1, 1, 1, true, true), p12 = brickGeom(1, 2, 1), t11 = brickGeom(1, 1, 1, false), p22 = brickGeom(2, 2, 1), gritCols = [0xa98452, 0x8a6d3e, 0x7c3c1e, 0x9c5a34, 0xb77a52, 0x6e6a62, 0xc9a97a, 0x5a3a24].map(lin);
+    const g11 = brickGeom(1, 1, 1, true, true), p12 = brickGeom(1, 2, 1), t11 = brickGeom(1, 1, 1, false), p22 = brickGeom(2, 2, 1), gritCols = [0xb0784a, 0x9c5a34, 0x8a4a2a, 0xc08a5a, 0x7a3f22, 0xa86a3e].map(lin);   /* the earth's own reds and ochres, close in value to the ground: texture, not litter */
     const nG = 1200, gi = [instL(g11, nG, 'grit round', null, false), instL(p12, nG, 'grit 1x2', null, false), instL(t11, nG, 'grit tile', null, false), instL(p22, nG, 'grit 2x2', null, false)];   // grit casts no shadow: it lies flat, and a few thousand shadow casters slow every frame
     for (let i = 0; i < nG * 4; i++) { const a = hash(i, 61, seed) * 6.283, d = 6 + Math.pow(hash(i, 62, seed), 1.3) * Math.min(90, rm), x = cx + Math.cos(a) * d, z = cz + Math.sin(a) * d; if (keep(x, z, 0.5)) continue;
       put(gi[i % 4], x * M, gh(x, z), z * M, 1, 1, 1, hash(i, 63, seed) * 6.283, 0, gritCols[Math.floor(hash(i, 64, seed) * gritCols.length)]); }

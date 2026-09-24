@@ -333,13 +333,14 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
       cam.position.copy(pos); cam.up.set(0, 1, 0); cam.lookAt(tgt); if (Math.abs(cam.fov - fov) > 1e-3) { cam.fov = fov; cam.updateProjectionMatrix(); }
       if (s.roll) cam.rotateZ(s.roll * Math.PI / 180);   // a Dutch angle: the deck's list, a broaching hull
       if (s.handheld) { const k = s.handheld, tt = t * 1.7; cam.rotateX(k * 0.012 * (Math.sin(tt * 3.1) + 0.5 * Math.sin(tt * 7.3))); cam.rotateY(k * 0.010 * (Math.sin(tt * 2.3 + 1) + 0.5 * Math.sin(tt * 5.9))); cam.rotateZ(k * 0.006 * Math.sin(tt * 1.9 + 2)); }   // handheld: a slow sway with a faster tremor on it
-      F.sunTo(tgt);
+      F.sunTo(tgt); if (F.psky) F.psky.follow(cam);
     }
     function poseFree(cam) {
       const f = F.free; cam.position.copy(f.pos); V1.set(-Math.sin(f.yaw) * Math.cos(f.pitch), Math.sin(f.pitch), -Math.cos(f.yaw) * Math.cos(f.pitch)).add(f.pos);
       cam.up.set(0, 1, 0); cam.lookAt(V1); if (Math.abs(cam.fov - f.fov) > 1e-3) { cam.fov = f.fov; cam.updateProjectionMatrix(); }
     }
     F.camera = (cam, dt) => {
+      if (F.psky) F.psky.follow(cam);
       if (F.play.on) { const s = F.shots[F.play.i]; if (s) { poseAt(cam, s, F.play.t); return; } }
       if (F.mode === 'shot') { const s = F.shots[F.sel]; if (s) { poseAt(cam, s, F.viewT); return; } }
       poseFree(cam);
@@ -399,7 +400,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
         if (set.as && W.setCharacter && W.character !== set.as) { F.ground(); W.setCharacter(set.as); changed = true; }
         if (set.world && W.setWorld && W.world !== set.world) { F.ground(); W.setWorld(set.world); changed = true; }
       }
-      if (W.sky) { W.sky.mood = s.look ? { hemi: s.look.hemi, sun: s.look.sun, elev: s.look.elev, azim: s.look.azim } : null; if (W.renderer) { W.renderer.toneMappingExposure = s.look && s.look.exposure != null ? s.look.exposure : 1; W.renderer.toneMapping = s.look && s.look.tone === 'aces' ? THREE.ACESFilmicToneMapping : THREE.LinearToneMapping; } if (!(s.set && (s.set.time || s.set.weather)) && W.skyApply) W.skyApply(); }   /* look: {hemi, sun, exposure}: a shot's own light over the world's */
+      if (W.sky) { W.sky.mood = s.look ? { ...s.look } : null; { const ps = F.scene && F.scene.paintSky; if (ps && window.PaintSky && s.title == null) { if (!F.psky) { F.psky = PaintSky.attach(W.scene, M); if (W.sky && W.sky.group) W.sky.group.visible = false; } const L = s.look || {}; F.psky.paint({ azim: L.azim != null ? L.azim : 180, elev: L.elev != null ? L.elev : 30, warmth: L.warmth != null ? L.warmth : (ps.warmth != null ? ps.warmth : 0.6), seed: ps.seed || 7, cover: ps.cover, zenith: L.zenith, horizon: L.horizon }); } }   /* a painted sky: repainted for each shot's sun, so the clouds are lit from where the light comes */ if (W.renderer) { W.renderer.toneMappingExposure = s.look && s.look.exposure != null ? s.look.exposure : 1; W.renderer.toneMapping = s.look && s.look.tone === 'aces' ? THREE.ACESFilmicToneMapping : THREE.LinearToneMapping; } if (!(s.set && (s.set.time || s.set.weather)) && W.skyApply) W.skyApply(); }   /* look: {hemi, sun, exposure}: a shot's own light over the world's */
       if (s.set) { if (s.set.time && W.setSky) W.setSky(s.set.time); if (s.set.weather && W.setWeather) W.setWeather(s.set.weather);
         if (s.set.kind && W.filmSet && !(W.sets && W.sets.kind === s.set.kind)) W.filmSet(s.set.kind, { r: s.set.r || 90, seed: s.set.seed || 1, centre: s.set.centre && F.sceneSpawn ? { x: F.sceneSpawn.x + s.set.centre[0] * M, z: F.sceneSpawn.z + s.set.centre[1] * M } : null, corridor: s.set.corridor && F.sceneSpawn ? s.set.corridor.map(p => [F.sceneSpawn.x / M + p[0], F.sceneSpawn.z / M + p[1]]) : null }); }   /* a shot may stand on its own ground (the trailer's dunes, shore, sea, crag, ash, cave and chamber, one scene): laid after the light, so its fog and sky are the ones seen */
       if (s.act && s.act.leave) F.ground();
@@ -610,7 +611,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
       if (sc && sc.set && keepSet) F.kept = { groundWas: sc.groundWas }; for (const a of F.actors.values()) { if (a.it) W.props.remove(a.it.id, true); if (a.npcs && W.crowd) for (const n of a.npcs) W.crowd.remove(n); if (a.perf && a.perf.face && window.Face) Face.detach(a.perf.face); if (a.rig) dropRig(a.rig); if (a.riderRig) dropRig(a.riderRig); }
       for (const L of F.loose) dropRig(L.rig); F.loose = []; for (const L of F.lights2) W.scene.remove(L.L); F.lights2 = []; F.caption = null; showCaption(null); F.deflect = null; F.flip = 0; F.proneUntil = 0;
       for (const b of F.builds.values()) for (const id of b.ids) W.build.take(id, true);
-      if (F.rehearse.part) F.givePart(); F.rehearse.on = false; if (sc) sc.donorsDropped = true; for (const d of F.donors.values()) { W.scene.remove(d.group); if (d.solid && W.solids) W.solids = W.solids.filter(q => q !== d.solid); if (d.signs && window.Signs) Signs.drop(d.signs); } F.donors.clear(); F.marks.clear();
+      if (F.rehearse.part) F.givePart(); F.rehearse.on = false; if (sc) sc.donorsDropped = true; for (const d of F.donors.values()) { W.scene.remove(d.group); if (d.solid && W.solids) W.solids = W.solids.filter(q => q !== d.solid); if (d.signs && window.Signs) Signs.drop(d.signs); } F.donors.clear(); F.marks.clear(); if (F.psky) { F.psky.drop(); F.psky = null; if (W.sky && W.sky.group) W.sky.group.visible = true; }
       if (W.props) for (const it of [...W.props.items.values()]) if (it.src && it.src.film) W.props.remove(it.id, true);   // whatever a film laid and lost track of
       if (W.crowd) for (const n of W.crowd.npcs.slice()) if (n.film) W.crowd.remove(n);
       for (const m of F.meshes) { W.scene.remove(m); if (m.geometry) m.geometry.dispose(); } F.meshes = []; F.actors.clear(); F.builds.clear(); F.cable = null; F.hang = null; F.prone = false; F.rout = null; F.strikes = null; F.pending = [];
@@ -915,6 +916,25 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
     /** The scene's grade (a scene's GRADE, a shot's own over it): the frame as a film print. A warm, contrasty, saturated grade; halation,
         the glow that bleeds round the bright parts of a print; the sky's graduated filter; a vignette; fine grain that moves every frame. */
     let grainTex = null;
+    /** The painter's pass, on the pixels: CLARITY lifts local contrast (each stud, each edge of a brick against the next, the rim of a
+        figure against the ground), CURVE is an S on the values (deep darks, bright lights, the middle kept), SPLIT tones the shadows cool
+        and the lights warm, as the Western painters split them: gold where the sun is, violet-blue where it is not. */
+    function paintPass(ctx, w, h, g) {
+      const id = ctx.getImageData(0, 0, w, h), d = id.data, n = w * h, L = new Float32Array(n), B = new Float32Array(n), T = new Float32Array(n);
+      for (let i = 0, j = 0; i < n; i++, j += 4) L[i] = (0.299 * d[j] + 0.587 * d[j + 1] + 0.114 * d[j + 2]) / 255;
+      const r = Math.max(2, Math.round(w / (g.clarityRadius || 110)));
+      const blurH = (S, O) => { for (let y = 0; y < h; y++) { const o = y * w; let s = 0; for (let x = -r; x <= r; x++) s += S[o + Math.min(w - 1, Math.max(0, x))]; for (let x = 0; x < w; x++) { O[o + x] = s / (2 * r + 1); s += S[o + Math.min(w - 1, x + r + 1)] - S[o + Math.max(0, x - r)]; } } };
+      const blurV = (S, O) => { for (let x = 0; x < w; x++) { let s = 0; for (let y = -r; y <= r; y++) s += S[Math.min(h - 1, Math.max(0, y)) * w + x]; for (let y = 0; y < h; y++) { O[y * w + x] = s / (2 * r + 1); s += S[Math.min(h - 1, y + r + 1) * w + x] - S[Math.max(0, y - r) * w + x]; } } };
+      blurH(L, T); blurV(T, B); blurH(B, T); blurV(T, B);
+      const cl = g.clarity || 0, cv = g.curve || 0, sp = g.split || 0, sh = g.shadowTint || [-0.06, -0.01, 0.1], hi = g.lightTint || [0.08, 0.03, -0.07];
+      for (let i = 0, j = 0; i < n; i++, j += 4) {
+        const l = L[i]; let m = l + cl * (l - B[i]) * 2.2;                                   // clarity
+        if (cv) { const s = m * m * (3 - 2 * m); m = m + cv * (s - m); }                     // the S
+        m = Math.min(1, Math.max(0, m)); const k = l > 0.004 ? m / l : 1, ws = (1 - m) * (1 - m) * sp, wh = m * m * sp;
+        for (let c = 0; c < 3; c++) { let v = d[j + c] / 255 * k; v += ws * sh[c] + wh * hi[c]; d[j + c] = v <= 0 ? 0 : v >= 1 ? 255 : v * 255; }
+      }
+      ctx.putImageData(id, 0, 0);
+    }
     function grade(ctx, w, h, g) {
       const c = ctx.canvas, t = document.createElement('canvas'); t.width = w; t.height = h; const tc = t.getContext('2d'); tc.drawImage(c, 0, 0, w, h);
       ctx.save(); ctx.clearRect(0, 0, w, h); ctx.filter = `contrast(${g.contrast || 1}) saturate(${g.sat || 1}) sepia(${g.sepia || 0}) brightness(${g.bright || 1})`; ctx.drawImage(t, 0, 0); ctx.filter = 'none';
@@ -922,6 +942,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
       if (g.warm) { ctx.globalCompositeOperation = 'soft-light'; ctx.fillStyle = `rgba(255,150,70,${g.warm})`; ctx.fillRect(0, 0, w, h); }
       if (g.skyGrad) { ctx.globalCompositeOperation = 'multiply'; const s = ctx.createLinearGradient(0, 0, 0, h * 0.5); s.addColorStop(0, `rgba(120,90,70,${g.skyGrad})`); s.addColorStop(1, 'rgba(255,255,255,0)'); ctx.fillStyle = s; ctx.fillRect(0, 0, w, h * 0.5); }
       if (g.skyBlue) { const [k, end] = Array.isArray(g.skyBlue) ? g.skyBlue : [g.skyBlue, 0.4]; ctx.globalCompositeOperation = 'multiply'; const s = ctx.createLinearGradient(0, 0, 0, h * end); s.addColorStop(0, `rgba(${Math.round(255 - k * 185)},${Math.round(255 - k * 135)},${Math.round(255 - k * 40)},1)`); s.addColorStop(1, 'rgba(255,255,255,1)'); ctx.fillStyle = s; ctx.fillRect(0, 0, w, h * end); }   /* skyBlue [k, end]: the top of the frame down to END taken toward a deep Technicolor blue, so a pale rendered sky reads as the desert's */
+      if (g.clarity || g.curve || g.split) { ctx.globalCompositeOperation = 'source-over'; paintPass(ctx, w, h, g); }
       if (g.vignette) { ctx.globalCompositeOperation = 'multiply'; const v = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.35, w / 2, h / 2, Math.hypot(w, h) * 0.55); v.addColorStop(0, 'rgba(255,255,255,1)'); v.addColorStop(1, `rgba(${Math.round(255 * (1 - g.vignette))},${Math.round(240 * (1 - g.vignette))},${Math.round(225 * (1 - g.vignette))},1)`); ctx.fillStyle = v; ctx.fillRect(0, 0, w, h); }
       if (g.grain) { if (!grainTex) { grainTex = document.createElement('canvas'); grainTex.width = grainTex.height = 256; const gc = grainTex.getContext('2d'), id = gc.createImageData(256, 256); for (let i = 0; i < id.data.length; i += 4) { const v = 128 + (Math.random() - 0.5) * 255; id.data[i] = id.data[i + 1] = id.data[i + 2] = v; id.data[i + 3] = 255; } gc.putImageData(id, 0, 0); }
         ctx.globalCompositeOperation = 'overlay'; ctx.globalAlpha = g.grain; const pat = ctx.createPattern(grainTex, 'repeat'), ox = Math.random() * 256, oy = Math.random() * 256; ctx.translate(-ox, -oy); ctx.fillStyle = pat; ctx.fillRect(ox, oy, w, h); }
@@ -1190,7 +1211,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
         if (sh.grade) shot.grade = sh.grade; if (Array.isArray(sh.close)) shot.close = sh.close.slice(); if (sh.record) shot.record = sh.record.slice(); if (sh.fit) shot.fit = sh.fit.map(f => ({ ...f })); if (sh.shift) shot.shift = sh.shift; if (sh.score !== undefined) shot.score = sh.score; if (sh.fade != null) shot.fade = +sh.fade; if (sh.lamp) shot.lamp = (sh.lamp && typeof sh.lamp === 'object') ? sh.lamp : sh.lamp === 'warm' ? 'warm' : true; if (sh.look) shot.look = sh.look; if (sh.roll != null) shot.roll = +sh.roll; if (sh.handheld != null) shot.handheld = +sh.handheld; if (sh.speed != null) shot.speed = clamp(+sh.speed, 0.05, 4); shots.push(shot);
       }
       if (!append) { F.teardown(!!(prog && prog.set)); F.shots = []; } F.shots.push(...shots); F.sel = F.shots.length ? (append ? F.shots.length - shots.length : 0) : -1; F.name = prog && prog.name || F.name; if (prog && prog.story) F.story = prog.story; else if (!append) F.story = null;
-      if (prog && (prog.actors || prog.builds || prog.set)) { F.scene = { name: prog.name, grade: prog.grade || null, donors: (prog.donors || []).map(d => ({ ...d })), marks: prog.marks || null, marksHidden: !!prog.marksHidden, part: prog.part || null, actors: (prog.actors || []).map(a => ({ ...a, r: a.r ? a.r * M : undefined })), builds: (prog.builds || []).map(b => ({ ...b })), set: prog.set ? { ...prog.set, corridor: prog.set.corridor ? prog.set.corridor.map(p => p.slice()) : null, abs: false } : null, routes: prog.routes ? Object.fromEntries(Object.entries(prog.routes).map(([k, v]) => [k, v.map(p => p.slice())])) : null, world: prog.world || null, as: prog.as || null, ground: prog.ground || null, weather: prog.weather || null, time: prog.time || null, me: prog.me || null, abs: false }; F.setup(); }
+      if (prog && (prog.actors || prog.builds || prog.set)) { F.scene = { name: prog.name, grade: prog.grade || null, paintSky: prog.paintSky || null, donors: (prog.donors || []).map(d => ({ ...d })), marks: prog.marks || null, marksHidden: !!prog.marksHidden, part: prog.part || null, actors: (prog.actors || []).map(a => ({ ...a, r: a.r ? a.r * M : undefined })), builds: (prog.builds || []).map(b => ({ ...b })), set: prog.set ? { ...prog.set, corridor: prog.set.corridor ? prog.set.corridor.map(p => p.slice()) : null, abs: false } : null, routes: prog.routes ? Object.fromEntries(Object.entries(prog.routes).map(([k, v]) => [k, v.map(p => p.slice())])) : null, world: prog.world || null, as: prog.as || null, ground: prog.ground || null, weather: prog.weather || null, time: prog.time || null, me: prog.me || null, abs: false }; F.setup(); }
       if (F.prepareEnvs) F.prepareEnvs(); changed('program'); return shots.length;
     };
     F.trailer = name => { const t = TRAILERS[name || 'a-new-hope'] || SCENES[name]; if (!t) return 0; const n = F.loadProgram(t); say(`${t.name}: ${n} shots${F.scene ? ' · ' + F.scene.actors.length + ' actors' : ''} · Play previews it, Rec takes it`, 'ok'); return n; };

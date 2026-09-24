@@ -106,11 +106,16 @@ function create({ scene, M, lights, onLightning, onColour, onNight }) {
     const night = 1 - d, hemiSky = new THREE.Color(p.hemi[0]).lerp(new THREE.Color(NIGHT.hemi[0]), night), hemiGround = new THREE.Color(p.hemi[1]).lerp(new THREE.Color(NIGHT.hemi[1]), night);
     lights.hemi.color.copy(lin(hemiSky)); lights.hemi.groundColor.copy(lin(hemiGround)); S.hemiBase = lerp(NIGHT.hemi[2], p.hemi[2], d) * weather.hemi / Math.PI * ((S.mood && S.mood.hemi != null) ? S.mood.hemi : 1); lights.hemi.intensity = S.hemiBase;   /* mood: a shot's own key and fill, over the world's */
     const moon = LI.moon != null ? LI.moon : 1, sunI = lerp(NIGHT.sun[1] * moon, p.sun[1] * smooth(-2, 15, elev), d) * weather.sun; if (d < 0.5) lights.hemi.intensity = S.hemiBase = S.hemiBase * (0.7 + 0.3 * moon); lights.sun.color.copy(lin(d > 0.5 ? sunC : new THREE.Color(NIGHT.sun[0]))); lights.sun.intensity = Math.max(0.05, sunI) / Math.PI * ((S.mood && S.mood.sun != null) ? S.mood.sun : 1);
+    const md = S.mood; if (md && !space) {   /* a shot's painted light: a warm key, a cool sky fill, a warm ground bounce, its own zenith and horizon */
+      if (md.sunCol != null) { lights.sun.color.copy(lin(new THREE.Color(md.sunCol))); uniforms.sunCol.value.set(md.sunCol); }
+      if (md.fillSky != null) lights.hemi.color.copy(lin(new THREE.Color(md.fillSky))); if (md.fillGround != null) lights.hemi.groundColor.copy(lin(new THREE.Color(md.fillGround)));
+      if (md.zenith != null) uniforms.zenith.value.set(md.zenith); if (md.horizon != null) { uniforms.horizon.value.set(md.horizon); horizon.set(md.horizon); } }
     if (elev > 2 || space) lights.sun.position.copy(sunDir).multiplyScalar(1000); else lights.sun.position.set(-sunDir.x, Math.max(0.35, -sunDir.y), -sunDir.z).multiplyScalar(1000); S.sunDir = lights.sun.position.clone().normalize();   // where the light comes from, for a shadow camera that follows the shot   // the moon stands opposite
     // fog and background meet the dome at the horizon
     const near = weather.nearM != null ? weather.nearM : p.fog[1] * (weather.near || 1) * (0.6 + 0.4 * d), far = weather.farM != null ? weather.farM : p.fog[2] * (weather.far || 1) * (0.5 + 0.5 * d);
     const ov = S.override;   /* a laid set's own fog and sky (a cavern's black, a shoreline's haze) win over the world's: the weather can only bring the fog nearer */
-    if (ov && ov.fog) { scene.fog.color.copy(lin(new THREE.Color(ov.fog[0]))); scene.fog.near = Math.min(near, ov.fog[1]) * M; scene.fog.far = Math.min(far, ov.fog[2]) * M; S.fog = [Math.min(near, ov.fog[1]), Math.min(far, ov.fog[2])]; }
+    if (md && md.haze && !space) { scene.fog.color.copy(lin(new THREE.Color(md.haze[0]))); scene.fog.near = md.haze[1] * M; scene.fog.far = md.haze[2] * M; S.fog = [md.haze[1], md.haze[2]]; }   /* the shot's haze: the far mesas go blue-violet, one layer behind another */
+    else if (ov && ov.fog) { scene.fog.color.copy(lin(new THREE.Color(ov.fog[0]))); scene.fog.near = Math.min(near, ov.fog[1]) * M; scene.fog.far = Math.min(far, ov.fog[2]) * M; S.fog = [Math.min(near, ov.fog[1]), Math.min(far, ov.fog[2])]; }
     else { scene.fog.color.copy(lin(fogC)); scene.fog.near = near * M; scene.fog.far = far * M; S.fog = [near, far]; }
     if (ov && ov.sky != null) scene.background.set(ov.sky); else scene.background.copy(horizon);
     // stars, clouds, rain

@@ -11,7 +11,7 @@
 const K = require('./kit.js');
 const { G, box, slab, cut, part } = K;
 const rnd = K.seeded(11);
-const LOG = 70, DARK = 308, STONE = 72, PLANK = 308, EARTH = 84, TRACK = 28;   // the yard is the red earth's own nougat; the path worn to dark tan
+const LOG = 70, DARK = 308, STONE = 72, PLANK = 308, BOARDS = 28, EARTH = 84, TRACK = 19;   // the porch in weathered dark tan boards (smooth tiles), the path worn pale; the rockers dark against the log wall   // the yard is the red earth's own nougat; the path worn to dark tan
 function program() {
   const ops = [];
   // the yard: packed earth round the house, a lighter path from the porch steps south
@@ -21,7 +21,7 @@ function program() {
   ops.push(G('path', 0, 0, [slab(21, 29, 6, 19, TRACK)]));
   // the floor inside and the porch boards
   ops.push(G('floor', 0, 0, [slab(13, 5, 22, 14, PLANK)]));
-  ops.push(G('porch', 0, 0, [slab(12, 20, 24, 9, PLANK)]));
+  ops.push(G('porch', 0, 0, [slab(12, 20, 24, 9, BOARDS)]));
   // the walls: a hollow box of logs seven bricks high; the door frame in the south wall, a window either side, one in each end wall
   ops.push(G('walls', 0, 0, [box(12, 4, 24, 16, 7, LOG, { hollow: true })]));
   ops.push(G('door', 0, 0, [cut(22, 19, 4, 1, 0, 6), part('60596', DARK, 22, 19, 0)]));
@@ -34,8 +34,8 @@ function program() {
   ops.push(G('bed', 29, 5, [box(0, 0, 5, 3, 1, DARK), slab(0, 0, 5, 3, 15, { y: 1 }), slab(0, 0, 2, 3, 1, { y: 1, plateOffset: 1 }), box(4, 0, 1, 3, 2, DARK, { y: 1 })]));
   ops.push(G('dresser', 13, 5, [box(0, 0, 3, 2, 3, DARK), part('3024', 14, 1, 0, 3)]));
   // the porch posts: round bricks from the ground to the ceiling line
-  const posts = []; for (const x of [12, 18, 28, 34]) { posts.push(cut(x, 27, 2, 2, 0, 1)); for (let y = 0; y < 6; y++) posts.push(part('3941', 15, x, 27, y)); }   // white posts, as the Jorgensens' porch has them
-  posts.push(box(12, 27, 24, 2, 1, 15, { y: 6 }));   // the header beam over the posts, under the front of the ceiling
+  const posts = []; for (const x of [12, 18, 28, 34]) { posts.push(cut(x, 27, 2, 2, 0, 1)); for (let y = 0; y < 6; y++) posts.push(part('3941', 19, x, 27, y)); }   // weathered tan posts: white ones burn out in the low sun and pull the eye off the faces
+  posts.push(box(12, 27, 24, 2, 1, 19, { y: 6 }));   // the header beam over the posts, under the front of the ceiling
   ops.push(G('porch posts', 0, 0, posts));
   // the ceiling: three plate layers over the walls, the room and the porch, so the room is shut from the sky and the porch is roofed
   // (the kit's deck: explicit plates in three bonded layers, so no seam runs through all three)
@@ -46,7 +46,7 @@ function program() {
   // the chimney stack above the ceiling line, clear of the roof's west eave
   ops.push(G('chimney', 8, 9, [box(0, 0, 3, 4, 7, STONE, { y: 7 })]));
   // two rocking chairs on the porch, either side of the door, facing the yard
-  ops.push(G('porch chairs', 0, 0, [K.rocker(14, 20, LOG), K.rocker(31, 20, LOG)]));
+  ops.push(G('porch chairs', 0, 0, [K.rocker(14, 20, DARK), K.rocker(31, 20, DARK)]));
   // the corral east of the yard: a rail fence on three sides, two horses in it
   ops.push(G('corral', 0, 0, [...K.fence(41, 30, 16, false), ...K.fence(47, 30, 16, false), ...K.fence(42, 30, 5, true), ...K.fence(42, 45, 5, true)]));
   ops.push(G('horses', 0, 0, [part('4493c01', 0, 42, 33, 0, { plate: 1 }), part('4493c01', 15, 45, 36, 0, { plate: 1, rot: 2 })]));
@@ -64,5 +64,5 @@ function program() {
   return { name: 'homestead', ops };
 }
 module.exports = { name: 'homestead', title: 'The Homestead', description: 'A frontier homestead for The Searchers: a log cabin with an open door frame between two windows, a plank floor, a stone hearth and chimney, a table, benches, a bed and a dresser inside, a plate ceiling so the room is dark, a gabled red roof, a plank porch on four posts with two rocking chairs, and in the yard a corral with two horses, a hitching rail with a horse, a trough, a woodpile, a fence line and a water barrel.', program, scale: 1,
-  groundTiles: { cols: [84, 28] },   /* the yard and the path as smooth packed earth: tiles where nothing stands */
+  groundTiles: { cols: [84, 28, 19] },   /* the yard, the porch boards and the path smooth: tiles where nothing stands */
   bricks: ['3001', '3003', '3010', '3004', '3005'], swap: { from: { '3010': '30137', '3004': '30136' }, col: [70] } };
