@@ -39,6 +39,17 @@ const t0 = Date.now(), say = (...a) => console.log(((Date.now() - t0) / 1000).to
   const info = await page.evaluate(() => window.__world.exportStart({ fps: +document.body.dataset.fps || undefined, w: innerWidth, h: innerHeight }));
   say('shots', info.shots, 'seconds', info.total.toFixed(1), 'at', fps, 'fps');
   await page.evaluate(f => { window.__world.exporting.fps = f; }, fps);
+  const stills = opt('stills', '') ? opt('stills').split(',').map(Number).sort((p, q) => p - q) : null;
+  if (stills) {   /* prove the critical frames before a take: the film runs on its own clock, only the named seconds are drawn, graded and saved */
+    let k = 0, frames = 0; const tag = opt('tag', 'still');
+    while (k < stills.length) {
+      const near = frames / fps >= stills[k] - 0.5 / fps;
+      const r = await page.evaluate(s => window.__world.exportFrame(s ? { skip: true } : undefined), !near); if (!r) break; if (r.held) { await page.evaluate(() => new Promise(r => setTimeout(r, 120))); continue; }
+      frames++; if (near && r.jpeg) { const f = path.join(out, `${film}-${tag}-${stills[k].toFixed(1)}.jpg`); fs.writeFileSync(f, Buffer.from(r.jpeg, 'base64')); say('still', stills[k], 'shot', r.shot + 1, f); k++; }
+      if (r.done) break;
+    }
+    say('stills done in', ((Date.now() - t0) / 1000 / 60).toFixed(1), 'min'); await browser.close(); return;
+  }
   const base = path.join(out, film), video = base + '.video.mp4';
   const ff = spawn(FF, ['-y', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(fps), '-i', '-', '-c:v', 'libx264', '-preset', 'medium', '-crf', String(crf), '-pix_fmt', 'yuv420p', '-movflags', '+faststart', video], { stdio: ['pipe', 'inherit', 'inherit'] });
   let frames = 0, held = 0, poster = null, lastShot = -1;
