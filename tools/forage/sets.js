@@ -85,7 +85,7 @@ function REAL(name, list) {
   }));
 }
 const R = (id, col, x, z, base, q) => ({ id, col, x, z, base, q });
-const DECK = -42;   // the galley's deck, its underside on the plate: the hull 58 deep, the deck 24 below the rim
+const DECK = -66;   // the galley's deck, its underside on the plate: the hull 58 deep and decked flush with its rim
 const KIT = {
   /* the black ship: 22 x 8 hull (black over its red keel: Homer's red-cheeked ships), a boat mast and its topmast, a formed white
      sail turned across the beam on a yard of two 1 x 10 plates. The bow is the hull's +z end. */

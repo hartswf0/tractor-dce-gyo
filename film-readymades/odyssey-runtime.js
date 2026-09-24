@@ -44,10 +44,19 @@ function kfBlock(list){for(const e of list){const a=kfActor(e.id);if(!a){console
   /* props: false empties the hands (a man bound to a mast holds no sword): each arm pivot carries its arm, its hand, then what it holds */
   if(e.props!=null)for(const k of ['armRP','armLP']){const g=r[k].children.filter(c=>c.type==='Group');g.slice(2).forEach(c=>c.visible=e.props!==false);}}}
 function kfShoot(c){camera.position.set(...c.pos);if(c.fov)camera.fov=c.fov;camera.updateProjectionMatrix();controls.target.set(...c.target);camera.lookAt(controls.target);camera.updateMatrixWorld();}
+/* a set piece as a subject (a troll, a giant, the ship): rays to its crown, middle and flanks; its box on screen */
+function kfScorePiece(label,meshes,ray,cam,scr){const b=kfPiece(label);if(!b)return {missing:true};const V=THREE.Vector3,cx=(b[0]+b[3])/2,cz=(b[2]+b[5])/2,h=b[4]-b[1];
+  const pts=[new V(cx,b[1]+h*0.85,cz),new V(cx,b[1]+h*0.55,cz),new V(b[0]+(b[3]-b[0])*0.25,b[1]+h*0.5,cz),new V(b[0]+(b[3]-b[0])*0.75,b[1]+h*0.5,cz)];let seen=0;
+  for(const p of pts){const d=p.clone().sub(cam),dist=d.length();ray.set(cam,d.normalize());ray.far=dist;const hits=ray.intersectObjects(meshes,true);
+    const first=hits[0];if(!first||first.distance>dist-Math.max(b[3]-b[0],b[5]-b[2])*0.6)seen++;}   /* a hit inside the piece's own depth is the piece */
+  const cs=[];for(const x of [b[0],b[3]])for(const y of [b[1],b[4]])for(const z of [b[2],b[5]])cs.push(scr(new V(x,y,z)));
+  const u0=Math.min(...cs.map(c=>c[0])),u1=Math.max(...cs.map(c=>c[0])),v0=Math.min(...cs.map(c=>c[1])),v1=Math.max(...cs.map(c=>c[1])),hs=scr(pts[0]);
+  const thirds=Math.min(...[1/3,2/3].map(t=>Math.abs(hs[0]-t)),...[1/3,2/3].map(t=>Math.abs(hs[1]-t)));
+  return {visible:+(seen/pts.length).toFixed(2),size:+(v1-v0).toFixed(3),inFrame:u0>=-0.01&&u1<=1.01&&v0>=-0.01&&v1<=1.01,head:[+hs[0].toFixed(3),+hs[1].toFixed(3)],facing:1,thirds:+thirds.toFixed(3),headroom:+v0.toFixed(3),behind:cs.some(c=>c[2]>1)};}
 function kfScore(subs){scene.updateMatrixWorld(true);camera.updateMatrixWorld();const meshes=[];scene.traverse(o=>{if(kfSolid(o))meshes.push(o);});
   const ray=new THREE.Raycaster(),cam=camera.position.clone(),scr=v=>{const q=v.clone().project(camera);return [(q.x+1)/2,(1-q.y)/2,q.z];};
   const inside=(o,root)=>{for(;o;o=o.parent)if(o===root)return true;return false;};
-  const out={};for(const s of subs){const a=kfActor(s.id);if(!a){out[s.id]={missing:true};continue;}const fig=a.rig.figure;
+  const out={};for(const s of subs){if(s.id.startsWith('piece:')){out[s.id]=kfScorePiece(s.id.slice(6),meshes,ray,cam,scr);continue;}const a=kfActor(s.id);if(!a){out[s.id]={missing:true};continue;}const fig=a.rig.figure;
    const head=kfHead(s.id),torso=kfWorld(a.rig.torsoP),hips=kfWorld(a.rig.hipsP),tall=head.y-a.rig.pos.y;
    /* the body, not its props: crown, feet, both shoulders */
    const body=[head.clone().add(new THREE.Vector3(0,tall*0.12,0)),a.rig.pos.clone(),kfWorld(a.rig.armRP),kfWorld(a.rig.armLP)].map(scr);
@@ -64,11 +73,13 @@ function kfGround(x,z){const meshes=[],figs=new Set();ButterCast.cast.forEach(a=
 /* camera rigs, from the blocking: two (a two-shot across the line between a and b, biased to a's face), hero (in front of a's
    face, low or high), ots (over a's shoulder at b), wide (a free position looking at a point); place puts the subject's head on a
    thirds line (L, R) or the centre, by turning the camera about its own axis */
-function kfHead(id){const a=kfActor(id),k=a.rig.headP.getWorldScale(new THREE.Vector3()).y;return kfWorld(a.rig.headP).add(new THREE.Vector3(0,-12*k*(a.rig.headP.position.y<0?1:-1),0));}   /* the middle of the head, 12 LDU above the neck (the rig's y runs down) */
+function kfPiece(label){const A=filmAsset(),i=(A.pages||[]).findIndex(pg=>pg.label===label)>=0?(A.pages||[]).findIndex(pg=>pg.label===label):(A.pages||[]).findIndex(pg=>pg.label.includes(label));return i>=0&&A.pages[i].box?A.pages[i].box:null;}
+function kfPieceHead(label){const b=kfPiece(label);return b?new THREE.Vector3((b[0]+b[3])/2,b[1]+(b[4]-b[1])*0.8,(b[2]+b[5])/2):null;}
+function kfHead(id){if(typeof id==='string'&&id.startsWith('piece:'))return kfPieceHead(id.slice(6));const a=kfActor(id),k=a.rig.headP.getWorldScale(new THREE.Vector3()).y;return kfWorld(a.rig.headP).add(new THREE.Vector3(0,-12*k*(a.rig.headP.position.y<0?1:-1),0));}   /* the middle of the head, 12 LDU above the neck (the rig's y runs down) */
 function kfRig(c){const V=THREE.Vector3;let pos,target;
   if(c.type==='two'){const A=kfHead(c.a),Bh=kfHead(c.b),mid=A.clone().lerp(Bh,0.5),ab=Bh.clone().sub(A).setY(0),span=ab.length(),n=new V(-ab.z,0,ab.x).normalize().multiplyScalar(c.side||1);
-    const fa=kfActor(c.a).rig,face=new V(Math.sin(fa.heading),0,Math.cos(fa.heading));pos=mid.clone().add(n.clone().multiplyScalar(c.dist||span*1.6)).add(face.multiplyScalar((c.bias??0.35)*(c.dist||span*1.6))).add(new V(0,c.height||0,0));target=mid;}
-  else if(c.type==='hero'){const A=kfHead(c.a),r=kfActor(c.a).rig,yaw=r.heading+(c.yaw||0),face=new V(Math.sin(yaw),0,Math.cos(yaw));pos=A.clone().add(face.multiplyScalar(c.dist||120)).add(new V(0,c.height||0,0));target=A.clone().add(new V(0,c.aimY||0,0));}
+    const fa=kfActor(c.a)?.rig||{heading:0},face=new V(Math.sin(fa.heading),0,Math.cos(fa.heading));pos=mid.clone().add(n.clone().multiplyScalar(c.dist||span*1.6)).add(face.multiplyScalar((c.bias??0.35)*(c.dist||span*1.6))).add(new V(0,c.height||0,0));target=mid;}
+  else if(c.type==='hero'){const A=kfHead(c.a),r=kfActor(c.a)?.rig||{heading:0},yaw=r.heading+(c.yaw||0),face=new V(Math.sin(yaw),0,Math.cos(yaw));pos=A.clone().add(face.multiplyScalar(c.dist||120)).add(new V(0,c.height||0,0));target=A.clone().add(new V(0,c.aimY||0,0));}
   else if(c.type==='ots'){const A=kfHead(c.over),T=typeof c.at==='string'?kfHead(c.at):new V(...c.at),d=T.clone().sub(A).setY(0).normalize(),n=new V(-d.z,0,d.x).multiplyScalar(c.side||1);
     pos=A.clone().sub(d.clone().multiplyScalar(c.dist||60)).add(n.multiplyScalar(c.off||18)).add(new V(0,c.height||8,0));target=T;}
   else {pos=new V(...c.pos);target=typeof c.target==='string'?kfHead(c.target):new V(...c.target);}
@@ -92,4 +103,32 @@ function kfClutter(subject,allow=[]){const d=kfHead(subject).distanceTo(camera.p
 /* the look of a still: a sky graded from zenith to horizon, a haze toward the horizon */
 function kfLook(l={}){const sky=l.sky||['#6fa3d8','#e9dcc0'];const c=document.createElement('canvas');c.width=2;c.height=256;const g=c.getContext('2d'),gr=g.createLinearGradient(0,0,0,256);gr.addColorStop(0,sky[0]);gr.addColorStop(1,sky[1]);g.fillStyle=gr;g.fillRect(0,0,2,256);
   const t=new THREE.CanvasTexture(c);scene.background=t;if(l.fog!==false)scene.fog=new THREE.Fog(new THREE.Color(sky[1]),(l.fog||[900,2600])[0],(l.fog||[900,2600])[1]);}
-window.OdysseyFilm={clutter:kfClutter,look:kfLook,ground:kfGround,rig:kfRig,lens:kfLens,asset:()=>filmAsset(),setCamera:c=>filmSetCamera(c),fit:()=>filmFit(),get cameras(){return filmAsset()?.cameras||[];},cast:kfCast,pieces:kfPieces,block:kfBlock,shoot:kfShoot,score:kfScore};
+/* ── the body in three dimensions ──
+   Every LDraw part of a figure (torso, hips, legs, arms, hands, head, hair, what it holds) as an oriented box: its own local bounds,
+   shrunk a little so parts that merely touch pass, carried by the part's world matrix. Two figures collide when any box of one
+   meets any box of the other (the separating-axis test); a figure is supported when a surface lies under its feet. */
+function kfBoxes(a,shrink=0.12){const out=[];a.rig.figure.updateMatrixWorld(true);a.rig.figure.traverse(o=>{if(!o.isMesh||!o.visible||!o.geometry)return;let v=o;for(;v;v=v.parent)if(v.visible===false)return;
+   if(!o.geometry.boundingBox)o.geometry.computeBoundingBox();const b=o.geometry.boundingBox,c=b.getCenter(new THREE.Vector3()),h=b.getSize(new THREE.Vector3()).multiplyScalar(0.5*(1-shrink));
+   const m=o.matrixWorld,e=m.elements,ax=[new THREE.Vector3(e[0],e[1],e[2]),new THREE.Vector3(e[4],e[5],e[6]),new THREE.Vector3(e[8],e[9],e[10])],sc=ax.map(x=>x.length());
+   out.push({c:c.clone().applyMatrix4(m),ax:ax.map(x=>x.normalize()),h:[h.x*sc[0],h.y*sc[1],h.z*sc[2]],name:(o.parent&&o.parent.userData&&o.parent.userData.file)||''});});return out;}
+function kfSat(A,B){const T=B.c.clone().sub(A.c),axes=[...A.ax,...B.ax];for(const a of A.ax)for(const b of B.ax){const x=a.clone().cross(b);if(x.lengthSq()>1e-8)axes.push(x.normalize());}
+  for(const L of axes){const ra=A.h[0]*Math.abs(A.ax[0].dot(L))+A.h[1]*Math.abs(A.ax[1].dot(L))+A.h[2]*Math.abs(A.ax[2].dot(L)),rb=B.h[0]*Math.abs(B.ax[0].dot(L))+B.h[1]*Math.abs(B.ax[1].dot(L))+B.h[2]*Math.abs(B.ax[2].dot(L));if(Math.abs(T.dot(L))>ra+rb)return false;}return true;}
+function kfPhysics(ids,touch=[]){const set=new Set(ids),acts=ButterCast.cast.filter(a=>set.has(kfShort(a.kind))),boxes=new Map(acts.map(a=>[a,kfBoxes(a)])),collide=[],floating=[];
+  const ok=(p,q)=>touch.some(([x,y])=>(x===p&&y===q)||(x===q&&y===p));
+  for(let i=0;i<acts.length;i++)for(let j=i+1;j<acts.length;j++){const a=acts[i],b=acts[j],p=kfShort(a.kind),q=kfShort(b.kind);if(a.rig.pos.distanceTo(b.rig.pos)>140||ok(p,q))continue;
+    let n=0;for(const A of boxes.get(a))for(const B of boxes.get(b))if(kfSat(A,B))n++;if(n)collide.push([p,q,n]);}
+  const meshes=[],figs=new Set();ButterCast.cast.forEach(a=>a.rig.figure.traverse(o=>figs.add(o)));scene.traverse(o=>{if(kfSolid(o)&&!figs.has(o))meshes.push(o);});
+  for(const a of acts){const k=a.rig.headP.getWorldScale(new THREE.Vector3()).y,from=a.rig.pos.clone().add(new THREE.Vector3(0,30*k,0)),ray=new THREE.Raycaster(from,new THREE.Vector3(0,-1,0));ray.far=200;
+    const h=ray.intersectObjects(meshes,true)[0],gap=h?a.rig.pos.y-h.point.y:Infinity;if(Math.abs(gap)>3*k)floating.push([kfShort(a.kind),h?+gap.toFixed(1):null]);}
+  return {collide,floating};}
+/* rope: a braided string as LDraw models one (a chain of short cylinders along a path), here wound in loops round a figure and the
+   post it is bound to, at heights along the figure (fractions of its height above the feet), knotted with a hanging tail */
+const kfRopes=[];
+function kfRope(r){for(const m of kfRopes.splice(0))m.parent&&m.parent.remove(m);if(!r)return;for(const b of [].concat(r)){const a=kfActor(b.who);if(!a)continue;
+  const k=a.rig.headP.getWorldScale(new THREE.Vector3()).y,feet=a.rig.pos,post=new THREE.Vector3(b.post[0],feet.y,b.post[1]),tall=kfHead(b.who).y-feet.y+10*k;
+  const c=feet.clone().add(post).multiplyScalar(0.5),d=post.clone().sub(feet).setY(0),len=d.length(),u=d.clone().normalize(),n=new THREE.Vector3(-u.z,0,u.x);
+  const A=len/2+(b.radius||14)*k,Bn=(b.radius||14)*k,mat=new THREE.MeshStandardMaterial({color:b.color||'#8a6a3e',roughness:0.9});
+  for(const f of b.at||[0.72,0.5,0.22]){const pts=[];for(let i=0;i<=48;i++){const t=i/48*Math.PI*2*1.9,y=feet.y+tall*f+(i/48-0.5)*3*k;pts.push(c.clone().add(u.clone().multiplyScalar(Math.cos(t)*A)).add(n.clone().multiplyScalar(Math.sin(t)*Bn)).setY(y));}
+    const tube=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),160,(b.thick||1.6)*k,8,false),mat);tube.userData.rope=true;scene.add(tube);kfRopes.push(tube);}
+  const knot=c.clone().add(u.clone().multiplyScalar(A)).setY(feet.y+tall*0.5),tail=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([knot,knot.clone().add(new THREE.Vector3(0,-14*k,2*k)),knot.clone().add(new THREE.Vector3(3*k,-26*k,5*k))]),24,(b.thick||1.6)*k,8,false),mat);scene.add(tail);kfRopes.push(tail);}}
+window.OdysseyFilm={physics:kfPhysics,rope:kfRope,clutter:kfClutter,look:kfLook,ground:kfGround,rig:kfRig,lens:kfLens,asset:()=>filmAsset(),setCamera:c=>filmSetCamera(c),fit:()=>filmFit(),get cameras(){return filmAsset()?.cameras||[];},cast:kfCast,pieces:kfPieces,block:kfBlock,shoot:kfShoot,score:kfScore};

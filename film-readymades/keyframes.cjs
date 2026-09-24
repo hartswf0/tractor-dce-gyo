@@ -6,6 +6,8 @@
      the primary subject's head on a thirds line (within 0.06) with headroom (>= 0.03)
      nothing but the allowed figures crowding the lens (<= 10% of a grid of rays blocked nearer than a third of the subject)
      no other figure between: none nearer than three quarters of the subject's distance with its head in the frame
+     solid: no two figures (their parts, and what they hold, as oriented boxes) pass through each other unless the still says
+       they touch; every figure stands on something (feet within three LDU of a surface)
    Serve the repository root (python3 -m http.server 8899), build the location, then
    NODE_PATH=<playwright> node film-readymades/keyframes.cjs odyssey/keyframes/OD-B12-S03.json [--out dir] */
 const {chromium}=require('playwright'),fs=require('fs'),path=require('path');
@@ -26,7 +28,7 @@ await p.waitForTimeout(800);
 const report=[];
 for(const k of spec.keys){
  const r=await p.evaluate(({base,k,look})=>{OdysseyFilm.block(base);OdysseyFilm.block(k.blocking||[]);const cam=OdysseyFilm.rig(k.camera);
-   OdysseyFilm.look(Object.assign({},look,k.look));const sc=OdysseyFilm.score(k.subjects);const clutter=OdysseyFilm.clutter((k.subjects.find(s=>s.primary)||k.subjects[0]).id,[...(k.lensAllow||[]),...k.subjects.map(s=>s.id)]);const prim=(k.subjects.find(s=>s.primary)||{}).id;const lens=OdysseyFilm.lens(prim||k.subjects[0].id,k.lensAllow||[]);renderStill(scene,camera);const png=renderer.domElement.toDataURL('image/png');return {cam,sc,lens,clutter,png};},{base:spec.blocking,k,look:spec.look||{}});
+   OdysseyFilm.look(Object.assign({},look,k.look));OdysseyFilm.rope(k.rope||null);const phys=OdysseyFilm.physics(ButterCast.cast.map(a=>a.kind.replace(/^odyssey-od-b\d\d-s\d\d-/,'')),k.touch||[]);const sc=OdysseyFilm.score(k.subjects);const clutter=OdysseyFilm.clutter((k.subjects.find(s=>s.primary&&!s.id.startsWith('piece:'))||k.subjects.find(s=>!s.id.startsWith('piece:'))||{id:(k.subjects[0]||{}).id}).id,[...(k.lensAllow||[]),...k.subjects.map(s=>s.id)]);const prim=(k.subjects.find(s=>s.primary)||{}).id;const lens=OdysseyFilm.lens(prim||k.subjects[0].id,k.lensAllow||[]);renderStill(scene,camera);const png=renderer.domElement.toDataURL('image/png');return {cam,sc,lens,clutter,phys,png};},{base:spec.blocking,k,look:spec.look||{}});
  const fails=[];
  for(const s of k.subjects){const m=r.sc[s.id];if(!m||m.missing){fails.push(s.id+' missing');continue;}
   if(m.behind)fails.push(s.id+' behind the camera');
@@ -40,8 +42,10 @@ for(const k of spec.keys){
   if(s.primary&&m.headroom<0.03)fails.push(`${s.id} no headroom (${m.headroom})`);}
  if(r.lens>0.1)fails.push(`lens crowded (${r.lens})`);
  if(r.clutter.length)fails.push(`foreground clutter: ${r.clutter.join(', ')}`);
+ for(const [a,b2,n] of r.phys.collide)fails.push(`${a} passes through ${b2} (${n} part overlaps)`);
+ for(const [a,g] of r.phys.floating)fails.push(`${a} ${g==null?'stands on nothing':g>0?'floats '+g:'is sunk '+(-g)}`);
  const file=path.join(out,k.id+'.png');fs.writeFileSync(file,Buffer.from(r.png.split(',')[1],'base64'));delete r.png;   /* the frame itself, straight off the renderer: no workspace chrome */
- report.push({id:k.id,beat:k.beat,pass:!fails.length,fails,camera:r.cam,lens:r.lens,subjects:r.sc,file:path.relative(process.cwd(),file)});
+ report.push({id:k.id,beat:k.beat,pass:!fails.length,fails,camera:r.cam,lens:r.lens,physics:r.phys,subjects:r.sc,file:path.relative(process.cwd(),file)});
  console.log(`${k.id} ${fails.length?'FAIL':'PASS'}  ${k.beat}${fails.length?'\n    '+fails.join('\n    '):''}`);}
 fs.writeFileSync(path.join(out,'report.json'),JSON.stringify({scene:spec.scene,pass:report.every(r=>r.pass),keys:report},null,1));
 console.log(report.every(r=>r.pass)?'ALL STILLS PASS: the scene may go to film':'GATE CLOSED: '+report.filter(r=>!r.pass).length+' of '+report.length+' stills fail');
