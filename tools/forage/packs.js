@@ -28,6 +28,8 @@ if (require.main === module) {
   fs.mkdirSync(OUT, { recursive: true });
   const parts = new Set();
   for (const f of fs.readdirSync(path.join(ROOT, 'odyssey/cards'))) for (const l of fs.readFileSync(path.join(ROOT, 'odyssey/cards', f), 'utf8').split('\n')) { const t = l.trim().split(/\s+/); if (t[0] === '1' && t.length >= 15) { const r = t.slice(14).join(' ').toLowerCase(); if (r.endsWith('.dat')) parts.add(r.replace(/\.dat$/, '')); } }
+  /* and the keyframe props (odyssey/keyframes/props.json), which stage parts no card uses */
+  const kp = path.join(ROOT, 'odyssey/keyframes/props.json'); if (fs.existsSync(kp)) for (const P of Object.values(JSON.parse(fs.readFileSync(kp, 'utf8')))) for (const r of P.parts) parts.add(r.part.toLowerCase().replace(/\.dat$/, ''));
   const index = {}; let bytes = 0;
   for (const p of [...parts].sort()) { if (!L.exists(p)) continue; const pk = pack(p), s = JSON.stringify(pk); fs.writeFileSync(path.join(OUT, p.replace(/\//g, '_') + '.json'), s); index[p] = [s.length, Object.keys(pk).length]; bytes += s.length; }
   fs.writeFileSync(path.join(OUT, 'index.json'), JSON.stringify(index));

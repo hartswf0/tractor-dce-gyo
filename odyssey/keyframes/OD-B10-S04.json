@@ -2,236 +2,1339 @@
  "scene": "OD-B10-S04",
  "location": "odyssey-od-b10-s04",
  "title": "Circe Transforms The Crew",
- "note": "Drafted from the storyboard by film-readymades/keyframe_draft.py: attention blocking and rigs by shot kind. Finish by hand where the gate fails.",
+ "source": "Homer, Odyssey X, tr. Samuel Butler (public domain)",
+ "note": "Hand-staged from the text on the new Circe set (tools/forage/sets.js circeHall): Butter x = 20 - 15.9 * stud x, z = 15.9 * stud z. The colonnade at z 8, the lion gate at z 191, the feast table at (84, -80), the loom at (131, -183), the throne at (36, -175), the sty round (-150, 125). The baked swine and beasts are hidden and restaged as props.",
  "look": {
   "sky": [
-   "#5f97d3",
-   "#efe2c4"
+   "#8fb3d9",
+   "#f3e3c3"
   ],
   "fog": [
    700,
-   2400
-  ]
- },
- "spread": 36,
- "blocking": [
-  {
-   "id": "circe",
-   "x": -13.6,
-   "z": -130.0,
-   "y": "floor"
+   2200
+  ],
+  "fill": {
+   "sky": "#c9d8f0",
+   "ground": "#3c3a2a",
+   "intensity": 0.5
   },
-  {
-   "id": "eurylochus",
-   "x": -13.6,
-   "z": 92.9,
-   "y": "floor"
-  }
- ],
+  "sun": {
+   "dir": [
+    -0.6,
+    0.8,
+    0.45
+   ],
+   "color": "#fff0d8",
+   "intensity": 1.1,
+   "shadow": true
+  },
+  "exposure": 0.92
+ },
+ "spread": 0,
+ "blocking": [],
  "keys": [
   {
    "id": "K1",
    "beat": "The scouts find Circe singing at her loom while enchanted wolves and lions fawn around them.",
-   "kind": "establish",
-   "draft": true,
+   "text": "There were wild mountain wolves and lions prowling all round it, poor bewitched creatures whom she had tamed by her enchantments. They did not attack my men, but wagged their great tails, fawned upon them, and rubbed their noses lovingly against them... they could hear Circe within, singing most beautifully as she worked at her loom.",
+   "hide": [
+    "crew-to-swine variants",
+    "enchanted wolves and lions"
+   ],
+   "props": [
+    {
+     "name": "wolf",
+     "id": "wolf1",
+     "at": [
+      -24,
+      0,
+      76
+     ],
+     "rot": [
+      0,
+      0.5,
+      0
+     ],
+     "floor": true,
+     "scale": 1.3
+    },
+    {
+     "name": "wolfGrey",
+     "id": "wolf2",
+     "at": [
+      -112,
+      0,
+      138
+     ],
+     "rot": [
+      0,
+      1.5708,
+      0
+     ],
+     "floor": true,
+     "scale": 1.3
+    },
+    {
+     "name": "lion",
+     "id": "lion1",
+     "at": [
+      70,
+      0,
+      96
+     ],
+     "rot": [
+      0,
+      -0.5,
+      0
+     ],
+     "floor": true,
+     "scale": 1.45
+    },
+    {
+     "name": "lion",
+     "id": "lion2",
+     "at": [
+      162,
+      0,
+      120
+     ],
+     "rot": [
+      0,
+      -0.6,
+      0
+     ],
+     "floor": true,
+     "scale": 1.45
+    },
+    {
+     "name": "wolf",
+     "id": "wolf3",
+     "at": [
+      125,
+      0,
+      50
+     ],
+     "rot": [
+      0,
+      2.6,
+      0
+     ],
+     "floor": true,
+     "scale": 1.3
+    }
+   ],
    "blocking": [
     {
      "id": "circe",
+     "x": 58,
+     "z": -160,
+     "y": "floor",
      "face": [
-      -4.350000000000001,
-      107.0
-     ]
+      20,
+      -190
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.2,
+       0,
+       0
+      ],
+      "armLP": [
+       -1.0,
+       0,
+       0
+      ],
+      "headP": [
+       0,
+       0.9,
+       0
+      ]
+     }
     },
     {
      "id": "eurylochus",
-     "face": "circe"
+     "x": -70,
+     "z": 228,
+     "y": "floor",
+     "face": [
+      20,
+      -100
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -0.3,
+       0,
+       0.2
+      ]
+     }
+    },
+    {
+     "id": "five-scouts-1",
+     "x": -32,
+     "z": 106,
+     "y": "floor",
+     "face": [
+      -24,
+      76
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -0.5,
+       0,
+       0
+      ],
+      "armLP": [
+       -0.9,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "five-scouts-2",
+     "x": -80,
+     "z": 146,
+     "y": "floor",
+     "face": [
+      -112,
+      138
+     ],
+     "props": false,
+     "pose": {
+      "armLP": [
+       -0.6,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "five-scouts-3",
+     "x": 88,
+     "z": 130,
+     "y": "floor",
+     "face": [
+      70,
+      96
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.0,
+       0,
+       0
+      ],
+      "armLP": [
+       -0.3,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "five-scouts-4",
+     "x": 138,
+     "z": 158,
+     "y": "floor",
+     "face": [
+      162,
+      120
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -0.6,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "five-scouts-5",
+     "x": -6,
+     "z": 152,
+     "y": "floor",
+     "face": [
+      20,
+      -150
+     ],
+     "props": false
     }
    ],
    "camera": {
     "type": "wide",
     "pos": [
-     -185.6,
-     255.8,
-     412.5
+     20,
+     300,
+     760
     ],
     "target": [
-     0,
-     35,
-     0
+     20,
+     55,
+     -30
     ],
-    "fov": 38
+    "fov": 22,
+    "subject": "circe",
+    "place": "C"
    },
    "subjects": [
     {
      "id": "circe",
+     "min": 0.03,
      "primary": true,
-     "soft": true,
-     "min": 0.02
+     "soft": true
     },
     {
-     "id": "piece:enchanted wolves and lions",
+     "id": "five-scouts-1",
      "soft": true,
-     "cut": true,
-     "min": 0.02
+     "min": 0.05
+    },
+    {
+     "id": "five-scouts-3",
+     "soft": true,
+     "min": 0.05
+    },
+    {
+     "id": "prop:lion1",
+     "soft": true,
+     "cut": true
     }
+   ],
+   "turn": {
+    "around": [
+     20,
+     40,
+     60
+    ],
+    "r": 260,
+    "h": 100,
+    "fov": 45
+   },
+   "lensAllow": [
+    "five-scouts-1",
+    "five-scouts-2",
+    "five-scouts-3",
+    "five-scouts-4",
+    "five-scouts-5",
+    "eurylochus"
    ]
   },
   {
    "id": "K2",
    "beat": "All but Eurylochus enter; Circe serves drugged food and strikes them with her wand.",
-   "kind": "push",
-   "draft": true,
+   "text": "She set them upon benches and seats and mixed them a mess with cheese, honey, meal, and Pramnian wine, but she drugged it with wicked poisons... and when they had drunk she turned them into pigs by a stroke of her wand. (Eurylochus stayed outside, for he suspected mischief.)",
+   "hide": [
+    "crew-to-swine variants",
+    "enchanted wolves and lions"
+   ],
+   "props": [],
    "blocking": [
     {
      "id": "circe",
-     "face": "eurylochus"
+     "x": -62,
+     "z": -122,
+     "y": "floor",
+     "face": [
+      20,
+      -80
+     ],
+     "props": true,
+     "pose": {
+      "armRP": [
+       -2.6,
+       0,
+       -0.1
+      ],
+      "armLP": [
+       -0.9,
+       0,
+       0
+      ]
+     }
     },
     {
      "id": "eurylochus",
-     "face": "circe"
+     "x": 100,
+     "z": 45,
+     "y": "floor",
+     "face": [
+      -60,
+      -100
+     ],
+     "props": false,
+     "pose": {
+      "armLP": [
+       -0.6,
+       0,
+       0
+      ],
+      "armRP": [
+       -0.2,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "five-scouts-1",
+     "x": -16,
+     "z": -56,
+     "y": "floor",
+     "face": [
+      -30,
+      -400
+     ],
+     "props": false,
+     "pose": {
+      "legRP": [
+       -1.5708,
+       0,
+       0
+      ],
+      "legLP": [
+       -1.5708,
+       0,
+       0
+      ],
+      "armRP": [
+       -0.9,
+       0,
+       0
+      ],
+      "armLP": [
+       -0.9,
+       0,
+       0
+      ]
+     },
+     "sit": true
+    },
+    {
+     "id": "five-scouts-2",
+     "x": 36,
+     "z": -56,
+     "y": "floor",
+     "face": [
+      20,
+      -400
+     ],
+     "props": false,
+     "pose": {
+      "legRP": [
+       -1.5708,
+       0,
+       0
+      ],
+      "legLP": [
+       -1.5708,
+       0,
+       0
+      ],
+      "armRP": [
+       -2.1,
+       0,
+       0.35
+      ],
+      "headP": [
+       0,
+       0.35,
+       0
+      ]
+     },
+     "sit": true
+    },
+    {
+     "id": "five-scouts-3",
+     "x": 86,
+     "z": -56,
+     "y": "floor",
+     "face": [
+      68,
+      -400
+     ],
+     "props": false,
+     "pose": {
+      "legRP": [
+       -1.5708,
+       0,
+       0
+      ],
+      "legLP": [
+       -1.5708,
+       0,
+       0
+      ],
+      "armRP": [
+       -0.8,
+       0,
+       0
+      ],
+      "armLP": [
+       -1.0,
+       0,
+       0
+      ],
+      "headP": [
+       0,
+       0.6,
+       0
+      ]
+     },
+     "sit": true
+    },
+    {
+     "id": "five-scouts-4",
+     "x": -10,
+     "z": -119,
+     "y": "floor",
+     "face": [
+      -10,
+      300
+     ],
+     "props": false,
+     "pose": {
+      "legRP": [
+       -1.5708,
+       0,
+       0
+      ],
+      "legLP": [
+       -1.5708,
+       0,
+       0
+      ],
+      "armRP": [
+       -1.0,
+       0,
+       0
+      ],
+      "armLP": [
+       -1.0,
+       0,
+       0
+      ]
+     },
+     "sit": true
+    },
+    {
+     "id": "five-scouts-5",
+     "x": 45,
+     "z": -119,
+     "y": "floor",
+     "face": [
+      45,
+      300
+     ],
+     "props": false,
+     "pose": {
+      "legRP": [
+       -1.5708,
+       0,
+       0
+      ],
+      "legLP": [
+       -1.5708,
+       0,
+       0
+      ],
+      "armRP": [
+       -1.0,
+       0,
+       0
+      ],
+      "armLP": [
+       -1.0,
+       0,
+       0
+      ],
+      "headP": [
+       0,
+       -0.5,
+       0
+      ]
+     },
+     "sit": true
     }
    ],
+   "look": {
+    "lights": [
+     {
+      "at": [
+       91,
+       80,
+       -167
+      ],
+      "color": "#ff9a4a",
+      "intensity": 1.6,
+      "distance": 320,
+      "decay": 1.2,
+      "shadow": true
+     },
+     {
+      "at": [
+       -51,
+       80,
+       -167
+      ],
+      "color": "#ff9a4a",
+      "intensity": 1.2,
+      "distance": 300,
+      "decay": 1.2
+     }
+    ]
+   },
    "camera": {
-    "type": "hero",
-    "a": "eurylochus",
-    "dist": 120,
-    "height": 6,
-    "yaw": 0.3,
-    "fov": 32,
-    "subject": "eurylochus",
-    "place": "L",
-    "eye": 0.34
+    "type": "wide",
+    "pos": [
+     60,
+     62,
+     150
+    ],
+    "target": [
+     30,
+     50,
+     -90
+    ],
+    "fov": 48,
+    "subject": "circe",
+    "place": "L"
    },
    "subjects": [
     {
-     "id": "eurylochus",
-     "primary": true,
-     "face": true,
-     "min": 0.2
+     "id": "circe",
+     "min": 0.15,
+     "primary": true
     },
     {
-     "id": "circe",
+     "id": "five-scouts-2",
+     "soft": true,
+     "min": 0.05
+    },
+    {
+     "id": "five-scouts-3",
+     "soft": true,
+     "cut": true
+    },
+    {
+     "id": "eurylochus",
+     "soft": true,
+     "cut": true
+    },
+    {
+     "id": "five-scouts-1",
      "soft": true,
      "cut": true
     }
+   ],
+   "turn": {
+    "around": [
+     60,
+     45,
+     -95
+    ],
+    "r": 190,
+    "h": 55,
+    "fov": 44
+   },
+   "lensAllow": [
+    "eurylochus",
+    "five-scouts-4",
+    "five-scouts-5"
    ]
   },
   {
    "id": "K3",
    "beat": "The men become pigs in body while retaining human minds.",
-   "kind": "medium",
-   "draft": true,
+   "text": "They were like pigs, head, hair, and all, and they grunted just as pigs do; but their senses were the same as before, and they remembered everything.",
+   "hide": [
+    "crew-to-swine variants",
+    "enchanted wolves and lions"
+   ],
+   "props": [
+    {
+     "name": "pig",
+     "id": "pig1",
+     "at": [
+      -5,
+      0,
+      -40
+     ],
+     "rot": [
+      0,
+      0.4,
+      0
+     ],
+     "floor": true,
+     "scale": 1.15
+    },
+    {
+     "name": "pig",
+     "id": "pig2",
+     "at": [
+      62,
+      0,
+      -30
+     ],
+     "rot": [
+      0,
+      -0.6,
+      0
+     ],
+     "floor": true,
+     "scale": 1.15
+    },
+    {
+     "name": "pig",
+     "id": "pig3",
+     "at": [
+      105,
+      0,
+      -40
+     ],
+     "rot": [
+      0,
+      -1.2,
+      0
+     ],
+     "floor": true,
+     "scale": 1.15
+    }
+   ],
    "blocking": [
     {
      "id": "circe",
+     "x": -58,
+     "z": -122,
+     "y": "floor",
      "face": [
-      -13.647931146576683,
-      269.9710530796737
-     ]
+      20,
+      -20
+     ],
+     "props": true,
+     "pose": {
+      "armRP": [
+       -1.55,
+       0,
+       0
+      ],
+      "armLP": [
+       -0.6,
+       0,
+       0
+      ]
+     }
     },
     {
      "id": "eurylochus",
-     "face": "circe"
+     "props": false,
+     "absent": true
+    },
+    {
+     "id": "five-scouts-2",
+     "x": 20,
+     "z": -20,
+     "y": "floor",
+     "face": [
+      20,
+      300
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.45,
+       0,
+       0.35
+      ],
+      "armLP": [
+       -1.45,
+       0,
+       -0.35
+      ]
+     },
+     "mask": "pigMask"
+    },
+    {
+     "id": "five-scouts-4",
+     "x": 70,
+     "z": -119,
+     "y": "floor",
+     "face": [
+      -28,
+      200
+     ],
+     "props": false,
+     "pose": {
+      "legRP": [
+       -1.5708,
+       0,
+       0
+      ],
+      "legLP": [
+       -1.5708,
+       0,
+       0
+      ],
+      "armRP": [
+       -0.6,
+       0,
+       0
+      ],
+      "armLP": [
+       -1.9,
+       0,
+       0
+      ]
+     },
+     "sit": true,
+     "mask": "pigMask"
+    },
+    {
+     "id": "five-scouts-1",
+     "props": false,
+     "absent": true
+    },
+    {
+     "id": "five-scouts-3",
+     "props": false,
+     "absent": true
+    },
+    {
+     "id": "five-scouts-5",
+     "props": false,
+     "absent": true
     }
    ],
+   "look": {
+    "lights": [
+     {
+      "at": [
+       91,
+       80,
+       -167
+      ],
+      "color": "#ff9a4a",
+      "intensity": 1.6,
+      "distance": 320,
+      "decay": 1.2,
+      "shadow": true
+     },
+     {
+      "at": [
+       -51,
+       80,
+       -167
+      ],
+      "color": "#ff9a4a",
+      "intensity": 1.2,
+      "distance": 300,
+      "decay": 1.2
+     }
+    ]
+   },
    "camera": {
-    "type": "hero",
-    "a": "circe",
-    "dist": 175,
-    "height": 10,
-    "yaw": -0.5,
-    "fov": 32,
-    "subject": "circe",
-    "place": "R",
-    "eye": 0.36
+    "type": "wide",
+    "pos": [
+     0,
+     40,
+     118
+    ],
+    "target": [
+     12,
+     48,
+     -60
+    ],
+    "fov": 42,
+    "subject": "five-scouts-2",
+    "place": "C"
    },
    "subjects": [
     {
-     "id": "circe",
+     "id": "five-scouts-2",
+     "min": 0.2,
      "primary": true,
-     "face": true,
-     "min": 0.12
+     "face": true
+    },
+    {
+     "id": "circe",
+     "soft": true,
+     "min": 0.06
+    },
+    {
+     "id": "prop:pig1",
+     "soft": true,
+     "cut": true
     }
-   ]
+   ],
+   "turn": {
+    "around": [
+     10,
+     45,
+     -60
+    ],
+    "r": 170,
+    "h": 35,
+    "fov": 42
+   }
   },
   {
    "id": "K4",
    "beat": "Circe shuts them in pens and throws them acorns.",
-   "kind": "push",
-   "draft": true,
-   "blocking": [
+   "text": "Thus then were they shut up squealing, and Circe threw them some acorns and beech masts such as pigs eat.",
+   "hide": [
+    "crew-to-swine variants",
+    "enchanted wolves and lions"
+   ],
+   "props": [
     {
-     "id": "circe",
-     "face": [
-      -13.647931146576683,
-      269.9710530796737
-     ]
+     "name": "pig",
+     "id": "pig1",
+     "at": [
+      -140,
+      0,
+      92
+     ],
+     "rot": [
+      0,
+      1.45,
+      0
+     ],
+     "floor": true,
+     "scale": 1.1
     },
     {
-     "id": "eurylochus",
-     "face": "circe"
+     "name": "pig",
+     "id": "pig2",
+     "at": [
+      -147,
+      0,
+      122
+     ],
+     "rot": [
+      0,
+      1.62,
+      0
+     ],
+     "floor": true,
+     "scale": 1.1
+    },
+    {
+     "name": "pig",
+     "id": "pig3",
+     "at": [
+      -140,
+      0,
+      152
+     ],
+     "rot": [
+      0,
+      1.8,
+      0
+     ],
+     "floor": true,
+     "scale": 1.1
+    },
+    {
+     "name": "acornPile",
+     "at": [
+      -128,
+      0,
+      122
+     ],
+     "floor": true
+    },
+    {
+     "name": "basket",
+     "at": [
+      -80,
+      0,
+      92
+     ],
+     "floor": true
+    },
+    {
+     "name": "acorns",
+     "id": "acorns",
+     "at": [
+      -118,
+      40,
+      118
+     ],
+     "rot": [
+      0.3,
+      0.8,
+      0.2
+     ],
+     "scale": 0.6
     }
    ],
-   "camera": {
-    "type": "hero",
-    "a": "circe",
-    "dist": 120,
-    "height": 6,
-    "yaw": 0.3,
-    "fov": 32,
-    "subject": "circe",
-    "place": "L",
-    "eye": 0.34
-   },
-   "subjects": [
-    {
-     "id": "circe",
-     "primary": true,
-     "face": true,
-     "min": 0.2
-    }
-   ]
-  },
-  {
-   "id": "K5",
-   "beat": "Eurylochus runs back to the ship and reports the disappearance.",
-   "kind": "pullback",
-   "draft": true,
    "blocking": [
     {
      "id": "circe",
-     "face": "eurylochus"
+     "x": -90,
+     "z": 122,
+     "y": "floor",
+     "face": [
+      -200,
+      122
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.75,
+       0,
+       -0.2
+      ],
+      "armLP": [
+       -0.5,
+       0,
+       0
+      ]
+     }
     },
     {
      "id": "eurylochus",
-     "face": [
-      -13.647931146576683,
-      492.87781922880447
-     ]
+     "props": false,
+     "absent": true
+    },
+    {
+     "id": "five-scouts-1",
+     "props": false,
+     "absent": true
+    },
+    {
+     "id": "five-scouts-2",
+     "props": false,
+     "absent": true
+    },
+    {
+     "id": "five-scouts-3",
+     "props": false,
+     "absent": true
+    },
+    {
+     "id": "five-scouts-4",
+     "props": false,
+     "absent": true
+    },
+    {
+     "id": "five-scouts-5",
+     "props": false,
+     "absent": true
     }
    ],
    "camera": {
     "type": "wide",
     "pos": [
-     -237.6,
-     327.4,
-     528.0
+     30,
+     215,
+     140
     ],
     "target": [
-     0,
-     35,
-     0
+     -160,
+     15,
+     120
     ],
-    "fov": 38
+    "fov": 32
+   },
+   "subjects": [
+    {
+     "id": "circe",
+     "min": 0.2,
+     "primary": true,
+     "cut": true
+    },
+    {
+     "id": "prop:pig1",
+     "soft": true,
+     "cut": true
+    }
+   ],
+   "turn": {
+    "around": [
+     -125,
+     35,
+     127
+    ],
+    "r": 150,
+    "h": 70,
+    "fov": 44
+   }
+  },
+  {
+   "id": "K5",
+   "beat": "Eurylochus runs back to the ship and reports the disappearance.",
+   "text": "Eurylochus at once came back to tell me about the sad fate of our comrades. He was so overcome with dismay that he could not speak a word; his eyes filled with tears and he could only sob and sigh.",
+   "hide": [
+    "crew-to-swine variants",
+    "enchanted wolves and lions"
+   ],
+   "props": [
+    {
+     "name": "pig",
+     "at": [
+      -140,
+      0,
+      92
+     ],
+     "rot": [
+      0,
+      1.45,
+      0
+     ],
+     "floor": true,
+     "scale": 1.1
+    },
+    {
+     "name": "pig",
+     "at": [
+      -147,
+      0,
+      122
+     ],
+     "rot": [
+      0,
+      1.62,
+      0
+     ],
+     "floor": true,
+     "scale": 1.1
+    },
+    {
+     "name": "pig",
+     "at": [
+      -140,
+      0,
+      152
+     ],
+     "rot": [
+      0,
+      1.8,
+      0
+     ],
+     "floor": true,
+     "scale": 1.1
+    },
+    {
+     "name": "wolf",
+     "id": "wolf1",
+     "at": [
+      -70,
+      0,
+      150
+     ],
+     "rot": [
+      0,
+      3.1,
+      0
+     ],
+     "floor": true,
+     "scale": 1.3
+    },
+    {
+     "name": "lion",
+     "id": "lion1",
+     "at": [
+      70,
+      0,
+      140
+     ],
+     "rot": [
+      0,
+      3.4,
+      0
+     ],
+     "floor": true,
+     "scale": 1.45
+    },
+    {
+     "name": "wolfGrey",
+     "at": [
+      120,
+      0,
+      70
+     ],
+     "rot": [
+      0,
+      3.0,
+      0
+     ],
+     "floor": true,
+     "scale": 1.3
+    }
+   ],
+   "blocking": [
+    {
+     "id": "eurylochus",
+     "x": 30,
+     "z": 238,
+     "y": "floor",
+     "face": [
+      40,
+      500
+     ],
+     "props": false,
+     "pose": {
+      "legRP": [
+       -0.75,
+       0,
+       0
+      ],
+      "legLP": [
+       0.6,
+       0,
+       0
+      ],
+      "armRP": [
+       0.9,
+       0,
+       0
+      ],
+      "armLP": [
+       -1.0,
+       0,
+       0
+      ],
+      "headP": [
+       0,
+       0.55,
+       0
+      ]
+     }
+    },
+    {
+     "id": "circe",
+     "x": 20,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      20,
+      300
+     ],
+     "props": true,
+     "pose": {
+      "armRP": [
+       -0.3,
+       0,
+       0
+      ],
+      "armLP": [
+       -0.2,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "five-scouts-1",
+     "props": false,
+     "absent": true
+    },
+    {
+     "id": "five-scouts-2",
+     "props": false,
+     "absent": true
+    },
+    {
+     "id": "five-scouts-3",
+     "props": false,
+     "absent": true
+    },
+    {
+     "id": "five-scouts-4",
+     "props": false,
+     "absent": true
+    },
+    {
+     "id": "five-scouts-5",
+     "props": false,
+     "absent": true
+    }
+   ],
+   "look": {
+    "sky": [
+     "#3b4a78",
+     "#f2a36b"
+    ],
+    "fog": [
+     520,
+     1700
+    ],
+    "sun": {
+     "dir": [
+      0.3,
+      0.35,
+      -0.9
+     ],
+     "color": "#ffb27a",
+     "intensity": 1.2,
+     "shadow": true
+    },
+    "fill": {
+     "sky": "#8d9cc6",
+     "ground": "#3b2e24",
+     "intensity": 0.45
+    },
+    "exposure": 0.9,
+    "lights": [
+     {
+      "at": [
+       20,
+       90,
+       -150
+      ],
+      "color": "#ffa050",
+      "intensity": 1.4,
+      "distance": 300
+     }
+    ]
+   },
+   "camera": {
+    "type": "wide",
+    "pos": [
+     80,
+     36,
+     395
+    ],
+    "target": [
+     20,
+     58,
+     150
+    ],
+    "fov": 40,
+    "subject": "eurylochus",
+    "place": "L"
    },
    "subjects": [
     {
      "id": "eurylochus",
+     "min": 0.25,
      "primary": true,
+     "face": true
+    },
+    {
+     "id": "circe",
      "soft": true,
      "min": 0.02
+    },
+    {
+     "id": "prop:lion1",
+     "soft": true,
+     "cut": true
     }
-   ]
+   ],
+   "turn": {
+    "around": [
+     30,
+     40,
+     238
+    ],
+    "r": 130,
+    "h": 30,
+    "fov": 44
+   }
   }
  ]
 }

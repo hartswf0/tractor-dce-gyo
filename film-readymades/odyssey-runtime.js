@@ -46,6 +46,8 @@ function kfSpread(min,ids){const acts=ButterCast.cast.filter(a=>!ids||ids.includ
   for(const a of acts){a.rig.pos.y=kfFloor(a);a.rig.figure.position.copy(a.rig.pos);}}
 const kfInside=(o,r)=>{for(;o;o=o.parent)if(o===r)return true;return false;};
 function kfBlock(list){for(const e of list){const a=kfActor(e.id);if(!a){console.warn('[keyframe] no actor',e.id);continue;}const r=a.rig;
+  /* absent: the actor is not in this still (the men already swine): hidden, and left out of the physics */
+  r.absent=!!e.absent;r.figure.visible=!e.absent;if(e.absent)continue;
   if(typeof e.at==='string'){const p=kfPoint(e.at).add(new THREE.Vector3(...(e.off||[0,0,0])));r.pos.x=p.x;r.pos.z=p.z;}
   if(e.x!=null)r.pos.x=e.x;if(e.z!=null)r.pos.z=e.z;if(e.y==='ground')r.pos.y=kfGround(r.pos.x,r.pos.z);else if(e.y==='floor')r.pos.y=kfFloor(a);
   else if(e.y==='surface'){const from=(typeof e.at==='string'?kfPoint(e.at).y:r.pos.y+200)-(e.reach??25);const figs=new Set();ButterCast.cast.forEach(b=>b.rig.figure.traverse(o=>figs.add(o)));const ms=[];scene.traverse(o=>{if(kfSolid(o)&&!figs.has(o)&&!(o.parent&&kfPropObjs.get('stake')&&kfInside(o,kfPropObjs.get('stake'))))ms.push(o);});
@@ -54,9 +56,16 @@ function kfBlock(list){for(const e of list){const a=kfActor(e.id);if(!a){console
   if(f)r.heading=Math.atan2(f.x-r.pos.x,f.z-r.pos.z);else if(e.heading!=null)r.heading=e.heading;
   r.figure.position.copy(r.pos);r.figure.rotation.y=r.heading;r.hold=e.pose||r.hold||{};
   for(const k of ['armRP','armLP','headP','torsoP','legRP','legLP']){const v=r.hold[k]||[0,0,0];r[k].rotation.set(v[0],v[1],v[2]);}
+  /* sit: the thighs level, the hips on the highest seat under the figure (a bench, a throne), the feet hanging; the support check then looks under the hips */
+  r.sat=!!e.sit;if(e.sit){const figs=new Set();ButterCast.cast.forEach(b=>b.rig.figure.traverse(o=>figs.add(o)));const ms=[];scene.traverse(o=>{if(kfSolid(o)&&!figs.has(o))ms.push(o);});
+    const h=new THREE.Raycaster(new THREE.Vector3(r.pos.x,r.pos.y+(e.reach??60),r.pos.z),new THREE.Vector3(0,-1,0)).intersectObjects(ms,true)[0];
+    if(h){r.figure.updateMatrixWorld(true);const hy=kfWorld(r.legRP).y-r.figure.position.y;r.pos.y=h.point.y-hy+(e.lift??1.5);r.figure.position.copy(r.pos);}}
   /* props: false empties the hands (a man bound to a mast holds no sword): each arm pivot carries its arm, its hand, then what it holds */
   /* the arm pivot holds three empty slots (arm, hand, weapon), then the parts: the arm, the hand, then what it holds. Only that last is hidden. */
-  if(e.props!=null)for(const k of ['armRP','armLP']){const g=r[k].children.filter(c=>c.type==='Group'&&!String(c.name).startsWith('slot'));g.forEach((c,i)=>c.visible=i<2||e.props!==false);}}}
+  if(e.props!=null)for(const k of ['armRP','armLP']){const g=r[k].children.filter(c=>c.type==='Group'&&!String(c.name).startsWith('slot'));g.forEach((c,i)=>c.visible=i<2||e.props!==false);}
+  /* mask: headgear from the prop library worn in place of the hat (the pig headdress on a man half turned); the head pivot holds the head, then the hat, in LDraw units */
+  const hp=r.headP;hp.children.filter(c=>c.name==='kfmask').forEach(c=>hp.remove(c));const hg=hp.children.filter(c=>c.type==='Group'&&!String(c.name).startsWith('slot'));
+  if(hg[1])hg[1].visible=!e.mask;if(e.mask&&kfPropLib&&kfPropLib[e.mask]){const m=kfPropLib[e.mask].template.clone(true);m.name='kfmask';hp.add(m);}}}
 function kfShoot(c){camera.position.set(...c.pos);if(c.fov)camera.fov=c.fov;camera.updateProjectionMatrix();controls.target.set(...c.target);camera.lookAt(controls.target);camera.updateMatrixWorld();}
 /* a set piece as a subject (a troll, a giant, the ship): rays to its crown, middle and flanks; its box on screen */
 function kfScorePiece(label,meshes,ray,cam,scr){const b=kfPiece(label);if(!b)return {missing:true};const V=THREE.Vector3,cx=(b[0]+b[3])/2,cz=(b[2]+b[5])/2,h=b[4]-b[1];
@@ -128,12 +137,15 @@ function kfBoxes(a,shrink=0.12){const out=[];a.rig.figure.updateMatrixWorld(true
    out.push({c:c.clone().applyMatrix4(m),ax:ax.map(x=>x.normalize()),h:[h.x*sc[0],h.y*sc[1],h.z*sc[2]],name:(o.parent&&o.parent.userData&&o.parent.userData.file)||''});});return out;}
 function kfSat(A,B){const T=B.c.clone().sub(A.c),axes=[...A.ax,...B.ax];for(const a of A.ax)for(const b of B.ax){const x=a.clone().cross(b);if(x.lengthSq()>1e-8)axes.push(x.normalize());}
   for(const L of axes){const ra=A.h[0]*Math.abs(A.ax[0].dot(L))+A.h[1]*Math.abs(A.ax[1].dot(L))+A.h[2]*Math.abs(A.ax[2].dot(L)),rb=B.h[0]*Math.abs(B.ax[0].dot(L))+B.h[1]*Math.abs(B.ax[1].dot(L))+B.h[2]*Math.abs(B.ax[2].dot(L));if(Math.abs(T.dot(L))>ra+rb)return false;}return true;}
-function kfPhysics(ids,touch=[]){const set=new Set(ids),acts=ButterCast.cast.filter(a=>set.has(kfShort(a.kind))),boxes=new Map(acts.map(a=>[a,kfBoxes(a)])),collide=[],floating=[];
+function kfPhysics(ids,touch=[]){const set=new Set(ids),acts=ButterCast.cast.filter(a=>set.has(kfShort(a.kind))&&!a.rig.absent),boxes=new Map(acts.map(a=>[a,kfBoxes(a)])),collide=[],floating=[];
   const ok=(p,q)=>touch.some(([x,y])=>(x===p&&y===q)||(x===q&&y===p));
   for(let i=0;i<acts.length;i++)for(let j=i+1;j<acts.length;j++){const a=acts[i],b=acts[j],p=kfShort(a.kind),q=kfShort(b.kind);if(a.rig.pos.distanceTo(b.rig.pos)>140||ok(p,q))continue;
     let n=0;for(const A of boxes.get(a))for(const B of boxes.get(b))if(kfSat(A,B))n++;if(n)collide.push([p,q,n]);}
   const meshes=[],figs=new Set();ButterCast.cast.forEach(a=>a.rig.figure.traverse(o=>figs.add(o)));scene.traverse(o=>{if(kfSolid(o)&&!figs.has(o))meshes.push(o);});
-  for(const a of acts){const k=a.rig.headP.getWorldScale(new THREE.Vector3()).y,from=a.rig.pos.clone().add(new THREE.Vector3(0,30*k,0)),ray=new THREE.Raycaster(from,new THREE.Vector3(0,-1,0));ray.far=200;
+  for(const a of acts){const k=a.rig.headP.getWorldScale(new THREE.Vector3()).y;
+    if(a.rig.sat){a.rig.figure.updateMatrixWorld(true);const hp=kfWorld(a.rig.legRP),lp=kfWorld(a.rig.legLP),c=hp.clone().add(lp).multiplyScalar(0.5),h=new THREE.Raycaster(c.clone().add(new THREE.Vector3(0,2*k,0)),new THREE.Vector3(0,-1,0)).intersectObjects(meshes,true)[0],gap=h?c.y-h.point.y:Infinity;
+      if(gap<-2*k||gap>14*k)floating.push([kfShort(a.kind),h?+gap.toFixed(1):null]);continue;}   /* seated: the hips on the seat, the thighs' own depth above it */
+    const from=a.rig.pos.clone().add(new THREE.Vector3(0,30*k,0)),ray=new THREE.Raycaster(from,new THREE.Vector3(0,-1,0));ray.far=200;
     const h=ray.intersectObjects(meshes,true)[0],gap=h?a.rig.pos.y-h.point.y:Infinity;if(Math.abs(gap)>3*k)floating.push([kfShort(a.kind),h?+gap.toFixed(1):null]);}
   return {collide,floating};}
 /* rope: a braided string as LDraw models one (a chain of short cylinders along a path), here wound in loops round a figure and the
@@ -160,7 +172,9 @@ async function kfLoadProps(){if(kfPropLib)return;const root=new URL('../../',loc
   for(const id of ids){if(ButterLDraw.parts['parts/'+id+'.dat'])continue;try{const pk=await (await fetch(root+'odyssey/packs/'+id.replace('/','_')+'.json')).json();
     for(const [k,v] of Object.entries(pk)){ButterLDraw.parts[k]=v;ButterLDraw.parts[(k.startsWith('parts/')||k.startsWith('p/'))?k:'parts/'+k]=v;if(k.startsWith('p/'))ButterLDraw.parts[k.slice(2)]=v;}}catch(e){console.warn('[props] no pack',id);}}
   for(const p of Object.values(kfPropLib))p.template=await new Promise((res,rej)=>{const l=new THREE.LDrawLoader();l.setFileMap({});Object.assign(l.subobjectCache,ButterLDraw.parts);
-    l.parse(ButterLDraw.colors+'\n'+p.parts.map(r=>'1 '+r.color+' '+r.m.join(' ')+' parts/'+r.part).join('\n'),'prop.ldr',res,rej);});}
+    l.parse(ButterLDraw.colors+'\n'+p.parts.map(r=>'1 '+r.color+' '+r.m.join(' ')+' parts/'+r.part).join('\n'),'prop.ldr',res,rej);});
+  /* LDraw colours are sRGB; the renderer encodes to sRGB on output, so the props' colours go linear once (as the baked set's do), or a dark grey wolf renders near white */
+  const lin=new Set();for(const p of Object.values(kfPropLib))p.template.traverse(o=>{for(const m of [].concat(o.material||[]))if(m&&m.color&&!lin.has(m)){lin.add(m);if(renderer.outputEncoding===THREE.sRGBEncoding)m.color.convertSRGBToLinear();}});}
 function kfAnchor(n){let o=null;scene.traverse(q=>{if(!o&&q.name==='@'+n)o=q;});return o?o.getWorldPosition(new KV()):null;}
 function kfPoint(p){if(Array.isArray(p))return new KV(...p);if(typeof p==='string'&&p.startsWith('@'))return kfAnchor(p.slice(1));return kfHead(p);}
 function kfProps(list){for(const o of kfPropObjs.values())scene.remove(o);kfPropObjs.clear();const sc=filmAsset().scale;

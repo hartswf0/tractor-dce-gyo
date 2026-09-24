@@ -135,6 +135,61 @@ function room(name, w, d, floorComp, items, marks, extra = {}) {
 }
 const M = (x, z, face = 0, note = '', axis, y) => ({ x, z, face, note, ...(axis ? { axis } : {}), ...(y != null ? { y } : {}) });   // face: quarter turns; 0 faces the camera (south)
 
+/* stone coursing in running bond: a wall along x (or z) over stud centres a..b, n courses from base, 1 x 2 embossed bricks and 1 x 1
+   bricks at the ends of the odd courses; holes [[from, to, course0, course1]] are left open (a window) */
+function coursing(col, a, b, at, n, { alongZ = false, base = -8, holes = [], id2 = '98283', band = null } = {}) {
+  const out = [];
+  for (let k = 0; k < n; k++) {
+    const y = base - 24 * k, c = k === 0 ? C.dtan : band && k === n - 1 ? band : col, studs = [];
+    for (let v = a; v <= b + 1e-6; v += 1) if (!holes.some(([f, t, c0, c1]) => v >= f - 1e-6 && v <= t + 1e-6 && k >= c0 && k <= c1)) studs.push(v);
+    for (let i = 0; i < studs.length;) {
+      const v = studs[i], pair = i + 1 < studs.length && Math.abs(studs[i + 1] - v - 1) < 1e-6 && ((Math.round(v - a) + k) % 2 === 0);
+      const u = pair ? v + 0.5 : v, id = pair ? id2 : '3005';
+      out.push(alongZ ? { id, col: c, x: at, z: u, base: y, q: 1 } : { id, col: c, x: u, z: at, base: y });
+      i += pair ? 2 : 1;
+    }
+  }
+  return out;
+}
+function circeHall() {
+  const W = C.tan, top = -8 - 24 * 9, list = [];
+  /* the hall's stone floor (plates, the floor 8 up) and the carpet under the feast */
+  for (const x of [-8, 0, 8]) for (const z of [-10, -6, -2]) list.push(R('3035', C.lbg, x, z));
+  list.push({ id: '3027', col: C.dred, x: 0, z: -5.5, base: -16 });
+  /* the benches either side of the feast ("she set them upon benches and seats"): a 1 x 8 brick under a 1 x 8 tile */
+  for (const z of [-3.5, -7.5]) list.push({ id: '3008', col: C.rbrown, x: 0, z, base: -24 }, { id: '4162', col: C.dtan, x: 0, z, base: -48 });
+  /* the back wall with two arched windows, the side walls, nine courses; a frieze course of white over all, gold tiles on it */
+  list.push(...coursing(W, -11.5, 11.5, -12.5, 9, { holes: [[-7.5, -6.5, 4, 6], [6.5, 7.5, 4, 6]] }));
+  for (const x of [-7, 7]) list.push({ id: '30044', col: C.white, x, z: -12.5, base: -8 - 24 * 4 }, { id: '3023', col: C.white, x, z: -12.5, base: -8 - 24 * 4 - 64 });
+  for (const sd of [-1, 1]) list.push(...coursing(W, -12.5, -0.5, sd * 12.5, 9, { alongZ: true }));
+  /* the colonnade: the great arch over the way in, a lesser arch either side, on white round columns */
+  for (const x of [-11.5, -6.5, -5.5, 5.5, 6.5, 11.5]) list.push({ id: '43888', col: C.white, x, z: 0.5, base: -8 });
+  for (const x of [-11.5, -6.5, 6.5, 11.5]) list.push({ id: '3005', col: C.white, x, z: 0.5, base: -8 - 144 });
+  list.push({ id: '6108', col: C.white, x: 0, z: 0.5, base: -8 - 144 }, { id: '3307', col: C.white, x: -9, z: 0.5, base: -8 - 168 }, { id: '3307', col: C.white, x: 9, z: 0.5, base: -8 - 168 });
+  list.push({ id: '3004', col: C.white, x: -6, z: 0.5, base: -8 - 144 }, { id: '3004', col: C.white, x: -6, z: 0.5, base: -8 - 168 }, { id: '3004', col: C.white, x: 6, z: 0.5, base: -8 - 144 }, { id: '3004', col: C.white, x: 6, z: 0.5, base: -8 - 168 });
+  /* the frieze: a course of white bricks round the top of the walls and over the arches, gold tiles along it */
+  for (let x = -12; x <= 12; x += 2) list.push({ id: '3004', col: C.white, x, z: -12.5, base: top }, { id: '3004', col: C.white, x, z: 0.5, base: top }, { id: '3069b', col: C.gold, x, z: 0.5, base: top - 24 });
+  for (let z = -12; z <= 0; z += 2) for (const sd of [-1, 1]) list.push({ id: '3004', col: C.white, x: sd * 12.5, z, base: top, q: 1 });
+  /* the loom: two posts, a beam, and the web in bands of colour ("so fine, so soft, and of such dazzling colours") */
+  list.push({ id: '2453b', col: C.rbrown, x: -2.5, z: -11.5, base: -16 }, { id: '2453b', col: C.rbrown, x: 2.5, z: -11.5, base: -16 }, { id: '3009', col: C.rbrown, x: 0, z: -11.5, base: -136 },
+    { id: '3010', col: C.rbrown, x: 0, z: -11.5, base: -16 });
+  const web = [22, C.gold, C.dred, 322, 22, 191, C.dred, C.gold, 322, 22, C.gold, C.dred];
+  web.forEach((c, i) => list.push({ id: '3710', col: c, x: 0, z: -11.5, base: -40 - 8 * i }));
+  /* the court: flagstones from the gate to the colonnade, the lion-carved gateposts, the lions looking out */
+  for (let z = 2.5; z <= 11.5; z += 2) for (const x of [-2, 0, 2]) list.push({ id: '3068b', col: (x / 2 + (z - 0.5) / 2) % 2 ? C.tan : C.dtan, x, z, base: -8 });
+  for (const x of [-4.5, 4.5]) list.push({ id: '30274', col: C.lbg, x, z: 12, base: -8, q: 2 }, { id: '3068b', col: C.lbg, x, z: 11.5, base: -80 });
+  /* the sty: log bricks two high round a pen of mud (seven studs square inside), its gate a four-stud gap toward the court, a trough */
+  for (const k of [0, 1]) { const y = -8 - 24 * k;
+    for (const x of [10.5, 14.5]) list.push({ id: '30137', col: C.rbrown, x, z: 3.5, base: y }, { id: '30137', col: C.rbrown, x, z: 11.5, base: y });
+    list.push({ id: '30137', col: C.rbrown, x: 16.5, z: 5.5, base: y, q: 1 }, { id: '30137', col: C.rbrown, x: 16.5, z: 9.5, base: y, q: 1 },
+      { id: '30136', col: C.rbrown, x: 8.5, z: 4.5, base: y, q: 1 }, { id: '30136', col: C.rbrown, x: 8.5, z: 10.5, base: y, q: 1 }); }
+  list.push({ id: '3032', col: C.dbrown, x: 12.5, z: 5.5, base: -8, q: 1 }, { id: '3032', col: C.dbrown, x: 12.5, z: 9.5, base: -8, q: 1 }, { id: '3009', col: C.dbrown, x: 15.5, z: 7.5, base: -16, q: 1 });
+  /* the forest round the house */
+  list.push(R('3778', C.dgreen, -15, -12), R('3778', C.dgreen, 15, -12), R('3778', C.dgreen, -15.5, -5), R('3471', C.green, 15, -3), R('3470', C.green, -14, 4), R('2435', C.dgreen, -15, 10),
+    R('3471', C.green, 8, 13), R('3470', C.green, -9, 12.5), R('2417', C.green, -12, 1), R('2417', C.dgreen, 14, 2), R('2417', C.green, -6, 13), R('2417', C.dgreen, 16, 13),
+    R('3741ac01', C.yellow, -11, 9), R('3741ac04', C.red, -12, 6.5), R('3741ac01', C.yellow, 6, 13), R('53934p01c01', C.dbg, 15, 12.5), R('42291', C.dbg, -16, 12.5));
+  return REAL("circe's house", list);
+}
 const SETS = {
   /* Odysseus's megaron at Ithaca: the hall of the suitors, the bow and the slaughter */
   megaron: () => room('the megaron at ithaca', 36, 30, floor(36, 30, C.dtan, C.tan), [
@@ -158,12 +213,18 @@ const SETS = {
     [FURN.pen(), -7, -3], [FURN.rack2(), 7, -7], [FURN.fire(), 3, 2], [FURN.pithos(), 10, -2], [FURN.pithos(), 12, 3],
     [KIT.greatStone(), 0, 12],
   ], { entrance: M(0, 9, 2, 'the mouth of the cave, the great stone'), fire: M(3, 5, 0, 'the fire'), pen: M(-7, 2, 0, 'the flock'), racks: M(7, -4, 0, 'the cheeses'), back: M(0, -6, 0, 'where the Cyclops sleeps'), centre: M(0, 2, 0) }),
-  /* Circe's house in the forest */
-  circe: () => room("circe's hall", 34, 28, floor(34, 28, C.white, C.sgreen), [
-    [walls(34, 28, 5, C.white, { band: C.purple }), 0, 0, 2, -8],
-    [FURN.column(6, C.white), -5, -4], [FURN.column(6, C.white), 5, -4], [FURN.throne(C.gold, C.purple), 0, -10], [FURN.loom(C.rbrown, C.purple), -11, -10], [FURN.couch(), 10, -9], [FURN.table(C.rbrown), 0, 2],
-    [FURN.chair(), -5, 2, 1], [FURN.chair(), 5, 2, 3], [FURN.brazier(), -13, 8], [FURN.brazier(), 13, 8], [kit('sty', [K.box(0, 0, 14, 6, 1, C.rbrown, { hollow: true })]), 8, 9],
-  ], { circe: M(0, -7, 0, 'Circe at her throne'), loom: M(-9, -7, 0), table: M(0, 5, 2), sty: M(11, 8, 0, 'the sty, where the crew become swine', 'x'), door: M(0, 12, 2), centre: M(0, 6, 0) }),
+  /* Circe's house in the forest (Homer X: "built of cut stones, on a site that could be seen from far, in the middle of the forest";
+     wolves and lions about it; the goddess singing at her loom; the sties). In real parts: an open-fronted hall of embossed-stone
+     bricks under a frieze, a colonnade of round columns carrying arches (the camera looks in through it), a stone floor and a
+     purple carpet, the throne between two braziers, a loom with a web of many colours, the feast table; outside a court of
+     flagstones between two lion-carved gateposts, the forest round it, and a sty of log bricks. */
+  circe: () => room("circe's hall", 34, 28, floor(34, 28, C.green), [
+    [circeHall(), 0, 0],
+    [FURN.throne(C.gold, 22), 7.5, -11.5, 0, -16], [FURN.brazier(), -4.5, -10.5, 0, -16], [FURN.brazier(), 4.5, -10.5, 0, -16],
+    [FURN.table(C.rbrown), 0, -5.5, 0, -24],
+    [FURN.couch(C.rbrown, 22), -8.5, -11, 0, -16], [FURN.pithos(), 10.5, -6, 0, -16], [FURN.pithos(), 10.5, -3, 0, -16], [FURN.urn(), -10.5, -3, 0, -16],
+  ], { circe: M(7, -9, 0, 'Circe at her throne'), loom: M(0, -9.5, 0, 'Circe at her loom'), table: M(0, -4, 2, 'the benches and seats'), door: M(0, 1, 2, 'the colonnade'),
+       gate: M(0, 11, 2, 'the lion gate'), sty: M(12.5, 7.5, 0, 'the sty, where the crew become swine', 'x'), court: M(-6, 7, 2, 'the court, the tamed beasts'), centre: M(0, 4, 0) }),
   /* the swineherd's hut and yard */
   hut: () => room("eumaeus's farm", 34, 28, floor(34, 28, C.dtan), [
     [kit('hut', [K.box(0, 0, 12, 10, 3, C.rbrown, { hollow: true }), K.cut(4, 9, 4, 1, 0, 3), K.roof(0, 0, 12, 10, 3, 'gable', C.dtan)]), -8, -7, 2],
