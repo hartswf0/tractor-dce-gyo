@@ -1,0 +1,88 @@
+{
+  "scene": "OD-B01-S03",
+  "operator": "FORAGE",
+  "dependsOn": ["REFERENCE", "CAMERA", "FRAME", "REQUIRE"],
+  "cameraRule": "Build only what the active camera and performance require.",
+  "targets": [
+    {
+      "id": "athena-mentes",
+      "sourceAsset": "character.athena-as-mentes",
+      "priority": 1,
+      "why": "Primary left-threshold subject; must read as composed traveler and support spear carry, gaze, walk, seated counsel.",
+      "referenceRoles": ["IDENTITY", "SILHOUETTE", "COSTUME", "ACTION"],
+      "mustSupport": ["stand", "walk", "turn_head", "gaze", "hold_spear", "sit"],
+      "resolutionOrder": ["REUSE", "ADAPT", "ASSEMBLE", "CUSTOM"],
+      "status": "UNRESOLVED"
+    },
+    {
+      "id": "telemachus",
+      "sourceAsset": "character.telemachus",
+      "priority": 2,
+      "why": "Primary crossing subject; must move from grief to hospitality inside the matched frame.",
+      "referenceRoles": ["IDENTITY", "SILHOUETTE", "COSTUME", "ACTION"],
+      "mustSupport": ["stand", "walk", "turn_head", "gaze", "offer_hand", "sit"],
+      "resolutionOrder": ["REUSE", "ADAPT", "ASSEMBLE", "CUSTOM"],
+      "status": "UNRESOLVED"
+    },
+    {
+      "id": "athena-spear",
+      "sourceAsset": "prop.athenas-bronze-spear",
+      "priority": 3,
+      "why": "Visible identity prop and later interaction object; must fit a minifigure hand and rack.",
+      "referenceRoles": ["PROP", "ACTION", "CONTINUITY"],
+      "mustSupport": ["grip", "carry", "plant", "rack", "raise"],
+      "resolutionOrder": ["REUSE", "ADAPT", "ASSEMBLE", "CUSTOM"],
+      "status": "UNRESOLVED"
+    },
+    {
+      "id": "palace-threshold",
+      "sourceAsset": "location.odysseuss-palace-threshold-and-hall",
+      "priority": 4,
+      "why": "The shot needs a legible outside/inside boundary behind Athena before it needs a complete palace.",
+      "referenceRoles": ["ARCHITECTURE", "LAYOUT", "COMPOSITION"],
+      "mustSupport": ["threshold", "entry", "occlusion", "background_read"],
+      "resolutionOrder": ["REUSE", "ADAPT", "ASSEMBLE", "CUSTOM"],
+      "status": "UNRESOLVED"
+    },
+    {
+      "id": "guest-route-floor",
+      "sourceAsset": "location.odysseuss-palace-threshold-and-hall",
+      "priority": 5,
+      "why": "Telemachus and Athena require a traversable route from the threshold toward the private guest area.",
+      "referenceRoles": ["LAYOUT", "ACTION", "COMPOSITION"],
+      "mustSupport": ["walkable_surface", "path", "place_character"],
+      "resolutionOrder": ["REUSE", "ADAPT", "ASSEMBLE", "CUSTOM"],
+      "status": "UNRESOLVED"
+    },
+    {
+      "id": "hall-fragments",
+      "sourceAsset": "location.odysseuss-palace-threshold-and-hall",
+      "priority": 6,
+      "why": "Only camera-visible walls, columns, stair hints, and depth cues are required.",
+      "referenceRoles": ["ARCHITECTURE", "COMPOSITION", "LIGHTING"],
+      "mustSupport": ["background_read", "occlusion", "light_blocking"],
+      "resolutionOrder": ["REUSE", "ADAPT", "ASSEMBLE", "CUSTOM"],
+      "status": "UNRESOLVED"
+    },
+    {
+      "id": "spear-rack",
+      "sourceAsset": "location.odysseuss-palace-threshold-and-hall",
+      "priority": 7,
+      "why": "Needed only once Telemachus actually takes and stores Athena's spear in-frame.",
+      "referenceRoles": ["PROP", "ARCHITECTURE", "ACTION"],
+      "mustSupport": ["receive_spear", "visible_storage"],
+      "resolutionOrder": ["REUSE", "ADAPT", "ASSEMBLE", "CUSTOM"],
+      "status": "UNRESOLVED"
+    },
+    {
+      "id": "feast-zone",
+      "sourceAsset": "ensemble.the-suitors",
+      "priority": 8,
+      "why": "Background social pressure must read as feast/crowd, but exact palace completeness is unnecessary.",
+      "referenceRoles": ["COMPOSITION", "ACTION", "CONTINUITY"],
+      "mustSupport": ["table", "bench", "crowd_blocking", "background_motion"],
+      "resolutionOrder": ["REUSE", "ADAPT", "ASSEMBLE", "CUSTOM"],
+      "status": "UNRESOLVED"
+    }
+  ]
+}
