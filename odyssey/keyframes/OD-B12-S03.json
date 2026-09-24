@@ -2,17 +2,18 @@
  "scene": "OD-B12-S03",
  "location": "odyssey-od-b12-s03",
  "title": "The Sirens' Song",
- "note": "Hand-blocked stills; Film Butter units (y up, the island at -z, the stern at +z). The ship: mast at (-17, 128), deck y 34.4, oars shipped through the gunwale. The rowers sit in two columns (port x -45, starboard x 11) facing the stern, a gangway clear down the middle; Odysseus is bound to the mast facing the island; the Sirens face him.",
+ "note": "Hand-blocked stills; Film Butter units (y up, the island at -z, the stern at +z). The ship: mast at (-17, 128), deck flush with the rim at y 50, oars shipped through the gunwale. Four rowers in two rows (port x -45, starboard x 11) face the stern with room to pull; the helmsman stands aft at the steering oar; Odysseus is bound to the mast facing the island; the Sirens face him.",
  "blocking": [
   {
    "id": "odysseus",
    "x": -17,
-   "z": 110,
-   "y": 34.4,
+   "z": 107,
+   "y": 50.0,
    "face": [
     -17,
     -400
    ],
+   "props": false,
    "pose": {
     "armRP": [
      0.55,
@@ -24,23 +25,22 @@
      0,
      -0.12
     ]
-   },
-   "props": false
+   }
   },
   {
    "id": "crew-at-the-oars-1",
    "x": -45,
-   "z": 70,
-   "y": 34.4,
+   "z": -10,
+   "y": 50.0,
    "heading": 0,
    "pose": {
     "armRP": [
-     -1.25,
+     -1.0,
      0,
      0
     ],
     "armLP": [
-     -1.25,
+     -1.0,
      0,
      0
     ]
@@ -49,17 +49,17 @@
   {
    "id": "crew-at-the-oars-2",
    "x": 11,
-   "z": 70,
-   "y": 34.4,
+   "z": -10,
+   "y": 50.0,
    "heading": 0,
    "pose": {
     "armRP": [
-     -1.25,
+     -1.0,
      0,
      0
     ],
     "armLP": [
-     -1.25,
+     -1.0,
      0,
      0
     ]
@@ -68,17 +68,17 @@
   {
    "id": "crew-at-the-oars-3",
    "x": -45,
-   "z": 30,
-   "y": 34.4,
+   "z": 45,
+   "y": 50.0,
    "heading": 0,
    "pose": {
     "armRP": [
-     -1.1,
+     -1.0,
      0,
      0
     ],
     "armLP": [
-     -1.1,
+     -1.0,
      0,
      0
     ]
@@ -87,17 +87,17 @@
   {
    "id": "crew-at-the-oars-4",
    "x": 11,
-   "z": 30,
-   "y": 34.4,
+   "z": 45,
+   "y": 50.0,
    "heading": 0,
    "pose": {
     "armRP": [
-     -1.1,
+     -1.0,
      0,
      0
     ],
     "armLP": [
-     -1.1,
+     -1.0,
      0,
      0
     ]
@@ -105,18 +105,21 @@
   },
   {
    "id": "crew-at-the-oars-5",
-   "x": -45,
-   "z": -10,
-   "y": 34.4,
-   "heading": 0,
+   "x": -17,
+   "z": 232,
+   "y": 50.0,
+   "face": [
+    -17,
+    -400
+   ],
    "pose": {
     "armRP": [
-     -1.2,
+     -0.9,
      0,
      0
     ],
     "armLP": [
-     -1.2,
+     -0.3,
      0,
      0
     ]
@@ -275,31 +278,31 @@
    "blocking": [
     {
      "id": "odysseus",
-     "x": -8,
-     "z": 60,
-     "y": 34.4,
-     "face": "crew-at-the-oars-1",
+     "x": -17,
+     "z": 27,
+     "y": 50.0,
+     "face": "crew-at-the-oars-3",
+     "props": false,
      "pose": {
       "armRP": [
-       -1.9,
+       -1.7,
        0,
-       -0.25
+       -0.2
       ],
       "armLP": [
-       -0.5,
+       -0.4,
        0,
        0
       ]
-     },
-     "props": true
+     }
     },
     {
-     "id": "crew-at-the-oars-1",
+     "id": "crew-at-the-oars-3",
      "face": "odysseus",
      "pose": {
       "headP": [
        0,
-       -0.25,
+       -0.3,
        0
       ]
      }
@@ -322,13 +325,13 @@
     {
      "id": "odysseus",
      "face": true,
-     "min": 0.2,
+     "min": 0.12,
      "max": 0.75,
      "primary": true
     },
     {
-     "id": "crew-at-the-oars-1",
-     "min": 0.1,
+     "id": "crew-at-the-oars-3",
+     "min": 0.08,
      "soft": true,
      "cut": true
     }
@@ -341,18 +344,18 @@
    "blocking": [
     {
      "id": "crew-at-the-oars-1",
-     "x": -44,
-     "z": 124,
-     "y": 34.4,
+     "x": -46,
+     "z": 110,
+     "y": 50.0,
      "face": "odysseus",
      "pose": {
       "armRP": [
-       -1.4,
+       -1.35,
        0,
        0
       ],
       "armLP": [
-       -1.4,
+       -1.35,
        0,
        0
       ]
@@ -360,55 +363,34 @@
     },
     {
      "id": "crew-at-the-oars-2",
-     "x": 10,
-     "z": 124,
-     "y": 34.4,
+     "x": 12,
+     "z": 110,
+     "y": 50.0,
      "face": "odysseus",
      "pose": {
       "armRP": [
-       -1.4,
+       -1.35,
        0,
        0
       ],
       "armLP": [
-       -1.4,
+       -1.35,
        0,
        0
       ]
      }
-    },
-    {
-     "id": "crew-at-the-oars-3",
-     "x": -45,
-     "z": 170,
-     "y": 34.4,
-     "face": "odysseus"
-    },
-    {
-     "id": "crew-at-the-oars-4",
-     "x": 11,
-     "z": 175,
-     "y": 34.4,
-     "face": "odysseus"
-    },
-    {
-     "id": "crew-at-the-oars-5",
-     "x": -17,
-     "z": 200,
-     "y": 34.4,
-     "face": "odysseus"
     }
    ],
    "camera": {
     "type": "hero",
     "a": "odysseus",
-    "dist": 170,
-    "height": -15,
-    "yaw": 0.9,
-    "fov": 34,
+    "dist": 200,
+    "height": 42,
+    "yaw": 0,
+    "fov": 30,
     "subject": "odysseus",
-    "place": "L",
-    "eye": 0.3
+    "place": "C",
+    "eye": 0.36
    },
    "subjects": [
     {
@@ -424,7 +406,35 @@
      "soft": true
     }
    ],
-   "note": "Before the rowing: two men lash him to the mast, the rest gathered aft to watch."
+   "note": "Down the gangway from the bow: the rowers' backs frame him; two men lash him to the mast, the rope round him and the mast at chest, waist and knee.",
+   "touch": [
+    [
+     "crew-at-the-oars-1",
+     "odysseus"
+    ],
+    [
+     "crew-at-the-oars-2",
+     "odysseus"
+    ]
+   ],
+   "rope": {
+    "who": "odysseus",
+    "post": [
+     -17,
+     128
+    ],
+    "thick": 2.4,
+    "color": "#c49a5a",
+    "at": [
+     0.74,
+     0.56,
+     0.3
+    ]
+   },
+   "lensAllow": [
+    "crew-at-the-oars-3",
+    "crew-at-the-oars-4"
+   ]
   },
   {
    "id": "K4",
@@ -484,7 +494,21 @@
      "min": 0.05,
      "soft": true
     }
-   ]
+   ],
+   "rope": {
+    "who": "odysseus",
+    "post": [
+     -17,
+     128
+    ],
+    "thick": 2.4,
+    "color": "#c49a5a",
+    "at": [
+     0.74,
+     0.56,
+     0.3
+    ]
+   }
   },
   {
    "id": "K5",
@@ -493,18 +517,18 @@
    "blocking": [
     {
      "id": "crew-at-the-oars-1",
-     "x": -44,
-     "z": 124,
-     "y": 34.4,
+     "x": -46,
+     "z": 110,
+     "y": 50.0,
      "face": "odysseus",
      "pose": {
       "armRP": [
-       -1.6,
+       -1.35,
        0,
-       0.2
+       0
       ],
       "armLP": [
-       -1.2,
+       -1.35,
        0,
        0
       ]
@@ -512,18 +536,18 @@
     },
     {
      "id": "crew-at-the-oars-2",
-     "x": 10,
-     "z": 124,
-     "y": 34.4,
+     "x": 12,
+     "z": 110,
+     "y": 50.0,
      "face": "odysseus",
      "pose": {
       "armRP": [
-       -1.6,
+       -1.35,
        0,
-       -0.2
+       0
       ],
       "armLP": [
-       -1.2,
+       -1.35,
        0,
        0
       ]
@@ -594,13 +618,13 @@
     "type": "ots",
     "over": "the-sirens-4",
     "at": "odysseus",
-    "dist": 62,
-    "off": 34,
-    "height": 22,
+    "dist": 52,
+    "off": 24,
+    "height": 18,
     "fov": 42,
     "subject": "odysseus",
     "place": "R",
-    "eye": 0.45
+    "eye": 0.3
    },
    "subjects": [
     {
@@ -626,7 +650,31 @@
     "crew-at-the-oars-3",
     "crew-at-the-oars-4",
     "crew-at-the-oars-5"
-   ]
+   ],
+   "touch": [
+    [
+     "crew-at-the-oars-1",
+     "odysseus"
+    ],
+    [
+     "crew-at-the-oars-2",
+     "odysseus"
+    ]
+   ],
+   "rope": {
+    "who": "odysseus",
+    "post": [
+     -17,
+     128
+    ],
+    "thick": 2.4,
+    "color": "#c49a5a",
+    "at": [
+     0.74,
+     0.56,
+     0.3
+    ]
+   }
   }
  ],
  "look": {
