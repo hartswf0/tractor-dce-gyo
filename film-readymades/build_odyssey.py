@@ -87,7 +87,7 @@ def scene(sid):
                          glassTriangles=[i for i, c in enumerate(colors) if c in glassCodes], collectibles=[]))
         rows.append(dict(id=ident, part=ident, color=15, x=float(origin[0]), y=float(origin[1]), z=float(origin[2]), r=0))
         if boxes and collide: colliders[ident] = [[(lo_ - origin).tolist(), (hi_ - origin).tolist()] for lo_, hi_ in boxes if (hi_ - lo_)[1] > 4]
-        pages.append(dict(id=ident, label=label, sourceStep=len(pages) + 1, placements=[len(pages)], bom=[dict(ref=placed[0][0], color=placed[0][1], quantity=1, subassembly=True)]))
+        pages.append(dict(id=ident, label=label, box=[round(float(v), 1) for v in list(flo) + list(fhi)], sourceStep=len(pages) + 1, placements=[len(pages)], bom=[dict(ref=placed[0][0], color=placed[0][1], quantity=1, subassembly=True)]))
         return ident
     piece('stage plate', [plate], 'shop', collide=False)
     for k, c, A, a in stage_kids: piece(re.sub(r'^od-b\d\d-s\d\d - ', '', k).replace('.ldr', '').replace('-', ' '), [(k, c, A, a)], 'shop', collide=True)
@@ -230,6 +230,10 @@ if __name__ == '__main__':
     s = s.replace(anchor, rt + '\n' + (R / 'odyssey-runtime.js').read_text() + '\n' + anchor, 1)
     s = s.replace('butter-films-base-v1', 'butter-odyssey-base-v1').replace('butter-films-scenes-v1', 'butter-odyssey-scenes-v1').replace('butter-films-workspace-v1', 'butter-odyssey-workspace-v1')
     s = s.replace('renderer.shadowMap.enabled=true', 'renderer.shadowMap.enabled=false')
+    # a keyframe's held pose: the walk cycle leaves a held rig as the keyframe set it
+    s = s.replace('rig.armLP.rotation.z=rig.armRP.rotation.z=0;', 'if(!rig.hold)rig.armLP.rotation.z=rig.armRP.rotation.z=0;', 1).replace('arm.rotation.set(state.armAngles[i],0,0);', 'if(!rig.hold)arm.rotation.set(state.armAngles[i],0,0);', 1)
+    s = re.sub(r'rig\.headP\.rotation\.y=0;(\s*)marker\.visible=false;', lambda m: 'if(!rig.hold)rig.headP.rotation.y=0;' + m.group(1) + 'marker.visible=false;', s, count=1)
+    s = s.replace('function pose(rig, st) {', 'function pose(rig, st) {\n  if (rig.hold) { for (const k of [\'armRP\', \'armLP\', \'headP\', \'torsoP\', \'legRP\', \'legLP\']) { const v = rig.hold[k] || [0, 0, 0]; rig[k].rotation.set(v[0], v[1], v[2]); } return; }', 1)
     css = '#locationReview{position:absolute;bottom:14px;left:14px;right:14px;z-index:42;background:#132320ed;border:1px solid #667b65;border-radius:9px;padding:8px 12px;color:#eaf0df;font:12px/1.4 system-ui;max-height:130px;overflow:auto}#locationReview[hidden],#locationView[hidden]{display:none!important}#locationReview>div{display:flex;align-items:center;gap:10px}#locationReview input{flex:1;min-width:20px;accent-color:#c4f46a}#locationReview p{margin:4px 0}#locationReview button{min-height:32px;min-width:32px}#locationView{max-width:145px}'
     s = s.replace('</body>', '<style>' + css + (R / 'odyssey-runtime.css').read_text() + '</style></body>')
     s = s.replace('<title>', '<title>Odyssey · ', 1)

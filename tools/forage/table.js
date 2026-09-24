@@ -112,8 +112,8 @@ function ensemble(a) {
   let role = 'servant'; for (const [re, ro] of ENSEMBLE_ROLE) if (re.test(n0)) { role = ro; break; }
   const mixed = role !== 'god' && /people|assembly|families|listeners|reaction|uproar|wave|dispersing|feast/.test(n0);
   if (role === 'giant' || role === 'cyclops') { const Cy = require('./cyclops.js'), g = []; for (let i = 0; i < Math.min(n, 4); i++) g.push(role === 'cyclops' ? Cy.oneEyedTroll('cyclops ' + (i + 1)) : Cy.troll({ club: true, skin: choose(r, [C.nougat, C.tan, C.sgreen]) })); return { comps: [group(n0, g, { gap: 2 })], role, base: C.dbg }; }   // the troll big figure: one-eyed for the Cyclopes
-  const figs = []; for (let i = 0; i < n; i++) { const ro = mixed ? choose(r, ['woman', 'servant', 'suitor', 'herdsman']) : role === 'god' ? choose(r, ['god', 'goddess', 'god', 'hermes']) : role; figs.push(fig(ROLES[ro](r), ro + ' ' + (i + 1))); }
-  if (/oars|rowing/.test(n0)) figs.forEach(f => f);
+  const figs = []; for (let i = 0; i < n; i++) { const ro = mixed ? choose(r, ['woman', 'servant', 'suitor', 'herdsman']) : role === 'god' ? choose(r, ['god', 'goddess', 'god', 'hermes']) : role; const sp = ROLES[ro](r); if (/oars|rowing/.test(n0)) delete sp.R;   /* rowers' oars are the ship's, shipped through the gunwale; the hands pull their looms */
+    figs.push(fig(sp, ro + ' ' + (i + 1))); }
   return { comps: [group(n0, figs, { gap: 1, maxW: Math.min(20, 3 * Math.ceil(Math.sqrt(n)) + 2) })], role, base: C.tan };
 }
 
