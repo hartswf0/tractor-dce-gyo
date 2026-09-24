@@ -69,6 +69,51 @@ const FURN = {
   whirlpool: () => kit('charybdis', [K.box(0, 0, 10, 10, 1, C.tDBlue, { hollow: true }), K.box(2, 2, 6, 6, 1, C.white, { hollow: true }), K.slab(4, 4, 2, 2, C.black)]),
 };
 
+
+/* ── real kits: set design in the parts LEGO makes for it ──
+   Terrain as the pirate and castle sets lay it (a blue baseplate for the sea, the printed beach baseplate, the rock panels
+   6082, 6083 and 23996, the two-part boulder), plants as they come (the columnar tree for a cypress, the oval tree in olive
+   for an olive, flower stems, the 6 x 5 leaves), the galley on the 22 x 8 unitary hull with a boat mast and a formed sail.
+   REAL lays whole parts: each { id, col, x, z (studs), base (its underside, LDU, y down; the plate top is -8), q, m } */
+const L = require('./ldraw.js');
+const I12 = [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1];
+function REAL(name, list) {
+  return B.make(name, 'parts', { parts: [...new Set(list.map(p => p.id))].join(' ') }, list.map(p => {
+    const box = L.info(p.id + '.dat').box, rot = p.m || L.RY(p.q || 0);
+    const y = p.y != null ? p.y : (p.base != null ? p.base : -8) - box[4];   // the part's underside on its base
+    return { part: p.id, col: p.col, m: L.mul(L.T((p.x || 0) * 20, y, (p.z || 0) * 20), rot) };
+  }));
+}
+const R = (id, col, x, z, base, q) => ({ id, col, x, z, base, q });
+const DECK = -42;   // the galley's deck, its underside on the plate: the hull 58 deep, the deck 24 below the rim
+const KIT = {
+  /* the black ship: 22 x 8 hull (black over its red keel: Homer's red-cheeked ships), a boat mast and its topmast, a formed white
+     sail turned across the beam on a yard of two 1 x 10 plates. The bow is the hull's +z end. */
+  galley: (sail = C.white) => { const SAIL = [0, 0, 0, 0, -1, 0, 1, 0, 0, 0, 0, 1];   // a quarter turn about z: the tall sheet laid broad
+    return REAL('black ship', [R('71958c01', C.black, 0, 0), { id: '2537', col: C.rbrown, x: 0, z: 1, y: -8 - 58 + 24 - 342 }, { id: '4289', col: C.rbrown, x: 0, z: 1, y: -8 - 58 + 24 - 342 - 8 },
+      { id: '61898ec01', col: sail, x: 0, z: 2, y: -250, m: SAIL }, { id: '4477', col: C.rbrown, x: -5, z: 1.5, y: -370 }, { id: '4477', col: C.rbrown, x: 5, z: 1.5, y: -370 }]); },
+  /* a crag of rock panels: the corner panel, the rectangular panel beside it, the triangular panel stacked on, a boulder */
+  crag: (col = C.dbg, tall = true) => REAL('crag', [R('23996', col, -3, 0), R('6082', col, 4, 1), ...(tall ? [R('6083', col, 4, 1, -8 - 144)] : []), R('2417', C.green, -1, 2, -8 - 144), R('2417', C.dgreen, 6, 0, -8 - 144)]),
+  rocks: (col = C.dbg) => REAL('rocks', [R('53934p01c01', col, 0, 0), R('42291', col, 4, 2), R('42284', col, 4, 2, -8 - 32)]),
+  boulder: (col = C.dbg) => REAL('boulder', [R('53934p01c01', col, 0, 0)]),
+  cypress: () => REAL('cypress', [R('3778', C.dgreen, 0, 0)]),
+  olive: () => REAL('olive tree', [R('3470', C.green, 0, 0)]),
+  pine: () => REAL('pine', [R('3471', C.green, 0, 0)]),
+  palm: () => REAL('palm', [R('2518c01', C.rbrown, 0, 0)]),
+  flowers: (n = 3) => REAL('flowers', Array.from({ length: n }, (_, i) => R(i % 2 ? '3741ac04' : '3741ac01', i % 2 ? C.red : C.yellow, (i % 3) * 3 - 3, Math.floor(i / 3) * 3))),
+  bush: () => REAL('bush', [R('2417', C.green, 0, 0), R('2417', C.dgreen, 2, 1, -12)]),
+  bones: () => REAL('bones', [R('6260', C.white, 0, 0), R('6266', C.white, 2, 1), R('6266', C.white, -2, 1), R('92691', C.white, 1, -2), R('92691', C.white, -1, 2, -8, 1)]),
+  /* the raft of logs, as Odysseus lashes it: log bricks side by side, a stub mast */
+  raft: () => REAL('raft', [...[-3, -2, -1, 0, 1, 2, 3].map(x => R('30137', C.rbrown, x, 0, -8, 1)), ...[-3, -2, -1, 0, 1, 2, 3].map(x => R('30137', C.rbrown, x, 4, -8, 1)), { id: '3957a', col: C.rbrown, x: 0, z: 2, y: -8 - 24 - 8 }]),
+  greatStone: () => REAL('the great stone', [R('53934p01c01', C.lbg, -2, 0), R('53934p01c01', C.lbg, 2, 0), R('42291', C.lbg, 0, 0, -8 - 72), R('42284', C.lbg, 0, 0, -8 - 72 - 32)]),
+  caveWall: (col = C.dbg) => REAL('cave wall', [...[-10, 0, 10].map(x => R('6082', col, x, 0)), ...[-10, 0, 10].map(x => R(x ? '6082' : '6083', col, x, 0, -8 - 144))]),
+  caveFlank: (col = C.dbg) => REAL('cave flank', [R('6082', col, -5, 0), R('6082', col, 5, 0), R('6083', col, 0, 0, -8 - 144)]),
+  splash: () => REAL('splash', [R('4589', C.tClear, 0, 0), R('4589', C.tClear, 1, 1), R('4589', C.white, -1, 1), R('3062b', C.tClear, 0, 1)]),
+};
+/* the floors: the sea is a blue 32 x 32 baseplate; a 16 x 32 beach baseplate or a second sea plate behind it (authored as placed:
+   the floor is not turned with the room, so the back is +z) */
+const seaFloor = (back = 'sea') => REAL('the sea', [R('3811', C.blue, 0, -8, -8), back === 'beach' ? R('3857p01', C.green, 0, 16, -8, 2) : R('3857', C.blue, 0, 16, -8)]);
+
 /* ── rooms: a floor, walls, a door ── */
 const floor = (w, d, a, b = null) => kit('floor', b == null ? [K.slab(0, 0, w, d, a)] : Array.from({ length: Math.ceil(w / 2) * Math.ceil(d / 2) }, (_, k) => { const i = (k % Math.ceil(w / 2)) * 2, j = Math.floor(k / Math.ceil(w / 2)) * 2; return K.slab(i, j, Math.min(2, w - i), Math.min(2, d - j), (i + j) / 2 % 2 ? a : b); }));
 /** Walls round three sides (back and the two flanks), h bricks high, the front open for the camera; a door gap in the back wall if asked. */
@@ -101,9 +146,11 @@ const SETS = {
   ], { zeus: M(0, -5, 0, 'the throne of Zeus'), athena: M(-4, 0, 0, 'Athena before the council'), left: M(-7, -5, 0), right: M(7, -5, 0), altar: M(0, 6, 0), centre: M(0, 0, 0), door: M(0, 13, 2) }),
   /* the Cyclops's cave */
   cave: () => room("polyphemus's cave", 36, 30, floor(36, 30, C.dbg), [
-    [FURN.rock(10, 6, 6), -12, -11], [FURN.rock(10, 6, 7), 0, -12], [FURN.rock(10, 6, 5), 12, -11], [FURN.rock(6, 10, 5), -15, 0], [FURN.rock(6, 10, 5), 15, 0], [FURN.rock(6, 6, 4), -14, 10], [FURN.rock(4, 4, 3), 14, 11],
+    /* the cave's walls in rock panels, two tiers at the back, the corners turned in, the flanks of panels on their sides */
+    [KIT.caveWall(), 0, -12], [REAL('corner', [R('23996', C.dbg, 0, 0)]), -15, -10, 1], [REAL('corner', [R('23996', C.dbg, 0, 0)]), 15, -10, 2],
+    [KIT.caveFlank(), -16, 2, 1], [KIT.caveFlank(), 16, 2, 3], [KIT.rocks(), -14, 11], [KIT.boulder(), 14, 11],
     [FURN.pen(), -7, -3], [FURN.rack2(), 7, -7], [FURN.fire(), 3, 2], [FURN.pithos(), 10, -2], [FURN.pithos(), 12, 3],
-    [FURN.rock(6, 4, 3, C.lbg), 0, 12],
+    [KIT.greatStone(), 0, 12],
   ], { entrance: M(0, 9, 2, 'the mouth of the cave, the great stone'), fire: M(3, 5, 0, 'the fire'), pen: M(-7, 2, 0, 'the flock'), racks: M(7, -4, 0, 'the cheeses'), back: M(0, -6, 0, 'where the Cyclops sleeps'), centre: M(0, 2, 0) }),
   /* Circe's house in the forest */
   circe: () => room("circe's hall", 34, 28, floor(34, 28, C.white, C.sgreen), [
@@ -128,30 +175,28 @@ const SETS = {
     [FURN.rock(12, 6, 6, C.dtan), -9, -11], [FURN.rock(8, 6, 5, C.dtan), 5, -11], [FURN.tree(5, C.green), 13, -8], [FURN.tree(4, C.dgreen), -14, 3], [FURN.tree(5, C.green), 12, 6], [FURN.tree(3, C.green), -11, 11],
     [FURN.loom(C.rbrown, C.gold), -2, -6], [FURN.fire(), 5, -3], [FURN.bed(), -9, -2], [FURN.fountain(), 5, 7], [kit('shore', [K.slab(0, 0, 34, 3, C.tDBlue)]), 0, 13],
   ], { calypso: M(-2, -3, 0, 'Calypso at her loom'), fire: M(5, 0, 0), spring: M(5, 11, 0), shore: M(-6, 11, 2, 'Odysseus weeping on the shore'), centre: M(0, 3, 0) }),
-  /* the sea sets: a wine-dark sea (trans dark blue over the plate), swells, the black ship at the centre. The crew stand in the
-     hull (a mark with axis z strings them down the keel); a mark with y stands its figures on a rock top */
-  sirens: () => room("the sirens' sea", 40, 36, floor(40, 36, C.tDBlue), [
-    [FURN.galley(), 2, 2], [FURN.rock(20, 8, 3, C.dtan), -9, -12], [kit('bones', [K.box(0, 0, 3, 1, 1, C.white), K.slab(0, 1, 2, 1, C.white)]), -17, -10, 0, -80],
-    [FURN.wave(8), 12, -12], [FURN.wave(6), 14, 12], [FURN.wave(6), -14, 12], [FURN.wave(8), -6, 14],
-  ], { odysseus: M(2, 3, 0, 'Odysseus bound to the mast'), crew: M(2, 4, 0, 'the crew at the oars, wax in their ears', 'z'), sirens: M(-9, -12, 0, 'the Sirens on their meadow of bones', 'x', -80), centre: M(8, 6, 0) }),
-  strait: () => room('between scylla and charybdis', 40, 36, floor(40, 36, C.tDBlue), [
-    [FURN.galley(), 0, 3], [FURN.rock(10, 10, 9, C.dbg), -14, -10], [FURN.rock(6, 6, 4, C.dbg), -15, 2], [kit('fig tree', [K.tree(0, 0, 4, { r: 2, leaf: C.olive })]), 16, -4],
-    [FURN.wave(6), 12, 10], [FURN.wave(6), -8, 14],
-  ], { odysseus: M(0, 4, 0, 'Odysseus armed at the prow'), crew: M(0, 5, 0, 'the sailors rowing hard', 'z'), scylla: M(-14, -10, 0, 'Scylla on her crag', 'x', -8 - 9 * 24), charybdis: M(12, -10, 0, 'Charybdis sucks down the sea'), centre: M(6, 6, 0) }),
-  storm: () => room('the storm at sea', 40, 36, floor(40, 36, C.tDBlue), [
-    [FURN.raft(), 0, 2], [FURN.wave(10, 3), -10, -12], [FURN.wave(12, 4), 8, -13], [FURN.wave(8, 2), -14, 6], [FURN.wave(8, 2), 14, 4], [FURN.wave(10, 1), 2, 14],
-  ], { odysseus: M(0, 3, 0, 'Odysseus clinging to the raft'), raft: M(0, 2, 0, 'the raft'), poseidon: M(-10, -8, 0, 'Poseidon rising from the waves'), leucothea: M(9, 6, 0, 'Ino, the sea-bird'), wind: M(9, -8, 0, 'the four winds'), centre: M(-8, 8, 0) }),
-  voyage: () => room('the black ship under sail', 40, 36, floor(40, 36, C.tDBlue), [
-    [FURN.galley(), 0, 2], [FURN.rock(10, 6, 2, C.green), -13, -13], [FURN.rock(6, 4, 1, C.dtan), -9, -11],
-    [FURN.wave(8), 12, -10], [FURN.wave(6), 14, 12], [FURN.wave(6), -14, 10],
-  ], { odysseus: M(0, 3, 0, 'Odysseus at the helm'), crew: M(0, 6, 0, 'the crew at the oars', 'z'), ithaca: M(-13, -9, 0, 'home in sight'), aeolus: M(-13, -13, 0, 'Aeolus on his island', null, -56), centre: M(10, 4, 0), door: M(12, 12, 0) }),
-  boast: () => room('the boast from the ship', 40, 36, floor(40, 36, C.tDBlue), [
-    [kit('shore', [K.slab(0, 0, 40, 10, C.tan)]), 0, -13], [FURN.rock(10, 6, 5, C.dbg), -12, -14], [FURN.rock(6, 5, 3, C.dbg), 12, -15],
-    [FURN.galley(), 6, 6, 1], [kit('the hurled rock', [K.rock(0, 0, 4, 4, 2, C.dbg), K.slab(-1, -1, 6, 6, C.white)]), -6, 4], [FURN.wave(6), -14, 12],
-  ], { cyclops: M(-3, -12, 0, 'the Cyclops on the shore, hurling the crag'), odysseus: M(2, 6, 0, 'Odysseus shouting his name from the stern'), crew: M(10, 6, 0, 'the crew begging him to stop', 'x'), centre: M(-12, 10, 0) }),
-  wreck: () => room('the last ship', 40, 36, floor(40, 36, C.tDBlue), [
-    [FURN.galley(C.white, C.dred), 0, 0, 1], [FURN.wave(10, 3), -10, -12], [FURN.wave(12, 4), 8, -13], [FURN.wave(8, 2), 14, 8], [FURN.wave(8, 2), -14, 10],
-  ], { odysseus: M(-4, 8, 0, 'Odysseus on the keel'), crew: M(0, 9, 0, 'the crew thrown into the sea', 'x'), zeus: M(0, -12, 0, 'the thunderbolt'), centre: M(0, 12, 0) }),
+  /* the sea sets, in real kits: the blue baseplate sea, the galley bow-on to the camera (its crew two abreast on the deck, the mast
+     amidships), the places it passes built of rock panels, baseplates and plants. Marks with a y stand on the deck or a crag. */
+  sirens: () => room("the sirens' sea", 32, 48, seaFloor('beach'), [
+    [KIT.galley(), 0, 8], [KIT.crag(C.dtan, false), -9, -18], [KIT.rocks(C.dtan), 10, -19], [KIT.cypress(), -13, -21], [KIT.olive(), 13, -12],
+    [KIT.flowers(6), -3, -14], [KIT.flowers(3), 6, -20], [KIT.bones(), 2, -11], [KIT.bones(), -7, -12], [KIT.splash(), 11, 10],
+  ], { odysseus: M(0, 7, 0, 'Odysseus bound to the mast', null, DECK), crew: M(0, 4, 0, 'the crew at the oars, wax in their ears', 'zz', DECK), sirens: M(1, -16, 0, 'the Sirens in their meadow of bones', 'x'), centre: M(-10, 6, 0) }),
+  strait: () => room('between scylla and charybdis', 32, 48, seaFloor(), [
+    [KIT.galley(), 2, 9], [KIT.crag(C.dbg), -9, -16], [KIT.rocks(), -12, -8], [KIT.crag(C.dbg, false), 10, -19], [KIT.olive(), 13, -16], [KIT.splash(), 9, -6], [KIT.splash(), -6, 2],
+  ], { odysseus: M(2, 16, 0, 'Odysseus armed at the prow', null, DECK), crew: M(2, 5, 0, 'the sailors rowing hard', 'zz', DECK), scylla: M(-7, -16, 0, 'Scylla on her crag', null, 'top'), charybdis: M(9, -8, 0, 'Charybdis sucks down the sea'), centre: M(-10, 12, 0) }),
+  storm: () => room('the storm at sea', 32, 48, seaFloor(), [
+    [KIT.raft(), 0, 4], [KIT.splash(), -6, -2], [KIT.splash(), 7, 1], [KIT.splash(), -3, 10], [KIT.splash(), 9, -12], [KIT.rocks(), -12, -18], [KIT.boulder(), 12, -20],
+  ], { odysseus: M(0, 3, 0, 'Odysseus clinging to the raft', null, -8 - 24), raft: M(0, 4, 0, 'the raft'), poseidon: M(-9, -12, 0, 'Poseidon rising from the waves'), leucothea: M(9, 8, 0, 'Ino, the sea-bird'), wind: M(8, -12, 0, 'the four winds'), centre: M(-8, 12, 0) }),
+  wreck: () => room('the last ship', 32, 48, seaFloor(), [
+    [KIT.galley(), 0, 2, 1, 30], [KIT.splash(), -6, -4], [KIT.splash(), 6, 6], [KIT.splash(), 2, -10], [KIT.rocks(), -12, -18], [KIT.olive(), 12, -20],
+  ], { odysseus: M(-6, 10, 0, 'Odysseus on the keel'), crew: M(4, 12, 0, 'the crew thrown into the sea', 'x'), zeus: M(0, -16, 0, 'the thunderbolt'), centre: M(0, 16, 0) }),
+  voyage: () => room('the black ship under sail', 32, 48, seaFloor(), [
+    [KIT.galley(), 0, 6], [REAL('island', [R('3867p01', C.green, 0, 0)]), -8, -16], [KIT.cypress(), -10, -18], [KIT.olive(), -5, -14], [KIT.rocks(C.dtan), -12, -12], [KIT.splash(), 11, 10],
+  ], { odysseus: M(0, -4, 0, 'Odysseus at the helm', null, DECK), crew: M(0, 5, 0, 'the crew at the oars', 'zz', DECK), ithaca: M(-4, -18, 0, 'home in sight'), aeolus: M(-9, -19, 0, 'Aeolus on his island'), centre: M(10, 4, 0), door: M(12, 14, 0) }),
+  boast: () => room('the boast from the ship', 32, 48, seaFloor('beach'), [
+    [KIT.crag(C.dbg), -9, -19], [KIT.crag(C.dbg, false), 9, -20], [KIT.cypress(), 13, -13], [KIT.bush(), -13, -12],
+    [KIT.galley(), 4, 9], [KIT.boulder(), -6, 3], [KIT.splash(), -6, 5],
+  ], { cyclops: M(-1, -15, 0, 'the Cyclops on the shore, hurling the crag'), odysseus: M(4, -1, 0, 'Odysseus shouting his name from the stern', null, DECK), crew: M(4, 8, 0, 'the crew begging him to stop', 'zz', DECK), centre: M(-11, 10, 0) }),
 };
 /* which location card stands on which set */
 const LOCATION_SET = {

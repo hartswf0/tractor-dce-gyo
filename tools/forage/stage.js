@@ -32,6 +32,21 @@ function freeSpot(cells, x, z, w, d, size) {
 const claim = (cells, x, z, w, d) => { const x0 = Math.round(x - w / 2), z0 = Math.round(z - d / 2); for (let i = x0; i < x0 + w; i++) for (let j = z0; j < z0 + d; j++) cells.add(i + ',' + j); };
 const words = s => s.toLowerCase().replace(/[^a-z ]+/g, ' ').split(/\s+/).filter(w => w.length > 3 && !/^(with|from|that|this|their|the|and|into|shade|memory|variant|variants|restored|revealed)$/.test(w));
 
+/** The top of whatever stands under (x, z) studs in the set: the crag's summit a figure is stood on (LDU, y down). */
+function topAt(set, x, z) {
+  const rows = set._rows || (set._rows = B.rowsOf(set.comp).filter(r => !L.isPrimitive(r.part)).map(r => L.worldBox(r)).filter(Boolean));
+  let top = set.floorY; for (const b of rows) if (b[0] + 4 <= x * 20 && x * 20 <= b[3] - 4 && b[2] + 4 <= z * 20 && z * 20 <= b[5] - 4 && b[1] < top) top = b[1];
+  return top;
+}
+function summit(set, x, z) {
+  let best = [x, z], hy = Infinity;
+  for (let dx = -4; dx <= 4; dx += 0.5) for (let dz = -4; dz <= 4; dz += 0.5) {
+    const cx = Math.round(x + dx), cz = Math.round(z + dz), t = [[0, 0], [-0.6, -0.6], [0.6, 0.6], [-0.6, 0.6], [0.6, -0.6]].map(([a, b]) => topAt(set, cx + a, cz + b));
+    if (Math.max(...t) - Math.min(...t) > 2) continue;   // flat under both feet
+    if (t[0] < hy - 1 || (Math.abs(t[0] - hy) <= 1 && Math.hypot(cx - x, cz - z) < Math.hypot(best[0] - x, best[1] - z))) { hy = t[0]; best = [cx, cz]; }
+  }
+  return best;
+}
 /** cast: [{ id, name, type, comp }]. Returns { list: [[comp, x, z, q, y]], blocking: [{ who, name, comp, x, z, face, mark }] }. */
 function block(set, cast) {
   const cells = occupancy(set.comp, set.floorY), marks = Object.entries(set.marks), used = new Map(), list = [], blocking = [];
@@ -47,14 +62,16 @@ function block(set, cast) {
       const ft = B.foot(f), w = Math.max(2, ft.w), d = Math.max(2, ft.d);
       const step = Math.max(3, w + 1), n = figs.length, lined = m.axis && n > 1;
       /* a mark with an axis strings a crowd along it (a crew down the keel); otherwise rows of four across the mark */
-      const tx = m.x + (lined ? (m.axis === 'x' ? (k - (n - 1) / 2) * step : 0) : n > 1 ? ((k % 4) - 1.5) * step : 0),
-        tz = m.z + (lined ? (m.axis === 'z' ? (k - (n - 1) / 2) * Math.max(3, d + 1) : 0) : n > 1 ? Math.floor(k / 4) * Math.max(3, d + 1) : 0);
+      const pair = m.axis === 'zz';   /* two abreast down a deck */
+      const tx = m.x + (pair ? (n > 1 ? (k % 2 ? 1.5 : -1.5) : 0) : lined ? (m.axis === 'x' ? (k - (n - 1) / 2) * step : 0) : n > 1 ? ((k % 4) - 1.5) * step : 0),
+        tz = m.z + (pair ? Math.floor(k / 2) * 3 : lined ? (m.axis === 'z' ? (k - (n - 1) / 2) * Math.max(3, d + 1) : 0) : n > 1 ? Math.floor(k / 4) * Math.max(3, d + 1) : 0);
       /* a crowd named as outside stands in a row past the set's front edge, by the door, not among the furniture */
       const spot = outside ? [((k % 4) - (Math.min(figs.length, 4) - 1) / 2) * step + (door ? door.x : 0), -set.size[1] / 2 - d / 2 - 1 - Math.floor(k / 4) * (d + 1)]
-        : m.y != null ? [tx, tz]   /* up on a rock or a crag: stood where the mark says */
+        : m.y === 'top' ? summit(set, tx, tz)   /* the highest flat place within four studs of the mark: a crag's summit */
+        : m.y != null ? [tx, tz]   /* up on a deck: stood where the mark says */
         : freeSpot(cells, tx, tz, w, d, set.size) || [tx, tz]; claim(cells, spot[0], spot[1], w, d);
       /* place so the footprint's centre sits on the spot: the component is settled with its footprint about its centre, to a stud */
-      list.push([f, spot[0], spot[1], m.face || 0, m.y != null ? m.y : set.floorY]);
+      list.push([f, spot[0], spot[1], m.face || 0, m.y === 'top' ? topAt(set, spot[0], spot[1]) : m.y != null ? m.y : set.floorY]);
       blocking.push({ who: c.id, name: figs.length > 1 ? c.name + ' ' + (k + 1) : c.name, type: c.type, comp: f, x: spot[0], z: spot[1], face: m.face || 0, mark: mk });
     });
   });
