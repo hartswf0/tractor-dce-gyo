@@ -27,8 +27,8 @@ await p.evaluate(()=>{window.renderStill=renderer.render.bind(renderer);renderer
 await p.waitForTimeout(800);
 const report=[];
 for(const k of spec.keys){
- const r=await p.evaluate(({base,k,look})=>{OdysseyFilm.block(base);OdysseyFilm.block(k.blocking||[]);const cam=OdysseyFilm.rig(k.camera);
-   OdysseyFilm.look(Object.assign({},look,k.look));OdysseyFilm.rope(k.rope||null);const phys=OdysseyFilm.physics(ButterCast.cast.map(a=>a.kind.replace(/^odyssey-od-b\d\d-s\d\d-/,'')),k.touch||[]);const sc=OdysseyFilm.score(k.subjects);const clutter=OdysseyFilm.clutter((k.subjects.find(s=>s.primary&&!s.id.startsWith('piece:'))||k.subjects.find(s=>!s.id.startsWith('piece:'))||{id:(k.subjects[0]||{}).id}).id,[...(k.lensAllow||[]),...k.subjects.map(s=>s.id)]);const prim=(k.subjects.find(s=>s.primary)||{}).id;const lens=OdysseyFilm.lens(prim||k.subjects[0].id,k.lensAllow||[]);renderStill(scene,camera);const png=renderer.domElement.toDataURL('image/png');return {cam,sc,lens,clutter,phys,png};},{base:spec.blocking,k,look:spec.look||{}});
+ const r=await p.evaluate(({base,k,look,spread})=>{OdysseyFilm.block(base);if(spread)OdysseyFilm.spread(spread);OdysseyFilm.block(k.blocking||[]);const cam=OdysseyFilm.rig(k.camera);
+   OdysseyFilm.look(Object.assign({},look,k.look));OdysseyFilm.rope(k.rope||null);const phys=OdysseyFilm.physics(ButterCast.cast.map(a=>a.kind.replace(/^odyssey-od-b\d\d-s\d\d-/,'')),k.touch||[]);const sc=OdysseyFilm.score(k.subjects);const clutter=OdysseyFilm.clutter((k.subjects.find(s=>s.primary&&!s.id.startsWith('piece:'))||k.subjects.find(s=>!s.id.startsWith('piece:'))||{id:(k.subjects[0]||{}).id}).id,[...(k.lensAllow||[]),...k.subjects.map(s=>s.id)]);const prim=(k.subjects.find(s=>s.primary)||{}).id;const lens=OdysseyFilm.lens(prim||k.subjects[0].id,k.lensAllow||[]);renderStill(scene,camera);const png=renderer.domElement.toDataURL('image/png');return {cam,sc,lens,clutter,phys,png};},{base:spec.blocking,k,look:spec.look||{},spread:spec.spread||0});
  const fails=[];
  for(const s of k.subjects){const m=r.sc[s.id];if(!m||m.missing){fails.push(s.id+' missing');continue;}
   if(m.behind)fails.push(s.id+' behind the camera');

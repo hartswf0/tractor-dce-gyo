@@ -35,8 +35,16 @@ const kfWorld=o=>o.getWorldPosition(new THREE.Vector3());
 const kfSolid=o=>o.isMesh&&o.visible&&!(o.geometry&&o.geometry.type==='PlaneGeometry')&&!(o.userData&&o.userData.axis)&&!(o.material&&o.material.transparent&&o.material.opacity<0.3);   /* the set and the cast, not the workspace's helper planes */
 function kfCast(){return ButterCast.cast.map(a=>{const b=new THREE.Box3().setFromObject(a.rig.figure);return {id:kfShort(a.kind),x:+a.rig.pos.x.toFixed(1),y:+a.rig.pos.y.toFixed(1),z:+a.rig.pos.z.toFixed(1),heading:+a.rig.heading.toFixed(2),height:+(b.max.y-b.min.y).toFixed(1)};});}
 function kfPieces(){const A=filmAsset();return (A.pages||[]).map((pg,i)=>({label:pg.label,x:+A.rows[i].x.toFixed(1),z:+A.rows[i].z.toFixed(1),box:pg.box||null}));}
+/* the floor under a figure: the first surface below its knee (a deck, a crag, the plate), not a yard or a roof above it */
+function kfFloor(a){const r=a.rig,k=r.headP.getWorldScale(new THREE.Vector3()).y,meshes=[],figs=new Set();ButterCast.cast.forEach(b=>b.rig.figure.traverse(o=>figs.add(o)));scene.traverse(o=>{if(kfSolid(o)&&!figs.has(o))meshes.push(o);});
+  const ray=new THREE.Raycaster(new THREE.Vector3(r.pos.x,r.pos.y+40*k,r.pos.z),new THREE.Vector3(0,-1,0));ray.far=400;const h=ray.intersectObjects(meshes,true)[0];return h?h.point.y:r.pos.y;}
+/* a crowd given room: figures nearer than min (world units) are pushed apart, evenly, until none are, then stood on their floor */
+function kfSpread(min,ids){const acts=ButterCast.cast.filter(a=>!ids||ids.includes(kfShort(a.kind)));
+  for(let it=0;it<60;it++){let moved=false;for(let i=0;i<acts.length;i++)for(let j=i+1;j<acts.length;j++){const p=acts[i].rig.pos,q=acts[j].rig.pos,dx=q.x-p.x,dz=q.z-p.z,d=Math.hypot(dx,dz);
+    if(d<min){const push=(min-d)/2+0.5,ux=d>1e-3?dx/d:Math.cos(i+j),uz=d>1e-3?dz/d:Math.sin(i+j);p.x-=ux*push;p.z-=uz*push;q.x+=ux*push;q.z+=uz*push;moved=true;}}if(!moved)break;}
+  for(const a of acts){a.rig.pos.y=kfFloor(a);a.rig.figure.position.copy(a.rig.pos);}}
 function kfBlock(list){for(const e of list){const a=kfActor(e.id);if(!a){console.warn('[keyframe] no actor',e.id);continue;}const r=a.rig;
-  if(e.x!=null)r.pos.x=e.x;if(e.z!=null)r.pos.z=e.z;if(e.y==='ground')r.pos.y=kfGround(r.pos.x,r.pos.z);else if(e.y!=null)r.pos.y=e.y;
+  if(e.x!=null)r.pos.x=e.x;if(e.z!=null)r.pos.z=e.z;if(e.y==='ground')r.pos.y=kfGround(r.pos.x,r.pos.z);else if(e.y==='floor')r.pos.y=kfFloor(a);else if(e.y!=null)r.pos.y=e.y;
   const f=typeof e.face==='string'?kfActor(e.face)?.rig.pos:Array.isArray(e.face)?{x:e.face[0],z:e.face[1]}:null;
   if(f)r.heading=Math.atan2(f.x-r.pos.x,f.z-r.pos.z);else if(e.heading!=null)r.heading=e.heading;
   r.figure.position.copy(r.pos);r.figure.rotation.y=r.heading;r.hold=e.pose||r.hold||{};
@@ -131,4 +139,4 @@ function kfRope(r){for(const m of kfRopes.splice(0))m.parent&&m.parent.remove(m)
   for(const f of b.at||[0.72,0.5,0.22]){const pts=[];for(let i=0;i<=48;i++){const t=i/48*Math.PI*2*1.9,y=feet.y+tall*f+(i/48-0.5)*3*k;pts.push(c.clone().add(u.clone().multiplyScalar(Math.cos(t)*A)).add(n.clone().multiplyScalar(Math.sin(t)*Bn)).setY(y));}
     const tube=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),160,(b.thick||1.6)*k,8,false),mat);tube.userData.rope=true;scene.add(tube);kfRopes.push(tube);}
   const knot=c.clone().add(u.clone().multiplyScalar(A)).setY(feet.y+tall*0.5),tail=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([knot,knot.clone().add(new THREE.Vector3(0,-14*k,2*k)),knot.clone().add(new THREE.Vector3(3*k,-26*k,5*k))]),24,(b.thick||1.6)*k,8,false),mat);scene.add(tail);kfRopes.push(tail);}}
-window.OdysseyFilm={physics:kfPhysics,rope:kfRope,clutter:kfClutter,look:kfLook,ground:kfGround,rig:kfRig,lens:kfLens,asset:()=>filmAsset(),setCamera:c=>filmSetCamera(c),fit:()=>filmFit(),get cameras(){return filmAsset()?.cameras||[];},cast:kfCast,pieces:kfPieces,block:kfBlock,shoot:kfShoot,score:kfScore};
+window.OdysseyFilm={spread:kfSpread,floor:kfFloor,physics:kfPhysics,rope:kfRope,clutter:kfClutter,look:kfLook,ground:kfGround,rig:kfRig,lens:kfLens,asset:()=>filmAsset(),setCamera:c=>filmSetCamera(c),fit:()=>filmFit(),get cameras(){return filmAsset()?.cameras||[];},cast:kfCast,pieces:kfPieces,block:kfBlock,shoot:kfShoot,score:kfScore};

@@ -26,7 +26,7 @@ def draft(sid):
         if sub.startswith('piece:'): b = boxes[sub[6:]]; return [(b[0] + b[3]) / 2, (b[2] + b[5]) / 2]
         a = acts[sub]; return [a['x'], a['z']]
     (x0, _, z0), (x1, y1, z1) = e['bounds']; ext = max(x1 - x0, z1 - z0) / 2
-    base = [{'id': k, 'x': round(a['x'], 1), 'z': round(a['z'], 1), 'y': round(a['y'], 1)} for k, a in acts.items()]
+    base = [{'id': k, 'x': round(a['x'], 1), 'z': round(a['z'], 1), 'y': 'floor'} for k, a in acts.items()]   # stood on whatever is under them
     keys = []
     for n, s in enumerate(pv['shots']):
         cam = s['camera']; kind = cam['kind']; sub = who(cam.get('subject')); obj = who(cam.get('object', -1))
@@ -45,9 +45,9 @@ def draft(sid):
             c = {'type': 'wide', 'pos': [round(-0.45 * ext * k_, 1), round(0.62 * ext * k_, 1), round(ext * k_, 1)], 'target': [0, 35, 0], 'fov': 38}
             for s_ in subj: s_.update(soft=True, min=0.02); s_.pop('face', None)
         elif not actor:   # a set piece: a low three-quarter from the front
-            b = boxes[sub[6:]]; h = b[4] - b[1]; cx, cz = at(sub)
-            c = {'type': 'wide', 'pos': [round(cx - 0.5 * h * 2.2, 1), round(b[1] + h * 0.55, 1), round(cz + h * 2.2, 1)], 'target': sub, 'fov': 34, 'subject': sub, 'place': place, 'eye': 0.36}
-            subj[0]['min'] = 0.3
+            b = boxes[sub[6:]]; h = max(b[4] - b[1], (b[3] - b[0]) * 0.6, (b[5] - b[2]) * 0.6); cx, cz = at(sub); d = h / (2 * math.tan(math.radians(17))) / 0.55   # the piece at 55% of the frame's height
+            c = {'type': 'wide', 'pos': [round(cx - 0.45 * d, 1), round(b[1] + (b[4] - b[1]) * 0.6 + d * 0.15, 1), round(cz + 0.9 * d, 1)], 'target': sub, 'fov': 34, 'subject': sub, 'place': place, 'eye': 0.4}
+            subj[0]['min'] = 0.25
         elif kind == 'ots' and obj and not obj.startswith('piece:'):
             c = {'type': 'ots', 'over': obj, 'at': sub, 'dist': 45, 'off': 22, 'height': 12, 'fov': 30, 'subject': sub, 'place': place, 'eye': 0.36}; allow = [obj]; subj[0]['min'] = 0.12
         elif kind == 'medium' and obj and not obj.startswith('piece:'):
@@ -61,7 +61,7 @@ def draft(sid):
             c = {'type': 'hero', 'a': sub, 'dist': 175, 'height': 10, 'yaw': 0.5 if n % 2 else -0.5, 'fov': 32, 'subject': sub, 'place': place, 'eye': 0.36}; subj[0]['min'] = 0.12
         keys.append({'id': f'K{n + 1}', 'beat': s['beat'], 'kind': kind, 'draft': True, 'blocking': blk, 'camera': c, 'subjects': subj, **({'lensAllow': allow} if allow else {})})
     return {'scene': sid, 'location': 'odyssey-' + sid.lower(), 'title': pv['title'].title(), 'note': 'Drafted from the storyboard by film-readymades/keyframe_draft.py: attention blocking and rigs by shot kind. Finish by hand where the gate fails.',
-            'look': {'sky': ['#5f97d3', '#efe2c4'], 'fog': [700, 2400]}, 'blocking': base, 'keys': keys}
+            'look': {'sky': ['#5f97d3', '#efe2c4'], 'fog': [700, 2400]}, 'spread': 30, 'blocking': base, 'keys': keys}
 
 if __name__ == '__main__':
     for sid in [a for a in sys.argv[1:] if not a.startswith('--')]:
