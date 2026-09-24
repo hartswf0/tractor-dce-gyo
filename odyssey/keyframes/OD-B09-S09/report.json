@@ -1,45 +1,50 @@
 {
  "scene": "OD-B09-S09",
- "pass": false,
+ "pass": true,
  "keys": [
   {
    "id": "K1",
    "beat": "Polyphemus drinks three bowls, promises Nobody the last death as a guest-gift, and collapses.",
-   "pass": false,
-   "fails": [
-    "foreground clutter: odysseus",
-    "four-stake-bearers-1 passes through four-stake-bearers-2 (2 part overlaps)"
-   ],
+   "text": "He fell sprawling face upwards on the ground. His great neck hung heavily backwards and a deep sleep took hold upon him.",
+   "pass": true,
+   "fails": [],
    "camera": {
     "pos": [
-     -185.6,
-     255.8,
-     412.5
+     -209,
+     218,
+     -163.9
     ]
    },
    "lens": 0,
    "physics": {
-    "collide": [
-     [
-      "four-stake-bearers-1",
-      "four-stake-bearers-2",
-      2
-     ]
-    ],
+    "collide": [],
     "floating": []
    },
    "subjects": {
-    "piece:polyphemus": {
-     "visible": 0.5,
-     "size": 0.462,
-     "inFrame": true,
+    "prop:polyphemus": {
+     "visible": 1,
+     "size": 2.086,
+     "inFrame": false,
      "head": [
-      0.391,
-      0.142
+      0.335,
+      0.377
      ],
      "facing": 1,
-     "thirds": 0.057,
-     "headroom": 0.052,
+     "thirds": 0.002,
+     "headroom": 0.046,
+     "behind": false
+    },
+    "odysseus": {
+     "visible": 1,
+     "size": 0.268,
+     "inFrame": true,
+     "head": [
+      0.749,
+      0.458
+     ],
+     "facing": 0.89,
+     "thirds": 0.083,
+     "headroom": 0.427,
      "behind": false
     }
    },
@@ -48,17 +53,14 @@
   {
    "id": "K2",
    "beat": "Odysseus heats the stake until it glows and the chosen men drive it into the Cyclops's eye.",
-   "pass": false,
-   "fails": [
-    "odysseus cut by the frame",
-    "four-stake-bearers-1 behind the camera",
-    "four-stake-bearers-1 head out of frame"
-   ],
+   "text": "When the wood, green though it was, was about to blaze, I drew it out of the fire glowing with heat, and my men gathered round me.",
+   "pass": true,
+   "fails": [],
    "camera": {
     "pos": [
-     -171.3,
-     87.9,
-     -18.7
+     -147.8,
+     90,
+     83.4
     ]
    },
    "lens": 0,
@@ -69,29 +71,29 @@
    "subjects": {
     "odysseus": {
      "visible": 1,
-     "size": 1.167,
-     "inFrame": false,
+     "size": 0.55,
+     "inFrame": true,
      "head": [
-      0.337,
-      0.342
+      0.656,
+      0.396
      ],
-     "facing": 0.96,
-     "thirds": 0.003,
-     "headroom": 0.206,
+     "facing": 0.76,
+     "thirds": 0.011,
+     "headroom": 0.334,
      "behind": false
     },
-    "four-stake-bearers-1": {
+    "prop:stake": {
      "visible": 1,
-     "size": 1.199,
+     "size": 4.206,
      "inFrame": false,
      "head": [
-      0.943,
-      -0.007
+      0.971,
+      0.436
      ],
-     "facing": 0.96,
-     "thirds": 0.276,
-     "headroom": -1.087,
-     "behind": true
+     "facing": 1,
+     "thirds": 0.102,
+     "headroom": 0.226,
+     "behind": false
     }
    },
    "file": "odyssey/keyframes/OD-B09-S09/K2.png"
@@ -99,65 +101,14 @@
   {
    "id": "K3",
    "beat": "They twist it as blood and steam erupt; Polyphemus wakes with a roar and tears it free.",
-   "pass": false,
-   "fails": [
-    "odysseus cut by the frame",
-    "piece:polyphemus behind the camera",
-    "piece:polyphemus head out of frame",
-    "lens crowded (0.14)"
-   ],
-   "camera": {
-    "pos": [
-     60.1,
-     91.9,
-     -112.8
-    ]
-   },
-   "lens": 0.14,
-   "physics": {
-    "collide": [],
-    "floating": []
-   },
-   "subjects": {
-    "odysseus": {
-     "visible": 1,
-     "size": 0.818,
-     "inFrame": false,
-     "head": [
-      0.663,
-      0.362
-     ],
-     "facing": 0.88,
-     "thirds": 0.003,
-     "headroom": 0.269,
-     "behind": false
-    },
-    "piece:polyphemus": {
-     "visible": 0.75,
-     "size": 22.248,
-     "inFrame": false,
-     "head": [
-      16.274,
-      -12.79
-     ],
-     "facing": 1,
-     "thirds": 13.123,
-     "headroom": -7.1,
-     "behind": true
-    }
-   },
-   "file": "odyssey/keyframes/OD-B09-S09/K3.png"
-  },
-  {
-   "id": "K4",
-   "beat": "Other Cyclopes call from outside, but leave when he says Nobody is killing him.",
+   "text": "We drove the sharp end of the beam into the monster's eye, and bearing upon it with all my weight I kept turning it round and round as though I were boring a hole in a ship's plank with an auger... the eyeball hissed as a smith plunges an axe into cold water.",
    "pass": true,
    "fails": [],
    "camera": {
     "pos": [
-     -463.2,
-     158.8,
-     635.6
+     149,
+     188,
+     -168
     ]
    },
    "lens": 0,
@@ -166,17 +117,91 @@
     "floating": []
    },
    "subjects": {
-    "piece:cyclopes outside 1": {
+    "odysseus": {
      "visible": 1,
-     "size": 0.679,
+     "size": 0.493,
      "inFrame": true,
      "head": [
-      0.337,
-      0.374
+      0.336,
+      0.421
+     ],
+     "facing": -0.02,
+     "thirds": 0.003,
+     "headroom": 0.358,
+     "behind": false
+    },
+    "prop:polyphemus": {
+     "visible": 1,
+     "size": 2.266,
+     "inFrame": false,
+     "head": [
+      0.724,
+      0.235
      ],
      "facing": 1,
-     "thirds": 0.004,
-     "headroom": 0.285,
+     "thirds": 0.057,
+     "headroom": -0.123,
+     "behind": false
+    },
+    "four-stake-bearers-2": {
+     "visible": 1,
+     "size": 0.326,
+     "inFrame": false,
+     "head": [
+      0.232,
+      0.769
+     ],
+     "facing": 0.33,
+     "thirds": 0.101,
+     "headroom": 0.729,
+     "behind": false
+    }
+   },
+   "file": "odyssey/keyframes/OD-B09-S09/K3.png"
+  },
+  {
+   "id": "K4",
+   "beat": "Other Cyclopes call from outside, but leave when he says Nobody is killing him.",
+   "text": "Then he gave a loud cry, so that the rocks resounded, and we fled in terror; he drew the beam from his eye all bespattered with blood, and hurled it from him in a frenzy of rage and pain.",
+   "pass": true,
+   "fails": [],
+   "camera": {
+    "pos": [
+     50.4,
+     12.3,
+     82.1
+    ]
+   },
+   "lens": 0,
+   "physics": {
+    "collide": [],
+    "floating": []
+   },
+   "subjects": {
+    "prop:polyphemus": {
+     "visible": 1,
+     "size": 2.47,
+     "inFrame": false,
+     "head": [
+      0.34,
+      0.473
+     ],
+     "facing": 1,
+     "thirds": 0.007,
+     "headroom": 0.108,
+     "behind": false
+    },
+    "odysseus": {
+     "visible": 1,
+     "size": 0.427,
+     "inFrame": false,
+     "head": [
+      0.689,
+      0.634
+     ],
+     "facing": 0.19,
+     "thirds": 0.023,
+     "headroom": 0.602,
      "behind": false
     }
    },
@@ -185,40 +210,46 @@
   {
    "id": "K5",
    "beat": "Polyphemus gropes at the entrance while the men hide among the animals.",
-   "pass": false,
-   "fails": [
-    "four-stake-bearers-1 passes through four-stake-bearers-2 (2 part overlaps)"
-   ],
+   "text": "Polyphemus, groaning and in an agony of pain, felt about with his hands, took the stone from the door of the cave, and sat in the doorway stretching his hands in front of it to catch anyone going out with the sheep.",
+   "pass": true,
+   "fails": [],
    "camera": {
     "pos": [
-     -237.6,
-     327.4,
-     528
+     17.9,
+     69.8,
+     -129.5
     ]
    },
    "lens": 0,
    "physics": {
-    "collide": [
-     [
-      "four-stake-bearers-1",
-      "four-stake-bearers-2",
-      2
-     ]
-    ],
+    "collide": [],
     "floating": []
    },
    "subjects": {
-    "piece:polyphemus": {
-     "visible": 0.5,
-     "size": 0.379,
-     "inFrame": true,
+    "prop:polyphemus": {
+     "visible": 0.75,
+     "size": 1.224,
+     "inFrame": false,
      "head": [
-      0.412,
-      0.212
+      0.498,
+      0.363
      ],
      "facing": 1,
-     "thirds": 0.079,
-     "headroom": 0.13,
+     "thirds": 0.03,
+     "headroom": 0.03,
+     "behind": false
+    },
+    "odysseus": {
+     "visible": 1,
+     "size": 0.63,
+     "inFrame": false,
+     "head": [
+      0.422,
+      0.634
+     ],
+     "facing": -1,
+     "thirds": 0.033,
+     "headroom": 0.574,
      "behind": false
     }
    },
