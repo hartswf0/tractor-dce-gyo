@@ -165,7 +165,7 @@ def production(sec, key, name, sid, scale):
     parts, skin = [], 14; lines = list(placements(sec[key]))
     for p in lines:
         r, c = p['ref'], p['color']; d = desc(r)
-        if r.startswith('3626'): skin = c; parts.append(dict(role='HEAD', file=r, color=c, mountY=-64))
+        if r.startswith('3626'): skin = c; parts.append(dict(role='HEAD', file=r, color=c, mountY=-84))   # the standard head: the Movieator's head pivot at mountY + 60 = 24 LDU over the torso
     for p in lines:
         r, c, t = p['ref'], p['color'], p['transform']; d = desc(r)
         if r.startswith('3626') or r.startswith('381') or r.startswith('3820'): continue
