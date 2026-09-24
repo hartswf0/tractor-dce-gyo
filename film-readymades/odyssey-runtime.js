@@ -55,7 +55,8 @@ function kfBlock(list){for(const e of list){const a=kfActor(e.id);if(!a){console
   r.figure.position.copy(r.pos);r.figure.rotation.y=r.heading;r.hold=e.pose||r.hold||{};
   for(const k of ['armRP','armLP','headP','torsoP','legRP','legLP']){const v=r.hold[k]||[0,0,0];r[k].rotation.set(v[0],v[1],v[2]);}
   /* props: false empties the hands (a man bound to a mast holds no sword): each arm pivot carries its arm, its hand, then what it holds */
-  if(e.props!=null)for(const k of ['armRP','armLP']){const g=r[k].children.filter(c=>c.type==='Group');g.slice(2).forEach(c=>c.visible=e.props!==false);}}}
+  /* the arm pivot holds three empty slots (arm, hand, weapon), then the parts: the arm, the hand, then what it holds. Only that last is hidden. */
+  if(e.props!=null)for(const k of ['armRP','armLP']){const g=r[k].children.filter(c=>c.type==='Group'&&!String(c.name).startsWith('slot'));g.forEach((c,i)=>c.visible=i<2||e.props!==false);}}}
 function kfShoot(c){camera.position.set(...c.pos);if(c.fov)camera.fov=c.fov;camera.updateProjectionMatrix();controls.target.set(...c.target);camera.lookAt(controls.target);camera.updateMatrixWorld();}
 /* a set piece as a subject (a troll, a giant, the ship): rays to its crown, middle and flanks; its box on screen */
 function kfScorePiece(label,meshes,ray,cam,scr){const b=kfPiece(label);if(!b)return {missing:true};const V=THREE.Vector3,cx=(b[0]+b[3])/2,cz=(b[2]+b[5])/2,h=b[4]-b[1];
@@ -168,7 +169,19 @@ function kfProps(list){for(const o of kfPropObjs.values())scene.remove(o);kfProp
     h.updateMatrixWorld(true);}}
 function kfHide(labels){const A=filmAsset(),hide=new Set((labels||[]).map(l=>l.toLowerCase()));(A.pages||[]).forEach((pg,i)=>{const p=S.parts.find(q=>q.id===A.rows[i].id);if(p&&p.mesh)p.mesh.visible=!hide.has(pg.label.toLowerCase());});}
 /* light: dim the day (the location's own lights) and add point lights, firelight, at points or anchors */
-function kfLight(l={}){for(const x of kfLights.splice(0))scene.remove(x);scene.traverse(o=>{if(o.isLight&&!o.userData.kf){if(o.userData.kfI0==null)o.userData.kfI0=o.intensity;o.intensity=o.userData.kfI0*(l.dim??1);}});
-  for(const L of l.lights||[]){const pl=new THREE.PointLight(L.color||'#ff9a40',L.intensity??2.2,L.distance??600,L.decay??1.4);pl.userData.kf=true;pl.position.copy(kfPoint(L.at).add(new KV(...(L.off||[0,0,0]))));scene.add(pl);kfLights.push(pl);}}
+/* every surface drawn both ways: LDraw parts are one-sided shells, and a still seen from behind or inside one shows its holes */
+function kfTwoSided(){scene.traverse(o=>{if(!o.isMesh||!o.material)return;for(const m of [].concat(o.material))if(m.side!==THREE.DoubleSide){m.side=THREE.DoubleSide;m.needsUpdate=true;}});}
+function kfLight(l={}){kfTwoSided();for(const x of kfLights.splice(0))scene.remove(x);scene.traverse(o=>{if(o.isLight&&!o.userData.kf){if(o.userData.kfI0==null)o.userData.kfI0=o.intensity;o.intensity=o.userData.kfI0*(l.dim??1);}});
+  /* a cool fill so shadows keep their colour (grey rock stays grey), a warm key that casts shadows, a filmic curve */
+  if(l.fill){const h=new THREE.HemisphereLight(l.fill.sky||'#61749a',l.fill.ground||'#221b15',l.fill.intensity??0.5);h.userData.kf=true;scene.add(h);kfLights.push(h);}
+  /* a sun: a directional key with a shadow, for the stills in daylight */
+  if(l.sun){const d=new THREE.DirectionalLight(l.sun.color||'#fff1d6',l.sun.intensity??1.6);d.userData.kf=true;d.position.set(...(l.sun.dir||[-0.6,0.8,0.4]).map(v=>v*800));d.target.position.set(0,0,0);
+    d.castShadow=true;d.shadow.mapSize.set(2048,2048);const c=d.shadow.camera;c.left=c.bottom=-450;c.right=c.top=450;c.near=10;c.far=2000;d.shadow.bias=-0.0008;scene.add(d);scene.add(d.target);kfLights.push(d,d.target);}
+  const shadows=(l.lights||[]).some(L=>L.shadow)||!!l.sun;renderer.shadowMap.enabled=shadows;renderer.shadowMap.autoUpdate=true;renderer.shadowMap.needsUpdate=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  if(shadows)scene.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});
+  for(const L of l.lights||[]){const pl=new THREE.PointLight(L.color||'#ff9a40',L.intensity??2.2,L.distance??600,L.decay??1.4);pl.userData.kf=true;pl.position.copy(kfPoint(L.at).add(new KV(...(L.off||[0,0,0]))));
+    if(L.shadow){pl.castShadow=true;pl.shadow.mapSize.set(1024,1024);pl.shadow.bias=-0.002;pl.shadow.radius=3;pl.shadow.camera.near=4;pl.shadow.camera.far=L.distance??600;}scene.add(pl);kfLights.push(pl);}
+  renderer.toneMapping=l.tone===false?THREE.NoToneMapping:THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=l.exposure??1.15;
+  scene.traverse(o=>{if(o.isMesh&&o.material)for(const m of [].concat(o.material))m.needsUpdate=true;});}
 function kfAnchors(){const out={};scene.traverse(q=>{if(q.name&&q.name.startsWith('@')){const v=q.getWorldPosition(new KV());out[q.name]=[+v.x.toFixed(0),+v.y.toFixed(0),+v.z.toFixed(0)];}});return out;}
 window.OdysseyFilm={anchors:kfAnchors,loadProps:kfLoadProps,props:kfProps,hide:kfHide,light:kfLight,anchor:kfAnchor,spread:kfSpread,floor:kfFloor,physics:kfPhysics,rope:kfRope,clutter:kfClutter,look:kfLook,ground:kfGround,rig:kfRig,lens:kfLens,asset:()=>filmAsset(),setCamera:c=>filmSetCamera(c),fit:()=>filmFit(),get cameras(){return filmAsset()?.cameras||[];},cast:kfCast,pieces:kfPieces,block:kfBlock,shoot:kfShoot,score:kfScore};
