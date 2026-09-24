@@ -1,144 +1,239 @@
 {
  "scene": "OD-B12-S04",
  "location": "odyssey-od-b12-s04",
- "title": "Between Scylla And Charybdis",
- "note": "Drafted from the storyboard by film-readymades/keyframe_draft.py: attention blocking and rigs by shot kind. Finish by hand where the gate fails.",
+ "title": "Between Scylla and Charybdis",
+ "source": "Homer, Odyssey XII, tr. Samuel Butler (public domain)",
+ "note": "Hand-staged from the text on the new strait (tools/forage/sets.js scyllaCliff): Scylla's cliff face at x 163, her cavern mouth at (178, 150, -133); the black ship between x -28 and 84, its prow at z 119; the whirlpool at (-112, -37). Scylla is a prop (tools/forage/keyprops.js) of six ribbed-hose necks and dragon heads; the baked Scylla and the old whirlpool piece are hidden.",
  "look": {
   "sky": [
-   "#5f97d3",
-   "#efe2c4"
+   "#56636f",
+   "#cfd3cb"
   ],
   "fog": [
-   700,
-   2400
-  ]
+   650,
+   2000
+  ],
+  "fill": {
+   "sky": "#b7c3d4",
+   "ground": "#2d3a3f",
+   "intensity": 0.5
+  },
+  "sun": {
+   "dir": [
+    0.5,
+    0.7,
+    -0.5
+   ],
+   "color": "#fff1dc",
+   "intensity": 1.15,
+   "shadow": true
+  },
+  "exposure": 0.95
  },
- "spread": 36,
- "blocking": [
-  {
-   "id": "odysseus",
-   "x": -28.1,
-   "z": 217.7,
-   "y": "floor"
-  },
-  {
-   "id": "six-seized-sailors-1",
-   "x": -49.1,
-   "z": 63.2,
-   "y": "floor",
-   "props": false
-  },
-  {
-   "id": "six-seized-sailors-2",
-   "x": -7.0,
-   "z": 63.2,
-   "y": "floor",
-   "props": false
-  },
-  {
-   "id": "six-seized-sailors-3",
-   "x": -49.1,
-   "z": 21.1,
-   "y": "floor",
-   "props": false
-  },
-  {
-   "id": "six-seized-sailors-4",
-   "x": -7.0,
-   "z": 21.1,
-   "y": "floor",
-   "props": false
-  },
-  {
-   "id": "six-seized-sailors-5",
-   "x": -49.1,
-   "z": -21.1,
-   "y": "floor",
-   "props": false
-  },
-  {
-   "id": "six-seized-sailors-6",
-   "x": -7.0,
-   "z": -21.1,
-   "y": "floor",
-   "props": false
-  }
- ],
+ "spread": 0,
+ "blocking": [],
  "keys": [
   {
    "id": "K1",
    "beat": "The crew hears Charybdis roar and sees spray rising from the whirlpool.",
-   "kind": "establish",
-   "draft": true,
+   "text": "As she vomited it up, it was like the water in a caldron when it is boiling over upon a great fire, and the spray reached the top of the rocks on either side.",
+   "hide": [
+    "scylla",
+    "charybdis"
+   ],
+   "props": [
+    {
+     "name": "spout",
+     "id": "spout",
+     "at": [
+      -112,
+      4,
+      -37
+     ],
+     "scale": 0.95
+    }
+   ],
    "blocking": [
     {
      "id": "odysseus",
+     "x": 30,
+     "z": 112,
+     "y": "floor",
      "face": [
-      -126.4,
-      -119.35
-     ]
+      -112,
+      -37
+     ],
+     "props": true,
+     "pose": {
+      "armRP": [
+       -0.4,
+       0,
+       0
+      ]
+     }
     },
     {
      "id": "six-seized-sailors-1",
+     "x": 0,
+     "z": -110,
+     "y": "floor",
      "face": [
-      -126.4,
-      -119.35
-     ]
+      -112,
+      -37
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.0,
+       0,
+       0
+      ],
+      "armLP": [
+       -0.4,
+       0,
+       0
+      ]
+     }
     },
     {
      "id": "six-seized-sailors-2",
+     "x": 58,
+     "z": -110,
+     "y": "floor",
      "face": [
-      -126.4,
-      -119.35
-     ]
+      -112,
+      -37
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.0,
+       0,
+       0
+      ],
+      "armLP": [
+       -0.4,
+       0,
+       0
+      ]
+     }
     },
     {
      "id": "six-seized-sailors-3",
+     "x": 0,
+     "z": -55,
+     "y": "floor",
      "face": [
-      -126.4,
-      -119.35
-     ]
+      -112,
+      -37
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.0,
+       0,
+       0
+      ],
+      "armLP": [
+       -0.4,
+       0,
+       0
+      ]
+     }
     },
     {
      "id": "six-seized-sailors-4",
+     "x": 58,
+     "z": -55,
+     "y": "floor",
      "face": [
-      -126.4,
-      -119.35
-     ]
+      -112,
+      -37
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.0,
+       0,
+       0
+      ],
+      "armLP": [
+       -0.4,
+       0,
+       0
+      ]
+     }
     },
     {
      "id": "six-seized-sailors-5",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
      "face": [
-      -126.4,
-      -119.35
-     ]
+      -112,
+      -37
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.0,
+       0,
+       0
+      ],
+      "armLP": [
+       -0.4,
+       0,
+       0
+      ]
+     }
     },
     {
      "id": "six-seized-sailors-6",
+     "x": 58,
+     "z": 0,
+     "y": "floor",
      "face": [
-      -126.4,
-      -119.35
-     ]
+      -112,
+      -37
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.0,
+       0,
+       0
+      ],
+      "armLP": [
+       -0.4,
+       0,
+       0
+      ]
+     }
     }
    ],
    "camera": {
     "type": "wide",
     "pos": [
-     -185.6,
-     255.8,
-     412.5
+     -300,
+     300,
+     -440
     ],
     "target": [
-     0,
-     35,
-     0
+     10,
+     130,
+     40
     ],
-    "fov": 38
+    "fov": 46
    },
    "subjects": [
     {
-     "id": "piece:charybdis",
+     "id": "prop:spout",
+     "min": 0.2,
      "primary": true,
+     "cut": true
+    },
+    {
+     "id": "odysseus",
      "soft": true,
      "min": 0.02
     }
@@ -147,260 +242,953 @@
   {
    "id": "K2",
    "beat": "Odysseus keeps Scylla secret and orders the men to row hard along her cliff.",
-   "kind": "ots",
-   "draft": true,
+   "text": "'Keep the ship well away from the smoke and surf, and hug the rock, or she will give you the slip.' ... but I said nothing about the awful monster Scylla, for I knew the men would not go on rowing if I did.",
+   "hide": [
+    "scylla",
+    "charybdis"
+   ],
    "blocking": [
     {
      "id": "odysseus",
+     "x": 20,
+     "z": -150,
+     "y": "floor",
      "face": [
-      101.39999999999999,
-      -203.5
-     ]
+      24,
+      300
+     ],
+     "props": true,
+     "pose": {
+      "armRP": [
+       -1.6,
+       0,
+       0.2
+      ],
+      "armLP": [
+       -0.3,
+       0,
+       0
+      ]
+     }
     },
     {
      "id": "six-seized-sailors-1",
-     "face": "odysseus"
+     "x": 0,
+     "z": -90,
+     "y": "floor",
+     "face": [
+      29,
+      -400
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.25,
+       0,
+       0.25
+      ],
+      "armLP": [
+       -1.25,
+       0,
+       -0.25
+      ]
+     }
     },
     {
      "id": "six-seized-sailors-2",
-     "face": "odysseus"
+     "x": 72,
+     "z": -90,
+     "y": "floor",
+     "face": [
+      29,
+      -400
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.25,
+       0,
+       0.25
+      ],
+      "armLP": [
+       -1.25,
+       0,
+       -0.25
+      ]
+     }
     },
     {
      "id": "six-seized-sailors-3",
-     "face": "odysseus"
+     "x": 0,
+     "z": -40,
+     "y": "floor",
+     "face": [
+      29,
+      -400
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.25,
+       0,
+       0.25
+      ],
+      "armLP": [
+       -1.25,
+       0,
+       -0.25
+      ]
+     }
     },
     {
      "id": "six-seized-sailors-4",
-     "face": "odysseus"
+     "x": 72,
+     "z": -40,
+     "y": "floor",
+     "face": [
+      29,
+      -400
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.25,
+       0,
+       0.25
+      ],
+      "armLP": [
+       -1.25,
+       0,
+       -0.25
+      ]
+     }
     },
     {
      "id": "six-seized-sailors-5",
-     "face": "odysseus"
+     "x": 0,
+     "z": 10,
+     "y": "floor",
+     "face": [
+      29,
+      -400
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.25,
+       0,
+       0.25
+      ],
+      "armLP": [
+       -1.25,
+       0,
+       -0.25
+      ]
+     }
     },
     {
      "id": "six-seized-sailors-6",
-     "face": "odysseus"
+     "x": 72,
+     "z": 10,
+     "y": "floor",
+     "face": [
+      29,
+      -400
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.25,
+       0,
+       0.25
+      ],
+      "armLP": [
+       -1.25,
+       0,
+       -0.25
+      ]
+     }
     }
    ],
    "camera": {
-    "type": "hero",
-    "a": "odysseus",
-    "dist": 175,
-    "height": 10,
-    "yaw": 0.5,
-    "fov": 32,
-    "subject": "odysseus",
-    "place": "L",
-    "eye": 0.36
+    "type": "wide",
+    "pos": [
+     -181,
+     120,
+     -60
+    ],
+    "target": [
+     29,
+     70,
+     -60
+    ],
+    "fov": 48
    },
    "subjects": [
     {
      "id": "odysseus",
-     "primary": true,
-     "face": true,
-     "min": 0.12
+     "min": 0.1,
+     "primary": true
     },
     {
-     "id": "piece:scylla",
+     "id": "six-seized-sailors-3",
      "soft": true,
      "cut": true
+    },
+    {
+     "id": "six-seized-sailors-5",
+     "soft": true,
+     "min": 0.03
     }
-   ]
+   ],
+   "lensAllow": [
+    "odysseus"
+   ],
+   "turn": {
+    "around": [
+     29,
+     70,
+     -60
+    ],
+    "r": 210,
+    "h": 120,
+    "fov": 48
+   }
   },
   {
    "id": "K3",
    "beat": "He arms himself despite Circe's warning and searches the rock face.",
-   "kind": "medium",
-   "draft": true,
+   "text": "I put on my armour and took a spear in either hand, and went on to the fore part of the ship... I strained my eyes with looking the dark rock all over, but I could not see her.",
+   "hide": [
+    "scylla",
+    "charybdis"
+   ],
    "blocking": [
     {
      "id": "odysseus",
+     "x": 40,
+     "z": 122,
+     "y": "floor",
      "face": [
-      -28.085106382978722,
-      617.6595744680851
-     ]
+      182,
+      -133
+     ],
+     "props": true,
+     "pose": {
+      "armRP": [
+       -0.6,
+       0,
+       0
+      ],
+      "armLP": [
+       -0.6,
+       0,
+       0
+      ]
+     }
     },
     {
      "id": "six-seized-sailors-1",
-     "face": "odysseus"
+     "x": 0,
+     "z": -110,
+     "y": "floor",
+     "face": [
+      29,
+      -400
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.25,
+       0,
+       0.25
+      ],
+      "armLP": [
+       -1.25,
+       0,
+       -0.25
+      ]
+     }
     },
     {
      "id": "six-seized-sailors-2",
-     "face": "odysseus"
+     "x": 58,
+     "z": -110,
+     "y": "floor",
+     "face": [
+      29,
+      -400
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.25,
+       0,
+       0.25
+      ],
+      "armLP": [
+       -1.25,
+       0,
+       -0.25
+      ]
+     }
     },
     {
      "id": "six-seized-sailors-3",
-     "face": "odysseus"
+     "x": 0,
+     "z": -55,
+     "y": "floor",
+     "face": [
+      29,
+      -400
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.25,
+       0,
+       0.25
+      ],
+      "armLP": [
+       -1.25,
+       0,
+       -0.25
+      ]
+     }
     },
     {
      "id": "six-seized-sailors-4",
-     "face": "odysseus"
+     "x": 58,
+     "z": -55,
+     "y": "floor",
+     "face": [
+      29,
+      -400
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.25,
+       0,
+       0.25
+      ],
+      "armLP": [
+       -1.25,
+       0,
+       -0.25
+      ]
+     }
     },
     {
      "id": "six-seized-sailors-5",
-     "face": "odysseus"
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      29,
+      -400
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.25,
+       0,
+       0.25
+      ],
+      "armLP": [
+       -1.25,
+       0,
+       -0.25
+      ]
+     }
     },
     {
      "id": "six-seized-sailors-6",
-     "face": "odysseus"
+     "x": 58,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      29,
+      -400
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.25,
+       0,
+       0.25
+      ],
+      "armLP": [
+       -1.25,
+       0,
+       -0.25
+      ]
+     }
     }
    ],
    "camera": {
-    "type": "hero",
-    "a": "odysseus",
-    "dist": 175,
-    "height": 10,
-    "yaw": -0.5,
-    "fov": 32,
-    "subject": "odysseus",
-    "place": "R",
-    "eye": 0.36
+    "type": "wide",
+    "pos": [
+     178,
+     250,
+     -100
+    ],
+    "target": [
+     40,
+     80,
+     118
+    ],
+    "fov": 34
    },
    "subjects": [
     {
      "id": "odysseus",
+     "min": 0.08,
      "primary": true,
-     "face": true,
-     "min": 0.12
+     "face": true
+    },
+    {
+     "id": "six-seized-sailors-6",
+     "soft": true,
+     "cut": true
     }
+   ],
+   "note": "Scylla's eye: from her cavern mouth down on Odysseus at the prow, armed and searching the rock for what he cannot see.",
+   "lensAllow": [
+    "six-seized-sailors-1",
+    "six-seized-sailors-2",
+    "six-seized-sailors-3",
+    "six-seized-sailors-4",
+    "six-seized-sailors-5",
+    "six-seized-sailors-6"
    ]
   },
   {
    "id": "K4",
    "beat": "Scylla's six heads strike, lifting six screaming men from the ship.",
-   "kind": "push",
-   "draft": true,
-   "blocking": [
+   "text": "While we were taken up with this, and were expecting each moment to be our last, Scylla pounced down suddenly upon us and snatched up my six best men.",
+   "hide": [
+    "scylla",
+    "charybdis"
+   ],
+   "props": [
     {
-     "id": "odysseus",
-     "face": [
-      101.39999999999999,
-      -203.5
-     ]
-    },
-    {
-     "id": "six-seized-sailors-1",
-     "face": [
-      101.39999999999999,
-      -203.5
-     ]
-    },
-    {
-     "id": "six-seized-sailors-2",
-     "face": [
-      101.39999999999999,
-      -203.5
-     ]
-    },
-    {
-     "id": "six-seized-sailors-3",
-     "face": [
-      101.39999999999999,
-      -203.5
-     ]
-    },
-    {
-     "id": "six-seized-sailors-4",
-     "face": [
-      101.39999999999999,
-      -203.5
-     ]
-    },
-    {
-     "id": "six-seized-sailors-5",
-     "face": [
-      101.39999999999999,
-      -203.5
-     ]
-    },
-    {
-     "id": "six-seized-sailors-6",
-     "face": [
-      101.39999999999999,
-      -203.5
+     "name": "scyllaStrike",
+     "id": "scylla",
+     "at": [
+      178,
+      150,
+      -133
      ]
     }
    ],
+   "blocking": [
+    {
+     "id": "odysseus",
+     "x": 20,
+     "z": 128,
+     "y": "floor",
+     "face": [
+      62,
+      -40
+     ],
+     "props": true,
+     "pose": {
+      "armRP": [
+       -1.4,
+       0,
+       0
+      ],
+      "armLP": [
+       -0.8,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "six-seized-sailors-1",
+     "x": 62,
+     "z": -118,
+     "y": "floor",
+     "face": [
+      180,
+      -133
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.8,
+       0,
+       0.2
+      ],
+      "armLP": [
+       -2.6,
+       0,
+       -0.2
+      ]
+     }
+    },
+    {
+     "id": "six-seized-sailors-2",
+     "x": 40,
+     "z": -78,
+     "y": "floor",
+     "face": [
+      180,
+      -133
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.8,
+       0,
+       0.2
+      ],
+      "armLP": [
+       -2.6,
+       0,
+       -0.2
+      ]
+     }
+    },
+    {
+     "id": "six-seized-sailors-3",
+     "x": 66,
+     "z": -38,
+     "y": "floor",
+     "face": [
+      180,
+      -133
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.8,
+       0,
+       0.2
+      ],
+      "armLP": [
+       -2.6,
+       0,
+       -0.2
+      ]
+     }
+    },
+    {
+     "id": "six-seized-sailors-4",
+     "x": 42,
+     "z": 2,
+     "y": "floor",
+     "face": [
+      180,
+      -133
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.8,
+       0,
+       0.2
+      ],
+      "armLP": [
+       -2.6,
+       0,
+       -0.2
+      ]
+     }
+    },
+    {
+     "id": "six-seized-sailors-5",
+     "x": 64,
+     "z": 42,
+     "y": "floor",
+     "face": [
+      180,
+      -133
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.8,
+       0,
+       0.2
+      ],
+      "armLP": [
+       -2.6,
+       0,
+       -0.2
+      ]
+     }
+    },
+    {
+     "id": "six-seized-sailors-6",
+     "x": 44,
+     "z": 82,
+     "y": "floor",
+     "face": [
+      180,
+      -133
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.8,
+       0,
+       0.2
+      ],
+      "armLP": [
+       -2.6,
+       0,
+       -0.2
+      ]
+     }
+    }
+   ],
+   "physicsAllow": [],
    "camera": {
     "type": "wide",
     "pos": [
-     -35.8,
-     334.7,
-     70.8
+     -129,
+     140,
+     -204
     ],
-    "target": "piece:scylla",
-    "fov": 34,
-    "subject": "piece:scylla",
-    "place": "L",
-    "eye": 0.4
+    "target": [
+     55,
+     150,
+     -20
+    ],
+    "fov": 58
    },
    "subjects": [
     {
-     "id": "piece:scylla",
-     "primary": true,
-     "min": 0.25
+     "id": "odysseus",
+     "min": 0.05,
+     "primary": true
+    },
+    {
+     "id": "prop:scylla",
+     "soft": true,
+     "cut": true
     }
-   ]
+   ],
+   "lensAllow": [
+    "six-seized-sailors-1",
+    "six-seized-sailors-2",
+    "six-seized-sailors-3",
+    "six-seized-sailors-4",
+    "six-seized-sailors-5",
+    "six-seized-sailors-6",
+    "odysseus"
+   ],
+   "turn": {
+    "around": [
+     55,
+     120,
+     -20
+    ],
+    "r": 260,
+    "h": 140,
+    "fov": 50
+   },
+   "note": "The heads close over the men's heads: the seized are not held to the visibility test, the jaws are the point."
   },
   {
    "id": "K5",
    "beat": "The survivors pass beyond both monsters while watching their companions die above them.",
-   "kind": "pullback",
-   "draft": true,
+   "text": "I saw their hands and feet ever so high above me, struggling in the air as Scylla was carrying them off, and I could hear them calling out my name in one last despairing cry.",
+   "hide": [
+    "scylla",
+    "charybdis"
+   ],
+   "props": [
+    {
+     "name": "scyllaLift",
+     "id": "scylla",
+     "at": [
+      178,
+      150,
+      -133
+     ]
+    }
+   ],
    "blocking": [
     {
      "id": "odysseus",
+     "x": 22,
+     "z": -150,
+     "y": "floor",
      "face": [
-      -28.085106382978722,
-      617.6595744680851
-     ]
+      100,
+      -120
+     ],
+     "props": true,
+     "pose": {
+      "armRP": [
+       -2.6,
+       0,
+       0.2
+      ],
+      "armLP": [
+       -2.3,
+       0,
+       -0.2
+      ]
+     }
     },
     {
      "id": "six-seized-sailors-1",
-     "face": "odysseus"
+     "x": 118,
+     "z": -250,
+     "y": 258,
+     "air": true,
+     "face": [
+      20,
+      -20
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.9,
+       0,
+       0.15
+      ],
+      "armLP": [
+       -2.9,
+       0,
+       -0.15
+      ],
+      "legRP": [
+       -0.5,
+       0,
+       0
+      ],
+      "legLP": [
+       0.4,
+       0,
+       0
+      ]
+     }
     },
     {
      "id": "six-seized-sailors-2",
-     "face": "odysseus"
+     "x": 92,
+     "z": -190,
+     "y": 228,
+     "air": true,
+     "face": [
+      20,
+      -20
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.9,
+       0,
+       0.15
+      ],
+      "armLP": [
+       -2.9,
+       0,
+       -0.15
+      ],
+      "legRP": [
+       -0.5,
+       0,
+       0
+      ],
+      "legLP": [
+       0.4,
+       0,
+       0
+      ]
+     }
     },
     {
      "id": "six-seized-sailors-3",
-     "face": "odysseus"
+     "x": 128,
+     "z": -130,
+     "y": 288,
+     "air": true,
+     "face": [
+      20,
+      -20
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.9,
+       0,
+       0.15
+      ],
+      "armLP": [
+       -2.9,
+       0,
+       -0.15
+      ],
+      "legRP": [
+       -0.5,
+       0,
+       0
+      ],
+      "legLP": [
+       0.4,
+       0,
+       0
+      ]
+     }
     },
     {
      "id": "six-seized-sailors-4",
-     "face": "odysseus"
+     "x": 84,
+     "z": -70,
+     "y": 208,
+     "air": true,
+     "face": [
+      20,
+      -20
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.9,
+       0,
+       0.15
+      ],
+      "armLP": [
+       -2.9,
+       0,
+       -0.15
+      ],
+      "legRP": [
+       -0.5,
+       0,
+       0
+      ],
+      "legLP": [
+       0.4,
+       0,
+       0
+      ]
+     }
     },
     {
      "id": "six-seized-sailors-5",
-     "face": "odysseus"
+     "x": 120,
+     "z": -10,
+     "y": 248,
+     "air": true,
+     "face": [
+      20,
+      -20
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.9,
+       0,
+       0.15
+      ],
+      "armLP": [
+       -2.9,
+       0,
+       -0.15
+      ],
+      "legRP": [
+       -0.5,
+       0,
+       0
+      ],
+      "legLP": [
+       0.4,
+       0,
+       0
+      ]
+     }
     },
     {
      "id": "six-seized-sailors-6",
-     "face": "odysseus"
+     "x": 98,
+     "z": 40,
+     "y": 178,
+     "air": true,
+     "face": [
+      20,
+      -20
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.9,
+       0,
+       0.15
+      ],
+      "armLP": [
+       -2.9,
+       0,
+       -0.15
+      ],
+      "legRP": [
+       -0.5,
+       0,
+       0
+      ],
+      "legLP": [
+       0.4,
+       0,
+       0
+      ]
+     }
     }
    ],
    "camera": {
     "type": "wide",
     "pos": [
-     -237.6,
-     327.4,
-     528.0
+     60,
+     62,
+     -370
     ],
     "target": [
-     0,
-     35,
-     0
+     70,
+     190,
+     -110
     ],
-    "fov": 38
+    "fov": 60
    },
    "subjects": [
     {
      "id": "odysseus",
-     "primary": true,
+     "min": 0.1,
+     "primary": true
+    },
+    {
+     "id": "six-seized-sailors-2",
      "soft": true,
-     "min": 0.02
+     "cut": true
+    },
+    {
+     "id": "prop:scylla",
+     "soft": true,
+     "cut": true
     }
+   ],
+   "turn": {
+    "around": [
+     60,
+     200,
+     -110
+    ],
+    "r": 260,
+    "h": 60,
+    "fov": 54
+   },
+   "lensAllow": [
+    "six-seized-sailors-1",
+    "six-seized-sailors-2",
+    "six-seized-sailors-3",
+    "six-seized-sailors-4",
+    "six-seized-sailors-5",
+    "six-seized-sailors-6"
    ]
   }
  ]

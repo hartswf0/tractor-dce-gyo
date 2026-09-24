@@ -56,6 +56,49 @@ props.acorns = { parts: [[0, 0, 0], [9, -14, 5], [-8, -26, -3], [4, -40, 8], [-5
 props.acornPile = { parts: [[0, 0], [10, 3], [-9, 5], [4, -8], [-4, 10], [14, -6], [-13, -4]].map(([x, z], i) => row('98138p86', 19, L.mul(L.T(x, 0, z), RY(i)))), anchors: { centre: [0, 0, 0] } };
 props.basket = { parts: [row('4523', 70, L.I12), row('98138p86', 19, L.T(-3, -2, 0)), row('98138p86', 19, L.T(4, -3, 2))], anchors: { rim: [0, -4, 0] } };
 props.cup = { parts: [row('2343', 297, L.I12)], anchors: { rim: [0, -12, 0] } };
+/* Scylla (Homer XII: "twelve feet all dangling; six necks of prodigious length; and at the end of each neck a frightful head with three rows
+   of teeth"): six necks out of her cavern, each a ribbed hose laid segment by segment (6.25 LDU apart, as the hose part lays them) along a
+   curve, each ending in a dragon's head turned along the neck. Built in the strait's own frame: CAVE is the cavern mouth in Film Butter
+   units and SC the set's scale, so a pose names the six jaws' points in the world (the men they seize). */
+const CAVE = [178, 150, -133], SC = 0.702;
+const toLocal = w => [(w[0] - CAVE[0]) / SC, -(w[1] - CAVE[1]) / SC, -(w[2] - CAVE[2]) / SC];
+const v3 = { add: (a, b) => a.map((x, i) => x + b[i]), sub: (a, b) => a.map((x, i) => x - b[i]), mul: (a, k) => a.map(x => x * k), len: a => Math.hypot(...a), norm: a => { const l = Math.hypot(...a) || 1; return a.map(x => x / l); },
+  cross: (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]] };
+/* a rotation whose columns are the images of the part's x, y and z */
+const cols = (x, y, z) => [x[0], y[0], z[0], x[1], y[1], z[1], x[2], y[2], z[2]];
+function scylla(pose) {
+  const parts = [], anchors = {}, col = 288;
+  pose.forEach(([Tw, fl], i) => {
+    const T = toLocal(Tw), f = v3.norm(fl), H = v3.sub(T, v3.mul(f, 34)), E = v3.sub(H, v3.mul(f, 4));
+    const S = [30, -10 + (i % 3) * 30, -60 + i * 24], P1 = v3.add(S, [-170, -150 + (i % 2) * 60, (E[2] - S[2]) * 0.25]), P2 = v3.sub(E, v3.mul(f, 170));
+    const bez = t => { const u = 1 - t; return [0, 1, 2].map(k => u * u * u * S[k] + 3 * u * u * t * P1[k] + 3 * u * t * t * P2[k] + t * t * t * E[k]); };
+    const pts = []; for (let k = 0; k <= 400; k++) pts.push(bez(k / 400));
+    let acc = 0, next = 0;
+    for (let k = 1; k < pts.length; k++) { const d = v3.len(v3.sub(pts[k], pts[k - 1])); acc += d;
+      while (acc >= next) { const t = v3.norm(v3.sub(pts[k], pts[k - 1])), u = v3.norm(v3.cross(t, Math.abs(t[1]) > 0.9 ? [1, 0, 0] : [0, 1, 0])), z = v3.cross(u, t);
+        parts.push(row('71944k02', col, [...pts[k], ...cols(u, t, z)])); next += 6.25; } }
+    /* the head: its snout (the part's -z) along f, the top of its head (the part's -y) turned up */
+    const up = v3.norm(v3.sub([0, -1, 0], v3.mul(f, -f[1]))), zi = v3.mul(f, -1), yi = v3.mul(up, -1), xi = v3.cross(yi, zi);
+    parts.push(row('6027', col, [...H, ...cols(xi, yi, zi)]));
+    anchors['jaw' + (i + 1)] = T; anchors['head' + (i + 1)] = H;
+  });
+  anchors.cave = [0, 0, 0];
+  return { parts, anchors };
+}
+/* the strike: the six heads come down over the gunwale on the six men ("pounced down suddenly upon us") */
+const STRIKE = [[[62, 112, -118], [-0.35, 0.9, 0.1]], [[40, 110, -78], [-0.5, 0.8, -0.1]], [[66, 114, -38], [-0.3, 0.9, 0.2]], [[42, 110, 2], [-0.5, 0.8, 0]], [[64, 112, 42], [-0.35, 0.9, -0.2]], [[44, 110, 82], [-0.45, 0.85, -0.25]]];
+/* the lift: "their hands and feet ever so high above me, struggling in the air as Scylla was carrying them off" */
+const LIFT = [[[118, 330, -250], [0.1, 0.9, 0.2]], [[92, 300, -190], [-0.2, 0.9, 0.1]], [[128, 360, -130], [0, 1, 0]], [[84, 280, -70], [-0.3, 0.85, -0.1]], [[120, 320, -10], [0.1, 0.9, -0.2]], [[98, 250, 40], [-0.2, 0.9, -0.3]]];
+props.scyllaStrike = scylla(STRIKE);
+props.scyllaLift = scylla(LIFT);
+/* Charybdis spouting: "as she vomited it up, it was like the water in a caldron when it is boiling over... the spray reached the top of the rocks" */
+props.spout = (() => { const parts = [];
+  /* the column: 2 x 2 round bricks, clear and white, wandering as it rises and thinning; a crown of cones thrown out at its head; a skirt of foam */
+  for (let i = 0; i < 18; i++) { const w = 1 - i / 24, a = i * 0.7, r = 8 * Math.sin(i * 0.5); parts.push(row('3941', i % 3 === 1 ? 15 : 47, L.T(r * Math.cos(a), -i * 24, r * Math.sin(a))));
+    for (let k = 0; k < 3; k++) { const b = a + k * 2.1, rr = 30 * w + (k % 2) * 8; parts.push(row(k % 2 ? '3062b' : '4589', (i + k) % 3 ? 47 : 15, L.T(rr * Math.cos(b), -i * 24 - 10 * k, rr * Math.sin(b)))); } }
+  for (let k = 0; k < 16; k++) { const b = k * 0.4, rr = 30 + (k % 4) * 14; parts.push(row('4589', k % 2 ? 15 : 47, L.mul(L.T(rr * Math.cos(b), -400 - (k % 5) * 18 + rr * 0.6, rr * Math.sin(b)), RX(Math.PI - 0.5 - (k % 3) * 0.3)))); }
+  for (let k = 0; k < 20; k++) { const b = k * 0.31, rr = 44 + (k % 3) * 16; parts.push(row(k % 2 ? '6141' : '3062b', k % 3 ? 15 : 47, L.T(rr * Math.cos(b), (k % 2) * -12, rr * Math.sin(b)))); }
+  return { parts, anchors: { crest: [0, -440, 0], base: [0, 0, 0] } }; })();
 const out = path.join(L.ROOT, 'odyssey/keyframes/props.json');
 fs.writeFileSync(out, JSON.stringify(props));
 console.log('props:', Object.entries(props).map(([k, p]) => `${k} (${p.parts.length} parts)`).join(', '), '->', path.relative(L.ROOT, out));
