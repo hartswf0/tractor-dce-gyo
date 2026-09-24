@@ -26,9 +26,33 @@ await p.evaluate(()=>{window.renderStill=renderer.render.bind(renderer);renderer
   const st=document.createElement('style');st.textContent='body.kf header,body.kf .topbar,body.kf footer,body.kf nav,body.kf #filmWorldTools,body.kf [class*="prompt"],body.kf [class*="dock"],body.kf [class*="toolbar"]{visibility:hidden!important}';document.head.appendChild(st);});
 await p.waitForTimeout(800);
 const report=[];
+/* --search K3: coverage for one still. Stage it once, then try n cameras (seeded) round its focus, inside the set's bounds; keep those the
+   gate would pass, rank them (the primary at the size asked, faces shown, soft subjects in view), render the best six to choose from */
+const searchId=process.argv.includes('--search')?process.argv[process.argv.indexOf('--search')+1]:null;
+if(searchId){const k=spec.keys.find(x=>x.id===searchId),S_=k.search||{};await p.evaluate(()=>OdysseyFilm.loadProps());
+ const cands=await p.evaluate(({base,k,look,spread,props,S_})=>{OdysseyFilm.hide(k.hide||[]);OdysseyFilm.props([...(props||[]),...(k.props||[])]);OdysseyFilm.block(base);if(spread)OdysseyFilm.spread(spread);OdysseyFilm.block(k.blocking||[]);OdysseyFilm.light(Object.assign({},look,k.look));OdysseyFilm.look(Object.assign({},look,k.look));OdysseyFilm.rope(k.rope||null);
+  let seed=S_.seed||7;const rnd=()=>{seed=(seed*16807)%2147483647;return seed/2147483647;};const around=S_.around;const out=[];const B=S_.bounds||[-1e9,1e9,-1e9,1e9];
+  const prim=(k.subjects.find(s=>s.primary)||k.subjects[0]).id;
+  for(let i=0;i<(S_.n||60);i++){const A=(S_.az?S_.az[0]+rnd()*(S_.az[1]-S_.az[0]):rnd()*Math.PI*2),r=S_.r[0]+rnd()*(S_.r[1]-S_.r[0]),h=S_.h[0]+rnd()*(S_.h[1]-S_.h[0]),fov=S_.fov?S_.fov[0]+rnd()*(S_.fov[1]-S_.fov[0]):36;
+   const c=typeof around==='string'?OdysseyFilm.anchor(around.slice(1))||null:{x:around[0],y:around[1],z:around[2]};if(!c)break;
+   const pos=[c.x+Math.sin(A)*r,h,c.z+Math.cos(A)*r];if(pos[0]<B[0]||pos[0]>B[1]||pos[2]<B[2]||pos[2]>B[3])continue;
+   const cam={type:'wide',pos,target:S_.target||around,fov,subject:prim,place:k.camera.place||S_.place||'L',eye:k.camera.eye||0.4};OdysseyFilm.rig(cam);
+   const sc=OdysseyFilm.score(k.subjects),lens=OdysseyFilm.lens(prim,k.lensAllow||[]),clutter=OdysseyFilm.clutter(prim.startsWith('prop:')||prim.startsWith('piece:')?(k.subjects.find(s=>!s.id.includes(':'))||{}).id||prim:prim,[...(k.lensAllow||[]),...k.subjects.map(s=>s.id)]);
+   let ok=lens<=0.1&&!clutter.length,val=0;for(const s of k.subjects){const m=sc[s.id];if(!m||m.missing||m.behind){ok=false;continue;}
+    if(m.visible<(s.soft?0.5:0.75))ok=false;if(!s.cut&&!m.inFrame)ok=false;if(s.min&&m.size<s.min)ok=false;if(s.max&&m.size>s.max)ok=false;if(s.face&&m.facing<0.35)ok=false;
+    if(!(m.head[0]>0.02&&m.head[0]<0.98&&m.head[1]>0.02&&m.head[1]<0.98))ok=false;
+    if(s.primary){if(m.thirds>0.06&&cam.place!=='C')ok=false;if(m.headroom<0.03)ok=false;val-=Math.abs(m.size-(S_.size||0.35))*3;}
+    if(s.face)val+=m.facing*0.5;val+=m.visible*0.3;}
+   out.push({ok,val:+val.toFixed(3),cam:{...cam,pos:pos.map(v=>+v.toFixed(1)),fov:+fov.toFixed(1)}});}
+  return out;},{base:spec.blocking,k,look:spec.look||{},spread:spec.spread||0,props:spec.props||[],S_});
+ const good=cands.filter(c=>c.ok).sort((a,b)=>b.val-a.val),pick=[];for(const c of good){if(pick.every(q=>Math.hypot(q.cam.pos[0]-c.cam.pos[0],q.cam.pos[2]-c.cam.pos[2])>60))pick.push(c);if(pick.length>=6)break;}
+ console.log(`${k.id}: ${cands.length} cameras tried, ${good.length} pass; rendering ${pick.length}`);
+ for(let i=0;i<pick.length;i++){const png=await p.evaluate(cam=>{OdysseyFilm.rig(cam);renderStill(scene,camera);return renderer.domElement.toDataURL('image/png');},pick[i].cam);fs.writeFileSync(path.join(out,`${k.id}-c${i+1}.png`),Buffer.from(png.split(',')[1],'base64'));}
+ fs.writeFileSync(path.join(out,`${k.id}-candidates.json`),JSON.stringify(pick,null,1));await b.close();process.exit(0);}
 for(const k of spec.keys){
- const r=await p.evaluate(({base,k,look,spread})=>{OdysseyFilm.block(base);if(spread)OdysseyFilm.spread(spread);OdysseyFilm.block(k.blocking||[]);const cam=OdysseyFilm.rig(k.camera);
-   OdysseyFilm.look(Object.assign({},look,k.look));OdysseyFilm.rope(k.rope||null);const phys=OdysseyFilm.physics(ButterCast.cast.map(a=>a.kind.replace(/^odyssey-od-b\d\d-s\d\d-/,'')),k.touch||[]);const sc=OdysseyFilm.score(k.subjects);const clutter=OdysseyFilm.clutter((k.subjects.find(s=>s.primary&&!s.id.startsWith('piece:'))||k.subjects.find(s=>!s.id.startsWith('piece:'))||{id:(k.subjects[0]||{}).id}).id,[...(k.lensAllow||[]),...k.subjects.map(s=>s.id)]);const prim=(k.subjects.find(s=>s.primary)||{}).id;const lens=OdysseyFilm.lens(prim||k.subjects[0].id,k.lensAllow||[]);renderStill(scene,camera);const png=renderer.domElement.toDataURL('image/png');return {cam,sc,lens,clutter,phys,png};},{base:spec.blocking,k,look:spec.look||{},spread:spec.spread||0});
+ await p.evaluate(()=>OdysseyFilm.loadProps());
+ const r=await p.evaluate(({base,k,look,spread,props})=>{OdysseyFilm.hide(k.hide||[]);OdysseyFilm.props([...(props||[]),...(k.props||[])]);OdysseyFilm.block(base);if(spread)OdysseyFilm.spread(spread);OdysseyFilm.block(k.blocking||[]);OdysseyFilm.light(Object.assign({},look,k.look));const cam=OdysseyFilm.rig(k.camera);
+   OdysseyFilm.look(Object.assign({},look,k.look));OdysseyFilm.rope(k.rope||null);const phys=OdysseyFilm.physics(ButterCast.cast.map(a=>a.kind.replace(/^odyssey-od-b\d\d-s\d\d-/,'')),k.touch||[]);const sc=OdysseyFilm.score(k.subjects);const clutter=OdysseyFilm.clutter((k.subjects.find(s=>s.primary&&!s.id.startsWith('piece:'))||k.subjects.find(s=>!s.id.startsWith('piece:'))||{id:(k.subjects[0]||{}).id}).id,[...(k.lensAllow||[]),...k.subjects.map(s=>s.id)]);const prim=(k.subjects.find(s=>s.primary)||{}).id;const lens=OdysseyFilm.lens(prim||k.subjects[0].id,k.lensAllow||[]);renderStill(scene,camera);const png=renderer.domElement.toDataURL('image/png');return {cam,sc,lens,clutter,phys,png};},{base:spec.blocking,k,look:spec.look||{},spread:spec.spread||0,props:spec.props||[]});
  const fails=[];
  for(const s of k.subjects){const m=r.sc[s.id];if(!m||m.missing){fails.push(s.id+' missing');continue;}
   if(m.behind)fails.push(s.id+' behind the camera');
@@ -44,6 +68,12 @@ for(const k of spec.keys){
  if(r.clutter.length)fails.push(`foreground clutter: ${r.clutter.join(', ')}`);
  for(const [a,b2,n] of r.phys.collide)fails.push(`${a} passes through ${b2} (${n} part overlaps)`);
  for(const [a,g] of r.phys.floating)fails.push(`${a} ${g==null?'stands on nothing':g>0?'floats '+g:'is sunk '+(-g)}`);
+ if(process.argv.includes('--plan')){console.log('   anchors',JSON.stringify(await p.evaluate(()=>OdysseyFilm.anchors())),'\n   cast',JSON.stringify(await p.evaluate(()=>OdysseyFilm.cast().map(c=>[c.id,c.x,c.y,c.z]))));const plan=await p.evaluate(()=>{const cam=camera.position.clone(),tgt=controls.target.clone(),fov=camera.fov,q=camera.quaternion.clone();
+   const mk=new THREE.Mesh(new THREE.SphereGeometry(9,12,8),new THREE.MeshBasicMaterial({color:'#ff2030'}));mk.position.copy(cam);scene.add(mk);
+   const ln=new THREE.Line(new THREE.BufferGeometry().setFromPoints([cam,tgt]),new THREE.LineBasicMaterial({color:'#ff2030'}));scene.add(ln);
+   const bg=scene.background,fg=scene.fog;scene.fog=null;camera.position.set(0,1300,-20);camera.fov=40;camera.updateProjectionMatrix();camera.lookAt(0,0,-21);renderStill(scene,camera);const png=renderer.domElement.toDataURL('image/png');
+   scene.remove(mk);scene.remove(ln);scene.fog=fg;camera.position.copy(cam);camera.quaternion.copy(q);camera.fov=fov;camera.updateProjectionMatrix();return png;});
+  fs.writeFileSync(path.join(out,k.id+'-plan.png'),Buffer.from(plan.split(',')[1],'base64'));}
  const file=path.join(out,k.id+'.png');fs.writeFileSync(file,Buffer.from(r.png.split(',')[1],'base64'));delete r.png;   /* the frame itself, straight off the renderer: no workspace chrome */
  report.push({id:k.id,beat:k.beat,pass:!fails.length,fails,camera:r.cam,lens:r.lens,physics:r.phys,subjects:r.sc,file:path.relative(process.cwd(),file)});
  console.log(`${k.id} ${fails.length?'FAIL':'PASS'}  ${k.beat}${fails.length?'\n    '+fails.join('\n    '):''}`);}

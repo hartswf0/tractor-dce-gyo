@@ -2,350 +2,1294 @@
  "scene": "OD-B09-S09",
  "location": "odyssey-od-b09-s09",
  "title": "The Blinding",
- "note": "Drafted from the storyboard by film-readymades/keyframe_draft.py: attention blocking and rigs by shot kind. Finish by hand where the gate fails.",
+ "source": "Homer, Odyssey IX, tr. Samuel Butler (public domain)",
+ "note": "Hand-staged from the text. Film Butter units: the cave floor at y 9, the back wall at z -240, the fire at (-57, -28), the great stone across the mouth at z 93-154. The baked Polyphemus and the Cyclopes outside are hidden and restaged as props: the giant asleep on his back, then rising, then at the stone.",
  "look": {
   "sky": [
-   "#5f97d3",
-   "#efe2c4"
+   "#05070c",
+   "#140d08"
   ],
   "fog": [
-   700,
-   2400
+   450,
+   1300
+  ],
+  "dim": 0.18,
+  "lights": [
+   {
+    "at": [
+     -57,
+     70,
+     -28
+    ],
+    "color": "#ff7a1e",
+    "intensity": 3.4,
+    "distance": 520,
+    "decay": 1.2
+   },
+   {
+    "at": [
+     -57,
+     30,
+     -28
+    ],
+    "color": "#ffb060",
+    "intensity": 1.2,
+    "distance": 260
+   }
   ]
  },
- "spread": 36,
- "blocking": [
-  {
-   "id": "odysseus",
-   "x": -56.9,
-   "z": 17.4,
-   "y": "floor"
-  },
-  {
-   "id": "four-stake-bearers-1",
-   "x": -254.1,
-   "z": -119.1,
-   "y": "floor"
-  },
-  {
-   "id": "four-stake-bearers-2",
-   "x": -155.5,
-   "z": -119.1,
-   "y": "floor"
-  },
-  {
-   "id": "four-stake-bearers-3",
-   "x": -79.7,
-   "z": -119.1,
-   "y": "floor"
-  },
-  {
-   "id": "four-stake-bearers-4",
-   "x": 19.0,
-   "z": -119.1,
-   "y": "floor"
-  }
- ],
+ "spread": 0,
+ "blocking": [],
  "keys": [
   {
    "id": "K1",
    "beat": "Polyphemus drinks three bowls, promises Nobody the last death as a guest-gift, and collapses.",
-   "kind": "establish",
-   "draft": true,
+   "text": "He fell sprawling face upwards on the ground. His great neck hung heavily backwards and a deep sleep took hold upon him.",
+   "hide": [
+    "polyphemus",
+    "cyclopes outside 1",
+    "cyclopes outside 2",
+    "cyclopes outside 3",
+    "cyclopes outside 4",
+    "eye-blinding effect"
+   ],
+   "props": [
+    {
+     "name": "polyphemusSprawl",
+     "id": "polyphemus",
+     "at": [
+      30,
+      0,
+      -30
+     ],
+     "rot": [
+      -1.5708,
+      0.5,
+      0
+     ],
+     "floor": true,
+     "scale": 1.4
+    },
+    {
+     "name": "wine",
+     "at": "@polyphemus.brow",
+     "off": [
+      25,
+      0,
+      20
+     ],
+     "floor": true
+    },
+    {
+     "name": "bowl",
+     "id": "bowl",
+     "at": "@polyphemus.handR",
+     "off": [
+      20,
+      0,
+      10
+     ],
+     "rot": [
+      1.2,
+      0,
+      0.4
+     ],
+     "floor": true,
+     "sink": 6
+    },
+    {
+     "name": "stakeCold",
+     "id": "stake",
+     "at": [
+      60,
+      0,
+      -205
+     ],
+     "rot": [
+      1.5708,
+      1.5708,
+      0
+     ],
+     "floor": true
+    }
+   ],
    "blocking": [
     {
      "id": "odysseus",
-     "face": [
-      -17.450000000000003,
-      -149.6
-     ]
+     "x": 105,
+     "z": -45,
+     "y": "floor",
+     "face": "@polyphemus.eye",
+     "props": false,
+     "pose": {
+      "armRP": [
+       -0.4,
+       0,
+       0
+      ],
+      "armLP": [
+       -0.2,
+       0,
+       0
+      ],
+      "headP": [
+       0,
+       0,
+       0
+      ]
+     }
     },
     {
      "id": "four-stake-bearers-1",
-     "face": [
-      -17.450000000000003,
-      -149.6
-     ]
+     "x": 140,
+     "z": -95,
+     "y": "floor",
+     "face": "@polyphemus.eye",
+     "props": false
     },
     {
      "id": "four-stake-bearers-2",
-     "face": [
-      -17.450000000000003,
-      -149.6
-     ]
+     "x": 182,
+     "z": -62,
+     "y": "floor",
+     "face": "@polyphemus.eye",
+     "props": false
     },
     {
      "id": "four-stake-bearers-3",
-     "face": [
-      -17.450000000000003,
-      -149.6
-     ]
+     "x": 170,
+     "z": -135,
+     "y": "floor",
+     "face": "@polyphemus.eye",
+     "props": false
     },
     {
      "id": "four-stake-bearers-4",
-     "face": [
-      -17.450000000000003,
-      -149.6
-     ]
+     "x": 212,
+     "z": -100,
+     "y": "floor",
+     "face": "@polyphemus.eye",
+     "props": false
     }
    ],
    "camera": {
     "type": "wide",
     "pos": [
-     -185.6,
-     255.8,
-     412.5
+     -244.3,
+     304.1,
+     -27.1
     ],
-    "target": [
-     0,
-     35,
-     0
-    ],
-    "fov": 38
+    "target": "@polyphemus.chest",
+    "fov": 49.6,
+    "subject": "prop:polyphemus",
+    "place": "L",
+    "eye": 0.45
    },
    "subjects": [
     {
-     "id": "piece:polyphemus",
-     "primary": true,
-     "soft": true,
-     "min": 0.02
+     "id": "prop:polyphemus",
+     "min": 0.3,
+     "cut": true,
+     "primary": true
+    },
+    {
+     "id": "odysseus",
+     "min": 0.03,
+     "soft": true
     }
-   ]
+   ],
+   "search": {
+    "around": "@polyphemus.chest",
+    "r": [
+     110,
+     260
+    ],
+    "h": [
+     190,
+     340
+    ],
+    "fov": [
+     36,
+     50
+    ],
+    "bounds": [
+     -300,
+     300,
+     -300,
+     300
+    ],
+    "size": 0.5,
+    "n": 160
+   }
   },
   {
    "id": "K2",
    "beat": "Odysseus heats the stake until it glows and the chosen men drive it into the Cyclops's eye.",
-   "kind": "push",
-   "draft": true,
+   "text": "When the wood, green though it was, was about to blaze, I drew it out of the fire glowing with heat, and my men gathered round me.",
+   "hide": [
+    "polyphemus",
+    "cyclopes outside 1",
+    "cyclopes outside 2",
+    "cyclopes outside 3",
+    "cyclopes outside 4",
+    "eye-blinding effect"
+   ],
+   "props": [
+    {
+     "name": "polyphemusSprawl",
+     "id": "polyphemus",
+     "at": [
+      30,
+      0,
+      -30
+     ],
+     "rot": [
+      -1.5708,
+      0.5,
+      0
+     ],
+     "floor": true,
+     "scale": 1.4
+    },
+    {
+     "name": "wine",
+     "at": "@polyphemus.brow",
+     "off": [
+      25,
+      0,
+      20
+     ],
+     "floor": true
+    },
+    {
+     "name": "stake",
+     "id": "stake",
+     "aim": {
+      "anchor": "tip",
+      "to": [
+       -57,
+       20,
+       -28
+      ],
+      "dir": [
+       -0.92,
+       -0.12,
+       -0.37
+      ],
+      "sink": 14
+     }
+    }
+   ],
    "blocking": [
     {
      "id": "odysseus",
-     "face": "four-stake-bearers-1"
+     "at": "@stake.g1",
+     "off": [
+      8,
+      0,
+      -20
+     ],
+     "y": "floor",
+     "face": "@stake.tip",
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.15,
+       0,
+       0
+      ],
+      "armLP": [
+       -1.15,
+       0,
+       0
+      ]
+     }
     },
     {
      "id": "four-stake-bearers-1",
-     "face": "odysseus"
+     "at": "@stake.g2",
+     "off": [
+      -8,
+      0,
+      20
+     ],
+     "y": "floor",
+     "face": "@stake.tip",
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.15,
+       0,
+       0
+      ],
+      "armLP": [
+       -1.15,
+       0,
+       0
+      ]
+     }
     },
     {
      "id": "four-stake-bearers-2",
-     "face": "odysseus"
+     "at": "@stake.g3",
+     "off": [
+      8,
+      0,
+      -20
+     ],
+     "y": "floor",
+     "face": "@stake.tip",
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.15,
+       0,
+       0
+      ],
+      "armLP": [
+       -1.15,
+       0,
+       0
+      ]
+     }
     },
     {
      "id": "four-stake-bearers-3",
-     "face": "odysseus"
+     "at": "@stake.g4",
+     "off": [
+      -8,
+      0,
+      20
+     ],
+     "y": "floor",
+     "face": "@stake.tip",
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.15,
+       0,
+       0
+      ],
+      "armLP": [
+       -1.15,
+       0,
+       0
+      ]
+     }
     },
     {
      "id": "four-stake-bearers-4",
-     "face": "odysseus"
+     "at": "@stake.g5",
+     "off": [
+      8,
+      0,
+      -20
+     ],
+     "y": "floor",
+     "face": "@stake.tip",
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.15,
+       0,
+       0
+      ],
+      "armLP": [
+       -1.15,
+       0,
+       0
+      ]
+     }
     }
    ],
+   "look": {
+    "lights": [
+     {
+      "at": [
+       -57,
+       70,
+       -28
+      ],
+      "color": "#ff7a1e",
+      "intensity": 3.4,
+      "distance": 520,
+      "decay": 1.2
+     },
+     {
+      "at": "@stake.tip",
+      "off": [
+       0,
+       12,
+       0
+      ],
+      "color": "#ffc070",
+      "intensity": 2.6,
+      "distance": 220
+     }
+    ]
+   },
    "camera": {
-    "type": "hero",
-    "a": "odysseus",
-    "dist": 120,
-    "height": 6,
-    "yaw": 0.3,
-    "fov": 32,
+    "type": "wide",
+    "pos": [
+     0,
+     60,
+     60
+    ],
+    "target": "odysseus",
+    "fov": 38,
     "subject": "odysseus",
-    "place": "L",
-    "eye": 0.34
+    "place": "R",
+    "eye": 0.4
    },
    "subjects": [
     {
      "id": "odysseus",
-     "primary": true,
      "face": true,
-     "min": 0.2
+     "min": 0.15,
+     "primary": true
     },
     {
-     "id": "four-stake-bearers-1",
+     "id": "prop:stake",
      "soft": true,
      "cut": true
     }
-   ]
+   ],
+   "search": {
+    "around": "@stake.g1",
+    "r": [
+     80,
+     190
+    ],
+    "h": [
+     25,
+     110
+    ],
+    "fov": [
+     30,
+     44
+    ],
+    "bounds": [
+     -215,
+     190,
+     -205,
+     85
+    ],
+    "size": 0.3,
+    "n": 160
+   }
   },
   {
    "id": "K3",
    "beat": "They twist it as blood and steam erupt; Polyphemus wakes with a roar and tears it free.",
-   "kind": "medium",
-   "draft": true,
-   "blocking": [
+   "text": "We drove the sharp end of the beam into the monster's eye, and bearing upon it with all my weight I kept turning it round and round as though I were boring a hole in a ship's plank with an auger... the eyeball hissed as a smith plunges an axe into cold water.",
+   "hide": [
+    "polyphemus",
+    "cyclopes outside 1",
+    "cyclopes outside 2",
+    "cyclopes outside 3",
+    "cyclopes outside 4",
+    "eye-blinding effect"
+   ],
+   "props": [
     {
-     "id": "odysseus",
-     "face": [
-      -17.450000000000003,
-      -149.6
+     "name": "polyphemusSprawl",
+     "id": "polyphemus",
+     "at": [
+      30,
+      0,
+      -30
+     ],
+     "rot": [
+      -1.5708,
+      0.5,
+      0
+     ],
+     "floor": true,
+     "scale": 1.4
+    },
+    {
+     "name": "stake",
+     "id": "stake",
+     "aim": {
+      "anchor": "tip",
+      "to": "@polyphemus.eye",
+      "dir": [
+       0.22,
+       -0.24,
+       -0.94
+      ],
+      "sink": 10
+     }
+    },
+    {
+     "name": "steam",
+     "at": "@polyphemus.eye",
+     "off": [
+      0,
+      6,
+      0
      ]
     },
     {
+     "name": "blood",
+     "at": "@polyphemus.eye",
+     "off": [
+      4,
+      -4,
+      6
+     ]
+    }
+   ],
+   "blocking": [
+    {
      "id": "four-stake-bearers-1",
-     "face": "odysseus"
+     "at": "@stake.g1",
+     "off": [
+      8,
+      0,
+      -20
+     ],
+     "y": "floor",
+     "face": "@polyphemus.eye",
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.3,
+       0,
+       0
+      ],
+      "armLP": [
+       -2.3,
+       0,
+       0
+      ]
+     }
     },
     {
      "id": "four-stake-bearers-2",
-     "face": "odysseus"
+     "at": "@stake.g2",
+     "off": [
+      -8,
+      0,
+      20
+     ],
+     "y": "floor",
+     "face": "@polyphemus.eye",
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.3,
+       0,
+       0
+      ],
+      "armLP": [
+       -2.3,
+       0,
+       0
+      ]
+     }
     },
     {
      "id": "four-stake-bearers-3",
-     "face": "odysseus"
+     "at": "@stake.g3",
+     "off": [
+      8,
+      0,
+      -20
+     ],
+     "y": "floor",
+     "face": "@polyphemus.eye",
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.3,
+       0,
+       0
+      ],
+      "armLP": [
+       -2.3,
+       0,
+       0
+      ]
+     }
     },
     {
      "id": "four-stake-bearers-4",
-     "face": "odysseus"
+     "at": "@stake.g4",
+     "off": [
+      -8,
+      0,
+      20
+     ],
+     "y": "floor",
+     "face": "@polyphemus.eye",
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.3,
+       0,
+       0
+      ],
+      "armLP": [
+       -2.3,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "odysseus",
+     "at": "@stake.g5",
+     "off": [
+      8,
+      0,
+      -20
+     ],
+     "y": "floor",
+     "face": "@polyphemus.eye",
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.3,
+       0,
+       0
+      ],
+      "armLP": [
+       -2.3,
+       0,
+       0
+      ]
+     }
     }
    ],
+   "look": {
+    "lights": [
+     {
+      "at": [
+       -57,
+       70,
+       -28
+      ],
+      "color": "#ff7a1e",
+      "intensity": 3.0,
+      "distance": 520,
+      "decay": 1.2
+     },
+     {
+      "at": "@polyphemus.eye",
+      "off": [
+       0,
+       20,
+       0
+      ],
+      "color": "#ffe0a0",
+      "intensity": 2.8,
+      "distance": 240
+     }
+    ]
+   },
    "camera": {
-    "type": "hero",
-    "a": "odysseus",
-    "dist": 175,
-    "height": 10,
-    "yaw": -0.5,
-    "fov": 32,
+    "type": "wide",
+    "pos": [
+     -150,
+     260,
+     -250
+    ],
+    "target": "@polyphemus.eye",
+    "fov": 40,
     "subject": "odysseus",
     "place": "R",
-    "eye": 0.36
+    "eye": 0.4
    },
    "subjects": [
     {
      "id": "odysseus",
-     "primary": true,
      "face": true,
-     "min": 0.12
+     "min": 0.08,
+     "primary": true
     },
     {
-     "id": "piece:polyphemus",
+     "id": "prop:polyphemus",
      "soft": true,
      "cut": true
+    },
+    {
+     "id": "four-stake-bearers-1",
+     "soft": true,
+     "min": 0.05
     }
-   ]
+   ],
+   "search": {
+    "around": "@polyphemus.eye",
+    "r": [
+     120,
+     260
+    ],
+    "h": [
+     200,
+     330
+    ],
+    "fov": [
+     34,
+     48
+    ],
+    "bounds": [
+     -300,
+     300,
+     -300,
+     300
+    ],
+    "size": 0.18,
+    "n": 180
+   }
   },
   {
    "id": "K4",
    "beat": "Other Cyclopes call from outside, but leave when he says Nobody is killing him.",
-   "kind": "track",
-   "draft": true,
-   "blocking": [
+   "text": "Then he gave a loud cry, so that the rocks resounded, and we fled in terror; he drew the beam from his eye all bespattered with blood, and hurled it from him in a frenzy of rage and pain.",
+   "hide": [
+    "polyphemus",
+    "cyclopes outside 1",
+    "cyclopes outside 2",
+    "cyclopes outside 3",
+    "cyclopes outside 4",
+    "eye-blinding effect"
+   ],
+   "props": [
     {
-     "id": "odysseus",
-     "face": [
-      -267.85,
-      244.85000000000002
-     ]
+     "name": "polyphemusRoar",
+     "id": "polyphemus",
+     "at": [
+      10,
+      0,
+      -120
+     ],
+     "rot": [
+      0,
+      0.35,
+      0
+     ],
+     "floor": true,
+     "scale": 1.4
     },
     {
-     "id": "four-stake-bearers-1",
-     "face": [
-      -267.85,
-      244.85000000000002
-     ]
+     "name": "stakeBloody",
+     "id": "stake",
+     "at": [
+      -150,
+      0,
+      40
+     ],
+     "rot": [
+      1.5708,
+      2.3,
+      0
+     ],
+     "floor": true
     },
     {
-     "id": "four-stake-bearers-2",
-     "face": [
-      -267.85,
-      244.85000000000002
-     ]
-    },
-    {
-     "id": "four-stake-bearers-3",
-     "face": [
-      -267.85,
-      244.85000000000002
-     ]
-    },
-    {
-     "id": "four-stake-bearers-4",
-     "face": [
-      -267.85,
-      244.85000000000002
+     "name": "blood",
+     "at": "@polyphemus.eye",
+     "off": [
+      0,
+      -10,
+      8
      ]
     }
    ],
+   "blocking": [
+    {
+     "id": "odysseus",
+     "x": 130,
+     "z": -20,
+     "y": "floor",
+     "face": [
+      400,
+      200
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -0.9,
+       0,
+       0
+      ],
+      "armLP": [
+       0.8,
+       0,
+       0
+      ],
+      "legRP": [
+       -0.6,
+       0,
+       0
+      ],
+      "legLP": [
+       0.5,
+       0,
+       0
+      ],
+      "headP": [
+       0,
+       -1.2,
+       0
+      ]
+     }
+    },
+    {
+     "id": "four-stake-bearers-1",
+     "x": 160,
+     "z": -110,
+     "y": "floor",
+     "face": [
+      500,
+      -100
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       0.8,
+       0,
+       0
+      ],
+      "armLP": [
+       -0.8,
+       0,
+       0
+      ],
+      "legRP": [
+       0.6,
+       0,
+       0
+      ],
+      "legLP": [
+       -0.5,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "four-stake-bearers-2",
+     "x": -150,
+     "z": -110,
+     "y": "floor",
+     "face": [
+      -500,
+      -100
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -0.8,
+       0,
+       0
+      ],
+      "armLP": [
+       0.8,
+       0,
+       0
+      ],
+      "legRP": [
+       -0.6,
+       0,
+       0
+      ],
+      "legLP": [
+       0.5,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "four-stake-bearers-3",
+     "x": -110,
+     "z": 20,
+     "y": "floor",
+     "face": [
+      -400,
+      300
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       0.9,
+       0,
+       0
+      ],
+      "armLP": [
+       -0.7,
+       0,
+       0
+      ],
+      "legRP": [
+       0.5,
+       0,
+       0
+      ],
+      "legLP": [
+       -0.6,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "four-stake-bearers-4",
+     "x": 170,
+     "z": 40,
+     "y": "floor",
+     "face": [
+      500,
+      300
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -0.7,
+       0,
+       0
+      ],
+      "armLP": [
+       0.9,
+       0,
+       0
+      ],
+      "legRP": [
+       -0.5,
+       0,
+       0
+      ],
+      "legLP": [
+       0.6,
+       0,
+       0
+      ]
+     }
+    }
+   ],
+   "look": {
+    "lights": [
+     {
+      "at": [
+       -57,
+       70,
+       -28
+      ],
+      "color": "#ff6a14",
+      "intensity": 3.6,
+      "distance": 560,
+      "decay": 1.2
+     },
+     {
+      "at": "@polyphemus.eye",
+      "off": [
+       0,
+       0,
+       30
+      ],
+      "color": "#ff3a2a",
+      "intensity": 1.4,
+      "distance": 200
+     }
+    ]
+   },
    "camera": {
     "type": "wide",
     "pos": [
-     -463.2,
-     158.8,
-     635.6
+     60,
+     30,
+     110
     ],
-    "target": "piece:cyclopes outside 1",
-    "fov": 34,
-    "subject": "piece:cyclopes outside 1",
+    "target": "@polyphemus.chest",
+    "fov": 50,
+    "subject": "prop:polyphemus",
+    "place": "L",
+    "eye": 0.3
+   },
+   "subjects": [
+    {
+     "id": "prop:polyphemus",
+     "min": 0.55,
+     "cut": true,
+     "primary": true
+    },
+    {
+     "id": "odysseus",
+     "soft": true,
+     "min": 0.04
+    }
+   ],
+   "search": {
+    "around": "@polyphemus.chest",
+    "r": [
+     140,
+     280
+    ],
+    "h": [
+     12,
+     50
+    ],
+    "fov": [
+     44,
+     58
+    ],
+    "bounds": [
+     -215,
+     190,
+     -205,
+     85
+    ],
+    "size": 0.8,
+    "n": 160
+   }
+  },
+  {
+   "id": "K5",
+   "beat": "Polyphemus gropes at the entrance while the men hide among the animals.",
+   "text": "'Noman is killing me by fraud!' ... They said, 'Then if no man is attacking you, you must be ill' ... so they went away; and I laughed inwardly at the success of my clever stratagem.",
+   "hide": [
+    "polyphemus",
+    "cyclopes outside 1",
+    "cyclopes outside 2",
+    "cyclopes outside 3",
+    "cyclopes outside 4",
+    "eye-blinding effect"
+   ],
+   "props": [
+    {
+     "name": "polyphemus",
+     "id": "polyphemus",
+     "at": [
+      -10,
+      0,
+      45
+     ],
+     "rot": [
+      0,
+      0,
+      0
+     ],
+     "floor": true,
+     "scale": 1.4
+    },
+    {
+     "name": "polyphemus",
+     "id": "cyclops1",
+     "at": [
+      -150,
+      0,
+      235
+     ],
+     "rot": [
+      0,
+      3.3,
+      0
+     ],
+     "floor": true
+    },
+    {
+     "name": "polyphemus",
+     "id": "cyclops2",
+     "at": [
+      30,
+      0,
+      250
+     ],
+     "rot": [
+      0,
+      3.0,
+      0
+     ],
+     "floor": true
+    },
+    {
+     "name": "polyphemus",
+     "id": "cyclops3",
+     "at": [
+      190,
+      0,
+      230
+     ],
+     "rot": [
+      0,
+      2.8,
+      0
+     ],
+     "floor": true
+    },
+    {
+     "name": "stakeBloody",
+     "id": "stake",
+     "at": [
+      -150,
+      0,
+      -60
+     ],
+     "rot": [
+      1.5708,
+      2.3,
+      0
+     ],
+     "floor": true
+    }
+   ],
+   "blocking": [
+    {
+     "id": "odysseus",
+     "x": 95,
+     "z": -95,
+     "y": "floor",
+     "face": [
+      140,
+      -400
+     ],
+     "props": false,
+     "pose": {
+      "headP": [
+       0,
+       0.35,
+       0
+      ],
+      "armRP": [
+       -0.3,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "four-stake-bearers-1",
+     "x": 60,
+     "z": -150,
+     "y": "floor",
+     "face": "odysseus",
+     "props": false
+    },
+    {
+     "id": "four-stake-bearers-2",
+     "x": 140,
+     "z": -150,
+     "y": "floor",
+     "face": "odysseus",
+     "props": false
+    },
+    {
+     "id": "four-stake-bearers-3",
+     "x": 45,
+     "z": -60,
+     "y": "floor",
+     "face": [
+      -10,
+      45
+     ],
+     "props": false
+    },
+    {
+     "id": "four-stake-bearers-4",
+     "x": 150,
+     "z": -55,
+     "y": "floor",
+     "face": [
+      -10,
+      45
+     ],
+     "props": false
+    }
+   ],
+   "look": {
+    "sky": [
+     "#0a1224",
+     "#23304a"
+    ],
+    "dim": 0.3,
+    "lights": [
+     {
+      "at": [
+       -57,
+       70,
+       -28
+      ],
+      "color": "#ff6a14",
+      "intensity": 2.2,
+      "distance": 420,
+      "decay": 1.2
+     },
+     {
+      "at": [
+       0,
+       400,
+       300
+      ],
+      "color": "#9fb8e8",
+      "intensity": 1.0,
+      "distance": 1200
+     }
+    ]
+   },
+   "camera": {
+    "type": "wide",
+    "pos": [
+     110,
+     70,
+     -200
+    ],
+    "target": "odysseus",
+    "fov": 40,
+    "subject": "odysseus",
     "place": "L",
     "eye": 0.4
    },
    "subjects": [
     {
-     "id": "piece:cyclopes outside 1",
-     "primary": true,
-     "min": 0.25
-    }
-   ]
-  },
-  {
-   "id": "K5",
-   "beat": "Polyphemus gropes at the entrance while the men hide among the animals.",
-   "kind": "pullback",
-   "draft": true,
-   "blocking": [
-    {
      "id": "odysseus",
-     "face": [
-      -17.450000000000003,
-      -149.6
-     ]
+     "face": true,
+     "min": 0.18,
+     "primary": true
     },
     {
-     "id": "four-stake-bearers-1",
-     "face": [
-      -17.450000000000003,
-      -149.6
-     ]
+     "id": "prop:polyphemus",
+     "soft": true,
+     "cut": true
     },
     {
-     "id": "four-stake-bearers-2",
-     "face": [
-      -17.450000000000003,
-      -149.6
-     ]
-    },
-    {
-     "id": "four-stake-bearers-3",
-     "face": [
-      -17.450000000000003,
-      -149.6
-     ]
-    },
-    {
-     "id": "four-stake-bearers-4",
-     "face": [
-      -17.450000000000003,
-      -149.6
-     ]
+     "id": "prop:cyclops2",
+     "soft": true,
+     "cut": true
     }
    ],
-   "camera": {
-    "type": "wide",
-    "pos": [
-     -237.6,
-     327.4,
-     528.0
+   "lensAllow": [
+    "four-stake-bearers-1",
+    "four-stake-bearers-2"
+   ],
+   "search": {
+    "around": "odysseus",
+    "az": [
+     2.5,
+     3.8
     ],
-    "target": [
-     0,
-     35,
-     0
+    "r": [
+     60,
+     150
     ],
-    "fov": 38
-   },
-   "subjects": [
-    {
-     "id": "piece:polyphemus",
-     "primary": true,
-     "soft": true,
-     "min": 0.02
-    }
-   ]
+    "h": [
+     50,
+     130
+    ],
+    "fov": [
+     34,
+     46
+    ],
+    "bounds": [
+     -215,
+     190,
+     -205,
+     85
+    ],
+    "size": 0.35,
+    "n": 160
+   }
   }
  ]
 }

@@ -44,9 +44,11 @@ function brickGiant() {
 }
 /** E: the troll big figure, bareheaded, one eye on its face (a white 2 x 2 round tile, a black 1 x 1 round pupil), a trunk club. */
 function oneEyedTroll(name = 'polyphemus') {
-  const eye = B.make('the eye', 'parts', { parts: '14769 98138' }, [{ part: '14769', col: C.white, m: L.mul(L.T(0, 20, -66), ROT_FACE) }, { part: '98138', col: C.black, m: L.mul(L.T(0, 20, -74), ROT_FACE) }]);
   const body = troll({ club: true });
-  return B.make(name, 'group', { group: 2, figure: 'troll big figure 60671, one eye' }, [], [{ c: body, M: L.I12 }, { c: { ...eye, m: L.I12 }, M: L.mul(body.subs[0].c.m, L.I12) }]);
+  /* the eye on the head itself: measured from where the head (60635) actually lands in the settled body, not from a group's offset */
+  const at = B.rowsOf(body).find(r => r.part === '60635').m;   /* the head's placement, the body's own settling included */
+  const eye = B.make('the eye', 'parts', { parts: '14769 98138' }, [{ part: '14769', col: C.white, m: L.mul(L.mul(at, L.T(0, 20, -66)), ROT_FACE) }, { part: '98138', col: C.black, m: L.mul(L.mul(at, L.T(0, 20, -74)), ROT_FACE) }]);
+  return B.make(name, 'group', { group: 2, figure: 'troll big figure 60671, one eye' }, [], [{ c: body, M: L.I12 }, { c: { ...eye, m: L.I12 }, M: L.I12 }]);
 }
 function microfig(col, i) { return B.kit('sailor ' + (i + 1), [K.part('3062b', col, 0, 0, 0), K.part('3024', C.yellow, 0, 0, 1)]); }
 function odysseus() { return B.fig(T.ROLES.hero(T.rng('odysseus')), 'odysseus'); }
