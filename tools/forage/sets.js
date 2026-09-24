@@ -115,6 +115,9 @@ const KIT = {
       return { id: '6141', col: i % 2 ? col2 : col, x: rr * Math.cos(a), z: rr * Math.sin(a), y: -8 - 8 + 4 }; });
     return REAL('the whirlpool', [{ id: '3960', col: C.tDBlue, x: 0, z: 0, y: -8 + 4, m: RXp }, { id: '4150', col: C.black, x: 0, z: 0, y: -8 + 2 },
       ...ring(2.6, 10, 0, C.white, C.tClear), ...ring(3.6, 14, 0.4, C.tClear, C.white), ...ring(4.6, 18, 0.9, C.white, C.tClear), ...ring(5.6, 20, 1.3, C.tClear, C.white)]); },
+  /* a swell of sea: double curved slopes side by side across its crest (blue and dark blue), white round plates of foam along the top */
+  swell: (n = 5, seed = 0) => REAL('swell', Array.from({ length: n }, (_, i) => [{ id: '93273', col: (i + seed) % 3 === 1 ? C.dblue : C.blue, x: i - (n - 1) / 2, z: ((i * 7 + seed) % 3 - 1) * 0.5 },
+    ...((i + seed) % 2 ? [{ id: '6141', col: C.white, x: i - (n - 1) / 2, z: ((i * 7 + seed) % 3 - 1) * 0.5, y: -8 - 25 - 33 - 8 + 3 }] : [])]).flat()),
   /* the raft of logs, as Odysseus lashes it: log bricks side by side, a stub mast */
   raft: () => REAL('raft', [...[-3, -2, -1, 0, 1, 2, 3].map(x => R('30137', C.rbrown, x, 0, -8, 1)), ...[-3, -2, -1, 0, 1, 2, 3].map(x => R('30137', C.rbrown, x, 4, -8, 1)), { id: '3957a', col: C.rbrown, x: 0, z: 2, y: -8 - 24 - 8 }]),
   greatStone: () => REAL('the great stone', [R('53934p01c01', C.lbg, -2, 0), R('53934p01c01', C.lbg, 2, 0), R('42291', C.lbg, 0, 0, -8 - 72), R('42284', C.lbg, 0, 0, -8 - 72 - 32)]),
@@ -267,6 +270,7 @@ const SETS = {
   sirens: () => room("the sirens' sea", 32, 48, seaFloor('beach'), [
     [KIT.galley({ furled: true }), 0, 8], [KIT.crag(C.dtan, false), -9, -18], [KIT.rocks(C.dtan), 10, -19], [KIT.cypress(), -13, -21], [KIT.olive(), 13, -12],
     [KIT.flowers(6), -3, -14], [KIT.flowers(3), 6, -20], [KIT.bones(), 2, -11], [KIT.bones(), -7, -12], [KIT.splash(), 11, 10],
+    [KIT.swell(5, 0), -11, 4], [KIT.swell(4, 1), 10, 0], [KIT.swell(6, 2), -9, 17], [KIT.swell(5, 3), 11, 19], [KIT.swell(4, 4), -4, -4],
   ], { odysseus: M(0, 7, 0, 'Odysseus bound to the mast', null, DECK), crew: M(0, 4, 0, 'the crew at the oars, wax in their ears', 'zz', DECK), sirens: M(1, -16, 0, 'the Sirens in their meadow of bones', 'x'), centre: M(-10, 6, 0) }),
   /* the strait (Homer XII): "the one rock reaches heaven... in the middle of it is a large cavern"; "the other rock is lower... a large fig
      tree in full leaf grows upon it, and under it lies the sucking whirlpool of Charybdis". Scylla's cliff in four tiers of rock panels
@@ -274,20 +278,25 @@ const SETS = {
   strait: () => room('between scylla and charybdis', 32, 48, seaFloor(), [
     [KIT.galley({ furled: true }), -1, 0], [scyllaCliff(), -14, -4], [KIT.whirlpool(), 9, -2], [KIT.rocks(), 14, -6], [KIT.boulder(), 14.5, 1], [KIT.crag(C.dbg, false), 13, -18],
     [REAL('the fig tree', [R('3470', C.dgreen, 0, 0, -8 - 72)]), 14, -6], [KIT.bush(), 12, -12], [KIT.splash(), 6, 3], [KIT.splash(), 11, 5],
+    [KIT.swell(5, 0), 6, 16], [KIT.swell(6, 1), -5, 19], [KIT.swell(4, 2), 7, -16], [KIT.swell(5, 3), 3, -21],
   ], { odysseus: M(-1, 9, 0, 'Odysseus armed at the prow', null, DECK), crew: M(-1, -3, 0, 'the sailors rowing hard', 'zz', DECK), scylla: M(-11, -9, 0, "Scylla's cave", null, -8 - 144 - 80), charybdis: M(9, -2, 0, 'Charybdis sucks down the sea'), centre: M(6, 14, 0) }),
   storm: () => room('the storm at sea', 32, 48, seaFloor(), [
     [KIT.raft(), 0, 4], [KIT.splash(), -6, -2], [KIT.splash(), 7, 1], [KIT.splash(), -3, 10], [KIT.splash(), 9, -12], [KIT.rocks(), -12, -18], [KIT.boulder(), 12, -20],
+    [KIT.swell(7, 0), -10, 6], [KIT.swell(6, 1), 9, 8], [KIT.swell(6, 2), -8, -8], [KIT.swell(5, 3), 6, -6], [KIT.swell(7, 4), -3, 18], [KIT.swell(6, 5), 8, 19], [KIT.swell(5, 6), -11, -16],
   ], { odysseus: M(0, 3, 0, 'Odysseus clinging to the raft', null, -8 - 24), raft: M(0, 4, 0, 'the raft'), poseidon: M(-9, -12, 0, 'Poseidon rising from the waves'), leucothea: M(9, 8, 0, 'Ino, the sea-bird'), wind: M(8, -12, 0, 'the four winds'), centre: M(-8, 12, 0) }),
   wreck: () => room('the last ship', 32, 48, seaFloor(), [
     [KIT.galley(), 0, 2, 1, 30], [KIT.splash(), -6, -4], [KIT.splash(), 6, 6], [KIT.splash(), 2, -10], [KIT.rocks(), -12, -18], [KIT.olive(), 12, -20],
+    [KIT.swell(6, 0), -10, 12], [KIT.swell(5, 1), 9, 14], [KIT.swell(5, 2), -9, -10], [KIT.swell(6, 3), 8, -12], [KIT.swell(7, 4), 0, 19],
   ], { odysseus: M(-6, 10, 0, 'Odysseus on the keel'), crew: M(4, 12, 0, 'the crew thrown into the sea', 'x'), zeus: M(0, -16, 0, 'the thunderbolt'), centre: M(0, 16, 0) }),
   voyage: () => room('the black ship under sail', 32, 48, seaFloor(), [
     [KIT.galley(), 0, 6], [REAL('island', [R('3867p01', C.green, 0, 0)]), -8, -16], [KIT.cypress(), -10, -18], [KIT.olive(), -5, -14], [KIT.rocks(C.dtan), -12, -12], [KIT.splash(), 11, 10],
+    [KIT.swell(5, 0), -10, 6], [KIT.swell(5, 1), 10, -2], [KIT.swell(6, 2), -9, 18], [KIT.swell(4, 3), 10, 16], [KIT.swell(5, 4), 4, -10],
   ], { odysseus: M(0, -4, 0, 'Odysseus at the helm', null, DECK), crew: M(0, 5, 0, 'the crew at the oars', 'zz', DECK), ithaca: M(-4, -18, 0, 'home in sight'), aeolus: M(-9, -19, 0, 'Aeolus on his island'), centre: M(10, 4, 0), door: M(12, 14, 0) }),
   boast: () => room('the boast from the ship', 32, 48, seaFloor('beach'), [
     [KIT.crag(C.dbg), -9, -19], [KIT.crag(C.dbg, false), 9, -20], [KIT.cypress(), 13, -13], [KIT.bush(), -13, -12],
-    [KIT.galley(), 4, 9], [KIT.boulder(), -6, 3], [KIT.splash(), -6, 5],
-  ], { cyclops: M(-1, -15, 0, 'the Cyclops on the shore, hurling the crag'), odysseus: M(4, -1, 0, 'Odysseus shouting his name from the stern', null, DECK), crew: M(4, 8, 0, 'the crew begging him to stop', 'zz', DECK), centre: M(-11, 10, 0) }),
+    [KIT.galley(), 4, 12], [KIT.boulder(), -7, 1], [KIT.splash(), -6, 3],
+    [KIT.swell(5, 0), -10, 4], [KIT.swell(6, 1), -9, 16], [KIT.swell(4, 2), 12, 2], [KIT.swell(5, 3), 12, 16], [KIT.swell(6, 4), -2, 21],
+  ], { cyclops: M(-1, -15, 0, 'the Cyclops on the shore, hurling the crag'), odysseus: M(4, 3, 0, 'Odysseus shouting his name from the stern', null, DECK), crew: M(4, 12, 0, 'the crew begging him to stop', 'zz', DECK), centre: M(-11, 10, 0) }),
 };
 /* which location card stands on which set */
 const LOCATION_SET = {
