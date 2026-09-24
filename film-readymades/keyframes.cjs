@@ -28,6 +28,15 @@ await p.waitForTimeout(800);
 const report=[];
 /* --search K3: coverage for one still. Stage it once, then try n cameras (seeded) round its focus, inside the set's bounds; keep those the
    gate would pass, rank them (the primary at the size asked, faces shown, soft subjects in view), render the best six to choose from */
+/* --turn K1: a viewfinder. Stage the still once and render it from eight directions round its focus (k.turn: around, r, h, fov), to see
+   which side shows the thing before any camera is set */
+const turnId=process.argv.includes('--turn')?process.argv[process.argv.indexOf('--turn')+1]:null;
+if(turnId){const k=spec.keys.find(x=>x.id===turnId),T=k.turn;await p.evaluate(()=>OdysseyFilm.loadProps());
+ await p.evaluate(({base,k,look,spread,props})=>{OdysseyFilm.hide(k.hide||[]);OdysseyFilm.props([...(props||[]),...(k.props||[])]);OdysseyFilm.block(base);if(spread)OdysseyFilm.spread(spread);OdysseyFilm.block(k.blocking||[]);OdysseyFilm.light(Object.assign({},look,k.look));OdysseyFilm.look(Object.assign({},look,k.look));OdysseyFilm.rope(k.rope||null);},{base:spec.blocking,k,look:spec.look||{},spread:spec.spread||0,props:spec.props||[]});
+ for(let i=0;i<8;i++){const png=await p.evaluate(({T,i})=>{const c=typeof T.around==='string'?(T.around.startsWith('@')?OdysseyFilm.anchor(T.around.slice(1)):OdysseyFilm.cast().find(a=>a.id===T.around)):{x:T.around[0],y:T.around[1],z:T.around[2]};const A=i*Math.PI/4;
+   OdysseyFilm.rig({type:'wide',pos:[c.x+Math.sin(A)*T.r,T.h,c.z+Math.cos(A)*T.r],target:[c.x,c.y,c.z],fov:T.fov||50});renderStill(scene,camera);return renderer.domElement.toDataURL('image/png');},{T,i});
+  fs.writeFileSync(path.join(out,`${k.id}-turn${i}.png`),Buffer.from(png.split(',')[1],'base64'));}
+ console.log('turnaround of',k.id,'written');await b.close();process.exit(0);}
 const searchId=process.argv.includes('--search')?process.argv[process.argv.indexOf('--search')+1]:null;
 if(searchId){const k=spec.keys.find(x=>x.id===searchId),S_=k.search||{};await p.evaluate(()=>OdysseyFilm.loadProps());
  const cands=await p.evaluate(({base,k,look,spread,props,S_})=>{OdysseyFilm.hide(k.hide||[]);OdysseyFilm.props([...(props||[]),...(k.props||[])]);OdysseyFilm.block(base);if(spread)OdysseyFilm.spread(spread);OdysseyFilm.block(k.blocking||[]);OdysseyFilm.light(Object.assign({},look,k.look));OdysseyFilm.look(Object.assign({},look,k.look));OdysseyFilm.rope(k.rope||null);

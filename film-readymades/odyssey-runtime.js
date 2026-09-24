@@ -33,7 +33,7 @@ const kfShort=k=>k.replace(/^odyssey-od-b\d\d-s\d\d-/,'');
 const kfActor=id=>ButterCast.cast.find(a=>kfShort(a.kind)===id);
 const kfWorld=o=>o.getWorldPosition(new THREE.Vector3());
 const kfShown=o=>{for(;o;o=o.parent)if(o.visible===false)return false;return true;};
-const kfSolid=o=>o.isMesh&&kfShown(o)&&!(o.geometry&&o.geometry.type==='PlaneGeometry')&&!(o.userData&&o.userData.axis)&&!(o.material&&o.material.transparent&&o.material.opacity<0.3);   /* the set and the cast, not the workspace's helper planes */
+const kfSolid=o=>o.isMesh&&kfShown(o)&&!o.userData.rope&&!(o.geometry&&o.geometry.type==='PlaneGeometry')&&!(o.userData&&o.userData.axis)&&!(o.material&&o.material.transparent&&o.material.opacity<0.3);   /* the set and the cast, not the workspace's helper planes */
 function kfCast(){return ButterCast.cast.map(a=>{const b=new THREE.Box3().setFromObject(a.rig.figure);return {id:kfShort(a.kind),x:+a.rig.pos.x.toFixed(1),y:+a.rig.pos.y.toFixed(1),z:+a.rig.pos.z.toFixed(1),heading:+a.rig.heading.toFixed(2),height:+(b.max.y-b.min.y).toFixed(1)};});}
 function kfPieces(){const A=filmAsset();return (A.pages||[]).map((pg,i)=>({label:pg.label,x:+A.rows[i].x.toFixed(1),z:+A.rows[i].z.toFixed(1),box:pg.box||null}));}
 /* the floor under a figure: the first surface below its knee (a deck, a crag, the plate), not a yard or a roof above it */
@@ -96,6 +96,7 @@ function kfRig(c){const V=THREE.Vector3;let pos,target;
   else if(c.type==='hero'){const A=kfHead(c.a),r=kfActor(c.a)?.rig||{heading:0},yaw=r.heading+(c.yaw||0),face=new V(Math.sin(yaw),0,Math.cos(yaw));pos=A.clone().add(face.multiplyScalar(c.dist||120)).add(new V(0,c.height||0,0));target=A.clone().add(new V(0,c.aimY||0,0));}
   else if(c.type==='ots'){const A=kfHead(c.over),T=typeof c.at==='string'?kfHead(c.at):new V(...c.at),d=T.clone().sub(A).setY(0).normalize(),n=new V(-d.z,0,d.x).multiplyScalar(c.side||1);
     pos=A.clone().sub(d.clone().multiplyScalar(c.dist||60)).add(n.multiplyScalar(c.off||18)).add(new V(0,c.height||8,0));target=T;}
+  else if(c.type==='orbit'){const C=kfPoint(c.around),A=c.az;pos=new V(C.x+Math.sin(A)*c.r,c.h,C.z+Math.cos(A)*c.r);target=c.target?kfPoint(c.target):C;}   /* round an anchor, as the turnaround saw it */
   else {pos=new V(...c.pos);target=typeof c.target==='string'?kfHead(c.target):new V(...c.target);}
   kfShoot({pos:pos.toArray(),target:target.toArray(),fov:c.fov||35});
   if(c.place&&c.subject){const want=c.place==='L'?1/3:c.place==='R'?2/3:0.5;for(let i=0;i<6;i++){const h=kfHead(c.subject).project(camera),u=(h.x+1)/2,err=u-want;if(Math.abs(err)<0.005)break;camera.rotateY(-err*2*Math.atan(Math.tan(THREE.MathUtils.degToRad(c.fov||35)/2)*camera.aspect)*0.9);camera.updateMatrixWorld();}}
@@ -138,13 +139,19 @@ function kfPhysics(ids,touch=[]){const set=new Set(ids),acts=ButterCast.cast.fil
 /* rope: a braided string as LDraw models one (a chain of short cylinders along a path), here wound in loops round a figure and the
    post it is bound to, at heights along the figure (fractions of its height above the feet), knotted with a hanging tail */
 const kfRopes=[];
+/* a figure's hand in the world: the hand part (the second part on the arm pivot) of its right arm, or its left */
+function kfHand(id,side='R'){const a=kfActor(id);if(!a)return null;const g=a.rig['arm'+side+'P'].children.filter(c=>c.type==='Group'&&!String(c.name).startsWith('slot'))[1];return g?new THREE.Box3().setFromObject(g).getCenter(new THREE.Vector3()):null;}
 function kfRope(r){for(const m of kfRopes.splice(0))m.parent&&m.parent.remove(m);if(!r)return;for(const b of [].concat(r)){const a=kfActor(b.who);if(!a)continue;
   const k=a.rig.headP.getWorldScale(new THREE.Vector3()).y,feet=a.rig.pos,post=new THREE.Vector3(b.post[0],feet.y,b.post[1]),tall=kfHead(b.who).y-feet.y+10*k;
   const c=feet.clone().add(post).multiplyScalar(0.5),d=post.clone().sub(feet).setY(0),len=d.length(),u=d.clone().normalize(),n=new THREE.Vector3(-u.z,0,u.x);
   const A=len/2+(b.radius||14)*k,Bn=(b.radius||14)*k,mat=new THREE.MeshStandardMaterial({color:b.color||'#8a6a3e',roughness:0.9});
   for(const f of b.at||[0.72,0.5,0.22]){const pts=[];for(let i=0;i<=48;i++){const t=i/48*Math.PI*2*1.9,y=feet.y+tall*f+(i/48-0.5)*3*k;pts.push(c.clone().add(u.clone().multiplyScalar(Math.cos(t)*A)).add(n.clone().multiplyScalar(Math.sin(t)*Bn)).setY(y));}
     const tube=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),160,(b.thick||1.6)*k,8,false),mat);tube.userData.rope=true;scene.add(tube);kfRopes.push(tube);}
-  const knot=c.clone().add(u.clone().multiplyScalar(A)).setY(feet.y+tall*0.5),tail=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([knot,knot.clone().add(new THREE.Vector3(0,-14*k,2*k)),knot.clone().add(new THREE.Vector3(3*k,-26*k,5*k))]),24,(b.thick||1.6)*k,8,false),mat);scene.add(tail);kfRopes.push(tail);}}
+  /* rope ends hauled: from the knot to each named figure's hand */
+  const knotP=c.clone().add(u.clone().multiplyScalar(A)).setY(feet.y+tall*0.5);
+  for(const who of b.pull||[]){const h=kfHand(who);if(!h)continue;const mid=knotP.clone().lerp(h,0.5).add(new THREE.Vector3(0,-6*k,0));
+    const t=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([knotP,mid,h]),40,(b.thick||1.6)*k,8,false),mat);t.userData.rope=true;scene.add(t);kfRopes.push(t);}
+  const knot=c.clone().add(u.clone().multiplyScalar(A)).setY(feet.y+tall*0.5),tail=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([knot,knot.clone().add(new THREE.Vector3(0,-14*k,2*k)),knot.clone().add(new THREE.Vector3(3*k,-26*k,5*k))]),24,(b.thick||1.6)*k,8,false),mat);tail.userData.rope=true;scene.add(tail);kfRopes.push(tail);}}
 /* ── props: what a still stages beyond the set (odyssey/keyframes/props.json), parsed from the part packs, placed in the location's
    frame (LDraw y down, scaled and flipped as the set's pieces are), with anchors a still can aim at, stand on, look at or light ── */
 let kfPropLib=null;const kfPropObjs=new Map(),kfLights=[];const KV=THREE.Vector3;

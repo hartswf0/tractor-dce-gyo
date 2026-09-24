@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Odyssey LDraw kit</title>
+<style>
+  :root{
+    --paper:#f2f1ec; --card:#f7f6f2; --ink:#141414; --dim:#6f6e67; --faint:#d8d6cf; --red:#e01b1b; --blue:#0033cc;
+    --mono:ui-monospace,'SF Mono','IBM Plex Mono',Menlo,Consolas,monospace; color-scheme:light dark;
+  }
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --paper:#151514; --card:#1d1d1b; --ink:#ecebe6; --dim:#9a9990; --faint:#3a3935; --blue:#7f9dff; } }
+  :root[data-theme="dark"]{ --paper:#151514; --card:#1d1d1b; --ink:#ecebe6; --dim:#9a9990; --faint:#3a3935; --blue:#7f9dff; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--mono)}
+  a{color:var(--blue)}
+  header{position:sticky;top:0;z-index:5;background:var(--paper);border-bottom:1px solid var(--ink);padding:10px 16px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  #brand{font-size:11px;font-weight:700;letter-spacing:.36em;text-transform:uppercase;margin-right:6px}
+  #brand em{font-style:normal;color:var(--dim);font-weight:400}
+  .chip{border:1px solid var(--faint);background:var(--card);cursor:pointer;font:inherit;font-size:9px;letter-spacing:.16em;text-transform:uppercase;padding:7px 10px;color:var(--dim);white-space:nowrap;min-height:32px}
+  .chip:hover,.chip.on{border-color:var(--ink);color:var(--ink)}
+  .chip.on{box-shadow:inset 0 -2px 0 var(--red)}
+  #q{border:1px solid var(--faint);background:var(--card);color:var(--ink);padding:7px 10px;font:inherit;font-size:11px;width:180px;min-height:32px}
+  main{padding:14px 16px 60px;max-width:1500px;margin:0 auto}
+  .lede{font-size:12px;line-height:1.6;color:var(--dim);max-width:78ch;margin:4px 0 18px}
+  .lede b{color:var(--ink)}
+  section{margin:0 0 26px}
+  .secHead{display:flex;align-items:baseline;gap:12px;border-bottom:2px solid var(--ink);padding-bottom:5px;margin-bottom:10px}
+  .secHead h2{margin:0;font-size:15px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+  .secHead span{margin-left:auto;font-size:9px;color:var(--dim);letter-spacing:.14em;text-transform:uppercase}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+  .item{border:1.5px solid var(--faint);background:var(--card);display:flex;flex-direction:column;min-width:0}
+  .item:hover{border-color:var(--ink)}
+  .item .pic{aspect-ratio:1/1;background:#efece4;display:grid;place-items:center;overflow:hidden}
+  .item .pic img{width:100%;height:100%;object-fit:contain}
+  .item .pic span{font-size:10px;color:#77766f;letter-spacing:.14em;text-transform:uppercase}
+  .item .txt{padding:7px 9px 9px;display:flex;flex-direction:column;gap:5px;font-size:10.5px;line-height:1.45}
+  .item h3{margin:0;font-size:11px;letter-spacing:.06em;text-transform:uppercase}
+  .item .note{color:var(--dim)}
+  .item .meta{color:var(--dim);font-size:9.5px;letter-spacing:.06em}
+  .parts{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px;font-size:9.5px}
+  .parts li{display:flex;gap:6px;align-items:baseline;min-width:0}
+  .sw{flex:none;width:9px;height:9px;border:1px solid rgba(0,0,0,.35);transform:translateY(1px)}
+  .parts .t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--dim)}
+  .used{font-size:9.5px;color:var(--dim)}
+  .used a{margin-right:6px}
+  .open{margin-top:auto;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase}
+  .sheets{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px}
+  .sheets a{display:block;border:1.5px solid var(--faint);background:var(--card);text-decoration:none;color:inherit}
+  .sheets a:hover{border-color:var(--ink)}
+  .sheets img{width:100%;display:block;aspect-ratio:16/17;object-fit:cover;object-position:top}
+  .sheets div{padding:6px 9px;font-size:10px;letter-spacing:.08em;text-transform:uppercase}
+  .donors{font-size:10.5px;line-height:1.7;color:var(--dim);columns:2 320px}
+  .donors b{color:var(--ink);font-weight:600}
+  @media (max-width:520px){ #q{width:100%} .grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))} }
+</style>
+</head>
+<body>
+<header>
+  <span id="brand">Odyssey <em>· LDraw kit</em></span>
+  <input id="q" type="search" placeholder="Search parts, props, sets" aria-label="Search the kit">
+  <span id="cats"></span>
+  <a class="chip" href="odyssey-forage.html">The forage (all cards)</a>
+</header>
+<main>
+  <p class="lede">Everything found for building the <b>Odyssey</b> in LDraw: the set design built from real LEGO kit parts (rock panels, printed baseplates, trees, the galley), the furniture, the props the keyframe stills stage, and the raw parts discovered in the LDraw library for terrain, water, ships, rigging, rope and creatures. Each is a real model file; <b>Open in 3D</b> loads it in the forage viewer. Where an item is used, its sets and keyframe stills are listed.</p>
+  <div id="stills"></div>
+  <div id="list"><p class="lede">Loading the kit…</p></div>
+  <section id="donorSec"></section>
+</main>
+<script>
+(async () => {
+  const $ = s => document.querySelector(s), esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  let KIT, INDEX, COL = {};
+  try { KIT = await (await fetch('odyssey/kit.json')).json(); } catch (e) { $('#list').innerHTML = '<p class="lede">The kit catalogue (odyssey/kit.json) could not be read.</p>'; return; }
+  try { INDEX = await (await fetch('odyssey/forage.json')).json(); } catch (e) { INDEX = { donors: {} }; }
+  try { const t = await (await fetch('ldraw/LDConfig.ldr')).text(); for (const m of t.matchAll(/!COLOUR\s+(\S+)\s+CODE\s+(\d+)\s+VALUE\s+(#[0-9A-Fa-f]{6})/g)) COL[m[2]] = { name: m[1].replace(/_/g, ' '), hex: m[3] }; } catch (e) { }
+  /* keyframe sheets: the scenes staged as stills */
+  const scenes = [['OD-B09-S09', 'The Blinding'], ['OD-B12-S03', "The Sirens' Song"], ['OD-B09-S11', 'The Boast (draft)'], ['OD-B12-S04', 'Scylla and Charybdis (draft)'], ['OD-B05-S05', "Poseidon's Storm (draft)"], ['OD-B10-S04', 'Circe (draft)'], ['OD-B10-S01', 'Aeolus (draft)'], ['OD-B12-S07', 'The Wreck (draft)'], ['OD-B13-S01', 'Home to Ithaca (draft)']];
+  $('#stills').innerHTML = `<section><div class="secHead"><h2>Keyframe stills</h2><span>staged, framed and checked before film</span></div><div class="sheets">${scenes.map(([id, n]) => `<a href="odyssey/keyframes/${id}/sheet.jpg"><img loading="lazy" alt="Keyframe sheet: ${esc(n)}" src="odyssey/keyframes/${id}/sheet.jpg"><div>${esc(n)} · ${id}</div></a>`).join('')}</div></section>`;
+  const cats = [...new Set(KIT.items.map(i => i.category))];
+  let cat = 'all', q = '';
+  $('#cats').innerHTML = [['all', 'All'], ...cats.map(c => [c, c.replace(/^Parts: /, '')])].map(([k, l]) => `<button class="chip${k === cat ? ' on' : ''}" data-c="${esc(k)}">${esc(l)}</button>`).join(' ');
+  $('#cats').onclick = e => { const b = e.target.closest('[data-c]'); if (!b) return; cat = b.dataset.c; $('#cats').querySelectorAll('.chip').forEach(x => x.classList.toggle('on', x === b)); draw(); };
+  $('#q').oninput = e => { q = e.target.value.trim().toLowerCase(); draw(); };
+  const sw = c => { const k = COL[c] || { hex: '#999', name: 'colour ' + c }; return `<span class="sw" style="background:${k.hex}" title="${esc(k.name)} (${c})"></span>`; };
+  function card(i) {
+    const used = [...(i.used.sets || []).map(s => `<span>set ${esc(s)}</span>`), ...(i.used.stills || []).map(s => `<a href="odyssey/keyframes/${esc(s)}/sheet.jpg">${esc(s)}</a>`)];
+    return `<article class="item"><div class="pic">${i.thumb ? `<img loading="lazy" alt="${esc(i.name)}" src="odyssey/thumbs/${esc(i.id)}.webp">` : '<span>no picture yet</span>'}</div>
+      <div class="txt"><h3>${esc(i.name.replace(/^(kit|furniture|prop|part) /, ''))}</h3>${i.note ? `<div class="note">${esc(i.note)}</div>` : ''}
+      <div class="meta">${i.pieces} piece${i.pieces === 1 ? '' : 's'} · ${i.studs[0]} x ${i.studs[1]} studs · ${(i.height / 24).toFixed(1)} bricks high</div>
+      <ul class="parts">${i.parts.slice(0, 6).map(p => `<li>${sw(p.color)}<b>${esc(p.part)}</b><span class="t">${p.n > 1 ? p.n + ' × ' : ''}${esc(p.title)}</span></li>`).join('')}${i.parts.length > 6 ? `<li><span class="t">and ${i.parts.length - 6} more</span></li>` : ''}</ul>
+      ${used.length ? `<div class="used">Used in: ${used.join(' ')}</div>` : ''}
+      <a class="open" href="odyssey-forage.html#${esc(i.id)}">Open in 3D</a></div></article>`;
+  }
+  function draw() {
+    const show = KIT.items.filter(i => (cat === 'all' || i.category === cat) && (!q || (i.name + ' ' + i.note + ' ' + i.parts.map(p => p.part + ' ' + p.title).join(' ')).toLowerCase().includes(q)));
+    $('#list').innerHTML = cats.filter(c => show.some(i => i.category === c)).map(c => { const l = show.filter(i => i.category === c); return `<section><div class="secHead"><h2>${esc(c)}</h2><span>${l.length} item${l.length === 1 ? '' : 's'}</span></div><div class="grid">${l.map(card).join('')}</div></section>`; }).join('') || '<p class="lede">Nothing matches.</p>';
+  }
+  draw();
+  const d = Object.entries(INDEX.donors || {});
+  if (d.length) $('#donorSec').innerHTML = `<div class="secHead"><h2>Donor sets</h2><span>real LEGO sets in LDraw, foraged for sub-builds</span></div><div class="donors">${d.map(([k, v]) => `<div><b>${esc(v.title || k)}</b>${v.author ? ', by ' + esc(v.author) : ''} · ${v.cards} card${v.cards === 1 ? '' : 's'}</div>`).join('')}<div>LDraw models redistributed under CCAL 2.0; the authors keep their credit in each file.</div></div>`;
+})();
+</script>
+</body>
+</html>

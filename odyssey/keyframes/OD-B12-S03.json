@@ -537,18 +537,26 @@
    "blocking": [
     {
      "id": "crew-at-the-oars-1",
-     "x": -46,
-     "z": 110,
-     "y": 50.0,
-     "face": "odysseus",
+     "x": -66,
+     "z": 118,
+     "y": "floor",
+     "face": [
+      -120,
+      190
+     ],
      "pose": {
       "armRP": [
-       -1.35,
+       -0.55,
        0,
-       0
+       0.2
       ],
       "armLP": [
-       -1.35,
+       -0.45,
+       0,
+       -0.2
+      ],
+      "torsoP": [
+       -0.12,
        0,
        0
       ]
@@ -556,18 +564,51 @@
     },
     {
      "id": "crew-at-the-oars-2",
-     "x": 12,
-     "z": 110,
-     "y": 50.0,
-     "face": "odysseus",
+     "x": 32,
+     "z": 118,
+     "y": "floor",
+     "face": [
+      90,
+      190
+     ],
      "pose": {
       "armRP": [
-       -1.35,
+       -0.55,
        0,
-       0
+       0.2
       ],
       "armLP": [
-       -1.35,
+       -0.45,
+       0,
+       -0.2
+      ],
+      "torsoP": [
+       -0.12,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "odysseus",
+     "pose": {
+      "armRP": [
+       0.55,
+       0,
+       0.12
+      ],
+      "armLP": [
+       0.55,
+       0,
+       -0.12
+      ],
+      "headP": [
+       0,
+       -0.15,
+       0
+      ],
+      "torsoP": [
+       0.12,
        0,
        0
       ]
@@ -635,52 +676,29 @@
     }
    ],
    "camera": {
-    "type": "ots",
-    "over": "the-sirens-4",
-    "at": "odysseus",
-    "dist": 52,
-    "off": 24,
-    "height": 18,
-    "fov": 42,
+    "type": "orbit",
+    "around": "odysseus",
+    "az": 4.7124,
+    "r": 190,
+    "h": 250,
+    "fov": 44,
     "subject": "odysseus",
-    "place": "R",
-    "eye": 0.3
+    "place": "C"
    },
    "subjects": [
     {
      "id": "odysseus",
-     "min": 0.05,
+     "min": 0.08,
      "primary": true
     },
     {
-     "id": "the-sirens-4",
-     "min": 0.1,
+     "id": "crew-at-the-oars-1",
      "soft": true,
      "cut": true
     }
    ],
-   "lensAllow": [
-    "the-sirens-1",
-    "the-sirens-2",
-    "the-sirens-3",
-    "the-sirens-4",
-    "the-sirens-5",
-    "crew-at-the-oars-1",
-    "crew-at-the-oars-2",
-    "crew-at-the-oars-3",
-    "crew-at-the-oars-4",
-    "crew-at-the-oars-5"
-   ],
-   "touch": [
-    [
-     "crew-at-the-oars-1",
-     "odysseus"
-    ],
-    [
-     "crew-at-the-oars-2",
-     "odysseus"
-    ]
-   ],
+   "lensAllow": [],
+   "touch": [],
    "rope": {
     "who": "odysseus",
     "post": [
@@ -693,7 +711,48 @@
      0.74,
      0.56,
      0.3
+    ],
+    "pull": [
+     "crew-at-the-oars-1",
+     "crew-at-the-oars-2"
     ]
+   },
+   "text": "Perimedes and Eurylochus bound me with still stronger bonds, till we had got out of hearing of the Sirens' voices.",
+   "search": {
+    "around": "odysseus",
+    "target": "odysseus",
+    "az": [
+     1.25,
+     2.1
+    ],
+    "r": [
+     110,
+     200
+    ],
+    "h": [
+     70,
+     150
+    ],
+    "fov": [
+     30,
+     42
+    ],
+    "bounds": [
+     -400,
+     400,
+     -400,
+     400
+    ],
+    "size": 0.35,
+    "n": 180,
+    "seed": 17,
+    "place": "L"
+   },
+   "turn": {
+    "around": "odysseus",
+    "r": 190,
+    "h": 250,
+    "fov": 44
    }
   }
  ],
