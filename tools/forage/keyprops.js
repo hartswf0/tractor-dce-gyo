@@ -31,13 +31,17 @@ for (const [name, armL, armR] of [['polyphemus', L.I12, L.I12], ['polyphemusSpra
   const hr = rows.find(r => r.part === '60641').m, hl = rows.find(r => r.part === '60640').m;
   props[name] = { parts, anchors: { eye: pupM.slice(0, 3).map((v, i) => i === 2 ? v - 4 : v), brow: [head[0], head[1] + 2, head[2] - 60], chest: [head[0], head[1] + 60, head[2] - 50], belly: [head[0], head[1] + 120, head[2] - 45], handR: hr.slice(0, 3), handL: hl.slice(0, 3) } };
 }
-props.stake = { parts: [row('2537', 70, L.I12), row('4589', 57, L.mul(L.T(0, 342 + 24, 0), RX(Math.PI)))], anchors: { end: [0, 0, 0], mid: [0, 171, 0], tip: [0, 366, 0], g1: [0, 290, 0], g2: [0, 225, 0], g3: [0, 160, 0], g4: [0, 95, 0], g5: [0, 30, 0] } };
-props.stakeCold = { parts: [row('2537', 70, L.I12), row('4589', 70, L.mul(L.T(0, 342 + 24, 0), RX(Math.PI)))], anchors: { end: [0, 0, 0], mid: [0, 171, 0], tip: [0, 366, 0], g1: [0, 290, 0], g2: [0, 225, 0], g3: [0, 160, 0], g4: [0, 95, 0], g5: [0, 30, 0] } };
-props.stakeBloody = { parts: [row('2537', 70, L.I12), row('4589', 36, L.mul(L.T(0, 342 + 24, 0), RX(Math.PI))), row('3062b', 36, L.T(0, 318, 0))], anchors: { end: [0, 0, 0], mid: [0, 171, 0], tip: [0, 366, 0], g1: [0, 290, 0], g2: [0, 225, 0], g3: [0, 160, 0], g4: [0, 95, 0], g5: [0, 30, 0] } };
+/* the stake's point: a 2 x 2 cone the full width of the beam, turned point-down past the beam's end (glowing; cold; bloodied) */
+/* the olive beam: a trunk of fourteen 2 x 2 round bricks (as sets build a trunk or a club), its point a 2 x 2 cone turned point-down */
+const stake = (tipCol, extra = []) => ({ parts: [...Array.from({ length: 14 }, (_, i) => row('3941', i % 5 === 2 ? 308 : 70, L.T(0, i * 24, 0))), row('3942', tipCol, L.mul(L.T(0, 336 + 48, 0), RX(Math.PI))), ...extra], anchors: { end: [0, 0, 0], mid: [0, 168, 0], tip: [0, 382, 0], g1: [0, 290, 0], g2: [0, 225, 0], g3: [0, 160, 0], g4: [0, 95, 0], g5: [0, 30, 0] } });
+props.stake = stake(57);
+props.stakeCold = stake(70);
+props.stakeBloody = stake(36, [row('3062b', 36, L.T(0, 318, 0))]);
 props.bowl = { parts: [row('4740', 70, L.I12)], anchors: { rim: [0, -8, 0] } };
 props.wine = { parts: [[0, 0], [22, 8], [-14, 18], [36, 26], [8, 34]].map(([x, z], i) => row(i % 2 ? '4073' : '6141', 36, L.T(x, 0, z))), anchors: { centre: [10, 0, 16] } };
 props.blood = { parts: [row('4589', 36, L.T(0, 0, 0)), row('4589', 36, L.mul(L.T(14, 6, 6), RX(0.6))), row('4589', 36, L.mul(L.T(-12, 8, -4), RX(-0.7))), row('3062b', 36, L.T(4, 16, 10)), row('6141', 36, L.T(-18, 22, 8))], anchors: { centre: [0, 8, 0] } };
 props.steam = { parts: [row('3062b', 47, L.T(0, 0, 0)), row('3062b', 47, L.T(6, -24, 4)), row('3062b', 47, L.T(-4, -48, 8)), row('4589', 47, L.T(2, -72, 10)), row('4589', 15, L.T(10, -18, -8))], anchors: { base: [0, 24, 0] } };
+props.ember = { parts: [row('3062b', 57, L.T(0, 0, 0)), row('4589', 46, L.T(6, -22, 4)), row('4589', 57, L.T(-6, -18, -4)), row('3024', 46, L.T(0, 8, 10)), row('4589', 46, L.mul(L.T(10, 4, -8), RX(0.8)))], anchors: { heart: [0, -8, 0] } };
 props.ram = { parts: [row('95341', 15, L.I12)], anchors: { back: [0, -30, 0] } };
 props.boulder = { parts: [row('53934p01c01', 71, L.I12), row('53934p01c01', 71, L.T(50, 0, 20)), row('42291', 71, L.T(20, -72, 10)), row('42284', 71, L.T(20, -104, 10))], anchors: { top: [20, -110, 10] } };
 props.perch = { parts: [row('53934p01c01', 72, L.I12)], anchors: { top: [0, -4, 0] } };
