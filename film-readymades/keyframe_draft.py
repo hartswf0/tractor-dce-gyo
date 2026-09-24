@@ -26,7 +26,7 @@ def draft(sid):
         if sub.startswith('piece:'): b = boxes[sub[6:]]; return [(b[0] + b[3]) / 2, (b[2] + b[5]) / 2]
         a = acts[sub]; return [a['x'], a['z']]
     (x0, _, z0), (x1, y1, z1) = e['bounds']; ext = max(x1 - x0, z1 - z0) / 2
-    base = [{'id': k, 'x': round(a['x'], 1), 'z': round(a['z'], 1), 'y': 'floor'} for k, a in acts.items()]   # stood on whatever is under them
+    base = [{'id': k, 'x': round(a['x'], 1), 'z': round(a['z'], 1), 'y': 'floor', **({'props': False} if re.search(r'crew|sailors|oars', k) else {})} for k, a in acts.items()]   # stood on whatever is under them; a crew's oars are the ship's
     keys = []
     for n, s in enumerate(pv['shots']):
         cam = s['camera']; kind = cam['kind']; sub = who(cam.get('subject')); obj = who(cam.get('object', -1))
@@ -61,7 +61,7 @@ def draft(sid):
             c = {'type': 'hero', 'a': sub, 'dist': 175, 'height': 10, 'yaw': 0.5 if n % 2 else -0.5, 'fov': 32, 'subject': sub, 'place': place, 'eye': 0.36}; subj[0]['min'] = 0.12
         keys.append({'id': f'K{n + 1}', 'beat': s['beat'], 'kind': kind, 'draft': True, 'blocking': blk, 'camera': c, 'subjects': subj, **({'lensAllow': allow} if allow else {})})
     return {'scene': sid, 'location': 'odyssey-' + sid.lower(), 'title': pv['title'].title(), 'note': 'Drafted from the storyboard by film-readymades/keyframe_draft.py: attention blocking and rigs by shot kind. Finish by hand where the gate fails.',
-            'look': {'sky': ['#5f97d3', '#efe2c4'], 'fog': [700, 2400]}, 'spread': 30, 'blocking': base, 'keys': keys}
+            'look': {'sky': ['#5f97d3', '#efe2c4'], 'fog': [700, 2400]}, 'spread': 36, 'blocking': base, 'keys': keys}
 
 if __name__ == '__main__':
     for sid in [a for a in sys.argv[1:] if not a.startswith('--')]:
