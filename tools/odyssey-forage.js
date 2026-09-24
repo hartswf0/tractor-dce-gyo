@@ -160,7 +160,7 @@ for (const sc of manifest.scenes) {
   const cast = parts.filter(p => p !== loc).sort((a, b) => order.indexOf(a.a.type) - order.indexOf(b.a.type)).map(p => ({ id: p.a.id, name: p.a.name, type: p.a.type, comp: /character|ensemble|creature/.test(p.a.type) ? p.top : crop(p.top, 24, 16, p.a.name) }   /* people and animals are never cut by a window */)).filter(c => rowsOf(c.comp).length);
   const { list, blocking } = Stage.block(stage, SCENE_SET[sc.id] ? cast.filter(c => c.type !== 'vehicle') : cast);   /* a sea set brings its own ship or raft */
   const top = B.at(sc.title.toLowerCase(), [[stage.comp, 0, 0], ...list]);
-  const { card } = onPlate(sc.title, [top], loc ? loc.rec.base : 19, {});
+  const { card } = onPlate(sc.title, [top], SCENE_SET[sc.id] ? 1 : loc ? loc.rec.base : 19, {});   /* a sea set's plate is sea to its edge */
   const s = finish(sc.id, 'scene', { name: sc.title, book: sc.book, assets: sc.assets }, card, top, {});
   const pv = Stage.previs(sc, blocking, stage.marks);
   fs.writeFileSync(path.join(OUT, 'previs', sc.id + '.json'), JSON.stringify({ id: sc.id, title: sc.title, book: sc.book, set: loc ? (loc.rec.hero || loc.a.name) : null, size: stage.size, marks: stage.marks, duration: pv.duration,

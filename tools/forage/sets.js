@@ -109,6 +109,12 @@ const KIT = {
   flowers: (n = 3) => REAL('flowers', Array.from({ length: n }, (_, i) => R(i % 2 ? '3741ac04' : '3741ac01', i % 2 ? C.red : C.yellow, (i % 3) * 3 - 3, Math.floor(i / 3) * 3))),
   bush: () => REAL('bush', [R('2417', C.green, 0, 0), R('2417', C.dgreen, 2, 1, -12)]),
   bones: () => REAL('bones', [R('6260', C.white, 0, 0), R('6266', C.white, 2, 1), R('6266', C.white, -2, 1), R('92691', C.white, 1, -2), R('92691', C.white, -1, 2, -8, 1)]),
+  /* Charybdis: a bowl of sea (the 4 x 4 dish turned to a hollow, trans dark blue) with its black floor ("we could see the bottom of the
+     whirlpool all black with sand and mud"), rings of foam round it in white and clear round plates, turning inward */
+  whirlpool: () => { const RXp = [0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 0, -1], ring = (r, n, ph, col, col2) => Array.from({ length: n }, (_, i) => { const a = ph + i * 2 * Math.PI / n, rr = r + (i % 3) * 0.25;
+      return { id: '6141', col: i % 2 ? col2 : col, x: rr * Math.cos(a), z: rr * Math.sin(a), y: -8 - 8 + 4 }; });
+    return REAL('the whirlpool', [{ id: '3960', col: C.tDBlue, x: 0, z: 0, y: -8 + 4, m: RXp }, { id: '4150', col: C.black, x: 0, z: 0, y: -8 + 2 },
+      ...ring(2.6, 10, 0, C.white, C.tClear), ...ring(3.6, 14, 0.4, C.tClear, C.white), ...ring(4.6, 18, 0.9, C.white, C.tClear), ...ring(5.6, 20, 1.3, C.tClear, C.white)]); },
   /* the raft of logs, as Odysseus lashes it: log bricks side by side, a stub mast */
   raft: () => REAL('raft', [...[-3, -2, -1, 0, 1, 2, 3].map(x => R('30137', C.rbrown, x, 0, -8, 1)), ...[-3, -2, -1, 0, 1, 2, 3].map(x => R('30137', C.rbrown, x, 4, -8, 1)), { id: '3957a', col: C.rbrown, x: 0, z: 2, y: -8 - 24 - 8 }]),
   greatStone: () => REAL('the great stone', [R('53934p01c01', C.lbg, -2, 0), R('53934p01c01', C.lbg, 2, 0), R('42291', C.lbg, 0, 0, -8 - 72), R('42284', C.lbg, 0, 0, -8 - 72 - 32)]),
@@ -190,6 +196,20 @@ function circeHall() {
     R('3741ac01', C.yellow, -11, 9), R('3741ac04', C.red, -12, 6.5), R('3741ac01', C.yellow, 6, 13), R('53934p01c01', C.dbg, 15, 12.5), R('42291', C.dbg, -16, 12.5));
   return REAL("circe's house", list);
 }
+/* Scylla's rock: rock panels in four tiers, each set back from the channel, her cavern a dark gap in the second tier (black bricks
+   behind it, bones on its lip), triangular peaks on top. The channel is +x; the cliff runs along z. */
+function scyllaCliff() {
+  const g = C.dbg, list = [], T = k => -8 - 144 * k;
+  for (const z of [-19, -9, 1, 11]) list.push({ id: '6082', col: g, x: -13, z, base: T(0), q: 1 });
+  for (const z of [-19, 1, 11]) list.push({ id: '6082', col: g, x: -14, z, base: T(1), q: 1 });
+  for (let k = 0; k < 6; k++) list.push({ id: '3009', col: C.black, x: -15.5, z: -9, base: T(1) - 24 * k, q: 1 });   // the dark of the cavern
+  list.push({ id: '6082', col: g, x: -14, z: -9, base: T(1) - 120, q: 1 }, { id: '3009', col: C.dbg, x: -12.5, z: -9, base: T(1) - 8, q: 1 });   // its lintel and lip
+  list.push({ id: '6260', col: C.white, x: -12, z: -7, base: T(1) - 8 - 24 }, { id: '6266', col: C.white, x: -12, z: -11, base: T(1) - 8 - 24 });
+  for (const z of [-15, -5, 5]) list.push({ id: '6082', col: g, x: -15, z, base: T(2), q: 1 });
+  list.push({ id: '6083', col: g, x: -15.5, z: -13, base: T(3), q: 1 }, { id: '6083', col: g, x: -15.5, z: -3, base: T(3), q: 1 }, { id: '6083', col: g, x: -15, z: 7, base: T(2) - 24, q: 1 });
+  list.push({ id: '2417', col: C.dgreen, x: -12, z: 12, base: T(1) }, { id: '2417', col: C.green, x: -13, z: -2, base: T(2) }, { id: '32607', col: C.green, x: -11.5, z: 4, base: T(1) });
+  return REAL("scylla's rock", list);
+}
 const SETS = {
   /* Odysseus's megaron at Ithaca: the hall of the suitors, the bow and the slaughter */
   megaron: () => room('the megaron at ithaca', 36, 30, floor(36, 30, C.dtan, C.tan), [
@@ -248,9 +268,13 @@ const SETS = {
     [KIT.galley({ furled: true }), 0, 8], [KIT.crag(C.dtan, false), -9, -18], [KIT.rocks(C.dtan), 10, -19], [KIT.cypress(), -13, -21], [KIT.olive(), 13, -12],
     [KIT.flowers(6), -3, -14], [KIT.flowers(3), 6, -20], [KIT.bones(), 2, -11], [KIT.bones(), -7, -12], [KIT.splash(), 11, 10],
   ], { odysseus: M(0, 7, 0, 'Odysseus bound to the mast', null, DECK), crew: M(0, 4, 0, 'the crew at the oars, wax in their ears', 'zz', DECK), sirens: M(1, -16, 0, 'the Sirens in their meadow of bones', 'x'), centre: M(-10, 6, 0) }),
+  /* the strait (Homer XII): "the one rock reaches heaven... in the middle of it is a large cavern"; "the other rock is lower... a large fig
+     tree in full leaf grows upon it, and under it lies the sucking whirlpool of Charybdis". Scylla's cliff in four tiers of rock panels
+     with her cave in the second; the low rock opposite with its fig tree and the whirlpool at its foot; the black ship between, rowing. */
   strait: () => room('between scylla and charybdis', 32, 48, seaFloor(), [
-    [KIT.galley({ furled: true }), 2, 9], [KIT.crag(C.dbg), -9, -16], [KIT.rocks(), -12, -8], [KIT.crag(C.dbg, false), 10, -19], [KIT.olive(), 13, -16], [KIT.splash(), 9, -6], [KIT.splash(), -6, 2],
-  ], { odysseus: M(2, 16, 0, 'Odysseus armed at the prow', null, DECK), crew: M(2, 5, 0, 'the sailors rowing hard', 'zz', DECK), scylla: M(-7, -16, 0, 'Scylla on her crag', null, 'top'), charybdis: M(9, -8, 0, 'Charybdis sucks down the sea'), centre: M(-10, 12, 0) }),
+    [KIT.galley({ furled: true }), -1, 0], [scyllaCliff(), -14, -4], [KIT.whirlpool(), 9, -2], [KIT.rocks(), 14, -6], [KIT.boulder(), 14.5, 1], [KIT.crag(C.dbg, false), 13, -18],
+    [REAL('the fig tree', [R('3470', C.dgreen, 0, 0, -8 - 72)]), 14, -6], [KIT.bush(), 12, -12], [KIT.splash(), 6, 3], [KIT.splash(), 11, 5],
+  ], { odysseus: M(-1, 9, 0, 'Odysseus armed at the prow', null, DECK), crew: M(-1, -3, 0, 'the sailors rowing hard', 'zz', DECK), scylla: M(-11, -9, 0, "Scylla's cave", null, -8 - 144 - 80), charybdis: M(9, -2, 0, 'Charybdis sucks down the sea'), centre: M(6, 14, 0) }),
   storm: () => room('the storm at sea', 32, 48, seaFloor(), [
     [KIT.raft(), 0, 4], [KIT.splash(), -6, -2], [KIT.splash(), 7, 1], [KIT.splash(), -3, 10], [KIT.splash(), 9, -12], [KIT.rocks(), -12, -18], [KIT.boulder(), 12, -20],
   ], { odysseus: M(0, 3, 0, 'Odysseus clinging to the raft', null, -8 - 24), raft: M(0, 4, 0, 'the raft'), poseidon: M(-9, -12, 0, 'Poseidon rising from the waves'), leucothea: M(9, 8, 0, 'Ino, the sea-bird'), wind: M(8, -12, 0, 'the four winds'), centre: M(-8, 12, 0) }),
