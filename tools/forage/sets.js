@@ -51,6 +51,22 @@ const FURN = {
   sty: () => kit('sty', [K.box(0, 0, 8, 6, 1, C.rbrown, { hollow: true })]),
   pen: () => kit('pen', [K.box(0, 0, 8, 8, 1, C.dtan, { hollow: true })]),
   rack2: () => kit('cheese racks', [K.box(0, 0, 6, 1, 2, C.rbrown), ...[0, 2, 4].map(x => K.part('3062b', C.yellow, x, 0, 2))]),
+  /* the black ship: a Homeric galley, keel along z, bow at +z; the hull open so the crew stand in it to the waist; a square sail
+     across the ship on a yard, a red band down it; four oars a side through the red gunwale, a steering oar at the stern */
+  galley: (sail = C.white, band = C.red) => kit('black ship', [
+    K.box(0, 3, 8, 18, 2, C.black, { hollow: true }), K.box(2, 0, 4, 3, 2, C.black), K.box(2, 21, 4, 3, 2, C.black),
+    K.box(3, 0, 2, 1, 3, C.black, { y: 2 }), K.box(3, 23, 2, 1, 3, C.black, { y: 2 }), K.slab(2, 23, 4, 1, C.red, { y: 2 }),
+    K.slab(0, 3, 1, 18, C.red, { y: 2 }), K.slab(7, 3, 1, 18, C.red, { y: 2 }),
+    ...[6, 9, 15, 18].flatMap(z => [K.slab(-3, z, 4, 1, C.dtan, { y: 2, plateOffset: 1 }), K.slab(7, z, 4, 1, C.dtan, { y: 2, plateOffset: 1 })]),
+    K.slab(5, -2, 1, 4, C.dtan, { y: 2, plateOffset: 1 }),
+    /* the sail stands on the gunwale (the tiler keeps only what is held from below), the yard over the sail and the mast's cap */
+    ...col1('3941', C.rbrown, 3, 11, 8, 0), K.part('3022', C.rbrown, 3, 11, 8), K.slab(-2, 11, 12, 3, C.rbrown, { y: 8, plateOffset: 1 }),
+    K.box(-1, 13, 10, 1, 2, sail, { y: 2, plateOffset: 1 }), K.box(-1, 13, 10, 1, 1, band, { y: 4, plateOffset: 1 }), K.box(-1, 13, 10, 1, 3, sail, { y: 5, plateOffset: 1 })]),
+  /* a raft of logs with a stub mast, as Odysseus builds it on Ogygia */
+  raft: () => kit('raft', [...[0, 2, 4, 6, 8].map(x => K.box(x, 0, 2, 10, 1, C.rbrown)), ...col1('3941', C.rbrown, 4, 4, 5, 1), K.box(1, 5, 8, 1, 3, C.white, { y: 3 })]),
+  /* a swell of sea: a blue ridge, white along its crest */
+  wave: (w = 8, h = 1) => kit('wave', [K.box(0, 0, w, 2, h, C.tDBlue), K.slab(1, 0, w - 2, 1, C.white, { y: h })]),
+  whirlpool: () => kit('charybdis', [K.box(0, 0, 10, 10, 1, C.tDBlue, { hollow: true }), K.box(2, 2, 6, 6, 1, C.white, { hollow: true }), K.slab(4, 4, 2, 2, C.black)]),
 };
 
 /* ── rooms: a floor, walls, a door ── */
@@ -66,7 +82,7 @@ function room(name, w, d, floorComp, items, marks, extra = {}) {
   const out = {}; for (const [k, m] of Object.entries(marks)) out[k] = { ...m, x: -m.x, z: -m.z };
   return { comp, marks: out, size: [w, d], floorY: -8, ...extra };
 }
-const M = (x, z, face = 0, note = '') => ({ x, z, face, note });   // face: quarter turns; 0 faces the camera (south)
+const M = (x, z, face = 0, note = '', axis, y) => ({ x, z, face, note, ...(axis ? { axis } : {}), ...(y != null ? { y } : {}) });   // face: quarter turns; 0 faces the camera (south)
 
 const SETS = {
   /* Odysseus's megaron at Ithaca: the hall of the suitors, the bow and the slaughter */
@@ -93,8 +109,8 @@ const SETS = {
   circe: () => room("circe's hall", 34, 28, floor(34, 28, C.white, C.sgreen), [
     [walls(34, 28, 5, C.white, { band: C.purple }), 0, 0, 2, -8],
     [FURN.column(6, C.white), -5, -4], [FURN.column(6, C.white), 5, -4], [FURN.throne(C.gold, C.purple), 0, -10], [FURN.loom(C.rbrown, C.purple), -11, -10], [FURN.couch(), 10, -9], [FURN.table(C.rbrown), 0, 2],
-    [FURN.chair(), -5, 2, 1], [FURN.chair(), 5, 2, 3], [FURN.brazier(), -13, 8], [FURN.brazier(), 13, 8], [FURN.sty(), 11, 8],
-  ], { circe: M(0, -7, 0, 'Circe at her throne'), loom: M(-9, -7, 0), table: M(0, 5, 2), sty: M(11, 8, 0, 'the sty'), door: M(0, 12, 2), centre: M(0, 6, 0) }),
+    [FURN.chair(), -5, 2, 1], [FURN.chair(), 5, 2, 3], [FURN.brazier(), -13, 8], [FURN.brazier(), 13, 8], [kit('sty', [K.box(0, 0, 14, 6, 1, C.rbrown, { hollow: true })]), 8, 9],
+  ], { circe: M(0, -7, 0, 'Circe at her throne'), loom: M(-9, -7, 0), table: M(0, 5, 2), sty: M(11, 8, 0, 'the sty, where the crew become swine', 'x'), door: M(0, 12, 2), centre: M(0, 6, 0) }),
   /* the swineherd's hut and yard */
   hut: () => room("eumaeus's farm", 34, 28, floor(34, 28, C.dtan), [
     [kit('hut', [K.box(0, 0, 12, 10, 3, C.rbrown, { hollow: true }), K.cut(4, 9, 4, 1, 0, 3), K.roof(0, 0, 12, 10, 3, 'gable', C.dtan)]), -8, -7, 2],
@@ -112,12 +128,36 @@ const SETS = {
     [FURN.rock(12, 6, 6, C.dtan), -9, -11], [FURN.rock(8, 6, 5, C.dtan), 5, -11], [FURN.tree(5, C.green), 13, -8], [FURN.tree(4, C.dgreen), -14, 3], [FURN.tree(5, C.green), 12, 6], [FURN.tree(3, C.green), -11, 11],
     [FURN.loom(C.rbrown, C.gold), -2, -6], [FURN.fire(), 5, -3], [FURN.bed(), -9, -2], [FURN.fountain(), 5, 7], [kit('shore', [K.slab(0, 0, 34, 3, C.tDBlue)]), 0, 13],
   ], { calypso: M(-2, -3, 0, 'Calypso at her loom'), fire: M(5, 0, 0), spring: M(5, 11, 0), shore: M(-6, 11, 2, 'Odysseus weeping on the shore'), centre: M(0, 3, 0) }),
+  /* the sea sets: a wine-dark sea (trans dark blue over the plate), swells, the black ship at the centre. The crew stand in the
+     hull (a mark with axis z strings them down the keel); a mark with y stands its figures on a rock top */
+  sirens: () => room("the sirens' sea", 40, 36, floor(40, 36, C.tDBlue), [
+    [FURN.galley(), 2, 2], [FURN.rock(20, 8, 3, C.dtan), -9, -12], [kit('bones', [K.box(0, 0, 3, 1, 1, C.white), K.slab(0, 1, 2, 1, C.white)]), -17, -10, 0, -80],
+    [FURN.wave(8), 12, -12], [FURN.wave(6), 14, 12], [FURN.wave(6), -14, 12], [FURN.wave(8), -6, 14],
+  ], { odysseus: M(2, 3, 0, 'Odysseus bound to the mast'), crew: M(2, 4, 0, 'the crew at the oars, wax in their ears', 'z'), sirens: M(-9, -12, 0, 'the Sirens on their meadow of bones', 'x', -80), centre: M(8, 6, 0) }),
+  strait: () => room('between scylla and charybdis', 40, 36, floor(40, 36, C.tDBlue), [
+    [FURN.galley(), 0, 3], [FURN.rock(10, 10, 9, C.dbg), -14, -10], [FURN.rock(6, 6, 4, C.dbg), -15, 2], [kit('fig tree', [K.tree(0, 0, 4, { r: 2, leaf: C.olive })]), 16, -4],
+    [FURN.wave(6), 12, 10], [FURN.wave(6), -8, 14],
+  ], { odysseus: M(0, 4, 0, 'Odysseus armed at the prow'), crew: M(0, 5, 0, 'the sailors rowing hard', 'z'), scylla: M(-14, -10, 0, 'Scylla on her crag', 'x', -8 - 9 * 24), charybdis: M(12, -10, 0, 'Charybdis sucks down the sea'), centre: M(6, 6, 0) }),
+  storm: () => room('the storm at sea', 40, 36, floor(40, 36, C.tDBlue), [
+    [FURN.raft(), 0, 2], [FURN.wave(10, 3), -10, -12], [FURN.wave(12, 4), 8, -13], [FURN.wave(8, 2), -14, 6], [FURN.wave(8, 2), 14, 4], [FURN.wave(10, 1), 2, 14],
+  ], { odysseus: M(0, 3, 0, 'Odysseus clinging to the raft'), raft: M(0, 2, 0, 'the raft'), poseidon: M(-10, -8, 0, 'Poseidon rising from the waves'), leucothea: M(9, 6, 0, 'Ino, the sea-bird'), wind: M(9, -8, 0, 'the four winds'), centre: M(-8, 8, 0) }),
+  voyage: () => room('the black ship under sail', 40, 36, floor(40, 36, C.tDBlue), [
+    [FURN.galley(), 0, 2], [FURN.rock(10, 6, 2, C.green), -13, -13], [FURN.rock(6, 4, 1, C.dtan), -9, -11],
+    [FURN.wave(8), 12, -10], [FURN.wave(6), 14, 12], [FURN.wave(6), -14, 10],
+  ], { odysseus: M(0, 3, 0, 'Odysseus at the helm'), crew: M(0, 6, 0, 'the crew at the oars', 'z'), ithaca: M(-13, -9, 0, 'home in sight'), aeolus: M(-13, -13, 0, 'Aeolus on his island', null, -56), centre: M(10, 4, 0), door: M(12, 12, 0) }),
+  boast: () => room('the boast from the ship', 40, 36, floor(40, 36, C.tDBlue), [
+    [kit('shore', [K.slab(0, 0, 40, 10, C.tan)]), 0, -13], [FURN.rock(10, 6, 5, C.dbg), -12, -14], [FURN.rock(6, 5, 3, C.dbg), 12, -15],
+    [FURN.galley(), 6, 6, 1], [kit('the hurled rock', [K.rock(0, 0, 4, 4, 2, C.dbg), K.slab(-1, -1, 6, 6, C.white)]), -6, 4], [FURN.wave(6), -14, 12],
+  ], { cyclops: M(-3, -12, 0, 'the Cyclops on the shore, hurling the crag'), odysseus: M(2, 6, 0, 'Odysseus shouting his name from the stern'), crew: M(10, 6, 0, 'the crew begging him to stop', 'x'), centre: M(-12, 10, 0) }),
+  wreck: () => room('the last ship', 40, 36, floor(40, 36, C.tDBlue), [
+    [FURN.galley(C.white, C.dred), 0, 0, 1], [FURN.wave(10, 3), -10, -12], [FURN.wave(12, 4), 8, -13], [FURN.wave(8, 2), 14, 8], [FURN.wave(8, 2), -14, 10],
+  ], { odysseus: M(-4, 8, 0, 'Odysseus on the keel'), crew: M(0, 9, 0, 'the crew thrown into the sea', 'x'), zeus: M(0, -12, 0, 'the thunderbolt'), centre: M(0, 12, 0) }),
 };
 /* which location card stands on which set */
 const LOCATION_SET = {
   'location.megaron-hall': 'megaron', 'location.odysseuss-palace-threshold-and-hall': 'megaron', 'location.feast-hall-at-attentive-silence': 'megaron', 'location.fight-threshold': 'megaron',
   'location.olympian-council-hall': 'olympus', 'location.olympian-decision-space': 'olympus',
-  'location.polyphemuss-cave': 'cave', 'location.circes-forest-palace': 'circe', 'location.eumaeus-hut-interior': 'hut', 'location.eumaeuss-pig-farm': 'hut',
+  'location.polyphemuss-cave': 'cave', 'location.sirens-island': 'sirens', 'location.narrow-monster-strait': 'strait', 'location.circes-forest-palace': 'circe', 'location.eumaeus-hut-interior': 'hut', 'location.eumaeuss-pig-farm': 'hut',
   'location.alcinouss-palace': 'phaeacia', 'location.phaeacian-feast-hall': 'phaeacia', 'location.phaeacian-royal-chamber': 'phaeacia',
   'location.ogygia-cavern-and-grove': 'grove', 'location.nymph-cave': 'grove',
 };
