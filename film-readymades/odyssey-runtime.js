@@ -44,9 +44,12 @@ function kfSpread(min,ids){const acts=ButterCast.cast.filter(a=>!ids||ids.includ
   for(let it=0;it<60;it++){let moved=false;for(let i=0;i<acts.length;i++)for(let j=i+1;j<acts.length;j++){const p=acts[i].rig.pos,q=acts[j].rig.pos,dx=q.x-p.x,dz=q.z-p.z,d=Math.hypot(dx,dz);
     if(d<min){const push=(min-d)/2+0.5,ux=d>1e-3?dx/d:Math.cos(i+j),uz=d>1e-3?dz/d:Math.sin(i+j);p.x-=ux*push;p.z-=uz*push;q.x+=ux*push;q.z+=uz*push;moved=true;}}if(!moved)break;}
   for(const a of acts){a.rig.pos.y=kfFloor(a);a.rig.figure.position.copy(a.rig.pos);}}
+const kfInside=(o,r)=>{for(;o;o=o.parent)if(o===r)return true;return false;};
 function kfBlock(list){for(const e of list){const a=kfActor(e.id);if(!a){console.warn('[keyframe] no actor',e.id);continue;}const r=a.rig;
   if(typeof e.at==='string'){const p=kfPoint(e.at).add(new THREE.Vector3(...(e.off||[0,0,0])));r.pos.x=p.x;r.pos.z=p.z;}
-  if(e.x!=null)r.pos.x=e.x;if(e.z!=null)r.pos.z=e.z;if(e.y==='ground')r.pos.y=kfGround(r.pos.x,r.pos.z);else if(e.y==='floor')r.pos.y=kfFloor(a);else if(e.y!=null)r.pos.y=e.y;
+  if(e.x!=null)r.pos.x=e.x;if(e.z!=null)r.pos.z=e.z;if(e.y==='ground')r.pos.y=kfGround(r.pos.x,r.pos.z);else if(e.y==='floor')r.pos.y=kfFloor(a);
+  else if(e.y==='surface'){const from=(typeof e.at==='string'?kfPoint(e.at).y:r.pos.y+200)-(e.reach??25);const figs=new Set();ButterCast.cast.forEach(b=>b.rig.figure.traverse(o=>figs.add(o)));const ms=[];scene.traverse(o=>{if(kfSolid(o)&&!figs.has(o)&&!(o.parent&&kfPropObjs.get('stake')&&kfInside(o,kfPropObjs.get('stake'))))ms.push(o);});
+    const h=new THREE.Raycaster(new THREE.Vector3(r.pos.x,from,r.pos.z),new THREE.Vector3(0,-1,0)).intersectObjects(ms,true)[0];r.pos.y=h?h.point.y:r.pos.y;}   /* stood on the highest body under a grip: a man on the giant's chest */else if(e.y!=null)r.pos.y=e.y;
   const f=typeof e.face==='string'?(e.face.startsWith('@')?kfAnchor(e.face.slice(1)):kfActor(e.face)?.rig.pos):Array.isArray(e.face)?{x:e.face[0],z:e.face[1]}:null;
   if(f)r.heading=Math.atan2(f.x-r.pos.x,f.z-r.pos.z);else if(e.heading!=null)r.heading=e.heading;
   r.figure.position.copy(r.pos);r.figure.rotation.y=r.heading;r.hold=e.pose||r.hold||{};

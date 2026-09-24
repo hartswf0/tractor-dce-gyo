@@ -34,22 +34,24 @@ if(searchId){const k=spec.keys.find(x=>x.id===searchId),S_=k.search||{};await p.
   let seed=S_.seed||7;const rnd=()=>{seed=(seed*16807)%2147483647;return seed/2147483647;};const around=S_.around;const out=[];const B=S_.bounds||[-1e9,1e9,-1e9,1e9];
   const prim=(k.subjects.find(s=>s.primary)||k.subjects[0]).id;
   for(let i=0;i<(S_.n||60);i++){const A=(S_.az?S_.az[0]+rnd()*(S_.az[1]-S_.az[0]):rnd()*Math.PI*2),r=S_.r[0]+rnd()*(S_.r[1]-S_.r[0]),h=S_.h[0]+rnd()*(S_.h[1]-S_.h[0]),fov=S_.fov?S_.fov[0]+rnd()*(S_.fov[1]-S_.fov[0]):36;
-   const c=typeof around==='string'?OdysseyFilm.anchor(around.slice(1))||null:{x:around[0],y:around[1],z:around[2]};if(!c)break;
+   const c=typeof around==='string'?(around.startsWith('@')?OdysseyFilm.anchor(around.slice(1)):OdysseyFilm.cast().find(a=>a.id===around)):{x:around[0],y:around[1],z:around[2]};if(!c)break;
    const pos=[c.x+Math.sin(A)*r,h,c.z+Math.cos(A)*r];if(pos[0]<B[0]||pos[0]>B[1]||pos[2]<B[2]||pos[2]>B[3])continue;
    const cam={type:'wide',pos,target:S_.target||around,fov,subject:prim,place:k.camera.place||S_.place||'L',eye:k.camera.eye||0.4};OdysseyFilm.rig(cam);
    const sc=OdysseyFilm.score(k.subjects),lens=OdysseyFilm.lens(prim,k.lensAllow||[]),clutter=OdysseyFilm.clutter(prim.startsWith('prop:')||prim.startsWith('piece:')?(k.subjects.find(s=>!s.id.includes(':'))||{}).id||prim:prim,[...(k.lensAllow||[]),...k.subjects.map(s=>s.id)]);
-   let ok=lens<=0.1&&!clutter.length,val=0;for(const s of k.subjects){const m=sc[s.id];if(!m||m.missing||m.behind){ok=false;continue;}
-    if(m.visible<(s.soft?0.5:0.75))ok=false;if(!s.cut&&!m.inFrame)ok=false;if(s.min&&m.size<s.min)ok=false;if(s.max&&m.size>s.max)ok=false;if(s.face&&m.facing<0.35)ok=false;
-    if(!(m.head[0]>0.02&&m.head[0]<0.98&&m.head[1]>0.02&&m.head[1]<0.98))ok=false;
-    if(s.primary){if(m.thirds>0.06&&cam.place!=='C')ok=false;if(m.headroom<0.03)ok=false;val-=Math.abs(m.size-(S_.size||0.35))*3;}
+   const why=[];if(lens>0.1)why.push('lens');if(clutter.length)why.push('clutter:'+clutter.join('+'));let ok=lens<=0.1&&!clutter.length,val=0;for(const s of k.subjects){const m=sc[s.id];if(!m||m.missing||m.behind){ok=false;why.push(s.id+':behind');continue;}
+    if(m.visible<(s.soft?0.5:0.75)){ok=false;why.push(s.id+':hidden');}if(!s.cut&&!m.inFrame){ok=false;why.push(s.id+':cut');}if(s.min&&m.size<s.min){ok=false;why.push(s.id+':small');}if(s.max&&m.size>s.max){ok=false;why.push(s.id+':big');}if(s.face&&m.facing<0.35){ok=false;why.push(s.id+':face');}
+    if(!(m.head[0]>0.02&&m.head[0]<0.98&&m.head[1]>0.02&&m.head[1]<0.98)){ok=false;why.push(s.id+':headout');}
+    if(s.primary){if(m.thirds>0.06&&cam.place!=='C'){ok=false;why.push('thirds');}if(m.headroom<0.03){ok=false;why.push('headroom');}val-=Math.abs(m.size-(S_.size||0.35))*3;}
     if(s.face)val+=m.facing*0.5;val+=m.visible*0.3;}
-   out.push({ok,val:+val.toFixed(3),cam:{...cam,pos:pos.map(v=>+v.toFixed(1)),fov:+fov.toFixed(1)}});}
+   out.push({ok,why,val:+val.toFixed(3),cam:{...cam,pos:pos.map(v=>+v.toFixed(1)),fov:+fov.toFixed(1)}});}
   return out;},{base:spec.blocking,k,look:spec.look||{},spread:spec.spread||0,props:spec.props||[],S_});
- const good=cands.filter(c=>c.ok).sort((a,b)=>b.val-a.val),pick=[];for(const c of good){if(pick.every(q=>Math.hypot(q.cam.pos[0]-c.cam.pos[0],q.cam.pos[2]-c.cam.pos[2])>60))pick.push(c);if(pick.length>=6)break;}
+ const tally={};for(const c of cands)for(const w of c.why)tally[w]=(tally[w]||0)+1;console.log('  why cameras failed:',JSON.stringify(Object.entries(tally).sort((a,b)=>b[1]-a[1]).slice(0,8)));
+ let good=cands.filter(c=>c.ok).sort((a,b)=>b.val-a.val);if(!good.length){good=cands.sort((a,b)=>a.why.length-b.why.length||b.val-a.val);console.log('  none pass: rendering the nearest misses');}const pick=[];for(const c of good){if(pick.every(q=>Math.hypot(q.cam.pos[0]-c.cam.pos[0],q.cam.pos[2]-c.cam.pos[2])>60))pick.push(c);if(pick.length>=6)break;}
  console.log(`${k.id}: ${cands.length} cameras tried, ${good.length} pass; rendering ${pick.length}`);
  for(let i=0;i<pick.length;i++){const png=await p.evaluate(cam=>{OdysseyFilm.rig(cam);renderStill(scene,camera);return renderer.domElement.toDataURL('image/png');},pick[i].cam);fs.writeFileSync(path.join(out,`${k.id}-c${i+1}.png`),Buffer.from(png.split(',')[1],'base64'));}
  fs.writeFileSync(path.join(out,`${k.id}-candidates.json`),JSON.stringify(pick,null,1));await b.close();process.exit(0);}
-for(const k of spec.keys){
+const onlyIds=process.argv.includes('--only')?process.argv[process.argv.indexOf('--only')+1].split(','):null;
+for(const k of spec.keys.filter(k=>!onlyIds||onlyIds.includes(k.id))){
  await p.evaluate(()=>OdysseyFilm.loadProps());
  const r=await p.evaluate(({base,k,look,spread,props})=>{OdysseyFilm.hide(k.hide||[]);OdysseyFilm.props([...(props||[]),...(k.props||[])]);OdysseyFilm.block(base);if(spread)OdysseyFilm.spread(spread);OdysseyFilm.block(k.blocking||[]);OdysseyFilm.light(Object.assign({},look,k.look));const cam=OdysseyFilm.rig(k.camera);
    OdysseyFilm.look(Object.assign({},look,k.look));OdysseyFilm.rope(k.rope||null);const phys=OdysseyFilm.physics(ButterCast.cast.map(a=>a.kind.replace(/^odyssey-od-b\d\d-s\d\d-/,'')),k.touch||[]);const sc=OdysseyFilm.score(k.subjects);const clutter=OdysseyFilm.clutter((k.subjects.find(s=>s.primary&&!s.id.startsWith('piece:'))||k.subjects.find(s=>!s.id.startsWith('piece:'))||{id:(k.subjects[0]||{}).id}).id,[...(k.lensAllow||[]),...k.subjects.map(s=>s.id)]);const prim=(k.subjects.find(s=>s.primary)||{}).id;const lens=OdysseyFilm.lens(prim||k.subjects[0].id,k.lensAllow||[]);renderStill(scene,camera);const png=renderer.domElement.toDataURL('image/png');return {cam,sc,lens,clutter,phys,png};},{base:spec.blocking,k,look:spec.look||{},spread:spec.spread||0,props:spec.props||[]});

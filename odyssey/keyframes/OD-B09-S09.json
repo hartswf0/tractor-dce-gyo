@@ -58,17 +58,16 @@
      "name": "polyphemusSprawl",
      "id": "polyphemus",
      "at": [
-      30,
-      0,
-      -30
+      -10,
+      9,
+      -150
      ],
      "rot": [
-      -1.5708,
-      0.5,
+      -0.75,
+      0.15,
       0
      ],
-     "floor": true,
-     "scale": 1.4
+     "scale": 1.25
     },
     {
      "name": "wine",
@@ -201,15 +200,15 @@
    "search": {
     "around": "@polyphemus.chest",
     "r": [
-     110,
-     260
+     140,
+     280
     ],
     "h": [
-     190,
-     340
+     150,
+     300
     ],
     "fov": [
-     36,
+     38,
      50
     ],
     "bounds": [
@@ -218,9 +217,11 @@
      -300,
      300
     ],
-    "size": 0.5,
-    "n": 160
-   }
+    "size": 0.45,
+    "n": 180,
+    "seed": 3
+   },
+   "note": "He slumps back against the cave wall where he fell, his neck hung backwards, arms flung out; the wine pooled by his head; the men by the flock."
   },
   {
    "id": "K2",
@@ -239,17 +240,16 @@
      "name": "polyphemusSprawl",
      "id": "polyphemus",
      "at": [
-      30,
-      0,
-      -30
+      -10,
+      9,
+      -150
      ],
      "rot": [
-      -1.5708,
-      0.5,
+      -0.75,
+      0.15,
       0
      ],
-     "floor": true,
-     "scale": 1.4
+     "scale": 1.25
     },
     {
      "name": "wine",
@@ -456,17 +456,21 @@
    ],
    "search": {
     "around": "@stake.g1",
+    "az": [
+     3.7,
+     5.6
+    ],
     "r": [
-     80,
-     190
+     90,
+     200
     ],
     "h": [
      25,
-     110
+     120
     ],
     "fov": [
-     30,
-     44
+     32,
+     46
     ],
     "bounds": [
      -215,
@@ -474,8 +478,9 @@
      -205,
      85
     ],
-    "size": 0.3,
-    "n": 160
+    "size": 0.28,
+    "n": 180,
+    "seed": 9
    }
   },
   {
@@ -488,24 +493,25 @@
     "cyclopes outside 2",
     "cyclopes outside 3",
     "cyclopes outside 4",
-    "eye-blinding effect"
+    "eye-blinding effect",
+    "corner",
+    "cave flank"
    ],
    "props": [
     {
      "name": "polyphemusSprawl",
      "id": "polyphemus",
      "at": [
-      30,
-      0,
-      -30
+      -10,
+      9,
+      -150
      ],
      "rot": [
-      -1.5708,
-      0.5,
+      -0.75,
+      0.15,
       0
      ],
-     "floor": true,
-     "scale": 1.4
+     "scale": 1.25
     },
     {
      "name": "stake",
@@ -514,12 +520,23 @@
       "anchor": "tip",
       "to": "@polyphemus.eye",
       "dir": [
-       0.22,
-       -0.24,
-       -0.94
+       -0.06,
+       0.6,
+       -0.8
       ],
       "sink": 10
      }
+    },
+    {
+     "name": "perch",
+     "id": "perch",
+     "at": "@stake.g2",
+     "off": [
+      26,
+      0,
+      0
+     ],
+     "floor": true
     },
     {
      "name": "steam",
@@ -542,24 +559,55 @@
    ],
    "blocking": [
     {
-     "id": "four-stake-bearers-1",
-     "at": "@stake.g1",
+     "id": "odysseus",
+     "at": "@stake.g2",
      "off": [
-      8,
+      26.25,
       0,
-      -20
+      0
      ],
-     "y": "floor",
+     "y": "surface",
+     "reach": 30,
      "face": "@polyphemus.eye",
      "props": false,
      "pose": {
       "armRP": [
        -2.3,
        0,
+       0.2
+      ],
+      "armLP": [
+       -2.1,
+       0,
+       -0.2
+      ],
+      "torsoP": [
+       0,
+       0.25,
+       0
+      ]
+     }
+    },
+    {
+     "id": "four-stake-bearers-1",
+     "at": "@stake.g3",
+     "off": [
+      -21,
+      0,
+      0
+     ],
+     "y": "floor",
+     "reach": 30,
+     "face": "@polyphemus.eye",
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.9,
+       0,
        0
       ],
       "armLP": [
-       -2.3,
+       -1.9,
        0,
        0
       ]
@@ -567,23 +615,24 @@
     },
     {
      "id": "four-stake-bearers-2",
-     "at": "@stake.g2",
+     "at": "@stake.g3",
      "off": [
-      -8,
+      21,
       0,
-      20
+      0
      ],
      "y": "floor",
+     "reach": 30,
      "face": "@polyphemus.eye",
      "props": false,
      "pose": {
       "armRP": [
-       -2.3,
+       -1.9,
        0,
        0
       ],
       "armLP": [
-       -2.3,
+       -1.9,
        0,
        0
       ]
@@ -591,23 +640,24 @@
     },
     {
      "id": "four-stake-bearers-3",
-     "at": "@stake.g3",
+     "at": "@stake.g4",
      "off": [
-      8,
+      -21,
       0,
-      -20
+      0
      ],
      "y": "floor",
+     "reach": 30,
      "face": "@polyphemus.eye",
      "props": false,
      "pose": {
       "armRP": [
-       -2.3,
+       -0.8,
        0,
        0
       ],
       "armLP": [
-       -2.3,
+       -0.8,
        0,
        0
       ]
@@ -617,45 +667,22 @@
      "id": "four-stake-bearers-4",
      "at": "@stake.g4",
      "off": [
-      -8,
+      21,
       0,
-      20
+      0
      ],
      "y": "floor",
+     "reach": 30,
      "face": "@polyphemus.eye",
      "props": false,
      "pose": {
       "armRP": [
-       -2.3,
+       -0.8,
        0,
        0
       ],
       "armLP": [
-       -2.3,
-       0,
-       0
-      ]
-     }
-    },
-    {
-     "id": "odysseus",
-     "at": "@stake.g5",
-     "off": [
-      8,
-      0,
-      -20
-     ],
-     "y": "floor",
-     "face": "@polyphemus.eye",
-     "props": false,
-     "pose": {
-      "armRP": [
-       -2.3,
-       0,
-       0
-      ],
-      "armLP": [
-       -2.3,
+       -0.8,
        0,
        0
       ]
@@ -691,57 +718,76 @@
    "camera": {
     "type": "wide",
     "pos": [
-     -150,
-     260,
-     -250
+     149,
+     188,
+     -168
     ],
-    "target": "@polyphemus.eye",
-    "fov": 40,
+    "target": [
+     -23,
+     120,
+     -150
+    ],
+    "fov": 48.1,
     "subject": "odysseus",
-    "place": "R",
-    "eye": 0.4
+    "place": "L",
+    "eye": 0.42
    },
    "subjects": [
     {
      "id": "odysseus",
-     "face": true,
-     "min": 0.08,
+     "min": 0.1,
      "primary": true
     },
     {
      "id": "prop:polyphemus",
-     "soft": true,
+     "min": 0.35,
      "cut": true
     },
     {
-     "id": "four-stake-bearers-1",
+     "id": "four-stake-bearers-2",
      "soft": true,
-     "min": 0.05
+     "cut": true
     }
    ],
    "search": {
-    "around": "@polyphemus.eye",
-    "r": [
+    "around": [
+     -23,
      120,
-     260
+     -150
+    ],
+    "target": [
+     -23,
+     120,
+     -150
+    ],
+    "r": [
+     170,
+     215
+    ],
+    "az": [
+     1.35,
+     2.25
     ],
     "h": [
-     200,
-     330
+     60,
+     200
     ],
     "fov": [
-     34,
-     48
+     44,
+     56
     ],
     "bounds": [
-     -300,
-     300,
-     -300,
-     300
+     -215,
+     190,
+     -205,
+     85
     ],
-    "size": 0.18,
-    "n": 180
-   }
+    "size": 0.14,
+    "n": 180,
+    "seed": 5,
+    "place": "L"
+   },
+   "note": "The Eleusis amphora's staging: the giant slumped back, the beam driven up into his eye by men on the floor, Odysseus at the head of it twisting."
   },
   {
    "id": "K4",
@@ -800,8 +846,8 @@
    "blocking": [
     {
      "id": "odysseus",
-     "x": 130,
-     "z": -20,
+     "x": 150,
+     "z": -60,
      "y": "floor",
      "face": [
       400,
@@ -1023,17 +1069,21 @@
    ],
    "search": {
     "around": "@polyphemus.chest",
+    "az": [
+     -0.9,
+     0.9
+    ],
     "r": [
-     140,
-     280
+     150,
+     260
     ],
     "h": [
-     12,
-     50
+     10,
+     45
     ],
     "fov": [
-     44,
-     58
+     46,
+     60
     ],
     "bounds": [
      -215,
@@ -1042,7 +1092,8 @@
      85
     ],
     "size": 0.8,
-    "n": 160
+    "n": 180,
+    "seed": 4
    }
   },
   {
@@ -1266,20 +1317,20 @@
    "search": {
     "around": "odysseus",
     "az": [
-     2.5,
-     3.8
+     2.6,
+     3.7
     ],
     "r": [
-     60,
-     150
+     55,
+     140
     ],
     "h": [
-     50,
-     130
+     45,
+     120
     ],
     "fov": [
      34,
-     46
+     48
     ],
     "bounds": [
      -215,
@@ -1288,7 +1339,8 @@
      85
     ],
     "size": 0.35,
-    "n": 160
+    "n": 180,
+    "seed": 6
    }
   }
  ]
