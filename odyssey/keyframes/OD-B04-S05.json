@@ -1,0 +1,1294 @@
+{
+ "scene": "OD-B04-S05",
+ "location": "odyssey-od-b04-s05",
+ "title": "Menelaus and Proteus",
+ "source": "Homer, Odyssey IV, tr. Samuel Butler (public domain)",
+ "note": "Hand-staged from the text on a new set: the seal beach on Pharos (tools/forage/sets.js sealBeach), a sea cave of rock panels, bones on the sand; the seals are brick-built props, two curved slopes and a round head.",
+ "look": {
+  "sky": [
+   "#7fb3dc",
+   "#f7e6c3"
+  ],
+  "fog": [
+   800,
+   2400
+  ],
+  "fill": {
+   "sky": "#d3e0f0",
+   "ground": "#4a3d2c",
+   "intensity": 0.5
+  },
+  "sun": {
+   "dir": [
+    -0.3,
+    0.8,
+    -0.5
+   ],
+   "color": "#fff0cf",
+   "intensity": 1.2,
+   "shadow": true
+  },
+  "exposure": 1.0
+ },
+ "spread": 0,
+ "blocking": [],
+ "keys": [
+  {
+   "id": "K1",
+   "beat": "Telemachus asks directly for news of Odysseus.",
+   "text": "'Tell me, then, about my father... whether he is alive or dead, and whether you saw him with your own eyes.'",
+   "hide": [
+    "proteus transformation chain"
+   ],
+   "props": [
+    {
+     "name": "sealGrey",
+     "id": "seal0",
+     "at": [
+      -60,
+      0,
+      30
+     ],
+     "rot": [
+      0,
+      0.4,
+      0
+     ],
+     "floor": true,
+     "scale": 1.0
+    },
+    {
+     "name": "seal",
+     "id": "seal1",
+     "at": [
+      40,
+      0,
+      60
+     ],
+     "rot": [
+      0,
+      2.2,
+      0
+     ],
+     "floor": true,
+     "scale": 1.0
+    },
+    {
+     "name": "sealGrey",
+     "id": "seal2",
+     "at": [
+      100,
+      0,
+      20
+     ],
+     "rot": [
+      0,
+      -1.1,
+      0
+     ],
+     "floor": true,
+     "scale": 1.0
+    },
+    {
+     "name": "seal",
+     "id": "seal3",
+     "at": [
+      -100,
+      0,
+      90
+     ],
+     "rot": [
+      0,
+      3.0,
+      0
+     ],
+     "floor": true,
+     "scale": 1.0
+    },
+    {
+     "name": "sealGrey",
+     "id": "seal4",
+     "at": [
+      10,
+      0,
+      110
+     ],
+     "rot": [
+      0,
+      1.6,
+      0
+     ],
+     "floor": true,
+     "scale": 1.0
+    },
+    {
+     "name": "seal",
+     "id": "seal5",
+     "at": [
+      140,
+      0,
+      90
+     ],
+     "rot": [
+      0,
+      -2.4,
+      0
+     ],
+     "floor": true,
+     "scale": 1.0
+    },
+    {
+     "name": "sealGrey",
+     "id": "seal6",
+     "at": [
+      -30,
+      0,
+      -20
+     ],
+     "rot": [
+      0,
+      0.9,
+      0
+     ],
+     "floor": true,
+     "scale": 1.0
+    }
+   ],
+   "blocking": [
+    {
+     "id": "menelaus",
+     "x": -10,
+     "z": -60,
+     "y": "floor",
+     "face": [
+      0,
+      300
+     ],
+     "props": true,
+     "pose": {
+      "armRP": [
+       -0.6,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "proteus",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
+    },
+    {
+     "id": "eidothea",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
+    },
+    {
+     "id": "three-men-1",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
+    },
+    {
+     "id": "three-men-2",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
+    },
+    {
+     "id": "three-men-3",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
+    }
+   ],
+   "camera": {
+    "type": "wide",
+    "pos": [
+     -90,
+     75,
+     -180
+    ],
+    "target": [
+     10,
+     30,
+     40
+    ],
+    "fov": 46
+   },
+   "subjects": [
+    {
+     "id": "menelaus",
+     "min": 0.04,
+     "primary": true
+    }
+   ]
+  },
+  {
+   "id": "K2",
+   "beat": "Menelaus recounts being trapped in Egypt until Eidothea taught him to seize Proteus.",
+   "text": "'A goddess, Idothea, daughter of Proteus the old man of the sea, took pity on me... \"Lie in wait for him and catch him; he will tell you about your voyage.\"'",
+   "hide": [
+    "proteus transformation chain"
+   ],
+   "blocking": [
+    {
+     "id": "eidothea",
+     "x": 20,
+     "z": 180,
+     "y": -20,
+     "face": [
+      -10,
+      20
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.6,
+       0,
+       0.2
+      ]
+     },
+     "air": true
+    },
+    {
+     "id": "menelaus",
+     "x": -10,
+     "z": 20,
+     "y": "floor",
+     "face": [
+      20,
+      180
+     ],
+     "props": true,
+     "pose": {
+      "armRP": [
+       -0.4,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "proteus",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
+    },
+    {
+     "id": "three-men-1",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
+    },
+    {
+     "id": "three-men-2",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
+    },
+    {
+     "id": "three-men-3",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
+    }
+   ],
+   "camera": {
+    "type": "wide",
+    "pos": [
+     -150,
+     65,
+     -40
+    ],
+    "target": [
+     10,
+     55,
+     100
+    ],
+    "fov": 42
+   },
+   "subjects": [
+    {
+     "id": "eidothea",
+     "min": 0.06,
+     "primary": true
+    },
+    {
+     "id": "menelaus",
+     "soft": true,
+     "cut": true
+    }
+   ]
+  },
+  {
+   "id": "K3",
+   "beat": "He and three men hid beneath sealskins and grappled the Old Man of the Sea.",
+   "text": "'She had brought four seal skins from the bottom of the sea... she dug four pits for us to lie in, and made us lie down in them, and threw a sealskin over each of us. The stench of the fishy seals was most distressing.'",
+   "hide": [
+    "proteus transformation chain"
+   ],
+   "props": [
+    {
+     "name": "sealGrey",
+     "id": "seal0",
+     "at": [
+      -60,
+      0,
+      30
+     ],
+     "rot": [
+      0,
+      0.4,
+      0
+     ],
+     "floor": true,
+     "scale": 1.0
+    },
+    {
+     "name": "seal",
+     "id": "seal1",
+     "at": [
+      40,
+      0,
+      60
+     ],
+     "rot": [
+      0,
+      2.2,
+      0
+     ],
+     "floor": true,
+     "scale": 1.0
+    },
+    {
+     "name": "sealGrey",
+     "id": "seal2",
+     "at": [
+      100,
+      0,
+      20
+     ],
+     "rot": [
+      0,
+      -1.1,
+      0
+     ],
+     "floor": true,
+     "scale": 1.0
+    },
+    {
+     "name": "seal",
+     "id": "seal3",
+     "at": [
+      -100,
+      0,
+      90
+     ],
+     "rot": [
+      0,
+      3.0,
+      0
+     ],
+     "floor": true,
+     "scale": 1.0
+    },
+    {
+     "name": "sealGrey",
+     "id": "seal4",
+     "at": [
+      10,
+      0,
+      110
+     ],
+     "rot": [
+      0,
+      1.6,
+      0
+     ],
+     "floor": true,
+     "scale": 1.0
+    },
+    {
+     "name": "seal",
+     "id": "seal5",
+     "at": [
+      140,
+      0,
+      90
+     ],
+     "rot": [
+      0,
+      -2.4,
+      0
+     ],
+     "floor": true,
+     "scale": 1.0
+    },
+    {
+     "name": "sealGrey",
+     "id": "seal6",
+     "at": [
+      -30,
+      0,
+      -20
+     ],
+     "rot": [
+      0,
+      0.9,
+      0
+     ],
+     "floor": true,
+     "scale": 1.0
+    },
+    {
+     "name": "seal",
+     "id": "skin0",
+     "at": [
+      -40,
+      6,
+      -50
+     ],
+     "rot": [
+      0,
+      0,
+      0
+     ],
+     "scale": 1.3
+    },
+    {
+     "name": "seal",
+     "id": "skin1",
+     "at": [
+      20,
+      6,
+      -70
+     ],
+     "rot": [
+      0,
+      0,
+      0
+     ],
+     "scale": 1.3
+    },
+    {
+     "name": "seal",
+     "id": "skin2",
+     "at": [
+      80,
+      6,
+      -50
+     ],
+     "rot": [
+      0,
+      0,
+      0
+     ],
+     "scale": 1.3
+    },
+    {
+     "name": "seal",
+     "id": "skin3",
+     "at": [
+      140,
+      6,
+      -70
+     ],
+     "rot": [
+      0,
+      0,
+      0
+     ],
+     "scale": 1.3
+    }
+   ],
+   "blocking": [
+    {
+     "id": "menelaus",
+     "x": -40,
+     "z": -60,
+     "y": 8,
+     "air": true,
+     "face": [
+      -40,
+      300
+     ],
+     "tilt": [
+      1.5,
+      0
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       0.2,
+       0,
+       0
+      ],
+      "armLP": [
+       0.2,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "three-men-1",
+     "x": 20,
+     "z": -80,
+     "y": 8,
+     "air": true,
+     "face": [
+      20,
+      300
+     ],
+     "tilt": [
+      1.5,
+      0
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       0.2,
+       0,
+       0
+      ],
+      "armLP": [
+       0.2,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "three-men-2",
+     "x": 80,
+     "z": -60,
+     "y": 8,
+     "air": true,
+     "face": [
+      80,
+      300
+     ],
+     "tilt": [
+      1.5,
+      0
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       0.2,
+       0,
+       0
+      ],
+      "armLP": [
+       0.2,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "three-men-3",
+     "x": 140,
+     "z": -80,
+     "y": 8,
+     "air": true,
+     "face": [
+      140,
+      300
+     ],
+     "tilt": [
+      1.5,
+      0
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       0.2,
+       0,
+       0
+      ],
+      "armLP": [
+       0.2,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "proteus",
+     "x": -80,
+     "z": 110,
+     "y": "floor",
+     "face": [
+      0,
+      -60
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -0.5,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "eidothea",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
+    }
+   ],
+   "camera": {
+    "type": "wide",
+    "pos": [
+     -120,
+     70,
+     -230
+    ],
+    "target": [
+     20,
+     20,
+     -40
+    ],
+    "fov": 44
+   },
+   "subjects": [
+    {
+     "id": "prop:skin0",
+     "min": 0.04,
+     "primary": true,
+     "cut": true
+    },
+    {
+     "id": "proteus",
+     "soft": true,
+     "min": 0.02
+    }
+   ],
+   "lensAllow": [
+    "three-men-1",
+    "three-men-2",
+    "three-men-3",
+    "menelaus"
+   ]
+  },
+  {
+   "id": "K4",
+   "beat": "Proteus changed into beasts, water, and a tree before yielding prophecy.",
+   "text": "'He began by turning into a lion with a great mane; then all of a sudden he became a dragon, a leopard, a wild boar; the next moment he was running water, and then again directly he was a tree; but we stuck to him and never lost hold.'",
+   "hide": [
+    "proteus transformation chain"
+   ],
+   "props": [
+    {
+     "name": "sealGrey",
+     "id": "seal0",
+     "at": [
+      100,
+      0,
+      20
+     ],
+     "rot": [
+      0,
+      -1.1,
+      0
+     ],
+     "floor": true,
+     "scale": 1.0
+    },
+    {
+     "name": "seal",
+     "id": "seal1",
+     "at": [
+      -100,
+      0,
+      90
+     ],
+     "rot": [
+      0,
+      3.0,
+      0
+     ],
+     "floor": true,
+     "scale": 1.0
+    },
+    {
+     "name": "sealGrey",
+     "id": "seal2",
+     "at": [
+      10,
+      0,
+      110
+     ],
+     "rot": [
+      0,
+      1.6,
+      0
+     ],
+     "floor": true,
+     "scale": 1.0
+    },
+    {
+     "name": "seal",
+     "id": "seal3",
+     "at": [
+      140,
+      0,
+      90
+     ],
+     "rot": [
+      0,
+      -2.4,
+      0
+     ],
+     "floor": true,
+     "scale": 1.0
+    },
+    {
+     "name": "sealGrey",
+     "id": "seal4",
+     "at": [
+      -30,
+      0,
+      -20
+     ],
+     "rot": [
+      0,
+      0.9,
+      0
+     ],
+     "floor": true,
+     "scale": 1.0
+    },
+    {
+     "name": "lion",
+     "id": "lion",
+     "at": [
+      -10,
+      0,
+      60
+     ],
+     "rot": [
+      0,
+      1.2,
+      0
+     ],
+     "floor": true,
+     "scale": 1.8
+    },
+    {
+     "name": "snake",
+     "id": "snake",
+     "at": [
+      40,
+      0,
+      40
+     ],
+     "rot": [
+      0,
+      2.4,
+      0
+     ],
+     "floor": true,
+     "scale": 2.2
+    },
+    {
+     "name": "spout",
+     "id": "water",
+     "at": [
+      -40,
+      4,
+      100
+     ],
+     "scale": 0.6
+    },
+    {
+     "name": "figtree",
+     "id": "tree",
+     "at": [
+      60,
+      0,
+      110
+     ],
+     "floor": true,
+     "scale": 0.9
+    }
+   ],
+   "blocking": [
+    {
+     "id": "menelaus",
+     "x": -50,
+     "z": 40,
+     "y": "floor",
+     "face": [
+      -10,
+      60
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.6,
+       0,
+       0.3
+      ],
+      "armLP": [
+       -1.6,
+       0,
+       -0.3
+      ]
+     }
+    },
+    {
+     "id": "three-men-1",
+     "x": 30,
+     "z": 10,
+     "y": "floor",
+     "face": [
+      -10,
+      60
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.5,
+       0,
+       0
+      ],
+      "armLP": [
+       -1.5,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "three-men-2",
+     "x": -40,
+     "z": 110,
+     "y": "floor",
+     "face": [
+      -10,
+      60
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.9,
+       0,
+       0.3
+      ],
+      "armLP": [
+       -2.9,
+       0,
+       -0.3
+      ]
+     }
+    },
+    {
+     "id": "three-men-3",
+     "x": 90,
+     "z": 60,
+     "y": "floor",
+     "face": [
+      -10,
+      60
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.6,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "proteus",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
+    },
+    {
+     "id": "eidothea",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
+    }
+   ],
+   "camera": {
+    "type": "wide",
+    "pos": [
+     -200,
+     110,
+     -110
+    ],
+    "target": [
+     0,
+     50,
+     60
+    ],
+    "fov": 46
+   },
+   "subjects": [
+    {
+     "id": "prop:lion",
+     "min": 0.04,
+     "primary": true,
+     "cut": true
+    },
+    {
+     "id": "menelaus",
+     "soft": true,
+     "min": 0.03
+    }
+   ],
+   "lensAllow": [
+    "three-men-1",
+    "three-men-2",
+    "three-men-3"
+   ]
+  },
+  {
+   "id": "K5",
+   "beat": "He revealed that Odysseus lived, detained by Calypso on an island.",
+   "text": "'I saw him in an island sorrowing bitterly in the house of the nymph Calypso, who is keeping him prisoner, and he cannot reach his home.'",
+   "hide": [
+    "proteus transformation chain"
+   ],
+   "props": [
+    {
+     "name": "sealGrey",
+     "id": "seal0",
+     "at": [
+      -60,
+      0,
+      30
+     ],
+     "rot": [
+      0,
+      0.4,
+      0
+     ],
+     "floor": true,
+     "scale": 1.0
+    },
+    {
+     "name": "seal",
+     "id": "seal1",
+     "at": [
+      40,
+      0,
+      60
+     ],
+     "rot": [
+      0,
+      2.2,
+      0
+     ],
+     "floor": true,
+     "scale": 1.0
+    },
+    {
+     "name": "sealGrey",
+     "id": "seal2",
+     "at": [
+      100,
+      0,
+      20
+     ],
+     "rot": [
+      0,
+      -1.1,
+      0
+     ],
+     "floor": true,
+     "scale": 1.0
+    },
+    {
+     "name": "seal",
+     "id": "seal3",
+     "at": [
+      -100,
+      0,
+      90
+     ],
+     "rot": [
+      0,
+      3.0,
+      0
+     ],
+     "floor": true,
+     "scale": 1.0
+    },
+    {
+     "name": "sealGrey",
+     "id": "seal4",
+     "at": [
+      10,
+      0,
+      110
+     ],
+     "rot": [
+      0,
+      1.6,
+      0
+     ],
+     "floor": true,
+     "scale": 1.0
+    },
+    {
+     "name": "seal",
+     "id": "seal5",
+     "at": [
+      140,
+      0,
+      90
+     ],
+     "rot": [
+      0,
+      -2.4,
+      0
+     ],
+     "floor": true,
+     "scale": 1.0
+    },
+    {
+     "name": "sealGrey",
+     "id": "seal6",
+     "at": [
+      -30,
+      0,
+      -20
+     ],
+     "rot": [
+      0,
+      0.9,
+      0
+     ],
+     "floor": true,
+     "scale": 1.0
+    }
+   ],
+   "blocking": [
+    {
+     "id": "proteus",
+     "x": -20,
+     "z": 70,
+     "y": "floor",
+     "face": [
+      -110,
+      110
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.8,
+       0,
+       0.3
+      ],
+      "armLP": [
+       -0.6,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "menelaus",
+     "x": -90,
+     "z": 110,
+     "y": "floor",
+     "face": [
+      -20,
+      70
+     ],
+     "props": false,
+     "pose": {
+      "legRP": [
+       -1.5708,
+       0,
+       0
+      ],
+      "legLP": [
+       -1.5708,
+       0,
+       0
+      ]
+     },
+     "sit": true,
+     "reach": 10
+    },
+    {
+     "id": "three-men-1",
+     "x": -120,
+     "z": 40,
+     "y": "floor",
+     "face": [
+      -20,
+      70
+     ],
+     "props": false
+    },
+    {
+     "id": "three-men-2",
+     "x": 40,
+     "z": 110,
+     "y": "floor",
+     "face": [
+      -20,
+      70
+     ],
+     "props": false
+    },
+    {
+     "id": "three-men-3",
+     "x": 30,
+     "z": 40,
+     "y": "floor",
+     "face": [
+      -20,
+      70
+     ],
+     "props": false
+    },
+    {
+     "id": "eidothea",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
+    }
+   ],
+   "look": {
+    "sun": {
+     "dir": [
+      0.6,
+      0.3,
+      -0.7
+     ],
+     "color": "#ffc98f",
+     "intensity": 1.15,
+     "shadow": true
+    },
+    "sky": [
+     "#6d8fb8",
+     "#f3c79c"
+    ],
+    "exposure": 0.95
+   },
+   "camera": {
+    "type": "wide",
+    "pos": [
+     -190,
+     80,
+     240
+    ],
+    "target": [
+     -40,
+     50,
+     80
+    ],
+    "fov": 42
+   },
+   "subjects": [
+    {
+     "id": "proteus",
+     "min": 0.1,
+     "primary": true,
+     "face": true
+    },
+    {
+     "id": "menelaus",
+     "soft": true,
+     "min": 0.04
+    }
+   ],
+   "lensAllow": [
+    "three-men-1",
+    "three-men-2",
+    "three-men-3"
+   ]
+  }
+ ]
+}

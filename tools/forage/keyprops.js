@@ -164,6 +164,37 @@ props.loomHalf = shroud(5);
 props.torch = { parts: [row('3959', 70, L.I12), row('3062b', 57, L.T(0, -24, 0)), row('4589', 46, L.T(0, -44, 0))], anchors: { grip: [0, 10, 0], flame: [0, -40, 0] } };
 props.spade = { parts: [row('3837', 72, L.I12)], anchors: { grip: [0, -20, 0] } };
 props.goldWand = { parts: [row('3957a', 297, L.I12), row('3062b', 297, L.T(0, -96, 0))], anchors: { grip: [0, 0, 0] } };
+/* the Wooden Horse (Homer IV, VIII): "the horse of wood, which Epeus made with Minerva's help": a brick build on a plank platform; four
+   legs of 2 x 2 bricks, a hollow body of bricks on a floor plate, a neck stepping forward, a head with a sloped muzzle and cone ears, a
+   tail; a gold hatch in the flank. horseOpen leaves the near flank off, a cutaway to see the men inside */
+function horse(open) { const W = 28, M = 70, P = [];
+  const RYq = L.RY(Math.PI / 2); P.push(row('3035', 70, L.mul(L.T(0, -8, -40), RYq)), row('3035', 70, L.mul(L.T(0, -8, 40), RYq)));
+  for (const x of [-20, 20]) for (const z of [-70, 70]) for (let k = 0; k < 4; k++) P.push(row('3003', W, L.T(x, -32 - 24 * k, z)));
+  P.push(row('3035', W, L.mul(L.T(0, -112, -20), RYq)), row('3032', W, L.mul(L.T(0, -112, 40), RYq)));
+  for (let c = 0; c < 4; c++) { const y = -128 - 24 * c;
+    for (const x of open ? [-30] : [-30, 30]) P.push(row('3009', W, L.mul(L.T(x, y, -40), L.RY(Math.PI / 2))), row('3010', W, L.mul(L.T(x, y, 60), L.RY(Math.PI / 2))));
+    P.push(row('3004', W, L.T(0, y, -90)), row('3004', W, L.T(0, y, 90))); }
+  if (open) for (let c = 0; c < 4; c++) P.push(row('3004', W, L.mul(L.T(30, -128 - 24 * c, -90), L.RY(Math.PI / 2))), row('3004', W, L.mul(L.T(30, -128 - 24 * c, 90), L.RY(Math.PI / 2))));
+  P.push(row('3035', W, L.mul(L.T(0, -208, -20), RYq)), row('3032', W, L.mul(L.T(0, -208, 40), RYq)));
+  for (let k = 0; k < 4; k++) P.push(row('3003', W, L.T(0, -232 - 24 * k, 80 + 10 * k)), row('3665', M, L.mul(L.T(0, -232 - 24 * k, 60 + 10 * k), L.RY(Math.PI))));
+  P.push(row('3001', W, L.mul(L.T(0, -328, 130), L.RY(Math.PI / 2))), row('3040b', W, L.mul(L.T(0, -304, 180), L.RY(Math.PI))), row('4589', W, L.T(-10, -352, 115)), row('4589', W, L.T(10, -352, 115)),
+    row('3070b', 0, L.mul(L.T(-20, -318, 150), [0, 0, 0, 0, 0, 1, 0, 1, 0, -1, 0, 0])), row('3070b', 0, L.mul(L.T(20, -318, 150), [0, 0, 0, 0, 0, -1, 0, 1, 0, 1, 0, 0])));
+  for (let k = 0; k < 3; k++) P.push(row('3062b', M, L.T(0, -176 + 24 * k, -110 - 6 * k)));
+  if (!open) P.push(row('3069b', 297, L.mul(L.T(40, -170, 0), [0, 0, 0, 0, -1, 0, 1, 0, 0, 0, 0, 1])));
+  return { parts: P, anchors: { floor: [0, -112, 0], front: [0, -112, 60], back: [0, -112, -60], head: [0, -330, 150], hatch: [44, -170, 0] } }; }
+props.horse = horse(false);
+props.horseOpen = horse(true);
+/* a seal (Homer IV: "the seals, the brood of the fair sea-nymph, come up from the grey sea"): two curved slopes back to back, a round head */
+props.seal = { parts: [...[-10, 10].flatMap(x => [row('3666', 72, L.mul(L.T(x, 0, 0), L.RY(Math.PI / 2))), row('11477', 72, L.T(x, -4.5, -20)), row('11477', 72, L.mul(L.T(x, -4.5, 20), L.RY(Math.PI)))]),
+  row('3062b', 72, L.T(0, -24, 44)), row('4073', 72, L.T(0, -32, 44)), row('54200', 72, L.mul(L.T(0, -20, 62), L.RY(Math.PI / 2))),
+  row('3023', 71, L.mul(L.T(-30, 0, 26), L.RY(0.5))), row('3023', 71, L.mul(L.T(30, 0, 26), L.RY(-0.5))), row('3023', 71, L.T(0, 0, -66))], anchors: { back: [0, -24, 0] } };
+props.sealGrey = { ...props.seal, parts: props.seal.parts.map(r => r.part === '11477.dat' || r.part === '3062b.dat' || r.part === '3666.dat' || r.part === '4073.dat' && r.m[5] === 0 ? { ...r, color: 71 } : r) };
+props.snake = { parts: [row('30115', 2, L.I12)], anchors: {} };
+props.dog = { parts: [row('92586', 308, L.I12)], anchors: {} };
+props.dogBlack = { parts: [row('92586', 0, L.I12)], anchors: {} };
+props.dogWhite = { parts: [row('92586', 15, L.I12)], anchors: {} };
+props.staff = { parts: [row('3957a', 70, L.I12), row('3957a', 70, L.T(0, -88, 0))], anchors: { grip: [0, -60, 0] } };
+props.stone = { parts: [row('3062b', 72, L.I12)], anchors: {} };
 const out = path.join(L.ROOT, 'odyssey/keyframes/props.json');
 fs.writeFileSync(out, JSON.stringify(props));
 console.log('props:', Object.entries(props).map(([k, p]) => `${k} (${p.parts.length} parts)`).join(', '), '->', path.relative(L.ROOT, out));
