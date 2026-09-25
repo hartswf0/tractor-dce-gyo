@@ -136,22 +136,25 @@ props.veil = { parts: [row('2335', 15, L.I12), row('2335', 15, L.T(0, 0, 50))], 
 props.arrows = { parts: Array.from({ length: 7 }, (_, i) => [row('30374', 71, L.mul(L.T(i * 7 - 21, -4, (i % 3) * 5), [0, 0, 0, Math.cos(0.1 * i), 0, Math.sin(0.1 * i), 0, 0, -1, -Math.sin(0.1 * i), 1, 0].map((v, j) => j < 3 ? v : v)))]).flat(), anchors: {} };
 props.stool = { parts: [row('3941', 70, L.I12), row('4032a', 70, L.T(0, -8, 0))], anchors: { seat: [0, -8, 0] } };
 /* the sea batch (Homer X, XII, XIII): the ox-hide bag of the winds tied with a silver cord; the winds bursting out; a whirlpool; the
-   fig tree above Charybdis; keel and mast lashed together; the Laestrygonian giants (the troll big figure in three skins, one arm up
-   with a boulder); the gift chest */
+   fig tree above Charybdis; keel and mast lashed together; the Laestrygonian giants (the troll big figure in three skins under its helmet: one hurling a boulder,
+   one reaching to seize, one with the boulder raised in both hands); the gift chest */
 props.bag = { parts: [row('10169', 28, L.I12), row('3062b', 179, L.T(0, -28, 0))], anchors: { neck: [0, -30, 0] } };
 props.winds = { parts: Array.from({ length: 24 }, (_, i) => { const a = i * 1.1, r = 16 + i * 5, y = -10 - i * 8; return row(i % 3 ? '4589' : '3062b', i % 4 ? 47 : 15, L.mul(L.T(r * Math.cos(a), y, r * Math.sin(a)), RX(1.2 + (i % 3) * 0.4))); }), anchors: { base: [0, 0, 0] } };
 props.whirl = { parts: [row('3960', 33, [0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 0, -1]), row('4150', 0, L.T(0, -2, 0)), ...[26, 38, 50, 62].flatMap((r, k) => Array.from({ length: 8 + k * 4 }, (_, i) => { const a = k * 0.4 + i * 2 * Math.PI / (8 + k * 4); return row('6141', (i + k) % 2 ? 15 : 47, L.T(r * Math.cos(a), -4, r * Math.sin(a))); }))], anchors: { eye: [0, 0, 0] } };
 props.figtree = { parts: [row('3470', 288, L.I12), ...[0, 1, 2].map(k => row('3941', 70, L.T(0, 8 + 24 * k, 0))), row('53934p01c01', 72, L.T(0, 80, 0))], anchors: { bough: [30, -80, 0], crown: [0, -130, 0] } };
 props.keel = { parts: [...Array.from({ length: 8 }, (_, i) => row('3941', 0, L.mul(L.T(0, 0, (i - 3.5) * 24), RX(Math.PI / 2)))), ...Array.from({ length: 6 }, (_, i) => row('3941', 70, L.mul(L.T(20, -12, (i - 2.5) * 24), RX(Math.PI / 2)))), row('3062b', 15, L.T(10, -20, 0)), row('3062b', 15, L.T(10, -20, 30))], anchors: { top: [10, -30, 0] } };
 props.chest = { parts: [row('4738a', 70, L.I12), row('4739a', 70, L.T(0, -24, 10)), row('3062b', 297, L.T(0, -32, 0)), row('3062b', 179, L.T(12, -32, 0))], anchors: { lid: [0, -30, 0] } };
-function laestrygon(skin, armL, armR, rock) { const body = Cy.troll({ skin }), rows = B.rowsOf(body).map(r => ({ ...r }));
+function laestrygon(skin, armL, armR, rock, helm = 308) { const body = Cy.troll({ skin }), rows = B.rowsOf(body).map(r => ({ ...r }));
+  if (helm != null) rows.push({ ...rows.find(r => r.part === '60635'), part: '60636', col: helm });
   for (const [arm, hand, R] of [['60672', '60640', armL], ['60673', '60641', armR]]) { const a = rows.find(r => r.part === arm), h = rows.find(r => r.part === hand), piv = a.m.slice(0, 3), about = m => L.mul(L.mul(L.T(...piv), R), L.mul(L.T(-piv[0], -piv[1], -piv[2]), m)); a.m = about(a.m); h.m = about(h.m); }
   const hr = rows.find(r => r.part === '60641').m, parts = rows.map(r => row(r.part, r.col, r.m));
   if (rock) parts.push(row('53934p01c01', 72, L.T(hr[0], hr[1] - 90, hr[2])));
   return { parts, anchors: { hand: hr.slice(0, 3), head: [0, -140, 0] } }; }
-props.laestrygon = laestrygon(84, L.mul(RX(-0.4), RZ(0.3)), L.mul(RX(-2.9), RZ(-0.2)), true);
-props.laestrygonDark = laestrygon(308, L.mul(RX(-2.6), RZ(0.3)), L.mul(RX(-0.6), RZ(-0.3)), false);
-props.laestrygonGreen = laestrygon(378, L.mul(RX(-1.6), RZ(0.2)), L.mul(RX(-2.9), RZ(-0.2)), true);
+props.laestrygon = laestrygon(84, L.mul(RX(-0.5), RZ(0.4)), RZ(-2.6), true, 308);
+props.laestrygonDark = laestrygon(308, RX(-1.3), RX(-1.3), false, 72);
+props.laestrygonGreen = laestrygon(378, L.mul(RZ(2.3), RX(-0.3)), L.mul(RZ(-2.3), RX(-0.3)), true, 70);
+props.laestrygonGirl = laestrygon(78, L.mul(RX(-0.3), RZ(0.3)), L.mul(RX(-1.5), RZ(-0.5)), false, 320);
+props.antiphates = laestrygon(84, RX(-1.25), RX(-1.25), false, 72);
 /* the last arc: moly ("the root was black, while the flower was as white as milk"), Hermes's golden wand, Penelope's great loom with the
    shroud on it (and half unravelled), a torch, the spade, a bath for Laertes */
 props.moly = { parts: [row('3742', 15, L.T(0, -30, 0)), row('3742', 15, L.T(0, -34, 0)), row('3957a', 0, L.T(0, 58, 0)), row('3062b', 0, L.T(0, 84, 0))], anchors: { grip: [0, 40, 0], bloom: [0, -32, 0] } };
@@ -164,6 +167,7 @@ props.loomHalf = shroud(5);
 props.torch = { parts: [row('3959', 70, L.I12), row('3062b', 57, L.T(0, -24, 0)), row('4589', 46, L.T(0, -44, 0))], anchors: { grip: [0, 10, 0], flame: [0, -40, 0] } };
 props.spade = { parts: [row('3837', 72, L.I12)], anchors: { grip: [0, -20, 0] } };
 props.goldWand = { parts: [row('3957a', 297, L.I12), row('3062b', 297, L.T(0, -96, 0))], anchors: { grip: [0, 0, 0] } };
+props.sword = { parts: [row('98370', 71, L.I12)], anchors: { grip: [0, 10, 0] } };
 /* the Wooden Horse (Homer IV, VIII): "the horse of wood, which Epeus made with Minerva's help": a brick build on a plank platform; four
    legs of 2 x 2 bricks, a hollow body of bricks on a floor plate, a neck stepping forward, a head with a sloped muzzle and cone ears, a
    tail; a gold hatch in the flank. horseOpen leaves the near flank off, a cutaway to see the men inside */

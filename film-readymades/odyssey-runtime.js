@@ -155,7 +155,8 @@ function kfPhysics(ids,touch=[]){const set=new Set(ids),acts=ButterCast.cast.fil
    post it is bound to, at heights along the figure (fractions of its height above the feet), knotted with a hanging tail */
 const kfRopes=[];
 /* a figure's hand in the world: the hand part (the second part on the arm pivot) of its right arm, or its left */
-function kfHand(id,side='R'){const a=kfActor(id);if(!a)return null;const g=a.rig['arm'+side+'P'].children.filter(c=>c.type==='Group'&&!String(c.name).startsWith('slot'))[1];return g?new THREE.Box3().setFromObject(g).getCenter(new THREE.Vector3()):null;}
+function kfHand(id,side='R'){const a=kfActor(id);if(!a)return null;scene.updateMatrixWorld(true);   /* the blocking just moved the figure: its hand is where it stands now */
+  const g=a.rig['arm'+side+'P'].children.filter(c=>c.type==='Group'&&!String(c.name).startsWith('slot'))[1];return g?new THREE.Box3().setFromObject(g).getCenter(new THREE.Vector3()):null;}
 function kfRope(r){for(const m of kfRopes.splice(0))m.parent&&m.parent.remove(m);if(!r)return;for(const b of [].concat(r)){const a=kfActor(b.who);if(!a)continue;
   const k=a.rig.headP.getWorldScale(new THREE.Vector3()).y,feet=a.rig.pos,post=new THREE.Vector3(b.post[0],feet.y,b.post[1]),tall=kfHead(b.who).y-feet.y+10*k;
   const c=feet.clone().add(post).multiplyScalar(0.5),d=post.clone().sub(feet).setY(0),len=d.length(),u=d.clone().normalize(),n=new THREE.Vector3(-u.z,0,u.x);
