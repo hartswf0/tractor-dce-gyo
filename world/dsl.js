@@ -189,14 +189,20 @@ const line = (col, x, y, z, rot, part) => `1 ${col} ${r4(x)} ${r4(y)} ${r4(z)} $
 const r4 = v => (Math.round(v * 1000) / 1000).toString();
 /** A vehicle in the prop frame (LDraw: y down, ground at y = 0, forward = −z). Returns { mpd, w, d, hp } with the footprint in studs. */
 function vehicleMPD(o) {
-  const kind = String(o.kind || 'car').toLowerCase(), col = colOf(o.col, 4), len = clamp(I(o.len, kind === 'truck' ? 10 : kind === 'bus' ? 12 : kind === 'plane' ? 8 : kind === 'board' ? 4 : kind === 'horse' ? 9 : kind === 'cart' ? 4 : 6), 4, 16), wide = kind === 'speeder' || kind === 'plane' || kind === 'board' || kind === 'horse' || kind === 'cart' ? 2 : 4, L = [];
+  const kind = String(o.kind || 'car').toLowerCase(), col = colOf(o.col, 4), len = clamp(I(o.len, kind === 'truck' ? 10 : kind === 'bus' ? 12 : kind === 'plane' ? 8 : kind === 'board' ? 4 : kind === 'horse' ? 9 : kind === 'cart' ? 4 : 6), 4, 16), wide = kind === 'speeder' || kind === 'plane' || kind === 'board' || kind === 'horse' ? 2 : 4, L = [];
   const zf = -len * STUD / 2, zb = len * STUD / 2;    // front and back edges
   const g = new Grid();                              // the body is bricks too: a local grid in prop cells (x across, z along)
   const bx = -wide / 2, bz = -len / 2, floorY = kind === 'speeder' || kind === 'board' ? 2 : 4;   // plates above the ground the floor plate sits at
-  if (kind === 'cart') {   // a shopping cart: four round plates for casters, a plate chassis, a grey basket open in the middle (a baby sits there), the handle at the back
-    for (const [x, z] of [[bx, bz], [bx + 1, bz], [bx, bz + len - 1], [bx + 1, bz + len - 1]]) g.part('4073', 0, x, z, 0, 0, 1, 1, 1);
-    g.fillBox(bx, bz, wide, len, 1, 2, 71); g.fillBox(bx, bz, wide, 1, 2, 2 + BRICK, 71); g.fillBox(bx, bz + len - 1, wide, 1, 2, 2 + BRICK, 71);
-    g.part('3062b', col, bx, bz + len - 1, 2 + BRICK, 0, 1, 1, BRICK); g.part('3062b', col, bx + 1, bz + len - 1, 2 + BRICK, 0, 1, 1, BRICK); g.fillBox(bx, bz + len - 1, wide, 1, 2 + 2 * BRICK, 3 + 2 * BRICK, col); }
+  if (kind === 'cart') {   // a shopping cart as the Springfield stores have them: four casters, a grey floor, a wire cage (round uprights on every other stud under a top rail), a red handle rail at the back, a red child seat inside the back for the baby
+    const W4 = wide, top = 2 + BRICK + 2;
+    for (const [x, z] of [[bx, bz], [bx + W4 - 1, bz], [bx, bz + len - 1], [bx + W4 - 1, bz + len - 1]]) g.part('4073', 0, x, z, 0, 0, 1, 1, 1);
+    g.fillBox(bx, bz, W4, len, 1, 2, 71);
+    const edge = []; for (let x = 0; x < W4; x++) edge.push([x, 0], [x, len - 1]); for (let z = 1; z < len - 1; z++) edge.push([0, z], [W4 - 1, z]);
+    for (const [x, z] of edge) if ((x + z) % 2 === 0) g.part('3062b', 71, bx + x, bz + z, 2, 0, 1, 1, BRICK + 2);
+    g.fillBox(bx, bz, W4, 1, top, top + 1, 71); g.fillBox(bx, bz + 1, 1, len - 2, top, top + 1, 71); g.fillBox(bx + W4 - 1, bz + 1, 1, len - 2, top, top + 1, 71);
+    g.fillBox(bx, bz + len - 1, W4, 1, top, top + 1, col);                                  // the handle rail
+    g.fillBox(bx + 1, bz + len - 2, W4 - 2, 1, 2, 2 + BRICK, col);                           // the child seat's back, inside the handle end
+    g.fillBox(bx + 1, bz + len - 3, W4 - 2, 1, 2, 3, col); }
   else   if (kind === 'horse') { L.push(line(col, 0, 0, 0, 0, '4493c01')); }   // a horse: the one-piece horse as it comes; the film lifts it onto its hooves and rigs its legs (world/horse-motion.js, as the Odyssey build does)
   else if (kind === 'boat') { g.fillBox(bx, bz + 1, wide, len - 2, 0, 1, col); g.fillBox(bx, bz + 1, 1, len - 2, 1, 4, col); g.fillBox(bx + wide - 1, bz + 1, 1, len - 2, 1, 4, col); g.fillBox(bx + 1, bz + len - 2, wide - 2, 1, 1, 4, col);
     g.part('3039', col, bx + 1, bz, 1, 0, 2, 2, BRICK); g.part('3040b', col, bx, bz, 1, 0, 1, 2, BRICK); g.part('3040b', col, bx + wide - 1, bz, 1, 0, 1, 2, BRICK);   // the bow: a slope in the middle, a slope each side

@@ -597,7 +597,7 @@ function boardVehicle(it) {
 function seatFigure(rig, V) {
   const b = V.prop.box, g = V.group; g.updateMatrixWorld(true);
   const h = b.max.y - b.min.y, seatY = V.K && V.K.seat != null ? V.K.seat * M : Math.max(0.35 * M, Math.min(h - 0.6 * M, h - 0.9 * M));   // a kind may name its seat (a horse's saddle is not near its top)
-  const stand = !!(V.K && V.K.stand), f = rig.figure; if (f.parent) f.parent.remove(f); g.add(f); f.position.set(0, stand ? h : seatY, 0); f.rotation.set(0, stand ? 0.35 : 0, 0); f.visible = true; rig.seated = true;   // on a board the rider stands, turned a little across the deck
+  const stand = !!(V.K && V.K.stand), f = rig.figure; if (f.parent) f.parent.remove(f); g.add(f); f.position.set(0, stand ? h : seatY, V.K && V.K.seatZ ? V.K.seatZ * M : 0); f.rotation.set(0, stand ? 0.35 : (V.K && V.K.face) || 0, 0);   /* seatZ: a seat toward one end (a cart's child seat); face: the rider turned (toward whoever pushes) */ f.visible = true; rig.seated = true;   // on a board the rider stands, turned a little across the deck
   Minifig.pose(rig, { phase: 0, gait: 0, t: rig.t || 0, swing: null, aim: 0, sit: !stand });
 }
 function unseatFigure(rig) { const f = rig.figure; if (f.parent && f.parent !== W.scene) { f.parent.remove(f); W.scene.add(f); } f.position.set(0, 0, 0); f.rotation.set(0, 0, 0); rig.seated = false; }

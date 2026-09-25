@@ -706,7 +706,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
     /** A figure actor's frame: the act's target (a point, a distance ahead, another actor to follow), its pose, its trigger; then the minifig walks. */
     function stepFigure(a, dt) {
       const rig = a.rig; let act = a.act; if (!rig) return; if (act && act.at != null && F.play.on && F.play.t < act.at) act = null;   /* an act with AT waits for its second of the shot */
-      if (a.riding) { const B = F.actors.get(a.riding); if (!B || !B.V || B.down) { if (B && B.down) dismount(a); else a.riding = null; } else { if (act && act.leave && F.play.on) dismount(a); else return; } }
+      if (a.riding) { const B = F.actors.get(a.riding); if (!B || !B.V || B.down) { if (B && B.down) dismount(a); else a.riding = null; } else { if (act && act.leave && F.play.on) { dismount(a); if (act.from) placeOn(a, act.from); } else return; } }   /* LEAVE with FROM: lifted out and set down on that mark (a baby onto the belt), not beside the ride */
       const ctl = { move: { x: 0, z: 0, mag: 0 }, run: false, saber: false, aim: false }; let target = null;
       if (act && (F.play.on || a.free) && !a.down) {   /* a free actor keeps its act without the film playing: a game's cast (world/shop.js) */
         if (act.ride) { const B = F.actors.get(act.ride); if (B && B.V && B.it && B.it.ready && !B.down) { mount(a, B); return; } }
