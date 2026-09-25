@@ -105,7 +105,7 @@ const KIT = {
   cypress: () => REAL('cypress', [R('3778', C.dgreen, 0, 0)]),
   olive: () => REAL('olive tree', [R('3470', C.green, 0, 0)]),
   pine: () => REAL('pine', [R('3471', C.green, 0, 0)]),
-  palm: () => REAL('palm', [R('2518c01', C.rbrown, 0, 0)]),
+  palm: () => REAL('palm', [R('2518c01', C.green, 0, 0)]),
   flowers: (n = 3) => REAL('flowers', Array.from({ length: n }, (_, i) => R(i % 2 ? '3741ac04' : '3741ac01', i % 2 ? C.red : C.yellow, (i % 3) * 3 - 3, Math.floor(i / 3) * 3))),
   bush: () => REAL('bush', [R('2417', C.green, 0, 0), R('2417', C.dgreen, 2, 1, -12)]),
   bones: () => REAL('bones', [R('6260', C.white, 0, 0), R('6266', C.white, 2, 1), R('6266', C.white, -2, 1), R('92691', C.white, 1, -2), R('92691', C.white, -1, 2, -8, 1)]),
@@ -240,7 +240,7 @@ const shoreFloor = (meadow = C.green) => REAL('the shore', [R('3857', C.blue, 0,
 function lotusLand() {
   const list = [];
   for (const [x, z] of [[-12, 12], [-7, 16], [-2, 11], [4, 17], [9, 12], [13, 18], [-13, 20], [0, 21], [7, 22], [-9, 22]]) list.push({ id: '19119c01', col: C.green, x, z, base: -8 });
-  list.push(R('2518c01', C.rbrown, -14, 13), R('2518c01', C.rbrown, 14, 11), R('2518c01', C.rbrown, 6, 9), R('2417', C.green, -4, 15), R('2417', C.dgreen, 11, 20), R('2423', C.green, -15, 22), R('6255', C.green, 3, 13));
+  list.push(R('2518c01', C.green, -14, 13), R('2518c01', C.green, 14, 11), R('2518c01', C.green, 6, 9), R('2417', C.green, -4, 15), R('2417', C.dgreen, 11, 20), R('2423', C.green, -15, 22), R('6255', C.green, 3, 13));
   list.push({ id: '3941', col: C.white, x: -6, z: 19, base: -8 }, { id: '4589', col: C.tDBlue, x: -6, z: 19, base: -32 });   // the spring
   for (const [x, z, h] of [[16, -4, 1], [-15, -3, 0]]) list.push({ id: '53934p01c01', col: C.dtan, x, z, base: -8 });
   return REAL("the lotus-eaters' land", list);
