@@ -1,13 +1,16 @@
 {
  "scene": "OD-B09-S09",
- "pass": true,
+ "pass": false,
  "keys": [
   {
    "id": "K1",
    "beat": "Polyphemus drinks three bowls, promises Nobody the last death as a guest-gift, and collapses.",
    "text": "He fell sprawling face upwards on the ground. His great neck hung heavily backwards and a deep sleep took hold upon him.",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "prop:polyphemus passes through odysseus (2 part overlaps)",
+    "prop:polyphemus passes through four-stake-bearers-4 (10 part overlaps)"
+   ],
    "camera": {
     "pos": [
      -212,
@@ -17,34 +20,45 @@
    },
    "lens": 0,
    "physics": {
-    "collide": [],
+    "collide": [
+     [
+      "prop:polyphemus",
+      "odysseus",
+      2
+     ],
+     [
+      "prop:polyphemus",
+      "four-stake-bearers-4",
+      10
+     ]
+    ],
     "floating": []
    },
    "subjects": {
     "prop:polyphemus": {
      "visible": 1,
-     "size": 1.665,
+     "size": 1.473,
      "inFrame": false,
      "head": [
       0.497,
-      0.34
+      0.392
      ],
      "facing": 1,
-     "thirds": 0.007,
-     "headroom": 0.096,
+     "thirds": 0.058,
+     "headroom": 0.26,
      "behind": false
     },
     "odysseus": {
      "visible": 1,
-     "size": 0.284,
+     "size": 0.282,
      "inFrame": true,
      "head": [
-      0.775,
-      0.608
+      0.765,
+      0.607
      ],
      "facing": 0.41,
-     "thirds": 0.059,
-     "headroom": 0.576,
+     "thirds": 0.06,
+     "headroom": 0.575,
      "behind": false
     }
    },
@@ -54,8 +68,14 @@
    "id": "K2",
    "beat": "Odysseus heats the stake until it glows and the chosen men drive it into the Cyclops's eye.",
    "text": "When the wood, green though it was, was about to blaze, I drew it out of the fire glowing with heat, and my men gathered round me.",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "prop:stake passes through odysseus (6 part overlaps)",
+    "prop:stake passes through four-stake-bearers-1 (5 part overlaps)",
+    "prop:stake passes through four-stake-bearers-2 (5 part overlaps)",
+    "prop:stake passes through four-stake-bearers-3 (5 part overlaps)",
+    "prop:stake passes through four-stake-bearers-4 (5 part overlaps)"
+   ],
    "camera": {
     "pos": [
      -73.3,
@@ -65,21 +85,47 @@
    },
    "lens": 0,
    "physics": {
-    "collide": [],
+    "collide": [
+     [
+      "prop:stake",
+      "odysseus",
+      6
+     ],
+     [
+      "prop:stake",
+      "four-stake-bearers-1",
+      5
+     ],
+     [
+      "prop:stake",
+      "four-stake-bearers-2",
+      5
+     ],
+     [
+      "prop:stake",
+      "four-stake-bearers-3",
+      5
+     ],
+     [
+      "prop:stake",
+      "four-stake-bearers-4",
+      5
+     ]
+    ],
     "floating": []
    },
    "subjects": {
     "odysseus": {
      "visible": 1,
-     "size": 0.654,
+     "size": 0.655,
      "inFrame": true,
      "head": [
       0.495,
-      0.238
+      0.237
      ],
      "facing": 0.86,
-     "thirds": 0.096,
-     "headroom": 0.163,
+     "thirds": 0.097,
+     "headroom": 0.162,
      "behind": false
     },
     "prop:ember": {
@@ -102,8 +148,14 @@
    "id": "K3",
    "beat": "They twist it as blood and steam erupt; Polyphemus wakes with a roar and tears it free.",
    "text": "We drove the sharp end of the beam into the monster's eye, and bearing upon it with all my weight I kept turning it round and round as though I were boring a hole in a ship's plank with an auger... the eyeball hissed as a smith plunges an axe into cold water.",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "prop:stake passes through odysseus (2 part overlaps)",
+    "prop:stake passes through four-stake-bearers-1 (3 part overlaps)",
+    "prop:stake passes through four-stake-bearers-2 (3 part overlaps)",
+    "prop:stake passes through four-stake-bearers-3 (1 part overlaps)",
+    "prop:perch passes through four-stake-bearers-2 (1 part overlaps)"
+   ],
    "camera": {
     "pos": [
      149,
@@ -113,13 +165,39 @@
    },
    "lens": 0,
    "physics": {
-    "collide": [],
+    "collide": [
+     [
+      "prop:stake",
+      "odysseus",
+      2
+     ],
+     [
+      "prop:stake",
+      "four-stake-bearers-1",
+      3
+     ],
+     [
+      "prop:stake",
+      "four-stake-bearers-2",
+      3
+     ],
+     [
+      "prop:stake",
+      "four-stake-bearers-3",
+      1
+     ],
+     [
+      "prop:perch",
+      "four-stake-bearers-2",
+      1
+     ]
+    ],
     "floating": []
    },
    "subjects": {
     "odysseus": {
      "visible": 1,
-     "size": 0.486,
+     "size": 0.487,
      "inFrame": true,
      "head": [
       0.332,
@@ -132,15 +210,15 @@
     },
     "prop:polyphemus": {
      "visible": 1,
-     "size": 2.573,
+     "size": 2.179,
      "inFrame": false,
      "head": [
-      0.761,
-      0.231
+      0.734,
+      0.323
      ],
      "facing": 1,
-     "thirds": 0.094,
-     "headroom": -0.301,
+     "thirds": 0.011,
+     "headroom": 0.057,
      "behind": false
     },
     "four-stake-bearers-2": {
@@ -149,7 +227,7 @@
      "inFrame": false,
      "head": [
       0.216,
-      0.806
+      0.807
      ],
      "facing": 0.34,
      "thirds": 0.117,
@@ -180,28 +258,28 @@
    "subjects": {
     "prop:polyphemus": {
      "visible": 1,
-     "size": 2.47,
+     "size": 2.022,
      "inFrame": false,
      "head": [
-      0.34,
-      0.473
+      0.338,
+      0.471
      ],
      "facing": 1,
-     "thirds": 0.007,
-     "headroom": 0.108,
+     "thirds": 0.004,
+     "headroom": 0.068,
      "behind": false
     },
     "odysseus": {
      "visible": 1,
-     "size": 0.427,
-     "inFrame": false,
+     "size": 0.402,
+     "inFrame": true,
      "head": [
-      0.689,
-      0.634
+      0.688,
+      0.556
      ],
      "facing": 0.19,
-     "thirds": 0.023,
-     "headroom": 0.602,
+     "thirds": 0.021,
+     "headroom": 0.524,
      "behind": false
     }
    },
@@ -211,8 +289,14 @@
    "id": "K5",
    "beat": "Polyphemus gropes at the entrance while the men hide among the animals.",
    "text": "Polyphemus, groaning and in an agony of pain, felt about with his hands, took the stone from the door of the cave, and sat in the doorway stretching his hands in front of it to catch anyone going out with the sheep.",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "prop:ram1 passes through four-stake-bearers-4 (7 part overlaps)",
+    "prop:ram2 passes through four-stake-bearers-2 (3 part overlaps)",
+    "prop:ram3 passes through odysseus (1 part overlaps)",
+    "prop:ram3 passes through four-stake-bearers-3 (2 part overlaps)",
+    "prop:ram4 passes through odysseus (5 part overlaps)"
+   ],
    "camera": {
     "pos": [
      17.9,
@@ -222,34 +306,60 @@
    },
    "lens": 0,
    "physics": {
-    "collide": [],
+    "collide": [
+     [
+      "prop:ram1",
+      "four-stake-bearers-4",
+      7
+     ],
+     [
+      "prop:ram2",
+      "four-stake-bearers-2",
+      3
+     ],
+     [
+      "prop:ram3",
+      "odysseus",
+      1
+     ],
+     [
+      "prop:ram3",
+      "four-stake-bearers-3",
+      2
+     ],
+     [
+      "prop:ram4",
+      "odysseus",
+      5
+     ]
+    ],
     "floating": []
    },
    "subjects": {
+    "odysseus": {
+     "visible": 1,
+     "size": 0.608,
+     "inFrame": false,
+     "head": [
+      0.423,
+      0.581
+     ],
+     "facing": -1,
+     "thirds": 0.086,
+     "headroom": 0.521,
+     "behind": false
+    },
     "prop:polyphemus": {
-     "visible": 0.75,
-     "size": 1.224,
+     "visible": 0.5,
+     "size": 1.103,
      "inFrame": false,
      "head": [
       0.498,
       0.363
      ],
      "facing": 1,
-     "thirds": 0.03,
-     "headroom": 0.03,
-     "behind": false
-    },
-    "odysseus": {
-     "visible": 1,
-     "size": 0.631,
-     "inFrame": false,
-     "head": [
-      0.422,
-      0.633
-     ],
-     "facing": -1,
-     "thirds": 0.033,
-     "headroom": 0.573,
+     "thirds": 0.029,
+     "headroom": 0.064,
      "behind": false
     }
    },

@@ -1,6 +1,6 @@
 {
  "scene": "OD-B05-S04",
- "pass": true,
+ "pass": false,
  "keys": [
   {
    "id": "K1",
@@ -36,15 +36,15 @@
     },
     "odysseus": {
      "visible": 1,
-     "size": 0.407,
+     "size": 0.406,
      "inFrame": true,
      "head": [
       0.544,
-      0.587
+      0.588
      ],
      "facing": -0.63,
-     "thirds": 0.08,
-     "headroom": 0.543,
+     "thirds": 0.079,
+     "headroom": 0.544,
      "behind": false
     }
    },
@@ -71,15 +71,15 @@
    "subjects": {
     "odysseus": {
      "visible": 0.75,
-     "size": 0.446,
+     "size": 0.445,
      "inFrame": true,
      "head": [
       0.498,
-      0.449
+      0.45
      ],
      "facing": -0.06,
-     "thirds": 0.115,
-     "headroom": 0.401,
+     "thirds": 0.116,
+     "headroom": 0.402,
      "behind": false
     },
     "prop:trunk": {
@@ -102,8 +102,10 @@
    "id": "K3",
    "beat": "He rigs mast, yard, sail, steering oar, and ballast.",
    "text": "He also made a mast with a yard arm, and a rudder to steer with... Calypso brought him some linen to make the sails, and he made these too, excellently.",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "prop:raft passes through odysseus (5 part overlaps)"
+   ],
    "camera": {
     "pos": [
      -80,
@@ -113,7 +115,13 @@
    },
    "lens": 0,
    "physics": {
-    "collide": [],
+    "collide": [
+     [
+      "prop:raft",
+      "odysseus",
+      5
+     ]
+    ],
     "floating": []
    },
    "subjects": {
@@ -132,7 +140,7 @@
     },
     "odysseus": {
      "visible": 1,
-     "size": 0.227,
+     "size": 0.226,
      "inFrame": true,
      "head": [
       0.424,
@@ -150,8 +158,10 @@
    "id": "K4",
    "beat": "Calypso bathes and clothes him, loads food and water, and sends a warm wind behind the raft.",
    "text": "She sent him a warm and gentle wind to blow him along, and glad indeed was Ulysses as he spread his sail before it.",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "prop:raft passes through odysseus (13 part overlaps)"
+   ],
    "camera": {
     "pos": [
      -230,
@@ -161,7 +171,13 @@
    },
    "lens": 0,
    "physics": {
-    "collide": [],
+    "collide": [
+     [
+      "prop:raft",
+      "odysseus",
+      13
+     ]
+    ],
     "floating": []
    },
    "subjects": {
@@ -193,15 +209,15 @@
     },
     "odysseus": {
      "visible": 1,
-     "size": 0.402,
+     "size": 0.401,
      "inFrame": true,
      "head": [
       0.329,
-      0.427
+      0.428
      ],
      "facing": 0.69,
      "thirds": 0.005,
-     "headroom": 0.383,
+     "headroom": 0.384,
      "behind": false
     }
    },

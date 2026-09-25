@@ -1,13 +1,15 @@
 {
  "scene": "OD-B06-S03",
- "pass": true,
+ "pass": false,
  "keys": [
   {
    "id": "K1",
    "beat": "Odysseus debates whether to clasp Nausicaa's knees or speak from a distance.",
    "text": "Then they began to play at ball... and the ball fell into deep water. On this they all shouted, and the noise they made woke Ulysses, who sat up in his bed of leaves and began to wonder what it might all be.",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "prop:ball passes through nausicaa-s-maids-1 (1 part overlaps)"
+   ],
    "camera": {
     "pos": [
      -60,
@@ -17,7 +19,13 @@
    },
    "lens": 0,
    "physics": {
-    "collide": [],
+    "collide": [
+     [
+      "prop:ball",
+      "nausicaa-s-maids-1",
+      1
+     ]
+    ],
     "floating": []
    },
    "subjects": {

@@ -90,7 +90,7 @@ function kfScore(subs){scene.updateMatrixWorld(true);camera.updateMatrixWorld();
    for(const p of pts){const d=p.clone().sub(cam),dist=d.length();ray.set(cam,d.normalize());ray.far=dist-1;const hit=ray.intersectObjects(meshes,true).find(h=>!inside(h.object,fig));if(!hit)seen++;}
    const hs=scr(head),fwd=new THREE.Vector3(Math.sin(a.rig.heading),0,Math.cos(a.rig.heading)),to=cam.clone().sub(a.rig.pos).setY(0).normalize();
    const thirds=Math.min(...[1/3,2/3].map(t=>Math.abs(hs[0]-t)),...[1/3,2/3].map(t=>Math.abs(hs[1]-t)));
-   out[s.id]={visible:+(seen/pts.length).toFixed(2),size:+(v1-v0).toFixed(3),inFrame:u0>=-0.01&&u1<=1.01&&v0>=-0.01&&v1<=1.01,head:[+hs[0].toFixed(3),+hs[1].toFixed(3)],facing:+fwd.dot(to).toFixed(2),thirds:+thirds.toFixed(3),headroom:+v0.toFixed(3),behind:hs[2]>1||body.some(c=>c[2]>1)};}
+   out[s.id]={visible:+(seen/pts.length).toFixed(2),size:+(v1-v0).toFixed(3),inFrame:u0>=-0.01&&u1<=1.01&&v0>=-0.01&&v1<=1.01,head:[+hs[0].toFixed(3),+hs[1].toFixed(3)],facing:+fwd.dot(to).toFixed(2),thirds:+thirds.toFixed(3),headroom:+v0.toFixed(3),box:[+u0.toFixed(3),+u1.toFixed(3),+v0.toFixed(3),+v1.toFixed(3)],behind:hs[2]>1||body.some(c=>c[2]>1)};}
   return out;}
 /* ground: the top of whatever is under (x, z), figures aside */
 function kfGround(x,z){const meshes=[],figs=new Set();ButterCast.cast.forEach(a=>a.rig.figure.traverse(o=>figs.add(o)));scene.traverse(o=>{if(kfSolid(o)&&!figs.has(o))meshes.push(o);});
@@ -133,24 +133,33 @@ function kfLook(l={}){const sky=l.sky||['#6fa3d8','#e9dcc0'];const c=document.cr
    Every LDraw part of a figure (torso, hips, legs, arms, hands, head, hair, what it holds) as an oriented box: its own local bounds,
    shrunk a little so parts that merely touch pass, carried by the part's world matrix. Two figures collide when any box of one
    meets any box of the other (the separating-axis test); a figure is supported when a surface lies under its feet. */
-function kfBoxes(a,shrink=0.12){const out=[];a.rig.figure.updateMatrixWorld(true);a.rig.figure.traverse(o=>{if(!o.isMesh||!o.visible||!o.geometry)return;let v=o;for(;v;v=v.parent)if(v.visible===false)return;
+function kfBoxes(a,shrink=0.12){return kfObjBoxes(a.rig.figure,shrink);}
+function kfObjBoxes(root,shrink=0.12){const out=[];root.updateMatrixWorld(true);root.traverse(o=>{if(!o.isMesh||!o.visible||!o.geometry)return;let v=o;for(;v;v=v.parent)if(v.visible===false)return;
    if(!o.geometry.boundingBox)o.geometry.computeBoundingBox();const b=o.geometry.boundingBox,c=b.getCenter(new THREE.Vector3()),h=b.getSize(new THREE.Vector3()).multiplyScalar(0.5*(1-shrink));
    const m=o.matrixWorld,e=m.elements,ax=[new THREE.Vector3(e[0],e[1],e[2]),new THREE.Vector3(e[4],e[5],e[6]),new THREE.Vector3(e[8],e[9],e[10])],sc=ax.map(x=>x.length());
    out.push({c:c.clone().applyMatrix4(m),ax:ax.map(x=>x.normalize()),h:[h.x*sc[0],h.y*sc[1],h.z*sc[2]],name:(o.parent&&o.parent.userData&&o.parent.userData.file)||''});});return out;}
 function kfSat(A,B){const T=B.c.clone().sub(A.c),axes=[...A.ax,...B.ax];for(const a of A.ax)for(const b of B.ax){const x=a.clone().cross(b);if(x.lengthSq()>1e-8)axes.push(x.normalize());}
   for(const L of axes){const ra=A.h[0]*Math.abs(A.ax[0].dot(L))+A.h[1]*Math.abs(A.ax[1].dot(L))+A.h[2]*Math.abs(A.ax[2].dot(L)),rb=B.h[0]*Math.abs(B.ax[0].dot(L))+B.h[1]*Math.abs(B.ax[1].dot(L))+B.h[2]*Math.abs(B.ax[2].dot(L));if(Math.abs(T.dot(L))>ra+rb)return false;}return true;}
-function kfPhysics(ids,touch=[]){const set=new Set(ids),acts=ButterCast.cast.filter(a=>set.has(kfShort(a.kind))&&!a.rig.absent),boxes=new Map(acts.map(a=>[a,kfBoxes(a)])),collide=[],floating=[];
+function kfPhysics(ids,touch=[]){const set=new Set(ids),acts=ButterCast.cast.filter(a=>set.has(kfShort(a.kind))&&!a.rig.absent),boxes=new Map(acts.map(a=>[a,kfBoxes(a)])),collide=[],floating=[],perched=[];
   const ok=(p,q)=>touch.some(([x,y])=>(x===p&&y===q)||(x===q&&y===p));
   for(let i=0;i<acts.length;i++)for(let j=i+1;j<acts.length;j++){const a=acts[i],b=acts[j],p=kfShort(a.kind),q=kfShort(b.kind);if(a.rig.pos.distanceTo(b.rig.pos)>140||ok(p,q))continue;
     let n=0;for(const A of boxes.get(a))for(const B of boxes.get(b))if(kfSat(A,B))n++;if(n)collide.push([p,q,n]);}
+  /* a prop through a figure (a torch through a suitor's chest, a rock in a man's head) poisons the frame as surely as two figures in one
+     place: every staged prop against every figure near it, but a prop in a figure's own hand against that figure is its grip */
+  for(const [id,h] of kfPropObjs){const pb=kfObjBoxes(h,0.2);if(!pb.length)continue;const hb=new THREE.Box3().setFromObject(h);
+    for(const a of acts){const q=kfShort(a.kind);if(h.userData.holder===q||ok('prop:'+id,q))continue;const ab=boxes.get(a);if(!ab.length)continue;
+      const fb=new THREE.Box3().setFromObject(a.rig.figure);if(!fb.intersectsBox(hb))continue;
+      let n=0;for(const A of pb)for(const B of ab)if(kfSat(A,B))n++;if(n)collide.push(['prop:'+id,q,n]);}}
   const meshes=[],figs=new Set();ButterCast.cast.forEach(a=>a.rig.figure.traverse(o=>figs.add(o)));scene.traverse(o=>{if(kfSolid(o)&&!figs.has(o))meshes.push(o);});
   for(const a of acts){const k=a.rig.headP.getWorldScale(new THREE.Vector3()).y;
     if(a.rig.air)continue;
     if(a.rig.sat){a.rig.figure.updateMatrixWorld(true);const hp=kfWorld(a.rig.legRP),lp=kfWorld(a.rig.legLP),c=hp.clone().add(lp).multiplyScalar(0.5),h=new THREE.Raycaster(c.clone().add(new THREE.Vector3(0,2*k,0)),new THREE.Vector3(0,-1,0)).intersectObjects(meshes,true)[0],gap=h?c.y-h.point.y:Infinity;
       if(gap<-2*k||gap>14*k)floating.push([kfShort(a.kind),h?+gap.toFixed(1):null]);continue;}   /* seated: the hips on the seat, the thighs' own depth above it */
     const from=a.rig.pos.clone().add(new THREE.Vector3(0,30*k,0)),ray=new THREE.Raycaster(from,new THREE.Vector3(0,-1,0));ray.far=200;
-    const h=ray.intersectObjects(meshes,true)[0],gap=h?a.rig.pos.y-h.point.y:Infinity;if(Math.abs(gap)>3*k)floating.push([kfShort(a.kind),h?+gap.toFixed(1):null]);}
-  return {collide,floating};}
+    const h=ray.intersectObjects(meshes,true)[0],gap=h?a.rig.pos.y-h.point.y:Infinity;if(Math.abs(gap)>3*k)floating.push([kfShort(a.kind),h?+gap.toFixed(1):null]);
+    /* feet on a prop (a loom's foot beam, a seal's back) read as a figure hovering over the floor, unless the still means it (touch) */
+    else if(h){let o=h.object;for(;o&&!String(o.name).startsWith('prop:');)o=o.parent;if(o&&!ok(o.name,kfShort(a.kind)))perched.push([kfShort(a.kind),o.name]);}}
+  return {collide,floating,perched};}
 /* rope: a braided string as LDraw models one (a chain of short cylinders along a path), here wound in loops round a figure and the
    post it is bound to, at heights along the figure (fractions of its height above the feet), knotted with a hanging tail */
 const kfRopes=[];
@@ -186,7 +195,7 @@ function kfPropsAfter(list){const late=(list||[]).filter(e=>e.after);if(late.len
 function kfProps(list,late=false){if(!late){for(const o of kfPropObjs.values())scene.remove(o);kfPropObjs.clear();}const sc=filmAsset().scale;
   for(const e of list||[]){if(!!e.after!==late)continue;const P=kfPropLib[e.name];if(!P){console.warn('[props] unknown',e.name);continue;}const id=e.id||e.name,g=P.template.clone(true),m=e.scale||1;g.scale.set(sc*m,-sc*m,-sc*m);
     for(const [an,v] of Object.entries(P.anchors||{})){const o=new THREE.Object3D();o.position.set(...v);o.name='@'+id+'.'+an;g.add(o);}
-    const h=new THREE.Group();h.add(g);h.name='prop:'+id;if(e.after&&typeof e.aim?.to==='string'&&e.aim.to.startsWith('hand:'))h.userData.held=true;
+    const h=new THREE.Group();h.add(g);h.name='prop:'+id;if(e.after&&typeof e.aim?.to==='string'&&e.aim.to.startsWith('hand:')){h.userData.held=true;h.userData.holder=e.aim.to.split(':')[1];}
     const at=e.at?kfPoint(e.at).add(new KV(...(e.off||[0,0,0]))):new KV();for(const o of kfPropObjs.values())o.visible=false;const ground=e.floor?kfGround(at.x,at.z):null;for(const o of kfPropObjs.values())o.visible=true;   /* a prop rests on the set, not on another prop */
     if(e.rot)h.rotation.set(e.rot[0],e.rot[1],e.rot[2],'YXZ');scene.add(h);kfPropObjs.set(id,h);h.updateMatrixWorld(true);
     if(e.aim){const to=kfPoint(e.aim.to).add(new KV(...(e.aim.off||[0,0,0]))),dir=(e.aim.from?to.clone().sub(kfPoint(e.aim.from)):new KV(...e.aim.dir)).normalize();
