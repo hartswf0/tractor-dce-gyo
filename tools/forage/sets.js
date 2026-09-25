@@ -398,6 +398,13 @@ const SETS = {
     { odysseus: M(0, 9, 2, 'Odysseus at the trench, sword drawn'), crew: M(-4, 5, 0, 'the crew with the sheep', 'x'), shades: M(0, 18, 0, 'the dead gathering', 'x'), pit: M(0, 12, 0, 'the trench'), centre: M(0, 12, 0) }),
   chamber: () => room('the marriage chamber', 28, 26, floor(28, 26, C.dtan), [[chamber(), 0, 0]],
     { penelope: M(-4, 4, 0, 'Penelope by the door'), odysseus: M(4, 4, 0, 'Odysseus'), eurycleia: M(8, 8, 0, 'Eurycleia'), bed: M(0, -6, 0, 'the olive bed'), centre: M(0, 4, 0) }),
+  /* the harbour of the Laestrygonians (Homer X): "a fine harbour, with high rocks all round it, and a narrow mouth at the entrance"; the
+     fleet inside, Odysseus's ship moored outside at the mouth to a rock; cliffs of rock panels in tiers on both sides */
+  harbor: () => room('the laestrygonian harbour', 32, 48, seaFloor(), [
+    [REAL('the cliffs', [...[-20, -12, -4, 4].flatMap(z => [R('6082', C.dbg, -13, z, -8, 1), R('6082', C.dbg, 13, z, -8, 3), R('6083', C.dbg, -14, z, -8 - 144, 1), R('6083', C.dbg, 14, z, -8 - 144, 3)]),
+      R('23996', C.dbg, -9, 9, -8, 0), R('23996', C.dbg, 9, 9, -8, 1), R('2417', C.dgreen, -14, -8, -8 - 144 - 150), R('2417', C.green, 14, 0, -8 - 144 - 150), R('3471', C.dgreen, 14.5, -18, -8 - 144 - 150), R('3778', C.dgreen, -14.5, 2, -8 - 144 - 150)]), 0, 0],
+    [KIT.galley({ furled: true }), -4.5, -10], [KIT.galley({ furled: true }), 4.5, -12], [KIT.galley({ furled: true }), 0, 16], [KIT.boulder(), -5, 11], [KIT.swell(4, 0), 0, 5],
+  ], { odysseus: M(0, 16, 0, "Odysseus's ship outside the mouth", null, DECK), fleet: M(0, -10, 0, 'the fleet in the harbour', 'x', DECK), giantsL: M(-13, -8, 0, 'giants on the west cliff', 'z', 'top'), giantsR: M(13, -8, 0, 'giants on the east cliff', 'z', 'top'), antiphates: M(-13, 4, 0, 'Antiphates', null, 'top'), centre: M(0, 0, 0) }),
   /* the sea sets, in real kits: the blue baseplate sea, the galley bow-on to the camera (its crew two abreast on the deck, the mast
      amidships), the places it passes built of rock panels, baseplates and plants. Marks with a y stand on the deck or a crag. */
   sirens: () => room("the sirens' sea", 32, 48, seaFloor('beach'), [

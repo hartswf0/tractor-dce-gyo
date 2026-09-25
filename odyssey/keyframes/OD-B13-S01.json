@@ -1,359 +1,1034 @@
 {
  "scene": "OD-B13-S01",
  "location": "odyssey-od-b13-s01",
- "title": "The Phaeacians Carry Odysseus Home",
- "note": "Drafted from the storyboard by film-readymades/keyframe_draft.py: attention blocking and rigs by shot kind. Finish by hand where the gate fails.",
+ "title": "Home to Ithaca",
+ "source": "Homer, Odyssey XIII, tr. Samuel Butler (public domain)",
+ "note": "Hand-staged from the text on the voyage set: the Phaeacian ship, the island of Ithaca with its olive tree; Odysseus lying asleep (tilted back) on the deck, then carried ashore.",
  "look": {
   "sky": [
-   "#5f97d3",
-   "#efe2c4"
+   "#3a4a7a",
+   "#f2a36b"
   ],
   "fog": [
    700,
-   2400
-  ]
+   2200
+  ],
+  "sun": {
+   "dir": [
+    0.5,
+    0.3,
+    -0.8
+   ],
+   "color": "#ffb27a",
+   "intensity": 1.1,
+   "shadow": true
+  },
+  "fill": {
+   "sky": "#8d9cc6",
+   "ground": "#1f2430",
+   "intensity": 0.45
+  },
+  "exposure": 0.9
  },
- "spread": 36,
- "blocking": [
-  {
-   "id": "odysseus",
-   "x": -7.0,
-   "z": -63.2,
-   "y": "floor"
-  },
-  {
-   "id": "phaeacian-convoy-crew-1",
-   "x": -28.1,
-   "z": 63.2,
-   "y": "floor",
-   "props": false
-  },
-  {
-   "id": "phaeacian-convoy-crew-2",
-   "x": 14.0,
-   "z": 63.2,
-   "y": "floor",
-   "props": false
-  },
-  {
-   "id": "phaeacian-convoy-crew-3",
-   "x": -28.1,
-   "z": 21.1,
-   "y": "floor",
-   "props": false
-  },
-  {
-   "id": "phaeacian-convoy-crew-4",
-   "x": 14.0,
-   "z": 21.1,
-   "y": "floor",
-   "props": false
-  },
-  {
-   "id": "phaeacian-convoy-crew-5",
-   "x": -28.1,
-   "z": -21.1,
-   "y": "floor",
-   "props": false
-  }
- ],
+ "spread": 0,
+ "blocking": [],
  "keys": [
   {
    "id": "K1",
    "beat": "Odysseus finishes his tale and the Phaeacians sit in silence.",
-   "kind": "establish",
-   "draft": true,
+   "text": "Thus did he speak, and they all held their peace throughout the covered cloister, enthralled by the charm of his story.",
+   "hide": [
+    "gift chest and treasures"
+   ],
+   "props": [
+    {
+     "name": "chest",
+     "id": "chest",
+     "at": [
+      -8,
+      52,
+      -50
+     ],
+     "floor": true,
+     "scale": 0.9
+    }
+   ],
    "blocking": [
     {
      "id": "odysseus",
-     "face": "phaeacian-convoy-crew-1"
+     "x": -8,
+     "z": 185,
+     "y": "surface",
+     "face": [
+      -8,
+      0
+     ],
+     "props": true,
+     "pose": {
+      "armRP": [
+       -1.2,
+       0,
+       0.2
+      ]
+     },
+     "reach": 60
     },
     {
      "id": "phaeacian-convoy-crew-1",
-     "face": "odysseus"
+     "x": -40,
+     "z": 120,
+     "y": "floor",
+     "face": [
+      -8,
+      150
+     ],
+     "props": false,
+     "pose": {
+      "legRP": [
+       -1.5708,
+       0,
+       0
+      ],
+      "legLP": [
+       -1.5708,
+       0,
+       0
+      ]
+     },
+     "sit": true,
+     "reach": 20
     },
     {
      "id": "phaeacian-convoy-crew-2",
-     "face": "odysseus"
+     "x": 25,
+     "z": 120,
+     "y": "floor",
+     "face": [
+      -8,
+      150
+     ],
+     "props": false,
+     "pose": {
+      "legRP": [
+       -1.5708,
+       0,
+       0
+      ],
+      "legLP": [
+       -1.5708,
+       0,
+       0
+      ]
+     },
+     "sit": true,
+     "reach": 20
     },
     {
      "id": "phaeacian-convoy-crew-3",
-     "face": "odysseus"
+     "x": -40,
+     "z": 65,
+     "y": "floor",
+     "face": [
+      -8,
+      150
+     ],
+     "props": false,
+     "pose": {
+      "legRP": [
+       -1.5708,
+       0,
+       0
+      ],
+      "legLP": [
+       -1.5708,
+       0,
+       0
+      ]
+     },
+     "sit": true,
+     "reach": 20
     },
     {
      "id": "phaeacian-convoy-crew-4",
-     "face": "odysseus"
+     "x": 25,
+     "z": 65,
+     "y": "floor",
+     "face": [
+      -8,
+      150
+     ],
+     "props": false,
+     "pose": {
+      "legRP": [
+       -1.5708,
+       0,
+       0
+      ],
+      "legLP": [
+       -1.5708,
+       0,
+       0
+      ]
+     },
+     "sit": true,
+     "reach": 20
     },
     {
      "id": "phaeacian-convoy-crew-5",
-     "face": "odysseus"
+     "x": -40,
+     "z": 10,
+     "y": "floor",
+     "face": [
+      -8,
+      150
+     ],
+     "props": false,
+     "pose": {
+      "legRP": [
+       -1.5708,
+       0,
+       0
+      ],
+      "legLP": [
+       -1.5708,
+       0,
+       0
+      ]
+     },
+     "sit": true,
+     "reach": 20
     }
    ],
    "camera": {
     "type": "wide",
     "pos": [
-     -185.6,
-     255.8,
-     412.5
+     -200,
+     120,
+     330
     ],
     "target": [
-     0,
-     35,
-     0
+     -8,
+     60,
+     100
     ],
-    "fov": 38
+    "fov": 44
    },
    "subjects": [
     {
      "id": "odysseus",
-     "primary": true,
-     "soft": true,
-     "min": 0.02
-    },
-    {
-     "id": "phaeacian-convoy-crew-1",
-     "soft": true,
-     "cut": true,
-     "min": 0.02
+     "min": 0.06,
+     "primary": true
     }
+   ],
+   "lensAllow": [
+    "phaeacian-convoy-crew-1",
+    "phaeacian-convoy-crew-2",
+    "phaeacian-convoy-crew-3",
+    "phaeacian-convoy-crew-4",
+    "phaeacian-convoy-crew-5"
    ]
   },
   {
    "id": "K2",
    "beat": "Alcinous orders additional gifts packed in a chest and the farewell feast begins.",
-   "kind": "medium",
-   "draft": true,
+   "text": "They took the goods they had given him and put them on board the ship; they put the chest of gifts in the ship's hold.",
+   "hide": [
+    "gift chest and treasures"
+   ],
+   "props": [
+    {
+     "name": "chest",
+     "id": "chest",
+     "after": true,
+     "aim": {
+      "anchor": "lid",
+      "to": "hand:phaeacian-convoy-crew-2:R",
+      "dir": [
+       0,
+       1,
+       0
+      ]
+     },
+     "scale": 0.9
+    }
+   ],
    "blocking": [
     {
-     "id": "odysseus",
+     "id": "phaeacian-convoy-crew-2",
+     "x": 30,
+     "z": 125,
+     "y": "floor",
      "face": [
-      -161.5,
-      63.150000000000006
-     ]
+      -5,
+      215
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.4,
+       0,
+       0.3
+      ],
+      "armLP": [
+       -1.4,
+       0,
+       -0.3
+      ]
+     }
     },
     {
      "id": "phaeacian-convoy-crew-1",
+     "x": -45,
+     "z": 150,
+     "y": "floor",
      "face": [
-      -161.5,
-      63.150000000000006
-     ]
+      15,
+      60
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.2,
+       0,
+       0
+      ]
+     }
     },
     {
-     "id": "phaeacian-convoy-crew-2",
+     "id": "odysseus",
+     "x": -5,
+     "z": 215,
+     "y": "surface",
      "face": [
-      -161.5,
-      63.150000000000006
-     ]
+      25,
+      120
+     ],
+     "props": true,
+     "reach": 60
     },
     {
      "id": "phaeacian-convoy-crew-3",
+     "x": -40,
+     "z": 65,
+     "y": "floor",
      "face": [
-      -161.5,
-      63.150000000000006
-     ]
+      -8,
+      400
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.25,
+       0,
+       0.25
+      ],
+      "armLP": [
+       -1.25,
+       0,
+       -0.25
+      ]
+     }
     },
     {
      "id": "phaeacian-convoy-crew-4",
+     "x": 25,
+     "z": 65,
+     "y": "floor",
      "face": [
-      -161.5,
-      63.150000000000006
-     ]
+      -8,
+      400
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.25,
+       0,
+       0.25
+      ],
+      "armLP": [
+       -1.25,
+       0,
+       -0.25
+      ]
+     }
     },
     {
      "id": "phaeacian-convoy-crew-5",
+     "x": -40,
+     "z": 10,
+     "y": "floor",
      "face": [
-      -161.5,
-      63.150000000000006
-     ]
+      -8,
+      400
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.25,
+       0,
+       0.25
+      ],
+      "armLP": [
+       -1.25,
+       0,
+       -0.25
+      ]
+     }
     }
    ],
    "camera": {
     "type": "wide",
     "pos": [
-     -251.7,
-     52.5,
-     243.6
+     200,
+     100,
+     300
     ],
-    "target": "piece:gift chest and treasures",
-    "fov": 34,
-    "subject": "piece:gift chest and treasures",
-    "place": "L",
-    "eye": 0.4
+    "target": [
+     -5,
+     60,
+     150
+    ],
+    "fov": 42
    },
    "subjects": [
     {
-     "id": "piece:gift chest and treasures",
-     "primary": true,
-     "min": 0.25
+     "id": "phaeacian-convoy-crew-2",
+     "min": 0.06,
+     "primary": true
+    },
+    {
+     "id": "odysseus",
+     "soft": true,
+     "min": 0.03
     }
    ]
   },
   {
    "id": "K3",
    "beat": "At sunset Odysseus boards the convoy ship and lies on a prepared bed in the stern.",
-   "kind": "medium",
-   "draft": true,
-   "blocking": [
-    {
-     "id": "odysseus",
-     "face": "phaeacian-convoy-crew-1"
-    },
-    {
-     "id": "phaeacian-convoy-crew-1",
-     "face": "odysseus"
-    },
-    {
-     "id": "phaeacian-convoy-crew-2",
-     "face": "odysseus"
-    },
-    {
-     "id": "phaeacian-convoy-crew-3",
-     "face": "odysseus"
-    },
-    {
-     "id": "phaeacian-convoy-crew-4",
-     "face": "odysseus"
-    },
-    {
-     "id": "phaeacian-convoy-crew-5",
-     "face": "odysseus"
-    }
+   "text": "They spread a rug and a linen sheet on the deck at the stern, that he might sleep soundly, and he lay down without a word.",
+   "hide": [
+    "gift chest and treasures"
    ],
-   "camera": {
-    "type": "two",
-    "a": "odysseus",
-    "b": "phaeacian-convoy-crew-1",
-    "bias": 0.4,
-    "dist": 307.5,
-    "height": 12,
-    "fov": 32,
-    "subject": "odysseus",
-    "place": "R",
-    "eye": 0.36
-   },
-   "subjects": [
-    {
-     "id": "odysseus",
-     "primary": true,
-     "face": true,
-     "min": 0.1
-    },
-    {
-     "id": "phaeacian-convoy-crew-1",
-     "soft": true,
-     "cut": true
-    }
-   ]
-  },
-  {
-   "id": "K4",
-   "beat": "The ship runs faster than a hawk while he sleeps and reaches Ithaca before dawn.",
-   "kind": "track",
-   "draft": true,
    "blocking": [
     {
      "id": "odysseus",
+     "x": -8,
+     "z": 190,
+     "y": 66,
+     "air": true,
      "face": [
-      -7.0212765957446805,
-      336.8085106382979
-     ]
+      -8,
+      -400
+     ],
+     "tilt": [
+      1.5,
+      0
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       0.2,
+       0,
+       0
+      ],
+      "armLP": [
+       0.2,
+       0,
+       0
+      ]
+     }
     },
     {
      "id": "phaeacian-convoy-crew-1",
-     "face": "odysseus"
-    },
-    {
-     "id": "phaeacian-convoy-crew-2",
-     "face": "odysseus"
-    },
-    {
-     "id": "phaeacian-convoy-crew-3",
-     "face": "odysseus"
-    },
-    {
-     "id": "phaeacian-convoy-crew-4",
-     "face": "odysseus"
-    },
-    {
-     "id": "phaeacian-convoy-crew-5",
-     "face": "odysseus"
-    }
-   ],
-   "camera": {
-    "type": "hero",
-    "a": "odysseus",
-    "dist": 210,
-    "height": 22,
-    "yaw": 0.9,
-    "fov": 32,
-    "subject": "odysseus",
-    "place": "L",
-    "eye": 0.36
-   },
-   "subjects": [
-    {
-     "id": "odysseus",
-     "primary": true,
-     "face": true,
-     "min": 0.1
-    }
-   ]
-  },
-  {
-   "id": "K5",
-   "beat": "The crew carries the sleeping man and his treasure onto the shore.",
-   "kind": "pullback",
-   "draft": true,
-   "blocking": [
-    {
-     "id": "odysseus",
-     "face": "phaeacian-convoy-crew-1"
-    },
-    {
-     "id": "phaeacian-convoy-crew-1",
+     "x": -40,
+     "z": 120,
+     "y": "floor",
      "face": [
-      -28.085106382978722,
-      463.1914893617021
-     ]
+      -8,
+      400
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.25,
+       0,
+       0.25
+      ],
+      "armLP": [
+       -1.25,
+       0,
+       -0.25
+      ]
+     }
     },
     {
      "id": "phaeacian-convoy-crew-2",
-     "face": "phaeacian-convoy-crew-1"
+     "x": 25,
+     "z": 120,
+     "y": "floor",
+     "face": [
+      -8,
+      400
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.25,
+       0,
+       0.25
+      ],
+      "armLP": [
+       -1.25,
+       0,
+       -0.25
+      ]
+     }
     },
     {
      "id": "phaeacian-convoy-crew-3",
-     "face": "phaeacian-convoy-crew-1"
+     "x": -40,
+     "z": 65,
+     "y": "floor",
+     "face": [
+      -8,
+      400
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.25,
+       0,
+       0.25
+      ],
+      "armLP": [
+       -1.25,
+       0,
+       -0.25
+      ]
+     }
     },
     {
      "id": "phaeacian-convoy-crew-4",
-     "face": "phaeacian-convoy-crew-1"
+     "x": 25,
+     "z": 65,
+     "y": "floor",
+     "face": [
+      -8,
+      400
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.25,
+       0,
+       0.25
+      ],
+      "armLP": [
+       -1.25,
+       0,
+       -0.25
+      ]
+     }
     },
     {
      "id": "phaeacian-convoy-crew-5",
-     "face": "phaeacian-convoy-crew-1"
+     "x": -40,
+     "z": 10,
+     "y": "floor",
+     "face": [
+      -8,
+      400
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.25,
+       0,
+       0.25
+      ],
+      "armLP": [
+       -1.25,
+       0,
+       -0.25
+      ]
+     }
     }
    ],
    "camera": {
     "type": "wide",
     "pos": [
-     -237.6,
-     327.4,
-     528.0
+     -170,
+     140,
+     330
     ],
     "target": [
-     0,
-     35,
-     0
+     -8,
+     60,
+     130
     ],
-    "fov": 38
+    "fov": 44
+   },
+   "subjects": [
+    {
+     "id": "odysseus",
+     "min": 0.02,
+     "primary": true,
+     "soft": true
+    },
+    {
+     "id": "phaeacian-convoy-crew-1",
+     "soft": true,
+     "min": 0.02
+    }
+   ],
+   "lensAllow": [
+    "phaeacian-convoy-crew-1",
+    "phaeacian-convoy-crew-2",
+    "phaeacian-convoy-crew-3",
+    "phaeacian-convoy-crew-4",
+    "phaeacian-convoy-crew-5"
+   ]
+  },
+  {
+   "id": "K4",
+   "beat": "The ship runs faster than a hawk while he sleeps and reaches Ithaca before dawn.",
+   "text": "As four stallions bound together over the plain... even so did her prow curvet as it were the neck of a stallion, and a great wave of dark blue water seethed in her wake. She held steadily on her course, and even a falcon, swiftest of all birds, could not have kept pace with her.",
+   "hide": [
+    "gift chest and treasures"
+   ],
+   "props": [
+    {
+     "name": "spout",
+     "id": "sp1",
+     "at": [
+      -80,
+      4,
+      -140
+     ],
+     "scale": 0.6
+    },
+    {
+     "name": "spout",
+     "id": "sp2",
+     "at": [
+      60,
+      4,
+      -160
+     ],
+     "scale": 0.6
+    }
+   ],
+   "blocking": [
+    {
+     "id": "odysseus",
+     "x": -8,
+     "z": 190,
+     "y": 66,
+     "air": true,
+     "face": [
+      -8,
+      -400
+     ],
+     "tilt": [
+      1.5,
+      0
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       0.2,
+       0,
+       0
+      ],
+      "armLP": [
+       0.2,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "phaeacian-convoy-crew-1",
+     "x": -40,
+     "z": 120,
+     "y": "floor",
+     "face": [
+      -8,
+      400
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.25,
+       0,
+       0.25
+      ],
+      "armLP": [
+       -1.25,
+       0,
+       -0.25
+      ]
+     }
+    },
+    {
+     "id": "phaeacian-convoy-crew-2",
+     "x": 25,
+     "z": 120,
+     "y": "floor",
+     "face": [
+      -8,
+      400
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.25,
+       0,
+       0.25
+      ],
+      "armLP": [
+       -1.25,
+       0,
+       -0.25
+      ]
+     }
+    },
+    {
+     "id": "phaeacian-convoy-crew-3",
+     "x": -40,
+     "z": 65,
+     "y": "floor",
+     "face": [
+      -8,
+      400
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.25,
+       0,
+       0.25
+      ],
+      "armLP": [
+       -1.25,
+       0,
+       -0.25
+      ]
+     }
+    },
+    {
+     "id": "phaeacian-convoy-crew-4",
+     "x": 25,
+     "z": 65,
+     "y": "floor",
+     "face": [
+      -8,
+      400
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.25,
+       0,
+       0.25
+      ],
+      "armLP": [
+       -1.25,
+       0,
+       -0.25
+      ]
+     }
+    },
+    {
+     "id": "phaeacian-convoy-crew-5",
+     "x": -40,
+     "z": 10,
+     "y": "floor",
+     "face": [
+      -8,
+      400
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.25,
+       0,
+       0.25
+      ],
+      "armLP": [
+       -1.25,
+       0,
+       -0.25
+      ]
+     }
+    }
+   ],
+   "look": {
+    "sky": [
+     "#05070f",
+     "#1a2440"
+    ],
+    "fog": [
+     500,
+     1600
+    ],
+    "dim": 0.4,
+    "sun": {
+     "dir": [
+      0.3,
+      0.8,
+      0.3
+     ],
+     "color": "#9fb3e6",
+     "intensity": 0.6,
+     "shadow": true
+    },
+    "fill": {
+     "sky": "#40507a",
+     "ground": "#0a0d14",
+     "intensity": 0.4
+    },
+    "exposure": 0.85
+   },
+   "camera": {
+    "type": "wide",
+    "pos": [
+     260,
+     90,
+     -160
+    ],
+    "target": [
+     -8,
+     80,
+     80
+    ],
+    "fov": 46
+   },
+   "subjects": [
+    {
+     "id": "phaeacian-convoy-crew-5",
+     "min": 0.02,
+     "primary": true
+    }
+   ],
+   "lensAllow": [
+    "phaeacian-convoy-crew-1",
+    "phaeacian-convoy-crew-2",
+    "phaeacian-convoy-crew-3",
+    "phaeacian-convoy-crew-4",
+    "phaeacian-convoy-crew-5"
+   ]
+  },
+  {
+   "id": "K5",
+   "beat": "The crew carries the sleeping man and his treasure onto the shore.",
+   "text": "They lifted Ulysses with his rug and linen sheet out of the ship, and laid him down upon the sand still fast asleep. Then they took out the presents... and put them all together by the root of the olive tree, away from the road.",
+   "hide": [
+    "gift chest and treasures"
+   ],
+   "props": [
+    {
+     "name": "chest",
+     "id": "chest",
+     "at": [
+      70,
+      0,
+      -160
+     ],
+     "floor": true,
+     "scale": 0.9
+    }
+   ],
+   "blocking": [
+    {
+     "id": "odysseus",
+     "x": 130,
+     "z": -165,
+     "y": 14,
+     "air": true,
+     "face": [
+      90,
+      200
+     ],
+     "tilt": [
+      1.5,
+      0
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       0.2,
+       0,
+       0
+      ],
+      "armLP": [
+       0.2,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "phaeacian-convoy-crew-1",
+     "x": 100,
+     "z": -130,
+     "y": "floor",
+     "face": [
+      130,
+      -165
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -0.5,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "phaeacian-convoy-crew-2",
+     "x": 170,
+     "z": -140,
+     "y": "floor",
+     "face": [
+      130,
+      -165
+     ],
+     "props": false
+    },
+    {
+     "id": "phaeacian-convoy-crew-3",
+     "x": -40,
+     "z": 65,
+     "y": "floor",
+     "face": [
+      -8,
+      400
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.25,
+       0,
+       0.25
+      ],
+      "armLP": [
+       -1.25,
+       0,
+       -0.25
+      ]
+     }
+    },
+    {
+     "id": "phaeacian-convoy-crew-4",
+     "x": 25,
+     "z": 65,
+     "y": "floor",
+     "face": [
+      -8,
+      400
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.25,
+       0,
+       0.25
+      ],
+      "armLP": [
+       -1.25,
+       0,
+       -0.25
+      ]
+     }
+    },
+    {
+     "id": "phaeacian-convoy-crew-5",
+     "x": -40,
+     "z": 10,
+     "y": "floor",
+     "face": [
+      -8,
+      400
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.25,
+       0,
+       0.25
+      ],
+      "armLP": [
+       -1.25,
+       0,
+       -0.25
+      ]
+     }
+    }
+   ],
+   "look": {
+    "sky": [
+     "#8aa6d6",
+     "#f7c9a0"
+    ],
+    "fog": [
+     800,
+     2400
+    ],
+    "sun": {
+     "dir": [
+      0.6,
+      0.25,
+      -0.7
+     ],
+     "color": "#ffcf9e",
+     "intensity": 1.1,
+     "shadow": true
+    },
+    "fill": {
+     "sky": "#b8c6e6",
+     "ground": "#2a3a48",
+     "intensity": 0.5
+    },
+    "exposure": 0.95
+   },
+   "camera": {
+    "type": "wide",
+    "pos": [
+     -60,
+     80,
+     -40
+    ],
+    "target": [
+     120,
+     40,
+     -170
+    ],
+    "fov": 42
    },
    "subjects": [
     {
      "id": "phaeacian-convoy-crew-1",
-     "primary": true,
+     "min": 0.06,
+     "primary": true
+    },
+    {
+     "id": "prop:chest",
      "soft": true,
-     "min": 0.02
+     "cut": true
     }
+   ],
+   "touch": [
+    [
+     "odysseus",
+     "phaeacian-convoy-crew-1"
+    ],
+    [
+     "odysseus",
+     "phaeacian-convoy-crew-2"
+    ]
    ]
   }
  ]

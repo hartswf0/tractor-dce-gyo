@@ -135,6 +135,23 @@ props.veil = { parts: [row('2335', 15, L.I12), row('2335', 15, L.T(0, 0, 50))], 
 /* the arrows poured before him on the threshold (Homer XXII), and one to aim */
 props.arrows = { parts: Array.from({ length: 7 }, (_, i) => [row('30374', 71, L.mul(L.T(i * 7 - 21, -4, (i % 3) * 5), [0, 0, 0, Math.cos(0.1 * i), 0, Math.sin(0.1 * i), 0, 0, -1, -Math.sin(0.1 * i), 1, 0].map((v, j) => j < 3 ? v : v)))]).flat(), anchors: {} };
 props.stool = { parts: [row('3941', 70, L.I12), row('4032a', 70, L.T(0, -8, 0))], anchors: { seat: [0, -8, 0] } };
+/* the sea batch (Homer X, XII, XIII): the ox-hide bag of the winds tied with a silver cord; the winds bursting out; a whirlpool; the
+   fig tree above Charybdis; keel and mast lashed together; the Laestrygonian giants (the troll big figure in three skins, one arm up
+   with a boulder); the gift chest */
+props.bag = { parts: [row('10169', 28, L.I12), row('3062b', 179, L.T(0, -28, 0))], anchors: { neck: [0, -30, 0] } };
+props.winds = { parts: Array.from({ length: 24 }, (_, i) => { const a = i * 1.1, r = 16 + i * 5, y = -10 - i * 8; return row(i % 3 ? '4589' : '3062b', i % 4 ? 47 : 15, L.mul(L.T(r * Math.cos(a), y, r * Math.sin(a)), RX(1.2 + (i % 3) * 0.4))); }), anchors: { base: [0, 0, 0] } };
+props.whirl = { parts: [row('3960', 33, [0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 0, -1]), row('4150', 0, L.T(0, -2, 0)), ...[26, 38, 50, 62].flatMap((r, k) => Array.from({ length: 8 + k * 4 }, (_, i) => { const a = k * 0.4 + i * 2 * Math.PI / (8 + k * 4); return row('6141', (i + k) % 2 ? 15 : 47, L.T(r * Math.cos(a), -4, r * Math.sin(a))); }))], anchors: { eye: [0, 0, 0] } };
+props.figtree = { parts: [row('3470', 288, L.I12), ...[0, 1, 2].map(k => row('3941', 70, L.T(0, 8 + 24 * k, 0))), row('53934p01c01', 72, L.T(0, 80, 0))], anchors: { bough: [30, -80, 0], crown: [0, -130, 0] } };
+props.keel = { parts: [...Array.from({ length: 8 }, (_, i) => row('3941', 0, L.mul(L.T(0, 0, (i - 3.5) * 24), RX(Math.PI / 2)))), ...Array.from({ length: 6 }, (_, i) => row('3941', 70, L.mul(L.T(20, -12, (i - 2.5) * 24), RX(Math.PI / 2)))), row('3062b', 15, L.T(10, -20, 0)), row('3062b', 15, L.T(10, -20, 30))], anchors: { top: [10, -30, 0] } };
+props.chest = { parts: [row('4738a', 70, L.I12), row('4739a', 70, L.T(0, -24, 10)), row('3062b', 297, L.T(0, -32, 0)), row('3062b', 179, L.T(12, -32, 0))], anchors: { lid: [0, -30, 0] } };
+function laestrygon(skin, armL, armR, rock) { const body = Cy.troll({ skin }), rows = B.rowsOf(body).map(r => ({ ...r }));
+  for (const [arm, hand, R] of [['60672', '60640', armL], ['60673', '60641', armR]]) { const a = rows.find(r => r.part === arm), h = rows.find(r => r.part === hand), piv = a.m.slice(0, 3), about = m => L.mul(L.mul(L.T(...piv), R), L.mul(L.T(-piv[0], -piv[1], -piv[2]), m)); a.m = about(a.m); h.m = about(h.m); }
+  const hr = rows.find(r => r.part === '60641').m, parts = rows.map(r => row(r.part, r.col, r.m));
+  if (rock) parts.push(row('53934p01c01', 72, L.T(hr[0], hr[1] - 90, hr[2])));
+  return { parts, anchors: { hand: hr.slice(0, 3), head: [0, -140, 0] } }; }
+props.laestrygon = laestrygon(84, L.mul(RX(-0.4), RZ(0.3)), L.mul(RX(-2.9), RZ(-0.2)), true);
+props.laestrygonDark = laestrygon(308, L.mul(RX(-2.6), RZ(0.3)), L.mul(RX(-0.6), RZ(-0.3)), false);
+props.laestrygonGreen = laestrygon(378, L.mul(RX(-1.6), RZ(0.2)), L.mul(RX(-2.9), RZ(-0.2)), true);
 const out = path.join(L.ROOT, 'odyssey/keyframes/props.json');
 fs.writeFileSync(out, JSON.stringify(props));
 console.log('props:', Object.entries(props).map(([k, p]) => `${k} (${p.parts.length} parts)`).join(', '), '->', path.relative(L.ROOT, out));
