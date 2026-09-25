@@ -101,6 +101,24 @@ props.spout = (() => { const parts = [];
   return { parts, anchors: { crest: [0, -440, 0], base: [0, 0, 0] } }; })();
 /* Argos (Homer XVII): the old hound, a German shepherd in dark brown, standing (his head up) or laid on his side (dead) */
 props.argos = { parts: [row('92586', 308, L.I12)], anchors: { head: [0, -20, -40], back: [0, -24, 0] } };
+/* the bow (Homer XXI): twelve axes set in a trench in a straight line, each a twin-bladed axe head (the hole through it along the line)
+   on an upright handle; the arrow, a bar with white fletching, to be aimed through the holes */
+props.axes = { parts: Array.from({ length: 12 }, (_, i) => [row('3062b', 70, L.T(0, -24, i * 34)), row('3062b', 70, L.T(0, -48, i * 34)), row('11096', 71, L.T(0, -62, i * 34))]).flat(),
+  anchors: { first: [0, -62, 0], last: [0, -62, 11 * 34], mid: [0, -62, 5.5 * 34], base: [0, 0, 5.5 * 34] } };
+props.arrow = { parts: [row('30374', 71, L.I12), row('64647', 15, L.mul(L.T(0, 78, 0), RX(Math.PI))), row('4589', 72, L.mul(L.T(0, -14, 0), RX(Math.PI)))], anchors: { tip: [0, -18, 0], tail: [0, 80, 0] } };
+/* a flash of Zeus's thunder: trans clear and white cones in a jagged fall */
+props.bolt = { parts: Array.from({ length: 10 }, (_, i) => row(i % 2 ? '4589' : '3062b', i % 3 ? 47 : 15, L.T((i % 2 ? 12 : -8) + i * 3, i * 24, (i % 3) * 6))), anchors: { top: [0, 0, 0] } };
+/* Calypso's isle: a raft afloat (seven logs, a mast, a square sail of white bricks, the steering oar), a felled trunk */
+props.raft = { parts: [...Array.from({ length: 7 }, (_, i) => row('30137', 70, L.mul(L.T((i - 3) * 20, 0, 0), L.RY(Math.PI / 2)))), row('3957a', 70, L.T(0, -8, 0)), row('3957a', 70, L.T(0, -96, 0)),
+  ...[0, 1, 2].map(k => row('3009', 15, L.T(0, -120 - k * 24, -12))), row('2542', 70, L.mul(L.T(0, -10, 90), RX(0.5)))], anchors: { deck: [0, -8, 0], mast: [0, -190, 0], stern: [0, -8, 60] } };
+props.trunk = { parts: Array.from({ length: 9 }, (_, i) => row('3941', i % 4 === 3 ? 308 : 70, L.T(0, i * 24, 0))), anchors: { butt: [0, 216, 0], mid: [0, 108, 0], crown: [0, 0, 0] } };
+/* the cattle of the Sun (Homer XII: "broad-faced, horned"): the cow in white with its blaze, and in reddish brown */
+props.cow = { parts: [row('64452p01', 15, L.I12)], anchors: { back: [0, -40, 0] } };
+props.cowRed = { parts: [row('64452', 70, L.I12)], anchors: { back: [0, -40, 0] } };
+/* Helios: the sun's disc, gold dish with a trans yellow face and a ring of trans orange rays */
+props.sun = { parts: [row('3960', 297, L.mul(L.I12, RX(Math.PI / 2))), row('4150', 46, L.mul(L.T(0, 0, -16), RX(Math.PI / 2))), ...Array.from({ length: 12 }, (_, i) => { const a = i * Math.PI / 6; return row('4589', 57, L.mul(L.T(60 * Math.cos(a), 60 * Math.sin(a), 0), [0, 0, 0, -Math.sin(a), Math.cos(a), 0, Math.cos(a), Math.sin(a), 0, 0, 0, 1].map((v, j) => j < 3 ? v : v))); })], anchors: { face: [0, 0, -20] } };
+/* the lotus: a flower in white on a green stem, as it is handed over */
+props.lotus = { parts: [row('3742', 15, L.I12), row('3742', 13, L.T(0, -2, 0)), row('33291', 2, L.T(0, 6, 0))], anchors: { bloom: [0, -4, 0] } };
 const out = path.join(L.ROOT, 'odyssey/keyframes/props.json');
 fs.writeFileSync(out, JSON.stringify(props));
 console.log('props:', Object.entries(props).map(([k, p]) => `${k} (${p.parts.length} parts)`).join(', '), '->', path.relative(L.ROOT, out));

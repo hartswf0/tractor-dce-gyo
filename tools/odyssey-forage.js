@@ -142,10 +142,10 @@ function stageOf(loc, title) {
 }
 const LOC_ALIAS = { 'location.aftermath-hall': 'location.megaron-hall', 'location.cleaned-palace-hall': 'location.megaron-hall', 'location.night-palace-hall': 'location.megaron-hall', 'location.palace-night-interior': 'location.megaron-hall', 'location.festival-ready-hall': 'location.megaron-hall', 'location.recognition-seating': 'location.megaron-hall', 'location.night-hearth-interview': 'location.megaron-hall', 'location.bow-storeroom': 'location.weapon-storeroom', 'location.palace-family-chamber': 'location.upper-chamber-and-stair' };
 /* scenes at sea stand on a sea set whatever island the atlas names for them */
-const SCENE_SET = { 'OD-B05-S05': 'storm', 'OD-B12-S03': 'sirens', 'OD-B12-S04': 'strait', 'OD-B12-S07': 'wreck', 'OD-B10-S01': 'voyage', 'OD-B13-S01': 'voyage', 'OD-B09-S11': 'boast', 'OD-B17-S03': 'argos' };
-const SEA = new Set(['sirens', 'strait', 'storm', 'wreck', 'voyage', 'boast']);
+const SCENE_SET = { 'OD-B05-S05': 'storm', 'OD-B12-S03': 'sirens', 'OD-B12-S04': 'strait', 'OD-B12-S07': 'wreck', 'OD-B10-S01': 'voyage', 'OD-B13-S01': 'voyage', 'OD-B09-S11': 'boast', 'OD-B17-S03': 'argos', 'OD-B09-S03': 'lotus', 'OD-B05-S04': 'ogygia', 'OD-B12-S06': 'thrinacia', 'OD-B21-S07': 'megaron' };
+const SEA = new Set(['sirens', 'strait', 'storm', 'wreck', 'voyage', 'boast', 'lotus', 'ogygia', 'thrinacia']);
 /* cast the atlas leaves out but the text needs on stage: Eurylochus's scouts, the men Circe turns (Homer X: "twenty-two men") */
-const SCENE_CAST = { 'OD-B10-S04': [{ id: 'ensemble.circe-scouts', name: 'five scouts', type: 'ensemble' }] };
+const SCENE_CAST = { 'OD-B10-S04': [{ id: 'ensemble.circe-scouts', name: 'five scouts', type: 'ensemble' }], 'OD-B21-S07': [{ id: 'ensemble.bow-suitors', name: 'six suitors', type: 'ensemble' }] };
 for (const [sid, xs] of Object.entries(SCENE_CAST)) { const sc = manifest.scenes.find(s => s.id === sid); if (!sc) continue; for (const x of xs) { if (!manifest.assets.some(a => a.id === x.id)) manifest.assets.push(x); if (!sc.assets.includes(x.id)) sc.assets.push(x.id); } }
 let prevLoc = {}; const bookLoc = {};   // the first place each book names (through the aliases): where a book's unplaced opening scenes stand
 for (const sc of manifest.scenes) { if (bookLoc[sc.book]) continue; const l = sc.assets.find(a => a.startsWith('location.')); const id = l && (built.has(l) ? l : LOC_ALIAS[l]); if (id) bookLoc[sc.book] = id; }
