@@ -33,7 +33,8 @@ const kfShort=k=>k.replace(/^odyssey-od-b\d\d-s\d\d-/,'');
 const kfActor=id=>ButterCast.cast.find(a=>kfShort(a.kind)===id);
 const kfWorld=o=>o.getWorldPosition(new THREE.Vector3());
 const kfShown=o=>{for(;o;o=o.parent)if(o.visible===false)return false;return true;};
-const kfSolid=o=>o.isMesh&&kfShown(o)&&!o.userData.rope&&!(o.geometry&&o.geometry.type==='PlaneGeometry')&&!(o.userData&&o.userData.axis)&&!(o.material&&o.material.transparent&&o.material.opacity<0.3);   /* the set and the cast, not the workspace's helper planes */
+const kfHeld=o=>{for(;o;o=o.parent)if(o.userData&&o.userData.held)return true;return false;};   /* a prop held in a hand is part of the figure: not ground, not a wall */
+const kfSolid=o=>o.isMesh&&kfShown(o)&&!kfHeld(o)&&!o.userData.rope&&!(o.geometry&&o.geometry.type==='PlaneGeometry')&&!(o.userData&&o.userData.axis)&&!(o.material&&o.material.transparent&&o.material.opacity<0.3);   /* the set and the cast, not the workspace's helper planes */
 function kfCast(){return ButterCast.cast.map(a=>{const b=new THREE.Box3().setFromObject(a.rig.figure);return {id:kfShort(a.kind),x:+a.rig.pos.x.toFixed(1),y:+a.rig.pos.y.toFixed(1),z:+a.rig.pos.z.toFixed(1),heading:+a.rig.heading.toFixed(2),height:+(b.max.y-b.min.y).toFixed(1)};});}
 function kfPieces(){const A=filmAsset();return (A.pages||[]).map((pg,i)=>({label:pg.label,x:+A.rows[i].x.toFixed(1),z:+A.rows[i].z.toFixed(1),box:pg.box||null}));}
 /* the floor under a figure: the first surface below its knee (a deck, a crag, the plate), not a yard or a roof above it */
@@ -55,7 +56,7 @@ function kfBlock(list){for(const e of list){const a=kfActor(e.id);if(!a){console
     const h=new THREE.Raycaster(new THREE.Vector3(r.pos.x,from,r.pos.z),new THREE.Vector3(0,-1,0)).intersectObjects(ms,true)[0];r.pos.y=h?h.point.y:r.pos.y;}   /* stood on the highest body under a grip: a man on the giant's chest */else if(e.y!=null)r.pos.y=e.y;
   const f=typeof e.face==='string'?(e.face.startsWith('@')?kfAnchor(e.face.slice(1)):kfActor(e.face)?.rig.pos):Array.isArray(e.face)?{x:e.face[0],z:e.face[1]}:null;
   if(f)r.heading=Math.atan2(f.x-r.pos.x,f.z-r.pos.z);else if(e.heading!=null)r.heading=e.heading;
-  r.figure.position.copy(r.pos);r.figure.rotation.y=r.heading;r.hold=e.pose||r.hold||{};
+  r.figure.position.copy(r.pos);r.figure.rotation.set(0,r.heading,0,'YXZ');if(e.tilt){r.figure.rotation.set(e.tilt[0]||0,r.heading,e.tilt[1]||0,'YXZ');r.air=true;}r.hold=e.pose||r.hold||{};   /* tilt: the whole figure leaned (a man falling across a table), held as in the air */
   for(const k of ['armRP','armLP','headP','torsoP','legRP','legLP']){const v=r.hold[k]||[0,0,0];r[k].rotation.set(v[0],v[1],v[2]);}
   /* sit: the thighs level, the hips on the highest seat under the figure (a bench, a throne), the feet hanging; the support check then looks under the hips */
   r.sat=!!e.sit;if(e.sit){const figs=new Set();ButterCast.cast.forEach(b=>b.rig.figure.traverse(o=>figs.add(o)));const ms=[];scene.traverse(o=>{if(kfSolid(o)&&!figs.has(o))ms.push(o);});
@@ -184,7 +185,7 @@ function kfPropsAfter(list){const late=(list||[]).filter(e=>e.after);if(late.len
 function kfProps(list,late=false){if(!late){for(const o of kfPropObjs.values())scene.remove(o);kfPropObjs.clear();}const sc=filmAsset().scale;
   for(const e of list||[]){if(!!e.after!==late)continue;const P=kfPropLib[e.name];if(!P){console.warn('[props] unknown',e.name);continue;}const id=e.id||e.name,g=P.template.clone(true),m=e.scale||1;g.scale.set(sc*m,-sc*m,-sc*m);
     for(const [an,v] of Object.entries(P.anchors||{})){const o=new THREE.Object3D();o.position.set(...v);o.name='@'+id+'.'+an;g.add(o);}
-    const h=new THREE.Group();h.add(g);h.name='prop:'+id;
+    const h=new THREE.Group();h.add(g);h.name='prop:'+id;if(e.after&&typeof e.aim?.to==='string'&&e.aim.to.startsWith('hand:'))h.userData.held=true;
     const at=e.at?kfPoint(e.at).add(new KV(...(e.off||[0,0,0]))):new KV();for(const o of kfPropObjs.values())o.visible=false;const ground=e.floor?kfGround(at.x,at.z):null;for(const o of kfPropObjs.values())o.visible=true;   /* a prop rests on the set, not on another prop */
     if(e.rot)h.rotation.set(e.rot[0],e.rot[1],e.rot[2],'YXZ');scene.add(h);kfPropObjs.set(id,h);h.updateMatrixWorld(true);
     if(e.aim){const to=kfPoint(e.aim.to).add(new KV(...(e.aim.off||[0,0,0]))),dir=(e.aim.from?to.clone().sub(kfPoint(e.aim.from)):new KV(...e.aim.dir)).normalize();

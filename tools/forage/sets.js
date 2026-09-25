@@ -11,7 +11,7 @@
 'use strict';
 const B = require('./build.js'), K = B.K;
 const { kit, part, parts, donor, fig, at, rowsOf, foot } = B;
-const C = { black: 0, red: 4, yellow: 14, white: 15, tan: 19, orange: 25, dtan: 28, tDBlue: 33, tYellow: 46, tClear: 47, tOrange: 57, rbrown: 70, lbg: 71, dbg: 72, dblue: 272, dgreen: 288, gold: 297, dbrown: 308, dred: 320, olive: 330, sgreen: 378, green: 2, purple: 22, blue: 1 };
+const C = { black: 0, red: 4, yellow: 14, white: 15, tan: 19, orange: 25, dtan: 28, tDBlue: 33, tYellow: 46, tClear: 47, tOrange: 57, rbrown: 70, lbg: 71, dbg: 72, dblue: 272, dgreen: 288, gold: 297, dbrown: 308, dred: 320, olive: 330, sgreen: 378, green: 2, purple: 22, blue: 1, silver: 179 };
 const col1 = (id, col, x, z, h, y = 0) => Array.from({ length: h }, (_, i) => K.part(id, col, x, z, y + i));
 
 /* ── furniture ── */
@@ -282,6 +282,55 @@ function thrinacia() {
   list.push({ id: '3741ac01', col: C.yellow, x: 8, z: 16 }, { id: '3741ac01', col: C.yellow, x: -6, z: 19 });
   return REAL('thrinacia', list);
 }
+/* the river mouth on Scheria (Homer VI): "the river... the washing-cisterns that were always full", the clothes spread on the beach
+   to dry, the olive thicket where Odysseus slept under the leaves; the sea at the back, the beach, the meadow and river in front */
+function riverMouth() {
+  const list = [];
+  /* the river: trans dark blue plates winding across the meadow to the beach, two pools edged with grey stones */
+  for (const [x, z] of [[-14, 22], [-12, 20], [-10, 18], [-8, 16], [-6, 14], [-4, 12], [-2, 10], [0, 8], [1, 6], [2, 4]]) list.push({ id: '3031', col: C.tDBlue, x, z, base: -8 });
+  for (const [x, z, w] of [[-9, 20, 3], [-3, 16, 2]]) { list.push({ id: '3958', col: C.tDBlue, x, z, base: -8 });
+    for (let a = 0; a < 10; a++) list.push({ id: a % 2 ? '3062b' : '6141', col: a % 3 ? C.lbg : C.dbg, x: x + 3.6 * Math.cos(a * 0.63), z: z + 3.6 * Math.sin(a * 0.63), base: -8 }); }
+  /* the washing: white and coloured tiles spread on the pebbles to dry, a wagon's worth */
+  for (const [x, z, c] of [[5, 2, C.white], [7, 3, C.white], [6, 5, C.yellow], [9, 1, C.white], [8, -1, C.red], [11, 3, C.white], [4, -1, C.lbg]]) list.push({ id: '3068b', col: c, x, z, base: -8 });
+  /* the olive thicket where he slept: two olives grown into one, leaves heaped under them */
+  list.push(R('3470', C.olive, 11, 16), R('3470', C.green, 13, 18), R('2417', C.olive, 10, 14), R('2417', C.green, 12, 13), R('2423', C.olive, 14, 15), { id: '2417', col: C.olive, x: 12, z: 16, base: -8 - 16 });
+  list.push(R('3470', C.green, -14, 10), R('3778', C.dgreen, -15, 16), R('2417', C.dgreen, -12, 12), R('3741ac01', C.yellow, 0, 18), R('3741ac04', C.red, 4, 21), R('6255', C.green, -6, 22));
+  list.push({ id: '53934p01c01', col: C.dtan, x: -13, z: -2, base: -8 }, { id: '42291', col: C.dtan, x: 14, z: -3, base: -8 });
+  return REAL('the river mouth', list);
+}
+/* the edge of Ocean (Homer XI): "the level shore... the groves of Proserpine, tall poplars and willows"; the trench a cubit each way,
+   the blood in it, the dark rocks; the black ship drawn up; mist */
+function underworld() {
+  const list = [];
+  list.push({ id: '3031', col: C.black, x: 0, z: 12, base: -8 + 6 }, { id: '3958', col: C.dbg, x: 0, z: 12, base: -8 - 0 + 2 });
+  for (const [x, z] of [[-1, 11], [1, 11], [0, 13], [-1, 13], [1, 13], [0, 11]]) list.push({ id: '6141', col: 36, x, z, base: -8 - 8 + 4 });
+  for (let a = 0; a < 14; a++) list.push({ id: a % 2 ? '3062b' : '4589', col: a % 3 ? C.dbg : C.dtan, x: 3.6 * Math.cos(a * 0.45), z: 12 + 3.6 * Math.sin(a * 0.45), base: -8 });
+  /* the grove: black poplars and willows in dark green and olive, rocks */
+  for (const [x, z, id, c] of [[-13, 18, '3471', C.dgreen], [-9, 22, '3778', C.dgreen], [12, 20, '3471', C.dgreen], [15, 14, '3470', C.olive], [-15, 10, '3470', C.olive], [8, 23, '3778', C.dgreen]]) list.push(R(id, c, x, z));
+  list.push({ id: '6082', col: C.dbg, x: -12, z: 4, base: -8, q: 1 }, { id: '6083', col: C.dbg, x: -12, z: 4, base: -8 - 144, q: 1 }, { id: '23996', col: C.dbg, x: 13, z: 5, base: -8, q: 2 }, { id: '53934p01c01', col: C.dbg, x: 6, z: 16 }, { id: '53934p01c01', col: C.dbg, x: -6, z: 18 });
+  list.push({ id: '6260', col: C.white, x: 4, z: 9 }, { id: '6266', col: C.white, x: -4, z: 15 });
+  return REAL("the edge of ocean", list);
+}
+const shoreFloorDark = () => REAL('the dark shore', [R('3857', C.dblue, 0, 16, -8), R('3857', C.dbg, 0, 0, -8), R('3857', C.dbg, 0, -16, -8)]);
+/* the marriage chamber (Homer XXIII): the room of close-set stone built round the olive, its trunk the bedpost, the bed inlaid with
+   gold, silver and ivory, the crimson ox-hide thongs; a doorway to the hall, a lamp, Penelope's chair */
+function chamber() {
+  const W = C.tan, list = [];
+  for (const x of [-6, 2]) for (const z of [-8, 0, 8]) list.push(R('3958', C.dtan, x * 1.5, z));
+  list.push(...coursing(W, -12.5, 12.5, -12.5, 8, { band: C.dred }));
+  for (const sd of [-1, 1]) list.push(...coursing(W, -12.5, -0.5, sd * 12.5, 8, { alongZ: true, holes: sd > 0 ? [[-7.5, -5.5, 0, 4]] : [] }));
+  /* the olive: its trunk rising through the bed's head, boughs cut, leaves above the wall */
+  for (let k = 0; k < 9; k++) list.push({ id: '3941', col: C.rbrown, x: 0, z: -11, base: -8 - 24 * k });
+  list.push({ id: '2417', col: C.olive, x: 0, z: -11, base: -8 - 216 }, { id: '2417', col: C.green, x: -2, z: -10, base: -8 - 200 }, { id: '2423', col: C.olive, x: 2, z: -11, base: -8 - 208 });
+  /* the bed: frame of reddish brown on posts, gold and silver tiles inlaid on the rails, crimson covers, white pillows */
+  for (const [x, z] of [[-3, -10], [3, -10], [-3, -2], [3, -2]]) list.push({ id: '3062b', col: C.rbrown, x, z, base: -8 });
+  list.push({ id: '3032', col: C.rbrown, x: 0, z: -8, base: -32 }, { id: '3032', col: C.rbrown, x: 0, z: -4, base: -32 }, { id: '3032', col: C.dred, x: 0, z: -6, base: -40 }, { id: '3068b', col: C.white, x: -1, z: -9.5, base: -48 }, { id: '3068b', col: C.white, x: 1, z: -9.5, base: -48 });
+  for (const [x, z, c] of [[-3, -6, C.gold], [3, -6, C.silver], [0, -1.5, C.gold]]) list.push({ id: '3069b', col: c, x, z, base: -40, q: x ? 1 : 0 });
+  /* a lamp stand, a chair, a chest, a rug */
+  list.push({ id: '2453b', col: C.gold, x: 8, z: -10, base: -8 }, { id: '4740', col: C.gold, x: 8, z: -10, base: -128 }, { id: '3062b', col: C.tOrange, x: 8, z: -10, base: -136 });
+  list.push({ id: '3031', col: C.dred, x: 0, z: 3, base: -8 });
+  return REAL('the marriage chamber', list);
+}
 const SETS = {
   /* Odysseus's megaron at Ithaca: the hall of the suitors, the bow and the slaughter */
   megaron: () => room('the megaron at ithaca', 36, 30, floor(36, 30, C.dtan, C.tan), [
@@ -343,6 +392,12 @@ const SETS = {
     { calypso: M(-8, 8, 0, 'Calypso at her cave'), odysseus: M(4, 4, 0, 'Odysseus at the raft'), raft: M(4, 0, 0, 'the raft on the beach'), wood: M(10, 16, 0, 'the wood'), centre: M(0, 10, 0) }),
   thrinacia: () => room('thrinacia, the island of the sun', 32, 48, shoreFloor(), [[thrinacia(), 0, 0], [KIT.galley({ furled: true }), 3, -5, 1], [KIT.swell(5, 2), -10, -17], [KIT.swell(5, 4), 9, -16]],
     { eurylochus: M(-2, 10, 2, 'Eurylochus at the altar'), crew: M(3, 10, 0, 'the crew at the fire', 'x'), odysseus: M(-12, 20, 0, 'Odysseus asleep inland'), cattle: M(6, 18, 0, 'the cattle of the Sun', 'x'), centre: M(0, 12, 0) }),
+  river: () => room('the river mouth on scheria', 32, 48, shoreFloor(), [[riverMouth(), 0, 0], [KIT.swell(5, 1), -8, -17], [KIT.swell(5, 3), 9, -19]],
+    { nausicaa: M(4, 6, 0, 'Nausicaa by the washing'), maids: M(0, 3, 0, 'the maids at play', 'x'), odysseus: M(12, 14, 2, 'Odysseus in the thicket'), centre: M(0, 8, 0) }),
+  underworld: () => room('the edge of ocean', 32, 48, shoreFloorDark(), [[underworld(), 0, 0], [KIT.galley({ furled: true }), 0, -8, 1]],
+    { odysseus: M(0, 9, 2, 'Odysseus at the trench, sword drawn'), crew: M(-4, 5, 0, 'the crew with the sheep', 'x'), shades: M(0, 18, 0, 'the dead gathering', 'x'), pit: M(0, 12, 0, 'the trench'), centre: M(0, 12, 0) }),
+  chamber: () => room('the marriage chamber', 28, 26, floor(28, 26, C.dtan), [[chamber(), 0, 0]],
+    { penelope: M(-4, 4, 0, 'Penelope by the door'), odysseus: M(4, 4, 0, 'Odysseus'), eurycleia: M(8, 8, 0, 'Eurycleia'), bed: M(0, -6, 0, 'the olive bed'), centre: M(0, 4, 0) }),
   /* the sea sets, in real kits: the blue baseplate sea, the galley bow-on to the camera (its crew two abreast on the deck, the mast
      amidships), the places it passes built of rock panels, baseplates and plants. Marks with a y stand on the deck or a crag. */
   sirens: () => room("the sirens' sea", 32, 48, seaFloor('beach'), [

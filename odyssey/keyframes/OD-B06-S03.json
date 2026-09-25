@@ -1,0 +1,963 @@
+{
+ "scene": "OD-B06-S03",
+ "location": "odyssey-od-b06-s03",
+ "title": "Nausicaa",
+ "source": "Homer, Odyssey VI, tr. Samuel Butler (public domain)",
+ "note": "Hand-staged from the text on the river mouth (tools/forage/sets.js riverMouth): the olive thicket where he slept at the right, the washing spread on the beach, the river and its pools.",
+ "look": {
+  "sky": [
+   "#7fb3dc",
+   "#f7e6c3"
+  ],
+  "fog": [
+   800,
+   2400
+  ],
+  "fill": {
+   "sky": "#d3e0f0",
+   "ground": "#44482c",
+   "intensity": 0.5
+  },
+  "sun": {
+   "dir": [
+    -0.4,
+    0.7,
+    0.6
+   ],
+   "color": "#fff0cf",
+   "intensity": 1.25,
+   "shadow": true
+  },
+  "exposure": 1.0
+ },
+ "spread": 0,
+ "blocking": [],
+ "keys": [
+  {
+   "id": "K1",
+   "beat": "Odysseus debates whether to clasp Nausicaa's knees or speak from a distance.",
+   "text": "Then they began to play at ball... and the ball fell into deep water. On this they all shouted, and the noise they made woke Ulysses, who sat up in his bed of leaves and began to wonder what it might all be.",
+   "hide": [
+    "leafy modesty branch",
+    "athena's courage field"
+   ],
+   "props": [
+    {
+     "name": "ball",
+     "id": "ball",
+     "at": [
+      60,
+      70,
+      260
+     ],
+     "scale": 1.2
+    }
+   ],
+   "blocking": [
+    {
+     "id": "odysseus",
+     "x": -120,
+     "z": 150,
+     "y": "floor",
+     "face": [
+      10,
+      230
+     ],
+     "props": false,
+     "pose": {
+      "legRP": [
+       -1.5708,
+       0,
+       0
+      ],
+      "legLP": [
+       -1.5708,
+       0,
+       0
+      ],
+      "headP": [
+       0,
+       0.3,
+       0
+      ]
+     },
+     "sit": true,
+     "reach": 10
+    },
+    {
+     "id": "nausicaa",
+     "x": 10,
+     "z": 230,
+     "y": "floor",
+     "face": [
+      80,
+      250
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.6,
+       0,
+       0.2
+      ]
+     }
+    },
+    {
+     "id": "nausicaa-s-maids-1",
+     "x": 80,
+     "z": 250,
+     "y": "floor",
+     "face": [
+      10,
+      230
+     ],
+     "props": false,
+     "pose": {
+      "armLP": [
+       -2.4,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "nausicaa-s-maids-2",
+     "x": 130,
+     "z": 210,
+     "y": "floor",
+     "face": [
+      10,
+      230
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.6,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "nausicaa-s-maids-3",
+     "x": 120,
+     "z": 320,
+     "y": "floor",
+     "face": [
+      10,
+      230
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.0,
+       0,
+       0.2
+      ]
+     }
+    },
+    {
+     "id": "nausicaa-s-maids-4",
+     "x": 150,
+     "z": 290,
+     "y": "floor",
+     "face": [
+      10,
+      230
+     ],
+     "props": false
+    },
+    {
+     "id": "nausicaa-s-maids-5",
+     "x": 190,
+     "z": 250,
+     "y": "floor",
+     "face": [
+      10,
+      230
+     ],
+     "props": false,
+     "pose": {
+      "armLP": [
+       -1.2,
+       0,
+       0
+      ]
+     }
+    }
+   ],
+   "camera": {
+    "type": "wide",
+    "pos": [
+     -60,
+     70,
+     430
+    ],
+    "target": [
+     -60,
+     50,
+     190
+    ],
+    "fov": 48
+   },
+   "subjects": [
+    {
+     "id": "odysseus",
+     "min": 0.05,
+     "primary": true
+    },
+    {
+     "id": "nausicaa",
+     "soft": true,
+     "min": 0.03
+    }
+   ],
+   "lensAllow": [
+    "nausicaa-s-maids-1",
+    "nausicaa-s-maids-2",
+    "nausicaa-s-maids-3",
+    "nausicaa-s-maids-4",
+    "nausicaa-s-maids-5"
+   ]
+  },
+  {
+   "id": "K2",
+   "beat": "Covering himself with a leafy branch, he emerges like a mountain lion.",
+   "text": "He crept from under his bush, and broke off a bough covered with thick leaves to hide his nakedness. He looked like some lion of the wilderness that stalks about exulting in his strength.",
+   "hide": [
+    "leafy modesty branch",
+    "athena's courage field"
+   ],
+   "props": [
+    {
+     "name": "branch",
+     "id": "branch",
+     "after": true,
+     "aim": {
+      "anchor": "grip",
+      "to": "hand:odysseus:R",
+      "dir": [
+       0,
+       -0.8,
+       0.6
+      ]
+     },
+     "scale": 0.55
+    }
+   ],
+   "blocking": [
+    {
+     "id": "odysseus",
+     "x": -60,
+     "z": 225,
+     "y": 5.6,
+     "face": [
+      10,
+      230
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -0.35,
+       0,
+       0.1
+      ],
+      "armLP": [
+       -0.2,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "nausicaa",
+     "x": 10,
+     "z": 230,
+     "y": "floor",
+     "face": [
+      -80,
+      200
+     ],
+     "props": false
+    },
+    {
+     "id": "nausicaa-s-maids-1",
+     "x": 80,
+     "z": 250,
+     "y": "floor",
+     "face": [
+      -80,
+      200
+     ],
+     "props": false
+    },
+    {
+     "id": "nausicaa-s-maids-2",
+     "x": 130,
+     "z": 210,
+     "y": "floor",
+     "face": [
+      -80,
+      200
+     ],
+     "props": false
+    },
+    {
+     "id": "nausicaa-s-maids-3",
+     "x": 120,
+     "z": 320,
+     "y": "floor",
+     "face": [
+      -80,
+      200
+     ],
+     "props": false
+    },
+    {
+     "id": "nausicaa-s-maids-4",
+     "x": 150,
+     "z": 290,
+     "y": "floor",
+     "face": [
+      -80,
+      200
+     ],
+     "props": false
+    },
+    {
+     "id": "nausicaa-s-maids-5",
+     "x": 190,
+     "z": 250,
+     "y": "floor",
+     "face": [
+      -80,
+      200
+     ],
+     "props": false
+    }
+   ],
+   "camera": {
+    "type": "wide",
+    "pos": [
+     40,
+     62,
+     360
+    ],
+    "target": [
+     -70,
+     58,
+     210
+    ],
+    "fov": 42
+   },
+   "subjects": [
+    {
+     "id": "odysseus",
+     "min": 0.15,
+     "primary": true,
+     "face": true
+    }
+   ],
+   "lensAllow": [
+    "nausicaa-s-maids-1",
+    "nausicaa-s-maids-2",
+    "nausicaa-s-maids-3",
+    "nausicaa-s-maids-4",
+    "nausicaa-s-maids-5",
+    "nausicaa"
+   ]
+  },
+  {
+   "id": "K3",
+   "beat": "The maids flee, but Athena keeps Nausicaa steady.",
+   "text": "The girls scampered off all over the shore and the jutting points, but the daughter of Alcinous stood firm, for Minerva put courage into her heart and took away all fear from her.",
+   "hide": [
+    "leafy modesty branch",
+    "athena's courage field"
+   ],
+   "props": [
+    {
+     "name": "branch",
+     "id": "branch",
+     "after": true,
+     "aim": {
+      "anchor": "grip",
+      "to": "hand:odysseus:R",
+      "dir": [
+       0,
+       -1,
+       0.15
+      ]
+     },
+     "scale": 0.55
+    }
+   ],
+   "blocking": [
+    {
+     "id": "odysseus",
+     "x": -80,
+     "z": 200,
+     "y": "floor",
+     "face": [
+      10,
+      230
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -0.35,
+       0,
+       0.1
+      ]
+     }
+    },
+    {
+     "id": "nausicaa",
+     "x": 10,
+     "z": 230,
+     "y": "floor",
+     "face": [
+      -80,
+      200
+     ],
+     "props": false,
+     "pose": {
+      "armLP": [
+       -0.4,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "nausicaa-s-maids-1",
+     "x": 150,
+     "z": 300,
+     "y": "floor",
+     "face": [
+      350,
+      400
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.6,
+       0,
+       0.3
+      ],
+      "armLP": [
+       -2.4,
+       0,
+       -0.3
+      ],
+      "legRP": [
+       -0.6,
+       0,
+       0
+      ],
+      "legLP": [
+       0.5,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "nausicaa-s-maids-2",
+     "x": 180,
+     "z": 240,
+     "y": "floor",
+     "face": [
+      380,
+      340
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.6,
+       0,
+       0.3
+      ],
+      "armLP": [
+       -2.4,
+       0,
+       -0.3
+      ],
+      "legRP": [
+       -0.6,
+       0,
+       0
+      ],
+      "legLP": [
+       0.5,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "nausicaa-s-maids-3",
+     "x": 110,
+     "z": 330,
+     "y": "floor",
+     "face": [
+      310,
+      430
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.6,
+       0,
+       0.3
+      ],
+      "armLP": [
+       -2.4,
+       0,
+       -0.3
+      ],
+      "legRP": [
+       -0.6,
+       0,
+       0
+      ],
+      "legLP": [
+       0.5,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "nausicaa-s-maids-4",
+     "x": 200,
+     "z": 320,
+     "y": "floor",
+     "face": [
+      400,
+      420
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.6,
+       0,
+       0.3
+      ],
+      "armLP": [
+       -2.4,
+       0,
+       -0.3
+      ],
+      "legRP": [
+       -0.6,
+       0,
+       0
+      ],
+      "legLP": [
+       0.5,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "nausicaa-s-maids-5",
+     "x": 60,
+     "z": 340,
+     "y": "floor",
+     "face": [
+      260,
+      440
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.6,
+       0,
+       0.3
+      ],
+      "armLP": [
+       -2.4,
+       0,
+       -0.3
+      ],
+      "legRP": [
+       -0.6,
+       0,
+       0
+      ],
+      "legLP": [
+       0.5,
+       0,
+       0
+      ]
+     }
+    }
+   ],
+   "camera": {
+    "type": "wide",
+    "pos": [
+     -100,
+     95,
+     420
+    ],
+    "target": [
+     40,
+     55,
+     250
+    ],
+    "fov": 50
+   },
+   "subjects": [
+    {
+     "id": "nausicaa",
+     "min": 0.05,
+     "primary": true
+    },
+    {
+     "id": "odysseus",
+     "soft": true,
+     "cut": true
+    }
+   ],
+   "lensAllow": [
+    "nausicaa-s-maids-1",
+    "nausicaa-s-maids-2",
+    "nausicaa-s-maids-3",
+    "nausicaa-s-maids-4",
+    "nausicaa-s-maids-5"
+   ]
+  },
+  {
+   "id": "K4",
+   "beat": "Odysseus praises her tactfully, asks for clothing and directions, and avoids touching her.",
+   "text": "'O queen,' he said, 'I implore your aid, but tell me, are you a goddess or are you a mortal woman?... I never yet saw any one so beautiful, neither man nor woman.'",
+   "hide": [
+    "leafy modesty branch",
+    "athena's courage field"
+   ],
+   "props": [
+    {
+     "name": "branch",
+     "id": "branch",
+     "after": true,
+     "aim": {
+      "anchor": "grip",
+      "to": "hand:odysseus:R",
+      "dir": [
+       0,
+       -1,
+       0.15
+      ]
+     },
+     "scale": 0.55
+    }
+   ],
+   "blocking": [
+    {
+     "id": "odysseus",
+     "x": -45,
+     "z": 240,
+     "y": "floor",
+     "face": [
+      10,
+      330
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -0.35,
+       0,
+       0.1
+      ],
+      "armLP": [
+       -0.9,
+       0,
+       0.2
+      ],
+      "headP": [
+       0,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "nausicaa",
+     "x": 20,
+     "z": 240,
+     "y": "floor",
+     "face": [
+      -30,
+      330
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -0.3,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "nausicaa-s-maids-1",
+     "x": 80,
+     "z": 250,
+     "y": "floor",
+     "face": [
+      -80,
+      200
+     ],
+     "props": false
+    },
+    {
+     "id": "nausicaa-s-maids-2",
+     "x": 130,
+     "z": 210,
+     "y": "floor",
+     "face": [
+      -80,
+      200
+     ],
+     "props": false
+    },
+    {
+     "id": "nausicaa-s-maids-3",
+     "x": 120,
+     "z": 320,
+     "y": "floor",
+     "face": [
+      -80,
+      200
+     ],
+     "props": false
+    },
+    {
+     "id": "nausicaa-s-maids-4",
+     "x": 150,
+     "z": 290,
+     "y": "floor",
+     "face": [
+      -80,
+      200
+     ],
+     "props": false
+    },
+    {
+     "id": "nausicaa-s-maids-5",
+     "x": 190,
+     "z": 250,
+     "y": "floor",
+     "face": [
+      -80,
+      200
+     ],
+     "props": false
+    }
+   ],
+   "camera": {
+    "type": "wide",
+    "pos": [
+     -12,
+     70,
+     430
+    ],
+    "target": [
+     -12,
+     58,
+     240
+    ],
+    "fov": 34
+   },
+   "subjects": [
+    {
+     "id": "odysseus",
+     "min": 0.12,
+     "primary": true,
+     "face": true
+    },
+    {
+     "id": "nausicaa",
+     "min": 0.1,
+     "face": true
+    }
+   ],
+   "lensAllow": [
+    "nausicaa-s-maids-1",
+    "nausicaa-s-maids-2",
+    "nausicaa-s-maids-3",
+    "nausicaa-s-maids-4",
+    "nausicaa-s-maids-5"
+   ]
+  },
+  {
+   "id": "K5",
+   "beat": "Nausicaa answers with courage and assigns the maids to help him.",
+   "text": "'Stay where you are, you girls... this man is some poor waif who has lost his way; give him something to eat and drink, and wash him in the stream in some place that is sheltered from the wind.'",
+   "hide": [
+    "leafy modesty branch",
+    "athena's courage field"
+   ],
+   "props": [
+    {
+     "name": "branch",
+     "id": "branch",
+     "after": true,
+     "aim": {
+      "anchor": "grip",
+      "to": "hand:odysseus:R",
+      "dir": [
+       0,
+       -1,
+       0.15
+      ]
+     },
+     "scale": 0.55
+    }
+   ],
+   "blocking": [
+    {
+     "id": "nausicaa",
+     "x": 10,
+     "z": 230,
+     "y": "floor",
+     "face": [
+      40,
+      400
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.9,
+       0,
+       0.3
+      ]
+     }
+    },
+    {
+     "id": "odysseus",
+     "x": -70,
+     "z": 205,
+     "y": "floor",
+     "face": [
+      10,
+      230
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -0.35,
+       0,
+       0.1
+      ]
+     }
+    },
+    {
+     "id": "nausicaa-s-maids-1",
+     "x": 70,
+     "z": 300,
+     "y": "floor",
+     "face": [
+      10,
+      230
+     ],
+     "props": false
+    },
+    {
+     "id": "nausicaa-s-maids-2",
+     "x": -10,
+     "z": 320,
+     "y": "floor",
+     "face": [
+      10,
+      230
+     ],
+     "props": false,
+     "pose": {
+      "armLP": [
+       -0.6,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "nausicaa-s-maids-3",
+     "x": 110,
+     "z": 280,
+     "y": "floor",
+     "face": [
+      10,
+      230
+     ],
+     "props": false
+    },
+    {
+     "id": "nausicaa-s-maids-4",
+     "x": 40,
+     "z": 340,
+     "y": "floor",
+     "face": [
+      10,
+      230
+     ],
+     "props": false
+    },
+    {
+     "id": "nausicaa-s-maids-5",
+     "x": 150,
+     "z": 300,
+     "y": "floor",
+     "face": [
+      10,
+      230
+     ],
+     "props": false,
+     "pose": {
+      "headP": [
+       0,
+       0.3,
+       0
+      ]
+     }
+    }
+   ],
+   "camera": {
+    "type": "wide",
+    "pos": [
+     -30,
+     90,
+     480
+    ],
+    "target": [
+     20,
+     60,
+     250
+    ],
+    "fov": 40
+   },
+   "subjects": [
+    {
+     "id": "nausicaa",
+     "min": 0.08,
+     "primary": true,
+     "face": true
+    },
+    {
+     "id": "odysseus",
+     "soft": true,
+     "cut": true
+    }
+   ],
+   "lensAllow": [
+    "nausicaa-s-maids-1",
+    "nausicaa-s-maids-2",
+    "nausicaa-s-maids-3",
+    "nausicaa-s-maids-4",
+    "nausicaa-s-maids-5"
+   ]
+  }
+ ]
+}
