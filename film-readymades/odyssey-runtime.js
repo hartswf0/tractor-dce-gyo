@@ -178,9 +178,11 @@ async function kfLoadProps(){if(kfPropLib)return;const root=new URL('../../',loc
   /* LDraw colours are sRGB; the renderer encodes to sRGB on output, so the props' colours go linear once (as the baked set's do), or a dark grey wolf renders near white */
   const lin=new Set();for(const p of Object.values(kfPropLib))p.template.traverse(o=>{for(const m of [].concat(o.material||[]))if(m&&m.color&&!lin.has(m)){lin.add(m);if(renderer.outputEncoding===THREE.sRGBEncoding)m.color.convertSRGBToLinear();}});}
 function kfAnchor(n){let o=null;scene.traverse(q=>{if(!o&&q.name==='@'+n)o=q;});return o?o.getWorldPosition(new KV()):null;}
-function kfPoint(p){if(Array.isArray(p))return new KV(...p);if(typeof p==='string'&&p.startsWith('@'))return kfAnchor(p.slice(1));return kfHead(p);}
-function kfProps(list){for(const o of kfPropObjs.values())scene.remove(o);kfPropObjs.clear();const sc=filmAsset().scale;
-  for(const e of list||[]){const P=kfPropLib[e.name];if(!P){console.warn('[props] unknown',e.name);continue;}const id=e.id||e.name,g=P.template.clone(true),m=e.scale||1;g.scale.set(sc*m,-sc*m,-sc*m);
+function kfPoint(p){if(Array.isArray(p))return new KV(...p);if(typeof p==='string'&&p.startsWith('hand:')){const [,id,side]=p.split(':');return kfHand(id,side||'R');}if(typeof p==='string'&&p.startsWith('@'))return kfAnchor(p.slice(1));return kfHead(p);}
+/* after: a prop placed once the cast is blocked (an axe in a raised hand: at 'hand:odysseus:R') */
+function kfPropsAfter(list){const late=(list||[]).filter(e=>e.after);if(late.length)kfProps(late,true);}
+function kfProps(list,late=false){if(!late){for(const o of kfPropObjs.values())scene.remove(o);kfPropObjs.clear();}const sc=filmAsset().scale;
+  for(const e of list||[]){if(!!e.after!==late)continue;const P=kfPropLib[e.name];if(!P){console.warn('[props] unknown',e.name);continue;}const id=e.id||e.name,g=P.template.clone(true),m=e.scale||1;g.scale.set(sc*m,-sc*m,-sc*m);
     for(const [an,v] of Object.entries(P.anchors||{})){const o=new THREE.Object3D();o.position.set(...v);o.name='@'+id+'.'+an;g.add(o);}
     const h=new THREE.Group();h.add(g);h.name='prop:'+id;
     const at=e.at?kfPoint(e.at).add(new KV(...(e.off||[0,0,0]))):new KV();for(const o of kfPropObjs.values())o.visible=false;const ground=e.floor?kfGround(at.x,at.z):null;for(const o of kfPropObjs.values())o.visible=true;   /* a prop rests on the set, not on another prop */
@@ -207,4 +209,4 @@ function kfLight(l={}){kfTwoSided();for(const x of kfLights.splice(0))scene.remo
   renderer.toneMapping=l.tone===false?THREE.NoToneMapping:THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=l.exposure??1.15;
   scene.traverse(o=>{if(o.isMesh&&o.material)for(const m of [].concat(o.material))m.needsUpdate=true;});}
 function kfAnchors(){const out={};scene.traverse(q=>{if(q.name&&q.name.startsWith('@')){const v=q.getWorldPosition(new KV());out[q.name]=[+v.x.toFixed(0),+v.y.toFixed(0),+v.z.toFixed(0)];}});return out;}
-window.OdysseyFilm={anchors:kfAnchors,loadProps:kfLoadProps,props:kfProps,hide:kfHide,light:kfLight,anchor:kfAnchor,spread:kfSpread,floor:kfFloor,physics:kfPhysics,rope:kfRope,clutter:kfClutter,look:kfLook,ground:kfGround,rig:kfRig,lens:kfLens,asset:()=>filmAsset(),setCamera:c=>filmSetCamera(c),fit:()=>filmFit(),get cameras(){return filmAsset()?.cameras||[];},cast:kfCast,pieces:kfPieces,block:kfBlock,shoot:kfShoot,score:kfScore};
+window.OdysseyFilm={anchors:kfAnchors,loadProps:kfLoadProps,props:kfProps,propsAfter:kfPropsAfter,hide:kfHide,light:kfLight,anchor:kfAnchor,spread:kfSpread,floor:kfFloor,physics:kfPhysics,rope:kfRope,clutter:kfClutter,look:kfLook,ground:kfGround,rig:kfRig,lens:kfLens,asset:()=>filmAsset(),setCamera:c=>filmSetCamera(c),fit:()=>filmFit(),get cameras(){return filmAsset()?.cameras||[];},cast:kfCast,pieces:kfPieces,block:kfBlock,shoot:kfShoot,score:kfScore};

@@ -119,6 +119,7 @@ props.cowRed = { parts: [row('64452', 70, L.I12)], anchors: { back: [0, -40, 0] 
 props.sun = { parts: [row('3960', 297, L.mul(L.I12, RX(Math.PI / 2))), row('4150', 46, L.mul(L.T(0, 0, -16), RX(Math.PI / 2))), ...Array.from({ length: 12 }, (_, i) => { const a = i * Math.PI / 6; return row('4589', 57, L.mul(L.T(60 * Math.cos(a), 60 * Math.sin(a), 0), [0, 0, 0, -Math.sin(a), Math.cos(a), 0, Math.cos(a), Math.sin(a), 0, 0, 0, 1].map((v, j) => j < 3 ? v : v))); })], anchors: { face: [0, 0, -20] } };
 /* the lotus: a flower in white on a green stem, as it is handed over */
 props.lotus = { parts: [row('3742', 15, L.I12), row('3742', 13, L.T(0, -2, 0)), row('33291', 2, L.T(0, 6, 0))], anchors: { bloom: [0, -4, 0] } };
+props.axe = { parts: [row('3835', 72, L.I12)], anchors: { grip: [0, 26, 0], head: [0, -22, -6] } };
 const out = path.join(L.ROOT, 'odyssey/keyframes/props.json');
 fs.writeFileSync(out, JSON.stringify(props));
 console.log('props:', Object.entries(props).map(([k, p]) => `${k} (${p.parts.length} parts)`).join(', '), '->', path.relative(L.ROOT, out));
