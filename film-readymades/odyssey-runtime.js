@@ -148,6 +148,7 @@ function kfPhysics(ids,touch=[]){const set=new Set(ids),acts=ButterCast.cast.fil
     let n=0;for(const A of boxes.get(a))for(const B of boxes.get(b))if(kfSat(A,B))n++;if(n)collide.push([p,q,n]);}
   const meshes=[],figs=new Set();ButterCast.cast.forEach(a=>a.rig.figure.traverse(o=>figs.add(o)));scene.traverse(o=>{if(kfSolid(o)&&!figs.has(o))meshes.push(o);});
   for(const a of acts){const k=a.rig.headP.getWorldScale(new THREE.Vector3()).y;
+    {const r0=new THREE.Raycaster(a.rig.pos.clone().add(new THREE.Vector3(0,30*k,0)),new THREE.Vector3(0,-1,0));r0.far=60*k;const h0=r0.intersectObjects(meshes,true)[0];if(h0)support.set(kfShort(a.kind),kfPropOf(h0.object));}   /* what is under the feet, even of a figure held off it */
     if(a.rig.air)continue;
     if(a.rig.sat){a.rig.figure.updateMatrixWorld(true);const hp=kfWorld(a.rig.legRP),lp=kfWorld(a.rig.legLP),c=hp.clone().add(lp).multiplyScalar(0.5),h=new THREE.Raycaster(c.clone().add(new THREE.Vector3(0,2*k,0)),new THREE.Vector3(0,-1,0)).intersectObjects(meshes,true)[0],gap=h?c.y-h.point.y:Infinity;
       if(gap<-2*k||gap>14*k)floating.push([kfShort(a.kind),h?+gap.toFixed(1):null]);if(h)support.set(kfShort(a.kind),kfPropOf(h.object));continue;}   /* seated: the hips on the seat, the thighs' own depth above it */

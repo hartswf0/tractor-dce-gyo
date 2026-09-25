@@ -46,81 +46,81 @@
      "name": "wolf",
      "id": "wolf1",
      "at": [
-      -24,
+      -60,
       0,
-      76
+      112
      ],
      "rot": [
       0,
-      0.5,
+      0.25,
       0
      ],
      "floor": true,
-     "scale": 1.3
+     "scale": 1.05
     },
     {
      "name": "wolfGrey",
      "id": "wolf2",
      "at": [
-      -112,
+      40,
       0,
-      138
+      112
      ],
      "rot": [
       0,
-      1.5708,
+      -0.25,
       0
      ],
      "floor": true,
-     "scale": 1.3
+     "scale": 1.05
     },
     {
      "name": "lion",
      "id": "lion1",
      "at": [
-      70,
+      -10,
       0,
-      96
+      112
      ],
      "rot": [
       0,
-      -0.5,
+      0.25,
       0
      ],
      "floor": true,
-     "scale": 1.45
+     "scale": 1.05
     },
     {
      "name": "lion",
      "id": "lion2",
      "at": [
-      162,
+      90,
       0,
-      120
+      112
      ],
      "rot": [
       0,
-      -0.6,
+      -0.25,
       0
      ],
      "floor": true,
-     "scale": 1.45
+     "scale": 1.05
     },
     {
      "name": "wolf",
      "id": "wolf3",
      "at": [
-      125,
+      140,
       0,
-      50
+      112
      ],
      "rot": [
       0,
-      2.6,
+      -0.25,
       0
      ],
      "floor": true,
-     "scale": 1.3
+     "scale": 1.05
     }
    ],
    "blocking": [
@@ -154,30 +154,24 @@
     },
     {
      "id": "eurylochus",
-     "x": -70,
-     "z": 228,
+     "x": 0,
+     "z": 0,
      "y": "floor",
      "face": [
-      20,
-      -100
+      0,
+      0
      ],
      "props": false,
-     "pose": {
-      "armRP": [
-       -0.3,
-       0,
-       0.2
-      ]
-     }
+     "absent": true
     },
     {
      "id": "five-scouts-1",
-     "x": -32,
-     "z": 106,
+     "x": -62,
+     "z": 28,
      "y": "floor",
      "face": [
-      -24,
-      76
+      -25.5,
+      -160
      ],
      "props": false,
      "pose": {
@@ -195,12 +189,12 @@
     },
     {
      "id": "five-scouts-2",
-     "x": -80,
-     "z": 146,
+     "x": -35,
+     "z": 70,
      "y": "floor",
      "face": [
-      -112,
-      138
+      -10.5,
+      -160
      ],
      "props": false,
      "pose": {
@@ -213,12 +207,12 @@
     },
     {
      "id": "five-scouts-3",
-     "x": 88,
-     "z": 130,
+     "x": 15,
+     "z": 70,
      "y": "floor",
      "face": [
-      70,
-      96
+      4.5,
+      -160
      ],
      "props": false,
      "pose": {
@@ -236,12 +230,12 @@
     },
     {
      "id": "five-scouts-4",
-     "x": 138,
-     "z": 158,
+     "x": 65,
+     "z": 70,
      "y": "floor",
      "face": [
-      162,
-      120
+      19.5,
+      -160
      ],
      "props": false,
      "pose": {
@@ -254,12 +248,12 @@
     },
     {
      "id": "five-scouts-5",
-     "x": -6,
-     "z": 152,
+     "x": 115,
+     "z": 70,
      "y": "floor",
      "face": [
-      20,
-      -150
+      34.5,
+      -160
      ],
      "props": false
     }
@@ -267,40 +261,27 @@
    "camera": {
     "type": "wide",
     "pos": [
-     20,
-     300,
-     760
+     25,
+     165,
+     370
     ],
     "target": [
-     20,
-     55,
-     -30
+     15,
+     48,
+     -60
     ],
-    "fov": 22,
-    "subject": "circe",
-    "place": "C"
+    "fov": 38
    },
    "subjects": [
     {
      "id": "circe",
      "min": 0.03,
-     "primary": true,
-     "soft": true
-    },
-    {
-     "id": "five-scouts-1",
-     "soft": true,
-     "min": 0.05
+     "primary": true
     },
     {
      "id": "five-scouts-3",
      "soft": true,
-     "min": 0.05
-    },
-    {
-     "id": "prop:lion1",
-     "soft": true,
-     "cut": true
+     "min": 0.03
     }
    ],
    "turn": {
@@ -316,10 +297,8 @@
    "lensAllow": [
     "five-scouts-1",
     "five-scouts-2",
-    "five-scouts-3",
     "five-scouts-4",
-    "five-scouts-5",
-    "eurylochus"
+    "five-scouts-5"
    ]
   },
   {
@@ -330,26 +309,41 @@
     "crew-to-swine variants",
     "enchanted wolves and lions"
    ],
-   "props": [],
+   "props": [
+    {
+     "name": "goldWand",
+     "id": "wand",
+     "after": true,
+     "aim": {
+      "anchor": "grip",
+      "to": "hand:circe:R",
+      "dir": [
+       0.3,
+       -1,
+       0.4
+      ]
+     }
+    }
+   ],
    "blocking": [
     {
      "id": "circe",
-     "x": -62,
-     "z": -122,
+     "x": 95,
+     "z": -100,
      "y": "floor",
      "face": [
       20,
-      -80
+      -40
      ],
-     "props": true,
+     "props": false,
      "pose": {
       "armRP": [
        -2.6,
        0,
-       -0.1
+       0.2
       ],
       "armLP": [
-       -0.9,
+       -0.6,
        0,
        0
       ]
@@ -357,35 +351,24 @@
     },
     {
      "id": "eurylochus",
-     "x": 100,
-     "z": 45,
+     "x": 0,
+     "z": 0,
      "y": "floor",
      "face": [
-      -60,
-      -100
+      0,
+      0
      ],
      "props": false,
-     "pose": {
-      "armLP": [
-       -0.6,
-       0,
-       0
-      ],
-      "armRP": [
-       -0.2,
-       0,
-       0
-      ]
-     }
+     "absent": true
     },
     {
      "id": "five-scouts-1",
-     "x": -16,
+     "x": -50,
      "z": -56,
      "y": "floor",
      "face": [
-      -30,
-      -400
+      135,
+      -112
      ],
      "props": false,
      "pose": {
@@ -418,8 +401,8 @@
      "z": -56,
      "y": "floor",
      "face": [
-      20,
-      -400
+      135,
+      -112
      ],
      "props": false,
      "pose": {
@@ -452,67 +435,13 @@
      "z": -56,
      "y": "floor",
      "face": [
-      68,
-      -400
+      135,
+      -112
      ],
      "props": false,
      "pose": {
-      "legRP": [
-       -1.5708,
-       0,
-       0
-      ],
-      "legLP": [
-       -1.5708,
-       0,
-       0
-      ],
       "armRP": [
-       -0.8,
-       0,
-       0
-      ],
-      "armLP": [
-       -1.0,
-       0,
-       0
-      ],
-      "headP": [
-       0,
-       0.6,
-       0
-      ]
-     },
-     "sit": true
-    },
-    {
-     "id": "five-scouts-4",
-     "x": -10,
-     "z": -119,
-     "y": "floor",
-     "face": [
-      -10,
-      300
-     ],
-     "props": false,
-     "pose": {
-      "legRP": [
-       -1.5708,
-       0,
-       0
-      ],
-      "legLP": [
-       -1.5708,
-       0,
-       0
-      ],
-      "armRP": [
-       -1.0,
-       0,
-       0
-      ],
-      "armLP": [
-       -1.0,
+       -0.9,
        0,
        0
       ]
@@ -520,43 +449,28 @@
      "sit": true
     },
     {
-     "id": "five-scouts-5",
-     "x": 45,
-     "z": -119,
+     "x": 0,
+     "z": 0,
      "y": "floor",
      "face": [
-      45,
-      300
+      0,
+      0
      ],
      "props": false,
-     "pose": {
-      "legRP": [
-       -1.5708,
-       0,
-       0
-      ],
-      "legLP": [
-       -1.5708,
-       0,
-       0
-      ],
-      "armRP": [
-       -1.0,
-       0,
-       0
-      ],
-      "armLP": [
-       -1.0,
-       0,
-       0
-      ],
-      "headP": [
-       0,
-       -0.5,
-       0
-      ]
-     },
-     "sit": true
+     "absent": true,
+     "id": "five-scouts-4"
+    },
+    {
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true,
+     "id": "five-scouts-5"
     }
    ],
    "look": {
@@ -589,61 +503,31 @@
    "camera": {
     "type": "wide",
     "pos": [
-     60,
-     62,
-     150
+     30,
+     88,
+     140
     ],
     "target": [
-     30,
-     50,
-     -90
+     45,
+     60,
+     -80
     ],
-    "fov": 48,
-    "subject": "circe",
-    "place": "L"
+    "fov": 42
    },
    "subjects": [
     {
      "id": "circe",
-     "min": 0.15,
-     "primary": true
+     "min": 0.04,
+     "primary": true,
+     "face": true
     },
     {
      "id": "five-scouts-2",
      "soft": true,
-     "min": 0.05
-    },
-    {
-     "id": "five-scouts-3",
-     "soft": true,
-     "cut": true
-    },
-    {
-     "id": "eurylochus",
-     "soft": true,
-     "cut": true
-    },
-    {
-     "id": "five-scouts-1",
-     "soft": true,
-     "cut": true
+     "min": 0.03
     }
    ],
-   "turn": {
-    "around": [
-     60,
-     45,
-     -95
-    ],
-    "r": 190,
-    "h": 55,
-    "fov": 44
-   },
-   "lensAllow": [
-    "eurylochus",
-    "five-scouts-4",
-    "five-scouts-5"
-   ]
+   "lensAllow": []
   },
   {
    "id": "K3",
@@ -658,9 +542,9 @@
      "name": "pig",
      "id": "pig1",
      "at": [
-      -5,
+      -45,
       0,
-      -40
+      -5
      ],
      "rot": [
       0,
@@ -861,11 +745,6 @@
      "id": "circe",
      "soft": true,
      "min": 0.06
-    },
-    {
-     "id": "prop:pig1",
-     "soft": true,
-     "cut": true
     }
    ],
    "turn": {
@@ -898,7 +777,7 @@
      ],
      "rot": [
       0,
-      1.45,
+      -1.6900000000000002,
       0
      ],
      "floor": true,
@@ -914,7 +793,7 @@
      ],
      "rot": [
       0,
-      1.62,
+      -1.52,
       0
      ],
      "floor": true,
@@ -930,7 +809,7 @@
      ],
      "rot": [
       0,
-      1.8,
+      -1.34,
       0
      ],
      "floor": true,
@@ -973,22 +852,22 @@
    "blocking": [
     {
      "id": "circe",
-     "x": -90,
+     "x": -45,
      "z": 122,
      "y": "floor",
      "face": [
-      -200,
+      -140,
       122
      ],
      "props": false,
      "pose": {
       "armRP": [
-       -1.75,
+       -2.2,
        0,
-       -0.2
+       0.3
       ],
       "armLP": [
-       -0.5,
+       -0.4,
        0,
        0
       ]
@@ -1028,28 +907,23 @@
    "camera": {
     "type": "wide",
     "pos": [
-     30,
-     215,
-     140
+     -250,
+     125,
+     150
     ],
     "target": [
-     -160,
-     15,
+     -70,
+     45,
      120
     ],
-    "fov": 32
+    "fov": 42
    },
    "subjects": [
     {
      "id": "circe",
-     "min": 0.2,
+     "min": 0.05,
      "primary": true,
-     "cut": true
-    },
-    {
-     "id": "prop:pig1",
-     "soft": true,
-     "cut": true
+     "face": true
     }
    ],
    "turn": {
