@@ -1,13 +1,15 @@
 {
  "scene": "OD-B05-S05",
- "pass": true,
+ "pass": false,
  "keys": [
   {
    "id": "K1",
    "beat": "For seventeen days Odysseus steers by the stars until Scheria rises ahead.",
    "text": "He sat and guided the raft skilfully by means of the rudder, and never once did sleep fall upon his eyelids as he watched the Pleiads... on the eighteenth day the dim outlines of the mountains on the nearest part of the Phaeacian coast appeared.",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "prop:raft passes through odysseus (11 part overlaps)"
+   ],
    "camera": {
     "pos": [
      -160,
@@ -17,21 +19,27 @@
    },
    "lens": 0,
    "physics": {
-    "collide": [],
+    "collide": [
+     [
+      "prop:raft",
+      "odysseus",
+      11
+     ]
+    ],
     "floating": []
    },
    "subjects": {
     "odysseus": {
      "visible": 0.75,
-     "size": 0.369,
+     "size": 0.368,
      "inFrame": true,
      "head": [
       0.641,
-      0.46
+      0.461
      ],
      "facing": -0.94,
      "thirds": 0.026,
-     "headroom": 0.42,
+     "headroom": 0.422,
      "behind": false
     },
     "prop:raft": {
@@ -54,8 +62,11 @@
    "id": "K2",
    "beat": "Poseidon sees him, gathers clouds, and strikes the sea with a four-wind storm.",
    "text": "He gathered his clouds together, grasped his trident, stirred it round in the sea, and roused the rage of every wind that blows till earth, sea, and sky were hidden in cloud.",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "prop:raft passes through odysseus (11 part overlaps)",
+    "prop:sp1 passes through poseidon (1 part overlaps)"
+   ],
    "camera": {
     "pos": [
      -130,
@@ -65,7 +76,18 @@
    },
    "lens": 0,
    "physics": {
-    "collide": [],
+    "collide": [
+     [
+      "prop:raft",
+      "odysseus",
+      11
+     ],
+     [
+      "prop:sp1",
+      "poseidon",
+      1
+     ]
+    ],
     "floating": []
    },
    "subjects": {
@@ -84,15 +106,15 @@
     },
     "odysseus": {
      "visible": 0.75,
-     "size": 0.687,
+     "size": 0.684,
      "inFrame": false,
      "head": [
       0.858,
-      0.444
+      0.447
      ],
      "facing": -0.56,
-     "thirds": 0.111,
-     "headroom": 0.368,
+     "thirds": 0.113,
+     "headroom": 0.371,
      "behind": false
     }
    },
@@ -102,8 +124,10 @@
    "id": "K3",
    "beat": "The raft rolls; Odysseus is swept away and barely regains it.",
    "text": "A sea broke over him with such terrific fury that the raft reeled again, and he was carried overboard a long way off. He let go the helm, and the force of the hurricane was so great that it broke the mast half way up.",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "prop:raft passes through odysseus (1 part overlaps)"
+   ],
    "camera": {
     "pos": [
      -150,
@@ -113,21 +137,27 @@
    },
    "lens": 0.03,
    "physics": {
-    "collide": [],
+    "collide": [
+     [
+      "prop:raft",
+      "odysseus",
+      1
+     ]
+    ],
     "floating": []
    },
    "subjects": {
     "odysseus": {
      "visible": 1,
-     "size": 0.506,
+     "size": 0.505,
      "inFrame": true,
      "head": [
       0.498,
-      0.438
+      0.44
      ],
      "facing": -0.99,
-     "thirds": 0.105,
-     "headroom": 0.383,
+     "thirds": 0.106,
+     "headroom": 0.385,
      "behind": false
     },
     "prop:raft": {
@@ -150,8 +180,11 @@
    "id": "K4",
    "beat": "Ino gives him an immortal veil and orders him to abandon the raft and swim.",
    "text": "Ino... took pity upon him, and rising like a sea-gull from the waves, took her seat upon the raft. 'Take off your clothes, leave your raft, and swim for the Phaeacian coast. Take my veil and put it round your chest.'",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "prop:raft passes through odysseus (8 part overlaps)",
+    "prop:raft passes through ino-leucothea (10 part overlaps)"
+   ],
    "camera": {
     "pos": [
      160,
@@ -161,7 +194,18 @@
    },
    "lens": 0,
    "physics": {
-    "collide": [],
+    "collide": [
+     [
+      "prop:raft",
+      "odysseus",
+      8
+     ],
+     [
+      "prop:raft",
+      "ino-leucothea",
+      10
+     ]
+    ],
     "floating": []
    },
    "subjects": {
@@ -180,15 +224,15 @@
     },
     "odysseus": {
      "visible": 1,
-     "size": 0.578,
+     "size": 0.576,
      "inFrame": true,
      "head": [
       0.322,
-      0.374
+      0.376
      ],
      "facing": 0.4,
      "thirds": 0.011,
-     "headroom": 0.311,
+     "headroom": 0.313,
      "behind": false
     }
    },
@@ -215,15 +259,15 @@
    "subjects": {
     "odysseus": {
      "visible": 1,
-     "size": 0.317,
+     "size": 0.315,
      "inFrame": true,
      "head": [
       0.486,
-      0.487
+      0.488
      ],
      "facing": -0.98,
      "thirds": 0.152,
-     "headroom": 0.453,
+     "headroom": 0.454,
      "behind": false
     }
    },

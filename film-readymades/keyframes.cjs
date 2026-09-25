@@ -63,7 +63,7 @@ const onlyIds=process.argv.includes('--only')?process.argv[process.argv.indexOf(
 for(const k of spec.keys.filter(k=>!onlyIds||onlyIds.includes(k.id))){
  await p.evaluate(()=>OdysseyFilm.loadProps());
  const r=await p.evaluate(({base,k,look,spread,props})=>{OdysseyFilm.hide(k.hide||[]);OdysseyFilm.props([...(props||[]),...(k.props||[])]);OdysseyFilm.block(base);if(spread)OdysseyFilm.spread(spread);OdysseyFilm.block(k.blocking||[]);OdysseyFilm.propsAfter([...(props||[]),...(k.props||[])]);OdysseyFilm.light(Object.assign({},look,k.look));const cam=OdysseyFilm.rig(k.camera);
-   OdysseyFilm.look(Object.assign({},look,k.look));OdysseyFilm.rope(k.rope||null);const phys=OdysseyFilm.physics(ButterCast.cast.map(a=>a.kind.replace(/^odyssey-od-b\d\d-s\d\d-/,'')),k.touch||[]);const sc=OdysseyFilm.score(k.subjects);const clutter=OdysseyFilm.clutter((k.subjects.find(s=>s.primary&&!s.id.startsWith('piece:'))||k.subjects.find(s=>!s.id.startsWith('piece:'))||{id:(k.subjects[0]||{}).id}).id,[...(k.lensAllow||[]),...k.subjects.map(s=>s.id)]);const prim=(k.subjects.find(s=>s.primary)||{}).id;const lens=OdysseyFilm.lens(prim||k.subjects[0].id,k.lensAllow||[]);renderStill(scene,camera);const png=renderer.domElement.toDataURL('image/png');return {cam,sc,lens,clutter,phys,png};},{base:spec.blocking,k,look:spec.look||{},spread:spec.spread||0,props:spec.props||[]});
+   OdysseyFilm.look(Object.assign({},look,k.look));OdysseyFilm.rope(k.rope||null);const phys=OdysseyFilm.physics(ButterCast.cast.map(a=>a.kind.replace(/^odyssey-od-b\d\d-s\d\d-/,'')),k.touch||[]);const sc=OdysseyFilm.score(k.subjects);const others=OdysseyFilm.score(ButterCast.cast.filter(a=>!a.rig.absent).map(a=>({id:a.kind.replace(/^odyssey-od-b\d\d-s\d\d-/,'')})).filter(o=>!k.subjects.some(s=>s.id===o.id)));const clutter=OdysseyFilm.clutter((k.subjects.find(s=>s.primary&&!s.id.startsWith('piece:'))||k.subjects.find(s=>!s.id.startsWith('piece:'))||{id:(k.subjects[0]||{}).id}).id,[...(k.lensAllow||[]),...k.subjects.map(s=>s.id)]);const prim=(k.subjects.find(s=>s.primary)||{}).id;const lens=OdysseyFilm.lens(prim||k.subjects[0].id,k.lensAllow||[]);renderStill(scene,camera);const png=renderer.domElement.toDataURL('image/png');return {cam,sc,others,lens,clutter,phys,png};},{base:spec.blocking,k,look:spec.look||{},spread:spec.spread||0,props:spec.props||[]});
  const fails=[];
  for(const s of k.subjects){const m=r.sc[s.id];if(!m||m.missing){fails.push(s.id+' missing');continue;}
   if(m.behind)fails.push(s.id+' behind the camera');
@@ -78,6 +78,12 @@ for(const k of spec.keys.filter(k=>!onlyIds||onlyIds.includes(k.id))){
  if(r.lens>0.1)fails.push(`lens crowded (${r.lens})`);
  if(r.clutter.length)fails.push(`foreground clutter: ${r.clutter.join(', ')}`);
  for(const [a,b2,n] of r.phys.collide)fails.push(`${a} passes through ${b2} (${n} part overlaps)`);
+ /* every figure in the frame earns its pixels: none peeks from behind another, none is cropped to a headless body (a still that
+    wants one hidden hides it outright, or marks it veiled) */
+ for(const [id,m] of Object.entries(r.others||{})){if(m.missing||m.behind||(k.veiled||[]).includes(id))continue;const [u0,u1,v0,v1]=m.box,onScreen=u1>0&&u0<1&&v1>0&&v0<1;if(!onScreen)continue;
+  const headIn=m.head[0]>0&&m.head[0]<1&&m.head[1]>0&&m.head[1]<1;
+  if(!headIn)fails.push(`${id} cropped to a headless body`);else if(!(k.lensAllow||[]).includes(id)&&(u0<-0.04||u1>1.04))fails.push(`${id} sliced by the frame edge`);else if(m.visible>0&&m.visible<0.75)fails.push(`${id} peeks from behind (${m.visible})`);}
+ for(const [a,pr] of r.phys.perched||[])fails.push(`${a} stands on ${pr}, not the floor`);
  for(const [a,g] of r.phys.floating)fails.push(`${a} ${g==null?'stands on nothing':g>0?'floats '+g:'is sunk '+(-g)}`);
  if(process.argv.includes('--plan')){console.log('   anchors',JSON.stringify(await p.evaluate(()=>OdysseyFilm.anchors())),'\n   cast',JSON.stringify(await p.evaluate(()=>OdysseyFilm.cast().map(c=>[c.id,c.x,c.y,c.z]))));const plan=await p.evaluate(()=>{const cam=camera.position.clone(),tgt=controls.target.clone(),fov=camera.fov,q=camera.quaternion.clone();
    const mk=new THREE.Mesh(new THREE.SphereGeometry(9,12,8),new THREE.MeshBasicMaterial({color:'#ff2030'}));mk.position.copy(cam);scene.add(mk);

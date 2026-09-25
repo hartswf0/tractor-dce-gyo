@@ -36,51 +36,102 @@
     "brazier",
     "brazier 2"
    ],
-   "props": [
-    {
-     "name": "loomFull",
-     "id": "loom",
-     "at": [
-      0,
-      0,
-      150
-     ],
-     "floor": true,
-     "scale": 0.55
-    }
-   ],
+   "props": [],
    "blocking": [
     {
      "id": "antinous",
-     "x": -10,
-     "z": 40,
+     "x": 0,
+     "z": -40,
      "y": "floor",
      "face": [
-      -10,
-      240
+      -45,
+      110
      ],
      "props": false,
      "pose": {
       "armRP": [
-       -1.8,
+       -1.5,
        0,
-       0.3
+       0.25
+      ],
+      "armLP": [
+       -0.2,
+       0,
+       0
       ]
      }
     },
     {
      "id": "telemachus",
-     "x": -10,
-     "z": 150,
+     "x": -45,
+     "z": 110,
      "y": "floor",
      "face": [
-      -10,
-      40
+      0,
+      -40
      ],
      "props": true,
      "pose": {
       "armLP": [
-       -0.4,
+       -0.3,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "four-suitors-1",
+     "x": -110,
+     "z": -60,
+     "y": "floor",
+     "face": [
+      0,
+      -40
+     ],
+     "props": false
+    },
+    {
+     "id": "four-suitors-2",
+     "x": 130,
+     "z": -60,
+     "y": "floor",
+     "face": [
+      0,
+      -40
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.0,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "four-suitors-3",
+     "x": -40,
+     "z": -170,
+     "y": "floor",
+     "face": [
+      0,
+      -40
+     ],
+     "props": false
+    },
+    {
+     "id": "four-suitors-4",
+     "x": 60,
+     "z": -190,
+     "y": "floor",
+     "face": [
+      0,
+      -40
+     ],
+     "props": false,
+     "pose": {
+      "armLP": [
+       -2.4,
        0,
        0
       ]
@@ -88,112 +139,93 @@
     },
     {
      "id": "penelope-at-the-loom",
-     "x": -60,
-     "z": 150,
-     "y": "floor",
-     "face": [
-      200,
-      120
-     ],
-     "props": false
-    },
-    {
-     "id": "four-suitors-1",
-     "x": -120,
+     "x": 0,
      "z": 0,
      "y": "floor",
      "face": [
-      -10,
-      40
+      0,
+      0
      ],
-     "props": false
-    },
-    {
-     "id": "four-suitors-2",
-     "x": -150,
-     "z": -80,
-     "y": "floor",
-     "face": [
-      -10,
-      40
-     ],
-     "props": false
-    },
-    {
-     "id": "four-suitors-3",
-     "x": 90,
-     "z": 20,
-     "y": "floor",
-     "face": [
-      -10,
-      40
-     ],
-     "props": false
-    },
-    {
-     "id": "four-suitors-4",
-     "x": -60,
-     "z": -90,
-     "y": "floor",
-     "face": [
-      -10,
-      40
-     ],
-     "props": false
+     "props": false,
+     "absent": true
     },
     {
      "id": "melantho",
-     "x": -200,
-     "z": -150,
+     "x": 0,
+     "z": 0,
      "y": "floor",
      "face": [
-      -10,
-      40
+      0,
+      0
      ],
-     "props": false
+     "props": false,
+     "absent": true
     }
    ],
    "camera": {
     "type": "wide",
     "pos": [
-     -10,
-     80,
-     -180
+     85,
+     72,
+     260
     ],
     "target": [
-     -10,
-     60,
-     40
+     -5,
+     62,
+     -40
     ],
-    "fov": 44
+    "fov": 42
    },
    "subjects": [
     {
      "id": "antinous",
      "min": 0.03,
      "primary": true,
-     "face": false
+     "face": true
+    },
+    {
+     "id": "telemachus",
+     "soft": true,
+     "cut": true
     }
    ],
    "lensAllow": [
-    "antinous",
     "telemachus",
-    "penelope-at-the-loom",
     "four-suitors-1",
     "four-suitors-2",
     "four-suitors-3",
-    "four-suitors-4",
-    "melantho"
+    "four-suitors-4"
    ],
-   "turn": {
-    "around": [
-     -10,
-     60,
-     40
-    ],
-    "r": 220,
-    "h": 80,
-    "fov": 44
+   "look": {
+    "sun": {
+     "dir": [
+      0.5,
+      0.55,
+      0.65
+     ],
+     "color": "#ffd9a6",
+     "intensity": 0.95,
+     "shadow": true
+    },
+    "fill": {
+     "sky": "#d9c7a8",
+     "ground": "#3a2a1c",
+     "intensity": 0.5
+    },
+    "exposure": 0.95,
+    "lights": [
+     {
+      "at": [
+       0,
+       90,
+       -230
+      ],
+      "color": "#ffa04a",
+      "intensity": 1.4,
+      "distance": 420,
+      "decay": 1.2
+     }
+    ]
    }
   },
   {
@@ -214,33 +246,38 @@
      "at": [
       0,
       0,
-      150
+      0
      ],
      "floor": true,
-     "scale": 0.55
+     "scale": 0.55,
+     "rot": [
+      0,
+      0,
+      0
+     ]
     }
    ],
    "blocking": [
     {
      "id": "penelope-at-the-loom",
-     "x": -40,
-     "z": 128,
+     "x": 60,
+     "z": 18,
      "y": "floor",
      "face": [
-      0,
-      150
+      -20,
+      240
      ],
      "props": false,
      "pose": {
       "armRP": [
-       -1.4,
+       -0.9,
        0,
-       0.2
+       0.9
       ],
       "armLP": [
-       -1.4,
+       -0.3,
        0,
-       -0.2
+       0
       ]
      }
     },
@@ -332,37 +369,51 @@
    "camera": {
     "type": "wide",
     "pos": [
-     -150,
-     85,
-     300
+     -10,
+     70,
+     270
     ],
     "target": [
-     -20,
-     75,
-     140
+     10,
+     92,
+     0
     ],
-    "fov": 42
+    "fov": 46
    },
    "subjects": [
     {
      "id": "penelope-at-the-loom",
-     "min": 0.03,
-     "primary": true
+     "min": 0.04,
+     "primary": true,
+     "face": true
+    },
+    {
+     "id": "prop:loom",
+     "soft": true,
+     "cut": true
     }
    ],
-   "turn": {
-    "around": [
-     150,
-     70,
-     -190
-    ],
-    "r": 200,
-    "h": 90,
-    "fov": 44
-   },
    "lensAllow": [
     "penelope-at-the-loom"
-   ]
+   ],
+   "look": {
+    "sun": {
+     "dir": [
+      0.2,
+      0.6,
+      0.8
+     ],
+     "color": "#fff0d8",
+     "intensity": 1.1,
+     "shadow": true
+    },
+    "fill": {
+     "sky": "#e6dcc8",
+     "ground": "#3a2a1c",
+     "intensity": 0.5
+    },
+    "exposure": 1.0
+   }
   },
   {
    "id": "K3",
@@ -382,42 +433,36 @@
      "at": [
       0,
       0,
-      150
+      0
      ],
      "floor": true,
-     "scale": 0.55
-    },
-    {
-     "name": "torch",
-     "id": "torch",
-     "at": [
-      -85,
+     "scale": 0.55,
+     "rot": [
       0,
-      110
-     ],
-     "floor": true,
-     "scale": 1.4
+      0,
+      0
+     ]
     }
    ],
    "blocking": [
     {
      "id": "penelope-at-the-loom",
-     "x": -40,
-     "z": 128,
+     "x": 60,
+     "z": 18,
      "y": "floor",
      "face": [
-      0,
-      150
+      -20,
+      240
      ],
      "props": false,
      "pose": {
       "armRP": [
-       -2.2,
+       -1.6,
        0,
-       0.3
+       0.9
       ],
       "armLP": [
-       -0.9,
+       -0.7,
        0,
        0
       ]
@@ -510,31 +555,41 @@
    ],
    "look": {
     "sky": [
-     "#05070d",
-     "#141824"
+     "#04050a",
+     "#0d101a"
     ],
     "fog": [
-     400,
-     1400
+     300,
+     900
     ],
-    "dim": 0.2,
-    "fill": {
-     "sky": "#40507a",
-     "ground": "#15110d",
-     "intensity": 0.25
+    "dim": 0.05,
+    "sun": {
+     "dir": [
+      0.3,
+      0.8,
+      0.5
+     ],
+     "color": "#5a6a9a",
+     "intensity": 0.06,
+     "shadow": false
     },
-    "exposure": 0.9,
+    "fill": {
+     "sky": "#26304c",
+     "ground": "#0a0806",
+     "intensity": 0.12
+    },
+    "exposure": 1.0,
     "lights": [
      {
       "at": [
-       -85,
-       110,
-       110
+       -70,
+       90,
+       90
       ],
-      "color": "#ffab55",
-      "intensity": 2.6,
-      "distance": 320,
-      "decay": 1.2,
+      "color": "#ff9a40",
+      "intensity": 3.4,
+      "distance": 240,
+      "decay": 1.4,
       "shadow": true
      }
     ]
@@ -542,35 +597,30 @@
    "camera": {
     "type": "wide",
     "pos": [
-     -150,
-     85,
-     300
+     -10,
+     70,
+     270
     ],
     "target": [
-     -20,
-     75,
-     140
+     10,
+     92,
+     0
     ],
-    "fov": 42
+    "fov": 46
    },
    "subjects": [
     {
      "id": "penelope-at-the-loom",
-     "min": 0.03,
+     "min": 0.04,
      "primary": true,
-     "face": false
+     "face": true
+    },
+    {
+     "id": "prop:loom",
+     "soft": true,
+     "cut": true
     }
    ],
-   "turn": {
-    "around": [
-     120,
-     65,
-     -185
-    ],
-    "r": 170,
-    "h": 80,
-    "fov": 44
-   },
    "lensAllow": [
     "penelope-at-the-loom"
    ]
@@ -593,7 +643,7 @@
      "at": [
       0,
       0,
-      150
+      0
      ],
      "floor": true,
      "scale": 0.55
@@ -607,7 +657,7 @@
       "to": "hand:four-suitors-1:R",
       "dir": [
        0,
-       1,
+       -1,
        0
       ]
      },
@@ -617,22 +667,22 @@
    "blocking": [
     {
      "id": "penelope-at-the-loom",
-     "x": -40,
-     "z": 128,
+     "x": 60,
+     "z": 18,
      "y": "floor",
      "face": [
-      -60,
-      10
+      60,
+      200
      ],
      "props": false,
      "pose": {
       "armRP": [
        -0.6,
        0,
-       0
+       0.6
       ],
       "armLP": [
-       -0.3,
+       -1.2,
        0,
        0
       ]
@@ -640,48 +690,12 @@
     },
     {
      "id": "melantho",
-     "x": -150,
-     "z": 40,
+     "x": 150,
+     "z": 150,
      "y": "floor",
      "face": [
-      -45,
-      125
-     ],
-     "props": false,
-     "pose": {
-      "armRP": [
-       -1.9,
-       0,
-       0.3
-      ]
-     }
-    },
-    {
-     "id": "antinous",
-     "x": -60,
-     "z": 10,
-     "y": "floor",
-     "face": [
-      -45,
-      125
-     ],
-     "props": false,
-     "pose": {
-      "armRP": [
-       -1.5,
-       0,
-       0
-      ]
-     }
-    },
-    {
-     "id": "four-suitors-1",
-     "x": 30,
-     "z": 20,
-     "y": "floor",
-     "face": [
-      -45,
-      125
+      34,
+      18
      ],
      "props": false,
      "pose": {
@@ -693,13 +707,49 @@
      }
     },
     {
-     "id": "four-suitors-2",
-     "x": -110,
-     "z": -20,
+     "id": "antinous",
+     "x": 90,
+     "z": 200,
      "y": "floor",
      "face": [
-      -45,
-      125
+      34,
+      18
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.2,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "four-suitors-1",
+     "x": 30,
+     "z": 230,
+     "y": "floor",
+     "face": [
+      34,
+      18
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.4,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "four-suitors-2",
+     "x": 160,
+     "z": 240,
+     "y": "floor",
+     "face": [
+      34,
+      18
      ],
      "props": false
     },
@@ -759,13 +809,13 @@
     "lights": [
      {
       "at": [
-       -85,
-       110,
-       110
+       40,
+       100,
+       220
       ],
       "color": "#ffab55",
-      "intensity": 2.6,
-      "distance": 320,
+      "intensity": 2.8,
+      "distance": 340,
       "decay": 1.2,
       "shadow": true
      }
@@ -774,41 +824,29 @@
    "camera": {
     "type": "wide",
     "pos": [
-     -200,
-     100,
-     220
+     -130,
+     82,
+     135
     ],
     "target": [
-     -50,
-     65,
-     80
+     80,
+     62,
+     125
     ],
-    "fov": 46
+    "fov": 52
    },
    "subjects": [
     {
      "id": "penelope-at-the-loom",
-     "min": 0.03,
-     "primary": true,
-     "face": false
+     "min": 0.02,
+     "primary": true
     },
     {
      "id": "melantho",
      "soft": true,
-     "min": 0.04,
-     "cut": true
+     "min": 0.01
     }
    ],
-   "turn": {
-    "around": [
-     100,
-     60,
-     -150
-    ],
-    "r": 230,
-    "h": 90,
-    "fov": 44
-   },
    "lensAllow": [
     "penelope-at-the-loom",
     "melantho",
@@ -835,7 +873,7 @@
      "at": [
       0,
       0,
-      150
+      0
      ],
      "floor": true,
      "scale": 0.55
@@ -844,22 +882,17 @@
    "blocking": [
     {
      "id": "telemachus",
-     "x": -10,
-     "z": 150,
+     "x": -40,
+     "z": 100,
      "y": "floor",
      "face": [
-      -10,
-      40
+      50,
+      190
      ],
      "props": true,
      "pose": {
       "armRP": [
-       -0.5,
-       0,
-       0
-      ],
-      "headP": [
-       0,
+       -0.3,
        0,
        0
       ]
@@ -867,85 +900,90 @@
     },
     {
      "id": "antinous",
-     "x": -10,
-     "z": 40,
+     "x": 50,
+     "z": 190,
      "y": "floor",
      "face": [
-      -10,
-      150
+      -40,
+      100
      ],
      "props": false,
      "pose": {
       "armRP": [
-       -2.2,
+       -2.0,
        0,
        0.3
+      ],
+      "armLP": [
+       -0.5,
+       0,
+       0
       ]
      }
     },
     {
      "id": "penelope-at-the-loom",
-     "x": -60,
-     "z": 150,
+     "x": 68,
+     "z": 30,
      "y": "floor",
      "face": [
-      200,
-      120
+      -40,
+      100
      ],
      "props": false
     },
     {
      "id": "four-suitors-1",
-     "x": -120,
-     "z": 0,
+     "x": 110,
+     "z": 230,
      "y": "floor",
      "face": [
-      -10,
-      150
+      -40,
+      100
      ],
      "props": false
     },
     {
      "id": "four-suitors-2",
-     "x": -150,
-     "z": -80,
+     "x": 200,
+     "z": 40,
      "y": "floor",
      "face": [
-      -10,
-      150
+      -40,
+      100
      ],
      "props": false
     },
     {
      "id": "four-suitors-3",
-     "x": 90,
-     "z": 20,
+     "x": 140,
+     "z": 160,
      "y": "floor",
      "face": [
-      -10,
-      150
+      -40,
+      100
      ],
      "props": false
     },
     {
      "id": "four-suitors-4",
-     "x": -60,
-     "z": -90,
+     "x": -130,
+     "z": 170,
      "y": "floor",
      "face": [
-      -10,
-      150
+      -40,
+      100
      ],
      "props": false
     },
     {
      "id": "melantho",
-     "x": -200,
-     "z": -150,
+     "x": 170,
+     "z": 60,
      "y": "floor",
      "face": [
-      -10,
-      40
+      -40,
+      100
      ],
      "props": false
     }
@@ -953,43 +991,73 @@
    "camera": {
     "type": "wide",
     "pos": [
-     -10,
-     80,
-     -120
+     -120,
+     75,
+     320
     ],
     "target": [
      -10,
-     60,
-     100
+     65,
+     70
     ],
     "fov": 44
    },
    "subjects": [
     {
-     "id": "antinous",
+     "id": "telemachus",
      "min": 0.03,
-     "primary": true
+     "primary": true,
+     "face": true
+    },
+    {
+     "id": "antinous",
+     "soft": true,
+     "cut": true
+    },
+    {
+     "id": "penelope-at-the-loom",
+     "soft": true,
+     "min": 0.004
     }
    ],
    "lensAllow": [
-    "telemachus",
     "antinous",
-    "penelope-at-the-loom",
     "four-suitors-1",
     "four-suitors-2",
     "four-suitors-3",
     "four-suitors-4",
     "melantho"
    ],
-   "turn": {
-    "around": [
-     -10,
-     60,
-     100
-    ],
-    "r": 220,
-    "h": 80,
-    "fov": 44
+   "look": {
+    "sun": {
+     "dir": [
+      0.5,
+      0.55,
+      0.65
+     ],
+     "color": "#ffd9a6",
+     "intensity": 0.95,
+     "shadow": true
+    },
+    "fill": {
+     "sky": "#d9c7a8",
+     "ground": "#3a2a1c",
+     "intensity": 0.5
+    },
+    "exposure": 0.95,
+    "lights": [
+     {
+      "at": [
+       0,
+       90,
+       -230
+      ],
+      "color": "#ffa04a",
+      "intensity": 1.4,
+      "distance": 420,
+      "decay": 1.2
+     }
+    ]
    }
   }
  ]

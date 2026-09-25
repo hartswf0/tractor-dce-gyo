@@ -167,7 +167,10 @@ props.antiphates = laestrygon(84, RX(-1.4), RX(-1.4), false, 72);
 props.moly = { parts: [row('3742', 15, L.T(0, -30, 0)), row('3742', 15, L.T(0, -34, 0)), row('3957a', 0, L.T(0, 58, 0)), row('3062b', 0, L.T(0, 84, 0))], anchors: { grip: [0, 40, 0], bloom: [0, -32, 0] } };
 const shroud = (rows) => ({ parts: [...[-240, -120, 0].flatMap(y => [row('2453b', 70, L.T(-70, y, 0)), row('2453b', 70, L.T(70, y, 0))]), row('3008', 70, L.T(0, -268, 0)), row('3008', 70, L.T(0, 96, 0)),
   ...Array.from({ length: rows }, (_, i) => row('3009', i % 3 === 1 ? 297 : 15, L.T(0, -216 + i * 24, 0))),
-  ...Array.from({ length: 9 - rows }, (_, i) => [-40, -20, 0, 20, 40].map(x => row('3957a', 15, L.T(x, -216 + (rows + i) * 24 + 8, 0)))).flat()],
+  /* the warp below the web: threads (bars) hanging to the loom weights, as on a Greek warp-weighted loom */
+  ...[-50, -30, -10, 10, 30, 50].flatMap(x => { const top = -216 + rows * 24, bot = 56, n = Math.ceil((bot - top) / 80), out = [];
+    for (let k = 0; k < n; k++) out.push(row('30374', 19, L.T(x, bot - 80 * (k + 1), 0)));
+    return [...out, row('3062b', 72, L.T(x, bot + 4, 0))]; })],
   anchors: { web: [0, -140, -10], foot: [0, 30, 0] } });
 props.loomFull = shroud(9);
 props.loomHalf = shroud(5);

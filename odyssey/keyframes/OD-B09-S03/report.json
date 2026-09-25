@@ -1,6 +1,6 @@
 {
  "scene": "OD-B09-S03",
- "pass": true,
+ "pass": false,
  "keys": [
   {
    "id": "K1",
@@ -23,15 +23,15 @@
    "subjects": {
     "odysseus": {
      "visible": 0.75,
-     "size": 0.244,
+     "size": 0.243,
      "inFrame": true,
      "head": [
       0.469,
       0.387
      ],
      "facing": 1,
-     "thirds": 0.053,
-     "headroom": 0.359,
+     "thirds": 0.054,
+     "headroom": 0.36,
      "behind": false
     },
     "three-scouts-2": {
@@ -54,8 +54,10 @@
    "id": "K2",
    "beat": "The inhabitants offer lotus; those who taste it lose all desire for home.",
    "text": "They started at once, and went about among the Lotus-eaters, who did them no hurt, but gave them to eat of the lotus.",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "prop:lotus passes through lotus-eaters-1 (3 part overlaps)"
+   ],
    "camera": {
     "pos": [
      215,
@@ -65,7 +67,13 @@
    },
    "lens": 0,
    "physics": {
-    "collide": [],
+    "collide": [
+     [
+      "prop:lotus",
+      "lotus-eaters-1",
+      3
+     ]
+    ],
     "floating": []
    },
    "subjects": {
@@ -167,15 +175,15 @@
    "subjects": {
     "odysseus": {
      "visible": 0.75,
-     "size": 0.342,
+     "size": 0.341,
      "inFrame": true,
      "head": [
       0.532,
-      0.37
+      0.371
      ],
      "facing": -0.87,
-     "thirds": 0.037,
-     "headroom": 0.331,
+     "thirds": 0.038,
+     "headroom": 0.332,
      "behind": false
     },
     "three-scouts-1": {
