@@ -99,6 +99,8 @@ props.spout = (() => { const parts = [];
   for (let k = 0; k < 16; k++) { const b = k * 0.4, rr = 30 + (k % 4) * 14; parts.push(row('4589', k % 2 ? 15 : 47, L.mul(L.T(rr * Math.cos(b), -400 - (k % 5) * 18 + rr * 0.6, rr * Math.sin(b)), RX(Math.PI - 0.5 - (k % 3) * 0.3)))); }
   for (let k = 0; k < 20; k++) { const b = k * 0.31, rr = 44 + (k % 3) * 16; parts.push(row(k % 2 ? '6141' : '3062b', k % 3 ? 15 : 47, L.T(rr * Math.cos(b), (k % 2) * -12, rr * Math.sin(b)))); }
   return { parts, anchors: { crest: [0, -440, 0], base: [0, 0, 0] } }; })();
+/* Argos (Homer XVII): the old hound, a German shepherd in dark brown, standing (his head up) or laid on his side (dead) */
+props.argos = { parts: [row('92586', 308, L.I12)], anchors: { head: [0, -20, -40], back: [0, -24, 0] } };
 const out = path.join(L.ROOT, 'odyssey/keyframes/props.json');
 fs.writeFileSync(out, JSON.stringify(props));
 console.log('props:', Object.entries(props).map(([k, p]) => `${k} (${p.parts.length} parts)`).join(', '), '->', path.relative(L.ROOT, out));

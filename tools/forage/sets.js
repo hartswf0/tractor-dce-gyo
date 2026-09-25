@@ -213,6 +213,26 @@ function scyllaCliff() {
   list.push({ id: '2417', col: C.dgreen, x: -12, z: 12, base: T(1) }, { id: '2417', col: C.green, x: -13, z: -2, base: T(2) }, { id: '32607', col: C.green, x: -11.5, z: 4, base: T(1) });
   return REAL("scylla's rock", list);
 }
+/* the palace gate at Ithaca (Homer XVII): the outer wall of cut stone with its gateway under a lintel, the stable doors beside it, and
+   before them "the heaps of mule and cow dung" where Argos lies; a road of flagstones up to the gate, olive trees along it */
+function argosGate() {
+  const W = C.tan, list = [];
+  list.push(...coursing(W, -15.5, 15.5, -11.5, 7, { holes: [[-3.5, 3.5, 0, 5], [-12.5, -9.5, 0, 3]] }));
+  for (const x of [-4.5, 4.5]) list.push({ id: '43888', col: C.white, x, z: -10.5, base: -8 });
+  list.push({ id: '6108', col: C.white, x: 0, z: -10.5, base: -8 - 144 + 24 }, { id: '3004', col: C.white, x: -4, z: -10.5, base: -8 - 144 }, { id: '3004', col: C.white, x: 4, z: -10.5, base: -8 - 144 });
+  /* the stable doors: brown planks in the low opening */
+  for (let k = 0; k < 4; k++) list.push({ id: '3010', col: C.rbrown, x: -11, z: -11.5, base: -8 - 24 * k });
+  for (const x of [-11]) list.push({ id: '3009', col: C.dbrown, x: x, z: -11.5, base: -8 - 96 });
+  /* the dung heap: rocks and slopes in dark brown and reddish brown, straw (tan) through it */
+  list.push({ id: '42291', col: C.dbrown, x: -9, z: -6, base: -8 }, { id: '42284', col: C.dbrown, x: -9, z: -6, base: -8 - 40 }, { id: '42291', col: C.rbrown, x: -12.5, z: -5, base: -8 }, { id: '42284', col: C.dbrown, x: -12.5, z: -5, base: -8 - 40 }, { id: '3040b', col: C.dbrown, x: -6.5, z: -6, base: -8, q: 1 }, { id: '3040b', col: C.rbrown, x: -11, z: -8.5, base: -8, q: 2 },
+    { id: '3941', col: C.dbrown, x: -6, z: -4, base: -8 }, { id: '6141', col: C.tan, x: -7, z: -8, base: -8 - 24 }, { id: '6141', col: C.tan, x: -10.5, z: -3, base: -8 - 24 }, { id: '3024', col: C.tan, x: -8, z: -3, base: -8 });
+  /* the road of flagstones to the gate */
+  for (let z = -8.5; z <= 12.5; z += 2) for (const x of [-1, 1]) list.push({ id: '3068b', col: (x + z + 0.5) % 4 ? C.lbg : C.tan, x, z, base: -8 });
+  /* olives and a cypress along the way, a bench and a pithos by the wall */
+  list.push(R('3470', C.green, 9, -6), R('3470', C.green, 13, 6), R('3778', C.dgreen, -14, 8), R('2417', C.green, 11, 12), R('2417', C.dgreen, -9, 12), R('3741ac01', C.yellow, 7, 2), R('3741ac04', C.red, -5, 9));
+  list.push({ id: '3941', col: C.dtan, x: 7, z: -9, base: -8 }, { id: '3941', col: C.dtan, x: 7, z: -9, base: -32 }, { id: '4589', col: C.dtan, x: 7, z: -9, base: -56 });
+  return REAL('the palace gate', list);
+}
 const SETS = {
   /* Odysseus's megaron at Ithaca: the hall of the suitors, the bow and the slaughter */
   megaron: () => room('the megaron at ithaca', 36, 30, floor(36, 30, C.dtan, C.tan), [
@@ -265,6 +285,9 @@ const SETS = {
     [FURN.rock(12, 6, 6, C.dtan), -9, -11], [FURN.rock(8, 6, 5, C.dtan), 5, -11], [FURN.tree(5, C.green), 13, -8], [FURN.tree(4, C.dgreen), -14, 3], [FURN.tree(5, C.green), 12, 6], [FURN.tree(3, C.green), -11, 11],
     [FURN.loom(C.rbrown, C.gold), -2, -6], [FURN.fire(), 5, -3], [FURN.bed(), -9, -2], [FURN.fountain(), 5, 7], [kit('shore', [K.slab(0, 0, 34, 3, C.tDBlue)]), 0, 13],
   ], { calypso: M(-2, -3, 0, 'Calypso at her loom'), fire: M(5, 0, 0), spring: M(5, 11, 0), shore: M(-6, 11, 2, 'Odysseus weeping on the shore'), centre: M(0, 3, 0) }),
+  /* Argos on the dung heap before the palace gate */
+  argos: () => room('the palace gate at ithaca', 32, 28, floor(32, 28, C.dtan), [[argosGate(), 0, 0]],
+    { argos: M(-8, -5, 0, 'Argos on the dung heap'), gate: M(0, -8, 2, 'the gateway'), road: M(0, 4, 2, 'the road to the gate'), odysseus: M(2, 2, 2, 'the beggar'), eumaeus: M(-2, 3, 2, 'the swineherd'), centre: M(0, 4, 0) }),
   /* the sea sets, in real kits: the blue baseplate sea, the galley bow-on to the camera (its crew two abreast on the deck, the mast
      amidships), the places it passes built of rock panels, baseplates and plants. Marks with a y stand on the deck or a crag. */
   sirens: () => room("the sirens' sea", 32, 48, seaFloor('beach'), [
