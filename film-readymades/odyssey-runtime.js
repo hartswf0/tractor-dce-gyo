@@ -60,7 +60,7 @@ function kfBlock(list){for(const e of list){const a=kfActor(e.id);if(!a){console
   for(const k of ['armRP','armLP','headP','torsoP','legRP','legLP']){const v=r.hold[k]||[0,0,0];r[k].rotation.set(v[0],v[1],v[2]);}
   /* sit: the thighs level, the hips on the highest seat under the figure (a bench, a throne), the feet hanging; the support check then looks under the hips */
   r.sat=!!e.sit;if(e.sit){const figs=new Set();ButterCast.cast.forEach(b=>b.rig.figure.traverse(o=>figs.add(o)));const ms=[];scene.traverse(o=>{if(kfSolid(o)&&!figs.has(o))ms.push(o);});
-    const h=new THREE.Raycaster(new THREE.Vector3(r.pos.x,r.pos.y+(e.reach??60),r.pos.z),new THREE.Vector3(0,-1,0)).intersectObjects(ms,true)[0];
+    const h=new THREE.Raycaster(new THREE.Vector3(r.pos.x,r.pos.y+(e.sitReach??(e.y==='surface'?60:(e.reach??60))),r.pos.z),new THREE.Vector3(0,-1,0)).intersectObjects(ms,true)[0];
     if(h){r.figure.updateMatrixWorld(true);const hy=kfWorld(r.legRP).y-r.figure.position.y;r.pos.y=h.point.y-hy+(e.lift??1.5);r.figure.position.copy(r.pos);}}
   /* props: false empties the hands (a man bound to a mast holds no sword): each arm pivot carries its arm, its hand, then what it holds */
   /* the arm pivot holds three empty slots (arm, hand, weapon), then the parts: the arm, the hand, then what it holds. Only that last is hidden. */

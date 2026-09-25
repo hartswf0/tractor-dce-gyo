@@ -368,6 +368,58 @@ function laertesFarm() {
   list.push({ id: '3008', col: C.rbrown, x: 10, z: -12, base: -8 - 120 });
   return REAL("laertes's farm", list);
 }
+/* Troy by night (Homer IV, VIII): the wall of great stones, its towers and the Scaean gate, the city's roofs within; the horse is a prop */
+function troy() {
+  const list = [];
+  list.push(...coursing(C.tan, -15.5, 15.5, -13.5, 10, { holes: [[-2.5, 2.5, 0, 6]] }));
+  for (let x = -15; x <= 15; x += 2) list.push({ id: '3004', col: C.dtan, x, z: -13.5, base: -8 - 240 });
+  for (let x = -15; x <= 15; x += 4) list.push({ id: '3004', col: C.dtan, x, z: -13.5, base: -8 - 264 });
+  list.push({ id: '6108', col: C.dtan, x: 0, z: -12.5, base: -8 - 144 }, { id: '3004', col: C.dtan, x: -2, z: -12.5, base: -8 - 168 - 24 }, { id: '3004', col: C.dtan, x: 2, z: -12.5, base: -8 - 168 - 24 });
+  for (const tx of [-5.5, 5.5]) for (let k = 0; k < 13; k++) list.push({ id: '3941', col: k % 4 === 3 ? C.dtan : C.tan, x: tx, z: -12, base: -8 - 24 * k }, { id: '3941', col: C.tan, x: tx, z: -10, base: -8 - 24 * k });
+  for (const tx of [-5.5, 5.5]) list.push({ id: '3942c', col: C.dred, x: tx, z: -11, base: -8 - 312 });
+  /* houses of the city within the walls: tan cubes with red slope roofs, lit windows */
+  for (const [x, z, h] of [[-12, -3, 3], [-8, 4, 2], [10, -4, 3], [13, 5, 2], [-13, 10, 2], [8, 11, 3]]) {
+    for (let k = 0; k < h; k++) for (const dz of [-1, 1]) list.push({ id: '3001', col: C.tan, x, z: z + dz, base: -8 - 24 * k });
+    for (const dz of [-1, 1]) list.push({ id: '3039', col: C.dred, x: x - 1, z: z + dz, base: -8 - 24 * h, q: 3 }, { id: '3039', col: C.dred, x: x + 1, z: z + dz, base: -8 - 24 * h, q: 1 });
+    list.push({ id: '3070b', col: C.tYellow, x: x + 2, z, base: -8 - 16, q: 1 }); }
+  /* the square: flagstones, a well, torches */
+  for (let x = -5; x <= 5; x += 2) for (let z = -9; z <= 9; z += 2) list.push({ id: '3068b', col: (x + z + 2) % 4 ? C.lbg : C.dtan, x, z, base: -8 });
+  list.push({ id: '3941', col: C.lbg, x: -7, z: -8, base: -8 }, { id: '4150', col: C.tDBlue, x: -7, z: -8, base: -32 });
+  for (const [x, z] of [[-6, 6], [6, 6], [6, -8]]) list.push({ id: '3957a', col: C.rbrown, x, z, base: -8 }, { id: '3062b', col: C.tOrange, x, z, base: -104 }, { id: '4589', col: C.orange, x, z, base: -128 });
+  return REAL('troy by night', list);
+}
+/* the island of Pharos (Homer IV): a beach under a sea cave, the seals hauled out on the sand; the cave of rock panels */
+function sealBeach() {
+  const list = [];
+  list.push({ id: '23996', col: C.dbg, x: -10, z: 10, base: -8, q: 3 }, { id: '6082', col: C.dbg, x: -4, z: 14, base: -8 }, { id: '6083', col: C.dbg, x: -4, z: 14, base: -8 - 144 }, { id: '6082', col: C.dbg, x: -14, z: 4, base: -8, q: 1 });
+  for (let k = 0; k < 5; k++) list.push({ id: '3009', col: C.black, x: -8, z: 12.5, base: -8 - 24 * k });
+  list.push({ id: '42291', col: C.dbg, x: 13, z: 10 }, { id: '42284', col: C.dbg, x: 13, z: 10, base: -8 - 40 });
+  list.push(R('2417', C.dgreen, -12, 16, -8 - 144), R('6255', C.green, 12, 16), R('2518c01', C.green, 14, 15));
+  return REAL('the seal beach', list);
+}
+/* Eumaeus's farm (Homer XIV): "a strong yard, with a wall of stone round it, and a hedge of wild pear; twelve sties"; the hut of logs
+   under a thatch of slopes, the fire, his bench of brushwood and goatskin; the dogs "fierce as wild beasts" */
+function swineherd() {
+  const list = [];
+  for (let k = 0; k < 4; k++) { const y = -8 - 24 * k;
+    for (const x of [-14.5, -10.5]) list.push({ id: '30137', col: C.rbrown, x, z: -13, base: y }, { id: '30137', col: C.rbrown, x, z: -3, base: y });
+    for (const z of [-11, -5]) list.push({ id: '30137', col: C.rbrown, x: -16, z, base: y, q: 1 }, { id: '30137', col: C.rbrown, x: -9, z, base: y, q: 1 });
+    if (k > 2) list.push({ id: '30136', col: C.rbrown, x: -9, z: -8, base: y, q: 1 }); }
+  for (let x = -16; x <= -9; x += 1) for (const [z, q] of [[-12.5, 2], [-11.5, 2], [-10.5, 2], [-5.5, 0], [-4.5, 0], [-3.5, 0]]) if (x % 1 === 0) list.push({ id: '3040b', col: C.dtan, x, z: z + (q ? 0 : 0), base: -8 - 72 - (Math.abs(z + 8) < 3 ? 48 : 24), q });
+  for (let x = -16; x <= -9; x++) list.push({ id: '3004', col: C.dtan, x, z: -8, base: -8 - 144, q: 1 });
+  /* the yard wall of dry stone, two courses, the gate a gap at the front */
+  for (const z of [-15.5, 15.5]) list.push(...coursing(C.lbg, -15.5, 15.5, z, 2, { holes: z > 0 ? [[-2.5, 2.5, 0, 2]] : [] }));
+  for (const x of [-15.5, 15.5]) list.push(...coursing(C.lbg, -14.5, 14.5, x, 2, { alongZ: true }));
+  /* the sties: log pens along the east side, mud floors */
+  for (const z of [-11, -4, 3]) { for (const dz of [-3, 3]) list.push({ id: '30137', col: C.rbrown, x: 9, z: z + dz, base: -8 }, { id: '30137', col: C.rbrown, x: 13, z: z + dz, base: -8 });
+    list.push({ id: '30137', col: C.rbrown, x: 15, z, base: -8, q: 1 }, { id: '3031', col: C.dbrown, x: 11, z, base: -8 }); }
+  /* the fire, the bench, pithoi, the wild pear hedge */
+  list.push({ id: '3941', col: C.dbg, x: -6, z: 4, base: -8 }, { id: '3062b', col: C.tOrange, x: -6, z: 4, base: -32 }, { id: '4589', col: C.orange, x: -6, z: 4, base: -56 });
+  list.push({ id: '3008', col: C.rbrown, x: -11, z: 1, base: -8, q: 1 }, { id: '3666', col: C.white, x: -11, z: 1, base: -32, q: 1 });
+  list.push({ id: '3941', col: C.dtan, x: -14, z: 8 }, { id: '4589', col: C.dtan, x: -14, z: 8, base: -32 }, { id: '3941', col: C.dtan, x: -13, z: 11 });
+  list.push(R('3470', C.green, 5, 13.5), R('3470', C.olive, -8, 13.5), R('2417', C.dgreen, 11, 13.5), R('2417', C.green, -13, 14), R('3471', C.dgreen, 14, -14.5));
+  return REAL("eumaeus's farm", list);
+}
 const SETS = {
   /* Odysseus's megaron at Ithaca: the hall of the suitors, the bow and the slaughter */
   megaron: () => room('the megaron at ithaca', 36, 30, floor(36, 30, C.dtan, C.tan), [
@@ -404,10 +456,11 @@ const SETS = {
   ], { circe: M(7, -9, 0, 'Circe at her throne'), loom: M(0, -9.5, 0, 'Circe at her loom'), table: M(0, -4, 2, 'the benches and seats'), door: M(0, 1, 2, 'the colonnade'),
        gate: M(0, 11, 2, 'the lion gate'), sty: M(12.5, 7.5, 0, 'the sty, where the crew become swine', 'x'), court: M(-6, 7, 2, 'the court, the tamed beasts'), centre: M(0, 4, 0) }),
   /* the swineherd's hut and yard */
-  hut: () => room("eumaeus's farm", 34, 28, floor(34, 28, C.dtan), [
-    [kit('hut', [K.box(0, 0, 12, 10, 3, C.rbrown, { hollow: true }), K.cut(4, 9, 4, 1, 0, 3), K.roof(0, 0, 12, 10, 3, 'gable', C.dtan)]), -8, -7, 2],
-    [FURN.sty(), 9, -8], [FURN.sty(), 9, 1], [FURN.fire(), -6, 5], [FURN.bench(), -11, 7], [FURN.tree(4), 13, 10], [FURN.pithos(), -14, -1], [FURN.barrel(), 2, -10],
-  ], { door: M(-8, -1, 2, "the hut's door"), fire: M(-6, 8, 0, 'the fire'), sty: M(9, 5, 0, 'the sties'), gate: M(0, 12, 2, 'the yard gate'), centre: M(0, 4, 0) }),
+  hut: () => room("eumaeus's farm", 34, 34, floor(34, 34, C.dtan), [[swineherd(), 0, 0]],
+    { door: M(-12, -1, 2, "the hut's door"), fire: M(-6, 6, 0, 'the fire'), sty: M(11, -4, 0, 'the sties'), gate: M(0, 14, 2, 'the yard gate'), centre: M(0, 4, 0) }),
+  troy: () => room('troy by night', 34, 30, floor(34, 30, C.dtan), [[troy(), 0, 0]], { horse: M(0, 0, 0, 'the horse in the square'), helen: M(4, 4, 2, 'Helen'), gate: M(0, -12, 0, 'the gate'), centre: M(0, 4, 0) }),
+  pharos: () => room('the seal beach on pharos', 32, 48, shoreFloor(C.dtan), [[sealBeach(), 0, 0], [KIT.swell(5, 1), -8, -16], [KIT.swell(6, 3), 8, -19]],
+    { menelaus: M(2, 6, 2, 'Menelaus under a sealskin'), proteus: M(-2, 9, 0, 'Proteus among the seals'), eidothea: M(6, -3, 0, 'Eidothea from the sea'), centre: M(0, 6, 0) }),
   /* Alcinous's hall among the Phaeacians */
   phaeacia: () => room('the hall of alcinous', 38, 30, floor(38, 30, C.white, C.gold), [
     [walls(38, 30, 6, C.white, { band: C.gold }), 0, 0, 2, -8],

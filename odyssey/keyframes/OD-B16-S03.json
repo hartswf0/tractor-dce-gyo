@@ -1,0 +1,472 @@
+{
+ "scene": "OD-B16-S03",
+ "location": "odyssey-od-b16-s03",
+ "title": "The Father Revealed",
+ "source": "Homer, Odyssey XVI, tr. Samuel Butler (public domain)",
+ "note": "Hand-staged from the text at Eumaeus's farm: by the fire before the hut; Athena's restoration as golden light.",
+ "look": {
+  "sky": [
+   "#8ab4de",
+   "#f7e4c0"
+  ],
+  "fog": [
+   800,
+   2400
+  ],
+  "fill": {
+   "sky": "#d3e0f0",
+   "ground": "#4a3d2c",
+   "intensity": 0.5
+  },
+  "sun": {
+   "dir": [
+    -0.4,
+    0.7,
+    -0.6
+   ],
+   "color": "#fff0cf",
+   "intensity": 1.2,
+   "shadow": true
+  },
+  "exposure": 1.0
+ },
+ "spread": 0,
+ "blocking": [],
+ "keys": [
+  {
+   "id": "K1",
+   "beat": "Athena restores Odysseus's strength, clothing, skin, and dark hair outside the hut.",
+   "text": "Minerva touched him with her golden wand. First she threw a fair clean shirt and cloak about him; then she made him younger and of more imposing presence; she gave him back his colour, filled out his cheeks, and let his beard become dark again.",
+   "hide": [
+    "athena's restoration",
+    "recognition embrace"
+   ],
+   "blocking": [
+    {
+     "id": "odysseus-restored",
+     "x": 60,
+     "z": -160,
+     "y": "floor",
+     "face": [
+      60,
+      300
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -0.4,
+       0,
+       0.2
+      ],
+      "armLP": [
+       -0.4,
+       0,
+       -0.2
+      ]
+     }
+    },
+    {
+     "id": "telemachus",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
+    }
+   ],
+   "look": {
+    "lights": [
+     {
+      "at": [
+       60,
+       210,
+       -160
+      ],
+      "color": "#fff1b0",
+      "intensity": 3.0,
+      "distance": 300,
+      "decay": 1.2,
+      "shadow": true
+     }
+    ],
+    "exposure": 1.05
+   },
+   "camera": {
+    "type": "wide",
+    "pos": [
+     60,
+     70,
+     90
+    ],
+    "target": [
+     60,
+     55,
+     -160
+    ],
+    "fov": 40
+   },
+   "subjects": [
+    {
+     "id": "odysseus-restored",
+     "min": 0.2,
+     "primary": true,
+     "face": true
+    }
+   ]
+  },
+  {
+   "id": "K2",
+   "beat": "He reenters transformed; Telemachus recoils, believing he is a god.",
+   "text": "His son was astounded when he saw him, and turned his eyes away for fear he might be looking upon a god. 'Stranger, how suddenly you have changed from what you were a moment or two ago.'",
+   "hide": [
+    "athena's restoration",
+    "recognition embrace"
+   ],
+   "blocking": [
+    {
+     "id": "odysseus-restored",
+     "x": 60,
+     "z": -60,
+     "y": "floor",
+     "face": [
+      160,
+      20
+     ],
+     "props": false
+    },
+    {
+     "id": "telemachus",
+     "x": 160,
+     "z": 20,
+     "y": "floor",
+     "face": [
+      60,
+      -60
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.6,
+       0,
+       0.3
+      ],
+      "armLP": [
+       -1.6,
+       0,
+       -0.3
+      ],
+      "headP": [
+       0,
+       -0.6,
+       0
+      ]
+     }
+    }
+   ],
+   "look": {
+    "lights": [
+     {
+      "at": [
+       120,
+       60,
+       -80
+      ],
+      "color": "#ff9a4a",
+      "intensity": 1.4,
+      "distance": 260,
+      "decay": 1.2,
+      "shadow": true
+     }
+    ]
+   },
+   "camera": {
+    "type": "wide",
+    "pos": [
+     40,
+     75,
+     -230
+    ],
+    "target": [
+     110,
+     55,
+     -20
+    ],
+    "fov": 44
+   },
+   "subjects": [
+    {
+     "id": "telemachus",
+     "min": 0.08,
+     "primary": true,
+     "face": true
+    },
+    {
+     "id": "odysseus-restored",
+     "soft": true,
+     "min": 0.04
+    }
+   ]
+  },
+  {
+   "id": "K3",
+   "beat": "Odysseus declares himself the father for whom Telemachus has suffered.",
+   "text": "'I am no god,' replied Ulysses; 'why should you take me for one? I am your father, on whose account you grieve and suffer so much at the hands of lawless men.'",
+   "hide": [
+    "athena's restoration",
+    "recognition embrace"
+   ],
+   "blocking": [
+    {
+     "id": "odysseus-restored",
+     "x": 100,
+     "z": -60,
+     "y": "floor",
+     "face": [
+      140,
+      20
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.2,
+       0,
+       0.3
+      ],
+      "armLP": [
+       -0.5,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "telemachus",
+     "x": 140,
+     "z": 20,
+     "y": "floor",
+     "face": [
+      100,
+      -60
+     ],
+     "props": false
+    }
+   ],
+   "camera": {
+    "type": "wide",
+    "pos": [
+     320,
+     75,
+     40
+    ],
+    "target": [
+     110,
+     55,
+     -40
+    ],
+    "fov": 42
+   },
+   "subjects": [
+    {
+     "id": "odysseus-restored",
+     "min": 0.1,
+     "primary": true,
+     "face": true
+    },
+    {
+     "id": "telemachus",
+     "soft": true,
+     "cut": true
+    }
+   ]
+  },
+  {
+   "id": "K4",
+   "beat": "Telemachus doubts him until Odysseus explains Athena's control of his appearance.",
+   "text": "'You are not my father, but some god is flattering me with vain hopes.' Ulysses answered, 'This is Minerva's doing; she does with me whatever she will, for she can do what she pleases.'",
+   "hide": [
+    "athena's restoration",
+    "recognition embrace"
+   ],
+   "blocking": [
+    {
+     "id": "odysseus-restored",
+     "x": 60,
+     "z": -60,
+     "y": "floor",
+     "face": [
+      160,
+      20
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -0.8,
+       0,
+       0
+      ],
+      "armLP": [
+       -2.4,
+       0,
+       -0.2
+      ]
+     }
+    },
+    {
+     "id": "telemachus",
+     "x": 160,
+     "z": 20,
+     "y": "floor",
+     "face": [
+      60,
+      -60
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.0,
+       0,
+       0.3
+      ]
+     }
+    }
+   ],
+   "camera": {
+    "type": "wide",
+    "pos": [
+     40,
+     75,
+     -230
+    ],
+    "target": [
+     110,
+     55,
+     -20
+    ],
+    "fov": 44
+   },
+   "subjects": [
+    {
+     "id": "telemachus",
+     "min": 0.08,
+     "primary": true,
+     "face": true
+    },
+    {
+     "id": "odysseus-restored",
+     "soft": true,
+     "cut": true
+    }
+   ]
+  },
+  {
+   "id": "K5",
+   "beat": "They embrace and weep with the force of birds robbed of their young.",
+   "text": "Telemachus threw his arms about his father and wept. They were both so much moved that they cried aloud like eagles or vultures with crooked talons that have been robbed of their half fledged young by peasants.",
+   "hide": [
+    "athena's restoration",
+    "recognition embrace"
+   ],
+   "blocking": [
+    {
+     "id": "odysseus-restored",
+     "x": 115,
+     "z": -35,
+     "y": "floor",
+     "face": [
+      135,
+      -20
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.4,
+       0,
+       -0.6
+      ],
+      "armLP": [
+       -1.4,
+       0,
+       0.6
+      ]
+     }
+    },
+    {
+     "id": "telemachus",
+     "x": 135,
+     "z": -20,
+     "y": "floor",
+     "face": [
+      115,
+      -35
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.7,
+       0,
+       -0.6
+      ],
+      "armLP": [
+       -1.7,
+       0,
+       0.6
+      ]
+     }
+    }
+   ],
+   "touch": [
+    [
+     "odysseus-restored",
+     "telemachus"
+    ]
+   ],
+   "look": {
+    "sun": {
+     "dir": [
+      0.6,
+      0.3,
+      -0.7
+     ],
+     "color": "#ffc98f",
+     "intensity": 1.15,
+     "shadow": true
+    },
+    "sky": [
+     "#6d8fb8",
+     "#f3c79c"
+    ],
+    "exposure": 0.95
+   },
+   "camera": {
+    "type": "wide",
+    "pos": [
+     -25,
+     80,
+     173
+    ],
+    "target": [
+     125,
+     55,
+     -27
+    ],
+    "fov": 38
+   },
+   "subjects": [
+    {
+     "id": "telemachus",
+     "min": 0.06,
+     "primary": true
+    },
+    {
+     "id": "odysseus-restored",
+     "soft": true,
+     "min": 0.03
+    }
+   ]
+  }
+ ]
+}
