@@ -1,0 +1,563 @@
+{
+ "scene": "OD-B24-S03",
+ "location": "odyssey-od-b24-s03",
+ "title": "Laertes in the Orchard",
+ "source": "Homer, Odyssey XXIV, tr. Samuel Butler (public domain)",
+ "note": "Hand-staged from the text on Laertes's farm (tools/forage/sets.js laertesFarm): three terraced rows of fruit trees with dry-stone walls, the farmhouse with its lean-to, the vine trellis.",
+ "look": {
+  "sky": [
+   "#8ab4de",
+   "#f7e4c0"
+  ],
+  "fog": [
+   800,
+   2400
+  ],
+  "fill": {
+   "sky": "#d3e0f0",
+   "ground": "#3e4a2a",
+   "intensity": 0.5
+  },
+  "sun": {
+   "dir": [
+    -0.4,
+    0.7,
+    0.6
+   ],
+   "color": "#fff0cf",
+   "intensity": 1.2,
+   "shadow": true
+  },
+  "exposure": 1.0
+ },
+ "spread": 0,
+ "blocking": [],
+ "keys": [
+  {
+   "id": "K1",
+   "beat": "Odysseus reaches the farm and finds Laertes alone in patched clothes, tending a tree.",
+   "text": "He found his father alone, hoeing in a vineyard. He had on a dirty old shirt, patched and very shabby; his legs were bound round with thongs of oxhide to save him from the brambles.",
+   "hide": [
+    "farm clothing and tools"
+   ],
+   "props": [
+    {
+     "name": "spade",
+     "id": "spade",
+     "after": true,
+     "aim": {
+      "anchor": "grip",
+      "to": "hand:laertes:R",
+      "dir": [
+       0,
+       1,
+       0.5
+      ]
+     },
+     "scale": 1.3
+    }
+   ],
+   "blocking": [
+    {
+     "id": "laertes",
+     "x": -20,
+     "z": 55,
+     "y": "floor",
+     "face": [
+      -5,
+      110
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.5,
+       0,
+       0.2
+      ],
+      "headP": [
+       0,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "odysseus",
+     "x": 180,
+     "z": -30,
+     "y": "floor",
+     "face": [
+      -5,
+      62
+     ],
+     "props": false
+    }
+   ],
+   "camera": {
+    "type": "wide",
+    "pos": [
+     -170,
+     95,
+     -110
+    ],
+    "target": [
+     70,
+     55,
+     20
+    ],
+    "fov": 46
+   },
+   "subjects": [
+    {
+     "id": "laertes",
+     "min": 0.03,
+     "primary": true
+    },
+    {
+     "id": "odysseus",
+     "soft": true,
+     "cut": true
+    }
+   ],
+   "lensAllow": [],
+   "turn": {
+    "around": [
+     -200,
+     55,
+     -50
+    ],
+    "r": 190,
+    "h": 75,
+    "fov": 44
+   }
+  },
+  {
+   "id": "K2",
+   "beat": "He sends his companions to prepare food and approaches under another false identity.",
+   "text": "Ulysses stood under a tall pear tree and wept to see him so old and so broken... he made up his mind to go up to him and question him.",
+   "hide": [
+    "farm clothing and tools"
+   ],
+   "props": [
+    {
+     "name": "spade",
+     "id": "spade",
+     "after": true,
+     "aim": {
+      "anchor": "grip",
+      "to": "hand:laertes:R",
+      "dir": [
+       0,
+       1,
+       0.5
+      ]
+     },
+     "scale": 1.3
+    }
+   ],
+   "blocking": [
+    {
+     "id": "laertes",
+     "x": -5,
+     "z": 62,
+     "y": "floor",
+     "face": [
+      -5,
+      110
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.5,
+       0,
+       0.2
+      ]
+     }
+    },
+    {
+     "id": "odysseus",
+     "x": 90,
+     "z": 20,
+     "y": "floor",
+     "face": [
+      -5,
+      62
+     ],
+     "props": false,
+     "pose": {
+      "headP": [
+       0,
+       0.3,
+       0
+      ]
+     }
+    }
+   ],
+   "camera": {
+    "type": "wide",
+    "pos": [
+     -130,
+     70,
+     -40
+    ],
+    "target": [
+     40,
+     60,
+     40
+    ],
+    "fov": 42
+   },
+   "subjects": [
+    {
+     "id": "odysseus",
+     "min": 0.1,
+     "primary": true,
+     "face": true
+    },
+    {
+     "id": "laertes",
+     "soft": true,
+     "min": 0.04,
+     "cut": true
+    }
+   ],
+   "turn": {
+    "around": [
+     -200,
+     55,
+     -50
+    ],
+    "r": 190,
+    "h": 75,
+    "fov": 44
+   },
+   "lensAllow": []
+  },
+  {
+   "id": "K3",
+   "beat": "He claims to have hosted Odysseus years earlier and watches his father collapse in grief.",
+   "text": "A dark cloud of sorrow fell upon Laertes as he listened. He filled both hands with the dust from off the ground and poured it over his grey head, groaning heavily as he did so.",
+   "hide": [
+    "farm clothing and tools"
+   ],
+   "props": [
+    {
+     "name": "spade",
+     "id": "spade",
+     "at": [
+      -30,
+      0,
+      40
+     ],
+     "rot": [
+      1.4,
+      0.5,
+      0
+     ],
+     "floor": true,
+     "scale": 1.3
+    }
+   ],
+   "blocking": [
+    {
+     "id": "laertes",
+     "x": -5,
+     "z": 50,
+     "y": "floor",
+     "face": [
+      60,
+      20
+     ],
+     "props": false,
+     "pose": {
+      "legRP": [
+       -1.5708,
+       0,
+       0
+      ],
+      "legLP": [
+       -1.5708,
+       0,
+       0
+      ],
+      "armRP": [
+       -2.9,
+       0,
+       0.3
+      ],
+      "armLP": [
+       -2.9,
+       0,
+       -0.3
+      ],
+      "headP": [
+       0,
+       0,
+       0
+      ]
+     },
+     "sit": true,
+     "reach": 10
+    },
+    {
+     "id": "odysseus",
+     "x": 60,
+     "z": 20,
+     "y": "floor",
+     "face": [
+      -5,
+      50
+     ],
+     "props": false
+    }
+   ],
+   "camera": {
+    "type": "wide",
+    "pos": [
+     -150,
+     65,
+     -60
+    ],
+    "target": [
+     25,
+     45,
+     35
+    ],
+    "fov": 44
+   },
+   "subjects": [
+    {
+     "id": "laertes",
+     "min": 0.03,
+     "primary": true,
+     "face": false
+    },
+    {
+     "id": "odysseus",
+     "soft": true,
+     "min": 0.04,
+     "cut": true
+    }
+   ],
+   "turn": {
+    "around": [
+     -200,
+     55,
+     -50
+    ],
+    "r": 190,
+    "h": 75,
+    "fov": 44
+   },
+   "lensAllow": []
+  },
+  {
+   "id": "K4",
+   "beat": "Unable to continue, Odysseus embraces him and names himself.",
+   "text": "'I am he, father, about whom you are asking; I have returned after being away for twenty years.'",
+   "hide": [
+    "farm clothing and tools"
+   ],
+   "props": [
+    {
+     "name": "spade",
+     "id": "spade",
+     "at": [
+      -30,
+      0,
+      40
+     ],
+     "rot": [
+      1.4,
+      0.5,
+      0
+     ],
+     "floor": true,
+     "scale": 1.3
+    }
+   ],
+   "blocking": [
+    {
+     "id": "laertes",
+     "x": 10,
+     "z": 40,
+     "y": "floor",
+     "face": [
+      36,
+      30
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.6,
+       0,
+       -0.5
+      ],
+      "armLP": [
+       -1.6,
+       0,
+       0.5
+      ]
+     }
+    },
+    {
+     "id": "odysseus",
+     "x": 36,
+     "z": 30,
+     "y": "floor",
+     "face": [
+      10,
+      40
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.4,
+       0,
+       -0.6
+      ],
+      "armLP": [
+       -1.4,
+       0,
+       0.6
+      ]
+     }
+    }
+   ],
+   "touch": [
+    [
+     "odysseus",
+     "laertes"
+    ]
+   ],
+   "camera": {
+    "type": "wide",
+    "pos": [
+     30,
+     66,
+     -130
+    ],
+    "target": [
+     23,
+     62,
+     35
+    ],
+    "fov": 38
+   },
+   "subjects": [
+    {
+     "id": "laertes",
+     "min": 0.03,
+     "primary": true,
+     "face": false
+    }
+   ],
+   "turn": {
+    "around": [
+     -200,
+     55,
+     -50
+    ],
+    "r": 190,
+    "h": 75,
+    "fov": 44
+   },
+   "lensAllow": []
+  },
+  {
+   "id": "K5",
+   "beat": "Laertes asks for proof beyond desire.",
+   "text": "'I will tell you the trees you gave me in this garden... you gave me thirteen pear trees, ten apple trees, and forty fig trees.' Laertes' strength failed him when he heard the proofs, and he flung his arms about his son.",
+   "hide": [
+    "farm clothing and tools"
+   ],
+   "blocking": [
+    {
+     "id": "odysseus",
+     "x": 60,
+     "z": 40,
+     "y": "floor",
+     "face": [
+      60,
+      200
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.2,
+       0,
+       0.3
+      ]
+     }
+    },
+    {
+     "id": "laertes",
+     "x": 5,
+     "z": 15,
+     "y": "floor",
+     "face": [
+      60,
+      40
+     ],
+     "props": false
+    }
+   ],
+   "look": {
+    "sun": {
+     "dir": [
+      0.6,
+      0.3,
+      -0.7
+     ],
+     "color": "#ffc98f",
+     "intensity": 1.15,
+     "shadow": true
+    },
+    "sky": [
+     "#6d8fb8",
+     "#f3c79c"
+    ],
+    "exposure": 0.95
+   },
+   "camera": {
+    "type": "wide",
+    "pos": [
+     40,
+     110,
+     -120
+    ],
+    "target": [
+     40,
+     80,
+     110
+    ],
+    "fov": 50
+   },
+   "subjects": [
+    {
+     "id": "odysseus",
+     "min": 0.03,
+     "primary": true,
+     "face": false
+    },
+    {
+     "id": "laertes",
+     "soft": true,
+     "min": 0.04,
+     "cut": true
+    }
+   ],
+   "turn": {
+    "around": [
+     -200,
+     55,
+     -50
+    ],
+    "r": 190,
+    "h": 75,
+    "fov": 44
+   },
+   "lensAllow": []
+  }
+ ]
+}

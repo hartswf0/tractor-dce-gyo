@@ -1,0 +1,415 @@
+{
+ "scene": "OD-B10-S05",
+ "location": "odyssey-od-b10-s05",
+ "title": "Hermes and the Moly",
+ "source": "Homer, Odyssey X, tr. Samuel Butler (public domain)",
+ "note": "Hand-staged from the text on the forest path (tools/forage/sets.js forestPath): the path of tan tiles winding through oaks, pines and cypress. Moly is a prop, white flower on a black root.",
+ "look": {
+  "sky": [
+   "#7fa9cf",
+   "#efe2c4"
+  ],
+  "fog": [
+   600,
+   2000
+  ],
+  "fill": {
+   "sky": "#c9d8f0",
+   "ground": "#2e3a22",
+   "intensity": 0.5
+  },
+  "sun": {
+   "dir": [
+    -0.4,
+    0.8,
+    0.4
+   ],
+   "color": "#fff0cf",
+   "intensity": 1.1,
+   "shadow": true
+  },
+  "exposure": 0.95
+ },
+ "spread": 0,
+ "blocking": [],
+ "keys": [
+  {
+   "id": "K1",
+   "beat": "Odysseus arms himself and heads alone toward Circe's house despite Eurylochus's protest.",
+   "text": "I slung my bronze sword over my shoulder, took my bow, and told Eurylochus to come back with me... but he laid hold of me with both his hands and spoke piteously.",
+   "hide": [
+    "moly plant"
+   ],
+   "blocking": [
+    {
+     "id": "odysseus",
+     "x": -34,
+     "z": 170,
+     "y": "floor",
+     "face": [
+      -30,
+      -300
+     ],
+     "props": true,
+     "pose": {
+      "armRP": [
+       -0.3,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "hermes-as-young-man",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
+    }
+   ],
+   "camera": {
+    "type": "wide",
+    "pos": [
+     60,
+     90,
+     330
+    ],
+    "target": [
+     -30,
+     60,
+     120
+    ],
+    "fov": 44
+   },
+   "subjects": [
+    {
+     "id": "odysseus",
+     "min": 0.08,
+     "primary": true
+    }
+   ]
+  },
+  {
+   "id": "K2",
+   "beat": "Hermes meets him in the form of a young man and explains Circe's trap.",
+   "text": "As I was going through the sacred valley, on my way to Circe's house, I met Mercury with his golden wand, disguised as a young man in the hey-day of his youth and beauty.",
+   "hide": [
+    "moly plant"
+   ],
+   "props": [
+    {
+     "name": "goldWand",
+     "id": "goldWand",
+     "after": true,
+     "aim": {
+      "anchor": "grip",
+      "to": "hand:hermes-as-young-man:R",
+      "dir": [
+       0,
+       1,
+       0.2
+      ]
+     },
+     "scale": 1.0
+    }
+   ],
+   "blocking": [
+    {
+     "id": "odysseus",
+     "x": -30,
+     "z": 90,
+     "y": "floor",
+     "face": [
+      -30,
+      -20
+     ],
+     "props": false
+    },
+    {
+     "id": "hermes-as-young-man",
+     "x": -30,
+     "z": -20,
+     "y": "floor",
+     "face": [
+      -30,
+      90
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.2,
+       0,
+       0
+      ]
+     }
+    }
+   ],
+   "camera": {
+    "type": "wide",
+    "pos": [
+     97,
+     70,
+     162
+    ],
+    "target": [
+     -30,
+     55,
+     35
+    ],
+    "fov": 44
+   },
+   "subjects": [
+    {
+     "id": "hermes-as-young-man",
+     "min": 0.03,
+     "primary": true,
+     "face": false
+    },
+    {
+     "id": "odysseus",
+     "min": 0.1,
+     "soft": true,
+     "cut": true
+    }
+   ],
+   "turn": {
+    "around": [
+     -30,
+     55,
+     35
+    ],
+    "r": 180,
+    "h": 70,
+    "fov": 44
+   },
+   "lensAllow": [
+    "odysseus",
+    "hermes-as-young-man"
+   ]
+  },
+  {
+   "id": "K3",
+   "beat": "He pulls the black-rooted, white-flowered moly from the earth and gives it to Odysseus.",
+   "text": "Mercury pulled the herb out of the ground and shewed me what it was like. The root was black, while the flower was as white as milk; the gods call it Moly.",
+   "hide": [
+    "moly plant"
+   ],
+   "props": [
+    {
+     "name": "moly",
+     "id": "moly",
+     "after": true,
+     "aim": {
+      "anchor": "grip",
+      "to": "hand:hermes-as-young-man:R",
+      "dir": [
+       0,
+       1,
+       0.4
+      ]
+     },
+     "scale": 1.5
+    }
+   ],
+   "blocking": [
+    {
+     "id": "odysseus",
+     "x": -30,
+     "z": 60,
+     "y": "floor",
+     "face": [
+      -30,
+      -20
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.2,
+       0,
+       0.2
+      ]
+     }
+    },
+    {
+     "id": "hermes-as-young-man",
+     "x": -30,
+     "z": -10,
+     "y": "floor",
+     "face": [
+      -30,
+      60
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.6,
+       0,
+       0
+      ]
+     }
+    }
+   ],
+   "camera": {
+    "type": "wide",
+    "pos": [
+     120,
+     60,
+     25
+    ],
+    "target": [
+     -30,
+     70,
+     25
+    ],
+    "fov": 54
+   },
+   "subjects": [
+    {
+     "id": "hermes-as-young-man",
+     "min": 0.03,
+     "primary": true,
+     "face": false
+    },
+    {
+     "id": "odysseus",
+     "min": 0.1,
+     "soft": true,
+     "cut": true
+    },
+    {
+     "id": "prop:moly",
+     "soft": true,
+     "cut": true
+    }
+   ],
+   "turn": {
+    "around": [
+     -30,
+     55,
+     25
+    ],
+    "r": 150,
+    "h": 60,
+    "fov": 44
+   },
+   "lensAllow": [
+    "odysseus",
+    "hermes-as-young-man"
+   ]
+  },
+  {
+   "id": "K4",
+   "beat": "Hermes instructs him to resist the drug, draw his sword, and force Circe to swear an oath.",
+   "text": "'When Circe strikes you with her wand, draw your sword and spring upon her as though you were going to kill her... make her swear a solemn oath by the blessed gods that she will plot no further mischief against you.'",
+   "hide": [
+    "moly plant"
+   ],
+   "props": [
+    {
+     "name": "moly",
+     "id": "moly",
+     "after": true,
+     "aim": {
+      "anchor": "grip",
+      "to": "hand:odysseus:R",
+      "dir": [
+       0,
+       1,
+       0.4
+      ]
+     },
+     "scale": 1.5
+    }
+   ],
+   "blocking": [
+    {
+     "id": "odysseus",
+     "x": -30,
+     "z": 60,
+     "y": "floor",
+     "face": [
+      -30,
+      -20
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -0.9,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "hermes-as-young-man",
+     "x": -30,
+     "z": -10,
+     "y": "floor",
+     "face": [
+      -30,
+      60
+     ],
+     "props": false,
+     "pose": {
+      "armLP": [
+       -2.6,
+       0,
+       -0.2
+      ],
+      "armRP": [
+       -0.4,
+       0,
+       0
+      ]
+     }
+    }
+   ],
+   "camera": {
+    "type": "wide",
+    "pos": [
+     -157,
+     70,
+     147
+    ],
+    "target": [
+     -30,
+     55,
+     20
+    ],
+    "fov": 44
+   },
+   "subjects": [
+    {
+     "id": "hermes-as-young-man",
+     "min": 0.03,
+     "primary": true,
+     "face": false
+    },
+    {
+     "id": "odysseus",
+     "soft": true,
+     "cut": true
+    }
+   ],
+   "lensAllow": [
+    "odysseus",
+    "hermes-as-young-man"
+   ],
+   "turn": {
+    "around": [
+     -30,
+     55,
+     20
+    ],
+    "r": 180,
+    "h": 70,
+    "fov": 44
+   }
+  }
+ ]
+}
