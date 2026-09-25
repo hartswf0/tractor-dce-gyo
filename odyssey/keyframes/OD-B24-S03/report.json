@@ -1,6 +1,6 @@
 {
  "scene": "OD-B24-S03",
- "pass": true,
+ "pass": false,
  "keys": [
   {
    "id": "K1",
@@ -18,20 +18,27 @@
    "lens": 0,
    "physics": {
     "collide": [],
-    "floating": []
+    "floating": [],
+    "perched": []
    },
    "subjects": {
     "laertes": {
      "visible": 1,
-     "size": 0.512,
+     "size": 0.511,
      "inFrame": true,
      "head": [
       0.734,
-      0.342
+      0.343
      ],
      "facing": -0.89,
-     "thirds": 0.009,
-     "headroom": 0.284,
+     "thirds": 0.01,
+     "headroom": 0.285,
+     "box": [
+      0.687,
+      0.779,
+      0.285,
+      0.796
+     ],
      "behind": false
     },
     "odysseus": {
@@ -45,6 +52,12 @@
      "facing": 0.77,
      "thirds": 0.021,
      "headroom": 0.241,
+     "box": [
+      0.289,
+      0.337,
+      0.241,
+      0.619
+     ],
      "behind": false
     }
    },
@@ -66,7 +79,8 @@
    "lens": 0,
    "physics": {
     "collide": [],
-    "floating": []
+    "floating": [],
+    "perched": []
    },
    "subjects": {
     "odysseus": {
@@ -80,19 +94,31 @@
      "facing": 0.78,
      "thirds": 0.037,
      "headroom": 0.115,
+     "box": [
+      0.328,
+      0.409,
+      0.115,
+      0.763
+     ],
      "behind": false
     },
     "laertes": {
      "visible": 0.75,
-     "size": 0.783,
+     "size": 0.781,
      "inFrame": true,
      "head": [
       0.685,
-      0.208
+      0.21
      ],
      "facing": -0.63,
      "thirds": 0.018,
-     "headroom": 0.122,
+     "headroom": 0.124,
+     "box": [
+      0.64,
+      0.736,
+      0.124,
+      0.905
+     ],
      "behind": false
     }
    },
@@ -102,8 +128,10 @@
    "id": "K3",
    "beat": "He claims to have hosted Odysseus years earlier and watches his father collapse in grief.",
    "text": "A dark cloud of sorrow fell upon Laertes as he listened. He filled both hands with the dust from off the ground and poured it over his grey head, groaning heavily as he did so.",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "prop:spade passes through laertes (6 part overlaps)"
+   ],
    "camera": {
     "pos": [
      -150,
@@ -113,21 +141,34 @@
    },
    "lens": 0,
    "physics": {
-    "collide": [],
-    "floating": []
+    "collide": [
+     [
+      "prop:spade",
+      "laertes",
+      6
+     ]
+    ],
+    "floating": [],
+    "perched": []
    },
    "subjects": {
     "laertes": {
      "visible": 0.75,
-     "size": 0.631,
+     "size": 0.63,
      "inFrame": true,
      "head": [
       0.607,
-      0.369
+      0.371
      ],
      "facing": -0.47,
-     "thirds": 0.036,
-     "headroom": 0.299,
+     "thirds": 0.037,
+     "headroom": 0.3,
+     "box": [
+      0.575,
+      0.632,
+      0.3,
+      0.93
+     ],
      "behind": false
     },
     "odysseus": {
@@ -141,6 +182,12 @@
      "facing": 0.7,
      "thirds": 0.071,
      "headroom": 0.062,
+     "box": [
+      0.368,
+      0.438,
+      0.062,
+      0.688
+     ],
      "behind": false
     }
    },
@@ -162,20 +209,27 @@
    "lens": 0,
    "physics": {
     "collide": [],
-    "floating": []
+    "floating": [],
+    "perched": []
    },
    "subjects": {
     "laertes": {
      "visible": 0.75,
-     "size": 0.803,
+     "size": 0.801,
      "inFrame": true,
      "head": [
       0.561,
-      0.205
+      0.207
      ],
      "facing": 0.47,
      "thirds": 0.105,
-     "headroom": 0.118,
+     "headroom": 0.12,
+     "box": [
+      0.529,
+      0.599,
+      0.12,
+      0.921
+     ],
      "behind": false
     }
    },
@@ -197,7 +251,8 @@
    "lens": 0,
    "physics": {
     "collide": [],
-    "floating": []
+    "floating": [],
+    "perched": []
    },
    "subjects": {
     "odysseus": {
@@ -211,19 +266,31 @@
      "facing": -0.99,
      "thirds": 0.043,
      "headroom": 0.294,
+     "box": [
+      0.367,
+      0.483,
+      0.294,
+      1.002
+     ],
      "behind": false
     },
     "laertes": {
      "visible": 1,
-     "size": 0.69,
+     "size": 0.688,
      "inFrame": false,
      "head": [
       0.655,
-      0.5
+      0.501
      ],
      "facing": -0.17,
      "thirds": 0.012,
-     "headroom": 0.42,
+     "headroom": 0.422,
+     "box": [
+      0.638,
+      0.663,
+      0.422,
+      1.11
+     ],
      "behind": false
     }
    },

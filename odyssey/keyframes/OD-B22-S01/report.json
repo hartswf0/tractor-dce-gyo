@@ -1,6 +1,6 @@
 {
  "scene": "OD-B22-S01",
- "pass": true,
+ "pass": false,
  "keys": [
   {
    "id": "K1",
@@ -18,7 +18,8 @@
    "lens": 0,
    "physics": {
     "collide": [],
-    "floating": []
+    "floating": [],
+    "perched": []
    },
    "subjects": {
     "odysseus-revealed": {
@@ -32,6 +33,12 @@
      "facing": 0.99,
      "thirds": 0.038,
      "headroom": 0.313,
+     "box": [
+      0.457,
+      0.541,
+      0.313,
+      0.844
+     ],
      "behind": false
     }
    },
@@ -41,8 +48,11 @@
    "id": "K2",
    "beat": "He shoots Antinous through the throat while the suitor lifts a cup.",
    "text": "Antinous was about to take up a two-handled gold cup to drink his wine... Ulysses aimed an arrow at him and struck him in the throat, and the point went clean through his neck.",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "prop:arrow passes through antinous (7 part overlaps)",
+    "suitors-5 peeks from behind (0.25)"
+   ],
    "camera": {
     "pos": [
      -80,
@@ -52,8 +62,15 @@
    },
    "lens": 0,
    "physics": {
-    "collide": [],
-    "floating": []
+    "collide": [
+     [
+      "prop:arrow",
+      "antinous",
+      7
+     ]
+    ],
+    "floating": [],
+    "perched": []
    },
    "subjects": {
     "antinous": {
@@ -67,6 +84,12 @@
      "facing": 0.98,
      "thirds": 0.082,
      "headroom": 0.386,
+     "box": [
+      0.474,
+      0.523,
+      0.386,
+      0.653
+     ],
      "behind": false
     },
     "prop:arrow": {
@@ -89,8 +112,10 @@
    "id": "K3",
    "beat": "Antinous falls across the table, spilling food and wine as the room erupts.",
    "text": "He fell over and the cup dropped from his hand, while a thick stream of blood gushed from his nostrils. He kicked the table from him and upset the things on it, so that the bread and roasted meat were all soiled as they fell over on to the ground.",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "prop:blood passes through antinous (3 part overlaps)"
+   ],
    "camera": {
     "pos": [
      80,
@@ -100,8 +125,15 @@
    },
    "lens": 0,
    "physics": {
-    "collide": [],
-    "floating": []
+    "collide": [
+     [
+      "prop:blood",
+      "antinous",
+      3
+     ]
+    ],
+    "floating": [],
+    "perched": []
    },
    "subjects": {
     "antinous": {
@@ -115,6 +147,12 @@
      "facing": 0.89,
      "thirds": 0.041,
      "headroom": 0.093,
+     "box": [
+      0.352,
+      0.492,
+      0.093,
+      0.518
+     ],
      "behind": false
     }
    },
@@ -124,8 +162,10 @@
    "id": "K4",
    "beat": "The suitors assume an accident and search for weapons that are no longer there.",
    "text": "The suitors were in an uproar when they saw that a man had been hit; they sprang in dismay one and all of them from their seats and looked everywhere towards the walls, but there was neither shield nor spear.",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "suitors-4 cropped to a headless body"
+   ],
    "camera": {
     "pos": [
      -4,
@@ -136,7 +176,8 @@
    "lens": 0,
    "physics": {
     "collide": [],
-    "floating": []
+    "floating": [],
+    "perched": []
    },
    "subjects": {
     "suitors-2": {
@@ -150,6 +191,12 @@
      "facing": -0.78,
      "thirds": 0.163,
      "headroom": 0.466,
+     "box": [
+      0.012,
+      0.102,
+      0.466,
+      0.702
+     ],
      "behind": false
     },
     "suitors-1": {
@@ -163,6 +210,12 @@
      "facing": -0.53,
      "thirds": 0.042,
      "headroom": 0.27,
+     "box": [
+      0.223,
+      0.256,
+      0.27,
+      0.445
+     ],
      "behind": false
     }
    },
@@ -184,7 +237,8 @@
    "lens": 0,
    "physics": {
     "collide": [],
-    "floating": []
+    "floating": [],
+    "perched": []
    },
    "subjects": {
     "odysseus-revealed": {
@@ -196,8 +250,14 @@
       0.346
      ],
      "facing": 0.99,
-     "thirds": 0.012,
-     "headroom": 0.284,
+     "thirds": 0.013,
+     "headroom": 0.285,
+     "box": [
+      0.456,
+      0.546,
+      0.285,
+      0.865
+     ],
      "behind": false
     }
    },

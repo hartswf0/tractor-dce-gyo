@@ -1,6 +1,6 @@
 {
  "scene": "OD-B10-S02",
- "pass": true,
+ "pass": false,
  "keys": [
   {
    "id": "K1",
@@ -18,20 +18,27 @@
    "lens": 0,
    "physics": {
     "collide": [],
-    "floating": []
+    "floating": [],
+    "perched": []
    },
    "subjects": {
     "odysseus": {
      "visible": 1,
-     "size": 0.286,
+     "size": 0.284,
      "inFrame": true,
      "head": [
       0.402,
-      0.516
+      0.517
      ],
      "facing": -0.96,
      "thirds": 0.069,
-     "headroom": 0.485,
+     "headroom": 0.487,
+     "box": [
+      0.38,
+      0.423,
+      0.487,
+      0.771
+     ],
      "behind": false
     },
     "piece:black ship": {
@@ -66,7 +73,8 @@
    "lens": 0,
    "physics": {
     "collide": [],
-    "floating": []
+    "floating": [],
+    "perched": []
    },
    "subjects": {
     "three-scouts-2": {
@@ -80,6 +88,12 @@
      "facing": -0.99,
      "thirds": 0.038,
      "headroom": 0.676,
+     "box": [
+      0.444,
+      0.495,
+      0.676,
+      0.983
+     ],
      "behind": false
     },
     "prop:girl": {
@@ -102,8 +116,10 @@
    "id": "K3",
    "beat": "The queen summons Antiphates, who seizes and eats one scout.",
    "text": "Antiphates... raised a cry through the town, which brought thousands of sturdy Laestrygonians running from every quarter: ogres, not men.",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "prop:antiphates passes through three-scouts-3 (1 part overlaps)"
+   ],
    "camera": {
     "pos": [
      0,
@@ -113,8 +129,15 @@
    },
    "lens": 0,
    "physics": {
-    "collide": [],
-    "floating": []
+    "collide": [
+     [
+      "prop:antiphates",
+      "three-scouts-3",
+      1
+     ]
+    ],
+    "floating": [],
+    "perched": []
    },
    "subjects": {
     "prop:antiphates": {
@@ -141,6 +164,12 @@
      "facing": 1,
      "thirds": 0.096,
      "headroom": 0.226,
+     "box": [
+      0.488,
+      0.527,
+      0.226,
+      0.352
+     ],
      "behind": false
     }
    },
@@ -162,7 +191,8 @@
    "lens": 0,
    "physics": {
     "collide": [],
-    "floating": []
+    "floating": [],
+    "perched": []
    },
    "subjects": {
     "prop:g1": {
@@ -210,20 +240,27 @@
    "lens": 0,
    "physics": {
     "collide": [],
-    "floating": []
+    "floating": [],
+    "perched": []
    },
    "subjects": {
     "odysseus": {
      "visible": 1,
-     "size": 0.493,
+     "size": 0.491,
      "inFrame": false,
      "head": [
       0.448,
-      0.593
+      0.594
      ],
      "facing": 1,
-     "thirds": 0.074,
-     "headroom": 0.547,
+     "thirds": 0.072,
+     "headroom": 0.549,
+     "box": [
+      0.411,
+      0.482,
+      0.549,
+      1.04
+     ],
      "behind": false
     }
    },

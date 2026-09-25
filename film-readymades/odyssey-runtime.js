@@ -49,6 +49,7 @@ const kfInside=(o,r)=>{for(;o;o=o.parent)if(o===r)return true;return false;};
 function kfBlock(list){for(const e of list){const a=kfActor(e.id);if(!a){console.warn('[keyframe] no actor',e.id);continue;}const r=a.rig;
   /* absent: the actor is not in this still (the men already swine): hidden, and left out of the physics */
   r.absent=!!e.absent;r.figure.visible=!e.absent;if(e.absent)continue;
+  r.placed=e.y==='surface'||typeof e.y==='number';   /* put on a body on purpose (a deck, a giant's chest): the perch check leaves him be */
   r.air=!!e.air;   /* air: held off the ground (a man in Scylla's jaws): the support check leaves him be */
   if(typeof e.at==='string'){const p=kfPoint(e.at).add(new THREE.Vector3(...(e.off||[0,0,0])));r.pos.x=p.x;r.pos.z=p.z;}
   if(e.x!=null)r.pos.x=e.x;if(e.z!=null)r.pos.z=e.z;if(e.y==='ground')r.pos.y=kfGround(r.pos.x,r.pos.z);else if(e.y==='floor')r.pos.y=kfFloor(a);
@@ -140,25 +141,27 @@ function kfObjBoxes(root,shrink=0.12){const out=[];root.updateMatrixWorld(true);
    out.push({c:c.clone().applyMatrix4(m),ax:ax.map(x=>x.normalize()),h:[h.x*sc[0],h.y*sc[1],h.z*sc[2]],name:(o.parent&&o.parent.userData&&o.parent.userData.file)||''});});return out;}
 function kfSat(A,B){const T=B.c.clone().sub(A.c),axes=[...A.ax,...B.ax];for(const a of A.ax)for(const b of B.ax){const x=a.clone().cross(b);if(x.lengthSq()>1e-8)axes.push(x.normalize());}
   for(const L of axes){const ra=A.h[0]*Math.abs(A.ax[0].dot(L))+A.h[1]*Math.abs(A.ax[1].dot(L))+A.h[2]*Math.abs(A.ax[2].dot(L)),rb=B.h[0]*Math.abs(B.ax[0].dot(L))+B.h[1]*Math.abs(B.ax[1].dot(L))+B.h[2]*Math.abs(B.ax[2].dot(L));if(Math.abs(T.dot(L))>ra+rb)return false;}return true;}
-function kfPhysics(ids,touch=[]){const set=new Set(ids),acts=ButterCast.cast.filter(a=>set.has(kfShort(a.kind))&&!a.rig.absent),boxes=new Map(acts.map(a=>[a,kfBoxes(a)])),collide=[],floating=[],perched=[];
+const kfPropOf=o=>{for(;o&&!String(o.name).startsWith('prop:');)o=o.parent;return o?o.name:null;};
+function kfPhysics(ids,touch=[]){const set=new Set(ids),acts=ButterCast.cast.filter(a=>set.has(kfShort(a.kind))&&!a.rig.absent),boxes=new Map(acts.map(a=>[a,kfBoxes(a)])),collide=[],floating=[],perched=[],support=new Map();
   const ok=(p,q)=>touch.some(([x,y])=>(x===p&&y===q)||(x===q&&y===p));
   for(let i=0;i<acts.length;i++)for(let j=i+1;j<acts.length;j++){const a=acts[i],b=acts[j],p=kfShort(a.kind),q=kfShort(b.kind);if(a.rig.pos.distanceTo(b.rig.pos)>140||ok(p,q))continue;
     let n=0;for(const A of boxes.get(a))for(const B of boxes.get(b))if(kfSat(A,B))n++;if(n)collide.push([p,q,n]);}
-  /* a prop through a figure (a torch through a suitor's chest, a rock in a man's head) poisons the frame as surely as two figures in one
-     place: every staged prop against every figure near it, but a prop in a figure's own hand against that figure is its grip */
-  for(const [id,h] of kfPropObjs){const pb=kfObjBoxes(h,0.2);if(!pb.length)continue;const hb=new THREE.Box3().setFromObject(h);
-    for(const a of acts){const q=kfShort(a.kind);if(h.userData.holder===q||ok('prop:'+id,q))continue;const ab=boxes.get(a);if(!ab.length)continue;
-      const fb=new THREE.Box3().setFromObject(a.rig.figure);if(!fb.intersectsBox(hb))continue;
-      let n=0;for(const A of pb)for(const B of ab)if(kfSat(A,B))n++;if(n)collide.push(['prop:'+id,q,n]);}}
   const meshes=[],figs=new Set();ButterCast.cast.forEach(a=>a.rig.figure.traverse(o=>figs.add(o)));scene.traverse(o=>{if(kfSolid(o)&&!figs.has(o))meshes.push(o);});
   for(const a of acts){const k=a.rig.headP.getWorldScale(new THREE.Vector3()).y;
     if(a.rig.air)continue;
     if(a.rig.sat){a.rig.figure.updateMatrixWorld(true);const hp=kfWorld(a.rig.legRP),lp=kfWorld(a.rig.legLP),c=hp.clone().add(lp).multiplyScalar(0.5),h=new THREE.Raycaster(c.clone().add(new THREE.Vector3(0,2*k,0)),new THREE.Vector3(0,-1,0)).intersectObjects(meshes,true)[0],gap=h?c.y-h.point.y:Infinity;
-      if(gap<-2*k||gap>14*k)floating.push([kfShort(a.kind),h?+gap.toFixed(1):null]);continue;}   /* seated: the hips on the seat, the thighs' own depth above it */
+      if(gap<-2*k||gap>14*k)floating.push([kfShort(a.kind),h?+gap.toFixed(1):null]);if(h)support.set(kfShort(a.kind),kfPropOf(h.object));continue;}   /* seated: the hips on the seat, the thighs' own depth above it */
     const from=a.rig.pos.clone().add(new THREE.Vector3(0,30*k,0)),ray=new THREE.Raycaster(from,new THREE.Vector3(0,-1,0));ray.far=200;
     const h=ray.intersectObjects(meshes,true)[0],gap=h?a.rig.pos.y-h.point.y:Infinity;if(Math.abs(gap)>3*k)floating.push([kfShort(a.kind),h?+gap.toFixed(1):null]);
     /* feet on a prop (a loom's foot beam, a seal's back) read as a figure hovering over the floor, unless the still means it (touch) */
-    else if(h){let o=h.object;for(;o&&!String(o.name).startsWith('prop:');)o=o.parent;if(o&&!ok(o.name,kfShort(a.kind)))perched.push([kfShort(a.kind),o.name]);}}
+    if(h)support.set(kfShort(a.kind),kfPropOf(h.object));
+    if(Math.abs(gap)<=3*k&&h){const o=kfPropOf(h.object);if(o&&!a.rig.placed&&!ok(o,kfShort(a.kind)))perched.push([kfShort(a.kind),o]);}}
+  /* a prop through a figure (a torch through a suitor's chest, a rock in a man's head) poisons the frame as surely as two figures in one
+     place: every staged prop against every figure near it, but a prop in a figure's own hand against that figure is its grip, and the prop a figure stands or sits on is its floor */
+  for(const [id,h] of kfPropObjs){const pb=kfObjBoxes(h,0.2);if(!pb.length)continue;const hb=new THREE.Box3().setFromObject(h);
+    for(const a of acts){const q=kfShort(a.kind);if(h.userData.holder===q||support.get(q)==='prop:'+id||ok('prop:'+id,q))continue;const ab=boxes.get(a);if(!ab.length)continue;
+      const fb=new THREE.Box3().setFromObject(a.rig.figure);if(!fb.intersectsBox(hb))continue;
+      let n=0;for(const A of pb)for(const B of ab)if(kfSat(A,B))n++;if(n)collide.push(['prop:'+id,q,n]);}}
   return {collide,floating,perched};}
 /* rope: a braided string as LDraw models one (a chain of short cylinders along a path), here wound in loops round a figure and the
    post it is bound to, at heights along the figure (fractions of its height above the feet), knotted with a hanging tail */
