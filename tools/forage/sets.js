@@ -105,7 +105,7 @@ const KIT = {
   cypress: () => REAL('cypress', [R('3778', C.dgreen, 0, 0)]),
   olive: () => REAL('olive tree', [R('3470', C.green, 0, 0)]),
   pine: () => REAL('pine', [R('3471', C.green, 0, 0)]),
-  palm: () => REAL('palm', [R('2518c01', C.rbrown, 0, 0)]),
+  palm: () => REAL('palm', [R('2518c01', C.green, 0, 0)]),
   flowers: (n = 3) => REAL('flowers', Array.from({ length: n }, (_, i) => R(i % 2 ? '3741ac04' : '3741ac01', i % 2 ? C.red : C.yellow, (i % 3) * 3 - 3, Math.floor(i / 3) * 3))),
   bush: () => REAL('bush', [R('2417', C.green, 0, 0), R('2417', C.dgreen, 2, 1, -12)]),
   bones: () => REAL('bones', [R('6260', C.white, 0, 0), R('6266', C.white, 2, 1), R('6266', C.white, -2, 1), R('92691', C.white, 1, -2), R('92691', C.white, -1, 2, -8, 1)]),
@@ -213,6 +213,75 @@ function scyllaCliff() {
   list.push({ id: '2417', col: C.dgreen, x: -12, z: 12, base: T(1) }, { id: '2417', col: C.green, x: -13, z: -2, base: T(2) }, { id: '32607', col: C.green, x: -11.5, z: 4, base: T(1) });
   return REAL("scylla's rock", list);
 }
+/* the palace gate at Ithaca (Homer XVII): the outer wall of cut stone with its gateway under a lintel, the stable doors beside it, and
+   before them "the heaps of mule and cow dung" where Argos lies; a road of flagstones up to the gate, olive trees along it */
+function argosGate() {
+  const W = C.tan, list = [];
+  list.push(...coursing(W, -15.5, 15.5, -11.5, 7, { holes: [[-3.5, 3.5, 0, 5], [-12.5, -9.5, 0, 3]] }));
+  for (const x of [-4.5, 4.5]) list.push({ id: '43888', col: C.white, x, z: -10.5, base: -8 });
+  list.push({ id: '6108', col: C.white, x: 0, z: -10.5, base: -8 - 144 + 24 }, { id: '3004', col: C.white, x: -4, z: -10.5, base: -8 - 144 }, { id: '3004', col: C.white, x: 4, z: -10.5, base: -8 - 144 });
+  /* the stable doors: brown planks in the low opening */
+  for (let k = 0; k < 4; k++) list.push({ id: '3010', col: C.rbrown, x: -11, z: -11.5, base: -8 - 24 * k });
+  for (const x of [-11]) list.push({ id: '3009', col: C.dbrown, x: x, z: -11.5, base: -8 - 96 });
+  /* the dung heap: rocks and slopes in dark brown and reddish brown, straw (tan) through it */
+  list.push({ id: '42291', col: C.dbrown, x: -9, z: -6, base: -8 }, { id: '42284', col: C.dbrown, x: -9, z: -6, base: -8 - 40 }, { id: '42291', col: C.rbrown, x: -12.5, z: -5, base: -8 }, { id: '42284', col: C.dbrown, x: -12.5, z: -5, base: -8 - 40 }, { id: '3040b', col: C.dbrown, x: -6.5, z: -6, base: -8, q: 1 }, { id: '3040b', col: C.rbrown, x: -11, z: -8.5, base: -8, q: 2 },
+    { id: '3941', col: C.dbrown, x: -6, z: -4, base: -8 }, { id: '6141', col: C.tan, x: -7, z: -8, base: -8 - 24 }, { id: '6141', col: C.tan, x: -10.5, z: -3, base: -8 - 24 }, { id: '3024', col: C.tan, x: -8, z: -3, base: -8 });
+  /* the road of flagstones to the gate */
+  for (let z = -8.5; z <= 12.5; z += 2) for (const x of [-1, 1]) list.push({ id: '3068b', col: (x + z + 0.5) % 4 ? C.lbg : C.tan, x, z, base: -8 });
+  /* olives and a cypress along the way, a bench and a pithos by the wall */
+  list.push(R('3470', C.green, 9, -6), R('3470', C.green, 13, 6), R('3778', C.dgreen, -14, 8), R('2417', C.green, 11, 12), R('2417', C.dgreen, -9, 12), R('3741ac01', C.yellow, 7, 2), R('3741ac04', C.red, -5, 9));
+  list.push({ id: '3941', col: C.dtan, x: 7, z: -9, base: -8 }, { id: '3941', col: C.dtan, x: 7, z: -9, base: -32 }, { id: '4589', col: C.dtan, x: 7, z: -9, base: -56 });
+  return REAL('the palace gate', list);
+}
+/* a shore: the sea at the back (a 16 x 32 blue baseplate), the printed beach across the middle, meadow in front (a 16 x 32 green
+   baseplate); authored z: sea -24..-8, beach -8..8, meadow 8..24. The floor is not turned with the items, so its z is negated here. */
+const shoreFloor = (meadow = C.green) => REAL('the shore', [R('3857', C.blue, 0, 16, -8), R('3857p01', C.green, 0, 0, -8, 2), R('3857', meadow, 0, -16, -8)]);
+/* the Lotus-eaters' land (Homer IX): the ships drawn up on the beach, a meadow of lotus in flower under palms, a spring */
+function lotusLand() {
+  const list = [];
+  for (const [x, z] of [[-12, 12], [-7, 16], [-2, 11], [4, 17], [9, 12], [13, 18], [-13, 20], [0, 21], [7, 22], [-9, 22]]) list.push({ id: '19119c01', col: C.green, x, z, base: -8 });
+  list.push(R('2518c01', C.green, -14, 13), R('2518c01', C.green, 14, 11), R('2518c01', C.green, 6, 9), R('2417', C.green, -4, 15), R('2417', C.dgreen, 11, 20), R('2423', C.green, -15, 22), R('6255', C.green, 3, 13));
+  list.push({ id: '3941', col: C.white, x: -6, z: 19, base: -8 }, { id: '4589', col: C.tDBlue, x: -6, z: 19, base: -32 });   // the spring
+  for (const [x, z, h] of [[16, -4, 1], [-15, -3, 0]]) list.push({ id: '53934p01c01', col: C.dtan, x, z, base: -8 });
+  return REAL("the lotus-eaters' land", list);
+}
+/* Calypso's isle (Homer V): "a large cave... a vine loaded with grapes trained over it... four running rills of water... meadows
+   thickly overgrown with violets and parsley", and the wood of alder, poplar and cypress she gave him to fell */
+function ogygia() {
+  const g = C.dtan, list = [];
+  /* the cavern: a corner of rock panels with a rectangular panel either side, the dark within, a vine over its mouth */
+  list.push({ id: '23996', col: g, x: -12, z: 12, base: -8, q: 3 }, { id: '6082', col: g, x: -7, z: 18, base: -8 }, { id: '6082', col: g, x: -15, z: 6, base: -8, q: 1 }, { id: '6083', col: g, x: -8, z: 18, base: -8 - 144 });
+  for (let k = 0; k < 5; k++) list.push({ id: '3009', col: C.black, x: -11, z: 16.5, base: -8 - 24 * k });
+  for (const [x, z, y] of [[-12, 13, 150], [-9, 14, 140], [-6, 15, 150], [-14, 11, 120]]) list.push({ id: '2417', col: C.green, x, z, base: -8 - y });
+  for (const [x, z] of [[-10, 14], [-7, 15]]) list.push({ id: '32607', col: C.purple, x, z, base: -8 - 130 });
+  /* the fire at the cave mouth, the loom inside the light */
+  list.push({ id: '3941', col: C.dbg, x: -8, z: 10, base: -8 }, { id: '3062b', col: C.tOrange, x: -8, z: 10, base: -32 }, { id: '4589', col: C.orange, x: -8.5, z: 10, base: -56 });
+  /* the rills: trans blue tiles running to the beach */
+  for (const [x, z] of [[-3, 18], [-2, 16], [-1, 14], [0, 12], [1, 10], [2, 8], [3, 6]]) list.push({ id: '3068b', col: C.tDBlue, x, z, base: -8 });
+  /* the wood: cypress, poplar (the columnar tree), alder (the oval tree), felled trunks of log bricks, stumps */
+  list.push(R('3778', C.dgreen, 10, 20), R('3778', C.dgreen, 14, 16), R('3471', C.green, 6, 22), R('3470', C.green, 15, 22), R('3470', C.dgreen, 12, 10), R('3471', C.green, -2, 22));
+  for (const [x, z] of [[8, 14], [11, 15]]) list.push({ id: '3941', col: C.rbrown, x, z, base: -8 }, { id: '6141', col: C.tan, x, z, base: -32 });
+  for (const [x, z] of [[5, 12], [5, 13.5]]) list.push({ id: '30137', col: C.rbrown, x, z, base: -8 }, { id: '30137', col: C.rbrown, x: x + 4, z, base: -8 });
+  /* violets and parsley in the meadow */
+  for (const [x, z] of [[0, 18], [3, 20], [-4, 21], [7, 17], [1, 23]]) list.push({ id: '3741ac04', col: C.purple, x, z, base: -8 });
+  list.push(R('2423', C.green, 3, 16), R('6255', C.green, -1, 20));
+  return REAL("calypso's isle", list);
+}
+/* Thrinacia (Homer XII): the ship hauled up "into a cave", Hyperion's cattle, "broad-faced and horned", grazing the meadow; an oak
+   whose leaves they strewed for barley; the altar where they roasted them */
+function thrinacia() {
+  const list = [];
+  list.push({ id: '23996', col: C.dbg, x: 13, z: -2, base: -8, q: 2 }, { id: '6082', col: C.dbg, x: 15, z: 5, base: -8, q: 3 }, { id: '53934p01c01', col: C.dbg, x: -15, z: -2, base: -8 });
+  list.push(R('3470', C.dgreen, -11, 12), R('3470', C.green, -14, 16), R('3471', C.green, 14, 21), R('2417', C.green, 9, 20), R('2417', C.dgreen, -3, 23));
+  /* the altar: a block of white bricks, a fire on it; spits across two forked posts beside it */
+  list.push({ id: '3004', col: C.white, x: 0, z: 13, base: -8 }, { id: '3004', col: C.white, x: 0, z: 14, base: -8 }, { id: '3004', col: C.white, x: 0, z: 13.5, base: -32, q: 1 });
+  list.push({ id: '3062b', col: C.tOrange, x: 0, z: 13.5, base: -56 }, { id: '4589', col: C.orange, x: -0.5, z: 13.5, base: -56 }, { id: '4589', col: C.yellow, x: 0.5, z: 13.5, base: -56 });
+  list.push({ id: '3941', col: C.dbg, x: 5, z: 12, base: -8 }, { id: '3062b', col: C.tOrange, x: 5, z: 12, base: -32 }, { id: '4589', col: C.orange, x: 5, z: 12, base: -32 - 24 });
+  for (const x of [3.5, 6.5]) list.push({ id: '3957a', col: C.rbrown, x, z: 12, base: -8 });
+  list.push({ id: '30374', col: C.lbg, x: 5, z: 12, base: -86, m: [0, 0, 0, 0, -1, 0, 1, 0, 0, 0, 0, 1] });
+  list.push({ id: '3741ac01', col: C.yellow, x: 8, z: 16 }, { id: '3741ac01', col: C.yellow, x: -6, z: 19 });
+  return REAL('thrinacia', list);
+}
 const SETS = {
   /* Odysseus's megaron at Ithaca: the hall of the suitors, the bow and the slaughter */
   megaron: () => room('the megaron at ithaca', 36, 30, floor(36, 30, C.dtan, C.tan), [
@@ -265,6 +334,15 @@ const SETS = {
     [FURN.rock(12, 6, 6, C.dtan), -9, -11], [FURN.rock(8, 6, 5, C.dtan), 5, -11], [FURN.tree(5, C.green), 13, -8], [FURN.tree(4, C.dgreen), -14, 3], [FURN.tree(5, C.green), 12, 6], [FURN.tree(3, C.green), -11, 11],
     [FURN.loom(C.rbrown, C.gold), -2, -6], [FURN.fire(), 5, -3], [FURN.bed(), -9, -2], [FURN.fountain(), 5, 7], [kit('shore', [K.slab(0, 0, 34, 3, C.tDBlue)]), 0, 13],
   ], { calypso: M(-2, -3, 0, 'Calypso at her loom'), fire: M(5, 0, 0), spring: M(5, 11, 0), shore: M(-6, 11, 2, 'Odysseus weeping on the shore'), centre: M(0, 3, 0) }),
+  /* Argos on the dung heap before the palace gate */
+  argos: () => room('the palace gate at ithaca', 32, 28, floor(32, 28, C.dtan), [[argosGate(), 0, 0]],
+    { argos: M(-8, -5, 0, 'Argos on the dung heap'), gate: M(0, -8, 2, 'the gateway'), road: M(0, 4, 2, 'the road to the gate'), odysseus: M(2, 2, 2, 'the beggar'), eumaeus: M(-2, 3, 2, 'the swineherd'), centre: M(0, 4, 0) }),
+  lotus: () => room("the lotus-eaters' shore", 32, 48, shoreFloor(), [[lotusLand(), 0, 0], [KIT.galley({ furled: true }), 2, -4, 1], [KIT.swell(5, 1), -9, -16], [KIT.swell(6, 2), 8, -18]],
+    { odysseus: M(0, 5, 2, 'Odysseus on the beach'), ships: M(2, -4, 0, 'the ships drawn up'), eaters: M(-4, 15, 0, 'the Lotus-eaters in their meadow', 'x'), scouts: M(4, 13, 0, 'the scouts among them', 'x'), centre: M(0, 8, 0) }),
+  ogygia: () => room("calypso's isle", 32, 48, shoreFloor(), [[ogygia(), 0, 0], [KIT.raft(), 4, 0], [KIT.swell(5, 0), -8, -16], [KIT.swell(6, 3), 9, -19]],
+    { calypso: M(-8, 8, 0, 'Calypso at her cave'), odysseus: M(4, 4, 0, 'Odysseus at the raft'), raft: M(4, 0, 0, 'the raft on the beach'), wood: M(10, 16, 0, 'the wood'), centre: M(0, 10, 0) }),
+  thrinacia: () => room('thrinacia, the island of the sun', 32, 48, shoreFloor(), [[thrinacia(), 0, 0], [KIT.galley({ furled: true }), 3, -5, 1], [KIT.swell(5, 2), -10, -17], [KIT.swell(5, 4), 9, -16]],
+    { eurylochus: M(-2, 10, 2, 'Eurylochus at the altar'), crew: M(3, 10, 0, 'the crew at the fire', 'x'), odysseus: M(-12, 20, 0, 'Odysseus asleep inland'), cattle: M(6, 18, 0, 'the cattle of the Sun', 'x'), centre: M(0, 12, 0) }),
   /* the sea sets, in real kits: the blue baseplate sea, the galley bow-on to the camera (its crew two abreast on the deck, the mast
      amidships), the places it passes built of rock panels, baseplates and plants. Marks with a y stand on the deck or a crag. */
   sirens: () => room("the sirens' sea", 32, 48, seaFloor('beach'), [

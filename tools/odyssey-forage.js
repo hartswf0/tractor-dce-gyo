@@ -142,9 +142,10 @@ function stageOf(loc, title) {
 }
 const LOC_ALIAS = { 'location.aftermath-hall': 'location.megaron-hall', 'location.cleaned-palace-hall': 'location.megaron-hall', 'location.night-palace-hall': 'location.megaron-hall', 'location.palace-night-interior': 'location.megaron-hall', 'location.festival-ready-hall': 'location.megaron-hall', 'location.recognition-seating': 'location.megaron-hall', 'location.night-hearth-interview': 'location.megaron-hall', 'location.bow-storeroom': 'location.weapon-storeroom', 'location.palace-family-chamber': 'location.upper-chamber-and-stair' };
 /* scenes at sea stand on a sea set whatever island the atlas names for them */
-const SCENE_SET = { 'OD-B05-S05': 'storm', 'OD-B12-S03': 'sirens', 'OD-B12-S04': 'strait', 'OD-B12-S07': 'wreck', 'OD-B10-S01': 'voyage', 'OD-B13-S01': 'voyage', 'OD-B09-S11': 'boast' };
+const SCENE_SET = { 'OD-B05-S05': 'storm', 'OD-B12-S03': 'sirens', 'OD-B12-S04': 'strait', 'OD-B12-S07': 'wreck', 'OD-B10-S01': 'voyage', 'OD-B13-S01': 'voyage', 'OD-B09-S11': 'boast', 'OD-B17-S03': 'argos', 'OD-B09-S03': 'lotus', 'OD-B05-S04': 'ogygia', 'OD-B12-S06': 'thrinacia', 'OD-B21-S07': 'megaron' };
+const SEA = new Set(['sirens', 'strait', 'storm', 'wreck', 'voyage', 'boast', 'lotus', 'ogygia', 'thrinacia']);
 /* cast the atlas leaves out but the text needs on stage: Eurylochus's scouts, the men Circe turns (Homer X: "twenty-two men") */
-const SCENE_CAST = { 'OD-B10-S04': [{ id: 'ensemble.circe-scouts', name: 'five scouts', type: 'ensemble' }] };
+const SCENE_CAST = { 'OD-B10-S04': [{ id: 'ensemble.circe-scouts', name: 'five scouts', type: 'ensemble' }], 'OD-B21-S07': [{ id: 'ensemble.bow-suitors', name: 'six suitors', type: 'ensemble' }] };
 for (const [sid, xs] of Object.entries(SCENE_CAST)) { const sc = manifest.scenes.find(s => s.id === sid); if (!sc) continue; for (const x of xs) { if (!manifest.assets.some(a => a.id === x.id)) manifest.assets.push(x); if (!sc.assets.includes(x.id)) sc.assets.push(x.id); } }
 let prevLoc = {}; const bookLoc = {};   // the first place each book names (through the aliases): where a book's unplaced opening scenes stand
 for (const sc of manifest.scenes) { if (bookLoc[sc.book]) continue; const l = sc.assets.find(a => a.startsWith('location.')); const id = l && (built.has(l) ? l : LOC_ALIAS[l]); if (id) bookLoc[sc.book] = id; }
@@ -158,9 +159,9 @@ for (const sc of manifest.scenes) {
   const stage = SCENE_SET[sc.id] ? Sets.SETS[SCENE_SET[sc.id]]() : stageOf(loc, sc.title.toLowerCase());
   const order = ['character', 'ensemble', 'creature', 'wearable', 'prop', 'sound_source', 'set_piece', 'divine_fx', 'environment', 'vehicle'];
   const cast = parts.filter(p => p !== loc).sort((a, b) => order.indexOf(a.a.type) - order.indexOf(b.a.type)).map(p => ({ id: p.a.id, name: p.a.name, type: p.a.type, comp: /character|ensemble|creature/.test(p.a.type) ? p.top : crop(p.top, 24, 16, p.a.name) }   /* people and animals are never cut by a window */)).filter(c => rowsOf(c.comp).length);
-  const { list, blocking } = Stage.block(stage, SCENE_SET[sc.id] ? cast.filter(c => c.type !== 'vehicle') : cast);   /* a sea set brings its own ship or raft */
+  const { list, blocking } = Stage.block(stage, SEA.has(SCENE_SET[sc.id]) ? cast.filter(c => c.type !== 'vehicle') : cast);   /* a sea set brings its own ship or raft */
   const top = B.at(sc.title.toLowerCase(), [[stage.comp, 0, 0], ...list]);
-  const { card } = onPlate(sc.title, [top], SCENE_SET[sc.id] ? 1 : loc ? loc.rec.base : 19, {});   /* a sea set's plate is sea to its edge */
+  const { card } = onPlate(sc.title, [top], SEA.has(SCENE_SET[sc.id]) ? 1 : loc ? loc.rec.base : 19, {});   /* a sea set's plate is sea to its edge */
   const s = finish(sc.id, 'scene', { name: sc.title, book: sc.book, assets: sc.assets }, card, top, {});
   const pv = Stage.previs(sc, blocking, stage.marks);
   fs.writeFileSync(path.join(OUT, 'previs', sc.id + '.json'), JSON.stringify({ id: sc.id, title: sc.title, book: sc.book, set: loc ? (loc.rec.hero || loc.a.name) : null, size: stage.size, marks: stage.marks, duration: pv.duration,

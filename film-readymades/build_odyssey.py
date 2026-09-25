@@ -154,7 +154,7 @@ def clear_mark(target, dist, rise, want, boxes, subj):
     return target + np.array([math.sin(want) * dist, rise * 3, math.cos(want) * dist])
 
 # the scenes the Odyssey player carries: the Cyclops's cave, then the sea
-SCENES = ['OD-B09-S09', 'OD-B09-S11', 'OD-B10-S01', 'OD-B10-S04', 'OD-B12-S03', 'OD-B12-S04', 'OD-B12-S07', 'OD-B05-S05', 'OD-B13-S01']
+SCENES = ['OD-B17-S03', 'OD-B09-S03', 'OD-B05-S04', 'OD-B12-S06', 'OD-B21-S07', 'OD-B09-S09', 'OD-B09-S11', 'OD-B10-S01', 'OD-B10-S04', 'OD-B12-S03', 'OD-B12-S04', 'OD-B12-S07', 'OD-B05-S05', 'OD-B13-S01']
 HAND = {'R': [-23.688, -5.24, -9.884, 0.985, -0.12, 0.12, 0.17, 0.697, -0.697, 0, 0.707, 0.707], 'L': [23.688, -5.24, -9.884, 0.985, -0.12, -0.12, 0.002, 0.717, -0.697, 0.17, 0.686, 0.707]}
 def inv12(M):
     R_ = np.array(M[3:]).reshape(3, 3); t = np.array(M[:3]); return (-R_.T @ t).tolist() + R_.T.reshape(-1).tolist()
