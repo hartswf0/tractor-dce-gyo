@@ -15,10 +15,14 @@ const row = (part, color, m) => ({ part: part + '.dat', color, m: m.map(v => +(+
 const props = {};
 /* the giant in a pose: each arm (and its hand) turned about its shoulder, the arm part's own origin */
 const RZ = a => [0, 0, 0, Math.cos(a), -Math.sin(a), 0, Math.sin(a), Math.cos(a), 0, 0, 0, 1];
+/* the troll body's shoulder pin hole sits 40 below and 20 before the point its arms are hung from (s/60637s01.dat connhole at 30,40,20) */
+const SHOULDER = [0, 40, 20];
 function giant(armL, armR) {
   const body = Cy.troll({}), rows = B.rowsOf(body).map(r => ({ ...r })), head = rows.find(r => r.part === '60635').m;
   for (const [arm, hand, R] of [['60672', '60640', armL], ['60673', '60641', armR]]) {
-    const a = rows.find(r => r.part === arm), h = rows.find(r => r.part === hand), piv = a.m.slice(0, 3), about = m => L.mul(L.mul(L.T(...piv), R), L.mul(L.T(-piv[0], -piv[1], -piv[2]), m));
+    const a = rows.find(r => r.part === arm), h = rows.find(r => r.part === hand);
+    for (const q of [a, h]) q.m = L.mul(L.T(...SHOULDER), q.m);   /* seat the arm's axle hole on the body's pin hole */
+    const piv = a.m.slice(0, 3), about = m => L.mul(L.mul(L.T(...piv), R), L.mul(L.T(-piv[0], -piv[1], -piv[2]), m));
     a.m = about(a.m); h.m = about(h.m);
   }
   return { rows, head };
@@ -146,15 +150,18 @@ props.keel = { parts: [...Array.from({ length: 8 }, (_, i) => row('3941', 0, L.m
 props.chest = { parts: [row('4738a', 70, L.I12), row('4739a', 70, L.T(0, -24, 10)), row('3062b', 297, L.T(0, -32, 0)), row('3062b', 179, L.T(12, -32, 0))], anchors: { lid: [0, -30, 0] } };
 function laestrygon(skin, armL, armR, rock, helm = 308) { const body = Cy.troll({ skin }), rows = B.rowsOf(body).map(r => ({ ...r }));
   if (helm != null) rows.push({ ...rows.find(r => r.part === '60635'), part: '60636', col: helm });
-  for (const [arm, hand, R] of [['60672', '60640', armL], ['60673', '60641', armR]]) { const a = rows.find(r => r.part === arm), h = rows.find(r => r.part === hand), piv = a.m.slice(0, 3), about = m => L.mul(L.mul(L.T(...piv), R), L.mul(L.T(-piv[0], -piv[1], -piv[2]), m)); a.m = about(a.m); h.m = about(h.m); }
+  for (const [arm, hand, R] of [['60672', '60640', armL], ['60673', '60641', armR]]) { const a = rows.find(r => r.part === arm), h = rows.find(r => r.part === hand);
+    for (const q of [a, h]) q.m = L.mul(L.T(...SHOULDER), q.m);   /* seat the arm's axle hole on the body's pin hole */
+    const piv = a.m.slice(0, 3), about = m => L.mul(L.mul(L.T(...piv), R), L.mul(L.T(-piv[0], -piv[1], -piv[2]), m)); a.m = about(a.m); h.m = about(h.m); }
   const hr = rows.find(r => r.part === '60641').m, parts = rows.map(r => row(r.part, r.col, r.m));
-  if (rock) parts.push(row('53934p01c01', 72, L.T(hr[0], hr[1] - 90, hr[2])));
+  const hl = rows.find(r => r.part === '60640').m, top = rock === 'both' ? [(hr[0] + hl[0]) / 2, Math.min(hr[1], hl[1]), (hr[2] + hl[2]) / 2] : hr;
+  if (rock) parts.push(row('53934p01c01', 72, L.T(top[0], top[1] - 80, top[2])));
   return { parts, anchors: { hand: hr.slice(0, 3), head: [0, -140, 0] } }; }
-props.laestrygon = laestrygon(84, L.mul(RX(-0.5), RZ(0.4)), RZ(-2.6), true, 308);
+props.laestrygon = laestrygon(84, RX(-0.5), RX(-2.8), true, 308);
 props.laestrygonDark = laestrygon(308, RX(-1.3), RX(-1.3), false, 72);
-props.laestrygonGreen = laestrygon(378, L.mul(RZ(2.3), RX(-0.3)), L.mul(RZ(-2.3), RX(-0.3)), true, 70);
-props.laestrygonGirl = laestrygon(78, L.mul(RX(-0.3), RZ(0.3)), L.mul(RX(-1.5), RZ(-0.5)), false, 320);
-props.antiphates = laestrygon(84, RX(-1.25), RX(-1.25), false, 72);
+props.laestrygonGreen = laestrygon(378, L.mul(RX(-2.7), RZ(-0.25)), L.mul(RX(-2.7), RZ(0.25)), 'both', 70);
+props.laestrygonGirl = laestrygon(78, RX(-0.2), L.mul(RZ(-1.35), RX(-0.3)), false, 320);
+props.antiphates = laestrygon(84, RX(-1.4), RX(-1.4), false, 72);
 /* the last arc: moly ("the root was black, while the flower was as white as milk"), Hermes's golden wand, Penelope's great loom with the
    shroud on it (and half unravelled), a torch, the spade, a bath for Laertes */
 props.moly = { parts: [row('3742', 15, L.T(0, -30, 0)), row('3742', 15, L.T(0, -34, 0)), row('3957a', 0, L.T(0, 58, 0)), row('3062b', 0, L.T(0, 84, 0))], anchors: { grip: [0, 40, 0], bloom: [0, -32, 0] } };
