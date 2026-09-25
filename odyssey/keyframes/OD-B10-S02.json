@@ -49,7 +49,7 @@
     {
      "id": "odysseus",
      "x": -22,
-     "z": 160,
+     "z": 230,
      "y": "floor",
      "face": [
       -22,
@@ -63,33 +63,96 @@
        0
       ]
      }
+    },
+    {
+     "id": "three-scouts-1",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
+    },
+    {
+     "id": "three-scouts-2",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
+    },
+    {
+     "id": "three-scouts-3",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
     }
    ],
    "camera": {
     "type": "wide",
     "pos": [
-     -250,
-     340,
-     460
+     60,
+     80,
+     520
     ],
     "target": [
      -20,
-     80,
-     -120
+     120,
+     -100
     ],
-    "fov": 44
+    "fov": 46
    },
    "subjects": [
     {
+     "id": "odysseus",
+     "min": 0.01,
+     "primary": true
+    },
+    {
      "id": "piece:black ship",
-     "min": 0.02,
-     "primary": true,
+     "soft": true,
      "cut": true
     }
    ],
-   "lensAllow": [
-    "odysseus"
-   ]
+   "look": {
+    "sky": [
+     "#5d7fb8",
+     "#f6c890"
+    ],
+    "fog": [
+     700,
+     2400
+    ],
+    "sun": {
+     "dir": [
+      0.35,
+      0.4,
+      0.85
+     ],
+     "color": "#ffd39a",
+     "intensity": 1.25,
+     "shadow": true
+    },
+    "fill": {
+     "sky": "#b9c7e6",
+     "ground": "#2a3140",
+     "intensity": 0.45
+    },
+    "exposure": 1.0
+   }
   },
   {
    "id": "K2",
@@ -105,66 +168,136 @@
    ],
    "props": [
     {
-     "name": "laestrygon",
-     "id": "g1",
+     "name": "laestrygonGirl",
+     "id": "girl",
      "at": [
-      150,
+      10,
       0,
-      -60
+      -300
      ],
      "rot": [
       0,
-      -1.57,
+      0.1,
       0
      ],
      "floor": true,
-     "scale": 1.1
+     "scale": 2.8
     }
    ],
    "blocking": [
     {
-     "id": "odysseus",
-     "x": -22,
-     "z": 160,
+     "id": "three-scouts-1",
+     "x": -52,
+     "z": -60,
      "y": "floor",
      "face": [
-      150,
-      -60
+      10,
+      -300
      ],
-     "props": true,
+     "props": false,
      "pose": {
       "armRP": [
-       -1.6,
+       -0.2,
+       0,
+       0.2
+      ],
+      "headP": [
+       -0.35,
        0,
        0
       ]
      }
+    },
+    {
+     "id": "three-scouts-2",
+     "x": -8,
+     "z": -38,
+     "y": "floor",
+     "face": [
+      10,
+      -300
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.2,
+       0,
+       0.2
+      ],
+      "headP": [
+       -0.35,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "three-scouts-3",
+     "x": 38,
+     "z": -66,
+     "y": "floor",
+     "face": [
+      10,
+      -300
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -0.2,
+       0,
+       0.2
+      ],
+      "headP": [
+       -0.35,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "odysseus",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      10,
+      -300
+     ],
+     "props": false,
+     "absent": true
     }
    ],
    "camera": {
     "type": "wide",
     "pos": [
-     110,
-     35,
-     270
+     0,
+     70,
+     150
     ],
     "target": [
-     150,
-     230,
-     -60
+     8,
+     240,
+     -250
     ],
-    "fov": 50
+    "fov": 62
    },
    "subjects": [
     {
-     "id": "prop:g1",
-     "min": 0.2,
-     "primary": true,
-     "cut": true
+     "id": "three-scouts-2",
+     "min": 0.01,
+     "primary": true
+    },
+    {
+     "id": "prop:girl",
+     "soft": true,
+     "cut": true,
+     "min": 0.1
     }
    ],
    "lensAllow": [
-    "odysseus"
+    "three-scouts-1",
+    "three-scouts-2",
+    "three-scouts-3"
    ]
   },
   {
@@ -181,110 +314,193 @@
    ],
    "props": [
     {
-     "name": "laestrygon",
-     "id": "g1",
+     "name": "antiphates",
+     "id": "antiphates",
      "at": [
-      150,
+      10,
       0,
-      -60
+      -325
      ],
      "rot": [
       0,
-      -1.57,
+      0.05,
       0
      ],
      "floor": true,
-     "scale": 1.1
-    },
-    {
-     "name": "laestrygonGreen",
-     "id": "g2",
-     "at": [
-      150,
-      0,
-      -190
-     ],
-     "rot": [
-      0,
-      -1.4,
-      0
-     ],
-     "floor": true,
-     "scale": 1.1
-    },
-    {
-     "name": "laestrygonDark",
-     "id": "g3",
-     "at": [
-      -190,
-      0,
-      -120
-     ],
-     "rot": [
-      0,
-      1.57,
-      0
-     ],
-     "floor": true,
-     "scale": 1.1
-    },
-    {
-     "name": "laestrygon",
-     "id": "g4",
-     "at": [
-      -190,
-      0,
-      20
-     ],
-     "rot": [
-      0,
-      1.7,
-      0
-     ],
-     "floor": true,
-     "scale": 1.1
+     "scale": 1.6
     }
    ],
    "blocking": [
     {
-     "id": "odysseus",
-     "x": -22,
-     "z": 160,
+     "id": "three-scouts-2",
+     "x": 10,
+     "z": -290,
+     "y": 205,
+     "air": true,
+     "face": [
+      10,
+      200
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.8,
+       0,
+       0.4
+      ],
+      "armLP": [
+       -2.8,
+       0,
+       -0.4
+      ],
+      "legRP": [
+       -0.6,
+       0,
+       0
+      ],
+      "legLP": [
+       0.4,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "three-scouts-1",
+     "x": -34,
+     "z": -248,
      "y": "floor",
      "face": [
-      -22,
-      -300
+      -60,
+      200
      ],
-     "props": true
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.0,
+       0,
+       0
+      ],
+      "armLP": [
+       0.8,
+       0,
+       0
+      ],
+      "legRP": [
+       -0.7,
+       0,
+       0
+      ],
+      "legLP": [
+       0.6,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "three-scouts-3",
+     "x": 32,
+     "z": -262,
+     "y": "floor",
+     "face": [
+      40,
+      200
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       0.7,
+       0,
+       0
+      ],
+      "armLP": [
+       -1.0,
+       0,
+       0
+      ],
+      "legRP": [
+       0.6,
+       0,
+       0
+      ],
+      "legLP": [
+       -0.7,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "odysseus",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
     }
    ],
    "camera": {
     "type": "wide",
     "pos": [
-     -440,
-     430,
-     -360
+     0,
+     55,
+     -170
     ],
     "target": [
-     60,
-     215,
-     -110
+     8,
+     185,
+     -325
     ],
-    "fov": 46
+    "fov": 68
    },
    "subjects": [
     {
-     "id": "prop:g2",
+     "id": "prop:antiphates",
+     "min": 0.08,
      "primary": true,
-     "soft": true,
-     "cut": true,
-     "min": 0.01
+     "cut": true
+    },
+    {
+     "id": "three-scouts-2",
+     "min": 0.002
     }
    ],
    "lensAllow": [
-    "odysseus"
+    "three-scouts-1",
+    "three-scouts-3"
    ],
-   "note": "From the west cliff top past a giant's shoulder: across the trapped fleet to the giants on the east cliff."
+   "note": "From the west cliff top past a giant's shoulder: across the trapped fleet to the giants on the east cliff.",
+   "look": {
+    "sky": [
+     "#3b4466",
+     "#c98f6a"
+    ],
+    "fog": [
+     600,
+     2200
+    ],
+    "sun": {
+     "dir": [
+      -0.3,
+      0.5,
+      0.8
+     ],
+     "color": "#ffc49a",
+     "intensity": 1.1,
+     "shadow": true
+    },
+    "fill": {
+     "sky": "#8a95b8",
+     "ground": "#2a2a36",
+     "intensity": 0.45
+    },
+    "exposure": 0.95
+   }
   },
   {
    "id": "K4",
@@ -305,65 +521,65 @@
      "name": "laestrygon",
      "id": "g1",
      "at": [
-      150,
+      165,
       0,
-      -60
+      -40
      ],
      "rot": [
       0,
-      -1.57,
+      -1.64,
       0
      ],
      "floor": true,
-     "scale": 1.1
+     "scale": 1.5
     },
     {
      "name": "laestrygonGreen",
      "id": "g2",
      "at": [
-      150,
+      165,
       0,
-      -190
+      -200
      ],
      "rot": [
       0,
-      -1.4,
+      -1.11,
       0
      ],
      "floor": true,
-     "scale": 1.1
+     "scale": 1.5
     },
     {
-     "name": "laestrygonDark",
+     "name": "antiphates",
      "id": "g3",
      "at": [
-      -190,
+      -205,
       0,
-      -120
+      -150
      ],
      "rot": [
       0,
-      1.57,
+      1.4,
       0
      ],
      "floor": true,
-     "scale": 1.1
+     "scale": 1.5
     },
     {
      "name": "laestrygon",
      "id": "g4",
      "at": [
-      -190,
+      -205,
       0,
-      20
+      0
      ],
      "rot": [
       0,
-      1.7,
+      1.9,
       0
      ],
      "floor": true,
-     "scale": 1.1
+     "scale": 1.5
     },
     {
      "name": "keel",
@@ -399,9 +615,9 @@
      "name": "boulder",
      "id": "r1",
      "at": [
-      40,
-      160,
-      -140
+      60,
+      190,
+      -60
      ],
      "rot": [
       0.3,
@@ -414,9 +630,9 @@
      "name": "boulder",
      "id": "r2",
      "at": [
-      -70,
-      220,
-      -180
+      0,
+      110,
+      -100
      ],
      "scale": 0.7
     },
@@ -424,92 +640,124 @@
      "name": "spout",
      "id": "sp1",
      "at": [
-      -40,
+      20,
       4,
-      -100
+      -60
      ],
-     "scale": 0.8
+     "scale": 0.6
     },
     {
      "name": "spout",
      "id": "sp2",
      "at": [
-      60,
+      80,
       4,
-      -220
+      -210
      ],
-     "scale": 0.7
+     "scale": 0.6
     }
    ],
    "blocking": [
     {
      "id": "odysseus",
-     "x": -22,
-     "z": 160,
+     "x": 0,
+     "z": 0,
      "y": "floor",
      "face": [
-      -22,
-      -300
+      0,
+      0
      ],
-     "props": true,
-     "pose": {
-      "armRP": [
-       -2.0,
-       0,
-       0.3
-      ]
-     }
+     "props": false,
+     "absent": true
+    },
+    {
+     "id": "three-scouts-1",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
+    },
+    {
+     "id": "three-scouts-2",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
+    },
+    {
+     "id": "three-scouts-3",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
     }
    ],
    "look": {
     "sky": [
-     "#4a5570",
-     "#d9b89a"
+     "#262c45",
+     "#b8603c"
     ],
     "fog": [
-     600,
-     2000
+     500,
+     1800
     ],
     "sun": {
      "dir": [
-      -0.5,
-      0.6,
-      0.4
+      0.2,
+      0.35,
+      0.9
      ],
-     "color": "#ffd9b0",
-     "intensity": 1.1,
+     "color": "#ff9f68",
+     "intensity": 1.2,
      "shadow": true
     },
-    "exposure": 0.9
+    "fill": {
+     "sky": "#6d7aa6",
+     "ground": "#1c1f2a",
+     "intensity": 0.4
+    },
+    "exposure": 0.95
    },
    "camera": {
     "type": "wide",
     "pos": [
-     120,
-     110,
-     330
+     -150,
+     28,
+     60
     ],
     "target": [
-     -10,
-     150,
-     -150
+     140,
+     265,
+     -120
     ],
-    "fov": 58
+    "fov": 70
    },
    "subjects": [
     {
-     "id": "odysseus",
-     "min": 0.08,
+     "id": "prop:g1",
+     "min": 0.03,
      "primary": true
     },
     {
-     "id": "prop:g3",
+     "id": "prop:g2",
      "soft": true,
-     "cut": true
+     "min": 0.01
     }
-   ],
-   "lensAllow": [
-    "odysseus"
    ]
   },
   {
@@ -531,65 +779,65 @@
      "name": "laestrygon",
      "id": "g1",
      "at": [
-      150,
+      165,
       0,
-      -60
+      -40
      ],
      "rot": [
       0,
-      -1.57,
+      -0.52,
       0
      ],
      "floor": true,
-     "scale": 1.1
+     "scale": 1.5
     },
     {
      "name": "laestrygonGreen",
      "id": "g2",
      "at": [
-      150,
+      165,
       0,
-      -190
+      -200
      ],
      "rot": [
       0,
-      -1.4,
+      -0.37,
       0
      ],
      "floor": true,
-     "scale": 1.1
+     "scale": 1.5
     },
     {
-     "name": "laestrygonDark",
+     "name": "antiphates",
      "id": "g3",
      "at": [
-      -190,
+      -205,
       0,
-      -120
+      -150
      ],
      "rot": [
       0,
-      1.57,
+      0.4,
       0
      ],
      "floor": true,
-     "scale": 1.1
+     "scale": 1.5
     },
     {
      "name": "laestrygon",
      "id": "g4",
      "at": [
-      -190,
+      -205,
       0,
-      20
+      0
      ],
      "rot": [
       0,
-      1.7,
+      0.57,
       0
      ],
      "floor": true,
-     "scale": 1.1
+     "scale": 1.5
     },
     {
      "name": "keel",
@@ -607,29 +855,14 @@
      "scale": 1.6
     },
     {
-     "name": "keel",
-     "id": "wreck2",
-     "at": [
-      -80,
-      4,
-      -176
-     ],
-     "rot": [
-      0,
-      0.6,
-      0.3
-     ],
-     "scale": 1.6
-    },
-    {
      "name": "spout",
      "id": "sp1",
      "at": [
       -40,
       4,
-      -100
+      -60
      ],
-     "scale": 0.8
+     "scale": 0.6
     },
     {
      "name": "spout",
@@ -637,35 +870,90 @@
      "at": [
       60,
       4,
-      -220
+      -150
      ],
-     "scale": 0.7
+     "scale": 0.6
+    },
+    {
+     "name": "sword",
+     "id": "sword",
+     "after": true,
+     "aim": {
+      "anchor": "grip",
+      "to": "hand:odysseus:R",
+      "dir": [
+       -0.1,
+       -1,
+       -0.1
+      ]
+     }
     }
    ],
    "blocking": [
     {
      "id": "odysseus",
      "x": -22,
-     "z": 230,
+     "z": 285,
      "y": "floor",
      "face": [
-      -22,
+      40,
       500
      ],
-     "props": true,
+     "props": false,
      "pose": {
       "armRP": [
-       -2.8,
+       -2.9,
        0,
-       0.2
+       0.25
+      ],
+      "armLP": [
+       -0.5,
+       0,
+       0
       ]
      }
+    },
+    {
+     "id": "three-scouts-1",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
+    },
+    {
+     "id": "three-scouts-2",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
+    },
+    {
+     "id": "three-scouts-3",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
     }
    ],
    "look": {
     "sky": [
-     "#3a4a7a",
-     "#f2a36b"
+     "#2a3564",
+     "#f09a5c"
     ],
     "fog": [
      700,
@@ -674,11 +962,11 @@
     "sun": {
      "dir": [
       0.5,
-      0.3,
-      -0.8
+      0.25,
+      0.8
      ],
      "color": "#ffb27a",
-     "intensity": 1.1,
+     "intensity": 1.25,
      "shadow": true
     },
     "fill": {
@@ -686,28 +974,29 @@
      "ground": "#1f2430",
      "intensity": 0.45
     },
-    "exposure": 0.9
+    "exposure": 0.95
    },
    "camera": {
     "type": "wide",
     "pos": [
-     80,
-     70,
+     15,
+     64,
      420
     ],
     "target": [
-     -20,
-     110,
-     120
+     -30,
+     160,
+     140
     ],
-    "fov": 46
+    "fov": 60
    },
    "subjects": [
     {
      "id": "odysseus",
      "min": 0.08,
      "primary": true,
-     "face": true
+     "face": true,
+     "cut": true
     }
    ]
   }
