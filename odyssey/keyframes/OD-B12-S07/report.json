@@ -1,13 +1,16 @@
 {
  "scene": "OD-B12-S07",
- "pass": true,
+ "pass": false,
  "keys": [
   {
    "id": "K1",
    "beat": "Odysseus wakes, smells the meat, and condemns the act, but the crew feasts for six days.",
    "text": "When I had got some way down towards my ship I began to smell hot roast meat, so I groaned out a prayer to the immortal gods... for six days my men kept driving in the best cows and feasting upon them.",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "prop:smoke passes through drowning-crew-3 (3 part overlaps)",
+    "prop:smoke passes through drowning-crew-4 (1 part overlaps)"
+   ],
    "camera": {
     "pos": [
      60,
@@ -17,8 +20,20 @@
    },
    "lens": 0,
    "physics": {
-    "collide": [],
-    "floating": []
+    "collide": [
+     [
+      "prop:smoke",
+      "drowning-crew-3",
+      3
+     ],
+     [
+      "prop:smoke",
+      "drowning-crew-4",
+      1
+     ]
+    ],
+    "floating": [],
+    "perched": []
    },
    "subjects": {
     "odysseus": {
@@ -27,11 +42,17 @@
      "inFrame": true,
      "head": [
       0.775,
-      0.221
+      0.222
      ],
      "facing": 0.08,
      "thirds": 0.109,
-     "headroom": 0.172,
+     "headroom": 0.173,
+     "box": [
+      0.759,
+      0.777,
+      0.173,
+      0.603
+     ],
      "behind": false
     },
     "drowning-crew-1": {
@@ -45,6 +66,12 @@
      "facing": 0.66,
      "thirds": 0.045,
      "headroom": 0.39,
+     "box": [
+      0.273,
+      0.307,
+      0.39,
+      0.647
+     ],
      "behind": false
     }
    },
@@ -54,8 +81,10 @@
    "id": "K2",
    "beat": "On the seventh day the wind falls and the ship leaves Thrinacia.",
    "text": "When Jove the son of Saturn had added a seventh day, the fury of the gale abated; we therefore went on board, raised our masts, spread sail, and put out to sea.",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "drowning-crew-1 peeks from behind (0.25)"
+   ],
    "camera": {
     "pos": [
      -60,
@@ -66,7 +95,8 @@
    "lens": 0,
    "physics": {
     "collide": [],
-    "floating": []
+    "floating": [],
+    "perched": []
    },
    "subjects": {
     "odysseus": {
@@ -75,11 +105,17 @@
      "inFrame": true,
      "head": [
       0.68,
-      0.409
+      0.41
      ],
      "facing": -0.41,
      "thirds": 0.013,
-     "headroom": 0.379,
+     "headroom": 0.38,
+     "box": [
+      0.671,
+      0.69,
+      0.38,
+      0.66
+     ],
      "behind": false
     }
    },
@@ -101,7 +137,8 @@
    "lens": 0,
    "physics": {
     "collide": [],
-    "floating": []
+    "floating": [],
+    "perched": []
    },
    "subjects": {
     "odysseus": {
@@ -115,6 +152,12 @@
      "facing": 0.21,
      "thirds": 0.005,
      "headroom": 0.628,
+     "box": [
+      0.67,
+      0.686,
+      0.628,
+      0.928
+     ],
      "behind": false
     },
     "prop:fire": {
@@ -137,8 +180,13 @@
    "id": "K4",
    "beat": "The ship shatters and every crewman drowns; Odysseus lashes keel and mast together.",
    "text": "The men all fell into the sea; they were carried about in the water round the ship, looking like so many sea-gulls... I lashed the mast and keel together, and getting astride of them was carried wherever the winds chose to take me.",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "prop:keel passes through odysseus (4 part overlaps)",
+    "drowning-crew-2 peeks from behind (0.25)",
+    "drowning-crew-3 peeks from behind (0.5)",
+    "drowning-crew-4 peeks from behind (0.5)"
+   ],
    "camera": {
     "pos": [
      -60,
@@ -148,8 +196,15 @@
    },
    "lens": 0,
    "physics": {
-    "collide": [],
-    "floating": []
+    "collide": [
+     [
+      "prop:keel",
+      "odysseus",
+      4
+     ]
+    ],
+    "floating": [],
+    "perched": []
    },
    "subjects": {
     "odysseus": {
@@ -158,11 +213,17 @@
      "inFrame": true,
      "head": [
       0.491,
-      0.338
+      0.339
      ],
      "facing": 0.98,
-     "thirds": 0.005,
-     "headroom": 0.304,
+     "thirds": 0.006,
+     "headroom": 0.305,
+     "box": [
+      0.467,
+      0.515,
+      0.305,
+      0.611
+     ],
      "behind": false
     }
    },
@@ -172,8 +233,10 @@
    "id": "K5",
    "beat": "Driven back to Charybdis, he hangs from the fig tree until the timbers reemerge, then drifts alone to Calypso.",
    "text": "I sprang up to the fig tree, and clung to it like a bat... I clung on till she should spew up my raft again... I let go with my hands and feet, and fell heavily into the sea, hard by my raft.",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "prop:fig passes through odysseus (11 part overlaps)"
+   ],
    "camera": {
     "pos": [
      200,
@@ -183,21 +246,34 @@
    },
    "lens": 0,
    "physics": {
-    "collide": [],
-    "floating": []
+    "collide": [
+     [
+      "prop:fig",
+      "odysseus",
+      11
+     ]
+    ],
+    "floating": [],
+    "perched": []
    },
    "subjects": {
     "odysseus": {
      "visible": 1,
-     "size": 0.223,
+     "size": 0.222,
      "inFrame": true,
      "head": [
       0.489,
       0.311
      ],
      "facing": 0.68,
-     "thirds": 0.023,
+     "thirds": 0.022,
      "headroom": 0.288,
+     "box": [
+      0.476,
+      0.5,
+      0.288,
+      0.51
+     ],
      "behind": false
     }
    },

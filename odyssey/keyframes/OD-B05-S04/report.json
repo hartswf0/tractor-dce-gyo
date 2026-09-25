@@ -18,7 +18,8 @@
    "lens": 0,
    "physics": {
     "collide": [],
-    "floating": []
+    "floating": [],
+    "perched": []
    },
    "subjects": {
     "calypso": {
@@ -32,19 +33,31 @@
      "facing": -1,
      "thirds": 0.073,
      "headroom": 0.424,
+     "box": [
+      0.38,
+      0.433,
+      0.424,
+      0.707
+     ],
      "behind": false
     },
     "odysseus": {
      "visible": 1,
-     "size": 0.406,
+     "size": 0.405,
      "inFrame": true,
      "head": [
       0.544,
-      0.588
+      0.589
      ],
      "facing": -0.63,
-     "thirds": 0.079,
-     "headroom": 0.544,
+     "thirds": 0.078,
+     "headroom": 0.545,
+     "box": [
+      0.523,
+      0.564,
+      0.545,
+      0.95
+     ],
      "behind": false
     }
    },
@@ -66,20 +79,27 @@
    "lens": 0,
    "physics": {
     "collide": [],
-    "floating": []
+    "floating": [],
+    "perched": []
    },
    "subjects": {
     "odysseus": {
      "visible": 0.75,
-     "size": 0.445,
+     "size": 0.443,
      "inFrame": true,
      "head": [
       0.498,
-      0.45
+      0.451
      ],
      "facing": -0.06,
-     "thirds": 0.116,
-     "headroom": 0.402,
+     "thirds": 0.117,
+     "headroom": 0.403,
+     "box": [
+      0.496,
+      0.5,
+      0.403,
+      0.847
+     ],
      "behind": false
     },
     "prop:trunk": {
@@ -122,7 +142,8 @@
       5
      ]
     ],
-    "floating": []
+    "floating": [],
+    "perched": []
    },
    "subjects": {
     "prop:raft": {
@@ -140,15 +161,21 @@
     },
     "odysseus": {
      "visible": 1,
-     "size": 0.226,
+     "size": 0.225,
      "inFrame": true,
      "head": [
       0.424,
-      0.543
+      0.544
      ],
      "facing": 0.65,
      "thirds": 0.091,
-     "headroom": 0.518,
+     "headroom": 0.519,
+     "box": [
+      0.412,
+      0.436,
+      0.519,
+      0.744
+     ],
      "behind": false
     }
    },
@@ -160,7 +187,8 @@
    "text": "She sent him a warm and gentle wind to blow him along, and glad indeed was Ulysses as he spread his sail before it.",
    "pass": false,
    "fails": [
-    "prop:raft passes through odysseus (13 part overlaps)"
+    "prop:raft passes through odysseus (13 part overlaps)",
+    "odysseus stands on prop:raft, not the floor"
    ],
    "camera": {
     "pos": [
@@ -178,7 +206,13 @@
       13
      ]
     ],
-    "floating": []
+    "floating": [],
+    "perched": [
+     [
+      "odysseus",
+      "prop:raft"
+     ]
+    ]
    },
    "subjects": {
     "calypso": {
@@ -192,6 +226,12 @@
      "facing": 0.95,
      "thirds": 0.098,
      "headroom": 0.456,
+     "box": [
+      0.553,
+      0.584,
+      0.456,
+      0.631
+     ],
      "behind": false
     },
     "prop:raft": {
@@ -209,15 +249,21 @@
     },
     "odysseus": {
      "visible": 1,
-     "size": 0.401,
+     "size": 0.4,
      "inFrame": true,
      "head": [
       0.329,
-      0.428
+      0.429
      ],
      "facing": 0.69,
      "thirds": 0.005,
-     "headroom": 0.384,
+     "headroom": 0.386,
+     "box": [
+      0.307,
+      0.352,
+      0.386,
+      0.786
+     ],
      "behind": false
     }
    },

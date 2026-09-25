@@ -1,6 +1,6 @@
 {
  "scene": "OD-B11-S01",
- "pass": true,
+ "pass": false,
  "keys": [
   {
    "id": "K1",
@@ -18,7 +18,8 @@
    "lens": 0,
    "physics": {
     "collide": [],
-    "floating": []
+    "floating": [],
+    "perched": []
    },
    "subjects": {
     "odysseus": {
@@ -27,11 +28,17 @@
      "inFrame": true,
      "head": [
       0.498,
-      0.455
+      0.456
      ],
      "facing": 0.98,
      "thirds": 0.122,
      "headroom": 0.429,
+     "box": [
+      0.48,
+      0.517,
+      0.429,
+      0.668
+     ],
      "behind": false
     }
    },
@@ -41,8 +48,12 @@
    "id": "K2",
    "beat": "Odysseus digs a trench, pours libations, sacrifices sheep, and holds the spirits back with his sword.",
    "text": "I dug the trench a cubit each way, and made a drink-offering to all the dead... when I had prayed sufficiently to the dead, I cut the throats of the two sheep and let the blood run into the trench.",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "prop:ewe passes through crew-ritual-assistants-2 (1 part overlaps)",
+    "prop:ewe passes through crew-ritual-assistants-5 (5 part overlaps)",
+    "crew-ritual-assistants-4 peeks from behind (0.25)"
+   ],
    "camera": {
     "pos": [
      -17,
@@ -52,21 +63,39 @@
    },
    "lens": 0,
    "physics": {
-    "collide": [],
-    "floating": []
+    "collide": [
+     [
+      "prop:ewe",
+      "crew-ritual-assistants-2",
+      1
+     ],
+     [
+      "prop:ewe",
+      "crew-ritual-assistants-5",
+      5
+     ]
+    ],
+    "floating": [],
+    "perched": []
    },
    "subjects": {
     "odysseus": {
      "visible": 1,
-     "size": 0.54,
+     "size": 0.539,
      "inFrame": true,
      "head": [
       0.5,
-      0.368
+      0.369
      ],
      "facing": -1,
-     "thirds": 0.035,
-     "headroom": 0.304,
+     "thirds": 0.036,
+     "headroom": 0.305,
+     "box": [
+      0.455,
+      0.545,
+      0.305,
+      0.843
+     ],
      "behind": false
     }
    },
@@ -88,7 +117,8 @@
    "lens": 0,
    "physics": {
     "collide": [],
-    "floating": []
+    "floating": [],
+    "perched": []
    },
    "subjects": {
     "prop:s1": {
@@ -106,15 +136,21 @@
     },
     "odysseus": {
      "visible": 1,
-     "size": 1.027,
+     "size": 1.025,
      "inFrame": false,
      "head": [
       0.532,
-      0.348
+      0.35
      ],
      "facing": -1,
-     "thirds": 0.015,
-     "headroom": 0.238,
+     "thirds": 0.017,
+     "headroom": 0.24,
+     "box": [
+      0.451,
+      0.611,
+      0.24,
+      1.265
+     ],
      "behind": false
     }
    },
@@ -124,8 +160,11 @@
    "id": "K4",
    "beat": "Odysseus waits for Tiresias before allowing any other shade to drink.",
    "text": "I drew my sword and sat there, and would not let the poor feckless ghosts come near the blood till Teiresias should have answered my questions... then came the ghost of the Theban prophet Teiresias with his golden sceptre in his hand.",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "crew-ritual-assistants-4 peeks from behind (0.5)",
+    "crew-ritual-assistants-5 peeks from behind (0.25)"
+   ],
    "camera": {
     "pos": [
      -80,
@@ -136,7 +175,8 @@
    "lens": 0,
    "physics": {
     "collide": [],
-    "floating": []
+    "floating": [],
+    "perched": []
    },
    "subjects": {
     "prop:tiresias": {
@@ -158,11 +198,17 @@
      "inFrame": true,
      "head": [
       0.482,
-      0.475
+      0.476
      ],
      "facing": 0.98,
      "thirds": 0.142,
-     "headroom": 0.447,
+     "headroom": 0.448,
+     "box": [
+      0.461,
+      0.502,
+      0.448,
+      0.703
+     ],
      "behind": false
     }
    },

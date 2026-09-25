@@ -1,13 +1,20 @@
 {
  "scene": "OD-B10-S04",
- "pass": true,
+ "pass": false,
  "keys": [
   {
    "id": "K1",
    "beat": "The scouts find Circe singing at her loom while enchanted wolves and lions fawn around them.",
    "text": "There were wild mountain wolves and lions prowling all round it, poor bewitched creatures whom she had tamed by her enchantments. They did not attack my men, but wagged their great tails, fawned upon them, and rubbed their noses lovingly against them... they could hear Circe within, singing most beautifully as she worked at her loom.",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "prop:wolf1 passes through five-scouts-1 (6 part overlaps)",
+    "prop:wolf2 passes through five-scouts-2 (5 part overlaps)",
+    "prop:lion1 passes through five-scouts-3 (7 part overlaps)",
+    "prop:lion2 passes through five-scouts-4 (8 part overlaps)",
+    "five-scouts-4 peeks from behind (0.25)",
+    "five-scouts-2 stands on prop:wolf2, not the floor"
+   ],
    "camera": {
     "pos": [
      20,
@@ -17,21 +24,54 @@
    },
    "lens": 0,
    "physics": {
-    "collide": [],
-    "floating": []
+    "collide": [
+     [
+      "prop:wolf1",
+      "five-scouts-1",
+      6
+     ],
+     [
+      "prop:wolf2",
+      "five-scouts-2",
+      5
+     ],
+     [
+      "prop:lion1",
+      "five-scouts-3",
+      7
+     ],
+     [
+      "prop:lion2",
+      "five-scouts-4",
+      8
+     ]
+    ],
+    "floating": [],
+    "perched": [
+     [
+      "five-scouts-2",
+      "prop:wolf2"
+     ]
+    ]
    },
    "subjects": {
     "circe": {
      "visible": 0.75,
-     "size": 0.194,
+     "size": 0.195,
      "inFrame": true,
      "head": [
       0.501,
-      0.332
+      0.331
      ],
      "facing": -0.59,
-     "thirds": 0.001,
-     "headroom": 0.311,
+     "thirds": 0.002,
+     "headroom": 0.31,
+     "box": [
+      0.49,
+      0.512,
+      0.31,
+      0.505
+     ],
      "behind": false
     },
     "five-scouts-1": {
@@ -45,6 +85,12 @@
      "facing": -0.94,
      "thirds": 0,
      "headroom": 0.557,
+     "box": [
+      0.31,
+      0.359,
+      0.557,
+      0.815
+     ],
      "behind": false
     },
     "five-scouts-3": {
@@ -58,6 +104,12 @@
      "facing": -0.83,
      "thirds": 0.074,
      "headroom": 0.563,
+     "box": [
+      0.566,
+      0.611,
+      0.563,
+      0.828
+     ],
      "behind": false
     },
     "prop:lion1": {
@@ -80,8 +132,11 @@
    "id": "K2",
    "beat": "All but Eurylochus enter; Circe serves drugged food and strikes them with her wand.",
    "text": "She set them upon benches and seats and mixed them a mess with cheese, honey, meal, and Pramnian wine, but she drugged it with wicked poisons... and when they had drunk she turned them into pigs by a stroke of her wand. (Eurylochus stayed outside, for he suspected mischief.)",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "five-scouts-4 peeks from behind (0.25)",
+    "five-scouts-5 peeks from behind (0.25)"
+   ],
    "camera": {
     "pos": [
      60,
@@ -92,20 +147,27 @@
    "lens": 0,
    "physics": {
     "collide": [],
-    "floating": []
+    "floating": [],
+    "perched": []
    },
    "subjects": {
     "circe": {
      "visible": 1,
-     "size": 0.291,
+     "size": 0.293,
      "inFrame": true,
      "head": [
       0.328,
-      0.352
+      0.351
      ],
      "facing": 0.78,
      "thirds": 0.005,
-     "headroom": 0.321,
+     "headroom": 0.319,
+     "box": [
+      0.306,
+      0.35,
+      0.319,
+      0.612
+     ],
      "behind": false
     },
     "five-scouts-2": {
@@ -119,6 +181,12 @@
      "facing": -1,
      "thirds": 0.094,
      "headroom": 0.384,
+     "box": [
+      0.489,
+      0.564,
+      0.384,
+      0.785
+     ],
      "behind": false
     },
     "five-scouts-3": {
@@ -132,6 +200,12 @@
      "facing": -0.98,
      "thirds": 0.018,
      "headroom": 0.381,
+     "box": [
+      0.644,
+      0.724,
+      0.381,
+      0.798
+     ],
      "behind": false
     },
     "eurylochus": {
@@ -145,6 +219,12 @@
      "facing": -0.36,
      "thirds": 0.019,
      "headroom": 0.22,
+     "box": [
+      0.826,
+      0.894,
+      0.22,
+      1.069
+     ],
      "behind": false
     },
     "five-scouts-1": {
@@ -158,6 +238,12 @@
      "facing": -0.95,
      "thirds": 0.041,
      "headroom": 0.387,
+     "box": [
+      0.34,
+      0.411,
+      0.387,
+      0.773
+     ],
      "behind": false
     }
    },
@@ -167,8 +253,10 @@
    "id": "K3",
    "beat": "The men become pigs in body while retaining human minds.",
    "text": "They were like pigs, head, hair, and all, and they grunted just as pigs do; but their senses were the same as before, and they remembered everything.",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "prop:pig1 passes through five-scouts-2 (2 part overlaps)"
+   ],
    "camera": {
     "pos": [
      0,
@@ -178,8 +266,15 @@
    },
    "lens": 0,
    "physics": {
-    "collide": [],
-    "floating": []
+    "collide": [
+     [
+      "prop:pig1",
+      "five-scouts-2",
+      2
+     ]
+    ],
+    "floating": [],
+    "perched": []
    },
    "subjects": {
     "five-scouts-2": {
@@ -193,19 +288,31 @@
      "facing": 0.99,
      "thirds": 0.164,
      "headroom": 0.092,
+     "box": [
+      0.438,
+      0.566,
+      0.092,
+      0.786
+     ],
      "behind": false
     },
     "circe": {
      "visible": 1,
-     "size": 0.421,
+     "size": 0.423,
      "inFrame": true,
      "head": [
       0.212,
-      0.303
+      0.301
      ],
      "facing": 0.91,
-     "thirds": 0.03,
-     "headroom": 0.259,
+     "thirds": 0.033,
+     "headroom": 0.256,
+     "box": [
+      0.171,
+      0.248,
+      0.256,
+      0.679
+     ],
      "behind": false
     },
     "prop:pig1": {
@@ -228,8 +335,10 @@
    "id": "K4",
    "beat": "Circe shuts them in pens and throws them acorns.",
    "text": "Thus then were they shut up squealing, and Circe threw them some acorns and beech masts such as pigs eat.",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "prop:pig3 passes through circe (2 part overlaps)"
+   ],
    "camera": {
     "pos": [
      30,
@@ -239,21 +348,34 @@
    },
    "lens": 0,
    "physics": {
-    "collide": [],
-    "floating": []
+    "collide": [
+     [
+      "prop:pig3",
+      "circe",
+      2
+     ]
+    ],
+    "floating": [],
+    "perched": []
    },
    "subjects": {
     "circe": {
      "visible": 1,
-     "size": 0.379,
+     "size": 0.383,
      "inFrame": true,
      "head": [
       0.528,
-      0.579
+      0.576
      ],
      "facing": -0.99,
-     "thirds": 0.088,
-     "headroom": 0.528,
+     "thirds": 0.091,
+     "headroom": 0.524,
+     "box": [
+      0.465,
+      0.588,
+      0.524,
+      0.907
+     ],
      "behind": false
     },
     "prop:pig1": {
@@ -288,7 +410,8 @@
    "lens": 0,
    "physics": {
     "collide": [],
-    "floating": []
+    "floating": [],
+    "perched": []
    },
    "subjects": {
     "eurylochus": {
@@ -302,19 +425,31 @@
      "facing": 0.96,
      "thirds": 0.004,
      "headroom": 0.296,
+     "box": [
+      0.279,
+      0.395,
+      0.296,
+      0.937
+     ],
      "behind": false
     },
     "circe": {
      "visible": 1,
-     "size": 0.257,
+     "size": 0.259,
      "inFrame": true,
      "head": [
       0.46,
-      0.493
+      0.491
      ],
      "facing": 0.99,
      "thirds": 0.127,
-     "headroom": 0.466,
+     "headroom": 0.464,
+     "box": [
+      0.437,
+      0.484,
+      0.464,
+      0.723
+     ],
      "behind": false
     },
     "prop:lion1": {

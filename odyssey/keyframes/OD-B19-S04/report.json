@@ -1,13 +1,17 @@
 {
  "scene": "OD-B19-S04",
- "pass": true,
+ "pass": false,
  "keys": [
   {
    "id": "K1",
    "beat": "Penelope orders Eurycleia to wash the stranger's feet because his age resembles Odysseus's.",
    "text": "'Nurse, wash your master's age-mate; I suppose Ulysses' hands and feet are very much the same now as his are, for trouble ages all of us dreadfully fast.'",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "prop:stool1 passes through odysseus-as-beggar (8 part overlaps)",
+    "prop:stool2 passes through penelope (7 part overlaps)",
+    "prop:basin passes through odysseus-as-beggar (5 part overlaps)"
+   ],
    "camera": {
     "pos": [
      150,
@@ -17,8 +21,25 @@
    },
    "lens": 0,
    "physics": {
-    "collide": [],
-    "floating": []
+    "collide": [
+     [
+      "prop:stool1",
+      "odysseus-as-beggar",
+      8
+     ],
+     [
+      "prop:stool2",
+      "penelope",
+      7
+     ],
+     [
+      "prop:basin",
+      "odysseus-as-beggar",
+      5
+     ]
+    ],
+    "floating": [],
+    "perched": []
    },
    "subjects": {
     "penelope": {
@@ -32,19 +53,31 @@
      "facing": 0.5,
      "thirds": 0.011,
      "headroom": 0.302,
+     "box": [
+      0.654,
+      0.698,
+      0.302,
+      0.749
+     ],
      "behind": false
     },
     "eurycleia": {
      "visible": 1,
-     "size": 0.513,
+     "size": 0.518,
      "inFrame": true,
      "head": [
       0.491,
-      0.241
+      0.237
      ],
      "facing": -0.39,
-     "thirds": 0.093,
-     "headroom": 0.182,
+     "thirds": 0.097,
+     "headroom": 0.177,
+     "box": [
+      0.473,
+      0.512,
+      0.177,
+      0.695
+     ],
      "behind": false
     },
     "odysseus-as-beggar": {
@@ -58,6 +91,12 @@
      "facing": -0.08,
      "thirds": 0.013,
      "headroom": 0.333,
+     "box": [
+      0.344,
+      0.356,
+      0.333,
+      0.842
+     ],
      "behind": false
     }
    },
@@ -67,8 +106,13 @@
    "id": "K2",
    "beat": "Odysseus recognizes the danger but cannot refuse without suspicion.",
    "text": "Ulysses was sitting by the fire, but he turned away from the light, for it occurred to him that when the old woman had hold of his leg she would recognise a certain scar which it bore.",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "prop:stool1 passes through odysseus-as-beggar (8 part overlaps)",
+    "prop:stool2 passes through penelope (8 part overlaps)",
+    "prop:basin passes through eurycleia (2 part overlaps)",
+    "prop:basin passes through odysseus-as-beggar (6 part overlaps)"
+   ],
    "camera": {
     "pos": [
      -210,
@@ -78,8 +122,30 @@
    },
    "lens": 0,
    "physics": {
-    "collide": [],
-    "floating": []
+    "collide": [
+     [
+      "prop:stool1",
+      "odysseus-as-beggar",
+      8
+     ],
+     [
+      "prop:stool2",
+      "penelope",
+      8
+     ],
+     [
+      "prop:basin",
+      "eurycleia",
+      2
+     ],
+     [
+      "prop:basin",
+      "odysseus-as-beggar",
+      6
+     ]
+    ],
+    "floating": [],
+    "perched": []
    },
    "subjects": {
     "odysseus-as-beggar": {
@@ -93,6 +159,12 @@
      "facing": 1,
      "thirds": 0.034,
      "headroom": 0.309,
+     "box": [
+      0.394,
+      0.49,
+      0.309,
+      0.823
+     ],
      "behind": false
     }
    },
@@ -102,8 +174,13 @@
    "id": "K3",
    "beat": "The nurse touches the old boar scar and instantly knows him.",
    "text": "She began washing her master, and at once recognised the scar... as soon as she had got the scarred limb in her hands and had well hold of it, she knew it.",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "prop:stool1 passes through odysseus-as-beggar (7 part overlaps)",
+    "prop:stool2 passes through penelope (8 part overlaps)",
+    "prop:basin passes through eurycleia (2 part overlaps)",
+    "prop:basin passes through odysseus-as-beggar (8 part overlaps)"
+   ],
    "camera": {
     "pos": [
      60,
@@ -113,21 +190,49 @@
    },
    "lens": 0,
    "physics": {
-    "collide": [],
-    "floating": []
+    "collide": [
+     [
+      "prop:stool1",
+      "odysseus-as-beggar",
+      7
+     ],
+     [
+      "prop:stool2",
+      "penelope",
+      8
+     ],
+     [
+      "prop:basin",
+      "eurycleia",
+      2
+     ],
+     [
+      "prop:basin",
+      "odysseus-as-beggar",
+      8
+     ]
+    ],
+    "floating": [],
+    "perched": []
    },
    "subjects": {
     "eurycleia": {
      "visible": 1,
-     "size": 0.806,
+     "size": 0.813,
      "inFrame": true,
      "head": [
       0.441,
-      0.266
+      0.26
      ],
      "facing": -0.92,
-     "thirds": 0.067,
-     "headroom": 0.177,
+     "thirds": 0.074,
+     "headroom": 0.17,
+     "box": [
+      0.374,
+      0.514,
+      0.17,
+      0.983
+     ],
      "behind": false
     },
     "odysseus-as-beggar": {
@@ -141,6 +246,12 @@
      "facing": 0.98,
      "thirds": 0.009,
      "headroom": 0.257,
+     "box": [
+      0.478,
+      0.59,
+      0.257,
+      0.872
+     ],
      "behind": false
     }
    },
@@ -150,8 +261,15 @@
    "id": "K4",
    "beat": "She drops the foot into the basin, spilling water, and reaches toward Penelope.",
    "text": "She dropped the leg, which fell into the bath, making the brass ring and turning it over on its side, so that all the water was spilt on the ground; Euryclea's eyes between her joy and her grief filled with tears.",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "prop:stool1 passes through odysseus-as-beggar (7 part overlaps)",
+    "prop:stool2 passes through penelope (8 part overlaps)",
+    "prop:basin passes through eurycleia (2 part overlaps)",
+    "prop:basin passes through odysseus-as-beggar (4 part overlaps)",
+    "prop:spill passes through eurycleia (3 part overlaps)",
+    "prop:spill passes through odysseus-as-beggar (2 part overlaps)"
+   ],
    "camera": {
     "pos": [
      150,
@@ -161,21 +279,59 @@
    },
    "lens": 0,
    "physics": {
-    "collide": [],
-    "floating": []
+    "collide": [
+     [
+      "prop:stool1",
+      "odysseus-as-beggar",
+      7
+     ],
+     [
+      "prop:stool2",
+      "penelope",
+      8
+     ],
+     [
+      "prop:basin",
+      "eurycleia",
+      2
+     ],
+     [
+      "prop:basin",
+      "odysseus-as-beggar",
+      4
+     ],
+     [
+      "prop:spill",
+      "eurycleia",
+      3
+     ],
+     [
+      "prop:spill",
+      "odysseus-as-beggar",
+      2
+     ]
+    ],
+    "floating": [],
+    "perched": []
    },
    "subjects": {
     "eurycleia": {
      "visible": 1,
-     "size": 0.59,
+     "size": 0.595,
      "inFrame": true,
      "head": [
       0.285,
-      0.362
+      0.357
      ],
      "facing": -0.18,
-     "thirds": 0.028,
-     "headroom": 0.295,
+     "thirds": 0.024,
+     "headroom": 0.29,
+     "box": [
+      0.278,
+      0.299,
+      0.29,
+      0.885
+     ],
      "behind": false
     },
     "penelope": {
@@ -189,6 +345,12 @@
      "facing": 0.54,
      "thirds": 0.016,
      "headroom": 0.301,
+     "box": [
+      0.735,
+      0.782,
+      0.301,
+      0.733
+     ],
      "behind": false
     }
    },
@@ -198,8 +360,15 @@
    "id": "K5",
    "beat": "Odysseus grips her throat gently but firmly and makes her swear silence.",
    "text": "Ulysses caught her by the throat with his right hand and with his left drew her close to him, and said, 'Nurse, do you wish to be the ruin of me?... hold your tongue, and do not say a word about it to any one else in the house.'",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "prop:stool1 passes through odysseus-as-beggar (6 part overlaps)",
+    "prop:stool2 passes through penelope (8 part overlaps)",
+    "prop:basin passes through eurycleia (3 part overlaps)",
+    "prop:basin passes through odysseus-as-beggar (4 part overlaps)",
+    "prop:spill passes through eurycleia (2 part overlaps)",
+    "prop:spill passes through odysseus-as-beggar (2 part overlaps)"
+   ],
    "camera": {
     "pos": [
      -200,
@@ -209,8 +378,40 @@
    },
    "lens": 0,
    "physics": {
-    "collide": [],
-    "floating": []
+    "collide": [
+     [
+      "prop:stool1",
+      "odysseus-as-beggar",
+      6
+     ],
+     [
+      "prop:stool2",
+      "penelope",
+      8
+     ],
+     [
+      "prop:basin",
+      "eurycleia",
+      3
+     ],
+     [
+      "prop:basin",
+      "odysseus-as-beggar",
+      4
+     ],
+     [
+      "prop:spill",
+      "eurycleia",
+      2
+     ],
+     [
+      "prop:spill",
+      "odysseus-as-beggar",
+      2
+     ]
+    ],
+    "floating": [],
+    "perched": []
    },
    "subjects": {
     "odysseus-as-beggar": {
@@ -224,19 +425,31 @@
      "facing": 0.98,
      "thirds": 0.048,
      "headroom": 0.326,
+     "box": [
+      0.369,
+      0.46,
+      0.326,
+      0.822
+     ],
      "behind": false
     },
     "eurycleia": {
      "visible": 1,
-     "size": 0.549,
+     "size": 0.554,
      "inFrame": true,
      "head": [
       0.55,
-      0.39
+      0.386
      ],
      "facing": -0.55,
-     "thirds": 0.057,
-     "headroom": 0.329,
+     "thirds": 0.053,
+     "headroom": 0.324,
+     "box": [
+      0.519,
+      0.577,
+      0.324,
+      0.878
+     ],
      "behind": false
     }
    },

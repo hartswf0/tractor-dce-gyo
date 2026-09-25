@@ -1,6 +1,6 @@
 {
  "scene": "OD-B12-S06",
- "pass": true,
+ "pass": false,
  "keys": [
   {
    "id": "K1",
@@ -18,7 +18,8 @@
    "lens": 0,
    "physics": {
     "collide": [],
-    "floating": []
+    "floating": [],
+    "perched": []
    },
    "subjects": {
     "sleeping-odysseus": {
@@ -32,6 +33,12 @@
      "facing": 1,
      "thirds": 0.096,
      "headroom": 0.518,
+     "box": [
+      0.499,
+      0.589,
+      0.518,
+      0.985
+     ],
      "behind": false
     }
    },
@@ -53,20 +60,27 @@
    "lens": 0,
    "physics": {
     "collide": [],
-    "floating": []
+    "floating": [],
+    "perched": []
    },
    "subjects": {
     "eurylochus": {
      "visible": 1,
-     "size": 0.331,
+     "size": 0.33,
      "inFrame": true,
      "head": [
       0.583,
-      0.52
+      0.521
      ],
      "facing": -0.72,
      "thirds": 0.084,
-     "headroom": 0.484,
+     "headroom": 0.486,
+     "box": [
+      0.559,
+      0.605,
+      0.486,
+      0.815
+     ],
      "behind": false
     },
     "crew-sacrificial-group-2": {
@@ -80,6 +94,12 @@
      "facing": 0.64,
      "thirds": 0.042,
      "headroom": 0.463,
+     "box": [
+      0.359,
+      0.393,
+      0.463,
+      0.744
+     ],
      "behind": false
     }
    },
@@ -89,8 +109,12 @@
    "id": "K3",
    "beat": "They substitute oak leaves for barley and water for wine, kill the animals, and roast the meat.",
    "text": "They drove in the best of the cows... they cut out the thigh bones, wrapped them round in two layers of fat, and set some pieces of raw meat on the top of them. They had no barley, so they strewed oak leaves instead.",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "prop:slain passes through crew-sacrificial-group-4 (2 part overlaps)",
+    "crew-sacrificial-group-1 peeks from behind (0.5)",
+    "crew-sacrificial-group-4 stands on prop:slain, not the floor"
+   ],
    "camera": {
     "pos": [
      110,
@@ -100,21 +124,39 @@
    },
    "lens": 0,
    "physics": {
-    "collide": [],
-    "floating": []
+    "collide": [
+     [
+      "prop:slain",
+      "crew-sacrificial-group-4",
+      2
+     ]
+    ],
+    "floating": [],
+    "perched": [
+     [
+      "crew-sacrificial-group-4",
+      "prop:slain"
+     ]
+    ]
    },
    "subjects": {
     "eurylochus": {
      "visible": 1,
-     "size": 0.344,
+     "size": 0.342,
      "inFrame": true,
      "head": [
       0.564,
-      0.442
+      0.443
      ],
      "facing": 0.95,
      "thirds": 0.103,
-     "headroom": 0.403,
+     "headroom": 0.405,
+     "box": [
+      0.533,
+      0.595,
+      0.405,
+      0.747
+     ],
      "behind": false
     },
     "prop:slain": {
@@ -149,20 +191,27 @@
    "lens": 0,
    "physics": {
     "collide": [],
-    "floating": []
+    "floating": [],
+    "perched": []
    },
    "subjects": {
     "eurylochus": {
      "visible": 1,
-     "size": 0.313,
+     "size": 0.312,
      "inFrame": true,
      "head": [
       0.526,
-      0.535
+      0.536
      ],
      "facing": 0.78,
-     "thirds": 0.132,
-     "headroom": 0.502,
+     "thirds": 0.131,
+     "headroom": 0.503,
+     "box": [
+      0.503,
+      0.548,
+      0.503,
+      0.815
+     ],
      "behind": false
     },
     "prop:slain": {
@@ -197,7 +246,8 @@
    "lens": 0,
    "physics": {
     "collide": [],
-    "floating": []
+    "floating": [],
+    "perched": []
    },
    "subjects": {
     "prop:sun": {
@@ -215,15 +265,21 @@
     },
     "eurylochus": {
      "visible": 1,
-     "size": 0.33,
+     "size": 0.329,
      "inFrame": true,
      "head": [
       0.542,
-      0.668
+      0.669
      ],
      "facing": -0.99,
-     "thirds": 0.002,
-     "headroom": 0.636,
+     "thirds": 0.003,
+     "headroom": 0.637,
+     "box": [
+      0.514,
+      0.572,
+      0.637,
+      0.966
+     ],
      "behind": false
     }
    },
