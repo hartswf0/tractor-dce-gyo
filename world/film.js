@@ -472,13 +472,13 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
     /** The title card on the page while a title shot plays (the take draws its own). */
     function showTitle(s) {
       let el = document.getElementById('title'); if (!el) { el = document.createElement('div'); el.id = 'title'; el.innerHTML = '<span></span>'; document.body.appendChild(el); }
-      el.hidden = !s; if (s) { el.dataset.style = s.style || 'card'; el.querySelector('span').textContent = s.title; if (s.style === 'hud' || s.style === 'list') paintHud(s, 0); }
+      el.hidden = !s; if (s) { el.dataset.style = s.style || 'card'; el.querySelector('span').textContent = s.title; if (s.style === 'hud' || s.style === 'list' || s.style === 'paper') paintHud(s, 0); }
     }
     /** The hud overlay on the page, drawn over the band. */
     function paintHud(s, t) {
       const el = document.getElementById('title'); if (!el) return; let c = el.querySelector('canvas'); if (!c) { c = document.createElement('canvas'); el.appendChild(c); }
       const pr = Math.min(devicePixelRatio || 1, 2), b = F.band(); if (c.width !== Math.round(b.W * pr) || c.height !== Math.round(b.H * pr)) { c.width = Math.round(b.W * pr); c.height = Math.round(b.H * pr); }
-      const ctx = c.getContext('2d'); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, c.width, c.height); ctx.setTransform(pr, 0, 0, pr, 0, 0); ctx.translate(b.x, b.H - b.y - b.h); if (s.style === 'list') drawList(ctx, b.w, b.h, s, t); else drawHud(ctx, b.w, b.h, s, t);
+      const ctx = c.getContext('2d'); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, c.width, c.height); ctx.setTransform(pr, 0, 0, pr, 0, 0); ctx.translate(b.x, b.H - b.y - b.h); if (s.style === 'list') drawList(ctx, b.w, b.h, s, t); else if (s.style === 'paper') drawPaper(ctx, b.w, b.h, s, t); else drawHud(ctx, b.w, b.h, s, t);
     }
 
     /* ── the step: the reel's clock, the free camera's dolly, the sun ── */
@@ -489,7 +489,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
       if (F.play.on && F.actState) stepAct(dt);
       if (F.play.on) {
         F.play.t += dt; const s = F.shots[F.play.i];
-        if (s) { for (const ev of F.pending) if (!ev.done && F.play.t >= ev.at) { ev.done = true; fireEvent(ev, s); } if (s.title != null && (s.style === 'hud' || s.style === 'list') && (F.hudAcc = (F.hudAcc || 0) + dt) > 0.08) { F.hudAcc = 0; paintHud(s, F.play.t); } }
+        if (s) { for (const ev of F.pending) if (!ev.done && F.play.t >= ev.at) { ev.done = true; fireEvent(ev, s); } if (s.title != null && (s.style === 'hud' || s.style === 'list' || s.style === 'paper') && (F.hudAcc = (F.hudAcc || 0) + dt) > 0.08) { F.hudAcc = 0; paintHud(s, F.play.t); } }
         if (!s || F.play.t >= s.sec - 1e-9) {
           if (s && F.rehearse.on && !F.play.all) { F.resetMarks(); F.play.t = 0; F.pending = []; enter(F.play.i); if (F.onChange) F.onChange('cut'); }   /* rehearsing: the shot runs again from its marks until the rehearsal is stopped */
           else if (F.play.all && F.play.i + 1 < F.shots.length) { F.play.i++; F.play.t = 0; F.sel = F.play.i; enter(F.play.i); if (F.onChange) F.onChange('cut'); }
@@ -1034,12 +1034,44 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
       if (s.record) note(ctx, w, h, ["NED'S RECORD", ...(s.record.length ? s.record : ['(nothing yet)'])], t, { right: true, paper: '#f1eee4', ink: '#22303a', head: '"Courier New", ui-monospace, monospace', family: '"Courier New", ui-monospace, monospace', body: '' });
       for (const f of s.fit || []) if (t >= f.at && t < f.at + f.for) drawFit(ctx, w, h, f, t - f.at);
     }
+    /** An insert of the words themselves, full frame: the list in Homer's hand (paper 'list') or Ned's notebook (paper 'record'), held
+        over the store's floor. write [line, at, over] puts one line down as it is written, a pencil at its end; strike [line, at, over]
+        draws the line through one; the camera creeps in over the shot. A fit card, if any, stands to the right of the paper. */
+    function drawPaper(ctx, w, h, s, t) {
+      const rec = s.paper === 'record', lines = String(s.title).split('\n'), fits = s.fit || [], side = fits.length > 0, u = clamp(t / (s.sec || 3), 0, 1);
+      ctx.save(); ctx.fillStyle = '#3a342b'; ctx.fillRect(0, 0, w, h);
+      const tile = h * 0.16, ox = (t * 4) % tile; for (let y = -tile; y < h + tile; y += tile) for (let x = -tile; x < w + tile; x += tile) { if (((Math.round(x / tile) + Math.round(y / tile)) & 1) === 0) continue; ctx.fillStyle = '#4a4336'; ctx.fillRect(x + ox, y, tile, tile); }
+      const vg = ctx.createRadialGradient(w / 2, h / 2, h * 0.2, w / 2, h / 2, w * 0.7); vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,0.6)'); ctx.fillStyle = vg; ctx.fillRect(0, 0, w, h);
+      const k = 1 + 0.05 * u, pw = h * (rec ? 0.62 : 0.58), fs = Math.round(h * 0.052), lh = fs * 1.42, pad = fs * 0.9, ph = Math.max(h * 0.8, pad * 2.2 + lh * lines.length), cx = side ? w * 0.3 : w / 2, cy = h / 2;
+      ctx.translate(cx, cy); ctx.scale(k, k); ctx.rotate(rec ? 0.02 : -0.035); ctx.translate(-pw / 2, -ph / 2);
+      ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.fillRect(fs * 0.3, fs * 0.4, pw, ph); ctx.fillStyle = rec ? '#f1eee4' : '#fbf5df'; ctx.fillRect(0, 0, pw, ph);
+      if (rec) { ctx.fillStyle = '#2a7a2a'; ctx.fillRect(0, 0, pw, fs * 0.5); ctx.fillStyle = '#9a9a9a'; for (let x = pad; x < pw - pad; x += fs * 0.9) { ctx.beginPath(); ctx.arc(x, fs * 0.25, fs * 0.16, 0, Math.PI * 2); ctx.fill(); } }
+      ctx.strokeStyle = 'rgba(80,110,190,0.28)'; ctx.lineWidth = Math.max(1, h / 900); for (let y = pad + lh * 1.2; y < ph - pad * 0.4; y += lh) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(pw, y); ctx.stroke(); }
+      if (!rec) { ctx.strokeStyle = 'rgba(200,70,70,0.6)'; ctx.beginPath(); ctx.moveTo(pad * 0.9, 0); ctx.lineTo(pad * 0.9, ph); ctx.stroke(); }
+      const ink = rec ? '#22303a' : '#1d2a57', fam = rec ? '"Courier New", ui-monospace, monospace' : 'Georgia, "Times New Roman", serif', W1 = s.write, S1 = s.strike; let pen = null;
+      ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left';
+      lines.forEach((raw, i) => {
+        const mark = /^[~+?]/.test(raw) ? raw[0] : '', text = mark ? raw.slice(1) : raw, x = pad * (rec ? 1 : 1.4), y = pad + lh * (i + 1) - fs * 0.3, room = pw - x - pad;
+        ctx.font = i === 0 ? `700 ${fs}px ${rec ? fam : 'Georgia, serif'}` : `${rec ? '' : 'italic '}${fs}px ${fam}`; const tw = Math.min(ctx.measureText(text).width, room);
+        let reveal = 1; if (W1 && W1[0] === i) { reveal = clamp((t - W1[1]) / (W1[2] || 1), 0, 1); if (reveal <= 0) return; }
+        ctx.save(); ctx.beginPath(); ctx.rect(x - fs, y - fs * 1.2, (tw + fs * 1.2) * reveal + fs * 0.2, fs * 1.6); ctx.clip();
+        ctx.fillStyle = mark === '+' || (mark === '?' && rec) ? '#b0341e' : ink; ctx.fillText(text, x, y, room); ctx.restore();
+        if (reveal < 1) pen = [x + tw * reveal, y];
+        let st = mark === '~' ? 1 : 0; if (S1 && S1[0] === i) { st = clamp((t - S1[1]) / (S1[2] || 0.6), 0, 1); if (st > 0 && st < 1) pen = [x - fs * 0.1 + (tw + fs * 0.2) * st, y - fs * 0.33]; }
+        if (st > 0) { ctx.strokeStyle = rec ? '#b0341e' : ink; ctx.lineWidth = Math.max(2, fs * 0.09); ctx.beginPath(); ctx.moveTo(x - fs * 0.1, y - fs * 0.3); ctx.lineTo(x - fs * 0.1 + (tw + fs * 0.2) * st, y - fs * 0.36); ctx.stroke(); }
+        if (mark === '?') { ctx.fillStyle = '#b0341e'; ctx.font = `700 ${fs}px Georgia, serif`; ctx.fillText('?', x + tw + fs * 0.25, y); }
+      });
+      if (pen) { const [px, py] = pen; ctx.save(); ctx.translate(px, py); ctx.rotate(-0.9); ctx.fillStyle = '#e8b43a'; ctx.fillRect(0, -fs * 0.18, fs * 3.4, fs * 0.36); ctx.fillStyle = '#f2d2a6'; ctx.beginPath(); ctx.moveTo(0, -fs * 0.18); ctx.lineTo(-fs * 0.5, 0); ctx.lineTo(0, fs * 0.18); ctx.fill(); ctx.fillStyle = '#333'; ctx.beginPath(); ctx.moveTo(-fs * 0.32, -fs * 0.07); ctx.lineTo(-fs * 0.5, 0); ctx.lineTo(-fs * 0.32, fs * 0.07); ctx.fill(); ctx.restore(); }
+      if (s.hand) { ctx.fillStyle = '#ffd90f'; ctx.strokeStyle = '#3a2a10'; ctx.lineWidth = Math.max(1.5, fs * 0.06); ctx.beginPath(); ctx.ellipse(-fs * 0.1, ph * 0.72, fs * 0.75, fs * 1.25, -0.35, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); }
+      ctx.restore();
+      for (const f of fits) if (t >= f.at && t < f.at + f.for) drawFit(ctx, w, h, { x: 0.71, y: 0.4, ...f }, t - f.at);
+    }
     /** Direction of fit, drawn at the beat it happens (Anscombe, Intention §32): the list stays and the basket is changed to fit it
         (dir 'list': words to world), or the basket stays and the record is changed to fit it (dir 'record': world to words). */
     /** CLOSE [at, over]: a door shuts on the frame, the dark coming in from the hinge side (the right) until the frame is black. */
     function drawClose(ctx, w, h, c, t) { const u = clamp((t - c[0]) / (c[1] || 1.5), 0, 1); if (u <= 0) return; const e = u * u * (3 - 2 * u), x = w * (1 - e); ctx.save(); ctx.fillStyle = '#000'; ctx.fillRect(x, 0, w - x + 1, h); if (e < 1) { const gr = ctx.createLinearGradient(x - w * 0.04, 0, x, 0); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(0,0,0,0.85)'); ctx.fillStyle = gr; ctx.fillRect(x - w * 0.04, 0, w * 0.04, h); } ctx.restore(); }
     function drawFit(ctx, w, h, f, tt) {
-      const a = Math.min(1, tt / 0.3, (f.for - tt) / 0.3), list = f.dir === 'list', fs = Math.round(h * 0.03), bw = w * 0.15, bh = fs * 2.1, gap = w * 0.09, cx = w / 2, y = h * 0.12;
+      const a = Math.min(1, tt / 0.3, (f.for - tt) / 0.3), list = f.dir === 'list', fs = Math.round(h * 0.03), bw = w * 0.15, bh = fs * 2.1, gap = w * 0.09, cx = w * (f.x != null ? f.x : 0.5), y = h * (f.y != null ? f.y : 0.12);
       const left = list ? ['THE LIST', f.a || 'stays as written'] : ['THE BASKET', f.a || 'what was bought'], right = list ? ['THE BASKET', f.b || 'is changed'] : ['THE RECORD', f.b || 'is changed'];
       ctx.save(); ctx.globalAlpha = Math.max(0, a); ctx.fillStyle = 'rgba(12,16,34,0.78)'; const W2 = bw * 2 + gap + fs * 2, H2 = bh + fs * 3.6; ctx.fillRect(cx - W2 / 2, y - fs * 0.8, W2, H2);
       const box = (x, lab, col) => { ctx.fillStyle = col; ctx.fillRect(x, y, bw, bh); ctx.fillStyle = '#111'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.font = `800 ${fs}px Helvetica, Arial, sans-serif`; ctx.fillText(lab[0], x + bw / 2, y + bh * 0.36, bw * 0.92); ctx.font = `italic ${Math.round(fs * 0.72)}px Georgia, serif`; ctx.fillText(lab[1], x + bw / 2, y + bh * 0.74, bw * 0.92); };
@@ -1053,6 +1085,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
     function drawTitle(ctx, w, h, s, t) {
       if (s.style === 'hud') return drawHud(ctx, w, h, s, t || 0);
       if (s.style === 'list') return drawList(ctx, w, h, s, t || 0);
+      if (s.style === 'paper') return drawPaper(ctx, w, h, s, t || 0);
       ctx.fillStyle = '#000'; ctx.fillRect(0, 0, w, h); const logo = s.style === 'logo';
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = logo ? '#ffe81f' : '#4bd5ee';
       const lines = String(s.title).split('\n'), size = logo ? Math.round(h * 0.17) : Math.round(h * 0.06); ctx.font = `${logo ? '900' : '400'} ${size}px ${logo ? 'Impact, "Arial Black", Helvetica, sans-serif' : 'Helvetica, Arial, sans-serif'}`;
@@ -1246,7 +1279,8 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
       for (const sh of (prog && prog.shots) || []) {
         const ss = sh.set && typeof sh.set === 'object' ? sh.set : {}, pick = k => sh[k] != null ? sh[k] : ss[k] != null ? ss[k] : null;   /* a shot's light and ground: top-level keys, or a set: {} block (world, as, time, weather, kind, centre, r, seed) */
         const set = (pick('world') || pick('as') || pick('time') || pick('weather') || pick('kind')) ? { world: pick('world'), as: pick('as'), time: pick('time'), weather: pick('weather'), kind: pick('kind'), centre: pick('centre'), r: pick('r'), seed: pick('seed'), corridor: pick('corridor') } : null;
-        if (sh.title != null && !sh.on) { shots.push({ name: sh.name || sh.title.slice(0, 32), title: sh.title, style: sh.style || 'card', keys: [], sec: clamp(+sh.sec || 3, 0.5, 120), act: null, set, acts: actsOf(sh.acts), events: eventsOf(sh.events), shift: sh.shift || undefined, score: sh.score, fade: sh.fade != null ? +sh.fade : undefined }); continue; }
+        if (sh.title != null && !sh.on) { const card = { name: sh.name || sh.title.slice(0, 32), title: sh.title, style: sh.style || 'card', keys: [], sec: clamp(+sh.sec || 3, 0.5, 120), act: null, set, acts: actsOf(sh.acts), events: eventsOf(sh.events), shift: sh.shift || undefined, score: sh.score, fade: sh.fade != null ? +sh.fade : undefined };
+          if (sh.fit) card.fit = sh.fit.map(f => ({ ...f })); for (const k of ['paper', 'write', 'strike', 'hand']) if (sh[k] != null) card[k] = sh[k]; shots.push(card); continue; }
         const plan = { on: sh.on || 'me', frame: sh.frame || 'medium', from: sh.from || 's', lens: sh.lens || 0, sec: sh.sec || F.sec, move: sh.move || 'hold', name: sh.name };
         let act = null; if (sh.act) { act = { who: 'me', ...sh.act }; if (Array.isArray(act.walk)) { act.kind = 'walk'; act.x = act.walk[0] * M; act.z = act.walk[1] * M; act.rel = true; } if (Array.isArray(act.drive)) { act.kind = 'drive'; act.x = act.drive[0] * M; act.z = act.drive[1] * M; act.rel = true; } delete act.walk; delete act.drive; }
         const shot = { name: sh.name || `${plan.frame} on ${plan.on}`, keys: [{ pos: new THREE.Vector3(0, 4 * M, 0), tgt: new THREE.Vector3(0, 2 * M, -10 * M), fov: 50 }], sec: clamp(+sh.sec || F.sec, 0.5, 120), act, set, plan, follow: !!sh.follow, acts: actsOf(sh.acts), events: eventsOf(sh.events) };

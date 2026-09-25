@@ -147,6 +147,22 @@ for m in [60, 64, 67, 70, 74]: add(brass(m, 0.16, 0.07), e, (m - 67) / 20)
 for m in [62, 65, 69, 72, 77]: add(brass(m, 0.5, 0.08), e + 0.22, (m - 67) / 20)
 add(rim(0.25), e + 0.22, 0.2); add(cymbal(0.07), e + 0.22, 0.25)
 
+# ── the paper inserts: a pencil writing (short scratches, a word a stroke), a line struck through, the list unfolded ──
+def scratch(d, a=0.05):
+    k = int(d * SR); t4 = np.arange(k) / SR; out = np.zeros(k); u = 0.0
+    while u < d - 0.05:
+        s0 = int(u * SR); m = int(rng.uniform(0.05, 0.13) * SR); m = min(m, k - s0)
+        out[s0:s0 + m] += bp(rng.standard_normal(m), 2500, 7500) * env(m, 0.01, 0.02) * rng.uniform(0.6, 1.0); u += rng.uniform(0.07, 0.16)
+    return out * a
+def strike(d, a=0.07): k = int(d * SR); return bp(rng.standard_normal(k), 1800, 6500) * env(k, 0.02, 0.05) * a
+def rustle(d=0.5, a=0.06): k = int(d * SR); return bp(rng.standard_normal(k), 600, 4000) * (0.5 + 0.5 * np.abs(np.sin(2 * np.pi * 7 * np.arange(k) / SR))) * env(k, 0.03, 0.2) * a
+PAPER = {'The record begins': [('w', 0.2, 1.1)], 'Apples in the record': [('w', 0.2, 1.2)], 'Oil struck': [('s', 0.3, 0.6)], 'The record corrected': [('s', 0.3, 0.6), ('w', 1.2, 1.0)], 'Maggie on the list': [('w', 0.2, 0.8)], 'The list read': [('r', 0.0, 0.5)]}
+for name, strokes in PAPER.items():
+    if name not in shot_at: continue
+    for kind, at, d in strokes:
+        sig = scratch(d) if kind == 'w' else strike(d) if kind == 's' else rustle(d)
+        add(sig, shot_at[name] + at, 0.05, 1.0)
+
 # ── the finish: a small room on the store sounds, then out ──
 out = np.stack([L, R], 1); peak = np.abs(out).max(); out = out / peak * 0.89
 k = int(0.6 * SR); out[-k:] *= np.linspace(1, 0, k)[:, None]

@@ -8,7 +8,7 @@ The casting gives each character a type, not an impersonation: no real performer
 
 Needs: pip install kokoro-onnx soundfile; the model files kokoro-v1.0.int8.onnx and voices-v1.0.bin (github.com/thewh1teagle/kokoro-onnx
 releases) in $KOKORO_DIR; an ffmpeg with libopus ($FFMPEG, or imageio-ffmpeg).
-Usage: python3 tools/lines-neural.py <scene> [--room store] [--only who]
+Usage: python3 tools/lines-neural.py <scene> [--room store] [--only who] [--missing]
 """
 import json, os, subprocess, sys, tempfile
 import numpy as np, soundfile as sf
@@ -53,6 +53,7 @@ def main():
         if 'key' not in e or e['key'] in done: continue
         who = e['who'].lower().split('-')[0]
         if only and who != only: continue
+        if '--missing' in args and e['key'] in index and os.path.exists(os.path.join(out, e['key'] + '.ogg')): continue   # --missing: voice only the lines not yet voiced
         voice, speed, semi, colour = CAST.get(who, CAST['narrator'])
         slot = float(e.get('slot') or 0) or None
         for attempt in range(4):   # fit the line to its slot in the edit: speed it up a little, never past MAXSPEED (1.12: faster reads as rushed; re-space the scene instead)
