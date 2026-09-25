@@ -36,7 +36,7 @@ const SM = (x, z) => [Math.round((x - 62) / 2 * 100) / 100, Math.round((z - 47.5
    (positive to the left as the subject sees it); it looks at the head. */
 const CU = (at, to, o = {}) => { const dx = to[0] - at[0], dz = to[1] - at[1], L = Math.hypot(dx, dz) || 1, a = (o.off || 0) * Math.PI / 180, ux = dx / L, uz = dz / L, rx = ux * Math.cos(a) - uz * Math.sin(a), rz = ux * Math.sin(a) + uz * Math.cos(a), d = o.d || 2.6, y = o.y || 2.3;
   return { on: o.on || null, pos: [+(at[0] + rx * d).toFixed(2), +(y + (o.up != null ? o.up : 0.08)).toFixed(2), +(at[1] + rz * d).toFixed(2)], tgt: [at[0], y, at[1]], lens: o.lens || 30 }; };
-const M_IN = SM(62, 17), M_NED = SM(77, 20), M_LOOK = SM(62, 30), M_APPLES = SM(113.5, 24.4), M_CRATE = SM(113.5, 28), M_NEDAPP = SM(117.4, 32.5), M_OIL = SM(67.3, 47.5), M_LISAOIL = SM(65.2, 44.6),
+const M_IN = SM(61, 17), M_NED = SM(77, 20), M_LOOK = SM(62, 30), M_APPLES = SM(113.5, 24.4), M_CRATE = SM(113.5, 28), M_NEDAPP = SM(117.4, 32.5), M_OIL = SM(67.3, 47.5), M_LISAOIL = SM(65.2, 44.6),
   M_FROZEN = SM(8.6, 43.5), M_NEDFRZ = SM(9.2, 55), M_DOORS = SM(5, 43.5), M_BELT = SM(48.4, 22), M_NEDBELT = SM(39.6, 20), M_CLERK = SM(42.8, 16.6), M_CARTBELT = SM(47.6, 14.7);
 const STORE = { hemi: 1.05, sun: 1.0, elev: 62, azim: 150, exposure: 1.05 };   /* no ceiling on a film set: the sun stands high so the walls' shadows are short, the fill up so the aisles read like a lit store */
 const ALL5 = ['five red apples', 'green bananas', 'black berries', 'extra virgin olive oil', 'organic flour', 'southwest style hash browns'];
@@ -47,20 +47,20 @@ Film.SCENES['case-grocery'] = { name: 'The List', time: 'day', weather: 'clear',
     goals: ['make the list true', 'keep a true record'], obstacles: ['the cheaper oil', 'a shelf between the detective and the cart', 'a procedure that acquires everything at the belt'], shifts: [{ id: 'store', name: 'The store' }, { id: 'list', name: 'The list' }, { id: 'apples', name: 'Five red apples' }, { id: 'oil', name: 'The wrong oil' }, { id: 'frozen', name: 'Caught' }, { id: 'belt', name: 'The belt' }, { id: 'record', name: 'The record' }], why: 'the list says what should be made true; the record says what was done; the receipt answers to neither', direction: 'deadpan' },
   donors: [{ name: 'the store', set: 'supermarket', x: 0, z: 0, heading: 180, scale: 1, y: -0.18 }],
   marks: {
-    street: [...SM(62, 1), null, 180], 'cart-street': [...SM(62, 5.2), null, 180], 'lisa-street': [...SM(59.5, -0.5), null, 180], 'bart-street': [...SM(64.5, -0.5), null, 180],
+    street: [...SM(64.5, 0.5), null, 180], 'cart-street': [...SM(64.5, 4.6), null, 180], 'lisa-street': [...SM(63.9, -1.4), null, 180], 'bart-street': [...SM(65.2, -2.3), null, 180],   /* in through the east door of the vestibule (x 63..66): the wall between the doors stands at x 61..62 */
     apples: [...SM(113.5, 24.4), null, 180], crate: SM(113.5, 28), 'cart-apples': [...SM(116.9, 28), null, 180], 'ned-apples': [...SM(117.4, 32.5), null, 0], 'lisa-apples': [...SM(116.4, 23.6), null, 270], 'bart-apples': [...SM(118.2, 20.5), null, 270],
     'lisa-oil2': [...SM(65.2, 44.6), null, 0], 'cart-oil2': [...SM(64.6, 40), null, 180], 'bart-oil2': [...SM(64.6, 58.5), null, 0], 'ned-aisle2': [...SM(65.8, 30.6), null, 180],
-    in: [...SM(62, 17), null, 180], 'cart-in': [...SM(59.0, 18.2), null, 317], 'list-look': SM(62, 30), 'bart-in': [...SM(58, 14), null, 180], 'lisa-in': [...SM(66.5, 15), null, 180], 'ned-desk': [...SM(77, 20), null, 270],
+    in: [...SM(61, 17), null, 180], 'cart-in': [...SM(59.0, 18.2), null, 317], 'list-look': SM(62, 30), 'bart-in': [...SM(58, 14), null, 180], 'lisa-in': [...SM(66.5, 15), null, 180], 'ned-desk': [...SM(77, 20), null, 270],
     'prod-in': [...SM(100, 23), null, 90], bananas: [...SM(111.5, 22), null, 0], stand: SM(111.5, 17), 'cart-prod': [...SM(106, 22.5), null, 90], 'bart-prod': [...SM(106.5, 25.5), null, 90], 'lisa-prod': [...SM(103.5, 25), null, 90], 'ned-prod': [...SM(108.5, 32.5), null, 0],
     oil: [...SM(67.3, 47.5), null, 90], shelf3: SM(70, 47.5), 'cart-oil': [...SM(65.4, 43.5), null, 180], 'bart-oil': [...SM(64.6, 29.5), null, 180], 'lisa-oil': [...SM(66.8, 29), null, 180], 'ned-aisle': [...SM(64.2, 80.5), null, 0],
     frozen: [...SM(8.6, 43.5), null, 270], doors: SM(5, 43.5), 'cart-frozen': [...SM(10.8, 39.8), null, 180], 'bart-frozen': [...SM(12.6, 27), null, 180], 'lisa-frozen': [...SM(10.2, 26), null, 180], 'ned-frozen': [...SM(9.2, 55), null, 270],
     belt: [...SM(48.4, 22), null, 0], 'cart-belt': [...SM(47.6, 14.7), null, 249], clerk: [...SM(42.8, 16.6), null, 270], 'ned-belt': [...SM(39.6, 20), null, 0], 'bart-belt': [...SM(53, 22.5), null, 0], 'lisa-belt': [...SM(54.5, 20.5), null, 0] },
   actors: [
-    { name: 'homer', figure: 'homer', label: 'Homer', x: SM(62, 1)[0], z: SM(62, 1)[1], heading: 180 },
-    { name: 'cart', kind: 'cart', len: 5, col: 4, label: 'the cart', x: SM(62, 5.2)[0], z: SM(62, 5.2)[1], heading: 180 },   /* the cart is kept a step ahead of Homer */
-    { name: 'maggie', figure: 'maggie', label: 'Maggie', x: SM(62, 5.2)[0], z: SM(62, 5.2)[1], heading: 180 },   /* in the child seat, facing Homer; at the till the cart stands at the scanner end of the belt and the clerk scans her where she sits */
-    { name: 'lisa', figure: 'lisa', label: 'Lisa', x: SM(59.5, -0.5)[0], z: SM(59.5, -0.5)[1], heading: 180 },
-    { name: 'bart', figure: 'bart', label: 'Bart', x: SM(64.5, -0.5)[0], z: SM(64.5, -0.5)[1], heading: 180 },
+    { name: 'homer', figure: 'homer', label: 'Homer', x: SM(64.5, 0.5)[0], z: SM(64.5, 0.5)[1], heading: 180 },
+    { name: 'cart', kind: 'cart', len: 5, col: 4, label: 'the cart', x: SM(64.5, 4.6)[0], z: SM(64.5, 4.6)[1], heading: 180 },   /* the cart is kept a step ahead of Homer */
+    { name: 'maggie', figure: 'maggie', label: 'Maggie', x: SM(64.5, 4.6)[0], z: SM(64.5, 4.6)[1], heading: 180 },   /* in the child seat, facing Homer; at the till the cart stands at the scanner end of the belt and the clerk scans her where she sits */
+    { name: 'lisa', figure: 'lisa', label: 'Lisa', x: SM(63.9, -1.4)[0], z: SM(63.9, -1.4)[1], heading: 180 },
+    { name: 'bart', figure: 'bart', label: 'Bart', x: SM(65.2, -2.3)[0], z: SM(65.2, -2.3)[1], heading: 180 },
     { name: 'flanders', figure: 'flanders', label: 'Ned', x: SM(77, 20)[0], z: SM(77, 20)[1], heading: 270 },
     { name: 'clerk', figure: 'clerk', label: 'the clerk', x: SM(42.8, 16.6)[0], z: SM(42.8, 16.6)[1], heading: 270 }],
   /* Cut to 'Trouttown Working Day' (Silt Wire & Mountain Current, m1; world/music/cues.json): its bars fall at 0.21 s + 1.973 s k, and every cut is on
@@ -69,7 +69,7 @@ Film.SCENES['case-grocery'] = { name: 'The List', time: 'day', weather: 'clear',
   shots: [
     { score: 'file:../music/grocery-mix.ogg', title: 'THE LIST', style: 'card', sec: 4.16, events: [SAY('narrator', 'Marge wrote the list. Homer carries it.', 0.4, 2.55)] },
     /* the door: Homer in with the cart, Ned at the desk; then the two of them close, and the record begins */
-    { name: 'The store', on: 'homer', title: LIST(...ALL5), style: 'list', pos: [-3.4, 3.0, -18.4], pos2: [-3.0, 3.0, -17.6], tgt: [5.2, 1.4, -13.2], lens: 40, sec: 6.4, shift: 'store', look: STORE,
+    { name: 'The store', on: 'homer', title: LIST(...ALL5), style: 'list', pos: [9.2, 2.7, -11.2], pos2: [8.9, 2.65, -11.6], tgt: [1.0, 1.3, -19.5], tgt2: [0.6, 1.4, -17.8], lens: 40, sec: 6.4, shift: 'store', look: STORE,
       acts: [{ who: 'homer', from: 'street', to: 'in', walk: true, at: 0.4 }, { who: 'cart', from: 'cart-street', lead: 'homer', ahead: 2.2 }, { who: 'maggie', ride: 'cart' }, { who: 'lisa', from: 'lisa-street', follow: 'homer', behind: 1.6, walk: true }, { who: 'bart', from: 'bart-street', follow: 'homer', behind: 2.0, walk: true }, { who: 'flanders', from: 'ned-desk', look: 'homer', pose: 'stand' }, { who: 'clerk', from: 'clerk', look: 'cart-belt' }],
       events: [BEAT('store', 'homer', 0, 6.4, 'the shopper has an order; the neighbour will keep a record', 'neutral'), SND('footstep', 1.2), SND('footstep', 1.7), SND('footstep', 2.2), SND('clatter', 2.6), SAY('flanders', 'Hi-diddly-ho, Homer! Got a list, have we?', 3.0, 2.07), P('flanders', 'joy', 2.9)] },
     { name: 'Homer: Flanders', ...CU(M_IN, M_NED, { off: 25 }), sec: 2.4, look: STORE,
