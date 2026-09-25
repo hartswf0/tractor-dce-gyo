@@ -120,6 +120,21 @@ props.sun = { parts: [row('3960', 297, L.mul(L.I12, RX(Math.PI / 2))), row('4150
 /* the lotus: a flower in white on a green stem, as it is handed over */
 props.lotus = { parts: [row('3742', 15, L.I12), row('3742', 13, L.T(0, -2, 0)), row('33291', 2, L.T(0, 6, 0))], anchors: { bloom: [0, -4, 0] } };
 props.axe = { parts: [row('3835', 72, L.I12)], anchors: { grip: [0, 26, 0], head: [0, -22, -6] } };
+/* the Underworld (Homer XI): the black ram; Tiresias's shade, a ghost shroud in trans clear with a white head and his golden staff */
+props.ramBlack = { parts: [row('95341', 0, L.I12)], anchors: { back: [0, -30, 0] } };
+props.tiresias = { parts: [row('2588', 47, L.T(0, -32, 0)), row('3626bp01', 15, L.T(0, -56, 0)), row('3957a', 297, L.T(-22, 8, -6)), row('4589', 297, L.mul(L.T(-22, -88, -6), RX(Math.PI)))], anchors: { head: [0, -66, 0] } };
+props.shade = { parts: [row('2588', 47, L.T(0, -32, 0)), row('3626bp01', 15, L.T(0, -56, 0))], anchors: { head: [0, -66, 0] } };
+/* the foot-bath (Homer XIX): a basin (the 4 x 4 dish turned up) of water; the spill when it tips */
+props.basin = { parts: [row('3960', 179, L.mul(L.T(0, 0, 0), RX(Math.PI))), row('4150', 43, L.T(0, 6, 0))], anchors: { rim: [0, -12, 0] } };
+props.spill = { parts: [[0, 0], [16, 6], [-12, 14], [26, 18], [6, 26], [-20, 4], [14, -10]].map(([x, z], i) => row(i % 2 ? '6141' : '4073', 43, L.T(x, 0, z))), anchors: { centre: [0, 0, 10] } };
+/* Nausicaa (Homer VI): the leafy bough he held before him, the ball the maids threw */
+props.branch = { parts: [row('2417', 2, L.mul(L.I12, RX(Math.PI / 2))), row('2423', 288, L.mul(L.T(0, -20, 4), RX(Math.PI / 2)))], anchors: { grip: [0, 0, 30] } };
+props.ball = { parts: [row('3062b', 15, L.I12), row('4589', 4, L.T(0, -24, 0))], anchors: {} };
+/* Ino's veil: a white flag held out */
+props.veil = { parts: [row('2335', 15, L.I12), row('2335', 15, L.T(0, 0, 50))], anchors: { grip: [0, 0, 0] } };
+/* the arrows poured before him on the threshold (Homer XXII), and one to aim */
+props.arrows = { parts: Array.from({ length: 7 }, (_, i) => [row('30374', 71, L.mul(L.T(i * 7 - 21, -4, (i % 3) * 5), [0, 0, 0, Math.cos(0.1 * i), 0, Math.sin(0.1 * i), 0, 0, -1, -Math.sin(0.1 * i), 1, 0].map((v, j) => j < 3 ? v : v)))]).flat(), anchors: {} };
+props.stool = { parts: [row('3941', 70, L.I12), row('4032a', 70, L.T(0, -8, 0))], anchors: { seat: [0, -8, 0] } };
 const out = path.join(L.ROOT, 'odyssey/keyframes/props.json');
 fs.writeFileSync(out, JSON.stringify(props));
 console.log('props:', Object.entries(props).map(([k, p]) => `${k} (${p.parts.length} parts)`).join(', '), '->', path.relative(L.ROOT, out));

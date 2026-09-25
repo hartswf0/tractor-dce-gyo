@@ -1,0 +1,948 @@
+{
+ "scene": "OD-B22-S01",
+ "location": "odyssey-od-b22-s01",
+ "title": "Antinous Falls",
+ "source": "Homer, Odyssey XXII, tr. Samuel Butler (public domain)",
+ "note": "Hand-staged from the text in the megaron: Odysseus on the threshold at z 232, Antinous at the far table on the right at (200, -112), the suitors at the tables. The arrow is a prop aimed from Odysseus to Antinous's throat.",
+ "look": {
+  "sun": {
+   "dir": [
+    0.3,
+    0.8,
+    0.55
+   ],
+   "color": "#fff0d6",
+   "intensity": 1.05,
+   "shadow": true
+  },
+  "fill": {
+   "sky": "#c9d4e6",
+   "ground": "#3a3026",
+   "intensity": 0.45
+  },
+  "exposure": 0.95
+ },
+ "spread": 0,
+ "blocking": [],
+ "keys": [
+  {
+   "id": "K1",
+   "beat": "Odysseus strips off his rags, leaps onto the threshold, and pours the remaining arrows before him.",
+   "text": "Then Ulysses tore off his rags, and sprang on to the broad pavement with his bow and his quiver full of arrows. He shed the arrows on to the ground at his feet.",
+   "hide": [
+    "antinous's cup and feast table",
+    "brazier",
+    "brazier 2"
+   ],
+   "props": [
+    {
+     "name": "arrows",
+     "id": "arrows",
+     "at": [
+      -4,
+      0,
+      200
+     ],
+     "floor": true,
+     "scale": 1.4
+    }
+   ],
+   "blocking": [
+    {
+     "id": "odysseus-revealed",
+     "x": -4,
+     "z": 232,
+     "y": "floor",
+     "face": [
+      -4,
+      -300
+     ],
+     "props": true,
+     "pose": {
+      "armLP": [
+       -1.2,
+       0,
+       0.3
+      ],
+      "armRP": [
+       -2.4,
+       0,
+       -0.2
+      ]
+     }
+    },
+    {
+     "id": "telemachus",
+     "x": 75,
+     "z": 205,
+     "y": "floor",
+     "face": [
+      -4,
+      -300
+     ],
+     "props": true
+    },
+    {
+     "id": "antinous",
+     "x": 200,
+     "z": -112,
+     "y": "floor",
+     "face": [
+      -4,
+      232
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.9,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "suitors-1",
+     "x": -200,
+     "z": -110,
+     "y": "floor",
+     "face": [
+      -4,
+      232
+     ],
+     "props": false
+    },
+    {
+     "id": "suitors-2",
+     "x": -200,
+     "z": 40,
+     "y": "floor",
+     "face": [
+      -4,
+      232
+     ],
+     "props": false
+    },
+    {
+     "id": "suitors-3",
+     "x": -150,
+     "z": 110,
+     "y": "floor",
+     "face": [
+      -4,
+      232
+     ],
+     "props": false
+    },
+    {
+     "id": "suitors-4",
+     "x": 150,
+     "z": 40,
+     "y": "floor",
+     "face": [
+      -4,
+      232
+     ],
+     "props": false
+    },
+    {
+     "id": "suitors-5",
+     "x": 230,
+     "z": 105,
+     "y": "floor",
+     "face": [
+      -4,
+      232
+     ],
+     "props": false
+    }
+   ],
+   "camera": {
+    "type": "wide",
+    "pos": [
+     40,
+     95,
+     -80
+    ],
+    "target": [
+     -4,
+     75,
+     230
+    ],
+    "fov": 34
+   },
+   "subjects": [
+    {
+     "id": "odysseus-revealed",
+     "min": 0.12,
+     "primary": true
+    }
+   ],
+   "lensAllow": [
+    "suitors-1",
+    "suitors-2",
+    "suitors-3",
+    "suitors-4",
+    "suitors-5"
+   ]
+  },
+  {
+   "id": "K2",
+   "beat": "He shoots Antinous through the throat while the suitor lifts a cup.",
+   "text": "Antinous was about to take up a two-handled gold cup to drink his wine... Ulysses aimed an arrow at him and struck him in the throat, and the point went clean through his neck.",
+   "hide": [
+    "antinous's cup and feast table",
+    "brazier",
+    "brazier 2"
+   ],
+   "props": [
+    {
+     "name": "arrow",
+     "id": "arrow",
+     "after": true,
+     "aim": {
+      "anchor": "tip",
+      "to": "antinous",
+      "off": [
+       0,
+       -10,
+       0
+      ],
+      "from": "odysseus-revealed",
+      "sink": 6
+     },
+     "scale": 1.3
+    }
+   ],
+   "blocking": [
+    {
+     "id": "odysseus-revealed",
+     "x": -4,
+     "z": 232,
+     "y": "floor",
+     "face": [
+      200,
+      -112
+     ],
+     "props": true,
+     "pose": {
+      "armLP": [
+       -1.55,
+       0,
+       0
+      ],
+      "armRP": [
+       -1.35,
+       0,
+       0.35
+      ]
+     }
+    },
+    {
+     "id": "telemachus",
+     "x": 75,
+     "z": 205,
+     "y": "floor",
+     "face": [
+      200,
+      -112
+     ],
+     "props": true
+    },
+    {
+     "id": "antinous",
+     "x": 200,
+     "z": -112,
+     "y": "floor",
+     "face": [
+      -4,
+      232
+     ],
+     "props": true,
+     "pose": {
+      "armRP": [
+       -2.4,
+       0,
+       0
+      ],
+      "headP": [
+       0,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "suitors-1",
+     "x": -200,
+     "z": -110,
+     "y": "floor",
+     "face": [
+      200,
+      -112
+     ],
+     "props": false
+    },
+    {
+     "id": "suitors-2",
+     "x": -200,
+     "z": 40,
+     "y": "floor",
+     "face": [
+      200,
+      -112
+     ],
+     "props": false
+    },
+    {
+     "id": "suitors-3",
+     "x": -150,
+     "z": 110,
+     "y": "floor",
+     "face": [
+      200,
+      -112
+     ],
+     "props": false
+    },
+    {
+     "id": "suitors-4",
+     "x": 150,
+     "z": 40,
+     "y": "floor",
+     "face": [
+      200,
+      -112
+     ],
+     "props": false
+    },
+    {
+     "id": "suitors-5",
+     "x": 230,
+     "z": 105,
+     "y": "floor",
+     "face": [
+      200,
+      -112
+     ],
+     "props": false
+    }
+   ],
+   "camera": {
+    "type": "wide",
+    "pos": [
+     -80,
+     110,
+     200
+    ],
+    "target": [
+     190,
+     60,
+     -100
+    ],
+    "fov": 42
+   },
+   "subjects": [
+    {
+     "id": "antinous",
+     "min": 0.04,
+     "primary": true
+    },
+    {
+     "id": "prop:arrow",
+     "soft": true,
+     "cut": true
+    }
+   ],
+   "lensAllow": [
+    "suitors-1",
+    "suitors-2",
+    "suitors-3",
+    "suitors-4",
+    "suitors-5",
+    "odysseus-revealed",
+    "telemachus"
+   ]
+  },
+  {
+   "id": "K3",
+   "beat": "Antinous falls across the table, spilling food and wine as the room erupts.",
+   "text": "He fell over and the cup dropped from his hand, while a thick stream of blood gushed from his nostrils. He kicked the table from him and upset the things on it, so that the bread and roasted meat were all soiled as they fell over on to the ground.",
+   "hide": [
+    "antinous's cup and feast table",
+    "brazier",
+    "brazier 2"
+   ],
+   "props": [
+    {
+     "name": "blood",
+     "id": "blood",
+     "at": [
+      200,
+      0,
+      -90
+     ],
+     "floor": true
+    },
+    {
+     "name": "wine",
+     "id": "wine",
+     "at": [
+      180,
+      0,
+      -40
+     ],
+     "floor": true
+    }
+   ],
+   "blocking": [
+    {
+     "id": "odysseus-revealed",
+     "x": -4,
+     "z": 232,
+     "y": "floor",
+     "face": [
+      200,
+      -112
+     ],
+     "props": true,
+     "pose": {
+      "armLP": [
+       -1.55,
+       0,
+       0
+      ],
+      "armRP": [
+       -1.35,
+       0,
+       0.35
+      ]
+     }
+    },
+    {
+     "id": "antinous",
+     "x": 200,
+     "z": -92,
+     "y": "floor",
+     "face": [
+      -4,
+      232
+     ],
+     "tilt": [
+      -0.95,
+      0
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.8,
+       0,
+       0.5
+      ],
+      "armLP": [
+       -2.6,
+       0,
+       -0.5
+      ]
+     }
+    },
+    {
+     "id": "suitors-1",
+     "x": -200,
+     "z": -110,
+     "y": "floor",
+     "face": [
+      200,
+      -112
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.6,
+       0,
+       0
+      ],
+      "armLP": [
+       -2.6,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "suitors-2",
+     "x": -200,
+     "z": 40,
+     "y": "floor",
+     "face": [
+      200,
+      -112
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.8,
+       0,
+       0.3
+      ]
+     }
+    },
+    {
+     "id": "suitors-3",
+     "x": -150,
+     "z": 110,
+     "y": "floor",
+     "face": [
+      200,
+      -112
+     ],
+     "props": false,
+     "pose": {
+      "armLP": [
+       -2.5,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "suitors-4",
+     "x": 240,
+     "z": 60,
+     "y": "floor",
+     "face": [
+      200,
+      -112
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.9,
+       0,
+       0
+      ],
+      "armLP": [
+       -2.9,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "suitors-5",
+     "x": 230,
+     "z": 105,
+     "y": "floor",
+     "face": [
+      200,
+      -112
+     ],
+     "props": false,
+     "pose": {
+      "armLP": [
+       -2.7,
+       0,
+       0
+      ]
+     }
+    }
+   ],
+   "camera": {
+    "type": "wide",
+    "pos": [
+     80,
+     95,
+     -20
+    ],
+    "target": [
+     200,
+     40,
+     -90
+    ],
+    "fov": 44
+   },
+   "subjects": [
+    {
+     "id": "antinous",
+     "min": 0.06,
+     "primary": true,
+     "cut": true
+    }
+   ],
+   "lensAllow": [
+    "suitors-1",
+    "suitors-2",
+    "suitors-3",
+    "suitors-4",
+    "suitors-5"
+   ]
+  },
+  {
+   "id": "K4",
+   "beat": "The suitors assume an accident and search for weapons that are no longer there.",
+   "text": "The suitors were in an uproar when they saw that a man had been hit; they sprang in dismay one and all of them from their seats and looked everywhere towards the walls, but there was neither shield nor spear.",
+   "hide": [
+    "antinous's cup and feast table",
+    "brazier",
+    "brazier 2"
+   ],
+   "blocking": [
+    {
+     "id": "odysseus-revealed",
+     "x": -4,
+     "z": 232,
+     "y": "floor",
+     "face": [
+      -4,
+      -300
+     ],
+     "props": true,
+     "pose": {
+      "armLP": [
+       -1.55,
+       0,
+       0
+      ],
+      "armRP": [
+       -1.35,
+       0,
+       0.35
+      ]
+     }
+    },
+    {
+     "id": "suitors-1",
+     "x": -220,
+     "z": -150,
+     "y": "floor",
+     "face": [
+      -400,
+      -150
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.8,
+       0,
+       0.2
+      ],
+      "armLP": [
+       -2.8,
+       0,
+       -0.2
+      ]
+     }
+    },
+    {
+     "id": "suitors-2",
+     "x": -230,
+     "z": 20,
+     "y": "floor",
+     "face": [
+      -400,
+      20
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.9,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "suitors-3",
+     "x": 230,
+     "z": -40,
+     "y": "floor",
+     "face": [
+      400,
+      -40
+     ],
+     "props": false,
+     "pose": {
+      "armLP": [
+       -2.8,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "suitors-4",
+     "x": 200,
+     "z": 60,
+     "y": "floor",
+     "face": [
+      400,
+      30
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.7,
+       0,
+       0
+      ],
+      "armLP": [
+       -2.7,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "suitors-5",
+     "x": -120,
+     "z": -200,
+     "y": "floor",
+     "face": [
+      -120,
+      -400
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.9,
+       0,
+       0.3
+      ]
+     }
+    },
+    {
+     "id": "antinous",
+     "x": 200,
+     "z": -92,
+     "y": "floor",
+     "face": [
+      -4,
+      232
+     ],
+     "tilt": [
+      -0.95,
+      0
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.8,
+       0,
+       0.5
+      ],
+      "armLP": [
+       -2.6,
+       0,
+       -0.5
+      ]
+     }
+    }
+   ],
+   "camera": {
+    "type": "wide",
+    "pos": [
+     -4,
+     200,
+     200
+    ],
+    "target": [
+     -4,
+     20,
+     -80
+    ],
+    "fov": 64
+   },
+   "subjects": [
+    {
+     "id": "suitors-2",
+     "min": 0.02,
+     "primary": true
+    },
+    {
+     "id": "suitors-1",
+     "soft": true,
+     "min": 0.02
+    }
+   ],
+   "lensAllow": [
+    "suitors-1",
+    "suitors-2",
+    "suitors-3",
+    "suitors-4",
+    "suitors-5",
+    "odysseus-revealed"
+   ]
+  },
+  {
+   "id": "K5",
+   "beat": "Odysseus names himself and accuses them of consuming his house and violating his servants.",
+   "text": "'Dogs, did you think that I should not come back from Troy? You have wasted my substance, have forced my women servants to lie with you, and have wooed my wife while I was still living.'",
+   "hide": [
+    "antinous's cup and feast table",
+    "brazier",
+    "brazier 2"
+   ],
+   "blocking": [
+    {
+     "id": "odysseus-revealed",
+     "x": -4,
+     "z": 232,
+     "y": "floor",
+     "face": [
+      -4,
+      -300
+     ],
+     "props": true,
+     "pose": {
+      "armLP": [
+       -1.5,
+       0,
+       0.2
+      ],
+      "armRP": [
+       -0.6,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "telemachus",
+     "x": 75,
+     "z": 205,
+     "y": "floor",
+     "face": [
+      -4,
+      -300
+     ],
+     "props": true
+    },
+    {
+     "id": "antinous",
+     "x": 200,
+     "z": -92,
+     "y": "floor",
+     "face": [
+      -4,
+      232
+     ],
+     "tilt": [
+      -0.95,
+      0
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.8,
+       0,
+       0.5
+      ],
+      "armLP": [
+       -2.6,
+       0,
+       -0.5
+      ]
+     }
+    },
+    {
+     "id": "suitors-1",
+     "x": -200,
+     "z": -110,
+     "y": "floor",
+     "face": [
+      -4,
+      232
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -0.8,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "suitors-2",
+     "x": -200,
+     "z": 40,
+     "y": "floor",
+     "face": [
+      -4,
+      232
+     ],
+     "props": false
+    },
+    {
+     "id": "suitors-3",
+     "x": -150,
+     "z": 110,
+     "y": "floor",
+     "face": [
+      -4,
+      232
+     ],
+     "props": false,
+     "pose": {
+      "headP": [
+       0,
+       0.3,
+       0
+      ]
+     }
+    },
+    {
+     "id": "suitors-4",
+     "x": 150,
+     "z": 40,
+     "y": "floor",
+     "face": [
+      -4,
+      232
+     ],
+     "props": false,
+     "pose": {
+      "armLP": [
+       -0.5,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "suitors-5",
+     "x": 230,
+     "z": 105,
+     "y": "floor",
+     "face": [
+      -4,
+      232
+     ],
+     "props": false
+    }
+   ],
+   "camera": {
+    "type": "wide",
+    "pos": [
+     -40,
+     62,
+     -40
+    ],
+    "target": [
+     -4,
+     72,
+     230
+    ],
+    "fov": 36
+   },
+   "subjects": [
+    {
+     "id": "odysseus-revealed",
+     "min": 0.15,
+     "primary": true,
+     "face": true
+    }
+   ],
+   "lensAllow": []
+  }
+ ]
+}

@@ -1,264 +1,716 @@
 {
  "scene": "OD-B05-S05",
  "location": "odyssey-od-b05-s05",
- "title": "Poseidon Breaks The Sea",
- "note": "Drafted from the storyboard by film-readymades/keyframe_draft.py: attention blocking and rigs by shot kind. Finish by hand where the gate fails.",
+ "title": "Poseidon's Storm",
+ "source": "Homer, Odyssey V, tr. Samuel Butler (public domain)",
+ "note": "Hand-staged from the text on the sea set: the raft as a prop, Poseidon on the far rocks, the storm spouts. The baked raft and wind piece are hidden.",
  "look": {
   "sky": [
-   "#5f97d3",
-   "#efe2c4"
+   "#0a0e16",
+   "#262d3b"
   ],
   "fog": [
-   700,
-   2400
+   300,
+   1100
+  ],
+  "dim": 0.5,
+  "fill": {
+   "sky": "#51607e",
+   "ground": "#0a0d12",
+   "intensity": 0.4
+  },
+  "sun": {
+   "dir": [
+    -0.3,
+    0.6,
+    0.4
+   ],
+   "color": "#b8c6e6",
+   "intensity": 0.75,
+   "shadow": true
+  },
+  "exposure": 0.78,
+  "lights": [
+   {
+    "at": [
+     140,
+     300,
+     -200
+    ],
+    "color": "#dfe8ff",
+    "intensity": 1.6,
+    "distance": 800,
+    "decay": 1.0
+   }
   ]
  },
- "spread": 36,
- "blocking": [
-  {
-   "id": "odysseus",
-   "x": -7.0,
-   "z": 35.1,
-   "y": "floor"
-  },
-  {
-   "id": "poseidon",
-   "x": 119.4,
-   "z": -175.5,
-   "y": "floor"
-  },
-  {
-   "id": "ino-leucothea",
-   "x": -133.4,
-   "z": 105.3,
-   "y": "floor"
-  }
- ],
+ "spread": 0,
+ "blocking": [],
  "keys": [
   {
    "id": "K1",
    "beat": "For seventeen days Odysseus steers by the stars until Scheria rises ahead.",
-   "kind": "establish",
-   "draft": true,
+   "text": "He sat and guided the raft skilfully by means of the rudder, and never once did sleep fall upon his eyelids as he watched the Pleiads... on the eighteenth day the dim outlines of the mountains on the nearest part of the Phaeacian coast appeared.",
+   "hide": [
+    "raft",
+    "four-wind storm"
+   ],
+   "props": [
+    {
+     "name": "raft",
+     "id": "raft",
+     "at": [
+      20,
+      4,
+      55
+     ],
+     "rot": [
+      0,
+      0.4,
+      0
+     ]
+    }
+   ],
    "blocking": [
     {
      "id": "odysseus",
+     "x": 20,
+     "z": 70,
+     "y": "surface",
      "face": [
-      -7.0212765957446805,
-      435.1063829787234
-     ]
+      160,
+      -260
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.0,
+       0,
+       0
+      ]
+     },
+     "at": "@raft.stern",
+     "reach": -20
     },
     {
      "id": "poseidon",
-     "face": "odysseus"
+     "x": 2000,
+     "z": 2000,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
     },
     {
      "id": "ino-leucothea",
-     "face": "odysseus"
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
     }
    ],
+   "look": {
+    "sky": [
+     "#070b18",
+     "#23304e"
+    ],
+    "fog": [
+     600,
+     1800
+    ],
+    "sun": {
+     "dir": [
+      0.3,
+      0.7,
+      -0.6
+     ],
+     "color": "#9fb3e6",
+     "intensity": 0.7,
+     "shadow": true
+    },
+    "fill": {
+     "sky": "#4b5f93",
+     "ground": "#0a0d14",
+     "intensity": 0.4
+    },
+    "exposure": 0.85
+   },
    "camera": {
     "type": "wide",
     "pos": [
-     -185.6,
-     255.8,
-     412.5
+     -160,
+     70,
+     260
     ],
     "target": [
-     0,
-     35,
-     0
+     40,
+     60,
+     -60
     ],
-    "fov": 38
+    "fov": 44
    },
    "subjects": [
     {
      "id": "odysseus",
-     "primary": true,
-     "soft": true,
-     "min": 0.02
-    }
-   ]
-  },
-  {
-   "id": "K2",
-   "beat": "Poseidon sees him, gathers clouds, and strikes the sea with a four-wind storm.",
-   "kind": "push",
-   "draft": true,
-   "blocking": [
-    {
-     "id": "odysseus",
-     "face": "poseidon"
+     "min": 0.08,
+     "primary": true
     },
     {
-     "id": "poseidon",
-     "face": [
-      -63.199999999999996,
-      -105.30000000000001
-     ]
-    },
-    {
-     "id": "ino-leucothea",
-     "face": "poseidon"
-    }
-   ],
-   "camera": {
-    "type": "hero",
-    "a": "poseidon",
-    "dist": 120,
-    "height": 6,
-    "yaw": 0.3,
-    "fov": 32,
-    "subject": "poseidon",
-    "place": "L",
-    "eye": 0.34
-   },
-   "subjects": [
-    {
-     "id": "poseidon",
-     "primary": true,
-     "face": true,
-     "min": 0.2
-    },
-    {
-     "id": "piece:four-wind storm",
+     "id": "prop:raft",
      "soft": true,
      "cut": true
     }
    ]
   },
   {
-   "id": "K3",
-   "beat": "The raft rolls; Odysseus is swept away and barely regains it.",
-   "kind": "medium",
-   "draft": true,
-   "blocking": [
+   "id": "K2",
+   "beat": "Poseidon sees him, gathers clouds, and strikes the sea with a four-wind storm.",
+   "text": "He gathered his clouds together, grasped his trident, stirred it round in the sea, and roused the rage of every wind that blows till earth, sea, and sky were hidden in cloud.",
+   "hide": [
+    "raft",
+    "four-wind storm"
+   ],
+   "props": [
     {
-     "id": "odysseus",
-     "face": [
-      -7.0212765957446805,
-      435.1063829787234
+     "name": "raft",
+     "id": "raft",
+     "at": [
+      20,
+      4,
+      55
+     ],
+     "rot": [
+      0,
+      0.4,
+      0
      ]
     },
     {
+     "name": "spout",
+     "id": "sp1",
+     "at": [
+      190,
+      4,
+      -130
+     ],
+     "scale": 1.0
+    },
+    {
+     "name": "spout",
+     "id": "sp2",
+     "at": [
+      30,
+      4,
+      -170
+     ],
+     "scale": 1.1
+    },
+    {
+     "name": "spout",
+     "id": "sp3",
+     "at": [
+      200,
+      4,
+      40
+     ],
+     "scale": 0.8
+    }
+   ],
+   "blocking": [
+    {
      "id": "poseidon",
-     "face": "odysseus"
+     "x": 110,
+     "z": -70,
+     "y": -24,
+     "face": [
+      20,
+      55
+     ],
+     "props": true,
+     "pose": {
+      "armRP": [
+       -2.9,
+       0,
+       0.2
+      ],
+      "armLP": [
+       -1.0,
+       0,
+       0
+      ]
+     },
+     "air": true
+    },
+    {
+     "id": "odysseus",
+     "x": 20,
+     "z": 70,
+     "y": "surface",
+     "face": [
+      179,
+      -248
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.4,
+       0,
+       0
+      ],
+      "armLP": [
+       -0.8,
+       0,
+       0
+      ]
+     },
+     "at": "@raft.stern",
+     "reach": -20
     },
     {
      "id": "ino-leucothea",
-     "face": "odysseus"
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
     }
    ],
    "camera": {
-    "type": "hero",
-    "a": "odysseus",
-    "dist": 175,
-    "height": 10,
-    "yaw": -0.5,
-    "fov": 32,
-    "subject": "odysseus",
-    "place": "R",
-    "eye": 0.36
+    "type": "wide",
+    "pos": [
+     -130,
+     75,
+     90
+    ],
+    "target": [
+     100,
+     55,
+     -70
+    ],
+    "fov": 44
+   },
+   "subjects": [
+    {
+     "id": "poseidon",
+     "min": 0.06,
+     "primary": true
+    },
+    {
+     "id": "odysseus",
+     "soft": true,
+     "cut": true
+    }
+   ],
+   "lensAllow": [
+    "odysseus"
+   ]
+  },
+  {
+   "id": "K3",
+   "beat": "The raft rolls; Odysseus is swept away and barely regains it.",
+   "text": "A sea broke over him with such terrific fury that the raft reeled again, and he was carried overboard a long way off. He let go the helm, and the force of the hurricane was so great that it broke the mast half way up.",
+   "hide": [
+    "raft",
+    "four-wind storm"
+   ],
+   "props": [
+    {
+     "name": "raft",
+     "id": "raft",
+     "at": [
+      20,
+      4,
+      55
+     ],
+     "rot": [
+      0.5,
+      0.4,
+      0.35
+     ]
+    },
+    {
+     "name": "spout",
+     "id": "sp1",
+     "at": [
+      -20,
+      4,
+      20
+     ],
+     "scale": 1.0
+    },
+    {
+     "name": "spout",
+     "id": "sp2",
+     "at": [
+      70,
+      4,
+      100
+     ],
+     "scale": 0.9
+    },
+    {
+     "name": "spout",
+     "id": "sp3",
+     "at": [
+      40,
+      4,
+      -20
+     ],
+     "scale": 0.7
+    }
+   ],
+   "blocking": [
+    {
+     "id": "odysseus",
+     "x": -40,
+     "z": 110,
+     "y": -18,
+     "air": true,
+     "face": [
+      20,
+      55
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.8,
+       0,
+       0.3
+      ],
+      "armLP": [
+       -2.2,
+       0,
+       -0.4
+      ],
+      "legRP": [
+       -0.6,
+       0,
+       0
+      ],
+      "legLP": [
+       0.4,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "poseidon",
+     "x": 2000,
+     "z": 2000,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
+    },
+    {
+     "id": "ino-leucothea",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
+    }
+   ],
+   "camera": {
+    "type": "wide",
+    "pos": [
+     -150,
+     45,
+     250
+    ],
+    "target": [
+     0,
+     40,
+     60
+    ],
+    "fov": 46
    },
    "subjects": [
     {
      "id": "odysseus",
-     "primary": true,
-     "face": true,
-     "min": 0.12
+     "min": 0.08,
+     "primary": true
+    },
+    {
+     "id": "prop:raft",
+     "soft": true,
+     "cut": true
     }
    ]
   },
   {
    "id": "K4",
    "beat": "Ino gives him an immortal veil and orders him to abandon the raft and swim.",
-   "kind": "orbit",
-   "draft": true,
-   "blocking": [
+   "text": "Ino... took pity upon him, and rising like a sea-gull from the waves, took her seat upon the raft. 'Take off your clothes, leave your raft, and swim for the Phaeacian coast. Take my veil and put it round your chest.'",
+   "hide": [
+    "raft",
+    "four-wind storm"
+   ],
+   "props": [
     {
-     "id": "odysseus",
-     "face": [
-      -7.0212765957446805,
-      435.1063829787234
+     "name": "raft",
+     "id": "raft",
+     "at": [
+      20,
+      4,
+      55
+     ],
+     "rot": [
+      0,
+      0.4,
+      0
      ]
     },
     {
-     "id": "poseidon",
-     "face": "odysseus"
+     "name": "veil",
+     "id": "veil",
+     "after": true,
+     "aim": {
+      "anchor": "grip",
+      "to": "hand:ino-leucothea:R",
+      "dir": [
+       0.5,
+       0.2,
+       -0.8
+      ]
+     },
+     "scale": 1.2
     },
     {
+     "name": "spout",
+     "id": "sp1",
+     "at": [
+      110,
+      4,
+      -60
+     ],
+     "scale": 0.9
+    }
+   ],
+   "blocking": [
+    {
      "id": "ino-leucothea",
-     "face": "odysseus"
+     "x": 40,
+     "z": 40,
+     "y": "surface",
+     "face": [
+      0,
+      80
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.5,
+       0,
+       0
+      ],
+      "armLP": [
+       -0.4,
+       0,
+       0
+      ]
+     },
+     "at": "@raft.deck",
+     "reach": -20
+    },
+    {
+     "id": "odysseus",
+     "x": -5,
+     "z": 85,
+     "y": "surface",
+     "face": [
+      40,
+      40
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.0,
+       0,
+       0
+      ]
+     },
+     "at": "@raft.stern",
+     "reach": -20
+    },
+    {
+     "id": "poseidon",
+     "x": 2000,
+     "z": 2000,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
     }
    ],
    "camera": {
-    "type": "hero",
-    "a": "odysseus",
-    "dist": 210,
-    "height": 22,
-    "yaw": 0.9,
-    "fov": 32,
-    "subject": "odysseus",
-    "place": "L",
-    "eye": 0.36
+    "type": "wide",
+    "pos": [
+     160,
+     60,
+     150
+    ],
+    "target": [
+     25,
+     55,
+     55
+    ],
+    "fov": 42
    },
    "subjects": [
     {
+     "id": "ino-leucothea",
+     "min": 0.1,
+     "primary": true
+    },
+    {
      "id": "odysseus",
-     "primary": true,
-     "face": true,
-     "min": 0.1
+     "min": 0.07
     }
    ]
   },
   {
    "id": "K5",
    "beat": "Athena restrains the winds except the north wind that drives him shoreward.",
-   "kind": "pullback",
-   "draft": true,
-   "blocking": [
+   "text": "Minerva... stopped all the winds except one, and made them lie quite still; but she roused a good stiff breeze from the North that should lay the waters till Ulysses reached the land.",
+   "hide": [
+    "raft",
+    "four-wind storm"
+   ],
+   "props": [
     {
-     "id": "odysseus",
-     "face": [
-      -63.199999999999996,
-      -105.30000000000001
-     ]
-    },
-    {
-     "id": "poseidon",
-     "face": [
-      -63.199999999999996,
-      -105.30000000000001
-     ]
-    },
-    {
-     "id": "ino-leucothea",
-     "face": [
-      -63.199999999999996,
-      -105.30000000000001
+     "name": "raft",
+     "id": "raft",
+     "at": [
+      60,
+      4,
+      -40
+     ],
+     "rot": [
+      0.25,
+      1.2,
+      0.3
      ]
     }
    ],
+   "blocking": [
+    {
+     "id": "odysseus",
+     "x": 10,
+     "z": -170,
+     "y": -22,
+     "air": true,
+     "face": [
+      20,
+      -400
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.8,
+       0,
+       0.2
+      ],
+      "armLP": [
+       0.2,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "poseidon",
+     "x": 2000,
+     "z": 2000,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
+    },
+    {
+     "id": "ino-leucothea",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
+    }
+   ],
+   "look": {
+    "sky": [
+     "#4a6fa8",
+     "#f5c79a"
+    ],
+    "fog": [
+     600,
+     2000
+    ],
+    "sun": {
+     "dir": [
+      0.2,
+      0.35,
+      -0.9
+     ],
+     "color": "#ffd2a0",
+     "intensity": 1.2,
+     "shadow": true
+    },
+    "fill": {
+     "sky": "#9fb0d0",
+     "ground": "#1c2530",
+     "intensity": 0.45
+    },
+    "exposure": 0.95
+   },
    "camera": {
     "type": "wide",
     "pos": [
-     -237.6,
-     327.4,
-     528.0
+     -60,
+     55,
+     120
     ],
     "target": [
-     0,
-     35,
-     0
+     40,
+     40,
+     -260
     ],
-    "fov": 38
+    "fov": 44
    },
    "subjects": [
     {
-     "id": "piece:four-wind storm",
-     "primary": true,
-     "soft": true,
-     "min": 0.02
+     "id": "odysseus",
+     "min": 0.03,
+     "primary": true
     }
    ]
   }
