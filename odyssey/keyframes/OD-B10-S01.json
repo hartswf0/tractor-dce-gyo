@@ -1,242 +1,559 @@
 {
  "scene": "OD-B10-S01",
  "location": "odyssey-od-b10-s01",
- "title": "Aeolus And The Bag Of Winds",
- "note": "Drafted from the storyboard by film-readymades/keyframe_draft.py: attention blocking and rigs by shot kind. Finish by hand where the gate fails.",
+ "title": "Aeolus and the Bag of Winds",
+ "source": "Homer, Odyssey X, tr. Samuel Butler (public domain)",
+ "note": "Hand-staged from the text on the voyage set: Aeolus on his island, the black ship under sail. The baked bag and winds are hidden; the bag is a prop (the minifig sack tied with silver).",
  "look": {
   "sky": [
-   "#5f97d3",
-   "#efe2c4"
+   "#7fb3dc",
+   "#f7e6c3"
   ],
   "fog": [
-   700,
-   2400
-  ]
- },
- "spread": 36,
- "blocking": [
-  {
-   "id": "aeolus",
-   "x": -49.1,
-   "z": -105.3,
-   "y": "floor"
+   900,
+   2600
+  ],
+  "fill": {
+   "sky": "#d3e0f0",
+   "ground": "#2a3a48",
+   "intensity": 0.5
   },
-  {
-   "id": "odysseus",
-   "x": -7.0,
-   "z": -63.2,
-   "y": "floor"
-  }
- ],
+  "sun": {
+   "dir": [
+    -0.4,
+    0.7,
+    0.6
+   ],
+   "color": "#fff0cf",
+   "intensity": 1.2,
+   "shadow": true
+  },
+  "exposure": 1.0
+ },
+ "spread": 0,
+ "blocking": [],
  "keys": [
   {
    "id": "K1",
    "beat": "Aeolus hosts Odysseus for a month and listens to the story of Troy.",
-   "kind": "establish",
-   "draft": true,
+   "text": "Aeolus entertained me for a whole month, asking me questions all the time about Troy, the Argive fleet, and the return of the Achaeans. I told him exactly how everything had happened.",
+   "hide": [
+    "bag of winds",
+    "confined winds"
+   ],
    "blocking": [
     {
      "id": "aeolus",
-     "face": "odysseus"
+     "x": 20,
+     "z": -260,
+     "y": "floor",
+     "face": [
+      -40,
+      -170
+     ],
+     "props": true,
+     "pose": {
+      "armRP": [
+       -0.8,
+       0,
+       0
+      ]
+     }
     },
     {
      "id": "odysseus",
-     "face": "aeolus"
+     "x": 10,
+     "z": -160,
+     "y": "floor",
+     "face": [
+      20,
+      -260
+     ],
+     "props": true,
+     "pose": {
+      "armRP": [
+       -1.4,
+       0,
+       0.2
+      ]
+     }
     }
    ],
    "camera": {
     "type": "wide",
     "pos": [
-     -185.6,
-     255.8,
-     412.5
+     -170,
+     70,
+     -160
     ],
     "target": [
-     0,
-     35,
-     0
+     15,
+     60,
+     -210
     ],
-    "fov": 38
+    "fov": 40
    },
    "subjects": [
     {
      "id": "aeolus",
-     "primary": true,
-     "soft": true,
-     "min": 0.02
+     "min": 0.1,
+     "primary": true
     },
     {
      "id": "odysseus",
-     "soft": true,
-     "cut": true,
-     "min": 0.02
+     "min": 0.08
     }
    ]
   },
   {
    "id": "K2",
    "beat": "He gives a sealed oxhide bag containing every adverse wind and releases the west wind for Ithaca.",
-   "kind": "orbit",
-   "draft": true,
-   "blocking": [
+   "text": "He flayed me a prime ox to hold the ways of the roaring winds, which he shut up in the hide as in a sack... and bound the mouth of the sack with a silver thread.",
+   "hide": [
+    "bag of winds",
+    "confined winds"
+   ],
+   "props": [
     {
-     "id": "aeolus",
-     "face": [
-      -49.148936170212764,
-      294.6808510638298
-     ]
-    },
-    {
-     "id": "odysseus",
-     "face": "aeolus"
+     "name": "bag",
+     "id": "bag",
+     "after": true,
+     "aim": {
+      "anchor": "neck",
+      "to": "hand:aeolus:R",
+      "dir": [
+       0,
+       1,
+       0.2
+      ]
+     },
+     "scale": 0.8
     }
    ],
-   "camera": {
-    "type": "hero",
-    "a": "aeolus",
-    "dist": 210,
-    "height": 22,
-    "yaw": 0.9,
-    "fov": 32,
-    "subject": "aeolus",
-    "place": "L",
-    "eye": 0.36
-   },
-   "subjects": [
-    {
-     "id": "aeolus",
-     "primary": true,
-     "face": true,
-     "min": 0.1
-    }
-   ]
-  },
-  {
-   "id": "K3",
-   "beat": "After nine days Ithaca appears, but Odysseus falls asleep at the helm.",
-   "kind": "orbit",
-   "draft": true,
    "blocking": [
     {
      "id": "aeolus",
-     "face": "odysseus"
+     "x": 20,
+     "z": -260,
+     "y": "floor",
+     "face": [
+      -40,
+      -170
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.3,
+       0,
+       0
+      ]
+     }
     },
     {
      "id": "odysseus",
+     "x": 10,
+     "z": -160,
+     "y": "floor",
      "face": [
-      -7.0212765957446805,
-      336.8085106382979
-     ]
-    }
-   ],
-   "camera": {
-    "type": "hero",
-    "a": "odysseus",
-    "dist": 210,
-    "height": 22,
-    "yaw": -0.9,
-    "fov": 32,
-    "subject": "odysseus",
-    "place": "R",
-    "eye": 0.36
-   },
-   "subjects": [
-    {
-     "id": "odysseus",
-     "primary": true,
-     "face": true,
-     "min": 0.1
-    }
-   ]
-  },
-  {
-   "id": "K4",
-   "beat": "The crew opens the bag, believing it contains treasure, and the winds blast them back to Aeolia.",
-   "kind": "orbit",
-   "draft": true,
-   "blocking": [
-    {
-     "id": "aeolus",
-     "face": [
-      -159.6,
-      63.0
-     ]
-    },
-    {
-     "id": "odysseus",
-     "face": [
-      -159.6,
-      63.0
-     ]
+      20,
+      -260
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.2,
+       0,
+       0.2
+      ],
+      "armLP": [
+       -1.2,
+       0,
+       -0.2
+      ]
+     }
     }
    ],
    "camera": {
     "type": "wide",
     "pos": [
-     -196.7,
-     34.6,
-     137.1
+     -160,
+     65,
+     -280
     ],
-    "target": "piece:bag of winds",
-    "fov": 34,
-    "subject": "piece:bag of winds",
-    "place": "L",
-    "eye": 0.4
+    "target": [
+     15,
+     60,
+     -210
+    ],
+    "fov": 42
    },
    "subjects": [
     {
-     "id": "piece:bag of winds",
+     "id": "aeolus",
+     "min": 0.12,
      "primary": true,
-     "min": 0.25
+     "face": true
     },
     {
-     "id": "piece:confined winds",
+     "id": "prop:bag",
      "soft": true,
      "cut": true
     }
    ]
   },
   {
-   "id": "K5",
-   "beat": "Aeolus refuses further aid, judging Odysseus hated by the gods.",
-   "kind": "pullback",
-   "draft": true,
+   "id": "K3",
+   "beat": "After nine days Ithaca appears, but Odysseus falls asleep at the helm.",
+   "text": "On the tenth day our native land showed on the horizon. We got so close in that we could see the stubble fires burning... and I, being then dead beat, fell into a light sleep, for I had never let the rudder out of my own hands.",
+   "hide": [
+    "bag of winds",
+    "confined winds"
+   ],
+   "props": [
+    {
+     "name": "bag",
+     "id": "bag",
+     "at": [
+      -7,
+      52,
+      30
+     ],
+     "floor": true,
+     "scale": 1.3
+    }
+   ],
    "blocking": [
     {
+     "id": "odysseus",
+     "x": -7,
+     "z": 120,
+     "y": "floor",
+     "face": [
+      -7,
+      -300
+     ],
+     "props": false,
+     "pose": {
+      "legRP": [
+       -1.5708,
+       0,
+       0
+      ],
+      "legLP": [
+       -1.5708,
+       0,
+       0
+      ],
+      "headP": [
+       0.4,
+       0,
+       0.2
+      ],
+      "armRP": [
+       -0.5,
+       0,
+       0
+      ]
+     },
+     "sit": true,
+     "reach": 20
+    },
+    {
      "id": "aeolus",
-     "face": "odysseus"
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
+    }
+   ],
+   "look": {
+    "sky": [
+     "#3a4a7a",
+     "#f2a36b"
+    ],
+    "fog": [
+     700,
+     2200
+    ],
+    "sun": {
+     "dir": [
+      0.5,
+      0.3,
+      -0.8
+     ],
+     "color": "#ffb27a",
+     "intensity": 1.1,
+     "shadow": true
+    },
+    "fill": {
+     "sky": "#8d9cc6",
+     "ground": "#1f2430",
+     "intensity": 0.45
+    },
+    "exposure": 0.9
+   },
+   "camera": {
+    "type": "wide",
+    "pos": [
+     -100,
+     110,
+     300
+    ],
+    "target": [
+     20,
+     60,
+     -120
+    ],
+    "fov": 44
+   },
+   "subjects": [
+    {
+     "id": "odysseus",
+     "min": 0.05,
+     "primary": true
+    },
+    {
+     "id": "prop:bag",
+     "soft": true,
+     "cut": true
+    }
+   ]
+  },
+  {
+   "id": "K4",
+   "beat": "The crew opens the bag, believing it contains treasure, and the winds blast them back to Aeolia.",
+   "text": "They loosed the sack, whereon the wind flew howling forth and raised a storm that carried us weeping out to sea and away from our own country.",
+   "hide": [
+    "bag of winds",
+    "confined winds"
+   ],
+   "props": [
+    {
+     "name": "bag",
+     "id": "bag",
+     "at": [
+      -7,
+      52,
+      30
+     ],
+     "floor": true,
+     "scale": 1.3
+    },
+    {
+     "name": "winds",
+     "id": "winds",
+     "at": [
+      -7,
+      60,
+      30
+     ],
+     "scale": 1.2
+    },
+    {
+     "name": "spout",
+     "id": "sp1",
+     "at": [
+      -120,
+      4,
+      20
+     ],
+     "scale": 0.8
+    },
+    {
+     "name": "spout",
+     "id": "sp2",
+     "at": [
+      110,
+      4,
+      120
+     ],
+     "scale": 0.7
+    }
+   ],
+   "blocking": [
+    {
+     "id": "odysseus",
+     "x": -7,
+     "z": 120,
+     "y": "surface",
+     "face": [
+      -7,
+      30
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.9,
+       0,
+       0.3
+      ],
+      "armLP": [
+       -2.9,
+       0,
+       -0.3
+      ]
+     },
+     "reach": 60
+    },
+    {
+     "id": "aeolus",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
+    }
+   ],
+   "look": {
+    "sky": [
+     "#0a0e16",
+     "#262d3b"
+    ],
+    "fog": [
+     300,
+     1100
+    ],
+    "dim": 0.5,
+    "fill": {
+     "sky": "#51607e",
+     "ground": "#0a0d12",
+     "intensity": 0.4
+    },
+    "sun": {
+     "dir": [
+      -0.3,
+      0.6,
+      0.4
+     ],
+     "color": "#b8c6e6",
+     "intensity": 0.75,
+     "shadow": true
+    },
+    "exposure": 0.78
+   },
+   "camera": {
+    "type": "wide",
+    "pos": [
+     220,
+     120,
+     360
+    ],
+    "target": [
+     -7,
+     170,
+     40
+    ],
+    "fov": 58
+   },
+   "subjects": [
+    {
+     "id": "prop:winds",
+     "min": 0.15,
+     "primary": true,
+     "cut": true
     },
     {
      "id": "odysseus",
-     "face": "aeolus"
+     "soft": true,
+     "min": 0.03
+    }
+   ]
+  },
+  {
+   "id": "K5",
+   "beat": "Aeolus refuses further aid, judging Odysseus hated by the gods.",
+   "text": "'Vilest of mankind, get you gone at once out of the island; him whom heaven hates will I in no wise help. Be off, for you come here as one abhorred of heaven.'",
+   "hide": [
+    "bag of winds",
+    "confined winds"
+   ],
+   "blocking": [
+    {
+     "id": "aeolus",
+     "x": 20,
+     "z": -260,
+     "y": "floor",
+     "face": [
+      -40,
+      -170
+     ],
+     "props": true,
+     "pose": {
+      "armRP": [
+       -1.6,
+       0,
+       0.2
+      ],
+      "armLP": [
+       -0.3,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "odysseus",
+     "x": 10,
+     "z": -160,
+     "y": "floor",
+     "face": [
+      20,
+      -260
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.3,
+       0,
+       0.3
+      ],
+      "armLP": [
+       -1.3,
+       0,
+       -0.3
+      ],
+      "headP": [
+       0,
+       0,
+       0
+      ]
+     }
     }
    ],
    "camera": {
     "type": "wide",
     "pos": [
-     -237.6,
-     327.4,
-     528.0
+     -170,
+     70,
+     -160
     ],
     "target": [
-     0,
-     35,
-     0
+     15,
+     60,
+     -210
     ],
-    "fov": 38
+    "fov": 40
    },
    "subjects": [
     {
      "id": "aeolus",
+     "min": 0.12,
      "primary": true,
-     "soft": true,
-     "min": 0.02
+     "face": true
     },
     {
      "id": "odysseus",
      "soft": true,
-     "cut": true,
-     "min": 0.02
+     "cut": true
     }
    ]
   }

@@ -1,119 +1,284 @@
 {
  "scene": "OD-B12-S07",
  "location": "odyssey-od-b12-s07",
- "title": "Zeus Destroys The Last Ship",
- "note": "Drafted from the storyboard by film-readymades/keyframe_draft.py: attention blocking and rigs by shot kind. Finish by hand where the gate fails.",
+ "title": "The Wreck",
+ "source": "Homer, Odyssey XII, tr. Samuel Butler (public domain)",
+ "note": "Hand-staged from the text on the last-ship set: the black ship, then its wreck (the ship hidden, keel and mast as a prop); the fig tree and the whirlpool as props for Charybdis.",
  "look": {
   "sky": [
-   "#5f97d3",
-   "#efe2c4"
+   "#0a0e16",
+   "#262d3b"
   ],
   "fog": [
-   700,
-   2400
-  ]
+   300,
+   1100
+  ],
+  "dim": 0.5,
+  "fill": {
+   "sky": "#51607e",
+   "ground": "#0a0d12",
+   "intensity": 0.4
+  },
+  "sun": {
+   "dir": [
+    -0.3,
+    0.6,
+    0.4
+   ],
+   "color": "#b8c6e6",
+   "intensity": 0.75,
+   "shadow": true
+  },
+  "exposure": 0.78
  },
- "spread": 36,
- "blocking": [
-  {
-   "id": "odysseus",
-   "x": 77.4,
-   "z": 133.4,
-   "y": "floor"
-  },
-  {
-   "id": "drowning-crew-1",
-   "x": -203.4,
-   "z": 161.5,
-   "y": "floor",
-   "props": false
-  },
-  {
-   "id": "drowning-crew-2",
-   "x": -133.2,
-   "z": 161.5,
-   "y": "floor",
-   "props": false
-  },
-  {
-   "id": "drowning-crew-3",
-   "x": -63.0,
-   "z": 161.5,
-   "y": "floor",
-   "props": false
-  },
-  {
-   "id": "drowning-crew-4",
-   "x": 7.2,
-   "z": 161.5,
-   "y": "floor",
-   "props": false
-  },
-  {
-   "id": "drowning-crew-5",
-   "x": 77.4,
-   "z": 161.5,
-   "y": "floor",
-   "props": false
-  }
- ],
+ "spread": 0,
+ "blocking": [],
  "keys": [
   {
    "id": "K1",
    "beat": "Odysseus wakes, smells the meat, and condemns the act, but the crew feasts for six days.",
-   "kind": "establish",
-   "draft": true,
+   "text": "When I had got some way down towards my ship I began to smell hot roast meat, so I groaned out a prayer to the immortal gods... for six days my men kept driving in the best cows and feasting upon them.",
+   "hide": [
+    "fig tree above charybdis",
+    "zeus's thunderbolt"
+   ],
+   "props": [
+    {
+     "name": "steam",
+     "id": "smoke",
+     "at": [
+      -40,
+      70,
+      21
+     ],
+     "scale": 1.4
+    }
+   ],
    "blocking": [
     {
      "id": "odysseus",
-     "face": "drowning-crew-1"
+     "x": 80,
+     "z": 21,
+     "y": "surface",
+     "face": [
+      -50,
+      21
+     ],
+     "props": true,
+     "pose": {
+      "armRP": [
+       -1.8,
+       0,
+       0.3
+      ],
+      "armLP": [
+       -0.4,
+       0,
+       0
+      ]
+     },
+     "reach": 60
     },
     {
      "id": "drowning-crew-1",
-     "face": "odysseus"
+     "x": -115,
+     "z": -6,
+     "y": "floor",
+     "face": [
+      80,
+      21
+     ],
+     "props": false,
+     "pose": {
+      "legRP": [
+       -1.5708,
+       0,
+       0
+      ],
+      "legLP": [
+       -1.5708,
+       0,
+       0
+      ],
+      "armRP": [
+       -1.2,
+       0,
+       0
+      ]
+     },
+     "sit": true,
+     "reach": 20
     },
     {
      "id": "drowning-crew-2",
-     "face": "odysseus"
+     "x": -115,
+     "z": 48,
+     "y": "floor",
+     "face": [
+      80,
+      21
+     ],
+     "props": false,
+     "pose": {
+      "legRP": [
+       -1.5708,
+       0,
+       0
+      ],
+      "legLP": [
+       -1.5708,
+       0,
+       0
+      ],
+      "armRP": [
+       -1.2,
+       0,
+       0
+      ]
+     },
+     "sit": true,
+     "reach": 20
     },
     {
      "id": "drowning-crew-3",
-     "face": "odysseus"
+     "x": -55,
+     "z": -6,
+     "y": "floor",
+     "face": [
+      80,
+      21
+     ],
+     "props": false,
+     "pose": {
+      "legRP": [
+       -1.5708,
+       0,
+       0
+      ],
+      "legLP": [
+       -1.5708,
+       0,
+       0
+      ],
+      "armRP": [
+       -1.2,
+       0,
+       0
+      ]
+     },
+     "sit": true,
+     "reach": 20
     },
     {
      "id": "drowning-crew-4",
-     "face": "odysseus"
+     "x": -55,
+     "z": 48,
+     "y": "floor",
+     "face": [
+      80,
+      21
+     ],
+     "props": false,
+     "pose": {
+      "legRP": [
+       -1.5708,
+       0,
+       0
+      ],
+      "legLP": [
+       -1.5708,
+       0,
+       0
+      ],
+      "armRP": [
+       -1.2,
+       0,
+       0
+      ]
+     },
+     "sit": true,
+     "reach": 20
     },
     {
      "id": "drowning-crew-5",
-     "face": "odysseus"
+     "x": 5,
+     "z": 21,
+     "y": "floor",
+     "face": [
+      80,
+      21
+     ],
+     "props": false,
+     "pose": {
+      "legRP": [
+       -1.5708,
+       0,
+       0
+      ],
+      "legLP": [
+       -1.5708,
+       0,
+       0
+      ],
+      "armRP": [
+       -1.2,
+       0,
+       0
+      ]
+     },
+     "sit": true,
+     "reach": 20
     }
    ],
+   "look": {
+    "sky": [
+     "#3a4a7a",
+     "#f2a36b"
+    ],
+    "fog": [
+     700,
+     2200
+    ],
+    "sun": {
+     "dir": [
+      0.5,
+      0.3,
+      -0.8
+     ],
+     "color": "#ffb27a",
+     "intensity": 1.1,
+     "shadow": true
+    },
+    "fill": {
+     "sky": "#8d9cc6",
+     "ground": "#1f2430",
+     "intensity": 0.45
+    },
+    "exposure": 0.9
+   },
    "camera": {
     "type": "wide",
     "pos": [
-     -185.6,
-     255.8,
-     412.5
+     60,
+     110,
+     260
     ],
     "target": [
-     0,
-     35,
-     0
+     -10,
+     60,
+     21
     ],
-    "fov": 38
+    "fov": 44
    },
    "subjects": [
     {
      "id": "odysseus",
-     "primary": true,
-     "soft": true,
-     "min": 0.02
+     "min": 0.06,
+     "primary": true
     },
     {
      "id": "drowning-crew-1",
      "soft": true,
-     "cut": true,
      "min": 0.02
     }
    ]
@@ -121,253 +286,759 @@
   {
    "id": "K2",
    "beat": "On the seventh day the wind falls and the ship leaves Thrinacia.",
-   "kind": "track",
-   "draft": true,
+   "text": "When Jove the son of Saturn had added a seventh day, the fury of the gale abated; we therefore went on board, raised our masts, spread sail, and put out to sea.",
+   "hide": [
+    "fig tree above charybdis",
+    "zeus's thunderbolt"
+   ],
    "blocking": [
     {
      "id": "odysseus",
+     "x": 80,
+     "z": 21,
+     "y": "surface",
      "face": [
-      77.44854255319149,
-      533.4042553191489
-     ]
+      400,
+      21
+     ],
+     "props": true,
+     "pose": {
+      "armRP": [
+       -0.5,
+       0,
+       0
+      ]
+     },
+     "reach": 60
     },
     {
      "id": "drowning-crew-1",
-     "face": "odysseus"
+     "x": -115,
+     "z": -6,
+     "y": "floor",
+     "face": [
+      -400,
+      21
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.25,
+       0,
+       0
+      ],
+      "armLP": [
+       -1.25,
+       0,
+       0
+      ]
+     }
     },
     {
      "id": "drowning-crew-2",
-     "face": "odysseus"
+     "x": -115,
+     "z": 48,
+     "y": "floor",
+     "face": [
+      -400,
+      21
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.25,
+       0,
+       0
+      ],
+      "armLP": [
+       -1.25,
+       0,
+       0
+      ]
+     }
     },
     {
      "id": "drowning-crew-3",
-     "face": "odysseus"
+     "x": -55,
+     "z": -6,
+     "y": "floor",
+     "face": [
+      -400,
+      21
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.25,
+       0,
+       0
+      ],
+      "armLP": [
+       -1.25,
+       0,
+       0
+      ]
+     }
     },
     {
      "id": "drowning-crew-4",
-     "face": "odysseus"
+     "x": -55,
+     "z": 48,
+     "y": "floor",
+     "face": [
+      -400,
+      21
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.25,
+       0,
+       0
+      ],
+      "armLP": [
+       -1.25,
+       0,
+       0
+      ]
+     }
     },
     {
      "id": "drowning-crew-5",
-     "face": "odysseus"
+     "x": 5,
+     "z": 21,
+     "y": "floor",
+     "face": [
+      -400,
+      21
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.25,
+       0,
+       0
+      ],
+      "armLP": [
+       -1.25,
+       0,
+       0
+      ]
+     }
     }
    ],
+   "look": {
+    "sky": [
+     "#7fb3dc",
+     "#f7e6c3"
+    ],
+    "fog": [
+     900,
+     2600
+    ],
+    "fill": {
+     "sky": "#d3e0f0",
+     "ground": "#2a3a48",
+     "intensity": 0.5
+    },
+    "sun": {
+     "dir": [
+      -0.4,
+      0.7,
+      0.6
+     ],
+     "color": "#fff0cf",
+     "intensity": 1.2,
+     "shadow": true
+    },
+    "exposure": 1.0
+   },
    "camera": {
-    "type": "hero",
-    "a": "odysseus",
-    "dist": 210,
-    "height": 22,
-    "yaw": 0.9,
-    "fov": 32,
-    "subject": "odysseus",
-    "place": "L",
-    "eye": 0.36
+    "type": "wide",
+    "pos": [
+     -60,
+     90,
+     330
+    ],
+    "target": [
+     -10,
+     90,
+     21
+    ],
+    "fov": 46
    },
    "subjects": [
     {
      "id": "odysseus",
-     "primary": true,
-     "face": true,
-     "min": 0.1
+     "min": 0.03,
+     "primary": true
     }
    ]
   },
   {
    "id": "K3",
    "beat": "Zeus gathers a black cloud and strikes the mast with lightning.",
-   "kind": "push",
-   "draft": true,
+   "text": "Jove thundered and hurled a thunderbolt upon the ship, which reeled beneath the blow, and was filled with fire and brimstone.",
+   "hide": [
+    "fig tree above charybdis",
+    "zeus's thunderbolt"
+   ],
+   "props": [
+    {
+     "name": "ember",
+     "id": "fire",
+     "at": [
+      -40,
+      250,
+      21
+     ],
+     "scale": 2.0
+    }
+   ],
    "blocking": [
     {
      "id": "odysseus",
+     "x": 80,
+     "z": 21,
+     "y": "surface",
      "face": [
-      -9.699999999999996,
-      -231.7
-     ]
+      -8,
+      40
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.9,
+       0,
+       0.3
+      ],
+      "armLP": [
+       -2.9,
+       0,
+       -0.3
+      ]
+     },
+     "reach": 60
     },
     {
      "id": "drowning-crew-1",
+     "x": -115,
+     "z": -6,
+     "y": "floor",
      "face": [
-      -9.699999999999996,
-      -231.7
-     ]
+      -8,
+      40
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.9,
+       0,
+       0.3
+      ],
+      "armLP": [
+       -2.9,
+       0,
+       -0.3
+      ]
+     }
     },
     {
      "id": "drowning-crew-2",
+     "x": -115,
+     "z": 48,
+     "y": "floor",
      "face": [
-      -9.699999999999996,
-      -231.7
-     ]
+      -8,
+      40
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.9,
+       0,
+       0.3
+      ],
+      "armLP": [
+       -2.9,
+       0,
+       -0.3
+      ]
+     }
     },
     {
      "id": "drowning-crew-3",
+     "x": -55,
+     "z": -6,
+     "y": "floor",
      "face": [
-      -9.699999999999996,
-      -231.7
-     ]
+      -8,
+      40
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.9,
+       0,
+       0.3
+      ],
+      "armLP": [
+       -2.9,
+       0,
+       -0.3
+      ]
+     }
     },
     {
      "id": "drowning-crew-4",
+     "x": -55,
+     "z": 48,
+     "y": "floor",
      "face": [
-      -9.699999999999996,
-      -231.7
-     ]
+      -8,
+      40
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.9,
+       0,
+       0.3
+      ],
+      "armLP": [
+       -2.9,
+       0,
+       -0.3
+      ]
+     }
     },
     {
      "id": "drowning-crew-5",
+     "x": 5,
+     "z": 21,
+     "y": "floor",
      "face": [
-      -9.699999999999996,
-      -231.7
-     ]
+      -8,
+      40
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.9,
+       0,
+       0.3
+      ],
+      "armLP": [
+       -2.9,
+       0,
+       -0.3
+      ]
+     }
     }
    ],
+   "look": {
+    "sky": [
+     "#05070d",
+     "#1b2233"
+    ],
+    "fog": [
+     300,
+     1100
+    ],
+    "dim": 0.4,
+    "fill": {
+     "sky": "#51607e",
+     "ground": "#0a0d12",
+     "intensity": 0.4
+    },
+    "exposure": 0.85,
+    "lights": [
+     {
+      "at": [
+       -8,
+       420,
+       40
+      ],
+      "color": "#dfe8ff",
+      "intensity": 3.5,
+      "distance": 900,
+      "decay": 1.0,
+      "shadow": true
+     },
+     {
+      "at": [
+       -8,
+       260,
+       40
+      ],
+      "color": "#ff8a3a",
+      "intensity": 2.0,
+      "distance": 300
+     }
+    ]
+   },
    "camera": {
     "type": "wide",
     "pos": [
-     -185.4,
-     126.2,
-     119.6
+     80,
+     80,
+     300
     ],
-    "target": "piece:zeus's thunderbolt",
-    "fov": 34,
-    "subject": "piece:zeus's thunderbolt",
-    "place": "R",
-    "eye": 0.4
+    "target": [
+     -10,
+     170,
+     21
+    ],
+    "fov": 56
    },
    "subjects": [
     {
-     "id": "piece:zeus's thunderbolt",
-     "primary": true,
-     "min": 0.25
-    }
-   ]
-  },
-  {
-   "id": "K4",
-   "beat": "The ship shatters and every crewman drowns; Odysseus lashes keel and mast together.",
-   "kind": "medium",
-   "draft": true,
-   "blocking": [
-    {
      "id": "odysseus",
-     "face": "drowning-crew-1"
+     "soft": true,
+     "min": 0.02,
+     "primary": true
     },
     {
-     "id": "drowning-crew-1",
-     "face": "odysseus"
-    },
-    {
-     "id": "drowning-crew-2",
-     "face": "drowning-crew-1"
-    },
-    {
-     "id": "drowning-crew-3",
-     "face": "drowning-crew-1"
-    },
-    {
-     "id": "drowning-crew-4",
-     "face": "drowning-crew-1"
-    },
-    {
-     "id": "drowning-crew-5",
-     "face": "drowning-crew-1"
-    }
-   ],
-   "camera": {
-    "type": "two",
-    "a": "drowning-crew-1",
-    "b": "odysseus",
-    "bias": 0.4,
-    "dist": 677.4,
-    "height": 12,
-    "fov": 32,
-    "subject": "drowning-crew-1",
-    "place": "L",
-    "eye": 0.36
-   },
-   "subjects": [
-    {
-     "id": "drowning-crew-1",
-     "primary": true,
-     "face": true,
-     "min": 0.1
-    },
-    {
-     "id": "odysseus",
+     "id": "prop:fire",
      "soft": true,
      "cut": true
     }
    ]
   },
   {
-   "id": "K5",
-   "beat": "Driven back to Charybdis, he hangs from the fig tree until the timbers reemerge, then drifts alone to Calypso.",
-   "kind": "pullback",
-   "draft": true,
+   "id": "K4",
+   "beat": "The ship shatters and every crewman drowns; Odysseus lashes keel and mast together.",
+   "text": "The men all fell into the sea; they were carried about in the water round the ship, looking like so many sea-gulls... I lashed the mast and keel together, and getting astride of them was carried wherever the winds chose to take me.",
+   "hide": [
+    "fig tree above charybdis",
+    "zeus's thunderbolt",
+    "black ship"
+   ],
+   "props": [
+    {
+     "name": "keel",
+     "id": "keel",
+     "at": [
+      -8,
+      4,
+      40
+     ],
+     "rot": [
+      0,
+      0.4,
+      0
+     ],
+     "scale": 1.6
+    }
+   ],
    "blocking": [
     {
      "id": "odysseus",
+     "x": -8,
+     "z": 40,
+     "y": "floor",
      "face": [
-      0.20000000000000284,
-      -231.7
-     ]
+      -8,
+      400
+     ],
+     "props": false,
+     "pose": {
+      "legRP": [
+       -1.5708,
+       0,
+       0
+      ],
+      "legLP": [
+       -1.5708,
+       0,
+       0
+      ],
+      "armRP": [
+       -1.0,
+       0,
+       0
+      ],
+      "armLP": [
+       -1.0,
+       0,
+       0
+      ]
+     },
+     "sit": true,
+     "reach": 60
     },
     {
      "id": "drowning-crew-1",
+     "x": -120,
+     "z": 120,
+     "y": -26,
+     "air": true,
      "face": [
-      0.20000000000000284,
-      -231.7
-     ]
+      -120,
+      220
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.9,
+       0,
+       0.3
+      ],
+      "armLP": [
+       -2.9,
+       0,
+       -0.3
+      ]
+     }
     },
     {
      "id": "drowning-crew-2",
+     "x": 90,
+     "z": 140,
+     "y": -26,
+     "air": true,
      "face": [
-      0.20000000000000284,
-      -231.7
-     ]
+      90,
+      240
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.9,
+       0,
+       0.3
+      ],
+      "armLP": [
+       -2.9,
+       0,
+       -0.3
+      ]
+     }
     },
     {
      "id": "drowning-crew-3",
+     "x": -60,
+     "z": 220,
+     "y": -26,
+     "air": true,
      "face": [
-      0.20000000000000284,
-      -231.7
-     ]
+      -60,
+      320
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.9,
+       0,
+       0.3
+      ],
+      "armLP": [
+       -2.9,
+       0,
+       -0.3
+      ]
+     }
     },
     {
      "id": "drowning-crew-4",
+     "x": 140,
+     "z": 40,
+     "y": -26,
+     "air": true,
      "face": [
-      0.20000000000000284,
-      -231.7
-     ]
+      140,
+      140
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.9,
+       0,
+       0.3
+      ],
+      "armLP": [
+       -2.9,
+       0,
+       -0.3
+      ]
+     }
     },
     {
      "id": "drowning-crew-5",
+     "x": -150,
+     "z": -40,
+     "y": -26,
+     "air": true,
      "face": [
-      0.20000000000000284,
-      -231.7
-     ]
+      -150,
+      60
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.9,
+       0,
+       0.3
+      ],
+      "armLP": [
+       -2.9,
+       0,
+       -0.3
+      ]
+     }
     }
    ],
    "camera": {
     "type": "wide",
     "pos": [
-     -237.6,
-     327.4,
-     528.0
+     -60,
+     80,
+     330
     ],
     "target": [
-     0,
-     35,
-     0
+     -8,
+     30,
+     60
     ],
-    "fov": 38
+    "fov": 46
    },
    "subjects": [
     {
-     "id": "piece:fig tree above charybdis",
-     "primary": true,
-     "soft": true,
-     "min": 0.02
+     "id": "odysseus",
+     "min": 0.06,
+     "primary": true
+    }
+   ],
+   "lensAllow": [
+    "drowning-crew-1",
+    "drowning-crew-2",
+    "drowning-crew-3",
+    "drowning-crew-4",
+    "drowning-crew-5"
+   ]
+  },
+  {
+   "id": "K5",
+   "beat": "Driven back to Charybdis, he hangs from the fig tree until the timbers reemerge, then drifts alone to Calypso.",
+   "text": "I sprang up to the fig tree, and clung to it like a bat... I clung on till she should spew up my raft again... I let go with my hands and feet, and fell heavily into the sea, hard by my raft.",
+   "hide": [
+    "fig tree above charybdis",
+    "zeus's thunderbolt",
+    "black ship"
+   ],
+   "props": [
+    {
+     "name": "figtree",
+     "id": "fig",
+     "at": [
+      -60,
+      0,
+      -60
+     ],
+     "floor": true,
+     "scale": 1.4
+    },
+    {
+     "name": "whirl",
+     "id": "whirl",
+     "at": [
+      20,
+      4,
+      -40
+     ],
+     "scale": 3.0
+    },
+    {
+     "name": "keel",
+     "id": "keel",
+     "at": [
+      60,
+      4,
+      10
+     ],
+     "rot": [
+      0.3,
+      0.9,
+      0.4
+     ],
+     "scale": 1.2
+    }
+   ],
+   "blocking": [
+    {
+     "id": "odysseus",
+     "x": -38,
+     "z": -60,
+     "y": 150,
+     "air": true,
+     "face": [
+      300,
+      -60
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -3.0,
+       0,
+       0.2
+      ],
+      "armLP": [
+       -3.0,
+       0,
+       -0.2
+      ],
+      "legRP": [
+       0.2,
+       0,
+       0
+      ],
+      "legLP": [
+       -0.2,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "id": "drowning-crew-1",
+     "absent": true
+    },
+    {
+     "id": "drowning-crew-2",
+     "absent": true
+    },
+    {
+     "id": "drowning-crew-3",
+     "absent": true
+    },
+    {
+     "id": "drowning-crew-4",
+     "absent": true
+    },
+    {
+     "id": "drowning-crew-5",
+     "absent": true
+    }
+   ],
+   "camera": {
+    "type": "wide",
+    "pos": [
+     200,
+     90,
+     200
+    ],
+    "target": [
+     -20,
+     150,
+     -50
+    ],
+    "fov": 50
+   },
+   "subjects": [
+    {
+     "id": "odysseus",
+     "min": 0.05,
+     "primary": true
     }
    ]
   }
