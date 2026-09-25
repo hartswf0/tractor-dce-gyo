@@ -562,6 +562,7 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
         const lift = groundH(a.x, a.z) - it.box.min.y; it.group.children[0].position.y += lift; it.group.updateMatrixWorld(true); it.box.translate(new THREE.Vector3(0, lift, 0));
         it.localBox = it.box.clone().translate(new THREE.Vector3(-it.x, -it.y, -it.z)); if (window.HorseMotion) { try { await HorseMotion.rig(it); } catch (e) { F.log.push('horse: ' + (e.message || e)); } } if (a.saddle != null) saddleOn(it, a);
       }
+      if (a.kind === 'cart') wireCartOn(it);   /* the brick cart keeps its footprint; the wire cart is what is seen */
       a.it = it; a.V = Drive.create({ prop: it, M, groundH, aabbs: (x, z, r) => (W.props ? W.props.aabbs(x, z, r).filter(b => b !== it.box) : []) }); a.V.heading = headingOf(a.heading || 0);
       if (a.V.fly && a.alt) { a.V.pos.y += a.alt * M; a.V.airborne = true; }
       Drive.step(a.V, 0, W.filmCtx(a.V)); if (W.props.moved) W.props.moved(it); syncProp(a); seatRider(a);
@@ -687,6 +688,36 @@ An act makes the player's figure walk (or the ride drive) to a point during the 
       for (const s of [-1, 1]) { const stud = new THREE.Mesh(new THREE.CylinderGeometry(6, 6, 4, 16), mat(seatHex)); stud.position.set(cx + s * 10, top + 14, cz + 12); S.add(stud); }
       const horn = new THREE.Mesh(new THREE.CylinderGeometry(4, 5, 12, 12), mat(seatHex)); horn.position.set(cx, top + 16, cz - 20); S.add(horn);
       S.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } }); g.add(S);
+    }
+    /** A shopping cart as a real one is made, at minifig scale, in LEGO bar stock: the brick-built cart the builder makes stays for
+        its footprint and is hidden; over it, chrome bars (a LEGO bar's 3.2 mm) make a basket that flares from a narrow floor to a wide
+        rim at a minifig's waist, a chassis on two rails with swivel casters, a red handle, and a red child seat inside the handle
+        end whose back faces into the basket, so a baby sits facing whoever pushes with her legs out toward them. Units: LDU, +z the
+        handle end, y up from the floor. */
+    function wireCartOn(it) {
+      const g = it.group; g.traverse(o => { if (o.isMesh) o.visible = false; });
+      const C = new THREE.Group(); C.name = 'wire cart';
+      const chrome = new THREE.MeshStandardMaterial({ color: 0xa6abb0, roughness: 0.3, metalness: 0.65 }), red = new THREE.MeshStandardMaterial({ color: 0xc91a09, roughness: 0.4 }), tyre = new THREE.MeshStandardMaterial({ color: 0x1b2a34, roughness: 0.8 });
+      const V = (x, y, z) => new THREE.Vector3(x, y, z), up = V(0, 1, 0);
+      const bar = (a, b, r = 1.4, mat = chrome) => { const d = b.clone().sub(a), L = d.length(); if (L < 0.01) return; const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, L, 8), mat); m.position.copy(a).addScaledVector(d, 0.5); m.quaternion.setFromUnitVectors(up, d.normalize()); C.add(m); };
+      const lerp = (a, b, u) => a.clone().lerp(b, u);
+      // the basket: a floor rectangle, a wider rim, a ring between, wires from floor to rim all round
+      const F = { y: 22, x: 20, z0: -28, z1: 28 }, Rm = { y: 46, x: 25, z0: -36, z1: 32 };
+      const fl = [V(-F.x, F.y, F.z0), V(F.x, F.y, F.z0), V(F.x, F.y, F.z1), V(-F.x, F.y, F.z1)], rim = [V(-Rm.x, Rm.y, Rm.z0), V(Rm.x, Rm.y, Rm.z0), V(Rm.x, Rm.y, Rm.z1), V(-Rm.x, Rm.y, Rm.z1)];
+      for (let i = 0; i < 4; i++) { const j = (i + 1) % 4; bar(fl[i], fl[j], 1.5); bar(rim[i], rim[j], 2.0); bar(lerp(fl[i], rim[i], 0.5), lerp(fl[j], rim[j], 0.5), 1.2);   // the floor, the rim, a middle ring
+        const n = i % 2 === 0 ? 5 : 7; for (let k = 0; k <= n; k++) bar(lerp(fl[i], fl[j], k / n), lerp(rim[i], rim[j], k / n), 1.1); }   // the wires up the sides
+      for (let k = 1; k < 5; k++) { const x = -F.x + (2 * F.x) * k / 5; bar(V(x, F.y, F.z0), V(x, F.y, F.z1), 1.0); }   // the floor grid
+      // the chassis: two rails, a post up to the basket at each end, the lower tray, swivel casters
+      for (const s of [-1, 1]) { bar(V(s * 16, 9, -32), V(s * 16, 9, 38), 1.8); bar(V(s * 16, 9, -26), V(s * F.x, F.y, F.z0 + 2), 1.4); bar(V(s * 16, 9, 26), V(s * F.x, F.y, F.z1 - 2), 1.4);
+        bar(V(s * 16, 9, 38), V(s * 24, 50, 42), 1.8); }   // the rails, the struts, the back uprights rising to the handle
+      for (let k = 0; k < 5; k++) bar(V(-16, 9, -28 + k * 14), V(16, 9, -28 + k * 14), 1.0);
+      for (const [x, z] of [[-16, -30], [16, -30], [-16, 34], [16, 34]]) { bar(V(x, 9, z), V(x, 6, z + 2), 1.2); const w = new THREE.Mesh(new THREE.CylinderGeometry(4.5, 4.5, 3, 16), tyre); w.rotation.z = Math.PI / 2; w.position.set(x, 4.5, z + 3); C.add(w); }
+      // the handle: a red tube across the top of the back uprights
+      bar(V(-26, 50, 42), V(26, 50, 42), 2.8, red);
+      // the child seat: a red seat plate inside the handle end at rim height, its back standing up on the basket side
+      const seat = new THREE.Mesh(new THREE.BoxGeometry(34, 2.4, 14), red); seat.position.set(0, Rm.y - 1, 24); C.add(seat);
+      const back = new THREE.Mesh(new THREE.BoxGeometry(34, 14, 2.4), red); back.position.set(0, Rm.y + 6, 16.5); C.add(back);
+      C.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } }); g.add(C);
     }
     const dropRig = rig => { const f = rig.figure; if (f && f.parent) f.parent.remove(f); };
     /** A figure's pose after its step: stand, crouch (knees bent, low), prone (flat on the floor), aim and point (the arm up), sit (on a ride). */
