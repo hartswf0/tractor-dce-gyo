@@ -331,6 +331,43 @@ function chamber() {
   list.push({ id: '3031', col: C.dred, x: 0, z: 3, base: -8 });
   return REAL('the marriage chamber', list);
 }
+/* the forest path on Aeaea (Homer X): "as I was going through the sacred valley... Mercury with his golden wand met me"; a path of tan
+   tiles winding between oaks, cypress and pines, ferns and rocks, Circe's smoke rising beyond; moly is a prop */
+function forestPath() {
+  const list = [];
+  for (const [x, z] of [[-2, 14], [-1, 12], [0, 10], [0, 8], [1, 6], [2, 4], [2, 2], [1, 0], [0, -2], [-1, -4], [-1, -6], [0, -8], [1, -10], [2, -12]]) list.push({ id: '3068b', col: (x + z) % 4 ? C.tan : C.dtan, x, z, base: -8 }, { id: '3068b', col: C.tan, x: x + 2, z, base: -8 });
+  for (const [x, z, id, c] of [[-10, -12, '3470', C.dgreen], [-13, -4, '3778', C.dgreen], [-9, 3, '3471', C.green], [-14, 10, '3470', C.green], [-8, 12, '3778', C.dgreen], [9, -13, '3471', C.dgreen], [13, -6, '3470', C.dgreen], [8, -2, '3778', C.dgreen], [14, 4, '3471', C.green], [10, 12, '3470', C.green], [-5, -14, '3471', C.green], [6, -15, '3778', C.dgreen]]) list.push(R(id, c, x, z));
+  for (const [x, z, c] of [[-5, 7, C.green], [6, 9, C.dgreen], [-6, -8, C.dgreen], [5, -6, C.green], [-12, 0, C.green], [12, 0, C.dgreen]]) list.push(R('2417', c, x, z));
+  for (const [x, z] of [[-4, 1], [5, 3], [-3, -11]]) list.push(R('6255', C.green, x, z));
+  list.push({ id: '53934p01c01', col: C.dbg, x: -6, z: 13 }, { id: '42291', col: C.dbg, x: 6, z: -10 }, R('3741ac01', C.yellow, 4, 12), R('3741ac04', C.red, -3, 9));
+  return REAL('the forest path', list);
+}
+/* Laertes's farm (Homer XXIV): "a farm which he had reclaimed with infinite labour... the house with a kitchen and a sort of lean-to";
+   the orchard in terraced rows of fruit trees (apples red on them), vines on a trellis, a dry-stone wall, the farmhouse with its bench */
+function laertesFarm() {
+  const list = [];
+  /* the farmhouse: stone walls of embossed bricks, a door, a roof of slopes, a lean-to of logs */
+  list.push(...coursing(C.tan, -14.5, -6.5, -13.5, 5, { holes: [[-11.5, -9.5, 0, 3]] }));
+  for (const sd of [-14.5, -6.5]) list.push(...coursing(C.tan, -13.5, -8.5, sd, 5, { alongZ: true }));
+  list.push(...coursing(C.tan, -14.5, -6.5, -8.5, 5, { holes: [[-11.5, -10.5, 0, 3]] }));
+  for (let x = -14; x <= -7; x += 2) list.push({ id: '3040b', col: C.dred, x, z: -12.5, base: -8 - 120, q: 2 }, { id: '3040b', col: C.dred, x, z: -9.5, base: -8 - 120 });
+  for (let k = 0; k < 3; k++) list.push({ id: '30137', col: C.rbrown, x: -4.5, z: -11, base: -8 - 24 * k, q: 1 });
+  list.push({ id: '3008', col: C.rbrown, x: -10.5, z: -6.5, base: -24 }, { id: '4162', col: C.dtan, x: -10.5, z: -6.5, base: -48 });
+  /* the feast table before the house */
+  for (const [x, z] of [[-3, -8], [4, -8], [-3, -6], [4, -6]]) list.push({ id: '3062b', col: C.rbrown, x, z, base: -8 });
+  list.push({ id: '3032', col: C.rbrown, x: -1, z: -7, base: -32 }, { id: '3032', col: C.rbrown, x: 3, z: -7, base: -32 });
+  for (const [x, c] of [[-2, C.orange], [0, C.red], [2, C.yellow], [4, C.white]]) list.push({ id: '4740', col: c, x, z: -7, base: -40 });
+  /* the orchard: three terraced rows of fruit trees, apples red among the leaves, a dry-stone wall below each row */
+  for (const [row, z] of [[0, 5], [1, 10], [2, 14]]) {
+    if (row < 2) for (let x = -14; x <= 14; x += 2) list.push({ id: (x + row) % 4 ? '3005' : '3004', col: (x + z) % 3 ? C.lbg : C.dbg, x: x + 0.5, z: z + 2.5, base: -8 });
+    for (const x of [-12, -6, 0, 6, 12]) { const tx = x + (row % 2) * 3; if (tx > 14) continue; list.push(R('3470', row === 1 ? C.green : C.dgreen, tx, z));
+      for (const [dx, dy, dz] of [[1, 70, 1], [-1, 90, 0], [0, 110, -1], [1, 50, -1]]) list.push({ id: '33051', col: C.red, x: tx + dx * 1.6, z: z + dz * 1.6, base: -8 - dy }); }
+  }
+  /* the vines on a trellis by the house, and the spade left by a tree */
+  for (const x of [8, 12]) list.push({ id: '2453b', col: C.rbrown, x, z: -12, base: -8 }, R('2417', C.green, x, -12, -8 - 120));
+  list.push({ id: '3008', col: C.rbrown, x: 10, z: -12, base: -8 - 120 });
+  return REAL("laertes's farm", list);
+}
 const SETS = {
   /* Odysseus's megaron at Ithaca: the hall of the suitors, the bow and the slaughter */
   megaron: () => room('the megaron at ithaca', 36, 30, floor(36, 30, C.dtan, C.tan), [
@@ -405,6 +442,10 @@ const SETS = {
       R('23996', C.dbg, -9, 9, -8, 0), R('23996', C.dbg, 9, 9, -8, 1), R('2417', C.dgreen, -14, -8, -8 - 144 - 150), R('2417', C.green, 14, 0, -8 - 144 - 150), R('3471', C.dgreen, 14.5, -18, -8 - 144 - 150), R('3778', C.dgreen, -14.5, 2, -8 - 144 - 150)]), 0, 0],
     [KIT.galley({ furled: true }), -4.5, -10], [KIT.galley({ furled: true }), 4.5, -12], [KIT.galley({ furled: true }), 0, 16], [KIT.boulder(), -5, 11], [KIT.swell(4, 0), 0, 5],
   ], { odysseus: M(0, 16, 0, "Odysseus's ship outside the mouth", null, DECK), fleet: M(0, -10, 0, 'the fleet in the harbour', 'x', DECK), giantsL: M(-13, -8, 0, 'giants on the west cliff', 'z', 'top'), giantsR: M(13, -8, 0, 'giants on the east cliff', 'z', 'top'), antiphates: M(-13, 4, 0, 'Antiphates', null, 'top'), centre: M(0, 0, 0) }),
+  forest: () => room('the sacred valley on aeaea', 32, 32, floor(32, 32, C.green), [[forestPath(), 0, 0]],
+    { odysseus: M(1, 8, 2, 'Odysseus on the path'), hermes: M(1, -4, 0, 'Hermes as a young man'), centre: M(0, 2, 0) }),
+  farm: () => room("laertes's farm", 32, 32, floor(32, 32, C.green), [[laertesFarm(), 0, 0]],
+    { laertes: M(3, 9, 0, 'Laertes in the orchard'), odysseus: M(0, 0, 0, 'Odysseus'), house: M(-10, -6, 0, 'the farmhouse'), table: M(1, -4, 0, 'the feast'), centre: M(0, 2, 0) }),
   /* the sea sets, in real kits: the blue baseplate sea, the galley bow-on to the camera (its crew two abreast on the deck, the mast
      amidships), the places it passes built of rock panels, baseplates and plants. Marks with a y stand on the deck or a crag. */
   sirens: () => room("the sirens' sea", 32, 48, seaFloor('beach'), [
