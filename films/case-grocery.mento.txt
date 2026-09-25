@@ -2,17 +2,18 @@
 0 !MENTO ASPECT 16:9 FPS 24
 0 !MENTO STORY {"title":"The List","description":"Marge wrote the list; Homer carries it into the supermarket: five red apples, green bananas, black berries, extra virgin olive oil, organic flour, southwest style hash browns. Maggie rides in the cart. Ned Flanders sees the list and keeps a record of what goes in the cart. At the apples Homer runs the shopkeeper's three routines: the crate marked APPLES, the sample RED, the count to five. At the oil he takes the cheaper light oil and offers to change the list; Lisa tells him to change the basket (the mistake is in the performance). At the belt the receipt meets the record: the flour Ned guessed plain was organic, and Ned changes his record (the mistake is in the record). The baby scans.","location":"the Springfield supermarket","entities":[{"id":"homer","type":"character","name":"Homer","traits":["the list","the cart","the shopper"]},{"id":"flanders","type":"character","name":"Ned Flanders","traits":["the record","the detective","the neighbour"]},{"id":"maggie","type":"character","name":"Maggie","traits":["in the cart","on neither"]},{"id":"bart","type":"character","name":"Bart","traits":["the objection"]},{"id":"lisa","type":"character","name":"Lisa","traits":["reads the list right"]},{"id":"clerk","type":"character","name":"the clerk","traits":["the scanner","the receipt"]},{"id":"list","type":"object","name":"the list","traits":["five red apples","green bananas","black berries","extra virgin olive oil","organic flour","southwest style hash browns"]},{"id":"record","type":"object","name":"Ned's record","traits":["what went in the cart"]}],"goals":["make the list true","keep a true record"],"obstacles":["the cheaper oil","a shelf between the detective and the cart","a procedure that acquires everything at the belt"],"shifts":[{"id":"store","name":"The store"},{"id":"list","name":"The list"},{"id":"apples","name":"Five red apples"},{"id":"oil","name":"The wrong oil"},{"id":"frozen","name":"Caught"},{"id":"belt","name":"The belt"},{"id":"record","name":"The record"}],"why":"the list says what should be made true; the record says what was done; the receipt answers to neither","direction":"deadpan"}
 0 !MENTO STAGE stage R 120 SEED 2 AT 0 -1360
-0 !MENTO ACTOR "homer" FIGURE homer AT 0 -430 HEADING 180
-0 !MENTO ACTOR "cart" KIND cart LEN 4 COL 4 AT 0 -514 HEADING 180 RIDER maggie
-0 !MENTO ACTOR "lisa" FIGURE lisa AT -50 -400 HEADING 180
-0 !MENTO ACTOR "bart" FIGURE bart AT 50 -400 HEADING 180
+0 !MENTO ACTOR "homer" FIGURE homer AT 50 -420 HEADING 180
+0 !MENTO ACTOR "cart" KIND cart LEN 5 COL 4 AT 50 -502 HEADING 180
+0 !MENTO ACTOR "maggie" FIGURE maggie AT 50 -502 HEADING 180
+0 !MENTO ACTOR "lisa" FIGURE lisa AT 38 -382 HEADING 180
+0 !MENTO ACTOR "bart" FIGURE bart AT 64 -364 HEADING 180
 0 !MENTO ACTOR "flanders" FIGURE flanders AT 300 -810 HEADING 270
-0 !MENTO ACTOR "clerk" FIGURE citizen AT -384 -742 HEADING 90
+0 !MENTO ACTOR "clerk" FIGURE clerk AT -384 -742 HEADING 270
 0 !MENTO DONOR "the store" SET supermarket AT 0 -34 HEADING 180 SCALE 1 LIFT -0.18
-0 !MENTO MARK "street" AT 0 -10.75 COL 4
-0 !MENTO MARK "cart-street" AT 0 -12.85 COL 14
-0 !MENTO MARK "lisa-street" AT -1.25 -10 COL 1
-0 !MENTO MARK "bart-street" AT 1.25 -10 COL 2
+0 !MENTO MARK "street" AT 1.25 -10.5 COL 4
+0 !MENTO MARK "cart-street" AT 1.25 -12.55 COL 14
+0 !MENTO MARK "lisa-street" AT 0.95 -9.55 COL 1
+0 !MENTO MARK "bart-street" AT 1.6 -9.1 COL 2
 0 !MENTO MARK "apples" AT 25.75 -22.45 COL 25
 0 !MENTO MARK "crate" AT 25.75 -24.25 COL 26
 0 !MENTO MARK "cart-apples" AT 27.45 -24.25 COL 5
@@ -20,11 +21,11 @@
 0 !MENTO MARK "lisa-apples" AT 27.2 -22.05 COL 4
 0 !MENTO MARK "bart-apples" AT 28.1 -20.5 COL 14
 0 !MENTO MARK "lisa-oil2" AT 1.6 -32.55 COL 1
-0 !MENTO MARK "cart-oil2" AT 1.7 -35.75 COL 2
+0 !MENTO MARK "cart-oil2" AT 1.3 -30.25 COL 2
 0 !MENTO MARK "bart-oil2" AT 1.3 -39.5 COL 25
 0 !MENTO MARK "ned-aisle2" AT 1.9 -25.55 COL 26
-0 !MENTO MARK "in" AT 0 -18.75 COL 5
-0 !MENTO MARK "cart-in" AT 1.3 -20.5 COL 15
+0 !MENTO MARK "in" AT -0.5 -18.75 COL 5
+0 !MENTO MARK "cart-in" AT -1.5 -19.35 COL 15
 0 !MENTO MARK "list-look" AT 0 -25.25 COL 4
 0 !MENTO MARK "bart-in" AT -2 -17.25 COL 14
 0 !MENTO MARK "lisa-in" AT 2.25 -17.75 COL 1
@@ -48,97 +49,160 @@
 0 !MENTO MARK "bart-frozen" AT -24.7 -23.75 COL 25
 0 !MENTO MARK "lisa-frozen" AT -25.9 -23.25 COL 26
 0 !MENTO MARK "ned-frozen" AT -26.4 -37.75 COL 5
-0 !MENTO MARK "belt" AT -6.8 -20 COL 15
-0 !MENTO MARK "cart-belt" AT -7 -18.35 COL 4
+0 !MENTO MARK "belt" AT -6.8 -21.25 COL 15
+0 !MENTO MARK "cart-belt" AT -7.2 -17.6 COL 4
 0 !MENTO MARK "clerk" AT -9.6 -18.55 COL 14
 0 !MENTO MARK "ned-belt" AT -11.2 -20.25 COL 1
 0 !MENTO MARK "bart-belt" AT -4.5 -21.5 COL 2
 0 !MENTO MARK "lisa-belt" AT -3.75 -20.5 COL 25
 0 // SHOT 1: THE LIST
-0 !MENTO TITLE "THE LIST" STYLE card SEC 4.16 SCORE "file:../music/m1-trouttown-working-day.ogg"
-0 !MENTO EVENT LINE "narrator" "Marge wrote the list. Homer carries it." AT 0.4 FOR 2.8
+0 !MENTO TITLE "THE LIST" STYLE card SEC 4.16 SCORE "file:../music/grocery-mix.ogg"
+0 !MENTO EVENT LINE "narrator" "Marge wrote the list. Homer carries it." AT 0.4 FOR 2.55
 0 // SHOT 2: THE STORE
-0 !MENTO TITLE "the list\nfive red apples\ngreen bananas\nblack berries\nextra virgin olive oil\norganic flour\nsouthwest style hash browns" STYLE list SEC 7.84
+0 !MENTO TITLE "the list\nfive red apples\ngreen bananas\nblack berries\nextra virgin olive oil\norganic flour\nsouthwest style hash browns" STYLE list SEC 6.4
 0 !MENTO EVENT BEAT "homer" AT 0
 0 !MENTO EVENT SOUND "footstep" AT 1.2
 0 !MENTO EVENT SOUND "footstep" AT 1.7
 0 !MENTO EVENT SOUND "footstep" AT 2.2
 0 !MENTO EVENT SOUND "clatter" AT 2.6
-0 !MENTO EVENT LINE "flanders" "Hi-diddly-ho, Homer! Got a list, have we?" AT 3 FOR 2
+0 !MENTO EVENT LINE "flanders" "Hi-diddly-ho, Homer! Got a list, have we?" AT 3 FOR 2.07
 0 !MENTO EVENT PHRASE "flanders" AT 2.9
-0 !MENTO EVENT LINE "homer" "Flanders." AT 5.1 FOR 0.8
-0 !MENTO EVENT PHRASE "homer" AT 5
-0 !MENTO EVENT LINE "flanders" "I'll just keep a little record." AT 6 FOR 1.7
-0 // SHOT 3: THE LIST
-0 !MENTO TITLE "the list\nfive red apples\ngreen bananas\nblack berries\nextra virgin olive oil\norganic flour\nsouthwest style hash browns" STYLE list SEC 3.95
+0 // SHOT 3: HOMER: FLANDERS
+0 !MENTO SHOT "Homer: Flanders" POS 64.4 -95.2 -810.4 TGT -20 -92 -750 LENS 30 SEC 2.4
+0 !MENTO ACT "homer" LOOK "flanders"
+0 !MENTO ACT "cart" HALT
+0 !MENTO ACT "bart" LOOK "homer"
+0 !MENTO ACT "lisa" LOOK "homer"
+0 !MENTO ACT "flanders" LOOK "homer" POSE stand
+0 !MENTO EVENT PHRASE "homer" AT 0.1
+0 !MENTO EVENT LINE "homer" "Flanders." AT 0.7 FOR 0.78
+0 // SHOT 4: NED: A LITTLE RECORD
+0 !MENTO SHOT "Ned: a little record" POS 215.6 -95.2 -749.6 TGT 300 -92 -810 LENS 30 SEC 2.6
+0 !MENTO ACT "flanders" LOOK "homer" POSE stand
+0 !MENTO EVENT PHRASE "flanders" AT 0.1
+0 !MENTO EVENT LINE "flanders" "I'll just keep a little record." AT 0.35 FOR 1.31
+0 // SHOT 5: THE RECORD BEGINS
+0 !MENTO TITLE "NED'S RECORD" STYLE paper SEC 2.2
+0 // SHOT 6: THE LIST READ
+0 !MENTO TITLE "the list\nfive red apples\ngreen bananas\nblack berries\nextra virgin olive oil\norganic flour\nsouthwest style hash browns" STYLE paper SEC 5
 0 !MENTO EVENT BEAT "homer" AT 0
+0 !MENTO EVENT LINE "homer" "Apples, bananas, berries, oil, flour, hash browns." AT 0.5 FOR 3.43
+0 // SHOT 7: HOMER: SIX THINGS
+0 !MENTO SHOT "Homer: six things" POS 58.4 -95.2 -830 TGT -20 -92 -750 LENS 30 SEC 3.6
+0 !MENTO ACT "homer" LOOK "list-look"
+0 !MENTO ACT "cart" HALT
+0 !MENTO ACT "flanders" LOOK "homer" POSE stand
 0 !MENTO EVENT PHRASE "homer" AT 0.2
-0 !MENTO EVENT LINE "homer" "Six things. How hard can it be?" AT 0.5 FOR 2.6
-0 // SHOT 4: FIVE RED APPLES
-0 !MENTO TITLE "the list\nfive red apples\ngreen bananas\nblack berries\nextra virgin olive oil\norganic flour\nsouthwest style hash browns" STYLE list SEC 7.89
+0 !MENTO EVENT LINE "homer" "Six things. How hard can it be?" AT 0.4 FOR 2.16
+0 // SHOT 8: FIVE RED APPLES
+0 !MENTO TITLE "the list\nfive red apples\ngreen bananas\nblack berries\nextra virgin olive oil\norganic flour\nsouthwest style hash browns" STYLE list SEC 3.4
 0 !MENTO EVENT BEAT "homer" AT 0
-0 !MENTO EVENT LINE "homer" "Apples." AT 0.5 FOR 0.7
+0 !MENTO EVENT LINE "homer" "Apples." AT 0.5 FOR 0.81
 0 !MENTO EVENT PHRASE "homer" AT 0.4
-0 !MENTO EVENT LINE "homer" "Red." AT 1.6 FOR 0.6
-0 !MENTO EVENT LINE "homer" "One, two, three, four, five." AT 2.6 FOR 2.6
-0 !MENTO EVENT SOUND "click" AT 3
-0 !MENTO EVENT SOUND "click" AT 3.5
-0 !MENTO EVENT SOUND "click" AT 4
-0 !MENTO EVENT SOUND "click" AT 4.5
-0 !MENTO EVENT SOUND "click" AT 5
-0 !MENTO EVENT LINE "flanders" "Five red apples. Noted." AT 5.8 FOR 1.7
-0 !MENTO EVENT PHRASE "flanders" AT 5.7
-0 // SHOT 5: THE WRONG OIL
-0 !MENTO TITLE "the list\n~five red apples\n~green bananas\n~black berries\nextra virgin olive oil\norganic flour\nsouthwest style hash browns" STYLE list SEC 7.89
+0 !MENTO EVENT LINE "homer" "Red." AT 1.6 FOR 0.66
+0 // SHOT 9: HOMER COUNTS
+0 !MENTO SHOT "Homer counts" POS 1036 -62 -1016 TGT 1030 -84 -898 LENS 32 SEC 3.6
+0 !MENTO ACT "homer" LOOK "crate"
+0 !MENTO EVENT LINE "homer" "One, two, three, four, five." AT 0.4 FOR 2.11
+0 !MENTO EVENT SOUND "click" AT 0.5
+0 !MENTO EVENT SOUND "click" AT 0.92
+0 !MENTO EVENT SOUND "click" AT 1.34
+0 !MENTO EVENT SOUND "click" AT 1.76
+0 !MENTO EVENT SOUND "click" AT 2.18
+0 // SHOT 10: NED: NOTED
+0 !MENTO SHOT "Ned: noted" POS 1027.6 -95.2 -994 TGT 1108 -92 -1060 LENS 30 SEC 2.6
+0 !MENTO ACT "flanders" LOOK "homer" POSE stand
+0 !MENTO EVENT PHRASE "flanders" AT 0.2
+0 !MENTO EVENT LINE "flanders" "Five red apples. Noted." AT 0.4 FOR 1.39
+0 // SHOT 11: APPLES IN THE RECORD
+0 !MENTO TITLE "NED'S RECORD\nfive red apples" STYLE paper SEC 2
+0 // SHOT 12: THE WRONG OIL
+0 !MENTO TITLE "the list\n~five red apples\n~green bananas\n~black berries\nextra virgin olive oil\norganic flour\nsouthwest style hash browns" STYLE list SEC 4.8
 0 !MENTO EVENT BEAT "homer" AT 0
-0 !MENTO EVENT LINE "homer" "Light olive oil. It's cheaper." AT 0.3 FOR 1.8
+0 !MENTO EVENT LINE "homer" "Light olive oil. It's cheaper." AT 0.3 FOR 1.76
 0 !MENTO EVENT SOUND "click" AT 1.6
-0 !MENTO EVENT LINE "lisa" "Dad, the list says extra virgin." AT 2.2 FOR 1.6
+0 !MENTO EVENT LINE "lisa" "Dad, the list says extra virgin." AT 2.3 FOR 2.01
 0 !MENTO EVENT PERFORM "homer" AT 2.3
-0 !MENTO EVENT LINE "homer" "So I'll change the list." AT 3.9 FOR 1.3
-0 !MENTO EVENT PHRASE "homer" AT 3.8
-0 !MENTO EVENT LINE "lisa" "No! Change the basket." AT 5.3 FOR 1.4
-0 !MENTO EVENT PHRASE "lisa" AT 5.2
-0 !MENTO EVENT PERFORM "homer" AT 6.6
-0 !MENTO EVENT SOUND "click" AT 7
-0 // SHOT 6: CAUGHT
-0 !MENTO TITLE "the list\n~five red apples\n~green bananas\n~black berries\n~extra virgin olive oil\n~organic flour\nsouthwest style hash browns" STYLE list SEC 5.91
+0 // SHOT 13: HOMER: CHANGE THE LIST
+0 !MENTO SHOT "Homer: change the list" POS 128 -96 -1272 TGT 106 -92 -1360 LENS 30 SEC 2.6
+0 !MENTO ACT "homer" LOOK "lisa"
+0 !MENTO ACT "lisa" LOOK "homer"
+0 !MENTO EVENT PHRASE "homer" AT 0.1
+0 !MENTO EVENT LINE "homer" "So I'll change the list." AT 0.5 FOR 1.5
+0 // SHOT 14: LISA: CHANGE THE BASKET
+0 !MENTO SHOT "Lisa: change the basket" POS 76 -78 -1400 TGT 64 -70 -1302 LENS 30 SEC 2.4
+0 !MENTO ACT "lisa" LOOK "homer"
+0 !MENTO EVENT PHRASE "lisa" AT 0.1
+0 !MENTO EVENT LINE "lisa" "No! Change the basket." AT 0.3 FOR 1.46
+0 // SHOT 15: THE SHELF
+0 !MENTO TITLE "the list\n~five red apples\n~green bananas\n~black berries\nextra virgin olive oil\norganic flour\nsouthwest style hash browns" STYLE list SEC 3.6
+0 !MENTO EVENT SOUND "click" AT 0.9
+0 !MENTO EVENT SOUND "click" AT 1.6
+0 // SHOT 16: OIL STRUCK
+0 !MENTO TITLE "the list\n~five red apples\n~green bananas\n~black berries\nextra virgin olive oil\norganic flour\nsouthwest style hash browns" STYLE paper SEC 1.6
+0 // SHOT 17: CAUGHT
+0 !MENTO TITLE "the list\n~five red apples\n~green bananas\n~black berries\n~extra virgin olive oil\n~organic flour\nsouthwest style hash browns" STYLE list SEC 4.2
 0 !MENTO EVENT BEAT "homer" AT 0
-0 !MENTO EVENT LINE "homer" "Southwest style hash browns." AT 0.3 FOR 1.6
+0 !MENTO EVENT LINE "homer" "Southwest style hash browns." AT 0.3 FOR 1.93
 0 !MENTO EVENT SOUND "click" AT 1.7
-0 !MENTO EVENT LINE "flanders" "Southwest style! Noted!" AT 2 FOR 1.3
-0 !MENTO EVENT PERFORM "homer" AT 3.2
-0 !MENTO EVENT PHRASE "homer" AT 3.2
-0 !MENTO EVENT LINE "homer" "Flanders?!" AT 3.4 FOR 0.8
-0 !MENTO EVENT PERFORM "flanders" AT 4.1
-0 !MENTO EVENT LINE "flanders" "Just reading the labels!" AT 4.3 FOR 1.5
-0 // SHOT 7: THE BELT
-0 !MENTO TITLE "the list\n~five red apples\n~green bananas\n~black berries\n~extra virgin olive oil\n~organic flour\n~southwest style hash browns" STYLE list SEC 7.89
+0 !MENTO EVENT LINE "flanders" "Southwest style! Noted!" AT 2.5 FOR 1.22
+0 // SHOT 18: HOMER: FLANDERS?!
+0 !MENTO SHOT "Homer: Flanders?!" POS -1115.2 -95.2 -1372.8 TGT -1068 -92 -1280 LENS 30 SEC 2
+0 !MENTO ACT "homer" LOOK "flanders"
+0 !MENTO ACT "flanders" LOOK "doors" POSE stand
+0 !MENTO EVENT PHRASE "homer" AT 0.1
+0 !MENTO EVENT LINE "homer" "Flanders?!" AT 0.55 FOR 0.78
+0 // SHOT 19: NED: THE LABELS
+0 !MENTO SHOT "Ned: the labels" POS -1056 -95.2 -1434 TGT -1056 -92 -1510 LENS 36 SEC 2.6
+0 !MENTO ACT "flanders" LOOK "doors" POSE stand
+0 !MENTO EVENT LINE "flanders" "Just reading the labels!" AT 0.5 FOR 1.13
+0 // SHOT 20: THE BELT
+0 !MENTO TITLE "the list\n~five red apples\n~green bananas\n~black berries\n~extra virgin olive oil\n~organic flour\n~southwest style hash browns" STYLE list SEC 7.1
 0 !MENTO EVENT BEAT "clerk" AT 0
 0 !MENTO EVENT SOUND "servo" AT 0.3
 0 !MENTO EVENT SOUND "ping" AT 0.95
-0 !MENTO EVENT LINE "clerk" "Five red apples." AT 1 FOR 1.1
-0 !MENTO EVENT LINE "flanders" "Check." AT 2.2 FOR 0.6
+0 !MENTO EVENT LINE "clerk" "Five red apples." AT 1 FOR 1.15
+0 !MENTO EVENT LINE "flanders" "Check." AT 2.35 FOR 0.56
 0 !MENTO EVENT SOUND "ping" AT 2.93
-0 !MENTO EVENT LINE "clerk" "Green bananas." AT 2.98 FOR 1
-0 !MENTO EVENT LINE "flanders" "Check." AT 4.1 FOR 0.6
+0 !MENTO EVENT LINE "clerk" "Green bananas." AT 3.11 FOR 1.09
+0 !MENTO EVENT LINE "flanders" "Check." AT 4.4 FOR 0.56
 0 !MENTO EVENT SOUND "ping" AT 4.9
-0 !MENTO EVENT LINE "clerk" "Extra virgin olive oil." AT 4.95 FOR 1.4
-0 !MENTO EVENT LINE "flanders" "Check-diddly-eck." AT 6.5 FOR 1.1
-0 !MENTO EVENT PHRASE "flanders" AT 6.4
-0 // SHOT 8: THE RECORD
-0 !MENTO TITLE "the list\n~five red apples\n~green bananas\n~black berries\n~extra virgin olive oil\n~organic flour\n~southwest style hash browns\n+Maggie" STYLE list SEC 7.89
+0 !MENTO EVENT LINE "clerk" "Extra virgin olive oil." AT 5.16 FOR 1.67
+0 // SHOT 21: NED: CHECK-DIDDLY-ECK
+0 !MENTO SHOT "Ned: check-diddly-eck" POS -348.4 -95.2 -780 TGT -448 -92 -810 LENS 30 SEC 2
+0 !MENTO ACT "flanders" LOOK "clerk" POSE stand
+0 !MENTO EVENT PHRASE "flanders" AT 0.1
+0 !MENTO EVENT LINE "flanders" "Check-diddly-eck." AT 0.3 FOR 0.92
+0 // SHOT 22: ORGANIC FLOUR
+0 !MENTO TITLE "the list\n~five red apples\n~green bananas\n~black berries\n~extra virgin olive oil\n~organic flour\n~southwest style hash browns" STYLE list SEC 1.8
 0 !MENTO EVENT BEAT "flanders" AT 0
 0 !MENTO EVENT SOUND "ping" AT 0.2
-0 !MENTO EVENT LINE "clerk" "Organic flour." AT 0.25 FOR 0.9
-0 !MENTO EVENT LINE "flanders" "Organic? I wrote plain." AT 1.3 FOR 1.3
-0 !MENTO EVENT PHRASE "flanders" AT 1.2
-0 !MENTO EVENT LINE "flanders" "My record's wrong, not the flour." AT 2.7 FOR 1.8
-0 !MENTO EVENT SOUND "ping" AT 4.6
-0 !MENTO EVENT LINE "clerk" "Baby." AT 4.65 FOR 0.6
-0 !MENTO EVENT LINE "homer" "She's not on the list!" AT 5.4 FOR 1.4
-0 !MENTO EVENT PHRASE "homer" AT 5.3
-0 !MENTO EVENT LINE "clerk" "It scanned." AT 6.9 FOR 0.9
-0 !MENTO EVENT PHRASE "clerk" AT 6.7
-0 // SHOT 9: THE CARD
+0 !MENTO EVENT LINE "clerk" "Organic flour." AT 0.25 FOR 1.1
+0 // SHOT 23: NED: I WROTE PLAIN
+0 !MENTO SHOT "Ned: I wrote plain" POS -348.4 -95.2 -780 TGT -448 -92 -810 LENS 30 SEC 2.2
+0 !MENTO ACT "flanders" LOOK "clerk" POSE stand
+0 !MENTO EVENT PHRASE "flanders" AT 0.1
+0 !MENTO EVENT LINE "flanders" "Organic? I wrote plain." AT 0.4 FOR 1.22
+0 // SHOT 24: THE RECORD CORRECTED
+0 !MENTO TITLE "NED'S RECORD\nfive red apples\ngreen bananas\nblack berries\nextra virgin olive oil\nplain flour\nsouthwest hash browns\n+organic flour" STYLE paper SEC 5.6
+0 !MENTO EVENT LINE "flanders" "My record's wrong, not the flour." AT 0.4 FOR 1.56
+0 // SHOT 25: BABY
+0 !MENTO SHOT "Baby" POS -220 -78 -720 TGT -320 -62 -772 LENS 34 SEC 2
+0 !MENTO ACT "cart" HALT
+0 !MENTO ACT "clerk" LOOK "maggie"
+0 !MENTO EVENT SOUND "ping" AT 0.3
+0 !MENTO EVENT LINE "clerk" "Baby." AT 0.4 FOR 0.7
+0 // SHOT 26: HOMER: NOT ON THE LIST
+0 !MENTO SHOT "Homer: not on the list" POS -370.4 -95.2 -816.4 TGT -272 -92 -850 LENS 30 SEC 2.4
+0 !MENTO ACT "homer" LOOK "clerk"
+0 !MENTO EVENT PHRASE "homer" AT 0.05
+0 !MENTO EVENT LINE "homer" "She's not on the list!" AT 0.3 FOR 1.37
+0 // SHOT 27: MAGGIE ON THE LIST
+0 !MENTO TITLE "the list\n~five red apples\n~green bananas\n~black berries\n~extra virgin olive oil\n~organic flour\n~southwest style hash browns\n+Maggie" STYLE paper SEC 1.8
+0 // SHOT 28: CLERK: IT SCANNED
+0 !MENTO SHOT "Clerk: it scanned" POS -280.8 -95.2 -730 TGT -384 -92 -742 LENS 30 SEC 2.6
+0 !MENTO ACT "clerk" LOOK "maggie"
+0 !MENTO EVENT PHRASE "clerk" AT 0.1
+0 !MENTO EVENT LINE "clerk" "It scanned." AT 0.4 FOR 0.85
+0 // SHOT 29: THE CARD
 0 !MENTO TITLE "THE LIST" STYLE card SEC 3.95 SCORE none
