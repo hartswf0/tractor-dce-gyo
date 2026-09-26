@@ -43,16 +43,16 @@ I_LO, I_HI, K_LO, K_HI = -23, 22, -15, 14   # cells inside the frame's white rin
 
 # ── Olympus: the column, the turntable, the platform ──
 CX, CZ = 300, -160                          # the turntable's centre
-NH = 15                                     # brick courses of the column; its top at yup 364
-TOPC = GRASS + NH * B                       # 364
-TT_TOP = TOPC + 16                          # 380: the turntable's top
+NH = 17                                     # brick courses of the column; its top at yup 412
+TOPC = GRASS + NH * B                       # 412
+TT_TOP = TOPC + 16                          # 428: the turntable's top
 PLAT_R = 172                                # the platform's radius
-FLOOR_O = TT_TOP + 3 * P                    # 404: the hall's floor (studs of the plates, tops of the tiles)
+FLOOR_O = TT_TOP + 3 * P                    # 452: the hall's floor (studs of the plates, tops of the tiles)
 
 # ── the streak: Athena's flight, 2 x 2 round bricks stepping down one course and one stud at a time ──
-N_STEPS = 13
+N_STEPS = 15
 STREAK_BOT = (20, -40)                      # the lowest step, at the stranger's feet by the gate
-MOVES = ['x', 'z', 'x', 'x', 'z', 'x', 'z', 'x', 'x', 'z', 'x', 'z']   # going DOWN: +z (toward the viewer) or -x (toward the palace)
+MOVES = ['x', 'z', 'x', 'x', 'z', 'x', 'z', 'x', 'x', 'z', 'x', 'z', 'x', 'z']   # going DOWN: +z (toward the viewer) or -x (toward the palace)
 
 
 def streak_steps():
@@ -131,14 +131,17 @@ def column(p):
     x, y, z = p
     t = max(0.0, min(1.0, y / 230))
     R = 150 - 88 * (t * t * (3 - 2 * t))
-    if y > 300: R -= (y - 300) * 0.2
+    if y > 340: R -= (y - 340) * 0.25
     r = math.hypot((x - CX) / 1.0, (z - CZ) / 0.88)
     d = r - R + rough(p, 12, 0.7)
     d = smin(d, ell(p, (CX + 110, 40, CZ + 40), (80, 150, 70)) + rough(p, 8, 1.9), 40)     # a buttress on the far side
+    for c, r, sd in (((CX - 70, 110, CZ + 70), (60, 34, 46), 0.3), ((CX + 60, 230, CZ + 60), (50, 30, 40), 1.1),
+                     ((CX - 40, 300, CZ - 60), (44, 26, 40), 2.2)):                           # crags jutting from the column
+        d = smin(d, ell(p, c, r) + rough(p, 6, sd), 26)
     return d
 
 
-RINGS = {11: ((CX - 20, CZ + 5), 168, 138, 3.1), 6: ((CX + 10, CZ + 15), 138, 118, 5.3), 2: ((CX + 30, CZ - 10), 150, 118, 7.7)}    # course: centre, radii, seed
+RINGS = {13: ((CX - 20, CZ + 5), 168, 138, 3.1), 7: ((CX + 10, CZ + 15), 138, 118, 5.3), 2: ((CX + 30, CZ - 10), 150, 118, 7.7)}    # course: centre, radii, seed
 
 
 def in_ring(h, x, z):
@@ -149,7 +152,7 @@ def in_ring(h, x, z):
 
 def hill(p):
     """the wooded shoulder of Neriton behind the gate"""
-    return smin(ell(p, (10, 0, -280), (190, 104, 70)) + rough(p, 9, 4.4), ell(p, (-10, 0, -210), (60, 40, 40)), 30)
+    return smin(ell(p, (20, 0, -285), (200, 140, 76)) + rough(p, 10, 4.4), ell(p, (-10, 0, -210), (60, 40, 40)), 30)
 
 
 def peak2(p):
@@ -163,7 +166,7 @@ def world(p):
     if not (I_LO <= i <= I_HI and K_LO <= k <= K_HI) or y > TOPC: return 99, 'air'
     if abs(x - CX) < 40 and abs(z - CZ) < 40: return -1, 'core'                                # the turntable's column
     c = min(column(p), peak2(p))
-    if c <= 0: return c, ('snow' if y > (318 if column(p) <= 0 else 236) + 16 * math.sin(x / 31 + z / 23) else 'rock')
+    if c <= 0: return c, ('snow' if y > (366 if column(p) <= 0 else 236) + 16 * math.sin(x / 31 + z / 23) else 'rock')
     hc = math.floor((y - GRASS) / B)
     if in_ring(hc, x, z) and (i, k) not in PALACE_CELLS and not terrace_h(i, k) and hill(p) > 0 and (i, k) not in STREAK_CELLS: return -1, 'cloud'
     if hill(p) <= 0 and (i, k) not in PALACE_CELLS and (i, k) not in STREAK_CELLS: return -1, 'hill'
@@ -197,10 +200,13 @@ def colour(m, i, h, k):
 
 
 # where something stands on the land: cells kept studded (olives, goats, trees)
-OLIVES = [(140, 60), (240, 60), (180, -20), (100, 20), (360, 40), (-20, -260), (-160, 200), (-100, 260)]        # 2 x 2 bases (even centres), on the terraces
+OLIVES = [(140, 60), (240, 60), (180, -20), (360, 40), (280, 20), (-20, -260), (-160, 200), (-100, 260), (60, -240), (-180, 260), (100, -220), (-300, 160)]        # 2 x 2 bases (even centres), on the terraces
 GOATS_T = [(190, 50, 0.6), (270, 10, -1.2)]
 KNOLL_GOATS = [(-370, 260, 1.2), (-270, 290, -0.5), (-430, 240, 2.4)]
-CYPRESS = [(-20, -200), (100, -260)]                                      # on the ground by the road below the gate
+GOATHERD = (-330, 260, math.pi * 0.5)
+CYPRESS = [(-20, -200), (100, -260)]
+PINES = [(40, -280), (160, -260)]
+VINES = [(170, 70), (190, 70), (270, 70), (290, 70), (310, 70)]                                      # on the ground by the road below the gate
 POPLARS = [(-440, 120)]
 
 
@@ -273,19 +279,26 @@ for (x, z) in OLIVES:
     for (i, k) in cs:
         for h in range(max(tops)): form.vox.setdefault((i, h, k), mat)
         form.vox[(i, max(tops), k)] = 'hstand' if mat == 'hill' else 'tstand'
+for (x, z) in VINES:
+    i, k = math.floor(x / S), math.floor(z / S)
+    hs = [h for (ii, h, kk) in form.vox if ii == i and kk == k]
+    if hs and form.vox[(i, max(hs), k)] == 'terrace': form.vox[(i, max(hs), k)] = 'tstand'
 for (x, z, _) in GOATS_T + KNOLL_GOATS:
     for (i, k) in {(math.floor(x / S), math.floor(z / S)), (math.floor(x / S), math.floor(z / S) - 1), (math.floor(x / S), math.floor(z / S) + 1)}:
         hs = [h for (ii, h, kk) in form.vox if ii == i and kk == k]
         if hs:
             m = form.vox[(i, max(hs), k)]
             form.vox[(i, max(hs), k)] = 'kstand' if m == 'knoll' else 'tstand' if m == 'terrace' else m
-for (x, z) in CYPRESS:                                              # the cypresses on the hill
+for (x, z) in CYPRESS + PINES:                                      # the cypresses and pines on the hill
     cs = [(i, k) for i in (x // S - 1, x // S) for k in (z // S - 1, z // S)]
     tops = [max([h for (ii, h, kk) in form.vox if ii == i and kk == k], default=-1) for (i, k) in cs]
     if max(tops) < 0: continue
     for (i, k) in cs:
         for h in range(max(tops)): form.vox.setdefault((i, h, k), 'hill')
         form.vox[(i, max(tops), k)] = 'hstand'
+for (i, k) in ((math.floor(GOATHERD[0] / S), math.floor((GOATHERD[1] - 10) / S)), (math.floor(GOATHERD[0] / S), math.floor((GOATHERD[1] + 10) / S))):
+    hs = [h for (ii, h, kk) in form.vox if ii == i and kk == k]
+    if hs: form.vox[(i, max(hs), k)] = 'kstand'
 form.hollow(side=3, up=2, pillar=4, keep=lambda v, m: m in ('core', 'seat', 'terrace', 'tstand', 'hstand', 'kstand') or v[1] in RINGS)
 for h in RINGS:                                                      # the cloud courses, laid in plates and settled once
     cells = {(i, k) for (i, hh, k) in form.vox if hh == h}
@@ -299,7 +312,7 @@ for h in RINGS:
         if (i, k) in STREAK_CELLS or hsh(i, k, h) % 2: continue
         if not all((i + a, h, k + b) in form.vox and form.vox[(i + a, h, k + b)] == 'cloud' and (i + a, h + 1, k + b) not in form.vox
                    for a in (0, 1) for b in (0, 1)): continue
-        if any(abs(i - pi) < 3 and abs(k - pk) < 3 and ph == h for (pi, pk, ph) in PUFFS): continue
+        if any(abs(i - pi) < 2 and abs(k - pk) < 2 and ph == h for (pi, pk, ph) in PUFFS): continue
         for a in (0, 1):
             for b in (0, 1): form.vox[(i + a, h, k + b)] = 'puff'
         PUFFS.append((i, k, h))
@@ -322,7 +335,7 @@ def top_at(x, z):
 
 
 def land_cells():
-    return {(i, k) for (i, h, k) in form.vox if h == 0}
+    return {(i, k) for (i, h, k) in form.vox}
 
 
 # ────────────────────────────────────────────────────────────────── helpers
@@ -349,7 +362,7 @@ def sit(card, sub, x, yup, z, rot=0, drop=()):
     hip = next(t for t in body if re.match(r'3815', t[14]))
     hx, hy, hz = float(hip[2]), float(hip[3]), float(hip[4])
     out = []
-    base = M(T(x, -(yup + 20), z), RY(rot), T(-hx, -(hy + 12), -hz - 10))
+    base = M(T(x, -(yup + 9), z), RY(rot), T(-hx, -(hy + 12), -hz - 10))       # thighs down on the studs
     for t in body:
         m = [float(v) for v in t[2:14]]
         if re.match(r'381[67]', t[14]): m = mat_mul(m, RX(-math.pi / 2))
@@ -411,15 +424,15 @@ def disc():
 # the hall: y is yup over the platform's floor studs (FLOOR_O)
 COLONNADE = [(-90, -110), (-30, -110), (30, -110), (90, -110), (-130, -50), (130, -50)]
 POS_THRONE = (0, -60)                       # 2 x 2 seat; its back one row behind
-ZEUS_THRONE = (100, -20)                    # seat 2 x 2 at x 80..120; back at x 120..140
-ATHENA = (-90, -20, -math.pi / 2)           # standing, facing +x toward Zeus
-HERMES = (-100, 50, math.pi)
+ZEUS_THRONE = (100, 20)                     # seat 2 x 2 at x 80..120; back at x 120..140
+ATHENA = (-90, 20, -math.pi / 2)           # standing, facing +x toward Zeus
+HERMES = (-60, 90, math.pi)
 BENCH_Z = -90
 GODS = [('ensemble.assembly-of-gods', 'god-1', -100), ('ensemble.assembly-of-gods', 'goddess-2', -60),
         ('ensemble.assembly-of-gods', 'god-3', 60), ('ensemble.assembly-of-gods', 'god-4', 100)]
-PEAKS = [(-120, 20), (120, 20)]
+PEAKS = [(-140, -80), (140, -80)]
 GODDESSES = [('divine-fx.ares-aphrodite-hephaestus-song-tableau', 'god-3', -140, -30, math.pi * 0.5),
-             ('divine-fx.ares-aphrodite-hephaestus-song-tableau', 'god-2', 40, 90, math.pi)]
+             ('divine-fx.ares-aphrodite-hephaestus-song-tableau', 'god-2', 140, -30, math.pi)]
 
 
 def hall_stand():
@@ -427,13 +440,38 @@ def hall_stand():
     c = set()
     for x, z in COLONNADE: c.add((math.floor(x / S), math.floor(z / S)))
     c |= {(i, k) for i in (-1, 0) for k in (-5, -4, -3)} | {(1, -5)}                 # Poseidon's throne and the trident's socket
-    c |= {(i, k) for i in (4, 5, 6) for k in (-2, -1)}                                 # Zeus's throne
-    c |= feet(ATHENA[0], ATHENA[1], ATHENA[2]) | feet(HERMES[0], HERMES[1], HERMES[2])
+    c |= {(i, k) for i in (4, 5, 6) for k in (0, 1)}                                   # Zeus's throne
+    c |= feet(ATHENA[0], ATHENA[1], ATHENA[2])
     c |= {(i, -5) for i in (-6, -5, -4, -3, 2, 3, 4, 5)}                               # the bench
     for (x, z) in PEAKS: c |= {(i, k) for i in (x // S - 1, x // S) for k in (z // S - 1, z // S)}
     c |= {(i, k) for i in (-1, 0) for k in (3, 4)}                                     # the altar
     for _, _, x, z, r in GODDESSES: c |= feet(x, z, r)
-    return c
+    return c | crest_cells()
+
+
+def crest_cells():
+    """the snow on the summit's back rim: cells of the platform's rim behind the hall"""
+    out = set()
+    for (i, k) in disc():
+        x, z = (i + .5) * S, (k + .5) * S
+        if math.hypot(x, z) > PLAT_R - 20 and z < -50: out.add((i, k))
+    peaks_ = {(i, k) for (x, z) in PEAKS for i in (x // S - 1, x // S) for k in (z // S - 1, z // S)}
+    return out - {(math.floor(x / S), math.floor(z / S)) for x, z in COLONNADE} - peaks_
+
+
+def crest():
+    """a crest of snow along the back rim: white bricks, a few grey, each capped with a cheese slope running outward"""
+    out = []
+    for (i, k) in sorted(crest_cells()):
+        if (i, k) not in {(ii, kk) for (ii, h, kk) in PFORM.vox if h == 2}: continue
+        x, z = (i + .5) * S, (k + .5) * S
+        n = 2 if hsh(i, k, 5) % 3 == 0 else 1
+        for c in range(n): out.append(on(WHITE if hsh(i, k, c) % 4 else LBG, x, FLOOR_O + c * B, z, '3005'))
+        a = math.atan2(x, z)                                          # run the slope down outward
+        d = min(Form.FACE, key=lambda dd: abs(math.atan2(-dd[0], -dd[1]) - a) % (2 * math.pi))
+        dx, dz = (1 if x > 0 else -1, 0) if abs(x) > abs(z) else (0, 1 if z > 0 else -1)
+        out.append(put(WHITE, x, FLOOR_O + n * B, z, '54200', RY(Form.FACE[(dx, dz)])))
+    return out
 
 
 def platform_form():
@@ -533,12 +571,11 @@ def council_fire():
 
 
 def council():
-    out = colonnade() + throne_poseidon() + throne_zeus() + benches() + peaks() + council_fire()
+    out = colonnade() + throne_poseidon() + throne_zeus() + benches() + peaks() + council_fire() + crest()
     zx, zz = ZEUS_THRONE
     out += sit('character.zeus', 'zeus', zx + 10, FLOOR_O + B, zz, math.pi / 2)
     ax, az, ar = ATHENA
     out += figure('character.athena', 'athena', ax, FLOOR_O, az, ar)
-    out += figure('character.hermes', 'hermes', HERMES[0], FLOOR_O, HERMES[1], HERMES[2])
     for card, sub, x in GODS:
         out += sit(card, sub, x, FLOOR_O + B, BENCH_Z, math.pi)
     for card, sub, x, z, r in GODDESSES:
@@ -551,7 +588,7 @@ def under_clouds():
     out = []
     for (i, k) in sorted({(i, k) for (i, h, k) in PFORM.vox if h == 0}):
         r = math.hypot((i + .5) * S, (k + .5) * S)
-        if 135 < r and (i + k) % 2 == 0:
+        if 135 < r and ((i + k) % 2 == 0 or r > 150):
             col = TCLEAR if hsh(i, k) % 3 == 0 else WHITE
             out.append(put(col, (i + .5) * S, TT_TOP, (k + .5) * S, '3005'))
     return out
@@ -574,12 +611,12 @@ def platform(rot=0.0):
 def streak():
     out = []
     for n, (x, z, top) in enumerate(STEPS):
-        col = (TCLEAR, TCLEAR, TYELLOW, TCLEAR, GOLD, TCLEAR)[n % 6] if n else WHITE
+        col = (TYELLOW, TCLEAR, GOLD, TCLEAR)[n % 4] if n else WHITE
         out.append(put(col, x, top, z, '3941'))
     return out
 
 
-ATH_STEP = 6
+ATH_STEP = 7
 
 
 def sparkle():
@@ -669,7 +706,7 @@ def megaron():
     for i in range(i0 + 1, i1):                                                                              # the porch's white paving
         for k in PORCH_K:
             if any(abs((i + .5) * S - x) < 20 and abs((k + .5) * S - z) < 20 for x, z in COLS): continue
-            if k == -8 and i in (-14, -13, -12, -11): continue                                     # two suitors stand here
+            if k == -8 and i in (-16, -15, -14, -13, -12, -11): continue                           # three suitors stand here
             out.append(put(WHITE if (i + k) % 3 else LBG, (i + .5) * S, GRASS + P, (k + .5) * S, '3070b'))
     return out
 
@@ -767,25 +804,26 @@ def gate():
     out.append(put(RB, x, GRASS + 6 * B, (kl + 3) * S, '3009', RY(math.pi / 2)))                      # the lintel, 1 x 6
     out += [put(RB, x, GRASS + 6 * B + P, (kl + 1) * S, '3069b', RY(math.pi / 2)), put(GOLD, x, GRASS + 6 * B + P, (kl + 2.5) * S, '3070b'),
             put(RB, x, GRASS + 6 * B + P, (kl + 4) * S, '3069b', RY(math.pi / 2)), put(GOLD, x, GRASS + 6 * B + P, (kl + 5.5) * S, '3070b')]
-    for k in (GATE_K[0], GATE_K[-1]):                                                                 # the leaves, swung in
+    x = (GATE_I - .5) * S                                                                            # the leaves, swung right back
+    for zc in (GATE_K[0] * S - 20, (GATE_K[-1] + 1) * S + 20):                                       # against the inside of the wall
         for c in range(4):
-            out.append(put(RB if c % 2 == 0 else DB, (GATE_I - 1) * S, GRASS + (c + 1) * B, (k + .5) * S, '3004'))
-        out += [put(GOLD, (GATE_I - 1.5) * S, GRASS + 4 * B + P, (k + .5) * S, '3070b'), put(RB, (GATE_I - .5) * S, GRASS + 4 * B + P, (k + .5) * S, '3070b')]
+            out.append(put(RB if c % 2 == 0 else DB, x, GRASS + (c + 1) * B, zc, '3004', RY(math.pi / 2)))
+        out += [put(GOLD, x, GRASS + 4 * B + P, zc - 10, '3070b'), put(RB, x, GRASS + 4 * B + P, zc + 10, '3070b')]
     return out
 
 
 def gate_cells():
-    return {(GATE_I - 2, k) for k in (GATE_K[0], GATE_K[-1])} | {(GATE_I - 1, k) for k in (GATE_K[0], GATE_K[-1])}
+    return {(GATE_I - 1, k) for k in (GATE_K[0] - 2, GATE_K[0] - 1, GATE_K[-1] + 1, GATE_K[-1] + 2)}
 
 
 # ── the forecourt ──
 BOARD = (-240, -40)                         # 2 x 4 along z: x -260..-220, z -80..0
 PLAYERS = [('character.antinous', 'antinous', -310, -40, -math.pi / 2), ('character.amphinomus', 'amphinomus', -170, -40, math.pi / 2)]
 LOUNGERS = [('ensemble.suitors', 'suitor-3', -400, -110, math.pi), ('ensemble.suitors', 'suitor-4', -360, -110, math.pi),
-            ('ensemble.armed-suitors', 'suitor-5', -300, 30, math.pi), ('ensemble.the-suitors', 'suitor-3', -260, 30, math.pi),
-            ('ensemble.the-suitors', 'suitor-2', -200, 30, math.pi), ('ensemble.armed-suitors', 'suitor-2', -160, 30, math.pi)]
+            ('ensemble.armed-suitors', 'suitor-5', -300, 30, 0), ('ensemble.armed-suitors', 'suitor-2', -160, 30, 0)]
 STANDERS = [('ensemble.suitors', 'suitor-1', -120, 30, math.pi), ('ensemble.palace-servants', 'servant-1', -280, -120, math.pi),
-            ('ensemble.suitor-council', 'suitor-2', -260, -150, math.pi), ('ensemble.suitor-council', 'suitor-5', -220, -150, math.pi)]
+            ('ensemble.suitor-council', 'suitor-2', -260, -150, math.pi), ('ensemble.suitor-council', 'suitor-5', -220, -150, math.pi),
+            ('ensemble.suitor-council', 'suitor-4', -300, -150, math.pi)]
 TELEMACHUS = (-130, -80, -math.pi / 2)     # seated on a stool, facing the gate (+x)
 KRATER = (-420, 20)
 HERALDS = [('ensemble.palace-servants', 'servant-2', -370, 20, math.pi / 2), ('ensemble.palace-servants', 'servant-4', -420, -30, math.pi)]
@@ -799,7 +837,15 @@ def hides():
     for x, z, w, d, col in HIDES:
         part = {(4, 2): '3020', (2, 4): '3020', (6, 2): '3795'}[(w, d)]
         out.append(put(col, x, TREAD, z, part, RY(math.pi / 2) if d > w else None))
-        cells |= {(i, k) for i in range(math.floor((x - w * 10) / S), math.floor((x + w * 10) / S)) for k in range(math.floor((z - d * 10) / S), math.floor((z + d * 10) / S))}
+        hc = {(i, k) for i in range(math.floor((x - w * 10) / S), math.floor((x + w * 10) / S)) for k in range(math.floor((z - d * 10) / S), math.floor((z + d * 10) / S))}
+        cells |= hc
+        seats = set()
+        for _, _, sx, sz, sr in PLAYERS + LOUNGERS:                        # where each sits, and where his legs lie before him
+            fx, fz = round(-math.sin(sr)), round(-math.cos(sr))
+            for (i, k) in seat_cells(sx, sz, sr): seats |= {(i + n * fx, k + n * fz) for n in (0, 1, 2)}
+        spot = {WHITE: BLK, MNOUGAT: WHITE, NOUGAT: RB, RB: WHITE}[col]
+        for (i, k) in sorted(hc - seats):                                  # the hide's free studs tiled, in its own colour and its spots
+            out.append(put(spot if hsh(i, k, 8) % 3 == 0 else col, (i + .5) * S, TREAD + P, (k + .5) * S, '3070b'))
     return out, cells
 
 
@@ -829,6 +875,18 @@ def krater():
     return out, {(i, k) for i in (x // S - 1, x // S) for k in (z // S - 1, z // S)}
 
 
+def mentes(x, z, r, yup=GRASS):
+    """Athena in the likeness of Mentes, the card's staff exchanged for a bronze spear held upright, point to the sky"""
+    out = []
+    for l in figure('character.athena-as-mentes', 'athena-as-mentes', x, yup, z, r):
+        t = l.split()
+        if t[14].startswith('95049'):
+            m = mat_mul([float(v) for v in t[2:14]], RX(math.pi))
+            l = row(GOLD, m, '4497')
+        out.append(l)
+    return out
+
+
 def stool(x, z):
     """Telemachus's seat: a 1 x 2 brick of timber along z, a fleece (1 x 2 tile) left off so he sits on its studs"""
     return [put(RB, x, GRASS + B, z, '3004', RY(math.pi / 2))], {(math.floor(x / S), math.floor((z - 10) / S)), (math.floor(x / S), math.floor((z + 10) / S))}
@@ -844,7 +902,7 @@ def people_below():
     s, sc = stool(tx, tz); out += s; cells |= sc
     out += sit('character.telemachus', 'telemachus', tx, GRASS + B, tz, tr)
     mx, mz, mr = MENTES
-    out += figure('character.athena-as-mentes', 'athena-as-mentes', mx, GRASS, mz, mr); cells |= feet(mx, mz, mr)
+    out += mentes(mx, mz, mr); cells |= feet(mx, mz, mr)
     return out, cells
 
 
@@ -860,6 +918,8 @@ def olive(x, z, yup, n=0):
     out.append(on(RB, x + 10, y, z + 10, '3062b'))
     out.append(on(L[(n + 1) % 4], x + 10, y + B, z + 10, '2417', ((n + 2) % 4) * math.pi / 2))
     out.append(on(L[(n + 2) % 4], x + 10, y, z - 10, '6255'))
+    out += [on(DB, x - 10, y, z + 10, '3062b'), on(RB, x - 10, y + B, z + 10, '3062b'),
+            on(L[(n + 3) % 4], x - 10, y + 2 * B, z + 10, '2417', ((n + 1) % 4) * math.pi / 2)]            # the top tier
     return out
 
 
@@ -868,6 +928,9 @@ def trees():
     for n, (x, z) in enumerate(OLIVES): out += olive(x, z, top_at(x - 10, z - 10), n)
     for x, z in CYPRESS: out.append(on(DGREEN, x, top_at(x - 10, z - 10), z, '3778'))
     for x, z in POPLARS: out.append(on(GREEN, x, GRASS, z, '3470'))
+    for x, z in PINES: out.append(on(DGREEN, x, top_at(x - 10, z - 10), z, '2435'))
+    gx, gz, gr = GOATHERD
+    out += figure('ensemble.suitor-uproar', 'herdsman-3', gx, top_at(gx, gz - 10), gz, gr)
     for x, z, r in GOATS_T + KNOLL_GOATS:
         out.append(on(WHITE if hsh(x, z) % 3 else TAN, x, top_at(x, z), z, '95341', r))
     return out
@@ -944,9 +1007,12 @@ def ship():
     out += [put(RB, mx, GRASS + P + B * (j + 1), mz, '3062b') for j in range(7)]
     yt = GRASS + P + 7 * B
     out.append(put(RB, mx, yt + P, z0, '3666', RY(math.pi / 2)))                               # the yard, 1 x 6 along z
-    for zz, part in ((z0 - 40, '3023'), (z0 + 20, '3023'), (z0 + 50, '3024')):                  # the sail furled under it
-        out.append(row(WHITE, mat_mul(T(mx, -yt, zz), RY(math.pi / 2) if part == '3023' else T(0, 0, 0)), part))
+    for c in range(3):                                                                          # the sail, hung from the yard
+        col = RED if c == 1 else WHITE
+        out += [put(col, mx, yt - c * B, z0 - 40, '3004', RY(math.pi / 2)), put(col, mx, yt - c * B, z0 + 30, '3622', RY(math.pi / 2))]
     out += [put(RB, mx, yt + 2 * P, mz, '3070b')]
+    for dx in (-40, 20):                                                                           # oars shipped, resting on the rails
+        out.append(row(RB, M(T(x0 - 70, -(GRASS + 2 * P + B + P + 4), z0 + (dx // 2)), RZ(-math.pi / 2)), '2542'))
     return out, cells
 
 
@@ -967,13 +1033,16 @@ def houses():
             front = [i for i in range(i0 + 1, i1) if not (c == 1 and i == i0 + 1)]
             out += lay(front, c, True, k1, GRASS, cols)
         out.append(put(BLK, (i0 + 1.5) * S, GRASS + 2 * B, (k1 + .5) * S, '3005'))                # a small dark window
-        f = Form(y0=GRASS + 3 * B, unit=P)
+        f = Form(y0=GRASS + 3 * B, unit=P, keep_studs=('c',))
         for i in range(i0, i1 + 1):
             for k in range(k0, k1 + 1):
-                f.vox[(i, 0, k)] = 'a'; f.vox[(i, 1, k)] = 'b'
+                f.vox[(i, 0, k)] = 'a'; f.vox[(i, 1, k)] = 'c' if i in (i0, i1) and k in (k0, k1) else 'b'
         out += f.parts(lambda m, i, h, k: RB if m == 'a' else (DTAN if (i + k) % 3 else TAN))
         out += [put(TAN, (i0 + 1) * S, GRASS + P, (k0 + 1.5) * S, '3069b')] if False else []
         cells |= {(i, k) for i in range(i0, i1 + 1) for k in range(k0, k1 + 1)}
+        for (ci, ck) in ((i0, k0), (i1, k0), (i0, k1), (i1, k1)):                             # a parapet at the roof's corners
+            out.append(on(cols[0], (ci + .5) * S, GRASS + 3 * B + 2 * P, (ck + .5) * S, '3005'))
+            out.append(put(DTAN, (ci + .5) * S, GRASS + 4 * B + 2 * P + P, (ck + .5) * S, '3070b'))
         # a storage jar by the door
         jx, jz = (i1 + 1.5) * S, (k1 + .5) * S
         out += [on(DORANGE, jx, GRASS, jz, '3062b'), on(DORANGE, jx, GRASS + B, jz, '4589') if False else put(RB, jx, GRASS + B + P, jz, '3024')]
@@ -1014,17 +1083,65 @@ def lantern():
     return []
 
 
+TOWNSFOLK = [('ensemble.crew', 'sailor-5', 150, 240, -math.pi / 2), ('ensemble.people-of-ithaca', 'woman-4', 90, 200, -math.pi / 2),
+             ('ensemble.people-of-ithaca', 'woman-3', 100, 130, math.pi)]
+
+
+def townsfolk():
+    """the island going about its day: one of Mentes' sailors on the beach by the mole, a woman at her door, another on the road"""
+    out, cells = [], set()
+    for card, sub, x, z, r in TOWNSFOLK:
+        out += figure(card, sub, x, GRASS, z, r); cells |= feet(x, z, r)
+    return out, cells
+
+
+def vines():
+    """a row of vines along the lowest terrace: timber stocks, leaves"""
+    out = []
+    for n, (x, z) in enumerate(VINES):
+        y = top_at(x, z)
+        if y <= GRASS: continue
+        out += [on(RB, x, y, z, '3062b'), on((GREEN, DGREEN)[n % 2], x, y + B, z, '6255')]
+    return out
+
+
+def well():
+    """the town's well-head by the lower house: a ring of stone, a timber sweep-post"""
+    x, z = -120, 180
+    return [on(LBG, x, GRASS, z, '3941'), put(DBG, x, GRASS + B + P, z, '4032a'), on(RB, x + 10, GRASS + B + P, z + 10, '3062b')], \
+        {(i, k) for i in (-7, -6) for k in (8, 9)}
+
+
 def road_walls(blocked):
     """low dry-stone walls along the road where it climbs from the harbour: single stones, each capped"""
     out, cells = [], set()
-    for i in range(-2, 10):
-        for k in range(-1, 14):
+    for i in range(-2, 13):
+        for k in range(-1, 15):
             if (i, k) in blocked or on_road(i, k, 1.3) or not on_road(i, k, 2.1) or SEA(i, k) or BEACH(i, k): continue
             if (i, k) in PALACE_CELLS or hsh(i, k, 9) % 3 == 0 or any((i, h, k) in form.vox for h in range(3)): continue
             out += [on(DBG if hsh(i, k) % 3 else LBG, (i + .5) * S, GRASS, (k + .5) * S, '3005'),
                     put(LBG if hsh(i, k, 2) % 2 else DTAN, (i + .5) * S, GRASS + B + P, (k + .5) * S, '3070b')]
             cells.add((i, k))
     return out, cells
+
+
+def spear_rack():
+    """the spear-rack against the east wall inside the gate, where Telemachus will stand the stranger's spear: a timber rail on two
+    posts, spears standing in it"""
+    x, z0 = (GATE_I - .5) * S, 0
+    out = [on(RB, x, GRASS, z0 + 10, '3005'), on(RB, x, GRASS, z0 + 50, '3005'), put(RB, x, GRASS + B + P, z0 + 30, '3623', RY(math.pi / 2))]
+    out += [put(RB, x, GRASS + B + 2 * P, z0 + 10, '3070b'), put(RB, x, GRASS + B + 2 * P, z0 + 50, '3070b')]
+    out += [on(DB, x, GRASS + B + P, z0 + 30, '3062b')]
+    for dz in (0, 20, 40, 60): out.append(row(PLG if dz % 40 else GOLD, M(T(x - 14, -(GRASS + 6), z0 + dz), RZ(0.12)), '4497'))
+    return out, {(GATE_I - 1, k) for k in (0, 1, 2)}
+
+
+def beached_boat():
+    """a fishing boat drawn up on the sand: a keel plate, low sides, a pair of oars across it"""
+    x, z = 60, 280
+    out = [put(RB, x, GRASS + P, z, '3795'), put(RB, x, GRASS + P + B, z - 10, '3009'), put(DB, x, GRASS + P + B, z + 10, '3009')]
+    out += [put(RB, x - 40, GRASS + P + B + P, z, '3023', RY(math.pi / 2)) if False else put(DB, x, GRASS + P + B + P, z - 10, '3666')]
+    return out, {(i, k) for i in range(0, 6) for k in (14,)} | {(i, 13) for i in range(0, 6)}
 
 
 def altar():
@@ -1057,15 +1174,41 @@ def ground(blocked, region=None):
     for (i, k) in sorted(free, key=lambda c: (c[1], c[0])):
         if (i, k) not in left: continue
         c = col(i, k)
-        fine = on_road(i, k) or BEACH(i, k)
-        for (w, l), part, rot in ((((1, 1), '3070b', False),) if fine and hsh(i, k, 4) % 3 == 0 else ()) + (((2, 2), '3068b', False), ((1, 2), '3069b', True),
-                                  ((2, 1), '3069b', False), ((1, 1), '3070b', False)):
+        fine = on_road(i, k) or BEACH(i, k) or (SEA(i, k) and any(not SEA(i + a, k + b) for a, b in ((1, 0), (-1, 0), (0, 1), (0, -1), (2, 0), (0, 2))))
+        court = COURT_I[0] <= i <= COURT_I[1] and COURT_K[0] <= k <= COURT_K[1]
+        opts = ((((1, 1), '3070b', False),) if fine and (hsh(i, k, 4) % 3 == 0 or SEA(i, k)) else ()) + \
+            ((((2, 1), '3069b', False),) if court and (k % 2 == 0) == (i % 2 == 0) else ()) + \
+            ((((1, 2), '3069b', True),) if court else ()) + \
+            ((((2, 2), '3068b', False),) if not court else ()) + (((1, 2), '3069b', True), ((2, 1), '3069b', False), ((1, 1), '3070b', False))
+        for (w, l), part, rot in opts:
             cov = [(i + a, k + b) for a in range(w) for b in range(l)]
             if all(q in left and col(*q) == c for q in cov):
                 for q in cov: left.discard(q)
                 out.append(put(c, (i + w / 2) * S, TREAD, (k + l / 2) * S, part, RY(math.pi / 2) if rot else None))
                 break
     return out
+
+
+def bush_spots(blocked):
+    out = []
+    for i in range(I_LO + 1, I_HI):
+        for k in range(K_LO + 1, K_HI):
+            if (i, k) in blocked or SEA(i, k) or _cove(i, k) < 1.4 or on_road(i, k, 1.6) or (i, k) in PALACE_CELLS: continue
+            if any((i + a, k + b) in PALACE_CELLS or (i + a, k + b) in blocked for a in (-1, 0, 1) for b in (-1, 0, 1)): continue
+            if hsh(i, k, 31) % 5: continue
+            if any(abs(i - a) < 3 and abs(k - b) < 3 for a, b in out): continue
+            out.append((i, k))
+    return out
+
+
+def bushes(blocked):
+    """maquis on the open ground: a stem of timber, a spray of leaves, dark green or olive"""
+    out, cells = [], set()
+    for n, (i, k) in enumerate(bush_spots(blocked)):
+        x, z = (i + .5) * S, (k + .5) * S
+        out += [on(RB, x, GRASS, z, '3062b'), on((DGREEN, OLIVE, GREEN)[n % 3], x, GRASS + B, z, '2423', n * 1.3 % (2 * math.pi) // (math.pi / 2) * math.pi / 2)]
+        cells.add((i, k))
+    return out, cells
 
 
 def relief_h(i, k):
@@ -1120,13 +1263,14 @@ def details():
     cells |= wall_cells()
     sx, sz = ROOF_SMOKE
     rows += smoke(sx, sz, MEG_TOP + 3 * P) + upper_storey()
-    for fn in (hides, draughts, krater, field_wall, ship, jetty, houses, altar, pen, sea_rocks):
+    for fn in (hides, draughts, krater, field_wall, ship, jetty, houses, altar, pen, sea_rocks, townsfolk, well, spear_rack):
         r, c = fn(); rows += r; cells |= c
     r, c = people_below(); rows += r; cells |= c
     rows += trees(); cells |= tree_cells() | olive_cells()
     rows += streak(); cells |= step_cells(*STEPS[-1][:2])
-    rows += athena_flying() + sparkle() + puffs()
+    rows += athena_flying() + sparkle() + puffs() + vines()
     r, c = road_walls(cells | set(FRAME_CELLS)); rows += r; cells |= c
+    r, c = bushes(cells | land_cells() | set(FRAME_CELLS)); rows += r; cells |= c
     r, c = relief(cells | land_cells() | set(FRAME_CELLS)); rows += r; cells |= c
     return rows, cells
 
@@ -1148,8 +1292,9 @@ def paving(cells, col=lambda i, k: DTAN if (i // 2 + k // 2) % 3 == 0 else TAN):
     for (i, k) in sorted(cells, key=lambda c: (c[1], c[0])):
         if (i, k) not in left: continue
         c = col(i, k)
-        fine = on_road(i, k) or BEACH(i, k)
-        for (w, l), part, rot in ((((1, 1), '3070b', False),) if fine and hsh(i, k, 4) % 3 == 0 else ()) + (((2, 2), '3068b', False), ((1, 2), '3069b', True), ((2, 1), '3069b', False), ((1, 1), '3070b', False)):
+        fine = on_road(i, k) or BEACH(i, k) or (SEA(i, k) and any(not SEA(i + a, k + b) for a, b in ((1, 0), (-1, 0), (0, 1), (0, -1), (2, 0), (0, 2))))
+        court = COURT_I[0] <= i <= COURT_I[1] and COURT_K[0] <= k <= COURT_K[1]
+        for (w, l), part, rot in (((2, 2), '3068b', False), ((1, 2), '3069b', True), ((2, 1), '3069b', False), ((1, 1), '3070b', False)):
             cov = [(i + a, k + b) for a in range(w) for b in range(l)]
             if all(q in left and col(*q) == c for q in cov):
                 for q in cov: left.discard(q)
@@ -1206,7 +1351,7 @@ def sub_gate():
     tx, tz, tr = TELEMACHUS
     s_, sc = stool(tx, tz); rows += s_ + sit('character.telemachus', 'telemachus', tx, GRASS + B, tz, tr)
     mx, mz, mr = MENTES
-    rows += figure('character.athena-as-mentes', 'athena-as-mentes', mx, GRASS, mz, mr)
+    rows += mentes(mx, mz, mr)
     region = {(i, k) for i in range(-11, 5) for k in range(-12, 4)}
     blocked = {(GATE_I, k) for k in range(-11, 3) if k not in GATE_K} | gate_cells() | sc | feet(mx, mz, mr)
     inside = lambda i, k: i < GATE_I
@@ -1250,3 +1395,88 @@ if __name__ == '__main__':
         print(nm, k_)
     import json
     json.dump({k: v for k, v in res.items()}, open(os.path.join(SCR, 'checks.json'), 'w'))
+    HW = 'odyssey-halfworld/'
+    subs_text = {'olympus': 'The platform of Olympus on its turntable, lifted off the column and set on a short cloud stand: the bronze floor, the '
+                            'colonnade and pediment, the snow crest, the thrones of Zeus and of absent Poseidon, the gods on their bench.',
+                 'descent': 'The trail of clear, trans-yellow and pearl-gold round bricks, each a course lower and a stud on, with Athena in '
+                            'her own form half way down it, her legs gold for the golden sandals.',
+                 'suitors': 'The forecourt feast on its own paving: the ox-hides, Antinous and Amphinomus at draughts, the loungers with their '
+                            'cups, the heralds at the krater, the steward and the men in the porch.',
+                 'gate': 'A length of the court wall with the outer gate, its leaves swung back, the lintel; Telemachus on his stool inside, '
+                         'Mentes outside with the bronze spear.'}
+    manifest(SLUG, title='Tell Me of the Man', book='I', tier='Flagship',
+             moment='While Poseidon is away among the Ethiopians the gods sit in council on Olympus, Zeus on one side and Athena answering '
+                    'him on the other before the sea-god\'s empty throne; Athena binds on her golden sandals and darts down from the peaks, '
+                    'and stands at the outer gate of Odysseus\'s house as Mentes, spear in hand, where the suitors lounge on the hides of the '
+                    'oxen they have killed, playing at draughts, and Telemachus, sitting among them, is the first to see her.',
+             quote='"Tell me, O Muse, of the man of many devices, who wandered full many ways after he had sacked the sacred citadel of '
+                   'Troy." (Odyssey I.1-2, tr. A. T. Murray)',
+             object='The council turns. The whole platform of Olympus stands on a 4 x 4 turntable (61485c01) on the top of the column: turn '
+                    'it and the hall, thrones, gods and all, comes round from facing the viewer to looking down on Ithaca and the palace '
+                    '(set.the-opening-turned). The poem opens on exactly that turn: with Poseidon away, the gods turn their minds to Odysseus. '
+                    'Poseidon\'s empty throne, marked with his trident, is at the centre of the turn.',
+             builds=[{'card': 'set.' + SLUG, 'title': 'Tell Me of the Man (the whole kit)'},
+                     {'card': 'set.' + SLUG + '-turned', 'title': 'The council turned toward Ithaca'}] +
+                    [{'card': f'set.{SLUG}-{s_}', 'title': t} for s_, t, _ in SUBS],
+             images=[{'file': 'hero.jpg', 'caption': 'Gods above, men below, a goddess coming down between them: Olympus on its column of rock and '
+                                                     'cloud, Ithaca on the base, Athena on the golden trail.',
+                      'alt': 'A tall LEGO diorama: a round white and gold platform of gods on a grey rock column ringed with white cloud '
+                             'shelves, a trail of clear and gold round bricks descending to a palace courtyard crowded with brightly dressed '
+                             'minifigures, olive terraces, a cove with a black ship, houses and goats.'},
+                     {'file': 'council.jpg', 'caption': 'The council: Zeus enthroned on one side, Athena answering him on the other, the gods on '
+                                                        'their bench, and between them the empty sea-green throne marked with the trident.',
+                      'alt': 'Close view of minifigure gods in white and gold on a checkered gold floor under a white pediment, an empty '
+                             'teal throne with a trident tile at the centre.'},
+                     {'file': 'gate.jpg', 'caption': 'The stranger at the gate: Mentes with the bronze spear at the foot of the trail, '
+                                                     'Telemachus inside, the suitors beyond.',
+                      'alt': 'A white-bearded minifigure with a gold spear standing at a timber-framed gateway in an ochre wall, a trail '
+                             'of clear and yellow round bricks ending at his feet, a seated young man in blue inside.'},
+                     {'file': 'suitors.jpg', 'caption': 'The suitors on the hides of the oxen they have killed, two of them at draughts, '
+                                                        'the heralds at the krater.',
+                      'alt': 'View down into a paved courtyard: seated minifigures in red, green, purple and blue raising goblets around a '
+                             'small board of round black and white pieces, spotted hides under them.'},
+                     {'file': 'landscape.jpg', 'caption': 'Ithaca: the cove and Mentes\' ship, the road up from the harbour, the olive terraces '
+                                                          'and the town.',
+                      'alt': 'A black ship with a red and white sail in a small blue cove, a stone mole, a road of light tiles climbing '
+                             'between low stone walls and olive trees on terraces toward a palace.'},
+                     {'file': 'turned.jpg', 'caption': 'The play feature: the council turned on its turntable to look down on Ithaca.',
+                      'alt': 'The Olympus platform rotated a quarter turn so the gods and thrones face toward the palace below.'}] +
+                    [{'file': f'{s_}.jpg', 'caption': f'Sub-assembly: {t}.', 'alt': subs_text[s_]} for s_, t, _ in SUBS],
+             features=['Olympus is a sculpted column of rock (tools/forage/product/sculpt.py) with three cloud shelves standing well out from '
+                       'it: each shelf is a course laid in three plates bonded crosswise (white, clear-and-grey, white) so it can overhang, '
+                       'with puffs of round bricks on it and crags jutting between.',
+                       'The platform is a disc of plates on a 4 x 4 turntable: a bronze floor of pearl-gold and dark-orange squares with a '
+                       'white rim and a white aisle to the empty throne, a colonnade of white round bricks under a stepped white pediment, '
+                       'a crest of snow on the back rim, cloud hanging under its edge.',
+                       'Athena\'s flight is a trail of 2 x 2 round bricks, each a course lower and a stud on, clicked one to the next from '
+                       'the high cloud shelf to the ground by the gate; the goddess stands half way down it with golden legs for the sandals.',
+                       'The palace front is ochre ashlar with a timber course and a fresco frieze, red Minoan columns with black capitals in '
+                       'the porch, the dark hall behind the open door, the upper rooms with a window, and the smoke of the feast wavering up '
+                       'from the roof in grey and clear round bricks.',
+                       'The forecourt is paved in running bond; the suitors sit on spotted ox-hides round a raised draughts board with its '
+                       'pieces; the heralds mix wine in a bronze krater; Telemachus sits on a stool facing the gate.',
+                       'Ithaca around it: olive terraces with dry-stone faces and three-tier olives, vines, a road of light stones climbing '
+                       'from the cove between low walls, swells of grassy ground in plates, two houses with a well and a goat-pen, a rocky '
+                       'knoll with goats and their herdsman, cypresses and pines on the shoulder of the hill, a black ship at a stone mole.',
+                       'Every card checks clean: every part clicked, no two parts in the same space; the nameplate and white tile ring are the '
+                       'line\'s display base.'],
+             subs=[{'file': f'{s_}.jpg', 'title': t, 'pieces': pieces(f'set.{SLUG}-{s_}'), 'text': subs_text[s_]} for s_, t, _ in SUBS],
+             sources=[HW + 'scenes/OD-B01-S01.mjs', HW + 'scenes/OD-B01-S02.mjs', HW + 'scenes/OD-B01-S03.mjs', HW + 'scenes/OD-B01-S04.mjs',
+                      HW + 'scenes/OD-B01-S05.mjs', HW + 'scenes/OD-B01-S06.mjs', HW + 'assets/location/olympian-council-hall.mjs',
+                      HW + 'assets/location/olympian-decision-space.mjs', HW + 'assets/location/odysseuss-palace-threshold-and-hall.mjs',
+                      HW + 'assets/location/palace-outer-yard.mjs', HW + 'assets/location/ithacan-shore.mjs',
+                      HW + 'assets/ensemble/assembly-of-gods.mjs', HW + 'assets/character/zeus.mjs', HW + 'assets/character/athena.mjs',
+                      HW + 'assets/character/athena-as-mentes.mjs', HW + 'assets/character/telemachus.mjs',
+                      HW + 'atlas/spoken-lines/lines-b01-03.json'],
+             status='Built to the bar',
+             next=['Figures, the trident, the spears, oars and the leaves of the trees are placed by hand and are not checked by the tool; '
+                   'the seated pose (thighs on the studs) is computed, not verified in a real build.',
+                   'The trail of round bricks is joined one stud-row to the next (a 1 x 2 overlap on 2 x 2 round bricks): honest on the '
+                   'grid, but it would want a clear support rod in a real model.',
+                   'The turntable carries an 18-stud disc and eight figures on one 4 x 4 bearing; a real build should brace the disc with '
+                   'a second layer of long plates (it has two) and test it for sag.',
+                   'The court is crowded: at the hero\'s distance the draughts board and the hides read only from above.',
+                   'The cloud shelves under the platform merge with the hanging cloud ring into one white mass from some angles.',
+                   'Homer puts the suitors in front of the doors and Athena at the outer gate; the kit compresses the court so both fit, '
+                   'and the palace is a front and a courtyard, not a full megaron.',
+                   'Piece count sits at the low end of the flagship budget; the hill of Neriton and the town could take more.'])

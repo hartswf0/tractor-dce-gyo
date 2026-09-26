@@ -877,11 +877,11 @@ function olympusTerrace() {
   colonnade.push(...fillCourse(-17, 17, -16, -14, -216, C.gold, false, 'plate'), ...fillCourse(-17, 17, -16, -14, -224, C.white, false), ...fillCourse(-17, 17, -16, -14, -248, C.gold, false, 'tile'));
   /* braziers of gold either side of the way, fire in them */
   for (const x of [-4, 4]) garden.push({ id: '3062b', col: C.gold, x: x + 0.5, z: 3.5, base: -8 }, { id: '3062b', col: C.gold, x: x + 0.5, z: 3.5, base: -32 }, { id: '3062b', col: C.tOrange, x: x + 0.5, z: 3.5, base: -56 }, { id: '4589', col: C.yellow, x: x + 0.5, z: 3.5, base: -80 });
-  /* the garden: cypresses flanking the way, olives at the front corners, poplars behind the side thrones; flowers in gold pots */
-  garden.push(R('3778', C.dgreen, -5, 12), R('3778', C.dgreen, 5, 12), R('3470', C.sgreen, -10, 11), R('3470', C.sgreen, 10, 11), R('3471', C.green, -16, 10), R('3471', C.green, 16, 10));
+  /* the garden: olives either side of the way at the front, poplars at the front corners, cypresses at the back corners; flowers in gold pots */
+  garden.push(R('3778', C.dgreen, -16, -10), R('3778', C.dgreen, 16, -10), R('3470', C.sgreen, -7, 12), R('3470', C.sgreen, 7, 12), R('3471', C.green, -16, 10), R('3471', C.green, 16, 10));
   for (const [x, z] of [[-8, 7], [8, 7], [-8, -3], [8, -3]]) garden.push({ id: '3062b', col: C.gold, x: x + 0.5, z: z + 0.5, base: -8 }, R(x % 16 ? '3741ac01' : '3741ac04', x < 0 ? C.yellow : C.red, x + 0.5, z + 0.5, -32));
   /* the cloud sea: banks along the front edge (either side of the way) and down both sides */
-  clouds.push(...cloudBank(-18, -8, 14, 16, 1, 2), ...cloudBank(8, 18, 14, 16, 2, 2), ...cloudBank(-18, -16, -12, 6, 3, 2), ...cloudBank(16, 18, -12, 6, 4, 2));
+  clouds.push(...cloudBank(-18, -8, 14, 16, 1, 2), ...cloudBank(8, 18, 14, 16, 2, 2), ...cloudBank(-18, -16, -7, 6, 3, 2), ...cloudBank(16, 18, -7, 6, 4, 2));
   return { terrace, thrones, poseidon, colonnade, garden, clouds };
 }
 /* the gate of Odysseus's house at Ithaca in the late afternoon (Homer I: "she took her stand on Ithaca, at the gateway of Ulysses' house
@@ -935,7 +935,7 @@ function ithacaGate() {
   land.push(...fillCourse(-22, -2, 15, 19, -8, C.green, false, 'plate'), ...fillCourse(2, 22, 15, 19, -8, C.green, false, 'plate'), ...fillCourse(-22, -18, -19, 15, -8, C.green, true, 'plate'), ...fillCourse(18, 22, -19, 15, -8, C.green, true, 'plate'));
   land.push(R('3470', C.olive, -7, 17), R('3778', C.dgreen, -12, 17), R('3470', C.green, -17, 17), R('3470', C.olive, 7, 17), R('3778', C.dgreen, 12, 17), R('3471', C.green, 17, 17));
   land.push(R('3778', C.dgreen, -21, 8), R('3470', C.olive, -20, 0), R('3471', C.green, -20, -9), R('3471', C.dgreen, -20, -17), R('3778', C.dgreen, 21, 8), R('3470', C.green, 20, 0), R('3778', C.dgreen, 21, -9), R('3471', C.dgreen, 20, -17));
-  land.push(R('3470', C.olive, -14, 9), R('2417', C.green, -9, -11), R('2417', C.dgreen, 15, -3), R('3741ac01', C.yellow, -3, -11), R('3741ac04', C.red, 3.5, -11), R('6255', C.green, -16, -9), R('6255', C.green, 16, 11));
+  land.push(R('3470', C.olive, -14, 9), R('2417', C.green, -9, -11), R('2417', C.dgreen, 15, -3), R('3741ac01', C.yellow, -3, -11), R('3741ac04', C.red, 3.5, -11));
   return { house, court, feast, wall, land };
 }
 const SETS = {
