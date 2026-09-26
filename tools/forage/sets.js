@@ -827,17 +827,17 @@ function swineherd() {
 }
 /* ── the opening of the Odyssey (Homer I) ──
    Cells are stud squares [x, x+1) × [z, z+1), authored with the back at −z (the room turns them about); a part's x, z is its centre. */
-/* a throne of the gods: 4 studs across, 3 deep, a seat for a minifigure between two arm posts, the back `tall` bricks high.
+/* a throne of the gods: 6 studs across, 3 deep, a seat for a minifigure (arms and all) between two arm posts, the back `tall` bricks high.
    dir: 'S' faces +z (the front), 'E' faces +x, 'W' faces −x; (ox, oz) its lowest cell; o.base the underside of its footing */
 function godThrone(ox, oz, dir, frame, cloth, o = {}) {
   const base = o.base != null ? o.base : -8, tall = o.tall || 3, gold = o.trim != null ? o.trim : C.gold, out = [];
   const cell = (u, v) => dir === 'S' ? [ox + u, oz + v] : dir === 'E' ? [ox + v, oz + u] : [ox + 2 - v, oz + u];
   const rect = (u0, u1, v0, v1) => { const a = cell(u0, v0), b = cell(u1 - 1, v1 - 1); return [Math.min(a[0], b[0]), Math.max(a[0], b[0]) + 1, Math.min(a[1], b[1]), Math.max(a[1], b[1]) + 1]; };
   const fill = (r, y, col, kind) => { const [x0, x1, z0, z1] = rect(...r); return fillCourse(x0, x1, z0, z1, y, col, dir !== 'S', kind); };
-  out.push(...fill([0, 4, 0, 3], base, frame), ...fill([0, 4, 1, 3], base - 24, cloth, 'plate'));
-  for (let k = 0; k < tall; k++) out.push(...fill([0, 4, 0, 1], base - 24 - 24 * k, k === tall - 1 ? gold : frame));
-  for (const u of [0, 3]) { const [x, z] = cell(u, 0); out.push({ id: '4589', col: gold, x: x + 0.5, z: z + 0.5, base: base - 24 - 24 * tall }); }
-  for (const u of [0, 3]) { const [x, z] = cell(u, 2); out.push({ id: '3062b', col: gold, x: x + 0.5, z: z + 0.5, base: base - 32 }); }
+  out.push(...fill([0, 6, 0, 3], base, frame), ...fill([0, 6, 1, 3], base - 24, cloth, 'plate'));
+  for (let k = 0; k < tall; k++) out.push(...fill([0, 6, 0, 1], base - 24 - 24 * k, k === tall - 1 ? gold : frame));
+  for (const u of [0, 5]) { const [x, z] = cell(u, 0); out.push({ id: '4589', col: gold, x: x + 0.5, z: z + 0.5, base: base - 24 - 24 * tall }); }
+  for (const u of [0, 5]) { const [x, z] = cell(u, 2); out.push({ id: '3062b', col: gold, x: x + 0.5, z: z + 0.5, base: base - 32 }); }
   return { list: out, arm: u => { const [x, z] = cell(u, 2); return [x + 0.5, z + 0.5, base - 56]; }, top: u => { const [x, z] = cell(u, 0); return [x + 0.5, z + 0.5, base - 24 - 24 * tall]; } };
 }
 /* a bank of cloud on a rectangle of cells: a course of white plates, white domes and round bricks billowing on it, clear wisps */
@@ -862,14 +862,14 @@ function olympusTerrace() {
   terrace.push(...fillCourse(-1, 1, -8, 16, -8, C.gold, true, 'tile'));
   for (const x of [-2, 1]) terrace.push(...fillCourse(x, x + 1, -8, 16, -8, C.white, true, 'tile'));
   terrace.push(...fillCourse(-7, 7, -10, -8, -8, C.white, false, 'plate'), ...fillCourse(-7, 7, -10, -9, -16, C.gold, false, 'tile'));
-  terrace.push(...fillCourse(-7, 7, -14, -10, -8, C.white, false), ...fillCourse(-7, 7, -11, -10, -32, C.gold, false, 'tile'), ...fillCourse(-7, -2, -14, -11, -32, C.white, false, 'tile'), ...fillCourse(2, 7, -14, -11, -32, C.white, false, 'tile'));
+  terrace.push(...fillCourse(-7, 7, -14, -10, -8, C.white, false), ...fillCourse(-7, 7, -11, -10, -32, C.gold, false, 'tile'), ...fillCourse(-7, -3, -14, -11, -32, C.white, false, 'tile'), ...fillCourse(3, 7, -14, -11, -32, C.white, false, 'tile'));
   /* the thrones: Zeus's on the dais, high-backed; Athena's and Hera's either side; two down each side of the council */
-  const zeus = godThrone(-2, -14, 'S', C.white, C.dblue, { base: -32, tall: 5 }); thrones.push(...zeus.list);
-  thrones.push({ id: '98138', col: C.tYellow, x: zeus.top(1)[0], z: zeus.top(1)[1], base: zeus.top(1)[2] }, { id: '98138', col: C.tYellow, x: zeus.top(2)[0], z: zeus.top(2)[1], base: zeus.top(2)[2] });
-  thrones.push(...godThrone(-11, -12, 'S', C.white, C.olive).list, ...godThrone(7, -12, 'S', C.white, C.dred).list);
-  thrones.push(...godThrone(-16, -6, 'E', C.white, C.purple).list, ...godThrone(-16, 1, 'E', C.white, C.dred).list, ...godThrone(13, 1, 'W', C.white, C.dgreen).list);
-  const pos = godThrone(13, -6, 'W', C.lbg, C.dblue, { trim: C.tDBlue, tall: 4 }); poseidon.push(...pos.list);
-  const arm = pos.arm(3); poseidon.push({ id: '92290', col: C.gold, x: arm[0], z: arm[1], base: arm[2] - 2 });   /* the trident, its shaft in the hollow stud of the arm */
+  const zeus = godThrone(-3, -14, 'S', C.white, C.dblue, { base: -32, tall: 5 }); thrones.push(...zeus.list);
+  for (const u of [1, 2, 3, 4]) thrones.push({ id: '98138', col: C.tYellow, x: zeus.top(u)[0], z: zeus.top(u)[1], base: zeus.top(u)[2] });
+  thrones.push(...godThrone(-13, -12, 'S', C.white, C.olive).list, ...godThrone(8, -12, 'S', C.white, C.dred).list);
+  thrones.push(...godThrone(-16, -7, 'E', C.white, C.purple).list, ...godThrone(-16, 1, 'E', C.white, C.dred).list, ...godThrone(13, 1, 'W', C.white, C.dgreen).list);
+  const pos = godThrone(13, -7, 'W', C.lbg, C.dblue, { trim: C.tDBlue, tall: 4 }); poseidon.push(...pos.list);
+  const arm = pos.arm(5); poseidon.push({ id: '92290', col: C.gold, x: arm[0], z: arm[1], base: arm[2] - 2 });   /* the trident, its shaft in the hollow stud of the arm */
   /* the colonnade: six white columns on gold bases, gold capitals, a gold architrave, a white frieze, gold tiles along the top */
   for (const x of [-17, -11, -5, 3, 9, 15]) { colonnade.push({ id: '3022', col: C.gold, x: x + 1, z: -15, base: -8 });   /* each shaft four round bricks a course: fluted */
     for (let k = 0; k < 8; k++) for (const [a, b] of [[0.5, -15.5], [1.5, -15.5], [0.5, -14.5], [1.5, -14.5]]) colonnade.push({ id: '3062b', col: C.white, x: x + a, z: b, base: -16 - 24 * k });
@@ -878,10 +878,10 @@ function olympusTerrace() {
   /* braziers of gold either side of the way, fire in them */
   for (const x of [-4, 4]) garden.push({ id: '3062b', col: C.gold, x: x + 0.5, z: 3.5, base: -8 }, { id: '3062b', col: C.gold, x: x + 0.5, z: 3.5, base: -32 }, { id: '3062b', col: C.tOrange, x: x + 0.5, z: 3.5, base: -56 }, { id: '4589', col: C.yellow, x: x + 0.5, z: 3.5, base: -80 });
   /* the garden: cypresses flanking the way, olives at the front corners, poplars behind the side thrones; flowers in gold pots */
-  garden.push(R('3778', C.dgreen, -5, 12), R('3778', C.dgreen, 5, 12), R('3470', C.sgreen, -11, 11), R('3470', C.sgreen, 11, 11), R('3471', C.green, -14, -10), R('3471', C.green, 14, -10));
+  garden.push(R('3778', C.dgreen, -5, 12), R('3778', C.dgreen, 5, 12), R('3470', C.sgreen, -10, 11), R('3470', C.sgreen, 10, 11), R('3471', C.green, -16, 10), R('3471', C.green, 16, 10));
   for (const [x, z] of [[-8, 7], [8, 7], [-8, -3], [8, -3]]) garden.push({ id: '3062b', col: C.gold, x: x + 0.5, z: z + 0.5, base: -8 }, R(x % 16 ? '3741ac01' : '3741ac04', x < 0 ? C.yellow : C.red, x + 0.5, z + 0.5, -32));
   /* the cloud sea: banks along the front edge (either side of the way) and down both sides */
-  clouds.push(...cloudBank(-18, -8, 14, 16, 1, 2), ...cloudBank(8, 18, 14, 16, 2, 2), ...cloudBank(-18, -16, -12, 14, 3, 2), ...cloudBank(16, 18, -12, 14, 4, 2));
+  clouds.push(...cloudBank(-18, -8, 14, 16, 1, 2), ...cloudBank(8, 18, 14, 16, 2, 2), ...cloudBank(-18, -16, -12, 6, 3, 2), ...cloudBank(16, 18, -12, 6, 4, 2));
   return { terrace, thrones, poseidon, colonnade, garden, clouds };
 }
 /* the gate of Odysseus's house at Ithaca in the late afternoon (Homer I: "she took her stand on Ithaca, at the gateway of Ulysses' house
