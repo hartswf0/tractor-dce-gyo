@@ -274,7 +274,8 @@ def page(k, frames):
     d = os.path.join(KITS, k['slug'])
     imgs = k.get('images', [])
     hero = next((i for i in imgs if i['file'] == k.get('hero')), imgs[0] if imgs else None)
-    rest = [i for i in imgs if i is not hero]
+    subs = {x.get('file') for x in k.get('subs', [])}
+    rest = [i for i in imgs if i is not hero and i['file'] not in subs]   # the sub-assemblies show under their own heading
     out = [HEAD.format(title=E(k['title']), style=STYLE)]
     out.append(f'''  <div class="kicker"><a href="../">The Odyssey Line</a> · {E(k.get("tier", ""))} · Book {E(k.get("book", ""))} · {k["pieces"]:,} pieces</div>
   <h1>{E(k["title"])}</h1>

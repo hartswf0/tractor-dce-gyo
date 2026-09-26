@@ -776,7 +776,8 @@ if __name__ == '__main__':
                    'double-bladed heads of the halfworld prop.',
                    'The arrow is 32 studs long (about 12 m at minifig scale): it stands for the arrow\'s whole flight down the line.',
                    'The griffins behind the throne, at 8 x 5 tiles, read as a pattern more than as griffins.',
-                   'From most angles the clerestory hides part of the throne.',
+                   'From most angles the clerestory hides part of the throne, and Penelope at the stair head is hard to see from the '
+                   'front; she needs a close-up of her own.',
                    'A plate-height gap is left above the door frames (the checker reads the frames\' corner studs as their top); '
                    'the lintel rests on the wall either side.',
                    'Minifigures, the tiles and plates on side studs, the arrow, the door leaves and the flames are not checked by the '
