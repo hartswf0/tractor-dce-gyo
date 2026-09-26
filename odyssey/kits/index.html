@@ -7,207 +7,209 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
 <style>
-/* the product line of the film's Troy: each module is a real LDraw build (tools/forage/product/modules.js), photographed by tools/forage/look.js --studio */
-:root { --bg: #f3eee4; --ink: #231b14; --muted: #6d6053; --card: #fffaf1; --rule: #d9cdb8; --accent: #7a3b12; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #0d0b09; --ink: #efe6d8; --muted: #a8998a; --card: #17130f; --rule: #2e2721; --accent: #d98a4a; } }
-:root[data-theme="dark"] { --bg: #0d0b09; --ink: #efe6d8; --muted: #a8998a; --card: #17130f; --rule: #2e2721; --accent: #d98a4a; }
+:root { --paper: #f4f4f0; --ink: #141414; --muted: #5d5a52; --card: #fbfbf8; --rule: #d8d6ce; --blue: #0033cc; --gold: #a8801e; --ok: #1d6b3a; --bad: #b3261e; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --paper: #0f0f0e; --ink: #ecebe6; --muted: #a09d94; --card: #181816; --rule: #2c2b28; --blue: #6f8cff; --gold: #d8b25a; --ok: #6fcf8f; --bad: #ff8a80; } }
+:root[data-theme="dark"] { --paper: #0f0f0e; --ink: #ecebe6; --muted: #a09d94; --card: #181816; --rule: #2c2b28; --blue: #6f8cff; --gold: #d8b25a; --ok: #6fcf8f; --bad: #ff8a80; }
 * { box-sizing: border-box; }
-body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.55 Inter, system-ui, sans-serif; }
-main { max-width: 1180px; margin: 0 auto; padding: 32px 16px 64px; }
-h1, h2, h3 { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 700; margin: 0; }
-h1 { font-size: clamp(40px, 7vw, 72px); line-height: 1; }
-h2 { font-size: 30px; margin: 52px 0 14px; }
-h3 { font-size: 24px; margin: 0 0 6px; }
-.kicker { text-transform: uppercase; letter-spacing: 0.18em; font-size: 12px; color: var(--accent); font-weight: 600; }
-.lede { font-size: 19px; color: var(--muted); max-width: 760px; margin: 14px 0 26px; }
-img { width: 100%; display: block; border-radius: 6px; background: #000; }
-figure { margin: 0; }
-figcaption { font-size: 13px; color: var(--muted); padding: 8px 2px 0; }
-table { width: 100%; border-collapse: collapse; font-size: 14px; } td, th { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--rule); vertical-align: top; } th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
-.kit { display: grid; grid-template-columns: 1.3fr 1fr; gap: 24px; align-items: start; padding: 22px 0; border-top: 1px solid var(--rule); }
-.kit .n { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
-.kit ul { padding-left: 18px; margin: 10px 0 0; }
-.kit li { margin: 4px 0; }
-.grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
-.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-blockquote { margin: 0; padding: 12px 16px; border-left: 3px solid var(--accent); background: var(--card); font-family: 'Cormorant Garamond', Georgia, serif; font-size: 20px; }
-footer { margin-top: 56px; font-size: 13px; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 16px; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.55 Inter, system-ui, sans-serif; }
+main { max-width: 1240px; margin: 0 auto; padding: 36px 16px 72px; }
+h1, h2, h3 { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+h1 { font-size: clamp(42px, 8vw, 84px); line-height: .95; }
+h2 { font-size: 32px; margin: 64px 0 6px; padding-top: 14px; border-top: 3px solid var(--ink); }
+h3 { font-size: 23px; line-height: 1.1; }
+p { margin: 8px 0; }
+a { color: var(--blue); }
+.kicker { text-transform: uppercase; letter-spacing: .2em; font-size: 12px; font-weight: 600; color: var(--blue); }
+.lede { font-size: 19px; color: var(--muted); max-width: 820px; margin: 16px 0 22px; }
+.sub { color: var(--muted); max-width: 820px; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border: 2px solid var(--ink); margin: 26px 0 8px; }
+.stats div { padding: 14px 16px; border-right: 1px solid var(--rule); } .stats div:last-child { border-right: 0; }
+.stats b { display: block; font: 700 38px/1 'Cormorant Garamond', Georgia, serif; }
+.stats span { font-size: 12px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
+.ribbon { display: grid; grid-template-columns: repeat(24, 1fr); gap: 2px; margin: 18px 0 4px; }
+.ribbon a, .ribbon div { display: block; min-height: 64px; padding: 4px 2px; text-align: center; text-decoration: none; color: var(--ink); background: var(--card); border: 1px solid var(--rule); font-size: 11px; }
+.ribbon .has { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.ribbon .film { box-shadow: inset 0 -4px 0 var(--blue); }
+.ribbon i { display: block; font-style: normal; font-weight: 700; font-size: 13px; }
+.legend { font-size: 12px; color: var(--muted); }
+.legend s { display: inline-block; width: 12px; height: 12px; vertical-align: -2px; margin: 0 4px 0 12px; text-decoration: none; }
+.filters { display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0; }
+.filters button { font: 600 13px Inter, sans-serif; padding: 7px 12px; border: 1.5px solid var(--ink); background: transparent; color: var(--ink); cursor: pointer; }
+.filters button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 18px; }
+.card { background: var(--card); border: 1px solid var(--rule); display: flex; flex-direction: column; text-decoration: none; color: var(--ink); }
+.card:hover { border-color: var(--ink); }
+.card img { width: 100%; aspect-ratio: 16/11; object-fit: cover; display: block; background: #000; }
+.card .body { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.meta { font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+.meta b { color: var(--blue); }
+.card p { font-size: 14px; color: var(--muted); }
+.badge { margin-top: auto; font-size: 12px; font-weight: 600; }
+.badge.ok { color: var(--ok); } .badge.bad { color: var(--bad); }
+.noimg { width: 100%; aspect-ratio: 16/11; background: repeating-linear-gradient(45deg, var(--rule) 0 2px, transparent 2px 10px); }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+td, th { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+td.n { text-align: right; font-variant-numeric: tabular-nums; }
+td.ok { color: var(--ok); font-weight: 600; } td.bad { color: var(--bad); font-weight: 600; }
+.tablewrap { overflow-x: auto; }
+.frames { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+figure { margin: 0; } figure img { width: 100%; display: block; background: #000; }
+.frames img { aspect-ratio: 16/10; object-fit: cover; }
+figcaption { font-size: 13px; color: var(--muted); padding: 6px 2px 0; }
+.links { columns: 2; column-gap: 32px; } .links li { margin: 4px 0; break-inside: avoid; }
+footer { margin-top: 64px; font-size: 13px; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 16px; }
 code { font-size: 13px; }
-a { color: var(--accent); }
-@media (max-width: 760px) { .kit, .grid3, .grid2 { grid-template-columns: 1fr; } }
+.kitgrid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 26px; align-items: start; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+blockquote { margin: 16px 0; padding: 12px 16px; border-left: 3px solid var(--blue); background: var(--card); font-family: 'Cormorant Garamond', Georgia, serif; font-size: 21px; }
+.sub-row { display: grid; grid-template-columns: 1fr 1.3fr; gap: 20px; padding: 16px 0; border-top: 1px solid var(--rule); align-items: start; }
+@media (max-width: 800px) { .stats { grid-template-columns: repeat(2, 1fr); } .stats div:nth-child(2) { border-right: 0; }
+  .ribbon { grid-template-columns: repeat(8, 1fr); } .links { columns: 1; } .kitgrid, .two, .sub-row { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
 <main>
-  <div class="kicker">Design brief · production design, architecture, archaeology</div>
+
+  <div class="kicker">Word to World · the Odyssey in LEGO</div>
   <h1>The Odyssey Line</h1>
-  <p class="lede">What people will want to build, and why: kits made around the moments of the poem, not the places. Each one big enough to
-    hold its action, with one mechanism that re-enacts it, figures you can't get anywhere else, and a look no other line has, because it
-    is drawn from the Bronze Age the poem remembers and not from the marble Greece of a later age.</p>
-
-  <h2>Five rules</h2>
-  <div class="kit" style="grid-template-columns:1fr">
-    <ul>
-      <li><b>The moment, then the room.</b> Every flagship is sized from its beat: the hall is as long as the line of twelve axes and the
-        bowshot needs; the cave as deep as a giant, a flock and a fire; the strait as tall as Scylla's reach.</li>
-      <li><b>One mechanism that tells the story.</b> The door-stone rolls shut on the cave; the great doors of the hall swing closed; the
-        horse rolls up the ramp and its flank lifts off; the whirlpool turns; the side wall lifts out so the camera and the child can go in.</li>
-      <li><b>The Bronze Age, not the Parthenon.</b> Cyclopean masonry, the leaning saw-toothed walls of Troy VI, red columns that taper
-        downward, fresco palettes of ochre, red and Egyptian blue, pithos magazines, boar's-tusk helmets, figure-eight shields, ships with
-        bird-head prows. This is the look that makes the line its own.</li>
-      <li><b>Scale is the world's.</b> A minifigure is a person of 1.75 m: a course 0.44 m, a stud 0.37 m. The horse is 15 m; everything
-        is sized to stand beside it.</li>
-      <li><b>Every part clicks.</b> Nothing floats, nothing passes through anything; the checker proves it for every build.</li>
-    </ul>
+  <p class="lede">Every kit made from the poem so far, in the order the poem tells it. Each is one moment and the one object that performs
+    it, built in real parts at minifigure scale and checked by machine: every part must click to the studs below it, and no two parts may
+    fill the same space. Beside each kit, the frames of the film it came from.</p>
+  <div class="stats">
+    <div><b>2</b><span>kits</span></div>
+    <div><b>5,432</b><span>pieces in the kits</span></div>
+    <div><b>5 / 13</b><span>builds that pass the checker</span></div>
+    <div><b>29</b><span>film scenes with keyframes</span></div>
   </div>
-
-  <h2>The Ideas bar</h2>
-  <p>What the approved projects share. The Old Man and the Sea, approved from the 2025 review in April 2026, is about 1,300 pieces: a
-    literary scene split into the boat, the marlin and the sea, each of which stands on its own, the fish caught at the height of its fight.
-    LEGO Ideas takes a submission of 200 to 5,000 pieces, one concept, a main model with a few smaller supporting builds. Held to that:</p>
-  <div class="kit" style="grid-template-columns:1fr">
-    <ul>
-      <li><b>Under 5,000 pieces, aiming for 2,500 to 4,000.</b> The first Cyclops' Cave was 5,851 and could not have been submitted; it is now 3,215.</li>
-      <li><b>One concept: a main model and a supporting build that each stand alone</b>, and join into one diorama.</li>
-      <li><b>The peak of the story, posed.</b> Not the cave, but the stake going into the eye; not the hall, but the bow drawn on the threshold.</li>
-      <li><b>Finished surfaces.</b> No rock or wall is a field of bare studs: tiles on the flat, cheese slopes off every edge, studs only where something stands.</li>
-      <li><b>Texture from real parts:</b> strata of dark tan in the grey, moss in patches with plants growing from it, water of mixed blue and clear tiles with foam.</li>
-      <li><b>A play feature that works,</b> and a nameplate on the base.</li>
-      <li><b>Proven:</b> every part clicks to the studs below, and no two parts fill the same space. <code>tools/forage/product/clicks.py</code>
-        now checks both.</li>
-    </ul>
+  <h2>The poem, book by book</h2>
+  <p class="sub">Twenty-four books. Black: a kit is made from this book. Blue underline: the film has keyframes here.</p>
+  <div class="ribbon">
+    <div class="" title="Book I"><i>I</i></div>
+    <div class="film" title="Book II"><i>II</i></div>
+    <div class="" title="Book III"><i>III</i></div>
+    <a href="#kit-wooden-horse" class="has film" title="Book IV"><i>IV</i>Wooden Horse<br>Citadel of Troy</a>
+    <div class="film" title="Book V"><i>V</i></div>
+    <div class="film" title="Book VI"><i>VI</i></div>
+    <div class="" title="Book VII"><i>VII</i></div>
+    <div class="film" title="Book VIII"><i>VIII</i></div>
+    <a href="#kit-cyclops" class="has film" title="Book IX"><i>IX</i>Cave of the Cyclops</a>
+    <div class="film" title="Book X"><i>X</i></div>
+    <div class="film" title="Book XI"><i>XI</i></div>
+    <div class="film" title="Book XII"><i>XII</i></div>
+    <div class="film" title="Book XIII"><i>XIII</i></div>
+    <div class="film" title="Book XIV"><i>XIV</i></div>
+    <div class="" title="Book XV"><i>XV</i></div>
+    <div class="film" title="Book XVI"><i>XVI</i></div>
+    <a href="#kit-ithaca" class="has film" title="Book XVII"><i>XVII</i>Palace of Odysseus</a>
+    <div class="" title="Book XVIII"><i>XVIII</i></div>
+    <div class="film" title="Book XIX"><i>XIX</i></div>
+    <div class="" title="Book XX"><i>XX</i></div>
+    <div class="film" title="Book XXI"><i>XXI</i></div>
+    <div class="film" title="Book XXII"><i>XXII</i></div>
+    <div class="film" title="Book XXIII"><i>XXIII</i></div>
+    <div class="film" title="Book XXIV"><i>XXIV</i></div>
   </div>
-  <p>Held to that last line, the earlier Troy and Ithaca modules do not yet pass. Their first checker was looser, and the strict one finds
-    parts that do not click (81 in the Great Hall) and parts that pass through each other (807 pairs in the hall, 366 in the Scaean Gate).
-    They are rebuilt to the bar as their flagships come up, starting with the Hall at the Slaughter.</p>
-
-  <h2>A correction</h2>
-  <p>The Temple of Athena I built for Troy is a Classical peripteral temple, eight centuries too late for the city of the war. Troy VI and
-    VIIa had no marble colonnades: their sanctuaries were megaron-shaped shrines inside the citadel, their walls sloping limestone with
-    vertical offsets, their houses mudbrick on stone footings. The next pass on Troy rebuilds it that way (the blockout below is the start),
-    and keeps the white temple only as what it is: a later dream of Troy.</p>
-
-  <h2>The flagships, blocked out</h2>
-  <p>Grey massing models: rock in grey, masonry in its colour, water in blue, with the story's real props and minifigures for scale
-    (<code>tools/forage/product/blockouts.js</code>). Each is the composition before the detail.</p>
-
-  <div class="kit">
-    <figure><img src="blockouts/cyclops-cave.jpg" alt="Massing model of a cliff with a cave cut into it, open on one side, a giant inside, rams and men at the mouth, a door-stone rolled aside, a ship on the beach below"></figure>
-    <div>
-      <div class="n">Book IX · about 3,300 pieces blocked</div>
-      <h3>The Cyclops' Cave</h3>
-      <p><b>The moment:</b> the escape at dawn, each man slung under a ram, the blinded giant at the door feeling their fleeces.</p>
-      <ul>
-        <li>A headland 13 m high with a vault 6 m high and 13 m deep cut into it; its east side lifts off</li>
-        <li><b>Mechanism:</b> the door-stone that "twenty-two waggons could not draw" slides shut on its track</li>
-        <li>Inside: the fire and the olive stake heating in it, the pens of ewes and lambs, milk pails and cheese racks, Polyphemus</li>
-        <li>Below: the beach and the black ship, bow to the shore, for the boulder he throws</li>
-        <li>Figures: Polyphemus, Odysseus and three companions, three rams with a man clinging under one</li>
-      </ul>
-    </div>
+  <div class="legend"><s style="background:var(--ink)"></s>a kit<s style="box-shadow:inset 0 -4px 0 var(--blue);border:1px solid var(--rule)"></s>film keyframes</div>
+  <h2>The kits</h2>
+  <p class="sub">Held to the Ideas bar: 200 to 5,000 pieces, one concept, the peak of the story posed, finished surfaces, a play feature that works. <a href="brief.html">The design brief</a> sets it out.</p>
+  <div class="filters" role="group" aria-label="Filter kits"><button type="button" data-f="All" aria-pressed="true">All</button><button type="button" data-f="Flagship" aria-pressed="false">Flagship</button><button type="button" data-f="Large" aria-pressed="false">Large</button><button type="button" data-f="Medium" aria-pressed="false">Medium</button><button type="button" data-f="Vignette" aria-pressed="false">Vignette</button><button type="button" data-f="Module" aria-pressed="false">Earlier modules</button></div>
+  <div class="grid" id="kits">
+    <a class="card" id="kit-wooden-horse" data-t="Flagship" href="wooden-horse/"><img src="wooden-horse/hero.jpg" alt="The Wooden Horse" loading="lazy"><div class="body">
+      <div class="meta"><b>Flagship</b> · Book IV · 2,217 pieces</div>
+      <h3>The Wooden Horse</h3><p>The horse left before Troy, the best of the Greeks inside it.</p><p><b>The object:</b> The horse: rolls on its cart; the flank lifts off to the men inside.</p><span class="badge ok">every part clicks · no clashes</span></div></a>
+    <a class="card" id="kit-troy" data-t="Module" href="troy/"><img src="troy/gate.jpg" alt="The Citadel of Troy" loading="lazy"><div class="body">
+      <div class="meta"><b>Module</b> · Book IV · VIII · 2,817 pieces</div>
+      <h3>The Citadel of Troy</h3><p>The city the horse was dragged into: a temple, a gate torn open, houses you buy by the street.</p><p><b>The object:</b> Modules that join into the film set.</p><span class="badge bad">1,307 loose · 639 clashes: to rebuild</span></div></a>
+    <a class="card" id="kit-cyclops" data-t="Flagship" href="cyclops/"><img src="cyclops/hero.jpg" alt="The Cave of the Cyclops" loading="lazy"><div class="body">
+      <div class="meta"><b>Flagship</b> · Book IX · 3,215 pieces</div>
+      <h3>The Cave of the Cyclops</h3><p>The blinding: the olive stake, glowing, driven into the giant&#x27;s eye.</p><p><b>The object:</b> The stake; the east flank lifts off to show it.</p><span class="badge ok">every part clicks · no clashes</span></div></a>
+    <a class="card" id="kit-ithaca" data-t="Module" href="ithaca/"><img src="ithaca/hall-open.jpg" alt="The Palace of Odysseus" loading="lazy"><div class="body">
+      <div class="meta"><b>Module</b> · Book XVII–XXIII · 3,156 pieces</div>
+      <h3>The Palace of Odysseus</h3><p>The house the suitors eat: the hall, the court, the storeroom, Penelope&#x27;s chamber.</p><p><b>The object:</b> Modules that join into the palace.</p><span class="badge bad">88 loose · 1,712 clashes: to rebuild</span></div></a>
   </div>
-
-  <div class="kit">
-    <figure><img src="blockouts/slaughter.jpg" alt="Massing model of a long hall: a threshold, a line of twelve axes, a round hearth among four red columns, a high seat, tables down both sides with figures behind them"></figure>
-    <div>
-      <div class="n">Book XXII · about 1,500 pieces blocked</div>
-      <h3>The Hall at the Slaughter</h3>
-      <p><b>The moment:</b> Odysseus strips off his rags and leaps to the threshold with the bow; the doors are shut; the suitors are behind their tables.</p>
-      <ul>
-        <li>A long megaron, 11 by 22 m inside: longer than Pylos because the story's axis needs it: threshold, twelve axes, hearth, high seat</li>
-        <li><b>Mechanism:</b> the great doors swing shut and bar; the tables tip to become shields; the side wall lifts out</li>
-        <li>The stair to the storeroom Melanthius runs up for the arms; the side door; a gallery where the women watch</li>
-        <li>Athena sits on the roof-beam as a swallow, as she does in the poem</li>
-        <li>Figures: Odysseus in rags and armour, Telemachus, Eumaeus, Philoetius, Antinous with his cup, Eurymachus, the suitors</li>
-      </ul>
-    </div>
+  <h2>In the film</h2>
+  <p class="sub">Keyframes from the film's previs, each checked by the keyframe gate (<code>film-readymades/keyframes.cjs</code>). Where a kit has been made of the scene, it is named.</p>
+  <div class="frames">
+    <figure><img src="../keyframes/OD-B02-S02/sheet.jpg" alt="Keyframes of Penelope&#x27;s Web" loading="lazy"><figcaption>OD-B02-S02 · Penelope&#x27;s Web</figcaption></figure>
+    <figure><img src="../keyframes/OD-B04-S04/sheet.jpg" alt="Keyframes of The Wooden Horse" loading="lazy"><figcaption>OD-B04-S04 · The Wooden Horse · <a href="troy/">The Citadel of Troy</a></figcaption></figure>
+    <figure><img src="../keyframes/OD-B04-S05/sheet.jpg" alt="Keyframes of Menelaus and Proteus" loading="lazy"><figcaption>OD-B04-S05 · Menelaus and Proteus</figcaption></figure>
+    <figure><img src="../keyframes/OD-B05-S04/sheet.jpg" alt="Keyframes of Calypso&#x27;s Raft" loading="lazy"><figcaption>OD-B05-S04 · Calypso&#x27;s Raft</figcaption></figure>
+    <figure><img src="../keyframes/OD-B05-S05/sheet.jpg" alt="Keyframes of Poseidon&#x27;s Storm" loading="lazy"><figcaption>OD-B05-S05 · Poseidon&#x27;s Storm</figcaption></figure>
+    <figure><img src="../keyframes/OD-B06-S03/sheet.jpg" alt="Keyframes of Nausicaa" loading="lazy"><figcaption>OD-B06-S03 · Nausicaa</figcaption></figure>
+    <figure><img src="../keyframes/OD-B08-S05/sheet.jpg" alt="Keyframes of The Trojan Horse Song and the Name" loading="lazy"><figcaption>OD-B08-S05 · The Trojan Horse Song and the Name · <a href="wooden-horse/">The Wooden Horse</a></figcaption></figure>
+    <figure><img src="../keyframes/OD-B09-S03/sheet.jpg" alt="Keyframes of The Lotus-Eaters" loading="lazy"><figcaption>OD-B09-S03 · The Lotus-Eaters</figcaption></figure>
+    <figure><img src="../keyframes/OD-B09-S09/sheet.jpg" alt="Keyframes of The Blinding" loading="lazy"><figcaption>OD-B09-S09 · The Blinding · <a href="cyclops/">The Cave of the Cyclops</a></figcaption></figure>
+    <figure><img src="../keyframes/OD-B09-S11/sheet.jpg" alt="Keyframes of The Boast" loading="lazy"><figcaption>OD-B09-S11 · The Boast · <a href="cyclops/">The Cave of the Cyclops</a></figcaption></figure>
+    <figure><img src="../keyframes/OD-B10-S01/sheet.jpg" alt="Keyframes of Aeolus and the Bag of Winds" loading="lazy"><figcaption>OD-B10-S01 · Aeolus and the Bag of Winds</figcaption></figure>
+    <figure><img src="../keyframes/OD-B10-S02/sheet.jpg" alt="Keyframes of The Laestrygonians" loading="lazy"><figcaption>OD-B10-S02 · The Laestrygonians</figcaption></figure>
+    <figure><img src="../keyframes/OD-B10-S04/sheet.jpg" alt="Keyframes of Circe Transforms The Crew" loading="lazy"><figcaption>OD-B10-S04 · Circe Transforms The Crew</figcaption></figure>
+    <figure><img src="../keyframes/OD-B10-S05/sheet.jpg" alt="Keyframes of Hermes and the Moly" loading="lazy"><figcaption>OD-B10-S05 · Hermes and the Moly</figcaption></figure>
+    <figure><img src="../keyframes/OD-B11-S01/sheet.jpg" alt="Keyframes of The Underworld" loading="lazy"><figcaption>OD-B11-S01 · The Underworld</figcaption></figure>
+    <figure><img src="../keyframes/OD-B12-S03/sheet.jpg" alt="Keyframes of The Sirens&#x27; Song" loading="lazy"><figcaption>OD-B12-S03 · The Sirens&#x27; Song</figcaption></figure>
+    <figure><img src="../keyframes/OD-B12-S04/sheet.jpg" alt="Keyframes of Between Scylla and Charybdis" loading="lazy"><figcaption>OD-B12-S04 · Between Scylla and Charybdis</figcaption></figure>
+    <figure><img src="../keyframes/OD-B12-S06/sheet.jpg" alt="Keyframes of The Cattle of the Sun" loading="lazy"><figcaption>OD-B12-S06 · The Cattle of the Sun</figcaption></figure>
+    <figure><img src="../keyframes/OD-B12-S07/sheet.jpg" alt="Keyframes of The Wreck" loading="lazy"><figcaption>OD-B12-S07 · The Wreck</figcaption></figure>
+    <figure><img src="../keyframes/OD-B13-S01/sheet.jpg" alt="Keyframes of Home to Ithaca" loading="lazy"><figcaption>OD-B13-S01 · Home to Ithaca</figcaption></figure>
+    <figure><img src="../keyframes/OD-B14-S01/sheet.jpg" alt="Keyframes of The Dogs at the Swineherd&#x27;s Yard" loading="lazy"><figcaption>OD-B14-S01 · The Dogs at the Swineherd&#x27;s Yard</figcaption></figure>
+    <figure><img src="../keyframes/OD-B16-S03/sheet.jpg" alt="Keyframes of The Father Revealed" loading="lazy"><figcaption>OD-B16-S03 · The Father Revealed</figcaption></figure>
+    <figure><img src="../keyframes/OD-B17-S03/sheet.jpg" alt="Keyframes of Argos" loading="lazy"><figcaption>OD-B17-S03 · Argos</figcaption></figure>
+    <figure><img src="../keyframes/OD-B19-S04/sheet.jpg" alt="Keyframes of Eurycleia and the Scar" loading="lazy"><figcaption>OD-B19-S04 · Eurycleia and the Scar</figcaption></figure>
+    <figure><img src="../keyframes/OD-B21-S07/sheet.jpg" alt="Keyframes of The Bow" loading="lazy"><figcaption>OD-B21-S07 · The Bow</figcaption></figure>
+    <figure><img src="../keyframes/OD-B22-S01/sheet.jpg" alt="Keyframes of Antinous Falls" loading="lazy"><figcaption>OD-B22-S01 · Antinous Falls · <a href="ithaca/">The Palace of Odysseus</a></figcaption></figure>
+    <figure><img src="../keyframes/OD-B23-S04/sheet.jpg" alt="Keyframes of The Olive Bed" loading="lazy"><figcaption>OD-B23-S04 · The Olive Bed</figcaption></figure>
+    <figure><img src="../keyframes/OD-B24-S03/sheet.jpg" alt="Keyframes of Laertes in the Orchard" loading="lazy"><figcaption>OD-B24-S03 · Laertes in the Orchard</figcaption></figure>
+    <figure><img src="../keyframes/OD-B24-S05/sheet.jpg" alt="Keyframes of Laertes Restored" loading="lazy"><figcaption>OD-B24-S05 · Laertes Restored</figcaption></figure>
   </div>
-
-  <div class="kit">
-    <figure><img src="blockouts/walls-of-troy.jpg" alt="Massing model of a stepped, sloping city wall with a tower, and the wooden horse standing in a breach in it"></figure>
-    <div>
-      <div class="n">Books IV, VIII · about 5,600 pieces blocked, horse included</div>
-      <h3>The Walls of Troy</h3>
-      <p><b>The moment:</b> the city tearing down its own wall to haul the horse in.</p>
-      <ul>
-        <li>Troy VI as it was dug: a limestone wall that leans back as it rises, stepping out every ten metres in its saw-tooth offsets</li>
-        <li>A great tower; the gate made tangential, the road running along the wall between two overlapping ends</li>
-        <li>The breach, and the ramp up to it; <b>mechanism:</b> the horse rolls on its cart, hauled by Trojans on ropes</li>
-        <li>Joins the Wooden Horse, and the citadel behind it</li>
-      </ul>
-    </div>
+  <h2>Blockouts</h2>
+  <p class="sub">The grey massing models each flagship began from: the composition before the detail.</p>
+  <div class="frames">
+    <figure><img src="blockouts/cyclops-cave.jpg" alt="Massing model: cyclops-cave" loading="lazy"><figcaption>cyclops cave</figcaption></figure>
+    <figure><img src="blockouts/scylla.jpg" alt="Massing model: scylla" loading="lazy"><figcaption>scylla</figcaption></figure>
+    <figure><img src="blockouts/slaughter.jpg" alt="Massing model: slaughter" loading="lazy"><figcaption>slaughter</figcaption></figure>
+    <figure><img src="blockouts/walls-of-troy.jpg" alt="Massing model: walls-of-troy" loading="lazy"><figcaption>walls of troy</figcaption></figure>
   </div>
-
-  <div class="kit">
-    <figure><img src="blockouts/scylla.jpg" alt="Massing model of a tall cliff over water with a monster's necks high on its face, a low rock with a fig tree across the channel, and a ship between"></figure>
-    <div>
-      <div class="n">Book XII · about 4,400 pieces blocked</div>
-      <h3>Scylla and Charybdis</h3>
-      <p><b>The moment:</b> the ship in the strait, the crew watching Charybdis suck down the sea, as Scylla's six heads come down from the other side.</p>
-      <ul>
-        <li>A vertical set: a smooth cliff 18 m tall, Scylla's cave high in it; across the channel a low rock with the great fig tree</li>
-        <li><b>Mechanism:</b> Charybdis turns (a turntable of rings), and the necks swing down on hinges</li>
-        <li>The ship with its crew at the oars; Odysseus in armour on the deck, a spear in each hand, as he tells it</li>
-        <li>Still to block: the cave mouth, the whirlpool in view, the ship's sail</li>
-      </ul>
-    </div>
-  </div>
-
-  <h2>What the film already decided</h2>
-  <p>The film this line comes from (<a href="https://hartswf0.github.io/odyssey-halfworld/">odyssey-halfworld</a>: 24 books, 152 scenes,
-    440 assets, each drawing itself) has already ranked the poem, and the kits follow its ranking rather than a new one.</p>
-  <div class="kit" style="grid-template-columns:1fr">
-    <ul>
-      <li><b>Its short film cuts to eight movements:</b> the Council, the Horse, the Cave and the Blinding, the Storm and the Raft, the Blood
-        Pit, the Loom, the Bow and the Hall, the Bed (<code>harness/build-sundance.mjs</code>).</li>
-      <li><b>It names a summit and a turn.</b> The Bed Test is "the summit: she knows him"; the stranger stringing the bow is "the turn"
-        (<code>scenes/_direction.mjs</code>). The Bed is the one scene the film draws by hand instead of assembling it, because it is the one
-        thing in the poem that cannot be moved or copied (<code>scenes/_authored/bed.mjs</code>).</li>
-      <li><b>Eight things perform the story:</b> the shroud, the scar, the bow, the stake, the oar, the bag of winds, the raft, the bed
-        (<code>scenes/_artifacts.mjs</code>). Each kit is built around one of them, and the thing is the play feature.</li>
-      <li><b>Recognition is the poem's central event, and it happens four times:</b> Helen, the scar, Argos, the bed.</li>
-      <li><b>The great hall is one plan with seven states</b> (day, feast, night, contest, battle, aftermath, cleaned), and every station in
-        it is plot: the sill he shoots from, the postern the arms come through, the axe line down the spine (<code>scenes/_plans/megaron.mjs</code>).</li>
-      <li><b>"A giant alone is not big."</b> The small man stays in the frame for scale (<code>odyssey-cut.html</code>). In a kit, the minifigure is that man.</li>
-      <li><b>The Horse is shown from inside</b>: ribs, light through the plank seams, the ladder, the men crouched. The Horse kit's lifting
-        flank should make that interior its hero picture.</li>
-      <li><b>The film's grammar is paper, ink and one blue</b> (#f4f4f0, #141414, #0033cc). The line takes it for its display bases: white
-        tiles edged in black, one blue tile, the nameplate in black and gold. Every box, one family.</li>
-    </ul>
-  </div>
-
-  <h2>The whole line</h2>
-  <p>Each kit is one moment and one object, held to the Ideas bar. The eight movements are the flagships and large sets; the four
-    recognitions are a series of small vignettes on matching bases, collected side by side.</p>
-  <table>
-    <tr><th>Tier</th><th>Kit</th><th>The moment</th><th>The object, and what it does</th><th>State</th></tr>
-    <tr><td>Flagship</td><td><a href="wooden-horse/">The Wooden Horse</a></td><td>The Greeks inside, the Trojans deciding</td><td>The horse: rolls on its cart, the flank lifts to the men inside</td><td>Built; re-shoot from inside</td></tr>
-    <tr><td>Flagship</td><td><a href="cyclops/">The Cave of the Cyclops</a></td><td>The blinding</td><td>The stake: laid glowing into the eye; the flank lifts off</td><td>Built to the bar, 3,215 pieces</td></tr>
-    <tr><td>Flagship</td><td>The Bow and the Hall</td><td>The turn: the bow strung on the sill, the arrow through the twelve axes</td><td>The bow and the axes: an arrow on a bar threads all twelve axe-heads; the doors bar; the wall lifts out</td><td>Blocked out; to rebuild strict</td></tr>
-    <tr><td>Flagship</td><td>Scylla and Charybdis</td><td>Between the six heads and the whirlpool</td><td>The necks swing down on hinges; the whirlpool turns; the fig tree over it</td><td>Blocked out</td></tr>
-    <tr><td>Large</td><td>The Bed</td><td>The summit: she knows him</td><td>The olive: its trunk is the bedpost and runs down through a cut-away floor into roots. Try to lift the bed out; it will not come.</td><td>Next</td></tr>
-    <tr><td>Large</td><td>Calypso's Isle and the Raft</td><td>He builds the raft, and the storm breaks it</td><td>The raft: built from the logs in the kit, lashed, a mast and sail; it comes apart again for the storm</td><td>To block</td></tr>
-    <tr><td>Large</td><td>The Land of the Dead</td><td>The trench of blood; the shades come</td><td>The oar and the pit: trans-clear shades on swivels rise round the trench; Elpenor's oar</td><td>To block</td></tr>
-    <tr><td>Large</td><td>Circe's House</td><td>Men turned to swine</td><td>The swine: heads swap to pigs' in the walled sty; wolves and lions at the door; the moly</td><td>To block</td></tr>
-    <tr><td>Medium</td><td>Penelope's Loom</td><td>She weaves by day and unpicks by night</td><td>The shroud: a panel of tiles that is woven on one face, unravelled on the other; the warp-weights of clay</td><td>To block</td></tr>
-    <tr><td>Medium</td><td>The Bag of Winds</td><td>The crew opens the bag in sight of Ithaca</td><td>The bag: ox-hide on the deck, and the winds burst out of it in trans-clear on a turntable</td><td>To block</td></tr>
-    <tr><td>Medium</td><td>The Sirens</td><td>Bound to the mast, the crew's ears waxed</td><td>The mast: a place to bind him; the meadow of bones</td><td>To block</td></tr>
-    <tr><td>Recognitions</td><td>Helen · The Scar · Argos · The Bed</td><td>The four times he is known</td><td>Four small vignettes on matching bases: Helen at the loom in Sparta; Eurycleia's basin and the scar; the dog on the dung heap by the gate ("one wall, two fates"); the bed in miniature</td><td>To block</td></tr>
-  </table>
-
-  <h2>The archaeology the look is drawn from</h2>
-  <table>
-    <tr><th>Source</th><th>What it gives the line</th></tr>
-    <tr><td>Mycenae: the Lion Gate, the Cyclopean walls</td><td>Masonry of huge irregular blocks; the relieving triangle over a gate</td></tr>
-    <tr><td>Troy VI and VIIa</td><td>Battered walls with vertical offsets, bastions, a tangential gate, houses of mudbrick on stone</td></tr>
-    <tr><td>Pylos, the Palace of Nestor</td><td>The megaron with its painted round hearth and throne; the oil magazines of pithoi; the painted bathtub</td></tr>
-    <tr><td>Knossos, Akrotiri</td><td>Red columns tapering downward with black capitals; frescoes of swallows, lilies and ships</td></tr>
-    <tr><td>The Uluburun wreck</td><td>A ship's cargo: copper ingots in oxhide shapes, tin, amphorae, glass, ebony</td></tr>
-    <tr><td>Grave goods and painted pottery</td><td>Boar's-tusk helmets, figure-eight and tower shields, ships with bird-head prows and oculi</td></tr>
-  </table>
-
-  <footer>Built pages: <a href="wooden-horse/">the Wooden Horse</a>, <a href="troy/">the Citadel of Troy</a>, <a href="ithaca/">the Palace of Odysseus</a>.
-    Blockouts: <code>tools/forage/product/blockouts.js</code> writes <code>odyssey/cards/set.blockout-*.mpd</code>.</footer>
+  <h2>What the checker says</h2>
+  <p class="sub">Every build, measured when this page was made (<code>tools/forage/product/clicks.py</code>). Loose: parts on the grid not clicked to the rest. Clashes: pairs of parts in the same space. The earlier Troy and Ithaca modules predate the strict check and fail it; they are rebuilt as their kits come up.</p>
+  <div class="tablewrap"><table>
+    <tr><th>Kit</th><th>Build</th><th>File</th><th class="n">Pieces</th><th class="n">Loose</th><th class="n">Clashes</th></tr>
+    <tr><td><a href="wooden-horse/">The Wooden Horse</a></td><td>The horse on its cart</td><td><a href="../cards/set.wooden-horse.mpd"><code>set.wooden-horse</code></a></td><td class="n">2,217</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+    <tr><td><a href="wooden-horse/">The Wooden Horse</a></td><td>The flank lifted</td><td><a href="../cards/set.wooden-horse-open.mpd"><code>set.wooden-horse-open</code></a></td><td class="n">2,113</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+    <tr><td><a href="troy/">The Citadel of Troy</a></td><td>Temple of Athena</td><td><a href="../cards/set.temple-of-athena.mpd"><code>set.temple-of-athena</code></a></td><td class="n">2,817</td><td class="n bad">1,243</td><td class="n bad">96</td></tr>
+    <tr><td><a href="troy/">The Citadel of Troy</a></td><td>The Scaean Gate</td><td><a href="../cards/set.scaean-gate.mpd"><code>set.scaean-gate</code></a></td><td class="n">3,813</td><td class="n bad">12</td><td class="n bad">366</td></tr>
+    <tr><td><a href="troy/">The Citadel of Troy</a></td><td>A Trojan house</td><td><a href="../cards/set.trojan-house.mpd"><code>set.trojan-house</code></a></td><td class="n">424</td><td class="n bad">10</td><td class="n bad">42</td></tr>
+    <tr><td><a href="troy/">The Citadel of Troy</a></td><td>A street</td><td><a href="../cards/set.trojan-street.mpd"><code>set.trojan-street</code></a></td><td class="n">1,594</td><td class="n bad">42</td><td class="n bad">135</td></tr>
+    <tr><td><a href="cyclops/">The Cave of the Cyclops</a></td><td>The diorama</td><td><a href="../cards/set.cyclops-cave.mpd"><code>set.cyclops-cave</code></a></td><td class="n">3,215</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+    <tr><td><a href="cyclops/">The Cave of the Cyclops</a></td><td>Opened</td><td><a href="../cards/set.cyclops-cave-open.mpd"><code>set.cyclops-cave-open</code></a></td><td class="n">2,388</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+    <tr><td><a href="cyclops/">The Cave of the Cyclops</a></td><td>The shore</td><td><a href="../cards/set.cyclops-cave-shore.mpd"><code>set.cyclops-cave-shore</code></a></td><td class="n">225</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+    <tr><td><a href="ithaca/">The Palace of Odysseus</a></td><td>The great hall</td><td><a href="../cards/set.great-hall.mpd"><code>set.great-hall</code></a></td><td class="n">3,156</td><td class="n bad">81</td><td class="n bad">807</td></tr>
+    <tr><td><a href="ithaca/">The Palace of Odysseus</a></td><td>The court</td><td><a href="../cards/set.palace-court.mpd"><code>set.palace-court</code></a></td><td class="n">1,111</td><td class="n ok">0</td><td class="n bad">703</td></tr>
+    <tr><td><a href="ithaca/">The Palace of Odysseus</a></td><td>The storeroom</td><td><a href="../cards/set.storeroom.mpd"><code>set.storeroom</code></a></td><td class="n">353</td><td class="n bad">7</td><td class="n bad">127</td></tr>
+    <tr><td><a href="ithaca/">The Palace of Odysseus</a></td><td>Penelope&#x27;s chamber</td><td><a href="../cards/set.penelope-chamber.mpd"><code>set.penelope-chamber</code></a></td><td class="n">311</td><td class="n ok">0</td><td class="n bad">75</td></tr>
+  </table></div>
+  <h2>The workshop</h2>
+  <ul class="links">
+    <li><a href="brief.html">The design brief</a>: the rules, the Ideas bar, what the film decided, the whole line, the archaeology</li>
+    <li><a href="https://hartswf0.github.io/odyssey-halfworld/">Odyssey Halfworld</a>: the film this line is drawn from, 24 books, 152 scenes</li>
+    <li><a href="../../odyssey-forage.html">The forage viewer</a>: every card in the world, in 3D</li>
+    <li><a href="../../odyssey-kit.html">The kit viewer</a></li>
+    <li><a href="../../film-readymades/production/Film-Butter-Odyssey.html">The film build</a>: the Odyssey locations as a playable film (large)</li>
+    <li><a href="../../odyssey-production/cyclops-sequence.html">The Cyclops sequence</a></li>
+    <li><code>tools/forage/product/kitlib.py</code>: what every kit is built with</li>
+    <li><code>tools/forage/product/sculpt.py</code>: the sculptor for rock, trunks and horses</li>
+    <li><code>tools/forage/product/clicks.py</code>: the checker</li>
+    <li><code>tools/forage/product/kitpages.py</code>: this page and every kit page</li>
+    <li><code>tools/forage/look.js</code>: the studio renders</li>
+    <li><code>tools/forage/product/kits/</code>: one script per kit</li>
+  </ul>
+  <footer>Made by <code>tools/forage/product/kitpages.py</code> from each kit's <code>kit.json</code>; every number measured when it ran.</footer>
 </main>
+<script>
+const bs = document.querySelectorAll('.filters button'), cs = document.querySelectorAll('#kits .card');
+bs.forEach(b => b.addEventListener('click', () => {
+  bs.forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  cs.forEach(c => { c.style.display = (b.dataset.f === 'All' || c.dataset.t === b.dataset.f) ? '' : 'none'; });
+}));
+</script>
 </body>
 </html>
