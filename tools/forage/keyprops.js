@@ -178,6 +178,13 @@ props.torch = { parts: [row('3959', 70, L.I12), row('3062b', 57, L.T(0, -24, 0))
 props.spade = { parts: [row('3837', 72, L.I12)], anchors: { grip: [0, -20, 0] } };
 props.goldWand = { parts: [row('3957a', 297, L.I12), row('3062b', 297, L.T(0, -96, 0))], anchors: { grip: [0, 0, 0] } };
 /* a sleeping-rug and linen (Homer XIII: "they spread a rug and linen sheet on the deck at the stern, that he might sleep soundly"): red and white plates */
+/* the olive at the head of the harbour of Phorcys (Homer XIII), built stud on stud: a trunk of 2 x 2 round bricks rising and forking on a
+   round plate, boughs of 1 x 4 plates across the fork, a crown of leaf elements in sand green over olive-green, the grey-green of olive leaves */
+props.olive = { parts: [row('4032a', 70, L.T(0, -8, 0)), ...[0, 1, 2, 3].map(k => row('3941', 70, L.T(0, -32 - 24 * k, 0))),
+  row('3941', 70, L.T(-20, -128, 0)), row('3941', 70, L.T(20, -128, 0)), row('3941', 70, L.T(-40, -152, 0)), row('3941', 70, L.T(40, -152, 0)),
+  row('3710', 70, L.mul(L.T(-40, -160, 0), L.RY(Math.PI / 2))), row('3710', 70, L.mul(L.T(40, -160, 0), L.RY(Math.PI / 2))),
+  row('2417', 378, L.T(-40, -168, 0)), row('2417', 330, L.mul(L.T(40, -168, 0), L.RY(Math.PI))), row('2417', 378, L.mul(L.T(0, -176, 20), L.RY(Math.PI / 2))), row('2417', 330, L.mul(L.T(0, -184, -20), L.RY(-Math.PI / 2)))],
+  anchors: { foot: [0, 0, 0], crown: [0, -184, 0] } };
 props.rug = { parts: [row('3020', 5, L.RY(Math.PI / 2)), row('3710', 15, L.mul(L.T(0, -8, -30), L.RY(Math.PI / 2))), row('3710', 5, L.mul(L.T(0, 0, 40), L.RY(Math.PI / 2)))], anchors: { bed: [0, -8, 0] } };
 props.sword = { parts: [row('98370', 71, L.I12)], anchors: { grip: [0, 10, 0] } };
 /* the Wooden Horse (Homer IV, VIII): "the horse of wood, which Epeus made with Minerva's help": a brick build on a plank platform; four
