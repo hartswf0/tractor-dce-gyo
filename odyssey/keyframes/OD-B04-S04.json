@@ -3,21 +3,21 @@
  "location": "odyssey-od-b04-s04",
  "title": "The Wooden Horse",
  "source": "Homer, Odyssey IV, tr. Samuel Butler (public domain)",
- "note": "Hand-staged from Menelaus's telling on a new set: Troy by night (tools/forage/sets.js troy), the wall of great stones, towers and the Scaean gate, houses within, torches. The horse is a prop (tools/forage/keyprops.js horse), a brick build 1.8 times scale; horseOpen is its cutaway, the near flank off, to see the men inside.",
+ "note": "Hand-staged from Menelaus's telling on a new set: Troy by night (tools/forage/sets.js troy), the wall of great stones, towers and the Scaean gate, houses within, torches. The horse is the display set itself at true scale (tools/forage/product/woodenhorse.py, as the prop horse): on its rolling cart, nine minifigures tall; horseOpen is the same build with its right flank lifted off, to see the Greeks on the deck of the hold.",
  "look": {
   "sky": [
    "#05070d",
    "#18203a"
   ],
   "fog": [
-   500,
-   1600
+   700,
+   1800
   ],
-  "dim": 0.3,
+  "dim": 0.25,
   "fill": {
    "sky": "#40507a",
    "ground": "#15110d",
-   "intensity": 0.35
+   "intensity": 0.5
   },
   "sun": {
    "dir": [
@@ -26,44 +26,77 @@
     -0.3
    ],
    "color": "#9fb3e6",
-   "intensity": 0.55,
+   "intensity": 0.8,
    "shadow": true
   },
-  "exposure": 0.9,
+  "exposure": 1.05,
   "lights": [
    {
     "at": [
-     120,
+     -158,
      110,
-     -120
+     176
     ],
     "color": "#ffab55",
-    "intensity": 1.8,
+    "intensity": 1.7,
     "distance": 360,
-    "decay": 1.2,
+    "decay": 1.1,
     "shadow": true
    },
    {
     "at": [
-     -120,
+     -158,
      110,
-     -120
+     -18
     ],
     "color": "#ffab55",
-    "intensity": 1.5,
+    "intensity": 1.7,
     "distance": 360,
-    "decay": 1.2
+    "decay": 1.1
    },
    {
     "at": [
-     120,
+     -158,
      110,
-     160
+     -194
     ],
     "color": "#ffab55",
-    "intensity": 1.2,
-    "distance": 300,
-    "decay": 1.2
+    "intensity": 1.7,
+    "distance": 360,
+    "decay": 1.1
+   },
+   {
+    "at": [
+     158,
+     110,
+     176
+    ],
+    "color": "#ffab55",
+    "intensity": 1.7,
+    "distance": 360,
+    "decay": 1.1
+   },
+   {
+    "at": [
+     158,
+     110,
+     -18
+    ],
+    "color": "#ffab55",
+    "intensity": 1.7,
+    "distance": 360,
+    "decay": 1.1
+   },
+   {
+    "at": [
+     158,
+     110,
+     -194
+    ],
+    "color": "#ffab55",
+    "intensity": 1.7,
+    "distance": 360,
+    "decay": 1.1
    }
   ]
  },
@@ -91,22 +124,20 @@
       0,
       0
      ],
-     "floor": true,
-     "scale": 1.5
+     "floor": true
     }
    ],
    "blocking": [
     {
      "id": "helen-at-the-horse",
-     "x": -140,
-     "z": -120,
+     "x": 92,
+     "z": 150,
      "y": "floor",
      "face": [
-      0,
-      10
+      380,
+      640
      ],
-     "props": false,
-     "on": "*"
+     "props": false
     },
     {
      "id": "odysseus",
@@ -184,16 +215,16 @@
    "camera": {
     "type": "wide",
     "pos": [
-     520,
      380,
-     560
+     150,
+     640
     ],
     "target": [
      0,
-     250,
-     -60
+     195,
+     -20
     ],
-    "fov": 60
+    "fov": 55
    },
    "subjects": [
     {
@@ -202,6 +233,9 @@
      "primary": true,
      "cut": true
     }
+   ],
+   "lensAllow": [
+    "helen-at-the-horse"
    ]
   },
   {
@@ -225,19 +259,18 @@
       0,
       0
      ],
-     "floor": true,
-     "scale": 1.5
+     "floor": true
     }
    ],
    "blocking": [
     {
      "id": "helen-at-the-horse",
-     "x": -100,
-     "z": 40,
+     "x": -95,
+     "z": 70,
      "y": "floor",
      "face": [
-      -300,
-      200
+      0,
+      190
      ],
      "props": false,
      "pose": {
@@ -334,16 +367,16 @@
    "camera": {
     "type": "wide",
     "pos": [
-     -300,
-     60,
+     -260,
+     40,
      260
     ],
     "target": [
      -80,
-     150,
-     30
+     140,
+     40
     ],
-    "fov": 56
+    "fov": 58
    },
    "subjects": [
     {
@@ -376,188 +409,126 @@
       0,
       0
      ],
-     "floor": true,
-     "scale": 1.5
+     "floor": true
     }
    ],
    "blocking": [
     {
      "id": "odysseus",
-     "y": "surface",
-     "reach": -70,
+     "y": 190.1,
      "face": [
-      200,
-      400
+      60,
+      40
      ],
      "props": false,
      "pose": {
-      "legRP": [
-       -1.5708,
-       0,
-       0
-      ],
-      "legLP": [
-       -1.5708,
-       0,
-       0
-      ],
       "armRP": [
-       -1.7,
+       -1.5,
        0,
-       -0.6
+       0.1
       ],
       "armLP": [
        -1.5,
        0,
-       0.2
+       -0.1
       ]
      },
-     "sit": true,
      "at": "@horse.floor",
      "off": [
+      16,
       0,
-      0,
-      -26
+      -4
      ]
     },
     {
      "id": "hidden-greek-warriors-1",
-     "y": "surface",
-     "reach": -70,
+     "y": 190.1,
      "face": [
-      200,
-      -400
+      300,
+      -60
      ],
      "props": false,
      "pose": {
-      "legRP": [
-       -1.5708,
-       0,
-       0
-      ],
-      "legLP": [
-       -1.5708,
-       0,
-       0
-      ],
       "armRP": [
        -1.8,
        0,
        0.2
       ]
      },
-     "sit": true,
      "at": "@horse.floor",
      "off": [
+      16,
       0,
-      0,
-      25
+      16
      ]
     },
     {
      "id": "hidden-greek-warriors-2",
-     "y": "surface",
-     "reach": -70,
+     "y": 190.1,
      "face": [
-      0,
-      400
+      300,
+      -200
      ],
      "props": false,
-     "pose": {
-      "legRP": [
-       -1.5708,
-       0,
-       0
-      ],
-      "legLP": [
-       -1.5708,
-       0,
-       0
-      ]
-     },
-     "sit": true,
+     "pose": {},
      "at": "@horse.floor",
      "off": [
+      16,
       0,
-      0,
-      -128
-     ]
+      -60
+     ],
+     "absent": true
     },
     {
      "id": "hidden-greek-warriors-3",
-     "y": "surface",
-     "reach": -70,
+     "y": 190.1,
      "face": [
-      0,
-      400
+      300,
+      -30
      ],
      "props": false,
      "pose": {
-      "legRP": [
-       -1.5708,
-       0,
-       0
-      ],
-      "legLP": [
-       -1.5708,
-       0,
-       0
-      ],
       "headP": [
        0,
        0.4,
        0
       ]
      },
-     "sit": true,
      "at": "@horse.floor",
      "off": [
+      16,
       0,
-      0,
-      -77
+      -30
      ]
     },
     {
      "id": "hidden-greek-warriors-4",
-     "y": "surface",
-     "reach": -70,
+     "y": 190.1,
      "face": [
-      0,
-      400
+      300,
+      44
      ],
      "props": false,
      "pose": {
-      "legRP": [
-       -1.5708,
-       0,
-       0
-      ],
-      "legLP": [
-       -1.5708,
-       0,
-       0
-      ],
       "armLP": [
        -1.0,
        0,
        0
       ]
      },
-     "sit": true,
      "at": "@horse.floor",
      "off": [
+      16,
       0,
-      0,
-      76
+      44
      ]
     },
     {
      "id": "hidden-greek-warriors-5",
-     "y": "surface",
-     "reach": -70,
+     "y": 190.1,
      "face": [
-      0,
-      400
+      300,
+      53
      ],
      "props": false,
      "pose": {
@@ -575,14 +546,15 @@
      "sit": true,
      "at": "@horse.floor",
      "off": [
+      16,
       0,
-      0,
-      127
-     ]
+      53
+     ],
+     "absent": true
     },
     {
      "id": "helen-at-the-horse",
-     "x": -120,
+     "x": -230,
      "z": -60,
      "y": "floor",
      "face": [
@@ -596,7 +568,8 @@
        0,
        0.3
       ]
-     }
+     },
+     "absent": true
     }
    ],
    "touch": [
@@ -635,16 +608,16 @@
    "camera": {
     "type": "wide",
     "pos": [
-     340,
-     230,
-     0
+     250,
+     205,
+     60
     ],
     "target": [
-     0,
-     190,
+     18,
+     195,
      0
     ],
-    "fov": 46
+    "fov": 44
    },
    "subjects": [
     {
@@ -680,183 +653,114 @@
       0,
       0
      ],
-     "floor": true,
-     "scale": 1.5
+     "floor": true
     }
    ],
    "blocking": [
     {
      "id": "odysseus",
-     "y": "surface",
-     "reach": -70,
+     "y": 190.1,
      "face": [
-      200,
-      400
+      60,
+      40
      ],
      "props": false,
      "pose": {
-      "legRP": [
-       -1.5708,
-       0,
-       0
-      ],
-      "legLP": [
-       -1.5708,
-       0,
-       0
-      ],
       "armRP": [
-       -1.7,
+       -1.5,
        0,
-       -0.6
+       0.1
       ],
       "armLP": [
        -1.5,
        0,
-       0.2
-      ],
-      "headP": [
-       0,
-       -0.3,
-       0
+       -0.1
       ]
      },
-     "sit": true,
      "at": "@horse.floor",
      "off": [
+      16,
       0,
-      0,
-      -26
+      -4
      ]
     },
     {
      "id": "hidden-greek-warriors-1",
-     "y": "surface",
-     "reach": -70,
+     "y": 190.1,
      "face": [
-      200,
-      -400
+      300,
+      -60
      ],
      "props": false,
      "pose": {
-      "legRP": [
-       -1.5708,
-       0,
-       0
-      ],
-      "legLP": [
-       -1.5708,
-       0,
-       0
-      ],
       "armRP": [
        -1.8,
        0,
        0.2
       ]
      },
-     "sit": true,
      "at": "@horse.floor",
      "off": [
+      16,
       0,
-      0,
-      25
+      16
      ]
     },
     {
      "id": "hidden-greek-warriors-2",
-     "y": "surface",
-     "reach": -70,
+     "y": 190.1,
      "face": [
-      0,
-      400
+      300,
+      -200
      ],
      "props": false,
-     "pose": {
-      "legRP": [
-       -1.5708,
-       0,
-       0
-      ],
-      "legLP": [
-       -1.5708,
-       0,
-       0
-      ]
-     },
-     "sit": true,
+     "pose": {},
      "at": "@horse.floor",
      "off": [
+      16,
       0,
-      0,
-      -128
-     ]
+      -60
+     ],
+     "absent": true
     },
     {
      "id": "hidden-greek-warriors-3",
-     "y": "surface",
-     "reach": -70,
+     "y": 190.1,
      "face": [
-      0,
-      400
+      300,
+      -30
      ],
      "props": false,
-     "pose": {
-      "legRP": [
-       -1.5708,
-       0,
-       0
-      ],
-      "legLP": [
-       -1.5708,
-       0,
-       0
-      ]
-     },
-     "sit": true,
+     "pose": {},
      "at": "@horse.floor",
      "off": [
+      16,
       0,
-      0,
-      -77
+      -30
      ]
     },
     {
      "id": "hidden-greek-warriors-4",
-     "y": "surface",
-     "reach": -70,
+     "y": 190.1,
      "face": [
-      0,
-      400
+      300,
+      44
      ],
      "props": false,
-     "pose": {
-      "legRP": [
-       -1.5708,
-       0,
-       0
-      ],
-      "legLP": [
-       -1.5708,
-       0,
-       0
-      ]
-     },
-     "sit": true,
+     "pose": {},
      "at": "@horse.floor",
      "off": [
+      16,
       0,
-      0,
-      76
+      44
      ]
     },
     {
      "id": "hidden-greek-warriors-5",
-     "y": "surface",
-     "reach": -70,
+     "y": 190.1,
      "face": [
-      0,
-      400
+      300,
+      53
      ],
      "props": false,
      "pose": {
@@ -874,15 +778,16 @@
      "sit": true,
      "at": "@horse.floor",
      "off": [
+      16,
       0,
-      0,
-      127
-     ]
+      53
+     ],
+     "absent": true
     },
     {
      "id": "helen-at-the-horse",
-     "x": 0,
-     "z": 0,
+     "x": -230,
+     "z": -60,
      "y": "floor",
      "face": [
       0,
@@ -917,16 +822,16 @@
    "camera": {
     "type": "wide",
     "pos": [
-     200,
-     215,
-     -20
+     150,
+     214,
+     14
     ],
     "target": [
-     0,
-     195,
-     -10
+     16,
+     210,
+     4
     ],
-    "fov": 40
+    "fov": 44
    },
    "subjects": [
     {

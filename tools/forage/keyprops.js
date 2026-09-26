@@ -207,8 +207,10 @@ function horse(open) { const W = 28, M = 70, P = [];
   for (let k = 0; k < 3; k++) P.push(row('3062b', M, L.T(0, -176 + 24 * k, -110 - 6 * k)));
   if (!open) P.push(row('3069b', 297, L.mul(L.T(40, -170, 0), [0, 0, 0, 0, -1, 0, 1, 0, 0, 0, 0, 1])));
   return { parts: P, anchors: { floor: [0, -112, 0], front: [0, -112, 60], back: [0, -112, -60], head: [0, -330, 150], hatch: [44, -170, 0] } }; }
-props.horse = horse(false);
-props.horseOpen = horse(true);
+/* the set's own horse, when it has been built: tools/forage/product/woodenhorse.py sculpts it and writes it here, on its cart, at true scale */
+{ const f = path.join(L.ROOT, 'odyssey/keyframes/wooden-horse-prop.json');
+  if (fs.existsSync(f)) Object.assign(props, JSON.parse(fs.readFileSync(f, 'utf8')));
+  else { props.horse = horse(false); props.horseOpen = horse(true); } }
 /* a seal (Homer IV: "the seals, the brood of the fair sea-nymph, come up from the grey sea"): two curved slopes back to back, a round head */
 const sealEyes = [-7, 7].map(x => row('98138', 0, L.mul(L.T(x, -15, -31), L.mul(RX(Math.PI / 2), [0, 0, 0, 0.22, 0, 0, 0, 0.22, 0, 0, 0, 0.22]))));   /* two tiny black eyes on the brow */
 props.seal = { parts: [row('3399', 72, L.I12), ...sealEyes], anchors: { back: [0, -22, 0] } };   /* the LEGO seal (3399), body along z, head up */
