@@ -1,13 +1,15 @@
 {
  "scene": "OD-B10-S02",
- "pass": true,
+ "pass": false,
  "keys": [
   {
    "id": "K1",
    "beat": "The fleet enters a narrow harbor ringed by cliffs; Odysseus alone moors outside.",
    "text": "We found a fine harbour, with high rocks all round it, and a narrow mouth at the entrance. The captains took all their ships inside... but I kept my own ship outside, and moored it to a rock at the very end of the point.",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "odysseus stands on scenery 48 above the ground, not the floor"
+   ],
    "camera": {
     "pos": [
      60,
@@ -19,25 +21,30 @@
    "physics": {
     "collide": [],
     "floating": [],
-    "perched": []
+    "perched": [
+     [
+      "odysseus",
+      "scenery 48 above the ground"
+     ]
+    ]
    },
    "subjects": {
     "odysseus": {
      "visible": 1,
-     "size": 0.284,
+     "size": 0.277,
      "inFrame": true,
      "head": [
-      0.402,
-      0.517
+      0.398,
+      0.464
      ],
      "facing": -0.96,
-     "thirds": 0.069,
-     "headroom": 0.487,
+     "thirds": 0.065,
+     "headroom": 0.434,
      "box": [
-      0.38,
-      0.423,
-      0.487,
-      0.771
+      0.377,
+      0.419,
+      0.434,
+      0.711
      ],
      "behind": false
     },
@@ -61,8 +68,14 @@
    "id": "K2",
    "beat": "Three scouts meet a giant girl who directs them to her parents' house.",
    "text": "They found his wife, and she was as big as a mountain; they were horrified at her.",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "the set (black ship 2) passes through three-scouts-1 (72 part overlaps)",
+    "the set (black ship) passes through three-scouts-3 (72 part overlaps)",
+    "three-scouts-1 stands on scenery 52 above the ground, not the floor",
+    "three-scouts-2 stands on scenery 49 above the ground, not the floor",
+    "three-scouts-3 stands on scenery 36 above the ground, not the floor"
+   ],
    "camera": {
     "pos": [
      0,
@@ -72,41 +85,65 @@
    },
    "lens": 0,
    "physics": {
-    "collide": [],
+    "collide": [
+     [
+      "the set (black ship 2)",
+      "three-scouts-1",
+      72
+     ],
+     [
+      "the set (black ship)",
+      "three-scouts-3",
+      72
+     ]
+    ],
     "floating": [],
-    "perched": []
+    "perched": [
+     [
+      "three-scouts-1",
+      "scenery 52 above the ground"
+     ],
+     [
+      "three-scouts-2",
+      "scenery 49 above the ground"
+     ],
+     [
+      "three-scouts-3",
+      "scenery 36 above the ground"
+     ]
+    ]
    },
    "subjects": {
     "three-scouts-2": {
      "visible": 1,
-     "size": 0.307,
+     "size": 0.317,
      "inFrame": true,
      "head": [
-      0.47,
-      0.705
+      0.457,
+      0.7
      ],
-     "facing": -0.99,
-     "thirds": 0.038,
-     "headroom": 0.676,
+     "facing": -1,
+     "thirds": 0.034,
+     "headroom": 0.67,
      "box": [
-      0.444,
-      0.495,
-      0.676,
-      0.983
+      0.429,
+      0.483,
+      0.67,
+      0.988
      ],
      "behind": false
     },
     "prop:girl": {
-     "visible": 1,
-     "size": 0.803,
+     "visible": 0.75,
+     "size": 0.774,
      "inFrame": false,
      "head": [
-      0.505,
-      0.497
+      0.509,
+      0.501
      ],
      "facing": 1,
-     "thirds": 0.162,
-     "headroom": 0.276,
+     "thirds": 0.158,
+     "headroom": 0.302,
      "behind": false
     }
    },
@@ -116,8 +153,11 @@
    "id": "K3",
    "beat": "The queen summons Antiphates, who seizes and eats one scout.",
    "text": "Antiphates... raised a cry through the town, which brought thousands of sturdy Laestrygonians running from every quarter: ogres, not men.",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "three-scouts-1 stands on scenery 52 above the ground, not the floor",
+    "three-scouts-3 stands on scenery 49 above the ground, not the floor"
+   ],
    "camera": {
     "pos": [
      0,
@@ -129,20 +169,29 @@
    "physics": {
     "collide": [],
     "floating": [],
-    "perched": []
+    "perched": [
+     [
+      "three-scouts-1",
+      "scenery 52 above the ground"
+     ],
+     [
+      "three-scouts-3",
+      "scenery 49 above the ground"
+     ]
+    ]
    },
    "subjects": {
     "prop:antiphates": {
-     "visible": 1,
-     "size": 2.492,
+     "visible": 0.75,
+     "size": 2.382,
      "inFrame": false,
      "head": [
-      0.481,
-      0.54
+      0.488,
+      0.553
      ],
      "facing": 1,
-     "thirds": 0.127,
-     "headroom": 0.205,
+     "thirds": 0.114,
+     "headroom": 0.238,
      "behind": false
     },
     "three-scouts-2": {
@@ -189,28 +238,28 @@
    "subjects": {
     "prop:g1": {
      "visible": 1,
-     "size": 0.57,
+     "size": 0.613,
      "inFrame": true,
      "head": [
-      0.57,
-      0.304
+      0.579,
+      0.397
      ],
      "facing": 1,
-     "thirds": 0.029,
-     "headroom": 0.104,
+     "thirds": 0.064,
+     "headroom": 0.202,
      "behind": false
     },
     "prop:g2": {
-     "visible": 0.75,
-     "size": 0.525,
+     "visible": 0.5,
+     "size": 0.474,
      "inFrame": true,
      "head": [
-      0.452,
-      0.443
+      0.458,
+      0.446
      ],
      "facing": 1,
-     "thirds": 0.11,
-     "headroom": 0.273,
+     "thirds": 0.113,
+     "headroom": 0.314,
      "behind": false
     }
    },
@@ -220,8 +269,10 @@
    "id": "K5",
    "beat": "Odysseus cuts his cable and escapes with only his own ship.",
    "text": "I drew my sword, and cut the cable of my own ship, telling my men to row with all their might if they too would not fare like the rest... we fell to our oars with a will, and got out into the open sea.",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "odysseus stands on scenery 52 above the ground, not the floor"
+   ],
    "camera": {
     "pos": [
      15,
@@ -233,25 +284,30 @@
    "physics": {
     "collide": [],
     "floating": [],
-    "perched": []
+    "perched": [
+     [
+      "odysseus",
+      "scenery 52 above the ground"
+     ]
+    ]
    },
    "subjects": {
     "odysseus": {
      "visible": 1,
-     "size": 0.491,
-     "inFrame": false,
+     "size": 0.465,
+     "inFrame": true,
      "head": [
-      0.448,
-      0.594
+      0.435,
+      0.5
      ],
-     "facing": 1,
-     "thirds": 0.073,
-     "headroom": 0.549,
+     "facing": 0.96,
+     "thirds": 0.102,
+     "headroom": 0.457,
      "box": [
-      0.411,
-      0.482,
-      0.549,
-      1.04
+      0.4,
+      0.467,
+      0.457,
+      0.922
      ],
      "behind": false
     }

@@ -8,7 +8,12 @@
    "text": "On the tenth day we reached the land of the Lotus-eaters, who live on a food that comes from a kind of flower. Here we landed... I sent two of my company to see what manner of men the people of the place might be, and they had a third man under them.",
    "pass": false,
    "fails": [
-    "three-scouts-1 peeks from behind (0.25)"
+    "odysseus passes through three-scouts-3 (2 part overlaps)",
+    "the set (the lotus eaters land) passes through odysseus (4 part overlaps)",
+    "the set (the lotus eaters land) passes through three-scouts-1 (8 part overlaps)",
+    "the set (the lotus eaters land) passes through three-scouts-2 (28 part overlaps)",
+    "the set (the lotus eaters land) passes through lotus-eaters-2 (46 part overlaps)",
+    "three-scouts-1 peeks from behind (0.5)"
    ],
    "camera": {
     "pos": [
@@ -19,46 +24,72 @@
    },
    "lens": 0,
    "physics": {
-    "collide": [],
+    "collide": [
+     [
+      "odysseus",
+      "three-scouts-3",
+      2
+     ],
+     [
+      "the set (the lotus eaters land)",
+      "odysseus",
+      4
+     ],
+     [
+      "the set (the lotus eaters land)",
+      "three-scouts-1",
+      8
+     ],
+     [
+      "the set (the lotus eaters land)",
+      "three-scouts-2",
+      28
+     ],
+     [
+      "the set (the lotus eaters land)",
+      "lotus-eaters-2",
+      46
+     ]
+    ],
     "floating": [],
     "perched": []
    },
    "subjects": {
     "odysseus": {
-     "visible": 0.75,
-     "size": 0.244,
+     "visible": 1,
+     "size": 0.247,
      "inFrame": true,
      "head": [
-      0.469,
-      0.387
+      0.477,
+      0.388
      ],
-     "facing": 1,
-     "thirds": 0.054,
-     "headroom": 0.36,
+     "facing": 0.93,
+     "thirds": 0.055,
+     "headroom": 0.361,
      "box": [
-      0.449,
-      0.489,
-      0.36,
-      0.604
+      0.459,
+      0.496,
+      0.361,
+      0.608
      ],
      "behind": false
     },
     "three-scouts-2": {
      "visible": 1,
-     "size": 0.269,
+     "size": 0.268,
      "inFrame": true,
      "head": [
-      0.674,
-      0.364
+      0.679,
+      0.407
      ],
      "facing": 0.99,
-     "thirds": 0.007,
-     "headroom": 0.334,
+     "thirds": 0.013,
+     "headroom": 0.377,
      "box": [
-      0.646,
-      0.698,
-      0.334,
-      0.603
+      0.651,
+      0.704,
+      0.377,
+      0.645
      ],
      "behind": false
     }
@@ -71,7 +102,11 @@
    "text": "They started at once, and went about among the Lotus-eaters, who did them no hurt, but gave them to eat of the lotus.",
    "pass": false,
    "fails": [
-    "lotus-eaters-2 cropped to a headless body"
+    "three-scouts-1 hidden (0)",
+    "three-scouts-1 passes through lotus-eaters-1 (6 part overlaps)",
+    "prop:lotus passes through three-scouts-1 (332 part overlaps)",
+    "the set (black ship) passes through odysseus (143 part overlaps)",
+    "the set (the lotus eaters land) passes through three-scouts-2 (78 part overlaps)"
    ],
    "camera": {
     "pos": [
@@ -82,46 +117,67 @@
    },
    "lens": 0,
    "physics": {
-    "collide": [],
+    "collide": [
+     [
+      "three-scouts-1",
+      "lotus-eaters-1",
+      6
+     ],
+     [
+      "prop:lotus",
+      "three-scouts-1",
+      332
+     ],
+     [
+      "the set (black ship)",
+      "odysseus",
+      143
+     ],
+     [
+      "the set (the lotus eaters land)",
+      "three-scouts-2",
+      78
+     ]
+    ],
     "floating": [],
     "perched": []
    },
    "subjects": {
     "lotus-eaters-1": {
      "visible": 1,
-     "size": 0.518,
+     "size": 0.499,
      "inFrame": true,
      "head": [
-      0.459,
-      0.486
+      0.478,
+      0.459
      ],
-     "facing": -0.82,
+     "facing": -1,
      "thirds": 0.125,
-     "headroom": 0.428,
+     "headroom": 0.403,
      "box": [
-      0.42,
-      0.502,
-      0.428,
-      0.946
+      0.43,
+      0.526,
+      0.403,
+      0.902
      ],
      "behind": false
     },
     "three-scouts-1": {
-     "visible": 0.5,
+     "visible": 0,
      "size": 0.428,
      "inFrame": true,
      "head": [
-      0.553,
-      0.462
+      0.528,
+      0.443
      ],
-     "facing": 0.88,
-     "thirds": 0.114,
-     "headroom": 0.415,
+     "facing": 1,
+     "thirds": 0.11,
+     "headroom": 0.396,
      "box": [
-      0.518,
-      0.589,
-      0.415,
-      0.843
+      0.487,
+      0.568,
+      0.396,
+      0.824
      ],
      "behind": false
     }
@@ -134,7 +190,8 @@
    "text": "Those of my men who ate of the lotus never wanted to go back, nor bring news; they only wanted to stay and munch lotus with the Lotus-eaters without thinking further of their return.",
    "pass": false,
    "fails": [
-    "lotus-eaters-1 cropped to a headless body",
+    "the set (black ship) passes through odysseus (143 part overlaps)",
+    "the set (the lotus eaters land) passes through lotus-eaters-1 (21 part overlaps)",
     "lotus-eaters-5 cropped to a headless body"
    ],
    "camera": {
@@ -146,45 +203,56 @@
    },
    "lens": 0,
    "physics": {
-    "collide": [],
+    "collide": [
+     [
+      "the set (black ship)",
+      "odysseus",
+      143
+     ],
+     [
+      "the set (the lotus eaters land)",
+      "lotus-eaters-1",
+      21
+     ]
+    ],
     "floating": [],
     "perched": []
    },
    "subjects": {
     "three-scouts-1": {
-     "visible": 1,
-     "size": 0.509,
+     "visible": 0.75,
+     "size": 0.497,
      "inFrame": true,
      "head": [
-      0.474,
-      0.492
+      0.483,
+      0.49
      ],
      "facing": 1,
-     "thirds": 0.14,
-     "headroom": 0.436,
+     "thirds": 0.15,
+     "headroom": 0.435,
      "box": [
-      0.425,
-      0.522,
       0.436,
-      0.945
+      0.531,
+      0.435,
+      0.932
      ],
      "behind": false
     },
     "three-scouts-2": {
      "visible": 0.75,
-     "size": 0.44,
+     "size": 0.422,
      "inFrame": true,
      "head": [
-      0.673,
-      0.46
+      0.644,
+      0.476
      ],
-     "facing": 1,
-     "thirds": 0.006,
-     "headroom": 0.411,
+     "facing": 0.98,
+     "thirds": 0.022,
+     "headroom": 0.429,
      "box": [
-      0.629,
-      0.715,
-      0.411,
+      0.603,
+      0.684,
+      0.429,
       0.851
      ],
      "behind": false
@@ -196,8 +264,14 @@
    "id": "K4",
    "beat": "Odysseus drags the weeping men back, binds them under the benches, and orders immediate departure.",
    "text": "I forced them back to the ships, though they wept for it, and bound them under the benches in the ship's hold; then I told the rest to take their places and row out to sea at once, lest any more of them should taste the lotus.",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "odysseus hidden (0.5)",
+    "the set (the shore, the lotus eaters land) passes through odysseus (227 part overlaps)",
+    "the set (the lotus eaters land) passes through three-scouts-3 (35 part overlaps)",
+    "the set (the lotus eaters land) passes through lotus-eaters-2 (21 part overlaps)",
+    "lotus-eaters-2 cropped to a headless body"
+   ],
    "camera": {
     "pos": [
      150,
@@ -207,46 +281,62 @@
    },
    "lens": 0,
    "physics": {
-    "collide": [],
+    "collide": [
+     [
+      "the set (the shore, the lotus eaters land)",
+      "odysseus",
+      227
+     ],
+     [
+      "the set (the lotus eaters land)",
+      "three-scouts-3",
+      35
+     ],
+     [
+      "the set (the lotus eaters land)",
+      "lotus-eaters-2",
+      21
+     ]
+    ],
     "floating": [],
     "perched": []
    },
    "subjects": {
     "odysseus": {
-     "visible": 0.75,
-     "size": 0.342,
+     "visible": 0.5,
+     "size": 0.34,
      "inFrame": true,
      "head": [
-      0.532,
-      0.371
+      0.525,
+      0.367
      ],
-     "facing": -0.87,
-     "thirds": 0.037,
-     "headroom": 0.332,
+     "facing": -0.79,
+     "thirds": 0.034,
+     "headroom": 0.328,
      "box": [
-      0.508,
-      0.557,
-      0.332,
-      0.673
+      0.503,
+      0.547,
+      0.328,
+      0.668
      ],
      "behind": false
     },
     "three-scouts-1": {
-     "visible": 0.75,
-     "size": 0.34,
+     "visible": 1,
+     "size": 0.336,
      "inFrame": true,
      "head": [
-      0.508,
-      0.477
+      0.513,
+      0.472
      ],
-     "facing": -0.98,
-     "thirds": 0.144,
-     "headroom": 0.438,
+     "facing": -0.78,
+     "thirds": 0.139,
+     "headroom": 0.434,
      "box": [
-      0.475,
-      0.542,
-      0.438,
-      0.779
+      0.487,
+      0.54,
+      0.434,
+      0.77
      ],
      "behind": false
     }

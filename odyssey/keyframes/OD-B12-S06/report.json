@@ -1,13 +1,17 @@
 {
  "scene": "OD-B12-S06",
- "pass": true,
+ "pass": false,
  "keys": [
   {
    "id": "K1",
    "beat": "When food is gone, Odysseus withdraws inland to pray and the gods put him to sleep.",
    "text": "I went up into the island that I might pray heaven to show me some means of getting away... and when I had washed my hands, the gods sent me off into a sweet sleep.",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "the set (thrinacia) passes through crew-sacrificial-group-1 (367 part overlaps)",
+    "the set (thrinacia) passes through crew-sacrificial-group-4 (36 part overlaps)",
+    "crew-sacrificial-group-2 peeks from behind (0.25)"
+   ],
    "camera": {
     "pos": [
      260,
@@ -17,27 +21,38 @@
    },
    "lens": 0,
    "physics": {
-    "collide": [],
+    "collide": [
+     [
+      "the set (thrinacia)",
+      "crew-sacrificial-group-1",
+      367
+     ],
+     [
+      "the set (thrinacia)",
+      "crew-sacrificial-group-4",
+      36
+     ]
+    ],
     "floating": [],
     "perched": []
    },
    "subjects": {
     "sleeping-odysseus": {
      "visible": 1,
-     "size": 0.467,
+     "size": 0.473,
      "inFrame": true,
      "head": [
-      0.544,
-      0.57
+      0.562,
+      0.573
      ],
-     "facing": 1,
-     "thirds": 0.096,
-     "headroom": 0.518,
+     "facing": 0.77,
+     "thirds": 0.094,
+     "headroom": 0.52,
      "box": [
-      0.499,
-      0.589,
-      0.518,
-      0.985
+      0.528,
+      0.598,
+      0.52,
+      0.993
      ],
      "behind": false
     }
@@ -48,8 +63,14 @@
    "id": "K2",
    "beat": "Eurylochus persuades the crew to sacrifice the best cattle rather than starve.",
    "text": "'All deaths are bad enough, but there is none so bad as famine. Why should not we drive in the best of these cows and offer them in sacrifice to the immortal gods?'",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "crew-sacrificial-group-3 passes through crew-sacrificial-group-4 (2 part overlaps)",
+    "the set (thrinacia) passes through crew-sacrificial-group-1 (14 part overlaps)",
+    "the set (thrinacia) passes through crew-sacrificial-group-4 (13 part overlaps)",
+    "the set (thrinacia) passes through crew-sacrificial-group-5 (62 part overlaps)",
+    "sleeping-odysseus peeks from behind (0.25)"
+   ],
    "camera": {
     "pos": [
      -240,
@@ -59,46 +80,67 @@
    },
    "lens": 0,
    "physics": {
-    "collide": [],
+    "collide": [
+     [
+      "crew-sacrificial-group-3",
+      "crew-sacrificial-group-4",
+      2
+     ],
+     [
+      "the set (thrinacia)",
+      "crew-sacrificial-group-1",
+      14
+     ],
+     [
+      "the set (thrinacia)",
+      "crew-sacrificial-group-4",
+      13
+     ],
+     [
+      "the set (thrinacia)",
+      "crew-sacrificial-group-5",
+      62
+     ]
+    ],
     "floating": [],
     "perched": []
    },
    "subjects": {
     "eurylochus": {
      "visible": 1,
-     "size": 0.333,
+     "size": 0.334,
      "inFrame": true,
      "head": [
       0.583,
-      0.519
+      0.522
      ],
-     "facing": -0.72,
+     "facing": -0.57,
      "thirds": 0.084,
-     "headroom": 0.483,
+     "headroom": 0.485,
      "box": [
-      0.56,
-      0.605,
-      0.483,
-      0.815
+      0.564,
+      0.6,
+      0.485,
+      0.819
      ],
      "behind": false
     },
     "crew-sacrificial-group-2": {
      "visible": 0.75,
-     "size": 0.281,
+     "size": 0.273,
      "inFrame": true,
      "head": [
-      0.376,
-      0.494
+      0.373,
+      0.504
      ],
-     "facing": 0.64,
-     "thirds": 0.042,
-     "headroom": 0.463,
+     "facing": 0.79,
+     "thirds": 0.04,
+     "headroom": 0.474,
      "box": [
-      0.359,
+      0.352,
       0.393,
-      0.463,
-      0.744
+      0.474,
+      0.747
      ],
      "behind": false
     }
@@ -109,8 +151,13 @@
    "id": "K3",
    "beat": "They substitute oak leaves for barley and water for wine, kill the animals, and roast the meat.",
    "text": "They drove in the best of the cows... they cut out the thigh bones, wrapped them round in two layers of fat, and set some pieces of raw meat on the top of them. They had no barley, so they strewed oak leaves instead.",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "eurylochus passes through crew-sacrificial-group-1 (7 part overlaps)",
+    "prop:slain passes through crew-sacrificial-group-3 (40 part overlaps)",
+    "the set (thrinacia) passes through crew-sacrificial-group-5 (23 part overlaps)",
+    "crew-sacrificial-group-1 peeks from behind (0.5)"
+   ],
    "camera": {
     "pos": [
      110,
@@ -120,41 +167,57 @@
    },
    "lens": 0,
    "physics": {
-    "collide": [],
+    "collide": [
+     [
+      "eurylochus",
+      "crew-sacrificial-group-1",
+      7
+     ],
+     [
+      "prop:slain",
+      "crew-sacrificial-group-3",
+      40
+     ],
+     [
+      "the set (thrinacia)",
+      "crew-sacrificial-group-5",
+      23
+     ]
+    ],
     "floating": [],
     "perched": []
    },
    "subjects": {
     "eurylochus": {
      "visible": 1,
-     "size": 0.346,
+     "size": 0.343,
      "inFrame": true,
      "head": [
-      0.564,
-      0.44
+      0.549,
+      0.442
      ],
-     "facing": 0.95,
-     "thirds": 0.103,
-     "headroom": 0.401,
+     "facing": 0.84,
+     "thirds": 0.108,
+     "headroom": 0.404,
      "box": [
-      0.533,
-      0.595,
-      0.401,
-      0.747
+      0.522,
+      0.577,
+      0.404,
+      0.746
      ],
      "behind": false
     },
     "prop:slain": {
      "visible": 1,
-     "size": 1.343,
+     "size": 1.284,
      "inFrame": false,
      "head": [
-      0.694,
-      0.897
+      0.683,
+      0.886
      ],
      "facing": 1,
-     "thirds": 0.027,
-     "headroom": 0.666,
+     "thirds": 0.016,
+     "headroom": 0.661,
      "behind": false
     }
    },
@@ -164,8 +227,12 @@
    "id": "K4",
    "beat": "The hides crawl and the meat bellows on the spits.",
    "text": "The gods now began to show signs and wonders among my men, for the hides of the cattle crawled about, and the joints upon the spits began to low like cows, and the meat, both cooked and raw, kept on making a noise just as cows do.",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "the set (thrinacia) passes through crew-sacrificial-group-2 (38 part overlaps)",
+    "the set (thrinacia) passes through crew-sacrificial-group-3 (61 part overlaps)",
+    "the set (thrinacia) passes through crew-sacrificial-group-5 (43 part overlaps)"
+   ],
    "camera": {
     "pos": [
      -20,
@@ -175,40 +242,56 @@
    },
    "lens": 0,
    "physics": {
-    "collide": [],
+    "collide": [
+     [
+      "the set (thrinacia)",
+      "crew-sacrificial-group-2",
+      38
+     ],
+     [
+      "the set (thrinacia)",
+      "crew-sacrificial-group-3",
+      61
+     ],
+     [
+      "the set (thrinacia)",
+      "crew-sacrificial-group-5",
+      43
+     ]
+    ],
     "floating": [],
     "perched": []
    },
    "subjects": {
     "eurylochus": {
      "visible": 1,
-     "size": 0.315,
+     "size": 0.317,
      "inFrame": true,
      "head": [
-      0.526,
-      0.533
+      0.516,
+      0.534
      ],
-     "facing": 0.78,
-     "thirds": 0.134,
-     "headroom": 0.5,
+     "facing": 1,
+     "thirds": 0.133,
+     "headroom": 0.501,
      "box": [
-      0.503,
-      0.548,
-      0.5,
-      0.815
+      0.487,
+      0.545,
+      0.501,
+      0.818
      ],
      "behind": false
     },
     "prop:slain": {
      "visible": 1,
-     "size": 0.862,
+     "size": 0.848,
      "inFrame": false,
      "head": [
-      0.828,
-      0.752
+      0.813,
+      0.751
      ],
      "facing": 1,
-     "thirds": 0.086,
+     "thirds": 0.084,
      "headroom": 0.656,
      "behind": false
     }
@@ -219,8 +302,12 @@
    "id": "K5",
    "beat": "Lampetie tells Helios, who demands punishment from Zeus.",
    "text": "'Father Jove, and all you other blessed gods who live for ever, I must have vengeance on the crew of Ulysses' ship: they have had the insolence to kill my cows... if they do not square accounts with me about my cows, I will go down to Hades and shine there among the dead.'",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "the set (thrinacia) passes through crew-sacrificial-group-2 (46 part overlaps)",
+    "the set (thrinacia) passes through crew-sacrificial-group-3 (56 part overlaps)",
+    "the set (thrinacia) passes through crew-sacrificial-group-5 (43 part overlaps)"
+   ],
    "camera": {
     "pos": [
      -20,
@@ -230,7 +317,23 @@
    },
    "lens": 0,
    "physics": {
-    "collide": [],
+    "collide": [
+     [
+      "the set (thrinacia)",
+      "crew-sacrificial-group-2",
+      46
+     ],
+     [
+      "the set (thrinacia)",
+      "crew-sacrificial-group-3",
+      56
+     ],
+     [
+      "the set (thrinacia)",
+      "crew-sacrificial-group-5",
+      43
+     ]
+    ],
     "floating": [],
     "perched": []
    },
@@ -240,30 +343,30 @@
      "size": 0.455,
      "inFrame": true,
      "head": [
-      0.561,
+      0.563,
       0.202
      ],
      "facing": 1,
-     "thirds": 0.106,
-     "headroom": 0.115,
+     "thirds": 0.104,
+     "headroom": 0.116,
      "behind": false
     },
     "eurylochus": {
      "visible": 1,
-     "size": 0.332,
+     "size": 0.336,
      "inFrame": true,
      "head": [
-      0.542,
+      0.532,
       0.667
      ],
-     "facing": -0.99,
+     "facing": -1,
      "thirds": 0,
      "headroom": 0.634,
      "box": [
-      0.514,
-      0.571,
+      0.503,
+      0.562,
       0.634,
-      0.966
+      0.97
      ],
      "behind": false
     }

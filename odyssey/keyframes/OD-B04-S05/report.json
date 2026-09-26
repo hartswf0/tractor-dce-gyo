@@ -1,6 +1,6 @@
 {
  "scene": "OD-B04-S05",
- "pass": true,
+ "pass": false,
  "keys": [
   {
    "id": "K1",
@@ -24,20 +24,20 @@
    "subjects": {
     "menelaus": {
      "visible": 1,
-     "size": 0.345,
+     "size": 0.346,
      "inFrame": true,
      "head": [
-      0.485,
-      0.463
+      0.493,
+      0.465
      ],
      "facing": 1,
-     "thirds": 0.13,
-     "headroom": 0.427,
+     "thirds": 0.131,
+     "headroom": 0.428,
      "box": [
-      0.453,
-      0.516,
-      0.427,
-      0.772
+      0.461,
+      0.525,
+      0.428,
+      0.774
      ],
      "behind": false
     }
@@ -66,39 +66,39 @@
    "subjects": {
     "eidothea": {
      "visible": 1,
-     "size": 0.342,
+     "size": 0.346,
      "inFrame": true,
      "head": [
-      0.296,
-      0.435
+      0.278,
+      0.449
      ],
-     "facing": 0.72,
-     "thirds": 0.037,
-     "headroom": 0.398,
+     "facing": 0.28,
+     "thirds": 0.056,
+     "headroom": 0.412,
      "box": [
-      0.271,
-      0.319,
-      0.398,
-      0.74
+      0.268,
+      0.286,
+      0.412,
+      0.758
      ],
      "behind": false
     },
     "menelaus": {
      "visible": 1,
-     "size": 0.492,
+     "size": 0.507,
      "inFrame": true,
      "head": [
-      0.751,
+      0.782,
       0.426
      ],
-     "facing": 0.04,
-     "thirds": 0.084,
-     "headroom": 0.373,
+     "facing": 0.34,
+     "thirds": 0.093,
+     "headroom": 0.372,
      "box": [
-      0.749,
-      0.753,
-      0.373,
-      0.865
+      0.765,
+      0.8,
+      0.372,
+      0.879
      ],
      "behind": false
     }
@@ -109,8 +109,14 @@
    "id": "K3",
    "beat": "He and three men hid beneath sealskins and grappled the Old Man of the Sea.",
    "text": "'She had brought four seal skins from the bottom of the sea... she dug four pits for us to lie in, and made us lie down in them, and threw a sealskin over each of us. The stench of the fishy seals was most distressing.'",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "menelaus hidden (0.25)",
+    "the set (the shore) passes through menelaus (6 part overlaps)",
+    "the set (stage plate, the shore) passes through three-men-1 (153 part overlaps)",
+    "the set (stage plate, the shore) passes through three-men-2 (157 part overlaps)",
+    "the set (stage plate, the shore) passes through three-men-3 (162 part overlaps)"
+   ],
    "camera": {
     "pos": [
      -125,
@@ -120,32 +126,53 @@
    },
    "lens": 0,
    "physics": {
-    "collide": [],
+    "collide": [
+     [
+      "the set (the shore)",
+      "menelaus",
+      6
+     ],
+     [
+      "the set (stage plate, the shore)",
+      "three-men-1",
+      153
+     ],
+     [
+      "the set (stage plate, the shore)",
+      "three-men-2",
+      157
+     ],
+     [
+      "the set (stage plate, the shore)",
+      "three-men-3",
+      162
+     ]
+    ],
     "floating": [],
     "perched": []
    },
    "subjects": {
     "proteus": {
-     "visible": 0.75,
-     "size": 0.239,
+     "visible": 1,
+     "size": 0.242,
      "inFrame": true,
      "head": [
-      0.578,
-      0.46
+      0.589,
+      0.459
      ],
-     "facing": 1,
-     "thirds": 0.089,
-     "headroom": 0.435,
+     "facing": 0.99,
+     "thirds": 0.078,
+     "headroom": 0.434,
      "box": [
-      0.555,
-      0.6,
-      0.435,
-      0.673
+      0.566,
+      0.611,
+      0.434,
+      0.675
      ],
      "behind": false
     },
     "menelaus": {
-     "visible": 0.5,
+     "visible": 0.25,
      "size": 0.082,
      "inFrame": true,
      "head": [
@@ -170,8 +197,10 @@
    "id": "K4",
    "beat": "Proteus changed into beasts, water, and a tree before yielding prophecy.",
    "text": "'He began by turning into a lion with a great mane; then all of a sudden he became a dragon, a leopard, a wild boar; the next moment he was running water, and then again directly he was a tree; but we stuck to him and never lost hold.'",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "the set (the shore) passes through menelaus (3 part overlaps)"
+   ],
    "camera": {
     "pos": [
      -170,
@@ -181,40 +210,46 @@
    },
    "lens": 0,
    "physics": {
-    "collide": [],
+    "collide": [
+     [
+      "the set (the shore)",
+      "menelaus",
+      3
+     ]
+    ],
     "floating": [],
     "perched": []
    },
    "subjects": {
     "prop:lion": {
      "visible": 1,
-     "size": 0.725,
+     "size": 0.639,
      "inFrame": true,
      "head": [
-      0.577,
+      0.582,
       0.32
      ],
      "facing": 1,
-     "thirds": 0.014,
-     "headroom": 0.184,
+     "thirds": 0.013,
+     "headroom": 0.206,
      "behind": false
     },
     "menelaus": {
      "visible": 0.75,
-     "size": 0.301,
+     "size": 0.304,
      "inFrame": true,
      "head": [
-      0.527,
-      0.4
+      0.533,
+      0.416
      ],
-     "facing": 1,
-     "thirds": 0.067,
-     "headroom": 0.367,
+     "facing": 0.95,
+     "thirds": 0.083,
+     "headroom": 0.383,
      "box": [
-      0.498,
-      0.555,
-      0.367,
-      0.668
+      0.506,
+      0.56,
+      0.383,
+      0.686
      ],
      "behind": false
     }
@@ -225,8 +260,10 @@
    "id": "K5",
    "beat": "He revealed that Odysseus lived, detained by Calypso on an island.",
    "text": "'I saw him in an island sorrowing bitterly in the house of the nymph Calypso, who is keeping him prisoner, and he cannot reach his home.'",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "the set (the shore) passes through menelaus (4 part overlaps)"
+   ],
    "camera": {
     "pos": [
      -220,
@@ -236,46 +273,52 @@
    },
    "lens": 0,
    "physics": {
-    "collide": [],
+    "collide": [
+     [
+      "the set (the shore)",
+      "menelaus",
+      4
+     ]
+    ],
     "floating": [],
     "perched": []
    },
    "subjects": {
     "proteus": {
      "visible": 1,
-     "size": 0.336,
+     "size": 0.341,
      "inFrame": true,
      "head": [
-      0.449,
+      0.433,
       0.448
      ],
-     "facing": 1,
-     "thirds": 0.114,
+     "facing": 0.94,
+     "thirds": 0.099,
      "headroom": 0.411,
      "box": [
-      0.418,
-      0.481,
+      0.403,
+      0.462,
       0.411,
-      0.748
+      0.751
      ],
      "behind": false
     },
     "menelaus": {
      "visible": 1,
-     "size": 0.376,
+     "size": 0.382,
      "inFrame": true,
      "head": [
       0.701,
-      0.446
+      0.448
      ],
-     "facing": -0.09,
+     "facing": 0.64,
      "thirds": 0.034,
-     "headroom": 0.405,
+     "headroom": 0.407,
      "box": [
-      0.697,
-      0.703,
-      0.405,
-      0.782
+      0.678,
+      0.726,
+      0.407,
+      0.788
      ],
      "behind": false
     }

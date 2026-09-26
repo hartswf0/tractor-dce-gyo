@@ -166,13 +166,15 @@ function kfPhysics(ids,touch=[]){const set=new Set(ids),acts=ButterCast.cast.fil
     if(a.rig.sat){a.rig.figure.updateMatrixWorld(true);const hp=kfWorld(a.rig.legRP),lp=kfWorld(a.rig.legLP),c=hp.clone().add(lp).multiplyScalar(0.5),h=new THREE.Raycaster(c.clone().add(new THREE.Vector3(0,2*k,0)),new THREE.Vector3(0,-1,0)).intersectObjects(meshes,true)[0],gap=h?c.y-h.point.y:Infinity;
       if(gap<-2*k||gap>14*k)floating.push([kfShort(a.kind),h?+gap.toFixed(1):null]);if(h)support.set(kfShort(a.kind),kfPropOf(h.object));continue;}   /* seated: the hips on the seat, the thighs' own depth above it */
     const from=a.rig.pos.clone().add(new THREE.Vector3(0,30*k,0)),ray=new THREE.Raycaster(from,new THREE.Vector3(0,-1,0));ray.far=200;
-    const h=ray.intersectObjects(meshes,true)[0],gap=h?a.rig.pos.y-h.point.y:Infinity;if(Math.abs(gap)>3*k)floating.push([kfShort(a.kind),h?+gap.toFixed(1):null]);
+    const h=ray.intersectObjects(meshes,true)[0],gap=h?a.rig.pos.y-h.point.y:Infinity;if(gap>3*k||gap<-4.5*k)floating.push([kfShort(a.kind),h?+gap.toFixed(1):null]);
     /* feet on a prop (a loom's foot beam, a seal's back) read as a figure hovering over the floor, unless the still means it (touch) */
     if(h)support.set(kfShort(a.kind),kfPropOf(h.object));
     /* standing high on scenery (a tree's crown, a rock's top) reads as a figure pasted in: the lowest surface under the feet is the ground,
        and a figure standing well above it must have been put there on purpose (placed) */
     if(!a.rig.placed&&h){const all=new THREE.Raycaster(new THREE.Vector3(a.rig.pos.x,a.rig.pos.y+1,a.rig.pos.z),new THREE.Vector3(0,-1,0)).intersectObjects(meshes,true);const low=all.length?all[all.length-1].point.y:a.rig.pos.y,tall=kfHead(kfShort(a.kind)).y-a.rig.pos.y;
-      if(a.rig.pos.y-low>0.5*tall){let o=h.object,n='';for(;o;o=o.parent)if(o.userData&&o.userData.label){n=o.userData.label;break;}perched.push([kfShort(a.kind),(n||'scenery')+' '+Math.round(a.rig.pos.y-low)+' above the ground']);}}
+      /* but a deck, a dais, a floor laid on the plate is a floor: most of a ring round the feet stands at the same height */
+      let flat=0;for(let i=0;i<12;i++){const t=i*Math.PI/6,rr=[1.2,2.4][i%2]*20*k,hh=new THREE.Raycaster(new THREE.Vector3(a.rig.pos.x+Math.cos(t)*rr,a.rig.pos.y+8*k,a.rig.pos.z+Math.sin(t)*rr),new THREE.Vector3(0,-1,0)).intersectObjects(meshes,true)[0];if(hh&&Math.abs(hh.point.y-a.rig.pos.y)<=5*k)flat++;}
+      if(flat<8&&a.rig.pos.y-low>0.5*tall){let o=h.object,n='';for(;o;o=o.parent)if(o.userData&&o.userData.label){n=o.userData.label;break;}perched.push([kfShort(a.kind),(n||'scenery')+' '+Math.round(a.rig.pos.y-low)+' above the ground']);}}
     if(Math.abs(gap)<=3*k&&h){const o=kfPropOf(h.object);if(o&&!a.rig.placed&&!ok(o,kfShort(a.kind)))perched.push([kfShort(a.kind),o]);}}
   /* a prop through a figure (a torch through a suitor's chest, a rock in a man's head) poisons the frame as surely as two figures in one
      place: every staged prop against every figure near it, but a prop in a figure's own hand against that figure is its grip, and the prop a figure stands or sits on is its floor */
@@ -193,7 +195,7 @@ function kfPhysics(ids,touch=[]){const set=new Set(ids),acts=ButterCast.cast.fil
    const nameOf=m=>{let f='';for(let p=m;p;p=p.parent)if(p.userData&&p.userData.file){f=p.userData.file;break;}const id=f||m.userData.part||m.userData.partId||m.name||'set';let L=lab.get(id);for(let p=m;!L&&p;p=p.parent)L=lab.get(p.name)||lab.get(p.userData&&p.userData.id);return L||id;};
    for(const a of acts){const q=kfShort(a.kind);if(ok('set',q))continue;const ab=boxes.get(a);if(!ab.length)continue;const kk=a.rig.headP.getWorldScale(new THREE.Vector3()).y;
      const fb=new THREE.Box3().setFromObject(a.rig.figure);const rest=a.rig.sat?kfWorld(a.rig.legRP).y+2*kk:fb.min.y+6*kk;let n=0;const names=new Set();
-     for(const m of setMeshes){if(!m.geometry||!m.geometry.attributes.position)continue;const mb=new THREE.Box3().setFromObject(m);if(!mb.intersectsBox(fb))continue;let c=0;
+     for(const m of setMeshes){if(!m.geometry||!m.geometry.attributes.position)continue;const mb=new THREE.Box3().setFromObject(m);if(!mb.intersectsBox(fb)||mb.max.y<=a.rig.pos.y+6*kk)continue;let c=0;   /* a floor, a deck, the sea's surface under the feet */
        for(const v of vertsOf(m)){if(v.y<rest||!fb.containsPoint(v))continue;for(const B of ab)if(inBox(v,B)){c++;break;}}if(c>=3){n+=c;names.add(nameOf(m));}}
      if(n)collide.push(['the set ('+[...names].slice(0,3).join(', ')+')',q,n]);}}
   return {collide,floating,perched};}

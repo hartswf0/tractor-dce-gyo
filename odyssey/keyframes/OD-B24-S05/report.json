@@ -6,8 +6,10 @@
    "id": "K1",
    "beat": "Laertes is bathed and anointed inside the farmhouse.",
    "text": "The Sicel woman bathed Laertes and anointed him with oil, and put a good cloak on him.",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "the set (laertes s farm 2) passes through laertes-restored (16 part overlaps)"
+   ],
    "camera": {
     "pos": [
      90,
@@ -17,27 +19,33 @@
    },
    "lens": 0,
    "physics": {
-    "collide": [],
+    "collide": [
+     [
+      "the set (laertes s farm 2)",
+      "laertes-restored",
+      16
+     ]
+    ],
     "floating": [],
     "perched": []
    },
    "subjects": {
     "laertes-restored": {
      "visible": 1,
-     "size": 0.781,
+     "size": 0.749,
      "inFrame": true,
      "head": [
-      0.533,
-      0.275
+      0.564,
+      0.25
      ],
-     "facing": 0.98,
-     "thirds": 0.059,
-     "headroom": 0.19,
+     "facing": 0.77,
+     "thirds": 0.084,
+     "headroom": 0.168,
      "box": [
-      0.463,
-      0.607,
-      0.19,
-      0.971
+      0.513,
+      0.621,
+      0.168,
+      0.917
      ],
      "behind": false
     }
@@ -48,8 +56,10 @@
    "id": "K2",
    "beat": "Athena makes him taller and stronger, restoring royal presence.",
    "text": "Minerva came up to him and gave him a more imposing presence, making him taller and stronger than before, and when he came back his son was surprised to see him looking so like an immortal.",
-   "pass": true,
-   "fails": [],
+   "pass": false,
+   "fails": [
+    "the set (floor) passes through laertes-restored (9 part overlaps)"
+   ],
    "camera": {
     "pos": [
      60,
@@ -59,27 +69,33 @@
    },
    "lens": 0.06,
    "physics": {
-    "collide": [],
+    "collide": [
+     [
+      "the set (floor)",
+      "laertes-restored",
+      9
+     ]
+    ],
     "floating": [],
     "perched": []
    },
    "subjects": {
     "laertes-restored": {
      "visible": 1,
-     "size": 0.715,
+     "size": 0.753,
      "inFrame": true,
      "head": [
-      0.5,
-      0.34
+      0.526,
+      0.322
      ],
-     "facing": 0.99,
-     "thirds": 0.007,
-     "headroom": 0.269,
+     "facing": 0.77,
+     "thirds": 0.012,
+     "headroom": 0.248,
      "box": [
-      0.436,
-      0.565,
-      0.269,
-      0.984
+      0.471,
+      0.577,
+      0.248,
+      1
      ],
      "behind": false
     }
@@ -92,9 +108,13 @@
    "text": "Dolius came up with both arms outstretched, took Ulysses' hand, and kissed it on the wrist. 'Welcome home,' said he.",
    "pass": false,
    "fails": [
-    "dolius-s-sons-2 peeks from behind (0.25)",
-    "dolius-s-sons-4 peeks from behind (0.25)",
-    "dolius-s-sons-5 peeks from behind (0.5)"
+    "dolius passes through dolius-s-sons-3 (1 part overlaps)",
+    "the set (laertes s farm 2) passes through dolius (7 part overlaps)",
+    "the set (laertes s farm 2) passes through dolius-s-sons-1 (13 part overlaps)",
+    "the set (laertes s farm 2) passes through dolius-s-sons-3 (150 part overlaps)",
+    "the set (laertes s farm 2) passes through dolius-s-sons-4 (28 part overlaps)",
+    "dolius-s-sons-3 stands on scenery 64 above the ground, not the floor",
+    "dolius-s-sons-3 is sunk 30"
    ],
    "camera": {
     "pos": [
@@ -105,27 +125,63 @@
    },
    "lens": 0,
    "physics": {
-    "collide": [],
-    "floating": [],
-    "perched": []
+    "collide": [
+     [
+      "dolius",
+      "dolius-s-sons-3",
+      1
+     ],
+     [
+      "the set (laertes s farm 2)",
+      "dolius",
+      7
+     ],
+     [
+      "the set (laertes s farm 2)",
+      "dolius-s-sons-1",
+      13
+     ],
+     [
+      "the set (laertes s farm 2)",
+      "dolius-s-sons-3",
+      150
+     ],
+     [
+      "the set (laertes s farm 2)",
+      "dolius-s-sons-4",
+      28
+     ]
+    ],
+    "floating": [
+     [
+      "dolius-s-sons-3",
+      -30
+     ]
+    ],
+    "perched": [
+     [
+      "dolius-s-sons-3",
+      "scenery 64 above the ground"
+     ]
+    ]
    },
    "subjects": {
     "dolius": {
      "visible": 1,
-     "size": 0.453,
+     "size": 0.439,
      "inFrame": true,
      "head": [
-      0.536,
-      0.346
+      0.525,
+      0.329
      ],
-     "facing": 0.96,
-     "thirds": 0.013,
-     "headroom": 0.296,
+     "facing": 0.91,
+     "thirds": 0.004,
+     "headroom": 0.281,
      "box": [
-      0.496,
-      0.577,
-      0.296,
-      0.749
+      0.486,
+      0.561,
+      0.281,
+      0.719
      ],
      "behind": false
     }
@@ -138,7 +194,12 @@
    "text": "They took their seats in order on the benches and chairs... and began to eat, while Dolius and his sons did the same.",
    "pass": false,
    "fails": [
-    "dolius-s-sons-3 peeks from behind (0.25)"
+    "the set (floor, laertes s farm 2) passes through laertes-restored (31 part overlaps)",
+    "the set (floor, laertes s farm 2) passes through dolius (31 part overlaps)",
+    "the set (floor, laertes s farm 2) passes through dolius-s-sons-1 (32 part overlaps)",
+    "the set (floor) passes through dolius-s-sons-2 (15 part overlaps)",
+    "the set (floor) passes through dolius-s-sons-3 (14 part overlaps)",
+    "the set (floor) passes through dolius-s-sons-4 (18 part overlaps)"
    ],
    "camera": {
     "pos": [
@@ -149,46 +210,77 @@
    },
    "lens": 0,
    "physics": {
-    "collide": [],
+    "collide": [
+     [
+      "the set (floor, laertes s farm 2)",
+      "laertes-restored",
+      31
+     ],
+     [
+      "the set (floor, laertes s farm 2)",
+      "dolius",
+      31
+     ],
+     [
+      "the set (floor, laertes s farm 2)",
+      "dolius-s-sons-1",
+      32
+     ],
+     [
+      "the set (floor)",
+      "dolius-s-sons-2",
+      15
+     ],
+     [
+      "the set (floor)",
+      "dolius-s-sons-3",
+      14
+     ],
+     [
+      "the set (floor)",
+      "dolius-s-sons-4",
+      18
+     ]
+    ],
     "floating": [],
     "perched": []
    },
    "subjects": {
     "laertes-restored": {
      "visible": 0.75,
-     "size": 0.367,
+     "size": 0.369,
      "inFrame": true,
      "head": [
-      0.369,
+      0.373,
       0.409
      ],
      "facing": 0.58,
-     "thirds": 0.036,
-     "headroom": 0.367,
+     "thirds": 0.04,
+     "headroom": 0.366,
      "box": [
-      0.349,
-      0.391,
-      0.367,
-      0.734
+      0.353,
+      0.395,
+      0.366,
+      0.735
      ],
      "behind": false
     },
     "dolius": {
      "visible": 0.75,
-     "size": 0.454,
+     "size": 0.437,
      "inFrame": true,
      "head": [
-      0.246,
-      0.451
+      0.272,
+      0.462
      ],
-     "facing": 0.71,
-     "thirds": 0.088,
-     "headroom": 0.398,
+     "facing": 0.69,
+     "thirds": 0.061,
+     "headroom": 0.411,
      "box": [
-      0.216,
-      0.283,
-      0.398,
-      0.852
+      0.245,
+      0.307,
+      0.411,
+      0.848
      ],
      "behind": false
     }
