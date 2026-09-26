@@ -56,13 +56,14 @@ function kfSpotCtx(label){if(kfSpotCache.has(label))return kfSpotCache.get(label
   const meshes=[];scene.traverse(o=>{if(kfSolid(o)&&!figs.has(o))meshes.push(o);});
   const row=any?{id:null}:A.rows[i],mine=any?()=>true:o=>{for(let q=o;q;q=q.parent)if(q.name===row.id||(q.userData&&(q.userData.id===row.id||q.userData.file===row.id||q.userData.partId===row.id)))return true;return false;};
   const small=[];for(const m of meshes){const b=new THREE.Box3().setFromObject(m),sz=b.getSize(new THREE.Vector3());if(Math.max(sz.x,sz.y,sz.z)<120*sc)small.push([m,b]);}
-  const ctx={box,sc,h:10*sc,tall:80*sc,meshes,mine,small,memo:new Map()};kfSpotCache.set(label,ctx);return ctx;}
+  const ctx={box,sc,h:10*sc,tall:80*sc,meshes,mine,small,any,memo:new Map()};kfSpotCache.set(label,ctx);return ctx;}
 /* is (x, z) a place to stand on the piece? the floor there is the piece's own top with a figure's height of air above it, the stud round it
    is level, and the whole body's column (a stud and a half wide, the arms a stud forward) is clear */
 function kfSpotAt(c,x,z){const key=x+','+z;if(c.memo.has(key))return c.memo.get(key);const {box,sc,h,tall,meshes,mine}=c;let res=null;
   const d=new THREE.Raycaster(new THREE.Vector3(x,box[4]+500,z),new THREE.Vector3(0,-1,0)).intersectObjects(meshes,true);
   let floor=null;for(let j=d.length-1;j>=0;j--){const y=d[j].point.y;if(!d.some(q=>q.point.y>y+1&&q.point.y<y+tall)){floor=d[j];break;}}
-  if(floor&&mine(floor.object)&&floor.point.y>=box[1]+4*sc){const y=floor.point.y;let ok=true;
+  if(floor&&c.any&&floor.point.y-d[d.length-1].point.y>20*sc)floor=null;   /* '*' is the ground: never a wall's top or a roof */
+  if(floor&&mine(floor.object)&&(c.any||floor.point.y>=box[1]+4*sc)){const y=floor.point.y;let ok=true;
     for(const [dx,dz] of [[h,0],[-h,0],[0,h],[0,-h]]){const dd=new THREE.Raycaster(new THREE.Vector3(x+dx,y+tall,z+dz),new THREE.Vector3(0,-1,0)).intersectObjects(meshes,true)[0];if(!dd||Math.abs(dd.point.y-y)>5*sc){ok=false;break;}}
     /* small parts (a bone, a flower, a stool) are caught by their boxes, which rays can slip between */
     if(ok){const col=new THREE.Box3(new THREE.Vector3(x-22*sc,y+3*sc,z-22*sc),new THREE.Vector3(x+22*sc,y+tall,z+22*sc));for(const [m,b] of c.small)if(b.intersectsBox(col)){ok=false;break;}}
