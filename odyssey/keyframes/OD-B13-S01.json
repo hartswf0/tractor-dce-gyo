@@ -37,75 +37,103 @@
    "id": "K1",
    "beat": "Odysseus finishes his tale and the Phaeacians sit in silence.",
    "text": "Thus did he speak, and they all held their peace throughout the covered cloister, enthralled by the charm of his story.",
-   "hide": [
-    "gift chest and treasures"
-   ],
    "props": [
     {
-     "name": "chest",
-     "id": "chest",
-     "at": [
-      -8,
-      52,
-      -50
-     ],
-     "floor": true,
-     "scale": 0.9
+     "name": "cup",
+     "id": "cup",
+     "after": true,
+     "aim": {
+      "anchor": "rim",
+      "to": "hand:odysseus:R",
+      "dir": [
+       0,
+       -1,
+       0
+      ]
+     }
     }
    ],
    "blocking": [
     {
      "id": "odysseus",
-     "x": -8,
-     "z": 185,
+     "x": 0,
+     "z": 5,
      "y": "surface",
      "face": [
-      -8,
-      0
+      -60,
+      -170
      ],
-     "props": true,
+     "props": false,
+     "pose": {
+      "armRP": [
+       -2.0,
+       0,
+       0.3
+      ],
+      "armLP": [
+       -0.3,
+       0,
+       0
+      ]
+     },
+     "reach": 30
+    },
+    {
+     "id": "alcinous",
+     "x": 25,
+     "z": -205,
+     "y": "floor",
+     "face": [
+      0,
+      5
+     ],
+     "props": false,
      "pose": {
       "armRP": [
        -1.2,
        0,
-       0.2
+       0.3
       ]
-     },
-     "reach": 60
+     }
+    },
+    {
+     "id": "arete",
+     "x": 60,
+     "z": -262,
+     "y": "floor",
+     "face": [
+      0,
+      5
+     ],
+     "props": false,
+     "pose": {
+      "armLP": [
+       -0.9,
+       0,
+       0
+      ]
+     }
     },
     {
      "id": "phaeacian-convoy-crew-1",
-     "x": -40,
-     "z": 120,
+     "x": 0,
+     "z": 0,
      "y": "floor",
      "face": [
-      -8,
-      150
+      0,
+      0
      ],
      "props": false,
-     "pose": {
-      "legRP": [
-       -1.5708,
-       0,
-       0
-      ],
-      "legLP": [
-       -1.5708,
-       0,
-       0
-      ]
-     },
-     "sit": true,
-     "reach": 20
+     "absent": true
     },
     {
      "id": "phaeacian-convoy-crew-2",
-     "x": 25,
-     "z": 120,
-     "y": "floor",
+     "x": 28,
+     "z": 40,
+     "y": 52,
      "face": [
-      -8,
-      150
+      28,
+      400
      ],
      "props": false,
      "pose": {
@@ -118,44 +146,41 @@
        -1.5708,
        0,
        0
+      ],
+      "armRP": [
+       -1.3,
+       0,
+       0
+      ],
+      "armLP": [
+       -1.3,
+       0,
+       0
       ]
      },
      "sit": true,
-     "reach": 20
+     "sitReach": 8
     },
     {
      "id": "phaeacian-convoy-crew-3",
-     "x": -40,
-     "z": 65,
+     "x": 0,
+     "z": 0,
      "y": "floor",
      "face": [
-      -8,
-      150
+      0,
+      0
      ],
      "props": false,
-     "pose": {
-      "legRP": [
-       -1.5708,
-       0,
-       0
-      ],
-      "legLP": [
-       -1.5708,
-       0,
-       0
-      ]
-     },
-     "sit": true,
-     "reach": 20
+     "absent": true
     },
     {
      "id": "phaeacian-convoy-crew-4",
-     "x": 25,
-     "z": 65,
-     "y": "floor",
+     "x": 28,
+     "z": 95,
+     "y": 52,
      "face": [
-      -8,
-      150
+      28,
+      400
      ],
      "props": false,
      "pose": {
@@ -168,64 +193,90 @@
        -1.5708,
        0,
        0
+      ],
+      "armRP": [
+       -1.3,
+       0,
+       0
+      ],
+      "armLP": [
+       -1.3,
+       0,
+       0
       ]
      },
      "sit": true,
-     "reach": 20
+     "sitReach": 8
     },
     {
      "id": "phaeacian-convoy-crew-5",
-     "x": -40,
-     "z": 10,
+     "x": 0,
+     "z": 0,
      "y": "floor",
      "face": [
-      -8,
-      150
+      0,
+      0
      ],
      "props": false,
-     "pose": {
-      "legRP": [
-       -1.5708,
-       0,
-       0
-      ],
-      "legLP": [
-       -1.5708,
-       0,
-       0
-      ]
-     },
-     "sit": true,
-     "reach": 20
+     "absent": true
     }
    ],
    "camera": {
     "type": "wide",
     "pos": [
-     -200,
-     120,
-     330
+     -235,
+     80,
+     -250
     ],
     "target": [
-     -8,
-     60,
-     100
+     20,
+     62,
+     -110
     ],
-    "fov": 44
+    "fov": 52
    },
    "subjects": [
     {
      "id": "odysseus",
-     "min": 0.06,
-     "primary": true
+     "min": 0.04,
+     "primary": true,
+     "face": true
+    },
+    {
+     "id": "alcinous",
+     "soft": true,
+     "min": 0.03
     }
    ],
-   "lensAllow": [
-    "phaeacian-convoy-crew-1",
-    "phaeacian-convoy-crew-2",
-    "phaeacian-convoy-crew-3",
-    "phaeacian-convoy-crew-4",
-    "phaeacian-convoy-crew-5"
+   "lensAllow": [],
+   "look": {
+    "sky": [
+     "#2e3a6e",
+     "#f2a06a"
+    ],
+    "fog": [
+     700,
+     2400
+    ],
+    "sun": {
+     "dir": [
+      -0.4,
+      0.25,
+      -0.85
+     ],
+     "color": "#ffb27a",
+     "intensity": 1.2,
+     "shadow": true
+    },
+    "fill": {
+     "sky": "#8d9cc6",
+     "ground": "#1f2430",
+     "intensity": 0.45
+    },
+    "exposure": 0.95
+   },
+   "hide": [
+    "gift chest and treasures"
    ]
   },
   {
@@ -239,169 +290,212 @@
     {
      "name": "chest",
      "id": "chest",
-     "after": true,
-     "aim": {
-      "anchor": "lid",
-      "to": "hand:phaeacian-convoy-crew-2:R",
-      "dir": [
-       0,
-       1,
-       0
-      ]
-     },
-     "scale": 0.9
+     "at": [
+      0,
+      74,
+      -30
+     ],
+     "scale": 1.3
     }
    ],
    "blocking": [
     {
      "id": "phaeacian-convoy-crew-2",
-     "x": 30,
-     "z": 125,
-     "y": "floor",
-     "face": [
-      -5,
-      215
-     ],
-     "props": false,
-     "pose": {
-      "armRP": [
-       -1.4,
-       0,
-       0.3
-      ],
-      "armLP": [
-       -1.4,
-       0,
-       -0.3
-      ]
-     }
-    },
-    {
-     "id": "phaeacian-convoy-crew-1",
-     "x": -45,
-     "z": 150,
-     "y": "floor",
-     "face": [
-      15,
-      60
-     ],
-     "props": false,
-     "pose": {
-      "armRP": [
-       -1.2,
-       0,
-       0
-      ]
-     }
-    },
-    {
-     "id": "odysseus",
-     "x": -5,
-     "z": 215,
+     "x": 0,
+     "z": -58,
      "y": "surface",
      "face": [
-      25,
-      120
-     ],
-     "props": true,
-     "reach": 60
-    },
-    {
-     "id": "phaeacian-convoy-crew-3",
-     "x": -40,
-     "z": 65,
-     "y": "floor",
-     "face": [
-      -8,
-      400
+      0,
+      -30
      ],
      "props": false,
      "pose": {
       "armRP": [
-       -1.25,
+       -1.0,
        0,
-       0.25
+       0.15
       ],
       "armLP": [
-       -1.25,
+       -1.0,
        0,
-       -0.25
+       -0.15
       ]
-     }
+     },
+     "reach": 30
     },
     {
      "id": "phaeacian-convoy-crew-4",
-     "x": 25,
-     "z": 65,
-     "y": "floor",
+     "x": 0,
+     "z": -2,
+     "y": "surface",
      "face": [
-      -8,
-      400
+      0,
+      -30
      ],
      "props": false,
      "pose": {
       "armRP": [
-       -1.25,
+       -1.0,
        0,
-       0.25
+       0.15
       ],
       "armLP": [
-       -1.25,
+       -1.0,
        0,
-       -0.25
+       -0.15
+      ]
+     },
+     "reach": 30
+    },
+    {
+     "id": "odysseus",
+     "x": 0,
+     "z": 60,
+     "y": "surface",
+     "face": [
+      0,
+      -30
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -0.3,
+       0,
+       0
+      ]
+     },
+     "reach": 30
+    },
+    {
+     "id": "alcinous",
+     "x": 25,
+     "z": -205,
+     "y": "floor",
+     "face": [
+      0,
+      -30
+     ],
+     "props": false,
+     "pose": {
+      "armRP": [
+       -1.6,
+       0,
+       0.2
       ]
      }
     },
     {
-     "id": "phaeacian-convoy-crew-5",
-     "x": -40,
-     "z": 10,
+     "id": "arete",
+     "x": 60,
+     "z": -262,
      "y": "floor",
      "face": [
-      -8,
-      400
+      0,
+      -30
+     ],
+     "props": false
+    },
+    {
+     "id": "phaeacian-convoy-crew-1",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
      ],
      "props": false,
-     "pose": {
-      "armRP": [
-       -1.25,
-       0,
-       0.25
-      ],
-      "armLP": [
-       -1.25,
-       0,
-       -0.25
-      ]
-     }
+     "absent": true
+    },
+    {
+     "id": "phaeacian-convoy-crew-3",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
+    },
+    {
+     "id": "phaeacian-convoy-crew-5",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
     }
    ],
    "camera": {
     "type": "wide",
     "pos": [
-     200,
-     100,
-     300
+     -190,
+     70,
+     -110
     ],
     "target": [
-     -5,
-     60,
-     150
+     10,
+     62,
+     -40
     ],
-    "fov": 42
+    "fov": 44
    },
    "subjects": [
     {
-     "id": "phaeacian-convoy-crew-2",
-     "min": 0.06,
-     "primary": true
+     "id": "prop:chest",
+     "min": 0.03,
+     "primary": true,
+     "cut": true
     },
     {
-     "id": "odysseus",
+     "id": "phaeacian-convoy-crew-2",
      "soft": true,
      "min": 0.03
     }
-   ]
+   ],
+   "touch": [
+    [
+     "prop:chest",
+     "phaeacian-convoy-crew-2"
+    ],
+    [
+     "prop:chest",
+     "phaeacian-convoy-crew-4"
+    ]
+   ],
+   "lensAllow": [],
+   "look": {
+    "sky": [
+     "#2e3a6e",
+     "#f2a06a"
+    ],
+    "fog": [
+     700,
+     2400
+    ],
+    "sun": {
+     "dir": [
+      -0.4,
+      0.25,
+      -0.85
+     ],
+     "color": "#ffb27a",
+     "intensity": 1.2,
+     "shadow": true
+    },
+    "fill": {
+     "sky": "#8d9cc6",
+     "ground": "#1f2430",
+     "intensity": 0.45
+    },
+    "exposure": 0.95
+   }
   },
   {
    "id": "K3",
@@ -413,182 +507,272 @@
    "blocking": [
     {
      "id": "odysseus",
-     "x": -8,
+     "x": 0,
      "z": 190,
-     "y": 66,
-     "air": true,
+     "y": 57,
      "face": [
-      -8,
-      -400
-     ],
-     "tilt": [
-      1.5,
-      0
+      0,
+      300
      ],
      "props": false,
      "pose": {
       "armRP": [
-       0.2,
+       0.1,
        0,
-       0
+       0.1
       ],
       "armLP": [
-       0.2,
+       0.1,
+       0,
+       -0.1
+      ],
+      "headP": [
+       0,
        0,
        0
       ]
-     }
+     },
+     "air": true,
+     "tilt": [
+      -1.5708,
+      0
+     ]
     },
     {
      "id": "phaeacian-convoy-crew-1",
-     "x": -40,
-     "z": 120,
-     "y": "floor",
+     "x": -28,
+     "z": 10,
+     "y": 52,
      "face": [
-      -8,
+      -28,
       400
      ],
      "props": false,
      "pose": {
-      "armRP": [
-       -1.25,
+      "legRP": [
+       -1.5708,
        0,
-       0.25
+       0
+      ],
+      "legLP": [
+       -1.5708,
+       0,
+       0
+      ],
+      "armRP": [
+       -1.3,
+       0,
+       0
       ],
       "armLP": [
-       -1.25,
+       -1.3,
        0,
-       -0.25
+       0
       ]
-     }
+     },
+     "sit": true,
+     "sitReach": 8
     },
     {
      "id": "phaeacian-convoy-crew-2",
-     "x": 25,
-     "z": 120,
-     "y": "floor",
+     "x": 28,
+     "z": 10,
+     "y": 52,
      "face": [
-      -8,
+      28,
       400
      ],
      "props": false,
      "pose": {
-      "armRP": [
-       -1.25,
+      "legRP": [
+       -1.5708,
        0,
-       0.25
+       0
+      ],
+      "legLP": [
+       -1.5708,
+       0,
+       0
+      ],
+      "armRP": [
+       -1.3,
+       0,
+       0
       ],
       "armLP": [
-       -1.25,
+       -1.3,
        0,
-       -0.25
+       0
       ]
-     }
+     },
+     "sit": true,
+     "sitReach": 8
     },
     {
      "id": "phaeacian-convoy-crew-3",
-     "x": -40,
-     "z": 65,
+     "x": 0,
+     "z": 0,
      "y": "floor",
      "face": [
-      -8,
-      400
+      0,
+      0
      ],
      "props": false,
-     "pose": {
-      "armRP": [
-       -1.25,
-       0,
-       0.25
-      ],
-      "armLP": [
-       -1.25,
-       0,
-       -0.25
-      ]
-     }
+     "absent": true
     },
     {
      "id": "phaeacian-convoy-crew-4",
-     "x": 25,
+     "x": 28,
      "z": 65,
-     "y": "floor",
+     "y": 52,
      "face": [
-      -8,
+      28,
       400
      ],
      "props": false,
      "pose": {
-      "armRP": [
-       -1.25,
+      "legRP": [
+       -1.5708,
        0,
-       0.25
+       0
+      ],
+      "legLP": [
+       -1.5708,
+       0,
+       0
+      ],
+      "armRP": [
+       -1.3,
+       0,
+       0
       ],
       "armLP": [
-       -1.25,
+       -1.3,
        0,
-       -0.25
+       0
       ]
-     }
+     },
+     "sit": true,
+     "sitReach": 8
+    },
+    {
+     "id": "alcinous",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
+    },
+    {
+     "id": "arete",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
     },
     {
      "id": "phaeacian-convoy-crew-5",
-     "x": -40,
-     "z": 10,
+     "x": 0,
+     "z": 0,
      "y": "floor",
      "face": [
-      -8,
-      400
+      0,
+      0
      ],
      "props": false,
-     "pose": {
-      "armRP": [
-       -1.25,
-       0,
-       0.25
-      ],
-      "armLP": [
-       -1.25,
-       0,
-       -0.25
-      ]
-     }
+     "absent": true
     }
    ],
    "camera": {
     "type": "wide",
     "pos": [
-     -170,
-     140,
-     330
+     70,
+     135,
+     340
     ],
     "target": [
-     -8,
-     60,
-     130
+     0,
+     55,
+     170
     ],
-    "fov": 44
+    "fov": 40
    },
    "subjects": [
     {
      "id": "odysseus",
-     "min": 0.02,
+     "min": 0.03,
      "primary": true,
-     "soft": true
+     "cut": true
     },
     {
-     "id": "phaeacian-convoy-crew-1",
+     "id": "phaeacian-convoy-crew-4",
      "soft": true,
      "min": 0.02
     }
    ],
-   "lensAllow": [
-    "phaeacian-convoy-crew-1",
-    "phaeacian-convoy-crew-2",
-    "phaeacian-convoy-crew-3",
-    "phaeacian-convoy-crew-4",
-    "phaeacian-convoy-crew-5"
-   ]
+   "lensAllow": [],
+   "props": [
+    {
+     "name": "rug",
+     "id": "rug",
+     "at": [
+      0,
+      53,
+      190
+     ],
+     "rot": [
+      0,
+      0,
+      0
+     ],
+     "scale": 1.0
+    }
+   ],
+   "touch": [
+    [
+     "prop:rug",
+     "odysseus"
+    ],
+    [
+     "prop:lamp",
+     "odysseus"
+    ]
+   ],
+   "look": {
+    "sky": [
+     "#2e3a6e",
+     "#f2a06a"
+    ],
+    "fog": [
+     700,
+     2400
+    ],
+    "sun": {
+     "dir": [
+      -0.4,
+      0.25,
+      -0.85
+     ],
+     "color": "#ffb27a",
+     "intensity": 1.2,
+     "shadow": true
+    },
+    "fill": {
+     "sky": "#8d9cc6",
+     "ground": "#1f2430",
+     "intensity": 0.45
+    },
+    "exposure": 0.95
+   }
   },
   {
    "id": "K4",
@@ -599,22 +783,32 @@
    ],
    "props": [
     {
+     "name": "rug",
+     "id": "rug",
+     "at": [
+      0,
+      53,
+      190
+     ],
+     "scale": 1.0
+    },
+    {
      "name": "spout",
      "id": "sp1",
      "at": [
-      -80,
+      -40,
       4,
-      -140
+      -90
      ],
-     "scale": 0.6
+     "scale": 0.7
     },
     {
      "name": "spout",
      "id": "sp2",
      "at": [
-      60,
+      40,
       4,
-      -160
+      -95
      ],
      "scale": 0.6
     }
@@ -622,202 +816,264 @@
    "blocking": [
     {
      "id": "odysseus",
-     "x": -8,
+     "x": 0,
      "z": 190,
-     "y": 66,
-     "air": true,
+     "y": 57,
      "face": [
-      -8,
-      -400
-     ],
-     "tilt": [
-      1.5,
-      0
+      0,
+      300
      ],
      "props": false,
      "pose": {
       "armRP": [
-       0.2,
+       0.1,
        0,
-       0
+       0.1
       ],
       "armLP": [
-       0.2,
+       0.1,
+       0,
+       -0.1
+      ],
+      "headP": [
+       0,
        0,
        0
       ]
-     }
+     },
+     "air": true,
+     "tilt": [
+      -1.5708,
+      0
+     ]
     },
     {
      "id": "phaeacian-convoy-crew-1",
-     "x": -40,
-     "z": 120,
-     "y": "floor",
+     "x": -28,
+     "z": 10,
+     "y": 52,
      "face": [
-      -8,
+      -28,
       400
      ],
      "props": false,
      "pose": {
-      "armRP": [
-       -1.25,
+      "legRP": [
+       -1.5708,
        0,
-       0.25
+       0
+      ],
+      "legLP": [
+       -1.5708,
+       0,
+       0
+      ],
+      "armRP": [
+       -1.3,
+       0,
+       0
       ],
       "armLP": [
-       -1.25,
+       -1.3,
        0,
-       -0.25
+       0
       ]
-     }
+     },
+     "sit": true,
+     "sitReach": 8
     },
     {
      "id": "phaeacian-convoy-crew-2",
-     "x": 25,
-     "z": 120,
+     "x": 0,
+     "z": 0,
      "y": "floor",
      "face": [
-      -8,
-      400
+      0,
+      0
      ],
      "props": false,
-     "pose": {
-      "armRP": [
-       -1.25,
-       0,
-       0.25
-      ],
-      "armLP": [
-       -1.25,
-       0,
-       -0.25
-      ]
-     }
+     "absent": true
     },
     {
      "id": "phaeacian-convoy-crew-3",
-     "x": -40,
+     "x": -28,
      "z": 65,
-     "y": "floor",
+     "y": 52,
      "face": [
-      -8,
+      -28,
       400
      ],
      "props": false,
      "pose": {
-      "armRP": [
-       -1.25,
+      "legRP": [
+       -1.5708,
        0,
-       0.25
+       0
+      ],
+      "legLP": [
+       -1.5708,
+       0,
+       0
+      ],
+      "armRP": [
+       -1.3,
+       0,
+       0
       ],
       "armLP": [
-       -1.25,
+       -1.3,
        0,
-       -0.25
+       0
       ]
-     }
+     },
+     "sit": true,
+     "sitReach": 8
     },
     {
      "id": "phaeacian-convoy-crew-4",
-     "x": 25,
+     "x": 28,
      "z": 65,
-     "y": "floor",
+     "y": 52,
      "face": [
-      -8,
+      28,
       400
      ],
      "props": false,
      "pose": {
-      "armRP": [
-       -1.25,
+      "legRP": [
+       -1.5708,
        0,
-       0.25
+       0
+      ],
+      "legLP": [
+       -1.5708,
+       0,
+       0
+      ],
+      "armRP": [
+       -1.3,
+       0,
+       0
       ],
       "armLP": [
-       -1.25,
+       -1.3,
        0,
-       -0.25
+       0
       ]
-     }
+     },
+     "sit": true,
+     "sitReach": 8
+    },
+    {
+     "id": "alcinous",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
+    },
+    {
+     "id": "arete",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
     },
     {
      "id": "phaeacian-convoy-crew-5",
-     "x": -40,
-     "z": 10,
+     "x": 0,
+     "z": 0,
      "y": "floor",
      "face": [
-      -8,
-      400
+      0,
+      0
      ],
      "props": false,
-     "pose": {
-      "armRP": [
-       -1.25,
-       0,
-       0.25
-      ],
-      "armLP": [
-       -1.25,
-       0,
-       -0.25
-      ]
-     }
+     "absent": true
     }
    ],
    "look": {
     "sky": [
      "#05070f",
-     "#1a2440"
+     "#1c2644"
     ],
     "fog": [
      500,
-     1600
+     1800
     ],
-    "dim": 0.4,
+    "dim": 0.25,
     "sun": {
      "dir": [
       0.3,
-      0.8,
-      0.3
+      0.7,
+      0.4
      ],
      "color": "#9fb3e6",
-     "intensity": 0.6,
+     "intensity": 0.55,
      "shadow": true
     },
     "fill": {
-     "sky": "#40507a",
-     "ground": "#0a0d14",
-     "intensity": 0.4
+     "sky": "#3a4a7a",
+     "ground": "#0a0c14",
+     "intensity": 0.32
     },
-    "exposure": 0.85
+    "exposure": 1.0,
+    "lights": [
+     {
+      "at": [
+       0,
+       95,
+       170
+      ],
+      "color": "#ffab55",
+      "intensity": 1.8,
+      "distance": 200,
+      "decay": 1.3,
+      "shadow": true
+     }
+    ]
    },
    "camera": {
     "type": "wide",
     "pos": [
-     260,
-     90,
-     -160
+     95,
+     80,
+     310
     ],
     "target": [
-     -8,
-     80,
-     80
+     0,
+     60,
+     130
     ],
-    "fov": 46
+    "fov": 48
    },
    "subjects": [
     {
-     "id": "phaeacian-convoy-crew-5",
+     "id": "odysseus",
      "min": 0.02,
-     "primary": true
+     "primary": true,
+     "cut": true
     }
    ],
-   "lensAllow": [
-    "phaeacian-convoy-crew-1",
-    "phaeacian-convoy-crew-2",
-    "phaeacian-convoy-crew-3",
-    "phaeacian-convoy-crew-4",
-    "phaeacian-convoy-crew-5"
+   "lensAllow": [],
+   "touch": [
+    [
+     "prop:rug",
+     "odysseus"
+    ],
+    [
+     "prop:lamp",
+     "odysseus"
+    ]
    ]
   },
   {
@@ -829,59 +1085,94 @@
    ],
    "props": [
     {
+     "name": "rug",
+     "id": "rug",
+     "at": [
+      88,
+      11,
+      -205
+     ],
+     "rot": [
+      0,
+      1.5708,
+      0
+     ],
+     "scale": 1.0
+    },
+    {
      "name": "chest",
      "id": "chest",
      "at": [
-      70,
+      42,
       0,
-      -160
+      -232
      ],
-     "floor": true,
-     "scale": 0.9
+     "rot": [
+      0,
+      0.4,
+      0
+     ],
+     "scale": 0.6,
+     "floor": true
     }
    ],
    "blocking": [
     {
      "id": "odysseus",
-     "x": 130,
-     "z": -165,
-     "y": 14,
-     "air": true,
+     "x": 122,
+     "z": -205,
+     "y": 20,
      "face": [
-      90,
-      200
-     ],
-     "tilt": [
-      1.5,
-      0
+      500,
+      -205
      ],
      "props": false,
      "pose": {
       "armRP": [
-       0.2,
+       0.1,
+       0,
+       0.1
+      ],
+      "armLP": [
+       0.1,
+       0,
+       -0.1
+      ],
+      "headP": [
+       0,
+       0,
+       0
+      ]
+     },
+     "air": true,
+     "tilt": [
+      -1.5708,
+      0
+     ]
+    },
+    {
+     "id": "phaeacian-convoy-crew-1",
+     "x": 40,
+     "z": -262,
+     "y": "floor",
+     "face": [
+      42,
+      -232
+     ],
+     "props": false,
+     "pose": {
+      "torsoP": [
+       0.5,
+       0,
+       0
+      ],
+      "armRP": [
+       -1.2,
        0,
        0
       ],
       "armLP": [
-       0.2,
-       0,
-       0
-      ]
-     }
-    },
-    {
-     "id": "phaeacian-convoy-crew-1",
-     "x": 100,
-     "z": -130,
-     "y": "floor",
-     "face": [
-      130,
-      -165
-     ],
-     "props": false,
-     "pose": {
-      "armRP": [
-       -0.5,
+       -1.2,
        0,
        0
       ]
@@ -889,107 +1180,99 @@
     },
     {
      "id": "phaeacian-convoy-crew-2",
-     "x": 170,
-     "z": -140,
+     "x": 0,
+     "z": 0,
      "y": "floor",
      "face": [
-      130,
-      -165
+      0,
+      0
      ],
-     "props": false
+     "props": false,
+     "absent": true
+    },
+    {
+     "id": "alcinous",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
+    },
+    {
+     "id": "arete",
+     "x": 0,
+     "z": 0,
+     "y": "floor",
+     "face": [
+      0,
+      0
+     ],
+     "props": false,
+     "absent": true
     },
     {
      "id": "phaeacian-convoy-crew-3",
-     "x": -40,
-     "z": 65,
+     "x": 0,
+     "z": 0,
      "y": "floor",
      "face": [
-      -8,
-      400
+      0,
+      0
      ],
      "props": false,
-     "pose": {
-      "armRP": [
-       -1.25,
-       0,
-       0.25
-      ],
-      "armLP": [
-       -1.25,
-       0,
-       -0.25
-      ]
-     }
+     "absent": true
     },
     {
      "id": "phaeacian-convoy-crew-4",
-     "x": 25,
-     "z": 65,
+     "x": 0,
+     "z": 0,
      "y": "floor",
      "face": [
-      -8,
-      400
+      0,
+      0
      ],
      "props": false,
-     "pose": {
-      "armRP": [
-       -1.25,
-       0,
-       0.25
-      ],
-      "armLP": [
-       -1.25,
-       0,
-       -0.25
-      ]
-     }
+     "absent": true
     },
     {
      "id": "phaeacian-convoy-crew-5",
-     "x": -40,
-     "z": 10,
+     "x": 0,
+     "z": 0,
      "y": "floor",
      "face": [
-      -8,
-      400
+      0,
+      0
      ],
      "props": false,
-     "pose": {
-      "armRP": [
-       -1.25,
-       0,
-       0.25
-      ],
-      "armLP": [
-       -1.25,
-       0,
-       -0.25
-      ]
-     }
+     "absent": true
     }
    ],
    "look": {
     "sky": [
-     "#8aa6d6",
+     "#7b8fc6",
      "#f7c9a0"
     ],
     "fog": [
-     800,
-     2400
+     700,
+     2600
     ],
     "sun": {
      "dir": [
       0.6,
-      0.25,
-      -0.7
+      0.2,
+      -0.75
      ],
-     "color": "#ffcf9e",
-     "intensity": 1.1,
+     "color": "#ffd2a0",
+     "intensity": 1.2,
      "shadow": true
     },
     "fill": {
-     "sky": "#b8c6e6",
-     "ground": "#2a3a48",
+     "sky": "#c6d0ec",
+     "ground": "#4a3a2c",
      "intensity": 0.5
     },
     "exposure": 0.95
@@ -997,43 +1280,47 @@
    "camera": {
     "type": "wide",
     "pos": [
-     -60,
-     80,
-     -40
+     -30,
+     65,
+     -100
     ],
     "target": [
-     120,
-     40,
-     -170
+     80,
+     28,
+     -210
     ],
     "fov": 42
    },
    "subjects": [
     {
      "id": "phaeacian-convoy-crew-1",
-     "min": 0.06,
-     "primary": true
+     "min": 0.05,
+     "primary": true,
+     "face": true
+    },
+    {
+     "id": "odysseus",
+     "soft": true,
+     "min": 0.04,
+     "cut": true
     },
     {
      "id": "prop:chest",
      "soft": true,
-     "cut": true
+     "min": 0.02
     }
    ],
    "touch": [
     [
-     "odysseus",
-     "phaeacian-convoy-crew-1"
-    ],
-    [
-     "odysseus",
-     "phaeacian-convoy-crew-2"
+     "prop:rug",
+     "odysseus"
     ],
     [
      "prop:chest",
      "phaeacian-convoy-crew-1"
     ]
-   ]
+   ],
+   "lensAllow": []
   }
  ]
 }
