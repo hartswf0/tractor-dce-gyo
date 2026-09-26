@@ -317,15 +317,32 @@ def lineup():
     for n, slug in enumerate(('recognition-helen', 'recognition-scar', 'recognition-argos')):
         rows_ = helen() if slug == 'recognition-helen' else module(slug).build()
         if isinstance(rows_, tuple): rows_ = rows_[0]
-        out += shift(rows_, (n - 1) * 360)
+        out += shift(rows_, (1 - n) * 360)          # the camera sees +x on its left: Helen on the left as it looks
     return out
+
+
+GRAMMAR = ['One of the four Recognitions (Helen, the Scar, Argos, the Bed), Vignettes on matching 16 x 16 baseplates built to one grammar so they stand in a row.',
+           'The line\'s display finish on each base: a ring of white tiles, a black nameplate with a gold stud at each end, one blue tile.',
+           'A back wall two studs deep across the base, six courses high in a running bond, with its one feature at the centre.',
+           'A floor of tiles; plates only where a figure, a chair leg or a vessel stands, so no field of bare studs is left.']
+
+
+def publish(slug, M, card, images, features, nexts):
+    """write the kit's record through kitlib.manifest, the Recognitions' shared lines first"""
+    return manifest(slug, title=M['title'], book=M['book'], tier='Vignette', moment=M['moment'], quote=M['quote'], object=M['object'],
+                    builds=[{'card': card, 'title': M['title']}], images=images, features=[GRAMMAR[0]] + features + GRAMMAR[1:],
+                    subs=[], sources=M['sources'], status='Built to the bar', next=nexts)
+
+
+LINEUP = {'caption': 'The Recognitions in a row: Helen, the Scar, Argos (the Bed, the fourth, is built separately).',
+          'alt': 'Three small LEGO scenes on matching square bases with white frames and black nameplates, each with a back wall and minifigures.'}
 
 
 MANIFEST = dict(
     title='Helen Knows Him', book='IV', tier='Vignette',
     moment='In Sparta, at her silver work-basket, Helen tells how she alone knew Odysseus when he came into Troy disguised as a beggar, '
            'and bathed him, and kept his secret.',
-    quote='"I alone recognized him in that guise, and questioned him; but he in his craft evaded me." (Odyssey IV, tr. A. T. Murray)',
+    quote='"I alone recognized him in this guise, and questioned him; but he in his craftiness sought to avoid me." (Odyssey IV, tr. A. T. Murray)',
     object='The silver work-basket that runs on wheels, its rims finished in gold, heaped with violet wool, with the golden distaff in '
            'Helen\'s hand: roll it to her chair.',
     sources=['scenes/OD-B04-S03.mjs', 'assets/location/menelauss-palace.mjs', 'scenes/_direction.mjs'],
@@ -338,3 +355,19 @@ if __name__ == '__main__':
     if all(os.path.exists(os.path.join(HERE, s + '.py')) for s in ('recognition-scar', 'recognition-argos')):
         nl = write('set.recognitions-lineup', 'The Recognitions: Helen, the Scar, Argos', lineup())
         print('set.recognitions-lineup', nl); check('set.recognitions-lineup')
+    publish('recognition-helen', MANIFEST, 'set.recognition-helen',
+            [{'file': 'hero.jpg', 'caption': 'Helen in her high chair at the silver basket on wheels, the beggar of her story before her.',
+              'alt': 'A LEGO vignette: a woman minifigure seated on a brown chair on a blue and red rug, a gold distaff in her hand, a silver '
+                     'basket on gold wheels heaped with purple beside her; an old bearded beggar with a staff by a silver basin and gold jug; '
+                     'behind, a tan wall with a red and blue band and a red column.'},
+             {'file': 'close.jpg', 'caption': 'The work-basket of silver on its golden wheels, violet wool heaped in it; the golden distaff.',
+              'alt': 'Close view of the silver round basket on a plate with gold wheels, purple pieces on it, between the beggar and Helen.'},
+             dict(file='lineup.jpg', **LINEUP)],
+            ['The work-basket rolls: a plate with wheel pins and four pearl-gold rims under a pearl-silver round brick, violet wool on it.',
+             'The wall of Menelaus\'s hall has a dark red dado, a fresco band of single blue and red bricks and a red frieze; a red column with a black capital stands before it.',
+             'At the wall\'s centre a niche to the bathing-rooms, its curtain of red and dark red, under a tan lintel.',
+             'Helen sits in a high chair on the rug of soft wool Alcippe brought, a footstool at her feet, the golden krater of her drugged wine beside her.'],
+            ['The beggar is shown in Sparta beside Helen as the subject of her story; the bathing in Troy is told only by the pitcher and basin.',
+             'The distaff is a gold antenna with a purple cone for the wool, held upright by the hand, not clipped.',
+             'The niche is mostly hidden behind the figures from the front view.'])
+

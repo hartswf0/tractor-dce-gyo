@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Penelope&#x27;s Loom</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root { --paper: #f4f4f0; --ink: #141414; --muted: #5d5a52; --card: #fbfbf8; --rule: #d8d6ce; --blue: #0033cc; --gold: #a8801e; --ok: #1d6b3a; --bad: #b3261e; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --paper: #0f0f0e; --ink: #ecebe6; --muted: #a09d94; --card: #181816; --rule: #2c2b28; --blue: #6f8cff; --gold: #d8b25a; --ok: #6fcf8f; --bad: #ff8a80; } }
+:root[data-theme="dark"] { --paper: #0f0f0e; --ink: #ecebe6; --muted: #a09d94; --card: #181816; --rule: #2c2b28; --blue: #6f8cff; --gold: #d8b25a; --ok: #6fcf8f; --bad: #ff8a80; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.55 Inter, system-ui, sans-serif; }
+main { max-width: 1240px; margin: 0 auto; padding: 36px 16px 72px; }
+h1, h2, h3 { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+h1 { font-size: clamp(42px, 8vw, 84px); line-height: .95; }
+h2 { font-size: 32px; margin: 64px 0 6px; padding-top: 14px; border-top: 3px solid var(--ink); }
+h3 { font-size: 23px; line-height: 1.1; }
+p { margin: 8px 0; }
+a { color: var(--blue); }
+.kicker { text-transform: uppercase; letter-spacing: .2em; font-size: 12px; font-weight: 600; color: var(--blue); }
+.lede { font-size: 19px; color: var(--muted); max-width: 820px; margin: 16px 0 22px; }
+.sub { color: var(--muted); max-width: 820px; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border: 2px solid var(--ink); margin: 26px 0 8px; }
+.stats div { padding: 14px 16px; border-right: 1px solid var(--rule); } .stats div:last-child { border-right: 0; }
+.stats b { display: block; font: 700 38px/1 'Cormorant Garamond', Georgia, serif; }
+.stats span { font-size: 12px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
+.ribbon { display: grid; grid-template-columns: repeat(24, 1fr); gap: 2px; margin: 18px 0 4px; }
+.ribbon a, .ribbon div { display: block; min-height: 64px; padding: 4px 2px; text-align: center; text-decoration: none; color: var(--ink); background: var(--card); border: 1px solid var(--rule); font-size: 11px; }
+.ribbon .has { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.ribbon .film { box-shadow: inset 0 -4px 0 var(--blue); }
+.ribbon i { display: block; font-style: normal; font-weight: 700; font-size: 13px; }
+.legend { font-size: 12px; color: var(--muted); }
+.legend s { display: inline-block; width: 12px; height: 12px; vertical-align: -2px; margin: 0 4px 0 12px; text-decoration: none; }
+.filters { display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0; }
+.filters button { font: 600 13px Inter, sans-serif; padding: 7px 12px; border: 1.5px solid var(--ink); background: transparent; color: var(--ink); cursor: pointer; }
+.filters button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 18px; }
+.card { background: var(--card); border: 1px solid var(--rule); display: flex; flex-direction: column; text-decoration: none; color: var(--ink); }
+.card:hover { border-color: var(--ink); }
+.card img { width: 100%; aspect-ratio: 16/11; object-fit: cover; display: block; background: #000; }
+.card .body { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.meta { font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+.meta b { color: var(--blue); }
+.card p { font-size: 14px; color: var(--muted); }
+.badge { margin-top: auto; font-size: 12px; font-weight: 600; }
+.badge.ok { color: var(--ok); } .badge.bad { color: var(--bad); }
+.noimg { width: 100%; aspect-ratio: 16/11; background: repeating-linear-gradient(45deg, var(--rule) 0 2px, transparent 2px 10px); }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+td, th { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+td.n { text-align: right; font-variant-numeric: tabular-nums; }
+td.ok { color: var(--ok); font-weight: 600; } td.bad { color: var(--bad); font-weight: 600; }
+.tablewrap { overflow-x: auto; }
+.frames { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+figure { margin: 0; } figure img { width: 100%; display: block; background: #000; }
+.frames img { aspect-ratio: 16/10; object-fit: cover; }
+figcaption { font-size: 13px; color: var(--muted); padding: 6px 2px 0; }
+.links { columns: 2; column-gap: 32px; } .links li { margin: 4px 0; break-inside: avoid; }
+footer { margin-top: 64px; font-size: 13px; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 16px; }
+code { font-size: 13px; }
+.kitgrid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 26px; align-items: start; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+blockquote { margin: 16px 0; padding: 12px 16px; border-left: 3px solid var(--blue); background: var(--card); font-family: 'Cormorant Garamond', Georgia, serif; font-size: 21px; }
+.sub-row { display: grid; grid-template-columns: 1fr 1.3fr; gap: 20px; padding: 16px 0; border-top: 1px solid var(--rule); align-items: start; }
+@media (max-width: 800px) { .stats { grid-template-columns: repeat(2, 1fr); } .stats div:nth-child(2) { border-right: 0; }
+  .ribbon { grid-template-columns: repeat(8, 1fr); } .links { columns: 1; } .kitgrid, .two, .sub-row { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main>
+
+  <div class="kicker"><a href="../">The Odyssey Line</a> · Medium · Book II · 762 pieces</div>
+  <h1>Penelope&#x27;s Loom</h1>
+  <p class="lede">Night in the upper chamber: by torchlight Penelope unpicks the web she wove by day, while a maid at the door at the head of the stair watches her, the maid who will tell the suitors.</p>
+  <blockquote>So we could see her working on her great web all day long, but at night she would unpick the stitches again by torchlight. (Odyssey II, tr. Samuel Butler)</blockquote>
+  <figure><img src="hero.jpg" alt="A white-plastered LEGO room with a blue, red and ochre fresco band, raised on a stone storey, a stone stair up to its side door."><figcaption>The upper chamber at the head of the stair, the maid on the landing, Penelope at the loom.</figcaption></figure>
+  <h2>The object</h2>
+  <p>The shroud on a warp-weighted loom: two uprights, the cloth-beam across them, and the shroud hung from the beam on a single stud, so it turns: one face the woven linen with its red and gold border, the other the loose warp she has undone. The warp runs down on bars to a row of clay loom-weights that hang free above the floor. The roof lifts off.</p>
+  <div class="two"><figure><img src="open.jpg" alt="The chamber from above without its roof, the loom showing rows of pale round bricks for loose threads." loading="lazy"><figcaption>The roof lifted off and the shroud turned: the warp she has undone faces the room.</figcaption></figure><figure><img src="inside.jpg" alt="Close view of a minifigure at a loom of round-brick uprights, a woven panel hanging from the beam and clay weights on bars below." loading="lazy"><figcaption>By torchlight: the woven face, its border of red and gold, a corner already undone; the weights hang free.</figcaption></figure><figure><img src="inside-2.jpg" alt="A minifigure seen from behind in a doorway, looking into the chamber toward the loom." loading="lazy"><figcaption>The maid at the door at the stair head, watching.</figcaption></figure><figure><img src="loom.jpg" alt="The loom on its own, the woven panel facing front." loading="lazy"><figcaption>The loom with its shroud, woven face out.</figcaption></figure><figure><img src="loom-back.jpg" alt="The loom from behind, the thread face of the panel." loading="lazy"><figcaption>Turn the shroud on its stud and the undone warp faces out.</figcaption></figure><figure><img src="torch.jpg" alt="A torch on a stand of round bricks beside a basket of wool." loading="lazy"><figcaption>The torch in its stand and the basket of wool.</figcaption></figure></div>
+  <h2>How it is built</h2>
+  <ul><li>The shroud is two rows of bricks hung from a single 1 x 1 plate under the cloth-beam: it turns on that one stud, the woven row (a white field, red edges, a border of dark red and pearl gold) on one side and the warp row (round bricks in white, tan and grey) on the other.</li><li>The warp runs down from the shroud on bars to seven clay loom-weights (round bricks in dark tan and medium nougat) that hang free a plate above the floor.</li><li>The room is raised on a hollow storey of stone sculpted and settled with tools/forage/product/sculpt.py, a course of timber laced through it; a stone stair of four bonded steps climbs from the court to the landing at the door.</li><li>Plastered walls in running bond with a painted dado and a fresco band of blue, red and ochre; two windows glazed in trans dark blue for the night outside.</li><li>The roof is a separate assembly of beams, a deck laid so its joints cross the beams&#x27; joints, and tiles: it lifts off whole.</li><li>Floors and treads are tiles; studs are left only where someone or something stands.</li></ul>
+  <h2>The builds inside the build</h2>
+  <div class="sub-row"><div class="noimg"></div><div><div class="meta">72 pieces</div><h3>The loom with its shroud</h3><p>The uprights, the cloth-beam, the turning shroud, the warp and the weights, on a slab of floor.</p></div></div>
+  <div class="sub-row"><div class="noimg"></div><div><div class="meta">11 pieces</div><h3>The torch and the wool basket</h3><p>The torch in its stand of round bricks, its flame pinned in the head, beside a basket of carded wool.</p></div></div>
+  <h2>What the checker says</h2>
+  <div class="tablewrap"><table><tr><th>Build</th><th>File</th><th class="n">Pieces</th><th class="n">Loose</th><th class="n">Clashes</th></tr>
+  <tr><td>Penelope&#x27;s Loom</td><td><a href="../../cards/set.penelopes-loom.mpd"><code>set.penelopes-loom</code></a></td><td class="n">762</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  <tr><td>The roof lifted off, the shroud turned to its undone face</td><td><a href="../../cards/set.penelopes-loom-open.mpd"><code>set.penelopes-loom-open</code></a></td><td class="n">678</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  <tr><td>The loom with its shroud</td><td><a href="../../cards/set.penelopes-loom-loom.mpd"><code>set.penelopes-loom-loom</code></a></td><td class="n">72</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  <tr><td>The torch and the wool basket</td><td><a href="../../cards/set.penelopes-loom-torch.mpd"><code>set.penelopes-loom-torch</code></a></td><td class="n">11</td><td class="n ok">0</td><td class="n ok">0</td></tr>
+  </table></div>
+  <h2>In the film</h2>
+  <div class="frames"><figure><img src="../../keyframes/OD-B02-S02/sheet.jpg" alt="Keyframes of Penelope&#x27;s Web" loading="lazy"><figcaption>OD-B02-S02 · Penelope&#x27;s Web</figcaption></figure></div>
+  <h2>Still to do</h2>
+  <ul><li>The loom-weights are held by their bars, which the checker does not see, so they are marked as their own anchor (kitlib.root); the bars and the flame pin are placed by hand.</li><li>The uprights stand vertical; a real warp-weighted loom leans against the wall.</li><li>The -open card shows two changes at once (roof off, shroud turned); a separate card for each state would be clearer.</li><li>Penelope reaches toward the web but holds no thread; the maid is seen mostly from behind.</li><li>The props.json looms (loomFull, loomHalf) were inspected and not used: their web is a fixed stack of 1 x 6 bricks and does not turn.</li></ul>
+  <footer>Built by <code>tools/forage/product/kits/penelopes-loom.py</code> with <code>kitlib.py</code>; checked by <code>clicks.py</code>. Drawn from the film's sources:<ul><li><a href="https://github.com/hartswf0/odyssey-halfworld/blob/main/odyssey-halfworld/scenes/OD-B02-S02.mjs"><code>odyssey-halfworld/scenes/OD-B02-S02.mjs</code></a></li><li><a href="https://github.com/hartswf0/odyssey-halfworld/blob/main/odyssey-halfworld/assets/prop/laertess-shroud-and-loom.mjs"><code>odyssey-halfworld/assets/prop/laertess-shroud-and-loom.mjs</code></a></li><li><a href="https://github.com/hartswf0/odyssey-halfworld/blob/main/odyssey-halfworld/assets/location/upper-chamber-and-stair.mjs"><code>odyssey-halfworld/assets/location/upper-chamber-and-stair.mjs</code></a></li><li><a href="https://github.com/hartswf0/odyssey-halfworld/blob/main/odyssey-halfworld/scenes/_artifacts.mjs"><code>odyssey-halfworld/scenes/_artifacts.mjs</code></a></li></ul>
+    <a href="../">All the kits</a> · <a href="../brief.html">The design brief</a></footer>
+</main>
+</body>
+</html>

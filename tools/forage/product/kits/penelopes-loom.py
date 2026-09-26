@@ -29,6 +29,7 @@ WALL_TOP = FLOOR_S + WALL_C * B             # 292
 CI0, CI1, CK0, CK1 = -7, 14, -7, 6          # the chamber block (walls included); open at the front
 DOOR = (2, 3, 4)                            # the doorway in the left wall at the stair head (cells k), four courses
 WIN = (11, 12)                              # the window in the back wall (cells i), courses 4..5
+WIN2 = (-1, 0)                              # and one in the right wall (cells k)
 # the loom
 UP_L, UP_R, LK = 0, 10, -5                  # the uprights (cells i) and their row k
 PAN = range(2, 9)                           # the shroud's cells i; its pivot is the middle one
@@ -98,7 +99,7 @@ def walls():
         back = [i for i in range(CI0 + (c % 2), CI1 + 1 - (c % 2)) if not (i in WIN and c in (4, 5))]
         out += lay(back, c, True, CK0)
         side = list(range(CK0 + 1 - (c % 2), CK1 + 1))
-        out += lay(side, c, False, CI1)
+        out += lay([k for k in side if not (k in WIN2 and c in (4, 5))], c, False, CI1)
         if c == 4:                                                          # the lintel over the door
             out.append(put(TAN, (CI0 + .5) * S, FLOOR_S + 5 * B, (DOOR[0] + 2) * S, '3009', RY(math.pi / 2)))
             out += lay([k for k in side if not DOOR[0] - 1 <= k <= DOOR[0] + 4], c, False, CI0)
@@ -107,6 +108,7 @@ def walls():
     # the night sky in the window: glass of trans dark blue, one star
     for c in (4, 5):
         out.append(put(TDBLUE, (WIN[0] + 1) * S, FLOOR_S + (c + 1) * B, (CK0 + .5) * S, '3065'))
+        out.append(put(TDBLUE, (CI1 + .5) * S, FLOOR_S + (c + 1) * B, (WIN2[0] + 1) * S, '3065', RY(math.pi / 2)))
     # the wall tops: tiles, except where the roof beams bear
     out += tile_run(WHITE, CI0 * S, CK0 * S, CI1 - CI0 + 1, WALL_TOP)
     for fixed in (CI0, CI1):
@@ -147,8 +149,8 @@ def roof():
 
 
 # ── the floor ──
-RESERVED = {(UP_L, LK), (UP_R, LK), (9, -4), (9, -3), (12, -4)} | {(i, k) for i in (11, 12) for k in (2, 3)} | \
-           {(i, k) for i in (-6, -5) for k in range(-6, -2)}
+RESERVED = {(UP_L, LK), (UP_R, LK), (9, -4), (9, -3), (12, -4)} | {(i, k) for i in (10, 11) for k in (3, 4)} | \
+           {(i, k) for i in (12, 13) for k in range(-2, 2)}
 
 
 def floor():
@@ -187,9 +189,12 @@ def stair():
         else:
             for i in range(i0, -7):
                 out.append(put(DTAN if hsh(i, c) % 3 == 0 else TAN, (i + .5) * S, yup, (DOOR[1] + .5) * S, '3622', RY(math.pi / 2)))
-    for s_ in range(4):                                                     # the treads
+    for s_ in range(3):                                                     # the treads
         i0 = -15 + 2 * s_
         for k in DOOR: out.append(put(DTAN, (i0 + 1) * S, BASE + (s_ + 1) * B + P, (k + .5) * S, '3069b'))
+    # the landing at the stair head: studs where the maid stands, tiles round her
+    out += [put(DTAN, -8.5 * S, FLOOR, (DOOR[0] + 1) * S, '3023b', RY(math.pi / 2)), put(DTAN, -7.5 * S, FLOOR, (DOOR[0] + .5) * S, '3070b'),
+            put(DTAN, -7.5 * S, FLOOR, (DOOR[1] + .5) * S, '3070b'), put(DTAN, -8 * S, FLOOR, (DOOR[2] + .5) * S, '3069b')]
     return out
 
 
@@ -282,8 +287,8 @@ def penelope(x=(9 + .5) * S, z=-3 * S, yup=FLOOR):
     return out
 
 
-def melantho(x=(CI0 + .5) * S, z=(DOOR[0] + 1) * S, yup=FLOOR):
-    """the maid in the doorway at the stair head, looking in"""
+def melantho(x=-8.5 * S, z=(DOOR[0] + 1) * S, yup=FLOOR):
+    """the maid on the landing at the stair head, at the door, looking in"""
     out, _ = posed('character.melantho', 'melantho', x, yup, z, -math.pi / 2, (-0.3, 0), drop=('3899',))
     return out
 
@@ -296,13 +301,13 @@ def torch(x=(12 + .5) * S, z=(-4 + .5) * S, yup=FLOOR):
             row(TORANGE, T(x, -(top + 48), z), '37775')]                        # the flame, its pin in the torch's head
 
 
-def basket(x=12 * S, z=3 * S, yup=FLOOR):
+def basket(x=11 * S, z=4 * S, yup=FLOOR):
     """a basket of carded wool"""
     return [on(TAN, x, yup, z, '3941')] + [on(c, x + dx, yup + B, z + dz, '6141') for c, (dx, dz) in
                                             zip((WHITE, WHITE, LGRAY, MLAV), ((-10, -10), (10, -10), (-10, 10), (10, 10)))]
 
 
-def chest(x=-5 * S, z=-4 * S, yup=FLOOR):
+def chest(x=13 * S, z=0, yup=FLOOR):
     """the chest of wool against the wall: timber, a lid, fleeces heaped on it"""
     return [on(RB, x, yup, z, '3001', math.pi / 2), put(DB, x, yup + B + P, z, '3020', RY(math.pi / 2)),
             on(WHITE, x - 10, yup + B + P, z - 30, '6141'), on(WHITE, x + 10, yup + B + P, z - 30, '6141'),
@@ -327,7 +332,7 @@ def sub_loom(flipped=False):
 
 def sub_torch():
     """the torch in its stand and the basket of wool, on a slab of floor"""
-    return torch() + basket() + [put(DTAN, 12 * S, FLOOR, -3 * S, '3022')]
+    return [put(DTAN, 20, 12, 20, '3020')] + torch(x=-10, z=10, yup=12) + basket(x=40, z=20, yup=12)
 
 
 if __name__ == '__main__':
@@ -338,5 +343,47 @@ if __name__ == '__main__':
     stone = form.parts(colour)
     n = write('set.penelopes-loom', "Penelope's Loom", stone + details(True))
     n2 = write('set.penelopes-loom-open', "Penelope's Loom (the roof lifted off, the shroud turned)", stone + details(False, True))
-    print('set.penelopes-loom', n, 'pieces; open', n2)
-    for nm in ('set.penelopes-loom', 'set.penelopes-loom-open'): check(nm)
+    subs = [('loom', 'The loom with its shroud', sub_loom()), ('torch', 'The torch and the wool basket', sub_torch())]
+    for sub, title, rows in subs: write(f'set.penelopes-loom-{sub}', f"Penelope's Loom: {title.lower()}", rows)
+    print('set.penelopes-loom', n, 'pieces; open', n2, '; roof', n - n2)
+    for nm in ['set.penelopes-loom', 'set.penelopes-loom-open'] + [f'set.penelopes-loom-{s_}' for s_, _, _ in subs]: check(nm)
+    manifest(SLUG, title="Penelope's Loom", book='II', tier='Medium',
+             moment='Night in the upper chamber: by torchlight Penelope unpicks the web she wove by day, while a maid at the door at the head '
+                    'of the stair watches her, the maid who will tell the suitors.',
+             quote='So we could see her working on her great web all day long, but at night she would unpick the stitches again by torchlight. '
+                   '(Odyssey II, tr. Samuel Butler)',
+             object='The shroud on a warp-weighted loom: two uprights, the cloth-beam across them, and the shroud hung from the beam on a single '
+                    'stud, so it turns: one face the woven linen with its red and gold border, the other the loose warp she has undone. The warp runs '
+                    'down on bars to a row of clay loom-weights that hang free above the floor. The roof lifts off.',
+             builds=[{'card': 'set.penelopes-loom', 'title': "Penelope's Loom"},
+                     {'card': 'set.penelopes-loom-open', 'title': 'The roof lifted off, the shroud turned to its undone face'}] +
+                    [{'card': f'set.penelopes-loom-{s_}', 'title': t} for s_, t, _ in subs],
+             images=[{'file': 'hero.jpg', 'caption': 'The upper chamber at the head of the stair, the maid on the landing, Penelope at the loom.',
+                      'alt': 'A white-plastered LEGO room with a blue, red and ochre fresco band, raised on a stone storey, a stone stair up to its side door.'},
+                     {'file': 'open.jpg', 'caption': 'The roof lifted off and the shroud turned: the warp she has undone faces the room.',
+                      'alt': 'The chamber from above without its roof, the loom showing rows of pale round bricks for loose threads.'},
+                     {'file': 'inside.jpg', 'caption': 'By torchlight: the woven face, its border of red and gold, a corner already undone; the weights hang free.',
+                      'alt': 'Close view of a minifigure at a loom of round-brick uprights, a woven panel hanging from the beam and clay weights on bars below.'},
+                     {'file': 'inside-2.jpg', 'caption': 'The maid at the door at the stair head, watching.',
+                      'alt': 'A minifigure seen from behind in a doorway, looking into the chamber toward the loom.'},
+                     {'file': 'loom.jpg', 'caption': 'The loom with its shroud, woven face out.', 'alt': 'The loom on its own, the woven panel facing front.'},
+                     {'file': 'loom-back.jpg', 'caption': 'Turn the shroud on its stud and the undone warp faces out.', 'alt': 'The loom from behind, the thread face of the panel.'},
+                     {'file': 'torch.jpg', 'caption': 'The torch in its stand and the basket of wool.', 'alt': 'A torch on a stand of round bricks beside a basket of wool.'}],
+             features=['The shroud is two rows of bricks hung from a single 1 x 1 plate under the cloth-beam: it turns on that one stud, the woven row (a white field, red edges, a border of dark red and pearl gold) on one side and the warp row (round bricks in white, tan and grey) on the other.',
+                       'The warp runs down from the shroud on bars to seven clay loom-weights (round bricks in dark tan and medium nougat) that hang free a plate above the floor.',
+                       'The room is raised on a hollow storey of stone sculpted and settled with tools/forage/product/sculpt.py, a course of timber laced through it; a stone stair of four bonded steps climbs from the court to the landing at the door.',
+                       'Plastered walls in running bond with a painted dado and a fresco band of blue, red and ochre; two windows glazed in trans dark blue for the night outside.',
+                       'The roof is a separate assembly of beams, a deck laid so its joints cross the beams\' joints, and tiles: it lifts off whole.',
+                       'Floors and treads are tiles; studs are left only where someone or something stands.'],
+             subs=[{'file': f'set.penelopes-loom-{s_}.mpd', 'title': t, 'pieces': pieces(f'set.penelopes-loom-{s_}'), 'text': txt} for (s_, t, _), txt in zip(subs, (
+                 'The uprights, the cloth-beam, the turning shroud, the warp and the weights, on a slab of floor.',
+                 'The torch in its stand of round bricks, its flame pinned in the head, beside a basket of carded wool.'))],
+             sources=['odyssey-halfworld/scenes/OD-B02-S02.mjs', 'odyssey-halfworld/assets/prop/laertess-shroud-and-loom.mjs',
+                      'odyssey-halfworld/assets/location/upper-chamber-and-stair.mjs', 'odyssey-halfworld/scenes/_artifacts.mjs'],
+             status='Built to the bar',
+             next=['The loom-weights are held by their bars, which the checker does not see, so they are marked as their own anchor (kitlib.root); the bars and the flame pin are placed by hand.',
+                   'The uprights stand vertical; a real warp-weighted loom leans against the wall.',
+                   'The -open card shows two changes at once (roof off, shroud turned); a separate card for each state would be clearer.',
+                   'Penelope reaches toward the web but holds no thread; the maid is seen mostly from behind.',
+                   'The props.json looms (loomFull, loomHalf) were inspected and not used: their web is a fixed stack of 1 x 6 bricks and does not turn.'])
+

@@ -4,7 +4,7 @@
   python3 tools/forage/product/kits/circes-house.py    -> odyssey/cards/set.circes-house*.mpd, odyssey/kits/circes-house/kit.json
 
 The moment: in the forest clearing stands Circe's house of dressed stone. She has given the men her drugged food and struck them with
-her wand, and they are swine in her sty, "the heads, the voice, the bristles and the shape of swine, but their minds as before".
+her wand, and they are swine in her sty, swine in head, voice and bristles but with their own minds still.
 Wolves and lions fawn at her gate. Odysseus comes up the path alone, sword drawn, the moly Hermes gave him in his other hand; the god
 stands at the forest's edge behind him.
 
@@ -109,7 +109,7 @@ SWINE_MEN = [(180, 200, 0), (260, 140, math.pi), (340, 120, -math.pi / 2), (240,
 TROUGH = (300, 230)                     # a 1 x 6 trough along x (centre on a stud corner in x, a stud centre in z)
 ODYSSEUS = (-330, 200)                  # come up the path, turned toward the court and the sty (+x)
 HERMES = (-430, 260)                    # facing +x, toward Odysseus
-BEASTS = [('wolf', -280, 110, math.pi * 0.0), ('lion', -120, 90, math.pi / 2), ('wolf', -210, 190, math.pi / 2),
+BEASTS = [('wolf', -280, 110, math.pi * 0.0), ('lion', -160, 100, math.pi / 2), ('wolf', -210, 190, math.pi / 2),
           ('lion', -250, 30, math.pi)]
 CIRCE = (-140, -230)                    # at the loom's end, facing the hall (+z)
 LOOM = (-220, -270)                     # the web's centre: a 1 x 6 row along x on the back wall's inner face

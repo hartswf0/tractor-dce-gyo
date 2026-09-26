@@ -63,12 +63,12 @@ RAFTERS = (190, 250, 350, 410)
 
 # griffins painted on the wall behind the throne (right wall, courses B4 down to B0 as rows; 8 cells from the far end toward the
 # throne): . ground  b body  w wing (blue)  r wing (red)  h head  t tail  l leg
-GRIFFIN = ['...ww.c.',
-           '..wwb.hh',
-           'tbbbbbh.',
-           'tbbbbb..',
-           '.ll..ll.']
-GCOL = {'.': DRED, 'b': TAN, 'w': AZURE, 'c': AZURE, 'h': TAN, 't': TAN, 'l': TAN}
+GRIFFIN = ['....ww..',
+           '...www.h',
+           'tbbbbbhh',
+           't.bbbb..',
+           '..l..l..']
+GCOL = {'.': DRED, 'b': WHITE, 'w': AZURE, 'h': WHITE, 't': WHITE, 'l': WHITE}
 PORCH_I = (-39, -31)     # the porch (aithousa) before the great doors, open at its far end between two columns
 COURT_I = (-47, -40)     # the court beyond it, walled low, its gate shut
 PORCH_COLS = [(-760, -80), (-760, 80)]
@@ -119,8 +119,8 @@ def wall_colour(row, course, cell):
     if row == 'left_out' and course == 'P' and -5 <= k <= 4: return ('force', RB, 'door-p', 10)
     if row == 'left_in' and course == 'B6' and -6 <= k <= 5: return ('force', TAN, 'door-lintel', 12)
     # the postern to the storeroom passage
-    if row.startswith('front') and i in POSTERN_I and course in ('B0', 'B1', 'B2'): return None
-    if row.startswith('front') and course == 'B3' and POSTERN_I[0] - 1 <= i <= POSTERN_I[1] + 1:
+    if row.startswith('front') and i in POSTERN_I and course in ('B0', 'B1', 'B2', 'B3'): return None
+    if row.startswith('front') and course == 'B4' and POSTERN_I[0] - 1 <= i <= POSTERN_I[1] + 1:
         return ('force', RB, 'postern-' + row, 4)
     # Penelope's door at the stair head
     if row.startswith('back') and i in PEN_I and course in ('B6', 'B7', 'B8'): return None
@@ -275,7 +275,7 @@ def axe_line(with_arrow=True):
             occ.add((i, k))
     for h in HEADS:
         out.append(put(PDG, h, 28, SPINE, '6541', RY(math.pi / 2)))           # the socket: pin hole along x
-        out.append(on(179, h, 28, SPINE, '49307', math.pi / 2))                # the upper blade's edge
+        out.append(on(PDG, h, 28, SPINE, '49307', math.pi / 2))                # the upper blade's edge
     # the earth between them: tiles (dark brown) in the middle row, reddish brown either side
     for k, col in ((-2, RB), (0, RB)):
         out += tile_run(col, ti0 * S, k * S, ti1 - ti0 + 1, 4)
@@ -387,10 +387,10 @@ def throne():
             put(DRED, 510, 44, 0, '3069b', RY(math.pi / 2)),                           # its cushion
             put(WHITE, 530, 60, 0, '3004', RY(math.pi / 2)), put(WHITE, 530, 84, 0, '3004', RY(math.pi / 2)),
             put(WHITE, 530, 116, 10, '6091')]                                          # the back, its top curved
-    out += [put(LBG, 510, 36, -30, '3062b'), put(LBG, 510, 36, 30, '3062b'),            # the arms
-            put(WHITE, 510, 44, -30, '98138'), put(WHITE, 510, 44, 30, '98138')]
+    out += [put(WHITE, 510, 36, -30, '3005'), put(WHITE, 510, 36, 30, '3005'),          # the arms
+            put(WHITE, 510, 44, -30, '3070b'), put(WHITE, 510, 44, 30, '3070b')]
     out += [put(RB, 490, 20, 0, '3023', RY(math.pi / 2)), put(DRED, 490, 28, 0, '3069b', RY(math.pi / 2))]   # the footstool
-    out += fill(dais - chair - arms - stool, lambda i, k: WHITE if (i + k) % 2 else LBG, 12)
+    out += fill(dais - chair - arms - stool, lambda i, k: LBG, 12)
     return out, dais
 
 
@@ -558,7 +558,7 @@ def porch():
                     lambda i, k: DTAN, 248)
         occ |= {(round(x / S) + a, round(z / S) + b) for a in (-1, 0) for b in (-1, 0)}
     out += [put(RB, -760, 264, 0, '3832', RY(math.pi / 2)), put(RB, -760, 272, 0, '3832', RY(math.pi / 2)),     # the lintel
-            put(DTAN, -760, 280, -60, '69729', RY(math.pi / 2)), put(DTAN, -760, 280, 60, '69729', RY(math.pi / 2))]
+            put(DTAN, -760, 280, -40, '69729', RY(math.pi / 2)), put(DTAN, -760, 280, 60, '87079', RY(math.pi / 2))]
     # the bed: an ox-hide (a reddish-brown plate 4 x 6) and fleeces on it (white round tiles, a white tile)
     out += [put(RB, -680, 12, 180, '3032'), put(WHITE, -700, 20, 180, '4150'), put(WHITE, -660, 20, 180, '4150'),
             put(TAN, -630, 20, 160, '3069b', RY(math.pi / 2)), put(TAN, -630, 20, 200, '3069b', RY(math.pi / 2))]
@@ -652,7 +652,7 @@ def hall(front=True):
 
 def sub_axes():
     """the bow and the axe line: the sill, the trench, the twelve heads, the arrow through them; the archer, his son, the swineherd"""
-    rows = [put(DTAN, -240, 4, 0, '3857')]
+    rows = [put(DTAN, -240, 4, 0, '3857'), put(DTAN, 240, 4, 0, '3867')]
     occ = set()
     for part in (sill(), axe_line()):
         rows += part[0]; occ |= part[1]
@@ -660,7 +660,7 @@ def sub_axes():
     rows += figure('character.telemachus', 'telemachus', TEL[0], 4, TEL[1], TEL[2]); occ |= feet(*TEL)
     e = STANDING[4]
     rows += figure(e[0], e[1], e[2], 4, e[3], e[4]); occ |= feet(e[2], e[3], e[4])
-    region = {(i, k) for i in range(-28, 4) for k in range(-8, 8)}
+    region = {(i, k) for i in range(-28, 20) for k in range(-8, 8)}
     return rows + painted_floor(region - occ)
 
 

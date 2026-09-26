@@ -98,21 +98,20 @@ def cart():
     its bed on the ground, the shafts in the air. A plate with wheel pins under a bed with side boards; two wheels; two shafts"""
     parts = [('4600', DB, T(0, -6, 0)), ('3020', RB, mat_mul(T(0, -14, 0), RY(math.pi / 2))),
              ('87079', DB, mat_mul(T(0, -22, 0), RY(math.pi / 2))),
-             ('4624', DB, mat_mul(T(-27, 0, 0), RZ(math.pi / 2))), ('4624', DB, mat_mul(T(27, 0, 0), RZ(math.pi / 2))),
-             ('3957a', RB, mat_mul(T(-10, -10, -40), RX(math.pi / 2))), ('3957a', RB, mat_mul(T(10, -10, -40), RX(math.pi / 2)))]
+             ('4624', DB, mat_mul(T(-27, 0, 0), RZ(math.pi / 2))), ('4624', DB, mat_mul(T(27, 0, 0), RZ(math.pi / 2)))]
     # knocked over on its side: turned about its length until it lies on the rim of one wheel and the edge of its bed, set down so the
     # lowest of those points is on the lane
     tilt = mat_mul(RY(math.pi - 0.5), RZ(math.pi / 2 - 0.35))
     pts = [(sx * 35, 10 * math.cos(t), 10 * math.sin(t)) for sx in (-1, 1) for t in [n * math.pi / 8 for n in range(16)]] + \
-          [(sx * 20, y, z) for sx in (-1, 1) for y in (-22, 10) for z in (-40, 40)] + [(sx * 10, -10, -128) for sx in (-1, 1)]
+          [(sx * 20, y, z) for sx in (-1, 1) for y in (-22, 10) for z in (-40, 40)]
     low = max(mat_mul(tilt, T(*q))[1] for q in pts)
-    base = mat_mul(T(112, -(FLOOR + low), 72), tilt)
+    base = mat_mul(T(108, -(FLOOR + low), 98), tilt)
     return [row(c, mat_mul(base, m), p) for p, c, m in parts]
 
 
 def weeds():
     """weeds at the foot of the fouled wall, on plates of the lane's colour"""
-    return [on(GREEN, 30, 12, -90, '6255', 0.7), on(OLIVE, 130, 12, 70, '32607', 2.0)]
+    return [on(GREEN, 30, 12, -90, '6255', 0.7), on(GREEN, 130, 12, 70, '32607', 2.0)]
 
 
 _HEAP = []
@@ -161,7 +160,7 @@ MANIFEST = dict(
     title='Argos', book='XVII', tier='Vignette',
     moment='At the gate of his own house the old dog Argos, lying neglected on the dung heap, knows the beggar, drops his ears, wags his '
            'tail and dies; Odysseus turns his face aside and wipes away a tear so Eumaeus will not see.',
-    quote='"But upon Argos came the fate of black death even in the hour that he beheld Odysseus again, in the twentieth year." '
+    quote='"But as for Argos, the fate of black death seized him straightway when he had seen Odysseus in the twentieth year." '
           '(Odyssey XVII, tr. A. T. Murray)',
     object='Argos himself, lying on a bed of straw on the heap, his head toward the master he cannot rise to meet: the only one in Ithaca '
            'who sees through the disguise.',
@@ -173,3 +172,18 @@ MANIFEST = dict(
 if __name__ == '__main__':
     n = write('set.recognition-argos', 'The Recognitions: Argos', build()[0])
     print('set.recognition-argos', n); check('set.recognition-argos')
+    R.publish('recognition-argos', MANIFEST, 'set.recognition-argos',
+              [{'file': 'hero.jpg', 'caption': 'One wall, two fates: the ashlar gateway and the stone seat; the fouled wall, the heap, the cart, and Argos.',
+                'alt': 'A LEGO vignette: a tan wall with a dark gateway, neat embossed stone on the right and a broken top on the left; a heap of '
+                       'brown plates with a brown dog lying on its side on straw; a knocked-over cart; a bearded beggar with a hand to his '
+                       'face and a second man walking to the gate.'},
+               {'file': 'close.jpg', 'caption': 'Argos on his straw on the heap; the beggar turning his face aside to wipe away the tear.',
+                'alt': 'Close view of the dog lying on the heap and the beggar with his hand raised to his eyes.'},
+               dict(file='../recognition-helen/lineup.jpg', **R.LINEUP)],
+              ['The wall carries the argument: on the king\'s side dressed ashlar in embossed bricks, capped in tiles; on the fouled side the same wall in dark tan and dark grey, its top fallen away in two bays and broken in cheese slopes.',
+               'The gateway goes through the wall\'s depth under a stone lintel, a threshold of grey tiles in it; the stone seat stands against the ashlar.',
+               'The dung heap is sculpted in plates of dark brown, reddish-brown and olive and finished in tiles, a bed of tan straw where the dog lies.',
+               'The dung cart lies knocked on its side at the heap\'s foot, one wheel in the air; weeds grow at the foot of the fouled wall.'],
+              ['Argos is the line\'s standing dog laid on his side; he cannot lift his head or wag, so the scene shows the moment of his death.',
+               'The cart has no shafts (they would have run off the base); the dog, cart and figures are placed by hand and not checked by the click tool.'])
+

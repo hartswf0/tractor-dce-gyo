@@ -423,3 +423,56 @@ if __name__ == '__main__':
     figs = crew()
     n_sh = write_sub('ship', 'the black ship', [put(BLUE, 0, GRASS, 0, '3857', RY(math.pi / 2))] + sea(set(), range(-8, 8), range(-16, 16), False) + ship() + deck() + figs)
     print('subs', n_sc, n_wh, n_sh)
+    HW = '/home/user/odyssey-halfworld/'
+    manifest(SLUG, title='Scylla and Charybdis', book='XII', tier='Flagship',
+             moment='The black ship rows the narrow strait: from her den high in the sheer cliff Scylla\'s six necks come down and snatch six men '
+                    'off the deck, while across the water, low under the great fig tree, Charybdis sucks the sea down.',
+             quote='"While we were taking all this care and looking at Charybdis, Scylla pounced down suddenly upon us and snatched up six of '
+                   'my best men." (Odyssey XII, tr. Samuel Butler)',
+             object='Scylla: six necks of round bricks, each on its own friction pin in a comb of Technic bricks along the den\'s lip, swing '
+                    'down out of the dark to take a man and up again, and hold where they are left; Charybdis is a disc of foam on a real '
+                    'turntable that turns.',
+             pieces=n,
+             builds=[{'card': 'set.' + SLUG, 'title': 'The strait (the whole kit)'},
+                     {'card': 'set.' + SLUG + '-open', 'title': 'The crown of the cliff lifted away: the den and the six pivots'},
+                     {'card': 'set.' + SLUG + '-scylla', 'title': 'Scylla: the six necks on their pins, standing up'},
+                     {'card': 'set.' + SLUG + '-whirlpool', 'title': 'Charybdis on her turntable, and the fig tree'},
+                     {'card': 'set.' + SLUG + '-ship', 'title': 'The black ship and her crew'}],
+             images=[{'file': 'hero.jpg', 'caption': 'The strait: Scylla on the left, Charybdis on the right, the ship between.',
+                      'alt': 'A tall grey brick cliff on the left with a dark den high up; six long green necks with dog-like heads reach down '
+                             'toward a black ship full of minifigures; on the right a whirlpool of white and blue tiles and a fig tree.'},
+                     {'file': 'strike.jpg', 'caption': 'Two heads come down on the deck; Odysseus stands armed on the foredeck.',
+                      'alt': 'Close view of two green heads with open red-lined jaws and white fangs coming down over the crew of the ship.'},
+                     {'file': 'den.jpg', 'caption': 'The den: four heads carry men up across their jaws.',
+                      'alt': 'Close view of the dark den in the cliff face with green necks coming out of it, men held crosswise in the jaws.'},
+                     {'file': 'open.jpg', 'caption': 'The crown lifted away: the comb of Technic bricks and the six pivots.',
+                      'alt': 'The cliff seen from behind with its top removed, showing a row of grey Technic bricks and pins holding the necks.'},
+                     {'file': 'scylla.jpg', 'caption': 'Sub-assembly: Scylla, her six necks on their pins.',
+                      'alt': 'Six green necks of round bricks standing up in a row on a grey rock ledge, each with a head.'},
+                     {'file': 'whirlpool.jpg', 'caption': 'Sub-assembly: Charybdis on her turntable, the fig tree over her.',
+                      'alt': 'A round disc of white, blue and clear tiles around a blue dish, spray around its rim, a fig tree beside it.'},
+                     {'file': 'ship.jpg', 'caption': 'Sub-assembly: the black ship, planked, with her crew.',
+                      'alt': 'A black and red boat hull with reddish-brown deck planks, oars out, and minifigures aboard.'}],
+             features=['The cliff is sculpted in brick cells from smooth solids: it leans out over the lane and rises 29 courses (some 13 m at '
+                       'minifig scale), hollowed to a skin on pillars, every top finished in tiles and cheese slopes, the den a black hollow high on the face.',
+                       'Each neck is a stack of 2 x 2 round bricks on a Technic axle from a cross block; the block turns on a long friction pin '
+                       'through a 1 x 2 Technic brick on the den\'s lip, so the six necks swing one by one and stay where they are put.',
+                       'The heads are brick-built: a dark red lower jaw with two fangs, a skull of bricks with side studs for yellow eyes, an '
+                       'upper jaw, a curved snout and cheese-slope ears; a seized man lies across the jaws.',
+                       'Charybdis is an 8 x 8 round plate on a 4 x 4 turntable: spiral arms of round tiles and an inverted dish for the throat '
+                       'turn with it, while the arms of the swirl run on out into the sea of tiles and spray stands round the rim.',
+                       'The fig tree grows from a low rock on the whirlpool\'s edge, a trunk of round bricks jogging outward, its branch ending over the throat.',
+                       'The ship is the line\'s black hull afloat on the tiles, her deck planked in reddish brown; three men row in the well, '
+                       'the helmsman at the stern, Odysseus armed on the foredeck.',
+                       'The crown of the cliff behind the den lifts off to show the comb and the pivots.'],
+             subs=[{'file': 'scylla.jpg', 'title': 'Scylla', 'pieces': n_sc,
+                    'text': 'The six necks stand up on a ledge of rock in the comb of Technic bricks, each on its friction pin: the whole mechanism of the model.'},
+                   {'file': 'whirlpool.jpg', 'title': 'Charybdis and the fig tree', 'pieces': n_wh,
+                    'text': 'The turntable and its disc of foam, the spray round it, the fig on its rock with its branch over the throat.'},
+                   {'file': 'ship.jpg', 'title': 'The black ship', 'pieces': n_sh,
+                    'text': 'The hull, oars and planked deck with the rowers, the helmsman, Odysseus and the two men about to be taken.'}],
+             sources=[HW + 'scenes/OD-B12-S04.mjs', HW + 'assets/location/narrow-monster-strait.mjs', HW + 'assets/creature/scylla.mjs',
+                      HW + 'assets/environment/charybdis.mjs', HW + 'assets/set_piece/fig-tree-above-charybdis.mjs'],
+             status='Built to the bar',
+             next=[])
+

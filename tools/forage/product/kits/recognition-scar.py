@@ -125,3 +125,19 @@ MANIFEST = dict(
 if __name__ == '__main__':
     n = write('set.recognition-scar', 'The Recognitions: The Scar', build())
     print('set.recognition-scar', n); check('set.recognition-scar')
+    R.publish('recognition-scar', MANIFEST, 'set.recognition-scar',
+              [{'file': 'hero.jpg', 'caption': 'The nurse at the beggar\'s feet, the basin gone over, his hand at her throat; Penelope turned away.',
+                'alt': 'A LEGO vignette: a bearded beggar seated on a brown stool reaching to an old woman seated on the floor before him, a '
+                       'gold dish on its edge and a spill of clear blue tiles; a hearth of grey stones with flames; a woman seated with her '
+                       'back to them; an owl on the wall.'},
+               {'file': 'close.jpg', 'caption': 'The moment: the foot let fall, the bronze basin on its edge, his hand at her throat.',
+                'alt': 'Close view of the seated beggar with one hand at the old woman\'s face and the tipped gold dish in front of her.'},
+               dict(file='../recognition-helen/lineup.jpg', **R.LINEUP)],
+              ['The basin is a pearl-gold dish knocked onto its edge; the spilled water is a run of trans-light-blue and trans-clear tiles in the floor.',
+               'The hall\'s wall is dark tan stone laced with a course of reddish-brown log bricks, the shut doors of the inner rooms at its centre.',
+               'The hearth is a ring of grey round bricks on a black plate with flames of trans-orange and yellow.',
+               'Penelope sits in her chair with its back to the room, facing the wall, and Athena\'s owl watches from the one uncapped stud of the coping.'],
+              ['The scar itself is not shown: no printed leg exists for the beggar; the moment is carried by the basin and the grip.',
+               'Eurycleia sits on the floor (a minifigure cannot kneel); the grip at her throat is a posed arm, not a connection.',
+               'The tipped basin and the figures are placed by hand and are not checked by the click tool.'])
+
