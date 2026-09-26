@@ -46,20 +46,44 @@ function kfSpread(min,ids){const acts=ButterCast.cast.filter(a=>!ids||ids.includ
     if(d<min){const push=(min-d)/2+0.5,ux=d>1e-3?dx/d:Math.cos(i+j),uz=d>1e-3?dz/d:Math.sin(i+j);p.x-=ux*push;p.z-=uz*push;q.x+=ux*push;q.z+=uz*push;moved=true;}}if(!moved)break;}
   for(const a of acts){a.rig.pos.y=kfFloor(a);a.rig.figure.position.copy(a.rig.pos);}}
 const kfInside=(o,r)=>{for(;o;o=o.parent)if(o===r)return true;return false;};
-function kfBlock(list){for(let e of list){const a=kfActor(e.id);if(!a){console.warn('[keyframe] no actor',e.id);continue;}const r=a.rig;
+/* on a piece: the places a minifig can stand on a named part of the set (a ship's deck, a dais): a half-stud lattice over the piece,
+   each point kept when the piece itself is the top surface there, the stud round it is level, and a figure's height above it is clear
+   (no sail, yard or roof in its head). kfSpot takes the free one nearest a wished-for point, two studs clear of the ones taken. */
+const kfSpotCache=new Map();
+function kfSpotCtx(label){if(kfSpotCache.has(label))return kfSpotCache.get(label);const A=filmAsset(),i=(A.pages||[]).findIndex(p=>p.label===label);if(i<0)return null;
+  const box=kfPieces()[i].box;if(!box)return null;const sc=A.scale||1,figs=new Set();ButterCast.cast.forEach(a=>a.rig.figure.traverse(o=>figs.add(o)));
+  const meshes=[];scene.traverse(o=>{if(kfSolid(o)&&!figs.has(o))meshes.push(o);});
+  const row=A.rows[i],mine=o=>{for(let q=o;q;q=q.parent)if(q.name===row.id||(q.userData&&(q.userData.id===row.id||q.userData.file===row.id||q.userData.partId===row.id)))return true;return false;};
+  const ctx={box,sc,h:10*sc,tall:80*sc,meshes,mine,memo:new Map()};kfSpotCache.set(label,ctx);return ctx;}
+/* is (x, z) a place to stand on the piece? the floor there is the piece's own top with a figure's height of air above it, the stud round it
+   is level, and the whole body's column (a stud and a half wide, the arms a stud forward) is clear */
+function kfSpotAt(c,x,z){const key=x+','+z;if(c.memo.has(key))return c.memo.get(key);const {box,sc,h,tall,meshes,mine}=c;let res=null;
+  const d=new THREE.Raycaster(new THREE.Vector3(x,box[4]+500,z),new THREE.Vector3(0,-1,0)).intersectObjects(meshes,true);
+  let floor=null;for(let j=d.length-1;j>=0;j--){const y=d[j].point.y;if(!d.some(q=>q.point.y>y+1&&q.point.y<y+tall)){floor=d[j];break;}}
+  if(floor&&mine(floor.object)&&floor.point.y>=box[1]+4*sc){const y=floor.point.y;let ok=true;
+    for(const [dx,dz] of [[h,0],[-h,0],[0,h],[0,-h]]){const dd=new THREE.Raycaster(new THREE.Vector3(x+dx,y+tall,z+dz),new THREE.Vector3(0,-1,0)).intersectObjects(meshes,true)[0];if(!dd||Math.abs(dd.point.y-y)>5*sc){ok=false;break;}}
+    if(ok)for(let n=0;n<49&&ok;n++){const u=new THREE.Raycaster(new THREE.Vector3(x+((n%7)-3)*8*sc,y+4*sc,z+(Math.floor(n/7)-3)*8*sc),new THREE.Vector3(0,1,0));u.far=tall;if(u.intersectObjects(meshes,true).length)ok=false;}
+    if(ok)res={x,y,z};}
+  c.memo.set(key,res);return res;}
+function kfSpots(label){const c=kfSpotCtx(label);if(!c)return [];const out=[];for(let x=Math.ceil(c.box[0]/c.h)*c.h;x<=c.box[3];x+=c.h)for(let z=Math.ceil(c.box[2]/c.h)*c.h;z<=c.box[5];z+=c.h){const p=kfSpotAt(c,x,z);if(p)out.push(p);}return out;}
+function kfSpot(label,near,taken){const c=kfSpotCtx(label);if(!c)return null;const sc=c.sc,cand=[];
+  for(let x=Math.ceil(c.box[0]/c.h)*c.h;x<=c.box[3];x+=c.h)for(let z=Math.ceil(c.box[2]/c.h)*c.h;z<=c.box[5];z+=c.h)cand.push([Math.hypot(x-near[0],z-near[1]),x,z]);
+  cand.sort((a,b)=>a[0]-b[0]);for(const [,x,z] of cand){if(taken.some(t=>Math.hypot(t.x-x,t.z-z)<36*sc))continue;const p=kfSpotAt(c,x,z);if(p){taken.push(p);return p;}}return null;}
+function kfBlock(list){const taken=[];for(let e of list){const a=kfActor(e.id);if(!a){console.warn('[keyframe] no actor',e.id);continue;}const r=a.rig;
   /* absent: the actor is not in this still (the men already swine): hidden, and left out of the physics */
   r.absent=!!e.absent;r.figure.visible=!e.absent;if(e.absent)continue;
   r.placed=e.y==='surface'||typeof e.y==='number';   /* put on a body on purpose (a deck, a giant's chest): the perch check leaves him be */
   r.air=!!e.air;   /* air: held off the ground (a man in Scylla's jaws): the support check leaves him be */
   if(typeof e.at==='string'){const p=kfPoint(e.at).add(new THREE.Vector3(...(e.off||[0,0,0])));r.pos.x=p.x;r.pos.z=p.z;}
   if(e.x!=null)r.pos.x=e.x;if(e.z!=null)r.pos.z=e.z;
+  let onSpot=null;if(e.on){onSpot=kfSpot(e.on,[r.pos.x,r.pos.z],taken);if(onSpot){r.pos.x=onSpot.x;r.pos.z=onSpot.z;}else console.warn('[keyframe] no room on',e.on,'for',e.id);}   /* on: stand in a clear place on that piece, near x z */
   {const f0=typeof e.face==='string'?(e.face.startsWith('@')?kfAnchor(e.face.slice(1)):kfActor(e.face)?.rig.pos):Array.isArray(e.face)?{x:e.face[0],z:e.face[1]}:null;
    if(f0)r.heading=Math.atan2(f0.x-r.pos.x,f0.z-r.pos.z);else if(e.heading!=null)r.heading=e.heading;
    /* the click: a minifig stands on studs, so it faces one of four ways, its two feet astride a stud line and centred on the next
       (free: a figure not on studs, off the ground or flung, keeps its exact place) */
-   if(!e.free&&!e.air&&!e.tilt){r.heading=Math.round(r.heading/(Math.PI/2))*(Math.PI/2);const st=20*(filmAsset().scale||1),q=Math.round(Math.abs(Math.sin(r.heading)));
+   if(!e.free&&!e.air&&!e.tilt&&!onSpot){r.heading=Math.round(r.heading/(Math.PI/2))*(Math.PI/2);const st=20*(filmAsset().scale||1),q=Math.round(Math.abs(Math.sin(r.heading)));
      const edge=v=>Math.round(v/st)*st,mid=v=>(Math.floor(v/st)+0.5)*st;if(q){r.pos.z=edge(r.pos.z);r.pos.x=mid(r.pos.x);}else{r.pos.x=edge(r.pos.x);r.pos.z=mid(r.pos.z);}}}
-  if(e.y==='ground')r.pos.y=kfGround(r.pos.x,r.pos.z);else if(e.y==='floor')r.pos.y=kfFloor(a);
+  if(onSpot){r.placed=true;r.heading=Math.round(r.heading/(Math.PI/2))*(Math.PI/2);if(!e.sit)r.pos.y=onSpot.y;}if(onSpot&&!e.sit);else if(e.y==='ground')r.pos.y=kfGround(r.pos.x,r.pos.z);else if(e.y==='floor')r.pos.y=kfFloor(a);
   else if(e.y==='surface'){const from=(typeof e.at==='string'?kfPoint(e.at).y:r.pos.y+200)-(e.reach??25);const figs=new Set();ButterCast.cast.forEach(b=>b.rig.figure.traverse(o=>figs.add(o)));const ms=[];scene.traverse(o=>{if(kfSolid(o)&&!figs.has(o)&&!(o.parent&&kfPropObjs.get('stake')&&kfInside(o,kfPropObjs.get('stake'))))ms.push(o);});
     const h=new THREE.Raycaster(new THREE.Vector3(r.pos.x,from,r.pos.z),new THREE.Vector3(0,-1,0)).intersectObjects(ms,true)[0];r.pos.y=h?h.point.y:r.pos.y;}   /* stood on the highest body under a grip: a man on the giant's chest */else if(e.y!=null)r.pos.y=e.y;
   const f=typeof e.face==='string'?(e.face.startsWith('@')?kfAnchor(e.face.slice(1)):kfActor(e.face)?.rig.pos):Array.isArray(e.face)?{x:e.face[0],z:e.face[1]}:null;
@@ -231,7 +255,7 @@ function kfAnchor(n){let o=null;scene.traverse(q=>{if(!o&&q.name==='@'+n)o=q;});
 function kfPoint(p){if(Array.isArray(p))return new KV(...p);if(typeof p==='string'&&p.startsWith('hand:')){const [,id,side]=p.split(':');return kfHand(id,side||'R');}if(typeof p==='string'&&p.startsWith('@'))return kfAnchor(p.slice(1));return kfHead(p);}
 /* after: a prop placed once the cast is blocked (an axe in a raised hand: at 'hand:odysseus:R') */
 function kfPropsAfter(list){const late=(list||[]).filter(e=>e.after);if(late.length)kfProps(late,true);}
-function kfProps(list,late=false){if(!late){for(const o of kfPropObjs.values())scene.remove(o);kfPropObjs.clear();}const sc=filmAsset().scale;
+function kfProps(list,late=false){if(!late){kfSpotCache.clear();for(const o of kfPropObjs.values())scene.remove(o);kfPropObjs.clear();}const sc=filmAsset().scale;
   for(let e of list||[]){if(!!e.after!==late)continue;const P=kfPropLib[e.name];if(!P){console.warn('[props] unknown',e.name);continue;}const id=e.id||e.name,g=P.template.clone(true),m=e.scale||1;g.scale.set(sc*m,-sc*m,-sc*m);
     for(const [an,v] of Object.entries(P.anchors||{})){const o=new THREE.Object3D();o.position.set(...v);o.name='@'+id+'.'+an;g.add(o);}
     const h=new THREE.Group();h.add(g);h.name='prop:'+id;if(e.after&&typeof e.aim?.to==='string'&&e.aim.to.startsWith('hand:')){h.userData.held=true;h.userData.holder=e.aim.to.split(':')[1];}
@@ -261,4 +285,4 @@ function kfLight(l={}){kfTwoSided();for(const x of kfLights.splice(0))scene.remo
   renderer.toneMapping=l.tone===false?THREE.NoToneMapping:THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=l.exposure??1.15;
   scene.traverse(o=>{if(o.isMesh&&o.material)for(const m of [].concat(o.material))m.needsUpdate=true;});}
 function kfAnchors(){const out={};scene.traverse(q=>{if(q.name&&q.name.startsWith('@')){const v=q.getWorldPosition(new KV());out[q.name]=[+v.x.toFixed(0),+v.y.toFixed(0),+v.z.toFixed(0)];}});return out;}
-window.OdysseyFilm={anchors:kfAnchors,loadProps:kfLoadProps,props:kfProps,propsAfter:kfPropsAfter,hide:kfHide,light:kfLight,anchor:kfAnchor,spread:kfSpread,floor:kfFloor,physics:kfPhysics,rope:kfRope,clutter:kfClutter,look:kfLook,ground:kfGround,rig:kfRig,lens:kfLens,asset:()=>filmAsset(),setCamera:c=>filmSetCamera(c),fit:()=>filmFit(),get cameras(){return filmAsset()?.cameras||[];},cast:kfCast,pieces:kfPieces,block:kfBlock,shoot:kfShoot,score:kfScore};
+window.OdysseyFilm={spots:kfSpots,anchors:kfAnchors,loadProps:kfLoadProps,props:kfProps,propsAfter:kfPropsAfter,hide:kfHide,light:kfLight,anchor:kfAnchor,spread:kfSpread,floor:kfFloor,physics:kfPhysics,rope:kfRope,clutter:kfClutter,look:kfLook,ground:kfGround,rig:kfRig,lens:kfLens,asset:()=>filmAsset(),setCamera:c=>filmSetCamera(c),fit:()=>filmFit(),get cameras(){return filmAsset()?.cameras||[];},cast:kfCast,pieces:kfPieces,block:kfBlock,shoot:kfShoot,score:kfScore};
