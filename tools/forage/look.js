@@ -25,7 +25,7 @@ if (args.includes('--all')) { const idx = JSON.parse(fs.readFileSync(path.join(R
     const t = Date.now();
     try {
       await page.goto(BASE + 'odyssey-forage.html?render=' + encodeURIComponent(id) + (tt != null ? '&t=' + tt : '') + (opt('view') ? '&view=' + opt('view') : '') + (opt('studio') ? '&studio=' + opt('studio') + '&az=' + opt('az', 35) + '&el=' + opt('el', 18) + '&zoom=' + opt('zoom', 1) + (opt('at') ? '&at=' + opt('at') : '') : ''), { waitUntil: 'domcontentloaded' });
-      await page.waitForFunction(i => window.__ready === i, id, { timeout: 120000 });
+      await page.waitForFunction(i => window.__ready === i, id, { timeout: 600000 });
       await page.waitForTimeout(250);
       const file = path.join(OUT, id + (tt != null ? '@' + String(tt).padStart(5, '0') : '') + (args.includes('--jpeg') ? '.jpg' : '.png'));
       await page.screenshot({ path: file, type: args.includes('--jpeg') ? 'jpeg' : 'png', quality: args.includes('--jpeg') ? 82 : undefined, timeout: 300000 });   /* a great build takes a software renderer a while */

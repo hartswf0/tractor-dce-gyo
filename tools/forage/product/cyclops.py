@@ -78,12 +78,17 @@ form = Form(y0=4, keep_studs=('moss',), unit=B)
 form.carve(headland, range(-32, 32), range(0, 23), range(-24, 8))
 # moss on the tops the sky sees; soot on the vault over the fire
 for (i, h, k), m in list(form.vox.items()):
-    if m == 'rock' and (i, h + 1, k) not in form.vox and h > 8 and k > -22:
+    patch = math.sin(i / 3.1 + 0.7) * math.sin(k / 2.3) + 0.6 * math.sin((i + k) / 4.7 + h / 2)   # moss in patches on the ledges, bare rock between
+    if m == 'rock' and (i, h + 1, k) not in form.vox and h > 8 and k > -22 and patch > 0.35:
         form.vox[(i, h, k)] = 'moss'
     if m == 'rock' and h > 10 and abs((i + 0.5) * S) < 200 and -440 < (k + 0.5) * S < -120 and (i, h - 1, k) not in form.vox:
         form.vox[(i, h, k)] = 'soot'
 form.hollow(side=2, up=2, pillar=4)
-EASTS = {v for v in form.vox if (v[0] + 0.5) * S > EAST and (v[2] + 0.5) * S < -60 and form.vox[v] in ('rock', 'moss', 'soot')}
+class _East:   # the flank that lifts away: every cell of rock east of EAST behind the mouth's front, including what the settling grows there
+    def __contains__(self, v):   # (not the rock under the door-stone: the stone stands on it)
+        return (v[0] + 0.5) * S > EAST and (v[2] + 0.5) * S < -60 and form.vox.get(v) in ('rock', 'moss', 'soot') and \
+            not any(form.vox.get((v[0], h, v[2])) == 'stone' for h in range(v[1] + 1, v[1] + 12))
+EASTS = _East()
 
 
 # ── the things in it ──
@@ -271,10 +276,7 @@ if __name__ == '__main__':
         before = dict(form.vox)
         left = form.settle(colour, extra=details, can_grow=lambda v: not opening(v))   # never grow into the cave
         east = {v: form.vox.pop(v) for v in list(form.vox) if v in EASTS}
-        mid = dict(form.vox)
         left_open = form.settle(colour, extra=details, can_grow=lambda v: not opening(v) and (v[0] + 0.5) * S <= EAST)
-        lifted = {v: m for v, m in mid.items() if v not in form.vox and (v[0] + 0.5) * S > EAST and (v[2] + 0.5) * S < -60}
-        EASTS.update(lifted); east.update(lifted)   # what held only the flank lifts away with it, never deleted from the closed cave
         form.vox.update(east)
         if form.vox == before and not left and not left_open: break   # a pass that changed nothing: both builds hold
     rock = form.parts(colour)
@@ -283,7 +285,7 @@ if __name__ == '__main__':
     n2 = write('set.cyclops-cave-open', 'The Cave of the Cyclops (the east flank lifted away)', form.parts(colour) + details())
     form.vox.update(east)
     # the sub-assemblies, each on its own for the instructions and the close-ups
-    for sub, rows in (('polyphemus', prop('polyphemusSprawl', 0, 0, 0) + prop('bowl', -50, 0, 80)), ('fire-and-stake', fire(0, 0, 0) + stake(-400, -10, 0)),
+    for sub, rows in (('polyphemus', prop('polyphemusSprawl', 0, 0, 0) + prop('bowl', -50, 0, 80)), ('fire-and-stake', fire(0, 0, 0) + stake(-150, 60, 0)),
                       ('pens', pens(-100, -140)), ('cheese-rack', cheese_rack(0, 0)), ('ship', ship()), ('thrown-rock', thrown_rock())):
         write('set.cyclops-cave-' + sub, 'The Cave of the Cyclops: ' + sub.replace('-', ' '), rows)
     print('set.cyclops-cave', n, 'pieces;', n2, 'with the flank lifted away;', len(left), 'loose after settling')
