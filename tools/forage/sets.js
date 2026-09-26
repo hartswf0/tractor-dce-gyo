@@ -456,6 +456,62 @@ function fillCourse(x0, x1, z0, z1, base, col, alongZ, kind = 'brick', skip = ()
 }
 /* a solid block of courses, each laid across the one below */
 const block = (x0, x1, z0, z1, k0, k1, col, skip) => Array.from({ length: k1 - k0 }, (_, i) => fillCourse(x0, x1, z0, z1, -8 - 24 * (k0 + i), col, (k0 + i) % 2 === 1, 'brick', skip)).flat();
+/* A Trojan house, the modular kit of the citadel (a street is made of them): two storeys of stone, 5.7 m to its parapet. The ground
+   floor in tan stone on a dark footing, a wooden door ajar in its frame, windows lit from within (trans yellow panes: lamplight); a
+   painted string course of dark red at the upper floor, which runs out over the street as a balcony with a spindled rail and flowers;
+   tall shuttered windows above; a flat roof with a parapet, and over half of it a pergola of timber under vine leaves; storage jars by
+   the door. Authored facing +z (the street), its centre at the origin; o.w along the street, o.d deep; o.col the upper walls. */
+function trojanHouse(o = {}) {
+  const w = o.w || 12, d = o.d || 10, col = o.col || C.white, low = o.low || C.tan, list = [];
+  const X0 = -w / 2, X1 = w / 2, Z0 = -d / 2, Z1 = d / 2, F = Z1 - 1;          /* cells; F is the front row */
+  const DX = o.doorX != null ? o.doorX : X0 + 2, WIN = [DX + 6, ...(w >= 14 ? [DX + 9] : [])];
+  const UP = [X0 + 2, X0 + 6, ...(w >= 12 ? [X1 - 4] : [])];
+  const G = 7, U = 6;                                                            /* courses: ground floor, upper floor */
+  const open = (x, k) => (x >= DX && x < DX + 4 && k < 6) || WIN.some(wx => x >= wx && x < wx + 2 && k >= 2 && k < 4);
+  const openU = (x, k) => UP.some(ux => x >= ux && x < ux + 2 && k >= 1 && k < 4);
+  for (let k = 0; k < G; k++) list.push(...fillCourse(X0, X1, Z0, Z1, -8 - 24 * k, k === 0 ? C.dtan : low, k % 2 === 1, 'brick', (x, z) => ring(X0, X1, Z0, Z1)(x, z) || (z === F && open(x, k))));
+  list.push({ id: '60596', col: C.dbrown, x: DX + 2, z: F + 0.5, base: -8 });
+  list.push({ id: '60616a', col: C.rbrown, x: DX + 2 - 1.5, z: F + 0.5, y: -8 - 144, m: L.RYa(o.shut ? 0 : -1.1) });
+  for (const wx of WIN) list.push({ id: '60592', col: C.dbrown, x: wx + 1, z: F + 0.5, base: -8 - 48 }, { id: '60601', col: C.tYellow, x: wx + 1, z: F + 0.5, y: -8 - 48 - 48 });
+  /* the string course and the balcony: one course of plates over the whole house, running two studs out over the street */
+  const BAL = [X0 + 1, Math.min(X1 - 1, X0 + 9)];
+  list.push(...fillCourse(X0, X1, Z0, Z1, -8 - 24 * G, C.dred, false, 'plate'), ...fillCourse(BAL[0], BAL[1], Z1, Z1 + 2, -8 - 24 * G, C.dred, false, 'plate'));
+  for (let x = BAL[0]; x + 4 <= BAL[1]; x += 4) list.push({ id: '30055', col: C.rbrown, x: x + 2, z: Z1 + 1.5, base: -8 - 24 * G - 8 });
+  for (const x of [BAL[0] + 0.5, BAL[1] - 0.5]) list.push({ id: '3062b', col: C.dred, x, z: Z1 + 0.5, base: -8 - 24 * G - 8 }, { id: '4589', col: C.dgreen, x, z: Z1 + 0.5, base: -8 - 24 * G - 32 });   /* pots with a clipped shrub, inside the rail */
+  const UB = -8 - 24 * G - 8;
+  for (let k = 0; k < U; k++) list.push(...fillCourse(X0, X1, Z0, Z1, UB - 24 * k, col, k % 2 === 0, 'brick', (x, z) => ring(X0, X1, Z0, Z1)(x, z) || (z === F && openU(x, k))));
+  for (const ux of UP) list.push({ id: '60593', col: C.dbrown, x: ux + 1, z: F + 0.5, base: UB - 24 }, { id: '60602', col: o.dark ? C.black : C.tYellow, x: ux + 1, z: F + 0.5, y: UB - 24 - 72 });
+  /* the roof: a floor of tan plates, a parapet, the pergola over the back half with its vine */
+  const RB = UB - 24 * U;
+  list.push(...fillCourse(X0, X1, Z0, Z1, RB, C.tan, true, 'plate'));
+  list.push(...fillCourse(X0, X1, Z0, Z1, RB - 8, col, false, 'brick', ring(X0, X1, Z0, Z1)));
+  if (!o.bare) {
+    const px = [X0 + 1, X0 + 6], pz = [Z0 + 1, Z0 + 5];
+    for (const x of px) for (const z of pz) list.push({ id: '2453b', col: C.rbrown, x: x + 0.5, z: z + 0.5, base: RB - 8 });
+    for (const z of pz) list.push({ id: '3666', col: C.rbrown, x: X0 + 4, z: z + 0.5, base: RB - 128 });                  /* beams on the posts */
+    for (let x = X0 + 1; x < X0 + 7; x += 2) list.push({ id: '3666', col: C.rbrown, x: x + 0.5, z: Z0 + 3.5, base: RB - 136, q: 1 });   /* rafters across */
+    for (const [x, z] of [[X0 + 2, Z0 + 2.5], [X0 + 5, Z0 + 4]]) list.push({ id: '2423', col: C.green, x, z, base: RB - 144 });
+  }
+  /* storage jars by the door: a round brick and a cone, the shape of a pithos */
+  for (const x of [DX - 1.0]) if (x > X0 + 0.5) list.push({ id: '3941', col: C.dtan, x, z: Z1 + 1, base: -8 }, { id: '3942c', col: C.dtan, x, z: Z1 + 1, base: -8 - 24 });
+  return REAL('a trojan house', list);
+}
+/* the life of the citadel between the houses: a market stall under a striped awning, a well, a dog at a door, crows on the roofs */
+function marketStall() {
+  const list = [];
+  for (const [x, z] of [[-3, -1], [3, -1], [-3, 1], [3, 1]]) list.push({ id: '2453b', col: C.rbrown, x: x + (x < 0 ? 0.5 : -0.5), z: z + (z < 0 ? 0.5 : -0.5), base: -8 });
+  list.push(...fillCourse(-3, 3, -1, 1, -8 - 48, C.rbrown, false, 'plate'));
+  for (const [x, z, c, id] of [[-2.5, -0.5, C.red, '3062b'], [-1.5, 0.5, C.orange, '3062b'], [-0.5, -0.5, C.green, '6141'], [1, 0, C.dtan, '3941'], [2.5, 0.5, C.yellow, '3062b']]) list.push({ id, col: c, x, z, base: -8 - 56 });
+  list.push({ id: '3942c', col: C.dtan, x: 1, z: 0, base: -8 - 80 });
+  for (let x = -3; x < 3; x++) list.push({ id: '3024', col: x % 2 ? C.white : C.red, x: x + 0.5, z: -0.5, base: -8 - 120 }, { id: '3024', col: x % 2 ? C.white : C.red, x: x + 0.5, z: 0.5, base: -8 - 120 });
+  return REAL('the market stall', list);
+}
+function well() {
+  const list = [];
+  for (const [x, z] of [[-1, -1], [0, -1], [1, -1], [1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0]]) for (let k = 0; k < 2; k++) list.push({ id: '3062b', col: C.lbg, x: x + 0.5, z: z + 0.5, base: -8 - 24 * k });
+  list.push({ id: '3070b', col: C.tDBlue, x: 0.5, z: 0.5, base: -8 });
+  return REAL('the well', list);
+}
 /* Troy's citadel at the scale of the real world (Homer VIII: "the Trojans had drawn it into their citadel"; they broke their own wall
    to bring it in). A minifigure is a man of 1.75 m, so a brick course is about 0.44 m and a stud 0.37 m; the horse on its cart stands
    15 m, and everything here is sized to that: the lower wall 10 m (24 courses) with its towers 14 m, the Scaean gate 3.7 m wide and 4.8 m
@@ -467,19 +523,38 @@ const block = (x0, x1, z0, z1, k0, k1, col, skip) => Array.from({ length: k1 - k
 const ring = (x0, x1, z0, z1, t = 1) => (x, z) => x >= x0 + t && x < x1 - t && z >= z0 + t && z < z1 - t;   /* the inside of a hollow ring */
 const hollow = (x0, x1, z0, z1, k0, k1, col, t = 1, extra = () => false) => Array.from({ length: k1 - k0 }, (_, i) =>
   fillCourse(x0, x1, z0, z1, -8 - 24 * (k0 + i), typeof col === 'function' ? (x, z) => col(x, z, k0 + i) : col, (k0 + i) % 2 === 1, 'brick', (x, z) => ring(x0, x1, z0, z1, t)(x, z) || extra(x, z, k0 + i))).flat();
-function troyCitadel() {
-  const list = [], WX = -54.5, H = 24;
+/* the Scaean gate, its towers, the lower wall and the breach: a kit of its own, placed in the citadel as it stands */
+function scaeanGate(list = []) {
+  const WX = -54.5, H = 24;
   /* the lower wall, two skins in running bond; the gate under its arch; the breach stepping down from both sides */
   const GATE = [30.5, 39.5], BREACH = [-13.5, 8.5];
+  /* the breach is torn, not cut: each course's edge wanders by a stud or two, but never reaches more than a stud past the course below */
+  const rnd = n => { const v = Math.sin(n * 12.9898) * 43758.5453; return v - Math.floor(v); };
+  const Ls = [], Rs = [];
+  for (let k = 0; k < H; k++) {
+    const cut = (H - 1 - k) / 2.2, l = Math.round(BREACH[0] + cut + (rnd(k + 1) * 4 - 2)) + 0.5, r = Math.round(BREACH[1] - cut - (rnd(k + 50) * 4 - 2)) - 0.5;
+    Ls.push(k ? Math.min(l, Ls[k - 1] + 1) : l); Rs.push(k ? Math.max(r, Rs[k - 1] - 1) : r);
+  }
   for (const x of [WX, WX + 1]) for (let k = 0; k < H; k++) {
-    const cut = (H - 1 - k) / 2.2, holes = [];
-    if (BREACH[0] + cut <= BREACH[1] - cut) holes.push([BREACH[0] + cut, BREACH[1] - cut]);
+    const holes = [];
+    if (Ls[k] + (x === WX ? 0 : rnd(k * 7) < 0.5 ? 1 : 0) <= Rs[k]) holes.push([Ls[k] + (x === WX ? 0 : rnd(k * 7) < 0.5 ? 1 : 0), Rs[k] - (x === WX ? 0 : rnd(k * 9) < 0.5 ? 1 : 0)]);
     if (k < 11) holes.push(GATE); else if (k < 14) holes.push([GATE[0] - 1, GATE[1] + 1]);
     list.push(...coursing(k % 8 === 7 ? C.dtan : C.tan, -54.5, 54.5, x, 1, { alongZ: true, base: -8 - 24 * k, k0: k + (x === WX ? 0 : 1), holes: holes.map(([f, t]) => [f, t, 0, 0]) }));
   }
+  /* the gate's two leaves of timber, bound with dark bands, swung open against the inside of the wall */
+  for (const z of [GATE[0] - 0.5, GATE[1] + 0.5]) for (let k = 0; k < 10; k++) list.push(...fillCourse(-53, -48, Math.floor(z), Math.floor(z) + 1, -8 - 24 * k, k === 2 || k === 7 ? C.dbrown : C.rbrown, false));
   for (const x of [WX, WX + 1]) list.push({ id: '6108', col: C.dtan, x, z: (GATE[0] + GATE[1]) / 2, base: -8 - 24 * 11, q: 1 });
   for (let z = -54.5; z <= 54.5; z += 2) if (!(z > BREACH[0] - 1 && z < BREACH[1] + 1) && !(z > 19 && z < 51)) list.push({ id: '3005', col: C.tan, x: WX, z, base: -8 - 24 * H });
-  for (const [x, z, n] of [[-52, -12, 3], [-51, -9, 1], [-52, 6, 2], [-50, 8, 1], [-51, -3, 1], [-49, 2, 1]]) for (let k = 0; k < n; k++) list.push({ id: k % 2 ? '3005' : '3004', col: k ? C.tan : C.dtan, x: x + (k % 2 ? 0.5 : 0), z, base: -8 - 24 * k });
+  /* rubble: blocks thrown down inside and outside the breach, in heaps of one to three */
+  const taken = new Set();
+  for (let i = 0; i < 46; i++) {
+    const x = -59 + Math.floor(rnd(i * 3 + 1) * 13), z = BREACH[0] - 3 + Math.floor(rnd(i * 3 + 2) * (BREACH[1] - BREACH[0] + 6)), n = 1 + Math.floor(rnd(i * 3 + 3) * 3);
+    if (x >= -56 && x <= -52) continue;                       /* not inside the wall's own line */
+    const cells = [[x, z], [x + 1, z], [x, z + 1], [x + 1, z + 1]];
+    if (cells.some(([u, v]) => taken.has(u + ',' + v))) continue;   /* each heap on its own ground: nothing passes through anything */
+    cells.forEach(([u, v]) => taken.add(u + ',' + v));
+    for (let k = 0; k < n; k++) list.push({ id: k === 1 ? '3004' : k ? '3005' : '3003', col: rnd(i + k) < 0.4 ? C.dtan : C.tan, x: x + (k === 2 ? 0.5 : k === 1 ? 0.5 : 1), z: z + (k === 1 ? 0 : k ? 0.5 : 1), base: -8 - 24 * k, q: k === 1 && rnd(i) < 0.5 ? 1 : 0 });
+  }
   /* the gate towers: hollow, 32 courses, set in a stud as they rise past the wall, arrow slits, crenellated */
   for (const [z0, z1] of [[19, 29], [41, 51]]) {
     list.push(...hollow(-56, -47, z0, z1, 0, 24, (x, z, k) => (x === -47 && (k === 13 || k === 14 || k === 20) && (z === z0 + 4 || z === z0 + 5)) ? C.black : C.tan));
@@ -487,9 +562,10 @@ function troyCitadel() {
     list.push(...hollow(-55, -48, z0 + 1, z1 - 1, 24, 32, (x, z, k) => k === 31 ? C.dtan : C.tan, 1, (x, z) => false).map(p => ({ ...p, base: p.base - 8 })));
     for (let x = -55; x < -48; x += 2) for (const z of [z0 + 1, z1 - 2]) list.push({ id: '3005', col: C.tan, x: x + 0.5, z: z + 0.5, base: -8 - 8 - 24 * 32 });
   }
-  /* the sacred way from the breach, and the forecourt */
-  list.push(...fillCourse(-52, -6, -6, 6, -8, (x, z) => (x * 3 + z) % 7 ? C.lbg : C.dtan, false, 'tile'));
-  list.push(...fillCourse(-6, 30, -4, 52, -8, (x, z) => (x * 3 + z * 5) % 9 ? C.lbg : C.dtan, true, 'tile'));
+  return list;
+}
+/* the Temple of Athena, a kit of its own, placed in the citadel as it stands */
+function templeOfAthena(list = []) {
   /* the Temple of Athena */
   const T = [-6, 30, -54, -6];
   list.push(...hollow(T[0], T[1], T[2], T[3], 0, 1, C.white, 2), ...hollow(T[0] + 1, T[1] - 1, T[2] + 1, T[3] - 1, 1, 2, C.white, 2));
@@ -529,18 +605,17 @@ function troyCitadel() {
   list.push({ id: '3942c', col: C.gold, x: px, z: pz, base: -8 - H0 - 56 - 96 });
   /* the altar before the steps, its fire */
   list.push(...fillCourse(T[0] + 15, T[0] + 21, T[3] + 1, T[3] + 3, -16, C.white, false), ...fillCourse(T[0] + 15, T[0] + 21, T[3] + 1, T[3] + 3, -16 - 24, C.dred, false, 'plate'));
-  list.push({ id: '3062b', col: C.tOrange, x: T[0] + 17.5, z: T[3] + 1.5, base: -16 - 32 }, { id: '4589', col: C.orange, x: T[0] + 18.5, z: T[3] + 2.5, base: -16 - 32 });
-  /* houses of two storeys: hollow stone, a dark doorway 2.2 m high toward the street, windows above, flat roofs with a parapet */
-  const houses = [[33, -52, 10, 12], [44, -50, 11, 12], [33, -36, 10, 12], [44, -34, 11, 10], [33, 10, 10, 12], [44, 12, 11, 12], [33, 26, 10, 12], [44, 28, 11, 12], [33, 42, 10, 12],
-    [-46, 14, 10, 11], [-34, 16, 11, 12], [-46, 38, 10, 12], [-32, 36, 12, 11], [-46, -52, 12, 12], [-32, -50, 11, 12], [-46, -36, 10, 11]];
-  houses.forEach(([x0, z0, w, d], n) => {
-    const col = n % 3 === 1 ? C.tan : C.white, h = 12 - (n % 2) * 2, face = x0 > 0 ? x0 : x0 + w - 1, mid = z0 + Math.floor(d / 2);
-    const paint = (x, z, k) => x === face && ((Math.abs(z - mid) < 1 && k < 5) || (Math.abs(z - mid - 3) < 1 && k >= 7 && k < 9) || (Math.abs(z - mid + 3) < 1 && k >= 7 && k < 9)) ? C.black : k === 0 ? C.dtan : col;
-    for (let k = 0; k < h; k++) list.push(...fillCourse(x0, x0 + w, z0, z0 + d, -8 - 24 * k, (x, z) => paint(x, z, k), k % 2 === 1, 'brick', (x, z) => ring(x0, x0 + w, z0, z0 + d)(x, z) || (x === face && paint(x, z, k) === C.black)));
-    for (let k = 0; k < h; k++) for (let z = z0; z < z0 + d; z++) if (paint(face, z, k) === C.black) list.push({ id: '3005', col: C.black, x: face + 0.5, z: z + 0.5, base: -8 - 24 * k });
-    list.push(...fillCourse(x0, x0 + w, z0, z0 + d, -8 - 24 * h, col === C.white ? C.tan : C.dtan, false, 'plate'));
-    list.push(...fillCourse(x0, x0 + w, z0, z0 + d, -16 - 24 * h, col, true, 'brick', ring(x0, x0 + w, z0, z0 + d)).map(p => ({ ...p })));
-  });
+  list.push({ id: '3062b', col: C.tOrange, x: T[0] + 17.5, z: T[3] + 1.5, base: -16 - 32 }, { id: '4589', col: C.orange, x: T[0] + 17.5, z: T[3] + 1.5, base: -16 - 56 });
+  for (const x of [T[0] + 15.5, T[0] + 20.5]) list.push({ id: '3899', col: C.gold, x, z: T[3] + 1.5, base: -16 - 32 });   /* gold cups of the offering */
+  return list;
+}
+function troyCitadel() {
+  const list = [];
+  scaeanGate(list);
+  /* the sacred way from the breach, and the forecourt */
+  list.push(...fillCourse(-52, -6, -6, 6, -8, (x, z) => (x * 3 + z) % 7 ? C.lbg : C.dtan, false, 'tile'));
+  list.push(...fillCourse(-6, 30, -4, 52, -8, (x, z) => (x * 3 + z * 5) % 9 ? C.lbg : C.dtan, true, 'tile'));
+  templeOfAthena(list);
   /* torches along the sacred way and before the temple */
   for (const [x, z] of [[-8.5, -5.5], [30.5 - 1, -3.5], [-30.5, -5.5], [-30.5, 5.5], [-8.5, 5.5], [-44.5, 5.5]]) list.push({ id: '3957a', col: C.rbrown, x, z, base: -16 },
     { id: '3957a', col: C.rbrown, x, z, base: -16 - 96 }, { id: '3062b', col: C.tOrange, x, z, base: -16 - 192 }, { id: '4589', col: C.orange, x, z, base: -16 - 216 });
@@ -652,7 +727,17 @@ const SETS = {
     { door: M(-12, -1, 2, "the hut's door"), fire: M(-6, 6, 0, 'the fire'), sty: M(11, -4, 0, 'the sties'), gate: M(0, 14, 2, 'the yard gate'), centre: M(0, 4, 0) }),
   troy: () => room('troy by night', 34, 30, floor(34, 30, C.dtan), [[troy(), 0, 0]], { horse: M(0, 0, 0, 'the horse in the square'), helen: M(4, 4, 2, 'Helen'), gate: M(0, -12, 0, 'the gate'), centre: M(0, 4, 0) }),
   trojanShore: () => room('the shore of troy', 64, 96, trojanShoreFloor(), [[trojanShore(), 0, 0], [KIT.galley(), -14, -38, 2], [KIT.galley(), 12, -30, 2]], { horse: M(0, 14, 0, 'the horse on the beach'), sea: M(0, -30, 0, 'the sea'), camp: M(-24, 0, 1, 'the burned camp'), centre: M(0, 10, 0) }),
-  troyCitadel: () => room('troy, the citadel and the temple of athena', 112, 110, floorWide(112, 110, C.dtan), [[troyCitadel(), 0, 0]], { horse: M(12, 26, 0, 'the horse before the temple'), breach: M(-52, -3, 1, 'the breach'), gate: M(-52, 35, 1, 'the scaean gate'), temple: M(12, -30, 0, 'the temple of athena'), centre: M(0, 0, 0) }),
+  troyCitadel: () => room('troy, the citadel and the temple of athena', 112, 110, floorWide(112, 110, C.dtan), [[troyCitadel(), 0, 0],
+    /* the streets: houses facing the forecourt, the sacred way and the street from the gate */
+    [trojanHouse({ w: 14, d: 10, col: C.white }), 40, -44, 3], [trojanHouse({ w: 12, d: 10, col: C.tan, low: C.dtan }), 40, -28, 3], [trojanHouse({ w: 14, d: 10, col: C.white, bare: true }), 40, 16, 3],
+    [trojanHouse({ w: 12, d: 10, col: C.white, low: C.tan }), 40, 32, 3], [trojanHouse({ w: 12, d: 10, col: C.tan, dark: true }), 40, 47, 3],
+    [trojanHouse({ w: 12, d: 10, col: C.white }), -39, 18, 1], [trojanHouse({ w: 12, d: 10, col: C.tan, bare: true }), -39, 45, 1], [trojanHouse({ w: 12, d: 10, col: C.white, low: C.dtan }), -25, 45, 1],
+    [trojanHouse({ w: 14, d: 10, col: C.white }), -40, -26, 0], [trojanHouse({ w: 12, d: 10, col: C.tan, dark: true }), -25, -26, 0], [trojanHouse({ w: 12, d: 10, col: C.white, bare: true }), -40, -44, 0],
+    [marketStall(), -20, 11, 0], [well(), -30, -13, 0],
+    [REAL('a dog at the door', [{ id: '92586', col: C.dbrown, x: 0, z: 0, base: -8 }]), 33, 20, 1],
+    [REAL('crows on the parapet', [{ id: '13665', col: C.black, x: 0, z: 0, base: -8 }]), 44, -44, 3, -8 - 24 * 13 - 8 - 16 - 24],
+    [REAL('a crow', [{ id: '13665', col: C.black, x: 0, z: 0, base: -8 }]), -40, 22, 1, -8 - 24 * 13 - 8 - 16 - 24]],
+    { horse: M(12, 26, 0, 'the horse before the temple'), breach: M(-52, -3, 1, 'the breach'), gate: M(-52, 35, 1, 'the scaean gate'), temple: M(12, -30, 0, 'the temple of athena'), centre: M(0, 0, 0) }),
   troyGreat: () => room('troy, the square inside the scaean gate', 76, 64, floorWide(76, 64, C.dtan), [[troyGreat(), 0, 0]], { horse: M(0, 2, 0, 'the horse in the square'), helen: M(-10, 8, 1, 'Helen'), gate: M(0, -28, 0, 'the gate'), centre: M(0, 6, 0) }),
   phorcys: () => room('the harbour of phorcys on ithaca', 32, 48, shoreFloor(), [[phorcys(), 0, 0], [KIT.galley(), 2, -9], [KIT.rocks(C.dtan), 13, 10], [KIT.swell(5, 0), -10, -20], [KIT.swell(5, 2), 11, -21]],
     { olive: M(-6, -6, 0, 'the olive at the head of the harbour'), cave: M(9, -14, 0, 'the cave of the nymphs'), ship: M(2, 10, 0, 'the ship run up on the sand'), centre: M(0, 0, 0) }),
@@ -737,4 +822,4 @@ const LOCATION_SET = {
   'location.alcinouss-palace': 'phaeacia', 'location.phaeacian-feast-hall': 'phaeacia', 'location.phaeacian-royal-chamber': 'phaeacia',
   'location.ogygia-cavern-and-grove': 'grove', 'location.nymph-cave': 'grove',
 };
-module.exports = { FURN, SETS, LOCATION_SET, KIT, REAL, room, walls, floor };
+module.exports = { FURN, SETS, LOCATION_SET, KIT, REAL, room, walls, floor, MODULES: { templeOfAthena: () => REAL('the temple of athena', templeOfAthena([])), scaeanGate: () => REAL('the scaean gate', scaeanGate([])), trojanHouse, marketStall, well } };
