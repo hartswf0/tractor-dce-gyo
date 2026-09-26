@@ -85,6 +85,19 @@ function REAL(name, list) {
   }));
 }
 const R = (id, col, x, z, base, q) => ({ id, col, x, z, base, q });
+/* a component the way it was authored: make() centres every build on its footprint, which moves a great set whose parts are not
+   symmetric about its origin (a citadel with its rubble on one side). REALat measures that move and returns the room item that puts
+   the build back where its coordinates say: [comp, x, z] in studs, so the houses, the horse and the cameras placed by the same
+   coordinates meet it where they should */
+function REALat(name, list) {
+  const comp = REAL(name, list), rows = B.rowsOf(comp), key = (id, col) => String(id).replace(/\.dat$/, '') + '/' + col;
+  const n = {}; for (const p of list) n[key(p.id, p.col)] = (n[key(p.id, p.col)] || 0) + 1;
+  const k0 = Object.keys(n).sort((a, b) => n[a] - n[b])[0];                 /* the rarest part: sorted the same way, its copies pair up */
+  const at = p => L.mul(L.T((p.x || 0) * 20, 0, (p.z || 0) * 20), p.m || L.RY(p.q || 0));
+  const by = (a, b) => a[0] - b[0] || a[2] - b[2];
+  const want = list.filter(p => key(p.id, p.col) === k0).map(at).sort(by)[0], got = rows.filter(r => key(r.part, r.col) === k0).map(r => r.m).sort(by)[0];
+  return [comp, (want[0] - got[0]) / 20, (want[2] - got[2]) / 20];
+}
 const DECK = -66;   // the galley's deck, its underside on the plate: the hull 58 deep and decked flush with its rim
 const KIT = {
   /* the black ship: 22 x 8 hull (black over its red keel: Homer's red-cheeked ships), a boat mast and its topmast, a formed white
@@ -619,7 +632,133 @@ function troyCitadel() {
   /* torches along the sacred way and before the temple */
   for (const [x, z] of [[-8.5, -5.5], [30.5 - 1, -3.5], [-30.5, -5.5], [-30.5, 5.5], [-8.5, 5.5], [-44.5, 5.5]]) list.push({ id: '3957a', col: C.rbrown, x, z, base: -16 },
     { id: '3957a', col: C.rbrown, x, z, base: -16 - 96 }, { id: '3062b', col: C.tOrange, x, z, base: -16 - 192 }, { id: '4589', col: C.orange, x, z, base: -16 - 216 });
-  return REAL('the citadel of troy', list);
+  const comp = REAL('the citadel of troy', list); comp.__list = list; return comp;
+}
+/* ════ THE PALACE OF ODYSSEUS AT ITHACA, a modular line at the scale of the world (a course 0.44 m, a stud 0.37 m) ════
+   Sized from the Mycenaean palace at Pylos, furnished from the Odyssey. Authored with the court at +z and the hall behind it (-z). */
+/* a wall one stud thick round a rectangle, courses k0..k1, each cell coloured col(x, z, k), cells where open(x, z, k) left empty */
+const wallRing = (x0, x1, z0, z1, k0, k1, col, open = () => false, base = -8) => Array.from({ length: k1 - k0 }, (_, i) => { const k = k0 + i;
+  return fillCourse(x0, x1, z0, z1, base - 24 * k, (x, z) => col(x, z, k), k % 2 === 1, 'brick', (x, z) => ring(x0, x1, z0, z1)(x, z) || open(x, z, k)); }).flat();
+/* a Mycenaean column: a stone base, a shaft painted red, a black capital (the columns of Pylos and Knossos), `n` courses */
+const redColumn = (x, z, n, base = -8) => [{ id: '4032a', col: C.dtan, x, z, base }, ...Array.from({ length: n }, (_, k) => ({ id: '6143', col: C.dred, x, z, base: base - 8 - 24 * k })),
+  { id: '60474', col: C.black, x, z, base: base - 8 - 24 * n }, { id: '4032a', col: C.black, x, z, base: base - 16 - 24 * n }];
+/* the fresco of the hall's inner walls, course by course: a dark footing, a red dado, white plaster, a frieze of blue, a dark cornice */
+const fresco = (x, z, k) => k === 0 ? C.dtan : k <= 2 ? C.dred : k === 11 ? ((x + z) % 2 ? C.dblue : C.yellow) : k === 12 ? C.dred : k === 15 ? C.dtan : C.white;
+/* the east wall of the hall, which lifts out so the hall can be seen into (the open side of a modular building; a still can hide it) */
+function hallEastWall(list = []) {
+  const H = 16;
+  for (let k = 0; k < H; k++) list.push(...fillCourse(18, 19, -33, -1, -8 - 24 * k, k === 0 || k === H - 1 ? C.dtan : C.tan, false), ...fillCourse(17, 18, -32, -2, -8 - 24 * k, (x, z) => fresco(x, z, k), false));
+  return list;
+}
+function greatHall(list = [], o = {}) {
+  const H = 16;
+  /* the floor, painted in squares as at Pylos: tan and dark tan, a red square here and there */
+  list.push(...fillCourse(-19, 19, -34, 16, -8, (x, z) => z >= 0 ? C.white : ((Math.floor(x / 2) + Math.floor(z / 2)) % 2 ? C.tan : ((x * 7 + z * 3) % 23 === 0 ? C.dred : C.dtan)), true, 'tile',
+    (x, z) => (x * x + (z + 17) * (z + 17) <= 30) || x < -17 || x >= 17 || z < -32 || (z >= -2 && z < 0) || (z >= 6 && z < 8)));   /* not under the walls or the doors */
+  /* the hall: an outer skin of dressed stone, an inner skin frescoed; the great doorway, the side door (Homer XXII) */
+  const openHall = (x, z, k) => (z >= -2 && x >= -4 && x < 4 && k < 6) || (x <= -18 && z >= -8 && z < -4 && k < 6);
+  const east = (x, z) => o.east === false && ((x === 18 && z > -34 && z < -1) || (x === 17 && z > -33 && z < -2));   /* the east wall, a piece of its own */
+  list.push(...wallRing(-19, 19, -34, 0, 0, H, (x, z, k) => k === 0 ? C.dtan : k === H - 1 ? C.dtan : C.tan, (x, z, k) => openHall(x, z, k) || east(x, z)));
+  list.push(...wallRing(-18, 18, -33, -1, 0, H, fresco, (x, z, k) => openHall(x, z, k) || east(x, z)));
+  for (const x of [-2, 2]) list.push({ id: '60596', col: C.dbrown, x, z: -1.5, base: -8 }, { id: '60616a', col: C.rbrown, x: x - 1.5, z: -1.5, y: -8 - 144, m: L.RYa(x < 0 ? -1.3 : 1.3 + Math.PI) });   /* the great doors, open */
+  list.push({ id: '60596', col: C.dbrown, x: -18.5, z: -6, base: -8, q: 1 });
+  /* the hearth, round and 4 m across, its rim of white stucco, its face painted in flames; the fire at its heart */
+  const hc = (x, z) => Math.hypot(x + 0.5, z + 17 + 0.5);
+  list.push(...fillCourse(-6, 6, -23, -11, -8, (x, z) => hc(x, z) > 4.6 ? C.white : (Math.floor(hc(x, z) + (x + z) * 0.1) % 2 ? C.dred : C.orange), false, 'brick', (x, z) => hc(x, z) > 5.6));
+  list.push(...fillCourse(-6, 6, -23, -11, -32, (x, z) => hc(x, z) > 4.6 ? C.white : C.black, true, 'plate', (x, z) => hc(x, z) > 5.6 || hc(x, z) < 1.2));
+  list.push({ id: '3941', col: C.black, x: 0, z: -17, base: -8 - 24 }, { id: '3941', col: C.tOrange, x: 0, z: -17, base: -8 - 48 }, { id: '3942c', col: C.tOrange, x: 0, z: -17, base: -8 - 72 });
+  for (const [x, z] of [[-1.5, -18.5], [1.5, -15.5], [1.5, -18.5]]) list.push({ id: '4589', col: C.tOrange, x, z, base: -8 - 32 });
+  /* four red columns round the hearth, up to the roof */
+  for (const [x, z] of [[-8, -24], [8, -24], [-8, -10], [8, -10]]) list.push(...redColumn(x, z, 15, -16));
+  /* Odysseus's high seat against the right wall, facing the fire; Penelope's chair inlaid with ivory and silver, by the hearth (XIX) */
+  list.push(...block(14, 17, -19, -15, 0, 2, C.white).map(p => ({ ...p, base: p.base - 8 })), ...block(16, 17, -19, -15, 2, 6, C.white).map(p => ({ ...p, base: p.base - 8 })));
+  list.push(...fillCourse(14, 16, -19, -15, -8 - 8 - 48, C.gold, false, 'tile'), ...fillCourse(16, 17, -19, -15, -8 - 8 - 144, C.gold, false, 'plate'), ...fillCourse(12, 14, -18, -16, -16, C.white, false, 'plate'));
+  list.push({ id: '3003', col: C.white, x: -8, z: -14, base: -16 }, { id: '3068b', col: C.tan, x: -8, z: -14, base: -16 - 24 }, { id: '3004', col: C.white, x: -8, z: -13.5 - 0.0 - 1, base: -16 - 24, q: 0 },
+    { id: '3004', col: C.dtan, x: -8, z: -14.5, base: -16 - 48 }, { id: '3069b', col: C.white, x: -8, z: -14.5, base: -16 - 72 });
+  /* the suitors' tables down both sides: planks on trestles, cups of gold, bowls; stools; the mixing bowls on their stands */
+  for (const [x0, z0] of [[-16, -30], [-16, -9], [11, -30], [11, -9]]) {
+    for (const [dx, dz] of [[0, 0], [0, 5], [2, 0], [2, 5]]) for (let k = 0; k < 2; k++) list.push({ id: '3005', col: C.rbrown, x: x0 + dx + 0.5, z: z0 + dz + 0.5, base: -16 - 24 * k });
+    list.push(...fillCourse(x0, x0 + 3, z0, z0 + 6, -16 - 48, C.rbrown, true, 'plate'));
+    for (const dz of [0.5, 2.5, 4.5]) list.push({ id: '3899', col: C.gold, x: x0 + 1.5, z: z0 + dz, base: -16 - 56 });
+    list.push({ id: '6141', col: C.tan, x: x0 + 0.5, z: z0 + 1.5, base: -16 - 56 }, { id: '6141', col: C.orange, x: x0 + 2.5, z: z0 + 3.5, base: -16 - 56 });
+    for (const dz of [1, 4]) list.push({ id: '3062b', col: C.rbrown, x: x0 + (x0 < 0 ? 4.5 : -1.5), z: z0 + dz + 0.5, base: -16 }, { id: '6141', col: C.dred, x: x0 + (x0 < 0 ? 4.5 : -1.5), z: z0 + dz + 0.5, base: -16 - 24 });
+  }
+  for (const [x, z] of [[-4, -6], [4, -28]]) list.push({ id: '3941', col: C.lbg, x, z, base: -16 }, { id: '4740', col: C.gold, x, z, base: -16 - 24 });
+  /* lamp-stands of bronze by the columns: a tall stand, a flame */
+  for (const [x, z] of [[-10.5, -17.5], [10.5, -17.5]]) { for (let k = 0; k < 4; k++) list.push({ id: '3062b', col: C.gold, x, z, base: -16 - 24 * k }); list.push({ id: '4589', col: C.tOrange, x, z, base: -16 - 96 }); }
+  /* Penelope's loom against the back wall, the shroud for Laertes half woven (II, XIX, XXIV) */
+  list.push({ id: '2453b', col: C.rbrown, x: -14.5, z: -31.5, base: -16 }, { id: '2453b', col: C.rbrown, x: -8.5, z: -31.5, base: -16 }, { id: '3666', col: C.rbrown, x: -11.5, z: -31.5, base: -16 - 120 });
+  for (const x of [-13, -11]) list.push({ id: '87544', col: C.white, x, z: -31.5, base: -16 - 24 });
+  /* the stair to the upper rooms, up the back wall on the right: a step a course high and a stud deep */
+  for (let i = 0; i < 9; i++) list.push(...fillCourse(8 + i, 9 + i, -32, -29, -16, C.white, false, 'brick'), ...Array.from({ length: i }, (_, k) => fillCourse(8 + i, 9 + i, -32, -29, -16 - 24 * (k + 1), C.white, k % 2 === 0)).flat());
+  /* the vestibule and the porch (aithousa): the side walls run on to antae; two red columns between them, open to the court */
+  const side = (x0, x1) => { for (let k = 0; k < H; k++) list.push(...fillCourse(x0, x1, 0, 16, -8 - 24 * k, k === 0 || k === H - 1 ? C.dtan : C.tan, k % 2 === 0)); };
+  side(-19, -17); side(17, 19);
+  list.push(...wallRing(-17, 17, 6, 8, 0, H, (x, z, k) => k === 0 || k === H - 1 ? C.dtan : C.tan, (x, z, k) => x >= -4 && x < 4 && k < 8).filter(p => true));
+  for (const x of [-6, 6]) list.push(...redColumn(x, 13, 15, -16));
+  /* the ash-wood threshold inside the great doors, where the beggar sat (XVII); an ox-hide and fleeces in the porch, Odysseus's bed (XX) */
+  list.push(...fillCourse(-4, 4, 0, 1, -16, C.rbrown, false, 'tile'));
+  list.push(...fillCourse(10, 14, 9, 15, -16, C.dbrown, true, 'plate'), ...fillCourse(11, 13, 10, 13, -24, C.tan, false, 'tile'));
+  return list;
+}
+/* the roof of the hall and porch, a kit of its own that lifts off (and a film hides): beams of plates over the walls and columns, a
+   lantern over the hearth where the smoke goes out */
+function hallRoof(list = []) {
+  const top = -8 - 24 * 16;
+  list.push(...fillCourse(-19, 19, -34, 16, top, C.dtan, true, 'plate', (x, z) => x > -4 && x < 4 && z > -21 && z < -13));
+  list.push(...fillCourse(-19, 19, -34, 16, top - 8, C.tan, false, 'tile', (x, z) => x > -5 && x < 5 && z > -22 && z < -12));
+  for (const [x, z] of [[-4.5, -21.5], [3.5, -21.5], [-4.5, -12.5], [3.5, -12.5]]) list.push({ id: '2453b', col: C.rbrown, x, z, base: top - 8 });
+  list.push(...fillCourse(-5, 5, -22, -12, top - 128, C.dtan, false, 'plate'), ...fillCourse(-5, 5, -22, -12, top - 136, C.tan, true, 'tile'));
+  return list;
+}
+/* the court before the hall: a wall of stone round it, the gateway with its timber doors, the altar of Zeus of the Court, the round
+   tholos, a well, the bench before the doors where the suitors played at draughts (I); and outside the gate Argos on the dung heap (XVII) */
+function palaceCourt(list = []) {
+  const K = 9, open = (x, z, k) => (z >= 43 && x >= -4 && x < 4 && k < 7);
+  list.push(...fillCourse(-24, 24, 16, 54, -8, (x, z) => z >= 45 ? C.dtan : (x * 5 + z * 3) % 7 ? C.tan : C.dtan, false, 'tile', (x, z) => (x >= -19 && x < 19 && z < 17) || ((x === -24 || x === 23) && z < 45) || (z === 44 && !(x >= -4 && x < 4)) || (z === 16)));   /* the court, and the road outside the gate; not under its walls */
+  list.push(...wallRing(-24, 24, 16, 45, 0, K, (x, z, k) => k === 0 || k === K - 1 ? C.dtan : C.tan, (x, z, k) => open(x, z, k) || (z === 16 && x >= -19 && x < 19)));
+  for (const x of [-2, 2]) list.push({ id: '60596', col: C.dbrown, x, z: 44.5, base: -16 }, { id: '60616a', col: C.rbrown, x: x - 1.5, z: 44.5, y: -16 - 144, m: L.RYa(x < 0 ? 1.4 : -1.4 + Math.PI) });
+  list.push(...fillCourse(-5, 5, 43, 45, -8 - 24 * 7, C.dtan, false));
+  /* the altar of Zeus Herkeios: a stone block, a red top, its fire */
+  list.push(...block(-2, 2, 28, 32, 0, 2, C.white).map(p => ({ ...p, base: p.base - 8 })), ...fillCourse(-2, 2, 28, 32, -16 - 48, C.dred, false, 'plate'));
+  list.push({ id: '3062b', col: C.tOrange, x: 0.5, z: 30.5, base: -16 - 56 }, { id: '4589', col: C.orange, x: 0.5, z: 30.5, base: -16 - 80 });
+  /* the tholos: a round house of white stone and a stepped roof */
+  const tc = (x, z) => Math.hypot(x + 13.5, z - 36.5);
+  for (let k = 0; k < 6; k++) list.push(...fillCourse(-18, -9, 32, 41, -16 - 24 * k, C.white, k % 2 === 0, 'brick', (x, z) => tc(x, z) > 4.3 || tc(x, z) < 3.2 || (k < 5 && z >= 40 && Math.abs(x + 13.5) < 1.5)));
+  for (let s = 0; s < 4; s++) list.push(...fillCourse(-18, -9, 32, 41, -16 - 144 - 8 * s, C.dred, s % 2 === 0, 'plate', (x, z) => tc(x, z) > 4.3 - s));
+  /* the well, the bench and the draughts board */
+  list.push(...fillCourse(8, 16, 17, 19, -16, C.white, false), ...fillCourse(10, 12, 17, 19, -40, C.black, false, 'plate'));
+  for (let i = 0; i < 4; i++) list.push({ id: '3070b', col: i % 2 ? C.white : C.black, x: 10.5 + (i % 2), z: 17.5 + Math.floor(i / 2), base: -48 });
+  /* outside the gate: the dung heap and Argos on it */
+  list.push(...fillCourse(6, 12, 46, 52, -16, C.dbrown, false, 'plate'), ...fillCourse(7, 11, 47, 51, -24, C.dbrown, true, 'plate'), ...fillCourse(8, 10, 48, 50, -32, C.rbrown, false, 'plate'));
+  list.push({ id: '92586', col: C.dbrown, x: 9, z: 49, base: -40 });
+  return list;
+}
+/* the storeroom (XXI): "where the treasures of the house were kept, bronze and gold and well-wrought iron; and there was the bow",
+   its door opened with the bronze key with its ivory handle; jars of old wine along the walls, chests of clothes, the bow in its case */
+function storeroom(list = []) {
+  list.push(...fillCourse(-8, 8, -7, 7, -8, C.dtan, false, 'tile', (x, z) => !ring(-8, 8, -7, 7)(x, z)));   /* the floor inside the walls */
+  list.push(...wallRing(-8, 8, -7, 7, 0, 9, (x, z, k) => k === 0 ? C.dtan : C.tan, (x, z, k) => (z >= 6 && x >= -2 && x < 2 && k < 6) || (z >= 6 && x >= 3)));
+  list.push({ id: '60596', col: C.dbrown, x: 0, z: 6.5, base: -8 }, { id: '60616a', col: C.rbrown, x: -1.5, z: 6.5, y: -8 - 144, m: L.RYa(1.0) });
+  list.push({ id: '6141', col: C.white, x: 1.5, z: 7.5, base: -8 });                 /* the key's ivory handle, left on the step */
+  for (let x = -6; x <= 4; x += 2.5) list.push({ id: '3941', col: C.dtan, x: x + 0.5, z: -5, base: -16 }, { id: '3942c', col: C.dtan, x: x + 0.5, z: -5, base: -40 });
+  for (const z of [-2, 2]) list.push({ id: '4237', col: C.rbrown, x: -5, z, base: -16, q: 1 });
+  list.push(...fillCourse(3, 7, -2, 1, -16, C.rbrown, false), ...fillCourse(3, 7, -2, 1, -40, C.dbrown, true, 'plate'));
+  list.push({ id: '3010', col: C.dbrown, x: 5, z: -1.5, base: -48 }, { id: '4499', col: C.rbrown, x: 5, z: -0.5, base: -48 });   /* the bow on its case */
+  for (const [x, z, id] of [[4, 2, '4740'], [6, 3, '3899'], [3, 3.5, '3899']]) list.push({ id, col: C.gold, x, z, base: -16 });
+  return list;
+}
+/* Penelope's upper chamber: white walls, a shuttered window on the court, her bed and chair, a chest, a lamp */
+function penelopeChamber(list = []) {
+  list.push(...fillCourse(-8, 8, -7, 7, -8, C.tan, true, 'tile', (x, z) => !ring(-8, 8, -7, 7)(x, z)));
+  list.push(...wallRing(-8, 8, -7, 7, 0, 9, (x, z, k) => k === 0 ? C.dtan : k === 1 ? C.dred : k === 7 ? C.dblue : C.white, (x, z, k) => (z >= 6 && x >= -7) || (x <= -8 && z >= -2 && z < 0 && k >= 3 && k < 5)));
+  list.push({ id: '60592', col: C.dbrown, x: -7.5, z: -1, base: -8 - 72, q: 1 });
+  list.push(...fillCourse(1, 7, -6, -1, -16, C.rbrown, false), ...fillCourse(1, 7, -6, -1, -40, C.white, true, 'plate'), ...fillCourse(1, 7, -6, -5, -48, C.rbrown, false));
+  list.push(...fillCourse(1, 3, -5, -3, -48, C.white, false, 'plate'), ...fillCourse(3, 7, -5, -1, -48, C.dred, true, 'tile'));
+  list.push({ id: '3003', col: C.white, x: -4, z: 1, base: -16 }, { id: '3004', col: C.white, x: -4, z: 0.5, base: -40 }, { id: '3004', col: C.dtan, x: -4, z: 0.5, base: -64 });
+  list.push({ id: '4237', col: C.rbrown, x: -4, z: -4, base: -16, q: 1 });
+  for (let k = 0; k < 3; k++) list.push({ id: '3062b', col: C.gold, x: 6.5, z: 3.5, base: -16 - 24 * k }); list.push({ id: '4589', col: C.tOrange, x: 6.5, z: 3.5, base: -88 });
+  return list;
 }
 /* the shore of Troy the morning after (Homer VIII: "the Argives set fire to their tents and sailed away, while Odysseus and the others
    sat in the horse"): the sea at the back with two black ships under sail making off; a long beach of sand where the horse was left;
@@ -640,7 +779,7 @@ function trojanShore() {
   for (let x = -31; x <= 31; x += 2) if (!(x > -12 && x < 14) && (x * 5) % 7 !== 3) list.push({ id: '2453b', col: (x * 3) % 5 ? C.dbrown : C.black, x: x + 0.5, z: 46.5, base: -8 });
   /* the sea: a swell of waves along the waterline */
   for (let x = -30; x <= 30; x += 3) list.push({ id: '93273', col: (x / 3) % 3 ? C.blue : C.dblue, x, z: -17, base: -8 });
-  return REAL('the burned camp', list);
+  const comp = REAL('the burned camp', list); comp.__list = list; return comp;
 }
 /* the island of Pharos (Homer IV): a beach under a sea cave, the seals hauled out on the sand; the cave of rock panels */
 function sealBeach() {
@@ -726,8 +865,15 @@ const SETS = {
   hut: () => room("eumaeus's farm", 34, 34, floor(34, 34, C.dtan), [[swineherd(), 0, 0]],
     { door: M(-12, -1, 2, "the hut's door"), fire: M(-6, 6, 0, 'the fire'), sty: M(11, -4, 0, 'the sties'), gate: M(0, 14, 2, 'the yard gate'), centre: M(0, 4, 0) }),
   troy: () => room('troy by night', 34, 30, floor(34, 30, C.dtan), [[troy(), 0, 0]], { horse: M(0, 0, 0, 'the horse in the square'), helen: M(4, 4, 2, 'Helen'), gate: M(0, -12, 0, 'the gate'), centre: M(0, 4, 0) }),
-  trojanShore: () => room('the shore of troy', 64, 96, trojanShoreFloor(), [[trojanShore(), 0, 0], [KIT.galley(), -14, -38, 2], [KIT.galley(), 12, -30, 2]], { horse: M(0, 14, 0, 'the horse on the beach'), sea: M(0, -30, 0, 'the sea'), camp: M(-24, 0, 1, 'the burned camp'), centre: M(0, 10, 0) }),
-  troyCitadel: () => room('troy, the citadel and the temple of athena', 112, 110, floorWide(112, 110, C.dtan), [[troyCitadel(), 0, 0],
+  /* the palace of Odysseus at Ithaca at the scale of the world: the court, the porch and vestibule, the great hall with its hearth, and
+     the roof of the hall as a piece of its own that a still can lift off */
+  palace: () => room('the palace of odysseus at ithaca', 60, 110, floorWide(60, 110, C.dtan), [REALat('the palace', [...greatHall([], { east: false }), ...palaceCourt([])]), REALat('the east wall of the hall', hallEastWall([])), REALat('the roof of the hall', hallRoof([]))],
+    { threshold: M(0, 1, 2, 'the ash-wood threshold inside the great doors, where the beggar sits and the bow is strung'), hearth: M(0, -17, 0, 'the hearth'),
+      throne: M(13, -17, 3, 'the high seat'), loom: M(-11, -29, 2, "Penelope's loom"), chair: M(-8, -12, 2, "Penelope's chair by the fire"), tableL: M(-12, -20, 1, 'the suitors at their tables'),
+      tableR: M(9, -20, 3), stair: M(12, -30, 0, 'the stair to the upper rooms'), sideDoor: M(-16, -6, 1, 'the side door'), porch: M(0, 12, 0, 'the porch'),
+      court: M(0, 26, 0, 'the court'), altar: M(0, 33, 0, 'the altar of Zeus'), gate: M(0, 42, 0, 'the gate'), argos: M(9, 49, 0, 'Argos on the dung heap'), centre: M(0, 0, 0) }),
+  trojanShore: () => room('the shore of troy', 64, 96, trojanShoreFloor(), [REALat('the burned camp', trojanShore().__list), [KIT.galley(), -14, -38, 2], [KIT.galley(), 12, -30, 2]], { horse: M(0, 14, 0, 'the horse on the beach'), sea: M(0, -30, 0, 'the sea'), camp: M(-24, 0, 1, 'the burned camp'), centre: M(0, 10, 0) }),
+  troyCitadel: () => room('troy, the citadel and the temple of athena', 120, 110, floorWide(120, 110, C.dtan), [REALat('the citadel of troy', troyCitadel().__list),
     /* the streets: houses facing the forecourt, the sacred way and the street from the gate */
     [trojanHouse({ w: 14, d: 10, col: C.white }), 40, -44, 3], [trojanHouse({ w: 12, d: 10, col: C.tan, low: C.dtan }), 40, -28, 3], [trojanHouse({ w: 14, d: 10, col: C.white, bare: true }), 40, 16, 3],
     [trojanHouse({ w: 12, d: 10, col: C.white, low: C.tan }), 40, 32, 3], [trojanHouse({ w: 12, d: 10, col: C.tan, dark: true }), 40, 47, 3],
@@ -822,4 +968,4 @@ const LOCATION_SET = {
   'location.alcinouss-palace': 'phaeacia', 'location.phaeacian-feast-hall': 'phaeacia', 'location.phaeacian-royal-chamber': 'phaeacia',
   'location.ogygia-cavern-and-grove': 'grove', 'location.nymph-cave': 'grove',
 };
-module.exports = { FURN, SETS, LOCATION_SET, KIT, REAL, room, walls, floor, MODULES: { templeOfAthena: () => REAL('the temple of athena', templeOfAthena([])), scaeanGate: () => REAL('the scaean gate', scaeanGate([])), trojanHouse, marketStall, well } };
+module.exports = { FURN, SETS, LOCATION_SET, KIT, REAL, room, walls, floor, LISTS: { greatHall, hallRoof, palaceCourt, hallEastWall, storeroom, penelopeChamber }, MODULES: { greatHall: () => REAL('the great hall of odysseus', greatHall([])), greatHallOpen: () => REAL('the great hall of odysseus, open', greatHall([], { east: false })), hallEastWall: () => REAL('the east wall', hallEastWall([])), hallRoof: () => REAL('the roof of the hall', hallRoof([])), palaceCourt: () => REAL('the court of the palace', palaceCourt([])), storeroom: () => REAL('the storeroom', storeroom([])), penelopeChamber: () => REAL("penelope's chamber", penelopeChamber([])), templeOfAthena: () => REAL('the temple of athena', templeOfAthena([])), scaeanGate: () => REAL('the scaean gate', scaeanGate([])), trojanHouse, marketStall, well } };

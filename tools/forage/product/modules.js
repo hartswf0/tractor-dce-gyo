@@ -34,3 +34,11 @@ write('set.trojan-street', 'A Street in Troy', [...base, ...floor,
   ...lift(move(rowsOf(M.trojanHouse({ w: 12, d: 10, col: 15, bare: true })), 11, -4)),
   ...lift(move(rowsOf(M.marketStall()), 9, 8)), ...lift(move(rowsOf(M.well()), -20, 8)),
   ...lift(move(rowsOf(S.REAL('a dog', [{ id: '92586', col: 308, x: 0, z: 0, base: -8 }])), -8, 5))]);
+/* the Palace of Odysseus at Ithaca: modules built together share one frame (make() centres each build on its own footprint) */
+const greatHallList = () => S.LISTS.greatHall([]), roofList = () => S.LISTS.hallRoof([]), courtList = () => S.LISTS.palaceCourt([]);
+write('set.great-hall', 'The Great Hall of Odysseus (east wall lifted out)', onBase(rowsOf(M.greatHallOpen())));
+write('set.great-hall-roofed', 'The Great Hall of Odysseus, roofed', onBase(rowsOf(S.REAL('the hall roofed', [...greatHallList(), ...roofList()]))));
+write('set.palace-court', 'The Court of the Palace', onBase(rowsOf(M.palaceCourt())));
+write('set.storeroom', 'The Storeroom', onBase(rowsOf(M.storeroom())));
+write('set.penelope-chamber', "Penelope's Chamber", onBase(rowsOf(M.penelopeChamber())));
+write('set.palace-of-odysseus', 'The Palace of Odysseus', onBase(rowsOf(S.REAL('the palace', [...greatHallList(), ...courtList()]))));
