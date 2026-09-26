@@ -21,7 +21,8 @@ A costume spec is a dict. Keys are ROLES, or a part id present on the figure (e.
 Roles (by part family, measured in the figure's own frame, hip origin at (0, -40, 0)):
   hips 3815*          leg.r 3816* / leg.l 3817* ('legs' sets both)       torso 973*       arm.r 3818 / arm.l 3819 ('arms' both)
   hand.r / hand.l 3820 ('hands' both)   head 3626*    headgear: what sits on the head (hair, helmet, hat, hood) at the head mount
-  crown: a second piece on the head (circlet, tiara, wreath) set `crown_dy` LDU higher    neck / neck2: capes, armour, satchel at the neck
+  crown: a second piece on the head (circlet, tiara, wreath) set `crown_dy` LDU higher    beard: a beard piece at the neck
+  neck / neck2: capes, armour, a satchel or a quiver at the neck
   skirt: a cloth skirt or kilt at the waist, over the legs        lower: a one-piece hips-and-skirt (36036, 24068) that REPLACES
   hips and both legs        held.r / held.l: what a hand grips (a new one is set in the hand by a grip learned from the cast's cards)
   extra: [(part, col, 12-matrix in the figure's frame)] anything else.
@@ -122,7 +123,7 @@ def parts_of(card, sub, figure=None):
 # the hand's grip. Parts already held in a card keep the card's placement unless the costume changes them.
 GRIP = {'4497': (0, 30, 0), '43899': (0, 30, 0), '92290': (0, -32, 0), '27256': (0, -6, 0), '36752a': (0, 0, 0), '6124b': (0, -6, 0),
         '102498': (0, -2, 0), '95049': (0, 8, 0), '95050': (0, 8, 0), '93252': (0, 26, 0), '3847': (0, 0, 0), '18034': (0, 0, 0),
-        '2542': (0, 40, 0), '4332': (0, 40, 0), '4496': (0, 30, 0), '3959': (0, 0, 0), '86208': (0, 0, 0), '3957a': (0, 60, 0)}
+        '2542': (0, 40, 0), '4332': (0, 40, 0), '4496': (0, 30, 0), '3957a': (0, -20, 0), '24855c01': (0, 12, 0)}
 SHIELDS = {'3876', '92747', '2586', '30166', '59231', '75902', '91884'}
 BOWS = {'4499', '93231'}
 GRIP_AT = (0, -0.82, -9.89)
@@ -149,7 +150,9 @@ def grips():
 def grip(part, hand_m):
     """the matrix that puts `part` in the hand whose matrix is hand_m"""
     G = grips()
-    if part in SHIELDS: return mat_mul(hand_m, G['3876'][0])
+    if part in SHIELDS:                          # a shield hangs from its handle in the hand, its face to the front (-z), upright
+        g = apply(hand_m, GRIP_AT)
+        return T(g[0], g[1], g[2] - 4)
     if part in BOWS: return mat_mul(hand_m, G['4499'][0])
     R = G['3847'][0][3:]
     g = GRIP.get(part, (0, 0, 0))
@@ -181,7 +184,7 @@ def costume_rows(card, sub, costume):
     for p in P:
         r = p['role']
         if lower and r in ('hips', 'leg.r', 'leg.l'): continue
-        key = p['part'] if p['part'] in spec else r if r in spec else None
+        key = r if r in spec else p['part'] if p['part'] in spec else None      # a role's value wins over a part id's
         if key is None: out.append(p); continue
         v = _val(spec[key], p['part'], p['col'])
         if v is None: continue
@@ -244,7 +247,7 @@ PRINCIPALS = [
   + [(f'Phaeacian sailor {i}', 'ensemble.phaeacian-sailors', f'sailor-{i}') for i in range(1, 3)] \
   + [(f'Phaeacian dancer {i}', 'ensemble.phaeacian-dancers', f'dancer-{i}') for i in range(1, 3)]
 
-ORDER = ['torso', 'arm.r', 'arm.l', 'hand.r', 'hand.l', 'hips', 'leg.r', 'leg.l', 'skirt', 'head', 'headgear', 'crown', 'neck', 'neck2', 'held.r', 'held.l', 'held.r2', 'held.l2']
+ORDER = ['torso', 'arm.r', 'arm.l', 'hand.r', 'hand.l', 'hips', 'leg.r', 'leg.l', 'skirt', 'head', 'headgear', 'crown', 'beard', 'neck', 'neck2', 'held.r', 'held.l', 'held.r2', 'held.l2']
 
 
 def survey(who=PRINCIPALS, out=sys.stdout):
@@ -264,89 +267,131 @@ WHITE, RED, DRED, SAFFRON, YELLOW, PURPLE, MAGENTA, DBLUE, MBLUE, AZURE, GOLD, T
 BRONZE = GOLD
 TUSK = WHITE                    # the boar's-tusk helmet: rows of split ivory plates
 
+MNOUGAT, DGREEN = 84, 288
+BARE = {'leg.r': ('3816cpn4', YELLOW), 'leg.l': ('3817cpn4', YELLOW)}     # bare legs and sandals (Leg with Reddish Brown Sandals)
+KILT = '600880c01'          # Minifig Skirt 1.1L with Straight Bottom: the short kilt / chiton skirt of the men
+LONGKILT = '14295c01'       # Minifig Skirt 1.5L Fringed: a longer, ragged hem
+DAGGER = '16820c01'         # Minifig Skirt 0.7L with 11 Diamond Points: the pointed kilt of the Hermes figures
+FLOUNCE = '18200c01'        # Minifig Skirt 1.5L Fringed with Stepped Edge: the tiered flounce over a gown
+GOWN = '36036'              # Minifig Hips and Skirt: the long gown / robe to the feet (replaces hips and legs)
+CLOAK = '50231c01'          # Minifig Cape Cloth (formed): chlaina / pharos / chlamys
+RAGS = '86038c01'           # Minifig Cape Cloth with Holes and Tattered Edges
+AEGIS = '38301c01'          # Minifig Cape Cloth Scalloped 6 Points: a short fringed shoulder-cape
+TUSKS = '60751'             # Minifig Helmet with Cheek Protection and Thin Bands: the boar's-tusk helmet
+CORSLET = '2587'            # Minifig Armour Plate: breast and shoulder plates, the Dendra corslet
+CHITON = '973p3y'           # Torso with Shirt with Open Collar and Wrinkles: a plain linen chiton
+PHAROS = '973pmc'           # Torso with Robe Gather Lines, Wrinkles and Clasp at Right Shoulder: robe pinned with a brooch
+RAGTOP = '973p4v'           # Torso with Dark Brown Collar, Patch, Rope Belt and Pouch: the beggar's rags and pera
+BEADS = '973pd13'           # Torso with Dress and Red Beads Necklace: the women's bodice and bead necklace
+APRON = '973p88'            # Torso with Dress, White Apron and Red Beads Necklace
+VEILED = '973p5e'           # Torso with Gold Dress and Veil Top
+BODICE = '973p0w'           # Torso with Female Gold Trim and Gold Belt: an open-fronted bodice edged in gold
+
+
+def C(**kw):
+    """a spec from keywords (held_r -> 'held.r'), with the dicts in `with_` merged in first"""
+    out = {}
+    for d in kw.pop('with_', ()): out.update(d)
+    for k, v in kw.items(): out[k.replace('_r', '.r').replace('_l', '.l') if k.startswith(('held', 'arm', 'hand', 'leg')) else k] = v
+    return out
+
+
 COSTUMES = {
-    # Odysseus, the king at war and at sea: short kilt over bare legs, bronze corslet, boar's-tusk helmet, cloak; bow and sword
-    'odysseus': {'skirt': ('600880c01', DRED), 'legs': YELLOW, 'hips': DRED, 'headgear': ('60751', TUSK), '4524': None,
-                 'neck': ('2587', BRONZE), 'held.l': ('3847', BRONZE)},
-    # the Trojan beggar: his own curls, a torn cloak, rags, a sack on his arm
-    'odysseus-as-trojan-beggar': {'torso': ('973p4y', DTAN), 'arms': DTAN, 'hips': DTAN, 'legs': YELLOW, 'skirt': ('14295c01', DBROWN),
-                                  'neck': ('86038c01', DBROWN)},
-    # Athena's old beggar: rags and patched pera (wallet) on its cord, torn cloak, staff
-    'odysseus-as-old-beggar': {'torso': ('973p4v', DTAN), 'arms': DTAN, 'hips': DTAN, 'legs': YELLOW, 'skirt': ('14295c01', DBROWN),
-                               'neck': ('86038c01', DBROWN), 'neck2': ('61976', RB)},
-    'odysseus-as-beggar': {'torso': ('973p4v', DTAN), 'arms': DTAN, 'hips': DTAN, 'legs': YELLOW, 'skirt': ('14295c01', DBROWN),
-                           'neck': ('86038c01', DBROWN), 'neck2': ('61976', RB)},
-    # Book 22: the rags thrown off on the threshold; bare-armed in the short chiton, the great bow and the quiver on his back
-    'odysseus-revealed': {'torso': ('973p3y', WHITE), 'arms': YELLOW, 'hips': WHITE, 'legs': YELLOW, 'skirt': ('600880c01', WHITE),
-                          'neck': ('4498', RB)},
-    # restored: bathed, a fresh chiton and a purple pharos pinned at the shoulder
-    'odysseus-restored': {'torso': ('973pmc', WHITE), 'arms': WHITE, 'hips': WHITE, 'legs': YELLOW, 'skirt': ('14295c01', WHITE),
-                          'neck': ('50231c01', MAGENTA)},
-    'odysseus-king': {'torso': ('973pmc', WHITE), 'arms': WHITE, 'hips': WHITE, 'legs': YELLOW, 'skirt': ('14295c01', WHITE),
-                      'neck': ('50231c01', MAGENTA)},
-    # Penelope: the long robe of a queen in grief and a veil (kredemnon) drawn down, spindle / distaff
-    'penelope': {'torso': ('973p5e', DBLUE), 'arms': DBLUE, 'lower': ('36036', DBLUE), 'headgear': ('4505a', WHITE)},
-    'penelope-at-the-loom': {'torso': ('973p0w', PURPLE), 'arms': PURPLE, 'lower': ('36036', PURPLE), 'skirt': ('18200c01', SAFFRON)},
-    # Telemachus: the prince in a short chiton, a cloak and two bronze spears (Book II); long hair, beardless
-    'telemachus': {'torso': ('973p3y', WHITE), 'arms': WHITE, 'hips': RED, 'legs': YELLOW, 'skirt': ('600880c01', RED),
-                   'neck': ('50231c01', RED), 'held.r': ('4497', BRONZE)},
-    # Athena: helmet, bronze spear, the aegis over her shoulders, a long peplos
-    'athena': {'lower': ('36036', WHITE), 'headgear': ('67037', BRONZE), 'neck': ('93565', GOLD), '4524': None,
-               'held.l': ('2586', BRONZE), 'held.r': ('4497', BRONZE)},
-    'athena-as-mentes': {'torso': ('973p4i', RB), 'arms': RB, 'hips': RB, 'legs': YELLOW, 'skirt': ('600880c01', RB),
-                         'neck': ('50231c01', DORANGE), 'held.r': ('4497', BRONZE)},
-    'athena-as-mentor': {'torso': ('973pmc', WHITE), 'arms': WHITE, 'lower': ('36036', WHITE), 'neck': ('50231c01', DBLUE)},
-    'athena-as-herald': {'torso': ('973p3y', WHITE), 'arms': YELLOW, 'hips': SAFFRON, 'legs': YELLOW, 'skirt': ('600880c01', SAFFRON),
-                         'headgear': ('11264', DBROWN), 'held.r': ('95049', RB)},
-    'athena-as-pitcher-girl': {'torso': ('973p3y', WHITE), 'arms': YELLOW, 'hips': WHITE, 'legs': YELLOW, 'skirt': ('600880c01', WHITE)},
-    'athena-as-shepherd': {'torso': ('973p3y', TAN), 'arms': YELLOW, 'hips': TAN, 'legs': YELLOW, 'skirt': ('600880c01', TAN),
-                           'neck': ('50231c01', OLIVE), 'held.r': ('93252', RB)},
-    # Zeus: long himation / pharos, a sceptre that is also his thunder; seated king
-    'zeus': {'torso': ('973pmc', WHITE), 'arms': WHITE, 'lower': ('36036', WHITE), 'neck': ('50231c01', PURPLE), 'held.r': ('27256', GOLD)},
-    # Poseidon: bare-chested under a sea-blue cloak, trident, a kilt
-    'poseidon': {'torso': ('973pbi', YELLOW), 'arms': YELLOW, 'hips': DBLUE, 'legs': YELLOW, 'skirt': ('600880c01', DBLUE),
-                 'neck': ('50231c01', DTURQ), 'held.r': ('92290', GOLD)},
-    # Hermes: short chiton, traveller's cloak, winged cap for the petasos, golden wand; the winged sandals have no part: gold feet
-    'hermes': {'torso': ('973p3y', WHITE), 'arms': YELLOW, 'hips': WHITE, 'legs': GOLD, 'skirt': ('16820c01', WHITE),
-               'headgear': ('60747', GOLD), 'neck': ('50231c01', SAFFRON), 'held.r': ('36752a', GOLD)},
-    'hermes-psychopomp': {'torso': ('973p3y', WHITE), 'arms': YELLOW, 'hips': WHITE, 'legs': GOLD, 'skirt': ('16820c01', WHITE),
-                          'headgear': ('60747', GOLD), 'neck': ('50231c01', DBLUE), 'held.r': ('6124b', GOLD)},
-    'hermes-as-young-man': {'torso': ('973p3y', WHITE), 'arms': YELLOW, 'hips': WHITE, 'legs': YELLOW, 'skirt': ('600880c01', WHITE),
-                            'neck': ('50231c01', SAFFRON)},
-    # the nymphs and goddesses: flounced skirt (a plastic gown under a tiered cloth flounce), open-fronted bodice, long hair
-    'calypso': {'torso': ('973p5c', DTURQ), 'arms': YELLOW, 'lower': ('36036', DTURQ), 'skirt': ('18200c01', WHITE), 'headgear': ('40239', DBROWN)},
-    'circe': {'torso': ('973pb5', DRED), 'arms': YELLOW, 'lower': ('36036', DRED), 'skirt': ('18200c01', SAFFRON), 'headgear': ('53126', DORANGE),
-              'held.r': ('6124b', GOLD)},
-    'nausicaa': {'torso': ('973p0w', WHITE), 'arms': YELLOW, 'lower': ('36036', WHITE), 'skirt': ('18200c01', SAFFRON),
-                 'headgear': ('93562', DBROWN), 'crown': ('33322', GOLD), 'crown_dy': 2},
-    'helen': {'torso': ('973p5e', MAGENTA), 'arms': MAGENTA, 'lower': ('36036', MAGENTA), 'skirt': ('18200c01', SAFFRON),
-              'headgear': ('40239', DBROWN), 'crown': ('33322', GOLD)},
-    'arete': {'torso': ('973pmd', DBLUE), 'arms': DBLUE, 'lower': ('36036', DBLUE), 'skirt': ('18200c01', RED), 'crown': ('39262', GOLD)},
-    'eurycleia': {'torso': ('973p88', SANDBLUE), 'arms': SANDBLUE, 'lower': ('36036', DTAN), 'headgear': ('4505a', TAN)},
-    'maid': {'torso': ('973pd13', WHITE), 'arms': YELLOW, 'lower': ('36036', SAFFRON)},
-    'maid-loyal': {'torso': ('973p88', TAN), 'arms': TAN, 'lower': ('36036', DTAN)},
-    'melantho': {'torso': ('973p5e', RED), 'arms': YELLOW, 'lower': ('36036', RED), 'skirt': ('18200c01', SAFFRON)},
-    # the men of the house: kings in the long robe and cloak, herdsmen in hide
-    'menelaus': {'torso': ('973pa2', WHITE), 'arms': WHITE, 'lower': ('36036', WHITE), 'neck': ('50231c01', PURPLE), 'crown': ('11264', GOLD)},
-    'alcinous': {'torso': ('973pmc', WHITE), 'arms': WHITE, 'lower': ('36036', WHITE), 'neck': ('50231c01', RED), 'crown': ('39262', GOLD)},
-    'laertes': {'torso': ('973p4v', DTAN), 'arms': DTAN, 'hips': DTAN, 'legs': DTAN, 'skirt': ('14295c01', DTAN)},
-    'laertes-restored': {'torso': ('973pmc', WHITE), 'arms': WHITE, 'lower': ('36036', WHITE), 'neck': ('50231c01', DRED)},
-    'eumaeus': {'torso': ('973pdg1', RB), 'arms': YELLOW, 'hips': RB, 'legs': YELLOW, 'skirt': ('600880c01', RB),
-                'neck': ('50231c01', DORANGE), 'held.r': ('93252', RB)},
-    'philoetius': {'torso': ('973p3y', TAN), 'arms': YELLOW, 'hips': TAN, 'legs': YELLOW, 'skirt': ('600880c01', TAN), 'neck': ('50231c01', RB)},
-    'melanthius': {'torso': ('973p4i', DBROWN), 'arms': YELLOW, 'hips': DBROWN, 'legs': YELLOW, 'skirt': ('600880c01', DBROWN)},
-    # suitors: rich young nobles, long-haired, fine cloaks; Antinous in red, Eurymachus in the moneyed long robe
-    'antinous': {'torso': ('973p1p', RED), 'arms': RED, 'hips': RED, 'legs': YELLOW, 'skirt': ('600880c01', RED), 'neck': ('50231c01', PURPLE),
-                 'headgear': ('11255', BLACK)},
-    'eurymachus': {'torso': ('973p3l', MAGENTA), 'arms': MAGENTA, 'lower': ('36036', MAGENTA), 'neck': ('50231c01', SAFFRON)},
-    'amphinomus': {'torso': ('973p1p', DBLUE), 'arms': DBLUE, 'hips': DBLUE, 'legs': YELLOW, 'skirt': ('600880c01', DBLUE),
-                   'neck': ('50231c01', WHITE)},
-    'suitor': {'arms': YELLOW, 'legs': YELLOW, 'skirt': ('600880c01', RED), 'neck': ('50231c01', SAFFRON)},
-    # the crew: bare-legged oarsmen in short kilts; the fighters in boar's-tusk helmets with figure-eight shields
-    'crew': {'torso': ('973p3y', WHITE), 'arms': YELLOW, 'hips': TAN, 'legs': YELLOW, 'skirt': ('600880c01', TAN)},
-    'crew-warrior': {'torso': ('973pc6a', BRONZE), 'arms': YELLOW, 'hips': WHITE, 'legs': YELLOW, 'skirt': ('600880c01', WHITE),
-                     'headgear': ('60751', TUSK), 'held.r': ('4497', BRONZE)},
-    'phaeacian': {'torso': ('973p3y', SAFFRON), 'arms': YELLOW, 'hips': AZURE, 'legs': YELLOW, 'skirt': ('600880c01', AZURE)},
+    # ---- Odysseus ----
+    # at war and at sea (Books IX-XII): the red kilt, bare legs and sandals, the bronze corslet over his tunic, the boar's-tusk helmet
+    # that Meriones lends him in Iliad X; the bow and the sword are the card's own
+    'odysseus': C(with_=[BARE], hips=DRED, skirt=(KILT, DRED), headgear=(TUSKS, TUSK), neck=(CORSLET, BRONZE)),
+    # the Trojan beggar of Helen's tale (IV): his own face and dark curls, a torn rag of a cloak, the rags of a slave, a sack
+    'odysseus-as-trojan-beggar': C(with_=[BARE], head='3626bp88', headgear=('3901', DBROWN), beard=None,
+                                   torso=(RAGTOP, DTAN), arms=DTAN, hips=DTAN, skirt=(LONGKILT, DBROWN), neck=(RAGS, DBROWN)),
+    # Athena's old beggar (XIII 434-438): a vile cloak and tunic black with smoke, over them the bald hide of a deer, a staff,
+    # and a pouch full of holes on a twisted cord
+    'odysseus-as-old-beggar': C(with_=[BARE], torso=(RAGTOP, DTAN), arms=DTAN, hips=DBROWN, skirt=(LONGKILT, DBROWN),
+                                neck=(RAGS, MNOUGAT), neck2=('61976', RB), held_l=None),
+    # XXII: the rags stripped off on the threshold; the tunic, the quiver on his back, the great bow; the king's own face
+    'odysseus-revealed': C(with_=[BARE], torso=(CHITON, WHITE), arms=YELLOW, hips=WHITE, skirt=(KILT, WHITE), neck=None,
+                           **{'held.r2': None}, neck2=('4498', RB)),
+    # VI and XXIII: bathed and anointed, a fresh tunic and the purple double cloak (XIX 225) pinned with a gold brooch; unarmed
+    'odysseus-restored': C(with_=[BARE], torso=(PHAROS, WHITE), arms=WHITE, hips=WHITE, skirt=(LONGKILT, WHITE), neck=(CLOAK, MAGENTA),
+                           held_r=None, held_l=None),
+    # ---- the household ----
+    # the queen in grief: the long robe, the veil (kredemnon) drawn over her head, her hair under it
+    'penelope': C(torso=(VEILED, DBLUE), arms=DBLUE, lower=(GOWN, DBLUE), headgear=('30381', WHITE), held_r=None),
+    # at the loom: the flounced skirt and open bodice of the frescoes, her bun, a wooden pin-beater in her hand
+    'penelope-at-the-loom': C(torso=(BODICE, PURPLE), arms=YELLOW, lower=(GOWN, WHITE), skirt=(FLOUNCE, PURPLE), held_r=('36752a', RB)),
+    # the prince: a white chiton and kilt, a red cloak, long hair, a bronze spear (II 10)
+    'telemachus': C(with_=[BARE], torso=(CHITON, WHITE), arms=YELLOW, hips=WHITE, skirt=(KILT, WHITE), neck=(CLOAK, RED),
+                    headgear=('88283', DBROWN), held_r=('4497', BRONZE)),
+    # the old nurse: a long dark dress, an apron, a kerchief
+    'eurycleia': C(torso=(APRON, DTAN), arms=DTAN, lower=(GOWN, DTAN), headgear=('4505a', WHITE)),
+    # Laertes in the orchard (XXIV 227-231): a filthy patched tunic, stitched ox-hide leggings, gloves against the thorns, a goatskin cap
+    'laertes': C(head='3626bp8m', torso=(RAGTOP, DTAN), arms=DTAN, hands=RB, hips=DTAN, legs=RB, skirt=(LONGKILT, DTAN),
+                 headgear=('27059', MNOUGAT), neck=None),
+    # Laertes restored (XXIV 365-371): bathed, anointed, a fine cloak; white-headed still; the spear he throws at Eupithes
+    'laertes-restored': C(head='3626bp8m', headgear=('3901', WHITE), torso=(PHAROS, WHITE), arms=WHITE, lower=(GOWN, WHITE),
+                          neck=(CLOAK, DRED), held_r=('4497', BRONZE)),
+    # the swineherd (XIV 23-24: he is cutting himself sandals of ox-hide): a tunic, a hide cloak, sandals, his staff
+    'eumaeus': C(with_=[BARE], torso=(CHITON, TAN), arms=YELLOW, hips=TAN, skirt=(KILT, TAN), neck=(CLOAK, RB)),
+    # the cowherd: a sun-bleached tunic, bare shins, a dark cloak, the goad
+    'philoetius': C(with_=[BARE], torso=(CHITON, WHITE), arms=YELLOW, hips=WHITE, skirt=(KILT, WHITE), neck=(CLOAK, DGREEN)),
+    # the goatherd: a leather jerkin, a short kilt, his own cape
+    'melanthius': C(with_=[BARE], torso=('973p4i', RB), arms=YELLOW, hips=DBROWN, skirt=(KILT, DBROWN)),
+    # the maids: the bead necklace of the frescoes over a long skirt; Melantho in a flounced gift-gown she was never given for work
+    'melantho': C(torso=(BEADS, SAFFRON), arms=YELLOW, lower=(GOWN, RED), skirt=(FLOUNCE, SAFFRON)),
+    'maid': C(torso=(BEADS, WHITE), arms=YELLOW, lower=(GOWN, SAFFRON)),
+    'maid-loyal': C(torso=(APRON, TAN), arms=TAN, lower=(GOWN, DTAN)),
+    # ---- the suitors: rich young nobles, the long hair of the Achaeans, fine cloaks ----
+    'antinous': C(with_=[BARE], torso=('973p1p', RED), arms=RED, hips=RED, skirt=(KILT, RED), neck=(CLOAK, PURPLE),
+                  headgear=('11255', BLACK), held_r=GOLD),
+    'eurymachus': C(torso=('973p3l', MAGENTA), arms=MAGENTA, lower=(GOWN, MAGENTA), neck=(CLOAK, SAFFRON), headgear=('20595', DBROWN)),
+    'amphinomus': C(with_=[BARE], torso=('973p1p', DBLUE), arms=DBLUE, hips=DBLUE, skirt=(KILT, DBLUE), neck=(CLOAK, WHITE),
+                    headgear=('11255', DBROWN)),
+    'suitor': C(with_=[BARE], arms=YELLOW, hips=RED, skirt=(KILT, RED), neck=(CLOAK, SAFFRON), headgear=('40251', DBROWN)),
+    # ---- the gods ----
+    # Zeus: the long robe pinned at the shoulder, a purple mantle, his crown and his thunderbolt
+    'zeus': C(torso=(PHAROS, WHITE), arms=WHITE, lower=(GOWN, WHITE), neck=(CLOAK, PURPLE)),
+    # Poseidon: bare-chested, the gold-belted loincloth, a sea-green mantle, the trident
+    'poseidon': C(torso=('973pbi', YELLOW), arms=YELLOW, hips=('3815bpq1', YELLOW), leg_r=('3816cpq1', YELLOW), leg_l=('3817cpq1', YELLOW),
+                  neck=(CLOAK, DTURQ), held_r=('92290', GOLD)),
+    # Athena as the Mycenae "warrior goddess": a white peplos, the boar's-tusk helmet, the fringed aegis, figure-eight shield, spear
+    'athena': C(torso=('973pc2g', WHITE), arms=WHITE, lower=(GOWN, WHITE), headgear=(TUSKS, TUSK), neck=(AEGIS, GOLD),
+                held_l=('2586', WHITE), held_r=('4497', BRONZE)),
+    # her guises
+    'athena-as-mentes': C(with_=[BARE], head='3626bpq5', headgear=('3901', BLACK), beard=None, torso=('973p4i', RB), arms=RB, hips=RB,
+                          skirt=(KILT, RB), neck=(CLOAK, DORANGE), held_r=('4497', BRONZE)),
+    'athena-as-mentor': C(torso=(PHAROS, SANDBLUE), arms=SANDBLUE, lower=(GOWN, SANDBLUE), neck=(CLOAK, DBLUE), held_r=RB),
+    'athena-as-herald': C(with_=[BARE], headgear=('11264', DBROWN), torso=(CHITON, WHITE), arms=YELLOW, hips=SAFFRON,
+                          skirt=(KILT, SAFFRON), neck=(CLOAK, RED), held_l=None, held_r=('95049', GOLD)),
+    'athena-as-pitcher-girl': C(with_=[BARE], torso=('973pq6', WHITE), arms=YELLOW, hips=WHITE, skirt=(KILT, WHITE),
+                                headgear=('62711', DBROWN), held_r=DORANGE),
+    'athena-as-shepherd': C(with_=[BARE], torso=(CHITON, TAN), arms=YELLOW, hips=TAN, skirt=(KILT, TAN), neck=(CLOAK, OLIVE),
+                            headgear=('88283', DBROWN), held_r=('3957a', RB)),
+    # Hermes: short chiton with a pointed hem, a saffron chlamys, sandals, the winged cap, the golden wand
+    'hermes': C(with_=[BARE], torso=(CHITON, WHITE), arms=YELLOW, hips=WHITE, skirt=(DAGGER, WHITE), headgear=('60747', GOLD),
+                neck=(CLOAK, SAFFRON)),
+    'hermes-psychopomp': C(with_=[BARE], torso=(CHITON, WHITE), arms=YELLOW, hips=WHITE, skirt=(DAGGER, WHITE), headgear=('60747', GOLD),
+                           neck=(CLOAK, DBLUE), held_r=GOLD),
+    # on the road to Circe: no divine tells, the moly in his hand (black root, milk-white flower)
+    'hermes-as-young-man': C(with_=[BARE], torso=(CHITON, WHITE), arms=YELLOW, hips=WHITE, skirt=(KILT, WHITE), headgear=('88283', DBROWN),
+                             neck=(CLOAK, SAFFRON), held_r=('24855c01', WHITE)),
+    # ---- the nymphs and the Phaeacians: the flounced skirt and gold-edged bodice, long hair ----
+    # Calypso as Homer dresses her (V 230-232): a great silver-white robe, a golden belt; a sea-green flounce; the golden shuttle (V 62)
+    'calypso': C(torso=(BODICE, WHITE), arms=YELLOW, lower=(GOWN, WHITE), skirt=(FLOUNCE, DTURQ), held_r=('36752a', GOLD)),
+    # Calypso at the loom in her cave: the sea-wave bodice
+    'calypso-at-the-loom': C(torso=('973p5c', DTURQ), arms=YELLOW, lower=(GOWN, DTURQ), skirt=(FLOUNCE, WHITE), held_r=('36752a', GOLD)),
+    'circe': C(torso=(BODICE, DRED), arms=YELLOW, lower=(GOWN, SAFFRON), skirt=(FLOUNCE, DRED), headgear=('13251', DORANGE)),
+    'nausicaa': C(torso=(BODICE, WHITE), arms=YELLOW, lower=(GOWN, WHITE), skirt=(FLOUNCE, SAFFRON), headgear=('93562', DBROWN), held_r=None),
+    'alcinous': C(torso=(PHAROS, WHITE), arms=WHITE, lower=(GOWN, WHITE), neck=(CLOAK, RED)),
+    'arete': C(torso=('973pmd', DBLUE), arms=DBLUE, lower=(GOWN, DBLUE), skirt=(FLOUNCE, RED), headgear=('13251', LBG), crown=('33322', GOLD)),
+    'phaeacian': C(with_=[BARE], torso=(CHITON, SAFFRON), arms=YELLOW, hips=AZURE, skirt=(KILT, AZURE), headgear=('40251', BLACK)),
+    # ---- the crew ----
+    'crew': C(torso=(CHITON, WHITE), arms=YELLOW, hips=TAN, legs=YELLOW, skirt=(KILT, TAN)),
+    'crew-warrior': C(with_=[BARE], torso=(CHITON, WHITE), arms=YELLOW, hips=WHITE, skirt=(KILT, WHITE), headgear=(TUSKS, TUSK),
+                      neck=(CORSLET, BRONZE), held_r=('4497', BRONZE), held_l=('2586', WHITE)),
+    # ---- Sparta (IV) ----
+    'helen': C(torso=(BODICE, MAGENTA), arms=YELLOW, lower=(GOWN, WHITE), skirt=(FLOUNCE, MAGENTA), headgear=('40239', DBROWN),
+               crown=('33322', GOLD)),
+    'menelaus': C(torso=(PHAROS, SAFFRON), arms=SAFFRON, lower=(GOWN, SAFFRON), neck=(CLOAK, PURPLE), headgear=('11264', TAN), beard=TAN),
 }
 
 
