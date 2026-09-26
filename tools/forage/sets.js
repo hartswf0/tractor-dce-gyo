@@ -133,6 +133,11 @@ const seaFloor = (back = 'sea') => REAL('the sea', [R('3811', C.blue, 0, -8, -8)
 const floor = (w, d, a, b = null) => kit('floor', b == null ? [K.slab(0, 0, w, d, a)] : Array.from({ length: Math.ceil(w / 2) * Math.ceil(d / 2) }, (_, k) => { const i = (k % Math.ceil(w / 2)) * 2, j = Math.floor(k / Math.ceil(w / 2)) * 2; return K.slab(i, j, Math.min(2, w - i), Math.min(2, d - j), (i + j) / 2 % 2 ? a : b); }));
 /** Walls round three sides (back and the two flanks), h bricks high, the front open for the camera; a door gap in the back wall if asked. */
 const walls = (w, d, h, col, o = {}) => kit('walls', [K.box(0, 0, w, 1, h, col), K.box(0, 0, 1, d, h, col), K.box(w - 1, 0, 1, d, h, col), ...(o.door ? [K.cut(Math.floor(w / 2) - 2 + (o.doorX || 0), 0, 4, 1, 0, Math.min(h, 4))] : []), ...(o.band ? [K.slab(0, 0, w, 1, o.band, { y: h }), K.slab(0, 0, 1, d, o.band, { y: h }), K.slab(w - 1, 0, 1, d, o.band, { y: h })] : [])]);
+/** The fourth wall, the one the camera usually stands in: w long, h bricks high, a great door dw wide in the middle under a lintel
+    (Homer XXII: "Ulysses... sprang on to the broad pavement" of the threshold, framed in the door of the hall). Its own piece, so a
+    still whose camera stands outside the hall can hide it. */
+const frontWall = (w, h, col, o = {}) => kit('the threshold wall', [K.box(0, 0, w, 1, h, col), K.cut(Math.floor((w - (o.dw || 6)) / 2), 0, o.dw || 6, 1, 0, h - 1),
+  ...(o.band ? [K.slab(0, 0, w, 1, o.band, { y: h })] : []), ...(o.lintel ? [K.slab(Math.floor((w - (o.dw || 6)) / 2) - 1, 0, (o.dw || 6) + 2, 1, o.lintel, { y: h - 1 })] : [])]);
 /* a set: its components at stud offsets from its centre, standing on its floor (a plate: y -8), and its marks */
 function room(name, w, d, floorComp, items, marks, extra = {}) {
   const list = [[floorComp, 0, 0]];
@@ -436,6 +441,7 @@ const SETS = {
   /* Odysseus's megaron at Ithaca: the hall of the suitors, the bow and the slaughter */
   megaron: () => room('the megaron at ithaca', 36, 30, floor(36, 30, C.dtan, C.tan), [
     [walls(36, 30, 6, C.tan, { door: true, doorX: 10, band: C.dred }), 0, 0, 2, -8],
+    [frontWall(36, 6, C.tan, { dw: 6, band: C.dred, lintel: C.dred }), 0, 14.5, 0, -8],
     [FURN.hearth(), 0, -2], [FURN.column(7), -6, -6], [FURN.column(7), 6, -6], [FURN.column(7), -6, 4], [FURN.column(7), 6, 4],
     [FURN.throne(), 0, -12], [FURN.table(), -11, -4], [FURN.table(), -11, 4], [FURN.table(), 11, -4], [FURN.table(), 11, 4],
     [FURN.chair(), -15, -4], [FURN.chair(), -15, 4], [FURN.chair(), 15, -4, 2], [FURN.chair(), 15, 4, 2],

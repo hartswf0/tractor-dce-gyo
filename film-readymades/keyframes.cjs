@@ -47,18 +47,25 @@ if(searchId){const k=spec.keys.find(x=>x.id===searchId),S_=k.search||{};await p.
    const pos=[c.x+Math.sin(A)*r,h,c.z+Math.cos(A)*r];if(pos[0]<B[0]||pos[0]>B[1]||pos[2]<B[2]||pos[2]>B[3])continue;
    const cam={type:'wide',pos,target:S_.target||around,fov,subject:prim,place:k.camera.place||S_.place||'L',eye:k.camera.eye||0.4};OdysseyFilm.rig(cam);
    const sc=OdysseyFilm.score(k.subjects),lens=OdysseyFilm.lens(prim,k.lensAllow||[]),clutter=OdysseyFilm.clutter(prim.startsWith('prop:')||prim.startsWith('piece:')?(k.subjects.find(s=>!s.id.includes(':'))||{}).id||prim:prim,[...(k.lensAllow||[]),...k.subjects.map(s=>s.id)]);
-   const why=[];if(lens>0.1)why.push('lens');if(clutter.length)why.push('clutter:'+clutter.join('+'));let ok=lens<=0.1&&!clutter.length,val=0;for(const s of k.subjects){const m=sc[s.id];if(!m||m.missing||m.behind){ok=false;why.push(s.id+':behind');continue;}
+   const why=[];if(lens>0.1)why.push('lens');
+   /* the other figures, as the gate sees them: whole in the frame or wholly out of it, never a headless torso or a face half behind a shoulder */
+   const oth=OdysseyFilm.score(ButterCast.cast.filter(a=>!a.rig.absent).map(a=>({id:a.kind.replace(/^odyssey-od-b\d\d-s\d\d-/,'')})).filter(o=>!k.subjects.some(s=>s.id===o.id)));
+   for(const [id,m] of Object.entries(oth)){if(m.missing||m.behind||(k.veiled||[]).includes(id))continue;const [u0,u1,v0,v1]=m.box;if(!(u1>0&&u0<1&&v1>0&&v0<1))continue;const hin=m.head[0]>0&&m.head[0]<1&&m.head[1]>0&&m.head[1]<1;
+    if(!hin)why.push(id+':headless');else if(!(k.lensAllow||[]).includes(id)&&(u0<-0.04||u1>1.04))why.push(id+':sliced');else if(m.visible>0&&m.visible<0.75&&m.size>0.15)why.push(id+':peeks');}if(clutter.length)why.push('clutter:'+clutter.join('+'));let ok=lens<=0.1&&!clutter.length&&!why.some(w=>/:(headless|sliced|peeks)$/.test(w)),val=0;for(const s of k.subjects){const m=sc[s.id];if(!m||m.missing||m.behind){ok=false;why.push(s.id+':behind');continue;}
     if(m.visible<(s.soft?0.5:0.75)){ok=false;why.push(s.id+':hidden');}if(!s.cut&&!m.inFrame){ok=false;why.push(s.id+':cut');}if(s.min&&m.size<s.min){ok=false;why.push(s.id+':small');}if(s.max&&m.size>s.max){ok=false;why.push(s.id+':big');}if(s.face&&m.facing<0.35){ok=false;why.push(s.id+':face');}
     if(!(m.head[0]>0.02&&m.head[0]<0.98&&m.head[1]>0.02&&m.head[1]<0.98)){ok=false;why.push(s.id+':headout');}
     if(s.primary){if(m.thirds>0.06&&cam.place!=='C'){ok=false;why.push('thirds');}if(m.headroom<0.03){ok=false;why.push('headroom');}val-=Math.abs(m.size-(S_.size||0.35))*3;}
-    if(s.face)val+=m.facing*0.5;val+=m.visible*0.3;}
+    if(s.face)val+=m.facing*0.5;val+=m.visible*0.3;
+    if(s.primary&&!s.id.includes(':')){const a=OdysseyFilm.cast().find(q=>q.id===s.id);if(a){const eye=a.y+a.height*0.9;val-=Math.min(1,Math.abs(pos[1]-eye)/(a.height*3))*0.6;val+=Math.max(0,m.facing)*0.4;}}}
    out.push({ok,why,val:+val.toFixed(3),cam:{...cam,pos:pos.map(v=>+v.toFixed(1)),fov:+fov.toFixed(1)}});}
   return out;},{base:spec.blocking,k,look:spec.look||{},spread:spec.spread||0,props:spec.props||[],S_});
  const tally={};for(const c of cands)for(const w of c.why)tally[w]=(tally[w]||0)+1;console.log('  why cameras failed:',JSON.stringify(Object.entries(tally).sort((a,b)=>b[1]-a[1]).slice(0,8)));
  let good=cands.filter(c=>c.ok).sort((a,b)=>b.val-a.val);if(!good.length){good=cands.sort((a,b)=>a.why.length-b.why.length||b.val-a.val);console.log('  none pass: rendering the nearest misses');}const pick=[];for(const c of good){if(pick.every(q=>Math.hypot(q.cam.pos[0]-c.cam.pos[0],q.cam.pos[2]-c.cam.pos[2])>60))pick.push(c);if(pick.length>=6)break;}
  console.log(`${k.id}: ${cands.length} cameras tried, ${good.length} pass; rendering ${pick.length}`);
  for(let i=0;i<pick.length;i++){const png=await p.evaluate(cam=>{OdysseyFilm.rig(cam);renderStill(scene,camera);return renderer.domElement.toDataURL('image/png');},pick[i].cam);fs.writeFileSync(path.join(out,`${k.id}-c${i+1}.png`),Buffer.from(png.split(',')[1],'base64'));}
- fs.writeFileSync(path.join(out,`${k.id}-candidates.json`),JSON.stringify(pick,null,1));await b.close();process.exit(0);}
+ fs.writeFileSync(path.join(out,`${k.id}-candidates.json`),JSON.stringify(pick,null,1));
+ if(process.argv.includes('--apply')&&pick.length&&pick[0].ok){const sp=JSON.parse(fs.readFileSync(specFile,'utf8'));const kk=sp.keys.find(x=>x.id===k.id);const c=pick[0].cam;kk.camera={type:'wide',pos:c.pos,target:c.target,fov:c.fov,...(c.place&&c.place!=='L'?{place:c.place}:{}),subject:c.subject,eye:c.eye};fs.writeFileSync(specFile,JSON.stringify(sp,null,1));console.log('  applied',JSON.stringify(kk.camera));}
+ await b.close();process.exit(0);}
 const onlyIds=process.argv.includes('--only')?process.argv[process.argv.indexOf('--only')+1].split(','):null;
 for(const k of spec.keys.filter(k=>!onlyIds||onlyIds.includes(k.id))){
  await p.evaluate(()=>OdysseyFilm.loadProps());
