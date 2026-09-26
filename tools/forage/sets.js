@@ -396,6 +396,19 @@ function sealBeach() {
   list.push(R('3070b', C.dtan, 12, 16));   /* a sand tile where a shrub stood: it keeps the build's footprint, so the rock stays where the stills expect it */
   return REAL('the seal beach', list);
 }
+/* the harbour of Phorcys on Ithaca (Homer XIII): "at the head of this harbour there is a large olive tree, and at no distance a fine
+   overarching cavern sacred to the nymphs... there are mixing-bowls within it and wine-jars of stone"; the beach the Phaeacian ship
+   ran half her length up on (the olive itself is a keyframe prop, tools/forage/keyprops.js olive, set where each still needs it); the cave of rock panels over a black mouth, two stone bowls inside */
+function phorcys() {
+  const list = [];
+  /* the cave of the nymphs: rock panels round a black mouth, the stone mixing bowls and jars inside */
+  list.push({ id: '23996', col: C.dbg, x: 10, z: 18, base: -8, q: 0 }, { id: '6082', col: C.dbg, x: 4, z: 20, base: -8 }, { id: '6083', col: C.dbg, x: 4, z: 20, base: -8 - 144 }, { id: '6082', col: C.dbg, x: 14, z: 12, base: -8, q: 1 });
+  for (let k = 0; k < 5; k++) list.push({ id: '3009', col: C.black, x: 8, z: 19.5, base: -8 - 24 * k });
+  list.push({ id: '4740', col: C.lbg, x: 7, z: 17 }, { id: '3941', col: C.lbg, x: 10, z: 17 }, { id: '4589', col: C.lbg, x: 10, z: 17, base: -8 - 24 });
+  /* grass tufts on the land above the beach */
+  for (const [x, z] of [[-12, 14], [3, 12], [14, 16]]) list.push(R('6255', C.green, x, z));
+  return REAL('the harbour of phorcys', list);
+}
 /* Eumaeus's farm (Homer XIV): "a strong yard, with a wall of stone round it, and a hedge of wild pear; twelve sties"; the hut of logs
    under a thatch of slopes, the fire, his bench of brushwood and goatskin; the dogs "fierce as wild beasts" */
 function swineherd() {
@@ -458,6 +471,8 @@ const SETS = {
   hut: () => room("eumaeus's farm", 34, 34, floor(34, 34, C.dtan), [[swineherd(), 0, 0]],
     { door: M(-12, -1, 2, "the hut's door"), fire: M(-6, 6, 0, 'the fire'), sty: M(11, -4, 0, 'the sties'), gate: M(0, 14, 2, 'the yard gate'), centre: M(0, 4, 0) }),
   troy: () => room('troy by night', 34, 30, floor(34, 30, C.dtan), [[troy(), 0, 0]], { horse: M(0, 0, 0, 'the horse in the square'), helen: M(4, 4, 2, 'Helen'), gate: M(0, -12, 0, 'the gate'), centre: M(0, 4, 0) }),
+  phorcys: () => room('the harbour of phorcys on ithaca', 32, 48, shoreFloor(), [[phorcys(), 0, 0], [KIT.galley(), 2, -9], [KIT.rocks(C.dtan), 13, 10], [KIT.swell(5, 0), -10, -20], [KIT.swell(5, 2), 11, -21]],
+    { olive: M(-6, -6, 0, 'the olive at the head of the harbour'), cave: M(9, -14, 0, 'the cave of the nymphs'), ship: M(2, 10, 0, 'the ship run up on the sand'), centre: M(0, 0, 0) }),
   pharos: () => room('the seal beach on pharos', 32, 48, shoreFloor(C.dtan), [[sealBeach(), 0, 0], [KIT.swell(5, 1), -8, -16], [KIT.swell(6, 3), 8, -19]],
     { menelaus: M(2, 6, 2, 'Menelaus under a sealskin'), proteus: M(-2, 9, 0, 'Proteus among the seals'), eidothea: M(6, -3, 0, 'Eidothea from the sea'), centre: M(0, 6, 0) }),
   /* Alcinous's hall among the Phaeacians */

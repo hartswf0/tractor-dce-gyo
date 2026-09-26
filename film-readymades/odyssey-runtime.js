@@ -46,19 +46,32 @@ function kfSpread(min,ids){const acts=ButterCast.cast.filter(a=>!ids||ids.includ
     if(d<min){const push=(min-d)/2+0.5,ux=d>1e-3?dx/d:Math.cos(i+j),uz=d>1e-3?dz/d:Math.sin(i+j);p.x-=ux*push;p.z-=uz*push;q.x+=ux*push;q.z+=uz*push;moved=true;}}if(!moved)break;}
   for(const a of acts){a.rig.pos.y=kfFloor(a);a.rig.figure.position.copy(a.rig.pos);}}
 const kfInside=(o,r)=>{for(;o;o=o.parent)if(o===r)return true;return false;};
-function kfBlock(list){for(const e of list){const a=kfActor(e.id);if(!a){console.warn('[keyframe] no actor',e.id);continue;}const r=a.rig;
+function kfBlock(list){for(let e of list){const a=kfActor(e.id);if(!a){console.warn('[keyframe] no actor',e.id);continue;}const r=a.rig;
   /* absent: the actor is not in this still (the men already swine): hidden, and left out of the physics */
   r.absent=!!e.absent;r.figure.visible=!e.absent;if(e.absent)continue;
   r.placed=e.y==='surface'||typeof e.y==='number';   /* put on a body on purpose (a deck, a giant's chest): the perch check leaves him be */
   r.air=!!e.air;   /* air: held off the ground (a man in Scylla's jaws): the support check leaves him be */
   if(typeof e.at==='string'){const p=kfPoint(e.at).add(new THREE.Vector3(...(e.off||[0,0,0])));r.pos.x=p.x;r.pos.z=p.z;}
-  if(e.x!=null)r.pos.x=e.x;if(e.z!=null)r.pos.z=e.z;if(e.y==='ground')r.pos.y=kfGround(r.pos.x,r.pos.z);else if(e.y==='floor')r.pos.y=kfFloor(a);
+  if(e.x!=null)r.pos.x=e.x;if(e.z!=null)r.pos.z=e.z;
+  {const f0=typeof e.face==='string'?(e.face.startsWith('@')?kfAnchor(e.face.slice(1)):kfActor(e.face)?.rig.pos):Array.isArray(e.face)?{x:e.face[0],z:e.face[1]}:null;
+   if(f0)r.heading=Math.atan2(f0.x-r.pos.x,f0.z-r.pos.z);else if(e.heading!=null)r.heading=e.heading;
+   /* the click: a minifig stands on studs, so it faces one of four ways, its two feet astride a stud line and centred on the next
+      (free: a figure not on studs, off the ground or flung, keeps its exact place) */
+   if(!e.free&&!e.air&&!e.tilt){r.heading=Math.round(r.heading/(Math.PI/2))*(Math.PI/2);const st=20*(filmAsset().scale||1),q=Math.round(Math.abs(Math.sin(r.heading)));
+     const edge=v=>Math.round(v/st)*st,mid=v=>(Math.floor(v/st)+0.5)*st;if(q){r.pos.z=edge(r.pos.z);r.pos.x=mid(r.pos.x);}else{r.pos.x=edge(r.pos.x);r.pos.z=mid(r.pos.z);}}}
+  if(e.y==='ground')r.pos.y=kfGround(r.pos.x,r.pos.z);else if(e.y==='floor')r.pos.y=kfFloor(a);
   else if(e.y==='surface'){const from=(typeof e.at==='string'?kfPoint(e.at).y:r.pos.y+200)-(e.reach??25);const figs=new Set();ButterCast.cast.forEach(b=>b.rig.figure.traverse(o=>figs.add(o)));const ms=[];scene.traverse(o=>{if(kfSolid(o)&&!figs.has(o)&&!(o.parent&&kfPropObjs.get('stake')&&kfInside(o,kfPropObjs.get('stake'))))ms.push(o);});
     const h=new THREE.Raycaster(new THREE.Vector3(r.pos.x,from,r.pos.z),new THREE.Vector3(0,-1,0)).intersectObjects(ms,true)[0];r.pos.y=h?h.point.y:r.pos.y;}   /* stood on the highest body under a grip: a man on the giant's chest */else if(e.y!=null)r.pos.y=e.y;
   const f=typeof e.face==='string'?(e.face.startsWith('@')?kfAnchor(e.face.slice(1)):kfActor(e.face)?.rig.pos):Array.isArray(e.face)?{x:e.face[0],z:e.face[1]}:null;
-  if(f)r.heading=Math.atan2(f.x-r.pos.x,f.z-r.pos.z);else if(e.heading!=null)r.heading=e.heading;
+  if(e.lie){e={...e,tilt:[-Math.PI/2,0],free:true};r.placed=true;}   /* lie: laid on his back, then let down until his back rests on what is under him */
   r.figure.position.copy(r.pos);r.figure.rotation.set(0,r.heading,0,'YXZ');if(e.tilt){r.figure.rotation.set(e.tilt[0]||0,r.heading,e.tilt[1]||0,'YXZ');r.air=true;}r.hold=e.pose||r.hold||{};   /* tilt: the whole figure leaned (a man falling across a table), held as in the air */
-  for(const k of ['armRP','armLP','headP','torsoP','legRP','legLP']){const v=r.hold[k]||[0,0,0];r[k].rotation.set(v[0],v[1],v[2]);}
+  /* a minifig's joints, and only those: arms and legs swing forward and back, the head turns; the waist does not bend and the arms
+     do not lift out sideways (free: the few built figures that are not minifigs) */
+  for(const k of ['armRP','armLP','headP','torsoP','legRP','legLP']){const v=r.hold[k]||[0,0,0];
+    if(e.free)r[k].rotation.set(v[0],v[1],v[2]);else if(k==='headP')r[k].rotation.set(0,v[1],0);else if(k==='torsoP')r[k].rotation.set(0,0,0);else r[k].rotation.set(v[0],0,0);}
+  if(e.lie){r.figure.updateMatrixWorld(true);const b=new THREE.Box3();   /* the back and legs rest on the bed; loose arms may hang past it */
+    r.figure.traverse(o=>{if(!o.isMesh)return;for(let q=o;q;q=q.parent)if(q===r.armRP||q===r.armLP)return;b.union(new THREE.Box3().setFromObject(o));});const c=b.getCenter(new THREE.Vector3());r.figure.visible=false;const g=kfGround(c.x,c.z);r.figure.visible=true;
+    r.pos.y+=g-b.min.y+0.4;r.figure.position.copy(r.pos);r.air=true;}
   /* sit: the thighs level, the hips on the highest seat under the figure (a bench, a throne), the feet hanging; the support check then looks under the hips */
   r.sat=!!e.sit;if(e.sit){const figs=new Set();ButterCast.cast.forEach(b=>b.rig.figure.traverse(o=>figs.add(o)));const ms=[];scene.traverse(o=>{if(kfSolid(o)&&!figs.has(o))ms.push(o);});
     const h=new THREE.Raycaster(new THREE.Vector3(r.pos.x,r.pos.y+(e.sitReach??(e.y==='surface'?60:(e.reach??60))),r.pos.z),new THREE.Vector3(0,-1,0)).intersectObjects(ms,true)[0];
@@ -163,10 +176,26 @@ function kfPhysics(ids,touch=[]){const set=new Set(ids),acts=ButterCast.cast.fil
     if(Math.abs(gap)<=3*k&&h){const o=kfPropOf(h.object);if(o&&!a.rig.placed&&!ok(o,kfShort(a.kind)))perched.push([kfShort(a.kind),o]);}}
   /* a prop through a figure (a torch through a suitor's chest, a rock in a man's head) poisons the frame as surely as two figures in one
      place: every staged prop against every figure near it, but a prop in a figure's own hand against that figure is its grip, and the prop a figure stands or sits on is its floor */
-  for(const [id,h] of kfPropObjs){const pb=kfObjBoxes(h,0.2);if(!pb.length)continue;const hb=new THREE.Box3().setFromObject(h);
+  /* a prop is one merged mesh, so its box says nothing about a sprawling build (an olive's crown over a man's head): count the prop's
+     own vertices that lie inside a figure's parts instead */
+  const inBox=(v,A)=>{const d=v.clone().sub(A.c);for(let i=0;i<3;i++)if(Math.abs(d.dot(A.ax[i]))>A.h[i])return false;return true;};
+  for(const [id,h] of kfPropObjs){const hb=new THREE.Box3().setFromObject(h);const verts=[];h.updateMatrixWorld(true);
+    h.traverse(o=>{if(!o.isMesh||!o.geometry||!o.geometry.attributes.position)return;const P=o.geometry.attributes.position,step=Math.max(1,Math.floor(P.count/6000));for(let i=0;i<P.count;i+=step)verts.push(new THREE.Vector3(P.getX(i),P.getY(i),P.getZ(i)).applyMatrix4(o.matrixWorld));});
     for(const a of acts){const q=kfShort(a.kind);if(h.userData.holder===q||support.get(q)==='prop:'+id||ok('prop:'+id,q))continue;const ab=boxes.get(a);if(!ab.length)continue;
       const fb=new THREE.Box3().setFromObject(a.rig.figure);if(!fb.intersectsBox(hb))continue;
-      let n=0;for(const A of pb)for(const B of ab)if(kfSat(A,B))n++;if(n)collide.push(['prop:'+id,q,n]);}}
+      let n=0;for(const v of verts){if(!fb.containsPoint(v))continue;for(const A of ab)if(inBox(v,A)){n++;break;}}if(n>=3)collide.push(['prop:'+id,q,n]);}}
+  /* the set through a figure (an olive's trunk through a sleeper, a man inside a wall or a hull): the set's own vertices near a figure,
+     counted inside the figure's parts. What the figure stands, sits or lies on is not a clash: studs under the feet (a minifig's feet take
+     studs), the seat under the hips. touch ['set', id] lets a still mean it (a man waist-deep in the sea) */
+  {const A=filmAsset(),lab=new Map((A.rows||[]).map((r,i)=>[r.id,(A.pages[i]||{}).label]));const setMeshes=[];
+   scene.traverse(o=>{if(!kfSolid(o)||figs.has(o))return;for(let q=o;q;q=q.parent)if(String(q.name).startsWith('prop:'))return;setMeshes.push(o);});
+   const cache=new Map(),vertsOf=m=>{if(cache.has(m))return cache.get(m);const P=m.geometry.attributes.position,out=[];m.updateMatrixWorld(true);const step=Math.max(1,Math.floor(P.count/20000));for(let i=0;i<P.count;i+=step)out.push(new THREE.Vector3(P.getX(i),P.getY(i),P.getZ(i)).applyMatrix4(m.matrixWorld));cache.set(m,out);return out;};
+   const nameOf=m=>{let f='';for(let p=m;p;p=p.parent)if(p.userData&&p.userData.file){f=p.userData.file;break;}const id=f||m.userData.part||m.userData.partId||m.name||'set';let L=lab.get(id);for(let p=m;!L&&p;p=p.parent)L=lab.get(p.name)||lab.get(p.userData&&p.userData.id);return L||id;};
+   for(const a of acts){const q=kfShort(a.kind);if(ok('set',q))continue;const ab=boxes.get(a);if(!ab.length)continue;const kk=a.rig.headP.getWorldScale(new THREE.Vector3()).y;
+     const fb=new THREE.Box3().setFromObject(a.rig.figure);const rest=a.rig.sat?kfWorld(a.rig.legRP).y+2*kk:fb.min.y+6*kk;let n=0;const names=new Set();
+     for(const m of setMeshes){if(!m.geometry||!m.geometry.attributes.position)continue;const mb=new THREE.Box3().setFromObject(m);if(!mb.intersectsBox(fb))continue;let c=0;
+       for(const v of vertsOf(m)){if(v.y<rest||!fb.containsPoint(v))continue;for(const B of ab)if(inBox(v,B)){c++;break;}}if(c>=3){n+=c;names.add(nameOf(m));}}
+     if(n)collide.push(['the set ('+[...names].slice(0,3).join(', ')+')',q,n]);}}
   return {collide,floating,perched};}
 /* rope: a braided string as LDraw models one (a chain of short cylinders along a path), here wound in loops round a figure and the
    post it is bound to, at heights along the figure (fractions of its height above the feet), knotted with a hanging tail */
@@ -201,10 +230,12 @@ function kfPoint(p){if(Array.isArray(p))return new KV(...p);if(typeof p==='strin
 /* after: a prop placed once the cast is blocked (an axe in a raised hand: at 'hand:odysseus:R') */
 function kfPropsAfter(list){const late=(list||[]).filter(e=>e.after);if(late.length)kfProps(late,true);}
 function kfProps(list,late=false){if(!late){for(const o of kfPropObjs.values())scene.remove(o);kfPropObjs.clear();}const sc=filmAsset().scale;
-  for(const e of list||[]){if(!!e.after!==late)continue;const P=kfPropLib[e.name];if(!P){console.warn('[props] unknown',e.name);continue;}const id=e.id||e.name,g=P.template.clone(true),m=e.scale||1;g.scale.set(sc*m,-sc*m,-sc*m);
+  for(let e of list||[]){if(!!e.after!==late)continue;const P=kfPropLib[e.name];if(!P){console.warn('[props] unknown',e.name);continue;}const id=e.id||e.name,g=P.template.clone(true),m=e.scale||1;g.scale.set(sc*m,-sc*m,-sc*m);
     for(const [an,v] of Object.entries(P.anchors||{})){const o=new THREE.Object3D();o.position.set(...v);o.name='@'+id+'.'+an;g.add(o);}
     const h=new THREE.Group();h.add(g);h.name='prop:'+id;if(e.after&&typeof e.aim?.to==='string'&&e.aim.to.startsWith('hand:')){h.userData.held=true;h.userData.holder=e.aim.to.split(':')[1];}
-    const at=e.at?kfPoint(e.at).add(new KV(...(e.off||[0,0,0]))):new KV();for(const o of kfPropObjs.values())o.visible=false;const ground=e.floor?kfGround(at.x,at.z):null;for(const o of kfPropObjs.values())o.visible=true;   /* a prop rests on the set, not on another prop */
+    const at=e.at?kfPoint(e.at).add(new KV(...(e.off||[0,0,0]))):new KV();
+    /* the click for props: a prop set on the ground sits on the half-stud grid, turned in quarter turns */
+    if(!e.free&&!e.aim&&Array.isArray(e.at)){const h=10*sc;at.x=Math.round(at.x/h)*h;at.z=Math.round(at.z/h)*h;if(e.rot&&!e.rot[0]&&!e.rot[2])e={...e,rot:[0,Math.round(e.rot[1]/(Math.PI/2))*(Math.PI/2),0]};}for(const o of kfPropObjs.values())o.visible=false;const ground=e.floor?kfGround(at.x,at.z):null;for(const o of kfPropObjs.values())o.visible=true;   /* a prop rests on the set, not on another prop */
     if(e.rot)h.rotation.set(e.rot[0],e.rot[1],e.rot[2],'YXZ');scene.add(h);kfPropObjs.set(id,h);h.updateMatrixWorld(true);
     if(e.aim){const to=kfPoint(e.aim.to).add(new KV(...(e.aim.off||[0,0,0]))),dir=(e.aim.from?to.clone().sub(kfPoint(e.aim.from)):new KV(...e.aim.dir)).normalize();
       h.quaternion.setFromUnitVectors(new KV(0,-1,0),dir);if(e.aim.spin)h.rotateOnWorldAxis(dir,e.aim.spin);h.updateMatrixWorld(true);
